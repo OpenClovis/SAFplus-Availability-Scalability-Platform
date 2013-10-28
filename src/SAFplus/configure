@@ -1475,7 +1475,6 @@ export SAFPLUS_BUILD_CPP=1
 # echo "$as_me: error: Please run the script from SAFplus directory" >&2;}
 #    { (exit 1); exit 1; }; }
 # fi;
-
 host_os=$(uname -s)
 if [ "$host_os" == "SunOS" ]; then
     export TARGET_SOLARIS=1
@@ -1686,7 +1685,11 @@ if [ $MODEL_BUILD = 1 ]; then
     fi
 fi
 
-INSTALL='install'
+if [ "$host_os" == "SunOS" ]; then
+    INSTALL='ginstall '
+else
+    INSTALL='install'
+fi
 install_flags='-m 644'
 
 #
@@ -1808,6 +1811,10 @@ if [ "$TARGET_QNX" = "1" ]; then
     export LDFLAGS=-lsocket
 else
     export TARGET_QNX=0
+fi
+
+if [ "$host_os" == "SunOS" ]; then
+    export LDFLAGS='-lnsl -lsocket'
 fi
 
 do_cm_build=0

@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import platform
 import os, os.path, sys
 import re
 import pdb
@@ -7,6 +8,7 @@ import errno
 import types
 import urllib2
 import string
+
 
 # make sure they have a proper version of python
 if sys.version_info[:3] < (2, 4, 3):
@@ -30,13 +32,20 @@ except ImportError:
 # ------------------------------------------------------------------------------
 # Settings
 # ------------------------------------------------------------------------------
-THIRDPARTY_REVISION = ".0"
-if determine_bit() == 64:
-    ArchName = '.x86_64'
-else: 
-    ArchName = '.x86_32'
-PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6'+ ArchName
-PRE_INSTALL_PKG = PRE_INSTALL_PKG_NAME + '.tar.gz'
+if 'SunOS' == platform.system():
+    PRE_INSTALL_PKG_NAME = '3rdparty-base-6.1-sun'
+    PRE_INSTALL_PKG = PRE_INSTALL_PKG_NAME + '.tar'
+else:
+    THIRDPARTY_REVISION = ".0"
+    if determine_bit() == 64:
+        ArchName = '.x86_64'
+    else:
+        ArchName = '.x86_32'
+    
+    PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6'+ ArchName
+    PRE_INSTALL_PKG = PRE_INSTALL_PKG_NAME + '.tar.gz'
+
+    
 
 PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                                   # Look for PKG starting with this name
 PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'                # search this package if no 3rdPartyPkg found
@@ -106,7 +115,7 @@ class ASPInstaller:
         self.HOME                = self.expand_path('~')
         self.OFFLINE             = False
         self.INTERNET		 = True	
-        self.WITH_CM_BUILD                 = False
+        self.WITH_CM_BUILD       = False
         # ------------------------------------------------------------------------------
         self.NEED_TIPC_CONFIG    = False
         self.TIPC_CONFIG_VERSION = ''
@@ -150,8 +159,13 @@ class ASPInstaller:
             self.feedback(msg, True, False)
         
         # set the thirdparty-package name
-        self.THIRDPARTY_NAME_STARTS_WITH = '3rdparty-base-'+ self.ASP_VERSION + THIRDPARTY_REVISION + ArchName
-        self.THIRDPARTYPKG_DEFAULT = '3rdparty-base-'+ self.ASP_VERSION + THIRDPARTY_REVISION + ArchName + '.tar'
+        if 'SunOS' == platform.system():
+            self.THIRDPARTY_NAME_STARTS_WITH = '3rdparty-base-6.1-sun'
+            self.THIRDPARTYPKG_DEFAULT = '3rdparty-base-6.1-sun.tar'
+        else:
+            self.THIRDPARTY_NAME_STARTS_WITH = '3rdparty-base-'+ self.ASP_VERSION + THIRDPARTY_REVISION + ArchName
+            self.THIRDPARTYPKG_DEFAULT = '3rdparty-base-'+ self.ASP_VERSION + THIRDPARTY_REVISION + ArchName + '.tar'
+ 
  			        
         # set some flags that may have been passed from command line
         self.parse_cl_options()
@@ -251,7 +265,6 @@ class ASPInstaller:
     
     def queuePreinstall(self):
         """ Prepare preinstall phase mimicking old preinstall-*.sh scripts """
-        
         assert self.OS, "Error: Script OS failure"
         
         self.debug('queuePreinstall()')
@@ -646,7 +659,7 @@ class ASPInstaller:
             self.print_install_header()
 
             if self.NO_INTERACTION == True:
-                strin = self.INSTALL_DIR
+                strin = INSTALL_DIR
             else:
                 strin = self.get_user_feedback('Enter the installation root directory [default: %s]: ' % self.INSTALL_DIR)
 
@@ -675,7 +688,7 @@ class ASPInstaller:
             self.DOC_ROOT        = os.path.join(self.PACKAGE_ROOT, 'doc')        # DOCS are copied here
             self.BIN_ROOT        = os.path.join(self.PACKAGE_ROOT, 'bin')        # scripts are copied here    
             self.LIB_ROOT        = os.path.join(self.PACKAGE_ROOT, 'lib')        # copy rc scripts in this directory
-            self.ASP_ROOT        = os.path.join(self.PACKAGE_ROOT, 'src/SAFplus')    # SAFplus sources are copied here
+            self.ASP_ROOT        = os.path.join(self.PACKAGE_ROOT, 'src/SAFplus')    # ASP sources are copied here
             self.MODULES         = os.path.join(self.PREFIX, 'modules')
             self.ECLIPSE         = os.path.join(self.IDE_ROOT, 'eclipse')
             self.ESC_ECLIPSE_DIR = syscall("echo %s/eclipse | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
@@ -792,7 +805,7 @@ class ASPInstaller:
                 if l > longest:
                     longest = l
             
-            
+           
             head = 'Module' + ' '*(8+longest-6) + 'Needed     (Installed)'
             
             self.feedback(head)
@@ -935,7 +948,10 @@ class ASPInstaller:
             self.debug('Warning: doPreinstall called with 0 items')
             return
         
-        assert self.OS.apt != self.OS.yum, 'install script error: cannot use apt AND yum'
+        if 'SunOS' == platform.system():
+            assert self.OS.pkg         # For Solaris Installation
+        else:
+            assert self.OS.apt != self.OS.yum, 'install script error: cannot use apt AND yum'
         
         self.debug('doPreinstall() %d items to install' % len(self.preinstallQueue))
         
@@ -943,6 +959,8 @@ class ASPInstaller:
             self.feedback('Error: Could not find apt-get, cannot continue.\n\tMay be a problem with $PATH', True)
         elif self.OS.yum and not syscall('which yum'):
             self.feedback('Error: Could not find yum, cannot continue.\n\tMay be a problem with $PATH', True)
+        elif self.OS.pkg and not syscall('which pkg'):
+            self.feedback('Error: Could not find pkg, cannot continue.\n\tMay be a problem with $PATH', True)
         
         self.feedback('Beginning preinstall phase... please wait. This may take up to 5 minutes.')
         
@@ -954,7 +972,7 @@ class ASPInstaller:
             else:
               install_lst.append(dep)      # This is a complex dependency that must be installed individually
         
-        if self.OS.apt:
+        if self.OS.apt == True:
             if self.OFFLINE:
                res = syscall ("dpkg -i -R preinstall")
                print str (res)
@@ -970,6 +988,13 @@ class ASPInstaller:
                if "Could not get lock" in "".join(result):
                  self.feedback("Could not get the lock, is another package manager running?\n", fatal=True)
             self.feedback('Successfully installed preinstall dependencies.')
+
+        elif self.OS.pkg:
+            self.debug('Package Installing: ' + install_str)
+            (retval, result, signal, core) = system('pkg install %s' % install_str)
+            if "Could not get lock" in "".join(result):
+                 self.feedback("Could not get the lock, is another package manager running?\n", fatal=True)
+            self.feedback('Successfully installed preinstall dependencies.') 
         
         
         else:
@@ -1034,15 +1059,23 @@ class ASPInstaller:
                 if len (packageList) == 0:
                   self.feedback("%s: Package is not included in our third party archive.  You will need to install it yourself" %dep.name)
                   continue
-
-                syscall('tar zxf %s' % dep.pkg_name)                                    # extract
-                syscall('rm -f %s' % dep.pkg_name)                                      # remove .gz
+                if 'SunOS' == platform.system() and dep.name == 'TIPC_CONFIG_SOLARIS' :
+                    pass
+                else:
+                    syscall('tar zxf %s' % dep.pkg_name)                                    # extract
+                    syscall('rm -f %s' % dep.pkg_name)                                      # remove .gz
                 
-                exdir = dep.pkg_name.replace('.tar.gz', '').replace('.tgz', '')
+                if 'SunOS' == platform.system() and dep.name == 'TIPC_CONFIG_SOLARIS' :
+                    pass
+                else:
+                    exdir = dep.pkg_name.replace('.tar.gz', '').replace('.tgz', '')
 		
                 self.feedback('move into extracted folder: %s ' % (syscall('pwd')))
-                self.feedback('move into extracted folder: %s ' % (exdir))           
-                os.chdir(exdir)                                                         # move into extracted folder
+                if 'SunOS' == platform.system() and dep.name == 'TIPC_CONFIG_SOLARIS' :
+                    pass
+                else:
+                    self.feedback("move into extracted folder: %s " % (exdir))           
+                    os.chdir(exdir)                                                         # move into extracted folder
 
                 # if the dep wants to do configure in a /build/ directory
                 if dep.use_build_dir:
@@ -1116,9 +1149,8 @@ class ASPInstaller:
                 # execute commands to build package
                 for cmd in dep.build_cmds:
                 
-                    cmd = self.parse_unix_vars(cmd)               
+                    cmd = self.parse_unix_vars(cmd) 
                     cmd = cmd.replace('\n', ' ')
-                
                     self.debug('calling cmd: ' + cmd)
                     ret_code = cli_cmd(cmd)
                     if (ret_code != 0):
@@ -1225,7 +1257,10 @@ class ASPInstaller:
             syscall('rm -rf PSP') # remove PSP    
             syscall('tar zxf %s' % PSPPKG_PATH)        
             syscall('mv %s* PSP' %(PSP_NAME_STARTS_WITH))
-            self.WITH_CM_BUILD = True
+            if 'SunOS' == platform.system():
+                self.WITH_CM_BUILD = False
+            else:
+                self.WITH_CM_BUILD = True
         
         if self.DO_PREBUILD:
             self.prebuild()
@@ -1464,8 +1499,11 @@ class ASPInstaller:
           
              self.feedback('Building SAFplus %s' % b)
              cmd = 'asp/build/%s' % b
-             os.chdir (cmd)
-             os.system ('make')
+             os.chdir(cmd)
+             if 'SunOS' == platform.system():
+                 os.system ('gmake safplus-libs')
+             else:
+                 os.system ('make safplus-libs')
              #os.system ('make safplus-install')           
            # write to configure.conf file
            if self.WITH_CM_BUILD :           
@@ -1484,7 +1522,10 @@ class ASPInstaller:
         else:
            strin = self.get_user_feedback('Create symbolic links for items in %s ? <y|n> [y]: '  % self.BIN_ROOT)
  
-        self.DEFAULT_SYM_LINK = '/usr/local/bin'
+        if 'SunOS' == platform.system():
+            self.DEFAULT_SYM_LINK = '/usr/bin'
+        else:
+            self.DEFAULT_SYM_LINK = '/usr/local/bin'
 
         if not strin or strin.lower().startswith('y'):
            if self.NO_INTERACTION == True:
@@ -1569,8 +1610,8 @@ class ASPInstaller:
         self.ESC_PKG_ROOT = syscall("echo %s | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
         self.ESC_PKG_NAME = syscall("echo %s | sed -e 's/\./\\\./g'" % self.PACKAGE_NAME)
         #self.ESC_ECLIPSE_DIR = syscall("echo %s/eclipse | sed -e 's;/;\\\/;g'" % self.PACKAGE_ROOT)
-        olist = ['PREFIX', 'thirdPartyPkg', 'BUILDTOOLS', 'NET_SNMP_CONFIG', 'PACKAGE_ROOT', 'BIN_ROOT', 'LIB_ROOT', 'WORKING_DIR', 'ESC_PKG_ROOT', 'ESC_PKG_NAME', 'IDE', 'SAFplus', 'PACKAGE_NAME', 'HOME', 'CACHE_DIR', 'IDE_ROOT', 'ECLIPSE', 'ESC_ECLIPSE_DIR', 'PATH']
-        rlist = [self.PREFIX, self.THIRDPARTYPKG_PATH, self.BUILDTOOLS, self.NET_SNMP_CONFIG, self.PACKAGE_ROOT, self.BIN_ROOT, self.LIB_ROOT, self.WORKING_DIR, self.ESC_PKG_ROOT, self.ESC_PKG_NAME, 'IDE', 'SAFplus', self.PACKAGE_NAME, self.HOME, self.CACHE_DIR, self.IDE_ROOT, self.ECLIPSE, self.ESC_ECLIPSE_DIR, os.getenv('PATH') + os.defpath]
+        olist = ['PREFIX', 'thirdPartyPkg', 'BUILDTOOLS', 'NET_SNMP_CONFIG', 'PACKAGE_ROOT', 'BIN_ROOT', 'LIB_ROOT', 'WORKING_DIR', 'ESC_PKG_ROOT', 'ESC_PKG_NAME', 'IDE', 'ASP', 'PACKAGE_NAME', 'HOME', 'CACHE_DIR', 'IDE_ROOT', 'ECLIPSE', 'ESC_ECLIPSE_DIR', 'PATH']
+        rlist = [self.PREFIX, self.THIRDPARTYPKG_PATH, self.BUILDTOOLS, self.NET_SNMP_CONFIG, self.PACKAGE_ROOT, self.BIN_ROOT, self.LIB_ROOT, self.WORKING_DIR, self.ESC_PKG_ROOT, self.ESC_PKG_NAME, 'IDE', 'ASP', self.PACKAGE_NAME, self.HOME, self.CACHE_DIR, self.IDE_ROOT, self.ECLIPSE, self.ESC_ECLIPSE_DIR, os.getenv('PATH') + os.defpath]
         
 	assert len(rlist) == len(olist)
 
@@ -1817,7 +1858,7 @@ class ASPInstaller:
 
 
 def main():
-    # allocate an SAFplus installer object
+    # allocate an ASP installer object
     installer = ASPInstaller()
     installer.launchGUI()
     print "Script exited cleanly."

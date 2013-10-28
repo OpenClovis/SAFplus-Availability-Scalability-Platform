@@ -410,7 +410,11 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
     priority = CL_UDP_DEFAULT_PRIORITY;
     if (udpPriorityChangePossible)
     {
+#ifndef SOLARIS_BUILD
         if(!setsockopt(map->sendFd, SOL_IP, IP_TOS, &priority, sizeof(priority)))
+#else
+        if(!setsockopt(map->sendFd, IPPROTO_IP, IP_TOS, &priority, sizeof(priority)))
+#endif
         {
             map->priority = priority;
         }
@@ -1205,7 +1209,11 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
     if ((udpPriorityChangePossible) && (map->priority != sendArgs->priority))
     {
         priority = sendArgs->priority;
+#ifndef SOLARIS_BUILD
         if(!setsockopt(map->sendFd, SOL_IP, IP_TOS, &priority, sizeof(priority)))
+#else
+        if(!setsockopt(map->sendFd, IPPROTO_IP, IP_TOS, &priority, sizeof(priority)))
+#endif
         {
             map->priority = priority;
         }

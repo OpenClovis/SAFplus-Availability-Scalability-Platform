@@ -4,15 +4,15 @@
     <multixport:multixport xmlns:multixport="multixport.ecore">
       <xports>
         <xport>
-          <type>TIPC</type>
-          <plugin>libClTIPC.so</plugin>
+          <type>UDP</type>
+          <plugin>libClUDP.so</plugin>
         </xport>
       </xports>
-      <protocol default="TIPC">
-        <node name="SCNodeI0" protocol="TIPC"/>
-        <node name="SCNodeI1" protocol="TIPC"/>
-        <node name="PayloadNodeI0" protocol="TIPC"/>
-        <node name="PayloadNodeI1" protocol="TIPC"/>
+      <protocol default="UDP">
+        <node name="SCNodeI0" protocol="UDP"/>
+        <node name="SCNodeI1" protocol="UDP"/>
+        <node name="PayloadNodeI0" protocol="UDP"/>
+        <node name="PayloadNodeI1" protocol="UDP"/>
       </protocol>
     </multixport:multixport>
   </version>

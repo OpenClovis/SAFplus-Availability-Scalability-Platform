@@ -5,7 +5,9 @@
 #include <sys/inotify.h>
 #include <sys/stat.h>
 #endif
+#ifndef SOLARIS_BUILD
 #include <sys/epoll.h>
+#endif
 #include <unistd.h>
 #include <clCommon.h>
 #include <clCommonErrors.h>
@@ -196,7 +198,11 @@ static ClRcT transportNotifyCallback(ClInt32T fd, ClInt32T events, void *unused)
     ClInt32T bytes;
     ClCharT *iter = buff;
     struct inotify_event *event;
+#ifdef SOLARIS_BUILD
+    if(!(events & POLLIN))
+#else
     if(!(events & EPOLLIN))
+#endif
         return CL_OK;
     bytes = read(fd, buff, sizeof(buff));
     while(bytes >= (ClInt32T)sizeof(struct inotify_event))

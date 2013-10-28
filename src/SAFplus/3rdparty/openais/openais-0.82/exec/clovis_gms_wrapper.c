@@ -118,7 +118,7 @@ LOGSYS_DECLARE_SUBSYS ("GMS", LOG_INFO);
 /* ------------------------------------------------------------------------
  * Clovis data structures as extern declarations
  *------------------------------------------------------------------------*/
-extern  ClUint32T           gmsOpenAisEnable;
+/*extern  ClUint32T           gmsOpenAisEnable; */
 extern  ClGmsNodeT          gmsGlobalInfo;
 extern  void                _clGmsGetThisNodeInfo(ClGmsClusterMemberT  *);
 extern  ClRcT               _clGmsCallClusterMemberEjectCallBack( ClGmsMemberEjectReasonT );
@@ -131,7 +131,7 @@ extern  struct totem_ip_address my_ip;
 /* ------------------------------------------------------------------------
  * Openais specific Function declarations
  *------------------------------------------------------------------------*/
-
+ClUint32T           gmsOpenAisEnable = 1;
 /* NOTE: The functions and data structures with "lib" string
  * attached, are basically intended to provide a client library
  * service for this registered service. In our case, however, we

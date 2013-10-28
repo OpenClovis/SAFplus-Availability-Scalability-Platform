@@ -542,7 +542,7 @@ $(OBJ_DIR)/asp_build.c: $(SRC_FILES)
 	else \
 	    BUILD_NUMBER="unlabeled"; \
 	fi; \
-	$(ECHO) "char asp_build[] = \"SAFPLUS_BUILD: built on [$$HOSTNAME] at [`date`] by [$$USER] from SAFplus build [$$BUILD_NUMBER]\\n\";" > $(OBJ_DIR)/asp_build.c
+	$(ECHO) "char asp_build[] = \"SAFPLUS_BUILD: built on [$$HOSTNAME] at [`date`] by [$$USER] from SAFplus build [$$BUILD_NUMBER]\";" > $(OBJ_DIR)/asp_build.c
 SRC_FILES += $(OBJ_DIR)/asp_build.c
 $(OBJ_DIR)/asp_build.o: $(OBJ_DIR)/asp_build.c
 	$(call cmd,cc_o_c)

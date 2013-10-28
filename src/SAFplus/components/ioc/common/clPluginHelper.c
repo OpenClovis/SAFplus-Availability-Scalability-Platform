@@ -1,6 +1,11 @@
 #include <sys/socket.h>
 #include <netpacket/packet.h>
+#ifndef SOLARIS_BUILD
 #include <net/ethernet.h>
+#else
+#include <sys/ethernet.h>
+#include <sys/sockio.h>
+#endif
 #include <string.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -235,6 +240,7 @@ static ClRcT _clPluginHelperDevToMac(const ClCharT* dev, char mac[CL_MAC_ADDRESS
 }
 
 static ClRcT _clPluginHelperDevToIfIndex(const ClCharT *dev, int *ifindex) {
+#ifndef SOLARIS_BUILD
     struct ifreq req;
 
     int sd = socket(AF_INET, SOCK_STREAM, 0);
@@ -252,6 +258,14 @@ static ClRcT _clPluginHelperDevToIfIndex(const ClCharT *dev, int *ifindex) {
     *ifindex = req.ifr_ifindex;
 
     close(sd);
+#else
+    *ifindex = if_nametoindex(dev);
+    if (*ifindex == 0) { 
+        int err = errno;
+        clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "No device %s, ifindex errno: %d", dev, err);
+        return CL_ERR_LIBRARY;
+    }
+#endif
     return CL_OK;
 }
 
@@ -261,7 +275,12 @@ static ClRcT _clPluginHelperHostToIp(const ClCharT *myHost, ClUint32T *ip) {
     ClCharT buf[129];
     int errnum = 0;
 
+#ifndef SOLARIS_BUILD
     if (gethostbyname_r(myHost, &hostdata, buf, 128, &host, &errnum) || !host) {
+#else
+    host = gethostbyname_r(myHost, &hostdata, buf, 128, &errnum);
+    if (!host) {
+#endif
         clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Cannot resolve host string %s", myHost);
         return CL_ERR_LIBRARY;
     }

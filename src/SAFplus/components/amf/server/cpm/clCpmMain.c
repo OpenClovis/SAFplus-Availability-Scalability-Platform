@@ -48,6 +48,10 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #endif
+#ifdef SOLARIS_BUILD
+#include <net/if.h>
+#include <sys/sockio.h>
+#endif
 
 /*
  * ASP header files 

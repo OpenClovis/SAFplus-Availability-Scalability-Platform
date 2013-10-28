@@ -22,11 +22,16 @@
 
 PROGS = nodeinfo
 EXE_FLAGS = -m 0755
+ifdef SOLARIS_BUILD
+	INSTALL_CMD=ginstall
+else
+	INSTALL_CMD=install
+endif
 
 .PHONY : all clean
 
 all:
-	$(shell install $(PROGS) $(EXE_FLAGS) $(MODEL_BIN))
+	$(shell $INSTALL_CMD $(PROGS) $(EXE_FLAGS) $(MODEL_BIN))
 
 lib:
 

@@ -74,7 +74,7 @@ $(TEST): $(OBJS)
 $(OBJ_DIR)/ezxml.o: ezxml.h ezxml.c
 
 #.c.o:
-	$(shell mkdir -p $(DEP_DIR) $(OBJ_DIR))
+	$(shell mkdir -p $(DEP_DIR) $(OBJ_DIR) $(LIB_DIR))
 
 	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/ezxml.o ezxml.c
 

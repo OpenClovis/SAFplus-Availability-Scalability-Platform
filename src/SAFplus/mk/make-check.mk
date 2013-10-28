@@ -23,9 +23,17 @@
 #
 ################################################################################
 
+ifdef SOLARIS_BUILD
+        AWK=gawk
+else
+        AWK=awk
+endif
+export AWK
+
 #
 # Allowed component names:
 #
+
 COMP_NAMES	= Alarm Ams \
 		  Bit Buffer \
 		  Cap Ckpt Cksm Clist Cm Cnt Common Cor Cpm \
@@ -83,7 +91,7 @@ checkapi_fnames: FORCE
 	        echo $$f | $(filename-only) | \
 		    egrep -v -e $(cl_filename_pattern) | \
                     egrep -v -e $(saf_filename_pattern) | \
-                        awk '{if (NF>0)print}' ; \
+                        $(AWK) '{if (NF>0)print}' ; \
 	    done ;
 
 checkapi_cond: FORCE
@@ -101,15 +109,15 @@ checkapi_syms: FORCE
 	@echo 'The following symbols are not in Clovis name space:'
 	$(Q)cd $(ASP_ROOT); \
 	    for f in $(api_files) ; do \
-	        ctags -x $$f | awk '$$2=="member"{next}{print $$4,$$1,$$2}' | \
-		awk '{if (match($$2, "^_?CL_")!=0){next} \
+	        ctags -x $$f | $(AWK) '$$2=="member"{next}{print $$4,$$1,$$2}' | \
+		$(AWK) '{if (match($$2, "^_?CL_")!=0){next} \
 		      if (match($$2, "^Cl")!=0) {next} \
 		      if (match($$2, "^cl")!=0){next} \
                       if (match($$2, "^Sa")!=0){next} \
                       if (match($$2, "^_?SA_?")!=0){next} \
                       if (match($$2, "^sa")!=0){next} \
 		      print}' | \
-		awk '{printf("%-39s %-25s %s\n", $$1, $$2, $$3)}'; \
+		$(AWK) '{printf("%-39s %-25s %s\n", $$1, $$2, $$3)}'; \
 	    done
 
 ################################################################################
@@ -123,13 +131,13 @@ checklib_syms: FORCE
 	$(Q)cd $(ASP_LIB); \
 	    for f in `ls *.a | grep -v Server`; do \
 	    	nm --defined-only -g $$f | \
-		awk '/^[a-zA-Z0-9]+\.o/{fname=$$1}NF==3{print fname,$$0}' | \
-		awk '{if (match($$4, "^_?CL_")!=0){next} \
+		$(AWK) '/^[a-zA-Z0-9]+\.o/{fname=$$1}NF==3{print fname,$$0}' | \
+		$(AWK) '{if (match($$4, "^_?CL_")!=0){next} \
 		      if (match($$4, "^_?Cl")!=0) {next} \
 		      if (match($$4, "^_?cl")!=0){next} \
                       if (match($$4, "^sa")!=0){next} \
 		      print}' | \
-		awk '{printf("%-30s %s (%s)\n", $$1,$$4,$$3)}' ; \
+		$(AWK) '{printf("%-30s %s (%s)\n", $$1,$$4,$$3)}' ; \
 	    done
 
 ################################################################################

@@ -185,7 +185,7 @@ SYS_LIBS += -ldb -ldl
 PURIFY_LIBS += -ldb
 else
 ifdef SOLARIS_BUILD
-SYS_LIBS		+= -L/usr/local/lib -L/usr/local/BerkeleyDB.4.2/lib -lrt -lm -ldl -lpthread #-lgdbm -lsqlite3 -ldb
+SYS_LIBS		+= -L/usr/local/lib -L/usr/local/BerkeleyDB.4.2/lib -lrt -lm -ldl -lpthread -lnsl -lsocket #-lgdbm -lsqlite3 -ldb
 PURIFY_LIBS             += #-lgdbm -ldb -lsqlite3
 else
 SYS_LIBS		+= -lrt -lm -ldl -lpthread  #-lgdbm -lsqlite3 -ldb 
@@ -275,6 +275,9 @@ ifdef THIRDPARTY_LIBS
 	LDLIBS		+= $(THIRDPARTY_LIBS)
     endif
 endif
+ifdef SOLARIS_BUILD
+LDLIBS += -lezxml -laisexec -llogsys -ltotem_pg
+else
 LDLIBS += -lezxml
 
 #This is needed for the components using single shared SO libmw.so 

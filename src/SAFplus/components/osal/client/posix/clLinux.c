@@ -81,7 +81,11 @@
 #include "backtrace_arch.h"
 
 char logBuffer[LOG_BUFFER_SIZE];
+#ifdef SOLARIS_BUILD
+struct sigaction oldact[NSIG];
+#else
 struct sigaction oldact[_NSIG];
+#endif
 osalFunction_t gOsalFunction = {0};
 CosTaskControl_t gTaskControl;
 cosCompCfgInit_t sCosConfig={CL_OSAL_MIN_STACK_SIZE};

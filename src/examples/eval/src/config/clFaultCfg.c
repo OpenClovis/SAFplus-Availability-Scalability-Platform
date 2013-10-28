@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef CL_USE_CHASSIS_MANAGER
+
 #include <clEoApi.h>
 #include <clFaultDefinitions.h>
 #include <clFaultApi.h>
@@ -152,3 +154,4 @@ ClFaultSeqTblT  **fmSeqTbls[] =
     equip_2DSeqTbls,
     env_2DSeqTbls
 };
+#endif

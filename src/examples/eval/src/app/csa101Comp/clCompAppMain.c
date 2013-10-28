@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 
     clEoMyEoIocPortGet(&iocPort);
     
-    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Initializing\n", appName.length, appName.value, mypid);
+    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Initializing\n", appName.length, appName.value,(int)mypid);
     clprintf (CL_LOG_SEV_INFO, "   IOC Address             : 0x%x\n", clIocLocalAddressGet());
     clprintf (CL_LOG_SEV_INFO, "   IOC Port                : 0x%x\n", iocPort);
 
@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 errorexit:
 
     clprintf (CL_LOG_SEV_ERROR, "Component [%.*s] : PID [%d]. Initialization error [0x%x]\n",
-              appName.length, appName.value, mypid, rc);
+              appName.length, appName.value, (int)mypid, rc);
 
     return -1;
 }
@@ -246,7 +246,7 @@ void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName)
     SaAisErrorT rc = SA_AIS_OK;
 
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminating\n",
-              compName->length, compName->value, mypid);
+              compName->length, compName->value, (int)mypid);
 
     /*
      * Unregister with AMF and respond to AMF saying whether the
@@ -259,7 +259,7 @@ void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName)
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminated\n",
-              compName->length, compName->value, mypid);
+              compName->length, compName->value, (int)mypid);
     clEvalAppLogStreamClose(gEvalLogStream);
 
     unblockNow = CL_TRUE;
@@ -269,7 +269,7 @@ void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName)
 errorexit:
 
     clprintf (CL_LOG_SEV_ERROR, "Component [%.*s] : PID [%d]. Termination error [0x%x]\n",
-              compName->length, compName->value, mypid, rc);
+              compName->length, compName->value, (int)mypid, rc);
 
     return;
 }
@@ -350,7 +350,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
      */
 
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. CSI Set Received\n", 
-              compName->length, compName->value, mypid);
+              compName->length, compName->value, (int)mypid);
 
     clCompAppAMFPrintCSI(csiDescriptor, haState);
 
@@ -440,7 +440,7 @@ void clCompAppAMFCSIRemove(SaInvocationT  invocation,
                            SaAmfCSIFlagsT csiFlags)
 {
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. CSI Remove Received\n", 
-              compName->length, compName->value, mypid);
+              compName->length, compName->value, (int)mypid);
 
     clprintf (CL_LOG_SEV_INFO, "   CSI                     : %.*s\n", csiName->length, csiName->value);
     clprintf (CL_LOG_SEV_INFO, "   CSI Flags               : 0x%d\n", csiFlags);

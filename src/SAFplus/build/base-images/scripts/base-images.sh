@@ -48,7 +48,7 @@ populate_image() {
 
     if [ "${SOLARIS_BUILD}" = "1" ]
     then
-	INSTALL=/usr/ucb/install
+	INSTALL=ginstall
     else
         INSTALL=install
     fi
@@ -163,6 +163,9 @@ populate_image() {
     if [ $ASP_BUILD = 0 ]; then
         echo "    Prebuilt SAFplus libraries from $ASP_INSTALLDIR/target/$ARCH/$SYS/lib"
         ${INSTALL} $installflags $ASP_INSTALLDIR/target/$ARCH/$SYS/lib/*.so $imagedir/lib
+	if [ "${SOLARIS_BUILD}" = "1" ]; then
+		${INSTALL} $installflags $ASP_INSTALLDIR/target/$ARCH/$SYS/lib/*.a $imagedir/lib
+	fi
     fi
 
 
@@ -171,6 +174,9 @@ populate_image() {
         echo "    Model specific libraries from $MODEL_LIB"
         echo "    ${INSTALL} $installflags $MODEL_LIB/*.so $imagedir/lib"
         ${INSTALL} $installflags $MODEL_LIB/*.so $MODEL_LIB/*.py $MODEL_LIB/*.pyc $MODEL_LIB/*.jar $imagedir/lib
+        if [ "${SOLARIS_BUILD}" = "1" ]; then
+		${INSTALL} $installflags $MODEL_LIB/*.a $imagedir/lib
+	fi
     fi
 
         echo "    SAFplus libraries built with the model located at $ASP_LIB"
@@ -178,6 +184,9 @@ populate_image() {
     export tmp=`/bin/ls  $ASP_LIB/*.so $ASP_LIB/*.py $ASP_LIB/*.pyc $ASP_LIB/*.jar 2> /dev/null`    
     if [ ! -z "$tmp" ]; then  # Install MODEL specific libraries
         ${INSTALL} $installflags $ASP_LIB/*.so $ASP_LIB/*.py $ASP_LIB/*.pyc $ASP_LIB/*.jar $imagedir/lib
+        if [ "${SOLARIS_BUILD}" = "1" ]; then
+		${INSTALL} $installflags $ASP_LIB/*.a $imagedir/lib
+	fi
     fi
 
     # GAS, what is this???

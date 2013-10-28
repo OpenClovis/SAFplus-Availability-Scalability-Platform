@@ -28,6 +28,15 @@
 typedef unsigned long ulong32;
 typedef unsigned long long ulong64;
 
+#ifdef OPENAIS_SOLARIS
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#define ENDIAN_LITTLE
+#elif __BYTE_ORDER == __BIG_ENDIAN
+#define ENDIAN_BIG
+#else
+#warning "cannot detect byte order"
+#endif
+#else
 #if __BYTE_ORDER == __LITTLE_ENDIAN
 #define ENDIAN_LITTLE
 #elif __BYTE_ORDER == __BIG_ENDIAN
@@ -36,8 +45,9 @@ typedef unsigned long long ulong64;
 #define ENDIAN_LITTLE
 #elif _BYTE_ORDER == _BIG_ENDIAN
 #define ENDIAN_BIG
-#elif
+#else
 #warning "cannot detect byte order"
+#endif
 #endif
 
 #if defined(OPENAIS_LINUX)

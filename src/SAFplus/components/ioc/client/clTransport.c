@@ -6,7 +6,11 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#ifndef SOLARIS_BUILD
 #include <sys/epoll.h>
+#else
+#include <sys/poll.h>
+#endif
 #include <clTransport.h>
 #include <clLogApi.h>
 #include <clParserApi.h>
@@ -103,6 +107,9 @@ typedef struct ClXportCtrl
     ClTaskPoolHandleT pool;
     ClInt32T eventFd;
     ClPollEventT *pollfds;
+#ifdef SOLARIS_BUILD
+    struct pollfd *pollfdset;
+#endif
     ClUint32T numfds;
     ClInt32T breaker[2];
 }ClXportCtrlT;
@@ -732,15 +739,32 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
                                    void *cookie)
 {
     ClPollEventT event = {0};
+#ifdef SOLARIS_BUILD
+    struct pollfd   pollfd;
+#else
     ClEventDataT *eventData;
     struct epoll_event epoll_event = {0};
     ClInt32T err;
+#endif
     ClRcT rc = CL_ERR_ALREADY_EXIST;
     if(listenerEventFind(xportCtrl, listener->fd, -1) >= 0)
     {
         clLogError("EVENT", "REGISTER", "Listener at fd [%d] already exists", listener->fd);
         goto out;
     }
+#ifdef SOLARIS_BUILD
+    if(!events)
+        events = POLLIN | POLLPRI;
+    rc = CL_ERR_LIBRARY;
+    clOsalMutexLock(&xportCtrl->mutex);
+    xportCtrl->pollfdset = realloc(xportCtrl->pollfdset, sizeof(*xportCtrl->pollfdset) * 
+                                         (xportCtrl->numfds + 1));
+    CL_ASSERT(xportCtrl->pollfdset != NULL);
+    pollfd.fd = listener->fd;
+    pollfd.events = (short) events;
+    pollfd.revents = 0;
+    memcpy(xportCtrl->pollfdset + xportCtrl->numfds, &pollfd, sizeof(pollfd));
+#else
     if(!events)
         events = EPOLLPRI | EPOLLIN;
     epoll_event.events = events;
@@ -756,6 +780,7 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
                    strerror(errno), listener->fd);
         goto out_unlock;
     }
+#endif
     xportCtrl->pollfds = realloc(xportCtrl->pollfds, sizeof(*xportCtrl->pollfds) * 
                                          (xportCtrl->numfds + 1));
     CL_ASSERT(xportCtrl->pollfds != NULL);
@@ -769,8 +794,9 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
     clListAddTail(&listener->list, &xportCtrl->listenerList);
     transportBreakerWakeup(xportCtrl);
     clOsalCondSignal(&xportCtrl->cond);
-    
+#ifndef SOLARIS_BUILD    
     out_unlock:
+#endif
     clOsalMutexUnlock(&xportCtrl->mutex);
     out:
     return rc;
@@ -778,10 +804,13 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
 
 static ClRcT listenerEventDeregister(ClXportCtrlT *xportCtrl, ClXportListenerT *listener)
 {
+#ifndef SOLARIS_BUILD
     struct epoll_event epoll_event = {0};
-    ClInt32T index = 0;
     ClInt32T err;
+#endif
+    ClInt32T index = 0;
     ClRcT rc = CL_ERR_LIBRARY;
+#ifndef SOLARIS_BUILD
     err = epoll_ctl(xportCtrl->eventFd, EPOLL_CTL_DEL, listener->fd, &epoll_event);
     if(err < 0)
     {
@@ -789,15 +818,26 @@ static ClRcT listenerEventDeregister(ClXportCtrlT *xportCtrl, ClXportListenerT *
                    listener->fd, strerror(errno));
         goto out;
     }
+#endif
     if((index = listenerEventFind(xportCtrl, listener->fd, -1)) >= 0)
     {
-        --xportCtrl->numfds;
-        memmove(xportCtrl->pollfds + index, xportCtrl->pollfds + index + 1,
+#ifdef SOLARIS_BUILD
+    clOsalMutexLock(&xportCtrl->mutex);
+#endif
+    --xportCtrl->numfds;
+    memmove(xportCtrl->pollfds + index, xportCtrl->pollfds + index + 1,
                 sizeof(*xportCtrl->pollfds) * ( xportCtrl->numfds - index));
+#ifdef SOLARIS_BUILD
+    memmove(xportCtrl->pollfdset + index, xportCtrl->pollfdset + index + 1,
+                sizeof(*xportCtrl->pollfdset) * ( xportCtrl->numfds - index));
+    clOsalMutexUnlock(&xportCtrl->mutex);
+#endif
     }
     clListDel(&listener->list);
     rc = CL_OK;
+#ifndef SOLARIS_BUILD
     out:
+#endif
     return rc;
 }
 
@@ -858,7 +898,11 @@ static ClRcT transportListenerFinalize(ClXportCtrlT *xportCtrl)
 static ClRcT transportListener(ClPtrT ctxt)
 {
     ClXportCtrlT *xportCtrl = ctxt;
+#ifdef SOLARIS_BUILD
+    struct pollfd *pollfdset = NULL;
+#else
     struct epoll_event *epoll_events = NULL;
+#endif
     ClInt32T epoll_fds = 0;
     ClInt32T epoll_cur_fds = 0;
     ClInt32T ret = 0;
@@ -874,6 +918,41 @@ static ClRcT transportListener(ClPtrT ctxt)
         }
         if(!XPORT_LISTENER_ACTIVE(xportCtrl))
             break;
+#ifdef SOLARIS_BUILD
+        if(epoll_cur_fds != epoll_fds)
+        {
+            pollfdset = realloc(pollfdset, sizeof(*pollfdset) * epoll_fds);
+            CL_ASSERT(pollfdset !=  NULL);
+            epoll_cur_fds = epoll_fds;
+        }
+        memcpy(pollfdset, xportCtrl->pollfdset, sizeof(*pollfdset) * epoll_fds);
+        clOsalMutexUnlock(&xportCtrl->mutex);
+        ret = poll(pollfdset, epoll_fds, -1);
+        clOsalMutexLock(&xportCtrl->mutex);
+        if(ret <= 0)
+            continue;
+        for(i = 0; i < epoll_fds; i++)
+        {
+            ClInt32T index;
+            ClPollEventT event = {0};
+            if((!pollfdset[i].events)|| !(pollfdset[i].revents & pollfdset[i].events))
+            {
+                 continue;
+            }
+            index = listenerEventFind(xportCtrl, pollfdset[i].fd, -1);
+            if(index < 0)
+            {
+                clLogWarning("XPORT", "LISTENER", "Listener not found for fd [%d] registered at index [%d]", 
+                             pollfdset[i].fd, index);
+                continue;
+            }
+            memcpy(&event, xportCtrl->pollfds+index, sizeof(event));
+            clOsalMutexUnlock(&xportCtrl->mutex);
+            if(event.dispatch)
+                event.dispatch(event.fd, pollfdset[i].revents, event.cookie);
+            clOsalMutexLock(&xportCtrl->mutex);
+        }
+#else
         clOsalMutexUnlock(&xportCtrl->mutex);
         if(epoll_cur_fds < epoll_fds)
         {
@@ -909,10 +988,15 @@ static ClRcT transportListener(ClPtrT ctxt)
                 event.dispatch(event.fd, epoll_events[i].events, event.cookie);
             clOsalMutexLock(&xportCtrl->mutex);
         }
+#endif
     }
     clOsalCondSignal(&xportCtrl->cond);
     clOsalMutexUnlock(&xportCtrl->mutex);
+#ifdef SOLARIS_BUILD
+    free(pollfdset);
+#else
     free(epoll_events);
+#endif
     return CL_OK;
 }
 
@@ -997,7 +1081,11 @@ static ClRcT clTransportListenerRegisterWithContext(ClXportCtrlT *xportCtrl,
     listener = calloc(1, sizeof(*listener));
     CL_ASSERT(listener != NULL);
     listener->fd = fd;
+#ifdef SOLARIS_BUILD
+    rc = listenerEventRegister(xportCtrl, listener, POLLIN | POLLPRI, dispatchCallback, cookie);
+#else
     rc = listenerEventRegister(xportCtrl, listener, EPOLLIN | EPOLLPRI, dispatchCallback, cookie);
+#endif
     if(rc != CL_OK)
     {
         clLogError("XPORT", "LISTENER", "Xport listener register for fd [%d] returned with [%#x]", fd, rc);
@@ -1116,16 +1204,18 @@ static ClRcT transportInitListener(ClXportCtrlT *xportCtrl)
     CL_LIST_HEAD_INIT(&xportCtrl->listenerList);
 
     xportCtrl->flags |= __LISTENER_INITIALIZED;
-
+#ifndef SOLARIS_BUILD
     if( (xportCtrl->eventFd = epoll_create(16) ) < 0 )
     {
         clLogError("UDP", "INI", "epoll create returned with error [%s]", strerror(errno));
         goto out;
     }
-    
+#endif    
     rc = transportListenerInitialize(xportCtrl);
 
+#ifndef SOLARIS_BUILD
     out:
+#endif
     return rc;
 }
 

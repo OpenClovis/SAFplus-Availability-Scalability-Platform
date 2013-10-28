@@ -1,3 +1,4 @@
+import platform
 import pdb
 import os
 import objects
@@ -27,10 +28,13 @@ class OS:
 
         self.kernelVerString = syscall('uname -r')
         self.kernelVer       = self.kernelVerString.split(".")
-        self.kernelVer[0] = int(self.kernelVer[0])
-        self.kernelVer[1] = int(self.kernelVer[1])
-        self.kernelVer[2] = int((self.kernelVer[2].split("-"))[0])
-
+        if 'SunOS' == platform.system():
+            self.kernelVer[0] = int(self.kernelVer[0])
+            self.kernelVer[1] = int(self.kernelVer[1])
+        else:
+            self.kernelVer[0] = int(self.kernelVer[0])
+            self.kernelVer[1] = int(self.kernelVer[1])
+            self.kernelVer[2] = int((self.kernelVer[2].split("-"))[0]) 
 
         self.bit = determine_bit()
 
@@ -92,19 +96,24 @@ class OS:
     
     def load_install_deps(self):
         """ this function loads the install() phase deps """
-        
         # note - order of installation is dependent on list
         # creation at the end of this function
-        
+       
         # ------------------------------------------------------------------------------
         # gcc
         # ------------------------------------------------------------------------------
         EXPORT = ''
         
         gcc = objects.BuildDep()
-        gcc.name          = 'gcc'
-        gcc.version       = '3.2.3'
-        gcc.pkg_name      = 'gcc-3.2.3.tar.gz'
+        if 'SunOS' == platform.system():        
+            gcc.name          = 'gcc'
+            gcc.version       = '4.5.2'
+            gcc.pkg_name      = 'gcc-4.5.2.tar.gz'
+        else:
+            gcc.name          = 'gcc'
+            gcc.version       = '3.2.3'
+            gcc.pkg_name      = 'gcc-3.2.3.tar.gz'
+            
         gcc.ver_test_cmd  = 'gcc -dumpversion 2>/dev/null'
         
         log = self.log_string_for_dep(gcc.name)
@@ -124,12 +133,12 @@ class OS:
         
         glibc = objects.BuildDep()
         glibc.name          = 'glibc'
-        glibc.version       = '2.3.5'
-        glibc.pkg_name      = 'glibc-2.3.5.tar.gz'
+        glibc.version       = '2.18'
+        glibc.pkg_name      = 'glibc-2.18.tar.gz'
         
         log = self.log_string_for_dep(glibc.name)
 
-        # actually need to compile a test program for this
+        #actually need to compile a test program for this
         
         program = """ #include <stdio.h>
             #include <gnu/libc-version.h>
@@ -141,11 +150,11 @@ class OS:
         
         
         
-        glibc.build_cmds    = ['tar xfm "${THIRDPARTYPKG}" glibc-linuxthreads-2.3.5.tar.gz',
-                               'tar zxf glibc-linuxthreads-2.3.5.tar.gz',
-                               'rm -f glibc-linuxthreads-2.3.5.tar.gz',
+        glibc.build_cmds    = ['tar xfm "${THIRDPARTYPKG}" glibc-linuxthreads-2.5.tar.gz',
+                               'tar zxf glibc-linuxthreads-2.5.tar.gz',
+                               'rm -f glibc-linuxthreads-2.5.tar.gz',
                                'mv linuxthreads ..',
-                               """../configure --prefix=${PREFIX} --build=i686-pc-linux-gnu --enable-add-ons=linuxthreads
+                               """../configure --prefix=${PREFIX} --build=i686-pc-linux-gnu --disable-add-ons
                                    --disable-profile --without-cvs --without-__thread --without-sanity-check""" + log,
                                'make' + log,
                                'make install' + log]
@@ -153,6 +162,7 @@ class OS:
         # ------------------------------------------------------------------------------
         # glib
         # ------------------------------------------------------------------------------
+        
         EXPORT = 'export PKG_CONFIG_PATH=${PREFIX}/lib/pkgconfig/'
         
         # upgrade 2.28
@@ -214,16 +224,23 @@ class OS:
         log = self.log_string_for_dep(netsnmp.name)
         
         netsnmp.use_build_dir = False
-
-        netsnmp.build_cmds     = ["""./configure
+        if 'SunOS' == platform.system(): 
+            netsnmp.build_cmds     = ["""./configure
+                                    --prefix=${PREFIX}
+                                    --with-default-snmp-version="3" --with-defaults
+                                    --with-persistent-directory="/var/net-snmp"
+                                    --without-perl-modules """ + log,
+                                    'gmake' + log,
+                                    'gmake install' + log]
+        else:
+            netsnmp.build_cmds     = ["""./configure
                                     --prefix=${PREFIX}
                                     --with-default-snmp-version="2"
                                     --without-rpm
                                     --with-defaults
                                     --with-perl-modules=PREFIX=${PREFIX} """ + log,
-                                  'make' + log,
-                                  'make install' + log]
-                
+                                    'make' + log,
+                                    'make install' + log]        
         
         
         # ------------------------------------------------------------------------------
@@ -250,63 +267,84 @@ class OS:
         # ------------------------------------------------------------------------------
         # TIPC and TIPC_CONFIG
         # ------------------------------------------------------------------------------
-        EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % self.kernelVerString
+        if 'SunOS' == platform.system():
+            TIPC_CONFIG = objects.BuildDep()
+            TIPC_CONFIG.name           = 'TIPC_CONFIG_SOLARIS'
+            TIPC_CONFIG.version        = '1.7.5'
+            TIPC_CONFIG.pkg_name       = 'TIPC_Solaris_1_7_5-2008-06-19_OpenSolaris_X86.pkg'
+            
+            log = self.log_string_for_dep(TIPC_CONFIG.name)
+            initial_commands      = ['tar -xmf ${THIRDPARTYPKG} TIPC_Solaris_1_7_5-2008-06-19_OpenSolaris_X86.pkg',
+                                     'echo \'#!/usr/bin/expect -f\\nspawn pkgadd -d TIPC_Solaris_1_7_5-2008-06-19_OpenSolaris_X86.pkg\\nexpect "process"\\nsend "all\\r"\\nexpect "<SUNWtipc>"\\nsend "y\\r"\\nexpect "<SUNtipc-examples>"\\nsend "y\\r"\' > /tmp/temp.sh',
+                                     'chmod 700 /tmp/temp.sh',
+                                     '/tmp/temp.sh',
+                                     'LD_PRELOAD_32=/opt/SUNWtipc/lib/libtipcsocket.so',
+                                     'LD_PRELOAD_64=/opt/SUNWtipc/lib/amd64/libtipcsocket.so',
+                                     'export LD_PRELOAD_32 LD_PRELOAD_64',
+                                     'rm -f TIPC_Solaris_1_7_5-2008-06-19_OpenSolaris_X86.pkg']
 
-        TIPC_CONFIG = objects.BuildDep()
-        TIPC_CONFIG.name           = 'tipc-config'
-        TIPC_CONFIG.version        = '1.1.9'
-        TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
+            TIPC_CONFIG.build_cmds = [';'.join(initial_commands)]
+            
+                                    
+        else: 
+            EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % self.kernelVerString
 
-        TIPC = objects.BuildDep()
-        TIPC.name           = 'tipc'
-        if self.kernelVer[0] == 2 and self.kernelVer[1] == 6:
-          if self.kernelVer[2] >= 39:
-              TIPC.version        = '2.0'
-              TIPC.pkg_name       = None
-              TIPC_CONFIG.version        = '2.0.2'
-              TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.2.tar.gz' #default name, can change
-          elif self.kernelVer[2] >= 34:
-              TIPC.version        = '2.0'
-              TIPC.pkg_name       = None
-              TIPC_CONFIG.version        = '2.0.0'
-              TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.0.tar.gz' #default name, can change
-          elif self.kernelVer[2] >= 16:
-              TIPC.version        = '1.7.7'
-              TIPC.pkg_name       = 'tipc-1.7.7.tar.gz'
-              TIPC_CONFIG.version        = '1.1.9'
-              TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
-          elif self.kernelVer[2] >= 9:
-              TIPC.version        = '1.5.12'
-              TIPC.pkg_name       = 'tipc-1.5.12.tar.gz'
+            TIPC_CONFIG = objects.BuildDep()
+            TIPC_CONFIG.name           = 'tipc-config'
+            TIPC_CONFIG.version        = '1.1.9'
+            TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can 
+
+            TIPC = objects.BuildDep()
+        
+            TIPC.name           = 'tipc'
+            if self.kernelVer[0] == 2 and self.kernelVer[1] == 6:
+                if self.kernelVer[2] >= 39:
+                    TIPC.version        = '2.0'
+                    TIPC.pkg_name       = None
+                    TIPC_CONFIG.version        = '2.0.2'
+                    TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.2.tar.gz' #default name, can change
+                elif self.kernelVer[2] >= 34:
+                    TIPC.version        = '2.0'
+                    TIPC.pkg_name       = None
+                    TIPC_CONFIG.version        = '2.0.0'
+                    TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.0.tar.gz' #default name, can change
+                elif self.kernelVer[2] >= 16:
+                    TIPC.version        = '1.7.7'
+                    TIPC.pkg_name       = 'tipc-1.7.7.tar.gz'
+                    TIPC_CONFIG.version        = '1.1.9'
+                    TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
+                elif self.kernelVer[2] >= 9:
+                    TIPC.version        = '1.5.12'
+                    TIPC.pkg_name       = 'tipc-1.5.12.tar.gz'
+ 
           
-        log = self.log_string_for_dep(TIPC.name)
+            log = self.log_string_for_dep(TIPC.name)
         
         # tipc has a special case in install.py marked:                 # SPECIAL CASE, TIPC
         #TIPC.ver_test_cmd   = ':'
         
         
-        TIPC.build_cmds     = [EXPORT + ' && make' + log,
-                                'cp net/tipc/tipc.ko $PREFIX/modules',
-                                'cp tools/tipc-config $PREFIX/bin',
-                                'cp include/net/tipc/*.h $PREFIX/include']
-                       
-        if int(self.kernelVer[2]) < 16:
-            pass
-        else:
-            TIPC.build_cmds.append('mkdir -p $PREFIX/include/linux >/dev/null 2>&1')
-            TIPC.build_cmds.append('cp include/net/tipc/*.h $PREFIX/include/linux')
-        
+            TIPC.build_cmds     = [EXPORT + ' && make' + log,
+                                   'cp net/tipc/tipc.ko $PREFIX/modules',
+                                   'cp tools/tipc-config $PREFIX/bin',
+                                   'cp include/net/tipc/*.h $PREFIX/include']
 
-        # ------------------------------------------------------------------------------
-        # TIPC_CONFIG
-        # ------------------------------------------------------------------------------
-        EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % self.kernelVerString
+            if int(self.kernelVer[2]) < 16:
+                pass
+            else:
+                TIPC.build_cmds.append('mkdir -p $PREFIX/include/linux >/dev/null 2>&1')
+                TIPC.build_cmds.append('cp include/net/tipc/*.h $PREFIX/include/linux')                       
+        
+          # ------------------------------------------------------------------------------
+          # TIPC_CONFIG
+          # ------------------------------------------------------------------------------
+            EXPORT = 'export KERNELDIR=/lib/modules/%s/build' % self.kernelVerString
                 
-        log = self.log_string_for_dep(TIPC_CONFIG.name)
+            log = self.log_string_for_dep(TIPC_CONFIG.name)
         
-        TIPC_CONFIG.use_build_dir = False
+            TIPC_CONFIG.use_build_dir = False
 
-        TIPC_CONFIG.build_cmds = lambda s=self:self.tipcConfigBuild()
+            TIPC_CONFIG.build_cmds = lambda s=self:self.tipcConfigBuild()
         
 
         # ------------------------------------------------------------------------------
@@ -315,11 +353,16 @@ class OS:
         EXPORT = ''
         
         JRE = objects.BuildDep()
-        JRE.name           = 'JRE'
-        JRE.version        = '1.7.0_17'
-        JRE.pkg_name       = 'jre-7u17-linux-i586.tar.gz'
-        if self.bit == 64:
-            JRE.pkg_name       = 'jre-7u17-linux-x64.tar.gz'
+        if 'SunOS' == platform.system():
+            JRE.name           = 'JRE'
+            JRE.version        = '1.7.0_17'
+            JRE.pkg_name       = 'jre-7-solaris-i586.tar.gz'
+        else:
+            JRE.name           = 'JRE'
+            JRE.version        = '1.7.0_17'
+            JRE.pkg_name       = 'jre-7u17-linux-i586.tar.gz'
+            if self.bit == 64:
+                JRE.pkg_name       = 'jre-7u17-linux-x64.tar.gz'
         
         log = self.log_string_for_dep(JRE.name)
        
@@ -339,11 +382,16 @@ class OS:
         EXPORT = ''
         
         ECLIPSE = objects.BuildDep()
-        ECLIPSE.name           = 'eclipse'
-        ECLIPSE.version        = '4.2.2'
-        ECLIPSE.pkg_name       = 'eclipse-SDK-4.2.2-linux-gtk.tar.gz'
-        if self.bit == 64:
-            ECLIPSE.pkg_name       = 'eclipse-SDK-4.2.2-linux-gtk-x86_64.tar.gz'
+        if 'SunOS' == platform.system():
+            ECLIPSE.name           = 'eclipse'
+            ECLIPSE.version        = '4.2.2'
+            ECLIPSE.pkg_name       = 'eclipse-SDK-4.2.2-solaris-gtk-x86.tar.gz'
+        else:
+            ECLIPSE.name           = 'eclipse'
+            ECLIPSE.version        = '4.2.2'
+            ECLIPSE.pkg_name       = 'eclipse-SDK-4.2.2-linux-gtk.tar.gz'
+            if self.bit == 64:
+                ECLIPSE.pkg_name       = 'eclipse-SDK-4.2.2-linux-gtk-x86_64.tar.gz'
        
         log = self.log_string_for_dep(ECLIPSE.name)
         
@@ -364,9 +412,14 @@ class OS:
         EXPORT = ''
         
         EMF = objects.BuildDep()
-        EMF.name           = 'EMF'
-        EMF.version        = '2.8.3'
-        EMF.pkg_name       = 'emf-runtime-2.8.3.zip'
+        if 'SunOS' == platform.system():
+            EMF.name           = 'emf'
+            EMF.version        = '2.2.2'
+            EMF.pkg_name       = 'emf-sdo-xsd-SDK-2.2.2.zip'
+        else:
+            EMF.name           = 'EMF'
+            EMF.version        = '2.8.3'
+            EMF.pkg_name       = 'emf-runtime-2.8.3.zip'
         
         log = self.log_string_for_dep(EMF.name)
 
@@ -378,40 +431,18 @@ class OS:
                           'rm -f %s' % EMF.pkg_name]
 
         EMF.build_cmds = [';'.join(initial_commands)]
+ 
 
-
-        # ------------------------------------------------------------------------------
-        # GEF
-        # ------------------------------------------------------------------------------
-        EXPORT = ''
-        
-        GEF = objects.BuildDep()
-        GEF.name           = 'GEF'
-        GEF.version        = '3.8.2'
-        GEF.pkg_name       = 'GEF-runtime-3.8.2.zip'
-        
-        log = self.log_string_for_dep(GEF.name)
-
-        GEF.extract_install = True
-        
-        initial_commands = ['cd ${IDE_ROOT}',
-                          'tar xf ${THIRDPARTYPKG} %s' % GEF.pkg_name,
-                          'unzip -qq -o -u %s' % GEF.pkg_name,  
-                          'rm -f %s' % GEF.pkg_name]
-
-        GEF.build_cmds = [';'.join(initial_commands)]
-
-
-        # ------------------------------------------------------------------------------
-        # CDT
-        # ------------------------------------------------------------------------------
+        #-------------------------------------------------------------------------------
+       # CDT
+        #-------------------------------------------------------------------------------
         EXPORT = ''
         
         CDT = objects.BuildDep()
         CDT.name           = 'CDT'
         CDT.version        = '8.1.2'
         CDT.pkg_name       = 'cdt-master-8.1.2.zip'
-
+        
         log = self.log_string_for_dep(CDT.name)
 
         CDT.extract_install = True
@@ -426,10 +457,43 @@ class OS:
                           'rm -f %s' % CDT.pkg_name]
 
         CDT.build_cmds = [';'.join(initial_commands)]
+
+      
+ 
+
+
+        # ------------------------------------------------------------------------------
+        # GEF
+        # ------------------------------------------------------------------------------
+        EXPORT = ''
         
-        # ------------------------------------------------------------------------------
-        # sqlite
-        # ------------------------------------------------------------------------------
+        GEF = objects.BuildDep()
+        if 'SunOS' == platform.system():
+            GEF.name           = 'GEF'
+            GEF.version        = '3.2.2'
+            GEF.pkg_name       = 'GEF-SDK-3.2.2.zip'
+        else:
+            GEF.name           = 'GEF'
+            GEF.version        = '3.8.2'
+            GEF.pkg_name       = 'GEF-runtime-3.8.2.zip'
+        
+        log = self.log_string_for_dep(GEF.name)
+
+        GEF.extract_install = True
+        
+        initial_commands = ['cd ${IDE_ROOT}',
+                          'tar xf ${THIRDPARTYPKG} %s' % GEF.pkg_name,
+                          'unzip -qq -o -u %s' % GEF.pkg_name,  
+                          'rm -f %s' % GEF.pkg_name]
+
+        GEF.build_cmds = [';'.join(initial_commands)]
+
+
+
+        #------------------------------------------------------------------------------
+        #sqlite
+        #------------------------------------------------------------------------------
+ 
         EXPORT = ''
 
         sqlite = objects.BuildDep()
@@ -438,18 +502,21 @@ class OS:
         sqlite.pkg_name      = 'sqlite-3.6.7.tar.gz'
 
         log = self.log_string_for_dep(sqlite.name)
-
+        
         initial_commands = ['cd ${PREFIX}',
                           'rm -rf sqlite-*',
                           'tar xfm ${THIRDPARTYPKG} %s' % sqlite.pkg_name,
                           'tar zxf %s' % sqlite.pkg_name,
                           'rm -f %s' % sqlite.pkg_name,
                           'cd sqlite-*',
-                          './configure --prefix=$PREFIX' + log, 
+                          './configure --prefix=$PREFIX' + log,
                           'make' + log,
                           'make install' + log]
 
         sqlite.build_cmds = [';'.join(initial_commands)]
+
+
+  
         
         # ------------------------------------------------------------------------------
         # Collect all the objects we built
@@ -461,7 +528,8 @@ class OS:
         #  self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
         #  print "For Fedora OS, it is necessary for you to build and install TIPC yourself."
         #else:
-        self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, TIPC, TIPC_CONFIG, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]
+
+        self.dep_list = [TIPC_CONFIG, gcc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, CDT, GEF,sqlite]
         #self.dep_list = [gcc, glibc, glib, openhpi, netsnmp, openhpisubagent, JRE, ECLIPSE, EMF, GEF, CDT, sqlite]        
     
     
@@ -774,6 +842,48 @@ class Debian(OS):
             self.pre_dep_list.append(D)
 
 # ------------------------------------------------------------------------------
+
+class Solaris(OS):
+    """ Solaris Distro Class """
+    def pre_init(self):
+        self.name = 'Solaris'
+        self.supported = 'True'
+        self.apt = 'False'
+        self.pkg = 'True'
+    
+    def load_preinstall_deps(self):
+        
+        deps =  ['build-essential',
+                 'linux-headers-' + self.kernelVerString,
+                 'gettext',
+                 'uuid-dev',
+                 'bison',
+                 'flex',
+                 'gawk',
+                 'libglib2.0-dev',
+                 'libgdbm-dev',
+                 'libdb4.6-dev',
+                 'libsqlite3-0',
+                 'libsqlite3-dev',
+                 'e2fsprogs',
+                 'libperl-dev',
+                 'libltdl3-dev',
+                 'e2fslibs-dev',
+                 'unzip',
+                 'libsnmp-dev',
+                 'zlib1g-dev',
+                 'psmisc',
+                 'swig',
+                 'tipcutils',
+                 'ncurses-devel']
+
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
+
+
+# ---------------------------------------------------------------------------------------------------    
+        
 class Mint(OS):
     """ LinuxMint Distro class """
     
@@ -818,7 +928,7 @@ class Other(OS):
         self.supported = False
         self.apt = False
         self.yum = False
-    
+        
     def load_preinstall_deps(self):
         pass
 
@@ -880,9 +990,12 @@ def determine_os():
         if os.path.isfile('/etc/debian_version'):
             return Debian()
     
-    # OSX/Solaris, both unsupported
-    elif hostos == 'darwin' or hostos == 'solaris':
-        return Other()
+    elif hostos == 'sunos':
+        return Solaris()
+   #OSX unsupported
+    elif hostos == 'darwin':
+        return Other() 
+        
     
     return None
 

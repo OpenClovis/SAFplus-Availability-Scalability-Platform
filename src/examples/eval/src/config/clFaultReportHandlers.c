@@ -8,6 +8,8 @@
  *****************************************************************************/
 
 #include <stdio.h>
+#ifdef CL_USE_CHASSIS_MANAGER
+
 #include <clEoApi.h>
 #include <clFaultDefinitions.h>
 #include <clFaultErrorId.h>
@@ -20,4 +22,4 @@
 /*
  * ---END_APPLICATION_CODE---
  */
-
+#endif

@@ -76,7 +76,7 @@ AIS_HEADERS	= saAis.h saAmf.h saClm.h saCkpt.h saEvt.h saEvt.h saLck.h \
 		  saMsg.h cpg.h cfg.h evs.h ipc_gen.h mar_gen.h swab.h 	   \
 		  ais_util.h
 
-install: all
+ginstall: all
 	mkdir -p $(DESTDIR)$(SBINDIR)
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	mkdir -p $(DESTDIR)$(INCLUDEDIR_TOTEM)
@@ -95,16 +95,16 @@ install: all
 	ln -sf libtotem_pg.so.2.0.0 exec/libtotem_pg.so.2
 	$(CP) -a exec/libtotem_pg.so $(DESTDIR)$(LIBDIR)
 	$(CP) -a exec/libtotem_pg.so.2 $(DESTDIR)$(LIBDIR)
-	install -m 755 exec/libtotem_pg.so.2.* $(DESTDIR)$(LIBDIR)
+	ginstall -m 755 exec/libtotem_pg.so.2.* $(DESTDIR)$(LIBDIR)
 
 	for aLib in $(AIS_LIBS); do					\
 	    ln -sf lib$$aLib.so.2.0.0 lib/lib$$aLib.so;			\
 	    ln -sf lib$$aLib.so.2.0.0 lib/lib$$aLib.so.2;		\
 	    $(CP) -a lib/lib$$aLib.so $(DESTDIR)$(LIBDIR);		\
 	    $(CP) -a lib/lib$$aLib.so.2 $(DESTDIR)$(LIBDIR);		\
-	    install -m 755 lib/lib$$aLib.so.2.* $(DESTDIR)$(LIBDIR);	\
+	    ginstall -m 755 lib/lib$$aLib.so.2.* $(DESTDIR)$(LIBDIR);	\
 	    if [ "xNO" = "x$(STATICLIBS)" ]; then			\
-	        install -m 755 lib/lib$$aLib.a $(DESTDIR)$(LIBDIR);	\
+	        ginstall -m 755 lib/lib$$aLib.a $(DESTDIR)$(LIBDIR);	\
 		if [ ${OPENAIS_COMPAT} = "DARWIN" ]; then		\
 		    ranlib $(DESTDIR)$(LIBDIR)/lib$$aLib.a;		\
 	        fi							\
@@ -113,37 +113,37 @@ install: all
 
 	echo $(LIBDIR) > $(DESTDIR)$(ETCDIR)/ld.so.conf.d/openais-$(ARCH).conf
 
-	install -m 755 exec/*lcrso $(DESTDIR)$(LCRSODIR)
-	install -m 755 exec/aisexec $(DESTDIR)$(SBINDIR)
-	install -m 700 exec/keygen $(DESTDIR)$(SBINDIR)/ais-keygen
+	ginstall -m 755 exec/*lcrso $(DESTDIR)$(LCRSODIR)
+	ginstall -m 755 exec/aisexec $(DESTDIR)$(SBINDIR)
+	ginstall -m 700 exec/keygen $(DESTDIR)$(SBINDIR)/ais-keygen
 
 	if [ ! -f $(DESTDIR)$(ETCDIR)/ais/openais.conf ] ; then 	   \
-		install -m 644 conf/openais.conf $(DESTDIR)$(ETCDIR)/ais ; \
+		ginstall -m 644 conf/openais.conf $(DESTDIR)$(ETCDIR)/ais ; \
 	fi
 	if [ ! -f $(DESTDIR)$(ETCDIR)/ais/amf.conf ] ; then 		\
-		install -m 644 conf/amf.conf $(DESTDIR)$(ETCDIR)/ais ;	\
+		ginstall -m 644 conf/amf.conf $(DESTDIR)$(ETCDIR)/ais ;	\
 	fi
 
 	for aHeader in $(AIS_HEADERS); do				\
-	    install -m 644 include/$$aHeader $(DESTDIR)$(INCLUDEDIR);	\
+	    ginstall -m 644 include/$$aHeader $(DESTDIR)$(INCLUDEDIR);	\
 	done
 
-	install -m 644 exec/aispoll.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
-	install -m 644 exec/totempg.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
-	install -m 644 exec/totem.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
-	install -m 644 exec/totemip.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
-	install -m 644 lcr/lcr_ckpt.h $(DESTDIR)$(INCLUDEDIR_LCR)
-	install -m 644 lcr/lcr_comp.h $(DESTDIR)$(INCLUDEDIR_LCR)
-	install -m 644 lcr/lcr_ifact.h $(DESTDIR)$(INCLUDEDIR_LCR)
-	install -m 644 exec/service.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	install -m 644 exec/timer.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	install -m 644 exec/objdb.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	install -m 644 exec/print.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	install -m 644 exec/config.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	install -m 644 include/swab.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	install -m 644 man/*.3 $(DESTDIR)$(MANDIR)/man3
-	install -m 644 man/*.5 $(DESTDIR)$(MANDIR)/man5
-	install -m 644 man/*.8 $(DESTDIR)$(MANDIR)/man8
+	ginstall -m 644 exec/aispoll.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
+	ginstall -m 644 exec/totempg.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
+	ginstall -m 644 exec/totem.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
+	ginstall -m 644 exec/totemip.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
+	ginstall -m 644 lcr/lcr_ckpt.h $(DESTDIR)$(INCLUDEDIR_LCR)
+	ginstall -m 644 lcr/lcr_comp.h $(DESTDIR)$(INCLUDEDIR_LCR)
+	ginstall -m 644 lcr/lcr_ifact.h $(DESTDIR)$(INCLUDEDIR_LCR)
+	ginstall -m 644 exec/service.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	ginstall -m 644 exec/timer.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	ginstall -m 644 exec/objdb.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	ginstall -m 644 exec/print.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	ginstall -m 644 exec/config.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	ginstall -m 644 include/swab.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	ginstall -m 644 man/*.3 $(DESTDIR)$(MANDIR)/man3
+	ginstall -m 644 man/*.5 $(DESTDIR)$(MANDIR)/man5
+	ginstall -m 644 man/*.8 $(DESTDIR)$(MANDIR)/man8
 
 doxygen:
 	mkdir -p doc/api && doxygen

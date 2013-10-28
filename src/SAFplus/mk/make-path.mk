@@ -43,13 +43,13 @@ ifdef SOLARIS_BUILD
     IS_ASP_COMP := $(shell pwd | grep -c "SAFplus/components")
 else
     IS_ASP_COMP := $(shell \
-        asp_dir=$$(pwd|awk '{if(match($$0,".*/ASP/")){print substr($$0,0,RLENGTH-1)}}'); \
+        asp_dir=$$(pwd|$(AWK) '{if(match($$0,".*/ASP/")){print substr($$0,0,RLENGTH-1)}}'); \
         if [ -d "$$asp_dir" -a \
              -d "$$asp_dir"/components -a \
              -d "$$asp_dir"/3rdparty ]; then \
             echo 1; \
         else \
-        asp_dir1=$$(pwd|awk '{if(match($$0,".*/SAFplus/")){print substr($$0,0,RLENGTH-1)}}'); \
+        asp_dir1=$$(pwd|$(AWK) '{if(match($$0,".*/SAFplus/")){print substr($$0,0,RLENGTH-1)}}'); \
         if [ -d "$$asp_dir1" -a \
              -d "$$asp_dir1"/components -a \
              -d "$$asp_dir1"/3rdparty ]; then \
@@ -68,7 +68,7 @@ endif
 ifeq ("$(IS_ASP_COMP)","1")
     # $(warning Building SAFplus component)
     # In this case we create the BUILD_SUBPATH as the subdirectory under SAFplus
-    BUILD_SUBPATH ?= $(shell pwd | awk '{if (match($$0,".*/SAFplus/")) print substr($$0,RLENGTH+1); else if (match($$0,".*/PSP/src")) print "components" substr($$0,RLENGTH+1)}')
+    BUILD_SUBPATH ?= $(shell pwd | $(AWK) '{if (match($$0,".*/SAFplus/")) print substr($$0,RLENGTH+1); else if (match($$0,".*/PSP/src")) print "components" substr($$0,RLENGTH+1)}')
 
 else
     # $(warning Building user component)

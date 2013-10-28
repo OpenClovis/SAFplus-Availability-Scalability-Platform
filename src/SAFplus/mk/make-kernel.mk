@@ -41,6 +41,13 @@
 ################################################################################
 include $(CLOVIS_ROOT)/SAFplus/mk/prefix.mk
 
+ifdef SOLARIS_BUILD
+        AWK=gawk
+else
+        AWK=awk
+endif
+export AWK
+
 ifndef CROSS_BUILD
 # Native build
 KERNEL_SOURCE = /lib/modules/`uname -r`/build
