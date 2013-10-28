@@ -256,7 +256,7 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
 
     if ((notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION) && (notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet()))
     {
-        clLogDebug("NTF", "LEA", "Node [%d] arrival msg len [%u] notif len [%lu]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,sizeof(notification));
+        clLogDebug("NTF", "LEA", "Node [%d] arrival msg len [%u] notif len [%u]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,sizeof(notification));
 
         if (length-sizeof(notification) >= sizeof(ClUint32T))  /* leader status is appended onto the end of the message */
         {
