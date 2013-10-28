@@ -1665,7 +1665,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
     {
         if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL)
         {
-            if (gpClCpm->ckptOpenHandle != -1)
+            if (gpClCpm->ckptOpenHandle != CL_HANDLE_INVALID_VALUE)
             {
                 rc = clCkptCheckpointClose(gpClCpm->ckptOpenHandle);
                 /* Bug 5295:
@@ -1675,20 +1675,16 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
                  */
                 if (rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                            ("CheckpointClose Failed while Booting down"
-                              "rc=[0x%x]\n",rc));
+                    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CheckpointClose Failed while booting down rc=[0x%x]\n",rc));
                 }
             }
 
-            if (gpClCpm->ckptHandle != -1)
+            if (gpClCpm->ckptHandle != CL_HANDLE_INVALID_VALUE)
             {
                 rc = clCkptFinalize(gpClCpm->ckptHandle);
                 if (rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                            ("CheckpointFinalize failed while Booting down"
-                              "rc=[0x%x]\n",rc));
+                    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CheckpointFinalize failed while booting down rc=[0x%x]\n",rc));
                 }
             }
         }
