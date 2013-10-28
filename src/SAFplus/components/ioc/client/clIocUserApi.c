@@ -2140,39 +2140,32 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
         ClCharT *xportType = NULL;
         rc = clFindTransport(((ClIocPhysicalAddressT*)&replicastList[i])->nodeAddress, &interimDestAddress, &xportType);
 
-        if (rc != CL_OK || !interimDestAddress.iocPhyAddress.nodeAddress || !xportType) {
-            clLogError("IOC", "REPLICAST", "Replicast to destination [%#x: %#x] failed with [%#x]",
-                       replicastList[i].iocPhyAddress.nodeAddress,
-                       replicastList[i].iocPhyAddress.portId, rc);
+        if ((rc != CL_OK) || (!xportType))
+        {
+            clLogError("IOC", "REPLICAST", "Replicast to destination [%#x: %#x] failed with [%#x]", replicastList[i].iocPhyAddress.nodeAddress, replicastList[i].iocPhyAddress.portId, rc);
             continue;
         }
-
+        
         rc = clBufferHeaderTrim(message, sizeof(ClIocHeaderT));
-        if(rc != CL_OK) {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nERROR: Buffer header trim failed RC = 0x%x\n", rc));
-            continue;
-        }
-
-        userHeader->dstAddress.iocPhyAddress.nodeAddress = 
-            htonl(((ClIocPhysicalAddressT *)&replicastList[i])->nodeAddress);
-        userHeader->dstAddress.iocPhyAddress.portId = 
-            htonl(((ClIocPhysicalAddressT *)&replicastList[i])->portId);
-
-        rc =
-            clBufferDataPrepend(message, (ClUint8T *) userHeader,
-                                sizeof(ClIocHeaderT));
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nERROR: Prepend buffer data failed = 0x%x\n", rc));
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nERROR: Buffer header trim failed RC = 0x%x\n", rc));
+            continue;
+        }
+
+        userHeader->dstAddress.iocPhyAddress.nodeAddress = htonl(((ClIocPhysicalAddressT *)&replicastList[i])->nodeAddress);
+        userHeader->dstAddress.iocPhyAddress.portId = htonl(((ClIocPhysicalAddressT *)&replicastList[i])->portId);
+
+        rc = clBufferDataPrepend(message, (ClUint8T *) userHeader, sizeof(ClIocHeaderT));
+        if(rc != CL_OK)
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("ERROR: Prepend buffer data failed = 0x%x", rc));
             continue;
         }
 
         if (interimDestAddress.iocPhyAddress.nodeAddress
             && 
-            interimDestAddress.iocPhyAddress.nodeAddress != 
-            ((ClIocPhysicalAddressT*) &replicastList[i])->nodeAddress) 
+            (interimDestAddress.iocPhyAddress.nodeAddress != ((ClIocPhysicalAddressT*) &replicastList[i])->nodeAddress)) 
         {
             if(replicastList[i].iocPhyAddress.portId >= CL_IOC_XPORT_PORT)
             {
@@ -2180,8 +2173,7 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
             }
             else
             {
-                interimDestAddress.iocPhyAddress.portId = 
-                    replicastList[i].iocPhyAddress.portId;
+                interimDestAddress.iocPhyAddress.portId = replicastList[i].iocPhyAddress.portId;
             }
         } 
         else 
@@ -2197,8 +2189,7 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
                 interimDestAddress.iocPhyAddress.nodeAddress,
                 interimDestAddress.iocPhyAddress.portId, xportType);*/
 
-        rc = internalSendSlow(pIocCommPort, message, tempPriority, &interimDestAddress, 
-                              pTimeout, xportType, proxy);
+        rc = internalSendSlow(pIocCommPort, message, tempPriority, &interimDestAddress, pTimeout, xportType, proxy);
 
         if(rc != CL_OK)
         {

@@ -2123,6 +2123,8 @@ VDECL(_clCpmClientCompProxiedComponentCleanup)(ClEoDataT eoArg,
     ClHandleT cpmHandle;
     ClCpmInstanceT *cpmInstance = NULL;
     ClNameT appName = { 0 };
+
+    clCompStatLog("Terminate called for component [%s]", ASP_COMPNAME);
     
     info =
         (ClCpmClientCompTerminateT *)
@@ -2190,8 +2192,7 @@ VDECL(_clCpmClientCompProxiedComponentCleanup)(ClEoDataT eoArg,
         rc = handleProxiedComponentCleanup(info, cpmInstance, outMsgHandle);
     else
     {
-        rc = cpmPostCallback(CL_CPM_CB_PROXIED_CLEANUP, (void *)info, 
-                cpmInstance);
+        rc = cpmPostCallback(CL_CPM_CB_PROXIED_CLEANUP, (void *)info, cpmInstance);
         info = NULL;
     }
  
