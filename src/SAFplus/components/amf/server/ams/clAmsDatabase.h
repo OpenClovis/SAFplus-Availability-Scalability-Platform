@@ -500,7 +500,7 @@ extern void clAmsEntityListDeleteCallback(
 
 extern ClRcT clAmsEntityListFindEntityRef(
         CL_IN       ClAmsEntityListT        *entityList,
-        CL_IN       ClAmsEntityRefT         *entityRef,
+        CL_IN       const ClAmsEntityRefT         *entityRef,
         CL_IN       ClCntKeyHandleT         entityKeyHandle,
         CL_IN       ClAmsEntityRefT         **foundRef);
 

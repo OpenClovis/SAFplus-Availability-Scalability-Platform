@@ -1767,10 +1767,7 @@ clAmsCCBValidateAdminState(
         case CL_AMS_ENTITY_TYPE_SG:
             {
                 ClAmsSGT  *sg = ( ClAmsSGT *)entityRef.ptr;
-                clAmsPeSGComputeAdminState(sg, &adminState);
-
-                if(adminState == CL_AMS_ADMIN_STATE_NONE)
-                    adminState = sg->config.adminState;
+                adminState = clAmsPeSGComputeAdminState(sg);
 
                 if ( adminState != CL_AMS_ADMIN_STATE_LOCKED_I )
                 {

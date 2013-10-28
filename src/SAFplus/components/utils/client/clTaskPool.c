@@ -124,6 +124,8 @@ ClRcT clTaskPoolFinalize(void)
     if(gClTaskPoolInitialized>0) return CL_OK;
     gClTaskPoolInitialized = CL_FALSE;
     clOsalTaskKeyDelete(gClTaskPoolKey);
+    gClTaskPoolKey = 0xFFFFFFFE;
+    
     return CL_OK;    
 }
 
@@ -392,7 +394,8 @@ ClRcT clTaskPoolCreate(ClTaskPoolHandleT *pHandle, ClInt32T maxTasks, ClCallback
 {
     ClTaskPoolT *pTaskPool=NULL;
     ClRcT rc = CL_TASKPOOL_RC(CL_ERR_NO_MEMORY);
-
+    CL_ASSERT(gClTaskPoolInitialized>0);
+    
     if(!pHandle) return CL_TASKPOOL_RC(CL_ERR_INVALID_PARAMETER);
 
     pTaskPool = (ClTaskPoolT*) clHeapCalloc(1, sizeof(*pTaskPool));

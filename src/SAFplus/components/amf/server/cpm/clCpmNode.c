@@ -170,10 +170,9 @@ ClRcT CL_CPM_CALL_RMD_SYNC(ClIocNodeAddressT destAddr,
     if (rc == CL_OK && NULL != pOutBufLen)
     {
         retCode = clBufferLengthGet(outMsgHdl, &msgLength);
-        retCode =
-            clBufferNBytesRead(outMsgHdl, (ClUint8T *) pOutBuf,
-                                      &msgLength);
+        retCode = clBufferNBytesRead(outMsgHdl, (ClUint8T *) pOutBuf, &msgLength);
         retCode = clBufferDelete(&outMsgHdl);
+        retCode = retCode;  // use retcode to make compiler happy
     }
     else if (rc != CL_OK)
     {
@@ -249,6 +248,7 @@ ClRcT CL_CPM_CALL_RMD_SYNC_NEW(ClIocNodeAddressT destAddr,
     {
         rc = unmarshallFunction(outMsgHdl, (void *) pOutBuf);
         retCode = clBufferDelete(&outMsgHdl);
+        retCode = retCode; // Use retcode to make compiler happy
     }
     else if (rc != CL_OK)
     {
@@ -330,6 +330,7 @@ ClRcT CL_CPM_CALL_RMD_ASYNC(ClIocNodeAddressT destAddr,
     if (inBufLen)
     {
         retCode = clBufferDelete(&inMsgHdl);
+        retCode = retCode; // use retcode to make compiler happy
     }
 
   failure:
@@ -2108,10 +2109,19 @@ static void __cpmRegisterWithActive(ClBoolT reregister)
                 {
                     if (!(retries++ & 15))
                     {
-                        clLogWarning(CPM_LOG_AREA_CPM,
-                                     CPM_LOG_CTX_CPM_CPM,
-                                     "CPM/G standby/Worker blade waiting for "
-                                     "CPM/G active to come up...");
+                        ClRcT rc2;
+                        ClIocNodeAddressT iocAddress;
+                        ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
+                        clLogWarning(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_CPM,"AMF standby/Worker blade waiting for AMF active to come up...");
+                        rc2 = clCpmMasterAddressGetExtended(&iocAddress, 3, &delay);
+                        if (rc2 == CL_OK)
+                        {
+                            clLogInfo(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_CPM,"AMF active is [%d]", iocAddress);
+                            clOsalMutexLock(&gpClCpm->clusterMutex);
+                            gpClCpm->activeMasterNodeId = iocAddress;
+                            clOsalMutexUnlock(&gpClCpm->clusterMutex);
+                        }
+                        
                     }
                     clOsalTaskDelay(timeOut);
                 }
