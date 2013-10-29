@@ -114,6 +114,7 @@ ClRcT clTaskPoolInitialize(void)
     return rc;
 }
 
+/* TODO SURESH This function needs to be called for every instance of clTaskPoolInitialize() */
 ClRcT clTaskPoolFinalize(void)
 {
     gClTaskPoolInitialized--;
@@ -381,8 +382,11 @@ ClRcT clTaskPoolRun(ClTaskPoolHandleT handle, ClCallbackT func, ClPtrT cookie)
 
 ClRcT clTaskPoolCreate(ClTaskPoolHandleT *pHandle, ClInt32T maxTasks, ClCallbackT preIdleFunc, ClPtrT preIdleCookie)
 {
+    
     ClTaskPoolT *pTaskPool=NULL;
     ClRcT rc = CL_TASKPOOL_RC(CL_ERR_NO_MEMORY);
+
+    CL_ASSERT(gClTaskPoolInitialized != CL_FALSE);
 
     if(!pHandle) return CL_TASKPOOL_RC(CL_ERR_INVALID_PARAMETER);
 

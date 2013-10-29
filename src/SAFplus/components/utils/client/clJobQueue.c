@@ -106,6 +106,7 @@ ClRcT clJobQueueInit(ClJobQueueT* hdl, ClUint32T maxJobs, ClUint32T maxTasks)
     rc = clQueueCreate(maxJobs, deleteCallback, deleteCallback, &hdl->queue);
     if (rc != CL_OK) goto error;
 
+    clTaskPoolInitialize();
     rc = clTaskPoolCreate(&hdl->pool, maxTasks, clJobQueuePreIdle, hdl);
     if (rc != CL_OK) goto error;
 

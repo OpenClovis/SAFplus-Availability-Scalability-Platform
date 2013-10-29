@@ -1162,6 +1162,7 @@ static ClRcT transportListenerInitialize(ClXportCtrlT *xportCtrl)
     if(!xportCtrl->pool)
     {
         xportCtrl->flags |= __LISTENER_ACTIVE;
+        clTaskPoolInitialize();
         rc = clTaskPoolCreate(&xportCtrl->pool, 1, NULL, NULL);
         if(rc != CL_OK)
         {

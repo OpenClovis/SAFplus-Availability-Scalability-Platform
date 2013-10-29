@@ -29,6 +29,7 @@ SaCkptSectionIdT ckpt_sid = { /* Section id for checkpoints           */
 void csa103TestDispatcher(ClTaskPoolHandleT *pTestHandle)
 {
     ClRcT rc = CL_OK;
+    clTaskPoolInitialize();    
     rc = clTaskPoolCreate(pTestHandle, 1, NULL, NULL);
     CL_ASSERT(rc == CL_OK);
     clTaskPoolRun(*pTestHandle, csa103CkptTest, NULL);

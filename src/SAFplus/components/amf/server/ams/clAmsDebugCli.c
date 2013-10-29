@@ -835,6 +835,7 @@ ClRcT clAmsDebugCliForceLock(
     }
     if(!pool)
     {
+        clTaskPoolInitialize();
         rc = clTaskPoolCreate(&pool, 1, NULL, NULL);
         if(rc != CL_OK)
         {
@@ -927,6 +928,7 @@ ClRcT clAmsDebugCliForceLockInstantiation(
     saNameSet(&entity.name, (const ClCharT*)argv[1]);
     if(!pool)
     {
+        clTaskPoolInitialize();
         rc = clTaskPoolCreate(&pool, 1, NULL, NULL);
         if(rc != CL_OK)
         {

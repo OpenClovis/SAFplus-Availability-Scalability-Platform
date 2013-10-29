@@ -40,6 +40,11 @@ MANDIR=$(PREFIX)/share/man
 ETCDIR=/etc
 LCRSODIR=$(PREFIX)/libexec/lcrso
 ARCH=$(shell uname -p)
+ifdef SOLARIS_BUILD
+    INSTALL_CMD=ginstall
+else
+    INSTALL_CMD=install
+endif
 
 ifeq (,$(findstring 64,$(ARCH)))
 LIBDIR=$(PREFIX)/lib/openais
@@ -76,7 +81,7 @@ AIS_HEADERS	= saAis.h saAmf.h saClm.h saCkpt.h saEvt.h saEvt.h saLck.h \
 		  saMsg.h cpg.h cfg.h evs.h ipc_gen.h mar_gen.h swab.h 	   \
 		  ais_util.h
 
-ginstall: all
+$(INSTALL_CMD): all
 	mkdir -p $(DESTDIR)$(SBINDIR)
 	mkdir -p $(DESTDIR)$(INCLUDEDIR)
 	mkdir -p $(DESTDIR)$(INCLUDEDIR_TOTEM)
@@ -95,16 +100,16 @@ ginstall: all
 	ln -sf libtotem_pg.so.2.0.0 exec/libtotem_pg.so.2
 	$(CP) -a exec/libtotem_pg.so $(DESTDIR)$(LIBDIR)
 	$(CP) -a exec/libtotem_pg.so.2 $(DESTDIR)$(LIBDIR)
-	ginstall -m 755 exec/libtotem_pg.so.2.* $(DESTDIR)$(LIBDIR)
+	$(INSTALL_CMD) -m 755 exec/libtotem_pg.so.2.* $(DESTDIR)$(LIBDIR)
 
 	for aLib in $(AIS_LIBS); do					\
 	    ln -sf lib$$aLib.so.2.0.0 lib/lib$$aLib.so;			\
 	    ln -sf lib$$aLib.so.2.0.0 lib/lib$$aLib.so.2;		\
 	    $(CP) -a lib/lib$$aLib.so $(DESTDIR)$(LIBDIR);		\
 	    $(CP) -a lib/lib$$aLib.so.2 $(DESTDIR)$(LIBDIR);		\
-	    ginstall -m 755 lib/lib$$aLib.so.2.* $(DESTDIR)$(LIBDIR);	\
+	    $(INSTALL_CMD) -m 755 lib/lib$$aLib.so.2.* $(DESTDIR)$(LIBDIR);	\
 	    if [ "xNO" = "x$(STATICLIBS)" ]; then			\
-	        ginstall -m 755 lib/lib$$aLib.a $(DESTDIR)$(LIBDIR);	\
+	        $(INSTALL_CMD) -m 755 lib/lib$$aLib.a $(DESTDIR)$(LIBDIR);	\
 		if [ ${OPENAIS_COMPAT} = "DARWIN" ]; then		\
 		    ranlib $(DESTDIR)$(LIBDIR)/lib$$aLib.a;		\
 	        fi							\
@@ -113,37 +118,37 @@ ginstall: all
 
 	echo $(LIBDIR) > $(DESTDIR)$(ETCDIR)/ld.so.conf.d/openais-$(ARCH).conf
 
-	ginstall -m 755 exec/*lcrso $(DESTDIR)$(LCRSODIR)
-	ginstall -m 755 exec/aisexec $(DESTDIR)$(SBINDIR)
-	ginstall -m 700 exec/keygen $(DESTDIR)$(SBINDIR)/ais-keygen
+	$(INSTALL_CMD) -m 755 exec/*lcrso $(DESTDIR)$(LCRSODIR)
+	$(INSTALL_CMD) -m 755 exec/aisexec $(DESTDIR)$(SBINDIR)
+	$(INSTALL_CMD) -m 700 exec/keygen $(DESTDIR)$(SBINDIR)/ais-keygen
 
 	if [ ! -f $(DESTDIR)$(ETCDIR)/ais/openais.conf ] ; then 	   \
-		ginstall -m 644 conf/openais.conf $(DESTDIR)$(ETCDIR)/ais ; \
+		$(INSTALL_CMD) -m 644 conf/openais.conf $(DESTDIR)$(ETCDIR)/ais ; \
 	fi
 	if [ ! -f $(DESTDIR)$(ETCDIR)/ais/amf.conf ] ; then 		\
-		ginstall -m 644 conf/amf.conf $(DESTDIR)$(ETCDIR)/ais ;	\
+		$(INSTALL_CMD) -m 644 conf/amf.conf $(DESTDIR)$(ETCDIR)/ais ;	\
 	fi
 
 	for aHeader in $(AIS_HEADERS); do				\
-	    ginstall -m 644 include/$$aHeader $(DESTDIR)$(INCLUDEDIR);	\
+	    $(INSTALL_CMD) -m 644 include/$$aHeader $(DESTDIR)$(INCLUDEDIR);	\
 	done
 
-	ginstall -m 644 exec/aispoll.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
-	ginstall -m 644 exec/totempg.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
-	ginstall -m 644 exec/totem.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
-	ginstall -m 644 exec/totemip.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
-	ginstall -m 644 lcr/lcr_ckpt.h $(DESTDIR)$(INCLUDEDIR_LCR)
-	ginstall -m 644 lcr/lcr_comp.h $(DESTDIR)$(INCLUDEDIR_LCR)
-	ginstall -m 644 lcr/lcr_ifact.h $(DESTDIR)$(INCLUDEDIR_LCR)
-	ginstall -m 644 exec/service.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	ginstall -m 644 exec/timer.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	ginstall -m 644 exec/objdb.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	ginstall -m 644 exec/print.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	ginstall -m 644 exec/config.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	ginstall -m 644 include/swab.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
-	ginstall -m 644 man/*.3 $(DESTDIR)$(MANDIR)/man3
-	ginstall -m 644 man/*.5 $(DESTDIR)$(MANDIR)/man5
-	ginstall -m 644 man/*.8 $(DESTDIR)$(MANDIR)/man8
+	$(INSTALL_CMD) -m 644 exec/aispoll.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
+        $(INSTALL_CMD) -m 644 exec/totempg.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
+	$(INSTALL_CMD) -m 644 exec/totem.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
+	$(INSTALL_CMD) -m 644 exec/totemip.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
+	$(INSTALL_CMD) -m 644 lcr/lcr_ckpt.h $(DESTDIR)$(INCLUDEDIR_LCR)
+	$(INSTALL_CMD) -m 644 lcr/lcr_comp.h $(DESTDIR)$(INCLUDEDIR_LCR)
+	$(INSTALL_CMD) -m 644 lcr/lcr_ifact.h $(DESTDIR)$(INCLUDEDIR_LCR)
+	$(INSTALL_CMD) -m 644 exec/service.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	$(INSTALL_CMD) -m 644 exec/timer.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	$(INSTALL_CMD) -m 644 exec/objdb.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	$(INSTALL_CMD) -m 644 exec/print.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	$(INSTALL_CMD) -m 644 exec/config.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	$(INSTALL_CMD) -m 644 include/swab.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
+	$(INSTALL_CMD) -m 644 man/*.3 $(DESTDIR)$(MANDIR)/man3
+        $(INSTALL_CMD) -m 644 man/*.5 $(DESTDIR)$(MANDIR)/man5
+	$(INSTALL_CMD) -m 644 man/*.8 $(DESTDIR)$(MANDIR)/man8
 
 doxygen:
 	mkdir -p doc/api && doxygen

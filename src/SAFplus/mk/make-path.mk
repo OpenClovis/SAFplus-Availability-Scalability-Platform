@@ -39,9 +39,9 @@ export AWK
 # if SAFplus can be found "upstream" from the current dir and it contains a
 # "components" and a "3rdparty" subdir.
 ifndef IS_ASP_COMP
-ifdef SOLARIS_BUILD
-    IS_ASP_COMP := $(shell pwd | grep -c "SAFplus/components")
-else
+#ifdef SOLARIS_BUILD
+#    IS_ASP_COMP := $(shell pwd | grep -c "SAFplus/components")
+#else
     IS_ASP_COMP := $(shell \
         asp_dir=$$(pwd|$(AWK) '{if(match($$0,".*/ASP/")){print substr($$0,0,RLENGTH-1)}}'); \
         if [ -d "$$asp_dir" -a \
@@ -58,7 +58,7 @@ else
             echo 0; \
         fi \
         fi)
-endif
+#endif
 endif
 
 #$(warning IS_ASP_COMP:$(IS_ASP_COMP))

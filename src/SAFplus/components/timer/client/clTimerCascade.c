@@ -1016,6 +1016,7 @@ ClRcT clTimerInitialize(ClPtrT config)
         clLogError("TIMER", "INI", "Timer job queue create returned [%#x]", rc);
         return rc;
     }
+    clTaskPoolInitialize();
     rc = clTaskPoolCreate(&gTimerBase.timerCallbackPool, CL_TIMER_MAX_CALLBACK_TASKS, 0, 0);
     if(rc != CL_OK)
     {

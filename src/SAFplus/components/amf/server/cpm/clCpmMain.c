@@ -1575,7 +1575,8 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     }
 
     clIocNotificationRegister(clCpmIocNotificationEnqueue, NULL);
-
+    
+    clTaskPoolInitialize();
     if( (rc = clTaskPoolCreate(&gCpmFaultPool, 1, 0, 0)) != CL_OK)
     {
         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,

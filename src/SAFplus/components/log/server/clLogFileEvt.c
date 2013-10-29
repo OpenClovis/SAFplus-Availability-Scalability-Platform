@@ -274,6 +274,7 @@ clLogEventInitialize(ClLogSvrCommonEoDataT  *pSvrCommonEoEntry)
      */
     if(!gClLogFileEventTaskPool)
     {
+        clTaskPoolInitialize();
         rc = clTaskPoolCreate(&gClLogFileEventTaskPool, 1, NULL, NULL);
         if(rc != CL_OK)
         {
