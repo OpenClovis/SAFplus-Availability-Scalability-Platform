@@ -282,7 +282,7 @@ ClRcT clLogStreamOwnerStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT* )clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -483,7 +483,7 @@ ClRcT clLogStreamOwnerStreamCloseClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -684,7 +684,7 @@ ClRcT clLogStreamOwnerFilterSetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -996,7 +996,7 @@ ClRcT clLogStreamOwnerHandlerRegisterClientAsync_4_0_0(CL_IN ClIdlHandleT handle
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1400,7 +1400,7 @@ ClRcT clLogStreamOwnerHandlerDeregisterClientAsync_4_0_0(CL_IN ClIdlHandleT hand
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1675,7 +1675,7 @@ ClRcT clLogStreamOwnerFilterGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);

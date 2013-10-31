@@ -1412,7 +1412,7 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
     struct iovec iov[*pNumRecords];
     ClUint32T  idx        = 0;
     ClInt32T count        = 0;
-    ClUint32T  numBytes   = 0;
+    ClInt32T  numBytes   = 0;
     ClBoolT syslogEnabled = pFileOwnerData->streamAttr.syslog;
 
     if(!pFileOwnerData->fileUnitPtr) return CL_LOG_RC(CL_ERR_NOT_EXIST);

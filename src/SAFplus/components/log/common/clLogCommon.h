@@ -326,7 +326,7 @@ ClRcT
 clLogFileIOVwrite(ClLogFilePtrT  fp,
                   struct iovec   *pIov,
                   ClUint32T      numRecords,
-                  ClUint32T      *pNumOfBytes);
+                  ClInt32T      *pNumOfBytes);
 
 ClRcT
 clLogFileRead(ClLogFilePtrT  fp, void *pData, ClUint32T *pNumOfBytes);
