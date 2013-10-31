@@ -132,7 +132,7 @@ static ClRcT clHeapConfigPoolDataInit(ClPtrT pParentBase,
 {
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     ClPoolConfigT *pPoolConfig = NULL;
-    ClHeapConfigT *pHeapConfig = pParentBase;
+    ClHeapConfigT *pHeapConfig = (ClHeapConfigT *)pParentBase;
 
     if(pParentBase == NULL || pNumInstances == NULL ||  pBase == NULL
        || pBaseOffset == NULL
@@ -145,7 +145,7 @@ static ClRcT clHeapConfigPoolDataInit(ClPtrT pParentBase,
     {
     case CL_PARSER_TAG_FMT:
         {
-            pPoolConfig = calloc(*pNumInstances,sizeof(ClPoolConfigT));
+            pPoolConfig = (ClPoolConfigT *)calloc(*pNumInstances,sizeof(ClPoolConfigT));
             if(pPoolConfig == NULL)
             {
                 rc = CL_EO_RC(CL_ERR_NO_MEMORY);
@@ -184,7 +184,7 @@ static ClRcT clBufferConfigPoolDataInit(ClPtrT pParentBase,
 {
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     ClPoolConfigT *pPoolConfig = NULL;
-    ClBufferPoolConfigT *pBufferConfig = pParentBase;
+    ClBufferPoolConfigT *pBufferConfig = (ClBufferPoolConfigT*)pParentBase;
 
     if(pParentBase == NULL || pNumInstances == NULL ||  pBase == NULL
        || pBaseOffset == NULL
@@ -197,7 +197,7 @@ static ClRcT clBufferConfigPoolDataInit(ClPtrT pParentBase,
     {
     case CL_PARSER_TAG_FMT:
         {
-            pPoolConfig = calloc(*pNumInstances,sizeof(ClPoolConfigT));
+            pPoolConfig = (ClPoolConfigT *)calloc(*pNumInstances,sizeof(ClPoolConfigT));
             if(pPoolConfig == NULL)
             {
                 rc = CL_EO_RC(CL_ERR_NO_MEMORY);
@@ -239,9 +239,9 @@ static ClRcT clWaterMarkActionDataInit(ClPtrT pParentBase,
     register ClUint32T i;
     
     ClPtrT *pBases[] = { 
-        (ClPtrT)&gClEoMemConfig.memLowWaterMark,
-        (ClPtrT)&gClEoMemConfig.memHighWaterMark,
-        (ClPtrT)&gClEoMemConfig.memMediumWaterMark,
+        (ClPtrT *)&gClEoMemConfig.memLowWaterMark,
+        (ClPtrT *)&gClEoMemConfig.memHighWaterMark,
+        (ClPtrT *)&gClEoMemConfig.memMediumWaterMark,
         NULL,
     };
     if(pParentBase == NULL)
@@ -258,9 +258,9 @@ static ClRcT clWaterMarkActionDataInit(ClPtrT pParentBase,
          * data inits for each action child.
          */
         ClPtrT *pActionBases[] = { 
-            (ClPtrT)&gMemWaterMark[CL_WM_LOW],
-            (ClPtrT)&gMemWaterMark[CL_WM_HIGH],
-            (ClPtrT)&gMemWaterMark[CL_WM_MED],
+            (ClPtrT *)&gMemWaterMark[CL_WM_LOW],
+            (ClPtrT *)&gMemWaterMark[CL_WM_HIGH],
+            (ClPtrT *)&gMemWaterMark[CL_WM_MED],
             NULL,
         };
         for(i = 0; pActionBases[i] && pActionBases[i] != pParentBase; ++i);
@@ -288,7 +288,7 @@ static ClRcT clHeapConfigModeTagFmt(ClParserTagT *pTag,
                                     ClParserTagOpT op
                                     )
 {
-    ClHeapConfigT *pHeapConfig = pBase;
+    ClHeapConfigT *pHeapConfig = (ClHeapConfigT *)pBase;
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     if(pBase == NULL || pAttr == NULL || pValue == NULL)
     {
@@ -363,7 +363,7 @@ static ClRcT clBufferConfigModeTagFmt(ClParserTagT *pTag,
                                       ClParserTagOpT op
                                       )
 {
-    ClBufferPoolConfigT *pBufferConfig = pBase;
+    ClBufferPoolConfigT *pBufferConfig = (ClBufferPoolConfigT *)pBase;
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     if(pBase == NULL || pAttr == NULL || pValue == NULL)
     {
@@ -429,7 +429,7 @@ static ClRcT clWaterMarkActionTagFmt(ClParserTagT *pTag,
                                      )
 {
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
-    ClEoActionInfoT *pWMActions = pBase;
+    ClEoActionInfoT *pWMActions =  (ClEoActionInfoT *)pBase;
     static const ClCharT *pActionTags[] = { "event","notification","log","custom",NULL};
     static ClUint32T actionBitMap[] = { 
         CL_EO_ACTION_EVENT,

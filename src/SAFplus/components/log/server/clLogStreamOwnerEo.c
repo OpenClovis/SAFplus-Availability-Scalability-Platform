@@ -46,7 +46,7 @@ clLogStreamOwnerLocalEoDataInit(ClLogSOEoDataT  **ppSoEoEntry)
         return rc;
     }    
 
-    *ppSoEoEntry = clHeapCalloc(1, sizeof(ClLogSOEoDataT));
+    *ppSoEoEntry = (ClLogSOEoDataT*)clHeapCalloc(1, sizeof(ClLogSOEoDataT));
     if( NULL == *ppSoEoEntry )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));

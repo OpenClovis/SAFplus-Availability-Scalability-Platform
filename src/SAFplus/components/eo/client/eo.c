@@ -827,8 +827,9 @@ static void eoNotificationCallback(ClIocNotificationIdT eventId,
                                    ClPtrT unused,
                                    ClIocAddressT *pAddress)
 {
-    ClIocNotificationT notification = {0};
-    notification.id = htonl(eventId);
+    ClIocNotificationT notification;
+    memset(&notification,0,sizeof(ClIocNotificationT));
+    notification.id =(ClIocNotificationIdT) htonl(eventId);
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(pAddress->iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = htonl(pAddress->iocPhyAddress.portId);
@@ -4183,9 +4184,9 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     rc = clJobQueuePush(pQ,(ClCallbackT) clEoJobHandler, pJob);
 
 #else
-    ClUint32T priority =0 ;
     if (1)
     {        
+        ClUint32T priority =0 ;
         ClJobQueueT* pQueue = NULL;
         if(pJob->msgParam.priority > CL_IOC_MAX_PRIORITIES)
         {
