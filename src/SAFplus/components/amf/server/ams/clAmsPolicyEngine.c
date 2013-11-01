@@ -4355,10 +4355,7 @@ clAmsPeNodeReset(
           entityRef = clAmsEntityListGetNext(&node->config.suList,entityRef) )
     {
         ClAmsSUT *su = (ClAmsSUT *) entityRef->ptr;
-
-        AMS_CHECK_SU ( su );
-
-        clAmsPeSUReset(su);
+        if (su) clAmsPeSUReset(su);
     }
 
     return CL_OK;

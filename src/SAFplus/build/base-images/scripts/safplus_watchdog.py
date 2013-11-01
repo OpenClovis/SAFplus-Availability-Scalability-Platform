@@ -57,6 +57,7 @@ def asp_admin_stop():
 def amf_watchdog_loop():
     monitor_interval = 5
     run_dir = asp.get_asp_run_dir()
+    node_name = asp.get_asp_node_name()
     restart_file = run_dir + '/' + ASP_RESTART_FILE
     watchdog_restart_file = run_dir + '/' + ASP_WATCHDOG_RESTART_FILE
     reboot_file  = run_dir + '/' + ASP_REBOOT_FILE
@@ -76,7 +77,7 @@ def amf_watchdog_loop():
                 if is_restart or is_forced_restart:
                     safe_remove(restart_file) 
                     safe_remove(watchdog_restart_file)
-                    logging.debug('AMF watchdog restarting ASP...')
+                    logging.debug('AMF watchdog stopping SAFplus for %d sec' % SAFPLUS_RESTART_DELAY)
                     asp.zap_asp(False)
                     ## give time for pending ops to complete
                     ## we unload the TIPC module and let ASP start reload it, 
@@ -85,16 +86,18 @@ def amf_watchdog_loop():
                     ## retransmit failures due to pending ACK thereby resulting
                     ## in all the TIPC links being reset.
                     time.sleep(SAFPLUS_RESTART_DELAY)
-                    asp.start_asp(stop_watchdog=False, force_start=True)
+                    logging.debug('AMF watchdog restarting SAFplus...')
+                    asp.force_restart_safplus()
                     asp.create_asp_cmd_marker('start')
                     sys.exit(1)
                 elif os.access(reboot_file, os.F_OK):
                     safe_remove(reboot_file)
                     if getenv("ASP_NODE_REBOOT_DISABLE", 0) != 0:
+                        logging.debug('SAFplus watchdog would normally reboot %s, but ASP_NODE_REBOOT_DISABLE is set' % node_name)
                         asp.zap_asp()
                         sys.exit(1)
                     else:
-                        logging.debug('SAFplus watchdog rebooting %s...' % asp.get_asp_node_name())
+                        logging.debug('SAFplus watchdog rebooting %s...' % node_name)
                         asp.run_custom_scripts('reboot')
                         asp.proc_lock_file('remove')
                         os.system('reboot')
@@ -104,7 +107,7 @@ def amf_watchdog_loop():
                                   'as node failfast/failover recovery action '
                                   'was called on it and ASP_NODE_REBOOT_DISABLE '
                                   'environment variable is set for it.'
-                                  % asp.get_asp_node_name())
+                                  % node_name)
                     asp.zap_asp()
                     sys.exit(1)
                 else:
@@ -113,8 +116,10 @@ def amf_watchdog_loop():
                     if not asp_admin_stop():
                         asp.zap_asp(False)
                         if asp.should_restart_asp():
+                            logging.debug('AMF watchdog stopping SAFplus for %d sec' % SAFPLUS_RESTART_DELAY)
                             time.sleep(SAFPLUS_RESTART_DELAY)
-                            asp.start_asp(stop_watchdog=False, force_start = True)
+                            logging.debug('AMF watchdog restarting SAFplus...')
+                            asp.force_restart_safplus()
                             asp.create_asp_cmd_marker('start')
                         else:
                             asp.proc_lock_file('remove')

@@ -59,6 +59,7 @@
 #include <clGmsRmdServer.h>
 #include <clNodeCache.h>
 #include <clCpmExtApi.h>
+#include <clErrorApi.h>
 
 # define CL_MAX_CREDENTIALS     (~0U)
 #define __SC_PROMOTE_CREDENTIAL_BIAS (CL_IOC_MAX_NODES+1)
@@ -130,8 +131,7 @@ static ClRcT timerCallback( void *arg )
     timerRestarted = CL_FALSE;
     bootTimeElectionDone = CL_TRUE;
 
-    rc = _clGmsEngineLeaderElect ( 
-                                  0x0,
+    rc = _clGmsEngineLeaderElect (0x0,
                                   NULL , 
                                   CL_GMS_MEMBER_JOINED,
                                   &leaderNodeId,
@@ -140,15 +140,11 @@ static ClRcT timerCallback( void *arg )
 
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_ERROR,LEA,NA,
-              "Error in boot time leader election. rc [0x%x]",rc);
+        clLog(CL_LOG_ERROR,LEA,NA, "Error in boot time leader election. rc [0x%x]",rc);
     }
     lastLeader = view->leader;
     leadershipChanged = (lastLeader != leaderNodeId);
-    if(leadershipChanged
-       ||
-       (view->deputy != deputyNodeId))
-        
+    if(leadershipChanged || (view->deputy != deputyNodeId))  
     {
         if(!trackNotify)
         {
@@ -156,12 +152,13 @@ static ClRcT timerCallback( void *arg )
             view->deputy = deputyNodeId;
             view->leadershipChanged = leadershipChanged;
             clEoMyEoObjectSet ( gmsGlobalInfo.gmsEoObject );
-            if (_clGmsTrackNotify ( 0x0 ) != CL_OK)
-            {
-                clLog(CL_LOG_ERROR,LEA,NA,
-                      "_clGmsTrackNotify failed in leader election timer callback");
-            }
         }
+    }
+
+    // Always notify if boot timer timed out because we might have missed notifications earlier
+    if ((rc = _clGmsTrackNotify ( 0x0 )) != CL_OK)
+    {
+        clLog(CL_LOG_ERROR,LEA,NA, "_clGmsTrackNotify failed in leader election timer callback error [0x%x:%s]", rc, clErrorToString(rc));
     }
     
     // ready to Serve only to be set when there is Synch done 

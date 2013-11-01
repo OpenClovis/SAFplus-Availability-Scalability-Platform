@@ -44,6 +44,7 @@
 #include <clCpmLog.h>
 #include <clCpmMgmt.h>
 #include <clClmApi.h>
+#include <saAis.h>
 
 ClRcT cpmCpmLCheckpointWrite(void);
 
@@ -427,7 +428,7 @@ ClVersionT cpmCkptVersion = {'B', 0x01, 0x01};
 #define CPM_CKPT_SIZE   1024*1024
 #define CPM_CKPT_MAX_SECTION_SIZE   1024*1024
 #define CPM_CKPT_MAX_SECTION_ID_SIZE 256
-#define CPM_CKPT_RETENTION_DURATION  CL_TIME_FOREVER
+#define CPM_CKPT_RETENTION_DURATION  SA_TIME_END
 #define CPM_CKPT_MAX_SECTIONS   1
 
 ClRcT cpmCpmLStandbyCheckpointInitialize(void)

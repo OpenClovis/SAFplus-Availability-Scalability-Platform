@@ -41,6 +41,7 @@
 #include <clIocErrors.h>
 #include <clClmApi.h>
 #include <clHandleApi.h>
+#include <clErrorApi.h>
 
 /*
  * CPM internal include files 
@@ -561,8 +562,7 @@ static void cpmPayload2StandbySC(const ClGmsClusterNotificationBufferT *notifica
     return ;
 }
 
-void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT
-                               *notificationBuffer)
+void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT *notificationBuffer)
 {
     ClCpmLocalInfoT *pCpmLocalInfo = NULL;
     ClInt32T nodeUp = 0;
@@ -741,7 +741,7 @@ ClRcT cpmGmsInitialize(void)
 #ifdef VXWORKS_BUILD
     timeOut.tsSec = gpClCpm->cpmGmsTimeout + 20;
 #else
-    timeOut.tsSec = gpClCpm->cpmGmsTimeout + 10;
+    timeOut.tsSec = gpClCpm->cpmGmsTimeout + 60;  /* There is no reason to not wait for a long time.  100% cpu could cause GMS to come up slowly */
 #endif
     timeOut.tsMilliSec = 0;
 
@@ -749,28 +749,21 @@ ClRcT cpmGmsInitialize(void)
               "Node [%s] waiting for GMS cluster track callback for [%d.%d] secs",
               gpClCpm->pCpmLocalInfo->nodeName, timeOut.tsSec, timeOut.tsMilliSec);
 
-    rc = clOsalCondWait(&gpClCpm->cpmGmsCondVar,
-                        &gpClCpm->cpmGmsMutex,
-                        timeOut);
+    rc = clOsalCondWait(&gpClCpm->cpmGmsCondVar, &gpClCpm->cpmGmsMutex, timeOut);
     if (CL_OK != rc)
     {
         if(gpClCpm->trackCallbackInProgress)
         {
-            clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
-                         "GMS cluster track callback in progress. Waiting for it to complete ...");
+            clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS, "GMS cluster track callback in progress. Waiting for it to complete ...");
             goto retry;
         }
-        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
-                   "Failed to receive GMS cluster track callback, "
-                   "error [%#x].",
-                   rc);
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS, "Failed to receive GMS cluster track callback, error [%#x:%s].",rc,clErrorToString(rc));
         clOsalMutexUnlock(&gpClCpm->cpmGmsMutex);
         goto failure;
     }
 
     rc = clOsalMutexUnlock(&gpClCpm->cpmGmsMutex);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc,
-                   rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 
     return CL_OK;
 

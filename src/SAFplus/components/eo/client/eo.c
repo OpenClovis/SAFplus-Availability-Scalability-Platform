@@ -3827,19 +3827,17 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
         pThis->eoInitDone = 1;
     }
 
-    recvOption.recvTimeout = CL_IOC_TIMEOUT_FOREVER;
+    recvOption.recvTimeout = 1000; //CL_IOC_TIMEOUT_FOREVER;
 
     clOsalSelfTaskIdGet(&selfTaskId);
     clLogDebug(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "IOC Receive Thread is running with id [%llx]", selfTaskId);
 
-    while (1)
+    while (gpExecutionObject && (gpExecutionObject->state != CL_EO_STATE_STOP))
     {
         rc = clBufferCreate(&eoRecvMsg);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                           ("Create Message Failed for EOID : 0x%llx\t Port %x\n",
-                            pThis->eoID, pThis->eoPort));
+            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Create Message Failed for EOID : 0x%llx\t Port %x\n", pThis->eoID, pThis->eoPort));
             return rc;
         }
 
@@ -3936,6 +3934,11 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
             CL_ASSERT(0);
             break;
         }
+        else if(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT)
+        {
+            /* normal case is a periodic timeout to check that we should not be quitting.  just loop back around */
+            clBufferDelete(&eoRecvMsg);
+        }       
         else
         {
             retry:

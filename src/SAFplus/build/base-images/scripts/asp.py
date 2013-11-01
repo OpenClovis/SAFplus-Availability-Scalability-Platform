@@ -219,7 +219,7 @@ def set_asp_env(k, v):
     asp_env[k] = v
 
 def log_asp_env():
-    log.debug('ASP environment information :')
+    log.debug('SAFplus environment information :')
     log.debug('sandbox directory : [%s]' % asp_env['sandbox_dir'])
     log.debug('Location of old logs : [%s]' % asp_env['save_log_dir'])
     log.debug('Link name : [%s]' % asp_env['link_name'])
@@ -243,7 +243,7 @@ def gen_asp_run_env_file(run_file, d):
         if not is_root():
             return
         fail_and_exit('Could not create file %s' % run_file)
-    print >> f, '# This file is auto-generated when ASP is started, please do not modify'
+    print >> f, '# This file is auto-generated when SAFplus is started, please do not modify'
     print >> f, 'ASP_DIR=%s' % d['sandbox_dir']
     print >> f, 'ASP_BINDIR=%s' % d['bin_dir']
     print >> f, 'ASP_APP_BINDIR=%s' % d['bin_dir']
@@ -386,7 +386,7 @@ def set_up_asp_config():
                 log.critical('The tipc-config command is not found in %s env !!' %
                          (d['bin_dir']))
                 fail_and_exit('This indicates some serious configuration '
-                         'problem while deploying ASP image on target.')
+                         'problem while deploying SAFplus image on target.')
             else:
                 return tipc_config_cmd
         else:
@@ -546,7 +546,7 @@ def start_hpi_subagent():
                                'you may reconfigure your build to',
                                'use the chassis manager (see ./configure --help). '
                                'Doing so will provide a',
-                               'greater level of integration between the ASP and '
+                               'greater level of integration between the SAFplus and '
                                'your hardware.  You may', 
                                'remove this warning by removing the CMM_IP field '
                                'from the target.conf file.'
@@ -837,7 +837,7 @@ def load_config_tipc_module():
 
     def tipc_failed_state(tipc_state):
         if tipc_state == (0, 0, 0):
-            msg = '\n'.join([ 'TIPC is not configured for this ASP build.',
+            msg = '\n'.join([ 'TIPC is not configured for this SAFplus build.',
 
                               'Please manually load and configure TIPC module '
                               'to proceed.'])
@@ -887,7 +887,7 @@ def load_config_tipc_module():
                                       'with that in %s/asp.conf' %
                                       get_asp_etc_dir(),
                                       
-                                      'Please start ASP with either '
+                                      'Please start SAFplus with either '
                                       '--enforce-tipc-settings to use '
                                       'TIPC configuration in %s/asp.conf '
                                       'or --ignore-tipc-settings to use '
@@ -915,9 +915,9 @@ def load_config_tipc_module():
     time.sleep(5) ## delay for possible tipc unload/reload bugs resulting in tipc split brain
     if not is_root():
         if not is_tipc_loaded():
-            fail_and_exit('ASP is not being run in root user mode '
+            fail_and_exit('SAFplus is not being run in root user mode '
                           'and TIPC module is not loaded.\n'
-                          'Please run ASP as either root '
+                          'Please run SAFplus as either root '
                           'or load and configure TIPC module properly '
                           'as root to continue.')
         else:
@@ -1109,13 +1109,30 @@ def touch_lock_file(asp_file):
     except OSError, e:
         if e.errno != errno.EEXIST:
             raise
-        fail_and_exit("ASP instance already running. "
+        fail_and_exit("SAFplus instance already running. "
                       "To force startup, try removing %s lockfile at your own risk and retry." % asp_file, 
                       False)
 
 def remove_lock_file(asp_file):
     cmd = '[ -f %s ] && rm -f %s' % (asp_file, asp_file)
     system(cmd)
+
+def force_restart_safplus():
+    save_asp_runtime_files()
+    if is_tipc_build():
+        load_config_tipc_module()
+    set_ld_library_paths()
+    if is_system_controller():
+        start_snmp_daemon()
+    if is_simulation():
+        setup_gms_config()
+    run_custom_scripts('start')
+    start_amf()
+    if is_system_controller() and not is_simulation():
+        start_hpi_subagent()
+    if not is_simulation():
+        start_led_controller()
+
 
 def start_asp(stop_watchdog=True, force_start = False):
     try:
@@ -1196,9 +1213,9 @@ def get_pid_for_this_sandbox(pid):
 
     if cwd.endswith(' (deleted)'):
         log.critical('Contents of this sandbox directory were deleted '
-                     'without stopping ASP which was started '
+                     'without stopping SAFplus which was started '
                      'from it.')
-        fail_and_exit('Please kill all the ASP processes manually '
+        fail_and_exit('Please kill all the SAFplus processes manually '
                           'before proceeding any further.')
 
     return cwd == get_asp_run_dir()
@@ -1211,8 +1228,7 @@ def get_amf_pid(watchdog_pid = False):
                 return int(valid[1])
         else:
             break
-        log.warning('there are more than one AMF pid. Try again...' %
-                    get_asp_node_addr())
+        log.warning('There is more than one AMF pid. Try again...')
         time.sleep(0.25)
     if watchdog_pid:
          valid = commands.getstatusoutput("/bin/pidof safplus_watchdog.py");
@@ -1243,7 +1259,7 @@ def stop_asp():
 
     amf_pid = get_amf_pid()
     if amf_pid == 0:
-        log.warning('ASP is not running on node [%s]. Cleaning up anyway...' %
+        log.warning('SAFplus is not running on node [%s]. Cleaning up anyway...' %
                     get_asp_node_addr())
     else:
         log.info('Stopping AMF...')
@@ -1336,18 +1352,17 @@ def start_asp_console():
 def check_asp_status(watchdog_pid = False):
     v = is_asp_running(watchdog_pid)
     if v == 0:
-        fail_and_exit('ASP is already running on node [%s], pid [%s]' %\
-                      (get_asp_node_addr(), get_amf_pid(watchdog_pid)), False)
+        fail_and_exit('SAFplus is already running on node [%s], pid [%s]' % (get_asp_node_addr(), get_amf_pid(watchdog_pid)), False)
     elif v == 2:
-        fail_and_exit('ASP is still booting up/shutting down on node [%s], '
+        fail_and_exit('SAFplus is still booting up/shutting down on node [%s], '
                       'pid [%s]. '
                       'Please give \'stop\' or \'zap\' command and '
                       'then continue' %\
                       (get_asp_node_addr(), get_amf_pid(watchdog_pid)), False)
     elif v == 3:
-        fail_and_exit('ASP is already running with pid [%s], but it was not '
+        fail_and_exit('SAFplus is already running with pid [%s], but it was not '
                       'started from this sandbox [%s]. Please check if '
-                      'ASP was already started from some other '
+                      'SAFplus was already started from some other '
                       'sandbox directory.' %\
                       (get_amf_pid(watchdog_pid), get_asp_sandbox_dir()))
 
@@ -1355,15 +1370,15 @@ def get_asp_status(to_shell=True):
     v = is_asp_running(watchdog_pid = True)
 
     if v == 0:
-        log.info('ASP is running on node [%s], pid [%s]' %\
+        log.info('SAFplus is running on node [%s], pid [%s]' %\
                  (get_asp_node_addr(), get_amf_pid(True)))
     elif v == 1:
-        log.info('ASP is not running on node [%s]' %\
+        log.info('SAFplus is not running on node [%s]' %\
                  get_asp_node_addr())
     elif v == 2:
-        log.info('ASP is booting up/shutting down')
+        log.info('SAFplus is booting up/shutting down')
     elif v == 3:
-        log.info('ASP is running with pid [%s], but it was not '
+        log.info('SAFplus is running with pid [%s], but it was not '
                  'started from this sandbox [%s].' %\
                  (get_amf_pid(True), get_asp_sandbox_dir()))
 
@@ -1419,9 +1434,9 @@ def usage():
            'Use systems TIPC settings '
            'ignoring the etc/asp.conf\'s settings'),
           ('--remove-persistent-db',
-           'Delete all of the ASP persistent database files'),
+           'Delete all of the SAFplus persistent database files'),
           ('--asp-log-level <level>',
-           'Start ASP with particular log level. <level> is '
+           'Start SAFplus with particular log level. <level> is '
            '[trace|debug|info|notice|warning|error|critical]')
         )
 
@@ -1469,11 +1484,11 @@ def sanity_check():
         if l:
             fail_and_exit('Some of the %s in the sandbox '
                           'are owned by root. \nThis indicates that '
-                          'previously ASP may have been/is running '
+                          'previously SAFplus may have been/is running '
                           'in root user mode. \n'
                           'Please delete those files to continue '
-                          'running/querying ASP as normal user or '
-                          'run/query ASP as root.' % t)
+                          'running/querying SAFplus as normal user or '
+                          'run/query SAFplus as root.' % t)
 
     def check_for_root_shms():
         cmd = 'find %s -uid 0 -type f -name \'CL_*\'' % sys_asp['shm_dir']
@@ -1482,11 +1497,11 @@ def sanity_check():
         if l:
             fail_and_exit('Some of the shared memory segments '
                           'in /dev/shm are owned by root. \n'
-                          'This indicates that previously ASP may '
+                          'This indicates that previously SAFplus may '
                           'have been/is running in root user mode. \n'
                           'Please delete those files to continue '
-                          'running/querying ASP as normal user or '
-                          'run/query ASP as root.')
+                          'running/querying SAFplus as normal user or '
+                          'run/query SAFplus as root.')
 
     check_for_root_files('f')
     check_for_root_files('d')
@@ -1530,7 +1545,7 @@ def parse_command_line():
                 log_level = a.upper()
                 os.putenv('CL_LOG_SEVERITY', log_level)
             else:
-                log.critical('Invalid ASP log level [%s]' % a)
+                log.critical('Invalid SAFplus log level [%s]' % a)
                 usage()
                 sys.exit(1)
 
@@ -1556,7 +1571,7 @@ def main():
 
     if not is_root():
         if sys.argv[1] not in [ 'status' ]:
-            log.info('ASP is being run in non-root user mode.')
+            log.info('SAFplus is being run in non-root user mode.')
             sanity_check()
 
     asp_driver(sys.argv[1])

@@ -90,6 +90,7 @@ extern "C" {
         /*                                                              \
          * Pre-change notification                                      \
          */                                                             \
+        clLogDebug("AMF","POL","State Change: Entity [%s] Operational State (%s -> %s)", (ENTITY)->config.entity.name.value,CL_AMS_STRING_O_STATE((ENTITY)->status.operState),CL_AMS_STRING_O_STATE((STATE))); \
         AMS_ENTITY_LOG( (ENTITY), CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_DEBUG, \
                 ("State Change: Entity [%s] Operational State (%s -> %s)\n", \
                  (ENTITY)->config.entity.name.value,                    \

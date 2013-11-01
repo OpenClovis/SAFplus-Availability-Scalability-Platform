@@ -980,14 +980,21 @@ static ClRcT clCpmFinalize(void)
                  */
                 CL_DEBUG_PRINT(CL_DEBUG_TRACE, 
                         ("Shutdown flag is [%d], Entering sleep...", gpClCpm->cpmShutDown));
-                while (gpClCpm->cpmShutDown != CL_TRUE)
+                int count = 0;
+                while ((gpClCpm->cpmShutDown != CL_TRUE)&&(count<30))
                 {
+                    count++;
                     CL_DEBUG_PRINT(CL_DEBUG_TRACE, 
                             ("Shutdown flag is [%d]", gpClCpm->cpmShutDown));
                     clOsalMutexUnlock(&gpClCpm->clusterMutex);
                     sleep(1);
                     clOsalMutexLock(&gpClCpm->clusterMutex);
                 }
+                if (count>=30)
+                {
+                    clLogError("AMF","FIN","Time out while attempting to shut down boot manager");
+                }
+                
             }
         }
 
