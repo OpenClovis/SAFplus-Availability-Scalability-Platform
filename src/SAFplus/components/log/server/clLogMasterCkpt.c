@@ -447,7 +447,7 @@ clLogMasterFileEntryPack(ClLogMasterEoDataT  *pMasterEoEntry,
     }
 
     /* rc = clBufferFlatten(hFileEntryBuf, ppBuffer); */
-    *ppBuffer = clHeapCalloc(*pBufferLen, sizeof(ClCharT));
+    *ppBuffer = (ClUint8T*) clHeapCalloc(*pBufferLen, sizeof(ClCharT));
     if( NULL == *ppBuffer )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -492,7 +492,7 @@ clLogMasterFileEntrySecIdGet(ClLogFileKeyT     *pFileKey,
      * One we will use for / so we need to decrement it by 1
      */
     pSecId->idLen = pFileKey->fileName.length + pFileKey->fileLocation.length + 1;
-    pSecId->id    = clHeapCalloc(pSecId->idLen, sizeof(ClCharT));
+    pSecId->id    = (ClUint8T*) clHeapCalloc(pSecId->idLen, sizeof(ClCharT));
     if( NULL == pSecId->id )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -768,7 +768,7 @@ clLogMasterStateRecover(ClLogSvrCommonEoDataT  *pCommonEoEntry,
             CL_LOG_DEBUG_ERROR(("clCkptCheckpointRead():rc[0x %x]", rc));
             return rc;
         }
-        rc = clLogMasterCompTableStateRecover(pMasterEoEntry, ioVector.dataBuffer, 
+        rc = clLogMasterCompTableStateRecover(pMasterEoEntry, (ClUint8T*) ioVector.dataBuffer, 
                                               ioVector.readSize);
         if( CL_OK != rc )
         {
@@ -821,8 +821,7 @@ clLogMasterEoEntryRecover(ClLogMasterEoDataT      *pMasterEoEntry,
         return rc;
     }
 
-    rc = clBufferNBytesWrite(hEoEntryBuf, pIoVector->dataBuffer,
-                             pIoVector->readSize);
+    rc = clBufferNBytesWrite(hEoEntryBuf, (ClUint8T*) pIoVector->dataBuffer, pIoVector->readSize);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clBufferNBytesWrite(): rc[0x %x]", rc));
@@ -898,7 +897,7 @@ static ClRcT fileEntryRecoverBaseVersion(ClLogMasterEoDataT *pMasterEoEntry,
     clHeapFree(fileKey.fileLocation.pValue);
 
     /* find out the filelocation is available */
-    pFileData = clHeapCalloc(1, sizeof(ClLogFileDataT));
+    pFileData = (ClLogFileDataT*) clHeapCalloc(1, sizeof(ClLogFileDataT));
     if( NULL == pFileData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -947,8 +946,7 @@ clLogMasterFileEntryRecover(ClLogMasterEoDataT      *pMasterEoEntry,
         return rc;
     }
 
-    rc = clBufferNBytesWrite(hFileEntryBuf, pIoVector->dataBuffer,
-                             pIoVector->readSize);
+    rc = clBufferNBytesWrite(hFileEntryBuf, (ClUint8T*) pIoVector->dataBuffer, pIoVector->readSize);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clBufferNBytesWrite(): rc[0x %x]", rc));
@@ -1123,7 +1121,7 @@ clLogMasterStreamTableRecreate(ClLogSvrCommonEoDataT  *pCommonEoEntry,
         return rc;
     }
 
-    pStreamData = clHeapCalloc(1, sizeof(ClLogMasterStreamDataT));
+    pStreamData = (ClLogMasterStreamDataT*) clHeapCalloc(1, sizeof(ClLogMasterStreamDataT));
     if( NULL == pStreamData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1231,7 +1229,7 @@ clLogMasterCompData2BufferGet(ClLogCompDataT  *pCompData,
         return rc;
     }
 
-    *ppBuffer = clHeapCalloc(*pDataSize, sizeof(ClUint8T));
+    *ppBuffer = (ClUint8T*) clHeapCalloc(*pDataSize, sizeof(ClUint8T));
     if( NULL == *ppBuffer )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));

@@ -44,7 +44,7 @@ clLogStreamOwnerSvrIntimate(ClCntKeyHandleT   key,
     ClLogStreamKeyT       *pStreamKey = pData->pStreamKey;
     ClIocAddressT         nodeAddr    = {{0}};
     ClIdlHandleT          hLogIdl     = CL_HANDLE_INVALID_VALUE;
-    ClLogStreamScopeT     streamScope = 0;  
+    ClLogStreamScopeT     streamScope = CL_LOG_STREAM_GLOBAL;  
     ClUint32T             length      = 0;
     ClLogSOCompDataT      *pCompData  = (ClLogSOCompDataT *) data;
 

@@ -75,7 +75,7 @@ void *
 clLogFlushIntervalThread(void *pData)
 {
     ClRcT                rc           = CL_OK;
-    ClLogSvrStreamDataT  *pStreamData = pData;
+    ClLogSvrStreamDataT  *pStreamData = (ClLogSvrStreamDataT*) pData;
     ClTimerTimeOutT      timeout      = {0, 0};
 
     if( !pStreamData ) return NULL; 
@@ -240,7 +240,7 @@ void*
 clLogFlusherStart(void  *pData)
 {
     ClRcT              rc             = CL_OK;
-    ClLogSvrStreamDataT  *pStreamData = pData;
+    ClLogSvrStreamDataT  *pStreamData = (ClLogSvrStreamDataT*) pData;
     ClLogStreamHeaderT   *pHeader     = pStreamData->pStreamHeader;
     ClTimerTimeOutT      timeout      = {0, 0};
     ClOsalTaskIdT        taskId       = CL_HANDLE_INVALID_VALUE;
@@ -522,12 +522,12 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
         nFlushableRecords = abs( pHeader->recordIdx - pHeader->startAck );
     }    
 
-    flushRecord.fileName.pValue = clHeapCalloc(1, pStreamData->fileName.length+1);
+    flushRecord.fileName.pValue = (ClCharT*) clHeapCalloc(1, pStreamData->fileName.length+1);
     CL_ASSERT(flushRecord.fileName.pValue != NULL);
     flushRecord.fileName.length = pStreamData->fileName.length;
     memcpy(flushRecord.fileName.pValue, pStreamData->fileName.pValue, flushRecord.fileName.length);
     
-    flushRecord.fileLocation.pValue = clHeapCalloc(1, pStreamData->fileLocation.length+1);
+    flushRecord.fileLocation.pValue = (ClCharT*) clHeapCalloc(1, pStreamData->fileLocation.length+1);
     CL_ASSERT(flushRecord.fileLocation.pValue != NULL);
     flushRecord.fileLocation.length = pStreamData->fileLocation.length;
     memcpy(flushRecord.fileLocation.pValue, pStreamData->fileLocation.pValue,
@@ -703,7 +703,7 @@ clLogFlusherCookieHandleDestroy(ClHandleT  hFlusher,
     }
 
     rc = clHandleCheckout(pSvrEoEntry->hFlusherDB, hFlusher, 
-                          (void *) &pFlushCookie);
+                          (void **) &pFlushCookie);
 
     if( (CL_TRUE == timerExpired) && (CL_OK != rc) )
     {
@@ -767,7 +767,7 @@ clLogFlusherCookieHandleCreate(ClUint32T       numRecords,
         clLogError("LOG", "FLS", "clHandleCreate(): rc[0x %x]", rc);
         return rc;
     }    
-    pTimerArg = clHeapCalloc(1, sizeof(ClHandleT));
+    pTimerArg = (ClHandleT*) clHeapCalloc(1, sizeof(ClHandleT));
 
     if( NULL == pTimerArg )
     {
@@ -793,7 +793,7 @@ clLogFlusherCookieHandleCreate(ClUint32T       numRecords,
     }    
 
     rc = clHandleCheckout(pSvrEoEntry->hFlusherDB, *phFlusher, 
-            (void *) &pFlushCookie);
+            (void **) &pFlushCookie);
     if( CL_OK != rc )
     {
         clLogError("LOG", "FLS", "clHandleCheckout(): rc[0x %x]", rc);
@@ -866,12 +866,12 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
     if( (startIdx + nRecords) <= pHeader->maxRecordCount )
     {
         pBuffer = pRecords + (startIdx * pHeader->recordSize);
-        pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs, 
+        pFlushRecord->pBuffs = (ClLogFlushBufferT*) clHeapRealloc(pFlushRecord->pBuffs, 
                                              (pFlushRecord->numBufs+1) * sizeof(*pFlushRecord->pBuffs));
         CL_ASSERT(pFlushRecord->pBuffs != NULL);
         memset(pFlushRecord->pBuffs + pFlushRecord->numBufs, 0, 
                sizeof(*pFlushRecord->pBuffs));
-        pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = clHeapCalloc(sizeof(ClUint8T), buffLen);
+        pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = (ClUint8T*) clHeapCalloc(sizeof(ClUint8T), buffLen);
         CL_ASSERT(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord != NULL);
         memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord,
                pBuffer, buffLen);
@@ -890,11 +890,11 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
             firstBatch = pHeader->maxRecordCount - startIdx;
             size = firstBatch * pHeader->recordSize;
             pBuffer = pRecords + (startIdx * pHeader->recordSize);
-            pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs,
+            pFlushRecord->pBuffs = (ClLogFlushBufferT*) clHeapRealloc(pFlushRecord->pBuffs,
                                                  (pFlushRecord->numBufs+1)*sizeof(*pFlushRecord->pBuffs));
             CL_ASSERT(pFlushRecord->pBuffs != NULL);
             memset(pFlushRecord->pBuffs+pFlushRecord->numBufs, 0, sizeof(*pFlushRecord->pBuffs));
-            pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = clHeapCalloc(sizeof(ClUint8T), buffLen);
+            pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = (ClUint8T*) clHeapCalloc(sizeof(ClUint8T), buffLen);
             CL_ASSERT(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord != NULL);
             memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord,
                    pBuffer, size);
@@ -1175,12 +1175,11 @@ clLogFlusherExternalRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
 
     buffLen = nRecords * pHeader->recordSize;
     pBuffer = pRecords;
-    pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs,
+    pFlushRecord->pBuffs = (ClLogFlushBufferT*) clHeapRealloc(pFlushRecord->pBuffs,
                                          (pFlushRecord->numBufs+1) * sizeof(*pFlushRecord->pBuffs));
     CL_ASSERT(pFlushRecord->pBuffs != NULL);
-    memset(pFlushRecord->pBuffs + pFlushRecord->numBufs, 0,
-           sizeof(*pFlushRecord->pBuffs));
-    pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = clHeapCalloc(sizeof(ClUint8T), buffLen);
+    memset(pFlushRecord->pBuffs + pFlushRecord->numBufs, 0, sizeof(*pFlushRecord->pBuffs));
+    pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = (ClUint8T*) clHeapCalloc(sizeof(ClUint8T), buffLen);
     CL_ASSERT(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord != NULL);
     memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord,
            pBuffer, buffLen);
@@ -1188,6 +1187,7 @@ clLogFlusherExternalRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
     CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pRecords + (startIdx*pHeader->recordSize),
                           nRecords * pHeader->recordSize));
     CL_LOG_DEBUG_TRACE(("Exit"));
+    (void)localAddr;
     return rc;
 }
 
@@ -1210,17 +1210,15 @@ clLogFlusherExternalRecordsFlush(ClLogSvrStreamDataT  *pStreamData,
         return rc;
     }
 
-    CL_LOG_DEBUG_TRACE((" recordIdx: %d startAck : %d \n", pHeader->recordIdx,
-                pHeader->startAck));
-    flushRecord.fileName.pValue = clHeapCalloc(1, pStreamData->fileName.length+1);
+    CL_LOG_DEBUG_TRACE((" recordIdx: %d startAck : %d \n", pHeader->recordIdx, pHeader->startAck));
+    flushRecord.fileName.pValue = (ClCharT*) clHeapCalloc(1, pStreamData->fileName.length+1);
     CL_ASSERT(flushRecord.fileName.pValue != NULL);
     flushRecord.fileName.length = pStreamData->fileName.length;
     memcpy(flushRecord.fileName.pValue, pStreamData->fileName.pValue, flushRecord.fileName.length);
-    flushRecord.fileLocation.pValue = clHeapCalloc(1, pStreamData->fileLocation.length+1);
+    flushRecord.fileLocation.pValue = (ClCharT*) clHeapCalloc(1, pStreamData->fileLocation.length+1);
     CL_ASSERT(flushRecord.fileLocation.pValue != NULL);
     flushRecord.fileLocation.length = pStreamData->fileLocation.length;
-    memcpy(flushRecord.fileLocation.pValue, pStreamData->fileLocation.pValue,
-           flushRecord.fileLocation.length);
+    memcpy(flushRecord.fileLocation.pValue, pStreamData->fileLocation.pValue, flushRecord.fileLocation.length);
 
     flushRecord.fileOwnerAddr = pStreamData->fileOwnerAddr;
     flushRecord.seqNum = pStreamData->seqNum;

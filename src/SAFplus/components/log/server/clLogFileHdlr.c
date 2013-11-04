@@ -187,16 +187,14 @@ clLogFileHdlrStreamDataGet(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
                 fileName->length));
     pStreamAttr->fileName.length     = fileName->length;
     pStreamAttr->fileLocation.length = fileLocation->length;
-    pStreamAttr->fileName.pValue  
-        = clHeapCalloc(fileName->length, sizeof(ClCharT));
+    pStreamAttr->fileName.pValue  = (ClCharT*) clHeapCalloc(fileName->length, sizeof(ClCharT));
     if( NULL == pStreamAttr->fileName.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
         clHeapFree(ppStreams);
         return CL_LOG_RC(CL_ERR_NO_MEMORY);
     }           
-    pStreamAttr->fileLocation.pValue  
-        = clHeapCalloc(fileLocation->length, sizeof(ClCharT));
+    pStreamAttr->fileLocation.pValue  = (ClCharT*) clHeapCalloc(fileLocation->length, sizeof(ClCharT));
     if( NULL == pStreamAttr->fileLocation.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -238,7 +236,7 @@ clLogFileOwnerFileRead(ClStringT            *pFileName,
     {
         return rc;
     }
-    pSoftLink = clHeapCalloc(strlen(fileName) + 1, sizeof(ClCharT));
+    pSoftLink = (ClCharT*) clHeapCalloc(strlen(fileName) + 1, sizeof(ClCharT));
     if( NULL == pSoftLink )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -273,6 +271,7 @@ clLogFileOwnerFileRead(ClStringT            *pFileName,
     CL_LOG_CLEANUP(clLogFileClose_L(readFp), CL_OK);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
+    (void)maxRecInFunit;
     return rc;
 }
 
@@ -298,7 +297,7 @@ clLogFileOwnerRecordsCopy(ClStringT            *fileName,
     startRecInFunit = startRec % maxRecInFunit;
 
     numOfBytes   = numRecords * pFileOwnerData->streamAttr.recordSize;
-    *ppLogRecords = clHeapCalloc(numOfBytes, sizeof(ClUint8T)); 
+    *ppLogRecords = (ClUint8T*) clHeapCalloc(numOfBytes, sizeof(ClUint8T)); 
     if( NULL == *ppLogRecords )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));

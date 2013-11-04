@@ -88,7 +88,7 @@ clLogIocNodedownCallback(ClIocNotificationIdT eventId,
          * while waiting for the GMS elects new master/deputy.
          */
         if (pSvrCommonEoData->deputyAddr != CL_IOC_RESERVED_ADDRESS 
-                && pSvrCommonEoData->deputyAddr != -1)
+                && (ClInt32T) pSvrCommonEoData->deputyAddr != -1)
             rc = clLogAddrUpdate(pSvrCommonEoData->deputyAddr, -1);
         else
         {

@@ -217,7 +217,7 @@ clLogSvrBootup(ClBoolT  *pLogRestart)
         return rc;
     }
 
-    pSvrEoEntry = clHeapCalloc(1, sizeof(ClLogSvrEoDataT));
+    pSvrEoEntry = (ClLogSvrEoDataT*) clHeapCalloc(1, sizeof(ClLogSvrEoDataT));
     if( NULL == pSvrEoEntry )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -462,7 +462,7 @@ clLogSvrSOSOResponse(CL_OUT     ClIdlHandleT            hLogIdl,
                      CL_OUT     ClLogStreamOpenFlagsT   streamOpenFlags,
                      CL_OUT     ClIocNodeAddressT       nodeAddr,
 			    	 CL_INOUT	SaNameT                 *pStreamName,
-                     CL_INOUT   ClLogStreamScopeT       *pStreamScope,
+                     CL_INOUT   ClLogStreamScopeT      *pStreamScope,
 			    	 CL_INOUT	SaNameT                 *pStreamScopeNode,
 					 CL_INOUT  	ClUint32T        		*pCompId,
 			    	 CL_INOUT  	ClLogStreamAttrIDLT     *pStreamAttr,
@@ -482,7 +482,7 @@ clLogSvrSOSOResponse(CL_OUT     ClIdlHandleT            hLogIdl,
     CL_LOG_DEBUG_TRACE(("Enter: retCode: %x", retCode));
 
     CL_ASSERT(NULL != pCookie);
-    rc = clLogSvrSOSOResponseProcess(pStreamName, pStreamScope, 
+    rc = clLogSvrSOSOResponseProcess(pStreamName, (ClLogStreamScopeT*)pStreamScope, 
                                      pStreamScopeNode, pCompId, 
                                      pStreamAttr, pStreamMcastAddr, pStreamFilter, 
                                      *pAckerCnt, *pNonAckerCnt, pStreamId, 
@@ -787,7 +787,7 @@ clLogSvrShmNameCreate(SaNameT    *pStreamName,
 
     nChar = pStreamScopeNode->length + pStreamName->length + 7;
                                            /*6 = "/cl_%s_%s\0"*/
-    (pShmName)->pValue = clHeapCalloc(nChar, sizeof(ClCharT));
+    (pShmName)->pValue = (ClCharT*) clHeapCalloc(nChar, sizeof(ClCharT));
     if( NULL == (pShmName)->pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1038,14 +1038,14 @@ clLogSvrCompEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    pCompKey = clHeapCalloc(1, sizeof(ClLogSvrCompKeyT));
+    pCompKey = (ClLogSvrCompKeyT*) clHeapCalloc(1, sizeof(ClLogSvrCompKeyT));
     if( NULL == pCompKey )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
         return CL_LOG_RC(CL_ERR_NO_MEMORY);
     }
 
-    pCompData = clHeapCalloc(1, sizeof(ClLogSvrCompDataT));
+    pCompData = (ClLogSvrCompDataT*) clHeapCalloc(1, sizeof(ClLogSvrCompDataT));
     if( NULL == pCompData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -1131,7 +1131,7 @@ clLogSvrStreamEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    pSvrStreamData = clHeapCalloc(1, sizeof(ClLogSvrStreamDataT));
+    pSvrStreamData = (ClLogSvrStreamDataT*) clHeapCalloc(1, sizeof(ClLogSvrStreamDataT));
     if( NULL == pSvrStreamData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -1425,7 +1425,7 @@ VDECL_VER(clLogSvrStreamOpen, 4, 0, 0)(
         }
     }
 
-    pCookie = clHeapCalloc(1, sizeof(ClLogStreamOpenCookieT));
+    pCookie = (ClLogStreamOpenCookieT*) clHeapCalloc(1, sizeof(ClLogStreamOpenCookieT));
     if( NULL == pCookie )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -1477,11 +1477,11 @@ VDECL_VER(clLogSvrStreamOpen, 4, 0, 0)(
             pStreamName->length, pStreamName->value);
     rc = VDECL_VER(clLogStreamOwnerStreamOpenClientAsync, 4, 0, 0)(hLogIdl, streamOpenFlags, 
                                                localAddress, pStreamName,
-                                               &streamScope, pStreamScopeNode,
+                                               (ClUint32T *)&streamScope, pStreamScopeNode,
                                                &compId, &streamAttr, 
                                                &streamMcastAddr, &streamFilter,
                                                &ackerCnt, &nonAckerCnt, &streamId,
-                                               clLogSvrSOSOResponse, (void *) pCookie);
+                                               (LogClLogStreamOwnerStreamOpenAsyncCallbackT)clLogSvrSOSOResponse, (void *) pCookie);
     if( CL_OK != rc )
     {
         clHeapFree(pCookie);
@@ -1629,7 +1629,7 @@ clLogSvrShmMapAndGet(ClOsalShmIdT  fd,
     CL_LOG_SVR_SHMSIZE_GET(pSvrCommonEoEntry->numShmPages, shmSize);
 
     rc = clOsalMmap_L(0, shmSize, CL_LOG_MMAP_PROT_FLAGS, CL_LOG_MMAP_FLAGS,
-                      fd, 0, (void *) ppStreamHeader);
+                      fd, 0, (void **) ppStreamHeader);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clOsalMmap(): rc[0x %x]", rc));
@@ -2706,6 +2706,7 @@ clLogSvrStdStreamShmCreate(SaNameT                 *pStreamName,
     }
 
     CL_LOG_DEBUG_TRACE(("Exit"));
+    (void)maxRecCount;
     return rc;
 }
 
@@ -2733,7 +2734,7 @@ clLogSvrMasterCompListUpdate(void)
         return rc;
     }
 
-    pCompData = clHeapCalloc(nLogAspComps, sizeof(ClLogCompDataT));
+    pCompData = (ClLogCompDataT*) clHeapCalloc(nLogAspComps, sizeof(ClLogCompDataT));
     if( NULL == pCompData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -2786,7 +2787,7 @@ clLogSvrLocalFileOwnerNFlusherStart(void)
 {
     ClRcT                rc            = CL_OK;
     ClLogStreamAttrIDLT  streamAttr[2] = {{{0}}};
-    ClInt32T             count         = 0;
+    ClUint32T             count         = 0;
 
     /* Read the xml file & fetch the local streams with local fileOwners */
     rc = clLogPerennialStreamsDataGet(streamAttr, (ClUint32T)
@@ -2961,16 +2962,14 @@ clLogFileKeyCopy(ClLogSvrStreamDataT  *pSvrStreamData,
 {
     ClRcT  rc = CL_OK;
 
-    pSvrStreamData->fileName.pValue =
-    clHeapCalloc(pStreamAttr->fileName.length, sizeof(ClCharT));
+    pSvrStreamData->fileName.pValue = (ClCharT*) clHeapCalloc(pStreamAttr->fileName.length, sizeof(ClCharT));
     if( NULL == pSvrStreamData->fileName.pValue )
     {
         clLogError(CL_LOG_AREA_SVR, CL_LOG_CTX_BOOTUP, 
           "Failed to allocate memory rc[0x %x]", rc);
         return rc;
     }
-    pSvrStreamData->fileLocation.pValue = 
-    clHeapCalloc(pStreamAttr->fileLocation.length, sizeof(ClCharT));
+    pSvrStreamData->fileLocation.pValue = (ClCharT*) clHeapCalloc(pStreamAttr->fileLocation.length, sizeof(ClCharT));
     if( NULL == pSvrStreamData->fileName.pValue )
     {
         clLogError(CL_LOG_AREA_SVR, CL_LOG_CTX_BOOTUP, 
@@ -3033,8 +3032,7 @@ clLogSvrStreamEntryUpdate(ClLogSvrEoDataT         *pSvrEoEntry,
             return rc;
         }
         pSvrStreamData->shmName.length = pShmName->length;
-        pSvrStreamData->shmName.pValue = clHeapCalloc(pShmName->length,
-                                                      sizeof(ClCharT));
+        pSvrStreamData->shmName.pValue = (ClCharT*) clHeapCalloc(pShmName->length, sizeof(ClCharT));
         if( NULL == pSvrStreamData->shmName.pValue )
         {
             CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -3047,7 +3045,7 @@ clLogSvrStreamEntryUpdate(ClLogSvrEoDataT         *pSvrEoEntry,
     else
     {
         pShmName->length = pSvrStreamData->shmName.length;
-        pShmName->pValue = clHeapCalloc(pShmName->length, sizeof(ClCharT));
+        pShmName->pValue = (ClCharT*) clHeapCalloc(pShmName->length, sizeof(ClCharT));
         if( NULL == pShmName->pValue )
         {
             CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));

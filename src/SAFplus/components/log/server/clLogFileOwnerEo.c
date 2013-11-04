@@ -39,7 +39,7 @@ clLogFileOwnerEoDataInit(ClLogFileOwnerEoDataT  **ppFileOwnerEoEntry)
         return rc;
     }
 
-    *ppFileOwnerEoEntry = clHeapCalloc(1, sizeof(ClLogFileOwnerEoDataT));
+    *ppFileOwnerEoEntry = (ClLogFileOwnerEoDataT* )clHeapCalloc(1, sizeof(ClLogFileOwnerEoDataT));
     if( NULL == *ppFileOwnerEoEntry )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
