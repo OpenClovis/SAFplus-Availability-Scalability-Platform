@@ -359,7 +359,7 @@ clLogSvrDsIdMapPack(ClUint32T  dsId,
         clBufferDelete(&inMsg);
         return rc;
     }
-    *ppBuffer = clHeapCalloc(*pBuffSize, sizeof(ClUint8T));
+    *ppBuffer = (ClAddrT) clHeapCalloc(*pBuffSize, sizeof(ClUint8T));
     if( NULL == *ppBuffer )
     {
         clBufferDelete(&inMsg);
@@ -483,7 +483,7 @@ clLogSvrStreamEntryPack(ClUint32T  dsId,
         clBufferDelete(&msg);
         return rc;
     }
-    *ppBuffer = clHeapCalloc(*pBuffSize, sizeof(ClUint8T));
+    *ppBuffer = (ClAddrT) clHeapCalloc(*pBuffSize, sizeof(ClUint8T));
     if( NULL == *ppBuffer )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -923,6 +923,7 @@ clLogSvrSOFGResponse(ClIdlHandleT  hLogIdl,
     clHeapFree(pStreamFilter->pCompIdSet);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
+    (void)rc;
     return ;
 }
 
@@ -1051,7 +1052,7 @@ clLogSvrCompEntryRecreate(ClLogSvrCommonEoDataT  *pSvrCommonEoEntry,
     }
     for( count = 0; count < compTableSize; count++ )
     {
-        pCompKey = clHeapCalloc(1, sizeof(ClLogSvrCompKeyT));
+        pCompKey = (ClLogSvrCompKeyT*) clHeapCalloc(1, sizeof(ClLogSvrCompKeyT));
         if( NULL == pCompKey )
         {
             CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1066,7 +1067,7 @@ clLogSvrCompEntryRecreate(ClLogSvrCommonEoDataT  *pSvrCommonEoEntry,
         }
         pCompKey->hash = pCompKey->componentId % pSvrCommonEoEntry->maxComponents;
 
-        pCompData = clHeapCalloc(1, sizeof(ClLogSvrCompDataT));
+        pCompData = (ClLogSvrCompDataT*) clHeapCalloc(1, sizeof(ClLogSvrCompDataT));
         if( NULL == pCompData )
         {
             CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));

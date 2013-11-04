@@ -292,7 +292,7 @@ clLogFileOwnerCfgFileCreateNPopulate(ClCharT              *pTimeStr,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
-    pSoftLinkName = clHeapCalloc(strlen(fileName) + 5, sizeof(ClCharT));
+    pSoftLinkName = (ClCharT*) clHeapCalloc(strlen(fileName) + 5, sizeof(ClCharT));
     if( NULL == pSoftLinkName )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(); rc[0x %x]", rc));
@@ -357,7 +357,7 @@ clLogFileOwnerCfgFileDelete(ClCharT           *fileName,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
-    pSoftLinkName = clHeapCalloc(strlen(fileName) + 5, sizeof(ClCharT));
+    pSoftLinkName = (ClCharT*) clHeapCalloc(strlen(fileName) + 5, sizeof(ClCharT));
     if( NULL == pSoftLinkName )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(); rc[0x %x]", rc));
@@ -444,7 +444,7 @@ logFileOwnerLogFileCreateNPopulate(ClCharT        *pTimeStr,
     }
     
     /* fill the default record */
-    pRecord = clHeapCalloc(recordSize, sizeof(ClCharT));
+    pRecord = (ClCharT*) clHeapCalloc(recordSize, sizeof(ClCharT));
     if( NULL == pRecord )
     {
         CL_LOG_CLEANUP(clLogFileClose_L(*pFp), CL_OK);
@@ -512,7 +512,7 @@ clLogFileOwnerFileOpenNPopulate(ClCharT               *fileName,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    pSoftLinkName = clHeapCalloc(strlen(fileName) + 5, sizeof(ClCharT));
+    pSoftLinkName = (ClCharT*)clHeapCalloc(strlen(fileName) + 5, sizeof(ClCharT));
     if( NULL == pSoftLinkName )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(); rc[0x %x]", rc));
@@ -583,6 +583,7 @@ clLogFileOwnerFileOpenNPopulate(ClCharT               *fileName,
     clHeapFree(pSoftLinkName);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
+    (void)maxRecInFunit;
     return rc;
 }
 
@@ -650,7 +651,7 @@ clLogFileOwnerNewFunitRotate(ClCharT *fileName,
     if(!fileName || !pFileOwnerData || !pStreamAttr)
         return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
 
-    pSoftLinkName = clHeapCalloc(strlen(fileName) + 5, sizeof(ClCharT));
+    pSoftLinkName = (ClCharT*) clHeapCalloc(strlen(fileName) + 5, sizeof(ClCharT));
     if( NULL == pSoftLinkName )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(); rc[0x %x]", rc));
@@ -863,7 +864,7 @@ clLogFileOwnerFileEntryAdd(ClCntHandleT         hFileTable,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
-    pFileOwnerData = clHeapCalloc(1, sizeof(ClLogFileOwnerDataT));
+    pFileOwnerData = (ClLogFileOwnerDataT*) clHeapCalloc(1, sizeof(ClLogFileOwnerDataT));
     if( NULL == pFileOwnerData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -1124,7 +1125,7 @@ clLogFileOwnerStreamEntryGet(ClLogFileOwnerDataT  *pFileOwnerData,
                        (ClCntKeyHandleT) pStreamKey, phStreamNode);
     if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
     {
-        pStreamData = clHeapCalloc(1, sizeof(ClLogFileOwnerStreamDataT)); 
+        pStreamData = (ClLogFileOwnerStreamDataT*) clHeapCalloc(1, sizeof(ClLogFileOwnerStreamDataT)); 
         if( NULL == pStreamData )
         {
             CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1372,7 +1373,7 @@ static void doSyslog(ClLogSeverityT logSev, const ClCharT *buf, ClInt32T len)
         {CL_LOG_SEV_INFO, LOG_INFO},
         {CL_LOG_SEV_DEBUG, SYSLOG_SEV_DEFAULT},
         {CL_LOG_SEV_TRACE, SYSLOG_SEV_DEFAULT},
-        {0, 0},
+        {(ClLogSeverityT)0, 0},
     };
     static ClBoolT syslogSevDisabled = (ClBoolT)-1;
     register ClInt32T i;
@@ -1407,13 +1408,15 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
 {
     ClRcT      rc         = CL_OK;
     ClUint8T   endian     = 0;
-    ClLogSeverityT severity = 0;
+    ClLogSeverityT severity;
     ClUint8T *pRecordIter = NULL;
     struct iovec iov[*pNumRecords];
     ClUint32T  idx        = 0;
-    ClInt32T count        = 0;
+    ClUint32T count        = 0;
     ClInt32T  numBytes   = 0;
     ClBoolT syslogEnabled = pFileOwnerData->streamAttr.syslog;
+
+    memset(&severity,0,sizeof(ClLogSeverityT));
 
     if(!pFileOwnerData->fileUnitPtr) return CL_LOG_RC(CL_ERR_NOT_EXIST);
 
@@ -1574,6 +1577,7 @@ clLogFileOwnerNewFunitCreate(ClCntNodeHandleT      hFileNode,
     clHeapFree(fileName);
     
     CL_LOG_DEBUG_TRACE(("Exit"));
+    (void)maxRecInFunit;
     return rc;
 }
 

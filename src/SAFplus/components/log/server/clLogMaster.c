@@ -436,7 +436,7 @@ clLogMasterCompKeyCreate(ClCharT             *pCompPrefix,
 
     hash %= maxComps;
 
-    *ppKey = clHeapCalloc(1, sizeof(ClLogMasterCompKeyT));
+    *ppKey = (ClLogMasterCompKeyT*) clHeapCalloc(1, sizeof(ClLogMasterCompKeyT));
     if( NULL == *ppKey )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -475,36 +475,33 @@ clLogFileKeyCreate(ClStringT      *pFileName,
     ClUint32T  hash      = 0;
     ClUint32T  tempLen   = 0;
 
-    CL_LOG_DEBUG_TRACE(("Enter: namelen: %u locationlen: %u",
-                       pFileName->length, pFileLocation->length));
+    CL_LOG_DEBUG_TRACE(("Enter: namelen: %u locationlen: %u", pFileName->length, pFileLocation->length));
 
     CL_LOG_PARAM_CHK((NULL == pFileName), CL_LOG_RC(CL_ERR_NULL_POINTER));
     CL_LOG_PARAM_CHK((NULL == pFileLocation), CL_LOG_RC(CL_ERR_NULL_POINTER));
     CL_LOG_PARAM_CHK((NULL == ppKey), CL_LOG_RC(CL_ERR_NULL_POINTER));
 
     tempLen = pFileName->length + pFileLocation->length;
-    cksmKey = clHeapCalloc(tempLen+1, sizeof(ClCharT));
+    cksmKey = (ClCharT*) clHeapCalloc(tempLen+1, sizeof(ClCharT));
 
     if( NULL == cksmKey )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
         return CL_LOG_RC(CL_ERR_NO_MEMORY);
     }
-    snprintf(cksmKey, tempLen+1,"%.*s%.*s", pFileLocation->length, 
-             pFileLocation->pValue, pFileName->length, pFileName->pValue);
+    snprintf(cksmKey, tempLen+1,"%.*s%.*s", pFileLocation->length, pFileLocation->pValue, pFileName->length, pFileName->pValue);
     clCksm32bitCompute((ClUint8T *) cksmKey, tempLen, &hash);
     hash %= maxFiles;
     clHeapFree(cksmKey);
 
-    *ppKey = clHeapCalloc(1, sizeof(ClLogFileKeyT));
+    *ppKey = (ClLogFileKeyT*) clHeapCalloc(1, sizeof(ClLogFileKeyT));
     if( NULL == *ppKey )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
         return CL_LOG_RC(CL_ERR_NO_MEMORY);
     }
 
-    (*ppKey)->fileName.pValue
-        = clHeapCalloc(pFileName->length+1, sizeof(ClCharT));
+    (*ppKey)->fileName.pValue = (ClCharT*) clHeapCalloc(pFileName->length+1, sizeof(ClCharT));
     if( NULL == (*ppKey)->fileName.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -512,8 +509,7 @@ clLogFileKeyCreate(ClStringT      *pFileName,
         return CL_LOG_RC(CL_ERR_NO_MEMORY);
     }
 
-    (*ppKey)->fileLocation.pValue
-        = clHeapCalloc(pFileLocation->length+1, sizeof(ClCharT));
+    (*ppKey)->fileLocation.pValue = (ClCharT*) clHeapCalloc(pFileLocation->length+1, sizeof(ClCharT));
     if( NULL == (*ppKey)->fileLocation.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -562,7 +558,7 @@ clLogMasterFileEntryAdd(ClLogMasterEoDataT   *pMasterEoEntry,
         return rc;
     }
 
-    pData = clHeapCalloc(1, sizeof(ClLogFileDataT));
+    pData = (ClLogFileDataT*) clHeapCalloc(1, sizeof(ClLogFileDataT));
     if( NULL == pData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -740,7 +736,7 @@ clLogMasterFileStreamEntryAdd(ClUint16T           streamId,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    pStreamData = clHeapCalloc(1, sizeof(ClLogMasterStreamDataT));
+    pStreamData = (ClLogMasterStreamDataT*) clHeapCalloc(1, sizeof(ClLogMasterStreamDataT));
     if( NULL == pStreamData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -986,7 +982,7 @@ clLogMasterStreamInfoGet(ClCntKeyHandleT   key,
     ClLogMasterStreamDataT  *pStreamData = (ClLogMasterStreamDataT *) data;
     ClLogStreamKeyT         *pStreamKey  = (ClLogStreamKeyT *) key;
     ClBufferHandleT         msg          = (ClBufferHandleT) arg;
-    ClLogStreamScopeT       streamScope  = 0;
+    ClLogStreamScopeT       streamScope  = CL_LOG_STREAM_GLOBAL;
     ClUint32T               validEntry   = 0;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
@@ -1182,7 +1178,7 @@ VDECL_VER(clLogMasterStreamListGet, 4, 0, 0)(ClUint32T  *pNumStreams,
 #if 0
     rc = clBufferFlatten(msg, ppBuffer);
 #endif
-    *ppBuffer = clHeapCalloc(*pBuffLength, sizeof(ClCharT));
+    *ppBuffer = (ClUint8T*) clHeapCalloc(*pBuffLength, sizeof(ClCharT));
     if( NULL == *ppBuffer )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1293,14 +1289,13 @@ clLogMasterCompEntryGet(ClLogMasterEoDataT     *pMasterEoEntry,
             clientId    = *pClientId;
         }
 
-        pCompData = clHeapCalloc(1, sizeof(ClLogCompDataT));
+        pCompData = (ClLogCompDataT*) clHeapCalloc(1, sizeof(ClLogCompDataT));
         if( NULL == pCompData )
         {
             CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
             if( CL_TRUE == createdTable )
             {
-                CL_LOG_CLEANUP(clCntDelete(pMasterEoEntry->hCompTable),
-                        CL_OK);
+                CL_LOG_CLEANUP(clCntDelete(pMasterEoEntry->hCompTable), CL_OK);
                 pMasterEoEntry->hCompTable = CL_HANDLE_INVALID_VALUE;
             }
             return CL_LOG_RC(CL_ERR_NO_MEMORY);
@@ -1376,7 +1371,7 @@ clLogMasterCompNameGet(SaNameT  *pCompName,
     CL_LOG_PARAM_CHK((NULL == pCompName), CL_LOG_RC(CL_ERR_NULL_POINTER));
     CL_LOG_PARAM_CHK((NULL == ppCompPrefix), CL_LOG_RC(CL_ERR_NULL_POINTER));
 
-    *ppCompPrefix = clHeapCalloc(pCompName->length + 1, sizeof(ClCharT));
+    *ppCompPrefix = (ClCharT*) clHeapCalloc(pCompName->length + 1, sizeof(ClCharT));
     if( NULL == *ppCompPrefix )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1554,7 +1549,7 @@ VDECL_VER(clLogMasterCompListGet, 4, 0, 0)(ClUint32T  *pNumEntries,
         CL_LOG_CLEANUP(clBufferDelete(&msg), CL_OK);
         return rc;
     }
-    *ppCompData = clHeapCalloc(*pBuffLen, sizeof(ClUint8T)); 
+    *ppCompData = (ClUint8T*) clHeapCalloc(*pBuffLen, sizeof(ClUint8T)); 
     if( NULL == *ppCompData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));

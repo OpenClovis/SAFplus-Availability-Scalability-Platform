@@ -103,7 +103,7 @@ clLogSOTableWalkForPrint(ClCntKeyHandleT   key,
     clDebugPrint(msg, "nodeStatus    : %d\n", pStreamOwnerData->nodeStatus);
     clDebugPrint(msg, "dataSetId     : %d\n", pStreamOwnerData->dsId);
     clDebugPrint(msg, "isNewStream   : %d\n", pStreamOwnerData->isNewStream);
-    clLogStreamOwnerAttributesPrint(&pStreamOwnerData->streamAttr, arg);
+    clLogStreamOwnerAttributesPrint(&pStreamOwnerData->streamAttr, (void**) arg);
     rc = clCntWalk(pStreamOwnerData->hCompTable, clLogCompTableWalkForPrint,
                    arg, 0);
     CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock), CL_OK);

@@ -1172,7 +1172,7 @@ void
 clLogStreamOwnerMAVGResponse(ClIdlHandleT            hLogIdl,
                              ClLogStreamAttrIDLT     *pStreamAttr,
                              SaNameT                 *pStreamName,
-                             ClLogStreamScopeT       *pStreamScope, 
+                             ClUint32T		     *pStreamScope, 
                              SaNameT                 *pStreamScopeNode,
                              ClUint16T               *pStreamId,
                              ClIocMulticastAddressT  *pStreamMcastAddr,
@@ -1324,6 +1324,7 @@ clLogStreamOwnerMasterOpen(ClLogSOEoDataT         *pSoEoEntry,
     ClIocMulticastAddressT  multiCastAddr = 0;
     ClUint16T               streamId      = 0;
     ClLogFilterT            filter        = {0};
+    //ClUint32T               logStreamScope = streamScope;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -1361,7 +1362,7 @@ clLogStreamOwnerMasterOpen(ClLogSOEoDataT         *pSoEoEntry,
     clLogDebug("SOW", "OPE", "Making call to master for stream open [%.*s]", 
             pStreamName->length, pStreamName->value); 
     rc = VDECL_VER(clLogMasterAttrVerifyNGetClientAsync, 4, 0, 0)(hLogIdl, pStreamAttr, pStreamName,
-                                              &streamScope,pStreamScopeNode, 
+                                              (ClUint32T *)&streamScope,pStreamScopeNode, 
                                               &streamId, &multiCastAddr,
                                               clLogStreamOwnerMAVGResponse,
                                               pCookie);

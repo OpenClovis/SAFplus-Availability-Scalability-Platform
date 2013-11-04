@@ -74,7 +74,7 @@ clLogFileOwnerFileNameGet(ClStringT  *fileName,
             filePathlen = snprintf(logfilepath, CL_LOG_NAME_LENGTH, "%s/%s", cwd, "log"); 
         }
         rc = mkdir(logfilepath, 0755);
-        if ((-1 == rc) && (EEXIST != errno))
+        if ((-1 == (ClInt32T) rc) && (EEXIST != errno))
         {
             clLogCritical(CL_LOG_AREA_FILE_OWNER, CL_LOG_CTX_FO_INIT,
                     "Unable to create directory [%s] : [%s]", logfilepath,
@@ -83,7 +83,7 @@ clLogFileOwnerFileNameGet(ClStringT  *fileName,
             return rc; 
         }
         fileNameLen = fileName->length + filePathlen + 2;
-        *pFileName = clHeapCalloc(fileNameLen, sizeof(ClCharT));
+        *pFileName = (ClCharT*) clHeapCalloc(fileNameLen, sizeof(ClCharT));
         if( NULL == *pFileName )
         {
             CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -93,7 +93,7 @@ clLogFileOwnerFileNameGet(ClStringT  *fileName,
         return CL_OK;
     }
     fileNameLen = fileLocation->length + fileName->length + 1; 
-    *pFileName = clHeapCalloc(fileNameLen, sizeof(ClCharT));
+    *pFileName = (ClCharT*) clHeapCalloc(fileNameLen, sizeof(ClCharT));
     if( NULL == *pFileName )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -183,7 +183,7 @@ clLogFileOwnerSoftLinkDelete(ClLogFileKeyT  *pFileKey,
         (void)clLogFileUnlink(pSoftLinkName);
     }while(++count < fileMaxCnt);
 
-    pSoftLinkNameLatest = clHeapCalloc(1, strlen(fileName) + strlen(".latest") + 1);
+    pSoftLinkNameLatest = (ClCharT *)clHeapCalloc(1, strlen(fileName) + strlen(".latest") + 1);
     CL_ASSERT(pSoftLinkNameLatest != NULL);
     sprintf(pSoftLinkNameLatest, "%s.latest", fileName);
     
