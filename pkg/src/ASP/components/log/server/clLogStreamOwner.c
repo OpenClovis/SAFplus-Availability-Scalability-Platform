@@ -1229,9 +1229,7 @@ clLogStreamOwnerMAVGResponse(ClIdlHandleT            hLogIdl,
     if( CL_OK == retCode )
     {
         VDECL_VER(clLogStreamOwnerStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, retCode,
-                                               *pStreamName, *pStreamScope, 
-                                               *pStreamScopeNode, pCookie->compId,
-                                               *pStreamAttr, *pStreamMcastAddr,
+                                               pCookie->compId, *pStreamAttr, *pStreamMcastAddr,
                                                filter, ackerCnt, nonAckerCnt,
                                                *pStreamId);
     }   
@@ -1244,9 +1242,7 @@ clLogStreamOwnerMAVGResponse(ClIdlHandleT            hLogIdl,
         filter.pMsgIdSet = NULL;
         filter.pCompIdSet= NULL;
         VDECL_VER(clLogStreamOwnerStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, retCode,
-                                               *pStreamName, *pStreamScope, 
-                                               *pStreamScopeNode, pCookie->compId,
-                                               *pStreamAttr, *pStreamMcastAddr,
+                                               pCookie->compId, *pStreamAttr, *pStreamMcastAddr,
                                                filter, ackerCnt, nonAckerCnt,
                                                *pStreamId);
     }
@@ -1383,9 +1379,7 @@ clLogStreamOwnerMasterOpen(ClLogSOEoDataT         *pSoEoEntry,
     {
         CL_LOG_DEBUG_ERROR(("clLogStreamOwnerMAVGResponse(): rc[0x %x]", rc));
         VDECL_VER(clLogStreamOwnerStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, rc,
-                                               *pStreamName, streamScope,
-                                               *pStreamScopeNode, *pCompId,  
-                                               *pStreamAttr, multiCastAddr, 
+                                               *pCompId, *pStreamAttr, multiCastAddr,
                                                filter, 0, 0, streamId);
         clHeapFree(pCookie);
         CL_LOG_CLEANUP(clIdlHandleFinalize(hLogIdl), CL_OK);

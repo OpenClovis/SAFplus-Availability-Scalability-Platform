@@ -101,11 +101,11 @@
 	      <Operation name="clLogMasterAttrVerifyNGet" type="async">
                     <Argument ParameterType="CL_IN" name="pStreamAttr"
                     type="ClLogStreamAttrIDLT" pointer="Single"/>
-                    <Argument ParameterType="CL_INOUT" name="pStreamName"
+                    <Argument ParameterType="CL_IN" name="pStreamName"
                     type="ClNameT" pointer="Single"/>
-                    <Argument ParameterType="CL_INOUT" name="pStreamScope"
+                    <Argument ParameterType="CL_IN" name="pStreamScope"
                     type="ClUint32T" pointer="Single"/>
-                    <Argument ParameterType="CL_INOUT" name="pStreamScopeNode"
+                    <Argument ParameterType="CL_IN" name="pStreamScopeNode"
                     type="ClNameT" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="pStreamId"  type="ClUint16T" pointer="Single"/>
                     <Argument ParameterType="CL_OUT" name="pStreamMcastAddr"  type="ClUint64T" pointer="Single"/>
