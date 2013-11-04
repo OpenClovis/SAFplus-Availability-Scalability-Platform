@@ -1229,8 +1229,7 @@ def get_amf_pid(watchdog_pid = False):
                 return int(valid[1])
         else:
             break
-        log.warning('there are more than one AMF pid. Try again...' %
-                    get_asp_node_addr())
+        log.warning('there are more than one AMF pid. Try again...')
         time.sleep(0.25)
     if watchdog_pid:
          valid = commands.getstatusoutput("/bin/pidof safplus_watchdog.py");
