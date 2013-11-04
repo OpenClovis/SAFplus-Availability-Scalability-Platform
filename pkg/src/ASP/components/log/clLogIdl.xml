@@ -155,10 +155,10 @@
 	      <Operation name="clLogStreamOwnerStreamOpen" type="async">
                     <Argument ParameterType="CL_IN" name="logOpenFlags" type="ClUint8T"/>
                     <Argument ParameterType="CL_IN" name="nodeAddr" type="ClUint32T"/>
-                    <Argument ParameterType="CL_INOUT" name="pStreamName" type="ClNameT" pointer="Single"/>
-                    <Argument ParameterType="CL_INOUT" name="pStreamScope"
+                    <Argument ParameterType="CL_IN" name="pStreamName" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamScope"
                     type="ClUint32T" pointer="Single"/>
-                    <Argument ParameterType="CL_INOUT" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pStreamScopeNode" type="ClNameT" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="compId"  type="ClUint32T" pointer="Single"/>
                     <Argument ParameterType="CL_INOUT" name="pStreamAttr"
                               type="ClLogStreamAttrIDLT" pointer="Single"/>
