@@ -546,7 +546,7 @@ class Ubuntu(OS):
     def pre_init(self):
         self.name = 'Ubuntu'
         self.apt = True
-    
+        self.pkg = False   
     def load_preinstall_deps(self):
         
         deps =  ['build-essential',

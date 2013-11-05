@@ -279,6 +279,7 @@ ifdef SOLARIS_BUILD
 LDLIBS += -lezxml -laisexec -llogsys -ltotem_pg
 else
 LDLIBS += -lezxml
+endif
 
 #This is needed for the components using single shared SO libmw.so 
 #for all SAFplus libs or ground SO of SAFplus
