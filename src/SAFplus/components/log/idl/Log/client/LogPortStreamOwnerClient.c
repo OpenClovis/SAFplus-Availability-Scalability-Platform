@@ -67,31 +67,22 @@ static void clLogStreamOwnerStreamOpenAsyncCallback_4_0_0(ClRcT rc, void *pIdlCo
         goto L1;
     }
 
-    if (CL_OK == rc)
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pStreamName));
+    if (CL_OK != retVal)
     {
-        retVal = clXdrUnmarshallSaNameT(outMsgHdl, &(pStreamName));
-        if (CL_OK != retVal)
-        {
-            goto L2;
-        }
+        goto L2;
     }
 
-    if (CL_OK == rc)
+    retVal = clXdrUnmarshallClUint32T(inMsgHdl, &(pStreamScope));
+    if (CL_OK != retVal)
     {
-        retVal = clXdrUnmarshallClUint32T(outMsgHdl, &(pStreamScope));
-        if (CL_OK != retVal)
-        {
-            goto L3;
-        }
+        goto L3;
     }
 
-    if (CL_OK == rc)
+    retVal = clXdrUnmarshallSaNameT(inMsgHdl, &(pStreamScopeNode));
+    if (CL_OK != retVal)
     {
-        retVal = clXdrUnmarshallSaNameT(outMsgHdl, &(pStreamScopeNode));
-        if (CL_OK != retVal)
-        {
-            goto L4;
-        }
+        goto L4;
     }
 
     if (CL_OK == rc)
@@ -184,7 +175,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clLogStreamOwnerStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint8T  logOpenFlags, CL_IN ClUint32T  nodeAddr, CL_INOUT SaNameT* pStreamName, CL_INOUT ClUint32T* pStreamScope, CL_INOUT SaNameT* pStreamScopeNode, CL_INOUT ClUint32T* compId, CL_INOUT ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_OUT ClUint64T* pStreamMastAddr, CL_OUT ClLogFilterT_4_0_0* pStreamFilter, CL_OUT ClUint32T* pAckerCnt, CL_OUT ClUint32T* pNonAckerCnt, CL_INOUT ClUint16T* pStreamId,CL_IN LogClLogStreamOwnerStreamOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clLogStreamOwnerStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint8T  logOpenFlags, CL_IN ClUint32T  nodeAddr, CL_IN SaNameT* pStreamName, CL_IN ClUint32T* pStreamScope, CL_IN SaNameT* pStreamScopeNode, CL_INOUT ClUint32T* compId, CL_INOUT ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_OUT ClUint64T* pStreamMastAddr, CL_OUT ClLogFilterT_4_0_0* pStreamFilter, CL_OUT ClUint32T* pAckerCnt, CL_OUT ClUint32T* pNonAckerCnt, CL_INOUT ClUint16T* pStreamId,CL_IN LogClLogStreamOwnerStreamOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -242,19 +233,19 @@ ClRcT clLogStreamOwnerStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
         goto L;
     }
 
-    rc = clXdrMarshallSaNameT(pStreamName, inMsgHdl, 1);
+    rc = clXdrMarshallSaNameT(pStreamName, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
     }
 
-    rc = clXdrMarshallClUint32T(pStreamScope, inMsgHdl, 1);
+    rc = clXdrMarshallClUint32T(pStreamScope, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
     }
 
-    rc = clXdrMarshallSaNameT(pStreamScopeNode, inMsgHdl, 1);
+    rc = clXdrMarshallSaNameT(pStreamScopeNode, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
