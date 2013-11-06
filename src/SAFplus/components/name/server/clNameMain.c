@@ -239,12 +239,6 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
     //ClOsalTaskIdT     taskId    = 0;
 
     /* NS Initialize */
-    rc = clCpmMasterAddressGet(&gMasterAddress);
-    if (rc != CL_OK)
-    {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clCpmMasterAddressGet failed with rc 0x%x",rc));
-        return rc;
-    }
     clNameCompCfg();
 
    /*  Do the CPM client init/Register */
@@ -276,6 +270,21 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
     rc = clCpmComponentNameGet(cpmHandle, &appName);
     rc = clCpmComponentRegister(cpmHandle, &appName, NULL);
     /*clDebugCli("NAME-CLI");*/
+
+    int cnt;
+    do
+    {
+        cnt++;
+        rc = clCpmMasterAddressGet(&gMasterAddress);
+        if (rc != CL_OK)
+        {
+            if ((cnt&15)==0) CL_DEBUG_PRINT(CL_DEBUG_INFO,("Waiting for active system controller.  rc [0x%x]",rc));
+            sleep(1);
+        }
+    } while(rc != CL_OK);
+    
+    
+    
     return CL_OK;
 }
 

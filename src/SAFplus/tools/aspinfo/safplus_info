@@ -453,7 +453,9 @@ def load_amf_db():
         raise DebugCliError('No access to active system controller')
     
     res = res[-1]
-    
+    t = res.find("<asp>")
+    if t != -1:  # Strip off any debugging info
+      res = res[t:]
     _amf_db = load_xml_string(res, strip_root=(('asp',),))
     
     _amf_db_timestamp = time.time()
@@ -2088,7 +2090,7 @@ echo_cmd = '/bin/echo'
 ##
 ## main function
 ##
-def main():
+def main(argv):
     global _interactive_shell
     extend_path()
     
@@ -2101,9 +2103,7 @@ def main():
 
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:],
-            'hvc',
-            ['help', 'verbose', 'no-colors'])
+        opts, args = getopt.getopt(argv[1:],'hvc',['help', 'verbose', 'no-colors'])
     except getopt.GetoptError:
         usage(1)
     
@@ -2130,4 +2130,4 @@ def main():
     
 sys_asp = init_sys_asp()
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
