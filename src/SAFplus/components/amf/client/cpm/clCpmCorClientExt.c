@@ -82,7 +82,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
             slotInfoRecv.nodeMoIdStr.length = 0;
             slotInfoRecv.nodeMoIdStr.value[0] = 0;                
             rc = clCorMoIdToMoIdNameGet(&slotInfo->nodeMoId, &slotInfoRecv.nodeMoIdStr);
-            CPM_CLIENT_CHECK(CL_DEBUG_ERROR,("MoIdToMoIdNameGet Failed, rc=[0x%x]\n", rc), rc);
+            CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,("MoIdToMoIdNameGet Failed, rc=[0x%x]\n", rc), rc);
             break;
         }
 #endif        
@@ -94,8 +94,8 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
         default:
         {
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("Invalid flag passed, rc=[0x%x]\n", rc));
+            clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "Invalid flag passed, rc=[0x%x]\n", rc);
             goto failure;
             break;
         }
@@ -108,7 +108,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
                                MARSHALL_FN(ClCpmSlotInfoRecvT, 4, 0, 0),
                                UNMARSHALL_FN(ClCpmSlotInfoRecvT, 4, 0, 0));
     
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to find information about given entity, rc=[0x%x]\n", rc), rc);
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to find information about given entity, rc=[0x%x]\n", rc), rc);
 
     switch(slotInfoRecv.flag)
     {
@@ -117,7 +117,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
             slotInfo->nodeIocAddress = slotInfoRecv.nodeIocAddress;
 #ifdef USE_COR        
             rc = clCorMoIdNameToMoIdGet(&slotInfoRecv.nodeMoIdStr, &slotInfo->nodeMoId);
-            CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+            CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                     ("MoIdNameToMoIdGet Failed, rc=[0x%x]\n", rc), rc);
 #endif            
             memcpy(&slotInfo->nodeName, &slotInfoRecv.nodeName, sizeof(SaNameT));
@@ -129,7 +129,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
             slotInfo->slotId = slotInfoRecv.slotId;
 #ifdef USE_COR  
             rc = clCorMoIdNameToMoIdGet(&slotInfoRecv.nodeMoIdStr, &slotInfo->nodeMoId);
-            CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+            CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                     ("MoIdNameToMoIdGet Failed, rc=[0x%x]\n", rc), rc);
 #endif
             memcpy(&slotInfo->nodeName, &slotInfoRecv.nodeName, sizeof(SaNameT));
@@ -153,7 +153,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
             slotInfo->nodeIocAddress = slotInfoRecv.nodeIocAddress;
 #ifdef USE_COR 
             rc = clCorMoIdNameToMoIdGet(&slotInfoRecv.nodeMoIdStr, &slotInfo->nodeMoId);
-            CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
+            CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
                     ("MoIdNameToMoIdGet Failed, rc=[0x%x]\n", rc), rc);
 #endif
             break;
@@ -161,8 +161,8 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
         default:
         {
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("Invalid flag passed, rc=[0x%x]\n", rc));
+            clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "Invalid flag passed, rc=[0x%x]\n", rc);
             goto failure;
             break;
         }

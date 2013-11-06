@@ -51,7 +51,7 @@ ClRcT clStatInit(
     if(!pTestName || !pUnit || !pHandle)
         return CL_ERR_NULL_POINTER;
 
-    pStat = clHeapCalloc(1,sizeof(*pStat));
+    pStat = (ClStatT*) clHeapCalloc(1,sizeof(*pStat));
     if(!pStat)
         return CL_ERR_NO_MEMORY;
 

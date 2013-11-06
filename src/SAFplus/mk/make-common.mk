@@ -146,7 +146,7 @@ ifndef O
 endif
 
 ifdef CL_DEBUG
-	# -DRECORD_TXN
+        # -DRECORD_TXN
 	CFLAGS += -g -DCL_DEBUG
 endif
 export CL_DEBUG
@@ -235,7 +235,7 @@ ifeq ($(BUILD_PLUS),0)
          else
             TOP_C99FLAGS      := -std=c99 -pedantic
          endif
- 
+
         endif
     endif
 endif
@@ -542,7 +542,7 @@ $(OBJ_DIR)/asp_build.c: $(SRC_FILES)
 	else \
 	    BUILD_NUMBER="unlabeled"; \
 	fi; \
-	$(ECHO) "char asp_build[] = \"ASP_BUILD: built on [$$HOSTNAME] at [`date`] by [$$USER] from ASP build [$$BUILD_NUMBER]\\n\";" > $(OBJ_DIR)/asp_build.c
+	$(ECHO) "char asp_build[] = \"SAFPLUS_BUILD: built on [$$HOSTNAME] at [`date`] by [$$USER] from SAFplus build [$$BUILD_NUMBER]\\n\";" > $(OBJ_DIR)/asp_build.c
 SRC_FILES += $(OBJ_DIR)/asp_build.c
 $(OBJ_DIR)/asp_build.o: $(OBJ_DIR)/asp_build.c
 	$(call cmd,cc_o_c)

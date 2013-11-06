@@ -183,6 +183,7 @@ do \
         ClEvtUserIdT userId;
         ClUint64T pCookie;      /* This field is not really used for key this
                                  * is just used to store the user cookie info */
+        ClUint32T externalAddress;
     } ClEvtSubsKeyT;
 
 # define CL_EVT_TYPE_RBE_KEY_TYPE 	0x1
@@ -298,6 +299,9 @@ do \
                                   ClCntDataHandleT userData, ClRuleExprT *pExp,
                                   ClCntNodeHandleT *pNodeHandle);
     ClRcT VDECL(clEvtEventPublishLocal)(ClEoDataT cData,
+                                 ClBufferHandleT inMsgHandle,
+                                 ClBufferHandleT outMsgHandle);
+    ClRcT VDECL(clEvtEventPublishExternal)(ClEoDataT cData,
                                  ClBufferHandleT inMsgHandle,
                                  ClBufferHandleT outMsgHandle);
 

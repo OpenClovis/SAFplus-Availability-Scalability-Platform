@@ -83,6 +83,12 @@ ClRcT clXdrMarshallClEvtInitRequestT_4_0_0(void* pGenVar, ClBufferHandleT msg, C
         return rc;
     }
 
+    rc = clXdrMarshallClUint8T(&(pVar->isExternal),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
     }
 
     return rc;

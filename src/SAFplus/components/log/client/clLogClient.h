@@ -43,7 +43,8 @@ clLogClntSSOResponseProcess(ClHandleT  hLog,
                             SaNameT    *pNodeName,
                             ClStringT  *pShmName,
                             ClUint32T  shmSize,
-                            ClHandleT  *phStream);
+                            ClHandleT  *phStream,
+                            ClUint32T  recSize);
 ClRcT
 clLogClntHandlerRegisterParamValidate(ClLogHandleT              hLog, 
                                       SaNameT                   *pStreamName, 

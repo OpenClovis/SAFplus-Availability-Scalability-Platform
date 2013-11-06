@@ -25,6 +25,7 @@
 #include <clIocApi.h>
 #include <clIocErrors.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clIocUdpTransportApi.h>
 #include <clIocParseConfig.h>
 
@@ -44,6 +45,14 @@ static ClCharT gClIocNodeName[256];
 
 #include "clIocConfigData.h"
 
+#define IOC_LOG_AREA_IOC		"IOC"
+#define IOC_LOG_AREA_NODE		"NODE"
+#define IOC_LOG_CTX_PARSER		"PAR"
+#define IOC_LOG_CTX_MULTICAST	"MULTICAST"
+#define IOC_LOG_CTX_WATERMARK	"WMA"
+#define IOC_LOG_CTX_INSTANCE	"INST"
+#define IOC_LOG_CTX_DATA		"DATA"
+
 ClUint32T clAspLocalId;
 
 static ClRcT clIocLinkSupportsMulticastTagFmt(ClParserTagT *pTag,
@@ -58,12 +67,12 @@ static ClRcT clIocLinkSupportsMulticastTagFmt(ClParserTagT *pTag,
     ClBoolT val ;
     if(!pValue)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid value\n"));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_MULTICAST,"Invalid value\n");
         goto out;
     }
     if(strcmp(pTag->pTag,"linkSupportsMulticast"))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid tag:%s\n",pTag->pTag));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_MULTICAST,"Invalid tag:%s\n",pTag->pTag);
         goto out;
     }
     val = *(ClBoolT*)pValue;
@@ -97,14 +106,14 @@ static ClRcT clIocWaterMarkActionTagFmt(ClParserTagT *pTag,
     ClUint32T bit;
     if(pData == NULL || pBase == NULL || pAttr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_WATERMARK,"Invalid param\n");
         goto out;
     }
     for(i = 0; pActionTags[i] && strcasecmp(pActionTags[i],pData->pTag); ++i);
 
     if(pActionTags[i] == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid tag specified:%s\n",pData->pTag));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_WATERMARK,"Invalid tag specified:%s\n",pData->pTag);
         goto out;
     }
     bit = actionBitMap[i];
@@ -126,7 +135,7 @@ static ClRcT clIocWaterMarkActionTagFmt(ClParserTagT *pTag,
             }
             else
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid attribute:%s\n",pAttr));
+                clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_WATERMARK,"Invalid attribute:%s\n",pAttr);
                 rc = CL_IOC_RC(CL_ERR_UNSPECIFIED);
                 goto out;
             }
@@ -144,7 +153,7 @@ static ClRcT clIocWaterMarkActionTagFmt(ClParserTagT *pTag,
         }
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid op:%d\n",op));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_WATERMARK,"Invalid op:%d\n",op);
         rc = CL_IOC_RC(CL_ERR_UNSPECIFIED);
         goto out;
     }
@@ -168,7 +177,7 @@ static ClRcT clIocNodeInstanceNameTagFmt(ClParserTagT *pTag,
 
     if(pAttr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(IOC_LOG_AREA_NODE,IOC_LOG_CTX_INSTANCE,"Invalid param\n");
         goto out;
     }
     /*
@@ -193,7 +202,7 @@ static ClRcT clIocNodeInstanceNameTagFmt(ClParserTagT *pTag,
         }
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid op:%d\n",op));
+        clLogError(IOC_LOG_AREA_NODE,IOC_LOG_CTX_INSTANCE,"Invalid op:%d\n",op);
         rc = CL_IOC_RC(CL_ERR_UNSPECIFIED);
         goto out;
     }
@@ -226,8 +235,8 @@ static ClRcT clIocWaterMarkDataInit(ClPtrT pParentBase,
                                     ClParserTagOpT op)
 {
     register ClInt32T i;
-    ClPtrT *pParentBases[] = { (ClPtrT)&pAllConfig.iocConfigInfo.iocSendQInfo,
-                               (ClPtrT)&pAllConfig.iocConfigInfo.iocRecvQInfo,
+    ClPtrT *pParentBases[] = { (ClPtrT*)&pAllConfig.iocConfigInfo.iocSendQInfo,
+                               (ClPtrT*)&pAllConfig.iocConfigInfo.iocRecvQInfo,
                                NULL,
     };
     ClRcT rc = CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
@@ -236,14 +245,14 @@ static ClRcT clIocWaterMarkDataInit(ClPtrT pParentBase,
        || pBaseOffset == NULL
        )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_WATERMARK,"Invalid param\n");
         goto out;
     }
     for(i = 0; pParentBases[i] && pParentBases[i] != pParentBase; ++i);
 
     if(pParentBases[i] == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Parent not found\n"));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_WATERMARK,"Parent not found\n");
         goto out;
     }
 
@@ -265,8 +274,8 @@ static ClRcT clIocWaterMarkActionDataInit(ClPtrT pParentBase,
     ClPtrT pCurrentBase = NULL;
     register ClInt32T i;
     ClPtrT *pBases[] = { 
-        (ClPtrT)&pAllConfig.iocConfigInfo.iocSendQInfo.queueWM,
-        (ClPtrT)&pAllConfig.iocConfigInfo.iocRecvQInfo.queueWM,
+        (ClPtrT*)&pAllConfig.iocConfigInfo.iocSendQInfo.queueWM,
+        (ClPtrT*)&pAllConfig.iocConfigInfo.iocRecvQInfo.queueWM,
         NULL,
     };
     ClRcT rc = CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
@@ -274,7 +283,7 @@ static ClRcT clIocWaterMarkActionDataInit(ClPtrT pParentBase,
     if(pParentBase == NULL || pBase == NULL || pBaseOffset == NULL ||
        pNumInstances == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid Param\n"));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_WATERMARK,"Invalid Param\n");
         goto out;
     }
 
@@ -286,14 +295,14 @@ static ClRcT clIocWaterMarkActionDataInit(ClPtrT pParentBase,
          * Search for the matching parent base in water marks
          */
         ClPtrT *pActionBases[] = { 
-            (ClPtrT)&pAllConfig.wmActions[CL_IOC_SENDQ],
-            (ClPtrT)&pAllConfig.wmActions[CL_IOC_RECVQ],
+            (ClPtrT*)&pAllConfig.wmActions[CL_IOC_SENDQ],
+            (ClPtrT*)&pAllConfig.wmActions[CL_IOC_RECVQ],
             NULL,
         };
         for(i = 0; pActionBases[i] && pActionBases[i] != pParentBase; ++i);
         if(pActionBases[i] == NULL)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid parent base:%p\n",pParentBase));
+            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_WATERMARK,"Invalid parent base:%p\n",pParentBase);
             goto out;
         }
         pCurrentBase = pActionBases[i];
@@ -322,7 +331,7 @@ static ClRcT clIocTransportDataInit(ClPtrT pParentBase,
     if(pParentBase == NULL || pNumInstances == NULL ||
        pBase == NULL || pBaseOffset ==NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_DATA,"Invalid param\n");
         goto out;
     }
     switch(op)
@@ -331,11 +340,11 @@ static ClRcT clIocTransportDataInit(ClPtrT pParentBase,
         {
             ClUint32T numInstances = *pNumInstances;
             /*Allocate the memory for transport*/
-            pTransport = calloc(numInstances,sizeof(ClIocUserTransportConfigT));
+            pTransport = (ClIocUserTransportConfigT*) calloc(numInstances,sizeof(ClIocUserTransportConfigT));
             rc = CL_PARSER_RC(CL_ERR_NO_MEMORY);
             if(pTransport == NULL)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+                clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_DATA,"Error allocating memory\n");
                 goto out;
             }
             pConfig->numOfXports = *pNumInstances;
@@ -349,7 +358,7 @@ static ClRcT clIocTransportDataInit(ClPtrT pParentBase,
         }
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid op:%d\n",op));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_DATA,"Invalid op:%d\n",op);
         goto out;
     }
     *pBase = pTransport;
@@ -367,12 +376,12 @@ static ClRcT clIocLinkDataInit(ClPtrT pParentBase,
                                )
 {
     ClRcT rc = CL_PARSER_RC(CL_ERR_INVALID_PARAMETER);
-    ClIocUserTransportConfigT *pTransport = pParentBase;
+    ClIocUserTransportConfigT *pTransport = (ClIocUserTransportConfigT *) pParentBase;
     ClIocUserLinkCfgT *pLinkCfg = NULL;
     if(pParentBase == NULL || pNumInstances == NULL || 
        pBase==NULL || pBaseOffset==NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_DATA,"Invalid param\n");
         goto out;
     }
     switch(op)
@@ -381,10 +390,10 @@ static ClRcT clIocLinkDataInit(ClPtrT pParentBase,
         {
             ClUint32T numInstances = *pNumInstances;
             rc = CL_PARSER_RC(CL_ERR_NO_MEMORY);
-            pLinkCfg = calloc(numInstances,sizeof(ClIocUserLinkCfgT));
+            pLinkCfg = (ClIocUserLinkCfgT*) calloc(numInstances,sizeof(ClIocUserLinkCfgT));
             if(pLinkCfg == NULL)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+                clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_DATA,"Error allocating memory\n");
                 goto out;
             }
             pTransport->numOfLinks = numInstances;
@@ -398,7 +407,7 @@ static ClRcT clIocLinkDataInit(ClPtrT pParentBase,
         }
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid op: %d\n",op));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_DATA,"Invalid op: %d\n",op);
         goto out;
     }
     *pBase = pLinkCfg;
@@ -416,13 +425,13 @@ static ClRcT clIocLocationDataInit(ClPtrT pParentBase,
                                    )
 {
     ClRcT rc = CL_PARSER_RC(CL_ERR_INVALID_PARAMETER);
-    ClIocUserLinkCfgT *pLinkCfg = pParentBase;
+    ClIocUserLinkCfgT *pLinkCfg = (ClIocUserLinkCfgT *)pParentBase;
     ClIocLocationInfoT *pLocation = NULL;
 
     if(pParentBase== NULL || pNumInstances == NULL 
        || pBase==NULL || pBaseOffset ==NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid param\n");
         goto out;
     }
     switch(op)
@@ -431,10 +440,10 @@ static ClRcT clIocLocationDataInit(ClPtrT pParentBase,
         {
             ClUint32T numInstances = *pNumInstances;
             rc = CL_PARSER_RC(CL_ERR_NO_MEMORY);
-            pLocation = calloc(numInstances,sizeof(ClIocLocationInfoT));
+            pLocation = (ClIocLocationInfoT*) calloc(numInstances,sizeof(ClIocLocationInfoT));
             if(pLocation == NULL)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+                clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
                 goto out;
             }
             pLinkCfg->numOfNodes = numInstances;
@@ -448,7 +457,7 @@ static ClRcT clIocLocationDataInit(ClPtrT pParentBase,
         }
         break;
     default:
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid op:%d\n",op));
+        clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid op:%d\n",op);
         goto out;
     }
     *pBase = pLocation;
@@ -464,7 +473,7 @@ ClRcT clIocParseConfig(const ClCharT *pNodeName,ClIocConfigT **ppIocConfig)
 
     if(ppIocConfig == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_PARSER,"Invalid param\n");
         goto out;
     }
 
@@ -477,7 +486,7 @@ ClRcT clIocParseConfig(const ClCharT *pNodeName,ClIocConfigT **ppIocConfig)
     
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error parsing file:%s\n",CL_IOC_CONFIG_FILE_NAME));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_PARSER,"Error parsing file:%s\n",CL_IOC_CONFIG_FILE_NAME);
         goto out;
     }
 #ifdef DEBUG
@@ -485,7 +494,7 @@ ClRcT clIocParseConfig(const ClCharT *pNodeName,ClIocConfigT **ppIocConfig)
 
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in parser display for ioc data\n"));
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_PARSER,"Error in parser display for ioc data\n");
     }
 #endif
 

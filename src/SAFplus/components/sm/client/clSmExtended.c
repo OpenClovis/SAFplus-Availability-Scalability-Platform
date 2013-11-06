@@ -30,6 +30,7 @@
 /* INCLUDES */
 #include <clCommon.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 
 #include <clSmErrors.h>
 #include <clSmExtendedApi.h>
@@ -38,6 +39,10 @@
 #include "clCodeCovStub.h"
 #endif
 
+#define ESM_LOG_AREA		"ESM"
+#define ESM_LOG_CTX_CREATE	"CRE"
+#define ESM_LOG_CTX_DELETE	"DEL"
+#define ESM_LOG_CTX_EVENT	"EVT"
 
 static void
 dummyCallBack(ClQueueDataT userData)
@@ -76,7 +81,7 @@ clEsmInstanceCreate(ClSmTemplatePtrT sm,
   CL_ASSERT(instance);  
   CL_ASSERT(sm);  
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Create Extended State Machine Instance"));
+  clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_CREATE,"Create Extended State Machine Instance");
 
   if(sm && instance) 
     {
@@ -161,7 +166,7 @@ clEsmInstanceDelete(ClExSmInstancePtrT this
   CL_FUNC_ENTER();
   CL_ASSERT(this);  
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Delete Extended State Machine Instance"));
+  clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_DELETE,"Delete Extended State Machine Instance");
 
   if(this) 
     {
@@ -190,7 +195,7 @@ clEsmInstanceDelete(ClExSmInstancePtrT this
               mFREE(item);
               rc = SMQ_DEQUEUE(this->q, item);
             }
-          CL_DEBUG_PRINT(CL_DEBUG_INFO, ("***Delete: Events are present in Q! Dropped to floor!!! ***"));
+          clLogInfo(ESM_LOG_AREA,ESM_LOG_CTX_DELETE,"***Delete: Events are present in Q! Dropped to floor!!! ***");
         }
 
       /* delete the queue */
@@ -277,9 +282,9 @@ clEsmInstanceEventAdd(ClExSmInstancePtrT this,
               return ret;
           }
           ret = SMQ_ENQUEUE(this->q, item);
-          CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Event %d added => ret [%d]",
+          clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_EVENT,"Event %d added => ret [%d]",
                                 item->event.eventId,
-                                ret));
+                                ret);
           ESM_UNLOCK(this);
         }
     } else 
@@ -389,7 +394,7 @@ clEsmInstanceProcessEvent(ClExSmInstancePtrT this)
                              * history state
                              */
                             trans->nextState = this->previous;
-                            CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("History State Set as Next State!"));
+                            clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_EVENT,"History State Set as Next State!");
                           }
                           else 
                             {
@@ -398,16 +403,16 @@ clEsmInstanceProcessEvent(ClExSmInstancePtrT this)
                       }
                     else 
                       {
-                        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Unknown Event in History State"));
+                        clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_EVENT,"Unknown Event in History State");
                       }
                   }
                 
 #ifdef DEBUG
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("StateMachine [%s] OnEvent [%d]", 
+                clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_EVENT,"StateMachine [%s] OnEvent [%d]", 
                                       this->fsm->name,
-                                      msg->eventId));
+                                      msg->eventId);
 #else
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("OnEvent %d", msg->eventId));
+                clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_EVENT,"OnEvent %d", msg->eventId);
 #endif
 
                 ret = clSmInstanceOnEvent(this->fsm, msg);
@@ -493,7 +498,7 @@ clEsmInstanceProcessEvents(ClExSmInstancePtrT this)
           ret = CL_OK;
         }
 
-      CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Processed %d events",k));
+      clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_EVENT,"Processed %d events",k);
 
     } else 
       {
@@ -593,7 +598,7 @@ clEsmInstancePause(ClExSmInstancePtrT this
         return ret;
       }
 #ifdef DEBUG
-      CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Pause [%s]", this->fsm->name));
+      clLogTrace(ESM_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Pause [%s]", this->fsm->name);
 #endif
       ESM_PAUSE(this);
     } else 
@@ -639,7 +644,7 @@ clEsmInstanceContinue(ClExSmInstancePtrT this
         return ret;
       }
 #ifdef DEBUG
-      CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Continue [%s]", this->fsm->name));
+      clLogTrace(ESM_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Continue [%s]", this->fsm->name);
 #endif
       ESM_CONTINUE(this);
     } else 

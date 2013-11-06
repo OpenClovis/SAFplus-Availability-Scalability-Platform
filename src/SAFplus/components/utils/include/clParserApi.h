@@ -292,7 +292,7 @@ ClParserPtrT clParserOpenFileWithVer(const ClCharT *path, const ClCharT *file, C
 
 ClRcT clParseDisplay(ClParserDataT *pData);
 
-ClRcT clParseXML(ClCharT *pPath,ClCharT *pFileName,ClParserDataT *pData);
+ClRcT clParseXML(ClCharT *pPath,const ClCharT *pFileName,ClParserDataT *pData);
 
 #ifdef __cplusplus
 }

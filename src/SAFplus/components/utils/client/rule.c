@@ -32,6 +32,7 @@
 
 #include <clBufferApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clOsalApi.h>
 #include <clXdrApi.h>
 
@@ -39,6 +40,9 @@
 #include <clRuleErrors.h>
 
 #define CL_RULE_MSG_BUF_LEN 256 
+
+#define UTIL_LOG_AREA		"UTL"
+#define UTIL_LOG_CTX_RULE	"RULE"
 
 /** @pkg  */
 
@@ -102,7 +106,7 @@ clRuleExprAllocate (ClUint8T len, ClRuleExprT* *pExpr)
     if (pExpr == NULL)
     {
         /* Memory allocation failled!! Add more error handling */
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n\r"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"NULL Parameter!!\n\r");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -112,7 +116,7 @@ clRuleExprAllocate (ClUint8T len, ClRuleExprT* *pExpr)
     if (expr == NULL)
     {
         /* Memory allocation failled!! Add more error handling */
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Memory allocation failed!!\n\r"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"Memory allocation failed!!\n\r");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NO_MEMORY));
     }
@@ -150,7 +154,7 @@ ClRcT clRuleExprDeallocate (ClRuleExprT* expr)
     /* should we add signature to the expression so we can do more checks? */
     if (expr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n\r"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n\r");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -192,7 +196,7 @@ clRuleExprAppend (ClRuleExprT* first, ClRuleExprT* next)
 
     if ((first == NULL) || (next == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n\r"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n\r");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -235,13 +239,13 @@ rbeExprEvaluateOne (ClRuleExprT *expr, ClUint32T *data, int dataLen)
 
     /* @TODO optimize it for same endianess eval */
     CL_FUNC_ENTER();
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("rbeExprEvaluateOne called expr: %p \
-	                       data: %p len: %d\n", (void *)expr, (void*)data, dataLen));
+    clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"rbeExprEvaluateOne called expr: %p \
+	                       data: %p len: %d\n", (void *)expr, (void*)data, dataLen);
 
 
     if (expr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("rbeExprEvaluateOne called NULL expr, returning TRUE\n"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"rbeExprEvaluateOne called NULL expr, returning TRUE\n");
         CL_FUNC_EXIT();
         return (CL_RULE_TRUE);
     }
@@ -264,14 +268,14 @@ rbeExprEvaluateOne (ClRuleExprT *expr, ClUint32T *data, int dataLen)
 
     if (expr->flags &  CL_RULE_NON_ZERO_MATCH)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("calling for NON_ZERO_MATCH\n\r"));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"calling for NON_ZERO_MATCH\n\r");
         if (swap)
         {
             for (i = 0; i < expr->len; i++)
             {
                 if (expr->maskInt[i] & CL_RULE_SWAP32(data[offset + i]))
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("MATCH\n\r"));
+                    clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"MATCH\n\r");
                     CL_FUNC_EXIT();
                     return (CL_RULE_TRUE);
                 }
@@ -283,7 +287,7 @@ rbeExprEvaluateOne (ClRuleExprT *expr, ClUint32T *data, int dataLen)
             {
                 if (expr->maskInt[i] & data[offset + i])
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("===MATCH ===\n\r"));
+                    clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"===MATCH ===\n\r");
                     CL_FUNC_EXIT();
                     return (CL_RULE_TRUE);
                 }
@@ -292,7 +296,7 @@ rbeExprEvaluateOne (ClRuleExprT *expr, ClUint32T *data, int dataLen)
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("calling for EXACT_MATCH\n\r"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"calling for EXACT_MATCH\n\r");
         if (swap)
         {
             for (i = 0; i < expr->len; i++)
@@ -300,7 +304,7 @@ rbeExprEvaluateOne (ClRuleExprT *expr, ClUint32T *data, int dataLen)
                 if ((expr->maskInt[i] & CL_RULE_SWAP32(data[offset + i]))
                     != val[i])
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("MATCH FAILED\n\r"));
+                    clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"MATCH FAILED\n\r");
                     CL_FUNC_EXIT();
                     return (CL_RULE_FALSE);
                 }
@@ -311,7 +315,7 @@ rbeExprEvaluateOne (ClRuleExprT *expr, ClUint32T *data, int dataLen)
             {
                 if ((expr->maskInt[i] & data[offset + i]) != val[i])
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("MATCH FAILED\n\r"));
+                    clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"MATCH FAILED\n\r");
                     CL_FUNC_EXIT();
                     return (CL_RULE_FALSE);
                 }
@@ -321,13 +325,13 @@ rbeExprEvaluateOne (ClRuleExprT *expr, ClUint32T *data, int dataLen)
 
     if (expr->flags & CL_RULE_NON_ZERO_MATCH)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("MATCH FAILED\n\r"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"MATCH FAILED\n\r");
         CL_FUNC_EXIT();
         return (CL_RULE_FALSE);
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("MATCH\n\r"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"MATCH\n\r");
         CL_FUNC_EXIT();
         return (CL_RULE_TRUE);
     }
@@ -359,12 +363,12 @@ clRuleExprEvaluate (ClRuleExprT* expr, ClUint32T *data, int dataLen)
     ClRuleExprT* exprTmp;
 
     CL_FUNC_ENTER();
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("%s called data %p len %d\n", __FUNCTION__, (void*)data, dataLen));
+    clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"%s called data %p len %d\n", __FUNCTION__, (void*)data, dataLen);
 
     if (expr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, 
-                       ("%s: called with NULL expr, returning TRUE\n", __FUNCTION__));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE, 
+                   "%s: called with NULL expr, returning TRUE\n", __FUNCTION__);
         CL_FUNC_EXIT();
         return (CL_RULE_TRUE);
     }
@@ -375,7 +379,7 @@ clRuleExprEvaluate (ClRuleExprT* expr, ClUint32T *data, int dataLen)
      */
     if ( exprTmp->flags &  CL_RULE_EXPR_CHAIN_AND )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("CHAINED WITH AND\n\r"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"CHAINED WITH AND\n\r");
     expr_and:
         while (exprTmp != NULL)
         {
@@ -390,18 +394,18 @@ clRuleExprEvaluate (ClRuleExprT* expr, ClUint32T *data, int dataLen)
             if (rbeExprEvaluateOne (exprTmp, data, dataLen) == CL_RULE_FALSE)
             {
                 CL_FUNC_EXIT();
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("AND MATCH FAILED\n"));
+                clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"AND MATCH FAILED\n");
                 return (CL_RULE_FALSE);
             }
             exprTmp = exprTmp->next;
         }
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("AND MATCH PASSED\n\r"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"AND MATCH PASSED\n\r");
         return (CL_RULE_TRUE);
     } 
     else if ( exprTmp->flags & CL_RULE_EXPR_CHAIN_GROUP_OR) /* GROUP OR */
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("CHAINED WITH GROUP OR"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"CHAINED WITH GROUP OR");
     expr_gor:
 
         while (exprTmp != NULL)
@@ -409,14 +413,14 @@ clRuleExprEvaluate (ClRuleExprT* expr, ClUint32T *data, int dataLen)
             if (!(exprTmp->flags & CL_RULE_EXPR_CHAIN_GROUP_OR))
             {
                 /* No expression matched in the group-or chain */
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("GROUP OR MATCH FAILED"));
+                clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"GROUP OR MATCH FAILED");
                 CL_FUNC_EXIT();
                 return CL_RULE_FALSE;
             }
 
             if (rbeExprEvaluateOne (exprTmp, data, dataLen) == CL_RULE_TRUE)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("GROUP OR MATCH PASSED"));
+                clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"GROUP OR MATCH PASSED");
                 /*
                  * Skip all group ors.
                  */
@@ -439,12 +443,12 @@ clRuleExprEvaluate (ClRuleExprT* expr, ClUint32T *data, int dataLen)
         }
 
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("GROUP OR MATCH FAILED"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"GROUP OR MATCH FAILED");
         return (CL_RULE_FALSE);
     }
     else  /* CL_RULE_EXPR_CHAIN_OR */
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("CHAINED WITH OR\n\r"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"CHAINED WITH OR\n\r");
 
     expr_or:
         while (exprTmp != NULL)
@@ -457,14 +461,14 @@ clRuleExprEvaluate (ClRuleExprT* expr, ClUint32T *data, int dataLen)
             if (rbeExprEvaluateOne (exprTmp, data, dataLen) == CL_RULE_TRUE)
             {
                 CL_FUNC_EXIT();
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE,("OR MATCH PASSED\n\r"));
+                clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"OR MATCH PASSED\n\r");
                 return (CL_RULE_TRUE);
             }
             exprTmp = exprTmp->next;
         }
 
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("OR MATCH FAILED\n\r"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"OR MATCH FAILED\n\r");
         return (CL_RULE_FALSE);
     } 
     
@@ -481,16 +485,16 @@ clRuleExprEvaluateOne (ClRuleExprT* expr1, ClRuleExprT* expr2)
     CL_FUNC_ENTER();
     if ((expr1 == NULL) || (expr2 == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                       ("%s called with NULL expr, returning TRUE\n", __FUNCTION__));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,
+                   "%s called with NULL expr, returning TRUE\n", __FUNCTION__);
         CL_FUNC_EXIT();
         return (CL_RULE_TRUE);
     }
 
     if (expr1->len != expr2->len)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                       ("%s: mismatch in expr length\n", __FUNCTION__));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,
+                   "%s: mismatch in expr length\n", __FUNCTION__);
         CL_FUNC_EXIT();
         return (CL_RULE_FALSE);
     }
@@ -623,8 +627,8 @@ rbeExprConvertOne (ClRuleExprT* expr)
 
     if (expr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, 
-                       ("rbeExprConvertOne: called with NULL expr\n"));
+        clLogTrace(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE, 
+                   "rbeExprConvertOne: called with NULL expr\n");
         CL_FUNC_EXIT();
         return (CL_OK);  /* a null expression is a valid expresion */
     }
@@ -736,7 +740,7 @@ clRuleExprFlagsSet (ClRuleExprT* expr, ClRuleExprFlagsT flags)
 
     if (expr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -771,7 +775,7 @@ clRuleExprOffsetSet (ClRuleExprT* expr, ClUint16T offset)
 
     if (expr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -817,7 +821,7 @@ clRuleExprMaskSet (ClRuleExprT* expr, ClUint16T offset, ClUint32T mask)
 
     if (expr == NULL) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -832,7 +836,7 @@ clRuleExprMaskSet (ClRuleExprT* expr, ClUint16T offset, ClUint32T mask)
 
     if ((offset < exprOffset) || (offset >= (exprOffset + expr->len))) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("offset out of range!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"offset out of range!!\n");
         CL_FUNC_EXIT();
         return (RBE_ERR_OFFSET_OUT_OF_RANGE);
     }
@@ -875,7 +879,7 @@ clRuleExprValueSet (ClRuleExprT* expr, ClUint16T offset, ClUint32T value)
     CL_FUNC_ENTER();
     if (expr == NULL) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -890,7 +894,7 @@ clRuleExprValueSet (ClRuleExprT* expr, ClUint16T offset, ClUint32T value)
 
     if ((offset < exprOffset) || (offset >= (exprOffset + expr->len))) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("offset out of range!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"offset out of range!!\n");
         CL_FUNC_EXIT();
         return (RBE_ERR_OFFSET_OUT_OF_RANGE);
     }
@@ -928,7 +932,7 @@ clRuleExprFlagsGet (ClRuleExprT* expr, ClRuleExprFlagsT *pFlags)
     CL_FUNC_ENTER();
     if ((expr == NULL) || (pFlags == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -961,7 +965,7 @@ clRuleExprOffsetGet (ClRuleExprT* expr, ClUint16T *pOffset)
     CL_FUNC_ENTER();
     if ((expr == NULL) || (pOffset == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -1005,7 +1009,7 @@ clRuleExprMaskGet (ClRuleExprT* expr, ClUint16T offset, ClUint32T *pMask)
     CL_FUNC_ENTER();
     if ((expr == NULL)  || (pMask == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -1020,7 +1024,7 @@ clRuleExprMaskGet (ClRuleExprT* expr, ClUint16T offset, ClUint32T *pMask)
 
     if ((offset < exprOffset) || (offset >= (exprOffset + expr->len))) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("offset out of range!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"offset out of range!!\n");
         CL_FUNC_EXIT();
         return (RBE_ERR_OFFSET_OUT_OF_RANGE);
     }
@@ -1062,7 +1066,7 @@ clRuleExprValueGet (ClRuleExprT* expr, ClUint16T offset, ClUint32T *pValue)
     CL_FUNC_ENTER();
     if ((expr == NULL)  || (pValue == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -1077,7 +1081,7 @@ clRuleExprValueGet (ClRuleExprT* expr, ClUint16T offset, ClUint32T *pValue)
 
     if ((offset < exprOffset) || (offset >= (exprOffset + expr->len))) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("offset out of range!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"offset out of range!!\n");
         CL_FUNC_EXIT();
         return (RBE_ERR_OFFSET_OUT_OF_RANGE);
     }
@@ -1150,7 +1154,7 @@ ClRcT clRuleExprDuplicate (ClRuleExprT* srcExpr, ClRuleExprT* *pDstExpr)
     CL_FUNC_ENTER();
     if ((srcExpr == NULL) || (pDstExpr == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n");
         CL_FUNC_EXIT();
         return (CL_RULE_RC(CL_ERR_NULL_POINTER));
     }
@@ -1162,7 +1166,7 @@ ClRcT clRuleExprDuplicate (ClRuleExprT* srcExpr, ClRuleExprT* *pDstExpr)
      */
     if ((rc = clRuleExprAllocate (srcExpr->len, pDstExpr)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("expr allocation failed!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"expr allocation failed!!\n");
         CL_FUNC_EXIT();
         return (rc);
     }
@@ -1178,9 +1182,9 @@ ClRcT clRuleExprDuplicate (ClRuleExprT* srcExpr, ClRuleExprT* *pDstExpr)
         {
             if(CL_OK != clRuleExprDeallocate (*pDstExpr))
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("expr free failed!!\n"));
+                clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"expr free failed!!\n");
             }
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("expr allocation failed!!\n"));
+            clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"expr allocation failed!!\n");
     	    CL_FUNC_EXIT();
             return (rc);
         }
@@ -1411,7 +1415,7 @@ rbeExprPrintOne (ClRuleExprT* expr)
 
     if (expr == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL Parameter!!\n"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX_RULE,"NULL Parameter!!\n");
         CL_FUNC_EXIT();
         return (CL_ERR_NULL_POINTER);
     }

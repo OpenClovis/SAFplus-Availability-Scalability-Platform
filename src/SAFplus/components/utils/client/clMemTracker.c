@@ -40,6 +40,7 @@
 #include <clCommonErrors.h>
 #include <clOsalApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clEoApi.h>
 #include <clMemTracker.h>
 #include "clHash.h"
@@ -189,7 +190,7 @@ static __inline__ ClRcT clMemTrackerOffsetCacheAdd(ClOffsetT offset)
     ClRcT rc = CL_ERR_NO_SPACE;
     if(gClMemTrackerOffsetCache.offsetCacheIndex >= CL_MEM_TRACKER_OFFSET_CACHE_ENTRIES)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN,("Offset cache index exceeds limit:%d\n",(ClUint32T)CL_MEM_TRACKER_OFFSET_CACHE_ENTRIES));
+        clLogWarning("OFFSET","ADD","Offset cache index exceeds limit:%d\n",(ClUint32T)CL_MEM_TRACKER_OFFSET_CACHE_ENTRIES);
         goto out;
     }
     gClMemTrackerOffsetCache.offsetCache[gClMemTrackerOffsetCache.offsetCacheIndex++] = offset;
@@ -212,7 +213,7 @@ static __inline__ ClRcT clMemTrackerOffsetCacheGet(ClOffsetT *pOffset)
     rc = CL_ERR_INVALID_PARAMETER;
     if(pOffset == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError("OFFSET","GET","Invalid param\n");
         goto out;
     }
     offset = gClMemTrackerOffsetCache.offsetCache[--gClMemTrackerOffsetCache.offsetCacheIndex];
@@ -343,7 +344,7 @@ static ClRcT clMemTrackerProcessNameGet(ClCharT *pProcessBuf,ClUint32T maxSize)
 
 static ClRcT clMemTrackerFileNameGet(ClCharT *pFileName,ClUint32T maxSize)
 {
-    ClCharT *pBase ;
+    const ClCharT *pBase ;
     ClCharT dirBuf[MAX_BUFFER_SIZE] = {0};
     ClCharT processBuf[MAX_BUFFER_SIZE] = {0};
     ClRcT rc ;

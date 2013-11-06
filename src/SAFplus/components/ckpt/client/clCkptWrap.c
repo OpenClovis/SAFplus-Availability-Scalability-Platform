@@ -51,6 +51,7 @@
 #include  "ckptClntEoClient.h"
 #include  "ckptEoClient.h"
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clIocErrors.h>
 #include <clCkptErrors.h>
 #include <clNodeCache.h>
@@ -322,9 +323,9 @@ void  _ckptCheckpointOpenAsyncCallback(ClIdlHandleT ckptIdlHdl,
                     sizeof(CkptOpenCbInfoT)); 
             if(pOpenCbInfo == NULL) 
             {
-                CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                        ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL,
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                              "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL,
                            CL_LOG_CKPT_LIB_NAME,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 /*
@@ -584,13 +585,14 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
     rc =  clCkptMasterAddressGet(&pInitInfo->mastNodeAddr);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Could not get master address during checkpoint open [rc = 0x%x]\n",rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                      "Could not get master address during checkpoint open [rc = 0x%x]\n",rc);
         rc = CL_CKPT_ERR_TRY_AGAIN;
         goto exitOnError;
     }
 
     rc = ckptIdlHandleUpdate(pInitInfo->mastNodeAddr,pInitInfo->ckptIdlHdl, 0);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_INFO, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_INFO, 
             ("Checkpoint open failed rc[0x %x].  This is expected if the app is checking to see if the checkpoint was created by another node.",rc), rc);
 
     /* 
@@ -635,7 +637,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
          */
         if(version.releaseCode != '\0' && rc == CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Open call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
@@ -656,7 +658,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
                 (pInitInfo->pCallback->checkpointOpenCallback == NULL))
         {      
             rc = CL_CKPT_ERR_INITIALIZED;
-            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                     ("Ckpt: Ckpt open async failed, rc=[0x %x]\n",rc), rc);
         }          
 
@@ -668,9 +670,9 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
         if(pInvocation == NULL)
         {
             rc =  CL_CKPT_ERR_NO_MEMORY;
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                     CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
-            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                     ("Ckpt: CheckpoinAsync open failed rc[0x %x]\n",rc), rc);
         }
         memset(pInvocation , 0 , sizeof(ClInvocationT));
@@ -692,7 +694,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
                 (void *)pInvocation);
 
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_INFO, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_INFO, 
             ("Checkpoint open failed rc[0x %x].  This is expected if the app is checking to see if the checkpoint was created by another node.",rc), rc);
 
     if( openType == CL_CKPT_OPEN_SYNC)
@@ -706,9 +708,9 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
         if(pCkptHdl == NULL)
         {
             rc =  CL_CKPT_ERR_NO_MEMORY;
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                     CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
-            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                     ("Ckpt: CheckpoinAsync open failed rc[0x %x]\n",rc), rc);
         }
         /*
@@ -716,7 +718,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
          * This would serve as ckptHdl.
          */
         rc = ckptLocalHandleCreate(pCkptHdl);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                 ("Ckpt: CheckpointOpen failed rc[0x %x]\n",rc), rc);
 
         *pCkptHandle = *pCkptHdl; // Update the handle provided
@@ -730,7 +732,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
                 (ClCntKeyHandleT)(ClWordT)cksum,
                 pCkptHdl,
                 NULL);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                 ("Ckpt: CheckpointOpen failed rc[0x %x]\n",rc), rc);
 
         hdlInfo.prevMasterAddr = pInitInfo->mastNodeAddr;
@@ -746,7 +748,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
          * Associate the checkpoint info with the checkpoint handle.
          */
         rc = ckptHandleInfoSet(*pCkptHdl,&hdlInfo);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                 ("Ckpt:CheckpointOpen failed rc[0x %x]\n",rc), rc);
     }          
 exitOnError:
@@ -891,14 +893,14 @@ ClRcT clCkptCheckpointClose(ClCkptHdlT ckptHdl)
      * Update idl handle with master related info
      */
     rc = ckptMasterHandleGet(ckptHdl,&ckptMastHdl); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Passed handle %#llX is invalid rc[0x %x]\n",ckptHdl, rc), rc);
     rc =  clCkptMasterAddressGet(&pInitInfo->mastNodeAddr);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
           ("Ckpt: Failed in master Address Get rc[0x %x]\n",rc), rc);
     rc = ckptIdlHandleUpdate(pInitInfo->mastNodeAddr, pInitInfo->ckptIdlHdl,
                              CL_CKPT_NO_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Idl Handle %#llX update error rc[0x %x]\n",ckptHdl, rc), rc);
           
     /* 
@@ -926,13 +928,13 @@ ClRcT clCkptCheckpointClose(ClCkptHdlT ckptHdl)
      */
     if ((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                    version.releaseCode,version.majorVersion, 
                    version.minorVersion);
           rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Checkpoint close error rc[0x %x]\n",rc), rc);
 
     /* 
@@ -940,7 +942,7 @@ ClRcT clCkptCheckpointClose(ClCkptHdlT ckptHdl)
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL,
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Checkpoint close error rc[0x %x]\n",rc), rc);
 
     /* 
@@ -991,7 +993,7 @@ ClRcT clCkptCheckpointClose(ClCkptHdlT ckptHdl)
      * Destroy the checkpoint handle.
      */
     rc = ckptLocalHandleDelete(ckptHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Checkpoint close error rc[0x %x]\n",rc), rc);
 exitOnError:
     {
@@ -1061,11 +1063,11 @@ ClRcT clCkptCheckpointDelete(ClCkptSvcHdlT     ckptSvcHdl,
      * Update idl handle with master related info.
      */
     rc =  clCkptMasterAddressGet(&pInitInfo->mastNodeAddr);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
           ("Ckpt: Failed in master Address Get rc[0x %x]\n",rc), rc);
     rc = ckptIdlHandleUpdate(pInitInfo->mastNodeAddr, pInitInfo->ckptIdlHdl,
                              CL_CKPT_NO_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
               
     /* 
@@ -1092,13 +1094,13 @@ ClRcT clCkptCheckpointDelete(ClCkptSvcHdlT     ckptSvcHdl,
      */
     if(version.releaseCode != '\0' && rc == CL_OK)
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
           rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Checkpoint delete error rc[0x %x]\n",rc), rc);
 exitOnError:
     {
@@ -1145,14 +1147,14 @@ ClRcT clCkptCheckpointRetentionDurationSet(ClCkptHdlT ckptHdl,
      * Update idl handle with master related info
      */
     rc = ckptMasterHandleGet(ckptHdl,&mastHdl);    
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: RetentionDurationSet failed, rc[0x %x]\n",rc), rc);
     rc =  clCkptMasterAddressGet(&pInitInfo->mastNodeAddr);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
           ("Ckpt: Failed in master Address Get rc[0x %x]\n",rc), rc);
     rc = ckptIdlHandleUpdate(pInitInfo->mastNodeAddr, pInitInfo->ckptIdlHdl,
                              CL_CKPT_MAX_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: RetentionDurationSet failed, rc[0x %x]\n",rc), rc);
               
     ckptIdlHdl = pInitInfo->ckptIdlHdl;    
@@ -1174,13 +1176,13 @@ ClRcT clCkptCheckpointRetentionDurationSet(ClCkptHdlT ckptHdl,
      */
     if((version.releaseCode != '\0') && (CL_OK ==rc))
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
           rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: RetentionDurationSet failed, rc[0x %x]\n",rc), rc);
 exitOnError:
     {
@@ -1228,7 +1230,7 @@ ClRcT clCkptActiveReplicaSet(ClCkptHdlT ckptHdl)
      * Checkout the data associated with the checkpoint handle 
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
 
     /*
@@ -1240,7 +1242,7 @@ ClRcT clCkptActiveReplicaSet(ClCkptHdlT ckptHdl)
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                 ("Ckpt: Improper permissions as ckpt was not opened in write"
                  " or create mode, rc[0x %x]\n",rc), rc);
     }
@@ -1249,21 +1251,21 @@ ClRcT clCkptActiveReplicaSet(ClCkptHdlT ckptHdl)
      * Checkin the data associated with the checkpoint handle 
      */
     rc = clHandleCheckin(gClntInfo.ckptDbHdl, ckptHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle Check-in Error  rc[0x %x]\n",rc), rc);
     
     /*
      * Update idl handle with master related info.
      */
     rc = ckptMasterHandleGet(ckptHdl,&mastHdl);    
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt:Master Handle Get error rc[0x %x]\n",rc), rc);
     rc =  clCkptMasterAddressGet(&pInitInfo->mastNodeAddr);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
           ("Ckpt: Failed in master Address Get rc[0x %x]\n",rc), rc);
     rc = ckptIdlHandleUpdate(pInitInfo->mastNodeAddr, pInitInfo->ckptIdlHdl,
                             CL_CKPT_MAX_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;    
     
@@ -1285,7 +1287,7 @@ ClRcT clCkptActiveReplicaSet(ClCkptHdlT ckptHdl)
      */
     if( version.releaseCode != '\0' && (rc == CL_OK) )
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                    version.releaseCode, version.majorVersion, 
                    version.minorVersion);
@@ -1303,7 +1305,7 @@ ClRcT clCkptActiveReplicaSet(ClCkptHdlT ckptHdl)
            {
              pHdlInfo->activeAddr = clIocLocalAddressGet(); 
              rc = clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-             CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, ("Ckpt: Handle Check-in Error  rc[0x %x]\n",rc), rc);
+             CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, ("Ckpt: Handle Check-in Error  rc[0x %x]\n",rc), rc);
            }
          else
            {
@@ -1357,7 +1359,7 @@ ClRcT clCkptActiveReplicaSetSwitchOver(ClCkptHdlT ckptHdl)
      * Update idl handle with master related info.
      */
     rc = ckptMasterHandleGet(ckptHdl,&mastHdl);    
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt:Master Handle Get error rc[0x %x]\n",rc), rc);
     /*
      * Use local address since local node has become active from standby
@@ -1366,7 +1368,7 @@ ClRcT clCkptActiveReplicaSetSwitchOver(ClCkptHdlT ckptHdl)
     pInitInfo->mastNodeAddr = nodeAddr;
     rc = ckptIdlHandleUpdate(pInitInfo->mastNodeAddr, pInitInfo->ckptIdlHdl, 
                              CL_CKPT_MAX_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;    
 
@@ -1400,7 +1402,7 @@ ClRcT clCkptActiveReplicaSetSwitchOver(ClCkptHdlT ckptHdl)
           {
             pHdlInfo->activeAddr = nodeAddr; 
             rc = clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, ("Ckpt: Handle Check-in Error  rc[0x %x]\n",rc), rc);
+            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, ("Ckpt: Handle Check-in Error  rc[0x %x]\n",rc), rc);
           }
         else
           {
@@ -1588,10 +1590,10 @@ ClRcT clCkptCheckpointStatusGet(ClCkptHdlT                  ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&ckptActHdl); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
               
     /*
@@ -1602,7 +1604,7 @@ ClRcT clCkptCheckpointStatusGet(ClCkptHdlT                  ckptHdl,
     {
         rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
                                  CL_CKPT_MAX_RETRY);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
               ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
         ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
@@ -1617,7 +1619,7 @@ ClRcT clCkptCheckpointStatusGet(ClCkptHdlT                  ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                 CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                 version.releaseCode,version.majorVersion, 
                 version.minorVersion);
@@ -1698,7 +1700,7 @@ ClRcT clCkptSectionCreate(
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
    
     /*
@@ -1710,7 +1712,7 @@ ClRcT clCkptSectionCreate(
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt: Improper permissions as ckpt was not opened in write"
              " or create mode, rc[0x %x]\n",rc), rc);
               
@@ -1718,7 +1720,7 @@ ClRcT clCkptSectionCreate(
      * Checkin the data associated with the checkpoint handle. 
      */
     rc = clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Section Creation failed rc[0x %x]\n",rc), rc);
               
     /*
@@ -1726,10 +1728,10 @@ ClRcT clCkptSectionCreate(
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&ckptActHdl); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
               
     /* 
@@ -1746,7 +1748,7 @@ ClRcT clCkptSectionCreate(
         numRetries = 0;
         rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
                                  CL_CKPT_NO_RETRY);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
         ckptIdlHdl = pInitInfo->ckptIdlHdl;
         do
@@ -1769,13 +1771,13 @@ ClRcT clCkptSectionCreate(
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
           rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Section creation error rc[0x %x]\n",rc), rc);
 
     if ((pSecCreateAttr->sectionId->idLen == 0) &&
@@ -1790,7 +1792,7 @@ ClRcT clCkptSectionCreate(
         if( NULL == pSecCreateAttr->sectionId->id )
         {
             rc = CL_CKPT_ERR_NO_MEMORY;
-            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                     ("Failed to allocate memory for generated section"),rc);
         }
         snprintf((ClCharT *) pSecCreateAttr->sectionId->id, CL_CKPT_GEN_SEC_LENGTH,"generatedSection%d",
@@ -1876,7 +1878,7 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
 
     /*
@@ -1888,7 +1890,7 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                 ("Ckpt: Improper permissions as ckpt was not opened in write"
                  " or create mode, rc[0x %x]\n",rc), rc);
     }
@@ -1897,7 +1899,7 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
      * Checkin the data associated with the checkpoint handle.
      */
     rc = clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle Check-in Error rc[0x %x]\n",rc), rc);
 
     /*
@@ -1905,10 +1907,10 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Active server not exist rc[0x %x]\n",rc), rc);
  
     /* 
@@ -1926,7 +1928,7 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
         numRetries = 0;
         rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl, 
                                 CL_CKPT_NO_RETRY);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
         ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
@@ -1963,13 +1965,13 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
      */
     if((version.releaseCode != '\0')  && (rc == CL_OK))
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
           rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, ("Ckpt: Section delete error rc[0x %x]\n",rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, ("Ckpt: Section delete error rc[0x %x]\n",rc), rc);
     
 exitOnError:
     {
@@ -2056,7 +2058,7 @@ ClRcT clCkptSectionExpirationTimeSet(ClCkptHdlT              ckptHdl,
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
 
     /*
@@ -2074,7 +2076,7 @@ ClRcT clCkptSectionExpirationTimeSet(ClCkptHdlT              ckptHdl,
      * Checkin the data associated with the checkpoint handle. 
      */
     clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt: Improper permissions as ckpt was not opened in write"
              " or create mode, rc[0x %x]\n",rc), rc);
 
@@ -2083,10 +2085,10 @@ ClRcT clCkptSectionExpirationTimeSet(ClCkptHdlT              ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
  
     /* 
@@ -2102,7 +2104,7 @@ ClRcT clCkptSectionExpirationTimeSet(ClCkptHdlT              ckptHdl,
     {
         rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
                                 CL_CKPT_MAX_RETRY);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
         ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
@@ -2118,13 +2120,13 @@ ClRcT clCkptSectionExpirationTimeSet(ClCkptHdlT              ckptHdl,
      */
     if((version.releaseCode != '\0')  && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                    version.releaseCode, version.majorVersion, 
                    version.minorVersion);
         rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Expiration Time set failed rc[0x %x]\n",rc), rc);
     
 exitOnError:
@@ -2224,10 +2226,10 @@ ClRcT clCkptSectionIterationInitialize(ClCkptHdlT             ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
 
     rc = clIocRemoteNodeStatusGet(nodeAddr, &status);
@@ -2251,7 +2253,7 @@ ClRcT clCkptSectionIterationInitialize(ClCkptHdlT             ckptHdl,
      */
     rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
                              CL_CKPT_MAX_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     rc = VDECL_VER(clCkptSvrIterationInitializeClientSync, 4, 0, 0)( pInitInfo->ckptIdlHdl,
                                                                      &ckptVersion,
@@ -2285,7 +2287,7 @@ ClRcT clCkptSectionIterationInitialize(ClCkptHdlT             ckptHdl,
 
     pTempSec = pSecId;   /* On error, pTempSec will be cleaned up */
 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                    ("Ckpt:Error during Svc init rc[0x %x]\n",rc), rc);
 
     /*
@@ -2314,9 +2316,9 @@ ClRcT clCkptSectionIterationInitialize(ClCkptHdlT             ckptHdl,
                                                                     1, secCount * sizeof(ClCkptSectionIdT));
     if(pSecIterationInfo->pSecId == NULL)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                        ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                      "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         /* Don't need to free pSecId, because it will happen in the exitOnError call. clHeapFree(pSecId); */
         clHandleCheckin(gClntInfo.ckptDbHdl,*pSecItrHdl);
@@ -2336,9 +2338,9 @@ ClRcT clCkptSectionIterationInitialize(ClCkptHdlT             ckptHdl,
                                                                           (pSecIterationInfo->pSecId->idLen+1));
             if(pSecIterationInfo->pSecId->id == NULL)  
             {
-                CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                                ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL,
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                              "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL,
                            CL_LOG_CKPT_LIB_NAME,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 /* Andrew Stone: But what about all the other iteratrions? */ 
@@ -2478,8 +2480,8 @@ ClRcT clCkptSectionIterationNext(ClHandleT                secIterHdl,
                 secId.id    = (ClUint8T *)clHeapAllocate(pSecId->idLen+1); 
                 if(secId.id == NULL)
                 {
-                    CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                       ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
+                    clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                                  "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
                     clHandleCheckin(gClntInfo.ckptDbHdl,secIterHdl);
                     return CL_CKPT_ERR_NO_MEMORY;
                 }
@@ -2493,7 +2495,7 @@ ClRcT clCkptSectionIterationNext(ClHandleT                secIterHdl,
         * Checkin the info associated with the iteration handle.
         */
         rc = clHandleCheckin(gClntInfo.ckptDbHdl,secIterHdl);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                 ("Ckpt: Handle Checkin error rc[0x %x]\n",rc), rc);
 
         /* 
@@ -2512,7 +2514,7 @@ ClRcT clCkptSectionIterationNext(ClHandleT                secIterHdl,
          */
         if((version.releaseCode != '\0')  && (rc == CL_OK))
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                        CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                        version.releaseCode, version.majorVersion, 
                        version.minorVersion);
@@ -2524,7 +2526,7 @@ ClRcT clCkptSectionIterationNext(ClHandleT                secIterHdl,
             secId.id  = NULL;
         }
     }while(rc == CL_CKPT_ERR_NOT_EXIST);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_TRACE, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_TRACE, 
             ("Ckpt: Section is not exist error rc[0x %x]\n",rc), rc);
 
     if(pSecDescriptor->sectionId.idLen == 0)
@@ -2586,7 +2588,7 @@ ClRcT clCkptSectionIterationFinalize(ClHandleT secIterHdl)
      */
     rc = ckptHandleCheckout(pSecIterInfo->localHdl, CL_CKPT_CHECKPOINT_HDL,
             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Invalid Handle  rc[0x %x]\n",rc), rc);
             
     for(count = 0; count < pSecIterInfo->secCount ; count++)
@@ -2601,21 +2603,21 @@ ClRcT clCkptSectionIterationFinalize(ClHandleT secIterHdl)
      * Checkin the data associated with the checkpoint handle.
      */
     rc = clHandleCheckin(gClntInfo.ckptDbHdl,pSecIterInfo->localHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Invalid Handle  rc[0x %x]\n",rc), rc);
             
     /* 
      * Checkin the data associated with the iteration handle.
      */
     rc = clHandleCheckin(gClntInfo.ckptDbHdl,secIterHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Invalid Handle  rc[0x %x]\n",rc), rc);
 
     /*
      * Get the associated service handle.
      */
     rc = ckptSvcHandleGet(pSecIterInfo->localHdl, &ckptSvcHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Invalid Handle  rc[0x %x]\n",rc), rc);
             
     /* 
@@ -2623,14 +2625,14 @@ ClRcT clCkptSectionIterationFinalize(ClHandleT secIterHdl)
      */
     rc = ckptHandleCheckout(ckptSvcHdl, CL_CKPT_SERVICE_HDL,
             (void **)&pInitInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Invalid Handle  rc[0x %x]\n",rc), rc);
     /*
      * Delete the iteration handle from the handle list.
      */
     rc = clCntAllNodesForKeyDelete(pInitInfo->hdlList,
                                    (ClCntKeyHandleT)(ClWordT)secIterHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Invalid Handle  rc[0x %x]\n",rc), rc);
 
     /* 
@@ -2703,10 +2705,10 @@ ClRcT clCkptSectionCheck(ClCkptHdlT             ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
 
     clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
@@ -2725,7 +2727,7 @@ ClRcT clCkptSectionCheck(ClCkptHdlT             ckptHdl,
      * Retry if the server is not not reachable.
      */
     rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl, 1);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                                   ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     rc = VDECL_VER(_ckptSectionCheckClientSync, 5, 0, 0)( pInitInfo->ckptIdlHdl,
                                                           actHdl,
@@ -2886,7 +2888,7 @@ ClRcT clCkptCheckpointWriteVector(ClCkptHdlT                     ckptHdl,
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
               
     /*
@@ -2899,7 +2901,7 @@ ClRcT clCkptCheckpointWriteVector(ClCkptHdlT                     ckptHdl,
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                    ("Ckpt: Improper permissions as ckpt was not opened in write"
                     " or create mode, rc[0x %x]\n",rc), rc);
               
@@ -2913,10 +2915,10 @@ ClRcT clCkptCheckpointWriteVector(ClCkptHdlT                     ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
  
     rc = clIocRemoteNodeStatusGet(nodeAddr, &status);
@@ -2940,7 +2942,7 @@ ClRcT clCkptCheckpointWriteVector(ClCkptHdlT                     ckptHdl,
      */
     rc = ckptIdlHandleUpdate(nodeAddr,pInitInfo->ckptIdlHdl, 
                              CL_CKPT_MAX_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;
     clEoMyEoIocPortGet(&iocPort);
@@ -2980,13 +2982,13 @@ ClRcT clCkptCheckpointWriteVector(ClCkptHdlT                     ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                    version.releaseCode,version.majorVersion,
                    version.minorVersion);
         rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Checkpoint write failed, rc[0x %x]\n",rc), rc);
     exitOnError:
     {
@@ -3072,7 +3074,7 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
               
     /*
@@ -3085,7 +3087,7 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                    ("Ckpt: Improper permissions as ckpt was not opened in write"
                     " or create mode, rc[0x %x]\n",rc), rc);
               
@@ -3099,10 +3101,10 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
  
     rc = clIocRemoteNodeStatusGet(nodeAddr, &status);
@@ -3126,7 +3128,7 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
      */
     rc = ckptIdlHandleUpdate(nodeAddr,pInitInfo->ckptIdlHdl, 
                              CL_CKPT_MAX_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;
     clEoMyEoIocPortGet(&iocPort);
@@ -3225,13 +3227,13 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                    version.releaseCode,version.majorVersion,
                    version.minorVersion);
         rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Checkpoint write failed, rc[0x %x]\n",rc), rc);
     exitOnError:
     {
@@ -3379,7 +3381,7 @@ ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
     clOsalMutexLock(pInitInfo->ckptSvcMutex);
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
               
     clEoMyEoIocPortGet(&iocPort);
@@ -3393,7 +3395,7 @@ ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                    ("Ckpt: Improper permissions as ckpt was not opened in write"
                     " or create mode, rc[0x %x]\n",rc), rc);
 
@@ -3407,10 +3409,10 @@ ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Active server not exist rc[0x %x]\n",rc), rc);
 
     rc = clIocRemoteNodeStatusGet(nodeAddr, &status);
@@ -3429,9 +3431,9 @@ ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
         tempSecId.id    = (ClUint8T *)clHeapCalloc(1,tempSecId.idLen);
         if(tempSecId.id == NULL)
         {
-            CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                            ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                          "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             rc = CL_CKPT_ERR_NO_MEMORY;
         
@@ -3459,7 +3461,7 @@ ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
      */
     rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
                              CL_CKPT_MAX_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
@@ -3491,13 +3493,13 @@ ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Overwrite call failed",
                    version.releaseCode,version.majorVersion, 
                    version.minorVersion);
         rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Section Overwrite failed rc[0x %x]\n",rc), rc);
     exitOnError:
     {
@@ -3589,7 +3591,7 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
 
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
               
     clEoMyEoIocPortGet(&iocPort);
@@ -3603,7 +3605,7 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                    ("Ckpt: Improper permissions as ckpt was not opened in write"
                     " or create mode, rc[0x %x]\n",rc), rc);
 
@@ -3617,10 +3619,10 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Active server not exist rc[0x %x]\n",rc), rc);
 
     rc = clIocRemoteNodeStatusGet(nodeAddr, &status);
@@ -3642,9 +3644,9 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
         tempSecId.id    = (ClUint8T *)clHeapCalloc(1,tempSecId.idLen);
         if(tempSecId.id == NULL)
         {
-            CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                            ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                          "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             rc = CL_CKPT_ERR_NO_MEMORY;
         
@@ -3673,7 +3675,7 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
      */
     rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
                              CL_CKPT_MAX_RETRY);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
     ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
@@ -3735,13 +3737,13 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                    CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Overwrite call failed",
                    version.releaseCode,version.majorVersion, 
                    version.minorVersion);
         rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Section Overwrite failed rc[0x %x]\n",rc), rc);
     exitOnError:
     {
@@ -3843,7 +3845,7 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
               
     /*
@@ -3859,7 +3861,7 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
      * Checkin the data associated with the service handle. 
      */
     clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt: Improper permissions as ckpt was not opened in read"
              " mode, rc[0x %x]\n",rc), rc);
               
@@ -3868,10 +3870,10 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Active address get error rc[0x %x]\n",rc), rc);
  
     /* 
@@ -3887,8 +3889,8 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
                           sizeof(ClCkptIOVectorElementT) * numberOfElements);
     if(pLocalVec == NULL)
     {
-         CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                  ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
+         clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                       "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
          rc = CL_CKPT_ERR_NO_MEMORY;
          goto exitOnError;
     }
@@ -3911,7 +3913,7 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
     {
         rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
                                 CL_CKPT_MAX_RETRY);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
         ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
@@ -3940,13 +3942,13 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
      */
     if(version.releaseCode != '\0' && (rc == CL_OK))
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
           rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt section does not exist rc[0x %x]\n",rc), rc);
     
     /*
@@ -3971,8 +3973,8 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
                                pLocalVec->readSize + 1);
             if(pIoVector->dataBuffer == NULL)
             {
-                CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                        ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                              "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
                 rc = CL_CKPT_ERR_NO_MEMORY;
                 goto exitOnError;
             }
@@ -4057,7 +4059,7 @@ ClRcT  clCkptCheckpointReadSections(ClCkptHdlT              ckptHdl,
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
               
     /*
@@ -4073,7 +4075,7 @@ ClRcT  clCkptCheckpointReadSections(ClCkptHdlT              ckptHdl,
      * Checkin the data associated with the service handle. 
      */
     clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                    ("Ckpt: Improper permissions as ckpt was not opened in read"
                     " mode, rc[0x %x]\n",rc), rc);
               
@@ -4082,10 +4084,10 @@ ClRcT  clCkptCheckpointReadSections(ClCkptHdlT              ckptHdl,
      * with that local ckptHdl.
      */
     rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Active address get error rc[0x %x]\n",rc), rc);
  
     /*
@@ -4096,7 +4098,7 @@ ClRcT  clCkptCheckpointReadSections(ClCkptHdlT              ckptHdl,
     {
         rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
                                  CL_CKPT_MAX_RETRY);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                        ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
         ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
@@ -4170,7 +4172,7 @@ ClRcT clCkptCheckpointSynchronize(ClCkptHdlT ckptHdl,
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
               
     /*
@@ -4182,7 +4184,7 @@ ClRcT clCkptCheckpointSynchronize(ClCkptHdlT ckptHdl,
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                 ("Ckpt: Improper permissions as ckpt was not opened in write"
                  " or create mode, rc[0x %x]\n",rc), rc);
     }
@@ -4194,7 +4196,7 @@ ClRcT clCkptCheckpointSynchronize(ClCkptHdlT ckptHdl,
     {
         rc = CL_CKPT_ERR_BAD_OPERATION;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
          ("Ckpt: API not allowed for SYNC checkpoint, rc[0x %x]\n",rc), rc);
     }
     
@@ -4202,7 +4204,7 @@ ClRcT clCkptCheckpointSynchronize(ClCkptHdlT ckptHdl,
      * Checkin the data associated with the checkpoint handle.
      */
     rc = clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle Check-in Error  rc[0x %x]\n",rc), rc);
 
     /*
@@ -4210,10 +4212,10 @@ ClRcT clCkptCheckpointSynchronize(ClCkptHdlT ckptHdl,
      * local handle.
      */
     rc = ckptActiveHandleGet(ckptHdl,&ckptActHdl); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
               
     /* 
@@ -4229,7 +4231,7 @@ ClRcT clCkptCheckpointSynchronize(ClCkptHdlT ckptHdl,
     {
         rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
                                 CL_CKPT_MAX_RETRY);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
         ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
@@ -4245,7 +4247,7 @@ ClRcT clCkptCheckpointSynchronize(ClCkptHdlT ckptHdl,
      */
     if((version.releaseCode != '\0') && (rc == CL_OK))
     {
-          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+          clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
                     version.releaseCode,version.majorVersion, 
                     version.minorVersion);
@@ -4294,13 +4296,13 @@ void _ckptSynchronizeCallback(ClIdlHandleT  handle,
      */
     if(suppVersion->releaseCode != '\0')
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
                 CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Synchrnoize call failed",
                 suppVersion->releaseCode,suppVersion->majorVersion, 
                 suppVersion->minorVersion);
         rc = CL_CKPT_ERR_VERSION_MISMATCH;             
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Checkpoint synchronize failed rc[0x %x]\n",rc), rc);
 
     /* 
@@ -4309,7 +4311,7 @@ void _ckptSynchronizeCallback(ClIdlHandleT  handle,
 
 #if 0  
     rc = ckptSvcHandleGet(ckptHdl,&ckptSvcHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Checkpoint Synchronize failed rc[0x %x]\n",rc), rc);
     ckptHandleCheckout(ckptSvcHdl, CL_CKPT_SERVICE_HDL, (void **)&pInitInfo);
 #endif
@@ -4346,9 +4348,9 @@ void _ckptSynchronizeCallback(ClIdlHandleT  handle,
                     sizeof(CkptSyncCbInfoT)); 
             if(pSyncInfo == NULL)
             {
-                CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                        ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, 
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                              "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, 
                            CL_LOG_CKPT_LIB_NAME,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 /*
@@ -4435,7 +4437,7 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
     if(pInitInfo->pCallback->checkpointSynchronizeCallback == NULL)
     {
         rc = CL_CKPT_ERR_INITIALIZED;
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                   ("Ckpt: Ckpt open async failed, rc=[0x %x]\n",rc), rc);
     }
     
@@ -4444,7 +4446,7 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
      */
     rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
                             (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
               
     /*
@@ -4456,7 +4458,7 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                 ("Ckpt: Improper permissions as ckpt was not opened in write"
                  " or create mode, rc[0x %x]\n",rc), rc);
     }
@@ -4468,7 +4470,7 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
     {
         rc = CL_CKPT_ERR_BAD_OPERATION;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                   ("Ckpt: Creation Flag are not proper rc[0x %x]\n",rc), rc);
     }
     
@@ -4476,7 +4478,7 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
      * Checkin the data associated with the checkpoint handle. 
      */
     rc = clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle Check-in Error  rc[0x %x]\n",rc), rc);
               
     /*
@@ -4484,10 +4486,10 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
      * local handle.
      */
     rc = ckptActiveHandleGet(ckptHdl,&ckptActHdl); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
 
     /* 
@@ -4498,9 +4500,9 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
     if(pInvocation == NULL)
     {
        rc =  CL_CKPT_ERR_NO_MEMORY;
-       clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+       clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                   CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
-       CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+       CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: CheckpoinAsync open failed rc[0x %x]\n",rc), rc);
     }
     memset(pInvocation , 0 , sizeof(ClInvocationT));
@@ -4514,7 +4516,7 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
     {
         rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl, 
                                  CL_CKPT_MAX_RETRY);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
         ckptIdlHdl = pInitInfo->ckptIdlHdl;
 
@@ -4629,7 +4631,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
         * service, checkpoint and iteration related handles.
         */
         rc = clHandleDatabaseCreate(NULL, &gClntInfo.ckptDbHdl);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                 ("Ckpt:Initialize failed rc[0x %x]\n",rc), rc);
 
         /* 
@@ -4644,7 +4646,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
                 ckptHdlDeleteCallback,
                 CL_CNT_NON_UNIQUE_KEY,
                 &gClntInfo.ckptHdlList);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                 ("Ckpt:nitialize failed rc[0x %x]\n",rc), rc);
     }
 
@@ -4653,7 +4655,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
      */
     rc = clHandleCreate(gClntInfo.ckptDbHdl, sizeof(CkptInitInfoT), 
                         pCkptSvcHandle);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt:Initialize failed rc[0x %x]\n",rc), rc);
 
     /*
@@ -4663,7 +4665,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
      */
     rc = clHandleCheckout(gClntInfo.ckptDbHdl, *pCkptSvcHandle,
                           (void **)&pInitInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt:Initialize failed rc[0x %x]\n",rc), rc);
 
     /*
@@ -4678,7 +4680,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
     {
         clHandleCheckin(gClntInfo.ckptDbHdl, *pCkptSvcHandle);
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt:Initialize failed rc[0x %x]\n",rc), rc);
 
     /*
@@ -4692,7 +4694,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
         {	
             rc = CL_CKPT_ERR_NO_MEMORY;
             clHandleCheckin(gClntInfo.ckptDbHdl, *pCkptSvcHandle);
-            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                     ("Ckpt:Initialize failed rc[0x %x]\n",rc), rc);
         }
         pInitInfo->pCallback->checkpointOpenCallback =
@@ -4729,7 +4731,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
     {
         clHandleCheckin(gClntInfo.ckptDbHdl, *pCkptSvcHandle);
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt:Initialize failed rc[0x %x]\n",rc), rc);
 
     rc = clCkptClientIdlHandleInit(&pInitInfo->ckptClientIdlHdl);
@@ -4737,7 +4739,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
     {
         clHandleCheckin(gClntInfo.ckptDbHdl, *pCkptSvcHandle);
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB, CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB, CL_LOG_SEV_ERROR,
                    ("Ckpt: Initialize failed with [%#x]\n", rc), rc);
 
     /*
@@ -4748,7 +4750,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
     {
         clHandleCheckin(gClntInfo.ckptDbHdl, *pCkptSvcHandle);
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt:Initialize failed rc[0x %x]\n",rc), rc);
             
     /*
@@ -4760,7 +4762,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
         clOsalMutexDelete(pInitInfo->ckptSelObjMutex);
         clHandleCheckin(gClntInfo.ckptDbHdl, *pCkptSvcHandle);
     }
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt:Initialize failed rc[0x %x]\n",rc), rc);
 
     clHandleCheckin(gClntInfo.ckptDbHdl, *pCkptSvcHandle);        
@@ -5298,7 +5300,7 @@ void ckptEventCallback(ClEventSubscriptionIdT    subscriptionId,
          */
         rc = ckptHandleCheckout(*pCkptHdl, CL_CKPT_CHECKPOINT_HDL, 
                                 (void **)&pHdlInfo);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                        ("Ckpt: Event Data Get failed  [Rc: 0x%x]" , rc), rc);
         
         /*
@@ -5720,7 +5722,7 @@ ClRcT clCkptSelectionObjectGet(ClCkptSvcHdlT       ckptSvcHdl,
      * Create Two fds.
      */
     if( pipe(fileDes) < 0 ) rc = CL_CKPT_ERR_NO_RESOURCE; 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt:Error during getting Descriptors rc[0x %x]\n",rc),
             rc);
     pInitInfo->readFd   = fileDes[0];
@@ -5733,7 +5735,7 @@ ClRcT clCkptSelectionObjectGet(ClCkptSvcHdlT       ckptSvcHdl,
     rc = clQueueCreate(0, ckptQueueCallback,
             ckptQueueDestroyCallback,
             &pInitInfo->cbQueue);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt:Error Creating Queue for callbacks rc[0x %x]\n",rc),
             rc);
     *pSelectionObj = pInitInfo->readFd;
@@ -5798,7 +5800,7 @@ ClRcT clCkptDispatch(ClCkptSvcHdlT     ckptSvcHdl,
      * Return ERROR if selection object get not called.
      */
     if(pInitInfo->cbFlag != CL_TRUE) rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
      ("Ckpt:Error not allowed to dispatch rc[0x %x]\n",rc),
       rc);
       

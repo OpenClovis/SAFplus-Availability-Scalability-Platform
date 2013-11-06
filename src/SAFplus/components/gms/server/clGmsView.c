@@ -642,7 +642,7 @@ _clGmsViewGetCurrentViewNotification(
             return CL_GMS_RC(CL_ERR_NO_MEMORY); 
         }
 
-        memset(clusterViewBuf, 0, sizeof(clusterViewBuf));
+        memset(clusterViewBuf, 0, sizeof(*clusterViewBuf));
     }
     else 
     {
@@ -655,7 +655,7 @@ _clGmsViewGetCurrentViewNotification(
             return CL_GMS_RC(CL_ERR_NO_MEMORY);
         }
 
-        memset(groupViewBuf, 0, sizeof(groupViewBuf));
+        memset(groupViewBuf, 0, sizeof(*groupViewBuf));
     }
 
     /* Do a loop of the entire view list and populate the notification
@@ -1498,7 +1498,7 @@ ClRcT   _clGmsViewDeleteNodeExtended(
 
             if (rc != CL_OK)
             {
-                clLog(CL_LOG_ERROR,GEN,NA, "Unable delete the node [%d] from CL_GMS_JOIN_LEFT_VIEW. rc [0x%x]",nodeId, rc);
+                clLog(CL_LOG_SEV_ERROR,GEN,NA, "Unable delete the node [%d] from CL_GMS_JOIN_LEFT_VIEW. rc [0x%x]",nodeId, rc);
             }
 
             if (bootTimeElectionDone == CL_TRUE)

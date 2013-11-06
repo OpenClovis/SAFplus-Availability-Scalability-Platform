@@ -48,6 +48,7 @@ extern "C" {
 #include <clCommon.h>
 #include <clOsalApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clAmsErrors.h>
 #include <clAmsMgmtCommon.h>
 
@@ -75,7 +76,7 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 {                                                           \
     if ( (name).length > CL_MAX_NAME_LENGTH )               \
     {                                                       \
-        AMS_CLIENT_LOG(CL_DEBUG_ERROR,                      \
+        AMS_CLIENT_LOG(CL_LOG_SEV_ERROR,                      \
             ("ALERT [%s:%d] : Invalid SaNameT structure\n", \
              __FUNCTION__, __LINE__));                      \
         rc = CL_ERR_BUFFER_OVERRUN;                         \
@@ -87,7 +88,7 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 {                                                               \
     if ( (type) > CL_AMS_ENTITY_TYPE_MAX )                      \
     {                                                           \
-        AMS_CLIENT_LOG(CL_DEBUG_ERROR,                          \
+        AMS_CLIENT_LOG(CL_LOG_SEV_ERROR,                          \
                 ("ERROR: Invalid entity type = %d\n", type));   \
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);            \
     }                                                           \
@@ -97,7 +98,7 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 {                                                               \
     if ( (type) > CL_AMS_ENTITY_TYPE_MAX )                      \
     {                                                           \
-        AMS_CLIENT_LOG(CL_DEBUG_ERROR,                          \
+        AMS_CLIENT_LOG(CL_LOG_SEV_ERROR,                          \
                 ("ERROR: Invalid entity type = %d\n", type));   \
         rc = CL_AMS_RC (CL_AMS_ERR_INVALID_ENTITY);             \
         goto exitfn;                                            \
@@ -134,7 +135,7 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 {                                                                       \
     if ( (x) == NULL )                                                  \
     {                                                                   \
-        AMS_CLIENT_LOG(CL_DEBUG_ERROR,                                  \
+        AMS_CLIENT_LOG(CL_LOG_SEV_ERROR,                                  \
             ("ALERT [%s:%d] : Expression (%s) is True. No Memory\n",    \
              __FUNCTION__, __LINE__, #x));                              \
         return CL_AMS_RC(CL_ERR_NO_MEMORY);                             \
@@ -145,7 +146,7 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 {                                                                       \
     if ( (x) == NULL )                                                  \
     {                                                                   \
-        AMS_CLIENT_LOG(CL_DEBUG_ERROR,                                  \
+        AMS_CLIENT_LOG(CL_LOG_SEV_ERROR,                                  \
             ("ALERT [%s:%d] : Expression (%s) is True. No Memory\n",    \
              __FUNCTION__, __LINE__, #x));                              \
         rc =  CL_ERR_NO_MEMORY;                                         \
@@ -157,7 +158,7 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 {                                                                       \
     if ( (x) != CL_FALSE )                                              \
     {                                                                   \
-        AMS_CLIENT_LOG(CL_DEBUG_ERROR,                                  \
+        AMS_CLIENT_LOG(CL_LOG_SEV_ERROR,                                  \
             ("ALERT [%s:%d] : Expression (%s) is True. Null Pointer\n", \
              __FUNCTION__, __LINE__, #x));                              \
         rc = CL_ERR_NULL_POINTER;                                       \
@@ -169,7 +170,7 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 {                                                                       \
     if ( (x) != CL_FALSE )                                              \
     {                                                                   \
-        AMS_CLIENT_LOG(CL_DEBUG_ERROR,                                  \
+        AMS_CLIENT_LOG(CL_LOG_SEV_ERROR,                                  \
             ("ALERT [%s:%d] : Expression (%s) is True. Null Pointer\n", \
              __FUNCTION__, __LINE__, #x));                              \
         return CL_AMS_RC(CL_ERR_NULL_POINTER);                          \

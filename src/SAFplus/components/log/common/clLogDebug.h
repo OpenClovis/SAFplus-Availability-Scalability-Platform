@@ -54,11 +54,11 @@ extern ClUint32T  clLogDebugLevel;
 #define this_error_indicates_missing_parans_around_string(...) __VA_ARGS__
 #define CL_DEBUG_VERBOSE           (1 << 5)
 
-#define CL_LOG_DEBUG_CRITICAL(arg) CL_LOG_DEBUG_MSG(CL_DEBUG_CRITICAL, arg)
-#define CL_LOG_DEBUG_ERROR(arg)    CL_LOG_DEBUG_MSG(CL_DEBUG_ERROR, arg)
-#define CL_LOG_DEBUG_WARN(arg)     CL_LOG_DEBUG_MSG(CL_DEBUG_WARN, arg)
-#define CL_LOG_DEBUG_INFO(arg)     CL_LOG_DEBUG_MSG(CL_DEBUG_INFO, arg)
-#define CL_LOG_DEBUG_TRACE(arg)    CL_LOG_DEBUG_MSG(CL_DEBUG_TRACE, arg)
+#define CL_LOG_DEBUG_CRITICAL(arg) CL_LOG_DEBUG_MSG(CL_LOG_SEV_CRITICAL, arg)
+#define CL_LOG_DEBUG_ERROR(arg)    CL_LOG_DEBUG_MSG(CL_LOG_SEV_ERROR, arg)
+#define CL_LOG_DEBUG_WARN(arg)     CL_LOG_DEBUG_MSG(CL_LOG_SEV_WARNING, arg)
+#define CL_LOG_DEBUG_INFO(arg)     CL_LOG_DEBUG_MSG(CL_LOG_SEV_INFO, arg)
+#define CL_LOG_DEBUG_TRACE(arg)    CL_LOG_DEBUG_MSG(CL_LOG_SEV_TRACE, arg)
 #define CL_LOG_DEBUG_VERBOSE(arg)  CL_LOG_DEBUG_MSG(CL_DEBUG_VERBOSE, arg)
 
 #define CL_LOG_DEBUG_MSG(levelSpecified, arg)       \

@@ -28,6 +28,10 @@
 #include <clLogSvrDebug.h>
 #include <saAmf.h>
 
+/* A marking whether we are the log server used in one place in clLogUtils.
+   TODO: investigate why necessary
+ */
+extern ClBoolT gClLogServer;
 
 extern ClRcT clLogSvrDefaultStreamCreate(void);
 
@@ -42,7 +46,7 @@ static ClRcT clLogSvrStateChange(ClEoStateT  eoState);
 static ClRcT clLogSvrHealthCheck(ClEoSchedFeedBackT  *pSchFeedback);
 
 ClEoConfigT clEoConfig = {
-    1,				            /* EO Thread Priority */
+    (ClOsalThreadPriorityT)1,				            /* EO Thread Priority */
     5,            				/* No of EO thread needed */
     CL_IOC_LOG_PORT,        	/* Required Ioc Port */
     CL_EO_USER_CLIENT_ID_START, 
@@ -122,8 +126,10 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
     ClBoolT          *pCookie      = NULL;
     ClIocAddressT    invalidAddr   = {{0}};
 	
-    clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
-              "Log Server initialization is started...");
+    clLogCompName =(ClCharT*) "LOG"; /* Override generated eo name with a short name for our server */
+    gClLogServer = CL_FALSE;  /* Mark me as the log server */
+
+    clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Log Server initialization started...");
 
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
 
@@ -182,7 +188,7 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
         CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
         return rc;
     }    
-    pCookie = clHeapCalloc(1, sizeof(ClBoolT));
+    pCookie = (ClBoolT*) clHeapCalloc(1, sizeof(ClBoolT));
     if( NULL == pCookie )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -312,6 +318,7 @@ void clLogSvrTerminate(SaInvocationT invocation, const SaNameT *compName)
     CL_LOG_DEBUG_TRACE(("Exit"));
 
     unblockNow = CL_TRUE;
+    (void)hCpm;
 
 }
 

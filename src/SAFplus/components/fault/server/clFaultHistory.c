@@ -67,7 +67,10 @@
 #define MAX_FAULT_BUCKETS 10
 #define MODULE_STR   __FILE__
 #define BUFFER_LENGTH 100
-
+#define FAULT_LOG_AREA	   "FLT"
+#define FAULT_LOG_CTXT	   NULL
+#define FAULT_LOG_CTX_FIND "FIND"
+#define FAULT_LOG_CTX_SHOW "SHOW"
 /*
  * gHistoryString is a global pointer of type ClCharT.
  * This is used for getting the fault history packaged
@@ -113,13 +116,13 @@ void timeStamp(ClCharT timeStr [], ClUint32T    len)
    struct tm *localtimebuf = clHeapAllocate(sizeof(struct tm));;
    if(localtimebuf == NULL)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR,( "\nMemory Allocation failed\n"));
+      clLogError(FAULT_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"\nMemory Allocation failed\n");
       return ;
    }
    ClCharT *asctimebuf   = clHeapAllocate(BUFFER_LENGTH*sizeof(ClCharT));
    if(asctimebuf == NULL)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR,( "\nMemory Allocation failed\n"));
+      clLogError(FAULT_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED, "\nMemory Allocation failed\n");
       return ;
    }
 
@@ -156,7 +159,7 @@ clFaultHistoryInit(ClUint32T binNumbers){
     if (rc != CL_OK)
     {
         clLogWrite(CL_LOG_HANDLE_APP, 
-               CL_LOG_ERROR,   
+               CL_LOG_SEV_ERROR,   
                CL_FAULT_SERVER_LIB,
                CL_FAULT_LOG_1_MUTEX,
                "Fault History data base");
@@ -397,8 +400,8 @@ clFaultHistoryMoIdRecordsDelete(ClCorMOIdPtrT hMOId){
 
    if (CL_OK != rc)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clFaultHistoryMoIdRecordsDelete: \
-               clCorObjectHandleGet failed w/rc :%x \n", rc));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTXT,"clFaultHistoryMoIdRecordsDelete: \
+                 clCorObjectHandleGet failed w/rc :%x \n", rc);
       return rc;
    }
 
@@ -412,8 +415,8 @@ clFaultHistoryMoIdRecordsDelete(ClCorMOIdPtrT hMOId){
 
    if (rc != CL_OK)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\n clCorObjectAttributeGet, not able to get the\
-                               fault COR attr value for attrId:%d, rc:%0x \n", attrId, rc));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTXT,"\n clCorObjectAttributeGet, not able to get the\
+                  fault COR attr value for attrId:%d, rc:%0x \n", attrId, rc);
       return rc;
    }   
    
@@ -427,8 +430,8 @@ clFaultHistoryMoIdRecordsDelete(ClCorMOIdPtrT hMOId){
 
    if (rc != CL_OK)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR,("faultHistoryMoIdRecodsDelete: clClistWalk\
-                              failed !!! rc => [0x%x]", rc));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTXT,"faultHistoryMoIdRecodsDelete: clClistWalk\
+                              failed !!! rc => [0x%x]", rc);
       return rc;
    
    }
@@ -450,8 +453,8 @@ clFaultHistoryRecordDelete(ClFH2MinBucketT* bucketH, ClHandleT hOm){
 
    if (rc != CL_OK)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clFaultHistoryRecordDelete: clCntAllNodesForKeyDelete\
-                              failed !!! rc => [0x%x]", rc));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTXT,"clFaultHistoryRecordDelete: clCntAllNodesForKeyDelete\
+                              failed !!! rc => [0x%x]", rc);
    
    }
 
@@ -493,7 +496,7 @@ clFaultProcessFaultRecordQuery(ClCorMOIdPtrT hMOId,
    rc = clEoMyEoObjectSet(&gFmEoObj);
 
    if (gFmEoObj.rmdObj == 0)
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR,("gFmEoObj->rmdObj is NULL ..... \n"));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTXT,"gFmEoObj->rmdObj is NULL ..... \n");
 
    rc = clClistSizeGet(sfaultHistoryList, &size);
    if(CL_OK != rc)
@@ -575,9 +578,9 @@ clFaultProcessFaultRecordQuery(ClCorMOIdPtrT hMOId,
 
             if (rc != CL_OK)
             {
-               CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clFaultProcessFaultRecordQuery:\
+               clLogError(FAULT_LOG_AREA,FAULT_LOG_CTXT,"clFaultProcessFaultRecordQuery:\
                                           clClistPreviousNodeGet \
-                                          failed !!! rc => [0x%x]", rc));
+                                          failed !!! rc => [0x%x]", rc);
                clHeapFree((void*)bucketH);
                return rc;
             }         
@@ -737,8 +740,8 @@ clFaultMOIDRecordsInBucketSearch(ClFaultRecordPtr pFE,
 
       if (rc != CL_OK)
       {
-         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clFaultMOIDRecordsInBucketSearch: clCntNextNodeGet\
-                                 failed !!! rc => [0x%x]", rc));
+         clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_FIND,"clFaultMOIDRecordsInBucketSearch: clCntNextNodeGet\
+                                 failed !!! rc => [0x%x]", rc);
          clHeapFree((void*)nextNodeH);
          clHeapFree((void*)ptmpFaultRecord);
          return rc;
@@ -750,9 +753,9 @@ clFaultMOIDRecordsInBucketSearch(ClFaultRecordPtr pFE,
 
       if (rc != CL_OK)
       {
-         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clFaultMOIDRecordsInBucketSearch: \
+         clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_FIND,"clFaultMOIDRecordsInBucketSearch: \
                                   clCntNodeUserDataGet in for loop \
-                                  failed !!! rc => [0x%x]", rc));
+                                  failed !!! rc => [0x%x]", rc);
          clHeapFree((void*)nextNodeH);   
          clHeapFree((void*)ptmpFaultRecord);
          return rc;
@@ -814,7 +817,7 @@ clFaultHistoryRecordShow(ClFH2MinBucketPtr  bucketH, ClCorMOIdPtrT moid )
 
    if ((rc = clCntFirstNodeGet(bucketH->bucketHandle, &watchHdl)) != CL_OK)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_INFO,("\n NO History Please "));
+      clLogInfo(FAULT_LOG_AREA,FAULT_LOG_CTXT,"\n NO History Please ");
       return rc;
    }
 
@@ -822,8 +825,8 @@ clFaultHistoryRecordShow(ClFH2MinBucketPtr  bucketH, ClCorMOIdPtrT moid )
 
    if (rc != CL_OK)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clFaultHistoryRecordShow: clCntSizeGet failed !!!\
-                             rc => [0x%x]", rc));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTXT,"clFaultHistoryRecordShow: clCntSizeGet failed !!!\
+                             rc => [0x%x]", rc);
       return rc;
    }   
    clLogTrace("SER", NULL, "Size of the tree [%d]" ,size);
@@ -832,16 +835,16 @@ clFaultHistoryRecordShow(ClFH2MinBucketPtr  bucketH, ClCorMOIdPtrT moid )
         /* display the whole of the history of the system if moid not
          * specified */ 
     if  ( moid == NULL ) {   
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n MOID got null"));
+        clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_SHOW,"\n MOID got null");
        while (watchHdl != 0){
       rc = clCntNodeUserDataGet(bucketH->bucketHandle,
                          watchHdl,
                          (ClCntDataHandleT *) &hRec);
 
       if (rc != CL_OK){
-         CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-               ("Cannot get current node from the container\
-                      rc = 0x%x\r\n", rc));
+         clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_SHOW,
+                    "Cannot get current node from the container\
+                     rc = 0x%x\r\n", rc);
          return rc;
       }
       /* display the record information */ 
@@ -864,8 +867,8 @@ clFaultHistoryRecordShow(ClFH2MinBucketPtr  bucketH, ClCorMOIdPtrT moid )
 
       if (rc != CL_OK){
          
-             CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Cannot get current node from the container\
-                         rc = 0x%x\r\n", rc));
+             clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_SHOW,"Cannot get current node from the container\
+                         rc = 0x%x\r\n", rc);
          return rc;
       }
       /* display the record information if moid matches  */ 
@@ -902,7 +905,7 @@ clFaultHistoryRecordCount(ClFH2MinBucketPtr  bucketH )
 
    if ((rc = clCntFirstNodeGet(bucketH->bucketHandle, &watchHdl)) != CL_OK)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_INFO,("\n NO History Please "));
+      clLogInfo(FAULT_LOG_AREA,FAULT_LOG_CTXT,"\n NO History Please ");
       return rc;
    }
 
@@ -910,8 +913,8 @@ clFaultHistoryRecordCount(ClFH2MinBucketPtr  bucketH )
 
    if (rc != CL_OK)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clFaultHistoryRecordCount: clCntSizeGet failed !!!\
-                             rc => [0x%x]", rc));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTXT,"clFaultHistoryRecordCount: clCntSizeGet failed !!!\
+                 rc => [0x%x]", rc);
       return rc;
    }   
 
@@ -969,17 +972,17 @@ clFaultHistoryShow( ClCorMOIdPtrT moid )
 
    if ( (rc = clFaultHistoryDataLock()) != CL_OK )
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clFaultHistoryShow, not able to obtain history \
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_SHOW,"clFaultHistoryShow, not able to obtain history \
                                data LOCK .... cannot proceed rc: 0x%x \n",
-                               rc));
+                               rc);
       return rc;
    }
 
    if ((rc = clClistSizeGet(sfaultHistoryList,
                            &size)) != CL_OK)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clClistSizeGet failed rc => [0x%x]",
-                              rc));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_SHOW,"clClistSizeGet failed rc => [0x%x]",
+                              rc);
       clFaultHistoryDataUnLock();
       CL_FUNC_EXIT();
       return (rc);
@@ -990,8 +993,8 @@ clFaultHistoryShow( ClCorMOIdPtrT moid )
    if ((rc = clClistWalk(sfaultHistoryList,
                         (ClClistWalkCallbackT)clFaultHistoryRecordCount,NULL)) != CL_OK)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, (MODULE_STR "clClistWalk failed\
-                                          rc => [0x%x]", rc));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_SHOW,MODULE_STR "clClistWalk failed\
+                                          rc => [0x%x]", rc);
       clFaultHistoryDataUnLock();
       CL_FUNC_EXIT();
       return (rc);
@@ -1001,7 +1004,7 @@ clFaultHistoryShow( ClCorMOIdPtrT moid )
 		gHistoryString=(ClCharT *)clHeapAllocate(BUFFER_LENGTH *sizeof(ClCharT));
 		if(gHistoryString == NULL)
 		{
-			CL_DEBUG_PRINT(CL_DEBUG_ERROR,( "\nMemory Allocation failed\n"));
+			clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_SHOW,"\nMemory Allocation failed\n");
             clFaultHistoryDataUnLock();
 			return CL_ERR_NO_MEMORY;
 		}
@@ -1013,7 +1016,7 @@ clFaultHistoryShow( ClCorMOIdPtrT moid )
 	  gHistoryString=(ClCharT   *)clHeapAllocate((MAXSIZE_SINGLE_FAULT_RECORD*sNumberRecords)*sizeof(ClCharT));
 	  if(gHistoryString == NULL)
 	  {
-	      CL_DEBUG_PRINT(CL_DEBUG_ERROR,( "\nMemory Allocation failed\n"));
+	      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_SHOW,"\nMemory Allocation failed\n");
           clFaultHistoryDataUnLock();
 		  return CL_ERR_NO_MEMORY;
 	  }
@@ -1022,8 +1025,8 @@ clFaultHistoryShow( ClCorMOIdPtrT moid )
                    (ClClistWalkCallbackT)clFaultHistoryRecordShow,
                    (void *)moid )) != CL_OK)
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, (MODULE_STR "clClistWalk failed\
-                                          rc => [0x%x]", rc));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_SHOW,MODULE_STR "clClistWalk failed\
+                                          rc => [0x%x]", rc);
       clFaultHistoryDataUnLock();
       CL_FUNC_EXIT();
       return (rc);
@@ -1031,8 +1034,8 @@ clFaultHistoryShow( ClCorMOIdPtrT moid )
 
    if ( (rc = clFaultHistoryDataUnLock()) != CL_OK )
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clFaultHistoryShow, not able to obtain history data\
-                               LOCK .... cannot proceed rc: 0x%x \n", rc));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTX_SHOW,"clFaultHistoryShow, not able to obtain history data\
+                               LOCK .... cannot proceed rc: 0x%x \n", rc);
    }
 
    CL_FUNC_EXIT();
@@ -1049,8 +1052,8 @@ clFaultHistoryDataLock(){
    }
    else
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("FM: clFaultHistoryDataLock, Mutex is not yet \
-                               created .... \n"));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTXT,"FM: clFaultHistoryDataLock, Mutex is not yet \
+                               created .... \n");
        return CL_ERR_MUTEX_ERROR;
    }
    return rc;
@@ -1067,8 +1070,8 @@ clFaultHistoryDataUnLock(){
    }
    else
    {
-      CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("FM: clFaultHistoryDataUnLock, Mutex is\
-                        not yet created .... \n"));
+      clLogError(FAULT_LOG_AREA,FAULT_LOG_CTXT,"FM: clFaultHistoryDataUnLock, Mutex is\
+                        not yet created .... \n");
       return CL_ERR_MUTEX_ERROR;
    }
    return rc;

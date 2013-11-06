@@ -80,7 +80,7 @@ ClRcT clBackingStorageCreate(ClBackingStorageHandleT *pHandle, ClBackingStorageT
     }
 
     rc = CL_BACKING_STORAGE_RC(CL_ERR_NO_MEMORY);
-    pStorage = clHeapCalloc(1, sizeof(*pStorage));
+    pStorage = (ClBackingStorageT *) clHeapCalloc(1, sizeof(*pStorage));
     if(!pStorage)
     {
         clLogError(CL_LOG_AREA_BACKING_STORAGE, CL_LOG_CONTEXT_INIT, "Backing storage create error. No memory");
@@ -265,7 +265,7 @@ ClRcT clBackingStorageInitFile(const ClBackingStorageAttributesT *pAttr, ClPtrT 
         goto out;
     }
     rc = CL_BACKING_STORAGE_RC(CL_ERR_NO_MEMORY);
-    pFileAttr = clHeapCalloc(1, sizeof(*pFileAttr));
+    pFileAttr = (ClBackingStorageAttributesFileT *) clHeapCalloc(1, sizeof(*pFileAttr));
     if(!pFileAttr)
     {
         clLogError(CL_LOG_AREA_BACKING_STORAGE, CL_LOG_CONTEXT_INIT_FILE, "No memory");
@@ -281,7 +281,7 @@ ClRcT clBackingStorageInitFile(const ClBackingStorageAttributesT *pAttr, ClPtrT 
 
 ClRcT clBackingStorageWriteFile(ClBackingStorageHandleT handle, ClPtrT pData, ClUint32T size, ClOffsetT offset, ClPtrT pPrivateData)
 {
-    ClBackingStorageAttributesFileT *pAttr = pPrivateData;
+    ClBackingStorageAttributesFileT *pAttr = (ClBackingStorageAttributesFileT *) pPrivateData;
     ClRcT  rc = CL_OK;
     ClInt32T err = 0;
     ClOffsetT curOffset = 0;
@@ -345,7 +345,7 @@ ClRcT clBackingStorageWriteFile(ClBackingStorageHandleT handle, ClPtrT pData, Cl
 
 ClRcT clBackingStorageWriteVectorFile(ClBackingStorageHandleT handle, struct iovec *pIOVec, ClUint32T numVectors, ClOffsetT offset, ClPtrT pPrivateData)
 {
-    ClBackingStorageAttributesFileT *pAttr = pPrivateData;
+    ClBackingStorageAttributesFileT *pAttr = (ClBackingStorageAttributesFileT *) pPrivateData;
     ClRcT rc = CL_BACKING_STORAGE_RC(CL_ERR_NOT_SUPPORTED);
     ClInt32T err = 0;
     ClOffsetT curOffset = 0;
@@ -393,7 +393,7 @@ ClRcT clBackingStorageWriteVectorFile(ClBackingStorageHandleT handle, struct iov
 ClRcT clBackingStorageReadFile(ClBackingStorageHandleT handle, ClPtrT *pData, ClSizeT *pSize, ClOffsetT offset, ClPtrT pPrivateData)
 {
     ClRcT rc = CL_BACKING_STORAGE_RC(CL_ERR_LIBRARY);
-    ClBackingStorageAttributesFileT *pAttr = pPrivateData;
+    ClBackingStorageAttributesFileT *pAttr = (ClBackingStorageAttributesFileT *) pPrivateData;
     ClSizeT size = 0, n = 0, ret_size =0;
     struct stat st;
     ClUint8T *data = NULL;
@@ -405,7 +405,7 @@ ClRcT clBackingStorageReadFile(ClBackingStorageHandleT handle, ClPtrT *pData, Cl
         clLogError(CL_LOG_AREA_BACKING_STORAGE, CL_LOG_CONTEXT_READ_FILE, "stat error [%s]", strerror(errno));
         goto out;
     }
-    data = clHeapAllocate(st.st_size);
+    data = (ClUint8T *) clHeapAllocate(st.st_size);
     if(!data)
     {
         rc = CL_BACKING_STORAGE_RC(CL_ERR_NO_MEMORY);
@@ -474,7 +474,7 @@ ClRcT clBackingStorageReadFile(ClBackingStorageHandleT handle, ClPtrT *pData, Cl
 
 ClRcT clBackingStorageReadVectorFile(ClBackingStorageHandleT handle, struct iovec **ppIOVec, ClUint32T *pNumVectors, ClOffsetT offset,  ClUint32T readSize, ClPtrT pPrivateData)
 {
-    ClBackingStorageAttributesFileT *pAttr = pPrivateData;
+    ClBackingStorageAttributesFileT *pAttr = (ClBackingStorageAttributesFileT *) pPrivateData;
     ClRcT rc = CL_BACKING_STORAGE_RC(CL_ERR_LIBRARY);
     struct iovec *pIOVec = NULL;
     ClUint32T numVectors = 0;
@@ -555,23 +555,23 @@ ClRcT clBackingStorageReadVectorFile(ClBackingStorageHandleT handle, struct iove
     if(( size % readSize))
         ++numVectors;
 
-    pIOVec = clHeapCalloc(numVectors, sizeof(*pIOVec));
+    pIOVec = (struct iovec*) clHeapCalloc(numVectors, sizeof(*pIOVec));
     if(!pIOVec)
     {
         clLogError(CL_LOG_AREA_BACKING_STORAGE, CL_LOG_CONTEXT_READV_FILE, "No memory");
         goto out_restore;
     }
-    ppDataBlocks = clHeapCalloc(numVectors, sizeof(*ppDataBlocks));
+    ppDataBlocks = (ClCharT**) clHeapCalloc(numVectors, sizeof(*ppDataBlocks));
     if(!ppDataBlocks)
     {
         clLogError(CL_LOG_AREA_BACKING_STORAGE, CL_LOG_CONTEXT_READV_FILE, "No memory");
         goto out_restore;
     }
 
-    for(i = 0; i < numVectors && size > 0;++i)
+    for(i = 0; (i < (ClInt32T) numVectors) && (size > 0);++i)
     {
         ClUint32T bytes = CL_MIN(readSize, size);
-        ppDataBlocks[i] = clHeapAllocate(bytes);
+        ppDataBlocks[i] = (ClCharT*) clHeapAllocate(bytes);
         if(!ppDataBlocks[i])
         {
             clLogError(CL_LOG_AREA_BACKING_STORAGE, CL_LOG_CONTEXT_READV_FILE, "No memory");
@@ -581,12 +581,7 @@ ClRcT clBackingStorageReadVectorFile(ClBackingStorageHandleT handle, struct iove
         pIOVec[i].iov_len = bytes;
         size -= readSize;
         n += readSize;
-        if(i+1 >= numVectors
-           ||
-           readSize >=  0x3fff
-           ||
-           n >= 0x3fff
-           )
+        if((i+1 >= (ClInt32T)numVectors) || (readSize >=  0x3fff) || (n >= 0x3fff) )
         {
             if(n >= 0x3fff)
             {
@@ -639,7 +634,7 @@ ClRcT clBackingStorageReadWalkFile(ClBackingStorageHandleT handle,
                                    ClUint32T readSize,
                                    ClPtrT pPrivateData)
 {
-    ClBackingStorageAttributesFileT *pAttr = pPrivateData;
+    ClBackingStorageAttributesFileT *pAttr = (ClBackingStorageAttributesFileT *) pPrivateData;
     ClCharT data[0xffff+1];
     ClSizeT size = 0;
     ClOffsetT curOffset = 0;
@@ -692,7 +687,7 @@ ClRcT clBackingStorageReadWalkFile(ClBackingStorageHandleT handle,
                 goto out_restore;
             }
             chunkSize = readSize;
-            pData = clHeapAllocate(chunkSize);
+            pData = (ClCharT*) clHeapAllocate(chunkSize);
             if(!pData)
             {
                 clLogError(CL_LOG_AREA_BACKING_STORAGE, 

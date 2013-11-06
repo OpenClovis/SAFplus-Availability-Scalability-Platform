@@ -40,6 +40,7 @@
 #include "clRmdConfigApi.h"
 #include <stdlib.h>
 #include "clDebugApi.h"
+#include <clLogUtilApi.h>
 #include <sys/time.h>
 
 #ifdef DMALLOC
@@ -324,7 +325,7 @@ ClRcT clRmdObjInit(ClRmdObjHandleT *p)
         rmdAddedTodbgComp = CL_TRUE;
         if (CL_OK != retCode)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("dbgAddComponent FAILED "));
+            clLogError("OBG","INI","dbgAddComponent FAILED ");
             CL_FUNC_EXIT();
             return retCode;
         }

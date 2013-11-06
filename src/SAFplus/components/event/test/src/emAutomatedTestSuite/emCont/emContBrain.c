@@ -151,9 +151,9 @@ ClRcT clEvtContRmd(ClEvtContTestHeadT *pTestHead, ClUint32T funcNo,
     rc = clEvtContIocAddreGet(&pTestHead->testAppName, &destAddr.iocPhyAddress);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("IOCAddrGet Failed:: [%s]\r\n",
-                        pTestHead->testAppName.value));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "IOCAddrGet Failed:: [%s]\r\n",
+                   pTestHead->testAppName.value);
         return rc;
     }
 
@@ -180,7 +180,7 @@ ClRcT clEvtContInit(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
                       (void *) pTestHead->pTestInfo, sizeof(SaNameT), pRetCode);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("RMD->INIT failed  :: [0x%X]\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RMD->INIT failed  :: [0x%X]\r\n", rc);
         return rc;
     }
 
@@ -196,7 +196,7 @@ ClRcT clEvtContFin(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
                       sizeof(SaNameT), pRetCode);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("RMD->FIN failed  :: [0x%X]\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RMD->FIN failed  :: [0x%X]\r\n", rc);
         return rc;
     }
 
@@ -212,7 +212,7 @@ ClRcT clEvtContOpen(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
                       pRetCode);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("RMD->Open failed  :: [0x%X]\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RMD->Open failed  :: [0x%X]\r\n", rc);
         return rc;
     }
 
@@ -228,8 +228,8 @@ ClRcT clEvntContClose(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
                       pRetCode);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("RMD->Close failed  :: [0x%X]\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "RMD->Close failed  :: [0x%X]\r\n", rc);
         return rc;
     }
 
@@ -246,7 +246,7 @@ ClRcT clEvntContSub(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
                       sizeof(ClEvtContSubT), pRetCode);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("RMD->SUB failed  :: [0x%X]\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RMD->SUB failed  :: [0x%X]\r\n", rc);
         return rc;
     }
 
@@ -270,8 +270,8 @@ ClRcT clEvntContUnsub(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
                       pRetCode);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("RMD->UNSUB failed  :: [0x%X]\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "RMD->UNSUB failed  :: [0x%X]\r\n", rc);
         return rc;
     }
 
@@ -367,9 +367,9 @@ ClRcT clEvtContPrepareInfo(ClEvtContTestHeadT *pTestHead,
                             (ClCntDataHandleT *) &pAttr);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Not able to get the attriute info from containter ::: [0x%X]\r\n",
-                        rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "Not able to get the attriute info from containter ::: [0x%X]\r\n",
+                   rc);
     }
 
     rc = clCntWalk(gEvtContSubInfo, clEvtContSubInfoWalk,
@@ -396,7 +396,7 @@ ClRcT clEvntContPub(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
                       sizeof(ClEvtContPubT), pRetCode);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("RMD->PUB failed  :: [0x%X]\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RMD->PUB failed  :: [0x%X]\r\n", rc);
         return rc;
     }
 
@@ -414,8 +414,8 @@ ClRcT clEvntContAlloc(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
                       pRetCode);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("RMD->Allocate failed  :: [0x%X]\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "RMD->Allocate failed  :: [0x%X]\r\n", rc);
         return rc;
     }
 
@@ -433,8 +433,8 @@ ClRcT clEvntContSetAttr(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
                       pRetCode);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("RMD->Set Attribute failed  :: [0x%X]\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "RMD->Set Attribute failed  :: [0x%X]\r\n", rc);
         return rc;
     }
 
@@ -458,8 +458,8 @@ ClRcT clEvntContGetAttr(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
                       pRetCode);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("RMD->Get Attribute failed  :: [0x%X]\r\n", rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "RMD->Get Attribute failed  :: [0x%X]\r\n", rc);
         return rc;
     }
 
@@ -489,9 +489,9 @@ ClRcT clEvntContKill(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
     *pRetCode = rc;
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Killing eventServer on %*.s Failed [0x%X]\r\n",
-                        pNodeName->length, pNodeName->value, rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "Killing eventServer on %*.s Failed [0x%X]\r\n",
+                    pNodeName->length, pNodeName->value, rc);
         return rc;
     }
     else
@@ -525,9 +525,9 @@ ClRcT clEvntContRestart(ClEvtContTestHeadT *pTestHead, ClRcT *pRetCode)
     *pRetCode = rc;
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Killing eventServer on %*.s Failed [0x%X]\r\n",
-                        pNodeName->length, pNodeName->value, rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "Killing eventServer on %*.s Failed [0x%X]\r\n",
+                   pNodeName->length, pNodeName->value, rc);
         return rc;
     }
     else

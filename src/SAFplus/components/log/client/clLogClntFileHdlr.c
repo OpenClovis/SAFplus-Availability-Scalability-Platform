@@ -39,7 +39,7 @@ clLogClntFileKeyCreate(ClCharT           *fileName,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    *pFileKey = clHeapCalloc(1, sizeof(ClLogClntFileKeyT));
+    *pFileKey = (ClLogClntFileKeyT  *) clHeapCalloc(1, sizeof(ClLogClntFileKeyT));
     if( NULL == *pFileKey )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -47,8 +47,7 @@ clLogClntFileKeyCreate(ClCharT           *fileName,
     }
 
     (*pFileKey)->fileName.length = strlen(fileName) + 1;
-    (*pFileKey)->fileName.pValue = clHeapCalloc((*pFileKey)->fileName.length,
-                                                sizeof(ClCharT));
+    (*pFileKey)->fileName.pValue = (ClCharT*) clHeapCalloc((*pFileKey)->fileName.length, sizeof(ClCharT));
     if( NULL == (*pFileKey)->fileName.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -57,8 +56,7 @@ clLogClntFileKeyCreate(ClCharT           *fileName,
     }
 
     (*pFileKey)->fileLocation.length = strlen(fileLocation) + 1;
-    (*pFileKey)->fileLocation.pValue = clHeapCalloc((*pFileKey)->fileLocation.length,
-                                                    sizeof(ClCharT));
+    (*pFileKey)->fileLocation.pValue = (ClCharT*) clHeapCalloc((*pFileKey)->fileLocation.length, sizeof(ClCharT));
     if( NULL == (*pFileKey)->fileLocation.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -328,7 +326,7 @@ clLogFileHdlrFileLocationVerify(ClCharT  *fileLocation)
 {
     ClRcT                 rc                          = CL_OK;
     ClIocAddressT         address                     = {{0}};
-    ClStatusT              status                      = 0;
+    ClStatusT              status                     = CL_STATUS_DOWN;
     ClIocLogicalAddressT  logLogicalAddr              = 0;
     ClCharT               nodeStr[CL_MAX_NAME_LENGTH] = {0};
     ClBoolT               isLogical                   = CL_FALSE;
@@ -463,15 +461,13 @@ clLogFileHdlrStreamAttributesCopy(ClLogStreamAttrIDLT     *pSource,
     pDest->flushFreq       = pSource->flushFreq;
     pDest->flushInterval   = pSource->flushInterval;
     pDest->waterMark       = pSource->waterMark;
-    pDest->fileName     
-        = clHeapCalloc(pSource->fileName.length, sizeof(ClCharT));
+    pDest->fileName        = (ClCharT*) clHeapCalloc(pSource->fileName.length, sizeof(ClCharT));
     if( NULL == pDest->fileName )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
         return CL_LOG_RC(CL_ERR_NO_MEMORY);
     }           
-    pDest->fileLocation  
-        = clHeapCalloc(pSource->fileLocation.length, sizeof(ClCharT));
+    pDest->fileLocation = (ClCharT*) clHeapCalloc(pSource->fileLocation.length, sizeof(ClCharT));
     if( NULL == pDest->fileLocation )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -479,8 +475,7 @@ clLogFileHdlrStreamAttributesCopy(ClLogStreamAttrIDLT     *pSource,
         return CL_LOG_RC(CL_ERR_NO_MEMORY);
     }           
     memcpy(pDest->fileName, pSource->fileName.pValue, pSource->fileName.length);
-    memcpy(pDest->fileLocation, pSource->fileLocation.pValue, 
-           pSource->fileLocation.length);
+    memcpy(pDest->fileLocation, pSource->fileLocation.pValue, pSource->fileLocation.length);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
@@ -640,7 +635,7 @@ clLogClntStreamListUnpack(ClUint32T         numStreams,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    *ppLogStreams = clHeapCalloc(numStreams, sizeof(ClLogStreamInfoT));
+    *ppLogStreams = (ClLogStreamInfoT  *) clHeapCalloc(numStreams, sizeof(ClLogStreamInfoT));
     if( NULL == *ppLogStreams )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1005,8 +1000,7 @@ clLogFileRecordsGet(ClLogFileHandleT  hFileHdlr,
        updateVersion = CL_TRUE;
     }
 
-    rc = clLogClntFileHdlrTimeStampGet(*pNumRecords, buffLen, *pLogRecords, 
-                                       pStartTime, pEndTime);
+    rc = clLogClntFileHdlrTimeStampGet(*pNumRecords, buffLen, (ClUint8T*) *pLogRecords, pStartTime, pEndTime);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clLogClntFileHdlrTimeStampGet(): rc[0x %x]",

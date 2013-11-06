@@ -329,7 +329,7 @@ ClRcT clCkptMasterAddressesSet()
      */
     rc = clGmsInitialize(&gCkptSvr->gmsHdl, &ckptGmsCallbacks,
                         &gVersion);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
     (" clCkptMasterAddressesSet failed rc[0x %x]\n",rc),
         rc);
         
@@ -435,7 +435,7 @@ ClRcT clCkptMasterPeerUpdateNoLock(ClIocPortT        portId,
             CL_ASSERT(pPeerInfo->ckptList != 0);
             pPeerInfo->credential = credential;
             pPeerInfo->available  = CL_CKPT_NODE_AVAIL;
-#if 0
+
             if(localAddr != gCkptSvr->localAddr)
             {
                 clLogNotice("PEER", "UPDATE", 
@@ -443,7 +443,6 @@ ClRcT clCkptMasterPeerUpdateNoLock(ClIocPortT        portId,
                 clCkptMasterReplicaListUpdateNoLock(localAddr);
                 pPeerInfo->replicaCount = 0;
             }
-#endif
         }
         else
         {
@@ -574,7 +573,7 @@ ClRcT clCkptMasterPeerUpdateNoLock(ClIocPortT        portId,
              */
             rc = clCntAllNodesForKeyDelete(gCkptSvr->masterInfo.peerList,
                                 (ClPtrT)(ClWordT)localAddr);
-             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
              (" MasterPeerUpdate failed rc[0x %x]\n",rc),
              rc);
 
@@ -650,7 +649,7 @@ ClRcT _clCkpMastertReplicaAddressUpdate(ClHandleT         mastHdl,
         clCntAllNodesForKeyDelete(pMasterDBEntry->replicaList, (ClPtrT)(ClWordT)actAddr);
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN, ("Replicalist for %s is empty",pMasterDBEntry->name.value));
+        clLogWarning(CL_CKPT_AREA_MAS_DEP, CL_CKPT_CTX_PEER_DOWN,"Replicalist for %s is empty",pMasterDBEntry->name.value);
     }
 
 
@@ -695,13 +694,13 @@ ClRcT _clCkpMastertReplicaAddressUpdate(ClHandleT         mastHdl,
             rc = CL_OK;
             pMasterDBEntry->activeRepAddr = CL_CKPT_UNINIT_ADDR;
         }
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                        ("clCkptActiveReplicaAddrGet failed rc[0x %x]\n",rc),
                        rc);
         if( nodeHdl != 0 ) 
         {
             rc = clCntNodeUserDataGet(pMasterDBEntry->replicaList, nodeHdl, &dataHdl);
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                            ("clCkptActiveReplicaAddrGet failed rc[0x %x]\n",rc),
                            rc);
             pMasterDBEntry->activeRepAddr = (ClIocNodeAddressT)(ClWordT)dataHdl;
@@ -797,7 +796,7 @@ _ckptMasterPeerListInfoCreate(ClIocNodeAddressT nodeAddr,
             ckptCkptListDeleteCallback,
             CL_CNT_UNIQUE_KEY,
             &pPeerInfo->ckptList);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("CkptList create failed rc[0x %x]\n",rc),
             rc);
 
@@ -810,7 +809,7 @@ _ckptMasterPeerListInfoCreate(ClIocNodeAddressT nodeAddr,
             ckptMastHdlListDeleteCallback,
             CL_CNT_UNIQUE_KEY,
             &pPeerInfo->mastHdlList);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("MastHdlList create failed rc[0x %x]\n",rc),
             rc);
 
@@ -822,7 +821,7 @@ _ckptMasterPeerListInfoCreate(ClIocNodeAddressT nodeAddr,
      */
     rc = clCntNodeAdd(gCkptSvr->masterInfo.peerList, (ClPtrT)(ClWordT)nodeAddr,
             (ClCntDataHandleT)pPeerInfo, NULL);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("PeerInfo Add is failed rc[0x %x]\n",rc),
             rc);
     return rc;        

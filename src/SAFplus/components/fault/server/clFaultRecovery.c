@@ -48,6 +48,9 @@
 #include <clFaultHistory.h>
 #include <clFaultLog.h>
 
+#define FAULT_LOG_AREA_SERVER	"SER"
+#define FAULT_LOG_CTX_SERVER	NULL
+
 extern ClFaultSeqTblT ***faultactiveSeqTbls;
 
 ClRcT clFaultRepairProcess(ClFaultRecordPtr hRec)
@@ -61,21 +64,21 @@ ClRcT clFaultRepairProcess(ClFaultRecordPtr hRec)
 	
 	if ( (rc = clFaultCategory2IndexTranslate((hRec->event).category, &catIndex)) != CL_OK )
 	{
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("FM REPAIR, Invalid CATEGORY. CANNOT DO \
-                           ANY REPAIR\r\n"));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTX_SERVER,"FM REPAIR, Invalid CATEGORY. CANNOT DO \
+                           ANY REPAIR\r\n");
     	return rc;
 	}
 	if( (rc=clFaultSeverity2IndexTranslate((hRec->event).severity, &sevIndex)) != CL_OK )
 	{
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("FM REPAIR, Invalid SEVERITY. CANNOT DO \
-                       ANY REPAIR\r\n"));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTX_SERVER,"FM REPAIR, Invalid SEVERITY. CANNOT DO \
+                       ANY REPAIR\r\n");
     	return rc;
 	}
 
 	if (!faultactiveSeqTbls)		
 	{
-     	     	CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("FM REPAIR, No sequence table found for \
-                               this MO  \r\n"));
+     	     	clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTX_SERVER,"FM REPAIR, No sequence table found for \
+                               this MO  \r\n");
     	return CL_FAULT_RC(CL_FAULT_ERR_REPAIR_SEQ_TBL_NULL);
 	}
 
@@ -99,7 +102,7 @@ ClRcT clFaultRepairProcess(ClFaultRecordPtr hRec)
 	rc = clFaultHistoryDataLock();
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,(" REPAIR: Not able to get history data lock rc:0x%x \n", rc));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTX_SERVER," REPAIR: Not able to get history data lock rc:0x%x \n", rc);
         clHeapFree(fRec);
         clHeapFree(historyRec);
         return rc;

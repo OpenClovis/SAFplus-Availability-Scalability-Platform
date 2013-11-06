@@ -83,14 +83,14 @@ do {                                                                    \
                                                                         \
     if (CL_GET_ERROR_CODE(returnCode) == CL_ERR_NO_OP)                  \
     {                                                                   \
-        AMS_SERVER_LOG(CL_DEBUG_TRACE, ("Function [%s] returned NoOp\n", #fn)); \
+        AMS_SERVER_LOG(CL_LOG_SEV_TRACE, ("Function [%s] returned NoOp\n", #fn)); \
         return returnCode;                                              \
     } \
-    if (returnCode != CL_OK) clDbgCodeError(CL_DEBUG_ERROR, ("Fn [%s] returned [0x%x]\n", #fn, returnCode) ); \
+    if (returnCode != CL_OK) clDbgCodeError(CL_LOG_SEV_ERROR, ("Fn [%s] returned [0x%x]\n", #fn, returnCode) ); \
                                                                         \
     if (returnCode != CL_OK)                                            \
     {                                                                   \
-        AMS_SERVER_LOG(CL_DEBUG_ERROR,                                  \
+        AMS_SERVER_LOG(CL_LOG_SEV_ERROR,                                  \
             ("ALERT [%s:%d] : Fn [%s] returned [0x%x]\n",               \
              __FUNCTION__, __LINE__, #fn, returnCode));                 \
         return returnCode;                                              \
@@ -101,7 +101,7 @@ do {                                                                    \
 {                                                                       \
     if ( (x) != CL_FALSE )                                              \
     {                                                                   \
-        AMS_SERVER_LOG(CL_DEBUG_ERROR,                                  \
+        AMS_SERVER_LOG(CL_LOG_SEV_ERROR,                                  \
             ("ALERT [%s:%d] : Expression (%s) is True. Null Pointer\n", \
              __FUNCTION__, __LINE__, #x));                              \
         AMS_CALL ( clOsalMutexUnlock (mutex));                          \
@@ -126,7 +126,7 @@ do {                                                                    \
             (serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )       \
     {                                                                   \
         clOsalMutexUnlock(mutex);                                       \
-        AMS_SERVER_LOG(CL_DEBUG_ERROR,                                  \
+        AMS_SERVER_LOG(CL_LOG_SEV_ERROR,                                  \
                 ("AMS server is not functioning, dropping the request\n")); \
         rc = CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);                  \
         goto exitfn;                                                    \
@@ -139,19 +139,21 @@ do {                                                                    \
          (serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )      \
     {                                                               \
         clOsalMutexUnlock(gAms.mutex);                              \
-        AMS_SERVER_LOG(CL_DEBUG_ERROR,                              \
+        AMS_SERVER_LOG(CL_LOG_SEV_ERROR,                              \
                        ("AMS server is not functioning, dropping the request\n")); \
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);            \
     }                                                               \
     clOsalMutexUnlock(gAms.mutex);                                  \
 }while(0)
 
+#define AMS_ENTITY_OK(x,y) ((x)&&(((x)->config.entity.type) == (y) ))
+    
 #define AMS_CHECK_ENTITY(x,y)                                do {       \
     AMS_CHECKPTR ( !(x) );                                              \
                                                                         \
     if ( ((x)->config.entity.type) != (y) )                             \
     {                                                                   \
-        AMS_SERVER_LOG(CL_DEBUG_ERROR,                                  \
+        AMS_SERVER_LOG(CL_LOG_SEV_ERROR,                                  \
             ("ALERT [%s:%d] : Expecting entity type %d, got type %d\n", \
              __FUNCTION__, __LINE__, (y), (x)->config.entity.type));    \
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);                    \
@@ -165,7 +167,7 @@ do {                                                                    \
     if ( ((x)->config.entity.type) != (y) )                             \
     {                                                                   \
         clOsalMutexUnlock(mutex);                                       \
-        AMS_SERVER_LOG(CL_DEBUG_ERROR,                                  \
+        AMS_SERVER_LOG(CL_LOG_SEV_ERROR,                                  \
             ("ALERT [%s:%d] : Expecting entity type %d, got type %d\n", \
              __FUNCTION__, __LINE__, (y), (x)->config.entity.type));    \
         rc = CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);                      \
@@ -176,7 +178,7 @@ do {                                                                    \
 
 #define AMS_ENTITY_LOG(ENTITY, DEBUGFLAG, LEVEL, MSG)                   \
 {                                                                       \
-    if ( LEVEL == CL_DEBUG_ERROR )                                      \
+    if ( LEVEL == CL_LOG_SEV_ERROR )                                      \
     {                                                                   \
         clAmsLogMsgServer( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__ );                 \
     }                                                                   \
@@ -193,7 +195,7 @@ do {                                                                    \
 
 #define AMS_SERVER_LOG(LEVEL, MSG)                                      \
 {                                                                       \
-    if ( LEVEL == CL_DEBUG_ERROR )                                      \
+    if ( LEVEL == CL_LOG_SEV_ERROR )                                      \
     {                                                                   \
         clAmsLogMsgServer ( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__);                \
     }                                                                   \
@@ -220,7 +222,7 @@ do {                                                                    \
         AMS_CALL ( clOsalMutexUnlock (&gAms.ckptMutex));                \
         if ( returnCode != CL_OK )                                      \
         {                                                               \
-            AMS_SERVER_LOG(CL_DEBUG_ERROR,                              \
+            AMS_SERVER_LOG(CL_LOG_SEV_ERROR,                              \
                     ("ALERT [%s:%d] : Fn [%s] returned [0x%x]\n",       \
                      __FUNCTION__, __LINE__, #fn, returnCode));         \
         }                                                               \
@@ -232,10 +234,10 @@ do {                                                                    \
 {                                                                       \
     if ( ( gAms.debugFlags&CL_AMS_MGMT_SUB_AREA_FN_CALL ) != CL_FALSE ) \
     {                                                                   \
-        clAmsLogMsgServer ( CL_DEBUG_TRACE, AMS_LOG_COUNT_STRING,__FILE__,__LINE__);      \
-        clAmsLogMsgServer ( CL_DEBUG_TRACE,                             \
+        clAmsLogMsgServer ( CL_LOG_SEV_TRACE, AMS_LOG_COUNT_STRING,__FILE__,__LINE__);      \
+        clAmsLogMsgServer ( CL_LOG_SEV_TRACE,                             \
             clAmsFormatMsg ("Fn [%s:%d] : ", __FUNCTION__, __LINE__),__FILE__,__LINE__);  \
-        clAmsLogMsgServer ( CL_DEBUG_TRACE, clAmsFormatMsg arg,__FILE__,__LINE__);       \
+        clAmsLogMsgServer ( CL_LOG_SEV_TRACE, clAmsFormatMsg arg,__FILE__,__LINE__);       \
     }                                                                   \
 }
 
@@ -247,7 +249,7 @@ do {                                                                    \
                                                                         \
     if ( returnCode != CL_OK )                                          \
     {                                                                   \
-        AMS_LOG(CL_DEBUG_ERROR,                                         \
+        AMS_LOG(CL_LOG_SEV_ERROR,                                         \
                 ("ALERT [%s:%d] : Fn [%s] returned [0x%x]\n",           \
                  __FUNCTION__, __LINE__, #fn, returnCode));             \
     }                                                                   \

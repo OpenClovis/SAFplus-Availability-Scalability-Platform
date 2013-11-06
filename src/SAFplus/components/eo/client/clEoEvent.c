@@ -32,8 +32,7 @@ File        : clEoEvent.c
  * Includes 
  */
 #include <clEoEvent.h>
-#include <clDebugApi.h>
-
+#include <clLogUtilApi.h>
 /* 
  * Defines 
  */
@@ -92,19 +91,19 @@ static void eoEventOnWaterMarkHit( ClEventSubscriptionIdT subscriptionId,
 
     rc = clEventCookieGet(eventHandle, &pCookie);
 
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("-------------------------------------------------------\n"));
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("!!!!!!!!!!!!!!! Event Delivery Callback !!!!!!!!!!!!!!!\n"));
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("-------------------------------------------------------\n"));
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             Subscription ID   : 0x%X\n", subscriptionId));
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             Event Priority    : 0x%X\n", priority));
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             Retention Time    : 0x%llX\n",
-                retentionTime));
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             Publisher Name    : %.*s\n",
-                publisherName.length, publisherName.value));
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"-------------------------------------------------------\n");
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"!!!!!!!!!!!!!!! Event Delivery Callback !!!!!!!!!!!!!!!\n");
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"-------------------------------------------------------\n");
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             Subscription ID   : 0x%X\n", subscriptionId);
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             Event Priority    : 0x%X\n", priority);
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             Retention Time    : 0x%llX\n",
+               retentionTime);
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             Publisher Name    : %.*s\n",
+                publisherName.length, publisherName.value);
 #ifdef CL_EO_TBD 
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             EventID           : 0x%X\n", eventId));
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             Payload[0]        : 0x%X\n", payLoad[0]));
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             Payload[1]        : 0x%X\n", payLoad[1]));
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             EventID           : 0x%X\n", eventId);
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             Payload[0]        : 0x%X\n", payLoad[0]);
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             Payload[1]        : 0x%X\n", payLoad[1]);
 #endif
 
     /*
@@ -116,30 +115,30 @@ static void eoEventOnWaterMarkHit( ClEventSubscriptionIdT subscriptionId,
      * Display the Water Mark Details and Free the patterns.
      */
 
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             EO Name           : %.*s\n",
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             EO Name           : %.*s\n",
                 (ClInt32T)patternArray.pPatterns[0].patternSize, 
-                (ClCharT *)patternArray.pPatterns[0].pPattern));
+                (ClCharT *)patternArray.pPatterns[0].pPattern);
     clHeapFree(patternArray.pPatterns[0].pPattern);
 
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             Library ID        : 0x%x\n",
-                *(ClEoLibIdT *)patternArray.pPatterns[1].pPattern));
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             Library ID        : 0x%x\n",
+                *(ClEoLibIdT *)patternArray.pPatterns[1].pPattern);
     clHeapFree(patternArray.pPatterns[1].pPattern);
 
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             Water Mark ID     : 0x%x\n",
-                *(ClWaterMarkIdT *)patternArray.pPatterns[2].pPattern));
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             Water Mark ID     : 0x%x\n",
+                *(ClWaterMarkIdT *)patternArray.pPatterns[2].pPattern);
     clHeapFree(patternArray.pPatterns[2].pPattern);
 
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             Water Mark Type   : %s\n",
-                (*(ClEoWaterMarkFlagT *)patternArray.pPatterns[3].pPattern == CL_WM_HIGH_LIMIT)? "HIGH" : "LOW"));
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             Water Mark Type   : %s\n",
+                (*(ClEoWaterMarkFlagT *)patternArray.pPatterns[3].pPattern == CL_WM_HIGH_LIMIT)? "HIGH" : "LOW");
     clHeapFree(patternArray.pPatterns[3].pPattern);
 
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("             Water Mark Value  : %u\n",
-                *(ClUint32T *)patternArray.pPatterns[4].pPattern));
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"             Water Mark Value  : %u\n",
+                *(ClUint32T *)patternArray.pPatterns[4].pPattern);
     clHeapFree(patternArray.pPatterns[4].pPattern);
 
     clHeapFree(patternArray.pPatterns);
 
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("-------------------------------------------------------\n"));
+    clLogError(EO_LOG_AREA_EVENT,EO_LOG_CTX_WATERMARK,"-------------------------------------------------------\n");
 
     return;
 }

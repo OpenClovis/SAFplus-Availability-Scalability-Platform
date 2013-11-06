@@ -111,20 +111,20 @@ ClRcT clEvtContAppAddressGet(void)
                                       &gEvtAppToIoc[i].appName, &compAddress);
         if (CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("Component [%.*s] Address Get Failed [0x%X]\r\n",
-                            gEvtAppToIoc[i].appName.length,
-                            gEvtAppToIoc[i].appName.value, rc));
+            clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                       "Component [%.*s] Address Get Failed [0x%X]\r\n",
+                        gEvtAppToIoc[i].appName.length,
+                        gEvtAppToIoc[i].appName.value, rc);
             return rc;
         }
         gEvtAppToIoc[i].iocPhyAddr = compAddress.iocPhyAddress;
 
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                       ("The IOC Address of %.*s is Node %lX Port %lX\n\r\n",
-                        gEvtAppToIoc[i].appName.length,
-                        gEvtAppToIoc[i].appName.value,
-                        (unsigned long) gEvtAppToIoc[i].iocPhyAddr.nodeAddress,
-                        (unsigned long) gEvtAppToIoc[i].iocPhyAddr.portId));
+        clLogTrace(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,
+                   "The IOC Address of %.*s is Node %lX Port %lX\n\r\n",
+                   gEvtAppToIoc[i].appName.length,
+                   gEvtAppToIoc[i].appName.value,
+                   (unsigned long) gEvtAppToIoc[i].iocPhyAddr.nodeAddress,
+                   (unsigned long) gEvtAppToIoc[i].iocPhyAddr.portId);
     }
 
     return CL_OK;

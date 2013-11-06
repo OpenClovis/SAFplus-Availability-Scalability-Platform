@@ -33,7 +33,7 @@ extern "C" {
     do{\
         if(0 == saGmsInitCount)\
         {\
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CLM Initialization not done \r\n"));\
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"CLM Initialization not done \r\n");\
                 return SA_AIS_ERR_BAD_HANDLE;              \
         }\
     }while(0);

@@ -51,10 +51,6 @@
 
    ClRcT ClFaultNodeRestartRequest(ClFaultRecordPtr hRec)
 {
-    /* perform actions for faults reported by compMgr */
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n Taking appropriate action for the \
-				fault reported by Fault Local Mgr \n"));
-
     /*
      * ---BEGIN_APPLICATION_CODE---
      */
@@ -67,10 +63,6 @@
 }
 ClRcT ClFaultCompRestartRequest(ClFaultRecordPtr hRec)
 {
-    /* perform actions for faults reported by compMgr */
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n Taking appropriate action for the \
-				fault reported locally \n"));
-
     /*
      * ---BEGIN_APPLICATION_CODE---
      */
@@ -83,10 +75,6 @@ ClRcT ClFaultCompRestartRequest(ClFaultRecordPtr hRec)
 }
 ClRcT clFaultEscalate(ClFaultRecordPtr hRec)
 {
-    /* perform actions for faults reported by compMgr */
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n Taking appropriate action for the \
-				fault reported locally \n"));
-
     /*
      * ---BEGIN_APPLICATION_CODE---
      */

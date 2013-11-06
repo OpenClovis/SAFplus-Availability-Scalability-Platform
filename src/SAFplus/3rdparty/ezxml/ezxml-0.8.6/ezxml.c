@@ -207,7 +207,7 @@ char *ezxml_decode(char *s, char **ent, char t)
             if (ent[b++]) { // found a match
                 if ((c = strlen(ent[b])) - 1 > (e = strchr(s, ';')) - s) {
                     l = (d = (s - r)) + c + strlen(e); // new length
-                    r = (r == m) ? strcpy(malloc(l), r) : realloc(r, l);
+                    r = (r == m) ? strcpy((char*)malloc(l),(char*) r) : realloc((char*)r, l);
                     e = strchr((s = r + d), ';'); // fix up pointers
                 }
 
@@ -309,7 +309,7 @@ void ezxml_proc_inst(ezxml_root_t root, char *s, size_t len)
         return;
     }
 
-    if (! root->pi[0]) *(root->pi = malloc(sizeof(char **))) = NULL; //first pi
+    if (! root->pi[0]) *(root->pi = (char**) malloc(sizeof(char **))) = NULL; //first pi
 
     while (root->pi[i] && strcmp(target, root->pi[i][0])) i++; // find target
     if (! root->pi[i]) { // new target

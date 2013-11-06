@@ -142,8 +142,8 @@ ClRcT clGmsLibInitialize(void)
         {
             if ((clHandleDatabaseDestroy( handle_database )) != CL_OK)
             {
-                CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                        ("\nclHandleDatabaseDestroy failed"));
+                clLogError(GEN,DB,
+                           "\nclHandleDatabaseDestroy failed");
             }
             goto error_exit;
         }
@@ -153,14 +153,14 @@ ClRcT clGmsLibInitialize(void)
         {
             if ((clHandleDatabaseDestroy( handle_database )) != CL_OK)
             {
-                CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                        ("\nclHandleDatabaseDestroy failed"));
+                clLogError(GEN,DB,
+                           "\nclHandleDatabaseDestroy failed");
             }
 
             if ((clEoClientUninstall( eo , CL_GMS_CLIENT_TABLE_ID )) != CL_OK)
             {
-                CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                        ("\nclEoClientUninstall failed"));
+                clLogError(GEN,NA,
+                           "\nclEoClientUninstall failed");
             }
             goto error_exit;
         }
@@ -203,8 +203,8 @@ ClRcT clGmsLibFinalize(void)
         rc = clEoMyEoObjectGet(&eo);
         if (rc != CL_OK)
         {
-           CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                   ("clEoMyEoObjectGet Failed with RC - 0x%x\n",rc));
+           clLogError(GEN,NA,
+                      "clEoMyEoObjectGet Failed with RC - 0x%x\n",rc);
         }
 
         clGmsClientClientTableDeregistrer(eo);
@@ -213,8 +213,8 @@ ClRcT clGmsLibFinalize(void)
         rc = clGmsClientRmdTableUnInstall(eo);
         if (rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clEoClientUninstall Failed with RC - 0x%x\n",rc));
+            clLogError(GEN,NA,
+                       "clEoClientUninstall Failed with RC - 0x%x\n",rc);
         }
 
         lib_initialized = CL_FALSE;
@@ -338,8 +338,8 @@ ClRcT clGmsInitialize(
     rc = cl_gms_clientlib_initialize_rmd((void*)&req, 0x0 ,&res );
     if(rc != CL_OK )
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\n cl_gms_clientlib_initialize_rmd failed with rc:0x%x ",rc));
+        clLogError(GEN,NA,
+                   "\n cl_gms_clientlib_initialize_rmd failed with rc:0x%x ",rc);
         clGmsMutexDelete(gms_instance_ptr->response_mutex);
         gms_instance_ptr->response_mutex = 0;
         gmsTaskKeyDelete();
@@ -367,8 +367,8 @@ ClRcT clGmsInitialize(
     /* Step 6: Decrement handle use count and return */
     if ((clHandleCheckin(handle_database, *gmsHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(GEN,DB,
+                   "\nclHandleCheckin failed");
     }
     clHeapFree(res);
     return CL_OK;
@@ -414,8 +414,8 @@ ClRcT clGmsFinalize(
 		clGmsMutexUnlock(gms_instance_ptr->response_mutex);
 		if ((clHandleCheckin(handle_database, gmsHandle)) != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("\nclHandleCheckin Error"));
+            clLogError(GEN,DB,
+                       "\nclHandleCheckin Error");
         }
 		return CL_GMS_RC(CL_ERR_INVALID_HANDLE);
 	}
@@ -434,14 +434,14 @@ ClRcT clGmsFinalize(
 
 	if ((clHandleDestroy(handle_database, gmsHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nclHandleDestroy Error"));
+        clLogError(GEN,NA,
+                   "\nclHandleDestroy Error");
     }
     
 	if ((clHandleCheckin(handle_database, gmsHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nclHandleCheckin Error"));
+        clLogError(GEN,NA,
+                   "\nclHandleCheckin Error");
     }
 
 	return CL_GMS_RC(rc);
@@ -500,8 +500,8 @@ ClRcT clGmsClusterJoin(
     req.address.iocPhyAddress.nodeAddress = clIocLocalAddressGet();
     if (clEoMyEoIocPortGet(&(req.address.iocPhyAddress.portId)) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclEoMyEoIocPortGet failed"));
+        clLogError(CLM,NA,
+                   "\nclEoMyEoIocPortGet failed");
     }
     
     clGmsMutexLock(gms_instance_ptr->response_mutex);
@@ -517,8 +517,8 @@ ClRcT clGmsClusterJoin(
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                   "\nclHandleCheckin failed");
     }
     return rc;
 }
@@ -586,8 +586,8 @@ error_unlock_checkin:
     
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                   "\nclHandleCheckin failed");
     }
 
     
@@ -654,8 +654,8 @@ error_unlock_checkin:
     
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                   "\nclHandleCheckin failed");
     }
 
     
@@ -727,8 +727,8 @@ error_unlock_checkin:
     
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                   "\nclHandleCheckin failed");
     }
 
     
@@ -962,8 +962,8 @@ error_exit:
 
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                   "\nclHandleCheckin failed");
     }
 
     
@@ -1029,8 +1029,8 @@ error_unlock_checkin:
     
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                   "\nclHandleCheckin failed");
     }
     
     return CL_GMS_RC(rc);
@@ -1092,8 +1092,8 @@ error_unlock_checkin:
 error_checkin:
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                    "\nclHandleCheckin failed");
     }
     
     return rc;
@@ -1155,8 +1155,8 @@ error_unlock_checkin:
     
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(LEA,NA,
+                   "\nclHandleCheckin failed");
     }
 
     
@@ -1210,8 +1210,8 @@ error_unlock_checkin:
     
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                   "\nclHandleCheckin failed");
     }
 
     
@@ -1294,8 +1294,8 @@ ClRcT clGmsClusterTrackCallbackHandler(
 error_checkin_free_res:
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                   "\nclHandleCheckin failed");
     }
 
 error_free_res:
@@ -1351,8 +1351,8 @@ ClRcT clGmsClusterMemberGetCallbackHandler(
 error_checkin_free_res:
     if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                   "\nclHandleCheckin failed");
     }
 
 error_free_res:
@@ -1406,8 +1406,8 @@ ClRcT clGmsClusterMemberEjectCallbackHandler(
 error_checkin_free_res:
     if (clHandleCheckin(handle_database, gmsHandle))
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,
-                ("\nclHandleCheckin failed"));
+        clLogError(CLM,NA,
+                   "\nclHandleCheckin failed");
     }
 
 

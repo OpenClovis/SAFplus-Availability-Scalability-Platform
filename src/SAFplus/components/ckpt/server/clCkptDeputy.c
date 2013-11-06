@@ -82,13 +82,13 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
     if(pMasterInfo == NULL)
     {
         rc = CL_CKPT_ERR_NO_MEMORY;
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Failed to allocate the memory rc[0x %x]\n", rc), rc);
     }
 
  
     rc = ckptIdlHandleUpdate(dest, gCkptSvr->ckptIdlHdl, 0);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Failed to update the Idl handle rc[0x %x]\n", rc), rc);
 
     /*
@@ -105,7 +105,7 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
                 &pPeerListInfo,
                 &clntHdlCount,
                 &pClientDBInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Failed to get the data from Master rc[0x %x]\n", rc), rc);
             
     /*
@@ -116,7 +116,7 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
      * Unpack the Name xlation Entries
      */
     rc = ckptXlatioEntryUnpack(ckptCount,pXlationInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Failed to unpack the Xlation Entry rc[0x %x]\n", rc), rc);
     gCkptSvr->masterInfo.masterAddr = pMasterInfo->masterAddr;
     gCkptSvr->masterInfo.deputyAddr = pMasterInfo->deputyAddr;
@@ -126,20 +126,20 @@ ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest)
      * Unpack the peerList.
      */
     rc = ckptPeerListInfoUnpack(peerCount,pPeerListInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to unpack the PeerList info rc[0x %x]\n", rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,("Ckpt: Failed to unpack the PeerList info rc[0x %x]\n", rc), rc);
 
     /*
      * Unpack the master DB info.
      */
     rc = ckptMasterDBInfoUnpack(mastHdlCount,pMasterDBInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to unpack the MasterInfo rc[0x %x]\n", rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,("Ckpt: Failed to unpack the MasterInfo rc[0x %x]\n", rc), rc);
             
     clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,"Received open handle [%d]", clntHdlCount);
     /*
      * Unpack the client DB info.
      */
     rc = ckptClientDBInfoUnpack(clntHdlCount,pClientDBInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to unpack the ClientDB Info rc[0x %x]\n", rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,("Ckpt: Failed to unpack the ClientDB Info rc[0x %x]\n", rc), rc);
     gCkptSvr->isSynced = CL_TRUE;
 
 exitOnError:
@@ -203,7 +203,7 @@ ClRcT ckptXlatioEntryUnpack( ClUint32T           ckptCount, CkptXlationDBEntryT 
         if(pXlationEntry == NULL)
         {
             rc = CL_CKPT_ERR_NO_MEMORY;
-            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Ckpt: Failed to allocate memory rc[0x %x]\n", rc), rc);
         }
         saNameCopy(&pXlationEntry->name, &pXlationInfo->name);
@@ -236,7 +236,7 @@ ClRcT ckptXlatioEntryUnpack( ClUint32T           ckptCount, CkptXlationDBEntryT 
             }
         }
 
-        /* GAS: was CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,("Ckpt: Failed to add to the XlationEntry rc[0x%x]\n", rc), rc);
+        /* GAS: was CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,("Ckpt: Failed to add to the XlationEntry rc[0x%x]\n", rc), rc);
            but I think we should continue to add the other entries
         */
         if (rc != CL_OK)
@@ -295,7 +295,7 @@ ClRcT ckptPeerListInfoUnpack(ClUint32T          peerCount,
                       "Peer list has been updated for address [%d]", 
                       pPeerListInfo->nodeAddr);
        }
-       CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+       CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Failed to find the entry rc[0x %x]\n", rc), rc);
        /*
         * Prepare the client Hdl list associated with the peer.
@@ -310,7 +310,7 @@ ClRcT ckptPeerListInfoUnpack(ClUint32T          peerCount,
           if(pNodeInfo == NULL)
           {
                    rc = CL_CKPT_ERR_NO_MEMORY;
-                   CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                   CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("Ckpt: Failed to allocate memory rc[0x %x]\n", rc), rc);
           }
           pNodeInfo->clientHdl   =  pNodeTempInfo->clientHdl;
@@ -321,7 +321,7 @@ ClRcT ckptPeerListInfoUnpack(ClUint32T          peerCount,
                              (ClCntDataHandleT)pNodeInfo, NULL);
           if( CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
                 rc = CL_OK;
-          CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+          CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
            clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, 
                       "Open handle %#llX has been added to address [%d]", 
@@ -341,7 +341,7 @@ ClRcT ckptPeerListInfoUnpack(ClUint32T          peerCount,
            pMasterHandle = clHeapAllocate(sizeof(*pMasterHandle)); // Free on Error
            if(NULL == pMasterHandle)
            {
-               CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Memory Allocation Failed\n"));
+               clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,"Memory Allocation Failed\n");
                goto exitOnError;
            }
            *pMasterHandle = *pMasterHdlInfo;
@@ -351,7 +351,7 @@ ClRcT ckptPeerListInfoUnpack(ClUint32T          peerCount,
           if( rc == CL_OK ) pPeerInfo->replicaCount++;
           if( CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
                 rc = CL_OK;
-          CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+          CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
            clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, 
                       "Master handle %#llX has been added to address [%d]", 
@@ -415,13 +415,13 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
             rc = CL_OK;     
             continue;
         }
-        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
                 
         rc = clHandleCheckout( gCkptSvr->masterInfo.masterDBHdl,
                 pMasterDBInfo->ckptMasterHdl,
                 (void **)&pMasterDBEntry);
-        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
         
         /*
@@ -480,7 +480,7 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
                 ckptReplicaListDeleteCallback,
                 CL_CNT_UNIQUE_KEY,
                 &pMasterDBEntry->replicaList);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("Ckpt: Faile to unpack master Entries rc[0x %x]\n",rc),rc);
         /* Stroing the replicalistinfo, to restore it */
         pReplicaListInfo = pMasterDBInfo->replicaListInfo;
@@ -495,13 +495,13 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
                         NULL);
                 if( CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)
                     rc = CL_OK;         
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                    ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
             } 
             else
             {
                 rc = CL_CKPT_ERR_INVALID_STATE;
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                       ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
             }
             pReplicaListInfo++;
@@ -565,12 +565,12 @@ ClRcT ckptClientDBInfoUnpack(ClUint32T               clientHdlCount,
             rc = CL_OK;
             continue;
         }
-        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
         rc = clHandleCheckout( gCkptSvr->masterInfo.clientDBHdl,
                 pClientDBInfo->clientHdl,
                 (void **)&pClientEntry);
-        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
                 
         /*
@@ -617,7 +617,7 @@ ClRcT ckptCheckpointClose(ClHandleT clientHdl,ClHandleT masterHdl,
      */
     rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
             clientHdl); 
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             (" MasterCheckpointClose failed rc[0x %x]\n",rc),
             rc);
     clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_CLOSE,
@@ -652,7 +652,7 @@ ClRcT ckptCheckpointClose(ClHandleT clientHdl,ClHandleT masterHdl,
      */
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
             masterHdl, (void **)&pStoredData);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             (" MasterCheckpointClose failed rc[0x %x]\n",rc),
             rc);
     if(pStoredData != NULL)
@@ -698,7 +698,7 @@ ClRcT ckptCheckpointActiveAddrChange(ClHandleT         masterHdl,
      */
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
             masterHdl, (void **)&pStoredData);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             (" MasterCheckpointClose failed rc[0x %x]\n",rc),
             rc);
     if(pStoredData != NULL)
@@ -755,7 +755,7 @@ ClRcT ckptCheckpointRetenTimerUpdate(ClHandleT masterHdl,
      */
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
             masterHdl, (void **)&pStoredData);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             (" MasterCheckpointClose failed rc[0x %x]\n",rc),
             rc);
     if(pStoredData != NULL)
@@ -812,7 +812,7 @@ ClRcT ckptCheckpointDelete(ClHandleT          clientHdl,
          */ 
         rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
                 clientHdl); 
-        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                 (" MasterCheckpointClose failed rc[0x %x]\n",rc),
                 rc);
         clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_DEL, 
@@ -836,7 +836,7 @@ ClRcT ckptCheckpointDelete(ClHandleT          clientHdl,
     }
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
             masterHdl, (void **)&pStoredData);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             (" MasterCheckpointClose failed rc[0x %x]\n",rc),
             rc);
     if(pStoredData != NULL)
@@ -868,7 +868,7 @@ ClRcT ckptCheckpointDelete(ClHandleT          clientHdl,
             _ckptPeerMasterHdlWalk,
             &masterHdl,
             sizeof(masterHdl));
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Deputy update failed rc[0x %x]\n",rc),
             rc);
     rc = clHandleDestroy(gCkptSvr->masterInfo.masterDBHdl,
@@ -913,7 +913,7 @@ ClRcT ckptCheckpointCalltoDelete(ClHandleT masterHdl)
      */
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
             masterHdl, (void **)&pStoredData);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             (" MasterCheckpointClose failed rc[0x %x]\n",rc),
             rc);
     if(pStoredData != NULL)
@@ -970,14 +970,14 @@ ClRcT ckptCheckpointRetenTimerStart(ClHandleT clientHdl,ClHandleT  masterHdl,
     
     rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
                          clientHdl); 
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                                   (" MasterCheckpointClose failed rc[0x %x]\n",rc),
                                   rc);
     gCkptSvr->masterInfo.clientHdlCount--;        
 
     rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList, (ClPtrT)(ClWordT)localAddr,
                             (ClCntDataHandleT *)&pPeerInfo); 
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                                   ("Failed to get info of addr %d in peerList rc[0x %x]\n",
                                    localAddr, rc), rc);
     if ( CL_OK != (rc = clCntAllNodesForKeyDelete(pPeerInfo->ckptList,
@@ -987,7 +987,7 @@ ClRcT ckptCheckpointRetenTimerStart(ClHandleT clientHdl,ClHandleT  masterHdl,
     }
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl,
                           masterHdl, (void **)&pStoredData);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                                   (" MasterCheckpointClose failed rc[0x %x]\n",rc),
                                   rc);
     if(pStoredData != NULL)
@@ -1117,7 +1117,7 @@ ClRcT VDECL_VER(clCkptDeputyDynamicUpdate, 4, 0, 0)(ClVersionT          *pVersio
             rc = CL_CKPT_ERR_INVALID_STATE;
             break;
     }
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Dynamic update failed with Tag [%x] rc[0x %x]\n", 
              updateFlag,rc), rc);
 exitOnError:
@@ -1176,7 +1176,7 @@ ClRcT VDECL_VER(clCkptDeputyReplicaListUpdate, 4, 0, 0)( ClVersionT          *pV
      * Verify th eversion.
      */
     rc = clVersionVerify(&gCkptSvr->versionDatabase,pVersion);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Version mismatch rc[0x %x]\n", rc), rc);
 
     /*
@@ -1185,7 +1185,7 @@ ClRcT VDECL_VER(clCkptDeputyReplicaListUpdate, 4, 0, 0)( ClVersionT          *pV
     rc = ckptSvrHdlCheckout( gCkptSvr->masterInfo.masterDBHdl,
                              masterHdl,
                              (void **)&pMasterDBEntry);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed to add replica to replica list[0x %x]\n",rc),
             rc);
 
@@ -1195,7 +1195,7 @@ ClRcT VDECL_VER(clCkptDeputyReplicaListUpdate, 4, 0, 0)( ClVersionT          *pV
             (ClCntKeyHandleT)(ClWordT)peerAddr, 
             (ClCntDataHandleT)(ClWordT)peerAddr, NULL);
         if (CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE)   rc = CL_OK;
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed to add replica to replica list[0x %x]\n",rc),
             rc);
         clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_CKPT_DEL, 
@@ -1205,7 +1205,7 @@ ClRcT VDECL_VER(clCkptDeputyReplicaListUpdate, 4, 0, 0)( ClVersionT          *pV
     {
         rc = clCntAllNodesForKeyDelete(pMasterDBEntry->replicaList, 
                                        (ClCntKeyHandleT)(ClWordT)peerAddr);
-        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Failed to remove replica to replica list[0x %x]\n", rc),
             rc);
         clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_CKPT_DEL, 
@@ -1215,7 +1215,7 @@ ClRcT VDECL_VER(clCkptDeputyReplicaListUpdate, 4, 0, 0)( ClVersionT          *pV
     rc = clCntDataForKeyGet( gCkptSvr->masterInfo.peerList,
             (ClCntDataHandleT)(ClWordT)peerAddr,
             (ClCntDataHandleT *)&pPeerInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             (" PeerInfo get failed rc[0x %x]\n",rc),
             rc);
     
@@ -1427,7 +1427,7 @@ VDECL_VER(clCkptDeputyCkptOpen, 4, 0, 0)(ClHandleT         storedDBHdl,
 
     rc = clHandleCheckout(gCkptSvr->masterInfo.masterDBHdl, 
             storedDBHdl,(void **) &pStoredData);  
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Master DB creation failed rc[0x %x]\n",rc),
             rc);
             
@@ -1545,7 +1545,7 @@ ClRcT VDECL_VER(clCkptDeputyPeerListUpdate, 4, 0, 0)(ClVersionT         version,
      * Verify the received version info.
      */
     rc = clVersionVerify(&gCkptSvr->versionDatabase, &version);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Version mismatch rc[0x %x]\n", rc), rc);
 
     /*
@@ -1587,7 +1587,7 @@ ClRcT VDECL_VER(clCkptCreateInfoDeputyUpdate, 4, 0, 0)(ClVersionT         *pVers
     peerListInfo.nodeListInfo = NULL;
 
     rc = clVersionVerify(&gCkptSvr->versionDatabase,pVersion);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Version mismatch rc[0x %x]\n", rc), rc);
     switch(pOpenInfo->discriminant)        
     {
@@ -1603,7 +1603,7 @@ ClRcT VDECL_VER(clCkptCreateInfoDeputyUpdate, 4, 0, 0)(ClVersionT         *pVers
                 if(pNodeListInfo == NULL)
                 {
                     rc = CL_CKPT_ERR_NO_MEMORY;
-                    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                             ("Ckpt: Failed to allocate memory rc[0x %x]\n", rc), rc);
                 }
                 peerListInfo.nodeListInfo = pNodeListInfo;
@@ -1613,7 +1613,7 @@ ClRcT VDECL_VER(clCkptCreateInfoDeputyUpdate, 4, 0, 0)(ClVersionT         *pVers
                 rc = clHandleCheckout( gCkptSvr->masterInfo.masterDBHdl,
                                        pOpenInfo->ckptOpenInfoT.masterHdl, 
                                        (void **)&pMasterDBEntry);
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                             ("Ckpt: Failed to allocate memory rc[0x %x]\n", rc), rc);
                 if(pMasterDBEntry != NULL)
                 {
@@ -1631,16 +1631,16 @@ ClRcT VDECL_VER(clCkptCreateInfoDeputyUpdate, 4, 0, 0)(ClVersionT         *pVers
                 {
                     rc = CL_CKPT_ERR_INVALID_STATE;
                 }
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Ckpt: Passed info got corrupted rc[0x %x]\n", rc), rc);
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("Ckpt: Passed info got corrupted rc[0x %x]\n", rc), rc);
                 xlationInfo.mastHdl  = pMasterDBInfo->ckptMasterHdl;  
                 saNameCopy(&xlationInfo.name, &pMasterDBInfo->name);
                 clCksm32bitCompute ((ClUint8T *)xlationInfo.name.value, 
                         xlationInfo.name.length,
                         &xlationInfo.cksum);
                 rc = ckptXlatioEntryUnpack(1,&xlationInfo);
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Ckpt: Failed to unpack the Xlation Entry rc[0x %x]\n", rc), rc);
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("Ckpt: Failed to unpack the Xlation Entry rc[0x %x]\n", rc), rc);
                 rc = ckptMasterDBInfoUnpack(1,pMasterDBInfo);
-                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR, ("Ckpt: Failed to unpack the MasterInfo rc[0x %x]\n", rc), rc);
+                CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("Ckpt: Failed to unpack the MasterInfo rc[0x %x]\n", rc), rc);
                 clientDBInfo.clientHdl = pCreateInfo->clientHdl;        
                 clientDBInfo.masterHdl = pMasterDBInfo->ckptMasterHdl; 
 
@@ -1651,7 +1651,7 @@ ClRcT VDECL_VER(clCkptCreateInfoDeputyUpdate, 4, 0, 0)(ClVersionT         *pVers
                 if(pNodeListInfo == NULL)
                 {
                     rc = CL_CKPT_ERR_NO_MEMORY;
-                    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                             ("Ckpt: Failed to allocate memory rc[0x %x]\n", rc), rc);
                 }
                 peerListInfo.nodeListInfo = pNodeListInfo;
@@ -1676,10 +1676,10 @@ ClRcT VDECL_VER(clCkptCreateInfoDeputyUpdate, 4, 0, 0)(ClVersionT         *pVers
             break;
     }
     rc = ckptClientDBInfoUnpack(1,&clientDBInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Failed to unpack the ClientDB Info rc[0x %x]\n", rc), rc);
     rc = ckptPeerListInfoUnpack(1,&peerListInfo);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
             ("Ckpt: Failed to unpack the PeerList info rc[0x %x]\n", rc), rc);
 exitOnError:            
     if(peerListInfo.nodeListInfo != NULL)

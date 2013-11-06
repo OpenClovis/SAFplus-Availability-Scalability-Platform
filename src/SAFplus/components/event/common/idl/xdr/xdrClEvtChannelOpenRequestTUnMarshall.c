@@ -73,7 +73,6 @@ ClRcT clXdrUnmarshallClEvtChannelOpenRequestT_4_0_0(ClBufferHandleT msg , void* 
     {
         return rc;
     }
-
     rc = clXdrUnmarshallClHandleT(msg,&(pVar->evtChannelHandle));
     if (CL_OK != rc)
     {
@@ -87,6 +86,12 @@ ClRcT clXdrUnmarshallClEvtChannelOpenRequestT_4_0_0(ClBufferHandleT msg , void* 
     }
 
     rc = clXdrUnmarshallSaNameT(msg,&(pVar->evtChannelName));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint8T(msg,&(pVar->isExternal));
     if (CL_OK != rc)
     {
         return rc;

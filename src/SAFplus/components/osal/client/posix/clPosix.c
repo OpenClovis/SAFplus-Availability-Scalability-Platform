@@ -65,6 +65,7 @@
 #include "../osal.h"
 #include <clCksmApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clDbg.h>
 #include <clBitApi.h>
 #include <clLogApi.h>
@@ -137,7 +138,7 @@ cosPosixMutexValueGet(ClOsalMutexIdT mutexId, ClInt32T *pValue)
     val = sem_getvalue(&pMutex->shared_lock.sem.posSem, pValue);
     if(val < 0 )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Mutex value get- sem_getvalue() failed with [%s]\n", strerror(errno)));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Mutex value get- sem_getvalue() failed with [%s]\n", strerror(errno));
         rc = CL_OSAL_RC(CL_ERR_LIBRARY);
     }
 
@@ -231,7 +232,7 @@ __cosPosixMutexUnlock (ClOsalMutexIdT mutexId, ClBoolT verbose)
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         if(verbose)
         {
-            CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex Unlock : FAILED, mutex is NULL (used after delete?)"));
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Mutex Unlock : FAILED, mutex is NULL (used after delete?)");
             clDbgPause();
         }
         CL_FUNC_EXIT();
@@ -271,7 +272,7 @@ cosPosixMutexDestroy (ClOsalMutexT *pMutex)
     CL_FUNC_ENTER();
     if (NULL == pMutex)
 	{
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex Destroy failed, mutex is NULL (double delete?)"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Mutex Destroy failed, mutex is NULL (double delete?)");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -320,9 +321,9 @@ cosPosixSemCreate (ClUint8T* pName, ClUint32T count, ClOsalSemIdT* pSemId)
 
     sem_getvalue(pSem, &semValue);
 
-    if (semValue < count)
+    if (semValue < (ClInt32T)count)
     {
-        for (i = semValue; i < count; ++i)
+        for (i = semValue; i < (ClInt32T)count; ++i)
         {
             sem_post(pSem);
         }
@@ -454,7 +455,7 @@ ClRcT
 cosPosixShmCreate(ClUint8T* pName, ClUint32T size, ClOsalShmIdT* pShmId)
 {
     ClRcT rc = CL_OSAL_RC(CL_ERR_NOT_SUPPORTED);
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nIn POSIX this operatoin is not supported. error code [0x%x].", rc));
+    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nIn POSIX this operatoin is not supported. error code [0x%x].", rc);
 
     return rc; 
 }
@@ -464,7 +465,7 @@ ClRcT
 cosPosixShmIdGet(ClUint8T* pName, ClOsalShmIdT* pShmId)
 {
     ClRcT rc = CL_OSAL_RC(CL_ERR_NOT_SUPPORTED);
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nIn POSIX this operatoin is not supported. error code [0x%x].", rc));
+    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nIn POSIX this operatoin is not supported. error code [0x%x].", rc);
 
     return rc; 
 }
@@ -475,7 +476,7 @@ ClRcT
 cosPosixShmDelete(ClOsalShmIdT shmId)
 {
     ClRcT rc = CL_OSAL_RC(CL_ERR_NOT_SUPPORTED);
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nIn POSIX this operatoin is not supported. error code [0x%x].", rc));
+    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nIn POSIX this operatoin is not supported. error code [0x%x].", rc);
 
     return rc; 
 }
@@ -485,7 +486,7 @@ ClRcT
 cosPosixShmAttach(ClOsalShmIdT shmId,void* pInMem, void** ppOutMem)
 {
     ClRcT rc = CL_OSAL_RC(CL_ERR_NOT_SUPPORTED);
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nIn POSIX this operatoin is not supported. error code [0x%x].", rc));
+    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nIn POSIX this operatoin is not supported. error code [0x%x].", rc);
 
     return rc; 
 }
@@ -495,7 +496,7 @@ ClRcT
 cosPosixShmDetach(void* pMem)
 {
     ClRcT rc = CL_OSAL_RC(CL_ERR_NOT_SUPPORTED);
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nIn POSIX this operatoin is not supported. error code [0x%x].", rc));
+    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nIn POSIX this operatoin is not supported. error code [0x%x].", rc);
 
     return rc; 
 }
@@ -505,7 +506,7 @@ ClRcT
 cosPosixShmSecurityModeSet(ClOsalShmIdT shmId,ClUint32T mode)
 {
     ClRcT rc = CL_OSAL_RC(CL_ERR_NOT_SUPPORTED);
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nIn POSIX this operatoin is not supported. error code [0x%x].", rc));
+    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nIn POSIX this operatoin is not supported. error code [0x%x].", rc);
 
     return rc; 
 }
@@ -515,7 +516,7 @@ ClRcT
 cosPosixShmSecurityModeGet(ClOsalShmIdT shmId,ClUint32T* pMode)
 {
     ClRcT rc = CL_OSAL_RC(CL_ERR_NOT_SUPPORTED);
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nIn POSIX this operatoin is not supported. error code [0x%x].", rc));
+    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nIn POSIX this operatoin is not supported. error code [0x%x].", rc);
 
     return rc; 
 }
@@ -525,7 +526,7 @@ ClRcT
 cosPosixShmSizeGet(ClOsalShmIdT shmId,ClUint32T* pSize)
 {
     ClRcT rc = CL_OSAL_RC(CL_ERR_NOT_SUPPORTED);
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nIn POSIX this operatoin is not supported. error code [0x%x].", rc));
+    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nIn POSIX this operatoin is not supported. error code [0x%x].", rc);
 
     return rc; 
 }

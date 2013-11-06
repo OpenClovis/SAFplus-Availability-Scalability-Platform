@@ -44,8 +44,8 @@ extern "C"
  do                                                               \
  {                                                                \
      if (clErr != CL_ERR_NOT_EXIST) /* Non-existent node is an expected result */ \
-       CL_DEBUG_PRINT(CL_DEBUG_WARN, ("[%s]: return code [0x%x]: str: [%s]",      \
-                 __FUNCTION__, CL_RC(CL_CID_CNT, clErr), errStr));        \
+       clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"[%s]: return code [0x%x]: str: [%s]",      \
+                 __FUNCTION__, CL_RC(CL_CID_CNT, clErr), errStr);        \
      if (clErr == CL_ERR_INVALID_HANDLE) \
        clDbgCodeError(clErr,(errStr)); /* Invalid handle must be a code-style error */\
      return CL_RC(CL_CID_CNT, clErr);                             \

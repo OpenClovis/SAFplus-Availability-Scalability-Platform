@@ -250,7 +250,7 @@ static ClRcT _clCkptLibraryInitializeDB(ClCkptSvcHdlT *pCkptHdl,
 
     /*Initialize dbal if not initialized*/
     rc = clDbalLibInitialize();
-    CKPT_ERR_CHECK( CL_CKPT_LIB, CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK( CL_CKPT_LIB, CL_LOG_SEV_ERROR, 
             ("Ckpt: Error during dbal lib initialize [rc=%#x]\n",rc), rc);
 
     /* Open the DB */
@@ -260,7 +260,7 @@ static ClRcT _clCkptLibraryInitializeDB(ClCkptSvcHdlT *pCkptHdl,
                       CKPT_MAX_NUMBER_RECORD,
                       CKPT_MAX_SIZE_RECORD, 
                       &dbHandle);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,  
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,  
             ("Ckpt: Error during opening the DB rc[0x %x]\n",rc), rc);
 
     /* Check if there is some checkpointed information for the client */
@@ -275,7 +275,7 @@ static ClRcT _clCkptLibraryInitializeDB(ClCkptSvcHdlT *pCkptHdl,
     {
         /* Consume the checkpoint */
         rc = clCkptUnpack ( &record, recSize, &pCkptClnt);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                  ("Ckpt: Error during Unpacking the DB rc[0x %x]\n",rc), rc);
        *pCkptHdl =  (ClWordT)pCkptClnt;
         clDbalRecordFree(dbHandle,record);         
@@ -286,9 +286,9 @@ static ClRcT _clCkptLibraryInitializeDB(ClCkptSvcHdlT *pCkptHdl,
         if  (NULL ==  (pCkptClnt= (CkptClnCbT *)clHeapAllocate (
                                                         sizeof (CkptClnCbT))))
         {
-            CL_DEBUG_PRINT (CL_DEBUG_CRITICAL, 
-                    ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED, 
+                          "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             return CL_CKPT_ERR_NO_MEMORY;
         }
@@ -301,7 +301,7 @@ static ClRcT _clCkptLibraryInitializeDB(ClCkptSvcHdlT *pCkptHdl,
                                ckptCheckptDeleteCallback,
                                CL_CNT_UNIQUE_KEY,
                                &pCkptClnt->ckptList);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
          ("Ckpt:Error during creating linked list for datasets rc[0x %x]\n",rc),
           rc);
         
@@ -351,7 +351,7 @@ ClRcT clCkptLibraryInitialize (
     It contains CkptDb<compName><nodeId>.db */
     memset (&appName, 0, sizeof (appName));
     rc = clCpmComponentNameGet (cpmHandle, &appName);
-    CKPT_ERR_CHECK( CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK( CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Error during name of Component rc[0x %x]\n",rc), rc);
 
     CL_CKPT_LIB_NAME_FORM(ckptDB, appName.value);
@@ -392,7 +392,7 @@ ClRcT clCkptLibraryFinalize (
     if(pCkptClnt != NULL)
     {
         rc = clCntDelete(pCkptClnt->ckptList);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                 ("Ckpt: Error during closing checkpoints rc[0x %x]\n",rc), rc);
         clOsalMutexDelete (pCkptClnt->ckptSem);
        clDbalClose (pCkptClnt->ownDbHdl);
@@ -472,7 +472,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
                                    CKPT_MAX_SIZE_RECORD, 
                                    &pCkpt->usrDbHdl);
             }
-            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                            ("Ckpt:Error during opening the DB rc[0x %x]\n",rc), rc);
         }
         CKPT_UNLOCK (pCkptClnt->ckptSem);
@@ -483,9 +483,9 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
     pCkpt = (ClnCkptT *)clHeapAllocate(sizeof(ClnCkptT));
     if(pCkpt == NULL)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_CRITICAL, 
-                        ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
+                      "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CKPT_UNLOCK (pCkptClnt->ckptSem);
         return CL_CKPT_ERR_NO_MEMORY;
@@ -494,9 +494,9 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
     pCkpt->pCkptName  =  (SaNameT *)clHeapAllocate (sizeof (SaNameT));
     if (pCkpt->pCkptName == NULL)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_CRITICAL, 
-                        ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
+                      "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CKPT_UNLOCK (pCkptClnt->ckptSem);
         return CL_CKPT_ERR_NO_MEMORY;
@@ -521,7 +521,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
                 pCkpt->pCkptName = NULL;
             }
         }
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                        ("Ckpt: Error during creating linked list for datasets rc[0x %x]\n",rc),
                        rc);
     }
@@ -532,7 +532,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
                         CKPT_MAX_NUMBER_RECORD,
                         CKPT_MAX_SIZE_RECORD,
                         &pCkpt->usrDbHdl);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,  
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,  
                    ("Ckpt: Error during opening the DB rc[0x %x]\n",rc), rc);
     pCkptListKey = NULL;
     CKPT_LIST_GET_KEY(pCkptListKey, pCkpt->pCkptName);
@@ -540,16 +540,16 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
                         (ClCntKeyHandleT)pCkptListKey,
                         (ClCntDataHandleT)pCkpt,
                         NULL);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                    ("Ckpt: Error during adding ckpt rc[0x %x]\n",rc), rc);
     
     key  = CKPT_DB_KEY;         
     rc   = clCkptBufferAlloc (pCkptClnt, &pBuffer, &length);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt:Error during Allocating buffer in checkpoint creation rc[0x %x]\n",rc)
                    ,rc);
     rc   = clCkptPack (pCkptClnt, pBuffer);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                    ("Ckpt: Error during packing the information in"
                     "checkpoint creation rc[0x %x]\n",rc),rc);
     
@@ -558,7 +558,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
                               sizeof(key),
                               (ClDBRecordT)pBuffer,
                               length);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Error during inserting into DB rc[0x %x]\n",rc), rc);
     clCkptBufferFree (pBuffer);
       
@@ -613,18 +613,18 @@ ClRcT clCkptLibraryCkptDelete (ClCkptSvcHdlT ckptHdl,
                                     (ClCntKeyHandleT)pCkptListKey);
    /* rc = clCntAllNodesDelete(pCkpt->dataSetList);*/
                                    
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt: Error during deleting Ckpt rc[0x %x]\n",rc), rc);
     /*Deletion*/
     
     rc   = clCkptBufferAlloc ( pCkptClnt,
                                &pBuffer,
                                &length);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
      ("Ckpt: Error during Buffer Allocation in Ckpt deletion rc[0x %x]\n",rc),
      rc);
     rc   = clCkptPack (pCkptClnt, pBuffer);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt: Error during Packing in Ckpt deletion rc[0x %x]\n",rc), rc);
                                                          
     key  = CKPT_DB_KEY ; 
@@ -633,7 +633,7 @@ ClRcT clCkptLibraryCkptDelete (ClCkptSvcHdlT ckptHdl,
                                sizeof (key),
                                (ClDBRecordT)pBuffer,
                                length);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Error during inserting into DB rc[0x %x]\n",rc), rc);
     clCkptBufferFree (pBuffer);
     /*Done*/
@@ -692,7 +692,7 @@ ClRcT clCkptLibraryCkptDataSetVersionCreate (ClCkptSvcHdlT   ckptHdl,
     rc = clCntDataForKeyGet ( pCkptClnt->ckptList,
                               (ClCntKeyHandleT)pCkptListKey,
                               (ClCntDataHandleT *)&pCkpt);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,  
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,  
             ("Ckpt:Invalid Checkpoint Name rc[0x %x]\n",rc),rc);
     rc = clCntDataForKeyGet (pCkpt->dataSetList,
                             (ClCntKeyHandleT)(ClWordT)dsId,
@@ -725,7 +725,7 @@ ClRcT clCkptLibraryCkptDataSetVersionCreate (ClCkptSvcHdlT   ckptHdl,
     if (pDataInfo == NULL)
     {
        rc = CL_CKPT_ERR_NO_MEMORY;
-       CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+       CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                ("Ckpt: Memory can not be allocated rc[0x %x]\n",rc), rc);
     }
     memset (pDataInfo, 0, sizeof (CkptDataSetT));
@@ -745,16 +745,16 @@ ClRcT clCkptLibraryCkptDataSetVersionCreate (ClCkptSvcHdlT   ckptHdl,
     
     rc = clCntNodeAdd (pCkpt->dataSetList,  (ClCntKeyHandleT)(ClWordT)pDataInfo->dsId,
                        (ClCntDataHandleT)pDataInfo, NULL);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt: Error during adding dataset rc[0x %x]\n",rc), rc);
         
     /*packing*/
     rc   = clCkptBufferAlloc (pCkptClnt, &pBuffer, &length);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
      ("Ckpt: Error during allocating buffer in DataSetCreation rc[0x %x]\n",rc),
      rc);
     rc   = clCkptPack (pCkptClnt, pBuffer);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
               ("Ckpt: Error during Packing in Dataset creation rc[0x %x]\n",rc),
                rc);
     key  = CKPT_DB_KEY;
@@ -763,7 +763,7 @@ ClRcT clCkptLibraryCkptDataSetVersionCreate (ClCkptSvcHdlT   ckptHdl,
                                 sizeof (key), 
                                 (ClDBRecordT)pBuffer,
                                 length);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Error during inserting into DB rc[0x %x]\n",rc), rc);
     clCkptBufferFree (pBuffer);
     
@@ -851,7 +851,7 @@ ClRcT clCkptLibraryCkptDataSetDelete (ClCkptSvcHdlT  ckptHdl,
     rc = clCntDataForKeyGet ( pCkptClnt->ckptList,
                               (ClCntKeyHandleT)pCkptListKey,
                               (ClCntDataHandleT *)&pCkpt);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt:Invalid Checkpoint Name rc[0x %x]\n",rc),rc);
     /*deletion*/
     rc = clCntDataForKeyGet ( pCkpt->dataSetList,
@@ -860,7 +860,7 @@ ClRcT clCkptLibraryCkptDataSetDelete (ClCkptSvcHdlT  ckptHdl,
     if (rc != CL_OK)
     {
        rc = CL_CKPT_ERR_NOT_EXIST;
-       CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+       CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                ("Ckpt: Dataset is not exists rc[0x %x]\n",rc), rc);
     }
     memset(&dbKey, 0,sizeof(dbKey));
@@ -878,7 +878,7 @@ ClRcT clCkptLibraryCkptDataSetDelete (ClCkptSvcHdlT  ckptHdl,
        rc = clDbalRecordDelete ( pCkpt->usrDbHdl, 
                                  (ClDBKeyT)&dbKey,
                                  sizeof (dbKey));
-       CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+       CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                ("Ckpt: Error during deleting the DB rc[0x %x]\n",rc), rc);
        clDbalRecordFree(pCkpt->usrDbHdl,
                              record);
@@ -887,10 +887,10 @@ ClRcT clCkptLibraryCkptDataSetDelete (ClCkptSvcHdlT  ckptHdl,
     rc = clCntAllNodesForKeyDelete(pCkpt->dataSetList,
                                    (ClCntKeyHandleT)(ClWordT)dsId);
     rc   = clCkptBufferAlloc (pCkptClnt, &pBuffer, &length);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Error during buffer allocation rc[0x %x]\n",rc), rc);
     rc   = clCkptPack (pCkptClnt, pBuffer);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Error during packing ckpt Info rc[0x %x]\n",rc), rc);
     
     key  = CKPT_DB_KEY;
@@ -899,7 +899,7 @@ ClRcT clCkptLibraryCkptDataSetDelete (ClCkptSvcHdlT  ckptHdl,
                                 sizeof (key),
                                 (ClDBRecordT)pBuffer,
                                 length);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Error during inserting into DB rc[0x %x]\n",rc), rc);
     clCkptBufferFree (pBuffer);
     CKPT_UNLOCK (pCkptClnt->ckptSem);
@@ -924,7 +924,7 @@ static ClRcT clCkptDataSetDeSerialize(ClUint32T dsId,
 
     if(!record || recSize < sizeof(ClUint32T))
     {
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                        ("Ckpt: No data to deserialize\n"), CL_CKPT_ERR_NOT_EXIST);
         
     }
@@ -932,7 +932,7 @@ static ClRcT clCkptDataSetDeSerialize(ClUint32T dsId,
     if(!pDataSetCallbackTable || !numDataSetTableEntries)
     {
         rc = CL_CKPT_ERR_NULL_POINTER;
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                        ("Ckpt: haven't registered dataset callback table rc[0x %x]\n",rc), rc);
     }
 
@@ -975,7 +975,7 @@ static ClRcT clCkptDataSetSerialize(ClVersionT *pVersion,
     if(!pVersion || !pDataInfo || !pDataSetCallbackTable || !numDataSetTableEntries)
     {
         rc = CL_CKPT_ERR_NULL_POINTER;
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
               ("Ckpt: haven't registered dataset callback table rc[0x %x]\n",rc), rc);
     }
     
@@ -1000,7 +1000,7 @@ static ClRcT clCkptDataSetSerialize(ClVersionT *pVersion,
                                          &pDataInfo->size,
                                          cookie);
         
-            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                            ("Ckpt: Error during serialization rc[0x %x]\n",rc), rc);
             /*
              * Store the version in network order. instead of using the slow
@@ -1075,7 +1075,7 @@ ClRcT clCkptLibraryCkptDataSetVersionWrite (ClCkptSvcHdlT   ckptHdl,
     rc = clCntDataForKeyGet (pCkptClnt->ckptList,
                              (ClCntKeyHandleT)pCkptListKey,
                              (ClCntDataHandleT *)&pCkpt);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                    ("Ckpt: Invalid Checkpoint Name [%s:%s] rc[0x %x]\n", pCkptListKey, pCkptName->value, rc),rc);
     /*choosing the dataset*/
     rc = clCntDataForKeyGet ( pCkpt->dataSetList,
@@ -1084,13 +1084,13 @@ ClRcT clCkptLibraryCkptDataSetVersionWrite (ClCkptSvcHdlT   ckptHdl,
     if (rc != CL_OK)
     {
       rc = CL_CKPT_ERR_NOT_EXIST;
-      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
               ("Ckpt: The given dataset is not exists rc[0x %x]\n",rc), rc);
     }
     rc = clCkptDataSetSerialize(pVersion, pDataInfo, cookie, 
                                 pDataInfo->pDataSetCallbackTable,
                                 pDataInfo->numDataSetTableEntries);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Error during version serialization rc[0x %x]\n",rc), rc);
     ckptDbName = (ClCharT *)pCkptName->value;
     /*Creating  key*/
@@ -1101,7 +1101,7 @@ ClRcT clCkptLibraryCkptDataSetVersionWrite (ClCkptSvcHdlT   ckptHdl,
     rc  = clDbalRecordReplace (pCkpt->usrDbHdl,  (ClDBKeyT)&dbKey,
                               sizeof (dbKey),
                               (ClDBRecordT)pDataInfo->data, pDataInfo->size);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt: Error during Inserting the record rc[0x %x]\n",rc), rc);
     
     /*Done*/
@@ -1176,7 +1176,7 @@ ClRcT clCkptLibraryCkptElementVersionCreate(ClCkptSvcHdlT        ckptHdl,
    rc = clCntDataForKeyGet (pCkptClnt->ckptList,
                             (ClCntKeyHandleT)pCkptListKey,
                             (ClCntDataHandleT *)&pCkpt);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
             ("Ckpt:Invalid Checkpoint Name rc[0x %x]\n",rc),rc);
     /*choosing the dataset*/
     rc = clCntDataForKeyGet ( pCkpt->dataSetList,
@@ -1185,7 +1185,7 @@ ClRcT clCkptLibraryCkptElementVersionCreate(ClCkptSvcHdlT        ckptHdl,
     if (rc != CL_OK)
     {
       rc = CL_CKPT_ERR_NOT_EXIST;
-      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
               ("Ckpt: The given dataset is not exists rc[0x %x]\n",rc), rc);
     }
     
@@ -1214,11 +1214,11 @@ ClRcT clCkptLibraryCkptElementVersionCreate(ClCkptSvcHdlT        ckptHdl,
    }
 
    rc   = clCkptBufferAlloc (pCkptClnt, &pBuffer, &length);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
      ("Ckpt: Error during allocating buffer in DataSetCreation rc[0x %x]\n",rc),
      rc);
    rc   = clCkptPack (pCkptClnt, pBuffer);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
               ("Ckpt: Error during Packing in Dataset creation rc[0x %x]\n",rc),
                rc);
    key  = CKPT_DB_KEY;
@@ -1227,7 +1227,7 @@ ClRcT clCkptLibraryCkptElementVersionCreate(ClCkptSvcHdlT        ckptHdl,
                                 sizeof (key), 
                                 (ClDBRecordT)pBuffer,
                                 length);
-   CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+   CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Error during inserting into DB rc[0x %x]\n",rc), rc);
    clCkptBufferFree (pBuffer);
    CKPT_UNLOCK (pCkptClnt->ckptSem);
@@ -1308,7 +1308,7 @@ ClRcT clCkptLibraryCkptElementVersionWrite (ClCkptSvcHdlT   ckptHdl,
    rc = clCntDataForKeyGet (pCkptClnt->ckptList,
                             (ClCntKeyHandleT)pCkptListKey,
                             (ClCntDataHandleT *)&pCkpt);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt:Invalid Checkpoint Name rc[0x %x]\n",rc),rc);
     /*choosing the dataset*/
     rc = clCntDataForKeyGet ( pCkpt->dataSetList,
@@ -1317,7 +1317,7 @@ ClRcT clCkptLibraryCkptElementVersionWrite (ClCkptSvcHdlT   ckptHdl,
     if (rc != CL_OK)
     {
       rc = CL_CKPT_ERR_NOT_EXIST;
-      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
               ("Ckpt: The given dataset is not exists rc[0x %x]\n",rc), rc);
     }
         
@@ -1327,7 +1327,7 @@ ClRcT clCkptLibraryCkptElementVersionWrite (ClCkptSvcHdlT   ckptHdl,
         rc = clCkptDataSetSerialize(pVersion, pDataInfo, cookie, 
                                     pDataInfo->pElementCallbackTable,
                                     pDataInfo->numElementTableEntries);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                        ("Ckpt: Error during serialization rc[0x %x]\n",rc), rc);
          
        /*Creating  key*/
@@ -1345,7 +1345,7 @@ ClRcT clCkptLibraryCkptElementVersionWrite (ClCkptSvcHdlT   ckptHdl,
        clHeapFree(pDbKey);
     }
 
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt: Error during Inserting the record rc[0x %x]\n",rc), rc);
     
     /*Done*/
@@ -1426,7 +1426,7 @@ ClRcT clCkptLibraryCkptElementDelete(ClCkptSvcHdlT  ckptHdl,
    rc = clCntDataForKeyGet(pCkptClnt->ckptList,
                            (ClCntKeyHandleT) pCkptListKey,
                            (ClCntDataHandleT *) &pCkpt);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt:Invalid Checkpoint Name rc[0x %x]\n",rc),rc);
     /*choosing the dataset*/
     rc = clCntDataForKeyGet(pCkpt->dataSetList,
@@ -1435,7 +1435,7 @@ ClRcT clCkptLibraryCkptElementDelete(ClCkptSvcHdlT  ckptHdl,
     if (rc != CL_OK)
     {
       rc = CL_CKPT_ERR_NOT_EXIST;
-      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
               ("Ckpt: The given dataset is not exists rc[0x %x]\n",rc), rc);
     }
         
@@ -1447,7 +1447,7 @@ ClRcT clCkptLibraryCkptElementDelete(ClCkptSvcHdlT  ckptHdl,
         if( NULL == pDbKey )
         {
             rc = CL_CKPT_ERR_NO_MEMORY;
-            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                     ("Ckpt: No memory errorrc[0x %x]\n",rc), rc);
         }
         memset(pDbKey, 0, sizeof(CkptElemKeyT) + keyLen -1);   
@@ -1460,7 +1460,7 @@ ClRcT clCkptLibraryCkptElementDelete(ClCkptSvcHdlT  ckptHdl,
                                  (ClDBKeyT) pDbKey,
                                  sizeof(CkptElemKeyT) + keyLen -1);
         clHeapFree(pDbKey);
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
                 ("Ckpt: Error during deleting the record rc[0x %x]\n",rc), rc);
     }
 
@@ -1523,7 +1523,7 @@ ClRcT clCkptLibraryCkptDataSetRead (ClCkptSvcHdlT      ckptHdl,
     rc = clCntDataForKeyGet (pCkptClnt->ckptList,
                             (ClCntKeyHandleT)pCkptListKey,
                             (ClCntDataHandleT *)&pCkpt);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
             ("Ckpt:Invalid Checkpoint Name rc[0x %x]\n",rc),rc);
     /*choosing the dataset*/
     rc = clCntDataForKeyGet ( pCkpt->dataSetList,
@@ -1532,7 +1532,7 @@ ClRcT clCkptLibraryCkptDataSetRead (ClCkptSvcHdlT      ckptHdl,
     if (rc != CL_OK)
     {
       rc = CL_CKPT_ERR_NOT_EXIST;
-      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
            ("Ckpt: The given dataset is not exists rc[0x %x]\n",rc), rc);
     }
     
@@ -1555,7 +1555,7 @@ ClRcT clCkptLibraryCkptDataSetRead (ClCkptSvcHdlT      ckptHdl,
                     clDbalKeyFree(pCkpt->usrDbHdl,(ClDBKeyT)pDbKey);
                     clDbalRecordFree(pCkpt->usrDbHdl,record);
                     rc = CL_CKPT_ERR_NULL_POINTER;
-                    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+                    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                    ("Ckpt: Haven't registered deserialiser function rc[0x %x]\n",rc), rc);
                }
                rc = clCkptDataSetDeSerialize(dsId, record, recSize, cookie,
@@ -1573,7 +1573,7 @@ ClRcT clCkptLibraryCkptDataSetRead (ClCkptSvcHdlT      ckptHdl,
                     clDbalKeyFree(pCkpt->usrDbHdl,(ClDBKeyT)pDbKey);
                     clDbalRecordFree(pCkpt->usrDbHdl,record);
                     rc = CL_CKPT_ERR_NULL_POINTER;
-                    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+                    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                    ("Ckpt: Haven't registered Desrialiser function rc[0x %x]\n",rc), rc);
                 }
                rc = clCkptDataSetDeSerialize(dsId, record, recSize,
@@ -1780,7 +1780,7 @@ ClRcT clCkptPack (CkptClnCbT  *pCkptClnt,
           rc = clCntNodeUserDataGet( pCkptClnt->ckptList,
                                      nodeHdl,
                                      &dataHdl);
-          CKPT_ERR_CHECK( CL_CKPT_LIB,CL_DEBUG_ERROR,
+          CKPT_ERR_CHECK( CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                   ("Error in getting Data rc[0x %x]\n",rc), rc);
                                                                                      
           pCkpt = (ClnCkptT *)dataHdl;                     
@@ -1803,7 +1803,7 @@ ClRcT clCkptPack (CkptClnCbT  *pCkptClnt,
                     rc = clCntNodeUserDataGet( pCkpt->dataSetList,
                                                dsNodeHdl,
                                                &dataHdl);
-                     CKPT_ERR_CHECK( CL_CKPT_LIB,CL_DEBUG_ERROR,
+                     CKPT_ERR_CHECK( CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                              ("Error in getting Data rc[0x %x]\n",rc), rc);
                      pDataInfo = (CkptDataSetT *)dataHdl;
                      if (pDataInfo != NULL)
@@ -1855,9 +1855,9 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
     pTempClnt =  (CkptClnCbT *)clHeapAllocate (sizeof (CkptClnCbT));
     if (pTempClnt == NULL)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                        ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                      "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                    CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         return CL_CKPT_ERR_NO_MEMORY;
     }  
@@ -1874,7 +1874,7 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
     if(rc != CL_OK)
     {
         if(pTempClnt != NULL) clHeapFree(pTempClnt);  
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                        ("Ckpt:Error during creating linked list for datasets rc[0x %x]\n",rc),
                        rc);
     }
@@ -1886,9 +1886,9 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
         pCkpt = (ClnCkptT *)clHeapCalloc(1, sizeof(ClnCkptT));
         if(pCkpt == NULL)
         {
-            CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                            ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+            clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                          "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             return CL_CKPT_ERR_NO_MEMORY;
         }
@@ -1901,9 +1901,9 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
             if (pCkpt->pCkptName == NULL)
             {
                 clHeapFree(pCkpt);
-                CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-                                ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-                clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                              "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+                clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 return CL_CKPT_ERR_NO_MEMORY;
             }        
@@ -1941,7 +1941,7 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
                             pCkpt->pCkptName = NULL;
                         }
                     }
-                    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+                    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                                    ("Ckpt: Error during creating linked list"
                                     "for datasets rc[0x %x]\n",rc),
                                    rc);
@@ -1951,7 +1951,7 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
                                    (ClCntKeyHandleT)pCkptListKey,
                                    (ClCntDataHandleT)pCkpt,
                                    NULL);
-                CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+                CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                                ("Ckpt: Error during adding ckpt rc[0x %x]\n",rc), rc);
             }
         }
@@ -1968,9 +1968,9 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
                     clHeapFree (pCkpt->pCkptName);
                     pCkpt->pCkptName = NULL;
                 }
-                CL_DEBUG_PRINT (CL_DEBUG_CRITICAL, 
-                                ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-                clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+                clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
+                              "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+                clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                            CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
                 return CL_CKPT_ERR_NO_MEMORY;
             }             
@@ -1978,7 +1978,7 @@ ClRcT clCkptUnpack (ClDBRecordT  *pBuffer,
             rc = clCntNodeAdd (pCkpt->dataSetList, 
                                (ClCntKeyHandleT)(ClWordT)pDataInfo->dsId,
                                (ClCntDataHandleT)pDataInfo, NULL);
-            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+            CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                            ("Ckpt:Error during Adding dataset to a linked list rc[0x %x]\n",rc),
                            rc);
             dataHdl = dataHdl + sizeof (CkptDataSetT);
@@ -2003,7 +2003,7 @@ ClRcT clCkptBufferAlloc (CkptClnCbT *pCkptClnt,
    if(pCkptClnt->ckptList != 0)
    {
       rc = clCntSizeGet( pCkptClnt->ckptList,&nodeCount);
-      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+      CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
               ("Ckpt: Error in getting size from Container rc[0x %x]\n",rc),rc);
    }
    totalSize = totalSize + nodeCount * sizeof(ClnCkptT) +
@@ -2019,9 +2019,9 @@ ClRcT clCkptBufferAlloc (CkptClnCbT *pCkptClnt,
   pTemp =  (ClCharT*)clHeapCalloc (1, totalSize);
    if (pTemp == NULL)
    {
-      CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
-              ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
-      clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+      clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                    "Ckpt:memory allocation is failed rc[0x %x]\n",rc);
+      clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_LOG_CKPT_LIB_NAME,
                  CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
       return CL_CKPT_ERR_NO_MEMORY;
    }

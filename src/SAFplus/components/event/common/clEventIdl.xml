@@ -60,6 +60,7 @@ material.
           <DataMember name="evtChannelName" type="SaNameT"/>
           <DataMember name="packedRbeLen" type="ClUint32T"/>
           <DataMember name="packedRbe" type="ClUint8T" pointer="Single" lengthVar="packedRbeLen"/>
+          <DataMember name="externalAddress" type="ClUint32T"/>
         </Struct>
 
         <!-- Structure definitions for clEventInitialize -->
@@ -71,6 +72,7 @@ material.
           <DataMember name="reserved" type="ClUint8T"/>
           <DataMember name="userId" type="ClEvtUserIdT"/>
           <DataMember name="clientHdl" type="ClHandleT"/>
+          <DataMember name="isExternal" type="ClUint8T"/>
        </Struct>
 
         <!-- Structure definitions for clEventInitialize -->
@@ -83,6 +85,7 @@ material.
           <DataMember name="evtChannelHandle" type="ClEventChannelHandleT"/>
           <DataMember name="userId" type="ClEvtUserIdT"/>
           <DataMember name="evtChannelName" type="SaNameT"/>
+          <DataMember name="isExternal" type="ClUint8T"/>
        </Struct>
 
         <!-- Structure definitions for clEventUnsubscribe -->

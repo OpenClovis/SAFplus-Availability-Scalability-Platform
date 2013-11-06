@@ -60,6 +60,15 @@ static ClFdT gClIocNeighCompsFd;
 static ClUint32T gClIocNeighCompsInitialize;
 static ClOsalSemIdT gClIocNeighborSem;
 
+#define IOC_LOG_AREA_SEGMENT	"SEG"
+#define IOC_LOG_AREA_STATUS	"STATUS"
+#define IOC_LOG_AREA_COMP	"COMP"
+#define IOC_LOG_CTX_CREATE	"CRE"
+#define	IOC_LOG_CTX_OPEN	"OPE"
+#define IOC_LOG_CTX_GET		"GET"
+#define IOC_LOG_CTX_SET		"SET"
+#define IOC_LOG_CTX_RESET	"RESET"
+
 ClRcT clIocNeighCompsSegmentCreate(void)
 {
     ClRcT rc = CL_OK;
@@ -68,27 +77,27 @@ ClRcT clIocNeighCompsSegmentCreate(void)
     rc = clOsalShmUnlink(gpClIocNeighCompsSegment);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN,("shm unlink failed for segment:%s\n",gpClIocNeighCompsSegment));
+        clLogWarning(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE,"shm unlink failed for segment:%s\n",gpClIocNeighCompsSegment);
     }
 
     rc = clOsalShmOpen(gpClIocNeighCompsSegment,O_RDWR|O_CREAT|O_EXCL,0666,&fd);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in osal shm open.rc=0x%x\n",rc));
+        clLogError(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE,"Error in osal shm open.rc=0x%x\n",rc);
         goto out;
     }
 
     rc = clOsalFtruncate(fd, CL_IOC_NEIGH_COMPS_SEGMENT_SIZE);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in ftruncate.rc=0x%x\n",rc));
+        clLogError(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE,"Error in ftruncate.rc=0x%x\n",rc);
         goto out_unlink;
     }
     
     rc = clOsalMmap(0, CL_IOC_NEIGH_COMPS_SEGMENT_SIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0, (ClPtrT *)&gpClIocNeighComps);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in osal mmap.rc=0x%x\n",rc));
+        clLogError(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE,"Error in osal mmap.rc=0x%x\n",rc);
         goto out_unlink;
     }
     
@@ -101,12 +110,12 @@ ClRcT clIocNeighCompsSegmentCreate(void)
         ClOsalSemIdT semId=0;
         if(clOsalSemIdGet((ClUint8T*)gpClIocNeighCompsSegment, &semId) != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in creating sem.rc=0x%x\n",rc));
+            clLogError(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE,"Error in creating sem.rc=0x%x\n",rc);
             goto out_unlink;
         }
         if(clOsalSemDelete(semId) !=CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in creating sem.rc=0x%x\n",rc));
+            clLogError(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE,"Error in creating sem.rc=0x%x\n",rc);
             goto out_unlink;
         }
         rc = clOsalSemCreate((ClUint8T*)gpClIocNeighCompsSegment, 1, &gClIocNeighborSem);
@@ -132,14 +141,14 @@ ClRcT clIocNeighCompsSegmentOpen(void)
     rc = clOsalShmOpen(gpClIocNeighCompsSegment,O_RDWR,0666,&fd);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN,("Error in shmopen.rc=0x%x\n",rc));
+        clLogWarning(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_OPEN,"Error in shmopen.rc=0x%x\n",rc);
         goto out;
     }
 
     rc =clOsalMmap(0, CL_IOC_NEIGH_COMPS_SEGMENT_SIZE, PROT_READ|PROT_WRITE,MAP_SHARED,fd,0,(ClPtrT*)&gpClIocNeighComps);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in mmap.rc=0x%x\n",rc));
+        clLogError(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_OPEN,"Error in mmap.rc=0x%x\n",rc);
         close((ClInt32T)fd);
         goto out;
     }
@@ -149,7 +158,7 @@ ClRcT clIocNeighCompsSegmentOpen(void)
     rc = clOsalSemIdGet((ClUint8T*)gpClIocNeighCompsSegment, &gClIocNeighborSem);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error getting semid.rc=0x%x\n",rc));
+        clLogError(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_OPEN,"Error getting semid.rc=0x%x\n",rc);
         close((ClInt32T)fd);
     }
 
@@ -182,7 +191,7 @@ ClRcT clIocNeighCompsInitialize(ClBoolT createFlag)
 
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in segment initialize.rc=0x%x\n",rc));
+        clLogError(IOC_LOG_AREA_SEGMENT,CL_LOG_CONTEXT_UNSPECIFIED,"Error in segment initialize.rc=0x%x\n",rc);
         goto out;
     }
 
@@ -191,7 +200,7 @@ ClRcT clIocNeighCompsInitialize(ClBoolT createFlag)
     rc = clOsalMsync(gpClIocNeighComps, CL_IOC_NEIGH_COMPS_SEGMENT_SIZE, MS_ASYNC);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Msync error.rc=0x%x\n",rc));
+        clLogError(IOC_LOG_AREA_SEGMENT,CL_LOG_CONTEXT_UNSPECIFIED,"Msync error.rc=0x%x\n",rc);
         goto out;
     }
 
@@ -248,7 +257,7 @@ ClRcT clIocCompStatusGet(ClIocPhysicalAddressT compAddr, ClUint8T *pStatus)
 
     if(compAddr.nodeAddress > CL_IOC_MAX_NODE_ADDRESS || compAddr.portId > CL_IOC_MAX_COMP_PORT) {
         *pStatus = CL_IOC_NODE_DOWN;
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Invalid Address [node 0x%x : port 0x%x] passed.\n", compAddr.nodeAddress, compAddr.portId)); 
+        clLogError(IOC_LOG_AREA_STATUS,IOC_LOG_CTX_GET,"Error : Invalid Address [node 0x%x : port 0x%x] passed.\n", compAddr.nodeAddress, compAddr.portId); 
         return CL_IOC_RC(CL_ERR_NOT_EXIST);
     }
 
@@ -269,7 +278,7 @@ ClRcT clIocCompStatusSet(ClIocPhysicalAddressT compAddr, ClUint32T status)
     }
 
     if(compAddr.nodeAddress > CL_IOC_MAX_NODE_ADDRESS ||  compAddr.portId > CL_IOC_MAX_COMP_PORT) {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Invalid Address [node 0x%x : port 0x%x] passed.\n", compAddr.nodeAddress, compAddr.portId)); 
+        clLogError(IOC_LOG_AREA_STATUS,IOC_LOG_CTX_SET,"Error : Invalid Address [node 0x%x : port 0x%x] passed.\n", compAddr.nodeAddress, compAddr.portId); 
         return CL_IOC_RC(CL_ERR_NOT_EXIST);
     }
 
@@ -299,7 +308,7 @@ void clIocNodeCompsReset(ClIocNodeAddressT nodeAddr)
 
     if(nodeAddr > CL_IOC_MAX_NODE_ADDRESS)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Invalid node address [0x%x] passed.\n", nodeAddr)); 
+        clLogError(IOC_LOG_AREA_STATUS,IOC_LOG_CTX_RESET,"Error : Invalid node address [0x%x] passed.\n", nodeAddr); 
         return;
     }
 
@@ -318,7 +327,7 @@ void clIocNodeCompsSet(ClIocNodeAddressT nodeAddr, ClUint8T *pBuff)
 
     if(nodeAddr > CL_IOC_MAX_NODE_ADDRESS)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Invalid node address [0x%x] passed.\n", nodeAddr)); 
+        clLogError(IOC_LOG_AREA_COMP,IOC_LOG_CTX_SET,"Error : Invalid node address [0x%x] passed.\n", nodeAddr); 
         return;
     }
 
@@ -337,7 +346,7 @@ void clIocNodeCompsGet(ClIocNodeAddressT nodeAddr, ClUint8T *pBuff)
 
     if(nodeAddr > CL_IOC_MAX_NODE_ADDRESS)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Invalid node address [0x%x] passed.\n", nodeAddr)); 
+        clLogError(IOC_LOG_AREA_COMP,IOC_LOG_CTX_GET,"Error : Invalid node address [0x%x] passed.\n", nodeAddr); 
         return;
     }
 
@@ -353,7 +362,7 @@ ClRcT clIocRemoteNodeStatusGet(ClIocNodeAddressT nodeAddr, ClUint8T *pStatus)
     if(nodeAddr > CL_IOC_MAX_NODE_ADDRESS)
     {
         *pStatus = CL_IOC_NODE_DOWN;
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : Invalid node address [0x%x] passed.\n", nodeAddr)); 
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Error : Invalid node address [0x%x] passed.\n", nodeAddr); 
         return CL_IOC_RC(CL_ERR_NOT_EXIST);
     }
     

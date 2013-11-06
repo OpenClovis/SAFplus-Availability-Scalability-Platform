@@ -60,6 +60,7 @@
 #include "../osal.h"
 #include <clCksmApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clDbg.h>
 #include <clBitApi.h>
 #include <clLogApi.h>
@@ -120,7 +121,7 @@ pid = fork();
 
 if(pid < 0)
 {
-    CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nProcess Create: FAILED"));
+    clLogInfo(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess Create: FAILED");
     retCode = CL_OSAL_RC(CL_OSAL_ERR_PROCESS_CREATE);
     CL_FUNC_EXIT();
     return(retCode);
@@ -150,7 +151,7 @@ if(0 == pid)
         /* Set the process group id to its own pid */
         setpgid (pid, 0);
     }
-    CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nProcess Create: Function invoked"));
+    clLogInfo(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess Create: Function invoked");
     fpFunction(processArg);
     exit(0);
 }
@@ -211,7 +212,7 @@ cosSharedMutexCreate (ClOsalMutexIdT* pMutexId, ClOsalSharedMutexFlagsT flags, C
     pMutex = (ClOsalMutexT*) clHeapAllocate((ClUint32T)sizeof(ClOsalMutexT));
     if(NULL == pMutex)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex creation failed, out of memory."));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Mutex creation failed, out of memory.");
         retCode = CL_OSAL_RC(CL_ERR_NO_MEMORY);
         CL_FUNC_EXIT();
         return(retCode);
@@ -222,7 +223,7 @@ cosSharedMutexCreate (ClOsalMutexIdT* pMutexId, ClOsalSharedMutexFlagsT flags, C
     if(0 != retCode)
 	{
         clHeapFree(pMutex);
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex creation failed, error [0x%x]", retCode));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Mutex creation failed, error [0x%x]", retCode);
         CL_FUNC_EXIT();
         return(CL_OSAL_RC(CL_OSAL_ERR_MUTEX_CREATE));
 	}
@@ -396,7 +397,7 @@ __cosMutexUnlock (ClOsalMutexIdT mutexId, ClBoolT verbose)
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         if(verbose)
         {
-            CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex Unlock : FAILED, mutex is NULL (used after delete?)"));
+            clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Mutex Unlock : FAILED, mutex is NULL (used after delete?)");
             clDbgPause();
         }
         CL_FUNC_EXIT();
@@ -458,7 +459,7 @@ cosMutexDestroy (ClOsalMutexT *pMutex)
 
     if (NULL == pMutex)
 	{
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("Mutex Destroy failed, mutex is NULL (double delete?)"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Mutex Destroy failed, mutex is NULL (double delete?)");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -500,7 +501,7 @@ cosMutexDelete (ClOsalMutexIdT mutexId)
     CL_FUNC_ENTER();
     if (NULL == pMutex)
 	{
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR, ("\nMutex Delete : FAILED, mutex is NULL (double delete?)"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nMutex Delete : FAILED, mutex is NULL (double delete?)");
         retCode = CL_OSAL_RC(CL_ERR_INVALID_PARAMETER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -609,7 +610,7 @@ cosMutexUnlockDebug (ClOsalMutexIdT mutexId, const ClCharT *file, ClInt32T line)
     }
 
     /* Nobody wants to know whenever ANY mutex is locked/unlocked; now if this was a particular mutex...
-       CL_DEBUG_PRINT (CL_DEBUG_TRACE, ("\nMutex Unlock : DONE")); */
+       clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nMutex Unlock : DONE"); */
     CL_FUNC_EXIT();
     return (rc);
 }
@@ -717,6 +718,7 @@ static ClBoolT osalShmExistsForComp(const ClCharT *compName)
 }
 #endif
 
+#if 0
 #ifdef __i386__
 static const char *registerMap[NGREG] = { "gs", "fs", "es", "ds", "edi", "esi", "ebp", "esp",
                                           "ebx", "edx", "ecx", "eax", "trap", "err", "eip", "cs",
@@ -746,9 +748,10 @@ static const char *registerMap[3+NGREG] = {"trap_no", "error_code", "oldmask",
 
 #else
 static const char *registerMap[NGREG] = { NULL, };
-
+#endif
 #endif
 
+#if 0
 static void registerDump(ucontext_t *ucontext, ClCharT *exceptionSegment, ClUint32T maxBytes)
 {
     register int i;
@@ -765,13 +768,13 @@ static void registerDump(ucontext_t *ucontext, ClCharT *exceptionSegment, ClUint
     }
     bytes += snprintf(exceptionSegment + bytes, maxBytes - bytes, "\n");
 }
+#endif
 
 static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
 {
     char sigName[16];
     int logfd = -1;
     ClFdT fd = 0;
-    void *buffer[STACK_DEPTH] = {NULL};
     void *trace[STACK_DEPTH];
     int trace_size = 0;
     ClRcT rc = CL_OK;
@@ -779,6 +782,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
     ClCharT *exceptionSegment = NULL;
     ucontext_t *uc = (ucontext_t *)param;
     ClInt32T bytes = 0;
+    
     switch(signum)
     {
     case SIGHUP:
@@ -835,7 +839,7 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
     trace_size = get_backtrace(buffer, trace, 16, uc);
     
     if(clDbgLogLevel > 0)
-        logfd = open("/var/log/aspdbg.log", O_APPEND | O_RDWR | O_CREAT, 0666);
+        logfd = open("/var/log/safplusdbg.log", O_APPEND | O_RDWR | O_CREAT, 0666);
 
     {
         ClCharT *compName = getenv("ASP_COMPNAME");
@@ -878,10 +882,16 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
         }
     }
 
+    /* backtrace_symbols uses malloc and so it can block */
+#if 0    
     {
+    void *buffer[STACK_DEPTH] = {NULL};
+    ClInt32T bytes = 0;
+        
         int         count = 0;
         char        **message = (char **)NULL;
         bytes = 0;
+        
         message = backtrace_symbols(trace, trace_size);
         if(exceptionSegment != NULL)
         {
@@ -906,10 +916,17 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
             clOsalMunmap(exceptionSegment, segmentSize);
         }
     }
+#else
+    if (logfd > 0)
+      backtrace_symbols_fd(trace, trace_size,logfd);
+#endif    
 
     out:
     if(logfd >= 0) close(logfd);
+    logfd = 0;
     if(fd >= 0) close(fd);
+    fd = 0;
+    (void )bytes ; /* fool the compiler accepting this compiler */
     raise(signum);
 }
 
@@ -940,7 +957,7 @@ void clOsalSigHandlerInitialize()
         sigaction(SIGALRM, &act, &oldact[SIGALRM]) ||
         sigaction(SIGTERM, &act, &oldact[SIGTERM]))
     {
-        CL_DEBUG_PRINT (CL_DEBUG_ERROR,("\nSIGACTION FUNCTION FAILED. Signal handling will not be available."));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nSIGACTION FUNCTION FAILED. Signal handling will not be available.");
     }
 }
 
@@ -1034,7 +1051,7 @@ cosPosixCleanup (osalFunction_t *pOsalFunction)
     pOsalFunction->fpMaxPathGet = NULL;
     pOsalFunction->fpPageSizeGet = NULL;
 
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nCOS Clean up: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nCOS Clean up: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }

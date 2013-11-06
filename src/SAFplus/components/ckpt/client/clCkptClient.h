@@ -198,7 +198,7 @@ do\
 if (releaseCode != '\0' && (rc == CL_OK))\
 {\
     rc = CL_CKPT_ERR_VERSION_MISMATCH;\
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,\
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,\
                     CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",\
                     version.releaseCode,version.majorVersion,\
                     version.minorVersion);\

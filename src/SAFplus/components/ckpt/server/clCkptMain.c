@@ -138,8 +138,8 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
     rc = initializeAmf();
     if( rc != SA_AIS_OK)
     {
-       CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("CKPT: ckptInitialize failed [0x%X]\n\r", rc));
+       clLogCritical(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                     "CKPT: ckptInitialize failed [0x%X]\n\r", rc);
         return rc;
     }       
         
@@ -159,6 +159,9 @@ SaAisErrorT initializeAmf(void)
    
     ClIocPortT          iocPort=0;
     SaAisErrorT         rc = SA_AIS_OK;
+
+    clLogCompName = "CKP"; /* Override generated eo name with a short name for our server */
+
     /*This function overrides the default EO Configuaration */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
     /*
@@ -232,7 +235,7 @@ void ckptTerminate(SaInvocationT invocation, const SaNameT *compName)
 {
     SaAisErrorT rc = SA_AIS_OK;
     
-    CL_DEBUG_PRINT(CL_DEBUG_WARN,("Checkpoint service is stopping."));
+    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Checkpoint service is stopping.");
     /*
      * Deregister with debug server.
     */

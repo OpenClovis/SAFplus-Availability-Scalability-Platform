@@ -42,7 +42,7 @@ clLogInitDataDump(ClHandleDatabaseHandleT  hDb,
     ClLogInitHandleDataT  *pData        = NULL;
     ClCharT               ret[MAX_DEBUG_DISPLAY];
     ClCharT               p[MAX_DEBUG_DISPLAY];
-    ClCharT               **ppRet       = pCookie;
+    ClCharT               **ppRet       = (ClCharT**) pCookie;
     
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -125,7 +125,7 @@ clLogInitDataDump(ClHandleDatabaseHandleT  hDb,
         return rc;
     }
 
-    *ppRet = clHeapAllocate(strlen(ret) + 1);
+    *ppRet = (ClCharT*) clHeapAllocate(strlen(ret) + 1);
     if( NULL == *ppRet )
     {
         CL_LOG_DEBUG_ERROR(("clHeapAllocate(): rc[0x %x]", rc));
@@ -172,7 +172,7 @@ clLogStreamDataDump(ClHandleDatabaseHandleT  hDb,
     ClLogStreamHandleDataT  *pData        = NULL;
     ClLogClntStreamDataT    *pStreamInfo  = NULL;
     ClLogClntEoDataT        *pClntEoEntry = NULL;
-    ClCharT                 **ppRet       = pCookie;
+    ClCharT                 **ppRet       = (ClCharT**) pCookie;
     ClCharT                 ret[MAX_DEBUG_DISPLAY];
     ClCharT                 p[MAX_DEBUG_DISPLAY];
 
@@ -225,7 +225,7 @@ clLogStreamDataDump(ClHandleDatabaseHandleT  hDb,
             return rc;
         }
 
-        *ppRet = clHeapAllocate(strlen(ret) + 1);
+        *ppRet = (ClCharT*) clHeapAllocate(strlen(ret) + 1);
         if( NULL == *ppRet )
         {
             CL_LOG_DEBUG_ERROR(("clHeapAllocate(): rc[0x %x]", rc));

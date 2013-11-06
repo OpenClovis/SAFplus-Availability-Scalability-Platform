@@ -90,7 +90,7 @@ clLogServerEoDump(ClUint32T  argc,
 
 static ClRcT
 clLogReturnStringFmt(ClCharT** ppRet,
-                     ClCharT*  pErrMsg,
+                     const char*  pErrMsg,
                      ...);
 
 static ClRcT
@@ -278,7 +278,7 @@ clLogDebugCliStreamOpen(ClUint32T   argc,
     
     if(0 == openFlags)
     {
-        rc = clLogStreamOpen(atoi(argv[1]), streamName, atoi(argv[3]), NULL,
+        rc = clLogStreamOpen(atoi(argv[1]), streamName,(ClLogStreamScopeT) atoi(argv[3]), NULL,
                              openFlags, 0, &hStream);
     }
     else
@@ -288,14 +288,14 @@ clLogDebugCliStreamOpen(ClUint32T   argc,
         streamAttr.fileUnitSize        = atoi(argv[7]);
         streamAttr.recordSize          = atoi(argv[8]);
         streamAttr.haProperty          = atoi(argv[9]);
-        streamAttr.fileFullAction      = atoi(argv[10]);
+        streamAttr.fileFullAction      = (ClLogFileFullActionT) atoi(argv[10]);
         streamAttr.maxFilesRotated     = atoi(argv[11]);
         streamAttr.flushFreq           = atoi(argv[12]);
         streamAttr.flushInterval       = atoi(argv[13]);
         streamAttr.waterMark.lowLimit  = atoi(argv[14]);
         streamAttr.waterMark.highLimit = atoi(argv[15]);
 
-        rc = clLogStreamOpen(atoi(argv[1]), streamName, atoi(argv[3]), &streamAttr,
+        rc = clLogStreamOpen(atoi(argv[1]), streamName, (ClLogStreamScopeT) atoi(argv[3]), &streamAttr,
                 openFlags, 0, &hStream);
     }
     if( CL_OK != rc )
@@ -350,7 +350,7 @@ clLogDebugCliWrite(ClUint32T   argc,
             clLogReturnStringFmt(ppRet, "Data not according to the msgId\n");
             return CL_ERR_INVALID_PARAMETER;
         }
-        rc = clLogWriteAsync(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
+        rc = clLogWriteAsync(atoi(argv[1]), (ClLogSeverityT) atoi(argv[2]), atoi(argv[3]),
                              atoi(argv[4]), atoi(argv[5]), argv[6]);
         
     }
@@ -368,7 +368,7 @@ clLogDebugCliWrite(ClUint32T   argc,
             "supported in the TLV format\n");
             return CL_ERR_INVALID_PARAMETER;
         }
-        rc = clLogWriteAsync(atoi(argv[1]), atoi(argv[2]), atoi(argv[3]),
+        rc = clLogWriteAsync(atoi(argv[1]), (ClLogSeverityT) atoi(argv[2]), atoi(argv[3]),
                              atoi(argv[4]), atoi(argv[5]), atoi(argv[6]),
                              argv[7], atoi(argv[8]));
     }
@@ -581,7 +581,7 @@ clLogDebugCliSeverityGet(ClUint32T   argc,
         const ClCharT *str;
         ClLogSeverityT severity;
     }logSeverityTable[] = {
-        {"UNKNOWN", 0},
+        {"UNKNOWN", (ClLogSeverityT) 0},
         {"EMERGENCY", CL_LOG_SEV_EMERGENCY},
         {"ALERT", CL_LOG_SEV_ALERT},
         {"CRITICAL", CL_LOG_SEV_CRITICAL},
@@ -892,7 +892,7 @@ clLogServerEoDump(ClUint32T  argc,
 
 static ClRcT
 clLogReturnStringFmt(ClCharT** ppRet,
-                     ClCharT*  pErrMsg,
+                     const char*  pErrMsg,
                      ...)
 {
     va_list arg;

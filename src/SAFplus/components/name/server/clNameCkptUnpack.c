@@ -27,6 +27,10 @@
 extern ClCkptSvcHdlT     gNsCkptSvcHdl;
 extern ClCntHandleT      gNSHashTable ;
 
+#define NAME_LOG_AREA_NAME		"SVR"
+#define NAME_LOG_AREA_CKPT		"CKP"
+#define NAME_LOG_CTX_DESERIALIZER	"DESERIALIZER"
+
 ClRcT
 clNameContextCkptDeserializer(ClUint32T   dsId,
                               ClAddrT     pBuffer,
@@ -39,29 +43,29 @@ clNameContextCkptDeserializer(ClUint32T   dsId,
     CL_NAME_DEBUG_TRACE(("Enter"));
     if( CL_NAME_CONTEXT_GBL_DSID != dsId )
     {        
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                ("dsId is not proper\n"));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_DESERIALIZER, 
+                   "dsId is not proper\n");
         return CL_NS_RC(CL_ERR_INVALID_PARAMETER);
     }    
     if( NULL == pBuffer )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                 ("Passed Value is NULL"));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_DESERIALIZER,
+                   "Passed Value is NULL");
         return CL_NS_RC(CL_ERR_NULL_POINTER);
     }    
     rc = clBufferCreate(&inMsg);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                  ("clBufferCreate() : rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_DESERIALIZER, 
+                   "clBufferCreate() : rc[0x %x]", rc);
         return rc;
     }    
     rc = clBufferNBytesWrite(inMsg, (ClUint8T *)pBuffer, size); 
     if( CL_OK != rc )
     {
         clBufferDelete(&inMsg);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clBufferNBytesWrite(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_DESERIALIZER,
+                   "clBufferNBytesWrite(): rc[0x %x]", rc);
         return rc;
     }    
     rc = clNameContextCkptNameUnpack(inMsg);
@@ -72,8 +76,8 @@ clNameContextCkptDeserializer(ClUint32T   dsId,
     }    
     if( CL_OK != (rc = clBufferDelete(&inMsg)) ) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clBufferDelete(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_DESERIALIZER,
+                   "clBufferDelete(): rc[0x %x]", rc);
     }    
 
     CL_NAME_DEBUG_TRACE(("Exit"));
@@ -94,8 +98,8 @@ clNameContextCkptNameUnpack(ClBufferHandleT  inMsg)
     rc = clXdrUnmarshallClUint32T(inMsg, &size);
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clXdrUnmarshallClUint32T(): rc[0x %x]", rc));
+        clLogError(NAME_LOG_AREA_NAME,NAME_LOG_AREA_CKPT,
+                   "clXdrUnmarshallClUint32T(): rc[0x %x]", rc);
         return rc;
     }    
     clLogDebug("SVR", "CKP", "Num of contexts: %d", size);
@@ -113,7 +117,7 @@ clNameContextCkptNameUnpack(ClBufferHandleT  inMsg)
             rc = clCpmMasterAddressGet(&masterAddr);
             if (rc != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clCpmMasterAddressGet failed with rc 0x%x",rc));
+                clLogError(NAME_LOG_AREA_NAME,NAME_LOG_AREA_CKPT,"clCpmMasterAddressGet failed with rc 0x%x",rc);
                 return rc;
             }
 
@@ -175,8 +179,8 @@ clNameSvcBindingEntryRecreate(ClNameSvcContextInfoT  *pCtxData,
                 break;
             }                
         default:
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("Invalid type of data"));
+            clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "Invalid type of data");
             return CL_NS_RC(CL_ERR_INVALID_PARAMETER);
     }    
 
@@ -205,7 +209,7 @@ clNameSvcEntryDeserializer(ClUint32T  dsId,
                                                 sizeof(ClCharT));
        if( NULL == pNsEntryInfo->nsInfo.attr )
        {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHeapCalloc(): "));        
+            clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_DESERIALIZER,"clHeapCalloc(): ");        
             return CL_NS_RC(CL_ERR_NO_MEMORY);
        }    
        memcpy(pNsEntryInfo->nsInfo.attr, pBuffer,

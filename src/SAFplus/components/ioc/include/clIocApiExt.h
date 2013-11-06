@@ -99,6 +99,7 @@ extern "C"
     {
         /*Notification ID*/
         ClIocNotificationIdT id;
+        //ClUint32T id_netOrder;
         ClUint32T protoVersion;
         ClIocAddressT nodeAddress;
         ClUint32T nodeVersion;

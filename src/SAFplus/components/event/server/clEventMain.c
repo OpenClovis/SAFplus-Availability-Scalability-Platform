@@ -42,6 +42,10 @@
 #undef __CLIENT__
 #include "clEventServerFuncTable.h"
 
+#define EVENT_LOG_AREA		"EVT"
+#define EVENT_LOG_CTX_EVENT_INI	"INI"
+#define EVENT_LOG_CTX_EVENT_FIN	"FIN"
+
 static SaAmfHandleT gClEvtAmfHandle;
 
 ClBoolT unblockNow = CL_FALSE;
@@ -72,7 +76,7 @@ ClRcT initializeAmf()
     rc = saAmfInitialize(&gClEvtAmfHandle, &callbacks, &version);
     if(rc != SA_AIS_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
                    CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, " CPM Library", rc);
         return clSafToClovisError(rc);
     }
@@ -102,8 +106,8 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
     rc = initializeAmf();
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event: Amf Initialization failed [0x%X]\n\r", rc));
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
+                      "Event: Amf Initialization failed [0x%X]\n\r", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -113,10 +117,10 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
     rc = clEoClientInstallTables(gEvtHead.evtEOId, CL_EO_SERVER_SYM_MOD(gAspFuncTable, EVT));
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event: Installing Native table failed [0x%X]\n\r",
-                        rc));
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
+                      "Event: Installing Native table failed [0x%X]\n\r",
+                      rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
                    CL_LOG_MESSAGE_1_FUNC_TABLE_INSTALL_FAILED, rc);
         clCntDelete(gEvtMasterECHHandle);
         clEvtChannelDBClean();
@@ -126,10 +130,10 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
     rc = clEventLibTableInit(); 
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event: Installing Native Server to Server table failed [0x%X]\n\r",
-                        rc));
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
+                      "Event: Installing Native Server to Server table failed [0x%X]\n\r",
+                      rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
                    CL_LOG_MESSAGE_1_FUNC_TABLE_INSTALL_FAILED, rc);
         clCntDelete(gEvtMasterECHHandle);
         clEvtChannelDBClean();
@@ -139,9 +143,9 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
     rc = clEventDebugRegister(gEvtHead.evtEOId);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event: Debug Register failed [0x%X]\n\r", rc));
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
+                      "Event: Debug Register failed [0x%X]\n\r", rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
                    CL_LOG_MESSAGE_1_DBG_REGISTER_FAILED, rc);
         CL_FUNC_EXIT();
         return rc;
@@ -152,8 +156,8 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
     rc = clEvtHandleDatabaseInit();
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event: Handle Database Init failed [0x%X]\n\r", rc));
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
+                      "Event: Handle Database Init failed [0x%X]\n\r", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -165,9 +169,9 @@ ClRcT clEvtInitialize(ClInt32T argc, ClCharT *argv[])
     rc = clEvtCkptInit();
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event: CKPT Init failed [0x%X]\n\r", rc));
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_CRITICAL, NULL,
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
+                      "Event: CKPT Init failed [0x%X]\n\r", rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
                    CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "Checkpoint Library",
                    rc);
         CL_FUNC_EXIT();
@@ -201,16 +205,16 @@ ClRcT clEvtFinalize()
     rc = clEoClientUninstallTables(gEvtHead.evtEOId, CL_EO_SERVER_SYM_MOD(gAspFuncTable, EVT));  
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event: EO Client Uninstall failed [0x%X]\n\r", rc));
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_FIN,
+                      "Event: EO Client Uninstall failed [0x%X]\n\r", rc);
         CL_FUNC_EXIT();
         return rc;
     }
     rc = clEventDebugDeregister(gEvtHead.evtEOId);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event: Debug Deregister failed [0x%X]\n\r", rc));
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_FIN,
+                      "Event: Debug Deregister failed [0x%X]\n\r", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -220,9 +224,9 @@ ClRcT clEvtFinalize()
     rc = clEvtHandleDatabaseExit();
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event: Handle Database Cleanup failed [0x%X]\n\r",
-                        rc));
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_FIN,
+                      "Event: Handle Database Cleanup failed [0x%X]\n\r",
+                      rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -234,8 +238,8 @@ ClRcT clEvtFinalize()
     clEvtCkptExit();
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event Ckpt Exit failed [0x%X]\n\r", rc));
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_FIN,
+                      "Event Ckpt Exit failed [0x%X]\n\r", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -319,13 +323,14 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
 
+    clLogCompName = "EVT"; /* Override generated eo name with a short name for our server */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
     
     rc = clEvtInitialize(argc,argv);
     if( rc != CL_OK )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Event: clEvtInitialize failed [0x%X]\n\r", rc));
+        clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
+                      "Event: clEvtInitialize failed [0x%X]\n\r", rc);
         return rc;
     }
             

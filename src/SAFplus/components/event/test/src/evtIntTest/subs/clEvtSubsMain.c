@@ -229,37 +229,37 @@ void clEvtSubsTestDeliverCallback( ClEventSubscriptionIdT subscriptionId,
     rc = clEventUnsubscribe(evtChannelHandleLocal, X);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Ext Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Ext Unsubscription Failed [0x%X]\n\r",rc);
     }
     
     rc = clEventUnsubscribe(evtChannelHandleLocal, Y);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Normal Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Normal Unsubscription Failed [0x%X]\n\r",rc);
     }
 
     rc = clEventUnsubscribe(evtChannelHandleLocal, Z);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("RBE Unsubscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RBE Unsubscriptions Failed [0x%X]\n\r",rc);
     }
 
 
     rc = clEventUnsubscribe(evtChannelHandleGlobal, X);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Ext unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Ext unsubscription Failed [0x%X]\n\r",rc);
     }
     rc = clEventUnsubscribe(evtChannelHandleGlobal, Y);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Noraml unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Noraml unsubscription Failed [0x%X]\n\r",rc);
     }
  
     rc = clEventUnsubscribe(evtChannelHandleGlobal, Z);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("RBE unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RBE unsubscription Failed [0x%X]\n\r",rc);
     }
     
     printf("\nUnsubscriptions Successful!\n");
@@ -273,12 +273,12 @@ void clEvtSubsTestDeliverCallback( ClEventSubscriptionIdT subscriptionId,
     rc = clEventUnsubscribe(evtChannelHandle, 1);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscription Failed [0x%X]\n\r",rc);
     }
     rc = clEventUnsubscribe(evtChannelHandle, 2);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscription Failed [0x%X]\n\r",rc);
     }
 
     printf("\nUnsubscriptions Successful!\n");
@@ -395,34 +395,34 @@ ClRcT clEvtSubsTest()
     rc = clEventInitialize(&evtHandle, &evtCallbacks, &version);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Init Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Init Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventChannelOpen(evtHandle, &gEvtTestChannelName, CL_EVENT_CHANNEL_SUBSCRIBER, (ClTimeT)-1, &evtChannelHandle);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventSubscribe(evtChannelHandle, &gSubscribeFilters, 0, (void*)0x000);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
     /*
     rc = clEventExtSubscribe(evtChannelHandle, EVENT_TEST_EVENT_TYPE, 1, (void*)0x100);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
     rc = clEventSubscribe(evtChannelHandle, &gSubscribeFilters, 2, (void*)0x200);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
 	
@@ -432,34 +432,34 @@ ClRcT clEvtSubsTest()
     rc = clEventUnsubscribe(evtChannelHandle, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscription Failed [0x%X]\n\r",rc);
     }
     */
 #if 0
     rc = clEventUnsubscribe(evtChannelHandle, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscription Failed [0x%X]\n\r",rc);
     }
     rc = clEventUnsubscribe(evtChannelHandle, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscription Failed [0x%X]\n\r",rc);
     }
     rc = clEventUnsubscribe(evtChannelHandle, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscription Failed [0x%X]\n\r",rc);
     }
     rc = clEventUnsubscribe(evtChannelHandle, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscription Failed [0x%X]\n\r",rc);
     }
     rc = clEventUnsubscribe(evtChannelHandle, 0);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscription Failed [0x%X]\n\r",rc);
     }
 #endif
 
@@ -535,7 +535,7 @@ ClRcT clEvtSubInitialize(ClUint32T argc, ClCharT *argv[])
                                           (int)(sizeof(gClEvtSubsTestFuncList)/sizeof (ClEoPayloadWithReplyCallbackT)));
     if( rc != CL_OK )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("Installing Native table failed [0x%X]\n\r",rc));
+        clLogCritical(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Installing Native table failed [0x%X]\n\r",rc);
     }
     
     clEvtSubsCpmInit(); 
@@ -654,7 +654,7 @@ ClRcT   clEvtSubscriptionTest(void)
     rc = clEventInitialize(&evtHandle, &evtCallbacks, &version);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("My Init Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"My Init Failed [0x%X]\n\r",rc);
         return rc;
     }
     
@@ -665,20 +665,20 @@ ClRcT   clEvtSubscriptionTest(void)
             CL_EVENT_CHANNEL_SUBSCRIBER, (ClTimeT)-1, &evtChannelHandleLocal);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventExtSubscribe(evtChannelHandleLocal, EVENT_TEST_EVENT_TYPE, X, (void*)0x900);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Ext Subscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Ext Subscription Failed [0x%X]\n\r",rc);
         return rc;
     }
     rc = clEventSubscribe(evtChannelHandleLocal, &gSubscribeFilters, Y, (void*)0x200);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Normal Subscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Normal Subscription Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -688,7 +688,7 @@ ClRcT   clEvtSubscriptionTest(void)
     rc = clEventExtWithRbeSubscribe(evtChannelHandleLocal, NULL, Z, (void*)0x300);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("RBE Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RBE Subscriptions Failed [0x%X]\n\r",rc);
 /*        return rc;  For better Code Coverage */
     }
 #endif
@@ -700,20 +700,20 @@ ClRcT   clEvtSubscriptionTest(void)
             (ClTimeT)-1, &evtChannelHandleGlobal);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventExtSubscribe(evtChannelHandleGlobal, EVENT_TEST_EVENT_TYPE, X, (void*)0x500);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Ext Subscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Ext Subscription Failed [0x%X]\n\r",rc);
         return rc;
     }
     rc = clEventSubscribe(evtChannelHandleGlobal, &gSubscribeFilters, Y, (void*)0x200);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Noraml Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Noraml Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -722,13 +722,13 @@ ClRcT   clEvtSubscriptionTest(void)
     rc = clRuleExprAllocate(1, &pRbeExpr);
     if(NULL == pRbeExpr)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("RBE Allocate Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RBE Allocate Failed [0x%X]\n\r",rc);
     }
     
     rc = clEventExtWithRbeSubscribe(evtChannelHandleGlobal, pRbeExpr, Z, (void*)0x300);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("RBE Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RBE Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
     clRuleExprDeallocate(pRbeExpr);

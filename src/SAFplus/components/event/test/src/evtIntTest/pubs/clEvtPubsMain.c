@@ -329,7 +329,7 @@ ClRcT clEvtPubsTest()
     rc = clEventInitialize(&evtHandle, &evtCallbacks, &version);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Init Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Init Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -338,28 +338,28 @@ ClRcT clEvtPubsTest()
                             (ClTimeT)-1, &evtChannelHandle);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventAllocate(evtChannelHandle, &eventHandle);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Allocate Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Allocate Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventAttributesSet(eventHandle, &gPatternArray, 1, 0, &publisherName);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Attribute Set Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Attribute Set Failed [0x%X]\n\r",rc);
         return rc;
     }
 #if 0 // Mynk
     rc = clEventPublish(eventHandle, (const void*)EVENT_TEST_PAYLOAD, sizeof(EVENT_TEST_PAYLOAD), &eventId);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Published Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Published Failed [0x%X]\n\r",rc);
         return rc;
     }
 #endif
@@ -368,14 +368,14 @@ ClRcT clEvtPubsTest()
     rc = clEventAllocate(evtChannelHandle, &eventHandle1);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Allocate Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Allocate Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventExtAttributesSet(eventHandle1, EVENT_TEST_EVENT_TYPE, 1, 0, &publisherName);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Attribute Set Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Attribute Set Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -399,7 +399,7 @@ ClRcT clEvtPubsTest()
         	rc = clEventPublish(eventHandle, (const void*)buff, strlen(buff), &eventId);
         	if(CL_OK != rc)
         	{
-            		CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Published Failed [0x%X]\n\r",rc));
+            		clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Published Failed [0x%X]\n\r",rc);
             		return rc;
         	}
 		printf("Published :: %d times \n",count);
@@ -413,7 +413,7 @@ ClRcT clEvtPubsTest()
     rc = clEventPublish(eventHandle1, (const void*)EVENT_TEST_PAYLOAD, sizeof(EVENT_TEST_PAYLOAD), &eventId);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Published Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Published Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -421,14 +421,14 @@ ClRcT clEvtPubsTest()
     rc = clEventAttributesSet(eventHandle, &gPatternArray, 1, 0, &publishCleanupName);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Attribute Set Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Attribute Set Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventPublish(eventHandle, (const void*)EVENT_TEST_PAYLOAD, sizeof(EVENT_TEST_PAYLOAD), &eventId);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Published Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Published Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -512,7 +512,7 @@ ClRcT clEvtPubInitialize(ClUint32T argc, ClCharT *argv[])
                                           (int)(sizeof(gClEvtPubsTestFuncList)/sizeof (ClEoPayloadWithReplyCallbackT)));
     if( rc != CL_OK )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("Installing Native table failed [0x%X]\n\r",rc));
+        clLogCritical(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Installing Native table failed [0x%X]\n\r",rc);
     }
 
     clEvtPubsCpmInit();
@@ -658,7 +658,7 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     rc = clEventInitialize(&evtHandle, &evtCallbacks, &version);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Init Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Init Failed [0x%X]\n\r",rc);
         return rc;
     }
     
@@ -676,28 +676,28 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     }
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventExtSubscribe(evtChannelHandle, EVENT_TEST_EVENT_TYPE, 0xB, (void*)0xB00);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Ext Subscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Ext Subscription Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventSubscribe(evtChannelHandle, &gSubscribeFilters, 0xA, (void*)0xA00);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Match Subscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Match Subscription Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventSubscribe(evtChannelHandle, &gNoMatchSubscribeFilters, 0xC, (void*)0xC00);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Suppression set Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Suppression set Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -710,21 +710,21 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     rc = clRuleExprAllocate(1, &pRbeExpr);
     if(NULL == pRbeExpr)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("RBE Allocate Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RBE Allocate Failed [0x%X]\n\r",rc);
     }
 
     rc = clEventSuppressionSet(evtChannelHandle, &gNoMatchSubscribeFilters, 
                         &publisherName, pRbeExpr, &suppressionHandleNoMatch);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Suppression Set Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Suppression Set Failed [0x%X]\n\r",rc);
 /*        return rc;  For better coverage */
     }
     
     rc = clEventExtWithRbeSubscribe(evtChannelHandle, pRbeExpr, Z, (void*)0x300);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("RBE Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"RBE Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
         
@@ -733,7 +733,7 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
                         &publisherName, pRbeExpr, &suppressionHandleMatch);    
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Suppression Set Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Suppression Set Failed [0x%X]\n\r",rc);
 /*        return rc;  For better coverage */
     }
 #endif
@@ -741,20 +741,20 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     rc = clEventAllocate(evtChannelHandle, &eventHandleX);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Allocate Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Allocate Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventAttributesSet(eventHandleX, &gPatternArray, 1, 0, &publisherName);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Attribute Set Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Attribute Set Failed [0x%X]\n\r",rc);
         return rc;
     }
     rc = clEventPublish(eventHandleX, (const void*)EVENT_TEST_PAYLOAD, sizeof(EVENT_TEST_PAYLOAD), &eventId);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Published Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Published Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -763,14 +763,14 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     rc = clEventAllocate(evtChannelHandle, &eventHandleY);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Allocate Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Allocate Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventExtAttributesSet(eventHandleY, EVENT_TEST_EVENT_TYPE, 1, 0, &publisherName);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Attribute Set Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Attribute Set Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -778,7 +778,7 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     rc = clEventPublish(eventHandleY, (const void*)EVENT_TEST_PAYLOAD, sizeof(EVENT_TEST_PAYLOAD), &eventId);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Published Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Published Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -794,7 +794,7 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
         rc = clEvtSubsInfoShow(&channelName, channelScope, 1, dbgPrintHandle);
         if( rc != CL_OK )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("EM Information Display failed [0x%X] \n\r",rc));        
+            clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"EM Information Display failed [0x%X] \n\r",rc);        
             CL_FUNC_EXIT();
             return rc;
         }
@@ -802,7 +802,7 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
         rc = clEvtSubsInfoShow(&channelName, channelScope, 0, dbgPrintHandle);
         if( rc != CL_OK )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("EM Information Display failed [0x%X] \n\r",rc));        
+            clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"EM Information Display failed [0x%X] \n\r",rc);        
             CL_FUNC_EXIT();
             return rc;
         }
@@ -812,7 +812,7 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
         rc = clEvtSubsInfoShow(&gEvtECHNameLocal, channelScope, 1, dbgPrintHandle);
         if( rc != CL_OK )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("EM Information Display failed [0x%X] \n\r",rc));        
+            clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"EM Information Display failed [0x%X] \n\r",rc);        
             CL_FUNC_EXIT();
             return rc;
         }
@@ -820,7 +820,7 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
         rc = clEvtSubsInfoShow(&gEvtECHNameGlobal, channelScope, 0, dbgPrintHandle);
         if( rc != CL_OK )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("EM Information Display failed [0x%X] \n\r",rc));        
+            clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"EM Information Display failed [0x%X] \n\r",rc);        
             CL_FUNC_EXIT();
             return rc;
         }
@@ -837,13 +837,13 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
         rc = clEventAttributesSet(eventHandleX, &gPatternArray, 1, 0, &publishCleanupName);
         if(CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Attribute Set Failed [0x%X]\n\r",rc));
+            clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Attribute Set Failed [0x%X]\n\r",rc);
             return rc;
         }
         rc = clEventPublish(eventHandleX, (const void*)EVENT_TEST_PAYLOAD, sizeof(EVENT_TEST_PAYLOAD), &eventId);
         if(CL_OK != rc)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Published Failed [0x%X]\n\r",rc));
+            clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Published Failed [0x%X]\n\r",rc);
             return rc;
         }
     }
@@ -853,21 +853,21 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     rc = clEventUnsubscribe(evtChannelHandle, 0xB);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Ext Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Ext Unsubscription Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventUnsubscribe(evtChannelHandle, 0xA);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Match Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Match Unsubscription Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventUnsubscribe(evtChannelHandle, 0xC);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("No Match Unsubscription Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"No Match Unsubscription Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -875,14 +875,14 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     rc = clEventSuppressionClear(evtChannelHandle, suppressionHandleMatch);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Suppression Clear Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Suppression Clear Failed [0x%X]\n\r",rc);
 /*        return rc;  For better coverage */
     }
 
     rc = clEventSuppressionClear(evtChannelHandle, suppressionHandleNoMatch);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Suppression Clear Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Suppression Clear Failed [0x%X]\n\r",rc);
 /*        return rc;  For better coverage */
     }
 
@@ -893,14 +893,14 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     rc = clEventFree(eventHandleX);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Free Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Free Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventFree(eventHandleY);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Event Free Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Event Free Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -908,7 +908,7 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     rc = clEventChannelClose(evtChannelHandle);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Close Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Close Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -918,7 +918,7 @@ ClRcT clEvtPublishTest(ClUint32T channelScope)
     rc = clEventFinalize(evtHandle);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Finalize Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Finalize Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -950,7 +950,7 @@ ClRcT   clEvtCleanupFinalizeTest(void)
     rc = clEventInitialize(&evtHandle, &evtCallbacks, &version);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Init Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Init Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -960,14 +960,14 @@ ClRcT   clEvtCleanupFinalizeTest(void)
             CL_EVENT_CHANNEL_SUBSCRIBER, (ClTimeT)-1, &evtChannelHandleLocal);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventExtSubscribe(evtChannelHandleLocal, EVENT_TEST_EVENT_TYPE, X, (void*)0x800);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -977,21 +977,21 @@ ClRcT   clEvtCleanupFinalizeTest(void)
             (ClTimeT)-1, &evtChannelHandleGlobal);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventSubscribe(evtChannelHandleGlobal, &gSubscribeFilters, Y, (void*)0x200);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventExtSubscribe(evtChannelHandleGlobal, EVENT_TEST_EVENT_TYPE, Z, (void*)0x300);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -1001,7 +1001,7 @@ ClRcT   clEvtCleanupFinalizeTest(void)
     rc = clEventFinalize(evtHandle);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Finalize Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Finalize Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -1036,7 +1036,7 @@ ClRcT   clEvtCleanupChannelCloseTest(void)
     rc = clEventInitialize(&evtHandle, &evtCallbacks, &version);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Init Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Init Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -1046,21 +1046,21 @@ ClRcT   clEvtCleanupChannelCloseTest(void)
             CL_EVENT_CHANNEL_SUBSCRIBER, (ClTimeT)-1, &evtChannelHandleLocal);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventExtSubscribe(evtChannelHandleLocal, EVENT_TEST_EVENT_TYPE, X, (void*)0x100);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventSubscribe(evtChannelHandleLocal, &gSubscribeFilters, Y, (void*)0x200);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
     
@@ -1071,14 +1071,14 @@ ClRcT   clEvtCleanupChannelCloseTest(void)
             (ClTimeT)-1, &evtChannelHandleGlobal);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventExtSubscribe(evtChannelHandleGlobal, EVENT_TEST_EVENT_TYPE, Z, (void*)0x300);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -1088,14 +1088,14 @@ ClRcT   clEvtCleanupChannelCloseTest(void)
     rc = clEventChannelClose(evtChannelHandleLocal);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Close Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Close Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventChannelClose(evtChannelHandleGlobal);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Close Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Close Failed [0x%X]\n\r",rc);
         return rc;
     }    
     
@@ -1129,7 +1129,7 @@ ClRcT   clEvtCleanupUnsubscribeTest(void)
     rc = clEventInitialize(&evtHandle, &evtCallbacks, &version);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Init Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Init Failed [0x%X]\n\r",rc);
 /*        return rc;   */
     }
 
@@ -1139,14 +1139,14 @@ ClRcT   clEvtCleanupUnsubscribeTest(void)
             CL_EVENT_CHANNEL_SUBSCRIBER, (ClTimeT)-1, &evtChannelHandleLocal);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventExtSubscribe(evtChannelHandleLocal, EVENT_TEST_EVENT_TYPE, X, (void*)0x300);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -1157,21 +1157,21 @@ ClRcT   clEvtCleanupUnsubscribeTest(void)
             (ClTimeT)-1, &evtChannelHandleGlobal);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Channel Open Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Channel Open Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventSubscribe(evtChannelHandleGlobal, &gSubscribeFilters, Y, (void*)0x200);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
     
     rc = clEventExtSubscribe(evtChannelHandleGlobal, EVENT_TEST_EVENT_TYPE, Z, (void*)0x100);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Subscriptions Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Subscriptions Failed [0x%X]\n\r",rc);
         return rc;
     }
 
@@ -1181,21 +1181,21 @@ ClRcT   clEvtCleanupUnsubscribeTest(void)
     rc = clEventUnsubscribe(evtChannelHandleLocal, X);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscribe Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscribe Failed [0x%X]\n\r",rc);
         return rc;
     }    
 
     rc = clEventUnsubscribe(evtChannelHandleGlobal, Y);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscribe Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscribe Failed [0x%X]\n\r",rc);
         return rc;
     }
 
     rc = clEventUnsubscribe(evtChannelHandleGlobal, Z);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Unsubscribe Failed [0x%X]\n\r",rc));
+        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_TEST,"Unsubscribe Failed [0x%X]\n\r",rc);
         return rc;
     }
     

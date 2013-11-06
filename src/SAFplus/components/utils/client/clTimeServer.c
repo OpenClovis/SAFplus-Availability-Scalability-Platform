@@ -241,7 +241,7 @@ static void *timeServer(void *arg)
             cTV.tvUsec = sTime;
             timeServerResponseMarshall(&cTV, responseBuf, &responseLen);
             bytes = sendto(fd, (char *)responseBuf, responseLen, 0, (struct sockaddr *) &client_addr, addrsize);
-            if(bytes != responseLen)
+            if(bytes != (ClInt32T) responseLen)
             {
                 perror("Sendto:");
                 clLogCritical("TIME", "SERVER", "Time server error responding to client "\

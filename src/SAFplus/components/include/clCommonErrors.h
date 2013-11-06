@@ -259,6 +259,9 @@ extern "C" {
 
 #define CL_ERR_CONTINUE          0x27
 
+#define CL_ERR_IGNORE_REQUEST          0x28
+
+
 /** 
  * 2^8-1, the max for common errors
  */

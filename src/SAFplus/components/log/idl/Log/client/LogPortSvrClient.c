@@ -23,7 +23,7 @@
 extern ClIdlClntT gIdlClnt;
 
 
-ClRcT clLogSvrStreamOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN ClUint8T streamOpenFlags, CL_IN ClUint32T compId, CL_IN ClUint32T portId, CL_OUT ClStringT* pShmName, CL_OUT ClUint32T* pShmSize)
+ClRcT clLogSvrStreamOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN ClUint8T streamOpenFlags, CL_IN ClUint32T compId, CL_IN ClUint32T portId, CL_IN ClUint32T isExternal, CL_OUT ClUint32T* recordSize, CL_OUT ClStringT* pShmName, CL_OUT ClUint32T* pShmSize)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -108,6 +108,12 @@ ClRcT clLogSvrStreamOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaName
         return rc;
     }
 
+    rc = clXdrMarshallClUint32T(&(isExternal), inMsgHdl, 0);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
 
     rc = clBufferCreate(&outMsgHdl);
     if (CL_OK != rc)
@@ -126,6 +132,12 @@ ClRcT clLogSvrStreamOpenClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaName
     return rc;
     }
 
+
+    rc = clXdrUnmarshallClUint32T( outMsgHdl, recordSize);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
 
     rc = clXdrUnmarshallClStringT( outMsgHdl, pShmName);
     if (CL_OK != rc)
@@ -157,6 +169,8 @@ static void clLogSvrStreamOpenAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, Cl
     ClUint8T  streamOpenFlags;
     ClUint32T  compId;
     ClUint32T  portId;
+    ClUint32T  isExternal;
+    ClUint32T  recordSize;
     ClStringT  pShmName;
     ClUint32T  pShmSize;
 
@@ -167,6 +181,8 @@ static void clLogSvrStreamOpenAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, Cl
     memset(&(streamOpenFlags), 0, sizeof(ClUint8T));
     memset(&(compId), 0, sizeof(ClUint32T));
     memset(&(portId), 0, sizeof(ClUint32T));
+    memset(&(isExternal), 0, sizeof(ClUint32T));
+    memset(&(recordSize), 0, sizeof(ClUint32T));
     memset(&(pShmName), 0, sizeof(ClStringT));
     memset(&(pShmSize), 0, sizeof(ClUint32T));
 
@@ -213,12 +229,27 @@ static void clLogSvrStreamOpenAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, Cl
         goto L6;
     }
 
+    retVal = clXdrUnmarshallClUint32T(inMsgHdl, &(isExternal));
+    if (CL_OK != retVal)
+    {
+        goto L7;
+    }
+
+    if (CL_OK == rc)
+    {
+        retVal = clXdrUnmarshallClUint32T(outMsgHdl, &(recordSize));
+        if (CL_OK != retVal)
+        {
+            goto L8;
+        }
+    }
+
     if (CL_OK == rc)
     {
         retVal = clXdrUnmarshallClStringT(outMsgHdl, &(pShmName));
         if (CL_OK != retVal)
         {
-            goto L7;
+            goto L9;
         }
     }
 
@@ -227,7 +258,7 @@ static void clLogSvrStreamOpenAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, Cl
         retVal = clXdrUnmarshallClUint32T(outMsgHdl, &(pShmSize));
         if (CL_OK != retVal)
         {
-            goto L8;
+            goto L10;
         }
     }
 
@@ -236,9 +267,11 @@ static void clLogSvrStreamOpenAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, Cl
         retVal = rc;
     }
 
-    ((LogClLogSvrStreamOpenAsyncCallbackT_4_0_0)(pCookie->actualCallback))(pCookie->handle, &(streamName), streamScope, &(streamScopeNode), &(pStreamAttr), streamOpenFlags, compId, portId, &(pShmName), &(pShmSize), retVal, pCookie->pCookie);
-    goto L9;
+    ((LogClLogSvrStreamOpenAsyncCallbackT_4_0_0)(pCookie->actualCallback))(pCookie->handle, &(streamName), streamScope, &(streamScopeNode), &(pStreamAttr), streamOpenFlags, compId, portId, isExternal, &(recordSize), &(pShmName), &(pShmSize), retVal, pCookie->pCookie);
+    goto L11;
 
+L11: 
+L10: 
 L9: 
 L8: 
 L7: 
@@ -255,7 +288,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clLogSvrStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN ClUint8T  streamOpenFlags, CL_IN ClUint32T  compId, CL_IN ClUint32T  portId, CL_OUT ClStringT* pShmName, CL_OUT ClUint32T* pShmSize,CL_IN LogClLogSvrStreamOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clLogSvrStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNameT* streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT* streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN ClUint8T  streamOpenFlags, CL_IN ClUint32T  compId, CL_IN ClUint32T  portId, CL_IN ClUint32T  isExternal, CL_OUT ClUint32T* recordSize, CL_OUT ClStringT* pShmName, CL_OUT ClUint32T* pShmSize,CL_IN LogClLogSvrStreamOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -343,11 +376,17 @@ ClRcT clLogSvrStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNam
         goto L;
     }
 
+    rc = clXdrMarshallClUint32T(&(isExternal), inMsgHdl, 0);
+    if (CL_OK != rc)
+    {
+        goto L;
+    }
+
     if(fpAsyncCallback != NULL)
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -617,7 +656,7 @@ ClRcT clLogSvrStreamCloseClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNa
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -803,7 +842,7 @@ ClRcT clLogSvrFilterSetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaName
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1004,7 +1043,7 @@ ClRcT clLogSvrStreamHandleFlagsUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1220,7 +1259,7 @@ ClRcT clLogHandlerSvrAckSendClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN S
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);

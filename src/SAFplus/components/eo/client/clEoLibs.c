@@ -44,9 +44,10 @@ File        : clEoLibs.c
 #include <clEoLibs.h>
 #include <clRmdIpi.h>
 
-
 #define CL_EO_COMPONENTS   32
 
+#define EO_LOG_AREA_EO		"EO"
+#define EO_LOG_CTX_EO_WATERMARK	"WMH"		
 
 typedef struct {
     ClIocNodeAddressT      node;
@@ -81,17 +82,17 @@ ClRcT clEoWaterMarkHit(ClCompIdT compId, ClWaterMarkIdT wmId, ClWaterMarkT *pWat
      */
     if(CL_OK != eoLibIdValidate(libId))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Invalid Library Id Specified [%u], rc=[0x%x]\n",
-                 compId, CL_EO_RC(CL_EO_ERR_LIB_ID_INVALID)));
+        clLogError(EO_LOG_AREA_EO,EO_LOG_CTX_EO_WATERMARK,
+                   "Invalid Library Id Specified [%u], rc=[0x%x]\n",
+                   compId, CL_EO_RC(CL_EO_ERR_LIB_ID_INVALID));
         return CL_EO_RC(CL_EO_ERR_LIB_ID_INVALID);
     }
 
     if(CL_OK != eoWaterMarkIdValidate(libId, wmId))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Invalid Water Mark Id Specified [%u], rc=[0x%x]\n", 
-                 wmId, CL_EO_RC(CL_EO_ERR_WATER_MARK_ID_INVALID)));
+        clLogError(EO_LOG_AREA_EO,EO_LOG_CTX_EO_WATERMARK,
+                   "Invalid Water Mark Id Specified [%u], rc=[0x%x]\n", 
+                   wmId, CL_EO_RC(CL_EO_ERR_WATER_MARK_ID_INVALID));
         return CL_EO_RC(CL_EO_ERR_WATER_MARK_ID_INVALID);
     }
 
@@ -100,11 +101,11 @@ ClRcT clEoWaterMarkHit(ClCompIdT compId, ClWaterMarkIdT wmId, ClWaterMarkT *pWat
     /*
      * Depending on the BitMap take the action
      */
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("EO[%s]:LIB[%s]:The Action being triggered for "
-                "Water Mark[%d]->[%s] with the value [%lld]\n", 
-                ASP_COMPNAME, LIB_NAME(libId), wmId, 
-                (wmType == CL_WM_HIGH_LIMIT)? "HIGH_LIMIT" : "LOW_LIMIT", 
-                wmValue));
+    clLogInfo(EO_LOG_AREA_EO,EO_LOG_CTX_EO_WATERMARK,"EO[%s]:LIB[%s]:The Action being triggered for "
+              "Water Mark[%d]->[%s] with the value [%lld]\n", 
+              ASP_COMPNAME, LIB_NAME(libId), wmId, 
+              (wmType == CL_WM_HIGH_LIMIT)? "HIGH_LIMIT" : "LOW_LIMIT", 
+              wmValue);
 
     /*
      * Queue the Water Mark Info for asynchronous action generation.
@@ -112,11 +113,11 @@ ClRcT clEoWaterMarkHit(ClCompIdT compId, ClWaterMarkIdT wmId, ClWaterMarkT *pWat
     rc = clEoQueueWaterMarkInfo(libId, wmId, pWaterMark, wmType, argList);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_WARN, ("Failed to execute the action for:"
-                    "EO[%s]:LIB[%s]:Water Mark[%d]->[%s] with the value [%lld]\n", 
-                    ASP_COMPNAME, LIB_NAME(libId), wmId,
-                    (wmType == CL_WM_HIGH_LIMIT)? "HIGH_LIMIT" : "LOW_LIMIT", 
-                    wmValue));
+        clLogWarning(EO_LOG_AREA_EO,EO_LOG_CTX_EO_WATERMARK,"Failed to execute the action for:"
+                     "EO[%s]:LIB[%s]:Water Mark[%d]->[%s] with the value [%lld]\n", 
+                     ASP_COMPNAME, LIB_NAME(libId), wmId,
+                     (wmType == CL_WM_HIGH_LIMIT)? "HIGH_LIMIT" : "LOW_LIMIT", 
+                     wmValue);
         return rc;
     }
 
@@ -131,8 +132,8 @@ static ClRcT clEoIocWMNotification(ClCompIdT compId,
 {
     ClRcT rc = CL_OK;
     ClIocQueueNotificationT *pIocQueueNotification = NULL;
-    ClIocQueueNotificationT queueNotification = {0};
-    ClIocNotificationIdT id = ntohl(pIocNotification->id);
+    ClIocQueueNotificationT queueNotification = {CL_WM_LOW};
+    ClIocNotificationIdT id = (ClIocNotificationIdT) ntohl(pIocNotification->id);
     ClWaterMarkIdT wmID;
     const ClCharT *msgStr = NULL;
 
@@ -159,7 +160,7 @@ static ClRcT clEoIocWMNotification(ClCompIdT compId,
 
     clIocQueueNotificationUnpack(pIocQueueNotification,&queueNotification);
 
-    clEoLibLog(compId,CL_LOG_INFORMATIONAL,
+    clEoLibLog(compId,CL_LOG_SEV_INFO,
             "Port: %d, node: %d hit %s watermark event for %s." \
             "Watermark limits(low:%lld,high:%lld), queue size:%d bytes " \
             "message length: %d bytes\n",
@@ -169,10 +170,7 @@ static ClRcT clEoIocWMNotification(ClCompIdT compId,
             queueNotification.queueSize,queueNotification.messageLength);
 
     /*Trigger EO watermark hit to take the specific actions*/
-    rc = clEoWaterMarkHit(compId,wmID,
-            &queueNotification.wm,
-            queueNotification.wmID == CL_WM_HIGH \
-            ? CL_TRUE : CL_FALSE,NULL);
+    rc = clEoWaterMarkHit(compId,wmID, &queueNotification.wm, queueNotification.wmID == CL_WM_HIGH ? CL_WM_HIGH_LIMIT : CL_WM_LOW_LIMIT,NULL);
 
 out:
     return rc;
@@ -186,40 +184,36 @@ ClRcT clEoProcessIocRecvPortNotification(ClEoExecutionObjT* pThis, ClBufferHandl
 {
     ClRcT rc = CL_OK;
 
-    ClIocNotificationT notificationInfo = {0};
+    ClIocNotificationT notificationInfo;
     ClUint32T msgLength = sizeof(ClIocNotificationT);
-    ClIocNotificationIdT notificationId = 0;
+    ClIocNotificationIdT notificationId;
     ClUint32T protoVersion = 0;
-
+    
+    memset(&notificationInfo, 0, sizeof(ClIocNotificationT));
     CL_EO_LIB_VERIFY();
 
-    rc = clBufferNBytesRead(eoRecvMsg, (ClUint8T *)&notificationInfo,
-            &msgLength);
+    rc = clBufferNBytesRead(eoRecvMsg, (ClUint8T *)&notificationInfo, &msgLength);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("EO: clBufferNBytesRead() Failed, rc=[0x%x]\n",
-                 rc));
+        clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED, "EO: clBufferNBytesRead() Failed, rc=[0x%x]\n", rc);
         goto out_delete;
     }
     
     protoVersion = ntohl(notificationInfo.protoVersion);
     if(protoVersion != CL_IOC_NOTIFICATION_VERSION)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("EO: Ioc recv notification received with version [%d]. Supported [%d]\n",
-                        protoVersion, CL_IOC_NOTIFICATION_VERSION));
+        clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED, "EO: Ioc recv notification received with version [%d]. Supported [%d]\n", protoVersion, CL_IOC_NOTIFICATION_VERSION);
         goto out_delete;
     }
 
-    notificationId = ntohl(notificationInfo.id); 
+    notificationId = (ClIocNotificationIdT) ntohl(notificationInfo.id); 
 
     switch(notificationId)
     {
         case CL_IOC_SENDQ_WM_NOTIFICATION:
             if(gIsNodeRepresentative == CL_FALSE)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Got sendq wm notification for non-node representative\n"));
+                clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,"Got sendq wm notification for non-node representative\n");
                 rc = CL_EO_RC(CL_ERR_BAD_OPERATION);
                 goto out_delete;
             }
@@ -236,9 +230,7 @@ ClRcT clEoProcessIocRecvPortNotification(ClEoExecutionObjT* pThis, ClBufferHandl
                 rc = clEoIocWMNotification(CL_CID_IOC,portId,nodeId,&notificationInfo);
                 if (rc != CL_OK)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                            ("EO: clEoIocWMNotification() Failed, rc=[0x%x]\n",
-                             rc));
+                    clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED, "EO: clEoIocWMNotification() Failed, rc=[0x%x]\n", rc);
                     goto out_delete;
                 }
             }
@@ -259,8 +251,7 @@ ClRcT clEoProcessIocRecvPortNotification(ClEoExecutionObjT* pThis, ClBufferHandl
             clEoClientNotification(&notificationInfo);
             return rc;
         default:
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid notification id[%d]\n",
-                        notificationId));
+            clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid notification id[%d]\n", notificationId);
             rc = CL_EO_RC(CL_ERR_BAD_OPERATION);
             goto out_delete; 
     }
@@ -271,7 +262,7 @@ out_delete:
     return rc;
 }
 
-ClRcT clEoLibLog (ClUint32T compId,ClUint32T severity, const ClCharT *msg, ...)
+ClRcT clEoLibLog (ClUint32T compId,ClLogSeverityT severity, const ClCharT *msg, ...)
 {
     ClRcT rc = CL_OK;
     ClCharT clEoLogMsg[CL_EOLIB_MAX_LOG_MSG] = "";
@@ -302,8 +293,7 @@ ClRcT clEoLogInitialize(void)
     rc = clLogLibInitialize();
     if ( rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Log Open Failed\n"));
+        clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,"Log Open Failed\n");
         return rc;
     }
     return CL_OK;
@@ -405,7 +395,7 @@ re_check:
         }
     }
     
-    tempDb = clHeapRealloc(gpCallbackDb.pDb, sizeof(ClEoCallbackRecT *) * gpCallbackDb.numRecs * 2);
+    tempDb = (ClEoCallbackRecT**) clHeapRealloc(gpCallbackDb.pDb, sizeof(ClEoCallbackRecT *) * gpCallbackDb.numRecs * 2);
     if(tempDb == NULL)
     {
         rc  = CL_EO_RC(CL_ERR_NO_MEMORY);
@@ -456,7 +446,7 @@ static ClRcT clEoClientNotification(ClIocNotificationT *notification)
     ClIocAddressT address = {{0}};
 
     if(!notification) return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
-    event = ntohl(notification->id);
+    event = (ClIocNotificationIdT) ntohl(notification->id);
     node = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     port = ntohl(notification->nodeAddress.iocPhyAddress.portId);
 
@@ -484,10 +474,10 @@ static ClRcT clEoClientNotification(ClIocNotificationT *notification)
      * granularity and give scope for further client registrations
      * in this window.
      */
-    pMatchedRecords = clHeapAllocate(sizeof(*pMatchedRecords) * numRecs);
+    pMatchedRecords = (ClEoCallbackRecT*) clHeapAllocate(sizeof(*pMatchedRecords) * numRecs);
     if(!pMatchedRecords)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Memory allocation error\n"));
+        clLogError(EO_LOG_AREA_EO,CL_LOG_CONTEXT_UNSPECIFIED,"Memory allocation error\n");
         return CL_EO_RC(CL_ERR_NO_MEMORY);
     }
     

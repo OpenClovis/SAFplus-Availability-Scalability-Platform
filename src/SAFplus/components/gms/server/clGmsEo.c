@@ -159,8 +159,8 @@ int main(int argc, char *argv[])
     rc = initializeAmf();
     if( rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("GMS: gmsInitialize failed [0x%X]\n\r", rc));
+        clLogCritical(GEN,NA,
+                      "GMS: gmsInitialize failed [0x%X]\n\r", rc);
         return rc;
     }
     _clGmsServiceInitialize ( argc , argv );
@@ -314,6 +314,7 @@ ClRcT initializeAmf(void)
     SaVersionT          version;
     ClRcT	        rc = CL_OK;
 
+    clLogCompName = "GMS"; /* Override generated eo name with a short name for our server */
     /* this function overrides the default EO configuration */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs); 
 

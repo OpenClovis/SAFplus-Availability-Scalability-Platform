@@ -327,7 +327,8 @@ clHandleAdd (ClHandleDatabaseHandleT databaseHandle,  void* instance, ClIocPhysi
 
   hdbp->handles[handle].handle     = *handle_out;
 
-  clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, handle+1, ("Handle [%p:%#llX] allocated", (ClPtrT)hdbp, handle+1));
+  // Log uses handle so handle cant' use log
+  // clDbgResourceNotify(clDbgHandleResource, clDbgAllocate, hdbp, handle+1, ("Handle [%p:%#llX] allocated", (ClPtrT)hdbp, handle+1));
   
   rc = pthread_mutex_unlock (&hdbp->mutex);
   if (rc != 0)
@@ -737,7 +738,7 @@ clHandleCheckout(
 { 
 	ClRcT           rc    = CL_OK;
     ClHdlDatabaseT  *hdbp = (ClHdlDatabaseT*)databaseHandle;
-    ClHdlStateT     state = 0;
+    ClHdlStateT     state = HANDLE_STATE_EMPTY;
     ClRcT           ec    = CL_OK;
     ClHandleT       handle;
     hdlDbValidityChk(hdbp);
@@ -832,8 +833,7 @@ clHandleCheckin(
      */
     if (CL_HANDLE_INVALID_VALUE == handle--)
     {
-        clLogError(CL_HDL_AREA, CL_HDL_CTX_CHECKIN, 
-                "Passed handle [%p:%#llX] is invalid", (ClPtrT) hdbp, handle);
+        clLogError(CL_HDL_AREA, CL_HDL_CTX_CHECKIN, "Passed handle [%p:%#llX] is invalid", (ClPtrT) hdbp, handle);
         return CL_HANDLE_RC(CL_ERR_INVALID_HANDLE); /* 0 no longer allowed */
     }
 
@@ -841,15 +841,14 @@ clHandleCheckin(
     if (ec != 0)
     {
         int err = errno;
-        clDbgCodeError(clErr, ("Handle database mutex lock failed error: %s (%d)", strerror(err), err) );
+        clDbgCodeError(CL_HANDLE_RC(CL_ERR_MUTEX_ERROR), ("Handle database mutex lock failed error: %s (%d)", strerror(err), err) );
         return CL_HANDLE_RC(CL_ERR_MUTEX_ERROR);
     }
 
     if (handle >= (ClHandleT)hdbp->n_handles)
     {
         pthread_mutex_unlock( &hdbp->mutex);
-        clLogError(CL_HDL_AREA, CL_HDL_CTX_CHECKIN, 
-                "Passed handle [%p:%#llX] is invalid handle", (ClPtrT) hdbp, handle);
+        clLogError(CL_HDL_AREA, CL_HDL_CTX_CHECKIN,"Passed handle [%p:%#llX] is invalid handle", (ClPtrT) hdbp, handle);
         return CL_HANDLE_RC(CL_ERR_INVALID_HANDLE);
     }
     refcount = hdbp->handles[handle].ref_count;
@@ -885,7 +884,7 @@ clHandleCheckin(
     if (ec != 0)
     {
         int err = errno;
-        clDbgCodeError(clErr, ("Handle database mutex unlock failed error: %s (%d)", strerror(err), err) );
+        clDbgCodeError(CL_HANDLE_RC(CL_ERR_MUTEX_ERROR), ("Handle database mutex unlock failed error: %s (%d)", strerror(err), err) );
         return CL_HANDLE_RC(CL_ERR_MUTEX_ERROR); /* This can be devastating */
     }
     /* This check to avoid recursive call from LogClient */

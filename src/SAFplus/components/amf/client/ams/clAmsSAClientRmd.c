@@ -30,6 +30,7 @@
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clBufferApi.h>
 
 #include <clAmsDebug.h>
@@ -534,7 +535,7 @@ emulate_rmd_call(
             return CL_OK;
             break;
         default:
-            AMS_LOG(CL_DEBUG_ERROR,("%s:: function id %d not implemented \n",__FUNCTION__,fn_id));
+            AMS_LOG(CL_LOG_SEV_ERROR,("%s:: function id %d not implemented \n",__FUNCTION__,fn_id));
     }
     return rc;
 }

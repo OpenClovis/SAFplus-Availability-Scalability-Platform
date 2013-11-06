@@ -280,7 +280,7 @@ clAmsStart(
 
     AMS_FUNC_ENTER (("\n"));
 
-    AMS_LOG (CL_DEBUG_TRACE,
+    AMS_LOG (CL_LOG_SEV_TRACE,
              ("Instantiating AMS, Mode = %s\n",
               CL_AMS_STRING_INSTANTIATE_MODE(mode)));
 
@@ -373,7 +373,7 @@ clAmsStart(
 
         if(rc != CL_OK)
         {
-            AMS_LOG(CL_DEBUG_INFO, ("Loading AMS config from XML file\n"));
+            AMS_LOG(CL_LOG_SEV_INFO, ("Loading AMS config from XML file\n"));
        
             parse_xml:
             rc = clAmsParserMain (DEFN_FILE_NAME,CONFIG_FILE_NAME);
@@ -425,7 +425,7 @@ clAmsStart(
          * Invalid instantiate mode 
          */ 
 
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                  ("Instantiating AMS With Invalid Instantiate Mode \n"));
 
         return CL_AMS_RC (CL_AMS_ERR_INVALID_ARGS);
@@ -457,7 +457,7 @@ clAmsFinalize(
 
     AMS_CHECKPTR ( !ams );
 
-    AMS_LOG (CL_DEBUG_TRACE,
+    AMS_LOG (CL_LOG_SEV_TRACE,
              ("Terminating AMS, Mode = %s\n",
               ( ( (mode) & (CL_AMS_TERMINATE_MODE_GRACEFUL) ) != CL_FALSE ) ? "Graceful" : "Fast"));
 
@@ -504,7 +504,7 @@ clAmsFinalize(
     {
         ClTimerTimeOutT timeout = {0};
 
-        AMS_LOG(CL_DEBUG_TRACE,
+        AMS_LOG(CL_LOG_SEV_TRACE,
                 ("Waiting %dms for AMS termination to complete..\n",
                  CL_AMS_TERMINATE_TIMEOUT));
 
@@ -550,7 +550,7 @@ exitfn:
 
     clAmsDbTerminate(&ams->db);
 
-    AMS_LOG(CL_DEBUG_INFO, ("AMS Termination Completed\n"));
+    AMS_LOG(CL_LOG_SEV_INFO, ("AMS Termination Completed\n"));
 
     return rc;
 

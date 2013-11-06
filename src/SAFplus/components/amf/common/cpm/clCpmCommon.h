@@ -92,56 +92,58 @@ struct _ClCpmLocalInfoT_4_0_0;
  * Macro for error checking and logging. Should be refined someday if
  * possible :-(
  */
-#define CL_CPM_CHECK_0(X, Z, retCode, logSeverity, logHandle)   \
+#define CL_CPM_CHECK_0(X, Z, retCode,logHandle)			\
     if(CL_GET_ERROR_CODE(retCode) != CL_OK)                     \
     {                                                           \
         /* CL_DEBUG_PRINT(X, (Z));                   */         \
-        clLogWrite((logHandle), (logSeverity), NULL, Z);        \
+        clLogWrite((logHandle),X, NULL, Z);		        \
         rc = retCode;                                           \
         goto failure;                                           \
     }
  
-#define CL_CPM_CHECK_1(X, Z, argv1, retCode, logSeverity, logHandle)    \
+#define CL_CPM_CHECK_1(X, Z, argv1, retCode, logHandle)			\
     if(CL_GET_ERROR_CODE(retCode) != CL_OK)                             \
     {                                                                   \
         /* CL_DEBUG_PRINT(X, (Z, argv1));              */               \
-        clLogWrite((logHandle), (logSeverity), NULL, Z, argv1);         \
+        clLogWrite((logHandle), X, NULL, Z, argv1);			\
         rc = retCode;                                                   \
         goto failure;                                                   \
     }
 
-#define CL_CPM_CHECK_2(X, Z, argv1, argv2, retCode, logSeverity, logHandle) \
+#define CL_CPM_CHECK_2(X, Z, argv1, argv2, retCode,logHandle) \
     if(CL_GET_ERROR_CODE(retCode) != CL_OK)                             \
     {                                                                   \
         /* CL_DEBUG_PRINT(X, (Z, argv1, argv2));      */                \
-        clLogWrite((logHandle), (logSeverity), NULL, Z, (argv1), (argv2)); \
+        clLogWrite((logHandle), X, NULL, Z, (argv1), (argv2));		\
         rc = retCode;                                                   \
         goto failure;                                                   \
     }
 
-#define CL_CPM_CHECK_3(X, Z, argv1, argv2, argv3, retCode, logSeverity, logHandle) \
+#define CL_CPM_CHECK_3(X, Z, argv1, argv2, argv3, retCode, logHandle)	\
     if(CL_GET_ERROR_CODE(retCode) != CL_OK)                             \
     {                                                                   \
         /* CL_DEBUG_PRINT(X, (Z, argv1, argv2, argv3));    */           \
-        clLogWrite(logHandle, logSeverity, NULL, Z, argv1, argv2, argv3); \
+        clLogWrite(logHandle, X, NULL, Z, argv1, argv2, argv3);		\
         rc = retCode;                                                   \
         goto failure;                                                   \
     }
 
-#define CL_CPM_CHECK(X, Z, retCode)             \
-    if(CL_GET_ERROR_CODE(retCode) != CL_OK)     \
-    {                                           \
-        CL_DEBUG_PRINT(X,Z);                    \
-        rc = retCode;                           \
-        goto failure;                           \
+#define CL_CPM_LOG_SP(...)  __VA_ARGS__
+
+#define CL_CPM_CHECK(X, Z, retCode)					 \
+    if(CL_GET_ERROR_CODE(retCode) != CL_OK)				 \
+    {									 \
+        clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_CPM_LOG_SP Z);\
+        rc = retCode;							 \
+        goto failure;							 \
     }
     
-#define CL_CPM_LOCK_CHECK(X, Z, retCode)        \
-    if(retCode != CL_OK)                        \
-    {                                           \
-     CL_DEBUG_PRINT(X,Z);                       \
-    rc = retCode;                               \
-    goto withlock;                              \
+#define CL_CPM_LOCK_CHECK(X, Z, retCode)			        \
+    if(retCode != CL_OK)			                        \
+    {					                                \
+     clLog(X,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_CPM_LOG_SP Z);\
+    rc = retCode;							\
+    goto withlock;							\
     }
 
 #define CL_CPM_INVOCATION_ID_GET(CBType, invocation, invocationId)  \

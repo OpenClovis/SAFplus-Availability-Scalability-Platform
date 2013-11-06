@@ -42,6 +42,8 @@ extern "C" {
 #include "clEoApi.h"
 #include "clCkptApi.h"
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
+#include <clLogUtilApi.h>
 #include "clCkptExtApi.h"
 #include "clNameIpi.h"
 #include "xdrClNameSvcInfoIDLT.h"
@@ -60,7 +62,7 @@ extern "C" {
 #define CL_NS_LOCAL  1
 
 #define CL_NAME_DEBUG_TRACE(arg) \
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, arg);
+    CL_DEBUG_PRINT(CL_LOG_SEV_TRACE, arg);
 
 #define CL_NAME_CONTEXT_GBL_DSID   1    
 #define CL_NS_PER_CTX_DSID         1    

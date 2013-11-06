@@ -752,7 +752,11 @@ extern ClEoPayloadWithReplyCallbackTableClientT EO_CLIENT_SYM(gAspFuncTable)[];
  * This API enables the "old" style EO that did not contain a "main" function
  */
     ClRcT clEoInitialize(ClInt32T argc, ClCharT *argv[]);
-    
+
+/* Internal Initialization Function for Openclovis */
+    void clEoStaticQueueInit(void);
+
+    void clEoStaticMutexInit(void);
     
 ClRcT clEoClientInstallTables(ClEoExecutionObjT *pThis,
                               ClEoPayloadWithReplyCallbackTableServerT *table);
@@ -1395,7 +1399,9 @@ typedef void (*ClEoCrashNotificationCallbackT)(const ClEoCrashNotificationT *cra
  * during deadlock or any other reason
  */
 extern ClRcT clEoCrashNotificationRegister(ClEoCrashNotificationCallbackT callback);
-
+#ifdef NO_SAF
+extern ClRcT rmdSeverInit(ClEoConfigT pConfig);
+#endif
 #ifdef __cplusplus
 }
 

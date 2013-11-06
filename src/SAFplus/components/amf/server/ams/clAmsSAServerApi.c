@@ -336,7 +336,7 @@ _clAmsSAPGTrackDispatch(
 
     if ( rc != CL_OK )
     {
-        AMS_LOG( CL_DEBUG_ERROR,(" PG Track Dispatch Failed On Node-Address[%d] "
+        AMS_LOG( CL_LOG_SEV_ERROR,(" PG Track Dispatch Failed On Node-Address[%d] "
                     "PortID [%d] for CSI [%s] with Error [%x]", 
                     iocAddress.iocPhyAddress.nodeAddress,iocAddress.iocPhyAddress.portId,
                     csiName->value,rc) );
@@ -493,7 +493,7 @@ _clAmsSACSIQuiescingComplete(
             return CL_AMS_ERR_INVALID_OPERATION;
         }
 
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
                 ("AMS Restart Mode: Invocation found in the previous "
                  "AMS instance invocation list \n")); 
 #else
@@ -786,7 +786,7 @@ _clAmsSACSIOperationResponse(
             return CL_AMS_ERR_INVALID_OPERATION;
         }
 
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
                 ("AMS Restart Mode: Invocation found in the previous "
                  "AMS instance invocation list \n")); 
 #else
@@ -864,7 +864,7 @@ _clAmsSACSIOperationResponse(
 
         default:
             { 
-                AMS_LOG ( CL_DEBUG_ERROR, ("invalid callback function \n"));
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("invalid callback function \n"));
                 AMS_CALL ( clOsalMutexUnlock(gAms.mutex));
                 return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
             }
@@ -1094,7 +1094,7 @@ ClRcT _clAmsSANodeFailOver(
                                                           nodeName, isASPAware) )
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("function %s returned with error %x \n",__FUNCTION__,rc));
         return CL_AMS_RC (rc);
     }
@@ -1129,7 +1129,7 @@ ClRcT _clAmsSANodeFailOverRestart(
                                                                  nodeName, isASPAware) )
             != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("function %s returned with error %x \n",__FUNCTION__,rc));
         return CL_AMS_RC (rc);
     }
@@ -1667,7 +1667,7 @@ _clAmsSANodeLeave(
         default:
             {
 
-                AMS_LOG ( CL_DEBUG_ERROR,("invalid node operation request \n"));
+                AMS_LOG ( CL_LOG_SEV_ERROR,("invalid node operation request \n"));
                 AMS_CALL ( clOsalMutexUnlock(gAms.mutex));
                 return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
 
@@ -1844,7 +1844,7 @@ _clAmsSAStateChangeActive2Standby(
 
     AMS_FUNC_ENTER (("\n"));
 
-    AMS_LOG(CL_DEBUG_TRACE,("AMS Server Changing State From Active->Standby\n"));
+    AMS_LOG(CL_LOG_SEV_TRACE,("AMS Server Changing State From Active->Standby\n"));
 
     /*
      * Update the checkpoint
@@ -1900,14 +1900,14 @@ _clAmsSAStateChangeStandby2Active(
 
     AMS_FUNC_ENTER (("\n"));
 
-    AMS_LOG(CL_DEBUG_TRACE,("AMS Server Changing State From Standby->Active\n"));
+    AMS_LOG(CL_LOG_SEV_TRACE,("AMS Server Changing State From Standby->Active\n"));
 
     clOsalMutexLock(&gAms.ckptMutex);
 
     if(gAms.serviceState == CL_AMS_SERVICE_STATE_RUNNING)
     {
         clOsalMutexUnlock(&gAms.ckptMutex);
-        AMS_LOG(CL_DEBUG_TRACE,("AMS Already Active.Ignoring state change\n"));
+        AMS_LOG(CL_LOG_SEV_TRACE,("AMS Already Active.Ignoring state change\n"));
         return CL_OK;
     }
 
@@ -2371,7 +2371,7 @@ _clAmsSANodeAdd(const ClCharT *nodeName)
                                  &entityRef);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("AMS node [%s] found returned [%#x]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("AMS node [%s] found returned [%#x]\n",
                                  nodeName, rc));
         return rc;
     }
@@ -2379,7 +2379,7 @@ _clAmsSANodeAdd(const ClCharT *nodeName)
     rc = _clAmsSAEntityAdd(&entityRef);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("AMS SA entity node [%s] add returned [%#x]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("AMS SA entity node [%s] add returned [%#x]\n",
                                  nodeName, rc));
         return rc;
     }

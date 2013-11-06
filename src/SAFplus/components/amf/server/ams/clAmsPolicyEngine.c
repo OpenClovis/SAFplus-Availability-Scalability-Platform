@@ -209,15 +209,9 @@ clAmsPeNodeComputeAdminStateExtended(
         CL_OUT  ClAmsAdminStateT *adminState,
         CL_IN   ClAmsAdminStateT nodeAdminState);
 
-static ClRcT
-clAmsPeSUComputeAdminStateExtended(
-        CL_IN       ClAmsSUT *su,
-        CL_OUT      ClAmsAdminStateT *adminState,
-        CL_IN       ClAmsAdminStateT suAdminState);
+static void clAmsPeSUComputeAdminStateExtended(CL_IN ClAmsSUT *su, CL_OUT ClAmsAdminStateT *adminState, CL_IN ClAmsAdminStateT suAdminState);
 
-ClRcT
-clAmsPeRemoteProxiedSUsForNode(ClAmsNodeT *node,
-                               ClListHeadT *proxiedSUList);
+ClRcT clAmsPeRemoteProxiedSUsForNode(ClAmsNodeT *node, ClListHeadT *proxiedSUList);
 
 
 /******************************************************************************
@@ -269,13 +263,13 @@ clAmsPeClusterInstantiate(
          (ams->serviceState == CL_AMS_SERVICE_STATE_RUNNING)      ||
          (ams->serviceState == CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
             ("Cluster is already instantiated.\n"));
 
         return CL_OK;
     }
 
-    AMS_LOG (CL_DEBUG_TRACE,
+    AMS_LOG (CL_LOG_SEV_TRACE,
              ("Instantiating Cluster\n"));
 
     /*
@@ -307,7 +301,7 @@ clAmsPeClusterInstantiate(
     }
     else
     {
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
                  ("Node db is empty. Continuing..\n") ); 
     }
 
@@ -326,7 +320,7 @@ clAmsPeClusterInstantiate(
     }
     else
     {
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
                  ("SG db is empty. Continuing..\n") );
     }
 
@@ -353,7 +347,7 @@ clAmsPeClusterTerminate(
 
     AMS_FUNC_ENTER (("\n"));
 
-    AMS_LOG (CL_DEBUG_TRACE,
+    AMS_LOG (CL_LOG_SEV_TRACE,
              ("Terminating Cluster: Shutting down all SGs\n"));
 
     ams->serviceState = CL_AMS_SERVICE_STATE_SHUTTINGDOWN;
@@ -400,7 +394,7 @@ clAmsPeClusterTerminateCallback_Step1(
 
     if ( ams->serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN )
     {
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
             ("Terminating Cluster: Not in ShuttingDown state. Ignoring..\n"));
 
         return CL_OK;
@@ -413,13 +407,13 @@ clAmsPeClusterTerminateCallback_Step1(
     if ( clAmsEntityDbWalk(sgDb,
                     (ClAmsEntityCallbackT) clAmsPeSGHasAssignments) )
     {
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
             ("Terminating Cluster: There are still assigned SUs. Ignoring..\n"));
 
         return CL_OK;
     }
 
-    AMS_LOG (CL_DEBUG_TRACE,
+    AMS_LOG (CL_LOG_SEV_TRACE,
              ("Terminating Cluster: Terminating all SUs in all SGs\n"));
 
     if ( clAmsEntityDbWalk(sgDb,
@@ -454,7 +448,7 @@ clAmsPeClusterTerminateCallback_Step2(
 
     if ( ams->serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN )
     {
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
             ("Terminating Cluster: Not in ShuttingDown state. Ignoring..\n"));
 
         return CL_OK;
@@ -467,7 +461,7 @@ clAmsPeClusterTerminateCallback_Step2(
     if ( clAmsEntityDbWalk(sgDb,
                     (ClAmsEntityCallbackT) clAmsPeSGIsInstantiated) )
     {
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
             ("Terminating Cluster: There are still instantiated SUs. Ignoring..\n"));
 
         return CL_OK;
@@ -477,7 +471,7 @@ clAmsPeClusterTerminateCallback_Step2(
 
     ClAmsEntityDbT *nodeDb;
 
-    AMS_LOG (CL_DEBUG_TRACE,
+    AMS_LOG (CL_LOG_SEV_TRACE,
              ("Terminating Cluster: Terminating all Nodes\n"));
 
     /*
@@ -505,7 +499,7 @@ clAmsPeClusterTerminateCallback_Step2(
 
 #endif
 
-    AMS_LOG (CL_DEBUG_TRACE,
+    AMS_LOG (CL_LOG_SEV_TRACE,
              ("Terminating Cluster: Stopping AMF\n"));
 
     ams->serviceState = CL_AMS_SERVICE_STATE_STOPPED;
@@ -518,13 +512,13 @@ clAmsPeClusterTerminateCallback_Step2(
 
     if ( ams->timerCount )
     {
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
              ("Terminating Cluster: Waiting for [%d] pending timers to pop\n",
               ams->timerCount));
     }
     else
     {
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
              ("Terminating Cluster: AMF Stopped\n"));
 
         AMS_CALL ( clOsalMutexLock(ams->terminateMutex) );
@@ -547,7 +541,7 @@ clAmsPeClusterFaultReport(
         CL_INOUT    ClAmsLocalRecoveryT         *recovery,
         CL_INOUT    ClUint32T                   *escalation)
 {
-    AMS_LOG(CL_DEBUG_CRITICAL,
+    AMS_LOG(CL_LOG_SEV_CRITICAL,
             ("ALERT: Critical Fault! Terminating Cluster\n"));
 
     
@@ -583,7 +577,7 @@ clAmsPeSGUnlock(
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Unlock] on SG [%s]\n",
              sg->config.entity.name.value));
 
@@ -640,7 +634,7 @@ clAmsPeSGLockAssignment(
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Assignment] on SG [%s]\n",
              sg->config.entity.name.value));
 
@@ -675,14 +669,14 @@ clAmsPeSGLockAssignmentCallback(
 {
     if ( clAmsPeSGHasAssignments(sg) )
     {
-        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SG [%s] has assignments. Ignoring Lock Assignment Callback..\n",
              sg->config.entity.name.value));
 
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Admin Operation [Lock Assignment] on SG [%s] is now complete\n",
          sg->config.entity.name.value));
 
@@ -708,7 +702,7 @@ clAmsPeSGLockInstantiation(
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Instantiation] on SG [%s]\n",
              sg->config.entity.name.value));
 
@@ -747,7 +741,7 @@ clAmsPeSGLockInstantiationCallback(
 
     if ( adminState != CL_AMS_ADMIN_STATE_LOCKED_I )
     {
-        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Lock Instantiation callback for SG [%s] in admin state [%s] has no effect. Continuing..\n",
              sg->config.entity.name.value,
              CL_AMS_STRING_A_STATE(adminState)));
@@ -781,7 +775,7 @@ clAmsPeSGShutdown(
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on SG [%s]\n",
              sg->config.entity.name.value));
 
@@ -826,7 +820,7 @@ clAmsPeSGShutdownCallback(
 
     if ( clAmsPeSGHasAssignments(sg) )
     {
-        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SG [%s] has assignments. Ignoring Shutdown Callback..\n",
              sg->config.entity.name.value));
 
@@ -835,7 +829,7 @@ clAmsPeSGShutdownCallback(
 
     if ( adminState != CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
     {
-        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Shutdown callback for SG [%s] in admin state [%s] has no effect. Continuing..\n",
              sg->config.entity.name.value,
              CL_AMS_STRING_A_STATE(adminState)));
@@ -843,7 +837,7 @@ clAmsPeSGShutdownCallback(
        return CL_OK; 
     }
 
-    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Admin Operation [Shutdown] on SG [%s] is now complete\n",
          sg->config.entity.name.value));
 
@@ -892,7 +886,7 @@ clAmsPeSGInstantiate(
     if ( (adminState != CL_AMS_ADMIN_STATE_UNLOCKED) &&
          (adminState != CL_AMS_ADMIN_STATE_LOCKED_A) )
     {
-        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Instantiating SG [%s] in admin state [%s] has no effect. Continuing..\n",
              sg->config.entity.name.value,
              CL_AMS_STRING_A_STATE(adminState)));
@@ -902,7 +896,7 @@ clAmsPeSGInstantiate(
 
     if ( sg->status.isStarted == CL_TRUE )
     {
-        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SG [%s] is already started. Ignoring instantiate request..\n",
             sg->config.entity.name.value));
         
@@ -914,7 +908,7 @@ clAmsPeSGInstantiate(
      * wait for them to instantiate.
      */
 
-    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
              ("Instantiating SG [%s]. Marking eligible SUs as instantiable.\n",
               sg->config.entity.name.value));
 
@@ -1030,7 +1024,7 @@ clAmsPeSGTerminateCallback(
 
     if ( clAmsPeSGIsInstantiated(sg) )
     {
-        AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SG [%s] is still instantiated. Ignoring SG terminate callback\n",
              sg->config.entity.name.value))
 
@@ -1107,7 +1101,7 @@ clAmsPeSGEvaluateWork(
     if ( (adminState != CL_AMS_ADMIN_STATE_UNLOCKED) &&
          (adminState != CL_AMS_ADMIN_STATE_LOCKED_A) )
     {
-        AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SG [%s] has computed admin state [%s]. SU instantiation and assignment not possible. Continuing..\n",
              sg->config.entity.name.value,
              CL_AMS_STRING_A_STATE(adminState)));
@@ -1122,14 +1116,14 @@ clAmsPeSGEvaluateWork(
 
     if ( !sg->status.isStarted )
     {
-        AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SG [%s] in initial waiting period. SU instantiation and assignment will proceed after timeout..\n",
              sg->config.entity.name.value))
 
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
              ("Evaluating work for SG [%s]\n",
               sg->config.entity.name.value));
 
@@ -1150,7 +1144,7 @@ clAmsPeSGEvaluateWork(
 
     if ( adminState != CL_AMS_ADMIN_STATE_UNLOCKED )
     {
-        AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SG [%s] has computed admin state [%s]. SU assignment not possible. Continuing..\n",
              sg->config.entity.name.value,
              CL_AMS_STRING_A_STATE(adminState)));
@@ -1198,7 +1192,7 @@ clAmsPeSGInstantiateSUs(
 
     instantiating = 0;
 
-    AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Instantiating SUs for SG [%s] : Instantiated [%d], Need [%d], Available [%d], Instantiating [%d]\n",
              sg->config.entity.name.value,
              instantiated,
@@ -1226,9 +1220,7 @@ clAmsPeSGInstantiateSUs(
              * SU instantiate will modify the instantiableSUList.
              */
 
-            entityRef = clAmsEntityListGetNext(
-                                &sg->status.instantiableSUList,
-                                entityRef);
+            entityRef = clAmsEntityListGetNext(&sg->status.instantiableSUList,entityRef);
 
             /*
              * Check if the SU is instantiable and if so, instantiate it.
@@ -1236,7 +1228,7 @@ clAmsPeSGInstantiateSUs(
 
             if( clAmsPeSUIsInstantiable(su) != CL_OK )
             {
-                AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("SU [%s] is not instantiable. Ignoring SU..\n",
                      su->config.entity.name.value));
                 
@@ -1272,7 +1264,7 @@ clAmsPeSGInstantiateSUs(
 
         if ( instantiating )
         {
-            AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                  ("Instantiating SUs for SG [%s] : Instantiating total [%d] SUs\n", 
                   sg->config.entity.name.value,
                   instantiating));
@@ -1280,7 +1272,7 @@ clAmsPeSGInstantiateSUs(
 
         if ( canInstantiate )
         {
-            AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                  ("Instantiating SUs for SG [%s] : Need [%d] more SUs\n", 
                   sg->config.entity.name.value,
                   canInstantiate));
@@ -1355,7 +1347,7 @@ clAmsPeSGAssignSUs(
         
         default:
         {
-            AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                     ("Error: Invalid Redundancy model [%d] for SG [%s]. Exiting..\n",
                      sg->config.redundancyModel,
                      sg->config.entity.name.value));
@@ -1930,14 +1922,14 @@ clAmsPeNodeUnlock(
 
     if ( !node->config.isASPAware )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                         ("Node [%s] is not ASP aware. Nothing to do.\n",
                          node->config.entity.name.value));
         
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
-    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                      ("Admin Operation [Unlock] on Node [%s]\n",
                       node->config.entity.name.value));
 
@@ -2015,14 +2007,14 @@ clAmsPeNodeLockAssignment(
 
     if ( !node->config.isASPAware )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                  ("Node [%s] is not ASP aware. Nothing to do.\n",
                   node->config.entity.name.value));
         
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
-    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Assignment] on Node [%s]\n",
              node->config.entity.name.value));
 
@@ -2105,14 +2097,14 @@ clAmsPeNodeLockInstantiation(
 
     if ( !node->config.isASPAware )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                  ("Node [%s] is not ASP aware. Nothing to do.\n",
                   node->config.entity.name.value));
         
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Instantiation] on Node [%s]\n",
              node->config.entity.name.value));
 
@@ -2177,14 +2169,14 @@ clAmsPeNodeShutdown(
 
     if ( !node->config.isASPAware )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                  ("Node [%s] is not ASP aware. Nothing to do.\n",
                   node->config.entity.name.value));
         
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
-    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on Node [%s]\n",
              node->config.entity.name.value));
 
@@ -2229,7 +2221,7 @@ clAmsPeNodeShutdownCallback(
 
     if ( node->config.adminState != CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
     {
-        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Shutdown callback for Node [%s] in admin state [%s] has no effect. Continuing..\n",
              node->config.entity.name.value,
              CL_AMS_STRING_A_STATE(node->config.adminState)));
@@ -2261,14 +2253,14 @@ clAmsPeNodeRestart(
 
     if ( node->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Node [%s] is not instantiated. Ignoring Restart..\n",
              node->config.entity.name.value) ); 
 
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
-    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Restart] on Node [%s]\n",
              node->config.entity.name.value));
 
@@ -2288,7 +2280,7 @@ clAmsPeNodeRestart(
 
     if ( !node->config.isRestartable )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Node [%s] is not restartable. Recommend manual cluster restart..\n",
              node->config.entity.name.value) ); 
 
@@ -2364,14 +2356,14 @@ clAmsPeNodeRepaired(
 
     if ( node->status.operState == CL_AMS_OPER_STATE_ENABLED )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Repaired] on Node [%s] has no effect in Oper State [Enabled]. Continuing..\n",
              node->config.entity.name.value) ); 
 
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
-    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Repaired] on Node [%s]\n",
              node->config.entity.name.value));
 
@@ -2417,14 +2409,14 @@ clAmsPeNodeJoinCluster(
 
     if ( node->status.isClusterMember != CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Node [%s] is a cluster member. Ignoring join request..\n",
             node->config.entity.name.value));
 
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
              ("Node [%s] has joined cluster\n",
               node->config.entity.name.value));
 
@@ -2482,21 +2474,15 @@ clAmsPeNodeJoinCluster(
 /*
  * Replay the removing non-SC invocations.
  */
-static void clAmsPeReplayCSIRemove2(ClAmsNodeT *node,
-                                    ClAmsInvocationT *pInvocations,
-                                    ClUint32T numInvocations,
-                                    ClBoolT scFailover)
+static void clAmsPeReplayCSIRemove2(ClAmsNodeT *node, ClAmsInvocationT *pInvocations, ClUint32T numInvocations, ClBoolT scFailover)
 {
     if(scFailover)
     {
-        ClAmsCSIReplayFilterT filters[] = {
-            {
-                .node = NULL,
-                .clearInvocation = CL_TRUE,
-            },
-        };
-        clAmsPeReplayCSIRemoveCallbacks(pInvocations, numInvocations, filters, 1, 
-                                        CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE | CL_AMS_ENTITY_SWITCHOVER_REPLAY);
+        ClAmsCSIReplayFilterT filters[1];
+        filters[0].node = NULL;
+        filters[0].clearInvocation = CL_TRUE;
+
+        clAmsPeReplayCSIRemoveCallbacks(pInvocations, numInvocations, filters, 1, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE | CL_AMS_ENTITY_SWITCHOVER_REPLAY);
     }
 }
 
@@ -2585,7 +2571,7 @@ clAmsPeNodeHasLeftCluster(
          && 
          node->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                         ("Node [%s] is not a cluster member. Ignoring 'node has left' request..\n",
                          node->config.entity.name.value));
         /*
@@ -2598,7 +2584,7 @@ clAmsPeNodeHasLeftCluster(
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Node [%s] has left cluster: Step 1: Failing over all SUs on Node\n",
                      node->config.entity.name.value));
 
@@ -2648,7 +2634,7 @@ clAmsPeNodeHasLeftCluster(
     
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("AMS entity clear failed for node [%.*s] " \
+        AMS_LOG(CL_LOG_SEV_ERROR, ("AMS entity clear failed for node [%.*s] " \
                                  "with rc [%#x]\n", 
                                  node->config.entity.name.length,
                                  node->config.entity.name.value, rc));
@@ -2675,7 +2661,7 @@ clAmsPeNodeHasLeftClusterCallback_Step1(
 
     AMS_FUNC_ENTER ( ("Node [%s]\n",node->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Node [%s] has left cluster: Step 2: Marking SUs on Node as terminated\n",
          node->config.entity.name.value) ); 
 
@@ -2700,7 +2686,7 @@ clAmsPeNodeHasLeftClusterCallback_Step2(
 
     AMS_FUNC_ENTER ( ("Node [%s]\n",node->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Node [%s] has left cluster: Step 3: Informing CPM of task completion\n",
          node->config.entity.name.value) ); 
 
@@ -2740,13 +2726,13 @@ clAmsPeNodeIsLeavingCluster(
 
     if ( node->status.isClusterMember != CL_AMS_NODE_IS_CLUSTER_MEMBER )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Node [%s] is not a cluster member. Ignoring 'node is leaving' request..\n",
             node->config.entity.name.value));
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
              ("Node [%s] is leaving cluster: Step 1: Switching over all SUs on Node\n",
               node->config.entity.name.value));
 
@@ -2783,7 +2769,7 @@ clAmsPeNodeIsLeavingCluster(
 
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("AMS entity clear failed for node [%.*s] "\
+        AMS_LOG(CL_LOG_SEV_ERROR, ("AMS entity clear failed for node [%.*s] "\
                                  "with rc [%#x]\n", 
                                  node->config.entity.name.length,
                                  node->config.entity.name.value, rc));
@@ -2812,7 +2798,7 @@ clAmsPeNodeIsLeavingClusterCallback_Step1(
 
     AMS_FUNC_ENTER ( ("Node [%s]\n",node->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Node [%s] is leaving cluster: Step 2: Terminating all SUs on Node\n",
          node->config.entity.name.value) ); 
 
@@ -2837,7 +2823,7 @@ clAmsPeNodeIsLeavingClusterCallback_Step2(
 
     AMS_FUNC_ENTER ( ("Node [%s]\n",node->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Node [%s] is leaving cluster: Step 3: Informing CPM of task completion\n",
          node->config.entity.name.value) ); 
 
@@ -3088,7 +3074,7 @@ clAmsPeNodeFaultCallback_Step1(
 
     AMS_FUNC_ENTER ( ("Node [%s]\n",node->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Fault on Node [%s]: Terminating all SUs on Node\n",
          node->config.entity.name.value) ); 
 
@@ -3135,14 +3121,14 @@ clAmsPeNodeFaultCallback_Step2(
 
     if ( error )
     {
-        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Fault on Node [%s]: Recovery [%s] Failed\n",
              node->config.entity.name.value,
              CL_AMS_STRING_RECOVERY(node->status.recovery)));
     }
     else
     {
-        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Fault on Node [%s]: Recovery [%s] Successful\n",
              node->config.entity.name.value,
              CL_AMS_STRING_RECOVERY(node->status.recovery)));
@@ -3163,7 +3149,7 @@ clAmsPeNodeFaultCallback_Step2(
 
     ClRcT rc = CL_OK;
 
-    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Fault on Node [%s]: Reporting fault to FM. Recovery [%s], Repair Necessary [%s]\n",
          node->config.entity.name.value,
          CL_AMS_STRING_RECOVERY(recovery),
@@ -3174,7 +3160,7 @@ clAmsPeNodeFaultCallback_Step2(
                         recovery,
                         repairNecessary)) != CL_OK )
     { 
-        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_WARN,
+        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
             ("Error: Fault on Node [%s]: Error [0x%x] when reporting fault to FM. Continuing..\n", 
              node->config.entity.name.value,
              rc));
@@ -3187,7 +3173,7 @@ clAmsPeNodeFaultCallback_Step2(
                                          node->config.isASPAware))
                 != CL_OK )
         {
-            AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                     ("Error: Fault on Node [%s]: Error [0x%x] when rebooting node\n",
                      node->config.entity.name.value,
                      rc));
@@ -3209,7 +3195,7 @@ clAmsPeNodeFaultCallback_Step2(
                                                     node->config.isASPAware))
                  != CL_OK )
             {
-                AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+                AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                                ("Error: Fault on Node [%s]: Error [0x%x] when reporting Node Failover to CPM\n", node->config.entity.name.value, rc));
             }
         }
@@ -3218,7 +3204,7 @@ clAmsPeNodeFaultCallback_Step2(
             if( (rc = _clAmsSANodeFailOver(&node->config.entity.name, 
                                            node->config.isASPAware) ) != CL_OK)
             {
-                AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+                AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                                ("Error: Fault on Node [%s]: Error [%#x] reporting node failover to CPM\n",
                                 node->config.entity.name.value, rc));
             }
@@ -3263,7 +3249,7 @@ clAmsPeNodeInstantiate(
 
     if ( node->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Node [%s] is in Presence State [%s]. Ignoring instantiate request..\n",
              node->config.entity.name.value,
              CL_AMS_STRING_P_STATE(node->status.presenceState)) ); 
@@ -3278,7 +3264,7 @@ clAmsPeNodeInstantiate(
 
     if ( clAmsPeNodeIsInstantiable(node) != CL_OK ) 
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Node [%s] is not instantiable. Ignoring instantiate request..\n",
             node->config.entity.name.value));
 
@@ -3290,7 +3276,7 @@ clAmsPeNodeInstantiate(
      * instantiation.
      */
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
              ("Instantiating Node [%s]. Marking SUs on node as instantiable\n",
               node->config.entity.name.value));
 
@@ -3355,7 +3341,7 @@ clAmsPeNodeInstantiateCallback(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Node [%s] now has [%d] SUs instantiated\n",
         node->config.entity.name.value,
         node->status.numInstantiatedSUs));
@@ -3401,14 +3387,14 @@ clAmsPeNodeTerminate(
      * is an external cause for termination, it will set the oper state.
      */
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE, 
             ("Terminating Node [%s], Presence State [%s]\n", 
              node->config.entity.name.value, 
              CL_AMS_STRING_P_STATE(node->status.presenceState)));
 
     if ( node->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Node [%s] is already in Presence State [%s]. Will cleanup..\n",
             node->config.entity.name.value,
             CL_AMS_STRING_P_STATE(node->status.presenceState)));
@@ -3421,7 +3407,7 @@ clAmsPeNodeTerminate(
          ||
          (node->status.recovery == CL_AMS_RECOVERY_NODE_HALT))
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Node [%s] has fault [%s]. Will cleanup..\n",
             node->config.entity.name.value,
             CL_AMS_STRING_RECOVERY(node->status.recovery)));
@@ -3437,8 +3423,7 @@ clAmsPeNodeTerminate(
 
     for ( entityRef = clAmsEntityListGetFirst(&node->config.nodeDependentsList);
           entityRef != (ClAmsEntityRefT *) NULL;
-          entityRef = clAmsEntityListGetNext(&node->config.nodeDependentsList,
-                                             entityRef) )
+          entityRef = clAmsEntityListGetNext(&node->config.nodeDependentsList,entityRef) )
     {
         ClAmsNodeT *n = (ClAmsNodeT *) entityRef->ptr;
 
@@ -3540,7 +3525,7 @@ clAmsPeNodeTerminateCallback(
 
     if ( node->status.presenceState != CL_AMS_PRESENCE_STATE_TERMINATING )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Node [%s] is in Presence State [%s]. Ignoring terminate callback..\n",
             node->config.entity.name.value,
             CL_AMS_STRING_P_STATE(node->status.presenceState)) );
@@ -3550,7 +3535,7 @@ clAmsPeNodeTerminateCallback(
 
     if ( node->status.numInstantiatedSUs )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Node [%s] has [%d] instantiated SUs. Ignoring terminate callback..\n",
             node->config.entity.name.value,
             node->status.numInstantiatedSUs));
@@ -3579,7 +3564,7 @@ clAmsPeNodeTerminateCallback(
                     &node->config.suList,
                     (ClAmsEntityCallbackT)clAmsPeSUMarkUninstantiable) );
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Node [%s] is now terminated\n",
         node->config.entity.name.value));
 
@@ -3633,7 +3618,7 @@ clAmsPeNodeEvaluateWork(
 
     if ( !node->config.isASPAware )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                  ("Node [%s] is not ASP aware. Nothing to do.\n",
                   node->config.entity.name.value));
         
@@ -3645,7 +3630,7 @@ clAmsPeNodeEvaluateWork(
     if ( (adminState != CL_AMS_ADMIN_STATE_UNLOCKED) &&
          (adminState != CL_AMS_ADMIN_STATE_LOCKED_A) )
     {
-        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Node [%s] has an admin state of [%d]. Ignoring evaluate work request..\n",
              node->config.entity.name.value,
              node->config.adminState));
@@ -3653,7 +3638,7 @@ clAmsPeNodeEvaluateWork(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
              ("Evaluating work for Node [%s]\n",
               node->config.entity.name.value));
 
@@ -3707,7 +3692,7 @@ clAmsPeNodeSwitchoverWork(
 
     AMS_FUNC_ENTER ( ("Node [%s]\n",node->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Node [%s] Switchover Request...\n",
                      node->config.entity.name.value));
 
@@ -3740,8 +3725,7 @@ clAmsPeNodeSwitchoverWork(
 
     for ( entityRef = clAmsEntityListGetFirst(&node->config.nodeDependentsList);
           entityRef != (ClAmsEntityRefT *) NULL;
-          entityRef = clAmsEntityListGetNext(&node->config.nodeDependentsList,
-                                             entityRef) )
+          entityRef = clAmsEntityListGetNext(&node->config.nodeDependentsList, entityRef) )
     {
         ClAmsNodeT *n = (ClAmsNodeT *) entityRef->ptr;
 
@@ -3817,7 +3801,7 @@ clAmsPeNodeSwitchoverWork(
         }
     }
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Switching over [%d] SUs on Node [%s]\n",
                      numSUs,
                      node->config.entity.name.value));
@@ -3888,7 +3872,7 @@ clAmsPeNodeSwitchoverCallback(
 
     if ( nodeHasAssignments )
     {
-        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Node [%s] has [%d] assigned SUs. Ignoring switchover callback..\n",
              node->config.entity.name.value,
              nodeHasAssignments));
@@ -3896,7 +3880,7 @@ clAmsPeNodeSwitchoverCallback(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Node [%s] switchover callback..\n",
          node->config.entity.name.value));
 
@@ -4105,32 +4089,30 @@ clAmsPeNodeComputeAdminStateExtended(
 
     for ( eRef = clAmsEntityListGetFirst(&node->config.nodeDependenciesList);
           eRef != (ClAmsEntityRefT *) NULL;
-          eRef = clAmsEntityListGetNext(&node->config.nodeDependenciesList,
-                                        eRef) )
+          eRef = clAmsEntityListGetNext(&node->config.nodeDependenciesList, eRef) )
     {
         ClAmsNodeT *n = (ClAmsNodeT *) eRef->ptr;
 
-        AMS_CHECK_NODE (n);
+        if (AMS_ENTITY_OK(n,CL_AMS_ENTITY_TYPE_NODE))
+        {            
+            if ( n->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_I )
+            {
+                *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+                return CL_OK;  /* most restrictive state, so might as well return early */
+            }
+          
+            if ( n->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_A )
+            {
+                *adminState = CL_AMS_ADMIN_STATE_LOCKED_A;
+            }
 
-        if ( n->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_I )
-        {
-            *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
-
-            return CL_OK;
-        }
-
-        if ( n->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_A )
-        {
-            *adminState = CL_AMS_ADMIN_STATE_LOCKED_A;
-        }
-
-        if ( (n->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) &&
-             (*adminState != CL_AMS_ADMIN_STATE_LOCKED_A) )
-        {
-            *adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN;
-        }
+            if ( (n->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) &&
+                 (*adminState != CL_AMS_ADMIN_STATE_LOCKED_A) )
+            {
+                *adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN;
+            }
+        }        
     }
-
     return CL_OK;
 }
 
@@ -4360,7 +4342,7 @@ clAmsPeSUUnlock(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                     ("Admin Operation [Unlock] on SU [%s]\n",
                      su->config.entity.name.value));
 
@@ -4371,7 +4353,7 @@ clAmsPeSUUnlock(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
-    AMS_CALL ( clAmsPeSUComputeAdminStateExtended(su, &adminState, CL_AMS_ADMIN_STATE_UNLOCKED) );
+    clAmsPeSUComputeAdminStateExtended(su, &adminState, CL_AMS_ADMIN_STATE_UNLOCKED);
 
     if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED)
     {
@@ -4431,7 +4413,7 @@ clAmsPeSULockAssignment(
     AMS_CHECK_NODE( node = (ClAmsNodeT*)su->config.parentNode.ptr);
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Assignment] on SU [%s]\n",
              su->config.entity.name.value));
 
@@ -4444,7 +4426,7 @@ clAmsPeSULockAssignment(
 
     readinessState = su->status.readinessState;
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if(adminState == CL_AMS_ADMIN_STATE_UNLOCKED 
        &&
@@ -4519,7 +4501,7 @@ clAmsPeSUForceLockOperation(
 
     if(lock)
     {
-        AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+        clAmsPeSUComputeAdminState(su, &adminState);
 
         if(adminState != CL_AMS_ADMIN_STATE_UNLOCKED)
         {
@@ -4597,7 +4579,7 @@ clAmsPeSUForceLockInstantiationOperation(
     }
 #endif
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if(adminState == CL_AMS_ADMIN_STATE_LOCKED_I)
     {
@@ -4643,11 +4625,11 @@ clAmsPeSULockAssignmentCallback(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if ( adminState != CL_AMS_ADMIN_STATE_LOCKED_A )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Lock Assignment callback of SU [%s] in computed admin state [%s] has no effect. Continuing..\n",
              su->config.entity.name.value,
              CL_AMS_STRING_A_STATE(adminState)));
@@ -4679,7 +4661,7 @@ clAmsPeSULockInstantiation(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Instantiation] on SU [%s]\n",
              su->config.entity.name.value));
 
@@ -4700,7 +4682,7 @@ clAmsPeSULockInstantiation(
     }
 #endif
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_LOCKED_I);
 
@@ -4765,7 +4747,7 @@ clAmsPeSUShutdownWithRestart(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Admin Operation [%s] on SU [%s]\n",
              restart ? "Shutdown With Restart" : "Shutdown", su->config.entity.name.value));
 
@@ -4791,7 +4773,7 @@ clAmsPeSUShutdownWithRestart(
 
     readinessState = su->status.readinessState;
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &oldAdminState) );
+    clAmsPeSUComputeAdminState(su, &oldAdminState);
 
     CL_AMS_SET_A_STATE(su, adminState);
 
@@ -4895,7 +4877,7 @@ clAmsPeSUAdminRestart(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n", su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Admin Operation [Restart] on SU [%s]\n",
              su->config.entity.name.value));
 
@@ -4920,7 +4902,7 @@ clAmsPeSUAdminRestart(
     if ( (su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED) ||
          (clAmsPeSUIsInstantiable(su) != CL_OK) )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SU [%s] is not instantiable or instantiated. Cannot Restart..\n",
              su->config.entity.name.value));
 
@@ -4929,7 +4911,7 @@ clAmsPeSUAdminRestart(
 
     if ( !su->config.isRestartable )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SU [%s] is not restartable. Ignoring Restart..\n",
              su->config.entity.name.value));
         
@@ -4959,14 +4941,14 @@ clAmsPeSURestart(
 
     if ( clAmsPeSUIsInstantiable(su) != CL_OK )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SU [%s] is not instantiable. Stopping in Restart/Termination\n",
              su->config.entity.name.value));
 
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Restarting SU [%s]\n",
              su->config.entity.name.value));
 
@@ -5014,7 +4996,7 @@ clAmsPeSURestartCallback_Step1(
 
     if ( clAmsPeSUIsInstantiable(su) != CL_OK )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SU [%s] is not instantiable. Stopping in Restart/Instantiation\n",
              su->config.entity.name.value));
 
@@ -5069,7 +5051,7 @@ clAmsPeSURestartCallback_Step2(
 
     if ( su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SU [%s] is not inservice. Stopping in Restart/Reassignment\n",
              su->config.entity.name.value));
 
@@ -5754,7 +5736,7 @@ clAmsPeSURepaired(
     if ( (su->status.recovery == CL_AMS_RECOVERY_NONE) &&
          (su->status.operState == CL_AMS_OPER_STATE_ENABLED) )
     {
-        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Repaired] on SU [%s] in Oper State [%s], Recovery [%s]. Ignoring...\n",
              su->config.entity.name.value,
              CL_AMS_STRING_O_STATE(su->status.operState),
@@ -5763,7 +5745,7 @@ clAmsPeSURepaired(
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Admin Operation [Repaired] on SU [%s]\n",
              su->config.entity.name.value));
 
@@ -5879,7 +5861,7 @@ clAmsPeSUInstantiate(
         (su->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED) &&
          (su->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SU [%s] is in Presence State [%s]. Ignoring instantiate request..\n",
             su->config.entity.name.value,
             CL_AMS_STRING_P_STATE(su->status.presenceState)));
@@ -5889,7 +5871,7 @@ clAmsPeSUInstantiate(
 
     if( clAmsPeSUIsInstantiable(su) != CL_OK )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SU [%s] is not instantiable. Ignoring instantiate request..\n",
              su->config.entity.name.value));
 
@@ -5905,7 +5887,7 @@ clAmsPeSUInstantiate(
      * Update SU state
      */
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Instantiating SU [%s] in Presence State [%s]\n",
          su->config.entity.name.value,
          CL_AMS_STRING_P_STATE(su->status.presenceState)) ); 
@@ -5944,7 +5926,7 @@ clAmsPeSUInstantiate(
 
         if ( !su->status.numPIComp )
         {
-            AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Preinstantiable SU [%s] has 0 PI components. Exiting..\n",
                  su->config.entity.name.value));
 
@@ -5999,7 +5981,7 @@ clAmsPeSUInstantiateCallback(
          (su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED) &&
          (su->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED) )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("SU [%s] is [%s]. Ignoring instantiate callback..\n",
             su->config.entity.name.value,
             CL_AMS_STRING_P_STATE(su->status.presenceState)));
@@ -6042,7 +6024,7 @@ clAmsPeSUInstantiateCallback(
         }
     }
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("SU [%s] is now instantiated\n",
          su->config.entity.name.value));
 
@@ -6051,7 +6033,7 @@ clAmsPeSUInstantiateCallback(
         node->status.numInstantiatedSUs ++;
     }
 
-    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Node [%s] now has [%d] instantiated + restarting SUs\n",
          node->config.entity.name.value,
          node->status.numInstantiatedSUs));
@@ -6123,7 +6105,7 @@ clAmsPeSUInstantiateError(
          (su->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) &&
          (su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED) )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("SU [%s] is [%s]. Ignoring instantiate callback..\n",
             su->config.entity.name.value,
             CL_AMS_STRING_P_STATE(su->status.presenceState)));
@@ -6133,7 +6115,7 @@ clAmsPeSUInstantiateError(
 
     pstate = su->status.presenceState;
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
         ("Error [0x%x] in instantiating SU [%s]. Marking [instantiation-failed]\n",
          error,
          su->config.entity.name.value));
@@ -6269,7 +6251,7 @@ clAmsPeSUTerminate(
          (su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING) &&
          (su->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("SU [%s] is in Presence State [%s]. Ignoring terminate request..\n",
             su->config.entity.name.value,
             CL_AMS_STRING_P_STATE(su->status.presenceState)));
@@ -6277,7 +6259,7 @@ clAmsPeSUTerminate(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Terminating SU [%s]. Presence State [%s]\n",
              su->config.entity.name.value,
              CL_AMS_STRING_P_STATE(su->status.presenceState)) ); 
@@ -6356,7 +6338,7 @@ clAmsPeSUTerminateCallback(
     if ( (su->status.presenceState != CL_AMS_PRESENCE_STATE_TERMINATING) &&
          (su->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SU [%s] is in Presence State [%s]. Ignoring terminate callback..\n",
              su->config.entity.name.value,
              CL_AMS_STRING_P_STATE(su->status.presenceState)) ); 
@@ -6376,7 +6358,7 @@ clAmsPeSUTerminateCallback(
 
     if ( error )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
             ("Error: SU [%s] terminate callback indicates Error [0x%x]. Cleaning up..\n",
             su->config.entity.name.value,
             error));
@@ -6419,11 +6401,11 @@ clAmsPeSUTerminateCallback(
         }
     }
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("SU [%s] is now terminated\n",
          su->config.entity.name.value));
 
-    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Node [%s] now has [%d] instantiated + restarting SUs\n",
          node->config.entity.name.value,
          node->status.numInstantiatedSUs));
@@ -6503,7 +6485,7 @@ clAmsPeSUCleanup(
         return clAmsPeSUCleanupCallback(su, CL_OK);
     }
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Cleaning up SU [%s] in Presence State [%s]\n",
          su->config.entity.name.value,
          CL_AMS_STRING_P_STATE(su->status.presenceState)) ); 
@@ -6598,7 +6580,7 @@ clAmsPeSUCleanup(
              * cleanup and recovery actions. So, this cleanup is aborted.
              */
 
-            AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                 ("Component [%s] cleanup failed. Marking SU termination-failed and exiting SU cleanup..\n",
                 sucomp->config.entity.name.value));
 
@@ -6655,7 +6637,7 @@ clAmsPeSUCleanupCallback(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("SU [%s] is now terminated by cleanup action\n",
          su->config.entity.name.value));
 
@@ -6682,7 +6664,7 @@ clAmsPeSUCleanupCallback(
         }
     }
 
-    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Node [%s] now has [%d] instantiated + restarting SUs\n",
          node->config.entity.name.value,
          node->status.numInstantiatedSUs));
@@ -6770,7 +6752,7 @@ clAmsPeSUCleanupError(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
         ("Error [0x%x] in cleaning up SU [%s]. Marking [termination-failed]\n",
          error,
          su->config.entity.name.value));
@@ -6803,7 +6785,7 @@ clAmsPeSUCleanupError(
         AMS_CALL ( clAmsPeSUMarkUninstantiable(su) );
     }
 
-    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Node [%s] now has [%d] instantiated + restarting SUs\n",
          node->config.entity.name.value,
          node->status.numInstantiatedSUs));
@@ -6876,14 +6858,14 @@ clAmsPeSUEvaluateWork(
 
     if( clAmsPeSUIsInstantiable(su) != CL_OK )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("SU [%s] is not instantiable, ignoring evaluate work request..\n",
              su->config.entity.name.value));
 
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE, 
             ("Evaluating work for SU [%s]\n",
              su->config.entity.name.value));
 
@@ -6910,7 +6892,7 @@ clAmsPeSUAssignWorkAgain(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
              ("Replaying [%d] SI assignments for SU [%s]\n",
               su->status.siList.numEntities,
               su->config.entity.name.value) );
@@ -7237,7 +7219,7 @@ clAmsPeSUSwitchoverWork(
 
     clAmsEntityTimerStop ((ClAmsEntityT*)su, CL_AMS_SU_TIMER_ASSIGNMENT);
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
              ("SU [%s] Switchover Request...\n",
               su->config.entity.name.value) );
 
@@ -7819,7 +7801,7 @@ clAmsPeSUSwitchoverCallback(
 
     if ( su->status.numActiveSIs || su->status.numStandbySIs )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                        ("SU [%s] has [%d] assignments. Ignoring switchover callback..\n",
                         su->config.entity.name.value,
                         su->status.numActiveSIs + su->status.numStandbySIs));
@@ -7842,7 +7824,7 @@ clAmsPeSUSwitchoverCallback(
              comp->status.numStandbyCSIs ||
              invocationsPendingForComp )
         {
-            AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                            ("SU [%s] has components with assignments. Ignoring switchover callback..\n",
                             su->config.entity.name.value));
 
@@ -7855,7 +7837,7 @@ clAmsPeSUSwitchoverCallback(
      * in any other state would have been removed.
      */
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                    ("SU [%s] switchover callback..\n",
                     su->config.entity.name.value));
 
@@ -7931,7 +7913,7 @@ clAmsPeSUSwitchoverCallback(
 
         if ( !foundStandby )
         {
-            AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                            ("SI [%s] assigned to SU [%s] has no in-service standby SUs. Work reassignment not possible..\n", 
                             si->config.entity.name.value,
                             su->config.entity.name.value));
@@ -8189,7 +8171,7 @@ clAmsPeSURemoveWork(
          !su->status.numStandbySIs &&
          !su->status.numQuiescedSIs )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                 ("SU [%s] has no assignments. Ignoring remove work request..\n",
                  su->config.entity.name.value));
 
@@ -8391,7 +8373,7 @@ clAmsPeSUAssignSIDependencyCallback(
 
             if ( !activeSU )
             {
-                AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                 ("Warning: Assigning SI [%s] with HA state [Standby] to SU [%s] but no active assignment found.\n",
                                  si->config.entity.name.value,
                                  su->config.entity.name.value));
@@ -8591,7 +8573,7 @@ clAmsPeSUAssignSI(
          * rank. It is assumed that the ranks are always contiguous and start at 1.
          */
 
-        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                         ("Assigning SI [%s] to SU [%s] with HA State [%s]\n",
                          si->config.entity.name.value,
                          su->config.entity.name.value,
@@ -8628,7 +8610,7 @@ clAmsPeSUAssignSI(
 
             if ( !activeSU )
             {
-                AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                 ("Warning: Assigning SI [%s] with HA state [Standby] to SU [%s] but no active assignment found.\n",
                                  si->config.entity.name.value,
                                  su->config.entity.name.value));
@@ -8732,19 +8714,19 @@ clAmsPeSUAssignSI(
             {
                 if ( CL_GET_ERROR_CODE(rc2) == CL_AMS_ERR_CSI_NOT_ASSIGNABLE )
                 {
-                    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_ERROR,
+                    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_ERROR,
                                    ("Error: No component available for CSI [%s]. Config Error? Exiting..\n",
                                     csi->config.entity.name.value));
                 }
                 else if ( CL_GET_ERROR_CODE(rc2) == CL_ERR_DOESNT_EXIST )
                 {
-                    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_ERROR,
+                    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_ERROR,
                                    ("Error: CSI [%s]'s type is unsupported. Config Error? Exiting..\n",
                                     csi->config.entity.name.value));
                 }
                 else
                 {
-                    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_ERROR,
+                    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_ERROR,
                                    ("Error: Error [0x%x] finding component for CSI [%s]. Exiting..\n",
                                     rc2,
                                     csi->config.entity.name.value));
@@ -8799,7 +8781,7 @@ clAmsPeSUAssignSI(
          * function to reassign work, but goal is to start using this later.
          */
 
-        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                         ("Re-Assigning SI [%s] to SU [%s] with HA State [%s]\n",
                          si->config.entity.name.value,
                          su->config.entity.name.value,
@@ -8839,7 +8821,7 @@ clAmsPeSUAssignSI(
 
             if ( !activeSU )
             {
-                AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                 ("Warning: Assigning SI [%s] with HA state [Standby] to SU [%s] but no active assignment found.\n",
                                  si->config.entity.name.value,
                                  su->config.entity.name.value));
@@ -8930,7 +8912,7 @@ clAmsPeSUAssignSI(
          * Got an error while searching for SI assignment.
          */
 
-        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                         ("Error [0x%x]: Assigning SI [%s] to SU [%s] with HA State [%s]\n",
                          rc,
                          si->config.entity.name.value,
@@ -8966,7 +8948,7 @@ clAmsPeSUAssignSIError(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
         ("SI [%s] assignment to SU [%s] returned Error [0x%x]\n",
          si->config.entity.name.value,
          su->config.entity.name.value,
@@ -9034,7 +9016,7 @@ clAmsPeSUAssignSICallback(
                     0,
                     (ClAmsEntityRefT **)&siRef) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Confirming SI [%s] assigned to SU [%s] has HA State [%s]\n",
              si->config.entity.name.value,
              su->config.entity.name.value,
@@ -9112,7 +9094,7 @@ clAmsPeSURemoveSI(
 
     if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("SU [%s] is not assigned SI [%s]. Ignoring [Remove SI] request..\n",
             su->config.entity.name.value,
             si->config.entity.name.value));
@@ -9125,7 +9107,7 @@ clAmsPeSURemoveSI(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Removing SI [%s] assigned to SU [%s]\n",
         si->config.entity.name.value,
         su->config.entity.name.value));
@@ -9231,7 +9213,7 @@ clAmsPeSUQuiesceSI(
     ClAmsSUSIRefT *siRef;
     ClRcT rc;
     ClRcT (*quiesceFn)(ClAmsCompT *, ClAmsCSIT *, ClUint32T);
-    ClUint32T assignedSIs;
+    //ClUint32T assignedSIs;
 
     AMS_CHECK_SU ( su );
     AMS_CHECK_SI ( si );
@@ -9246,7 +9228,7 @@ clAmsPeSUQuiesceSI(
 
     if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
     {
-        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("SU [%s] is not assigned SI [%s]. Ignoring [Quiesce SI] request..\n",
             su->config.entity.name.value,
             si->config.entity.name.value));
@@ -9258,7 +9240,7 @@ clAmsPeSUQuiesceSI(
     {
         if ( siRef->haState != CL_AMS_HA_STATE_ACTIVE )
         {
-            AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                 ("SI [%s] assigned to SU [%s] is not Active and cannot be marked Quiescing\n",
                  si->config.entity.name.value,
                  su->config.entity.name.value));
@@ -9273,7 +9255,7 @@ clAmsPeSUQuiesceSI(
         if ( (siRef->haState != CL_AMS_HA_STATE_ACTIVE) &&
              (siRef->haState != CL_AMS_HA_STATE_QUIESCING) )
         {
-            AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                 ("SI [%s] assigned to SU [%s] is not Active or Quiescing and cannot be marked Quiesced\n",
                  si->config.entity.name.value,
                  su->config.entity.name.value));
@@ -9284,9 +9266,9 @@ clAmsPeSUQuiesceSI(
         quiesceFn = clAmsPeCompQuiesceCSIImmediately;
     }
 
-    assignedSIs = su->status.numActiveSIs + su->status.numStandbySIs;
+    //assignedSIs = su->status.numActiveSIs + su->status.numStandbySIs;
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Quiescing SI [%s] assigned to SU [%s]\n",
         si->config.entity.name.value,
         su->config.entity.name.value));
@@ -9327,7 +9309,7 @@ clAmsPeSUQuiesceSIGracefullyCallback(
 {
     AMS_FUNC_ENTER ( ("SU [%s]\n", su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Confirming SI [%s] assigned to SU [%s] is now [Quiesced] gracefully\n",
          si->config.entity.name.value,
          su->config.entity.name.value) ); 
@@ -9346,7 +9328,7 @@ clAmsPeSUQuiesceSIImmediatelyCallback(
 {
     AMS_FUNC_ENTER ( ("SU [%s]\n", su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Confirming SI [%s] assigned to SU [%s] is now [Quiesced]\n",
          si->config.entity.name.value,
          su->config.entity.name.value) ); 
@@ -9539,7 +9521,7 @@ clAmsPeSUFindCompForCSIAssignment(
 
     FOUND_COMPONENT:
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                    ("SU [%s]: Found Comp [%s] for CSI [%s] assignment\n",
                     su->config.entity.name.value,
                     (*foundComp)->config.entity.name.value,
@@ -9653,39 +9635,59 @@ clAmsPeSUFindCompWithCSIAssignment(
 /*
  * clAmsPeSUComputeAdminState
  * --------------------------
- * Compute the admin state of a SU based on its admin state and the
- * admin states of its node, SG and application group.
- *
+ * Compute the effective admin state of a SU based on its admin state
+ * and the admin states of its node, SG and application group.
  * Future: Add application and cluster.
  */
 
-static ClRcT
-clAmsPeSUComputeAdminStateExtended(
-        CL_IN       ClAmsSUT *su,
-        CL_OUT      ClAmsAdminStateT *adminState,
-        CL_IN       ClAmsAdminStateT suAdminState)
+static void clAmsPeSUComputeAdminStateExtended(CL_IN       ClAmsSUT *su,CL_OUT      ClAmsAdminStateT *adminState,CL_IN       ClAmsAdminStateT suAdminState)
 {
     ClAmsNodeT *node;
     ClAmsSGT *sg;
     ClAmsAdminStateT nodeAdminState, sgAdminState;
 
-    AMS_CHECKPTR (!adminState);
-    AMS_CHECK_SU (su);
-    AMS_CHECK_SG ( (sg = (ClAmsSGT *)su->config.parentSG.ptr) );
-    AMS_CHECK_NODE ( (node = (ClAmsNodeT *)su->config.parentNode.ptr) );
-
+    CL_ASSERT(adminState);
+    CL_ASSERT(AMS_ENTITY_OK(su,CL_AMS_ENTITY_TYPE_SU));
+    
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeNodeComputeAdminState(node, &nodeAdminState));
+    /* Instead of returning an error, return the effective admin
+       state given the error
+    */
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &sgAdminState));
+    /* If the SG or node does not exist, the effective admin state is "off" or LOCKED_I */
+    sg = (ClAmsSGT *)su->config.parentSG.ptr;
+    if (!AMS_ENTITY_OK(sg,CL_AMS_ENTITY_TYPE_SG))
+    {
+        *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+        return;
+    }
+    node = (ClAmsNodeT *)su->config.parentNode.ptr;
+    if (!AMS_ENTITY_OK(node,CL_AMS_ENTITY_TYPE_NODE))
+    {
+      *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+      return;          
+    }
+
+    /* If the SG or node's state can't be computed, its safe for us to be "off" */    
+    if (clAmsPeNodeComputeAdminState(node, &nodeAdminState) != CL_OK)
+    {
+        *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+        return;
+    }
+    if (clAmsPeSGComputeAdminState(sg, &sgAdminState) != CL_OK)
+    {
+        *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+        return;        
+    }
+    
 
     if ( (suAdminState == CL_AMS_ADMIN_STATE_UNLOCKED) &&
-         (nodeAdminState        == CL_AMS_ADMIN_STATE_UNLOCKED) &&
-         (sgAdminState          == CL_AMS_ADMIN_STATE_UNLOCKED) )
+         (nodeAdminState == CL_AMS_ADMIN_STATE_UNLOCKED) &&
+         (sgAdminState == CL_AMS_ADMIN_STATE_UNLOCKED) )
     {
         *adminState = CL_AMS_ADMIN_STATE_UNLOCKED;
-        return CL_OK;
+        return;
     }
 
     if ( (suAdminState == CL_AMS_ADMIN_STATE_LOCKED_I) ||
@@ -9693,7 +9695,7 @@ clAmsPeSUComputeAdminStateExtended(
          (sgAdminState          == CL_AMS_ADMIN_STATE_LOCKED_I) )
     {
         *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
-        return CL_OK;
+        return;
     }
 
     if ( (suAdminState == CL_AMS_ADMIN_STATE_LOCKED_A) ||
@@ -9701,35 +9703,39 @@ clAmsPeSUComputeAdminStateExtended(
          (sgAdminState          == CL_AMS_ADMIN_STATE_LOCKED_A) )
     {
         *adminState = CL_AMS_ADMIN_STATE_LOCKED_A;
-        return CL_OK;
+        return;
     }
 
     *adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN;
 
-    return CL_OK;
+    return;
 }
 
-ClRcT
-clAmsPeSUComputeAdminState(
-        CL_IN       ClAmsSUT *su,
-        CL_OUT      ClAmsAdminStateT *adminState)
+void clAmsPeSUComputeAdminState(CL_IN       ClAmsSUT *su, CL_OUT      ClAmsAdminStateT *adminState)
 {
-    if(!su) 
-        return CL_AMS_RC(CL_ERR_NULL_POINTER);
+    CL_ASSERT(AMS_ENTITY_OK(su,CL_AMS_ENTITY_TYPE_SU));
+    CL_ASSERT(adminState);
 
-    return clAmsPeSUComputeAdminStateExtended(su, adminState, su->config.adminState);
+    clAmsPeSUComputeAdminStateExtended(su, adminState, su->config.adminState);
 }
 
-ClRcT clAmsPeCompComputeAdminState(
-                                   CL_IN ClAmsCompT *comp,
-                                   CL_OUT ClAmsAdminStateT *adminState)
+
+void clAmsPeCompComputeAdminState(CL_IN ClAmsCompT *comp, CL_OUT ClAmsAdminStateT *adminState)
 {
     ClAmsSUT *su;
-    if(!comp)
-        return CL_AMS_RC(CL_ERR_NULL_POINTER);
-    AMS_CHECK_SU ( su = (ClAmsSUT*)comp->config.parentSU.ptr );
-    return clAmsPeSUComputeAdminStateExtended(su, adminState, su->config.adminState);
+    CL_ASSERT(AMS_ENTITY_OK(comp,CL_AMS_ENTITY_TYPE_COMP));
+    CL_ASSERT(adminState);
+
+    su = (ClAmsSUT*)comp->config.parentSU.ptr;
+    if (!AMS_ENTITY_OK(su,CL_AMS_ENTITY_TYPE_SU)) /* If the component has no SU, it can never be instantiated */
+    {
+        *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
+        return;
+    }
+    
+    clAmsPeSUComputeAdminStateExtended(su, adminState, su->config.adminState);
 }
+
 
 /*
  * clAmsPeSUComputeReadinessState
@@ -9738,23 +9744,36 @@ ClRcT clAmsPeCompComputeAdminState(
  * Future: add application and cluster entities
  */
 
-ClRcT
-clAmsPeSUComputeReadinessState(
+void clAmsPeSUComputeReadinessState(
         CL_IN       ClAmsSUT *su,
         CL_OUT      ClAmsReadinessStateT *suState)
 {
     ClAmsSGT *sg;
     ClAmsNodeT *node;
-    ClAmsAdminStateT adminState;
+    ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
 
-    AMS_CHECKPTR ( !suState );
-    AMS_CHECK_SU ( su );
-    AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
-    AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
+    CL_ASSERT(suState);
+    CL_ASSERT(AMS_ENTITY_OK(su,CL_AMS_ENTITY_TYPE_SU));
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
-
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    
+    /* If the SG or the Node does not exist, we must go out of service */
+    sg = (ClAmsSGT *) su->config.parentSG.ptr;
+    if (!AMS_ENTITY_OK(sg,CL_AMS_ENTITY_TYPE_SG))
+    {
+      *suState = CL_AMS_READINESS_STATE_OUTOFSERVICE;
+      clLog(CL_LOG_SEV_WARNING,"AMF","POL","SU [%.*s] has no SG",su->config.entity.name.length,su->config.entity.name.value);
+      return;
+    }
+    node = (ClAmsNodeT *) su->config.parentNode.ptr;
+    if (!AMS_ENTITY_OK(node,CL_AMS_ENTITY_TYPE_NODE))
+    {
+      clLog(CL_LOG_SEV_WARNING,"AMF","POL","SU [%.*s] has no Node",su->config.entity.name.length,su->config.entity.name.value);
+      *suState = CL_AMS_READINESS_STATE_OUTOFSERVICE;
+      return;          
+    }
+    
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if ( (su->status.operState    == CL_AMS_OPER_STATE_ENABLED)   &&
          (node->status.operState  == CL_AMS_OPER_STATE_ENABLED)   &&
@@ -9766,13 +9785,13 @@ clAmsPeSUComputeReadinessState(
                  (su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING) )
             {
                 *suState = CL_AMS_READINESS_STATE_INSERVICE;
-                return CL_OK;
+                return;
             }
         }
         else
         {
                 *suState = CL_AMS_READINESS_STATE_INSERVICE;
-                return CL_OK;
+                return;
         }
     }
 
@@ -9781,13 +9800,14 @@ clAmsPeSUComputeReadinessState(
          (adminState             == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) )
     {
         *suState = CL_AMS_READINESS_STATE_STOPPING;
-        return CL_OK;
+        return;
     }
 
     *suState = CL_AMS_READINESS_STATE_OUTOFSERVICE;
 
-    return CL_OK;
+    return;
 }
+
 
 /*
  * clAmsPeSUUpdateReadinessState
@@ -9808,7 +9828,7 @@ clAmsPeSUUpdateReadinessState(
      * Update state of SU
      */
 
-    AMS_CALL ( clAmsPeSUComputeReadinessState(su, &rstate) );
+    clAmsPeSUComputeReadinessState(su, &rstate);
     CL_AMS_SET_R_STATE(su, rstate);
 
     /*
@@ -9841,7 +9861,7 @@ clAmsPeSUIsInstantiable(
     
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if ( ( (adminState == CL_AMS_ADMIN_STATE_LOCKED_A) ||
            (adminState == CL_AMS_ADMIN_STATE_UNLOCKED) ) &&
@@ -9871,7 +9891,7 @@ clAmsPeSUIsAssignable(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if ( (clAmsPeSUIsInstantiable(su) == CL_OK) &&
         (adminState == CL_AMS_ADMIN_STATE_UNLOCKED) )
@@ -9902,7 +9922,7 @@ clAmsPeSUMarkInstantiable(
 
     if( clAmsPeSUIsInstantiable(su) != CL_OK)
     {
-        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
                         ("SU [%s] : SG [%s] List Add (SU is not instantiable)\n",
                          su->config.entity.name.value,
                          sg->config.entity.name.value));
@@ -9919,7 +9939,7 @@ clAmsPeSUMarkInstantiable(
     {
         AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.instantiableSUList, su) );
 
-        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+        AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
                         ("SU [%s] : SG [%s] List Add (none -> instantiable)\n",
                          su->config.entity.name.value,
                          sg->config.entity.name.value));
@@ -9952,7 +9972,7 @@ clAmsPeSUMarkUninstantiable(
     if ( (rc != CL_OK) && (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST) )
         return rc;
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Remove (instantiable -> none) \n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -9991,7 +10011,7 @@ clAmsPeSUMarkInstantiated(
 
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.instantiatedSUList, su) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Change (instantiable -> instantiated) \n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -10021,7 +10041,7 @@ clAmsPeSUMarkUninstantiated(
 
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.instantiableSUList, su) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Change (instantiated -> instantiable) \n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -10063,7 +10083,7 @@ clAmsPeSUMarkReady(
 
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.inserviceSpareSUList, su) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Change (instantiated -> inserviceSpare) \n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -10094,7 +10114,7 @@ clAmsPeSUMarkNotReady(
 
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.instantiatedSUList, su) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Change (inserviceSpare -> instantiated) \n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -10128,7 +10148,7 @@ clAmsPeSUMarkAssigned(
 
     node->status.numAssignedSUs ++;
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Change (inserviceSpare -> assigned) \n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -10163,7 +10183,7 @@ clAmsPeSUMarkUnassigned(
 
     node->status.numAssignedSUs --;
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Change (assigned -> inserviceSpare)\n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -10184,7 +10204,7 @@ clAmsPeSUMarkTerminated(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSUComputeReadinessState(su, &rstate) );
+    clAmsPeSUComputeReadinessState(su, &rstate);
     CL_AMS_SET_R_STATE(su, rstate);
 
     rc = clAmsSGDeleteSURefFromSUList(&sg->status.inserviceSpareSUList, su);
@@ -10197,7 +10217,7 @@ clAmsPeSUMarkTerminated(
 
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.instantiableSUList, su) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Change (inserviceSpare -> instantiable)\n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -10218,7 +10238,7 @@ clAmsPeSUMarkRestarting(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Change (assigned -> instantiated)\n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -10272,7 +10292,7 @@ clAmsPeSUMarkFaulty(
 
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.faultySUList, su) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Change ( -> faulty)\n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -10300,7 +10320,7 @@ clAmsPeSUMarkRepaired(
         return CL_OK;
     AMS_CALL ( clAmsSGAddSURefToSUList(&sg->status.instantiableSUList, su) );
 
-    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_STATE_CHANGE,CL_LOG_SEV_TRACE, 
         ("SU [%s] : SG [%s] List Change (faulty -> instantiable)\n",
          su->config.entity.name.value,
          sg->config.entity.name.value));
@@ -10489,7 +10509,7 @@ clAmsPeSIUnlock(
 
     AMS_FUNC_ENTER ( ("SI [%s]\n", si->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (si, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (si, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Admin Operation [Unlock] on SI [%s]\n",
              si->config.entity.name.value));
 
@@ -10540,7 +10560,7 @@ clAmsPeSILockAssignment(
 
     AMS_FUNC_ENTER ( ("SI [%s]\n",si->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (si, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (si, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Assignment] on SI [%s]\n",
              si->config.entity.name.value));
 
@@ -10636,7 +10656,7 @@ clAmsPeSIShutdown(
 
     AMS_FUNC_ENTER ( ("SI [%s]\n", si->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (si, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (si, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on SI [%s]\n",
              si->config.entity.name.value));
 
@@ -10819,7 +10839,7 @@ clAmsPeSIEvaluateWork(
 
     if ( adminState != CL_AMS_ADMIN_STATE_UNLOCKED )
     {
-        AMS_ENTITY_LOG(si, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(si, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SI [%s] is in admin state [%s]. Ignoring work evaluation request..\n",
              si->config.entity.name.value,
              CL_AMS_STRING_A_STATE(adminState)));
@@ -10827,7 +10847,7 @@ clAmsPeSIEvaluateWork(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (si, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE, 
+    AMS_ENTITY_LOG (si, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE, 
             ("Evaluating work for SI [%s]\n",
              si->config.entity.name.value));
 
@@ -11007,7 +11027,7 @@ clAmsPeSIUpdateDependents(
 
     AMS_FUNC_ENTER ( ("SI [%s]\n", si->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (si, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (si, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Updating dependents of SI [%s]\n",
              si->config.entity.name.value));
 
@@ -11255,7 +11275,7 @@ clAmsPeCompAdminRestart(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Admin Operation [Restart] on Component [%s]\n",
              comp->config.entity.name.value));
 
@@ -11269,7 +11289,7 @@ clAmsPeCompAdminRestart(
     if ( (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED) ||
          (clAmsPeSUIsInstantiable((ClAmsSUT *)comp->config.parentSU.ptr) != CL_OK) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Component [%s] is not instantiable or instantiated. Cannot Restart..\n",
              comp->config.entity.name.value));
 
@@ -11278,7 +11298,7 @@ clAmsPeCompAdminRestart(
 
     if ( !comp->config.isRestartable )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Component [%s] is not restartable. Ignoring Restart..\n",
              comp->config.entity.name.value));
 
@@ -11308,14 +11328,14 @@ clAmsPeCompRestart(
 
     if ( clAmsPeSUIsInstantiable((ClAmsSUT *)comp->config.parentSU.ptr) != CL_OK )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Component [%s] is not instantiable. Stopping in Restart/Termination\n",
              comp->config.entity.name.value));
 
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Restarting Component [%s]\n",
              comp->config.entity.name.value));
 
@@ -11359,7 +11379,7 @@ clAmsPeCompRestartCallback_Step1(
 
     if ( clAmsPeSUIsInstantiable((ClAmsSUT *)comp->config.parentSU.ptr) != CL_OK )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Component [%s] is not instantiable. Stopping in Restart/Instantiation\n",
              comp->config.entity.name.value));
 
@@ -11410,7 +11430,7 @@ clAmsPeCompRestartCallback_Step2(
 
     if ( comp->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Component [%s] is not inservice. Stopping in Restart/Reassignment\n",
              comp->config.entity.name.value));
 
@@ -11484,7 +11504,7 @@ clAmsPeCompFaultReport(
                                        (ClAmsEntityT *) comp,
                                        CL_AMS_COMP_TIMER_INSTANTIATE) == CL_TRUE )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                             ("Fault on Component [%s]: Translating to Component Instantiate Error\n",
                              comp->config.entity.name.value) );
 
@@ -11496,7 +11516,7 @@ clAmsPeCompFaultReport(
                                        (ClAmsEntityT *) comp,
                                        CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE) == CL_TRUE )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                             ("Fault on Component [%s]: Translating to Proxied Component Instantiate Error\n",
                              comp->config.entity.name.value) );
 
@@ -11508,7 +11528,7 @@ clAmsPeCompFaultReport(
                                        (ClAmsEntityT *) comp,
                                        CL_AMS_COMP_TIMER_TERMINATE) == CL_TRUE )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                             ("Fault on Component [%s]: Translating to Component Terminate Error\n",
                              comp->config.entity.name.value) );
 
@@ -11520,7 +11540,7 @@ clAmsPeCompFaultReport(
                                        (ClAmsEntityT *) comp,
                                        CL_AMS_COMP_TIMER_CSISET) == CL_TRUE )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                             ("Fault on Component [%s]: Translating to CSI Set Error\n",
                              comp->config.entity.name.value) );
 
@@ -11532,7 +11552,7 @@ clAmsPeCompFaultReport(
                                        (ClAmsEntityT *) comp,
                                        CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE) == CL_TRUE )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                             ("Fault on Component [%s]: Translating to CSI Quiescing Error\n",
                              comp->config.entity.name.value) );
 
@@ -11544,7 +11564,7 @@ clAmsPeCompFaultReport(
                                        (ClAmsEntityT *) comp,
                                        CL_AMS_COMP_TIMER_CSIREMOVE) == CL_TRUE )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                             ("Fault on Component [%s]: Translating to CSI Remove Error\n",
                              comp->config.entity.name.value) );
 
@@ -11841,7 +11861,7 @@ clAmsPeCompComputeRecoveryAction(
      * don't restart a component/su that is not fully usable.
      */
 
-    AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
+    clAmsPeSUComputeAdminState(su, &adminState);
 
     if ( (adminState == CL_AMS_ADMIN_STATE_LOCKED_A) ||
          (adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN)
@@ -12115,7 +12135,7 @@ clAmsPeCompInstantiate(
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING)  &&
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] is [%s]. Ignoring instantiate request..\n",
             comp->config.entity.name.value,
             CL_AMS_STRING_P_STATE(comp->status.presenceState)));
@@ -12208,7 +12228,7 @@ clAmsPeCompInstantiate2(
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING)  &&
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] is in Presence State [%s]. Ignoring instantiate request..\n",
             comp->config.entity.name.value,
             CL_AMS_STRING_P_STATE(comp->status.presenceState)));
@@ -12216,7 +12236,7 @@ clAmsPeCompInstantiate2(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Instantiating [%s] Component [%s], Attempt [%d], Presence State [%s]\n",
          CL_AMS_STRING_COMP_PROPERTY(comp->config.property),
          comp->config.entity.name.value,
@@ -12282,7 +12302,7 @@ clAmsPeCompInstantiate2(
 
             if ( clAmsPeCompIsProxyReady(comp) == CL_FALSE )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Defering instantiation\n",
                      comp->config.entity.name.value));
 
@@ -12337,7 +12357,7 @@ clAmsPeCompInstantiate2(
 
             if ( clAmsPeCompIsProxyReady(comp) == CL_FALSE )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Defering instantiation\n",
                      comp->config.entity.name.value));
 
@@ -12354,7 +12374,7 @@ clAmsPeCompInstantiate2(
 
             if ( !csiRef )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no CSI assignment. Defering instantiation\n",
                      comp->config.entity.name.value));
 
@@ -12424,7 +12444,7 @@ clAmsPeCompInstantiate2(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                      comp->config.entity.name.value,
                      CL_AMS_STRING_H_STATE(CL_AMS_HA_STATE_ACTIVE),
@@ -12477,7 +12497,7 @@ clAmsPeCompInstantiate2(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] instantiate returned Error [0x%x]\n",
                      comp->config.entity.name.value, error)); 
 
@@ -12497,7 +12517,7 @@ clAmsPeCompInstantiate2(
              * Error, unknown component type
              */
 
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                  comp->config.property,
                  comp->config.entity.name.value));
@@ -12576,7 +12596,7 @@ clAmsPeCompInstantiateCallback(
                 (ClAmsEntityT *) comp,
                 CL_AMS_COMP_TIMER_INSTANTIATE) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] instantiate timer has been cleared. Ignoring callback..\n",
             comp->config.entity.name.value));
 
@@ -12591,7 +12611,7 @@ clAmsPeCompInstantiateCallback(
     if ( (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING ) &&
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] is [%s]. Ignoring instantiate callback..\n",
             comp->config.entity.name.value,
             CL_AMS_STRING_P_STATE(comp->status.presenceState)));
@@ -12668,7 +12688,7 @@ clAmsPeCompInstantiateCallback(
 
         default:
         {
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                  comp->config.property,
                  comp->config.entity.name.value));
@@ -12682,7 +12702,7 @@ clAmsPeCompInstantiateCallback(
      * the callback to SU Instantiate or Comp Restart.
      */
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Component [%s] is now instantiated\n",
          comp->config.entity.name.value));
 
@@ -12761,7 +12781,7 @@ clAmsPeCompInstantiateTimeout(
     if ( (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING) &&
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] is [%s]. Ignoring instantiate timeout..\n",
             comp->config.entity.name.value,
             CL_AMS_STRING_P_STATE(comp->status.presenceState)));
@@ -12787,7 +12807,7 @@ clAmsPeCompInstantiateError(
 {
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
         ("Component [%s] instantiate error [0x%x]. Will cleanup\n",
          comp->config.entity.name.value, error)); 
 
@@ -12823,7 +12843,7 @@ clAmsPeCompProxiedCompInstantiateTimeout(
     if ( (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING) &&
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Component [%s] is [%s]. Ignoring instantiate timeout..\n",
             comp->config.entity.name.value,
             CL_AMS_STRING_P_STATE(comp->status.presenceState)));
@@ -12913,7 +12933,7 @@ clAmsPeCompShutdown(
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING) &&
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] is [%s]. Ignoring terminate request..\n",
             comp->config.entity.name.value,
             CL_AMS_STRING_P_STATE(comp->status.presenceState)));
@@ -12923,7 +12943,7 @@ clAmsPeCompShutdown(
 
     CL_AMS_RESET_EPOCH(comp);
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Terminating Component [%s] in Presence State [%s]\n",
          comp->config.entity.name.value,
          CL_AMS_STRING_P_STATE(comp->status.presenceState)) ); 
@@ -13026,7 +13046,7 @@ clAmsPeCompShutdown(
 
             if ( !comp->status.proxyComp )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Marking component terminated\n",
                      comp->config.entity.name.value));
 
@@ -13070,7 +13090,7 @@ clAmsPeCompShutdown(
 
             if ( !comp->status.proxyComp )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Marking component terminated\n",
                      comp->config.entity.name.value));
 
@@ -13081,7 +13101,7 @@ clAmsPeCompShutdown(
 
             if ( !csiRef )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no CSI assignment. Nothing to terminate\n",
                      comp->config.entity.name.value));
 
@@ -13131,7 +13151,7 @@ clAmsPeCompShutdown(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                     ("Component [%s] terminate returned Error [0x%x]\n",
                      comp->config.entity.name.value, error)); 
                 
@@ -13200,7 +13220,7 @@ clAmsPeCompShutdown(
              * Error, unknown component type
              */
 
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                  comp->config.property,
                  comp->config.entity.name.value));
@@ -13255,7 +13275,7 @@ clAmsPeCompTerminate(
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING) &&
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] is [%s]. Ignoring terminate request..\n",
             comp->config.entity.name.value,
             CL_AMS_STRING_P_STATE(comp->status.presenceState)));
@@ -13265,7 +13285,7 @@ clAmsPeCompTerminate(
 
     CL_AMS_RESET_EPOCH(comp);
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Terminating Component [%s] in Presence State [%s]\n",
          comp->config.entity.name.value,
          CL_AMS_STRING_P_STATE(comp->status.presenceState)) ); 
@@ -13340,7 +13360,7 @@ clAmsPeCompTerminate(
 
             if ( !comp->status.proxyComp )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Marking component terminated\n",
                      comp->config.entity.name.value));
 
@@ -13373,7 +13393,7 @@ clAmsPeCompTerminate(
         {
             if ( !comp->status.proxyComp )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Marking component terminated\n",
                      comp->config.entity.name.value));
 
@@ -13387,7 +13407,7 @@ clAmsPeCompTerminate(
 
             if ( !csiRef )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no CSI assignment. Nothing to terminate\n",
                      comp->config.entity.name.value));
 
@@ -13438,7 +13458,7 @@ clAmsPeCompTerminate(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                     ("Component [%s] terminate returned Error [0x%x]\n",
                      comp->config.entity.name.value, error)); 
 
@@ -13492,7 +13512,7 @@ clAmsPeCompTerminate(
              * Error, unknown component type
              */
 
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                  comp->config.property,
                  comp->config.entity.name.value));
@@ -13535,7 +13555,7 @@ clAmsPeCompTerminateCallback(
                 (ClAmsEntityT *) comp,
                 CL_AMS_COMP_TIMER_TERMINATE) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] terminate timer has been cleared. Ignoring callback..\n",
             comp->config.entity.name.value));
 
@@ -13547,7 +13567,7 @@ clAmsPeCompTerminateCallback(
      * Process terminate callback (component unregister) based on presence state
      */
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Terminate Callback (Unregister) for Component [%s] in Presence State [%s]\n",
         comp->config.entity.name.value,
         CL_AMS_STRING_P_STATE(comp->status.presenceState)) );
@@ -13658,7 +13678,7 @@ clAmsPeCompTerminateCallback(
      * Fall through to here means component was/is now terminated.
      */
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Component [%s] is now terminated\n",
          comp->config.entity.name.value));
 
@@ -13702,7 +13722,7 @@ clAmsPeCompTerminateTimeout(
     if ( (comp->status.presenceState != CL_AMS_PRESENCE_STATE_TERMINATING) &&
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] is not in terminating state. Ignoring timeout..\n",
             comp->config.entity.name.value));
 
@@ -13730,7 +13750,7 @@ clAmsPeCompTerminateError(
 
     AMS_CHECK_SU ( su = (ClAmsSUT*)comp->config.parentSU.ptr );
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
         ("Component [%s] terminate error [0x%x]. Will cleanup\n",
         comp->config.entity.name.value,
         error));
@@ -13783,14 +13803,14 @@ clAmsPeCompCleanup(
 
     if ( comp->status.timers.cleanup.count )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_ERROR,
             ("Component [%s]'s cleanup timer is running. Ignoring cleanup request..\n",
              comp->config.entity.name.value));
 
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Cleaning up Component [%s] in Presence State [%s]\n",
          comp->config.entity.name.value,
          CL_AMS_STRING_P_STATE(comp->status.presenceState)) ); 
@@ -13846,7 +13866,7 @@ clAmsPeCompCleanup(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                     ("Component [%s] cleanup returned Error [0x%x]\n",
                      comp->config.entity.name.value, error) ) 
 
@@ -13881,7 +13901,7 @@ clAmsPeCompCleanup(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                     ("Component [%s] cleanup returned Error [0x%x]\n",
                      comp->config.entity.name.value, error) ) 
 
@@ -13902,7 +13922,7 @@ clAmsPeCompCleanup(
 
             if ( !comp->status.proxyComp )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Marking component cleaned up\n",
                      comp->config.entity.name.value));
 
@@ -13911,7 +13931,7 @@ clAmsPeCompCleanup(
 
             if( comp->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] already uninstantiated. Marking component cleaned up\n",
                      comp->config.entity.name.value));
                 return clAmsPeCompProxiedCompCleanupCallback(comp, CL_OK);
@@ -13937,7 +13957,7 @@ clAmsPeCompCleanup(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] cleanup returned Error [0x%x]\n",
                      comp->config.entity.name.value, error) ) 
 
@@ -13953,7 +13973,7 @@ clAmsPeCompCleanup(
              * Error, unknown component type
              */
 
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                  comp->config.property,
                  comp->config.entity.name.value));
@@ -14016,7 +14036,7 @@ clAmsPeCompCleanupCallback(
         return clAmsPeCompCleanupError(comp, error);
     }
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Component [%s] is now terminated by cleanup action\n",
          comp->config.entity.name.value));
 
@@ -14047,7 +14067,7 @@ clAmsPeCompCleanupCallback(
         }
     }
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("SU [%s] now has [%d] instantiated + restarting components\n",
          su->config.entity.name.value,
          su->status.numInstantiatedComp));
@@ -14103,7 +14123,7 @@ clAmsPeCompCleanupError(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
         ("Error [0x%x] in cleaning up Component [%s]\n",
          error,
          comp->config.entity.name.value));
@@ -14128,7 +14148,7 @@ clAmsPeCompCleanupError(
         }
     }
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("SU [%s] now has [%d] instantiated + restarting components\n",
          su->config.entity.name.value,
          su->status.numInstantiatedComp));
@@ -14320,7 +14340,7 @@ clAmsPeCompRemoveWork(
 
     clAmsPeCompComputeSwitchoverMode(comp, &switchoverMode);
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] Remove Work Request with switchover mode %d",
                      comp->config.entity.name.value, switchoverMode));
 
@@ -14449,7 +14469,7 @@ clAmsPeCompSwitchoverWork(
 
     entityRef = clAmsEntityListGetFirst(&comp->status.csiList);
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] Switchover Request for CSIs with HA state [%s] \n",
                      comp->config.entity.name.value,
                      CL_AMS_STRING_H_STATE(haState)) );
@@ -14524,7 +14544,7 @@ clAmsPeCompSwitchoverCallback(
 
     if ( comp->status.numStandbyCSIs || comp->status.numActiveCSIs )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] has [%d] assignments. Ignoring switchover callback ..\n",
              comp->config.entity.name.value,
              comp->status.numActiveCSIs + comp->status.numStandbyCSIs));
@@ -14723,7 +14743,7 @@ clAmsPeCompReassignWork(
 
         if ( standby == NULL )
         {
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                            ("CSI [%s] assigned to Component [%s] has no in-service standby Component. Work reassignment not possible..\n", 
                             csi->config.entity.name.value,
                             comp->config.entity.name.value));
@@ -14741,7 +14761,7 @@ clAmsPeCompReassignWork(
             && 
            clAmsInvocationPendingForComp(standby, CL_AMS_CSI_RMV_CALLBACK))
         {
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                            ("Component [%.*s] has a pending csi remove. Skipping reassignment\n",
                             standby->config.entity.name.length-1, standby->config.entity.name.value));
             continue;
@@ -14818,7 +14838,7 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFa
     if(invocationData->cmd != CL_AMS_CSI_SET_CALLBACK &&
        invocationData->cmd != CL_AMS_CSI_QUIESCING_CALLBACK)
     {
-        AMS_ENTITY_LOG(comp,CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp,CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_ERROR,
                        ("Invocation data does not match CSI command\n"));
         return CL_OK;
     }
@@ -14833,7 +14853,7 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFa
 
     if(CL_OK != rc)
     {
-        AMS_ENTITY_LOG(comp,CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp,CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_ERROR,
                        ("Component [%s] does not have CSI [%s] assigned\n",
                         comp->config.entity.name.value,csi->config.entity.name.value));
         return CL_OK;
@@ -14841,7 +14861,7 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFa
 
     if(csiRef->pendingOp != invocationData->cmd)
     {
-        AMS_ENTITY_LOG(comp,CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp,CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_ERROR,
                        ("CSI [%s],pending op [%#x] does not match pending invocation cmd [%#x]."
                         " [%s] replay",
                         csi->config.entity.name.value, csiRef->pendingOp, invocationData->cmd,
@@ -14850,7 +14870,7 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFa
             return CL_OK;
     }
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_INFO,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_INFO,
                     ("Re-Assigning CSI [%s] to Component [%s] with mode [%d], HA State [%s], Invocation [%#llx]",
                      csi->config.entity.name.value,
                      comp->config.entity.name.value,
@@ -14915,7 +14935,7 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFa
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                                ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                                 comp->config.entity.name.value,
                                 CL_AMS_STRING_H_STATE(csiRef->haState),
@@ -14941,7 +14961,7 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFa
 
             if ( clAmsPeCompIsProxyReady(comp) == CL_FALSE )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                ("Component [%s] has no proxy. Defering CSI assignment\n",
                                 comp->config.entity.name.value));
 
@@ -14981,7 +15001,7 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFa
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                                 comp->config.entity.name.value,
                                 CL_AMS_STRING_H_STATE(csiRef->haState),
@@ -15013,7 +15033,7 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFa
 
             if ( clAmsPeCompIsProxyReady(comp) == CL_FALSE )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                ("Component [%s] has no proxy. Defering CSI assignment\n",
                                 comp->config.entity.name.value));
 
@@ -15036,7 +15056,7 @@ clAmsPeReplayCSI(ClAmsCompT *comp,ClAmsInvocationT *invocationData, ClBoolT scFa
 
     default:
         {
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                            ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                             comp->config.property,
                             comp->config.entity.name.value));
@@ -15131,7 +15151,7 @@ clAmsPeCompAssignCSIExtended(
          * always contiguous and start at 1.
          */
 
-        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                         ("Assigning new CSI [%s] to Component [%s] with HA State [%s]\n",
                          csi->config.entity.name.value,
                          comp->config.entity.name.value,
@@ -15235,7 +15255,7 @@ clAmsPeCompAssignCSIExtended(
          * component. This could be changed in the future if necessary.
          */
 
-        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                         ("Re-Assigning CSI [%s] to Component [%s] with HA State [%s]\n",
                          csi->config.entity.name.value,
                          comp->config.entity.name.value,
@@ -15279,7 +15299,7 @@ clAmsPeCompAssignCSIExtended(
 
             if ( !activeComp )
             {
-                AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                 ("Warning: Assigning CSI [%s] with HA state [Standby] to Component [%s] but no active assignment found.\n",
                                  csi->config.entity.name.value,
                                  comp->config.entity.name.value));
@@ -15367,7 +15387,7 @@ clAmsPeCompAssignCSIExtended(
          * Got an error while searching for CSI assignment.
          */
 
-        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                         ("Error [0x%x] : Assigning CSI [%s] to Component [%s] with HA State [%s]\n",
                          rc,
                          csi->config.entity.name.value,
@@ -15435,7 +15455,7 @@ clAmsPeCompAssignCSIExtended(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                                 comp->config.entity.name.value,
                                 CL_AMS_STRING_H_STATE(haState),
@@ -15451,7 +15471,7 @@ clAmsPeCompAssignCSIExtended(
         {
             if ( clAmsPeCompIsProxyReady(comp) == CL_FALSE )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                ("Component [%s] has no proxy. Defering CSI assignment\n",
                                 comp->config.entity.name.value));
 
@@ -15500,7 +15520,7 @@ clAmsPeCompAssignCSIExtended(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                                 comp->config.entity.name.value,
                                 CL_AMS_STRING_H_STATE(haState),
@@ -15549,7 +15569,7 @@ clAmsPeCompAssignCSIExtended(
 
     default:
         {
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                            ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                             comp->config.property,
                             comp->config.entity.name.value));
@@ -15593,7 +15613,7 @@ clAmsPeCompAssignCSIAgain(
  
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
              ("Replaying [%d] CSI assignments for Component [%s]\n",
               comp->status.csiList.numEntities,
               comp->config.entity.name.value) );
@@ -15649,7 +15669,7 @@ clAmsPeCompReassignCSI(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Assigning CSI [%s] with HA state [%s] from Component [%s] to Component [%s]\n",
          csi->config.entity.name.value,
          CL_AMS_STRING_H_STATE(haState),
@@ -15690,7 +15710,7 @@ clAmsPeCompReassignAllCSI(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
         ("Assigning CSI [All] with HA state [%s] from Component [%s] to Component [%s]\n",
          CL_AMS_STRING_H_STATE(haState),
          oldcomp->config.entity.name.value,
@@ -15751,7 +15771,7 @@ clAmsPeCompReassignAllCSI(
 
         if ( !activeComp )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                  ("Warning: Assigning CSI [%s] with HA state [Standby] to Component [%s] but no active assignment found.\n",
                   csi->config.entity.name.value,
                   comp->config.entity.name.value));
@@ -15881,7 +15901,7 @@ clAmsPeCompReassignAllCSI(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                      comp->config.entity.name.value,
                      CL_AMS_STRING_H_STATE(haState),
@@ -15897,7 +15917,7 @@ clAmsPeCompReassignAllCSI(
         {
             if ( clAmsPeCompIsProxyReady(comp) == CL_FALSE )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Defering CSI assignment\n",
                      comp->config.entity.name.value));
 
@@ -15944,7 +15964,7 @@ clAmsPeCompReassignAllCSI(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                      comp->config.entity.name.value,
                      CL_AMS_STRING_H_STATE(haState),
@@ -15992,7 +16012,7 @@ clAmsPeCompReassignAllCSI(
 
         default:
         {
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                  comp->config.property,
                  comp->config.entity.name.value));
@@ -16046,7 +16066,7 @@ amsPeCompAssignCSICallback(
                 (ClAmsEntityT *) comp,
                 CL_AMS_COMP_TIMER_CSISET) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] CSI set timer has been cleared. Ignoring callback..\n",
             comp->config.entity.name.value));
 
@@ -16070,7 +16090,7 @@ amsPeCompAssignCSICallback(
 
     if ( clAmsInvocationGetAndDelete(invocation, &invocationData) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Response from Component [%s] with Invocation [0x%x] is unknown. Ignoring response..\n",
                  comp->config.entity.name.value, invocation));
 
@@ -16079,7 +16099,7 @@ amsPeCompAssignCSICallback(
     
     if ( invocationData.cmd != CL_AMS_CSI_SET_CALLBACK )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Response from Component [%s] with Invocation [0x%x] does not match command. Ignoring response..\n",
                  comp->config.entity.name.value, invocation));
 
@@ -16146,7 +16166,7 @@ amsPeCompAssignCSICallback(
                         0,
                         (ClAmsEntityRefT **)&siRef) );
 
-        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                 ("Confirming CSI [%s] assigned to Component [%s] has HA State [%s]\n",
                  csi->config.entity.name.value,
                  comp->config.entity.name.value,
@@ -16372,7 +16392,7 @@ clAmsPeCompAssignCSITimeout(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("CSI Assign Timer popped for Component [%s]\n",
              comp->config.entity.name.value));
 
@@ -16420,7 +16440,7 @@ clAmsPeCompProcessPendingSetCSIs(
 
     if ( clAmsInvocationGetAndDelete(invocation, &invocationData) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invocation [0x%x] is unknown. Possible internal error. Ignoring ..\n",
                  invocation));
 
@@ -16429,7 +16449,7 @@ clAmsPeCompProcessPendingSetCSIs(
     
     if ( invocationData.cmd != CL_AMS_CSI_SET_CALLBACK )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invocation [0x%x] does not match command. Possible internal error. Ignoring ..\n",
                  invocation));
 
@@ -16526,7 +16546,7 @@ clAmsPeCompProcessPendingSetCSIs(
 
         if ( csiRef->haState == CL_AMS_HA_STATE_QUIESCED )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Self Confirming CSI [%s] assigned to Component [%s] has HA State [%s]\n",
                      csi->config.entity.name.value,
                      comp->config.entity.name.value,
@@ -16642,7 +16662,7 @@ clAmsPeCompAssignCSIError(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
         ("CSI assignment to Component [%s] returned Error [0x%x]\n",
          comp->config.entity.name.value, error) );
 
@@ -16737,7 +16757,7 @@ clAmsPeCompQuiesceCSIGracefullyExtended(
 
     if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] is not assigned CSI [%s]. Ignoring [Quiesce CSI Gracefully] request..\n",
             comp->config.entity.name.value,
             csi->config.entity.name.value));
@@ -16747,21 +16767,21 @@ clAmsPeCompQuiesceCSIGracefullyExtended(
 
     if ( csiRef->haState == CL_AMS_HA_STATE_ACTIVE )
     {
-        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                  ("Marking CSI [%s] assigned to Component [%s] as [Quiescing]\n",
                   csi->config.entity.name.value,
                   comp->config.entity.name.value));
     }
     else if ( csiRef->haState == CL_AMS_HA_STATE_QUIESCING )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("(Replay) Marking CSI [%s] assigned to Component [%s] as [Quiescing]\n",
              csi->config.entity.name.value,
              comp->config.entity.name.value));
     }
     else
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("CSI [%s] assigned to Component [%s] is not Active or Quiescing. Ignoring..\n",
              csi->config.entity.name.value,
              comp->config.entity.name.value));
@@ -16835,7 +16855,7 @@ clAmsPeCompQuiesceCSIGracefullyExtended(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                      comp->config.entity.name.value,
                      CL_AMS_STRING_H_STATE(CL_AMS_HA_STATE_QUIESCING),
@@ -16851,7 +16871,7 @@ clAmsPeCompQuiesceCSIGracefullyExtended(
         {
             if ( clAmsPeCompIsProxyReady(comp) == CL_FALSE )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Marking CSI quiescing\n",
                      comp->config.entity.name.value));
 
@@ -16904,7 +16924,7 @@ clAmsPeCompQuiesceCSIGracefullyExtended(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                      comp->config.entity.name.value,
                      CL_AMS_STRING_H_STATE(CL_AMS_HA_STATE_QUIESCING),
@@ -16947,7 +16967,7 @@ clAmsPeCompQuiesceCSIGracefullyExtended(
 
         default:
         {
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                  comp->config.property,
                  comp->config.entity.name.value));
@@ -17013,7 +17033,7 @@ clAmsPeCompQuiesceCSIImmediatelyExtended(
 
     if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] is not assigned CSI [%s]. Ignoring [Quiesce CSI Immediately] request..\n",
             comp->config.entity.name.value,
             csi->config.entity.name.value));
@@ -17024,7 +17044,7 @@ clAmsPeCompQuiesceCSIImmediatelyExtended(
     if ( (csiRef->haState == CL_AMS_HA_STATE_ACTIVE) || 
          (csiRef->haState == CL_AMS_HA_STATE_QUIESCING) )
     {
-        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                  ("Marking CSI [%s] assigned to Component [%s] as [Quiesced]\n",
                   csi->config.entity.name.value,
                   comp->config.entity.name.value));
@@ -17032,14 +17052,14 @@ clAmsPeCompQuiesceCSIImmediatelyExtended(
     }
     else if ( csiRef->haState == CL_AMS_HA_STATE_QUIESCED )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("(Replay) Marking CSI [%s] assigned to Component [%s] as [Quiesced]\n",
              csi->config.entity.name.value,
              comp->config.entity.name.value));
     }
     else
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("CSI [%s] assigned to Component [%s] is not Active, Quiescing or Quiesced. Ignoring..\n",
              csi->config.entity.name.value,
              comp->config.entity.name.value));
@@ -17113,7 +17133,7 @@ clAmsPeCompQuiesceCSIImmediatelyExtended(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                      comp->config.entity.name.value,
                      CL_AMS_STRING_H_STATE(CL_AMS_HA_STATE_QUIESCED),
@@ -17129,7 +17149,7 @@ clAmsPeCompQuiesceCSIImmediatelyExtended(
         {
             if ( clAmsPeCompIsProxyReady(comp) == CL_FALSE )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Marking CSI quiesced\n",
                      comp->config.entity.name.value));
 
@@ -17182,7 +17202,7 @@ clAmsPeCompQuiesceCSIImmediatelyExtended(
 
             if ( error )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
                      comp->config.entity.name.value,
                      CL_AMS_STRING_H_STATE(CL_AMS_HA_STATE_QUIESCED),
@@ -17223,7 +17243,7 @@ clAmsPeCompQuiesceCSIImmediatelyExtended(
 
         default:
         {
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                  comp->config.property,
                  comp->config.entity.name.value));
@@ -17273,7 +17293,7 @@ clAmsPeCompQuiescingCSICallback(
     rc = clAmsInvocationGet(invocation, &invocationData);
     if(rc != CL_OK)
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Quiescing Response from Component [%s] with Invocation [0x%x] is unknown. "
                  "Ignoring response..\n",
                  comp->config.entity.name.value, invocation));
@@ -17283,7 +17303,7 @@ clAmsPeCompQuiescingCSICallback(
 
     if ( invocationData.cmd != CL_AMS_CSI_QUIESCING_CALLBACK )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Quiescing response from Component [%s] with Invocation [0x%x] does not match command."
                  "Ignoring response\n",
                  comp->config.entity.name.value, invocation));
@@ -17293,7 +17313,7 @@ clAmsPeCompQuiescingCSICallback(
 
     if ( error )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("CSI quiescing from Component [%s] returned Error [0x%x]\n",
              comp->config.entity.name.value,
              error) );
@@ -17352,7 +17372,7 @@ amsPeCompQuiescingCompleteCallback(
                 (ClAmsEntityT *) comp,
                 CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] CSI quiescing timer has been cleared. Ignoring callback..\n",
             comp->config.entity.name.value));
 
@@ -17367,7 +17387,7 @@ amsPeCompQuiescingCompleteCallback(
 
     if ( clAmsInvocationGetAndDelete(invocation, &invocationData) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Response from Component [%s] with Invocation [0x%x] is unknown. Ignoring response..\n",
                  comp->config.entity.name.value, invocation));
 
@@ -17376,7 +17396,7 @@ amsPeCompQuiescingCompleteCallback(
     
     if ( invocationData.cmd != CL_AMS_CSI_QUIESCING_CALLBACK )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Response from Component [%s] with Invocation [0x%x] does not match command. Ignoring response..\n",
                  comp->config.entity.name.value, invocation));
 
@@ -17454,7 +17474,7 @@ amsPeCompQuiescingCompleteCallback(
 
         if ( csiRef->haState == CL_AMS_HA_STATE_QUIESCING )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                 ("%sConfirming CSI [%s] assigned to Component [%s] has HA State [Quiesced]\n",
                  (switchoverMode & CL_AMS_ENTITY_SWITCHOVER_FAST) ? "Self " : "",
                  csi->config.entity.name.value,
@@ -17564,7 +17584,7 @@ clAmsPeCompQuiescingCompleteCallback(
 
     if ( error )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("CSI quiescing from Component [%s] returned Error [0x%x]\n",
              comp->config.entity.name.value,
              error) );
@@ -17610,7 +17630,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
 
     if ( clAmsInvocationGetAndDelete(invocation, &invocationData) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invocation [0x%x] is unknown. Possible internal error. Ignoring ..\n",
                  invocation));
 
@@ -17619,7 +17639,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
     
     if ( invocationData.cmd != CL_AMS_CSI_QUIESCING_CALLBACK )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invocation [0x%x] does not match command. Possible internal error. Ignoring ..\n",
                  invocation));
 
@@ -17694,7 +17714,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
                             CL_AMS_HA_STATE_QUIESCED,
                             switchoverMode) );
 
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
                 ("Self Confirming CSI [%s] assigned to Component [%s] has HA State [Quiesced]\n",
                  csi->config.entity.name.value,
                  comp->config.entity.name.value) ); 
@@ -17809,7 +17829,7 @@ clAmsPeCompQuiescingCompleteTimeout(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("CSI Quiescing Timer popped for Component [%s]\n",
              comp->config.entity.name.value));
 
@@ -17842,7 +17862,7 @@ clAmsPeCompQuiesceCSIGracefullyError(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
             ("Error [0x%x] while trying to quiesce CSI assigned to Component [%s]\n",
              error,
              comp->config.entity.name.value));
@@ -17924,7 +17944,7 @@ clAmsPeCompRemoveCSI(
 
     if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
             ("Component [%s] is not assigned CSI [%s]. Ignoring remove request..\n",
             comp->config.entity.name.value,
             csi->config.entity.name.value));
@@ -17934,7 +17954,7 @@ clAmsPeCompRemoveCSI(
 
     if ( csiRef->pendingOp == CL_AMS_CSI_RMV_CALLBACK )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("CSI [%s] assigned to Component [%s] is already marked for removal\n",
              csi->config.entity.name.value,
              comp->config.entity.name.value));
@@ -17942,7 +17962,7 @@ clAmsPeCompRemoveCSI(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
              ("Marking CSI [%s] assigned to Component [%s] as [Removed]\n",
               csi->config.entity.name.value,
               comp->config.entity.name.value));
@@ -18009,7 +18029,7 @@ clAmsPeCompRemoveCSI(
         {
             if ( !comp->status.proxyComp )
             {
-                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Component [%s] has no proxy. Marking CSI removed\n",
                      comp->config.entity.name.value));
 
@@ -18107,7 +18127,7 @@ clAmsPeCompRemoveCSI(
 
         default:
         {
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                 ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
                  comp->config.property,
                  comp->config.entity.name.value));
@@ -18171,7 +18191,7 @@ amsPeCompRemoveCSICallback(
        (ClAmsEntityT *) comp,
        CL_AMS_COMP_TIMER_CSIREMOVE) )
        {
-       AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+       AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_TRACE,
        ("Component [%s] CSI remove timer has been cleared. Ignoring callback..\n",
        comp->config.entity.name.value));
 
@@ -18196,7 +18216,7 @@ amsPeCompRemoveCSICallback(
 
     if ( clAmsInvocationGetAndDelete(invocation, &invocationData) )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                        ("Error: Response from Component [%s] with Invocation [0x%x] is unknown. Ignoring response..\n",
                         comp->config.entity.name.value, invocation));
 
@@ -18211,7 +18231,7 @@ amsPeCompRemoveCSICallback(
 
     if ( invocationData.cmd != CL_AMS_CSI_RMV_CALLBACK )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                        ("Error: Response from Component [%s] with Invocation [0x%x] does not match command. Ignoring response..\n",
                         comp->config.entity.name.value, invocation));
 
@@ -18283,7 +18303,7 @@ amsPeCompRemoveCSICallback(
                                                CL_AMS_HA_STATE_NONE,
                                                switchoverMode) );
 
-        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                         ("%sConfirming CSI [%s] assigned to Component [%s] is [Removed]\n",
                          (switchoverMode & CL_AMS_ENTITY_SWITCHOVER_FAST) ? "Self " : "",
                          csi->config.entity.name.value,
@@ -18483,7 +18503,7 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
 
     AMS_FUNC_ENTER(("\n"));
 
-    AMS_LOG(CL_DEBUG_CRITICAL, ("Replaying [%d] CSI remove invocations\n",
+    AMS_LOG(CL_LOG_SEV_CRITICAL, ("Replaying [%d] CSI remove invocations\n",
                                 numInvocations));
 
     for(i = 0; i < numInvocations; ++i)
@@ -18515,7 +18535,7 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
         if(rc != CL_OK)
         {
             pInvocation->invocation = 0;
-            AMS_LOG(CL_DEBUG_ERROR, ("Unable to find comp [%.*s]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Unable to find comp [%.*s]\n",
                                      pInvocation->compName.length,
                                      pInvocation->compName.value));
             continue;
@@ -18629,7 +18649,7 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
                                                    switchoverMode) != CL_OK)
                 goto next;
 
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                             ("Confirming CSI [%s] assigned to Component [%s] is [Removed]\n",
                              csi->config.entity.name.value,
                              comp->config.entity.name.value));
@@ -18709,7 +18729,7 @@ clAmsPeCompRemoveCSIError(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
         ("CSI removal from Component [%s] returned Error [0x%x]\n",
          comp->config.entity.name.value, error) ) 
 
@@ -18782,7 +18802,7 @@ clAmsPeCompRemoveCSITimeout(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("CSI Remove Timer popped for Component [%s]\n",
              comp->config.entity.name.value));
 
@@ -18833,7 +18853,7 @@ clAmsPeCompComputeReadinessState(
 
             AMS_CHECK_SU ( su = (ClAmsSUT *) comp->config.parentSU.ptr );
 
-            AMS_CALL ( clAmsPeSUComputeReadinessState(su, &suRstate) );
+            clAmsPeSUComputeReadinessState(su, &suRstate);
             CL_AMS_SET_R_STATE(su, suRstate);
             *compState = suRstate;
             break;
@@ -18841,7 +18861,7 @@ clAmsPeCompComputeReadinessState(
 
         default:
         {
-            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_ERROR,
                 ("Error: Component [%s] has invalid oper state [%s]. Reseting to disabled\n",
                  comp->config.entity.name.value,
                  CL_AMS_STRING_O_STATE(comp->status.operState)));
@@ -18911,7 +18931,7 @@ static ClRcT clAmsPeProxiedCompTerminate(ClAmsCompT *comp, ClAmsCompT *proxy)
      */
     clAmsPeCompComputeSwitchoverMode(proxy, &switchoverMode);
                     
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Removing Proxy [%s] for [%s] Component [%s]\n",
                      proxy->config.entity.name.value,
                      CL_AMS_STRING_COMP_PROPERTY(comp->config.property),
@@ -19040,7 +19060,7 @@ amsPeCompUpdateProxiedComponents(
                 ClBoolT suUp, suDn, compUp, compNotUp, compNotDn;
                 ClAmsPresenceStateT suState, compState;
 
-                AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+                AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                 ("Registering Proxy [%s] for [%s] Component [%s]\n",
                                  proxy->config.entity.name.value,
                                  CL_AMS_STRING_COMP_PROPERTY(comp->config.property),
@@ -19886,7 +19906,7 @@ _clAmsPeCSITransitionHAState(
 
     if ( invalid )
     {
-        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
             ("Error: HA State assigned to Component [%s] for CSI [%s] cannot transition from [%s] to [%s].\n",
              comp->config.entity.name.value,
              csi->config.entity.name.value,
@@ -20074,7 +20094,7 @@ clAmsPeSISwap(ClAmsSIT *si)
 
     if(si->config.adminState != CL_AMS_ADMIN_STATE_UNLOCKED)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("SI [%.*s] admin state is not unlocked\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("SI [%.*s] admin state is not unlocked\n",
                                  si->config.entity.name.length-1,
                                  si->config.entity.name.value));
         return CL_AMS_RC(CL_ERR_BAD_OPERATION);
@@ -20084,7 +20104,7 @@ clAmsPeSISwap(ClAmsSIT *si)
        || 
        !si->status.numStandbyAssignments)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("SI [%.*s] doesnt have standby assignments\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("SI [%.*s] doesnt have standby assignments\n",
                                  si->config.entity.name.length-1,
                                  si->config.entity.name.value));
         return CL_AMS_RC(CL_ERR_BAD_OPERATION);
@@ -20112,7 +20132,7 @@ clAmsPeSISwap(ClAmsSIT *si)
     default:
     case CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY:
     case CL_AMS_SG_REDUNDANCY_MODEL_N_WAY_ACTIVE:
-        AMS_LOG(CL_DEBUG_ERROR, ("SG [%.*s] redundancy model doesnt support SWAP\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("SG [%.*s] redundancy model doesnt support SWAP\n",
                                  sg->config.entity.name.length-1, sg->config.entity.name.value));
         return CL_AMS_RC(CL_ERR_BAD_OPERATION);
     }
@@ -20288,34 +20308,34 @@ clAmsPeEntityUnlock(
 
     if ( rc == CL_OK )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Unlock] on [%s] in Admin State [%s] returned Okay\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_AMS_ERR_INVALID_ENTITY )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Unlock] on [%s] is invalid. Continuing..\n",
              entity->name.value));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Unlock] on [%s] in Admin State [%s] is a NoOp. Continuing..\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_BAD_OPERATION )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Unlock] on [%s] in Admin State [%s] is not possible. Continuing..\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Unlock] on [%s] in Admin State [%s] returned Error [0x%x]\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState),
@@ -20410,34 +20430,34 @@ clAmsPeEntityLockInstantiate(
 
     if ( rc == CL_OK )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Instantiation] on [%s] in Admin State [%s] returned Okay\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_AMS_ERR_INVALID_ENTITY )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Instantiation] on [%s] is invalid. Continuing..\n",
              entity->name.value));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Instantiation] on [%s] in Admin State [%s] is a NoOp. Continuing..\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_BAD_OPERATION )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Instantiation] on [%s] in Admin State [%s] is not possible. Continuing..\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Instantiation] on [%s] in Admin State [%s] returned Error [0x%x]\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState),
@@ -20541,34 +20561,34 @@ clAmsPeEntityLockAssignment(
 
     if ( rc == CL_OK )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Assignment] on [%s] in Admin State [%s] returned Okay\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_AMS_ERR_INVALID_ENTITY )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Assignment] on [%s] is invalid. Continuing..\n",
              entity->name.value));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Assignment] on [%s] in Admin State [%s] is a NoOp. Continuing..\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_BAD_OPERATION )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Assignment] on [%s] in Admin State [%s] is not possible. Continuing..\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Lock Assignment] on [%s] in Admin State [%s] returned Error [0x%x]\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState),
@@ -20670,34 +20690,34 @@ clAmsPeEntityShutdown(
 
     if ( rc == CL_OK )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on [%s] in Admin State [%s] returned Okay\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_AMS_ERR_INVALID_ENTITY )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on [%s] is invalid. Continuing..\n",
              entity->name.value));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on [%s] in Admin State [%s] is a NoOp. Continuing..\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_BAD_OPERATION )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on [%s] in Admin State [%s] is not possible. Continuing..\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on [%s] in Admin State [%s] returned Error [0x%x]\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState),
@@ -20749,34 +20769,34 @@ clAmsPeEntityShutdownWithRestart(
 
     if ( rc == CL_OK )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on [%s] in Admin State [%s] returned Okay\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_AMS_ERR_INVALID_ENTITY )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on [%s] is invalid. Continuing..\n",
              entity->name.value));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on [%s] in Admin State [%s] is a NoOp. Continuing..\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_BAD_OPERATION )
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on [%s] in Admin State [%s] is not possible. Continuing..\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState)));
     }
     else
     {
-        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("Admin Operation [Shutdown] on [%s] in Admin State [%s] returned Error [0x%x]\n",
              entity->name.value,
              CL_AMS_STRING_A_STATE(adminState),
@@ -21077,7 +21097,7 @@ clAmsPeEntityFaultReport(
 
         default:
         {
-            AMS_LOG(CL_DEBUG_ERROR, 
+            AMS_LOG(CL_LOG_SEV_ERROR, 
                 ("Error: Fault reported for invalid entity type = %d\n",
                  entity->type));
         }

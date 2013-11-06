@@ -256,7 +256,7 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
 
     if ((notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION) && (notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet()))
     {
-        clLogDebug("NTF", "LEA", "Node [%d] arrival msg len [%u] notif len [%lu]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,sizeof(notification));
+        clLogDebug("NTF", "LEA", "Node [%d] arrival msg len [%u] notif len [%u]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,sizeof(notification));
 
         if (length-sizeof(notification) >= sizeof(ClUint32T))  /* leader status is appended onto the end of the message */
         {
@@ -992,7 +992,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     timeout.tsSec = gmsGlobalInfo.config.bootElectionTimeout;
     timeout.tsMilliSec = 0;
     
-    clLog(CL_LOG_INFO,CLM,"ENG","Cluster join invoked for node Id [%d] for group [%d]", nodeId, groupId);
+    clLog(CL_LOG_SEV_INFO,CLM,"ENG","Cluster join invoked for node Id [%d] for group [%d]", nodeId, groupId);
 
     rc = _clGmsViewFindAndLock(groupId, &thisClusterView);
 
@@ -1029,13 +1029,13 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
                 goto ENG_ADD_ERROR;
             }
         }
-      clLog(CL_LOG_DEBUG,CLM,NA,"Node loaded from View Cache");
+      clLog(CL_LOG_SEV_DEBUG,CLM,NA,"Node loaded from View Cache");
     }
 
     if (1)
     {
         ClGmsClusterMemberT *currentNode =  &node->viewMember.clusterMember;
-        clLog(CL_LOG_DEBUG,CLM,NA, "Node [%.*s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu] (%p)",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp,(void*) node);
+        clLog(CL_LOG_SEV_DEBUG,CLM,NA, "Node [%.*s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu] (%p)",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp,(void*) node);
     }
 
     if (0 == strncmp((const ClCharT*)node->viewMember.clusterMember.nodeName.value, gmsGlobalInfo.config.preferredActiveSCNodeName, node->viewMember.clusterMember.nodeName.length))

@@ -45,7 +45,7 @@
 
 static ClHandleT  logHandle         = CL_HANDLE_MAX_VALUE;
 
-ClCharT	 *clLogCommonMsg[] =
+const ClCharT	 *clLogCommonMsg[] =
 {
     "%s server fully up", /* 0 */
     "%s server stopped", /* 1 */
@@ -261,7 +261,7 @@ clLogLevelGet(ClLogSeverityT  *severity)
 
 ClRcT clLogSeverityFilterToValueGet(ClLogSeverityFilterT filter, ClLogSeverityT* pSeverity)
 {
-    ClLogSeverityT severity = 0;
+    ClLogSeverityT severity;
     if(!pSeverity) 
         return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
     severity = (ClLogSeverityT)clBinaryPower((ClUint32T)filter);

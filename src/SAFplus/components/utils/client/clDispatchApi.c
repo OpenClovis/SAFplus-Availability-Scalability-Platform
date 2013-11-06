@@ -19,6 +19,7 @@
 #include <clDispatch.h>
 #include <clHandleApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <errno.h>
 #include <string.h>
 
@@ -26,6 +27,12 @@
 static ClHandleDatabaseHandleT  databaseHandle = CL_HANDLE_INVALID_VALUE;
 
 static const ClCharT    pipeNotifyChar = 'c';
+
+#define DISPATCH_LOG_AREA			"DISPATCH"
+#define DISPATCH_LOG_CTX_FINALISE	"FIN"
+#define DISPATCH_LOG_CTX_REGISTER	"REG"
+#define DISPATCH_LOG_CTX_DEREGISTER	"DREG"
+#define DISPATCH_LOG_CTX_ENQUEUE	"EQUEUE"
 /* Function Definitions */
 
 /* 
@@ -66,8 +73,8 @@ ClRcT   clDispatchLibFinalize(void)
     rc = clHandleDatabaseDestroy(databaseHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleDatabaseDestroy failed with rc 0x%x\n",rc));
+        clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_FINALISE,
+                   "clHandleDatabaseDestroy failed with rc 0x%x\n",rc);
     }
     databaseHandle = CL_HANDLE_INVALID_VALUE;
     return rc;
@@ -89,7 +96,8 @@ ClRcT   clDispatchRegister(
     ClRcT   rc = CL_OK;
     ClDispatchDbEntryT* thisDbEntry = NULL;
     ClFdT   fds[2] = {0};
-
+    ClInt32T ec = 0;
+    
     if (svcInstanceHandle == CL_HANDLE_INVALID_VALUE)
     {
         return CL_ERR_INVALID_PARAMETER;
@@ -113,7 +121,7 @@ ClRcT   clDispatchRegister(
     CL_ASSERT (*pDispatchHandle != CL_HANDLE_INVALID_VALUE);
 
     /* Checkout the handle */
-    rc = clHandleCheckout(databaseHandle, *pDispatchHandle, (void *)&thisDbEntry);
+    rc = clHandleCheckout(databaseHandle, *pDispatchHandle, (void **)&thisDbEntry);
 
     if (rc != CL_OK)
     {
@@ -145,11 +153,11 @@ ClRcT   clDispatchRegister(
 
     errno = 0;
     /* Create the pipe */
-    ClInt32T ec = pipe(fds); // since return code for system call can be -ve
+    ec = pipe(fds); // since return code for system call can be -ve
     if (ec < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Unable to create pipe: %s",strerror(errno)));
+        clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_REGISTER,
+                   "Unable to create pipe: %s",strerror(errno));
         rc = CL_ERR_LIBRARY;
         goto error_return;
     }
@@ -167,8 +175,8 @@ ClRcT   clDispatchRegister(
 error_return:
     if ((clHandleCheckin(databaseHandle, *pDispatchHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_REGISTER,
+                   "clHandleCheckin failed");
     }
     return rc;
 }
@@ -188,7 +196,7 @@ ClRcT   clDispatchDeregister(
 
     CHECK_LIB_INIT;
 
-    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void *)&thisDbEntry);
+    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void **)&thisDbEntry);
     if (rc != CL_OK)
     {
         return CL_ERR_INVALID_HANDLE;
@@ -201,8 +209,8 @@ ClRcT   clDispatchDeregister(
         /* Handle checkin and return */
         if ((clHandleCheckin(databaseHandle, dispatchHandle)) != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clHandleCheckin failed"));
+            clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_DEREGISTER,
+                       "clHandleCheckin failed");
         }
         return rc;
     }
@@ -216,27 +224,27 @@ ClRcT   clDispatchDeregister(
     errno = 0;
     if (write(thisDbEntry->writeFd ,(void*)&ch, 1) < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("write into pipe failed: %s",strerror(errno)));
+        clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_DEREGISTER,
+                   "write into pipe failed: %s",strerror(errno));
         rc = CL_ERR_LIBRARY;
     }
 
     if ((clOsalMutexUnlock(thisDbEntry->dispatchMutex)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Mutex unlock failed"));
+        clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_DEREGISTER,
+                   "Mutex unlock failed");
     }
 
     if ((clHandleCheckin(databaseHandle, dispatchHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_DEREGISTER,
+                   "clHandleCheckin failed");
     }
 
     if ((clHandleDestroy(databaseHandle, dispatchHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleDestroy failed"));
+        clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_DEREGISTER,
+                   "clHandleDestroy failed");
     }
 
     return rc;
@@ -260,7 +268,7 @@ ClRcT   clDispatchSelectionObjectGet(
 
     CHECK_LIB_INIT;
 
-    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void *)&thisDbEntry);
+    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void **)&thisDbEntry);
     if (rc != CL_OK)
     {
         return CL_ERR_INVALID_HANDLE;
@@ -285,15 +293,15 @@ error_unlock_return:
     rc = clOsalMutexUnlock(thisDbEntry->dispatchMutex);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Mutex Unlock failed with rc = 0x%x\n",rc));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Mutex Unlock failed with rc = 0x%x\n",rc);
     }
 
 error_return:
     if ((clHandleCheckin(databaseHandle, dispatchHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clHandleCheckin failed");
     }
 
     return rc;
@@ -324,7 +332,7 @@ ClRcT   clDispatchCbDispatch(
 
     CHECK_LIB_INIT;
 
-    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void *)&thisDbEntry);
+    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void **)&thisDbEntry);
     if (rc != CL_OK)
     {
         return CL_ERR_INVALID_HANDLE;
@@ -372,8 +380,8 @@ ClRcT   clDispatchCbDispatch(
                 errno = 0;
                 if ((read(thisDbEntry->readFd, (void*)&ch, 1)) < 1)
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                            ("read error on pipe: %s",strerror(errno)));
+                    clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                               "read error on pipe: %s",strerror(errno));
                 }
                             
                 rc = clOsalMutexUnlock(thisDbEntry->dispatchMutex);
@@ -411,8 +419,8 @@ ClRcT   clDispatchCbDispatch(
                     errno = 0;
                     if ((read(thisDbEntry->readFd,(void*)&ch,1)) < 1)
                     {
-                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                ("Read error on the pipe: %s",strerror(errno)));
+                        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED
+                                   "Read error on the pipe: %s",strerror(errno));
                     }
 
                     rc = clOsalMutexUnlock(thisDbEntry->dispatchMutex);
@@ -466,8 +474,8 @@ ClRcT   clDispatchCbDispatch(
                     errno = 0;
                     if ((read(thisDbEntry->readFd,(void*)&ch,1)) < 1)
                     {
-                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                ("Read error on the pipe: %s",strerror(errno)));
+                        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                                   "Read error on the pipe: %s",strerror(errno));
                         /* 
                          * This might be because finalize has been done and write fd
                          * is closed. So return
@@ -544,15 +552,15 @@ ClRcT   clDispatchCbDispatch(
 error_unlock_return:
     if ((clOsalMutexUnlock(thisDbEntry->dispatchMutex)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Mutex Unlock failed\n"));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Mutex Unlock failed\n");
     }
 
 error_return:
     if ((clHandleCheckin(databaseHandle, dispatchHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "clHandleCheckin failed");
     }
 
     return rc;
@@ -579,7 +587,7 @@ ClRcT   clDispatchCbEnqueue(
     CHECK_LIB_INIT;
 
     /* Checkout the handle */
-    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void *)&thisDbEntry);
+    rc = clHandleCheckout(databaseHandle, dispatchHandle, (void **)&thisDbEntry);
     if (rc != CL_OK)
     {
         return CL_ERR_INVALID_HANDLE;
@@ -601,7 +609,7 @@ ClRcT   clDispatchCbEnqueue(
         goto error_return;
     }
 
-    queueData = clHeapAllocate(sizeof(ClDispatchCbQueueDataT));
+    queueData = (ClDispatchCbQueueDataT*) clHeapAllocate(sizeof(ClDispatchCbQueueDataT));
     queueData->callbackType = callbackType;
     queueData->callbackArgs = callbackArgs;
 
@@ -611,8 +619,8 @@ ClRcT   clDispatchCbEnqueue(
     {
         if (clOsalMutexUnlock(thisDbEntry->dispatchMutex) != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clOsalMutexUnlock failed"));
+            clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_ENQUEUE,
+                       "clOsalMutexUnlock failed");
         }
         goto error_return;
     }
@@ -624,8 +632,8 @@ ClRcT   clDispatchCbEnqueue(
     errno = 0;
     if (write(thisDbEntry->writeFd ,(void*)&ch, 1) < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("write into pipe failed: %s",strerror(errno)));
+        clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_ENQUEUE,
+                   "write into pipe failed: %s",strerror(errno));
         rc = CL_ERR_UNSPECIFIED;
         /* FIXME :Dequeue the last node inserted */
 
@@ -634,16 +642,16 @@ ClRcT   clDispatchCbEnqueue(
     /* Unlock the mutex */
     if (clOsalMutexUnlock(thisDbEntry->dispatchMutex) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalMutexUnlock failed"));
+        clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_ENQUEUE,
+                   "clOsalMutexUnlock failed");
     }
 
 error_return:
     /* Checkin the handle */
     if ((clHandleCheckin(databaseHandle, dispatchHandle)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clHandleCheckin failed"));
+         clLogError(DISPATCH_LOG_AREA,DISPATCH_LOG_CTX_ENQUEUE,
+                    "clHandleCheckin failed");
     }
 
     return rc;
@@ -660,8 +668,8 @@ static void clDispatchHandleDestructor(void* cbArgs)
 
     if (cbArgs == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Handle destructor is called with NULL pointer"));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Handle destructor is called with NULL pointer");
         return;
     }
 
@@ -671,8 +679,8 @@ static void clDispatchHandleDestructor(void* cbArgs)
     rc = clOsalMutexLock(thisDbEntry->dispatchMutex);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Unable to lock dispatch Mutex in Handle destructor callback"));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Unable to lock dispatch Mutex in Handle destructor callback");
         return;
     }
 
@@ -717,23 +725,23 @@ proceed_other_functions:
     rc = clQueueDelete(&thisDbEntry->cbQueue);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Unable to delete the queue. Rc = 0x%x",rc));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Unable to delete the queue. Rc = 0x%x",rc);
     }
         
     /* Delete the pipe */
     errno = 0;
     if ((close(thisDbEntry->readFd)) < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Unable to close write fd of the pipe:%s",strerror(errno)));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Unable to close write fd of the pipe:%s",strerror(errno));
     }
 
     errno = 0;
     if ((close(thisDbEntry->writeFd)) < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Unable to close read fd of the pipe:%s",strerror(errno)));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Unable to close read fd of the pipe:%s",strerror(errno));
     }
 
 
@@ -741,14 +749,14 @@ proceed_other_functions:
     rc = clOsalMutexUnlock(thisDbEntry->dispatchMutex);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Failed to unlock the dispatch mutex"));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Failed to unlock the dispatch mutex");
     }
     rc = clOsalMutexDelete(thisDbEntry->dispatchMutex);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Failed to delete the dispatch mutex"));
+        clLogError(DISPATCH_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "Failed to delete the dispatch mutex");
     }
 
 

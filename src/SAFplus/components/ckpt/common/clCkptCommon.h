@@ -93,11 +93,13 @@ typedef ClHandleT CkptMastHdlInfoT;
 /*
  * Macro for printing error level messages.
  */
+
+#define CL_LOG_SP(...) __VA_ARGS__
  
 #define CKPT_DEBUG_E(y)\
 do\
 {\
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR, y);\
+    clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP y);\
 }while(0)\
 
 
@@ -109,7 +111,7 @@ do\
 #define CKPT_DEBUG_T(y)\
 do\
 {\
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, y);\
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,CL_LOG_SP y);\
 }while(0)\
 
 

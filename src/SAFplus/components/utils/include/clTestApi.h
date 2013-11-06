@@ -489,7 +489,7 @@ do { \
     snprintf(__tempstr,2048, \
              this_error_indicates_missing_parens_around_string x); \
     clTestPrintImpl(__file, __line, __function,__tempstr); \
-    CL_DEBUG_PRINT(clTestLogLevel, x); \
+    clLog(clTestLogLevel,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr); \
 } while(0)
 
 #else

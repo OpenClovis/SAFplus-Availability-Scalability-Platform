@@ -632,7 +632,7 @@ clAmsPeSGFindSUForActiveAssignmentMPlusN(
 
         default:
         {
-            AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                     ("Error: Loading strategy [%d] for SG [%s] is not supported. Exiting..\n",
                      sg->config.loadingStrategy,
                      sg->config.entity.name.value));
@@ -1210,7 +1210,7 @@ clAmsPeSGFindSUForStandbyAssignmentMPlusN(
 
         default:
         {
-            AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                     ("Error: Loading strategy [%d] for SG [%s] is not supported. Exiting..\n",
                      sg->config.loadingStrategy,
                      sg->config.entity.name.value));
@@ -1280,7 +1280,7 @@ clAmsPeSGAssignSUMPlusN(
 
             if( (lastSI == si) && (lastSU == su) )
             {
-                AMS_LOG(CL_DEBUG_ERROR, 
+                AMS_LOG(CL_LOG_SEV_ERROR, 
                         ("Assign active to SG - Current SI and SU same as "\
                          "last selection. Breaking out of assignment\n"));
                 break;
@@ -1366,7 +1366,7 @@ clAmsPeSGAssignSUMPlusN(
 
             if( (lastSI == si) && (lastSU == su) )
             {
-                AMS_LOG(CL_DEBUG_ERROR, 
+                AMS_LOG(CL_LOG_SEV_ERROR, 
                         ("Assign standby to SG - Current SI and SU same as "\
                          "last selection. Breaking out of assignment step\n"));
                 break;
@@ -1824,7 +1824,7 @@ clAmsPeSGAutoAdjustMPlusN(ClAmsSGT *sg)
         eRef = clAmsEntityListGetFirst(&sg->status.instantiableSUList);
         CL_ASSERT(eRef != NULL);
         instantiableSU = (ClAmsSUT*)eRef->ptr;
-        AMS_CALL ( clAmsPeSUComputeAdminState(instantiableSU, &adminState) );
+        clAmsPeSUComputeAdminState(instantiableSU, &adminState);
 
         leastSU = getLeastPreferredSU(&sg->status.assignedSUList,NULL);
        

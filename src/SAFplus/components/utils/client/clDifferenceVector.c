@@ -68,7 +68,7 @@ static ClDifferenceBlockT *differenceVectorAdd(ClDifferenceVectorKeyT *key,
     block = differenceVectorFind(key, &hashKey);
     if(!block)
     {
-        block = clHeapCalloc(1, sizeof(*block));
+        block = (ClDifferenceBlockT *) clHeapCalloc(1, sizeof(*block));
         CL_ASSERT(block != NULL);
         block->key.groupKey = clStringDup(key->groupKey);
         CL_ASSERT(block->key.groupKey != NULL);
@@ -87,7 +87,7 @@ static ClDifferenceBlockT *differenceVectorAdd(ClDifferenceVectorKeyT *key,
 static ClUint32T __differenceVectorGet(ClDifferenceBlockT *block, ClUint8T *data, ClOffsetT offset, 
                                        ClSizeT dataSize, ClDifferenceVectorT *differenceVector)
 {
-    ClInt32T i;
+    ClUint32T i;
     ClMD5T *md5CurList = block->md5List;
     ClMD5T *md5List ;
     ClUint32T md5CurBlocks = block->md5Blocks;
@@ -113,7 +113,7 @@ static ClUint32T __differenceVectorGet(ClDifferenceBlockT *block, ClUint8T *data
     endBlock = sectionBlocks;
 
     md5Blocks = CL_MAX(sectionBlocks, md5CurBlocks);
-    md5List = clHeapCalloc(md5Blocks, sizeof(*md5List));
+    md5List = (ClMD5T *) clHeapCalloc(md5Blocks, sizeof(*md5List));
     CL_ASSERT(md5List != NULL);
     
     if(md5CurList)
@@ -223,7 +223,7 @@ static ClUint32T __differenceVectorGet(ClDifferenceBlockT *block, ClUint8T *data
 
         if(!(differenceVector->numDataVectors & 7 ) )
         {
-            differenceVector->dataVectors = clHeapRealloc(differenceVector->dataVectors,
+            differenceVector->dataVectors = (ClDataVectorT*) clHeapRealloc(differenceVector->dataVectors,
                                                           sizeof(*differenceVector->dataVectors) * 
                                                           (differenceVector->numDataVectors + 8));
             CL_ASSERT(differenceVector->dataVectors != NULL);
@@ -243,7 +243,7 @@ static ClUint32T __differenceVectorGet(ClDifferenceBlockT *block, ClUint8T *data
     {
         if(!(differenceVector->numDataVectors & 7))
         {
-            differenceVector->dataVectors = clHeapRealloc(differenceVector->dataVectors,
+            differenceVector->dataVectors = (ClDataVectorT*) clHeapRealloc(differenceVector->dataVectors,
                                                           sizeof(*differenceVector->dataVectors) * 
                                                           (differenceVector->numDataVectors + 8));
             CL_ASSERT(differenceVector->dataVectors != NULL);
@@ -274,7 +274,7 @@ static ClUint32T __differenceVectorGet(ClDifferenceBlockT *block, ClUint8T *data
                    "with [%d] data difference vectors", dataBlocks, differenceVector->numDataVectors);
         if(differenceVector->md5List)
             clHeapFree(differenceVector->md5List);
-        differenceVector->md5List = clHeapCalloc(dataBlocks, sizeof(*differenceVector->md5List));
+        differenceVector->md5List = (ClMD5T*) clHeapCalloc(dataBlocks, sizeof(*differenceVector->md5List));
         CL_ASSERT(differenceVector->md5List != NULL);
         memcpy(differenceVector->md5List, md5List + startBlock, sizeof(*differenceVector->md5List) * dataBlocks);
         differenceVector->md5Blocks = dataBlocks;
@@ -310,7 +310,7 @@ static ClUint8T *__differenceVectorMerge(ClUint8T *lastData, ClSizeT lastDataSiz
      */
     if(sectionSize > lastDataSize)
     {
-        mergeSpace = clHeapCalloc(1, sectionSize);
+        mergeSpace = (ClUint8T*) clHeapCalloc(1, sectionSize);
         CL_ASSERT(mergeSpace != NULL); 
         if(lastData)
             memcpy(mergeSpace, lastData, lastDataSize);
@@ -398,7 +398,7 @@ static ClUint32T differenceVectorGet(ClDifferenceVectorKeyT *key, ClUint8T *data
         if(block->size < offset+size)
         {
             if(block->data) clHeapFree(block->data);
-            block->data = clHeapCalloc(1, offset+size);
+            block->data = (ClUint8T*) clHeapCalloc(1, offset+size);
             CL_ASSERT(block->data != NULL);
             block->size = offset+size;
         }
@@ -464,8 +464,7 @@ void clDifferenceVectorCopy(ClDifferenceVectorT *dest, ClDifferenceVectorT *src)
     {
         if(src->numDataVectors)
         {
-            dest->dataVectors = clHeapCalloc(src->numDataVectors,
-                                             sizeof(*dest->dataVectors));
+            dest->dataVectors = (ClDataVectorT*) clHeapCalloc(src->numDataVectors, sizeof(*dest->dataVectors));
             CL_ASSERT(dest->dataVectors != NULL);
             memcpy(dest->dataVectors, src->dataVectors,
                    sizeof(*dest->dataVectors) * src->numDataVectors);
@@ -477,7 +476,7 @@ void clDifferenceVectorCopy(ClDifferenceVectorT *dest, ClDifferenceVectorT *src)
     {
         if(src->md5Blocks)
         {
-            dest->md5List = clHeapCalloc(src->md5Blocks, sizeof(*dest->md5List));
+            dest->md5List = (ClMD5T*) clHeapCalloc(src->md5Blocks, sizeof(*dest->md5List));
             CL_ASSERT(dest->md5List != NULL);
             memcpy(dest->md5List, src->md5List, sizeof(*dest->md5List) * src->md5Blocks);
         }
@@ -498,7 +497,7 @@ ClDifferenceVectorKeyT *clDifferenceVectorKeyMake(ClDifferenceVectorKeyT *key,
     
     if(!key)
     {
-        key = clHeapCalloc(1, sizeof(*key));
+        key = (ClDifferenceVectorKeyT*) clHeapCalloc(1, sizeof(*key));
         CL_ASSERT(key != NULL);
     }
 
@@ -509,23 +508,23 @@ ClDifferenceVectorKeyT *clDifferenceVectorKeyMake(ClDifferenceVectorKeyT *key,
     if(!sectionLen) return NULL;
     
     ++sectionLen;
-    sectionKey = clHeapCalloc(sectionLen, sizeof(*sectionKey));
+    sectionKey = (ClCharT *) clHeapCalloc(sectionLen, sizeof(*sectionKey));
     CL_ASSERT(sectionKey != NULL);
     
     va_start(arg, sectionFmt);
     vsnprintf(sectionKey, sectionLen, sectionFmt, arg);
     va_end(arg);
 
-    key->groupKey = clHeapCalloc(1, sizeof(*key->groupKey));
-    key->sectionKey = clHeapCalloc(1, sizeof(*key->sectionKey));
+    key->groupKey = (ClStringT*) clHeapCalloc(1, sizeof(*key->groupKey));
+    key->sectionKey = (ClStringT*) clHeapCalloc(1, sizeof(*key->sectionKey));
     
     CL_ASSERT(key->groupKey != NULL && key->sectionKey != NULL);
-    key->groupKey->pValue = clHeapCalloc(1, groupKey->length);
+    key->groupKey->pValue = (ClCharT*) clHeapCalloc(1, groupKey->length);
     CL_ASSERT(key->groupKey->pValue != NULL);
     key->groupKey->length = groupKey->length;
     memcpy(key->groupKey->pValue, groupKey->value, key->groupKey->length);
 
-    key->sectionKey->pValue = clHeapCalloc(1, strlen(sectionKey));
+    key->sectionKey->pValue = (ClCharT*) clHeapCalloc(1, strlen(sectionKey));
     CL_ASSERT(key->sectionKey->pValue != NULL);
     key->sectionKey->length = strlen(sectionKey);
     memcpy(key->sectionKey->pValue, sectionKey, key->sectionKey->length);

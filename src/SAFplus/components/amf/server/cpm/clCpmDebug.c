@@ -365,7 +365,7 @@ ClRcT cpmDebugRegister(void)
     rc = clDebugPromptSet("CPM");
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clDebugPrompSet(): rc[0x %x]", rc));
+        clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,"clDebugPrompSet(): rc[0x %x]", rc);
         return rc;
     }
 

@@ -22,6 +22,12 @@
 #error "_CL_EO_PARSER_C_ undefined.This file should be included only from eoparser file"
 #endif
 
+#define CPDI_EO_LEAF(ptag,pTags,pBase) { ptag,CL_PARSER_NUM(pTags),pTags,NULL,pBase,0,1,CL_FALSE,0,NULL }
+#define CPDI_EO(ptag,pTags,pDataInit,numInstances) { ptag,CL_PARSER_NUM(pTags),pTags,pDataInit,0,0,numInstances,CL_FALSE,0,NULL }
+#define CPDI_EO_NODE(ptag,pTags,pDataInit,numInstances,pTagChildren) { ptag,CL_PARSER_NUM(pTags),pTags,pDataInit,0,0,numInstances,CL_FALSE,CL_PARSER_NUM(pTagChildren),pTagChildren }
+#define CPDI_EO_BASE(ptag,pTags,pBase,numInstances,pTagChildren) { ptag,CL_PARSER_NUM(pTags),pTags,NULL,pBase,0,numInstances,CL_FALSE,CL_PARSER_NUM(pTagChildren),pTagChildren }
+
+
 /*
  * Data Init callbacks for the generic parser
  */
@@ -48,11 +54,7 @@ static ClParserTagValidateFunctionT clWaterMarkValidate;
 
 static ClParserTagT clEoConfigParserTags[] = {
     {
-        .pTag = "name",
-        .tagType = CL_PARSER_STR_TAG,
-        .tagSize = CL_TAG_SIZE(ClEoParseInfoT,eoName),
-        .tagOffset = CL_TAG_OFFSET(ClEoParseInfoT,eoName),
-        .pTagFmt = clEoConfigTagFmt,
+        "name", CL_PARSER_STR_TAG, CL_TAG_SIZE(ClEoParseInfoT,eoName), CL_TAG_OFFSET(ClEoParseInfoT,eoName), clEoConfigTagFmt, NULL
     },
 };
 
@@ -86,6 +88,9 @@ static ClParserTagT clEoIocNameConfigParserTags[] = {
 };
 
 static ClParserDataT clEoMemConfigParserData[] = {
+    CPDI_EO_LEAF("eoMemConfig",clEoMemConfigParserTags,(ClPtrT)&parseConfigs),
+    CPDI_EO_LEAF("eoIocConfig",clEoIocNameConfigParserTags,(ClPtrT)&parseConfigs),
+#if 0
     {
         .pTag = "eoMemConfig",
         .numTags = CL_PARSER_NUM(clEoMemConfigParserTags),
@@ -106,9 +111,12 @@ static ClParserDataT clEoMemConfigParserData[] = {
         .numInstances = 1,
         .numChild = 0,
     },
+#endif
 };
 
 static ClParserDataT clEoConfigParserData[] = {
+    CPDI_EO_BASE("eoConfig",clEoConfigParserTags,(ClPtrT)&parseConfigs,0,clEoMemConfigParserData),
+#if 0
     {
         .pTag = "eoConfig",
         .numTags = CL_PARSER_NUM(clEoConfigParserTags),
@@ -120,9 +128,12 @@ static ClParserDataT clEoConfigParserData[] = {
         .pTagChildren = clEoMemConfigParserData,
         .numChild = CL_PARSER_NUM(clEoMemConfigParserData),
     }
+#endif
 };
 
-static ClParserDataT clEoConfigListParserData = {
+static ClParserDataT clEoConfigListParserData = CPDI_EO_BASE("EOList",((ClParserTagT *)NULL),(ClPtrT)&parseConfigs,1,clEoConfigParserData);
+#if 0
+{
     .pTag = "EOList",
     .numTags = 0,
     .pTags = NULL,
@@ -133,6 +144,7 @@ static ClParserDataT clEoConfigListParserData = {
     .numChild = CL_PARSER_NUM(clEoConfigParserData),
     .pTagChildren = clEoConfigParserData,
 };
+#endif
 
 /*
  * The data for clEoDefinitions.xml which is a bit tricky.
@@ -202,6 +214,8 @@ static ClParserTagT clPoolConfigParserTags[] = {
 };
 
 static ClParserDataT clHeapConfigChildrenParserData[] = {
+    CPDI_EO("pool",clPoolConfigParserTags,clHeapConfigPoolDataInit,0),
+#if 0
     {
         .pTag = "pool",
         .numTags = CL_PARSER_NUM(clPoolConfigParserTags),
@@ -211,9 +225,13 @@ static ClParserDataT clHeapConfigChildrenParserData[] = {
         .numChild = 0,
         .pTagChildren = NULL,
     },
+#endif
+
 };
 
 static ClParserDataT clHeapChildrenParserData[] = {
+    CPDI_EO_BASE("heapConfig",clHeapConfigParserTags,(ClPtrT)&gClEoHeapConfig,0,clHeapConfigChildrenParserData),
+#if 0
     {
         .pTag = "heapConfig",
         .numTags = CL_PARSER_NUM(clHeapConfigParserTags),
@@ -225,6 +243,7 @@ static ClParserDataT clHeapChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clHeapConfigChildrenParserData),
         .pTagChildren = clHeapConfigChildrenParserData,
     },
+#endif
 };
 
 /*
@@ -317,6 +336,8 @@ static ClParserTagT clWaterMarkActionParserTags[] = {
  * Define the parser data for the buffer config pool
  */
 static ClParserDataT clBufferConfigChildrenParserData[] = {
+    CPDI_EO("pool",clPoolConfigParserTags,clBufferConfigPoolDataInit,0),
+#if 0
     {
         .pTag = "pool",
         .numTags = CL_PARSER_NUM(clPoolConfigParserTags),
@@ -326,9 +347,12 @@ static ClParserDataT clBufferConfigChildrenParserData[] = {
         .numChild = 0,
         .pTagChildren = NULL,
     },
+#endif
 };
 
 static ClParserDataT clBufferChildrenParserData[] = {
+    CPDI_EO_BASE("bufferConfig",clBufferConfigParserTags,(ClPtrT)&gClEoBuffConfig,1,clBufferConfigChildrenParserData),
+#if 0
     {
         .pTag = "bufferConfig",
         .numTags = CL_PARSER_NUM(clBufferConfigParserTags),
@@ -340,9 +364,15 @@ static ClParserDataT clBufferChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clBufferConfigChildrenParserData),
         .pTagChildren = clBufferConfigChildrenParserData,
     },
+#endif
 };
 
 static ClParserDataT clWaterMarkActionChildrenParserData[] = {
+    CPDI_EO("event",clWaterMarkActionParserTags,clWaterMarkActionDataInit,1),
+    CPDI_EO("notification",clWaterMarkActionParserTags,clWaterMarkActionDataInit,1),
+    CPDI_EO("log",clWaterMarkActionParserTags,clWaterMarkActionDataInit,1),
+    CPDI_EO("custom",clWaterMarkActionParserTags,clWaterMarkActionDataInit,1),
+#if 0
     {
         .pTag = "event",
         .numTags = CL_PARSER_NUM(clWaterMarkActionParserTags),
@@ -379,9 +409,12 @@ static ClParserDataT clWaterMarkActionChildrenParserData[] = {
         .numChild = 0,
         .pTagChildren = NULL,
     },
+#endif
 };
 
 static ClParserDataT clWaterMarkActionParserData[] = {
+    CPDI_EO_NODE("action",((ClParserTagT *)NULL),clWaterMarkActionDataInit,1,clWaterMarkActionChildrenParserData),
+#if 0
     {
         .pTag = "action",
         .numTags = 0,
@@ -391,9 +424,14 @@ static ClParserDataT clWaterMarkActionParserData[] = {
         .numChild = CL_PARSER_NUM(clWaterMarkActionChildrenParserData),
         .pTagChildren = clWaterMarkActionChildrenParserData,
     },
+#endif
 };
 
 static ClParserDataT clMemConfigChildrenParserData[] = {
+    CPDI_EO_BASE("highWaterMark",clWaterMarkParserTags,(ClPtrT)&gClEoMemConfig.memHighWaterMark,1,clWaterMarkActionParserData),
+    CPDI_EO_BASE("mediumWaterMark",clWaterMarkParserTags,(ClPtrT)&gClEoMemConfig.memMediumWaterMark,1,clWaterMarkActionParserData),
+    CPDI_EO_BASE("lowWaterMark",clWaterMarkParserTags,(ClPtrT)&gClEoMemConfig.memLowWaterMark,1,clWaterMarkActionParserData),
+#if 0
     {
         .pTag = "highWaterMark",
         .numTags = CL_PARSER_NUM(clWaterMarkParserTags),
@@ -427,9 +465,12 @@ static ClParserDataT clMemConfigChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clWaterMarkActionParserData),
         .pTagChildren = clWaterMarkActionParserData,
     },
+#endif
 };
 
 static ClParserDataT clMemChildrenParserData[] = {
+    CPDI_EO_BASE("memoryConfig",clMemConfigParserTags,(ClPtrT)&gClEoMemConfig,0,clMemConfigChildrenParserData),
+#if 0
     {
         .pTag = "memoryConfig",
         .numTags = CL_PARSER_NUM(clMemConfigParserTags),
@@ -441,9 +482,15 @@ static ClParserDataT clMemChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clMemConfigChildrenParserData),
         .pTagChildren = clMemConfigChildrenParserData,
     },
+#endif
 };
 
 static ClParserDataT clIocWaterMarkActionChildrenParserData[] = {
+    CPDI_EO_LEAF("event",clWaterMarkActionParserTags,(ClPtrT)&gClIocRecvQActions),
+    CPDI_EO_LEAF("notification",clWaterMarkActionParserTags,(ClPtrT)&gClIocRecvQActions),
+    CPDI_EO_LEAF("log",clWaterMarkActionParserTags,(ClPtrT)&gClIocRecvQActions),
+    CPDI_EO_LEAF("custom",clWaterMarkActionParserTags,(ClPtrT)&gClIocRecvQActions),
+#if 0
     {
         .pTag = "event",
         .numTags = CL_PARSER_NUM(clWaterMarkActionParserTags),
@@ -488,9 +535,12 @@ static ClParserDataT clIocWaterMarkActionChildrenParserData[] = {
         .numChild = 0,
         .pTagChildren = NULL,
     },
+#endif
 };
 
 static ClParserDataT clIocWaterMarkActionParserData[] = {
+    CPDI_EO_BASE("action",((ClParserTagT *)NULL),(ClPtrT)&gClIocRecvQActions,1,clIocWaterMarkActionChildrenParserData),
+#if 0
     {
         .pTag = "action",
         .numTags = 0,
@@ -502,8 +552,11 @@ static ClParserDataT clIocWaterMarkActionParserData[] = {
         .numChild = CL_PARSER_NUM(clIocWaterMarkActionChildrenParserData),
         .pTagChildren = clIocWaterMarkActionChildrenParserData,
     },
+#endif
 };
 static ClParserDataT clIocConfigRecvQChildrenParserData[] = {
+    CPDI_EO_BASE("waterMark",clWaterMarkParserTags,(ClPtrT)&(gClIocRecvQInfo.queueWM),1,clIocWaterMarkActionParserData),
+#if 0
     {
         .pTag = "waterMark",
         .numTags = CL_PARSER_NUM(clWaterMarkParserTags),
@@ -515,6 +568,7 @@ static ClParserDataT clIocConfigRecvQChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clIocWaterMarkActionParserData),
         .pTagChildren = clIocWaterMarkActionParserData,
     },
+#endif
 };
 static ClParserTagT clIocRecvQConfigParserTags[] = {
     {
@@ -535,6 +589,8 @@ static ClParserTagT clIocConfigParserTags[] = {
     }
 }; 
 static ClParserDataT clIocConfigRecvQParserData[] = {
+    CPDI_EO_BASE("receiveQueue",clIocRecvQConfigParserTags,(ClPtrT)&gClIocRecvQInfo,1,clIocConfigRecvQChildrenParserData),
+#if 0
     {
         .pTag = "receiveQueue",
         .numTags = CL_PARSER_NUM(clIocRecvQConfigParserTags),
@@ -545,9 +601,12 @@ static ClParserDataT clIocConfigRecvQParserData[] = {
         .numInstances = 1,
         .numChild = CL_PARSER_NUM(clIocConfigRecvQChildrenParserData),
         .pTagChildren = clIocConfigRecvQChildrenParserData,
-    }, 
+    },
+#endif 
 };
 static ClParserDataT clIocConfigChildrenParserData[] = {
+    CPDI_EO_BASE("iocConfig",clIocConfigParserTags,(ClPtrT)&gClIocRecvQInfo,0,clIocConfigRecvQParserData),
+#if 0
     {
         .pTag = "iocConfig",
         .numTags = CL_PARSER_NUM(clIocConfigParserTags),
@@ -559,8 +618,11 @@ static ClParserDataT clIocConfigChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clIocConfigRecvQParserData),
         .pTagChildren = clIocConfigRecvQParserData,
     },
+#endif
 };
 static ClParserDataT clIocConfigPoolParserData[] = {
+    CPDI_EO_BASE("iocConfigPool",((ClParserTagT *)NULL),(ClPtrT)&gClIocRecvQInfo,1,clIocConfigChildrenParserData),
+#if 0
     {
         .pTag = "iocConfigPool",
         .numTags = 0,
@@ -572,11 +634,16 @@ static ClParserDataT clIocConfigPoolParserData[] = {
         .numChild = CL_PARSER_NUM(clIocConfigChildrenParserData),
         .pTagChildren = clIocConfigChildrenParserData,
     },
+#endif
 };
 /*  
  * Now define the data for the top level children of MemoryConfiguration.
  */
 static ClParserDataT clEoMemChildrenParserData[] = {
+    CPDI_EO_BASE("heapConfigPool",((ClParserTagT *)NULL),(ClPtrT)&gClEoHeapConfig,1,clHeapChildrenParserData),
+    CPDI_EO_BASE("bufferConfigPool",((ClParserTagT *)NULL),(ClPtrT)&gClEoBuffConfig,1,clBufferChildrenParserData),
+    CPDI_EO_BASE("memoryConfigPool",((ClParserTagT *)NULL),(ClPtrT)&gClEoMemConfig,1,clMemChildrenParserData),
+#if 0
     {
         .pTag = "heapConfigPool",
         .numTags = 0,
@@ -610,9 +677,13 @@ static ClParserDataT clEoMemChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clMemChildrenParserData),
         .pTagChildren = clMemChildrenParserData,
     },
+#endif
 };
 
 static ClParserDataT clEoDefinitionChildrenParserData[] = {
+    CPDI_EO_BASE("memoryConfiguration",((ClParserTagT *)NULL),(ClPtrT)&gClEoMemConfig,1,clEoMemChildrenParserData),
+    CPDI_EO_BASE("iocConfiguration",((ClParserTagT *)NULL),(ClPtrT)&gClIocRecvQInfo,1,clIocConfigPoolParserData),
+#if 0
     {
         .pTag = "memoryConfiguration",
         .numTags = 0,
@@ -635,9 +706,12 @@ static ClParserDataT clEoDefinitionChildrenParserData[] = {
         .numChild = CL_PARSER_NUM(clIocConfigPoolParserData), 
         .pTagChildren = clIocConfigPoolParserData,
     },
+#endif
 };
 
-static ClParserDataT clEoDefinitionsParserData = {
+static ClParserDataT clEoDefinitionsParserData = CPDI_EO_BASE("eoDefinitions",((ClParserTagT *)NULL),(ClPtrT)&gClEoMemConfig,1,clEoDefinitionChildrenParserData);
+#if 0
+{
     .pTag = "eoDefinitions",
     .numTags = 0,
     .pTags = NULL,
@@ -648,6 +722,7 @@ static ClParserDataT clEoDefinitionsParserData = {
     .numChild = CL_PARSER_NUM(clEoDefinitionChildrenParserData),
     .pTagChildren = clEoDefinitionChildrenParserData,
 };
+#endif
 
 /*
  * End of EO config parser data.

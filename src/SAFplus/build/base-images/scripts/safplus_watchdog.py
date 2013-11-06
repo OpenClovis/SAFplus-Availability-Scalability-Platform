@@ -79,86 +79,87 @@ def amf_watchdog_loop():
     seen_openhpid = False
 
     while True:
-        pid = asp.get_amf_pid()
-        if pid == 0:
-            logging.critical('AMF watchdog invoked on %s' %\
-                             time.strftime('%a %d %b %Y %H:%M:%S'))
-            is_restart = os.access(restart_file, os.F_OK)
-            is_forced_restart = os.access(watchdog_restart_file, os.F_OK)
-            if is_restart or is_forced_restart:
-                safe_remove(restart_file) 
-                safe_remove(watchdog_restart_file)
-                logging.debug('AMF watchdog restarting ASP...')
-                asp.zap_asp(False)
-                ## give time for pending ops to complete
-                ## we unload the TIPC module and let ASP start reload it, 
-                ## since its been observed with tipc 1.5.12 that ASP starts 
-                ## after a link re-establishment results in multicast link
-                ## retransmit failures due to pending ACK thereby resulting
-                ## in all the TIPC links being reset.
-                wdSleep(SAFPLUS_RESTART_DELAY)
-                asp.start_asp(stop_watchdog=False, force_start=True)
-                asp.create_asp_cmd_marker('start')
-                sys.exit(1)
-            elif os.access(reboot_file, os.F_OK):
-                safe_remove(reboot_file)
-                if getenv("ASP_NODE_REBOOT_DISABLE", 0) != 0:
+        try:
+            pid = asp.get_amf_pid()
+            if pid == 0:
+                logging.critical('AMF watchdog invoked on %s' % time.strftime('%a %d %b %Y %H:%M:%S'))
+                is_restart = os.access(restart_file, os.F_OK)
+                is_forced_restart = os.access(watchdog_restart_file, os.F_OK)
+                if is_restart or is_forced_restart:
+                    safe_remove(restart_file) 
+                    safe_remove(watchdog_restart_file)
+                    logging.debug('AMF watchdog restarting ASP...')
+                    asp.zap_asp(False)
+                    ## give time for pending ops to complete
+                    ## we unload the TIPC module and let ASP start reload it, 
+                    ## since its been observed with tipc 1.5.12 that ASP starts 
+                    ## after a link re-establishment results in multicast link
+                    ## retransmit failures due to pending ACK thereby resulting
+                    ## in all the TIPC links being reset.
+                    wdSleep(SAFPLUS_RESTART_DELAY)
+                    asp.start_asp(stop_watchdog=False, force_start=True)
+                    asp.create_asp_cmd_marker('start')
+                    sys.exit(1)
+                elif os.access(reboot_file, os.F_OK):
+                    safe_remove(reboot_file)
+                    if getenv("ASP_NODE_REBOOT_DISABLE", 0) != 0:
+                        asp.zap_asp()
+                        sys.exit(1)
+                    else:
+                        logging.debug('AMF watchdog rebooting %s...' % asp.get_asp_node_name())
+                        asp.run_custom_scripts('reboot')
+                        asp.proc_lock_file('remove')
+                        os.system('reboot')
+                elif os.access(restart_disable_file, os.F_OK):
+                    safe_remove(restart_disable_file)
+                    logging.debug('AMF watchdog ignoring failure of %s '
+                                  'as node failfast/failover recovery action '
+                                  'was called on it and ASP_NODE_REBOOT_DISABLE '
+                                  'environment variable is set for it.'
+                                  % asp.get_asp_node_name())
                     asp.zap_asp()
                     sys.exit(1)
                 else:
-                    logging.debug('AMF watchdog rebooting %s...'
-                                  % asp.get_asp_node_name())
-                    asp.run_custom_scripts('reboot')
-                    asp.proc_lock_file('remove')
-                    os.system('reboot')
-            elif os.access(restart_disable_file, os.F_OK):
-                safe_remove(restart_disable_file)
-                logging.debug('AMF watchdog ignoring failure of %s '
-                              'as node failfast/failover recovery action '
-                              'was called on it and ASP_NODE_REBOOT_DISABLE '
-                              'environment variable is set for it.'
-                              % asp.get_asp_node_name())
-                asp.zap_asp()
-                sys.exit(1)
+                    logging.debug('AMF watchdog invocation default case')
+    
+                    if not asp_admin_stop():
+                        asp.zap_asp(False)
+                        if asp.should_restart_asp():
+                            wdSleep(SAFPLUS_RESTART_DELAY)
+                            asp.start_asp(stop_watchdog=False, force_start = True)
+                            asp.create_asp_cmd_marker('start')
+                        else:
+                            asp.proc_lock_file('remove')
+                    sys.exit(1)
             else:
-                logging.debug('AMF watchdog invocation default case')
+                # pid is nonzero => amf is up
+                # handle openhpid here
+                openhpid_pid = asp.get_openhpid_pid()
 
-                if not asp_admin_stop():
-                    asp.zap_asp(False)
-                    if asp.should_restart_asp():
-                        wdSleep(SAFPLUS_RESTART_DELAY)
-                        asp.start_asp(stop_watchdog=False, force_start = True)
-                        asp.create_asp_cmd_marker('start')
+                if seen_openhpid:
+
+                    if openhpid_pid == 0:
+                        # openhpid is DOWN and we have seen it before
+                        # we should bring it back
+                        logging.debug('AMF watchdog expected openhpid but did not find it. Restarting openhpid...')
+
+                        # zap it to make sure its DEAD
+                        os.popen('killall openhpid 2>/dev/null')
+                        #time.sleep(1)
+                        asp.start_openhpid()
                     else:
-                        asp.proc_lock_file('remove')
-                sys.exit(1)
-        else:
-            # pid is nonzero => amf is up
-            # handle openhpid here
-            openhpid_pid = asp.get_openhpid_pid()
+                        logging.debug('AMF watchdog openhpid pid(%d) found as expected, nothing to do.' % openhpid_pid)
 
-            if seen_openhpid:
-
-                if openhpid_pid == 0:
-                    # openhpid is DOWN and we have seen it before
-                    # we should bring it back
-                    logging.debug('AMF watchdog expected openhpid but did not find it. Restarting openhpid...')
-
-                    # zap it to make sure its DEAD
-                    os.popen('killall openhpid 2>/dev/null')
-                    #time.sleep(1)
-                    asp.start_openhpid()
                 else:
-                    logging.debug('AMF watchdog openhpid pid(%d) found as expected, nothing to do.' % openhpid_pid)
-
-            else:
-                if openhpid_pid != 0:
-                    seen_openhpid = True
+                    if openhpid_pid != 0:
+                        seen_openhpid = True
 
 
 
-        wdSleep(monitor_interval)
-
+            wdSleep(monitor_interval)
+        except:
+            pass
+ 
 def redirect_file():
 
     UMASK = 0

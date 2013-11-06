@@ -30,6 +30,9 @@
 #ifndef _CL_DBG_H_
 #define _CL_DBG_H_
 
+#include <clLogUtilApi.h>
+#include <clLogApi.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,14 +49,14 @@ extern int clDbgReverseTiming;
 
 #define clDbgIfNullReturn(ptr,comp) if ( ptr == NULL) \
     { \
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__)); \
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__); \
         clDbgCodeError(CL_RC(comp,CL_ERR_NULL_POINTER),("NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__)); \
         return CL_RC(comp,CL_ERR_NULL_POINTER); \
     }
 
 #define clDbgCheckNull(ptr,comp) if ( ptr == NULL) \
     { \
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__)); \
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__); \
         clDbgCodeError(CL_RC(comp,CL_ERR_NULL_POINTER),("NULL passed to function [%s] in parameter [" #ptr "].",__FUNCTION__)); \
     }
 
@@ -146,14 +149,14 @@ void clDbgMsg(int pid, const char* file, int line, const char* fn, int level, co
  */
 #define CL_DEBUG_CODE_ERROR clDbgCodeError
 
-#define clDbgCodeError(clErr, printfParams) do { CL_DEBUG_PRINT_CONSOLE(CL_DEBUG_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
+#define clDbgCodeError(clErr, printfParams) do { (void)clErr; CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
   /* A clDbgCodeError is also a root cause error, so you don't have to call both functions */
-#define clDbgRootCauseError(clErr, printfParams) do { CL_DEBUG_PRINT_CONSOLE(CL_DEBUG_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
+#define clDbgRootCauseError(clErr, printfParams) do { (void)clErr; CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
-#define clDbgNotImplemented(printfParams) do { CL_DEBUG_PRINT_CONSOLE(CL_DEBUG_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
+#define clDbgNotImplemented(printfParams) do { CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
-#define clDbgCheck(predicate, todo, printfParams) do { int result = predicate; if (!result) { CL_DEBUG_PRINT_CONSOLE(CL_DEBUG_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } if (!result) { todo; } } while(0)
+#define clDbgCheck(predicate, todo, printfParams) do { int result = predicate; if (!result) { CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } if (!result) { todo; } } while(0)
     
 /**
  ************************************
@@ -201,9 +204,22 @@ enum
     clDbgRelease  = 1001
   };
 
-#define clDbgResourceNotify(resourceType, operation, resourceGroup, resourceId, printfParams) do { CL_DEBUG_PRINT(clDbgResourceLogLevel, printfParams); } while(0)
+#define CL_LOG_SP(...) __VA_ARGS__
 
-#define clDbgResourceLimitExceeded(resourceType, resourceGroup, printfParams) do { CL_DEBUG_PRINT(clDbgResourceLogLevel, printfParams); clDbgRootCauseError(CL_ERR_NO_RESOURCE,printfParams); } while(0)
+#define clDbgResourceNotify(resourceType, operation, resourceGroup, resourceId, printfParams) \
+do { \
+      char __str[256]; \
+      snprintf(__str,256,CL_LOG_SP printfParams);  \
+      clLog(clDbgResourceLogLevel,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__str); \
+} while(0)
+
+#define clDbgResourceLimitExceeded(resourceType, resourceGroup, printfParams) \
+do { \
+     char __str[256];  \
+     snprintf(__str,256,CL_LOG_SP printfParams);   \
+     clLog(clDbgResourceLogLevel,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED, __str); \
+     clDbgRootCauseError(CL_ERR_NO_RESOURCE,printfParams); \
+} while(0)
 
 
 #ifdef __cplusplus

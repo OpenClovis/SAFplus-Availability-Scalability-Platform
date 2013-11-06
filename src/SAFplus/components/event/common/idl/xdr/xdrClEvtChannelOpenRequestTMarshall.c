@@ -70,7 +70,6 @@ ClRcT clXdrMarshallClEvtChannelOpenRequestT_4_0_0(void* pGenVar, ClBufferHandleT
     {
         return rc;
     }
-
     rc = clXdrMarshallClHandleT(&(pVar->evtChannelHandle),msg,isDelete);
     if (CL_OK != rc)
     {
@@ -84,6 +83,12 @@ ClRcT clXdrMarshallClEvtChannelOpenRequestT_4_0_0(void* pGenVar, ClBufferHandleT
     }
 
     rc = clXdrMarshallSaNameT(&(pVar->evtChannelName),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint8T(&(pVar->isExternal),msg,isDelete);
     if (CL_OK != rc)
     {
         return rc;

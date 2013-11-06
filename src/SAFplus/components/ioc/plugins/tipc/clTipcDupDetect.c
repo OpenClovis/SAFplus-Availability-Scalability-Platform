@@ -48,6 +48,10 @@
 
 #define CL_TIPC_DUPLICATE_NODE_TIMEOUT (100)
 
+#define TIPC_LOG_AREA_TIPC	"TIPC"
+#define	TIPC_LOG_CTX_ADDR_GET	"GET"
+#define TIPC_LOG_CTX_TIPC_ADDR	"ADDR"
+
 static ClUint32T clTipcOwnAddrGet(void)
 {
     struct sockaddr_tipc addr;
@@ -58,7 +62,7 @@ static ClUint32T clTipcOwnAddrGet(void)
     sd = socket(AF_TIPC, SOCK_RDM, 0);
     if(sd < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : socket() failed. system error [%s].\n", strerror(errno)));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_ADDR_GET,"Error : socket() failed. system error [%s].\n", strerror(errno));
         CL_ASSERT(0);
         return CL_IOC_RC(CL_ERR_UNSPECIFIED);
     }
@@ -85,8 +89,8 @@ static ClRcT clTipcIsAddressInUse(ClUint32T type, ClUint32T instance)
     if(topoFd < 0)
     {
         if (errno==EAFNOSUPPORT)
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("TIPC kernel module is not loaded (system error [%d:%s])", errno,strerror(errno)));
-        else CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("socket() failed. system error [%d:%s]", errno,strerror(errno)));
+            clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_ADDR,"TIPC kernel module is not loaded (system error [%d:%s])", errno,strerror(errno));
+        else clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_ADDR,"socket() failed. system error [%d:%s]", errno,strerror(errno));
         CL_ASSERT(0);
         return CL_IOC_RC(CL_ERR_UNSPECIFIED);
     }
@@ -119,12 +123,12 @@ wait_on_recv:
     if(bytes != sizeof(event))
     {
         rc = CL_IOC_RC(CL_ERR_UNSPECIFIED);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to receive event. errno=%d\n", errno));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_ADDR,"Error : Failed to receive event. errno=%d\n", errno);
         goto out;
     }
     if(event.event == TIPC_PUBLISHED)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("TIPC duplicate. Lower: %u, Upper: %u, Port: (ref:%u.node:%u) Subscription: (name: (%u.%u.%u), timeout %u, filter: %x)", event.found_lower, event.found_upper, event.port.ref, event.port.node, event.s.seq.type,event.s.seq.lower,event.s.seq.upper, event.s.timeout, event.s.filter));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_ADDR,"TIPC duplicate. Lower: %u, Upper: %u, Port: (ref:%u.node:%u) Subscription: (name: (%u.%u.%u), timeout %u, filter: %x)", event.found_lower, event.found_upper, event.port.ref, event.port.node, event.s.seq.type,event.s.seq.lower,event.s.seq.upper, event.s.timeout, event.s.filter);
         rc = CL_IOC_RC(CL_IOC_ERR_NODE_EXISTS);
         goto dup_detected;
     }
@@ -135,34 +139,34 @@ wait_on_recv:
 
 dup_detected:
     /* FIXME : correction to the following print description is needed */
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-            ("Ioc initialization failed. error code = 0x%x", rc));
+    clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_ADDR,
+               "Ioc initialization failed. error code = 0x%x", rc);
 
     if(instance == gIocLocalBladeAddress)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("CAUSE : The ASP Address [0x%x] is already being used by ASP on "
-                 "TIPC node [%d.%d.%d] in this network.",gIocLocalBladeAddress,
-                 ((event.port.node>>24) & 0xff), ((event.port.node>>12) & 0xfff),
-                 (event.port.node & 0xfff)));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_ADDR,
+                   "CAUSE : The ASP Address [0x%x] is already being used by ASP on "
+                   "TIPC node [%d.%d.%d] in this network.",gIocLocalBladeAddress,
+                   ((event.port.node>>24) & 0xff), ((event.port.node>>12) & 0xfff),
+                   (event.port.node & 0xfff));
 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("SOLUTION : If the application is being started through "
-                 "\"safplus_amf\" then change the value of \"-l\" command line "
-                 "parameter. "
-                 "If it is DEBUG-CLI, then change the value of environment "
-                 "variable \"ASP_NODEADDR\" in clDebugStart.sh.\n"));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_ADDR,
+                   "SOLUTION : If the application is being started through "
+                   "\"safplus_amf\" then change the value of \"-l\" command line "
+                   "parameter. "
+                   "If it is DEBUG-CLI, then change the value of environment "
+                   "variable \"ASP_NODEADDR\" in clDebugStart.sh.\n");
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("CAUSE : A node with TIPC address [%d.%d.%d] already exists. ",
-                 ((event.port.node>>24) & 0xff), ((event.port.node>>12) & 0xfff),
-                 (event.port.node & 0xfff)));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_ADDR,
+                   "CAUSE : A node with TIPC address [%d.%d.%d] already exists. ",
+                   ((event.port.node>>24) & 0xff), ((event.port.node>>12) & 0xfff),
+                   (event.port.node & 0xfff));
 
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("SOLUTION : Unload and Load the TIPC kernel module. Then "
-                 "configure TIPC with a different address."));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_ADDR,
+                   "SOLUTION : Unload and Load the TIPC kernel module. Then "
+                   "configure TIPC with a different address.");
     }
 
 out:

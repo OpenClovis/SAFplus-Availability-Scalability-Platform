@@ -26,6 +26,7 @@
 #include <sys/time.h>
 #include <errno.h>
 #include <clThreadPool.h>
+#include <clLogUtilApi.h>
 #include <clEoQueueStats.h>
 
 #define CL_THREAD_POOL_UNUSED_THREADS (0x20)
@@ -34,6 +35,9 @@
 #define CL_THREAD_POOL_DELAY (100)
 #define DEFAULT_THREADS_NORMAL (0x10)
 #define DEFAULT_THREADS_EXCLUSIVE (1)
+
+#define THREAD_LOG_AREA_THREAD	"THREAD"
+#define THREAD_LOG_CTX_POOL		"POOL"
 
 #if 0
 static ClEoQueueT gClThreadPoolUnused = {                           \
@@ -100,7 +104,7 @@ static ClThreadPoolT *clThreadPoolDequeuePool(ClThreadPoolT *pThreadPool)
            gClThreadPoolCtrl.maxUnusedThreads != -1)
         {
             CL_EO_QUEUE_UNLOCK(&gClThreadPoolCtrl.unusedThreadsMutex);
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Max unused threads limit reached(%d).\n",gClThreadPoolCtrl.maxUnusedThreads));
+            clLogTrace(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Max unused threads limit reached(%d).\n",gClThreadPoolCtrl.maxUnusedThreads);
             goto out_unlock;
         }
         ++gClThreadPoolCtrl.unusedThreads;
@@ -251,7 +255,7 @@ static void *clThreadPoolProxyThread(void *pArg)
             --pThreadPool->pQueue->refCnt;
             if(rc != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Error processing job.rc=0x%x\n",rc));
+                clLogTrace(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Error processing job.rc=0x%x\n",rc);
             }
         }
         else
@@ -271,7 +275,7 @@ static void *clThreadPoolProxyThread(void *pArg)
             {
                 break;
             }
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Thread reused for pool %p\n", (ClPtrT)pThreadPool));
+            clLogTrace(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Thread reused for pool %p\n", (ClPtrT)pThreadPool);
             CL_EO_QUEUE_LOCK(&pThreadPool->pQueue->mutex);
         }
     }
@@ -306,7 +310,7 @@ static ClRcT clThreadPoolThreadSpawn(ClThreadPoolT *pThreadPool, ClOsalTaskIdT *
 
     if(rc != CL_OK )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error spawning thread.errno=%d\n",errno));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Error spawning thread.errno=%d\n",errno);
         goto out;
     }
     
@@ -332,7 +336,7 @@ ClRcT clThreadPoolStart(ClThreadPoolT *pThreadPool, ClOsalTaskIdT *pId)
         CL_EO_QUEUE_ADD(&gClThreadPoolUnused,pThreadPool);
         clOsalCondSignal(&gClThreadPoolUnused.cond);
         CL_EO_QUEUE_UNLOCK(&gClThreadPoolUnused.mutex);
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Adding pool %p into unused idle pool\n", (ClPtrT)pThreadPool));
+        clLogTrace(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Adding pool %p into unused idle pool\n", (ClPtrT)pThreadPool);
         rc = CL_OK;
         goto out_update;
     }
@@ -349,7 +353,7 @@ ClRcT clThreadPoolStart(ClThreadPoolT *pThreadPool, ClOsalTaskIdT *pId)
         CL_EO_QUEUE_LOCK(&pThreadPool->pQueue->mutex);
         if(pThreadPool->numThreads >= pThreadPool->maxThreads)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Thread pool %p,max thread(%d) limit reached\n", (ClPtrT)pThreadPool,pThreadPool->maxThreads));
+            clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Thread pool %p,max thread(%d) limit reached\n", (ClPtrT)pThreadPool,pThreadPool->maxThreads);
             goto out;
         }
     }
@@ -358,7 +362,7 @@ ClRcT clThreadPoolStart(ClThreadPoolT *pThreadPool, ClOsalTaskIdT *pId)
     rc = clThreadPoolThreadSpawn(pThreadPool,pId);
     if(rc!=CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error spawning thread.rc=0x%x\n",rc));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Error spawning thread.rc=0x%x\n",rc);
         goto out;
     }
     out_update:
@@ -383,13 +387,13 @@ ClRcT clThreadPoolCreate(ClThreadPoolHandleT *pHandle,
 
     if(gClThreadPoolCtrl.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Thread pool uninitialized\n"));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Thread pool uninitialized\n");
         goto out;
     }
     rc = CL_THREADPOOL_RC(CL_ERR_INVALID_PARAMETER);
     if(pJobHandler == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid parameter\n"));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Invalid parameter\n");
         goto out;
     }
 
@@ -398,7 +402,7 @@ ClRcT clThreadPoolCreate(ClThreadPoolHandleT *pHandle,
        mode >= CL_THREAD_POOL_MODE_MAX
        )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid mode:%d\n",mode));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Invalid mode:%d\n",mode);
         goto out;
     }
 
@@ -407,8 +411,8 @@ ClRcT clThreadPoolCreate(ClThreadPoolHandleT *pHandle,
      */
     if(mode == CL_THREAD_POOL_MODE_EXCLUSIVE && maxThreads == -1)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Max threads cannot be infinite in "\
-                                        "EXCLUSIVE mode\n"));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Max threads cannot be infinite in "\
+                                        "EXCLUSIVE mode\n");
         goto out;
     }
 
@@ -427,7 +431,7 @@ ClRcT clThreadPoolCreate(ClThreadPoolHandleT *pHandle,
         pIds = clHeapCalloc(maxThreads, sizeof(ClOsalTaskIdT));
         if(pIds == NULL)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+            clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Error allocating memory\n");
             goto out;
         }
     }
@@ -435,7 +439,7 @@ ClRcT clThreadPoolCreate(ClThreadPoolHandleT *pHandle,
     pThreadPool = clHeapCalloc(1, sizeof(*pThreadPool));
     if(pThreadPool == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Error allocating memory\n");
         goto out_free2;
     }
     
@@ -445,7 +449,7 @@ ClRcT clThreadPoolCreate(ClThreadPoolHandleT *pHandle,
         pQueue = clHeapCalloc(1,sizeof(*pQueue));
         if(pQueue == NULL)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+            clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Error allocating memory\n");
             goto out_free;
         }
         rc = clOsalMutexInit(&pQueue->mutex);
@@ -526,7 +530,7 @@ ClRcT clThreadPoolPush(ClThreadPoolHandleT handle,
     
     if(gClThreadPoolCtrl.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Threadpool uninitialized\n"));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Threadpool uninitialized\n");
         goto out;
     }
     
@@ -534,7 +538,7 @@ ClRcT clThreadPoolPush(ClThreadPoolHandleT handle,
 
     if(pThreadPool == NULL || pJob == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid param\n"));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Invalid param\n");
         goto out;
     }
 
@@ -558,7 +562,7 @@ ClRcT clThreadPoolPush(ClThreadPoolHandleT handle,
         rc = clThreadPoolStart(pThreadPool,&id);
         if(rc != CL_OK)
         { 
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Error starting thread.rc=0x%x\n",rc));
+            clLogTrace(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Error starting thread.rc=0x%x\n",rc);
             goto out_unlock;
         }
     }
@@ -588,7 +592,7 @@ ClRcT clThreadPoolDeleteSync(ClThreadPoolHandleT handle, ClBoolT force)
 
     if(gClThreadPoolCtrl.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Threadpool uninitialized\n"));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Threadpool uninitialized\n");
         return CL_THREADPOOL_RC(CL_ERR_NOT_INITIALIZED);
     }
 
@@ -689,7 +693,7 @@ ClRcT clThreadPoolFreeUnused(void)
 
     if(gClThreadPoolCtrl.initialized == CL_FALSE)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Threadpool uninitialized\n"));
+        clLogError(THREAD_LOG_AREA_THREAD,THREAD_LOG_CTX_POOL,"Threadpool uninitialized\n");
         return CL_THREADPOOL_RC(CL_ERR_NOT_INITIALIZED);
     }
 

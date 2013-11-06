@@ -139,14 +139,14 @@ ClRcT clCpmExecutionObjectListShow(ClInt32T argc,
     ClBufferHandleT message = 0;
 
     rc = clBufferCreate(&message);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to create message %x\n", rc), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to create message %x\n", rc), rc);
 
     if (argc != ONE_ARGUMENT)
     {
         sprintf(tempStr, "Usage: EOShow");
         rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                         strlen(tempStr));
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message %x\n", rc), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message %x\n", rc), rc);
         goto done;
     }
 
@@ -155,27 +155,27 @@ ClRcT clCpmExecutionObjectListShow(ClInt32T argc,
             "\n   ID  |   Port   |   Name    |   Health   |   EO State   | Recv Threads ");
     rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                     strlen(tempStr));
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message %x\n", rc), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message %x\n", rc), rc);
 
     sprintf(tempStr,
             "\n ===================================================================== ");
     rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                     strlen(tempStr));
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message %x\n", rc), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message %x\n", rc), rc);
 
     /*
      * take the semaphore 
      */
     if ((rc = clOsalMutexLock(gpClCpm->eoListMutex)) != CL_OK)
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Could not get Lock successfully------\n"));
+        clLogError(CPM_LOG_AREA_CPM,CL_LOG_AREA_UNSPECIFIED,
+                   "Could not get Lock successfully------\n");
 
     rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
-    CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get First component \n"), rc);
+    CL_CPM_LOCK_CHECK(CL_LOG_SEV_ERROR, ("Unable to Get First component \n"), rc);
 
     rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
                               (ClCntDataHandleT *) &comp);
-    CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get Node  Data \n"), rc);
+    CL_CPM_LOCK_CHECK(CL_LOG_SEV_ERROR, ("Unable to Get Node  Data \n"), rc);
 
     compCount = gpClCpm->noOfComponent;
     while (compCount != 0)
@@ -202,7 +202,7 @@ ClRcT clCpmExecutionObjectListShow(ClInt32T argc,
                             state, ptr->eoptr->noOfThreads);
                 rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                                 strlen(tempStr));
-                CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR,
+                CL_CPM_LOCK_CHECK(CL_LOG_SEV_ERROR,
                                   ("\n Unable to write message \n"), rc);
                 ptr = ptr->pNext;
             }
@@ -231,7 +231,7 @@ ClRcT clCpmExecutionObjectListShow(ClInt32T argc,
                     rc = clBufferNBytesWrite(message,
                                                     (ClUint8T *) tempStr,
                                                     strlen(tempStr));
-                    CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_LOCK_CHECK(CL_LOG_SEV_ERROR,
                                       ("\n Unable to write message \n"), rc);
                     break;
                 }
@@ -239,18 +239,18 @@ ClRcT clCpmExecutionObjectListShow(ClInt32T argc,
             }
 #if 0
             if (ptr == NULL)
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("EOID not found\n"));
+                clLogError(CPM_LOG_AREA_CPM,CL_LOG_AREA_UNSPECIFIED,"EOID not found\n");
 #endif
         }
         compCount--;
         if (compCount)
         {
             rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
-            CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR,
+            CL_CPM_LOCK_CHECK(CL_LOG_SEV_ERROR,
                               ("\n Unable to Get Node  Data \n"), rc);
             rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
                                       (ClCntDataHandleT *) &comp);
-            CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR,
+            CL_CPM_LOCK_CHECK(CL_LOG_SEV_ERROR,
                               ("\n Unable to Get Node  Data \n"), rc);
         }
     }
@@ -258,7 +258,7 @@ ClRcT clCpmExecutionObjectListShow(ClInt32T argc,
      * Release the semaphore 
      */
     rc = clOsalMutexUnlock(gpClCpm->eoListMutex);
-    CL_CPM_CHECK(CL_DEBUG_ERROR,
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                  ("COMP_MGR: Could not UnLock successfully------\n"), rc);
 
     /*
@@ -273,13 +273,13 @@ ClRcT clCpmExecutionObjectListShow(ClInt32T argc,
      */
     sprintf(tempStr, "%s", "\0");
     rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr, 1);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 
     /*
      * Construct the return buffer 
      */
     rc = clBufferFlatten(message, (ClUint8T **) &tmpStr);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to flatten the message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to flatten the message \n"), rc);
 
     *retStr = tmpStr;
     
@@ -292,7 +292,7 @@ ClRcT clCpmExecutionObjectListShow(ClInt32T argc,
      * Release the semaphore 
      */
     rc = clOsalMutexUnlock(gpClCpm->eoListMutex);
-    CL_CPM_CHECK(CL_DEBUG_ERROR,
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                  ("COMP_MGR: Could not UnLock successfully------\n"), rc);
   failure:
     clBufferDelete(&message);
@@ -390,7 +390,7 @@ ClRcT cliEOSetState(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
   done:
     *retStr = (ClCharT *) clHeapAllocate(strlen(tempStr) + 1);
     if (*retStr == NULL)
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n MAlloc Failed \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n MAlloc Failed \n"),
                      CL_CPM_RC(CL_ERR_NO_MEMORY));
     strcpy(*retStr, tempStr);
 
@@ -604,12 +604,12 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
     ClCharT cpmCompName[CL_MAX_NAME_LENGTH] = {0};
     
     rc = clBufferCreate(&message);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to create message %x\n", rc), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to create message %x\n", rc), rc);
 
     if (argc != ONE_ARGUMENT)
     {
         rc = clBufferNBytesWrite(message, (ClUint8T *) STR_AND_SIZE("Usage: compList"));
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message %x\n", rc), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message %x\n", rc), rc);
         rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
         goto done;
     }
@@ -622,22 +622,22 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
              gpClCpm->pCpmLocalInfo->nodeName);
 
     rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to Get First component \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to Get First component \n"), rc);
 
     rc = clBufferNBytesWrite(message, (ClUint8T *) STR_AND_SIZE("################### List Of Components ########################\n"));
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 
     rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,(ClCntDataHandleT *) &comp);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to Get Node  Data \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to Get Node  Data \n"), rc);
 
     rc = clBufferNBytesWrite(message, STR_AND_SIZE("        CompName              | compId  |  eoPort  |   PID   | RestartCount  | PresenceState\n"));
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 
     rc = clBufferNBytesWrite(message, STR_AND_SIZE("\t\t     ID |     Port |     Name  |    Health |Recv Threads \n"));   
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 
     rc = clBufferNBytesWrite(message, STR_AND_SIZE("========================================================================================\n"));    
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 
     while (count)
     {
@@ -664,7 +664,7 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
             }
 
             rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,len);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 
             while (eoList != NULL && eoList->eoptr != NULL)
             {
@@ -677,12 +677,12 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
                                   eoList->eoptr->name, status,
                                   noOfThreads);
                 rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr, len);
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
                 eoList = eoList->pNext;
             }
         
             rc = clBufferNBytesWrite(message, STR_AND_SIZE("-----------------------------------------------------------------------------------------\n"));
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
         
         }
         
@@ -690,10 +690,10 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
         if (count)
         {
             rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to Get Node  Data %x\n", rc), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to Get Node  Data %x\n", rc), rc);
 
             rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode, (ClCntDataHandleT *) &comp);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to Get Node user Data %x\n", rc), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to Get Node user Data %x\n", rc), rc);
         }
 
     }
@@ -709,10 +709,10 @@ done:
      * NULL terminate the string 
      */
     rc = clBufferNBytesWrite(message, (ClUint8T *) "\0", 1);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 
     rc = clBufferFlatten(message, (ClUint8T **) &tmpStr);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to flatten the message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to flatten the message \n"), rc);
 
     *retStr = tmpStr;
     
@@ -748,14 +748,14 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
     ClBufferHandleT message;
 
     rc = clBufferCreate(&message);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to create message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to create message \n"), rc);
 
     if (argc != ONE_ARGUMENT)
     {
         sprintf(tempStr, "Usage: clusterList");
         rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                         strlen(tempStr));
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message %x\n", rc), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message %x\n", rc), rc);
         goto done;
     }
 
@@ -765,13 +765,13 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
     sprintf(tempStr, "%s\n", "nodeName | status | iocAddress | iocPort ");
     rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                     strlen(tempStr));
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 
     sprintf(tempStr, "%s\n",
             "-----------------------------------------------------------------------");
     rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                     strlen(tempStr));
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 
     /*
      * Now even the CPM/G information is stored in the list.
@@ -790,18 +790,18 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
                 gpClCpm->pCpmLocalInfo->cpmAddress.portId);
     rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                     strlen(tempStr));
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 #endif
     /*_cpmListAllSU();*/
     /*
      * Get all the CPMs one by one and delete the stuff.
      */
     rc = clCntFirstNodeGet(gpClCpm->cpmTable, &hNode);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to get first cpmTable Node %x\n", rc),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to get first cpmTable Node %x\n", rc),
                  rc);
     rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
                               (ClCntDataHandleT *) &cpmL);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to get container Node data %x\n", rc),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to get container Node data %x\n", rc),
                  rc);
     cpmLCount = gpClCpm->noOfCpm;
 
@@ -825,18 +825,18 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
             }
             rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                             strlen(tempStr));
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
         }
         else
         {
             sprintf(tempStr, "%10s \n", cpmL->nodeName);
             rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                             strlen(tempStr));
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
         }
 #if 0
         rc = clCntFirstNodeGet(cpmL->suTable, &hSU);
-        CL_CPM_CHECK(CL_DEBUG_ERROR,
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                      ("Unable to get first su Node in cpmL %x\n", rc), rc);
         if (cpmL->pCpmLocalInfo != NULL)
             clOsalPrintf("%10s | %8d | %8d | 0x%8x| 0x%8x \n",
@@ -853,7 +853,7 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
         {
             rc = clCntNodeUserDataGet(cpmL->suTable, hSU,
                                       (ClCntDataHandleT *) &su);
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                          ("Unable to get first container su Node data %x\n",
                           rc), rc);
 
@@ -881,7 +881,7 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
             if (suCount)
             {
                 rc = clCntNextNodeGet(cpmL->suTable, hSU, &hSU);
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to Get Node  Data \n"),
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to Get Node  Data \n"),
                              rc);
             }
         }
@@ -890,16 +890,16 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
                 "-----------------------------------------------------------------------\n");
         rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
                                         strlen(tempStr));
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
         cpmLCount--;
         if (cpmLCount)
         {
             rc = clCntNextNodeGet(gpClCpm->cpmTable, hNode, &hNode);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to Get Node  Data \n"),
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to Get Node  Data \n"),
                          rc);
             rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
                                       (ClCntDataHandleT *) &cpmL);
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                          ("Unable to get container Node data %d\n", rc), rc);
         }
     }
@@ -916,10 +916,10 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
      */
     sprintf(tempStr, "%s", "\0");
     rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr, 1);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to write message \n"), rc);
 
     rc = clBufferFlatten(message, (ClUint8T **) &tmpStr);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to flatten message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to flatten message \n"), rc);
 
     *retStr = tmpStr;
 
@@ -939,8 +939,8 @@ ClRcT clCpmClusterListAll(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
         rc = _cpmClusterConfigList(argc, retStr);
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("CPM Local Doesn't contain the cluster wide configuration \n"));
+        clLogError(CPM_LOG_AREA_CPM,CL_LOG_AREA_UNSPECIFIED,
+                   "CPM Local Doesn't contain the cluster wide configuration \n");
         rc = CL_CPM_RC(CL_ERR_BAD_OPERATION);
     }
 

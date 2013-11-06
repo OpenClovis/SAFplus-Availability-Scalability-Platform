@@ -282,7 +282,7 @@ clLogHandleInitHandleInitialize(ClHandleDatabaseHandleT  hClntHandleDB,
 
     if( NULL != pCallbacks )
     {
-        pInitData->pCallbacks = clHeapCalloc(1, sizeof(ClLogCallbacksT));
+        pInitData->pCallbacks = (ClLogCallbacksT*)clHeapCalloc(1, sizeof(ClLogCallbacksT));
         if( NULL == pInitData->pCallbacks)
         {
             CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -320,7 +320,7 @@ clLogHandleInitHandleInitialize(ClHandleDatabaseHandleT  hClntHandleDB,
 void
 clLogHandleCleanupCb(void  *pData)
 {
-    ClLogInitHandleDataT *pInit = pData;
+    ClLogInitHandleDataT *pInit = (ClLogInitHandleDataT *)pData;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -575,7 +575,7 @@ clLogHandleOpenStreamCloseCb(ClBitmapHandleT  hBitmap,
                              void             *pCookie)
 {
     ClRcT             rc         = CL_OK;
-    ClLogHandleTypeT  handleType = 0;
+    ClLogHandleTypeT  handleType = CL_LOG_INIT_HANDLE;
 
     CL_LOG_DEBUG_TRACE(("Enter: %d", bitNum));
 
@@ -700,7 +700,7 @@ clLogClntHandleHandlerHandleInit(ClHandleDatabaseHandleT  hClntHandleDB,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    rc = clHandleCheckout(hClntHandleDB, hHandler, (void *) &pData);
+    rc = clHandleCheckout(hClntHandleDB, hHandler, (void **) &pData);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clHandleCheckout: rc[0x %x]", rc));

@@ -73,13 +73,11 @@ ClRcT clXdrUnmarshallClEvtSubscribeEventRequestT_4_0_0(ClBufferHandleT msg , voi
     {
         return rc;
     }
-
     rc = clXdrUnmarshallClHandleT(msg,&(pVar->evtChannelHandle));
     if (CL_OK != rc)
     {
         return rc;
     }
-
     rc = clXdrUnmarshallClUint32T(msg,&(pVar->subscriberCommPort));
     if (CL_OK != rc)
     {
@@ -111,6 +109,12 @@ ClRcT clXdrUnmarshallClEvtSubscribeEventRequestT_4_0_0(ClBufferHandleT msg , voi
     }
 
     rc = clXdrUnmarshallClUint32T(msg,&(pVar->packedRbeLen));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->externalAddress));
     if (CL_OK != rc)
     {
         return rc;

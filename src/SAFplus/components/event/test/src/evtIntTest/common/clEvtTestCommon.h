@@ -33,6 +33,9 @@
 
 #define EVENT_TEST_CHANNEL "EVENT_TEST_CHANNEL"
 
+#define EVENT_LOG_AREA_EVENT	"EVT"
+#define EVENT_LOG_CTX_TEST	"TST"
+
 #define EVENT_TEST_EVENT_TYPE 0x100
 SaNameT gEvtTestChannelName = { 
         sizeof(EVENT_TEST_CHANNEL)-1,

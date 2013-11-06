@@ -76,7 +76,7 @@ extern ClVersionDatabaseT gFaultClientToServerVersionDb;
 		{ \
 			if(clVersionVerify(&gFaultClientToServerVersionDb, (&version) ) != CL_OK) \
 			{ \
-			    CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to validate the client version .")); \
+			    clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Failed to validate the client version ."); \
 				return CL_FAULT_ERR_VERSION_UNSUPPORTED;  \
 			} \
 		}while(0) 

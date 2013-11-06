@@ -50,6 +50,7 @@
 #include "../osal.h"
 #include <clCksmApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clDbg.h>
 #include <clBitApi.h>
 #include <clLogApi.h>
@@ -142,7 +143,7 @@ cosSysvMutexValueSet(ClOsalMutexIdT mutexId, ClInt32T value)
 
     if(value >= SEMVMX)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error in setting sem value to [%d]\n", value));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error in setting sem value to [%d]\n", value);
         rc = CL_OSAL_RC(CL_ERR_INVALID_PARAMETER);
         goto out;
     }
@@ -150,7 +151,7 @@ cosSysvMutexValueSet(ClOsalMutexIdT mutexId, ClInt32T value)
     err = semctl(semId, 0, SETVAL, arg);
     if(err < 0 )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Mutex value set- semctl error: [%s]\n", strerror(errno)));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Mutex value set- semctl error: [%s]\n", strerror(errno));
         rc = CL_OSAL_RC(CL_ERR_LIBRARY);
         goto out;
     }
@@ -173,7 +174,7 @@ cosSysvMutexValueGet(ClOsalMutexIdT mutexId, ClInt32T *pValue)
     val = semctl(semId, 0, GETVAL);
     if(val < 0 )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Mutex value get- semctl failed with [%s]\n", strerror(errno)));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Mutex value get- semctl failed with [%s]\n", strerror(errno));
         rc = CL_OSAL_RC(CL_ERR_LIBRARY);
         goto out;
     }
@@ -302,7 +303,7 @@ cosSysvSemCreate (ClUint8T* pName, ClUint32T count, ClOsalSemIdT* pSemId)
     if(len > 20)
     if(len > 256)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("Sanity check, semaphore name length is suspiciously long"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Sanity check, semaphore name length is suspiciously long");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_NAME_TOO_LONG);
         CL_FUNC_EXIT();
         return(retCode);
@@ -311,7 +312,7 @@ cosSysvSemCreate (ClUint8T* pName, ClUint32T count, ClOsalSemIdT* pSemId)
 
     if(len > 256)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("Sanity check, semaphore name [%s] is suspiciously long",pName));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Sanity check, semaphore name [%s] is suspiciously long",pName);
     }
 
     retCode = (ClInt32T)clCrc32bitCompute (pName, len, &key, NULL);
@@ -351,7 +352,7 @@ cosSysvSemIdGet(ClUint8T* pName, ClOsalSemIdT* pSemId)
 
     if(len > 256)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("Sanity check, semaphore name [%s] is suspiciously long",pName));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Sanity check, semaphore name [%s] is suspiciously long",pName);
     }
 
     retCode = clCrc32bitCompute (pName, len, &key, NULL);
@@ -364,7 +365,7 @@ cosSysvSemIdGet(ClUint8T* pName, ClOsalSemIdT* pSemId)
     {
       if (err == ENOENT) 
         {
-          CL_DEBUG_PRINT (CL_DEBUG_INFO,("Semaphore [%s], id [%u] accessed but not created.  Creating it now",pName,key));
+          clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Semaphore [%s], id [%u] accessed but not created.  Creating it now",pName,key);
           semId = semget ((key_t)key, (int)count, IPC_CREAT|0666);
         }
     }
@@ -487,7 +488,7 @@ cosSysvShmCreate(ClUint8T* pName, ClUint32T size, ClOsalShmIdT* pShmId)
 
     if(NULL == pShmId)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory Create: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Create: FAILED");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -495,7 +496,7 @@ cosSysvShmCreate(ClUint8T* pName, ClUint32T size, ClOsalShmIdT* pShmId)
     
     if(NULL == pName)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory Create: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Create: FAILED");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -507,7 +508,7 @@ cosSysvShmCreate(ClUint8T* pName, ClUint32T size, ClOsalShmIdT* pShmId)
 
     if(CL_OK != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory Create: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Create: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_CREATE);
         CL_FUNC_EXIT();
         return(retCode);
@@ -517,7 +518,7 @@ cosSysvShmCreate(ClUint8T* pName, ClUint32T size, ClOsalShmIdT* pShmId)
 
     if(shmId < 0)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory Create: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Create: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_CREATE);
         CL_FUNC_EXIT();
         return(retCode);
@@ -535,7 +536,7 @@ cosSysvShmCreate(ClUint8T* pName, ClUint32T size, ClOsalShmIdT* pShmId)
             /*debug messages if any */
         }
 
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory Create: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Create: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_CREATE);
         CL_FUNC_EXIT();
         return(retCode);
@@ -555,7 +556,7 @@ cosSysvShmCreate(ClUint8T* pName, ClUint32T size, ClOsalShmIdT* pShmId)
             /*debug messages if any */
         }
 
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory Create: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Create: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_CREATE);
         CL_FUNC_EXIT();
         return(retCode);
@@ -563,7 +564,7 @@ cosSysvShmCreate(ClUint8T* pName, ClUint32T size, ClOsalShmIdT* pShmId)
 
     *pShmId = (ClOsalSemIdT)shmId;
     
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory Create: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Create: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -581,7 +582,7 @@ cosSysvShmIdGet(ClUint8T* pName, ClOsalShmIdT* pShmId)
     CL_FUNC_ENTER();
     if(NULL == pShmId)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory ID Get: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory ID Get: FAILED");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -589,7 +590,7 @@ cosSysvShmIdGet(ClUint8T* pName, ClOsalShmIdT* pShmId)
     
     if(NULL == pName)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory ID Get: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory ID Get: FAILED");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -601,7 +602,7 @@ cosSysvShmIdGet(ClUint8T* pName, ClOsalShmIdT* pShmId)
 
     if(CL_OK != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory ID Get: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory ID Get: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_ID_GET);
         CL_FUNC_EXIT();
         return(retCode);
@@ -611,7 +612,7 @@ cosSysvShmIdGet(ClUint8T* pName, ClOsalShmIdT* pShmId)
 
     if(shmId < 0)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory ID Get: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory ID Get: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_ID_GET);
         CL_FUNC_EXIT();
         return(retCode);
@@ -619,7 +620,7 @@ cosSysvShmIdGet(ClUint8T* pName, ClOsalShmIdT* pShmId)
 
     *pShmId = (ClOsalShmIdT)shmId;
 
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory ID Get: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory ID Get: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -636,13 +637,13 @@ cosSysvShmDelete(ClOsalShmIdT shmId)
 
     if(0 != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory Delete: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Delete: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_DELETE);
         CL_FUNC_EXIT();
         return(retCode);
     }
 
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory Delete: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Delete: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -657,7 +658,7 @@ cosSysvShmAttach(ClOsalShmIdT shmId,void* pInMem, void** ppOutMem)
     CL_FUNC_ENTER();
     if(NULL == ppOutMem)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory Attach: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Attach: FAILED");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -667,7 +668,7 @@ cosSysvShmAttach(ClOsalShmIdT shmId,void* pInMem, void** ppOutMem)
 
     if((void*)-1 == pShared)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory Attach: FAILED"));
+        clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Attach: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_ATTACH);
         CL_FUNC_EXIT();
         return(retCode);
@@ -677,7 +678,7 @@ cosSysvShmAttach(ClOsalShmIdT shmId,void* pInMem, void** ppOutMem)
         *ppOutMem = pShared;
     }
     
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory Attach: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Attach: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -691,7 +692,7 @@ cosSysvShmDetach(void* pMem)
     CL_FUNC_ENTER();
     if(NULL == pMem)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory Detach: FAILED"));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Detach: FAILED");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -701,13 +702,13 @@ cosSysvShmDetach(void* pMem)
 
     if(0 != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory Detach: FAILED"));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Detach: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_DETACH);
         CL_FUNC_EXIT();
         return(retCode);
     }
     
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory Detach: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory Detach: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -729,7 +730,7 @@ cosSysvShmSecurityModeSet(ClOsalShmIdT shmId,ClUint32T mode)
 
     if(mode & (((~(1 << ((sizeof(int) *8)- 1))))<< 9))
     {
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory SecurityModeSet: FAILED"));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory SecurityModeSet: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_MODE_SET);
         CL_FUNC_EXIT();
         return(retCode); 
@@ -740,7 +741,7 @@ cosSysvShmSecurityModeSet(ClOsalShmIdT shmId,ClUint32T mode)
 
     if(0 != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory SecurityModeSet: FAILED"));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory SecurityModeSet: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_MODE_SET);
         CL_FUNC_EXIT();
         return(retCode);
@@ -752,13 +753,13 @@ cosSysvShmSecurityModeSet(ClOsalShmIdT shmId,ClUint32T mode)
 
     if(0 != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory SecurityModeSet: FAILED"));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory SecurityModeSet: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_MODE_SET);
         CL_FUNC_EXIT();
         return(retCode);
     }
  
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory SecurityModeSet: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory SecurityModeSet: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -773,7 +774,7 @@ cosSysvShmSecurityModeGet(ClOsalShmIdT shmId,ClUint32T* pMode)
     CL_FUNC_ENTER();
     if(NULL == pMode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory SecurityModeGet: FAILED"));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory SecurityModeGet: FAILED");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -784,7 +785,7 @@ cosSysvShmSecurityModeGet(ClOsalShmIdT shmId,ClUint32T* pMode)
 
     if(0 != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory SecurityModeGet: FAILED"));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory SecurityModeGet: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_MODE_GET);
         CL_FUNC_EXIT();
         return(retCode);
@@ -792,7 +793,7 @@ cosSysvShmSecurityModeGet(ClOsalShmIdT shmId,ClUint32T* pMode)
        
     *pMode = shmPerm.shm_perm.mode;
     
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory SecurityModeGet: DONE"));
+    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory SecurityModeGet: DONE");
     CL_FUNC_EXIT();
     return (CL_OK);
 }
@@ -807,7 +808,7 @@ cosSysvShmSizeGet(ClOsalShmIdT shmId,ClUint32T* pSize)
     CL_FUNC_ENTER();
     if(NULL == pSize)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory SecurityModeGet: FAILED"));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory SecurityModeGet: FAILED");
         retCode = CL_OSAL_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return(retCode);
@@ -818,7 +819,7 @@ cosSysvShmSizeGet(ClOsalShmIdT shmId,ClUint32T* pSize)
 
     if(0 != retCode)
     {
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nShared Memory SecurityModeGet: FAILED"));
+        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nShared Memory SecurityModeGet: FAILED");
         retCode = CL_OSAL_RC(CL_OSAL_ERR_SHM_SIZE);
         CL_FUNC_EXIT();
         return(retCode);

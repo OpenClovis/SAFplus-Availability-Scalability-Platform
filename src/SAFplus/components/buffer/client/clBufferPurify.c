@@ -24,6 +24,7 @@
 #error "_CL_BUFFER_C_ undefined. clBufferPurify.c should be only included from clBuffer.c"
 #endif
 
+#include <clLogUtilApi.h>
 static ClRcT
 clBufferFromPoolAllocatePurify(ClPoolT pool, 
                            ClUint32T actualLength, 
@@ -77,14 +78,14 @@ clBufferPoolInitialize(const ClBufferPoolConfigT *pBufferPoolConfigUser)
 
     if(! (pBufferPoolConfig->pPoolConfig = clHeapAllocate(sizeof(*pBufferPoolConfig->pPoolConfig) * pBufferPoolConfigUser->numPools)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
         goto out;
     }
 
     /*Just allocate the handles which wont be used*/
     if(!(gBufferManagementInfo.pPoolHandles = clHeapAllocate(sizeof(ClPoolT) * pBufferPoolConfigUser->numPools)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
         goto out_free;
     }
 
@@ -105,7 +106,7 @@ clBufferPoolInitialize(const ClBufferPoolConfigT *pBufferPoolConfigUser)
 
     if( (rc = clBufferValidateConfig(pBufferPoolConfig)) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Buffer config validation failed\n"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Buffer config validation failed\n");
         goto out_free;
     }
 

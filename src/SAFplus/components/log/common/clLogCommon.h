@@ -199,6 +199,9 @@ typedef struct
     SaNameT    streamName;
     SaNameT    streamScopeNode;
     ClUint32T  hash;
+#ifdef NO_SAF
+    ClUint64T sequenceNum;
+#endif
 } ClLogStreamKeyT;
 
 typedef struct
@@ -323,7 +326,7 @@ ClRcT
 clLogFileIOVwrite(ClLogFilePtrT  fp,
                   struct iovec   *pIov,
                   ClUint32T      numRecords,
-                  ClUint32T      *pNumOfBytes);
+                  ClInt32T      *pNumOfBytes);
 
 ClRcT
 clLogFileRead(ClLogFilePtrT  fp, void *pData, ClUint32T *pNumOfBytes);

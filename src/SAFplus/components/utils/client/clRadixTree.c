@@ -52,13 +52,13 @@ static __inline__ ClUint32T maxindex(ClUint32T height)
 {
     ClUint32T width = height * RADIX_TREE_MAP_SHIFT;
     ClInt32T shift = RADIX_TREE_INDEX_BITS - width;
-    if(shift < 0 || shift >= RADIX_TREE_INDEX_BITS) return 0;
+    if(shift < 0 || shift >= (ClInt32T) RADIX_TREE_INDEX_BITS) return 0;
     return ~0U >> shift;
 }
 
 static __inline__ void heightIndexMapSet(void)
 {
-    ClInt32T i;
+    ClUint32T i;
     for(i = 0; i < sizeof(heightIndexMap)/sizeof(heightIndexMap[0]); ++i)
         heightIndexMap[i] = maxindex(i);
 }
@@ -70,7 +70,7 @@ static __inline__ ClUint32T radixTreeMaxIndex(ClUint32T height)
 
 static __inline__ ClRadixTreeNodeT *radixTreeNodeAlloc(void)
 {
-    ClRadixTreeNodeT *node = clHeapCalloc(1, sizeof(*node));
+    ClRadixTreeNodeT *node = (ClRadixTreeNodeT *) clHeapCalloc(1, sizeof(*node));
     if(!node) return node;
     clListAddTail(&node->list,&gClRadixTreeSlots);
     return node;
@@ -175,7 +175,7 @@ ClRcT clRadixTreeInsert(ClRadixTreeHandleT handle, ClUint32T index, ClPtrT item,
         }
         offset = (index >> shift) & RADIX_TREE_MAP_MASK;
         node = slot;
-        slot = node->slots[offset];
+        slot = (ClRadixTreeNodeT *) node->slots[offset];
         shift -= RADIX_TREE_MAP_SHIFT;
         --height;
     }
@@ -198,7 +198,7 @@ ClRcT clRadixTreeInsert(ClRadixTreeHandleT handle, ClUint32T index, ClPtrT item,
     }
     else
     {
-        root->node = item;
+        root->node = (ClRadixTreeNodeT *) item;
     }
 
     out:
@@ -272,7 +272,7 @@ static void radixTreeShrink(ClRadixTreeRootT *root)
         void *nextEntry = NULL;
         if(node->count != 1) break;
         if(!(nextEntry = node->slots[0])) break;
-        root->node = nextEntry;
+        root->node = (ClRadixTreeNodeT*) nextEntry;
         --root->height;
         node->slots[0] = NULL;
         node->count = 0;
@@ -326,7 +326,7 @@ ClRcT clRadixTreeDelete(ClRadixTreeHandleT handle, ClUint32T index, ClPtrT *item
         offset = (index >> shift) & RADIX_TREE_MAP_MASK;
         pathp->offset = offset;
         pathp->node = slot;
-        slot = slot->slots[offset];
+        slot = (ClRadixTreeNodeT*) slot->slots[offset];
         shift -= RADIX_TREE_MAP_SHIFT;
         --height ;
     } while(height > 0);
@@ -365,7 +365,7 @@ ClRcT clRadixTreeInit(ClRadixTreeHandleT *handle)
 {
     ClRadixTreeRootT *root = NULL;
     if(!handle) return CL_ERR_INVALID_PARAMETER;
-    root = clHeapCalloc(1, sizeof(*root));
+    root = (ClRadixTreeRootT *)clHeapCalloc(1, sizeof(*root));
     CL_ASSERT(root != NULL);
     root->height = 0;
     *handle = (ClRadixTreeHandleT)root;

@@ -543,7 +543,7 @@ __clAmsMgmtEntitySetConfig(
 
     if(entityType > CL_AMS_ENTITY_TYPE_MAX)
     {
-        AMS_LOG( CL_DEBUG_ERROR, ("EntitySetConfig: invalid entity type "\
+        AMS_LOG( CL_LOG_SEV_ERROR, ("EntitySetConfig: invalid entity type "\
                                   "[%d]\n", entityType));
         goto exitfn;
     }
@@ -734,7 +734,7 @@ VDECL(_clAmsMgmtEntitySetAlphaFactor)(
 
     if(req.entity.type != CL_AMS_ENTITY_TYPE_SG)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Alpha factor request on entity other than SG\n"));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Alpha factor request on entity other than SG\n"));
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
@@ -794,7 +794,7 @@ VDECL(_clAmsMgmtEntitySetBetaFactor)(
 
     if(req.entity.type != CL_AMS_ENTITY_TYPE_SG)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Beta factor request on entity other than SG\n"));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Beta factor request on entity other than SG\n"));
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
@@ -848,7 +848,7 @@ VDECL(_clAmsMgmtEntityLockAssignment)(
     if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
             (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("AMS server is not functioning, dropping the request\n"));
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
     }
@@ -906,7 +906,7 @@ VDECL(_clAmsMgmtEntityForceLock)(
     if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
             (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("AMS server is not functioning, dropping the request\n"));
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
     }
@@ -915,7 +915,7 @@ VDECL(_clAmsMgmtEntityForceLock)(
 
     if(req.entity.type != CL_AMS_ENTITY_TYPE_SU)
     {
-        AMS_LOG(CL_DEBUG_ERROR, 
+        AMS_LOG(CL_LOG_SEV_ERROR, 
                 ("AMF force lock operation allowed only on SUs. Operation failed on entity [%s]\n",
                  CL_AMS_STRING_ENTITY_TYPE(req.entity.type)));
         return CL_AMS_RC(CL_ERR_NOT_SUPPORTED);
@@ -973,7 +973,7 @@ VDECL_VER(_clAmsMgmtEntityForceLockInstantiation, 5, 0, 0)(
     if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
             (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("AMS server is not functioning, dropping the request\n"));
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
     }
@@ -982,7 +982,7 @@ VDECL_VER(_clAmsMgmtEntityForceLockInstantiation, 5, 0, 0)(
 
     if(req.entity.type != CL_AMS_ENTITY_TYPE_SU)
     {
-        AMS_LOG(CL_DEBUG_ERROR, 
+        AMS_LOG(CL_LOG_SEV_ERROR, 
                 ("AMF force lock instantiation operation allowed only on SUs. Operation failed on entity [%s]\n",
                  CL_AMS_STRING_ENTITY_TYPE(req.entity.type)));
         return CL_AMS_RC(CL_ERR_NOT_SUPPORTED);
@@ -1046,7 +1046,7 @@ VDECL(_clAmsMgmtEntityLockInstantiation)(
     if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
             (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("AMS server is not functioning, dropping the request\n"));
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
     }
@@ -1111,7 +1111,7 @@ VDECL(_clAmsMgmtEntityUnlock)(
     if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
             (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("AMS server is not functioning, dropping the request\n"));
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
     }
@@ -1180,7 +1180,7 @@ VDECL(_clAmsMgmtEntityShutdown)(
     if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
             (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("AMS server is not functioning, dropping the request\n"));
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
     }
@@ -1241,7 +1241,7 @@ VDECL_VER(_clAmsMgmtEntityShutdownWithRestart, 5, 1, 0)(
     if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
             (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("AMS server is not functioning, dropping the request\n"));
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
     }
@@ -1310,7 +1310,7 @@ VDECL(_clAmsMgmtEntityRestart)(
     if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
             (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("AMS server is not functioning, dropping the request\n"));
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
     }
@@ -1382,7 +1382,7 @@ VDECL(_clAmsMgmtEntityRepaired)(
     if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
             (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("AMS server is not functioning, dropping the request\n"));
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
     }
@@ -1445,7 +1445,7 @@ VDECL(_clAmsMgmtSGAdjustPreference)(
        &&
        gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("AMS server is not running. Dropping sg adjust request"));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("AMS server is not running. Dropping sg adjust request"));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_OPERATION);
     }
 
@@ -1500,7 +1500,7 @@ VDECL(_clAmsMgmtSISwap)(
     if ( (gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING) &&
             (gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("AMS server is not functioning, dropping the request\n"));
         return CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
     }
@@ -1518,7 +1518,7 @@ VDECL(_clAmsMgmtSISwap)(
 
     if(entityRef.entity.type != CL_AMS_ENTITY_TYPE_SI)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Swap not performed on SI. Entity [%.*s] invalid\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Swap not performed on SI. Entity [%.*s] invalid\n",
                                  req.entity.name.length-1, req.entity.name.value));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
@@ -2230,7 +2230,7 @@ VDECL(_clAmsMgmtCCBCommit)(
 
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Ams ckpt write returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Ams ckpt write returned [%#x]\n", rc));
         goto exitfn;
     }
 
@@ -2416,7 +2416,7 @@ __clAmsMgmtCCBBatchEntitySetConfig(
 
     if(entityType > CL_AMS_ENTITY_TYPE_MAX)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("CCBEntitySetConfig - invalid entity type "\
+        AMS_LOG(CL_LOG_SEV_ERROR, ("CCBEntitySetConfig - invalid entity type "\
                                  " [ %d ]\n", entityType));
         goto exitfn;
     }
@@ -2553,7 +2553,7 @@ __clAmsMgmtCCBEntitySetConfig(
 
     if(entityType > CL_AMS_ENTITY_TYPE_MAX)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("CCBEntitySetConfig - invalid entity type "\
+        AMS_LOG(CL_LOG_SEV_ERROR, ("CCBEntitySetConfig - invalid entity type "\
                                  " [ %d ]\n", entityType));
         goto exitfn;
     }
@@ -5053,7 +5053,7 @@ VDECL_VER(_clAmsMgmtComputedAdminStateGet, 5, 0, 0)(ClEoDataT userData,
         {
             ClAmsSUT *su = (ClAmsSUT*)entityRef.ptr;
             AMS_CHECKPTR(!su);
-            rc = clAmsPeSUComputeAdminState(su, &computedAdminState);
+            clAmsPeSUComputeAdminState(su, &computedAdminState);
         }
         break;
 
@@ -5061,7 +5061,7 @@ VDECL_VER(_clAmsMgmtComputedAdminStateGet, 5, 0, 0)(ClEoDataT userData,
         {
             ClAmsCompT *comp = (ClAmsCompT*)entityRef.ptr;
             AMS_CHECKPTR(!comp);
-            rc = clAmsPeCompComputeAdminState(comp, &computedAdminState);
+            clAmsPeCompComputeAdminState(comp, &computedAdminState);
         }
         break;
 
@@ -5119,7 +5119,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_CREATE :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_CREATE\n")); 
                     
                 clAmsMgmtCCBEntityCreateRequestT  *req = 
@@ -5151,7 +5151,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_DELETE :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_DELETE\n"));
 
                 clAmsMgmtCCBEntityDeleteRequestT  *req = 
@@ -5201,7 +5201,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_SET_CONFIG:
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_CONFIG\n"));
 
                 clAmsMgmtCCBEntitySetConfigRequestT  *req = 
@@ -5223,7 +5223,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 clAmsMgmtCCBCSISetNVPRequestT  *req = 
                     (clAmsMgmtCCBCSISetNVPRequestT *)opData->payload;
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_CSI_SET_NVP\n"));
                     
                 AMS_CHECK_RC_ERROR(
@@ -5242,7 +5242,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 clAmsMgmtCCBCSISetNVPRequestT  *req = 
                     (clAmsMgmtCCBCSISetNVPRequestT *)opData->payload;
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_CSI_DELETE_NVP\n"));
                     
                 AMS_CHECK_RC_ERROR(
@@ -5263,7 +5263,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                     (clAmsMgmtCCBSetNodeDependencyRequestT *)opData->payload;
                 ClAmsEntityT *sourceEntity = NULL;
                 ClAmsEntityT *targetEntity = NULL;
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_NODE_DEPENDENCY\n"));
                     
                 AMS_CHECK_RC_ERROR(
@@ -5297,7 +5297,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 clAmsMgmtCCBSetNodeDependencyRequestT  *req = 
                     (clAmsMgmtCCBSetNodeDependencyRequestT *)opData->payload;
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_DEPENDENCY\n"));
                     
                 AMS_CHECK_RC_ERROR(
@@ -5318,7 +5318,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
 
         case CL_AMS_MGMT_CCB_OPERATION_SET_NODE_SU_LIST :
             {
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_NODE_SU_LIST\n"));
 
                 clAmsMgmtCCBSetNodeSUListRequestT  *req = (clAmsMgmtCCBSetNodeSUListRequestT *)opData->payload;
@@ -5333,7 +5333,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 }
                 else if (rc != CL_OK)
                 {
-                    AMS_LOG(CL_DEBUG_ERROR,("Unable to add SU [%.*s] to node [%.*s] SU list, return code [0x%x] ",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value,rc));
+                    AMS_LOG(CL_LOG_SEV_ERROR,("Unable to add SU [%.*s] to node [%.*s] SU list, return code [0x%x] ",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value,rc));
                     AMS_CHECK_RC_ERROR(rc);
                 }
                 
@@ -5356,7 +5356,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
                 rc = clAmsEntitySetRefPtr(&suRef, &nodeRef);
                 if (rc != CL_OK)
                 {
-                    AMS_LOG(CL_DEBUG_CRITICAL,("Unable to set SU's [%.*s] parent node to [%.*s] return code [0x%x]. AMF database is inconsistent.",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value, rc));
+                    AMS_LOG(CL_LOG_SEV_CRITICAL,("Unable to set SU's [%.*s] parent node to [%.*s] return code [0x%x]. AMF database is inconsistent.",req->suName.name.length-1,req->suName.name.value,req->nodeName.name.length-1,req->nodeName.name.value, rc));
                     AMS_CHECK_RC_ERROR(rc);
                 }
                 targetSU = (ClAmsSUT*)targetEntity;
@@ -5375,7 +5375,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_SU_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_SU_LIST\n"));
 
                 clAmsMgmtCCBSetNodeSUListRequestT  *req = 
@@ -5406,7 +5406,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_SET_SG_SU_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_SG_SU_LIST\n"));
 
                 clAmsMgmtCCBSetSGSUListRequestT  *req = 
@@ -5474,7 +5474,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SU_LIST:
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SU_LIST\n"));
 
                 clAmsMgmtCCBSetSGSUListRequestT  *req = 
@@ -5505,7 +5505,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_SET_SG_SI_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_SG_SI_LIST\n"));
 
                 clAmsMgmtCCBSetSGSIListRequestT  *req = 
@@ -5562,7 +5562,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SI_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SI_LIST\n"));
 
                 clAmsMgmtCCBSetSGSIListRequestT  *req = 
@@ -5593,7 +5593,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_SET_SU_COMP_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_SU_COMP_LIST\n"));
 
                 clAmsMgmtCCBSetSUCompListRequestT  *req = 
@@ -5657,7 +5657,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_DELETE_SU_COMP_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_DELETE_SU_COMP_LIST\n"));
 
                 clAmsMgmtCCBSetSUCompListRequestT  *req = 
@@ -5688,7 +5688,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_SET_SI_SU_RANK_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_SI_SU_RANK_LIST\n"));
 
                 clAmsMgmtCCBSetSISURankListRequestT  *req = 
@@ -5715,7 +5715,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SU_RANK_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SU_RANK_LIST\n"));
 
                 clAmsMgmtCCBSetSISURankListRequestT  *req = 
@@ -5734,7 +5734,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_SET_SI_SI_DEPENDENCY_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_SI_SI_DEPENDENCY_LIST\n"));
 
                 clAmsMgmtCCBSetSISIDependencyRequestT  *req = 
@@ -5770,7 +5770,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SI_DEPENDENCY_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SI_DEPENDENCY_LIST\n"));
 
                 clAmsMgmtCCBSetSISIDependencyRequestT  *req = 
@@ -5796,7 +5796,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_SET_SI_CSI_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_SI_CSI_LIST\n"));
 
                 clAmsMgmtCCBSetSICSIListRequestT  *req = 
@@ -5840,7 +5840,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_CSI_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_CSI_LIST\n"));
 
                 clAmsMgmtCCBSetSICSIListRequestT  *req = 
@@ -5871,7 +5871,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_SET_CSI_CSI_DEPENDENCY_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_SET_CSI_CSI_DEPENDENCY_LIST\n"));
 
                 clAmsMgmtCCBSetCSICSIDependencyRequestT  *req = 
@@ -5908,7 +5908,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
         case CL_AMS_MGMT_CCB_OPERATION_DELETE_CSI_CSI_DEPENDENCY_LIST :
             {
 
-                AMS_LOG(CL_DEBUG_TRACE, 
+                AMS_LOG(CL_LOG_SEV_TRACE, 
                         ("CCB: CL_AMS_MGMT_CCB_OPERATION_DELETE_CSI_CSI_DEPENDENCY_LIST\n"));
 
                 clAmsMgmtCCBSetCSICSIDependencyRequestT  *req = 
@@ -5933,7 +5933,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
 
         default: 
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("invalid ccb operation\n"));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("invalid ccb operation\n"));
                 rc = CL_AMS_ERR_INVALID_OPERATION;
                 goto exitfn;
             }
@@ -5948,7 +5948,7 @@ clAmsMgmtCommitCCBOperations(CL_IN ClCntHandleT opListHandle )
     exitfn:
     if (rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR,("Failure [%x] when committing CCB operations.  Application may not be notified as this operation may occur asynchronously.",rc));
+        AMS_LOG(CL_LOG_SEV_ERROR,("Failure [%x] when committing CCB operations.  Application may not be notified as this operation may occur asynchronously.",rc));
     }
 
     clAmsEntityListTerminate(&dirtySGList);

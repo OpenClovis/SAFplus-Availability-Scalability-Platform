@@ -432,7 +432,7 @@ clAmsEntityMalloc(
 
     if ( newEntity == NULL )
     {
-        AMS_LOG (CL_DEBUG_ERROR, ("Malloc failed for operation EntityMalloc\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Malloc failed for operation EntityMalloc\n"));
         return (ClAmsEntityT *)NULL;
     }
 
@@ -461,7 +461,7 @@ clAmsEntityMalloc(
 
     if ( (type < 0) || (type > CL_AMS_ENTITY_TYPE_MAX) )
     { 
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Invalid entity type = %d\n", type));
         goto exitfn;
     }
@@ -1671,13 +1671,9 @@ clAmsEntityPrint(
         {
             ClAmsSUT  *su = (ClAmsSUT *) entity;
 
-            if( clAmsPeSUComputeAdminState(su, &adminState) != CL_OK)
-            {
-                adminState = su->config.adminState;
-            }
+            clAmsPeSUComputeAdminState(su, &adminState);
 
-            CL_AMS_PRINT_TWO_COL("Configuration -------------------------------",
-                    "%s","---------------------------");
+            CL_AMS_PRINT_TWO_COL("Configuration -------------------------------","%s","---------------------------");
             if(su->status.entity.epoch)
                 CL_AMS_PRINT_TWO_COL("Start time",
                                      "%s",
@@ -2438,10 +2434,7 @@ clAmsEntityXMLPrint(
 
             CL_AMS_PRINT_OPEN_TAG_ATTR("su", "%s", entity->name.value);
 
-            if ( clAmsPeSUComputeAdminState(su, &adminState) != CL_OK)
-            {
-                adminState = su->config.adminState;
-            }
+            clAmsPeSUComputeAdminState(su, &adminState);
 
             CL_AMS_PRINT_OPEN_TAG("config");
 
@@ -3374,7 +3367,7 @@ clAmsSGValidateLoadingStrategy(
     if ( (sg->config.loadingStrategy < 1) ||
          (sg->config.loadingStrategy > 5) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: SG [%s] fails loading strategy validation.\n",
                  sg->config.entity.name.value));
 
@@ -3395,7 +3388,7 @@ clAmsSGValidateRedundancyModel(
     if ( (sg->config.redundancyModel <= CL_AMS_SG_REDUNDANCY_MODEL_NONE) ||
          (sg->config.redundancyModel >= CL_AMS_SG_REDUNDANCY_MODEL_MAX) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: SG [%s] fails redundancy model validation.\n",
                  sg->config.entity.name.value));
 
@@ -3412,7 +3405,7 @@ clAmsSGValidateRedundancyModel(
                  (sg->config.numPrefInserviceSUs   != 1) ||
                  (sg->config.numPrefActiveSUsPerSI != 1) )
             { 
-                AMS_LOG(CL_DEBUG_ERROR,
+                AMS_LOG(CL_LOG_SEV_ERROR,
                         ("Valid Values for SG [%s] Redundancy Model [%s] are numPrefActiveSUs[1] (currently %d),"
                          " numPrefStandbySUs[0] (currently %d), numPrefInserviceSUs[1] (currently %d), numPrefActiveSUsPerSI[1] (currently %d)\n", 
                          sg->config.entity.name.value, 
@@ -3434,7 +3427,7 @@ clAmsSGValidateRedundancyModel(
                  (sg->config.numPrefAssignedSUs    != 2) ||
                  (sg->config.numPrefActiveSUsPerSI != 1) )
             {
-                AMS_LOG(CL_DEBUG_ERROR,
+                AMS_LOG(CL_LOG_SEV_ERROR,
                         ("Valid Values for SG [%s] Redundancy Model [%s] are numPrefActiveSUs[1],"
                          " numPrefStandbySUs[1], numPrefInserviceSUs[>=2], numPrefActiveSUsPerSI[1],"
                          " numPrefAssignedSUs[2]\n",sg->config.entity.name.value,
@@ -3452,7 +3445,7 @@ clAmsSGValidateRedundancyModel(
                   (sg->config.numPrefActiveSUs   + sg->config.numPrefStandbySUs)) ||
                  (sg->config.numPrefActiveSUsPerSI != 1) )
             {
-                AMS_LOG(CL_DEBUG_ERROR,
+                AMS_LOG(CL_LOG_SEV_ERROR,
                         ("Valid Values for SG [%s] Redundancy Model [%s] are numPrefActiveSUs[>0],"
                          " numPrefStandbySUs[>0], numPrefActiveSUsPerSI[1],"
                          " numPrefInserviceSUs [ >= (numPrefActiveSUs + numPrefStandbySUs)],\n",
@@ -3472,7 +3465,7 @@ clAmsSGValidateRedundancyModel(
                  (sg->config.numPrefInserviceSUs  < sg->config.numPrefAssignedSUs) ||
                  (sg->config.numPrefActiveSUsPerSI != 1) )
             {
-                AMS_LOG(CL_DEBUG_ERROR,
+                AMS_LOG(CL_LOG_SEV_ERROR,
                         ("Valid Values for SG [%s] Redundancy Model [%s] are "
                          "numPrefActiveSUs [0], numPrefActiveSUs[ >= numPrefAssignedSUs], "
                          "numPrefActiveSUsPerSI[1]",
@@ -3489,7 +3482,7 @@ clAmsSGValidateRedundancyModel(
                  ||
                  sg->config.numPrefInserviceSUs  < sg->config.numPrefAssignedSUs ) 
             {
-                AMS_LOG(CL_DEBUG_ERROR,
+                AMS_LOG(CL_LOG_SEV_ERROR,
                         ("Valid Values for SG [%s] Redundancy Model [%s] are "
                          "numPrefStandbySUs [>0], numPrefInserviceSUs [< numPrefAssignedSUs]",
                          sg->config.entity.name.value,
@@ -3510,7 +3503,7 @@ clAmsSGValidateRedundancyModel(
 
     AMS_VALIDATE_SG_RULES_FAILS:
    
-    AMS_LOG(CL_DEBUG_ERROR,
+    AMS_LOG(CL_LOG_SEV_ERROR,
             ("ERROR: SG [%s] fails redundancy model validation.\n",
              sg->config.entity.name.value)); 
 
@@ -3561,7 +3554,7 @@ clAmsSUValidateConfig(
             (sg->config.maxActiveSIsPerSU != 1) &&
             (sg->config.maxStandbySIsPerSU != 0) )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("Valid Values for SG [%s] associated with Non-Preinstantiable SU [%s] are "
                  "maxActiveSIsPerSU [1], maxStandbySIsPerSU [0] \n",
                  sg->config.entity.name.value,su->config.entity.name.value ));
@@ -3570,7 +3563,7 @@ clAmsSUValidateConfig(
 
     if ( su->config.numComponents < 1 )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("Valid value of number of components for SU [%s] is [ >1 ]\n",
                  su->config.entity.name.value ));
         goto AMS_VALIDATE_SU_RULES_FAILS;
@@ -3580,7 +3573,7 @@ clAmsSUValidateConfig(
 
 AMS_VALIDATE_SU_RULES_FAILS:
 
-    AMS_LOG(CL_DEBUG_ERROR,
+    AMS_LOG(CL_LOG_SEV_ERROR,
             ("ERROR: SU [%s] fails config validation.\n",
              su->config.entity.name.value));
 
@@ -3614,7 +3607,7 @@ clAmsSUValidateRelationships(
 
 exitfn:
 
-    AMS_LOG(CL_DEBUG_ERROR,
+    AMS_LOG(CL_LOG_SEV_ERROR,
             ("ERROR: SU [%s] fails relationship validation.\n",
              su->config.entity.name.value));
 
@@ -3639,7 +3632,7 @@ clAmsSIValidateConfig(
 
     if ( si->config.numCSIs < 1 )
     {
-        AMS_LOG ( CL_DEBUG_ERROR, ("Invalid value of number of CSIs for SI [%s] \n",
+        AMS_LOG ( CL_LOG_SEV_ERROR, ("Invalid value of number of CSIs for SI [%s] \n",
                     si->config.entity.name.value ));
         goto AMS_VALIDATE_SI_RULES_FAILS;
     }
@@ -3649,7 +3642,7 @@ clAmsSIValidateConfig(
 
 AMS_VALIDATE_SI_RULES_FAILS:
 
-    AMS_LOG(CL_DEBUG_ERROR,
+    AMS_LOG(CL_LOG_SEV_ERROR,
             ("ERROR: SI [%s] fails config validation.\n",
              si->config.entity.name.value));
 
@@ -3704,7 +3697,7 @@ clAmsSIValidateRelationships(
 
 exitfn:
 
-    AMS_LOG(CL_DEBUG_ERROR,
+    AMS_LOG(CL_LOG_SEV_ERROR,
             ("ERROR: SI [%s] fails relationship validation.\n",
              si->config.entity.name.value));
 
@@ -3739,7 +3732,7 @@ clAmsCompValidateConfig(
             comp->config.numMaxAmStop <=0 ||
             comp->config.numMaxActiveCSIs <=0 )
     {
-        AMS_LOG ( CL_DEBUG_ERROR,("Component [%s] should have positive values for " 
+        AMS_LOG ( CL_LOG_SEV_ERROR,("Component [%s] should have positive values for " 
                                   "attributes : numMaxInstantiate, numMaxInstantiateWithDelay, " 
                                   "numMaxTerminate, numMaxAmStart, numMaxAmStop, numMaxActiveCSIs\n", 
                                   comp->config.entity.name.value) );
@@ -3754,7 +3747,7 @@ clAmsCompValidateConfig(
         {
             if ( comp->config.numMaxActiveCSIs != 1 ) 
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxActiveCSI is 1\n",comp->config.entity.name.value,
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
@@ -3762,7 +3755,7 @@ clAmsCompValidateConfig(
 
             if ( comp->config.numMaxStandbyCSIs != 1 )
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxStandbyCSIs is 1\n",comp->config.entity.name.value,
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
@@ -3775,7 +3768,7 @@ clAmsCompValidateConfig(
         {
             if ( comp->config.numMaxStandbyCSIs == 0 )
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxStandbyCSIs should be non zero positive value\n",
                                            comp->config.entity.name.value, 
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
@@ -3789,7 +3782,7 @@ clAmsCompValidateConfig(
         {
             if ( comp->config.numMaxActiveCSIs != 1 ) 
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxActiveCSIs is 1\n", comp->config.entity.name.value, 
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
                 goto AMS_VALIDATE_COMP_RULES_FAILS;
@@ -3797,7 +3790,7 @@ clAmsCompValidateConfig(
 
             if ( comp->config.numMaxStandbyCSIs == 0 )
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxStandbyCSIs should be non zero positive value \n", 
                                            comp->config.entity.name.value, 
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
@@ -3812,7 +3805,7 @@ clAmsCompValidateConfig(
 
             if ( comp->config.numMaxStandbyCSIs != 0 )
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxStandbyCSIs is zero\n", 
                                            comp->config.entity.name.value, 
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
@@ -3826,7 +3819,7 @@ clAmsCompValidateConfig(
         {
             if ( comp->config.numMaxActiveCSIs != 1 ) 
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxActiveCSIs is 1\n", 
                                            comp->config.entity.name.value, 
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
@@ -3835,7 +3828,7 @@ clAmsCompValidateConfig(
 
             if ( comp->config.numMaxStandbyCSIs != 0 )
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxStandbyCSIs is zero \n", 
                                            comp->config.entity.name.value, 
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
@@ -3849,7 +3842,7 @@ clAmsCompValidateConfig(
         {
             if ( comp->config.numMaxActiveCSIs != 1 ) 
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxActiveCSIs is 1\n", 
                                            comp->config.entity.name.value, 
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
@@ -3858,7 +3851,7 @@ clAmsCompValidateConfig(
 
             if ( comp->config.numMaxStandbyCSIs != 0 )
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxStandbyCSIs is zero\n", 
                                            comp->config.entity.name.value, 
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
@@ -3881,7 +3874,7 @@ clAmsCompValidateConfig(
                 {
                     if(sg->config.redundancyModel != CL_AMS_SG_REDUNDANCY_MODEL_N_WAY)
                     {
-                        AMS_LOG( CL_DEBUG_ERROR, 
+                        AMS_LOG( CL_LOG_SEV_ERROR, 
                                  ("Component [%s] with Capability Model [%s] has "
                                   "SG redundancy model [%s]. Expected N-way redundancy\n",
                                   comp->config.entity.name.value,
@@ -3893,7 +3886,7 @@ clAmsCompValidateConfig(
             }
             if ( comp->config.numMaxStandbyCSIs == 0 )
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s] Capability Model [%s] : Valid Value of "
                                            "numMaxStandbyCSIs should be non zero positive value\n", 
                                            comp->config.entity.name.value, 
                                            CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ));
@@ -3905,7 +3898,7 @@ clAmsCompValidateConfig(
 
     default:
         {
-            AMS_LOG ( CL_DEBUG_ERROR, ("Component [%s], capability Model [%s] error\n",
+            AMS_LOG ( CL_LOG_SEV_ERROR, ("Component [%s], capability Model [%s] error\n",
                                        comp->config.entity.name.value,
                                        CL_AMS_STRING_COMP_CAP(comp->config.capabilityModel) ) );
             goto AMS_VALIDATE_COMP_RULES_FAILS;
@@ -3917,7 +3910,7 @@ clAmsCompValidateConfig(
 
     AMS_VALIDATE_COMP_RULES_FAILS:
 
-    AMS_LOG(CL_DEBUG_ERROR,
+    AMS_LOG(CL_LOG_SEV_ERROR,
             ("ERROR: Component [%s] fails config validation.\n",
              comp->config.entity.name.value));
 
@@ -3949,7 +3942,7 @@ clAmsCompValidateRelationships(
 
 exitfn:
 
-    AMS_LOG(CL_DEBUG_ERROR,
+    AMS_LOG(CL_LOG_SEV_ERROR,
             ("ERROR: Component [%s] fails relationship validation.\n",
              comp->config.entity.name.value));
 
@@ -4100,7 +4093,7 @@ clAmsValidateCSIType(
          if ( match == CL_FALSE )
          {
 
-             AMS_LOG(CL_DEBUG_ERROR,
+             AMS_LOG(CL_LOG_SEV_ERROR,
                      ("CSI [%s] with CSIType [%s] belonging to SI [%s] can not be assigned to any "
                       "Component\n", csi->config.entity.name.value, csi->config.type.value,
                       siEntity.name.value ));
@@ -4396,7 +4389,7 @@ clAmsEntityTimerGetValues(
 
         default:
         {
-            AMS_LOG(CL_DEBUG_ERROR, 
+            AMS_LOG(CL_LOG_SEV_ERROR, 
                     ("ERROR: Invalid timer type[%d]\n", timerType));
 
             return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
@@ -4449,7 +4442,7 @@ clAmsEntityTimerCreate(
     
     if ( !duration )
     {
-        AMS_ENTITY_LOG(entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_LOG_SEV_TRACE,
                 ("Timer Create: Entity [%s] Type [%s] has duration of [0s]. Timer will never pop\n",
                  entity->name.value,
                  CL_AMS_STRING_TIMER(timerType)));
@@ -4545,7 +4538,7 @@ clAmsEntityTimerStart(
 
     AMS_CALL ( clTimerStart (entityTimer->handle) );
 
-    AMS_ENTITY_LOG(entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_LOG_SEV_TRACE,
             ("Timer %s: Entity [%s] Type [%s]\n",
              entityTimer->count ? "Restart" : "Start",
              entity->name.value,
@@ -4608,7 +4601,7 @@ clAmsEntityTimerUpdate(
     
         if ( !duration )
         {
-            AMS_ENTITY_LOG(entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG(entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_LOG_SEV_TRACE,
                            ("Timer Create: Entity [%s] Type [%s] has duration of [0s]. Timer will never pop\n",
                             entity->name.value,
                             CL_AMS_STRING_TIMER(timerType)));
@@ -4669,7 +4662,7 @@ clAmsEntityTimerStop(
     {
         AMS_CALL ( clTimerStop (entityTimer->handle) );
 
-        AMS_ENTITY_LOG(entity,CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(entity,CL_AMS_MGMT_SUB_AREA_TIMER, CL_LOG_SEV_TRACE,
                 ("Timer Stop: Entity [%s] Type [%s]\n",
                  entity->name.value,
                  CL_AMS_STRING_TIMER(timerType)));
@@ -4720,7 +4713,7 @@ clAmsEntityTimerStopIfCountZero(
     {
         AMS_CALL ( clTimerStop (entityTimer->handle) );
 
-        AMS_ENTITY_LOG(entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_LOG_SEV_TRACE,
                 ("Timer Stop: Entity [%s] Type [%s]\n",
                  entity->name.value,
                  CL_AMS_STRING_TIMER(timerType)));
@@ -4782,7 +4775,7 @@ amsEntityTimerRestart(
     if ( entityTimer->handle )
     {
         AMS_CHECK_RC_ERROR( clTimerRestart(entityTimer->handle) );
-        AMS_ENTITY_LOG(entity,CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(entity,CL_AMS_MGMT_SUB_AREA_TIMER, CL_LOG_SEV_TRACE,
                 ("Timer Restart: Entity [%s] Type [%s]\n",
                  entity->name.value,
                  CL_AMS_STRING_TIMER(entityTimer->type)));
@@ -4871,7 +4864,7 @@ clAmsEntityTimeout(
 
     if ( !fn || (fn == (ClTimerCallBackT) clAmsEntityTimeout) )
     {
-        AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+        AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                        ("ERROR: Timeout fn for timer[%d] is not configured for entity[%s]\n",
                         timer->type, timer->entity->name.value));
 
@@ -4889,7 +4882,7 @@ clAmsEntityTimeout(
 
     if ( !timer->count )
     {
-        AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_LOG_SEV_TRACE,
                        ("Timer Pop/Ignored: Entity [%s] Type [%s] : Ignoring timer as it was cleared while waiting for mutex\n", 
                         timer->entity->name.value,
                         CL_AMS_STRING_TIMER(timer->type)));
@@ -4897,7 +4890,7 @@ clAmsEntityTimeout(
     else
     {
         ClUint32T pri = 0;
-        AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_LOG_SEV_TRACE,
                        ("Timer Pop/Enter: Entity [%s] Type [%s]\n", 
                         timer->entity->name.value,
                         CL_AMS_STRING_TIMER(timer->type)));
@@ -4920,7 +4913,7 @@ clAmsEntityTimeout(
         {
             rc = fn(timer);
 
-            AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+            AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_LOG_SEV_TRACE,
                            ("Timer Pop/Exit: Entity [%s] Type [%s]\n", 
                             timer->entity->name.value,
                             CL_AMS_STRING_TIMER(timer->type)));
@@ -4932,7 +4925,7 @@ clAmsEntityTimeout(
     check_service_state:
     if ( !ams->timerCount && (ams->serviceState == CL_AMS_SERVICE_STATE_STOPPED) )
     {
-        AMS_LOG (CL_DEBUG_TRACE,
+        AMS_LOG (CL_LOG_SEV_TRACE,
                  ("Terminating Cluster: Pending timers have popped. AMF Stopped\n"));
 
         AMS_CALL ( clOsalMutexLock(ams->terminateMutex) );

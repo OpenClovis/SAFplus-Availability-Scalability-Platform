@@ -58,6 +58,9 @@
 #include <../idl/xdr/xdrClFaultVersionInfoT.h>
 #include <clFaultClientIpi.h>
 
+#define FAULT_LOG_AREA_SERVER	"SER"
+#define FAULT_LOG_AREA_REPORT	"REP"
+#define FAULT_LOG_CTXT		NULL
 /* globals */
 ClFaultSeqTblT ***faultactiveSeqTbls;
 ClEoExecutionObjT gFmEoObj;
@@ -121,15 +124,15 @@ VDECL (clFaultReportProcess)(
     hFaultRecord  = (ClFaultRecordT*)clHeapAllocate(sizeof(ClFaultRecordT));
 	if(NULL == hFaultRecord)
 	{
-		CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed while allocating the memory. rc[0x%x]", CL_ERR_NO_MEMORY));
+		clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"Failed while allocating the memory. rc[0x%x]", CL_ERR_NO_MEMORY);
 		return CL_ERR_NO_MEMORY;
 	}
 
     rc = clBufferLengthGet(inMsgHdl, &length);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nException occurred in getting the \
-                    lenght of incoming message\n"));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"\nException occurred in getting the \
+                    lenght of incoming message\n");
         return rc;
     }          
 
@@ -137,14 +140,14 @@ VDECL (clFaultReportProcess)(
     hFaultEvent   = (ClFaultEventT*)clHeapAllocate(length);
 	if(NULL == hFaultEvent)
 	{
-		CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed while allocating the memory. rc[0x%x]", CL_ERR_NO_MEMORY));
+		clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"Failed while allocating the memory. rc[0x%x]", CL_ERR_NO_MEMORY);
 		return CL_ERR_NO_MEMORY;
 	}
 
     rc = clBufferNBytesRead(inMsgHdl, (ClUint8T *)hFaultEvent, &length);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Could not read from the incoming message\n"));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"Could not read from the incoming message\n");
         return rc;
     }
     hFaultRecord->event             = *hFaultEvent ;
@@ -198,8 +201,8 @@ VDECL (clFaultServerRepairAction)(
     rc = VDECL_VER(clXdrUnmarshallClFaultVersionInfoT, 4, 0, 0)(inMsgHdl,faultVersionInfo);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nException occurred in getting the \
-                    lenght of incoming message\n"));
+        clLogError(FAULT_LOG_AREA_REPORT,FAULT_LOG_CTXT,"\nException occurred in getting the \
+                    lenght of incoming message\n");
         clHeapFree(faultVersionInfo);
         return rc;
     }          
@@ -209,8 +212,8 @@ VDECL (clFaultServerRepairAction)(
     rc = clAlarmClientResourceInfoGet(faultVersionInfo->alarmHandle, &pAlarmInfo);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_INFO,("clFaultAlarmHandleInfoGet was not \
-					successful,rc : %0x \n",rc));
+        clLogError(FAULT_LOG_AREA_REPORT,FAULT_LOG_CTXT,"clFaultAlarmHandleInfoGet was not \
+					successful,rc : %0x \n",rc);
         clHeapFree(pAlarmInfo);
         clHeapFree(faultVersionInfo);
         return rc;
@@ -219,7 +222,7 @@ VDECL (clFaultServerRepairAction)(
     rc=clCorMoIdToClassGet(&(pAlarmInfo->moId),CL_COR_MO_CLASS_GET,&type);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Could not malloc memory for alarmInfo\n"));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"Could not malloc memory for alarmInfo\n");
         clHeapFree(pAlarmInfo);
         clHeapFree(faultVersionInfo);
         return rc;
@@ -247,7 +250,7 @@ VDECL (clFaultServerRepairAction)(
 
     if( CL_FALSE==bFound)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clFaultServerRepairAction: Could not find appropriate repair handler\n"));
+        clLogError(FAULT_LOG_AREA_REPORT,FAULT_LOG_CTXT,"clFaultServerRepairAction: Could not find appropriate repair handler\n");
     }
 
     clHeapFree(pAlarmInfo);
@@ -269,13 +272,13 @@ ClRcT   clFaultServiceTerminate(ClInvocationT invocation,
     rc = clCpmComponentUnregister(cpmHandle, compName, NULL);
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_DEREGISTER,"CPM");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_DEREGISTER,"CPM");
         return rc;
     }
     rc = clCpmClientFinalize(cpmHandle);
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_FINALIZATION,"Cpm Client");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_FINALIZATION,"Cpm Client");
         return rc;
     }
     clCpmResponse(cpmHandle, invocation, CL_OK);
@@ -302,21 +305,21 @@ ClRcT   clFaultCpmRegister()
     rc = clCpmClientInitialize(&cpmHandle, &callbacks, &version);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_INITIALIZATION,"Cpm Client");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_INITIALIZATION,"Cpm Client");
         return rc;
     }
 
     rc = clCpmComponentNameGet(cpmHandle, &sFaultCompName);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCpmComponentNameGet failed [%x]",rc));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"clCpmComponentNameGet failed [%x]",rc);
         return rc;
     }    
     
     rc = clCpmComponentRegister(cpmHandle, &sFaultCompName, NULL);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_REGISTER,"CPM");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_REGISTER,"CPM");
         return rc;
     }    
     
@@ -325,7 +328,7 @@ ClRcT   clFaultCpmRegister()
     rc = clCpmComponentIdGet(cpmHandle, &sFaultCompName, &sFaultCompId);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCpmComponentIdGet failed [%x]",rc));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"clCpmComponentIdGet failed [%x]",rc);
         return rc;
     }
 
@@ -344,35 +347,35 @@ ClRcT clFaultInitialize(ClUint32T argc, ClCharT *argv[])
     rc = clEoMyEoObjectGet(&eoObj);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clFaultInitialize:  clEoMyEoObjectGet  failed rc:%x.... \n", rc));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"clFaultInitialize:  clEoMyEoObjectGet  failed rc:%x.... \n", rc);
         return rc;    
     }
 
     rc = clFaultCpmRegister();
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n clFaultCpmRegister failed with rc:%x \n", rc));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"\n clFaultCpmRegister failed with rc:%x \n", rc);
         return rc;
     }
 
     rc = clFaultNativeClientTableInit(eoObj);
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n clFaultNativeClientTableInit failed with rc:%x \n", rc));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"\n clFaultNativeClientTableInit failed with rc:%x \n", rc);
         return rc;
     }
 
     rc = clFaultDebugRegister(eoObj);
     if(CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_ERROR,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_REGISTER,"Debug");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_ERROR,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_REGISTER,"Debug");
         return rc;
     }    
 
     clFaultHistoryInit(clFaultLocalProbationPeriod);
     faultactiveSeqTbls=fmSeqTbls;
     
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_NOTICE, CL_FAULT_SERVER_LIB,
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_NOTICE, CL_FAULT_SERVER_LIB,
             CL_LOG_MESSAGE_1_SERVICE_STARTED, "Fault" );
 
     CL_FUNC_EXIT();
@@ -387,13 +390,13 @@ ClRcT clFaultNativeClientTableInit(ClEoExecutionObjT* eoObj)
     memcpy(&gFmEoObj, eoObj, sizeof(ClEoExecutionObjT));
 
     if (gFmEoObj.rmdObj == 0)
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("****** RMD obj is NULL \n"));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"****** RMD obj is NULL \n");
                                                                                           
     rc = clEoClientInstallTables(&gFmEoObj, 
                                  CL_EO_SERVER_SYM_MOD(gAspFuncTable, FLT));
     if(CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n fmGlobal: Native clEoClientInstall failed \n"));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"\n fmGlobal: Native clEoClientInstall failed \n");
     }
 
     rc = clFaultSvcLibInitialize();
@@ -414,25 +417,25 @@ ClRcT clFaultFinalize()
     rc = clEoMyEoObjectGet(&pEOObj);
     if (CL_OK != rc)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clEoMyEoObjectGet failed rc :[%x] \n", rc));
+        clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"clEoMyEoObjectGet failed rc :[%x] \n", rc);
         return rc;
     }        
             
     rc = clFaultDebugDeregister(pEOObj);
     if (CL_OK != rc)
     {
-        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_ERROR,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_DEREGISTER,"Debug");
+        clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_ERROR,CL_FAULT_SERVER_LIB,CL_FAULT_LOG_1_DEREGISTER,"Debug");
         return rc;
     }
 
     rc = clEoClientUninstall(pEOObj, CL_EO_NATIVE_COMPONENT_TABLE_ID);
     if (CL_OK != rc)
     {
-       CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clEoClientUninstall failed rc :[%x] \n", rc));
+       clLogError(FAULT_LOG_AREA_SERVER,FAULT_LOG_CTXT,"clEoClientUninstall failed rc :[%x] \n", rc);
        return rc;
     }    
     
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_NOTICE,
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_NOTICE,
             CL_FAULT_SERVER_LIB,CL_LOG_MESSAGE_1_SERVICE_STOPPED, "Fault" );
     
     return rc;

@@ -1505,7 +1505,7 @@ clAmsEntityListGetFirst(
 
     if ( !entityList )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: EntityList is Null Pointer. Exiting..\n"));
         return (ClAmsEntityRefT *) NULL;
     }
@@ -1536,14 +1536,14 @@ clAmsEntityListGetFirst(
 
     if ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST ) 
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding first node of list. "
                  "Returning NULL..\n", rc));
     }
 
     if ( CL_GET_ERROR_CODE(rc2) != CL_ERR_NOT_EXIST ) 
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding first node data in "
                  "list. Returning NULL..\n", rc2));
     }
@@ -1577,7 +1577,7 @@ clAmsEntityListGetNext(
 
     if ( !entityList || !entityRef )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: EntityList or EntityRef is Null Pointer, Exiting.\n"));
         return (ClAmsEntityRefT *) NULL;
     }
@@ -1595,7 +1595,7 @@ clAmsEntityListGetNext(
     }
     else if ( rc != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding next node in list. "
                  "Returning NULL..\n", rc));
         return (ClAmsEntityRefT *) NULL;
@@ -1612,7 +1612,7 @@ clAmsEntityListGetNext(
     }
     else if ( rc != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding next node in list. "
                  "Returning NULL..\n", rc));
         return (ClAmsEntityRefT *) NULL;
@@ -1651,7 +1651,7 @@ clAmsEntityListGetLast(
 
     if ( !entityList )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: EntityList is Null Pointer. Exiting..\n"));
         return (ClAmsEntityRefT *) NULL;
     }
@@ -1684,14 +1684,14 @@ clAmsEntityListGetLast(
 
     if ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST ) 
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding last node of list. "
                  "Returning NULL..\n", rc));
     }
 
     if ( CL_GET_ERROR_CODE(rc2) != CL_ERR_NOT_EXIST ) 
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding last node data in list. "
                  "Returning NULL..\n", rc2));
     }
@@ -1724,7 +1724,7 @@ clAmsEntityListGetPrevious(
 
     if ( !entityList || !entityRef )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: EntityList or EntityRef is Null Pointer. Exiting.\n"));
         return (ClAmsEntityRefT *) NULL;
     }
@@ -1745,7 +1745,7 @@ clAmsEntityListGetPrevious(
     }
     else if ( rc != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding previus node in list. "
                  "Returning NULL..\n", rc));
         return (ClAmsEntityRefT *) NULL;
@@ -1762,7 +1762,7 @@ clAmsEntityListGetPrevious(
     }
     else if ( rc != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding previus node in list. "
                  "Returning NULL..\n", rc));
         return (ClAmsEntityRefT *) NULL;

@@ -33,6 +33,7 @@
 
 #include <clCommon.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 
 #include <clSmErrors.h>
 #include <clSmBasicApi.h>
@@ -40,6 +41,13 @@
 #ifdef MORE_CODE_COVERAGE
 #include "clCodeCovStub.h"
 #endif
+
+#define SM_LOG_AREA_SM		"_SM"
+#define SM_LOG_AREA_FSM		"FSM"
+#define SM_LOG_CTX_DEBUG	"DBG"	
+#define SM_LOG_CTX_CREATE	"CRE"
+#define SM_LOG_CTX_DELETE	"DEL"
+#define SM_LOG_CTX_EVENT	"EVT"
 
 extern ClRcT clHsmInstanceOnEvent(ClSmInstancePtrT this, ClSmEventPtrT msg);
 extern ClRcT fsmInstanceOnEvent(ClSmInstancePtrT this, ClSmEventPtrT msg);
@@ -51,7 +59,7 @@ ClRcT smDbgInit()
     ret= dbgAddComponent(COMP_PREFIX, COMP_NAME, COMP_DEBUG_VAR_PTR);
     if (CL_OK != ret)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("dbgAddComponent Failed \n "));
+        clLogError(SM_LOG_AREA_SM,SM_LOG_CTX_DEBUG,"dbgAddComponent Failed \n ");
         CL_FUNC_EXIT();
     }
     return ret;
@@ -85,7 +93,7 @@ clSmInstanceCreate(ClSmTemplatePtrT sm,
   CL_ASSERT(instance);  
   CL_ASSERT(sm);  
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Create State Machine Instance"));
+  clLogTrace(SM_LOG_AREA_SM,SM_LOG_CTX_CREATE,"Create State Machine Instance");
 
   if(sm && instance) 
     {
@@ -96,7 +104,7 @@ clSmInstanceCreate(ClSmTemplatePtrT sm,
           (*instance)->sm = sm;
           if(!sm->init) 
             {
-              CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Init State is empty! Setting to first state"));
+              clLogTrace(SM_LOG_AREA_SM,SM_LOG_CTX_CREATE,"Init State is empty! Setting to first state");
               sm->init = sm->top[0];
             }          
           (*instance)->current = (ClSmStatePtrT)sm->init; /* default to init */
@@ -144,7 +152,7 @@ clSmInstanceDelete(ClSmInstancePtrT this
   CL_FUNC_ENTER();
   CL_ASSERT(this);  
 
-  CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Delete State Machine Instance"));
+  clLogTrace(SM_LOG_AREA_SM,SM_LOG_CTX_DELETE,"Delete State Machine Instance");
 
   if(this) 
     {
@@ -259,10 +267,10 @@ clSmInstanceStart(ClSmInstancePtrT this
         ClSmStatePtrT curr = this->current;
         
 #ifdef DEBUG
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Start [%s]. Set Init state [%d:%s]", 
+        clLogTrace(SM_LOG_AREA_SM,CL_LOG_CONTEXT_UNSPECIFIED,"Start [%s]. Set Init state [%d:%s]", 
                               this->name,
                               curr->type,
-                              curr->name));
+                              curr->name);
 #endif
 
         /* call the entry function, if present
@@ -410,15 +418,15 @@ fsmInstanceOnEvent(ClSmInstancePtrT this,
         curr = this->current;
         
 #ifdef DEBUG
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("StateMachine [%s] OnEvent [%d] in State [%d:%s]", 
+        clLogTrace(SM_LOG_AREA_FSM,SM_LOG_CTX_EVENT,"StateMachine [%s] OnEvent [%d] in State [%d:%s]", 
                               this->name,
                               msg->eventId,
                               curr->type,
-                              curr->name));
+                              curr->name);
 #else
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("OnEvent %d in state %d", 
+        clLogTrace(SM_LOG_AREA_FSM,SM_LOG_CTX_EVENT,"OnEvent %d in state %d", 
                               msg->eventId,
-                              curr->type));
+                              curr->type);
 #endif
         
         /* check if the event is in event handler table
@@ -447,10 +455,10 @@ fsmInstanceOnEvent(ClSmInstancePtrT this,
                 ret = (*curr->exit)(curr, &next, msg);
                 if(ret != CL_OK) 
                   {
-                    CL_DEBUG_PRINT(CL_DEBUG_ERROR, (SM_ERR_STR(SM_ERR_EXIT_FAILED) 
+                    clLogError(SM_LOG_AREA_FSM,SM_LOG_CTX_EVENT,SM_ERR_STR(SM_ERR_EXIT_FAILED) 
                                           "Event %d in state %d Aborted!", 
                                           msg->eventId,
-                                          curr->type));
+                                          curr->type);
                     ret = SM_ERR_EXIT_FAILED;
                   }
               }
@@ -467,11 +475,11 @@ fsmInstanceOnEvent(ClSmInstancePtrT this,
                       {
                         ret = CL_OK;
                         
-                        CL_DEBUG_PRINT(CL_DEBUG_TRACE, (SM_ERR_STR(SM_ERR_FORCE_STATE) 
+                        clLogTrace(SM_LOG_AREA_FSM,SM_LOG_CTX_EVENT,SM_ERR_STR(SM_ERR_FORCE_STATE) 
                                               "Event %d in state %d => [%d]!", 
                                               msg->eventId,
                                               curr->type,
-                                              forced?forced->type:-1));
+                                              forced?forced->type:-1);
                         /*
                          * now look into the next state and force the
                          * state machine to that state.

@@ -51,7 +51,7 @@ clLogSvrCommonDataInit(void)
         return rc;
     }
 
-    pSvrCommonEoEntry = clHeapCalloc(1, sizeof(ClLogSvrCommonEoDataT));
+    pSvrCommonEoEntry = (ClLogSvrCommonEoDataT*) clHeapCalloc(1, sizeof(ClLogSvrCommonEoDataT));
     if( NULL == pSvrCommonEoEntry )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -208,15 +208,13 @@ clLogStreamAttributesCopy(ClLogStreamAttrIDLT  *pStoredAttr,
             return CL_LOG_RC(CL_ERR_NULL_POINTER);
         }    
 
-        pPassedAttr->fileName.pValue  
-            = clHeapCalloc(pStoredAttr->fileName.length, sizeof(ClCharT));
+        pPassedAttr->fileName.pValue  = (ClCharT*) clHeapCalloc(pStoredAttr->fileName.length, sizeof(ClCharT));
         if( NULL == pPassedAttr->fileName.pValue )
         {
             CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
             return CL_LOG_RC(CL_ERR_NO_MEMORY);
         }           
-        pPassedAttr->fileLocation.pValue  
-            = clHeapCalloc(pStoredAttr->fileLocation.length, sizeof(ClCharT));
+        pPassedAttr->fileLocation.pValue  = (ClCharT*) clHeapCalloc(pStoredAttr->fileLocation.length, sizeof(ClCharT));
         if( NULL == pPassedAttr->fileLocation.pValue )
         {
             CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -388,7 +386,7 @@ clLogServerSerialiser(ClUint32T  dsId,
         CL_LOG_DEBUG_ERROR(("clBufferLengthGet(): rc[0x %x]", rc));
         return rc;
     }        
-    *pBuffer = clHeapCalloc(*pSize, sizeof(ClUint8T));
+    *pBuffer = (ClAddrT) clHeapCalloc(*pSize, sizeof(ClUint8T));
     if( NULL == *pBuffer )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -441,7 +439,7 @@ clLogPrecreatedStreamsDataGet(ClLogStreamDataT     *pStreamAttr[],
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("ASP_CONFIG path is not set in the environment \n"));
+        clLogError("SVR","INI","ASP_CONFIG path is not set in the environment \n");
         return CL_LOG_RC(CL_ERR_DOESNT_EXIST);
     }
     if(NULL != head)
@@ -455,8 +453,7 @@ clLogPrecreatedStreamsDataGet(ClLogStreamDataT     *pStreamAttr[],
             while( NULL != fd1 )
             {
                 pStreamAttr[count] = NULL;
-                pStreamAttr[count] = clHeapCalloc(sizeof(ClLogStreamDataT), 
-                                                      sizeof(ClCharT));
+                pStreamAttr[count] = (ClLogStreamDataT*) clHeapCalloc(sizeof(ClLogStreamDataT), sizeof(ClCharT));
                 pData = pStreamAttr[count];
                 if( NULL == pData )
                 {
@@ -487,8 +484,7 @@ clLogPrecreatedStreamsDataGet(ClLogStreamDataT     *pStreamAttr[],
                 {
                     (pData->streamAttr).fileName.length = strlen(temp->txt) + 1;
                     (pData->streamAttr).fileName.pValue = 
-                        clHeapCalloc((pData->streamAttr).fileName.length,
-                            sizeof(ClCharT));
+                        (ClCharT*) clHeapCalloc((pData->streamAttr).fileName.length, sizeof(ClCharT));
                     if( NULL == (pData->streamAttr).fileName.pValue )
                     {
                         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));

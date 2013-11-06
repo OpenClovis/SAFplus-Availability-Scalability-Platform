@@ -31,6 +31,7 @@
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 
 ClRcT dbalGetLibName(ClCharT  *pLibName)
 {
@@ -47,14 +48,14 @@ ClRcT dbalGetLibName(ClCharT  *pLibName)
         parent    = clParserOpenFile(configPath, "clDbalConfig.xml");
         if (parent == NULL)
         {
-          CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Xml file for config is not proper rc [0x %x]\n",rc));
+          clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Xml file for config is not proper rc [0x %x]\n",rc);
           return CL_ERR_NULL_POINTER;
         }
     }
     else
     {
         rc = CL_ERR_NULL_POINTER;
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("ASP_CONFIG path is not set in the environment irc[0x %x] \n",rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"ASP_CONFIG path is not set in the environment irc[0x %x] \n",rc);
     }
     if(parent != NULL)
     {

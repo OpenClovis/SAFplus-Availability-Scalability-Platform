@@ -27,6 +27,7 @@
 #include <clLogCommon.h>
 #include <clCpmExtApi.h>
 #include <clIocLogicalAddresses.h>
+#include <clLogUtilApi.h>
 
 #ifdef POSIX_BUILD
 ClOsalSharedMutexFlagsT gClLogMutexMode = CL_OSAL_SHARED_POSIX_SEM;
@@ -60,18 +61,18 @@ ClLogStdStreamDataT stdStreamList[] = {
 
 ClLogASPCompMapT  aspCompMap[] =
 {
-    {"cpm"         , 1},
-    {"logServer"   , 2},
-    {"gmsServer"   , 3},
-    {"eventServer" , 4},
-    {"txnServer"   , 5},
-    {"alarmServer" , 6},
-    {"nameServer"  , 7},
-    {"faultServer" , 8},
-    {"corServer"   , 9},
-    {"ckptServer"  , 10},
-    {"cmServer"    , 11},
-    {"snmpServer"  , 12},
+    {(ClCharT *)"cpm"         , 1},
+    {(ClCharT *)"logServer"   , 2},
+    {(ClCharT *)"gmsServer"   , 3},
+    {(ClCharT *)"eventServer" , 4},
+    {(ClCharT *)"txnServer"   , 5},
+    {(ClCharT *)"alarmServer" , 6},
+    {(ClCharT *)"nameServer"  , 7},
+    {(ClCharT *)"faultServer" , 8},
+    {(ClCharT *)"corServer"   , 9},
+    {(ClCharT *)"ckptServer"  , 10},
+    {(ClCharT *)"cmServer"    , 11},
+    {(ClCharT *)"snmpServer"  , 12},
 };
 
 ClUint32T nLogAspComps  = sizeof(aspCompMap) / sizeof(aspCompMap[0]);
@@ -100,13 +101,13 @@ clLogFileLocationFindNGet(ClCharT    *recvFileLoc,
         rc = clCpmLocalNodeNameGet(&localName);
         if( CL_OK != rc )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to get the local node rc[0x %x]", rc));
+            clLogError("LOC","GET","Failed to get the local node rc[0x %x]", rc);
         }
         destFileLoc->length = localName.length + strlen(path) + 3;
-        destFileLoc->pValue = clHeapCalloc(1, destFileLoc->length);
+        destFileLoc->pValue = (ClCharT *)clHeapCalloc(1, destFileLoc->length);
         if( NULL == destFileLoc->pValue )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to allocate memory"));
+            clLogError("LOC","GET","Failed to allocate memory");
             return CL_LOG_RC(CL_ERR_NO_MEMORY);
         }
         snprintf( destFileLoc->pValue, destFileLoc->length, "%.*s:%s",
@@ -115,10 +116,10 @@ clLogFileLocationFindNGet(ClCharT    *recvFileLoc,
     else
     {
         destFileLoc->length = strlen(recvFileLoc) + 1;
-        destFileLoc->pValue = clHeapCalloc(1, destFileLoc->length);
+        destFileLoc->pValue = (ClCharT *)clHeapCalloc(1, destFileLoc->length);
         if( NULL == destFileLoc->pValue )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to allocate memory"));
+            clLogError("LOC","GET","Failed to allocate memory");
             return CL_LOG_RC(CL_ERR_NO_MEMORY);
         }
         snprintf(destFileLoc->pValue, destFileLoc->length, "%s", recvFileLoc);
@@ -159,7 +160,7 @@ clLogPerennialStreamsDataGet(ClLogStreamAttrIDLT  *pStreamAttr,
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("ASP_CONFIG path is not set in the environment \n"));
+        clLogError("SVR","INI","ASP_CONFIG path is not set in the environment \n");
         return CL_LOG_RC(CL_ERR_DOESNT_EXIST);
     }
 
@@ -197,7 +198,7 @@ clLogPerennialStreamsDataGet(ClLogStreamAttrIDLT  *pStreamAttr,
         {
             pStreamAttr[count].fileName.length = strlen(temp1->txt) + 1;
             pStreamAttr[count].fileName.pValue =
-                clHeapCalloc(pStreamAttr[count].fileName.length,
+                (ClCharT *)clHeapCalloc(pStreamAttr[count].fileName.length,
                              sizeof(ClCharT));
             if( NULL == pStreamAttr[count].fileName.pValue )
             {
@@ -238,13 +239,13 @@ clLogPerennialStreamsDataGet(ClLogStreamAttrIDLT  *pStreamAttr,
 
         ClStreamElementDef elemArray[] = 
         {
-            {"fileUnitSize",'d', (void*) &pStreamAttr[count].fileUnitSize},  /* I use 'd' for integer since that is like printf */
-            {"recordSize",'d',   (void*) &pStreamAttr[count].recordSize},
-            {"fileFullAction", 's',  (void*) &pStreamAttr[count].fileFullAction},
-            {"maximumFilesRotated",'d',  (void*) &pStreamAttr[count].maxFilesRotated },
-            {"flushFreq",'d', (void*) &pStreamAttr[count].flushFreq},
-            {"flushInterval",'L', (void*) &pStreamAttr[count].flushInterval},
-            {"syslog",'b', (void*) &pStreamAttr[count].syslog },
+            {(ClCharT *)"fileUnitSize",'d', (void*) &pStreamAttr[count].fileUnitSize},  /* I use 'd' for integer since that is like printf */
+            {(ClCharT *)"recordSize",'d',   (void*) &pStreamAttr[count].recordSize},
+            {(ClCharT *)"fileFullAction", 's',  (void*) &pStreamAttr[count].fileFullAction},
+            {(ClCharT *)"maximumFilesRotated",'d',  (void*) &pStreamAttr[count].maxFilesRotated },
+            {(ClCharT *)"flushFreq",'d', (void*) &pStreamAttr[count].flushFreq},
+            {(ClCharT *)"flushInterval",'L', (void*) &pStreamAttr[count].flushInterval},
+            {(ClCharT *)"syslog",'b', (void*) &pStreamAttr[count].syslog },
             {0,0,0}
         };
 
@@ -304,7 +305,7 @@ clLogPerennialStreamsDataGet(ClLogStreamAttrIDLT  *pStreamAttr,
             rc = clCpmLocalNodeNameGet(&stdStreamList[i].streamScopeNode);
             if( CL_OK != rc )
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Failed to get the local node rc[0x %x]", rc));
+                clLogError("SEV","INI","Failed to get the local node rc[0x %x]", rc);
             }
         }
     }
@@ -469,7 +470,7 @@ clLogStreamKeyCreate(SaNameT          *pStreamName,
         return rc;
     }
 
-    *ppStreamKey = clHeapCalloc(1, sizeof(ClLogStreamKeyT));
+    *ppStreamKey = (ClLogStreamKeyT *)clHeapCalloc(1, sizeof(ClLogStreamKeyT));
     if( *ppStreamKey == NULL )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -479,7 +480,9 @@ clLogStreamKeyCreate(SaNameT          *pStreamName,
     (*ppStreamKey)->streamName      = *pStreamName;
     (*ppStreamKey)->streamScopeNode = *pNodeName;
     (*ppStreamKey)->hash            = cksum % maxStreams;
-
+#ifdef NO_SAF
+    (*ppStreamKey)->sequenceNum      = 0;
+#endif
     CL_LOG_DEBUG_VERBOSE(("Created Key: %hu %.*s %hu %.*s",
                           (*ppStreamKey)->streamName.length, (*ppStreamKey)->streamName.length,
                           (*ppStreamKey)->streamName.value,
@@ -720,7 +723,7 @@ clLogFilterModify(ClLogStreamHeaderT  *pHeader,
 
     case CL_LOG_FILTER_MERGE_ADD:
         {
-            ClUint32T i;
+            ClInt32T i;
             ClUint8T *map = NULL;
             ClUint16T setLength = pStreamFilter->msgIdSetLength;
 
@@ -760,7 +763,7 @@ clLogFilterModify(ClLogStreamHeaderT  *pHeader,
         {
             ClUint16T setLength = pStreamFilter->msgIdSetLength;
             ClUint8T *map = NULL;
-            ClUint32T i;
+            ClInt32T i;
             pHeader->filter.severityFilter = 
                 (pHeader->filter.severityFilter | pStreamFilter->severityFilter) ^ (pHeader->filter.severityFilter);
             if(pStreamFilter->pMsgIdSet)
@@ -968,7 +971,7 @@ clLogShmNameCreate(SaNameT    *pStreamName,
     }
 
     CL_LOG_DEBUG_VERBOSE(("nChar: %hu", nChar));
-    pShmName->pValue = clHeapCalloc(nChar, sizeof(ClCharT));
+    pShmName->pValue = (ClCharT *)clHeapCalloc(nChar, sizeof(ClCharT));
     if( NULL == pShmName->pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1014,7 +1017,7 @@ clLogCompNamePrefixGet(SaNameT   *pCompName,
     CL_LOG_PARAM_CHK((NULL == pCompName), CL_LOG_RC(CL_ERR_NULL_POINTER));
     CL_LOG_PARAM_CHK((NULL == ppCompPrefix), CL_LOG_RC(CL_ERR_NULL_POINTER));
 
-    *ppCompPrefix = clHeapCalloc(pCompName->length + 1, sizeof(ClCharT));
+    *ppCompPrefix = (ClCharT *)clHeapCalloc(pCompName->length + 1, sizeof(ClCharT));
     if( NULL == *ppCompPrefix )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1304,7 +1307,7 @@ clLogReadLink(ClCharT   *softFileName,
          *
          */
         *pFileNameLength = strlen(actualFileName);
-        newFileName = clHeapRealloc(newFileName, *pFileNameLength+1);
+        newFileName = (ClCharT *)clHeapRealloc(newFileName, *pFileNameLength+1);
         newFileName[0] = '\0';
         strncat(newFileName, actualFileName, *pFileNameLength);
     }
@@ -1524,7 +1527,7 @@ ClRcT
 clLogFileIOVwrite(ClLogFilePtrT  fp,
                   struct iovec   *pIov,
                   ClUint32T      numRecords,
-                  ClUint32T      *pNumBytes)
+                  ClInt32T      *pNumBytes)
 {
     ClRcT      rc       = CL_OK;
     ClHandleT  fd       = 0;
@@ -1548,7 +1551,8 @@ ClUint32T clLogDefaultStreamSeverityGet(SaNameT *pStreamName)
 {
     static ClUint32T defaultStreamSeverity, customStreamSeverity;
     const ClCharT *sev = NULL;
-    ClLogSeverityT severity = 0;
+    ClLogSeverityT severity;
+    memset(&severity,0,sizeof(ClLogSeverityT));
 
     if(!pStreamName) return CL_LOG_DEFAULT_SEVERITY_FILTER;
 

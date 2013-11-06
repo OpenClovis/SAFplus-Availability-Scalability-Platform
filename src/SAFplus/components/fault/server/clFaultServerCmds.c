@@ -31,6 +31,7 @@
 
 /* ASP includes */
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clEoApi.h>
 
 /* fault includes */
@@ -57,7 +58,7 @@ ClRcT clFaultDebugRegister(ClEoExecutionObjT* pEoObj)
     rc = clDebugPromptSet("FAULT");
     if( CL_OK != rc )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clDebugPromptSet(): rc[0x %x]", rc));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clDebugPromptSet(): rc[0x %x]", rc);
         return rc;
     }
     return clDebugRegister(faultDebugFuncList,

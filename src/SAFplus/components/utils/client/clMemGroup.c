@@ -37,7 +37,7 @@ void clMemGroupInit(ClMemGroupT* obj,ClWordT baseSize)
     obj->curBuffer = -1;    
 }
 
-void* clMemGroupAlloc(ClMemGroupT* obj,int amt)
+void* clMemGroupAlloc(ClMemGroupT* obj,unsigned int amt)
 {
     void* ret;
     int i;
@@ -48,7 +48,7 @@ void* clMemGroupAlloc(ClMemGroupT* obj,int amt)
         ClWordT bSize = obj->fundamentalSize<<obj->curBuffer;
         /* Look through the allocated buffers to see if there is room for what
            the caller wants at the end of one of them */
-        for (i = obj->curBuffer;i>=0 && bSize >= amt; i--,bSize>>=1)
+        for (i = obj->curBuffer;(i>=0)&& (bSize >= (ClWordT) amt); i--,bSize>>=1)
         {
             if (bSize-obj->bufPos[i]>=amt)
             {
@@ -66,7 +66,7 @@ void* clMemGroupAlloc(ClMemGroupT* obj,int amt)
         obj->curBuffer+=1;
         obj->bufPos[obj->curBuffer] = 0;
         /* Each time thru I allocate 2x the memory */
-        obj->buffers[obj->curBuffer] = clHeapAllocate(obj->fundamentalSize<<obj->curBuffer);
+        obj->buffers[obj->curBuffer] = (char*) clHeapAllocate(obj->fundamentalSize<<obj->curBuffer);
         if (obj->buffers[obj->curBuffer]==0) return NULL; /* no memory to be had */   
     }
     /* Memory Group is completely full */

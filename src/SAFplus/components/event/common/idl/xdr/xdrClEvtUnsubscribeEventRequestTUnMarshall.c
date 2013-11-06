@@ -105,6 +105,12 @@ ClRcT clXdrUnmarshallClEvtUnsubscribeEventRequestT_4_0_0(ClBufferHandleT msg , v
     }
 
     }
+    rc = clXdrUnmarshallClUint8T(msg,&(pVar->isExternal));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
 
     return rc;
 }

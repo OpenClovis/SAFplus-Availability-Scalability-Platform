@@ -45,8 +45,6 @@ SRC_FILES	:= clPool.c \
 		   queue.c \
 		   clist.c \
 		   parser.c \
-			clIocParseConfig.c		\
-	           clOampRtParser.c \
                    clHandleApi.c \
                    clVersionApi.c \
 	           xdrGeneric.c \
@@ -95,7 +93,10 @@ SRC_FILES	:= clPool.c \
                clPlugin.c \
 	       clErrorTable.c \
 	       md5.c\
-	       clDifferenceVector.c
+	       clDifferenceVector.c \
+	       clIocParseConfig.c	
+
+#	           clOampRtParser.c
 
 ifeq ($(TARGET_VXWORKS), 1)
 SRC_FILES += clMemTrackerVxWorks.c clMemPart.c
@@ -138,3 +139,7 @@ endif
 #
 
 include $(CLOVIS_ROOT)/SAFplus/mk/make-client.mk
+
+
+
+

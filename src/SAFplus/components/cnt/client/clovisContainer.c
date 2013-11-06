@@ -39,6 +39,7 @@
 #include "cps_main.h"
 #endif 
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 /*#include <containerCompId.h>*/
 
 /*******************************************************/
@@ -231,7 +232,7 @@ clCntNodeDelete(ClCntHandleT      containerHandle,
                                   &userKey))
       {
          errorCode =CL_CNT_RC(CL_ERR_INVALID_STATE);
-         CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nInvalid state"));
+         clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nInvalid state");
          return (errorCode);
       }
 

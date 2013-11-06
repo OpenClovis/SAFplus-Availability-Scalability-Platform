@@ -122,7 +122,7 @@ extern ClRcT
 clTransportListenerDeregister(ClInt32T fd);
 
 extern void
-clTransportPrivateDataSet(ClInt32T fd, ClIocPortT port, void *private, void **privateLast);
+clTransportPrivateDataSet(ClInt32T fd, ClIocPortT port, void *privateParam, void **privateLast);
 
 extern void *
 clTransportPrivateDataGet(ClInt32T fd, ClIocPortT port);

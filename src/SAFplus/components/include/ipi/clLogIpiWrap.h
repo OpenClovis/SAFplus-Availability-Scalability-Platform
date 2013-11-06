@@ -32,6 +32,7 @@
 #define CL_LOG_IPI_WRAP_H
 #include <clIocApi.h>
 
+#if 0
 /**
  * Log severity levels
  */
@@ -56,14 +57,13 @@
 #define CL_LOG_DEBUG9         0x10
 #define CL_LOG_MAX            0x15
 #define CL_LOG_END            CL_LOG_MAX
-
-
+#endif
 /**
- * This contains the list of all common log messages used by ASP
+ * This contains the list of all common log messages used by SAFplus
  * components.
  */
 
-extern ClCharT		*clLogCommonMsg[];
+extern const ClCharT		*clLogCommonMsg[];
 
 /**
  * "[%s] Service Started".

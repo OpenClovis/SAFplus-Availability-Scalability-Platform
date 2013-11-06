@@ -411,7 +411,7 @@ clAmsPeSGFindSUForAssignmentNwayActive(
 
         default:
         {
-            AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
+            AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                     ("Error: Loading strategy [%d] for SG [%s] is not supported. Exiting..\n",
                      sg->config.loadingStrategy,
                      sg->config.entity.name.value));
@@ -568,7 +568,7 @@ clAmsPeSGAssignSUNwayActive(
 
         if( (lastSI == si) && (lastSU == su) )
         {
-            AMS_LOG(CL_DEBUG_ERROR, 
+            AMS_LOG(CL_LOG_SEV_ERROR, 
                     ("Assign active to SG - Current SI and SU same as "\
                      "last selection. Breaking out of assignment\n"));
             break;

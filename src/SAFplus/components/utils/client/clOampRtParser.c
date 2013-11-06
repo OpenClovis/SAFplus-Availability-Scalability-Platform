@@ -34,6 +34,7 @@
 #include <clBufferApi.h>
 #include <clOsalApi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clParserApi.h>
 #include <clOampRtErrors.h>
 #include <clOampRtApi.h>
@@ -43,6 +44,8 @@
 #include "clCodeCoveApi.h"
 #endif
 
+#define UTIL_LOG_AREA	"UTL"
+#define UTIL_LOG_CTX	"OAM"
 
 /**
  * Enumeration to record OAMP RT.xml file parsing stages.
@@ -115,7 +118,7 @@ ClRcT clOampRtComponentResourceInfoGet(ClParserPtrT top, SaNameT* pCompName, ClO
     if(NULL == pResourceArray)
     {
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid argument ResourceArray is NULL"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX,"Invalid argument ResourceArray is NULL");
         return CL_OAMP_RT_RC(CL_ERR_NULL_POINTER);    
     }
     
@@ -124,7 +127,7 @@ ClRcT clOampRtComponentResourceInfoGet(ClParserPtrT top, SaNameT* pCompName, ClO
     if(NULL == compInst)
     {
         CL_FUNC_EXIT();
-        CL_DEBUG_PRINT(CL_DEBUG_WARN, ("Not able to get compInst from RT file"));
+        clLogWarning(UTIL_LOG_AREA,UTIL_LOG_CTX,"Not able to get compInst from RT file");
         return CL_OAMP_RT_RC(CL_OAMP_RT_ERR_INTERNAL);
     }
 
@@ -157,7 +160,7 @@ ClRcT clOampRtComponentResourceInfoGet(ClParserPtrT top, SaNameT* pCompName, ClO
 
             if(pCompResourceList)
             {
-                pCompResourceArray = clHeapCalloc(1, sizeof(*pCompResourceArray));
+                pCompResourceArray = (ClOampRtComponentResourceArrayT *) clHeapCalloc(1, sizeof(*pCompResourceArray));
                 CL_ASSERT(pCompResourceArray != NULL);
             }
 
@@ -289,9 +292,9 @@ ClRcT clOampRtComponentResourceInfoGet(ClParserPtrT top, SaNameT* pCompName, ClO
         rc = clBufferDelete(&msgBuf);
         CL_FUNC_EXIT();
 #if 0
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Allocation failed : [%s]\r\n", pRtFileName->value));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX,"Allocation failed : [%s]\r\n", pRtFileName->value);
 #endif
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Allocation failed"));
+        clLogError(UTIL_LOG_AREA,UTIL_LOG_CTX,"Allocation failed");
         return CL_OAMP_RT_RC(CL_OAMP_RT_ERR_INTERNAL);
     }
 

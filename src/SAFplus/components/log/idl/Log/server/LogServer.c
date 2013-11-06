@@ -19,6 +19,7 @@
 #include <ipi/clRmdIpi.h>
 #include <string.h>
 #include "LogPortFileHdlrServer.h"
+#include "LogPortexternalServer.h"
 #include "LogServer.h"
 #include "LogFuncTable.h"
 

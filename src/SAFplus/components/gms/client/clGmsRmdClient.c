@@ -50,6 +50,8 @@
  * Common RMD Call Wrapper
  *****************************************************************************/
 
+#define GMS_LOG_CTX_CLM_RMD	"RMD"
+
 //#define CL_GMS_EMULATE_RMD_CALLS /* Defining this allows emulating RMD calls */
 
 #ifdef CL_GMS_EMULATE_RMD_CALLS
@@ -97,8 +99,8 @@ __cl_gms_call_rmd(
 
     if ((marshal_req == NULL) || (unmarshal_res == NULL))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("marshal_req or unmarshal_res ptr is NULL"));
+        clLogError(GEN,NA,
+                   "marshal_req or unmarshal_res ptr is NULL");
         return CL_ERR_NULL_POINTER;
     }
 
@@ -160,8 +162,8 @@ __cl_gms_call_rmd(
             retries--;
             if (sleep(1) != 0)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                        ("Failure in sleep system call: %s",strerror(errno)));
+                clLogError(GEN,NA,
+                           "Failure in sleep system call: %s",strerror(errno));
             }
         }
         else{
@@ -190,16 +192,16 @@ error_free_both_buffers:
     {
         if (clBufferDelete(&out_buffer) != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("Error in clBufferDelete out_buffer"));
+            clLogError(GEN,NA,
+                       "Error in clBufferDelete out_buffer");
         }
     }
 
 error_free_inbuffer:
     if (clBufferDelete(&in_buffer) != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("Error in clBufferDelete in_buffer"));
+        clLogError(GEN,NA,
+                   "Error in clBufferDelete in_buffer");
     }
 
     return rc;
@@ -2053,8 +2055,8 @@ VDECL (cl_gms_cluster_track_callback_rmd) (
     rc = clOsalTaskDataSet(clGmsPrivateDataKey, &gmsHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalTaskDataSet on handle failed with rc 0x%x\n",rc));
+        clLogError(CLM,GMS_LOG_CTX_CLM_RMD,
+                   "clOsalTaskDataSet on handle failed with rc 0x%x\n",rc);
     }
 
     /* if the library is in saf mode then queue the data in the callback queue
@@ -2071,7 +2073,7 @@ VDECL (cl_gms_cluster_track_callback_rmd) (
     // response contents are already heap allocated by unmarhall function
 
     rc = clJobQueuePush (&gEoJobQueues[CL_IOC_LOW_PRIORITY], (ClCallbackT) clGmsClusterTrackCallbackHandler, res);
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("clJobQueuePush rc [0x%x]\n",rc));
+    clLogInfo(CLM,NA,"clJobQueuePush rc [0x%x]\n",rc);
 
     return rc;
     #endif
@@ -2165,8 +2167,8 @@ VDECL (cl_gms_cluster_member_get_callback_rmd) (
     rc = clOsalTaskDataSet(clGmsPrivateDataKey, &gmsHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalTaskDataSet on handle failed with rc 0x%x\n",rc));
+        clLogError(CLM,NA,
+                   "clOsalTaskDataSet on handle failed with rc 0x%x\n",rc);
     }
 
 
@@ -2282,7 +2284,7 @@ VDECL (cl_gms_group_track_callback_rmd) (
     // response contents are already heap allocated by unmarhall func
 
     rc = clJobQueuePush (&gEoJobQueues[CL_IOC_LOW_PRIORITY], (ClCallbackT) clTmsGroupTrackCallbackHandler, res);
-    CL_DEBUG_PRINT(CL_DEBUG_INFO, ("clJobQueuePush rc [0x%x]\n",rc));
+    clLogInfo(GROUPS,NA,"clJobQueuePush rc [0x%x]\n",rc);
 
     return rc;
     #endif
@@ -2297,8 +2299,8 @@ VDECL (cl_gms_group_track_callback_rmd) (
     rc = clOsalTaskDataSet(clGmsPrivateDataKey, &gmsHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalTaskDataSet on handle failed with rc 0x%x\n",rc));
+        clLogError(GRP,GMS_LOG_CTX_CLM_RMD,
+                   "clOsalTaskDataSet on handle failed with rc 0x%x\n",rc);
     }
 
     /* if the library is in saf mode then queue the data in the callback queue
@@ -2380,8 +2382,8 @@ cl_gms_group_member_get_callback_rmd(
     rc = clOsalTaskDataSet(clGmsPrivateDataKey, &res->gmsHandle);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                ("clOsalTaskDataSet on handle failed with rc 0x%x\n",rc));
+        clLogError(GROUPS,GMS_LOG_CTX_CLM_RMD,
+                   "clOsalTaskDataSet on handle failed with rc 0x%x\n",rc);
     }
     // End
 

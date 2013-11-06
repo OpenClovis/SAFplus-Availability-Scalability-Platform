@@ -22,6 +22,7 @@ import signal
 import errno
 import re
 import glob
+import commands
 #import pdb
 
 AmfName = "safplus_amf"
@@ -579,17 +580,20 @@ def start_amf():
 
 def run_custom_scripts(cmd):
     d = get_asp_script_dir()
-    
+    scriptOk = True
     if os.path.isdir(d):
         for f in os.listdir(d):
             f = os.path.abspath(d + '/' + f)
             if is_executable_file(f):
                 st = os.system('%s %s' % (f, cmd))
                 if os.WEXITSTATUS(st):
-                    log.info('Script [%s] exitted abnormally with status [%d].'
-                             % (f, os.WEXITSTATUS(st)))
-                    if cmd == 'start':
-                        fail_and_exit('Custom script execution failure')
+                    log.info('Script [%s] exitted abnormally with status [%d].' % (f, os.WEXITSTATUS(st)))
+                    scriptOk = False
+    return scriptOk 
+
+# Stone 9/20/2013 -- do not put conditional behavior deep within a library function. 
+#                    if cmd == 'start':
+#                        fail_and_exit('Custom script execution failure')
 
 def setup_gms_config():
     return
@@ -1218,50 +1222,20 @@ def get_pid_for_this_sandbox(pid):
     return cwd == get_asp_run_dir()
     
 def get_amf_pid(watchdog_pid = False):
-
-    if is_valgrind_build():
-        l = Popen('ps -eo pid,cmd | grep %s' % AmfName)
-        l = [e for e in l if ('grep %s' % AmfName) not in e]
-    else:
-        if sys.version_info[0:2] <= (2, 4):
-            for i in range(0, 5):
-                l = os.popen(sys_asp['get_amf_pid_cmd']).readlines()
-                if l:
-                    break
+    while True:
+        valid = commands.getstatusoutput("/bin/pidof %s" % AmfName);
+        if valid[0] == 0:
+            if len(valid[1].split())==1:          
+                return int(valid[1])
         else:
-            while True:
-                ret, out, signal, core = system(sys_asp['get_amf_pid_cmd'])
-                if ret:
-                    pass
-                else:
-                    l = out
-                    break
-
-    temp_l = l
-    l = [e for e in l if AmfName in e]
-    l = [e for e in l if ('grep %s' % AmfName) not in e]
-    l = [int(e.split()[0]) for e in l]
-    l = list(set(l))
-
-    if is_simulation():
-        l = filter(get_pid_for_this_sandbox, l)
-
-    if len(l) == 0:
-        if not watchdog_pid:
-            return 0
-        ## check for amf watchdog
-        l = temp_l
-        l = [e for e in l if 'safplus_watchdog.py' in e ]
-        l = [e for e in l if 'grep safplus_watchdog.py' not in e ]
-        l = [int(e.split()[0]) for e in l]
-        l = list(set(l))
-        if is_simulation():
-            l = filter(get_pid_for_this_sandbox, l)
-        if len(l) == 0:
-            return 0
-        return int(l[0])
-    else:
-        return int(l[0])
+            break
+        log.warning('there are more than one AMF pid. Try again...')
+        time.sleep(0.25)
+    if watchdog_pid:
+         valid = commands.getstatusoutput("/bin/pidof safplus_watchdog.py");
+         if valid[0] == 0:
+            return int(valid[1])
+    return 0;
     
 def wait_until_amf_up():
     amf_pid = 0
@@ -1291,6 +1265,7 @@ def stop_asp():
     else:
         log.info('Stopping AMF...')
         os.kill(amf_pid, signal.SIGINT)
+        log.info('ASP is running with pid: %d' % amf_pid)
 
     log.info('Stopping AMF watchdog...')
     stop_amf_watchdog()

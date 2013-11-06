@@ -1271,7 +1271,7 @@ clAmsDBNodeListDeXMLize(
 
     if ( !name )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("nodeName tag does not have node name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -1280,7 +1280,7 @@ clAmsDBNodeListDeXMLize(
     ClParserPtrT configPtr = clParserChild(nodePtr,AMS_XML_TAG_CONFIG);
     if ( !configPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("NODE[%s] tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -1304,7 +1304,7 @@ clAmsDBNodeListDeXMLize(
     ClParserPtrT statusPtr = clParserChild(nodePtr,AMS_XML_TAG_STATUS);
     if ( !statusPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("NODE[%s] tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -1347,7 +1347,7 @@ clAmsDBNodeUnmarshall(ClAmsEntityRefT *entityRef,
     
     if(entity->type != CL_AMS_ENTITY_TYPE_NODE)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Entity type [%d] invalid for node unmarshall\n", entity->type));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Entity type [%d] invalid for node unmarshall\n", entity->type));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
 
@@ -1369,7 +1369,7 @@ clAmsDBNodeUnmarshall(ClAmsEntityRefT *entityRef,
 
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("[%s] entitydb operation returned [%#x]\n",
+                AMS_LOG(CL_LOG_SEV_ERROR, ("[%s] entitydb operation returned [%#x]\n",
                                          CL_AMS_STRING_ENTITY_TYPE(entity->type), rc));
                 goto exitfn;
             }
@@ -1459,7 +1459,7 @@ clAmsDBNodeDeXMLize(
 
     if ( !name )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("nodeName tag does not have node name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -1468,7 +1468,7 @@ clAmsDBNodeDeXMLize(
     ClParserPtrT configPtr = clParserChild(nodePtr,AMS_XML_TAG_CONFIG);
     if ( !configPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("nodeName %s tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -1518,7 +1518,7 @@ clAmsDBNodeDeXMLize(
             !isRestartable  || !autoRepair || !isASPAware || 
             !suFailoverDuration || !suFailoverCountMax )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("nodeName %s has a missing config attribute\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -1582,7 +1582,7 @@ clAmsDBNodeDeXMLize(
             !recovery || !suFailoverCount || !numInstantiatedSUs || 
             !numAssignedSUs || !alarmHandle )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("nodeName %s has a missing status attribute\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -2002,7 +2002,7 @@ clAmsDBSUUnmarshall(ClAmsEntityRefT *entityRef,
     
     if(entity->type != CL_AMS_ENTITY_TYPE_SU)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("SU unmarshall called with invalid entity [%d]\n", 
+        AMS_LOG(CL_LOG_SEV_ERROR, ("SU unmarshall called with invalid entity [%d]\n", 
                                  entity->type));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
@@ -2022,7 +2022,7 @@ clAmsDBSUUnmarshall(ClAmsEntityRefT *entityRef,
             }
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("SU entitydb operation returned [%#x]\n", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("SU entitydb operation returned [%#x]\n", rc));
                 goto exitfn;
             }
         }
@@ -2118,14 +2118,14 @@ clAmsDBSUDeXMLize(
 
     if ( !name )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("su Instance does not have name attribute \n"));
+        AMS_LOG (CL_LOG_SEV_ERROR,("su Instance does not have name attribute \n"));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
             
     ClParserPtrT configPtr = clParserChild( suPtr,AMS_XML_TAG_CONFIG );
     if ( !configPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("SU[%s] does not have config tag \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] does not have config tag \n", name));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
 
@@ -2163,7 +2163,7 @@ clAmsDBSUDeXMLize(
     if ( !adminState || !rank || !numComponents || !isPreinstantiable 
             || !isRestartable || !isContainerSU )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("SU[%s] has a missing config attribute \n"));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] has a missing config attribute \n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
@@ -2183,7 +2183,7 @@ clAmsDBSUDeXMLize(
     ClParserPtrT statusPtr = clParserChild( suPtr,AMS_XML_TAG_STATUS );
     if ( !statusPtr)
     {
-        AMS_LOG (CL_DEBUG_ERROR,("SU[%s] does not have status tag \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] does not have status tag \n", name));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
 
@@ -2236,7 +2236,7 @@ clAmsDBSUDeXMLize(
             || !numInstantiatedComp || !numQuiescedSIs || !recovery
             || !numPIComp )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("SU[%s] status has a missing attribute \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] status has a missing attribute \n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
@@ -2320,7 +2320,7 @@ clAmsDBSUListDeXMLize(
 
     if ( !name )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("suName tag does not have node name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -2329,7 +2329,7 @@ clAmsDBSUListDeXMLize(
     ClParserPtrT configPtr = clParserChild(suPtr,AMS_XML_TAG_CONFIG);
     if ( !configPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("SUName[%s] tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -2354,7 +2354,7 @@ clAmsDBSUListDeXMLize(
     if ( !parentSG|| !parentNode )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("SU[%s] has a missing config attribute \n",
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] has a missing config attribute \n",
                     name));
         goto exitfn;
     }
@@ -2390,7 +2390,7 @@ clAmsDBSUListDeXMLize(
 
     if ( !statusPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("SU[%s] does not have status tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -3300,7 +3300,7 @@ clAmsDBCompUnmarshall(ClAmsEntityRefT *entityRef,
 
     if(entity->type != CL_AMS_ENTITY_TYPE_COMP)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Comp unmarshall invoked with invalid entity type [%d]\n", entity->type));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Comp unmarshall invoked with invalid entity type [%d]\n", entity->type));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
 
@@ -3317,7 +3317,7 @@ clAmsDBCompUnmarshall(ClAmsEntityRefT *entityRef,
             }
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("Comp entitydb operation returned [%#x]\n", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("Comp entitydb operation returned [%#x]\n", rc));
                 goto exitfn;
             }
         }
@@ -3416,7 +3416,7 @@ clAmsDBCompDeXMLize(
 
     if ( !name )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("comp Instance does not have name attribute \n"));
+        AMS_LOG (CL_LOG_SEV_ERROR,("comp Instance does not have name attribute \n"));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
 
@@ -3424,7 +3424,7 @@ clAmsDBCompDeXMLize(
 
     if ( !configPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("comp Instance %s does not have config tag \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("comp Instance %s does not have config tag \n", name));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
 
@@ -3480,7 +3480,7 @@ clAmsDBCompDeXMLize(
     if(csiTypeInstance != NULL ||
        i != numSupportedCSITypes)
     {
-        AMS_LOG(CL_DEBUG_WARN,
+        AMS_LOG(CL_LOG_SEV_WARNING,
                 ("Comp config. numSupportedCSIType mismatch. "\
                  "Expected [%d], Got [%d]\n", numSupportedCSITypes, i));
     }
@@ -3548,7 +3548,7 @@ clAmsDBCompDeXMLize(
            || !proxyCSIType )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("COMP[%s] has a missing config attribute \n",
+        AMS_LOG (CL_LOG_SEV_ERROR,("COMP[%s] has a missing config attribute \n",
                                  name));
         goto exitfn;
     }
@@ -3621,7 +3621,7 @@ clAmsDBCompDeXMLize(
          !proxiedCompInstantiateTmOut || !proxiedCompCleanupTmOut )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("COMP[%s] has a missing status timer attribute \n",
+        AMS_LOG (CL_LOG_SEV_ERROR,("COMP[%s] has a missing status timer attribute \n",
                     name));
         goto exitfn;
 
@@ -3714,7 +3714,7 @@ clAmsDBCompDeXMLize(
             || !numQuiescedCSIs || !failoverCount)
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("COMP[%s] has a missing status attribute \n",
+        AMS_LOG (CL_LOG_SEV_ERROR,("COMP[%s] has a missing status attribute \n",
                     name));
         goto exitfn;
     }
@@ -3910,7 +3910,7 @@ clAmsDBCompListDeXMLize(
 
     if ( !name )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("compName tag does not have  name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -3920,7 +3920,7 @@ clAmsDBCompListDeXMLize(
 
     if (!configPtr)
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("compName[%s] tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -3932,7 +3932,7 @@ clAmsDBCompListDeXMLize(
 
     if ( !parentSU )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("compName[%s] tag does not have parentSU attribute\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -3960,7 +3960,7 @@ clAmsDBCompListDeXMLize(
 
     if ( !statusPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("compName[%s] tag does not have status tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -3972,7 +3972,7 @@ clAmsDBCompListDeXMLize(
 
     if ( !proxyComp)
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("compName[%s] tag does not have proxyComp attribute\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -4201,7 +4201,7 @@ clAmsDBSIXMLize(
     if (!si || !siPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, 
+        AMS_LOG (CL_LOG_SEV_ERROR, 
                 ("Entity null pointer or Entity tag null pointer\n"));
         goto exitfn;
     }
@@ -4216,7 +4216,7 @@ clAmsDBSIXMLize(
     if ( !configPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, ("Entity[%s] has null config pointer \n", si->config.entity.name.value));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null config pointer \n", si->config.entity.name.value));
         goto exitfn;
     }
 
@@ -4365,7 +4365,7 @@ clAmsDBSIUnmarshall(ClAmsEntityRefT *entityRef,
 
     if(entity->type != CL_AMS_ENTITY_TYPE_SI)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("SI unmarshall invoked with invalid entity type [%d]\n",entity->type));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("SI unmarshall invoked with invalid entity type [%d]\n",entity->type));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
 
@@ -4382,7 +4382,7 @@ clAmsDBSIUnmarshall(ClAmsEntityRefT *entityRef,
             }
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("SI entitydb operation returned [%#x]\n", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("SI entitydb operation returned [%#x]\n", rc));
                 goto exitfn;
             }
         }
@@ -4468,7 +4468,7 @@ clAmsDBSIDeXMLize(
     if ( !name )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("SI instance does not have name tag\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SI instance does not have name tag\n"));
         goto exitfn;
     }
 
@@ -4477,7 +4477,7 @@ clAmsDBSIDeXMLize(
     if ( !configPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, ("Entity[%s] has null config pointer \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null config pointer \n", name));
         goto exitfn;
     }
 
@@ -4505,7 +4505,7 @@ clAmsDBSIDeXMLize(
     if ( !adminState || !rank || !numCSIs || !numStandbyAssignments )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("SI[%s] has a missing config attribute \n",
+        AMS_LOG (CL_LOG_SEV_ERROR,("SI[%s] has a missing config attribute \n",
                     name));
         goto exitfn;
     }
@@ -4519,7 +4519,7 @@ clAmsDBSIDeXMLize(
     if ( !statusPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("SI[%s] does not have a status tag\n",
+        AMS_LOG (CL_LOG_SEV_ERROR,("SI[%s] does not have a status tag\n",
                     name));
         goto exitfn;
     }
@@ -4543,7 +4543,7 @@ clAmsDBSIDeXMLize(
     if ( !operState || !numActiveAssignments || !numStandbyAssignments )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, ("SI[%s] has a missing status attribute\n",
+        AMS_LOG (CL_LOG_SEV_ERROR, ("SI[%s] has a missing status attribute\n",
                     name));
         goto exitfn;
     }
@@ -4617,7 +4617,7 @@ clAmsDBSIListDeXMLize(
 
     if ( !name )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("siName tag does not have  name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -4628,7 +4628,7 @@ clAmsDBSIListDeXMLize(
     if ( !configPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, ("Entity[%s] has null config pointer \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null config pointer \n", name));
         goto exitfn;
     }
 
@@ -4640,7 +4640,7 @@ clAmsDBSIListDeXMLize(
 
     if ( !parentSG )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("SI[%s] does not have parentSG attribute \n",
+        AMS_LOG (CL_LOG_SEV_ERROR,("SI[%s] does not have parentSG attribute \n",
                     name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -4692,7 +4692,7 @@ clAmsDBSIListDeXMLize(
 
     if ( !statusPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("compName[%s] tag does not have status tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -4917,7 +4917,7 @@ clAmsDBCSIXMLize(
     if (!csi || !csiPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, 
+        AMS_LOG (CL_LOG_SEV_ERROR, 
                 ("Entity null pointer or Entity tag null pointer\n"));
         goto exitfn;
     }
@@ -4932,7 +4932,7 @@ clAmsDBCSIXMLize(
     if ( !configPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, ("Entity[%s] has null config pointer \n",
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null config pointer \n",
                     csi->config.entity.name.value));
         goto exitfn;
     }
@@ -4979,7 +4979,7 @@ clAmsDBCSIXMLize(
     if ( !nvpListPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, ("Entity[%s] has null nvpList pointer \n",
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null nvpList pointer \n",
                     csi->config.entity.name.value));
         goto exitfn;
     }
@@ -4996,7 +4996,7 @@ clAmsDBCSIXMLize(
         if ( !nvpPtr || !pNVP )
         {
             rc = CL_ERR_NULL_POINTER;
-            AMS_LOG (CL_DEBUG_ERROR, ("Entity[%s] has null nvp pointer \n",
+            AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null nvp pointer \n",
                         csi->config.entity.name.value));
             goto exitfn;
         }
@@ -5035,7 +5035,7 @@ clAmsDBCSIXMLize(
     if ( !statusPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, ("Entity[%s] has null status pointer \n",
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null status pointer \n",
                     csi->config.entity.name.value));
         goto exitfn;
     }
@@ -5058,7 +5058,7 @@ clAmsDBCSIXMLize(
     if ( !pgTrackListPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("Entity[%s] has null pgTrackListPtr pointer \n", csi->config.entity.name.value));
+        AMS_LOG (CL_LOG_SEV_ERROR,("Entity[%s] has null pgTrackListPtr pointer \n", csi->config.entity.name.value));
         goto exitfn;
     }
 
@@ -5077,7 +5077,7 @@ clAmsDBCSIXMLize(
         if (!pgTrackClient || !pgTrackClientPtr)
         {
             rc = CL_ERR_NULL_POINTER;
-            AMS_LOG (CL_DEBUG_ERROR,("Entity[%s] has null pgTrackClient or pgTrackClientPtr pointer \n", csi->config.entity.name.value));
+            AMS_LOG (CL_LOG_SEV_ERROR,("Entity[%s] has null pgTrackClient or pgTrackClientPtr pointer \n", csi->config.entity.name.value));
             goto exitfn;
         }
 
@@ -5142,7 +5142,7 @@ clAmsDBCSIUnmarshall(ClAmsEntityRefT *entityRef,
     AMS_CHECK_ENTITY_TYPE(entity->type);
     if(entity->type != CL_AMS_ENTITY_TYPE_CSI)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("CSI unmarshall invoked with invalid entity type [%d]\n", entity->type));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("CSI unmarshall invoked with invalid entity type [%d]\n", entity->type));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
     
@@ -5160,7 +5160,7 @@ clAmsDBCSIUnmarshall(ClAmsEntityRefT *entityRef,
             }
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("CSI entitydb operation returned [%#x]\n", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("CSI entitydb operation returned [%#x]\n", rc));
                 goto exitfn;
             }
         }
@@ -5248,7 +5248,7 @@ clAmsDBCSIDeXMLize(
     if ( !name )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, ("CSI instance does not have a name tag\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("CSI instance does not have a name tag\n"));
         goto exitfn;
     }
 
@@ -5275,7 +5275,7 @@ clAmsDBCSIDeXMLize(
     if ( !rank || !type || !isProxyCSI)
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR,("CSI[%s] has a missing attribute",
+        AMS_LOG (CL_LOG_SEV_ERROR,("CSI[%s] has a missing attribute",
                     name));
         goto exitfn;
     }
@@ -5356,7 +5356,7 @@ clAmsDBCSIListDeXMLize(
     if ( !name )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, ("CSI instance does not have a name tag\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("CSI instance does not have a name tag\n"));
         goto exitfn;
     }
 
@@ -5373,7 +5373,7 @@ clAmsDBCSIListDeXMLize(
     if ( !parentSI )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_DEBUG_ERROR, ("CSI[%s] does not have a parentSI tag\n",
+        AMS_LOG (CL_LOG_SEV_ERROR, ("CSI[%s] does not have a parentSI tag\n",
                     name));
         goto exitfn;
     }
@@ -6214,7 +6214,7 @@ clAmsDBSGUnmarshall(ClAmsEntityRefT *entityRef,
 
     if(entity->type != CL_AMS_ENTITY_TYPE_SG)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("SG unmarshall invoked with invalid entity type [%d]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("SG unmarshall invoked with invalid entity type [%d]\n",
                                  entity->type));
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
@@ -6235,7 +6235,7 @@ clAmsDBSGUnmarshall(ClAmsEntityRefT *entityRef,
 
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("SG entitydb operation returned [%#x]\n", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("SG entitydb operation returned [%#x]\n", rc));
                 goto exitfn;
             }
         }
@@ -6317,7 +6317,7 @@ clAmsDBSGDeXMLize(
 
     if ( !name )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("sg Instance does not have name attribute \n"));
+        AMS_LOG (CL_LOG_SEV_ERROR,("sg Instance does not have name attribute \n"));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
 
@@ -6325,7 +6325,7 @@ clAmsDBSGDeXMLize(
 
     if ( !configPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("SG[%s] does not have config tag \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SG[%s] does not have config tag \n", name));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
 
@@ -6439,7 +6439,7 @@ clAmsDBSGDeXMLize(
             || !alphaFactor 
             || !betaFactor)
     {
-        AMS_LOG (CL_DEBUG_ERROR,("SG[%s] has a missing config attribute \n",name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SG[%s] has a missing config attribute \n",name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
@@ -6469,7 +6469,7 @@ clAmsDBSGDeXMLize(
 
     if ( !isStarted || !numCurrActiveSUs || !numCurrStandbySUs )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("SG[%s] status has a missing attribute \n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SG[%s] status has a missing attribute \n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
@@ -6557,7 +6557,7 @@ clAmsDBSGListDeXMLize(
 
     if ( !name )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("sgName tag does not have node name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -6567,7 +6567,7 @@ clAmsDBSGListDeXMLize(
 
     if ( !configPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("SGName[%s] tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -6587,7 +6587,7 @@ clAmsDBSGListDeXMLize(
 
     if ( !statusPtr )
     {
-        AMS_LOG (CL_DEBUG_ERROR,
+        AMS_LOG (CL_LOG_SEV_ERROR,
                 ("sgName[%s] tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
@@ -6776,7 +6776,7 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
                                               &targetEntityRef.entity, 
                                               listType)) != CL_OK)
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("Entity list add returned [%#x] while adding "\
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("Entity list add returned [%#x] while adding "\
                                              "entity [%.*s] to entity [%.*s] list [%d]\n",
                                              rc, targetEntityRef.entity.name.length-1, 
                                              targetEntityRef.entity.name.value,
@@ -6948,7 +6948,7 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
             
         default:
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Invalid list type [%d] in Function [%s] \n",
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Invalid list type [%d] in Function [%s] \n",
                                            listType, __FUNCTION__));
                 break;
             }
@@ -7151,7 +7151,7 @@ clAmsDBXMLToList(
 
         default:
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Invalid list type [%d] in Function [%s] \n",
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Invalid list type [%d] in Function [%s] \n",
                             listType, __FUNCTION__));
                 return CL_AMS_RC (CL_AMS_ERR_INVALID_ENTITY_LIST);
             }
@@ -7241,7 +7241,7 @@ clAmsDBListMarshall(
 
             if ( (csiRef->activeComp == NULL) )
             {
-                AMS_LOG (CL_DEBUG_ERROR, ("Error: Component CSI reference with " 
+                AMS_LOG (CL_LOG_SEV_ERROR, ("Error: Component CSI reference with " 
                             "missing active component for CSI [%s] \n", 
                             csiRef->entityRef.entity.name.value));
                 return CL_AMS_RC (CL_AMS_ERR_INVALID_COMP);
@@ -7483,7 +7483,7 @@ clAmsDBListToXML(
 
         default:
             {
-                AMS_LOG ( CL_DEBUG_ERROR, ("Invalid list type [%d] in Function [%s] \n",
+                AMS_LOG ( CL_LOG_SEV_ERROR, ("Invalid list type [%d] in Function [%s] \n",
                             listType, __FUNCTION__));
                 return CL_AMS_RC (CL_AMS_ERR_INVALID_ENTITY_LIST);
             } 
@@ -7510,7 +7510,7 @@ clAmsDBListToXML(
 
             if ( (csiRef != NULL) && (csiRef->activeComp == NULL) )
             {
-                AMS_LOG (CL_DEBUG_ERROR, ("Error: Component CSI reference with " 
+                AMS_LOG (CL_LOG_SEV_ERROR, ("Error: Component CSI reference with " 
                             "missing active component for CSI [%s] \n", 
                             csiRef->entityRef.entity.name.value));
                 return CL_AMS_RC (CL_AMS_ERR_INVALID_COMP);
@@ -7922,7 +7922,7 @@ static ClRcT clAmsEntityDBUnmarshall(ClAmsEntityT *entity, ClBufferHandleT inMsg
         goto exitfn;
     }
 
-    AMS_LOG(CL_DEBUG_TRACE, ("[%s %*.s] entity unmarshalled\n", CL_AMS_STRING_ENTITY_TYPE(entity->type),entity->name.length,entity->name.value));
+    AMS_LOG(CL_LOG_SEV_TRACE, ("[%s %*.s] entity unmarshalled\n", CL_AMS_STRING_ENTITY_TYPE(entity->type),entity->name.length,entity->name.value));
     exitfn:
     return rc;
 }
@@ -7964,11 +7964,11 @@ static ClRcT clAmsDBUnmarshallVersion(ClBufferHandleT inMsgHdl, ClUint32T versio
             }
 
         case CL_AMS_CKPT_OPERATION_END:
-            AMS_LOG(CL_DEBUG_INFO, ("DB unmarshalling done\n"));
+            AMS_LOG(CL_LOG_SEV_INFO, ("DB unmarshalling done\n"));
             return CL_OK;
 
         default:
-            AMS_LOG(CL_DEBUG_ERROR, ("AMS db unmarshall returned [%#x]\n", rc));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("AMS db unmarshall returned [%#x]\n", rc));
             goto exitfn;
         }
     }
@@ -8023,7 +8023,7 @@ clAmsDBUnpackMain(
 
     if (!amfPtr.headPtr)
     {
-        AMS_LOG (CL_DEBUG_ERROR, 
+        AMS_LOG (CL_LOG_SEV_ERROR, 
                 (" Error in reading the XML file \n"));
     }
 
@@ -8264,21 +8264,21 @@ static ClRcT clAmsCCBHandleDBUnmarshall(ClBufferHandleT inMsgHdl)
         rc = clHandleCreateSpecifiedHandle(gAms.ccbHandleDB, (ClUint32T)sizeof(clAmsMgmtCCBT), pHandles[i]);
         if(rc != CL_OK)
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("DB unmarshall ccbhandle create [%#llx] returned [%#x]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("DB unmarshall ccbhandle create [%#llx] returned [%#x]\n",
                                      pHandles[i], rc));
             goto out_free;
         }
         rc = clHandleCheckout(gAms.ccbHandleDB, pHandles[i], (ClPtrT)&ccbInstance);
         if(rc != CL_OK)
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("DB unmarshall ccb handle checkout [%#llx] returned [%#x]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("DB unmarshall ccb handle checkout [%#llx] returned [%#x]\n",
                                      pHandles[i], rc));
             goto out_free;
         }
         rc = clAmsCCBOpListInstantiate(&ccbInstance->ccbOpListHandle);
         if(rc != CL_OK)
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("DB unmarshall ccb handle list instantiate [%llx] returned [%#x]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("DB unmarshall ccb handle list instantiate [%llx] returned [%#x]\n",
                                      pHandles[i], rc));
             goto out_free;
         }
@@ -8286,7 +8286,7 @@ static ClRcT clAmsCCBHandleDBUnmarshall(ClBufferHandleT inMsgHdl)
         rc = clHandleCheckin(gAms.ccbHandleDB, pHandles[i]);
         if(rc != CL_OK)
         {
-            AMS_LOG(CL_DEBUG_ERROR, ("DB unmarshall ccb handle checkin [%llx] returned [%#x]\n",
+            AMS_LOG(CL_LOG_SEV_ERROR, ("DB unmarshall ccb handle checkin [%llx] returned [%#x]\n",
                                      pHandles[i], rc));
             goto out_free;
         }
@@ -8422,7 +8422,7 @@ clAmsDBGAmsDeXMLize(
 
     if ( !debugFlags || !timerCount )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("debugFlags / timerCount for gAms does not "
+        AMS_LOG (CL_LOG_SEV_ERROR,("debugFlags / timerCount for gAms does not "
                     "exist \n"));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
@@ -8489,7 +8489,7 @@ ClRcT clAmsDBReadEntityStatus(
     epoch = clParserAttr( ptr, "epoch"); 
     if ( !epoch )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("entityStatus tag has a missing attribute - epoch\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR,("entityStatus tag has a missing attribute - epoch\n"));
         entityStatus->epoch = 0;
     }
     else
@@ -8500,7 +8500,7 @@ ClRcT clAmsDBReadEntityStatus(
     timerCount = clParserAttr( ptr, "timerCount");
     if ( !timerCount )
     {
-        AMS_LOG (CL_DEBUG_ERROR,("entityStatus tag has a missing attribute - timerCount\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR,("entityStatus tag has a missing attribute - timerCount\n"));
         entityStatus->timerCount = 0;
     }
     else

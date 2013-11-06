@@ -14,6 +14,12 @@
 #include "clIocNeighComps.h"
 #include "clIocMaster.h"
 
+#define IOC_LOG_AREA_PROXY	"PROXY"
+#define IOC_LOG_AREA_NOTIF	"NOTIF"
+#define IOC_LOG_CTX_SEND	"SEND"
+#define	IOC_LOG_CTX_PACK	"PACk"
+#define IOC_LOG_CTX_RECV	"RECV"
+
 typedef struct ClIocNotificationRegister
 {
     ClListHeadT list;
@@ -112,16 +118,16 @@ ClRcT clIocNotificationProxySend(ClIocCommPortHandleT commPort,
     retCode = clBufferCreate(&message);
     if(retCode != CL_OK)
     {   
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Buffer creation failed. rc=0x%x\n",retCode));
+        clLogError(IOC_LOG_AREA_PROXY,IOC_LOG_CTX_SEND,"Error : Buffer creation failed. rc=0x%x\n",retCode);
         goto out;
     }   
 
     retCode = clBufferNBytesWrite(message,(ClUint8T *)&notification, sizeof(notification));
     if (CL_OK != retCode)
     {   
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nERROR: clBufferNBytesWrite failed with rc = %x\n",
-                        retCode));
+        clLogError(IOC_LOG_AREA_PROXY,IOC_LOG_CTX_SEND,
+                   "\nERROR: clBufferNBytesWrite failed with rc = %x\n",
+                   retCode);
         goto err_out;
     }   
 
@@ -131,8 +137,8 @@ ClRcT clIocNotificationProxySend(ClIocCommPortHandleT commPort,
     retCode = clIocSendWithXport(commPort, message, CL_IOC_PROTO_ARP,
                                  destAddr, &sendOption, xportType, CL_TRUE);
     if(retCode != CL_OK)
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to send proxy notification. "
-                                       "Error [%#x]", retCode));
+        clLogError(IOC_LOG_AREA_PROXY,IOC_LOG_CTX_SEND,"Error : Failed to send proxy notification. "
+                                       "Error [%#x]", retCode);
 
     err_out:
     clBufferDelete(&message);
@@ -184,9 +190,9 @@ ClRcT clIocNotificationDiscoveryPack(ClBufferHandleT message,
     retCode = clBufferNBytesWrite(message,(ClUint8T *)pNotification, sizeof(*pNotification));
     if (CL_OK != retCode)
     {   
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nERROR: clBufferNBytesWrite failed with rc = %x\n",
-                        retCode));
+        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_PACK,
+                   "\nERROR: clBufferNBytesWrite failed with rc = %x\n",
+                   retCode);
         goto out;
     }   
 
@@ -216,16 +222,16 @@ ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort,
     retCode = clBufferCreate(&message);
     if(retCode != CL_OK)
     {   
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Buffer creation failed. rc=0x%x\n",retCode));
+        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,"Error : Buffer creation failed. rc=0x%x\n",retCode);
         goto out;
     }   
 
     retCode = clBufferNBytesWrite(message,(ClUint8T *)pNotificationInfo, sizeof(*pNotificationInfo));
     if (CL_OK != retCode)
     {   
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nERROR: clBufferNBytesWrite failed with rc = %x\n",
-                        retCode));
+        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,
+                   "\nERROR: clBufferNBytesWrite failed with rc = %x\n",
+                   retCode);
         goto err_out;
     }   
     if(id == CL_IOC_NODE_VERSION_NOTIFICATION
@@ -243,7 +249,7 @@ ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort,
     retCode = clIocSendWithXport(commPort, message, CL_IOC_PORT_NOTIFICATION_PROTO, 
                                  destAddress, &sendOption, xportType, CL_FALSE);
     if(retCode != CL_OK)
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to send notification. error code 0x%x", retCode));
+        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,"Error : Failed to send notification. error code 0x%x", retCode);
 
     err_out:
     clBufferDelete(&message);
@@ -351,8 +357,8 @@ static ClRcT clIocNotificationNodeMapSend(ClIocCommPortHandleT commPort,
     rc = clBufferNBytesWrite(message, buff, sizeof(buff));
     if(rc != CL_OK) 
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nERROR: clBufferNBytesWrite failed with rc = %x\n", rc));
+        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,
+                   "\nERROR: clBufferNBytesWrite failed with rc = %x\n", rc);
         goto out_delete;
     }
 
@@ -361,7 +367,7 @@ static ClRcT clIocNotificationNodeMapSend(ClIocCommPortHandleT commPort,
 
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to send notification node map. error code 0x%x", rc));
+        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,"Error : Failed to send notification node map. error code 0x%x", rc);
     }
 
     out_delete:
@@ -672,8 +678,8 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
 
     if(userHeader.version != CL_IOC_HEADER_VERSION)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Got version [%d] tipc packet. Supported [%d] version\n",
-                                        userHeader.version, CL_IOC_HEADER_VERSION));
+        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_RECV,"Got version [%d] tipc packet. Supported [%d] version\n",
+                                        userHeader.version, CL_IOC_HEADER_VERSION);
         return CL_IOC_RC(CL_ERR_VERSION_MISMATCH);
     }
 
@@ -749,10 +755,10 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
     memcpy(&notification, pRecvBase + sizeof(userHeader), sizeof(notification));
     if(ntohl(notification.protoVersion) != CL_IOC_NOTIFICATION_VERSION)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                       ("Got version [%d] notification packet. Supported [%d] version\n",
-                        ntohl(notification.protoVersion), 
-                        CL_IOC_NOTIFICATION_VERSION));
+        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_RECV, 
+                   "Got version [%d] notification packet. Supported [%d] version\n",
+                    ntohl(notification.protoVersion), 
+                    CL_IOC_NOTIFICATION_VERSION);
         return CL_IOC_RC(CL_ERR_VERSION_MISMATCH);
     }
 

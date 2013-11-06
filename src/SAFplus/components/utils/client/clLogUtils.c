@@ -33,7 +33,7 @@ ClUint16T             writeIdx    = 0;
 ClUint16T             readIdx     = 0;
 ClUint16T             overWriteFlag = 0;
 ClOsalTaskIdT         taskId        = 0;
-static ClBoolT gClLogServer = CL_FALSE;
+ClBoolT               gClLogServer = CL_FALSE;
 const ClCharT  *CL_LOG_UTIL_TASK_NAME= "LogUtilLibThread";
 #define CL_LOG_UTIL_FLUSH_RECORDS  64
 #define CL_LOG_FLUSH_FREQ          CL_LOG_UTIL_FLUSH_RECORDS
@@ -57,11 +57,12 @@ clLogNumFlushableRecordsGet(ClLogDeferredHeaderT  *pMsg,
                             ClUint16T             *pReadIdx,
                             ClUint16T             *pOverwriteFlag);
 
-ClRcT 
-clLogUtilLibInitialize(void)
+
+
+ClRcT clLogUtilLibInitialize(void)
 {
     ClRcT  rc = CL_OK;
-    ClCharT *pEOName = NULL;
+    //const ClCharT *pEOName = NULL;
     if( gUtilLibInitialized == CL_TRUE )
     {
         return CL_OK;
@@ -79,11 +80,7 @@ clLogUtilLibInitialize(void)
         clOsalMutexDestroy(&gLogMutex);
         return rc;
     }
-    pEOName = CL_EO_NAME;
-    if(pEOName && !strncasecmp(pEOName, "LOG", 3))
-    {
-        gClLogServer = CL_TRUE;
-    }
+    //pEOName = CL_EO_NAME;
 
     clLogDebugFilterInitialize();
 
@@ -115,7 +112,7 @@ clLogFlushRecords(void)
     ClUint16T saveWriteIdx = writeIdx;
     ClBoolT wrap = CL_FALSE;
     ClHandleT logHandle = 0;
-    ClLogSeverityT severity = 0;
+    ClLogSeverityT severity = CL_LOG_SEV_MAX;
     ClRcT rc = CL_OK;
     ClLogDeferredHeaderT *logBuffer = NULL;
 
@@ -123,7 +120,7 @@ clLogFlushRecords(void)
      * Just duplicate the entire range since the flush is one-time only and no need to do half-baked
      * allocs based on the actual flush size.
      */
-    logBuffer = calloc(CL_LOG_MAX_NUM_MSGS, sizeof(*logBuffer));
+    logBuffer = (ClLogDeferredHeaderT *) calloc(CL_LOG_MAX_NUM_MSGS, sizeof(*logBuffer));
     CL_ASSERT(logBuffer != NULL);
     memcpy(logBuffer, gLogMsgArray, sizeof(*logBuffer) * CL_LOG_MAX_NUM_MSGS);
 
@@ -180,9 +177,9 @@ logVWriteDeferred(ClHandleT       handle,
                   ClLogSeverityT  severity,
                   ClUint16T       serviceId,
                   ClUint16T       msgId,
-                  ClCharT         *pMsgHeader,
+                  const ClCharT         *pMsgHeader,
                   ClBoolT         deferred,
-                  ClCharT         *pFmtStr,
+                  const ClCharT         *pFmtStr,
                   va_list         vaargs)
 {
     ClRcT    rc     = CL_OK;
@@ -333,7 +330,7 @@ clLogWriteDeferred(ClHandleT       handle,
                    ClLogSeverityT  severity,
                    ClUint16T       serviceId,
                    ClUint16T       msgId,
-                   ClCharT         *pFmtStr,
+                   const ClCharT         *pFmtStr,
                    ...)
 {
     ClRcT    rc     = CL_OK;
@@ -351,8 +348,8 @@ clLogWriteDeferredForceWithHeader(ClHandleT       handle,
                                   ClLogSeverityT  severity,
                                   ClUint16T       serviceId,
                                   ClUint16T       msgId,
-                                  ClCharT         *pMsgHeader,
-                                  ClCharT         *pFmtStr,
+                                  const ClCharT         *pMsgHeader,
+                                  const ClCharT         *pFmtStr,
                                   ...)
 {
     ClRcT    rc     = CL_OK;
@@ -370,8 +367,8 @@ clLogWriteDeferredWithHeader(ClHandleT       handle,
                              ClLogSeverityT  severity,
                              ClUint16T       serviceId,
                              ClUint16T       msgId,
-                             ClCharT         *pMsgHeader,
-                             ClCharT         *pFmtStr,
+                             const ClCharT         *pMsgHeader,
+                             const ClCharT         *pFmtStr,
                              ...)
 {
     ClRcT    rc     = CL_OK;

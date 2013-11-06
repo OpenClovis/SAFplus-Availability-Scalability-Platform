@@ -67,6 +67,9 @@
 
 #define CL_TIPC_HANDLER_MAX_SOCKETS            3
 
+#define TIPC_LOG_AREA_TIPC		"TIPC"
+#define TIPC_LOG_CTX_TIPC_SUBSCRIBE	"SUB"
+
 typedef ClIocLogicalAddressT ClIocLocalCompsAddressT;
 
 static ClInt32T handlerFd[CL_TIPC_HANDLER_MAX_SOCKETS];
@@ -86,8 +89,8 @@ static ClRcT tipcSubscribe(ClInt32T fd, ClUint32T portId,
     struct tipc_subscr subscr = {{0}};
     ClInt32T rc;
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Trace : port 0x%x, lower 0x%x, upper 0x%x, timeout %d, fd=%d",
-                portId, lowerInstance, upperInstance, timeout, fd));
+    clLogTrace(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Trace : port 0x%x, lower 0x%x, upper 0x%x, timeout %d, fd=%d",
+                portId, lowerInstance, upperInstance, timeout, fd);
 
     subscr.seq.type  = portId;
     subscr.seq.lower = lowerInstance;
@@ -98,8 +101,8 @@ static ClRcT tipcSubscribe(ClInt32T fd, ClUint32T portId,
     rc = send(fd, (const char *)&subscr, sizeof(subscr), 0);
     if(rc < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("send to tipc topology socket failed with [%s]\n", 
-                                        strerror(errno)));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"send to tipc topology socket failed with [%s]\n", 
+                                        strerror(errno));
         return CL_IOC_RC(CL_ERR_LIBRARY);
     }
     
@@ -128,14 +131,14 @@ static ClInt32T clTipcSubscriptionSocketCreate(void)
     sd = socket (AF_TIPC, SOCK_SEQPACKET, 0);
     if(sd < 0)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error : socket() failed. system error [%s].\n", strerror(errno)));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Error : socket() failed. system error [%s].\n", strerror(errno));
         return -1;
     }
 
     if(fcntl(sd, F_SETFD, FD_CLOEXEC))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Error: fcntl on tipc topology socket failed with [%s]\n", 
-                                        strerror(errno)));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Error: fcntl on tipc topology socket failed with [%s]\n", 
+                                        strerror(errno));
         close(sd);
         return -1;
     }
@@ -149,8 +152,8 @@ static ClInt32T clTipcSubscriptionSocketCreate(void)
     /* Connect to topology server: */
     if(connect(sd,(struct sockaddr*)&topsrv,sizeof(topsrv)))
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Socket connect for tipc topology socket failed with [%s]\n",
-                                        strerror(errno)));
+        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Socket connect for tipc topology socket failed with [%s]\n",
+                                        strerror(errno));
         close(sd);
         return -1;
     }
@@ -395,8 +398,8 @@ static ClRcT tipcEventHandler(ClInt32T fd, ClInt32T events, void *handlerIndex)
 
         if( !(recvErrors++ & 255) )
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                           ("Recvmsg failed with [%s]\n", strerror(errno)));
+            clLogError(TIPC_LOG_AREA_TIPC,CL_LOG_CONTEXT_UNSPECIFIED, 
+                       "Recvmsg failed with [%s]\n", strerror(errno));
             sleep(1);
         }
 
@@ -404,9 +407,9 @@ static ClRcT tipcEventHandler(ClInt32T fd, ClInt32T events, void *handlerIndex)
         {
             if(tipcEventRegister(CL_TRUE) != CL_OK)
             {
-                CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, 
-                               ("TIPC topology subsciption retry failed. "
-                                "Shutting down the notification thread and process\n"));
+                clLogCritical(TIPC_LOG_AREA_TIPC,CL_LOG_CONTEXT_UNSPECIFIED, 
+                              "TIPC topology subsciption retry failed. "
+                              "Shutting down the notification thread and process\n");
                 exit(0); 
             }
         }

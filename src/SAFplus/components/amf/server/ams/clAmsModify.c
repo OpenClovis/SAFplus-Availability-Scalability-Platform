@@ -389,7 +389,7 @@ clAmsEntitySetConfig(
         {
 
             rc = CL_AMS_ERR_INVALID_ENTITY;
-            AMS_LOG (CL_DEBUG_ERROR,("Invalid entity type [%d] \n", entityDb->type));
+            AMS_LOG (CL_LOG_SEV_ERROR,("Invalid entity type [%d] \n", entityDb->type));
             goto exitfn;
 
         }
@@ -428,7 +428,7 @@ clAmsEntitySetAlphaFactor(
 
     if(alphaFactor > 100)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Invalid alpha factor value [%d]. "\
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Invalid alpha factor value [%d]. "\
                                  "Should be between 0 and 100\n", 
                                  alphaFactor));
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
@@ -448,7 +448,7 @@ clAmsEntitySetAlphaFactor(
 
     if( (rc = clAmsPeSGEvaluateWork( sg ) ) != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("SG work evaluation returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("SG work evaluation returned [%#x]\n", rc));
     }
 
     return CL_OK;
@@ -469,7 +469,7 @@ clAmsEntitySetBetaFactor(
 
     if(betaFactor > 100)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Invalid beta factor value [%d]. "\
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Invalid beta factor value [%d]. "\
                                  "Should be between 0 and 100\n", 
                                  betaFactor));
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
@@ -489,7 +489,7 @@ clAmsEntitySetBetaFactor(
 
     if( (rc = clAmsPeSGEvaluateWork( sg ) ) != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("SG work evaluation returned [%#x]\n", rc));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("SG work evaluation returned [%#x]\n", rc));
     }
 
     return CL_OK;
@@ -991,7 +991,7 @@ clAmsEntitySetConfigNew(
                     if(newCompConfig->pSupportedCSITypes)
                         clAmsFreeMemory(newCompConfig->pSupportedCSITypes);
                     rc = CL_AMS_RC(CL_AMS_ERR_BAD_CONFIG);
-                    AMS_LOG(CL_DEBUG_ERROR,
+                    AMS_LOG(CL_LOG_SEV_ERROR,
                             ("Comp config set: Invalid supported csitype: numTypes %d",
                              newCompConfig->numSupportedCSITypes));
                     goto exitfn;
@@ -1135,7 +1135,7 @@ clAmsEntitySetConfigNew(
                                              &newCompConfig->parentSU);
                 if(rc != CL_OK)
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("Comp parent SU [%.*s] not found\n",
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("Comp parent SU [%.*s] not found\n",
                                              newCompConfig->parentSU.entity.name.length,
                                              newCompConfig->parentSU.entity.name.value));
                     goto exitfn;
@@ -1184,7 +1184,7 @@ clAmsEntitySetConfigNew(
         {
 
             rc = CL_AMS_ERR_INVALID_ENTITY;
-            AMS_LOG (CL_DEBUG_ERROR,("Invalid entity type [%d] \n", entityConfig->type));
+            AMS_LOG (CL_LOG_SEV_ERROR,("Invalid entity type [%d] \n", entityConfig->type));
             goto exitfn;
 
         }
@@ -1380,7 +1380,7 @@ clAmsCCBValidateOperationLocked(
             if ( !memcmp(&opData->siName,&opData->dependencySIName,
                          sizeof(ClAmsEntityT)) )
             {
-                AMS_LOG (CL_DEBUG_ERROR,("ALERT: Trying to add entity " \
+                AMS_LOG (CL_LOG_SEV_ERROR,("ALERT: Trying to add entity " \
                                          "[%s] in its dependency list\n",\
                                          opData->siName.name.value));
                 rc = CL_AMS_RC (CL_ERR_INVALID_PARAMETER);
@@ -1391,7 +1391,7 @@ clAmsCCBValidateOperationLocked(
             if( (rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI],
                                               &entityRef) ) != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("SI [%s] not found in the db",
+                AMS_LOG(CL_LOG_SEV_ERROR, ("SI [%s] not found in the db",
                                          opData->siName.name.value));
                 goto exitfn;
             }
@@ -1402,7 +1402,7 @@ clAmsCCBValidateOperationLocked(
             if( ( rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI],
                                                &entityRef) ) != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("Dependency SI [%s] not found in the db",
+                AMS_LOG(CL_LOG_SEV_ERROR, ("Dependency SI [%s] not found in the db",
                                          opData->dependencySIName.name.value));
                 goto exitfn;
             }
@@ -1415,7 +1415,7 @@ clAmsCCBValidateOperationLocked(
                                           CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST)
                      == CL_TRUE )
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("Dependency SI [%s] already present in the dependency list of SI [%s]",
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("Dependency SI [%s] already present in the dependency list of SI [%s]",
                                              opData->dependencySIName.name.value,
                                              opData->siName.name.value));
                     rc = CL_AMS_RC(CL_ERR_ALREADY_EXIST);
@@ -1427,7 +1427,7 @@ clAmsCCBValidateOperationLocked(
                                          CL_AMS_SI_CONFIG_SI_DEPENDENTS_LIST) 
                     == CL_TRUE )
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("SI [%s] already present in the dependents list of SI [%s]",
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("SI [%s] already present in the dependents list of SI [%s]",
                                              opData->siName.name.value,
                                              opData->dependencySIName.name.value));
                     rc = CL_AMS_RC(CL_ERR_ALREADY_EXIST);
@@ -1440,7 +1440,7 @@ clAmsCCBValidateOperationLocked(
                                         &opData->dependencySIName,
                                         CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST) != CL_TRUE)
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("Dependency SI [%s] not present in the dependency list of SI [%s]",
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("Dependency SI [%s] not present in the dependency list of SI [%s]",
                                              opData->dependencySIName.name.value,
                                              opData->siName.name.value));
                     rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
@@ -1451,7 +1451,7 @@ clAmsCCBValidateOperationLocked(
                                         &opData->siName,
                                         CL_AMS_SI_CONFIG_SI_DEPENDENTS_LIST) != CL_TRUE)
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("SI [%s] not present in the dependents list of SI [%s]",
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("SI [%s] not present in the dependents list of SI [%s]",
                                              opData->siName.name.value,
                                              opData->dependencySIName.name.value));
                     rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
@@ -1479,7 +1479,7 @@ clAmsCCBValidateOperationLocked(
             if ( !memcmp(&opData->csiName,&opData->dependencyCSIName,
                          sizeof(ClAmsEntityT)) )
             {
-                AMS_LOG (CL_DEBUG_ERROR,("ALERT: Trying to add entity " \
+                AMS_LOG (CL_LOG_SEV_ERROR,("ALERT: Trying to add entity " \
                                          "[%s] in its dependency list\n",\
                                          opData->csiName.name.value));
                 rc = CL_AMS_RC (CL_ERR_INVALID_PARAMETER);
@@ -1490,7 +1490,7 @@ clAmsCCBValidateOperationLocked(
             if( (rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
                                               &entityRef) ) != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("CSI [%s] not found in the db",
+                AMS_LOG(CL_LOG_SEV_ERROR, ("CSI [%s] not found in the db",
                                          opData->csiName.name.value));
                 goto exitfn;
             }
@@ -1501,7 +1501,7 @@ clAmsCCBValidateOperationLocked(
             if( ( rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
                                                &entityRef) ) != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("Dependency CSI [%s] not found in the db",
+                AMS_LOG(CL_LOG_SEV_ERROR, ("Dependency CSI [%s] not found in the db",
                                          opData->dependencyCSIName.name.value));
                 goto exitfn;
             }
@@ -1514,7 +1514,7 @@ clAmsCCBValidateOperationLocked(
                                           CL_AMS_CSI_CONFIG_CSI_DEPENDENCIES_LIST)
                      == CL_TRUE )
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("Dependency CSI [%s] already present in the dependency list of CSI [%s]",
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("Dependency CSI [%s] already present in the dependency list of CSI [%s]",
                                              opData->dependencyCSIName.name.value,
                                              opData->csiName.name.value));
                     rc = CL_AMS_RC(CL_ERR_ALREADY_EXIST);
@@ -1526,7 +1526,7 @@ clAmsCCBValidateOperationLocked(
                                          CL_AMS_CSI_CONFIG_CSI_DEPENDENTS_LIST) 
                     == CL_TRUE )
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("CSI [%s] already present in the dependents list of CSI [%s]",
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("CSI [%s] already present in the dependents list of CSI [%s]",
                                              opData->csiName.name.value,
                                              opData->dependencyCSIName.name.value));
                     rc = CL_AMS_RC(CL_ERR_ALREADY_EXIST);
@@ -1539,7 +1539,7 @@ clAmsCCBValidateOperationLocked(
                                         &opData->dependencyCSIName,
                                         CL_AMS_CSI_CONFIG_CSI_DEPENDENCIES_LIST) != CL_TRUE)
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("Dependency CSI [%s] not present in the dependency list of CSI [%s]",
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("Dependency CSI [%s] not present in the dependency list of CSI [%s]",
                                              opData->dependencyCSIName.name.value,
                                              opData->csiName.name.value));
                     rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
@@ -1550,7 +1550,7 @@ clAmsCCBValidateOperationLocked(
                                         &opData->csiName,
                                         CL_AMS_CSI_CONFIG_CSI_DEPENDENTS_LIST) != CL_TRUE)
                 {
-                    AMS_LOG(CL_DEBUG_ERROR, ("CSI [%s] not present in the dependents list of CSI [%s]",
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("CSI [%s] not present in the dependents list of CSI [%s]",
                                              opData->csiName.name.value,
                                              opData->dependencyCSIName.name.value));
                     rc = CL_AMS_RC(CL_ERR_NOT_EXIST);
@@ -1712,7 +1712,7 @@ clAmsCCBValidateOperationLocked(
             if ( !memcmp(&opData->nodeName,&opData->dependencyNodeName,
                          sizeof(ClAmsEntityT)) )
             {
-                AMS_LOG (CL_DEBUG_ERROR,("ALERT: Trying to add entity" \
+                AMS_LOG (CL_LOG_SEV_ERROR,("ALERT: Trying to add entity" \
                                          "[%s] in its dependency list\n",
                                          opData->nodeName.name.value));
                 rc = CL_AMS_RC (CL_ERR_INVALID_PARAMETER);
@@ -1724,7 +1724,7 @@ clAmsCCBValidateOperationLocked(
 
     default: 
         { 
-            AMS_LOG(CL_DEBUG_ERROR, ("invalid ccb validate operation id [%d]\n", opId));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("invalid ccb validate operation id [%d]\n", opId));
             rc =  CL_AMS_RC (CL_AMS_ERR_INVALID_OPERATION);
             break;
         }
@@ -2045,7 +2045,7 @@ clAmsEntitySetStatus(
         {
 
             rc = CL_AMS_ERR_INVALID_ENTITY;
-            AMS_LOG (CL_DEBUG_ERROR,("Invalid entity type [%d] \n", entityDb->type));
+            AMS_LOG (CL_LOG_SEV_ERROR,("Invalid entity type [%d] \n", entityDb->type));
             goto exitfn;
 
         }
@@ -2626,14 +2626,14 @@ clAmsGetEntityList(
             rc = clAmsEntityListInstantiate(entityList, CL_AMS_ENTITY_TYPE_SG);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("List instantiate returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("List instantiate returned [%#x]", rc));
                 return rc;
             }
 
             rc = clAmsGetEntityListAll(entityList, CL_AMS_ENTITY_TYPE_SG);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("SG entity list returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("SG entity list returned [%#x]", rc));
                 AMS_CALL ( clAmsEntityListTerminate(entityList) );
                 return rc;
             }
@@ -2647,14 +2647,14 @@ clAmsGetEntityList(
             rc = clAmsEntityListInstantiate(entityList, CL_AMS_ENTITY_TYPE_SI);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("List instantiate returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("List instantiate returned [%#x]", rc));
                 return rc;
             }
 
             rc = clAmsGetEntityListAll(entityList, CL_AMS_ENTITY_TYPE_SI);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("SI entity list returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("SI entity list returned [%#x]", rc));
                 AMS_CALL ( clAmsEntityListTerminate(entityList) );
                 return rc;
             }
@@ -2668,14 +2668,14 @@ clAmsGetEntityList(
             rc = clAmsEntityListInstantiate(entityList, CL_AMS_ENTITY_TYPE_CSI);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("List instantiate returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("List instantiate returned [%#x]", rc));
                 return rc;
             }
 
             rc = clAmsGetEntityListAll(entityList, CL_AMS_ENTITY_TYPE_CSI);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("CSI entity list returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("CSI entity list returned [%#x]", rc));
                 AMS_CALL ( clAmsEntityListTerminate(entityList) );
                 return rc;
             }
@@ -2689,14 +2689,14 @@ clAmsGetEntityList(
             rc = clAmsEntityListInstantiate(entityList, CL_AMS_ENTITY_TYPE_NODE);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("List instantiate returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("List instantiate returned [%#x]", rc));
                 return rc;
             }
 
             rc = clAmsGetEntityListAll(entityList, CL_AMS_ENTITY_TYPE_NODE);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("Node entity list returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("Node entity list returned [%#x]", rc));
                 AMS_CALL ( clAmsEntityListTerminate(entityList) );
                 return rc;
             }
@@ -2710,14 +2710,14 @@ clAmsGetEntityList(
             rc = clAmsEntityListInstantiate(entityList, CL_AMS_ENTITY_TYPE_SU);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("List instantiate returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("List instantiate returned [%#x]", rc));
                 return rc;
             }
 
             rc = clAmsGetEntityListAll(entityList, CL_AMS_ENTITY_TYPE_SU);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("SU entity list returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("SU entity list returned [%#x]", rc));
                 AMS_CALL ( clAmsEntityListTerminate(entityList) );
                 return rc;
             }
@@ -2731,14 +2731,14 @@ clAmsGetEntityList(
             rc = clAmsEntityListInstantiate(entityList, CL_AMS_ENTITY_TYPE_COMP);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("List instantiate returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("List instantiate returned [%#x]", rc));
                 return rc;
             }
 
             rc = clAmsGetEntityListAll(entityList, CL_AMS_ENTITY_TYPE_COMP);
             if(rc != CL_OK)
             {
-                AMS_LOG(CL_DEBUG_ERROR, ("COMP entity list returned [%#x]", rc));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("COMP entity list returned [%#x]", rc));
                 AMS_CALL ( clAmsEntityListTerminate(entityList) );
                 return rc;
             }
@@ -3032,7 +3032,7 @@ clAmsCSIAddToPGTrackList(
                      (pgClient->trackFlags&CL_AMS_PG_TRACK_CHANGES_ONLY)) )
             { 
 
-                AMS_LOG(CL_DEBUG_ERROR,("CL_AMS_PG_TRACK_CHANGES_ONLY and "
+                AMS_LOG(CL_LOG_SEV_ERROR,("CL_AMS_PG_TRACK_CHANGES_ONLY and "
                             "CL_AMS_PG_TRACK_CHANGES are Mutually exclusive track flags \n"));
                 return CL_AMS_RC (CL_ERR_INVALID_PARAMETER);
 
@@ -3259,7 +3259,7 @@ clAmsEntityCompareLists(
                          dependentEntityRef->entity.name.length) )
              { 
 
-                 AMS_LOG (CL_DEBUG_ERROR,("\n entity :[%s] found in its dependentList \n",
+                 AMS_LOG (CL_LOG_SEV_ERROR,("\n entity :[%s] found in its dependentList \n",
                              dependenciesEntityRef->entity.name.value));
                  return CL_AMS_RC (CL_AMS_ERR_INVALID_ENTITY);
 
@@ -3280,7 +3280,7 @@ clAmsEntityCompareLists(
                      entity.name.value,dependentEntityRef->entity.name.length))
          { 
 
-             AMS_LOG (CL_DEBUG_ERROR,("\n entity :[%s] found in its dependentList \n",
+             AMS_LOG (CL_LOG_SEV_ERROR,("\n entity :[%s] found in its dependentList \n",
                      dependentEntityRef->entity.name.value));
              return CL_AMS_RC (CL_AMS_ERR_INVALID_ENTITY);
 
@@ -3297,7 +3297,7 @@ clAmsEntityCompareLists(
                      dependenciesEntityRef->entity.name.length) )
          { 
 
-             AMS_LOG (CL_DEBUG_ERROR,("\n entity :[%s] found in its dependenciesList \n",
+             AMS_LOG (CL_LOG_SEV_ERROR,("\n entity :[%s] found in its dependenciesList \n",
                      dependenciesEntityRef->entity.name.value));
              return CL_AMS_RC (CL_AMS_ERR_INVALID_ENTITY);
 
@@ -3892,7 +3892,7 @@ clAmsAddGetEntityList(
     default:
         {
 
-            AMS_LOG (CL_DEBUG_ERROR,("invalid entity list[%d] \n",entityListName));
+            AMS_LOG (CL_LOG_SEV_ERROR,("invalid entity list[%d] \n",entityListName));
             rc =  CL_AMS_ERR_INVALID_ENTITY_LIST;
             goto exitfn;
         }
@@ -4327,7 +4327,7 @@ clAmsDeleteFromEntityList(
             default:
             {
 
-                AMS_LOG (CL_DEBUG_ERROR,("invalid entity list[%d] \n",entityListName));
+                AMS_LOG (CL_LOG_SEV_ERROR,("invalid entity list[%d] \n",entityListName));
                 rc =  CL_AMS_ERR_INVALID_ENTITY_LIST;
                 goto exitfn;
             }
@@ -4640,7 +4640,7 @@ clAmsCheckIfRefExist(
             default:
             {
 
-                AMS_LOG (CL_DEBUG_ERROR,("invalid entity list[%d] \n", \
+                AMS_LOG (CL_LOG_SEV_ERROR,("invalid entity list[%d] \n", \
                             entityListName));
                 return CL_FALSE;
             }
@@ -4878,7 +4878,7 @@ clAmsGetEntityListContents(
 
         default:
            { 
-               AMS_LOG (CL_DEBUG_ERROR,("entity reference to invalid list \n"));
+               AMS_LOG (CL_LOG_SEV_ERROR,("entity reference to invalid list \n"));
                rc =  CL_AMS_ERR_INVALID_ENTITY_LIST;
                goto exitfn;
            } 
@@ -5023,7 +5023,7 @@ ClRcT clAmsEntitySetRefPtr(ClAmsEntityRefT  *sourceEntityRef,ClAmsEntityRefT  *t
     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[sourceEntityType],sourceEntityRef);
     if (rc != CL_OK) /* ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST ) */
     {
-        AMS_LOG(CL_DEBUG_CRITICAL, ("Error finding source entity [%s %.*s]\n", CL_AMS_STRING_ENTITY_TYPE(sourceEntityType),sourceEntityRef->entity.name.length, sourceEntityRef->entity.name.value));
+        AMS_LOG(CL_LOG_SEV_CRITICAL, ("Error finding source entity [%s %.*s]\n", CL_AMS_STRING_ENTITY_TYPE(sourceEntityType),sourceEntityRef->entity.name.length, sourceEntityRef->entity.name.value));
         return rc;
     }
     AMS_CALL(rc);
@@ -5031,7 +5031,7 @@ ClRcT clAmsEntitySetRefPtr(ClAmsEntityRefT  *sourceEntityRef,ClAmsEntityRefT  *t
     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[targetEntityType],targetEntityRef);
     if (rc != CL_OK) /* ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST ) */
     {
-        AMS_LOG(CL_DEBUG_CRITICAL, ("Error finding target entity [%s %.*s]\n", CL_AMS_STRING_ENTITY_TYPE(targetEntityType), targetEntityRef->entity.name.length, targetEntityRef->entity.name.value));
+        AMS_LOG(CL_LOG_SEV_CRITICAL, ("Error finding target entity [%s %.*s]\n", CL_AMS_STRING_ENTITY_TYPE(targetEntityType), targetEntityRef->entity.name.length, targetEntityRef->entity.name.value));
         return rc;
     }
     AMS_CALL(rc);
@@ -5385,7 +5385,7 @@ clAmsEntityMarshall(ClAmsEntityT *entity, ClPtrT userArg, ClUint32T marshallMask
         default:
         {
 
-            AMS_LOG(CL_DEBUG_ERROR,("Invalid entity type [%d] \n",entity->type));
+            AMS_LOG(CL_LOG_SEV_ERROR,("Invalid entity type [%d] \n",entity->type));
             return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
 
         }
@@ -5870,7 +5870,7 @@ clAmsEntitySerializeXML(
         default:
         {
 
-            AMS_LOG(CL_DEBUG_ERROR,("Invalid entity type [%d] \n",entity->type));
+            AMS_LOG(CL_LOG_SEV_ERROR,("Invalid entity type [%d] \n",entity->type));
             return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
 
         }
@@ -6327,7 +6327,7 @@ clAmsCntGetFirst(
 
     if ( !cntHandle)
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("Container handle is Null Pointer. Exiting..\n"));
         return (ClCntDataHandleT) 0;
     }
@@ -6354,7 +6354,7 @@ clAmsCntGetFirst(
     if ( ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST ) && ( rc !=CL_OK ) )
     { 
 
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("Error[%d] in finding first node of list.  Returning NULL..\n",
                  rc));
 
@@ -6363,7 +6363,7 @@ clAmsCntGetFirst(
     if ( ( CL_GET_ERROR_CODE(rc2) != CL_ERR_NOT_EXIST ) && ( rc2 != CL_OK ) )
     {
 
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("Error[%d] in finding first node data in list. Returning NULL..\n",
                  rc2));
    
@@ -6401,7 +6401,7 @@ clAmsCntGetNext(
     if ( !cntHandle|| !nodeHandle)
     {
 
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("container handle  or node handle is Null Pointer \
                  Exiting..\n"));
         return (ClCntDataHandleT)0 ;
@@ -6421,7 +6421,7 @@ clAmsCntGetNext(
     else if ( rc != CL_OK )
     {
 
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("Error[%d] in finding next node in container. Returning NULL..\n",
                  rc));
             return (ClCntHandleT) 0;
@@ -6441,7 +6441,7 @@ clAmsCntGetNext(
     else if ( rc != CL_OK )
     {
 
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("Error[%d] in finding next node in list. Returning NULL..\n",
                  rc));
         return (ClCntHandleT) 0;
@@ -7167,7 +7167,7 @@ clAmsEntityStartTimers(
         default:
         {
 
-            AMS_LOG(CL_DEBUG_ERROR,("Invalid entity type [%d]\n",entity->type));
+            AMS_LOG(CL_LOG_SEV_ERROR,("Invalid entity type [%d]\n",entity->type));
             return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
 
         }
@@ -7355,7 +7355,7 @@ clAmsInvocationCSIRemoveWalkCallback(ClAmsInvocationT *pInvocation,
                                  &entityRef);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("Error finding component [%.*s]\n",
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error finding component [%.*s]\n",
                                  pInvocation->compName.length,
                                  pInvocation->compName.value));
         return rc;
@@ -7529,7 +7529,7 @@ clAmsCCBDeleteCallback(
 
       default: 
             { 
-                AMS_LOG(CL_DEBUG_ERROR, ("invalid ccb operation id [%d]\n", opData->opId));
+                AMS_LOG(CL_LOG_SEV_ERROR, ("invalid ccb operation id [%d]\n", opData->opId));
                 break;
             }
     }
@@ -7643,7 +7643,7 @@ clAmsCCBGetFirstElement(
 
     if ( !listHandle || !nodeHandle ) 
     {
-            AMS_LOG(CL_DEBUG_ERROR,                                         
+            AMS_LOG(CL_LOG_SEV_ERROR,                                         
             ("ALERT [%s:%d] : Null Pointer\n",__FUNCTION__, __LINE__));
             return NULL;
     }
@@ -7661,14 +7661,14 @@ clAmsCCBGetFirstElement(
 
     if ( (rc != CL_OK) && (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST) ) 
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding first node of list. "
                  "Returning NULL..\n", rc));
     }
 
     if ( (rc2 != CL_OK) && (CL_GET_ERROR_CODE(rc2) != CL_ERR_NOT_EXIST) ) 
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding first node data in "
                  "list. Returning NULL..\n", rc2));
     }
@@ -7715,7 +7715,7 @@ clAmsCCBGetNextElement(
 
     if ( !listHandle || !nodeHandle || !nextNodeHandle ) 
     {
-            AMS_LOG(CL_DEBUG_ERROR,                                         
+            AMS_LOG(CL_LOG_SEV_ERROR,                                         
             ("ALERT [%s:%d] : Null Pointer\n",__FUNCTION__, __LINE__));
             return NULL;
     }
@@ -7733,14 +7733,14 @@ clAmsCCBGetNextElement(
 
     if ( (rc != CL_OK) && (CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST) ) 
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding first node of list. "
                  "Returning NULL..\n", rc));
     }
 
     if ( (rc2 != CL_OK) && (CL_GET_ERROR_CODE(rc2) != CL_ERR_NOT_EXIST) ) 
     {
-        AMS_LOG(CL_DEBUG_ERROR,
+        AMS_LOG(CL_LOG_SEV_ERROR,
                 ("ERROR: Return code [0x%x] in finding first node data in "
                  "list. Returning NULL..\n", rc2));
     }
@@ -7794,7 +7794,7 @@ clAmsInitiateNodeFailFast(
     rc = clCpmMasterAddressGet(&nodeAddress);
     if(rc != CL_OK)
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Function [clCpmMasterAddressGet] returned \
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Function [clCpmMasterAddressGet] returned \
                     [0x%x]\n",rc));                    
         return rc;
     }
@@ -7819,7 +7819,7 @@ clAmsIsNodeActiveSC(
 
     if ( nodeName == NULL )
     {
-        AMS_LOG(CL_DEBUG_ERROR, ("ALERT [%s:%d] : nodeName is NULL \n", \
+        AMS_LOG(CL_LOG_SEV_ERROR, ("ALERT [%s:%d] : nodeName is NULL \n", \
                     __FUNCTION__, __LINE__)); 
         return CL_FALSE;
     }
@@ -7829,7 +7829,7 @@ clAmsIsNodeActiveSC(
 
     if ( rc != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Function [clCpmIocAddressForNodeGet] \
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Function [clCpmIocAddressForNodeGet] \
                     returned [0x%x]\n",rc));                    
         return CL_FALSE;
     }
@@ -7838,7 +7838,7 @@ clAmsIsNodeActiveSC(
 
     if ( rc != CL_OK )
     {
-        AMS_LOG(CL_DEBUG_TRACE, ("Function [clCpmMasterAddressGet] returned \
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Function [clCpmMasterAddressGet] returned \
                     [0x%x]\n",rc));                    
         return CL_FALSE;
     }

@@ -152,8 +152,8 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
     rc = initializeAmf();
     if(rc != CL_OK)
     {
-       CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("MSG: msgInitialize failed [0x%X]\n\r", rc));
+       clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
+                     "MSG: msgInitialize failed [0x%X]\n\r", rc);
        return rc;
     }
 
@@ -174,6 +174,7 @@ static ClRcT initializeAmf(void)
     SaAisErrorT         retCode;
     ClIocPhysicalAddressT notificationForComp = { CL_IOC_BROADCAST_ADDRESS, 0};
     
+    clLogCompName = "MSG"; /* Override generated eo name with a short name for our server */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
   
     clMsgRegisterWithCpm();

@@ -51,6 +51,8 @@ extern "C"
 # define CL_NAME_SET(STR_LITERAL) { sizeof(STR_LITERAL)-1, STR_LITERAL }
 
 
+#define EVENT_LOG_AREA_EVNET	"EVT"
+#define	EVENT_LOG_CTX_TEST	    "TST"
     /*
      * Representing RMD functions exposed by EM using proper macros 
      */

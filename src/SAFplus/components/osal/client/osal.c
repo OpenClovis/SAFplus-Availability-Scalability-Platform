@@ -39,6 +39,7 @@
 #include <clOsalApi.h>
 #include <clOsalErrors.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clCntApi.h>
 #include <clLogApi.h>
 #include "osal.h"
@@ -48,9 +49,9 @@
 #endif
 
 #define CL_OSAL_DEPRECATED()  do {                              \
-    CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Usage of %s is deprecated." \
-                                   "Please use heap APIs\n",    \
-                                   __FUNCTION__));              \
+    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,      \
+                     "Usage of %s is deprecated Please use heap APIs\n",    \
+                                   __FUNCTION__);              \
 }while(0)
 
 #define CHK_INIT_RET(fn) do {  \
@@ -93,7 +94,7 @@ clOsalTaskCreateDetached (const ClCharT* taskName, ClOsalSchedulePolicyT schedul
   ClRcT ret = gOsalFunction.fpFunctionTaskCreateDetached(taskName,schedulePolicy, priority, stackSize, fpTaskFunction, pTaskFuncArgument);
   if (clDbgReverseTiming)   /* Allows the child thread to run BEFORE this parent, which will discover race conditions */
     {
-      ClTimerTimeOutT timer = { 0, clDbgReverseTiming };
+      ClTimerTimeOutT timer = { 0, (ClUint32T) clDbgReverseTiming };
       clOsalTaskDelay(timer);
     }
   return ret;
@@ -108,7 +109,7 @@ clOsalTaskCreateAttached(const ClCharT* taskName, ClOsalSchedulePolicyT schedule
   ClRcT ret = gOsalFunction.fpFunctionTaskCreateAttached(taskName,schedulePolicy, priority, stackSize, fpTaskFunction, pTaskFuncArgument, pTaskId);
   if (clDbgReverseTiming)  /* Allows the child thread to run BEFORE this parent, which will discover race conditions */
     {
-      ClTimerTimeOutT timer = { 0, clDbgReverseTiming };
+      ClTimerTimeOutT timer = { 0, (ClUint32T) clDbgReverseTiming };
       clOsalTaskDelay(timer);
     }
   return ret;

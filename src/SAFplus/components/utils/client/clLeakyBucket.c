@@ -44,7 +44,7 @@ typedef struct ClDequeueTrafficShaper
 
 static ClRcT clLeakyBucketIntervalCallback(void *arg)
 {
-    ClLeakyBucketT *bucket = arg;
+    ClLeakyBucketT *bucket = (ClLeakyBucketT *) arg;
     clOsalMutexLock(&bucket->mutex);
     bucket->value -= bucket->leakSize;
     if(bucket->value < 0) bucket->value = 0;
@@ -66,7 +66,7 @@ static ClRcT clLeakyBucketCreateExtended(ClInt64T volume, ClInt64T leakSize, ClT
     if(!handle || !volume || !leakSize || (!leakInterval.tsSec && !leakInterval.tsMilliSec)) 
         return CL_LEAKY_BUCKET_RC(CL_ERR_INVALID_PARAMETER);
 
-    bucket = clHeapCalloc(1, sizeof(*bucket));
+    bucket = (ClLeakyBucketT *) clHeapCalloc(1, sizeof(*bucket));
     CL_ASSERT(bucket != NULL);
 
     rc = clOsalMutexInit(&bucket->mutex);
@@ -254,7 +254,7 @@ static ClRcT clLeakyBucketTrafficShaperCallbackLocked(
 
 static ClRcT clLeakyBucketTrafficShaperCallback(void *arg)
 {
-    ClDequeueTrafficShaperT *shaper = arg;
+    ClDequeueTrafficShaperT *shaper = (ClDequeueTrafficShaperT *) arg;
     if(!shaper || !shaper->bucket) return CL_OK;
     clOsalMutexLock(&shaper->bucket->mutex);
     clLeakyBucketTrafficShaperCallbackLocked(shaper);
@@ -275,10 +275,10 @@ ClRcT clDequeueTrafficShaperCreate(ClListHeadT *queue, ClDequeueTrafficShaperCal
     if(!leakSize || (!leakInterval.tsSec && !leakInterval.tsMilliSec)) 
         return CL_LEAKY_BUCKET_RC(CL_ERR_INVALID_PARAMETER);
     
-    shaper = clHeapCalloc(1, sizeof(*shaper));
+    shaper = (ClDequeueTrafficShaperT *) clHeapCalloc(1, sizeof(*shaper));
     CL_ASSERT(shaper != NULL);
 
-    bucket = clHeapCalloc(1, sizeof(*bucket));
+    bucket = (ClLeakyBucketT *) clHeapCalloc(1, sizeof(*bucket));
     CL_ASSERT(bucket != NULL);
     rc = clOsalMutexInit(&bucket->mutex);
     CL_ASSERT (rc == CL_OK);

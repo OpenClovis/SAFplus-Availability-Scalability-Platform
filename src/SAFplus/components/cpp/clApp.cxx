@@ -25,6 +25,7 @@
 #define clprintf(severity, ...)   clAppLog(CL_LOG_HANDLE_APP, severity, 10, \
                                   CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,\
                                   __VA_ARGS__)
+#define CompErr(x) x
 
 namespace SAFplus
 {

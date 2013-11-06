@@ -224,7 +224,7 @@ ClRcT clLogFileHdlrFileOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -607,7 +607,7 @@ ClRcT clLogFileHdlrFileRecordsGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -927,7 +927,7 @@ ClRcT clLogFileHdlrFileMetaDataGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);

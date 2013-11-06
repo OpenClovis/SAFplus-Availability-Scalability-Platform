@@ -55,10 +55,10 @@ void clCkptLogError(ClUint32T   logLvl,
                     ClRcT       retCode, 
                     ClUint32T   libCode)
 {
-    ClLogSeverityT severity = CL_LOG_ERROR;
+    ClLogSeverityT severity = CL_LOG_SEV_ERROR;
     ClCharT        *libName = "clAspCkptLib";
 
-    if (logLvl  == CL_DEBUG_CRITICAL) severity = CL_LOG_CRITICAL; 
+    if (logLvl  == CL_LOG_SEV_CRITICAL) severity = CL_LOG_SEV_CRITICAL; 
     if (libCode == CL_CKPT_SVR) libName = NULL;
     switch(CL_GET_ERROR_CODE(retCode))
     {
@@ -169,7 +169,7 @@ ClRcT clCkptMasterAddressGet(ClIocNodeAddressT *pIocAddress)
     if (pIocAddress == NULL)
     {
         rc = CL_CKPT_ERR_NULL_POINTER;
-        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+        CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR,
                        ("Ckpt: clCkptMasterAddressGet failed rc[0x %x]\n",rc), rc);
     }
     

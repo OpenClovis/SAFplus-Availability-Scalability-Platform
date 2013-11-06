@@ -54,7 +54,7 @@ clLogMasterEoDataInit(ClLogMasterEoDataT  **ppMasterEoEntry)
     pCommonEoEntry->flags |= __LOG_EO_MASTER_INIT;
     clOsalMutexUnlock(&pCommonEoEntry->lock);
 
-    *ppMasterEoEntry = clHeapCalloc(1, sizeof(ClLogMasterEoDataT));
+    *ppMasterEoEntry = (ClLogMasterEoDataT*) clHeapCalloc(1, sizeof(ClLogMasterEoDataT));
     if( NULL == *ppMasterEoEntry )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -202,7 +202,7 @@ clLogMasterEoEntryGet(ClLogMasterEoDataT     **ppMasterEoEntry,
     if( NULL != ppCommonEoEntry )
     {
         rc = clEoPrivateDataGet(pEoObj, CL_LOG_SERVER_COMMON_EO_ENTRY_KEY,
-                                (void *) ppCommonEoEntry);
+                                (void **) ppCommonEoEntry);
         if( CL_OK != CL_GET_ERROR_CODE(rc) )
         {
             CL_LOG_DEBUG_ERROR(("clEoPrivateDataGet(): rc[0x %x]", rc));

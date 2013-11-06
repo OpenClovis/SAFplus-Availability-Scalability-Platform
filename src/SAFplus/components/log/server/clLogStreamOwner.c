@@ -244,7 +244,7 @@ clLogStreamOwnerMasterClose(SaNameT              *pStreamName,
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     fileName.length = pStreamAttr->fileName.length;
-    fileName.pValue = clHeapCalloc(fileName.length, sizeof(ClCharT));
+    fileName.pValue = (ClCharT*) clHeapCalloc(fileName.length, sizeof(ClCharT));
     if( NULL == fileName.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -252,7 +252,7 @@ clLogStreamOwnerMasterClose(SaNameT              *pStreamName,
     }
 
     fileLocation.length = pStreamAttr->fileLocation.length;
-    fileLocation.pValue = clHeapCalloc(fileLocation.length, sizeof(ClCharT));
+    fileLocation.pValue = (ClCharT*) clHeapCalloc(fileLocation.length, sizeof(ClCharT));
     if( NULL == fileLocation.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -440,7 +440,7 @@ clLogStreamOwnerCkptInfoGet(ClCntHandleT      hStreamTable,
             ClUint32T  prefixLen = strlen(soSecPrefix);
 
             pSecId->idLen = pStreamKey->streamName.length + prefixLen;
-            pSecId->id    = clHeapCalloc(pSecId->idLen, sizeof(ClCharT)); 
+            pSecId->id    = (ClUint8T*) clHeapCalloc(pSecId->idLen, sizeof(ClCharT)); 
             if( NULL == pSecId->id )
             {
                 CL_LOG_DEBUG_ERROR(( "clHeapCalloc()"));
@@ -531,7 +531,7 @@ clLogStreamOwnerCloseMasterNotify(SaNameT    *pStreamName,
     ClRcT              rc          = CL_OK;
     ClIdlHandleT       hLogIdl     = CL_HANDLE_INVALID_VALUE;
     ClIocAddressT      masterAddr  = {{0}};
-    ClLogStreamScopeT  streamScope = 0;
+    ClLogStreamScopeT  streamScope = CL_LOG_STREAM_GLOBAL;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -740,7 +740,7 @@ clLogStreamOwnerInfoCopy(ClLogStreamOwnerDataT   *pStreamOwnerData,
     CL_LOG_DEBUG_TRACE(( "Enter"));
 
     pFileName->length = pStreamOwnerData->streamAttr.fileName.length;
-    pFileName->pValue = clHeapCalloc(pFileName->length, sizeof(ClCharT));
+    pFileName->pValue = (ClCharT*) clHeapCalloc(pFileName->length, sizeof(ClCharT));
     if( NULL == pFileName->pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -748,7 +748,7 @@ clLogStreamOwnerInfoCopy(ClLogStreamOwnerDataT   *pStreamOwnerData,
     }
 
     pFileLocation->length = pStreamOwnerData->streamAttr.fileLocation.length;
-    pFileLocation->pValue = clHeapCalloc(pFileLocation->length, sizeof(ClCharT));
+    pFileLocation->pValue = (ClCharT*) clHeapCalloc(pFileLocation->length, sizeof(ClCharT));
     if( NULL == pFileLocation->pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -1172,7 +1172,7 @@ void
 clLogStreamOwnerMAVGResponse(ClIdlHandleT            hLogIdl,
                              ClLogStreamAttrIDLT     *pStreamAttr,
                              SaNameT                 *pStreamName,
-                             ClLogStreamScopeT       *pStreamScope, 
+                             ClUint32T		     *pStreamScope, 
                              SaNameT                 *pStreamScopeNode,
                              ClUint16T               *pStreamId,
                              ClIocMulticastAddressT  *pStreamMcastAddr,
@@ -1324,6 +1324,7 @@ clLogStreamOwnerMasterOpen(ClLogSOEoDataT         *pSoEoEntry,
     ClIocMulticastAddressT  multiCastAddr = 0;
     ClUint16T               streamId      = 0;
     ClLogFilterT            filter        = {0};
+    //ClUint32T               logStreamScope = streamScope;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -1338,7 +1339,7 @@ clLogStreamOwnerMasterOpen(ClLogSOEoDataT         *pSoEoEntry,
         return rc;
     }    
 
-    pCookie = clHeapCalloc(1, sizeof(ClLogSOCookieT));
+    pCookie = (ClLogSOCookieT*) clHeapCalloc(1, sizeof(ClLogSOCookieT));
     if( NULL == pCookie )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -1361,7 +1362,7 @@ clLogStreamOwnerMasterOpen(ClLogSOEoDataT         *pSoEoEntry,
     clLogDebug("SOW", "OPE", "Making call to master for stream open [%.*s]", 
             pStreamName->length, pStreamName->value); 
     rc = VDECL_VER(clLogMasterAttrVerifyNGetClientAsync, 4, 0, 0)(hLogIdl, pStreamAttr, pStreamName,
-                                              &streamScope, pStreamScopeNode, 
+                                              (ClUint32T *)&streamScope,pStreamScopeNode, 
                                               &streamId, &multiCastAddr,
                                               clLogStreamOwnerMAVGResponse,
                                               pCookie);
@@ -1615,7 +1616,7 @@ clLogStreamOwnerStreamHdlrEntryAdd(ClLogStreamOwnerDataT     *pStreamOwnerData,
     if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
     {
         /* Particular compId not exist */
-        pCompKey = clHeapCalloc(1, sizeof(ClLogCompKeyT));
+        pCompKey = (ClLogCompKeyT*) clHeapCalloc(1, sizeof(ClLogCompKeyT));
         if( NULL == pCompKey )
         {
             CL_LOG_DEBUG_ERROR(( "clHeapCalloc()"));
@@ -1623,7 +1624,7 @@ clLogStreamOwnerStreamHdlrEntryAdd(ClLogStreamOwnerDataT     *pStreamOwnerData,
         }    
         *pCompKey = compKey;
 
-        pData = clHeapCalloc(1, sizeof(ClLogSOCompDataT));
+        pData = (ClLogSOCompDataT*) clHeapCalloc(1, sizeof(ClLogSOCompDataT));
         if( NULL == pData )
         {
             CL_LOG_DEBUG_ERROR(( "clHeapCalloc()"));
@@ -1700,7 +1701,7 @@ clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
     if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
     {
         /* Particular compId not exist */
-        pCompKey = clHeapCalloc(1, sizeof(ClLogCompKeyT));
+        pCompKey = (ClLogCompKeyT*) clHeapCalloc(1, sizeof(ClLogCompKeyT));
         if( NULL == pCompKey )
         {
             CL_LOG_DEBUG_ERROR(( "clHeapCalloc()"));
@@ -1708,7 +1709,7 @@ clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
         }    
         *pCompKey = compKey;
 
-        pData = clHeapCalloc(1, sizeof(ClLogSOCompDataT));
+        pData = (ClLogSOCompDataT*) clHeapCalloc(1, sizeof(ClLogSOCompDataT));
         if( NULL == pData )
         {
             CL_LOG_DEBUG_ERROR(( "clHeapCalloc()"));
@@ -1775,7 +1776,7 @@ clLogStreamOwnerEntryAdd(ClCntHandleT       hStreamTable,
         return rc;
     }
 
-    pStreamOwnerData = clHeapCalloc(1, sizeof(ClLogStreamOwnerDataT)); 
+    pStreamOwnerData = (ClLogStreamOwnerDataT*) clHeapCalloc(1, sizeof(ClLogStreamOwnerDataT)); 
     if( NULL == pStreamOwnerData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -2313,7 +2314,7 @@ clLogStreamOwnerDataUpdate(ClLogSOEoDataT         *pSoEoEntry,
     {
         return rc;
     }
-    pCookie = clHeapCalloc(1, sizeof(ClLogSOCommonCookieT));
+    pCookie = (ClLogSOCommonCookieT*) clHeapCalloc(1, sizeof(ClLogSOCommonCookieT));
     if( NULL == pCookie )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
@@ -3017,7 +3018,7 @@ VDECL_VER(clLogStreamOwnerHandlerRegister, 4, 0, 0)(
     }
     CL_LOG_CLEANUP(clLogSOUnlock(pSoEoEntry, streamScope), CL_OK);
 
-    pCookie = clHeapCalloc(1, sizeof(ClLogSOCommonCookieT));
+    pCookie = (ClLogSOCommonCookieT* ) clHeapCalloc(1, sizeof(ClLogSOCommonCookieT));
     if( NULL == pCookie )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -3182,7 +3183,7 @@ VDECL_VER(clLogStreamOwnerHandlerDeregister, 4, 0, 0)(
         return rc;
     }
 
-    pCookie = clHeapCalloc(1, sizeof(ClLogSOCommonCookieT));
+    pCookie = (ClLogSOCommonCookieT*) clHeapCalloc(1, sizeof(ClLogSOCommonCookieT));
     if( NULL == pCookie )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -3420,7 +3421,7 @@ clLogSOTableNodeDeathWalk(ClCntKeyHandleT   key,
     ClCntNodeHandleT       hNextNode         = CL_HANDLE_INVALID_VALUE;
     ClLogStreamKeyT        *pStreamKey       = (ClLogStreamKeyT *) key;
     ClLogStreamOwnerDataT  *pStreamOwnerData = (ClLogStreamOwnerDataT *) data;
-    ClLogStreamScopeT      streamScope       = 0;
+    ClLogStreamScopeT      streamScope       = CL_LOG_STREAM_GLOBAL;
     ClLogSOEoDataT         *pSoEoEntry       = NULL;
 
     ClIocNodeAddressT nodeAddr = (ClIocNodeAddressT) (ClWordT) arg;

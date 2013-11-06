@@ -37,6 +37,7 @@
 #include <clOsalErrors.h>
 
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 /*#include <containerCompId.h>*/
 /*****************************************************************************/
 #define CLIST_ID 0xABCD
@@ -88,6 +89,13 @@ typedef struct CircularLinkedListHead_t {
   struct CircularLinkedListNode_t*   pFirstNode;
   struct CircularLinkedListNode_t*   pLastNode;
 } CircularLinkedListHead_t;
+
+#define CLIST_LOG_AREA_CLIST	"CLIST"
+#define CLIST_LOG_AREA_NODE		"NODE"
+#define CLIST_LOG_CTX_ADD		"ADD"
+#define CLIST_LOG_CTX_CREATE	"CRE"
+#define CLIST_LOG_CTX_GET		"GET"
+
 /*****************************************************************************/
 ClRcT
 clClistCreate(ClUint32T       maxSize,
@@ -105,7 +113,7 @@ clClistCreate(ClUint32T       maxSize,
   /* check if the drop policy is valid */
   if(CL_DROP_MAX_TYPE <= dropPolicy) {
       errorCode = CL_CLIST_RC(CL_ERR_INVALID_PARAMETER);
-      CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nDrop policy not valid"));
+      clLogTrace(CLIST_LOG_AREA_CLIST,CLIST_LOG_CTX_CREATE,"\nDrop policy not valid");
       return(errorCode);
   }
   
@@ -161,7 +169,7 @@ clClistFirstNodeAdd(ClClistT  listHead,
         /* Check if the dropPolicy is CL_NO_DROP */
         if(CL_NO_DROP == pCListHead->dropPolicy) {    
             errorCode = CL_CLIST_RC(CL_CLIST_ERR_MAXSIZE_REACHED);
-            CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nDrop policy - Max size reached"));
+            clLogTrace(CLIST_LOG_AREA_NODE,CLIST_LOG_CTX_ADD,"\nDrop policy - Max size reached");
             return (errorCode);
         }
         else {
@@ -225,7 +233,7 @@ clClistLastNodeAdd(ClClistT  listHead,
         /* Check if the dropPolicy is CL_NO_DROP */
         if(CL_NO_DROP == pCListHead->dropPolicy) {    
             errorCode = CL_CLIST_RC(CL_CLIST_ERR_MAXSIZE_REACHED);
-            CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nDrop policy - Max size reached"));
+            clLogTrace(CLIST_LOG_AREA_NODE,CLIST_LOG_CTX_ADD,"\nDrop policy - Max size reached");
             return (errorCode);
         }
         else {
@@ -293,7 +301,7 @@ clClistAfterNodeAdd(ClClistT      listHead,
     /* Check if the dropPolicy is CL_NO_DROP */
     if(CL_NO_DROP == pCListHead->dropPolicy) {    
         errorCode = CL_CLIST_RC(CL_CLIST_ERR_MAXSIZE_REACHED);
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nDrop policy - Max size reached"));
+        clLogTrace(CLIST_LOG_AREA_NODE,CLIST_LOG_CTX_ADD,"\nDrop policy - Max size reached");
         return (errorCode);
     }
     else {
@@ -396,7 +404,7 @@ clClistBeforeNodeAdd(ClClistT      listHead,
     /* Check if the dropPolicy is CL_NO_DROP */
     if(CL_NO_DROP == pCListHead->dropPolicy) {    
         errorCode = CL_CLIST_RC(CL_CLIST_ERR_MAXSIZE_REACHED);
-        CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nDrop policy - Max size reached"));
+        clLogTrace(CLIST_LOG_AREA_NODE,CLIST_LOG_CTX_ADD,"\nDrop policy - Max size reached");
         return (errorCode);
     }
     else {
@@ -546,7 +554,7 @@ clClistFirstNodeGet(ClClistT       listHead,
       
     errorCode = CL_CLIST_RC(CL_ERR_NOT_EXIST);
     /* This expected error is how to check for an empty list, so even trace is too much logging */
-    /* CL_DEBUG_PRINT (CL_DEBUG_TRACE,("Node does not exist")); */
+    /* clLogTrace(CLIST_LOG_AREA_NODE,CLIST_LOG_CTX_GET,"Node does not exist"); */
     return(errorCode);
       
   }
@@ -574,7 +582,7 @@ clClistLastNodeGet(ClClistT       listHead,
       (NULL == pCListHead->pLastNode) ) {
       
     errorCode = CL_CLIST_RC(CL_ERR_NOT_EXIST);
-    CL_DEBUG_PRINT (CL_DEBUG_TRACE,("\nNode does not exist"));
+    clLogTrace(CLIST_LOG_AREA_NODE,CLIST_LOG_CTX_GET,"\nNode does not exist");
     return(errorCode);
       
   }

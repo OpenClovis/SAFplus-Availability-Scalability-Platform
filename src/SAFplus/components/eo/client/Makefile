@@ -34,7 +34,7 @@ COMPNAME	:= eo
 
 # List local source files needed for the component server:
 
-SRC_FILES	:= eo.c clEo.c clEoMain.c clEoParser.c clEoLibs.c clEoEvent.c clSAClientSelect.c
+SRC_FILES	:= eo.c clEo.c clEoMain.c clEoLibs.c clEoEvent.c clSAClientSelect.c clEoParser.c 
 
 # List other SAFplus components of which client libraries your component
 # depends on:

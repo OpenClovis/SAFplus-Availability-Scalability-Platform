@@ -36,7 +36,7 @@ extern "C" {
 #endif
 #include <clOsalApi.h>
 
-#define CL_OSAL_ERR_MUTEX_EBUSY     -1
+#define CL_OSAL_ERR_MUTEX_EBUSY     0xFFFFFFFF
 
 #define CL_BM_BITS_IN_BYTE          8
 

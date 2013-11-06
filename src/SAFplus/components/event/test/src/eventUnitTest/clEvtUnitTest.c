@@ -43,6 +43,7 @@
 #include "ctype.h"
 
 #include "clDebugApi.h"
+#include <clLogUtilApi.h>
 
 #if 0
 # include <ipi/clSAClientSelect.h>  /* SAF Changes */
@@ -2953,8 +2954,8 @@ ClRcT clEvtUnitTestInitialize(ClUint32T argc, ClCharT *argv[])
                            gClEvtUnitTestFuncListSize);
     if (rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                       ("Installing Native table failed [%x]\n\r", rc));
+        clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CTX_UNSPECIFIED,
+                      "Installing Native table failed [%x]\n\r", rc);
     }
     clEvtUnitTestCpmInit();
 

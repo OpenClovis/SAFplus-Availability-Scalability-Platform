@@ -511,7 +511,7 @@ clAmsPeSGAssignSUCustom(
 
             if( (lastSI == si) && (lastSU == su) )
             {
-                AMS_LOG(CL_DEBUG_ERROR, 
+                AMS_LOG(CL_LOG_SEV_ERROR, 
                         ("Assign active to SG - Current SI and SU same as "\
                          "last selection. Breaking out of assignment\n"));
                 break;
@@ -568,7 +568,7 @@ clAmsPeSGAssignSUCustom(
 
             if( (lastSI == si) && (lastSU == su) )
             {
-                AMS_LOG(CL_DEBUG_ERROR, 
+                AMS_LOG(CL_LOG_SEV_ERROR, 
                         ("Assign standby to SG - Current SI and SU same as "\
                          "last selection. Breaking out of assignment step\n"));
                 break;

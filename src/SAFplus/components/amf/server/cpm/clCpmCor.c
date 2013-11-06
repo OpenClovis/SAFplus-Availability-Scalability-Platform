@@ -90,11 +90,11 @@ ClRcT cpmCorNodeObjectCreate(SaNameT nodeMoIdName)
     if(!cpmIsAspSULoaded("corSU"))  return CL_OK;
 
     rc = clCorMoIdNameToMoIdGet(&nodeMoIdName, &nodeMoId);
-    CL_CPM_CHECK(CL_DEBUG_ERROR,
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                      ("Unable to get MoId from MoId name, rc=[0x%x]\n", rc), rc);
 
     depth = clCorMoIdDepthGet(&nodeMoId);
-    CL_CPM_CHECK(CL_DEBUG_ERROR,
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                      ("Unable to get MoId depth, rc=[0x%x]\n", rc), rc);
 
     for(nodeMoId.depth = 1; nodeMoId.depth <= depth; nodeMoId.depth++)
@@ -113,7 +113,7 @@ ClRcT cpmCorNodeObjectCreate(SaNameT nodeMoIdName)
             }
             else
             {
-                CL_CPM_CHECK(CL_DEBUG_ERROR,
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                                  ("Unable to create objects, rc=[0x%x]\n", rc), rc);
             }
         }
@@ -142,15 +142,15 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
     ClUint32T found = 0;
 
     rc = VDECL_VER(clXdrUnmarshallClCpmSlotInfoRecvT, 4, 0, 0)(inMsgHandle, (void *)&slotInfoRecv);
-    CL_CPM_CHECK_0(CL_DEBUG_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
+                   CL_LOG_HANDLE_APP);
 
     rc = clCntFirstNodeGet(gpClCpm->cpmTable, &hNode);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to get first cpmTable Node %x\n", rc),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to get first cpmTable Node %x\n", rc),
                  rc);
     rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
                               (ClCntDataHandleT *) &cpmL);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to get container Node data %x\n", rc),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to get container Node data %x\n", rc),
                  rc);
 
     cpmLCount = gpClCpm->noOfCpm;
@@ -173,7 +173,7 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
                     slotInfoRecv.nodeName.length = strlen((const ClCharT *)slotInfoRecv.nodeName.value);
 
                     rc = VDECL_VER(clXdrMarshallClCpmSlotInfoRecvT, 4, 0, 0)((void *)&slotInfoRecv, outMsgHandle, 0);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
                     found = 1;
                     break;
@@ -183,11 +183,11 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
                 if (cpmLCount)
                 {
                     rc = clCntNextNodeGet(gpClCpm->cpmTable, hNode, &hNode);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to Get Node  Data \n"),
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to Get Node  Data \n"),
                             rc);
                     rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
                             (ClCntDataHandleT *) &cpmL);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                             ("Unable to get container Node data %d\n", rc), rc);
                 }
             }
@@ -209,7 +209,7 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
                     slotInfoRecv.nodeName.length = strlen((const ClCharT *)slotInfoRecv.nodeName.value);
 
                     rc = VDECL_VER(clXdrMarshallClCpmSlotInfoRecvT, 4, 0, 0)((void *)&slotInfoRecv, outMsgHandle, 0);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
                     found = 1;
                     break;
@@ -218,11 +218,11 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
                 if (cpmLCount)
                 {
                     rc = clCntNextNodeGet(gpClCpm->cpmTable, hNode, &hNode);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to Get Node  Data \n"),
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to Get Node  Data \n"),
                             rc);
                     rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
                             (ClCntDataHandleT *) &cpmL);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                             ("Unable to get container Node data %d\n", rc), rc);
                 }
             }
@@ -244,7 +244,7 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
                     slotInfoRecv.nodeName.length = strlen((const ClCharT *)slotInfoRecv.nodeName.value);
 
                     rc = VDECL_VER(clXdrMarshallClCpmSlotInfoRecvT, 4, 0, 0)((void *)&slotInfoRecv, outMsgHandle, 0);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
                     found = 1;
                     break;
@@ -253,11 +253,11 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
                 if (cpmLCount)
                 {
                     rc = clCntNextNodeGet(gpClCpm->cpmTable, hNode, &hNode);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to Get Node  Data \n"),
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to Get Node  Data \n"),
                             rc);
                     rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
                             (ClCntDataHandleT *) &cpmL);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                             ("Unable to get container Node data %d\n", rc), rc);
                 }
             }
@@ -277,7 +277,7 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
                     memcpy(&slotInfoRecv.nodeMoIdStr, &cpmL->pCpmLocalInfo->nodeMoIdStr, sizeof(SaNameT));
 
                     rc = VDECL_VER(clXdrMarshallClCpmSlotInfoRecvT, 4, 0, 0)((void *)&slotInfoRecv, outMsgHandle, 0);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
                     found = 1;
                     break;
@@ -286,11 +286,11 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
                 if (cpmLCount)
                 {
                     rc = clCntNextNodeGet(gpClCpm->cpmTable, hNode, &hNode);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to Get Node  Data \n"),
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("\n Unable to Get Node  Data \n"),
                             rc);
                     rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
                             (ClCntDataHandleT *) &cpmL);
-                    CL_CPM_CHECK(CL_DEBUG_ERROR,
+                    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                             ("Unable to get container Node data %d\n", rc), rc);
                 }
             }
@@ -299,8 +299,8 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
 
         default:
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("Invalid flag passed.\n"));
+            clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                       "Invalid flag passed.\n");
             break;
         }
     }
@@ -308,8 +308,8 @@ ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
     if (!found)
     {
         rc = CL_CPM_RC(CL_ERR_DOESNT_EXIST);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                     ("Unable to find information about given entity, rc=[0x%x]\n", rc));
+        clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
+                    "Unable to find information about given entity, rc=[0x%x]\n", rc);
         goto failure;
     }
 

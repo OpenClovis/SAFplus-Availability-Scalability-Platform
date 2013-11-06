@@ -285,7 +285,7 @@ clFaultCliDebugHistoryShow( ClUint32T argc,
 
         if(fRecord == NULL || historyRec == NULL)
         {
-            clLogWrite(CL_LOG_HANDLE_SYS, CL_LOG_CRITICAL, CL_FAULT_SERVER_LIB,
+            clLogWrite(CL_LOG_HANDLE_SYS, CL_LOG_SEV_CRITICAL, CL_FAULT_SERVER_LIB,
                     CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
             return CL_FAULT_RC(CL_ERR_NO_MEMORY);
         }
@@ -505,8 +505,8 @@ clFaultCliDebugGenerateFault(ClUint32T argc,
     }
 	else
     {
-		CL_DEBUG_PRINT( CL_DEBUG_ERROR,
-                ("MOId name to MOId conversion failed. Error in generating fault\n"));
+		clLogError(CL_FAULT_SERVER_LIB,CL_LOG_CONTEXT_UNSPECIFIED,
+                           "MOId name to MOId conversion failed. Error in generating fault\n");
         clFaultCliStrPrint(ret,
                 "Name to MOId conversion failed for MOId[%s], error [0x%x]\n", 
                 moIdName.value, rc);

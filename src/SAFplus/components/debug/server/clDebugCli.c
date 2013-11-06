@@ -53,7 +53,7 @@
 #include <clDebug.h>
 #include <clCpmExtApi.h>
 #include "clDebugRmd.h"
-
+#include <clLogUtilApi.h>
 static  ClRcT  clDbgCliErrNo = CL_OK;
 
 #define CL_DBG_DEFAULT_COMMAND_TIMEOUT   50000   /* 50 secs */
@@ -391,8 +391,8 @@ static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj, ClCharT* prompt)
     if (NULL == *ppDebugObj)
     {
         rc = CL_DEBUG_RC(CL_ERR_NO_MEMORY);
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("Failed to allocate memory [0x %x]"
-                                          "\n",rc));
+        clLogCritical("DBG","INI","Failed to allocate memory [0x %x]"  
+                                         " \n",rc);
         return rc;
     }
 
@@ -412,8 +412,8 @@ static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj, ClCharT* prompt)
     {
         clHeapFree(*ppDebugObj);
         rc = CL_DEBUG_RC(CL_ERR_INVALID_PARAMETER);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("The Passed parameter is invalid "
-                                       "[0x %x]\n",rc));
+        clLogError("DBG","INI","The Passed parameter is invalid "
+                                      " [0x %x]\n",rc);
         return rc;
     }
 
@@ -433,8 +433,8 @@ static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj, ClCharT* prompt)
     if( CL_OK != rc)
     {
         clHeapFree(*ppDebugObj);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in handle database creation "
-                                       "[0x %x]\n",rc));
+        clLogError("DBG","INI","Error in handle database creation "
+                                      " [0x %x]\n",rc);
         return rc;
 
     }
@@ -443,8 +443,8 @@ static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj, ClCharT* prompt)
     {
         clHandleDatabaseDestroy(gDbgInfo.databaseHdl);
         clHeapFree(*ppDebugObj);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in Condtional variable creation"
-                                       " [0x %x]\n",rc));
+        clLogError("DBG","INI","Error in Condtional variable creation " 
+                                       " [0x %x]\n",rc);
         return rc;
     }
     rc = clOsalMutexCreate(&gDbgInfo.mutexVar);
@@ -453,8 +453,8 @@ static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj, ClCharT* prompt)
         clOsalCondDelete(gDbgInfo.condVar);
         clHandleDatabaseDestroy(gDbgInfo.databaseHdl);
         clHeapFree(*ppDebugObj);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("Error in mutex creation [0x %x]\n",rc));
+        clLogError("DBG","INI",
+                       "Error in mutex creation [0x %x]\n",rc);
     }
 
     return rc;
@@ -1290,7 +1290,7 @@ invoke( ClDebugCliT* pDebugObj,ClUint32T argc, ClCharT** argv,
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Failed to allocate the Memory"));
+        clLogError("DBG",CL_LOG_CONTEXT_UNSPECIFIED,"Failed to allocate the Memory");
     }
     ClRcT errCode = CL_OK;
     rc = clXdrUnmarshallClUint32T(outMsgHdl, &errCode);
@@ -1329,8 +1329,8 @@ static ClRcT initCompContext( ClDebugCompContextT* context,
     if (NULL == context->list)
     {
         rc = CL_DEBUG_RC(CL_ERR_NO_MEMORY);
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("Failed to allocate memory "
-                                          "[0x %x]\n",rc));
+        clLogCritical("CTX","INI","Failed to allocate memory "
+                                         " [0x %x]\n",rc);
         return rc;
     }
 
@@ -1338,8 +1338,8 @@ static ClRcT initCompContext( ClDebugCompContextT* context,
     if (NULL == context->buf)
     {
         rc = CL_DEBUG_RC(CL_ERR_NO_MEMORY);
-        CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,("Failed to allocate memory "
-                                          "[0x %x]\n",rc));
+        clLogCritical("CTX","INI","Failed to allocate memory "
+                                         " [0x %x]\n",rc);
         clHeapFree(context->list);
         return rc;
     }
@@ -1977,8 +1977,8 @@ static ClUint32T debugCliShell(ClDebugCliT* pDebugObj)
     if (NULL == pDebugObj)
     {
         rc = CL_DEBUG_RC(CL_ERR_NULL_POINTER);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("The Passed value is invalid "
-                                       "[0x %x]\n",rc));
+        clLogError("CLI","SHL","The Passed value is invalid " 
+                                      "  [0x %x]\n",rc);
         return rc ;
     }
 
@@ -2752,8 +2752,8 @@ static ClRcT cmdCompletion(ClDebugCliT* pDebugObj, ClCharT *ptrPrompt)
         if(NULL == arg)
         {
             rc = CL_DEBUG_RC(CL_ERR_NO_MEMORY);
-            CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,
-                    ("Failed to allocate memory [0x %x]", rc));
+            clLogCritical("CMD",CL_LOG_CONTEXT_UNSPECIFIED,
+                    "Failed to allocate memory [0x %x]", rc);
             return rc;
         }
         arg[argLen] = '\0';
@@ -3046,6 +3046,7 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
 
+    clLogCompName = "CLI"; /* Override generated eo name with a short name for our server */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
     
     rc = appInitialize(argc, argv);

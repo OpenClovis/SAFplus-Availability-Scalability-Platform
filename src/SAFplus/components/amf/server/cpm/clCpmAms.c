@@ -72,7 +72,7 @@ ClRcT VDECL(cpmComponentHAStateGet)(ClEoDataT data,
 
     rc = VDECL_VER(clXdrUnmarshallClCpmHAStateGetSendT, 4, 0, 0)(inMsgHandle,
                                              (void *) &requestBuff);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid Buffer Passed \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"), rc);
 
     if (CL_CPM_IS_ACTIVE())
     {
@@ -114,15 +114,15 @@ static ClRcT _cpmCsiDescriptorPack(ClAmsCSIDescriptorT csiDescriptor,
     ClUint32T attributeValueLength = 0;
 
     rc = clBufferCreate(&message);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to create message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to create message \n"), rc);
 
     rc = clXdrMarshallClUint32T((void *) &(csiDescriptor.csiFlags), message, 0);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
     if (CL_AMS_CSI_FLAG_TARGET_ALL != csiDescriptor.csiFlags)
     {
         rc = clXdrMarshallSaNameT((void *) &(csiDescriptor.csiName), message, 0);
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
     }
 
     if (CL_AMS_HA_STATE_ACTIVE == haState)
@@ -133,7 +133,7 @@ static ClRcT _cpmCsiDescriptorPack(ClAmsCSIDescriptorT csiDescriptor,
                                                       activeDescriptor),
                                                     message,
                                                     0);
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
     }
     else if (CL_AMS_HA_STATE_STANDBY == haState)
     {
@@ -143,7 +143,7 @@ static ClRcT _cpmCsiDescriptorPack(ClAmsCSIDescriptorT csiDescriptor,
                                                        standbyDescriptor),
                                                      message,
                                                      0);
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
     }
     
     if (CL_AMS_CSI_FLAG_ADD_ONE & csiDescriptor.csiFlags)
@@ -155,7 +155,7 @@ static ClRcT _cpmCsiDescriptorPack(ClAmsCSIDescriptorT csiDescriptor,
          */
         rc = clXdrMarshallClUint32T((void *) &(attrList->numAttributes), message,
                                     0);
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
         while (numAttr != csiDescriptor.csiAttributeList.numAttributes)
         {
@@ -171,14 +171,14 @@ static ClRcT _cpmCsiDescriptorPack(ClAmsCSIDescriptorT csiDescriptor,
             attrType = CL_CPM_CSI_ATTR_NAME;
             rc = VDECL_VER(clXdrMarshallClCpmCSIDescriptorNameValueT, 4, 0, 0)((void *) &(attrType),
                                                            message, 0);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
             rc = clXdrMarshallClUint32T((void *) &attributeNameLength, message, 0);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
             rc = clXdrMarshallArrayClCharT((void *) attributeName,
                                            attributeNameLength, message, 0);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
             /*
              * Atribute value Packing: Type | Length | Value 
@@ -186,25 +186,25 @@ static ClRcT _cpmCsiDescriptorPack(ClAmsCSIDescriptorT csiDescriptor,
             attrType = CL_CPM_CSI_ATTR_VALUE;
             rc = VDECL_VER(clXdrMarshallClCpmCSIDescriptorNameValueT, 4, 0, 0)((void *) &(attrType),
                                                            message, 0);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
             rc = clXdrMarshallClUint32T((void *) &attributeValueLength, message, 0);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
             rc = clXdrMarshallArrayClCharT((void *) attributeValue,
                                            attributeValueLength, message, 0);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
         
             numAttr++;
         }
     }
 
     rc = clBufferLengthGet(message, &msgLength);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to get length of the message \n"),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to get length of the message \n"),
                  rc);
 
     rc = clBufferFlatten(message, &tmpStr);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to flatten the message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to flatten the message \n"), rc);
 
     *buffer = tmpStr;
     *bufferLength = msgLength;
@@ -245,7 +245,7 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
      * Input param check 
      */
     if (targetComponentName == NULL || targetProxyComponentName == NULL || targetNodeName == NULL)
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Null pointer passed"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Null pointer passed"),
                      CL_CPM_RC(CL_ERR_NULL_POINTER));
 
     strcpy((ClCharT *)compName.value, targetComponentName);
@@ -259,7 +259,7 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
      * pack the ClAmsCSIDescriptorT 
      */
     rc = _cpmCsiDescriptorPack(csiDescriptor, haState, &buffer, &bufferLength);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("unable to pack the csiDescriptor %x\n", rc),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("unable to pack the csiDescriptor %x\n", rc),
                  rc);
 
     /*
@@ -267,7 +267,7 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
      */
     sendBuff = (ClCpmCompCSISetT *) clHeapCalloc(1, sizeof(*sendBuff));
     if (sendBuff == NULL)
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to allocate memory \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"),
                      CL_CPM_RC(CL_ERR_NO_MEMORY));
 
     /*
@@ -301,7 +301,7 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
             rc = cpmCompFind(compName.value, gpClCpm->compTable, &comp);
         }
 
-        CL_CPM_CHECK(CL_DEBUG_ERROR,
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                      ("Unable to find component %s \n", compName.value), rc);
 
         /* PROXIED: Added Switch-Case
@@ -319,14 +319,14 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
                         CL_RMD_CALL_ATMOST_ONCE, 0, 0, 0, NULL,
                         NULL, MARSHALL_FN(ClCpmCompCSISetT, 4, 0, 0)
                         );
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed \n"), rc);
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed \n"), rc);
                 break;
             }
             case CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE:
             case CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE:
             {
                 rc = cpmCompFind(proxyCompName.value, gpClCpm->compTable, &proxyComp);
-                CL_CPM_CHECK(CL_DEBUG_ERROR,
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                         ("Unable to find component %s \n", proxyCompName.value), rc);
 
                 /* Make an RMD to the proxyComp. */
@@ -344,7 +344,7 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
                                                NULL,
                                                NULL,
                                                MARSHALL_FN(ClCpmCompCSISetT, 4, 0, 0));
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed \n"), rc);
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed \n"), rc);
 
                 /*  FIXME: added for timebeing to plugin in existing code.
                  *  clean it up- states for App comps not be maintained by CPM */   
@@ -449,13 +449,13 @@ ClRcT VDECL(cpmComponentCSISet)(ClEoDataT data,
     {
         recvBuff = (ClCpmCompCSISetT *) clHeapCalloc(1, sizeof(*recvBuff));
         if (recvBuff == NULL)
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to allocate memory \n"),
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"),
                          CL_CPM_RC(CL_ERR_NO_MEMORY));
         rc = VDECL_VER(clXdrUnmarshallClCpmCompCSISetT, 4, 0, 0)(inMsgHandle, (void *)recvBuff);
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to read the message \n"), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to read the message \n"), rc);
     }
     else
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid Buffer Passed \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
                      CL_CPM_RC(CL_ERR_INVALID_BUFFER));
 
     /*
@@ -479,7 +479,7 @@ ClRcT VDECL(cpmComponentCSISet)(ClEoDataT data,
         {
             rc = cpmCompFind(recvBuff->compName.value, gpClCpm->compTable, &comp);
         }
-        CL_CPM_CHECK(CL_DEBUG_ERROR,
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                      ("Unable to find component %s \n",
                       recvBuff->compName.value), rc);
         switch(comp->compConfig->compProperty)
@@ -500,14 +500,14 @@ ClRcT VDECL(cpmComponentCSISet)(ClEoDataT data,
                                                NULL,
                                                NULL,
                                                MARSHALL_FN(ClCpmCompCSISetT, 4, 0, 0));
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed \n"), rc);
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed \n"), rc);
                 break;
             }
             case CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE:
             case CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE:
             {
                 rc = cpmCompFind(recvBuff->proxyCompName.value, gpClCpm->compTable, &proxyComp);
-                CL_CPM_CHECK(CL_DEBUG_ERROR,
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                         ("Unable to find component %s \n", recvBuff->proxyCompName.value), rc);
 
                 /* Make an RMD to the proxyComp. */
@@ -525,7 +525,7 @@ ClRcT VDECL(cpmComponentCSISet)(ClEoDataT data,
                                                NULL,
                                                NULL,
                                                MARSHALL_FN(ClCpmCompCSISetT, 4, 0, 0));
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed \n"), rc);
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed \n"), rc);
                 break;
             }
             case CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE:
@@ -620,7 +620,7 @@ ClRcT _cpmComponentCSIRmv(ClCharT *targetComponentName,
          * Find the component Name from the component Hash Table 
          */
         rc = cpmCompFind(compName.value, gpClCpm->compTable, &comp);
-        CL_CPM_CHECK(CL_DEBUG_ERROR,
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                      ("Unable to find component %s \n", compName.value), rc);
 
         switch(comp->compConfig->compProperty)
@@ -641,14 +641,14 @@ ClRcT _cpmComponentCSIRmv(ClCharT *targetComponentName,
                                                NULL,
                                                NULL, 
                                                MARSHALL_FN(ClCpmCompCSIRmvT, 4, 0, 0));
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed \n"), rc);
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed \n"), rc);
                 break;
             }
             case CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE:
             case CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE:
             {
                 rc = cpmCompFind(proxyCompName.value, gpClCpm->compTable, &proxyComp);
-                CL_CPM_CHECK(CL_DEBUG_ERROR,
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                         ("Unable to find proxy component %s \n", proxyCompName.value), rc);
 
                 /* Make an RMD to the proxyComp. */
@@ -666,7 +666,7 @@ ClRcT _cpmComponentCSIRmv(ClCharT *targetComponentName,
                                                NULL,
                                                NULL, 
                                                MARSHALL_FN(ClCpmCompCSIRmvT, 4, 0, 0));
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed \n"), rc);
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed \n"), rc);
                 /*  FIXME: added for timebeing to plugin in existing code.
                  *  clean it up- states for App comps not be maintained by CPM */   
                 if (comp->compConfig->compProperty == CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE)
@@ -760,29 +760,29 @@ ClRcT _cpmComponentPGTrack(CL_IN ClIocAddressT iocAddress,
     
 
     rc = clBufferCreate(&message);
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to create message \n"), rc);
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to create message \n"), rc);
 
     rc = clXdrMarshallClUint32T((void *) &(notificationBuffer->numItems), 
             message, 0);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to write message \n"), rc);
 
     
     for (i = 0; i < notificationBuffer->numItems; ++i) 
     {
         rc = VDECL_VER(clXdrMarshallClAmsPGNotificationT, 4, 0, 0)(
                 (void *)&(notificationBuffer->notification[i]), message, 0);
-        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to read the message \n"), rc);
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to read the message \n"), rc);
 
     }
 
     rc = clBufferLengthGet(message, &msgLength);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to get length of the message \n"),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to get length of the message \n"),
                  rc);
 
     totalLength = sizeof(ClCpmPGResponseT) + msgLength;
     sendBuff = (ClCpmPGResponseT *) clHeapAllocate(totalLength);
     if (sendBuff == NULL)
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to allocate memory \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"),
                      CL_CPM_RC(CL_ERR_NO_MEMORY));
     
     
@@ -792,7 +792,7 @@ ClRcT _cpmComponentPGTrack(CL_IN ClIocAddressT iocAddress,
     sendBuff->error = error;
 
     rc = clBufferFlatten(message, &tmpStr);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to flatten the message \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to flatten the message \n"), rc);
 
     sendBuff->buffer = tmpStr;
     sendBuff->bufferLength = msgLength;
@@ -836,7 +836,7 @@ ClRcT _cpmNodeDepartureAllowed(SaNameT *nodeName,
     rc = cpmDequeueCmRequest(nodeName, &cmRequest);
     if (rc == CL_OK)
     {
-        clLogMultiline(CL_LOG_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
+        clLogMultiline(CL_LOG_SEV_NOTICE, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM,
                        "After dequeueing the message from CM queue:\n"
                        "Message type : [%s]\n"
                        "Physical slot : [%d]\n"
@@ -1340,7 +1340,7 @@ ClRcT VDECL(cpmComponentCSIRmv)(ClEoDataT data,
     ClCpmComponentT *proxyComp = NULL;
 
     rc = VDECL_VER(clXdrUnmarshallClCpmCompCSIRmvT, 4, 0, 0)(inMsgHandle, (void *) &recvBuff);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid Buffer Passed \n"), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"), rc);
 
     /*
      *  when we are in this function, then it is for the component of the local 
@@ -1353,7 +1353,7 @@ ClRcT VDECL(cpmComponentCSIRmv)(ClEoDataT data,
          * Find the component Name from the component Hash Table 
          */
         rc = cpmCompFind(recvBuff.compName.value, gpClCpm->compTable, &comp);
-        CL_CPM_CHECK(CL_DEBUG_ERROR,
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                      ("Unable to find component %s \n",
                       recvBuff.compName.value), rc);
 
@@ -1373,14 +1373,14 @@ ClRcT VDECL(cpmComponentCSIRmv)(ClEoDataT data,
                                                NULL,
                                                NULL,
                                                MARSHALL_FN(ClCpmCompCSIRmvT, 4, 0, 0));
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed \n"), rc);
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed \n"), rc);
                 break;
             }
             case CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE:
             case CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE:
             {
                 rc = cpmCompFind(recvBuff.proxyCompName.value, gpClCpm->compTable, &proxyComp);
-                CL_CPM_CHECK(CL_DEBUG_ERROR,
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR,
                         ("Unable to find component %s \n", recvBuff.proxyCompName.value), rc);
 
                 /* Make an RMD to the proxyComp. */
@@ -1398,7 +1398,7 @@ ClRcT VDECL(cpmComponentCSIRmv)(ClEoDataT data,
                                                NULL,
                                                NULL,
                                                MARSHALL_FN(ClCpmCompCSIRmvT, 4, 0, 0));
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed \n"), rc);
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed \n"), rc);
                 break;
             }
             case CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE:
@@ -1442,7 +1442,7 @@ ClRcT VDECL(cpmCBResponse)(ClEoDataT data,
     }
 
     rc = VDECL_VER(clXdrUnmarshallClCpmResponseT, 4, 0, 0)(inMsgHandle, (void *) &responseBuff);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid Buffer Passed \n"),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
                  rc);
 
     invocation = responseBuff.invocation;
@@ -1504,7 +1504,7 @@ ClRcT VDECL(cpmCBResponse)(ClEoDataT data,
                 } while(rc != CL_OK && 
                         ++tries < 5 && 
                         clOsalTaskDelay(delay) == CL_OK);
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed with [%#x]\n", rc), rc);
+                CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed with [%#x]\n", rc), rc);
             }
             break;
         }
@@ -1600,7 +1600,7 @@ ClRcT VDECL(cpmQuiescingComplete)(ClEoDataT data,
 
     rc = VDECL_VER(clXdrUnmarshallClCpmQuiescingCompleteT, 4, 0, 0)(inMsgHandle,
                                                 (void *) &responseBuff);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid Buffer Passed \n"),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
             rc);
 
     CL_CPM_INVOCATION_CB_TYPE_GET(responseBuff.invocation, cbType);
@@ -1626,7 +1626,7 @@ ClRcT VDECL(cpmQuiescingComplete)(ClEoDataT data,
         rc = clCpmMasterAddressGet(&masterIocAddress);
         if(rc != CL_OK)
         {
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Failed to get CPM master address. error code [0x%x].\n", rc), rc);
+            CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Failed to get CPM master address. error code [0x%x].\n", rc), rc);
             return rc;
         }
 
@@ -1644,7 +1644,7 @@ ClRcT VDECL(cpmQuiescingComplete)(ClEoDataT data,
                                        NULL,
                                        NULL,
                                        MARSHALL_FN(ClCpmQuiescingCompleteT, 4, 0, 0));
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("RMD failed \n"), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("RMD failed \n"), rc);
     }
 
 
@@ -1668,7 +1668,7 @@ ClRcT VDECL(cpmPGTrack)(ClEoDataT data,
     }
     
     rc = VDECL_VER(clXdrUnmarshallClCpmPGTrackT, 4, 0, 0)(inMsgHandle, (void *) &recvBuff);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid Buffer Passed \n"),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
                  rc);
 
     if (gpClCpm->cpmToAmsCallback != NULL &&
@@ -1683,7 +1683,7 @@ ClRcT VDECL(cpmPGTrack)(ClEoDataT data,
             if(notificationBuffer == NULL)
             {
                 rc = CL_ERR_NO_MEMORY;
-                CPM_CLIENT_CHECK(CL_DEBUG_ERROR, 
+                CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, 
                         ("Failed to allocate [%zd] bytes of memory, rc=[0x%x]\n", sizeof(ClAmsPGNotificationBufferT),rc), 
                         rc);
             }
@@ -1698,21 +1698,21 @@ ClRcT VDECL(cpmPGTrack)(ClEoDataT data,
                                                &(recvBuff.csiName),
                                                recvBuff.trackFlags,
                                                notificationBuffer);
-            CPM_CLIENT_CHECK(CL_DEBUG_ERROR, 
+            CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, 
                         ("PG Track invocation returned error, rc=[0x%x]\n", rc), 
                         rc);
 
             rc = clXdrMarshallClUint32T(
                         (void *)&notificationBuffer->numItems, outMsgHandle, 0);
-            CPM_CLIENT_CHECK(CL_DEBUG_ERROR, 
+            CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, 
                         ("Unable to write the message \n"), rc);
 
             if (notificationBuffer->notification == NULL)
             {
                 /* FIXME: handle this case */
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
+                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
                         CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
-                CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Unable to allocate memory"),
+                CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory"),
                         CL_CPM_RC(CL_ERR_NO_MEMORY));
             }
             else
@@ -1724,7 +1724,7 @@ ClRcT VDECL(cpmPGTrack)(ClEoDataT data,
                     rc = VDECL_VER(clXdrMarshallClAmsPGNotificationT, 4, 0, 0)(
                             (void *)&(notificationBuffer->notification[i]), 
                             outMsgHandle, 0); 
-                    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, 
+                    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, 
                             ("Unable to write the message \n"), rc);
                 }
             }
@@ -1742,7 +1742,7 @@ ClRcT VDECL(cpmPGTrack)(ClEoDataT data,
                                                recvBuff.cpmHandle,
                                                &(recvBuff.csiName),
                                                recvBuff.trackFlags, NULL);
-            CPM_CLIENT_CHECK(CL_DEBUG_ERROR, 
+            CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, 
                         ("PG Track invocation returned error, rc=[0x%x]\n", rc), 
                         rc);
         }
@@ -1779,7 +1779,7 @@ ClRcT VDECL(cpmPGTrackStop)(ClEoDataT data,
     }
     
     rc = VDECL_VER(clXdrUnmarshallClCpmPGTrackStopT, 4, 0, 0)(inMsgHandle, (void *) &recvBuff);
-    CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid Buffer Passed \n"),
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid Buffer Passed \n"),
                  rc);
 
     if (gpClCpm->cpmToAmsCallback != NULL &&
@@ -1824,12 +1824,12 @@ ClRcT clCpmAmsToCpmInitialize(CL_IN ClCpmAmsToCpmCallT **callback)
      * Check the input parameter 
      */
     if (callback == NULL)
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Invalid parameter passed \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid parameter passed \n"),
                      CL_CPM_RC(CL_ERR_NULL_POINTER));
 
     tmp = (ClCpmAmsToCpmCallT *) clHeapAllocate(sizeof(ClCpmAmsToCpmCallT));
     if (tmp == NULL)
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to allocate memory \n"),
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"),
                      CL_CPM_RC(CL_ERR_NULL_POINTER));
 
     /*

@@ -33,6 +33,10 @@
 #include <clThreadPool.h>
 #include <clEoQueueStats.h>
 
+#define EO_LOG_AREA_QUEUE	"QUEUE"
+#define EO_LOG_CTX_QUEUE_CREATE	"CRE"
+#define EO_LOG_CTX_QUEUE_DEl	"DEL"
+
 static ClOsalMutexT gClEoQueueMutex;
 static ClEoQueueT *gpClEoQueues[CL_IOC_MAX_PRIORITIES];
 
@@ -216,7 +220,7 @@ ClRcT clEoQueueJob(ClBufferHandleT recvMsg,
        ||
        !pRecvParam)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid param\n"));
+        clLogError(EO_LOG_AREA_QUEUE,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid param\n");
         goto out;
     }
 
@@ -224,7 +228,7 @@ ClRcT clEoQueueJob(ClBufferHandleT recvMsg,
     pJob = clHeapCalloc(1, sizeof(*pJob));
     if(pJob == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Allocation error\n"));
+        clLogError(EO_LOG_AREA_QUEUE,CL_LOG_CONTEXT_UNSPECIFIED,"Allocation error\n");
         goto out;
     }
     pJob->msg = recvMsg;
@@ -234,7 +238,7 @@ ClRcT clEoQueueJob(ClBufferHandleT recvMsg,
     
     if(priority >= CL_IOC_MAX_PRIORITIES)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid priority [%d]\n", priority));
+        clLogError(EO_LOG_AREA_QUEUE,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid priority [%d]\n", priority);
         goto out_free;
     }
 
@@ -244,9 +248,9 @@ ClRcT clEoQueueJob(ClBufferHandleT recvMsg,
     if(!(pQueue = gpClEoQueues[priority]))
     {
         CL_EO_QUEUE_UNLOCK(&gClEoQueueMutex);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR, 
-                       ("No priority queue associated with priority [%d]\n",
-                        priority));
+        clLogError(EO_LOG_AREA_QUEUE,CL_LOG_CONTEXT_UNSPECIFIED, 
+                   "No priority queue associated with priority [%d]\n",
+                    priority);
     }
     
     if( (pQueue->state & CL_EO_QUEUE_STATE_QUIESCED) )
@@ -258,7 +262,7 @@ ClRcT clEoQueueJob(ClBufferHandleT recvMsg,
     if(pQueue->pThreadPool == NULL)
     {
         CL_EO_QUEUE_UNLOCK(&gClEoQueueMutex);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Thread pool associated with queue deleted.\n"));
+        clLogError(EO_LOG_AREA_QUEUE,CL_LOG_CONTEXT_UNSPECIFIED,"Thread pool associated with queue deleted.\n");
         goto out_free;
     }
     /*
@@ -304,13 +308,13 @@ ClRcT clEoQueueCreate(ClEoQueueHandleT *pHandle,
 
     if(pHandle == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid parameter\n"));
-        goto out;
+	    clLogError(EO_LOG_AREA_QUEUE,EO_LOG_CTX_QUEUE_CREATE,"Invalid parameter\n");
+	    goto out;
     }
 
     if( priority >= CL_IOC_MAX_PRIORITIES )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid priority %d\n",priority));
+        clLogError(EO_LOG_AREA_QUEUE,EO_LOG_CTX_QUEUE_CREATE,"Invalid priority %d\n",priority);
         goto out;
     }
 
@@ -320,7 +324,7 @@ ClRcT clEoQueueCreate(ClEoQueueHandleT *pHandle,
     if(gpClEoQueues[priority])
     {
         CL_EO_QUEUE_UNLOCK(&gClEoQueueMutex);
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Queue with priority:%d already active\n",priority));
+        clLogError(EO_LOG_AREA_QUEUE,EO_LOG_CTX_QUEUE_CREATE,"Queue with priority:%d already active\n",priority);
         goto out;
     }
     CL_EO_QUEUE_UNLOCK(&gClEoQueueMutex);
@@ -335,7 +339,7 @@ ClRcT clEoQueueCreate(ClEoQueueHandleT *pHandle,
     pQueue = clHeapCalloc(1,sizeof(*pQueue));
     if(pQueue == NULL)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating memory\n"));
+        clLogError(EO_LOG_AREA_QUEUE,EO_LOG_CTX_QUEUE_CREATE,"Error allocating memory\n");
         goto out;
     }
 #endif
@@ -362,7 +366,7 @@ ClRcT clEoQueueCreate(ClEoQueueHandleT *pHandle,
 
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error in thread pool create.rc=0x%x\n",rc));
+        clLogError(EO_LOG_AREA_QUEUE,EO_LOG_CTX_QUEUE_CREATE,"Error in thread pool create.rc=0x%x\n",rc);
         goto out_free;
     }
 
@@ -407,7 +411,7 @@ ClRcT clEoQueueDeleteSync(ClIocPriorityT priority, ClBoolT force)
 
     if(priority >= CL_IOC_MAX_PRIORITIES)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Invalid parameter\n"));
+        clLogError(EO_LOG_AREA_QUEUE,EO_LOG_CTX_QUEUE_DEL,"Invalid parameter\n");
         goto out;
     }
 
@@ -417,7 +421,7 @@ ClRcT clEoQueueDeleteSync(ClIocPriorityT priority, ClBoolT force)
     if(!(pQueue = gpClEoQueues[priority]))
     {
         CL_EO_QUEUE_UNLOCK(&gClEoQueueMutex);
-        CL_DEBUG_PRINT(CL_DEBUG_WARN, ("Queue priority:%d doesnt exist\n",priority));
+        clLogWarning(EO_LOG_AREA_QUEUE,EO_LOG_CTX_QUEUE_DEL,"Queue priority:%d doesnt exist\n",priority);
         goto out;
     }
     gpClEoQueues[priority] = NULL;
@@ -434,7 +438,7 @@ ClRcT clEoQueueDeleteSync(ClIocPriorityT priority, ClBoolT force)
                                     force);
         if(rc != CL_OK)
         {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error deleting thread pool.rc=0x%x\n",rc));
+            clLogError(EO_LOG_AREA_QUEUE,EO_LOG_CTX_QUEUE_DEL,"Error deleting thread pool.rc=0x%x\n",rc);
         }
     }
     clOsalMutexDestroy(&pQueue->mutex);
@@ -465,12 +469,12 @@ ClRcT clEoQueueInitialize(void)
 
     if(minPriority < 0 )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error getting minPriority\n"));
+        clLogError(EO_LOG_AREA_QUEUE,CL_LOG_CONTEXT_UNSPECIFIED,"Error getting minPriority\n"));
         minPriority = 0;
     }
     if(maxPriority < 0 )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error getting maxPriority\n"));
+        clLogError(EO_LOG_AREA_QUEUE,CL_LOG_CONTEXT_UNSPECIFIED,"Error getting maxPriority\n");
         maxPriority = 0;
     }
 

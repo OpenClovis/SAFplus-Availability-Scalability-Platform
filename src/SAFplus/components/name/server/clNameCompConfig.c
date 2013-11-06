@@ -32,6 +32,7 @@
 #include <clNameErrors.h>
 #include <clNameIpi.h>
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 
 /*local ioc address*/
 extern ClUint32T	myId;
@@ -65,7 +66,7 @@ ClRcT clNameCompCfg(void)
     /* call the Comp Mgr Component configuration module entry-point */
     if ((rc = clNameInitialize(&configParams)) != CL_OK )
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Name Service Init Failed"));
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Name Service Init Failed");
     }
                                                                                                                              
     return (rc);

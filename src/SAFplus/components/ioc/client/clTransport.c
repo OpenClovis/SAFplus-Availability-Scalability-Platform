@@ -214,7 +214,7 @@ static ClRcT xportInitFake(const ClCharT *xportType, ClInt32T xportId, ClBoolT n
 
 static ClRcT xportFinalizeFake(ClInt32T xportId, ClBoolT nodeRep)
 { 
-    clLogNotice("XPORT", "FIN", "Inside fake transport finalize");
+    clLogDebug("XPORT", "FIN", "Inside fake transport finalize");
     return CL_OK; 
 }
 
@@ -807,15 +807,7 @@ static ClRcT transportListenerFinalize(ClXportCtrlT *xportCtrl)
         return CL_ERR_NOT_INITIALIZED;
 
     clOsalMutexLock(&xportCtrl->mutex);
-    while(!CL_LIST_HEAD_EMPTY(&xportCtrl->listenerList))
-    {
-        ClXportListenerT *listener = CL_LIST_ENTRY(xportCtrl->listenerList.pNext, 
-                                                   ClXportListenerT, list);
-        clListDel(&listener->list);
-        if(listener->fd != xportCtrl->breaker[0])
-            close(listener->fd);
-        free(listener);
-    }
+    
     if(XPORT_LISTENER_ACTIVE(xportCtrl))
     {
         /*
@@ -827,6 +819,24 @@ static ClRcT transportListenerFinalize(ClXportCtrlT *xportCtrl)
         clOsalCondSignal(&xportCtrl->cond);
         clOsalCondWait(&xportCtrl->cond, &xportCtrl->mutex, delay);
     }
+
+    ClTaskPoolHandleT tp = xportCtrl->pool;
+    xportCtrl->pool = 0;
+
+    /* The tasks take the xportCtrl->mutex so the task pool must be deleted when the mutex is not taken. */
+    clOsalMutexUnlock(&xportCtrl->mutex);
+    clTaskPoolDelete(tp);
+    clOsalMutexLock(&xportCtrl->mutex);
+    
+    while(!CL_LIST_HEAD_EMPTY(&xportCtrl->listenerList))
+    {
+        ClXportListenerT *listener = CL_LIST_ENTRY(xportCtrl->listenerList.pNext, ClXportListenerT, list);
+        clListDel(&listener->list);
+        if(listener->fd != xportCtrl->breaker[0])
+            close(listener->fd);
+        free(listener);
+    }
+    
     if(xportCtrl->breaker[0] >= 0)
         close(xportCtrl->breaker[0]);
     if(xportCtrl->breaker[1] >= 0)
@@ -840,6 +850,7 @@ static ClRcT transportListenerFinalize(ClXportCtrlT *xportCtrl)
     }
     xportCtrl->numfds = 0;
     xportCtrl->flags &= ~__LISTENER_INITIALIZED;
+    
     clOsalMutexUnlock(&xportCtrl->mutex);
     return CL_OK;
 }
@@ -873,6 +884,7 @@ static ClRcT transportListener(ClPtrT ctxt)
         memset(epoll_events, 0, sizeof(*epoll_events) * epoll_fds);
         ret = epoll_wait(xportCtrl->eventFd, epoll_events, epoll_fds, -1);
         clOsalMutexLock(&xportCtrl->mutex);
+        if (!XPORT_LISTENER_ACTIVE(xportCtrl)) break; /* if thread is quitting take a shortcut out of the processing loop */
         if(ret <= 0)
             continue;
         for(i = 0; i < ret; ++i)
@@ -2945,6 +2957,8 @@ ClRcT clTransportLayerFinalize(void)
     _clXportDestNodeLUTMapFree();
     clOsalMutexUnlock(&gClXportNodeAddrListMutex);
 
+    transportListenerFinalize(&gXportCtrlDefault);
+
     clListMoveInit(&gClTransportList, &transportBatch);
     for(iter = transportBatch.pNext; iter != &transportBatch; iter = next)
     {
@@ -2958,7 +2972,6 @@ ClRcT clTransportLayerFinalize(void)
         clListDel(&xport->xportList);
         transportFree(xport);
     }
-    transportListenerFinalize(&gXportCtrlDefault);
     return CL_OK;
 }
 

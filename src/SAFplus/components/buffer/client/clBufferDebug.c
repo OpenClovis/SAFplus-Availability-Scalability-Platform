@@ -21,6 +21,7 @@
 #endif
 
 #include <clDebugApi.h>
+#include <clLogUtilApi.h>
 #include <clMemTracker.h>
 
 /*Mem tracking for buffer mgmt.*/
@@ -76,8 +77,8 @@ static ClRcT clBufferFromPoolAllocateDebug(
     }
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error allocating buffer chunk from "
-                                       "pool of size: %d\n",actualLength));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating buffer chunk from " 
+                                      " pool of size: %d\n",actualLength);
     }
     return rc;
 }
@@ -89,8 +90,8 @@ static ClRcT clBufferFromPoolFreeDebug(ClUint8T *pChunk,ClUint32T size,void *pCo
     rc = clPoolFree(pChunk,pCookie);
     if(rc != CL_OK)
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error freeing buffer chunk:%p "
-                                       "of size:%d to the pool\n",pChunk,size));
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error freeing buffer chunk:%p "
+                                       "of size:%d to the pool\n",pChunk,size);
     }
     return rc;
 }
