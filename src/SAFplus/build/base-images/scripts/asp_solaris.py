@@ -154,7 +154,7 @@ def gen_asp_run_env_file(run_file, d):
     print >> f, 'ASP_CONFIG=%s' % d['etc_dir']
     print >> f, 'ASP_LOGDIR=%s' % d['log_dir']
     print >> f, 'LD_PRELOAD_32=/opt/SUNWtipc/lib/libtipcsocket.so.1'
-    print >> f, 'LD_PRELOAD_64=/opt/SUNWtipc/lib/sparcv9/libtipcsocket.so.1'
+    print >> f, 'LD_PRELOAD_64=/opt/SUNWtipc/lib/amd64/libtipcsocket.so.1'
     print >> f, 'ASP_NODENAME=%s' % d['node_name']
     print >> f, 'ASP_NODEADDR=%s' % d['node_addr']
     f.close()
@@ -1190,7 +1190,7 @@ def add_solaris_specific_path():
 
     #export LD_PRELOAD for tipc
     preload_32='/opt/SUNWtipc/lib/libtipcsocket.so.1'
-    preload_64='/opt/SUNWtipc/lib/sparcv9/libtipcsocket.so.1'
+    preload_64='/opt/SUNWtipc/lib/amd64/libtipcsocket.so.1'
     os.putenv('LD_PRELOAD_32',preload_32)
     os.putenv('LD_PRELOAD_64',preload_64)
 

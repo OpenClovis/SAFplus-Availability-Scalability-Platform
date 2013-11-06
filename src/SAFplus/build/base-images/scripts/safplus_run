@@ -93,7 +93,7 @@ export PYTHONPATH=${ASP_DIR}/lib:$PYTHONPATH
 if [ `uname` == 'SunOS' ]
 then
     export   LD_PRELOAD_32=/opt/SUNWtipc/lib/libtipcsocket.so
-    export   LD_PRELOAD_64=/opt/SUNWtipc/lib/sparcv9/libtipcsocket.so
+    export   LD_PRELOAD_64=/opt/SUNWtipc/lib/amd64/libtipcsocket.so
 fi
 
 # User can set his own log severity: export CL_LOG_SEVERITY=ERROR

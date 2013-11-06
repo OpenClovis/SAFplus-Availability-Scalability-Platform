@@ -69,7 +69,7 @@ export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/lib:/usr/local/lib:${ASP_DIR}/lib
 if [ `uname` == 'SunOS' ]
 then
     export   LD_PRELOAD_32=/opt/SUNWtipc/lib/libtipcsocket.so
-    export   LD_PRELOAD_64=/opt/SUNWtipc/lib/sparcv9/libtipcsocket.so
+    export   LD_PRELOAD_64=/opt/SUNWtipc/lib/amd64/libtipcsocket.so
 fi
 
 export CL_LOG_SEVERITY=ERROR
