@@ -987,10 +987,17 @@ VDECL_VER(_clAmsMgmtEntityForceLockInstantiation, 5, 0, 0)(
 
     AMS_CALL( VDECL_VER(clXdrUnmarshallclAmsMgmtEntityLockInstantiationRequestT, 4, 0, 0)(in, &req));
 
-    if(req.entity.type != CL_AMS_ENTITY_TYPE_SU)
+//    if(req.entity.type != CL_AMS_ENTITY_TYPE_SU)
+//    {
+//        AMS_LOG(CL_DEBUG_ERROR, 
+//                ("AMF force lock instantiation operation allowed only on SUs. Operation failed on entity [%s]\n",
+//                 CL_AMS_STRING_ENTITY_TYPE(req.entity.type)));
+//        return CL_AMS_RC(CL_ERR_NOT_SUPPORTED);
+//    }
+    if( (req.entity.type != CL_AMS_ENTITY_TYPE_SU) && (req.entity.type != CL_AMS_ENTITY_TYPE_NODE) )
     {
-        AMS_LOG(CL_DEBUG_ERROR, 
-                ("AMF force lock instantiation operation allowed only on SUs. Operation failed on entity [%s]\n",
+        AMS_LOG(CL_DEBUG_ERROR,                 
+                ("AMF force lock instantiation operation allowed only on SUs and Node. Operation failed on entity [%s]\n",
                  CL_AMS_STRING_ENTITY_TYPE(req.entity.type)));
         return CL_AMS_RC(CL_ERR_NOT_SUPPORTED);
     }
