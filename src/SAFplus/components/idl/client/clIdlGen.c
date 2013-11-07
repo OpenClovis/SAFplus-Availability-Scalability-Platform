@@ -46,7 +46,7 @@ sizeof(clVersionSupported)/sizeof(ClVersionT),
 clVersionSupported
 }; 
 
-char* clObjId_ClIdlHandleObjT = "ClIdlHandleObjT";
+char* clObjId_ClIdlHandleObjT = (char*) "ClIdlHandleObjT";
 
 
 static ClOsalMutexT  idlMutex;

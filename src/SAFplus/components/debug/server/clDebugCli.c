@@ -75,7 +75,7 @@ typedef struct ClDebugInfoT
 }ClDebugInfoT;
 
 ClDebugInfoT gDbgInfo;
-ClCharT      *gStrDb[] = {
+const char      *gStrDb[] = {
     "\r\nerror in making rmd call",                     /* 0 */
     "\r\nexecution of the command timed out",           /* 1 */
     "\r\nexecution of the command has been terminated", /* 2 */
@@ -147,7 +147,7 @@ typedef enum ClCmds {
     NO_OF_CMDS,
 }ClCmdsT;
 
-ClCharT *gHelpStrings[NO_OF_CMDS] = {
+const char *gHelpStrings[NO_OF_CMDS] = {
     /* sleep */
     "\nUsage: sleep <sleep time>\n"
     "\t<sleep time> [INT/DEC] - session sleeps for specified number of "
@@ -203,7 +203,7 @@ ClCharT *gHelpStrings[NO_OF_CMDS] = {
     "0 indicates success, any non zero value means failure\n"
 };
 
-ClCharT gHelpLogSevString[] = 
+const char gHelpLogSevString[] = 
 {
     "\n\tLog level can be any of the following values :\n\n"
     /*Severity Strings*/
@@ -296,7 +296,7 @@ static void  clearArgBuf(ClUint32T *argc, ClCharT **argv);
 /*To check the command completion */
 static ClRcT cmdCompletion(ClDebugCliT* pDebugObj, ClCharT *ptrPrompt);
 /*Intialize the debugCli*/
-static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj, ClCharT* name);
+static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj,const char* name);
 /*To bring the debugCli as shell*/
 static ClUint32T   debugCliShell(ClDebugCliT* pDebugObj);
 static ClRcT debugCliFinalize(ClDebugCliT** ppDebugObj);
@@ -306,14 +306,14 @@ static ClRcT appStateChange(ClEoStateT eoState);
 static ClRcT appHealthCheck(ClEoSchedFeedBackT* schFeedback);
 static ClRcT cmdListInit(ClDebugCliT *pDebugObj);
 static ClRcT argCompletion(ClDebugCliT* pDebugObj, ClCharT *ptrPrompt,
-                           ClCharT *cmd, ClInt32T argLen,
+                           const char *cmd, ClInt32T argLen,
                            ClInt32T cmdLen, ClUint32T *len);
 
 static ClUint32T    shouldIUnblock = 0;
 static ClDebugCliT  *pGDebugObj = 0;
 
 
-ClCharT* helpGeneric[] = 
+const char* helpGeneric[] = 
 
 {
     "setc", "set context to node",
@@ -329,7 +329,7 @@ ClCharT* helpGeneric[] =
     "status", "sucess/failure status of the last executed call",
 };
 
-ClCharT* helpNodeLevel[] = 
+const char* helpNodeLevel[] = 
 {
     "setc", "set context to component",
     "end", "exit current mode",
@@ -347,7 +347,7 @@ ClCharT* helpNodeLevel[] =
     "status", "sucess/failure status of the last executed call",
 };
 
-ClCharT* helpCompLevel[] = 
+const char* helpCompLevel[] = 
 {
     "end", "exit current mode",
     "bye,quit,exit", "quit the cli",
@@ -376,7 +376,7 @@ void dbgSignalHandler(int arg)
     return;
 }
 
-static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj, ClCharT* prompt)
+static ClRcT debugCliInitialize(ClDebugCliT** ppDebugObj, const char* prompt)
 {
     ClRcT      rc = CL_OK;
     ClUint32T  idx = 0;
@@ -914,7 +914,7 @@ dbgCliCommandGets (ClDebugCliT* pDebugObj, ClUint32T idx, ClCharT *ptrPrompt)
                   j <= pDebugObj->dbgTotalCommand;
                   i = (i + 1) % COMMAND_TOTAL, j++)
             {
-                if (j == his)
+                if ((ClInt32T) j == his)
                 {
                     strncpy (pDebugObj->dbgCliBuf, pDebugObj->dbgCommands[i], CLI_CMD_LEN-1);
                     printf ("          %s\n", pDebugObj->dbgCommands[i]);
@@ -1093,7 +1093,7 @@ void dbgCommandReplyCallback( ClRcT retCode, ClPtrT pData,
         return;
     }
 
-    pCondInfo = pHdl;
+    pCondInfo = (ClDebugCondInfoT*) pHdl;
     pCondInfo->rc = retCode;
     rc = clHandleCheckin(gDbgInfo.databaseHdl,invokeHdl);
     clOsalMutexLock(gDbgInfo.mutexVar);
@@ -1120,6 +1120,7 @@ invoke( ClDebugCliT* pDebugObj,ClUint32T argc, ClCharT** argv,
     ClRmdAsyncOptionsT     asyncOptions;
     ClTimerTimeOutT        timeout;
     ClHandleT              invokeHdl  = CL_HANDLE_INVALID_VALUE;
+    ClRcT                  errCode = CL_OK;
     
     rc = clBufferCreate(&inMsgHdl);
     if (CL_OK != rc)
@@ -1237,7 +1238,7 @@ invoke( ClDebugCliT* pDebugObj,ClUint32T argc, ClCharT** argv,
         clBufferDelete(&outMsgHdl);
         return rc;
     }
-    pCondInfo = pHdl;
+    pCondInfo = (ClDebugCondInfoT*) pHdl;
     rc = pCondInfo->rc;
     clHandleCheckin(gDbgInfo.databaseHdl,invokeHdl);
     if (CL_OK != rc)
@@ -1292,7 +1293,6 @@ invoke( ClDebugCliT* pDebugObj,ClUint32T argc, ClCharT** argv,
     {
         clLogError("DBG",CL_LOG_CONTEXT_UNSPECIFIED,"Failed to allocate the Memory");
     }
-    ClRcT errCode = CL_OK;
     rc = clXdrUnmarshallClUint32T(outMsgHdl, &errCode);
     if( CL_OK != rc )
     {
@@ -1554,7 +1554,7 @@ cmdListInit(ClDebugCliT* pDebugObj)
                                             (GET_ARRAY_SIZE(helpNodeLevel)));
             for (i = 0; i < GET_ARRAY_SIZE(helpNodeLevel); i=i+2, j++)
             {
-                temp[j] = helpNodeLevel[i];
+                temp[j] = (ClCharT*) helpNodeLevel[i];
             }
 
             debugCmdList.cmdNum = GET_ARRAY_SIZE(helpNodeLevel);
@@ -1566,7 +1566,7 @@ cmdListInit(ClDebugCliT* pDebugObj)
                                         (GET_ARRAY_SIZE(helpGeneric)));
         for (i = 0; i < GET_ARRAY_SIZE(helpGeneric); i=i+2, j++)
         {
-            temp[j] = helpGeneric[i];
+            temp[j] = (ClCharT*) helpGeneric[i];
         }
         
         debugCmdList.cmdNum = GET_ARRAY_SIZE(helpGeneric);
@@ -1683,18 +1683,18 @@ static ClRcT debugHelp(ClDebugCliT* pDebugObj)
                        context.list[2 * i + 1]);
             }
             finCompContext(&context);
-            pHelp = helpCompLevel;
+            pHelp = (ClCharT**) helpCompLevel;
             numHelp = sizeof(helpCompLevel)/sizeof(helpCompLevel[0]);
         }
         else
         {
-            pHelp = helpNodeLevel;
+            pHelp = (ClCharT**) helpNodeLevel;
             numHelp = sizeof(helpNodeLevel)/sizeof(helpNodeLevel[0]);
         }
     }
     else
     {
-        pHelp = helpGeneric;
+        pHelp = (ClCharT**) helpGeneric;
         numHelp = sizeof(helpGeneric)/sizeof(helpGeneric[0]);
     }
 
@@ -1873,11 +1873,11 @@ static ClRcT debugList(ClDebugCliT* pDebugObj)
     {
         ClUint32T          numNeighbors = 0;
         ClIocNodeAddressT* pNeighborList = NULL;
-        ClStatusT           status        = 0;
+        ClStatusT           status;
 
+        memset(&status,0,sizeof(ClStatusT));
         rc = clIocTotalNeighborEntryGet(&numNeighbors);
-        pNeighborList = clHeapAllocate(numNeighbors
-                                     * sizeof(ClIocNodeAddressT));
+        pNeighborList = (ClIocNodeAddressT*) clHeapAllocate(numNeighbors * sizeof(ClIocNodeAddressT));
         if (NULL == pNeighborList)
         {
             return CL_DEBUG_RC(CL_ERR_NO_MEMORY);
@@ -2486,7 +2486,7 @@ static ClUint32T debugCliShell(ClDebugCliT* pDebugObj)
 
 static ClRcT argCompletion(ClDebugCliT* pDebugObj,
                            ClCharT *ptrPrompt,
-                           ClCharT *cmd,
+                           const char *cmd,
                            ClInt32T argLen,
                            ClInt32T cmdLen,
                            ClUint32T *len)
@@ -2502,14 +2502,14 @@ static ClRcT argCompletion(ClDebugCliT* pDebugObj,
     ClUint32T matches = 0;
     ClUint32T ind = 0;
     ClUint32T index = 0;
-    ClCharT   *cpm = "cpm";
+    const char   *cpm = "cpm";
 
     if(argLen <= 0)
     {
         CL_ASSERT(0);
     }
 
-    arg = clHeapAllocate(argLen + 1);
+    arg = (ClCharT*) clHeapAllocate(argLen + 1);
     if(NULL == arg)
     {
         return CL_DEBUG_RC(CL_ERR_NO_MEMORY);
@@ -2536,9 +2536,9 @@ static ClRcT argCompletion(ClDebugCliT* pDebugObj,
                 }
                 i++;
             }
-            argList = clHeapAllocate(sizeof(ClCharT *) *(num + 1));
+            argList = (ClCharT**) clHeapAllocate(sizeof(ClCharT *) *(num + 1));
             i = strlen (cpm);
-            argList[ind] = clHeapAllocate(i + 1);
+            argList[ind] = (ClCharT*) clHeapAllocate(i + 1);
             strncpy(argList[ind], cpm, i);
             argList[ind][i] = '\0';
             ind++;
@@ -2549,7 +2549,7 @@ static ClRcT argCompletion(ClDebugCliT* pDebugObj,
                 {
                     i++;
                 }
-                argList[ind] = clHeapAllocate(i + 1);
+                argList[ind] = (ClCharT*) clHeapAllocate(i + 1);
                 strncpy(argList[ind], retStr, i);
                 argList[ind][i] = '\0';
                 retStr = retStr + i + 1;
@@ -2562,10 +2562,10 @@ static ClRcT argCompletion(ClDebugCliT* pDebugObj,
     else if (!strncmp(cmd, "help", cmdLen))
     {
         ind = debugCmdList.cmdNum;
-        argList = clHeapAllocate(sizeof(ClCharT*) * debugCmdList.cmdNum);
+        argList = (ClCharT**) clHeapAllocate(sizeof(ClCharT*) * debugCmdList.cmdNum);
         for(i = 0; i < debugCmdList.cmdNum; i++)
         {
-            argList[i] = clHeapAllocate(strlen(debugCmdList.cmds[i]) + 1);
+            argList[i] = (ClCharT*) clHeapAllocate(strlen(debugCmdList.cmds[i]) + 1);
             strncpy(argList[i], debugCmdList.cmds[i], strlen(debugCmdList.cmds[i]));
         }
     }
@@ -2711,13 +2711,13 @@ static ClRcT cmdCompletion(ClDebugCliT* pDebugObj, ClCharT *ptrPrompt)
         }
         else
         {
-            helpList     = helpNodeLevel;
+            helpList     = (ClCharT**) helpNodeLevel;
             helpListSize = GET_ARRAY_SIZE(helpNodeLevel);
         }
     }
     else
     {
-        helpList     = helpGeneric;
+        helpList     = (ClCharT**) helpGeneric;
         helpListSize = GET_ARRAY_SIZE(helpGeneric);
     }
 
@@ -2748,7 +2748,7 @@ static ClRcT cmdCompletion(ClDebugCliT* pDebugObj, ClCharT *ptrPrompt)
     argLen = rcvLen - cmdLen - 1;
     if (argLen > 0)
     {
-        arg = clHeapAllocate(argLen + 1);
+        arg = (ClCharT*) clHeapAllocate(argLen + 1);
         if(NULL == arg)
         {
             rc = CL_DEBUG_RC(CL_ERR_NO_MEMORY);
@@ -3001,7 +3001,7 @@ void dispatchLoop(void);
 int errorExit(SaAisErrorT rc);
 
 ClEoConfigT clEoConfig = {
-    1,              /* Thread Priority */
+    CL_OSAL_THREAD_PRI_LOW,              /* Thread Priority */
     1,              /* 1 listener thread */
     0,              /* Assign port dynamically*/
     CL_EO_USER_CLIENT_ID_START,
@@ -3046,7 +3046,7 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
 
-    clLogCompName = "CLI"; /* Override generated eo name with a short name for our server */
+    clLogCompName = (ClCharT*) "CLI"; /* Override generated eo name with a short name for our server */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
     
     rc = appInitialize(argc, argv);

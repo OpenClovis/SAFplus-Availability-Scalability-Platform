@@ -429,7 +429,7 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
     {
         reqs += 5;
         ifc.ifc_len = reqs * sizeof(*ifr);
-        ifc.ifc_buf = realloc(ifc.ifc_buf, sizeof(*ifr) * reqs);
+        ifc.ifc_buf = (char*) realloc(ifc.ifc_buf, sizeof(*ifr) * reqs);
         CL_ASSERT(ifc.ifc_buf != NULL);
         if (ioctl(sd, SIOCGIFCONF, &ifc) < 0) {
             clLogNotice("IOC",
@@ -437,7 +437,7 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
                     "Operation command failed: [%s]", strerror(errno));
             goto out;
         }
-    } while (ifc.ifc_len == reqs * sizeof(*ifr));
+    } while ((unsigned int )ifc.ifc_len == reqs * sizeof(*ifr));
 
 
     /* Iterate through the list of interfaces. */
@@ -506,7 +506,7 @@ void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelper
     if (cmd[0] == 'u')
         up = 1;
 
-    ClPluginHelperVirtualIpAddressT* vipCopy = malloc(sizeof(ClPluginHelperVirtualIpAddressT));
+    ClPluginHelperVirtualIpAddressT* vipCopy = (ClPluginHelperVirtualIpAddressT*) malloc(sizeof(ClPluginHelperVirtualIpAddressT));
     memcpy(vipCopy, vip, sizeof(ClPluginHelperVirtualIpAddressT));
 
     /*

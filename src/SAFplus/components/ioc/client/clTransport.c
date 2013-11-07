@@ -185,16 +185,14 @@ typedef struct ClXportPrivateData
 {
     ClInt32T fd;
     ClIocPortT port;
-    void *private;
+    void *portPrivate;
     struct hashStruct hash;
 }ClXportPrivateDataT;
 
 static ClXportCtrlT gXportCtrlDefault = {
-    .listenerList = CL_LIST_HEAD_INITIALIZER(gXportCtrlDefault.listenerList),
-    .pollfds = NULL,
-    .numfds = 0,
+   0,
+   CL_LIST_HEAD_INITIALIZER(gXportCtrlDefault.listenerList),
 };
-
 static CL_LIST_HEAD_DECLARE(gClTransportList);
 static ClCharT gClXportDefaultType[CL_MAX_NAME_LENGTH];
 static ClTransportLayerT *gClXportDefault;
@@ -348,7 +346,7 @@ static __inline__ void _clXportNodeAddrMapAdd(ClXportNodeAddrDataT *entry)
 
 static __inline__ void _clXportNodeAddrMapDel(ClXportNodeAddrDataT *entry)
 {
-    int indexXport = 0;
+    unsigned int indexXport = 0;
     for (indexXport = 0; indexXport < entry->numXport; indexXport++)
     {
         clHeapFree(entry->xports[indexXport]);
@@ -382,7 +380,7 @@ static void _clXportNodeAddrMapFree()
 {
     register ClListHeadT *iter;
     // Free default xport type
-    int i = 0;
+    unsigned int i = 0;
     for (i = 0; i < gClXportDefaultNodeName.numXport; i++)
     {
         clHeapFree(gClXportDefaultNodeName.xports[i]);
@@ -461,7 +459,7 @@ static ClXportNodeAddrDataT *_clXportUpdateNodeConfig(ClIocNodeAddressT iocAddre
     if(nodeAddrConfig) 
         goto out;
 
-    nodeAddrConfig = clHeapCalloc(1, sizeof(*nodeAddrConfig));
+    nodeAddrConfig = (ClXportNodeAddrDataT*) clHeapCalloc(1, sizeof(*nodeAddrConfig));
     CL_ASSERT(nodeAddrConfig != NULL);
     nodeAddrConfig->iocAddress = iocAddress;
     nodeAddrConfig->nodeName = clStrdup(nodeName);
@@ -506,7 +504,7 @@ static ClRcT _clTransportGmsTimerInitCallback() {
                 gHandleGmsTimer = CL_HANDLE_INVALID_VALUE;
             }
             rc = clTimerCreateAndStart(timeout, CL_TIMER_ONE_SHOT,
-                    CL_TIMER_SEPARATE_CONTEXT, _clTransportGmsTimerInitCallback,
+                    CL_TIMER_SEPARATE_CONTEXT,(ClTimerCallBackT)  _clTransportGmsTimerInitCallback,
                     pData, &gHandleGmsTimer);
             if (CL_OK != rc) {
                 clLogError("IOC", "INIT",
@@ -584,7 +582,7 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
 
 static ClRcT _clXportDestNodeLUTUpdateNotification(ClIocNotificationT *notification, ClPtrT cookie)
 {
-    ClIocNotificationIdT notificationId = ntohl(notification->id);
+    ClIocNotificationIdT notificationId = (ClIocNotificationIdT) ntohl(notification->id);
     ClIocNodeAddressT iocAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     ClIocPortT portId = ntohl(notification->nodeAddress.iocPhyAddress.portId);
     if (!portId || portId == CL_IOC_CPM_PORT || portId == CL_IOC_XPORT_PORT)
@@ -614,7 +612,7 @@ static ClTransportLayerT *findTransport(const ClCharT *type)
 
 static void addTransport(const ClCharT *type, const ClCharT *plugin)
 {
-    ClTransportLayerT *xport = clHeapCalloc(1, sizeof(*xport));
+    ClTransportLayerT *xport = (ClTransportLayerT*) clHeapCalloc(1, sizeof(*xport));
     CL_ASSERT(xport != NULL);
     xport->xportType = clStrdup(type);
     CL_ASSERT(xport->xportType != NULL);
@@ -687,8 +685,8 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
 
 static ClInt32T listenerEventFind(ClXportCtrlT *xportCtrl, ClInt32T fd, ClInt32T index)
 {
-    register ClInt32T i;
-    if(index >= 0 && index < xportCtrl->numfds && xportCtrl->pollfds[index].fd == fd)
+    register ClUint32T i;
+    if(index >= 0 && index < (ClInt32T) xportCtrl->numfds && xportCtrl->pollfds[index].fd == fd)
         return index;
     for(i = 0; i < xportCtrl->numfds; ++i)
     {
@@ -756,8 +754,7 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
                    strerror(errno), listener->fd);
         goto out_unlock;
     }
-    xportCtrl->pollfds = realloc(xportCtrl->pollfds, sizeof(*xportCtrl->pollfds) * 
-                                         (xportCtrl->numfds + 1));
+    xportCtrl->pollfds = (ClPollEventT*) realloc(xportCtrl->pollfds, sizeof(*xportCtrl->pollfds) * (xportCtrl->numfds + 1));
     CL_ASSERT(xportCtrl->pollfds != NULL);
     event.fd = listener->fd;
     event.events = events;
@@ -857,13 +854,13 @@ static ClRcT transportListenerFinalize(ClXportCtrlT *xportCtrl)
 
 static ClRcT transportListener(ClPtrT ctxt)
 {
-    ClXportCtrlT *xportCtrl = ctxt;
+    ClXportCtrlT *xportCtrl = (ClXportCtrlT*) ctxt;
     struct epoll_event *epoll_events = NULL;
     ClInt32T epoll_fds = 0;
     ClInt32T epoll_cur_fds = 0;
     ClInt32T ret = 0;
     ClInt32T i;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 0};
+    ClTimerTimeOutT delay = { 0, 0};
     clOsalMutexLock(&xportCtrl->mutex);
     while(XPORT_LISTENER_ACTIVE(xportCtrl))
     {
@@ -877,7 +874,7 @@ static ClRcT transportListener(ClPtrT ctxt)
         clOsalMutexUnlock(&xportCtrl->mutex);
         if(epoll_cur_fds < epoll_fds)
         {
-            epoll_events = realloc(epoll_events, sizeof(*epoll_events) * epoll_fds);
+            epoll_events = (struct epoll_event*) realloc(epoll_events, sizeof(*epoll_events) * epoll_fds);
             CL_ASSERT(epoll_events !=  NULL);
             epoll_cur_fds = epoll_fds;
         }
@@ -893,7 +890,7 @@ static ClRcT transportListener(ClPtrT ctxt)
             ClInt32T index;
             ClPollEventT event = {0};
             if(!epoll_events[i].events) continue;
-            data = (void*)&epoll_events[i].data;
+            data = (ClEventDataT*) &epoll_events[i].data;
             index = listenerEventFind(xportCtrl, data->fd, data->index);
             if(index < 0)
             {
@@ -944,8 +941,7 @@ ClRcT clTransportBroadcastListGet(const ClCharT *hostXport, ClIocPhysicalAddress
     clOsalMutexLock(&gClXportNodeAddrListMutex);
     ClListHeadT *iter = NULL;
     ClUint32T numEntries = 0, i;
-    ClIocAddressT *destSlots = clHeapCalloc(gClNodeAddrListEntries, 
-                                            sizeof(*destSlots));
+    ClIocAddressT *destSlots = (ClIocAddressT*) clHeapCalloc(gClNodeAddrListEntries, sizeof(*destSlots));
     CL_ASSERT(destSlots != NULL);
     CL_LIST_FOR_EACH(iter, &gClXportNodeAddrList)
     {
@@ -994,7 +990,7 @@ static ClRcT clTransportListenerRegisterWithContext(ClXportCtrlT *xportCtrl,
     ClXportListenerT *listener = NULL;
     ClRcT rc = CL_OK;
     if(!xportCtrl) xportCtrl = &gXportCtrlDefault;
-    listener = calloc(1, sizeof(*listener));
+    listener = (ClXportListenerT*) calloc(1, sizeof(*listener));
     CL_ASSERT(listener != NULL);
     listener->fd = fd;
     rc = listenerEventRegister(xportCtrl, listener, EPOLLIN | EPOLLPRI, dispatchCallback, cookie);
@@ -1134,7 +1130,7 @@ ClRcT clTransportListenerCreate(ClTransportListenerHandleT *handle)
     ClXportCtrlT *xportCtrl = NULL;
     ClRcT rc = CL_OK;
     if(!handle) return CL_ERR_INVALID_PARAMETER;
-    xportCtrl = clHeapCalloc(1, sizeof(*xportCtrl));
+    xportCtrl = (ClXportCtrlT*) clHeapCalloc(1, sizeof(*xportCtrl));
     CL_ASSERT(xportCtrl != NULL);
     rc = transportInitListener(xportCtrl);
     if(rc != CL_OK)
@@ -1212,11 +1208,11 @@ static void *transportPrivateDataGet(ClInt32T fd, ClIocPortT port, ClXportPrivat
     struct hashStruct *iter;
     for(iter = gXportPrivateTable[hash]; iter; iter = iter->pNext)
     {
-        ClXportPrivateDataT *private = hashEntry(iter, ClXportPrivateDataT, hash);
-        if(private->fd == fd && private->port == port)
+        ClXportPrivateDataT *privateData = hashEntry(iter, ClXportPrivateDataT, hash);
+        if(privateData->fd == fd && privateData->port == port)
         {
-            if(xportPrivate) *xportPrivate = private;
-            return private->private;
+            if(xportPrivate) *xportPrivate = privateData;
+            return privateData->portPrivate;
         }
     }
     return NULL;
@@ -1227,7 +1223,7 @@ void *clTransportPrivateDataGet(ClInt32T fd, ClIocPortT port)
     return transportPrivateDataGet(fd, port, NULL);
 }
 
-void clTransportPrivateDataSet(ClInt32T fd, ClIocPortT port, void *private, void **privateLast)
+void clTransportPrivateDataSet(ClInt32T fd, ClIocPortT port, void *portPrivate, void **privateLast)
 {
     ClXportPrivateDataT *curXportPrivate = NULL;
     void *curPrivate;
@@ -1237,12 +1233,12 @@ void clTransportPrivateDataSet(ClInt32T fd, ClIocPortT port, void *private, void
     if( (curPrivate = transportPrivateDataGet(fd, port, &curXportPrivate)) )
     {
         if(privateLast) *privateLast = curPrivate;
-        curXportPrivate->private = private;
+        curXportPrivate->portPrivate = portPrivate;
         return;
     }
-    curXportPrivate = clHeapCalloc(1, sizeof(*curXportPrivate));
+    curXportPrivate = (ClXportPrivateDataT*) clHeapCalloc(1, sizeof(*curXportPrivate));
     CL_ASSERT(curXportPrivate != NULL);
-    curXportPrivate->private = private;
+    curXportPrivate->portPrivate = portPrivate;
     curXportPrivate->fd = fd;
     curXportPrivate->port = port;
     hash = __TRANSPORT_PRIVATE_HASH(fd, port);
@@ -1308,7 +1304,7 @@ static ClRcT setDefaultXport(ClParserPtrT parent)
  */
 static ClBoolT _clNodeCanBeBridge(ClCharT *srcProto, ClCharT *dstProto,
                                   ClXportNodeAddrDataT *entry) {
-    int j;
+    unsigned int j;
     int matches = 0;
 
     if(!entry->bridge) return CL_FALSE;
@@ -1349,12 +1345,12 @@ static void _clSetupDestNodeLUTData(void)
 {
     register ClListHeadT *iter;
     register ClListHeadT *iterNodeAddr;
-    int i;
+    unsigned int i;
 
     CL_LIST_FOR_EACH(iterNodeAddr, &gClXportNodeAddrList)
     {
         ClXportNodeAddrDataT *map = CL_LIST_ENTRY(iterNodeAddr, ClXportNodeAddrDataT, list);
-        ClXportDestNodeLUTDataT *entryLUTData = clHeapCalloc(1, sizeof(*entryLUTData));
+        ClXportDestNodeLUTDataT *entryLUTData = (ClXportDestNodeLUTDataT*) clHeapCalloc(1, sizeof(*entryLUTData));
         CL_ASSERT(entryLUTData != NULL);
 
         // Don't update if it exists or node address not defined
@@ -1535,14 +1531,14 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
     ClCharT *xports[MAX_XPORTS_PER_SLOT+1]; /* +1 for paranoia in case some blighter changes max xports to 0 */
     ClXportNodeAddrDataT *nodeAddrConfig = NULL;
     int numxn = 0;
-    int i = 0;
+    unsigned int i = 0;
 
     if (!protocol)
     {
         clLogNotice("XPORT", "INIT", "Protocol for node is not set!");
         goto default_xport;
     }
-
+    {
     const ClCharT *xportDefault = clParserAttr(protocol, "default");
 
     node = clParserChild(protocol, "node");
@@ -1562,7 +1558,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
         {
                goto next;
         }
-
+        {
         clLogDebug("LUT", "MAP", "Adding entry for node [%s]", name);
         // Split the protocol into xports
         xportType[0] = 0;
@@ -1581,7 +1577,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
             token = strtok_r(NULL, " ", &nextToken);
         }
 
-        ClXportNodeAddrDataT *entry = clHeapCalloc(1, sizeof(*entry));
+        ClXportNodeAddrDataT *entry = (ClXportNodeAddrDataT*) clHeapCalloc(1, sizeof(*entry));
         CL_ASSERT(entry != NULL);
         entry->iocAddress = 0;
         entry->nodeName = clStrdup(name);
@@ -1606,6 +1602,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
         }
 
         _clXportNodeAddrMapAdd(entry);
+        }
         next:
         node = node->next;
     }
@@ -1625,7 +1622,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
             token = strtok_r(NULL, " ", &nextToken);
         }
     }
-
+    }
     default_xport:
     if (!numxn) 
     {
@@ -1656,7 +1653,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
     {
         ClListHeadT *iter;
         i = 0;
-        nodeAddrConfig = clHeapCalloc(1, sizeof(*nodeAddrConfig));
+        nodeAddrConfig = (ClXportNodeAddrDataT*) clHeapCalloc(1, sizeof(*nodeAddrConfig));
         CL_ASSERT(nodeAddrConfig != NULL);
         nodeAddrConfig->nodeName = clStrdup((const ClCharT *)gClLocalNodeName.value);
         nodeAddrConfig->numXport = 0;
@@ -1665,7 +1662,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
         {
             ClTransportLayerT *entry = CL_LIST_ENTRY(iter, ClTransportLayerT, xportList);
             nodeAddrConfig->numXport++;
-            nodeAddrConfig->xports = clHeapRealloc(nodeAddrConfig->xports, sizeof(ClCharT *) * nodeAddrConfig->numXport);
+            nodeAddrConfig->xports = (ClCharT**) clHeapRealloc(nodeAddrConfig->xports, sizeof(ClCharT *) * nodeAddrConfig->numXport);
             nodeAddrConfig->xports[i] = clStrdup(entry->xportType);
             i++;
         }
@@ -1718,7 +1715,7 @@ static ClRcT _iocSetMulticastPeers(ClParserPtrT peers)
         {
             goto next;
         }
-        map = clHeapCalloc(1, sizeof(*map));
+        map = (ClIocAddrMapT*) clHeapCalloc(1, sizeof(*map));
         CL_ASSERT(map != NULL);
         map->family = PF_INET;
         map->_addr.sin_addr.sin_family = PF_INET;
@@ -1789,7 +1786,7 @@ ClRcT _clIocSetMulticastConfig(ClParserPtrT parent)
         rc = CL_OK;
         goto out;
     }
-
+    {
     const ClCharT *mcastAddressAttr = clParserAttr(multicastPtr, "address");
     const ClCharT *mcastPortAttr = clParserAttr(multicastPtr, "port");
 
@@ -1805,7 +1802,7 @@ ClRcT _clIocSetMulticastConfig(ClParserPtrT parent)
         if(!gClTransportMcastPort)
             gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
     }
-
+    }
     out:
     return rc;
 }
@@ -1824,7 +1821,7 @@ ClRcT clTransportLayerInitialize(void)
     clCpmLocalNodeNameGet(&gClLocalNodeName);
 
     configPath = getenv("ASP_CONFIG");
-    if(!configPath) configPath = ".";
+    if(!configPath) configPath = (ClCharT *)".";
     parent = clParserOpenFile(configPath, CL_TRANSPORT_CONFIG_FILE);
     if(!parent)
     {
@@ -1881,6 +1878,10 @@ ClRcT clTransportLayerInitialize(void)
     _clSetupDestNodeLUTData();
 
     _clTransportGmsTimerInitCallback();
+
+    gXportCtrlDefault.pollfds = NULL;
+    gXportCtrlDefault.numfds = 0;
+
 
     rc = transportInitListener(&gXportCtrlDefault);
     if(rc != CL_OK)
@@ -2132,7 +2133,7 @@ ClRcT clTransportMasterAddressGetDefault(ClIocLogicalAddressT la,
         rc = clGmsClusterTrack(gXportHandleGms, CL_GMS_TRACK_CURRENT, &notBuffer);
         if (rc == CL_OK)
         {
-            if (-1 == notBuffer.leader)
+            if (-1 == (ClInt32T) notBuffer.leader)
             {
                 return CL_IOC_RC(CL_ERR_TRY_AGAIN);
             }

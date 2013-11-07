@@ -81,9 +81,9 @@ ClRcT clRmdCreateRmdMessageToSend(ClVersionT *version,
     ClRmdHdr.protoVersion = CL_RMD_HEADER_VERSION;
 
     if (((flags & CL_RMD_CALL_ATMOST_ONCE) == 0) || (maxRetries == 0) ||
-        (callTimeOut == CL_RMD_TIMEOUT_FOREVER) || (callTimeOut == 0))
+        ((ClInt32T) callTimeOut == CL_RMD_TIMEOUT_FOREVER) || (callTimeOut == 0))
     {
-        if ((callTimeOut == 0) || (callTimeOut == CL_RMD_TIMEOUT_FOREVER))
+        if ((callTimeOut == 0) || ( (ClInt32T) callTimeOut == CL_RMD_TIMEOUT_FOREVER))
         {
             /*
              * only if timeout forever, then pass 0 as the timeout. Why? - this
@@ -147,7 +147,7 @@ ClRcT clRmdCreateAndAddRmdSendRecord(ClEoExecutionObjT *pThis,
      * it will be called only for async
      */
     CL_FUNC_ENTER();
-    rec = clHeapAllocate((ClUint32T) sizeof(ClRmdRecordSendT));
+    rec = (ClRmdRecordSendT*) clHeapAllocate((ClUint32T) sizeof(ClRmdRecordSendT));
     if (rec == NULL)
     {
         CL_FUNC_EXIT();
@@ -214,7 +214,7 @@ ClRcT createAsyncSendTimer(ClRmdAsyncRecordT *pAsyncRecord,
 {
     ClTimerTimeOutT timerExpiry;
     ClRcT retCode = CL_OK;
-    ClUint32T timeout = pAsyncRecord->timeout;
+    ClInt32T timeout = pAsyncRecord->timeout;
     
     CL_FUNC_ENTER();
 
