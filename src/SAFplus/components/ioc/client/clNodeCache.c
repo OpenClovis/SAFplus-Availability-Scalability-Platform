@@ -724,16 +724,17 @@ ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capabili
 ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
 {
     ClRcT rc = CL_OK;
-    ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 200 };
+    ClIocSendOptionT sendOption = {CL_IOC_HIGH_PRIORITY,0,0,CL_IOC_PERSISTENT_MSG,200 };
     ClIocPhysicalAddressT compAddr = { .nodeAddress = CL_IOC_BROADCAST_ADDRESS, .portId = CL_IOC_CPM_PORT };
     ClTimerTimeOutT delay = { .tsSec = 0, .tsMilliSec = 200 };
     ClUint32T i = 0;
     ClBufferHandleT message = 0;
     ClEoExecutionObjT *eoObj = NULL;
-    ClIocNotificationT notification = {0};
-
+    ClIocNotificationT notification;
+    
+    memset(&notification,0,sizeof(ClIocNotificationT));
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
-    notification.id = htonl(CL_IOC_NODE_ARRIVAL_NOTIFICATION);
+    notification.id = (ClIocNotificationIdT) htonl(CL_IOC_NODE_ARRIVAL_NOTIFICATION);
     notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
     notification.nodeAddress.iocPhyAddress.portId = htonl(CL_IOC_CPM_PORT);
 
@@ -816,7 +817,7 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader, ClBoolT send)
 #else   /* fast */
     
     int cl = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader;
-    if (cl != currentLeader) /* we are about to set this one as leader so skip clearing it if its already set */
+    if (cl != (int )currentLeader) /* we are about to set this one as leader so skip clearing it if its already set */
     {    
         if ((cl > 0)&&(cl<CL_IOC_MAX_NODES))
         {

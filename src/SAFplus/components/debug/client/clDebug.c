@@ -137,7 +137,7 @@ clDebugFuncInvokeCallback(ClHandleDatabaseHandleT  hHandleDB,
     ClUint32T             i           = 0;
     ClDebugInvokeCookieT  *pCookie    = (ClDebugInvokeCookieT *) pData;
 
-    rc = clHandleCheckout(hHandleDB, handle, (void *) &pFuncGroup); 
+    rc = clHandleCheckout(hHandleDB, handle, (void **) &pFuncGroup); 
     if( CL_OK != rc )
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"clHandleCheckout(): rc[0x %x]", rc);
@@ -373,7 +373,7 @@ L1:
     rc      = CL_OK;
     if (!resp)
     {
-        resp = clHeapAllocate(1);
+        resp = (ClCharT*) clHeapAllocate(1);
         if (resp) resp[0]= '\0';
     }
     
@@ -400,7 +400,7 @@ clDebugContexDetailsPack(ClHandleDatabaseHandleT  hHandleDB,
     ClDebugFuncGroupT  *pFuncGroup = NULL;
     ClUint32T          i           = 0;
 
-    rc = clHandleCheckout(hHandleDB, handle, (void *) &pFuncGroup); 
+    rc = clHandleCheckout(hHandleDB, handle, (void **) &pFuncGroup); 
     if( CL_OK != rc )
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"clHandleCheckout(): rc[0x %x]", rc);
@@ -516,7 +516,7 @@ ClRcT clDebugLibInitialize(void)
         return rc;
     }
 
-    pDebugObj = clHeapCalloc(1, sizeof(ClDebugObjT));
+    pDebugObj = (ClDebugObjT*) clHeapCalloc(1, sizeof(ClDebugObjT));
     if (NULL == pDebugObj)
     {
         clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_DEBUG_LIB_CLIENT,
@@ -702,7 +702,7 @@ clDebugDuplicateDetectWalk(ClHandleDatabaseHandleT  hHandleDB,
     ClUint32T             j            = 0;
     ClDebugFuncGroupT     *pPassedData = (ClDebugFuncGroupT *) pData;
 
-    rc = clHandleCheckout(hHandleDB, handle, (void *) &pFuncGroup); 
+    rc = clHandleCheckout(hHandleDB, handle, (void **) &pFuncGroup); 
     if( CL_OK != rc )
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"clHandleCheckout(): rc[0x %x]", rc);
@@ -827,8 +827,7 @@ ClRcT clDebugRegister(ClDebugFuncEntryT  *funcArray,
         return rc;
     }
 
-    pFuncGroup->pFuncDescList = clHeapAllocate(sizeof(ClDebugFuncEntryT) *
-                                                         funcArrayLen);
+    pFuncGroup->pFuncDescList = (ClDebugFuncEntryT*) clHeapAllocate(sizeof(ClDebugFuncEntryT) * funcArrayLen);
     if (NULL == pFuncGroup->pFuncDescList)
     {
         clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_SEV_CRITICAL,CL_DEBUG_LIB_CLIENT,
@@ -919,7 +918,7 @@ clDebugPrintExtended(ClCharT **retstr, ClInt32T *maxBytes, ClInt32T *curBytes,
         *maxBytes *= ( *curBytes ? 2 : 1 );
         if(*curBytes + len >= *maxBytes)
             *maxBytes += (len<<1);
-        *retstr = clHeapRealloc(*retstr, *maxBytes);
+        *retstr = (ClCharT*) clHeapRealloc(*retstr, *maxBytes);
         CL_ASSERT(*retstr != NULL);
     }
     va_start(ap, format);
@@ -940,7 +939,7 @@ ClRcT clDebugPrint(ClDebugPrintHandleT handle, const char* fmtStr, ...)
     va_list args;
     ClRcT rc = CL_OK;
     ClBufferHandleT msg = (ClBufferHandleT)handle;
-    ClInt32T c = 0, bytes = 0;
+    ClUint32T c = 0, bytes = 0;
 
     /*
      * Estimate the space required for the buffer
@@ -953,7 +952,7 @@ ClRcT clDebugPrint(ClDebugPrintHandleT handle, const char* fmtStr, ...)
 
     if(bytes >= sizeof(buf))
     {
-        space = clHeapCalloc(1, bytes + 1);
+        space = (char*) clHeapCalloc(1, bytes + 1);
         CL_ASSERT(space != NULL);
     }
 

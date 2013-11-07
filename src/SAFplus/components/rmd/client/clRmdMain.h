@@ -267,7 +267,7 @@ extern "C"
                                          ClRmdRecordSendT ** ppSendRec);
 
 
-    void clRmdDumpPkt(char *name, ClBufferHandleT msg);
+    void clRmdDumpPkt(const char *name, ClBufferHandleT msg);
     ClRcT clRmdInvoke(ClEoPayloadWithReplyCallbackT func, ClEoDataT eoArg,
                       ClBufferHandleT inMsgHdl,
                       ClBufferHandleT outMsgHdl);

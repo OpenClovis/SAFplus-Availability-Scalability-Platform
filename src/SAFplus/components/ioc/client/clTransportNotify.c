@@ -71,7 +71,7 @@ static ClTransportNotifyMapT *addNotifyMap(ClInt32T watchFd, ClInt32T port)
     if( !(notify = findNotifyMap(watchFd, port)))
     {
         ClUint32T hash = TRANSPORT_NOTIFY_HASH(port);
-        notify = clHeapCalloc(1, sizeof(*notify));
+        notify = (ClTransportNotifyMapT*) clHeapCalloc(1, sizeof(*notify));
         CL_ASSERT(notify != NULL);
         hashAdd(gNotifyMap, hash, &notify->hash);
     }
@@ -98,7 +98,7 @@ static ClCharT *transportNotifyLocGet(void)
     if(!pathname[0])
     {
         ClCharT *runDir = getenv("ASP_RUNDIR");
-        if(!runDir) runDir = ".";
+        if(!runDir) runDir = (ClCharT*) ".";
         snprintf(pathname, sizeof(pathname), "%s/%s", runDir, TRANSPORT_NOTIFY_DIRNAME);
     }
     return pathname;
@@ -237,7 +237,7 @@ ClRcT clTransportNotifyOpen(ClIocPortT port)
     ClCharT pathname[FILENAME_MAX];
     ClCharT *compName = getenv("ASP_COMPNAME");
     ClInt32T fd;
-    if(!compName) compName = "COMPNAME";
+    if(!compName) compName = (ClCharT*) "COMPNAME";
     snprintf(pathname, sizeof(pathname), "%s/%s_%d", transportNotifyLocGet(), compName, port);
     unlink(pathname);
     fd = open(pathname, O_CREAT | O_RDONLY, 0777);
@@ -261,7 +261,7 @@ ClRcT clTransportNotifyRegister(ClTransportNotifyCallbackT callback, ClPtrT arg)
 {
     ClTransportNotifyRegistrantT *registrant = NULL;
     if(!callback) return CL_ERR_INVALID_PARAMETER;
-    registrant = clHeapCalloc(1, sizeof(*registrant));
+    registrant = (ClTransportNotifyRegistrantT*) clHeapCalloc(1, sizeof(*registrant));
     CL_ASSERT(registrant != NULL);
     registrant->callback = callback;
     registrant->arg = arg;

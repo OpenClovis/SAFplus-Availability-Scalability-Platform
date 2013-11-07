@@ -28,7 +28,7 @@ typedef struct ClIocNotificationRegister
 }ClIocNotificationRegisterT;
 
 static CL_LIST_HEAD_DECLARE(gIocNotificationRegisterList);
-static ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 2000 };
+static ClIocSendOptionT sendOption = { CL_IOC_HIGH_PRIORITY,0,0,CL_IOC_PERSISTENT_MSG,2000 };
 static ClOsalMutexT gIocNotificationRegisterLock;
 static ClBoolT gIocNotificationInitialized;
 
@@ -49,7 +49,7 @@ ClRcT clIocNotificationRegister(ClIocNotificationRegisterCallbackT callback, ClP
 {
     ClIocNotificationRegisterT *registrant = NULL;
     if(!callback) return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
-    registrant = clHeapCalloc(1, sizeof(*registrant));
+    registrant = (ClIocNotificationRegisterT*) clHeapCalloc(1, sizeof(*registrant));
     CL_ASSERT(registrant != NULL);
     registrant->callback = callback;
     registrant->cookie = cookie;
@@ -182,7 +182,7 @@ ClRcT clIocNotificationDiscoveryPack(ClBufferHandleT message,
     ClUint32T myCapability = 0;
 
     clNodeCacheVersionAndCapabilityGet(gIocLocalBladeAddress, &nodeVersion, &myCapability);
-    pNotification->id = htonl(id);
+    pNotification->id = (ClIocNotificationIdT) htonl(id);
     pNotification->protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     pNotification->nodeVersion = htonl(nodeVersion);
     pNotification->nodeAddress.iocPhyAddress.portId = htonl(myCapability);
@@ -217,7 +217,7 @@ ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort,
 {
     ClRcT retCode = CL_OK;
     ClBufferHandleT message = 0;
-    ClIocNotificationIdT id = ntohl(pNotificationInfo->id);
+    ClIocNotificationIdT id = (ClIocNotificationIdT) ntohl(pNotificationInfo->id);
 
     retCode = clBufferCreate(&message);
     if(retCode != CL_OK)
@@ -270,7 +270,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
     ClUint32T version = ntohl(notification->nodeVersion);
     ClIocNodeAddressT nodeId = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     ClUint32T theirCapability = ntohl(notification->nodeAddress.iocPhyAddress.portId);
-    ClIocNotificationIdT id = ntohl(notification->id);
+    ClIocNotificationIdT id = (ClIocNotificationIdT) ntohl(notification->id);
     SaNameT nodeName = {0};
     ClUint8T *nodeInfo = NULL;
     ClUint32T nodeInfoLen = 0;
@@ -330,7 +330,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
         static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
         ClUint32T myCapability = 0;
         clNodeCacheVersionAndCapabilityGet(gIocLocalBladeAddress, &nodeVersion, &myCapability);
-        notification->id = htonl(CL_IOC_NODE_VERSION_REPLY_NOTIFICATION);
+        notification->id = (ClIocNotificationIdT) htonl(CL_IOC_NODE_VERSION_REPLY_NOTIFICATION);
         notification->nodeVersion = htonl(nodeVersion);
         notification->nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
         notification->nodeAddress.iocPhyAddress.portId = htonl(myCapability);
@@ -383,9 +383,10 @@ static ClRcT clIocNodeVersionSend(ClIocCommPortHandleT commPort,
                                   ClIocAddressT *destAddress, ClCharT *xportType,
                                   ClIocNotificationIdT id)
 {
-    ClIocNotificationT notification = {0};
+    ClIocNotificationT notification;
     static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
     ClUint32T myCapability = 0;
+    memset(&notification,0,sizeof(ClIocNotificationT));
     clNodeCacheVersionAndCapabilityGet(gIocLocalBladeAddress, &nodeVersion, &myCapability);
     if(id != CL_IOC_NODE_LINK_UP_NOTIFICATION)
     {
@@ -398,7 +399,7 @@ static ClRcT clIocNodeVersionSend(ClIocCommPortHandleT commPort,
          */
         myCapability = 0;
     }
-    notification.id = htonl(id);
+    notification.id = (ClIocNotificationIdT) htonl(id);
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     notification.nodeVersion = htonl(nodeVersion);
     notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
@@ -414,11 +415,13 @@ static ClRcT clIocNotificationProxyRecv(ClIocCommPortHandleT commPort, ClUint8T 
                                         ClIocAddressT *allLocalComps,
                                         ClIocAddressT *allNodeReps, ClCharT *xportType)
 {
-    ClIocNotificationT notification = {0};
-    ClIocNotificationT notificationBuffer = {0};
+    ClIocNotificationT notification;
+    ClIocNotificationT notificationBuffer ;
     ClUint32T status = 0;
+    memset(&notification,0,sizeof(ClIocNotificationT));
+    memset(&notificationBuffer,0,sizeof(ClIocNotificationT));
     memcpy(&notificationBuffer, buff, sizeof(notificationBuffer));
-    notification.id = ntohl(notificationBuffer.id);
+    notification.id = (ClIocNotificationIdT)  ntohl(notificationBuffer.id);
     notification.protoVersion = ntohl(notificationBuffer.protoVersion);
     notification.nodeAddress.iocPhyAddress.nodeAddress = 
         ntohl(notificationBuffer.nodeAddress.iocPhyAddress.nodeAddress);
@@ -502,10 +505,11 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
     ClIocPhysicalAddressT notificationCompAddr = {.nodeAddress = notificationNodeAddr,
                                                   .portId = CL_IOC_XPORT_PORT
     };
-    ClIocNotificationT notification = {0};
+    ClIocNotificationT notification ;
     ClRcT rc = CL_OK;
     ClUint32T status;
- 
+    
+    memset(&notification,0,sizeof(ClIocNotificationT));
     if(id == CL_IOC_COMP_ARRIVAL_NOTIFICATION)
         id = CL_IOC_NODE_ARRIVAL_NOTIFICATION;
 
@@ -575,7 +579,7 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
 #ifdef CL_IOC_COMP_ARRIVAL_NOTIFICATION_DISABLE 
         return CL_OK;
 #else
-        notification.id = htonl(id);
+        notification.id = (ClIocNotificationIdT) htonl(id);
 #endif
     } 
     else 
@@ -584,7 +588,7 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
         clIocMasterSegmentUpdate(notificationCompAddr);
         clIocNodeCompsReset(notificationNodeAddr);
         clNodeCacheSoftReset(notificationNodeAddr);
-        notification.id = htonl(id);
+        notification.id = (ClIocNotificationIdT) htonl(id);
     }
 
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
@@ -621,7 +625,9 @@ ClRcT clIocNotificationCompStatusSend(ClIocCommPortHandleT commPort, ClUint32T s
     ClIocPhysicalAddressT compAddr = {.nodeAddress = gIocLocalBladeAddress,
                                       .portId = portId
     };
-    ClIocNotificationT notification = {0};
+    ClIocNotificationT notification;
+
+    memset(&notification,0,sizeof(ClIocNotificationT));
 
     clIocCompStatusSet(compAddr, status);
 
@@ -635,11 +641,11 @@ ClRcT clIocNotificationCompStatusSend(ClIocCommPortHandleT commPort, ClUint32T s
             return CL_OK;
         }
         clIocMasterSegmentUpdate(compAddr);
-        notification.id = htonl(CL_IOC_COMP_DEATH_NOTIFICATION);
+        notification.id = (ClIocNotificationIdT) htonl(CL_IOC_COMP_DEATH_NOTIFICATION);
     }
     else
     {
-        notification.id = htonl(CL_IOC_COMP_ARRIVAL_NOTIFICATION);
+        notification.id = (ClIocNotificationIdT) htonl(CL_IOC_COMP_ARRIVAL_NOTIFICATION);
     }
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     notification.nodeAddress.iocPhyAddress.portId = htonl(compAddr.portId);
@@ -667,10 +673,12 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
     ClUint8T *pRecvBase = recvBuff;
     ClIocPhysicalAddressT compAddr = {0};
     ClIocPhysicalAddressT srcAddr = {0};
-    ClIocNotificationT notification = {0};
-    ClIocNotificationIdT id = 0;
+    ClIocNotificationT notification;
+    ClIocNotificationIdT id;
     ClRcT rc = CL_OK;
 
+    memset(&notification,0,sizeof(ClIocNotificationT));
+    memset(&id,0,sizeof(ClIocNotificationIdT));
     if(recvLen <= (ClUint32T)sizeof(userHeader))
         return CL_IOC_RC(CL_ERR_NO_SPACE);
 
@@ -762,7 +770,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         return CL_IOC_RC(CL_ERR_VERSION_MISMATCH);
     }
 
-    id = ntohl(notification.id);
+    id = (ClIocNotificationIdT) ntohl(notification.id);
     if(id == CL_IOC_NODE_DISCOVER_NOTIFICATION)
     {
         if(syncCallback)

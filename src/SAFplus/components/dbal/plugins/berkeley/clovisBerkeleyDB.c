@@ -766,7 +766,7 @@ cdbBerkeleyDBRecordGet(ClDBHandleT      dbHandle,
         return(errorCode);
     }
 
-    *pDBRec = clHeapAllocate(record.size);
+    *pDBRec = (ClDBRecordT) clHeapAllocate(record.size);
     if(NULL == *pDBRec) {
         free(record.data);
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
@@ -862,7 +862,7 @@ cdbBerkeleyDBFirstRecordGet(ClDBHandleT      dbHandle,
         return(errorCode);
     }
 
-    *pDBKey = clHeapAllocate(key.size);
+    *pDBKey = (ClDBKeyT) clHeapAllocate(key.size);
     if(NULL == *pDBKey) {
         free(key.data);
         free(record.data);
@@ -875,7 +875,7 @@ cdbBerkeleyDBFirstRecordGet(ClDBHandleT      dbHandle,
     memcpy(*pDBKey, key.data, key.size);    
     *pKeySize = (ClUint32T)key.size;
 
-    *pDBRec = clHeapAllocate(record.size);
+    *pDBRec = (ClDBRecordT) clHeapAllocate(record.size);
     if(NULL == *pDBRec) {
         free(key.data);
         free(record.data);
@@ -940,7 +940,7 @@ cdbBerkeleyDBNextRecordGet(ClDBHandleT      dbHandle,
         return(errorCode);
     }
 
-    *pDBNextKey = clHeapAllocate(key.size);
+    *pDBNextKey = (ClDBKeyT) clHeapAllocate(key.size);
     if(NULL == *pDBNextKey) {
         free(key.data);
         free(record.data);
@@ -953,7 +953,7 @@ cdbBerkeleyDBNextRecordGet(ClDBHandleT      dbHandle,
     memcpy(*pDBNextKey, key.data, key.size);    
     *pNextKeySize = (ClUint32T)key.size;
 
-    *pDBNextRec = clHeapAllocate(record.size);
+    *pDBNextRec = (ClDBRecordT) clHeapAllocate(record.size);
     if(NULL == *pDBNextRec) {
         free(key.data);
         free(record.data);

@@ -479,7 +479,7 @@ clDebugCliCommandGets (ClUint32T idx, ClCharT *ptrPrompt)
     	    for (i = dbgFirstCommand; j <= dbgTotalCommand;
     	         i = (i + 1) % COMMAND_TOTAL, j++)
     	    {
-    	       if (j == his)
+    	       if ((ClInt32T) j == his)
     		   {
     	       	   strcpy (_clDebugCliBuf, dbgCommands[i]);
     		       printf ("          %s\n", dbgCommands[i]);

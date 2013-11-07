@@ -221,7 +221,7 @@ ClRcT clIocHearBeatHealthCheckUpdate(ClIocNodeAddressT nodeAddress, ClUint32T po
         clOsalMutexLock(&gIocHeartBeatLocalTableLock);
         ClIocHeartBeatStatusT *hbStatus = _clIocHeartBeatLocalMapFind(portId);
         if (!hbStatus) {
-            hbStatus = clHeapCalloc(1, sizeof(*hbStatus));
+            hbStatus = (ClIocHeartBeatStatusT*) clHeapCalloc(1, sizeof(*hbStatus));
             hbStatus->linkIndex = portId;
             hbStatus->status = CL_IOC_NODE_UP;
             hbStatus->retryCount = 0;
@@ -241,7 +241,7 @@ ClRcT clIocHearBeatHealthCheckUpdate(ClIocNodeAddressT nodeAddress, ClUint32T po
         ClIocHeartBeatStatusT *hbStatus = _clIocHeartBeatMapFind(nodeAddress);
         if (!hbStatus)
         {
-            hbStatus = clHeapCalloc(1, sizeof(*hbStatus));
+            hbStatus = (ClIocHeartBeatStatusT*) clHeapCalloc(1, sizeof(*hbStatus));
             hbStatus->linkIndex = nodeAddress;
             hbStatus->status = CL_IOC_NODE_UP;
             hbStatus->retryCount = 0;
@@ -264,7 +264,7 @@ ClRcT clIocHearBeatHealthCheckUpdate(ClIocNodeAddressT nodeAddress, ClUint32T po
 #define __ALLOC_HB_NOTIFICATIONS            do {                        \
         if(!(numNotifications & 15))                                    \
         {                                                               \
-            hbNotifications = clHeapRealloc(hbNotifications,            \
+            hbNotifications = (ClIocHeartBeatNotificationT*) clHeapRealloc(hbNotifications,            \
                                             sizeof(*hbNotifications) * (numNotifications + 16)); \
             CL_ASSERT(hbNotifications != NULL);                         \
             memset(hbNotifications + numNotifications, 0,               \
@@ -596,7 +596,7 @@ static ClRcT _clIocHeartBeatCompsSend(void)
  */
 static ClRcT _clHeartBeatUpdateNotification(ClIocNotificationT *notification, ClPtrT cookie)
 {
-    ClIocNotificationIdT notificationId = ntohl(notification->id);
+    ClIocNotificationIdT notificationId = (ClIocNotificationIdT) ntohl(notification->id);
     ClIocNodeAddressT nodeAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     ClIocPortT portId = ntohl(notification->nodeAddress.iocPhyAddress.portId);
     switch (notificationId) 
@@ -610,7 +610,7 @@ static ClRcT _clHeartBeatUpdateNotification(ClIocNotificationT *notification, Cl
                                                                               portId);
                 if (!hbStatus) 
                 {
-                    hbStatus = clHeapCalloc(1, sizeof(*hbStatus));
+                    hbStatus = (ClIocHeartBeatStatusT*) clHeapCalloc(1, sizeof(*hbStatus));
                     hbStatus->linkIndex = portId;
                     hbStatus->status = CL_IOC_NODE_UP;
                     hbStatus->retryCount = 0;
@@ -625,7 +625,7 @@ static ClRcT _clHeartBeatUpdateNotification(ClIocNotificationT *notification, Cl
                                                                          nodeAddress);
                 if (!hbStatus) 
                 {
-                    hbStatus = clHeapCalloc(1, sizeof(*hbStatus));
+                    hbStatus = (ClIocHeartBeatStatusT*) clHeapCalloc(1, sizeof(*hbStatus));
                     hbStatus->linkIndex = nodeAddress;
                     hbStatus->status = CL_IOC_NODE_UP;
                     hbStatus->retryCount = 0;
@@ -650,7 +650,7 @@ static ClRcT _clHeartBeatUpdateNotification(ClIocNotificationT *notification, Cl
             ClIocHeartBeatStatusT *hbStatus = _clIocHeartBeatMapFind(nodeAddress);
             if (!hbStatus) 
             {
-                hbStatus = clHeapCalloc(1, sizeof(*hbStatus));
+                hbStatus = (ClIocHeartBeatStatusT*) clHeapCalloc(1, sizeof(*hbStatus));
                 hbStatus->linkIndex = nodeAddress;
                 hbStatus->status = CL_IOC_NODE_UP;
                 hbStatus->retryCount = 0;
@@ -722,8 +722,8 @@ ClRcT clIocHeartBeatStart()
 {
     ClRcT rc = CL_OK;
     ClTimerTimeOutT timeOut = {
-            .tsSec = gClHeartBeatInterval / 1000,
-            .tsMilliSec = gClHeartBeatInterval % 1000
+            (ClUint32T) (gClHeartBeatInterval / 1000),
+            (ClUint32T) (gClHeartBeatInterval % 1000)
     };
 
     if (gHeartBeatTimer != CL_HANDLE_INVALID_VALUE) {
@@ -763,7 +763,7 @@ ClRcT clIocHeartBeatStart()
         ClIocHeartBeatStatusT *hbStatus = _clIocHeartBeatMapFind(pNodes[i]);
         if (!hbStatus) 
         {
-            hbStatus = clHeapCalloc(1, sizeof(*hbStatus));
+            hbStatus = (ClIocHeartBeatStatusT*) clHeapCalloc(1, sizeof(*hbStatus));
             hbStatus->linkIndex = pNodes[i];
             hbStatus->status = CL_IOC_NODE_UP;
             hbStatus->retryCount = 0;
@@ -803,7 +803,7 @@ void clHeartBeatTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffe
     clLogDebug("IOC", "HBT", "Received trackcallback with leader [%d]",
                notificationBuffer->leader);
 
-    if (notificationBuffer->leader == -1)
+    if ((ClInt32T) notificationBuffer->leader == -1)
     {
         /*
          * If going leaderless, disable hb.
@@ -906,7 +906,7 @@ static ClRcT _clHeartBeatGmsTimerInitCallback() {
                 gHandleGmsTimer = CL_HANDLE_INVALID_VALUE;
             }
             rc = clTimerCreateAndStart(timeout, CL_TIMER_ONE_SHOT,
-                    CL_TIMER_SEPARATE_CONTEXT, _clHeartBeatGmsTimerInitCallback,
+                    CL_TIMER_SEPARATE_CONTEXT,(ClTimerCallBackT) _clHeartBeatGmsTimerInitCallback,
                     pData, &gHandleGmsTimer);
             if (CL_OK != rc) 
             {
@@ -971,7 +971,7 @@ static ClRcT HeartBeatPluginDefault(ClUint32T interval, ClUint32T retires) {
             goto out;
         }
     }
-
+    {
     ClTimerTimeOutT timeOut = { .tsSec = interval
             / 1000, .tsMilliSec = interval % 1000 };
     
@@ -989,7 +989,7 @@ static ClRcT HeartBeatPluginDefault(ClUint32T interval, ClUint32T retires) {
             CL_TIMER_SEPARATE_CONTEXT,
             (ClTimerCallBackT) _clIocHeartBeatCompsSend, (void *) NULL,
             &gHeartBeatLocalTimer);
-
+    }
     out:
     return rc;
 }
@@ -1029,7 +1029,7 @@ ClRcT _clIocSetHeartBeatConfig()
         /*gClHeartBeatPlugin = HeartBeatPluginDefault;*/
         goto out;
     }
-    
+    { 
     /*
      * Set the default plugin if heartbeat tag is set.
      */
@@ -1077,17 +1077,14 @@ ClRcT _clIocSetHeartBeatConfig()
             *(void**) &gClHeartBeatPlugin = dlsym(gClPluginHandle, CL_IOC_HB_METHOD);
             if (!gClHeartBeatPlugin)
             {
-                clLogWarning(
-                        "IOC",
-                        "HBT",
-                        "Unable to find the heartbeat method in plugin : %s", dlerror());
-                *(void**) &gClHeartBeatPlugin = HeartBeatPluginDefault;
+                clLogWarning( "IOC", "HBT", "Unable to find the heartbeat method in plugin : %s", dlerror());
+                *(void**) &gClHeartBeatPlugin = (void*) HeartBeatPluginDefault;
                 dlclose(gClPluginHandle);
                 gClPluginHandle = NULL;
             }
         }
     }
-
+    }
     out:
     if (parent != NULL)
         clParserFree(parent);
@@ -1239,12 +1236,13 @@ ClRcT clIocHeartBeatMessageReqRep(ClIocCommPortHandleT commPort,
         clLogError("IOC", "HBT", "clBufferNBytesWrite failed with rc = %#x", rc);
         goto out_delete;
     }
-
-    ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout =
-            200 };
+    {
+    ClIocSendOptionT sendOption;
+    sendOption.priority = CL_IOC_HIGH_PRIORITY;
+    sendOption.timeout  = 200;
 
     rc = clIocSend(commPort, message, reqRep, destAddress, &sendOption);
-
+    }
     out_delete:
     clBufferDelete(&message);
 
