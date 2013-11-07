@@ -134,7 +134,7 @@ $(INSTALL_CMD): all
 	done
 
 	$(INSTALL_CMD) -m 644 exec/aispoll.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
-        $(INSTALL_CMD) -m 644 exec/totempg.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
+	$(INSTALL_CMD) -m 644 exec/totempg.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
 	$(INSTALL_CMD) -m 644 exec/totem.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
 	$(INSTALL_CMD) -m 644 exec/totemip.h $(DESTDIR)$(INCLUDEDIR_TOTEM)
 	$(INSTALL_CMD) -m 644 lcr/lcr_ckpt.h $(DESTDIR)$(INCLUDEDIR_LCR)
@@ -147,7 +147,7 @@ $(INSTALL_CMD): all
 	$(INSTALL_CMD) -m 644 exec/config.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
 	$(INSTALL_CMD) -m 644 include/swab.h $(DESTDIR)$(INCLUDEDIR_SERVICE)
 	$(INSTALL_CMD) -m 644 man/*.3 $(DESTDIR)$(MANDIR)/man3
-        $(INSTALL_CMD) -m 644 man/*.5 $(DESTDIR)$(MANDIR)/man5
+	$(INSTALL_CMD) -m 644 man/*.5 $(DESTDIR)$(MANDIR)/man5
 	$(INSTALL_CMD) -m 644 man/*.8 $(DESTDIR)$(MANDIR)/man8
 
 doxygen:
