@@ -67,6 +67,7 @@ typedef struct ClTransportLayer
     ClRcT (*xportTransparencyDeregister)(ClIocPortT port, ClIocLogicalAddressT logicalAddr);
     ClRcT (*xportMulticastRegister)(ClIocPortT port, ClIocMulticastAddressT mcastAddr);
     ClRcT (*xportMulticastDeregister)(ClIocPortT port, ClIocMulticastAddressT mcastAddr);
+    ClRcT (*xportFdGet)(ClIocCommPortHandleT portHandle, ClInt32T *fd);
     ClListHeadT xportList; 
 } ClTransportLayerT;
 
@@ -333,6 +334,11 @@ static ClRcT xportMulticastDeregisterFake(ClIocPortT port, ClIocMulticastAddress
     clLogNotice("XPORT", "MCAST", "Inside fake transport multicast deregister for multicast [%#llx]",
                 mcastAddr);
     return CL_OK; 
+}
+
+static ClRcT xportFdGetFake(ClIocCommPortHandleT portHandle, ClInt32T *fd)
+{
+    return CL_ERR_NOT_SUPPORTED;
 }
 
 static __inline__ void _clXportNodeAddrMapAdd(ClXportNodeAddrDataT *entry)
@@ -647,6 +653,7 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
     *(void**)&xport->xportTransparencyDeregister = dlsym(xport->xportPluginHandle, "xportTransparencyDeregister");
     *(void**)&xport->xportMulticastRegister = dlsym(xport->xportPluginHandle, "xportMulticastRegister");
     *(void**)&xport->xportMulticastDeregister = dlsym(xport->xportPluginHandle, "xportMulticastDeregister");
+    *(void**)&xport->xportFdGet = dlsym(xport->xportPluginHandle, "xportFdGet");
 
     if(!xport->xportAddressAssign) xport->xportAddressAssign = xportAddressAssignFake;
     if(!xport->xportInit) xport->xportInit = xportInitFake;
@@ -668,6 +675,7 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
     if(!xport->xportTransparencyDeregister) xport->xportTransparencyDeregister = xportTransparencyDeregisterFake;
     if(!xport->xportMulticastRegister) xport->xportMulticastRegister = xportMulticastRegisterFake;
     if(!xport->xportMulticastDeregister) xport->xportMulticastDeregister = xportMulticastDeregisterFake;
+    if(!xport->xportFdGet) xport->xportFdGet = xportFdGetFake;
     xport->xportId = clTransportIdGet();
     clListAddTail(&xport->xportList, &gClTransportList);
     clLogNotice("XPORT", "LOAD", "Loaded transport [%s] with plugin [%s]", type, plugin);
@@ -3034,4 +3042,18 @@ ClBoolT clTransportBridgeEnabled(ClIocNodeAddressT node)
         bridge = nodeAddrConfig->bridge;
     clOsalMutexUnlock(&gClXportNodeAddrListMutex);
     return bridge;
+}
+
+/*
+ * Get file description for xport and transport type
+ */
+ClRcT clTransportFdGet(ClIocCommPortHandleT portHandle, const ClCharT *xportType, ClInt32T *pFd)
+{
+    ClTransportLayerT *xport = findTransport(xportType);
+    if(!xport)
+    {
+        clLogDebug("XPORT", "FIND", "Transport [%s] not registered", xportType);
+        return CL_ERR_NOT_EXIST;
+    }
+    return xport->xportFdGet(portHandle, pFd);
 }

@@ -816,6 +816,7 @@ typedef enum {
  */
     ClRcT clIocCommPortFdGet(
             CL_IN ClIocCommPortHandleT portHandle, 
+            CL_IN const ClCharT *xportType,
             CL_INOUT ClInt32T *pSd
             );
 
