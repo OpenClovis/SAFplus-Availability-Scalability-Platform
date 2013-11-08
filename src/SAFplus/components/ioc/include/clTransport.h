@@ -149,6 +149,8 @@ extern ClRcT clTransportBroadcastListGet(const ClCharT *hostXport,
 extern ClBoolT clTransportMcastSupported(ClUint32T *numPeers);
 extern ClRcT clTransportMcastPeerListGet(ClIocAddrMapT *peers, ClUint32T *numPeers);
 
+extern ClRcT clTransportFdGet(ClIocCommPortHandleT portHandle, const ClCharT *xportType, ClInt32T *pFd);
+
 #ifdef __cplusplus
 }
 #endif
