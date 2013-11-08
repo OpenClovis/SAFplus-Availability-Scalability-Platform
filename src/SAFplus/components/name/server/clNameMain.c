@@ -271,7 +271,7 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
     rc = clCpmComponentRegister(cpmHandle, &appName, NULL);
     /*clDebugCli("NAME-CLI");*/
 
-    int cnt;
+    int cnt = 0;
     do
     {
         cnt++;
