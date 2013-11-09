@@ -1336,7 +1336,12 @@ def kill_asp(lock_remove = True):
         proc_lock_file('remove')
 
 def zap_asp(lock_remove = True):
-    run_custom_scripts('zap')
+    try:
+      run_custom_scripts('zap')
+    except Exception, e:
+      logging.critical('%s: run_custom_scripts(zap) received exception %s' % (time.strftime('%a %d %b %Y %H:%M:%S'),str(e)))
+      logging.critical('traceback: %s',traceback.format_exc())
+
     kill_asp(lock_remove)
     if not is_simulation():
         time.sleep(2) ## delay to give time for the zapped processes to exit

@@ -241,7 +241,7 @@ ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort,
     /* clLogInfo("Sending discovery notification for myself []"); */
     retCode = clIocSendWithXport(commPort, message, CL_IOC_PORT_NOTIFICATION_PROTO, destAddress, &sendOption, xportType, CL_FALSE);
     if(retCode != CL_OK)
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to send notification. error code 0x%x", retCode));
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to send notification. error code [0x%x]", retCode));
 
     err_out:
     clBufferDelete(&message);
@@ -800,8 +800,8 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
     clIocCompStatusSet(compAddr, event);
 
     clLogInfo ("IOC", "NOTIF", "Got [%s] notification [0x%x] for node [%d] commport [0x%x]",
-               event == CL_IOC_NODE_UP ? "arrival": "death", id, compAddr.nodeAddress, compAddr.portId);
-
+               event == CL_IOC_NODE_UP ? "arrival": "death", id, compAddr.nodeAddress, compAddr.portId);    
+    
 #ifdef CL_IOC_COMP_ARRIVAL_NOTIFICATION_DISABLE
     if(event == CL_IOC_NODE_UP)
         goto out;
@@ -816,6 +816,14 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         clIocNotificationProxySend(commPort, &notification, &srcAddr, allNodeReps, xportType);
     }
 
+    if ((compAddr.portId == 0) && (event == CL_IOC_NODE_DOWN) && (compAddr.nodeAddress == gIocLocalBladeAddress))
+    {
+        ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
+        clLogCritical ("IOC", "NOT", "Controller has kicked this node out of the cluster -- quitting in 1 second.");
+        clOsalTaskDelay(delay);
+        exit(0);        
+    }
+    
     out:
     return rc;
 }

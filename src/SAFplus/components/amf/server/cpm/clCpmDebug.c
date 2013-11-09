@@ -373,6 +373,11 @@ static ClDebugFuncEntryT cpmSCDebugFuncList[] =
         "nodeErrorClear",
         "shutdown down a node"
     },
+    {
+        clCpmCliNodeDelete,
+        "nodeTableDelete",
+        "Delete node in AMF node table (for fault testing)"
+    },
      
     CPM_DEBUG_CLI_COMMON_FUNC_LIST,
     

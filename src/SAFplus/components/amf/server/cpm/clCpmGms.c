@@ -659,10 +659,7 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT *notificati
     return;
 }
 
-void cpmClusterTrackCallBack(const ClGmsClusterNotificationBufferT
-                             *clusterNotificationBuffer,
-                             ClUint32T nMembers,
-                             ClRcT rc)
+void cpmClusterTrackCallBack(const ClGmsClusterNotificationBufferT *clusterNotificationBuffer, ClUint32T nMembers, ClRcT rc)
 {
     clLogMultiline(CL_LOG_DEBUG, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                    "Received cluster track callback from GMS on node [%s] -- \n"
@@ -683,14 +680,11 @@ void cpmClusterTrackCallBack(const ClGmsClusterNotificationBufferT
 
     rc = clOsalMutexLock(&gpClCpm->cpmGmsMutex);
     gpClCpm->trackCallbackInProgress = CL_FALSE;
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_LOCK_ERR, rc, rc,CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     rc = clOsalCondSignal(&gpClCpm->cpmGmsCondVar);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_SIGNAL_ERR, rc, rc,CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
     rc = clOsalMutexUnlock(&gpClCpm->cpmGmsMutex);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_UNLOCK_ERR, rc, rc,CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
 failure:
     return;
 }

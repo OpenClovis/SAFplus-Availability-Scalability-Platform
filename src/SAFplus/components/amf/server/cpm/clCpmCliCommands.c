@@ -931,6 +931,42 @@ ClRcT _cpmClusterConfigList(ClInt32T argc, ClCharT **retStr)
     return rc;
 }
 
+ClRcT clCpmCliNodeDelete(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
+{
+    ClRcT rc = CL_OK;
+
+    if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL)
+    {
+        ClBufferHandleT message;
+        rc = clBufferCreate(&message);
+        if (argc != TWO_ARGUMENT)
+        {
+            clBufferNBytesWrite(message,(ClUint8T *) STR_AND_SIZE("Usage: amfNodeTableDelete <slot num>\n"
+                                "\tRemove the node from the AMF node table (for fault testing)\n"
+                                                                  "\tslot num -- the node to remove\n"));
+            rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+        }
+        else
+        {
+        ClUint32T slotnum = cpmCliStrToInt(argv[1]);
+        rc = cpmNodeDelByNodeId(slotnum);
+        clBufferNBytesWrite(message,(ClUint8T *) STR_AND_SIZE("OK\n"));
+        }
+
+        clBufferFlatten(message, (ClUint8T **) retStr);
+        clBufferDelete(&message);
+    }
+    
+    else
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CPM Local Doesn't contain the cluster wide configuration \n"));
+        rc = CL_CPM_RC(CL_ERR_BAD_OPERATION);
+    }
+
+    return rc;
+}
+
+
 ClRcT clCpmClusterListAll(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
 {
     ClRcT rc = CL_OK;
@@ -939,8 +975,7 @@ ClRcT clCpmClusterListAll(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
         rc = _cpmClusterConfigList(argc, retStr);
     else
     {
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("CPM Local Doesn't contain the cluster wide configuration \n"));
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("CPM Local Doesn't contain the cluster wide configuration \n"));
         rc = CL_CPM_RC(CL_ERR_BAD_OPERATION);
     }
 

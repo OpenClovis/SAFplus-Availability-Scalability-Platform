@@ -89,7 +89,6 @@ def amf_watchdog_loop():
                     logging.debug('AMF watchdog restarting SAFplus...')
                     asp.force_restart_safplus()
                     asp.create_asp_cmd_marker('start')
-                    sys.exit(1)
                 elif os.access(reboot_file, os.F_OK):
                     safe_remove(reboot_file)
                     if getenv("ASP_NODE_REBOOT_DISABLE", 0) != 0:
@@ -123,7 +122,7 @@ def amf_watchdog_loop():
                             asp.create_asp_cmd_marker('start')
                         else:
                             asp.proc_lock_file('remove')
-                    sys.exit(1)
+                            sys.exit(1)
             else:
                 # pid is nonzero => amf is up
                 # handle openhpid here
@@ -150,8 +149,10 @@ def amf_watchdog_loop():
 
 
             time.sleep(monitor_interval)
-        except:
-            pass    
+        except Exception,e:
+            logging.critical('%s: SAFplus watchdog received exception %s' % (time.strftime('%a %d %b %Y %H:%M:%S'),str(e)))
+            logging.critical('traceback: %s',traceback.format_exc())
+            
 
 def redirect_file():
 

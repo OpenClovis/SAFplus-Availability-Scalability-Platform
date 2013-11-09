@@ -944,15 +944,14 @@ clGmsClusterLeaveHandler(
         return rc;
     }
 
-    clLogNotice("CLUSTER", "LEAVE",
-                "Received Cluster Leave request for [nodeId = %d], sync flag [%s]",
-                req->nodeId, req->sync ? "yes" : "no");
+    clLogNotice("CLUSTER", "LEAVE", "Received Cluster Leave request for node [%d], sync flag [%s]", req->nodeId, req->sync ? "yes" : "no");
 
     /* Try to see if the node is part of the cluster view if not then send the
      *  caller an invalid parameter return code . */
     rc = _clGmsViewFindNode ( 0x0 , req->nodeId , &node );
     if ( rc != CL_OK )
     {
+        clLogInfo("CLUSTER", "LEAVE", "Node [%d] is not in the GMS view, cannot forward leave request.", req->nodeId);
         res->rc = CL_GMS_RC(CL_ERR_INVALID_PARAMETER );
         return (res->rc);
     }
@@ -967,8 +966,7 @@ clGmsClusterLeaveHandler(
 
         if (rc != CL_OK)
         {
-            clLog(ERROR,CLM,NA,
-                  "Cluster Leave multicase messaging through openais failed.");
+            clLog(ERROR,CLM,NA, "Cluster Leave multicase messaging through openais failed.");
             res->rc = rc;
             goto LEAVE_FAILED;
         } 

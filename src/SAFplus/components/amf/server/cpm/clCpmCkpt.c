@@ -486,8 +486,10 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
                                     flags,
                                     time,
                                     &handle);
-	tries++;
-        clLogNotice("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service", tries);
+	    tries++;
+        clLogNotice("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service, result [%x]", tries, rc);
+        /* If the open gets an already exists error, then turn off the create flag */
+        if (CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc)) flags = flags & (~CL_CKPT_CHECKPOINT_CREATE);        
      } while( rc != CL_OK && tries < 3 && clOsalTaskDelay(delay) == CL_OK);
 
      if(rc != CL_OK)

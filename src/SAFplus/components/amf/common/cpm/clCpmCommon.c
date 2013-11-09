@@ -355,6 +355,53 @@ ClRcT cpmNodeFind(ClCharT *name, ClCpmLT **cpmL)
     return rc;
 }
 
+ClRcT cpmNodeDelByNodeId(ClUint32T nodeId)
+{
+    ClRcT rc = CL_OK;
+    ClCntNodeHandleT cpmNode = 0;
+    ClUint32T cpmLCount = 0;
+    ClCpmLT *tempCpmL = NULL;
+    ClUint32T found = 0;
+
+    cpmLCount = gpClCpm->noOfCpm;
+    if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL && cpmLCount != 0)
+    {
+        rc = clCntFirstNodeGet(gpClCpm->cpmTable, &cpmNode);
+        CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_FIRST_NODE_GET_ERR, "CPM-L", rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+
+        while (cpmLCount)
+        {
+            rc = clCntNodeUserDataGet(gpClCpm->cpmTable, cpmNode, (ClCntDataHandleT *) &tempCpmL);
+            CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+
+            if (tempCpmL->pCpmLocalInfo)
+            {
+                if (tempCpmL->pCpmLocalInfo->nodeId == nodeId)
+                {
+                    clCntNodeDelete(gpClCpm->cpmTable,cpmNode);
+                    gpClCpm->noOfCpm--;
+                    found = 1;
+                    break;
+                }
+            }
+            cpmLCount--;
+
+            if (cpmLCount)
+            {
+                rc = clCntNextNodeGet(gpClCpm->cpmTable, cpmNode, &cpmNode);
+                CL_CPM_CHECK_2(CL_DEBUG_ERROR, CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc, rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+            }
+        }
+    }
+    if(found == 1)
+        return CL_OK;
+    else
+        return CL_CPM_RC(CL_ERR_DOESNT_EXIST);
+
+  failure:
+    return rc;
+}
+
 ClUint32T cpmNodeFindByNodeId(ClUint32T nodeId, ClCpmLT **cpmL)
 {
     ClRcT rc = CL_OK;
