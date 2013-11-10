@@ -2292,19 +2292,14 @@ clAmsPeNodeRestart(
     AMS_CHECK_NODE ( node );
 
     AMS_FUNC_ENTER ( ("Node [%s]\n", node->config.entity.name.value) );
+    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG,("Admin Operation [Restart] on Node [%s]\n",node->config.entity.name.value));
 
     if ( node->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-            ("Node [%s] is not instantiated. Ignoring Restart..\n",
-             node->config.entity.name.value) ); 
-
-        return CL_AMS_RC(CL_ERR_NO_OP);
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("Node [%s] is not instantiated. Resetting..\n", node->config.entity.name.value) );
+        clAmsPeNodeReset(node);
+        return clAmsPeNodeInstantiate(node);        
     }
-
-    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-            ("Admin Operation [Restart] on Node [%s]\n",
-             node->config.entity.name.value));
 
     if(clAmsInvocationsPendingForNode(node))
     {
@@ -2434,9 +2429,7 @@ clAmsPeNodeRepaired(
  * function.
  */
 
-ClRcT
-clAmsPeNodeJoinCluster(
-        CL_IN   ClAmsNodeT *node)
+ClRcT clAmsPeNodeJoinCluster(CL_IN   ClAmsNodeT *node)
 {
     AMS_OP_INCR(&gAms.ops);
 
@@ -2458,9 +2451,7 @@ clAmsPeNodeJoinCluster(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-             ("Node [%s] has joined cluster\n",
-              node->config.entity.name.value));
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_INFO,("Node [%s] has joined cluster\n",node->config.entity.name.value));
 
     /*
      * Mark node as cluster member and auto repair is set, reset
@@ -2475,7 +2466,7 @@ clAmsPeNodeJoinCluster(
     {
         if ( node->config.autoRepair )
         {
-            AMS_CALL ( clAmsPeNodeReset(node) );
+            clAmsPeNodeReset(node);
         }
         else
         {
@@ -3024,9 +3015,7 @@ clAmsPeNodeFaultReportProcess(
                            node->config.entity.name.value, rc);
             }
             
-            if(!node->config.isASPAware 
-               &&
-               node->config.autoRepair)
+            if((!node->config.isASPAware) && node->config.autoRepair)
             {
                 clAmsPeNodeReset(node);
             }
@@ -3297,7 +3286,7 @@ clAmsPeNodeInstantiate(
 
     if ( node->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
             ("Node [%s] is in Presence State [%s]. Ignoring instantiate request..\n",
              node->config.entity.name.value,
              CL_AMS_STRING_P_STATE(node->status.presenceState)) ); 
@@ -3312,7 +3301,7 @@ clAmsPeNodeInstantiate(
 
     if ( clAmsPeNodeIsInstantiable(node) != CL_OK ) 
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
             ("Node [%s] is not instantiable. Ignoring instantiate request..\n",
             node->config.entity.name.value));
 
@@ -3324,7 +3313,7 @@ clAmsPeNodeInstantiate(
      * instantiation.
      */
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,  CL_LOG_SEV_INFO,
              ("Instantiating Node [%s]. Marking SUs on node as instantiable\n",
               node->config.entity.name.value));
 
@@ -4328,9 +4317,7 @@ clAmsPeNodeComputeRecoveryAction(
  * as they need to be persistant.
  */
 
-ClRcT
-clAmsPeNodeReset(
-        CL_IN ClAmsNodeT *node)
+ClRcT clAmsPeNodeReset(CL_IN ClAmsNodeT *node)
 {
     ClAmsNodeClusterMemberT isClusterMember;
     ClBoolT wasMemberBefore;
