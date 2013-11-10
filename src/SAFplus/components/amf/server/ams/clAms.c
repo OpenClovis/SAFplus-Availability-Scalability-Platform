@@ -358,8 +358,9 @@ static void *clAmsClusterStateVerifier(void *cookie)
                             notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
                             notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);  // htonl(1);
                             rc = clIocNotificationPacketSend(gpClCpm->cpmEoObj->commObj, &notification, &allNodeReps, CL_FALSE, NULL);
-                            //rc = clIocNotificationProxySend(
 
+                            checkFailed[i] = 0;
+                            continue;
                         }
                     
                         if (checkFailed[i] == 1) clLogWarning("AMS", "INI","Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF",ncInfo.name, i);
