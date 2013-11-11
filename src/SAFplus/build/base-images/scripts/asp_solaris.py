@@ -923,7 +923,7 @@ def start_asp(stop_watchdog = True):
         #pdb.set_trace()
         save_asp_runtime_files()
         check_sys_config()
-        load_config_tipc_module()
+        #load_config_tipc_module()
         set_ld_library_paths()
         if is_system_controller():
             start_snmp_daemon()
