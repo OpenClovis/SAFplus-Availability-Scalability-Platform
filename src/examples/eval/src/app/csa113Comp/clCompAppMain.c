@@ -24,6 +24,9 @@
  */
 #include <assert.h>
 #include <errno.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
 
 /*
  * Basic ASP Includes.
@@ -193,7 +196,7 @@ int main(int argc, char *argv[])
 
     clEoMyEoIocPortGet(&iocPort);
     
-    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Initializing\n", appName.length, appName.value, mypid);
+    clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Initializing\n", appName.length, appName.value, (int) mypid);
     clprintf (CL_LOG_SEV_INFO, "   IOC Address             : 0x%x\n", clIocLocalAddressGet());
     clprintf (CL_LOG_SEV_INFO, "   IOC Port                : 0x%x\n", iocPort);
 
@@ -210,7 +213,7 @@ int main(int argc, char *argv[])
         rc = saEvtInitialize(&evtLibHandle, &evtCallbacks, &evtVersion);
         if (rc != SA_AIS_OK)
         {
-            clprintf(CL_LOG_ERROR, "Failed to init event mechanism [0x%x]\n", rc);
+            clprintf(CL_LOG_SEV_ERROR, "Failed to init event mechanism [0x%x]\n", rc);
             return rc;
         }
             // Open an event chanel so that we can subscribe to events on that channel
@@ -245,7 +248,7 @@ int main(int argc, char *argv[])
         rc = saEvtEventAttributesSet(eventHandle, NULL, 1, 0, &publisherName);
         if (rc != SA_AIS_OK)
         {
-            clprintf(CL_LOG_ERROR, "Failed to set event attributes [0x%x]\n",rc);
+            clprintf(CL_LOG_SEV_ERROR, "Failed to set event attributes [0x%x]\n",rc);
             assert(0);            
         }
     }
@@ -274,12 +277,12 @@ int main(int argc, char *argv[])
     /* csa112: close the event channel, finalize the event client library */
     if ((rc = saEvtChannelClose(evtChannelHandle)) != SA_AIS_OK)
     {
-        clprintf(CL_LOG_ERROR, "Failed [0x%x] to close event channel", rc);
+        clprintf(CL_LOG_SEV_ERROR, "Failed [0x%x] to close event channel", rc);
     }
 
     if ((rc = saEvtFinalize(evtLibHandle)) != SA_AIS_OK)
     {
-        clprintf(CL_LOG_ERROR, "Failed [0x%x] to finalize event library", rc);
+        clprintf(CL_LOG_SEV_ERROR, "Failed [0x%x] to finalize event library", rc);
     }
 
     if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
@@ -294,7 +297,7 @@ int main(int argc, char *argv[])
 errorexit:
 
     clprintf (CL_LOG_SEV_ERROR, "Component [%.*s] : PID [%d]. Initialization error [0x%x]\n",
-              appName.length, appName.value, mypid, rc);
+              appName.length, appName.value, (int) mypid, rc);
 
     return -1;
 }
@@ -311,7 +314,7 @@ void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName)
     SaAisErrorT rc = SA_AIS_OK;
 
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminating\n",
-              compName->length, compName->value, mypid);
+              compName->length, compName->value, (int) mypid);
 
     
     /*
@@ -325,7 +328,7 @@ void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName)
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Terminated\n",
-              compName->length, compName->value, mypid);
+              compName->length, compName->value, (int) mypid);
 
     clEvalAppLogStreamClose(gEvalLogStream);
     unblockNow = CL_TRUE;
@@ -335,7 +338,7 @@ void clCompAppTerminate(SaInvocationT invocation, const SaNameT *compName)
 errorexit:
 
     clprintf (CL_LOG_SEV_ERROR, "Component [%.*s] : PID [%d]. Termination error [0x%x]\n",
-              compName->length, compName->value, mypid, rc);
+              compName->length, compName->value, (int) mypid, rc);
 
     return;
 }
@@ -420,7 +423,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
      */
 
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. CSI Set Received\n", 
-              compName->length, compName->value, mypid);
+              compName->length, compName->value, (int) mypid);
 
     clCompAppAMFPrintCSI(csiDescriptor, haState);
 
@@ -511,7 +514,7 @@ void clCompAppAMFCSIRemove(SaInvocationT  invocation,
                            SaAmfCSIFlagsT csiFlags)
 {
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. CSI Remove Received\n", 
-              compName->length, compName->value, mypid);
+              compName->length, compName->value, (int) mypid);
 
     clprintf (CL_LOG_SEV_INFO, "   CSI                     : %.*s\n", csiName->length, csiName->value);
     clprintf (CL_LOG_SEV_INFO, "   CSI Flags               : 0x%d\n", csiFlags);

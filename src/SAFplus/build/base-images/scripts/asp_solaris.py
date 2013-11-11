@@ -19,28 +19,65 @@ import sys
 import os
 import time
 import signal
-import popen2
-#import pdb
+import subprocess
+import pdb
 
 SystemErrorNoSuchFileOrDir = 127
 
+get_amf_pid_cmd = 'ps -o pid,comm -A'
+
+shm_dir = os.getenv('ASP_SHM_DIR') or '/dev/shm'
+
+core_file_dir = ''
+core_file_regex = 'core.*'
+
+asp_shutdown_wait_timeout = 30
+
+
 def system(cmd):
-    """Similar to the os.system call, except that both the output and return value is returned"""
-    log.debug('Executing command: %s' % cmd)
-    child = popen2.Popen4(cmd)
-    retval = child.wait()
-    signal = retval & 0x7f
-    core   = ((retval & 0x80) !=0)
-    retval = retval >> 8
-    #(infd, fd) = os.popen4(cmd)
-    output = child.fromchild.readlines()
-    log.debug('Command return value %s, Output:\n%s' % (str(retval),output))
-    del child
-    return (retval, output, signal, core)
+    """Similar to the os.system call, except that both the output and
+    return value is returned"""
+    if sys.version_info[0:2] <= (2, 4):
+        pipe=os.popen('%s' %cmd)
+        output=pipe.read()
+        sts=pipe.close()
+        retval=0
+        signal=0
+        core=0
+        if sts:
+            retval = int(sts)
+            signal = retval & 0x7f
+            core   = ((retval & 0x80) !=0)
+            retval = retval >> 8
+        #print 'popen Command return value %s, Output:\n%s' % (str(retval),output)
+        return (retval, output, signal, core)
+    else :
+        #print 'Executing command: %s' % cmd
+        child = subprocess.Popen(cmd, shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             close_fds=True)
+        output = []
+        while True:
+            pid, sts = os.waitpid(child.pid, os.WNOHANG)
+            output += child.stdout.readlines()
+            if pid == child.pid:
+                break
+            else:
+                time.sleep(0.00001)
+        child.stdout.close()
+        child.stderr.close()
+        retval = sts
+        signal = retval & 0x7f
+        core   = ((retval & 0x80) !=0)
+        retval = retval >> 8
+        #print 'Subprocess Command return value %s, Output:\n%s' % (str(retval),output)
+        del child
+        return (retval, output, signal, core)
 
 def fail_and_exit(msg):
     log.critical(msg)
-    sys.exit(1)
+    #sys.exit(1)
 
 def execute_shell_cmd(cmd, err_msg, fail_on_error=True):
     ret, out, sig, core = system(cmd)
@@ -51,6 +88,18 @@ def execute_shell_cmd(cmd, err_msg, fail_on_error=True):
     elif ret:
         log.warning('%s : attempted: [%s], output: [%s]'
                     % (err_msg, cmd, out))
+
+def get_kill_asp_cmd(f):
+    return 'killall -KILL %s 2> /dev/null' % f
+
+def get_amf_watchdog_pid_cmd(p):
+    return 'ps -e -o pid,comm | grep \'%s\'' % p
+
+def get_start_amf_watchdog_cmd(p):
+    return 'setsid %s/safplus_watchdog.py &' % p
+
+def get_cleanup_asp_cmd(p):
+    return 'rm -f /%s/CL*_%s' % (shm_dir, p)
 
 def get_asp_sandbox_dir():
     return asp_env['sandbox_dir']
@@ -351,6 +400,7 @@ def stop_amf_watchdog():
 def start_amf_watchdog(stop_watchdog = True):
     if stop_watchdog == True:
 	stop_amf_watchdog()
+    #pdb.set_trace()
     log.info('Starting AMF watchdog...')
     cmd = '%s/safplus_watchdog.py' % get_asp_etc_dir()
     os.system(cmd)
@@ -421,7 +471,7 @@ def start_amf():
     
     log.info('Starting AMF...')
     # chassis id is hardcoded to 1 as it is not used yet
-    cmd = 'ulimit -c unlimited; %s/asp_amf -c 0 -l %s -n %s' %\
+    cmd = 'ulimit -c unlimited; %s/safplus_amf -c 0 -l %s -n %s' %\
           (get_asp_bin_dir(), node_addr, node_name)
 
     os.system(cmd)
@@ -650,9 +700,10 @@ def load_config_tipc_module():
         elif tipc_state == (0, 1, 1):
             pass
         elif tipc_state == (1, 0, 0):
-            unload_tipc_module()
-            load_tipc_module()
-            config_tipc_module()
+            #unload_tipc_module()
+            #load_tipc_module()
+            #config_tipc_module()
+            log.debug('Ignoring tipc module loading in solaris')
         elif tipc_state == (1, 1, 0):
             config_tipc_module()
         elif tipc_state == (1, 1, 1):
@@ -811,7 +862,6 @@ def save_asp_runtime_files():
                     execute_shell_cmd(cmd, 'Failed to delete [%s]' % src)
                     log.info('Deleted previous %s directory' % src)
                 else:
-                    cmd = 'cp -Pr %s %s' % (src, dst)
                     cmd = 'cp -Ppr %s %s' % (src, dst)
                     execute_shell_cmd(cmd, 'Failed to copy [%s] to [%s]'
                                       % (src, dst), fail_on_error=False)
@@ -870,6 +920,7 @@ def start_asp(stop_watchdog = True):
         check_asp_status()
         kill_asp()
         cleanup_asp()
+        #pdb.set_trace()
         save_asp_runtime_files()
         check_sys_config()
         load_config_tipc_module()
@@ -911,7 +962,7 @@ def get_amf_pid():
 
         return cwd == get_asp_run_dir()
     
-    l = os.popen('ps -A | grep asp_amf').readlines()
+    l = os.popen('ps -A | grep safplus_amf').readlines()
     l = [int(e.split()[0]) for e in l]
 
     l = filter(get_pid_for_this_sandbox, l)
@@ -1204,11 +1255,11 @@ def main():
         parse_command_line()
 
     log_asp_env()
-
+    #pdb.set_trace()
     if not is_root():
         log.info('ASP is being run in non-root user mode.')
         sanity_check()
-
+    #pdb.set
     asp_driver(sys.argv[1])
 
 log = init_log()

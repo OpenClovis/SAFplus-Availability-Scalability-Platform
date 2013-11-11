@@ -155,8 +155,12 @@ ALL_OBJ_FILES := $(OBJ_FILES)
 #OBJ_FILES:= $(wildcard $(BASE_OBJ_DIR)/tmp/*)
 
 #NOVAR := $(shell echo $(OBJ_FILES) > objfiles.txt)
-
+ifdef SOLARIS_BUILD
+EXTRA_SHARED_LDFLAGS+=-L$(ASP_LIB) -lezxml -laisexec -ltotem_pg -llogsys
+else
 EXTRA_SHARED_LDFLAGS+=-L$(ASP_LIB) -lezxml
+endif
+#EXTRA_SHARED_LDFLAGS+=-L$(ASP_LIB) -lezxml
 
 # Library name:
 
