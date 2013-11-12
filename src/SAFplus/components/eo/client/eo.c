@@ -4488,7 +4488,6 @@ ClBoolT clEoQueueAmfResponseFind(ClUint32T pri)
 
 #ifdef NO_SAF
 extern ClIocConfigT pAllConfig;
-//extern ClBoolT gIsNodeRepresentative;
 extern ClInt32T clAspLocalId;
 extern ClHeapConfigT *pHeapConfigUser;
 static ClHeapConfigT heapConfig;
@@ -4540,29 +4539,29 @@ clExtInitialize ( ClInt32T ioc_address_local )
 
     if ((rc = clOsalInitialize(NULL)) != CL_OK)
     {
-        printf("Error: OSAL initialization failed\n");
+        clLogError("RMDSERVER", "clExtInitialize","OSAL initialization failed\n");
         return rc;
     }
     if ((rc = clMemInitialize()) != CL_OK)
     {
-        printf("Error: Heap initialization failed\n");
+        clLogError("RMDSERVER", "clExtInitialize","Heap initialization failed\n");
         return rc;
     }
     if ((rc = clTimerInitialize(NULL)) != CL_OK)
     {
-        printf("Error: Timer initialization failed\n");
+        clLogError("RMDSERVER", "clExtInitialize","Timer initialization failed\n");
         return rc;
     }
     if ((rc = clBufferInitialize(NULL)) != CL_OK)
     {
-        printf("Error: Buffer initialization failed\n");
+        clLogError("RMDSERVER", "clExtInitialize","Buffer initialization failed\n");
         return rc;
     }
     pAllConfig.iocConfigInfo.isNodeRepresentative = CL_TRUE;
     gIsNodeRepresentative = CL_TRUE;
     if ((rc = clIocLibInitialize(NULL)) != CL_OK)
     {
-        printf("Error: IOC initialization failed with rc = 0x%x\n", rc);
+        clLogError("RMDSERVER", "clExtInitialize","IOC initialization failed with rc = 0x%x\n", rc);
         exit(1);
     }
     return rc;
@@ -4587,7 +4586,7 @@ static ClRcT clRmdServerStart(ClEoExecutionObjT *pThis)
     gClEoTaskIds = calloc(1, sizeof(ClOsalTaskIdT));
     if(!gClEoTaskIds)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory for threads\n");
+        clLogError("RMDSERVER","clRmdServerStart","Error allocating memory for threads\n");
         goto eoStaticQueueInitialized;
     }
 
@@ -4729,9 +4728,6 @@ ClRcT clRmdServerCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
     if (rc != CL_OK)
     {
     	clLogError("RMDSERVER", "clRmdServerCreate","clIocCommPortCreate() failed, error [0x%x]", rc);
-        /*
-         * Do necessary cleanup
-         */
         goto rmdClientObjCreated;
     }
 
@@ -4746,13 +4742,6 @@ ClRcT clRmdServerCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
             goto rmdIocCommPortCreated;
         }
     }
-
-//    rc = clIocPortNotification((*ppThis)->eoPort, CL_IOC_NOTIFICATION_DISABLE);
-//    if(rc != CL_OK)
-//    {
-//    	clLogError("RMDSERVER", "clRmdServerCreate","Error : failed to disable the port notifications from IOC. error code [0x%x].", rc);
-//        exit(1);
-//    }
     rc = clIocPortNotification((*ppThis)->eoPort, CL_IOC_NOTIFICATION_ENABLE);
     if(rc != CL_OK)
     {

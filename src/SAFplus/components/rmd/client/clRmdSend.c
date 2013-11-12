@@ -160,11 +160,8 @@ ClRcT clRmdCreateAndAddRmdSendRecord(ClEoExecutionObjT *pThis,
     rec->recType.asyncRec.outLen = payloadLen;
     rec->recType.asyncRec.priority = pOptions->priority;
     rec->recType.asyncRec.destAddr = destAddr;
-    clLogNotice("RMD", "IOCSend","port send reply : %d  %d %d ",destAddr.iocPhyAddress.nodeAddress, destAddr.iocPhyAddress.portId,(int)destAddr.iocLogicalAddress );
     rec->recType.asyncRec.sndMsgHdl = message;
-
     rec->recType.asyncRec.timerID   = 0;
- 
     rec->recType.asyncRec.outMsgHdl = outMsgHdl;
 
     /*
