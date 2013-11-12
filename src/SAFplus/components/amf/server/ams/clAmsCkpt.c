@@ -713,6 +713,9 @@ clAmsCkptInitialize(
         };
     ClInt32T i;
     ClCharT *freq;
+    ClInt32T tries = 0;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
+    ClCkptCheckpointCreationAttributesT  *pCkptAttributes = &ckptAttributes;
 
     gClAmsCkptDifferential = clCkptDifferentialCheckpointStatusGet();
     if( (freq = getenv("CL_AMF_CKPT_FREQUENCY") ) )
@@ -766,13 +769,27 @@ clAmsCkptInitialize(
     ams->ckptVersionSection.length = strlen (AMS_CKPT_VERSION_SECTION) + 1;
 
     ams->ckptInitHandle = ckptInitHandle;
-    AMS_CHECK_RC_ERROR ( clCkptCheckpointOpen(
-                                              ckptInitHandle,
-                                              &ckptName,
-                                              &ckptAttributes,
-                                              flags,
-                                              timeout,
-                                              &ckptOpenHandle));
+    
+    do
+    {
+        rc = clCkptCheckpointOpen(ckptInitHandle,
+                                  &ckptName,
+                                  pCkptAttributes,
+                                  flags,
+                                  timeout,
+                                  &ckptOpenHandle);
+        tries++;
+        clLogNotice("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service, result [%x]", tries, rc);
+        if (CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc))
+        {
+            flags = (flags & (~CL_CKPT_CHECKPOINT_CREATE)) | CL_CKPT_CHECKPOINT_WRITE ;
+            pCkptAttributes  = NULL;
+        }
+    }while(rc != CL_OK && tries < 3 && clOsalTaskDelay(delay) == CL_OK);
+    if (rc != CL_OK)
+    {
+        goto exitfn;
+    }
     
     ams->ckptOpenHandle = ckptOpenHandle;
 
