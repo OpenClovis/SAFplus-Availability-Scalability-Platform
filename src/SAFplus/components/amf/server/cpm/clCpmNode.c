@@ -575,8 +575,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
     rc = clVersionVerify(&clCpmServerToServerVersionDb, &cpmLocalInfo.version);
     if(rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
-                   CL_LOG_MESSAGE_0_VERSION_MISMATCH);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL, CL_LOG_MESSAGE_0_VERSION_MISMATCH);
         rc = clCpmClientRMDAsyncNew(cpmLocalInfo.cpmAddress.nodeAddress, 
                                     CPM_NODE_SHUTDOWN, 
                                     (ClUint8T *)&(cpmLocalInfo.cpmAddress.nodeAddress), 1,
@@ -592,12 +591,10 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
     if(rc != CL_OK)
     {
         clOsalMutexUnlock(gpClCpm->cpmTableMutex);
-        clLogError("CPM", "REG", "Node [%s] not found. Failure code [%#x]", 
-                   cpmLocalInfo.nodeName, rc);
+        clLogError("CPM", "REG", "Node [%s] not found. Failure code [%#x]", cpmLocalInfo.nodeName, rc);
         goto failure;
     }
-    cpmL->pCpmLocalInfo =
-        (ClCpmLocalInfoT *) clHeapAllocate(sizeof(ClCpmLocalInfoT));
+    cpmL->pCpmLocalInfo = (ClCpmLocalInfoT *) clHeapAllocate(sizeof(ClCpmLocalInfoT));
     if (cpmL->pCpmLocalInfo == NULL)
     {
         clOsalMutexUnlock(gpClCpm->cpmTableMutex);
@@ -666,6 +663,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
          * Do the CPM\L dataSet checkpoint 
          */
         rc = cpmCkptCpmLDatsSet();
+        if (rc != CL_OK) clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM, "Cannot write checkpoint to indicate node arrival");        
         clOsalMutexUnlock(&gpClCpm->cpmMutex);
     }
     else

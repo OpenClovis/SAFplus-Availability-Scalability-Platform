@@ -3581,10 +3581,8 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
      */
     clOsalMutexLock(pInitInfo->ckptSvcMutex);
 
-    rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
-                            (void **)&pHdlInfo);
-    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
-                   ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
+    rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, (void **)&pHdlInfo);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, ("Ckpt: Handle checkout error rc[0x %x]\n",rc), rc);
               
     clEoMyEoIocPortGet(&iocPort);
     /*
@@ -3598,8 +3596,7 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
     }
     CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
-                   ("Ckpt: Improper permissions as ckpt was not opened in write"
-                    " or create mode, rc[0x %x]\n",rc), rc);
+                   ("Ckpt [%s]: Improper permissions as ckpt was not opened in write or create mode, rc[0x %x]\n",pHdlInfo->ckptName.value,rc), rc);
 
     /* 
      * Checkin the data associated with the checkpoint handle. 

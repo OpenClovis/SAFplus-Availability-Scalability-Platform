@@ -814,6 +814,7 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
              */
             if(node->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
             {
+                clLogWarning("AMF", "EVT", "Node [%s] is reentering cluster but still set as cluster member.  Returing try again.",pNodeName);
                 node->status.wasMemberBefore = CL_TRUE;
                 node->status.isClusterMember = CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER;
             }
