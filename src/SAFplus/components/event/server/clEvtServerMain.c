@@ -1516,7 +1516,11 @@ ClRcT VDECL(clEvtEventSubscribeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHand
                    "Failed to Unmarshall Buffer [%#X]", rc);
         goto failure;
     }
-
+	if(!clCpmIsMaster() && evtSubsReq.externalAddress!=0)
+    {
+         clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore subscribe broadcast from external app");
+         return CL_ERR_IGNORE_REQUEST;
+    }
     /*
      * Verify if the Version is Compatible 
      */

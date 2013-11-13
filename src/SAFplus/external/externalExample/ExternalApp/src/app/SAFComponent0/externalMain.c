@@ -75,21 +75,21 @@ appEventCallback( SaEvtSubscriptionIdT	subscriptionId,
 int main(int argc, char **argv)
 {
 
-    ClEoConfigT eoConfig =
-    {
-        CL_OSAL_THREAD_PRI_MEDIUM,    /* EO Thread Priority                       */
-        2,                            /* No of EO thread needed                   */
-        0,                            /* Required Ioc Port                        */
-        (CL_EO_USER_CLIENT_ID_START + 0), 
-        CL_EO_USE_THREAD_FOR_APP,     /* Thread Model                             */
-        NULL,                         /* Application Initialize Callback          */
-        NULL,                         /* Application Terminate Callback           */
-        NULL,                         /* Application State Change Callback        */
-        NULL                          /* Application Health Check Callback        */
-    };    
+//    ClEoConfigT eoConfig =
+//    {
+//        CL_OSAL_THREAD_PRI_MEDIUM,    /* EO Thread Priority                       */
+//        2,                            /* No of EO thread needed                   */
+//        0,                            /* Required Ioc Port                        */
+//        (CL_EO_USER_CLIENT_ID_START + 0), 
+//        CL_EO_USE_THREAD_FOR_APP,     /* Thread Model                             */
+//        NULL,                         /* Application Initialize Callback          */
+//        NULL,                         /* Application Terminate Callback           */
+//        NULL,                         /* Application State Change Callback        */
+//        NULL                          /* Application Health Check Callback        */
+//   };    
     int ioc_address_local = LOCAL_ADDRESS;
     ClRcT rc = CL_OK;
-    rc = clExtInitialize( ioc_address_local );
+    rc = clExtInitialize(ioc_address_local);
     if (rc != CL_OK)
     {
         printf("Error: failed to Initialize ASP libraries\n");
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
     }
     printf("Info: start rmd server\n");
 
-    rc = clExtRmdServerInit(eoConfig);
+    rc = clExtRmdServerInit(NULL);
 
     if(rc != CL_OK)
     {
@@ -137,7 +137,7 @@ int main(int argc, char **argv)
                     rc, time(0L));
             goto errorexit;
         }
-        sleep(20);
+        sleep(5);
         printf("EVENT ");
         rc = saEvtEventSubscribe(evtChannelHandle, NULL, 1);
         if (rc != SA_AIS_OK)
@@ -149,25 +149,18 @@ int main(int argc, char **argv)
         //open a global log stream and write several records
         printf("Open a global log stream and write several records\n");        
         alarmClockLogInitialize();
-        printf("close a global log stream and write several records\n");        
-        //alarmClockLogFinalize();
         printf("open a publisher event channel\n");        
         // open a publisher event channel and 
         openPublisherChannel();
         printf("start public event\n");        
         testEvtMainLoop();
-        printf("unsubscript public event\n");        
+        printf("close subscript event chanel.............................\n");        
         rc = saEvtChannelClose(evtChannelHandle);
 	if (rc != SA_AIS_OK) 
 		printf("Channel unsubscribe result: %d\n", rc);
         testEvtMainLoop();
-
     }    
-    do
-    {
-        sleep(20);
-        printf("Info : running ....");
-    }while(1);
+    return 0;
     errorexit:
         printf ("Initialization error [0x%x]\n",rc);
 }
@@ -312,7 +305,7 @@ testEvtMainLoop()
     while (1)
     {
         appPublishEvent();        
-        sleep(10);
+        sleep(3);
         i++;
         if(i==10)
         {
