@@ -1400,8 +1400,8 @@ typedef void (*ClEoCrashNotificationCallbackT)(const ClEoCrashNotificationT *cra
  */
 extern ClRcT clEoCrashNotificationRegister(ClEoCrashNotificationCallbackT callback);
 #ifdef NO_SAF
-extern ClRcT clExtRmdServerInitDefault();
-extern ClRcT clExtRmdServerInit(ClEoConfigT pConfig);
+//extern ClRcT clExtRmdServerInit();
+extern ClRcT clExtRmdServerInit(ClEoConfigT *pConfig);
 extern ClRcT rmdSeverInit(ClEoConfigT pConfig);
 extern ClRcT clExtInitialize ( ClInt32T ioc_address_local );
 #endif

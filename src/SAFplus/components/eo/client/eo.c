@@ -4790,17 +4790,13 @@ ClRcT clRmdServerCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
 }
 #define MAX_PENDING 0
 #define MAX_THREAD 8
-ClRcT clExtRmdServerInitDefault()
-{
-	return clExtRmdServerInit(extRmdConfig);
-}
 
-ClRcT clExtRmdServerInit(ClEoConfigT pConfig)
+ClRcT clExtRmdServerInit(ClEoConfigT *pConfig)
 {
 
-	clLogDebug("RMDSERVER", "rmdSeverInit","Enter startRmdServerSever");
-	ClRcT rc;
-	ClEoExecutionObjT *pThis = NULL;
+    clLogDebug("RMDSERVER", "rmdSeverInit","Enter startRmdServerSever");
+    ClRcT rc;
+    ClEoExecutionObjT *pThis = NULL;
     rc = clCntHashtblCreate(EO_BUCKET_SZ, eoGlobalHashKeyCmp,
             eoGlobalHashFunction, eoGlobalHashDeleteCallback,
             eoGlobalHashDeleteCallback, CL_CNT_UNIQUE_KEY,
@@ -4821,20 +4817,30 @@ ClRcT clExtRmdServerInit(ClEoConfigT pConfig)
         CL_FUNC_EXIT();
         return rc;
     }
-	eoProtoInit();
-    rc=clRmdServerCreate(&pConfig,&pThis);
+    eoProtoInit();
+    if(pConfig!=NULL)
+    {
+        clLogDebug("RMDSERVER", "rmdSeverInit","Rmd Server Init with user configuration");
+        rc=clRmdServerCreate(pConfig,&pThis);
+
+    }
+    else
+    {
+        clLogDebug("RMDSERVER", "rmdSeverInit","Rmd Server Init with default configuration");
+        rc=clRmdServerCreate(&extRmdConfig,&pThis);
+    }
     if(rc != CL_OK)
-	{
-	    clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
-	    return rc;
-	}
-	if(pThis == NULL)
-	{
-	    clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
-	    return rc;
-	}
-	clLogDebug("RMDSERVER", "rmdSeverInit","init queue");
-	clJobQueueInit(&pRmdQueue, MAX_PENDING, MAX_THREAD);
+    {
+	clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
+	return rc;
+    }
+    if(pThis == NULL)
+    {
+        clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
+	return rc;
+    }
+    clLogDebug("RMDSERVER", "rmdSeverInit","init queue");
+    clJobQueueInit(&pRmdQueue, MAX_PENDING, MAX_THREAD);
     return rc;
 }
 
