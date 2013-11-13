@@ -402,7 +402,7 @@ def start_amf_watchdog(stop_watchdog = True):
 	stop_amf_watchdog()
     #pdb.set_trace()
     log.info('Starting AMF watchdog...')
-    cmd = '%s/safplus_watchdog.py' % get_asp_etc_dir()
+    cmd = 'nohup %s/safplus_watchdog.py & ' % get_asp_etc_dir()
     os.system(cmd)
 
 def stop_led_controller():
@@ -962,7 +962,7 @@ def get_amf_pid():
 
         return cwd == get_asp_run_dir()
     
-    l = os.popen('ps -A | grep safplus_amf').readlines()
+    l = os.popen('ps -o pid,comm -A | grep safplus_amf').readlines()
     l = [int(e.split()[0]) for e in l]
 
     l = filter(get_pid_for_this_sandbox, l)
