@@ -1426,6 +1426,15 @@ ClRcT xportNotifyClose(ClIocNodeAddressT nodeAddress, ClIocPortT port,
     return rc;
 }
 
+/*
+ * Return fd for local port
+ */
+ClRcT xportFdGet(ClIocCommPortHandleT commPort, ClInt32T *fd)
+{
+    ClIocCommPortT *pCommPort = (ClIocCommPortT*)commPort;
+    return clUdpFdGet(pCommPort->portId, fd);
+}
+
 // Get socket created associate portId
 ClRcT clUdpFdGet(ClIocPortT port, ClInt32T *fd)
 {

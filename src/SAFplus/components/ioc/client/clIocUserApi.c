@@ -788,7 +788,7 @@ ClRcT clIocCommPortDelete(ClIocCommPortHandleT portId)
     return rc;
 }
 
-ClRcT clIocCommPortFdGet(ClIocCommPortHandleT portHandle, ClInt32T *pFd)
+ClRcT clIocCommPortFdGet(ClIocCommPortHandleT portHandle, const ClCharT *xportType, ClInt32T *pFd)
 {
     ClIocCommPortT *pPortHandle = (ClIocCommPortT*)portHandle;
     
@@ -804,7 +804,7 @@ ClRcT clIocCommPortFdGet(ClIocCommPortHandleT portHandle, ClInt32T *pFd)
         return CL_IOC_RC(CL_ERR_NULL_POINTER);
     }
 
-    return CL_IOC_RC(CL_ERR_NOT_SUPPORTED);
+    return clTransportFdGet(portHandle, xportType, pFd);
 }
 
 #ifdef CL_IOC_COMPRESSION
