@@ -1135,6 +1135,23 @@ def remove_lock_file(asp_file):
     cmd = '[ -f %s ] && rm -f %s' % (asp_file, asp_file)
     system(cmd)
 
+def force_restart_safplus():
+    save_asp_runtime_files()
+    if is_tipc_build():
+        load_config_tipc_module()
+    set_ld_library_paths()
+    if is_system_controller():
+        start_snmp_daemon()
+    if is_simulation():
+        setup_gms_config()
+    run_custom_scripts('start')
+    start_amf()
+    if is_system_controller() and not is_simulation():
+        start_hpi_subagent()
+    if not is_simulation():
+        start_led_controller()
+
+
 def start_asp(stop_watchdog=True, force_start = False):
     try:
         if False and not force_start:
