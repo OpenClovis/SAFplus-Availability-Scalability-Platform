@@ -375,7 +375,33 @@ static void *clAmsClusterStateVerifier(void *cookie)
             }
         }
         
-        clOsalTaskDelay(delay);
+        clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
+        clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
+        clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
+        if (!gpClCpm)  /* Process is down! (should never happen b/c we are holding a reference) */
+        {
+            return NULL;
+        }
+        else       
+        {   
+            ClEoExecutionObjT *cpmEoObj = gpClCpm->cpmEoObj;
+            if (!cpmEoObj) return NULL;
+        
+            if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP))
+            {
+                clEoRefDec(cpmEoObj);
+#if 0            
+                clOsalMutexLock(&cpmEoObj->eoMutex);
+                if(cpmEoObj->refCnt > 0 )
+                {
+                    --cpmEoObj->refCnt;
+                }
+                clOsalCondSignal(&cpmEoObj->eoCond);
+                clOsalMutexUnlock(&cpmEoObj->eoMutex);
+#endif            
+            }
+        }
+        
     }
 
     return NULL;
@@ -552,7 +578,7 @@ clAmsStart(
 
     }
 
-    
+    clEoRefInc(gpClCpm->cpmEoObj);    
     /* Instantiate cluster state verifier */
     clOsalTaskCreateDetached("cluster state verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clAmsClusterStateVerifier, NULL);
 
