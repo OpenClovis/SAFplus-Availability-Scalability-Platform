@@ -1150,8 +1150,7 @@ clLogFlusherExternalRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
     ClUint32T           buffLen   = 0;
     ClIocNodeAddressT   localAddr = 0;
     ClUint8T            *pBuffer  = NULL;
-    ClBoolT             doMulticast = CL_FALSE;
-    clLogDebug("LOG", "FLS", "Minh : Enter clLogFlusherExternalRecordsGetMcast");
+    ClBoolT             doMulticast = CL_FALSE;    
     if(pFlushRecord->multicast < 0 )
     {
         doMulticast = ( (0 < (pStreamData->ackersCount + pStreamData->nonAckersCount)) &&
@@ -1194,8 +1193,7 @@ clLogFlusherExternalRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
 ClRcT
 clLogFlusherExternalRecordsFlush(ClLogSvrStreamDataT  *pStreamData,
 		                             ClUint8T          *pRecord)
-{
-	clLogDebug("LOG", "FLS", "Enter clLogFlusherExternalRecordsFlush function");
+{	
     ClRcT     rc        = CL_OK;
     ClLogStreamHeaderT     *pHeader           = pStreamData->pStreamHeader;
     ClLogSvrCommonEoDataT  *pSvrCommonEoEntry = NULL;

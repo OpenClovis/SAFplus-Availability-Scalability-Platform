@@ -1109,6 +1109,7 @@ clLogClntStreamCloseLocked(ClLogClntEoDataT *pClntEoEntry,
         return rc;
     }
 
+#ifndef NO_SAF
     if( 0 == nBits )
     {
         CL_LOG_DEBUG_VERBOSE(("Deleting the node for: %.*s",
@@ -1120,6 +1121,7 @@ clLogClntStreamCloseLocked(ClLogClntEoDataT *pClntEoEntry,
             return rc;
         }
     }
+#endif
 
     /* Async without response at-most-once */
     if( CL_TRUE == notifySvr )
