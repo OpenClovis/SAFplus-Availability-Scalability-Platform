@@ -266,7 +266,9 @@ ClBoolT clAmsHasNodeJoined(ClUint32T slotId)
 {
     ClRcT rc;
     ClCpmLT *cpmL=NULL;
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     rc = cpmNodeFindByNodeId(slotId,&cpmL);
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     if (rc == CL_OK) return CL_TRUE;
     if (rc == CL_CPM_RC(CL_ERR_DOESNT_EXIST)) return CL_FALSE;
     clDbgCodeError(rc,("cpmNodeFindByNodeId failed for slot [%d], rc [%x:%s]",slotId,rc,clErrorToString(rc)));
