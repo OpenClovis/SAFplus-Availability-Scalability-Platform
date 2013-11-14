@@ -65,7 +65,7 @@ ClRcT alarmClockLogInitialize( void )
      * ClTimeT   timeout      - timeout set to zero, if failed return immed.
      * ClLogStreamHandleT *   - stream handle returned if successful
     */
-    printf("open clockStream \n");
+    printf("....................open clockStream.................... \n");
     rc = clLogStreamOpen(logSvcHandle, 
                          streamName, 
                          CL_LOG_STREAM_GLOBAL,
@@ -82,19 +82,7 @@ ClRcT alarmClockLogInitialize( void )
         (void)clLogFinalize(logSvcHandle);
         return rc;
     }
-
-#if 1   
-    /* Log a message to the stream being created
-     * ClLogStreamHandleT   - returned from clLogStreamOpen()
-     * ClLogSeverityT       - defined in clLogApi.h
-     * ClUint16T  serviceid - identifies the module within a process that 
-     *                       generates the log message
-     * ClUint16T   msgId    - identifies msg type being logged
-     *                      - CL_LOG_MSGID_PRINTF_FMT (ASCII)
-     *                      - CL_LOG_MSGID_BUFFER     (Binary)
-     *                             
-     */
-    printf("WRITE to clockStream \n");
+    printf("......................write record to to clockStream.................... \n");
     int count=0;
     do
     {
@@ -108,7 +96,9 @@ ClRcT alarmClockLogInitialize( void )
         sleep(1);
       
     }while(count <=2);
-#endif
+
+    printf("......................close clockStream.................... \n");
+    rc = clLogStreamClose(streamHandle);
     return CL_OK;
 }
 
@@ -139,7 +129,5 @@ void alarmClockLogFinalize( void )
         // Error occured. Take appropriate action.
         clprintf(CL_LOG_SEV_ERROR, "Failed to close clockStream : %x\n", rc);
     }
-    
-    //
     (void)clLogFinalize(logSvcHandle);
 }
