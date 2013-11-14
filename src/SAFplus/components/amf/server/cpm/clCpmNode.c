@@ -1867,9 +1867,11 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
 
     clHeapFree(pCpmLocalInfo);
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP,
-               "Updating the CPM checkpoints...");
-    cpmCkptCpmLDatsSet();
+    if (strcmp(nodeName.value, gpClCpm->pCpmLocalInfo->nodeName))
+    {
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP, "Updating the CPM checkpoints...");
+        cpmCkptCpmLDatsSet();
+    }
 
     /*
      * TODO:
