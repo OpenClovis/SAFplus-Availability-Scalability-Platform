@@ -97,7 +97,7 @@ def amf_watchdog_loop():
                     ## retransmit failures due to pending ACK thereby resulting
                     ## in all the TIPC links being reset.
                     wdSleep(SAFPLUS_RESTART_DELAY)
-                    asp.start_asp(stop_watchdog=False, force_start=True)
+                    asp.force_restart_safplus()
                     asp.create_asp_cmd_marker('start')
                     sys.exit(1)
                 elif os.access(reboot_file, os.F_OK):
@@ -157,9 +157,11 @@ def amf_watchdog_loop():
 
 
             wdSleep(monitor_interval)
-        except:
-            pass
- 
+        except Exception,e:
+            logging.critical('%s: SAFplus watchdog received exception %s' % (time.strftime('%a %d %b %Y %H:%M:%S'),str(e)))
+            logging.critical('traceback: %s',traceback.format_exc())
+            
+
 def redirect_file():
 
     UMASK = 0
