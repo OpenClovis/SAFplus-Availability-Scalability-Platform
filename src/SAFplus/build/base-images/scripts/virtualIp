@@ -1,3 +1,4 @@
 #!/bin/bash
 echo /sbin/ifconfig $4 $2 netmask $3 $1
+/sbin/ifconfig $4 plumb $1
 /sbin/ifconfig $4 $2 netmask $3 $1

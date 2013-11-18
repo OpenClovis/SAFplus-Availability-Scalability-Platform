@@ -578,10 +578,13 @@ out:
 /* ip route configure */
 void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDevName)
 {
+    #ifndef SOLARIS_BUILD
     FILE *route_file;
     ClUint32T dest;
     ClCharT dummyStr[CL_MAX_NAME_LENGTH];
     ClCharT dummyDev[CL_MAX_FIELD_LENGTH];
+    #endif
+    ClCharT devIpAddress[CL_MAX_FIELD_LENGTH];
     ClUint32T ipMulticast;
     ClBoolT foundDestRoute = CL_FALSE;
     __attribute__((unused)) ClRcT result;
@@ -589,6 +592,7 @@ void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDe
     clPluginHelperConvertInternetToHostAddress(&ipMulticast, ipAddress);
 
     // open route file to get the route destination
+#ifndef SOLARIS_BUILD   /* we need to find the file which routing info in solaris*/
     route_file = fopen("/proc/net/route", "r");
 
     result = fscanf(route_file, "%[^\n]", dummyStr);
@@ -603,11 +607,17 @@ void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDe
         }
     }
     fclose(route_file);
+#endif 
 
     if (!foundDestRoute)
     {
         char execLine[301];
+        #ifndef SOLARIS_BUILD
         snprintf(execLine, 300, "/sbin/ip route add %s dev %s", ipAddress, ifDevName);
+        #else
+        clPluginHelperDevToIpAddress(ifDevName,devIpAddress);
+        snprintf(execLine, 300, "/sbin/route add %s -interface %s",ipAddress,devIpAddress);
+        #endif
         clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
         result = system(execLine);
     }
