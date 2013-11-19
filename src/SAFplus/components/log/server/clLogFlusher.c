@@ -233,11 +233,10 @@ clLogFlushIntervalThreadCreate(ClLogSvrStreamDataT  *pSvrStreamData,
 }
 
 /*
- * This is the main flusher therad function. This is where the flusher action
+ * This is the main flusher thread function. This is where the flusher action
  * starts.
  */
-void*
-clLogFlusherStart(void  *pData)
+void* clLogFlusherStart(void  *pData)
 {
     ClRcT              rc             = CL_OK;
     ClLogSvrStreamDataT  *pStreamData = pData;

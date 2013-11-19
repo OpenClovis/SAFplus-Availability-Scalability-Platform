@@ -436,7 +436,6 @@ clLogStreamHashFn(ClCntKeyHandleT key)
     return ((ClLogStreamKeyT *) key)->hash;
 }
 
-
 ClRcT
 clLogStreamKeyCreate(ClNameT          *pStreamName,
                      ClNameT          *pNodeName,

@@ -656,8 +656,7 @@ static ClRcT cpmAllocate(void)
 
 static void cpmSigintHandler(ClInt32T signum)
 {
-    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                  "Caught SIGINT or SIGTERM signal, shutting down the node...");
+    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Caught signal [%d]. Should be SIGINT or SIGTERM signal, shutting down the node...",signum);
     clCpmNodeShutDown(clIocLocalAddressGet());
 }
 
