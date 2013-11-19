@@ -199,8 +199,14 @@ ClRcT   nameSvcFinalize(ClInvocationT invocation,
     clCntWalk(gNSHashTable, _nameSvcContextLevelWalkForFinalize, NULL, 0);
     clCntDelete(gNSHashTable);
     gNSHashTable = 0;
-    /* Finalize ckpt lib */    
-    clNameSvcCkptFinalize();
+
+    /* Finalize ckpt lib */
+    if (sNSInitDone)
+    {
+        clNameSvcCkptFinalize();
+        sNSInitDone = 0;
+    }
+
     clHeapFree(gpContextIdArray);
     clHeapFree(gNSClientToServerVersionInfo.versionsSupported);
     clHeapFree(gNSServerToServerVersionInfo.versionsSupported);
@@ -3146,14 +3152,13 @@ ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
                 CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Couldnt update the peers \n"));
         }
     }
-    if( (nsInfo->contextId >= CL_NS_DEFAULT_NODELOCAL_CONTEXT) 
-            || (sdAddr == gMasterAddress) )
+    if (((nsInfo->contextId >= CL_NS_DEFAULT_NODELOCAL_CONTEXT) || (sdAddr == gMasterAddress)) && sNSInitDone)
     {
-        if( CL_OK != (ret = clNameCkptCtxAllDSDelete(nsInfo->contextId, dsIdCnt, freeDsIdMap, freeMapSize)))
+        if (CL_OK != (ret = clNameCkptCtxAllDSDelete(nsInfo->contextId, dsIdCnt, freeDsIdMap, freeMapSize)))
         {
             CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("clNameCkptCtxAllDSDelete(): rc[0x %x]", ret));
-        }    
+            ("clNameCkptCtxAllDSDelete(): rc[0x %x]", ret));
+        }
     }
 
     clHeapFree(freeDsIdMap);
@@ -4762,6 +4767,9 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     ClEoExecutionObjT*  pEOObj       = NULL;
     ClVersionT*         pTempVersion = NULL;
     ClUint32T           count        = 0;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
+    ClInt32T tries = 0;
+
     CL_FUNC_ENTER();
                                                                                                                              
     if(sNSInitDone)
@@ -4927,27 +4935,14 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
         return rc;
     }
 
-    int retries = 5;
     do
     {
-  	rc = clNameSvcCkptInit();
-        clLogInfo("SVR", "INI", "clNameSvcCkptInit return  [0x %x] ",rc);
-        if( CL_OK != rc )
-        {
-            retries--;
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("clNameSvcCkptInit() rc[0x %x],try again", rc));
-            if (sleep(1) != 0)
-            {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                        ("Failure in sleep system call: %s",strerror(errno)));
-            }            
-        }
-        else
-        {
-            break;
-        }
-    }while(retries);
-    if(rc != CL_OK)
+        rc = clNameSvcCkptInit();
+        tries++;
+        clLogNotice("SVR", "INI", "Try [%d] of [5] to initialize name checkpoint service, result [0x%x]", tries, rc);
+    } while(rc != CL_OK && tries < 5 && clOsalTaskDelay(delay) == CL_OK);
+
+    if (rc != CL_OK)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_WARNING, NULL,
                    CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "ckpt", rc);
