@@ -71,7 +71,7 @@
 ClAmsT  gAms;
 
 ClBoolT gAmsDBRead = CL_FALSE;
-
+ClOsalTaskIdT gClusterStateVerifierTask;
 ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs = NULL;
 
 ClCpmCpmToAmsCallT gCpmToAmsCallbackFuncs = {
@@ -389,18 +389,9 @@ static void *clAmsClusterStateVerifier(void *cookie)
             ClEoExecutionObjT *cpmEoObj = gpClCpm->cpmEoObj;
             if (!cpmEoObj) return NULL;
         
-            if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP))
+            if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP) || !gpClCpm->polling)
             {
                 clEoRefDec(cpmEoObj);
-#if 0            
-                clOsalMutexLock(&cpmEoObj->eoMutex);
-                if(cpmEoObj->refCnt > 0 )
-                {
-                    --cpmEoObj->refCnt;
-                }
-                clOsalCondSignal(&cpmEoObj->eoCond);
-                clOsalMutexUnlock(&cpmEoObj->eoMutex);
-#endif            
             }
         }
         
@@ -582,8 +573,7 @@ clAmsStart(
 
     clEoRefInc(gpClCpm->cpmEoObj);    
     /* Instantiate cluster state verifier */
-    clOsalTaskCreateDetached("cluster state verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clAmsClusterStateVerifier, NULL);
-
+    clOsalTaskCreateAttached("cluster state verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clAmsClusterStateVerifier, NULL,&gClusterStateVerifierTask);
     return CL_OK;
 }
 
@@ -623,6 +613,10 @@ clAmsFinalize(
         return CL_OK;
     }
 
+    gpClCpm->polling = CL_FALSE;                       // kick the verifier out of its loop
+    clOsalCondBroadcast(&gpClCpm->cpmEoObj->eoCond);  // Wake up the cluster state verifier (and anybody else that needs to be quitting)
+    clOsalTaskJoin(gClusterStateVerifierTask);        // wait until the thread is done before shutting down the rest & removing variables
+    
     clAmsEntityTriggerFinalize();
 
     clAmsEntityUserDataFinalize();
