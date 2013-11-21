@@ -725,7 +725,7 @@ ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
 {
     ClRcT rc = CL_OK;
     ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 200 };
-    ClIocPhysicalAddressT compAddr = { .nodeAddress = CL_IOC_BROADCAST_ADDRESS, .portId = CL_IOC_CPM_PORT };
+    ClIocPhysicalAddressT compAddr = { .nodeAddress = CL_IOC_BROADCAST_ADDRESS, .portId = CL_IOC_GMS_PORT };
     ClTimerTimeOutT delay = { .tsSec = 0, .tsMilliSec = 200 };
     ClUint32T i = 0;
     ClBufferHandleT message = 0;
