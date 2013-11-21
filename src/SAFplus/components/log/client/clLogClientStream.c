@@ -470,6 +470,7 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
     ClUint8T              *pStreamRecords = NULL;
     ClUint32T             nUnAcked        = 0;
     ClUint8T              *pBuffer        = NULL;
+    ClUint32T             recordSize = 0;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     CL_LOG_DEBUG_VERBOSE(("Severity: %d ServiceId: %hu MsgId: %hu CompId: %u",
@@ -519,10 +520,13 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
 
     pBuffer = pStreamRecords + (pStreamHeader->recordSize *
               (pStreamHeader->recordIdx % pStreamHeader->maxRecordCount));
+    recordSize = pStreamHeader->recordSize;
+    pBuffer[recordSize] = CL_LOG_RECORD_WRITE_INPROGESS; //Mark Record Write In-Progress
+
     rc = clLogClientMsgWriteWithHeader(severity, pStreamHeader->streamId, serviceId,
                                        msgId, pClntEoEntry->clientId, pStreamHeader->sequenceNum,
                                        pMsgHeader, args,
-                                       pStreamHeader->recordSize, pBuffer);
+                                       recordSize - 1, pBuffer);
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clLogClientStreamMutexUnlock(pClntData), CL_OK);
@@ -543,6 +547,8 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
     ++pStreamHeader->flushCnt;
     CL_LOG_DEBUG_TRACE(("recordIdx: %u startAck: %u",
                           pStreamHeader->recordIdx, pStreamHeader->startAck));
+
+    pBuffer[recordSize] = CL_LOG_RECORD_WRITE_COMPLETE; //Mark Record Write Completed
 
     if( (0 != pStreamHeader->flushFreq) &&
         (pStreamHeader->flushCnt == pStreamHeader->flushFreq) )

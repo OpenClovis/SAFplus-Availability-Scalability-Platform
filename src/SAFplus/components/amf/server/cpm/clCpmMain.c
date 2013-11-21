@@ -2722,9 +2722,11 @@ static void cpmInvokeNodeCleanup(void)
 
 void cpmCommitSuicide(void)
 {
+    clLogAlert("AMF", "QIT", "AMF is stopping itself");
     cpmInvokeNodeCleanup();
     cpmKillAllComponents();
-    kill(0, SIGKILL);
+    exit(0);
+    //kill(0, SIGKILL);  // Stone: Why SIGKILL?
 }
 
 void cpmReset(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
@@ -2751,12 +2753,16 @@ void cpmReset(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
 void cpmRestart(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
 {
     FILE *fptr = NULL;
-
-    if( !pDelay || !pPersonality)
-        return;
-
-    if(pDelay->tsSec >= 3)
-        pDelay->tsSec >>= 1;
+    ClTimerTimeOutT defaultTime;
+    if (!pDelay)
+    {
+        defaultTime.tsSec = 2;
+        defaultTime.tsMilliSec = 0;
+        pDelay = &defaultTime;
+    }
+    
+        //if(pDelay->tsSec >= 3)
+        //    pDelay->tsSec >>= 1;
     /*
      *
      * We give a delay here, coz if it was a link snap and a 
@@ -2765,25 +2771,20 @@ void cpmRestart(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
      * sent by the kernel topology service to the subscribers, incase
      * we die at/before link re-establishment happens.
      */
-    clOsalTaskDelay(*pDelay);
+    clOsalTaskDelay(*pDelay);   
 
     fptr = fopen(CL_CPM_RESTART_FILE, "w");
     if(!fptr)
     {
-        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-                      "CPM %s recovery failure to trigger the restart. "\
-                      "Please ensure you restart ASP again", pPersonality);
+        if (!pPersonality) pPersonality = "";
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM, "AMF %s recovery failure to trigger the restart. Please ensure you restart SAFplus again", pPersonality);
 
     }
     else
     {
         fclose(fptr);
-        cpmCommitSuicide();
-        /*
-         * unreached.
-         */
     }
-
+    cpmCommitSuicide();
 }
 
 static void cpmRestartWorkers(void)
@@ -2917,6 +2918,7 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     ClRcT rc = CL_OK;
     ClCpmLocalInfoT *pCpmLocalInfo = NULL;
 
+    /* We are already active so nothing to do */
     if (gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE)
     {
         return rc;
@@ -2932,26 +2934,22 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
         goto failure;
     }
 
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
-                "Node [%d] is changing HA state from standby to active",
-                pCpmLocalInfo->nodeId);
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS, "Node [%d] is changing HA state from standby to active", pCpmLocalInfo->nodeId);
 
     /*
-     * Check if this node is capable of failing over before triggering
-     * the failover as it neednt be fully up to become active
+     * Check if this node is capable of failing over before triggering the failover as it neednt be fully up to become active
      */
     cpmFailoverRecover();
     rc = cpmUpdateTL(CL_AMS_HA_STATE_ACTIVE);
     if (rc != CL_OK)
     {
-        clLogCritical(CPM_LOG_AREA_CPM,
-                      CPM_LOG_CTX_CPM_TL,
-                      CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
-        goto failure;
+        // will only happen if the IOC transparent address can't be registered due to a conflict or a programmatic error
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_TL, CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
+        cpmRestart(NULL, "controller");
+        CL_ASSERT(0);  // There is no return from cpmRestart...        
     }
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP,
-               "CPM reading its own checkpoints...");
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP, "AMF reading its own checkpoints...");
     rc = cpmCpmLCheckpointRead();
     if (CL_OK != rc)
     {
@@ -2969,8 +2967,7 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
                       "which has been mostly seen to be caused by xport config. issues."
                       "This node would be restarted in [%d] seconds", delay.tsSec);
         cpmRestart(&delay, "controller");
-        cpmSelfShutDown();
-        goto failure;
+        CL_ASSERT(0);  // There is no return from cpmRestart...
     }
 
     /*
@@ -2979,28 +2976,22 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     if ((gpClCpm->cpmToAmsCallback != NULL) && 
         (gpClCpm->cpmToAmsCallback->amsStateChange != NULL))
     {
-        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
-                   "Informing AMS on node [%d] to change state "
-                   "from standby to active...",
-                   pCpmLocalInfo->nodeId);
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS, "Informing AMF on node [%d] to change state from standby to active...", pCpmLocalInfo->nodeId);
 
-        rc = gpClCpm->cpmToAmsCallback->amsStateChange(CL_AMS_STATE_CHANGE_STANDBY_TO_ACTIVE |
-                                                       CL_AMS_STATE_CHANGE_USE_CHECKPOINT);
+        rc = gpClCpm->cpmToAmsCallback->amsStateChange(CL_AMS_STATE_CHANGE_STANDBY_TO_ACTIVE | CL_AMS_STATE_CHANGE_USE_CHECKPOINT);
         if (CL_OK != rc)
         {
-            clLogMultiline(CL_LOG_CRITICAL,
-                           CPM_LOG_AREA_CPM,
-                           CPM_LOG_CTX_CPM_AMS,
-                           "AMS state change from standby to active "
-                           "returned [%#x] -- \n"
-                           "The cluster has become unstable. \n"
-                           "Shutting down all the nodes in the cluster and "
-                           "doing self shutdown...",
-                           rc);
+            clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_AMS,
+                           "AMF state change from standby to active returned [%#x].\n"
+                           "This AMF is unable to become master.  Restarting. ",rc);
+            cpmRestart(NULL, "active");
+
+            /*  Stone: In this case I do not want to shutdown, I want to be restarted.
             cpmFailoverRecover();
             cpmShutdownAllNodes();
             cpmSelfShutDown();
-            goto failure;
+            */
+            CL_ASSERT(0);  // Should never be hit, Suicide should exit...
         }
 
         cpmWriteNodeStatToFile("AMS", CL_YES);
@@ -3209,7 +3200,7 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
             if (cpmIsCriticalComponent(&compName))
             {
                 clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
-                              "Critical ASP component [%s] failed. Killing node [%s]",
+                              "Critical SAFplus component [%s] failed. Killing node [%s]",
                               compName.value,
                               gpClCpm->pCpmLocalInfo->nodeName);
                 cpmCommitSuicide();
