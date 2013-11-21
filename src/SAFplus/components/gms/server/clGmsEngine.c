@@ -250,7 +250,7 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
     notification.id = ntohl(notification.id);
     notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
-    
+
     gmsNotificationCallback(notification.id, 0, &notification.nodeAddress);
 
     if ((notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION) && (notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet()))
@@ -260,7 +260,7 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
         if (length-sizeof(notification) >= sizeof(ClUint32T))  /* leader status is appended onto the end of the message */
         {
             ClUint32T reportedLeader = 0;
-            //ClRcT rc = clBufferHeaderTrim(eoRecvMsg, sizeof(notification));
+            len = sizeof(ClUint32T);
             if (1) // rc == CL_OK)
             {
                 ClIocNodeAddressT currentLeader;
@@ -269,8 +269,8 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
                 if (clNodeCacheLeaderGet(&currentLeader)==CL_OK)
                 {
                     if (currentLeader == reportedLeader)
-                    {                        
-                    clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].  Consistent with this node.", currentLeader, reportedLeader);
+                    {
+                        clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].  Consistent with this node.", currentLeader, reportedLeader);
                     }
                     else
                     {
@@ -284,8 +284,8 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
                 }
                 else
                 {
-                clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader);
-                clNodeCacheLeaderSet(reportedLeader);
+                    clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader);
+                    clNodeCacheLeaderSet(reportedLeader);
                 }
             }
         }
