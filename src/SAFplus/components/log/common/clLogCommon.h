@@ -98,8 +98,6 @@ extern "C" {
         }                                                   \
     }while( 0 )
 
-#define CL_LOG_RECORD_WRITE_INPROGESS   1
-#define CL_LOG_RECORD_WRITE_COMPLETE    2
 #define CL_LOG_RECORD_HEADER_SIZE       20
 #define CL_LOG_MAX_RETRIES              3
 /* FIXME: The Data below should be read from configuration */

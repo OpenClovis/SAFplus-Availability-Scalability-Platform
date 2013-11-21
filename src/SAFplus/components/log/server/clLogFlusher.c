@@ -233,11 +233,10 @@ clLogFlushIntervalThreadCreate(ClLogSvrStreamDataT  *pSvrStreamData,
 }
 
 /*
- * This is the main flusher therad function. This is where the flusher action
+ * This is the main flusher thread function. This is where the flusher action
  * starts.
  */
-void*
-clLogFlusherStart(void  *pData)
+void* clLogFlusherStart(void  *pData)
 {
     ClRcT              rc             = CL_OK;
     ClLogSvrStreamDataT  *pStreamData = pData;
@@ -834,10 +833,6 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
     ClUint32T           size      = 0;
     ClUint32T           firstBatch = 0;
     ClBoolT             doMulticast = CL_FALSE;
-    ClUint32T           recordIndex  = 0;
-    ClUint32T           recordSize = 0;
-    ClUint32T           validRecordCount= 0;
-    ClUint32T           secondBatch = 0;
 
     if(pFlushRecord->multicast < 0 )
     {
@@ -864,48 +859,25 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
         nRecords = pHeader->maxRecordCount;
 
     buffLen = nRecords * pHeader->recordSize;
-    recordSize = pHeader->recordSize;
-    CL_ASSERT(recordSize < 4*1024);  // Sanity check the log record size
-    
-    clLogDebug(CL_LOG_AREA_SVR, "FLU", "startIdx: %u maxRec: %u nRecords: %u startIdx: %d recordIdx: %d", startIdx, pHeader->maxRecordCount, nRecords, pHeader->startAck, pHeader->recordIdx);
+
+    clLogDebug(CL_LOG_AREA_SVR, "FLU", "startIdx: %u maxRec: %u nRecords: %u startIdx: %d recordIdx: %d", startIdx,
+               pHeader->maxRecordCount, nRecords, pHeader->startAck, pHeader->recordIdx);
     if( (startIdx + nRecords) <= pHeader->maxRecordCount )
     {
         pBuffer = pRecords + (startIdx * pHeader->recordSize);
-        pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs, (pFlushRecord->numBufs+1) * sizeof(*pFlushRecord->pBuffs));
+        pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs, 
+                                             (pFlushRecord->numBufs+1) * sizeof(*pFlushRecord->pBuffs));
         CL_ASSERT(pFlushRecord->pBuffs != NULL);
-        memset(pFlushRecord->pBuffs + pFlushRecord->numBufs, 0, sizeof(*pFlushRecord->pBuffs));
+        memset(pFlushRecord->pBuffs + pFlushRecord->numBufs, 0, 
+               sizeof(*pFlushRecord->pBuffs));
         pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = clHeapCalloc(sizeof(ClUint8T), buffLen);
         CL_ASSERT(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord != NULL);
-        pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords = 0;
-        for (validRecordCount =0, recordIndex = 0; recordIndex < nRecords; recordIndex++)
-        {
-            if ((pBuffer + (recordIndex * pHeader->recordSize))[recordSize]  == CL_LOG_RECORD_WRITE_COMPLETE)
-            {
-                validRecordCount++;
-                (pBuffer + (recordIndex * pHeader->recordSize))[recordSize] = ' '; //To mask this byte in the logs.
-            }
-            else
-            {
-                memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord, pBuffer, (validRecordCount *  pHeader->recordSize));
-                pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords += validRecordCount;
-                pBuffer += (validRecordCount * pHeader->recordSize);
-                validRecordCount = 0;
-                CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pBuffer, validRecordCount * pHeader->recordSize));
-            }
-        }
-        if (validRecordCount != nRecords)
-        {
-            memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord, pBuffer, (validRecordCount *  pHeader->recordSize));
-            pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords += validRecordCount;
-            pFlushRecord->numBufs++;
-            CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pBuffer, validRecordCount * pHeader->recordSize));
-        }
-        else
-        {
-            memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord, pBuffer, buffLen);
-            pFlushRecord->pBuffs[pFlushRecord->numBufs++].numRecords = nRecords;
-            CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pRecords + (startIdx*pHeader->recordSize), nRecords * pHeader->recordSize));
-        }
+        memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord,
+               pBuffer, buffLen);
+        pFlushRecord->pBuffs[pFlushRecord->numBufs++].numRecords = nRecords;
+
+        CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pRecords + (startIdx*pHeader->recordSize),
+                              nRecords * pHeader->recordSize));
     }
     else
     {
@@ -917,76 +889,17 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
             firstBatch = pHeader->maxRecordCount - startIdx;
             size = firstBatch * pHeader->recordSize;
             pBuffer = pRecords + (startIdx * pHeader->recordSize);
-            secondBatch = nRecords + startIdx - pHeader->maxRecordCount;
             pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs,
                                                  (pFlushRecord->numBufs+1)*sizeof(*pFlushRecord->pBuffs));
             CL_ASSERT(pFlushRecord->pBuffs != NULL);
             memset(pFlushRecord->pBuffs+pFlushRecord->numBufs, 0, sizeof(*pFlushRecord->pBuffs));
             pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = clHeapCalloc(sizeof(ClUint8T), buffLen);
             CL_ASSERT(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord != NULL);
-            pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords = 0;
-            for (validRecordCount = 0, recordIndex = 0;recordIndex < firstBatch; recordIndex++)
-            {
-                if ((pBuffer + (recordIndex * pHeader->recordSize))[recordSize]  == CL_LOG_RECORD_WRITE_COMPLETE)
-                {
-                    validRecordCount++;
-                    (pBuffer + (recordIndex * pHeader->recordSize))[recordSize] = ' '; //To mask this byte in the logs.
-                }
-                else
-                {
-                    memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord, pBuffer, (validRecordCount *  pHeader->recordSize));
-                    pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords += validRecordCount;
-                    pBuffer += (validRecordCount * pHeader->recordSize);
-                    validRecordCount = 0;
-                    CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pBuffer, validRecordCount * pHeader->recordSize));
-                }
-            }
-            if (validRecordCount != firstBatch)
-            {
-                memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord, pBuffer, (validRecordCount *  pHeader->recordSize));
-                pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords += validRecordCount;
-                CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pBuffer, validRecordCount * pHeader->recordSize));
-            }
-            else
-            {
-                memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord, pBuffer, size);
-                pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords = firstBatch;
-                CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pRecords + (startIdx*pHeader->recordSize), firstBatch* pHeader->recordSize));
-            }
-
-//            memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord, pBuffer, size);
-            pBuffer = pRecords;
-            for (validRecordCount =0, recordIndex = 0;recordIndex < secondBatch; recordIndex++)
-            {
-                if ((pBuffer + (recordIndex * pHeader->recordSize))[recordSize]  == CL_LOG_RECORD_WRITE_COMPLETE)
-                {
-                    validRecordCount++;
-                    (pBuffer + (recordIndex * pHeader->recordSize))[recordSize] = ' '; //To mask this byte in the logs.
-                }
-                else
-                {
-                    memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord, pBuffer, (validRecordCount *  pHeader->recordSize));
-                    pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords += validRecordCount;
-                    pBuffer += (validRecordCount * pHeader->recordSize);
-                    validRecordCount = 0;
-                    CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pBuffer, validRecordCount * pHeader->recordSize));
-                }
-            }
-            if (validRecordCount != secondBatch)
-            {
-                memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord, pBuffer, (validRecordCount *  pHeader->recordSize));
-                pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords += validRecordCount;
-                CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pBuffer, validRecordCount * pHeader->recordSize));
-            }
-            else
-            {
-                memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord, pBuffer, secondBatch* pHeader->recordSize);
-                pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords += secondBatch;
-                CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pRecords, secondBatch* pHeader->recordSize));
-            }
-            pFlushRecord->numBufs++;
-//            memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord + size, pRecords, buffLen - size);
-//            pFlushRecord->pBuffs[pFlushRecord->numBufs++].numRecords = nRecords;
+            memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord,
+                   pBuffer, size);
+            memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord + size,
+                   pRecords, buffLen - size);
+            pFlushRecord->pBuffs[pFlushRecord->numBufs++].numRecords = nRecords;
         }
     }
 

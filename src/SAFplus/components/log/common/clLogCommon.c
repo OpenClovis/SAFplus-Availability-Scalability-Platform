@@ -436,7 +436,6 @@ clLogStreamHashFn(ClCntKeyHandleT key)
     return ((ClLogStreamKeyT *) key)->hash;
 }
 
-
 ClRcT
 clLogStreamKeyCreate(ClNameT          *pStreamName,
                      ClNameT          *pNodeName,
@@ -639,7 +638,7 @@ clLogStreamShmSegInit(ClNameT                 *pStreamName,
 
     hdrSize = CL_LOG_HEADER_SIZE_GET(maxMsgs, maxComps);
     (*ppSegHeader)->streamId                            = streamId;
-    (*ppSegHeader)->recordSize                          = recordSize + 1;  // +1 adds space for the write-in-progress indicator
+    (*ppSegHeader)->recordSize                          = recordSize;
     (*ppSegHeader)->recordIdx                           = 0;
     (*ppSegHeader)->startAck                            = 0;
     (*ppSegHeader)->flushCnt                            = 0;
@@ -653,7 +652,7 @@ clLogStreamShmSegInit(ClNameT                 *pStreamName,
     (*ppSegHeader)->filter.compIdSetLength = 0;
     (*ppSegHeader)->maxMsgs                = maxMsgs;
     (*ppSegHeader)->maxComps               = maxComps;
-    (*ppSegHeader)->maxRecordCount         = (shmSize - hdrSize) / (recordSize + 1);
+    (*ppSegHeader)->maxRecordCount         = (shmSize - hdrSize) / recordSize;
     (*ppSegHeader)->shmSize                = shmSize;
     (*ppSegHeader)->sequenceNum            = 1;
 #ifndef POSIX_BUILD
