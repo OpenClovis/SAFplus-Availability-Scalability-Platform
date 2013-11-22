@@ -436,6 +436,7 @@ clLogStreamHashFn(ClCntKeyHandleT key)
     return ((ClLogStreamKeyT *) key)->hash;
 }
 
+
 ClRcT
 clLogStreamKeyCreate(ClNameT          *pStreamName,
                      ClNameT          *pNodeName,
@@ -535,6 +536,38 @@ clLogShmGet(ClCharT   *shmName,
     CL_LOG_DEBUG_TRACE(("Exit: rc[0x %x]", rc));
     return CL_OK;
 }
+/* Function: clLogStreamHeaderReset()
+ * Des: This function Resets the Stream Header parameters with 
+ *      thier corresponding secondary elements and with default 
+ *      Values.
+ */
+
+void
+clLogStreamHeaderReset(ClLogStreamHeaderT      *pStreamHeader)
+{
+    pStreamHeader->update_status                       = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
+    pStreamHeader->struct_id                           = CL_LOG_STREAM_HEADER_STRUCT_ID;
+    pStreamHeader->streamId                            = pStreamHeader->streamId_sec;
+    pStreamHeader->recordSize                          = pStreamHeader->recordSize_sec;
+    pStreamHeader->recordIdx                           = 0;    
+    pStreamHeader->startAck                            = 0;    
+    pStreamHeader->flushCnt                            = 0;    
+    pStreamHeader->numOverwrite                        = 0;    
+    pStreamHeader->flushFreq                           = pStreamHeader->flushFreq_sec;
+    pStreamHeader->flushInterval                       = pStreamHeader->flushInterval_sec;
+    pStreamHeader->streamMcastAddr.iocMulticastAddress = pStreamHeader->streamMcastAddr_sec.iocMulticastAddress; 
+    pStreamHeader->streamStatus                        = CL_LOG_STREAM_ACTIVE;      //Need to Review
+    pStreamHeader->filter.severityFilter               = pStreamHeader->filter_sec.severityFilter;
+    pStreamHeader->filter.msgIdSetLength               = 0;    
+    pStreamHeader->filter.compIdSetLength              = 0;    
+    pStreamHeader->maxMsgs                             = pStreamHeader->maxMsgs_sec;
+    pStreamHeader->maxComps                            = pStreamHeader->maxComps_sec;
+    pStreamHeader->maxRecordCount                      = pStreamHeader->maxRecordCount_sec;
+    pStreamHeader->shmSize                             = pStreamHeader->shmSize_sec; 
+    pStreamHeader->sequenceNum                         = 1;    
+    pStreamHeader->update_status                       = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
+}
+
 
 ClRcT
 clLogStreamShmSegInit(ClNameT                 *pStreamName,
@@ -637,24 +670,29 @@ clLogStreamShmSegInit(ClNameT                 *pStreamName,
     }
 
     hdrSize = CL_LOG_HEADER_SIZE_GET(maxMsgs, maxComps);
-    (*ppSegHeader)->streamId                            = streamId;
-    (*ppSegHeader)->recordSize                          = recordSize;
-    (*ppSegHeader)->recordIdx                           = 0;
-    (*ppSegHeader)->startAck                            = 0;
-    (*ppSegHeader)->flushCnt                            = 0;
-    (*ppSegHeader)->numOverwrite                        = 0;
-    (*ppSegHeader)->flushFreq                           = flushFreq;
-    (*ppSegHeader)->flushInterval                       = flushInterval;
-    (*ppSegHeader)->streamMcastAddr.iocMulticastAddress = *pStreamMcastAddr;
-    (*ppSegHeader)->streamStatus                        = CL_LOG_STREAM_ACTIVE;
-    (*ppSegHeader)->filter.severityFilter  = clLogDefaultStreamSeverityGet(pStreamName);
-    (*ppSegHeader)->filter.msgIdSetLength  = 0;
-    (*ppSegHeader)->filter.compIdSetLength = 0;
-    (*ppSegHeader)->maxMsgs                = maxMsgs;
-    (*ppSegHeader)->maxComps               = maxComps;
-    (*ppSegHeader)->maxRecordCount         = (shmSize - hdrSize) / recordSize;
-    (*ppSegHeader)->shmSize                = shmSize;
-    (*ppSegHeader)->sequenceNum            = 1;
+    (*ppSegHeader)->update_status                                       = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
+    (*ppSegHeader)->streamId  = (*ppSegHeader)->streamId_sec            = streamId;
+    (*ppSegHeader)->struct_id                                           = CL_LOG_STREAM_HEADER_STRUCT_ID; //This member shall not modify
+    (*ppSegHeader)->recordSize  = (*ppSegHeader)->recordSize_sec        = recordSize + 1; // +1 adds space for the write-in-progress indicator
+    (*ppSegHeader)->recordIdx                                           = 0;
+    (*ppSegHeader)->startAck                                            = 0;
+    (*ppSegHeader)->flushCnt                                            = 0;
+    (*ppSegHeader)->numOverwrite                                        = 0;
+    (*ppSegHeader)->flushFreq   = (*ppSegHeader)->flushFreq_sec        = flushFreq;
+    (*ppSegHeader)->flushInterval = (*ppSegHeader)->flushInterval_sec   = flushInterval;
+    (*ppSegHeader)->streamMcastAddr.iocMulticastAddress                 = *pStreamMcastAddr;
+    (*ppSegHeader)->streamMcastAddr_sec.iocMulticastAddress             = *pStreamMcastAddr;
+    (*ppSegHeader)->streamStatus                                        = CL_LOG_STREAM_ACTIVE;
+    (*ppSegHeader)->filter.severityFilter                               = clLogDefaultStreamSeverityGet(pStreamName);
+    (*ppSegHeader)->filter_sec.severityFilter                           = clLogDefaultStreamSeverityGet(pStreamName);
+    (*ppSegHeader)->filter.msgIdSetLength                               = 0;
+    (*ppSegHeader)->filter.compIdSetLength                              = 0;
+    (*ppSegHeader)->maxMsgs = (*ppSegHeader)->maxMsgs_sec               = maxMsgs;
+    (*ppSegHeader)->maxComps  = (*ppSegHeader)->maxComps_sec            = maxComps;
+    (*ppSegHeader)->maxRecordCount = (*ppSegHeader)->maxRecordCount_sec = (shmSize - hdrSize) / (recordSize + 1);
+    (*ppSegHeader)->shmSize = (*ppSegHeader)->shmSize_sec               = shmSize;
+    (*ppSegHeader)->sequenceNum                                         = 1;
+    (*ppSegHeader)->update_status                                       = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
 #ifndef POSIX_BUILD
     CL_LOG_CLEANUP(clOsalMutexUnlock_L(&((*ppSegHeader)->shmLock)), CL_OK);
 #endif

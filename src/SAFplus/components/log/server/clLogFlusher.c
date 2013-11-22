@@ -233,10 +233,11 @@ clLogFlushIntervalThreadCreate(ClLogSvrStreamDataT  *pSvrStreamData,
 }
 
 /*
- * This is the main flusher thread function. This is where the flusher action
+ * This is the main flusher therad function. This is where the flusher action
  * starts.
  */
-void* clLogFlusherStart(void  *pData)
+void*
+clLogFlusherStart(void  *pData)
 {
     ClRcT              rc             = CL_OK;
     ClLogSvrStreamDataT  *pStreamData = pData;
@@ -259,6 +260,10 @@ void* clLogFlusherStart(void  *pData)
         clLogError("LOG", "FLS", "CL_LOG_LOCK(): rc[0x %x]", rc);
         pHeader->streamStatus = CL_LOG_STREAM_THREAD_EXIT;
         return NULL;
+    }
+    if ((CL_LOG_STREAM_HEADER_STRUCT_ID != pHeader->struct_id) || (CL_LOG_STREAM_HEADER_UPDATE_COMPLETE != pHeader->update_status))
+    {/* Stream Header is corrupted so reset Header parameters */
+       clLogStreamHeaderReset(pHeader); 
     }
     /*
      * Create a thread for flush interval
@@ -297,7 +302,8 @@ void* clLogFlusherStart(void  *pData)
             if( gClLogSvrExiting == CL_TRUE 
                     || ( (CL_OK != CL_GET_ERROR_CODE(rc)) && 
                         (CL_ERR_TIMEOUT != CL_GET_ERROR_CODE(rc))) )
-            {
+            { /* Log service is exiting or Stream is closed so come out of polling loop */
+                pHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
                 pHeader->streamStatus = CL_LOG_STREAM_CLOSE;
             }
         }while( (CL_LOG_STREAM_CLOSE != pHeader->streamStatus) &&
@@ -308,13 +314,16 @@ void* clLogFlusherStart(void  *pData)
             clLogInfo("SVR", "FLU", "Stream status: CLOSE...Exiting flusher [%lu] "
                     " [%lu]", (unsigned long)pStreamData->flusherId, (long unsigned int)pthread_self());
             pHeader->streamStatus = CL_LOG_STREAM_THREAD_EXIT;
+            pHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
             goto exitFlusher;
         }
         rc = clLogFlusherRecordsFlush(pStreamData);
         if( CL_OK != rc )
         {
             if(pHeader->streamStatus == CL_LOG_STREAM_CLOSE)
+            {
                 break;
+            }
         }    
 
     }
@@ -505,7 +514,9 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
     if( CL_OK != rc )
     {
         return rc;
-    }    
+    }            
+
+
 
     CL_LOG_DEBUG_TRACE((" recordIdx: %d startAck : %d \n", pHeader->recordIdx,
                 pHeader->startAck));
@@ -545,6 +556,7 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
         rc = clLogFlusherRecordsGetMcast(pStreamData, nFlushedRecords, &flushRecord);
         if( CL_OK == rc )
         {
+            pHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
             pHeader->startAck += nFlushedRecords;
             pHeader->startAck %= (2 * pHeader->maxRecordCount);
             pStreamData->seqNum += nFlushedRecords;
@@ -558,13 +570,11 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
                             pHeader->numOverwrite));
             }
             pHeader->numOverwrite = 0;
+            pHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
         }
         else
-        {
-            clLogServerStreamMutexUnlock(pStreamData);
-            logRecordsFlush(&flushRecord);
-            clLogServerStreamMutexLockFlusher(pStreamData);
-            return CL_OK;
+        { 
+            break;
         }
     }
 
@@ -817,6 +827,41 @@ clLogFlusherCookieHandleCreate(ClUint32T       numRecords,
 }    
 
 #ifndef POSIX_BUILD
+static void clLogVerifyAndFlushRecords(ClUint8T *pBuffer, ClLogStreamHeaderT *pHeader,
+                                       ClLogFlushRecordT *pFlushRecord, ClUint32T nRecords)
+{
+    ClUint32T           recordIndex  = 0;
+    ClUint32T           wipIdx = 0;
+    ClUint32T           validRecordCount= 0;
+    ClUint32T           size = 0;
+    
+
+    CL_ASSERT(pBuffer != NULL);
+    CL_ASSERT(pHeader != NULL);
+    CL_ASSERT(pFlushRecord != NULL);
+    wipIdx = pHeader->recordSize - 1;
+
+    /*Validate records until bad record found and flush only valid records to avoid memory corrupiton */
+    for (validRecordCount =0, recordIndex = 0; recordIndex < nRecords; recordIndex++)
+    {
+        if ((pBuffer + (recordIndex * pHeader->recordSize))[wipIdx]  == CL_LOG_RECORD_WRITE_COMPLETE)
+        { /* If the Record is Valid Continue to check for next record validity */
+            validRecordCount++;
+            (pBuffer + (recordIndex * pHeader->recordSize))[wipIdx] = '\0'; //To mask this byte in the logs.
+        }
+        else
+        { /* If Record is Invalid, then skip all remaining records  */
+            break;
+        }
+    }
+    if (validRecordCount)
+    {
+        size = (pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords) * (pHeader->recordSize); 
+        memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord + size, pBuffer, (validRecordCount *  pHeader->recordSize));
+        pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords += validRecordCount;
+        CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pBuffer, validRecordCount * pHeader->recordSize));
+    }
+}
 
 static ClRcT
 clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
@@ -830,10 +875,14 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
     ClUint32T           buffLen   = 0;
     ClIocNodeAddressT   localAddr = 0;
     ClUint8T            *pBuffer  = NULL;
-    ClUint32T           size      = 0;
     ClUint32T           firstBatch = 0;
     ClBoolT             doMulticast = CL_FALSE;
+    ClUint32T           secondBatch = 0;
 
+    if ((CL_LOG_STREAM_HEADER_STRUCT_ID != pHeader->struct_id) || (CL_LOG_STREAM_HEADER_UPDATE_COMPLETE != pHeader->update_status))
+    {/* Stream Header is corrupted so reset Header parameters */
+       clLogStreamHeaderReset(pHeader); 
+    }
     if(pFlushRecord->multicast < 0 )
     {
         doMulticast = ( (0 < (pStreamData->ackersCount + pStreamData->nonAckersCount)) &&
@@ -854,54 +903,54 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
     }
 
     localAddr = clIocLocalAddressGet();
+    if((!doMulticast) && (pStreamData->fileOwnerAddr != localAddr))
+    { /*Nobody is in these records and they are not for me then skip them */
+        return rc;
+    }
+
     startIdx = pHeader->startAck % pHeader->maxRecordCount;
     if(nRecords > pHeader->maxRecordCount)
         nRecords = pHeader->maxRecordCount;
 
+    CL_ASSERT(pHeader->recordSize < 4*1024);  // Sanity check the log record size
     buffLen = nRecords * pHeader->recordSize;
 
     clLogDebug(CL_LOG_AREA_SVR, "FLU", "startIdx: %u maxRec: %u nRecords: %u startIdx: %d recordIdx: %d", startIdx,
                pHeader->maxRecordCount, nRecords, pHeader->startAck, pHeader->recordIdx);
-    if( (startIdx + nRecords) <= pHeader->maxRecordCount )
+    /* FirstBatch is from startIdx towards maxRecordCount and SecondBatch is from 0 to startIdx 
+     * SecondBatch is only valid if number of records are greater than (maxRecordCount - startIdx)
+     */
+    if ( (startIdx + nRecords) <= pHeader->maxRecordCount )
     {
-        pBuffer = pRecords + (startIdx * pHeader->recordSize);
-        pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs, 
-                                             (pFlushRecord->numBufs+1) * sizeof(*pFlushRecord->pBuffs));
-        CL_ASSERT(pFlushRecord->pBuffs != NULL);
-        memset(pFlushRecord->pBuffs + pFlushRecord->numBufs, 0, 
-               sizeof(*pFlushRecord->pBuffs));
-        pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = clHeapCalloc(sizeof(ClUint8T), buffLen);
-        CL_ASSERT(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord != NULL);
-        memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord,
-               pBuffer, buffLen);
-        pFlushRecord->pBuffs[pFlushRecord->numBufs++].numRecords = nRecords;
-
-        CL_LOG_DEBUG_VERBOSE(("Copied from: %p to %u", pRecords + (startIdx*pHeader->recordSize),
-                              nRecords * pHeader->recordSize));
+        firstBatch = nRecords;
+        secondBatch = 0;
     }
     else
     {
-        CL_LOG_DEBUG_TRACE(("startIdx: %u maxRec: %u nRecords: %u", startIdx,
-                            pHeader->maxRecordCount, nRecords));
-        if(doMulticast ||
-           pStreamData->fileOwnerAddr == localAddr)
-        {
-            firstBatch = pHeader->maxRecordCount - startIdx;
-            size = firstBatch * pHeader->recordSize;
-            pBuffer = pRecords + (startIdx * pHeader->recordSize);
-            pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs,
-                                                 (pFlushRecord->numBufs+1)*sizeof(*pFlushRecord->pBuffs));
-            CL_ASSERT(pFlushRecord->pBuffs != NULL);
-            memset(pFlushRecord->pBuffs+pFlushRecord->numBufs, 0, sizeof(*pFlushRecord->pBuffs));
-            pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = clHeapCalloc(sizeof(ClUint8T), buffLen);
-            CL_ASSERT(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord != NULL);
-            memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord,
-                   pBuffer, size);
-            memcpy(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord + size,
-                   pRecords, buffLen - size);
-            pFlushRecord->pBuffs[pFlushRecord->numBufs++].numRecords = nRecords;
-        }
+        firstBatch = pHeader->maxRecordCount - startIdx;
+        secondBatch = nRecords + startIdx - pHeader->maxRecordCount;
     }
+    /* Computed firstBatch and secondBatch number of records, now verify and flush them */
+    pBuffer = pRecords + (startIdx * pHeader->recordSize);
+
+    pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs,
+                                         (pFlushRecord->numBufs+1)*sizeof(*pFlushRecord->pBuffs));
+    CL_ASSERT(pFlushRecord->pBuffs != NULL);
+    memset(pFlushRecord->pBuffs+pFlushRecord->numBufs, 0, sizeof(*pFlushRecord->pBuffs));
+    pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = clHeapCalloc(sizeof(ClUint8T), buffLen);
+    CL_ASSERT(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord != NULL);
+
+    pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords = 0;
+    if (firstBatch)
+    {
+        clLogVerifyAndFlushRecords(pBuffer, pHeader, pFlushRecord, firstBatch);
+    }
+    if (secondBatch)
+    {
+        pBuffer = pRecords;
+        clLogVerifyAndFlushRecords(pBuffer, pHeader, pFlushRecord, secondBatch);
+    }
+    pFlushRecord->numBufs++;
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;

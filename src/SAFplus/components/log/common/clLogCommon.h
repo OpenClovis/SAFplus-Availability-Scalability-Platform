@@ -98,6 +98,11 @@ extern "C" {
         }                                                   \
     }while( 0 )
 
+#define CL_LOG_RECORD_WRITE_INPROGRESS   1
+#define CL_LOG_RECORD_WRITE_COMPLETE    2
+#define CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS 1 
+#define CL_LOG_STREAM_HEADER_UPDATE_COMPLETE 2 
+#define CL_LOG_STREAM_HEADER_STRUCT_ID      12374 
 #define CL_LOG_RECORD_HEADER_SIZE       20
 #define CL_LOG_MAX_RETRIES              3
 /* FIXME: The Data below should be read from configuration */
@@ -167,6 +172,7 @@ typedef enum
 typedef struct
 {
     ClUint16T           streamId;
+    ClUint16T           struct_id; //This Field is initialized with CL_LOG_STREAM_HEADER_STRUCT_ID and shall not modify it during runtime
     ClUint32T           recordSize;
     ClUint32T           recordIdx;
     ClUint32T           startAck;
@@ -192,6 +198,21 @@ typedef struct
     ClOsalMutexId_LT    sharedSem;
     ClOsalMutexId_LT    flusherSem;
 #endif
+    ClUint8T            update_status;
+    /* The following members are only to used to reset above member variables
+     * when stream header corruption is detected
+     */
+    ClUint16T           streamId_sec;
+    ClUint32T           recordSize_sec;
+    ClUint32T           flushFreq_sec;
+    ClTimeT             flushInterval_sec;
+    ClIocAddressT       streamMcastAddr_sec;
+    ClLogStreamStatusT  streamStatus_sec;
+    ClLogFilterT        filter_sec;
+    ClUint16T           maxMsgs_sec;
+    ClUint16T           maxComps_sec;
+    ClUint32T           maxRecordCount_sec;
+    ClUint32T           shmSize_sec;
 } ClLogStreamHeaderT;
 
 typedef struct
@@ -279,6 +300,8 @@ clLogStreamShmSegInit(ClNameT                 *pStreamName,
                       ClUint16T               maxMsgs,
                       ClUint16T               maxComps,
                       ClLogStreamHeaderT      **ppSegHeader);
+
+void clLogStreamHeaderReset(ClLogStreamHeaderT *pStreamHeader); 
 
 ClRcT
 clLogFilterAssign(ClLogStreamHeaderT  *pHeader,

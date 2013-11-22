@@ -470,6 +470,7 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
     ClUint8T              *pStreamRecords = NULL;
     ClUint32T             nUnAcked        = 0;
     ClUint8T              *pBuffer        = NULL;
+    ClUint32T             recordSize = 0;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     CL_LOG_DEBUG_VERBOSE(("Severity: %d ServiceId: %hu MsgId: %hu CompId: %u",
@@ -493,7 +494,10 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
         CL_LOG_DEBUG_ERROR(("clOsalMutexLock(): rc[0x %x]", rc));
         return rc;
     }
-
+    if ((CL_LOG_STREAM_HEADER_STRUCT_ID != pStreamHeader->struct_id) || CL_LOG_STREAM_HEADER_UPDATE_COMPLETE != pStreamHeader->update_status)
+    { /* Stream Header is corruted so reset Stream Header Parameters */
+       clLogStreamHeaderReset(pStreamHeader); 
+    }
     if( CL_LOG_STREAM_ACTIVE != pStreamHeader->streamStatus )
     {
         CL_LOG_CLEANUP(clLogClientStreamMutexUnlock(pClntData), CL_OK);
@@ -519,15 +523,22 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
 
     pBuffer = pStreamRecords + (pStreamHeader->recordSize *
               (pStreamHeader->recordIdx % pStreamHeader->maxRecordCount));
+    recordSize = pStreamHeader->recordSize;
+    CL_ASSERT(recordSize < 4*1024);  // Sanity check the log record size
+
+    pBuffer[recordSize - 1] = CL_LOG_RECORD_WRITE_INPROGRESS; //Mark Record Write In-Progress
+
     rc = clLogClientMsgWriteWithHeader(severity, pStreamHeader->streamId, serviceId,
                                        msgId, pClntEoEntry->clientId, pStreamHeader->sequenceNum,
                                        pMsgHeader, args,
-                                       pStreamHeader->recordSize, pBuffer);
+                                       pStreamHeader->recordSize - 1, pBuffer);
+    pBuffer[recordSize - 1] = CL_LOG_RECORD_WRITE_COMPLETE; //Mark Record Write Completed
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clLogClientStreamMutexUnlock(pClntData), CL_OK);
         return rc;
     }
+    pStreamHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
     ++pStreamHeader->sequenceNum;
     nUnAcked = abs(pStreamHeader->recordIdx - pStreamHeader->startAck);
     if( nUnAcked ==  pStreamHeader->maxRecordCount )
@@ -544,6 +555,7 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
     CL_LOG_DEBUG_TRACE(("recordIdx: %u startAck: %u",
                           pStreamHeader->recordIdx, pStreamHeader->startAck));
 
+
     if( (0 != pStreamHeader->flushFreq) &&
         (pStreamHeader->flushCnt == pStreamHeader->flushFreq) )
     {
@@ -557,19 +569,12 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
         if( CL_OK != rc )
         {
             CL_LOG_DEBUG_ERROR(("clOsalCondSignal(): rc[0x %x]", rc));
-            CL_LOG_CLEANUP(clLogClientStreamMutexUnlock(
-                                                        pClntData),
-                           CL_OK);
-            return rc;
         }
     }
-
-    rc = clLogClientStreamMutexUnlock(pClntData);
-    if( CL_OK != rc )
-    {
-        CL_LOG_DEBUG_ERROR(("clOsalMutexUnlock(): rc[0x %x]", rc));
-        return rc;
-    }
+    pStreamHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
+   
+    /* Assert on Mutex Unlock bcz it might not be initialized and it should not happen in the system*/ 
+    CL_ASSERT(clLogClientStreamMutexUnlock(pClntData) == CL_OK);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
