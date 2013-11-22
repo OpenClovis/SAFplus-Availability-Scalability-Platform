@@ -71,7 +71,7 @@ except:
 GMSCONFIGFILE           = '/etc/clGmsConfig.xml'
 HISTORY_FILE            = '.asp-info.hist'
 AMF_DB_CACHE_TIMEOUT    = 5.0  # cache aging for amf database [sec]
-WELCOME_MSG             = 'SAFplus info utility -- OpenClovis, Inc., 2008'
+WELCOME_MSG             = 'SAFplus info utility -- OpenClovis, Inc., 2013'
 
 ##
 ## Internal variables and constants
@@ -1165,7 +1165,6 @@ class Cli(cmd.Cmd):
     ##
     def do_status(self, msg):
         """Show SAFplus running status and some basic run-time information"""
-
         try:
             info = get_status_info()
         except AspError, e:
@@ -2069,13 +2068,59 @@ arch = platform.machine()
 echo_cmd = '/bin/echo'
 
 '''
+    solaris_code = \
+    '''\
+import subprocess
+import os
+import time
+
+def system(cmd):
+    """Similar to the os.system call, except that both the output and
+    return value is returned"""
+    
+    #print 'Executing command: %s' % cmd
+    child = subprocess.Popen(cmd, shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             close_fds=True)
+    output = []
+    while True:
+        pid, sts = os.waitpid(child.pid, os.WNOHANG)
+        output += child.stdout.readlines() 
+        if pid == child.pid:
+            break
+        else:
+            time.sleep(0.00001)
+
+    child.stdout.close()
+    child.stderr.close()
+    retval = sts
+    signal = retval & 0x7f
+    core   = ((retval & 0x80) !=0)
+    retval = retval >> 8
+    #print 'Command return value %s, Output: %s' % (str(retval),output)
+    del child
+    return (retval, output, signal, core)
+
+def grep_amf_cmd(e):
+    return 'ps -eo pid,comm | grep %s | grep -v grep' % e
+
+def proc_info_cmd(e):
+    return 'ps -p %s -o comm,pcpu,nlwp,rss,vsz' % e
+
+echo_cmd = '/bin/echo -e'
+
+'''
     if on_platform("linux"):
       p = "linux"
       code = linux_code
+    elif on_platform("sunos5") :
+      print "Hello"
+      p = "solaris"
+      code = solaris_code
     else:
       p = "qnx"
       code = qnx_code
-
     import imp
     s = imp.new_module("aspinfo_%s" % p)
     sys.modules['aspinfo_%s'%p] = s
