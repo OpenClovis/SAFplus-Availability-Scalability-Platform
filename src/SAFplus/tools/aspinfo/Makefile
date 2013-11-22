@@ -31,7 +31,7 @@ endif
 .PHONY : all clean
 
 all:
-	$(shell $INSTALL_CMD $(PROGS) $(EXE_FLAGS) $(MODEL_BIN))
+ $(shell $(INSTALL_CMD) $(PROGS) $(EXE_FLAGS) $(MODEL_BIN))
 lib:
 
 include $(CLOVIS_ROOT)/SAFplus/mk/make-common.mk
