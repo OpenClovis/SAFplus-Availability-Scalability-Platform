@@ -673,7 +673,7 @@ clLogStreamShmSegInit(ClNameT                 *pStreamName,
     (*ppSegHeader)->update_status                                       = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
     (*ppSegHeader)->streamId  = (*ppSegHeader)->streamId_sec            = streamId;
     (*ppSegHeader)->struct_id                                           = CL_LOG_STREAM_HEADER_STRUCT_ID; //This member shall not modify
-    (*ppSegHeader)->recordSize  = (*ppSegHeader)->recordSize_sec        = recordSize + 1; // +1 adds space for the write-in-progress indicator
+    (*ppSegHeader)->recordSize  = (*ppSegHeader)->recordSize_sec        = recordSize; // Last 1 bye is reserved for write-in-progress indicator
     (*ppSegHeader)->recordIdx                                           = 0;
     (*ppSegHeader)->startAck                                            = 0;
     (*ppSegHeader)->flushCnt                                            = 0;
@@ -689,7 +689,7 @@ clLogStreamShmSegInit(ClNameT                 *pStreamName,
     (*ppSegHeader)->filter.compIdSetLength                              = 0;
     (*ppSegHeader)->maxMsgs = (*ppSegHeader)->maxMsgs_sec               = maxMsgs;
     (*ppSegHeader)->maxComps  = (*ppSegHeader)->maxComps_sec            = maxComps;
-    (*ppSegHeader)->maxRecordCount = (*ppSegHeader)->maxRecordCount_sec = (shmSize - hdrSize) / (recordSize + 1);
+    (*ppSegHeader)->maxRecordCount = (*ppSegHeader)->maxRecordCount_sec = (shmSize - hdrSize) / recordSize ;
     (*ppSegHeader)->shmSize = (*ppSegHeader)->shmSize_sec               = shmSize;
     (*ppSegHeader)->sequenceNum                                         = 1;
     (*ppSegHeader)->update_status                                       = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
