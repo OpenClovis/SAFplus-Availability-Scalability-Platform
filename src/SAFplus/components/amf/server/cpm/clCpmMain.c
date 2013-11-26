@@ -1431,16 +1431,28 @@ void cpmRedirectOutput(void)
 {
     cpmLoggerSetFileName();
     if (cpmIsConsoleStart) return;
-    
-    cpmLoggerFd = open(cpmLoggerFile, O_RDWR | O_CREAT | O_APPEND, 0755);
-    if (-1 == cpmLoggerFd)
-    {
-        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                   "Unable to open file [%s] for writing : [%s]",
-                   cpmLoggerFile,
-                   strerror(errno));
-        return;
+
+    cpmLoggerFd = -1;
+
+    /* Bug 92: I do not know what is causing the file to not be openable but clearly it is happening.
+       If we cannot redirect STDOUT, it hangs SAFplus because whatever is reading STDOUT (console or whatever) runs out of buffer space.
+       So best to quit.
+     */
+    for(int retries=0;(cpmLoggerFd==-1) && (retries<5);retries++)
+    {        
+        cpmLoggerFd = open(cpmLoggerFile, O_RDWR | O_CREAT | O_APPEND, 0755);
+        if (-1 == cpmLoggerFd)
+        {
+            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"Unable to open file [%s] for writing : [%s]",cpmLoggerFile,strerror(errno));
+            sleep(20);
+        }
     }
+    CL_ASSERT(cpmLoggerFd != -1);
+    if (cpmLoggerFd==-1)
+    {
+        exit(1);
+    }
+    
     
     dup2(cpmLoggerFd, STDOUT_FILENO);
     dup2(cpmLoggerFd, STDERR_FILENO);

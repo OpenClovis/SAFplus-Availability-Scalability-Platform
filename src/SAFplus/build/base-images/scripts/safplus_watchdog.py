@@ -20,6 +20,7 @@ import os
 import sys
 import time
 import logging
+import traceback
 
 ASP_RESTART_FILE = 'safplus_restart'
 ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'

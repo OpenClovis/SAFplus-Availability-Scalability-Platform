@@ -722,6 +722,7 @@ _clGmsEngineLeaderElect(
                         "FindNode operation for nodeId [%d] failed with rc [0x%x] "
                         "during leader election. This might lead to improper "
                         "state of cluster",currentNode->nodeId,rc);
+                goto done_return;
             }
             viewNode->viewMember.clusterMember.isCurrentLeader = CL_FALSE;
         }
