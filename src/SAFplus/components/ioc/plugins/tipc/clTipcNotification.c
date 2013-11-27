@@ -306,7 +306,7 @@ static ClRcT tipcSubscriptionTimeout(void *data)
 
     if (nodeStatusEntry)
     {
-        if (nodeStatusEntry->event.event == TIPC_SUBSCR_TIMEOUT)
+        if ((nodeStatusEntry->event.event == TIPC_SUBSCR_TIMEOUT)||(nodeStatusEntry->event.event == TIPC_WITHDRAWN))
         {
             rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
                                              CL_IOC_NODE_LEAVE_NOTIFICATION,
@@ -351,6 +351,8 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
 
             if(event.s.seq.type - CL_TIPC_BASE_TYPE == CL_IOC_XPORT_PORT)
             {
+                ClBoolT handled = CL_FALSE;
+                
                 /* This is for NODE ARRIVAL/DEPARTURE */
 
                 compAddr.nodeAddress = event.found_lower;
@@ -374,8 +376,11 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                 /*
                  * Wait a configurable # of seconds to see if the link is "healed"
                  * before letting the event "out" of clTipcNotification.c
+  
+                 * TIPC_WITHDRAWN happens when a link reset occurs so the delay is necessary on this event.
+                 * TIPC_SUBSCR_TIMEOUT may only happen when we get a keepalive timeout so the delay may be optional for it.
                  */
-                if (event.event == TIPC_SUBSCR_TIMEOUT)
+                if ((event.event == TIPC_SUBSCR_TIMEOUT)||(event.event == TIPC_WITHDRAWN))
                 {
                     clOsalMutexLock(&gTipcNodeStatusMutex);
                     nodeStatusEntry = _clTipcNodeStatusFind(compAddr.nodeAddress);
@@ -386,50 +391,20 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                     else
                     {
                         nodeStatusEntry = clHeapAllocate(sizeof(ClTipcNodeStatusT));
-                        if (NULL == nodeStatusEntry)
-                        {
-                            clLogWarning("TIPC", "NOTIF", "Failed to allocate memory");
-                            clOsalMutexUnlock(&gTipcNodeStatusMutex);
-
-                            /* Send CL_IOC_NODE_LEAVE_NOTIFICATION without delay in case no memory*/
-                            clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
-                                                                         CL_IOC_NODE_LEAVE_NOTIFICATION,
-                                                                         compAddr.nodeAddress,
-                                                                         (ClIocAddressT*)&allLocalComps,
-                                                                         (ClIocAddressT*)&allNodeReps,
-                                                                         gClTipcXportType);
-                            return rc;
-                        }
+                        CL_ASSERT(nodeStatusEntry);
 
                         nodeStatusEntry->nodeAddress = compAddr.nodeAddress;
                         nodeStatusEntry->event.event = event.event;
                         _clTipcNodeStatusAdd(nodeStatusEntry);
 
-                        rc = clTimerCreateAndStart(timeout, CL_TIMER_VOLATILE, CL_TIMER_SEPARATE_CONTEXT,
-                                                         tipcSubscriptionTimeout, nodeStatusEntry, &timer);
-                        if(rc != CL_OK)
-                        {
-                            clLogWarning("TIPC", "NOTIF", "Timer start for TIPC_SUBSCR_TIMEOUT event failed with [%#x]", rc);
-                            _clTipcNodeStatusDelete(nodeStatusEntry);
-                            clOsalMutexUnlock(&gTipcNodeStatusMutex);
-
-                            /* Send CL_IOC_NODE_LEAVE_NOTIFICATION without delay in case timer start failed*/
-                            clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
-                                                                         CL_IOC_NODE_LEAVE_NOTIFICATION,
-                                                                         compAddr.nodeAddress,
-                                                                         (ClIocAddressT*)&allLocalComps,
-                                                                         (ClIocAddressT*)&allNodeReps,
-                                                                         gClTipcXportType);
-                            return rc;
-                        }
+                        rc = clTimerCreateAndStart(timeout, CL_TIMER_VOLATILE, CL_TIMER_SEPARATE_CONTEXT, tipcSubscriptionTimeout, nodeStatusEntry, &timer);
+                        if(rc == CL_OK) handled = CL_TRUE;
                     }
                     clOsalMutexUnlock(&gTipcNodeStatusMutex);
                 }
-                else
-                {
-                    clLogInfo("TIPC", "NOTIF", "Got node [%s] notification for node [%d]",
-                              event.event == TIPC_PUBLISHED ? "arrival" : "death", compAddr.nodeAddress);
 
+                if (!handled)
+                {
                     clOsalMutexLock(&gTipcNodeStatusMutex);
                     nodeStatusEntry = _clTipcNodeStatusFind(compAddr.nodeAddress);
                     if (nodeStatusEntry != NULL)

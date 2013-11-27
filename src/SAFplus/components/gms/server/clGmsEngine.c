@@ -1181,7 +1181,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
     ClGmsNodeIdT        new_leader= CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT        new_deputy= CL_GMS_INVALID_NODE_ID;
 
-    clLog(CL_LOG_INFO,CLM,NA, "Cluster leave is invoked for node ID %d\n",nodeId);
+    clLogInfo(CLM,NA, "Cluster leave is invoked for node [%d]",nodeId);
     rc = _clGmsViewFindAndLock(groupId, &thisClusterView);
 
     if (rc != CL_OK)
@@ -1192,7 +1192,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
     if (rc != CL_OK)
     {
         clLogError("ENGINE", "LEAVE", "Node leave for [%#x] returned with [%#x]", nodeId, rc);
-        goto unlock_and_exit;
+        goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
     }
 
     /* condition should never happen */
@@ -1218,12 +1218,12 @@ ClRcT _clGmsEngineClusterLeaveExtended(
         if (CL_GET_ERROR_CODE(rc) == CL_GMS_ERR_EMPTY_GROUP)
         {
             /* Nothing to do, group is empty */
-            goto unlock_and_exit;
+            goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
         }
 
         if (rc != CL_OK)
         {
-            goto unlock_and_exit;
+            goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
         }
         //now called in _clGmsEngineLeaderElect: clNodeCacheLeaderUpdate(thisClusterView->leader, new_leader);
         if( nodeId == thisClusterView->leader )
@@ -1261,12 +1261,11 @@ ClRcT _clGmsEngineClusterLeaveExtended(
         }
     }
 
-unlock_and_exit:
+unlock_and_exit_clGmsEngineClusterLeaveExtended:
 
     if (_clGmsViewUnlock(groupId) != CL_OK)
     {
-        clLog(CL_LOG_ERROR,GEN,NA,
-                "_clGmsViewUnlock failed");
+        clLog(CL_LOG_ERROR,GEN,NA, "_clGmsViewUnlock failed");
     }
 
     if (rc)
@@ -1274,13 +1273,11 @@ unlock_and_exit:
     /* I'm leaving the cluster. Therefore, I am not the leader. The global database need to be updated*/
     if (nodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId)
     {
-        clLog(CL_LOG_DEBUG, CLM, NA,
-                    "I am not the leader. Updating my global data structure");
+        clLog(CL_LOG_DEBUG, CLM, NA, "I am not the leader. Updating my global data structure");
         gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader = CL_FALSE;
     }
 
-    clLog(CL_LOG_INFO,CLM,NA, 
-            "Cluster node [%d] left the cluster",nodeId);
+    clLog(CL_LOG_INFO,CLM,NA, "Cluster node [%d] left the cluster",nodeId);
     return rc;
 }
 

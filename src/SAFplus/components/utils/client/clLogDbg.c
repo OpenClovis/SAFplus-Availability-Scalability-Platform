@@ -929,7 +929,6 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
         clLogEnvironmentVariablesGet();
         clLogParse(CL_LOG_RULES_FILE, NULL, NULL);
     }
-    msgIdCnt++;
     pSevName = clLogSeverityStrGet(severity);
     
     if( clLogSeveritySet == CL_FALSE )
@@ -1002,6 +1001,7 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
         }
     }
 
+    msgIdCnt++;    
     return CL_OK;
 }
 

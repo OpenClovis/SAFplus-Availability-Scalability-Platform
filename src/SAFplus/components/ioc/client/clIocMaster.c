@@ -82,11 +82,11 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
         delay = *pDelay;
 
     clOsalSemLock(gClIocMasterSem);
-
     node = gpClIocMasterSeg[portId]; 
-
+    clOsalSemUnlock(gClIocMasterSem);
+    CL_ASSERT(node<CL_IOC_MAX_NODES);
+    
     clOsalSemLock(gClIocNeighborSem);
-
     if(node)
     {
         switch(portId)
@@ -124,9 +124,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
             node = 0;
     }
     clOsalSemUnlock(gClIocNeighborSem);
-
-    clOsalSemUnlock(gClIocMasterSem);
-
+    
     if(node == 0)
     {
         do {    
