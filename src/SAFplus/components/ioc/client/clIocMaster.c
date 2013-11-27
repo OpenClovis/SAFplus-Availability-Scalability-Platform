@@ -34,6 +34,7 @@
 
 #define CL_IOC_MASTER_ADDRESS_RETRIES (10)
 
+extern ClOsalSemIdT gClIocNeighborSem;
 static ClIocNodeAddressT *gpClIocMasterSeg;
 static ClOsalSemIdT gClIocMasterSem;
 
@@ -68,7 +69,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
     if(portId >= CL_IOC_MAX_COMPONENTS_PER_NODE)
         return CL_IOC_RC(CL_ERR_OUT_OF_RANGE);
 
-    if(!gpClIocMasterSeg)
+    if(!gpClIocMasterSeg || !gpClIocNeighComps)
         return CL_IOC_RC(CL_ERR_NOT_INITIALIZED);
 
     if(pIocNodeAddress == NULL)
@@ -83,6 +84,8 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
     clOsalSemLock(gClIocMasterSem);
 
     node = gpClIocMasterSeg[portId]; 
+
+    clOsalSemLock(gClIocNeighborSem);
 
     if(node)
     {
@@ -120,6 +123,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
         if(!nodeStatus)
             node = 0;
     }
+    clOsalSemUnlock(gClIocNeighborSem);
 
     clOsalSemUnlock(gClIocMasterSem);
 
