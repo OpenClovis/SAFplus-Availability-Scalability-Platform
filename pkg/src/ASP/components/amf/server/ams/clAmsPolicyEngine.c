@@ -2172,8 +2172,11 @@ clAmsPeNodeForceLockInstantiationOperation(
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
 
+    clLogNotice("NODE", "LOCK-FORCE", "switch over on Node [%s] with mode = [CL_AMS_ENTITY_SWITCHOVER_FAST] ",
+                node->config.entity.name.value);
+    AMS_CALL ( clAmsPeNodeSwitchoverWork(node, CL_AMS_ENTITY_SWITCHOVER_FAST) );
+    clLogNotice("NODE", "LOCK-FORCE", "terminate Node [%s]",node->config.entity.name.value);
     CL_AMS_SET_A_STATE(node, CL_AMS_ADMIN_STATE_LOCKED_I);
-
     AMS_CALL ( clAmsPeNodeTerminate(node) );
 
     return CL_OK;
