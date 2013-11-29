@@ -77,7 +77,7 @@ def system(cmd):
 
 def fail_and_exit(msg):
     log.critical(msg)
-    #sys.exit(1)
+    sys.exit(1)
 
 def execute_shell_cmd(cmd, err_msg, fail_on_error=True):
     ret, out, sig, core = system(cmd)
@@ -611,7 +611,7 @@ def load_tipc_module():
         sandbox = get_asp_sandbox_dir()
         log.debug('Trying to load TIPC module from the sandbox modules '\
                   'directory [ %s/modules ]' % sandbox)
-        cmd = 'modload /usr/kernel/drv/tipc'
+        cmd = 'modload /usr/kernel/drv/amd64/tipc'
         ret, output, signal, core = system(cmd)
         if ret:
             fail_and_exit('Failed to load TIPC module: attempted: %s, '
@@ -899,7 +899,7 @@ def proc_lock_file(cmd):
     if not is_root():
         return
 
-    d = '/var/lock/subsys'
+    d = '/tmp'
     if not os.path.exists(d):
         return
 
@@ -922,7 +922,7 @@ def start_asp(stop_watchdog = True):
         cleanup_asp()
         #pdb.set_trace()
         save_asp_runtime_files()
-        check_sys_config()
+        #check_sys_config()
         #load_config_tipc_module()
         set_ld_library_paths()
         if is_system_controller():
@@ -946,7 +946,8 @@ def get_amf_pid():
         
         try:
             ret, cwd, signal, core = system(proc_file)
-	    cwd = cwd[0].split()[1]
+            if not cwd:
+	        cwd = cwd[0].split()[1]
         except OSError, e:
             log.error('Failed to read [%s] : %s' %\
                       (proc_file, e))
@@ -985,13 +986,15 @@ def wait_until_amf_up():
     return amf_pid
     
 def stop_asp():
+    global asp_shutdown_wait_timeout
     def wait_for_asp_shutdown():
-        for i in range(5):
+        t = asp_shutdown_wait_timeout
+        for i in range(t/6):
             amf_pid = get_amf_pid()
             if amf_pid == 0:
                 break
             time.sleep(6)
-
+        
     amf_pid = get_amf_pid()
     if amf_pid == 0:
         log.warning('ASP is not running on node [%s]. Cleaning up anyway...' %
