@@ -3752,7 +3752,7 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                 clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&currentLeader, &len);
                 currentLeader = ntohl(currentLeader);
                 clLogDebug("GMS", "LEA", "Update current leader [%d]", currentLeader);
-                clNodeCacheLeaderUpdate(currentLeader, CL_FALSE);
+                clNodeCacheLeaderUpdate(currentLeader);
             }
         }
     }

@@ -251,46 +251,52 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
     notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
 
-    gmsNotificationCallback(notification.id, 0, &notification.nodeAddress);
-
-    if ((notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION) && (notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet()))
+    if (notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
     {
-        clLogDebug("NTF", "LEA", "Node [%d] arrival msg len [%u] notif len [%lu]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,sizeof(notification));
-
-        if (length-sizeof(notification) >= sizeof(ClUint32T))  /* leader status is appended onto the end of the message */
+        if (notification.nodeAddress.iocPhyAddress.portId != CL_IOC_MSG_PORT)
         {
-            ClUint32T reportedLeader = 0;
-            len = sizeof(ClUint32T);
-            if (1) // rc == CL_OK)
+            gmsNotificationCallback(notification.id, 0, &notification.nodeAddress);
+        }
+
+        if (notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION)
+        {
+            clLogDebug("NTF", "LEA", "Node [%d] arrival msg len [%u] notif len [%lu]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,sizeof(notification));
+
+            if (length-sizeof(notification) >= sizeof(ClUint32T))  /* leader status is appended onto the end of the message */
             {
-                ClIocNodeAddressT currentLeader;
-                clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&reportedLeader, &len);
-                reportedLeader = ntohl(reportedLeader);
-                if (clNodeCacheLeaderGet(&currentLeader)==CL_OK)
+                ClUint32T reportedLeader = 0;
+                len = sizeof(ClUint32T);
+                if (1) // rc == CL_OK)
                 {
-                    if (currentLeader == reportedLeader)
+                    ClIocNodeAddressT currentLeader;
+                    clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&reportedLeader, &len);
+                    reportedLeader = ntohl(reportedLeader);
+                    if (clNodeCacheLeaderGet(&currentLeader)==CL_OK)
                     {
-                        clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].  Consistent with this node.", currentLeader, reportedLeader);
+                        if (currentLeader == reportedLeader)
+                        {
+                            clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].  Consistent with this node.", currentLeader, reportedLeader);
+                        }
+                        else
+                        {
+                            ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
+                            ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
+
+                            clNodeCacheLeaderUpdate(reportedLeader);
+                            clLogAlert("NTF", "LEA", "Split brain.  Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader,currentLeader);
+                            _clGmsEngineLeaderElect (0x0, NULL , CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
+                        }
                     }
                     else
                     {
-                        ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
-                        ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
-
-                        clLogAlert("NTF", "LEA", "Split brain.  Node [%d] reports leader as [%d].  Inconsistent with this node's leader [%d]", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader,currentLeader);
+                        clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader);
                         clNodeCacheLeaderSet(reportedLeader);
-                        _clGmsEngineLeaderElect (0x0, NULL , CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
                     }
-                }
-                else
-                {
-                    clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader);
-                    clNodeCacheLeaderSet(reportedLeader);
                 }
             }
         }
     }
-    
+
     if(eoRecvMsg)
         clBufferDelete(&eoRecvMsg);
     return CL_OK;
@@ -692,9 +698,14 @@ _clGmsEngineLeaderElect(
 
     clLog(CL_LOG_DEBUG,CLM,NA, "Leader election is done. Now updating the leadership status");
 
-    /* Update current leader and "gratuitous" sending of our view of the leader to other AMFs */
-    clNodeCacheLeaderUpdate(*leaderNodeId, CL_TRUE);
-    
+    /* Update current leader */
+    clNodeCacheLeaderUpdate(*leaderNodeId);
+    /*
+     * "gratuitous" sending of our view of the leader to other AMFs to update
+     *  node cache on ALL nodes via a "gratuitous" IOC notification
+     */
+    clNodeCacheLeaderSend(*leaderNodeId);
+
     rc  = _clGmsViewDbFind(groupId, &thisViewDb);
 
     if (rc != CL_OK)
@@ -761,8 +772,7 @@ _clGmsEngineLeaderElect(
                 leaderElectionTimerRun(CL_TRUE, &reElectTimeout);
             }
         }
-        
-    
+
         /* If I am the leader then I need to update my global data structure */
         if ((currentNode->nodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId) && (*leaderNodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId))
         {
@@ -775,7 +785,6 @@ _clGmsEngineLeaderElect(
         }
 
     }
-    
 
 done_return:
     clHeapFree((void*)buffer.notification);
@@ -929,6 +938,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     ClGmsNodeIdT       newDeputy = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       currentDeputy = CL_GMS_INVALID_NODE_ID;
     ClTimerTimeOutT    timeout;
+    ClGmsNodeIdT       currentLeaderNodeCache = CL_GMS_INVALID_NODE_ID;
 
     timeout.tsSec = gmsGlobalInfo.config.bootElectionTimeout;
     timeout.tsMilliSec = 0;
@@ -998,6 +1008,17 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         else
         {
             clLog(CL_LOG_INFO,CLM,NA, "Node already exists in GMS view. Returning OK");
+            /*
+             * Sync with db cache for split brain happened
+             */
+            rc = clNodeCacheLeaderGet(&currentLeaderNodeCache);
+            clLog(CL_LOG_DEBUG, CLM,NA, "Cluster leader [0x%x], deputy [0x%x], node cache leader [0x%x] ", currentLeader, currentDeputy, currentLeaderNodeCache);
+            if (rc == CL_ERR_NOT_EXIST || currentLeader != currentLeaderNodeCache)
+            {
+                /* Update current leader */
+                clNodeCacheLeaderUpdate(currentLeader);
+            }
+            rc = CL_OK;
             add_rc = CL_OK;
             goto ENG_ADD_ERROR;
         }
