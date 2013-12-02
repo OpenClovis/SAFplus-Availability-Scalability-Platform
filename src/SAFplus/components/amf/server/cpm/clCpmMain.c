@@ -1517,51 +1517,6 @@ ClRcT cpmEoDeSerialize(ClPtrT pData)
     return rc;
 }
 
-#ifdef CL_ENABLE_ASP_TRAFFIC_SHAPING
-
-#define CL_LEAKY_BUCKET_DEFAULT_VOL (200*1024)
-#define CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE (100*1024)
-#define CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL (400)
-
-static ClRcT clCpmLeakyBucketInitialize(void)
-{
-    ClInt64T leakyBucketVol = getenv("CL_LEAKY_BUCKET_VOL") ? 
-        (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_VOL")) : CL_LEAKY_BUCKET_DEFAULT_VOL;
-    ClInt64T leakyBucketLeakSize = getenv("CL_LEAKY_BUCKET_LEAK_SIZE") ?
-        (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_LEAK_SIZE")) : CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE;
-    ClTimerTimeOutT leakyBucketInterval = {.tsSec = 0, .tsMilliSec = CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL };
-    ClLeakyBucketWaterMarkT leakyBucketWaterMark = {0};
-    
-    leakyBucketWaterMark.lowWM = leakyBucketVol/3;
-    leakyBucketWaterMark.highWM = leakyBucketVol/2;
-    
-    leakyBucketWaterMark.lowWMDelay.tsSec = 0;
-    leakyBucketWaterMark.lowWMDelay.tsMilliSec = 50;
-
-    leakyBucketWaterMark.highWMDelay.tsSec = 0;
-    leakyBucketWaterMark.highWMDelay.tsMilliSec = 100;
-
-    leakyBucketInterval.tsMilliSec = getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL") ? atoi(getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL")) :
-        CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL;
-
-    clLogInfo("LEAKY", "BUCKET-INI", "Creating a leaky bucket with vol [%lld], leak size [%lld], interval [%d ms]",
-              leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval.tsMilliSec);
-
-    return clLeakyBucketCreateSoft(leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval, 
-                                   &leakyBucketWaterMark, 
-                                   &gClLeakyBucket);
-    
-}
-
-#else
-
-static ClRcT clCpmLeakyBucketInitialize(void)
-{
-    return CL_OK;
-}
-
-#endif
-
 ClBoolT clCpmSwitchoverInline(void)
 {
     return gClAmsSwitchoverInline;
@@ -1643,8 +1598,6 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
                    "Task pool create returned [%#x]", rc);
         goto failure;
     }
-
-    clCpmLeakyBucketInitialize();
 
     /*
      * Initialize the node information which will be sent to CPM/G
