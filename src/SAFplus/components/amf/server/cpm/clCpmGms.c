@@ -280,7 +280,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                         /*
                          * We arent expected to return back.
                          */
-                        cpmActive2Standby(CL_YES);
+                        cpmActive2Standby(CL_NO);
                     }
                 }
             }
