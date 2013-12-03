@@ -279,12 +279,22 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
                         }
                         else
                         {
-                            ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
-                            ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
-
                             clNodeCacheLeaderUpdate(reportedLeader);
                             clLogAlert("NTF", "LEA", "Split brain.  Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader,currentLeader);
-                            _clGmsEngineLeaderElect (0x0, NULL , CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
+
+                            /* Gas: try register level 3 */
+                            ClIocAddressT allNodeReps;
+                            allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+                            allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+                            static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
+                            ClUint32T myCapability = 0;
+                            ClIocNotificationT notification;
+                            notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
+                            notification.nodeVersion = htonl(nodeVersion);
+                            notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
+                            notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
+                            notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);  // htonl(1);
+                            clIocNotificationPacketSend(pThis->commObj, &notification, &allNodeReps, CL_FALSE, NULL );
                         }
                     }
                     else
