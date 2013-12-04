@@ -352,7 +352,6 @@ ClRcT CL_CPM_CALL_RMD_ASYNC_NEW(ClIocNodeAddressT destAddr,
                                 ClRmdAsyncCallbackT pFuncCB,
                                 ClCpmMarshallT marshallFunction)
 {
-    ClRcT retCode = CL_OK;
     ClRcT rc = CL_OK;
     ClRmdOptionsT rmdOptions = CL_RMD_DEFAULT_OPTIONS;
     ClRmdAsyncOptionsT rmdAsyncOptions;
@@ -405,7 +404,7 @@ ClRcT CL_CPM_CALL_RMD_ASYNC_NEW(ClIocNodeAddressT destAddr,
                           (flags) | CL_RMD_CALL_ASYNC, &rmdOptions, NULL);
     if (inBufLen)
     {
-        retCode = clBufferDelete(&inMsgHdl);
+        clBufferDelete(&inMsgHdl);
     }
 
   failure:
@@ -1019,10 +1018,8 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
         }
         else
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,
-                    CL_CPM_LOG_1_CLIENT_NODE_SHUTDOWN, rc);
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Shutdown [%d] self, master Address not valid\n",
-                iocAddress));
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB,CL_CPM_LOG_1_CLIENT_NODE_SHUTDOWN, rc);
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Shutdown [%d] self, master Address not valid", iocAddress));
             rc = cpmSelfShutDown();
         }
 
@@ -2200,7 +2197,7 @@ static void __cpmRegisterWithActive(ClBoolT reregister)
     return;
     
     failure:
-    cpmSelfShutDown();
+    cpmRestart(NULL,NULL);
 }
 
 void cpmRegisterWithActive(void)
@@ -2224,22 +2221,16 @@ ClRcT VDECL(cpmGoBackToRegisterCallback)(ClEoDataT data,
     ClRcT rc = CL_OK;
     ClCpmBmSetLevelResponseT bmSetLevelResp = {{0}};
 
-    rc = VDECL_VER(clXdrUnmarshallClCpmBmSetLevelResponseT, 4, 0, 0)(inMsgHandle,
-                                                 (void *)&bmSetLevelResp);
+    rc = VDECL_VER(clXdrUnmarshallClCpmBmSetLevelResponseT, 4, 0, 0)(inMsgHandle, (void *)&bmSetLevelResp);
     if (CL_OK != rc)
     {
-        clLogDebug(CPM_LOG_CTX_CPM_CPM, CPM_LOG_CTX_CPM_BOOT,
-                   "Failed to unmarshall buffer, error [%#x]",
-                   rc);
+        clLogDebug(CPM_LOG_CTX_CPM_CPM, CPM_LOG_CTX_CPM_BOOT,"Invalid data in node reset request. error [%#x].  Forcing reset",rc);
         goto failure;
     }
 
     if (CL_OK != bmSetLevelResp.retCode)
     {
-        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                      "Failed to set boot level to [2], error [%#x] "
-                      "Shutting down...",
-                      rc);
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"Failed to set boot level to [2], error [%#x] Forcing reset.", rc);
         goto failure;
     }
 
@@ -2248,20 +2239,17 @@ ClRcT VDECL(cpmGoBackToRegisterCallback)(ClEoDataT data,
                       gpClCpm->pCpmLocalInfo->nodeName,
                        CL_MAX_NAME_LENGTH-1) == 0));
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-               "OK. Boot level is now [%d], re-registering with "
-               "CPM/G active...",
-               gpClCpm->bmTable->currentBootLevel);
-
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,"OK. Boot level is now [%d], re-registering with CPM/G active...", gpClCpm->bmTable->currentBootLevel);
     cpmRegisterWithActive();
 
     return CL_OK;
     
 failure:
-    cpmSelfShutDown();
+    cpmRestart(NULL,NULL);
     return rc;
 }
 
+#if 0
 static ClRcT cpmKillUserComp(ClCntNodeHandleT key,
                              ClCntDataHandleT data,
                              ClCntArgHandleT arg,
@@ -2292,6 +2280,7 @@ static void cpmKillUserComps(void)
 {
     clCntWalk(gpClCpm->compTable, cpmKillUserComp, NULL, 0);
 }
+#endif
 
 static ClRcT cpmPayloadRegisterCallback(void *unused)
 {
@@ -2310,8 +2299,6 @@ static ClRcT cpmPayloadRegister(void)
 
 void cpmGoBackToRegister(void)
 {
-    ClNameT nodeName = {0};
-    ClCpmLcmReplyT srcInfo = {0};
     ClRcT rc = CL_OK;
     
     if(gClAmsPayloadResetDisable)
@@ -2320,36 +2307,41 @@ void cpmGoBackToRegister(void)
         if(rc == CL_OK)
             return;
     }
+
+
+    cpmRestart(NULL,NULL);
+    /* Stone: This code is called when there is no system controller in the cluster.  At this point there is nobody to consume the application failure logs
+       or an AMF to send app shutdown notifications to.  For now, rather then work through a careful shutdown we will run a node reset.
+
+       Note this may have a bad side effect of not running the component cleanup scripts...
+       */
+#if 0
+    ClNameT nodeName = {0};
+    ClCpmLcmReplyT srcInfo = {0};
     
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-               "Killing all user application components...");
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM, "Killing all user application components...");
     
     cpmKillUserComps();
 
-    strncpy(nodeName.value,
-            gpClCpm->pCpmLocalInfo->nodeName,
-            CL_MAX_NAME_LENGTH-1);
+    strncpy(nodeName.value,gpClCpm->pCpmLocalInfo->nodeName, CL_MAX_NAME_LENGTH-1);
     nodeName.length = strlen(nodeName.value);
 
     srcInfo.srcIocAddress = clIocLocalAddressGet();
     srcInfo.srcPort = CL_IOC_CPM_PORT;
     srcInfo.rmdNumber = CPM_NODE_GO_BACK_TO_REG;
     
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-               "Setting boot level to 2...");
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,"Setting boot level to 2...");
 
     cpmBmRespTimerStop();
     
-    rc = clCpmBootLevelSet(&nodeName,
-                           &srcInfo,
-                           2);
+    rc = clCpmBootLevelSet(&nodeName, &srcInfo, 2);
     if (CL_OK != rc)
     {
         clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
                       "Failed to set boot level to [2], error [%#x] "
                       "Shutting down...",
                       rc);
-        cpmSelfShutDown();
+        cpmRestart(NULL, NULL);
     }
     else
     {
@@ -2359,6 +2351,7 @@ void cpmGoBackToRegister(void)
         gpClCpm->nodeEventPublished = 0; 
         cpmWriteNodeStatToFile("CPM", CL_NO);
     }
+#endif    
 }
 
 ClRcT VDECL(cpmNodeConfigSet)(ClEoDataT data,

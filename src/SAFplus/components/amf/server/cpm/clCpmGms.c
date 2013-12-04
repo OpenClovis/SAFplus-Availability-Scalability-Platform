@@ -328,11 +328,9 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             if ((gpClCpm->amsToCpmCallback != NULL) &&
                 (gpClCpm->cpmToAmsCallback != NULL))
             {
-                clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                           "Starting AMS in active mode...");
+                clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Starting AMS in active mode...");
 
-                rc = clAmsStart(&gAms,
-                                CL_AMS_INSTANTIATE_MODE_ACTIVE | CL_AMS_INSTANTIATE_USE_CHECKPOINT);
+                rc = clAmsStart(&gAms,CL_AMS_INSTANTIATE_MODE_ACTIVE | CL_AMS_INSTANTIATE_USE_CHECKPOINT);
                 /*
                  * Bug 4092:
                  * If the AMS intitialize fails then do the 
@@ -340,13 +338,10 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                  */
                 if (CL_OK != rc)
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "Unable to initialize AMS, "
-                                  "error = [%#x]", rc);
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMF, error = [%#x]", rc);
 
                     gpClCpm->amsToCpmCallback = NULL;
-                    cpmSelfShutDown();
-
+                    cpmReset(NULL,NULL);
                     return;
                 }
             }
@@ -356,17 +351,13 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                  
                 if (!gpClCpm->polling)
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "AMS finalize called before AMS initialize "
-                                  "during node shutdown.");
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "AMF finalize called before AMF initialize during node shutdown.");
                 }
                 else
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "Unable to initialize AMS, "
-                                  "error = [%#x]", rc);
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "Unable to initialize AMF, error = [%#x]", rc);
                      
-                    cpmSelfShutDown();
+                    cpmRestart(NULL,NULL);
                 }
                 return;
             }
@@ -395,8 +386,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                 clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
                            "Starting AMS in standby mode...");
 
-                rc = clAmsStart(&gAms,
-                                CL_AMS_INSTANTIATE_MODE_STANDBY);
+                rc = clAmsStart(&gAms,CL_AMS_INSTANTIATE_MODE_STANDBY);
                 /*
                  * Bug 4092:
                  * If the AMS initialize fails then do the 
@@ -404,13 +394,10 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                  */
                 if (CL_OK != rc)
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "Unable to initialize AMS, "
-                                  "error = [%#x]", rc);
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMS, error = [%#x]", rc);
 
                     gpClCpm->amsToCpmCallback = NULL;
-                    cpmSelfShutDown();
-
+                    cpmRestart(NULL,NULL);
                     return;
                 }
             }
@@ -420,16 +407,12 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                  
                 if (!gpClCpm->polling)
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "AMS finalize called before AMS initialize "
-                                  "during node shutdown.");
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"AMS finalize called before AMS initialize during node shutdown.");
                 }
                 else
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "Unable to initialize AMS, "
-                                  "error = [%#x]", rc);
-                    cpmSelfShutDown();
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMS, error = [%#x]", rc);
+                    cpmRestart(NULL,NULL);
                 }
                 return;
             }
@@ -534,30 +517,24 @@ static void cpmPayload2StandbySC(const ClGmsClusterNotificationBufferT *notifica
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL,
                    CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
     }
-    rc = clAmsStart(&gAms,
-                    CL_AMS_INSTANTIATE_MODE_STANDBY);
+    rc = clAmsStart(&gAms, CL_AMS_INSTANTIATE_MODE_STANDBY);
     gpClCpm->haState = CL_AMS_HA_STATE_STANDBY;
     gpClCpm->activeMasterNodeId = notificationBuffer->leader;
     gpClCpm->deputyNodeId = notificationBuffer->deputy;
     if (CL_OK != rc)
     {
-        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                      "Unable to initialize AMS, "
-                      "error = [%#x]", rc);
-
-        cpmSelfShutDown();
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMF, error = [%#x]", rc);
+        cpmRestart(NULL,NULL);
         return;
     }
-    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-              "initialization of AMS is successful. ");
+    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Initialization of AMF is successful. ");
     
     if (gpClCpm->bmTable->currentBootLevel == pCpmLocalInfo->defaultBootLevel)
     {
         cpmInitializeStandby();
     }
     
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                "Payload to System Controller conversion done");
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Payload to System Controller conversion done");
 
     return ;
 }

@@ -271,7 +271,7 @@ static void *bmInitialize(void *threadArg)
                                       "Getting master address returned "
                                       "error [%#x] doing self shutdown...",
                                       rc2);
-                        cpmSelfShutDown();
+                        cpmRestart(NULL, CL_CPM_IS_STANDBY() ? "standby":"controller");
                     }
                     
                     if(pBootOp->rmdNumber == CPM_NODE_GO_BACK_TO_REG)
@@ -1190,7 +1190,8 @@ ClRcT cpmBmRespTimerCallback(ClPtrT unused)
                            "If you are running only one node (i.e. this node) "
                            "then the problem is more severe. \n"
                            "Shutting down...");
-            cpmSelfShutDown();
+            cpmRestart(NULL, CL_CPM_IS_STANDBY() ? "standby":"controller");
+
         }
         else
         {

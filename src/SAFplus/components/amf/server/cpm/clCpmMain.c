@@ -3007,13 +3007,9 @@ void cpmStandbyRecover(const ClGmsClusterNotificationBufferT
          */
         if (CL_OK != rc)
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                          "Unable to initialize AMS, "
-                          "error = [%#x]", rc);
-
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMS, error = [%#x]", rc);
             gpClCpm->amsToCpmCallback = NULL;
-            cpmSelfShutDown();
-
+            cpmRestart(NULL,NULL);
             goto failure;
         }
     }
@@ -3023,16 +3019,12 @@ void cpmStandbyRecover(const ClGmsClusterNotificationBufferT
                     
         if (!gpClCpm->polling)
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                          "AMS finalize called before AMS initialize "
-                          "during node shutdown.");
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"AMS finalize called before AMF initialize during node shutdown.");
         }
         else
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                          "Unable to initialize AMS, "
-                          "error = [%#x]", rc);
-            cpmSelfShutDown();
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMF, error = [%#x]", rc);
+            cpmRestart(NULL,NULL);
         }
         goto failure;
     }
