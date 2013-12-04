@@ -251,13 +251,10 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
     notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
 
+    gmsNotificationCallback(notification.id, 0, &notification.nodeAddress);
+
     if (notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
     {
-        if (notification.nodeAddress.iocPhyAddress.portId != CL_IOC_MSG_PORT)
-        {
-            gmsNotificationCallback(notification.id, 0, &notification.nodeAddress);
-        }
-
         if (notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION)
         {
             clLogDebug("NTF", "LEA", "Node [%d] arrival msg len [%u] notif len [%lu]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,sizeof(notification));
@@ -279,12 +276,25 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
                         }
                         else
                         {
-                            ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
-                            ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
-
                             clNodeCacheLeaderUpdate(reportedLeader);
                             clLogAlert("NTF", "LEA", "Split brain.  Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader,currentLeader);
-                            _clGmsEngineLeaderElect (0x0, NULL , CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
+                            if (clCpmIsSC() && reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress)
+                            {
+                                /* Gas: take new leader and try register level 3 */
+                                clNodeCacheLeaderSend(reportedLeader);
+                                ClIocAddressT allNodeReps;
+                                allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+                                allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+                                static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
+                                ClUint32T myCapability = 0;
+                                ClIocNotificationT notification;
+                                notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
+                                notification.nodeVersion = htonl(nodeVersion);
+                                notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
+                                notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
+                                notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);  // htonl(1);
+                                clIocNotificationPacketSend(pThis->commObj, &notification, &allNodeReps, CL_FALSE, NULL );
+                            }
                         }
                     }
                     else
@@ -938,7 +948,6 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     ClGmsNodeIdT       newDeputy = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       currentDeputy = CL_GMS_INVALID_NODE_ID;
     ClTimerTimeOutT    timeout;
-    ClGmsNodeIdT       currentLeaderNodeCache = CL_GMS_INVALID_NODE_ID;
 
     timeout.tsSec = gmsGlobalInfo.config.bootElectionTimeout;
     timeout.tsMilliSec = 0;
@@ -1008,16 +1017,6 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         else
         {
             clLog(CL_LOG_INFO,CLM,NA, "Node already exists in GMS view. Returning OK");
-            /*
-             * Sync with db cache for split brain happened
-             */
-            rc = clNodeCacheLeaderGet(&currentLeaderNodeCache);
-            clLog(CL_LOG_DEBUG, CLM,NA, "Cluster leader [0x%x], deputy [0x%x], node cache leader [0x%x] ", currentLeader, currentDeputy, currentLeaderNodeCache);
-            if (rc == CL_ERR_NOT_EXIST || currentLeader != currentLeaderNodeCache)
-            {
-                /* Update current leader */
-                clNodeCacheLeaderUpdate(currentLeader);
-            }
             rc = CL_OK;
             add_rc = CL_OK;
             goto ENG_ADD_ERROR;
