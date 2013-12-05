@@ -424,7 +424,7 @@ _clGmsEngineStart()
        during booting of the cluster. After the timer fires the leader election
        is done from the callback and the interested parties are notified if
        there is a change in the leadership.Timer is a one shot timer and is
-       delted after it fires .
+       deleted after it fires .
      */
     rc = leaderElectionTimerRun(CL_FALSE, NULL);
     if(rc != CL_OK)
@@ -1215,8 +1215,20 @@ ClRcT _clGmsEngineClusterLeaveExtended(
         goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
     }
 
+#if 0
     /* condition should never happen */
     CL_ASSERT(!((thisClusterView->leader == nodeId) && (thisClusterView->deputy==nodeId )));
+#endif
+
+    if (!clCpmIsSC() && (thisClusterView->leader == nodeId) && (thisClusterView->deputy == nodeId))
+    {
+        /*
+        * Trigger re-election
+         */
+        ClTimerTimeOutT reElectTimeout = { .tsSec = gmsGlobalInfo.config.bootElectionTimeout, .tsMilliSec = 0 };
+        leaderElectionTimerRun(CL_TRUE, &reElectTimeout);
+        goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
+    }
 
     /*
        Check whether the leaving node is a leader or deputy in the ring then
