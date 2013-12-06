@@ -518,8 +518,7 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
         CL_LOG_CLEANUP(clLogClientStreamMutexUnlock(pClntData), CL_OK);
         return rc;
     }
-    CL_LOG_DEBUG_TRACE(("Passed the Filter criteria: %u",
-                pStreamHeader->maxRecordCount));
+    CL_LOG_DEBUG_TRACE(("Passed the Filter criteria: %u", pStreamHeader->maxRecordCount));
 
     pBuffer = pStreamRecords + (pStreamHeader->recordSize *
               (pStreamHeader->recordIdx % pStreamHeader->maxRecordCount));
@@ -536,30 +535,37 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clLogClientStreamMutexUnlock(pClntData), CL_OK);
+        clLogAlert("LOG", "RWR", "clLogClientMsgWriteWithHeader(): rc[0x %x] for StreamID[%u]", rc,pStreamHeader->streamId);
         return rc;
     }
     pStreamHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
     ++pStreamHeader->sequenceNum;
-    nUnAcked = abs(pStreamHeader->recordIdx - pStreamHeader->startAck);
-    if( nUnAcked ==  pStreamHeader->maxRecordCount )
+    if (pStreamHeader->recordIdx < pStreamHeader->startAck)
+    { /* It is the Wraparound Case */
+        nUnAcked = (pStreamHeader->recordIdx + pStreamHeader->maxRecordCount) - pStreamHeader->startAck;
+    }
+    else
     {
+        nUnAcked = abs(pStreamHeader->recordIdx - pStreamHeader->startAck);
+    }
+    if( nUnAcked ==  pStreamHeader->maxRecordCount)
+    { /* OOPS... Log Buffer is too small, Overwriting records */
         ++pStreamHeader->numOverwrite;
         ++pStreamHeader->startAck;
-        pStreamHeader->startAck %= (2 * pStreamHeader->maxRecordCount);
-        CL_LOG_DEBUG_TRACE(("In Overwriting mode...total: %u startAck: %u",
-             pStreamHeader->numOverwrite, pStreamHeader->startAck));
+        pStreamHeader->startAck %= (pStreamHeader->maxRecordCount);
+        /*CL_LOG_DEBUG_WARN(("In Overwriting mode...total: %u startAck: %u", pStreamHeader->numOverwrite, pStreamHeader->startAck)); */
     }
     ++pStreamHeader->recordIdx;
-    pStreamHeader->recordIdx %= (2 * pStreamHeader->maxRecordCount);
+    pStreamHeader->recordIdx %= (pStreamHeader->maxRecordCount);
     ++pStreamHeader->flushCnt;
     CL_LOG_DEBUG_TRACE(("recordIdx: %u startAck: %u",
                           pStreamHeader->recordIdx, pStreamHeader->startAck));
 
 
-    if( (0 != pStreamHeader->flushFreq) &&
-        (pStreamHeader->flushCnt == pStreamHeader->flushFreq) )
+    if( ( nUnAcked >=  (pStreamHeader->maxRecordCount / CL_LOG_FLUSH_BUFF_CONST) ) || 
+        ((0 != pStreamHeader->flushFreq) && (pStreamHeader->flushCnt == pStreamHeader->flushFreq)) )
     {
-        CL_LOG_DEBUG_TRACE(("Signaling @ %u", pStreamHeader->recordIdx));
+        CL_LOG_DEBUG_TRACE(("Signaling Flusher @ startAck: %u recordIdx: %u", pStreamHeader->startAck, pStreamHeader->recordIdx));
         pStreamHeader->flushCnt = 0;
 #ifndef POSIX_BUILD
         rc = clLogClientStreamSignalFlusher(pClntData,&(pStreamHeader->flushCond));

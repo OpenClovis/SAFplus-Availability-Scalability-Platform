@@ -105,6 +105,7 @@ extern "C" {
 #define CL_LOG_STREAM_HEADER_STRUCT_ID      12374 
 #define CL_LOG_RECORD_HEADER_SIZE       20
 #define CL_LOG_MAX_RETRIES              3
+#define CL_LOG_FLUSH_BUFF_CONST         4 /* This spicifies the factor of unacked  maximum record count to flush the buffer */
 /* FIXME: The Data below should be read from configuration */
 #define CL_LOG_MAX_FLUSHERS             256
 #define CL_LOG_MAX_MSGS                 1024

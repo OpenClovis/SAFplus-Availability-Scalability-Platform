@@ -82,8 +82,7 @@ clLogFlushIntervalThread(void *pData)
 
     /* calculate the time out */
     clLogDebug(CL_LOG_AREA_SVR, CL_LOG_CTX_BOOTUP,
-            "Flusher interval thread started for stream [%.*s]", pStreamData->shmName.length, 
-            pStreamData->shmName.pValue);
+            "Flusher interval thread started for stream [%.*s]", pStreamData->shmName.length, pStreamData->shmName.pValue);
     timeout.tsSec = pStreamData->pStreamHeader->flushInterval / (1000L * 1000L * 1000L);
     timeout.tsMilliSec
         = (pStreamData->pStreamHeader->flushInterval % (1000L * 1000L * 1000L)) / (1000L * 1000L);
@@ -97,8 +96,7 @@ clLogFlushIntervalThread(void *pData)
         timeout.tsMilliSec = 10;
     }
 
-    CL_LOG_DEBUG_VERBOSE(("timeout: %u sec %u millisec",
-                timeout.tsSec, timeout.tsMilliSec));
+    clLogDebug(CL_LOG_AREA_SVR, CL_LOG_CTX_BOOTUP, "timeout: %u sec %u millisec", timeout.tsSec, timeout.tsMilliSec);
     rc  = clOsalMutexLock_L(&pStreamData->flushIntervalMutex);
     if( CL_OK != rc )
     {
@@ -246,13 +244,12 @@ clLogFlusherStart(void  *pData)
     ClOsalTaskIdT        taskId       = CL_HANDLE_INVALID_VALUE;
 
     clLogDebug(CL_LOG_AREA_SVR, CL_LOG_CTX_BOOTUP,
-            "Flusher started for stream [%.*s]", pStreamData->shmName.length, 
-            pStreamData->shmName.pValue);
+            "Flusher started for stream [%.*s]", pStreamData->shmName.length, pStreamData->shmName.pValue);
     timeout.tsSec = pHeader->flushInterval / (1000L * 1000L * 1000L);
     timeout.tsMilliSec
         = (pHeader->flushInterval % (1000L * 1000L * 1000L)) / (1000L * 1000L);
-    CL_LOG_DEBUG_VERBOSE(("timeout: %u sec %u millisec",
-                timeout.tsSec, timeout.tsMilliSec));
+
+    clLogDebug("LOG", "FLS", "timeout: %u sec %u millisec", timeout.tsSec, timeout.tsMilliSec);
 
     rc = clLogServerStreamMutexLockFlusher(pStreamData);
     if( CL_OK != rc )
@@ -521,11 +518,9 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
     CL_LOG_DEBUG_TRACE((" recordIdx: %d startAck : %d \n", pHeader->recordIdx,
                 pHeader->startAck));
 
-    if( (pHeader->maxRecordCount <= pHeader->startAck) && 
-            (pHeader->maxRecordCount > pHeader->recordIdx) )
+    if (pHeader->recordIdx < pHeader->startAck)
     {
-        nFlushableRecords = (pHeader->recordIdx + (pHeader->maxRecordCount * 2))
-            - pHeader->startAck;
+        nFlushableRecords = (pHeader->recordIdx + pHeader->maxRecordCount) - pHeader->startAck;
     }
     else
     {
@@ -558,7 +553,7 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
         {
             pHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
             pHeader->startAck += nFlushedRecords;
-            pHeader->startAck %= (2 * pHeader->maxRecordCount);
+            pHeader->startAck %= (pHeader->maxRecordCount);
             pStreamData->seqNum += nFlushedRecords;
             nFlushableRecords -= nFlushedRecords;
             CL_LOG_DEBUG_TRACE(("startAck: %u remaining: %u",
@@ -566,8 +561,7 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
             /* FIXME: put the number of overwritten records in log */
             if( 0 != pHeader->numOverwrite )
             {
-                CL_LOG_DEBUG_TRACE((" %d records have been dropped",
-                            pHeader->numOverwrite));
+                clLogAlert("LOG", "FLS", " %d records have been dropped", pHeader->numOverwrite);
             }
             pHeader->numOverwrite = 0;
             pHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
@@ -621,11 +615,9 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
     CL_LOG_DEBUG_TRACE((" recordIdx: %d startAck : %d \n", pHeader->recordIdx,
                 pHeader->startAck));
 
-    if( (pHeader->maxRecordCount <= pHeader->startAck) && 
-            (pHeader->maxRecordCount > pHeader->recordIdx) )
+    if (pHeader->recordIdx < pHeader->startAck)
     {
-        nFlushableRecords = (pHeader->recordIdx + (pHeader->maxRecordCount * 2))
-            - pHeader->startAck;
+        nFlushableRecords = (pHeader->recordIdx + pHeader->maxRecordCount) - pHeader->startAck;
     }
     else
     {
@@ -641,7 +633,7 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
         if( CL_OK == rc )
         {
             pHeader->startAck += nFlushedRecords;
-            pHeader->startAck %= (2 * pHeader->maxRecordCount);
+            pHeader->startAck %= (pHeader->maxRecordCount);
             pStreamData->seqNum += nFlushedRecords;
             nFlushableRecords -= nFlushedRecords;
             CL_LOG_DEBUG_TRACE(("startAck: %u remaining: %u",
@@ -851,6 +843,7 @@ static void clLogVerifyAndFlushRecords(ClUint8T *pBuffer, ClLogStreamHeaderT *pH
         }
         else
         { /* If Record is Invalid, then skip all remaining records  */
+            clLogAlert("SVR", "FLU", "Invalid Record is Found, So Skipping remainging Records");
             break;
         }
     }
@@ -904,7 +897,8 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
 
     localAddr = clIocLocalAddressGet();
     if((!doMulticast) && (pStreamData->fileOwnerAddr != localAddr))
-    { /*Nobody is in these records and they are not for me then skip them */
+    { /*Nobody is interested in these records and they are not for me then skip them */
+      /*  clLogDebug("SVR", "FLU", "Nobody is Interested in These records, So skipping them");*/
         return rc;
     }
 

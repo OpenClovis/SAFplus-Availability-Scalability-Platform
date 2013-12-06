@@ -465,7 +465,7 @@ logFileOwnerLogFileCreateNPopulate(ClCharT        *pTimeStr,
     /*Last 1 Bye is reserved for record write in-progress indicator */
     memset(pRecord + len, ' ', recordSize - len - 2); 
     pRecord[recordSize - 2]='\n'; 
-    rc = clLogFileWrite(*pFp, pRecord, recordSize);
+    rc = clLogFileWrite(*pFp, pRecord, recordSize-1);
 //    fprintf(*pFp, "%.*s\n", recordSize, CL_LOG_DEFAULT_FILE_STRING); 
     if( CL_OK != rc )
     {
