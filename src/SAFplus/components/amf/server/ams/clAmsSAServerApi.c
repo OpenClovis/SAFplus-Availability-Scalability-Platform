@@ -1753,6 +1753,11 @@ _clAmsSACkptServerReady(
     for(int retry=0;retry<30;retry++)
     {
         rc = clAmsCkptInitialize(&gAms,ckptInitHandle,mode);
+        if (CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_HANDLE)
+        {
+            /* invalid master handle so there is no point in retrying.  But why would this occur? */
+            break;
+        }        
         if (rc == CL_OK) break;
         clLogInfo("AMS", "CKP", "AMS checkpoint initialization error [0x%x]...retrying in %d seconds",rc,retry/2+1);
         sleep(retry/2+1);      

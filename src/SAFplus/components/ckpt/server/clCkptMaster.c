@@ -2896,7 +2896,7 @@ ClRcT   ckptClientDBEntryPack(ClHandleDatabaseHandleT databaseHandle,
         rc = clHandleCheckout( gCkptSvr->masterInfo.clientDBHdl,
                                handle,(void **)&pClientData);
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                       ("Ckpt: Failed to allocate the memory rc[0x %x]\n", rc), rc);
+                       ("Ckpt: Failed to checkout handle rc[0x %x]\n", rc), rc);
             
         if(pClientData == NULL || pClientInfo == NULL)
         {

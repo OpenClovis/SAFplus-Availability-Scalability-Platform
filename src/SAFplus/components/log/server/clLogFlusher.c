@@ -519,12 +519,12 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
                 pHeader->startAck));
 
     if (pHeader->recordIdx < pHeader->startAck)
-    {
+    {  /* Ring buffer wraparound Case */
         nFlushableRecords = (pHeader->recordIdx + pHeader->maxRecordCount) - pHeader->startAck;
     }
     else
     {
-        nFlushableRecords = abs( pHeader->recordIdx - pHeader->startAck );
+        nFlushableRecords = pHeader->recordIdx - pHeader->startAck;
     }    
 
     flushRecord.fileName.pValue = clHeapCalloc(1, pStreamData->fileName.length+1);
@@ -556,12 +556,11 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
             pHeader->startAck %= (pHeader->maxRecordCount);
             pStreamData->seqNum += nFlushedRecords;
             nFlushableRecords -= nFlushedRecords;
-            CL_LOG_DEBUG_TRACE(("startAck: %u remaining: %u",
-                        pHeader->startAck, nFlushableRecords));
+            CL_LOG_DEBUG_TRACE(("startAck: %u remaining: %u",pHeader->startAck, nFlushableRecords));
             /* FIXME: put the number of overwritten records in log */
             if( 0 != pHeader->numOverwrite )
             {
-                clLogAlert("LOG", "FLS", " %d records have been dropped", pHeader->numOverwrite);
+                clLogAlert("LOG", "FLS", "Log buffer full. [%d] records have been dropped", pHeader->numOverwrite);
             }
             pHeader->numOverwrite = 0;
             pHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
@@ -575,7 +574,7 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
     rc = clLogServerStreamMutexUnlock(pStreamData);
 	if( CL_OK != rc )
     {
-        clLogError("SVR", "FLU", "Faild to unlock the stream");
+        clLogError("SVR", "FLU", "Failed to unlock the stream");
     }
 
     logRecordsFlush(&flushRecord);

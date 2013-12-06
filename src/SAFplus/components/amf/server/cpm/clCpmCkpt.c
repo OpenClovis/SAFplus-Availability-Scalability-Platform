@@ -466,7 +466,7 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
         rc = clCkptInitialize(&handle, &ckptCallbacks, &cpmCkptVersion);
         tries++;
         clLogNotice("CKP", "INI", "Try [%d] of [3] to initialize checkpoint service", tries);
-    } while( rc != CL_OK && tries < 3 && clOsalTaskDelay(delay) == CL_OK);
+    } while( (rc != CL_OK) && (tries < 3) && (clOsalTaskDelay(delay) == CL_OK));
     
     if(rc != CL_OK)
     {

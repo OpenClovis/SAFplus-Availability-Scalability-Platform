@@ -2590,8 +2590,7 @@ static ClRcT _ckptSectionOverwriteWithVector(ClCkptHdlT         ckptHdl,
      * Retrieve the data associated with the active handle.
      */
     rc = clHandleCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR, CL_DEBUG_ERROR, ("Failed to checkout the active handle [%#llx] rc[0x%x]\n", ckptHdl, rc),
-                    rc);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR, CL_DEBUG_ERROR, ("Failed to checkout the active handle [%#llx] rc[0x%x]\n", ckptHdl, rc), rc);
 
     CL_ASSERT(pCkpt != NULL);
 

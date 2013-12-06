@@ -298,8 +298,7 @@ static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
 
     if(rc != CL_OK )
     { 
-        AMS_LOG(CL_DEBUG_ERROR,("AMS Ckpt section overwrite failed for Section [%s] with error [0x%x]\n",
-                                pSection->value, rc));
+        AMS_LOG(CL_DEBUG_ERROR,("AMF checkpoint section overwrite failed for Section [%s] with error [0x%x]\n", pSection->value, rc));
         goto out_free;
     }
 

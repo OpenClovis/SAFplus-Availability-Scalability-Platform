@@ -1560,25 +1560,21 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
         }
         else if(clCpmIsSCCapable())
         {
-            clLog(CL_LOG_INFO, CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED,
-                  "Started as capable deputy. Initialize checkpoint...");
+            clLog(CL_LOG_INFO, CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED,"Started as capable deputy. Initialize checkpoint...");
             rc = cpmCpmLStandbyCheckpointInitialize();
             //CL_ASSERT(rc == CL_OK);  /* GAS make sure that this does actually return success for the multi-sc work */
             if (rc != CL_OK)
-	    {
-	        clLog(CL_LOG_ERROR, CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED,
-                  "Initializing checkpoint failed, rc=[%#x]. Exit", rc);
-		exit(EXIT_FAILURE);
+            {
+                clLog(CL_LOG_ERROR, CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED, "Initializing checkpoint failed, rc=[%#x]. Exit", rc);
+                exit(EXIT_FAILURE);
             }
-            if (gpClCpm->cpmToAmsCallback != NULL &&
-                gpClCpm->cpmToAmsCallback->ckptServerReady != NULL)
+            if ((gpClCpm->cpmToAmsCallback != NULL) && (gpClCpm->cpmToAmsCallback->ckptServerReady != NULL))
             {
                 gpClCpm->cpmToAmsCallback->ckptServerReady(gpClCpm->ckptHandle, CL_AMS_INSTANTIATE_MODE_STANDBY);
             }
 
             /* Inform AMS , that Event is up and running */
-            if (gpClCpm->cpmToAmsCallback != NULL &&
-                gpClCpm->cpmToAmsCallback->eventServerReady != NULL)
+            if ((gpClCpm->cpmToAmsCallback != NULL) && (gpClCpm->cpmToAmsCallback->eventServerReady != NULL))
             {
                 gpClCpm->cpmToAmsCallback->eventServerReady(CL_TRUE);
             }
