@@ -2115,7 +2115,6 @@ echo_cmd = '/bin/echo -e'
       p = "linux"
       code = linux_code
     elif on_platform("sunos5") :
-      print "Hello"
       p = "solaris"
       code = solaris_code
     else:
