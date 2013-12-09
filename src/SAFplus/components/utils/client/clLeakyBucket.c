@@ -180,7 +180,7 @@ static ClRcT __clLeakyBucketFill(ClLeakyBucketT *bucket,
             return CL_LEAKY_BUCKET_RC(CL_ERR_NO_SPACE);
         }
         
-        clLogInfo("LEAKY", "BUCKET-FILL", "Leaky bucket blocking caller till there is room in the bucket");
+        /* clLogInfo("LEAKY", "BUCKET-FILL", "Leaky bucket blocking caller till there is room in the bucket"); */
         ++bucket->waiters; /* Time for me to wait until the bucket is emptied */
         do
         {

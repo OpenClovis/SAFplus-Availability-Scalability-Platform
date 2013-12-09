@@ -2118,6 +2118,9 @@ def main(argv):
             _do_colors = False
             
     if len(args):
+        t = ' '.join(args)
+        pdb.set_trace()
+        
         cli.onecmd(' '.join(args))
         sys.exit(_exit_code)
     else:
