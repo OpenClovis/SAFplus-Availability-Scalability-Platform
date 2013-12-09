@@ -198,7 +198,7 @@ clCkptMasterAddressUpdate(ClIocNodeAddressT  leader,
      * Update the old master(if existing) with the new leader addresses.
      */
     if((updateReq == CL_TRUE) && 
-       ((gCkptSvr->masterInfo.prevMasterAddr != -1) &&
+       (((ClInt32T) gCkptSvr->masterInfo.prevMasterAddr != -1) &&
        (gCkptSvr->masterInfo.prevMasterAddr != CL_CKPT_UNINIT_ADDR)))
     {
         rc = ckptIdlHandleUpdate(gCkptSvr->masterInfo.prevMasterAddr,

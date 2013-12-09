@@ -358,6 +358,8 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
     ClInt32T			tries = 0;
     ClCharT cacheName[CL_MAX_NAME_LENGTH];
     ClUint32T                   shmSize = clCachedCkptShmSizeGet(cachSize);
+    ClUint32T  *numberOfSections;
+    ClUint32T  *sizeOfCache;
 
     serviceInfo->cachSize = shmSize;
 
@@ -458,8 +460,8 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
         goto out5;
     }
 
-    ClUint32T  *numberOfSections = (ClUint32T *)(serviceInfo->cache);
-    ClUint32T  *sizeOfCache = (ClUint32T *)(numberOfSections + 1);
+    numberOfSections = (ClUint32T *)(serviceInfo->cache);
+    sizeOfCache = (ClUint32T *)(numberOfSections + 1);
     *numberOfSections = 0;
     *sizeOfCache = 0;
 
@@ -541,13 +543,13 @@ ClRcT clCachedCkptSectionCreate(ClCachedCkptSvcInfoT *serviceInfo,
     ClRcT rc = CL_OK;
 
     SaCkptSectionIdT ckptSectionId = {        /* Section id for checkpoints   */
-        .id = (SaUint8T *) sectionData->sectionName.value,
-        .idLen = sectionData->sectionName.length
+         sectionData->sectionName.length,
+         (SaUint8T *) sectionData->sectionName.value
     };
 
     SaCkptSectionCreationAttributesT sectionAttrs= {
-        .sectionId = &ckptSectionId,
-        .expirationTime = CL_TIME_END      /* Setting an infinite time  */
+         &ckptSectionId,
+         CL_TIME_END      /* Setting an infinite time  */
     };
 
     ClUint8T *ckptedData, *copyData;
@@ -623,15 +625,15 @@ ClRcT clCkptEntryUpdate(ClCachedCkptSvcInfoT *serviceInfo,
     ClRcT rc;
 
     SaCkptSectionIdT ckptSectionId = {        /* Section id for checkpoints   */
-        .id = (SaUint8T *) sectionData->sectionName.value,
-        .idLen = sectionData->sectionName.length
+         sectionData->sectionName.length,
+         (SaUint8T *) sectionData->sectionName.value
     };
 
     ClUint8T *ckptedData, *copyData;
     ClSizeT ckptedDataSize = sectionData->dataSize + sizeof(ClIocAddressT);
     ClUint32T network_byte_order;
     ClInt32T tries = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT delay = { 0,  500 };
 
     ckptedData = (ClUint8T *) clHeapAllocate(ckptedDataSize);
     if(ckptedData == NULL)
@@ -752,11 +754,11 @@ ClRcT clCkptEntryDelete(ClCachedCkptSvcInfoT *serviceInfo, const SaNameT *sectio
     ClRcT rc = CL_OK;
 
     SaCkptSectionIdT ckptSectionId = {        /* Section id for checkpoints   */
-        .id = (SaUint8T *) sectionName->value,
-        .idLen = sectionName->length
+         sectionName->length,
+         (SaUint8T *) sectionName->value
     };
     ClInt32T tries = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT delay = { 0, 500 };
 
     /* Delete section from the ckpt */
     if (clCkptEntryExist(serviceInfo, sectionName) == CL_TRUE)
@@ -917,7 +919,7 @@ ClRcT clCachedCkptSynch(ClCachedCkptSvcInfoT *serviceInfo, ClBoolT isEmpty)
             ClUint32T network_byte_order;
             ClCachedCkptDataT sectionData;
 
-            ckptedData = ioVector.dataBuffer;
+            ckptedData = (ClUint8T*) ioVector.dataBuffer;
             copyData = ckptedData;
             
             memset(&sectionData.sectionName, 0, sizeof (SaNameT));

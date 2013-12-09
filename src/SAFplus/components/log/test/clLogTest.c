@@ -105,8 +105,7 @@ clLogTestStreamAttributesInit(const ClCharT                 *fileName,
     if( NULL != fileName )
     {
         /* copying the filename */
-        if( NULL ==
-             ( pStreamAttr->fileName = clHeapCalloc(1, strlen(fileName)+1)))
+        if( NULL == ( pStreamAttr->fileName = (ClCharT*) clHeapCalloc(1, strlen(fileName)+1)))
         {
             return CL_ERR_NO_MEMORY;
         }
@@ -114,8 +113,7 @@ clLogTestStreamAttributesInit(const ClCharT                 *fileName,
     }
     if( NULL != fileLocation)
     {
-       if( NULL ==
-             ( pStreamAttr->fileLocation = clHeapCalloc(1, strlen(fileLocation)+1)))
+       if( NULL == ( pStreamAttr->fileLocation = (ClCharT*) clHeapCalloc(1, strlen(fileLocation)+1)))
         {
             clHeapFree(pStreamAttr->fileName);
             return CL_ERR_NO_MEMORY;

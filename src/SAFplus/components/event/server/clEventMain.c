@@ -261,7 +261,7 @@ void clEventTerminate(SaInvocationT invocation, const SaNameT *compName)
 
 /*****************************************************************************/
 ClEoConfigT clEoConfig = {
-    1,                          /* EO Thread Priority */
+    (ClOsalThreadPriorityT) 1,                          /* EO Thread Priority */
     1,                          /* No of EO thread needed */
     CL_IOC_EVENT_PORT,          /* Required Ioc Port */
     CL_EO_USER_CLIENT_ID_START,
@@ -323,7 +323,7 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
 
-    clLogCompName = "EVT"; /* Override generated eo name with a short name for our server */
+    clLogCompName = (ClCharT*) "EVT"; /* Override generated eo name with a short name for our server */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
     
     rc = clEvtInitialize(argc,argv);

@@ -338,7 +338,7 @@ ClRcT ckptPeerListInfoUnpack(ClUint32T          peerCount,
            /*
             * Allocate memory for the 64bit handle.
             */
-           pMasterHandle = clHeapAllocate(sizeof(*pMasterHandle)); // Free on Error
+           pMasterHandle = (ClHandleT*) clHeapAllocate(sizeof(*pMasterHandle)); // Free on Error
            if(NULL == pMasterHandle)
            {
                clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,"Memory Allocation Failed\n");
@@ -448,7 +448,7 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
                                       pMasterDBEntry->attrib.creationFlags &
                                       CL_CKPT_CHECKPOINT_COLLOCATED)) &&
                 ((gCkptSvr->masterInfo.deputyAddr == CL_CKPT_UNINIT_ADDR) ||
-                 (gCkptSvr->masterInfo.deputyAddr == -1)))
+                 ((ClInt32T) gCkptSvr->masterInfo.deputyAddr == -1)))
         {
             ClCkptClientUpdInfoT    eventInfo;
             ClEventIdT              eventId;
@@ -507,7 +507,7 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
             pReplicaListInfo++;
         }                                
         clHandleCheckin( gCkptSvr->masterInfo.masterDBHdl, pMasterDBInfo->ckptMasterHdl);
-        clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Master handle [%#llX] has been created in database [%#lx %p]", pMasterDBInfo->ckptMasterHdl, clHandleGetDatabaseId(gCkptSvr->masterInfo.masterDBHdl), gCkptSvr->masterInfo.masterDBHdl);
+        clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Master handle [%#llX] has been created in database [%#lx %p]", pMasterDBInfo->ckptMasterHdl, clHandleGetDatabaseId((void**) gCkptSvr->masterInfo.masterDBHdl), gCkptSvr->masterInfo.masterDBHdl);
         pMasterDBInfo++;
     }                       
     return rc;
@@ -996,7 +996,7 @@ ClRcT ckptCheckpointRetenTimerStart(ClHandleT clientHdl,ClHandleT  masterHdl,
         retenTime = pStoredData->attrib.retentionDuration;
         timeOut.tsMilliSec = (retenTime/
                               (CL_CKPT_NANO_TO_MICRO * CL_CKPT_NANO_TO_MICRO));
-        if( NULL != (pTimerArg = clHeapCalloc(1, sizeof(ClHandleT) )) )
+        if( NULL != (pTimerArg = (ClHandleT*) clHeapCalloc(1, sizeof(ClHandleT) )) )
         {
             *pTimerArg = masterHdl;
         }

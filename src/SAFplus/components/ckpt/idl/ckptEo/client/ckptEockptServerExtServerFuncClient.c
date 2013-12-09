@@ -198,7 +198,7 @@ ClRcT _ckptSectionCheckClientAsync_5_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHand
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);

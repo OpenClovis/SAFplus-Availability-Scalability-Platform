@@ -82,17 +82,17 @@
        if(! (path = strrchr(appName, '/') ) )                           \
        {                                                                \
            path = CKPT_DB_PATH;                                         \
-           appBaseName = (ClCharT*)appName;                             \
+           appBaseName = (ClCharT*) appName;                             \
        }                                                                \
        else                                                             \
        {                                                                \
            memset(appBasePath, 0, sizeof(appBasePath));                 \
-           strncpy(appBasePath, appName, CL_MIN(path-appName, sizeof(appBasePath)-1)); \
+           strncpy(appBasePath, appName, CL_MIN(path-appName, (ClInt32T) sizeof(appBasePath)-1)); \
            appBaseName = path + 1;                                      \
            path = appBasePath;                                          \
        }                                                                \
       if(!path)                                                         \
-          path = ".";                                                   \
+          path = (ClCharT*)".";                                                   \
       snprintf (appDB, sizeof(appDB), "%s/%d%s.db",path, clIocLocalAddressGet (), \
                                  appBaseName);                          \
 }while(0)
@@ -328,7 +328,7 @@ ClRcT clCkptLibraryInitializeDB(ClCkptSvcHdlT *pCkptHdl,
 {
     ClCharT ckptDB[CL_MAX_NAME_LENGTH+1];
     CKPT_NULL_CHECK(pCkptHdl);
-    CL_CKPT_APP_NAME_FORM(ckptDB, dbName);
+    CL_CKPT_APP_NAME_FORM(ckptDB,(ClCharT*) dbName);
     return _clCkptLibraryInitializeDB(pCkptHdl, ckptDB);
 }
 
@@ -449,7 +449,7 @@ ClRcT clCkptLibraryCkptCreate (ClCkptSvcHdlT  ckptHdl,
   
     ckptDbName = (ClCharT *)pCkptName->value;
     
-    CL_CKPT_APP_NAME_FORM(tempDb, ckptDbName);
+    CL_CKPT_APP_NAME_FORM(tempDb, (ClCharT*)ckptDbName);
 
     CKPT_LIST_GET_KEY(pCkptListKey, pCkptName);
 
@@ -704,13 +704,13 @@ ClRcT clCkptLibraryCkptDataSetVersionCreate (ClCkptSvcHdlT   ckptHdl,
             if(pDataInfo->numDataSetTableEntries != numTableEntries)
             {
                 clHeapFree(pDataInfo->pDataSetCallbackTable);
-                pDataInfo->pDataSetCallbackTable = clHeapCalloc(numTableEntries, 
+                pDataInfo->pDataSetCallbackTable = (ClCkptDataSetCallbackT*) clHeapCalloc(numTableEntries, 
                                                                 sizeof(*pDataInfo->pDataSetCallbackTable));
             }
         }
         else
         {
-            pDataInfo->pDataSetCallbackTable = clHeapCalloc(numTableEntries,
+            pDataInfo->pDataSetCallbackTable = (ClCkptDataSetCallbackT*) clHeapCalloc(numTableEntries,
                                                             sizeof(*pDataInfo->pDataSetCallbackTable));
         }
         CL_ASSERT(pDataInfo->pDataSetCallbackTable);
@@ -725,12 +725,11 @@ ClRcT clCkptLibraryCkptDataSetVersionCreate (ClCkptSvcHdlT   ckptHdl,
     if (pDataInfo == NULL)
     {
        rc = CL_CKPT_ERR_NO_MEMORY;
-       CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, 
-               ("Ckpt: Memory can not be allocated rc[0x %x]\n",rc), rc);
+       CKPT_ERR_CHECK(CL_CKPT_LIB,CL_LOG_SEV_ERROR, ("Ckpt: Memory can not be allocated rc[0x %x]\n",rc), rc);
     }
     memset (pDataInfo, 0, sizeof (CkptDataSetT));
     pDataInfo->dsId         =  dsId;
-    pDataInfo->pDataSetCallbackTable = clHeapCalloc(numTableEntries,
+    pDataInfo->pDataSetCallbackTable = (ClCkptDataSetCallbackT*) clHeapCalloc(numTableEntries,
                                                     sizeof(*pDataInfo->pDataSetCallbackTable));
     CL_ASSERT(pDataInfo->pDataSetCallbackTable != NULL);
     memcpy(pDataInfo->pDataSetCallbackTable, pTable, 
@@ -1009,7 +1008,7 @@ static ClRcT clCkptDataSetSerialize(ClVersionT *pVersion,
             versionCode = htonl(versionCode);
             if(pDataInfo->data)
             {
-                pDataInfo->data = clHeapRealloc(pDataInfo->data, pDataInfo->size + sizeof(ClUint32T));
+                pDataInfo->data = (ClAddrT) clHeapRealloc(pDataInfo->data, pDataInfo->size + sizeof(ClUint32T));
                 CL_ASSERT(pDataInfo->data != NULL);
                 /*
                  * We just append the version to the end since that would avoid a memmove of the
@@ -1196,13 +1195,13 @@ ClRcT clCkptLibraryCkptElementVersionCreate(ClCkptSvcHdlT        ckptHdl,
            if(pDataInfo->numElementTableEntries != numTableEntries)
            {
                clHeapFree(pDataInfo->pElementCallbackTable);
-               pDataInfo->pElementCallbackTable = clHeapCalloc(numTableEntries,
+               pDataInfo->pElementCallbackTable = (ClCkptDataSetCallbackT*) clHeapCalloc(numTableEntries,
                                                                sizeof(*pDataInfo->pElementCallbackTable));
            }
        }
        else
        {
-           pDataInfo->pElementCallbackTable = clHeapCalloc(numTableEntries,
+           pDataInfo->pElementCallbackTable = (ClCkptDataSetCallbackT*) clHeapCalloc(numTableEntries,
                                                            sizeof(*pDataInfo->pElementCallbackTable));
        }
        CL_ASSERT(pDataInfo->pElementCallbackTable != NULL);

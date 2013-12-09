@@ -37,7 +37,7 @@ extern "C"
 
 # define CL_EVENT_LIB_NAME   "EVT"
 
-    extern ClCharT *clEventLogMsg[];
+    extern const char *clEventLogMsg[];
 
 
     /*

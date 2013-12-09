@@ -185,7 +185,7 @@ extern ClRcT _clCkptMasterCloseNoLock(ClHandleT clientHdl, ClIocNodeAddressT loc
 
 extern ClRcT _ckptCkptReplicaNodeAddrGet(ClIocNodeAddressT* pNodeAddr,
                                   ClCntHandleT replicaListHdl);
-extern ClRcT ckptMasterDatabaseSyncup();
+extern ClRcT ckptMasterDatabaseSyncup(ClIocNodeAddressT dest);
 extern ClRcT ckptMasterDatabasePack(ClBufferHandleT  outMsg);
 extern ClRcT ckptMasterDatabaseUnpack(ClBufferHandleT  outMsg);
 extern ClRcT ckptPersistentMemoryRead();

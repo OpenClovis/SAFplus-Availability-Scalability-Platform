@@ -320,7 +320,7 @@ ClRcT clCkptDeputyCkptCreateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN C
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -628,7 +628,7 @@ ClRcT clCkptDeputyCkptOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClH
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -894,7 +894,7 @@ ClRcT clCkptDeputyCkptInfoUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1160,7 +1160,7 @@ ClRcT clCkptDeputyCkptInfoUpdateClientAsync_5_0_0(CL_IN ClIdlHandleT handle, CL_
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1334,7 +1334,7 @@ ClRcT clCkptCreateInfoDeputyUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1684,7 +1684,7 @@ ClRcT clCkptActiveCkptOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT 
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1858,7 +1858,7 @@ ClRcT clCkptReplicaNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT C
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -2044,7 +2044,7 @@ ClRcT clCkptDeputyReplicaListUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, 
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -2200,7 +2200,7 @@ ClRcT clCkptActiveCkptDeleteClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN C
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -2449,7 +2449,7 @@ ClRcT clCkptActiveAddrInformClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN C
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -2715,7 +2715,7 @@ ClRcT clCkptDeputyDynamicUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -2886,7 +2886,7 @@ ClRcT clCkptDeputyPeerListUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);

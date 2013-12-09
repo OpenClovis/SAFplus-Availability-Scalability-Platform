@@ -1162,7 +1162,8 @@ ClRcT VDECL_VER(clCkptMasterActiveReplicaSet, 4, 0, 0)(ClCkptHdlT           clie
      * Update the backup/deputy/secondary master 
      */
     {
-        CkptUpdateInfoT   updateInfo = {0};
+        CkptUpdateInfoT   updateInfo;
+        memset(&updateInfo,0,sizeof(CkptUpdateInfoT));
 
         updateInfo.discriminant = CKPTUPDATEINFOTACTIVEADDR;
         updateInfo.ckptUpdateInfoT.activeAddr = localAddr;
@@ -1478,7 +1479,7 @@ void clCkptDelCallback( ClIdlHandleT   ckptIdlHdl,
                         ClRcT          retCode,
                         void           *pData)
 {                        
-    ClHandleT  *pStoredDBHdl  = pData;
+    ClHandleT  *pStoredDBHdl  = (ClHandleT*) pData;
     ClRcT      rc           = CL_OK;
 
     if(gCkptSvr == NULL)
@@ -1554,7 +1555,7 @@ ClRcT ckptDeleteActiveReplicaIntimate(ClIocNodeAddressT activeAddr,
     memcpy( &ckptVersion,gCkptSvr->versionDatabase.versionsSupported,
             sizeof(ClVersionT));
     
-    pCookie = clHeapCalloc(1, sizeof(ClHandleT));
+    pCookie = (ClHandleT*) clHeapCalloc(1, sizeof(ClHandleT));
     if( NULL == pCookie )
     {
         clLogCritical(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_HDL_DEL,
@@ -2041,7 +2042,7 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
                 memset(&timeOut, 0, sizeof(ClTimerTimeOutT));
                 timeOut.tsMilliSec = (retenTime/CL_CKPT_NANO_TO_MILLI);
                 tag = CL_CKPT_START_TIMER;
-                if( NULL != (pTimerArg = clHeapCalloc(1, sizeof(ClHandleT) )) )
+                if( NULL != (pTimerArg = (ClHandleT*) clHeapCalloc(1, sizeof(ClHandleT) )) )
                 {
                     *pTimerArg = masterHdl;
                 }
@@ -2102,8 +2103,9 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
      * Update the deputy master.
      */
     {
-        CkptUpdateInfoT   updateInfo = {0};
+        CkptUpdateInfoT   updateInfo;
 
+        memset(&updateInfo,0,sizeof(CkptUpdateInfoT));
         /* 
          * Passing dummy values as in this case it is not needed.
          */
@@ -2274,7 +2276,8 @@ ClRcT VDECL_VER(clCkptMasterCkptUnlink, 4, 0, 0)(SaNameT           *pName,
      * Update the deputy master.
      */
     {
-        CkptUpdateInfoT   updateInfo = {0};
+        CkptUpdateInfoT   updateInfo ;
+        memset(&updateInfo,0,sizeof(CkptUpdateInfoT));
 
         updateInfo.discriminant = CKPTUPDATEINFOTNULLINFO;
         updateInfo.ckptUpdateInfoT.nullInfo = 0;
@@ -2439,7 +2442,8 @@ ClRcT VDECL_VER(clCkptMasterCkptRetentionDurationSet, 4, 0, 0)(ClCkptHdlT  clien
      * Update the deputy master.
      */
     {
-        CkptUpdateInfoT   updateInfo = {0};
+        CkptUpdateInfoT   updateInfo;
+        memset(&updateInfo,0,sizeof(CkptUpdateInfoT));
 
         /*
          * Update retentimer info in the deputy.
@@ -2689,7 +2693,7 @@ ClRcT _ckptMasterXlationTablePack(ClCntKeyHandleT    userKey,
 {
     ClRcT                   rc          = CL_OK;
     CkptXlationDBEntryT    *pInXlation  = (CkptXlationDBEntryT *)hashTable;
-    ClCkptMasterSyncupWalkT *pWalkArgs = userArg;
+    ClCkptMasterSyncupWalkT *pWalkArgs = (ClCkptMasterSyncupWalkT*) userArg;
     CkptXlationDBEntryT    *pOutXlation = (CkptXlationDBEntryT *)pWalkArgs->pData;
     CKPT_NULL_CHECK(pInXlation);
 
@@ -2738,7 +2742,7 @@ ClRcT _ckptMasterHdlPack(ClCntKeyHandleT    userKey,
                          ClUint32T          dataLength)
 { 
     ClRcT               rc        = CL_OK;
-    ClCkptMasterSyncupWalkT *pWalkArgs = userArg;
+    ClCkptMasterSyncupWalkT *pWalkArgs = (ClCkptMasterSyncupWalkT*) userArg;
     ClHandleT          *pNodeInfo = (ClHandleT *)pWalkArgs->pData;
     
     if(pWalkArgs->index < pWalkArgs->count)
@@ -2764,7 +2768,7 @@ ClRcT _ckptMasterPeerListHdlPack(ClCntKeyHandleT    userKey,
 { 
     ClRcT               rc         = CL_OK;
     CkptNodeListInfoT   *pData     = (CkptNodeListInfoT *)hashTable;
-    ClCkptMasterSyncupWalkT *pWalkArgs = userArg;
+    ClCkptMasterSyncupWalkT *pWalkArgs = (ClCkptMasterSyncupWalkT*) userArg;
     CkptNodeListInfoT   *pNodeInfo = (CkptNodeListInfoT *)pWalkArgs->pData;
 
     if(pWalkArgs->index < pWalkArgs->count)
@@ -2795,7 +2799,7 @@ ClRcT _ckptMasterPeerListPack(ClCntKeyHandleT    userKey,
 {
     ClRcT               rc             = CL_OK;
     CkptPeerInfoT       *pPeerInfo     = (CkptPeerInfoT *) hashTable;
-    ClCkptMasterSyncupWalkT *pWalkArgs = userArg;
+    ClCkptMasterSyncupWalkT *pWalkArgs = (ClCkptMasterSyncupWalkT*) userArg;
     CkptPeerListInfoT   *pPeerListInfo = (CkptPeerListInfoT *)pWalkArgs->pData;
 
     if(pWalkArgs->index < pWalkArgs->count)
@@ -2892,7 +2896,7 @@ ClRcT   ckptClientDBEntryPack(ClHandleDatabaseHandleT databaseHandle,
                               ClHandleT               handle, 
                               void                    *pCookie)
 {
-    ClCkptMasterSyncupWalkT *pWalkArgs = pCookie;
+    ClCkptMasterSyncupWalkT *pWalkArgs = (ClCkptMasterSyncupWalkT*) pCookie;
     CkptMasterDBClientInfoT *pClientInfo = (CkptMasterDBClientInfoT *)pWalkArgs->pData;
     CkptMasterDBClientInfoT *pClientData = NULL;
     ClRcT                    rc          = CL_OK;
@@ -3018,7 +3022,7 @@ ClRcT _ckptMasterDBEntryPack(ClHandleDatabaseHandleT databaseHandle,
                              void                    *pCookie)
 {
     ClRcT                  rc              = CL_OK;
-    ClCkptMasterSyncupWalkT *pWalkArgs     = pCookie;
+    ClCkptMasterSyncupWalkT *pWalkArgs     = (ClCkptMasterSyncupWalkT*) pCookie;
     CkptMasterDBEntryIDLT  *pMasterEntry   = (CkptMasterDBEntryIDLT *)pWalkArgs->pData;
 
     if(pWalkArgs->index < pWalkArgs->count)
@@ -3029,7 +3033,7 @@ ClRcT _ckptMasterDBEntryPack(ClHandleDatabaseHandleT databaseHandle,
     }
     else
     {
-        pMasterEntry = clHeapRealloc(pMasterEntry, sizeof(*pMasterEntry) * (pWalkArgs->count + 1));
+        pMasterEntry = (CkptMasterDBEntryIDLT*) clHeapRealloc(pMasterEntry, sizeof(*pMasterEntry) * (pWalkArgs->count + 1));
         CL_ASSERT(pMasterEntry != NULL);
         pMasterEntry = pMasterEntry + pWalkArgs->index;
         memset(pMasterEntry, 0, sizeof(*pMasterEntry));
@@ -3347,7 +3351,8 @@ _ckptMastHdlListWalk(ClCntKeyHandleT   userKey,
          * Inform the deputy master as well.
          */
         {
-            CkptUpdateInfoT   updateInfo = {0};
+            CkptUpdateInfoT   updateInfo;
+            memset(&updateInfo,0,sizeof(CkptUpdateInfoT));
 
             /*
              * Update the active address in the master.
@@ -3431,7 +3436,7 @@ exitOnErrorBeforeHdlCheckout:
 
 ClRcT _ckptMasterCkptsReplicateTimerExpiry(void *pArg)
 {
-    ClCkptReplicateTimerArgsT *pTimerArg = pArg;
+    ClCkptReplicateTimerArgsT *pTimerArg = (ClCkptReplicateTimerArgsT*) pArg;
     ClIocNodeAddressT addr = CL_IOC_RESERVED_ADDRESS;
 
     CL_ASSERT(pTimerArg != NULL);
@@ -3553,7 +3558,7 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
          * info has gone down. Now that a node is available, replicate
          * the checkpoint is needed.
          */
-        pTimerArgs = clHeapCalloc(1, sizeof(*pTimerArgs));
+        pTimerArgs = (ClCkptReplicateTimerArgsT*) clHeapCalloc(1, sizeof(*pTimerArgs));
         if(!pTimerArgs)
         {
             rc = CL_CKPT_RC(CL_ERR_NO_MEMORY);
@@ -3854,7 +3859,7 @@ ClRcT _ckptCheckpointLoadBalancing()
      * This is for storing the timer handle and thatwill be deleted in the
      * callback 
      */
-    pTimerArg = clHeapCalloc(1, sizeof(ClTimerHandleT));
+    pTimerArg = (void**) clHeapCalloc(1, sizeof(ClTimerHandleT));
     if( NULL == pTimerArg )
     {
         clLogCritical(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_REPL_NOTIFY, 
