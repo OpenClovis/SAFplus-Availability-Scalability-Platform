@@ -64,8 +64,7 @@ void clEvtUtilsNameCpy(SaNameT *pNameDst, const SaNameT *pNameSrc)
     CL_FUNC_ENTER();
 
     pNameDst->length = pNameSrc->length;
-    memcpy(pNameDst->value, pNameSrc->value, CL_MIN(pNameSrc->length + 1, 
-                                                    (ClUint32T)sizeof(pNameDst->value)));
+    memcpy(pNameDst->value, pNameSrc->value, CL_MIN((pNameSrc->length + 1), (ClInt32T)sizeof(pNameDst->value)));
     CL_FUNC_EXIT();
     return;
 }
@@ -78,8 +77,7 @@ ClUint32T clEvtUtilsIsLittleEndian(void)
     return (*((char *) &i) ? CL_TRUE : CL_FALSE);
 }
 
-ClRcT clEvtUtilsFilter2Rbe(const ClEventFilterArrayT *pFilterArray,
-                           ClRuleExprT **pRbeExpr)
+ClRcT clEvtUtilsFilter2Rbe(const ClEventFilterArrayT *pFilterArray, ClRuleExprT **pRbeExpr)
 {
     ClRcT rc = CL_OK;
 
@@ -110,7 +108,7 @@ ClRcT clEvtUtilsFilter2Rbe(const ClEventFilterArrayT *pFilterArray,
     }
 
     noOfFilters = pFilterArray->filtersNumber;
-    rbeExprArray = clHeapAllocate(sizeof(ClRuleExprT *) * noOfFilters);
+    rbeExprArray = (ClRuleExprT**) clHeapAllocate(sizeof(ClRuleExprT *) * noOfFilters);
 
     for (i = 0; i < noOfFilters;
          i++, extraOffset += len + (0 == remainder ? 0 : 1))
@@ -151,15 +149,12 @@ ClRcT clEvtUtilsFilter2Rbe(const ClEventFilterArrayT *pFilterArray,
         switch ((ClInt32T)pFilters->filterType)
         {
             case CL_EVENT_EXACT_FILTER:
-                rc = clRuleExprFlagsSet(rbeExprArray[i],
-                                        CL_RULE_MATCH_EXACT |
-                                        CL_RULE_EXPR_CHAIN_AND);
+                rc = clRuleExprFlagsSet(rbeExprArray[i],(ClRuleExprFlagsT) (CL_RULE_MATCH_EXACT | CL_RULE_EXPR_CHAIN_AND));
                 mask = 0xffffffff;  /* Initialize mask appropriately */
                 break;
 
             case CL_EVENT_NON_ZERO_MATCH:
-                rc = clRuleExprFlagsSet(rbeExprArray[i],
-                                        CL_RULE_NON_ZERO_MATCH);
+                rc = clRuleExprFlagsSet(rbeExprArray[i], CL_RULE_NON_ZERO_MATCH);
                 mask = 0xffffffff;  /* Initialize mask appropriately */
                 break;
 
@@ -282,7 +277,7 @@ ClRcT clEvtUtilsFlatPattern2FlatBuffer(void *pData, ClUint32T noOfPattern,
         len += patternSize + noOfPaddingBytes;
     }
 
-    *ppData = clHeapAllocate(len);
+    *ppData = (ClUint8T*) clHeapAllocate(len);
     if (NULL == *ppData)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
@@ -332,7 +327,7 @@ ClRcT clEvtUtilsFlatPattern2Rbe(void *pData, ClUint32T noOfPattern,
         return CL_OK;
     }
 
-    rbeExprArray = clHeapAllocate(sizeof(ClRuleExprT *) * noOfPattern);
+    rbeExprArray = (ClRuleExprT**) clHeapAllocate(sizeof(ClRuleExprT *) * noOfPattern);
 
     for (i = 0; i < noOfPattern; i++)
     {

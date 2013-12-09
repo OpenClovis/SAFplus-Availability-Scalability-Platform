@@ -122,7 +122,7 @@ ClRcT _ckptLocalDataUpdate(ClCkptHdlT         ckptHdl,
 
     CKPT_DEBUG_T(("CkptName: %s, MastHdl: %#llX\n", pName->value, ckptHdl));
     
-    pCkptHdl = clHeapAllocate(sizeof(*pCkptHdl)); // Free where necessary NTC
+    pCkptHdl = (ClCkptHdlT*) clHeapAllocate(sizeof(*pCkptHdl)); // Free where necessary NTC
     if(pCkptHdl == NULL)
     {
         rc =  CL_CKPT_ERR_NO_MEMORY;
@@ -691,20 +691,18 @@ clCkptSectionChkNAdd(ClCkptHdlT  ckptHdl,
     ClCntNodeHandleT   hNodeSec = CL_HANDLE_INVALID_VALUE;
     ClTimerTimeOutT    timeOut  = {0};
 
-    pKey = clHeapCalloc(1, sizeof(ClCkptSectionKeyT));
+    pKey = (ClCkptSectionKeyT*) clHeapCalloc(1, sizeof(ClCkptSectionKeyT));
     if( NULL == pKey )
     {
         rc = CL_CKPT_ERR_NO_MEMORY;
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                "Allocation failed during section creation");
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Allocation failed during section creation");
         goto exitOnError;
     }
-    pSec = clHeapCalloc(1, sizeof(CkptSectionT));
+    pSec = (CkptSectionT*) clHeapCalloc(1, sizeof(CkptSectionT));
     if( NULL == pSec )
     {
         rc = CL_CKPT_ERR_NO_MEMORY;
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                "Allocation failed during section creation");
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Allocation failed during section creation");
         goto keyFreeNExit;
     }
     /* copy the key */   
@@ -713,8 +711,7 @@ clCkptSectionChkNAdd(ClCkptHdlT  ckptHdl,
     rc = clCksm32bitCompute(pKey->scnId.id, pKey->scnId.idLen, &cksum);
     if( CL_OK != rc )
     {
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                "Cksum computation failed rc [0x %x]", rc);
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Cksum computation failed rc [0x %x]", rc);
         goto dataFreeNExit;
     }
     pKey->hash = cksum % pCkpt->pDpInfo->numOfBukts;
@@ -724,8 +721,7 @@ clCkptSectionChkNAdd(ClCkptHdlT  ckptHdl,
                pKey->scnId.idLen);
 
     /* Find the section already exist or not */
-    rc = clCntNodeFind(pCkpt->pDpInfo->secHashTbl, (ClCntKeyHandleT) pKey,
-                       &hNodeSec);
+    rc = clCntNodeFind(pCkpt->pDpInfo->secHashTbl, (ClCntKeyHandleT) pKey, &hNodeSec);
     if( CL_OK == rc )
     {
         /* Section already exists -- this is an expected result for this fn
@@ -754,8 +750,7 @@ clCkptSectionChkNAdd(ClCkptHdlT  ckptHdl,
     if( NULL == pSec->pData )
     {
         rc = CL_CKPT_ERR_NO_MEMORY;
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                "Allocation failed while creating section");
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Allocation failed while creating section");
         goto dataFreeNExit;
     }
     memcpy(pSec->pData, pInitialData, initialDataSize);
@@ -764,7 +759,7 @@ clCkptSectionChkNAdd(ClCkptHdlT  ckptHdl,
     pSec->exprTime = expiryTime;   
     pSec->timerHdl = 0;
     
-    pKey->scnId.id = clHeapCalloc(1, pKey->scnId.idLen);
+    pKey->scnId.id = (ClUint8T*) clHeapCalloc(1, pKey->scnId.idLen);
     if( NULL == pKey->scnId.id ) 
     {
         rc = CL_CKPT_ERR_NO_MEMORY;
@@ -848,19 +843,17 @@ clCkptDefaultSectionAdd(CkptT      *pCkpt,
     CkptSectionT       *pSec = NULL;
 
     /* copy the key */
-    pKey = clHeapCalloc(1, sizeof(ClCkptSectionKeyT));
+    pKey = (ClCkptSectionKeyT*) clHeapCalloc(1, sizeof(ClCkptSectionKeyT));
     if( NULL == pKey )
     {
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                "Failed to allocate memory");
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Failed to allocate memory");
         return CL_CKPT_ERR_NO_MEMORY;
     }
-    pKey->scnId.id = clHeapCalloc(1, strlen("defaultSection") + 1);
+    pKey->scnId.id = (ClUint8T*) clHeapCalloc(1, strlen("defaultSection") + 1);
     if( NULL == pKey->scnId.id )
     {
         clHeapFree(pKey);
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                "Failed to allocate memory");
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Failed to allocate memory");
         return CL_CKPT_ERR_NO_MEMORY;
     }
     pKey->scnId.idLen = strlen("defaultSection") + 1;
@@ -868,25 +861,22 @@ clCkptDefaultSectionAdd(CkptT      *pCkpt,
 
     pKey->hash = 0;
     /* copy the data */
-    pSec = clHeapCalloc(1, sizeof(CkptSectionT));
+    pSec = (CkptSectionT*) clHeapCalloc(1, sizeof(CkptSectionT));
     if( NULL == pSec )
     {
         clHeapFree(pKey->scnId.id);
         clHeapFree(pKey);
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                "Failed to allocate memory");
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Failed to allocate memory");
         return CL_CKPT_ERR_NO_MEMORY;
     }
 
     pSec->size  = initialDataSize;
-    pSec->pData = (ClAddrT *)clHeapCalloc(pSec->size,
-            sizeof(ClCharT));
+    pSec->pData = (ClAddrT *)clHeapCalloc(pSec->size, sizeof(ClCharT));
     if( NULL == pSec->pData )
     {
         clHeapFree(pKey->scnId.id);
         clHeapFree(pKey);
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                "Failed to allocate memory");
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Failed to allocate memory");
         return CL_CKPT_ERR_NO_MEMORY;
     }
     memcpy(pSec->pData,pInitialData,pSec->size);
@@ -894,19 +884,16 @@ clCkptDefaultSectionAdd(CkptT      *pCkpt,
     pSec->state    = CL_CKPT_SECTION_VALID;
     pSec->timerHdl = 0;
 
-    rc = clCntNodeAdd(pCkpt->pDpInfo->secHashTbl, (ClCntKeyHandleT) pKey,
-                      (ClCntDataHandleT) pSec, NULL);
+    rc = clCntNodeAdd(pCkpt->pDpInfo->secHashTbl, (ClCntKeyHandleT) pKey, (ClCntDataHandleT) pSec, NULL);
     if( CL_OK != rc )
     {
         if( CL_GET_ERROR_CODE(rc) == CL_ERR_DUPLICATE )
         {
-            clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                         "Default section alreay exist rc[0x %x]", rc);
+            clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Default section alreay exist rc[0x %x]", rc);
         }
         else
         {
-            clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                "Creating default section failed rc [0x %x]", rc);
+            clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Creating default section failed rc [0x %x]", rc);
         }
         clHeapFree(pSec->pData);
         clHeapFree(pSec);
@@ -1054,12 +1041,10 @@ ClRcT VDECL_VER(_ckptSectionCreate, 4, 0, 0)(ClCkptHdlT         ckptHdl,
             CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
                     ("index parameter is NULL for a generated section."),rc);
         }
-        pSecCreateAttr->sectionId->id =
-            clHeapCalloc(CL_CKPT_GEN_SEC_LENGTH, sizeof(ClCharT));
+        pSecCreateAttr->sectionId->id = (ClUint8T*) clHeapCalloc(CL_CKPT_GEN_SEC_LENGTH, sizeof(ClCharT));
         if( NULL == pSecCreateAttr->sectionId->id )
         {
-            clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
-                    "Failed to allocate memory for generated section");
+            clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,"Failed to allocate memory for generated section");
             goto exitOnError;
         }
         snprintf((ClCharT *) pSecCreateAttr->sectionId->id, CL_CKPT_GEN_SEC_LENGTH,"generatedSection%d", 
@@ -1150,7 +1135,7 @@ clCkptSecFindNDelete(CkptT             *pCkpt,
     ClCkptSectionKeyT  *pKey = NULL;
     ClUint32T          cksum = 0;
 
-    pKey = clHeapCalloc(1, sizeof(ClCkptSectionKeyT));
+    pKey = (ClCkptSectionKeyT*) clHeapCalloc(1, sizeof(ClCkptSectionKeyT));
     if( NULL == pKey )
     {
         clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
@@ -2071,17 +2056,17 @@ ClRcT VDECL_VER(_ckptCheckpointWriteVector, 4, 0, 0)(ClCkptHdlT             ckpt
                                   ("Handle [%#llX] checkout failed during checkpoint write rc[0x %x]\n", ckptHdl, rc), rc);
     CL_ASSERT(pCkpt != NULL);
 
-    pStaleSectionsData = clHeapCalloc(numberOfElements, sizeof(*pStaleSectionsData));
+    pStaleSectionsData = (void**) clHeapCalloc(numberOfElements, sizeof(*pStaleSectionsData));
     CL_ASSERT(pStaleSectionsData != NULL);
     /*
      * Validate the input difference iovector and copy in to the replica difference vector.
      */
-    pDifferenceReplicaVector = clHeapCalloc(numberOfElements, sizeof(*pDifferenceReplicaVector));
+    pDifferenceReplicaVector = (ClCkptDifferenceIOVectorElementT*) clHeapCalloc(numberOfElements, sizeof(*pDifferenceReplicaVector));
     CL_ASSERT(pDifferenceReplicaVector != NULL);
     for(count = 0; count < numberOfElements; ++count)
     {
         memcpy(pDifferenceReplicaVector+count, pDifferenceIoVector+count, sizeof(*pDifferenceReplicaVector));
-        pDifferenceReplicaVector[count].differenceVector = clHeapCalloc(1, sizeof(*pDifferenceReplicaVector[count].differenceVector));
+        pDifferenceReplicaVector[count].differenceVector = (ClDifferenceVectorT*) clHeapCalloc(1, sizeof(*pDifferenceReplicaVector[count].differenceVector));
         CL_ASSERT(pDifferenceReplicaVector[count].differenceVector != NULL);
         clDifferenceVectorCopy(pDifferenceReplicaVector[count].differenceVector,
                                pDifferenceIoVector[count].differenceVector);
@@ -2473,11 +2458,10 @@ clCkptDefaultSectionInfoGet(CkptT         *pCkpt,
     ClCkptSectionKeyT  key = {{0}}; 
     ClRcT              rc  = CL_OK;
 
-    key.scnId.id = clHeapCalloc(1, strlen("defaultSection") + 1);
+    key.scnId.id = (ClUint8T*) clHeapCalloc(1, strlen("defaultSection") + 1);
     if( NULL == key.scnId.id )
     {
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                "Failed to allocate memory");
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Failed to allocate memory");
         return CL_CKPT_ERR_NO_MEMORY;
     }
     key.scnId.idLen = strlen("defaultSection") + 1;
@@ -3003,7 +2987,7 @@ ClRcT VDECL_VER(_ckptCheckpointRead, 4, 0, 0)(ClCkptHdlT               ckptHdl,
         /*
          * Return ERROR in case offset > maxSecSize.
          */
-        if((pCkpt->pDpInfo->maxScnSize != 0) && (pVec->dataOffset > pCkpt->pDpInfo->maxScnSize))
+        if((pCkpt->pDpInfo->maxScnSize != 0) && ((ClUint32T) pVec->dataOffset > pCkpt->pDpInfo->maxScnSize))
         {
             rc = CL_CKPT_ERR_INVALID_PARAMETER;
             clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
@@ -3028,7 +3012,7 @@ ClRcT VDECL_VER(_ckptCheckpointRead, 4, 0, 0)(ClCkptHdlT               ckptHdl,
             readSize = pVec->dataSize;
         }
 
-        if(pVec->dataOffset > pSec->size)
+        if((ClUint32T) pVec->dataOffset > pSec->size)
         {
             readSize = 0;
         }
@@ -3224,7 +3208,7 @@ ClRcT VDECL_VER(_ckptCheckpointReadSections, 6, 0, 0)(ClCkptHdlT               c
 
     readSectionsHint.maxVecs = vecCount;
     readSectionsHint.curVecs = 0;
-    readSectionsHint.pOutVec = clHeapCalloc(vecCount, sizeof(*readSectionsHint.pOutVec));
+    readSectionsHint.pOutVec = (ClCkptIOVectorElementT*) clHeapCalloc(vecCount, sizeof(*readSectionsHint.pOutVec));
     CL_ASSERT(readSectionsHint.pOutVec != NULL);
 
     rc = clCntWalk(pCkpt->pDpInfo->secHashTbl, readSectionsWalkCallback, 
@@ -3553,8 +3537,8 @@ ClRcT  _ckptRemSvrCheckpointAdd(CkptT         *pCkpt,
         pCondInfo->condVar  = condVar;
     }    
 
-    ckptInfo.pCpInfo = clHeapCalloc(1, sizeof(*ckptInfo.pCpInfo));
-    ckptInfo.pDpInfo = clHeapCalloc(1, sizeof(*ckptInfo.pDpInfo));
+    ckptInfo.pCpInfo = (CkptCPInfoT_5_0_0*) clHeapCalloc(1, sizeof(*ckptInfo.pCpInfo));
+    ckptInfo.pDpInfo = (CkptDPInfoT_4_0_0*) clHeapCalloc(1, sizeof(*ckptInfo.pDpInfo));
     CL_ASSERT(ckptInfo.pCpInfo != NULL);
     CL_ASSERT(ckptInfo.pDpInfo != NULL);
 
@@ -4308,7 +4292,7 @@ clCkptClntSecOverwriteNotify(CkptT             *pCkpt,
                     &pCkpt->ckptName, 
                     pSecId,
                     pSec->size,
-                    pSec->pData,
+                    (ClUint8T*)pSec->pData,
                     NULL, NULL);
         }
         rc = clCntNextNodeGet(pCkpt->pCpInfo->appInfoList, node, &node);
@@ -4473,7 +4457,7 @@ static ClRcT ckptClientInfoGet(CkptT *pCkpt,
     if(!numEntries)
         goto out;
 
-    pClientInfoList->pClientInfo = clHeapCalloc(numEntries, sizeof(*pClientInfoList->pClientInfo));
+    pClientInfoList->pClientInfo = (ClCkptClientInfoT*) clHeapCalloc(numEntries, sizeof(*pClientInfoList->pClientInfo));
     CL_ASSERT(pClientInfoList->pClientInfo != NULL);
     pClientInfoList->numEntries = 0;
     rc = clCntWalk(pCkpt->pCpInfo->appInfoList, ckptClientInfoGetWalk,
@@ -4555,18 +4539,16 @@ clCkptActiveAppInfoUpdate(CkptT              *pCkpt,
     ClRcT           rc        = CL_OK;
     ClCkptAppInfoT  *pAppInfo = {0};
 
-    pAppInfo = clHeapCalloc(1, sizeof(ClCkptAppInfoT));
+    pAppInfo = (ClCkptAppInfoT*) clHeapCalloc(1, sizeof(ClCkptAppInfoT));
     if( NULL == pAppInfo )
     {
-        clLogCritical(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                      "Memory allocation failed while updating app info");
+        clLogCritical(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Memory allocation failed while updating app info");
         return CL_CKPT_ERR_NO_MEMORY;
     }
-    *ppData = clHeapCalloc(1, sizeof(ClUint32T));
+    *ppData = (ClUint32T*) clHeapCalloc(1, sizeof(ClUint32T));
     if( NULL == *ppData )
     {
-        clLogCritical(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
-                      "Memory allocation failed while updating app info");
+        clLogCritical(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, "Memory allocation failed while updating app info");
         clHeapFree(pAppInfo);
         return CL_CKPT_ERR_NO_MEMORY;
     }
@@ -4621,7 +4603,7 @@ VDECL_VER(clCkptReplicaAppInfoNotify, 4, 0, 0)(ClCkptHdlT  ckptHdl,
      * Retrieve the data associated with the active handle.
      */
     rc = ckptSvrHdlCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("Handle [%#llx] checkout failed from database [%lu (%p)].  rc[0x %x]\n", ckptHdl, clHandleGetDatabaseId(gCkptSvr->ckptHdl),gCkptSvr->ckptHdl, rc), rc);
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("Handle [%#llx] checkout failed from database [%lu (%p)].  rc[0x %x]\n", ckptHdl, clHandleGetDatabaseId((void **)gCkptSvr->ckptHdl),gCkptSvr->ckptHdl, rc), rc);
     /*
      * Lock the checkpoint's mutex.
      */
@@ -4693,7 +4675,9 @@ clCkptSectionLevelDelete(ClCkptHdlT        ckptHdl,
     ClUint32T  peerCount = 0;
     ClBoolT sectionLockTaken = CL_TRUE;
     ClIocPhysicalAddressT srcAddr = {0};
-    static CkptSectionT deleteSection = { .pData = "Delete", .size = 0 };
+    static CkptSectionT deleteSection;
+    deleteSection.pData = (ClPtrT) "Delete";
+    deleteSection.size = 0;
 
     /* take the section level mutex */
     rc = clCkptSectionLevelLock(pCkpt, pSecId, &sectionLockTaken);
@@ -4814,7 +4798,7 @@ clCkptSvrReplicaDelete(CkptT       *pCkpt,
         if( pCkpt->numMutex != 0 )
         {
             index = clCkptSectionIndexGet(pCkpt, &pSecKey->scnId); 
-            CL_ASSERT(index != -1);
+            CL_ASSERT((ClInt32T) index != -1);
         }
         if(sectionLockTaken == CL_TRUE)
         {

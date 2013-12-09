@@ -31,7 +31,7 @@
 #include "clEventLog.h"
 
 
-ClCharT *clEventLogMsg[] = {
+const char *clEventLogMsg[] = {
 
     "Internal Error, rc[%#x]",
     "The EO{port[%#x], evtHandle[%#llx]} is already subscribed with ID[%#x] on Channel[%.*s], rc[%#x]",

@@ -56,7 +56,7 @@ void clCkptLogError(ClUint32T   logLvl,
                     ClUint32T   libCode)
 {
     ClLogSeverityT severity = CL_LOG_SEV_ERROR;
-    ClCharT        *libName = "clAspCkptLib";
+    const char     *libName = "clAspCkptLib";
 
     if (logLvl  == CL_LOG_SEV_CRITICAL) severity = CL_LOG_SEV_CRITICAL; 
     if (libCode == CL_CKPT_SVR) libName = NULL;

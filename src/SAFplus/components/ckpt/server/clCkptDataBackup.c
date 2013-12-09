@@ -49,7 +49,7 @@
 #include "clCkptMaster.h"
 
 extern ClRcT ckptMasterDatabasePack(ClBufferHandleT  outMsg);
-extern ClRcT ckptDbPack();
+extern ClRcT ckptDbPack(ClBufferHandleT   *pOutMsg,ClIocNodeAddressT        peerAddr);
 ClCkptSvcHdlT          gCkptHandle;
 ClOsalMutexIdT         gMutex = NULL;
 ClTimerHandleT         gTimerHdl;
@@ -219,7 +219,7 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
     timeOut.tsSec      = 5;
     timeOut.tsMilliSec = 0;
     rc = clTimerCreateAndStart(timeOut, CL_TIMER_REPETITIVE,
-                    CL_TIMER_SEPARATE_CONTEXT, ckptDataPeriodicSave,
+                    CL_TIMER_SEPARATE_CONTEXT, (ClTimerCallBackT) ckptDataPeriodicSave,
                     (void*)NULL, &gTimerHdl);
     if(CL_OK != rc)
     {

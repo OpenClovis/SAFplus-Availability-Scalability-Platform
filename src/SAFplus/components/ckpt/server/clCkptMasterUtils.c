@@ -323,7 +323,7 @@ _ckptPeerListMasterHdlAdd( ClHandleT          masterHdl,
         /*
          * Allocate memory for the 64bit handle.
          */
-        pMasterHandle = clHeapAllocate(sizeof(*pMasterHandle)); // Free on Error
+        pMasterHandle = (ClHandleT*) clHeapAllocate(sizeof(*pMasterHandle)); // Free on Error
         if(NULL == pMasterHandle)
         {
             clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Memory Allocation Failed\n");
@@ -408,7 +408,7 @@ _ckptMasterPeerListHdlsAdd(ClHandleT            clientHdl,
         /*
          * Allocate memory for the 64bit handle.
          */
-        pMasterHandle = clHeapAllocate(sizeof(*pMasterHandle)); // Free on Error
+        pMasterHandle = (ClHandleT*) clHeapAllocate(sizeof(*pMasterHandle)); // Free on Error
         if(NULL == pMasterHandle)
         {
             clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Memory Allocation Failed\n");

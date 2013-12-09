@@ -216,7 +216,7 @@ void    ckptSvrHdlDeleteCallback(ClCntKeyHandleT userKey,
     ClOsalMutexIdT ckptMutex;
     ClOsalMutexIdT *secMutex;
     ClUint32T numMutex;
-    ClInt32T i;
+    ClUint32T i;
     rc = clHandleCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
     if( (CL_OK != rc) || (NULL == pCkpt) )
     {
@@ -293,7 +293,7 @@ void  ckptPeerDeleteCallback(ClCntKeyHandleT userKey,
 void    ckptPeerListDeleteCallback(ClCntKeyHandleT  userKey,
                                    ClCntDataHandleT userData)
 {
-    CkptPeerInfoT   *pPeer = userData;
+    CkptPeerInfoT   *pPeer = (CkptPeerInfoT*) userData;
     
     /*
      * Delete the client handle list and master handle list.
@@ -510,7 +510,7 @@ ClRcT  ckptSvrCbAlloc(CkptSvrCbT **ppSvrCb)
     ClRcT            rc            = CL_OK;
     CkptSvrCbT       *pSvrCb       = &gCkptSvrEntry;
     ClVersionT       *pTempVersion = NULL;
-    ClUint32T        count         = 0;
+    ClInt32T        count         = 0;
     ClIdlHandleObjT  idlObj        = CL_IDL_HANDLE_INVALID_VALUE;
     ClIdlAddressT    address       ;
 
@@ -690,7 +690,7 @@ void
 clCkptSectionLevelMutexDelete(ClOsalMutexIdT  *pSecMutexArray, 
                              ClUint32T       numMutex)
 {
-    ClInt32T i = 0;
+    ClUint32T i = 0;
     /* for default section no need to create */
     if( numMutex == 1 ) return ;
 
@@ -710,7 +710,7 @@ clCkptSectionLevelMutexCreate(ClOsalMutexIdT  *pSecMutexArray,
                               ClUint32T       numMutex)
 {
     ClRcT  rc = CL_OK;
-    ClInt32T i = 0;
+    ClUint32T i = 0;
     
     /* for default section no need to create */
     if( numMutex == 1 ) return CL_OK;
@@ -768,7 +768,7 @@ clCkptSectionLevelLock(CkptT             *pCkpt,
         return CL_OK;
     }
     index = clCkptSectionIndexGet(pCkpt, pSectionId);
-    CL_ASSERT(index != -1);
+    CL_ASSERT((ClInt32T) index != -1);
 
     rc = clOsalMutexLock((pCkpt->secMutex[index]));
     if( CL_OK != rc )
@@ -801,7 +801,7 @@ clCkptSectionLevelUnlock(CkptT             *pCkpt,
             return CL_OK;
         }
         index = clCkptSectionIndexGet(pCkpt, pSectionId);
-        CL_ASSERT(index != -1);
+        CL_ASSERT((ClInt32T) index != -1);
 
         rc = clOsalMutexUnlock((pCkpt->secMutex[index]));
         if( CL_OK != rc )
@@ -932,7 +932,7 @@ ClRcT  _ckptDplaneInfoAlloc(CkptDPlaneInfoT  **ppDplaneInfo,
     /* 
      * Allocate memory for data plane information.
      */
-    if (NULL == (pTmpDp = clHeapCalloc(1,sizeof(CkptDPlaneInfoT))))
+    if (NULL == (pTmpDp = (CkptDPlaneInfoT*) clHeapCalloc(1,sizeof(CkptDPlaneInfoT))))
         return CL_CKPT_ERR_NO_MEMORY;
         
     /* 
@@ -1000,7 +1000,7 @@ ClRcT  _ckptCplaneInfoAlloc(CkptCPlaneInfoT  **pCplaneInfo)
     /*
      * Allocate memory for data plane information.
      */
-    if (NULL == (pTmpCp = clHeapCalloc(1,sizeof(CkptCPlaneInfoT))))
+    if (NULL == (pTmpCp = (CkptCPlaneInfoT*) clHeapCalloc(1,sizeof(CkptCPlaneInfoT))))
         return CL_CKPT_ERR_NO_MEMORY;
     
     /*
@@ -1286,7 +1286,7 @@ ClRcT _ckptCheckpointLocalWriteVector(ClCkptHdlT             ckptHdl,
      */
     if(pCkpt->pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
     {
-        hotStandbyList = clHeapCalloc(numberOfElements, sizeof(*hotStandbyList));
+        hotStandbyList = (CkptHotStandbyVectorT*) clHeapCalloc(numberOfElements, sizeof(*hotStandbyList));
         CL_ASSERT(hotStandbyList != NULL);
     }
     /*
@@ -1313,7 +1313,7 @@ ClRcT _ckptCheckpointLocalWriteVector(ClCkptHdlT             ckptHdl,
                             pCkpt->ckptName.length,
                             pCkpt->ckptName.value,rc), rc);
         }   
-        if((pCkpt->pDpInfo->maxScnSize != 0) && (pDifferenceIoVector->dataOffset > pCkpt->pDpInfo->maxScnSize))
+        if((pCkpt->pDpInfo->maxScnSize != 0) && ( (ClUint32T) pDifferenceIoVector->dataOffset > pCkpt->pDpInfo->maxScnSize))
         {
             /*
              * Return ERROR as offset exceeds the max section size. 
@@ -1533,7 +1533,7 @@ ClRcT _ckptCheckpointLocalWrite(ClCkptHdlT             ckptHdl,
                      pCkpt->ckptName.length,
                      pCkpt->ckptName.value,rc), rc);
         }   
-        if((pCkpt->pDpInfo->maxScnSize != 0) && (pIoVector->dataOffset > pCkpt->pDpInfo->maxScnSize))
+        if((pCkpt->pDpInfo->maxScnSize != 0) && ( (ClUint32T) pIoVector->dataOffset > pCkpt->pDpInfo->maxScnSize))
         {
             /*
              * Return ERROR as offset exceeds the max section size. 
@@ -2026,25 +2026,25 @@ ClInt32T ckptHdlNonUniqueKeyCompare(ClCntDataHandleT givenData, ClCntDataHandleT
 
 ClDifferenceVectorKeyT *ckptDifferenceVectorKeyGet(const SaNameT *pCkptName, const ClCkptSectionIdT *pSectionId)
 {
-    ClDifferenceVectorKeyT *key = clHeapCalloc(1, sizeof(*key));
+    ClDifferenceVectorKeyT *key = (ClDifferenceVectorKeyT*) clHeapCalloc(1, sizeof(*key));
     static ClCkptSectionIdT defaultSectionId = { .idLen = sizeof("defaultSection")-1, 
                                                  .id = (ClUint8T*)"defaultSection", 
     };
     CL_ASSERT(key != NULL);
-    key->groupKey = clHeapCalloc(1, sizeof(*key->groupKey));
+    key->groupKey = (ClStringT*) clHeapCalloc(1, sizeof(*key->groupKey));
     CL_ASSERT(key->groupKey != NULL);
-    key->groupKey->pValue = clHeapCalloc(pCkptName->length, sizeof(*key->groupKey->pValue));
+    key->groupKey->pValue = (ClCharT*) clHeapCalloc(pCkptName->length, sizeof(*key->groupKey->pValue));
     CL_ASSERT(key->groupKey->pValue != NULL);
     memcpy(key->groupKey->pValue, pCkptName->value, pCkptName->length);
     key->groupKey->length = pCkptName->length;
     
-    key->sectionKey = clHeapCalloc(1, sizeof(*key->sectionKey));
+    key->sectionKey = (ClStringT*) clHeapCalloc(1, sizeof(*key->sectionKey));
     CL_ASSERT(key->sectionKey != NULL);
     if(!pSectionId->id || !pSectionId->idLen)
     {
         pSectionId = (const ClCkptSectionIdT*)&defaultSectionId;
     }
-    key->sectionKey->pValue = clHeapCalloc(pSectionId->idLen, sizeof(*key->sectionKey->pValue));
+    key->sectionKey->pValue = (ClCharT*) clHeapCalloc(pSectionId->idLen, sizeof(*key->sectionKey->pValue));
     CL_ASSERT(key->sectionKey->pValue != NULL);
     memcpy(key->sectionKey->pValue, pSectionId->id, pSectionId->idLen);
     key->sectionKey->length = pSectionId->idLen;
@@ -2076,7 +2076,7 @@ void ckptDifferenceVectorGet(CkptT *pCkpt, ClCkptSectionIdT *pSectionId, CkptSec
 ClUint8T *ckptDifferenceVectorMerge(CkptT *pCkpt, ClCkptSectionIdT *pSectionId, CkptSectionT *pSec, 
                                     ClDifferenceVectorT *differenceVector, ClOffsetT offset, ClSizeT dataSize)
 {
-    return clDifferenceVectorMergeWithData(pSec->pData, pSec->size, differenceVector, offset, dataSize);
+    return clDifferenceVectorMergeWithData((ClUint8T*) pSec->pData, pSec->size, differenceVector, offset, dataSize);
 }
 
 /*
@@ -2086,7 +2086,7 @@ ClUint8T *__applyDifferenceVector(CkptSectionT *pSec, ClDifferenceVectorT *diffe
                                   ClOffsetT offset, ClSizeT dataSize)
 {
     ClUint8T *mergeSpace = NULL;
-    ClUint8T *pCurData = pSec->pData;
+    ClUint8T *pCurData = (ClUint8T*) pSec->pData;
     ClDataVectorT *pDataVector = differenceVector->dataVectors;
     ClUint32T i;
     ClUint32T dataBlocks;
@@ -2094,7 +2094,7 @@ ClUint8T *__applyDifferenceVector(CkptSectionT *pSec, ClDifferenceVectorT *diffe
 
     dataBlocks = ( (dataSize + CL_DIFFERENCE_VECTOR_BLOCK_MASK) & ~CL_DIFFERENCE_VECTOR_BLOCK_MASK ) >> 
         CL_DIFFERENCE_VECTOR_BLOCK_SHIFT;
-    mergeSpace = clHeapCalloc(1, dataSize);
+    mergeSpace = (ClUint8T*) clHeapCalloc(1, dataSize);
     CL_ASSERT(mergeSpace != NULL);
 
     for(i = 0; i < dataBlocks && pDataVector < &differenceVector->dataVectors[differenceVector->numDataVectors]; ++i)
@@ -2155,7 +2155,7 @@ void ckptInfoVersionConvertForward(VDECL_VER(CkptInfoT, 5, 0, 0) *pDstCkptInfo,
     {
         if(!pDstCkptInfo->pCpInfo)
         {
-            pDstCkptInfo->pCpInfo = clHeapCalloc(1, sizeof(*pDstCkptInfo->pCpInfo));
+            pDstCkptInfo->pCpInfo = (CkptCPInfoT_5_0_0*) clHeapCalloc(1, sizeof(*pDstCkptInfo->pCpInfo));
             CL_ASSERT(pDstCkptInfo->pCpInfo != NULL);
         }
         pDstCkptInfo->pCpInfo->updateOption = pCkptInfo->pCpInfo->updateOption;
@@ -2169,7 +2169,7 @@ void ckptInfoVersionConvertForward(VDECL_VER(CkptInfoT, 5, 0, 0) *pDstCkptInfo,
     {
         if(!pDstCkptInfo->pDpInfo)
         {
-            pDstCkptInfo->pDpInfo = clHeapCalloc(1, sizeof(*pDstCkptInfo->pDpInfo));
+            pDstCkptInfo->pDpInfo = (CkptDPInfoT_4_0_0*) clHeapCalloc(1, sizeof(*pDstCkptInfo->pDpInfo));
             CL_ASSERT(pDstCkptInfo->pDpInfo != NULL);
         }
         memcpy(pDstCkptInfo->pDpInfo, pCkptInfo->pDpInfo, sizeof(*pDstCkptInfo->pDpInfo));
@@ -2184,7 +2184,7 @@ void ckptInfoVersionConvertBackward(CkptInfoT *pDstCkptInfo, VDECL_VER(CkptInfoT
     {
         if(!pDstCkptInfo->pCpInfo)
         {
-            pDstCkptInfo->pCpInfo = clHeapCalloc(1, sizeof(*pDstCkptInfo->pCpInfo));
+            pDstCkptInfo->pCpInfo = (CkptCPInfoT_4_0_0*) clHeapCalloc(1, sizeof(*pDstCkptInfo->pCpInfo));
             CL_ASSERT(pDstCkptInfo->pCpInfo != NULL);
         }
         pDstCkptInfo->pCpInfo->updateOption = pCkptInfo->pCpInfo->updateOption;
@@ -2197,7 +2197,7 @@ void ckptInfoVersionConvertBackward(CkptInfoT *pDstCkptInfo, VDECL_VER(CkptInfoT
     {
         if(!pDstCkptInfo->pDpInfo)
         {
-            pDstCkptInfo->pDpInfo = clHeapCalloc(1, sizeof(*pDstCkptInfo->pDpInfo));
+            pDstCkptInfo->pDpInfo = (CkptDPInfoT_4_0_0*) clHeapCalloc(1, sizeof(*pDstCkptInfo->pDpInfo));
             CL_ASSERT(pDstCkptInfo->pDpInfo != NULL);
         }
         memcpy(pDstCkptInfo->pDpInfo, pCkptInfo->pDpInfo, sizeof(*pDstCkptInfo->pDpInfo));

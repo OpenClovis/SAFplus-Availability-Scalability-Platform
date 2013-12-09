@@ -56,7 +56,7 @@ SaVersionT  gVersion;
  * Ckpt server specific log messages.
  */
  
-ClCharT *clCkptLogMsg[]=
+const char *clCkptLogMsg[]=
 {
     "CheckPoint created  %s",
     "CheckPoint closed  %s",
@@ -73,7 +73,7 @@ ClCharT *clCkptLogMsg[]=
 
 ClEoConfigT clEoConfig = 
 {
-    1,                          /* Thread priority */ 
+    (ClOsalThreadPriorityT)1,                          /* Thread priority */ 
     CL_CKPT_MAX_NUM_THREADS,   /* No of EO threads */
     CL_IOC_CKPT_PORT,           /* Ioc port no. */
     CL_EO_USER_CLIENT_ID_START, /* How many clients (inluding ASP) 
@@ -160,7 +160,7 @@ SaAisErrorT initializeAmf(void)
     ClIocPortT          iocPort=0;
     SaAisErrorT         rc = SA_AIS_OK;
 
-    clLogCompName = "CKP"; /* Override generated eo name with a short name for our server */
+    clLogCompName = (ClCharT*) "CKP"; /* Override generated eo name with a short name for our server */
 
     /*This function overrides the default EO Configuaration */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
