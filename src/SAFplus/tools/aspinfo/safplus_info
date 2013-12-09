@@ -2119,9 +2119,9 @@ def main(argv):
             
     if len(args):
         t = ' '.join(args)
-        pdb.set_trace()
-        
-        cli.onecmd(' '.join(args))
+        cmds = t.split(";")
+        for c in cmds:
+          cli.onecmd(c)
         sys.exit(_exit_code)
     else:
         _interactive_shell = True
