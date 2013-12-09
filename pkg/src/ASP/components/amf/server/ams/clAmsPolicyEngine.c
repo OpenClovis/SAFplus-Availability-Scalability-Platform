@@ -604,6 +604,8 @@ clAmsPeSGUnlock(
 
     if ( adminState == CL_AMS_ADMIN_STATE_UNLOCKED )
     {
+        
+
         AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
     }
 
@@ -923,8 +925,7 @@ clAmsPeSGInstantiate(
 
     AMS_CALL ( clAmsEntityListWalkGetEntity(
                     &sg->config.suList,
-                    (ClAmsEntityCallbackT)clAmsPeSUMarkInstantiable) );
-
+                    (ClAmsEntityCallbackT)clAmsPeSUMarkInstantiable) );    
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
 
@@ -971,7 +972,6 @@ clAmsPeSGInstantiateTimeout(
         sg->status.isStarted = CL_TRUE;
         
         CL_AMS_SET_EPOCH(sg);
-
         AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
     }
 
@@ -2171,12 +2171,12 @@ clAmsPeNodeForceLockInstantiationOperation(
     {
         return CL_AMS_RC(CL_ERR_NO_OP);
     }
-
-    clLogNotice("NODE", "LOCK-FORCE", "switch over on Node [%s] with mode = [CL_AMS_ENTITY_SWITCHOVER_FAST] ",
+    ClUint32T switchoverMode = CL_AMS_ENTITY_SWITCHOVER_FAST|CL_AMS_ENTITY_SWITCHOVER_FORCE;
+    clLogNotice("NODE", "LOCK-FORCE", "switch over on Node [%s] with mode = [CL_AMS_ENTITY_SWITCHOVER_FAST | CL_AMS_ENTITY_SWITCHOVER_FORCE] ",
                 node->config.entity.name.value);
-    AMS_CALL ( clAmsPeNodeSwitchoverWork(node, CL_AMS_ENTITY_SWITCHOVER_FAST) );
+    AMS_CALL ( clAmsPeNodeSwitchoverWork(node,switchoverMode));
     clLogNotice("NODE", "LOCK-FORCE", "terminate Node [%s]",node->config.entity.name.value);
-    CL_AMS_SET_A_STATE(node, CL_AMS_ADMIN_STATE_LOCKED_I);
+    CL_AMS_SET_A_STATE(node, CL_AMS_ADMIN_STATE_LOCKED_I);    
     AMS_CALL ( clAmsPeNodeTerminate(node) );
 
     return CL_OK;
@@ -3434,6 +3434,12 @@ clAmsPeNodeTerminate(
     {
         return CL_OK;
     }
+    
+    if ( node->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_I )
+    {
+    	AMS_LOG (CL_DEBUG_TRACE,("do cleanup for amsForceLockInstantiation node.\n"));
+        docleanup = CL_TRUE;
+    }
 
     /*
      * Set presence state of node. The oper state is left unchanged, if there
@@ -3873,6 +3879,7 @@ clAmsPeNodeSwitchoverWork(
         }
     }
     else
+    
     {
         AMS_CHECK_RC_ERROR ( clAmsPeNodeSwitchoverCallback(node, CL_OK, switchoverMode) );
     }
@@ -5372,7 +5379,6 @@ clAmsPeSUFaultCallback_Step1(
     // will be executed before step2. So autorepair could happen before or after 
     // this evaluate and that will dictate which su is brought into service if
     // there is also a spare SU.
-
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
     return CL_OK;
@@ -6472,7 +6478,6 @@ clAmsPeSUTerminateCallback(
      * Make a gratuitous call to SGEvaluateWork to ensure that the SG rules
      * are satisfied.
      */
- 
     AMS_CALL ( clAmsPeSGEvaluateWork((ClAmsSGT *)su->config.parentSG.ptr) );
 
     return CL_OK;
@@ -6744,7 +6749,6 @@ clAmsPeSUCleanupCallback(
      * Make a gratuitous call to SGEvaluateWork to ensure that the SG rules
      * are satisfied.
      */
- 
     AMS_CALL ( clAmsPeSGEvaluateWork((ClAmsSGT *)su->config.parentSG.ptr) );
 
     return CL_OK;
@@ -6886,7 +6890,6 @@ clAmsPeSUEvaluateWork(
     AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE, 
             ("Evaluating work for SU [%s]\n",
              su->config.entity.name.value));
-
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
     return CL_OK;
@@ -7227,7 +7230,6 @@ clAmsPeSUSwitchoverWork(
         CL_IN ClUint32T switchoverMode)
 {
     AMS_CHECK_SU ( su );
-
     su->status.compRestartCount = 0;
     AMS_CALL ( clAmsEntityTimerStop((ClAmsEntityT *) su, CL_AMS_SU_TIMER_COMPRESTART) );
     su->status.suRestartCount = 0;
@@ -7317,8 +7319,14 @@ static ClRcT clAmsPeSUSwitchoverPrologue(ClAmsSUT *su, ClUint32T error, ClUint32
      * Make a gratuitous call to SGEvaluateWork to ensure that the SG rules
      * are satisfied.
      */
- 
-    AMS_CALL ( clAmsPeSGEvaluateWork((ClAmsSGT *)su->config.parentSG.ptr) );
+	if(!(switchoverMode & (CL_AMS_ENTITY_SWITCHOVER_FORCE)))
+	{		
+		AMS_CALL ( clAmsPeSGEvaluateWork((ClAmsSGT *)su->config.parentSG.ptr) );
+	}
+	else
+	{
+        clLogNotice("CSI", "Prologue", "Switchover with CL_AMS_ENTITY_SWITCHOVER_FORCE mode. Ignore clAmsPeSGEvaluateWork  ");
+	}    
     return CL_OK;
 }
 
@@ -7783,7 +7791,6 @@ clAmsPeSUSwitchoverCallback(
     ClAmsNodeT *node;
     ClAmsAdminStateT sgAdminState;
     ClRcT rc = CL_OK;
-
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
     AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
@@ -10564,7 +10571,6 @@ clAmsPeSILockAssignmentCallback(
      * Make a gratuitous call to SG evaluate work. This is to ensure that other
      * SIs that may be currently unassigned now get the chance to be assigned.
      */
-
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
     return CL_OK;
@@ -10660,7 +10666,6 @@ clAmsPeSIShutdownCallback(
      * Make a gratuitous call to SG evaluate work. This is to ensure that other
      * SIs that may be currently unassigned now get the chance to be assigned.
      */
-
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
     return CL_OK;
@@ -10805,7 +10810,6 @@ clAmsPeSIEvaluateWork(
     {
         return CL_OK;
     }
-
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
     return CL_OK;
@@ -11984,8 +11988,7 @@ clAmsPeCompComputeSwitchoverMode(
 {
     ClAmsSUT *su;
     ClAmsNodeT *node;
-    ClUint32T computedSwitchoverMode;
-
+    ClUint32T computedSwitchoverMode;    
     AMS_CHECKPTR ( !switchoverMode);
     AMS_CHECK_COMP ( comp );
     AMS_CHECK_SU ( su = (ClAmsSUT *) comp->config.parentSU.ptr );
@@ -12042,8 +12045,7 @@ clAmsPeCompComputeSwitchoverMode(
     if( (computedSwitchoverMode & CL_AMS_ENTITY_SWITCHOVER_FAST) )
         computedSwitchoverMode &= ~(CL_AMS_ENTITY_SWITCHOVER_GRACEFUL | CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE);
 
-    *switchoverMode = computedSwitchoverMode;
-
+    *switchoverMode = computedSwitchoverMode;    
     return CL_OK;
 }
         
@@ -14272,9 +14274,7 @@ clAmsPeCompRemoveWork(
     AMS_CHECK_COMP ( comp );
     AMS_CHECK_SU ( su = (ClAmsSUT *) comp->config.parentSU.ptr );
     AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
-
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
-
     /*
      * If the component is on a node that is not present (due to a critical
      * fault), then the switchoverMode is forced to be fast and the net result 
@@ -14282,13 +14282,14 @@ clAmsPeCompRemoveWork(
      * This path is typically followed when a fault is reported on a component 
      * and the recovery is a SU/comp failover.
      */
-
-    switchoverMode &= ~CL_AMS_ENTITY_SWITCHOVER_FAST;
-
+    if(!(switchoverMode & CL_AMS_ENTITY_SWITCHOVER_FORCE))
+    {
+    	switchoverMode &= ~CL_AMS_ENTITY_SWITCHOVER_FAST;
+    }
     clAmsPeCompComputeSwitchoverMode(comp, &switchoverMode);
 
     AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-                    ("Component [%s] Remove Work Request with switchover mode %d",
+                    ("Component [%s] Remove Work Request with switchover mode [%d]",
                      comp->config.entity.name.value, switchoverMode));
 
     entityRef = clAmsEntityListGetFirst(&comp->status.csiList);
@@ -17906,8 +17907,7 @@ clAmsPeCompRemoveCSI(
     switch ( comp->config.property )
     {
         case CL_AMS_COMP_PROPERTY_SA_AWARE:
-        {
-
+        {            
             ClAmsCSIDescriptorT *csiDescriptor;
             ClNameT activeCompName = {0};
 
@@ -17941,13 +17941,14 @@ clAmsPeCompRemoveCSI(
                             &comp->config.entity.name,
                             &comp->config.entity.name,
                             invocation,
-                            *csiDescriptor);
+                            *csiDescriptor);                
+
             }
 #endif
 
             clAmsFreeMemory(csiDescriptor->csiAttributeList.attribute);
-            clAmsFreeMemory(csiDescriptor);
-            
+            clAmsFreeMemory(csiDescriptor);            
+
             if ( error )
                 return clAmsPeCompRemoveCSIError(comp, error);
 
@@ -18392,7 +18393,14 @@ amsPeCompRemoveCSICallback(
          * This delayed standby remove could have had impact on a spare trying to take over as 
          * standby.
          */
-        AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
+    	if(!(switchoverMode & (CL_AMS_ENTITY_SWITCHOVER_FORCE)))
+    	{		
+            AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
+    	}
+    	else
+    	{
+            clLogNotice("CSI", "REMOVE", "Switchover with CL_AMS_ENTITY_SWITCHOVER_FORCE mode. Ignore clAmsPeSGEvaluateWork  ");
+    	}    
     }
     return CL_OK;
 }
@@ -21580,27 +21588,26 @@ clAmsPeEntityOpReplay(ClAmsEntityT *entity, ClAmsEntityStatusT *status, ClUint32
 
     rc = clAmsEntityOpGet(entity, status, op, &data, &dataSize);
 
-    if(rc != CL_OK) return CL_OK;
-
+    if(rc != CL_OK) return CL_OK;    
     switch(op)
     {
-    case CL_AMS_ENTITY_OP_REMOVE_MPLUSN:
+    case CL_AMS_ENTITY_OP_REMOVE_MPLUSN:    	
         rc = clAmsPeEntityOpRemove(entity, data, dataSize, recovery);
         break;
 
-    case CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN:
+    case CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN:    	
         rc = clAmsPeEntityOpActiveRemove(entity, data, dataSize, recovery);
         break;
 
-    case CL_AMS_ENTITY_OP_SWAP_REMOVE_MPLUSN:
+    case CL_AMS_ENTITY_OP_SWAP_REMOVE_MPLUSN:    	
         rc = clAmsPeEntityOpSwapRemove(entity, data, dataSize, recovery);
         break;
 
-    case CL_AMS_ENTITY_OP_SWAP_ACTIVE_MPLUSN:
+    case CL_AMS_ENTITY_OP_SWAP_ACTIVE_MPLUSN:    	
         rc = clAmsPeEntityOpSwapActive(entity, data, dataSize, recovery);
         break;
 
-    case CL_AMS_ENTITY_OP_REDUCE_REMOVE_MPLUSN:
+    case CL_AMS_ENTITY_OP_REDUCE_REMOVE_MPLUSN:    	
         rc = clAmsPeEntityOpReduceRemove(entity, data, dataSize, recovery);
         break;
 

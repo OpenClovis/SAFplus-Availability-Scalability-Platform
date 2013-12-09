@@ -259,6 +259,7 @@ do{                                                                     \
 #define CL_AMS_ENTITY_SWITCHOVER_SWAP       0x10
 #define CL_AMS_ENTITY_SWITCHOVER_REPLAY     0x20
 #define CL_AMS_ENTITY_SWITCHOVER_CONTROLLER 0x40
+#define CL_AMS_ENTITY_SWITCHOVER_FORCE 0x80
 
 typedef struct ClAmsSUAdjustList
 {
