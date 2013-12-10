@@ -397,13 +397,14 @@ ClRcT  VDECL_VER(clCkptActiveCkptDelete, 4, 0, 0)(ClVersionT     version,
         return rc;
     }
 
-    CKPT_LOCK(gCkptSvr->ckptActiveSem);        
+    CKPT_LOCK(gCkptSvr->ckptActiveSem);
 
     ClIocPhysicalAddressT srcAddr = {0};
     rc = clRmdSourceAddressGet(&srcAddr);
     if ((rc == CL_OK) && (srcAddr.nodeAddress != gCkptSvr->masterInfo.masterAddr))
     {
        clLogNotice("ACT", "DELETE", "Active ckpt delete can only originate from master.  But RMD source [%d] does not match current master [%d]", srcAddr.nodeAddress, gCkptSvr->masterInfo.masterAddr);
+       CKPT_UNLOCK(gCkptSvr->ckptActiveSem);
        return CL_OK; /* TODO: what to return in this case? */
     }
     
