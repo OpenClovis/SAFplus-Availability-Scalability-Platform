@@ -690,10 +690,9 @@ returnSeverity:
    return matchFlag;
 }
 
-void
-clLogDbgFilePtrAssign(void)
+void clLogDbgFilePtrAssign(void)
 {
-    clDbgFp = stdout; 
+    clDbgFp = NULL; /* For debugging with AMF in non-daemon mode or debugging logd you can echo the logs to stdout by default by putting "stdout" here. */ 
     if( NULL != clLogToFile )
     {
         if( !strcmp(clLogToFile, "stdout") )
@@ -1073,7 +1072,7 @@ clLogMsgWriteConsole(ClLogStreamHandleT streamHdl,
 ClRcT
 clLogDbgFileClose(void)
 {
-    if( (clDbgFp != stderr) && (clDbgFp != stdout) )
+    if( (clDbgFp != stderr) && (clDbgFp != stdout)  && (clDbgFp != NULL))
     {
         fclose(clDbgFp);
     }

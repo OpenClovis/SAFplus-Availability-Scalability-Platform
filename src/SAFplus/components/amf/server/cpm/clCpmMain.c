@@ -1198,13 +1198,25 @@ static void *cpmLoggerTask(void *arg)
     FILE *fptr = NULL;
     fptr = fdopen(cpmLoggerPipe[0], "rw");
     if(!fptr) return NULL;
-    for(;;)
+    for(;(feof(fptr)==0);)
     {
+        ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 30};
         ClCharT buf[1024];
         ClInt32T bytes = 0;
+        clOsalTaskDelay(delay);  /* To stop 100% CPU use if something happens that is unexpected */        
+        
         while(fgets(buf, sizeof(buf)-1, fptr))
         {
             bytes = strlen(buf);
+
+            /* Stone: stdout log file rotation is disabled because OpenClovis logs no longer go to this file by default.
+               We have seen multiple instances where the "stdin" side of this write has blocked, even when that side is the linux standard
+               "logger" program.  This stops all entities that write to the stdout out log (which was ALL of them).  This logging is
+               deprecated in favor of the shared memory logging system that drops logs rather than block.
+               
+               Additionally, the log rotation coded here may not even work, because changing this fd will not affect the fd inside child processes.               
+             */
+#if 0  
             clOsalMutexLock(&cpmLoggerMutex);
             cpmLoggerTotalBytes += bytes;
             if(cpmLoggerTotalBytes >= cpmLoggerFileSize)
@@ -1213,6 +1225,7 @@ static void *cpmLoggerTask(void *arg)
                 cpmLoggerRotate();
             }
             clOsalMutexUnlock(&cpmLoggerMutex);
+#endif            
             bytes = write(cpmLoggerFd, buf, bytes);
         }
     }
