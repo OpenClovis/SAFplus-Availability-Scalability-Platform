@@ -1783,6 +1783,15 @@ clLogStreamFilterGet(ClNameT                *pStreamName,
 ClLogSeverityT
 clLogSeverityGet(const ClCharT  *pSevName);
 
+extern ClRcT clLogTimeGet(ClCharT   *pStrTime, ClUint32T maxBytes);
+extern ClBoolT          gClLogCodeLocationEnable;
+#define CL_LOG_PRNT_FMT_STR               "%-26s [%s:%d] (%.*s.%d : %s.%3s.%3s"
+#define CL_LOG_PRNT_FMT_STR_CONSOLE       "%-26s [%s:%d] (%.*s.%d : %s.%3s.%3s.%05d : %6s) "
+
+#define CL_LOG_PRNT_FMT_STR_WO_FILE         "%-26s (%.*s.%d : %s.%3s.%3s"
+#define CL_LOG_PRNT_FMT_STR_WO_FILE_CONSOLE "%-26s (%.*s.%d : %s.%3s.%3s.%05d : %6s) "
+
+
 #include <ipi/clLogIpiWrap.h> 
 #ifdef __cplusplus
 }

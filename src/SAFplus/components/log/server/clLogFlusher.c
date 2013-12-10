@@ -560,9 +560,10 @@ clLogFlusherRecordsFlush(ClLogSvrStreamDataT  *pStreamData)
             /* FIXME: put the number of overwritten records in log */
             if( 0 != pHeader->numOverwrite )
             {
-                clLogAlert("LOG", "FLS", "Log buffer full. [%d] records have been dropped", pHeader->numOverwrite);
+                pHeader->numDroppedRecords = pHeader->numOverwrite;
+                pHeader->numOverwrite = 0;
+                CL_LOG_DEBUG_TRACE(("Log buffer full. [%d] records have been dropped", pHeader->numDroppedRecords));
             }
-            pHeader->numOverwrite = 0;
             pHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
         }
         else

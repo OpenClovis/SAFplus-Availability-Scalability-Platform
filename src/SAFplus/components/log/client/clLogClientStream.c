@@ -30,6 +30,7 @@
 #include <clLogClientHandle.h>
 #include <clLogClientStream.h>
 #include <clLogClient.h>
+#include <clCpmExtApi.h>
 
 static ClRcT
 clLogClntFilterPass(ClLogSeverityT      severity,
@@ -454,6 +455,50 @@ clLogClntStreamEntryAdd(ClCntHandleT       hClntTable,
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
 }
+static ClRcT ClLogClntStreamWritRecord(ClLogStreamHeaderT    *pStreamHeader,
+                              ClUint8T              *pStreamRecords,
+                              ClLogSeverityT     severity,
+                              ClUint16T          serviceId,
+                              ClUint16T          msgId,
+                              ClUint32T          clientId,
+                              ClCharT            *pMsgHeader,
+                              ClUint8T            *pFmtStr,
+                              ...)
+{
+    ClRcT                 rc              = CL_OK;
+    ClUint32T             recordSize = 0;
+    ClUint8T              *pBuffer        = NULL;
+    va_list               args;
+
+    va_start(args, pFmtStr);
+
+    pBuffer = pStreamRecords + (pStreamHeader->recordSize *
+              (pStreamHeader->recordIdx % pStreamHeader->maxRecordCount));
+    recordSize = pStreamHeader->recordSize;
+    CL_ASSERT(recordSize < 4*1024);  // Sanity check the log record size
+
+    pBuffer[recordSize - 1] = CL_LOG_RECORD_WRITE_INPROGRESS; //Mark Record Write In-Progress
+
+    rc = clLogClientMsgWriteWithHeader(severity, pStreamHeader->streamId, serviceId,
+                                       msgId, clientId, pStreamHeader->sequenceNum,
+                                       pMsgHeader, args,
+                                       pStreamHeader->recordSize - 1, pBuffer);
+    pBuffer[recordSize - 1] = CL_LOG_RECORD_WRITE_COMPLETE; //Mark Record Write Completed
+    if( CL_OK != rc )
+    { 
+       goto out;
+    }
+    pStreamHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
+    ++pStreamHeader->sequenceNum;
+    ++pStreamHeader->recordIdx;
+    pStreamHeader->recordIdx %= (pStreamHeader->maxRecordCount);
+    ++pStreamHeader->flushCnt;
+    CL_LOG_DEBUG_TRACE(("recordIdx: %u startAck: %u",
+                          pStreamHeader->recordIdx, pStreamHeader->startAck));
+out:
+    va_end(args);
+    return rc;
+}
 
 ClRcT
 clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
@@ -469,6 +514,7 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
     ClLogStreamHeaderT    *pStreamHeader  = NULL;
     ClUint8T              *pStreamRecords = NULL;
     ClUint32T             nUnAcked        = 0;
+    ClUint32T             nDroppedRecords = 0;
     ClUint8T              *pBuffer        = NULL;
     ClUint32T             recordSize = 0;
 
@@ -514,12 +560,49 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
         {
             rc = CL_OK; /* Its a filtered out record, not an error */
         }
-        
-        CL_LOG_CLEANUP(clLogClientStreamMutexUnlock(pClntData), CL_OK);
-        return rc;
+        goto out;    
+    }
+    nDroppedRecords = pStreamHeader->numDroppedRecords;
+    pStreamHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
+    if (nDroppedRecords)
+    { /* Some Records got dropped, log this event */
+        ClUint8T   alertMsg[100] = {0}; 
+        ClCharT    timeStr[40]   = {0};
+        ClNameT    nodeName     = {0};
+        ClCharT    msgHeader[CL_MAX_NAME_LENGTH];
+          
+        pStreamHeader->numDroppedRecords = 0; 
+        clLogTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
+        clCpmLocalNodeNameGet(&nodeName);
+        memset(msgHeader, 0, sizeof(msgHeader));
+        if(gClLogCodeLocationEnable)
+        {
+            snprintf(msgHeader, sizeof(msgHeader)-1, CL_LOG_PRNT_FMT_STR,
+               timeStr, __FILE__, __LINE__, nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, "LOG", "RWR");
+        }
+        else
+        {
+            snprintf(msgHeader, sizeof(msgHeader)-1, CL_LOG_PRNT_FMT_STR_WO_FILE, timeStr,
+               nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, "LOG", "RWR");
+        }
+        snprintf((char *)alertMsg, sizeof(alertMsg), "Log buffer full... %d Records Dropped", nDroppedRecords);
+        ClLogClntStreamWritRecord(pStreamHeader, pStreamRecords, CL_LOG_SEV_ALERT, serviceId, msgId,
+                                  pClntEoEntry->clientId, msgHeader, (ClUint8T *)"%s", alertMsg);
+    }
+    if (pStreamHeader->recordIdx < pStreamHeader->startAck)
+    { /* It is the Wraparound Case */
+        nUnAcked = (pStreamHeader->recordIdx + pStreamHeader->maxRecordCount) - pStreamHeader->startAck;
+    }
+    else
+    {
+        nUnAcked = abs(pStreamHeader->recordIdx - pStreamHeader->startAck);
+    }
+    if( nUnAcked ==  pStreamHeader->maxRecordCount - 1)
+    { /* OOPS... Log Buffer is too small, Overwriting records */
+        ++pStreamHeader->numOverwrite;
+        goto out_signal_cond; 
     }
     CL_LOG_DEBUG_TRACE(("Passed the Filter criteria: %u", pStreamHeader->maxRecordCount));
-
     pBuffer = pStreamRecords + (pStreamHeader->recordSize *
               (pStreamHeader->recordIdx % pStreamHeader->maxRecordCount));
     recordSize = pStreamHeader->recordSize;
@@ -533,35 +616,16 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
                                        pStreamHeader->recordSize - 1, pBuffer);
     pBuffer[recordSize - 1] = CL_LOG_RECORD_WRITE_COMPLETE; //Mark Record Write Completed
     if( CL_OK != rc )
-    {
-        CL_LOG_CLEANUP(clLogClientStreamMutexUnlock(pClntData), CL_OK);
-        clLogAlert("LOG", "RWR", "clLogClientMsgWriteWithHeader(): rc[0x %x] for StreamID[%u]", rc,pStreamHeader->streamId);
-        return rc;
+    { 
+       goto out_signal_cond;
     }
-    pStreamHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
     ++pStreamHeader->sequenceNum;
-    if (pStreamHeader->recordIdx < pStreamHeader->startAck)
-    { /* It is the Wraparound Case */
-        nUnAcked = (pStreamHeader->recordIdx + pStreamHeader->maxRecordCount) - pStreamHeader->startAck;
-    }
-    else
-    {
-        nUnAcked = abs(pStreamHeader->recordIdx - pStreamHeader->startAck);
-    }
-    if( nUnAcked ==  pStreamHeader->maxRecordCount)
-    { /* OOPS... Log Buffer is too small, Overwriting records */
-        ++pStreamHeader->numOverwrite;
-        ++pStreamHeader->startAck;
-        pStreamHeader->startAck %= (pStreamHeader->maxRecordCount);
-        /*CL_LOG_DEBUG_WARN(("In Overwriting mode...total: %u startAck: %u", pStreamHeader->numOverwrite, pStreamHeader->startAck)); */
-    }
     ++pStreamHeader->recordIdx;
     pStreamHeader->recordIdx %= (pStreamHeader->maxRecordCount);
     ++pStreamHeader->flushCnt;
     CL_LOG_DEBUG_TRACE(("recordIdx: %u startAck: %u",
                           pStreamHeader->recordIdx, pStreamHeader->startAck));
-
-
+out_signal_cond:
     if( ( nUnAcked >=  (pStreamHeader->maxRecordCount / CL_LOG_FLUSH_BUFF_CONST) ) || 
         ((0 != pStreamHeader->flushFreq) && (pStreamHeader->flushCnt == pStreamHeader->flushFreq)) )
     {
@@ -578,7 +642,8 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
         }
     }
     pStreamHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
-   
+
+  out: 
     /* Assert on Mutex Unlock bcz it might not be initialized and it should not happen in the system*/ 
     CL_ASSERT(clLogClientStreamMutexUnlock(pClntData) == CL_OK);
 

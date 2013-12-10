@@ -179,6 +179,7 @@ typedef struct
     ClUint32T           startAck;
     ClUint32T           flushCnt;
     ClUint32T           numOverwrite;
+    ClUint32T           numDroppedRecords;
     ClUint32T           flushFreq;
     ClTimeT             flushInterval;
     ClIocAddressT       streamMcastAddr;

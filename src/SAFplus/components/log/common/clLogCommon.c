@@ -554,6 +554,7 @@ clLogStreamHeaderReset(ClLogStreamHeaderT      *pStreamHeader)
     pStreamHeader->startAck                            = 0;    
     pStreamHeader->flushCnt                            = 0;    
     pStreamHeader->numOverwrite                        = 0;    
+    pStreamHeader->numDroppedRecords                   = 0;    
     pStreamHeader->flushFreq                           = pStreamHeader->flushFreq_sec;
     pStreamHeader->flushInterval                       = pStreamHeader->flushInterval_sec;
     pStreamHeader->streamMcastAddr.iocMulticastAddress = pStreamHeader->streamMcastAddr_sec.iocMulticastAddress; 
@@ -679,6 +680,7 @@ clLogStreamShmSegInit(ClNameT                 *pStreamName,
     (*ppSegHeader)->startAck                                            = 0;
     (*ppSegHeader)->flushCnt                                            = 0;
     (*ppSegHeader)->numOverwrite                                        = 0;
+    (*ppSegHeader)->numDroppedRecords                                   = 0;
     (*ppSegHeader)->flushFreq   = (*ppSegHeader)->flushFreq_sec        = flushFreq;
     (*ppSegHeader)->flushInterval = (*ppSegHeader)->flushInterval_sec   = flushInterval;
     (*ppSegHeader)->streamMcastAddr.iocMulticastAddress                 = *pStreamMcastAddr;

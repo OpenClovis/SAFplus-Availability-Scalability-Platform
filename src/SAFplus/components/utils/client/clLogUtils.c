@@ -24,6 +24,7 @@
 #include <clHandleApi.h>
 #include <clEoApi.h>
 #include <clDebugApi.h>
+#include <clCpmExtApi.h>
 
 ClBoolT               gUtilLibInitialized = CL_FALSE;
 ClOsalMutexT          gLogMutex ;
@@ -189,6 +190,7 @@ logVWriteDeferred(ClHandleT       handle,
     ClBoolT signalFlusher = CL_FALSE;
     static ClBoolT deferredFlag = CL_FALSE;
     static ClBoolT flushPending = CL_TRUE;
+    static ClBoolT logRecordDrop = CL_TRUE;
     ClBoolT initialRecord = CL_FALSE;
     ClBoolT unlock = CL_TRUE;
 
@@ -233,8 +235,8 @@ logVWriteDeferred(ClHandleT       handle,
     {
         if(flushPending && unlock)
         {
-            clLogFlushRecords();
             flushPending = CL_FALSE;
+            clLogFlushRecords();
         }
         if(unlock)
             clOsalMutexUnlock(&gLogMutex);
@@ -253,6 +255,45 @@ logVWriteDeferred(ClHandleT       handle,
 
     /* Access the index */
     out_store:
+    if(overWriteFlag ) 
+    {  
+       /* Over write the Last record with records dropped information */
+       if(CL_TRUE == logRecordDrop)
+       { 
+          ClUint16T    dropRecordIdx = 0;
+          ClCharT      timeStr[40]   = {0};
+          ClNameT       nodeName     = {0};
+
+          dropRecordIdx = (writeIdx != 0)? (writeIdx-1) :(CL_LOG_MAX_NUM_MSGS - 1);
+
+          clLogTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
+          clCpmLocalNodeNameGet(&nodeName);
+          gLogMsgArray[dropRecordIdx].handle    = handle;
+          gLogMsgArray[dropRecordIdx].severity  = CL_LOG_SEV_ALERT;
+          gLogMsgArray[dropRecordIdx].serviceId = serviceId;
+          gLogMsgArray[dropRecordIdx].msgId     = msgId;
+          gLogMsgArray[dropRecordIdx].msgHeader[0] = 0;
+          memset(gLogMsgArray[dropRecordIdx].msgHeader, 0, sizeof(gLogMsgArray[dropRecordIdx].msgHeader));
+          if(gClLogCodeLocationEnable)
+          {
+              snprintf(gLogMsgArray[dropRecordIdx].msgHeader, sizeof(gLogMsgArray[dropRecordIdx].msgHeader)-1, CL_LOG_PRNT_FMT_STR,
+                 timeStr, __FILE__, __LINE__, nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, "LOG", "RWR");
+          }
+          else
+          {
+              snprintf(gLogMsgArray[dropRecordIdx].msgHeader, sizeof(gLogMsgArray[dropRecordIdx].msgHeader)-1, CL_LOG_PRNT_FMT_STR_WO_FILE, timeStr,
+                 nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, "LOG", "RWR");
+          }
+          snprintf(gLogMsgArray[dropRecordIdx].msg, CL_LOG_MAX_MSG_LEN, "Log buffer full... Some Records Dropped");
+
+          logRecordDrop = CL_FALSE;
+       }
+       goto out_flushcond;
+    }
+    else
+    { 
+       logRecordDrop = CL_TRUE;
+    }
     gLogMsgArray[writeIdx].handle    = handle;
     gLogMsgArray[writeIdx].severity  = severity;
     gLogMsgArray[writeIdx].serviceId = serviceId;
@@ -267,11 +308,14 @@ logVWriteDeferred(ClHandleT       handle,
     vsnprintf(gLogMsgArray[writeIdx].msg, CL_LOG_MAX_MSG_LEN, pFmtStr, vaargs);
     ++writeIdx;
     writeIdx = writeIdx % CL_LOG_MAX_NUM_MSGS;
+#if 0
+    /* Commented this code to avoid overwriting log records */
     if( overWriteFlag ) 
     {
         ++readIdx;
         readIdx %= CL_LOG_MAX_NUM_MSGS;
     }
+#endif
     if( (readIdx == writeIdx) && (overWriteFlag == 0) )
     {
         overWriteFlag = 1;
@@ -280,6 +324,7 @@ logVWriteDeferred(ClHandleT       handle,
     if(initialRecord)
         return CL_OK;
 
+out_flushcond:
     if(deferred) 
     {
         if(!deferredFlag)

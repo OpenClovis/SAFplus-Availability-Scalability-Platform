@@ -82,7 +82,7 @@ static  ClBoolT  clLogStreamEnable = CL_TRUE;
 static  FILE     *clDbgFp          = NULL; 
 static  ClLogSeverityT   clLogDefaultSeverity = CL_LOG_SEV_DEBUG;
 static  ClBoolT          clLogSeveritySet     = CL_FALSE;
-static  ClBoolT          gClLogCodeLocationEnable = CL_FALSE;
+ClBoolT          gClLogCodeLocationEnable = CL_FALSE;
 static  ClBoolT          clLogTimeEnable      = CL_TRUE;
 static  ClLogRulesInfoT  gpLogRulesInfo = {0};
 static  ClCharT          gLogFilterFile[CL_MAX_NAME_LENGTH];
@@ -98,11 +98,13 @@ do\
 
 #define CL_LOG_RULES_FILE                 logGetLogRulesFile()
 
+#if 0
 #define CL_LOG_PRNT_FMT_STR               "%-26s [%s:%d] (%.*s.%d : %s.%3s.%3s"
 #define CL_LOG_PRNT_FMT_STR_CONSOLE       "%-26s [%s:%d] (%.*s.%d : %s.%3s.%3s.%05d : %6s) "
 
 #define CL_LOG_PRNT_FMT_STR_WO_FILE         "%-26s (%.*s.%d : %s.%3s.%3s"
 #define CL_LOG_PRNT_FMT_STR_WO_FILE_CONSOLE "%-26s (%.*s.%d : %s.%3s.%3s.%05d : %6s) "
+#endif
 
 static
 ClCharT *logGetLogRulesFile(void)
