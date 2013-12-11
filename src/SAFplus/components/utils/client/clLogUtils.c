@@ -33,6 +33,7 @@ ClLogDeferredHeaderT  gLogMsgArray[CL_LOG_MAX_NUM_MSGS];
 ClUint16T             writeIdx    = 0;
 ClUint16T             readIdx     = 0;
 ClUint16T             overWriteFlag = 0;
+static ClBoolT        logRecordDrop = CL_TRUE;
 ClOsalTaskIdT         taskId        = 0;
 static ClBoolT gClLogServer = CL_FALSE;
 const ClCharT  *CL_LOG_UTIL_TASK_NAME= "LogUtilLibThread";
@@ -170,10 +171,12 @@ clLogFlushRecords(void)
 
     clOsalMutexLock(&gLogMutex);
     if(overWriteFlag) 
+    {
         overWriteFlag = 0;
+        logRecordDrop = CL_TRUE;
+    }
     readIdx += numFlushed;
     readIdx %= CL_LOG_MAX_NUM_MSGS;
-    writeIdx = readIdx; 
 }
 
 static ClRcT
@@ -190,7 +193,6 @@ logVWriteDeferred(ClHandleT       handle,
     ClBoolT signalFlusher = CL_FALSE;
     static ClBoolT deferredFlag = CL_FALSE;
     static ClBoolT flushPending = CL_TRUE;
-    static ClBoolT logRecordDrop = CL_TRUE;
     ClBoolT initialRecord = CL_FALSE;
     ClBoolT unlock = CL_TRUE;
 
@@ -225,7 +227,6 @@ logVWriteDeferred(ClHandleT       handle,
 
     if(gClLogServer)
         deferred = CL_TRUE;
-
     /*
      * If log is up and there are no pending flushes, write directly
      * to avoid garbled logs because of per client deferred writes
@@ -290,10 +291,6 @@ logVWriteDeferred(ClHandleT       handle,
        }
        goto out_flushcond;
     }
-    else
-    { 
-       logRecordDrop = CL_TRUE;
-    }
     gLogMsgArray[writeIdx].handle    = handle;
     gLogMsgArray[writeIdx].severity  = severity;
     gLogMsgArray[writeIdx].serviceId = serviceId;
@@ -316,15 +313,21 @@ logVWriteDeferred(ClHandleT       handle,
         readIdx %= CL_LOG_MAX_NUM_MSGS;
     }
 #endif
-    if( (readIdx == writeIdx) && (overWriteFlag == 0) )
+
+out_flushcond:
+    if((readIdx == writeIdx) && (0 == overWriteFlag))
     {
         overWriteFlag = 1;
+    }
+    else if(readIdx != writeIdx)
+    {
+        overWriteFlag = 0;
+        logRecordDrop = CL_TRUE;
     }
     
     if(initialRecord)
         return CL_OK;
 
-out_flushcond:
     if(deferred) 
     {
         if(!deferredFlag)
@@ -627,6 +630,7 @@ clLogNumFlushableRecordsGet(ClLogDeferredHeaderT  *pMsg,
     if( *pNumRecs != 0 )
     {
         overWriteFlag = 0;
+        logRecordDrop = CL_TRUE;
     }
     *pOverwriteFlag = overWriteFlag; 
     *pReadIdx = readIdx;
