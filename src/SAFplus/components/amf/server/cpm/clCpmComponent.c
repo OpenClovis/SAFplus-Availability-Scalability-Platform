@@ -1625,6 +1625,7 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
 
         cpmComponentEventPublish(comp, CL_CPM_COMP_DEPARTURE, CL_FALSE);
     }
+#if 0
     else if (comp->compPresenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,
@@ -1633,6 +1634,7 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_WARNING, NULL,
                    CL_CPM_LOG_1_LCM_REG_MULTI_ERR, info.compName.value);
     }
+#endif
     else
     {
         if (comp->numProxiedComps != 0)
