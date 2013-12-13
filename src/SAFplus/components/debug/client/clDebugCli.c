@@ -129,7 +129,7 @@ printHelp(ClUint32T index)
 {
     ClUint32T idx =0;
 
-    if (index == -1)
+    if ((ClInt32T) index == -1)
     {
         /* display the help of modules */
         while (MOD_LIST(idx))
@@ -526,7 +526,7 @@ clDebugCmdCompletion(ClUint32T idx, ClCharT *ptrPrompt)
             break;
         }
     }
-    if (idx != -1)
+    if ((ClInt32T) idx != -1)
     {
         partialMatch = 0;
         if (moduleTable) while (CLI_FUNC(idx, cmdIndex))

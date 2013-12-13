@@ -764,6 +764,15 @@ ClRcT rmdHandleSyncRequest(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
         }
     }
 
+    if(rc == CL_ERR_IGNORE_REQUEST)
+    {
+        if(!(flags & CL_RMD_CALL_NEED_REPLY))
+        {
+            clBufferDelete(&replyMsg);
+        }
+        return CL_OK;
+    }
+
     if (responseContext.isInProgress != CL_TRUE)
     {
         rmdResponseSend(pThis, &responseContext, replyMsg, rc, 

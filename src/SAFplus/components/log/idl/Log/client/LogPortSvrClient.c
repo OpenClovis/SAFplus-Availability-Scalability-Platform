@@ -386,7 +386,7 @@ ClRcT clLogSvrStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNam
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -656,7 +656,7 @@ ClRcT clLogSvrStreamCloseClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaNa
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -842,7 +842,7 @@ ClRcT clLogSvrFilterSetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN SaName
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1043,7 +1043,7 @@ ClRcT clLogSvrStreamHandleFlagsUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1259,7 +1259,7 @@ ClRcT clLogHandlerSvrAckSendClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN S
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT *)clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);

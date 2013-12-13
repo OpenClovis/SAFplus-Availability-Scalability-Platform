@@ -355,13 +355,13 @@ static ClParserDataT clIocNodeInstancesChildrenParserData[] = {
 #endif
 };
 
-static ClParserDataT clIocChildrenParserData[] = {
+static ClParserDataT clIocChildrenParserData[] = {    
+    CPDI_BASE("sendQueue",clIocQueueParserTags,(ClPtrT)&pAllConfig.iocConfigInfo.iocSendQInfo,1,clIocQueueChildrenParserData),
+    CPDI_BASE("receiveQueue",clIocQueueParserTags,(ClPtrT)&pAllConfig.iocConfigInfo.iocRecvQInfo,1,clIocQueueChildrenParserData),
+    CPDI_NODE("transport",clIocTransportParserTags,clIocTransportDataInit,0,clIocLinkParserData),
+    CPDI_BASE("nodeInstances",((ClParserTagT *)NULL),(ClPtrT)&pAllConfig.iocConfigInfo,1,clIocNodeInstancesChildrenParserData),
+    
 #if 0    
-    CPDI_BASE("sendQueue",clIocQueueParserTags,(ClPtrT)&pAllConfig.iocConfigInfo.iocSendQInfo,1,clIocQueueChildrenParserData)
-    CPDI_BASE("receiveQueue",clIocQueueParserTags,,,)
-    CPDI_BASE(,,,,)
-    CPDI_BASE(,,,,)
-#endif    
     {
         .pTag = "sendQueue",
         .numTags = CL_PARSER_NUM(clIocQueueParserTags),
@@ -404,10 +404,13 @@ static ClParserDataT clIocChildrenParserData[] = {
         .pTagChildren = clIocNodeInstancesChildrenParserData,
         .numChild = CL_PARSER_NUM(clIocNodeInstancesChildrenParserData),
     }
+#endif
 
 };
 
 static ClParserDataT clIocParserData[] = {
+    CPDI_BASE("ioc",clIocParserTags,(ClPtrT)&pAllConfig,1,clIocChildrenParserData),
+#if 0        
     {
         .pTag = "ioc",
         .numTags = CL_PARSER_NUM(clIocParserTags),
@@ -418,10 +421,12 @@ static ClParserDataT clIocParserData[] = {
         .numInstances = 1,
         .pTagChildren = clIocChildrenParserData,
         .numChild = CL_PARSER_NUM(clIocChildrenParserData),
-    }   
+    }
+#endif   
 };
 
-static ClParserDataT clIocConfigParserData =
+static ClParserDataT clIocConfigParserData =  CPDI_BASE("ioc:BootConfig",((ClParserTagT *)NULL),(ClPtrT)&pAllConfig,1,clIocParserData);
+#if 0
 {
     .pTag = "ioc:BootConfig",
     .numTags = 0,
@@ -433,6 +438,7 @@ static ClParserDataT clIocConfigParserData =
     .numChild = CL_PARSER_NUM(clIocParserData),
     .pTagChildren = clIocParserData,
 };
+#endif
 /*
  * End of IOC config parser data.
 */

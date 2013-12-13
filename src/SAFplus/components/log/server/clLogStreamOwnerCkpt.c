@@ -330,7 +330,7 @@ clLogSODsIdMapPack(ClUint32T  dsId,
         CL_LOG_CLEANUP(clBufferDelete(&msg), CL_OK);
         return rc;
     }
-    *pBuffer = clHeapCalloc(*pSize, sizeof(ClInt8T));
+    *pBuffer = (ClAddrT)clHeapCalloc(*pSize, sizeof(ClInt8T));
     if( NULL == *pBuffer )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -398,7 +398,7 @@ clLogStreamOwnerEntrySerialiser(ClUint32T  dsId,
         CL_LOG_DEBUG_ERROR(("clBufferLengthGet(): rc[0x %x]", rc));
         return rc;
     }
-    *pBuffer = clHeapCalloc(*pSize, sizeof(ClUint8T));
+    *pBuffer = (ClAddrT)clHeapCalloc(*pSize, sizeof(ClUint8T));
     if( NULL == *pBuffer )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -441,7 +441,7 @@ clLogCompEntryUnpackNAdd(ClBufferHandleT        msg,
         return rc;
     }
 
-    pCompKey = clHeapCalloc(1, sizeof(ClLogCompKeyT));
+    pCompKey = (ClLogCompKeyT*)clHeapCalloc(1, sizeof(ClLogCompKeyT));
     if( NULL == pCompKey )
     {
         CL_LOG_DEBUG_ERROR(( "clHeapCalloc()"));
@@ -451,7 +451,7 @@ clLogCompEntryUnpackNAdd(ClBufferHandleT        msg,
     CL_LOG_DEBUG_VERBOSE(("compKey.nodeAddress: %u", compKey.nodeAddr));
     CL_LOG_DEBUG_VERBOSE(("compKey.compId     : %u", compKey.compId));
 
-    pData = clHeapCalloc(1, sizeof(ClLogSOCompDataT));
+    pData = (ClLogSOCompDataT*)clHeapCalloc(1, sizeof(ClLogSOCompDataT));
     if( NULL == pData )
     {
         CL_LOG_DEBUG_ERROR(( "clHeapCalloc()"));
@@ -491,10 +491,12 @@ clLogSOStreamEntryUnpackNAdd(ClLogSvrCommonEoDataT  *pCommonEoData,
     ClCntHandleT              hStreamTable      = CL_HANDLE_INVALID_VALUE;
     ClLogStreamOwnerDataT     *pStreamOwnerData = NULL;
     ClCntNodeHandleT          hStreamOwnerNode  = CL_HANDLE_INVALID_VALUE;
-    ClLogStreamScopeT         streamScope       = 0;
+    ClLogStreamScopeT         streamScope;
     ClLogSOEoDataT            *pSoEoEntry       = NULL;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
+
+    memset(&streamScope,0,sizeof(ClLogStreamScopeT));
     
     rc = clXdrUnmarshallSaNameT(msg, &streamName);
     if( CL_OK != rc )
@@ -1007,7 +1009,7 @@ clLogStreamOwnerGlobalCheckpoint(ClLogSOEoDataT         *pSoEoEntry,
 
     prefixLen   = strlen(soSecPrefix);
     secId.idLen = pStreamName->length + prefixLen; 
-    secId.id    = clHeapCalloc(secId.idLen, sizeof(ClCharT)); 
+    secId.id    = (ClUint8T*)clHeapCalloc(secId.idLen, sizeof(ClCharT)); 
     if( NULL == secId.id )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1412,7 +1414,7 @@ clLogBitmapUnpack(ClBufferHandleT  msg,
     }
     CL_LOG_DEBUG_VERBOSE(("nBytes : %u", nBytes));
 
-    pBitMap = clHeapCalloc(nBytes, sizeof(ClCharT));
+    pBitMap = (ClUint8T*)clHeapCalloc(nBytes, sizeof(ClCharT));
     if( NULL == pBitMap )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));

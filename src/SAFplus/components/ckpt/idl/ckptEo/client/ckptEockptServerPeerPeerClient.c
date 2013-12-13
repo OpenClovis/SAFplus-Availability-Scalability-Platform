@@ -141,7 +141,7 @@ ClRcT clCkptAllReplicaPresenceListUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT han
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -315,7 +315,7 @@ ClRcT clCkptRemSvrWelcomeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT C
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -501,7 +501,7 @@ ClRcT clCkptRemSvrByeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClVersio
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -657,7 +657,7 @@ ClRcT clCkptNackReceiveClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClVers
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);

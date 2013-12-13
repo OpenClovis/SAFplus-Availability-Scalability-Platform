@@ -325,10 +325,10 @@ static const ClEventCallbacksT gEvtCallbacks = {
 #define SIX_ARGUMENT    6
 
 
-void clEvtCliStrPrint(char *str, char **retStr)
+void clEvtCliStrPrint(const char *str, char **retStr)
 {
 
-    *retStr = clHeapAllocate(strlen(str) + 1);
+    *retStr = (char*) clHeapAllocate(strlen(str) + 1);
     if (NULL == *retStr)
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Malloc Failed \n");
@@ -381,14 +381,12 @@ static ClRcT cliEvtCkptAll(int argc, char **argv, char **retStr)
 
         default:
             clEvtCliStrPrint("Usage: checkpoint <Choice>\n"
-                             "\tChoice [DEC] - [0:All] [1:UserInfo] [2:ECHInfo] [3:SubsInfo]\n",
-                             retStr);
+                             "\tChoice [DEC] - [0:All] [1:UserInfo] [2:ECHInfo] [3:SubsInfo]\n", retStr);
             break;
     }
     if (CL_OK != rc)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "Checkpointing Failed, rc = [0x%x]\n", rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED, "Checkpointing Failed, rc = [0x%x]\n", rc);
 
         gEventCliStr[0] = '\0';
         sprintf(gEventCliStr, "Checkpointing Failed, rc = [0x%X]\n", rc);

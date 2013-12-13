@@ -504,15 +504,15 @@ static ClRcT logFileEventSet(ClLogFileEventT **ppFileEvent, ClStringT *fileName,
     ClLogFileEventT *pFileEvent = NULL;
     if(!ppFileEvent || !fileName || !fileLocation)
         return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
-    pFileEvent = clHeapCalloc(1, sizeof(*pFileEvent));
+    pFileEvent = (ClLogFileEventT*) clHeapCalloc(1, sizeof(*pFileEvent));
     CL_ASSERT(pFileEvent != NULL);
-    pFileEvent->fileName = clHeapCalloc(1, sizeof(*pFileEvent->fileName));
+    pFileEvent->fileName = (ClStringT*) clHeapCalloc(1, sizeof(*pFileEvent->fileName));
     CL_ASSERT(pFileEvent->fileName != NULL);
-    pFileEvent->fileLocation = clHeapCalloc(1, sizeof(*pFileEvent->fileLocation));
+    pFileEvent->fileLocation = (ClStringT*) clHeapCalloc(1, sizeof(*pFileEvent->fileLocation));
     CL_ASSERT(pFileEvent->fileLocation != NULL);
-    pFileEvent->fileName->pValue = clHeapCalloc(1, fileName->length+1);
+    pFileEvent->fileName->pValue = (ClCharT*) clHeapCalloc(1, fileName->length+1);
     CL_ASSERT(pFileEvent->fileName->pValue != NULL);
-    pFileEvent->fileLocation->pValue = clHeapCalloc(1, fileLocation->length+1);
+    pFileEvent->fileLocation->pValue = (ClCharT*) clHeapCalloc(1, fileLocation->length+1);
     CL_ASSERT(pFileEvent->fileLocation->pValue != NULL);
     pFileEvent->fileName->length = fileName->length;
     pFileEvent->fileLocation->length = fileLocation->length;
@@ -525,7 +525,7 @@ static ClRcT logFileEventSet(ClLogFileEventT **ppFileEvent, ClStringT *fileName,
 
 static ClRcT logFileEventTask(ClPtrT arg)
 {
-    ClLogFileEventT *pFileEvent = arg;
+    ClLogFileEventT *pFileEvent = (ClLogFileEventT*) arg;
     ClRcT rc = CL_OK;
     if(!pFileEvent || !pFileEvent->fileName || !pFileEvent->fileLocation ||
        !pFileEvent->fileName->pValue || !pFileEvent->fileLocation->pValue) 
@@ -711,7 +711,7 @@ clLogEvtDataPrepare(ClStringT  *fileName,
         return rc;
     }
 
-    *ppPayLoad = clHeapCalloc(length, sizeof(ClCharT));
+    *ppPayLoad = (ClUint8T*) clHeapCalloc(length, sizeof(ClCharT));
     if( NULL == *ppPayLoad )
     {
         CL_LOG_DEBUG_ERROR(("clBufferDelete(): rc[0x%x]", rc));
@@ -870,7 +870,7 @@ clLogStreamEvtDataPrepare(ClLogStreamInfoIDLT  *pLogStreamInfo,
         return rc;
     }
 
-    *ppPayLoad = clHeapCalloc(length, sizeof(ClCharT));
+    *ppPayLoad = (ClUint8T*) clHeapCalloc(length, sizeof(ClCharT));
     if( NULL == *ppPayLoad )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -953,7 +953,7 @@ clLogStreamDataPrepare(SaNameT            *pStreamName,
         return rc;
     }
 
-    *ppPayLoad = clHeapCalloc(length, sizeof(ClCharT));
+    *ppPayLoad = (ClUint8T*) clHeapCalloc(length, sizeof(ClCharT));
     if( NULL == *ppPayLoad )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1132,7 +1132,7 @@ clLogCompDataPrepare(SaNameT            *pCompName,
         return rc;
     }
 
-    *ppPayLoad = clHeapCalloc(length, sizeof(ClCharT));
+    *ppPayLoad = (ClUint8T*) clHeapCalloc(length, sizeof(ClCharT));
     if( NULL == *ppPayLoad )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1481,7 +1481,7 @@ clLogEventDeliverCb(ClEventSubscriptionIdT  subscriptionId,
             CL_LOG_DEBUG_TRACE(("Got an Event for stream Creation: %llu",
                                 eventDataSize));
                 
-            pBuffer = clHeapCalloc(eventDataSize, sizeof(ClUint8T));
+            pBuffer = (ClUint8T*) clHeapCalloc(eventDataSize, sizeof(ClUint8T));
             if( NULL == pBuffer )
             {
                 CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1504,7 +1504,7 @@ clLogEventDeliverCb(ClEventSubscriptionIdT  subscriptionId,
         }
     case CL_LOG_STREAMCLOSE_EVT_SUBID:            
         {
-            pBuffer = clHeapCalloc(eventDataSize, sizeof(ClUint8T));
+            pBuffer = (ClUint8T*)clHeapCalloc(eventDataSize, sizeof(ClUint8T));
             if( NULL == pBuffer )
             {
                 CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1526,7 +1526,7 @@ clLogEventDeliverCb(ClEventSubscriptionIdT  subscriptionId,
         }
     case CL_LOG_COMPADD_EVT_SUBID:            
         {
-            pBuffer = clHeapCalloc(eventDataSize, sizeof(ClUint8T));
+            pBuffer = (ClUint8T*) clHeapCalloc(eventDataSize, sizeof(ClUint8T));
             if( NULL == pBuffer )
             {
                 CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
@@ -1591,7 +1591,7 @@ clLogStreamCreationEventDataExtract(ClUint8T   *pBuffer,
     if( NULL != streamInfo.streamAttr.fileName.pValue )
     {
         rc = clLogFileOwnerStreamCreateEvent(&streamInfo.streamName, 
-                streamInfo.streamScope,
+                (ClLogStreamScopeT)streamInfo.streamScope,
                 &streamInfo.nodeName,
                 streamInfo.streamId,
                 &streamInfo.streamAttr, 
@@ -1619,7 +1619,7 @@ clLogStreamCloseEventDataExtract(ClUint8T   *pBuffer,
     ClRcT              rc              = CL_OK;
     ClBufferHandleT    msg             = CL_HANDLE_INVALID_VALUE;
     SaNameT            streamName      = {0}; 
-    ClLogStreamScopeT  streamScope     = 0; 
+    ClLogStreamScopeT  streamScope     = CL_LOG_STREAM_GLOBAL; 
     SaNameT            streamScopeNode = {0}; 
 
     CL_LOG_DEBUG_TRACE(("Enter"));

@@ -39,8 +39,8 @@ extern ClRcT clRmdLibInitialize(ClPtrT pConfig);
 typedef struct
 {
     ClEoExecutionObjT             *tstRegEoObj;
-    SaEvtHandleT		          evtInitHandle;
-    SaEvtEventHandleT		      eventHandle;
+    SaEvtHandleT		  evtInitHandle;
+    SaEvtEventHandleT		  eventHandle;
     ClVersionT                    version;
     SaVersionT                    evtVersion;
     SaNameT                       evtChannelName;
@@ -50,7 +50,7 @@ typedef struct
 } gTestInfoT;
 SaAisErrorT openPublisherChannel();
 static void testEvtMainLoop();
-static gTestInfoT gTestInfo;
+gTestInfoT gTestInfo;
 
 //*************************************************
 
@@ -61,6 +61,7 @@ static gTestInfoT gTestInfo;
 SaNameT                 evtChannelName;
 SaEvtChannelHandleT   evtChannelHandle = 0;
 SaEvtHandleT      evtHandle;
+SaEvtChannelHandleT evtChannelHandlePublic      = 0;
 //*************************************************
 
 
@@ -75,21 +76,9 @@ appEventCallback( SaEvtSubscriptionIdT	subscriptionId,
 int main(int argc, char **argv)
 {
 
-    ClEoConfigT eoConfig =
-    {
-        CL_OSAL_THREAD_PRI_MEDIUM,    /* EO Thread Priority                       */
-        2,                            /* No of EO thread needed                   */
-        0,                            /* Required Ioc Port                        */
-        (CL_EO_USER_CLIENT_ID_START + 0), 
-        CL_EO_USE_THREAD_FOR_APP,     /* Thread Model                             */
-        NULL,                         /* Application Initialize Callback          */
-        NULL,                         /* Application Terminate Callback           */
-        NULL,                         /* Application State Change Callback        */
-        NULL                          /* Application Health Check Callback        */
-    };    
     int ioc_address_local = LOCAL_ADDRESS;
     ClRcT rc = CL_OK;
-    rc = clExtInitialize( ioc_address_local );
+    rc = clExtInitialize(ioc_address_local);
     if (rc != CL_OK)
     {
         printf("Error: failed to Initialize ASP libraries\n");
@@ -100,13 +89,11 @@ int main(int argc, char **argv)
         printf("Error: RMD initialization failed with rc = 0x%x\n", rc);
         exit(1);
     }
-    printf("Info: start rmd server\n");
-
-    rc = clExtRmdServerInit(eoConfig);
-
+    printf("....................Info: start external rmd server....................\n");
+    rc = clExtRmdServerInit(NULL);
     if(rc != CL_OK)
     {
-        printf("Info: start rmd server ok\n");
+        printf("Error : Failed to init Rmd Server\n");
     }
     else
     {
@@ -117,7 +104,6 @@ int main(int argc, char **argv)
             appEventCallback
         };
         SaVersionT  evtVersion = CL_EVENT_VERSION;
-        printf("Event : Initializing and registering with CPM...\n");
         rc = saEvtInitialize(&evtHandle, &evtCallbacks, &evtVersion);
         if (rc != SA_AIS_OK)
         {
@@ -135,21 +121,16 @@ int main(int argc, char **argv)
         {
             printf("Failure opening event channel[0x%x] at %ld\n",
                     rc, time(0L));
-            printf("Failure opening event channel[0x%x]\n", rc);
             goto errorexit;
         }
-        sleep(20);
-        printf("EVENT ");
+        sleep(5);
         rc = saEvtEventSubscribe(evtChannelHandle, NULL, 1);
         if (rc != SA_AIS_OK)
         {
             printf("Failed to subscribe to event channel [0x%x]\n",
                         rc);
-            printf("Failed to subscribe to event channel [0x%x]\n",
-                    rc);
             goto errorexit;
         }
-
         //open a global log stream and write several records
         printf("Open a global log stream and write several records\n");        
         alarmClockLogInitialize();
@@ -158,13 +139,23 @@ int main(int argc, char **argv)
         openPublisherChannel();
         printf("start public event\n");        
         testEvtMainLoop();
+        printf("...................close subscript event chanel.............................\n");        
+        rc = saEvtChannelClose(evtChannelHandle);
+	if (rc != SA_AIS_OK) 
+		printf("Channel unsubscribe result: %d\n", rc);
 
+        printf("....................finalize publish event handle.............................\n");        
+        rc = saEvtFinalize(gTestInfo.evtInitHandle);
+	if (rc != SA_AIS_OK) 
+		printf("Channel unsubscribe result: %d\n", rc);
+        openPublisherChannel();
+        testEvtMainLoop();
+        printf("....................finalize publish event handle.............................\n");        
+        rc = saEvtFinalize(gTestInfo.evtInitHandle);
+	if (rc != SA_AIS_OK) 
+		printf("Channel unsubscribe result: %d\n", rc);
     }    
-    do
-    {
-        sleep(20);
-        printf("Info : running ....");
-    }while(1);
+    return 0;
     errorexit:
         printf ("Initialization error [0x%x]\n",rc);
 }
@@ -208,8 +199,7 @@ generate_load_average(char **data, ClSizeT *data_len)
     // minimal error checking
     if (data == 0 || data_len == 0)
     {
-        printf(
-                "generate_load_average passed null pointer\n ");
+        printf("generate_load_average passed null pointer\n ");
         return;
     }
     if ((fd = open("/proc/loadavg", O_RDONLY, 0)) == -1)
@@ -234,14 +224,8 @@ generate_load_average(char **data, ClSizeT *data_len)
         close(fd);
         return;
     }
-    *(*data + (*data_len) - 1) = 0;     // preemptively null-terminate the line
+    *(*data + (*data_len) - 1) = 0;    
     strncpy(*data, buf, *data_len);
-
-    //
-    // Do MINIMAL parsing in that we look for the third space in the buffer
-    // (which comes after the load average information proper) and we replace
-    // the space with a nul character to terminate the string.
-    // If there is no third space character, just return the buffer unchanged.
     tmp_ptr = strchr(*data, ' ');
     if (tmp_ptr == 0)
     {
@@ -304,19 +288,18 @@ appPublishEvent()
 static void
 testEvtMainLoop()
 {
-    
-    printf("Waiting for CSI assignment...\n");
     /* Main loop: Keep printing and publishing unless we are suspended */
+    int i=0;
     while (1)
     {
         appPublishEvent();        
-        sleep(10);
+        sleep(2);
+        i++;
+        if(i==5)
+        {
+            return;
+        }
     }
-
-    /* Letting the world know that we exited from mainloop */
-    //    clprintf(CL_LOG_DEBUG, "%s exited main loop", appname);
-
-   
 }    
 
 static void
@@ -327,7 +310,6 @@ appEventCallback( SaEvtSubscriptionIdT	subscriptionId,
     SaAisErrorT  saRc = SA_AIS_OK;
     static ClPtrT   resTest = 0;
     static ClSizeT  resSize = 0;
-    printf ("We've got an event to receive\n");
     if (resTest != 0)
     {
         // Maybe try to save the previously allocated buffer if it's big
@@ -369,10 +351,8 @@ SaAisErrorT openPublisherChannel()
         saNameSet(&gTestInfo.publisherName,PUBLISHER_NAME_1);
         gTestInfo.running          = 1;
         gTestInfo.exiting          = 0;
-        SaEvtChannelHandleT evtChannelHandle      = 0;
         SaEvtCallbacksT     evtCallbacks          = {NULL, NULL};
-        sleep(10);
-        printf("initial event \n");
+        printf("....................initial event.................... \n");
         rc = saEvtInitialize(&gTestInfo.evtInitHandle,
                        &evtCallbacks,
                        &gTestInfo.evtVersion);
@@ -386,14 +366,14 @@ SaAisErrorT openPublisherChannel()
                             (SA_EVT_CHANNEL_PUBLISHER |
                              SA_EVT_CHANNEL_CREATE),
                              (ClTimeT)SA_TIME_END,
-                             &evtChannelHandle);
+                             &evtChannelHandlePublic);
         if (rc != SA_AIS_OK)
         {
             printf( "Failed to open event channel [0x%x]\n",rc);
             return rc;
         }
 
-        rc = saEvtEventAllocate(evtChannelHandle, &gTestInfo.eventHandle);
+        rc = saEvtEventAllocate(evtChannelHandlePublic, &gTestInfo.eventHandle);
         if (rc != SA_AIS_OK)
         {
             printf( "Failed to cllocate event [0x%x]\n",rc);
@@ -410,7 +390,7 @@ SaAisErrorT openPublisherChannel()
             printf( "Failed to set event attributes [0x%x]\n",rc);
             return rc;
         }
-        printf( "start publish event");
+        printf( "....................start publish event....................\n");
         return rc;
 }
 

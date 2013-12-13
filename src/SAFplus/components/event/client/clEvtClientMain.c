@@ -305,7 +305,7 @@ ClRcT clEvtQueueCallback(ClEvtInitInfoT *pInitInfo, ClEvtCallbackIdT cbId, void 
     CL_FUNC_ENTER();
 
 
-    pQueueData = clHeapAllocate(sizeof(ClEvtCbQueueDataT));
+    pQueueData = (ClEvtCbQueueDataT*) clHeapAllocate(sizeof(ClEvtCbQueueDataT));
     if (NULL == pQueueData)
     {
         clLogError("EVT", "CBQ", CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
@@ -389,7 +389,7 @@ void clEvtCallbackDispatcher(ClEvtCbQueueDataT *pQueueData, ClEvtInitInfoT *pIni
     {
         case CL_EVT_PUBLISH_CALLBACK:
             {
-                ClEvtEventPublishInfoT *pPublishInfo = pQueueData->cbArg;
+                ClEvtEventPublishInfoT *pPublishInfo = (ClEvtEventPublishInfoT*) pQueueData->cbArg;
 
                 clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO,
                         CL_EVENT_LIB_NAME,
@@ -405,7 +405,7 @@ void clEvtCallbackDispatcher(ClEvtCbQueueDataT *pQueueData, ClEvtInitInfoT *pIni
             }
         case CL_EVT_CHANNEL_CALLBACK:
             {
-                ClEvtClientAsyncChanOpenCbArgT *pCallbackArg = pQueueData->cbArg;
+                ClEvtClientAsyncChanOpenCbArgT *pCallbackArg = (ClEvtClientAsyncChanOpenCbArgT*) pQueueData->cbArg;
 
                 clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO,
                         CL_EVENT_LIB_NAME,
@@ -647,7 +647,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     {
         if (CL_TRUE == pInitInfo->queueFlag)
         {
-            ClEvtEventPublishInfoT *pPublishInfo = clHeapAllocate(sizeof(ClEvtEventPublishInfoT));
+            ClEvtEventPublishInfoT *pPublishInfo = (ClEvtEventPublishInfoT*) clHeapAllocate(sizeof(ClEvtEventPublishInfoT));
             if (NULL == pPublishInfo)
             {
                 clLogError("EVT", "EVR", 
@@ -802,13 +802,12 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
     rc = clEoMyEoObjectGet(&pEoObj);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "INI", 
-                   "Failed to get EO object [%#X]", rc);
+        clLogError("EVT", "INI", "Failed to get EO object [%#X]", rc);
         goto failure;
     }
     *ppEoObj = pEoObj;          /* Return the EO */
 
-    pEvtClientHead = clHeapAllocate(sizeof(ClEvtClientHeadT));
+    pEvtClientHead = (ClEvtClientHeadT*) clHeapAllocate(sizeof(ClEvtClientHeadT));
     if (NULL == pEvtClientHead)
     {
         clLogError("EVT", "INI", 
@@ -1158,7 +1157,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
         {
             if(pInitInfo->pEvtCallbackTable)
                 clHeapFree(pInitInfo->pEvtCallbackTable);
-            pInitInfo->pEvtCallbackTable = clHeapCalloc(numCallbacks, sizeof(*pInitInfo->pEvtCallbackTable));
+            pInitInfo->pEvtCallbackTable = (ClEventVersionCallbacksT*) clHeapCalloc(numCallbacks, sizeof(*pInitInfo->pEvtCallbackTable));
             CL_ASSERT(pInitInfo->pEvtCallbackTable != NULL);
         }
         memcpy(pInitInfo->pEvtCallbackTable, pEvtCallbackTable, sizeof(*pInitInfo->pEvtCallbackTable) * numCallbacks);
@@ -2354,7 +2353,7 @@ void clEvtAsyncChanOpenCbReceive(ClRcT apiResult, void *pCookie,
     ClEoExecutionObjT *pEoObj = { 0 };
     ClEvtClientHeadT *pEvtClientHead = NULL;
 
-    ClEvtClientAsyncChanOpenCbArgT *pCallbackArg = pCookie;
+    ClEvtClientAsyncChanOpenCbArgT *pCallbackArg = (ClEvtClientAsyncChanOpenCbArgT*) pCookie;
 
 
     CL_FUNC_ENTER();
@@ -2510,7 +2509,7 @@ ClRcT clEventChannelOpenAsync(ClEventInitHandleT evtHandle,
     /*
      * Populate the argument to be passed to the Callback.
      */
-    pCallbackArg = clHeapAllocate(sizeof(*pCallbackArg));
+    pCallbackArg = (ClEvtClientAsyncChanOpenCbArgT*) clHeapAllocate(sizeof(*pCallbackArg));
     if (NULL == pCallbackArg)
     {
         clLogError("EVT", "COP", 
@@ -4265,7 +4264,7 @@ ClRcT clEventAttributesGet(ClEventHandleT eventHandle,
         {
             if (0 != evtPrimaryHeader.noOfPatterns)
                 pPatternArray->pPatterns =
-                    clHeapAllocate(sizeof(ClEventPatternT) *
+                    (ClEventPatternT*) clHeapAllocate(sizeof(ClEventPatternT) *
                             evtPrimaryHeader.noOfPatterns);
             isPatternAllocated = CL_FALSE;
         }
@@ -4299,8 +4298,7 @@ ClRcT clEventAttributesGet(ClEventHandleT eventHandle,
                  * 64 bits 
                  */
                 noOfBytesToRead = pPatternArray->pPatterns[i].patternSize;
-                pPatternArray->pPatterns[i].pPattern =
-                    clHeapAllocate(noOfBytesToRead);
+                pPatternArray->pPatterns[i].pPattern = (ClUint8T*) clHeapAllocate(noOfBytesToRead);
 
                 /*
                  * Get the pattern 

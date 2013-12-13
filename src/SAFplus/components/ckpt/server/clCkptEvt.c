@@ -367,9 +367,9 @@ void ckptEvtSubscribeCallBack( ClEventSubscriptionIdT    subscriptionId,
                     pPeerInfo->available   = CL_CKPT_NODE_UNAVAIL;
                     clLogNotice("PEER", "EVT", "Marking peer [%d] on receiving node arrival",
                                 nodePayload.nodeIocAddress);
-                    rc = clCntLlistCreate(ckptCkptListKeyComp,
-                                          ckptCkptListDeleteCallback,
-                                          ckptCkptListDeleteCallback,
+                    rc = clCntLlistCreate((ClCntKeyCompareCallbackT) ckptCkptListKeyComp,
+                                          (ClCntDeleteCallbackT) ckptCkptListDeleteCallback,
+                                          (ClCntDeleteCallbackT) ckptCkptListDeleteCallback,
                                           CL_CNT_UNIQUE_KEY,
                                           &pPeerInfo->ckptList);
                     if( CL_OK != rc )
@@ -381,7 +381,7 @@ void ckptEvtSubscribeCallBack( ClEventSubscriptionIdT    subscriptionId,
                         goto exitOnError;
                     }
 
-                    rc = clCntLlistCreate(ckptMastHdlListtKeyComp,
+                    rc = clCntLlistCreate((ClCntKeyCompareCallbackT) ckptMastHdlListtKeyComp,
                                           ckptMastHdlListDeleteCallback,
                                           ckptMastHdlListDeleteCallback,
                                           CL_CNT_UNIQUE_KEY,

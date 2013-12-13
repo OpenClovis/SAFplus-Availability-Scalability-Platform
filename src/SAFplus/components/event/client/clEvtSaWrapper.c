@@ -60,8 +60,7 @@ do{\
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME, CL_LOG_MESSAGE_0_COMPONENT_UNINITIALIZED);\
             CL_FUNC_EXIT();\
             rc = CL_EVENTS_RC(CL_EVENT_ERR_INIT_NOT_DONE); \
-            clEvtSafErrorMap(rc, &rc); \
-            return rc;\
+            return clEvtSafErrorMap(rc); \
     }\
 }while(0);
 
@@ -99,6 +98,80 @@ ClRcT saEvtClientInit(void)
     return CL_OK;
 }
 
+SaAisErrorT clEvtSafErrorMap(ClRcT rc)
+{
+    ClRcT compId = CL_GET_CID(rc);
+    ClRcT errorCode = CL_GET_ERROR_CODE(rc);
+    SaAisErrorT safEvtError = SA_AIS_OK;
+    if (CL_OK == rc)
+    {
+       return safEvtError;
+
+    }
+
+    if (CL_CID_EVENTS == compId)
+    {
+        switch (errorCode)
+        {
+            case CL_EVENT_ERR_INTERNAL:
+                 safEvtError = SA_AIS_ERR_LIBRARY;
+                 break;
+
+            case CL_EVENT_ERR_NULL_PTR: /* SAF expect Invalid Parameter */
+            case CL_EVENT_ERR_INVALID_PARAM:
+                safEvtError = SA_AIS_ERR_INVALID_PARAM;
+                break;
+
+            case CL_EVENT_ERR_NO_MEM:
+                safEvtError = SA_AIS_ERR_NO_MEMORY;
+                break;
+
+            case CL_EVENT_ERR_INIT_NOT_DONE: /* Same as Bad Handle */
+            case CL_EVENT_ERR_BAD_HANDLE:
+                safEvtError = SA_AIS_ERR_BAD_HANDLE;
+                break;
+            
+            case CL_EVENT_ERR_BAD_FLAGS:
+                safEvtError = SA_AIS_ERR_BAD_FLAGS;
+                break;
+
+            case CL_EVENT_ERR_NOT_OPENED_FOR_SUBSCRIPTION:
+            case CL_EVENT_ERR_NOT_OPENED_FOR_PUBLISH:
+                safEvtError = SA_AIS_ERR_ACCESS;
+                break;
+            case CL_EVENT_ERR_VERSION:
+                safEvtError = SA_AIS_ERR_VERSION;
+                break;
+            case CL_EVENT_ERR_NO_SPACE:
+                safEvtError = SA_AIS_ERR_NO_SPACE;
+                break;
+
+            case CL_EVENT_ERR_INIT:
+                safEvtError = SA_AIS_ERR_INIT;
+                break;
+            default :
+                safEvtError = SA_AIS_ERR_LIBRARY;
+        }
+    }
+    else
+    {
+        switch (errorCode)
+        {
+            case CL_ERR_TIMEOUT:
+                safEvtError = SA_AIS_ERR_TIMEOUT;
+                break;
+            default :
+              safEvtError = SA_AIS_ERR_LIBRARY;
+        }
+
+    }
+    return safEvtError; /* Defaults to this Error if no mapping 
+                                         */
+}
+
+
+
+#if 0
 void clEvtSafErrorMap(ClRcT rc, ClRcT *pMappedError)
 {
     ClRcT compId = CL_GET_CID(rc);
@@ -169,6 +242,7 @@ void clEvtSafErrorMap(ClRcT rc, ClRcT *pMappedError)
     return;
 
 }
+#endif
 
 void clEventOpenAsyncCallbackTrap(ClInvocationT invocation,
         ClEventChannelHandleT channelHandle,
@@ -391,19 +465,16 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT * pEvtHandle,
      * in the evtInitHandle handle for the actual callbacks passed
      * for the Initialization.
      */
-    rc = clEventInitialize(&evtInitHandle, &clEventCallBackTrap,
-            (ClVersionT *) pVersion);
+    rc = clEventInitialize(&evtInitHandle, &clEventCallBackTrap, (ClVersionT *) pVersion);
     if(rc != CL_OK) 
     {
-        clEvtSafErrorMap(rc, &rc);
-        return rc;
+        goto error; //return rc;
     }
     
     rc = clHandleCreateSpecifiedHandle(gSaEvtHandleDatabase, sizeof(SaEvtInitInfoT), evtInitHandle);
     if(rc != CL_OK)
     {
-        clEvtSafErrorMap(rc, &rc); 
-        return rc; 
+        goto error; //return rc; 
     }
     rc = clHandleCheckout(gSaEvtHandleDatabase, evtInitHandle, (void **)&pSaEvtCallbackInfo);                       
     if (rc != CL_OK)
@@ -440,8 +511,8 @@ SaAisErrorT saEvtInitialize(SaEvtHandleT * pEvtHandle,
 
     *pEvtHandle = (SaEvtHandleT) evtInitHandle;
 
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+error:
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtSelectionObjectGet(SaEvtHandleT evtHandle,
@@ -452,8 +523,7 @@ SaAisErrorT saEvtSelectionObjectGet(SaEvtHandleT evtHandle,
     rc = clEventSelectionObjectGet((ClEventInitHandleT) evtHandle,
                                    (ClSelectionObjectT *) selectionObject);
 
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtDispatch(SaEvtHandleT evtHandle,
@@ -469,8 +539,7 @@ SaAisErrorT saEvtDispatch(SaEvtHandleT evtHandle,
     rc = clEventDispatch((ClEventInitHandleT) evtHandle,
                          (ClDispatchFlagsT) dispatchFlags);
 
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+    return clEvtSafErrorMap(rc);
 }
 
 ClRcT saEvtFinalizeWalkCallback(ClHandleDatabaseHandleT databaseHandle, ClHandleT handle, ClPtrT pCookie)
@@ -527,8 +596,7 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
      */
     if(rc != CL_OK)
     {
-        clEvtSafErrorMap(rc, &rc);
-        return rc;
+        goto error;
     }
     rc = clHandleWalk(gSaEvtHandleDatabase, saEvtFinalizeWalkCallback, &evtHandle);
     rc = clHandleDestroy(gSaEvtHandleDatabase, evtHandle);
@@ -538,8 +606,7 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_DB_DESTROY_FAILED, rc);
         rc = CL_EVENT_ERR_INTERNAL;
-        clEvtSafErrorMap(rc, &rc);
-        return rc;
+        goto error;
     }
 
     /* Decrement the Init count */
@@ -558,21 +625,19 @@ SaAisErrorT saEvtFinalize(SaEvtHandleT evtHandle)
             clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                     CL_LOG_MESSAGE_1_HANDLE_DB_DESTROY_FAILED, rc);
             rc = CL_EVENT_ERR_INTERNAL;
-            clEvtSafErrorMap(rc, &rc);
-            return rc;
+            goto error;
         }
 
     }
     
     if(CL_OK != clASPFinalize())
     {
-        clLogInfo(CL_EVENT_LIB_NAME, "FIN",
-                  "ASP finalize failed, rc[0x%X]", rc);
+        clLogInfo(CL_EVENT_LIB_NAME, "FIN", "ASP finalize failed, rc[0x%X]", rc);
         return SA_AIS_ERR_LIBRARY;
     }
 
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+error:
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtChannelOpen(SaEvtHandleT evtHandle,
@@ -618,14 +683,12 @@ SaAisErrorT saEvtChannelOpen(SaEvtHandleT evtHandle,
                             &channelHandle);
     if (CL_OK != rc)
     {
-        clEvtSafErrorMap(rc, &rc);
-        return rc;
+        goto error;
     }
     rc = clHandleCreateSpecifiedHandle(gSaEvtHandleDatabase, sizeof(SaEvtChanInitInfoT), channelHandle); 
     if(rc != CL_OK)
     {
-        clEvtSafErrorMap(rc, &rc); 
-        return rc; 
+        goto error; 
     }
     rc = clHandleCheckout(gSaEvtHandleDatabase, channelHandle, (void**)&pSaEvtChanInitInfo);
     if (rc != CL_OK)
@@ -648,8 +711,8 @@ SaAisErrorT saEvtChannelOpen(SaEvtHandleT evtHandle,
     }
     *pChannelHandle = (SaEvtChannelHandleT) channelHandle;
 
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+error:
+    return  clEvtSafErrorMap(rc);
 }
 
 
@@ -671,7 +734,7 @@ SaAisErrorT saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
      * pass the evtHandle in a structure along with the invocation: This is      * used in the ChannelOpenAsynccallbackTrap for faster search of the 
      * callback
      */
-    pSaEvtInvInfo =clHeapAllocate(sizeof(SaEvtInvocationInfoT)); 
+    pSaEvtInvInfo = (SaEvtInvocationInfoT*) clHeapAllocate(sizeof(SaEvtInvocationInfoT)); 
     if(NULL == pSaEvtInvInfo)
     {
         clLogError(EVENT_LOG_AREA_ECH,EVENT_LOG_CTX_OPEN,"Failed to allocate Memory \n\r");
@@ -679,9 +742,7 @@ SaAisErrorT saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
                 CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         CL_FUNC_EXIT();
         rc = CL_EVENT_ERR_NO_MEM;
-        clEvtSafErrorMap(rc, &rc);
-        return rc;
- 
+        goto error; 
     }
     pSaEvtInvInfo->evtHandle = evtHandle;
     pSaEvtInvInfo->invocation = invocation;
@@ -698,8 +759,9 @@ SaAisErrorT saEvtChannelOpenAsync(SaEvtHandleT evtHandle,
     {
         clHeapFree(pSaEvtInvInfo); 
     }
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+error:
+    return clEvtSafErrorMap(rc);
+    
 }
 
 SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
@@ -710,8 +772,7 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
     
     if(rc != CL_OK)
     {
-        clEvtSafErrorMap(rc, &rc);
-        return rc;
+        goto failure;
     }
     /*
      * Destroy the channel information stored in the saWrapper for 
@@ -724,10 +785,10 @@ SaAisErrorT saEvtChannelClose(SaEvtChannelHandleT channelHandle)
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_1_HANDLE_DB_DESTROY_FAILED, rc);
         rc = CL_EVENT_ERR_INTERNAL;
-        clEvtSafErrorMap(rc, &rc);
     }
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+
+failure:
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtChannelUnlink(SaEvtHandleT evtHandle,
@@ -743,8 +804,7 @@ SaAisErrorT saEvtChannelUnlink(SaEvtHandleT evtHandle,
 
     rc = clEventChannelUnlink((ClEventInitHandleT) evtHandle,
                               (const SaNameT *) pEvtChannelName);
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtEventAllocate(SaEvtChannelHandleT channelHandle,
@@ -761,9 +821,8 @@ SaAisErrorT saEvtEventAllocate(SaEvtChannelHandleT channelHandle,
     }
 
     rc = clEventAllocate((ClEventChannelHandleT) channelHandle, &eventHandle);
-    clEvtSafErrorMap(rc, &rc);
     *pEventHandle = (SaEvtEventHandleT) eventHandle;
-    return rc;
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtEventFree(SaEvtEventHandleT eventHandle)
@@ -771,8 +830,7 @@ SaAisErrorT saEvtEventFree(SaEvtEventHandleT eventHandle)
     ClRcT rc = CL_OK;
 
     rc = clEventFree((ClEventHandleT) eventHandle);
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
@@ -788,8 +846,7 @@ SaAisErrorT saEvtEventAttributesSet(SaEvtEventHandleT eventHandle,
                               (const ClEventPatternArrayT *) pPatternArray,
                               priority, retentionTime,
                               (const SaNameT *) pPublisherName);
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
@@ -806,8 +863,7 @@ SaAisErrorT saEvtEventAttributesGet(SaEvtEventHandleT eventHandle,
                               (ClEventPatternArrayT *) pPatternArray, pPriority,
                               pRetentionTime, (SaNameT *) pPublisherName,
                               pPublishTime, (ClEventIdT *) pEventId);
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *pEventData,
@@ -817,8 +873,7 @@ SaAisErrorT saEvtEventDataGet(SaEvtEventHandleT eventHandle, void *pEventData,
 
     rc = clEventDataGet((ClEventHandleT) eventHandle, pEventData,
                         pEventDataSize);
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtEventPublish(SaEvtEventHandleT eventHandle,
@@ -829,8 +884,7 @@ SaAisErrorT saEvtEventPublish(SaEvtEventHandleT eventHandle,
 
     rc = clEventPublish((ClEventHandleT) eventHandle, pEventData, eventDataSize,
                         (ClEventIdT *) pEventId);
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
@@ -882,15 +936,14 @@ SaAisErrorT saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
     /*
      * Allocate memory to hold the Handle as a cookie as it is 64 bits.
      */
-    gpEvtHandle = pEvtHandle =clHeapAllocate(sizeof(*pEvtHandle)); 
+    gpEvtHandle = pEvtHandle = (SaEvtHandleT*) clHeapAllocate(sizeof(*pEvtHandle)); 
     if(NULL == pEvtHandle)
     {
         clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_SUBSCRIBE,"Failed to allocate Memory \n\r");
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_EVENT_LIB_NAME,
                 CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         rc = CL_EVENT_ERR_NO_MEM;
-        clEvtSafErrorMap(rc, &rc);
-        return rc;
+        goto failure;
  
     }
     *pEvtHandle = evtHandle;
@@ -901,11 +954,9 @@ SaAisErrorT saEvtEventSubscribe(SaEvtChannelHandleT channelHandle,
     if(rc != CL_OK)
     {
         clHeapFree(pEvtHandle);
-        clEvtSafErrorMap(rc, &rc);
-        return rc;
     } 
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+failure:
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle,
@@ -916,8 +967,7 @@ SaAisErrorT saEvtEventUnsubscribe(SaEvtChannelHandleT channelHandle,
     rc = clEventUnsubscribe((ClEventChannelHandleT) channelHandle,
                             subscriptionId);
     clHeapFree(gpEvtHandle);
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+    return clEvtSafErrorMap(rc);
 }
 
 SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle,
@@ -927,6 +977,5 @@ SaAisErrorT saEvtEventRetentionTimeClear(SaEvtChannelHandleT channelHandle,
 
     rc = clEventRetentionTimeClear((ClEventChannelHandleT) channelHandle,
                                    eventId);
-    clEvtSafErrorMap(rc, &rc);
-    return rc;
+    return clEvtSafErrorMap(rc);
 }

@@ -877,7 +877,7 @@ retry:
 
     *pRecSize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[3], 1);
     
-    *pDBRec = clHeapAllocate(*pRecSize);
+    *pDBRec = (ClDBRecordT) clHeapAllocate(*pRecSize);
     
     if(NULL == *pDBRec) {
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
@@ -951,7 +951,7 @@ retry:
     *pKeySize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[4], 0);
     *pRecSize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[4], 1);
 
-    *pDBKey = clHeapAllocate(*pKeySize);
+    *pDBKey = (ClDBKeyT) clHeapAllocate(*pKeySize);
 
     if(NULL == *pDBKey) {
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
@@ -962,7 +962,7 @@ retry:
 
     memcpy(*pDBKey, sqlite3_column_blob(pSQLiteHandle->stmt[4], 0), *pKeySize);
    
-    *pDBRec = clHeapAllocate(*pRecSize);
+    *pDBRec = (ClDBRecordT) clHeapAllocate(*pRecSize);
 
     if(NULL == *pDBRec) {
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
@@ -1042,7 +1042,7 @@ retry1:
     *pNextKeySize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[5], 0);
     *pNextRecSize = (ClUint32T) sqlite3_column_bytes(pSQLiteHandle->stmt[5], 1);
 
-    *pDBNextKey = clHeapAllocate(*pNextKeySize);
+    *pDBNextKey = (ClDBKeyT) clHeapAllocate(*pNextKeySize);
 
     if(NULL == *pDBNextKey) {
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
@@ -1053,7 +1053,7 @@ retry1:
 
     memcpy(*pDBNextKey, sqlite3_column_blob(pSQLiteHandle->stmt[5], 0), *pNextKeySize);
    
-    *pDBNextRec = clHeapAllocate(*pNextRecSize);
+    *pDBNextRec = (ClDBRecordT) clHeapAllocate(*pNextRecSize);
 
     if(NULL == *pDBNextRec) {
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);

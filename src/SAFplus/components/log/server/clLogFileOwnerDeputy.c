@@ -216,7 +216,7 @@ clLogFileOwnerStreamListEntryGet(ClBufferHandleT      msg,
     ClRcT              rc              = CL_OK;
     SaNameT            streamName      = {0};
     SaNameT            streamScopeNode = {0};
-    ClLogStreamScopeT  streamScope     = 0;
+    ClLogStreamScopeT  streamScope     = CL_LOG_STREAM_GLOBAL;
     ClUint16T          streamId        = 0;
     ClUint32T          validEntry      = 0;
 
@@ -531,7 +531,7 @@ clLogFileOwnerStreamEntryReopen(ClCntKeyHandleT   key,
     ClRcT                   rc           = CL_OK;
     ClLogMasterStreamDataT  *pStreamData = (ClLogMasterStreamDataT *) data;
     ClLogStreamKeyT         *pStreamKey  = (ClLogStreamKeyT *) key;
-    ClLogStreamScopeT       streamScope  = 0;
+    ClLogStreamScopeT       streamScope  = CL_LOG_STREAM_GLOBAL;
     ClLogStreamAttrIDLT     *pStreamAttr = (ClLogStreamAttrIDLT *) arg;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
@@ -602,15 +602,13 @@ clLogFileOwnerStateRecreate(ClCntKeyHandleT   key,
     }
     streamAttr.fileName.length     = pFileKey->fileName.length;
     streamAttr.fileLocation.length = pFileKey->fileLocation.length;
-    streamAttr.fileName.pValue  
-        = clHeapCalloc(pFileKey->fileName.length, sizeof(ClCharT));
+    streamAttr.fileName.pValue     = (ClCharT*)clHeapCalloc(pFileKey->fileName.length, sizeof(ClCharT));
     if( NULL == streamAttr.fileName.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));
         return CL_LOG_RC(CL_ERR_NO_MEMORY);
     }           
-    streamAttr.fileLocation.pValue  
-        = clHeapCalloc(pFileKey->fileLocation.length, sizeof(ClCharT));
+    streamAttr.fileLocation.pValue = (ClCharT*) clHeapCalloc(pFileKey->fileLocation.length, sizeof(ClCharT));
     if( NULL == streamAttr.fileLocation.pValue )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc()"));

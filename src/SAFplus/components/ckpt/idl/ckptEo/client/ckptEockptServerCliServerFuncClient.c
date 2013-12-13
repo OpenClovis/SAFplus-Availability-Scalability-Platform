@@ -338,7 +338,7 @@ ClRcT clCkptMasterCkptOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT 
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -604,7 +604,7 @@ ClRcT clCkptMasterCkptCloseClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -870,7 +870,7 @@ ClRcT clCkptMasterCkptUnlinkClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN S
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1133,7 +1133,7 @@ ClRcT _ckptCheckpointStatusGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1492,7 +1492,7 @@ ClRcT _ckptSectionCreateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHan
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -1779,7 +1779,7 @@ ClRcT _ckptSectionDeleteClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHan
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -2126,7 +2126,7 @@ ClRcT _ckptCheckpointWriteClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClH
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -2518,7 +2518,7 @@ ClRcT _ckptSectionOverwriteClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -2841,7 +2841,7 @@ ClRcT _ckptCheckpointReadClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClHa
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -3164,7 +3164,7 @@ ClRcT clCkptSvrIterationInitializeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -3448,7 +3448,7 @@ ClRcT _ckptIterationNextGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Cl
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -3714,7 +3714,7 @@ ClRcT clCkptMasterActiveReplicaSetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -3980,7 +3980,7 @@ ClRcT clCkptMasterActiveReplicaSetSwitchOverClientAsync_4_0_0(CL_IN ClIdlHandleT
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -4246,7 +4246,7 @@ ClRcT clCkptMasterCkptRetentionDurationSetClientAsync_4_0_0(CL_IN ClIdlHandleT h
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -4554,7 +4554,7 @@ ClRcT _ckptCheckpointSynchronizeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -4841,7 +4841,7 @@ ClRcT _ckptSectionExpirationTimeSetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, 
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -5104,7 +5104,7 @@ ClRcT clCkptMasterActiveAddrGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -5370,7 +5370,7 @@ ClRcT clCkptServerFinalizeClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT 
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);

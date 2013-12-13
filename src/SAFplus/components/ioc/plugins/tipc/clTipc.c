@@ -1054,6 +1054,15 @@ out:
     return rc;
 }
 
+/*
+ * Return fd for local port
+ */
+ClRcT xportFdGet(ClIocCommPortHandleT commPort, ClInt32T *fd)
+{
+    ClIocCommPortT *pCommPort = (ClIocCommPortT*)commPort;
+    return clTipcFdGet(pCommPort->portId, fd);
+}
+
 ClRcT clTipcFdGet(ClIocPortT port, ClInt32T *fd)
 {
     ClTipcCommPortPrivateT *xportPrivate;

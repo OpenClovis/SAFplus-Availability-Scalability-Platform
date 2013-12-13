@@ -382,7 +382,7 @@ static void __iocFragmentPoolPut(ClUint8T *pBuffer, ClUint32T len)
     }
     else
     {
-        ClIocFragmentPoolT *pool = clHeapCalloc(1, sizeof(*pool));
+        ClIocFragmentPoolT *pool = (ClIocFragmentPoolT*) clHeapCalloc(1, sizeof(*pool));
         CL_ASSERT(pool != NULL);
         pool->buffer = pBuffer;
         clOsalMutexLock(&iocFragmentPoolLock);
@@ -427,8 +427,8 @@ static ClRcT __iocFragmentPoolInitialize(void)
     clOsalMutexInit(&iocFragmentPoolLock);
     while(currentSize + iocFragmentPoolLen < iocFragmentPoolSize)
     {
-        ClIocFragmentPoolT *pool = clHeapCalloc(1, sizeof(*pool));
-        ClUint8T *buffer = clHeapAllocate(iocFragmentPoolLen);
+        ClIocFragmentPoolT *pool = (ClIocFragmentPoolT*) clHeapCalloc(1, sizeof(*pool));
+        ClUint8T *buffer = (ClUint8T*) clHeapAllocate(iocFragmentPoolLen);
         CL_ASSERT(pool !=  NULL);
         CL_ASSERT(buffer != NULL);
         currentSize += iocFragmentPoolLen;
@@ -676,7 +676,7 @@ ClRcT clIocCommPortCreate(ClUint32T portId, ClIocCommPortFlagsT portType,
 
     NULL_CHECK(pIocCommPortHandle);
 
-    pIocCommPort = clHeapCalloc(1,sizeof(*pIocCommPort));
+    pIocCommPort = (ClIocCommPortT*) clHeapCalloc(1,sizeof(*pIocCommPort));
     CL_ASSERT(pIocCommPort != NULL);
     
     rc = iocCommPortCreate(portId, portType, pIocCommPort, NULL, CL_FALSE);
@@ -788,7 +788,7 @@ ClRcT clIocCommPortDelete(ClIocCommPortHandleT portId)
     return rc;
 }
 
-ClRcT clIocCommPortFdGet(ClIocCommPortHandleT portHandle, ClInt32T *pFd)
+ClRcT clIocCommPortFdGet(ClIocCommPortHandleT portHandle, const ClCharT *xportType, ClInt32T *pFd)
 {
     ClIocCommPortT *pPortHandle = (ClIocCommPortT*)portHandle;
     
@@ -804,7 +804,7 @@ ClRcT clIocCommPortFdGet(ClIocCommPortHandleT portHandle, ClInt32T *pFd)
         return CL_IOC_RC(CL_ERR_NULL_POINTER);
     }
 
-    return CL_IOC_RC(CL_ERR_NOT_SUPPORTED);
+    return clTransportFdGet(portHandle, xportType, pFd);
 }
 
 #ifdef CL_IOC_COMPRESSION
@@ -981,7 +981,7 @@ static ClRcT iovecIteratorInit(IOVecIteratorT *iter,
      * Divide by half to accomodate the fragmented vectors in the src.
      */
     iter->maxTargetVectors = 16; /* go in steps of 16 target vectors including header vector */
-    iter->target = clHeapCalloc(iter->maxTargetVectors, sizeof(*iter->target)); 
+    iter->target = (struct iovec*) clHeapCalloc(iter->maxTargetVectors, sizeof(*iter->target)); 
     CL_ASSERT(iter->target != NULL);
     if(header)
     {
@@ -1023,13 +1023,13 @@ static ClRcT iovecIteratorNext(IOVecIteratorT *iter, ClUint32T *payload, struct 
             continue;
         }
         size_t len = curIOVec->iov_len - iter->offset;
-        ClUint8T *base = curIOVec->iov_base + iter->offset;
+        ClUint8T *base = (ClUint8T*)((ClUint8T*)curIOVec->iov_base + iter->offset);
         while(size > 0 && len > 0)
         {
             size_t tgtLen = CL_MIN(size, len);
             if(numVectors >= iter->maxTargetVectors)
             {
-                iter->target = clHeapRealloc(iter->target, sizeof(*iter->target) * (numVectors + 16));
+                iter->target = (struct iovec*) clHeapRealloc(iter->target, sizeof(*iter->target) * (numVectors + 16));
                 CL_ASSERT(iter->target != NULL);
                 memset(iter->target + numVectors, 0, sizeof(*iter->target) * 16);
                 iter->maxTargetVectors += 16;
@@ -2255,7 +2255,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
     ClIocCommPortT *pIocCommPort = (ClIocCommPortT*)commPort;
     ClUint32T size = sizeof(ClIocHeaderT);
     ClUint8T *pBuffer = buffer;
-    ClInt32T bytes = bufSize;
+    ClUint32T bytes = bufSize;
     ClBoolT relay = CL_FALSE;
     ClBoolT syncReassembly = CL_FALSE;
     static ClIocDispatchOptionT recvOption = { .timeout = CL_IOC_TIMEOUT_FOREVER, 
@@ -2503,7 +2503,9 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
      */
     if(relay)
     {
-        ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 0 };
+        ClIocSendOptionT sendOption;
+        sendOption.priority = CL_IOC_HIGH_PRIORITY;
+        sendOption.timeout = 0;
         if(userHeader.dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
         {
             ClIocAddressT *bcastList = NULL;
@@ -2578,8 +2580,9 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
             userHeader.srcAddress.iocPhyAddress.nodeAddress;
         destAddress.iocPhyAddress.portId = CL_IOC_CPM_PORT;
 
-        ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY,
-                                            .timeout = 200 };
+        ClIocSendOptionT sendOption;
+        sendOption.priority = CL_IOC_HIGH_PRIORITY;
+        sendOption.timeout = 200;
         clIocSend(commPort, message, CL_IOC_PROTO_ICMP, &destAddress,
                   &sendOption);
         /*
@@ -2609,7 +2612,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     ClIocHeaderT userHeader = { 0 };
     ClUint32T size = sizeof(ClIocHeaderT);
     ClUint8T *pBuffer = buffer;
-    ClInt32T bytes = bufSize;
+    ClUint32T bytes = bufSize;
     ClIocRecvParamT recvParam = {0};
     ClBufferHandleT message = 0;
     ClBoolT relay = CL_FALSE;
@@ -2801,7 +2804,9 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
      */
     if(relay)
     {
-        ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 0 };
+        ClIocSendOptionT sendOption;
+        sendOption.priority = CL_IOC_HIGH_PRIORITY;
+        sendOption.timeout = 0;
         ClIocCommPortT *commPort = clIocGetPort(port);
         if (commPort) 
         {
@@ -2883,8 +2888,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
             userHeader.srcAddress.iocPhyAddress.nodeAddress;
         destAddress.iocPhyAddress.portId = CL_IOC_CPM_PORT;
 
-        ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY,
-                                            .timeout = 200 };
+        ClIocSendOptionT sendOption = {  CL_IOC_HIGH_PRIORITY,0,0,CL_IOC_PERSISTENT_MSG,200 };
         ClIocCommPortT *commPort = clIocGetPort(port);
         if(commPort)
         {
@@ -2899,9 +2903,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     recvParam.priority = userHeader.priority;
     recvParam.protoType = userHeader.protocolType;
     memcpy(&recvParam.srcAddr, &userHeader.srcAddress, sizeof(recvParam.srcAddr));
-    clLogTrace(
-               "XPORT",
-               "RECV",
+    clLogTrace( "XPORT", "RECV",
                "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", bytes, userHeader.protocolType, recvParam.srcAddr.iocPhyAddress.nodeAddress, recvParam.srcAddr.iocPhyAddress.portId);
     clEoEnqueueReassembleJob(message, &recvParam);
     message = 0;
@@ -3272,7 +3274,7 @@ static ClInt32T __iocFragmentCmp(ClRbTreeT *node1, ClRbTreeT *node2)
 static ClRcT __iocReassembleTimer(void *key)
 {
     ClIocReassembleNodeT *node = NULL;
-    ClIocReassembleTimerKeyT *timerKey = key;
+    ClIocReassembleTimerKeyT *timerKey = (ClIocReassembleTimerKeyT*) key;
     ClRbTreeT *fragHead = NULL;
     ClTimerHandleT timer = NULL;
 
@@ -3321,7 +3323,7 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
     ClRcT retCode = CL_IOC_RC(IOC_MSG_QUEUED);
     ClRbTreeT *iter = NULL;
     ClUint32T len = 0;
-
+    ClIocRecvParamT recvParam = {0};
     if(message)
     {
         msg = message;
@@ -3389,7 +3391,7 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
         }
         if(relay)
         {
-            ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 0 };
+            ClIocSendOptionT sendOption = { CL_IOC_HIGH_PRIORITY,0,0,CL_IOC_PERSISTENT_MSG,0 };
             ClIocPortT portId = fragHeader->header.dstAddress.iocPhyAddress.portId;
             if(portId >= CL_IOC_XPORT_PORT)
             {
@@ -3463,7 +3465,6 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
         }
         else
         {
-            ClIocRecvParamT recvParam = {0};
             enqueue:
             recvParam.length = len;
             recvParam.priority = fragHeader->header.priority;
@@ -3494,7 +3495,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
 {
     ClIocReassembleKeyT key = {0};
     ClIocReassembleNodeT *node = NULL;
-    ClIocFragmentJobT *fragmentJob = job;
+    ClIocFragmentJobT *fragmentJob = (ClIocFragmentJobT*) job;
     ClIocFragmentNodeT *fragmentNode = NULL;
     ClUint8T flag = 0;
     ClRcT rc = CL_OK;
@@ -3525,9 +3526,9 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
          */
         ClUint32T hashKey = __iocReassembleHashKey(&key);
         ClIocReassembleTimerKeyT *timerKey = NULL;
-        timerKey = clHeapCalloc(1, sizeof(*timerKey));
+        timerKey = (ClIocReassembleTimerKeyT*) clHeapCalloc(1, sizeof(*timerKey));
         CL_ASSERT(timerKey != NULL);
-        node = clHeapCalloc(1, sizeof(*node));
+        node = (ClIocReassembleNodeT*) clHeapCalloc(1, sizeof(*node));
         CL_ASSERT(node != NULL);
         memcpy(&timerKey->key, &key, sizeof(timerKey->key)); /*safe w.r.t node deletes*/
         node->timerKey = timerKey;
@@ -3544,7 +3545,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
         hashAdd(iocReassembleHashTable, hashKey, &node->hash);
         clTimerStart(node->timerKey->reassembleTimer);
     }
-    fragmentNode = clHeapCalloc(1, sizeof(*fragmentNode));
+    fragmentNode = (ClIocFragmentNodeT*) clHeapCalloc(1, sizeof(*fragmentNode));
     CL_ASSERT(fragmentNode != NULL);
     fragmentNode->fragOffset = fragmentJob->fragHeader.fragOffset;
     fragmentNode->fragLength = fragmentJob->fragHeader.fragLength;
@@ -3612,7 +3613,7 @@ ClRcT __iocUserFragmentReceive(const ClCharT *xportType,
                                ClBufferHandleT message,
                                ClBoolT sync)
 {
-    ClIocFragmentJobT *job = clHeapCalloc(1, sizeof(*job));
+    ClIocFragmentJobT *job = (ClIocFragmentJobT*) clHeapCalloc(1, sizeof(*job));
     ClUint8T *buffer = NULL;
     ClRcT rc = CL_OK;
     CL_ASSERT(job != NULL);
@@ -3695,7 +3696,7 @@ static ClRcT clIocReplicastGet(ClIocPortT portId, ClIocAddressT **pAddressList, 
     ClUint8T status = 0;
     if(!pAddressList || !pNumEntries)
         return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
-    addressList = clHeapCalloc(CL_IOC_MAX_NODES, sizeof(*addressList));
+    addressList = (ClIocAddressT*) clHeapCalloc(CL_IOC_MAX_NODES, sizeof(*addressList));
     CL_ASSERT(addressList != NULL);
     for(i = 1; i < CL_IOC_MAX_NODES; ++i)
     {
@@ -3773,7 +3774,7 @@ ClRcT clIocTransparencyRegister(ClIocTLInfoT *pTLInfo)
     {
         clOsalMutexUnlock(&gClIocCompMutex);
         clOsalMutexUnlock(&gClIocPortMutex);
-        pComp = clHeapCalloc(1,sizeof(*pComp));
+        pComp = (ClIocCompT*) clHeapCalloc(1,sizeof(*pComp));
         if(pComp == NULL)
         {
             clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
@@ -3819,7 +3820,7 @@ ClRcT clIocTransparencyRegister(ClIocTLInfoT *pTLInfo)
             }
         }
     }
-    pIocLogicalAddress = clHeapCalloc(1,sizeof(*pIocLogicalAddress));
+    pIocLogicalAddress = (ClIocLogicalAddressCtrlT*) clHeapCalloc(1,sizeof(*pIocLogicalAddress));
     if(pIocLogicalAddress == NULL)
     {
         clOsalMutexUnlock(&gClIocCompMutex);
@@ -4049,7 +4050,7 @@ ClRcT clIocMulticastRegister(ClIocMcastUserInfoT *pMcastUserInfo)
     {
         clOsalMutexUnlock(&gClIocMcastMutex);
         clOsalMutexUnlock(&gClIocPortMutex);
-        pMcast = clHeapCalloc(1,sizeof(*pMcast));
+        pMcast = (ClIocMcastT*) clHeapCalloc(1,sizeof(*pMcast));
         if(pMcast==NULL)
         {
             rc = CL_IOC_RC(CL_ERR_NO_MEMORY);
@@ -4078,7 +4079,7 @@ ClRcT clIocMulticastRegister(ClIocMcastUserInfoT *pMcastUserInfo)
                 }
             }
     }
-    pMcastPort = clHeapCalloc(1,sizeof(*pMcastPort));
+    pMcastPort = (ClIocMcastPortT*) clHeapCalloc(1,sizeof(*pMcastPort));
     if(pMcastPort == NULL)
     {
         clOsalMutexUnlock(&gClIocMcastMutex);
@@ -4347,7 +4348,7 @@ ClRcT clIocNeighborAdd(ClIocNodeAddressT address,ClUint32T status)
         rc = CL_IOC_RC(CL_ERR_ALREADY_EXIST);
         goto out;
     }
-    pNeigh = clHeapCalloc(1,sizeof(*pNeigh));
+    pNeigh = (ClIocNeighborT*) clHeapCalloc(1,sizeof(*pNeigh));
     if(pNeigh == NULL)
     {
         clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_ADD,"Error in neigh add\n");

@@ -184,11 +184,12 @@ ClRcT clEoProcessIocRecvPortNotification(ClEoExecutionObjT* pThis, ClBufferHandl
 {
     ClRcT rc = CL_OK;
 
-    ClIocNotificationT notificationInfo = {0};
+    ClIocNotificationT notificationInfo;
     ClUint32T msgLength = sizeof(ClIocNotificationT);
     ClIocNotificationIdT notificationId;
     ClUint32T protoVersion = 0;
-
+    
+    memset(&notificationInfo, 0, sizeof(ClIocNotificationT));
     CL_EO_LIB_VERIFY();
 
     rc = clBufferNBytesRead(eoRecvMsg, (ClUint8T *)&notificationInfo, &msgLength);

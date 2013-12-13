@@ -145,9 +145,7 @@ ClRcT clCkptSvrInitialize(void)
         rc = clCpmComponentNameGet(gCkptSvr->amfHdl, &appName);
         if(clCpmIsCompRestarted(appName))
         {
-            if((deputy != CL_CKPT_UNINIT_ADDR) 
-               &&
-               (deputy != -1))
+            if((deputy != CL_CKPT_UNINIT_ADDR) && ( (ClInt32T) deputy != -1))
             {
                 rc = ckptMasterDatabaseSyncup(deputy);
                 /*
@@ -346,7 +344,7 @@ clCkptIocNodedownCallback(ClIocNotificationIdT eventId,
         /* The current deputy node will be selected as master
          * while waiting for the GMS elects new master/deputy.
          */
-        if (deputyAddr != CL_IOC_RESERVED_ADDRESS && deputyAddr != -1)
+        if (deputyAddr != CL_IOC_RESERVED_ADDRESS && (ClInt32T)deputyAddr != -1)
             clCkptMasterAddressUpdate(deputyAddr, -1);
         else
         {

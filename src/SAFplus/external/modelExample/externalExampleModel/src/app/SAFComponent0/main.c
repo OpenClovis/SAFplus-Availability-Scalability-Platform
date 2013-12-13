@@ -647,7 +647,6 @@ alarmClockLogInitialize();
         return rc;
     }
     sleep(5);
-    clprintf(CL_LOG_SEV_ERROR, "open clockStream 0 \n");
     myStreamAttr.fileName = (char *)"clock.log";
     myStreamAttr.fileLocation=(char *)".:var/log";
     myStreamAttr.recordSize = 300;
@@ -660,8 +659,7 @@ alarmClockLogInitialize();
     myStreamAttr.waterMark.lowLimit = 0;
     myStreamAttr.waterMark.highLimit = 0;
     myStreamAttr.syslog = CL_FALSE;
-    clprintf(CL_LOG_SEV_ERROR, "open clockStream 1 \n");
-    /* Stream Name is defined in the IDE during
+     /* Stream Name is defined in the IDE during
      * modeling phase
      */
     saNameSet(&streamName,"clockStream");
@@ -678,7 +676,6 @@ alarmClockLogInitialize();
      * ClTimeT   timeout      - timeout set to zero, if failed return immed.
      * ClLogStreamHandleT *   - stream handle returned if successful
     */
-    clprintf(CL_LOG_SEV_ERROR, "open clockStream \n");
     rc = clLogStreamOpen(logSvcHandle,
                          streamName,
                          CL_LOG_STREAM_GLOBAL,

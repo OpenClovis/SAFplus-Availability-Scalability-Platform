@@ -139,30 +139,30 @@ ClRcT clLogStreamOwnerStreamOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT i
         goto L2;
     }
 
+    rc = clXdrMarshallSaNameT(&(pStreamName), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L3;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L4;
+    }
+
+    rc = clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L5;
+    }
+
     if(pIdlCtxInfo != NULL)
     {
       clHeapFree(pIdlCtxInfo);
       return rc;
     }
     
-    rc = clXdrMarshallSaNameT(&(pStreamName), outMsgHdl, 1);
-    if (CL_OK != rc)
-    {
-        goto L3;
-    }
-
-    rc = clXdrMarshallClUint32T(&(pStreamScope), outMsgHdl, 1);
-    if (CL_OK != rc)
-    {
-        goto L4;
-    }
-
-    rc = clXdrMarshallSaNameT(&(pStreamScopeNode), outMsgHdl, 1);
-    if (CL_OK != rc)
-    {
-        goto L5;
-    }
-
     rc = clXdrMarshallClUint32T(&(compId), outMsgHdl, 1);
     if (CL_OK != rc)
     {
@@ -235,7 +235,7 @@ L11:  clXdrMarshallClUint32T(&(pNonAckerCnt), 0, 1);
     return rc;
 }
 
-ClRcT clLogStreamOwnerStreamOpenResponseSend_4_0_0(ClIdlHandleT idlHdl,ClRcT retCode,CL_INOUT  SaNameT  pStreamName,CL_INOUT  ClUint32T  pStreamScope,CL_INOUT  SaNameT  pStreamScopeNode,CL_INOUT  ClUint32T  compId,CL_INOUT  ClLogStreamAttrIDLT_4_0_0  pStreamAttr,CL_OUT  ClUint64T  pStreamMastAddr,CL_OUT  ClLogFilterT_4_0_0  pStreamFilter,CL_OUT  ClUint32T  pAckerCnt,CL_OUT  ClUint32T  pNonAckerCnt,CL_INOUT  ClUint16T  pStreamId)
+ClRcT clLogStreamOwnerStreamOpenResponseSend_4_0_0(ClIdlHandleT idlHdl,ClRcT retCode,CL_INOUT  ClUint32T  compId,CL_INOUT  ClLogStreamAttrIDLT_4_0_0  pStreamAttr,CL_OUT  ClUint64T  pStreamMastAddr,CL_OUT  ClLogFilterT_4_0_0  pStreamFilter,CL_OUT  ClUint32T  pAckerCnt,CL_OUT  ClUint32T  pNonAckerCnt,CL_INOUT  ClUint16T  pStreamId)
 {
     ClIdlSyncInfoT    *pIdlSyncDeferInfo = NULL;
     ClRcT              rc                = CL_OK;
@@ -248,24 +248,6 @@ ClRcT clLogStreamOwnerStreamOpenResponseSend_4_0_0(ClIdlHandleT idlHdl,ClRcT ret
     }
     outMsgHdl = pIdlSyncDeferInfo->idlRmdDeferMsg;
     
-    rc = clXdrMarshallSaNameT(&(pStreamName), outMsgHdl, 1);
-    if (CL_OK != rc)
-    {
-        goto L3;
-    }
-
-    rc = clXdrMarshallClUint32T(&(pStreamScope), outMsgHdl, 1);
-    if (CL_OK != rc)
-    {
-        goto L4;
-    }
-
-    rc = clXdrMarshallSaNameT(&(pStreamScopeNode), outMsgHdl, 1);
-    if (CL_OK != rc)
-    {
-        goto L5;
-    }
-
     rc = clXdrMarshallClUint32T(&(compId), outMsgHdl, 1);
     if (CL_OK != rc)
     {
@@ -311,9 +293,6 @@ ClRcT clLogStreamOwnerStreamOpenResponseSend_4_0_0(ClIdlHandleT idlHdl,ClRcT ret
     rc = clIdlSyncResponseSend(pIdlSyncDeferInfo->idlRmdDeferHdl,outMsgHdl,
                                 retCode);
     goto Label1; 
-L3:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
-L4:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
-L5:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
 L6:  clXdrMarshallClUint32T(&(compId), 0, 1);
 L7:  clXdrMarshallClLogStreamAttrIDLT_4_0_0(&(pStreamAttr), 0, 1);
 L8:  clXdrMarshallClUint16T(&(pStreamId), 0, 1);

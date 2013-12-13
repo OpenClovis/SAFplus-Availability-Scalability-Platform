@@ -60,7 +60,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
 {
     ClRcT rc = CL_OK;
     ClInt32T retryCnt = CL_IOC_MASTER_ADDRESS_RETRIES;
-    ClTimerTimeOutT delay = {.tsMilliSec = 100, .tsSec = 0 }; 
+    ClTimerTimeOutT delay = {0,100 }; 
     ClIocNodeAddressT node = 0;
     ClInt32T nodeStatus = 1;
     ClInt32T mask = 1;

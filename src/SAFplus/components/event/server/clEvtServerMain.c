@@ -622,7 +622,7 @@ ClRcT clEvtChannelDBInit()
 
     CL_FUNC_ENTER();
 
-    gpEvtGlobalECHDb = clHeapAllocate(sizeof(*gpEvtGlobalECHDb));
+    gpEvtGlobalECHDb = (ClEvtChannelInfoT*) clHeapAllocate(sizeof(*gpEvtGlobalECHDb));
     if (NULL == gpEvtGlobalECHDb)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "ECH", CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
@@ -630,7 +630,7 @@ ClRcT clEvtChannelDBInit()
         goto failure;
     }
 
-    gpEvtLocalECHDb = clHeapAllocate(sizeof(*gpEvtLocalECHDb));
+    gpEvtLocalECHDb = (ClEvtChannelInfoT*) clHeapAllocate(sizeof(*gpEvtLocalECHDb));
     if (NULL == gpEvtLocalECHDb)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "ECH", CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
@@ -855,7 +855,7 @@ ClRcT clEvtNewChannelAddAndOrUserAdd(ClEvtChannelInfoT *pEvtChannelInfo,
     switch (flag)
     {
         case CL_EVT_ADD_USER_AND_CHANNEL:
-            pEvtChannelKeyTemp = clHeapAllocate(sizeof(*pEvtChannelKeyTemp));
+            pEvtChannelKeyTemp = (ClEvtChannelKeyT*) clHeapAllocate(sizeof(*pEvtChannelKeyTemp));
             if (NULL == pEvtChannelKeyTemp)
             {
                 clLogError(CL_EVENT_LOG_AREA_SRV, "ECH", CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
@@ -885,7 +885,7 @@ ClRcT clEvtNewChannelAddAndOrUserAdd(ClEvtChannelInfoT *pEvtChannelInfo,
     /*
      ** Create the key for User of ECH container using the userId.
      */
-    pUserOfECHKey = clHeapAllocate(sizeof(*pUserOfECHKey));
+    pUserOfECHKey = (ClEvtUserIdT*) clHeapAllocate(sizeof(*pUserOfECHKey));
     if (NULL == pUserOfECHKey)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "ECH", CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
@@ -1026,8 +1026,7 @@ ClRcT VDECL(clEvtInitializeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle, 
 	if(!clCpmIsMaster() && evtInitReq.isExternal==1)
 	{
 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore initial broadcast from external app");
-		sleep(2);
-		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
+		return CL_ERR_IGNORE_REQUEST;
 	}
 	if(evtInitReq.isExternal==1)
 	{
@@ -1190,8 +1189,7 @@ ClRcT VDECL(clEvtChannelOpenLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
 	if(!clCpmIsMaster() && evtChannelOpenRequest.isExternal==1)
 	{
 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore openchannel broadcast from external app");
-		sleep(2);
-		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
+		return CL_ERR_IGNORE_REQUEST;
 	}
 	if(evtChannelOpenRequest.isExternal==1)
 	{
@@ -1518,7 +1516,11 @@ ClRcT VDECL(clEvtEventSubscribeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHand
                    "Failed to Unmarshall Buffer [%#X]", rc);
         goto failure;
     }
-
+	if(!clCpmIsMaster() && evtSubsReq.externalAddress!=0)
+    {
+         clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore subscribe broadcast from external app");
+         return CL_ERR_IGNORE_REQUEST;
+    }
     /*
      * Verify if the Version is Compatible 
      */
@@ -1687,7 +1689,7 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq, Cl
         if (rc != CL_OK) goto mutexLocked;
     }
 
-    pEvtEventTypeKey = clHeapAllocate(sizeof(ClEvtEventTypeKeyT));
+    pEvtEventTypeKey = (ClEvtEventTypeKeyT*) clHeapAllocate(sizeof(ClEvtEventTypeKeyT));
     if (NULL == pEvtEventTypeKey)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "SUB", "Event Type allocation failed \n\r");
@@ -1761,7 +1763,7 @@ ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq, Cl
      * containter 
      */
 
-    pSubsKey = clHeapAllocate(sizeof(ClEvtSubsKeyT));
+    pSubsKey = (ClEvtSubsKeyT*) clHeapAllocate(sizeof(ClEvtSubsKeyT));
     if (NULL == pSubsKey)
     {
         rc = CL_EVENT_ERR_NO_MEM;
@@ -2066,8 +2068,7 @@ ClRcT VDECL(clEvtEventPublishExternal)(ClEoDataT cData,
 	if(!clCpmIsMaster())
 	{
 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore event public broadcast from external app");
-		sleep(2);
-		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
+		return CL_ERR_IGNORE_REQUEST;
 	}
 	return VDECL(clEvtEventPublishLocal)(cData,inMsgHandle,outMsgHandle);
 }
@@ -2228,7 +2229,7 @@ ClRcT VDECL(clEvtEventPublishLocal)(ClEoDataT cData,
         /*
          ** Provide Byte Ordering for PatternSize in the Pattern Section.
          */
-        pPatternSize = pPatternSection;
+        pPatternSize = (ClSizeT*)pPatternSection;
         noOfPatterns = pEvtPrimaryHeader->noOfPatterns;
 
         while (noOfPatterns--)
@@ -2424,7 +2425,7 @@ ClRcT VDECL(clEvtEventPublishProxy)(ClEoDataT cData,
      */
     headerLen = inLen + sizeof(ClEvtEventSecondaryHeaderT) + sizeof(ClEvtEventTertiaryHeaderT);
 
-    pInData = clHeapCalloc(1, headerLen);
+    pInData = (ClUint8T*) clHeapCalloc(1, headerLen);
     if (NULL == pInData)
     {
         clLogError(CL_EVENT_LOG_AREA_SRV, "PUB",
@@ -2554,7 +2555,7 @@ ClRcT VDECL(clEvtEventPublishProxy)(ClEoDataT cData,
         /*
          ** Recover the PatternSize for each Pattern in the Pattern Section.
          */
-        pPatternSize = pFlatBuff;
+        pPatternSize = (ClSizeT*) pFlatBuff;
         noOfPatterns = pEvtPrimaryHeader->noOfPatterns;
 
         while (noOfPatterns--)
@@ -2992,8 +2993,7 @@ ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData, ClBufferHandleT inMs
 	if(!clCpmIsMaster() && evtUnsubsReq.isExternal==1)
 	{
 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore unsubscriber broadcast from external app");
-		sleep(2);
-		return CL_EVENTS_RC(CL_ERR_NOT_SUPPORTED);
+		return CL_ERR_IGNORE_REQUEST;
 	}
 	if(evtUnsubsReq.isExternal==1)
 	{

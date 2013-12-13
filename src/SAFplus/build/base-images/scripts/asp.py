@@ -22,6 +22,7 @@ import signal
 import errno
 import re
 import glob
+import commands
 #import pdb
 
 AmfName = "safplus_amf"
@@ -1134,6 +1135,23 @@ def remove_lock_file(asp_file):
     cmd = '[ -f %s ] && rm -f %s' % (asp_file, asp_file)
     system(cmd)
 
+def force_restart_safplus():
+    save_asp_runtime_files()
+    if is_tipc_build():
+        load_config_tipc_module()
+    set_ld_library_paths()
+    if is_system_controller():
+        start_snmp_daemon()
+    if is_simulation():
+        setup_gms_config()
+    run_custom_scripts('start')
+    start_amf()
+    if is_system_controller() and not is_simulation():
+        start_hpi_subagent()
+    if not is_simulation():
+        start_led_controller()
+
+
 def start_asp(stop_watchdog=True, force_start = False):
     try:
         if False and not force_start:
@@ -1221,50 +1239,20 @@ def get_pid_for_this_sandbox(pid):
     return cwd == get_asp_run_dir()
     
 def get_amf_pid(watchdog_pid = False):
-
-    if is_valgrind_build():
-        l = Popen('ps -eo pid,cmd | grep %s' % AmfName)
-        l = [e for e in l if ('grep %s' % AmfName) not in e]
-    else:
-        if sys.version_info[0:2] <= (2, 4):
-            for i in range(0, 5):
-                l = os.popen(sys_asp['get_amf_pid_cmd']).readlines()
-                if l:
-                    break
+    while True:
+        valid = commands.getstatusoutput("/bin/pidof %s" % AmfName);
+        if valid[0] == 0:
+            if len(valid[1].split())==1:          
+                return int(valid[1])
         else:
-            while True:
-                ret, out, signal, core = system(sys_asp['get_amf_pid_cmd'])
-                if ret:
-                    pass
-                else:
-                    l = out
-                    break
-
-    temp_l = l
-    l = [e for e in l if AmfName in e]
-    l = [e for e in l if ('grep %s' % AmfName) not in e]
-    l = [int(e.split()[0]) for e in l]
-    l = list(set(l))
-
-    if is_simulation():
-        l = filter(get_pid_for_this_sandbox, l)
-
-    if len(l) == 0:
-        if not watchdog_pid:
-            return 0
-        ## check for amf watchdog
-        l = temp_l
-        l = [e for e in l if 'safplus_watchdog.py' in e ]
-        l = [e for e in l if 'grep safplus_watchdog.py' not in e ]
-        l = [int(e.split()[0]) for e in l]
-        l = list(set(l))
-        if is_simulation():
-            l = filter(get_pid_for_this_sandbox, l)
-        if len(l) == 0:
-            return 0
-        return int(l[0])
-    else:
-        return int(l[0])
+            break
+        log.warning('there are more than one AMF pid. Try again...')
+        time.sleep(0.25)
+    if watchdog_pid:
+         valid = commands.getstatusoutput("/bin/pidof safplus_watchdog.py");
+         if valid[0] == 0:
+            return int(valid[1])
+    return 0;
     
 def wait_until_amf_up():
     amf_pid = 0
@@ -1294,6 +1282,7 @@ def stop_asp():
     else:
         log.info('Stopping AMF...')
         os.kill(amf_pid, signal.SIGINT)
+        log.info('ASP is running with pid: %d' % amf_pid)
 
     log.info('Stopping AMF watchdog...')
     stop_amf_watchdog()

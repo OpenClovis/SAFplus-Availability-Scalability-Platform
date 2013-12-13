@@ -531,7 +531,7 @@ ClRcT clEoCrashNotificationRegister(ClEoCrashNotificationCallbackT callback)
 }
 
 /**************   Action Related Functionality      ***************************/
-static ClRcT eoStaticQueueInit(void)
+void  clEoStaticMutexInit(void)
 {
     ClRcT rc = CL_OK;
     
@@ -539,7 +539,7 @@ static ClRcT eoStaticQueueInit(void)
     if(CL_OK != rc)
     {
         clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clOsalMutexInit Failed 0x%x\n", rc);
-        return rc;
+        CL_ASSERT(0);
     }
 
     rc = clOsalCondInit(&(gEoStaticQueue.jobQueueCond));
@@ -547,9 +547,11 @@ static ClRcT eoStaticQueueInit(void)
     {
         clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Message Write Failed 0x%x\n", rc);
         clOsalMutexDestroy(&gEoStaticQueue.jobQueueLock);
-        return rc;
+        CL_ASSERT(0);
     }
-
+}
+void clEoStaticQueueInit(void)
+{
     gEoStaticQueue.running = CL_FALSE;
     gEoStaticQueue.jobCount = 0;
     gEoStaticQueue.eoStaticJobQueue[0].jobCount = 0;
@@ -562,7 +564,7 @@ static ClRcT eoStaticQueueInit(void)
     gEoStaticQueue.eoStaticJobQueue[1].pJobQueue = gEoActionStaticQueueInfo;
     
     gClEoStaticQueueInitialized = CL_TRUE;
-    return CL_OK;
+    
 }
 
 static ClRcT eoStaticQueueExit(void)
@@ -825,8 +827,9 @@ static void eoNotificationCallback(ClIocNotificationIdT eventId,
                                    ClPtrT unused,
                                    ClIocAddressT *pAddress)
 {
-    ClIocNotificationT notification = {0};
-    notification.id = htonl(eventId);
+    ClIocNotificationT notification;
+    memset(&notification,0,sizeof(ClIocNotificationT));
+    notification.id =(ClIocNotificationIdT) htonl(eventId);
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(pAddress->iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = htonl(pAddress->iocPhyAddress.portId);
@@ -1363,7 +1366,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
                    "clOsalCondInit() failed, error [0x%x]", rc);
         goto eoPrivateDataCntAllocated;
     }
-
+    #if 0 /* Move this code into clEoInitialize Function */
     /*
      * Initialize the Action Queue
      */
@@ -1374,7 +1377,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
                    "\nEO: eoStaticQueueInit() failed, rc[0x%x]\n", rc);
         goto eoPrivateDataCntAllocated;
     }
-
+    #endif
 
     pClient =
         (ClEoClientObjT *) clHeapAllocate(sizeof(ClEoClientObjT) *
@@ -4149,7 +4152,6 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
 {
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
     ClEoJobT *pJob = NULL;
-    ClUint32T priority ;
 
     if(recvMsg == CL_HANDLE_INVALID_VALUE
        ||
@@ -4168,7 +4170,6 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
     }
     pJob->msg = recvMsg;
     memcpy(&pJob->msgParam, pRecvParam, sizeof(pJob->msgParam));
-    clLogNotice("CALLBACK", "TASKS","clEoEnqueueJob %d  -- %d -- %d  --%d " , pRecvParam->srcAddr.iocPhyAddress.nodeAddress ,pRecvParam->srcAddr.iocPhyAddress.portId,(int)pRecvParam->srcAddr.iocLogicalAddress,pRecvParam->protoType);
 #ifdef NO_SAF
     rc = CL_RMD_RC(CL_ERR_INVALID_STATE);
     clOsalMutexLock(&gClEoJobMutex);
@@ -4185,6 +4186,7 @@ ClRcT clEoEnqueueJob(ClBufferHandleT recvMsg, ClIocRecvParamT *pRecvParam)
 #else
     if (1)
     {        
+        ClUint32T priority =0 ;
         ClJobQueueT* pQueue = NULL;
         if(pJob->msgParam.priority > CL_IOC_MAX_PRIORITIES)
         {
@@ -4485,6 +4487,87 @@ ClBoolT clEoQueueAmfResponseFind(ClUint32T pri)
 }
 
 #ifdef NO_SAF
+extern ClIocConfigT pAllConfig;
+extern ClInt32T clAspLocalId;
+extern ClHeapConfigT *pHeapConfigUser;
+static ClHeapConfigT heapConfig;
+static ClEoMemConfigT memConfig;
+static ClIocConfigT *gpClIocConfig;
+
+ClEoConfigT extRmdConfig =
+{
+    CL_OSAL_THREAD_PRI_MEDIUM,    /* EO Thread Priority                       */
+    2,                            /* No of EO thread needed                   */
+    0,                            /* Required Ioc Port                        */
+    (CL_EO_USER_CLIENT_ID_START + 0),
+    CL_EO_USE_THREAD_FOR_APP,     /* Thread Model                             */
+    NULL,                         /* Application Initialize Callback          */
+    NULL,                         /* Application Terminate Callback           */
+    NULL,                         /* Application State Change Callback        */
+    NULL                          /* Application Health Check Callback        */
+};
+
+static ClRcT clMemInitialize(void)
+{
+    ClRcT rc;
+
+    if((rc = clMemStatsInitialize(&memConfig)) != CL_OK)
+    {
+        return rc;
+    }
+    pHeapConfigUser =  &heapConfig;
+    if((rc = clHeapInit()) != CL_OK)
+    {
+        return rc;
+    }
+    return CL_OK;
+}
+
+ClRcT
+clExtInitialize ( ClInt32T ioc_address_local )
+{
+    ClRcT rc = CL_OK;
+    clAspLocalId = ioc_address_local;
+    heapConfig.mode = CL_HEAP_NATIVE_MODE;
+    memConfig.memLimit = 0;
+    rc = clIocParseConfig(NULL, &gpClIocConfig);
+    if(rc != CL_OK)
+    {
+        clOsalPrintf("Error : Failed to parse clIocConfig.xml file. error code = 0x%x\n",rc);
+        exit(1);
+    }
+
+    if ((rc = clOsalInitialize(NULL)) != CL_OK)
+    {
+        clLogError("RMDSERVER", "clExtInitialize","OSAL initialization failed\n");
+        return rc;
+    }
+    if ((rc = clMemInitialize()) != CL_OK)
+    {
+        clLogError("RMDSERVER", "clExtInitialize","Heap initialization failed\n");
+        return rc;
+    }
+    if ((rc = clTimerInitialize(NULL)) != CL_OK)
+    {
+        clLogError("RMDSERVER", "clExtInitialize","Timer initialization failed\n");
+        return rc;
+    }
+    if ((rc = clBufferInitialize(NULL)) != CL_OK)
+    {
+        clLogError("RMDSERVER", "clExtInitialize","Buffer initialization failed\n");
+        return rc;
+    }
+    pAllConfig.iocConfigInfo.isNodeRepresentative = CL_TRUE;
+    gIsNodeRepresentative = CL_TRUE;
+    if ((rc = clIocLibInitialize(NULL)) != CL_OK)
+    {
+        clLogError("RMDSERVER", "clExtInitialize","IOC initialization failed with rc = 0x%x\n", rc);
+        exit(1);
+    }
+    return rc;
+}
+
+
 static ClRcT clRmdServerStart(ClEoExecutionObjT *pThis)
 {
     ClRcT rc = CL_OK;
@@ -4503,7 +4586,7 @@ static ClRcT clRmdServerStart(ClEoExecutionObjT *pThis)
     gClEoTaskIds = calloc(1, sizeof(ClOsalTaskIdT));
     if(!gClEoTaskIds)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory for threads\n");
+        clLogError("RMDSERVER","clRmdServerStart","Error allocating memory for threads\n");
         goto eoStaticQueueInitialized;
     }
 
@@ -4645,9 +4728,6 @@ ClRcT clRmdServerCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
     if (rc != CL_OK)
     {
     	clLogError("RMDSERVER", "clRmdServerCreate","clIocCommPortCreate() failed, error [0x%x]", rc);
-        /*
-         * Do necessary cleanup
-         */
         goto rmdClientObjCreated;
     }
 
@@ -4662,13 +4742,6 @@ ClRcT clRmdServerCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
             goto rmdIocCommPortCreated;
         }
     }
-
-//    rc = clIocPortNotification((*ppThis)->eoPort, CL_IOC_NOTIFICATION_DISABLE);
-//    if(rc != CL_OK)
-//    {
-//    	clLogError("RMDSERVER", "clRmdServerCreate","Error : failed to disable the port notifications from IOC. error code [0x%x].", rc);
-//        exit(1);
-//    }
     rc = clIocPortNotification((*ppThis)->eoPort, CL_IOC_NOTIFICATION_ENABLE);
     if(rc != CL_OK)
     {
@@ -4717,12 +4790,13 @@ ClRcT clRmdServerCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
 }
 #define MAX_PENDING 0
 #define MAX_THREAD 8
-ClRcT rmdSeverInit(ClEoConfigT pConfig)
+
+ClRcT clExtRmdServerInit(ClEoConfigT *pConfig)
 {
 
-	clLogDebug("RMDSERVER", "rmdSeverInit","Enter startRmdServerSever");
-	ClRcT rc;
-	ClEoExecutionObjT *pThis = NULL;
+    clLogDebug("RMDSERVER", "rmdSeverInit","Enter startRmdServerSever");
+    ClRcT rc;
+    ClEoExecutionObjT *pThis = NULL;
     rc = clCntHashtblCreate(EO_BUCKET_SZ, eoGlobalHashKeyCmp,
             eoGlobalHashFunction, eoGlobalHashDeleteCallback,
             eoGlobalHashDeleteCallback, CL_CNT_UNIQUE_KEY,
@@ -4743,20 +4817,30 @@ ClRcT rmdSeverInit(ClEoConfigT pConfig)
         CL_FUNC_EXIT();
         return rc;
     }
-	eoProtoInit();
-	rc=clRmdServerCreate(&pConfig,&pThis);
-	if(rc != CL_OK)
-	{
-	    clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
-	    return rc;
-	}
-	if(pThis == NULL)
-	{
-	    clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
-	    return rc;
-	}
-	clLogDebug("RMDSERVER", "rmdSeverInit","init queue");
-	clJobQueueInit(&pRmdQueue, MAX_PENDING, MAX_THREAD);
+    eoProtoInit();
+    if(pConfig!=NULL)
+    {
+        clLogDebug("RMDSERVER", "rmdSeverInit","Rmd Server Init with user configuration");
+        rc=clRmdServerCreate(pConfig,&pThis);
+
+    }
+    else
+    {
+        clLogDebug("RMDSERVER", "rmdSeverInit","Rmd Server Init with default configuration");
+        rc=clRmdServerCreate(&extRmdConfig,&pThis);
+    }
+    if(rc != CL_OK)
+    {
+	clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
+	return rc;
+    }
+    if(pThis == NULL)
+    {
+        clLogError("RMDSERVER", "rmdSeverInit","failed to create rmd Server");
+	return rc;
+    }
+    clLogDebug("RMDSERVER", "rmdSeverInit","init queue");
+    clJobQueueInit(&pRmdQueue, MAX_PENDING, MAX_THREAD);
     return rc;
 }
 

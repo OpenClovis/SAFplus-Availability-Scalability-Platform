@@ -263,7 +263,7 @@ void  _ckptCheckpointOpenAsyncCallback(ClIdlHandleT ckptIdlHdl,
     
     if(retCode == CL_OK)
     {
-        pCkptHdl = clHeapAllocate(sizeof(*pCkptHdl));
+        pCkptHdl = (ClCkptHdlT*) clHeapAllocate(sizeof(*pCkptHdl));
 
         /*
          * Checkpoint client has to generate and return pCkptHdl to
@@ -704,7 +704,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
          * Checkpoint client has to generate and return ckptHdl to
          * the caller.
          */
-        pCkptHdl = clHeapAllocate(sizeof(*pCkptHdl)); // Free where necessary NTC
+        pCkptHdl = (ClCkptHdlT*) clHeapAllocate(sizeof(*pCkptHdl)); // Free where necessary NTC
         if(pCkptHdl == NULL)
         {
             rc =  CL_CKPT_ERR_NO_MEMORY;
@@ -1654,7 +1654,7 @@ ClRcT clCkptSectionCreate(
 {
     ClRcT              rc         = CL_OK;
     CkptInitInfoT      *pInitInfo = NULL;
-    ClCharT            *tempData  = "";    
+    ClCharT            *tempData  = (ClCharT*) "";    
     ClCkptHdlT         ckptActHdl = CL_CKPT_INVALID_HDL;
     ClIocNodeAddressT  nodeAddr   = 0; 
     ClIdlHandleT       ckptIdlHdl = CL_CKPT_INVALID_HDL;
@@ -1787,8 +1787,7 @@ ClRcT clCkptSectionCreate(
          * This is the case for generated sectionID. So we need to use the
          * value of index variable to re-generate the id and return to client
          */
-        pSecCreateAttr->sectionId->id =
-            clHeapCalloc(CL_CKPT_GEN_SEC_LENGTH, sizeof(ClCharT));
+        pSecCreateAttr->sectionId->id = (ClUint8T*) clHeapCalloc(CL_CKPT_GEN_SEC_LENGTH, sizeof(ClCharT));
         if( NULL == pSecCreateAttr->sectionId->id )
         {
             rc = CL_CKPT_ERR_NO_MEMORY;
@@ -3158,7 +3157,7 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
             */
             if(i != numberOfElements)
             {
-                pTmpVec = clHeapCalloc(numberOfElements, sizeof(*pTmpVec));
+                pTmpVec = (ClCkptIOVectorElementT*) clHeapCalloc(numberOfElements, sizeof(*pTmpVec));
                 CL_ASSERT(pTmpVec != NULL);
                 memcpy(pTmpVec, pIoVector, sizeof(*pTmpVec) * numberOfElements);
                 while(i < numberOfElements)
@@ -3271,18 +3270,18 @@ ClRcT clCkptCheckpointWrite(ClCkptHdlT                     ckptHdl,
         {
             ClCkptDifferenceIOVectorElementT *pDifferenceIoVector = NULL;
             ClUint32T i;
-            pDifferenceIoVector = clHeapCalloc(numberOfElements, sizeof(*pDifferenceIoVector));
+            pDifferenceIoVector = (ClCkptDifferenceIOVectorElementT*) clHeapCalloc(numberOfElements, sizeof(*pDifferenceIoVector));
             CL_ASSERT(pDifferenceIoVector != NULL);
             for(i = 0; i < numberOfElements; ++i)
             {
-                pDifferenceIoVector[i].differenceVector = clHeapCalloc(1, sizeof(*pDifferenceIoVector[i].differenceVector));
+                pDifferenceIoVector[i].differenceVector = (ClDifferenceVectorT*) clHeapCalloc(1, sizeof(*pDifferenceIoVector[i].differenceVector));
                 CL_ASSERT(pDifferenceIoVector[i].differenceVector != NULL);
                 pDifferenceIoVector[i].dataOffset = pIoVector[i].dataOffset;
                 pDifferenceIoVector[i].dataSize = pIoVector[i].dataSize;
                 memcpy(&pDifferenceIoVector[i].sectionId, &pIoVector[i].sectionId, sizeof(pDifferenceIoVector[i].sectionId));
-                pDifferenceIoVector[i].differenceVector->dataVectors = clHeapCalloc(1, sizeof(*pDifferenceIoVector[i].differenceVector->dataVectors));
+                pDifferenceIoVector[i].differenceVector->dataVectors = (ClDataVectorT*) clHeapCalloc(1, sizeof(*pDifferenceIoVector[i].differenceVector->dataVectors));
                 pDifferenceIoVector[i].differenceVector->numDataVectors = 1;
-                pDifferenceIoVector[i].differenceVector->dataVectors[0].dataBase = pIoVector[i].dataBuffer;
+                pDifferenceIoVector[i].differenceVector->dataVectors[0].dataBase = (ClUint8T*) pIoVector[i].dataBuffer;
                 pDifferenceIoVector[i].differenceVector->dataVectors[0].dataBlock = 
                     pIoVector[i].dataOffset >> CL_DIFFERENCE_VECTOR_BLOCK_SHIFT;
                 pDifferenceIoVector[i].differenceVector->dataVectors[0].dataSize = pIoVector[i].dataSize;
@@ -3778,7 +3777,7 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
         {
             ClDifferenceVectorT differenceVector = {0};
             differenceVector.numDataVectors = 1;
-            differenceVector.dataVectors = clHeapCalloc(1, sizeof(*differenceVector.dataVectors));
+            differenceVector.dataVectors = (ClDataVectorT*) clHeapCalloc(1, sizeof(*differenceVector.dataVectors));
             CL_ASSERT(differenceVector.dataVectors != NULL);
             differenceVector.dataVectors[0].dataBlock = 0;
             differenceVector.dataVectors[0].dataSize = dataSize;
@@ -4863,7 +4862,7 @@ exitOnError:
             if(pInitInfo->pCallback != NULL) 
                 clHeapFree(pInitInfo->pCallback);
         }
-        if (*pCkptSvcHandle != CL_CKPT_INVALID_HDL)
+        if ( (ClInt32T) *pCkptSvcHandle != CL_CKPT_INVALID_HDL)
         {
             clHandleDestroy(gClntInfo.ckptDbHdl, *pCkptSvcHandle);
         }

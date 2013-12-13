@@ -279,7 +279,7 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
     ClIocPortT dstPort = 0;
     ClUint32T nodeVersion = 0;
     ClVersionT version = { CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION };
-    static ClUint32T minVersion = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE,
+    static ClInt32T minVersion = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE,
                                                   CL_MAJOR_VERSION_BASE,
                                                   CL_MINOR_VERSION_BASE);
     CL_FUNC_ENTER();
@@ -359,7 +359,7 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
         clNodeCacheMinVersionGet(NULL, &nodeVersion);
         if(nodeVersion 
            && 
-           nodeVersion < CL_VERSION_CODE(version.releaseCode, version.majorVersion, version.minorVersion))
+           (ClInt32T )nodeVersion < CL_VERSION_CODE(version.releaseCode, version.majorVersion, version.minorVersion))
         {
             version.releaseCode = CL_VERSION_RELEASE(nodeVersion);
             version.majorVersion = CL_VERSION_MAJOR(nodeVersion);
@@ -828,12 +828,13 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
 
         if (CL_GET_ERROR_CODE(retVal1) == CL_IOC_ERR_HOST_UNREACHABLE || CL_GET_ERROR_CODE(retVal1) == CL_IOC_ERR_COMP_UNREACHABLE)
         {
-            ClIocNotificationT notification = {0};
+            ClIocNotificationT notification;
             ClIocRecvParamT recvParam;
             ClBufferHandleT notificationMsg=0;
-
+    
+            memset(&notification,0,sizeof(ClIocNotificationT));
             notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
-            notification.id = htonl(CL_IOC_COMP_DEATH_NOTIFICATION);
+            notification.id = (ClIocNotificationIdT) htonl(CL_IOC_COMP_DEATH_NOTIFICATION);
             notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(remoteObjAddr.iocPhyAddress.nodeAddress);
             notification.nodeAddress.iocPhyAddress.portId = htonl(remoteObjAddr.iocPhyAddress.portId);
 
@@ -1106,7 +1107,7 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
         return retVal;
     }
 
-    if(gClIocTrafficShaper && locTimeOut && locTimeOut != CL_RMD_TIMEOUT_FOREVER)
+    if(gClIocTrafficShaper && locTimeOut && (ClInt32T)locTimeOut != CL_RMD_TIMEOUT_FOREVER)
     {
         ClUint32T msgLength = 0;
         retVal = clBufferLengthGet(inMsg, &msgLength);
@@ -1182,7 +1183,7 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
             return retVal;
         }
 
-        if (locTimeOut == CL_RMD_TIMEOUT_FOREVER)
+        if ((ClInt32T) locTimeOut == CL_RMD_TIMEOUT_FOREVER)
         {
             condTsTimeout.tsSec = 0;
             condTsTimeout.tsMilliSec = 0;
@@ -1246,7 +1247,7 @@ ClRcT clRmdDumpPacketStatus(ClUint32T isEnable)
     return CL_OK;
 }
 
-void clRmdDumpPkt(char *name, ClBufferHandleT msg)
+void clRmdDumpPkt(const char *name, ClBufferHandleT msg)
 {
     if (gPrintHeaders)
     {
@@ -1319,8 +1320,9 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
     ClCntNodeHandleT nodeHandle = 0, nextNodeHandle = 0;
     ClRmdObjT *pRmdObj = (ClRmdObjT *)rmdObj;
     ClRmdRecordSendT *pRec = NULL;
-    ClIocNotificationT notification = {0};
+    ClIocNotificationT notification ;
     CL_LIST_HEAD_DECLARE(rmdAsyncCallbackList);
+    memset(&notification,0,sizeof(ClIocNotificationT));
     typedef struct ClRmdAsyncCallbackData
     {
         ClRcT rc;
@@ -1344,10 +1346,10 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
             clLogError("EO","GET","Failed to get my EO object. error code [0x%x].\n", rc);
             return rc;
         }
-        pRmdObj = pThis->rmdObj;
+        pRmdObj = (ClRmdObjT*) pThis->rmdObj;
     }
     memcpy(&notification, pNotification, sizeof(notification));
-    notification.id = ntohl(notification.id);
+    notification.id = (ClIocNotificationIdT) ntohl(notification.id);
     notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
 
@@ -1420,7 +1422,7 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
                         if(rc != CL_OK)
                             clLogError("DB","CLN","Failed to trim the buffer header. error code [0x%x]",rc);
                         
-                        pCallbackData = clHeapCalloc(1, sizeof(*pCallbackData));
+                        pCallbackData = (ClRmdAsyncCallbackDataT*) clHeapCalloc(1, sizeof(*pCallbackData));
                         CL_ASSERT(pCallbackData != NULL);
                         pCallbackData->rc = CL_RMD_RC(CL_IOC_ERR_HOST_UNREACHABLE);
                         pCallbackData->cookie = pRec->recType.asyncRec.cookie;
@@ -1457,7 +1459,7 @@ ClRcT clRmdDatabaseCleanup(ClRmdObjHandleT rmdObj, ClIocNotificationT *pNotifica
                     if(match == CL_TRUE)
                     {
                         ClRmdAsyncCallbackDataT *pCallbackData = NULL;
-                        pCallbackData = clHeapCalloc(1, sizeof(*pCallbackData));
+                        pCallbackData = (ClRmdAsyncCallbackDataT*) clHeapCalloc(1, sizeof(*pCallbackData));
                         CL_ASSERT(pCallbackData != NULL);
                         clTimerDeleteAsync(&pRec->recType.asyncRec.timerID);
                         rc = clBufferHeaderTrim(pRec->recType.asyncRec.sndMsgHdl, pRec->hdrLen);
@@ -1681,7 +1683,7 @@ ClRcT rmdMetricUpdate(ClRcT status, ClUint32T clientId, ClUint32T funcId, ClBuff
     entry = rmdMetricFind(clientId, funcId);
     if(!entry)
     {
-        entry = clHeapCalloc(1, sizeof(*entry));
+        entry = (ClRmdMetricT*) clHeapCalloc(1, sizeof(*entry));
         CL_ASSERT(entry != NULL);
         entry->clientId = clientId;
         entry->funcId = funcId;

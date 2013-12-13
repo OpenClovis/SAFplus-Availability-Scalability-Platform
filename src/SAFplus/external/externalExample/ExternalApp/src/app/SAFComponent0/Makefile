@@ -21,7 +21,7 @@ export BUILD_WITHOUT_C99=1
 # Component name (using all lowercase):
 
 KERNEL_DIRE     :=      /lib/modules/$(shell uname -r)/build
-COMPNAME	:=      externalEvent
+COMPNAME	:=      externalApp
 
 # List local source files needed for the component server:
 

@@ -835,7 +835,7 @@ ClRcT clEvtCkptUserInfoSecPackComplete(ClUint32T dataSetID, ClAddrT *ppData,
         return rc;
     }
 
-    *ppData = clHeapAllocate(*pDataLen);
+    *ppData = (ClAddrT) clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
         clLogError(EVENT_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,"\nMemory Allocation Failed\n\r\n");
@@ -934,7 +934,7 @@ ClRcT clEvtCkptUserInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
         return rc;
     }
 
-    *ppData = clHeapAllocate(*pDataLen);
+    *ppData = (ClAddrT) clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMemory Allocation Failed\n\r\n");
@@ -1377,7 +1377,7 @@ ClRcT clEvtCkptECHSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
         return rc;
     }
 
-    *ppData = clHeapAllocate(*pDataLen);
+    *ppData = (ClAddrT) clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMemory Allocation Failed\n\r\n");
@@ -1496,7 +1496,7 @@ ClRcT clEvtCkptECHSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
         return rc;
     }
 
-    *ppData = clHeapAllocate(*pDataLen);
+    *ppData = (ClAddrT) clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
         clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMemory Allocation Failed\n\r\n");
@@ -2036,7 +2036,7 @@ ClRcT clEvtCkptSubsInfoSecPackComplete(ClUint32T dataSetId, ClAddrT *ppData,
         return rc;
     }
 
-    *ppData = clHeapAllocate(*pDataLen);
+    *ppData = (ClAddrT) clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
          clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMemory Allocation Failed\n\r\n");
@@ -2192,7 +2192,7 @@ ClRcT clEvtCkptSubsInfoSecPackInc(ClUint32T dataSetId, ClAddrT *ppData,
         return rc;
     }
 
-    *ppData = clHeapAllocate(*pDataLen);
+    *ppData = (ClAddrT) clHeapAllocate(*pDataLen);
     if (NULL == *ppData)
     {
          clLogError(EVENT_LOG_AREA_SEC,EVENT_LOG_CTX_PACK,"\nMemory Allocation Failed\n\r\n");
@@ -2418,15 +2418,11 @@ ClRcT clEvtCkptSubsUnsubsSimulator(ClEvtCkptSubsInfoWithLenT *pSubsInfoWithLen)
             {
                 subsReq.packedRbeLen = pSubsInfo->packedRbeLen;
 
-                subsReq.packedRbe =
-                clHeapAllocate(pSubsInfo->packedRbeLen * sizeof(ClUint8T));
+                subsReq.packedRbe = (ClUint8T*) clHeapAllocate(pSubsInfo->packedRbeLen * sizeof(ClUint8T));
                 if (!subsReq.packedRbe) return CL_EVENTS_RC(CL_ERR_NO_MEMORY);
 
-                pSubsInfo->packedRbe =
-                (ClUint8T *)((ClCharT *)pSubsInfo+sizeof(ClEvtCkptSubsInfoT));
-                memcpy(subsReq.packedRbe,
-                       pSubsInfo->packedRbe,
-                       pSubsInfo->packedRbeLen);
+                pSubsInfo->packedRbe = (ClUint8T *)((ClCharT *)pSubsInfo+sizeof(ClEvtCkptSubsInfoT));
+                memcpy(subsReq.packedRbe, pSubsInfo->packedRbe, pSubsInfo->packedRbeLen);
             }
 
             rc = clEvtEventSubscribeViaRequest(&subsReq, CL_EVT_CKPT_REQUEST);
