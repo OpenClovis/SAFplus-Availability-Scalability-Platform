@@ -2922,9 +2922,7 @@ clLogFileOwnerRecordPersist(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
 {
     ClRcT                rc              = CL_OK;
     ClLogFileOwnerDataT  *pFileOwnerData = NULL;
-
-    clLogDebug("FILEOWN", "WRITE", "[%d] records to be persisted", numRecords);
-
+    
     rc = clCntNodeUserDataGet(pFileOwnerEoEntry->hFileTable, hFileNode, 
                               (ClCntDataHandleT *) &pFileOwnerData);
     if( CL_OK != rc )
@@ -2962,7 +2960,7 @@ clLogFileRecordsPersist(ClLogFileOwnerEoDataT   *pFileOwnerEoEntry,
     ClUint32T  remNumRecs  = 0;
     ClUint32T  numRemBytes = 0;
 
-    clLogDebug("FILEOWN", "WRITE", "Num of bytes [%d] to be written", numBytes);
+    clLogTrace("FILEOWN", "WRITE", "[%d] records, [%d] bytes to be written", numRecords,numBytes);
     
     if( pFileOwnerData->pFileHeader->remSize < numBytes )
     {

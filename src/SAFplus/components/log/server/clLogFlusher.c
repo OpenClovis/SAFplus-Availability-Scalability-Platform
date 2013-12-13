@@ -861,7 +861,7 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
 
     buffLen = nRecords * pHeader->recordSize;
 
-    clLogDebug(CL_LOG_AREA_SVR, "FLU", "startIdx: %u maxRec: %u nRecords: %u startIdx: %d recordIdx: %d", startIdx,
+    clLogTrace(CL_LOG_AREA_SVR, "FLU", "startIdx: %u maxRec: %u nRecords: %u startIdx: %d recordIdx: %d", startIdx,
                pHeader->maxRecordCount, nRecords, pHeader->startAck, pHeader->recordIdx);
     if( (startIdx + nRecords) <= pHeader->maxRecordCount )
     {
