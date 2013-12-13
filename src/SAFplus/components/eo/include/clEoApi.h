@@ -770,6 +770,23 @@ ClRcT clEoClientUninstallTables(ClEoExecutionObjT *pThis,
 
 ClBoolT clEoClientTableFilter(ClIocPortT eoPort, ClUint32T clientID);
 
+/**
+ *  NAME: clEoRefInc
+ *  This function increments the reference count of the execution object. 
+ *  @param    remoteEoObj  execution object
+ *  @returns  CL_OK in all the cases.
+ */
+    void clEoRefInc(ClEoExecutionObjT *eo);
+    
+/**
+ *  NAME: clEoRefInc
+ *  This function increments the reference count of the execution object. 
+ *  @param    remoteEoObj  execution object
+ *  @returns  CL_OK in all the cases.
+ */
+    void clEoRefDec(ClEoExecutionObjT *eo);
+    
+    
 ClRcT clEoClientTableRegister(ClEoPayloadWithReplyCallbackTableClientT *clientTable,
                               ClIocPortT clientPort);
 

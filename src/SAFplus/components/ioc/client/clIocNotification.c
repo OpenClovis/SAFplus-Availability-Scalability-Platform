@@ -835,6 +835,14 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
                                    allNodeReps, xportType);
     }
 
+    if ((compAddr.portId == 0) && (event == CL_IOC_NODE_DOWN) && (compAddr.nodeAddress == gIocLocalBladeAddress))
+    {
+        ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
+        clLogCritical ("IOC", "NOT", "Controller has kicked this node out of the cluster -- quitting in 1 second.");
+        clOsalTaskDelay(delay);
+        exit(0);        
+    }
+    
     out:
     return rc;
 }

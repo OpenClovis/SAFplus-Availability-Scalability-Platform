@@ -19,7 +19,7 @@
 #include <string.h>
 #include <clNameCkptIpi.h>
 
-extern ClCkptSvcHdlT   gNsCkptSvcHdl ;
+// extern ClCkptSvcHdlT   gNsCkptSvcHdl ;
 extern ClCntHandleT    gNSHashTable;
 
 #define NAME_LOG_AREA_CKPT	"CKPT"

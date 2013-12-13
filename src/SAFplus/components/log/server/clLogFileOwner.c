@@ -462,9 +462,10 @@ logFileOwnerLogFileCreateNPopulate(ClCharT        *pTimeStr,
         len = strlen(CL_LOG_DEFAULT_FILE_STRING_RESTART);
         snprintf(pRecord, recordSize, "%s", CL_LOG_DEFAULT_FILE_STRING_RESTART);
     }
-    memset(pRecord + len, ' ', recordSize - len - 1);
-    pRecord[recordSize - 1]='\n';
-    rc = clLogFileWrite(*pFp, pRecord, recordSize);
+    /*Last 1 Bye is reserved for record write in-progress indicator */
+    memset(pRecord + len, ' ', recordSize - len - 2); 
+    pRecord[recordSize - 2]='\n'; 
+    rc = clLogFileWrite(*pFp, pRecord, recordSize-1);
 //    fprintf(*pFp, "%.*s\n", recordSize, CL_LOG_DEFAULT_FILE_STRING); 
     if( CL_OK != rc )
     {
@@ -1440,17 +1441,23 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
             if( (endian == '1' || endian == '0') && (severity > 0  && severity <= CL_LOG_SEV_MAX) )
 
             {
-                ClUint32T hdrLen = 0, len = 0;
+                ClUint32T hdrLen = 0, len = 0, choppedLen = 0;
                 sscanf((char*)pRecordIter, LOG_ASCII_HDR_LEN_FMT, &hdrLen);
                 pRecordIter += LOG_ASCII_HDR_LEN;
                 sscanf((char*)pRecordIter, LOG_ASCII_DATA_LEN_FMT LOG_DATA_DELIMITER_FMT, &len);
                 pRecordIter += LOG_ASCII_DATA_LEN + LOG_DATA_DELIMITER_LEN; 
                 iov[idx].iov_base = (char*)pRecordIter;
-                iov[idx].iov_len  = CL_MIN(hdrLen + len + 1, recordSize - LOG_ASCII_METADATA_LEN);
+                /*Last 1 Bye is reserved for record write in-progress indicator */
+                iov[idx].iov_len  = CL_MIN(hdrLen + len + 1, recordSize - LOG_ASCII_METADATA_LEN - 1);
+                choppedLen = strlen((ClCharT *)iov[idx].iov_base) + 1;
                 /* Ensure that the record is CR terminated.
                    All ASCII records should have a \n from the client, but
                    may not if the message len was chopped during the send 
                 */
+                if (iov[idx].iov_len > choppedLen)
+                {
+                    iov[idx].iov_len = choppedLen - 1;
+                }
                 *((ClCharT *)iov[idx].iov_base + iov[idx].iov_len - 1) = '\n';
                 if(syslogEnabled) 
                 {
@@ -1472,7 +1479,8 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
                  * found a binary record,  
                  */
                 iov[idx].iov_base = (char*)pRecords;
-                iov[idx].iov_len  = recordSize; 
+                /*Last 1 Bye is reserved for record write in-progress indicator */
+                iov[idx].iov_len  = recordSize - 1; 
                 idx++;
             }
         }

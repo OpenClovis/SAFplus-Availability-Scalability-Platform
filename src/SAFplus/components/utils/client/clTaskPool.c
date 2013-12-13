@@ -79,15 +79,17 @@ static ClEoQueueT gClTaskPoolUnused = {                           \
 };
 #endif
 
-static ClUint32T gClTaskPoolKey = 0xffffffff;
+
+static ClUint32T gClTaskPoolKey=0xffffffff;
+
 static ClBoolT gClEoHeartbeatDisabled = CL_FALSE;
-static ClBoolT gClTaskPoolInitialized = 0;
+static ClWordT gClTaskPoolInitialized = 0;
 
 ClRcT clTaskPoolInitialize(void)
 {
     ClRcT rc = CL_OK;
-    if(gClTaskPoolInitialized) { gClTaskPoolInitialized++; return CL_OK; } 
-
+    if(gClTaskPoolInitialized) { gClTaskPoolInitialized++; return CL_OK; }
+    
     if(clParseEnvBoolean("CL_EO_TASK_MONITOR"))
     {
         static const ClCharT *const aspEOs[] = { 
@@ -104,12 +106,14 @@ ClRcT clTaskPoolInitialize(void)
             clLogNotice("TASK", "MON", "Disabling task pool heartbeat for EO [%s]", CL_EO_NAME);
         }
     }
+
     rc = clOsalTaskKeyCreate(&gClTaskPoolKey, NULL);
     if(rc != CL_OK)
     {
         clLogError("TASK", "MON", "Task pool thread specific data key creation failure [0x%x]", rc);
         return rc;
     }
+    
     gClTaskPoolInitialized++;
     return rc;
 }
@@ -117,9 +121,12 @@ ClRcT clTaskPoolInitialize(void)
 ClRcT clTaskPoolFinalize(void)
 {
     gClTaskPoolInitialized--;
-    if(gClTaskPoolInitialized>0) return CL_OK; 
+    if(gClTaskPoolInitialized>0) return CL_OK;
+    gClTaskPoolInitialized = CL_FALSE;
     clOsalTaskKeyDelete(gClTaskPoolKey);
-    return CL_OK;
+    gClTaskPoolKey = 0xFFFFFFFE;
+    
+    return CL_OK;    
 }
 
 static ClRcT clTaskPoolDataSet(ClPtrT data)
@@ -133,18 +140,20 @@ static ClRcT clTaskPoolDataSet(ClPtrT data)
     return rc;
 }
 
-static ClTaskPoolRefT* clTaskPoolDataGet(void)
+static ClTaskPoolRefT*  clTaskPoolDataGet(void)
 {
-    ClTaskPoolRefT* tRef=NULL; 
+    ClTaskPoolRefT* tRef=NULL;
     ClRcT rc = CL_OK;
-    CL_ASSERT(gClTaskPoolInitialized); 
-    if(!gClTaskPoolInitialized) return NULL;
 
+    CL_ASSERT(gClTaskPoolInitialized);
+    if(!gClTaskPoolInitialized) return NULL;
+    
     if( (rc = clOsalTaskDataGet(gClTaskPoolKey, (ClOsalTaskDataT*) &tRef) ) != CL_OK)
     {
         return NULL;
     }
-    if (tRef && (tRef->magic == CL_TASK_POOL_CLASS_ID)) return tRef; 
+    
+    if (tRef && (tRef->magic == CL_TASK_POOL_CLASS_ID)) return tRef;
     return NULL;
 }
 
@@ -158,7 +167,7 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
     ClTaskPoolRefT tRef;
 
     tRef.tp = tp;
-    tRef.magic = CL_TASK_POOL_CLASS_ID; 
+    tRef.magic = CL_TASK_POOL_CLASS_ID;
     clHeapFree(pArg);
 
     SET_TASK_ID(pStats);
@@ -286,6 +295,7 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
     clMetricAdjust(&tp->numTasks, -1);
     /* Unnecessary cleanup clTaskPoolDataSet((ClPtrT)NULL); */ 
     clOsalMutexUnlock(&tp->mutex);
+
 }
 
 
@@ -383,7 +393,8 @@ ClRcT clTaskPoolCreate(ClTaskPoolHandleT *pHandle, ClInt32T maxTasks, ClCallback
 {
     ClTaskPoolT *pTaskPool=NULL;
     ClRcT rc = CL_TASKPOOL_RC(CL_ERR_NO_MEMORY);
-
+    CL_ASSERT(gClTaskPoolInitialized>0);
+    
     if(!pHandle) return CL_TASKPOOL_RC(CL_ERR_INVALID_PARAMETER);
 
     pTaskPool = (ClTaskPoolT*) clHeapCalloc(1, sizeof(*pTaskPool));
@@ -854,7 +865,6 @@ ClRcT clTaskPoolRecordIOCSend(ClBoolT start)
     ClInt32T i;
 
     tRef = clTaskPoolDataGet();
-
     if (tRef == NULL) return CL_OK;
     if(!(tp = tRef->tp)) return CL_OK; /*not in the task pool*/
 

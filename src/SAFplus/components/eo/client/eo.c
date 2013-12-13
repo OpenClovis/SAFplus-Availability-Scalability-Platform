@@ -2172,17 +2172,18 @@ ClRcT clEoUnblock(ClEoExecutionObjT *pThis)
         }
     }
 
+    clEoRefDec(pThis);
+#if 0    
     clOsalMutexLock(&pThis->eoMutex);
 
     if(pThis->refCnt > 0 )
     {
         --pThis->refCnt;
     }
-
     clOsalCondSignal(&pThis->eoCond);
-
     clOsalMutexUnlock(&pThis->eoMutex);
-
+#endif
+    
     clLogNotice(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_WORKER,
                 "EO [%s] unblocked and exiting", CL_EO_NAME);
 
@@ -3346,13 +3347,36 @@ ClRcT clEoGetRemoteObjectAndBlock(ClUint32T remoteObj,
     }
     else
     {
-        clOsalMutexLock(&(*pRemoteEoObj)->eoMutex);
-        ++(*pRemoteEoObj)->refCnt;
-        clOsalMutexUnlock(&(*pRemoteEoObj)->eoMutex);
+        clEoRefInc(*pRemoteEoObj);
     }
     clOsalMutexUnlock(&gEOObjHashTableLock);
 
     return CL_OK;
+}
+
+/**
+ *  NAME: clEoRefInc
+ * 
+ *  This function increments the reference count of the execution object. 
+ *  
+ *  @param    remoteEoObj  execution object
+ *
+ *  @returns  CL_OK in all the cases.
+ */
+void clEoRefInc(ClEoExecutionObjT *eo)
+{
+    CL_ASSERT(eo);
+    clOsalMutexLock(&eo->eoMutex);
+    ++eo->refCnt;
+    clOsalMutexUnlock(&eo->eoMutex);
+}
+
+void clEoRefDec(ClEoExecutionObjT *eo)
+{
+    clOsalMutexLock(&eo->eoMutex);
+    --eo->refCnt;
+    clOsalCondSignal(&eo->eoCond);
+    clOsalMutexUnlock(&eo->eoMutex);    
 }
 
 /**
@@ -3367,10 +3391,7 @@ ClRcT clEoGetRemoteObjectAndBlock(ClUint32T remoteObj,
 
 ClRcT clEoRemoteObjectUnblock(ClEoExecutionObjT *remoteEoObj)
 {
-    clOsalMutexLock(&remoteEoObj->eoMutex);
-    --remoteEoObj->refCnt;
-    clOsalMutexUnlock(&remoteEoObj->eoMutex);
-
+    clEoRefDec(remoteEoObj);
     return CL_OK;
 }
 
@@ -4054,6 +4075,11 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
             CL_ASSERT(0);
             break;
         }
+        else if(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT)
+        {
+            /* normal case is a periodic timeout to check that we should not be quitting.  just loop back around */
+            clBufferDelete(&eoRecvMsg);
+        }       
         else
         {
             retry:

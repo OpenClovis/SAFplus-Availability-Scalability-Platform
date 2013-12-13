@@ -56,9 +56,7 @@ static ClRcT clLeakyBucketIntervalCallback(void *arg)
     return CL_OK;
 }
 
-static ClRcT clLeakyBucketCreateExtended(ClInt64T volume, ClInt64T leakSize, ClTimerTimeOutT leakInterval, 
-                                         ClLeakyBucketWaterMarkT *waterMark,
-                                         ClLeakyBucketHandleT *handle)
+static ClRcT clLeakyBucketCreateExtended(ClInt64T volume, ClInt64T leakSize, ClTimerTimeOutT leakInterval,ClLeakyBucketWaterMarkT *waterMark,ClLeakyBucketHandleT *handle)
 {
     ClLeakyBucketT *bucket = NULL;
     ClRcT rc = CL_OK;
@@ -106,19 +104,10 @@ static ClRcT clLeakyBucketCreateExtended(ClInt64T volume, ClInt64T leakSize, ClT
                                clLeakyBucketIntervalCallback,
                                (ClPtrT)bucket,
                                &bucket->timer);
-    if(rc != CL_OK)
-    {
-        goto out_free;
-    }
+    CL_ASSERT(rc==CL_OK);
 
     *handle = (ClLeakyBucketHandleT)bucket;
-    return rc;
-    
-    out_free:
-    clOsalMutexDestroy(&bucket->mutex);
-    clOsalCondDestroy(&bucket->cond);
-    clHeapFree(bucket);
-    return rc;
+    return CL_OK;
 }
 
 ClRcT clLeakyBucketCreate(ClInt64T volume, ClInt64T leakSize, ClTimerTimeOutT leakInterval,  ClLeakyBucketHandleT *handle)
@@ -126,8 +115,7 @@ ClRcT clLeakyBucketCreate(ClInt64T volume, ClInt64T leakSize, ClTimerTimeOutT le
     return clLeakyBucketCreateExtended(volume, leakSize, leakInterval, NULL, handle);
 }
 
-ClRcT clLeakyBucketCreateSoft(ClInt64T volume, ClInt64T leakSize, ClTimerTimeOutT leakInterval,  
-                              ClLeakyBucketWaterMarkT *waterMark, ClLeakyBucketHandleT *handle)
+ClRcT clLeakyBucketCreateSoft(ClInt64T volume, ClInt64T leakSize, ClTimerTimeOutT leakInterval,ClLeakyBucketWaterMarkT *waterMark, ClLeakyBucketHandleT *handle)
 {
     return clLeakyBucketCreateExtended(volume, leakSize, leakInterval, waterMark, handle);
 }
@@ -164,49 +152,43 @@ static ClRcT __clLeakyBucketFill(ClLeakyBucketT *bucket,
 
     clOsalMutexLock(&bucket->mutex);
 
-    if(bucket->waiters > 0 )
-        goto wait;
+    amt = CL_MIN(bucket->volume, amt);  /* If the caller tries to put in more than the bucket will ever hold it would block forever so just reduce the value to fill the bucket fully */
 
+    /* Check for soft watermark limits. */
+    if(!bucket->highWMHit && bucket->waterMark.highWM && (bucket->value + amt > bucket->waterMark.highWM))
+    {
+        bucket->highWMHit = CL_TRUE;
+        clOsalMutexUnlock(&bucket->mutex);
+        clOsalTaskDelay(bucket->waterMark.highWMDelay);
+        clOsalMutexLock(&bucket->mutex);
+    }
+
+    if(!bucket->lowWMHit && bucket->waterMark.lowWM && (bucket->value + amt > bucket->waterMark.lowWM))
+    {
+        bucket->lowWMHit = CL_TRUE;
+        clOsalMutexUnlock(&bucket->mutex);
+        clOsalTaskDelay(bucket->waterMark.lowWMDelay);
+        clOsalMutexLock(&bucket->mutex);
+    }
+    
+    /* Now check for hard limits */
     if(bucket->value + amt > bucket->volume)
     {
-        wait:
         if(!block)
         {
             clOsalMutexUnlock(&bucket->mutex);
             return CL_LEAKY_BUCKET_RC(CL_ERR_NO_SPACE);
         }
-        amt = CL_MIN(bucket->volume, amt);
+        
+        /* clLogInfo("LEAKY", "BUCKET-FILL", "Leaky bucket blocking caller till there is room in the bucket"); */
+        ++bucket->waiters; /* Time for me to wait until the bucket is emptied */
         do
         {
-            clLogInfo("LEAKY", "BUCKET-FILL", "Leaky bucket blocking caller till there is room in the bucket");
-            ++bucket->waiters; /*dont push in guys when the bucket is leaked before waiters.*/
             clOsalCondWait(&bucket->cond, &bucket->mutex, delay);
-            --bucket->waiters;
         } while(bucket->value + amt > bucket->volume);
+        --bucket->waiters;
     }
-    else
-    {
-        /*
-         * Check for soft watermark limits.
-         */
-        if(!bucket->highWMHit && 
-           bucket->waterMark.highWM && 
-           (bucket->value + amt > bucket->waterMark.highWM))
-        {
-            bucket->highWMHit = CL_TRUE;
-            clOsalTaskDelay(bucket->waterMark.highWMDelay);
-        }
-        else
-        { 
-            if(!bucket->lowWMHit && 
-               bucket->waterMark.lowWM && 
-               (bucket->value + amt > bucket->waterMark.lowWM))
-            {
-                bucket->lowWMHit = CL_TRUE;
-                clOsalTaskDelay(bucket->waterMark.lowWMDelay);
-            }
-        }
-    }
+    
     bucket->value += amt;
     clOsalMutexUnlock(&bucket->mutex);
     return rc;
@@ -230,8 +212,7 @@ ClRcT clLeakyBucketLeak(ClLeakyBucketHandleT handle)
     return clLeakyBucketIntervalCallback((void*)handle);
 }
 
-static ClRcT clLeakyBucketTrafficShaperCallbackLocked(
-                                                      ClDequeueTrafficShaperT *shaper)
+static ClRcT clLeakyBucketTrafficShaperCallbackLocked(ClDequeueTrafficShaperT *shaper)
 {
     ClInt64T currentLeaked = 0;
     CL_ASSERT(shaper->callback != NULL);

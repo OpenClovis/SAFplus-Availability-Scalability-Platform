@@ -1457,6 +1457,11 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
                         preferredXport, dstIocAddress);
             return CL_OK;
         }
+        if (gClXportDefaultType[0])
+        {
+            *typeXport = gClXportDefaultType;
+            return CL_OK;
+        }
         return CL_ERR_NOT_EXIST;
     }
 

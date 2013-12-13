@@ -767,9 +767,7 @@ exitfn:
  * Free an entity malloc'd through clAmsEntityMalloc
  */
 
-ClRcT
-clAmsEntityFree(
-        CL_IN  ClAmsEntityT  *entity )
+ClRcT clAmsEntityFree(CL_IN  ClAmsEntityT  *entity )
 {
     AMS_CHECKPTR (!entity);
 
@@ -789,16 +787,16 @@ clAmsEntityFree(
         {
             ClAmsNodeT  *node = (ClAmsNodeT *) entity;
 
-            AMS_CALL ( clAmsEntityListTerminate(
+            AMS_LOG_ERR ( clAmsEntityListTerminate(
                             &node->config.nodeDependentsList) );
 
-            AMS_CALL ( clAmsEntityListTerminate(
+            AMS_LOG_ERR ( clAmsEntityListTerminate(
                             &node->config.nodeDependenciesList) );
 
-            AMS_CALL ( clAmsEntityListTerminate(
+            AMS_LOG_ERR ( clAmsEntityListTerminate(
                             &node->config.suList) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) node,
                         CL_AMS_NODE_TIMER_SUFAILOVER) );
             break;
@@ -823,23 +821,23 @@ clAmsEntityFree(
         {
             ClAmsSGT  *sg = (ClAmsSGT *) entity;
 
-            AMS_CALL ( clAmsEntityListTerminate(&sg->config.suList) );
-            AMS_CALL ( clAmsEntityListTerminate(&sg->config.siList) );
-            AMS_CALL ( clAmsEntityListTerminate(&sg->status.instantiableSUList) );
-            AMS_CALL ( clAmsEntityListTerminate(&sg->status.instantiatedSUList) );
-            AMS_CALL ( clAmsEntityListTerminate(&sg->status.inserviceSpareSUList) );
-            AMS_CALL ( clAmsEntityListTerminate(&sg->status.assignedSUList) );
-            AMS_CALL ( clAmsEntityListTerminate(&sg->status.faultySUList) );
-            AMS_CALL ( clAmsSGFailoverHistoryDelete(sg) );
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&sg->config.suList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&sg->config.siList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&sg->status.instantiableSUList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&sg->status.instantiatedSUList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&sg->status.inserviceSpareSUList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&sg->status.assignedSUList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&sg->status.faultySUList) );
+            AMS_LOG_ERR ( clAmsSGFailoverHistoryDelete(sg) );
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) sg,
                         CL_AMS_SG_TIMER_INSTANTIATE) );
             
-            AMS_CALL (clAmsEntityTimerDelete(
+            AMS_LOG_ERR (clAmsEntityTimerDelete(
                                              (ClAmsEntityT*)sg,
                                              CL_AMS_SG_TIMER_ADJUST) );
 
-            AMS_CALL (clAmsEntityTimerDelete(
+            AMS_LOG_ERR (clAmsEntityTimerDelete(
                                              (ClAmsEntityT*)sg,
                                              CL_AMS_SG_TIMER_ADJUST_PROBATION) );
 
@@ -856,8 +854,8 @@ clAmsEntityFree(
             clAmsEntityTimerDelete((ClAmsEntityT*) su,CL_AMS_SU_TIMER_ASSIGNMENT);
 
             clAmsPeSUSIReassignEntryDelete(su);          
-            AMS_CALL ( clAmsEntityListTerminate(&su->config.compList) );
-            AMS_CALL ( clAmsEntityListTerminate(&su->status.siList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&su->config.compList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&su->status.siList) );
             break;
         }
 
@@ -865,11 +863,11 @@ clAmsEntityFree(
         {
             ClAmsSIT  *si = (ClAmsSIT *) entity;
 
-            AMS_CALL ( clAmsEntityListTerminate(&si->config.suList) );
-            AMS_CALL ( clAmsEntityListTerminate(&si->config.siDependentsList) );
-            AMS_CALL ( clAmsEntityListTerminate(&si->config.siDependenciesList) );
-            AMS_CALL ( clAmsEntityListTerminate(&si->config.csiList) );
-            AMS_CALL ( clAmsEntityListTerminate(&si->status.suList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&si->config.suList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&si->config.siDependentsList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&si->config.siDependenciesList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&si->config.csiList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&si->status.suList) );
 
             break;
         }
@@ -878,54 +876,54 @@ clAmsEntityFree(
         {
             ClAmsCompT  *comp = (ClAmsCompT *) entity;
 
-            AMS_CALL ( clAmsEntityListTerminate(&comp->status.csiList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&comp->status.csiList) );
 
             if(comp->config.pSupportedCSITypes)
             {
                 clAmsFreeMemory(comp->config.pSupportedCSITypes);
             }
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_INSTANTIATE) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_TERMINATE) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_CLEANUP) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_AMSTART) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_AMSTOP) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_CSISET) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_CSIREMOVE) );
 
-            AMS_CALL ( clAmsEntityTimerDelete(
+            AMS_LOG_ERR ( clAmsEntityTimerDelete(
                         (ClAmsEntityT *) comp,
                         CL_AMS_COMP_TIMER_INSTANTIATEDELAY) );
 
@@ -936,13 +934,13 @@ clAmsEntityFree(
         {
             ClAmsCSIT  *csi = (ClAmsCSIT *) entity;
 
-            AMS_CALL ( clAmsEntityListTerminate(&csi->status.pgList) );
-            AMS_CALL ( clAmsEntityListTerminate(&csi->config.csiDependentsList) );
-            AMS_CALL ( clAmsEntityListTerminate(&csi->config.csiDependenciesList) );
-            AMS_CALL ( clCntAllNodesDelete(csi->config.nameValuePairList) );
-            AMS_CALL ( clCntDelete(csi->config.nameValuePairList) );
-            AMS_CALL ( clCntAllNodesDelete(csi->status.pgTrackList) );
-            AMS_CALL ( clCntDelete(csi->status.pgTrackList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&csi->status.pgList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&csi->config.csiDependentsList) );
+            AMS_LOG_ERR ( clAmsEntityListTerminate(&csi->config.csiDependenciesList) );
+            AMS_LOG_ERR ( clCntAllNodesDelete(csi->config.nameValuePairList) );
+            AMS_LOG_ERR ( clCntDelete(csi->config.nameValuePairList) );
+            AMS_LOG_ERR ( clCntAllNodesDelete(csi->status.pgTrackList) );
+            AMS_LOG_ERR ( clCntDelete(csi->status.pgTrackList) );
 
 
             break;
@@ -1537,10 +1535,7 @@ clAmsEntityPrint(
         {
             ClAmsSGT  *sg = (ClAmsSGT *) entity;
 
-            if (clAmsPeSGComputeAdminState(sg, &adminState) != CL_OK)
-            {
-                adminState = sg->config.adminState;
-            }
+            adminState = clAmsPeSGComputeAdminState(sg);
 
             CL_AMS_PRINT_TWO_COL("Configuration -------------------------------",
                     "%s","---------------------------");
@@ -2268,16 +2263,11 @@ clAmsEntityXMLPrint(
 
             CL_AMS_PRINT_OPEN_TAG_ATTR("sg", "%s", entity->name.value);
 
-            if( clAmsPeSGComputeAdminState(sg, &adminState) != CL_OK)
-            {
-                adminState = sg->config.adminState;
-            }
-
+            adminState = clAmsPeSGComputeAdminState(sg);
+            
             CL_AMS_PRINT_OPEN_TAG("config");
 
-            CL_AMS_PRINT_TAG_VALUE("admin_state", "%s",
-                                   CL_AMS_STRING_A_STATE(sg->config.
-                                                         adminState));
+            CL_AMS_PRINT_TAG_VALUE("admin_state", "%s", CL_AMS_STRING_A_STATE(sg->config. adminState));
 
             CL_AMS_PRINT_TAG_VALUE("computed_admin_state", "%s",
                                    CL_AMS_STRING_A_STATE(adminState));
@@ -2914,32 +2904,23 @@ clAmsEntityXMLPrint(
  * default key if no other key is provided.
  */
 
-ClRcT
-clAmsEntityGetKey(
-        CL_IN  ClAmsEntityT  *entity,
-        CL_INOUT  ClCntKeyHandleT  *entityKeyHandle )
+ClCntKeyHandleT clAmsEntityGetKey(CL_IN  const ClAmsEntityT  *entity)
 {
-
     ClUint32T  entityKey = 0;
     ClUint32T  keyLength = 0;
 
-    AMS_CHECKPTR ( !entity || !entityKeyHandle );
+    CL_ASSERT(entity);
 
-    AMS_CALL ( clCrc32bitCompute(
-                 ( ClUint8T *)entity->name.value, 
-                 entity->name.length,
-                 &entityKey,
-                 &keyLength) );
+    /* Always succeeds */
+    clCrc32bitCompute( ( ClUint8T *)entity->name.value, entity->name.length, &entityKey, &keyLength);
+
     /*
      * Endianesss considerations. entityKey is 16bit but handle is either 32 or
      * 64 depending on flavor of the month. Want to make sure the key value is
      * not mutilated.
      */
 
-    *entityKeyHandle = (ClCntKeyHandleT) (ClWordT)entityKey;
-
-    return CL_OK;
-
+    return (ClCntKeyHandleT) ((ClWordT)entityKey);
 }
 
 static ClRcT amsCompClearOps(ClAmsCompT *comp)
@@ -2948,29 +2929,20 @@ static ClRcT amsCompClearOps(ClAmsCompT *comp)
      * Clear the invocation list of entries for this component. We are
      * not going to get a response for these invocations.
      */
-    AMS_CALL ( clAmsInvocationDeleteAll(comp) );
+    AMS_LOG_ERR ( clAmsInvocationDeleteAll(comp) );
 
     /*
      * Stop all possible timers that could be running for the component.
      */
-    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                   CL_AMS_COMP_TIMER_INSTANTIATE) );
-    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                   CL_AMS_COMP_TIMER_INSTANTIATEDELAY) );
-    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                   CL_AMS_COMP_TIMER_TERMINATE) );
-    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                   CL_AMS_COMP_TIMER_CLEANUP));
-    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                   CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE) );
-    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                   CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP));
-    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                   CL_AMS_COMP_TIMER_CSISET));
-    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                   CL_AMS_COMP_TIMER_CSIREMOVE));
-    AMS_CALL (clAmsEntityTimerStop((ClAmsEntityT *) comp,
-                                   CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE));
+    AMS_LOG_ERR (clAmsEntityTimerStop((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_INSTANTIATE) );
+    AMS_LOG_ERR (clAmsEntityTimerStop((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_INSTANTIATEDELAY) );
+    AMS_LOG_ERR (clAmsEntityTimerStop((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_TERMINATE) );
+    AMS_LOG_ERR (clAmsEntityTimerStop((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_CLEANUP));
+    AMS_LOG_ERR (clAmsEntityTimerStop((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE) );
+    AMS_LOG_ERR (clAmsEntityTimerStop((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP));
+    AMS_LOG_ERR (clAmsEntityTimerStop((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_CSISET));
+    AMS_LOG_ERR (clAmsEntityTimerStop((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_CSIREMOVE));
+    AMS_LOG_ERR (clAmsEntityTimerStop((ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE));
 
     return CL_OK;
 }
@@ -4728,20 +4700,21 @@ clAmsEntityTimerIsRunning(
         CL_IN  ClAmsEntityT  *entity, 
         CL_IN  ClAmsEntityTimerTypeT  timerType )
 {
-
+    ClRcT rc;
     ClTimeT  duration = 0;
     ClAmsEntityTimerT  *entityTimer = NULL;
     ClTimerCallBackT  fn = {0};
 
-    AMS_CHECKPTR ( !entity );
+    CL_ASSERT(entity);
 
-    AMS_CALL ( clAmsEntityTimerGetValues(
-                entity,
-                timerType,
-                &duration,
-                &entityTimer,
-                &fn) );
+    rc = clAmsEntityTimerGetValues(entity,timerType,&duration,&entityTimer,&fn);
 
+    if (rc != CL_OK)
+    {
+        clLogAlert("ENT", "TMR", "Timer access should never return an error but it did: entity [%s] timertype [%d]",entity->name.value,timerType);
+        return CL_FALSE; /* But if I can't get the values for some reason, the timer must not be going */
+    }
+    
     if ( entityTimer->count )
     {
         return CL_TRUE;
@@ -4959,7 +4932,7 @@ clAmsEntityRefGetKey(
 
 #endif
 
-    AMS_CALL ( clAmsEntityGetKey(entity, entityKeyHandle) );
+    entityKeyHandle = clAmsEntityGetKey(entity);
 
     return CL_OK;
 

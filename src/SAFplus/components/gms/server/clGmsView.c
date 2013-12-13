@@ -161,8 +161,12 @@ ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT no
     //ClGmsIocViewCacheT *cacheE = NULL;
     ClNodeCacheMemberT member = {0};
     ClRcT rc = CL_OK;
+    CL_ASSERT(nodeAddress);  // Slot 0 is invalid...
+    CL_ASSERT(pNode);  // programming error, you need to hand me a pointer to fill in
     if(!nodeAddress || !pNode)
+    {        
         return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
+    }
     
 
     /* GMS triggers on the link up event but we must wait for the node hello message to update the node cache (AMF interpretes and processes it) before we

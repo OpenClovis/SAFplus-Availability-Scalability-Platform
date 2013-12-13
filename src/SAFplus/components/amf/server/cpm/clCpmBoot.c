@@ -266,8 +266,7 @@ static void *bmInitialize(void *threadArg)
                 }
                 if (pBootOp->srcAddress.portId != 0)
                 {
-                    ClRcT rc2 = cpmGetMasterAddrIfRequired(&pBootOp->
-                                                    srcAddress.nodeAddress);
+                    ClRcT rc2 = cpmGetMasterAddrIfRequired(&pBootOp->srcAddress.nodeAddress);
                     if (CL_OK != rc2)
                     {
                         clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
@@ -276,7 +275,7 @@ static void *bmInitialize(void *threadArg)
                                       "Getting master address returned "
                                       "error [%#x] doing self shutdown...",
                                       rc2);
-                        cpmSelfShutDown();
+                        cpmRestart(NULL, CL_CPM_IS_STANDBY() ? "standby":"controller");
                     }
                     
                     if(pBootOp->rmdNumber == CPM_NODE_GO_BACK_TO_REG)
@@ -304,11 +303,7 @@ static void *bmInitialize(void *threadArg)
                          */
                         if(gpClCpm->bmTable->currentBootLevel != CL_CPM_BOOT_LEVEL_2)
                         {
-                            clLogWarning("REG", "ACT", 
-                                         "Resetting boot level from [%d] to [%d] before "
-                                         "trying to register with active",
-                                         gpClCpm->bmTable->currentBootLevel,
-                                         CL_CPM_BOOT_LEVEL_2);
+                            clLogWarning("REG", "ACT", "Resetting boot level from [%d] to [%d] before trying to register with active", gpClCpm->bmTable->currentBootLevel, CL_CPM_BOOT_LEVEL_2);
                             gpClCpm->bmTable->currentBootLevel = CL_CPM_BOOT_LEVEL_2;
                         }
                         cpmRegisterWithActive();
@@ -1199,7 +1194,8 @@ ClRcT cpmBmRespTimerCallback(ClPtrT unused)
                            "If you are running only one node (i.e. this node) "
                            "then the problem is more severe. \n"
                            "Shutting down...");
-            cpmSelfShutDown();
+            cpmRestart(NULL, CL_CPM_IS_STANDBY() ? "standby":"controller");
+
         }
         else
         {
@@ -1251,9 +1247,7 @@ void cpmBmRespTimerStop(void)
         rc = clTimerStop(gpClCpm->bmTable->bmRespTimer);
         if (CL_OK != rc)
         {
-            clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                       "Unable to restart timer, error [%#x]",
-                       rc);
+            clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"Unable to stop timer, error [%#x]",rc);
         }
     }
 }
@@ -1570,20 +1564,22 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
         }
         else if(clCpmIsSCCapable())
         {
-            clLog(CL_LOG_SEV_INFO, CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED,
-                  "Started as capable deputy. Initialize checkpoint...");
+            clLog(CL_LOG_SEV_INFO, CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED, "Started as capable deputy. Initialize checkpoint...");
             rc = cpmCpmLStandbyCheckpointInitialize();
-            CL_ASSERT(rc == CL_OK);  /* GAS make sure that this does actually return success for the multi-sc work */
-            
-            if (gpClCpm->cpmToAmsCallback != NULL &&
-                gpClCpm->cpmToAmsCallback->ckptServerReady != NULL)
+            //CL_ASSERT(rc == CL_OK);  /* GAS make sure that this does actually return success for the multi-sc work */
+            if (rc != CL_OK)
+            {
+                clLog(CL_LOG_SEV_ERROR, CPM_LOG_AREA_CPM, CL_LOG_CONTEXT_UNSPECIFIED, "Initializing checkpoint failed, rc=[%#x]. Exit", rc);
+                exit(EXIT_FAILURE);                     
+            }
+             
+            if ((gpClCpm->cpmToAmsCallback != NULL) && (gpClCpm->cpmToAmsCallback->ckptServerReady != NULL))
             {
                 gpClCpm->cpmToAmsCallback->ckptServerReady(gpClCpm->ckptHandle, CL_AMS_INSTANTIATE_MODE_STANDBY);
             }
 
             /* Inform AMS , that Event is up and running */
-            if (gpClCpm->cpmToAmsCallback != NULL &&
-                gpClCpm->cpmToAmsCallback->eventServerReady != NULL)
+            if ((gpClCpm->cpmToAmsCallback != NULL) && (gpClCpm->cpmToAmsCallback->eventServerReady != NULL))
             {
                 gpClCpm->cpmToAmsCallback->eventServerReady(CL_TRUE);
             }
@@ -1664,7 +1660,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
     {
         if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL)
         {
-            if (gpClCpm->ckptOpenHandle != -1)
+            if (gpClCpm->ckptOpenHandle != CL_HANDLE_INVALID_VALUE)
             {
                 rc = clCkptCheckpointClose(gpClCpm->ckptOpenHandle);
                 /* Bug 5295:
@@ -1685,9 +1681,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
                 rc = clCkptFinalize(gpClCpm->ckptHandle);
                 if (rc != CL_OK)
                 {
-                    clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
-                               "CheckpointFinalize failed while Booting down"
-                               "rc=[0x%x]\n",rc);
+                    clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED, "CheckpointFinalize failed while Booting down rc=[0x%x]",rc);
                 }
             }
         }

@@ -52,7 +52,7 @@ const ClCharT	 *clLogCommonMsg[] =
     "ASP_CONFIG environment variable is not set", /* 2 */
     "Invalid parameter passed in function [%s]",/* 3 */
     "Index [%d] out of range in function [%s]",/* 4 */
-    "Invalid handle", /* 5 */
+    "Invalid log handle [%llx]", /* 5 */
     "NULL argument passed", /* 6 */
     "Function [%s] is obsolete",/* 7 */
     "XML file [%s] not valid", /* 8 */

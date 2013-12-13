@@ -723,8 +723,7 @@ clAmsCkptInitialize(
     ClCkptHdlT  ckptOpenHandle = -1;
     SaNameT  ckptName = {0};
     const ClTimeT  timeout = CL_TIME_END;
-    const ClCkptOpenFlagsT  flags = 
-        CL_CKPT_CHECKPOINT_CREATE|CL_CKPT_CHECKPOINT_WRITE|CL_CKPT_CHECKPOINT_READ;
+    ClCkptOpenFlagsT  flags = CL_CKPT_CHECKPOINT_CREATE|CL_CKPT_CHECKPOINT_WRITE|CL_CKPT_CHECKPOINT_READ;
     ClCkptCheckpointCreationAttributesT  ckptAttributes = 
         {
             CL_CKPT_DISTRIBUTED  | CL_CKPT_PEER_TO_PEER_REPLICA,

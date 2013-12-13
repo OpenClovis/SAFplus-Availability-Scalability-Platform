@@ -20,6 +20,7 @@ import os
 import sys
 import time
 import logging
+import traceback
 
 ASP_RESTART_FILE = 'safplus_restart'
 ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'
@@ -69,6 +70,7 @@ def wdSleep(amt):
 def amf_watchdog_loop():
     monitor_interval = 5
     run_dir = asp.get_asp_run_dir()
+    node_name = asp.get_asp_node_name()
     restart_file = run_dir + '/' + ASP_RESTART_FILE
     watchdog_restart_file = run_dir + '/' + ASP_WATCHDOG_RESTART_FILE
     reboot_file  = run_dir + '/' + ASP_REBOOT_FILE

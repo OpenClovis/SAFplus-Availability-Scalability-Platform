@@ -318,6 +318,19 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
 #endif
     
     /*clDebugCli("NAME-CLI");*/
+
+    int cnt = 0;
+    do
+    {
+        cnt++;
+        rc = clCpmMasterAddressGet(&gMasterAddress);
+        if (rc != CL_OK)
+        {
+            if ((cnt&15)==0) clLogDebug("SVR","INI","Waiting for active system controller. rc [0x%x]",rc);
+            sleep(1);
+        }
+    } while(rc != CL_OK);
+    
     return CL_OK;
 }
 
@@ -4791,6 +4804,9 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     ClEoExecutionObjT*  pEOObj       = NULL;
     ClVersionT*         pTempVersion = NULL;
     ClUint32T           count        = 0;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
+    ClInt32T tries = 0;
+
     CL_FUNC_ENTER();
                                                                                                                              
     if(sNSInitDone)
@@ -4818,8 +4834,7 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
         rc = CL_NS_RC(CL_ERR_NO_MEMORY);
         return rc;
     }
-    memset(gpContextIdArray, 0, 
-           (CL_NS_MAX_NO_CONTEXTS * sizeof(ClUint32T)));
+    memset(gpContextIdArray, 0, (CL_NS_MAX_NO_CONTEXTS * sizeof(ClUint32T)));
  
     /* Update version info */
     /* Client to server versioning */
@@ -4956,11 +4971,17 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
         return rc;
     }
 
-    rc = clNameSvcCkptInit();
-    if(rc != CL_OK)
+    do
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_WARNING, NULL,
-                   CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "ckpt", rc);
+        rc = clNameSvcCkptInit();
+        tries++;
+        clLogNotice("SVR", "INI", "Try [%d] of [5] to initialize name checkpoint service, result [0x%x]", tries, rc);
+    } while(rc != CL_OK && tries < 5 && clOsalTaskDelay(delay) == CL_OK);
+
+    if (rc != CL_OK)
+    {
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_WARNING, NULL,CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "ckpt", rc);
+        return rc;
     }
     sNSInitDone = 1;
     sdAddr = clIocLocalAddressGet();

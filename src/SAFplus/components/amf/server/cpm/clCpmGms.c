@@ -41,6 +41,7 @@
 #include <clIocErrors.h>
 #include <clClmApi.h>
 #include <clHandleApi.h>
+#include <clErrorApi.h>
 
 /*
  * CPM internal include files 
@@ -281,7 +282,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                         /*
                          * We arent expected to return back.
                          */
-                        cpmActive2Standby(CL_YES);
+                        cpmActive2Standby(CL_NO);
                     }
                 }
             }
@@ -329,11 +330,9 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             if ((gpClCpm->amsToCpmCallback != NULL) &&
                 (gpClCpm->cpmToAmsCallback != NULL))
             {
-                clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                           "Starting AMS in active mode...");
+                clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Starting AMS in active mode...");
 
-                rc = clAmsStart(&gAms,
-                                CL_AMS_INSTANTIATE_MODE_ACTIVE | CL_AMS_INSTANTIATE_USE_CHECKPOINT);
+                rc = clAmsStart(&gAms,CL_AMS_INSTANTIATE_MODE_ACTIVE | CL_AMS_INSTANTIATE_USE_CHECKPOINT);
                 /*
                  * Bug 4092:
                  * If the AMS intitialize fails then do the 
@@ -341,13 +340,10 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                  */
                 if (CL_OK != rc)
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "Unable to initialize AMS, "
-                                  "error = [%#x]", rc);
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMF, error = [%#x]", rc);
 
                     gpClCpm->amsToCpmCallback = NULL;
-                    cpmSelfShutDown();
-
+                    cpmReset(NULL,NULL);
                     return;
                 }
             }
@@ -357,17 +353,13 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                  
                 if (!gpClCpm->polling)
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "AMS finalize called before AMS initialize "
-                                  "during node shutdown.");
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "AMF finalize called before AMF initialize during node shutdown.");
                 }
                 else
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "Unable to initialize AMS, "
-                                  "error = [%#x]", rc);
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "Unable to initialize AMF, error = [%#x]", rc);
                      
-                    cpmSelfShutDown();
+                    cpmRestart(NULL,NULL);
                 }
                 return;
             }
@@ -396,8 +388,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                 clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
                            "Starting AMS in standby mode...");
 
-                rc = clAmsStart(&gAms,
-                                CL_AMS_INSTANTIATE_MODE_STANDBY);
+                rc = clAmsStart(&gAms,CL_AMS_INSTANTIATE_MODE_STANDBY);
                 /*
                  * Bug 4092:
                  * If the AMS initialize fails then do the 
@@ -405,13 +396,10 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                  */
                 if (CL_OK != rc)
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "Unable to initialize AMS, "
-                                  "error = [%#x]", rc);
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMS, error = [%#x]", rc);
 
                     gpClCpm->amsToCpmCallback = NULL;
-                    cpmSelfShutDown();
-
+                    cpmRestart(NULL,NULL);
                     return;
                 }
             }
@@ -421,16 +409,12 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                  
                 if (!gpClCpm->polling)
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "AMS finalize called before AMS initialize "
-                                  "during node shutdown.");
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"AMS finalize called before AMS initialize during node shutdown.");
                 }
                 else
                 {
-                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                                  "Unable to initialize AMS, "
-                                  "error = [%#x]", rc);
-                    cpmSelfShutDown();
+                    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMS, error = [%#x]", rc);
+                    cpmRestart(NULL,NULL);
                 }
                 return;
             }
@@ -660,10 +644,7 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT *notificati
     return;
 }
 
-void cpmClusterTrackCallBack(const ClGmsClusterNotificationBufferT
-                             *clusterNotificationBuffer,
-                             ClUint32T nMembers,
-                             ClRcT rc)
+void cpmClusterTrackCallBack(const ClGmsClusterNotificationBufferT *clusterNotificationBuffer, ClUint32T nMembers, ClRcT rc)
 {
     clLogMultiline(CL_LOG_SEV_DEBUG, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                    "Received cluster track callback from GMS on node [%s] -- \n"
@@ -742,7 +723,7 @@ ClRcT cpmGmsInitialize(void)
 #ifdef VXWORKS_BUILD
     timeOut.tsSec = gpClCpm->cpmGmsTimeout + 20;
 #else
-    timeOut.tsSec = gpClCpm->cpmGmsTimeout + 10;
+    timeOut.tsSec = gpClCpm->cpmGmsTimeout + 60;  /* There is no reason to not wait for a long time.  100% cpu could cause GMS to come up slowly */
 #endif
     timeOut.tsMilliSec = 0;
 

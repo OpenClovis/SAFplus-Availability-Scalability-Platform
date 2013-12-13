@@ -59,6 +59,7 @@
 #include <clGmsRmdServer.h>
 #include <clNodeCache.h>
 #include <clCpmExtApi.h>
+#include <clErrorApi.h>
 
 # define CL_MAX_CREDENTIALS     (~0U)
 #define __SC_PROMOTE_CREDENTIAL_BIAS (CL_IOC_MAX_NODES+1)
@@ -128,8 +129,7 @@ static ClRcT timerCallback( void *arg )
     reElect = CL_FALSE; /* reset re-election trigger*/
     timerRestarted = CL_FALSE;
 
-    rc = _clGmsEngineLeaderElect ( 
-                                  0x0,
+    rc = _clGmsEngineLeaderElect (0x0,
                                   NULL , 
                                   CL_GMS_MEMBER_JOINED,
                                   &leaderNodeId,
@@ -415,7 +415,7 @@ _clGmsEngineStart()
        during booting of the cluster. After the timer fires the leader election
        is done from the callback and the interested parties are notified if
        there is a change in the leadership.Timer is a one shot timer and is
-       delted after it fires .
+       deleted after it fires .
      */
     rc = leaderElectionTimerRun(CL_FALSE, NULL);
     if(rc != CL_OK)
@@ -746,7 +746,7 @@ _clGmsEngineLeaderElect(
 
     clLog(DBG,CLM,NA, "Leader election is done. Now updating the leadership status");
     /* Update current leader and "gratuitous" sending of our view of the leader to other AMFs */
-    clNodeCacheLeaderUpdate(*leaderNodeId, CL_TRUE);
+    clNodeCacheLeaderUpdate(*leaderNodeId);
    
     rc  = _clGmsViewDbFind(groupId, &thisViewDb);
 
@@ -927,7 +927,7 @@ _clGmsEnginePreferredLeaderElect(
         /* leader changed */
         thisViewDb->view.leader = leaderNode;
         thisViewDb->view.leadershipChanged = CL_TRUE;
-        clNodeCacheLeaderUpdate(oldLeaderNode, leaderNode);
+        clNodeCacheLeaderUpdate(oldLeaderNode);
     }
 
     thisViewDb->view.deputy = deputyNode;
@@ -986,7 +986,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     ClGmsNodeIdT       currentLeader = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       newLeader = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       newDeputy = CL_GMS_INVALID_NODE_ID;
-    ClGmsNodeIdT       currentDeputy = CL_GMS_INVALID_NODE_ID;
+    //ClGmsNodeIdT       currentDeputy = CL_GMS_INVALID_NODE_ID;
     ClTimerTimeOutT    timeout;
 
     timeout.tsSec = gmsGlobalInfo.config.bootElectionTimeout;
@@ -1049,7 +1049,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     }
 
     currentLeader = thisClusterView->leader;
-    currentDeputy = thisClusterView->deputy;
+    // unused currentDeputy = thisClusterView->deputy;
 
     add_rc = _clGmsViewAddNodeExtended(groupId, nodeId, reElection, &node);
 
@@ -1138,7 +1138,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         thisClusterView->leader = newLeader;
         thisClusterView->leadershipChanged = CL_TRUE;
         thisClusterView->deputy = newDeputy;
-        clNodeCacheLeaderUpdate(currentLeader, newLeader);
+        clNodeCacheLeaderUpdate(currentLeader);
     }
 
     thisClusterView->deputy = newDeputy;
@@ -1264,7 +1264,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
     if (rc != CL_OK)
     {
         clLogError("ENGINE", "LEAVE", "Node leave for [%#x] returned with [%#x]", nodeId, rc);
-        goto unlock_and_exit;
+        goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
     }
 
     /* condition should never happen */
@@ -1292,14 +1292,14 @@ ClRcT _clGmsEngineClusterLeaveExtended(
         if (CL_GET_ERROR_CODE(rc) == CL_GMS_ERR_EMPTY_GROUP)
         {
             /* Nothing to do, group is empty */
-            goto unlock_and_exit;
+            goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
         }
 
         if (rc != CL_OK)
         {
-            goto unlock_and_exit;
+            goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
         }
-        clNodeCacheLeaderUpdate(thisClusterView->leader, new_leader);
+        clNodeCacheLeaderUpdate(thisClusterView->leader);
         if( nodeId == thisClusterView->leader )
         {
             thisClusterView->leader = new_leader;
@@ -1335,7 +1335,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
         }
     }
 
-unlock_and_exit:
+unlock_and_exit_clGmsEngineClusterLeaveExtended:
 
     if (_clGmsViewUnlock(groupId) != CL_OK)
     {
