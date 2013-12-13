@@ -58,6 +58,14 @@ extern "C" {
  * Debug Defines
  *****************************************************************************/
 
+/* object management functions */
+
+extern ClAmsEntityRefT* clAmsAllocEntityRef();
+extern void clAmsFreeEntityRef(ClAmsEntityRefT* ref);
+extern ClAmsEntityRefT* clAmsCreateEntityRef(ClAmsEntityT* ent);
+    
+/* Log formatting */    
+    
 extern char *clAmsFormatMsg (char *fmt, ...);    
 extern void clAmsLogMsgServer( const ClUint32T level, char *buffer, const ClCharT* file, ClUint32T line );
 extern ClAmsT   gAms;
@@ -97,6 +105,25 @@ do {                                                                    \
     }                                                                   \
 } while (0)
 
+#define AMS_LOG_ERR(fn)                                                  \
+do {                                                                    \
+    ClRcT returnCode = CL_OK;                                           \
+                                                                        \
+    returnCode = (fn);                                                  \
+    if (CL_GET_ERROR_CODE(returnCode) == CL_ERR_NO_OP)                  \
+    {                                                                   \
+        AMS_SERVER_LOG(CL_LOG_SEV_DEBUG, ("Function [%s] returned NoOp", #fn)); \
+    }                                                                   \
+                                                                        \
+    if (returnCode != CL_OK) clDbgCodeError(CL_LOG_SEV_WARNING, ("Fn [%s] returned [0x%x]", #fn, returnCode) ); \
+                                                                        \
+    if (returnCode != CL_OK)                                            \
+    {                                                                   \
+        AMS_SERVER_LOG(CL_LOG_SEV_ERROR, ("ALERT [%s:%d] : Fn [%s] returned [0x%x]\n", __FUNCTION__, __LINE__, #fn, returnCode));                 \
+    }                                                                   \
+} while (0)
+
+    
 #define AMS_CHECKPTR_AND_UNLOCK(x,mutex)                                \
 {                                                                       \
     if ( (x) != CL_FALSE )                                              \

@@ -88,6 +88,7 @@
 #include <clCpmAms.h>
 #include <clCpmIpi.h>
 #include <clTimeServer.h>
+#include <clAmfPluginApi.h>
 /*
  * XDR header files 
  */
@@ -99,7 +100,7 @@
 #include "xdrClCpmClientInfoIDLT.h"
 #include "xdrClEoExecutionObjIDLT.h"
 
-#define CPM_LOG_AREA_LOGGER	"LOGGER"
+#define CPM_LOG_AREA_LOGGER	"LOG"
 #define CPM_LOG_CTX_LOGGER_INI	"INI"
 #ifdef CL_CPM_AMS
 #include <clAms.h>
@@ -170,15 +171,17 @@ static ClBoolT cpmIsConsoleStart = CL_FALSE;
 static ClUint32T myCh = 0;
 static ClUint32T mySl = 0;
 
+#if 0 /* Stone: cpm logging disabled -- logs use safplus_logd */
 static ClUint64T cpmLoggerFileSize = 50*1024*1024;
 static ClUint32T cpmLoggerFileRotations = 0x5;
-
-static ClFdT cpmLoggerFd;
 static ClInt32T cpmLoggerPipe[2];
-static ClCharT cpmLoggerFile[CL_MAX_NAME_LENGTH];
-
 static ClSizeT cpmLoggerTotalBytes;
 static ClOsalMutexT cpmLoggerMutex;
+#endif
+
+static ClFdT cpmLoggerFd;
+static ClCharT cpmLoggerFile[CL_MAX_NAME_LENGTH];
+
 
 static ClJobQueueT cpmNotificationQueue;
 
@@ -202,6 +205,50 @@ static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                                   ClUint8T protoType,
                                   ClUint32T length,
                                   ClIocPhysicalAddressT srcAddr);
+
+extern ClIocNodeAddressT gIocLocalBladeAddress;
+static ClIocAddressT allNodeReps;
+static ClIocLogicalAddressT allLocalComps;
+
+/*
+ * bypassed the function into extension plugin
+ */
+void clAmfPluginNotificationCallback(ClIocNodeAddressT node, ClNodeStatus status)
+{
+    /*
+     * All node in cluster
+     */
+    allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+
+    /*
+     * All local components
+     */
+    allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress, CL_IOC_BROADCAST_ADDRESS);
+    clLogDebug("PLG","EVT","%s node: [%d] status [%d]\n", __FUNCTION__, node, status);
+
+    switch (status)
+    {
+        case ClNodeStatusUp:
+        {
+                clIocNotificationNodeStatusSend(gpClCpm->cpmEoObj->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, node,
+                                (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
+                break;
+        }
+
+        case ClNodeStatusDown:
+        {
+            clIocNotificationNodeStatusSend(gpClCpm->cpmEoObj->commObj, CL_IOC_NODE_LEAVE_NOTIFICATION, node,
+                            (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
+            break;
+        }
+        default:
+        {
+            /* GAS */
+            break;
+        }
+    }
+}
 
 /*
  * FIXME: added to get around unresolved symbol errors for clEoConfig and
@@ -1039,8 +1086,7 @@ static ClRcT clCpmFinalize(void)
          */
         cpmCompConfigFinalize();
 
-        clEoClientUninstallTables(gpClCpm->cpmEoObj,
-                                  CL_EO_SERVER_SYM_MOD(gAspFuncTable, AMF));
+        clEoClientUninstallTables(gpClCpm->cpmEoObj, CL_EO_SERVER_SYM_MOD(gAspFuncTable, AMF));
 
         cpmDeAllocate();
         clOsalMutexUnlock(&gpClCpm->cpmShutdownMutex);
@@ -1104,6 +1150,7 @@ void cpmChangeCwd(void)
     }
 }
 
+#if 0 /* Stone: stdout log file rotation is disabled: see related comments for why */
 static void cpmLoggerRotate(void)
 {
     register ClInt32T i;
@@ -1142,7 +1189,9 @@ ClRcT cpmLoggerRotateEnable(void)
     clOsalMutexUnlock(&cpmLoggerMutex);
     return CL_OK;
 }
+#endif 
 
+#if 0
 /*
  * Reads from the pipe and dumps to the file.
  */
@@ -1151,13 +1200,25 @@ static void *cpmLoggerTask(void *arg)
     FILE *fptr = NULL;
     fptr = fdopen(cpmLoggerPipe[0], "rw");
     if(!fptr) return NULL;
-    for(;;)
+    for(;(feof(fptr)==0);)
     {
+        ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 30};
         ClCharT buf[1024];
         ClInt32T bytes = 0;
+        clOsalTaskDelay(delay);  /* To stop 100% CPU use if something happens that is unexpected */        
+        
         while(fgets(buf, sizeof(buf)-1, fptr))
         {
             bytes = strlen(buf);
+
+            /* Stone: stdout log file rotation is disabled because OpenClovis logs no longer go to this file by default.
+               We have seen multiple instances where the "stdin" side of this write has blocked, even when that side is the linux standard
+               "logger" program.  This stops all entities that write to the stdout out log (which was ALL of them).  This logging is
+               deprecated in favor of the shared memory logging system that drops logs rather than block.
+               
+               Additionally, the log rotation coded here may not even work, because changing this fd will not affect the fd inside child processes.               
+             */
+#if 0  
             clOsalMutexLock(&cpmLoggerMutex);
             cpmLoggerTotalBytes += bytes;
             if(cpmLoggerTotalBytes >= cpmLoggerFileSize)
@@ -1166,6 +1227,7 @@ static void *cpmLoggerTask(void *arg)
                 cpmLoggerRotate();
             }
             clOsalMutexUnlock(&cpmLoggerMutex);
+#endif            
             bytes = write(cpmLoggerFd, buf, bytes);
         }
     }
@@ -1213,6 +1275,7 @@ static ClRcT cpmCreateLoggerTaskPipe(const ClCharT *cpmLoggerFile)
     out:
     return rc;
 }
+#endif
 
 #ifdef VXWORKS_BUILD
 
@@ -1244,6 +1307,7 @@ static ClRcT cpmCreateLoggerTaskConsole(const ClCharT *cpmLoggerFile)
 
 #endif
 
+#if 0
 static ClRcT cpmCreateLoggerTask(const ClCharT *cpmLoggerFile)
 {
 #ifdef VXWORKS_BUILD
@@ -1253,8 +1317,8 @@ static ClRcT cpmCreateLoggerTask(const ClCharT *cpmLoggerFile)
     }
 #endif
     return cpmCreateLoggerTaskPipe(cpmLoggerFile);
-
 }
+#endif
 
 static void cpmLoggerSetFileName(void)
 {
@@ -1304,7 +1368,7 @@ static void cpmLoggerSetFileName(void)
 }
 
 
-
+#if 0  /* Stone: the CPM logger using stdout/stderr through pipes is broken because what happens to child processes when the pipe forwarding thread or this process dies/hangs -- they hang. */   
 static ClRcT cpmLoggerInitialize(void)
 {
     ClRcT rc = CL_OK;
@@ -1379,22 +1443,33 @@ static ClRcT cpmLoggerInitialize(void)
 
     return rc;
 }
+#endif
 
 void cpmRedirectOutput(void)
 {
     cpmLoggerSetFileName();
     if (cpmIsConsoleStart) return;
-    
-    cpmLoggerFd = open(cpmLoggerFile, O_RDWR | O_CREAT | O_APPEND, 0755);
-    if (-1 == cpmLoggerFd)
-    {
-        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                   "Unable to open file [%s] for writing : [%s]",
-                   cpmLoggerFile,
-                   strerror(errno));
-        return;
+
+    cpmLoggerFd = -1;
+
+    /* Bug 92: I do not know what is causing the file to not be openable but clearly it is happening.
+       If we cannot redirect STDOUT, it hangs SAFplus because whatever is reading STDOUT (console or whatever) runs out of buffer space.
+       So best to quit.
+     */
+    for(int retries=0;(cpmLoggerFd==-1) && (retries<5);retries++)
+    {        
+        cpmLoggerFd = open(cpmLoggerFile, O_RDWR | O_CREAT | O_APPEND, 0755);
+        if (-1 == cpmLoggerFd)
+        {
+            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"Unable to open file [%s] for writing : [%s]",cpmLoggerFile,strerror(errno));
+            sleep(20);
+        }
     }
-    
+    CL_ASSERT(cpmLoggerFd != -1);
+    if (cpmLoggerFd==-1)
+    {
+        exit(1);
+    }
     dup2(cpmLoggerFd, STDOUT_FILENO);
     dup2(cpmLoggerFd, STDERR_FILENO);
 }
@@ -1458,51 +1533,6 @@ ClRcT cpmEoDeSerialize(ClPtrT pData)
     return rc;
 }
 
-#ifdef CL_ENABLE_ASP_TRAFFIC_SHAPING
-
-#define CL_LEAKY_BUCKET_DEFAULT_VOL (200*1024)
-#define CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE (100*1024)
-#define CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL (400)
-
-static ClRcT clCpmLeakyBucketInitialize(void)
-{
-    ClInt64T leakyBucketVol = getenv("CL_LEAKY_BUCKET_VOL") ? 
-        (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_VOL")) : CL_LEAKY_BUCKET_DEFAULT_VOL;
-    ClInt64T leakyBucketLeakSize = getenv("CL_LEAKY_BUCKET_LEAK_SIZE") ?
-        (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_LEAK_SIZE")) : CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE;
-    ClTimerTimeOutT leakyBucketInterval = {.tsSec = 0, .tsMilliSec = CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL };
-    ClLeakyBucketWaterMarkT leakyBucketWaterMark = {0};
-    
-    leakyBucketWaterMark.lowWM = leakyBucketVol/3;
-    leakyBucketWaterMark.highWM = leakyBucketVol/2;
-    
-    leakyBucketWaterMark.lowWMDelay.tsSec = 0;
-    leakyBucketWaterMark.lowWMDelay.tsMilliSec = 50;
-
-    leakyBucketWaterMark.highWMDelay.tsSec = 0;
-    leakyBucketWaterMark.highWMDelay.tsMilliSec = 100;
-
-    leakyBucketInterval.tsMilliSec = getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL") ? atoi(getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL")) :
-        CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL;
-
-    clLogInfo("LEAKY", "BUCKET-INI", "Creating a leaky bucket with vol [%lld], leak size [%lld], interval [%d ms]",
-              leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval.tsMilliSec);
-
-    return clLeakyBucketCreateSoft(leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval, 
-                                   &leakyBucketWaterMark, 
-                                   &gClLeakyBucket);
-    
-}
-
-#else
-
-static ClRcT clCpmLeakyBucketInitialize(void)
-{
-    return CL_OK;
-}
-
-#endif
-
 ClBoolT clCpmSwitchoverInline(void)
 {
     return gClAmsSwitchoverInline;
@@ -1556,12 +1586,13 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
               "CPM's current working directory is [%s]",
               gpClCpm->logFilePath);
 
+#if 0  /* Stone: the CPM logger using stdout/stderr through pipes is broken because what happens to child processes when the pipe forwarding thread or this process dies/hangs -- they hang. */   
     if ((!cpmIsForeground) && (!cpmIsConsoleStart))
     {
-        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                  "Starting CPM's logger task..");
+        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Starting CPM's logger task..");
         cpmLoggerInitialize();
     }
+#endif    
 
     if( (rc = clJobQueueInit(&cpmNotificationQueue, 0, 1) ) != CL_OK)
     {
@@ -1578,8 +1609,6 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
                    "Task pool create returned [%#x]", rc);
         goto failure;
     }
-
-    clCpmLeakyBucketInitialize();
 
     /*
      * Initialize the node information which will be sent to CPM/G
@@ -1711,6 +1740,21 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     gpClCpm->activeMasterNodeId = 0;
     
     gpClCpm->polling = 1;
+
+    /*
+     * Load a customer's node detect status plugin, if it exists
+     */
+    clAmfPluginHandle = clLoadPlugin(CL_AMF_PLUGIN_ID, CL_AMF_PLUGIN_VERSION, CL_AMF_PLUGIN_NAME);
+    if (NULL != clAmfPluginHandle)
+    {
+        clLogInfo("PLG","INI","Loaded AMF plugin [%s].", CL_AMF_PLUGIN_NAME);
+
+        clAmfPlugin = (ClAmfPluginApi*) clAmfPluginHandle->pluginApi;
+        if (clAmfPlugin->clAmfRunTask)
+        {
+            clAmfPlugin->clAmfRunTask(clAmfPluginNotificationCallback);
+        }
+    }
 
     /*
      * Initialization is done. So now start the BM which will create a thread
@@ -2654,9 +2698,11 @@ static void cpmInvokeNodeCleanup(void)
 
 void cpmCommitSuicide(void)
 {
+    clLogAlert("AMF", "QIT", "AMF is stopping itself");
     cpmInvokeNodeCleanup();
     cpmKillAllComponents();
-    kill(0, SIGKILL);
+    exit(0);
+    //kill(0, SIGKILL);  // Stone: Why SIGKILL?
 }
 
 void cpmReset(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
@@ -2683,12 +2729,16 @@ void cpmReset(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
 void cpmRestart(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
 {
     FILE *fptr = NULL;
-
-    if( !pDelay || !pPersonality)
-        return;
-
-    if(pDelay->tsSec >= 3)
-        pDelay->tsSec >>= 1;
+    ClTimerTimeOutT defaultTime;
+    if (!pDelay)
+    {
+        defaultTime.tsSec = 2;
+        defaultTime.tsMilliSec = 0;
+        pDelay = &defaultTime;
+    }
+    
+        //if(pDelay->tsSec >= 3)
+        //    pDelay->tsSec >>= 1;
     /*
      *
      * We give a delay here, coz if it was a link snap and a 
@@ -2697,25 +2747,20 @@ void cpmRestart(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
      * sent by the kernel topology service to the subscribers, incase
      * we die at/before link re-establishment happens.
      */
-    clOsalTaskDelay(*pDelay);
+    clOsalTaskDelay(*pDelay);   
 
     fptr = fopen(CL_CPM_RESTART_FILE, "w");
     if(!fptr)
     {
-        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-                      "CPM %s recovery failure to trigger the restart. "\
-                      "Please ensure you restart ASP again", pPersonality);
+        if (!pPersonality) pPersonality = "";
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM, "AMF %s recovery failure to trigger the restart. Please ensure you restart SAFplus again", pPersonality);
 
     }
     else
     {
         fclose(fptr);
-        cpmCommitSuicide();
-        /*
-         * unreached.
-         */
     }
-
+    cpmCommitSuicide();
 }
 
 static void cpmRestartWorkers(void)
@@ -2849,6 +2894,7 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     ClRcT rc = CL_OK;
     ClCpmLocalInfoT *pCpmLocalInfo = NULL;
 
+    /* We are already active so nothing to do */
     if (gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE)
     {
         return rc;
@@ -2864,26 +2910,22 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
         goto failure;
     }
 
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
-                "Node [%d] is changing HA state from standby to active",
-                pCpmLocalInfo->nodeId);
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS, "Node [%d] is changing HA state from standby to active", pCpmLocalInfo->nodeId);
 
     /*
-     * Check if this node is capable of failing over before triggering
-     * the failover as it neednt be fully up to become active
+     * Check if this node is capable of failing over before triggering the failover as it neednt be fully up to become active
      */
     cpmFailoverRecover();
     rc = cpmUpdateTL(CL_AMS_HA_STATE_ACTIVE);
     if (rc != CL_OK)
     {
-        clLogCritical(CPM_LOG_AREA_CPM,
-                      CPM_LOG_CTX_CPM_TL,
-                      CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
-        goto failure;
+        // will only happen if the IOC transparent address can't be registered due to a conflict or a programmatic error
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_TL, CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
+        cpmRestart(NULL, "controller");
+        CL_ASSERT(0);  // There is no return from cpmRestart...        
     }
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP,
-               "CPM reading its own checkpoints...");
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP, "AMF reading its own checkpoints...");
     rc = cpmCpmLCheckpointRead();
     if (CL_OK != rc)
     {
@@ -2901,8 +2943,7 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
                       "which has been mostly seen to be caused by xport config. issues."
                       "This node would be restarted in [%d] seconds", delay.tsSec);
         cpmRestart(&delay, "controller");
-        cpmSelfShutDown();
-        goto failure;
+        CL_ASSERT(0);  // There is no return from cpmRestart...
     }
 
     /*
@@ -2982,13 +3023,9 @@ void cpmStandbyRecover(const ClGmsClusterNotificationBufferT *notificationBuffer
          */
         if (CL_OK != rc)
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                          "Unable to initialize AMS, "
-                          "error = [%#x]", rc);
-
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMS, error = [%#x]", rc);
             gpClCpm->amsToCpmCallback = NULL;
-            cpmSelfShutDown();
-
+            cpmRestart(NULL,NULL);
             goto failure;
         }
     }
@@ -2998,16 +3035,12 @@ void cpmStandbyRecover(const ClGmsClusterNotificationBufferT *notificationBuffer
                     
         if (!gpClCpm->polling)
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                          "AMS finalize called before AMS initialize "
-                          "during node shutdown.");
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"AMS finalize called before AMF initialize during node shutdown.");
         }
         else
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                          "Unable to initialize AMS, "
-                          "error = [%#x]", rc);
-            cpmSelfShutDown();
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMF, error = [%#x]", rc);
+            cpmRestart(NULL,NULL);
         }
         goto failure;
     }
@@ -3136,7 +3169,7 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
             if (cpmIsCriticalComponent(&compName))
             {
                 clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
-                              "Critical ASP component [%s] failed. Killing node [%s]",
+                              "Critical SAFplus component [%s] failed. Killing node [%s]",
                               compName.value,
                               gpClCpm->pCpmLocalInfo->nodeName);
                 cpmCommitSuicide();

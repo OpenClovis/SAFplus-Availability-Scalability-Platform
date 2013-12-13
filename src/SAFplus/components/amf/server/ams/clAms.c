@@ -52,6 +52,9 @@
 #include <clAmsEntityUserData.h>
 #include <clCpmInternal.h>
 #include <clList.h>
+#include <clErrorApi.h>
+#include <clNodeCache.h>
+#include <clIocIpi.h>
 
 #define CONFIG_FILE_NAME        "clAmfConfig.xml"
 #define DEFN_FILE_NAME          "clAmfDefinitions.xml"
@@ -67,7 +70,7 @@
 ClAmsT  gAms;
 
 ClBoolT gAmsDBRead = CL_FALSE;
-
+ClOsalTaskIdT gClusterStateVerifierTask;
 ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs = NULL;
 
 /* This function call table is never changes so could be removed and simplified */
@@ -259,6 +262,144 @@ clAmsInitialize(
     return CL_OK;
 }
 
+ClBoolT clAmsHasNodeJoined(ClUint32T slotId)
+{
+    ClRcT rc;
+    ClCpmLT *cpmL=NULL;
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
+    rc = cpmNodeFindByNodeId(slotId,&cpmL);
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+    if (rc == CL_OK) return CL_TRUE;
+    if (rc == CL_CPM_RC(CL_ERR_DOESNT_EXIST)) return CL_FALSE;
+    clDbgCodeError(rc,("cpmNodeFindByNodeId failed for slot [%d], rc [%x:%s]",slotId,rc,clErrorToString(rc)));
+    return CL_FALSE;
+    
+    
+#if 0    
+    ClCpmSlotInfoT  slotInfo  = {0};
+    ClRcT rc;
+    slotInfo.slotId = slotId;
+    if( CL_OK == (rc = clCpmSlotGet(CL_CPM_SLOT_ID, &slotInfo)) )
+    {
+        ClAmsEntityRefT entityRef = {{0}};
+        clNameCopy(&entityRef.entity.name, &slotInfo.nodeName);
+        entityRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
+        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef);
+        if (rc == CL_OK)
+        {
+            if(entityRef.ptr)
+            {
+                ClAmsNodeT *node = (ClAmsNodeT*)entityRef.ptr;
+                if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+                {
+                    return CL_TRUE;
+                }
+            }
+        }
+        else
+        {
+            clLogError("AMS","NODEAVAIL", "clAmsEntityDbFindEntity failed for slot [%d], node [%s], rc [%x:%s]", slotId, slotInfo.nodeName.value, rc,clErrorToString(rc));
+        }
+    }
+    else
+    {
+        clLogError("AMS","NODEAVAIL", "clCpmSlotGet failed slot [%d], node [%s], rc [%x:%s]", slotId, slotInfo.nodeName.value,rc,clErrorToString(rc));
+    }
+#endif    
+    return CL_FALSE;
+}
+
+static void *clAmsClusterStateVerifier(void *cookie)
+{
+    ClRcT rc;
+    ClUint8T checkFailed[CL_IOC_MAX_NODES] = {0};
+    ClTimerTimeOutT delay = {60,0};
+    ClIocNodeAddressT localAddress = clIocLocalAddressGet();
+    ClIocNodeAddressT masterAddress;
+    
+    while(1)
+    {
+        ClUint32T i;
+        masterAddress=CL_IOC_MAX_NODES;
+        clCpmMasterAddressGet(&masterAddress);
+        if (localAddress == masterAddress)
+        {            
+            for(i=1; i< CL_IOC_MAX_NODES; i++)
+            {
+                ClNodeCacheMemberT ncInfo;
+                rc = clNodeCacheMemberGet(i,&ncInfo);
+                if (rc == CL_OK)  /* Node exists in TIPC */
+                {
+                    /* Check if AMF database match with NodeCache data */
+                    if (!clAmsHasNodeJoined(i))
+                    {
+                        /* It takes some time for a node to come up after TIPC registers, so don't kill the node until it has failed multiple times */
+                        if (checkFailed[i] >= 2)
+                        {
+                            clLogAlert("AMS", "INI","Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF. Resetting it",ncInfo.name, i);
+                            /* clCpmNodeRestart((ClIocNodeAddressT) i, CL_TRUE); */ /* Restart payload node */
+                            /* gpClCpm->cpmToAmsCallback->nodeRestart(&nodeName, graceful);
+                               _clAmsSANodeRestart */
+                            // clGmsClusterLeave(gpClCpm->cpmGmsHdl,CL_TIME_FOREVER,i);
+                            //clLogDebug("IOC", "NTF", "Spoofing IOC node leave notification for node [%d] to force it to leave the cluster.", i);
+                            ClIocAddressT allNodeReps;                           
+                            allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+                            allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+                            //ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, i, CL_IOC_BROADCAST_ADDRESS);
+#if 0                            
+                            ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_BROADCAST_ADDRESS_TYPE, CL_IOC_BROADCAST_ADDRESS, CL_IOC_BROADCAST_ADDRESS);
+                            
+                            clIocNotificationNodeStatusSend(gpClCpm->cpmEoObj->commObj,CL_IOC_NODE_LEAVE_NOTIFICATION,i,(ClIocAddressT*)&allLocalComps,(ClIocAddressT*)&allNodeReps, NULL);
+#endif
+                            static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
+                            ClUint32T myCapability = 0;
+                            ClIocNotificationT notification;
+                            notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
+                            notification.nodeVersion = htonl(nodeVersion);
+                            notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(i);
+                            notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
+                            notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);  // htonl(1);
+                            rc = clIocNotificationPacketSend(gpClCpm->cpmEoObj->commObj, &notification, &allNodeReps, CL_FALSE, NULL);
+
+                            checkFailed[i] = 0;
+                            continue;
+                        }
+                    
+                        if (checkFailed[i] == 1) clLogWarning("AMS", "INI","Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF",ncInfo.name, i);
+                        checkFailed[i]++;                    
+                    }
+                    else
+                    {
+                        /* Match, continue to check other nodes */
+                        checkFailed[i] = 0;
+                    }
+                }
+            }
+        }
+        
+        clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
+        clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
+        clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
+        if (!gpClCpm)  /* Process is down! (should never happen b/c we are holding a reference) */
+        {
+            return NULL;
+        }
+        else       
+        {   
+            ClEoExecutionObjT *cpmEoObj = gpClCpm->cpmEoObj;
+            if (!cpmEoObj) return NULL;
+        
+            if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP) || !gpClCpm->polling)
+            {
+                clEoRefDec(cpmEoObj);
+            }
+        }
+        
+    }
+
+    return NULL;
+}
+
 ClRcT
 clAmsStart(
            CL_IN       ClAmsT              *ams,
@@ -432,6 +573,9 @@ clAmsStart(
 
     }
 
+    clEoRefInc(gpClCpm->cpmEoObj);    
+    /* Instantiate cluster state verifier */
+    clOsalTaskCreateAttached("cluster state verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clAmsClusterStateVerifier, NULL,&gClusterStateVerifierTask);
     return CL_OK;
 }
 
@@ -471,6 +615,10 @@ clAmsFinalize(
         return CL_OK;
     }
 
+    gpClCpm->polling = CL_FALSE;                       // kick the verifier out of its loop
+    clOsalCondBroadcast(&gpClCpm->cpmEoObj->eoCond);  // Wake up the cluster state verifier (and anybody else that needs to be quitting)
+    clOsalTaskJoin(gClusterStateVerifierTask);        // wait until the thread is done before shutting down the rest & removing variables
+    
     clAmsEntityTriggerFinalize();
 
     clAmsEntityUserDataFinalize();
@@ -689,6 +837,7 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
              */
             if(node->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
             {
+                clLogWarning("AMF", "EVT", "Node [%s] is reentering cluster but still set as cluster member.  Returing try again.",pNodeName);
                 node->status.wasMemberBefore = CL_TRUE;
                 node->status.isClusterMember = CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER;
             }

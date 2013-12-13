@@ -255,7 +255,7 @@ def load_xml_file(filename, strip_root=None):
 
 def load_xml_string(string, strip_root=None):
     """Parse given xml string and turn it into a nested dot object"""
-    
+
     dom = minidom.parseString(string)
     
     def decode_dom(dom):
@@ -456,7 +456,9 @@ def load_amf_db():
         raise DebugCliError('No access to active system controller')
     
     res = res[-1]
-    res = res[res.find("<asp>"):] # Strip off everything except the XML
+    t = res.find("<asp>")
+    if t != -1:  # Strip off any debugging info
+      res = res[t:]
     _amf_db = load_xml_string(res, strip_root=(('asp',),))
     
     _amf_db_timestamp = time.time()
@@ -1311,9 +1313,9 @@ class Cli(cmd.Cmd):
         "                UL: Unlocked)\n" \
         "    CAS:        Computed administrative state (same values as AS)\n" \
         "    PS:         Presence state:\n" \
-        "                FIXME add details here\n" \
+        "                I: Instantiated, U: Uninstantiated\n" \
         "    OS:         Operational state:\n" \
-        "                FIXME add details here\n" \
+        "                E: Enabled, D: Disabled\n" \
         "    ISU:        # of instantiated SUs\n" \
         "    ASU:        # of assigned SUs\n"
         try:
@@ -1548,9 +1550,9 @@ class Cli(cmd.Cmd):
         "                UL: Unlocked)\n" \
         "    CAS:        Computed administrative state (same values as AS)\n" \
         "    PS:         Presence state:\n" \
-        "                FIXME add details here\n" \
+        "                I: Instantiated, U: Uninstantiated\n" \
         "    OS:         Operational state:\n" \
-        "                FIXME add details here\n" \
+        "                E: Enabled, D: Disabled\n" \
         "    RS:         Readiness state:\n" \
         "                FIXME add details here\n" \
         "    IC:         # of instantiated components\n" \
@@ -2094,7 +2096,7 @@ echo_cmd = '/bin/echo'
 ##
 ## main function
 ##
-def main():
+def main(argv):
     global _interactive_shell
     extend_path()
     
@@ -2107,9 +2109,7 @@ def main():
 
     import getopt
     try:
-        opts, args = getopt.getopt(sys.argv[1:],
-            'hvc',
-            ['help', 'verbose', 'no-colors'])
+        opts, args = getopt.getopt(argv[1:],'hvc',['help', 'verbose', 'no-colors'])
     except getopt.GetoptError:
         usage(1)
     
@@ -2124,7 +2124,10 @@ def main():
             _do_colors = False
             
     if len(args):
-        cli.onecmd(' '.join(args))
+        t = ' '.join(args)
+        cmds = t.split(";")
+        for c in cmds:
+          cli.onecmd(c)
         sys.exit(_exit_code)
     else:
         _interactive_shell = True
@@ -2136,4 +2139,4 @@ def main():
     
 sys_asp = init_sys_asp()
 if __name__ == '__main__':
-    main()
+    main(sys.argv)

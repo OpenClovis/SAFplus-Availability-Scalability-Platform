@@ -420,8 +420,17 @@ ClRcT clCkptMasterPeerUpdateNoLock(ClIocPortT        portId,
          * Checkpoint server up scenario.
          */
          clLogDebug(CL_CKPT_AREA_MAS_DEP, CL_CKPT_CTX_PEER_ANNOUNCE,
-		    "Received welcome message from master, updating the peerlist for [%d]", 
-	            localAddr);
+                   "Received welcome message from master, updating the peerlist for [%d]",
+                    localAddr);
+
+         /* Reset the replica list for peer being welcomed without knowing the peer is available or not */
+         if(localAddr != gCkptSvr->localAddr)
+         {
+             clLogNotice("PEER", "UPDATE",
+                         "Resetting the replica list for the peer [%#x] being welcomed", localAddr);
+             clCkptMasterReplicaListUpdateNoLock(localAddr);
+         }
+
         /* 
          * Add an entry to the peer list if not existing.
          * Mark the node as "available" i.e. available for checkpoint 
@@ -438,9 +447,6 @@ ClRcT clCkptMasterPeerUpdateNoLock(ClIocPortT        portId,
 
             if(localAddr != gCkptSvr->localAddr)
             {
-                clLogNotice("PEER", "UPDATE", 
-                            "Resetting the replica list for the peer [%#x] being welcomed", localAddr);
-                clCkptMasterReplicaListUpdateNoLock(localAddr);
                 pPeerInfo->replicaCount = 0;
             }
         }

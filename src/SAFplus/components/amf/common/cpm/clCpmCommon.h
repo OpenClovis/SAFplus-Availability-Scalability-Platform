@@ -756,7 +756,8 @@ extern ClCpmT *gpClCpm;
 extern ClUint32T cpmNodeFind(SaUint8T *name, ClCpmLT **cpmL);
 extern ClUint32T cpmNodeFindLocked(SaUint8T *name, ClCpmLT **cpmL);
 extern ClUint32T cpmNodeFindByNodeId(ClGmsNodeIdT nodeId, ClCpmLT **cpmL);
-    
+extern ClRcT cpmNodeDelByNodeId(ClUint32T nodeId);
+
 #ifdef __cplusplus
 }
 #endif

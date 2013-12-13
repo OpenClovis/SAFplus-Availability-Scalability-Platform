@@ -865,8 +865,7 @@ ClRcT _cpmNodeDepartureAllowed(SaNameT *nodeName,
     
     if (!strcmp((const ClCharT *)nodeName->value, gpClCpm->pCpmLocalInfo->nodeName) && CL_CPM_IS_ACTIVE())
     {
-        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-                   "CPM/G active got termination request for itself...");
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM, "AMF active got termination request for itself...");
         
         if (cmRequest.cmCpmMsgType != CL_CM_BLADE_NODE_ERROR_REPORT)
         {
@@ -1163,7 +1162,7 @@ static ClRcT _cpmNodeFailFastRestart(SaNameT *nodeName, ClUint32T restartFlag)
                       "<invalid-node-type>",
                       nodeName->length,
                       nodeName->value);
-        cpmSelfShutDown();
+        cpmRestart(NULL, CL_CPM_IS_STANDBY() ? "standby":"controller");
     }
 
     return CL_OK;

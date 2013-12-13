@@ -43,8 +43,8 @@
 #include <clCntApi.h>
 #include <clOsalApi.h>
 #include <clHeapApi.h>
-
 #include <clAmsErrors.h>
+#include <clErrorApi.h>
 #include <clAmsTypes.h>
 #include <clAmsEntities.h>
 #include <clAmsServerUtils.h>
@@ -591,7 +591,7 @@ clAmsPeSGUnlock(
 
     CL_AMS_SET_A_STATE(sg, CL_AMS_ADMIN_STATE_UNLOCKED);
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &adminState) );
+    adminState = clAmsPeSGComputeAdminState(sg);
 
     if ( adminState == CL_AMS_ADMIN_STATE_UNLOCKED )
     {
@@ -646,7 +646,7 @@ clAmsPeSGLockAssignment(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &adminState) );
+    adminState = clAmsPeSGComputeAdminState(sg);
 
     CL_AMS_SET_A_STATE(sg, CL_AMS_ADMIN_STATE_LOCKED_A);
 
@@ -714,8 +714,8 @@ clAmsPeSGLockInstantiation(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &adminState) );
-
+    adminState = clAmsPeSGComputeAdminState(sg);
+    
     CL_AMS_SET_A_STATE(sg, CL_AMS_ADMIN_STATE_LOCKED_I);
 
     if ( adminState == CL_AMS_ADMIN_STATE_LOCKED_A )
@@ -737,8 +737,8 @@ clAmsPeSGLockInstantiationCallback(
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &adminState) );
-
+    adminState = clAmsPeSGComputeAdminState(sg);
+    
     if ( adminState != CL_AMS_ADMIN_STATE_LOCKED_I )
     {
         AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
@@ -786,8 +786,8 @@ clAmsPeSGShutdown(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &oldAdminState) );
-
+    oldAdminState = clAmsPeSGComputeAdminState(sg);
+    
     CL_AMS_SET_A_STATE(sg, CL_AMS_ADMIN_STATE_SHUTTINGDOWN);
 
     if ( oldAdminState == CL_AMS_ADMIN_STATE_UNLOCKED )
@@ -816,8 +816,8 @@ clAmsPeSGShutdownCallback(
 
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &adminState) );
-
+    adminState = clAmsPeSGComputeAdminState(sg);
+    
     if ( clAmsPeSGHasAssignments(sg) )
     {
         AMS_ENTITY_LOG (sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
@@ -881,8 +881,8 @@ clAmsPeSGInstantiate(
 
     AMS_FUNC_ENTER (("SG [%s]\n",sg->config.entity.name.value));
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &adminState) );
-
+    adminState = clAmsPeSGComputeAdminState(sg);
+    
     if ( (adminState != CL_AMS_ADMIN_STATE_UNLOCKED) &&
          (adminState != CL_AMS_ADMIN_STATE_LOCKED_A) )
     {
@@ -954,8 +954,8 @@ clAmsPeSGInstantiateTimeout(
                     (ClAmsEntityT *) sg,
                     CL_AMS_SG_TIMER_INSTANTIATE) );
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &adminState) );
-
+    adminState = clAmsPeSGComputeAdminState(sg);
+    
     if ( (adminState == CL_AMS_ADMIN_STATE_LOCKED_A) ||
          (adminState == CL_AMS_ADMIN_STATE_UNLOCKED) )
     {
@@ -1031,8 +1031,8 @@ clAmsPeSGTerminateCallback(
         return CL_OK;
     }
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &adminState) );
-
+    adminState = clAmsPeSGComputeAdminState(sg);
+    
     if ( adminState == CL_AMS_ADMIN_STATE_LOCKED_I )
     {
         AMS_CALL ( clAmsPeSGLockInstantiationCallback(sg, error) );
@@ -1096,10 +1096,9 @@ clAmsPeSGEvaluateWork(
      * includes the cluster state.
      */
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &adminState) );
+    adminState = clAmsPeSGComputeAdminState(sg);
 
-    if ( (adminState != CL_AMS_ADMIN_STATE_UNLOCKED) &&
-         (adminState != CL_AMS_ADMIN_STATE_LOCKED_A) )
+    if ( (adminState != CL_AMS_ADMIN_STATE_UNLOCKED) && (adminState != CL_AMS_ADMIN_STATE_LOCKED_A) )
     {
         AMS_ENTITY_LOG(sg, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
             ("SG [%s] has computed admin state [%s]. SU instantiation and assignment not possible. Continuing..\n",
@@ -1241,6 +1240,7 @@ clAmsPeSGInstantiateSUs(
 
             if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING )
             {
+                clLogWarning("AMF","PE","Cannot instantiate an SU that is restarting");
                 continue;
             }
 
@@ -1782,21 +1782,13 @@ clAmsPeSGUpdateSIDependents(
  * is a member.
  */
 
-ClRcT
-clAmsPeSGComputeAdminState(
-        CL_IN   ClAmsSGT *sg,
-        CL_OUT  ClAmsAdminStateT *adminState)
+ClAmsAdminStateT clAmsPeSGComputeAdminState(CL_IN   ClAmsSGT *sg)
 {
-    AMS_CHECK_SG (sg);
-    AMS_CHECKPTR (!adminState);
-
+    CL_ASSERT(AMS_ENTITY_OK (sg, CL_AMS_ENTITY_TYPE_SG));
     AMS_FUNC_ENTER ( ("SG [%s]\n",sg->config.entity.name.value) );
 
-    // Future: Add support for application group and cluster.
- 
-    *adminState = sg->config.adminState;
-
-    return CL_OK;
+    // Future: Add support for application group and cluster. 
+    return sg->config.adminState;
 }
 
 /*
@@ -2392,9 +2384,7 @@ clAmsPeNodeRepaired(
  * function.
  */
 
-ClRcT
-clAmsPeNodeJoinCluster(
-        CL_IN   ClAmsNodeT *node)
+ClRcT clAmsPeNodeJoinCluster(CL_IN   ClAmsNodeT *node)
 {
     AMS_OP_INCR(&gAms.ops);
 
@@ -2433,7 +2423,7 @@ clAmsPeNodeJoinCluster(
     {
         if ( node->config.autoRepair )
         {
-            AMS_CALL ( clAmsPeNodeReset(node) );
+            clAmsPeNodeReset(node);
         }
         else
         {
@@ -2976,9 +2966,7 @@ clAmsPeNodeFaultReportProcess(
                            node->config.entity.name.value, rc);
             }
             
-            if(!node->config.isASPAware 
-               &&
-               node->config.autoRepair)
+            if((!node->config.isASPAware) && node->config.autoRepair)
             {
                 clAmsPeNodeReset(node);
             }
@@ -4281,9 +4269,7 @@ clAmsPeNodeComputeRecoveryAction(
  * as they need to be persistant.
  */
 
-ClRcT
-clAmsPeNodeReset(
-        CL_IN ClAmsNodeT *node)
+ClRcT clAmsPeNodeReset(CL_IN ClAmsNodeT *node)
 {
     ClAmsNodeClusterMemberT isClusterMember;
     ClBoolT wasMemberBefore;
@@ -4308,10 +4294,7 @@ clAmsPeNodeReset(
           entityRef = clAmsEntityListGetNext(&node->config.suList,entityRef) )
     {
         ClAmsSUT *su = (ClAmsSUT *) entityRef->ptr;
-
-        AMS_CHECK_SU ( su );
-
-        clAmsPeSUReset(su);
+        if (su) clAmsPeSUReset(su);
     }
 
     return CL_OK;
@@ -4759,8 +4742,7 @@ clAmsPeSUShutdownWithRestart(
                   restart ? "shutdown and restart" : "shutdown");
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
-    
-#if 0
+
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "SHUTDOWN", 
@@ -4769,7 +4751,6 @@ clAmsPeSUShutdownWithRestart(
                   restart ? "shutdown and restart" : "shutdown");
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
-#endif
 
     readinessState = su->status.readinessState;
 
@@ -4889,7 +4870,6 @@ clAmsPeSUAdminRestart(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
-#if 0
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "RESTART", 
@@ -4897,7 +4877,6 @@ clAmsPeSUAdminRestart(
                   sg->config.entity.name.value, su->config.entity.name.value);
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
-#endif
 
     if ( (su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED) ||
          (clAmsPeSUIsInstantiable(su) != CL_OK) )
@@ -5787,13 +5766,16 @@ clAmsPeSUInstantiate2(ClAmsSUT *su, ClUint32T *pNumComponents)
     {
         ClAmsCompT *comp = (ClAmsCompT *) entityRef->ptr;
 
-        AMS_CHECK_COMP ( comp );
-        
-        if ( (comp->config.property == 
-              CL_AMS_COMP_PROPERTY_SA_AWARE) ||
-             (comp->config.property ==
-              CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE) )
+        if (!comp)
         {
+            clDbgCodeError(CL_ERR_NULL_POINTER,("NULL component ref on the su comp list"));
+            continue;  /* A NULL comp ref might indicate an entity that was freed while still on the list, but attempt to ignore the entity and continue with the next */
+        }
+        
+        if ( (comp->config.property == CL_AMS_COMP_PROPERTY_SA_AWARE) ||
+             (comp->config.property == CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE) )
+        {
+            ClRcT rc;
             ClUint32T instantiateLevel = comp->config.instantiateLevel;
             ClUint32T curInstantiateCount = comp->status.instantiateCount;
 
@@ -5807,11 +5789,15 @@ clAmsPeSUInstantiate2(ClAmsSUT *su, ClUint32T *pNumComponents)
             {
                 break;
             }
-            AMS_CALL ( clAmsPeCompInstantiate(comp) );
-            if(comp->status.instantiateCount != curInstantiateCount
-               ||
-               clAmsEntityTimerIsRunning((ClAmsEntityT*)comp, 
-                                         CL_AMS_COMP_TIMER_INSTANTIATEDELAY))
+            rc = clAmsPeCompInstantiate(comp);
+            if (rc != CL_OK)
+            {
+                /* Lower level has logged the root cause issue so just continue to the next comp */
+                continue;
+            }
+            
+            if((comp->status.instantiateCount != curInstantiateCount) ||
+               clAmsEntityTimerIsRunning((ClAmsEntityT*)comp, CL_AMS_COMP_TIMER_INSTANTIATEDELAY))
             {
                 su->status.numPIComp++;
                 ++numComponents;
@@ -5827,8 +5813,7 @@ clAmsPeSUInstantiate2(ClAmsSUT *su, ClUint32T *pNumComponents)
 
     if(numComponents)
     {
-        clLogInfo("SU", "INST", "SU [%s] instantiated [%d] components at level [%d]",
-                  su->config.entity.name.value, numComponents, su->status.instantiateLevel);
+        clLogInfo("SU", "INST", "SU [%s] instantiated [%d] components at level [%d]", su->config.entity.name.value, numComponents, su->status.instantiateLevel);
     }
     return CL_OK;
 }
@@ -5844,10 +5829,7 @@ clAmsPeSUInstantiate2(ClAmsSUT *su, ClUint32T *pNumComponents)
  * instantiated.
  */
 
-ClRcT
-clAmsPeSUInstantiate(
-                     CL_IN       ClAmsSUT        *su
-                     )
+ClRcT clAmsPeSUInstantiate(CL_IN       ClAmsSUT        *su)
 {
     ClAmsNodeT *node;
 
@@ -6468,12 +6450,11 @@ clAmsPeSUTerminateCallback(
  * code below should not have any side effects if this happens.
  */
 
-ClRcT
-clAmsPeSUCleanup(
-        CL_IN   ClAmsSUT    *su) 
+ClRcT clAmsPeSUCleanup(CL_IN   ClAmsSUT    *su) 
 {
     ClAmsEntityRefT *entityRef;
     ClAmsNodeT *node;
+    ClRcT rc;
 
     AMS_CHECK_SU ( su );
     AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
@@ -6559,20 +6540,21 @@ clAmsPeSUCleanup(
 
         AMS_CHECK_COMP ( sucomp );
 
-        if ( sucomp->status.presenceState ==
-                        CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
+        if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
             continue;
 
-        if ( sucomp->status.presenceState ==
-                        CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED )
+        if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED )
             continue;
 
-        AMS_CALL ( clAmsPeCompCleanup(sucomp) );
-
+        rc = clAmsPeCompCleanup(sucomp);
+        if (rc != CL_OK)
+        {
+          AMS_ENTITY_LOG(sucomp, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_WARNING, ("Component [%s] cleanup failed with error code [%d]", sucomp->config.entity.name.value));
+        }
+        
         count++;
 
-        if ( sucomp->status.presenceState ==
-                        CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
+        if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATION_FAILED )
         {
             /*
              * If a component cleanup fails, it will result in a fault
@@ -6604,6 +6586,30 @@ clAmsPeSUCleanup(
     return CL_OK;
 }
 
+static ClUint32T clAmsSURestartingCompCount(CL_IN       ClAmsSUT        *su)
+{
+    ClAmsEntityRefT *entityRef;
+    ClUint32T restartCompCount = 0;
+
+    if (!su)
+        return 0;
+
+    for ( entityRef = clAmsEntityListGetLast(&su->config.compList);
+          entityRef != (ClAmsEntityRefT *) NULL;
+          entityRef = clAmsEntityListGetPrevious(&su->config.compList, entityRef) )
+    {
+        ClAmsCompT *sucomp = (ClAmsCompT *) entityRef->ptr;
+
+        if (sucomp)
+        {
+            if ( sucomp->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING )
+                restartCompCount++;
+        }
+    }
+
+    return restartCompCount;
+}
+
 /*
  * clAmsPeSUCleanupCallback
  * ------------------------
@@ -6632,7 +6638,7 @@ clAmsPeSUCleanupCallback(
         return clAmsPeSUCleanupError(su, error);
     }
 
-    if ( su->status.numInstantiatedComp )
+    if ( su->status.numInstantiatedComp > clAmsSURestartingCompCount(su) )
     {
         return CL_OK;
     }
@@ -7845,8 +7851,8 @@ clAmsPeSUSwitchoverCallback(
      * If the SG for this component is shutting down, skip CSI reassignment.
      */
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &sgAdminState) );
-
+    sgAdminState = clAmsPeSGComputeAdminState(sg);
+    
     if ( (sgAdminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) ||
          (sgAdminState == CL_AMS_ADMIN_STATE_LOCKED_A) )
         goto SKIP_REASSIGNMENT;
@@ -9675,12 +9681,8 @@ static void clAmsPeSUComputeAdminStateExtended(CL_IN       ClAmsSUT *su,CL_OUT  
         *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
         return;
     }
-    if (clAmsPeSGComputeAdminState(sg, &sgAdminState) != CL_OK)
-    {
-        *adminState = CL_AMS_ADMIN_STATE_LOCKED_I;
-        return;        
-    }
-    
+
+    sgAdminState = clAmsPeSGComputeAdminState(sg);
 
     if ( (suAdminState == CL_AMS_ADMIN_STATE_UNLOCKED) &&
          (nodeAdminState == CL_AMS_ADMIN_STATE_UNLOCKED) &&
@@ -11201,8 +11203,8 @@ clAmsPeSIComputeAdminState(
 
     AMS_FUNC_ENTER ( ("SI [%s]\n", si->config.entity.name.value) );
 
-    AMS_CALL ( clAmsPeSGComputeAdminState(sg, &sgAdminState) );
-
+    sgAdminState = clAmsPeSGComputeAdminState(sg);
+    
     if ( si->config.adminState      == CL_AMS_ADMIN_STATE_LOCKED_I )
     {
         *adminState = CL_AMS_ADMIN_STATE_LOCKED_A;
@@ -11484,9 +11486,7 @@ clAmsPeCompFaultReport(
      */
     if(clAmsFaultQueueFind((ClAmsEntityT*)comp, NULL) != CL_OK)
     {
-        clLogWarning("AMF", "FLT-COMP", "Fault on component [%s] is not present "
-                     "in the fault queue. Ignoring the component fault",
-                     comp->config.entity.name.value);
+        clLogWarning("AMF", "FLT-COMP", "Fault on component [%s] is not present in the fault queue. Ignoring", comp->config.entity.name.value);
         return CL_OK;
     }
     /*
@@ -13767,7 +13767,7 @@ clAmsPeCompTerminateError(
      * if lower level comps fail to respond to terminate.
      */
 
-    if(su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING)
+    if(su && (su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING))
     {
         return clAmsPeSUCleanup(su);
     }
@@ -13942,7 +13942,6 @@ clAmsPeCompCleanup(
                             CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP) );
 
 #ifdef AMS_CPM_INTEGRATION
-
             ClAmsCompT *proxy = (ClAmsCompT *) comp->status.proxyComp;
 
             error = _clAmsSAComponentCleanup(
@@ -21079,11 +21078,7 @@ clAmsPeEntityFaultReport(
     {
         case CL_AMS_ENTITY_TYPE_COMP:
         {
-
-            return clAmsPeCompFaultReport(
-                        (ClAmsCompT *) entity,
-                        recovery,
-                        escalation);
+            return clAmsPeCompFaultReport((ClAmsCompT *) entity, recovery, escalation);
         }
 
         case CL_AMS_ENTITY_TYPE_NODE:

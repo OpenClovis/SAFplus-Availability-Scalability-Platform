@@ -82,6 +82,8 @@ extern ClRcT clCpmNodeErrorReport(ClUint32T argc, ClCharT **argv, ClCharT **resu
 
 extern ClRcT clCpmNodeErrorClear(ClUint32T argc, ClCharT **argv, ClCharT **result);
 
+extern ClRcT clCpmCliNodeDelete(ClUint32T argc, ClCharT **argv, ClCharT **result);
+
 extern ClRcT clCpmRestart(ClUint32T argc,
                           ClCharT **argv,
                           ClCharT **retStr);

@@ -173,10 +173,9 @@ ClRcT CL_CPM_CALL_RMD_SYNC(ClIocNodeAddressT destAddr,
     if (rc == CL_OK && NULL != pOutBufLen)
     {
         retCode = clBufferLengthGet(outMsgHdl, &msgLength);
-        retCode =
-            clBufferNBytesRead(outMsgHdl, (ClUint8T *) pOutBuf,
-                                      &msgLength);
+        retCode = clBufferNBytesRead(outMsgHdl, (ClUint8T *) pOutBuf, &msgLength);
         retCode = clBufferDelete(&outMsgHdl);
+        retCode = retCode;  // use retcode to make compiler happy
     }
     else if (rc != CL_OK)
     {
@@ -252,6 +251,7 @@ ClRcT CL_CPM_CALL_RMD_SYNC_NEW(ClIocNodeAddressT destAddr,
     {
         rc = unmarshallFunction(outMsgHdl, (void *) pOutBuf);
         retCode = clBufferDelete(&outMsgHdl);
+        retCode = retCode; // Use retcode to make compiler happy
     }
     else if (rc != CL_OK)
     {
@@ -333,6 +333,7 @@ ClRcT CL_CPM_CALL_RMD_ASYNC(ClIocNodeAddressT destAddr,
     if (inBufLen)
     {
         retCode = clBufferDelete(&inMsgHdl);
+        retCode = retCode; // use retcode to make compiler happy
     }
 
   failure:
@@ -354,7 +355,6 @@ ClRcT CL_CPM_CALL_RMD_ASYNC_NEW(ClIocNodeAddressT destAddr,
                                 ClRmdAsyncCallbackT pFuncCB,
                                 ClCpmMarshallT marshallFunction)
 {
-    ClRcT retCode = CL_OK;
     ClRcT rc = CL_OK;
     ClRmdOptionsT rmdOptions = CL_RMD_DEFAULT_OPTIONS;
     ClRmdAsyncOptionsT rmdAsyncOptions;
@@ -407,7 +407,7 @@ ClRcT CL_CPM_CALL_RMD_ASYNC_NEW(ClIocNodeAddressT destAddr,
                           (flags) | CL_RMD_CALL_ASYNC, &rmdOptions, NULL);
     if (inBufLen)
     {
-        retCode = clBufferDelete(&inMsgHdl);
+        clBufferDelete(&inMsgHdl);
     }
 
   failure:
@@ -584,12 +584,10 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
     if(rc != CL_OK)
     {
         clOsalMutexUnlock(gpClCpm->cpmTableMutex);
-        clLogError("CPM", "REG", "Node [%s] not found. Failure code [%#x]", 
-                   cpmLocalInfo.nodeName, rc);
+        clLogError("CPM", "REG", "Node [%s] not found. Failure code [%#x]", cpmLocalInfo.nodeName, rc);
         goto failure;
     }
-    cpmL->pCpmLocalInfo =
-        (ClCpmLocalInfoT *) clHeapAllocate(sizeof(ClCpmLocalInfoT));
+    cpmL->pCpmLocalInfo = (ClCpmLocalInfoT *) clHeapAllocate(sizeof(ClCpmLocalInfoT));
     if (cpmL->pCpmLocalInfo == NULL)
     {
         clOsalMutexUnlock(gpClCpm->cpmTableMutex);
@@ -658,6 +656,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
          * Do the CPM\L dataSet checkpoint 
          */
         rc = cpmCkptCpmLDatsSet();
+        if (rc != CL_OK) clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CM, "Cannot write checkpoint to indicate node arrival");        
         clOsalMutexUnlock(&gpClCpm->cpmMutex);
     }
     else
@@ -1863,9 +1862,11 @@ ClRcT cpmFailoverNode(ClGmsNodeIdT nodeId, ClBoolT scFailover)
 
     clHeapFree(pCpmLocalInfo);
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP,
-               "Updating the CPM checkpoints...");
-    cpmCkptCpmLDatsSet();
+    if (strncmp((const char*) nodeName.value, gpClCpm->pCpmLocalInfo->nodeName,nodeName.length))
+    {
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP, "Updating the CPM checkpoints...");
+        cpmCkptCpmLDatsSet();
+    }
 
     /*
      * TODO:
@@ -2099,10 +2100,19 @@ static void __cpmRegisterWithActive(ClBoolT reregister)
                 {
                     if (!(retries++ & 15))
                     {
-                        clLogWarning(CPM_LOG_AREA_CPM,
-                                     CPM_LOG_CTX_CPM_CPM,
-                                     "CPM/G standby/Worker blade waiting for "
-                                     "CPM/G active to come up...");
+                        ClRcT rc2;
+                        ClIocNodeAddressT iocAddress;
+                        ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
+                        clLogWarning(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_CPM,"AMF standby/Worker blade waiting for AMF active to come up...");
+                        rc2 = clCpmMasterAddressGetExtended(&iocAddress, 3, &delay);
+                        if (rc2 == CL_OK)
+                        {
+                            clLogInfo(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_CPM,"AMF active is [%d]", iocAddress);
+                            clOsalMutexLock(&gpClCpm->clusterMutex);
+                            gpClCpm->activeMasterNodeId = iocAddress;
+                            clOsalMutexUnlock(&gpClCpm->clusterMutex);
+                        }
+                        
                     }
                     clOsalTaskDelay(timeOut);
                 }
@@ -2185,7 +2195,7 @@ static void __cpmRegisterWithActive(ClBoolT reregister)
     return;
     
     failure:
-    cpmSelfShutDown();
+    cpmRestart(NULL,NULL);
 }
 
 void cpmRegisterWithActive(void)
@@ -2209,22 +2219,16 @@ ClRcT VDECL(cpmGoBackToRegisterCallback)(ClEoDataT data,
     ClRcT rc = CL_OK;
     ClCpmBmSetLevelResponseT bmSetLevelResp = {{0}};
 
-    rc = VDECL_VER(clXdrUnmarshallClCpmBmSetLevelResponseT, 4, 0, 0)(inMsgHandle,
-                                                 (void *)&bmSetLevelResp);
+    rc = VDECL_VER(clXdrUnmarshallClCpmBmSetLevelResponseT, 4, 0, 0)(inMsgHandle, (void *)&bmSetLevelResp);
     if (CL_OK != rc)
     {
-        clLogDebug(CPM_LOG_CTX_CPM_CPM, CPM_LOG_CTX_CPM_BOOT,
-                   "Failed to unmarshall buffer, error [%#x]",
-                   rc);
+        clLogDebug(CPM_LOG_CTX_CPM_CPM, CPM_LOG_CTX_CPM_BOOT,"Invalid data in node reset request. error [%#x].  Forcing reset",rc);
         goto failure;
     }
 
     if (CL_OK != bmSetLevelResp.retCode)
     {
-        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                      "Failed to set boot level to [2], error [%#x] "
-                      "Shutting down...",
-                      rc);
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"Failed to set boot level to [2], error [%#x] Forcing reset.", rc);
         goto failure;
     }
 
@@ -2233,20 +2237,17 @@ ClRcT VDECL(cpmGoBackToRegisterCallback)(ClEoDataT data,
                       gpClCpm->pCpmLocalInfo->nodeName,
                        CL_MAX_NAME_LENGTH-1) == 0));
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-               "OK. Boot level is now [%d], re-registering with "
-               "CPM/G active...",
-               gpClCpm->bmTable->currentBootLevel);
-
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,"OK. Boot level is now [%d], re-registering with CPM/G active...", gpClCpm->bmTable->currentBootLevel);
     cpmRegisterWithActive();
 
     return CL_OK;
     
 failure:
-    cpmSelfShutDown();
+    cpmRestart(NULL,NULL);
     return rc;
 }
 
+#if 0
 static ClRcT cpmKillUserComp(ClCntNodeHandleT key,
                              ClCntDataHandleT data,
                              ClCntArgHandleT arg,
@@ -2275,6 +2276,7 @@ static void cpmKillUserComps(void)
 {
     clCntWalk(gpClCpm->compTable, cpmKillUserComp, NULL, 0);
 }
+#endif
 
 static ClRcT cpmPayloadRegisterCallback(void *unused)
 {
@@ -2293,8 +2295,6 @@ static ClRcT cpmPayloadRegister(void)
 
 void cpmGoBackToRegister(void)
 {
-    SaNameT nodeName = {0};
-    ClCpmLcmReplyT srcInfo = {0};
     ClRcT rc = CL_OK;
     
     if(gClAmsPayloadResetDisable)
@@ -2303,9 +2303,17 @@ void cpmGoBackToRegister(void)
         if(rc == CL_OK)
             return;
     }
+    cpmRestart(NULL,NULL);
+    /* Stone: This code is called when there is no system controller in the cluster.  At this point there is nobody to consume the application failure logs
+       or an AMF to send app shutdown notifications to.  For now, rather then work through a careful shutdown we will run a node reset.
+
+       Note this may have a bad side effect of not running the component cleanup scripts...
+       */
+#if 0
+    SaNameT nodeName = {0};
+    ClCpmLcmReplyT srcInfo = {0};
     
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-               "Killing all user application components...");
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM, "Killing all user application components...");
     
     cpmKillUserComps();
 
@@ -2340,6 +2348,7 @@ void cpmGoBackToRegister(void)
         gpClCpm->nodeEventPublished = 0; 
         cpmWriteNodeStatToFile("CPM", CL_NO);
     }
+#endif    
 }
 
 ClRcT VDECL(cpmNodeConfigSet)(ClEoDataT data,

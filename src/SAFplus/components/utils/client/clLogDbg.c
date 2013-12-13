@@ -82,7 +82,7 @@ static  ClBoolT  clLogStreamEnable = CL_TRUE;
 static  FILE     *clDbgFp          = NULL; 
 static  ClLogSeverityT   clLogDefaultSeverity = CL_LOG_SEV_DEBUG;
 static  ClBoolT          clLogSeveritySet     = CL_FALSE;
-static  ClBoolT          gClLogCodeLocationEnable = CL_FALSE;
+ClBoolT          gClLogCodeLocationEnable = CL_FALSE;
 static  ClBoolT          clLogTimeEnable      = CL_TRUE;
 static  ClLogRulesInfoT  gpLogRulesInfo = {0};
 static  ClCharT          gLogFilterFile[CL_MAX_NAME_LENGTH];
@@ -100,11 +100,13 @@ do\
 
 #define CL_LOG_RULES_FILE                 logGetLogRulesFile()
 
+#if 0
 #define CL_LOG_PRNT_FMT_STR               "%-26s [%s:%d] (%.*s.%d : %s.%3s.%3s"
 #define CL_LOG_PRNT_FMT_STR_CONSOLE       "%-26s [%s:%d] (%.*s.%d : %s.%3s.%3s.%05d : %6s) "
 
 #define CL_LOG_PRNT_FMT_STR_WO_FILE         "%-26s (%.*s.%d : %s.%3s.%3s"
 #define CL_LOG_PRNT_FMT_STR_WO_FILE_CONSOLE "%-26s (%.*s.%d : %s.%3s.%3s.%05d : %6s) "
+#endif
 
 static
 ClCharT *logGetLogRulesFile(void)
@@ -690,10 +692,9 @@ returnSeverity:
    return matchFlag;
 }
 
-void
-clLogDbgFilePtrAssign(void)
+void clLogDbgFilePtrAssign(void)
 {
-    clDbgFp = stdout; 
+    clDbgFp = NULL; /* For debugging with AMF in non-daemon mode or debugging logd you can echo the logs to stdout by default by putting "stdout" here. */ 
     if( NULL != clLogToFile )
     {
         if( !strcmp(clLogToFile, "stdout") )
@@ -931,7 +932,6 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
         clLogEnvironmentVariablesGet();
         clLogParse(CL_LOG_RULES_FILE, NULL, NULL);
     }
-    msgIdCnt++;
     pSevName = clLogSeverityStrGet(severity);
     
     if( clLogSeveritySet == CL_FALSE )
@@ -1002,6 +1002,7 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
         }
     }
 
+    msgIdCnt++;    
     return CL_OK;
 }
 
@@ -1071,7 +1072,7 @@ clLogMsgWriteConsole(ClLogStreamHandleT streamHdl,
 ClRcT
 clLogDbgFileClose(void)
 {
-    if( (clDbgFp != stderr) && (clDbgFp != stdout) )
+    if( (clDbgFp != stderr) && (clDbgFp != stdout)  && (clDbgFp != NULL))
     {
         fclose(clDbgFp);
     }

@@ -44,6 +44,7 @@
 #include <clCpmLog.h>
 #include <clCpmMgmt.h>
 #include <clClmApi.h>
+#include <saAis.h>
 
 ClRcT cpmCpmLCheckpointWrite(void);
 
@@ -427,7 +428,7 @@ ClVersionT cpmCkptVersion = {'B', 0x01, 0x01};
 #define CPM_CKPT_SIZE   1024*1024
 #define CPM_CKPT_MAX_SECTION_SIZE   1024*1024
 #define CPM_CKPT_MAX_SECTION_ID_SIZE 256
-#define CPM_CKPT_RETENTION_DURATION   0
+#define CPM_CKPT_RETENTION_DURATION  SA_TIME_END
 #define CPM_CKPT_MAX_SECTIONS   1
 
 ClRcT cpmCpmLStandbyCheckpointInitialize(void)
@@ -449,7 +450,8 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
         CPM_CKPT_MAX_SECTION_SIZE,
         CPM_CKPT_MAX_SECTION_ID_SIZE
     };
-
+    ClCkptCheckpointCreationAttributesT* pCkptCreationAttributes = &ckptAttributes;
+    
     if(gpClCpm->ckptOpenHandle != CL_HANDLE_INVALID_VALUE)
     {
         clLogWarning("CKP", "INI", "Standby checkpoint already initialized. Skipping initialization");
@@ -467,24 +469,39 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
     if(rc != CL_OK)
     {
         clLogError("CKP", "INI", "CKPT initialize for standby failed with [%#x]", rc);
-        goto failure;
+        return rc;
     }
 
     gpClCpm->ckptHandle = handle;
 
     clCkptReplicaChangeRegister(cpmCkptReplicaChangeCallback);
 
-    if ((rc = clCkptCheckpointOpen(gpClCpm->ckptHandle,
-                                   &gpClCpm->ckptCpmLName,
-                                   &ckptAttributes,
-                                   flags,
-                                   time,
-                                   &handle)) != CL_OK)
-        goto failure;
-    gpClCpm->ckptOpenHandle = handle;
+    tries = 0;
+    do
+    {   
+        rc = clCkptCheckpointOpen(gpClCpm->ckptHandle,&gpClCpm->ckptCpmLName,pCkptCreationAttributes,flags,time,&handle);
+	    tries++;
+        clLogNotice("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service, result [%x]", tries, rc);
+        /* If the open gets an already exists error, then turn off the create flag */
+        if (CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc))
+        {
+            clLogNotice("CKP", "OPEN", "Checkpoint already exists, no need to create it");
+            flags = (flags & (~CL_CKPT_CHECKPOINT_CREATE)) | CL_CKPT_CHECKPOINT_WRITE;
+            pCkptCreationAttributes = NULL;
+        }
+        
+     } while( rc != CL_OK && tries < 3 && clOsalTaskDelay(delay) == CL_OK);
 
-    return CL_OK;
-failure:
+     if(rc != CL_OK)
+     {
+         clLogError("CKP", "OPEN", "CKPT open for standby failed with [%#x]", rc);
+         
+     }
+     else
+     {
+      gpClCpm->ckptOpenHandle = handle;
+     }
+     
     return rc;
 }
 

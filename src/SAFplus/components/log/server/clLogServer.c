@@ -737,33 +737,34 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
             rc = clLogShmCreateAndFill(pStreamName, pShmName, *pShmSize, *pStreamId,
                                        componentId, pStreamMcastAddr, pStreamFilter,
                                        pStreamAttr, &pSvrStreamData->pStreamHeader);
+            CL_ASSERT(rc == CL_OK);
+#if 0            
            if( CL_OK != rc )
-           {   
+           {
+               
                return rc;
            }
+#endif           
         }
         else
         {
             rc = clLogSvrStdStreamShmCreate(pStreamName, pShmName, *pShmSize, pStreamAttr,
                                             *pStreamId, pStreamMcastAddr,
                                             pStreamFilter, &pSvrStreamData->pStreamHeader);
+            CL_ASSERT(rc == CL_OK);
+#if 0
             if( CL_OK != rc )
             {
                 return rc;
             }
-            pSvrStreamData->pStreamHeader->streamMcastAddr.iocMulticastAddress
-                = *pStreamMcastAddr;
+#endif            
+            pSvrStreamData->pStreamHeader->streamMcastAddr.iocMulticastAddress = *pStreamMcastAddr;
             pSvrStreamData->pStreamHeader->streamId = *pStreamId;
         }
-        headerSize                     =
-            CL_LOG_HEADER_SIZE_GET(pSvrCommonEoEntry->maxMsgs,
-                    pSvrCommonEoEntry->maxComponents);
-        pSvrStreamData->pStreamRecords = 
-            ((ClUint8T *) pSvrStreamData->pStreamHeader) + headerSize;
-        clLogDebug(CL_LOG_AREA_SVR, CL_LOG_CTX_BOOTUP, "Starting the flusher for shm [%.*s]", pSvrStreamData->shmName.length,
-                pSvrStreamData->shmName.pValue);
-        rc = clLogSvrFlusherThreadCreateNStart(pSvrStreamData, 
-                                               &pSvrStreamData->flusherId);
+        headerSize = CL_LOG_HEADER_SIZE_GET(pSvrCommonEoEntry->maxMsgs, pSvrCommonEoEntry->maxComponents);
+        pSvrStreamData->pStreamRecords = ((ClUint8T *) pSvrStreamData->pStreamHeader) + headerSize;
+        clLogDebug(CL_LOG_AREA_SVR, CL_LOG_CTX_BOOTUP, "Starting the flusher for shm [%.*s]", pSvrStreamData->shmName.length, pSvrStreamData->shmName.pValue);
+        rc = clLogSvrFlusherThreadCreateNStart(pSvrStreamData, &pSvrStreamData->flusherId);
         if( CL_OK != rc )
         {
             CL_LOG_DEBUG_ERROR(("clLogSvrFlusherThreadCreateNStart(): rc[0x %x]", rc));
@@ -1132,23 +1133,29 @@ clLogSvrStreamEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     pSvrStreamData = (ClLogSvrStreamDataT*) clHeapCalloc(1, sizeof(ClLogSvrStreamDataT));
+CL_ASSERT(pSvrStreamData != NULL);
+#if 0
     if( NULL == pSvrStreamData )
     {
         CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
         return CL_LOG_RC(CL_ERR_NULL_POINTER);
     }
-
+#endif
+    
     rc = clCntHashtblCreate(pSvrCommonEoEntry->maxComponents,
                             clLogSvrCompKeyCompare, clLogSvrCompHashFn,
                             clLogSvrCompDeleteCb, clLogSvrCompDeleteCb,
                             CL_CNT_UNIQUE_KEY,
                             &(pSvrStreamData->hComponentTable));
+    CL_ASSERT(rc == CL_OK);
+#if 0
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCntHashtblCreate(): rc[0x %x]", rc));
         clHeapFree(pSvrStreamData);
         return rc;
     }
+#endif
 
     pSvrStreamData->dsId           = CL_LOG_INVALID_DSID;
     pSvrStreamData->pStreamHeader  = NULL;
@@ -1157,7 +1164,8 @@ clLogSvrStreamEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     pSvrStreamData->pStreamRecords = NULL;
     pSvrStreamData->flusherId      = 0;
     rc = clLogServerStreamSharedMutexInit(pSvrStreamData, pShmName);
-
+    CL_ASSERT(rc == CL_OK);
+#if 0    
     if( CL_OK != rc)
     {
         CL_LOG_DEBUG_ERROR(("clOsalProcessSharedMutexInit: rc[0x %x]", rc));
@@ -1165,11 +1173,14 @@ clLogSvrStreamEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
         clHeapFree(pSvrStreamData);
         return rc;
     }
-
+#endif
+    
     rc = clCntNodeAddAndNodeGet(pSvrEoEntry->hSvrStreamTable, 
                                 (ClCntKeyHandleT) pStreamKey,
                                 (ClCntDataHandleT) pSvrStreamData, NULL, 
                                 phSvrStreamNode);
+    CL_ASSERT(rc == CL_OK);
+#if 0    
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCntNodeAddAndNodeGet(): rc[0x %x]", rc));
@@ -1178,7 +1189,7 @@ clLogSvrStreamEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
         clHeapFree(pSvrStreamData);
         return rc;
     }
-
+#endif
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
 }
@@ -1200,22 +1211,26 @@ clLogSvrStreamEntryGet(CL_IN   ClLogSvrEoDataT   *pSvrEoEntry,
 
     *pAddedEntry = CL_FALSE;
     rc = clLogSvrEoEntryGet(NULL, &pSvrCommonEoEntry);
+    CL_ASSERT(rc == CL_OK);
+#if 0    
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clLogSvrEoEntryGet(): rc[0x %x]", rc));
         return rc;
     }
-
-    rc = clLogStreamKeyCreate(pStreamName, pStreamScopeNode,
-                              pSvrCommonEoEntry->maxStreams, &pStreamKey);
+#endif
+    
+    rc = clLogStreamKeyCreate(pStreamName, pStreamScopeNode,pSvrCommonEoEntry->maxStreams, &pStreamKey);
+    CL_ASSERT(rc == CL_OK);
+#if 0    
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clLogStreamKeyCreate(): rc[0x %x]", rc));
         return rc;
     }
-
-    rc = clCntNodeFind(pSvrEoEntry->hSvrStreamTable, 
-                       (ClCntKeyHandleT) pStreamKey, phSvrStreamNode);
+#endif
+    
+    rc = clCntNodeFind(pSvrEoEntry->hSvrStreamTable, (ClCntKeyHandleT) pStreamKey, phSvrStreamNode);
     if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
     {
         if( CL_TRUE == createFlag )
@@ -1224,15 +1239,16 @@ clLogSvrStreamEntryGet(CL_IN   ClLogSvrEoDataT   *pSvrEoEntry,
             rc = clLogShmNameCreate(pStreamName,pStreamScopeNode,&shmName);
             if( CL_OK != rc )
             {
+                CL_ASSERT(0);
                 CL_LOG_DEBUG_ERROR(("clLogStreamEntryAdd(): rc[0x %x]", rc));
                 clLogStreamKeyDestroy(pStreamKey);
                 return rc;
             }
-            rc = clLogSvrStreamEntryAdd(pSvrEoEntry, pSvrCommonEoEntry,
-                                        pStreamKey,&shmName,phSvrStreamNode);
+            rc = clLogSvrStreamEntryAdd(pSvrEoEntry, pSvrCommonEoEntry, pStreamKey,&shmName,phSvrStreamNode);
             clHeapFree(shmName.pValue);
             if( CL_OK != rc )
             {
+                CL_ASSERT(0);
                 CL_LOG_DEBUG_ERROR(("clLogStreamEntryAdd(): rc[0x %x]", rc));
                 clLogStreamKeyDestroy(pStreamKey);
             }
@@ -1244,6 +1260,11 @@ clLogSvrStreamEntryGet(CL_IN   ClLogSvrEoDataT   *pSvrEoEntry,
             return rc;
         }
     }
+    else if (rc != CL_OK)
+    {
+        CL_ASSERT(0);
+    }
+    
     clLogStreamKeyDestroy(pStreamKey);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
@@ -2804,8 +2825,7 @@ clLogSvrLocalFileOwnerNFlusherStart(void)
          * stream is intended for local file, then go ahead set it up the 
          * flusher & fileowner stuff
          */
-        if( clIocLocalAddressGet() ==
-                clLogFileOwnerAddressFetch(&streamAttr[count].fileLocation))
+        if( clIocLocalAddressGet() == clLogFileOwnerAddressFetch(&streamAttr[count].fileLocation))
         {
             rc = clLogFileOwnerStreamCreateEvent(&stdStreamList[count].streamName,
                     stdStreamList[count].streamScope,
@@ -2813,9 +2833,7 @@ clLogSvrLocalFileOwnerNFlusherStart(void)
                     0/*streamId */, &streamAttr[count], CL_FALSE);
             if( CL_OK != rc )
             {
-                clLogError(CL_LOG_AREA_SVR, CL_LOG_CTX_FO_INIT, 
-                        "Server boot up, file owner entry create failed rc[0x %x]",
-                        rc);
+                clLogError(CL_LOG_AREA_SVR, CL_LOG_CTX_FO_INIT, "Server boot up, file owner entry create failed rc[0x %x]", rc);
                 goto attrFree;
             }
             /* Set the flusher for all local stream with local files */
@@ -2910,23 +2928,31 @@ clLogLocalFlusherSetup(SaNameT              *pStreamName,
 
     /* Take out the svr eo entry */
     rc = clLogSvrEoEntryGet(&pSvrEoEntry, &pSvrCommonEoEntry);
+    CL_ASSERT(rc == CL_OK);
+#if 0    
     if( CL_OK != rc )
     {
         clLogError("SVR", "BOO", "Failed to fetch server eo entry rc [0x %x]",
                 rc);
         return rc;
     }
+#endif    
     /* Lock the svr stream table */
     rc = clOsalMutexLock_L(&pSvrEoEntry->svrStreamTableLock);
+     CL_ASSERT(rc == CL_OK);
+#if 0     
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clOsalMutexLock(): rc[0x %x]", rc));
         return rc;
     }
+#endif    
     /* Add the initial entry */
     rc = clLogSvrInitialEntryAdd(pSvrEoEntry, pSvrCommonEoEntry, pStreamName, 
             pStreamScopeNode, CL_LOG_DEFAULT_COMPID, CL_LOG_DEFAULT_PORTID, CL_FALSE, 
             &hSvrStreamNode);
+    CL_ASSERT(rc == CL_OK);  /* Should way to fail to create the initial entry */
+#if 0    
     if( CL_OK != rc )
     {
         clLogError(CL_LOG_AREA_SVR, CL_LOG_CTX_BOOTUP, 
@@ -2935,14 +2961,16 @@ clLogLocalFlusherSetup(SaNameT              *pStreamName,
                 CL_OK);
         return rc;
     }
+#endif    
     /* update the svn stream entry with all initial entries*/ 
     rc = clLogSvrStreamEntryUpdate(pSvrEoEntry, pStreamName, pStreamScopeNode, 
             hSvrStreamNode, CL_LOG_DEFAULT_COMPID, pStreamAttr,
             0, &filter, 0, 0, 0, &shmName, &shmSize);
+    CL_ASSERT(rc == CL_OK);  /* has to exist because we just added it 1 line above */
+#if 0
     if( CL_OK != rc )
     {
-        clLogError(CL_LOG_AREA_SVR, CL_LOG_CTX_BOOTUP, 
-                "Svr initial boot up failed rc[0x %x]", rc);
+        clLogError(CL_LOG_AREA_SVR, CL_LOG_CTX_BOOTUP, "Svr initial boot up failed rc[0x %x]", rc);
         CL_LOG_CLEANUP(
                 clCntNodeDelete(pSvrEoEntry->hSvrStreamTable, hSvrStreamNode),
                 CL_OK);
@@ -2950,8 +2978,9 @@ clLogLocalFlusherSetup(SaNameT              *pStreamName,
                 CL_OK);
         return rc;
     }
-    CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock),
-            CL_OK);
+#endif
+    
+    CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock), CL_OK);
 
     return rc;
 }

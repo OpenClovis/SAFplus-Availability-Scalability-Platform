@@ -1,9 +1,21 @@
 #include <clSafUtils.h>
+#include <clCpmErrors.h>
 
 SaAisErrorT clClovisToSafError(ClRcT clError)
 {
     SaAisErrorT safError = SA_AIS_ERR_LIBRARY;
 
+    /* First check component specific error translations */
+    switch(clError)
+    {
+        case CL_CPM_RC(CL_CPM_ERR_OPERATION_IN_PROGRESS):
+            safError = SA_AIS_ERR_BUSY;
+            break;
+    }
+
+    if (safError != SA_AIS_ERR_LIBRARY) return safError;
+    
+    /* Next check to see if the error can be translated generically */    
     switch(CL_GET_ERROR_CODE(clError))
     {
         case CL_OK:

@@ -806,9 +806,9 @@ retry:
     if (sqlite3_changes(pSQLiteHandle->pDatabase) == 0)
     {    
         errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-        clLogError("DBA", "DEL", "No record exists in the database");
-		sqlite3_reset(pSQLiteHandle->stmt[2]);
-		cl_clear_bindings(pSQLiteHandle->stmt[2]);
+        clLogTrace("DBA", "DEL", "No record exists in the database");
+        sqlite3_reset(pSQLiteHandle->stmt[2]);
+        cl_clear_bindings(pSQLiteHandle->stmt[2]);
         goto finalize;
     }    
 

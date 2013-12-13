@@ -142,9 +142,7 @@ extern ClRcT clAmsEntityXMLPrint(
  *
  */
 
-ClRcT clAmsEntityGetKey(
-        CL_IN       ClAmsEntityT        *entity,
-        CL_INOUT    ClCntKeyHandleT     *entityKeyHandle);
+ClCntKeyHandleT clAmsEntityGetKey(CL_IN       const ClAmsEntityT        *entity);
 
 /*
  * clAmsEntityClearOps

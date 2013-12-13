@@ -4945,10 +4945,7 @@ VDECL_VER(_clAmsMgmtDBGet, 5, 1, 0)(ClEoDataT userData,
     ClUint32T len = 0;
     ClUint8T *dbBuffer = NULL;
 
-    if(gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING
-       &&
-       gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN)
-        return CL_AMS_RC(CL_ERR_BAD_OPERATION);
+
 
     rc = clBufferCreate(&msg);
     if(rc != CL_OK)
@@ -4957,9 +4954,14 @@ VDECL_VER(_clAmsMgmtDBGet, 5, 1, 0)(ClEoDataT userData,
     }
 
     clOsalMutexLock(gAms.mutex);
+    if(gAms.serviceState != CL_AMS_SERVICE_STATE_RUNNING && gAms.serviceState != CL_AMS_SERVICE_STATE_SHUTTINGDOWN)
+    {
+        rc= CL_AMS_RC(CL_ERR_BAD_OPERATION);
+        clOsalMutexUnlock(gAms.mutex);
+        goto out_free;
+    }
     rc = clAmsDBGet(msg);
     clOsalMutexUnlock(gAms.mutex);
-
     if(rc != CL_OK)
     {
         clLogError("DB", "GET", "AMF mgmt db get returned with [%#x]", rc);
@@ -5021,7 +5023,7 @@ VDECL_VER(_clAmsMgmtComputedAdminStateGet, 5, 0, 0)(ClEoDataT userData,
         {
             ClAmsSGT *sg = (ClAmsSGT*)entityRef.ptr;
             AMS_CHECKPTR(!sg);
-            rc = clAmsPeSGComputeAdminState(sg, &computedAdminState);
+            computedAdminState = clAmsPeSGComputeAdminState(sg);
         }
         break;
 
