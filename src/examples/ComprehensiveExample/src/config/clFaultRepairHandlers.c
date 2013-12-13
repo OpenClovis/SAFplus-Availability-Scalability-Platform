@@ -22,28 +22,3 @@
 /*
  * ---END_APPLICATION_CODE---
  */
-
-
-ClRcT ALARMRESOURCE_RepairHandler(ClAlarmInfoT *pAlarmInfo, SaAmfRecommendedRecoveryT recoveryAction)
-{
-
-    /*
-     * ---BEGIN_APPLICATION_CODE---
-     */
-
-    /*
-     * ---END_APPLICATION_CODE---
-     */
-
-    return CL_OK;
-}
-
-
-
-ClFaultRepairHandlerTableT gRepairHdlrList[] =
-{
-    {CLASS_ALARMRESOURCE_MO,  (ClFaultRepairHandlerT) ALARMRESOURCE_RepairHandler},
-
-    {0,  (ClFaultRepairHandlerT) NULL}
-
-};

@@ -261,7 +261,7 @@ int main(int argc, char *argv[])
                            &gTestInfo.evtVersion);
     if (rc != SA_AIS_OK)
     {
-        logrc(CL_LOG_ERROR, "%s\t:Failed to init event system[0x%x]\n",
+        logrc(CL_LOG_SEV_ERROR, "%s\t:Failed to init event system[0x%x]\n",
                     appname, rc);
         return rc;
     }
@@ -275,7 +275,7 @@ int main(int argc, char *argv[])
                              &evtChannelHandle);
     if (rc != SA_AIS_OK)
     {
-        logrc(CL_LOG_ERROR, "%s\t:Failed to open event channel [0x%x]\n",
+        logrc(CL_LOG_SEV_ERROR, "%s\t:Failed to open event channel [0x%x]\n",
                 appname, rc);
         return rc;
     }
@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
     rc = saEvtEventAllocate(evtChannelHandle, &gTestInfo.eventHandle);
     if (rc != SA_AIS_OK)
     {
-        logrc(CL_LOG_ERROR, "%s\t:Failed to cllocate event [0x%x]\n",
+        logrc(CL_LOG_SEV_ERROR, "%s\t:Failed to cllocate event [0x%x]\n",
                 appname, rc);
         return rc;
     }
@@ -295,7 +295,7 @@ int main(int argc, char *argv[])
             &gTestInfo.publisherName);
     if (rc != SA_AIS_OK)
     {
-        logrc(CL_LOG_ERROR, "%s\t:Failed to set event attributes [0x%x]\n",
+        logrc(CL_LOG_SEV_ERROR, "%s\t:Failed to set event attributes [0x%x]\n",
                 appname, rc);
         return rc;
     }
@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
     clprintf(CL_LOG_SEV_INFO,"%s: Waiting for CSI assignment...\n", appname);
 
     /* Letting the world know that we entered the mainloop */
-    logmsg(CL_LOG_DEBUG, "%s entered main loop", appname);
+    logmsg(CL_LOG_SEV_DEBUG, "%s entered main loop", appname);
     /* Main loop: Keep printing and publishing unless we are suspended */
     /*
      * Block on AMF dispatch file descriptor for callbacks
@@ -406,7 +406,7 @@ ClRcT clCompAppStateChange(ClEoStateT eoState)
         case CL_EO_STATE_SUSPEND:
         {
             gTestInfo.running = 0;
-            logmsg(CL_LOG_DEBUG, "%s entered suspended state", appname);
+            logmsg(CL_LOG_SEV_DEBUG, "%s entered suspended state", appname);
 
             break;
         }
@@ -414,7 +414,7 @@ ClRcT clCompAppStateChange(ClEoStateT eoState)
         case CL_EO_STATE_RESUME:
         {
             gTestInfo.running = 1;
-            logmsg(CL_LOG_DEBUG, "%s resumed running state", appname);
+            logmsg(CL_LOG_SEV_DEBUG, "%s resumed running state", appname);
 
             break;
         }
@@ -651,7 +651,7 @@ generate_time_of_day(char **data, ClSizeT *data_len)
     // minimal error checking
     if (data == 0 || data_len == 0)
     {
-        logmsg(CL_LOG_ERROR,
+        logmsg(CL_LOG_SEV_ERROR,
                 "%s\t: generate_time_of_day passed null pointer\n", appname);
         return;
     }
@@ -682,7 +682,7 @@ generate_load_average(char **data, ClSizeT *data_len)
     // minimal error checking
     if (data == 0 || data_len == 0)
     {
-        logmsg(CL_LOG_ERROR,
+        logmsg(CL_LOG_SEV_ERROR,
                 "%s\t: generate_load_average passed null pointer\n ", appname);
         return;
     }
@@ -692,13 +692,13 @@ generate_load_average(char **data, ClSizeT *data_len)
     // of the file into the newly allocated buffer.
     if ((fd = open("/proc/loadavg", O_RDONLY, 0)) == -1)
     {
-        logmsg(CL_LOG_ERROR, "%s\t: failed to open /proc/loadavg\n", appname);
+        logmsg(CL_LOG_SEV_ERROR, "%s\t: failed to open /proc/loadavg\n", appname);
         return;
     }
     num_read = read(fd, buf, sizeof buf);
     if (num_read == 0 || num_read == -1)
     {
-        logmsg(CL_LOG_ERROR, "%s\t: bogus result from read of loadavg\n",
+        logmsg(CL_LOG_SEV_ERROR, "%s\t: bogus result from read of loadavg\n",
                 appname);
         return;
     }
@@ -707,7 +707,7 @@ generate_load_average(char **data, ClSizeT *data_len)
     *data = clHeapAllocate(*data_len);
     if (data == 0)
     {
-        logmsg(CL_LOG_ERROR,
+        logmsg(CL_LOG_SEV_ERROR,
                 "%s: failed to allocate memory for loadavg contents\n",
                 appname);
         *data_len = 0;
@@ -770,7 +770,7 @@ csa113Comp_PublishEvent()
     index %= (int)(sizeof generators / sizeof generators[0]);
     if (data == 0 || data_len == 0)
     {
-        logmsg(CL_LOG_ERROR, "%s: no event data generated\n", appname);
+        logmsg(CL_LOG_SEV_ERROR, "%s: no event data generated\n", appname);
         return CL_ERR_NO_MEMORY;
     }
     clprintf(CL_LOG_SEV_INFO,"%s: Publishing Event: %.*s\n", appname, (int)data_len, data);
