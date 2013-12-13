@@ -52,13 +52,13 @@ extern "C" {
 #include <clFaultDefinitions.h>
 #include <saAmf.h>
 
-
+#if 0 /* COR, fault deprecated */
 /**
  * This is the function pointer type for repair handlers.
  */
-typedef ClRcT(*ClFaultRepairHandlerT)(ClAlarmInfoT *pAlarmInfo,
+/* typedef ClRcT(*ClFaultRepairHandlerT)(ClAlarmInfoT *pAlarmInfo,
 		SaAmfRecommendedRecoveryT recoveryAction);
-
+*/
 /**
  * The ClFaultRepairHandlerTableT structure is used to capture the repair handlers per
  * MoClassType.
@@ -70,7 +70,7 @@ typedef struct ClFaultRepairHandlerTable
     ClFaultRepairHandlerT repairHandler;
 }ClFaultRepairHandlerTableT;
 
-
+#endif
 
 #ifdef __cplusplus
 }

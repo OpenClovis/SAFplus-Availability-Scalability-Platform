@@ -210,7 +210,7 @@ int main(int argc, char *argv[])
         rc = saEvtInitialize(&evtLibHandle, &evtCallbacks, &evtVersion);
         if (rc != SA_AIS_OK)
         {
-            clprintf(CL_LOG_ERROR, "Failed to init event mechanism [0x%x]\n", rc);
+            clprintf(CL_LOG_SEV_ERROR, "Failed to init event mechanism [0x%x]\n", rc);
             return rc;
         }
             // Open an event chanel so that we can subscribe to events on that channel
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
         rc = saEvtEventAttributesSet(eventHandle, NULL, 1, 0, &publisherName);
         if (rc != SA_AIS_OK)
         {
-            clprintf(CL_LOG_ERROR, "Failed to set event attributes [0x%x]\n",rc);
+            clprintf(CL_LOG_SEV_ERROR, "Failed to set event attributes [0x%x]\n",rc);
             assert(0);            
         }
     }
@@ -274,12 +274,12 @@ int main(int argc, char *argv[])
     /* csa112: close the event channel, finalize the event client library */
     if ((rc = saEvtChannelClose(evtChannelHandle)) != SA_AIS_OK)
     {
-        clprintf(CL_LOG_ERROR, "Failed [0x%x] to close event channel", rc);
+        clprintf(CL_LOG_SEV_ERROR, "Failed [0x%x] to close event channel", rc);
     }
 
     if ((rc = saEvtFinalize(evtLibHandle)) != SA_AIS_OK)
     {
-        clprintf(CL_LOG_ERROR, "Failed [0x%x] to finalize event library", rc);
+        clprintf(CL_LOG_SEV_ERROR, "Failed [0x%x] to finalize event library", rc);
     }
 
     if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
