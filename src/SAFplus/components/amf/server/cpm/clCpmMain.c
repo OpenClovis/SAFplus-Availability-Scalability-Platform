@@ -174,15 +174,17 @@ static ClBoolT cpmIsConsoleStart = CL_FALSE;
 static ClUint32T myCh = 0;
 static ClUint32T mySl = 0;
 
+#if 0 /* Stone: cpm logging disabled -- logs use safplus_logd */
 static ClUint64T cpmLoggerFileSize = 50*1024*1024;
 static ClUint32T cpmLoggerFileRotations = 0x5;
-
-static ClFdT cpmLoggerFd;
 static ClInt32T cpmLoggerPipe[2];
-static ClCharT cpmLoggerFile[CL_MAX_NAME_LENGTH];
-
 static ClSizeT cpmLoggerTotalBytes;
 static ClOsalMutexT cpmLoggerMutex;
+#endif
+
+static ClFdT cpmLoggerFd;
+static ClCharT cpmLoggerFile[CL_MAX_NAME_LENGTH];
+
 
 static ClJobQueueT cpmNotificationQueue;
 
@@ -875,8 +877,7 @@ static ClRcT clCpmFinalize(void)
     ClUint32T compCount = 0;
     ClCpmBootOperationT *bootOp = NULL;
 
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, NULL,
-               CL_CPM_LOG_0_SERVER_COMP_MGR_CLEANUP_INFO);
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, NULL, CL_CPM_LOG_0_SERVER_COMP_MGR_CLEANUP_INFO); /* Finalizing the CPM server */
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("COMP_MGR: Inside componentMgrCleanUp \n"));
 
     if (gpClCpm == NULL)
@@ -1022,10 +1023,8 @@ static ClRcT clCpmFinalize(void)
         CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get First component \n"),
                           rc);
 
-        rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
-                                  (ClCntDataHandleT *) &comp);
-        CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get component Data \n"),
-                          rc);
+        rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode, (ClCntDataHandleT *) &comp);
+        CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get component Data \n"), rc);
 
         compCount = gpClCpm->noOfComponent;
         while (compCount != 0)
@@ -1045,12 +1044,9 @@ static ClRcT clCpmFinalize(void)
             if (compCount)
             {
                 rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
-                CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR,
-                                  ("Unable to Get next component \n"), rc);
-                rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
-                                          (ClCntDataHandleT *) &comp);
-                CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR,
-                                  ("Unable to Get component Data \n"), rc);
+                CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get next component \n"), rc);
+                rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode, (ClCntDataHandleT *) &comp);
+                CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get component Data \n"), rc);
             }
         }
         /*
@@ -1087,8 +1083,7 @@ static ClRcT clCpmFinalize(void)
          */
         cpmCompConfigFinalize();
 
-        clEoClientUninstallTables(gpClCpm->cpmEoObj,
-                                  CL_EO_SERVER_SYM_MOD(gAspFuncTable, AMF));
+        clEoClientUninstallTables(gpClCpm->cpmEoObj, CL_EO_SERVER_SYM_MOD(gAspFuncTable, AMF));
 
         cpmDeAllocate();
         clOsalMutexUnlock(&gpClCpm->cpmShutdownMutex);
@@ -1151,6 +1146,7 @@ void cpmChangeCwd(void)
     }
 }
 
+#if 0 /* Stone: stdout log file rotation is disabled: see related comments for why */
 static void cpmLoggerRotate(void)
 {
     register ClInt32T i;
@@ -1189,7 +1185,9 @@ ClRcT cpmLoggerRotateEnable(void)
     clOsalMutexUnlock(&cpmLoggerMutex);
     return CL_OK;
 }
+#endif 
 
+#if 0
 /*
  * Reads from the pipe and dumps to the file.
  */
@@ -1273,6 +1271,7 @@ static ClRcT cpmCreateLoggerTaskPipe(const ClCharT *cpmLoggerFile)
     out:
     return rc;
 }
+#endif
 
 #ifdef VXWORKS_BUILD
 
@@ -1304,6 +1303,7 @@ static ClRcT cpmCreateLoggerTaskConsole(const ClCharT *cpmLoggerFile)
 
 #endif
 
+#if 0
 static ClRcT cpmCreateLoggerTask(const ClCharT *cpmLoggerFile)
 {
 #ifdef VXWORKS_BUILD
@@ -1313,8 +1313,8 @@ static ClRcT cpmCreateLoggerTask(const ClCharT *cpmLoggerFile)
     }
 #endif
     return cpmCreateLoggerTaskPipe(cpmLoggerFile);
-
 }
+#endif
 
 static void cpmLoggerSetFileName(void)
 {
@@ -1364,7 +1364,7 @@ static void cpmLoggerSetFileName(void)
 }
 
 
-
+#if 0  /* Stone: the CPM logger using stdout/stderr through pipes is broken because what happens to child processes when the pipe forwarding thread or this process dies/hangs -- they hang. */   
 static ClRcT cpmLoggerInitialize(void)
 {
     ClRcT rc = CL_OK;
@@ -1439,6 +1439,7 @@ static ClRcT cpmLoggerInitialize(void)
 
     return rc;
 }
+#endif
 
 void cpmRedirectOutput(void)
 {
@@ -1465,8 +1466,6 @@ void cpmRedirectOutput(void)
     {
         exit(1);
     }
-    
-    
     dup2(cpmLoggerFd, STDOUT_FILENO);
     dup2(cpmLoggerFd, STDERR_FILENO);
 }
@@ -1584,12 +1583,13 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
               "CPM's current working directory is [%s]",
               gpClCpm->logFilePath);
 
+#if 0  /* Stone: the CPM logger using stdout/stderr through pipes is broken because what happens to child processes when the pipe forwarding thread or this process dies/hangs -- they hang. */   
     if ((!cpmIsForeground) && (!cpmIsConsoleStart))
     {
-        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                  "Starting CPM's logger task..");
+        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Starting CPM's logger task..");
         cpmLoggerInitialize();
     }
+#endif    
 
     if( (rc = clJobQueueInit(&cpmNotificationQueue, 0, 1) ) != CL_OK)
     {
@@ -4364,8 +4364,10 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
 
     loadAspInstallInfo();
 
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                "%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
+    printf("%s %s\n", CPM_ASP_WELCOME_MSG, gAspVersion);
+    printf("This file is the standard output of all applications.\n");
+    fflush(stdout);
     
     clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
               "Process [%s] started. PID [%d]",

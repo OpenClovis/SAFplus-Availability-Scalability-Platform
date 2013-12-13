@@ -1195,6 +1195,7 @@ ClRcT clCpmHeartbeat(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     return rc;
 }
 
+#if 0
 ClRcT clCpmLogFileRotate(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
@@ -1215,6 +1216,7 @@ ClRcT clCpmLogFileRotate(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     out:
     return rc;
 }
+#endif
 
 ClRcT clCpmRestart(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 {
