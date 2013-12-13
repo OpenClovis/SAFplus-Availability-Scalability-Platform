@@ -199,7 +199,7 @@ static ClEoStaticQueueT gEoStaticQueue;
 static ClOsalTaskIdT *gClEoTaskIds;
 static ClInt32T gClEoThreadCount;
 static ClInt32T gClEoReceiverSpawned;
-static ClBoolT gClEoStaticQueueInitialized;
+static ClBoolT gClEoStaticQueueInitialized=CL_FALSE;
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 /*
  * To debug the creation and deletion of threads.
