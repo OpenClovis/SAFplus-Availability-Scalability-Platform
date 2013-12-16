@@ -80,7 +80,7 @@ void ClGmsViewNodeTFree(ClGmsViewNodeT* node)
 
 ClGmsViewNodeT* ClGmsViewNodeTAlloc(ClGmsNodeIdT nodeId)
 {
-    ClGmsViewNodeT* ret = clHeapCalloc(1,sizeof(ClGmsViewNodeT));    
+    ClGmsViewNodeT* ret = (ClGmsViewNodeT*) clHeapCalloc(1,sizeof(ClGmsViewNodeT));    
     clLogDebug("VIEW","MEM", "Alloc [%p] for Node [%d]", (void*) ret, nodeId);
     return ret;
 }
@@ -139,7 +139,7 @@ static void gmsViewCacheAdd(ClIocNodeAddressT nodeId, ClGmsViewNodeT *node)
     ClGmsIocViewCacheT *cache;
     if( !(cache = gmsViewCacheFind(nodeId) ) )
     {
-        cache = clHeapCalloc(1, sizeof(*cache));
+        cache = (ClGmsIocViewCacheT*) clHeapCalloc(1, sizeof(*cache));
         CL_ASSERT(cache != NULL);
         cache->nodeAddress = nodeId;
         hashAdd(gmsViewCache, GMS_VIEW_CACHE_HASH(nodeId), &cache->hash);
@@ -161,13 +161,13 @@ ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT no
     //ClGmsIocViewCacheT *cacheE = NULL;
     ClNodeCacheMemberT member = {0};
     ClRcT rc = CL_OK;
+
     CL_ASSERT(nodeAddress);  // Slot 0 is invalid...
-    CL_ASSERT(pNode);  // programming error, you need to hand me a pointer to fill in
+    CL_ASSERT(pNode);        // programming error, you need to hand me a pointer to fill in
     if(!nodeAddress || !pNode)
-    {        
+    {
         return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
     }
-    
 
     /* GMS triggers on the link up event but we must wait for the node hello message to update the node cache (AMF interpretes and processes it) before we
        can run an election.  Its actually ok to just abort here as the election will be handled later but of course it best to handle it now.
@@ -576,12 +576,12 @@ static ClRcT   _clGmsViewGetChangeOnlyViewNotification(
 
         if (thisViewDb->viewType == CL_GMS_CLUSTER)
         {
-            clusterBuf[index].clusterChange  = node->trackFlags;
+            clusterBuf[index].clusterChange  = (ClGmsClusterChangesT) node->trackFlags;
             clusterBuf[index++].clusterNode = node->viewMember.clusterMember;
         }
         else
         {
-            groupBuf[index].groupChange  = node->trackFlags;
+            groupBuf[index].groupChange  = (ClGmsGroupChangesT) node->trackFlags;
             groupBuf[index++].groupMember = node->viewMember.groupMember;
         }
 
@@ -691,12 +691,12 @@ _clGmsViewGetCurrentViewNotification(
 
         if (thisViewDb->viewType == CL_GMS_CLUSTER)
         {
-            clusterViewBuf[index].clusterChange  = node->trackFlags;
+            clusterViewBuf[index].clusterChange  = (ClGmsClusterChangesT) node->trackFlags;
             clusterViewBuf[index++].clusterNode = node->viewMember.clusterMember;
         }
         else
         {
-            groupViewBuf[index].groupChange  = node->trackFlags;
+            groupViewBuf[index].groupChange  = (ClGmsGroupChangesT) node->trackFlags;
             groupViewBuf[index++].groupMember = node->viewMember.groupMember;
         }
 
@@ -890,7 +890,7 @@ ClRcT   _clGmsViewGetTrackAsync(
 
             if (changeOnlyNotif[index].clusterChange == (ClInt32T)CL_GMS_MEMBER_LEFT)
             {
-                notification = clHeapRealloc(notification, (nodeSize * (numEntries+1)));
+                notification = (ClGmsClusterNotificationT*) clHeapRealloc(notification, (nodeSize * (numEntries+1)));
                 if (notification == NULL)
                 {
                     return CL_ERR_NO_MEMORY;
@@ -909,7 +909,7 @@ ClRcT   _clGmsViewGetTrackAsync(
 
             if (changeOnlyNotif[index].groupChange == CL_GMS_MEMBER_LEFT)
             {
-                notification = clHeapRealloc(notification, (nodeSize * (numEntries+1)));
+                notification = (ClGmsGroupNotificationT*) clHeapRealloc(notification, (nodeSize * (numEntries+1)));
                 if (notification == NULL)
                 {
                     return CL_ERR_NO_MEMORY;

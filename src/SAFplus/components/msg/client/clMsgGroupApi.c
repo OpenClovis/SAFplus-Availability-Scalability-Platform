@@ -53,12 +53,16 @@ SaAisErrorT saMsgQueueGroupCreate(SaMsgHandleT msgHandle,
         const SaNameT *pQueueGroupName,
         SaMsgQueueGroupPolicyT groupPolicy)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
     ClMsgQGroupCkptDataT qGroupData;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
 
     if(pQueueGroupName == NULL)
     {
@@ -122,7 +126,7 @@ SaAisErrorT saMsgQueueGroupInsert(
         const SaNameT *pQueueName
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
     ClMsgQueueCkptDataT queueData = {{0}};
@@ -130,8 +134,12 @@ SaAisErrorT saMsgQueueGroupInsert(
     ClIdlHandleObjT idlObj = {0};
     ClIdlHandleT idlQGroupHandle = 0;
     ClUint32T pos;
-
-    CL_MSG_INIT_CHECK;
+    
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
 
     if(pQueueGroupName == NULL || pQueueName == NULL)
     {
@@ -215,7 +223,7 @@ SaAisErrorT saMsgQueueGroupRemove(
         const SaNameT *pQueueName
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
     ClMsgQueueCkptDataT queueData = {{0}};
@@ -224,7 +232,11 @@ SaAisErrorT saMsgQueueGroupRemove(
     ClIdlHandleT idlQGroupHandle = 0;
     ClUint32T pos;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
 
     if(pQueueGroupName == NULL || pQueueName == NULL)
     {
@@ -308,14 +320,18 @@ SaAisErrorT saMsgQueueGroupDelete(
         const SaNameT *pQueueGroupName
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
     ClMsgQGroupCkptDataT qGroupData;
     ClIdlHandleObjT idlObj = {0};
     ClIdlHandleT idlQGroupHandle = 0;
-
-    CL_MSG_INIT_CHECK;
+    
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
 
     if(pQueueGroupName == NULL)
     {
@@ -461,7 +477,7 @@ static void clMsgQGroupTrackCallback(ClIdlHandleT idlHandle, SaMsgHandleT client
 
     memcpy(&pParam->groupName, pQueueGroupName, sizeof(pParam->groupName));
     pParam->rc = CL_MSG_SA_RC(rc);
-    pParam->pNotificationBuffer = clHeapCalloc(1, sizeof(*pParam->pNotificationBuffer));
+    pParam->pNotificationBuffer = (SaMsgQueueGroupNotificationBufferT*) clHeapCalloc(1, sizeof(*pParam->pNotificationBuffer));
     if(pParam->pNotificationBuffer == NULL)
     {
         rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
@@ -489,7 +505,7 @@ SaAisErrorT saMsgQueueGroupTrack(
         SaMsgQueueGroupNotificationBufferT *pNotificationBuffer
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
     SaMsgQueueGroupNotificationBufferT *pTempNotif;
@@ -497,7 +513,11 @@ SaAisErrorT saMsgQueueGroupTrack(
     ClIdlHandleObjT idlObj = {0};
     ClIdlHandleT idlQGroupHandle = 0;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
 
     if(pQueueGroupName == NULL)
     {
@@ -579,7 +599,7 @@ SaAisErrorT saMsgQueueGroupTrack(
         if(pNotificationBuffer->notification != NULL)
         {
             pTempNotif->numberOfItems = pNotificationBuffer->numberOfItems;
-            pTempNotif->notification = clHeapRealloc(pTempNotif->notification, 
+            pTempNotif->notification = (SaMsgQueueGroupNotificationT*) clHeapRealloc(pTempNotif->notification, 
                                                      sizeof(*pTempNotif->notification) * pNotificationBuffer->numberOfItems);
             if(pTempNotif->notification == NULL)
             {
@@ -664,14 +684,18 @@ saMsgQueueGroupTrackStop (
 	SaMsgHandleT msgHandle,
 	const SaNameT *pGroupName)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
     ClMsgQGroupCkptDataT qGroupData;
     ClIdlHandleObjT idlObj = {0};
     ClIdlHandleT idlQGroupHandle = 0;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+       return CL_MSG_SA_RET(rc);
+    }
 
     if(pGroupName == NULL)
     {
@@ -727,10 +751,14 @@ SaAisErrorT saMsgQueueGroupNotificationFree(
         SaMsgQueueGroupNotificationT *pNotification
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
 
     rc = clHandleCheckout(gMsgHandleDatabase, msgHandle, (void**)&pMsgLibInfo);
     if(rc != CL_OK)

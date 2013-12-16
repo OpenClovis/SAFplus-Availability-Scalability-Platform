@@ -64,8 +64,8 @@ static ClMsgGroupHashesMapT gGroupHashesMap;
 
 static int msgNodeHashSortCmp(const void *a, const void *b)
 {
-    const MsgNodeHashesT *hash1 = a;
-    const MsgNodeHashesT *hash2 = b;
+    const MsgNodeHashesT *hash1 = (const MsgNodeHashesT*) a;
+    const MsgNodeHashesT *hash2 = (const MsgNodeHashesT*) b;
     if(hash1->nodeHash < hash2->nodeHash) return -1;
     if(hash1->nodeHash > hash2->nodeHash) return 1;
     return 0;
@@ -133,7 +133,7 @@ static ClRcT msgNodeHashesInit(ClInt32T nodes, ClInt32T hashesPerNode,
         hashes = __MSG_QUEUE_GROUP_HASHES;
     }
 
-    nodeHashes = clHeapCalloc(hashes, sizeof(*nodeHashes));
+    nodeHashes = (MsgNodeHashesT*) clHeapCalloc(hashes, sizeof(*nodeHashes));
     if(nodeHashes == NULL)
     {
         rc = CL_MSG_RC(CL_ERR_NO_MEMORY);
@@ -221,7 +221,7 @@ ClRcT clMsgQueueGroupHashInit(ClInt32T nodes, ClInt32T hashesPerNode)
         hashesPerNode = gGroupHashesMap.hashesPerNode;
     }
     
-    gGroupHashesMap.groupNodeHashesMap = clHeapRealloc(gGroupHashesMap.groupNodeHashesMap,
+    gGroupHashesMap.groupNodeHashesMap = (ClMsgGroupHashesT*) clHeapRealloc(gGroupHashesMap.groupNodeHashesMap,
                                                        sizeof(*gGroupHashesMap.groupNodeHashesMap) * nodes);
     CL_ASSERT(gGroupHashesMap.groupNodeHashesMap != NULL);
     memset(gGroupHashesMap.groupNodeHashesMap + currentNodes, 0,
@@ -247,7 +247,7 @@ ClRcT clMsgQueueGroupHashInit(ClInt32T nodes, ClInt32T hashesPerNode)
     return rc;
 
     out_free:
-    for(ClUint32T j = currentNodes; j < i ; ++j)
+    for(ClInt32T j = currentNodes; j < i ; ++j)
     {
         if(gGroupHashesMap.groupNodeHashesMap[i].groupNodeHashes)
         {
@@ -269,7 +269,7 @@ ClRcT clMsgQueueGroupHashFinalize()
     if(!gGroupHashesMap.nodes)
         goto out;
 
-    for(ClUint32T i = 0; i < gGroupHashesMap.nodes; ++i)
+    for(ClInt32T i = 0; i < gGroupHashesMap.nodes; ++i)
     {
         if(gGroupHashesMap.groupNodeHashesMap[i].groupNodeHashes)
         {
@@ -333,7 +333,7 @@ static SaAisErrorT clMsgQueueGroupSendWithKeyIovec(ClBoolT isSync,
     /*
      * FIXME: Do we need to lock while growing the hash ring??
      */
-    if(gGroupHashesMap.nodes < qGroupData.numberOfQueues)
+    if(gGroupHashesMap.nodes < (ClInt32T) qGroupData.numberOfQueues)
     {
         rc = clMsgQueueGroupHashInit(qGroupData.numberOfQueues, __MSG_QUEUE_GROUP_HASHES_PER_NODE);
         if(rc != CL_OK)
@@ -350,7 +350,7 @@ static SaAisErrorT clMsgQueueGroupSendWithKeyIovec(ClBoolT isSync,
                                       pGroupHashes->groupNodeHashes, hashes);
 
     /* Handle incorrect index */
-    if ((queueGroupHash->nodeIndex < 0) || (queueGroupHash->nodeIndex >= qGroupData.numberOfQueues))
+    if ((queueGroupHash->nodeIndex < 0) || (queueGroupHash->nodeIndex >= (ClInt32T) qGroupData.numberOfQueues))
     {
         rc = CL_MSG_RC(CL_ERR_BAD_OPERATION);
         clLogError("QGH", "SEND", "Incorrect node index [%d] with key [%.*s] and number of nodes [%d]. error code [0x%x]",
@@ -359,7 +359,7 @@ static SaAisErrorT clMsgQueueGroupSendWithKeyIovec(ClBoolT isSync,
                                    qGroupData.numberOfQueues, rc);
         goto error_out;
     }
-
+    {
     /* Find target based on the consistent hash ring */
     SaNameT *pQName = &qGroupData.pQueueList[queueGroupHash->nodeIndex];
 
@@ -367,7 +367,7 @@ static SaAisErrorT clMsgQueueGroupSendWithKeyIovec(ClBoolT isSync,
         return clMsgMessageSendIovec(msgHandle, (SaNameT *)pQName, message, timeout);
     else
         return clMsgMessageSendAsyncIovec(msgHandle, invocation, (SaNameT *)pQName, message, ackFlags);
-
+    }
 error_out:
     return CL_MSG_SA_RC(rc);
 }

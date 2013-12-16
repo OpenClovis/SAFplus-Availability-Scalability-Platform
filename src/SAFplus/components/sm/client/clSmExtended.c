@@ -148,7 +148,7 @@ clEsmInstanceCreate(ClSmTemplatePtrT sm,
  *  API to delete a previously created State macine Instance. Also
  *  frees up the events that are in the Q.
  *                                                                        
- *  @param this Extended State machine Instance to be deleted
+ *  @param smThis Extended State machine Instance to be deleted
  *
  *  @returns 
  *    CL_OK on CL_OK <br/>
@@ -158,21 +158,21 @@ clEsmInstanceCreate(ClSmTemplatePtrT sm,
  *
  */
 ClRcT 
-clEsmInstanceDelete(ClExSmInstancePtrT this
+clEsmInstanceDelete(ClExSmInstancePtrT smThis
                  )
 {
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);  
+  CL_ASSERT(smThis);  
 
   clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_DELETE,"Delete Extended State Machine Instance");
 
-  if(this) 
+  if(smThis) 
     {
       ClUint32T sz = 0;
 
-      if(ESM_LOCK(this)!=CL_OK)
+      if(ESM_LOCK(smThis)!=CL_OK)
         {
           ret = SM_ERR_LOCKED;
           CL_FUNC_EXIT();
@@ -180,38 +180,38 @@ clEsmInstanceDelete(ClExSmInstancePtrT this
         }
 
       /* free the fsm first */
-      ret = clSmInstanceDelete(this->fsm);
+      ret = clSmInstanceDelete(smThis->fsm);
 
-      SMQ_SIZE(this->q, sz);
+      SMQ_SIZE(smThis->q, sz);
       /* Check if the queue is empty, if not, dequeue and delete them */
       if(sz > 0) 
         {
           ClSmQueueItemPtrT item;
           ClRcT rc;
 
-          rc = SMQ_DEQUEUE(this->q, item);
+          rc = SMQ_DEQUEUE(smThis->q, item);
           while(rc==CL_OK && item)
             {
               mFREE(item);
-              rc = SMQ_DEQUEUE(this->q, item);
+              rc = SMQ_DEQUEUE(smThis->q, item);
             }
           clLogInfo(ESM_LOG_AREA,ESM_LOG_CTX_DELETE,"***Delete: Events are present in Q! Dropped to floor!!! ***");
         }
 
       /* delete the queue */
-      clQueueDelete(&this->q);
+      clQueueDelete(&smThis->q);
 
       /* free the history buffer */
-      mFREE(this->log.buffer);
+      mFREE(smThis->log.buffer);
 
       /* unlock it before, so we can delete the mutex */
-      ESM_UNLOCK(this);
+      ESM_UNLOCK(smThis);
 
       /* delete the mutex */
-      clOsalMutexDelete(this->lock);
+      clOsalMutexDelete(smThis->lock);
 
       /* free the object */
-      mFREE(this);
+      mFREE(smThis);
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -230,7 +230,7 @@ clEsmInstanceDelete(ClExSmInstancePtrT this
  *  the contents of the event passed a re copied to the new 
  *  event), but the payload is just referenced and not copied.
  *  
- *  @param this Extended State machine Instance handle
+ *  @param smThis Extended State machine Instance handle
  *  @param msg  Event information
  *
  *  @returns 
@@ -243,7 +243,7 @@ clEsmInstanceDelete(ClExSmInstancePtrT this
  *
  */
 ClRcT
-clEsmInstanceEventAdd(ClExSmInstancePtrT this, 
+clEsmInstanceEventAdd(ClExSmInstancePtrT smThis, 
                     ClSmEventPtrT msg
                     )
 {
@@ -251,10 +251,10 @@ clEsmInstanceEventAdd(ClExSmInstancePtrT this,
 
   CL_FUNC_ENTER();
 
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
   CL_ASSERT(msg);
 
-  if(this && msg)
+  if(smThis && msg)
     {
       ClSmQueueItemPtrT item;
 
@@ -265,7 +265,7 @@ clEsmInstanceEventAdd(ClExSmInstancePtrT this,
         }
       else 
         {
-          if(ESM_LOCK(this)!=CL_OK)
+          if(ESM_LOCK(smThis)!=CL_OK)
             {
               ret = SM_ERR_LOCKED;
               mFREE(item);
@@ -273,19 +273,19 @@ clEsmInstanceEventAdd(ClExSmInstancePtrT this,
               return ret;
             }
           item->event = *msg;
-          if (ESM_IS_PAUSED(this) && ESM_IS_DROP_ON_PAUSE(this))
+          if (ESM_IS_PAUSED(smThis) && ESM_IS_DROP_ON_PAUSE(smThis))
           {
               ret = CL_OK;
               mFREE(item);
-              ESM_UNLOCK(this);
+              ESM_UNLOCK(smThis);
               CL_FUNC_EXIT();
               return ret;
           }
-          ret = SMQ_ENQUEUE(this->q, item);
+          ret = SMQ_ENQUEUE(smThis->q, item);
           clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_EVENT,"Event %d added => ret [%d]",
                                 item->event.eventId,
                                 ret);
-          ESM_UNLOCK(this);
+          ESM_UNLOCK(smThis);
         }
     } else 
       {
@@ -307,7 +307,7 @@ clEsmInstanceEventAdd(ClExSmInstancePtrT this,
  *  history state and if so, then returns back to the previous 
  *  state.  
  *                                                                        
- *  @param this Instance Object
+ *  @param smThis Instance Object
  *
  *  @returns 
  *    CL_OK on CL_OK <br/>
@@ -319,7 +319,7 @@ clEsmInstanceEventAdd(ClExSmInstancePtrT this,
  *  @see #clEsmInstanceProcessEvents
  */
 ClRcT 
-clEsmInstanceProcessEvent(ClExSmInstancePtrT this)
+clEsmInstanceProcessEvent(ClExSmInstancePtrT smThis)
 {
   ClRcT ret = CL_OK;
   ClSmEventPtrT msg=0;
@@ -327,27 +327,27 @@ clEsmInstanceProcessEvent(ClExSmInstancePtrT this)
 
   CL_FUNC_ENTER();
 
-  CL_ASSERT(this);
-  if(this && this->fsm && this->fsm->sm && this->fsm->current)
+  CL_ASSERT(smThis);
+  if(smThis && smThis->fsm && smThis->fsm->sm && smThis->fsm->current)
     {
       ClUint32T sz;
 
-      if(ESM_LOCK(this)!=CL_OK)
+      if(ESM_LOCK(smThis)!=CL_OK)
         {
           ret = SM_ERR_LOCKED;
           CL_FUNC_EXIT();
           return ret;
         }
-      SMQ_SIZE(this->q, sz);
+      SMQ_SIZE(smThis->q, sz);
       if(sz == 0)
         {
           ret = SM_ERR_NO_EVENT;
         }
-      else if(ESM_IS_PAUSED(this))
+      else if(ESM_IS_PAUSED(smThis))
         {
           ret = SM_ERR_PAUSED;
         }
-      else if (ESM_IS_BUSY(this))
+      else if (ESM_IS_BUSY(smThis))
         {
             ret = SM_ERR_BUSY;
         }
@@ -359,18 +359,18 @@ clEsmInstanceProcessEvent(ClExSmInstancePtrT this)
           /* dequeue the message 
            */
 
-          rc = SMQ_DEQUEUE(this->q, item);
+          rc = SMQ_DEQUEUE(smThis->q, item);
       
           if(rc!=CL_OK || !item) 
             {
               ret = CL_SM_RC(CL_ERR_NULL_POINTER);
             } else 
               {
-                ClSmStatePtrT history = this->fsm->current;
+                ClSmStatePtrT history = smThis->fsm->current;
                 ClSmTransitionPtrT trans = 0;
                 
-                ESM_SET_BUSY_STATE(this);
-                ESM_UNLOCK(this);
+                ESM_SET_BUSY_STATE(smThis);
+                ESM_UNLOCK(smThis);
 
                 msg = &item->event;
 
@@ -393,7 +393,7 @@ clEsmInstanceProcessEvent(ClExSmInstancePtrT this)
                              * there is a predefined next state and will not go to
                              * history state
                              */
-                            trans->nextState = this->previous;
+                            trans->nextState = smThis->previous;
                             clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_EVENT,"History State Set as Next State!");
                           }
                           else 
@@ -409,23 +409,23 @@ clEsmInstanceProcessEvent(ClExSmInstancePtrT this)
                 
 #ifdef DEBUG
                 clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_EVENT,"StateMachine [%s] OnEvent [%d]", 
-                                      this->fsm->name,
+                                      smThis->fsm->name,
                                       msg->eventId);
 #else
                 clLogTrace(ESM_LOG_AREA,ESM_LOG_CTX_EVENT,"OnEvent %d", msg->eventId);
 #endif
 
-                ret = clSmInstanceOnEvent(this->fsm, msg);
+                ret = clSmInstanceOnEvent(smThis->fsm, msg);
                 if(ret == CL_OK) 
                   {
                     /* update the history state */
-                    this->previous = history;
+                    smThis->previous = history;
                     /* record log */
-                    logBuf = ESM_LOG_BUF(this->log);
+                    logBuf = ESM_LOG_BUF(smThis->log);
                     logBuf->eventId = msg->eventId;
-                    logBuf->from = this->previous;
-                    logBuf->to = this->fsm->current;
-                    ESM_LOG_IDX_INCR(this->log);
+                    logBuf->from = smThis->previous;
+                    logBuf->to = smThis->fsm->current;
+                    ESM_LOG_IDX_INCR(smThis->log);
                   }
                 
 
@@ -438,11 +438,11 @@ clEsmInstanceProcessEvent(ClExSmInstancePtrT this)
                   }
                 /* free the dequeued item */
                 mFREE(item);
-                ESM_LOCK(this);
-                ESM_SET_IDL_STATE(this);
+                ESM_LOCK(smThis);
+                ESM_SET_IDL_STATE(smThis);
               }
         }
-        ESM_UNLOCK(this);
+        ESM_UNLOCK(smThis);
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -462,7 +462,7 @@ clEsmInstanceProcessEvent(ClExSmInstancePtrT this)
  *  back with the error code, even if there are more
  *  events in the q.
  *                                                                        
- *  @param this Instance Object handle
+ *  @param smThis Instance Object handle
  *
  *  @returns 
  *    CL_OK on CL_OK <br/>
@@ -474,19 +474,19 @@ clEsmInstanceProcessEvent(ClExSmInstancePtrT this)
  *  @see #clEsmInstanceProcessEvent
  */
 ClRcT 
-clEsmInstanceProcessEvents(ClExSmInstancePtrT this)
+clEsmInstanceProcessEvents(ClExSmInstancePtrT smThis)
 {
   ClRcT ret = CL_OK;
   int k=0;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
 
-  if(this)
+  if(smThis)
     {
       while(ret == CL_OK)
         {
-          ret = clEsmInstanceProcessEvent(this);
+          ret = clEsmInstanceProcessEvent(smThis);
           if(ret==CL_OK) k++;
         }
       
@@ -515,7 +515,7 @@ clEsmInstanceProcessEvents(ClExSmInstancePtrT this)
  *
  *  Please refer to the FSM start API.
  *
- *  @param this State Machine Object
+ *  @param smThis State Machine Object
  *
  *  @returns 
  *    CL_OK on CL_OK (successful start) <br/>
@@ -524,13 +524,13 @@ clEsmInstanceProcessEvents(ClExSmInstancePtrT this)
  *  @see #clSmInstanceStart
  */
 ClRcT
-clEsmInstanceStart(ClExSmInstancePtrT this
+clEsmInstanceStart(ClExSmInstancePtrT smThis
                 )
 {
-    CL_ASSERT(this);
-    if(this)
+    CL_ASSERT(smThis);
+    if(smThis)
       {
-        return clSmInstanceStart(this->fsm);
+        return clSmInstanceStart(smThis->fsm);
       }
 
     return CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -542,7 +542,7 @@ clEsmInstanceStart(ClExSmInstancePtrT this
  *
  *  Please refer to the FSM Restart API.
  *
- *  @param this State Machine Object
+ *  @param smThis State Machine Object
  *
  *  @returns 
  *    CL_OK on CL_OK (successful start) <br/>
@@ -551,13 +551,13 @@ clEsmInstanceStart(ClExSmInstancePtrT this
  *  @see #clSmInstanceStart
  */
 ClRcT
-clEsmInstanceRestart(ClExSmInstancePtrT this
+clEsmInstanceRestart(ClExSmInstancePtrT smThis
                   )
 {
-    CL_ASSERT(this);
-    if(this)
+    CL_ASSERT(smThis);
+    if(smThis)
       {
-        return clSmInstanceRestart(this->fsm);
+        return clSmInstanceRestart(smThis->fsm);
       }
     
     return CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -572,7 +572,7 @@ clEsmInstanceRestart(ClExSmInstancePtrT this
  *  state machine instance back in regular mode, use API
  *  clEsmInstanceContinue.
  *
- *  @param this     State Machine Object
+ *  @param smThis     State Machine Object
  *
  *  @returns 
  *    CL_OK on CL_OK (successful start) <br/>
@@ -581,26 +581,26 @@ clEsmInstanceRestart(ClExSmInstancePtrT this
  *  @see #clEsmInstanceContinue
  */
 ClRcT
-clEsmInstancePause(ClExSmInstancePtrT this
+clEsmInstancePause(ClExSmInstancePtrT smThis
                  )
 {
   ClRcT ret = CL_OK;
   CL_FUNC_ENTER();
 
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
 
-  if(this && this->fsm)
+  if(smThis && smThis->fsm)
     {
-      if(ESM_IS_PAUSED(this))
+      if(ESM_IS_PAUSED(smThis))
       {
         ret = SM_ERR_PAUSED;
         CL_FUNC_EXIT();
         return ret;
       }
 #ifdef DEBUG
-      clLogTrace(ESM_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Pause [%s]", this->fsm->name);
+      clLogTrace(ESM_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Pause [%s]", smThis->fsm->name);
 #endif
-      ESM_PAUSE(this);
+      ESM_PAUSE(smThis);
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -618,7 +618,7 @@ clEsmInstancePause(ClExSmInstancePtrT this
  *  processed.  This API puts the state machine instance
  *  back in regular processing mode.
  *
- *  @param this State Machine Object
+ *  @param smThis State Machine Object
  *
  *  @returns 
  *    CL_OK on CL_OK (successful start) <br/>
@@ -627,26 +627,26 @@ clEsmInstancePause(ClExSmInstancePtrT this
  *  @see #clEsmInstancePause
  */
 ClRcT
-clEsmInstanceContinue(ClExSmInstancePtrT this
+clEsmInstanceContinue(ClExSmInstancePtrT smThis
                     )
 {
   ClRcT ret = CL_OK;
   CL_FUNC_ENTER();
 
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
 
-  if(this && this->fsm)
+  if(smThis && smThis->fsm)
     {
-      if(!(ESM_IS_PAUSED(this)))
+      if(!(ESM_IS_PAUSED(smThis)))
       {
         ret = SM_ERR_NOT_PAUSED;
         CL_FUNC_EXIT();
         return ret;
       }
 #ifdef DEBUG
-      clLogTrace(ESM_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Continue [%s]", this->fsm->name);
+      clLogTrace(ESM_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"Continue [%s]", smThis->fsm->name);
 #endif
-      ESM_CONTINUE(this);
+      ESM_CONTINUE(smThis);
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -662,7 +662,7 @@ clEsmInstanceContinue(ClExSmInstancePtrT this
  *
  *  API to print the instance details.
  *
- *  @param this State Machine Object
+ *  @param smThis State Machine Object
  *
  *  @returns 
  *    void
@@ -670,19 +670,19 @@ clEsmInstanceContinue(ClExSmInstancePtrT this
  *  @see #clEsmInstanceLogShow
  */
 void
-clEsmInstanceShow(ClExSmInstancePtrT this
+clEsmInstanceShow(ClExSmInstancePtrT smThis
                 )
 {
-  if(this)
+  if(smThis)
     {
       ClUint32T sz;
 
-      SMQ_SIZE(this->q, sz);
+      SMQ_SIZE(smThis->q, sz);
       clOsalPrintf("\n[ESM] Instance: Lock [%d] Pause [%d] Q-Items [%d]", 
-               this->lock,
-               this->pause,
+               smThis->lock,
+               smThis->pause,
                sz);
-      smInstanceShow(this->fsm);
+      smInstanceShow(smThis->fsm);
     }
 
 }
@@ -692,7 +692,7 @@ clEsmInstanceShow(ClExSmInstancePtrT this
  *
  *  API to print the history of the state machine instance..
  *
- *  @param this State Machine Object
+ *  @param smThis State Machine Object
  *
  *  @returns 
  *    void
@@ -700,18 +700,18 @@ clEsmInstanceShow(ClExSmInstancePtrT this
  *  @see #clEsmInstanceLogShow
  */
 void
-clEsmInstanceLogShow(ClExSmInstancePtrT this,
+clEsmInstanceLogShow(ClExSmInstancePtrT smThis,
                    ClUint16T  items
                    )
 {
-  if(this)
+  if(smThis)
     {
       int i;
       ClSmLogInfoPtrT logBuf;
 
 #ifdef DEBUG
       clOsalPrintf("\n[ESM] Instance: %s Last [%d] entries:",
-               this->fsm->name,
+               smThis->fsm->name,
                items);
 #else
       clOsalPrintf("\n[ESM] Instance: Last [%d] entries:",
@@ -723,7 +723,7 @@ clEsmInstanceLogShow(ClExSmInstancePtrT this,
       /* show last 'items' log information */
       for(i=1;i<= (int)items && i<=ESM_LOG_ENTRIES;i++)
         {
-          logBuf = ESM_LOG_BACK_GET(this->log, i);
+          logBuf = ESM_LOG_BACK_GET(smThis->log, i);
           if(logBuf && logBuf->from && logBuf->to)
             {
               clOsalPrintf("\n  %02d  %02d/%-15s %02d/%s",
@@ -753,13 +753,13 @@ clEsmInstanceLogShow(ClExSmInstancePtrT this,
 #ifdef DEBUG
 
 void
-esmInstanceNameSet(ClExSmInstancePtrT this, char* name)
+esmInstanceNameSet(ClExSmInstancePtrT smThis, char* name)
 {
   /* go ahead and set the name if its not null
    */
-  if(this) 
+  if(smThis) 
     {
-      smInstanceNameSet(this->fsm, name);
+      smInstanceNameSet(smThis->fsm, name);
     }
 }
 

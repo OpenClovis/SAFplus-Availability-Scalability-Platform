@@ -302,7 +302,7 @@ ClRcT clGmsInitialize(
         goto error_no_destroy;
     }
     
-    rc = clHandleCheckout(handle_database, *gmsHandle, (void *)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, *gmsHandle, (void **)&gms_instance_ptr);
 
     if(rc != CL_OK)
     {
@@ -335,7 +335,7 @@ ClRcT clGmsInitialize(
     req.clientVersion.majorVersion= version->majorVersion;
     req.clientVersion.minorVersion= version->minorVersion;
 
-    rc = cl_gms_clientlib_initialize_rmd((void*)&req, 0x0 ,&res );
+    rc = cl_gms_clientlib_initialize_rmd(&req, 0x0 ,&res );
     if(rc != CL_OK )
     {
         clLogError(GEN,NA,
@@ -390,7 +390,7 @@ ClRcT clGmsFinalize(
 	struct gms_instance *gms_instance_ptr = NULL;
 	ClRcT rc= CL_OK;
 
-	rc = clHandleCheckout(handle_database, gmsHandle, (void *)&gms_instance_ptr);
+	rc = clHandleCheckout(handle_database, gmsHandle, (void **)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return CL_GMS_RC(CL_ERR_INVALID_HANDLE);
@@ -477,7 +477,7 @@ ClRcT clGmsClusterJoin(
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -547,7 +547,7 @@ ClRcT clGmsClusterJoinAsync(
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -610,7 +610,7 @@ static ClRcT gmsClusterLeave(
     ClGmsClusterLeaveResponseT          *res = NULL;
     
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -692,7 +692,7 @@ ClRcT clGmsClusterLeaveAsync(
     ClGmsClusterLeaveResponseT          *res = NULL;
     
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -777,7 +777,7 @@ ClRcT clGmsClusterTrack(
         return CL_GMS_RC(CL_ERR_BAD_FLAG);
     }
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return CL_GMS_RC(CL_ERR_INVALID_HANDLE);
@@ -928,7 +928,7 @@ ClRcT clGmsClusterTrackStop(
     ClGmsClusterTrackStopResponseT *res = NULL;
     
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return CL_GMS_RC(CL_ERR_INVALID_HANDLE);
@@ -990,7 +990,7 @@ ClRcT clGmsClusterMemberGet(
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
      
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -1051,7 +1051,7 @@ ClRcT clGmsClusterMemberGetAsync(
     ClGmsClusterMemberGetAsyncResponseT *res = NULL;
         
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -1121,7 +1121,7 @@ ClRcT clGmsClusterLeaderElect(
     }
 
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -1178,7 +1178,7 @@ ClRcT clGmsClusterMemberEject(
     ClGmsClusterMemberEjectResponseT    *res = NULL;
     
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -1264,7 +1264,7 @@ ClRcT clGmsClusterTrackCallbackHandler(
     clLog(INFO,NA,NA,"received cluster track callback");
 
     gmsHandle = res->gmsHandle;
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         goto error_free_res;
@@ -1322,7 +1322,7 @@ ClRcT clGmsClusterMemberGetCallbackHandler(
     CL_ASSERT(res != NULL);
     
     gmsHandle = res->gmsHandle;
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         goto error_free_res;
@@ -1375,7 +1375,7 @@ ClRcT clGmsClusterMemberEjectCallbackHandler(
     CL_ASSERT(res != NULL);
     
     gmsHandle = res->gmsHandle;
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         goto error_free_res;

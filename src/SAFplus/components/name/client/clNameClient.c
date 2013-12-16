@@ -168,9 +168,9 @@ ClRcT clNameContextCreate(ClNameSvcContextT contextType,
     rc = clBufferCreate (&outMsgHandle);
     memset(&nsInfo, 0, sizeof(ClNameSvcInfoIDLT));
     nsInfo.version          = CL_NS_VERSION_NO;
-    nsInfo.contextType      = contextType;
+    nsInfo.contextType      = (ClNameSvcContextIDLT_4_0_0) contextType;
     nsInfo.contextMapCookie = contextMapCookie;
-    nsInfo.source           = CL_NS_CLIENT;
+    nsInfo.source           = (ClNameSvcSourceIDLT_4_0_0) CL_NS_CLIENT;
 
     VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version,inMsgHandle,0);
     VDECL_VER(clXdrMarshallClNameSvcInfoIDLT, 4, 0, 0)((void *)&nsInfo, inMsgHandle, 0);
@@ -282,12 +282,12 @@ ClRcT clNameRegister(ClUint32T contextId, ClNameSvcRegisterT* pNSRegisInfo,
 
     memset(pNSInfo, 0, sizeof(ClNameSvcInfoIDLT));
     pNSInfo->version      = CL_NS_VERSION_NO;
-    pNSInfo->source       = CL_NS_CLIENT;
+    pNSInfo->source       = (ClNameSvcSourceIDLT_4_0_0) CL_NS_CLIENT;
     pNSInfo->objReference = *pObjReference;
     /* Copy the name, make it null terminated also */
     saNameCopy(&pNSInfo->name, &pNSRegisInfo->name);
     pNSInfo->compId       = pNSRegisInfo->compId;
-    pNSInfo->priority     = pNSRegisInfo->priority;
+    pNSInfo->priority     = (ClNameSvcPriorityIDLT_4_0_0) pNSRegisInfo->priority;
     pNSInfo->contextId    = contextId;
     pNSInfo->attrCount    = pNSRegisInfo->attrCount;
                                                                                                                            
@@ -392,7 +392,7 @@ ClRcT clNameComponentDeregister(ClUint32T compId)
     memset(&nsInfo, 0, sizeof(ClNameSvcInfoIDLT));
     nsInfo.version      = CL_NS_VERSION_NO;
     nsInfo.compId       = compId;
-    nsInfo.source       = CL_NS_CLIENT;
+    nsInfo.source       = (ClNameSvcSourceIDLT_4_0_0) CL_NS_CLIENT;
     sAddr = clIocLocalAddressGet();
 
     VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version, inMsgHandle,0);
@@ -486,7 +486,7 @@ ClRcT clNameServiceDeregister(ClUint32T contextId, ClUint32T compId,
     nsInfo.contextId    = contextId;
     /* copy the name & put the null terminating character */
     saNameCopy(&nsInfo.name, serviceName);
-    nsInfo.source       = CL_NS_CLIENT;
+    nsInfo.source       = (ClNameSvcSourceIDLT_4_0_0) CL_NS_CLIENT;
     sAddr = clIocLocalAddressGet();
 
     VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version, inMsgHandle, 0);
@@ -556,7 +556,7 @@ ClRcT clNameContextDelete(ClUint32T contextId)
     memset(&nsInfo, 0, sizeof(ClNameSvcInfoIDLT));
     nsInfo.version      = CL_NS_VERSION_NO;
     nsInfo.contextId    = contextId;
-    nsInfo.source       = CL_NS_CLIENT;
+    nsInfo.source       = (ClNameSvcSourceIDLT_4_0_0) CL_NS_CLIENT;
     sAddr = clIocLocalAddressGet();
 
     VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version, inMsgHandle, 0);
@@ -671,11 +671,11 @@ ClRcT clNameToObjectReferenceGet(SaNameT*            pName,
 
     memset(pNSInfo, 0, sizeof(ClNameSvcInfoIDLT));
     pNSInfo->version          = CL_NS_VERSION_NO;
-    pNSInfo->source           = CL_NS_CLIENT;
+    pNSInfo->source           = (ClNameSvcSourceIDLT_4_0_0) CL_NS_CLIENT;
     /* copy the name & put NULL terminating character */
     saNameCopy(&pNSInfo->name, pName);
     pNSInfo->contextMapCookie = contextMapCookie;
-    pNSInfo->op               = CL_NS_QUERY_OBJREF;
+    pNSInfo->op               = (ClNameSvcOpsIDLT_4_0_0) CL_NS_QUERY_OBJREF;
                                                                                                                            
     if(attrCount>0)
     {
@@ -828,11 +828,11 @@ ClRcT clNameToObjectMappingGet(SaNameT* pName,
 
     memset(pNSInfo, 0, sizeof(ClNameSvcInfoT));
     pNSInfo->version          = CL_NS_VERSION_NO;
-    pNSInfo->source           = CL_NS_CLIENT;
+    pNSInfo->source           = (ClNameSvcSourceIDLT_4_0_0) CL_NS_CLIENT;
     /* copy the name & put NULL terminating character */
     saNameCopy(&pNSInfo->name, pName);
     pNSInfo->contextMapCookie = contextMapCookie;
-    pNSInfo->op               = CL_NS_QUERY_MAPPING;
+    pNSInfo->op               = (ClNameSvcOpsIDLT_4_0_0) CL_NS_QUERY_MAPPING;
                                                                                                                            
     if(attrCount>0)
     {

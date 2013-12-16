@@ -70,7 +70,8 @@ ClRcT clMsgQCkptInitialize(void)
         clLogError("MSG", "INI", "Failed to initialize cached checkpoint server service for MSG queue: error code [0x%x].", rc);
         goto out;
     }
-
+    
+    {
     /* Initialize MSG group queue cached ckpt */
     const SaNameT msgQGroupCkptName  = {
                      sizeof("CL_MsgQueueGroupCkpt") - 1,
@@ -97,7 +98,8 @@ ClRcT clMsgQCkptInitialize(void)
         clLogError("MSG", "INI", "Failed to initialize cached checkpoint server service for MSG queue group: error code [0x%x].", rc);
         goto error_out1;
     }
-
+    
+    }
     goto out;
 error_out1:
     retCode = clCachedCkptFinalize(&gMsgQCkptServer); 
@@ -133,7 +135,7 @@ static void clMsgGroupDatabaseSynch()
         clMsgQGroupCkptDataUnmarshal(&qGroupData, sectionData);
         clMsgGroupInfoUpdate(CL_MSG_DATA_ADD, &qGroupData.qGroupName, qGroupData.policy);
 
-        for (int i = 0; i < qGroupData.numberOfQueues; i++)
+        for (ClUint32T i = 0; i < qGroupData.numberOfQueues; i++)
         {
             SaNameT *qName = (SaNameT *) (qGroupData.pQueueList + i);
             clMsgGroupMembershipInfoSend(CL_MSG_DATA_ADD, &qGroupData.qGroupName, qName);
@@ -506,6 +508,7 @@ ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, SaNameT *
             }
 
             qGroupData.numberOfQueues++;
+            {
             SaNameT *pNameTemp = (SaNameT *) clHeapAllocate(qGroupData.numberOfQueues * sizeof(SaNameT));
 
             if (qGroupData.pQueueList != NULL)
@@ -532,7 +535,7 @@ ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, SaNameT *
                 rc = clCachedCkptSectionUpdate(&gMsgQGroupCkptServer, &ckptData);
             else
                 rc = clCacheEntryUpdate(&gMsgQGroupCkptServer, &ckptData);
-
+            }
             clHeapFree(ckptData.data);
             break;
         case CL_MSG_DATA_UPD:
@@ -553,6 +556,7 @@ ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, SaNameT *
             }
             else
             {
+              
                 SaNameT *pNameTemp = (SaNameT *) clHeapAllocate(qGroupData.numberOfQueues * sizeof(SaNameT));
                 memcpy(pNameTemp, qGroupData.pQueueList, pos * sizeof(SaNameT));
 
@@ -561,6 +565,7 @@ ClRcT clMsgQGroupMembershipCkptDataUpdate(ClMsgSyncActionT syncupType, SaNameT *
                 memcpy(pNameDes, pNameSrc, (qGroupData.numberOfQueues - pos) * sizeof(SaNameT));
                 clHeapFree(qGroupData.pQueueList);
                 qGroupData.pQueueList = pNameTemp;
+              
             }
 
             rc = clMsgQGroupCkptDataMarshal(&qGroupData, &ckptData);
@@ -859,7 +864,9 @@ void clMsgFailoverQueuesMove(ClIocNodeAddressT destNode, ClUint32T *pNumOfOpenQs
 
     if (gMsgQCkptServer.cache == NULL)
         goto out;
-
+    
+    {
+  
     ClUint32T        *numberOfSections = (ClUint32T *) gMsgQCkptServer.cache;
     ClUint32T        *sizeOfCache = (ClUint32T *) (numberOfSections + 1);
     ClUint8T         *data = (ClUint8T *) (sizeOfCache + 1);
@@ -952,7 +959,7 @@ void clMsgFailoverQueuesMove(ClIocNodeAddressT destNode, ClUint32T *pNumOfOpenQs
             clLogError("CCK", "DEL", "clOsalMsync(): error code [0x%x].", rc);
         }
     }
-
+   }
 out:
     clOsalSemUnlock(gMsgQCkptServer.cacheSem);
     CL_OSAL_MUTEX_UNLOCK(&gClLocalQsLock);

@@ -42,8 +42,11 @@ ClRcT VDECL_VER(clMsgQueueUnlink, 4, 0, 0)(SaNameT *pQName)
     ClMsgQueueCkptDataT queueData;
     ClBoolT isExist = clMsgQCkptExists((SaNameT *)pQName, &queueData);
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        goto error_out;
+    }
     if(queueData.creationFlags == SA_MSG_QUEUE_PERSISTENT)
     {
         rc = clMsgQueueDestroy((SaNameT *)pQName);
@@ -78,8 +81,11 @@ ClRcT VDECL_VER(clMsgQueueOpen, 4, 0, 0)(SaNameT *pQName,
     ClBoolT isExist = clMsgQCkptExists((SaNameT *)pQName, &queueData);
     SaMsgQueueHandleT qHandle;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+       goto error_out;
+    }
     rc = clRmdSourceAddressGet(&srcAddr);
     if(rc != CL_OK)
     {
@@ -195,8 +201,11 @@ ClRcT VDECL_VER(clMsgQueueRetentionClose, 4, 0, 0)(const SaNameT *pQName)
     SaMsgQueueHandleT qHandle;
     ClMsgQueueInfoT *pQInfo;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if(rc != CL_OK)
+    {
+       return rc;
+    }
     CL_OSAL_MUTEX_LOCK(&gFinBlockMutex);
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
 
@@ -290,8 +299,12 @@ ClRcT VDECL_VER(clMsgQueuePersistRedundancy, 4, 0, 0)(const SaNameT *pQName, ClI
 {
     ClRcT rc = CL_OK;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+       goto error_out;
+    }
+ 
     /* Look up msg queue in the cached checkpoint */
     ClMsgQueueCkptDataT queueData;
     if(clMsgQCkptExists((SaNameT *)pQName, &queueData) == CL_FALSE)
@@ -335,7 +348,11 @@ ClRcT VDECL_VER(clMsgQDatabaseUpdate, 4, 0, 0)(ClMsgSyncActionT syncupType, ClMs
     ClRcT rc = CL_OK;
     ClIocPhysicalAddressT srcAddr;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        goto error_out;
+    }
 
     rc = clRmdSourceAddressGet(&srcAddr);
     if(rc != CL_OK)
@@ -358,10 +375,14 @@ out:
 
 ClRcT VDECL_VER(clMsgGroupDatabaseUpdate, 4, 0, 0)(ClMsgSyncActionT syncupType, SaNameT *pGroupName, SaMsgQueueGroupPolicyT policy, ClIocPhysicalAddressT qGroupAddress,ClBoolT updateCkpt)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClIocPhysicalAddressT srcAddr;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+          goto error_out;
+    }
 
     rc = clRmdSourceAddressGet(&srcAddr);
     if(rc != CL_OK)
@@ -385,7 +406,11 @@ ClRcT VDECL_VER(clMsgGroupMembershipUpdate, 4, 0, 0)(ClMsgSyncActionT syncupType
     ClRcT rc = CL_OK;
     ClIocPhysicalAddressT srcAddr;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        goto error_out;
+    }
 
     rc = clRmdSourceAddressGet(&srcAddr);
     if(rc != CL_OK)
@@ -427,7 +452,11 @@ ClRcT VDECL_VER(clMsgMessageGet, 4, 0, 0)(const SaNameT *pQName, SaTimeT timeout
     SaMsgQueueHandleT queueHandle;
     ClMsgQueueRecordT *pQEntry;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        goto error_out;
+    }
 
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
     if(clMsgQNameEntryExists(pQName, &pQEntry) == CL_FALSE)

@@ -573,7 +573,7 @@ ClRcT   _ckptDataPlaneInfoPack(ClBufferHandleT   *pMsgHdl,
 {
     ClRcT             rc         = CL_OK;
     CkptDpT           ckptDpInfo = {0};
-    CkptCheckFlagT    dpFlag     = 0;
+    CkptCheckFlagT    dpFlag;
     ClCntNodeHandleT  secNode    = CL_HANDLE_INVALID_VALUE;
     ClCntNodeHandleT  nextNode   = CL_HANDLE_INVALID_VALUE;
     CkptSectionT      *pSec      = NULL;
@@ -730,14 +730,12 @@ ClRcT   _ckptSvrArrvlAnnounce()
               */
              pPeerInfo->available = CL_CKPT_NODE_AVAIL;
              
-             pTimerArgs = clHeapCalloc(1, sizeof(*pTimerArgs));
+             pTimerArgs = (ClCkptReplicateTimerArgsT*) clHeapCalloc(1, sizeof(*pTimerArgs));
 
              if(!pTimerArgs)
                  rc = CL_CKPT_RC(CL_ERR_NO_MEMORY);
 
-             CKPT_ERR_CHECK(CL_CKPT_SVR, CL_LOG_SEV_ERROR,
-                            ("Failed to allocate memory for timer\n"),
-                            rc);
+             CKPT_ERR_CHECK(CL_CKPT_SVR, CL_LOG_SEV_ERROR, ("Failed to allocate memory for timer\n"), rc);
              pTimerArgs->nodeAddress = gCkptSvr->masterInfo.masterAddr;
 
              memset(&timeOut, 0, sizeof(ClTimerTimeOutT));
@@ -787,7 +785,7 @@ ClRcT   _ckptSvrArrvlAnnounce()
      */
     if( (gCkptSvr->localAddr != gCkptSvr->masterInfo.masterAddr) &&
         (gCkptSvr->masterInfo.masterAddr != CL_CKPT_UNINIT_VALUE) &&
-        (gCkptSvr->masterInfo.masterAddr != -1) )
+        ((ClInt32T) gCkptSvr->masterInfo.masterAddr != -1) )
     {    
 	clLogDebug(CL_CKPT_AREA_PEER, CL_CKPT_CTX_PEER_ANNOUNCE,
 	           "Ckpt server [%d] arrival announce to master [%d]",
@@ -1499,9 +1497,9 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 4, 0, 0)(ClVersionT         *pVersion,
     /*
      * Allocate memory for the control plane info.
      */
-    ckptInfo.pCpInfo = clHeapCalloc(1, sizeof(*ckptInfo.pCpInfo));
+    ckptInfo.pCpInfo = (CkptCPInfoT_5_0_0*) clHeapCalloc(1, sizeof(*ckptInfo.pCpInfo));
     CL_ASSERT(ckptInfo.pCpInfo != NULL);
-    ckptInfo.pDpInfo = clHeapCalloc(1, sizeof(*ckptInfo.pDpInfo));
+    ckptInfo.pDpInfo = (CkptDPInfoT_4_0_0*) clHeapCalloc(1, sizeof(*ckptInfo.pDpInfo));
     CL_ASSERT(ckptInfo.pDpInfo != NULL);
 
     /* 
@@ -1620,9 +1618,9 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 5, 0, 0)(ClVersionT         *pVersion,
     /*
      * Allocate memory for the control plane info.
      */
-    pCkptInfo->pCpInfo = clHeapCalloc(1, sizeof(*pCkptInfo->pCpInfo));
+    pCkptInfo->pCpInfo = (CkptCPInfoT_5_0_0*) clHeapCalloc(1, sizeof(*pCkptInfo->pCpInfo));
     CL_ASSERT(pCkptInfo->pCpInfo != NULL);
-    pCkptInfo->pDpInfo = clHeapCalloc(1, sizeof(*pCkptInfo->pDpInfo));
+    pCkptInfo->pDpInfo = (CkptDPInfoT_4_0_0*) clHeapCalloc(1, sizeof(*pCkptInfo->pDpInfo));
     CL_ASSERT(pCkptInfo->pDpInfo != NULL);
 
     /* 
@@ -1630,8 +1628,7 @@ ClRcT VDECL_VER(clCkptRemSvrCkptInfoGet, 5, 0, 0)(ClVersionT         *pVersion,
      */
     rc = _ckptCheckpointInfoPack(pCkpt, pCkptInfo->pCpInfo, pCkptInfo->pDpInfo);
 
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
-            ("Fail: Handle checkout [0x %x]\n", rc), rc);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("Fail: Handle checkout [0x %x]\n", rc), rc);
 
     pCkptInfo->ckptHdl = ckptHdl;
 
@@ -1881,7 +1878,7 @@ ClRcT _ckptReplicaInfoUpdate(ClHandleT   ckptHdl, VDECL_VER(CkptInfoT, 5, 0, 0) 
      */
     clCksm32bitCompute ((ClUint8T *)pCkptInfo->pName->value, pCkptInfo->pName->length, &cksum);
 
-    pCkptHdl = clHeapAllocate(sizeof(ClCkptHdlT)); // Free where necessary NTC
+    pCkptHdl = (ClCkptHdlT*) clHeapAllocate(sizeof(ClCkptHdlT)); // Free where necessary NTC
     if(pCkptHdl == NULL)
     {
         rc =  CL_CKPT_ERR_NO_MEMORY;
@@ -2695,7 +2692,7 @@ static void clCkptRemSvrSecOverwriteCb(ClIdlHandleT      ckptIdlHdl,
 {
     ClDifferenceVectorT differenceVector = {0};
     differenceVector.numDataVectors = 1;
-    differenceVector.dataVectors = clHeapCalloc(1, sizeof(*differenceVector.dataVectors));
+    differenceVector.dataVectors = (ClDataVectorT*) clHeapCalloc(1, sizeof(*differenceVector.dataVectors));
     CL_ASSERT(differenceVector.dataVectors != NULL);
     differenceVector.dataVectors[0].dataBlock = 0;
     differenceVector.dataVectors[0].dataBase = pInitialData;
@@ -2822,7 +2819,7 @@ clCkptRemSvrSectionCreate(ClCkptHdlT                        ckptHdl,
     ClCntDataHandleT   dataHdl     = 0;
     CkptCbInfoT        *pCallInfo  = NULL;
     ClVersionT         ckptVersion = {0};
-    ClCharT            *pTempData  = "";
+    ClCharT            *pTempData  = (ClCharT*) "";
     ClUint32T           index      = 0;
 
     if( (pInitialData == NULL) && (initialDataSize == 0) )
@@ -3344,12 +3341,10 @@ ClRcT VDECL_VER(clCkptRemSvrSectionInfoUpdate, 4, 0, 0)(ClVersionT       *pVersi
         goto exitOnError;
     }
     /* allocate memory section creation attributes */
-    secCreateAttr.sectionId = clHeapCalloc(1,
-            sizeof(ClCkptSectionIdT));
+    secCreateAttr.sectionId = (ClCkptSectionIdT*) clHeapCalloc(1, sizeof(ClCkptSectionIdT));
     if( NULL == secCreateAttr.sectionId )
     {
-        clLogCritical(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, 
-                "Failed to allocate memory");
+        clLogCritical(CL_CKPT_AREA_PEER, CL_CKPT_CTX_REPL_UPDATE, "Failed to allocate memory");
         goto exitOnError;
     }
     secCreateAttr.sectionId->id = pSecInfo->secId.id; 

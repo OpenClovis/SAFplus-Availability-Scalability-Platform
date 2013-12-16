@@ -42,7 +42,7 @@ extern "C" {
 
 extern ClDebugFuncEntryT gmsCliCommandsList[GMS_TOTAL_CLI_COMMANDS];
 
-extern void _clGmsCliPrint (char **retstr, char *format , ... );
+extern void _clGmsCliPrint (char **retstr, const  char *format , ... );
 
 #define GMS_COMMAND_PROMPT  "gms"
 

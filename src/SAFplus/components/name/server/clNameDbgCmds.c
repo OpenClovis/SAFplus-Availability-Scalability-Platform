@@ -46,9 +46,9 @@
 #include "clVersionApi.h"
 
 /*#include "clNameIpi.h" */
-extern ClRcT _nameSvcPerContextInfo();
+extern ClRcT _nameSvcPerContextInfo(ClUint32T contextMapCookie, ClBufferHandleT  outMsgHandle);
 extern ClRcT _nameSvcAttributeQuery();
-extern ClRcT nameSvcLAQuery();
+extern ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo, ClNameVersionT *pVersion, ClUint32T inLen, ClBufferHandleT outMsgHandle); 
 extern ClCntHandleT gNSHashTable;
 #define CL_NAME_CLI_STR_LEN 1024*65
 ClCharT gNameCliStr[CL_NAME_CLI_STR_LEN];
@@ -66,10 +66,10 @@ ClRcT _cliNSGetEntryInBuffer(ClCharT* pBuff, ClNameSvcEntryT* pNSInfo);
  *    none
  */
                                                                                                                              
-void clNameCliStrPrint(ClCharT* str, ClCharT**retStr)
+void clNameCliStrPrint(const char* str, ClCharT**retStr)
 {
                                                                                                                              
-    *retStr = clHeapAllocate(strlen(str)+1);
+    *retStr = (ClCharT*) clHeapAllocate(strlen(str)+1);
     if(NULL == *retStr)
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Malloc Failed \r\n");
@@ -225,9 +225,9 @@ ClRcT cliNSRegister(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
             pRegInfo->compId = (ClUint32T)strtol (argv[5], NULL, 10);
 
         if ((argv[6][1] == 'x') || (argv[6][1] == 'X'))
-            pRegInfo->priority = (ClUint32T)strtol (argv[6], NULL, 16);
+            pRegInfo->priority = (ClNameSvcPriorityT)strtol (argv[6], NULL, 16);
         else
-            pRegInfo->priority = (ClUint32T)strtol (argv[6], NULL, 10);
+            pRegInfo->priority = (ClNameSvcPriorityT)strtol (argv[6], NULL, 10);
 
         memset(attrList, 0, attrCount*sizeof(ClNameSvcAttrEntryT));
         for(i=0; i<attrCount; i++)
@@ -442,7 +442,7 @@ ClRcT cliNSContextCreate(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
                 return rc; 
         }
   
-        rc = clNameContextCreate(type, cookie, &context);
+        rc = clNameContextCreate((ClNameSvcContextT) type, cookie, &context);
         if(rc != CL_OK)
         {
             gNameCliStr[0]='\0';
@@ -737,6 +737,7 @@ ClRcT cliNSAllObjectMapsQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
     ClUint8T*            pBuff       = NULL;
     ClUint32T            offset      = 0, index = 0;
     ClUint32T            refCount    = 0;
+    ClNameVersionT 		 version;
     ClCharT              data[CL_NAME_CLI_STR_LEN];
 
 
@@ -816,20 +817,19 @@ ClRcT cliNSAllObjectMapsQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr)
         pNSInfo->version          = CL_NS_VERSION_NO;
         memcpy (&pNSInfo->name, &name, sizeof(SaNameT));
         pNSInfo->contextMapCookie = contextMapCookie;
-        pNSInfo->op               = CL_NS_QUERY_ALL_MAPPINGS;
+        pNSInfo->op               = (ClNameSvcOpsIDLT_4_0_0) CL_NS_QUERY_ALL_MAPPINGS;
         pNSInfo->attrCount = attrCount;
                                                                                                                              
         if(attrCount>0)
         {
             pNSInfo->attrLen = attrCount*sizeof(ClNameSvcAttrEntryIDLT);
-            pNSInfo->attr = (ClNameSvcAttrEntryIDLT *)
-               clHeapAllocate(pNSInfo->attrLen);
+            pNSInfo->attr = (ClNameSvcAttrEntryIDLT *) clHeapAllocate(pNSInfo->attrLen);
             memcpy(pNSInfo->attr, &attrList, pNSInfo->attrLen);
             size = size + pNSInfo->attrLen;
         }
 
-
-        rc = nameSvcLAQuery(pNSInfo, size, outMsgHandle);
+        CL_NS_SERVER_SERVER_VERSION_SET(&version); 
+        rc = nameSvcLAQuery(pNSInfo, &version, size, outMsgHandle);
         if (rc != CL_OK)
         {
             gNameCliStr[0]='\0';

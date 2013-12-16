@@ -219,7 +219,7 @@ ClRcT clMsgQDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClM
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -510,7 +510,7 @@ ClRcT clMsgGroupDatabaseUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
@@ -696,7 +696,7 @@ ClRcT clMsgGroupMembershipUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_
     {
         
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);

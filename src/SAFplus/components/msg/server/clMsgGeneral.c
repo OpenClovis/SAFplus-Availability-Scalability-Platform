@@ -98,13 +98,17 @@ static ClBoolT clMsgClientEntryExistsByPort(ClIocPortT port, ClMsgClientDetailsT
 
 ClRcT VDECL_VER(clMsgInit, 4, 0, 0)(ClUint32T *pVersion, SaMsgHandleT cltHandle, SaMsgHandleT *pClientHandle)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgClientDetailsT *pClient;
     ClIocPhysicalAddressT srcAddress;
     SaMsgHandleT msgHandle;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+         goto error_out;
+    }
 
     if(pVersion == NULL || pClientHandle == NULL)
     {

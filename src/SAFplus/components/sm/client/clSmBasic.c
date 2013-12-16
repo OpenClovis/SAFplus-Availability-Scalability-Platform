@@ -49,8 +49,8 @@
 #define SM_LOG_CTX_DELETE	"DEL"
 #define SM_LOG_CTX_EVENT	"EVT"
 
-extern ClRcT clHsmInstanceOnEvent(ClSmInstancePtrT this, ClSmEventPtrT msg);
-extern ClRcT fsmInstanceOnEvent(ClSmInstancePtrT this, ClSmEventPtrT msg);
+extern ClRcT clHsmInstanceOnEvent(ClSmInstancePtrT smThis, ClSmEventPtrT msg);
+extern ClRcT fsmInstanceOnEvent(ClSmInstancePtrT smThis, ClSmEventPtrT msg);
 
 #ifdef DEBUG
 ClRcT smDbgInit()
@@ -134,7 +134,7 @@ clSmInstanceCreate(ClSmTemplatePtrT sm,
  *  
  *  API to delete a previously created State macine Instance.
  *                                                                        
- *  @param this State machine Instance to be deleted
+ *  @param smThis State machine Instance to be deleted
  *
  *  @returns 
  *    CL_OK on CL_OK <br/>
@@ -144,31 +144,31 @@ clSmInstanceCreate(ClSmTemplatePtrT sm,
  *
  */
 ClRcT 
-clSmInstanceDelete(ClSmInstancePtrT this
+clSmInstanceDelete(ClSmInstancePtrT smThis
                  )
 {
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);  
+  CL_ASSERT(smThis);  
 
   clLogTrace(SM_LOG_AREA_SM,SM_LOG_CTX_DELETE,"Delete State Machine Instance");
 
-  if(this) 
+  if(smThis) 
     {
       /* decrement the references in 'sm' type 
        * NOTE: There is a potential problem here, even if lock acquired
        * reason is type is not accounted with lock and there can be
        * access to type else where in another thread.
        */
-      if(this->sm)
+      if(smThis->sm)
       {
-          clOsalMutexLock(this->sm->sem);
-          this->sm->objects--;
-          clOsalMutexUnlock(this->sm->sem);
+          clOsalMutexLock(smThis->sm->sem);
+          smThis->sm->objects--;
+          clOsalMutexUnlock(smThis->sm->sem);
       }
       /* free the object */
-      mFREE(this);
+      mFREE(smThis);
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -196,7 +196,7 @@ clSmInstanceDelete(ClSmInstancePtrT this
  *  transition object function, and entry methods from LCA till the
  *  next state.
  *                                                                        
- *  @param this Instance Object
+ *  @param smThis Instance Object
  *  @param msg  Event that needs to be handled
  *
  *  @returns 
@@ -207,7 +207,7 @@ clSmInstanceDelete(ClSmInstancePtrT this
  *
  */
 ClRcT 
-clSmInstanceOnEvent(ClSmInstancePtrT this, 
+clSmInstanceOnEvent(ClSmInstancePtrT smThis, 
                   ClSmEventPtrT msg
                   )
 {
@@ -215,19 +215,19 @@ clSmInstanceOnEvent(ClSmInstancePtrT this,
   
   CL_FUNC_ENTER();
   
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
   CL_ASSERT(msg);  
-  if(!this || !this->sm || !this->current || !msg) 
+  if(!smThis || !smThis->sm || !smThis->current || !msg) 
     {
       ret = CL_SM_RC(CL_ERR_NULL_POINTER);
     } else 
-      if(this->sm->type == HIERARCHICAL_STATE_MACHINE)
+      if(smThis->sm->type == HIERARCHICAL_STATE_MACHINE)
         {
-          ret = clHsmInstanceOnEvent(this, msg);
+          ret = clHsmInstanceOnEvent(smThis, msg);
         }
       else
         {
-          ret = fsmInstanceOnEvent(this, msg);
+          ret = fsmInstanceOnEvent(smThis, msg);
         }
   
   CL_FUNC_EXIT();
@@ -243,7 +243,7 @@ clSmInstanceOnEvent(ClSmInstancePtrT this,
  *  the current state to init state from the state machine type and
  *  calls the entry function handler, if present.
  *                                                                        
- *  @param this State Machine Object
+ *  @param smThis State Machine Object
  *
  *  @returns 
  *    CL_OK on CL_OK (successful start) <br/>
@@ -251,24 +251,24 @@ clSmInstanceOnEvent(ClSmInstancePtrT this,
  *
  */
 ClRcT
-clSmInstanceStart(ClSmInstancePtrT this
+clSmInstanceStart(ClSmInstancePtrT smThis
                 )
 {
   ClRcT ret = CL_OK;
   CL_FUNC_ENTER();
 
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
 
-  if(!this || !this->sm || !this->current) 
+  if(!smThis || !smThis->sm || !smThis->current) 
     {
       ret = CL_SM_RC(CL_ERR_NULL_POINTER);
     } else 
       {
-        ClSmStatePtrT curr = this->current;
+        ClSmStatePtrT curr = smThis->current;
         
 #ifdef DEBUG
         clLogTrace(SM_LOG_AREA_SM,CL_LOG_CONTEXT_UNSPECIFIED,"Start [%s]. Set Init state [%d:%s]", 
-                              this->name,
+                              smThis->name,
                               curr->type,
                               curr->name);
 #endif
@@ -293,7 +293,7 @@ clSmInstanceStart(ClSmInstancePtrT this
  *  graceful restart, just jumps to the init state and starts 
  *  the state machine.
  *                                                                        
- *  @param this State Machine Object
+ *  @param smThis State Machine Object
  *
  *  @returns 
  *    CL_OK on CL_OK (successful start) <br/>
@@ -301,21 +301,21 @@ clSmInstanceStart(ClSmInstancePtrT this
  *
  */
 ClRcT
-clSmInstanceRestart(ClSmInstancePtrT this
+clSmInstanceRestart(ClSmInstancePtrT smThis
                   )
 {
   ClRcT ret = CL_OK;
   CL_FUNC_ENTER();
 
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
 
-  if(!this || !this->sm || !this->current) 
+  if(!smThis || !smThis->sm || !smThis->current) 
     {
       ret = CL_SM_RC(CL_ERR_NULL_POINTER);
     } else 
       {
-        this->current = this->sm->init;
-        ret = clSmInstanceStart(this);
+        smThis->current = smThis->sm->init;
+        ret = clSmInstanceStart(smThis);
       }
   
 
@@ -329,7 +329,7 @@ clSmInstanceRestart(ClSmInstancePtrT this
  *
  *  API to return the current state handle.  
  *                                                                        
- *  @param this  State Machine Object
+ *  @param smThis  State Machine Object
  *  @param state [OUT] current state handle
  *
  *  @returns 
@@ -338,16 +338,16 @@ clSmInstanceRestart(ClSmInstancePtrT this
  *
  */
 ClRcT
-clSmInstanceCurrentStateGet(ClSmInstancePtrT this,
+clSmInstanceCurrentStateGet(ClSmInstancePtrT smThis,
                           ClSmStatePtrT* state)
 {
   ClRcT ret = CL_OK;
   CL_FUNC_ENTER();
 
-  CL_ASSERT(this);
-  if(this && state)
+  CL_ASSERT(smThis);
+  if(smThis && state)
   {
-    *state = this->current;
+    *state = smThis->current;
   } else 
     {
       ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -364,13 +364,13 @@ clSmInstanceCurrentStateGet(ClSmInstancePtrT this,
 #ifdef DEBUG
 
 void
-smInstanceNameSet(ClSmInstancePtrT this, char* name)
+smInstanceNameSet(ClSmInstancePtrT smThis, char* name)
 {
   /* go ahead and set the name if its not null
    */
-  if(this && name ) 
+  if(smThis && name ) 
     {
-      strncpy(this->name, name, MAX_STR_NAME);
+      strncpy(smThis->name, name, MAX_STR_NAME);
     }
 }
 
@@ -385,7 +385,7 @@ smInstanceNameSet(ClSmInstancePtrT this, char* name)
  *  current state exit function handler, then the transition handler 
  *  and then the next state entry function handler.
  *                                                                        
- *  @param this Instance Object
+ *  @param smThis Instance Object
  *  @param msg  Event that needs to be handled
  *
  *  @returns 
@@ -396,7 +396,7 @@ smInstanceNameSet(ClSmInstancePtrT this, char* name)
  *
  */
 ClRcT 
-fsmInstanceOnEvent(ClSmInstancePtrT this, 
+fsmInstanceOnEvent(ClSmInstancePtrT smThis, 
                    ClSmEventPtrT msg
                    )
 {
@@ -407,19 +407,19 @@ fsmInstanceOnEvent(ClSmInstancePtrT this,
   
   CL_FUNC_ENTER();
   
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
   CL_ASSERT(msg);
   
-  if(!this || !this->sm || !this->current || !msg) 
+  if(!smThis || !smThis->sm || !smThis->current || !msg) 
     {
       ret = CL_SM_RC(CL_ERR_NULL_POINTER);
     } else 
       {
-        curr = this->current;
+        curr = smThis->current;
         
 #ifdef DEBUG
         clLogTrace(SM_LOG_AREA_FSM,SM_LOG_CTX_EVENT,"StateMachine [%s] OnEvent [%d] in State [%d:%s]", 
-                              this->name,
+                              smThis->name,
                               msg->eventId,
                               curr->type,
                               curr->name);
@@ -465,7 +465,7 @@ fsmInstanceOnEvent(ClSmInstancePtrT this,
             
             if(ret == CL_OK) 
               {
-                this->current = next; 
+                smThis->current = next; 
                 if(tO->transitionHandler) 
                   {
                     ClSmStatePtrT forced = next;
@@ -492,12 +492,12 @@ fsmInstanceOnEvent(ClSmInstancePtrT this,
                              /* call exit of curr */
                              ret = (*curr->exit) (curr, &forced, msg);
                            }
-                         this->current = forced;
+                         smThis->current = forced;
                       }
                   }
-                if(curr!=next && this->current && this->current->entry) 
+                if(curr!=next && smThis->current && smThis->current->entry) 
                   {
-                    ret = (*(this->current)->entry)(curr, &this->current, msg);
+                    ret = (*(smThis->current)->entry)(curr, &smThis->current, msg);
                   }
               }
             
@@ -513,19 +513,19 @@ fsmInstanceOnEvent(ClSmInstancePtrT this,
 
 
 void
-smInstanceShow(ClSmInstancePtrT this
+smInstanceShow(ClSmInstancePtrT smThis
                )
 {
-  if(this)
+  if(smThis)
     {
 #ifdef DEBUG
       clOsalPrintf("\n[SM] Instance [%s] of type [%s]. Current State is [%s].\n", 
-               this->name,
-               this->sm?this->sm->name:"",
-               this->current?this->current->name:"");
+               smThis->name,
+               smThis->sm?smThis->sm->name:"",
+               smThis->current?smThis->current->name:"");
 #else
       clOsalPrintf("\n[SM] Current State is [%d].\n", 
-               this->current?this->current->type:-1);
+               smThis->current?smThis->current->type:-1);
 #endif
     }
 

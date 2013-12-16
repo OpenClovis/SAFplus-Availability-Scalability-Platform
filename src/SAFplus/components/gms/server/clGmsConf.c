@@ -334,7 +334,7 @@ _clGmsLoadConfiguration ( char* const gmsConfigFile )
     }
 
     gmsGlobalInfo.config.leaderAlgDb = 
-        clHeapAllocate(sizeof(ClGmsLeaderElectionAlgorithmT)*
+        (ClGmsLeaderElectionAlgorithmT*) clHeapAllocate(sizeof(ClGmsLeaderElectionAlgorithmT)*
                        (gmsGlobalInfo.config.noOfGroups+1));
     if (gmsGlobalInfo.config.leaderAlgDb == NULL )
     {

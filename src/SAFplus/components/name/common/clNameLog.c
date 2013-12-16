@@ -27,7 +27,7 @@
  *****************************************************************************/
 #include "clCommon.h"
 
-ClCharT  *clNameLogMsg[] =
+const char  *clNameLogMsg[] =
 {
     "NS Context Creation failed, rc=0x%x",
     "Not permitted to delete default NS contexts",
