@@ -4760,8 +4760,18 @@ static ClRcT compHealthCheckAmfInvokedCB(ClPtrT arg)
                        "Unable to send heartbeat request to the component, "
                        "rc = [%#x]",
                        rc);
+            /*
+             * Delete invocation entry.
+             */
+            cpmInvocationDeleteInvocation(compHealthcheck.invocation);
             goto unlock;
         }
+
+        /*
+         * Restart cpmHealthcheckTimerHandle in case request successful or report to CPM that healthCheck failure.
+         * This would expect that component re-instantiated if previous instantiated failed.
+         */
+        cpmHealthCheckTimerStart(comp);
 
         comp->hbInvocationPending = CL_YES;
     }
