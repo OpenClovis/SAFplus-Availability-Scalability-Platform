@@ -4801,8 +4801,7 @@ static ClRcT compHealthCheckAmfInvokedCB(ClPtrT arg)
         }
         
         clNameSet(&compHealthcheck.compName, comp->compConfig->compName);
-        
-        cpmHealthCheckTimerStart(comp);
+
         rc = CL_CPM_CALL_RMD_ASYNC_NEW(clIocLocalAddressGet(),
                                        eoPort,
                                        CPM_HEALTH_CHECK_FN_ID,
@@ -4824,8 +4823,18 @@ static ClRcT compHealthCheckAmfInvokedCB(ClPtrT arg)
                        "Unable to send heartbeat request to the component, "
                        "rc = [%#x]",
                        rc);
+            /*
+             * Delete invocation entry.
+             */
+            cpmInvocationDeleteInvocation(compHealthcheck.invocation);
             goto unlock;
         }
+
+        /*
+         * Restart cpmHealthcheckTimerHandle in case request successful or report to CPM that healthCheck failure.
+         * This would expect that component re-instantiated if previous instantiated failed.
+         */
+        cpmHealthCheckTimerStart(comp);
 
         comp->hbInvocationPending = CL_YES;
     }
