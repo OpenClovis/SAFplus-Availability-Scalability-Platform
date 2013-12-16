@@ -105,11 +105,9 @@ do  \
 } \
 while(0)
 
-
 # define CL_NS_SERVER_SERVER_VERSION_SET(pVersion) (pVersion)->releaseCode = 'B', \
                                                     (pVersion)->majorVersion = 0x1, \
                                                     (pVersion)->minorVersion = 0x1
-
 static ClOsalMutexIdT    gSem;
 
 /* LOCALS */
@@ -241,7 +239,7 @@ void nameSvcFinalize(SaInvocationT invocation, const SaNameT *compName)
     
     saAmfComponentUnregister(amfHandle, compName, NULL);
     
-    saAmfResponse(amfHandle, invocation, CL_OK);
+    saAmfResponse(amfHandle, invocation, SA_AIS_OK);
     
     unblockNow = CL_TRUE;
     
@@ -319,18 +317,21 @@ ClRcT   nameSvcInitialize(ClUint32T argc, ClCharT *argv[])
     
     /*clDebugCli("NAME-CLI");*/
 
-    int cnt = 0;
-    do
-    {
-        cnt++;
-        rc = clCpmMasterAddressGet(&gMasterAddress);
-        if (rc != CL_OK)
-        {
-            if ((cnt&15)==0) clLogDebug("SVR","INI","Waiting for active system controller. rc [0x%x]",rc);
-            sleep(1);
-        }
-    } while(rc != CL_OK);
-    
+
+
+     int cnt = 0;
+     do
+     {
+         cnt++;
+         rc = clCpmMasterAddressGet(&gMasterAddress);
+         if (rc != CL_OK)
+         {
+             if ((cnt&15)==0) clLogDebug("SVR","INI","Waiting for active system controller. rc [0x%x]",rc);
+             sleep(1);
+         }
+     } while(rc != CL_OK);
+
+
     return CL_OK;
 }
 
@@ -836,7 +837,7 @@ ClRcT VDECL(nameSvcNack)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
                   ClBufferHandleT  outMsgHandle)
 {
     ClRcT           ret      = CL_OK;
-    ClNameSvcNackT  nackType = 0;
+    ClNameSvcNackT  nackType = CL_NS_NACK_REGISTER;
     ClNameVersionT  version  = {0};
     ClIocAddressT   srcAddr  = {{0}};
                                                                                                                              
@@ -1008,7 +1009,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
     {
         clLogDebug("SVR", "REG", "Service [%.*s] register forwarding to master [%d]", 
                   nsInfo->name.length, nsInfo->name.value, gMasterAddress);
-        nsInfo->source = CL_NS_LOCAL;
+        nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_LOCAL;
     
         /* Fill the message to be sent to the peers */    
         VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version,inMsgHdl, 0);
@@ -1213,7 +1214,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
     }
 
     pNSEntry->refCount               = 0;
-    pNSEntry->compId.priority        = nsInfo->priority;
+    pNSEntry->compId.priority        = (ClNameSvcPriorityT) nsInfo->priority;
     pNSEntry->compId.compId          = nsInfo->compId;
     pNSEntry->compId.eoID            = nsInfo->eoID;
     pNSEntry->compId.nodeAddress     = nsInfo->nodeAddress;
@@ -1300,7 +1301,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
             }
 
             pCompList->pNext    = pStoredNSEntry->compId.pNext;
-            pCompList->priority = nsInfo->priority; 
+            pCompList->priority = (ClNameSvcPriorityT) nsInfo->priority; 
             if(pCompList->priority > pStoredNSBinding->priority)
                 pStoredNSBinding->priority = pCompList->priority;
             pStoredNSEntry->compId.pNext = pCompList;
@@ -1397,7 +1398,7 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
     if((nsInfo->source != CL_NS_MASTER) && 
        (nsInfo->contextId < CL_NS_BASE_NODELOCAL_CONTEXT))
     { 
-        nsInfo->source = CL_NS_MASTER;
+        nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_MASTER;
         ret = clIocTotalNeighborEntryGet(&noEntries);
         if(ret == CL_OK)
         {
@@ -1654,7 +1655,7 @@ ClRcT _nameSvcMatchedEntryDeleteCallback(ClCntKeyHandleT    userKey,
                 /* Inform the NS users */
                 eventInfo.contextMapCookie = htonl(userArg->hashTable->
                                              contextMapCookie);
-                eventInfo.operation        = htonl(userArg->operation);
+                eventInfo.operation        = (ClNameSvcOpT) htonl(userArg->operation);
                 eventInfo.objReference     = 
                         _clNameHostUint64toNetUint64(pNSInfo->objReference);
                 saNameCopy(&eventInfo.name, &userArg->nameEntry->name);
@@ -1948,7 +1949,7 @@ ClRcT VDECL(nameSvcComponentDeregister)(ClEoDataT data,
         clLogTrace(NAME_LOG_AREA_COMP,NAME_LOG_CTX_NAME_DEREG,"\n request has come to slave."
                    " Forwarding it to master... \n");
         VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version,inMsgHdl, 0);
-        nsInfo->source = CL_NS_LOCAL;
+        nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_LOCAL;
         VDECL_VER(clXdrMarshallClNameSvcInfoIDLT, 4, 0, 0)((void *)nsInfo, inMsgHdl, 0);        
         CL_NS_CALL_RMD(gMasterAddress, CL_NS_COMPONENT_DEREGISTER, inMsgHdl,\
                     NULL, ret);
@@ -1984,7 +1985,7 @@ ClRcT VDECL(nameSvcComponentDeregister)(ClEoDataT data,
     /* Update the slaves */
     if(nsInfo->source != CL_NS_MASTER) 
     {
-        nsInfo->source = CL_NS_MASTER;
+        nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_MASTER;
         ret = clIocTotalNeighborEntryGet(&noEntries);
         if(ret == CL_OK)
         {
@@ -2145,7 +2146,7 @@ ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,
         clLogTrace(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_DEREG,"\n request has come to slave."
                    " Forwarding it to master .. \n");
         VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version,inMsgHdl, 0);
-        nsInfo->source = CL_NS_LOCAL;
+        nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_LOCAL;
         VDECL_VER(clXdrMarshallClNameSvcInfoIDLT, 4, 0, 0)((void *)nsInfo, inMsgHdl, 0);        
         CL_NS_CALL_RMD(gMasterAddress, CL_NS_SERVICE_DEREGISTER, inMsgHdl, 
                     NULL, ret);
@@ -2315,7 +2316,7 @@ ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,
     if((nsInfo->source != CL_NS_MASTER)  && 
        (nsInfo->contextId < CL_NS_BASE_NODELOCAL_CONTEXT))
     {
-        nsInfo->source = CL_NS_MASTER;
+        nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_MASTER;
         ret = clIocTotalNeighborEntryGet(&noEntries);
         if(ret == CL_OK)
         {
@@ -2480,7 +2481,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
     {
         clLogTrace(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_CREATE,"\n request has come to slave for entry with" \
                    " global wide. Forwarding it to master ..... \n");
-        nsInfo->source = CL_NS_LOCAL;
+        nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_LOCAL;
         sentToMaster = 1;
         /* Set the context Id as local address, so that NS/M can check this 
            address and choose not to send duplicate context create msg */
@@ -2513,7 +2514,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
         clXdrUnmarshallClUint32T(outMsgHandle, (void*)&recvdContextId);
         /* set source to CL_NS_MASTER as RMD has been processed at 
            NS/M and then come here */
-        nsInfo->source = CL_NS_MASTER;
+        nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_MASTER;
     }
     
     switch(nsInfo->contextType)
@@ -2732,7 +2733,7 @@ ClRcT VDECL(nameSvcContextCreate)(ClEoDataT data, ClBufferHandleT  inMsgHandle,
                 }
                 nsInfo->contextId = contxtId;
                 clXdrMarshallClUint32T((void *)&contxtId, outMsgHandle, 0);
-                nsInfo->source = CL_NS_MASTER;
+                nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_MASTER;
                 CL_NS_SERVER_SERVER_VERSION_SET(&version);
                 VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version,inMsgHdl,0);
                 VDECL_VER(clXdrMarshallClNameSvcInfoIDLT, 4, 0, 0)((void *)nsInfo, inMsgHdl, 0);
@@ -3060,7 +3061,7 @@ ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
             }    
             clLogTrace(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n request has come to slave for deleting" \
                        "global scope context. Forwarding it to master ..... \n");
-            nsInfo->source = CL_NS_LOCAL;
+            nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_LOCAL;
             VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(pVersion,inMsgHdl,0);
             VDECL_VER(clXdrMarshallClNameSvcInfoIDLT, 4, 0, 0)((void *)nsInfo, inMsgHdl, 0);
             CL_NS_CALL_RMD(gMasterAddress, CL_NS_CONTEXT_DELETE, inMsgHdl, NULL, ret);
@@ -3095,7 +3096,7 @@ ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
     pStoredInfo = pStatInfo->hashId;
     dsIdCnt     = pStatInfo->dsIdCnt;
     freeMapSize = (ClUint32T) sizeof(pStatInfo->freeDsIdMap);
-    freeDsIdMap = clHeapCalloc(freeMapSize,  1);
+    freeDsIdMap = (ClUint8T*) clHeapCalloc(freeMapSize,  1);
     CL_ASSERT(freeDsIdMap != NULL);
     walkData.hashTable = pStatInfo;
     walkData.operation = CL_NS_CONTEXT_DELETE;
@@ -3159,7 +3160,7 @@ ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
     if((nsInfo->source != CL_NS_MASTER)  && 
        (nsInfo->contextId < CL_NS_BASE_NODELOCAL_CONTEXT))
     {
-        nsInfo->source = CL_NS_MASTER;
+        nsInfo->source = (ClNameSvcSourceIDLT_4_0_0) CL_NS_MASTER;
         if( nsInfo->contextId == CL_NS_BASE_GLOBAL_CONTEXT)
         {
             clLogTrace(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,
@@ -3659,9 +3660,8 @@ ClRcT _nameSvcAllBindingsGetCallback(ClCntKeyHandleT    userKey,
              switch(op)
              {
                  case CL_NS_QUERY_ALL_MAPPINGS:
-                     nameSvcBindingIntoMessageCopy(pNSInfo, &nsInfo->name, 
-                                                   userArg->outMsgHandle,
-                                                   op);
+                     nameSvcBindingIntoMessageCopy(pNSInfo, &nsInfo->name, userArg->outMsgHandle,
+                                                   (ClNameSvcOpsT) op);
                  break;
                  default:
                  break;
@@ -3815,7 +3815,7 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
             else
             {
                 nameSvcBindingIntoMessageCopy(pStoredNSEntry, &pStoredInfo->name,
-                                              outMsgHandle, nsInfo->op);
+                                              outMsgHandle, (ClNameSvcOpsT) nsInfo->op);
             } 
         }
         else
@@ -3892,7 +3892,7 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
                     sizeof(ClNameSvcAllBindingsGetT));
         break;
         case CL_NS_QUERY_MAPPING:
-            nameSvcBindingIntoMessageCopy(pStoredNSEntry, &pStoredInfo->name, outMsgHandle, nsInfo->op);
+            nameSvcBindingIntoMessageCopy(pStoredNSEntry, &pStoredInfo->name, outMsgHandle, (ClNameSvcOpsT) nsInfo->op);
         break;
         default:
         break;
@@ -4264,8 +4264,9 @@ ClRcT _nameSvcContextLevelWalkForSyncup(ClCntKeyHandleT    userKey,
 ClRcT _nameSvcDBEntriesPack(ClBufferHandleT  outMsgHandle, ClUint32T flag)
 {
     ClRcT                      ret      = CL_OK;
-    ClNameSvcDBSyncupWalkInfoT walkInfo = {0};
- 
+    ClNameSvcDBSyncupWalkInfoT walkInfo;
+    
+    memset(&walkInfo,0,sizeof(ClNameSvcDBSyncupWalkInfoT)); 
     walkInfo.operation     = CL_NS_ENTRIES_PACK;
     walkInfo.outMsgHandle  = outMsgHandle;
     walkInfo.source        = flag;
@@ -4355,7 +4356,7 @@ ClRcT nameSvcDBEntriesUnpack(ClBufferHandleT msgHdl)
 {
     ClNameSvcBindingDetailsT *pEntry     = NULL;
     ClRcT                    ret         = CL_OK;
-    ClInt32T                 context     = 0;
+    ClUint32T                 context     = 0;
     ClUint32T                priority    = 0;
     ClCntHandleT             *pTable     = NULL;
     ClCntNodeHandleT         pNodeHandle = 0;
@@ -4803,8 +4804,8 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     ClIocNodeAddressT   sdAddr       = 0;
     ClEoExecutionObjT*  pEOObj       = NULL;
     ClVersionT*         pTempVersion = NULL;
-    ClUint32T           count        = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
+    ClInt32T           count         = 0;
+    ClTimerTimeOutT delay = { 0, 1000};
     ClInt32T tries = 0;
 
     CL_FUNC_ENTER();
@@ -4826,8 +4827,7 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     gpConfig.nsMaxNoGlobalContexts = pConfig->nsMaxNoGlobalContexts;
     gpConfig.nsMaxNoLocalContexts  = pConfig->nsMaxNoLocalContexts;
 
-    gpContextIdArray = (ClUint32T*)clHeapAllocate
-                          (CL_NS_MAX_NO_CONTEXTS * sizeof(ClUint32T));
+    gpContextIdArray = (ClUint32T*)clHeapAllocate (CL_NS_MAX_NO_CONTEXTS * sizeof(ClUint32T));
     if(gpContextIdArray == NULL)
     {
         clLogCritical("SVR", "INI", "Context create failed due to memory alloc failure");
@@ -4977,10 +4977,10 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
         tries++;
         clLogNotice("SVR", "INI", "Try [%d] of [5] to initialize name checkpoint service, result [0x%x]", tries, rc);
     } while(rc != CL_OK && tries < 5 && clOsalTaskDelay(delay) == CL_OK);
-
+ 
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_WARNING, NULL,CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "ckpt", rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_WARNING, NULL, CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "ckpt", rc);
         return rc;
     }
     sNSInitDone = 1;
@@ -5080,14 +5080,12 @@ ClRcT _nameSvcContextLevelWalkForFinalize(ClCntKeyHandleT    userKey,
     memset(&nsInfo, 0, sizeof(nsInfo));
     nsInfo.version      = CL_NS_VERSION_NO;
     nsInfo.contextId    = (ClUint32T)(ClWordT)userKey;
-    nsInfo.source       = CL_NS_LOCAL;
+    nsInfo.source       = (ClNameSvcSourceIDLT_4_0_0) CL_NS_LOCAL;
     ret = _nameSvcContextDeleteLocked(&nsInfo, 1, NULL);
     if(ret != CL_OK)
     {
-        clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n NS: Context deletion failed :%x \n",
-                   ret);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
-                   CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
+        clLogError(NAME_LOG_AREA_CONTEXT,NAME_LOG_CTX_CONTEXT_DELETE,"\n NS: Context deletion failed :%x \n", ret);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, CL_NS_LOG_1_CONTEXT_DELETION_FAILED, ret);
     }
       
     /* delete the message */
@@ -5102,17 +5100,14 @@ clNameSvcCtxRecreate(ClUint32T   key)
     ClRcT                  rc        = CL_OK;
     ClNameSvcContextInfoT  *pCtxData = NULL;
 
-    clLogDebug("SVR", "RESTART", "Context [%d] is to be created", 
-            key);
-    rc = clCntDataForKeyGet(gNSHashTable, (ClCntKeyHandleT)(ClWordT)key,
-                            (ClCntDataHandleT *)&pCtxData);
+    clLogDebug("SVR", "RESTART", "Context [%d] is to be created", key);
+    rc = clCntDataForKeyGet(gNSHashTable, (ClCntKeyHandleT)(ClWordT)key, (ClCntDataHandleT *)&pCtxData);
     if( CL_OK != rc )
     {
-        pCtxData = clHeapCalloc(1, sizeof(ClNameSvcContextInfoT));
+        pCtxData = (ClNameSvcContextInfoT*) clHeapCalloc(1, sizeof(ClNameSvcContextInfoT));
         if( NULL == pCtxData )
         {
-            clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INFO,
-                       "clHeapCalloc()");
+            clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INFO, "clHeapCalloc()");
             return CL_NS_RC(CL_ERR_NO_MEMORY);
         }    
         rc = clCntHashtblCreate(gpConfig.nsMaxNoEntries,
@@ -5124,18 +5119,15 @@ clNameSvcCtxRecreate(ClUint32T   key)
         if( CL_OK != rc )
         {
             clHeapFree(pCtxData);
-            clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INFO,
-                       "clCntHashtblCreate(): rc[0x %x]", rc);
+            clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INFO, "clCntHashtblCreate(): rc[0x %x]", rc);
             return rc;
         }    
-        rc = clCntNodeAdd(gNSHashTable, (ClCntKeyHandleT)(ClWordT) key,
-                         (ClCntDataHandleT) pCtxData, NULL);
+        rc = clCntNodeAdd(gNSHashTable, (ClCntKeyHandleT)(ClWordT) key, (ClCntDataHandleT) pCtxData, NULL);
         if( CL_OK != rc )
         {
             clCntDelete(pCtxData->hashId);
             clHeapFree(pCtxData);
-            clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INFO,
-                       "clCntNodeAdd(): rc[0x %x]", rc);
+            clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INFO, "clCntNodeAdd(): rc[0x %x]", rc);
             return rc;
         }    
         if((key > CL_NS_DEFAULT_GLOBAL_CONTEXT) &&
@@ -5156,7 +5148,9 @@ static ClRcT nameSvcEntryRecreate(ClUint32T key, ClUint32T dsId,
                                   SaNameT *nsCkptName, ClNameSvcContextInfoT *pCtxData)
 {
     ClRcT rc = CL_OK;
-    ClNsEntryPackT nsEntryInfo  = {0};
+    ClNsEntryPackT nsEntryInfo;
+    
+    memset(&nsEntryInfo,0,sizeof(ClNsEntryPackT));
 
     rc = clNameSvcPerCtxDataSetCreate(key, dsId);
 
@@ -5275,17 +5269,16 @@ clNameSvcCompInfoAdd(ClNameSvcContextInfoT *pCtxData,
         return rc;
     }        
     pBindData = (ClNameSvcBindingT *)dataHdl;
-    pNSEntry = clHeapCalloc(sizeof(ClNameSvcBindingDetailsT) + 
+    pNSEntry = (ClNameSvcBindingDetailsT*) clHeapCalloc(sizeof(ClNameSvcBindingDetailsT) + 
                             pData->attrCount * sizeof(ClNameSvcAttrEntryT), 
                             sizeof(ClCharT));
     if( NULL == pNSEntry )
     {
-        clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "clHeapCalloc()");
+        clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED, "clHeapCalloc()");
         return rc;
     }
     pNSEntry->objReference    = pData->objReference;
-    pNSEntry->compId.priority = pData->priority;
+    pNSEntry->compId.priority = (ClNameSvcPriorityT) pData->priority;
     pNSEntry->compId.compId   = pData->compId;
     pNSEntry->compId.eoID   = pData->eoID;
     pNSEntry->compId.nodeAddress   = pData->nodeAddress;
@@ -5341,7 +5334,7 @@ clNameSvcCompInfoAdd(ClNameSvcContextInfoT *pCtxData,
         return rc;
     }
     pCompList->pNext    = pStoredData->compId.pNext;
-    pCompList->priority = pData->priority; 
+    pCompList->priority = (ClNameSvcPriorityT) pData->priority; 
     pCompList->dsId     = pData->dsId;
     if(pCompList->priority > pBindData->priority)
     {    
@@ -5368,13 +5361,11 @@ clNameSvcBindingDetailEntryCreate(ClNameSvcContextInfoT *pCtxData,
     ClNameSvcBindingDetailsT  *pNSEntry  = NULL;
     ClUint32T                  cksum     = 0;
 
-    clLogDebug("SVR", "RESTART", "Binding entry for name: %.*s", 
-            pData->name.length, pData->name.value);
+    clLogDebug("SVR", "RESTART", "Binding entry for name: %.*s", pData->name.length, pData->name.value);
     rc = clNSLookupKeyForm(&pData->name, &lookupData);
     if( CL_OK != rc )
     {
-        clLogError("SVR", CL_LOG_CONTEXT_UNSPECIFIED, 
-                   "Lookup key form failed rc[0x %x]", rc);
+        clLogError("SVR", CL_LOG_CONTEXT_UNSPECIFIED, "Lookup key form failed rc[0x %x]", rc);
         return rc;
     }
     rc = clCntDataForKeyGet(pCtxData->hashId,
@@ -5382,21 +5373,19 @@ clNameSvcBindingDetailEntryCreate(ClNameSvcContextInfoT *pCtxData,
                             (ClCntDataHandleT *)&pBindData);
     if( CL_OK != rc )
     {
-        clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INFO,
-                   "clCntDataForKeyGet(); rc[0x %x]", rc);
+        clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INFO, "clCntDataForKeyGet(); rc[0x %x]", rc);
         return rc;
     }        
-    pNSEntry = clHeapCalloc(sizeof(ClNameSvcBindingDetailsT) + 
+    pNSEntry = (ClNameSvcBindingDetailsT*) clHeapCalloc(sizeof(ClNameSvcBindingDetailsT) + 
                             pData->attrCount * sizeof(ClNameSvcAttrEntryT), 
                             sizeof(ClCharT));
     if( NULL == pNSEntry )
     {
-        clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INFO,
-                   "clHeapCalloc()");
+        clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_NAME_INFO, "clHeapCalloc()");
         return rc;
     }
     pNSEntry->objReference = pData->objReference;
-    pNSEntry->compId.priority = pData->priority;
+    pNSEntry->compId.priority = (ClNameSvcPriorityT) pData->priority;
     pNSEntry->compId.compId   = pData->compId;
     pNSEntry->compId.eoID   = pData->eoID;
     pNSEntry->compId.nodeAddress   = pData->nodeAddress;
@@ -5551,7 +5540,7 @@ void invokeWalkForDelete(ClNameSvcDeregisInfoT *walkData)
 
                                                                                                                              
 ClEoConfigT clEoConfig = {
-    1,     
+    (ClOsalThreadPriorityT) 1,     
     2,     
     CL_IOC_NAME_PORT,
     CL_EO_USER_CLIENT_ID_START,
@@ -5599,7 +5588,7 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
 
-    clLogCompName = "NAM"; /* Override generated eo name with a short name for our server */
+    clLogCompName = (ClCharT*) "NAM"; /* Override generated eo name with a short name for our server */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
     rc = nameSvcInitialize(argc,argv);
     if(rc != CL_OK)

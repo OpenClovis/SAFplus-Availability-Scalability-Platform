@@ -70,7 +70,7 @@ static ClRcT clGmsServerStateChange(ClEoStateT eoState);
 static ClRcT clGmsServerHealthCheck(ClEoSchedFeedBackT* const schFeedback);
 
 ClEoConfigT clEoConfig = {
-    1,                	    	
+    (ClOsalThreadPriorityT)1,                	    	
     1,                	     
     CL_IOC_GMS_PORT,   	                 /* Service port for recieving reqs */
     CL_EO_USER_CLIENT_ID_START,           
@@ -314,7 +314,7 @@ ClRcT initializeAmf(void)
     SaVersionT          version;
     ClRcT	        rc = CL_OK;
 
-    clLogCompName = "GMS"; /* Override generated eo name with a short name for our server */
+    clLogCompName = (ClCharT*)"GMS"; /* Override generated eo name with a short name for our server */
     /* this function overrides the default EO configuration */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs); 
 

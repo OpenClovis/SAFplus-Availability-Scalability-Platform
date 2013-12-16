@@ -137,7 +137,7 @@ static void msgDispatchQueueDestroy(void);
 
 static ClRcT msgDispatchThread(ClPtrT dispatchArg)
 {
-    ClMsgDispatchQueueT *pDispatchQueue = dispatchArg;
+    ClMsgDispatchQueueT *pDispatchQueue = (ClMsgDispatchQueueT*) dispatchArg;
     SaMsgQueueHandleT queueHandle;
     SaMsgMessageReceivedCallbackT callback = NULL;
     CL_ASSERT(dispatchArg);
@@ -219,7 +219,7 @@ static void clMsgDispatchCallback(SaMsgHandleT msgHandle, ClUint32T callbackType
                     /*
                      * Make a copy just to prevent in-flight msg finalize ripping us off.
                      */
-                    pTempDispatchQueue = clHeapCalloc(1, sizeof(*pTempDispatchQueue));
+                    pTempDispatchQueue = (ClMsgDispatchQueueT*) clHeapCalloc(1, sizeof(*pTempDispatchQueue));
                     CL_ASSERT(pTempDispatchQueue);
                     memcpy(pTempDispatchQueue, pDispatchQueue, sizeof(*pTempDispatchQueue));
                     clJobQueuePush(&gClMsgDispatchQueueCtrl.dispatchQueue, 
@@ -253,7 +253,7 @@ static void clMsgDispatchDestroyCallback(ClUint32T callbackType, ClPtrT pCallbac
             break;
         case CL_MSG_QUEUE_GROUP_TRACK_CALLBACK_TYPE:
             {
-                ClMsgAppQGroupTrackCallbakParamsT *pParam = pCallbackParam;
+                ClMsgAppQGroupTrackCallbakParamsT *pParam = (ClMsgAppQGroupTrackCallbakParamsT*) pCallbackParam;
                 if(pParam->pNotificationBuffer)
                 {
                     if(pParam->pNotificationBuffer->notification)
@@ -396,7 +396,7 @@ static ClRcT clMsgInitialize(void)
     {
         rc = clOsalMutexInit(&gClMsgDispatchQueueCtrl.dispatchQueueLock);
         CL_ASSERT(rc == CL_OK);
-        gClMsgDispatchQueueCtrl.dispatchTable = clHeapCalloc(MSG_DISPATCH_QUEUE_HASH_BUCKETS, 
+        gClMsgDispatchQueueCtrl.dispatchTable = (struct hashStruct**) clHeapCalloc(MSG_DISPATCH_QUEUE_HASH_BUCKETS, 
                                                              sizeof(*gClMsgDispatchQueueCtrl.dispatchTable));
         CL_ASSERT(gClMsgDispatchQueueCtrl.dispatchTable != NULL);
     }
@@ -661,10 +661,14 @@ SaAisErrorT saMsgFinalize(
         SaMsgHandleT msgHandle
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if(rc != CL_OK)
+    {
+       return CL_MSG_SA_RET(rc);
+    }
 
     MSG_CLI_LOCK();
     rc = clHandleCheckout(gMsgHandleDatabase, msgHandle, (void**)&pMsgLibInfo);
@@ -917,7 +921,7 @@ static SaAisErrorT clMsgMessageSendInternal(
         SaTimeT timeout,
         SaMsgAckFlagsT ackFlags)
 { 
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
     ClMsgMessageIovecT tempMessage;
@@ -927,7 +931,11 @@ static SaAisErrorT clMsgMessageSendInternal(
     ClIocAddressT queueAddr;
     ClIocAddressT queueServerAddr;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
 
     saNameCopy((SaNameT *) &tempDest, (SaNameT *)pDestination);
 
@@ -1148,7 +1156,11 @@ SaAisErrorT saMsgMessageGet(SaMsgQueueHandleT queueHandle,
     SaNameT qName;
     ClMsgQueueCkptDataT queueData = {{0}};
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+         return CL_MSG_SA_RET(rc);
+    }
 
     if(pMessage == NULL || pSenderId == NULL)
     {
@@ -1405,10 +1417,14 @@ error_out:
 
 SaAisErrorT saMsgMessageDataFree(SaMsgHandleT msgHandle, ClPtrT pData)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+       return CL_MSG_SA_RET(rc);
+    }
 
     if(pData == NULL)
     {
@@ -1445,7 +1461,7 @@ SaAisErrorT saMsgMessageSendReceive(
         SaTimeT *pReplySendTime,
         SaTimeT timeout)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
     SaNameT dummyName = {0,{0}};
@@ -1458,8 +1474,11 @@ SaAisErrorT saMsgMessageSendReceive(
     ClIocAddressT queueAddr;
     ClIocAddressT queueServerAddr;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if(rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
     saNameCopy((SaNameT *)&tempDest, (SaNameT *)pDestAddress);
 
     if(pDestAddress == NULL || pSendMsg  == NULL || pReceiveMsg  == NULL)
@@ -1620,13 +1639,17 @@ static SaAisErrorT clMsgMessageReplyInternal (
         SaTimeT timeout,
         SaMsgAckFlagsT ackFlags)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
     SaTimeT sendTime;
     ClMsgAppMessageSendCallbackParamsT *pCallbackParam;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+       return CL_MSG_SA_RET(rc);
+    }
 
     CL_MSG_SEND_TIME_GET(sendTime);
 
@@ -1717,11 +1740,15 @@ SaAisErrorT saMsgSelectionObjectGet (
         SaMsgHandleT msgHandle,
         SaSelectionObjectT *pSelectionObject)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
 
     if(pSelectionObject == NULL)
     {
@@ -1752,12 +1779,15 @@ error_out:
 
 SaAisErrorT saMsgDispatch(SaMsgHandleT msgHandle, SaDispatchFlagsT dispatchFlags)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgLibInfoT *pMsgLibInfo = NULL;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
     rc = clHandleCheckout(gMsgHandleDatabase, msgHandle, (void**)&pMsgLibInfo);
     if(rc != CL_OK)
     {
@@ -1765,7 +1795,7 @@ SaAisErrorT saMsgDispatch(SaMsgHandleT msgHandle, SaDispatchFlagsT dispatchFlags
         goto error_out;
     }
 
-    rc = clDispatchCbDispatch(pMsgLibInfo->dispatchHandle, dispatchFlags);
+    rc = clDispatchCbDispatch(pMsgLibInfo->dispatchHandle, (ClDispatchFlagsT) dispatchFlags);
 
 error_out:
     retCode = clHandleCheckin(gMsgHandleDatabase, msgHandle);
@@ -1845,7 +1875,7 @@ static void msgDispatchQueueAdd(SaMsgHandleT msgHandle,
     ClUint32T key = (ClUint32T)(ClUint64T)queueHandle & MSG_DISPATCH_QUEUE_HASH_MASK;
     if(!(pDispatchQueue = msgDispatchQueueFind(queueHandle)))
     {
-        pDispatchQueue = clHeapCalloc(1, sizeof(*pDispatchQueue));
+        pDispatchQueue = (ClMsgDispatchQueueT*) clHeapCalloc(1, sizeof(*pDispatchQueue));
         CL_ASSERT(pDispatchQueue != NULL);
         pDispatchQueue->msgHandle = msgHandle;
         pDispatchQueue->queueHandle = queueHandle;
@@ -1880,7 +1910,11 @@ ClRcT clMsgDispatchQueueRegisterInternal(SaMsgHandleT msgHandle,
 ClRcT clMsgDispatchQueueRegister(SaMsgQueueHandleT queueHandle,
                                  SaMsgMessageReceivedCallbackT callback)
 {
-    CL_MSG_INIT_CHECK;
+    ClRcT rc = CL_OK;
+   
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+        return rc;
 
     if(!callback)
         return CL_MSG_RC(CL_ERR_INVALID_PARAMETER);
@@ -1904,6 +1938,11 @@ ClRcT clMsgDispatchQueueDeregisterInternal(SaMsgQueueHandleT queueHandle)
 
 ClRcT clMsgDispatchQueueDeregister(SaMsgQueueHandleT queueHandle)
 {
-    CL_MSG_INIT_CHECK;
+    ClRcT rc = CL_OK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return rc;
+    }
     return clMsgDispatchQueueDeregisterInternal(queueHandle);
 }

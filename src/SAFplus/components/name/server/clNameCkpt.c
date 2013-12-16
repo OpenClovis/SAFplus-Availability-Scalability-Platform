@@ -301,7 +301,7 @@ clNameSvcPerCtxDataSetIdGet(ClNameSvcContextInfoT *pCtxData,
 {
     ClRcT  rc = CL_OK;
     ClUint32T dsId = 0;
-    register ClInt32T i;
+    register ClUint32T i;
     CL_NAME_DEBUG_TRACE(("Enter"));
     for(i = 0; i < sizeof(pCtxData->freeDsIdMap); ++i)
     {
@@ -380,11 +380,12 @@ clNameSvcBindingDataWrite(ClUint32T              contexId,
                           ClNameSvcBindingT      *pBindData)
 {
     ClRcT          rc           = CL_OK;
-    ClNsEntryPackT nsEntryInfo  = {0};
+    ClNsEntryPackT nsEntryInfo ; 
     ClUint32T      dsIdCnt      = 0;
     SaNameT        nsCkptName   = {0};
 
     CL_NAME_DEBUG_TRACE(("Enter"));
+    memset(&nsEntryInfo,0,sizeof(ClNsEntryPackT));
     clNamePrintf(nsCkptName, "clNSCkpt%d", contexId);
 
     clNameSvcPerCtxDataSetIdGet(pCtxData, &dsIdCnt);
@@ -395,7 +396,7 @@ clNameSvcBindingDataWrite(ClUint32T              contexId,
     }    
     nsEntryInfo.type    = CL_NAME_SVC_ENTRY;
     saNameCopy(&nsEntryInfo.nsInfo.name, &pBindData->name);
-    nsEntryInfo.nsInfo.priority = pBindData->priority;
+    nsEntryInfo.nsInfo.priority = (ClNameSvcPriorityIDLT_4_0_0) pBindData->priority;
     nsEntryInfo.nsInfo.dsId     = dsIdCnt;
     pBindData->dsId             = dsIdCnt;
     rc = clCkptLibraryCkptDataSetWrite(gNsCkptSvcHdl, &nsCkptName,
@@ -445,13 +446,13 @@ clNameSvcBindingDetailsWrite(ClUint32T                 contexId,
     pNsEntryInfo->nsInfo.eoID       = pBindDetail->compId.eoID;
     pNsEntryInfo->nsInfo.nodeAddress       = pBindDetail->compId.nodeAddress;
     pNsEntryInfo->nsInfo.clientIocPort       = pBindDetail->compId.clientIocPort;
-    pNsEntryInfo->nsInfo.priority     = pBindDetail->compId.priority;
+    pNsEntryInfo->nsInfo.priority     = (ClNameSvcPriorityIDLT_4_0_0) pBindDetail->compId.priority;
     pNsEntryInfo->nsInfo.attrCount    = pBindDetail->attrCount;
     pNsEntryInfo->nsInfo.attrLen      = pBindDetail->attrLen;
     pNsEntryInfo->nsInfo.dsId         = dsIdCnt;
     if(pBindDetail->attrCount > 0 )
     {    
-        pNsEntryInfo->nsInfo.attr = clHeapCalloc(1, pBindDetail->attrLen);
+        pNsEntryInfo->nsInfo.attr = (ClNameSvcAttrEntryIDLT_4_0_0*) clHeapCalloc(1, pBindDetail->attrLen);
         if( NULL == pNsEntryInfo->nsInfo.attr )
         {
             clLogError(NAME_LOG_AREA_NAME,CL_LOG_CONTEXT_UNSPECIFIED,"clHeapCalloc");
@@ -514,13 +515,13 @@ clNameSvcCompInfoWrite(ClUint32T                  contexId,
     pNsEntryInfo->nsInfo.eoID       = pBindDetail->compId.eoID;
     pNsEntryInfo->nsInfo.nodeAddress       = pBindDetail->compId.nodeAddress;
     pNsEntryInfo->nsInfo.clientIocPort       = pBindDetail->compId.clientIocPort;
-    pNsEntryInfo->nsInfo.priority     = pBindDetail->compId.priority;
+    pNsEntryInfo->nsInfo.priority     = (ClNameSvcPriorityIDLT_4_0_0) pBindDetail->compId.priority;
     pNsEntryInfo->nsInfo.attrCount    = pBindDetail->attrCount;
     pNsEntryInfo->nsInfo.attrLen      = pBindDetail->attrLen;
     pNsEntryInfo->nsInfo.dsId         = dsIdCnt;
     if(pBindDetail->attrCount > 0 )
     {    
-        pNsEntryInfo->nsInfo.attr = clHeapCalloc(1, pBindDetail->attrLen);
+        pNsEntryInfo->nsInfo.attr = (ClNameSvcAttrEntryIDLT_4_0_0*) clHeapCalloc(1, pBindDetail->attrLen);
         if( NULL == pNsEntryInfo->nsInfo.attr )
         {
             clLogError(NAME_LOG_AREA_CKPT,CL_LOG_CONTEXT_UNSPECIFIED,"clHeapCalloc");

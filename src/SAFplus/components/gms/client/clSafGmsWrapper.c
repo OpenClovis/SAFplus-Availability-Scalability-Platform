@@ -165,9 +165,7 @@ saClmInitialize (
     SA_GMS_INIT_COUNT_INC();
 
     /* Checkout the handle */
-    rc = clHandleCheckout(databaseHandle,
-                          localHandle,
-                          (void*)&clmInstance);
+    rc = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     CL_ASSERT((rc == CL_OK) && (clmInstance != NULL));
 
 
@@ -215,9 +213,7 @@ saClmFinalize (
 
     /* Handle checkout */
     localHandle = (ClHandleT)clmHandle;
-    rc = clHandleCheckout(databaseHandle,
-                          localHandle,
-                          (void*)&clmInstance);
+    rc = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (rc != CL_OK)
     {
     return _aspErrToAisErr(rc);
@@ -301,9 +297,7 @@ saClmClusterTrack (
 
     /* Check the validity of the handle */
     localHandle = (ClHandleT)clmHandle;
-    rc = clHandleCheckout(databaseHandle,
-                          localHandle,
-                          (void*)&clmInstance);
+    rc = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (rc != CL_OK)
     {
         return _aspErrToAisErr(rc);
@@ -317,7 +311,7 @@ saClmClusterTrack (
         if (notificationBuffer->numberOfItems > 0) 
         {
             gms_cluster_notf_buffer.notification =
-                clHeapAllocate((notificationBuffer->numberOfItems)*(sizeof(ClGmsClusterNotificationT)));
+                (ClGmsClusterNotificationT*) clHeapAllocate((notificationBuffer->numberOfItems)*(sizeof(ClGmsClusterNotificationT)));
 
             if (gms_cluster_notf_buffer.notification == NULL)
             {
@@ -399,12 +393,12 @@ saClmClusterTrack (
             for( i = 0 ; i < gms_cluster_notf_buffer.numberOfItems; i++ )
             {
                 (notificationBuffer->notification[i]).clusterChange =
-                    gms_cluster_notf_buffer.notification[i].clusterChange;
+                    (SaClmClusterChangesT) gms_cluster_notf_buffer.notification[i].clusterChange;
                 /* copy the node information from the gms node to clm node */
                 (notificationBuffer->notification[i]).clusterNode.nodeId =
                     gms_cluster_notf_buffer.notification[i].clusterNode.nodeId;
                 (notificationBuffer->notification[i]).clusterNode.member=
-                    gms_cluster_notf_buffer.notification[i].clusterNode.memberActive;
+                    (SaBoolT) gms_cluster_notf_buffer.notification[i].clusterNode.memberActive;
                 notificationBuffer->notification[i].clusterNode.bootTimestamp=
                     gms_cluster_notf_buffer.notification[i].clusterNode.bootTimestamp;
                 notificationBuffer->notification[i].clusterNode.initialViewNumber=
@@ -447,9 +441,7 @@ saClmClusterTrackStop (
 
     /* Check the validity of the handle */
     localHandle = (ClHandleT)clmHandle;
-    rc = clHandleCheckout(databaseHandle,
-                          localHandle,
-                          (void*)&clmInstance);
+    rc = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (rc != CL_OK)
     {
     return _aspErrToAisErr(rc);
@@ -500,9 +492,7 @@ saClmClusterNodeGet (
 
     /* Check the validity of the handle */
     localHandle = (ClHandleT)clmHandle;
-    rc = clHandleCheckout(databaseHandle,
-                          localHandle,
-                          (void*)&clmInstance);
+    rc = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (rc != CL_OK)
     {
         return _aspErrToAisErr(rc);
@@ -520,17 +510,15 @@ saClmClusterNodeGet (
 
     /* Do the xlation between the clovis node type and the Ais node type */
     clusterNode->nodeId = gms_node.nodeId;
-    clusterNode->member = gms_node.memberActive;
+    clusterNode->member = (SaBoolT) gms_node.memberActive;
     clusterNode->bootTimestamp = gms_node.bootTimestamp;
     clusterNode->initialViewNumber= gms_node.initialViewNumber;
     memcpy(&clusterNode->nodeName, &gms_node.nodeName ,sizeof(SaNameT));
-    memcpy(&clusterNode->nodeAddress,&gms_node.nodeIpAddress,
-            sizeof(SaClmNodeAddressT));
+    memcpy(&clusterNode->nodeAddress,&gms_node.nodeIpAddress, sizeof(SaClmNodeAddressT));
 error_return:
     if ((clHandleCheckin(databaseHandle, localHandle)) != CL_OK)
     {
-        clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "clHandleCheckin failed");
+        clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED, "clHandleCheckin failed");
 }
 
     return _aspErrToAisErr(rc);
@@ -550,9 +538,7 @@ saClmClusterNodeGetAsync (
 
     /* Check the validity of the handle */
     localHandle = (ClHandleT)clmHandle;
-    rc = clHandleCheckout(databaseHandle,
-                          localHandle,
-                          (void*)&clmInstance);
+    rc = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (rc != CL_OK)
     {
         return _aspErrToAisErr(rc);
@@ -588,9 +574,7 @@ saClmSelectionObjectGet (
 
     /* Check the validity of the handle */
     localHandle = (ClHandleT)clmHandle;
-    rc = clHandleCheckout(databaseHandle,
-                          localHandle,
-                          (void*)&clmInstance);
+    rc = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (rc != CL_OK)
     {
         return _aspErrToAisErr(rc);
@@ -629,9 +613,7 @@ saClmDispatch (
 
     /* Check the validity of the handle */
     localHandle = (ClHandleT)clmHandle;
-    rc = clHandleCheckout(databaseHandle,
-                          localHandle,
-                          (void*)&clmInstance);
+    rc = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
 
     if (rc != CL_OK)
     {
@@ -705,9 +687,7 @@ static void clGmsClusterMemberGetCallbackWrapper (
     localHandle = *pGmsHandle;
 
     /* Handle checkout */
-    error = clHandleCheckout(databaseHandle,
-                          localHandle,
-                          (void*)&clmInstance);
+    error = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (error != CL_OK)
     {
         clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
@@ -718,7 +698,7 @@ static void clGmsClusterMemberGetCallbackWrapper (
     if ((rc == CL_OK) && (clusterMember != (const void*)NULL))
     {
         /*Allocate memory for safNode*/
-        safNode = clHeapAllocate(sizeof(SaClmClusterNodeT));
+        safNode = (SaClmClusterNodeT*) clHeapAllocate(sizeof(SaClmClusterNodeT));
         if (safNode == NULL)
         {
             clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
@@ -740,7 +720,7 @@ static void clGmsClusterMemberGetCallbackWrapper (
             safNode->nodeName.length = clusterMember->nodeName.length;
             memcpy(&safNode->nodeName.value,&clusterMember->nodeName.value,sizeof(SaUint8T)*SA_MAX_NAME_LENGTH);
 
-            safNode->member = clusterMember->memberActive;
+            safNode->member = (SaBoolT) clusterMember->memberActive;
             safNode->bootTimestamp = clusterMember->bootTimestamp;
             safNode->initialViewNumber = clusterMember->initialViewNumber;
         }
@@ -806,9 +786,7 @@ static void clGmsClusterTrackCallbackWrapper (
     localHandle = *pGmsHandle;
 
     /* Handle checkout */
-    error = clHandleCheckout(databaseHandle,
-                             localHandle,
-                             (void*)&clmInstance);
+    error = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (error != CL_OK)
     {
         clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
@@ -817,7 +795,7 @@ static void clGmsClusterTrackCallbackWrapper (
     }
 
     /* Convert the notification gotten from GMS into SAF notification */
-    safbuf = clHeapAllocate(sizeof(SaClmClusterNotificationBufferT));
+    safbuf = (SaClmClusterNotificationBufferT*) clHeapAllocate(sizeof(SaClmClusterNotificationBufferT));
     if (safbuf == NULL)
     {
         clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
@@ -844,13 +822,13 @@ static void clGmsClusterTrackCallbackWrapper (
         for (index = 0; index < safbuf->numberOfItems; index++)
         {
             (safbuf->notification[index]).clusterChange =
-                notificationBuffer->notification[index].clusterChange;
+                (SaClmClusterChangesT) notificationBuffer->notification[index].clusterChange;
 
             (safbuf->notification[index]).clusterNode.nodeId =
                 notificationBuffer->notification[index].clusterNode.nodeId;
 
             (safbuf->notification[index]).clusterNode.member =
-                notificationBuffer->notification[index].clusterNode.memberActive;
+                (SaBoolT) notificationBuffer->notification[index].clusterNode.memberActive;
 
             safbuf->notification[index].clusterNode.bootTimestamp =
                 notificationBuffer->notification[index].clusterNode.bootTimestamp;
@@ -920,9 +898,7 @@ static void dispatchWrapperCallback (ClHandleT  localHandle,
     ClRcT                rc = CL_OK;
 
     /* Handle checkout */
-    rc = clHandleCheckout(databaseHandle,
-                          localHandle,
-                          (void*)&clmInstance);
+    rc = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (rc != CL_OK)
     {
         clLogError(GMS_LOG_AREA_CLM,CL_LOG_CONTEXT_UNSPECIFIED,

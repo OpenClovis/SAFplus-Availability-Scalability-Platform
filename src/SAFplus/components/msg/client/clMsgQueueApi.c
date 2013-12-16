@@ -430,7 +430,7 @@ static SaAisErrorT clMsgQueueOpenInternal(
                                           SaMsgQueueHandleT *pQueueHandle
                                           )
 {
-    SaAisErrorT                      rc = CL_OK;
+    ClRcT                            rc = CL_OK;
     ClRcT                            retCode;
     ClMsgLibInfoT                    *pMsgLibInfo = NULL;
     ClBoolT                          qExists;
@@ -438,7 +438,11 @@ static SaAisErrorT clMsgQueueOpenInternal(
     ClInt32T                         tries = 0;
     ClTimerTimeOutT                  delay = {.tsSec = 0, .tsMilliSec = 500 };
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+       return CL_MSG_SA_RET(rc);
+    }
 
     /* Data input validation */
     if((syncCall == CL_TRUE && pQueueHandle == NULL) || pQueueName == NULL || 
@@ -551,17 +555,17 @@ retry:
             goto error_out_1;
         }
     }
-
+    {
     ClMsgOpenAsyncParamsT *pMsgOpenParams = NULL;
     if(syncCall == CL_FALSE)
     {
         pMsgOpenParams = (ClMsgOpenAsyncParamsT *) clHeapAllocate(sizeof(ClMsgOpenAsyncParamsT));
         pMsgOpenParams->msgHandle = msgHandle;
         pMsgOpenParams->invocation = invocation;
-        pMsgOpenParams->pQueueName = clHeapCalloc(1, sizeof(*pMsgOpenParams->pQueueName));
+        pMsgOpenParams->pQueueName = (SaNameT*) clHeapCalloc(1, sizeof(*pMsgOpenParams->pQueueName));
         CL_ASSERT(pMsgOpenParams->pQueueName != NULL);
         memcpy(pMsgOpenParams->pQueueName, pQueueName, sizeof(*pMsgOpenParams->pQueueName));
-        pMsgOpenParams->pCreationAttributes = clHeapCalloc(1, sizeof(SaMsgQueueCreationAttributesT));
+        pMsgOpenParams->pCreationAttributes = (SaMsgQueueCreationAttributesT*) clHeapCalloc(1, sizeof(SaMsgQueueCreationAttributesT));
         CL_ASSERT(pMsgOpenParams->pCreationAttributes != NULL);
         memcpy(pMsgOpenParams->pCreationAttributes, pCreationAttributes, sizeof(SaMsgQueueCreationAttributesT));
 
@@ -700,7 +704,7 @@ retry:
         clMsgDispatchQueueRegisterInternal(msgHandle, *pQueueHandle, 
                                            pMsgLibInfo->callbacks.saMsgMessageReceivedCallback);
     }
-
+    }
 error_out_1:
     retCode = clHandleCheckin(gMsgHandleDatabase, msgHandle);
     if(retCode != CL_OK)
@@ -736,7 +740,7 @@ SaAisErrorT saMsgQueueOpenAsync(SaMsgHandleT msgHandle,
 
 SaAisErrorT saMsgQueueClose(SaMsgQueueHandleT queueHandle)
 {
-    ClRcT rc, retCode;
+    ClRcT rc = CL_OK, retCode;
     ClMsgQueueInfoT *pQInfo;
     ClBoolT qDeleteFlag = CL_FALSE;
     ClBoolT qPersistencyFlag = CL_FALSE;
@@ -745,8 +749,12 @@ SaAisErrorT saMsgQueueClose(SaMsgQueueHandleT queueHandle)
     ClMsgQueueCkptDataT queueData = {{0}};
     ClBoolT isExist = CL_FALSE;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
+  
     CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
 
     rc = clHandleCheckout(gClMsgQDatabase, queueHandle, (ClPtrT *)&pQInfo);
@@ -882,15 +890,18 @@ persistency_out:
 
 ClRcT VDECL_VER(clMsgQueueUnlink, 4, 0, 0)(SaNameT *pQName)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClBoolT qDeleteFlag = CL_FALSE;
     ClMsgQueueRecordT *pQEntry;
     SaMsgQueueHandleT qHandle;
     ClMsgQueueInfoT *pQInfo;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return rc;
+    }
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
     if(clMsgQNameEntryExists(pQName, &pQEntry) == CL_FALSE)
     {
@@ -952,9 +963,16 @@ error_out:
 
 SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *pQueueName)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
+    ClMsgQueueCkptDataT queueData;
+    ClIdlHandleObjT idlObj = {0};
+    ClIdlHandleT idlHandle = 0;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
 
     if(pQueueName == NULL)
     {
@@ -964,7 +982,6 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *pQueueName)
     }
 
     /* Look up msg queue in the cached checkpoint */
-    ClMsgQueueCkptDataT queueData;
     if(clMsgQCkptExists((SaNameT *)pQueueName, &queueData) == CL_FALSE)
     {
         rc = CL_MSG_RC(CL_ERR_DOESNT_EXIST);
@@ -973,8 +990,6 @@ SaAisErrorT saMsgQueueUnlink(SaMsgHandleT msgHandle, const SaNameT *pQueueName)
     }
 
     /* Get Ioc address of the given MSG queue */
-    ClIdlHandleObjT idlObj = {0};
-    ClIdlHandleT idlHandle = 0;
 
     memcpy(&idlObj, &gIdlUcastObj, sizeof(idlObj));
     if (queueData.qAddress.nodeAddress != 0)
@@ -1033,7 +1048,11 @@ SaAisErrorT saMsgQueueStatusGet(
 {
     ClRcT rc = CL_OK;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
 
     if(pQueueName == NULL || pQueueStatus == NULL)
     {
@@ -1041,7 +1060,7 @@ SaAisErrorT saMsgQueueStatusGet(
         clLogError("MSG", "QSG", "NULL parameter passed. error code [0x%x].",rc);
         goto error_out;
     }
-
+    {
     /* Look up msg queue in the cached checkpoint */
     ClMsgQueueCkptDataT queueData;
     if(clMsgQCkptExists((SaNameT *)pQueueName, &queueData) == CL_FALSE)
@@ -1101,7 +1120,7 @@ SaAisErrorT saMsgQueueStatusGet(
     }
 
     clIdlHandleFinalize(idlHandle);
-
+    }
 error_out:
 out:
     return CL_MSG_SA_RC(rc);
@@ -1112,9 +1131,13 @@ SaAisErrorT saMsgQueueRetentionTimeSet(
         SaMsgQueueHandleT qHandle,
         SaTimeT *retentionTime)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }  
 
     if(retentionTime == NULL)
     {
@@ -1136,10 +1159,13 @@ error_out:
 
 SaAisErrorT saMsgMessageCancel(SaMsgQueueHandleT queueHandle)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return CL_MSG_SA_RET(rc);
+    }
     rc = clMsgMessageCancel(queueHandle);
     if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_DOESNT_EXIST)
     {
@@ -1151,12 +1177,15 @@ SaAisErrorT saMsgMessageCancel(SaMsgQueueHandleT queueHandle)
 
 ClRcT clMsgQueuePersistRedundancy(const SaNameT *queue, const SaNameT *node)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClIocAddressT iocAddress;
     SaNameT *pNodeName = (SaNameT *) node;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        goto error_out;
+    }
     /* Get IOC address for a node */
     rc = clCpmIocAddressForNodeGet(*pNodeName, &iocAddress);
     if (rc != CL_OK)
@@ -1165,7 +1194,7 @@ ClRcT clMsgQueuePersistRedundancy(const SaNameT *queue, const SaNameT *node)
         clLogError("QUE", "REDUN", "Failed to get the IOC address for a node. error code [0x%x].", rc);
         goto error_out;
     }
-
+    {
     /* Look up msg queue in the cached checkpoint */
     ClMsgQueueCkptDataT queueData;
     if(clMsgQCkptExists((SaNameT *)queue, &queueData) == CL_FALSE)
@@ -1214,7 +1243,7 @@ ClRcT clMsgQueuePersistRedundancy(const SaNameT *queue, const SaNameT *node)
     }
 
     clIdlHandleFinalize(idlHandle);
-
+    }
 error_out:
 out:
     return rc;

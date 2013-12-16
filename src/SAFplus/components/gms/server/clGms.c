@@ -113,7 +113,7 @@ _clGmsServiceInitialize ( const int argc  , char* const argv[] )
        Create the View Database and create the view for the Cluster by default
        .
        */
-    rc = _clGmsViewInitialize ( &gmsGlobalInfo.config );
+    rc = _clGmsViewInitialize (  );
     if( rc != CL_OK )
     {
         clLog(EMER,GEN,NA,

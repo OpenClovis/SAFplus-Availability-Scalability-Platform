@@ -47,8 +47,8 @@
 #define HSM_LOG_AREA		"HSM"
 #define HSM_LOG_CTX_EVENT	"EVT"
 
-static ClUint16T _findLCA(ClSmInstancePtrT this, ClSmStatePtrT curr, ClSmStatePtrT next);
-static ClRcT  _transition(ClSmInstancePtrT this, ClSmTransitionPtrT tO, 
+static ClUint16T _findLCA(ClSmInstancePtrT smThis, ClSmStatePtrT curr, ClSmStatePtrT next);
+static ClRcT  _transition(ClSmInstancePtrT smThis, ClSmTransitionPtrT tO, 
                               ClSmStatePtrT curr, ClSmStatePtrT next,
                               ClSmEventPtrT msg);
 
@@ -65,7 +65,7 @@ static ClRcT  _transition(ClSmInstancePtrT this, ClSmTransitionPtrT tO,
  *  bottom till LCA and execution of transition object function, and
  *  entry methods from LCA till the next state.
  *
- *  @param this Instance Object
+ *  @param smThis Instance Object
  *  @param msg  Event that needs to be handled
  *
  *  @returns 
@@ -76,7 +76,7 @@ static ClRcT  _transition(ClSmInstancePtrT this, ClSmTransitionPtrT tO,
  *
  */
 ClRcT 
-clHsmInstanceOnEvent(ClSmInstancePtrT this, 
+clHsmInstanceOnEvent(ClSmInstancePtrT smThis, 
                    ClSmEventPtrT msg
                    )
 {
@@ -87,17 +87,17 @@ clHsmInstanceOnEvent(ClSmInstancePtrT this,
     
     CL_FUNC_ENTER();
     
-    CL_ASSERT(this);
+    CL_ASSERT(smThis);
     CL_ASSERT(msg);
     
-    if(!this || !this->sm || !this->current || !msg) 
+    if(!smThis || !smThis->sm || !smThis->current || !msg) 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
         CL_FUNC_EXIT();
         return ret;
       }
 
-    for(curr=this->current;curr && !tO;)
+    for(curr=smThis->current;curr && !tO;)
       {
         
         /* check if the event is in event handler table
@@ -114,7 +114,7 @@ clHsmInstanceOnEvent(ClSmInstancePtrT this,
       {
 #ifdef DEBUG
         clLogTrace(HSM_LOG_AREA,HSM_LOG_CTX_EVENT,"StateMachine [%s] OnEvent [%d] in State [%d:%s]", 
-                              this->name,
+                              smThis->name,
                               msg->eventId,
                               curr->type,
                               curr->name);
@@ -123,7 +123,7 @@ clHsmInstanceOnEvent(ClSmInstancePtrT this,
                               msg->eventId,
                               curr->type);
 #endif
-        retCode = _transition(this, tO, this->current, tO->nextState, msg);
+        retCode = _transition(smThis, tO, smThis->current, tO->nextState, msg);
       } 
     else
       {
@@ -140,7 +140,7 @@ clHsmInstanceOnEvent(ClSmInstancePtrT this,
  * Finds the Least Common Ancestor between 'curr' state and 'next'
  * state.
  *
- *  @param this    state object handle
+ *  @param smThis    state object handle
  *  @param curr    current state handle
  *  @param next    next state handle
  * 
@@ -150,7 +150,7 @@ clHsmInstanceOnEvent(ClSmInstancePtrT this,
  */
 static 
 ClUint16T 
-_findLCA(ClSmInstancePtrT this, ClSmStatePtrT curr, ClSmStatePtrT next)
+_findLCA(ClSmInstancePtrT smThis, ClSmStatePtrT curr, ClSmStatePtrT next)
 {
     ClSmStatePtrT currParents[MAX_DEPTH];
     ClSmStatePtrT nextParents[MAX_DEPTH];
@@ -201,7 +201,7 @@ _findLCA(ClSmInstancePtrT this, ClSmStatePtrT curr, ClSmStatePtrT next)
  * Transition from current state 'curr' using Transition object (tO)
  * to the 'next' state.
  *
- *  @param this    state machine object handle
+ *  @param smThis    state machine object handle
  *  @param tO      transition object handle
  *  @param curr    current state handle
  *  @param next    next state handle
@@ -212,7 +212,7 @@ _findLCA(ClSmInstancePtrT this, ClSmStatePtrT curr, ClSmStatePtrT next)
  */
 static
 ClRcT  
-_transition(ClSmInstancePtrT this, 
+_transition(ClSmInstancePtrT smThis, 
             ClSmTransitionPtrT tO, 
             ClSmStatePtrT curr, 
             ClSmStatePtrT next,
@@ -227,7 +227,7 @@ _transition(ClSmInstancePtrT this,
     memset(nextParents, 0, sizeof(ClSmStatePtrT)*MAX_DEPTH); 
     if(tO) 
       { 
-        lvls =(int)_findLCA(this,curr,next);
+        lvls =(int)_findLCA(smThis,curr,next);
         clLogTrace(HSM_LOG_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"HSM Transition from %d to %d", 
                               curr->type, 
                               next->type); 
@@ -241,7 +241,7 @@ _transition(ClSmInstancePtrT this,
             tmp = tmp->parent;
           }
         pptr = tmp;
-        this->current = next;
+        smThis->current = next;
 
         /* run the transition */
         if(tO->transitionHandler) 
@@ -259,14 +259,14 @@ _transition(ClSmInstancePtrT this,
             nextParents[lvls++] = tmp;
             tmp = tmp->parent;
           }
-        this->current = tO->nextState; 
+        smThis->current = tO->nextState; 
         /* now run thru the entry states */
         for(;lvls>-1;lvls--) 
           {
             tmp = nextParents[lvls];
             if(tmp && tmp->entry)
             { 
-              retCode = (*tmp->entry)(curr, &this->current, msg);
+              retCode = (*tmp->entry)(curr, &smThis->current, msg);
             } 
           }
 
@@ -277,9 +277,9 @@ _transition(ClSmInstancePtrT this,
             /* fire the entry */
             if(tmp->entry)
               {
-                retCode = (*tmp->entry) (curr, &this->current, msg);
+                retCode = (*tmp->entry) (curr, &smThis->current, msg);
               }
-            this->current = tmp;
+            smThis->current = tmp;
             tmp=tmp->init;
           }
       } 

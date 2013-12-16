@@ -46,6 +46,11 @@ extern "C" {
 #define CL_NS_DFLT_RETRIES  3
 #define CL_NS_VERSION_NO 0x0100
 
+# define CL_NS_SERVER_SERVER_VERSION_SET(pVersion) (pVersion)->releaseCode = 'B', \
+                                                    (pVersion)->majorVersion = 0x1, \
+                                                    (pVersion)->minorVersion = 0x1
+
+
 /* Name Service RMD FN# */
                                                                                                                              
 #define CL_NS_REGISTER                 CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID,1)

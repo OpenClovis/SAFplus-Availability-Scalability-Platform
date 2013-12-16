@@ -68,7 +68,7 @@ unmarshal_gms_clientlib_initialize_request(
     }
 
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         return rc;
@@ -88,7 +88,7 @@ marshal_gms_clientlib_initialize_response(
 
     CL_ASSERT(res!=NULL);
 
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
     return rc;
 }
 
@@ -158,7 +158,7 @@ unmarshalClGmsClusterTrackRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -180,7 +180,7 @@ marshalClGmsClusterTrackResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
     if ((rc != CL_OK) || (res == NULL))
     {
         goto error_exit;
@@ -190,8 +190,7 @@ marshalClGmsClusterTrackResponse(
     {
         CL_ASSERT(res->buffer.numberOfItems > 0);
         
-        rc = clBufferNBytesWrite(buf, (void*)res->buffer.notification,
-                 res->buffer.numberOfItems * sizeof(ClGmsClusterNotificationT));
+        rc = clBufferNBytesWrite(buf, (ClUint8T*)res->buffer.notification, res->buffer.numberOfItems * sizeof(ClGmsClusterNotificationT));
     }
 
 error_exit:
@@ -260,7 +259,7 @@ unmarshalClGmsClusterTrackStopRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -282,7 +281,7 @@ marshalClGmsClusterTrackStopResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -346,7 +345,7 @@ unmarshalClGmsClusterMemberGetRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -368,7 +367,7 @@ marshalClGmsClusterMemberGetResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -432,7 +431,7 @@ unmarshalClGmsClusterMemberGetAsyncRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -454,7 +453,7 @@ marshalClGmsClusterMemberGetAsyncResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -518,7 +517,7 @@ unmarshalClGmsGroupInfoListGetRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -539,7 +538,7 @@ marshalClGmsGroupsInfoListGetResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -549,7 +548,7 @@ marshalClGmsGroupsInfoListGetResponse(
     {
         CL_ASSERT(res->groupsList.noOfGroups > 0);
         
-        rc = clBufferNBytesWrite(buf, (void*)res->groupsList.groupInfoList,
+        rc = clBufferNBytesWrite(buf, (ClUint8T*)res->groupsList.groupInfoList,
                  res->groupsList.noOfGroups * sizeof(ClGmsGroupInfoT));
     }
 
@@ -613,7 +612,7 @@ unmarshalClGmsGroupInfoGetRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -634,7 +633,7 @@ marshalClGmsGroupInfoGetResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -700,7 +699,7 @@ unmarshalClGmsCompUpNotifyRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -721,7 +720,7 @@ marshalClGmsCompUpNotifyResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -782,7 +781,7 @@ unmarshalClGmsGroupMcastRequest(
     }
     
     len = sizeof(ClGmsGroupMcastRequestT);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -794,7 +793,7 @@ unmarshalClGmsGroupMcastRequest(
 
     len = req->dataSize;
     /* Now read the data pointer */
-    rc = clBufferNBytesRead(buf, (void*)req->data, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req->data, &len);
 
 error_exit:
     return rc;
@@ -810,7 +809,7 @@ marshalClGmsGroupMcastResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
     
     return rc;
 }
@@ -867,7 +866,7 @@ unmarshalClGmsGroupTrackRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -889,7 +888,7 @@ marshalClGmsGroupTrackResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -899,7 +898,7 @@ marshalClGmsGroupTrackResponse(
     {
         CL_ASSERT(res->buffer.numberOfItems > 0);
         
-        rc = clBufferNBytesWrite(buf, (void*)res->buffer.notification,
+        rc = clBufferNBytesWrite(buf, (ClUint8T*)res->buffer.notification,
                  res->buffer.numberOfItems * sizeof(ClGmsGroupNotificationT));
     }
 
@@ -968,7 +967,7 @@ unmarshalClGmsGroupTrackStopRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -990,7 +989,7 @@ marshalClGmsGroupTrackStopResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -1081,7 +1080,7 @@ unmarshalClGmsClusterJoinRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -1103,7 +1102,7 @@ marshalClGmsClusterJoinResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -1249,7 +1248,7 @@ unmarshalClGmsClusterLeaderElectRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -1271,7 +1270,7 @@ marshalClGmsClusterLeaderElectResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -1336,7 +1335,7 @@ unmarshalClGmsClusterMemberEjectRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -1358,7 +1357,7 @@ marshalClGmsClusterMemberEjectResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -1423,7 +1422,7 @@ unmarshalClGmsGroupCreateRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -1445,7 +1444,7 @@ marshalClGmsGroupCreateResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -1508,7 +1507,7 @@ unmarshalClGmsGroupDestroyRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -1530,7 +1529,7 @@ marshalClGmsGroupDestroyResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -1593,7 +1592,7 @@ unmarshalClGmsGroupJoinRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -1615,7 +1614,7 @@ marshalClGmsGroupJoinResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -1678,7 +1677,7 @@ unmarshalClGmsGroupLeaveRequest(
     }
     
     len = sizeof(*req);
-    rc = clBufferNBytesRead(buf, (void*)req, &len);
+    rc = clBufferNBytesRead(buf, (ClUint8T*)req, &len);
     if (rc != CL_OK)
     {
         goto error_exit;
@@ -1700,7 +1699,7 @@ marshalClGmsGroupLeaveResponse(
     
     CL_ASSERT(res!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)res, sizeof(*res));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)res, sizeof(*res));
 
     return rc;
 }
@@ -1785,7 +1784,7 @@ marshalClGmsClusterTrackCallbackData(
     
     CL_ASSERT(data!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)data, sizeof(*data));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)data, sizeof(*data));
     if ((rc != CL_OK) || (data == NULL))
     {
         goto error_return;
@@ -1794,7 +1793,7 @@ marshalClGmsClusterTrackCallbackData(
     if (data->buffer.notification != NULL)
     {
         CL_ASSERT(data->buffer.numberOfItems > 0);
-        rc = clBufferNBytesWrite(buf, (void*)data->buffer.notification,
+        rc = clBufferNBytesWrite(buf, (ClUint8T*)data->buffer.notification,
                data->buffer.numberOfItems * sizeof(ClGmsClusterNotificationT));
     }
     
@@ -1857,7 +1856,7 @@ marshalClGmsClusterMemberGetCallbackData(
     
     CL_ASSERT(data!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)data, sizeof(*data));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)data, sizeof(*data));
 
     return rc;
 }
@@ -1919,7 +1918,7 @@ marshalClGmsClusterMemberEjectCallbackData(
     
     CL_ASSERT(data!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)data, sizeof(*data));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)data, sizeof(*data));
 
     return rc;
 }
@@ -1980,7 +1979,7 @@ marshalClGmsGroupTrackCallbackData(
     
     CL_ASSERT(data!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)data, sizeof(*data));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)data, sizeof(*data));
     if (rc != CL_OK)
     {
         goto error_return;
@@ -1989,7 +1988,7 @@ marshalClGmsGroupTrackCallbackData(
     if (data->buffer.notification != NULL)
     {
         CL_ASSERT(data->buffer.numberOfItems > 0);
-        rc = clBufferNBytesWrite(buf, (void*)data->buffer.notification,
+        rc = clBufferNBytesWrite(buf, (ClUint8T*)data->buffer.notification,
                data->buffer.numberOfItems * sizeof(ClGmsGroupNotificationT));
     }
     
@@ -2075,13 +2074,13 @@ marshalClGmsGroupMcastCallbackData(
     
     CL_ASSERT(data!=NULL);
     
-    rc = clBufferNBytesWrite(buf, (void*)data, sizeof(ClGmsGroupMcastCallbackDataT));
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)data, sizeof(ClGmsGroupMcastCallbackDataT));
     if ((rc != CL_OK) || (data == NULL))
     {
         goto error_return;
     }
 
-    rc = clBufferNBytesWrite(buf, (void*)data->data, data->dataSize);
+    rc = clBufferNBytesWrite(buf, (ClUint8T*)data->data, data->dataSize);
     if ((rc != CL_OK) || (data == NULL))
     {
         goto error_return;

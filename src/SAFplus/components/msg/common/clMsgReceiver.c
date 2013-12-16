@@ -281,8 +281,12 @@ ClRcT VDECL_VER(clMsgMessageReceived, 4, 0, 0)(ClMsgMessageSendTypeT sendType, S
     ClMsgQueueRecordT *pQueue;
     ClUint32T i;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        goto out;
+    }
+ 
     if ((pMessage == NULL) || (pMessage->pIovec == NULL))
     {
         rc = CL_MSG_RC(CL_ERR_NULL_POINTER);
@@ -408,6 +412,7 @@ ClRcT clMsgQueueGetMessagesAndMove(
                 if(rc != CL_OK)
                     clLogError("MSG", "RTV", "Failed to destroy replier handle. error code [0x%x].", rc);
             }
+            {
 
             ClMsgMessageIovecT msgVector;
             struct iovec iovec = {0};
@@ -429,7 +434,7 @@ ClRcT clMsgQueueGetMessagesAndMove(
                            pQInfo->pQueueEntry->qName.length, pQInfo->pQueueEntry->qName.value, rc);
                 goto error_out;
             }
-
+            }
             error_continue:
             clMsgMessageFree(pRecvInfo->pMessage);
             clHeapFree(pRecvInfo);

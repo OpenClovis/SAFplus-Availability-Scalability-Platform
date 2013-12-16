@@ -44,7 +44,7 @@ ClRcT clTmsGroupCreate(
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -101,7 +101,7 @@ ClRcT clTmsGroupDestroy(
     ClGmsGroupDestroyResponseT            *res = NULL;
 
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -154,7 +154,7 @@ ClRcT clTmsGroupJoin(
 
     CL_GMS_SET_CLIENT_VERSION( req );
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -242,7 +242,7 @@ ClRcT clTmsGroupLeave(
 
     CL_GMS_SET_CLIENT_VERSION( req );
 
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -337,7 +337,7 @@ ClRcT clTmsGroupTrack(
         return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
     }
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return CL_GMS_RC(CL_ERR_INVALID_HANDLE);
@@ -469,7 +469,7 @@ ClRcT clTmsGroupTrackStop(
     ClGmsGroupTrackStopResponseT   *res = NULL;
 
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -516,7 +516,7 @@ ClRcT clTmsListGroups(
 
     CL_GMS_SET_CLIENT_VERSION( req );
 
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -569,7 +569,7 @@ ClRcT clTmsGetGroupInfo(
 
     CL_GMS_SET_CLIENT_VERSION( req );
 
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -623,7 +623,7 @@ ClRcT clTmsSendAll(CL_IN   ClTmsHandleT        gmsHandle,
 
     CL_GMS_SET_CLIENT_VERSION(req);
 
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -671,7 +671,7 @@ ClRcT clTmsGroupTrackCallbackHandler(
     CL_ASSERT(res != NULL);
     
     gmsHandle = res->gmsHandle;
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         goto error_free_res;
@@ -718,7 +718,7 @@ ClRcT clTmsGroupMcastCallbackHandler(
     CL_ASSERT(res != NULL);
     
     gmsHandle = res->gmsHandle;
-    rc = clHandleCheckout(handle_database, gmsHandle, (void*)&gms_instance_ptr);
+    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         goto error_free_res;

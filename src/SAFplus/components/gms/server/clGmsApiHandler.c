@@ -830,7 +830,7 @@ clGmsClusterJoinHandler(
 
     memcpy(&viewMember.clusterMember, &thisNode, sizeof(ClGmsClusterMemberT));
 
-    rc= clGmsSendMsg(&viewMember, req->groupId, CL_GMS_CLUSTER_JOIN_MSG , 0x0, 0, NULL );
+    rc= clGmsSendMsg(&viewMember, req->groupId, CL_GMS_CLUSTER_JOIN_MSG , (ClGmsMemberEjectReasonT) 0x0, 0, NULL );
 
     if (rc != CL_OK)
     {
@@ -944,7 +944,7 @@ clGmsClusterLeaveHandler(
         return rc;
     }
 
-    clLogNotice("CLUSTER", "LEAVE", "Received Cluster Leave request for node [%d], sync flag [%s]", req->nodeId, req->sync ? "yes" : "no");
+    clLogNotice("CLUSTER", "LEAVE", "Received Cluster Leave request for [nodeId = %d], sync flag [%s]", req->nodeId, req->sync ? "yes" : "no");
 
     /* Try to see if the node is part of the cluster view if not then send the
      *  caller an invalid parameter return code . */
@@ -962,7 +962,7 @@ clGmsClusterLeaveHandler(
 
         memcpy(&viewMember.clusterMember, &thisNode, sizeof(ClGmsClusterMemberT));
 
-        rc= clGmsSendMsg(&viewMember, req->groupId, CL_GMS_CLUSTER_LEAVE_MSG , 0x0, 0, NULL);
+        rc= clGmsSendMsg(&viewMember, req->groupId, CL_GMS_CLUSTER_LEAVE_MSG , (ClGmsMemberEjectReasonT) 0x0, 0, NULL);
 
         if (rc != CL_OK)
         {
@@ -1071,7 +1071,7 @@ clGmsClusterLeaderElectHandler(
         return CL_ERR_NO_RESOURCE;
     }
 
-    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void*)&context_info);
+    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void**)&context_info);
     CL_ASSERT((rc == CL_OK) && (context_info != NULL));
 
     clGmsCsCreate(&contextCondVar);
@@ -1084,7 +1084,7 @@ clGmsClusterLeaderElectHandler(
     /* Aquire the cond mutex before doing mcast */
     clGmsMutexLock ( contextCondVar.mutex );
     rc= clGmsSendMsg(&viewMember, 0 /*This is dummy*/,
-                        CL_GMS_LEADER_ELECT_MSG , 0x0, 0, NULL );
+                        CL_GMS_LEADER_ELECT_MSG , (ClGmsMemberEjectReasonT)0x0, 0, NULL );
     if (rc != CL_OK)
     {
         clGmsMutexUnlock ( contextCondVar.mutex );
@@ -1102,7 +1102,7 @@ clGmsClusterLeaderElectHandler(
     }
 
     /* Checkout contexHandle and catch the value of RC */
-    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void*)&context_info);
+    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void**)&context_info);
     CL_ASSERT((rc == CL_OK) && (context_info != NULL));
     if (context_info->rc != CL_OK)
     {
@@ -1263,7 +1263,7 @@ clGmsGroupCreateHandler(
         return CL_ERR_NO_RESOURCE;
     }
 
-    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void*)&context_info);
+    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void**)&context_info);
     CL_ASSERT((rc == CL_OK) && (context_info != NULL));
 
     clGmsCsCreate(&contextCondVar);
@@ -1284,7 +1284,7 @@ clGmsGroupCreateHandler(
     clGmsMutexLock ( contextCondVar.mutex );
     
     rc= clGmsSendMsg(&viewMember, 0 /*This is dummy*/, 
-                     CL_GMS_GROUP_CREATE_MSG , 0x0, 0, NULL );
+                     CL_GMS_GROUP_CREATE_MSG , (ClGmsMemberEjectReasonT) 0x0, 0, NULL );
     if (rc != CL_OK)
     {
     	clGmsMutexUnlock ( contextCondVar.mutex );
@@ -1304,7 +1304,7 @@ clGmsGroupCreateHandler(
     }
 
     /* Checkout contexHandle and catch the value of RC */
-    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void*)&context_info);
+    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void**)&context_info);
     CL_ASSERT((rc == CL_OK) && (context_info != NULL));
     if (context_info->rc != CL_OK)
     {
@@ -1419,7 +1419,7 @@ clGmsGroupDestroyHandler(
         return CL_ERR_NO_RESOURCE;
     }
 
-    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void*)&context_info);
+    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void**)&context_info);
     CL_ASSERT((rc == CL_OK) && (context_info != NULL));
 
     clGmsCsCreate(&contextCondVar);
@@ -1433,7 +1433,7 @@ clGmsGroupDestroyHandler(
     clGmsMutexLock ( contextCondVar.mutex );
 
     rc= clGmsSendMsg(&viewMember, req->groupId,
-            CL_GMS_GROUP_DESTROY_MSG , 0x0, 0, NULL );
+            CL_GMS_GROUP_DESTROY_MSG , (ClGmsMemberEjectReasonT) 0x0, 0, NULL );
 
     if (rc != CL_OK)
     {
@@ -1452,7 +1452,7 @@ clGmsGroupDestroyHandler(
     }
 
     /* Checkout contexHandle and catch the value of RC */
-    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void*)&context_info);
+    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void**)&context_info);
     CL_ASSERT((rc == CL_OK) && (context_info != NULL));
     if (context_info->rc != CL_OK)
     {
@@ -1545,7 +1545,7 @@ clGmsGroupJoinHandler(
         return CL_ERR_NO_RESOURCE;
     }
 
-    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void*)&context_info);
+    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void**)&context_info);
     CL_ASSERT((rc == CL_OK) && (context_info != NULL));
 
     clGmsCsCreate(&contextCondVar);
@@ -1558,7 +1558,7 @@ clGmsGroupJoinHandler(
     /* Aquire the cond mutex before doing mcast */
     clGmsMutexLock ( contextCondVar.mutex );
     rc= clGmsSendMsg(&viewMember, req->groupId,
-                        CL_GMS_GROUP_JOIN_MSG , 0x0, 0, NULL );
+                        CL_GMS_GROUP_JOIN_MSG , (ClGmsMemberEjectReasonT) 0x0, 0, NULL );
     if (rc != CL_OK)
     {
     	clGmsMutexUnlock ( contextCondVar.mutex );
@@ -1576,7 +1576,7 @@ clGmsGroupJoinHandler(
     }
 
     /* Checkout contexHandle and catch the value of RC */
-    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void*)&context_info);
+    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void**)&context_info);
     CL_ASSERT((rc == CL_OK) && (context_info != NULL));
     if (context_info->rc != CL_OK)
     {
@@ -1656,7 +1656,7 @@ clGmsGroupLeaveHandler(
         return CL_ERR_NO_RESOURCE;
     }
 
-    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void*)&context_info);
+    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void**)&context_info);
     CL_ASSERT((rc == CL_OK) && (context_info != NULL));
 
     clGmsCsCreate(&contextCondVar);
@@ -1670,7 +1670,7 @@ clGmsGroupLeaveHandler(
     clGmsMutexLock ( contextCondVar.mutex );
 
     rc= clGmsSendMsg(&viewMember, req->groupId,
-            CL_GMS_GROUP_LEAVE_MSG , 0x0, 0, NULL );
+            CL_GMS_GROUP_LEAVE_MSG , (ClGmsMemberEjectReasonT) 0x0, 0, NULL );
     if (rc != CL_OK)
     {
     	clGmsMutexUnlock ( contextCondVar.mutex );
@@ -1688,7 +1688,7 @@ clGmsGroupLeaveHandler(
     }
 
     /* Checkout contexHandle and catch the value of RC */
-    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void*)&context_info);
+    rc = clHandleCheckout(contextHandleDatabase,contextHandle,(void**)&context_info);
     CL_ASSERT((rc == CL_OK) && (context_info != NULL));
     if (context_info->rc != CL_OK)
     {
@@ -1742,8 +1742,7 @@ clGmsGroupInfoListGetHandler(
                 (gmsGlobalInfo.db[index].viewType == CL_GMS_GROUP))
         {
             numberOfGroups++;
-            groupInfoList = realloc(groupInfoList,
-                                    sizeof(ClGmsGroupInfoT)*numberOfGroups);
+            groupInfoList = (ClGmsGroupInfoT*) realloc(groupInfoList, sizeof(ClGmsGroupInfoT)*numberOfGroups);
             if (groupInfoList == NULL)
             {
                 clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
@@ -1874,7 +1873,7 @@ clGmsGroupMcastHandler(
 
     /* Aquire the cond mutex before doing mcast */
     rc= clGmsSendMsg(&viewMember, req->groupId, 
-                     CL_GMS_GROUP_MCAST_MSG, 0x0,
+                     CL_GMS_GROUP_MCAST_MSG, (ClGmsMemberEjectReasonT) 0x0,
                      req->dataSize,
                      req->data);
     if (rc != CL_OK)
@@ -1925,7 +1924,7 @@ ClRcT   clGroupMemberLeaveOnCompDeath(
     viewMember.groupMember.memberId = memberId;
 
     rc= clGmsSendMsg(&viewMember, 0 /*This is dummy*/,
-           CL_GMS_COMP_DEATH, 0x0, 0, NULL );
+           CL_GMS_COMP_DEATH, (ClGmsMemberEjectReasonT) 0x0, 0, NULL );
 
     if (rc != CL_OK)
     {
