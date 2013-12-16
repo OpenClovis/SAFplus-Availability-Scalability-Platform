@@ -24,7 +24,7 @@
 #include "clNameIpi.h"
 #include "clNameCkptIpi.h"
 
-// extern ClCkptSvcHdlT     gNsCkptSvcHdl;
+//extern ClCkptSvcHdlT     gNsCkptSvcHdl;
 extern ClCntHandleT      gNSHashTable ;
 
 #define NAME_LOG_AREA_NAME		"SVR"
@@ -205,8 +205,7 @@ clNameSvcEntryDeserializer(ClUint32T  dsId,
     pBuffer += sizeof(ClNameSvcInfoIDLT);
     if( pNsEntryInfo->nsInfo.attrCount > 0 )
     {
-       pNsEntryInfo->nsInfo.attr = clHeapCalloc(pNsEntryInfo->nsInfo.attrLen,
-                                                sizeof(ClCharT));
+       pNsEntryInfo->nsInfo.attr = (ClNameSvcAttrEntryIDLT_4_0_0*) clHeapCalloc(pNsEntryInfo->nsInfo.attrLen, sizeof(ClCharT));
        if( NULL == pNsEntryInfo->nsInfo.attr )
        {
             clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_DESERIALIZER,"clHeapCalloc(): ");        

@@ -142,7 +142,7 @@ clSmTypeCreate(ClUint16T maxStates,
  *  cautiously and be sure that the state machine type is no longer
  *  referenced.
  *                                                                        
- *  @param this State Machine type to be deleted
+ *  @param smThis State Machine type to be deleted
  *
  *  @returns 
  *    CL_OK on CL_OK <br/>
@@ -151,35 +151,35 @@ clSmTypeCreate(ClUint16T maxStates,
  *  @see #clSmTypeCreate
  */
 ClRcT 
-clSmTypeDelete(ClSmTemplatePtrT this
+clSmTypeDelete(ClSmTemplatePtrT smThis
              )
 {
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);  
+  CL_ASSERT(smThis);  
 
   clLogTrace(SM_LOG_AREA,SM_LOG_CTX_DELETE,"Delete State Machine Type");
 
-  if(this && this->top)
+  if(smThis && smThis->top)
     {
       int i;
 
-      clOsalMutexLock(this->sem);
-      if(this->objects > 0)
+      clOsalMutexLock(smThis->sem);
+      if(smThis->objects > 0)
         {
-            clOsalMutexUnlock(this->sem);
+            clOsalMutexUnlock(smThis->sem);
           ret = SM_ERR_OBJ_PRESENT;
           CL_FUNC_EXIT();
           return ret;
         }
-      clOsalMutexUnlock(this->sem);
-      clOsalMutexDelete(this->sem);
+      clOsalMutexUnlock(smThis->sem);
+      clOsalMutexDelete(smThis->sem);
 
-      /* free the member objects - state table and then this object */
-      for(i=0;i<this->maxStates;i++)
+      /* free the member objects - state table and then smThis object */
+      for(i=0;i<smThis->maxStates;i++)
         {
-          ClSmStatePtrT stateh = this->top[i];
+          ClSmStatePtrT stateh = smThis->top[i];
           /* Bad design, only the pointer was given, why do you want to
            * free the memory associated to it ?
            */ 
@@ -188,8 +188,8 @@ clSmTypeDelete(ClSmTemplatePtrT this
               clSmStateDelete(stateh);
             }
         }
-      mFREE(this->top);
-      mFREE(this);
+      mFREE(smThis->top);
+      mFREE(smThis);
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -280,7 +280,7 @@ clSmStateCreate(ClUint16T maxTOs,
  *  unpredictable results. This API to be called cautiously and be
  *  sure that the state deleted is no longer referenced.
  *                                                                        
- *  @param this State to be deleted
+ *  @param smThis State to be deleted
  *
  *  @returns 
  *    CL_OK on CL_OK <br/>
@@ -289,36 +289,36 @@ clSmStateCreate(ClUint16T maxTOs,
  *  @see #clSmStateCreate
  */
 ClRcT
-clSmStateDelete(ClSmStatePtrT this
+clSmStateDelete(ClSmStatePtrT smThis
               )
 {
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);  
+  CL_ASSERT(smThis);  
 
   clLogTrace(SM_LOG_AREA,SM_LOG_CTX_DELETE,"Delete State");
 
-  if(this) 
+  if(smThis) 
     {
       /* free the state object */
-      if(this->eventTransitionTable) 
+      if(smThis->eventTransitionTable) 
         {
           int i;
           /* another bad design, since no body is there to free the
            * event transition table, ending up here 
            */
-          for(i=0;i<this->maxEventTransitions;i++)
+          for(i=0;i<smThis->maxEventTransitions;i++)
             {
-              ClSmTransitionPtrT to = this->eventTransitionTable[i].transition ;
+              ClSmTransitionPtrT to = smThis->eventTransitionTable[i].transition ;
               if(to)
                 {
                   clSmTransitionDelete(to);
                 }
             }
-          mFREE(this->eventTransitionTable);
+          mFREE(smThis->eventTransitionTable);
         }
-      mFREE(this);
+      mFREE(smThis);
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -398,7 +398,7 @@ clSmTransitionCreate(ClSmStatePtrT next,
  *  results. This API to be called cautiously and be sure that the
  *  transition object is no longer referenced.
  *
- *  @param this Transition object handle
+ *  @param smThis Transition object handle
  *
  *  @returns 
  *    CL_OK on CL_OK <br/>
@@ -407,20 +407,20 @@ clSmTransitionCreate(ClSmStatePtrT next,
  *  @see #clSmTransitionCreate
  */
 ClRcT
-clSmTransitionDelete(ClSmTransitionPtrT this
+clSmTransitionDelete(ClSmTransitionPtrT smThis
                    )
 {
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);  
+  CL_ASSERT(smThis);  
 
   clLogTrace(SM_LOG_AREA,SM_LOG_CTX_TRANSITION,"Delete State Transition");
 
-  if(this) 
+  if(smThis) 
     {
       /* free the object */
-      mFREE(this);
+      mFREE(smThis);
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -436,7 +436,7 @@ clSmTransitionDelete(ClSmTransitionPtrT this
  *  API to set the properties of a state, which includes type, entry
  *  and exit functions.  
  *                                                                        
- *  @param this    Previously created state object handle
+ *  @param smThis    Previously created state object handle
  *  @param sType   State Type
  *  @param sEntry  Entry function pointer (called when the state is 
  *                 activated/entered)
@@ -451,7 +451,7 @@ clSmTransitionDelete(ClSmTransitionPtrT this
  *
  */
 ClRcT
-clSmStateSet(ClSmStatePtrT this,
+clSmStateSet(ClSmStatePtrT smThis,
            ClSmStateTypeT sType,
            ClSmFuncPtrT   sEntry,
            ClSmFuncPtrT   sExit
@@ -460,15 +460,15 @@ clSmStateSet(ClSmStatePtrT this,
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);  
+  CL_ASSERT(smThis);  
 
   /*CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Set State Info [%d, >>%p %p<< ]", sType, sEntry, sExit));*/
 
-  if(this) 
+  if(smThis) 
     {
-      this->type = sType;
-      this->entry = sEntry;
-      this->exit = sExit;
+      smThis->type = sType;
+      smThis->entry = sEntry;
+      smThis->exit = sExit;
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -486,7 +486,7 @@ clSmStateSet(ClSmStatePtrT this,
  *  This API Adds/Copies contents of the Transition object to the
  *  State Object.
  *                                                                        
- *  @param this State Object to which Transition Object to be added
+ *  @param smThis State Object to which Transition Object to be added
  *  @param event Event that triggers the transition
  *  @param to Transition Object that needs to be triggered on the event
  *
@@ -496,7 +496,7 @@ clSmStateSet(ClSmStatePtrT this,
  *
  */
 ClRcT
-clSmStateTransitionAdd(ClSmStatePtrT this, 
+clSmStateTransitionAdd(ClSmStatePtrT smThis, 
                      ClSmEventIdT eventId, 
                      ClSmTransitionPtrT to
                      )
@@ -504,21 +504,21 @@ clSmStateTransitionAdd(ClSmStatePtrT this,
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);  
+  CL_ASSERT(smThis);  
   CL_ASSERT(to); 
 
   clLogTrace(SM_LOG_CTX_TRANSITION,SM_LOG_CTX_ADD,"State Transition Add [%d]",
                         eventId);
 
-  if(this && this->eventTransitionTable && to) 
+  if(smThis && smThis->eventTransitionTable && to) 
     {
       /* see if there is more space */
-      if(eventId >= (ClSmEventIdT)this->maxEventTransitions || eventId < 0) 
+      if(eventId >= (ClSmEventIdT)smThis->maxEventTransitions || eventId < 0) 
         {
           ret = SM_ERR_OUT_OF_RANGE;
         } else 
           {
-            this->eventTransitionTable[eventId].transition = to;
+            smThis->eventTransitionTable[eventId].transition = to;
           }
     } else
       {
@@ -535,7 +535,7 @@ clSmStateTransitionAdd(ClSmStatePtrT this,
  *
  *  API to install the state entry function. 
  *                                                                        
- *  @param this    Previously created state object handle
+ *  @param smThis    Previously created state object handle
  *  @param sEntry  Entry function pointer (called when the state is 
  *                 activated/entered)
  *  @returns 
@@ -547,19 +547,19 @@ clSmStateTransitionAdd(ClSmStatePtrT this,
  *
  */
 ClRcT
-clSmStateEntryInstall(ClSmStatePtrT this,
+clSmStateEntryInstall(ClSmStatePtrT smThis,
                     ClSmFuncPtrT   sEntry
                     )
 {
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);  
+  CL_ASSERT(smThis);  
 
-  if(this) 
+  if(smThis) 
     {
-      /*CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Install Entry state [%d, >>%p ]", this->type, sEntry));*/
-      this->entry = sEntry;
+      /*CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Install Entry state [%d, >>%p ]", smThis->type, sEntry));*/
+      smThis->entry = sEntry;
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -575,7 +575,7 @@ clSmStateEntryInstall(ClSmStatePtrT this,
  *
  *  API to install the state exit function. 
  *                                                                        
- *  @param this    Previously created state object handle
+ *  @param smThis    Previously created state object handle
  *  @param sExit   Exit function pointer (called when the state is 
  *                 exitted)
  *  @returns 
@@ -587,19 +587,19 @@ clSmStateEntryInstall(ClSmStatePtrT this,
  *
  */
 ClRcT
-clSmStateExitInstall(ClSmStatePtrT this,
+clSmStateExitInstall(ClSmStatePtrT smThis,
                    ClSmFuncPtrT sExit
                    )
 {
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);  
+  CL_ASSERT(smThis);  
 
-  if(this) 
+  if(smThis) 
     {
-      /*CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Install Exit state [%d, %p<< ]", this->type, sExit));*/
-      this->exit = sExit;
+      /*CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Install Exit state [%d, %p<< ]", smThis->type, sExit));*/
+      smThis->exit = sExit;
     } else 
       {
         ret = CL_SM_RC(CL_ERR_NULL_POINTER);
@@ -618,7 +618,7 @@ clSmStateExitInstall(ClSmStatePtrT this,
  *  instance created for the state machine type will have its
  *  initial state set pointed to sId (initial state).
  *                                                                        
- *  @param this  State machine type object
+ *  @param smThis  State machine type object
  *  @param sId   Initial state the state machine to take when
  *               instantiated.
  *
@@ -630,30 +630,30 @@ clSmStateExitInstall(ClSmStatePtrT this,
  *
  */
 ClRcT 
-clSmTypeInitStateSet(ClSmTemplatePtrT this,
+clSmTypeInitStateSet(ClSmTemplatePtrT smThis,
                    ClSmStateIdT sId
                    )
 {
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
 
   clLogTrace(SM_LOG_AREA,SM_LOG_CTX_SET,"Set Init State [%d]", 
                         sId);
 
   /* initialize current, temporarily to the init of top */
   /* This just sets the init state and doesn't start anything */
-  if(this && this->top) 
+  if(smThis && smThis->top) 
     {
       /* see if its a valid state */
-      if(sId >= this->maxStates) 
+      if(sId >= smThis->maxStates) 
         {
 
           ret = SM_ERR_OUT_OF_RANGE;
         } else 
           {
-            this->init = this->top[sId];
+            smThis->init = smThis->top[sId];
           }
 
     } else
@@ -670,7 +670,7 @@ clSmTypeInitStateSet(ClSmTemplatePtrT this,
  *
  *  Adds/Copies contents of the state object to the SM Type object.
  *                                                                        
- *  @param this   State Machine Object
+ *  @param smThis   State Machine Object
  *  @param sId    State Id (index identifying the slot the state object
  *                to be added)
  *  @param state  State Object handle
@@ -682,7 +682,7 @@ clSmTypeInitStateSet(ClSmTemplatePtrT this,
  *
  */
 ClRcT
-clSmTypeStateAdd(ClSmTemplatePtrT this, 
+clSmTypeStateAdd(ClSmTemplatePtrT smThis, 
                ClSmStateIdT sId, 
                ClSmStatePtrT state
                )
@@ -691,9 +691,9 @@ clSmTypeStateAdd(ClSmTemplatePtrT this,
 
   CL_FUNC_ENTER();
   CL_ASSERT(state); 
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
 
-  if(this && this->top && state) 
+  if(smThis && smThis->top && state) 
     {
 
       clLogTrace(SM_LOG_AREA,SM_LOG_CTX_ADD,"Add State [%d] Type [%d]", 
@@ -701,12 +701,12 @@ clSmTypeStateAdd(ClSmTemplatePtrT this,
                             state->type);
 
       /* see if there is more space */
-      if(sId >= this->maxStates) 
+      if(sId >= smThis->maxStates) 
         {
           ret = SM_ERR_OUT_OF_RANGE;
         } else 
           {
-            this->top[sId] = state;
+            smThis->top[sId] = state;
           }
     } else
       {
@@ -723,7 +723,7 @@ clSmTypeStateAdd(ClSmTemplatePtrT this,
  *
  *  Removes state from state machine type.
  *                                                                        
- *  @param this   State Machine Object
+ *  @param smThis   State Machine Object
  *  @param sId    State Id (index whose state has to be removed)
  *
  *  @returns 
@@ -733,23 +733,23 @@ clSmTypeStateAdd(ClSmTemplatePtrT this,
  *
  */
 ClRcT
-clSmTypeStateRemove(ClSmTemplatePtrT this, 
+clSmTypeStateRemove(ClSmTemplatePtrT smThis, 
                   ClSmStateIdT sId
                   )
 {
   ClRcT ret = CL_OK;
 
   CL_FUNC_ENTER();
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
 
-  if(this && this->top) 
+  if(smThis && smThis->top) 
     {
 
       clLogTrace(SM_LOG_AREA,SM_LOG_CTX_DELETE,"Remove State [%d]", 
                             sId);
 
       /* see if its a valid state */
-      if(sId >= this->maxStates) 
+      if(sId >= smThis->maxStates) 
         {
 
           ret = SM_ERR_OUT_OF_RANGE;
@@ -758,7 +758,7 @@ clSmTypeStateRemove(ClSmTemplatePtrT this,
             /* another place of bad design.  Here, there is a potential
              * memory leak and the caller is supposed to free the state handle.
              */
-            this->top[sId] = 0;
+            smThis->top[sId] = 0;
           }
     } else
       {
@@ -776,7 +776,7 @@ clSmTypeStateRemove(ClSmTemplatePtrT this,
  *
  *  API to retrieve the state object for a given state identifier.
  *                                                                        
- *  @param this   State Machine Type
+ *  @param smThis   State Machine Type
  *  @param sId    State Id (index identifying the state object)
  *  @param sm     [out] State Object handle
  *
@@ -787,7 +787,7 @@ clSmTypeStateRemove(ClSmTemplatePtrT this,
  *
  */
 ClRcT
-clSmTypeStateGet(ClSmTemplatePtrT this, 
+clSmTypeStateGet(ClSmTemplatePtrT smThis, 
                ClSmStateIdT sId,
                ClSmStatePtrT* sm
                )
@@ -796,21 +796,21 @@ clSmTypeStateGet(ClSmTemplatePtrT this,
 
   CL_FUNC_ENTER();
   CL_ASSERT(sm); 
-  CL_ASSERT(this);
+  CL_ASSERT(smThis);
 
-  if(this && this->top && sm) 
+  if(smThis && smThis->top && sm) 
     {
 
       clLogTrace(SM_LOG_AREA,SM_LOG_CTX_GET,"Get State [%d]", sId);
 
       /* see if its a valid state */
-      if(sId >= this->maxStates) 
+      if(sId >= smThis->maxStates) 
         {
 
           ret = SM_ERR_OUT_OF_RANGE;
         } else 
           {
-            *sm = this->top[sId];
+            *sm = smThis->top[sId];
           }
     } else
       {
@@ -826,23 +826,23 @@ clSmTypeStateGet(ClSmTemplatePtrT this,
 /**@#-*/
 
 void
-smTransitionShow(ClSmTransitionPtrT this)
+smTransitionShow(ClSmTransitionPtrT smThis)
 { 
-  if(this)
+  if(smThis)
     {
-      if(this->nextState) 
-        clOsalPrintf("Next: %02d/%-10s ", this->nextState->type,
+      if(smThis->nextState) 
+        clOsalPrintf("Next: %02d/%-10s ", smThis->nextState->type,
 #ifdef DEBUG
-        this->nextState->name
+        smThis->nextState->name
 #else
         ""
 #endif
 	);
       else
         clOsalPrintf("Next: %-13s ","NULL");
-      clOsalPrintf(" %p:%s \n", this->transitionHandler, 
+      clOsalPrintf(" %p:%s \n", smThis->transitionHandler, 
 #ifdef DEBUG
-        this->transitionName
+        smThis->transitionName
 #else
         ""
 #endif
@@ -852,51 +852,51 @@ smTransitionShow(ClSmTransitionPtrT this)
 
 
 void
-smStateShow(ClSmStatePtrT this)
+smStateShow(ClSmStatePtrT smThis)
 { 
   int i=0;
   
-  if(this)
+  if(smThis)
     {
       clOsalPrintf("  State : %d/%s\n  Entry : %p/%s\n  Exit  : %p/%s\n  Parent: %d/%s\n  Init  : %d/%s\n",
-               this->type,
+               smThis->type,
 #ifdef DEBUG
-               this->name,
-               this->entry,
-               this->entryFun,
-               this->exit,
-               this->exitFun,
-               this->parent?this->parent->type:-1,
-               this->parent?this->parent->name:"",
-               this->init?this->init->type:-1,
-               this->init?this->init->name:""
+               smThis->name,
+               smThis->entry,
+               smThis->entryFun,
+               smThis->exit,
+               smThis->exitFun,
+               smThis->parent?smThis->parent->type:-1,
+               smThis->parent?smThis->parent->name:"",
+               smThis->init?smThis->init->type:-1,
+               smThis->init?smThis->init->name:""
 #else
                "",
-               this->entry,
+               smThis->entry,
                "",
-               this->exit,
+               smThis->exit,
                "",
-               this->parent?this->parent->type:-1,
+               smThis->parent?smThis->parent->type:-1,
                "",
-               this->init?this->init->type:-1,
+               smThis->init?smThis->init->type:-1,
                ""
 #endif
                );
       /* loop thru the transition table and print */
       clOsalPrintf("  Transition Table:\n");
-      for(i=0;this->eventTransitionTable && i < (int)this->maxEventTransitions;i++) 
+      for(i=0;smThis->eventTransitionTable && i < (int)smThis->maxEventTransitions;i++) 
         {
-          if(this->eventTransitionTable[i].transition)
+          if(smThis->eventTransitionTable[i].transition)
             {
               clOsalPrintf("   Event: %02d/%-10s ",
                        i,
 #ifdef DEBUG
-                       this->eventTransitionTable[i].name
+                       smThis->eventTransitionTable[i].name
 #else
                        ""
 #endif
                        );
-              smTransitionShow(this->eventTransitionTable[i].transition);
+              smTransitionShow(smThis->eventTransitionTable[i].transition);
             }
         }
       clOsalPrintf("\n");
@@ -905,25 +905,25 @@ smStateShow(ClSmStatePtrT this)
 
 
 void
-smTypeShow(ClSmTemplatePtrT this)
+smTypeShow(ClSmTemplatePtrT smThis)
 {
   int i=0;
   
-  if(this)
+  if(smThis)
     {
       
       clOsalPrintf("\nState Machine [%s] Details: \n", 
 #ifdef DEBUG
-         this->name
+         smThis->name
 #else
          ""
 #endif
          );
       clOsalPrintf("---------------------------------------------------------------\n");
       
-      for(i=0;i<(int)this->maxStates;i++) 
+      for(i=0;i<(int)smThis->maxStates;i++) 
         {
-          ClSmStatePtrT tmp = this->top[i];
+          ClSmStatePtrT tmp = smThis->top[i];
           
           if(tmp)
             {
@@ -937,52 +937,52 @@ smTypeShow(ClSmTemplatePtrT this)
 #ifdef DEBUG
 
 void
-smStateNameSet(ClSmStatePtrT this, char* name, char* entry, char* exit)
+smStateNameSet(ClSmStatePtrT smThis, char* name, char* entry, char* exit)
 {
   /* go ahead and set the name if its not null
    */
-  if(this)
+  if(smThis)
     {
       if(name)
-        strncpy(this->name, name, MAX_STR_NAME);
+        strncpy(smThis->name, name, MAX_STR_NAME);
       if(entry)
-        strncpy(this->entryFun, entry, MAX_STR_NAME);
+        strncpy(smThis->entryFun, entry, MAX_STR_NAME);
       if(exit)
-        strncpy(this->exitFun, exit, MAX_STR_NAME);
+        strncpy(smThis->exitFun, exit, MAX_STR_NAME);
     }
 }
 
 void
-smTypeNameSet(ClSmTemplatePtrT this, char* name)
+smTypeNameSet(ClSmTemplatePtrT smThis, char* name)
 {
   /* go ahead and set the name if its not null
    */
-  if(this && name ) 
+  if(smThis && name ) 
     {
-      strncpy(this->name, name, MAX_STR_NAME);
+      strncpy(smThis->name, name, MAX_STR_NAME);
     }
 }
 
 
 void
-smEventNameSet(ClSmEventTransitionPtrT this, char* name)
+smEventNameSet(ClSmEventTransitionPtrT smThis, char* name)
 {
   /* go ahead and set the name if its not null
    */
-  if(this && name ) 
+  if(smThis && name ) 
     {
-      strncpy(this->name, name, MAX_STR_NAME);
+      strncpy(smThis->name, name, MAX_STR_NAME);
     }
 }
 
 void
-smTransitionNameSet(ClSmTransitionPtrT this, char* name)
+smTransitionNameSet(ClSmTransitionPtrT smThis, char* name)
 {
   /* go ahead and set the name if its not null
    */
-  if(this && name ) 
+  if(smThis && name ) 
     {
-      strncpy(this->transitionName, name, MAX_STR_NAME);
+      strncpy(smThis->transitionName, name, MAX_STR_NAME);
     }
 }
 

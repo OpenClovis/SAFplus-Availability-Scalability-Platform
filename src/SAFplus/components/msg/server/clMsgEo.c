@@ -98,7 +98,7 @@ static int safMsgFinalize(ClBoolT *pLockStatus);
 static void dispatchLoop(void);
 
 ClEoConfigT clEoConfig = {
-    1,                              /* EO Thread Priority */
+    (ClOsalThreadPriorityT) 1,                              /* EO Thread Priority */
     10,                             /* No of EO thread needed */
     CL_IOC_MSG_PORT,                /* Required Ioc Port */
     CL_EO_USER_CLIENT_ID_START,
@@ -170,11 +170,11 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
 
 static ClRcT initializeAmf(void)
 {
-    SaAisErrorT         rc = SA_AIS_OK; 
-    SaAisErrorT         retCode;
+    ClRcT         rc = CL_OK; 
+    ClRcT         retCode;
     ClIocPhysicalAddressT notificationForComp = { CL_IOC_BROADCAST_ADDRESS, 0};
     
-    clLogCompName = "MSG"; /* Override generated eo name with a short name for our server */
+    clLogCompName = (ClCharT*) "MSG"; /* Override generated eo name with a short name for our server */
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
   
     clMsgRegisterWithCpm();
@@ -437,8 +437,8 @@ static void clMsgNotificationReceiveCallback(ClIocNotificationIdT event, ClPtrT 
 
 static void *clMsgCachedCkptInitAsync(void *pParam)
 {
-    SaAisErrorT rc = SA_AIS_OK;
-    SaAisErrorT retCode;
+    ClRcT  rc = CL_OK;
+    ClRcT retCode;
     /* Initialize cached ckpt for MSG queue & MSG queue group */
     rc = clMsgQCkptInitialize();
     if(rc != CL_OK)
@@ -471,12 +471,16 @@ error_out:
  */
 static int safMsgFinalize(ClBoolT *pLockStatus)
 {
-    SaAisErrorT rc = SA_AIS_OK;
+    ClRcT  rc = CL_OK;
     if(pLockStatus && !*pLockStatus) 
         return CL_MSG_RC(CL_ERR_INVALID_STATE);
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+         return rc;
+    }    
+   
     gClMsgInit = CL_FALSE;
 
     if(pLockStatus)
@@ -536,9 +540,6 @@ static int safMsgFinalize(ClBoolT *pLockStatus)
     if(rc != CL_OK)
         clLogError("MSG", "FIN", "Failed to destroy the client handle database. error code [0x%x].", rc);
 
-    goto out;
-
-out:
     return rc;
 }
 

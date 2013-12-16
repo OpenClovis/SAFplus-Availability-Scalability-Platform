@@ -56,7 +56,7 @@
 
 /* Utility function to print the messages on to the CLI Console */
 void 
-_clGmsCliPrint (char  **retstr, char *format , ... )
+_clGmsCliPrint (char  **retstr,const  char *format , ... )
 {
 	va_list ap;
 	va_start( ap , format );

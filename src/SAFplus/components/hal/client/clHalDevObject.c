@@ -929,13 +929,13 @@ ClRcT halDevObjIdGet(ClHalDeviceObjectH hDevObjHandle,ClUint32T *pDeviceId)
     return CL_OK;
 }
 /* For Testing purpose */
-ClRcT buffPrint(char srcBuff[],int * pBuffLeft, char destBuff[])
+ClRcT buffPrint(const char srcBuff[],int * pBuffLeft, char destBuff[])
 {
     if (*pBuffLeft > (ClInt32T)strlen(srcBuff))
     { 
         strncat(destBuff,srcBuff,*pBuffLeft); 
         *pBuffLeft =*pBuffLeft - strlen(srcBuff);
-        memset(srcBuff,0,strlen(srcBuff));
+        memset((void *)srcBuff,0,strlen(srcBuff));
         return CL_OK ;
     }
     else
@@ -1033,7 +1033,7 @@ ClRcT cliShowDevObjects(int argc, char **argv)
     char aFunction[] = "cliShowDevObjects";
 #endif
     ClUint32T buffSize =PRINT_BUFF_SIZE_DEV_OBJECT * halConfig.halNumDevObject;
-    pBuff=clHeapAllocate(buffSize);
+    pBuff=(char*) clHeapAllocate(buffSize);
     if(NULL == pBuff)
     {
         clLogCritical(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\n %s Error NO Memory ",aFunction);

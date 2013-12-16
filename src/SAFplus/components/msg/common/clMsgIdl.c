@@ -180,7 +180,8 @@ ClRcT clMsgQueueUnlinkToServer(SaNameT *pQName)
         clLogError("MSG", "UNL", "Failed to get the message queue information.");
         goto error_out;
     }
-
+    
+    {
     /* Get Ioc address of the given MSG queue */
     ClIdlHandleObjT idlObj = {0};
     ClIdlHandleT idlHandle = 0;
@@ -206,7 +207,7 @@ ClRcT clMsgQueueUnlinkToServer(SaNameT *pQName)
     }
 
     clIdlHandleFinalize(idlHandle);
-
+    }
 error_out:
     return rc;
 }

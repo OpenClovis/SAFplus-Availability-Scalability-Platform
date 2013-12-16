@@ -28,8 +28,8 @@
 extern ClGmsNodeT	gmsGlobalInfo;
 ClGmsCkptMetaDataT	gmsCkptMetaData;
 SaNameT				metaDataCkptName = {
-	.value = "GmsCkptMetadata_1",
-	.length = 17
+	17,
+	"GmsCkptMetadata_1"
 };
 
 static ClRcT   clGmsCkptReadOldCheckpoint();
@@ -296,7 +296,7 @@ ClRcT clGmsCkptInit()
 
 
 	/* Create the data structure to store the meta data information */
-	gmsCkptMetaData.perGroupInfo = clHeapAllocate((sizeof(ClUint32T) * gmsGlobalInfo.config.noOfGroups));
+	gmsCkptMetaData.perGroupInfo = (ClUint32T*) clHeapAllocate((sizeof(ClUint32T) * gmsGlobalInfo.config.noOfGroups));
 	if (gmsCkptMetaData.perGroupInfo == NULL)
 	{
 		clLog(CRITICAL,CKP,NA,

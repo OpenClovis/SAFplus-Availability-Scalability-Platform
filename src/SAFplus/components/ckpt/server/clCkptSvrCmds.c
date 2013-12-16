@@ -1351,7 +1351,7 @@ ClRcT  ckptDPlaneInfoShow( CkptDPlaneInfoT    *pDpInfo,
                     "Failed to get data while packing section");
             return rc;
         }
-            ClCharT    *pTmpSecId = clHeapAllocate(pKey->scnId.idLen +1);
+            ClCharT    *pTmpSecId = (ClCharT*) clHeapAllocate(pKey->scnId.idLen +1);
             if (pTmpSecId != NULL) 
             {
                 memset(pTmpSecId, '\0', pKey->scnId.idLen +1);
@@ -1411,9 +1411,9 @@ ClRcT  ckptPresenceNodeShow (ClCntKeyHandleT     key,
 
 
 /* To print all the printfs*/
-void ckptCliPrint(char *str,ClCharT ** ret)
+void ckptCliPrint(const char *str,ClCharT ** ret)
 {
-     *ret = clHeapAllocate(strlen(str)+1);
+     *ret = (ClCharT*) clHeapAllocate(strlen(str)+1);
       if(NULL == *ret)
       {
            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Malloc Failed \r\n");
@@ -1429,11 +1429,12 @@ ClRcT ckptCliIterInit( int argc ,
     ClRcT            rc = 0 ;
     ClCkptHdlT       hdl = 0;
     ClDebugPrintHandleT inMsg = 0;
-    ClCkptSectionsChosenT secChosen = 0;
+    ClCkptSectionsChosenT secChosen;
     ClHandleT        secHdl = -1;
     ClTimeT          expiryTime = 0;
    /* ClIdlHandleT     ckptIdlHdl = 0;*/
 
+    memset( &secChosen,0,sizeof(ClCkptSectionsChosenT));
     if(argc < 3)
     {
         ckptCliPrint("Usage: ckptIterInit <handle> <secChosen> [time]\n"

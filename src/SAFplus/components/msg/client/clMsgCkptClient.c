@@ -41,18 +41,16 @@ ClRcT clMsgQCkptInitialize(void)
                      sizeof("CL_MsgQueueCkpt") - 1,
                      "CL_MsgQueueCkpt"
                     };
+    const SaNameT msgQueueGroupCkptName  = {
+                     sizeof("CL_MsgQueueGroupCkpt") - 1,
+                     "CL_MsgQueueGroupCkpt"
+                    };
     rc = clCachedCkptClientInitialize(&gMsgQCkptClient, &msgQueueCkptName, CL_MSG_QUEUE_CKPT_SIZE);
     if(rc != CL_OK)
     {
         clLogError("MSG", "INI", "Failed to initialize cached checkpoint client service for MSG queue: error code [0x%x].", rc);
         goto out;
     }
-
-    const SaNameT msgQueueGroupCkptName  = {
-                     sizeof("CL_MsgQueueGroupCkpt") - 1,
-                     "CL_MsgQueueGroupCkpt"
-                    };
-
     rc = clCachedCkptClientInitialize(&gMsgQGroupCkptClient, &msgQueueGroupCkptName, CL_MSG_QGROUP_CKPT_SIZE);
     if(rc != CL_OK)
     {

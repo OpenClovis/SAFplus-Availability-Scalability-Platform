@@ -54,15 +54,16 @@ extern ClBoolT gClMsgInit;
 extern ClIocNodeAddressT gLocalAddress;
 extern ClIocPortT gLocalPortId;
 
-#define CL_MSG_INIT_CHECK \
-do {                                                                    \
-    if(gClMsgInit == CL_FALSE)                                       \
-    {                                                                   \
-        ClRcT rc = CL_MSG_RC(CL_ERR_NOT_INITIALIZED);                   \
-        clLogError("MSG", "ERR", "Message client or server is not yet initialized. Please try after some time. error code [0x%x].", rc); \
-        return rc;                                                      \
-    }                                                                   \
-} while(0)
+#define CL_MSG_SA_RET(err)  (SaAisErrorT)err
+
+#define CL_MSG_INIT_CHECK(ret) \
+    do { \
+         if(gClMsgInit == CL_FALSE) \
+         {                                                                   \
+             ret = CL_MSG_RC(CL_ERR_NOT_INITIALIZED);                   \
+             clLogError("MSG", "ERR", "Message client or server is not yet initialized. Please try after some time. error code [0x%x].", ret); \
+         }                                                                   \
+    } while(0)
 
 ClRcT clMsgIovecToMessageCopy(SaMsgMessageT **ppNewMsg, ClMsgMessageIovecT *pMessage, ClUint32T index);
 ClRcT clMsgIovecToIovecCopy(ClMsgMessageIovecT **ppNewMsg, ClMsgMessageIovecT *pMessage);

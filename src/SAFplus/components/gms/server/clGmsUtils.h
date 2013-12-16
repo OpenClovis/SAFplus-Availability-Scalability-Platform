@@ -43,8 +43,7 @@ extern "C"{
 extern void _clGmsLoadUserAlgorithm(ClUint32T groupid,
                                     char *pluginPath );
 
-void _clGmsCliPrint (char  **retstr, 
-                     char *format , ... );
+void _clGmsCliPrint (char  **retstr, const char *format , ... );
 
 ClBoolT _clGmsGetIfAddress(char *,
                            struct in_addr *);

@@ -47,10 +47,14 @@
 
 ClRcT VDECL_VER(clMsgQueueGroupCreate, 4, 0, 0)(SaNameT *pGroupName, SaMsgQueueGroupPolicyT qPolicy)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
 
-    CL_MSG_INIT_CHECK;
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        return rc;
+    }
 
     CL_OSAL_MUTEX_LOCK(&gClGroupDbLock);
     if(clMsgGroupEntryExists(pGroupName, NULL) == CL_TRUE)
@@ -93,7 +97,7 @@ ClRcT VDECL_VER(clMsgQueueGroupCreate, 4, 0, 0)(SaNameT *pGroupName, SaMsgQueueG
 
     goto out;
 error_out_1:
-    retCode = clMsgGroupInfoUpdate(CL_MSG_DATA_DEL, pGroupName, 0);
+    retCode = clMsgGroupInfoUpdate(CL_MSG_DATA_DEL, pGroupName, (SaMsgQueueGroupPolicyT) 0);
     if(retCode != CL_OK)
         clLogError("GRP", "CRT", "Fail to remove Message Queue Group with name [%.*s] from the database. error code [0x%x].", pGroupName->length, pGroupName->value, retCode);
 out:
@@ -107,11 +111,14 @@ ClRcT VDECL_VER(clMsgQueueGroupInsert, 4, 0, 0)(
         SaNameT *pQName
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+       return rc;
+    }
     rc = clMsgGroupMembershipInfoSend(CL_MSG_DATA_ADD, pGroupName, pQName);
     if(rc != CL_OK)
     {
@@ -148,10 +155,13 @@ ClRcT VDECL_VER(clMsgQueueGroupRemove, 4, 0, 0)(
         SaNameT *pQName
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+         goto error_out;
+    }
     rc  = clMsgGroupMembershipInfoSend(CL_MSG_DATA_DEL, pGroupName, pQName);
     if(rc != CL_OK)
     {
@@ -178,11 +188,15 @@ ClRcT VDECL_VER(clMsgQueueGroupDelete, 4, 0, 0)(
         const SaNameT *pGroupName
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
 
-    CL_MSG_INIT_CHECK;
-
-    rc = clMsgGroupInfoUpdate(CL_MSG_DATA_DEL, (SaNameT*)pGroupName, 0);
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+       goto error_out;
+    }
+ 
+    rc = clMsgGroupInfoUpdate(CL_MSG_DATA_DEL, (SaNameT*)pGroupName, (SaMsgQueueGroupPolicyT) 0);
     if(rc != CL_OK)
     {
         CL_OSAL_MUTEX_LOCK(&gClGroupDbLock);
@@ -198,9 +212,9 @@ ClRcT VDECL_VER(clMsgQueueGroupDelete, 4, 0, 0)(
         }
         CL_OSAL_MUTEX_UNLOCK(&gClGroupDbLock);
     }
-
+    {
     ClIocPhysicalAddressT qGroupAddress = {0};
-    rc = clMsgQGroupCkptDataUpdate(CL_MSG_DATA_DEL, (SaNameT *)pGroupName, 0, qGroupAddress, CL_TRUE);
+    rc = clMsgQGroupCkptDataUpdate(CL_MSG_DATA_DEL, (SaNameT *)pGroupName, (SaMsgQueueGroupPolicyT) 0, qGroupAddress, CL_TRUE);
     if(rc != CL_OK)
     {
         clLogError("GRP", "DEL", "Fail to remove Message Queue Group with name %.*s from the cached checkpoint. error code [0x%x].", pGroupName->length, pGroupName->value, rc);
@@ -208,7 +222,7 @@ ClRcT VDECL_VER(clMsgQueueGroupDelete, 4, 0, 0)(
     }
 
     clLogTrace("GRP", "DEL", "Deleted Message Queue Group with name %.*s.", pGroupName->length, pGroupName->value);
-
+    }
 error_out:
     return rc;
 }
@@ -222,7 +236,7 @@ ClRcT VDECL_VER(clMsgQueueGroupTrack, 4, 0, 0)(
         SaMsgQueueGroupNotificationBufferT *pNotificationBuffer
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgGroupRecordT *pMsgGroup;
     ClMsgGroupTrackListEntryT *pTrackEntry = NULL;
@@ -231,8 +245,11 @@ ClRcT VDECL_VER(clMsgQueueGroupTrack, 4, 0, 0)(
     ClListHeadT *pTrackListHead;
     register ClListHeadT *pTemp;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        goto error_out;
+    }
     rc = clHandleCheckout(gMsgClientHandleDb, msgHandle, (void**)&pClient);
     if(rc != CL_OK)
     {   
@@ -408,12 +425,15 @@ ClRcT VDECL_VER(clMsgQueueGroupTrackStop, 4, 0, 0)(
         const SaNameT *pGroupName
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClRcT retCode;
     ClMsgClientDetailsT *pClient;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+        goto error_out;
+    }
     rc = clHandleCheckout(gMsgClientHandleDb, msgHandle, (void**)&pClient);
     if(rc != CL_OK)
     {   

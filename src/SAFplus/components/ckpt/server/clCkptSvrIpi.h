@@ -118,7 +118,8 @@ ClRcT  _ckptCplaneInfoFree (CkptCPlaneInfoT  *pCpInfo);
 ClRcT clCkptSvrInitialize();
 ClRcT ckptEOInit();
 void ckptIDSet(CkptT *pCkpt);
-ClRcT  ckptEntriesShow();
+/* Function to display checkpoint entries */
+ClRcT  ckptEntriesShow(ClDebugPrintHandleT msg);
 /* This routine finds a section in a given checkpoint */
 ClRcT  _ckptSectionFind(CkptT                 *pCkpt, 
                         ClCkptSectionIdT      *pKey, 
@@ -272,8 +273,7 @@ ClRcT ckptDebugDeregister( ClEoExecutionObjT* pEoObj);
 ClRcT   ckptOwnershipInfoUpdate(CkptT   *pCkpt);
 
 /* This routine prints a string on the debug server */
-void ckptCliPrint( char *str,
-                   ClCharT ** ret);
+void ckptCliPrint(const  char *str, ClCharT ** ret);
 
 /* This routine updates the presence list */
 void ckptPeerDown(ClIocNodeAddressT   peerAddr, ClUint32T flag, ClIocPortT portId); /* Gopal */

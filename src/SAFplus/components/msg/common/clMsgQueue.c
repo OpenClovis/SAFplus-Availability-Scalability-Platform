@@ -317,12 +317,15 @@ ClRcT VDECL_VER(clMsgQueueStatusGet, 4, 0, 0)(
         SaMsgQueueStatusT *pQueueStatus
         )
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClMsgQueueRecordT *pQEntry;
     SaMsgQueueHandleT qHandle;
 
-    CL_MSG_INIT_CHECK;
-
+    CL_MSG_INIT_CHECK(rc);
+    if( rc != CL_OK)
+    {
+       goto error_out;
+    }
     CL_OSAL_MUTEX_LOCK(&gClQueueDbLock);
     if(clMsgQNameEntryExists(pQName, &pQEntry) == CL_FALSE)
     {

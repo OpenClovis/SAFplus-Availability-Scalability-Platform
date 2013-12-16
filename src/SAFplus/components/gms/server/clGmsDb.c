@@ -395,7 +395,7 @@ ClRcT _clGmsDbClose(
            CL_IN    const ClUint64T   numOfGroups)
 {
     ClRcT   rc = CL_OK;
-    ClInt32T   i = 0x0;
+    ClUint32T   i = 0x0;
 
     if (gmsDb == NULL)
         return CL_ERR_NULL_POINTER;

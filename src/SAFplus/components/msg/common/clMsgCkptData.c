@@ -76,7 +76,7 @@ void clMsgQueueCkptDataUnmarshal(ClMsgQueueCkptDataT *qCkptData, const ClCachedC
     copyData = copyData + sizeof(ClUint32T);
 
     memcpy(&network_byte_order,copyData, sizeof(ClUint32T));
-    qCkptData->state = (ClUint32T) ntohl((ClUint32T)network_byte_order);
+    qCkptData->state = (ClMsgQueueStateFlagT) (ClUint32T) ntohl((ClUint32T)network_byte_order);
     copyData = copyData + sizeof(ClUint32T);
 
     memcpy(&network_byte_order,copyData, sizeof(ClUint32T));
@@ -138,7 +138,7 @@ void clMsgQGroupCkptHeaderUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCac
     copyData = inData->data;
 
     memcpy(&network_byte_order,copyData, sizeof(ClUint32T));
-    qCkptData->policy = (ClUint32T) ntohl((ClUint32T)network_byte_order);
+    qCkptData->policy = (SaMsgQueueGroupPolicyT) (ClUint32T) ntohl((ClUint32T)network_byte_order);
     copyData = copyData + sizeof(ClUint32T);
 
     memcpy(&network_byte_order,copyData, sizeof(ClUint32T));
@@ -165,7 +165,7 @@ ClRcT clMsgQGroupCkptDataUnmarshal(ClMsgQGroupCkptDataT *qCkptData, const ClCach
     copyData = inData->data;
 
     memcpy(&network_byte_order,copyData, sizeof(ClUint32T));
-    qCkptData->policy = (ClUint32T) ntohl((ClUint32T)network_byte_order);
+    qCkptData->policy = (SaMsgQueueGroupPolicyT) (ClUint32T) ntohl((ClUint32T)network_byte_order);
     copyData = copyData + sizeof(ClUint32T);
 
     memcpy(&network_byte_order,copyData, sizeof(ClUint32T));

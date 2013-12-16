@@ -89,7 +89,7 @@ static ClRcT gmsViewPopulate(ClBoolT *pTrackNotify)
     ClUint32T maxNodes = CL_IOC_MAX_NODES;
     ClRcT rc = CL_OK;
     ClUint32T i;
-    pMembers = clHeapCalloc(CL_IOC_MAX_NODES, sizeof(*pMembers));
+    pMembers = (ClNodeCacheMemberT*) clHeapCalloc(CL_IOC_MAX_NODES, sizeof(*pMembers));
     CL_ASSERT(pMembers != NULL);
     rc = clNodeCacheViewGetFastSafe(pMembers, &maxNodes);
     if(rc != CL_OK)
@@ -243,12 +243,13 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused,
 
 ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,ClUint8T priority,ClUint8T protoType,ClUint32T length,ClIocPhysicalAddressT srcAddr)
 {
-    ClIocNotificationT notification = {0};
+    ClIocNotificationT notification;
     ClUint32T len = sizeof(notification);
-
+   
+    memset(&notification,0,sizeof(ClIocNotificationT));
     clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&notification, &len);
 
-    notification.id = ntohl(notification.id);
+    notification.id = (ClIocNotificationIdT) ntohl(notification.id);
     notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
     
@@ -945,7 +946,7 @@ error:
     if (isLocalMsg)
     {
         /* Checkout the context handle, put rc value and notify cond */
-        _rc = clHandleCheckout(contextHandleDatabase,handle,(void*)&context_info);
+        _rc = clHandleCheckout(contextHandleDatabase,handle,(void**)&context_info);
         if (_rc != CL_OK)
         {
             clLog(ERROR,GEN,NA,
@@ -1455,7 +1456,7 @@ error_return:
     if (isLocalMsg)
     {
         /* Checkout the context handle, put rc value and notify cond */
-        _rc = clHandleCheckout(contextHandleDatabase,handle,(void*)&context_info);
+        _rc = clHandleCheckout(contextHandleDatabase,handle,(void**)&context_info);
         if (_rc != CL_OK)
         {
             clLog(ERROR,GEN,NA,
@@ -1564,7 +1565,7 @@ error_return:
         }
 
         /* Checkout the context handle, put rc value and notify cond */
-        _rc = clHandleCheckout(contextHandleDatabase,handle,(void*)&context_info);
+        _rc = clHandleCheckout(contextHandleDatabase,handle,(void**)&context_info);
         if (_rc != CL_OK)
         {
             clLog(ERROR,GEN,NA,
@@ -1666,7 +1667,7 @@ error_return:
     if (isLocalMsg)
     {
         /* Checkout the context handle, put rc value and notify cond */
-        _rc = clHandleCheckout(contextHandleDatabase,handle,(void*)&context_info);
+        _rc = clHandleCheckout(contextHandleDatabase,handle,(void**)&context_info);
         if (_rc != CL_OK)
         {
             clLog(ERROR,GEN,NA,
@@ -1746,7 +1747,7 @@ error_return:
     if (isLocalMsg)
     {
         /* Checkout the context handle, put rc value and notify cond */
-        _rc = clHandleCheckout(contextHandleDatabase,handle,(void*)&context_info);
+        _rc = clHandleCheckout(contextHandleDatabase,handle,(void**)&context_info);
         if (_rc != CL_OK)
         {
             clLog(ERROR,GEN,NA,

@@ -19,7 +19,7 @@
 #include <string.h>
 #include <clNameCkptIpi.h>
 
-// extern ClCkptSvcHdlT   gNsCkptSvcHdl ;
+//extern ClCkptSvcHdlT   gNsCkptSvcHdl ;
 extern ClCntHandleT    gNSHashTable;
 
 #define NAME_LOG_AREA_CKPT	"CKPT"
@@ -65,12 +65,11 @@ clNameContextCkptSerializer(ClUint32T  dsId,
     rc = clBufferLengthGet(inMsg, pSize);
     if( CL_OK != rc )
     {
-        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER,
-                   "clBufferLengthGet(); rc[0x %x]", rc);
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER, "clBufferLengthGet(); rc[0x %x]", rc);
         clBufferDelete(&inMsg);
         return rc;
     }    
-    *pBuffer = clHeapCalloc(*pSize, sizeof(ClUint8T));
+    *pBuffer = (ClAddrT) clHeapCalloc(*pSize, sizeof(ClUint8T));
     if( NULL == *pBuffer )
     {
         clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER,
@@ -161,11 +160,10 @@ clNameSvcEntrySerializer(ClUint32T  dsId,
     CL_NAME_DEBUG_TRACE(("Enter"));
     
     *pSize   = sizeof(ClNsEntryPackT) + pNsEntry->nsInfo.attrLen;
-    *pBuffer = clHeapCalloc(1, sizeof(ClNsEntryPackT)+ pNsEntry->nsInfo.attrLen);
+    *pBuffer = (ClAddrT) clHeapCalloc(1, sizeof(ClNsEntryPackT)+ pNsEntry->nsInfo.attrLen);
     if( NULL == *pBuffer )
     {
-        clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_SERIALIZER,
-                   "clHeapCalloc(); rc[0x %x]", rc);
+        clLogError(NAME_LOG_AREA_NAME,NAME_LOG_CTX_SERIALIZER, "clHeapCalloc(); rc[0x %x]", rc);
         return CL_NS_RC(CL_ERR_NULL_POINTER);
     }    
     pTemp = *pBuffer;
@@ -194,11 +192,10 @@ clNameSvcPerCtxSerializer(ClUint32T  dsId,
 
     CL_NAME_DEBUG_TRACE(("Enter"));
     *pSize = sizeof(ClNameSvcContextInfoT);  
-    *pBuffer = clHeapCalloc(1, sizeof(ClNameSvcContextInfoT));
+    *pBuffer = (ClAddrT) clHeapCalloc(1, sizeof(ClNameSvcContextInfoT));
     if( NULL == *pBuffer )
     {
-        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER,
-                   "clHeapCalloc()");
+        clLogError(NAME_LOG_AREA_CKPT,NAME_LOG_CTX_SERIALIZER, "clHeapCalloc()");
         return CL_NS_RC(CL_ERR_NO_MEMORY);
     }    
     memcpy(*pBuffer, pCtxData, sizeof(ClNameSvcContextInfoT));

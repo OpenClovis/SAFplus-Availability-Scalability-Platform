@@ -186,7 +186,7 @@ gmsCliShowGmsInfo(
      }
 
     /* Allocate maximum possible */ 
-    *ret = clHeapAllocate(1020);
+    *ret = (ClCharT*) clHeapAllocate(1020);
     if( *ret == NULL ){
         clLog (ERROR,GEN,NA,
                 "Memory allocation failed");
@@ -271,8 +271,7 @@ static ClRcT gmsCliGroupsInfoListGet (
                 (gmsGlobalInfo.db[index].viewType == CL_GMS_GROUP))
         {
             numberOfGroups++;
-            groupInfoList = realloc(groupInfoList,
-                                    sizeof(ClGmsGroupInfoT)*numberOfGroups);
+            groupInfoList = (ClGmsGroupInfoT*) realloc(groupInfoList, sizeof(ClGmsGroupInfoT)*numberOfGroups);
             if (groupInfoList == NULL)
             {
                 clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
@@ -336,7 +335,7 @@ static ClRcT gmsCliGetGroupInfo (
 
 
     /* Allocate maximum possible */ 
-    *ret = clHeapAllocate(3000);
+    *ret = (ClCharT*) clHeapAllocate(3000);
     if( *ret == NULL ){
         clLog (ERROR,GEN,NA,
                 "Memory allocation failed");
@@ -437,7 +436,7 @@ static ClRcT gmsLeaderElect (
 
 
     /* Allocate maximum possible */ 
-    *ret = clHeapAllocate(1020);
+    *ret = (ClCharT*) clHeapAllocate(1020);
     if( *ret == NULL ){
         clLog (ERROR,GEN,NA,
                 "Memory allocation failed");
@@ -921,39 +920,39 @@ static ClRcT gmsCliSetDebug(
 
 ClDebugFuncEntryT gmsCliCommandsList[GMS_TOTAL_CLI_COMMANDS] = {
     {
-        .fpCallback =  gmsCliShowGmsInfo, 
-        .funcName   =  "thisNodeInfo",
-        .funcHelp   =  "View the information about local GMS node"
+        gmsCliShowGmsInfo, 
+        "thisNodeInfo",
+         "View the information about local GMS node"
     },
 
     {
-        .fpCallback =  gmsCliGetViewMemberList, 
-        .funcName   =  "memberList", 
-        .funcHelp   =  "List all the members in the cluster/given group."
+        gmsCliGetViewMemberList, 
+        "memberList", 
+        "List all the members in the cluster/given group."
     },
 
     {
-        .fpCallback =  gmsCliGetTrackList, 
-        .funcName   =  "trackMemberList", 
-        .funcHelp   =  "List all the track members info on a cluster/given group"
+        gmsCliGetTrackList, 
+        "trackMemberList", 
+        "List all the track members info on a cluster/given group"
     },
 
     {
-        .fpCallback =  gmsCliGroupsInfoListGet,
-        .funcName   =  "allGroupsInfo",
-        .funcHelp   =  "List the metadata of all the Generic Groups"
+        gmsCliGroupsInfoListGet,
+        "allGroupsInfo",
+        "List the metadata of all the Generic Groups"
     },
 
     {
-        .fpCallback =  gmsCliGetGroupInfo,
-        .funcName   =  "groupInfo",
-        .funcHelp   =  "List all the metadata of a given generic group"
+         gmsCliGetGroupInfo,
+         "groupInfo",
+         "List all the metadata of a given generic group"
     },
 
     {
-        .fpCallback =  gmsLeaderElect,
-        .funcName   =  "leaderElect",
-        .funcHelp   =  "Initiate an explicit leader election"
+        gmsLeaderElect,
+        "leaderElect",
+        "Initiate an explicit leader election"
     }
     /* 
      * Disabling these CLIs as they are useful only while
