@@ -5486,7 +5486,7 @@ clAmsPeSUFaultCallback_Step2(
                 }
 
                 /* Retry if SU still OOS after SU fault repair */
-                if (su->status.readinessState != CL_AMS_READINESS_STATE_OUTOFSERVICE && (repairRetry < 3))
+                if ((su->status.readinessState == CL_AMS_READINESS_STATE_OUTOFSERVICE) && (repairRetry < 3))
                 {
                     ClAmsLocalRecoveryT localRecovery = CL_AMS_RECOVERY_COMP_FAILOVER;
                     AMS_CALL ( clAmsPeSUFaultReport(su, faultyComp, &localRecovery, CL_FALSE) );
