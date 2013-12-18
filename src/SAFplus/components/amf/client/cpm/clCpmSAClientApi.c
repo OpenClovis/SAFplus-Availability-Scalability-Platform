@@ -1751,7 +1751,7 @@ static ClRcT VDECL(_clCpmClientCompCSISet)(ClEoDataT eoArg,
     ClRcT rc = CL_OK;
     ClCpmCompCSISetT *recvBuff=NULL;
     ClUint32T msgLength = 0;
-    ClHandleT cpmHandle;
+    ClHandleT cpmHandle = CL_HANDLE_INVALID_VALUE;
     ClCpmInstanceT *cpmInstance = NULL;
     ClUint32T cbType = 0;
     ClNameT appName = {0};
@@ -1792,17 +1792,36 @@ static ClRcT VDECL(_clCpmClientCompCSISet)(ClEoDataT eoArg,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
                    CL_CPM_LOG_1_LCM_COMP_NAME_GET_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Component name get failed rc=%x\n", rc),
-                     rc);
-    rc = component_handle_mapping_get(&appName, &cpmHandle);
-    if (rc != CL_OK)
-    {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB,
-                   CL_CPM_LOG_2_HANDLE_GET_ERR, appName.value, rc);
+    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Component name get failed rc=%x\n", rc), rc);
+
+    /* There is a race condition in the normal AMF initialization sequence:
+
+    if ( (rc = saAmfInitialize(&amfHandle, &callbacks, &version)) != SA_AIS_OK) 
+        goto errorexit;
+    if ( (rc = saAmfComponentNameGet(amfHandle, &appName)) != SA_AIS_OK) 
+        goto errorexit;
+    if ( (rc = saAmfComponentRegister(amfHandle, &appName, NULL)) != SA_AIS_OK) 
+        goto errorexit;
+
+    In our implementation, the AMF can assign work to the component after the saAmfInitialize is called.  However, it actually should not do so until saAmfComponentRegister is called.  The AMF "cheats" because it knows the component's name because it spawned off the process.
+
+    Note that doing it properly would allow components to be started outside of AMF control but then be accepted into the AMF as a particular defined component.  This would be a very useful feature for debugging.
+    It should also allow components to just call saAmfInitialize to access the cluster but remain outside of AMF component control.
+
+    Doing this properly is too large a change for 6.0.  Instead, this loop delays handling the CSI set until the saAmfComponentRegister function is called.
+    */
+    rc = 1;
+    for (int retries=0; ((rc!=CL_OK)&&(cpmHandle==CL_HANDLE_INVALID_VALUE)&&(retries<10));retries++)
+    {        
+        rc = component_handle_mapping_get(&appName, &cpmHandle);
+        if (rc != CL_OK)
+        {
+            ClTimerTimeOutT delay = {.tsSec=0,.tsMilliSec=250};
+            clOsalTaskDelay(delay);
+        }
     }
-    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,
-                     ("Unable to Get handle for component %s %x\n",
-                      appName.value, rc), rc);
+
+    CPM_CLIENT_CHECK(CL_DEBUG_ERROR,("Unable to get handle for component [%s]. Error [%x]",appName.value, rc), rc);
 
     /* End PROXIED change */
     

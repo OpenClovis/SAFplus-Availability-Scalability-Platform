@@ -1112,7 +1112,7 @@ ClRcT clEoClientGetFuncVersion(ClIocPortT port, ClUint32T funcId, ClVersionT *ve
     version->majorVersion = CL_VERSION_MAJOR(*latestVerCode);
     version->minorVersion = CL_VERSION_MINOR(*latestVerCode);
 
-    clLogDebug("EO", "DEBUG",
+    clLogDebug("EO", "RPC",
                "Port [%#x], Function id [%d], Client ID [%d], Version [%d.%d.%d]",
                port, funcNo, clientID, version->releaseCode, version->majorVersion, version->minorVersion);
 
