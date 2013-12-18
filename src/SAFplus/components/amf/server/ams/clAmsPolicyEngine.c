@@ -5366,7 +5366,6 @@ clAmsPeSUFaultCallback_Step2(
     ClAmsRecoveryT recovery;
     ClAmsCompT *faultyComp = NULL;
     ClBoolT faultReport = CL_TRUE;
-    static ClUint32T repairRetry = 0;
 
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
@@ -5483,18 +5482,6 @@ clAmsPeSUFaultCallback_Step2(
                 if ( (rc = clAmsPeSUEvaluateWork(su)) == CL_OK )
                 {
                     repairNecessary = CL_FALSE;
-                }
-
-                /* Retry if SU still OOS after SU fault repair */
-                if ((su->status.readinessState == CL_AMS_READINESS_STATE_OUTOFSERVICE) && (repairRetry < 3))
-                {
-                    ClAmsLocalRecoveryT localRecovery = CL_AMS_RECOVERY_COMP_FAILOVER;
-                    AMS_CALL ( clAmsPeSUFaultReport(su, faultyComp, &localRecovery, CL_FALSE) );
-                    repairRetry++;
-                }
-                else
-                {
-                    repairRetry = 0;
                 }
             }
         }
