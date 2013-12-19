@@ -1201,6 +1201,39 @@ extern ClRcT clCpmComponentAddressGet(CL_IN ClIocNodeAddressT nodeAddress,
                                       CL_IN SaNameT *pCompName,
                                       CL_OUT ClIocAddressT *pCompAddress);
 
+
+/**
+ ************************************
+ *  \brief Returns the IOC address of a component.
+ *
+ *  \par Header File:
+ *  clCpmApi.h
+ *
+ *  \param nodeAddress Node IOC Address.
+ *  \param pCompName Name of the component.
+ *  \param pCompAddress IOC address of the component including port
+ *  information.
+ *
+ *  \retval CL_OK The API executed successfully.
+ *  \retval CL_ERR_NULL_POINTER On passing a NULL pointer.
+ *
+ *  \par Description:
+ *  This API is used to return the IOC address of a component identified by
+ *  \e pCompName. This represents the physical address of the node where the
+ *  CPM is running.
+ *
+ *  \note This is a synchronous API.
+ *
+ *  \par Library Files:
+ *  ClAmfClient
+ *
+ *  \sa clCpmComponentStatusGet()
+ *
+ */
+extern ClRcT clCpmComponentAddressGetFast(CL_IN ClIocNodeAddressT nodeAddress,
+                                      CL_IN ClNameT *pCompName,
+                                      CL_OUT ClIocAddressT *pCompAddress);
+
 /**
  ************************************
  *  \brief Returns the component presence and operational state.
