@@ -2095,7 +2095,8 @@ ClRcT cpmReplayInvocations(ClBoolT canDelete)
                     }
                     clLogDebug("REPLAY", "INVOCATION", "Getting component address for [%s]",
                                pAmsInvocations[i]->compName.value);
-                    rc = clCpmComponentAddressGet(nodeAddress.iocPhyAddress.nodeAddress,
+
+                    rc = clCpmComponentAddressGetFast(nodeAddress.iocPhyAddress.nodeAddress,
                                                   &pAmsInvocations[i]->compName, &compAddress);
                     if(rc != CL_OK)
                     {
