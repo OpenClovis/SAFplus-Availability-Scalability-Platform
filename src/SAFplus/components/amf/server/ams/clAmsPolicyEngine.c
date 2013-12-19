@@ -11743,8 +11743,9 @@ clAmsPeCompFaultCallback(
                         (ClAmsEntityT *)comp,
                         recovery,
                         repairNecessary)) != CL_OK )
-    { 
-        clLogWarning(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_COMP,
+    {
+        if (CL_GET_ERROR_CODE(rc) != CL_ERR_INVALID_HANDLE)  // Invalid handle is OK, it just means that alarm has not been initialized
+          clLogWarning(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_COMP,
                      "Fault on Component [%s]: Error [0x%x] when reporting "\
                      "fault to FM. Continuing..",
                      comp->config.entity.name.value,

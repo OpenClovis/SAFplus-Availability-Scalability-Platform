@@ -2824,10 +2824,11 @@ clLogFileOwnerEntryFindNPersist(ClStringT   *fileName,
     ClUint32T              activeCnt          = 0;
     ClLogFileOwnerDataT   *pFileOwnerData     = NULL;
 
-    clLogDebug(CL_LOG_AREA_FILE_OWNER, CL_LOG_CTX_FO_INIT, 
+    /* spam log: clLogDebug(CL_LOG_AREA_FILE_OWNER, CL_LOG_CTX_FO_INIT, 
              "Persisting records [%d] for file [%.*s] [%.*s]", 
              numRecords, fileName->length, fileName->pValue, 
              fileLocation->length, fileLocation->pValue);
+    */
     /* Get the eo entry */
     rc = clLogFileOwnerEoEntryGet(&pFileOwnerEoEntry);
     if( CL_OK != rc )
@@ -2932,7 +2933,7 @@ clLogFileOwnerRecordPersist(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
     ClRcT                rc              = CL_OK;
     ClLogFileOwnerDataT  *pFileOwnerData = NULL;
 
-    clLogDebug("FILEOWN", "WRITE", "[%d] records to be persisted", numRecords);
+    /* spam log: clLogDebug("FILEOWN", "WRITE", "[%d] records to be persisted", numRecords); */
 
     rc = clCntNodeUserDataGet(pFileOwnerEoEntry->hFileTable, hFileNode, 
                               (ClCntDataHandleT *) &pFileOwnerData);
@@ -2971,7 +2972,7 @@ clLogFileRecordsPersist(ClLogFileOwnerEoDataT   *pFileOwnerEoEntry,
     ClUint32T  remNumRecs  = 0;
     ClUint32T  numRemBytes = 0;
 
-    clLogDebug("FILEOWN", "WRITE", "Num of bytes [%d] to be written", numBytes);
+    /* spam log: clLogDebug("FILEOWN", "WRITE", "Num of bytes [%d] to be written", numBytes); */
     
     if( pFileOwnerData->pFileHeader->remSize < numBytes )
     {
