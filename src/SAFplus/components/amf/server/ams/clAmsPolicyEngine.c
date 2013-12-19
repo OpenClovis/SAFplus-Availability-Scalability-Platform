@@ -5366,7 +5366,6 @@ clAmsPeSUFaultCallback_Step2(
     ClAmsRecoveryT recovery;
     ClAmsCompT *faultyComp = NULL;
     ClBoolT faultReport = CL_TRUE;
-    static ClUint32T repairRetry = 0;
 
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
@@ -5483,18 +5482,6 @@ clAmsPeSUFaultCallback_Step2(
                 if ( (rc = clAmsPeSUEvaluateWork(su)) == CL_OK )
                 {
                     repairNecessary = CL_FALSE;
-                }
-
-                /* Retry if SU still OOS after SU fault repair */
-                if ((su->status.readinessState == CL_AMS_READINESS_STATE_OUTOFSERVICE) && (repairRetry < 3))
-                {
-                    ClAmsLocalRecoveryT localRecovery = CL_AMS_RECOVERY_COMP_FAILOVER;
-                    AMS_CALL ( clAmsPeSUFaultReport(su, faultyComp, &localRecovery, CL_FALSE) );
-                    repairRetry++;
-                }
-                else
-                {
-                    repairRetry = 0;
                 }
             }
         }
@@ -5908,6 +5895,7 @@ ClRcT clAmsPeSUInstantiate(CL_IN       ClAmsSUT        *su)
          CL_AMS_STRING_P_STATE(su->status.presenceState)) ); 
 
     su->status.numInstantiatedComp = 0;
+    su->status.numBkInstantiatedComp = 0;
 
     if ( su->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING )
     {
@@ -6399,6 +6387,7 @@ clAmsPeSUTerminateCallback(
      * All components in SU have terminated successfully.
      */
     su->status.numInstantiatedComp = 0;
+    su->status.numBkInstantiatedComp = 0;
 
     if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING )
     {
@@ -12585,10 +12574,14 @@ clAmsPeCompInstantiateCallback(
         CL_IN       ClRcT               error)
 {
     ClAmsSUT *su;
+    ClAmsSGT *sg;
+
     ClAmsPresenceStateT compPresenceState;
+
 
     AMS_CHECK_COMP ( comp );
     AMS_CHECK_SU ( su = (ClAmsSUT *) comp->config.parentSU.ptr );
+    AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
 
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
 
@@ -12619,9 +12612,19 @@ clAmsPeCompInstantiateCallback(
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
-            ("Component [%s] is [%s]. Ignoring instantiate callback..\n",
+            ("Component [%s] is [%s]. \n",
             comp->config.entity.name.value,
             CL_AMS_STRING_P_STATE(comp->status.presenceState)));
+
+        if (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED )
+        {
+            /* If SG auto repair is ON, call clAmsPeCompInstantiateError to cleanup the component
+             *  which will try to instantiate it again */
+            if ( sg->config.autoRepair )
+            {
+                AMS_CALL ( clAmsPeCompInstantiateError(comp, CL_AMS_RC(CL_ERR_INVALID_STATE)) );
+            }
+        }
 
         return CL_OK;
     }
@@ -12747,8 +12750,18 @@ clAmsPeCompInstantiateCallback(
          */
 
         su->status.numInstantiatedComp ++;
+        su->status.numBkInstantiatedComp ++;
 
         AMS_CALL ( clAmsPeSUInstantiateCallback(su, CL_OK) );
+    }
+
+    /* If numInstantiatedComp was changed & SG auto repair is ON,
+     * cleanup the SU to intantiate SU again */
+    if (( su->status.numBkInstantiatedComp == su->config.numComponents )
+            && (su->status.numInstantiatedComp != su->status.numBkInstantiatedComp)
+            && (sg->config.autoRepair))
+    {
+        clAmsPeSUCleanup(su);
     }
 
     return CL_OK;
