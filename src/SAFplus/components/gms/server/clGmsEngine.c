@@ -765,9 +765,6 @@ _clGmsEngineLeaderElect(
         goto done_return;
     }
 
-
-    clLog(CL_LOG_DEBUG,CLM,NA, "Leader election is done. Now updating the leadership status");
-
     rc  = _clGmsViewDbFind(groupId, &thisViewDb);
 
     if (rc != CL_OK)

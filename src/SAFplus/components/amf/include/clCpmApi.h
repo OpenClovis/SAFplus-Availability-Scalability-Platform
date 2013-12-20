@@ -1231,7 +1231,7 @@ extern ClRcT clCpmComponentAddressGet(CL_IN ClIocNodeAddressT nodeAddress,
  *
  */
 extern ClRcT clCpmComponentAddressGetFast(CL_IN ClIocNodeAddressT nodeAddress,
-                                      CL_IN ClNameT *pCompName,
+                                      CL_IN SaNameT *pCompName,
                                       CL_OUT ClIocAddressT *pCompAddress);
 
 /**
