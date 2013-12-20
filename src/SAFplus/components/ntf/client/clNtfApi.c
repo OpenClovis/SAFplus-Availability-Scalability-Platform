@@ -286,7 +286,7 @@ dispatchWrapperCallback (
                (callbackType == CL_NTF_NOTIFICATION_DISCARDED_CALLBACK) ? "DISCARDED_CALLBACK" :
                (callbackType == CL_NTF_SUPPRESSION_FILTER_CALLBACK) ?"SUPPRESSION_FILTER_CALLBACK" : "UNKNOWN");
 
-    rc = clHandleCheckout(handleDbHandle, svcHandle, (void *)&ntfInstancePtr);
+    rc = clHandleCheckout(handleDbHandle, svcHandle, (void **)&ntfInstancePtr);
     if (rc != CL_OK)
     {
         clLogError("NTF","DIS","Failed to checkout the NTF svc handle. May be its already finalized"
@@ -395,7 +395,7 @@ saNtfInitialize_3(
     }
 
     /* Checkout the handle */
-    rc = clHandleCheckout(handleDbHandle, *ntfHandle, (void *)&ntfInstancePtr);
+    rc = clHandleCheckout(handleDbHandle, *ntfHandle, (void **)&ntfInstancePtr);
 
     CL_ASSERT(rc == CL_OK); /* Should never happen as we just created the handle */
 
@@ -449,7 +449,7 @@ saNtfSelectionObjectGet(
     }
 
     /* Checkout the handle */
-    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void *)&ntfInstancePtr);
+    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void **)&ntfInstancePtr);
 
     if (rc != CL_OK)
     {
@@ -484,7 +484,7 @@ saNtfDispatch(
     ClNtfLibInstanceT   *ntfInstancePtr = NULL;
 
     /* Checkout the handle */
-    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void *)&ntfInstancePtr);
+    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void **)&ntfInstancePtr);
 
     if (rc != CL_OK)
     {
@@ -497,8 +497,7 @@ saNtfDispatch(
         return SA_AIS_ERR_LIBRARY;
     }
 
-    rc = clDispatchCbDispatch(ntfInstancePtr->dispatchHandle,
-                              dispatchFlags);
+    rc = clDispatchCbDispatch(ntfInstancePtr->dispatchHandle,(ClDispatchFlagsT) dispatchFlags);
     if (rc != CL_OK)
     {
         clLogError("NTF","LC","clDispatchCbDispatch failed with rc 0x%x",rc);
@@ -518,7 +517,7 @@ saNtfFinalize(
     ClNtfLibInstanceT   *ntfInstancePtr = NULL;
 
     /* Checkout the handle */
-    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void *)&ntfInstancePtr);
+    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void **)&ntfInstancePtr);
 
     if (rc != CL_OK)
     {
@@ -587,7 +586,7 @@ _ntfCreateNotificationHandleAndHeaderBuffer(SaNtfHandleT                ntfHandl
 
 
     /* Checkout the handle */
-    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void *)&ntfInstancePtr);
+    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void **)&ntfInstancePtr);
 
     if (rc != CL_OK)
     {
@@ -609,7 +608,7 @@ _ntfCreateNotificationHandleAndHeaderBuffer(SaNtfHandleT                ntfHandl
     }
 
     /* Checkout the handle */
-    rc = clHandleCheckout(notificationHandleDbHandle, *notificationHandle, &notificationPtr);
+    rc = clHandleCheckout(notificationHandleDbHandle, *notificationHandle,&notificationPtr);
 
     CL_ASSERT(rc == CL_OK); /* Should never happen because we have just checked out the handle */
 
@@ -692,9 +691,9 @@ _ntfCreateNotificationHandleAndHeaderBuffer(SaNtfHandleT                ntfHandl
     }
 
     /* Allocate the memory */
-    ntfHeader->correlatedNotifications = clHeapCalloc(1,(sizeof(SaNtfIdentifierT) * numCorrelatedNotifications));
-    ntfHeader->additionalText = clHeapCalloc(1, lengthAdditionalText);
-    ntfHeader->additionalInfo = clHeapCalloc(1, (sizeof(SaNtfAdditionalInfoT) * numAdditionalInfo));
+    ntfHeader->correlatedNotifications = (SaNtfIdentifierT*) clHeapCalloc(1,(sizeof(SaNtfIdentifierT) * numCorrelatedNotifications));
+    ntfHeader->additionalText = (SaStringT) clHeapCalloc(1, lengthAdditionalText);
+    ntfHeader->additionalInfo = (SaNtfAdditionalInfoT*) clHeapCalloc(1, (sizeof(SaNtfAdditionalInfoT) * numAdditionalInfo));
     *variableDataPtr = clHeapCalloc(1,(*allocatedVariableDataSize));
 
     if ((ntfHeader->correlatedNotifications == NULL) ||
@@ -817,7 +816,7 @@ saNtfObjectCreateDeleteNotificationAllocate(
     }
 
     /* Checkout the created handle */
-    rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void *)&notificationPtr);
+    rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void **)&notificationPtr);
 
     if (rc != CL_OK)
     {
@@ -836,8 +835,7 @@ saNtfObjectCreateDeleteNotificationAllocate(
     /* Now initialize notification specific attributes */
     notificationPtr->numAttributes = numAttributes;
 
-    notificationPtr->objectAttributes = 
-        clHeapCalloc(1,(sizeof(SaNtfAttributeT) * numAttributes));
+    notificationPtr->objectAttributes = (SaNtfAttributeT*) clHeapCalloc(1,(sizeof(SaNtfAttributeT) * numAttributes));
     if (notificationPtr->objectAttributes == NULL)
     {
         clLogError("NTF","NAL","Failed to allocate memory for objectAttributes attribute");
@@ -919,7 +917,7 @@ saNtfAttributeChangeNotificationAllocate(
     }
 
     /* Checkout the created handle */
-    rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void *)&notificationPtr);
+    rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void **)&notificationPtr);
 
     if (rc != CL_OK)
     {
@@ -938,8 +936,7 @@ saNtfAttributeChangeNotificationAllocate(
     /* Initialize notification specific attributes */
     notificationPtr->numAttributes = numAttributes;
 
-    notificationPtr->changedAttributes = 
-        clHeapCalloc(1,(sizeof(SaNtfAttributeChangeT) * numAttributes));
+    notificationPtr->changedAttributes = (SaNtfAttributeChangeT*) clHeapCalloc(1,(sizeof(SaNtfAttributeChangeT) * numAttributes));
     if (notificationPtr->changedAttributes == NULL)
     {
         clLogError("NTF","NAL","Failed to allocate memory for changedAttributes");
@@ -1019,7 +1016,7 @@ saNtfStateChangeNotificationAllocate(
     }
 
     /* Checkout the created handle */
-    rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void *)&notificationPtr);
+    rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void **)&notificationPtr);
 
     if (rc != CL_OK)
     {
@@ -1038,8 +1035,7 @@ saNtfStateChangeNotificationAllocate(
     /* Initialize notification specific attributes */
     notificationPtr->numStateChanges = numStateChanges;
 
-    notificationPtr->changedStates = 
-        clHeapCalloc(1,(sizeof(SaNtfStateChangeT) * numStateChanges));
+    notificationPtr->changedStates = (SaNtfStateChangeT*) clHeapCalloc(1,(sizeof(SaNtfStateChangeT) * numStateChanges));
     if (notificationPtr->changedStates == NULL)
     {
         clLogError("NTF","NAL","Failed to allocate memory for changedStates attribute");
@@ -1124,7 +1120,7 @@ saNtfAlarmNotificationAllocate(
     }
 
     /* Checkout the created handle */
-    rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void *)&notificationPtr);
+    rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void **)&notificationPtr);
 
     if (rc != CL_OK)
     {
@@ -1145,9 +1141,9 @@ saNtfAlarmNotificationAllocate(
     notificationPtr->numMonitoredAttributes = numMonitoredAttributes;
     notificationPtr->numProposedRepairActions = numProposedRepairActions;
 
-    notificationPtr->specificProblems = clHeapCalloc(1, (sizeof(SaNtfSpecificProblemT) * numSpecificProblems));
-    notificationPtr->monitoredAttributes = clHeapCalloc(1, (sizeof(SaNtfAttributeT) * numMonitoredAttributes));
-    notificationPtr->proposedRepairActions = clHeapCalloc(1, (sizeof(SaNtfProposedRepairActionT) * numProposedRepairActions));
+    notificationPtr->specificProblems = (SaNtfSpecificProblemT*) clHeapCalloc(1, (sizeof(SaNtfSpecificProblemT) * numSpecificProblems));
+    notificationPtr->monitoredAttributes = (SaNtfAttributeT*) clHeapCalloc(1, (sizeof(SaNtfAttributeT) * numMonitoredAttributes));
+    notificationPtr->proposedRepairActions = (SaNtfProposedRepairActionT*) clHeapCalloc(1, (sizeof(SaNtfProposedRepairActionT) * numProposedRepairActions));
 
     if ((notificationPtr->specificProblems == NULL) ||
             (notificationPtr->monitoredAttributes == NULL) ||
@@ -1258,7 +1254,7 @@ saNtfSecurityAlarmNotificationAllocate(
     }
 
     /* Checkout the created handle */
-    rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void *)&notificationPtr);
+    rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void **)&notificationPtr);
 
     if (rc != CL_OK)
     {
@@ -1545,7 +1541,7 @@ saNtfArrayValAllocate(
     ClRcT                   rc = CL_OK;
     void                   *notificationPtr = NULL;
     SaNtfNotificationTypeT  notifType;
-    ClUint32T               totalSize = numElements * elementSize;
+    ClInt32T               totalSize = numElements * elementSize;
 
     if ((arrayPtr == NULL) || (value == NULL))
     {
@@ -2259,7 +2255,7 @@ _ntfCreateNtfFilterHandleAndHeaderBuffer(SaNtfHandleT                     ntfHan
     ClNtfNotificationFilterHeaderBufferT    *filterHdrBuf = NULL;
 
     /* Checkout the handle */
-    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void *)&ntfInstancePtr);
+    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void **)&ntfInstancePtr);
 
     if (rc != CL_OK)
     {
@@ -2350,10 +2346,10 @@ _ntfCreateNtfFilterHandleAndHeaderBuffer(SaNtfHandleT                     ntfHan
     filterHdrBuf->numNotifyingObjects = numNotifyingObjects;
     filterHdrBuf->numNotificationClassIds = numNotificationClassIds;
 
-    filterHdrBuf->eventTypes = clHeapCalloc(1,(sizeof(SaNtfEventTypeT)*numEventTypes));
-    filterHdrBuf->notificationObjects = clHeapCalloc(1,(sizeof(SaNameT) * numNotificationObjects));
-    filterHdrBuf->notifyingObjects = clHeapCalloc(1,(sizeof(SaNameT) * numNotifyingObjects));
-    filterHdrBuf->notificationClassIds = clHeapCalloc(1, (sizeof(SaNtfClassIdT) * numNotificationClassIds));
+    filterHdrBuf->eventTypes = (SaNtfEventTypeT*) clHeapCalloc(1,(sizeof(SaNtfEventTypeT)*numEventTypes));
+    filterHdrBuf->notificationObjects = (SaNameT*) clHeapCalloc(1,(sizeof(SaNameT) * numNotificationObjects));
+    filterHdrBuf->notifyingObjects = (SaNameT*) clHeapCalloc(1,(sizeof(SaNameT) * numNotifyingObjects));
+    filterHdrBuf->notificationClassIds = (SaNtfClassIdT*) clHeapCalloc(1, (sizeof(SaNtfClassIdT) * numNotificationClassIds));
     if ((filterHdrBuf->eventTypes == NULL) ||
             (filterHdrBuf->notificationObjects == NULL) ||
             (filterHdrBuf->notifyingObjects == NULL) ||
@@ -2456,7 +2452,7 @@ saNtfObjectCreateDeleteNotificationFilterAllocate(
     }
 
     /* Checkout the handle to the notification filter created just now */
-    rc = clHandleCheckout(ntfFilterHandleDbHandle, ntfFilterHandle, (void *)&ntfFilterPtr);
+    rc = clHandleCheckout(ntfFilterHandleDbHandle, ntfFilterHandle, (void **) &ntfFilterPtr);
 
     CL_ASSERT(rc == CL_OK); /* Should never happen because we have just created the handle */
 
@@ -2468,8 +2464,7 @@ saNtfObjectCreateDeleteNotificationFilterAllocate(
 
     /* Initialize this API specific attributes */
     ntfFilterPtr->numSourceIndicators = numSourceIndicators;
-    ntfFilterPtr->sourceIndicators = 
-        clHeapCalloc(1, (sizeof(SaNtfSourceIndicatorT) * numSourceIndicators));
+    ntfFilterPtr->sourceIndicators = (SaNtfSourceIndicatorT*) clHeapCalloc(1, (sizeof(SaNtfSourceIndicatorT) * numSourceIndicators));
     if (ntfFilterPtr->sourceIndicators == NULL)
     {
         clLogError("NTF","FAL","Failed to allocate memory for sourceIndicators field");
@@ -2533,7 +2528,7 @@ saNtfAttributeChangeNotificationFilterAllocate(
     }
 
     /* Checkout the handle to the notification filter created just now */
-    rc = clHandleCheckout(ntfFilterHandleDbHandle, ntfFilterHandle, (void *)&ntfFilterPtr);
+    rc = clHandleCheckout(ntfFilterHandleDbHandle, ntfFilterHandle, (void **)&ntfFilterPtr);
 
     CL_ASSERT(rc == CL_OK); /* Should never happen because we have just created the handle */
 
@@ -2545,8 +2540,7 @@ saNtfAttributeChangeNotificationFilterAllocate(
 
     /* Initialize this API specific attributes */
     ntfFilterPtr->numSourceIndicators = numSourceIndicators;
-    ntfFilterPtr->sourceIndicators = 
-        clHeapCalloc(1, (sizeof(SaNtfSourceIndicatorT) * numSourceIndicators));
+    ntfFilterPtr->sourceIndicators = (SaNtfSourceIndicatorT*) clHeapCalloc(1, (sizeof(SaNtfSourceIndicatorT) * numSourceIndicators));
     if (ntfFilterPtr->sourceIndicators == NULL)
     {
         clLogError("NTF","FAL","Failed to allocate memory for sourceIndicators field");
@@ -2611,7 +2605,7 @@ saNtfStateChangeNotificationFilterAllocate_2(
     }
 
     /* Checkout the handle to the notification filter created just now */
-    rc = clHandleCheckout(ntfFilterHandleDbHandle, ntfFilterHandle, (void *)&ntfFilterPtr);
+    rc = clHandleCheckout(ntfFilterHandleDbHandle, ntfFilterHandle, (void **)&ntfFilterPtr);
 
     CL_ASSERT(rc == CL_OK); /* Should never happen because we have just created the handle */
 
@@ -2624,8 +2618,8 @@ saNtfStateChangeNotificationFilterAllocate_2(
     /* Initialize this API specific attributes */
     ntfFilterPtr->numSourceIndicators = numSourceIndicators;
     ntfFilterPtr->numStateChanges = numChangedStates;
-    ntfFilterPtr->sourceIndicators = clHeapCalloc(1, (sizeof(SaNtfSourceIndicatorT) * numSourceIndicators));
-    ntfFilterPtr->stateId = clHeapCalloc(1, (sizeof(SaNtfElementIdT) * numChangedStates));
+    ntfFilterPtr->sourceIndicators = (SaNtfSourceIndicatorT*) clHeapCalloc(1, (sizeof(SaNtfSourceIndicatorT) * numSourceIndicators));
+    ntfFilterPtr->stateId = (SaNtfElementIdT*) clHeapCalloc(1, (sizeof(SaNtfElementIdT) * numChangedStates));
 
     if ((ntfFilterPtr->sourceIndicators == NULL) ||
             (ntfFilterPtr->stateId == NULL))
@@ -2702,7 +2696,7 @@ saNtfAlarmNotificationFilterAllocate(
     }
 
     /* Checkout the handle to the notification filter created just now */
-    rc = clHandleCheckout(ntfFilterHandleDbHandle, ntfFilterHandle, (void *)&ntfFilterPtr);
+    rc = clHandleCheckout(ntfFilterHandleDbHandle, ntfFilterHandle, (void **)&ntfFilterPtr);
 
     CL_ASSERT(rc == CL_OK); /* Should never happen because we have just created the handle */
 
@@ -2717,9 +2711,9 @@ saNtfAlarmNotificationFilterAllocate(
     ntfFilterPtr->numPerceivedSeverities = numPerceivedSeverities;
     ntfFilterPtr->numTrends = numTrends;
 
-    ntfFilterPtr->probableCauses = clHeapCalloc(1, (sizeof(SaNtfProbableCauseT) * numProbableCauses));
-    ntfFilterPtr->perceivedSeverities = clHeapCalloc(1, (sizeof(SaNtfSeverityT) * numPerceivedSeverities));
-    ntfFilterPtr->trends = clHeapCalloc(1, (sizeof(SaNtfSeverityTrendT) * numTrends));
+    ntfFilterPtr->probableCauses = (SaNtfProbableCauseT*) clHeapCalloc(1, (sizeof(SaNtfProbableCauseT) * numProbableCauses));
+    ntfFilterPtr->perceivedSeverities = (SaNtfSeverityT*) clHeapCalloc(1, (sizeof(SaNtfSeverityT) * numPerceivedSeverities));
+    ntfFilterPtr->trends = (SaNtfSeverityTrendT*) clHeapCalloc(1, (sizeof(SaNtfSeverityTrendT) * numTrends));
     if ((ntfFilterPtr->probableCauses == NULL) ||
             (ntfFilterPtr->perceivedSeverities == NULL) ||
             (ntfFilterPtr->trends == NULL))
@@ -2804,7 +2798,7 @@ saNtfSecurityAlarmNotificationFilterAllocate(
     }
 
     /* Checkout the handle to the notification filter created just now */
-    rc = clHandleCheckout(ntfFilterHandleDbHandle, ntfFilterHandle, (void *)&ntfFilterPtr);
+    rc = clHandleCheckout(ntfFilterHandleDbHandle, ntfFilterHandle, (void **)&ntfFilterPtr);
 
     CL_ASSERT(rc == CL_OK); /* Should never happen because we have just created the handle */
 
@@ -2821,11 +2815,11 @@ saNtfSecurityAlarmNotificationFilterAllocate(
     ntfFilterPtr->numServiceUsers = numServiceUsers;
     ntfFilterPtr->numServiceProviders = numServiceProviders;
 
-    ntfFilterPtr->probableCauses = clHeapCalloc(1, (sizeof(SaNtfProbableCauseT) * numProbableCauses));
-    ntfFilterPtr->severities = clHeapCalloc(1, (sizeof(SaNtfSeverityT) * numSeverities));
-    ntfFilterPtr->securityAlarmDetectors = clHeapCalloc(1, (sizeof(SaNtfSecurityAlarmDetectorT) * numSecurityAlarmDetectors));
-    ntfFilterPtr->serviceUsers = clHeapCalloc(1, (sizeof(SaNtfServiceUserT) * numServiceUsers));
-    ntfFilterPtr->serviceProviders = clHeapCalloc(1, (sizeof(SaNtfServiceUserT) * numServiceProviders));
+    ntfFilterPtr->probableCauses = (SaNtfProbableCauseT*) clHeapCalloc(1, (sizeof(SaNtfProbableCauseT) * numProbableCauses));
+    ntfFilterPtr->severities = (SaNtfSeverityT*) clHeapCalloc(1, (sizeof(SaNtfSeverityT) * numSeverities));
+    ntfFilterPtr->securityAlarmDetectors = (SaNtfSecurityAlarmDetectorT*) clHeapCalloc(1, (sizeof(SaNtfSecurityAlarmDetectorT) * numSecurityAlarmDetectors));
+    ntfFilterPtr->serviceUsers = (SaNtfServiceUserT*) clHeapCalloc(1, (sizeof(SaNtfServiceUserT) * numServiceUsers));
+    ntfFilterPtr->serviceProviders = (SaNtfServiceUserT*) clHeapCalloc(1, (sizeof(SaNtfServiceUserT) * numServiceProviders));
 
     if ((ntfFilterPtr->probableCauses == NULL) ||
             (ntfFilterPtr->severities == NULL) ||
@@ -3112,7 +3106,7 @@ saNtfNotificationSubscribe_3(
         return SA_AIS_ERR_INVALID_PARAM;
     }
 
-    svcHandleCookie = clHeapAllocate(sizeof(SaNtfHandleT));
+    svcHandleCookie = (SaNtfHandleT*) clHeapAllocate(sizeof(SaNtfHandleT));
     if (svcHandleCookie == NULL)
     {
         return SA_AIS_ERR_NO_MEMORY;
@@ -3145,7 +3139,7 @@ saNtfNotificationUnsubscribe_2(
     ClNtfLibInstanceT      *ntfInstancePtr = NULL;
 
     /* Checkout the handle */
-    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void *)&ntfInstancePtr);
+    rc = clHandleCheckout(handleDbHandle, ntfHandle, (void **)&ntfInstancePtr);
 
     if (rc != CL_OK)
     {
@@ -3332,7 +3326,7 @@ void clNtfEventDeliveryCallback(
     ClRcT                   rc = CL_OK;
     ClBufferHandleT         payLoadMsg = 0;
     void                    *eventData = NULL;
-    SaNtfNotificationTypeT  notifType = 0;
+    SaNtfNotificationTypeT  notifType ;
     SaNtfHandleT            *svcHandle = NULL;
     ClNtfLibInstanceT       *ntfInstancePtr = NULL;
     SaNtfNotificationsT     *notification = NULL;
@@ -3341,6 +3335,7 @@ void clNtfEventDeliveryCallback(
     ClUint32T               index = 0;
     ClBoolT                 free_notification = CL_TRUE;
 
+    memset(&notifType,0,sizeof(SaNtfNotificationTypeT));
     clLogDebug("NTF","EVT","An NTF notification event has been received on event channel");
     
     /* First get the cookie and find out if the initialization is still valid */
@@ -3352,7 +3347,7 @@ void clNtfEventDeliveryCallback(
     }
     
     /* Checkout the svc instance handle */
-    rc = clHandleCheckout(handleDbHandle, *svcHandle, (void *)&ntfInstancePtr);
+    rc = clHandleCheckout(handleDbHandle, *svcHandle, (void **)&ntfInstancePtr);
 
     if (rc != CL_OK)
     {
@@ -3363,8 +3358,8 @@ void clNtfEventDeliveryCallback(
 
     /* Allocate callback data */
     eventData = clHeapAllocate(eventDataSize);
-    notification = clHeapCalloc(1, (sizeof(SaNtfNotificationsT)));
-    callbackData = clHeapCalloc(1, (sizeof(ClNtfNotificationCallbackDataT)));
+    notification = (SaNtfNotificationsT*) clHeapCalloc(1, (sizeof(SaNtfNotificationsT)));
+    callbackData = (ClNtfNotificationCallbackDataT*) clHeapCalloc(1, (sizeof(ClNtfNotificationCallbackDataT)));
     if ((notification == NULL) ||
             (callbackData == NULL) ||
             (eventData == NULL))
@@ -3425,7 +3420,7 @@ void clNtfEventDeliveryCallback(
                 }
 
                 /* Checkout the handle */
-                rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void *)&ntfPtr);
+                rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void **)&ntfPtr);
 
                 CL_ASSERT(rc == CL_OK); /* Should never happen because we have just checked out the handle */
 
@@ -3439,7 +3434,7 @@ void clNtfEventDeliveryCallback(
                 /* Unmarshal notification specific data */
                 clXdrUnmarshallClUint16T(payLoadMsg, &ntfPtr->numAttributes);
                 clXdrUnmarshallClUint32T(payLoadMsg, &ntfPtr->sourceIndicator);
-                ntfPtr->objectAttributes = clHeapCalloc(1,(sizeof(SaNtfAttributeT) * ntfPtr->numAttributes));
+                ntfPtr->objectAttributes = (SaNtfAttributeT*) clHeapCalloc(1,(sizeof(SaNtfAttributeT) * ntfPtr->numAttributes));
                 if (ntfPtr->objectAttributes == NULL)
                 {
                     clLogError("NTF","EVT","Failed to allocate memory for object attributes");
@@ -3484,7 +3479,7 @@ void clNtfEventDeliveryCallback(
                 }
 
                 /* Checkout the handle */
-                rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void *)&ntfPtr);
+                rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void **)&ntfPtr);
 
                 CL_ASSERT(rc == CL_OK); /* Should never happen because we have just checked out the handle */
 
@@ -3497,7 +3492,7 @@ void clNtfEventDeliveryCallback(
                 /* Unmarshall notification specific data */
                 clXdrUnmarshallClUint16T(payLoadMsg, &ntfPtr->numAttributes);
                 clXdrUnmarshallClUint32T(payLoadMsg, &ntfPtr->sourceIndicator);
-                ntfPtr->changedAttributes = clHeapCalloc(1,(sizeof(SaNtfAttributeChangeT) * ntfPtr->numAttributes));
+                ntfPtr->changedAttributes = (SaNtfAttributeChangeT*) clHeapCalloc(1,(sizeof(SaNtfAttributeChangeT) * ntfPtr->numAttributes));
                 if (ntfPtr->changedAttributes == NULL)
                 {
                     clLogError("NTF","EVT","Failed to allocate memory for changed attributes");
@@ -3546,7 +3541,7 @@ void clNtfEventDeliveryCallback(
                 }
 
                 /* Checkout the handle */
-                rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void *)&ntfPtr);
+                rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void **)&ntfPtr);
 
                 CL_ASSERT(rc == CL_OK); /* Should never happen because we have just checked out the handle */
 
@@ -3559,7 +3554,7 @@ void clNtfEventDeliveryCallback(
                 /* Unmarshall notification specific values */
                 clXdrUnmarshallClUint16T(payLoadMsg, &ntfPtr->numStateChanges);
                 clXdrUnmarshallClUint32T(payLoadMsg, &ntfPtr->sourceIndicator);
-                ntfPtr->changedStates = clHeapCalloc(1,(sizeof(SaNtfStateChangeT) * ntfPtr->numStateChanges));
+                ntfPtr->changedStates = (SaNtfStateChangeT*) clHeapCalloc(1,(sizeof(SaNtfStateChangeT) * ntfPtr->numStateChanges));
                 if (ntfPtr->changedStates == NULL)
                 {
                     clLogError("NTF","EVT","Failed to allocate memory for changed states");
@@ -3604,7 +3599,7 @@ void clNtfEventDeliveryCallback(
                 }
 
                 /* Checkout the handle */
-                rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void *)&ntfPtr);
+                rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void **)&ntfPtr);
 
                 CL_ASSERT(rc == CL_OK); /* Should never happen because we have just checked out the handle */
 
@@ -3619,7 +3614,7 @@ void clNtfEventDeliveryCallback(
                 clXdrUnmarshallClUint16T(payLoadMsg, &ntfPtr->numMonitoredAttributes);
                 clXdrUnmarshallClUint16T(payLoadMsg, &ntfPtr->numProposedRepairActions);
                 clXdrUnmarshallClUint32T(payLoadMsg, &ntfPtr->probableCause);
-                ntfPtr->specificProblems = clHeapCalloc(1,(sizeof(SaNtfSpecificProblemT) * ntfPtr->numSpecificProblems));
+                ntfPtr->specificProblems = (SaNtfSpecificProblemT*) clHeapCalloc(1,(sizeof(SaNtfSpecificProblemT) * ntfPtr->numSpecificProblems));
                 if (ntfPtr->specificProblems == NULL)
                 {
                     clLogError("NTF","EVT","Failed to allocate memory for alarm notification attributes");
@@ -3647,7 +3642,7 @@ void clNtfEventDeliveryCallback(
                                                 &ntfPtr->thresholdInformation.observedValue);
                 clXdrUnmarshallClInt64T(payLoadMsg, &ntfPtr->thresholdInformation.armTime);
 
-                ntfPtr->monitoredAttributes = clHeapCalloc(1,(sizeof(SaNtfAttributeT) * ntfPtr->numMonitoredAttributes));
+                ntfPtr->monitoredAttributes = (SaNtfAttributeT*) clHeapCalloc(1,(sizeof(SaNtfAttributeT) * ntfPtr->numMonitoredAttributes));
                 if (ntfPtr->monitoredAttributes == NULL)
                 {
                     clLogError("NTF","EVT","Failed to allocate memory for alarm notification attributes");
@@ -3662,7 +3657,7 @@ void clNtfEventDeliveryCallback(
                     unmarshallNtfValueTypeT(payLoadMsg, ntfPtr->monitoredAttributes[index].attributeType, 
                                                 &ntfPtr->monitoredAttributes[index].attributeValue);
                 }
-                ntfPtr->proposedRepairActions = clHeapCalloc(1,(sizeof(SaNtfProposedRepairActionT) * ntfPtr->numProposedRepairActions));
+                ntfPtr->proposedRepairActions = (SaNtfProposedRepairActionT*) clHeapCalloc(1,(sizeof(SaNtfProposedRepairActionT) * ntfPtr->numProposedRepairActions));
                 if (ntfPtr->proposedRepairActions == NULL)
                 {
                     clLogError("NTF","EVT","Failed to allocate memory for alarm notification attributes");
@@ -3715,7 +3710,7 @@ void clNtfEventDeliveryCallback(
                 }
 
                 /* Checkout the handle */
-                rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void *)&ntfPtr);
+                rc = clHandleCheckout(notificationHandleDbHandle, notificationHandle, (void **)&ntfPtr);
 
                 CL_ASSERT(rc == CL_OK); /* Should never happen because we have just checked out the handle */
 

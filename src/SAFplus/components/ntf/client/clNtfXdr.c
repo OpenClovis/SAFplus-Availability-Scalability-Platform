@@ -205,7 +205,7 @@ ClRcT   unmarshallNotificationHeaderBuffer(ClBufferHandleT bufferHandle,
     CHECK_RETURN(clXdrUnmarshallClInt16T(bufferHandle, &ntfPtr->numAdditionalInfo), CL_OK);
     CHECK_RETURN(clXdrUnmarshallClInt64T(bufferHandle, &ntfPtr->notificationId), CL_OK);
     /* Allocate memory for correlatedNotifications array */
-    ntfPtr->correlatedNotifications = clHeapCalloc(1,(sizeof(SaNtfIdentifierT) * ntfPtr->numCorrelatedNotifications));
+    ntfPtr->correlatedNotifications = (SaNtfIdentifierT*) clHeapCalloc(1,(sizeof(SaNtfIdentifierT) * ntfPtr->numCorrelatedNotifications));
     if (ntfPtr->correlatedNotifications == NULL)
         return CL_ERR_NO_MEMORY;
 
@@ -214,14 +214,14 @@ ClRcT   unmarshallNotificationHeaderBuffer(ClBufferHandleT bufferHandle,
         CHECK_RETURN(clXdrUnmarshallClInt64T(bufferHandle, &ntfPtr->correlatedNotifications[index]), CL_OK);
 
     /* Allocate memory for additionalText char array */
-    ntfPtr->additionalText = clHeapCalloc(1, ntfPtr->lengthAdditionalText);
+    ntfPtr->additionalText = (SaStringT) clHeapCalloc(1, ntfPtr->lengthAdditionalText);
     if (ntfPtr->additionalText == NULL) 
         return CL_ERR_NO_MEMORY;
     /* Unmarshall the additionalText data */
     CHECK_RETURN(clXdrUnmarshallArrayClCharT(bufferHandle, ntfPtr->additionalText, ntfPtr->lengthAdditionalText), CL_OK);
 
     /* Allocate memory for additionInfo array */
-    ntfPtr->additionalInfo = clHeapCalloc(1, (sizeof(SaNtfAdditionalInfoT) * ntfPtr->numAdditionalInfo));
+    ntfPtr->additionalInfo = (SaNtfAdditionalInfoT*) clHeapCalloc(1, (sizeof(SaNtfAdditionalInfoT) * ntfPtr->numAdditionalInfo));
     if (ntfPtr->additionalInfo == NULL)
         return CL_ERR_NO_MEMORY;
     /* Unmarshall additionalInfo array data */

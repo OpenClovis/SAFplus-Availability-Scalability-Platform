@@ -720,13 +720,13 @@ int clTcCkptRead (
 	}
 	else
 	{
-		if ( io_vector.readSize != data_size )
+		if ( (int) io_vector.readSize != data_size )
 		{
 			printf("clTcCkptRead: Read %d bytes; expected %d bytes\n", 
 				   (int)io_vector.readSize, data_size);
 		}
 
-		if (data_size <= io_vector.readSize)
+		if (data_size <= (int) io_vector.readSize)
 		{
 			memcpy(data, io_vector.dataBuffer, data_size);
 		}
@@ -797,7 +797,7 @@ clTestSectionOverwrite(ClCkptHdlT  ckptHdl,
     {
         for( i = 0; i < numSections; i++ )
         {
-            secId[i].id = clHeapCalloc(1, 15); 
+            secId[i].id = (ClUint8T*) clHeapCalloc(1, 15); 
             if( NULL == secId[i].id )
             {
                 return CL_OK;
@@ -846,13 +846,13 @@ clTestSectionCreate(ClCkptHdlT  ckptHdl,
     ClRcT                             rc            = CL_OK;
     ClCkptSectionCreationAttributesT  secCreateAttr = {0};
 
-    secCreateAttr.sectionId = clHeapCalloc(1, sizeof(ClCkptSectionIdT));
+    secCreateAttr.sectionId = (ClCkptSectionIdT*) clHeapCalloc(1, sizeof(ClCkptSectionIdT));
     if( NULL == secCreateAttr.sectionId ) 
     {
         return CL_OK;
     }
     secCreateAttr.expirationTime = CL_TIME_END;
-    secCreateAttr.sectionId->id = clHeapCalloc(1, 15);
+    secCreateAttr.sectionId->id = (ClUint8T*) clHeapCalloc(1, 15);
     if( NULL == secCreateAttr.sectionId->id ) 
     {
         clHeapFree(secCreateAttr.sectionId);
@@ -888,7 +888,7 @@ clTestCkptRead(ClCkptHdlT  ckptHdl,
     {
         if( numSections != 1 )
         {
-            iov[i].sectionId.id = clHeapCalloc(1, 15);
+            iov[i].sectionId.id = (ClUint8T*) clHeapCalloc(1, 15);
             if( NULL == iov[i].sectionId.id )
             {   
                 return CL_OK;
@@ -949,7 +949,7 @@ clTestCkptRead_withTime(ClCkptHdlT  ckptHdl,
     {
         if( numSections != 1 )
         {
-            iov[i].sectionId.id = clHeapCalloc(1, 15);
+            iov[i].sectionId.id = (ClUint8T*) clHeapCalloc(1, 15);
             if( NULL == iov[i].sectionId.id )
             {   
                 return CL_OK;
@@ -999,7 +999,7 @@ clTestSectionOverwrite_withTime(ClCkptHdlT  ckptHdl,
     memset(data, 'a', sectionSize);
     for( i = 0; i < numSections; i++ )
     {
-        secId[i].id = clHeapCalloc(1, 15); 
+        secId[i].id = (ClUint8T*) clHeapCalloc(1, 15); 
         if( NULL == secId[i].id )
         {
             return CL_OK;
@@ -1048,7 +1048,7 @@ clTestCheckpointWrite(ClCkptHdlT  ckptHdl,
     {
         if( numSections != 1 )
         {
-            iov[i].sectionId.id = clHeapCalloc(1, 15);
+            iov[i].sectionId.id = (ClUint8T*) clHeapCalloc(1, 15);
             if( NULL == iov[i].sectionId.id )
             {   
                 return CL_OK;
@@ -1094,7 +1094,7 @@ clTestCheckpointReadWithOffSet(ClCkptHdlT  ckptHdl,
     {
         if( numSections != 1 )
         {
-            iov[i].sectionId.id = clHeapCalloc(1, 15);
+            iov[i].sectionId.id = (ClUint8T*) clHeapCalloc(1, 15);
             if( NULL == iov[i].sectionId.id )
             {   
                 return CL_OK;
