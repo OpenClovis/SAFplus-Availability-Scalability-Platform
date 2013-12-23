@@ -58,7 +58,7 @@ ClUint8T *gpClIocNeighComps;
 static ClCharT gpClIocNeighCompsSegment[CL_IOC_SEGMENT_NAME_LENGTH + 1];
 static ClFdT gClIocNeighCompsFd;
 static ClUint32T gClIocNeighCompsInitialize;
-ClOsalSemIdT gClIocNeighborSem;
+static ClOsalSemIdT gClIocNeighborSem;
 
 #define IOC_LOG_AREA_SEGMENT	"SEG"
 #define IOC_LOG_AREA_STATUS	"STATUS"
