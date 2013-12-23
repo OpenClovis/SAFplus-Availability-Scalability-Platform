@@ -34,7 +34,6 @@
 
 #define CL_IOC_MASTER_ADDRESS_RETRIES (10)
 
-extern ClOsalSemIdT gClIocNeighborSem;
 static ClIocNodeAddressT *gpClIocMasterSeg;
 static ClOsalSemIdT gClIocMasterSem;
 
@@ -83,10 +82,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
 
     clOsalSemLock(gClIocMasterSem);
     node = gpClIocMasterSeg[portId]; 
-    clOsalSemUnlock(gClIocMasterSem);
-    CL_ASSERT(node<CL_IOC_MAX_NODES);
-    
-    clOsalSemLock(gClIocNeighborSem);
+
     if(node)
     {
         switch(portId)
@@ -123,8 +119,8 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
         if(!nodeStatus)
             node = 0;
     }
-    clOsalSemUnlock(gClIocNeighborSem);
-    
+    clOsalSemUnlock(gClIocMasterSem);
+
     if(node == 0)
     {
         do {    
