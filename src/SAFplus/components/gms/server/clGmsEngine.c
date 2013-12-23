@@ -173,7 +173,7 @@ static ClRcT timerCallback( void *arg )
     clLog(CL_LOG_INFO,LEA,NA, "leader is [%d] & noOfViewMembers [%d] is found!", view->leader, view->noOfViewMembers);
     if (view->leader || (view->noOfViewMembers == 1))
     {
-    	clLog(CL_LOG_DEBUG,LEA,NA, "There is only leader in the default group; hence setting readyToServeGroups as True");
+        clLog(CL_LOG_DEBUG,LEA,NA, "There is only leader in the default group; hence setting readyToServeGroups as True");
         readyToServeGroups = CL_TRUE;
     }
 
@@ -540,12 +540,17 @@ computeLeaderDeputyWithHighestCredential (
     /* ClGmsClusterMemberT *existingLeaders[64] = {0}; */
     ClUint32T            i = 0;
 
+    ClIocNodeAddressT currentLeader = CL_GMS_INVALID_NODE_ID;
+
     CL_ASSERT( (buffer != (const void*)NULL) && (buffer->numberOfItems != 0x0) && (buffer->notification != NULL));
     CL_ASSERT( (leaderNodeId != NULL) && (deputyNodeId != NULL));
 
     /* From the notification buffer find the list of nodes which
      * have eligible credentials */
-    
+
+    /* Get current leader from NodeCache */
+    clNodeCacheLeaderGet(&currentLeader);
+
     for ( i = 0 ; i < buffer->numberOfItems ; i++ )
     {
         currentNode = &(buffer->notification[i].clusterNode);
@@ -557,11 +562,15 @@ computeLeaderDeputyWithHighestCredential (
             currentNode->credential += CL_IOC_MAX_NODES * currentNode->isPreferredLeader;
             /* if leader preference set in the CLI, then double-dog prefer it :-) */
             currentNode->credential += CL_IOC_MAX_NODES * ( currentNode->isPreferredLeader && currentNode->leaderPreferenceSet);
+
             /* Current leaders are boosted above all others */
-            currentNode->credential += 3*CL_IOC_MAX_NODES * currentNode->isCurrentLeader;
+            if (currentNode->isCurrentLeader || currentNode->nodeId == currentLeader)
+            {
+                currentNode->credential += 3*CL_IOC_MAX_NODES;
+            }
 
             clLog(CL_LOG_DEBUG,CLM,NA, "Node [%.*s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu]",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp);
-            
+
             noOfEligibleNodes++;
         }
     }
