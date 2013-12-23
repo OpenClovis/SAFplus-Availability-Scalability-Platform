@@ -3672,9 +3672,11 @@ clAmsPeNodeSwitchoverWork(
     }ClAmsNodeSUListT;
     ClAmsNodeSUListT *suList = NULL;
     ClUint32T numSUs = 0;
-    ClAmsNotificationDescriptorT notification = {0};
+    ClAmsNotificationDescriptorT notification;
     ClAmsNotificationTypeT notificationType = CL_AMS_NOTIFICATION_NODE_SWITCHOVER;
     ClRcT rc = CL_OK;
+   
+    memset(&notification,0,sizeof(ClAmsNotificationDescriptorT));
 
     AMS_CHECK_NODE ( node );
 
@@ -3732,7 +3734,7 @@ clAmsPeNodeSwitchoverWork(
      *
      */
     
-    suList = clHeapCalloc(node->config.suList.numEntities, sizeof(*suList));
+    suList = (ClAmsNodeSUListT*) clHeapCalloc(node->config.suList.numEntities, sizeof(*suList));
     CL_ASSERT(suList != NULL);
     for ( entityRef = clAmsEntityListGetFirst(&node->config.suList);
           entityRef != (ClAmsEntityRefT *) NULL;
@@ -4319,7 +4321,7 @@ ClRcT
 clAmsPeSUUnlock(
                 CL_IN   ClAmsSUT    *su) 
 {
-    ClAmsAdminStateT adminState = 0;
+    ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_NONE;
 
     AMS_CHECK_SU ( su );
 
@@ -6119,20 +6121,18 @@ clAmsPeSUInstantiateError(
     }
     else
     {
-
-
         /*
          * Send notification for SU instantiation failure
          */
 
-        ClAmsNotificationDescriptorT notification = {0};
-
+        ClAmsNotificationDescriptorT notification;
+  
+        memset(&notification,0,sizeof(ClAmsNotificationDescriptorT));
         notification.type = CL_AMS_NOTIFICATION_SU_INSTANTIATION_FAILURE;
         notification.entityType = CL_AMS_ENTITY_TYPE_SU;
-        memcpy ( &notification.entityName,&su->config.entity.name,
-                sizeof(SaNameT) );
+        memcpy ( &notification.entityName,&su->config.entity.name, sizeof(SaNameT) );
         notification.entityName.length = strlen((const ClCharT *)su->config.entity.name.value);
-        notification.recoveryActionTaken = CL_AMS_RECOVERY_NONE;
+        notification.recoveryActionTaken = (SaAmfRecommendedRecoveryT) CL_AMS_RECOVERY_NONE;
         notification.repairNecessary = CL_TRUE;
 
         AMS_CALL_PUBLISH_NTF ( clAmsNotificationEventPublish(&notification ) );
@@ -7477,30 +7477,22 @@ clAmsPeSUSwitchoverReplay(ClAmsSUT *su, ClAmsSUT *activeSU, ClUint32T error, ClU
         clLogDebug("AMS", "REPLAY", "Deferring SU [%s] remove after "
                    "reassignment of SU [%s] to active", su->config.entity.name.value,
                    activeSU->config.entity.name.value);
-        ClAmsEntityRemoveOpT activeRemoveOp = {{0}};
-        memcpy(&activeRemoveOp.entity, 
-               &su->config.entity, 
-               sizeof(activeRemoveOp.entity));
+        ClAmsEntityRemoveOpT activeRemoveOp;
+        memset(&activeRemoveOp,0,sizeof(ClAmsEntityRemoveOpT));
+        memcpy(&activeRemoveOp.entity, &su->config.entity, sizeof(activeRemoveOp.entity));
         activeRemoveOp.sisRemoved = su->status.siList.numEntities;
         activeRemoveOp.switchoverMode = switchoverMode;
         activeRemoveOp.error = error;
-        clAmsEntityOpPush(&activeSU->config.entity, 
-                          &activeSU->status.entity,
-                          (void*)&activeRemoveOp,
-                          (ClUint32T)sizeof(activeRemoveOp),
-                          CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN);
+        clAmsEntityOpPush(&activeSU->config.entity, &activeSU->status.entity, (void*)&activeRemoveOp, (ClUint32T)sizeof(activeRemoveOp), CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN);
         /*
          * Store a back ref.
          */
         memcpy(&activeRemoveOp.entity, &activeSU->config.entity, sizeof(activeRemoveOp.entity));
-        clAmsEntityOpPush(&su->config.entity, &su->status.entity, 
-                          (void*)&activeRemoveOp, sizeof(activeRemoveOp),
-                          CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN);
+        clAmsEntityOpPush(&su->config.entity, &su->status.entity, (void*)&activeRemoveOp, sizeof(activeRemoveOp), CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN);
         return CL_OK;
     }
 
-    clLogDebug("AMS", "REPLAY", "Replaying switchover remove for SU [%s] in mode [%d]",
-               su->config.entity.name.value, switchoverMode);
+    clLogDebug("AMS", "REPLAY", "Replaying switchover remove for SU [%s] in mode [%d]", su->config.entity.name.value, switchoverMode);
 
     return clAmsPeSUSwitchoverRemoveReplay(su, error, switchoverMode);
 }
@@ -7508,9 +7500,7 @@ clAmsPeSUSwitchoverReplay(ClAmsSUT *su, ClAmsSUT *activeSU, ClUint32T error, ClU
 ClRcT clAmsPeSISUReassignEntryDelete(ClAmsSIT *si)
 {
     ClAmsEntityRefT *suRef = NULL;
-    for(suRef = clAmsEntityListGetFirst(&si->status.suList);
-        suRef != NULL;
-        suRef = clAmsEntityListGetNext(&si->status.suList, suRef))
+    for(suRef = clAmsEntityListGetFirst(&si->status.suList); suRef != NULL; suRef = clAmsEntityListGetNext(&si->status.suList, suRef))
     {
         ClAmsSUT *targetSU = (ClAmsSUT*)suRef->ptr;
         clAmsPeDeleteSUReassignOp(targetSU);
@@ -7532,11 +7522,7 @@ ClRcT clAmsPeSIReassignEntryDelete(ClListHeadT *siList)
         si = reassignEntry->si;
         if(si)
         {
-            if(clAmsEntityOpClear(&si->config.entity,
-                                  &si->status.entity,
-                                  CL_AMS_ENTITY_OP_SI_REASSIGN_MPLUSN,
-                                  (void**)&reassignData,
-                                  NULL) == CL_OK)
+            if(clAmsEntityOpClear(&si->config.entity, &si->status.entity, CL_AMS_ENTITY_OP_SI_REASSIGN_MPLUSN, (void**)&reassignData, NULL) == CL_OK)
             {
                 if(reassignData) clHeapFree(reassignData);
             }
@@ -7552,19 +7538,17 @@ ClRcT clAmsPeSUSIReassignEntryDelete(ClAmsSUT *su)
     ClRcT rc = CL_OK;
     ClAmsSUReassignOpT *reassignEntry = NULL;
     if(!su) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
-    rc = clAmsEntityOpClear(&su->config.entity, &su->status.entity,
-                            CL_AMS_ENTITY_OP_SI_REASSIGN_MPLUSN,
-                            (void**)&reassignEntry, NULL);
+    rc = clAmsEntityOpClear(&su->config.entity, &su->status.entity, CL_AMS_ENTITY_OP_SI_REASSIGN_MPLUSN, (void**)&reassignEntry, NULL);
     if(rc == CL_OK && reassignEntry)
     {
         ClInt32T i;
         for(i  = 0; i < reassignEntry->numSIs; ++i)
         {
             ClAmsEntityT *siRef = reassignEntry->sis + i;
-            ClAmsEntityRefT entityRef = {{0}};
+            ClAmsEntityRefT entityRef;
+            memset(&entityRef,0,sizeof(ClAmsEntityRefT));
             memcpy(&entityRef.entity, siRef, sizeof(entityRef.entity));
-            rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI],
-                                         &entityRef);
+            rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI], &entityRef);
             if(rc == CL_OK)
             {
                 ClAmsSIT *si = (ClAmsSIT*)entityRef.ptr;
@@ -7585,9 +7569,7 @@ ClRcT clAmsPeDeleteSUReassignOp(ClAmsSUT *su)
     ClRcT rc = CL_OK;
     ClAmsSUReassignOpT *reassignEntry = NULL;
     if(!su) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
-    rc = clAmsEntityOpClear(&su->config.entity, &su->status.entity,
-                            CL_AMS_ENTITY_OP_SI_REASSIGN_MPLUSN,
-                            (void**)&reassignEntry, NULL);
+    rc = clAmsEntityOpClear(&su->config.entity, &su->status.entity, CL_AMS_ENTITY_OP_SI_REASSIGN_MPLUSN, (void**)&reassignEntry, NULL);
     if(rc == CL_OK)
     {
         if(reassignEntry->sis) clHeapFree(reassignEntry->sis);
@@ -7602,9 +7584,7 @@ ClBoolT clAmsPeCheckSUReassignOp(ClAmsSUT *su, ClAmsSIT *si, ClBoolT deleteEntry
     ClAmsSUReassignOpT *reassignEntry = NULL;
     ClInt32T i;
     if(!su || !si) return CL_FALSE;
-    rc = clAmsEntityOpGet(&su->config.entity, &su->status.entity,
-                          CL_AMS_ENTITY_OP_SI_REASSIGN_MPLUSN,
-                          (void**)&reassignEntry, NULL);
+    rc = clAmsEntityOpGet(&su->config.entity, &su->status.entity, CL_AMS_ENTITY_OP_SI_REASSIGN_MPLUSN, (void**)&reassignEntry, NULL);
     if(rc != CL_OK || !reassignEntry)
         return CL_FALSE;
     for(i = 0 ; i < reassignEntry->numSIs; ++i)
@@ -7660,7 +7640,7 @@ ClBoolT clAmsPeCheckSUReassignOp(ClAmsSUT *su, ClAmsSIT *si, ClBoolT deleteEntry
 
             if(deleteEntry)
             {
-                ClUint32T j;
+                ClInt32T j;
                 ClUint32T suSICount = 0;
                 targetSI->name.length = 0;
                 for(j = 0; j < reassignEntry->numSIs; ++j)
@@ -7680,7 +7660,7 @@ ClBoolT clAmsPeCheckSUReassignOp(ClAmsSUT *su, ClAmsSIT *si, ClBoolT deleteEntry
 
 ClRcT clAmsPeAddReassignOp(ClAmsSIT *targetSI, ClAmsSUT *targetSU) 
 {
-    ClAmsSIReassignOpT reassignSIOp = {{0}};
+    ClAmsSIReassignOpT reassignSIOp = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsSUReassignOpT reassignSUOp = {0};
     ClAmsSUReassignOpT *reassignSUEntry = NULL;
     ClInt32T i;
@@ -7724,12 +7704,9 @@ ClRcT clAmsPeAddReassignOp(ClAmsSIT *targetSI, ClAmsSUT *targetSU)
 
     if(i != reassignSUEntry->numSIs) return CL_OK;
 
-    reassignSUEntry->sis = clHeapRealloc(reassignSUEntry->sis,
-                                         (ClUint32T)sizeof(*reassignSUEntry->sis)
-                                         * (reassignSUEntry->numSIs+1));
+    reassignSUEntry->sis = (ClAmsEntityT*) clHeapRealloc(reassignSUEntry->sis, (ClUint32T)sizeof(*reassignSUEntry->sis) * (reassignSUEntry->numSIs+1));
     CL_ASSERT(reassignSUEntry->sis != NULL);
-    memcpy(reassignSUEntry->sis + reassignSUEntry->numSIs,
-           &targetSI->config.entity, sizeof(*reassignSUEntry->sis));
+    memcpy(reassignSUEntry->sis + reassignSUEntry->numSIs, &targetSI->config.entity, sizeof(*reassignSUEntry->sis));
     ++reassignSUEntry->numSIs;
     if(newEntry)
     {
@@ -7987,7 +7964,7 @@ clAmsPeSUSwitchoverCallback(
                activeSU && 
                su->status.siList.numEntities)
             {
-                ClAmsEntityRemoveOpT activeRemoveOp = {{0}};
+                ClAmsEntityRemoveOpT activeRemoveOp = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                 memcpy(&activeRemoveOp.entity, &su->config.entity, sizeof(activeRemoveOp.entity));
                 activeRemoveOp.sisRemoved = su->status.siList.numEntities;
                 activeRemoveOp.switchoverMode = switchoverMode;
@@ -8237,7 +8214,7 @@ static ClBoolT clAmsPeCheckCSIDependentsAssigned(ClAmsSUT *su, ClAmsCSIT *csi)
     return CL_FALSE;
 }
 
-static __inline__ ClRcT
+static __inline__ ClAmsInvocationCmdT
 clAmsPeGetPendingOp(ClAmsHAStateT haState)
 {
     switch(haState)
@@ -8270,10 +8247,10 @@ clAmsPeSUAssignSIDependencyCallback(
     ClAmsSISURefT *suRef = NULL;
     ClAmsSUT *activeSU = NULL;
     ClUint32T standbyRank = 0;
-    ClAmsEntityListTypeT listType = 0;
+    ClAmsEntityListTypeT listType = CL_AMS_START_LIST;
     ClAmsEntityListT *list = NULL;
     ClUint32T standbyAssignmentOrder = 0;
-    ClAmsInvocationCmdT pendingOp = 0;
+    ClAmsInvocationCmdT pendingOp;
 
     AMS_CHECK_SU (su);
 
@@ -8312,20 +8289,12 @@ clAmsPeSUAssignSIDependencyCallback(
         }
     }
 
-    rc = clAmsEntityListFindEntityRef2(
-                                       &su->status.siList, 
-                                       &si->config.entity,
-                                       0, 
-                                       (ClAmsEntityRefT **)&siRef);
+    rc = clAmsEntityListFindEntityRef2( &su->status.siList, &si->config.entity, 0, (ClAmsEntityRefT **)&siRef);
 
     if(rc != CL_OK)
         return rc;
 
-    rc = clAmsEntityListFindEntityRef2(
-                                       &si->status.suList, 
-                                       &su->config.entity,
-                                       0, 
-                                       (ClAmsEntityRefT **)&suRef);
+    rc = clAmsEntityListFindEntityRef2( &si->status.suList, &su->config.entity, 0, (ClAmsEntityRefT **)&suRef);
     if(rc != CL_OK)
         return rc;
 
@@ -9574,7 +9543,7 @@ clAmsPeSUFindCompAndCSIWithCSIAssignment(
                                     &entityKeyHandle,
                                     CL_FALSE) ); /* isRankedList : comp->status.csiList */
 
-    if  ( ! (csiRef = clHeapAllocate(sizeof(ClAmsEntityRefT))) )
+    if  ( ! (csiRef = (ClAmsEntityRefT*) clHeapAllocate(sizeof(ClAmsEntityRefT))) )
         return CL_AMS_RC(CL_ERR_NO_MEMORY);
 
     memcpy(&csiRef->entity,
@@ -10366,7 +10335,7 @@ clAmsPeSUReset(
 static ClRcT clAmsPeRemoteProxiedSUsWalkCallback(ClAmsEntityT *entity, ClPtrT userArg)
 {
     ClAmsNodeT *remoteNode = (ClAmsNodeT*)entity;
-    ClAmsRemoteProxiedSUsWalkArgT *arg = userArg;
+    ClAmsRemoteProxiedSUsWalkArgT *arg = (ClAmsRemoteProxiedSUsWalkArgT*) userArg;
     ClListHeadT *proxiedSUList = arg->proxiedSUList;
     ClAmsNodeT *node = arg->node;
     ClAmsEntityRefT *suRef = NULL;
@@ -10398,7 +10367,7 @@ static ClRcT clAmsPeRemoteProxiedSUsWalkCallback(ClAmsEntityT *entity, ClPtrT us
                 if(proxyNode == node)
                 {
                     ClAmsProxiedSUEntryT *entry = NULL;
-                    entry = clHeapCalloc(1, sizeof(*entry));
+                    entry = (ClAmsProxiedSUEntryT*) clHeapCalloc(1, sizeof(*entry));
                     CL_ASSERT(entry != NULL);
                     entry->su = proxiedSU;
                     clListAddTail(&entry->list, proxiedSUList);
@@ -15208,27 +15177,15 @@ clAmsPeCompAssignCSIExtended(
          * process and then set up the csiRef appropriately.
          */
 
-        AMS_CALL ( clAmsPeCSITransitionHAState(
-                                               csi,
-                                               comp,
-                                               CL_AMS_HA_STATE_NONE,
-                                               haState));
+        AMS_CALL ( clAmsPeCSITransitionHAState( csi, comp, CL_AMS_HA_STATE_NONE, haState));
 
-        AMS_CALL ( clAmsEntityListFindEntityRef2(
-                                                 &comp->status.csiList, 
-                                                 &csi->config.entity,
-                                                 0, 
-                                                 (ClAmsEntityRefT **)&csiRef) );
+        AMS_CALL ( clAmsEntityListFindEntityRef2( &comp->status.csiList, &csi->config.entity, 0, (ClAmsEntityRefT **)&csiRef) );
 
         csiRef->activeComp = (ClAmsEntityT *) activeComp;
         csiRef->rank = standbyRank;
         csiRef->tdescriptor = CL_AMS_CSI_NEW_ASSIGN;
 
-        AMS_CALL ( clAmsEntityListFindEntityRef2(
-                                                 &csi->status.pgList, 
-                                                 &comp->config.entity,
-                                                 0, 
-                                                 (ClAmsEntityRefT **)&compRef) );
+        AMS_CALL ( clAmsEntityListFindEntityRef2( &csi->status.pgList, &comp->config.entity, 0, (ClAmsEntityRefT **)&compRef) );
 
         compRef->rank = standbyRank;
         lastActiveComp = activeComp;
@@ -15254,11 +15211,8 @@ clAmsPeCompAssignCSIExtended(
          * component. This could be changed in the future if necessary.
          */
 
-        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
-                        ("Re-Assigning CSI [%s] to Component [%s] with HA State [%s]\n",
-                         csi->config.entity.name.value,
-                         comp->config.entity.name.value,
-                         CL_AMS_STRING_H_STATE(haState)));
+        AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE, ("Re-Assigning CSI [%s] to Component [%s] with HA State [%s]\n",
+                         csi->config.entity.name.value, comp->config.entity.name.value, CL_AMS_STRING_H_STATE(haState)));
 
         if ( haState == CL_AMS_HA_STATE_ACTIVE )
         {
@@ -15319,11 +15273,7 @@ clAmsPeCompAssignCSIExtended(
             return CL_AMS_RC(CL_ERR_INVALID_STATE);
         }
 
-        AMS_CALL ( clAmsPeCSITransitionHAState(
-                                               csi,
-                                               comp,
-                                               csiRef->haState,
-                                               haState) );
+        AMS_CALL ( clAmsPeCSITransitionHAState( csi, comp, csiRef->haState, haState) );
 
         csiRef->activeComp = (ClAmsEntityT *) activeComp;
         csiRef->rank = standbyRank;
@@ -15363,18 +15313,12 @@ clAmsPeCompAssignCSIExtended(
                  * Check for pending swap ops
                  */
                 su = (ClAmsSUT*)comp->config.parentSU.ptr;
-                if(su && 
-                   clAmsEntityOpPending(&su->config.entity, &su->status.entity, 
-                                        CL_AMS_ENTITY_OP_SWAP_ACTIVE_MPLUSN))
+                if(su && clAmsEntityOpPending(&su->config.entity, &su->status.entity, CL_AMS_ENTITY_OP_SWAP_ACTIVE_MPLUSN))
                     csiRef->tdescriptor = CL_AMS_CSI_NOT_QUIESCED;
             }
         }
 
-        AMS_CALL ( clAmsEntityListFindEntityRef2(
-                                                 &csi->status.pgList, 
-                                                 &comp->config.entity,
-                                                 0, 
-                                                 (ClAmsEntityRefT **)&compRef) );
+        AMS_CALL ( clAmsEntityListFindEntityRef2( &csi->status.pgList, &comp->config.entity, 0, (ClAmsEntityRefT **)&compRef) );
 
         compRef->rank = standbyRank;
 
@@ -15388,10 +15332,7 @@ clAmsPeCompAssignCSIExtended(
 
         AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
                         ("Error [0x%x] : Assigning CSI [%s] to Component [%s] with HA State [%s]\n",
-                         rc,
-                         csi->config.entity.name.value,
-                         comp->config.entity.name.value,
-                         CL_AMS_STRING_H_STATE(haState)));
+                         rc, csi->config.entity.name.value, comp->config.entity.name.value, CL_AMS_STRING_H_STATE(haState)));
 
         return rc;
     }
@@ -15427,25 +15368,13 @@ clAmsPeCompAssignCSIExtended(
                                                     csiRef->rank,
                                                     reassignCSI) );
 
-            AMS_CALL ( clAmsInvocationCreateExtended(
-                                                     CL_AMS_CSI_SET_CALLBACK,
-                                                     comp,
-                                                     csi,
-                                                     reassignCSI,
-                                                     &invocation) );
+            AMS_CALL ( clAmsInvocationCreateExtended( CL_AMS_CSI_SET_CALLBACK, comp, csi, reassignCSI, &invocation) );
 
-            AMS_CALL ( clAmsEntityTimerStart(
-                                             (ClAmsEntityT *) comp,
-                                             CL_AMS_COMP_TIMER_CSISET) );
+            AMS_CALL ( clAmsEntityTimerStart( (ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_CSISET) );
 
 #ifdef AMS_CPM_INTEGRATION
 
-            error = _clAmsSACSISet(
-                                   &comp->config.entity.name,
-                                   &comp->config.entity.name,
-                                   invocation,
-                                   haState,
-                                   *csiDescriptor);
+            error = _clAmsSACSISet( &comp->config.entity.name, &comp->config.entity.name, invocation, haState, *csiDescriptor);
 
 #endif
 
@@ -15456,9 +15385,7 @@ clAmsPeCompAssignCSIExtended(
             {
                 AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
-                                comp->config.entity.name.value,
-                                CL_AMS_STRING_H_STATE(haState),
-                                error) ); 
+                                comp->config.entity.name.value, CL_AMS_STRING_H_STATE(haState), error) ); 
 
                 return clAmsPeCompAssignCSIError(comp, error);
             }
@@ -15471,8 +15398,7 @@ clAmsPeCompAssignCSIExtended(
             if ( clAmsPeCompIsProxyReady(comp) == CL_FALSE )
             {
                 AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
-                               ("Component [%s] has no proxy. Defering CSI assignment\n",
-                                comp->config.entity.name.value));
+                               ("Component [%s] has no proxy. Defering CSI assignment\n", comp->config.entity.name.value));
 
                 return CL_OK;
             }
@@ -15490,27 +15416,15 @@ clAmsPeCompAssignCSIExtended(
                                                     csiRef->rank,
                                                     reassignCSI) );
 
-            AMS_CALL ( clAmsInvocationCreateExtended(
-                                                     CL_AMS_CSI_SET_CALLBACK,
-                                                     comp,
-                                                     csi,
-                                                     reassignCSI,
-                                                     &invocation) );
+            AMS_CALL ( clAmsInvocationCreateExtended( CL_AMS_CSI_SET_CALLBACK, comp, csi, reassignCSI, &invocation) );
 
-            AMS_CALL ( clAmsEntityTimerStart(
-                                             (ClAmsEntityT *) comp,
-                                             CL_AMS_COMP_TIMER_CSISET) );
+            AMS_CALL ( clAmsEntityTimerStart( (ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_CSISET) );
 
 #ifdef AMS_CPM_INTEGRATION
  
             ClAmsCompT *proxy = (ClAmsCompT *) comp->status.proxyComp;
 
-            error = _clAmsSACSISet(
-                                   &comp->config.entity.name,
-                                   &proxy->config.entity.name,
-                                   invocation,
-                                   haState,
-                                   *csiDescriptor);
+            error = _clAmsSACSISet( &comp->config.entity.name, &proxy->config.entity.name, invocation, haState, *csiDescriptor);
 
 #endif
 
@@ -15521,9 +15435,7 @@ clAmsPeCompAssignCSIExtended(
             {
                 AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                                ("CSI assignment to Component [%s] with HA state [%s] returned Error [0x%x]\n",
-                                comp->config.entity.name.value,
-                                CL_AMS_STRING_H_STATE(haState),
-                                error) ); 
+                                comp->config.entity.name.value, CL_AMS_STRING_H_STATE(haState), error) ); 
 
                 return clAmsPeCompAssignCSIError(comp, error);
             }
@@ -15549,18 +15461,9 @@ clAmsPeCompAssignCSIExtended(
             {
                 ClInvocationT invocation = 0;
 
-                AMS_CALL ( clAmsInvocationCreateExtended(
-                                                         CL_AMS_CSI_SET_CALLBACK,
-                                                         comp,
-                                                         csi,
-                                                         reassignCSI,
-                                                         &invocation) );
+                AMS_CALL ( clAmsInvocationCreateExtended( CL_AMS_CSI_SET_CALLBACK, comp, csi, reassignCSI, &invocation) );
 
-                AMS_CALL ( clAmsPeCompAssignCSICallback(
-                                                        comp,
-                                                        invocation,
-                                                        CL_OK,
-                                                        CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE));
+                AMS_CALL ( clAmsPeCompAssignCSICallback( comp, invocation, CL_OK, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE));
             }
 
             break;
@@ -15569,8 +15472,7 @@ clAmsPeCompAssignCSIExtended(
     default:
         {
             AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-                           ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n",
-                            comp->config.property,
+                           ("Error: Invalid Property [%d] for Component [%s]. Exiting..\n", comp->config.property,
                             comp->config.entity.name.value));
 
             return CL_AMS_RC(CL_AMS_ERR_BAD_CONFIG);
@@ -15670,10 +15572,7 @@ clAmsPeCompReassignCSI(
 
     AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
         ("Assigning CSI [%s] with HA state [%s] from Component [%s] to Component [%s]\n",
-         csi->config.entity.name.value,
-         CL_AMS_STRING_H_STATE(haState),
-         oldcomp->config.entity.name.value,
-         comp->config.entity.name.value));
+         csi->config.entity.name.value, CL_AMS_STRING_H_STATE(haState), oldcomp->config.entity.name.value, comp->config.entity.name.value));
 
     AMS_CALL ( clAmsPeCompAssignCSI(comp, csi, haState) );
 
@@ -16078,9 +15977,7 @@ amsPeCompAssignCSICallback(
      * timer only if all invocations have been responded.
      */
 
-    AMS_CALL ( clAmsEntityTimerStopIfCountZero(
-                    (ClAmsEntityT *) comp,
-                    CL_AMS_COMP_TIMER_CSISET) );
+    AMS_CALL ( clAmsEntityTimerStopIfCountZero( (ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_CSISET) );
 
     /*
      * Get and verify the invocation data for the invocation id returned by the
@@ -16117,21 +16014,14 @@ amsPeCompAssignCSICallback(
     {
         ClAmsCompCSIRefT *csiRef;
 
-        csiList = clHeapAllocate(sizeof (ClAmsEntityListT));
+        csiList = (ClAmsEntityListT*) clHeapAllocate(sizeof (ClAmsEntityListT));
 
         AMS_CALL ( clAmsEntityListInstantiate(csiList,
                                               CL_AMS_ENTITY_TYPE_CSI));
 
-        AMS_CALL ( clAmsEntityListFindEntityRef2(
-                        &comp->status.csiList, 
-                        &affectedcsi->config.entity,
-                        0, 
-                        (ClAmsEntityRefT **)&csiRef) );
+        AMS_CALL ( clAmsEntityListFindEntityRef2( &comp->status.csiList, &affectedcsi->config.entity, 0, (ClAmsEntityRefT **)&csiRef) );
 
-        AMS_CALL ( clAmsCompAddCSIRefToCSIList(csiList,
-                                               affectedcsi,
-                                               csiRef->haState,
-                                               CL_AMS_CSI_NEW_ASSIGN));
+        AMS_CALL ( clAmsCompAddCSIRefToCSIList(csiList, affectedcsi, csiRef->haState, CL_AMS_CSI_NEW_ASSIGN));
     }
     else
     {
@@ -16153,23 +16043,13 @@ amsPeCompAssignCSICallback(
         AMS_CHECK_CSI ( csi = (ClAmsCSIT *) entityRef->ptr );
         AMS_CHECK_SI ( si = (ClAmsSIT *) csi->config.parentSI.ptr );
 
-        AMS_CALL ( clAmsEntityListFindEntityRef2(
-                        &comp->status.csiList,
-                        &csi->config.entity,
-                        0,
-                        (ClAmsEntityRefT **)&csiRef) );
+        AMS_CALL ( clAmsEntityListFindEntityRef2( &comp->status.csiList, &csi->config.entity, 0, (ClAmsEntityRefT **)&csiRef) );
 
-        AMS_CALL ( clAmsEntityListFindEntityRef2(
-                        &su->status.siList,
-                        &si->config.entity,
-                        0,
-                        (ClAmsEntityRefT **)&siRef) );
+        AMS_CALL ( clAmsEntityListFindEntityRef2( &su->status.siList, &si->config.entity, 0, (ClAmsEntityRefT **)&siRef) );
 
         AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                 ("Confirming CSI [%s] assigned to Component [%s] has HA State [%s]\n",
-                 csi->config.entity.name.value,
-                 comp->config.entity.name.value,
-                 CL_AMS_STRING_H_STATE(csiRef->haState)));
+                 csi->config.entity.name.value, comp->config.entity.name.value, CL_AMS_STRING_H_STATE(csiRef->haState)));
 
         /*
          * If this is a proxy CSI then components proxied by this CSI need to
@@ -16197,10 +16077,7 @@ amsPeCompAssignCSICallback(
 
 #ifdef AMS_CPM_INTEGRATION
 
-            _clAmsSAMarshalPGTrackDispatch(
-                            csi,
-                            comp,
-                            CL_AMS_PG_ADDED);
+            _clAmsSAMarshalPGTrackDispatch( csi, comp, CL_AMS_PG_ADDED);
 
 #endif
 
@@ -16222,10 +16099,7 @@ amsPeCompAssignCSICallback(
                 invokeCSIDependency = CL_FALSE;
                 if(!invocationsPendingForSI)
                 {
-                    CL_AMS_NOTIFICATION_PUBLISH(su,
-                                                (ClAmsEntityRefT *)siRef,
-                                                siRef->haState,
-                                                CL_AMS_NOTIFICATION_SI_PARTIALLY_ASSIGNED,
+                    CL_AMS_NOTIFICATION_PUBLISH(su, (ClAmsEntityRefT *)siRef, siRef->haState, CL_AMS_NOTIFICATION_SI_PARTIALLY_ASSIGNED,
                                                 switchoverMode);
                     AMS_CALL ( clAmsPeSUAssignSICallback(su, si, CL_OK) );
                 }
@@ -16237,10 +16111,7 @@ amsPeCompAssignCSICallback(
         {
 #ifdef AMS_CPM_INTEGRATION
 
-            _clAmsSAMarshalPGTrackDispatch(
-                            csi,
-                            comp,
-                            CL_AMS_PG_ADDED);
+            _clAmsSAMarshalPGTrackDispatch( csi, comp, CL_AMS_PG_ADDED);
 
 #endif
 
@@ -16249,10 +16120,7 @@ amsPeCompAssignCSICallback(
                 invokeCSIDependency = CL_FALSE;
                 if(!invocationsPendingForSI)
                 {
-                    CL_AMS_NOTIFICATION_PUBLISH(su,
-                                                (ClAmsEntityRefT *)siRef,
-                                                siRef->haState,
-                                                CL_AMS_NOTIFICATION_SI_FULLY_ASSIGNED,
+                    CL_AMS_NOTIFICATION_PUBLISH(su, (ClAmsEntityRefT *)siRef, siRef->haState, CL_AMS_NOTIFICATION_SI_FULLY_ASSIGNED,
                                                 switchoverMode);
                     AMS_CALL ( clAmsPeSUAssignSICallback(su, si, CL_OK) );
                 }
@@ -16263,10 +16131,7 @@ amsPeCompAssignCSICallback(
         {
 #ifdef AMS_CPM_INTEGRATION
 
-            _clAmsSAMarshalPGTrackDispatch(
-                            csi,
-                            comp,
-                            CL_AMS_PG_STATE_CHANGE);
+            _clAmsSAMarshalPGTrackDispatch( csi, comp, CL_AMS_PG_STATE_CHANGE);
 
 #endif
 
@@ -16275,8 +16140,7 @@ amsPeCompAssignCSICallback(
                 invokeCSIDependency = CL_FALSE;
                 if(!invocationsPendingForSI)
                 {
-                    AMS_CALL ( clAmsPeSUQuiesceSIImmediatelyCallback(
-                                                                     su, si, CL_OK, switchoverMode) );
+                    AMS_CALL ( clAmsPeSUQuiesceSIImmediatelyCallback( su, si, CL_OK, switchoverMode) );
                 }
             }
         }
@@ -16296,9 +16160,7 @@ amsPeCompAssignCSICallback(
 
     if(error != CL_OK)
     {
-        if((haState == CL_AMS_HA_STATE_ACTIVE)
-            ||
-           (haState == CL_AMS_HA_STATE_STANDBY))
+        if((haState == CL_AMS_HA_STATE_ACTIVE) || (haState == CL_AMS_HA_STATE_STANDBY))
             invokeCSIDependency = CL_FALSE;
     }
             
@@ -16307,8 +16169,7 @@ amsPeCompAssignCSICallback(
      */
     if(invokeCSIDependency)
     {
-        clAmsPeSUAssignSIDependencyCallback(su, affectedcsi, haState, switchoverMode, 
-                                            invocationData.reassignCSI);
+        clAmsPeSUAssignSIDependencyCallback(su, affectedcsi, haState, switchoverMode, invocationData.reassignCSI);
     }
 
     invocationsPendingForComp = clAmsInvocationsPendingForComp(comp);
@@ -16380,12 +16241,7 @@ clAmsPeCompAssignCSITimeout(
 
 #ifdef AMS_EMULATE_RMD_CALLS
 
-    return clAmsInvocationListWalk(
-                comp,
-                amsPeCompAssignCSICallback,
-                CL_AMS_RC(CL_ERR_TIMEOUT),
-                CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE,
-                CL_AMS_CSI_SET_CALLBACK);
+    return clAmsInvocationListWalk( comp, amsPeCompAssignCSICallback, CL_AMS_RC(CL_ERR_TIMEOUT), CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE, CL_AMS_CSI_SET_CALLBACK);
 
 #endif
 
@@ -16467,21 +16323,13 @@ clAmsPeCompProcessPendingSetCSIs(
     {
         ClAmsCompCSIRefT *csiRef;
 
-        csiList = clHeapAllocate(sizeof (ClAmsEntityListT));
+        csiList = (ClAmsEntityListT*) clHeapAllocate(sizeof (ClAmsEntityListT));
 
-        AMS_CALL ( clAmsEntityListInstantiate(csiList,
-                                              CL_AMS_ENTITY_TYPE_CSI));
+        AMS_CALL ( clAmsEntityListInstantiate(csiList, CL_AMS_ENTITY_TYPE_CSI));
 
-        AMS_CALL ( clAmsEntityListFindEntityRef2(
-                        &comp->status.csiList, 
-                        &affectedcsi->config.entity,
-                        0, 
-                        (ClAmsEntityRefT **)&csiRef) );
+        AMS_CALL ( clAmsEntityListFindEntityRef2( &comp->status.csiList, &affectedcsi->config.entity, 0, (ClAmsEntityRefT **)&csiRef) );
 
-        AMS_CALL ( clAmsCompAddCSIRefToCSIList(csiList,
-                                               affectedcsi,
-                                               csiRef->haState,
-                                               CL_AMS_CSI_NEW_ASSIGN));
+        AMS_CALL ( clAmsCompAddCSIRefToCSIList(csiList, affectedcsi, csiRef->haState, CL_AMS_CSI_NEW_ASSIGN));
     }
     else
     {
@@ -16503,17 +16351,9 @@ clAmsPeCompProcessPendingSetCSIs(
         AMS_CHECK_CSI ( csi = (ClAmsCSIT *) entityRef->ptr );
         AMS_CHECK_SI ( si = (ClAmsSIT *) csi->config.parentSI.ptr );
 
-        AMS_CALL ( clAmsEntityListFindEntityRef2(
-                        &comp->status.csiList,
-                        &csi->config.entity,
-                        0,
-                        (ClAmsEntityRefT **)&csiRef) );
+        AMS_CALL ( clAmsEntityListFindEntityRef2( &comp->status.csiList, &csi->config.entity, 0, (ClAmsEntityRefT **)&csiRef) );
 
-        AMS_CALL ( clAmsEntityListFindEntityRef2(
-                        &su->status.siList,
-                        &si->config.entity,
-                        0,
-                        (ClAmsEntityRefT **)&siRef) );
+        AMS_CALL ( clAmsEntityListFindEntityRef2( &su->status.siList, &si->config.entity, 0, (ClAmsEntityRefT **)&siRef) );
 
         /*
          * Depending on the type of HA state assigned to this CSI, we may have
@@ -16547,16 +16387,11 @@ clAmsPeCompProcessPendingSetCSIs(
         {
             AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_TRACE,
                     ("Self Confirming CSI [%s] assigned to Component [%s] has HA State [%s]\n",
-                     csi->config.entity.name.value,
-                     comp->config.entity.name.value,
-                     CL_AMS_STRING_H_STATE(csiRef->haState)));
+                     csi->config.entity.name.value, comp->config.entity.name.value, CL_AMS_STRING_H_STATE(csiRef->haState)));
 
 #ifdef AMS_CPM_INTEGRATION
 
-            _clAmsSAMarshalPGTrackDispatch(
-                            csi,
-                            comp,
-                            CL_AMS_PG_STATE_CHANGE);
+            _clAmsSAMarshalPGTrackDispatch( csi, comp, CL_AMS_PG_STATE_CHANGE);
 
 #endif
 
@@ -16575,8 +16410,7 @@ clAmsPeCompProcessPendingSetCSIs(
                  !invocationsPendingForSI)
             {
                 invokeCSIDependency = CL_FALSE;
-                AMS_CALL ( clAmsPeSUQuiesceSIImmediatelyCallback(
-                                                su, si, CL_OK, switchoverMode) );
+                AMS_CALL ( clAmsPeSUQuiesceSIImmediatelyCallback( su, si, CL_OK, switchoverMode) );
             }
         }
 
@@ -16584,9 +16418,7 @@ clAmsPeCompProcessPendingSetCSIs(
          * Callbacks for SI
          */
 
-        if ( !si->status.numActiveAssignments && 
-             !si->status.numStandbyAssignments &&
-             !invocationsPendingForSI )
+        if ( !si->status.numActiveAssignments && !si->status.numStandbyAssignments && !invocationsPendingForSI )
         {
             AMS_CALL ( clAmsPeSISwitchoverCallback(si, CL_OK, switchoverMode) );
         }
@@ -16600,29 +16432,23 @@ clAmsPeCompProcessPendingSetCSIs(
      */
     if(error != CL_OK)
     {
-        if((haState == CL_AMS_HA_STATE_ACTIVE)
-           ||
-           (haState == CL_AMS_HA_STATE_STANDBY))
+        if((haState == CL_AMS_HA_STATE_ACTIVE) || (haState == CL_AMS_HA_STATE_STANDBY))
             invokeCSIDependency = CL_FALSE;
     }
 
     if(invokeCSIDependency)
     {
-        clAmsPeSUAssignSIDependencyCallback(su, affectedcsi, haState, switchoverMode, 
-                                            invocationData.reassignCSI);
+        clAmsPeSUAssignSIDependencyCallback(su, affectedcsi, haState, switchoverMode, invocationData.reassignCSI);
     }
 
     invocationsPendingForComp = clAmsInvocationsPendingForComp(comp);
 
-    if ( !comp->status.numStandbyCSIs && 
-         !comp->status.numActiveCSIs  &&
-         !invocationsPendingForComp )
+    if ( !comp->status.numStandbyCSIs && !comp->status.numActiveCSIs  && !invocationsPendingForComp )
     {
         AMS_CALL ( clAmsPeCompSwitchoverCallback(comp, CL_OK, switchoverMode) );
     }
 
-    if ( (comp->status.recovery == CL_AMS_RECOVERY_COMP_RESTART) &&
-         !invocationsPendingForComp)
+    if ( (comp->status.recovery == CL_AMS_RECOVERY_COMP_RESTART) && !invocationsPendingForComp)
     {
         AMS_CALL ( clAmsPeCompFaultCallback(comp, error) );
     }
@@ -16661,13 +16487,9 @@ clAmsPeCompAssignCSIError(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n",comp->config.entity.name.value) );
 
-    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR,
-        ("CSI assignment to Component [%s] returned Error [0x%x]\n",
-         comp->config.entity.name.value, error) );
+    AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_ERROR, ("CSI assignment to Component [%s] returned Error [0x%x]\n", comp->config.entity.name.value, error) );
 
-    AMS_CALL ( clAmsEntityTimerStop(
-                    (ClAmsEntityT *) comp,
-                    CL_AMS_COMP_TIMER_CSISET) );
+    AMS_CALL ( clAmsEntityTimerStop( (ClAmsEntityT *) comp, CL_AMS_COMP_TIMER_CSISET) );
 
     /*
      * Go through the pending invocations for this component and reinvoke
@@ -17425,7 +17247,7 @@ amsPeCompQuiescingCompleteCallback(
 
     if ( affectedcsi )
     {
-        csiList = clHeapAllocate(sizeof (ClAmsEntityListT));
+        csiList = (ClAmsEntityListT*) clHeapAllocate(sizeof (ClAmsEntityListT));
 
         AMS_CALL ( clAmsEntityListInstantiate(csiList,
                                               CL_AMS_ENTITY_TYPE_CSI));
@@ -17658,7 +17480,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
 
     if ( affectedcsi )
     {
-        csiList = clHeapAllocate(sizeof (ClAmsEntityListT));
+        csiList = (ClAmsEntityListT*) clHeapAllocate(sizeof (ClAmsEntityListT));
 
         AMS_CALL ( clAmsEntityListInstantiate(csiList,
                                               CL_AMS_ENTITY_TYPE_CSI));
@@ -18247,7 +18069,7 @@ amsPeCompRemoveCSICallback(
 
     if ( affectedcsi )
     {
-        csiList = clHeapAllocate(sizeof (ClAmsEntityListT));
+        csiList = (ClAmsEntityListT*) clHeapAllocate(sizeof (ClAmsEntityListT));
 
         AMS_CALL ( clAmsEntityListInstantiate(csiList,
                                               CL_AMS_ENTITY_TYPE_CSI));
@@ -18593,7 +18415,7 @@ clAmsPeReplayCSIRemoveCallbacks(ClAmsInvocationT *pInvocations,
         affectedcsi = pInvocation->csi;
         if ( affectedcsi )
         {
-            csiList = clHeapAllocate(sizeof (ClAmsEntityListT));
+            csiList = (ClAmsEntityListT*) clHeapAllocate(sizeof (ClAmsEntityListT));
 
             AMS_CALL ( clAmsEntityListInstantiate(csiList,
                                                   CL_AMS_ENTITY_TYPE_CSI));
@@ -21832,7 +21654,7 @@ clAmsPeEntityOpsReplay(ClAmsEntityT *entity, ClAmsEntityStatusT *status, ClBoolT
 
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
         {
-            ClAmsEntityOpT *opBlock = clHeapCalloc(1, sizeof(*opBlock));
+            ClAmsEntityOpT *opBlock = (ClAmsEntityOpT*) clHeapCalloc(1, sizeof(*opBlock));
             CL_ASSERT(opBlock != NULL);
             opBlock->op = op;
             opBlock->data = data;
@@ -21929,7 +21751,7 @@ static ClRcT clAmsPeSGFailoverHistoryRecover(ClAmsNodeT *node, ClAmsCompT *fault
                 }
                 if(i == nodes)
                 {
-                    nodeList = clHeapRealloc(nodeList, (nodes+1)*sizeof(*nodeList));
+                    nodeList = (ClAmsNodeT**) clHeapRealloc(nodeList, (nodes+1)*sizeof(*nodeList));
                     CL_ASSERT(nodeList != NULL);
                     nodeList[nodes++] = targetNode;
                 }
@@ -21939,7 +21761,7 @@ static ClRcT clAmsPeSGFailoverHistoryRecover(ClAmsNodeT *node, ClAmsCompT *fault
         /*
          * Add the faulty node at the end.
          */
-        nodeList = clHeapRealloc(nodeList, (nodes+1)*sizeof(*nodeList));
+        nodeList = (ClAmsNodeT**) clHeapRealloc(nodeList, (nodes+1)*sizeof(*nodeList));
         CL_ASSERT(nodeList != NULL);
         nodeList[nodes++] = node;
 

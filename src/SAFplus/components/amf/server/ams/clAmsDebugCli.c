@@ -100,7 +100,7 @@ ClAmsMgmtCCBHandleT gCcbHandle = CL_HANDLE_INVALID_VALUE;
 ClRcT  
 clAmsDebugCliMakeEntityStruct(
         CL_OUT  ClAmsEntityT  *entity,
-        CL_IN  ClCharT  *entityType,
+        CL_IN  const ClCharT  *entityType,
         CL_IN  ClCharT  *entityName )
 {
 
@@ -161,12 +161,12 @@ clAmsDebugCliEntityAlphaFactor(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClUint32T alphaFactor = 0;
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate(MAX_BUFFER_SIZE+1);
+    *ret = (ClCharT*) clHeapAllocate(MAX_BUFFER_SIZE+1);
     if(!*ret)
     {
         return CL_AMS_RC(CL_ERR_NO_MEMORY);
@@ -178,10 +178,7 @@ clAmsDebugCliEntityAlphaFactor(
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    rc = clAmsDebugCliMakeEntityStruct(
-                                       &entity,
-                                       "sg",
-                                       argv[1]);
+    rc = clAmsDebugCliMakeEntityStruct( &entity, "sg", argv[1]);
 
     if(rc != CL_OK)
     {
@@ -230,12 +227,12 @@ clAmsDebugCliEntityBetaFactor(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClUint32T betaFactor = 0;
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate(MAX_BUFFER_SIZE+1);
+    *ret = (ClCharT*) clHeapAllocate(MAX_BUFFER_SIZE+1);
     if(!*ret)
     {
         return CL_AMS_RC(CL_ERR_NO_MEMORY);
@@ -300,14 +297,11 @@ clAmsDebugCliEntityLockAssignment(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     AMS_FUNC_ENTER (("\n"));
 
-    rc = clAmsDebugCliMakeEntityStruct(
-                    &entity,
-                    argv[1],
-                    argv[2]);
+    rc = clAmsDebugCliMakeEntityStruct( &entity, argv[1], argv[2]);
 
     if ( !(entity.type == CL_AMS_ENTITY_TYPE_NODE || entity.type == CL_AMS_ENTITY_TYPE_SG
             || entity.type == CL_AMS_ENTITY_TYPE_SU || entity.type == CL_AMS_ENTITY_TYPE_SI) 
@@ -340,14 +334,11 @@ clAmsDebugCliEntityLockInstantiation(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     AMS_FUNC_ENTER (("\n"));
 
-    rc = clAmsDebugCliMakeEntityStruct(
-                    &entity,
-                    argv[1],
-                    argv[2]);
+    rc = clAmsDebugCliMakeEntityStruct( &entity, argv[1], argv[2]);
 
     if ( !(entity.type == CL_AMS_ENTITY_TYPE_NODE || entity.type == CL_AMS_ENTITY_TYPE_SG
             || entity.type == CL_AMS_ENTITY_TYPE_SU ) || (rc != CL_OK) )
@@ -379,14 +370,11 @@ clAmsDebugCliEntityUnlock(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     AMS_FUNC_ENTER (("\n"));
 
-    rc = clAmsDebugCliMakeEntityStruct(
-                                       &entity,
-                                       argv[1],
-                                       argv[2]);
+    rc = clAmsDebugCliMakeEntityStruct( &entity, argv[1], argv[2]);
 
     if ( !(entity.type == CL_AMS_ENTITY_TYPE_NODE || entity.type == CL_AMS_ENTITY_TYPE_SG
             || entity.type == CL_AMS_ENTITY_TYPE_SU || entity.type == CL_AMS_ENTITY_TYPE_SI) 
@@ -419,14 +407,11 @@ clAmsDebugCliEntityShutdown(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     AMS_FUNC_ENTER (("\n"));
 
-    rc = clAmsDebugCliMakeEntityStruct(
-            &entity,
-            argv[1],
-            argv[2]);
+    rc = clAmsDebugCliMakeEntityStruct( &entity, argv[1], argv[2]);
 
     if ( !(entity.type == CL_AMS_ENTITY_TYPE_NODE || entity.type == CL_AMS_ENTITY_TYPE_SG
             || entity.type == CL_AMS_ENTITY_TYPE_SU || entity.type == CL_AMS_ENTITY_TYPE_SI) 
@@ -436,10 +421,7 @@ clAmsDebugCliEntityShutdown(
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    if ( ( rc = clAmsMgmtEntityShutdownExtended(
-                    gHandle,
-                    &entity,
-                    CL_FALSE ))
+    if ( ( rc = clAmsMgmtEntityShutdownExtended( gHandle, &entity, CL_FALSE ))
             != CL_OK)
     {
         strncat (*ret, "admin operation[shutdown] failed\n", (retLen-strlen(*ret)-1));
@@ -459,28 +441,19 @@ clAmsDebugCliEntityShutdownWithRestart(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     AMS_FUNC_ENTER (("\n"));
 
-    rc = clAmsDebugCliMakeEntityStruct(
-            &entity,
-            argv[1],
-            argv[2]);
+    rc = clAmsDebugCliMakeEntityStruct( &entity, argv[1], argv[2]);
 
-    if (entity.type != CL_AMS_ENTITY_TYPE_SU
-        ||
-        rc != CL_OK)
+    if (entity.type != CL_AMS_ENTITY_TYPE_SU || rc != CL_OK)
     {
         strncpy (*ret,"invalid entity type, valid entity types are su\n", retLen-1);
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    if ( ( rc = clAmsMgmtEntityShutdownWithRestartExtended(
-                    gHandle,
-                    &entity,
-                    CL_FALSE ))
-            != CL_OK)
+    if ( ( rc = clAmsMgmtEntityShutdownWithRestartExtended( gHandle, &entity, CL_FALSE )) != CL_OK)
     {
         strncat (*ret, "admin operation[shutdown with restart] failed\n", (retLen-strlen(*ret)-1));
         return rc;
@@ -499,14 +472,11 @@ clAmsDebugCliEntityRestart(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     AMS_FUNC_ENTER (("\n")); 
     
-    rc = clAmsDebugCliMakeEntityStruct(
-            &entity,
-            argv[1],
-            argv[2]);
+    rc = clAmsDebugCliMakeEntityStruct( &entity, argv[1], argv[2]);
 
     if ( !(entity.type == CL_AMS_ENTITY_TYPE_NODE || entity.type == CL_AMS_ENTITY_TYPE_SU 
                 || entity.type == CL_AMS_ENTITY_TYPE_COMP) 
@@ -516,11 +486,7 @@ clAmsDebugCliEntityRestart(
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    if ( ( rc = clAmsMgmtEntityRestartExtended(
-                    gHandle,
-                    &entity,
-                    CL_FALSE ))
-            != CL_OK)
+    if ( ( rc = clAmsMgmtEntityRestartExtended( gHandle, &entity, CL_FALSE )) != CL_OK)
     {
         strncat (*ret, "admin operation[restart] failed\n", (retLen-strlen(*ret)-1));
         return rc;
@@ -539,7 +505,7 @@ clAmsDebugCliEntityRepaired(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -628,7 +594,7 @@ clAmsDebugCliAdminAPI(
     
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapCalloc (1,MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapCalloc (1,MAX_BUFFER_SIZE + 1);
 
     if ( argc != 3 )
     {
@@ -689,7 +655,7 @@ ClRcT clAmsDebugCliSGAdjust(
     AMS_FUNC_ENTER(("\n"));
 
     if(ret == NULL) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
-    *ret = clHeapAllocate(MAX_BUFFER_SIZE+1);
+    *ret = (ClCharT*) clHeapAllocate(MAX_BUFFER_SIZE+1);
     CL_ASSERT(*ret != NULL);
 
     if(argc != 2 && argc != 3)
@@ -729,7 +695,7 @@ ClRcT clAmsDebugCliSISwap(
 
     if(ret == NULL) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
 
-    *ret = clHeapAllocate(MAX_BUFFER_SIZE+1);
+    *ret = (ClCharT*) clHeapAllocate(MAX_BUFFER_SIZE+1);
 
     CL_ASSERT(*ret != NULL);
 
@@ -758,7 +724,7 @@ static ClRcT amsForceLockTask(ClPtrT cookie)
     ClCharT *respBuffer = lockContext->respBuffer;
     ClBufferHandleT outMsgHandle = lockContext->outMsgHandle;
     ClRmdResponseContextHandleT responseHandle = lockContext->responseHandle;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClRcT rc;
     entity.type = CL_AMS_ENTITY_TYPE_SU;
     saNameSet(&entity.name, lockContext->entity);
@@ -781,7 +747,7 @@ ClRcT clAmsDebugCliForceLock(
                           CL_OUT ClCharT **ret)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClAmsForceLockContextT *lockContext = NULL;
     ClRmdResponseContextHandleT responseHandle = 0;
     ClBufferHandleT outMsgHandle = 0;
@@ -791,7 +757,7 @@ ClRcT clAmsDebugCliForceLock(
 
     if(ret == NULL) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
 
-    *ret = clHeapCalloc(1, MAX_BUFFER_SIZE+1);
+    *ret = (ClCharT*) clHeapCalloc(1, MAX_BUFFER_SIZE+1);
 
     CL_ASSERT(*ret != NULL);
     
@@ -805,7 +771,7 @@ ClRcT clAmsDebugCliForceLock(
      * Defer the context before firing the first RMD since that would overwrite the current
      * rmdrecv threadspecific context.
      */
-    lockContext = clHeapCalloc(1, sizeof(*lockContext));
+    lockContext = (ClAmsForceLockContextT*) clHeapCalloc(1, sizeof(*lockContext));
     CL_ASSERT(lockContext != NULL);
     strncpy(lockContext->entity, argv[1], sizeof(lockContext->entity)-1);
     lockContext->respBuffer = *ret;
@@ -862,7 +828,7 @@ static ClRcT amsForceLockInstantiationTask(ClPtrT cookie)
     ClCharT *respBuffer = lockContext->respBuffer;
     ClBufferHandleT outMsgHandle = lockContext->outMsgHandle;
     ClRmdResponseContextHandleT responseHandle = lockContext->responseHandle;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClRcT rc;
     entity.type = CL_AMS_ENTITY_TYPE_SU;
     saNameSet(&entity.name, lockContext->entity);
@@ -884,7 +850,7 @@ ClRcT clAmsDebugCliForceLockInstantiation(
                           CL_OUT ClCharT **ret)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClAmsForceLockContextT *lockContext = NULL;
     ClRmdResponseContextHandleT responseHandle = 0;
     ClBufferHandleT outMsgHandle = 0;
@@ -894,7 +860,7 @@ ClRcT clAmsDebugCliForceLockInstantiation(
 
     if(ret == NULL) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
 
-    *ret = clHeapCalloc(1, MAX_BUFFER_SIZE+1);
+    *ret = (ClCharT*) clHeapCalloc(1, MAX_BUFFER_SIZE+1);
 
     CL_ASSERT(*ret != NULL);
     
@@ -908,7 +874,7 @@ ClRcT clAmsDebugCliForceLockInstantiation(
      * Defer the context before firing the first RMD since that would overwrite the current
      * rmdrecv threadspecific context.
      */
-    lockContext = clHeapCalloc(1, sizeof(*lockContext));
+    lockContext = (ClAmsForceLockContextT*) clHeapCalloc(1, sizeof(*lockContext));
     CL_ASSERT(lockContext != NULL);
     lockContext->entity[0] = 0;
     strncat(lockContext->entity, argv[1], sizeof(lockContext->entity)-1);
@@ -1023,12 +989,12 @@ clAmsDebugCliFaultReport(
     ClRcT  rc = CL_OK;
     SaNameT  compName = {0};
     ClTimeT  errorDetectionTime = 0;
-    ClAmsLocalRecoveryT  recommendedRecovery = 0;
+    ClAmsLocalRecoveryT  recommendedRecovery = CL_AMS_RECOVERY_NONE;
     ClUint32T  dummy = 0;
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1 );
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1 );
 
     if ( argc != 3 )
     { 
@@ -1038,7 +1004,7 @@ clAmsDebugCliFaultReport(
 
     strcpy ((ClCharT*)compName.value,argv[1]);
     compName.length = strlen(argv[1]) +1;
-    recommendedRecovery = atoi (argv[2]);
+    recommendedRecovery = (ClAmsLocalRecoveryT) atoi (argv[2]);
 
     if ( ( rc = _clAmsSAComponentErrorReport(
                     &compName,
@@ -1067,7 +1033,7 @@ clAmsDebugCliNodeJoin(
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1 );
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1 );
 
     if ( argc != 2 )
     { 
@@ -1106,7 +1072,7 @@ clAmsDebugCliPGTrackAdd(
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1 );
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1 );
 
     if ( argc != 4 )
     { 
@@ -1151,7 +1117,7 @@ clAmsDebugCliPGTrackStop(
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1 );
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1 );
 
     if ( argc != 3 )
     { 
@@ -1193,7 +1159,7 @@ clAmsDebugCliPrintAmsDB(
     struct stat  buf;
     FILE  *fp = NULL;
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 1 )
     { 
@@ -1232,7 +1198,7 @@ clAmsDebugCliPrintAmsDB(
 
 
     clAmsFreeMemory (*ret);
-    *ret = clHeapAllocate (size + 1);
+    *ret = (ClCharT*) clHeapAllocate (size + 1);
 
     if ( !fread (*ret,1,size,fp))
     {
@@ -1267,7 +1233,7 @@ clAmsDebugCliPrintAmsDBXML(ClUint32T argc,
     extern ClRcT cpmPrintDBXML(FILE *fp);
     ClCharT buf[256]={0};
 
-    *ret = clHeapCalloc(1,1024);
+    *ret = (ClCharT*) clHeapCalloc(1,1024);
 
     if(! *ret)
     {
@@ -1349,7 +1315,7 @@ clAmsDebugCliPrintAmsDBXML(ClUint32T argc,
         }
         else
         {
-            *ret = clHeapRealloc(*ret, (ClUint32T)stat_buf.st_size+1);
+            *ret = (ClCharT*) clHeapRealloc(*ret, (ClUint32T)stat_buf.st_size+1);
             if(!*ret)
             {
                 fclose(debugPrintFP);
@@ -1393,12 +1359,12 @@ clAmsDebugCliEntityPrint(
     AMS_FUNC_ENTER (("\n"));
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClUint32T  size = 0;
     struct stat  buf;
     FILE  *fp = NULL;
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 3 )
     { 
@@ -1450,7 +1416,7 @@ clAmsDebugCliEntityPrint(
     }
 
     clAmsFreeMemory (*ret);
-    *ret = clHeapAllocate (size + 1);
+    *ret = (ClCharT*) clHeapAllocate (size + 1);
 
     if ( !fread (*ret,1,size,fp))
     {
@@ -1486,7 +1452,7 @@ clAmsDebugCliXMLizeDB(
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 1 )
     { 
@@ -1516,7 +1482,7 @@ clAmsDebugCliXMLizeInvocation(
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 1 )
     { 
@@ -1546,7 +1512,7 @@ clAmsDebugCliDeXMLizeDB(
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 1 )
     { 
@@ -1576,7 +1542,7 @@ clAmsDebugCliDeXMLizeInvocation(
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 1 )
     { 
@@ -1608,7 +1574,7 @@ clAmsDebugCliSCStateChange(
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 2 )
     { 
@@ -1660,13 +1626,13 @@ clAmsDebugCliEntityDebugEnable(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClUint8T  subAreaFlags = 0; 
     ClBoolT  flag = CL_FALSE; 
     
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 4 )
     {
@@ -1740,12 +1706,12 @@ clAmsDebugCliEntityDebugDisable(
 
     ClRcT  rc = CL_OK;
     ClBoolT  flag = CL_FALSE;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClUint8T  subAreaFlags = 0;
 
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
     
     if ( argc != 4 )
     {
@@ -1819,13 +1785,13 @@ clAmsDebugCliEntityDebugGet(
 
     ClRcT  rc = CL_OK;
     ClUint8T  subAreaFlags = 0;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClBoolT  flag = CL_FALSE;     
     ClCharT  *debugFlagsStr = NULL;
         
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 3 )
     {
@@ -1961,7 +1927,7 @@ clAmsDebugCliParseDebugFlags(
 
     AMS_CHECKPTR ( !debugFlagsStr );
 
-    *debugFlagsStr = clHeapAllocate (MAX_BUFFER_SIZE);
+    *debugFlagsStr = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE);
 
     memset ( *debugFlagsStr,0, MAX_BUFFER_SIZE);
 
@@ -2023,7 +1989,7 @@ clAmsDebugCliEventTest(
 {
     ClRcT   rc = CL_OK;
 
-    *ret = clHeapAllocate(MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate(MAX_BUFFER_SIZE + 1);
     if ( argc != 1 )
     { 
         strcpy(*ret," USAGE: amsEventTest\n");
@@ -2051,7 +2017,7 @@ clAmsDebugCliEnableLogToConsole(
     
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 1 )
     {
@@ -2080,7 +2046,7 @@ clAmsDebugCliDisableLogToConsole(
     
     AMS_FUNC_ENTER (("\n"));
 
-    *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
+    *ret = (ClCharT*) clHeapAllocate (MAX_BUFFER_SIZE + 1);
 
     if ( argc != 1 )
     {
@@ -2104,12 +2070,12 @@ clAmsDebugCliEntityTrigger(
                            CL_IN  ClCharT  **argv,
                            CL_OUT  ClCharT  **ret )
 {
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClMetricT metric = {0};
     ClMetricIdT id = CL_METRIC_ALL;
     ClBoolT doReset = CL_FALSE;
 
-    *ret = clHeapAllocate(MAX_BUFFER_SIZE+1);
+    *ret = (ClCharT*) clHeapAllocate(MAX_BUFFER_SIZE+1);
     if(!*ret)
         return CL_AMS_RC(CL_ERR_NO_MEMORY);
     

@@ -35,7 +35,7 @@
 #include <stdarg.h> 
 #include <clLogApi.h> 
 
-char *clAmsFormatMsg (char *fmt, ...)
+char *clAmsFormatMsg (const char *fmt, ...)
 {
     ClCharT *buffer = NULL;
     ClInt32T len = 0;
@@ -46,7 +46,7 @@ char *clAmsFormatMsg (char *fmt, ...)
     len = vsnprintf(&c, 1, fmt, list);
     va_end(list);
 
-    buffer = clHeapAllocate(len+1);
+    buffer = (ClCharT*) clHeapAllocate(len+1);
     if(!buffer)
         return NULL;
 

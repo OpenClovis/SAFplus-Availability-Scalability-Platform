@@ -78,13 +78,7 @@ typedef struct ClAmsEntityTriggerList
     ClAmsListHeadT list;
 }ClAmsEntityTriggerListT;
 
-static ClAmsEntityTriggerListT gClAmsEntityTriggerList = { .list = 
-                                                                   { .numElements = 0,
-                                                                     .list = 
-                                                                         CL_LIST_HEAD_INITIALIZER(
-                                                                                                  gClAmsEntityTriggerList.list.list),
-                                                                   },
-};
+static ClAmsEntityTriggerListT gClAmsEntityTriggerList = { {NULL} , { 0, CL_LIST_HEAD_INITIALIZER( gClAmsEntityTriggerList.list.list),} };
 
 static ClAmsMgmtHandleT gClAmsEntityTriggerMgmtHandle;
 
@@ -96,9 +90,9 @@ typedef struct ClAmsEntityTriggerRecoveryCtrl
 }ClAmsEntityTriggerRecoveryCtrlT;
 
 static ClAmsEntityTriggerRecoveryCtrlT gClAmsEntityTriggerRecoveryCtrl = {
-    .running = CL_FALSE,
-    .list  = { .numElements = 0,
-               .list = CL_LIST_HEAD_INITIALIZER(gClAmsEntityTriggerRecoveryCtrl.list.list),
+    CL_FALSE,0,
+    { 0,
+      CL_LIST_HEAD_INITIALIZER(gClAmsEntityTriggerRecoveryCtrl.list.list),
     },
 };
 
@@ -111,14 +105,14 @@ static ClAmsEntityTriggerT gClAmsEntityTriggerDefault[CL_AMS_ENTITY_TYPE_MAX+1];
     }
 
 static ClAmsAdminStateT gClAmsEntityTriggerRecoveryResetMap[CL_AMS_ENTITY_TYPE_MAX+1][CL_AMS_ENTITY_RECOVERY_MAX] = {
-    [CL_AMS_ENTITY_TYPE_NODE] = { CL_AMS_ADMIN_STATE_NONE, CL_AMS_ADMIN_STATE_NONE, CL_AMS_ADMIN_STATE_UNLOCKED,
+    { CL_AMS_ADMIN_STATE_NONE, CL_AMS_ADMIN_STATE_NONE, CL_AMS_ADMIN_STATE_UNLOCKED,
                                       CL_AMS_ADMIN_STATE_NONE, CL_AMS_ADMIN_STATE_NONE,
-        },
-    [CL_AMS_ENTITY_TYPE_SG ] = CL_AMS_COMMON_RECOVERY_MAP,
-    [CL_AMS_ENTITY_TYPE_SU] =  CL_AMS_COMMON_RECOVERY_MAP,
-    [CL_AMS_ENTITY_TYPE_SI] =  CL_AMS_COMMON_RECOVERY_MAP,
-    [CL_AMS_ENTITY_TYPE_COMP] = CL_AMS_COMMON_RECOVERY_MAP,
-    [CL_AMS_ENTITY_TYPE_CSI] = CL_AMS_COMMON_RECOVERY_MAP,
+    },
+    CL_AMS_COMMON_RECOVERY_MAP,
+    CL_AMS_COMMON_RECOVERY_MAP,
+    CL_AMS_COMMON_RECOVERY_MAP,
+    CL_AMS_COMMON_RECOVERY_MAP,
+    CL_AMS_COMMON_RECOVERY_MAP,
 };
 
 /*
@@ -177,20 +171,18 @@ static void clAmsEntityTriggerLoadDefaults(ClAmsEntityTriggerT *pEntityTrigger,
 {
     register ClInt32T i;
     ClMetricIdT start = id;
-    ClMetricIdT end = start+1;
+    ClMetricIdT end = (ClMetricIdT) (start+1);
 
     if(!pEntityTrigger || pEntityTrigger->entity.type > CL_AMS_ENTITY_TYPE_MAX) return;
     
     if(start == CL_METRIC_ALL)
     {
-        start += 1;
+        start = (ClMetricIdT) (start+1);
         end = CL_METRIC_MAX;
     }
     for(i = start;  i < end; ++i)
     {
-        memcpy(&pEntityTrigger->thresholds[i],
-               &gClAmsEntityTriggerDefault[pEntityTrigger->entity.type].thresholds[i],
-               sizeof(pEntityTrigger->thresholds[i]));
+        memcpy(&pEntityTrigger->thresholds[i], &gClAmsEntityTriggerDefault[pEntityTrigger->entity.type].thresholds[i], sizeof(pEntityTrigger->thresholds[i]));
     }
 }
             
@@ -243,21 +235,19 @@ static ClRcT clAmsEntityTriggerUpdate(ClAmsEntityTriggerT *pEntityTrigger,
                                       ClMetricT *pMetric)
 {
     ClMetricIdT start = pMetric->id;
-    ClMetricIdT end = start+1;
+    ClMetricIdT end = (ClMetricIdT) (start+1);
     register ClInt32T i;
 
     if(start == CL_METRIC_ALL)
     {
-        start += 1;
+        start = (ClMetricIdT) (start + 1) ;
         end = CL_METRIC_MAX;
     }
 
     for(i = start; i < end; ++i)
     {
         pEntityTrigger->thresholds[i].metric.currentThreshold = pMetric->currentThreshold;
-        clLogNotice("TRIGGER", "MODIFY", "Entity [%.*s], Threshold [%d]",
-                    pEntityTrigger->entity.name.length-1, pEntityTrigger->entity.name.value, 
-                    pMetric->currentThreshold);
+        clLogNotice("TRIGGER", "MODIFY", "Entity [%.*s], Threshold [%d]", pEntityTrigger->entity.name.length-1, pEntityTrigger->entity.name.value, pMetric->currentThreshold);
     }
 
     return CL_OK;
@@ -284,7 +274,7 @@ static ClAmsEntityTriggerT *clAmsEntityTriggerCreate(ClAmsEntityT *pEntity,
     if(!pEntityTrigger)
     {
         clOsalMutexUnlock(&gClAmsEntityTriggerList.list.mutex);
-        pEntityTrigger = clHeapCalloc(1, sizeof(*pEntityTrigger));
+        pEntityTrigger = (ClAmsEntityTriggerT*) clHeapCalloc(1, sizeof(*pEntityTrigger));
         if(!pEntityTrigger)
         {
             clLogError("TRIGGER", "CREATE", "Memory allocation failure");
@@ -858,13 +848,13 @@ static ClRcT clAmsEntityTriggerRecovery(ClAmsEntityTriggerT *pEntityTrigger)
     ClRcT rc = CL_OK;
     ClMetricIdT id = pEntityTrigger->recoveryThresholdId;
     ClMetricIdT start = id;
-    ClMetricIdT end = id+1;
+    ClMetricIdT end = (ClMetricIdT) (id+1);
     register ClInt32T i;
     ClAmsThresholdRecoveryT lastRecovery = CL_AMS_ENTITY_RECOVERY_NONE;
 
     if(id == CL_METRIC_ALL)
     {
-        start += 1;
+        start = (ClMetricIdT) ( start+1) ;
         end = CL_METRIC_MAX;
     }
     for(i = start; i < end; ++i)
@@ -1020,7 +1010,7 @@ static ClRcT clAmsEntityTrigger(ClAmsEntityTriggerT *pEntityTrigger,
 {
     ClAmsEntityTriggerT *pEntityTriggerRecovery = NULL;
     ClRcT rc = CL_OK;
-    pEntityTriggerRecovery = clHeapCalloc(1, sizeof(*pEntityTriggerRecovery));
+    pEntityTriggerRecovery = (ClAmsEntityTriggerT*) clHeapCalloc(1, sizeof(*pEntityTriggerRecovery));
     CL_ASSERT(pEntityTriggerRecovery != NULL);
     /*
      *Safe w.r.t deletes behind our back while the trigger is running from the recovery queue.
@@ -1030,11 +1020,11 @@ static ClRcT clAmsEntityTrigger(ClAmsEntityTriggerT *pEntityTrigger,
     if(reset == CL_TRUE)
     {
         ClMetricIdT start = id;
-        ClMetricIdT end = start+1;
+        ClMetricIdT end = (ClMetricIdT) (start+1);
         register ClInt32T i;
         if(start == CL_METRIC_ALL)
         {
-            start += 1;
+            start = (ClMetricIdT) (start+1);
             end = CL_METRIC_MAX;
         }
         for(i = start; i < end; ++i)
@@ -1051,12 +1041,12 @@ static ClRcT clAmsEntityTriggerCheck(ClAmsEntityTriggerT *pEntityTrigger,
                                      ClMetricT *pMetric)
 {
     ClMetricIdT start = pMetric->id;
-    ClMetricIdT end = start+1;
+    ClMetricIdT end = (ClMetricIdT) (start+1);
     register ClInt32T i;
 
     if(start == CL_METRIC_ALL)
     {
-        start += 1;
+        start = (ClMetricIdT) (start+1);
         end = CL_METRIC_MAX;
     }
 
@@ -1070,7 +1060,7 @@ static ClRcT clAmsEntityTriggerCheck(ClAmsEntityTriggerT *pEntityTrigger,
            )
         {
             pEntityTrigger->thresholds[i].metric.numOccurences = 0;
-            clAmsEntityTrigger(pEntityTrigger, i, CL_FALSE);
+            clAmsEntityTrigger(pEntityTrigger,(ClMetricIdT) i, CL_FALSE);
         }
     }
     return CL_OK;
@@ -1084,7 +1074,7 @@ static ClRcT clAmsEntityLocate(ClAmsEntityT *pEntity)
     for(i = CL_AMS_ENTITY_TYPE_ENTITY + 1;  i < CL_AMS_ENTITY_TYPE_MAX + 1; ++i)
     {
         ClAmsEntityConfigT *pEntityConfig = NULL;
-        pEntity->type = i;
+        pEntity->type = (ClAmsEntityTypeT) i;
         rc = clAmsMgmtEntityGetConfig(gClAmsEntityTriggerMgmtHandle,
                                       pEntity,
                                       &pEntityConfig);
@@ -1164,7 +1154,7 @@ ClRcT clAmsEntityTriggerLoadDefault(ClAmsEntityT *pEntity,
 ClRcT clAmsEntityTriggerLoadTrigger(ClAmsEntityT *pEntity,
                                     ClMetricIdT id)
 {
-    ClAmsEntityTriggerT entityTrigger = {{0}};
+    ClAmsEntityTriggerT entityTrigger = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClRcT rc = CL_OK;
 
 #ifdef VXWORKS_BUILD
@@ -1242,7 +1232,7 @@ ClRcT clAmsEntityTriggerLoadTriggerAll(ClMetricIdT id)
 ClRcT clAmsEntityTriggerRecoveryReset(ClAmsEntityT *pEntity,
                                       ClMetricIdT id)
 {
-    ClAmsEntityTriggerT entityTrigger = {{0}};
+    ClAmsEntityTriggerT entityTrigger = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClRcT rc= CL_OK;
 
 #ifdef VXWORKS_BUILD
@@ -1458,7 +1448,7 @@ static ClRcT clAmsEntityTriggerParse(ClParserPtrT *pHead)
     for(i = CL_METRIC_ALL+1; i < CL_METRIC_MAX; ++i)
     {
         ClAmsThresholdT *pThreshold = defaultThresholds+i;
-        pThreshold->metric.id = i;
+        pThreshold->metric.id = (ClMetricIdT) i;
         pThreshold->metric.pType = CL_METRIC_STR(i);
         pThreshold->metric.numOccurences = 0;
         pThreshold->metric.maxOccurences = 1;
@@ -1555,8 +1545,7 @@ ClRcT clAmsEntityTriggerInitialize(void)
                      "Running with defaults");
     }
 
-    rc = clAmsMgmtInitialize(&gClAmsEntityTriggerMgmtHandle,
-                             NULL, &version);
+    rc = clAmsMgmtInitialize(&gClAmsEntityTriggerMgmtHandle, NULL, &version);
 
     if(rc != CL_OK)
     {

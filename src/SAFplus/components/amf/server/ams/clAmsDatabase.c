@@ -358,7 +358,7 @@ clAmsEntityDbInstantiate(
             == CL_OK )
     {
         entityDb->isValid = CL_TRUE;
-        entityDb->type = type;
+        entityDb->type = (ClAmsEntityTypeT) type;
         entityDb->numEntities = 0;
     }
 
@@ -951,7 +951,7 @@ clAmsEntityListInstantiate(
     {
         entityList->isRankedList= CL_FALSE;
         entityList->isValid     = CL_TRUE;
-        entityList->type        = type;
+        entityList->type        = (ClAmsEntityTypeT) type;
         entityList->numEntities = 0;
     }
 
@@ -995,7 +995,7 @@ clAmsEntityOrderedListInstantiate(
     {
         entityList->isRankedList= CL_TRUE;
         entityList->isValid     = CL_TRUE;
-        entityList->type        = type;
+        entityList->type        = (ClAmsEntityTypeT) type;
         entityList->numEntities = 0;
     }
 
@@ -1369,17 +1369,14 @@ clAmsEntityListFindEntityRef2(
         CL_OUT  ClAmsEntityRefT  **foundRef )
 {
 
-    ClAmsEntityRefT entityRef = {{0},0,0};
-
+    ClAmsEntityRefT entityRef ;
+ 
+    memset(&entityRef,0,sizeof(ClAmsEntityRefT));
     AMS_CHECKPTR (!entityList || !entity || !foundRef);
 
     memcpy(&entityRef.entity, entity, sizeof(ClAmsEntityT));
 
-    return clAmsEntityListFindEntityRef(
-            entityList,
-            &entityRef,
-            entityKeyHandle,
-            foundRef);
+    return clAmsEntityListFindEntityRef( entityList, &entityRef, entityKeyHandle, foundRef);
 }
 
 /*
@@ -2200,11 +2197,7 @@ ClRcT clAmsSGAddSURefToSUList(CL_IN  ClAmsEntityListT  *entityList, CL_IN  ClAms
      */
     suRef = clAmsCreateEntityRef(&su->config.entity);    
 
-    rc = clAmsEntityListFindEntityRef(
-            entityList,
-            suRef,
-            entityKeyHandle,
-            &foundRef); 
+    rc = clAmsEntityListFindEntityRef( entityList, suRef, entityKeyHandle, &foundRef); 
     if (rc == CL_OK) goto cleanup; /* SU is already on the list -- probably NO_OP should be returned but for now keep it as CL_OK for stability */
 
     
@@ -2226,18 +2219,15 @@ cleanup:
 ClRcT clAmsSGDeleteSURefFromSUList(CL_IN  ClAmsEntityListT  *entityList, CL_IN  ClAmsSUT  *su ) 
 {
 
-    ClAmsEntityRefT  suRef = {{0},0,0};
+    ClAmsEntityRefT  suRef ;
     ClRcT  rc = CL_OK;
     ClCntKeyHandleT  entityKeyHandle = 0;
 
+    memset(&suRef,0,sizeof(ClAmsEntityRefT));
     AMS_CHECK_SU ( su );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL (clAmsEntityRefGetKey(
-                &su->config.entity,
-                su->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList) );
+    AMS_CALL (clAmsEntityRefGetKey( &su->config.entity, su->config.rank, &entityKeyHandle, entityList->isRankedList) );
     
     memcpy(&suRef.entity, &su->config.entity, sizeof(ClAmsEntityT) ); 
 
@@ -2263,13 +2253,9 @@ clAmsSGAddSIRefToSIList(
     AMS_CHECK_SI ( si );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &si->config.entity,
-                si->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList ));
+    AMS_CALL ( clAmsEntityRefGetKey( &si->config.entity, si->config.rank, &entityKeyHandle, entityList->isRankedList ));
 
-    siRef = clHeapAllocate(sizeof(ClAmsEntityRefT));
+    siRef = (ClAmsEntityRefT*) clHeapAllocate(sizeof(ClAmsEntityRefT));
 
     AMS_CHECK_NO_MEMORY (siRef);
 
@@ -2277,11 +2263,7 @@ clAmsSGAddSIRefToSIList(
 
     siRef->ptr = (ClAmsEntityT *) si;
 
-    rc = clAmsEntityListFindEntityRef(
-            entityList,
-            siRef,
-            entityKeyHandle,
-            &foundRef); 
+    rc = clAmsEntityListFindEntityRef( entityList, siRef, entityKeyHandle, &foundRef); 
 
     if ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST ) 
     {
@@ -2314,11 +2296,7 @@ clAmsSGDeleteSIRefFromSIList(
     AMS_CHECK_SI ( si );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &si->config.entity,
-                si->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList ));
+    AMS_CALL ( clAmsEntityRefGetKey( &si->config.entity, si->config.rank, &entityKeyHandle, entityList->isRankedList ));
 
     memcpy(&siRef.entity, &si->config.entity, sizeof(ClAmsEntityT) ); 
 
@@ -2351,13 +2329,9 @@ clAmsSUAddSIRefToSIList(
     AMS_CHECK_SI ( si );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &si->config.entity,
-                si->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList));
+    AMS_CALL ( clAmsEntityRefGetKey( &si->config.entity, si->config.rank, &entityKeyHandle, entityList->isRankedList));
 
-    siRef = clHeapAllocate(sizeof(ClAmsSUSIRefT)); 
+    siRef = (ClAmsSUSIRefT*) clHeapAllocate(sizeof(ClAmsSUSIRefT)); 
 
     AMS_CHECK_NO_MEMORY (siRef);
 
@@ -2366,11 +2340,7 @@ clAmsSUAddSIRefToSIList(
     siRef->entityRef.ptr = (ClAmsEntityT *) si;
     siRef->haState = haState;
 
-    rc = clAmsEntityListFindEntityRef(
-            entityList,
-            (ClAmsEntityRefT *)siRef,
-            entityKeyHandle,
-            &foundRef); 
+    rc = clAmsEntityListFindEntityRef( entityList, (ClAmsEntityRefT *)siRef, entityKeyHandle, &foundRef); 
 
     if ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST ) 
     {
@@ -2378,10 +2348,7 @@ clAmsSUAddSIRefToSIList(
         return rc;
     }
 
-    rc = clAmsEntityListAddEntityRef(
-            entityList,
-            (ClAmsEntityRefT *)siRef,
-            entityKeyHandle);
+    rc = clAmsEntityListAddEntityRef( entityList, (ClAmsEntityRefT *)siRef, entityKeyHandle);
 
     if ( rc != CL_OK )
     {
@@ -2399,18 +2366,15 @@ clAmsSUDeleteSIRefFromSIList(
         CL_IN  ClAmsSIT  *si )
 {
 
-    ClAmsEntityRefT  siRef = {{0},0,0};
+    ClAmsEntityRefT  siRef;
     ClRcT  rc = CL_OK;
     ClCntKeyHandleT  entityKeyHandle = 0;
 
+    memset(&siRef,0,sizeof(ClAmsEntityRefT));
     AMS_CHECK_SI ( si );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &si->config.entity,
-                si->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList ));
+    AMS_CALL ( clAmsEntityRefGetKey( &si->config.entity, si->config.rank, &entityKeyHandle, entityList->isRankedList ));
 
     memcpy(&siRef.entity, &si->config.entity, sizeof(ClAmsEntityT) ); 
 
@@ -2441,13 +2405,9 @@ clAmsSIAddSURefToSUList(
     AMS_CHECK_SU ( su );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &su->config.entity,
-                su->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList ));
+    AMS_CALL ( clAmsEntityRefGetKey( &su->config.entity, su->config.rank, &entityKeyHandle, entityList->isRankedList ));
 
-    suRef = clHeapAllocate(sizeof(ClAmsSISURefT) );
+    suRef = (ClAmsSISURefT*) clHeapAllocate(sizeof(ClAmsSISURefT) );
 
     AMS_CHECK_NO_MEMORY (suRef);
 
@@ -2455,11 +2415,7 @@ clAmsSIAddSURefToSUList(
     suRef->entityRef.ptr = (ClAmsEntityT *) su;
     suRef->haState = haState;
 
-    rc = clAmsEntityListFindEntityRef(
-            entityList,
-            (ClAmsEntityRefT *)suRef,
-            entityKeyHandle,
-            &foundRef); 
+    rc = clAmsEntityListFindEntityRef( entityList, (ClAmsEntityRefT *)suRef, entityKeyHandle, &foundRef); 
 
     if ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST ) 
     {
@@ -2467,10 +2423,7 @@ clAmsSIAddSURefToSUList(
         return rc;
     }
 
-    rc = clAmsEntityListAddEntityRef(
-            entityList,
-            (ClAmsEntityRefT *)suRef,
-            entityKeyHandle);
+    rc = clAmsEntityListAddEntityRef( entityList, (ClAmsEntityRefT *)suRef, entityKeyHandle);
 
     if ( rc != CL_OK )
     {
@@ -2488,27 +2441,21 @@ clAmsSIDeleteSURefFromSUList(
         CL_IN  ClAmsSUT  *su )
 {
 
-    ClAmsSISURefT suRef = {{{0},0,0},0,0};
+    ClAmsSISURefT suRef;
     ClRcT  rc = CL_OK;
     ClCntKeyHandleT  entityKeyHandle = 0;
 
+    memset(&suRef,0,sizeof(ClAmsSISURefT));
     AMS_CHECK_SU ( su );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &su->config.entity,
-                su->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList));
+    AMS_CALL ( clAmsEntityRefGetKey( &su->config.entity, su->config.rank, &entityKeyHandle, entityList->isRankedList));
 
     memcpy(&suRef.entityRef.entity, &su->config.entity, sizeof(ClAmsEntityT) ); 
 
     suRef.entityRef.ptr = (ClAmsEntityT *) su;
 
-    rc = clAmsEntityListDeleteEntityRef(
-            entityList,
-            (ClAmsEntityRefT *)&suRef,
-            entityKeyHandle);
+    rc = clAmsEntityListDeleteEntityRef( entityList, (ClAmsEntityRefT *)&suRef, entityKeyHandle);
 
     return rc;
 
@@ -2530,11 +2477,7 @@ clAmsSIAddCSIRefToCSIList(
     AMS_CHECK_CSI ( csi );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &csi->config.entity,
-                csi->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList )); 
+    AMS_CALL ( clAmsEntityRefGetKey( &csi->config.entity, csi->config.rank, &entityKeyHandle, entityList->isRankedList )); 
     
     csiRef = clHeapAllocate(sizeof(ClAmsEntityRefT) );
 
@@ -2544,11 +2487,7 @@ clAmsSIAddCSIRefToCSIList(
 
     csiRef->ptr = (ClAmsEntityT *) csi;
 
-    rc = clAmsEntityListFindEntityRef(
-            entityList,
-            csiRef,
-            entityKeyHandle,
-            &foundRef); 
+    rc = clAmsEntityListFindEntityRef( entityList, csiRef, entityKeyHandle, &foundRef); 
 
     if ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST ) 
     {
@@ -2581,11 +2520,7 @@ clAmsSIDeleteCSIRefFromCSIList(
     AMS_CHECK_CSI ( csi );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &csi->config.entity,
-                csi->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList));
+    AMS_CALL ( clAmsEntityRefGetKey( &csi->config.entity, csi->config.rank, &entityKeyHandle, entityList->isRankedList));
 
     memcpy(&csiRef.entity, &csi->config.entity, sizeof(ClAmsEntityT) ); 
 
@@ -2619,13 +2554,9 @@ clAmsCompAddCSIRefToCSIList(
     AMS_CHECK_CSI ( csi );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &csi->config.entity,
-                csi->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList ));
+    AMS_CALL ( clAmsEntityRefGetKey( &csi->config.entity, csi->config.rank, &entityKeyHandle, entityList->isRankedList ));
 
-    csiRef = clHeapAllocate(sizeof(ClAmsCompCSIRefT));
+    csiRef = (ClAmsCompCSIRefT*) clHeapAllocate(sizeof(ClAmsCompCSIRefT));
 
     AMS_CHECK_NO_MEMORY (csiRef);
 
@@ -2634,11 +2565,7 @@ clAmsCompAddCSIRefToCSIList(
     csiRef->haState = haState;
     csiRef->tdescriptor = tdescriptor;
 
-    rc = clAmsEntityListFindEntityRef(
-            entityList,
-            (ClAmsEntityRefT *)csiRef,
-            entityKeyHandle,
-            &foundRef); 
+    rc = clAmsEntityListFindEntityRef( entityList, (ClAmsEntityRefT *)csiRef, entityKeyHandle, &foundRef); 
 
     if ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST ) 
     {
@@ -2646,10 +2573,7 @@ clAmsCompAddCSIRefToCSIList(
         return rc;
     }
 
-    rc = clAmsEntityListAddEntityRef(
-            entityList,
-            (ClAmsEntityRefT *)csiRef,
-            entityKeyHandle);
+    rc = clAmsEntityListAddEntityRef( entityList, (ClAmsEntityRefT *)csiRef, entityKeyHandle);
 
     if ( rc != CL_OK ) 
     {
@@ -2667,26 +2591,20 @@ clAmsCompDeleteCSIRefFromCSIList(
         CL_IN  ClAmsCSIT  *csi )
 {
 
-    ClAmsCompCSIRefT  csiRef = {{{0},0,0},0,0,0,NULL};
+    ClAmsCompCSIRefT  csiRef;
     ClRcT  rc = CL_OK;
     ClCntKeyHandleT  entityKeyHandle = 0;
 
+    memset(&csiRef,0,sizeof(ClAmsCompCSIRefT));
     AMS_CHECK_CSI ( csi );
     AMS_CHECKPTR ( !entityList );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &csi->config.entity,
-                csi->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList ));
+    AMS_CALL ( clAmsEntityRefGetKey( &csi->config.entity, csi->config.rank, &entityKeyHandle, entityList->isRankedList ));
 
     memcpy(&csiRef.entityRef.entity, &csi->config.entity, sizeof(ClAmsEntityT)); 
     csiRef.entityRef.ptr = (ClAmsEntityT *) csi;
 
-    rc = clAmsEntityListDeleteEntityRef(
-            entityList,
-            (ClAmsEntityRefT *)&csiRef,
-            entityKeyHandle);
+    rc = clAmsEntityListDeleteEntityRef( entityList, (ClAmsEntityRefT *)&csiRef, entityKeyHandle);
 
     return rc;
 
@@ -2718,27 +2636,17 @@ clAmsCSIAddCompRefToPGList(
      * ordered by the rank of their constituent SUs.
      */
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &comp->config.entity,
-                su->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList ));
+    AMS_CALL ( clAmsEntityRefGetKey( &comp->config.entity, su->config.rank, &entityKeyHandle, entityList->isRankedList ));
 
-    compRef = clHeapAllocate(sizeof(ClAmsCSICompRefT) );
+    compRef = (ClAmsCSICompRefT*) clHeapAllocate(sizeof(ClAmsCSICompRefT) );
 
     AMS_CHECK_NO_MEMORY (compRef);
 
-    memcpy(&compRef->entityRef.entity,
-            &comp->config.entity,
-            sizeof(ClAmsEntityT) ); 
+    memcpy(&compRef->entityRef.entity, &comp->config.entity, sizeof(ClAmsEntityT) ); 
     compRef->entityRef.ptr = (ClAmsEntityT *) comp;
     compRef->haState = haState;
 
-    rc = clAmsEntityListFindEntityRef(
-            entityList,
-            (ClAmsEntityRefT *)compRef,
-            entityKeyHandle,
-            &foundRef); 
+    rc = clAmsEntityListFindEntityRef( entityList, (ClAmsEntityRefT *)compRef, entityKeyHandle, &foundRef); 
 
     if ( CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST ) 
     {
@@ -2746,10 +2654,7 @@ clAmsCSIAddCompRefToPGList(
         return rc;
     }
 
-    rc = clAmsEntityListAddEntityRef(
-            entityList,
-            (ClAmsEntityRefT *)compRef,
-            entityKeyHandle);
+    rc = clAmsEntityListAddEntityRef( entityList, (ClAmsEntityRefT *)compRef, entityKeyHandle);
 
     if ( rc != CL_OK ) 
     {
@@ -2767,20 +2672,17 @@ clAmsCSIDeleteCompRefFromPGList(
         CL_IN  ClAmsCompT  *comp )
 {
 
-    ClAmsEntityRefT  compRef = {{0},0,0};
+    ClAmsEntityRefT  compRef;
     ClRcT  rc = CL_OK;
     ClCntKeyHandleT  entityKeyHandle = 0;
     ClAmsSUT  *su = NULL;
 
+    memset(&compRef,0,sizeof(ClAmsEntityRefT));
     AMS_CHECK_COMP ( comp );
     AMS_CHECKPTR ( !entityList );
     AMS_CHECK_SU ( (su = (ClAmsSUT *) comp->config.parentSU.ptr) );
 
-    AMS_CALL ( clAmsEntityRefGetKey(
-                &comp->config.entity,
-                su->config.rank,
-                &entityKeyHandle,
-                entityList->isRankedList ));
+    AMS_CALL ( clAmsEntityRefGetKey( &comp->config.entity, su->config.rank, &entityKeyHandle, entityList->isRankedList ));
 
     memcpy(&compRef.entity, &comp->config.entity, sizeof(ClAmsEntityT) ); 
 
@@ -2892,20 +2794,12 @@ clAmsAuditComp(ClAmsCompT *comp)
 
     memset(csiOps, 0, sizeof(csiOps));
 
-    for(entityRef = clAmsEntityListGetFirst(&comp->status.csiList);
-        entityRef != NULL;
-        entityRef = clAmsEntityListGetNext(&comp->status.csiList,entityRef)
-        )
+    for(entityRef = clAmsEntityListGetFirst(&comp->status.csiList); entityRef != NULL; entityRef = clAmsEntityListGetNext(&comp->status.csiList,entityRef))
     {
         ClAmsCSIT *csi ;
         ClAmsCompCSIRefT *csiRef;
         AMS_CHECK_CSI ( csi = (ClAmsCSIT *) entityRef->ptr );
-        AMS_CALL ( clAmsEntityListFindEntityRef2(&comp->status.csiList,
-                                                 &csi->config.entity,
-                                                 0,
-                                                 (ClAmsEntityRefT**)&csiRef
-         
-                                                 ));
+        AMS_CALL ( clAmsEntityListFindEntityRef2(&comp->status.csiList, &csi->config.entity, 0, (ClAmsEntityRefT**)&csiRef ));
         /*
          * Now check for pending ops against the invocation list.
          * If not found, add an invocation entry against the csi pending op.
@@ -2917,11 +2811,9 @@ clAmsAuditComp(ClAmsCompT *comp)
             ClAmsInvocationT invocationData = {0};
 
             if(csiRef->pendingOp < CL_AMS_MAX_CALLBACKS)
-                ++csiOps[csiRef->pendingOp];
+                 csiOps[csiRef->pendingOp]  = (ClAmsInvocationCmdT) ( csiOps[csiRef->pendingOp] + 1 ) ;
 
-            if(csiRef->pendingOp == CL_AMS_CSI_SET_CALLBACK
-               &&
-               !allCSIsChecked)
+            if(csiRef->pendingOp == CL_AMS_CSI_SET_CALLBACK && !allCSIsChecked)
             {
                 allCSIsChecked = CL_TRUE;
                 if(clAmsInvocationFindCSI(comp, NULL, CL_AMS_CSI_SET_CALLBACK, &invocationData) == CL_OK)
@@ -2931,13 +2823,9 @@ clAmsAuditComp(ClAmsCompT *comp)
                      * If this has an entry for the reassign all csi invocation, then
                      * remove it and add an invocation entry per csi.
                      */
-                    if((rc = clAmsInvocationGetAndDeleteExtended(invocationData.invocation, 
-                                                                 &invocationData,
-                                                                 CL_FALSE)) != CL_OK)
+                    if((rc = clAmsInvocationGetAndDeleteExtended(invocationData.invocation, &invocationData, CL_FALSE)) != CL_OK)
                     {
-                        clLogError("COMP", "AUDIT", "Reassign all invocation entry get for component [%s] "
-                                   "returned [%#x] for invocation [%llx]",
-                                   comp->config.entity.name.value, rc, invocationData.invocation);
+                        clLogError("COMP", "AUDIT", "Reassign all invocation entry get for component [%s] " "returned [%#x] for invocation [%llx]", comp->config.entity.name.value, rc, invocationData.invocation);
                     }
                     else
                     {
@@ -2947,29 +2835,22 @@ clAmsAuditComp(ClAmsCompT *comp)
                 }
             }
             
-            if(CL_OK != 
-               clAmsInvocationFindCSI(comp,csi,csiRef->pendingOp,NULL))
+            if(CL_OK != clAmsInvocationFindCSI(comp,csi,csiRef->pendingOp,NULL))
             {
-                if( (rc = clAmsInvocationCreate(csiRef->pendingOp,
-                                                comp,csi,&invocation)) != CL_OK )
+                if( (rc = clAmsInvocationCreate((ClAmsInvocationCmdT) csiRef->pendingOp, comp,csi,&invocation)) != CL_OK )
                 {
                     /*
                      * Undo pending operation counter.
                      */
                     if(csiOps[csiRef->pendingOp] > 0)
-                        --csiOps[csiRef->pendingOp];
+                        csiOps[csiRef->pendingOp] = (ClAmsInvocationCmdT) ( csiOps[csiRef->pendingOp] - 1);
                     clLogError("COMP", "AUDIT", "Adding invocation for Component [%s], csi [%s], cmd [%#x] returned [%#x]",
-                               comp->config.entity.name.value, 
-                               csi->config.entity.name.value,
-                               csiRef->pendingOp, rc);
+                               comp->config.entity.name.value, csi->config.entity.name.value, csiRef->pendingOp, rc);
                 }
                 else
                 {
-                    clLogNotice("COMP", "AUDIT",
-                                "Added missing invocation entry [%llx] with cmd [%d] for "
-                                "Component [%s], CSI [%s]",
-                                invocation, csiRef->pendingOp, comp->config.entity.name.value,
-                                csi->config.entity.name.value);
+                    clLogNotice("COMP", "AUDIT", "Added missing invocation entry [%llx] with cmd [%d] for " "Component [%s], CSI [%s]",
+                                invocation, csiRef->pendingOp, comp->config.entity.name.value, csi->config.entity.name.value);
                 }
             }
         }
@@ -2986,8 +2867,7 @@ clAmsAuditComp(ClAmsCompT *comp)
         {
             clLogWarning("COMP", "AUDIT", "No pending CSI set invocations for pending csiset timer. "
                          "Resetting timer count...");
-            comp->status.entity.timerCount -= 
-                CL_MIN(comp->status.entity.timerCount, comp->status.timers.csiSet.count);
+            comp->status.entity.timerCount -= CL_MIN(comp->status.entity.timerCount, comp->status.timers.csiSet.count);
             gAms.timerCount -= CL_MIN(gAms.timerCount, comp->status.timers.csiSet.count);
             comp->status.timers.csiSet.count = 0;
         }
@@ -2999,8 +2879,7 @@ clAmsAuditComp(ClAmsCompT *comp)
         {
             clLogWarning("COMP", "AUDIT", "No pending CSI invocations for pending csiquiescing timer. "
                          "Resetting timer count...");
-            comp->status.entity.timerCount -= 
-                CL_MIN(comp->status.entity.timerCount, comp->status.timers.quiescingComplete.count);
+            comp->status.entity.timerCount -= CL_MIN(comp->status.entity.timerCount, comp->status.timers.quiescingComplete.count);
             gAms.timerCount -= CL_MIN(gAms.timerCount, comp->status.timers.quiescingComplete.count);
             comp->status.timers.quiescingComplete.count = 0;
         }
@@ -3012,8 +2891,7 @@ clAmsAuditComp(ClAmsCompT *comp)
         {
             clLogWarning("COMP", "AUDIT", "No pending CSI remove invocations for pending csi remove timer. "
                          "Resetting timer count...");
-            comp->status.entity.timerCount -=
-                CL_MIN(comp->status.entity.timerCount, comp->status.timers.csiRemove.count);
+            comp->status.entity.timerCount -= CL_MIN(comp->status.entity.timerCount, comp->status.timers.csiRemove.count);
             gAms.timerCount -= CL_MIN(gAms.timerCount, comp->status.timers.csiRemove.count);
             comp->status.timers.csiRemove.count = 0;
         }
@@ -3039,9 +2917,7 @@ clAmsAuditComp(ClAmsCompT *comp)
                 ClUint32T cbType = CL_AMS_INSTANTIATE_REPLAY_CALLBACK;
                 ClAmsEntityTimerT *pTimer = &comp->status.timers.instantiate;
                 ClBoolT responsePending = CL_TRUE;
-                if(!comp->status.timers.instantiate.count
-                   &&
-                   comp->status.timers.terminate.count > 0)
+                if(!comp->status.timers.instantiate.count && comp->status.timers.terminate.count > 0)
                 {
                     cbType = CL_AMS_TERMINATE_REPLAY_CALLBACK;
                     pTimer = &comp->status.timers.terminate;
@@ -3050,8 +2926,7 @@ clAmsAuditComp(ClAmsCompT *comp)
                                 (const ClCharT *) node->config.entity.name.value, &responsePending)) != CL_OK)
                 {
                     clLogError("COMP", "AUDIT", "CPM [%s] invocation for component [%s] returned [%#x]",
-                                    cbType == CL_AMS_INSTANTIATE_REPLAY_CALLBACK ? "instantiate" : "terminate",
-                                    comp->config.entity.name.value, rc);
+                                    cbType == CL_AMS_INSTANTIATE_REPLAY_CALLBACK ? "instantiate" : "terminate", comp->config.entity.name.value, rc);
                 }
                 else
                 {

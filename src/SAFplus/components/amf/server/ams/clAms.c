@@ -132,7 +132,7 @@ clAmsInitializeMgmtInterface(void)
 
 static ClRcT amsClusterTimerCallback(void *arg)
 {
-    ClAmsSGFailoverHistoryKeyT *key = arg;
+    ClAmsSGFailoverHistoryKeyT *key = (ClAmsSGFailoverHistoryKeyT*) arg;
     ClAmsSGT *sg = NULL;
     ClAmsSGFailoverHistoryT *failoverHistory = NULL;
     ClRcT rc = CL_OK;
@@ -354,7 +354,7 @@ static void *clAmsClusterStateVerifier(void *cookie)
                             static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
                             ClUint32T myCapability = 0;
                             ClIocNotificationT notification;
-                            notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
+                            notification.id = (ClIocNotificationIdT) htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
                             notification.nodeVersion = htonl(nodeVersion);
                             notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(i);
                             notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
@@ -743,7 +743,7 @@ clAmsFaultQueueAdd(ClAmsEntityT *entity)
         clOsalMutexUnlock(&gClAmsFaultQueueLock);
         return CL_OK;
     }
-    entry = clHeapCalloc(1, sizeof(*entry));
+    entry = (ClAmsFaultQueueT*) clHeapCalloc(1, sizeof(*entry));
     CL_ASSERT(entry != NULL);
     memcpy(&entry->entity, entity, sizeof(entry->entity));
     clListAddTail(&entry->list, &gClAmsFaultQueue);
@@ -792,7 +792,9 @@ clAmsFaultQueueDestroy(void)
 ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef;
+    
+    memset(&entityRef,0,sizeof(ClAmsEntityRefT));
     if(!pNodeName) return rc;
     clOsalMutexLock(gAms.mutex);
     

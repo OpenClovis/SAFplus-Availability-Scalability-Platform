@@ -38,7 +38,7 @@
 
 ClAmsEntityRefT* clAmsAllocEntityRef()
 {
-    ClAmsEntityRefT* ret = clHeapAllocate(sizeof(ClAmsEntityRefT));
+    ClAmsEntityRefT* ret = (ClAmsEntityRefT*) clHeapAllocate(sizeof(ClAmsEntityRefT));
     CL_ASSERT(ret);  /* I can't gracefully handle an out of memory condition */
     ret->ptr = NULL;
     ret->nodeHandle = NULL;

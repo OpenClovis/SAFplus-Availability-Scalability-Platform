@@ -425,10 +425,10 @@ clAmsEntityMalloc(
         return (ClAmsEntityT *) NULL;
     }
 
-    useConfig = config ? config : params->defaultConfig;
-    useMethods = methods ? methods : params->defaultMethods; 
+    useConfig = (ClAmsEntityConfigT*) (config ? config : params->defaultConfig);
+    useMethods = (ClAmsEntityMethodsT*) (methods ? methods : params->defaultMethods); 
     
-    newEntity = clHeapCalloc(1, params->entitySize);
+    newEntity = (ClAmsEntityT*) clHeapCalloc(1, params->entitySize);
 
     if ( newEntity == NULL )
     {
@@ -1416,7 +1416,7 @@ clAmsEntityPrint(
         CL_IN  ClAmsEntityT  *entity )
 {
 
-    ClAmsAdminStateT  adminState = 0;
+    ClAmsAdminStateT  adminState = CL_AMS_ADMIN_STATE_NONE;
     ClAmsEntityStatusT  *entityStatus = NULL;
     ClCharT epochStr[CL_MAX_NAME_LENGTH];
     AMS_CHECKPTR ( !entity );
@@ -2112,7 +2112,7 @@ clAmsEntityXMLPrint(
         CL_IN  ClAmsEntityT  *entity )
 {
 
-    ClAmsAdminStateT  adminState = 0;
+    ClAmsAdminStateT  adminState = CL_AMS_ADMIN_STATE_NONE;
 
     AMS_CHECKPTR ( !entity );
 
@@ -3647,31 +3647,23 @@ clAmsSIValidateRelationships(
      * list
      */
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityCompareLists(
-                si->config.entity,
-                &si->config.siDependentsList,
-                &si->config.siDependenciesList) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityCompareLists( si->config.entity, &si->config.siDependentsList, &si->config.siDependenciesList) );
     
     /*
      * From the csi list, validate that there is atleast
      * one component in the SU list that has the CSI type in 
      * its supportedCSIType
      */
-
+    {
     ClAmsSGT  *sg = (ClAmsSGT *)si->config.parentSG.ptr;
 
-    AMS_CHECK_RC_ERROR( clAmsValidateCSIType(
-                si->config.entity,
-                &sg->config.suList,
-                &si->config.csiList) );
-
+    AMS_CHECK_RC_ERROR( clAmsValidateCSIType( si->config.entity, &sg->config.suList, &si->config.csiList) );
+    }
     return CL_OK;
 
 exitfn:
 
-    AMS_LOG(CL_LOG_SEV_ERROR,
-            ("ERROR: SI [%s] fails relationship validation.\n",
-             si->config.entity.name.value));
+    AMS_LOG(CL_LOG_SEV_ERROR, ("ERROR: SI [%s] fails relationship validation.\n", si->config.entity.name.value));
 
     return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
 
@@ -4111,9 +4103,10 @@ clAmsEntityTimerGetValues(
     ClAmsCompT  *comp = NULL;
     ClAmsNodeT  *node = NULL;
     ClAmsEntityTimerCallbackT  fnx = {0};
-    ClAmsSGT defaultSG = {{{0}}};
+    ClAmsSGT defaultSG ;
     ClRcT rc = CL_OK;
-
+ 
+    memset(&defaultSG,0,sizeof(ClAmsSGT));
     AMS_CHECKPTR ( !entity || !duration || !entityTimer || !fn);
 
     AMS_CHECK_ENTITY_TYPE (entity->type);
@@ -4932,7 +4925,7 @@ clAmsEntityRefGetKey(
 
 #endif
 
-    entityKeyHandle = clAmsEntityGetKey(entity);
+    entityKeyHandle = (void**) clAmsEntityGetKey(entity);
 
     return CL_OK;
 
@@ -4961,7 +4954,7 @@ clAmsCSIMarshalCSIDescriptorExtended(
     
     AMS_CHECKPTR ( !csiDescriptorPtr );
 
-    csiDescriptor = clHeapCalloc (1, sizeof (ClAmsCSIDescriptorT));
+    csiDescriptor = (ClAmsCSIDescriptorT*) clHeapCalloc (1, sizeof (ClAmsCSIDescriptorT));
 
     AMS_CHECK_NO_MEMORY (csiDescriptor);
 
@@ -5004,8 +4997,7 @@ clAmsCSIMarshalCSIDescriptorExtended(
                                          &numAttributes) );
 
         csiDescriptor->csiAttributeList.numAttributes=  numAttributes; 
-        csiDescriptor->csiAttributeList.attribute = 
-            clHeapAllocate(sizeof (ClAmsCSIAttributeT)*numAttributes);
+        csiDescriptor->csiAttributeList.attribute = (ClAmsCSIAttributeT*) clHeapAllocate(sizeof (ClAmsCSIAttributeT)*numAttributes);
 
         AMS_CHECK_NO_MEMORY ( csiDescriptor->csiAttributeList.attribute ); 
         
@@ -5085,7 +5077,7 @@ clAmsCSIMarshalPGTrackNotificationBuffer(
 
     AMS_CHECKPTR ( !notificationBufferPtr || !csi );
 
-    notificationBuffer = clHeapAllocate (sizeof (ClAmsPGNotificationBufferT));
+    notificationBuffer = (ClAmsPGNotificationBufferT*) clHeapAllocate (sizeof (ClAmsPGNotificationBufferT));
 
     AMS_CHECK_NO_MEMORY ( notificationBuffer );
 
@@ -5096,8 +5088,7 @@ clAmsCSIMarshalPGTrackNotificationBuffer(
     if ( pgTrackFlags&CL_AMS_PG_TRACK_CURRENT )
     {
 
-        notificationBuffer->notification = clHeapAllocate(
-                sizeof(ClAmsPGNotificationT)*csi->status.pgList.numEntities);
+        notificationBuffer->notification = (ClAmsPGNotificationT*) clHeapAllocate( sizeof(ClAmsPGNotificationT)*csi->status.pgList.numEntities);
 
         AMS_CHECK_NO_MEMORY ( notificationBuffer->notification);
 
@@ -5126,8 +5117,7 @@ clAmsCSIMarshalPGTrackNotificationBuffer(
     else if ( pgTrackFlags&CL_AMS_PG_TRACK_CHANGES )
     {
 
-        notificationBuffer->notification = 
-            clHeapAllocate (sizeof(ClAmsPGNotificationT)*csi->status.pgList.numEntities);
+        notificationBuffer->notification = (ClAmsPGNotificationT*) clHeapAllocate (sizeof(ClAmsPGNotificationT)*csi->status.pgList.numEntities);
 
         AMS_CHECK_NO_MEMORY ( notificationBuffer->notification );
 
@@ -5166,8 +5156,7 @@ clAmsCSIMarshalPGTrackNotificationBuffer(
     else if ( pgTrackFlags&CL_AMS_PG_TRACK_CHANGES_ONLY )
     {
 
-        notificationBuffer->notification = 
-            clHeapAllocate (sizeof(ClAmsPGNotificationT));
+        notificationBuffer->notification = (ClAmsPGNotificationT*) clHeapAllocate (sizeof(ClAmsPGNotificationT));
 
         AMS_CHECK_NO_MEMORY ( notificationBuffer->notification );
 
@@ -5226,7 +5215,7 @@ ClRcT clAmsEntityOpPush(ClAmsEntityT *entity,
 {
     ClAmsEntityOpT *opBlock = NULL;
     if(!entity) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
-    opBlock = clHeapCalloc(1, sizeof(*opBlock));
+    opBlock = (ClAmsEntityOpT*) clHeapCalloc(1, sizeof(*opBlock));
     CL_ASSERT(opBlock != NULL);
     opBlock->op = op;
     opBlock->dataSize = dataSize;
@@ -5376,30 +5365,27 @@ ClRcT clAmsEntityOpsClearNode(ClAmsEntityT *entity, ClAmsEntityStatusT *status)
                opBlock->data)
             {
                 ClRcT rc;
-                ClAmsEntityRefT entityRef = {{0}};
+                ClAmsEntityRefT entityRef;
                 ClAmsSUT *targetSU;
                 void *targetData = NULL;
                 ClUint32T targetOp;
                 ClAmsEntityRemoveOpT *activeRemoveOp = (ClAmsEntityRemoveOpT*)opBlock->data;
+                memset(&entityRef,0,sizeof(ClAmsEntityRefT));
                 memcpy(&entityRef.entity, &activeRemoveOp->entity, sizeof(entityRef.entity));
                 rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU],
                                              &entityRef);
                 if(rc != CL_OK)
                 {
-                    clLogWarning("SU", "ACTIVE-REMOVE-CLEAR", "SU [%s] pending remove replay wasn't found",
-                                 activeRemoveOp->entity.name.value);
+                    clLogWarning("SU", "ACTIVE-REMOVE-CLEAR", "SU [%s] pending remove replay wasn't found", activeRemoveOp->entity.name.value);
                     goto next;
                 }
                 targetSU = (ClAmsSUT*)entityRef.ptr;
                 targetOp = (opBlock->op == CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN) ?
                     CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN :
                     CL_AMS_ENTITY_OP_ACTIVE_REMOVE_REF_MPLUSN;
-                clLogNotice("SU", "ACTIVE-REMOVE-CLEAR", 
-                            "Clearing SU [%s] back reference op [%d] through SU [%s]",
-                            targetSU->config.entity.name.value, targetOp,
-                            su->config.entity.name.value);
-                clAmsEntityOpClear(&targetSU->config.entity, &targetSU->status.entity, 
-                                   targetOp, &targetData, NULL);
+                clLogNotice("SU", "ACTIVE-REMOVE-CLEAR", "Clearing SU [%s] back reference op [%d] through SU [%s]",
+                            targetSU->config.entity.name.value, targetOp, su->config.entity.name.value);
+                clAmsEntityOpClear(&targetSU->config.entity, &targetSU->status.entity, targetOp, &targetData, NULL);
                 if(targetData) clHeapFree(targetData);
             }
             next:

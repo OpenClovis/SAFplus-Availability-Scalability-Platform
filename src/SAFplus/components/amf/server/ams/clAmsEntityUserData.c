@@ -149,7 +149,7 @@ ClRcT _clAmsEntityUserDataSet(SaNameT *entity, ClCharT *data, ClUint32T len )
     }
     else
     {
-        userData = clHeapCalloc(1, sizeof(*userData));
+        userData = (ClAmsEntityUserDataT*) clHeapCalloc(1, sizeof(*userData));
         CL_ASSERT(userData != NULL);
         CL_LIST_HEAD_INIT(&userData->keyValueList);
         userData->data = data;
@@ -203,7 +203,7 @@ ClRcT _clAmsEntityUserDataSetKey(SaNameT *entity, SaNameT *key, ClCharT *data, C
     }
     else
     {
-        userData = clHeapCalloc(1, sizeof(*userData));
+        userData = (ClAmsEntityUserDataT*) clHeapCalloc(1, sizeof(*userData));
         CL_ASSERT(userData != NULL);
         memcpy(&userData->name, entity, sizeof(userData->name));
         CL_LIST_HEAD_INIT(&userData->keyValueList);
@@ -216,7 +216,7 @@ ClRcT _clAmsEntityUserDataSetKey(SaNameT *entity, SaNameT *key, ClCharT *data, C
         goto out_unlock;
     }
 
-    userDataStorage = clHeapCalloc(1, sizeof(*userDataStorage));
+    userDataStorage = (ClAmsEntityUserDataStorageT*) clHeapCalloc(1, sizeof(*userDataStorage));
     CL_ASSERT(userDataStorage != NULL);
     userDataStorage->data = data;
     userDataStorage->len = len;
@@ -248,7 +248,7 @@ ClRcT _clAmsEntityUserDataGet(SaNameT *entity,
         *data = NULL;
         if(userData->len)
         {
-            *data = clHeapCalloc(1, userData->len);
+            *data = (ClCharT*) clHeapCalloc(1, userData->len);
             CL_ASSERT(*data != NULL);
             memcpy(*data, userData->data, userData->len);
         }
@@ -288,7 +288,7 @@ ClRcT _clAmsEntityUserDataGetKey(SaNameT *entity,
         *data = NULL;
         if(userDataStorage->len)
         {
-            *data = clHeapCalloc(1, userDataStorage->len);
+            *data = (ClCharT*) clHeapCalloc(1, userDataStorage->len);
             CL_ASSERT(*data != NULL);
             memcpy(*data, userDataStorage->data, userDataStorage->len);
         }
@@ -475,7 +475,7 @@ ClRcT clAmsEntityUserDataUnpackAll(ClBufferHandleT inMsgHdl)
 
         if(len)
         {
-            data = clHeapCalloc(1, len);
+            data = (ClCharT*) clHeapCalloc(1, len);
             CL_ASSERT(data != NULL);
             rc = clXdrUnmarshallArrayClCharT(inMsgHdl, data, len);
             if(rc != CL_OK)
@@ -485,7 +485,7 @@ ClRcT clAmsEntityUserDataUnpackAll(ClBufferHandleT inMsgHdl)
                 goto exitfn;
             }
         }
-        userData = clHeapCalloc(1, sizeof(*userData));
+        userData = (ClAmsEntityUserDataT*) clHeapCalloc(1, sizeof(*userData));
 
         CL_ASSERT(userData != NULL);
 
@@ -501,7 +501,7 @@ ClRcT clAmsEntityUserDataUnpackAll(ClBufferHandleT inMsgHdl)
                                             &gClAmsEntityUserDataMutex);
         for(j = 0; j < numKeyValues; ++j)
         {
-            ClAmsEntityUserDataStorageT *userDataStorage = clHeapCalloc(1, sizeof(*userDataStorage));
+            ClAmsEntityUserDataStorageT *userDataStorage = (ClAmsEntityUserDataStorageT*) clHeapCalloc(1, sizeof(*userDataStorage));
             ClCharT *data = NULL;
             ClUint32T len = 0;
             CL_ASSERT(userDataStorage != NULL);
@@ -514,7 +514,7 @@ ClRcT clAmsEntityUserDataUnpackAll(ClBufferHandleT inMsgHdl)
                                                 &gClAmsEntityUserDataMutex);
             if(len)
             {
-                data = clHeapCalloc(1, len);
+                data = (ClCharT*) clHeapCalloc(1, len);
                 CL_ASSERT(data != NULL);
                 rc = clXdrUnmarshallArrayClCharT(inMsgHdl, data, len);
                 if(rc != CL_OK)

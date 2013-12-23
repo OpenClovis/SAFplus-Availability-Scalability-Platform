@@ -258,7 +258,7 @@ clAmsInvocationListUnmarshall (ClBufferHandleT msg)
 
     if(!numInvocations) return rc;
 
-    invocationList = clHeapCalloc(numInvocations, sizeof(*invocationList));
+    invocationList = (ClAmsInvocationIDLT_4_1_0*) clHeapCalloc(numInvocations, sizeof(*invocationList));
     CL_ASSERT(invocationList != NULL);
     
     for(i = 0; i < numInvocations; ++i)
@@ -272,12 +272,8 @@ clAmsInvocationListUnmarshall (ClBufferHandleT msg)
 
     for(i = 0; i < numInvocations; ++i)
     {
-        clAmsDBConstructInvocation(
-                                   &invocationList[i].compName,
-                                   invocationList[i].invocation,
-                                   invocationList[i].cmd,
-                                   invocationList[i].csiTargetOne,
-                                   &invocationList[i].csiName );
+        clAmsDBConstructInvocation( &invocationList[i].compName, invocationList[i].invocation, (ClAmsInvocationCmdT) invocationList[i].cmd,
+                                   invocationList[i].csiTargetOne, &invocationList[i].csiName );
     }
     
     exitfn:
@@ -355,7 +351,7 @@ clAmsDBConstructInvocation(
 
     AMS_CHECKPTR ( !compName );
 
-    invocationData = clHeapCalloc (1, sizeof (ClAmsInvocationT));
+    invocationData = (ClAmsInvocationT*) clHeapCalloc (1, sizeof (ClAmsInvocationT));
 
     AMS_CHECK_NO_MEMORY ( invocationData );
 
@@ -369,7 +365,7 @@ clAmsDBConstructInvocation(
     if ( csiName && csiName->length > 0)
     {
 
-        ClAmsEntityRefT  entityRef = {{0},NULL,0};
+        ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},NULL,0};
 
         saNameCopy(&invocationData->csiName, csiName);
 
@@ -411,12 +407,12 @@ clAmsDBConstructInvocationList(
 
     AMS_CHECKPTR ( !compName || !command || !csiTargetOne || !id);
 
-    invocationData = clHeapCalloc (1, sizeof (ClAmsInvocationT));
+    invocationData = (ClAmsInvocationT*) clHeapCalloc (1, sizeof (ClAmsInvocationT));
 
     AMS_CHECK_NO_MEMORY ( invocationData );
 
     invocationData->invocation = atoll (id);
-    invocationData->cmd = atoi (command);
+    invocationData->cmd = (ClAmsInvocationCmdT) atoi (command);
     invocationData->csiTargetOne = atoi (csiTargetOne);
     saNameSet(&invocationData->compName, compName);
     ++invocationData->compName.length;
@@ -426,7 +422,7 @@ clAmsDBConstructInvocationList(
     if ( csiName )
     {
 
-        ClAmsEntityRefT  entityRef = {{0},NULL,0};
+        ClAmsEntityRefT  entityRef;
 
         saNameSet(&invocationData->csiName, csiName);
         ++invocationData->csiName.length;
@@ -461,7 +457,7 @@ static ClRcT
 clAmsReassignOpSUMarshall(void *data, ClUint32T dataSize, ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
     ClRcT rc = CL_OK;
-    ClAmsSUReassignOpT *reassignEntry = data;
+    ClAmsSUReassignOpT *reassignEntry = (ClAmsSUReassignOpT*) data;
     ClInt32T i;
 
     if(!data) return rc;
@@ -487,7 +483,7 @@ clAmsReassignOpSUUnmarshall(void **data, ClUint32T *dataSize, ClBufferHandleT in
     if(!*dataSize) return rc;
 
     AMS_CHECK_RC_ERROR(clXdrUnmarshallClInt32T(inMsgHdl, &reassignOp.numSIs));
-    reassignOp.sis = clHeapCalloc(reassignOp.numSIs, sizeof(*reassignOp.sis));
+    reassignOp.sis = (ClAmsEntityT*) clHeapCalloc(reassignOp.numSIs, sizeof(*reassignOp.sis));
     CL_ASSERT(reassignOp.sis != NULL);
 
     for(i = 0; i < reassignOp.numSIs; ++i)
@@ -510,7 +506,7 @@ clAmsReassignOpSUUnmarshall(void **data, ClUint32T *dataSize, ClBufferHandleT in
 static ClRcT
 clAmsReassignOpSIMarshall(void *data, ClUint32T dataSize, ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
-    ClAmsSIReassignOpT *reassignEntry = data;
+    ClAmsSIReassignOpT *reassignEntry = (ClAmsSIReassignOpT*) data;
     ClRcT rc = CL_OK;
     if(!data) return rc;
     AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(&reassignEntry->su, inMsgHdl, 0));
@@ -521,7 +517,7 @@ clAmsReassignOpSIMarshall(void *data, ClUint32T dataSize, ClBufferHandleT inMsgH
 static ClRcT
 clAmsReassignOpSIUnmarshall(void **data, ClUint32T *dataSize, ClBufferHandleT inMsgHdl)
 {
-    ClAmsSIReassignOpT reassignOp = {{0}};
+    ClAmsSIReassignOpT reassignOp = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClRcT rc = CL_OK;
     if(!data || !dataSize) return rc;
     *data = NULL;
@@ -577,7 +573,7 @@ static ClRcT
 clAmsEntityReduceRemoveOpMarshall(ClAmsEntityT *entity, void *data, ClUint32T dataSize, 
                                   ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
-    ClAmsEntityReduceRemoveOpT *reduceOp = data;
+    ClAmsEntityReduceRemoveOpT *reduceOp = (ClAmsEntityReduceRemoveOpT*) data;
     ClRcT rc = CL_OK;
     if(!reduceOp) return rc;
     AMS_CHECK_RC_ERROR(clXdrMarshallClInt32T(&reduceOp->sisRemoved, inMsgHdl, 0));
@@ -613,7 +609,7 @@ static ClRcT
 clAmsEntitySwapActiveOpMarshall(ClAmsEntityT *entity, void *data, ClUint32T dataSize, 
                                 ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
-    ClAmsEntitySwapActiveOpT *swapActive = data;
+    ClAmsEntitySwapActiveOpT *swapActive = (ClAmsEntitySwapActiveOpT*) data;
     ClRcT rc = CL_OK;
     if(!swapActive) return rc;
     AMS_CHECK_RC_ERROR(clXdrMarshallClInt32T(&swapActive->sisReassigned, inMsgHdl, 0));
@@ -649,9 +645,9 @@ static ClRcT
 clAmsEntitySwapRemoveOpMarshall(ClAmsEntityT *entity, void *data, ClUint32T dataSize, 
                                 ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
-    ClAmsEntitySwapRemoveOpT *swapOp = data;
+    ClAmsEntitySwapRemoveOpT *swapOp = (ClAmsEntitySwapRemoveOpT*) data;
     ClRcT rc = CL_OK;
-    ClInt32T i;
+    ClUint32T i;
     if(!swapOp) return rc;
     AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(&swapOp->entity, inMsgHdl, 0));
     AMS_CHECK_RC_ERROR(clXdrMarshallClInt32T(&swapOp->sisRemoved, inMsgHdl, 0));
@@ -673,9 +669,9 @@ clAmsEntitySwapRemoveOpUnmarshall(ClAmsEntityT *entity, void **data, ClUint32T *
                                   ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntitySwapRemoveOpT swapOp = {{0}};
+    ClAmsEntitySwapRemoveOpT swapOp = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClUint32T size = 0;
-    ClInt32T i;
+    ClUint32T i;
 
     if(!data || !dataSize) return CL_OK;
     *data = NULL;
@@ -686,7 +682,7 @@ clAmsEntitySwapRemoveOpUnmarshall(ClAmsEntityT *entity, void **data, ClUint32T *
     AMS_CHECK_RC_ERROR(clXdrUnmarshallClInt32T(inMsgHdl, &swapOp.sisRemoved));
     AMS_CHECK_RC_ERROR(clXdrUnmarshallClUint32T(inMsgHdl, &swapOp.numOtherSIs));
 
-    swapOp.otherSIs = clHeapCalloc(swapOp.numOtherSIs, sizeof(ClAmsEntityT));
+    swapOp.otherSIs = (ClAmsEntityT*) clHeapCalloc(swapOp.numOtherSIs, sizeof(ClAmsEntityT));
     CL_ASSERT(swapOp.otherSIs != NULL);
     for(i = 0; i < swapOp.numOtherSIs; ++i)
     {
@@ -708,7 +704,7 @@ static ClRcT
 clAmsEntityRemoveOpMarshall(ClAmsEntityT *entity, void *data, ClUint32T dataSize, 
                             ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
-    ClAmsEntityRemoveOpT *removeOp = data;
+    ClAmsEntityRemoveOpT *removeOp = (ClAmsEntityRemoveOpT*) data;
     ClRcT rc = CL_OK;
     if(!removeOp) return CL_OK;
     AMS_CHECK_RC_ERROR(VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(&removeOp->entity, inMsgHdl, 0));
@@ -851,7 +847,7 @@ clAmsDBEntityOpUnmarshall(ClAmsEntityT *entity, ClAmsEntityStatusT *status,
     AMS_CHECK_RC_ERROR(clXdrUnmarshallClInt32T(inMsgHdl, &numOps));
     for(i = 0; i < numOps; ++i)
     {
-        ClAmsEntityOpT *opBlock = clHeapCalloc(1, sizeof(*opBlock));
+        ClAmsEntityOpT *opBlock = (ClAmsEntityOpT*) clHeapCalloc(1, sizeof(*opBlock));
         CL_ASSERT(opBlock != NULL);
         AMS_CHECK_RC_ERROR(clXdrUnmarshallClUint32T(inMsgHdl, &opBlock->op));
         AMS_CHECK_RC_ERROR(clXdrUnmarshallClUint32T(inMsgHdl, &opBlock->dataSize));
@@ -959,7 +955,7 @@ ClRcT clAmsDBEntityDeleteMarshall(ClAmsEntityT  *entity, ClBufferHandleT inMsgHd
 ClRcT clAmsDBEntityDelete(ClAmsEntityT  *entity, ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     memcpy(&entityRef.entity, entity, sizeof(entityRef.entity));
     AMS_CHECK_RC_ERROR(clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type], &entityRef));
     /*
@@ -969,13 +965,11 @@ ClRcT clAmsDBEntityDelete(ClAmsEntityT  *entity, ClBufferHandleT inMsgHdl, ClUin
     rc = clAmsEntityDbDeleteEntity(&gAms.db.entityDb[entity->type], &entityRef);
     if(rc != CL_OK)
     {
-        clLogError("CKPT", "UNMARSHALL", "Unable to delete entity [%s]", 
-                   entityRef.entity.name.value);
+        clLogError("CKPT", "UNMARSHALL", "Unable to delete entity [%s]", entityRef.entity.name.value);
     }
     else
     {
-        clLogNotice("CKPT", "UNMARSHALL", "Deleted entity [%s]",
-                    entityRef.entity.name.value);
+        clLogNotice("CKPT", "UNMARSHALL", "Deleted entity [%s]", entityRef.entity.name.value);
         if(entityRef.entity.type == CL_AMS_ENTITY_TYPE_CSI)
         {
             /*
@@ -995,141 +989,13 @@ clAmsDBNodeXMLize(
     ClRcT  rc = CL_OK;
     ClCharT  *adminState = NULL;
     ClCharT  *id = NULL;
-    ClCharT  *class = NULL;
+    ClCharT  *classDB = NULL;
     ClCharT  *isSwappable = NULL;
     ClCharT  *isRestartable = NULL;
     ClCharT  *autoRepair = NULL;
     ClCharT  *isASPAware = NULL;
     ClCharT  *suFailoverDuration = NULL;
     ClCharT  *suFailoverCountMax = NULL;
-
-    ClParserPtrT nodePtr = 
-        CL_PARSER_ADD_CHILD(amfPtr.nodeNamesPtr,AMS_XML_TAG_NODE_NAME, 0);
-
-    AMS_CHECKPTR (!node);
-
-    CL_PARSER_SET_ATTR (
-            nodePtr,
-            AMS_XML_TAG_NAME,
-            (const ClCharT*)node->config.entity.name.value);
-
-    ClParserPtrT configPtr = CL_PARSER_ADD_CHILD(nodePtr,AMS_XML_TAG_CONFIG , 0);
-
-    AMS_CHECKPTR_AND_EXIT(!configPtr);
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->config.adminState,
-                &adminState) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            AMS_XML_TAG_ADMIN_STATE,
-            adminState);
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->config.id,
-                &id) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            AMS_XML_TAG_ID,
-            id);
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->config.classType,
-                &class) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "class",
-            class);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "subClass",
-            (const ClCharT*)node->config.subClassType.value);
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->config.isSwappable,
-                &isSwappable) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "isSwappable",
-            isSwappable);
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->config.isRestartable,
-                &isRestartable) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "isRestartable",
-            isRestartable);
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->config.autoRepair,
-                &autoRepair) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "autoRepair",
-            autoRepair);
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->config.isASPAware,
-                &isASPAware) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "isASPAware",
-            isASPAware );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                node->config.suFailoverDuration,
-                &suFailoverDuration) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "suFailoverDuration",
-            suFailoverDuration);
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->config.suFailoverCountMax,
-                &suFailoverCountMax) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "suFailoverCountMax",
-            suFailoverCountMax);
-
-    /*
-     * Write the nodeDependendents, nodeDependencies and suLists
-     */
-
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &node->config.nodeDependentsList,
-                CL_AMS_NODE_CONFIG_NODE_DEPENDENT_LIST ) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &node->config.nodeDependenciesList,
-                CL_AMS_NODE_CONFIG_NODE_DEPENDENCIES_LIST) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &node->config.suList,
-                CL_AMS_NODE_CONFIG_SU_LIST) );
-
-    /*
-     * Write the status portion
-     */
-
-    ClParserPtrT  statusPtr = CL_PARSER_ADD_CHILD(nodePtr,AMS_XML_TAG_STATUS,0);
-
-    AMS_CHECKPTR_AND_EXIT (!statusPtr);
-
     ClCharT  *presenceState = NULL;
     ClCharT  *operState = NULL;
     ClCharT  *isClusterMember = NULL;
@@ -1139,104 +1005,119 @@ clAmsDBNodeXMLize(
     ClCharT  *suFailoverCount= NULL;
     ClCharT  *numInstantiatedSUs = NULL;
     ClCharT  *numAssignedSUs = NULL; 
-    
-    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus(
-                &node->status.entity,
-                statusPtr) );
+    ClParserPtrT  configPtr, statusPtr;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->status.presenceState,
-                &presenceState) );
+    ClParserPtrT nodePtr = CL_PARSER_ADD_CHILD(amfPtr.nodeNamesPtr,AMS_XML_TAG_NODE_NAME, 0);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->status.operState,
-                &operState) );
+    AMS_CHECKPTR (!node);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->status.isClusterMember,
-                &isClusterMember) );
+    CL_PARSER_SET_ATTR ( nodePtr, AMS_XML_TAG_NAME, (const ClCharT*)node->config.entity.name.value);
 
+    configPtr = CL_PARSER_ADD_CHILD(nodePtr,AMS_XML_TAG_CONFIG , 0);
 
+    AMS_CHECKPTR_AND_EXIT(!configPtr);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->status.wasMemberBefore,
-                &wasMemberBefore) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->config.adminState, &adminState) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->status.recovery,
-                &recovery) );
+    CL_PARSER_SET_ATTR ( configPtr, AMS_XML_TAG_ADMIN_STATE, adminState);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->status.alarmHandle,
-                &alarmHandle) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->config.id, &id) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->status.suFailoverCount,
-                &suFailoverCount) );
+    CL_PARSER_SET_ATTR ( configPtr, AMS_XML_TAG_ID, id);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->status.numInstantiatedSUs,
-                &numInstantiatedSUs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->config.classType, &classDB) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                node->status.numAssignedSUs,
-                &numAssignedSUs) );
+    CL_PARSER_SET_ATTR ( configPtr, "class", classDB);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "presenceState",
-            presenceState);
+    CL_PARSER_SET_ATTR ( configPtr, "subClass", (const ClCharT*)node->config.subClassType.value);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "operState",
-            operState);
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->config.isSwappable, &isSwappable) );
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "isClusterMember",
-            isClusterMember);
+    CL_PARSER_SET_ATTR ( configPtr, "isSwappable", isSwappable);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "wasMemberBefore",
-            wasMemberBefore);
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->config.isRestartable, &isRestartable) );
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "recovery",
-            recovery);
+    CL_PARSER_SET_ATTR ( configPtr, "isRestartable", isRestartable);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "alarmHandle",
-            alarmHandle);
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->config.autoRepair, &autoRepair) );
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "suFailoverCount",
-            suFailoverCount);
+    CL_PARSER_SET_ATTR ( configPtr, "autoRepair", autoRepair);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numInstantiatedSUs",
-            numInstantiatedSUs);
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->config.isASPAware, &isASPAware) );
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numAssignedSUs",
-            numAssignedSUs);
+    CL_PARSER_SET_ATTR ( configPtr, "isASPAware", isASPAware );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusPtr,
-                &node->status.suFailoverTimer,
-                AMS_XML_TAG_SU_FAILOVER_TIMER) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( node->config.suFailoverDuration, &suFailoverDuration) );
+
+    CL_PARSER_SET_ATTR ( configPtr, "suFailoverDuration", suFailoverDuration);
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->config.suFailoverCountMax, &suFailoverCountMax) );
+
+    CL_PARSER_SET_ATTR ( configPtr, "suFailoverCountMax", suFailoverCountMax);
+
+    /*
+     * Write the nodeDependendents, nodeDependencies and suLists
+     */
+
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &node->config.nodeDependentsList, CL_AMS_NODE_CONFIG_NODE_DEPENDENT_LIST ) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &node->config.nodeDependenciesList, CL_AMS_NODE_CONFIG_NODE_DEPENDENCIES_LIST) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &node->config.suList, CL_AMS_NODE_CONFIG_SU_LIST) );
+
+    /*
+     * Write the status portion
+     */
+
+    statusPtr = CL_PARSER_ADD_CHILD(nodePtr,AMS_XML_TAG_STATUS,0);
+
+    AMS_CHECKPTR_AND_EXIT (!statusPtr);
+
+    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus( &node->status.entity, statusPtr) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->status.presenceState, &presenceState) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->status.operState, &operState) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->status.isClusterMember, &isClusterMember) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->status.wasMemberBefore, &wasMemberBefore) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->status.recovery, &recovery) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->status.alarmHandle, &alarmHandle) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->status.suFailoverCount, &suFailoverCount) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->status.numInstantiatedSUs, &numInstantiatedSUs) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( node->status.numAssignedSUs, &numAssignedSUs) );
+
+    CL_PARSER_SET_ATTR ( statusPtr, "presenceState", presenceState);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "operState", operState);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "isClusterMember", isClusterMember);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "wasMemberBefore", wasMemberBefore);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "recovery", recovery);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "alarmHandle", alarmHandle);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "suFailoverCount", suFailoverCount);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "numInstantiatedSUs", numInstantiatedSUs);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "numAssignedSUs", numAssignedSUs);
+
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusPtr, &node->status.suFailoverTimer, AMS_XML_TAG_SU_FAILOVER_TIMER) );
 
 exitfn:
 
     clAmsFreeMemory (adminState);
     clAmsFreeMemory (id);
-    clAmsFreeMemory (class);
+    clAmsFreeMemory (classDB);
     clAmsFreeMemory (isSwappable);
     clAmsFreeMemory (isRestartable);
     clAmsFreeMemory (autoRepair);
@@ -1263,49 +1144,39 @@ clAmsDBNodeListDeXMLize(
 {
     ClRcT  rc = CL_OK;
     const ClCharT  *name = NULL;
-    ClAmsEntityTimerT  entityTimer = {0};
+    ClAmsEntityTimerT  entityTimer;
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
+    ClParserPtrT  configPtr, statusPtr;
 
-    name = clParserAttr (
-            nodePtr,
-            AMS_XML_TAG_NAME );
+    memset(&entityTimer,0,sizeof(ClAmsEntityTimerT));
+    name = clParserAttr ( nodePtr, AMS_XML_TAG_NAME );
 
     if ( !name )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("nodeName tag does not have node name attribute\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("nodeName tag does not have node name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
    
-    ClParserPtrT configPtr = clParserChild(nodePtr,AMS_XML_TAG_CONFIG);
+    configPtr = clParserChild(nodePtr,AMS_XML_TAG_CONFIG);
     if ( !configPtr )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("NODE[%s] tag does not have config tag\n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("NODE[%s] tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
     
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_NODE_CONFIG_NODE_DEPENDENT_LIST ));
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_NODE_CONFIG_NODE_DEPENDENT_LIST ));
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_NODE_CONFIG_NODE_DEPENDENCIES_LIST ));
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_NODE_CONFIG_NODE_DEPENDENCIES_LIST ));
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_NODE_CONFIG_SU_LIST ));
-
-    ClParserPtrT statusPtr = clParserChild(nodePtr,AMS_XML_TAG_STATUS);
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_NODE_CONFIG_SU_LIST ));
+    
+   
+    statusPtr = clParserChild(nodePtr,AMS_XML_TAG_STATUS);
     if ( !statusPtr )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("NODE[%s] tag does not have config tag\n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("NODE[%s] tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     } 
@@ -1313,20 +1184,13 @@ clAmsDBNodeListDeXMLize(
     entityTimer.count = 0;
     entityTimer.type = CL_AMS_NODE_TIMER_SUFAILOVER;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusPtr,
-                &entityTimer,
-                AMS_XML_TAG_SU_FAILOVER_TIMER) );
-
-    ClAmsEntityT  entity = {0};
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusPtr, &entityTimer, AMS_XML_TAG_SU_FAILOVER_TIMER) );
 
     strcpy ((ClCharT*)entity.name.value, name);
     entity.name.length = strlen (name) + 1;
     entity.type = CL_AMS_ENTITY_TYPE_NODE;
 
-    AMS_CHECK_RC_ERROR ( clAmsSetEntityTimer(
-                &entity,
-                &entityTimer) );
+    AMS_CHECK_RC_ERROR ( clAmsSetEntityTimer( &entity, &entityTimer) );
 exitfn:
 
     return CL_AMS_RC (rc);
@@ -1341,7 +1205,7 @@ clAmsDBNodeUnmarshall(ClAmsEntityRefT *entityRef,
 {
     ClRcT  rc = CL_OK;
     ClAmsNodeT *node = NULL;
-    ClAmsEntityRefT srcEntityRef = {{0}};
+    ClAmsEntityRefT srcEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
 
     AMS_CHECK_ENTITY_TYPE(entity->type);
     
@@ -1381,8 +1245,9 @@ clAmsDBNodeUnmarshall(ClAmsEntityRefT *entityRef,
 
     for(;;)
     {
-        ClAmsCkptOperationT op  = 0;
-
+        ClAmsCkptOperationT op;
+        
+        memset(&op,0,sizeof(ClAmsCkptOperationT));
         AMS_CHECK_RC_ERROR(clXdrUnmarshallClInt32T(inMsgHdl, &op));
 
         switch(op)
@@ -1390,12 +1255,10 @@ clAmsDBNodeUnmarshall(ClAmsEntityRefT *entityRef,
 
         case CL_AMS_CKPT_OPERATION_SET_CONFIG:
             {
-                ClAmsNodeConfigT nodeConfig = { {0} };
+                ClAmsNodeConfigT nodeConfig = { {CL_AMS_ENTITY_TYPE_ENTITY} };
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsNodeConfigT, 4, 0, 0)(inMsgHdl, &nodeConfig) );
                 AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
-                AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
-                                                        entity,
-                                                        &nodeConfig.entity));
+                AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type], entity, &nodeConfig.entity));
                 break;
             }
 
@@ -1404,9 +1267,7 @@ clAmsDBNodeUnmarshall(ClAmsEntityRefT *entityRef,
                 ClAmsNodeStatusT nodeStatus = {{0}};
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsNodeStatusT, 4, 0, 0)(inMsgHdl, &nodeStatus));
                 AMS_CHECK_RC_ERROR(clAmsDBEntityOpUnmarshall(entity, &nodeStatus.entity, inMsgHdl, versionCode));
-                AMS_CHECK_RC_ERROR(clAmsEntitySetStatus(&gAms.db.entityDb[entity->type],
-                                                        entity,
-                                                        &nodeStatus.entity));
+                AMS_CHECK_RC_ERROR(clAmsEntitySetStatus(&gAms.db.entityDb[entity->type], entity, &nodeStatus.entity));
                 break;
             }
 
@@ -1444,7 +1305,7 @@ clAmsDBNodeDeXMLize(
     const ClCharT  *name = NULL;
     const ClCharT  *adminState = NULL; 
     const ClCharT  *id = NULL; 
-    const ClCharT  *class = NULL; 
+    const ClCharT  *classDBNode = NULL; 
     const ClCharT  *subClass = NULL; 
     const ClCharT  *isSwappable = NULL; 
     const ClCharT  *isRestartable = NULL; 
@@ -1452,86 +1313,6 @@ clAmsDBNodeDeXMLize(
     const ClCharT  *isASPAware = NULL; 
     const ClCharT  *suFailoverDuration = NULL; 
     const ClCharT  *suFailoverCountMax = NULL; 
-
-    name = clParserAttr (
-            nodePtr,
-            AMS_XML_TAG_NAME );
-
-    if ( !name )
-    {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("nodeName tag does not have node name attribute\n"));
-        rc = CL_ERR_NULL_POINTER;
-        goto exitfn;
-    }
-   
-    ClParserPtrT configPtr = clParserChild(nodePtr,AMS_XML_TAG_CONFIG);
-    if ( !configPtr )
-    {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("nodeName %s tag does not have config tag\n", name));
-        rc = CL_ERR_NULL_POINTER;
-        goto exitfn;
-    }
-
-    adminState = clParserAttr (
-            configPtr,
-            AMS_XML_TAG_ADMIN_STATE);
-
-    id = clParserAttr (
-            configPtr,
-            AMS_XML_TAG_ID );
-
-    class = clParserAttr (
-            configPtr,
-            "class");
-
-    subClass = clParserAttr(
-            configPtr,
-            "subClass");
-
-    isSwappable = clParserAttr(
-            configPtr,
-            "isSwappable");
-
-    isRestartable = clParserAttr (
-            configPtr,
-            "isRestartable");
-
-    autoRepair = clParserAttr (
-            configPtr,
-            "autoRepair");
-
-    isASPAware = clParserAttr (
-            configPtr,
-            "isASPAware");
-
-    suFailoverDuration = clParserAttr (
-            configPtr,
-            "suFailoverDuration");
-
-    suFailoverCountMax= clParserAttr (
-            configPtr,
-            "suFailoverCountMax");
-
-    if ( !adminState || !id || !class || !subClass || !isSwappable || 
-            !isRestartable  || !autoRepair || !isASPAware || 
-            !suFailoverDuration || !suFailoverCountMax )
-    {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("nodeName %s has a missing config attribute\n", name));
-        rc = CL_ERR_NULL_POINTER;
-        goto exitfn;
-    }
-
-    /*
-     * Get the status portion
-     */
-
-    ClParserPtrT statusPtr = clParserChild(nodePtr,AMS_XML_TAG_STATUS);
-
-    AMS_CHECKPTR_AND_EXIT (!statusPtr);
-
     const ClCharT  *presenceState = NULL;
     const ClCharT  *operState = NULL;
     const ClCharT  *isClusterMember = NULL;
@@ -1541,55 +1322,88 @@ clAmsDBNodeDeXMLize(
     const ClCharT  *suFailoverCount = NULL;
     const ClCharT  *numInstantiatedSUs = NULL;
     const ClCharT  *numAssignedSUs = NULL;
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
+    ClAmsNodeT      node ;
+    ClParserPtrT configPtr, statusPtr;
 
-    presenceState = clParserAttr(
-            statusPtr,
-            "presenceState");
+    name = clParserAttr ( nodePtr, AMS_XML_TAG_NAME );
 
-    operState = clParserAttr(
-            statusPtr,
-            "operState");
+    if ( !name )
+    {
+        AMS_LOG (CL_LOG_SEV_ERROR, ("nodeName tag does not have node name attribute\n"));
+        rc = CL_ERR_NULL_POINTER;
+        goto exitfn;
+    }
+   
+    configPtr = clParserChild(nodePtr,AMS_XML_TAG_CONFIG);
+    if ( !configPtr )
+    {
+        AMS_LOG (CL_LOG_SEV_ERROR, ("nodeName %s tag does not have config tag\n", name));
+        rc = CL_ERR_NULL_POINTER;
+        goto exitfn;
+    }
 
-    isClusterMember = clParserAttr(
-            statusPtr,
-            "isClusterMember");
+    adminState = clParserAttr ( configPtr, AMS_XML_TAG_ADMIN_STATE);
 
-    wasMemberBefore = clParserAttr(
-            statusPtr,
-            "wasMemberBefore");
+    id = clParserAttr ( configPtr, AMS_XML_TAG_ID );
 
-    recovery = clParserAttr(
-            statusPtr,
-            "recovery");
+    classDBNode = clParserAttr ( configPtr, "class");
 
-    alarmHandle = clParserAttr(
-            statusPtr,
-            "alarmHandle");
+    subClass = clParserAttr( configPtr, "subClass");
 
-    suFailoverCount = clParserAttr(
-            statusPtr,
-            "suFailoverCount");
+    isSwappable = clParserAttr( configPtr, "isSwappable");
 
-    numInstantiatedSUs = clParserAttr(
-            statusPtr,
-            "numInstantiatedSUs");
+    isRestartable = clParserAttr ( configPtr, "isRestartable");
 
-    numAssignedSUs = clParserAttr(
-            statusPtr,
-            "numAssignedSUs");
+    autoRepair = clParserAttr ( configPtr, "autoRepair");
+
+    isASPAware = clParserAttr ( configPtr, "isASPAware");
+
+    suFailoverDuration = clParserAttr ( configPtr, "suFailoverDuration");
+
+    suFailoverCountMax= clParserAttr ( configPtr, "suFailoverCountMax");
+
+    if ( !adminState || !id || !classDBNode || !subClass || !isSwappable || !isRestartable  || !autoRepair || !isASPAware || !suFailoverDuration || !suFailoverCountMax )
+    {
+        AMS_LOG (CL_LOG_SEV_ERROR, ("nodeName %s has a missing config attribute\n", name));
+        rc = CL_ERR_NULL_POINTER;
+        goto exitfn;
+    }
+
+    /*
+     * Get the status portion
+     */
+
+    statusPtr = clParserChild(nodePtr,AMS_XML_TAG_STATUS);
+
+    AMS_CHECKPTR_AND_EXIT (!statusPtr);
+
+    presenceState = clParserAttr( statusPtr, "presenceState");
+
+    operState = clParserAttr( statusPtr, "operState");
+
+    isClusterMember = clParserAttr( statusPtr, "isClusterMember");
+
+    wasMemberBefore = clParserAttr( statusPtr, "wasMemberBefore");
+
+    recovery = clParserAttr( statusPtr, "recovery");
+
+    alarmHandle = clParserAttr( statusPtr, "alarmHandle");
+
+    suFailoverCount = clParserAttr( statusPtr, "suFailoverCount");
+
+    numInstantiatedSUs = clParserAttr( statusPtr, "numInstantiatedSUs");
+
+    numAssignedSUs = clParserAttr( statusPtr, "numAssignedSUs");
 
     if ( !presenceState ||!operState || !isClusterMember || !wasMemberBefore || 
             !recovery || !suFailoverCount || !numInstantiatedSUs || 
             !numAssignedSUs || !alarmHandle )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("nodeName %s has a missing status attribute\n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("nodeName %s has a missing status attribute\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
-
-    ClAmsEntityRefT entityRef = {{0},0,0};
-    ClAmsNodeT      node ;
 
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
     strcpy ((ClCharT*)entityRef.entity.name.value,name);
@@ -1597,24 +1411,20 @@ clAmsDBNodeDeXMLize(
 
 #ifdef AMS_TEST_CKPT
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef) );
 
 #endif
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef) );
 
     /*
      * Write the config part
      */
 
     memcpy (&node.config.entity, &entityRef.entity, sizeof (ClAmsEntityT));
-    node.config.adminState = atoi (adminState);
+    node.config.adminState = (ClAmsAdminStateT) atoi (adminState);
     node.config.id= atoi (id);
-    node.config.classType = atoi (class);
+    node.config.classType = (ClAmsNodeClassT) atoi (classDBNode);
     strcpy ((ClCharT*)node.config.subClassType.value, subClass);
     node.config.subClassType.length = strlen (subClass) + 1;
     node.config.isSwappable= atoi (isSwappable);
@@ -1627,29 +1437,21 @@ clAmsDBNodeDeXMLize(
     /*
      * Write the status part
      */
-    node.status.presenceState = atoi (presenceState);
-    node.status.operState= atoi (operState);
-    node.status.isClusterMember= atoi (isClusterMember);
+    node.status.presenceState = (ClAmsPresenceStateT) atoi (presenceState);
+    node.status.operState= (ClAmsOperStateT) atoi (operState);
+    node.status.isClusterMember= (ClAmsNodeClusterMemberT) atoi (isClusterMember);
     node.status.wasMemberBefore= atoi (wasMemberBefore);
-    node.status.recovery= atoi (recovery);
+    node.status.recovery= (ClAmsLocalRecoveryT) atoi (recovery);
     node.status.alarmHandle= atoi (alarmHandle);
     node.status.suFailoverCount= atoi (suFailoverCount);
     node.status.numInstantiatedSUs= atoi (numInstantiatedSUs);
     node.status.numAssignedSUs= atoi (numAssignedSUs);
 
-    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus(
-                &node.status.entity,
-                statusPtr) );
+    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus( &node.status.entity, statusPtr) );
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig (
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
-                &entityRef.entity,
-                (ClAmsEntityConfigT *)&node.config) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig ( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef.entity, (ClAmsEntityConfigT *)&node.config) );
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
-                &entityRef.entity,
-                (ClAmsEntityStatusT *)&node.status) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE], &entityRef.entity, (ClAmsEntityStatusT *)&node.status) );
 
 exitfn:
 
@@ -1734,102 +1536,13 @@ clAmsDBSUXMLize(
        CL_IN  ClAmsSUT  *su)
 {
     ClRcT  rc = CL_OK;
-
-    ClParserPtrT suPtr = 
-        CL_PARSER_ADD_CHILD(amfPtr.suNamesPtr,AMS_XML_TAG_SU_NAME, 0);
-
-    AMS_CHECKPTR ( !su );
-
-    CL_PARSER_SET_ATTR(
-            suPtr,
-            AMS_XML_TAG_NAME,
-            (const ClCharT*)su->config.entity.name.value);
-
-    ClParserPtrT configPtr = CL_PARSER_ADD_CHILD( suPtr,AMS_XML_TAG_CONFIG , 0);
-
-    AMS_CHECKPTR_AND_EXIT (!configPtr);
-
+    ClCharT  *presenceState = NULL;
     ClCharT  *adminState = NULL;
     ClCharT  *rank = NULL;
     ClCharT  *numComponents = NULL;
     ClCharT  *isPreinstantiable = NULL;
     ClCharT  *isRestartable = NULL;
     ClCharT  *isContainerSU = NULL;
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->config.adminState,
-                &adminState) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->config.rank,
-                &rank) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->config.numComponents,
-                &numComponents) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->config.isPreinstantiable,
-                &isPreinstantiable) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->config.isRestartable,
-                &isRestartable) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->config.isContainerSU,
-                &isContainerSU) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            AMS_XML_TAG_ADMIN_STATE,
-            adminState);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "rank",
-            rank);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numComponents",
-            numComponents);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "isPreinstantiable",
-            isPreinstantiable);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "isRestartable",
-            isRestartable);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "isContainerSU",
-            isContainerSU);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "parentSG",
-            (const ClCharT*)su->config.parentSG.entity.name.value);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "parentNode",
-            (const ClCharT*)su->config.parentNode.entity.name.value);
-
-    /*
-     * Write the compList
-     */
-
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &su->config.compList,
-                CL_AMS_SU_CONFIG_COMP_LIST) );
-
-    ClCharT  *presenceState = NULL;
     ClCharT  *operState = NULL;
     ClCharT  *readinessState = NULL;
     ClCharT  *numActiveSIs = NULL;
@@ -1840,128 +1553,107 @@ clAmsDBSUXMLize(
     ClCharT  *numQuiescedSIs = NULL;
     ClCharT  *recovery = NULL;
     ClCharT  *numPIComp = NULL;
+    ClParserPtrT configPtr, statusPtr;
 
-    ClParserPtrT statusPtr = CL_PARSER_ADD_CHILD( suPtr,AMS_XML_TAG_STATUS , 0);
+    ClParserPtrT suPtr = CL_PARSER_ADD_CHILD(amfPtr.suNamesPtr,AMS_XML_TAG_SU_NAME, 0);
+
+    AMS_CHECKPTR ( !su );
+
+    CL_PARSER_SET_ATTR( suPtr, AMS_XML_TAG_NAME, (const ClCharT*)su->config.entity.name.value);
+
+    configPtr = CL_PARSER_ADD_CHILD( suPtr,AMS_XML_TAG_CONFIG , 0);
+
+    AMS_CHECKPTR_AND_EXIT (!configPtr);
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->config.adminState, &adminState) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->config.rank, &rank) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->config.numComponents, &numComponents) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->config.isPreinstantiable, &isPreinstantiable) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->config.isRestartable, &isRestartable) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->config.isContainerSU, &isContainerSU) );
+
+    CL_PARSER_SET_ATTR ( configPtr, AMS_XML_TAG_ADMIN_STATE, adminState);
+
+    CL_PARSER_SET_ATTR ( configPtr, "rank", rank);
+
+    CL_PARSER_SET_ATTR ( configPtr, "numComponents", numComponents);
+
+    CL_PARSER_SET_ATTR ( configPtr, "isPreinstantiable", isPreinstantiable);
+
+    CL_PARSER_SET_ATTR ( configPtr, "isRestartable", isRestartable);
+
+    CL_PARSER_SET_ATTR ( configPtr, "isContainerSU", isContainerSU);
+
+    CL_PARSER_SET_ATTR ( configPtr, "parentSG", (const ClCharT*)su->config.parentSG.entity.name.value);
+
+    CL_PARSER_SET_ATTR ( configPtr, "parentNode", (const ClCharT*)su->config.parentNode.entity.name.value);
+
+    /*
+     * Write the compList
+     */
+
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &su->config.compList, CL_AMS_SU_CONFIG_COMP_LIST) );
+
+    statusPtr = CL_PARSER_ADD_CHILD( suPtr,AMS_XML_TAG_STATUS , 0);
 
     AMS_CHECKPTR_AND_EXIT (!statusPtr);
 
-    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus(
-                &su->status.entity,
-                statusPtr) );
+    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus( &su->status.entity, statusPtr) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.presenceState,
-                &presenceState) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.presenceState, &presenceState) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.operState,
-                &operState) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.operState, &operState) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.readinessState,
-                &readinessState) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.readinessState, &readinessState) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.numActiveSIs,
-                &numActiveSIs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.numActiveSIs, &numActiveSIs) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.numStandbySIs,
-                &numStandbySIs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.numStandbySIs, &numStandbySIs) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.compRestartCount,
-                &compRestartCount) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.compRestartCount, &compRestartCount) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.suRestartCount,
-                &suRestartCount) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.suRestartCount, &suRestartCount) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.numInstantiatedComp,
-                &numInstantiatedComp) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.numInstantiatedComp, &numInstantiatedComp) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.numQuiescedSIs,
-                &numQuiescedSIs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.numQuiescedSIs, &numQuiescedSIs) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.recovery,
-                &recovery) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.recovery, &recovery) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                su->status.numPIComp,
-                &numPIComp) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( su->status.numPIComp, &numPIComp) );
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "presenceState",
-            presenceState);
+    CL_PARSER_SET_ATTR ( statusPtr, "presenceState", presenceState);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "operState",
-            operState);
+    CL_PARSER_SET_ATTR ( statusPtr, "operState", operState);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "readinessState",
-            readinessState);
+    CL_PARSER_SET_ATTR ( statusPtr, "readinessState", readinessState);
     
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numActiveSIs",
-            numActiveSIs);
+    CL_PARSER_SET_ATTR ( statusPtr, "numActiveSIs", numActiveSIs);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numStandbySIs",
-            numStandbySIs);
+    CL_PARSER_SET_ATTR ( statusPtr, "numStandbySIs", numStandbySIs);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "compRestartCount",
-            compRestartCount);
+    CL_PARSER_SET_ATTR ( statusPtr, "compRestartCount", compRestartCount);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "suRestartCount",
-            suRestartCount);
+    CL_PARSER_SET_ATTR ( statusPtr, "suRestartCount", suRestartCount);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numInstantiatedComp",
-            numInstantiatedComp);
+    CL_PARSER_SET_ATTR ( statusPtr, "numInstantiatedComp", numInstantiatedComp);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numQuiescedSIs",
-            numQuiescedSIs);
+    CL_PARSER_SET_ATTR ( statusPtr, "numQuiescedSIs", numQuiescedSIs);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "recovery",
-            recovery);
+    CL_PARSER_SET_ATTR ( statusPtr, "recovery", recovery);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numPIComp",
-            numPIComp);
+    CL_PARSER_SET_ATTR ( statusPtr, "numPIComp", numPIComp);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusPtr,
-                &su->status.compRestartTimer,
-                "compRestartTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusPtr, &su->status.compRestartTimer, "compRestartTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusPtr,
-                &su->status.suRestartTimer,
-                "suRestartTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusPtr, &su->status.suRestartTimer, "suRestartTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                statusPtr,
-                &su->status.siList,
-                CL_AMS_SU_STATUS_SI_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( statusPtr, &su->status.siList, CL_AMS_SU_STATUS_SI_LIST) );
 
 exitfn:
 
@@ -1994,10 +1686,11 @@ clAmsDBSUUnmarshall(ClAmsEntityRefT *entityRef,
                     ClUint32T versionCode)
 {
     ClRcT  rc = CL_OK;
-    ClAmsCkptOperationT op = 0;
-    ClAmsEntityRefT srcEntityRef = {{0}};
+    ClAmsCkptOperationT op;
+    ClAmsEntityRefT srcEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsSUT *su = NULL;
     
+    memset(&op,0,sizeof(ClAmsCkptOperationT));
     AMS_CHECK_ENTITY_TYPE(entity->type);
     
     if(entity->type != CL_AMS_ENTITY_TYPE_SU)
@@ -2040,8 +1733,8 @@ clAmsDBSUUnmarshall(ClAmsEntityRefT *entityRef,
         {
         case CL_AMS_CKPT_OPERATION_SET_CONFIG:
             {
-                ClAmsSUConfigT suConfig = {{0}};
-                ClAmsEntityRefT targetEntityRef = {{0}};
+                ClAmsSUConfigT suConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
+                ClAmsEntityRefT targetEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSUConfigT, 4, 0, 0)(inMsgHdl, &suConfig));
 
                 /*
@@ -2109,65 +1802,12 @@ clAmsDBSUDeXMLize(
 {
     ClRcT  rc = CL_OK;
     const ClCharT  *name = NULL;
-
-    AMS_CHECKPTR (!suPtr);
-
-    name = clParserAttr(
-            suPtr,
-            AMS_XML_TAG_NAME);
-
-    if ( !name )
-    {
-        AMS_LOG (CL_LOG_SEV_ERROR,("su Instance does not have name attribute \n"));
-        return CL_AMS_RC (CL_ERR_NULL_POINTER);
-    }
-            
-    ClParserPtrT configPtr = clParserChild( suPtr,AMS_XML_TAG_CONFIG );
-    if ( !configPtr )
-    {
-        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] does not have config tag \n", name));
-        return CL_AMS_RC (CL_ERR_NULL_POINTER);
-    }
-
     const ClCharT  *adminState = NULL;
     const ClCharT  *rank = NULL;
     const ClCharT  *numComponents = NULL;
     const ClCharT  *isPreinstantiable = NULL;
     const ClCharT  *isRestartable = NULL;
     const ClCharT  *isContainerSU = NULL;
-
-    adminState = clParserAttr (
-            configPtr,
-            AMS_XML_TAG_ADMIN_STATE);
-
-    rank = clParserAttr (
-            configPtr,
-            "rank");
-
-    numComponents = clParserAttr (
-            configPtr,
-            "numComponents");
-
-    isPreinstantiable = clParserAttr (
-            configPtr,
-            "isPreinstantiable");
-
-    isRestartable = clParserAttr (
-            configPtr,
-            "isRestartable");
-
-    isContainerSU = clParserAttr (
-            configPtr,
-            "isContainerSU");
-
-    if ( !adminState || !rank || !numComponents || !isPreinstantiable 
-            || !isRestartable || !isContainerSU )
-    {
-        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] has a missing config attribute \n"));
-        rc = CL_ERR_NULL_POINTER;
-        goto exitfn;
-    }
-
     const ClCharT  *presenceState = NULL;
     const ClCharT  *operState = NULL;
     const ClCharT  *readinessState = NULL;
@@ -2179,71 +1819,83 @@ clAmsDBSUDeXMLize(
     const ClCharT  *numQuiescedSIs = NULL;
     const ClCharT  *recovery = NULL;
     const ClCharT  *numPIComp = NULL;
+    ClAmsEntityRefT entityRef;
+    ClAmsSUT      su;
+    ClParserPtrT configPtr, statusPtr;
 
-    ClParserPtrT statusPtr = clParserChild( suPtr,AMS_XML_TAG_STATUS );
+    AMS_CHECKPTR (!suPtr);
+
+    name = clParserAttr( suPtr, AMS_XML_TAG_NAME);
+
+    if ( !name )
+    {
+        AMS_LOG (CL_LOG_SEV_ERROR,("su Instance does not have name attribute \n"));
+        return CL_AMS_RC (CL_ERR_NULL_POINTER);
+    }
+            
+    configPtr = clParserChild( suPtr,AMS_XML_TAG_CONFIG );
+    if ( !configPtr )
+    {
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] does not have config tag \n", name));
+        return CL_AMS_RC (CL_ERR_NULL_POINTER);
+    }
+
+    adminState = clParserAttr ( configPtr, AMS_XML_TAG_ADMIN_STATE);
+
+    rank = clParserAttr ( configPtr, "rank");
+
+    numComponents = clParserAttr ( configPtr, "numComponents");
+
+    isPreinstantiable = clParserAttr ( configPtr, "isPreinstantiable");
+
+    isRestartable = clParserAttr ( configPtr, "isRestartable");
+
+    isContainerSU = clParserAttr ( configPtr, "isContainerSU");
+
+    if ( !adminState || !rank || !numComponents || !isPreinstantiable || !isRestartable || !isContainerSU )
+    {
+        AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] has a missing config attribute \n"));
+        rc = CL_ERR_NULL_POINTER;
+        goto exitfn;
+    }
+
+    statusPtr = clParserChild( suPtr,AMS_XML_TAG_STATUS );
     if ( !statusPtr)
     {
         AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] does not have status tag \n", name));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
 
-    presenceState = clParserAttr (
-            statusPtr,
-            "presenceState");
+    presenceState = clParserAttr ( statusPtr, "presenceState");
 
-    operState = clParserAttr (
-            statusPtr,
-            "operState");
+    operState = clParserAttr ( statusPtr, "operState");
 
-    readinessState = clParserAttr (
-            statusPtr,
-            "readinessState");
+    readinessState = clParserAttr ( statusPtr, "readinessState");
 
-    numActiveSIs = clParserAttr (
-            statusPtr,
-            "numActiveSIs");
+    numActiveSIs = clParserAttr ( statusPtr, "numActiveSIs");
 
-    numStandbySIs = clParserAttr (
-            statusPtr,
-            "numStandbySIs");
+    numStandbySIs = clParserAttr ( statusPtr, "numStandbySIs");
 
-    compRestartCount = clParserAttr (
-            statusPtr,
-            "compRestartCount");
+    compRestartCount = clParserAttr ( statusPtr, "compRestartCount");
 
-    suRestartCount = clParserAttr (
-            statusPtr,
-            "suRestartCount");
+    suRestartCount = clParserAttr ( statusPtr, "suRestartCount");
 
-    numInstantiatedComp = clParserAttr (
-            statusPtr,
-            "numInstantiatedComp");
+    numInstantiatedComp = clParserAttr ( statusPtr, "numInstantiatedComp");
 
-    numQuiescedSIs = clParserAttr (
-            statusPtr,
-            "numQuiescedSIs");
+    numQuiescedSIs = clParserAttr ( statusPtr, "numQuiescedSIs");
 
-    recovery = clParserAttr (
-            statusPtr,
-            "recovery");
+    recovery = clParserAttr ( statusPtr, "recovery");
 
-    numPIComp = clParserAttr (
-            statusPtr,
-            "numPIComp");
+    numPIComp = clParserAttr ( statusPtr, "numPIComp");
 
-    if ( !presenceState || !operState || !readinessState || !numActiveSIs 
-            || !numStandbySIs || !compRestartCount || !suRestartCount 
-            || !numInstantiatedComp || !numQuiescedSIs || !recovery
-            || !numPIComp )
+    if ( !presenceState || !operState || !readinessState || !numActiveSIs || !numStandbySIs || !compRestartCount || !suRestartCount 
+            || !numInstantiatedComp || !numQuiescedSIs || !recovery || !numPIComp )
     {
         AMS_LOG (CL_LOG_SEV_ERROR,("SU[%s] status has a missing attribute \n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
 
-    ClAmsEntityRefT entityRef = { {0},0,0};
-    ClAmsSUT      su;
-    
     memset (&entityRef,0,sizeof (ClAmsEntityRefT));
     memset (&su,0,sizeof (ClAmsSUT));
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_SU;
@@ -2252,53 +1904,41 @@ clAmsDBSUDeXMLize(
 
 #ifdef AMS_TEST_CKPT
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU], &entityRef) );
 
 #endif
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU], &entityRef) );
 
     /*
      * Write the config part
      */
 
     memcpy (&su.config.entity, &entityRef.entity, sizeof (ClAmsEntityT));
-    su.config.adminState = atoi (adminState);
+    su.config.adminState = (ClAmsAdminStateT) atoi (adminState);
     su.config.rank= atoi (rank);
     su.config.numComponents= atoi (numComponents);
     su.config.isPreinstantiable= atoi (isPreinstantiable);
     su.config.isRestartable= atoi (isRestartable);
     su.config.isContainerSU= atoi (isContainerSU);
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig (
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU],
-                &entityRef.entity,
-                (ClAmsEntityConfigT *)&su.config) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig ( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU], &entityRef.entity, (ClAmsEntityConfigT *)&su.config) );
 
-    su.status.presenceState= atoi (presenceState);
-    su.status.operState= atoi (operState);
-    su.status.readinessState= atoi (readinessState);
+    su.status.presenceState= (ClAmsPresenceStateT) atoi (presenceState);
+    su.status.operState= (ClAmsOperStateT) atoi (operState);
+    su.status.readinessState= (ClAmsReadinessStateT) atoi (readinessState);
     su.status.numActiveSIs= atoi (numActiveSIs);
     su.status.numStandbySIs= atoi (numStandbySIs);
     su.status.compRestartCount= atoi (compRestartCount);
     su.status.suRestartCount= atoi (suRestartCount);
     su.status.numInstantiatedComp= atoi (numInstantiatedComp);
     su.status.numQuiescedSIs= atoi (numQuiescedSIs);
-    su.status.recovery= atoi (recovery);
+    su.status.recovery= (ClAmsLocalRecoveryT) atoi (recovery);
     su.status.numPIComp= atoi (numPIComp);
 
-    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus(
-                &su.status.entity,
-                statusPtr) );
+    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus( &su.status.entity, statusPtr) );
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU],
-                &entityRef.entity,
-                (ClAmsEntityStatusT *)&su.status) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU], &entityRef.entity, (ClAmsEntityStatusT *)&su.status) );
 
 exitfn:
 
@@ -2312,44 +1952,43 @@ clAmsDBSUListDeXMLize(
 {
     ClRcT rc = CL_OK;
     const ClCharT  *name = NULL;
-    ClAmsEntityTimerT entityTimer = {0};
-
-    name = clParserAttr (
-            suPtr,
-            AMS_XML_TAG_NAME );
+    ClAmsEntityTimerT entityTimer;
+    ClAmsEntityRefT  suRef, sgRef, nodeRef, sourceEntityRef;;
+    const ClCharT  *parentSG = NULL;
+    const ClCharT  *parentNode = NULL;
+    const ClCharT  *numActiveCSIs = NULL;
+    const ClCharT  *numStandbyCSIs = NULL;
+    const ClCharT  *haState = NULL;
+    const ClCharT  *numQuiescedCSIs = NULL;
+    const ClCharT  *numQuiescingCSIs = NULL;
+    const ClCharT  *siName = NULL;
+    ClAmsEntityT  entity;
+    ClParserPtrT configPtr,statusPtr, listPtr, list2Ptr;
+    ClAmsSUT  *su;
+   
+    memset(&entityTimer,0,sizeof(ClAmsEntityTimerT));
+    name = clParserAttr ( suPtr, AMS_XML_TAG_NAME );
 
     if ( !name )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("suName tag does not have node name attribute\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("suName tag does not have node name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
    
-    ClParserPtrT configPtr = clParserChild(suPtr,AMS_XML_TAG_CONFIG);
+    configPtr = clParserChild(suPtr,AMS_XML_TAG_CONFIG);
     if ( !configPtr )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("SUName[%s] tag does not have config tag\n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("SUName[%s] tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
     
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_SU_CONFIG_COMP_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_SU_CONFIG_COMP_LIST) );
 
-    const ClCharT  *parentSG = NULL;
-    const ClCharT  *parentNode = NULL;
+    parentSG = clParserAttr ( configPtr, "parentSG");
 
-    parentSG = clParserAttr (
-            configPtr,
-            "parentSG");
-
-    parentNode = clParserAttr (
-            configPtr,
-            "parentNode");
+    parentNode = clParserAttr ( configPtr, "parentNode");
 
     if ( !parentSG|| !parentNode )
     {
@@ -2358,10 +1997,6 @@ clAmsDBSUListDeXMLize(
                     name));
         goto exitfn;
     }
-
-    ClAmsEntityRefT  suRef = {{0},0,0};
-    ClAmsEntityRefT  sgRef = {{0},0,0};
-    ClAmsEntityRefT  nodeRef = {{0},0,0};
 
     memset (&suRef,0,sizeof (ClAmsEntityRefT));
     memset (&sgRef,0,sizeof (ClAmsEntityRefT));
@@ -2378,20 +2013,15 @@ clAmsDBSUListDeXMLize(
     sgRef.entity.name.length = strlen(parentSG) + 1 ;
     nodeRef.entity.name.length = strlen(parentNode) + 1 ;
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr(
-                &suRef,
-                &sgRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr( &suRef, &sgRef) );
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr(
-                &suRef,
-                &nodeRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr( &suRef, &nodeRef) );
 
-    ClParserPtrT  statusPtr = clParserChild(suPtr,AMS_XML_TAG_STATUS);
+    statusPtr = clParserChild(suPtr,AMS_XML_TAG_STATUS);
 
     if ( !statusPtr )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("SU[%s] does not have status tag\n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("SU[%s] does not have status tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     } 
@@ -2403,71 +2033,50 @@ clAmsDBSUListDeXMLize(
     entityTimer.count = 0;
     entityTimer.type = CL_AMS_SU_TIMER_COMPRESTART;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusPtr,
-                &entityTimer,
-                "compRestartTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusPtr, &entityTimer, "compRestartTimer") );
 
-    ClAmsEntityT  entity = {0};
     memset (&entity,0,sizeof (ClAmsEntityT));
     strcpy ((ClCharT*) entity.name.value, name);
     entity.name.length = strlen (name) + 1;
     entity.type = CL_AMS_ENTITY_TYPE_SU;
 
-    AMS_CHECK_RC_ERROR ( clAmsSetEntityTimer(
-                &entity,
-                &entityTimer) );
+    AMS_CHECK_RC_ERROR ( clAmsSetEntityTimer( &entity, &entityTimer) );
 
     entityTimer.count = 0;
     entityTimer.type = CL_AMS_SU_TIMER_SURESTART;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusPtr,
-                &entityTimer,
-                "suRestartTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusPtr, &entityTimer, "suRestartTimer") );
 
     memset (&entity,0,sizeof (ClAmsEntityT));
     strcpy ((ClCharT*)entity.name.value, name);
     entity.name.length = strlen (name) + 1;
     entity.type = CL_AMS_ENTITY_TYPE_SU;
 
-    AMS_CHECK_RC_ERROR ( clAmsSetEntityTimer(
-                &entity,
-                &entityTimer) );
+    AMS_CHECK_RC_ERROR ( clAmsSetEntityTimer( &entity, &entityTimer) );
 
-    ClParserPtrT  listPtr = clParserChild( statusPtr,AMS_XML_TAG_SI_LIST);
+    listPtr = clParserChild( statusPtr,AMS_XML_TAG_SI_LIST);
 
     if ( !listPtr)
     {
         return CL_OK;
     }
 
-
-    ClParserPtrT  list2Ptr = clParserChild( listPtr,AMS_XML_TAG_SI);
+    list2Ptr = clParserChild( listPtr,AMS_XML_TAG_SI);
 
     if ( !list2Ptr)
     {
         return CL_OK;
     }
 
-    ClAmsEntityRefT  sourceEntityRef = { {0},0,0};
-    const ClCharT  *numActiveCSIs = NULL;
-    const ClCharT  *numStandbyCSIs = NULL;
-    const ClCharT  *haState = NULL;
-    const ClCharT  *numQuiescedCSIs = NULL;
-    const ClCharT  *numQuiescingCSIs = NULL;
-    const ClCharT  *siName = NULL;
 
     memset (&sourceEntityRef,0,sizeof (ClAmsEntityRefT));
     strcpy ((ClCharT*)sourceEntityRef.entity.name.value, name);
     sourceEntityRef.entity.name.length = strlen (name) + 1;
     sourceEntityRef.entity.type = CL_AMS_ENTITY_TYPE_SU;
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU],
-                &sourceEntityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU], &sourceEntityRef) );
 
-    ClAmsSUT  *su = (ClAmsSUT *)sourceEntityRef.ptr;
+    su = (ClAmsSUT *)sourceEntityRef.ptr;
 
     AMS_CHECKPTR_AND_EXIT ( !su );
 
@@ -2476,34 +2085,21 @@ clAmsDBSUListDeXMLize(
 
         ClAmsSUSIRefT *siRef = NULL;
 
-        siName = clParserAttr (
-                list2Ptr,
-                AMS_XML_TAG_NAME );
+        siName = clParserAttr ( list2Ptr, AMS_XML_TAG_NAME );
 
-        haState = clParserAttr (
-                list2Ptr,
-                "haState");
+        haState = clParserAttr ( list2Ptr, "haState");
 
-        numActiveCSIs  = clParserAttr (
-                list2Ptr,
-                "numActiveCSIs");
+        numActiveCSIs  = clParserAttr ( list2Ptr, "numActiveCSIs");
 
-        numStandbyCSIs  = clParserAttr (
-                list2Ptr,
-                "numStandbyCSIs");
+        numStandbyCSIs  = clParserAttr ( list2Ptr, "numStandbyCSIs");
 
-        numQuiescedCSIs  = clParserAttr (
-                list2Ptr,
-                "numQuiescedCSIs");
+        numQuiescedCSIs  = clParserAttr ( list2Ptr, "numQuiescedCSIs");
 
-        numQuiescingCSIs  = clParserAttr (
-                list2Ptr,
-                "numQuiescingCSIs");
+        numQuiescingCSIs  = clParserAttr ( list2Ptr, "numQuiescingCSIs");
 
-        AMS_CHECKPTR_AND_EXIT ( !siName|| !haState || !numActiveCSIs || !numActiveCSIs 
-                || !numQuiescedCSIs || !numQuiescingCSIs );
+        AMS_CHECKPTR_AND_EXIT ( !siName|| !haState || !numActiveCSIs || !numActiveCSIs || !numQuiescedCSIs || !numQuiescingCSIs );
 
-        siRef = clHeapAllocate (sizeof (ClAmsSUSIRefT));
+        siRef = (ClAmsSUSIRefT*) clHeapAllocate (sizeof (ClAmsSUSIRefT));
 
         AMS_CHECK_NO_MEMORY (siRef);
 
@@ -2511,20 +2107,15 @@ clAmsDBSUListDeXMLize(
         siRef->entityRef.entity.name.length = strlen (siName) + 1;
         siRef->entityRef.entity.type = CL_AMS_ENTITY_TYPE_SI;
 
-        AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                    &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI],
-                    &siRef->entityRef) );
+        AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI], &siRef->entityRef) );
 
-        siRef->haState = atoi (haState);
+        siRef->haState = (ClAmsHAStateT) atoi (haState);
         siRef->numActiveCSIs = atoi (numActiveCSIs);
         siRef->numStandbyCSIs = atoi (numStandbyCSIs);
         siRef->numQuiescedCSIs = atoi (numQuiescedCSIs);
         siRef->numQuiescingCSIs = atoi (numQuiescingCSIs);
 
-        AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
-                    &su->status.siList,
-                    (ClAmsEntityRefT *)siRef,
-                    0) );
+        AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef( &su->status.siList, (ClAmsEntityRefT *)siRef, 0) );
 
         numActiveCSIs = NULL;
         haState = NULL;
@@ -2680,21 +2271,7 @@ clAmsDBCompXMLize(
        CL_IN  ClAmsCompT  *comp)
 {
     ClRcT rc = CL_OK;
-
-    ClParserPtrT compPtr = 
-        CL_PARSER_ADD_CHILD(amfPtr.compNamesPtr,AMS_XML_TAG_COMP_NAME, 0);
-
-    AMS_CHECKPTR (!comp);
-
-    CL_PARSER_SET_ATTR(
-            compPtr,
-            AMS_XML_TAG_NAME,
-            (const ClCharT*)comp->config.entity.name.value);
-
-    ClParserPtrT configPtr = CL_PARSER_ADD_CHILD( compPtr,AMS_XML_TAG_CONFIG , 0);
-
-    AMS_CHECKPTR_AND_EXIT (!configPtr);
-
+    ClUint32T i;
     ClCharT  *capabilityModel = NULL;
     ClCharT  *property = NULL;
     ClCharT  *isRestartable = NULL;
@@ -2709,166 +2286,7 @@ clAmsDBCompXMLize(
     ClCharT  *numMaxStandbyCSIs = NULL;
     ClCharT  *recoveryOnTimeout = NULL;
     ClCharT  *numSupportedCSITypes = NULL;
-    ClUint32T i;
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.capabilityModel,
-                &capabilityModel) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.property,
-                &property) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.isRestartable,
-                &isRestartable) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.nodeRebootCleanupFail,
-                &nodeRebootCleanupFail) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.instantiateLevel,
-                &instantiateLevel) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.numMaxInstantiate,
-                &numMaxInstantiate) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.numMaxInstantiateWithDelay,
-                &numMaxInstantiateWithDelay) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.numMaxTerminate,
-                &numMaxTerminate) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.numMaxAmStart,
-                &numMaxAmStart) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.numMaxAmStop,
-                &numMaxAmStop) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.numMaxActiveCSIs,
-                &numMaxActiveCSIs) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.numMaxStandbyCSIs,
-                &numMaxStandbyCSIs) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.recoveryOnTimeout,
-                &recoveryOnTimeout) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->config.numSupportedCSITypes,
-                &numSupportedCSITypes) );
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numSupportedCSITypes",
-            numSupportedCSITypes);
-
-    ClParserPtrT csiTypeInstances = CL_PARSER_ADD_CHILD(configPtr,
-                                                        AMS_XML_TAG_CSI_TYPES,
-                                                        0);
-    AMS_CHECKPTR_AND_EXIT(!csiTypeInstances);
-
-    for(i = 0; i < comp->config.numSupportedCSITypes; ++i)
-    {
-        ClParserPtrT csiTypeInstance = CL_PARSER_ADD_CHILD(csiTypeInstances,
-                                                           AMS_XML_TAG_CSI_TYPE,
-                                                           0);
-        
-        AMS_CHECKPTR_AND_EXIT(!csiTypeInstance);
-
-        CL_PARSER_SET_ATTR(csiTypeInstance, 
-                           AMS_XML_TAG_NAME,
-                           (const ClCharT*)comp->config.pSupportedCSITypes[i].value);
-    }
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "proxyCSIType",
-            (const ClCharT*)comp->config.proxyCSIType.value);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "capabilityModel",
-            capabilityModel);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "property",
-            property);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "isRestartable",
-            isRestartable);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "nodeRebootCleanupFail",
-            nodeRebootCleanupFail);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "instantiateLevel",
-            instantiateLevel);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numMaxInstantiate",
-            numMaxInstantiate);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numMaxInstantiateWithDelay",
-            numMaxInstantiateWithDelay);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numMaxTerminate",
-            numMaxTerminate);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numMaxAmStart",
-            numMaxAmStart);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numMaxAmStop",
-            numMaxAmStop);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numMaxActiveCSIs",
-            numMaxActiveCSIs);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numMaxStandbyCSIs",
-            numMaxStandbyCSIs);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "recoveryOnTimeout",
-            recoveryOnTimeout);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "parentSU",
-            (const ClCharT*)comp->config.parentSU.entity.name.value);
-
-    ClParserPtrT timeoutsPtr = CL_PARSER_ADD_CHILD(configPtr,"timeouts", 0);
-
-    AMS_CHECKPTR_AND_EXIT ( !timeoutsPtr );
-
+    ClCharT  *presenceState = NULL;
     ClCharT  *instantiateTmOut = NULL;
     ClCharT  *instantiateDelayTmOut = NULL;
     ClCharT  *terminateTmOut= NULL;
@@ -2880,115 +2298,6 @@ clAmsDBCompXMLize(
     ClCharT  *csiRemoveTmOut= NULL;
     ClCharT  *proxiedCompInstantiateTmOut= NULL;
     ClCharT  *proxiedCompCleanupTmOut= NULL;
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.instantiate,
-                &instantiateTmOut) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.instantiateDelay,
-                &instantiateDelayTmOut) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.terminate,
-                &terminateTmOut) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.cleanup,
-                &cleanupTmOut) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.amStart,
-                &amStartTmOut) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.amStop,
-                &amStopTmOut) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.quiescingComplete,
-                &quiescingCompleteTmOut) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.csiSet,
-                &csiSetTmout) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.csiRemove,
-                &csiRemoveTmOut) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.proxiedCompCleanup,
-                &proxiedCompCleanupTmOut) );
-
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                comp->config.timeouts.proxiedCompInstantiate,
-                &proxiedCompInstantiateTmOut) );
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "instantiate",
-            instantiateTmOut);
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "instantiateDelay",
-            instantiateDelayTmOut);
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "terminate",
-            terminateTmOut);
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "cleanup",
-            cleanupTmOut);
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "amStart",
-            amStartTmOut);
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "amStop",
-            amStopTmOut);
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "csiSet",
-            csiSetTmout);
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "csiRemove",
-            csiRemoveTmOut);
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "proxiedCompInstantiate",
-            proxiedCompInstantiateTmOut);
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "proxiedCompCleanup",
-            proxiedCompCleanupTmOut);
-
-    CL_PARSER_SET_ATTR (
-            timeoutsPtr,
-            "quiescingComplete",
-            quiescingCompleteTmOut);
-
-    ClParserPtrT statusPtr = CL_PARSER_ADD_CHILD( compPtr,AMS_XML_TAG_STATUS , 0);
-
-    AMS_CHECKPTR_AND_EXIT ( !statusPtr );
-
-    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus(
-                &comp->status.entity,
-                statusPtr) );
-
-    ClCharT  *presenceState = NULL;
     ClCharT  *operState = NULL;
     ClCharT  *readinessState = NULL;
     ClCharT  *recovery = NULL;
@@ -3003,221 +2312,239 @@ clAmsDBCompXMLize(
     ClCharT  *numQuiescingCSIs = NULL;
     ClCharT  *numQuiescedCSIs = NULL;
     ClCharT  *failoverCount = NULL;
+    ClParserPtrT configPtr, csiTypeInstances, timeoutsPtr, statusPtr, statusTimeoutsPtr;
+    ClParserPtrT compPtr = CL_PARSER_ADD_CHILD(amfPtr.compNamesPtr,AMS_XML_TAG_COMP_NAME, 0);
 
+    AMS_CHECKPTR (!comp);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.presenceState,
-                &presenceState) );
+    CL_PARSER_SET_ATTR( compPtr, AMS_XML_TAG_NAME, (const ClCharT*)comp->config.entity.name.value);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.operState,
-                &operState) );
+    configPtr = CL_PARSER_ADD_CHILD( compPtr,AMS_XML_TAG_CONFIG , 0);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.readinessState,
-                &readinessState) );
+    AMS_CHECKPTR_AND_EXIT (!configPtr);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.recovery,
-                &recovery) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.capabilityModel, &capabilityModel) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.numActiveCSIs, 
-                &numActiveCSIs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.property, &property) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.numStandbyCSIs,
-                &numStandbyCSIs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.isRestartable, &isRestartable) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.restartCount,
-                &restartCount) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.nodeRebootCleanupFail, &nodeRebootCleanupFail) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.instantiateCount,
-                &instantiateCount) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.instantiateLevel, &instantiateLevel) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.instantiateDelayCount,
-                &instantiateDelayCount) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.numMaxInstantiate, &numMaxInstantiate) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( 
-                comp->status.amStartCount,
-                &amStartCount) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.numMaxInstantiateWithDelay, &numMaxInstantiateWithDelay) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.amStopCount,
-                &amStopCount) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.numMaxTerminate, &numMaxTerminate) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.alarmHandle,
-                &alarmHandle) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.numMaxAmStart, &numMaxAmStart) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.numQuiescingCSIs,
-                &numQuiescingCSIs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.numMaxAmStop, &numMaxAmStop) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.numQuiescedCSIs,
-                &numQuiescedCSIs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.numMaxActiveCSIs, &numMaxActiveCSIs) );
 
-     AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                comp->status.failoverCount,
-                &failoverCount) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.numMaxStandbyCSIs, &numMaxStandbyCSIs) );
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "presenceState",
-            presenceState);
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.recoveryOnTimeout, &recoveryOnTimeout) );
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "readinessState",
-            readinessState);
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->config.numSupportedCSITypes, &numSupportedCSITypes) );
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "operState",
-            operState);
+    CL_PARSER_SET_ATTR ( configPtr, "numSupportedCSITypes", numSupportedCSITypes);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "recovery",
-            recovery);
+    csiTypeInstances = CL_PARSER_ADD_CHILD(configPtr, AMS_XML_TAG_CSI_TYPES, 0);
+    AMS_CHECKPTR_AND_EXIT(!csiTypeInstances);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numActiveCSIs",
-            numActiveCSIs);
+    for(i = 0; i < comp->config.numSupportedCSITypes; ++i)
+    {
+        ClParserPtrT csiTypeInstance = CL_PARSER_ADD_CHILD(csiTypeInstances, AMS_XML_TAG_CSI_TYPE, 0);
+        
+        AMS_CHECKPTR_AND_EXIT(!csiTypeInstance);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numStandbyCSIs",
-            numStandbyCSIs);
+        CL_PARSER_SET_ATTR(csiTypeInstance, AMS_XML_TAG_NAME, (const ClCharT*)comp->config.pSupportedCSITypes[i].value);
+    }
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "restartCount",
-            restartCount);
+    CL_PARSER_SET_ATTR ( configPtr, "proxyCSIType", (const ClCharT*)comp->config.proxyCSIType.value);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "instantiateCount",
-            instantiateCount);
+    CL_PARSER_SET_ATTR ( configPtr, "capabilityModel", capabilityModel);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "instantiateDelayCount",
-            instantiateDelayCount);
+    CL_PARSER_SET_ATTR ( configPtr, "property", property);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "amStartCount",
-            amStartCount);
+    CL_PARSER_SET_ATTR ( configPtr, "isRestartable", isRestartable);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "amStopCount",
-            amStopCount);
+    CL_PARSER_SET_ATTR ( configPtr, "nodeRebootCleanupFail", nodeRebootCleanupFail);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "alarmHandle",
-            alarmHandle);
+    CL_PARSER_SET_ATTR ( configPtr, "instantiateLevel", instantiateLevel);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numQuiescingCSIs",
-            numQuiescingCSIs);
+    CL_PARSER_SET_ATTR ( configPtr, "numMaxInstantiate", numMaxInstantiate);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numQuiescedCSIs",
-            numQuiescedCSIs);
+    CL_PARSER_SET_ATTR ( configPtr, "numMaxInstantiateWithDelay", numMaxInstantiateWithDelay);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "failoverCount",
-            failoverCount);
+    CL_PARSER_SET_ATTR ( configPtr, "numMaxTerminate", numMaxTerminate);
+
+    CL_PARSER_SET_ATTR ( configPtr, "numMaxAmStart", numMaxAmStart);
+
+    CL_PARSER_SET_ATTR ( configPtr, "numMaxAmStop", numMaxAmStop);
+
+    CL_PARSER_SET_ATTR ( configPtr, "numMaxActiveCSIs", numMaxActiveCSIs);
+
+    CL_PARSER_SET_ATTR ( configPtr, "numMaxStandbyCSIs", numMaxStandbyCSIs);
+
+    CL_PARSER_SET_ATTR ( configPtr, "recoveryOnTimeout", recoveryOnTimeout);
+
+    CL_PARSER_SET_ATTR ( configPtr, "parentSU", (const ClCharT*)comp->config.parentSU.entity.name.value);
+
+    timeoutsPtr = CL_PARSER_ADD_CHILD(configPtr,"timeouts", 0);
+
+    AMS_CHECKPTR_AND_EXIT ( !timeoutsPtr );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.instantiate, &instantiateTmOut) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.instantiateDelay, &instantiateDelayTmOut) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.terminate, &terminateTmOut) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.cleanup, &cleanupTmOut) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.amStart, &amStartTmOut) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.amStop, &amStopTmOut) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.quiescingComplete, &quiescingCompleteTmOut) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.csiSet, &csiSetTmout) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.csiRemove, &csiRemoveTmOut) );
+ 
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.proxiedCompCleanup, &proxiedCompCleanupTmOut) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( comp->config.timeouts.proxiedCompInstantiate, &proxiedCompInstantiateTmOut) );
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "instantiate", instantiateTmOut);
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "instantiateDelay", instantiateDelayTmOut);
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "terminate", terminateTmOut);
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "cleanup", cleanupTmOut);
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "amStart", amStartTmOut);
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "amStop", amStopTmOut);
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "csiSet", csiSetTmout);
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "csiRemove", csiRemoveTmOut);
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "proxiedCompInstantiate", proxiedCompInstantiateTmOut);
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "proxiedCompCleanup", proxiedCompCleanupTmOut);
+
+    CL_PARSER_SET_ATTR ( timeoutsPtr, "quiescingComplete", quiescingCompleteTmOut);
+
+    statusPtr = CL_PARSER_ADD_CHILD( compPtr,AMS_XML_TAG_STATUS , 0);
+
+    AMS_CHECKPTR_AND_EXIT ( !statusPtr );
+
+    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus( &comp->status.entity, statusPtr) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.presenceState, &presenceState) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.operState, &operState) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.readinessState, &readinessState) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.recovery, &recovery) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.numActiveCSIs, &numActiveCSIs) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.numStandbyCSIs, &numStandbyCSIs) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.restartCount, &restartCount) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.instantiateCount, &instantiateCount) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.instantiateDelayCount, &instantiateDelayCount) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.amStartCount, &amStartCount) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.amStopCount, &amStopCount) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.alarmHandle, &alarmHandle) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.numQuiescingCSIs, &numQuiescingCSIs) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.numQuiescedCSIs, &numQuiescedCSIs) );
+
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( comp->status.failoverCount, &failoverCount) );
+
+    CL_PARSER_SET_ATTR ( statusPtr, "presenceState", presenceState);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "readinessState", readinessState);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "operState", operState);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "recovery", recovery);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "numActiveCSIs", numActiveCSIs);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "numStandbyCSIs", numStandbyCSIs);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "restartCount", restartCount);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "instantiateCount", instantiateCount);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "instantiateDelayCount", instantiateDelayCount);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "amStartCount", amStartCount);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "amStopCount", amStopCount);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "alarmHandle", alarmHandle);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "numQuiescingCSIs", numQuiescingCSIs);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "numQuiescedCSIs", numQuiescedCSIs);
+
+    CL_PARSER_SET_ATTR ( statusPtr, "failoverCount", failoverCount);
 
     if ( comp->status.proxyComp )
     {
-        CL_PARSER_SET_ATTR (
-                statusPtr,
-                "proxyComp",
-                (const ClCharT*)comp->status.proxyComp->name.value);
+        CL_PARSER_SET_ATTR ( statusPtr, "proxyComp", (const ClCharT*)comp->status.proxyComp->name.value);
     }
     else
     {
-        CL_PARSER_SET_ATTR (
-                statusPtr,
-                "proxyComp",
-                "");
+        CL_PARSER_SET_ATTR ( statusPtr, "proxyComp", "");
     }
 
-    ClParserPtrT statusTimeoutsPtr = CL_PARSER_ADD_CHILD(statusPtr,"timeouts", 0);
+    statusTimeoutsPtr = CL_PARSER_ADD_CHILD(statusPtr,"timeouts", 0);
 
     AMS_CHECKPTR_AND_EXIT ( !statusTimeoutsPtr);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.instantiate,
-                "instantiateTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.instantiate, "instantiateTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.instantiateDelay,
-                "instantiateDelayTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.instantiateDelay, "instantiateDelayTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.terminate,
-                "terminateTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.terminate, "terminateTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.cleanup,
-                "cleanupTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.cleanup, "cleanupTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.amStart,
-                "amStartTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.amStart, "amStartTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.amStop,
-                "amStopTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.amStop, "amStopTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.quiescingComplete,
-                "quiescingCompleteTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.quiescingComplete, "quiescingCompleteTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.csiSet,
-                "csiSetTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.csiSet, "csiSetTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.csiRemove,
-                "csiRemoveTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.csiRemove, "csiRemoveTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.proxiedCompInstantiate,
-                "proxiedCompInstantiateTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.proxiedCompInstantiate, "proxiedCompInstantiateTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusTimeoutsPtr,
-                &comp->status.timers.proxiedCompCleanup,
-                "proxiedCompCleanupTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusTimeoutsPtr, &comp->status.timers.proxiedCompCleanup, "proxiedCompCleanupTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                statusPtr,
-                &comp->status.csiList,
-                CL_AMS_COMP_STATUS_CSI_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( statusPtr, &comp->status.csiList, CL_AMS_COMP_STATUS_CSI_LIST) );
 
 exitfn:
 
@@ -3294,10 +2621,11 @@ clAmsDBCompUnmarshall(ClAmsEntityRefT *entityRef,
                       ClUint32T versionCode)
 {
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT srcEntityRef = {{0}};
-    ClAmsCkptOperationT op = 0;
+    ClAmsEntityRefT srcEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
+    ClAmsCkptOperationT op;
     ClAmsCompT *comp = NULL;
 
+    memset(&op,0,sizeof(ClAmsCkptOperationT));
     if(entity->type != CL_AMS_ENTITY_TYPE_COMP)
     {
         AMS_LOG(CL_LOG_SEV_ERROR, ("Comp unmarshall invoked with invalid entity type [%d]\n", entity->type));
@@ -3333,8 +2661,8 @@ clAmsDBCompUnmarshall(ClAmsEntityRefT *entityRef,
         {
         case CL_AMS_CKPT_OPERATION_SET_CONFIG:
             {
-                ClAmsCompConfigT compConfig = {{0}};
-                ClAmsEntityRefT targetEntityRef = {{0}};
+                ClAmsCompConfigT compConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
+                ClAmsEntityRefT targetEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCompConfigT, 4, 0, 0)(inMsgHdl, &compConfig));
                 /*
                  * Terminate if present before.
@@ -3368,7 +2696,7 @@ clAmsDBCompUnmarshall(ClAmsEntityRefT *entityRef,
 
         case CL_AMS_CKPT_OPERATION_SET_PROXY_COMP:
             {
-                ClAmsEntityRefT targetEntityRef = {{0}};
+                ClAmsEntityRefT targetEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsgHdl, 
                                                                                          &targetEntityRef.entity));
                 /*
@@ -3406,28 +2734,6 @@ clAmsDBCompDeXMLize(
        CL_IN  ClParserPtrT  compPtr)
 {
     ClRcT  rc = CL_OK;
-    const ClCharT  *name = NULL;
-
-    AMS_CHECKPTR (!compPtr);
-
-    name = clParserAttr(
-            compPtr,
-            AMS_XML_TAG_NAME);
-
-    if ( !name )
-    {
-        AMS_LOG (CL_LOG_SEV_ERROR,("comp Instance does not have name attribute \n"));
-        return CL_AMS_RC (CL_ERR_NULL_POINTER);
-    }
-
-    ClParserPtrT configPtr = clParserChild( compPtr,AMS_XML_TAG_CONFIG );
-
-    if ( !configPtr )
-    {
-        AMS_LOG (CL_LOG_SEV_ERROR,("comp Instance %s does not have config tag \n", name));
-        return CL_AMS_RC (CL_ERR_NULL_POINTER);
-    }
-
     const ClCharT  *proxyCSIType = NULL;
     const ClCharT  *capabilityModel = NULL;
     const ClCharT  *property = NULL;
@@ -3448,115 +2754,6 @@ clAmsDBCompDeXMLize(
     ClUint32T i;
     ClParserPtrT  csiTypeInstances = NULL;
     ClParserPtrT  csiTypeInstance = NULL;
-
-    pNumSupportedCSITypes = clParserAttr(configPtr, "numSupportedCSITypes");
-    AMS_CHECKPTR_AND_EXIT(!pNumSupportedCSITypes);
-
-    numSupportedCSITypes = atoi(pNumSupportedCSITypes);
-    csiTypeInstances = clParserChild(configPtr, AMS_XML_TAG_CSI_TYPES);
-
-    AMS_CHECKPTR_AND_EXIT(!csiTypeInstances);
-
-    csiTypeInstance = clParserChild(csiTypeInstances, AMS_XML_TAG_CSI_TYPE);
-
-    AMS_CHECKPTR_AND_EXIT(!csiTypeInstance);
-    
-    pSupportedCSITypes = clHeapCalloc(numSupportedCSITypes,
-                                      sizeof(SaNameT));
-
-    AMS_CHECKPTR_AND_EXIT(!pSupportedCSITypes);
-
-    for(i = 0; i < numSupportedCSITypes && csiTypeInstance; ++i) 
-    {
-        const ClCharT *pData = clParserAttr(csiTypeInstance, AMS_XML_TAG_NAME);
-        AMS_CHECKPTR_AND_EXIT(!pData);
-
-        pSupportedCSITypes[i].length = 
-            CL_MIN(strlen(pData)+1, CL_MAX_NAME_LENGTH-1);
-        strncpy((ClCharT*)pSupportedCSITypes[i].value, pData, CL_MAX_NAME_LENGTH-1);
-        csiTypeInstance = csiTypeInstance->next;
-    }
-
-    if(csiTypeInstance != NULL ||
-       i != numSupportedCSITypes)
-    {
-        AMS_LOG(CL_LOG_SEV_WARNING,
-                ("Comp config. numSupportedCSIType mismatch. "\
-                 "Expected [%d], Got [%d]\n", numSupportedCSITypes, i));
-    }
-
-    proxyCSIType = clParserAttr(
-            configPtr,
-            "proxyCSIType");
-
-    capabilityModel = clParserAttr (
-            configPtr,
-            "capabilityModel");
-    property = clParserAttr (
-            configPtr,
-            "property");
-
-    isRestartable = clParserAttr (
-            configPtr,
-            "isRestartable");
-
-    nodeRebootCleanupFail = clParserAttr (
-            configPtr,
-            "nodeRebootCleanupFail");
-
-    instantiateLevel = clParserAttr (
-            configPtr,
-            "instantiateLevel");
-
-    numMaxInstantiate = clParserAttr (
-            configPtr,
-            "numMaxInstantiate");
-
-    numMaxInstantiateWithDelay = clParserAttr (
-            configPtr,
-            "numMaxInstantiateWithDelay");
-
-    numMaxTerminate = clParserAttr (
-            configPtr,
-            "numMaxTerminate");
-
-    numMaxAmStart = clParserAttr (
-            configPtr,
-            "numMaxAmStart");
-
-    numMaxAmStop = clParserAttr (
-            configPtr,
-            "numMaxAmStop");
-
-    numMaxActiveCSIs = clParserAttr (
-            configPtr,
-            "numMaxActiveCSIs");
-
-    numMaxStandbyCSIs = clParserAttr (
-            configPtr,
-            "numMaxStandbyCSIs");
-
-    recoveryOnTimeout = clParserAttr (
-            configPtr,
-            "recoveryOnTimeout");
-
-    if (   !capabilityModel || !property || !isRestartable
-           || !nodeRebootCleanupFail || !instantiateLevel 
-           || !numMaxInstantiate || !numMaxInstantiateWithDelay 
-           || !numMaxTerminate || !numMaxAmStart || !numMaxAmStop 
-           || !numMaxActiveCSIs || !numMaxStandbyCSIs || !recoveryOnTimeout
-           || !proxyCSIType )
-    {
-        rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR,("COMP[%s] has a missing config attribute \n",
-                                 name));
-        goto exitfn;
-    }
-
-    ClParserPtrT timeoutsPtr = clParserChild(configPtr,"timeouts");
-
-    AMS_CHECKPTR_AND_EXIT ( !timeoutsPtr );
-
     const ClCharT  *instantiateTmOut = NULL;
     const ClCharT  *instantiateDelayTmOut = NULL;
     const ClCharT  *terminateTmOut = NULL;
@@ -3568,69 +2765,7 @@ clAmsDBCompDeXMLize(
     const ClCharT  *csiRemoveTmOut = NULL;
     const ClCharT  *proxiedCompInstantiateTmOut = NULL;
     const ClCharT  *proxiedCompCleanupTmOut = NULL;
-
-    instantiateTmOut = clParserAttr (
-            timeoutsPtr,
-            "instantiate");
-
-    instantiateDelayTmOut = clParserAttr (
-            timeoutsPtr,
-            "instantiateDelay");
-
-    terminateTmOut = clParserAttr (
-            timeoutsPtr,
-            "terminate");
-
-    cleanupTmOut = clParserAttr (
-            timeoutsPtr,
-            "cleanup");
-
-    amStartTmOut = clParserAttr (
-            timeoutsPtr,
-            "amStart");
-
-    amStopTmOut = clParserAttr (
-            timeoutsPtr,
-            "amStop");
-
-    csiSetTmout = clParserAttr (
-            timeoutsPtr,
-            "csiSet");
-
-    csiRemoveTmOut = clParserAttr (
-            timeoutsPtr,
-            "csiRemove");
-
-    proxiedCompInstantiateTmOut = clParserAttr (
-            timeoutsPtr,
-            "proxiedCompInstantiate");
-
-    proxiedCompCleanupTmOut = clParserAttr (
-            timeoutsPtr,
-            "proxiedCompCleanup");
-
-    quiescingCompleteTmOut = clParserAttr (
-            timeoutsPtr,
-            "quiescingComplete");
-
-
-    if ( !instantiateTmOut || !instantiateDelayTmOut || 
-         !terminateTmOut || !cleanupTmOut || 
-         !amStartTmOut || !amStopTmOut || 
-         !quiescingCompleteTmOut || !csiSetTmout || !csiRemoveTmOut || 
-         !proxiedCompInstantiateTmOut || !proxiedCompCleanupTmOut )
-    {
-        rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR,("COMP[%s] has a missing status timer attribute \n",
-                    name));
-        goto exitfn;
-
-    }
-
-    ClParserPtrT statusPtr = clParserChild( compPtr,AMS_XML_TAG_STATUS );
-
-    AMS_CHECKPTR_AND_EXIT ( !statusPtr );
-
+    const ClCharT  *name = NULL;
     const ClCharT  *presenceState = NULL;
     const ClCharT  *operState = NULL;
     const ClCharT  *readinessState = NULL;
@@ -3646,81 +2781,175 @@ clAmsDBCompDeXMLize(
     const ClCharT  *numQuiescingCSIs = NULL;
     const ClCharT  *numQuiescedCSIs = NULL;
     const ClCharT  *failoverCount = NULL;
+    ClAmsEntityRefT  entityRef;
+    ClAmsCompT      comp;
+    ClParserPtrT configPtr,timeoutsPtr, statusPtr, statusTimeoutsPtr;
 
-    presenceState = clParserAttr (
-            statusPtr,
-            "presenceState");
+    AMS_CHECKPTR (!compPtr);
 
-    readinessState = clParserAttr (
-            statusPtr,
-            "readinessState");
+    name = clParserAttr( compPtr, AMS_XML_TAG_NAME);
 
-    operState = clParserAttr (
-            statusPtr,
-            "operState");
+    if ( !name )
+    {
+        AMS_LOG (CL_LOG_SEV_ERROR,("comp Instance does not have name attribute \n"));
+        return CL_AMS_RC (CL_ERR_NULL_POINTER);
+    }
 
-    recovery = clParserAttr (
-            statusPtr,
-            "recovery");
+    configPtr = clParserChild( compPtr,AMS_XML_TAG_CONFIG );
 
-    numActiveCSIs = clParserAttr (
-            statusPtr,
-            "numActiveCSIs");
+    if ( !configPtr )
+    {
+        AMS_LOG (CL_LOG_SEV_ERROR,("comp Instance %s does not have config tag \n", name));
+        return CL_AMS_RC (CL_ERR_NULL_POINTER);
+    }
 
-    numStandbyCSIs = clParserAttr (
-            statusPtr,
-            "numStandbyCSIs");
+    pNumSupportedCSITypes = clParserAttr(configPtr, "numSupportedCSITypes");
+    AMS_CHECKPTR_AND_EXIT(!pNumSupportedCSITypes);
 
-    restartCount = clParserAttr (
-            statusPtr,
-            "restartCount");
+    numSupportedCSITypes = atoi(pNumSupportedCSITypes);
+    csiTypeInstances = clParserChild(configPtr, AMS_XML_TAG_CSI_TYPES);
 
-    instantiateCount = clParserAttr (
-            statusPtr,
-            "instantiateCount");
+    AMS_CHECKPTR_AND_EXIT(!csiTypeInstances);
 
-    instantiateDelayCount = clParserAttr (
-            statusPtr,
-            "instantiateDelayCount");
+    csiTypeInstance = clParserChild(csiTypeInstances, AMS_XML_TAG_CSI_TYPE);
 
-    amStartCount = clParserAttr (
-            statusPtr,
-            "amStartCount");
+    AMS_CHECKPTR_AND_EXIT(!csiTypeInstance);
+    
+    pSupportedCSITypes = (SaNameT*) clHeapCalloc(numSupportedCSITypes, sizeof(SaNameT));
 
-    amStopCount = clParserAttr (
-            statusPtr,
-            "amStopCount");
+    AMS_CHECKPTR_AND_EXIT(!pSupportedCSITypes);
 
-    alarmHandle = clParserAttr (
-            statusPtr,
-            "alarmHandle");
+    for(i = 0; i < numSupportedCSITypes && csiTypeInstance; ++i) 
+    {
+        const ClCharT *pData = clParserAttr(csiTypeInstance, AMS_XML_TAG_NAME);
+        AMS_CHECKPTR_AND_EXIT(!pData);
 
-    numQuiescingCSIs = clParserAttr (
-            statusPtr,
-            "numQuiescingCSIs");
+        pSupportedCSITypes[i].length = CL_MIN(strlen(pData)+1, CL_MAX_NAME_LENGTH-1);
+        strncpy((ClCharT*)pSupportedCSITypes[i].value, pData, CL_MAX_NAME_LENGTH-1);
+        csiTypeInstance = csiTypeInstance->next;
+    }
 
-    numQuiescedCSIs = clParserAttr (
-            statusPtr,
-            "numQuiescedCSIs");
+    if(csiTypeInstance != NULL || i != numSupportedCSITypes)
+    {
+        AMS_LOG(CL_LOG_SEV_WARNING, ("Comp config. numSupportedCSIType mismatch. "\
+        "Expected [%d], Got [%d]\n", numSupportedCSITypes, i));
+    }
 
-    failoverCount = clParserAttr (
-            statusPtr,
-            "failoverCount");
+    proxyCSIType = clParserAttr( configPtr, "proxyCSIType");
 
-    if ( !presenceState || !operState || !readinessState || !recovery
-            || !numActiveCSIs || !numStandbyCSIs || !restartCount 
-            || !instantiateCount || !instantiateDelayCount || !amStartCount
-            || !amStopCount || !alarmHandle || !numQuiescingCSIs 
-            || !numQuiescedCSIs || !failoverCount)
+    capabilityModel = clParserAttr ( configPtr, "capabilityModel");
+
+    property = clParserAttr ( configPtr, "property");
+
+    isRestartable = clParserAttr ( configPtr, "isRestartable");
+
+    nodeRebootCleanupFail = clParserAttr ( configPtr, "nodeRebootCleanupFail");
+
+    instantiateLevel = clParserAttr ( configPtr, "instantiateLevel");
+
+    numMaxInstantiate = clParserAttr ( configPtr, "numMaxInstantiate");
+
+    numMaxInstantiateWithDelay = clParserAttr ( configPtr, "numMaxInstantiateWithDelay");
+
+    numMaxTerminate = clParserAttr ( configPtr, "numMaxTerminate");
+
+    numMaxAmStart = clParserAttr ( configPtr, "numMaxAmStart");
+
+    numMaxAmStop = clParserAttr ( configPtr, "numMaxAmStop");
+
+    numMaxActiveCSIs = clParserAttr ( configPtr, "numMaxActiveCSIs");
+
+    numMaxStandbyCSIs = clParserAttr ( configPtr, "numMaxStandbyCSIs");
+
+    recoveryOnTimeout = clParserAttr ( configPtr, "recoveryOnTimeout");
+
+    if (   !capabilityModel || !property || !isRestartable || !nodeRebootCleanupFail || !instantiateLevel 
+           || !numMaxInstantiate || !numMaxInstantiateWithDelay || !numMaxTerminate || !numMaxAmStart || !numMaxAmStop 
+           || !numMaxActiveCSIs || !numMaxStandbyCSIs || !recoveryOnTimeout || !proxyCSIType )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR,("COMP[%s] has a missing status attribute \n",
-                    name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("COMP[%s] has a missing config attribute \n", name));
         goto exitfn;
     }
 
-    ClAmsEntityRefT  entityRef = { {0},0,0};
-    ClAmsCompT      comp;
+    timeoutsPtr = clParserChild(configPtr,"timeouts");
+
+    AMS_CHECKPTR_AND_EXIT ( !timeoutsPtr );
+
+    instantiateTmOut = clParserAttr ( timeoutsPtr, "instantiate");
+
+    instantiateDelayTmOut = clParserAttr ( timeoutsPtr, "instantiateDelay");
+
+    terminateTmOut = clParserAttr ( timeoutsPtr, "terminate");
+
+    cleanupTmOut = clParserAttr ( timeoutsPtr, "cleanup");
+
+    amStartTmOut = clParserAttr ( timeoutsPtr, "amStart");
+
+    amStopTmOut = clParserAttr ( timeoutsPtr, "amStop");
+
+    csiSetTmout = clParserAttr ( timeoutsPtr, "csiSet");
+
+    csiRemoveTmOut = clParserAttr ( timeoutsPtr, "csiRemove");
+
+    proxiedCompInstantiateTmOut = clParserAttr ( timeoutsPtr, "proxiedCompInstantiate");
+
+    proxiedCompCleanupTmOut = clParserAttr ( timeoutsPtr, "proxiedCompCleanup");
+
+    quiescingCompleteTmOut = clParserAttr ( timeoutsPtr, "quiescingComplete");
+
+
+    if ( !instantiateTmOut || !instantiateDelayTmOut || !terminateTmOut || !cleanupTmOut || !amStartTmOut || !amStopTmOut || 
+         !quiescingCompleteTmOut || !csiSetTmout || !csiRemoveTmOut || !proxiedCompInstantiateTmOut || !proxiedCompCleanupTmOut )
+    {
+        rc = CL_ERR_NULL_POINTER;
+        AMS_LOG (CL_LOG_SEV_ERROR,("COMP[%s] has a missing status timer attribute \n", name));
+        goto exitfn;
+
+    }
+
+    statusPtr = clParserChild( compPtr,AMS_XML_TAG_STATUS );
+
+    AMS_CHECKPTR_AND_EXIT ( !statusPtr );
+
+    presenceState = clParserAttr ( statusPtr, "presenceState");
+
+    readinessState = clParserAttr ( statusPtr, "readinessState");
+
+    operState = clParserAttr ( statusPtr, "operState");
+
+    recovery = clParserAttr ( statusPtr, "recovery");
+
+    numActiveCSIs = clParserAttr ( statusPtr, "numActiveCSIs");
+
+    numStandbyCSIs = clParserAttr ( statusPtr, "numStandbyCSIs");
+
+    restartCount = clParserAttr ( statusPtr, "restartCount");
+
+    instantiateCount = clParserAttr ( statusPtr, "instantiateCount");
+
+    instantiateDelayCount = clParserAttr ( statusPtr, "instantiateDelayCount");
+
+    amStartCount = clParserAttr ( statusPtr, "amStartCount");
+
+    amStopCount = clParserAttr ( statusPtr, "amStopCount");
+
+    alarmHandle = clParserAttr ( statusPtr, "alarmHandle");
+
+    numQuiescingCSIs = clParserAttr ( statusPtr, "numQuiescingCSIs");
+
+    numQuiescedCSIs = clParserAttr ( statusPtr, "numQuiescedCSIs");
+
+    failoverCount = clParserAttr ( statusPtr, "failoverCount");
+
+    if ( !presenceState || !operState || !readinessState || !recovery || !numActiveCSIs || !numStandbyCSIs || !restartCount 
+            || !instantiateCount || !instantiateDelayCount || !amStartCount || !amStopCount || !alarmHandle || !numQuiescingCSIs 
+            || !numQuiescedCSIs || !failoverCount)
+    {
+        rc = CL_ERR_NULL_POINTER;
+        AMS_LOG (CL_LOG_SEV_ERROR,("COMP[%s] has a missing status attribute \n", name));
+        goto exitfn;
+    }
 
     memset (&entityRef,0,sizeof (ClAmsEntityRefT));
     memset (&comp,0,sizeof (ClAmsCompT));
@@ -3730,15 +2959,11 @@ clAmsDBCompDeXMLize(
 
 #ifdef AMS_TEST_CKPT
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP], &entityRef) );
 
 #endif
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP], &entityRef) );
 
     /*
      * Write the config part
@@ -3749,8 +2974,8 @@ clAmsDBCompDeXMLize(
     comp.config.pSupportedCSITypes = pSupportedCSITypes;
     strcpy ((ClCharT*)comp.config.proxyCSIType.value,proxyCSIType);
     comp.config.proxyCSIType.length = strlen (proxyCSIType) + 1;
-    comp.config.capabilityModel = atoi (capabilityModel);
-    comp.config.property= atoi (property);
+    comp.config.capabilityModel = (ClAmsCompCapModelT) atoi (capabilityModel);
+    comp.config.property= (ClAmsCompPropertyT) atoi (property);
     comp.config.isRestartable= atoi (isRestartable);
     comp.config.nodeRebootCleanupFail= atoi (nodeRebootCleanupFail);
     comp.config.instantiateLevel= atoi (instantiateLevel);
@@ -3761,7 +2986,7 @@ clAmsDBCompDeXMLize(
     comp.config.numMaxAmStop= atoi (numMaxAmStop);
     comp.config.numMaxActiveCSIs= atoi (numMaxActiveCSIs);
     comp.config.numMaxStandbyCSIs= atoi (numMaxStandbyCSIs);
-    comp.config.recoveryOnTimeout= atoi (recoveryOnTimeout);
+    comp.config.recoveryOnTimeout= (ClAmsLocalRecoveryT) atoi (recoveryOnTimeout);
 
     comp.config.timeouts.instantiate = atof(instantiateTmOut);
     comp.config.timeouts.instantiateDelay = atof(instantiateDelayTmOut);
@@ -3776,17 +3001,14 @@ clAmsDBCompDeXMLize(
     comp.config.timeouts.proxiedCompCleanup = atof(proxiedCompCleanupTmOut);
 
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig (
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-                &entityRef.entity,
-                (ClAmsEntityConfigT *)&comp.config) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig ( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP], &entityRef.entity, (ClAmsEntityConfigT *)&comp.config) );
 
     pSupportedCSITypes = NULL;
 
-    comp.status.presenceState = atoi (presenceState);
-    comp.status.operState = atoi (operState);
-    comp.status.readinessState = atoi (readinessState);
-    comp.status.recovery = atoi (recovery);
+    comp.status.presenceState = (ClAmsPresenceStateT) atoi (presenceState);
+    comp.status.operState = (ClAmsOperStateT) atoi (operState);
+    comp.status.readinessState = (ClAmsReadinessStateT) atoi (readinessState);
+    comp.status.recovery = (ClAmsLocalRecoveryT) atoi (recovery);
     comp.status.numActiveCSIs = atoi(numActiveCSIs);
     comp.status.numStandbyCSIs = atoi(numStandbyCSIs);
     comp.status.restartCount = atoi (restartCount);
@@ -3799,95 +3021,57 @@ clAmsDBCompDeXMLize(
     comp.status.numQuiescedCSIs = atoi(numQuiescedCSIs);
     comp.status.failoverCount = atoi (failoverCount);
 
-    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus(
-                &comp.status.entity,
-                statusPtr) );
+    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus( &comp.status.entity, statusPtr) );
 
-    ClParserPtrT statusTimeoutsPtr = clParserChild(statusPtr,"timeouts");
+    statusTimeoutsPtr = clParserChild(statusPtr,"timeouts");
 
     AMS_CHECKPTR_AND_EXIT ( !statusTimeoutsPtr);
 
     comp.status.timers.instantiate.type = CL_AMS_COMP_TIMER_INSTANTIATE;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.instantiate,
-                "instantiateTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.instantiate, "instantiateTimer") );
 
     comp.status.timers.instantiateDelay.type = CL_AMS_COMP_TIMER_INSTANTIATEDELAY;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.instantiateDelay,
-                "instantiateDelayTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.instantiateDelay, "instantiateDelayTimer") );
 
     comp.status.timers.terminate.type= CL_AMS_COMP_TIMER_TERMINATE;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.terminate,
-                "terminateTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.terminate, "terminateTimer") );
 
     comp.status.timers.cleanup.type= CL_AMS_COMP_TIMER_CLEANUP;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.cleanup,
-                "cleanupTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.cleanup, "cleanupTimer") );
 
     comp.status.timers.amStart.type= CL_AMS_COMP_TIMER_AMSTART;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.amStart,
-                "amStartTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.amStart, "amStartTimer") );
 
     comp.status.timers.amStop.type= CL_AMS_COMP_TIMER_AMSTOP;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.amStop,
-                "amStopTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.amStop, "amStopTimer") );
 
     comp.status.timers.quiescingComplete.type= CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.quiescingComplete,
-                "quiescingCompleteTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.quiescingComplete, "quiescingCompleteTimer") );
 
     comp.status.timers.csiSet.type= CL_AMS_COMP_TIMER_CSISET;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.csiSet,
-                "csiSetTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.csiSet, "csiSetTimer") );
 
     comp.status.timers.csiRemove.type= CL_AMS_COMP_TIMER_CSIREMOVE;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.csiRemove,
-                "csiRemoveTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.csiRemove, "csiRemoveTimer") );
 
     comp.status.timers.proxiedCompInstantiate.type = CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.proxiedCompInstantiate,
-                "proxiedCompInstantiateTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.proxiedCompInstantiate, "proxiedCompInstantiateTimer") );
 
     comp.status.timers.proxiedCompCleanup.type= CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusTimeoutsPtr,
-                &comp.status.timers.proxiedCompCleanup,
-                "proxiedCompCleanupTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusTimeoutsPtr, &comp.status.timers.proxiedCompCleanup, "proxiedCompCleanupTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-                &entityRef.entity,
-                (ClAmsEntityStatusT *)&comp.status) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP], &entityRef.entity, (ClAmsEntityStatusT *)&comp.status) );
 
     return CL_OK;
 
@@ -3903,43 +3087,36 @@ clAmsDBCompListDeXMLize(
 {
     ClRcT  rc = CL_OK;
     const ClCharT  *name = NULL;
+    const ClCharT  *parentSU = NULL;
+    const ClCharT  *proxyComp = NULL;
+    ClParserPtrT configPtr, statusPtr, listPtr, list2Ptr;
+    ClAmsEntityRefT  compRef, suRef, proxyCompRef;
 
-    name = clParserAttr (
-            compPtr,
-            AMS_XML_TAG_NAME );
+    name = clParserAttr ( compPtr, AMS_XML_TAG_NAME );
 
     if ( !name )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("compName tag does not have  name attribute\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("compName tag does not have  name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
 
-    ClParserPtrT configPtr = clParserChild(compPtr,AMS_XML_TAG_CONFIG);
+    configPtr = clParserChild(compPtr,AMS_XML_TAG_CONFIG);
 
     if (!configPtr)
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("compName[%s] tag does not have config tag\n", name));
-        rc = CL_ERR_NULL_POINTER;
+        AMS_LOG (CL_LOG_SEV_ERROR, ("compName[%s] tag does not have config tag\n", name)); rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     } 
 
-    const ClCharT  *parentSU = clParserAttr (
-            configPtr,
-            "parentSU");
+    parentSU = clParserAttr ( configPtr, "parentSU");
 
     if ( !parentSU )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("compName[%s] tag does not have parentSU attribute\n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("compName[%s] tag does not have parentSU attribute\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
-
-    ClAmsEntityRefT  compRef = {{0},0,0};
-    ClAmsEntityRefT  suRef = {{0},0,0};
 
     memset (&compRef,0,sizeof (ClAmsEntityRefT));
     memset (&suRef,0,sizeof (ClAmsEntityRefT));
@@ -3952,33 +3129,24 @@ clAmsDBCompListDeXMLize(
     compRef.entity.name.length = strlen(name) + 1 ;
     suRef.entity.name.length = strlen(parentSU) + 1 ;
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr(
-                &compRef,
-                &suRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr( &compRef, &suRef) );
 
-    ClParserPtrT statusPtr = clParserChild(compPtr,AMS_XML_TAG_STATUS);
+    statusPtr = clParserChild(compPtr,AMS_XML_TAG_STATUS);
 
     if ( !statusPtr )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("compName[%s] tag does not have status tag\n", name));
-        rc = CL_ERR_NULL_POINTER;
+        AMS_LOG (CL_LOG_SEV_ERROR, ("compName[%s] tag does not have status tag\n", name)); rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     } 
 
-    const ClCharT  *proxyComp = clParserAttr (
-            statusPtr,
-            "proxyComp");
+    proxyComp = clParserAttr ( statusPtr, "proxyComp");
 
     if ( !proxyComp)
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("compName[%s] tag does not have proxyComp attribute\n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("compName[%s] tag does not have proxyComp attribute\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
-
-    ClAmsEntityRefT  proxyCompRef = { {0},0,0};
 
     memset (&proxyCompRef,0,sizeof (ClAmsEntityRefT));
     proxyCompRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
@@ -3993,27 +3161,25 @@ clAmsDBCompListDeXMLize(
     }
     else
     {
-        AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr(
-                    &compRef,
-                    &proxyCompRef) );
+        AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr( &compRef, &proxyCompRef) );
     }
 
-    ClParserPtrT listPtr = clParserChild( statusPtr,AMS_XML_TAG_CSI_LIST);
+    listPtr = clParserChild( statusPtr,AMS_XML_TAG_CSI_LIST);
 
     if ( !listPtr)
     {
         return CL_OK;
     }
 
-    ClParserPtrT list2Ptr = clParserChild( listPtr,AMS_XML_TAG_CSI);
+    list2Ptr = clParserChild( listPtr,AMS_XML_TAG_CSI);
 
     if ( !list2Ptr)
     {
         return CL_OK;
     }
-
-    ClAmsEntityRefT  sourceEntityRef = {{0},0,0};
-    ClAmsEntityRefT  activeCompRef = {{0},0,0};
+    {
+    ClAmsEntityRefT  sourceEntityRef;
+    ClAmsEntityRefT  activeCompRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     const ClCharT  *haState = NULL;
     const ClCharT  *td = NULL;
     const ClCharT  *rank = NULL;
@@ -4026,9 +3192,7 @@ clAmsDBCompListDeXMLize(
     sourceEntityRef.entity.name.length = strlen (name) + 1;
     sourceEntityRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-                &sourceEntityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP], &sourceEntityRef) );
 
     ClAmsCompT  *comp = (ClAmsCompT *)sourceEntityRef.ptr;
 
@@ -4039,34 +3203,21 @@ clAmsDBCompListDeXMLize(
 
         ClAmsCompCSIRefT *csiRef = NULL;
 
-        csiName = clParserAttr (
-                list2Ptr,
-                AMS_XML_TAG_NAME );
+        csiName = clParserAttr ( list2Ptr, AMS_XML_TAG_NAME );
 
-        haState = clParserAttr (
-                list2Ptr,
-                "haState");
+        haState = clParserAttr ( list2Ptr, "haState");
 
-        td = clParserAttr (
-                list2Ptr,
-                "td");
+        td = clParserAttr ( list2Ptr, "td");
         
-        rank = clParserAttr (
-                list2Ptr,
-                "rank"); 
+        rank = clParserAttr ( list2Ptr, "rank"); 
         
-        activeComp = clParserAttr (
-                list2Ptr,
-                "activeComp"); 
+        activeComp = clParserAttr ( list2Ptr, "activeComp"); 
         
-        pendingOp = clParserAttr (
-                list2Ptr,
-                "pendingOp");
+        pendingOp = clParserAttr ( list2Ptr, "pendingOp");
 
-        AMS_CHECKPTR_AND_EXIT ( !csiName|| !haState || !td || !rank ||
-                !activeComp || !pendingOp );
+        AMS_CHECKPTR_AND_EXIT ( !csiName|| !haState || !td || !rank || !activeComp || !pendingOp );
 
-        csiRef = clHeapAllocate (sizeof(ClAmsCompCSIRefT));
+        csiRef = (ClAmsCompCSIRefT*) clHeapAllocate (sizeof(ClAmsCompCSIRefT));
 
         AMS_CHECK_NO_MEMORY ( csiRef );
 
@@ -4078,14 +3229,12 @@ clAmsDBCompListDeXMLize(
          * Add the ptr for the entityRef 
          */
 
-        AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                    &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                    &csiRef->entityRef) );
+        AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &csiRef->entityRef) );
 
         AMS_CHECKPTR_AND_EXIT ( !csiRef->entityRef.ptr );
 
-        csiRef->haState = atoi (haState);
-        csiRef->tdescriptor = atoi (td);
+        csiRef->haState = (ClAmsHAStateT) atoi (haState);
+        csiRef->tdescriptor = (ClAmsCSITransitionDescriptorT) atoi (td);
         csiRef->rank = atoi (rank);
         csiRef->pendingOp = atoi (pendingOp); 
         
@@ -4094,16 +3243,11 @@ clAmsDBCompListDeXMLize(
         activeCompRef.entity.name.length = strlen (activeComp) + 1;
         activeCompRef.entity.type = CL_AMS_ENTITY_TYPE_COMP; 
         
-        AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                    &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-                    &activeCompRef) );
+        AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP], &activeCompRef) );
         
         csiRef->activeComp = activeCompRef.ptr;
 
-        AMS_CHECK_RC_ERROR (  clAmsEntityListAddEntityRef(
-                    &comp->status.csiList,
-                    (ClAmsEntityRefT *)csiRef,
-                    0) );
+        AMS_CHECK_RC_ERROR (  clAmsEntityListAddEntityRef( &comp->status.csiList, (ClAmsEntityRefT *)csiRef, 0) );
 
         csiName = NULL;
         haState = NULL;
@@ -4115,7 +3259,7 @@ clAmsDBCompListDeXMLize(
         list2Ptr = list2Ptr->next;
 
     }
-
+    }
 exitfn:
 
     return CL_AMS_RC (rc);
@@ -4194,24 +3338,27 @@ clAmsDBSIXMLize(
        CL_IN  ClAmsSIT  *si)
 {
     ClRcT  rc = CL_OK;
+    ClParserPtrT configPtr, statusPtr;
+    ClCharT  *adminState = NULL;
+    ClCharT  *rank = NULL;
+    ClCharT  *numCSIs = NULL;
+    ClCharT  *numStandbyAssignments = NULL;
+    ClCharT  *operState = NULL;
+    ClCharT  *numActiveAssignments = NULL;
+    ClCharT  *statusNumStandbyAssignments = NULL;
 
-    ClParserPtrT siPtr = 
-        CL_PARSER_ADD_CHILD(amfPtr.siNamesPtr,AMS_XML_TAG_SI_NAME, 0);
+    ClParserPtrT siPtr = CL_PARSER_ADD_CHILD(amfPtr.siNamesPtr,AMS_XML_TAG_SI_NAME, 0);
 
     if (!si || !siPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR, 
-                ("Entity null pointer or Entity tag null pointer\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity null pointer or Entity tag null pointer\n"));
         goto exitfn;
     }
 
-    CL_PARSER_SET_ATTR(
-            siPtr,
-            AMS_XML_TAG_NAME,
-            (const ClCharT*)si->config.entity.name.value);
+    CL_PARSER_SET_ATTR( siPtr, AMS_XML_TAG_NAME, (const ClCharT*)si->config.entity.name.value);
 
-    ClParserPtrT configPtr = CL_PARSER_ADD_CHILD( siPtr,AMS_XML_TAG_CONFIG , 0);
+    configPtr = CL_PARSER_ADD_CHILD( siPtr,AMS_XML_TAG_CONFIG , 0);
 
     if ( !configPtr )
     {
@@ -4220,121 +3367,57 @@ clAmsDBSIXMLize(
         goto exitfn;
     }
 
-    ClCharT  *adminState = NULL;
-    ClCharT  *rank = NULL;
-    ClCharT  *numCSIs = NULL;
-    ClCharT  *numStandbyAssignments = NULL;
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( si->config.adminState, &adminState) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                si->config.adminState,
-                &adminState) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( si->config.rank, &rank) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                si->config.rank,
-                &rank) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( si->config.numCSIs, &numCSIs) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                si->config.numCSIs,
-                &numCSIs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( si->config.numStandbyAssignments, &numStandbyAssignments) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                si->config.numStandbyAssignments,
-                &numStandbyAssignments) );
+    CL_PARSER_SET_ATTR ( configPtr, AMS_XML_TAG_ADMIN_STATE, adminState);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            AMS_XML_TAG_ADMIN_STATE,
-            adminState);
+    CL_PARSER_SET_ATTR ( configPtr, "rank", rank);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "rank",
-            rank);
+    CL_PARSER_SET_ATTR ( configPtr, "numCSIs", numCSIs);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numCSIs",
-            numCSIs);
+    CL_PARSER_SET_ATTR ( configPtr, "numStandbyAssignments", numStandbyAssignments);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numStandbyAssignments",
-            numStandbyAssignments);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "parentSG",
-            (const ClCharT*)si->config.parentSG.entity.name.value);
+    CL_PARSER_SET_ATTR ( configPtr, "parentSG", (const ClCharT*)si->config.parentSG.entity.name.value);
 
     /*
      * Write the config lists 
      */
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &si->config.suList,
-                CL_AMS_SI_CONFIG_SU_RANK_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &si->config.suList, CL_AMS_SI_CONFIG_SU_RANK_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &si->config.siDependentsList,
-                CL_AMS_SI_CONFIG_SI_DEPENDENTS_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &si->config.siDependentsList, CL_AMS_SI_CONFIG_SI_DEPENDENTS_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &si->config.siDependenciesList,
-                CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &si->config.siDependenciesList, CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &si->config.csiList,
-                CL_AMS_SI_CONFIG_CSI_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &si->config.csiList, CL_AMS_SI_CONFIG_CSI_LIST) );
 
     /*
      * Write the status portion
      */
 
-    ClParserPtrT  statusPtr = CL_PARSER_ADD_CHILD(siPtr,AMS_XML_TAG_STATUS,0);
+    statusPtr = CL_PARSER_ADD_CHILD(siPtr,AMS_XML_TAG_STATUS,0);
 
-    ClCharT  *operState = NULL;
-    ClCharT  *numActiveAssignments = NULL;
-    ClCharT  *statusNumStandbyAssignments = NULL;
+    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus( &si->status.entity, statusPtr) );
 
-    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus(
-                &si->status.entity,
-                statusPtr) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( si->status.operState, &operState) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                si->status.operState,
-                &operState) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( si->status.numActiveAssignments, &numActiveAssignments) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                si->status.numActiveAssignments,
-                &numActiveAssignments) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( si->status.numStandbyAssignments, &statusNumStandbyAssignments) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                si->status.numStandbyAssignments,
-                &statusNumStandbyAssignments) );
+    CL_PARSER_SET_ATTR ( statusPtr, "operState", operState);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "operState",
-            operState);
+    CL_PARSER_SET_ATTR ( statusPtr, "numActiveAssignments", numActiveAssignments);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numActiveAssignments",
-            numActiveAssignments);
+    CL_PARSER_SET_ATTR ( statusPtr, "numStandbyAssignments", statusNumStandbyAssignments);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numStandbyAssignments",
-            statusNumStandbyAssignments);
-
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                statusPtr,
-                &si->status.suList,
-                CL_AMS_SI_STATUS_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( statusPtr, &si->status.suList, CL_AMS_SI_STATUS_SU_LIST) );
 
 exitfn:
 
@@ -4357,10 +3440,10 @@ clAmsDBSIUnmarshall(ClAmsEntityRefT *entityRef,
                     ClUint32T versionCode)
 {
     ClRcT  rc = CL_OK;
-    ClAmsCkptOperationT op = 0;
+    ClAmsCkptOperationT op;
     ClAmsSIT *si = NULL;
-    ClAmsEntityRefT srcEntityRef = {{0}};
-
+    ClAmsEntityRefT srcEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
+    memset(&op,0,sizeof(ClAmsCkptOperationT));
     AMS_CHECK_ENTITY_TYPE(entity->type);
 
     if(entity->type != CL_AMS_ENTITY_TYPE_SI)
@@ -4398,8 +3481,8 @@ clAmsDBSIUnmarshall(ClAmsEntityRefT *entityRef,
         {
         case CL_AMS_CKPT_OPERATION_SET_CONFIG:
             {
-                ClAmsSIConfigT siConfig = {{0}};
-                ClAmsEntityRefT targetEntityRef = {{0}};
+                ClAmsSIConfigT siConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
+                ClAmsEntityRefT targetEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsSIConfigT, 4, 0, 0)(inMsgHdl, &siConfig));
                 /*
                  * Terminate if it was present before.
@@ -4458,12 +3541,20 @@ clAmsDBSIDeXMLize(
 {
     ClRcT  rc = CL_OK;
     const ClCharT  *name = NULL;
+    ClAmsEntityRefT  entityRef;
+    ClAmsSIT  si;
+    const ClCharT  *adminState = NULL;
+    const ClCharT  *rank = NULL;
+    const ClCharT  *numCSIs = NULL;
+    const ClCharT  *numStandbyAssignments = NULL;
+    const ClCharT  *operState = NULL;
+    const ClCharT  *numActiveAssignments = NULL;
+    const ClCharT  *statusNumStandbyAssignments = NULL;
+    ClParserPtrT  configPtr, statusPtr;
 
     AMS_CHECKPTR (!siPtr);
 
-    name = clParserAttr(
-            siPtr,
-            AMS_XML_TAG_NAME);
+    name = clParserAttr( siPtr, AMS_XML_TAG_NAME);
 
     if ( !name )
     {
@@ -4472,7 +3563,7 @@ clAmsDBSIDeXMLize(
         goto exitfn;
     }
 
-    ClParserPtrT  configPtr = clParserChild( siPtr,AMS_XML_TAG_CONFIG );
+    configPtr = clParserChild( siPtr,AMS_XML_TAG_CONFIG );
 
     if ( !configPtr )
     {
@@ -4481,32 +3572,18 @@ clAmsDBSIDeXMLize(
         goto exitfn;
     }
 
-    const ClCharT  *adminState = NULL;
-    const ClCharT  *rank = NULL;
-    const ClCharT  *numCSIs = NULL;
-    const ClCharT  *numStandbyAssignments = NULL;
+    adminState = clParserAttr ( configPtr, AMS_XML_TAG_ADMIN_STATE);
 
-    adminState = clParserAttr (
-            configPtr,
-            AMS_XML_TAG_ADMIN_STATE);
+    rank = clParserAttr ( configPtr, "rank");
 
-    rank = clParserAttr (
-            configPtr,
-            "rank");
+    numCSIs = clParserAttr ( configPtr, "numCSIs");
 
-    numCSIs = clParserAttr (
-            configPtr,
-            "numCSIs");
-
-    numStandbyAssignments = clParserAttr (
-            configPtr,
-            "numStandbyAssignments");
+    numStandbyAssignments = clParserAttr ( configPtr, "numStandbyAssignments");
 
     if ( !adminState || !rank || !numCSIs || !numStandbyAssignments )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR,("SI[%s] has a missing config attribute \n",
-                    name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SI[%s] has a missing config attribute \n", name));
         goto exitfn;
     }
 
@@ -4514,42 +3591,27 @@ clAmsDBSIDeXMLize(
      * Read the status portion
      */
 
-    ClParserPtrT  statusPtr = clParserChild(siPtr,AMS_XML_TAG_STATUS);
+    statusPtr = clParserChild(siPtr,AMS_XML_TAG_STATUS);
 
     if ( !statusPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR,("SI[%s] does not have a status tag\n",
-                    name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SI[%s] does not have a status tag\n", name));
         goto exitfn;
     }
 
-    const ClCharT  *operState = NULL;
-    const ClCharT  *numActiveAssignments = NULL;
-    const ClCharT  *statusNumStandbyAssignments = NULL;
+    operState = clParserAttr ( statusPtr, "operState");
 
-    operState = clParserAttr (
-            statusPtr,
-            "operState");
+    numActiveAssignments = clParserAttr ( statusPtr, "numActiveAssignments");
 
-    numActiveAssignments = clParserAttr (
-            statusPtr,
-            "numActiveAssignments");
-
-    statusNumStandbyAssignments = clParserAttr (
-            statusPtr,
-            "numStandbyAssignments");
+    statusNumStandbyAssignments = clParserAttr ( statusPtr, "numStandbyAssignments");
 
     if ( !operState || !numActiveAssignments || !numStandbyAssignments )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR, ("SI[%s] has a missing status attribute\n",
-                    name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("SI[%s] has a missing status attribute\n", name));
         goto exitfn;
     }
-
-    ClAmsEntityRefT  entityRef = {{0},0,0};
-    ClAmsSIT  si;
 
     memset (&entityRef,0,sizeof (ClAmsEntityRefT));
     memset (&si,0,sizeof (ClAmsSIT));
@@ -4560,42 +3622,30 @@ clAmsDBSIDeXMLize(
 
 #ifdef AMS_TEST_CKPT
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI], &entityRef) );
 
 #endif
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI], &entityRef) );
 
     /*
      * Write the config part
      */
     memcpy (&si.config.entity, &entityRef.entity, sizeof (ClAmsEntityT));
-    si.config.adminState= atoi (adminState);
+    si.config.adminState= (ClAmsAdminStateT) atoi (adminState);
     si.config.rank= atoi (rank);
     si.config.numCSIs= atoi (numCSIs);
     si.config.numStandbyAssignments= atoi (numStandbyAssignments);
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig (
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI],
-                &entityRef.entity,
-                (ClAmsEntityConfigT *)&si.config) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig ( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI], &entityRef.entity, (ClAmsEntityConfigT *)&si.config) );
 
-    si.status.operState= atoi (operState);
+    si.status.operState= (ClAmsOperStateT) atoi (operState);
     si.status.numActiveAssignments= atoi (numActiveAssignments);
     si.status.numStandbyAssignments= atoi (statusNumStandbyAssignments);
 
-    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus(
-                &si.status.entity,
-                statusPtr) );
+    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus( &si.status.entity, statusPtr) );
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI],
-                &entityRef.entity,
-                (ClAmsEntityStatusT *)&si.status) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI], &entityRef.entity, (ClAmsEntityStatusT *)&si.status) );
 
 exitfn:
 
@@ -4610,20 +3660,25 @@ clAmsDBSIListDeXMLize(
 {
     ClRcT  rc = CL_OK;
     const ClCharT  *name = NULL;
+    const ClCharT  *parentSG = NULL;
+    ClParserPtrT  configPtr, statusPtr, listPtr, list2Ptr;
+    ClAmsEntityRefT  siRef, sgRef;
+    ClAmsEntityRefT  sourceEntityRef;
+    const ClCharT  *haState = NULL;
+    const ClCharT  *suRank = NULL;
+    const ClCharT  *suName = NULL;
+    ClAmsSIT  *si;
 
-    name = clParserAttr (
-            siPtr,
-            AMS_XML_TAG_NAME );
+    name = clParserAttr ( siPtr, AMS_XML_TAG_NAME );
 
     if ( !name )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("siName tag does not have  name attribute\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("siName tag does not have  name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
    
-    ClParserPtrT  configPtr = clParserChild( siPtr,AMS_XML_TAG_CONFIG );
+    configPtr = clParserChild( siPtr,AMS_XML_TAG_CONFIG );
 
     if ( !configPtr )
     {
@@ -4632,22 +3687,14 @@ clAmsDBSIListDeXMLize(
         goto exitfn;
     }
 
-    const ClCharT  *parentSG = NULL;
-    
-    parentSG = clParserAttr (
-            configPtr,
-            "parentSG");
+    parentSG = clParserAttr ( configPtr, "parentSG");
 
     if ( !parentSG )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,("SI[%s] does not have parentSG attribute \n",
-                    name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("SI[%s] does not have parentSG attribute \n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
-
-    ClAmsEntityRefT  siRef = { {0},0,0};
-    ClAmsEntityRefT  sgRef = { {0},0,0};
 
     memset (&siRef,0,sizeof (ClAmsEntityRefT));
     memset (&sgRef,0,sizeof (ClAmsEntityRefT));
@@ -4660,72 +3707,50 @@ clAmsDBSIListDeXMLize(
     siRef.entity.name.length = strlen(name) + 1 ;
     sgRef.entity.name.length = strlen(parentSG) + 1 ;
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr(
-                &siRef,
-                &sgRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr( &siRef, &sgRef) );
 
     /*
      * Write the config lists 
      */
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name, 
-                CL_AMS_SI_CONFIG_SU_RANK_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_SI_CONFIG_SU_RANK_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_SI_CONFIG_SI_DEPENDENTS_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_SI_CONFIG_SI_DEPENDENTS_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_SI_CONFIG_SI_DEPENDENCIES_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_SI_CONFIG_CSI_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_SI_CONFIG_CSI_LIST) );
 
-    ClParserPtrT  statusPtr = clParserChild(siPtr,AMS_XML_TAG_STATUS);
+    statusPtr = clParserChild(siPtr,AMS_XML_TAG_STATUS);
 
     if ( !statusPtr )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("compName[%s] tag does not have status tag\n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("compName[%s] tag does not have status tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     } 
 
-    ClParserPtrT  listPtr = clParserChild( statusPtr,AMS_XML_TAG_SU_LIST);
+    listPtr = clParserChild( statusPtr,AMS_XML_TAG_SU_LIST);
     if ( !listPtr)
     {
         return CL_OK;
     }
 
-    ClParserPtrT  list2Ptr = clParserChild( listPtr,AMS_XML_TAG_SU);
+    list2Ptr = clParserChild( listPtr,AMS_XML_TAG_SU);
 
     if ( !list2Ptr)
     {
         return CL_OK;
     }
 
-    ClAmsEntityRefT  sourceEntityRef = { {0},0,0};
-    const ClCharT  *haState = NULL;
-    const ClCharT  *suRank = NULL;
-    const ClCharT  *suName = NULL;
-
     memset (&sourceEntityRef,0,sizeof (ClAmsEntityRefT));
     strcpy ((ClCharT*)sourceEntityRef.entity.name.value, name);
     sourceEntityRef.entity.name.length = strlen (name) + 1;
     sourceEntityRef.entity.type = CL_AMS_ENTITY_TYPE_SI;
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI],
-                &sourceEntityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SI], &sourceEntityRef) );
 
-    ClAmsSIT  *si = (ClAmsSIT *)sourceEntityRef.ptr;
+    si = (ClAmsSIT *)sourceEntityRef.ptr;
 
     AMS_CHECKPTR_AND_EXIT (!si);
 
@@ -4734,22 +3759,16 @@ clAmsDBSIListDeXMLize(
 
         ClAmsSISURefT  *suRef = NULL;
 
-        suName = clParserAttr (
-                list2Ptr,
-                AMS_XML_TAG_NAME );
+        suName = clParserAttr ( list2Ptr, AMS_XML_TAG_NAME );
 
-        haState = clParserAttr (
-                list2Ptr,
-                "haState");
+        haState = clParserAttr ( list2Ptr, "haState");
 
-        suRank  = clParserAttr (
-                list2Ptr,
-                "suRank");
+        suRank  = clParserAttr ( list2Ptr, "suRank");
 
 
         AMS_CHECKPTR_AND_EXIT ( !suName|| !haState || !suRank );
 
-        suRef = clHeapAllocate (sizeof(ClAmsSISURefT));
+        suRef = (ClAmsSISURefT*) clHeapAllocate (sizeof(ClAmsSISURefT));
 
         AMS_CHECK_NO_MEMORY (suRef);
 
@@ -4757,17 +3776,12 @@ clAmsDBSIListDeXMLize(
         suRef->entityRef.entity.name.length = strlen (suName) + 1;
         suRef->entityRef.entity.type = CL_AMS_ENTITY_TYPE_SU;
 
-        AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                    &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU],
-                    &suRef->entityRef) );
+        AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SU], &suRef->entityRef) );
 
-        suRef->haState = atoi (haState);
+        suRef->haState = (ClAmsHAStateT) atoi (haState);
         suRef->rank = atoi (suRank);
 
-        AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
-                    &si->status.suList,
-                    (ClAmsEntityRefT *)suRef,
-                    0) );
+        AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef( &si->status.suList, (ClAmsEntityRefT *)suRef, 0) );
 
         suName = NULL;
         haState = NULL;
@@ -4792,7 +3806,7 @@ clAmsDBCSIMarshall(ClAmsCSIT *csi,
 {
     ClRcT  rc = CL_OK;
     ClAmsCkptOperationT op = CL_AMS_CKPT_OPERATION_START_GROUP;
-    ClAmsEntityListTypeT listType = 0;
+    ClAmsEntityListTypeT listType = CL_AMS_START_LIST;
     ClUint32T listEntries = 0;
     ClAmsCSINameValuePairT  *pNVP = NULL;
     ClCntNodeHandleT  nodeHandle = 0;
@@ -4910,85 +3924,59 @@ clAmsDBCSIXMLize(
 {
 
     ClRcT  rc = CL_OK;
-
-    ClParserPtrT  csiPtr = 
-        CL_PARSER_ADD_CHILD(amfPtr.csiNamesPtr,AMS_XML_TAG_CSI_NAME, 0);
+    ClCharT  *rank = NULL;
+    ClCharT  *isProxyCSI = NULL;
+    ClParserPtrT configPtr, nvpListPtr, statusPtr, pgTrackListPtr;
+    ClAmsCSINameValuePairT  *pNVP = NULL;
+    ClCntNodeHandleT  nodeHandle = 0;
+    ClAmsCSIPGTrackClientT  *pgTrackClient = NULL;
+    ClParserPtrT  csiPtr = CL_PARSER_ADD_CHILD(amfPtr.csiNamesPtr,AMS_XML_TAG_CSI_NAME, 0);
 
     if (!csi || !csiPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR, 
-                ("Entity null pointer or Entity tag null pointer\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity null pointer or Entity tag null pointer\n"));
         goto exitfn;
     }
 
-    CL_PARSER_SET_ATTR(
-            csiPtr,
-            AMS_XML_TAG_NAME,
-            (const ClCharT*)csi->config.entity.name.value);
+    CL_PARSER_SET_ATTR( csiPtr, AMS_XML_TAG_NAME, (const ClCharT*)csi->config.entity.name.value);
 
-    ClParserPtrT configPtr = CL_PARSER_ADD_CHILD( csiPtr,AMS_XML_TAG_CONFIG , 0);
+    configPtr = CL_PARSER_ADD_CHILD( csiPtr,AMS_XML_TAG_CONFIG , 0);
 
     if ( !configPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null config pointer \n",
-                    csi->config.entity.name.value));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null config pointer \n", csi->config.entity.name.value));
         goto exitfn;
     }
 
-    ClCharT  *rank = NULL;
-    ClCharT  *isProxyCSI = NULL;
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( csi->config.rank, &rank) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                csi->config.rank,
-                &rank) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( csi->config.isProxyCSI, &isProxyCSI) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                csi->config.isProxyCSI,
-                &isProxyCSI) );
+    CL_PARSER_SET_ATTR ( configPtr, "rank", rank );
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "rank",
-            rank );
+    CL_PARSER_SET_ATTR ( configPtr, "isProxyCSI", isProxyCSI );
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "isProxyCSI",
-            isProxyCSI );
+    CL_PARSER_SET_ATTR ( configPtr, "type", (const ClCharT*)csi->config.type.value);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "type",
-            (const ClCharT*)csi->config.type.value);
-
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "parentSI",
-            (const ClCharT*)csi->config.parentSI.entity.name.value);
+    CL_PARSER_SET_ATTR ( configPtr, "parentSI", (const ClCharT*)csi->config.parentSI.entity.name.value);
 
     /*
      * Write the nameValuePairList
      */
 
-    ClParserPtrT  nvpListPtr = CL_PARSER_ADD_CHILD(configPtr,"nvpList", 0);
-    ClAmsCSINameValuePairT  *pNVP = NULL;
-    ClCntNodeHandleT  nodeHandle = 0;
+    nvpListPtr = CL_PARSER_ADD_CHILD(configPtr,"nvpList", 0);
 
     if ( !nvpListPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null nvpList pointer \n",
-                    csi->config.entity.name.value));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null nvpList pointer \n", csi->config.entity.name.value));
         goto exitfn;
     }
 
-    for ( pNVP = (ClAmsCSINameValuePairT *)clAmsCntGetFirst(
-                &csi->config.nameValuePairList,&nodeHandle);
-            pNVP != NULL;
-            pNVP= (ClAmsCSINameValuePairT *)clAmsCntGetNext(
-                &csi->config.nameValuePairList,&nodeHandle))
+    for ( pNVP = (ClAmsCSINameValuePairT *)clAmsCntGetFirst( &csi->config.nameValuePairList,&nodeHandle);
+            pNVP != NULL; pNVP= (ClAmsCSINameValuePairT *)clAmsCntGetNext( &csi->config.nameValuePairList,&nodeHandle))
     {
 
         ClParserPtrT  nvpPtr = CL_PARSER_ADD_CHILD(nvpListPtr,"nvp", 0);
@@ -4996,64 +3984,43 @@ clAmsDBCSIXMLize(
         if ( !nvpPtr || !pNVP )
         {
             rc = CL_ERR_NULL_POINTER;
-            AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null nvp pointer \n",
-                        csi->config.entity.name.value));
+            AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null nvp pointer \n", csi->config.entity.name.value));
             goto exitfn;
         }
 
-        CL_PARSER_SET_ATTR (
-                nvpPtr,
-                "name",
-                (const ClCharT*)pNVP->paramName.value);
+        CL_PARSER_SET_ATTR ( nvpPtr, "name", (const ClCharT*)pNVP->paramName.value);
 
-        CL_PARSER_SET_ATTR (
-                nvpPtr,
-                "value",
-                (const ClCharT*)pNVP->paramValue.value);
+        CL_PARSER_SET_ATTR ( nvpPtr, "value", (const ClCharT*)pNVP->paramValue.value);
 
     }
 
     /*
      * Write the dependency lists.
      */
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &csi->config.csiDependentsList,
-                CL_AMS_CSI_CONFIG_CSI_DEPENDENTS_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &csi->config.csiDependentsList, CL_AMS_CSI_CONFIG_CSI_DEPENDENTS_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &csi->config.csiDependenciesList,
-                CL_AMS_CSI_CONFIG_CSI_DEPENDENCIES_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &csi->config.csiDependenciesList, CL_AMS_CSI_CONFIG_CSI_DEPENDENCIES_LIST) );
 
     /*
      * Write the status portion
      */
 
-    ClParserPtrT  statusPtr = CL_PARSER_ADD_CHILD(csiPtr,AMS_XML_TAG_STATUS,0);
+    statusPtr = CL_PARSER_ADD_CHILD(csiPtr,AMS_XML_TAG_STATUS,0);
 
     if ( !statusPtr )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null status pointer \n",
-                    csi->config.entity.name.value));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Entity[%s] has null status pointer \n", csi->config.entity.name.value));
         goto exitfn;
     }
 
-    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus(
-                &csi->status.entity,
-                statusPtr) );
+    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus( &csi->status.entity, statusPtr) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                statusPtr,
-                &csi->status.pgList,
-                CL_AMS_CSI_STATUS_PG_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( statusPtr, &csi->status.pgList, CL_AMS_CSI_STATUS_PG_LIST) );
 
-    ClAmsCSIPGTrackClientT  *pgTrackClient = NULL;
     nodeHandle = 0;
 
-    ClParserPtrT  pgTrackListPtr = CL_PARSER_ADD_CHILD(
-            statusPtr,"pgTrackClientList",0);
+    pgTrackListPtr = CL_PARSER_ADD_CHILD( statusPtr,"pgTrackClientList",0);
 
     if ( !pgTrackListPtr )
     {
@@ -5071,8 +4038,7 @@ clAmsDBCSIXMLize(
         ClCharT  *trackFlags = NULL;
         ClCharT  *nodeAddress = NULL;
         ClCharT  *portID = NULL;
-        ClParserPtrT  pgTrackClientPtr = CL_PARSER_ADD_CHILD(
-                pgTrackListPtr,"pgTrackClient", 0);
+        ClParserPtrT  pgTrackClientPtr = CL_PARSER_ADD_CHILD( pgTrackListPtr,"pgTrackClient", 0);
 
         if (!pgTrackClient || !pgTrackClientPtr)
         {
@@ -5084,34 +4050,19 @@ clAmsDBCSIXMLize(
         /*
          *XXX: Currently not writing the logical address as its not used
          */
-        AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                    pgTrackClient->address.iocPhyAddress.nodeAddress,
-                    &nodeAddress) );
+        AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( pgTrackClient->address.iocPhyAddress.nodeAddress, &nodeAddress) );
 
-        AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                    pgTrackClient->address.iocPhyAddress.portId,
-                    &portID) );
+        AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( pgTrackClient->address.iocPhyAddress.portId, &portID) );
 
-        AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                    pgTrackClient->trackFlags,
-                    &trackFlags) );
+        AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( pgTrackClient->trackFlags, &trackFlags) );
 
         AMS_CHECKPTR_AND_EXIT ( !trackFlags || !nodeAddress || !portID );
 
-        CL_PARSER_SET_ATTR (
-                pgTrackClientPtr,
-                "nodeAddress",
-                nodeAddress);
+        CL_PARSER_SET_ATTR ( pgTrackClientPtr, "nodeAddress", nodeAddress);
 
-        CL_PARSER_SET_ATTR (
-                pgTrackClientPtr,
-                "portID",
-                portID);
+        CL_PARSER_SET_ATTR ( pgTrackClientPtr, "portID", portID);
 
-        CL_PARSER_SET_ATTR (
-                pgTrackClientPtr,
-                "trackFlags",
-                trackFlags);
+        CL_PARSER_SET_ATTR ( pgTrackClientPtr, "trackFlags", trackFlags);
 
         clAmsFreeMemory (nodeAddress);
         clAmsFreeMemory (portID);
@@ -5135,10 +4086,11 @@ clAmsDBCSIUnmarshall(ClAmsEntityRefT *entityRef,
                      ClUint32T versionCode)
 {
     ClRcT  rc = CL_OK;
-    ClAmsCkptOperationT op = 0;
-    ClAmsEntityRefT srcEntityRef = {{0}};
+    ClAmsCkptOperationT op;
+    ClAmsEntityRefT srcEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsCSIT *csi = NULL;
 
+    memset(&op,0,sizeof(ClAmsCkptOperationT));
     AMS_CHECK_ENTITY_TYPE(entity->type);
     if(entity->type != CL_AMS_ENTITY_TYPE_CSI)
     {
@@ -5176,8 +4128,8 @@ clAmsDBCSIUnmarshall(ClAmsEntityRefT *entityRef,
         {
         case CL_AMS_CKPT_OPERATION_SET_CONFIG:
             {
-                ClAmsCSIConfigT csiConfig = {{0}};
-                ClAmsEntityRefT targetEntityRef = {{0}};
+                ClAmsCSIConfigT csiConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
+                ClAmsEntityRefT targetEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(inMsgHdl, &csiConfig));
                 /*
                  * Terminate if it already existed.
@@ -5240,10 +4192,15 @@ clAmsDBCSIDeXMLize(
     AMS_CHECKPTR (!csiPtr);
 
     const ClCharT  *name = NULL;
+    const ClCharT  *rank = NULL;
+    const ClCharT  *type = NULL;
+    const ClCharT  *isProxyCSI = NULL;
+   
+    ClParserPtrT  configPtr, statusPtr;
+    ClAmsEntityRefT  entityRef;
+    ClAmsCSIT  csi;
     
-    name = clParserAttr(
-            csiPtr,
-            AMS_XML_TAG_NAME  );
+    name = clParserAttr( csiPtr, AMS_XML_TAG_NAME  );
 
     if ( !name )
     {
@@ -5252,37 +4209,22 @@ clAmsDBCSIDeXMLize(
         goto exitfn;
     }
 
-    ClParserPtrT  configPtr = clParserChild ( csiPtr,AMS_XML_TAG_CONFIG );
+    configPtr = clParserChild ( csiPtr,AMS_XML_TAG_CONFIG );
 
     AMS_CHECKPTR_AND_EXIT (!configPtr);
 
-    const ClCharT  *rank = NULL;
-    const ClCharT  *type = NULL;
-    const ClCharT  *isProxyCSI = NULL;
+    rank = clParserAttr ( configPtr, "rank");
 
-    rank = clParserAttr (
-            configPtr,
-            "rank");
+    type = clParserAttr ( configPtr, "type");
 
-    type = clParserAttr (
-            configPtr,
-            "type");
-
-    isProxyCSI = clParserAttr (
-            configPtr,
-            "isProxyCSI");
+    isProxyCSI = clParserAttr ( configPtr, "isProxyCSI");
 
     if ( !rank || !type || !isProxyCSI)
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR,("CSI[%s] has a missing attribute",
-                    name));
+        AMS_LOG (CL_LOG_SEV_ERROR,("CSI[%s] has a missing attribute", name));
         goto exitfn;
     }
-
-
-    ClAmsEntityRefT  entityRef = { {0},0,0};
-    ClAmsCSIT  csi;
 
     memset (&entityRef,0,sizeof (ClAmsEntityRefT));
     memset (&csi,0,sizeof (ClAmsCSIT));
@@ -5293,15 +4235,11 @@ clAmsDBCSIDeXMLize(
 
 #ifdef AMS_TEST_CKPT
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &entityRef) );
 
 #endif
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &entityRef) );
 
     /*
      * Write the config part
@@ -5313,23 +4251,15 @@ clAmsDBCSIDeXMLize(
     strcpy ((ClCharT*)csi.config.type.value,type);
     csi.config.type.length = strlen (type) + 1;
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig (
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                &entityRef.entity,
-                (ClAmsEntityConfigT *)&csi.config) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig ( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &entityRef.entity, (ClAmsEntityConfigT *)&csi.config) );
 
-    ClParserPtrT  statusPtr = clParserChild ( csiPtr,AMS_XML_TAG_STATUS );
+    statusPtr = clParserChild ( csiPtr,AMS_XML_TAG_STATUS );
 
     AMS_CHECKPTR_AND_EXIT (!statusPtr);
 
-    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus(
-                &csi.status.entity,
-                statusPtr) );
+    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus( &csi.status.entity, statusPtr) );
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                &entityRef.entity,
-                (ClAmsEntityStatusT *)&csi.status) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &entityRef.entity, (ClAmsEntityStatusT *)&csi.status) );
 
 
 exitfn:
@@ -5339,19 +4269,22 @@ exitfn:
 }
 
 
-ClRcT   
-clAmsDBCSIListDeXMLize(
-       CL_IN  ClParserPtrT  csiPtr)
+ClRcT   clAmsDBCSIListDeXMLize( CL_IN  ClParserPtrT  csiPtr)
 {
     ClRcT  rc = CL_OK;
 
     AMS_CHECKPTR (!csiPtr);
 
     const ClCharT  *name = NULL;
+
+    const ClCharT  *parentSI = NULL;
+
+    ClAmsEntityRefT  csiRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
+    ClAmsEntityRefT  siRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
+  
+    ClParserPtrT  nvpListPtr, configPtr, statusPtr, listPtr, pgTrackListPtr;
     
-    name = clParserAttr(
-            csiPtr,
-            AMS_XML_TAG_NAME  );
+    name = clParserAttr( csiPtr, AMS_XML_TAG_NAME  );
 
     if ( !name )
     {
@@ -5360,26 +4293,19 @@ clAmsDBCSIListDeXMLize(
         goto exitfn;
     }
 
-    ClParserPtrT  configPtr = clParserChild ( csiPtr,AMS_XML_TAG_CONFIG );
+    configPtr = clParserChild ( csiPtr,AMS_XML_TAG_CONFIG );
 
     AMS_CHECKPTR_AND_EXIT (!configPtr);
 
-    const ClCharT  *parentSI = NULL;
-
-    parentSI = clParserAttr (
-            configPtr,
-            "parentSI");
+    parentSI = clParserAttr ( configPtr, "parentSI");
 
     if ( !parentSI )
     {
         rc = CL_ERR_NULL_POINTER;
-        AMS_LOG (CL_LOG_SEV_ERROR, ("CSI[%s] does not have a parentSI tag\n",
-                    name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("CSI[%s] does not have a parentSI tag\n", name));
         goto exitfn;
     }
 
-    ClAmsEntityRefT  csiRef = {{0},0,0};
-    ClAmsEntityRefT  siRef = {{0},0,0};
 
     memset (&csiRef,0,sizeof (ClAmsEntityRefT));
     memset (&siRef,0,sizeof (ClAmsEntityRefT));
@@ -5392,16 +4318,13 @@ clAmsDBCSIListDeXMLize(
     strcpy ((ClCharT*)siRef.entity.name.value,parentSI);
     siRef.entity.name.length = strlen(parentSI) + 1 ;
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr(
-                &csiRef,
-                &siRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetRefPtr( &csiRef, &siRef) );
 
     /*
      * Read the nameValuePairList
      */
 
-    ClParserPtrT  nvpListPtr = 
-        clParserChild(configPtr,"nvpList");
+    nvpListPtr = clParserChild(configPtr,"nvpList");
 
     if ( nvpListPtr )
     {
@@ -5413,13 +4336,9 @@ clAmsDBCSIListDeXMLize(
             const ClCharT  *nvpName = NULL;
             const ClCharT  *value = NULL;
 
-            nvpName = clParserAttr (
-                    nvpPtr,
-                    "name");
+            nvpName = clParserAttr ( nvpPtr, "name");
 
-            value = clParserAttr (
-                    nvpPtr,
-                    "value");
+            value = clParserAttr ( nvpPtr, "value");
 
             AMS_CHECKPTR_AND_EXIT ( !nvpName || !value);
 
@@ -5432,17 +4351,14 @@ clAmsDBCSIListDeXMLize(
             nvp.paramName.length = strlen (nvpName) + 1;
             nvp.paramValue.length = strlen (value) + 1;
 
-            ClAmsEntityT  csiEntity = {0};
+            ClAmsEntityT  csiEntity ;
 
             memset (&csiEntity,0, sizeof (ClAmsEntityT));
             csiEntity.type = CL_AMS_ENTITY_TYPE_CSI;
             strcpy ((ClCharT*)csiEntity.name.value,name);
             csiEntity.name.length = strlen (name) + 1;
 
-            AMS_CHECK_RC_ERROR ( clAmsCSISetNVP(
-                        &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                        &csiEntity,
-                        &nvp) );
+            AMS_CHECK_RC_ERROR ( clAmsCSISetNVP( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &csiEntity, &nvp) );
 
             nvpPtr = nvpPtr->next;
 
@@ -5453,37 +4369,29 @@ clAmsDBCSIListDeXMLize(
      * Read the dependency lists.
      */
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_CSI_CONFIG_CSI_DEPENDENTS_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_CSI_CONFIG_CSI_DEPENDENTS_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_CSI_CONFIG_CSI_DEPENDENCIES_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_CSI_CONFIG_CSI_DEPENDENCIES_LIST) );
 
     /*
      * Read the status portion
      */
 
-    ClParserPtrT  statusPtr = clParserChild(csiPtr,AMS_XML_TAG_STATUS);
-    ClParserPtrT  listPtr = clParserChild( statusPtr,AMS_XML_TAG_PG_LIST);
+    statusPtr = clParserChild(csiPtr,AMS_XML_TAG_STATUS);
+    listPtr = clParserChild( statusPtr,AMS_XML_TAG_PG_LIST);
 
     if ( listPtr)
     {
 
         ClParserPtrT  list2Ptr = clParserChild( listPtr,AMS_XML_TAG_PG);
-        ClAmsEntityRefT  sourceEntityRef = {{0},0,0};
+        ClAmsEntityRefT  sourceEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
 
         memset (&sourceEntityRef,0,sizeof (ClAmsEntityRefT));
         strcpy ((ClCharT*)sourceEntityRef.entity.name.value, name);
         sourceEntityRef.entity.name.length = strlen (name) + 1;
         sourceEntityRef.entity.type = CL_AMS_ENTITY_TYPE_CSI;
 
-        AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                    &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                    &sourceEntityRef) );
+        AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &sourceEntityRef) );
 
         ClAmsCSIT  *csi = (ClAmsCSIT *)sourceEntityRef.ptr;
 
@@ -5497,44 +4405,33 @@ clAmsDBCSIListDeXMLize(
             const ClCharT  *rank = NULL;
             const ClCharT  *compName = NULL; 
 
-            compName= clParserAttr (
-                    list2Ptr,
-                    "name");
+            compName= clParserAttr ( list2Ptr, "name");
 
-            haState = clParserAttr (
-                    list2Ptr,
-                    "haState");
+            haState = clParserAttr ( list2Ptr, "haState");
 
-            rank = clParserAttr (
-                    list2Ptr,
-                    "rank");
+            rank = clParserAttr ( list2Ptr, "rank");
 
             AMS_CHECKPTR_AND_EXIT ( !haState || !compName || !rank );
 
-            compRef = clHeapAllocate (sizeof(ClAmsCSICompRefT));
+            compRef = (ClAmsCSICompRefT*) clHeapAllocate (sizeof(ClAmsCSICompRefT));
 
             AMS_CHECK_NO_MEMORY (compRef);
 
             strcpy ((ClCharT*)compRef->entityRef.entity.name.value,compName);
             compRef->entityRef.entity.name.length = strlen (compName) + 1;
             compRef->entityRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
-            compRef->haState = atoi (haState);
+            compRef->haState = (ClAmsHAStateT) atoi (haState);
             compRef->rank = atoi (rank);
 
             /*
              * Add the ptr for the entityRef 
              */
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity(
-                        &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-                        &compRef->entityRef) );
+            AMS_CHECK_RC_ERROR ( clAmsEntityDbFindEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP], &compRef->entityRef) );
 
             AMS_CHECKPTR_AND_EXIT ( !compRef->entityRef.ptr );
 
-            AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef(
-                        &csi->status.pgList,
-                        (ClAmsEntityRefT *)compRef,
-                        0) );
+            AMS_CHECK_RC_ERROR ( clAmsEntityListAddEntityRef( &csi->status.pgList, (ClAmsEntityRefT *)compRef, 0) );
 
             haState = NULL;
             rank = NULL;
@@ -5544,13 +4441,12 @@ clAmsDBCSIListDeXMLize(
         }
     }
 
-    ClParserPtrT  pgTrackListPtr = clParserChild( statusPtr,"pgTrackClientList");
+    pgTrackListPtr = clParserChild( statusPtr,"pgTrackClientList");
 
     if (pgTrackListPtr)
     {
 
-        ClParserPtrT  pgTrackClientPtr = clParserChild(
-                pgTrackListPtr,"pgTrackClient");
+        ClParserPtrT  pgTrackClientPtr = clParserChild( pgTrackListPtr,"pgTrackClient");
         const ClCharT  *nodeAddress = NULL;
         const ClCharT  *portID = NULL;
         const ClCharT  *trackFlags = NULL;
@@ -5558,21 +4454,15 @@ clAmsDBCSIListDeXMLize(
         while (pgTrackClientPtr)
         {
             
-            nodeAddress = clParserAttr (
-                    pgTrackClientPtr,
-                    "nodeAddress");
+            nodeAddress = clParserAttr ( pgTrackClientPtr, "nodeAddress");
 
-            portID = clParserAttr (
-                    pgTrackClientPtr,
-                    "portID");
+            portID = clParserAttr ( pgTrackClientPtr, "portID");
 
-            trackFlags = clParserAttr (
-                    pgTrackClientPtr,
-                    "trackFlags");
+            trackFlags = clParserAttr ( pgTrackClientPtr, "trackFlags");
 
             AMS_CHECKPTR_AND_EXIT ( !nodeAddress || !portID || !trackFlags );
 
-            ClAmsEntityT  csiEntity = {0};
+            ClAmsEntityT  csiEntity;
 
             memset (&csiEntity,0,sizeof (ClAmsEntityT));
             csiEntity.type = CL_AMS_ENTITY_TYPE_CSI;
@@ -5581,21 +4471,15 @@ clAmsDBCSIListDeXMLize(
 
             ClAmsCSIPGTrackClientT  *pgTrackClient = NULL;
 
-            pgTrackClient = clHeapAllocate (sizeof(ClAmsCSIPGTrackClientT));
+            pgTrackClient = (ClAmsCSIPGTrackClientT*) clHeapAllocate (sizeof(ClAmsCSIPGTrackClientT));
 
             AMS_CHECK_NO_MEMORY ( pgTrackClient );
 
-            pgTrackClient->trackFlags = atoi (trackFlags);
-            pgTrackClient->address.iocPhyAddress.nodeAddress
-                = atoi (nodeAddress);
-            pgTrackClient->address.iocPhyAddress.portId
-                = atoi (portID);
+            pgTrackClient->trackFlags = (ClAmsPGTrackFlagT) atoi (trackFlags);
+            pgTrackClient->address.iocPhyAddress.nodeAddress = atoi (nodeAddress);
+            pgTrackClient->address.iocPhyAddress.portId = atoi (portID);
 
-            AMS_CHECK_RC_ERROR ( clAmsCSIAddToPGTrackList(
-                        &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                        &csiEntity,
-                        pgTrackClient,
-                        NULL) );
+            AMS_CHECK_RC_ERROR ( clAmsCSIAddToPGTrackList( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &csiEntity, pgTrackClient, NULL) );
 
             pgTrackClientPtr = pgTrackClientPtr->next;
 
@@ -5649,7 +4533,7 @@ static ClRcT clAmsDBSGFailoverHistoryUnmarshall(ClAmsSGT *sg, ClBufferHandleT in
 
     for(i = 0; i < sg->status.failoverHistoryCount; ++i)
     {
-        ClAmsSGFailoverHistoryT *failoverHistory = clHeapCalloc(1, sizeof(*failoverHistory));
+        ClAmsSGFailoverHistoryT *failoverHistory = (ClAmsSGFailoverHistoryT*) clHeapCalloc(1, sizeof(*failoverHistory));
         CL_ASSERT(failoverHistory != NULL);
         clListAddTail(&failoverHistory->list, &sg->status.failoverHistory);
         AMS_CHECK_RC_ERROR(clXdrUnmarshallClUint32T(inMsgHdl, &failoverHistory->index));
@@ -5669,7 +4553,7 @@ static ClRcT clAmsDBSGFailoverHistoryUnmarshall(ClAmsSGT *sg, ClBufferHandleT in
             clListDel(&history->list);
             if(history->timer)
             {
-                clTimerClusterFree(history->timer);
+                clTimerClusterFree((ClPtrT*)history->timer);
             }
             clHeapFree(history);
         }
@@ -5822,20 +4706,13 @@ clAmsDBSGXMLize(
        CL_IN  ClAmsSGT  *sg)
 {
     ClRcT  rc = CL_OK;
+    
+    ClCharT  *isStarted = NULL;
+    ClCharT  *numCurrActiveSUs = NULL;
+    ClCharT  *numCurrStandbySUs = NULL;
+    ClParserPtrT  statusPtr;    
 
-    ClParserPtrT  sgPtr = 
-        CL_PARSER_ADD_CHILD(amfPtr.sgNamesPtr,AMS_XML_TAG_SG_NAME, 0);
-
-    AMS_CHECKPTR (!sg);
-
-    CL_PARSER_SET_ATTR(
-            sgPtr,
-            AMS_XML_TAG_NAME,
-            (const ClCharT*)sg->config.entity.name.value);
-
-    ClParserPtrT  configPtr = CL_PARSER_ADD_CHILD( sgPtr,AMS_XML_TAG_CONFIG , 0);
-
-    AMS_CHECKPTR_AND_EXIT (!configPtr);
+    ClParserPtrT  sgPtr = CL_PARSER_ADD_CHILD(amfPtr.sgNamesPtr,AMS_XML_TAG_SG_NAME, 0);
 
     ClCharT  *adminState = NULL;
     ClCharT  *redundancyModel = NULL;
@@ -5858,271 +4735,137 @@ clAmsDBSGXMLize(
     ClCharT  *alphaFactor = NULL;
     ClCharT  *betaFactor = NULL;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.adminState,
-                &adminState) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.redundancyModel,
-                &redundancyModel) );
+    AMS_CHECKPTR (!sg);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.loadingStrategy,
-                &loadingStrategy) );
+    CL_PARSER_SET_ATTR( sgPtr, AMS_XML_TAG_NAME, (const ClCharT*)sg->config.entity.name.value);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.failbackOption,
-                &failbackOption) );
+    ClParserPtrT  configPtr = CL_PARSER_ADD_CHILD( sgPtr,AMS_XML_TAG_CONFIG , 0);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-               sg->config.autoRepair,
-               &autoRepair) );
+    AMS_CHECKPTR_AND_EXIT (!configPtr);
+         
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.adminState, &adminState) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                sg->config.instantiateDuration,
-                &instantiateDuration) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.redundancyModel, &redundancyModel) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.numPrefActiveSUs,
-                &numPrefActiveSUs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.loadingStrategy, &loadingStrategy) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.numPrefStandbySUs,
-                &numPrefStandbySUs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.failbackOption, &failbackOption) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.numPrefInserviceSUs,
-                &numPrefInserviceSUs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.autoRepair, &autoRepair) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.numPrefAssignedSUs,
-                &numPrefAssignedSUs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( sg->config.instantiateDuration, &instantiateDuration) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.numPrefActiveSUsPerSI,
-                &numPrefActiveSUsPerSI) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.numPrefActiveSUs, &numPrefActiveSUs) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.maxActiveSIsPerSU,
-                &maxActiveSIsPerSU) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.numPrefStandbySUs, &numPrefStandbySUs) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.maxStandbySIsPerSU,
-                &maxStandbySIsPerSU) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.numPrefInserviceSUs, &numPrefInserviceSUs) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                sg->config.compRestartDuration,
-                &compRestartDuration) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.numPrefAssignedSUs, &numPrefAssignedSUs) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.compRestartCountMax,
-                &compRestartCountMax) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.numPrefActiveSUsPerSI, &numPrefActiveSUsPerSI) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr(
-                sg->config.suRestartDuration,
-                &suRestartDuration) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.maxActiveSIsPerSU, &maxActiveSIsPerSU) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.suRestartCountMax,
-                &suRestartCountMax) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.maxStandbySIsPerSU, &maxStandbySIsPerSU) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.isCollocationAllowed,
-                &isCollocationAllowed) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( sg->config.compRestartDuration, &compRestartDuration) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.alpha,
-                &alphaFactor) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.compRestartCountMax, &compRestartCountMax) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->config.beta,
-                &betaFactor) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClInt64ToStr( sg->config.suRestartDuration, &suRestartDuration) );
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            AMS_XML_TAG_ADMIN_STATE,
-            adminState);
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.suRestartCountMax, &suRestartCountMax) );
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "redundancyModel",
-            redundancyModel);
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.isCollocationAllowed, &isCollocationAllowed) );
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "loadingStrategy",
-            loadingStrategy);
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.alpha, &alphaFactor) );
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "failbackOption",
-            failbackOption);
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->config.beta, &betaFactor) );
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "autoRepair",
-            autoRepair);
+    CL_PARSER_SET_ATTR ( configPtr, AMS_XML_TAG_ADMIN_STATE, adminState);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "instantiateDuration",
-            instantiateDuration);
+    CL_PARSER_SET_ATTR ( configPtr, "redundancyModel", redundancyModel);
+
+    CL_PARSER_SET_ATTR ( configPtr, "loadingStrategy", loadingStrategy);
+
+    CL_PARSER_SET_ATTR ( configPtr, "failbackOption", failbackOption);
+
+    CL_PARSER_SET_ATTR ( configPtr, "autoRepair", autoRepair);
+
+    CL_PARSER_SET_ATTR ( configPtr, "instantiateDuration", instantiateDuration);
     
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numPrefActiveSUs",
-            numPrefActiveSUs);
+    CL_PARSER_SET_ATTR ( configPtr, "numPrefActiveSUs", numPrefActiveSUs);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numPrefStandbySUs",
-            numPrefStandbySUs);
+    CL_PARSER_SET_ATTR ( configPtr, "numPrefStandbySUs", numPrefStandbySUs);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numPrefInserviceSUs",
-            numPrefInserviceSUs);
+    CL_PARSER_SET_ATTR ( configPtr, "numPrefInserviceSUs", numPrefInserviceSUs);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numPrefAssignedSUs",
-            numPrefAssignedSUs);
+    CL_PARSER_SET_ATTR ( configPtr, "numPrefAssignedSUs", numPrefAssignedSUs);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "numPrefActiveSUsPerSI",
-            numPrefActiveSUsPerSI);
+    CL_PARSER_SET_ATTR ( configPtr, "numPrefActiveSUsPerSI", numPrefActiveSUsPerSI);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "maxActiveSIsPerSU",
-            maxActiveSIsPerSU);
+    CL_PARSER_SET_ATTR ( configPtr, "maxActiveSIsPerSU", maxActiveSIsPerSU);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "maxStandbySIsPerSU",
-            maxStandbySIsPerSU);
+    CL_PARSER_SET_ATTR ( configPtr, "maxStandbySIsPerSU", maxStandbySIsPerSU);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "compRestartDuration",
-            compRestartDuration);
+    CL_PARSER_SET_ATTR ( configPtr, "compRestartDuration", compRestartDuration);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "compRestartCountMax",
-            compRestartCountMax);
+    CL_PARSER_SET_ATTR ( configPtr, "compRestartCountMax", compRestartCountMax);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "suRestartDuration",
-            suRestartDuration);
+    CL_PARSER_SET_ATTR ( configPtr, "suRestartDuration", suRestartDuration);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "suRestartCountMax",
-            suRestartCountMax);
+    CL_PARSER_SET_ATTR ( configPtr, "suRestartCountMax", suRestartCountMax);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "isCollocationAllowed",
-            isCollocationAllowed);
+    CL_PARSER_SET_ATTR ( configPtr, "isCollocationAllowed", isCollocationAllowed);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "alphaFactor",
-            alphaFactor);
+    CL_PARSER_SET_ATTR ( configPtr, "alphaFactor", alphaFactor);
 
-    CL_PARSER_SET_ATTR (
-            configPtr,
-            "betaFactor",
-            betaFactor);
+    CL_PARSER_SET_ATTR ( configPtr, "betaFactor", betaFactor);
 
     /*
      * Write the suList and siList
      */
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &sg->config.suList,
-                CL_AMS_SG_CONFIG_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &sg->config.suList, CL_AMS_SG_CONFIG_SU_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                configPtr,
-                &sg->config.siList,
-                CL_AMS_SG_CONFIG_SI_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( configPtr, &sg->config.siList, CL_AMS_SG_CONFIG_SI_LIST) );
 
     /*
      * Write the status portion
      */
 
-    ClParserPtrT  statusPtr = CL_PARSER_ADD_CHILD(sgPtr,AMS_XML_TAG_STATUS,0);
+     statusPtr = CL_PARSER_ADD_CHILD(sgPtr,AMS_XML_TAG_STATUS,0);
 
-    ClCharT  *isStarted = NULL;
-    ClCharT  *numCurrActiveSUs = NULL;
-    ClCharT  *numCurrStandbySUs = NULL;
 
-    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus(
-                &sg->status.entity,
-                statusPtr) );
+    AMS_CHECK_RC_ERROR( clAmsDBWriteEntityStatus( &sg->status.entity, statusPtr) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->status.isStarted,
-                &isStarted) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->status.isStarted, &isStarted) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->status.numCurrActiveSUs,
-                &numCurrActiveSUs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->status.numCurrActiveSUs, &numCurrActiveSUs) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                sg->status.numCurrStandbySUs,
-                &numCurrStandbySUs) );
+    AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( sg->status.numCurrStandbySUs, &numCurrStandbySUs) );
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "isStarted",
-            isStarted);
+    CL_PARSER_SET_ATTR ( statusPtr, "isStarted", isStarted);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numCurrActiveSUs",
-            numCurrActiveSUs);
+    CL_PARSER_SET_ATTR ( statusPtr, "numCurrActiveSUs", numCurrActiveSUs);
 
-    CL_PARSER_SET_ATTR (
-            statusPtr,
-            "numCurrStandbySUs",
-            numCurrStandbySUs);
+    CL_PARSER_SET_ATTR ( statusPtr, "numCurrStandbySUs", numCurrStandbySUs);
 
-    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer(
-                statusPtr,
-                &sg->status.instantiateTimer,
-                "instantiateTimer") );
+    AMS_CHECK_RC_ERROR ( clAmsDBWriteEntityTimer( statusPtr, &sg->status.instantiateTimer, "instantiateTimer") );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                statusPtr,
-                &sg->status.instantiableSUList,
-                CL_AMS_SG_STATUS_INSTANTIABLE_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( statusPtr, &sg->status.instantiableSUList, CL_AMS_SG_STATUS_INSTANTIABLE_SU_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                statusPtr,
-                &sg->status.instantiatedSUList,
-                CL_AMS_SG_STATUS_INSTANTIATED_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( statusPtr, &sg->status.instantiatedSUList, CL_AMS_SG_STATUS_INSTANTIATED_SU_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                statusPtr,
-                &sg->status.inserviceSpareSUList,
-                CL_AMS_SG_STATUS_IN_SERVICE_SPARE_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( statusPtr, &sg->status.inserviceSpareSUList, CL_AMS_SG_STATUS_IN_SERVICE_SPARE_SU_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                statusPtr,
-                &sg->status.assignedSUList,
-                CL_AMS_SG_STATUS_ASSIGNED_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( statusPtr, &sg->status.assignedSUList, CL_AMS_SG_STATUS_ASSIGNED_SU_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBListToXML(
-                statusPtr,
-                &sg->status.faultySUList,
-                CL_AMS_SG_STATUS_FAULTY_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBListToXML( statusPtr, &sg->status.faultySUList, CL_AMS_SG_STATUS_FAULTY_SU_LIST) );
 
+    
 exitfn:
 
     clAmsFreeMemory (adminState);
@@ -6147,7 +4890,8 @@ exitfn:
     clAmsFreeMemory (autoRepair);
     clAmsFreeMemory (isCollocationAllowed);
     clAmsFreeMemory (alphaFactor);
-
+    
+    
     return CL_AMS_RC (rc);
 
 }
@@ -6209,9 +4953,10 @@ clAmsDBSGUnmarshall(ClAmsEntityRefT *entityRef,
 {
     ClRcT  rc = CL_OK;
     ClAmsSGT *sg = NULL;
-    ClAmsEntityRefT srcEntityRef = {{0}};
-    ClAmsCkptOperationT op = 0;
-
+    ClAmsEntityRefT srcEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
+    ClAmsCkptOperationT op;
+   
+    memset(&op,0,sizeof(ClAmsCkptOperationT));
     if(entity->type != CL_AMS_ENTITY_TYPE_SG)
     {
         AMS_LOG(CL_LOG_SEV_ERROR, ("SG unmarshall invoked with invalid entity type [%d]\n",
@@ -6251,7 +4996,7 @@ clAmsDBSGUnmarshall(ClAmsEntityRefT *entityRef,
         {
         case CL_AMS_CKPT_OPERATION_SET_CONFIG:
             {
-                ClAmsSGConfigT sgConfig = {{0}};
+                ClAmsSGConfigT sgConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                 AMS_CHECK_RC_ERROR(clAmsDBSGConfigUnmarshallVersion(inMsgHdl, &sgConfig, versionCode));
                 AMS_CHECK_RC_ERROR( clAmsEntityTerminate(entityRef->ptr, CL_TRUE) );
                 AMS_CHECK_RC_ERROR(clAmsEntitySetConfig(&gAms.db.entityDb[entity->type],
@@ -6311,9 +5056,7 @@ clAmsDBSGDeXMLize(
 
     const ClCharT  *name = NULL;
 
-    name = clParserAttr(
-            sgPtr,
-            AMS_XML_TAG_NAME);
+    name = clParserAttr( sgPtr, AMS_XML_TAG_NAME);
 
     if ( !name )
     {
@@ -6328,7 +5071,8 @@ clAmsDBSGDeXMLize(
         AMS_LOG (CL_LOG_SEV_ERROR,("SG[%s] does not have config tag \n", name));
         return CL_AMS_RC (CL_ERR_NULL_POINTER);
     }
-
+    
+    {
     const ClCharT  *adminState = NULL;
     const ClCharT  *redundancyModel = NULL;
     const ClCharT  *loadingStrategy = NULL;
@@ -6350,85 +5094,45 @@ clAmsDBSGDeXMLize(
     const ClCharT  *alphaFactor = NULL;
     const ClCharT  *betaFactor = NULL;
 
-    adminState = clParserAttr(
-            configPtr,
-            AMS_XML_TAG_ADMIN_STATE);
+    adminState = clParserAttr( configPtr, AMS_XML_TAG_ADMIN_STATE);
             
-    redundancyModel = clParserAttr(
-            configPtr,
-            "redundancyModel");
+    redundancyModel = clParserAttr( configPtr, "redundancyModel");
            
-    loadingStrategy = clParserAttr(
-            configPtr,
-            "loadingStrategy");
+    loadingStrategy = clParserAttr( configPtr, "loadingStrategy");
           
-    failbackOption = clParserAttr(
-            configPtr,
-            "failbackOption");
+    failbackOption = clParserAttr( configPtr, "failbackOption");
 
-    autoRepair = clParserAttr(
-            configPtr,
-            "autoRepair");
+    autoRepair = clParserAttr( configPtr, "autoRepair");
          
-    instantiateDuration = clParserAttr(
-            configPtr,
-            "instantiateDuration");
+    instantiateDuration = clParserAttr( configPtr, "instantiateDuration");
         
-    numPrefActiveSUs = clParserAttr(
-            configPtr,
-            "numPrefActiveSUs");
+    numPrefActiveSUs = clParserAttr( configPtr, "numPrefActiveSUs");
        
-    numPrefStandbySUs = clParserAttr(
-            configPtr,
-            "numPrefStandbySUs");
+    numPrefStandbySUs = clParserAttr( configPtr, "numPrefStandbySUs");
       
-    numPrefInserviceSUs = clParserAttr(
-            configPtr,
-            "numPrefInserviceSUs");
+    numPrefInserviceSUs = clParserAttr( configPtr, "numPrefInserviceSUs");
      
-    numPrefAssignedSUs = clParserAttr(
-            configPtr,
-            "numPrefAssignedSUs");
+    numPrefAssignedSUs = clParserAttr( configPtr, "numPrefAssignedSUs");
     
-    numPrefActiveSUsPerSI = clParserAttr(
-            configPtr,
-            "numPrefActiveSUsPerSI");
+    numPrefActiveSUsPerSI = clParserAttr( configPtr, "numPrefActiveSUsPerSI");
    
-    maxActiveSIsPerSU = clParserAttr(
-            configPtr,
-            "maxActiveSIsPerSU");
+    maxActiveSIsPerSU = clParserAttr( configPtr, "maxActiveSIsPerSU");
   
-    maxStandbySIsPerSU = clParserAttr(
-            configPtr,
-            "maxStandbySIsPerSU");
+    maxStandbySIsPerSU = clParserAttr( configPtr, "maxStandbySIsPerSU");
  
-    compRestartDuration = clParserAttr(
-            configPtr,
-            "compRestartDuration");
+    compRestartDuration = clParserAttr( configPtr, "compRestartDuration");
 
-    compRestartCountMax = clParserAttr(
-            configPtr,
-            "compRestartCountMax");
+    compRestartCountMax = clParserAttr( configPtr, "compRestartCountMax");
 
-    suRestartDuration = clParserAttr(
-            configPtr,
-            "suRestartDuration");
+    suRestartDuration = clParserAttr( configPtr, "suRestartDuration");
 
-    suRestartCountMax = clParserAttr(
-            configPtr,
-            "suRestartCountMax");
+    suRestartCountMax = clParserAttr( configPtr, "suRestartCountMax");
 
-    isCollocationAllowed = clParserAttr(
-            configPtr,
-            "isCollocationAllowed");
+    isCollocationAllowed = clParserAttr( configPtr, "isCollocationAllowed");
 
-    alphaFactor = clParserAttr(
-            configPtr,
-            "alphaFactor");
+    alphaFactor = clParserAttr( configPtr, "alphaFactor");
 
-    betaFactor = clParserAttr(
-            configPtr,
-            "betaFactor");
+    betaFactor = clParserAttr( configPtr, "betaFactor");
 
     if ( !adminState || !redundancyModel || !loadingStrategy
             || !failbackOption || !instantiateDuration || !numPrefActiveSUs
@@ -6444,7 +5148,7 @@ clAmsDBSGDeXMLize(
         goto exitfn;
     }
 
-
+    
     /*
      * Read the status portion
      */
@@ -6455,17 +5159,11 @@ clAmsDBSGDeXMLize(
     const ClCharT  *numCurrStandbySUs = NULL;
 
 
-    isStarted = clParserAttr (
-            statusPtr,
-            "isStarted");
+    isStarted = clParserAttr ( statusPtr, "isStarted");
 
-    numCurrActiveSUs = clParserAttr (
-            statusPtr,
-            "numCurrActiveSUs");
+    numCurrActiveSUs = clParserAttr ( statusPtr, "numCurrActiveSUs");
 
-    numCurrStandbySUs= clParserAttr (
-            statusPtr,
-            "numCurrStandbySUs");
+    numCurrStandbySUs= clParserAttr ( statusPtr, "numCurrStandbySUs");
 
     if ( !isStarted || !numCurrActiveSUs || !numCurrStandbySUs )
     {
@@ -6474,7 +5172,7 @@ clAmsDBSGDeXMLize(
         goto exitfn;
     }
 
-    ClAmsEntityRefT  entityRef = { {0},0,0};
+    ClAmsEntityRefT  entityRef = { {CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClAmsSGT  sg;
 
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_SG;
@@ -6483,24 +5181,20 @@ clAmsDBSGDeXMLize(
 
 #ifdef AMS_TEST_CKPT
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SG],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbDeleteEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SG], &entityRef) );
 
 #endif
 
-    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SG],
-                &entityRef) );
+    AMS_CHECK_RC_ERROR ( clAmsEntityDbAddEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SG], &entityRef) );
 
     /*
      * Write the config part
      */
 
     memcpy (&sg.config.entity, &entityRef.entity, sizeof (ClAmsEntityT));
-    sg.config.adminState = atoi (adminState);
-    sg.config.redundancyModel= atoi (redundancyModel);
-    sg.config.loadingStrategy= atoi (loadingStrategy);
+    sg.config.adminState = (ClAmsAdminStateT) atoi (adminState);
+    sg.config.redundancyModel= (ClAmsSGRedundancyModelT) atoi (redundancyModel);
+    sg.config.loadingStrategy= (ClAmsSGLoadingStrategyT) atoi (loadingStrategy);
     sg.config.failbackOption= atoi (failbackOption);
     sg.config.autoRepair= atoi (autoRepair);
     sg.config.instantiateDuration= atol (instantiateDuration);
@@ -6519,24 +5213,16 @@ clAmsDBSGDeXMLize(
     sg.config.alpha = atoi (alphaFactor);
     sg.config.beta = atoi(betaFactor);
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig (
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SG],
-                &entityRef.entity,
-                (ClAmsEntityConfigT *)&sg.config) );
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetConfig ( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SG], &entityRef.entity, (ClAmsEntityConfigT *)&sg.config) );
 
     sg.status.isStarted = atoi(isStarted);
     sg.status.numCurrActiveSUs = atoi(numCurrActiveSUs);
     sg.status.numCurrStandbySUs = atoi(numCurrStandbySUs);
 
-    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus(
-                &sg.status.entity,
-                statusPtr) );
+    AMS_CHECK_RC_ERROR( clAmsDBReadEntityStatus( &sg.status.entity, statusPtr) );
 
-    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SG],
-                &entityRef.entity,
-                (ClAmsEntityStatusT *)&sg.status) );
-
+    AMS_CHECK_RC_ERROR ( clAmsEntitySetStatus( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_SG], &entityRef.entity, (ClAmsEntityStatusT *)&sg.status) );
+    }
 exitfn:
 
     return CL_AMS_RC (rc);
@@ -6549,46 +5235,35 @@ clAmsDBSGListDeXMLize(
 {
     ClRcT  rc = CL_OK;
     const ClCharT  *name = NULL;
-    ClAmsEntityTimerT  entityTimer = {0};
+    ClAmsEntityTimerT  entityTimer;
 
-    name = clParserAttr (
-            sgPtr,
-            AMS_XML_TAG_NAME );
-
+    memset(&entityTimer,0,sizeof(ClAmsEntityTimerT));
+    name = clParserAttr ( sgPtr, AMS_XML_TAG_NAME );
+ 
     if ( !name )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("sgName tag does not have node name attribute\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("sgName tag does not have node name attribute\n"));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
-   
+    { 
     ClParserPtrT  configPtr = clParserChild(sgPtr,AMS_XML_TAG_CONFIG);
 
     if ( !configPtr )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("SGName[%s] tag does not have config tag\n", name));
-        rc = CL_ERR_NULL_POINTER;
+        AMS_LOG (CL_LOG_SEV_ERROR, ("SGName[%s] tag does not have config tag\n", name)); rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     }
     
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_SG_CONFIG_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_SG_CONFIG_SU_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                configPtr,
-                name,
-                CL_AMS_SG_CONFIG_SI_LIST) );
-
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( configPtr, name, CL_AMS_SG_CONFIG_SI_LIST) );
+    
     ClParserPtrT  statusPtr = clParserChild(sgPtr,AMS_XML_TAG_STATUS);
 
     if ( !statusPtr )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("sgName[%s] tag does not have config tag\n", name));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("sgName[%s] tag does not have config tag\n", name));
         rc = CL_ERR_NULL_POINTER;
         goto exitfn;
     } 
@@ -6596,46 +5271,26 @@ clAmsDBSGListDeXMLize(
     entityTimer.count = 0;
     entityTimer.type = CL_AMS_SG_TIMER_INSTANTIATE;
 
-    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer(
-                statusPtr,
-                &entityTimer,
-                "instantiateTimer") );
-
-    ClAmsEntityT  entity = {0};
+    AMS_CHECK_RC_ERROR ( clAmsDBReadEntityTimer( statusPtr, &entityTimer, "instantiateTimer") );
+    
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     strcpy ((ClCharT*)entity.name.value, name);
     entity.name.length = strlen (name) + 1;
     entity.type = CL_AMS_ENTITY_TYPE_SG;
 
-    AMS_CHECK_RC_ERROR ( clAmsSetEntityTimer(
-                &entity,
-                &entityTimer) );
+    AMS_CHECK_RC_ERROR ( clAmsSetEntityTimer( &entity, &entityTimer) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                statusPtr,
-                name,
-                CL_AMS_SG_STATUS_INSTANTIABLE_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( statusPtr, name, CL_AMS_SG_STATUS_INSTANTIABLE_SU_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                statusPtr,
-                name,
-                CL_AMS_SG_STATUS_INSTANTIATED_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( statusPtr, name, CL_AMS_SG_STATUS_INSTANTIATED_SU_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                statusPtr,
-                name,
-                CL_AMS_SG_STATUS_IN_SERVICE_SPARE_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( statusPtr, name, CL_AMS_SG_STATUS_IN_SERVICE_SPARE_SU_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                statusPtr,
-                name,
-                CL_AMS_SG_STATUS_ASSIGNED_SU_LIST) );
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( statusPtr, name, CL_AMS_SG_STATUS_ASSIGNED_SU_LIST) );
 
-    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList(
-                statusPtr,
-                name,
-                CL_AMS_SG_STATUS_FAULTY_SU_LIST) );
-
+    AMS_CHECK_RC_ERROR ( clAmsDBXMLToList( statusPtr, name, CL_AMS_SG_STATUS_FAULTY_SU_LIST) );
+    }
 exitfn:
 
     return CL_AMS_RC (rc);
@@ -6654,7 +5309,7 @@ clAmsDBClUint32ToStr(
 {
     AMS_CHECKPTR (!str);
 
-    *str = clHeapAllocate (MAX_NUM_LENGTH_INT_32*sizeof(ClCharT));
+    *str = (ClCharT*) clHeapAllocate (MAX_NUM_LENGTH_INT_32*sizeof(ClCharT));
 
     AMS_CHECK_NO_MEMORY (*str);
 
@@ -6672,7 +5327,7 @@ clAmsDBClUint8ToStr(
 {
     AMS_CHECKPTR (!str);
 
-    *str = clHeapAllocate (MAX_NUM_LENGTH_INT_8*sizeof(ClCharT));
+    *str = (ClCharT*) clHeapAllocate (MAX_NUM_LENGTH_INT_8*sizeof(ClCharT));
 
     AMS_CHECK_NO_MEMORY (*str);
 
@@ -6691,7 +5346,7 @@ clAmsDBClUint64ToStr(
 {
     AMS_CHECKPTR (!str);
 
-    *str = clHeapAllocate (MAX_NUM_LENGTH_INT_64*sizeof(ClCharT));
+    *str = (ClCharT*) clHeapAllocate (MAX_NUM_LENGTH_INT_64*sizeof(ClCharT));
 
     AMS_CHECK_NO_MEMORY (*str);
 
@@ -6709,7 +5364,7 @@ clAmsDBClInt64ToStr(
 {
     AMS_CHECKPTR (!str);
 
-    *str = clHeapAllocate (MAX_NUM_LENGTH_INT_64*sizeof(ClCharT));
+    *str = (ClCharT*) clHeapAllocate (MAX_NUM_LENGTH_INT_64*sizeof(ClCharT));
 
     AMS_CHECK_NO_MEMORY (*str);
 
@@ -6730,7 +5385,7 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
     ClUint32T listEntries = 0;
     ClUint32T i;
     ClAmsEntityRefT *newEntityRef = NULL;
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
 
     memcpy(&entityRef.entity, entity, sizeof(entityRef.entity));
     AMS_CHECK_RC_ERROR(clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type],
@@ -6742,7 +5397,7 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
 
     for(i = 0; i < listEntries; ++i)
     {
-        ClAmsEntityRefT targetEntityRef = {{0}};
+        ClAmsEntityRefT targetEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
         ClBoolT setRef = CL_FALSE;
 
         switch (listType)
@@ -6795,7 +5450,7 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
                 ClAmsSUSIRefT *suSIRef = NULL;
                 ClAmsSUT *su =  NULL;
 
-                suSIRef = clHeapCalloc(1, sizeof(*suSIRef));
+                suSIRef = (ClAmsSUSIRefT*) clHeapCalloc(1, sizeof(*suSIRef));
                 CL_ASSERT(suSIRef != NULL);
 
                 newEntityRef = &suSIRef->entityRef;
@@ -6820,10 +5475,10 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
             {
                 ClAmsCompCSIRefT *compCSIRef = NULL;
                 ClAmsCompT *comp = NULL;
-                ClAmsEntityRefT activeRef = {{0}};
+                ClAmsEntityRefT activeRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                 ClAmsEntityRefT *pActiveRef = NULL;
 
-                compCSIRef = clHeapCalloc(1, sizeof(*compCSIRef));
+                compCSIRef = (ClAmsCompCSIRefT*) clHeapCalloc(1, sizeof(*compCSIRef));
                 CL_ASSERT(compCSIRef != NULL);
 
                 newEntityRef = &compCSIRef->entityRef;
@@ -6867,7 +5522,7 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
                 ClAmsSISURefT *siSURef = NULL;
                 ClAmsSIT *si = NULL;
 
-                siSURef = clHeapCalloc(1, sizeof(*siSURef));
+                siSURef = (ClAmsSISURefT*) clHeapCalloc(1, sizeof(*siSURef));
                 CL_ASSERT(siSURef != NULL);
 
                 newEntityRef = &siSURef->entityRef;
@@ -6889,7 +5544,7 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
                 ClAmsCSICompRefT *csiCompRef = NULL;
                 ClAmsCSIT *csi = NULL;
                 
-                csiCompRef = clHeapCalloc(1, sizeof(*csiCompRef));
+                csiCompRef = (ClAmsCSICompRefT*) clHeapCalloc(1, sizeof(*csiCompRef));
                 CL_ASSERT(csiCompRef != NULL);
 
                 newEntityRef = &csiCompRef->entityRef;
@@ -6912,9 +5567,7 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
                 ClAmsCSINVPT nvp;
                 memset(&nvp, 0, sizeof(nvp));
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClAmsCSINVPT, 4, 0, 0)(inMsgHdl, &nvp));
-                AMS_CHECK_RC_ERROR(clAmsCSISetNVP(&gAms.db.entityDb[entity->type],
-                                                  &entityRef.entity,
-                                                  &nvp));
+                AMS_CHECK_RC_ERROR(clAmsCSISetNVP(&gAms.db.entityDb[entity->type], &entityRef.entity, &nvp));
                 break;
             }
 
@@ -6922,21 +5575,19 @@ clAmsDBListUnmarshall(ClAmsEntityT *entity,
             {
                 ClAmsCSIPGTrackClientT *pgTrackClient = NULL;
                 ClIocPhysicalAddressT address = {0};
-                ClAmsPGTrackFlagT trackFlags = 0;
+                ClAmsPGTrackFlagT trackFlags;
 
+                memset(&trackFlags,0,sizeof(ClAmsPGTrackFlagT));
                 AMS_CHECK_RC_ERROR(VDECL_VER(clXdrUnmarshallClIocPhysicalAddressT, 4, 0, 0)(inMsgHdl, &address));
                 AMS_CHECK_RC_ERROR(clXdrUnmarshallClUint32T(inMsgHdl, &trackFlags));
 
-                pgTrackClient = clHeapCalloc(1, sizeof(*pgTrackClient));
+                pgTrackClient = (ClAmsCSIPGTrackClientT*) clHeapCalloc(1, sizeof(*pgTrackClient));
                 CL_ASSERT(pgTrackClient != NULL);
 
                 memcpy(&pgTrackClient->address.iocPhyAddress, &address, sizeof(pgTrackClient->address.iocPhyAddress));
                 pgTrackClient->trackFlags = trackFlags;
 
-                rc = clAmsCSIAddToPGTrackList(&gAms.db.entityDb[entity->type],
-                                              entity,
-                                              pgTrackClient,
-                                              NULL);
+                rc = clAmsCSIAddToPGTrackList(&gAms.db.entityDb[entity->type], entity, pgTrackClient, NULL);
                 if(rc != CL_OK)
                 {
                     clHeapFree(pgTrackClient);
@@ -6971,11 +5622,11 @@ clAmsDBXMLToList(
        CL_IN  ClAmsEntityListTypeT  listType )
 {
     ClRcT  rc = CL_OK;
-    ClAmsEntityTypeT  sourceEntityType = 0;
-    ClAmsEntityTypeT  targetEntityType = 0;
+    ClAmsEntityTypeT  sourceEntityType = CL_AMS_ENTITY_TYPE_ENTITY;
+    ClAmsEntityTypeT  targetEntityType = CL_AMS_ENTITY_TYPE_ENTITY;
     ClParserPtrT  listPtr = NULL;
-    ClCharT  *listTag = NULL;
-    ClCharT  *list2Tag = NULL;
+    const ClCharT  *listTag = NULL;
+    const ClCharT  *list2Tag = NULL;
     const ClCharT  *targetEntityName = NULL;
 
     AMS_CHECKPTR (!sourceEntityName || !tagPtr);
@@ -7165,8 +5816,8 @@ clAmsDBXMLToList(
     }
 
     ClParserPtrT  list2Ptr = NULL;
-    ClAmsEntityT  sourceEntity = {0};
-    ClAmsEntityT  targetEntity = {0};
+    ClAmsEntityT  sourceEntity = {CL_AMS_ENTITY_TYPE_ENTITY};
+    ClAmsEntityT  targetEntity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     strcpy ((ClCharT*)sourceEntity.name.value, sourceEntityName);
     sourceEntity.name.length = strlen (sourceEntityName) + 1;
@@ -7326,8 +5977,8 @@ clAmsDBListToXML(
     ClRcT  rc = CL_OK;
     ClAmsEntityRefT  *entityRef = NULL;
     ClParserPtrT  listPtr = NULL;
-    ClCharT  *listTag = NULL;
-    ClCharT  *list2Tag = NULL;
+    const ClCharT  *listTag = NULL;
+    const ClCharT  *list2Tag = NULL;
 
     AMS_CHECKPTR (!list || !tagPtr);
 
@@ -7516,56 +6167,29 @@ clAmsDBListToXML(
                 return CL_AMS_RC (CL_AMS_ERR_INVALID_COMP);
             }
 
-            ClParserPtrT  list2Ptr = CL_PARSER_ADD_CHILD(
-                    listPtr,list2Tag, 0);
+            ClParserPtrT  list2Ptr = CL_PARSER_ADD_CHILD( listPtr,list2Tag, 0);
 
             AMS_CHECKPTR_AND_EXIT ( !list2Ptr || !csiRef)
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        csiRef->haState,
-                        &haState) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( csiRef->haState, &haState) );
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        csiRef->tdescriptor,
-                        &td) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( csiRef->tdescriptor, &td) );
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        csiRef->rank,
-                        &rank) ); 
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( csiRef->rank, &rank) ); 
             
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        csiRef->pendingOp,
-                        &pendingOp) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( csiRef->pendingOp, &pendingOp) );
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    AMS_XML_TAG_NAME,
-                    (const ClCharT*)csiRef->entityRef.entity.name.value);
+            CL_PARSER_SET_ATTR ( list2Ptr, AMS_XML_TAG_NAME, (const ClCharT*)csiRef->entityRef.entity.name.value);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "haState",
-                    haState);
+            CL_PARSER_SET_ATTR ( list2Ptr, "haState", haState);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "td",
-                    td);
+            CL_PARSER_SET_ATTR ( list2Ptr, "td", td);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "rank",
-                    rank); 
+            CL_PARSER_SET_ATTR ( list2Ptr, "rank", rank); 
             
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "activeComp",
-                    (const ClCharT*)csiRef->activeComp->name.value);
+            CL_PARSER_SET_ATTR ( list2Ptr, "activeComp", (const ClCharT*)csiRef->activeComp->name.value);
            
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "pendingOp",
-                    pendingOp);
+            CL_PARSER_SET_ATTR ( list2Ptr, "pendingOp", pendingOp);
 
             clAmsFreeMemory (haState);
             clAmsFreeMemory (td);
@@ -7593,58 +6217,29 @@ clAmsDBListToXML(
 
             AMS_CHECKPTR_AND_EXIT ( !siRef );
 
-            ClParserPtrT  list2Ptr = CL_PARSER_ADD_CHILD(
-                    listPtr,list2Tag, 0);
+            ClParserPtrT  list2Ptr = CL_PARSER_ADD_CHILD( listPtr,list2Tag, 0);
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        siRef->haState,
-                        &haState) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( siRef->haState, &haState) );
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        siRef->numActiveCSIs,
-                        &numActiveCSIs) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( siRef->numActiveCSIs, &numActiveCSIs) );
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        siRef->numStandbyCSIs,
-                        &numStandbyCSIs) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( siRef->numStandbyCSIs, &numStandbyCSIs) );
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        siRef->numQuiescedCSIs,
-                        &numQuiescedCSIs) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( siRef->numQuiescedCSIs, &numQuiescedCSIs) );
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        siRef->numQuiescingCSIs,
-                        &numQuiescingCSIs) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( siRef->numQuiescingCSIs, &numQuiescingCSIs) );
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    AMS_XML_TAG_NAME,
-                    (const ClCharT*)siRef->entityRef.entity.name.value);
+            CL_PARSER_SET_ATTR ( list2Ptr, AMS_XML_TAG_NAME, (const ClCharT*)siRef->entityRef.entity.name.value);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "haState",
-                    haState);
+            CL_PARSER_SET_ATTR ( list2Ptr, "haState", haState);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "numActiveCSIs",
-                    numActiveCSIs);
+            CL_PARSER_SET_ATTR ( list2Ptr, "numActiveCSIs", numActiveCSIs);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "numStandbyCSIs",
-                    numStandbyCSIs);
+            CL_PARSER_SET_ATTR ( list2Ptr, "numStandbyCSIs", numStandbyCSIs);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "numQuiescedCSIs",
-                    numQuiescedCSIs);
+            CL_PARSER_SET_ATTR ( list2Ptr, "numQuiescedCSIs", numQuiescedCSIs);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "numQuiescingCSIs",
-                    numQuiescingCSIs);
+            CL_PARSER_SET_ATTR ( list2Ptr, "numQuiescingCSIs", numQuiescingCSIs);
 
 
             clAmsFreeMemory (haState);
@@ -7672,31 +6267,17 @@ clAmsDBListToXML(
 
             AMS_CHECKPTR_AND_EXIT ( !suRef);
 
-            ClParserPtrT  list2Ptr = CL_PARSER_ADD_CHILD(
-                    listPtr,list2Tag, 0);
+            ClParserPtrT  list2Ptr = CL_PARSER_ADD_CHILD( listPtr,list2Tag, 0);
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        suRef->haState,
-                        &haState) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( suRef->haState, &haState) );
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        suRef->rank,
-                        &suRank) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( suRef->rank, &suRank) );
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    AMS_XML_TAG_NAME,
-                    (const ClCharT*)suRef->entityRef.entity.name.value);
+            CL_PARSER_SET_ATTR ( list2Ptr, AMS_XML_TAG_NAME, (const ClCharT*)suRef->entityRef.entity.name.value);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "haState",
-                    haState);
+            CL_PARSER_SET_ATTR ( list2Ptr, "haState", haState);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "suRank",
-                    suRank);
+            CL_PARSER_SET_ATTR ( list2Ptr, "suRank", suRank);
 
             clAmsFreeMemory (haState);
             clAmsFreeMemory (suRank);
@@ -7717,31 +6298,17 @@ clAmsDBListToXML(
 
             AMS_CHECKPTR_AND_EXIT ( !compRef);
 
-            ClParserPtrT  list2Ptr = CL_PARSER_ADD_CHILD(
-                    listPtr,list2Tag, 0);
+            ClParserPtrT  list2Ptr = CL_PARSER_ADD_CHILD( listPtr,list2Tag, 0);
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        compRef->haState,
-                        &haState) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( compRef->haState, &haState) );
 
-            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr(
-                        compRef->rank,
-                        &rank) );
+            AMS_CHECK_RC_ERROR ( clAmsDBClUint32ToStr( compRef->rank, &rank) );
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    AMS_XML_TAG_NAME,
-                    (const ClCharT*)compRef->entityRef.entity.name.value);
+            CL_PARSER_SET_ATTR ( list2Ptr, AMS_XML_TAG_NAME, (const ClCharT*)compRef->entityRef.entity.name.value);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "haState",
-                    haState);
+            CL_PARSER_SET_ATTR ( list2Ptr, "haState", haState);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    "rank",
-                    rank);
+            CL_PARSER_SET_ATTR ( list2Ptr, "rank", rank);
 
             clAmsFreeMemory (haState);
             clAmsFreeMemory (rank);
@@ -7759,10 +6326,7 @@ clAmsDBListToXML(
             ClParserPtrT  list2Ptr = CL_PARSER_ADD_CHILD(
                     listPtr,list2Tag, 0);
 
-            CL_PARSER_SET_ATTR (
-                    list2Ptr,
-                    AMS_XML_TAG_NAME,
-                    (const ClCharT*)entityRef->entity.name.value);
+            CL_PARSER_SET_ATTR ( list2Ptr, AMS_XML_TAG_NAME, (const ClCharT*)entityRef->entity.name.value);
 
         }
     }
@@ -7779,8 +6343,9 @@ clAmsDBTimerUnmarshall(ClAmsEntityT *entity,
                        ClUint32T versionCode)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityTimerT entityTimer = {0};
-
+    ClAmsEntityTimerT entityTimer;
+    
+    memset(&entityTimer,0,sizeof(ClAmsEntityTimerT));
     AMS_CHECK_RC_ERROR(clXdrUnmarshallClInt32T(inMsgHdl, &entityTimer.type));
     AMS_CHECK_RC_ERROR(clXdrUnmarshallClInt32T(inMsgHdl, &entityTimer.count));
 
@@ -7814,7 +6379,7 @@ ClRcT
 clAmsDBReadEntityTimer(
         CL_IN  ClParserPtrT  tagPtr,
         CL_OUT  ClAmsEntityTimerT  *entityTimer,
-        CL_IN  ClCharT  *timerTag )
+        CL_IN  const ClCharT  *timerTag )
 {
     const ClCharT  *timerRunning = NULL;
 
@@ -7841,19 +6406,17 @@ ClRcT
 clAmsDBWriteEntityTimer(
         CL_IN  ClParserPtrT  tagPtr,
         CL_IN  ClAmsEntityTimerT  *entityTimer,
-        CL_IN  ClCharT  *timerTag )
+        CL_IN  const ClCharT  *timerTag )
 {
     AMS_CHECKPTR ( !entityTimer || !timerTag ||!tagPtr ); 
 
     if ( entityTimer->count )
     {
-        CL_PARSER_SET_ATTR(
-            tagPtr,timerTag,"1");
+        CL_PARSER_SET_ATTR( tagPtr,timerTag,"1");
     }
     else
     {
-        CL_PARSER_SET_ATTR(
-            tagPtr,timerTag,"0");
+        CL_PARSER_SET_ATTR( tagPtr,timerTag,"0");
     }
 
     return CL_OK;
@@ -7863,7 +6426,7 @@ clAmsDBWriteEntityTimer(
 static ClRcT clAmsEntityDBUnmarshall(ClAmsEntityT *entity, ClBufferHandleT inMsgHdl, ClUint32T versionCode)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
 
     AMS_CHECK_ENTITY_TYPE(entity->type);
 
@@ -7932,8 +6495,9 @@ static ClRcT clAmsDBUnmarshallVersion(ClBufferHandleT inMsgHdl, ClUint32T versio
     ClRcT rc = CL_OK;
     for(;;)
     {
-        ClAmsCkptOperationT op = 0;
-        ClAmsEntityT entity = {0};
+        ClAmsCkptOperationT op;
+        ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
+        memset(&op,0,sizeof(ClAmsCkptOperationT));
         AMS_CHECK_RC_ERROR(clXdrUnmarshallClInt32T(inMsgHdl, &op));
         switch(op)
         {
@@ -8179,9 +6743,9 @@ exitfn:
 
 static ClRcT clAmsCCBHandleDBCallback(ClHandleDatabaseHandleT db, ClHandleT handle, ClPtrT cookie)
 {
-    ClAmsCCBHandleDBWalkArgT *arg = cookie;
+    ClAmsCCBHandleDBWalkArgT *arg = (ClAmsCCBHandleDBWalkArgT*) cookie;
     ClInt32T nhandles = arg->nhandles;
-    arg->pHandles = clHeapRealloc(arg->pHandles, (nhandles+1)*sizeof(ClHandleT));
+    arg->pHandles = (ClHandleT*) clHeapRealloc(arg->pHandles, (nhandles+1)*sizeof(ClHandleT));
     CL_ASSERT(arg->pHandles != NULL);
     arg->pHandles[nhandles] = handle;
     ++arg->nhandles;
@@ -8247,7 +6811,7 @@ static ClRcT clAmsCCBHandleDBUnmarshall(ClBufferHandleT inMsgHdl)
 
     if(nhandles == 0) return CL_OK;
 
-    pHandles = clHeapCalloc(nhandles, sizeof(ClHandleT));
+    pHandles = (ClHandleT*) clHeapCalloc(nhandles, sizeof(ClHandleT));
     CL_ASSERT(pHandles != NULL);
     for(i = 0 ; i < nhandles; ++i)
     {
@@ -8268,7 +6832,7 @@ static ClRcT clAmsCCBHandleDBUnmarshall(ClBufferHandleT inMsgHdl)
                                      pHandles[i], rc));
             goto out_free;
         }
-        rc = clHandleCheckout(gAms.ccbHandleDB, pHandles[i], (ClPtrT)&ccbInstance);
+        rc = clHandleCheckout(gAms.ccbHandleDB, pHandles[i], (ClPtrT*)&ccbInstance);
         if(rc != CL_OK)
         {
             AMS_LOG(CL_LOG_SEV_ERROR, ("DB unmarshall ccb handle checkout [%#llx] returned [%#x]\n",

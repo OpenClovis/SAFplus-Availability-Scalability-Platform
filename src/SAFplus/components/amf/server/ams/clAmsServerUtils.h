@@ -66,7 +66,7 @@ extern ClAmsEntityRefT* clAmsCreateEntityRef(ClAmsEntityT* ent);
     
 /* Log formatting */    
     
-extern char *clAmsFormatMsg (char *fmt, ...);    
+extern char *clAmsFormatMsg (const char *fmt, ...);    
 extern void clAmsLogMsgServer( const ClUint32T level, char *buffer, const ClCharT* file, ClUint32T line );
 extern ClAmsT   gAms;
 

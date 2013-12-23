@@ -56,7 +56,7 @@ extern "C" {
  * Debug Defines
  *****************************************************************************/
 
-extern char *clAmsFormatMsg(char *fmt, ...);
+extern char *clAmsFormatMsg(const char *fmt, ...);
 extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 
 /******************************************************************************

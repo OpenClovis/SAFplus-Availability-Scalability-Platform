@@ -207,7 +207,7 @@ clAmsInvocationCreateExtended(
 
     AMS_CHECK_COMP ( comp );
 
-    invocationData = clHeapCalloc (1, sizeof (ClAmsInvocationT));
+    invocationData = (ClAmsInvocationT*) clHeapCalloc (1, sizeof (ClAmsInvocationT));
 
     AMS_CHECK_NO_MEMORY ( invocationData );
 
@@ -460,7 +460,7 @@ clAmsInvocationGetAndDeleteExtended(
         {
             ClAmsCompT *comp = NULL;
             ClAmsCSIT *csi = NULL;
-            ClAmsEntityRefT compRef = { {0} };
+            ClAmsEntityRefT compRef = { {CL_AMS_ENTITY_TYPE_ENTITY} };
 
             compRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
             memcpy (&compRef.entity.name, &invocationData->compName, sizeof (SaNameT));
@@ -568,8 +568,7 @@ clAmsInvocationListWalk(
         {
             if(!(count & 7))
             {
-                pendingInvocations = clHeapRealloc(pendingInvocations,
-                                                   sizeof(*pendingInvocations) * (count + 8));
+                pendingInvocations = (ClInvocationT*) clHeapRealloc(pendingInvocations, sizeof(*pendingInvocations) * (count + 8));
                 CL_ASSERT(pendingInvocations != NULL);
             }
 
@@ -970,7 +969,7 @@ clAmsInvocationListAdd(
      * delete the node so we need to keep two copies
      */
 
-    ClAmsInvocationT  *data = clHeapAllocate (sizeof (ClAmsInvocationT));
+    ClAmsInvocationT  *data = (ClAmsInvocationT*) clHeapAllocate (sizeof (ClAmsInvocationT));
 
     AMS_CHECK_NO_MEMORY ( data );
 
@@ -1344,8 +1343,7 @@ clAmsInvocationListWalkAll(ClAmsInvocationCallbackT callback,ClPtrT arg,ClBoolT 
     {
         if(!(numInvocations & 7))
         {
-            invocationDataList = clHeapRealloc(invocationDataList,
-                                               sizeof(*invocationDataList) * (numInvocations + 8));
+            invocationDataList = (ClAmsInvocationT*) clHeapRealloc(invocationDataList, sizeof(*invocationDataList) * (numInvocations + 8));
             CL_ASSERT(invocationDataList != NULL);
             memset(invocationDataList + numInvocations, 0, sizeof(*invocationDataList)*8);
         }
@@ -1441,7 +1439,7 @@ clAmsInvocationListUpdateCSIAll(ClBoolT updateCSI)
         data != NULL;
         data = next)
     {
-        ClAmsEntityRefT entityRef = {{0}};
+        ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
         ClUint32T cbType = 0;
         ClAmsInvocationT *cpmInvocation = NULL;
 

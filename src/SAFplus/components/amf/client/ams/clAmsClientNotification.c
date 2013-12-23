@@ -79,9 +79,9 @@ static void clAmsClientNotificationCallback(
     SaNameT                 publisherName = {0};
     ClTimeT                 publishTime = 0;
     ClEventIdT              eventId = 0;
-    ClAmsNotificationInfoT  amsNotificationInfo = {0};
+    ClAmsNotificationInfoT  amsNotificationInfo = {CL_AMS_NOTIFICATION_NONE};
     ClRcT                   rc = CL_OK;
-    ClInt32T                i;
+    ClUint32T                i;
 
     rc = clEventAttributesGet(eventHandle, 
                               &patternArray, 
