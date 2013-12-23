@@ -199,7 +199,8 @@ extern "C" {
                                     switchoverMode)  do {               \
     if( !( (switchoverMode) & CL_AMS_ENTITY_SWITCHOVER_REPLAY) )        \
     {                                                                   \
-        ClAmsNotificationDescriptorT notification = {0};                \
+        ClAmsNotificationDescriptorT notification;	                \
+        memset(&notification,0,sizeof(ClAmsNotificationDescriptorT));    \
                                                                         \
         if(clAmsNotificationEventPayloadSet((const ClAmsEntityT*)entity, \
                                             (const ClAmsEntityRefT*)targetEntityRef, \

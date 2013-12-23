@@ -122,8 +122,8 @@ clAmsNotificationEventInitialize (void)
 
     ClRcT  rc = CL_OK;
     ClAmsT  *ams = &gAms;
-    ClEventChannelOpenFlagsT flags = CL_EVENT_CHANNEL_PUBLISHER 
-                                     | CL_EVENT_GLOBAL_CHANNEL;
+    SaNameT  clAmsEventPublisherName = {0};
+    ClEventChannelOpenFlagsT flags = CL_EVENT_CHANNEL_PUBLISHER | CL_EVENT_GLOBAL_CHANNEL;
 
     ClEventPatternT clAmsEventPattern[] = 
     {
@@ -159,13 +159,7 @@ clAmsNotificationEventInitialize (void)
         flags |= CL_EVENT_CHANNEL_CREATE;
     }
 
-    if ( (rc = clEventChannelOpen(
-                    ams->eventInitHandle, 
-                    &clAmsEventChannelName,
-                    flags,
-                    (ClTimeT) -1,
-                    &ams->eventChannelOpenHandle) )
-            != CL_OK )
+    if ( (rc = clEventChannelOpen( ams->eventInitHandle, &clAmsEventChannelName, flags, (ClTimeT) -1, &ams->eventChannelOpenHandle) ) != CL_OK )
         goto error;
 
 
@@ -173,24 +167,13 @@ clAmsNotificationEventInitialize (void)
      * Create an event for AMS notifications
      */
 
-    if ( (rc = clEventAllocate(
-                    ams->eventChannelOpenHandle,
-                    &ams->eventHandle) )
-            != CL_OK )
+    if ( (rc = clEventAllocate( ams->eventChannelOpenHandle, &ams->eventHandle) ) != CL_OK )
         goto error;
-
-    SaNameT  clAmsEventPublisherName = {0};
 
     strcpy ((ClCharT*)clAmsEventPublisherName.value, CL_AMS_EVENT_PUBLISHER_NAME);
     clAmsEventPublisherName.length = strlen (CL_AMS_EVENT_PUBLISHER_NAME);
 
-    if ( ( rc = clEventAttributesSet(
-                    ams->eventHandle, 
-                    &clAmsEventPatternArray,
-                    CL_EVENT_HIGHEST_PRIORITY, 
-                    0, 
-                    &clAmsEventPublisherName) )
-            != CL_OK )
+    if ( ( rc = clEventAttributesSet( ams->eventHandle, &clAmsEventPatternArray, CL_EVENT_HIGHEST_PRIORITY, 0, &clAmsEventPublisherName) ) != CL_OK )
         goto error;
 
     gClAmsNotificationDebug = clParseEnvBoolean("CL_AMF_NOTIFICATION_DEBUG");
@@ -366,7 +349,7 @@ static void clAmsNotificationLog(ClAmsNotificationDescriptorT *notification)
 static ClRcT
 amsNotificationTask(ClPtrT arg)
 {
-    ClAmsNotificationTaskArgsT *work = arg;
+    ClAmsNotificationTaskArgsT *work = (ClAmsNotificationTaskArgsT*) arg;
     ClPtrT data = work->data;
     ClUint32T dataLen = work->dataLen;
     ClEventIdT eventId = 0;
@@ -436,7 +419,7 @@ clAmsNotificationEnqueue(ClPtrT data, ClUint32T dataLen)
     ClAmsNotificationTaskArgsT *work = NULL;
     if(!gClAmsNotificationTaskPool) 
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
-    work = clHeapCalloc(1, sizeof(*work));
+    work = (ClAmsNotificationTaskArgsT*) clHeapCalloc(1, sizeof(*work));
     CL_ASSERT(work != NULL);
     work->data = data;
     work->dataLen = dataLen;
@@ -539,8 +522,8 @@ static ClRcT clAmsSINotificationEventPayloadSet(const ClAmsEntityT *entity,
     memcpy(&notification->suName, &su->config.entity.name, sizeof(SaNameT));
     notification->siName.length = strlen((const ClCharT*)siRef->entityRef.entity.name.value);
     notification->suName.length = strlen((const ClCharT*)su->config.entity.name.value);
-    notification->lastHAState = lastHAState;
-    notification->newHAState = siRef->haState;
+    notification->lastHAState = (SaAmfHAStateT) lastHAState;
+    notification->newHAState = (SaAmfHAStateT) siRef->haState;
 
     return CL_OK;
 }
@@ -559,8 +542,8 @@ static ClRcT clAmsSUNotificationEventPayloadSet(const ClAmsEntityT *entity,
     memcpy(&notification->siName, &si->config.entity.name, sizeof(SaNameT));
     notification->suName.length = strlen((const ClCharT*)suRef->entityRef.entity.name.value);
     notification->siName.length = strlen((const ClCharT*)si->config.entity.name.value);
-    notification->lastHAState = lastHAState;
-    notification->newHAState = suRef->haState;
+    notification->lastHAState = (SaAmfHAStateT) lastHAState;
+    notification->newHAState = (SaAmfHAStateT) suRef->haState;
 
     return CL_OK;
 }
@@ -579,8 +562,8 @@ static ClRcT clAmsCompNotificationEventPayloadSet(const ClAmsEntityT *entity,
     memcpy(&notification->siName, &csi->config.entity.name, sizeof(SaNameT));
     notification->entityName.length = strlen((const ClCharT*)compRef->entityRef.entity.name.value);
     notification->siName.length = strlen((const ClCharT*)csi->config.entity.name.value);
-    notification->lastHAState = lastHAState;
-    notification->newHAState = compRef->haState;
+    notification->lastHAState = (SaAmfHAStateT) lastHAState;
+    notification->newHAState = (SaAmfHAStateT) compRef->haState;
 
     return CL_OK;
 }
@@ -642,7 +625,7 @@ ClRcT clAmsOperStateNotificationPublish(ClAmsEntityT *pEntity,
                                         ClAmsOperStateT lastOperState,
                                         ClAmsOperStateT newOperState)
 {
-    ClAmsNotificationDescriptorT descriptor = {0};
+    ClAmsNotificationDescriptorT descriptor = {CL_AMS_NOTIFICATION_NONE};
     if(!pEntity)
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     descriptor.type = CL_AMS_NOTIFICATION_OPER_STATE_CHANGE;
@@ -657,7 +640,7 @@ ClRcT clAmsAdminStateNotificationPublish(ClAmsEntityT *pEntity,
                                          ClAmsAdminStateT lastAdminState,
                                          ClAmsAdminStateT newAdminState)
 {
-    ClAmsNotificationDescriptorT descriptor = {0};
+    ClAmsNotificationDescriptorT descriptor = {CL_AMS_NOTIFICATION_NONE};
     if(!pEntity)
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     descriptor.type = CL_AMS_NOTIFICATION_ADMIN_STATE_CHANGE;

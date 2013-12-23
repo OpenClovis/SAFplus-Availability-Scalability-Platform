@@ -112,7 +112,7 @@ extern ClRcT
 clAmsDBReadEntityTimer(
         CL_IN  ClParserPtrT  tagPtr,
         CL_OUT  ClAmsEntityTimerT  *entityTimer,
-        CL_IN  ClCharT  *timerTag );
+        CL_IN  const ClCharT  *timerTag );
 
 extern ClRcT
 clAmsDBTimerMarshall(ClAmsEntityTimerT *entityTimer,
@@ -129,7 +129,7 @@ extern ClRcT
 clAmsDBWriteEntityTimer(
         CL_IN  ClParserPtrT  tagPtr,
         CL_IN  ClAmsEntityTimerT  *entityTimer,
-        CL_IN  ClCharT  *timerTag );
+        CL_IN  const ClCharT  *timerTag );
 
 extern ClRcT clAmsDBMarshall(ClAmsDbT *db, ClBufferHandleT inMsgHdl);
 
@@ -172,7 +172,7 @@ extern ClRcT
 clAmsDBReadEntityTimer(
         ClParserPtrT        tagPtr,
         ClAmsEntityTimerT   *entityTimer,
-        ClCharT                *timerTag );
+        const ClCharT                *timerTag );
 
 extern ClRcT
 clAmsDBSGMarshall(ClAmsSGT *sg,

@@ -373,8 +373,7 @@ clAmsMgmtInitialize(
     AMS_CHECK_RC_ERROR( clHandleCreate(handle_database, 
                 sizeof(struct ams_instance), amsHandle) );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout( handle_database,*amsHandle,
-                (ClPtrT)&ams_instance) );
+    AMS_CHECK_RC_ERROR( clHandleCheckout( handle_database,*amsHandle, (ClPtrT*)&ams_instance) );
 
     if (amsMgmtCallbacks) 
     {
@@ -436,8 +435,7 @@ clAmsMgmtFinalize(
 #endif
     struct ams_instance  *ams_instance = NULL;
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout( handle_database, amsHandle, 
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout( handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     AMS_CHECK_RC_ERROR( clOsalMutexLock(ams_instance->response_mutex) );
 
@@ -517,8 +515,7 @@ clAmsMgmtEntityCreate(
 
     AMS_CHECKPTR_SILENT ( !entity ) ;
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy ( &req.entity , entity, sizeof(ClAmsEntityT));
@@ -583,8 +580,7 @@ clAmsMgmtEntityDelete(
 
     AMS_CHECKPTR_SILENT ( !entity );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy ( &req.entity , entity, sizeof(ClAmsEntityT));
@@ -678,8 +674,7 @@ clAmsMgmtEntitySetConfig(
 
     AMS_CHECKPTR_SILENT( !entityConfig || !entity );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     req.peInstantiateFlag = peInstantiateFlag;
@@ -742,8 +737,7 @@ clAmsMgmtEntitySetAlphaFactor(
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                                         (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy( &req.entity, entity, sizeof(ClAmsEntityT));
@@ -787,8 +781,7 @@ clAmsMgmtEntitySetBetaFactor(
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                                         (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy( &req.entity, entity, sizeof(ClAmsEntityT));
@@ -851,8 +844,7 @@ clAmsMgmtEntitySetRef(
 
     AMS_CHECKPTR_SILENT( !sourceEntity || !targetEntity);
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
     req.handle = ams_instance->server_handle;
     memcpy ( &req.sourceEntity, sourceEntity, sizeof(ClAmsEntityT));
     memcpy ( &req.targetEntity, targetEntity, sizeof(ClAmsEntityT));
@@ -913,8 +905,7 @@ clAmsMgmtCSISetNVP(
 
     AMS_CHECKPTR_SILENT( !sourceEntity );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy ( &req.sourceEntity, sourceEntity, sizeof(ClAmsEntityT));
@@ -971,8 +962,7 @@ clAmsMgmtEntityLockAssignmentExtended(
 
     AMS_CHECKPTR_SILENT( !entity );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy ( &req.entity , entity, sizeof(ClAmsEntityT));
@@ -1045,8 +1035,7 @@ clAmsMgmtEntityForceLockExtended(
 
     AMS_CHECKPTR_SILENT( !entity );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                                         (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     req.lock  = (lockFlags & 1) ? CL_TRUE : CL_FALSE;
@@ -1117,8 +1106,7 @@ clAmsMgmtEntityForceLockInstantiationExtended(
 
     AMS_CHECKPTR_SILENT( !entity );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     rc = amsForceLockInstantiation(ams_instance->server_handle, entity, retry);
     if(rc != CL_OK)
@@ -1177,8 +1165,7 @@ clAmsMgmtEntityLockInstantiationExtended(
 
     AMS_CHECKPTR_SILENT( !entity );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     rc = amsLockInstantiation(ams_instance->server_handle, entity, retry);
     if(rc != CL_OK)
@@ -1237,8 +1224,7 @@ clAmsMgmtEntityUnlockExtended(
 
     AMS_CHECKPTR_SILENT ( !entity );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy ( &req.entity , entity, sizeof(ClAmsEntityT));
@@ -1301,8 +1287,7 @@ clAmsMgmtEntityShutdownExtended(
 
     AMS_CHECKPTR_SILENT( !entity );
     
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy ( &req.entity , entity, sizeof(ClAmsEntityT) );
@@ -1343,7 +1328,7 @@ clAmsMgmtEntityShutdownWithRestartExtended(
     AMS_CHECKPTR_SILENT( !entity );
     
     AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+                (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy ( &req.entity , entity, sizeof(ClAmsEntityT) );
@@ -1414,8 +1399,7 @@ clAmsMgmtEntityRestartExtended(
 
     AMS_CHECKPTR_SILENT( !entity );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy ( &req.entity , entity, sizeof(ClAmsEntityT));
@@ -1481,8 +1465,7 @@ clAmsMgmtEntityRepairedExtended(
 
     AMS_CHECKPTR_SILENT( !entity );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy ( &req.entity , entity, sizeof(ClAmsEntityT));
@@ -1599,9 +1582,7 @@ ClRcT clAmsMgmtSGAdjustExtended(ClHandleT handle, const ClCharT *sg, ClBoolT ena
 
     AMS_CHECKPTR_SILENT(!sg);
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database,
-                                         handle,
-                                         (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, handle, (ClPtrT*)&ams_instance));
 
     request.handle = ams_instance->server_handle;
     request.enable = (enable == CL_TRUE ? 1 : 0);
@@ -1674,8 +1655,7 @@ clAmsMgmtEntityListEntityRefAdd(
         return CL_AMS_RC (CL_AMS_ERR_INVALID_ENTITY_LIST);
     }
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = ams_instance->server_handle;
     memcpy (&req.sourceEntity,sourceEntity, sizeof (ClAmsEntityT));
@@ -1731,8 +1711,7 @@ clAmsMgmtDebugEnable(
     clAmsMgmtDebugEnableResponseT  *res = NULL; 
     struct ams_instance  *ams_instance = NULL;
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     memset (&req,0,sizeof (clAmsMgmtDebugEnableRequestT));
 
@@ -1797,8 +1776,7 @@ clAmsMgmtDebugDisable(
     clAmsMgmtDebugDisableResponseT  *res = NULL; 
     struct ams_instance  *ams_instance = NULL;
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
     memset (&req,0,sizeof (clAmsMgmtDebugDisableRequestT));
 
     if ( !entity )
@@ -1868,8 +1846,7 @@ clAmsMgmtDebugGet(
 
     AMS_CHECKPTR_SILENT( !debugFlags );
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     memset (&req,0,sizeof (clAmsMgmtDebugGetRequestT));
 
@@ -1929,8 +1906,7 @@ clAmsMgmtDebugEnableLogToConsole(
     struct ams_instance  *ams_instance = NULL;
 
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = amsHandle;
 
@@ -1978,8 +1954,7 @@ clAmsMgmtDebugDisableLogToConsole(
     struct ams_instance  *ams_instance = NULL;
 
 
-    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle,
-                (ClPtrT)&ams_instance));
+    AMS_CHECK_RC_ERROR( clHandleCheckout(handle_database, amsHandle, (ClPtrT*)&ams_instance));
 
     req.handle = amsHandle;
 
@@ -3204,7 +3179,7 @@ ClAmsNodeConfigT* clAmsMgmtNodeGetConfig(CL_IN   ClAmsMgmtHandleT    handle, CL_
 {
     ClRcT  rc = CL_OK;
     ClAmsNodeConfigT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_NODE;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3223,7 +3198,7 @@ ClAmsSGConfigT* clAmsMgmtServiceGroupGetConfig(CL_IN   ClAmsMgmtHandleT    handl
 {
     ClRcT  rc = CL_OK;
     ClAmsSGConfigT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_SG;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3242,7 +3217,7 @@ ClAmsSUConfigT* clAmsMgmtServiceUnitGetConfig(CL_IN   ClAmsMgmtHandleT    handle
 {
     ClRcT  rc = CL_OK;
     ClAmsSUConfigT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_SU;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3261,7 +3236,7 @@ ClAmsSIConfigT* clAmsMgmtServiceInstanceGetConfig(CL_IN   ClAmsMgmtHandleT    ha
 {
     ClRcT  rc = CL_OK;
     ClAmsSIConfigT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_SI;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3280,7 +3255,7 @@ ClAmsCSIConfigT* clAmsMgmtCompServiceInstanceGetConfig(CL_IN   ClAmsMgmtHandleT 
 {
     ClRcT  rc = CL_OK;
     ClAmsCSIConfigT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_CSI;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3299,7 +3274,7 @@ ClAmsCompConfigT* clAmsMgmtCompGetConfig(CL_IN   ClAmsMgmtHandleT    handle, CL_
 {
     ClRcT  rc = CL_OK;
     ClAmsCompConfigT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_COMP;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3375,7 +3350,7 @@ ClAmsNodeStatusT* clAmsMgmtNodeGetStatus(CL_IN   ClAmsMgmtHandleT    handle, CL_
 {
     ClRcT  rc = CL_OK;
     ClAmsNodeStatusT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_NODE;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3394,7 +3369,7 @@ ClAmsSGStatusT* clAmsMgmtServiceGroupGetStatus(CL_IN   ClAmsMgmtHandleT    handl
 {
     ClRcT  rc = CL_OK;
     ClAmsSGStatusT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_SG;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3413,7 +3388,7 @@ ClAmsSUStatusT* clAmsMgmtServiceUnitGetStatus(CL_IN   ClAmsMgmtHandleT    handle
 {
     ClRcT  rc = CL_OK;
     ClAmsSUStatusT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_SU;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3432,7 +3407,7 @@ ClAmsSIStatusT* clAmsMgmtServiceInstanceGetStatus(CL_IN   ClAmsMgmtHandleT    ha
 {
     ClRcT  rc = CL_OK;
     ClAmsSIStatusT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_SI;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3451,7 +3426,7 @@ ClAmsCSIStatusT* clAmsMgmtCompServiceInstanceGetStatus(CL_IN   ClAmsMgmtHandleT 
 {
     ClRcT  rc = CL_OK;
     ClAmsCSIStatusT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_CSI;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -3470,7 +3445,7 @@ ClAmsCompStatusT* clAmsMgmtCompGetStatus(CL_IN   ClAmsMgmtHandleT    handle, CL_
 {
     ClRcT  rc = CL_OK;
     ClAmsCompStatusT* ret;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     entity.type = CL_AMS_ENTITY_TYPE_COMP;
     saNameSet(&entity.name, entName);
     entity.name.length++;  /* Strange AMS behavior requires the length to include the \0 */
@@ -4752,7 +4727,7 @@ static ClRcT clAmsMgmtSwitchoverActiveSU(ClAmsMgmtHandleT handle, ClAmsEntityT *
     ClAmsSGStatusT *sgStatus = NULL;
     ClAmsSUStatusT **suStatusList = NULL;
     ClRcT rc = CL_OK;
-    ClInt32T i;
+    ClUint32T i;
 
     suConfig = clAmsMgmtServiceUnitGetConfig(handle, (const ClCharT*)su->name.value);
     if(suConfig == NULL)
@@ -4776,7 +4751,7 @@ static ClRcT clAmsMgmtSwitchoverActiveSU(ClAmsMgmtHandleT handle, ClAmsEntityT *
                    suConfig->parentSG.entity.name.value, rc);
         goto out_free;
     }
-    suStatusList = clHeapCalloc(suList.count, sizeof(*suStatusList));
+    suStatusList = (ClAmsSUStatusT**) clHeapCalloc(suList.count, sizeof(*suStatusList));
     CL_ASSERT(suStatusList != NULL);
     /*
      * Lock out all the other standby's first except the target SU.
@@ -4875,7 +4850,7 @@ static ClRcT clAmsMgmtGetSISUHAState(ClAmsMgmtHandleT handle,
                                      ClBoolT *fullyAssigned)
 {
     ClAmsSUSIExtendedRefBufferT suSIRefBuffer = {0};
-    ClInt32T i;
+    ClUint32T i;
     ClRcT rc = CL_OK;
     rc = clAmsMgmtGetSUAssignedSIsExtendedList(handle, suEntity, &suSIRefBuffer);
     if(rc != CL_OK)
@@ -4940,7 +4915,7 @@ static ClRcT clAmsMgmtGetSIHAStateHard(ClAmsMgmtHandleT handle,
                                        ClAmsHAStateT *haState,
                                        ClBoolT *fullyAssigned)
 {
-    ClInt32T i;
+    ClUint32T i;
     ClAmsHAStateT currentHAState = CL_AMS_HA_STATE_NONE;
     ClAmsSISURefBufferT siSURefBuffer = {0};
     ClRcT rc = CL_OK;
@@ -5007,7 +4982,7 @@ static ClRcT clAmsMgmtGetSUHAStateHard(ClAmsMgmtHandleT handle,
                                        ClAmsHAStateT *haState,
                                        ClBoolT *fullyAssigned)
 {
-    ClInt32T i;
+    ClUint32T i;
     ClAmsHAStateT currentHAState = CL_AMS_HA_STATE_NONE;
     ClAmsSUSIExtendedRefBufferT suSIRefBuffer = {0};
     ClAmsSUConfigT *suConfig = NULL;
@@ -5117,8 +5092,8 @@ ClRcT clAmsMgmtGetSIHAState(ClAmsMgmtHandleT handle,
                             ClAmsHAStateT *haState,
                             ClBoolT *fullyAssigned)
 {
-    ClAmsEntityT siEntity = {0};
-    ClAmsEntityT suEntity = {0};
+    ClAmsEntityT siEntity = {CL_AMS_ENTITY_TYPE_ENTITY};
+    ClAmsEntityT suEntity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClAmsEntityT *pSUEntity = &suEntity;
     if(!handle || !si || !haState)
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
@@ -5144,7 +5119,7 @@ ClRcT clAmsMgmtGetSUHAState(ClAmsMgmtHandleT handle,
                             ClAmsHAStateT *haState,
                             ClBoolT *fullyAssigned)
 {
-    ClAmsEntityT suEntity = {0};
+    ClAmsEntityT suEntity = {CL_AMS_ENTITY_TYPE_ENTITY};
     if(!handle || !su || !haState)
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     suEntity.type = CL_AMS_ENTITY_TYPE_SU;
@@ -5291,8 +5266,8 @@ static ClRcT clAmsMgmtGetSUHAStateSoft(ClAmsMgmtHandleT handle,
                                        ClAmsEntityT *entity,
                                        ClAmsHAStateT *haState)
 {
-    ClInt32T i;
-    ClAmsHAStateT currentHAState = 0;
+    ClUint32T i;
+    ClAmsHAStateT currentHAState = CL_AMS_HA_STATE_NONE;
     ClAmsSUSIRefBufferT suSIRefBuffer = {0};
     ClRcT rc = CL_OK;
 
@@ -5314,7 +5289,7 @@ static ClRcT clAmsMgmtGetSUHAStateSoft(ClAmsMgmtHandleT handle,
             currentHAState = CL_AMS_HA_STATE_NONE;
             break;
         }
-        currentHAState |= entityRef->haState;
+        currentHAState = (ClAmsHAStateT) (currentHAState |entityRef->haState);
     }
 
     *haState = currentHAState;
@@ -5345,7 +5320,7 @@ ClRcT clAmsMgmtSetActive(ClAmsMgmtHandleT handle, ClAmsEntityT *entity, ClAmsEnt
 {
     ClAmsEntityBufferT entityBuffer = {0};
     ClRcT rc = CL_OK;
-    ClInt32T i;
+    ClUint32T i;
 
     if(!entity) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     if(entity->type != CL_AMS_ENTITY_TYPE_NODE &&
@@ -5363,7 +5338,7 @@ ClRcT clAmsMgmtSetActive(ClAmsMgmtHandleT handle, ClAmsEntityT *entity, ClAmsEnt
         }
         for(i = 0; i < entityBuffer.count; ++i)
         {
-            ClAmsHAStateT haState = 0;
+            ClAmsHAStateT haState = CL_AMS_HA_STATE_NONE;
             ClAmsEntityT *su = entityBuffer.entity + i;
             clAmsMgmtGetSUHAStateSoft(handle, su, &haState);
             if(haState != CL_AMS_HA_STATE_STANDBY)
@@ -5396,7 +5371,7 @@ ClRcT clAmsMgmtSetActive(ClAmsMgmtHandleT handle, ClAmsEntityT *entity, ClAmsEnt
 ClRcT
 clAmsMgmtSIAssignSU(const ClCharT *si, const ClCharT *activeSU, const ClCharT *standbySU)
 {
-    ClAmsMgmtSIAssignSUCustomRequestT req = {{0}};
+    ClAmsMgmtSIAssignSUCustomRequestT req = {{CL_AMS_ENTITY_TYPE_ENTITY}};
 
     AMS_CHECKPTR_SILENT(!si);
     
@@ -5429,7 +5404,7 @@ clAmsMgmtGetAspInstallInfo(ClAmsMgmtHandleT mgmtHandle, const ClCharT *nodeName,
     ClCharT *installInfo = NULL;
     ClUint32T installInfoLen = 0;
     SaNameT installInfoKey = {0};
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     if(!aspInstallInfo || !len)
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
@@ -5557,9 +5532,9 @@ static ClRcT amsMgmtDBCompCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCache
     ClRcT rc = CL_OK;
     for(i = 0; i < buffer->count; ++i)
     {
-        ClAmsCompCacheT *comp = clHeapCalloc(1, sizeof(*comp));
+        ClAmsCompCacheT *comp = (ClAmsCompCacheT*) clHeapCalloc(1, sizeof(*comp));
         ClUint32T hash;
-        ClAmsEntityListTypeT type = 0;
+        ClAmsEntityListTypeT type = CL_AMS_START_LIST;
         CL_ASSERT(comp != NULL);
         rc = VDECL_VER(clXdrUnmarshallClAmsCompConfigT, 4, 0, 0)(msg, &comp->config);
         if(rc != CL_OK)
@@ -5588,8 +5563,7 @@ static ClRcT amsMgmtDBCompCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCache
                 clHeapFree(comp);
                 return rc;
             }
-            comp->csiBuffer.entityRef = clHeapCalloc(comp->csiBuffer.count,
-                                                     sizeof(*comp->csiBuffer.entityRef));
+            comp->csiBuffer.entityRef = (ClAmsCompCSIRefT*) clHeapCalloc(comp->csiBuffer.count, sizeof(*comp->csiBuffer.entityRef));
             CL_ASSERT(comp->csiBuffer.entityRef != NULL);
             for(j = 0; j < comp->csiBuffer.count; ++j)
             {
@@ -5615,7 +5589,7 @@ static ClRcT amsMgmtDBCSICacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT
     ClRcT rc = CL_OK;
     for(i = 0; i < buffer->count; ++i)
     {
-        ClAmsCSICacheT *csi = clHeapCalloc(1, sizeof(*csi));
+        ClAmsCSICacheT *csi = (ClAmsCSICacheT*) clHeapCalloc(1, sizeof(*csi));
         ClUint32T hash;
         CL_ASSERT(csi != NULL);
         rc = VDECL_VER(clXdrUnmarshallClAmsCSIConfigT, 4, 0, 0)(msg, &csi->config);
@@ -5643,9 +5617,9 @@ static ClRcT amsMgmtDBSICacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT 
     ClRcT rc = CL_OK;
     for(i = 0; i < buffer->count; ++i)
     {
-        ClAmsSICacheT *si = clHeapCalloc(1, sizeof(*si));
+        ClAmsSICacheT *si = (ClAmsSICacheT*) clHeapCalloc(1, sizeof(*si));
         ClUint32T hash, j = 0;
-        ClAmsEntityListTypeT listType = 0;
+        ClAmsEntityListTypeT listType = CL_AMS_START_LIST;
         CL_ASSERT(si != NULL);
         rc = VDECL_VER(clXdrUnmarshallClAmsSIConfigT, 4, 0, 0)(msg, &si->config);
         if(rc != CL_OK)
@@ -5673,7 +5647,7 @@ static ClRcT amsMgmtDBSICacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT 
                 clHeapFree(si);
                 return rc;
             }
-            si->suBuffer.entityRef = clHeapCalloc(si->suBuffer.count, sizeof(*si->suBuffer.entityRef));
+            si->suBuffer.entityRef = (ClAmsSISUExtendedRefT*) clHeapCalloc(si->suBuffer.count, sizeof(*si->suBuffer.entityRef));
             CL_ASSERT(si->suBuffer.entityRef != NULL);
             for(j = 0; j < si->suBuffer.count; ++j)
             {
@@ -5701,7 +5675,7 @@ static ClRcT amsMgmtDBSGCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT 
     ClRcT rc = CL_OK;
     for(i = 0; i < buffer->count; ++i)
     {
-        ClAmsSGCacheT *sg = clHeapCalloc(1, sizeof(*sg));
+        ClAmsSGCacheT *sg = (ClAmsSGCacheT*) clHeapCalloc(1, sizeof(*sg));
         ClUint32T hash;
         CL_ASSERT(sg != NULL);
         rc = VDECL_VER(clXdrUnmarshallClAmsSGConfigT, 5, 0, 0)(msg, &sg->config);
@@ -5731,9 +5705,9 @@ static ClRcT amsMgmtDBSUCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT 
     ClRcT rc = CL_OK;
     for(i = 0; i < buffer->count; ++i)
     {
-        ClAmsSUCacheT *su = clHeapCalloc(1, sizeof(*su));
+        ClAmsSUCacheT *su = (ClAmsSUCacheT*) clHeapCalloc(1, sizeof(*su));
         ClUint32T hash, j;
-        ClAmsEntityListTypeT listType = 0;
+        ClAmsEntityListTypeT listType = CL_AMS_START_LIST;
         CL_ASSERT(su != NULL);
         rc = VDECL_VER(clXdrUnmarshallClAmsSUConfigT, 4, 0, 0)(msg, &su->config);
         if(rc != CL_OK)
@@ -5761,7 +5735,7 @@ static ClRcT amsMgmtDBSUCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCacheT 
                 clHeapFree(su);
                 return rc;
             }
-            su->siBuffer.entityRef = clHeapCalloc(su->siBuffer.count, sizeof(*su->siBuffer.entityRef));
+            su->siBuffer.entityRef = (ClAmsSUSIExtendedRefT*) clHeapCalloc(su->siBuffer.count, sizeof(*su->siBuffer.entityRef));
             CL_ASSERT(su->siBuffer.entityRef != NULL);
             for(j = 0; j < su->siBuffer.count; ++j)
             {
@@ -5789,7 +5763,7 @@ static ClRcT amsMgmtDBNodeCacheLoad(ClAmsEntityBufferT *buffer, ClAmsMgmtDBCache
     ClRcT rc = CL_OK;
     for(i = 0; i < buffer->count; ++i)
     {
-        ClAmsNodeCacheT *node = clHeapCalloc(1, sizeof(*node));
+        ClAmsNodeCacheT *node = (ClAmsNodeCacheT*) clHeapCalloc(1, sizeof(*node));
         ClUint32T hash;
         CL_ASSERT(node != NULL);
         rc = VDECL_VER(clXdrUnmarshallClAmsNodeConfigT, 4, 0, 0)(msg, &node->config);
@@ -5931,7 +5905,7 @@ static ClRcT amsMgmtDBCacheLoad(ClUint8T *db, ClUint32T len, ClAmsMgmtDBCacheT *
         goto out_free;
     while(len > 0)
     {
-        ClAmsEntityListTypeT type = 0;
+        ClAmsEntityListTypeT type = CL_AMS_START_LIST;
         ClUint32T curOffset = 0;
         const ClCharT *eType = "entity";
         if(buffer.entity)
@@ -6183,7 +6157,7 @@ ClRcT clAmsMgmtDBCacheDump(ClAmsMgmtDBHandleT db)
         cast *__entry = CL_LIST_ENTRY(__iter, cast, field);             \
         if(!( (buffer)->count & 15) )                                   \
         {                                                               \
-            (buffer)->entity = clHeapRealloc((buffer)->entity, sizeof(*(buffer)->entity)*((buffer)->count+16)); \
+            (buffer)->entity = (ClAmsEntityT*) clHeapRealloc((buffer)->entity, sizeof(*(buffer)->entity)*((buffer)->count+16)); \
             CL_ASSERT((buffer)->entity != NULL);                        \
             memset((buffer)->entity + (buffer)->count, 0, sizeof(*(buffer)->entity) * 16); \
         }                                                               \
@@ -6338,7 +6312,7 @@ ClRcT clAmsMgmtDBGetEntityConfig(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, Cl
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
 
-    *entityConfig = clHeapCalloc(1, sz);
+    *entityConfig = (ClAmsEntityConfigT*) clHeapCalloc(1, sz);
     CL_ASSERT(*entityConfig != NULL);
     memcpy(*entityConfig, config, sz);
     
@@ -6440,7 +6414,7 @@ ClRcT clAmsMgmtDBGetEntityStatus(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, Cl
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
 
-    *entityStatus = clHeapCalloc(1, sz);
+    *entityStatus = (ClAmsEntityStatusT*) clHeapCalloc(1, sz);
     CL_ASSERT(*entityStatus != NULL);
     memcpy(*entityStatus, status, sz);
     
@@ -6564,7 +6538,7 @@ ClRcT clAmsMgmtDBGetSUAssignedSIsList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entit
     buffer->entityRef = NULL;
     if(buffer->count > 0)
     {
-        buffer->entityRef = clHeapCalloc(su->siBuffer.count, sizeof(*su->siBuffer.entityRef));
+        buffer->entityRef = (ClAmsSUSIExtendedRefT*) clHeapCalloc(su->siBuffer.count, sizeof(*su->siBuffer.entityRef));
         CL_ASSERT(buffer->entityRef != NULL);
         memcpy(buffer->entityRef, su->siBuffer.entityRef, sizeof(*buffer->entityRef) * buffer->count);
     }
@@ -6590,7 +6564,7 @@ ClRcT clAmsMgmtDBGetSISUList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClAmsS
     buffer->entityRef = NULL;
     if(buffer->count > 0)
     {
-        buffer->entityRef = clHeapCalloc(si->suBuffer.count, sizeof(*si->suBuffer.entityRef));
+        buffer->entityRef = (ClAmsSISUExtendedRefT*) clHeapCalloc(si->suBuffer.count, sizeof(*si->suBuffer.entityRef));
         CL_ASSERT(buffer->entityRef != NULL);
         memcpy(buffer->entityRef, si->suBuffer.entityRef, sizeof(*buffer->entityRef) * buffer->count);
     }
@@ -6613,14 +6587,14 @@ ClRcT clAmsMgmtDBGetCompCSIList(ClAmsMgmtDBHandleT db, ClAmsEntityT *entity, ClA
         return CL_AMS_RC(CL_ERR_NOT_EXIST);
     }
     buffer->count = comp->csiBuffer.count;
-    buffer->entityRef = clHeapCalloc(comp->csiBuffer.count, sizeof(*comp->csiBuffer.entityRef));
+    buffer->entityRef = (ClAmsCompCSIRefT*) clHeapCalloc(comp->csiBuffer.count, sizeof(*comp->csiBuffer.entityRef));
     CL_ASSERT(buffer->entityRef != NULL);
     memcpy(buffer->entityRef, comp->csiBuffer.entityRef, sizeof(*buffer->entityRef) * buffer->count);
     for(ClUint32T i = 0; i < buffer->count; ++i)
     {
         if(comp->csiBuffer.entityRef[i].activeComp)
         {
-            buffer->entityRef[i].activeComp = clHeapCalloc(1, sizeof(*buffer->entityRef[i].activeComp));
+            buffer->entityRef[i].activeComp = (ClAmsEntityT*) clHeapCalloc(1, sizeof(*buffer->entityRef[i].activeComp));
             CL_ASSERT(buffer->entityRef[i].activeComp != NULL);
             memcpy(buffer->entityRef[i].activeComp, comp->csiBuffer.entityRef[i].activeComp,
                    sizeof(*buffer->entityRef[i].activeComp));
@@ -6669,9 +6643,7 @@ ClRcT clAmsMgmtDBGetNodeCompList(ClAmsMgmtDBHandleT cache,
         }
         if(compList)
         {
-            compList->entity = clHeapRealloc(compList->entity,
-                                            sizeof(*compList->entity) * 
-                                             (compList->count + compBuffer.count));
+            compList->entity = (ClAmsEntityT*) clHeapRealloc(compList->entity, sizeof(*compList->entity) * (compList->count + compBuffer.count));
             CL_ASSERT(compList->entity != NULL);
             memcpy(compList->entity + compList->count, compBuffer.entity,
                    sizeof(*compBuffer.entity) * compBuffer.count);
@@ -6705,7 +6677,7 @@ ClRcT clAmsMgmtDBGet(ClAmsMgmtDBHandleT *db)
         clLogError("DB", "GET", "AMF db get returned with [%#x]", rc);
         goto out;
     }
-    cache = clHeapCalloc(1, sizeof(*cache));
+    cache = (ClAmsMgmtDBCacheT*) clHeapCalloc(1, sizeof(*cache));
     CL_ASSERT(cache != NULL);
     rc = amsMgmtDBCacheLoad(dbResponse.buffer, dbResponse.len, cache);
     if(rc != CL_OK)

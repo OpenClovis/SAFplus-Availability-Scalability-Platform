@@ -99,7 +99,7 @@ extern ClRcT
 clAmsParserBooleanParser(
         CL_OUT ClBoolT *data_ptr,
         CL_IN ClParserPtrT ptr,
-        CL_IN ClCharT *str );
+        CL_IN const ClCharT *str );
 
 /*
  * Function to parse the Uint32 values in the XML file 
@@ -109,7 +109,7 @@ extern ClRcT
 clAmsParserUint32Parser(
         CL_OUT ClUint32T *data_ptr, 
         CL_IN ClParserPtrT ptr, 
-        CL_IN ClCharT *str );
+        CL_IN const ClCharT *str );
 
 /*
  * Function to parse the Int64 values in the XML file 
@@ -119,7 +119,7 @@ extern ClRcT
 clAmsParserTimeoutParser ( 
         CL_OUT ClInt64T *data_ptr, 
         CL_IN ClParserPtrT ptr, 
-        CL_IN ClCharT *str,
+        CL_IN const ClCharT *str,
         CL_IN ClCharT *entityTypeName );
 
 
@@ -202,7 +202,7 @@ extern ClRcT
 clAmsParserStringParser(
         ClCharT **data_ptr, 
         ClParserPtrT ptr, 
-        ClCharT *str );
+        const ClCharT *str );
 
 
 /*
@@ -213,7 +213,7 @@ extern ClRcT
 clAmsParserSaNameParser (
         CL_OUT SaNameT *clName, 
         CL_IN ClParserPtrT ptr, 
-        CL_IN ClCharT *str );
+        CL_IN const ClCharT *str );
 
 /*
  * Function to parse the entity name attribute in the XML file 
@@ -223,7 +223,7 @@ extern ClRcT clAmsParserEntityAttrParser(
         CL_OUT ClAmsEntityConfigT *entityConfig,
         CL_IN ClAmsEntityTypeT entityType,
         CL_IN ClParserPtrT ptr,
-        CL_IN ClCharT *str);
+        CL_IN const ClCharT *str);
 
 /*
  * Function to parse the CSI definition type values 
@@ -287,8 +287,8 @@ clAmsParserNodeDefParser(
 
 extern ClRcT 
 clAmsParserEntityTypeParser(
-        CL_IN ClCharT *listName,
-        CL_IN ClCharT *entityName,
+        CL_IN const ClCharT *listName,
+        CL_IN const ClCharT *entityName,
         CL_IN ClAmsEntityTypeT entityType,
         CL_IN ClParserPtrT fileParserPtr );
 
@@ -298,8 +298,8 @@ clAmsParserEntityTypeParser(
 
 extern ClRcT 
 clAmsParserMain(
-       CL_IN ClCharT *amfDefinitionFileName,
-       CL_IN ClCharT *amfConfigFileName );
+       CL_IN const ClCharT *amfDefinitionFileName,
+       CL_IN const ClCharT *amfConfigFileName );
 
 /*
  * Function to create the node containment hierarchy 
@@ -362,10 +362,10 @@ extern ClRcT clAmsParserCSICreation(
 extern ClRcT 
 clAmsParserCreateRelationship( 
         CL_IN ClParserPtrT fileParserPtr,
-        CL_IN ClCharT *instancesName,
-        CL_IN ClCharT *instanceName,
-        CL_IN ClCharT *listName,
-        CL_IN ClCharT *entityName,
+        CL_IN const ClCharT *instancesName,
+        CL_IN const ClCharT *instanceName,
+        CL_IN const ClCharT *listName,
+        CL_IN const ClCharT *entityName,
         CL_IN ClAmsEntityListTypeT entityListName,
         CL_IN ClAmsEntityTypeT sourceEntityType ,
         CL_IN ClAmsEntityTypeT targetEntityType );

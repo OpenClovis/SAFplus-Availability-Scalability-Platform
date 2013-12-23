@@ -927,11 +927,10 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
     /* Computed firstBatch and secondBatch number of records, now verify and flush them */
     pBuffer = pRecords + (startIdx * pHeader->recordSize);
 
-    pFlushRecord->pBuffs = clHeapRealloc(pFlushRecord->pBuffs,
-                                         (pFlushRecord->numBufs+1)*sizeof(*pFlushRecord->pBuffs));
+    pFlushRecord->pBuffs = (ClLogFlushBufferT*) clHeapRealloc(pFlushRecord->pBuffs, (pFlushRecord->numBufs+1)*sizeof(*pFlushRecord->pBuffs));
     CL_ASSERT(pFlushRecord->pBuffs != NULL);
     memset(pFlushRecord->pBuffs+pFlushRecord->numBufs, 0, sizeof(*pFlushRecord->pBuffs));
-    pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = clHeapCalloc(sizeof(ClUint8T), buffLen);
+    pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord = (ClUint8T*) clHeapCalloc(sizeof(ClUint8T), buffLen);
     CL_ASSERT(pFlushRecord->pBuffs[pFlushRecord->numBufs].pRecord != NULL);
 
     pFlushRecord->pBuffs[pFlushRecord->numBufs].numRecords = 0;

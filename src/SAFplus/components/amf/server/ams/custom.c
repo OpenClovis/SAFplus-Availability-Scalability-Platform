@@ -602,8 +602,7 @@ clAmsPeSGAssignSUCustom(
                     {
                         numMaxSIs = numSIs;
 
-                        scannedSIList = clHeapRealloc(scannedSIList,
-                                                      numSIs * sizeof(*scannedSIList));
+                        scannedSIList = (ClAmsSIT**) clHeapRealloc(scannedSIList, numSIs * sizeof(*scannedSIList));
                         CL_ASSERT(scannedSIList != NULL);
                     }
                     scannedSIList[numScannedSIs++] = si;
@@ -637,9 +636,7 @@ clAmsPeSGAssignSUCustom(
 
 ClRcT clAmsCustomAssignmentIterInit(ClAmsCustomAssignmentIterT *iter, ClAmsSIT *si)
 {
-    SaNameT customAssignmentKey = { .value = CUSTOM_ASSIGNMENT_KEY,
-                                    .length = sizeof(CUSTOM_ASSIGNMENT_KEY) -1
-    };
+    SaNameT customAssignmentKey = { sizeof(CUSTOM_ASSIGNMENT_KEY) -1,  CUSTOM_ASSIGNMENT_KEY };
     ClRcT rc;
     ClUint8T *customAssignmentBuffer = NULL;
     ClUint32T customAssignmentBufferLen = 0;
@@ -711,9 +708,7 @@ void clAmsCustomAssignmentIterEnd(ClAmsCustomAssignmentIterT *iter)
 
 ClRcT clAmsPeDequeueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU)
 {
-    SaNameT customAssignmentKey = { .value = CUSTOM_ASSIGNMENT_KEY,
-                                    .length = sizeof(CUSTOM_ASSIGNMENT_KEY)-1 
-    };
+    SaNameT customAssignmentKey = { sizeof(CUSTOM_ASSIGNMENT_KEY)-1, CUSTOM_ASSIGNMENT_KEY };
     ClUint8T *customAssignmentBuffer = NULL;
     ClUint32T customAssignmentBufferLen = 0;
     ClAmsSISURefBufferT buffer = {0};
@@ -763,7 +758,7 @@ ClRcT clAmsPeDequeueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU)
             --buffer.count;
             if(buffer.count > 0)
             {
-                newRef = clHeapCalloc(buffer.count, sizeof(*buffer.entityRef));
+                newRef = (ClAmsSISURefT*) clHeapCalloc(buffer.count, sizeof(*buffer.entityRef));
                 CL_ASSERT(newRef != NULL);
                 if(i != buffer.count)
                 {
@@ -848,9 +843,7 @@ ClRcT clAmsPeDequeueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU)
 
 ClRcT clAmsPeEnqueueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHAStateT haState)
 {
-    SaNameT customAssignmentKey = { .value = CUSTOM_ASSIGNMENT_KEY,
-                                    .length = sizeof(CUSTOM_ASSIGNMENT_KEY)-1 
-    };
+    SaNameT customAssignmentKey = {  sizeof(CUSTOM_ASSIGNMENT_KEY)-1, CUSTOM_ASSIGNMENT_KEY };
     ClUint8T *customAssignmentBuffer = NULL;
     ClUint32T customAssignmentBufferLen = 0;
     ClAmsSISURefBufferT buffer = {0};
@@ -893,7 +886,7 @@ ClRcT clAmsPeEnqueueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHASt
         /*
          * Reallocate the entity buffer to add the new one.
          */
-        buffer.entityRef = clHeapRealloc(buffer.entityRef, sizeof(*buffer.entityRef) * (buffer.count+1));
+        buffer.entityRef = (ClAmsSISURefT*) clHeapRealloc(buffer.entityRef, sizeof(*buffer.entityRef) * (buffer.count+1));
         CL_ASSERT(buffer.entityRef != NULL);
         memset(buffer.entityRef + buffer.count, 0, sizeof(*buffer.entityRef));
         memcpy(&buffer.entityRef[buffer.count].entityRef.entity, &activeSU->config.entity, 
@@ -903,7 +896,7 @@ ClRcT clAmsPeEnqueueAssignmentCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsHASt
     }
     else
     {
-        buffer.entityRef = clHeapCalloc(1, sizeof(*buffer.entityRef));
+        buffer.entityRef = (ClAmsSISURefT*) clHeapCalloc(1, sizeof(*buffer.entityRef));
         CL_ASSERT(buffer.entityRef != NULL);
         memcpy(&buffer.entityRef->entityRef.entity, &activeSU->config.entity, 
                sizeof(buffer.entityRef->entityRef.entity));
@@ -1174,16 +1167,17 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
         {
             const ClCharT *op = "Assigning";
             const ClCharT *target = "to";
-            ClRcT (*csiFn)(ClAmsSUT *su, ClAmsSIT *si, ClUint32T mode);
+            //ClRcT (*csiFn)(ClAmsSUT *su, ClAmsSIT *si, ClUint32T mode); c++ build checks for exact prototypes
             ClAmsHAStateT haState = suSIAssignmentMap[i].haState;
-
-            csiFn = clAmsPeSUAssignSI;
 
             if(haState == CL_AMS_HA_STATE_NONE)
             {
                 target = "from";
-                csiFn = clAmsPeSURemoveSI;
                 op = "Removing";
+                clLogNotice("CUSTOM", "SI-ASSIGN-SU", "%s SI [%s] %s %s SU [%s]", op, si->config.entity.name.value, 
+                        haState != CL_AMS_HA_STATE_NONE ? CL_AMS_STRING_H_STATE(haState) : "", target, suSIAssignmentMap[i].su->config.entity.name.value);
+                rc = clAmsPeSURemoveSI(suSIAssignmentMap[i].su, si, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE);
+            
 #if 0
                 if(suSIAssignmentMap[i].currentHAState == CL_AMS_HA_STATE_ACTIVE)
                 {
@@ -1192,19 +1186,16 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
                 }
 #endif
             }
+            else
+            {
 
-            clLogNotice("CUSTOM", "SI-ASSIGN-SU", "%s SI [%s] %s %s SU [%s]",
-                        op,
-                        si->config.entity.name.value, 
-                        haState != CL_AMS_HA_STATE_NONE ? CL_AMS_STRING_H_STATE(haState) : "",
-                        target,
-                        suSIAssignmentMap[i].su->config.entity.name.value);
-
-            rc = csiFn(suSIAssignmentMap[i].su, si, haState);
+                clLogNotice("CUSTOM", "SI-ASSIGN-SU", "%s SI [%s] %s %s SU [%s]", op, si->config.entity.name.value, 
+                        haState != CL_AMS_HA_STATE_NONE ? CL_AMS_STRING_H_STATE(haState) : "", target, suSIAssignmentMap[i].su->config.entity.name.value);
+                 rc = clAmsPeSUAssignSI(suSIAssignmentMap[i].su, si, haState);
+            }
             if(rc != CL_OK)
             {
-                clLogError("CUSTOM", "SI-ASSIGN-SU", "SU SI [%s] operation returned [%#x]",
-                           op, rc);
+                clLogError("CUSTOM", "SI-ASSIGN-SU", "SU SI [%s] operation returned [%#x]", op, rc);
                 goto out;
             }
         }
@@ -1307,7 +1298,7 @@ clAmsPeSGAutoAdjustCustom(ClAmsSGT *sg)
                               su->config.entity.name.value, si->config.entity.name.value);
                     continue;
                 }
-                customEntry = clHeapCalloc(1, sizeof(*customEntry));
+                customEntry = (ClAmsSUAdjustCustomT*) clHeapCalloc(1, sizeof(*customEntry));
                 CL_ASSERT(customEntry != NULL);
                 customEntry->su = su;
                 customEntry->si = si;

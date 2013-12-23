@@ -59,7 +59,7 @@ clAmsGetFaultReport(
 
     ClRcT  rc = CL_OK;
     ClUint32T  escalation = 0;
-    ClAmsEntityRefT  entityRef = {{0},0,0};
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
 
     AMS_FUNC_ENTER (("\n"));
 

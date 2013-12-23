@@ -70,7 +70,7 @@ static __inline__ ClUint32T cl_ams_get_fn_id(ClUint32T client_id)
     static ClUint32T serviceIdTable[] = { CL_AMS_MGMT_SERVER_TABLE_ID,
                                           CL_AMS_MGMT_SERVER_TABLE2_ID,
     };
-    ClInt32T index = (client_id >> CL_EO_CLIENT_BIT_SHIFT);
+    ClUint32T index = (client_id >> CL_EO_CLIENT_BIT_SHIFT);
     if(index >= (ClInt32T)sizeof(serviceIdTable)/sizeof(serviceIdTable[0]))
     {
         return 0;
@@ -399,7 +399,7 @@ marshalClAmsMgmtCSISetNVP(
 
     AMS_CHECKPTR_SILENT(!req);
 
-    return clBufferNBytesWrite(buf, (ClPtrT)req, sizeof(*req));
+    return clBufferNBytesWrite(buf, (ClUint8T*) req, sizeof(*req));
 
 }
 
@@ -433,7 +433,7 @@ marshalClAmsMgmtEntitySetRef(
 
     AMS_CHECKPTR_SILENT(!req);
 
-    return clBufferNBytesWrite(buf, (ClPtrT)req, sizeof(*req));
+    return clBufferNBytesWrite(buf, (ClUint8T*)req, sizeof(*req));
 
 }
 
@@ -537,8 +537,7 @@ marshalClAmsMgmtEntityInstantiate(
         CL_IN  ClPtrT  ptr,
         CL_INOUT  ClBufferHandleT  buf)
 {
-    return clBufferNBytesWrite(buf, (ClPtrT)ptr, 
-            sizeof(clAmsMgmtEntityInstantiateRequestT));
+    return clBufferNBytesWrite(buf, (ClUint8T*)ptr, sizeof(clAmsMgmtEntityInstantiateRequestT));
 }
 
 static ClRcT
@@ -567,8 +566,7 @@ marshalClAmsMgmtEntityTerminate(
         CL_IN  ClPtrT  ptr,
         CL_INOUT  ClBufferHandleT  buf)
 {
-    return clBufferNBytesWrite(buf, (ClPtrT)ptr, 
-            sizeof(clAmsMgmtEntityTerminateRequestT));
+    return clBufferNBytesWrite(buf, (ClUint8T*)ptr, sizeof(clAmsMgmtEntityTerminateRequestT));
 }
 
 static ClRcT
@@ -1082,8 +1080,7 @@ marshalClAmsMgmtSGAdjustPreference(
         CL_IN  ClPtrT  ptr,
         CL_INOUT  ClBufferHandleT  buf)
 {
-    return clBufferNBytesWrite(buf, (ClPtrT)ptr, 
-            sizeof(clAmsMgmtSGAdjustPreferenceRequestT));
+    return clBufferNBytesWrite(buf, (ClUint8T*)ptr, sizeof(clAmsMgmtSGAdjustPreferenceRequestT));
 }
 
 static ClRcT
@@ -1111,8 +1108,7 @@ marshalClAmsMgmtEntityListEntityRefAdd(
         CL_IN  ClPtrT  ptr,
         CL_INOUT  ClBufferHandleT  buf)
 {
-    return clBufferNBytesWrite(buf, (ClPtrT) ptr, 
-            sizeof(clAmsMgmtEntityListEntityRefAddRequestT));
+    return clBufferNBytesWrite(buf, (ClUint8T*) ptr, sizeof(clAmsMgmtEntityListEntityRefAddRequestT));
 }
 
 static ClRcT
@@ -1847,7 +1843,7 @@ __unmarshalClAmsMgmtEntityGet(CL_IN ClBufferHandleT buf, CL_INOUT ClPtrT *pptr,
 
     AMS_CHECK_NO_MEMORY_AND_EXIT (*res);
 
-    (*res)->entity = clHeapAllocate(sizeof(ClAmsEntityT));
+    (*res)->entity = (ClAmsEntityT*) clHeapAllocate(sizeof(ClAmsEntityT));
 
     AMS_CHECK_NO_MEMORY_AND_EXIT ((*res)->entity);
 
@@ -1863,7 +1859,7 @@ __unmarshalClAmsMgmtEntityGet(CL_IN ClBufferHandleT buf, CL_INOUT ClPtrT *pptr,
 
     clAmsFreeMemory((*res)->entity);
 
-    entity  = clHeapAllocate(entitySize);
+    entity  = (ClAmsEntityT*)clHeapAllocate(entitySize);
 
     AMS_CHECK_NO_MEMORY_AND_EXIT (entity);
 
@@ -2052,7 +2048,7 @@ __unmarshalClAmsMgmtEntityGetConfig(
 
     AMS_CHECK_NO_MEMORY (*res);
 
-    (*res)->entityConfig = clHeapAllocate(sizeof(ClAmsEntityConfigT));
+    (*res)->entityConfig = (ClAmsEntityConfigT*) clHeapAllocate(sizeof(ClAmsEntityConfigT));
 
     AMS_CHECK_NO_MEMORY_AND_EXIT( (*res)->entityConfig );
     
@@ -2066,7 +2062,7 @@ __unmarshalClAmsMgmtEntityGetConfig(
 
     clAmsFreeMemory( (*res)->entityConfig );
 
-    entityConfig  = clHeapAllocate(configSize);
+    entityConfig  = (ClAmsEntityConfigT*) clHeapAllocate(configSize);
 
     AMS_CHECK_NO_MEMORY_AND_EXIT (entityConfig);
 
@@ -2243,7 +2239,7 @@ __unmarshalClAmsMgmtEntityGetStatus(
     AMS_CHECK_RC_ERROR( clAmsGetEntitySize( &entityType, &configSize, 
                 &statusSize, &entitySize) );
 
-    entityStatus  = clHeapCalloc(1, statusSize);
+    entityStatus  = (ClAmsEntityStatusT*) clHeapCalloc(1, statusSize);
 
     AMS_CHECK_NO_MEMORY_AND_EXIT( entityStatus );
 
@@ -2414,7 +2410,7 @@ unmarshalClAmsMgmtGetCSINVPList(
 
     (*res)->count = count;
 
-    (*res)->nvp = clHeapAllocate(count*sizeof(ClAmsCSINVPT));
+    (*res)->nvp = (ClAmsCSINVPT*) clHeapAllocate(count*sizeof(ClAmsCSINVPT));
 
     AMS_CHECK_NO_MEMORY_AND_EXIT( (*res)->nvp );
 
@@ -2477,7 +2473,7 @@ unmarshalClAmsMgmtGetEntityList(
     AMS_CHECK_RC_ERROR( clXdrUnmarshallClUint32T(buf, (ClPtrT)&count) );
 
     (*res)->count = count;
-    (*res)->entity = clHeapAllocate(count*sizeof(ClAmsEntityT));
+    (*res)->entity = (ClAmsEntityT*) clHeapAllocate(count*sizeof(ClAmsEntityT));
 
     AMS_CHECK_NO_MEMORY_AND_EXIT ( (*res)->entity );
 
@@ -2586,7 +2582,7 @@ unmarshalClAmsMgmtGetOLEntityList(
     AMS_CHECK_RC_ERROR( clXdrUnmarshallClUint32T(buf, (ClPtrT)&count) );
 
     (*res)->count = count;
-    (*res)->entityRef = clHeapAllocate(count*size);
+    (*res)->entityRef = (ClAmsEntityRefT*) clHeapAllocate(count*size);
 
     AMS_CHECK_NO_MEMORY_AND_EXIT((*res)->entityRef);
 
@@ -2794,7 +2790,7 @@ static ClRcT
 marshallClAmsMgmtUserDataSetRequest(ClPtrT req,
                                     ClBufferHandleT inMsgHdl)
 {
-    ClAmsMgmtUserDataSetRequestT *request = req;
+    ClAmsMgmtUserDataSetRequestT *request = (ClAmsMgmtUserDataSetRequestT*) req;
     ClRcT rc = CL_OK;
     rc = VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(request->entity, inMsgHdl, 0);
     if(rc != CL_OK) return rc;
@@ -2824,7 +2820,7 @@ marshallClAmsMgmtUserDataGetRequest(ClPtrT req,
                                     ClBufferHandleT inMsgHdl)
 {
     ClRcT rc = CL_OK;
-    ClAmsMgmtUserDataGetRequestT *request = req;
+    ClAmsMgmtUserDataGetRequestT *request = (ClAmsMgmtUserDataGetRequestT*) req;
     rc = VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(request->entity, inMsgHdl, 0);
     if(rc != CL_OK) return rc;
     if(request->key)
@@ -2845,7 +2841,7 @@ unmarshallClAmsMgmtUserDataGetRequest(ClBufferHandleT inMsgHdl,
     if(request->data && *request->len)
     {
         *request->data = NULL;
-        *request->data = clHeapCalloc(1, *request->len);
+        *request->data = (ClCharT*) clHeapCalloc(1, *request->len);
         CL_ASSERT(*request->data);
         rc = clXdrUnmarshallArrayClCharT(inMsgHdl, *request->data, *request->len);
         if(rc != CL_OK)
@@ -2861,7 +2857,7 @@ unmarshallClAmsMgmtUserDataGetRequest(ClBufferHandleT inMsgHdl,
 static ClRcT marshallClAmsMgmtUserDataDeleteRequest(ClPtrT req,
                                             ClBufferHandleT inMsgHdl)
 {
-    ClAmsMgmtUserDataDeleteRequestT *request = req;
+    ClAmsMgmtUserDataDeleteRequestT *request = (ClAmsMgmtUserDataDeleteRequestT*) req;
     ClRcT rc = CL_OK;
     rc = VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(request->entity, inMsgHdl, 0);
     if(rc != CL_OK) return rc;
@@ -2970,7 +2966,7 @@ unmarshallClAmsMgmtDBGet(ClBufferHandleT outMsg, ClPtrT *res)
         goto out;
     if(dbResponse->len)
     {
-        dbResponse->buffer = clHeapCalloc(1, dbResponse->len);
+        dbResponse->buffer = (ClUint8T*) clHeapCalloc(1, dbResponse->len);
         if(dbResponse->buffer == NULL)
         {
             rc = CL_AMS_RC(CL_ERR_NO_MEMORY);
@@ -3001,7 +2997,7 @@ cl_ams_mgmt_db_get(CL_OUT ClAmsMgmtDBGetResponseT *res)
 
 static ClRcT marshallClAmsMgmtCASGet(ClPtrT req, ClBufferHandleT inMsgHdl)
 {
-    ClAmsMgmtCASGetRequestT *cas = req;
+    ClAmsMgmtCASGetRequestT *cas = (ClAmsMgmtCASGetRequestT*) req;
     return VDECL_VER(clXdrMarshallClAmsEntityConfigT, 4, 0, 0)(&cas->entity, inMsgHdl, 0);
 }
 

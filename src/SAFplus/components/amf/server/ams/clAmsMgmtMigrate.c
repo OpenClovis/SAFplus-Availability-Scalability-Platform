@@ -27,10 +27,10 @@ static ClRcT clAmsMgmtSGRedundancyModelNoRedundancy(ClAmsSGRedundancyModelT mode
                                                     ClUint32T numStandbySUs,
                                                     ClAmsMgmtMigrateListT *migrateList)
 {
-    ClAmsSGConfigT sgConfig = {{0}};
+    ClAmsSGConfigT sgConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsEntityConfigT *entityConfig = NULL;
     ClRcT rc = CL_OK;
-    ClAmsEntityT sgName = {0};
+    ClAmsEntityT sgName = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClUint64T bitMask = 0;
 
     sgName.type = CL_AMS_ENTITY_TYPE_SG;
@@ -100,7 +100,7 @@ static ClRcT clAmsMgmtSGRedundancyModelEstimate(ClAmsSGRedundancyModelT model,
 {
     ClRcT rc = CL_OK;
     ClAmsEntityConfigT *entityConfig = NULL;
-    ClAmsSGConfigT sgConfig = {{0}};
+    ClAmsSGConfigT sgConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsEntityBufferT suBuffer = {0};
     ClAmsEntityBufferT nodeBuffer = {0};
     ClAmsEntityBufferT siBuffer = {0};
@@ -176,12 +176,12 @@ static ClRcT clAmsMgmtGetSUFreeNodes(ClAmsEntityT *sgName,
                                      ClInt32T *pNumNodes)
 {
     ClRcT rc = CL_OK;
-    ClInt32T i;
+    ClUint32T i;
     ClAmsEntityBufferT suBuffer = {0};
     ClAmsEntityBufferT nodeBuffer = {0};
     ClAmsEntityT *nodeList = NULL;
     ClAmsEntityConfigT *entityConfig = NULL;
-    ClAmsSUConfigT suConfig = {{0}};
+    ClAmsSUConfigT suConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsEntityT *controllers = NULL;
     ClAmsEntityT *workers = NULL;
     ClUint32T numControllers = 0;
@@ -225,8 +225,8 @@ static ClRcT clAmsMgmtGetSUFreeNodes(ClAmsEntityT *sgName,
         return CL_OK;
     }
 
-    controllers = clHeapCalloc(nodeBuffer.count, sizeof(*controllers));
-    workers = clHeapCalloc(nodeBuffer.count, sizeof(*controllers));
+    controllers = (ClAmsEntityT*) clHeapCalloc(nodeBuffer.count, sizeof(*controllers));
+    workers = (ClAmsEntityT*) clHeapCalloc(nodeBuffer.count, sizeof(*controllers));
     CL_ASSERT(controllers && workers);
 
     /*
@@ -270,8 +270,7 @@ static ClRcT clAmsMgmtGetSUFreeNodes(ClAmsEntityT *sgName,
     }
     clOsalMutexUnlock(gpClCpm->cpmTableMutex);
 
-    nodeList = clHeapCalloc(nodeBuffer.count + extraNodes,
-                            sizeof(ClAmsEntityT));
+    nodeList = (ClAmsEntityT*) clHeapCalloc(nodeBuffer.count + extraNodes, sizeof(ClAmsEntityT));
     CL_ASSERT(nodeList);
     
     memcpy(nodeList, nodes, sizeof(*nodes)*extraNodes);
@@ -291,7 +290,7 @@ static ClRcT clAmsMgmtGetSUFreeNodes(ClAmsEntityT *sgName,
     clHeapFree(nodeBuffer.entity);
     extraSUs -= extraNodes;
 
-    for(i = 0; i < extraNodes; ++i)
+    for(i = 0; i < (ClUint32T) extraNodes; ++i)
         nodeList[i].debugFlags = 1;
 
     for(; i < nodeBuffer.count + extraNodes; ++i)
@@ -309,7 +308,7 @@ static ClRcT clAmsMgmtGetSUFreeNodes(ClAmsEntityT *sgName,
 
     for(i = 0; i < suBuffer.count; ++i)
     {
-        ClInt32T j;
+        ClUint32T j;
         rc = clAmsMgmtEntityGetConfig(gHandle, suBuffer.entity+i,
                                       &entityConfig);
         if(rc != CL_OK)
@@ -374,8 +373,8 @@ static ClRcT clAmsMgmtGetSUFreeNodes(ClAmsEntityT *sgName,
 
 static void *clAmsMgmtMigrateListUnlock(void *arg)
 {
-    ClAmsMgmtMigrateListT *unlockList = arg;
-    ClInt32T i;
+    ClAmsMgmtMigrateListT *unlockList = (ClAmsMgmtMigrateListT*) arg;
+    ClUint32T i;
     ClRcT rc = CL_OK;
 
     if(!unlockList) return NULL;
@@ -446,7 +445,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
                                       ClUint32T numStandbySUs,
                                       ClAmsMgmtMigrateListT *migrateList)
 {
-    ClInt32T i;
+    ClUint32T i;
     ClRcT rc = CL_OK;
     ClAmsEntityBufferT siBuffer = {0};
     ClAmsEntityBufferT suBuffer = {0};
@@ -465,7 +464,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
     ClAmsEntityConfigT *pSGRefSI = NULL;
     ClAmsEntityConfigT *pSIRefCSI = NULL;
     ClAmsEntityConfigT *pSGConfig = NULL;
-    ClAmsSGConfigT sgConfig = {{0}};
+    ClAmsSGConfigT sgConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClUint32T numSupportedCSITypes = 0;
     SaNameT *pNumSupportedCSITypes = NULL;
     ClAmsMgmtCCBHandleT ccbHandle = 0;
@@ -567,9 +566,9 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
 
     for(i = 0; i < siBuffer.count; ++i)
     {
-        ClInt32T j; 
-        ClAmsEntityBufferT csiBuffer = {0};
-        ClAmsSIConfigT siConfig = {{0}};
+        ClUint32T j; 
+        ClAmsEntityBufferT csiBuffer = {CL_AMS_ENTITY_TYPE_ENTITY};
+        ClAmsSIConfigT siConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
         ClUint64T mask = 0;
         memcpy(&siConfig.entity, siBuffer.entity+i, 
                sizeof(siConfig.entity));
@@ -596,16 +595,14 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             clLogError("AMS", "MIGRATE", "AMS get si csi list returned [%#x]", rc);
             goto out_free;
         }
-        pNumSupportedCSITypes = clHeapRealloc(pNumSupportedCSITypes,
-                                              (numSupportedCSITypes+csiBuffer.count)*sizeof(SaNameT));
+        pNumSupportedCSITypes = (SaNameT*) clHeapRealloc(pNumSupportedCSITypes, (numSupportedCSITypes+csiBuffer.count)*sizeof(SaNameT));
         for(j = 0; j < csiBuffer.count ; ++j)
         {
             ClAmsEntityConfigT *entityConfig = NULL;
-            ClAmsCSIConfigT csiConfig = {{0}};
-            ClInt32T k;
+            ClAmsCSIConfigT csiConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
+            ClUint32T k;
 
-            rc = clAmsMgmtEntityGetConfig(gHandle, csiBuffer.entity+j,
-                                          &entityConfig);
+            rc = clAmsMgmtEntityGetConfig(gHandle, csiBuffer.entity+j, &entityConfig);
             if(rc != CL_OK)
             {
                 clLogError("AMS", "MIGRATE", "AMS csi get config returned [%#x]", rc);
@@ -645,16 +642,16 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
     
     if(extraSIs)
     {
-        sis = clHeapCalloc(extraSIs, sizeof(ClAmsEntityT));
+        sis = (ClAmsEntityT*) clHeapCalloc(extraSIs, sizeof(ClAmsEntityT));
         CL_ASSERT(sis != NULL);
-        csis = clHeapCalloc(extraSIs, sizeof(ClAmsEntityT));
+        csis = (ClAmsEntityT*) clHeapCalloc(extraSIs, sizeof(ClAmsEntityT));
         for(i = siBuffer.count; i < siBuffer.count + extraSIs; ++i)
         {
-            ClAmsEntityT si ={0};
-            ClAmsEntityT csi = {0};
+            ClAmsEntityT si ={CL_AMS_ENTITY_TYPE_ENTITY};
+            ClAmsEntityT csi = {CL_AMS_ENTITY_TYPE_ENTITY};
             ClUint64T bitMask = 0;
-            ClAmsSIConfigT siConfig = {{0}};
-            ClAmsCSIConfigT csiConfig = {{0}};
+            ClAmsSIConfigT siConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
+            ClAmsCSIConfigT csiConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
             si.type = CL_AMS_ENTITY_TYPE_SI;
             snprintf((ClCharT*)si.name.value, sizeof(si.name.value)-1, "%s_%.*s_SI%d", prefix,
                      sgName->name.length-1, (const ClCharT*)sgName->name.value, i);
@@ -737,8 +734,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             /*
              * Add this to the supported list.
              */
-            pNumSupportedCSITypes = clHeapRealloc(pNumSupportedCSITypes,
-                                                  (numSupportedCSITypes+1)*sizeof(SaNameT));
+            pNumSupportedCSITypes = (SaNameT*) clHeapRealloc(pNumSupportedCSITypes, (numSupportedCSITypes+1)*sizeof(SaNameT));
             CL_ASSERT(pNumSupportedCSITypes != NULL);
             memcpy(pNumSupportedCSITypes+numSupportedCSITypes, &csi.name, sizeof(SaNameT));
             ++numSupportedCSITypes;
@@ -747,7 +743,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
 
     if(extraNodes)
     {
-        nodes = clHeapCalloc(extraNodes, sizeof(ClAmsEntityT));
+        nodes = (ClAmsEntityT*) clHeapCalloc(extraNodes, sizeof(ClAmsEntityT));
         CL_ASSERT(nodes != NULL);
 
         rc = clAmsMgmtGetNodeList(gHandle, &nodeBuffer);
@@ -758,7 +754,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
         }
         for(i = nodeBuffer.count ; i < nodeBuffer.count + extraNodes; ++i)
         {
-            ClAmsEntityT node = {0};
+            ClAmsEntityT node = {CL_AMS_ENTITY_TYPE_ENTITY};
             node.type = CL_AMS_ENTITY_TYPE_NODE;
             snprintf((ClCharT*) node.name.value, sizeof(node.name.value), "%s_Node%d", prefix, i);
             node.name.length = strlen((const ClCharT*) node.name.value) + 1;
@@ -782,7 +778,7 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
 
     for(i = 0 ; i < suBuffer.count; ++i)
     {
-        ClInt32T j;
+        ClUint32T j;
         ClAmsEntityBufferT compBuffer=
             {
                 0
@@ -817,9 +813,9 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
         for(j = 0; j < compBuffer.count; ++j)
         {
             ClAmsEntityConfigT *entityConfig =NULL;
-            ClAmsCompConfigT compConfig = {{0}};
+            ClAmsCompConfigT compConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
             ClUint64T bitMask = 0;
-            ClInt32T k ;
+            ClUint32T k ;
             rc = clAmsMgmtEntityGetConfig(gHandle, compBuffer.entity+j,
                                           &entityConfig);
             if(rc != CL_OK)
@@ -835,19 +831,11 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
             if(extraSIs)
             {
                 bitMask |= COMP_CONFIG_SUPPORTED_CSI_TYPE;
-                compConfig.pSupportedCSITypes = 
-                    clHeapRealloc(compConfig.pSupportedCSITypes, 
-                                  (compConfig.numSupportedCSITypes
-                                   + extraSIs)*
-                                  sizeof(SaNameT));
+                compConfig.pSupportedCSITypes = (SaNameT*) clHeapRealloc(compConfig.pSupportedCSITypes, (compConfig.numSupportedCSITypes + extraSIs)* sizeof(SaNameT));
                 CL_ASSERT(compConfig.pSupportedCSITypes);
-                for(k = compConfig.numSupportedCSITypes;
-                    k < compConfig.numSupportedCSITypes + extraSIs;
-                    ++k)
+                for(k = compConfig.numSupportedCSITypes; k < compConfig.numSupportedCSITypes + extraSIs; ++k)
                 {
-                    memcpy(compConfig.pSupportedCSITypes+k,
-                           &csis[k-compConfig.numSupportedCSITypes].name,
-                           sizeof(SaNameT));
+                    memcpy(compConfig.pSupportedCSITypes+k, &csis[k-compConfig.numSupportedCSITypes].name, sizeof(SaNameT));
                 }
                 compConfig.numSupportedCSITypes += extraSIs;
             }
@@ -875,28 +863,27 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
 
     if(extraSUs)
     {
-        sus = clHeapCalloc(extraSUs, sizeof(ClAmsEntityT));
+        sus = (ClAmsEntityT*) clHeapCalloc(extraSUs, sizeof(ClAmsEntityT));
         CL_ASSERT(sus != NULL);
-        comps = clHeapCalloc(extraSUs, sizeof(ClAmsEntityT));
+        comps = (ClAmsEntityT*) clHeapCalloc(extraSUs, sizeof(ClAmsEntityT));
         CL_ASSERT(comps != NULL);
-        nodeList = clHeapCalloc(extraSUs + extraNodes, sizeof(ClAmsEntityT));
+        nodeList = (ClAmsEntityT*) clHeapCalloc(extraSUs + extraNodes, sizeof(ClAmsEntityT));
         CL_ASSERT(nodeList != NULL);
 
-        rc = clAmsMgmtGetSUFreeNodes(sgName, prefix, extraSUs, extraNodes,
-                                     nodeList, &numNodes);
+        rc = clAmsMgmtGetSUFreeNodes(sgName, prefix, extraSUs, extraNodes, nodeList, &numNodes);
 
         for(i = suBuffer.count; i < suBuffer.count + extraSUs; ++i)
         {
-            ClAmsEntityT su = {0};
-            ClAmsEntityT comp = {0};
+            ClAmsEntityT su = {CL_AMS_ENTITY_TYPE_ENTITY};
+            ClAmsEntityT comp = {CL_AMS_ENTITY_TYPE_ENTITY};
             ClAmsSUConfigT suConfig = 
                 {
                     {
-                        0
+                       CL_AMS_ENTITY_TYPE_ENTITY
                     }
                 }
             ;
-            ClAmsCompConfigT compConfig = {{0}};
+            ClAmsCompConfigT compConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
             ClUint64T bitMask = 0;
 
             su.type = CL_AMS_ENTITY_TYPE_SU;
@@ -1042,15 +1029,15 @@ static ClRcT clAmsMgmtSGMigrateMPlusN(ClAmsSGRedundancyModelT model,
      * except SU so that other attributes could be updated before unlocking
      * Do that in a separate thread as there could be pending invocations.
      */
-    unlockList = clHeapCalloc(1, sizeof(*unlockList));
+    unlockList = (ClAmsMgmtMigrateListT*) clHeapCalloc(1, sizeof(*unlockList));
     CL_ASSERT(unlockList != NULL);
     unlockList->si.count = extraSIs;
     unlockList->node.count = extraNodes;
     unlockList->su.count = extraSUs;
                                                 
-    unlockList->si.entity = clHeapCalloc(extraSIs, sizeof(*sis));
-    unlockList->node.entity = clHeapCalloc(extraNodes, sizeof(*nodes));
-    unlockList->su.entity = clHeapCalloc(extraSUs, sizeof(*sus));
+    unlockList->si.entity = (ClAmsEntityT*) clHeapCalloc(extraSIs, sizeof(*sis));
+    unlockList->node.entity = (ClAmsEntityT*) clHeapCalloc(extraNodes, sizeof(*nodes));
+    unlockList->su.entity = (ClAmsEntityT*) clHeapCalloc(extraSUs, sizeof(*sus));
 
     CL_ASSERT(unlockList->si.entity && unlockList->node.entity && unlockList->su.entity);
 
@@ -1122,7 +1109,7 @@ static ClRcT clAmsMgmtSGRedundancyModelTwoN(ClAmsSGRedundancyModelT model,
                                             ClAmsMgmtMigrateListT *migrateList)
                                             
 {
-    ClAmsEntityT sgName = {0};
+    ClAmsEntityT sgName = {CL_AMS_ENTITY_TYPE_ENTITY};
     sgName.type = CL_AMS_ENTITY_TYPE_SG;
     saNameSet(&sgName.name, sg);
     ++sgName.name.length;
@@ -1137,7 +1124,7 @@ static ClRcT clAmsMgmtSGRedundancyModelMPlusN(ClAmsSGRedundancyModelT model,
                                               ClUint32T numStandbySUs,
                                               ClAmsMgmtMigrateListT *migrateList)
 {
-    ClAmsEntityT sgName = {0};
+    ClAmsEntityT sgName = {CL_AMS_ENTITY_TYPE_ENTITY};
     sgName.type = CL_AMS_ENTITY_TYPE_SG;
     saNameSet(&sgName.name, sg);
     ++sgName.name.length;
@@ -1148,11 +1135,8 @@ static ClRcT (*gClAmsMgmtSGRedundancyModelMigrationTable[CL_AMS_SG_REDUNDANCY_MO
 (ClAmsSGRedundancyModelT model, const ClCharT *sg, const ClCharT *prefix, ClUint32T numActiveSUs, ClUint32T numStandbySUs,
  ClAmsMgmtMigrateListT *migrateList) =
 {
-    [CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY] =
     clAmsMgmtSGRedundancyModelNoRedundancy,
-    [CL_AMS_SG_REDUNDANCY_MODEL_TWO_N] =
     clAmsMgmtSGRedundancyModelTwoN,
-    [CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N] =
     clAmsMgmtSGRedundancyModelMPlusN,
 };
 

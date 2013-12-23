@@ -204,9 +204,10 @@ clAmsEntitySetConfig(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT entityRef = {{0},0,0};
+    ClAmsEntityRefT entityRef;
     ClAmsEntityT  *entity  = NULL;
 
+    memset(&entityRef,0,sizeof(ClAmsEntityRefT));
     AMS_FUNC_ENTER (("\n"));
 
     AMS_CHECKPTR ( !entityDb || !entityName || !entityConfig );
@@ -214,9 +215,7 @@ clAmsEntitySetConfig(
     memcpy (&entityRef.entity,entityName,sizeof(ClAmsEntityT));
     entityRef.ptr = NULL;
    
-    AMS_CALL( clAmsEntityDbFindEntity(
-                entityDb,
-                &entityRef) );
+    AMS_CALL( clAmsEntityDbFindEntity( entityDb, &entityRef) );
     
     /*
      * Set the config portion of the entity
@@ -257,11 +256,11 @@ clAmsEntitySetConfig(
 
             ClAmsNodeT  *node = (ClAmsNodeT *) entity;
             ClAmsNodeConfigT  *nodeConfig = &node->config;
-            ClAmsEntityListT  nodeDependentsList = {0};
-            ClAmsEntityListT  nodeDependenciesList = {0};
-            ClAmsEntityListT  suList = {0};
+            ClAmsEntityListT  nodeDependentsList = {CL_AMS_ENTITY_TYPE_ENTITY};
+            ClAmsEntityListT  nodeDependenciesList = {CL_AMS_ENTITY_TYPE_ENTITY};
+            ClAmsEntityListT  suList = {CL_AMS_ENTITY_TYPE_ENTITY};
 
-
+            
             /* 
              * Get the list part of the entityConfig and save it.
              * We only set the non list part of the node. Copy the list pointers
@@ -288,8 +287,8 @@ clAmsEntitySetConfig(
 
             ClAmsSGT  *sg = (ClAmsSGT *) entity;
             ClAmsSGConfigT  *sgConfig = &sg->config;
-            ClAmsEntityListT  suList = {0};
-            ClAmsEntityListT  siList = {0};
+            ClAmsEntityListT  suList = {CL_AMS_ENTITY_TYPE_ENTITY};
+            ClAmsEntityListT  siList = {CL_AMS_ENTITY_TYPE_ENTITY};
 
             memcpy (&suList,&sgConfig->suList,sizeof (ClAmsEntityListT));
             memcpy (&siList,&sgConfig->siList,sizeof (ClAmsEntityListT));
@@ -308,7 +307,7 @@ clAmsEntitySetConfig(
 
             ClAmsSUT  *su = (ClAmsSUT *) entity;
             ClAmsSUConfigT  *suConfig = &su->config;
-            ClAmsEntityListT  compList = {0};
+            ClAmsEntityListT  compList = {CL_AMS_ENTITY_TYPE_ENTITY};
 
             memcpy (&compList,&suConfig->compList,sizeof (ClAmsEntityListT));
 
@@ -324,10 +323,10 @@ clAmsEntitySetConfig(
 
             ClAmsSIT  *si = (ClAmsSIT *) entity;
             ClAmsSIConfigT  *siConfig = &si->config;
-            ClAmsEntityListT  suList = {0};  
-            ClAmsEntityListT  siDependentsList = {0};  
-            ClAmsEntityListT  siDependenciesList = {0}; 
-            ClAmsEntityListT  csiList = {0}; 
+            ClAmsEntityListT  suList = {CL_AMS_ENTITY_TYPE_ENTITY};  
+            ClAmsEntityListT  siDependentsList = {CL_AMS_ENTITY_TYPE_ENTITY};  
+            ClAmsEntityListT  siDependenciesList = {CL_AMS_ENTITY_TYPE_ENTITY}; 
+            ClAmsEntityListT  csiList = {CL_AMS_ENTITY_TYPE_ENTITY}; 
 
             /* 
              * Get the config and save the list pointers
@@ -369,8 +368,8 @@ clAmsEntitySetConfig(
             ClAmsCSIT  *csi = (ClAmsCSIT *) entity;
             ClAmsCSIConfigT  *csiConfig = &csi->config;
             ClCntHandleT  nameValuePairList = csiConfig->nameValuePairList;
-            ClAmsEntityListT csiDependenciesList = {0};
-            ClAmsEntityListT csiDependentsList = {0};
+            ClAmsEntityListT csiDependenciesList = {CL_AMS_ENTITY_TYPE_ENTITY};
+            ClAmsEntityListT csiDependentsList = {CL_AMS_ENTITY_TYPE_ENTITY};
 
             memcpy (&csiDependentsList,&csiConfig->csiDependentsList,sizeof (ClAmsEntityListT));
             memcpy (&csiDependenciesList,&csiConfig->csiDependenciesList,sizeof (ClAmsEntityListT));
@@ -533,7 +532,7 @@ static ClRcT clAmsRankUpdate(ClAmsEntityT *entity, ClUint32T newRank)
                                     &key,
                                     CL_TRUE) == CL_OK)
             {
-                ClAmsEntityRefT entityRef = {{0}};
+                ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                 memcpy(&entityRef.entity, entity, sizeof(entityRef.entity));
                 entityRef.ptr = entity;
                 /*
@@ -544,13 +543,9 @@ static ClRcT clAmsRankUpdate(ClAmsEntityT *entity, ClUint32T newRank)
                     ref = clAmsEntityListGetNext(&sg->config.siList, ref))
                 {
                     ClAmsSIT *si = (ClAmsSIT*)ref->ptr;
-                    if(clAmsEntityListDeleteEntityRef(&si->config.suList,
-                                                      &entityRef,
-                                                      key) == CL_OK)
+                    if(clAmsEntityListDeleteEntityRef(&si->config.suList, &entityRef, key) == CL_OK)
                     {
-                        AMS_CHECK_RC_ERROR ( clAmsAddToEntityList(&si->config.entity,
-                                             &su->config.entity,
-                                             CL_AMS_SI_CONFIG_SU_RANK_LIST) );
+                        AMS_CHECK_RC_ERROR ( clAmsAddToEntityList(&si->config.entity, &su->config.entity, CL_AMS_SI_CONFIG_SU_RANK_LIST) );
                     }
                 }
                        
@@ -571,9 +566,7 @@ static ClRcT clAmsRankUpdate(ClAmsEntityT *entity, ClUint32T newRank)
                                       entity,
                                       CL_AMS_SG_CONFIG_SI_LIST);
             si->config.rank = newRank;
-            AMS_CHECK_RC_ERROR ( clAmsAddToEntityList((ClAmsEntityT*)sg,
-                                 entity,
-                                 CL_AMS_SG_CONFIG_SI_LIST) );
+            AMS_CHECK_RC_ERROR ( clAmsAddToEntityList((ClAmsEntityT*)sg, entity, CL_AMS_SG_CONFIG_SI_LIST) );
         }
         break;
 
@@ -586,12 +579,9 @@ static ClRcT clAmsRankUpdate(ClAmsEntityT *entity, ClUint32T newRank)
                 comp->config.instantiateLevel = newRank;
                 return CL_OK;
             }
-            clAmsDeleteFromEntityList((ClAmsEntityT*)su, entity,
-                                      CL_AMS_SU_CONFIG_COMP_LIST);
+            clAmsDeleteFromEntityList((ClAmsEntityT*)su, entity, CL_AMS_SU_CONFIG_COMP_LIST);
             comp->config.instantiateLevel = newRank;
-            AMS_CHECK_RC_ERROR ( clAmsAddToEntityList((ClAmsEntityT*)su,
-                                 entity,
-                                 CL_AMS_SU_CONFIG_COMP_LIST) );
+            AMS_CHECK_RC_ERROR ( clAmsAddToEntityList((ClAmsEntityT*)su, entity, CL_AMS_SU_CONFIG_COMP_LIST) );
 
         }
         break;
@@ -606,32 +596,23 @@ static ClRcT clAmsRankUpdate(ClAmsEntityT *entity, ClUint32T newRank)
 static void
 amsUpdateCompTimers(ClAmsCompT *comp, ClAmsCompTimerDurationsT *oldTimeouts)
 {
-    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_INSTANTIATE,
-                           oldTimeouts->instantiate);
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_INSTANTIATE, oldTimeouts->instantiate);
 
-    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_TERMINATE,
-                           oldTimeouts->terminate);
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_TERMINATE, oldTimeouts->terminate);
 
-    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_CLEANUP,
-                           oldTimeouts->cleanup);
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_CLEANUP, oldTimeouts->cleanup);
 
-    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE,
-                           oldTimeouts->quiescingComplete);
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE, oldTimeouts->quiescingComplete);
 
-    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_CSISET,
-                           oldTimeouts->csiSet);
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_CSISET, oldTimeouts->csiSet);
 
-    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_CSIREMOVE,
-                           oldTimeouts->csiRemove);
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_CSIREMOVE, oldTimeouts->csiRemove);
 
-    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE,
-                           oldTimeouts->proxiedCompInstantiate);
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE, oldTimeouts->proxiedCompInstantiate);
 
-    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP,
-                           oldTimeouts->proxiedCompCleanup);
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP, oldTimeouts->proxiedCompCleanup);
 
-    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_INSTANTIATEDELAY,
-                           oldTimeouts->instantiateDelay);
+    clAmsEntityTimerUpdate(&comp->config.entity, CL_AMS_COMP_TIMER_INSTANTIATEDELAY, oldTimeouts->instantiateDelay);
 }
 
 /***************************************************************************
@@ -650,9 +631,9 @@ clAmsEntitySetConfigNew(
     AMS_FUNC_ENTER (("\n"));
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT entityRef = {{0},0,0};
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClAmsEntityT  *entity  = NULL;
-    ClAmsEntityT entityCopy = {0};
+    ClAmsEntityT entityCopy = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClAmsAdminStateT lastState = CL_AMS_ADMIN_STATE_NONE;
     ClAmsAdminStateT newState = CL_AMS_ADMIN_STATE_NONE;
     ClBoolT  allAttr = CL_FALSE;
@@ -662,9 +643,7 @@ clAmsEntitySetConfigNew(
     memcpy (&entityRef.entity,entityConfig,sizeof(ClAmsEntityT));
     entityRef.ptr = NULL;
    
-    AMS_CALL( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[entityConfig->type],
-                &entityRef) );
+    AMS_CALL( clAmsEntityDbFindEntity( &gAms.db.entityDb[entityConfig->type], &entityRef) );
     
     /*
      * Set the config portion of the entity
@@ -980,7 +959,7 @@ clAmsEntitySetConfigNew(
             ClAmsCompConfigT  *newCompConfig = (ClAmsCompConfigT *)entityConfig;
             if ( (allAttr) || (bitMask&COMP_CONFIG_SUPPORTED_CSI_TYPE) )
             {
-                ClInt32T i;
+                ClUint32T i;
                 SaNameT *pSupportedCSITypes = NULL;
                 ClUint32T numSupportedCSITypes = 0;
  
@@ -991,16 +970,13 @@ clAmsEntitySetConfigNew(
                     if(newCompConfig->pSupportedCSITypes)
                         clAmsFreeMemory(newCompConfig->pSupportedCSITypes);
                     rc = CL_AMS_RC(CL_AMS_ERR_BAD_CONFIG);
-                    AMS_LOG(CL_LOG_SEV_ERROR,
-                            ("Comp config set: Invalid supported csitype: numTypes %d",
-                             newCompConfig->numSupportedCSITypes));
+                    AMS_LOG(CL_LOG_SEV_ERROR, ("Comp config set: Invalid supported csitype: numTypes %d", newCompConfig->numSupportedCSITypes));
                     goto exitfn;
                 }
                 /*
                  * Make a copy first as we skip invalid csi types
                  */
-                pSupportedCSITypes = clHeapCalloc(newCompConfig->numSupportedCSITypes,
-                                                  sizeof(*pSupportedCSITypes));
+                pSupportedCSITypes = (SaNameT*) clHeapCalloc(newCompConfig->numSupportedCSITypes, sizeof(*pSupportedCSITypes));
                 CL_ASSERT(pSupportedCSITypes != NULL);
 
                 /*
@@ -1008,7 +984,7 @@ clAmsEntitySetConfigNew(
                  */
                 for(i = 0; i < newCompConfig->numSupportedCSITypes; ++i)
                 {
-                    ClAmsEntityRefT entityRef = {{0}};
+                    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                     SaNameT *pCSIType = newCompConfig->pSupportedCSITypes+i;
                     pCSIType->length = strlen((const ClCharT*)pCSIType->value)+1;
                     entityRef.entity.type = CL_AMS_ENTITY_TYPE_CSI;
@@ -1016,9 +992,7 @@ clAmsEntitySetConfigNew(
 
                     if(clAmsFindCSIType(NULL, pCSIType) != CL_OK)
                     {
-                        clLogError("CCB", "SET", "Supported CSI type [%s] is invalid."
-                                   "Skipping this csitype",
-                                   pCSIType->value);
+                        clLogError("CCB", "SET", "Supported CSI type [%s] is invalid." "Skipping this csitype", pCSIType->value);
                         continue;
                     }
                     memcpy(pSupportedCSITypes+numSupportedCSITypes, pCSIType,
@@ -1214,7 +1188,7 @@ clAmsCCBValidateOperationLocked(
                                 CL_IN  ClAmsMgmtCCBOperationsT  opId )
 {
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT  entityRef = {{0},0};
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0};
 
     AMS_CHECKPTR (!req); 
     
@@ -1367,7 +1341,7 @@ clAmsCCBValidateOperationLocked(
         {
             clAmsMgmtCCBSetSISIDependencyRequestT *opData = 
                 (clAmsMgmtCCBSetSISIDependencyRequestT *) req;
-            ClAmsEntityRefT entityRef = {{0}};
+            ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
 
             if ( (opData->siName.type != CL_AMS_ENTITY_TYPE_SI)
                  ||(opData->dependencySIName.type != 
@@ -1466,7 +1440,7 @@ clAmsCCBValidateOperationLocked(
         {
             clAmsMgmtCCBSetCSICSIDependencyRequestT *opData = 
                 (clAmsMgmtCCBSetCSICSIDependencyRequestT *) req;
-            ClAmsEntityRefT entityRef = {{0}};
+            ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
 
             if ( (opData->csiName.type != CL_AMS_ENTITY_TYPE_CSI)
                  ||(opData->dependencyCSIName.type != 
@@ -1604,7 +1578,7 @@ clAmsCCBValidateOperationLocked(
                     (opData->bitmask & COMP_CONFIG_INSTANTIATE_LEVEL)
                     )
                 {
-                    ClAmsEntityRefT entityRef = {{0}};
+                    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
                     memcpy(&entityRef.entity, (ClAmsEntityT*)entityConfig, sizeof(entityRef.entity));
                     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityConfig->type],
                                                  &entityRef);
@@ -1759,7 +1733,7 @@ clAmsCCBValidateAdminState(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT  entityRef = {{0},0};
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0};
     ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_NONE;
 
     AMS_CHECKPTR (!entity);
@@ -1878,7 +1852,7 @@ clAmsEntitySetStatus(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT  entityRef= {{0},0,0};
+    ClAmsEntityRefT  entityRef= {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClAmsEntityT  *entity  = NULL;
     ClAmsEntityStatusT *status = NULL;
 
@@ -1933,11 +1907,11 @@ clAmsEntitySetStatus(
 
             ClAmsSGT  *sg = (ClAmsSGT *) entity;
             ClAmsSGStatusT  *sgStatus = &sg->status;
-            ClAmsEntityListT  instantiableSUList = {0} ;
-            ClAmsEntityListT  instantiatedSUList = {0};
-            ClAmsEntityListT  inserviceSpareSUList = {0};
-            ClAmsEntityListT  assignedSUList = {0};
-            ClAmsEntityListT  faultySUList = {0};
+            ClAmsEntityListT  instantiableSUList = {CL_AMS_ENTITY_TYPE_ENTITY} ;
+            ClAmsEntityListT  instantiatedSUList = {CL_AMS_ENTITY_TYPE_ENTITY};
+            ClAmsEntityListT  inserviceSpareSUList = {CL_AMS_ENTITY_TYPE_ENTITY};
+            ClAmsEntityListT  assignedSUList = {CL_AMS_ENTITY_TYPE_ENTITY};
+            ClAmsEntityListT  faultySUList = {CL_AMS_ENTITY_TYPE_ENTITY};
             ClListHeadT failoverHistory = {NULL};
 
             /*
@@ -1977,7 +1951,7 @@ clAmsEntitySetStatus(
 
             ClAmsSUT  *su = (ClAmsSUT *) entity;
             ClAmsSUStatusT  *suStatus = &su->status;
-            ClAmsEntityListT  siList = {0};
+            ClAmsEntityListT  siList = {CL_AMS_ENTITY_TYPE_ENTITY};
 
             memcpy (&siList, &su->status.siList, sizeof(ClAmsEntityListT));
             memcpy (suStatus, entityStatus, sizeof (ClAmsSUStatusT));
@@ -1992,7 +1966,7 @@ clAmsEntitySetStatus(
 
             ClAmsSIT  *si = (ClAmsSIT *) entity;
             ClAmsSIStatusT  *siStatus = &si->status;
-            ClAmsEntityListT  suList = {0};
+            ClAmsEntityListT  suList = {CL_AMS_ENTITY_TYPE_ENTITY};
 
             memcpy (&suList, &si->status.suList, sizeof(ClAmsEntityListT));
             memcpy (siStatus, entityStatus, sizeof (ClAmsSIStatusT));
@@ -2007,7 +1981,7 @@ clAmsEntitySetStatus(
 
             ClAmsCompT  *comp = (ClAmsCompT *) entity;
             ClAmsCompStatusT  *compStatus = &comp->status;
-            ClAmsEntityListT  csiList = {0};
+            ClAmsEntityListT  csiList = {CL_AMS_ENTITY_TYPE_ENTITY};
             ClAmsSAClientCallbacksT clientCallbacks = {0};
 
             memcpy (&csiList, &comp->status.csiList, sizeof(ClAmsEntityListT));
@@ -2026,7 +2000,7 @@ clAmsEntitySetStatus(
 
             ClAmsCSIT  *csi = (ClAmsCSIT *) entity;
             ClAmsCSIStatusT  *csiStatus = &csi->status;
-            ClAmsEntityListT  pgList = {0};
+            ClAmsEntityListT  pgList = {CL_AMS_ENTITY_TYPE_ENTITY};
             ClCntHandleT  pgTrackList = csiStatus->pgTrackList;
 
             memcpy (&pgList, &csi->status.pgList, sizeof(ClAmsEntityListT));
@@ -2159,7 +2133,7 @@ amsCSISetNVP(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT  entityRef = {{0},0,0} ;
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0} ;
     ClCntKeyHandleT  entityKeyHandle = 0;
     ClCntHandleT nvpListHandle = 0;
     ClCntNodeHandleT  nvpHandle = 0;
@@ -2233,7 +2207,7 @@ amsCSISetNVP(
      * This is a new NVP, Add it to the nvp list
      */
 
-    pNVP = clHeapAllocate ( sizeof (ClAmsCSINameValuePairT) ); 
+    pNVP = (ClAmsCSINameValuePairT*) clHeapAllocate ( sizeof (ClAmsCSINameValuePairT) ); 
 
     AMS_CHECK_NO_MEMORY (pNVP);
 
@@ -2298,7 +2272,7 @@ clAmsCSIGetNVP(
 {
     ClAmsCSIT  *csi = NULL;
     ClAmsCSINameValuePairT  *nvp = NULL;
-    ClAmsEntityRefT  entityRef = { {0},0 };
+    ClAmsEntityRefT  entityRef = { {CL_AMS_ENTITY_TYPE_ENTITY},0 };
     ClCntNodeHandleT  nodeHandle = 0;
     ClUint32T  numNodes = 0;
     ClUint32T i = 0;
@@ -2324,7 +2298,7 @@ clAmsCSIGetNVP(
     AMS_CALL( clCntSizeGet( csi->config.nameValuePairList, &numNodes) );
 
     nvpList->count = numNodes;
-    nvpList->nvp = clHeapAllocate (numNodes*sizeof(ClAmsCSINameValuePairT));
+    nvpList->nvp = (ClAmsCSINVPT*) clHeapAllocate (numNodes*sizeof(ClAmsCSINameValuePairT));
 
     for ( nvp = (ClAmsCSINameValuePairT *)
             clAmsCntGetFirst( &csi->config.nameValuePairList,&nodeHandle);
@@ -2370,7 +2344,7 @@ clAmsCSIDeleteNVP(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT  entityRef = {{0},0,0} ;
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0} ;
     ClCntKeyHandleT  entityKeyHandle = 0;
     ClCntHandleT nvpListHandle = 0;
     ClCntNodeHandleT  nvpHandle = 0;
@@ -2378,6 +2352,7 @@ clAmsCSIDeleteNVP(
     ClAmsCSINameValuePairT  *pNVP = NULL;
     ClUint32T  keyLength = 0;
     ClUint32T  numNodes = 0;
+    ClAmsCSIT  *csi;
 
 
     AMS_FUNC_ENTER (("\n"));
@@ -2390,12 +2365,11 @@ clAmsCSIDeleteNVP(
 
     AMS_CHECKPTR_AND_EXIT ( !entityRef.ptr );
 
-    ClAmsCSIT  *csi = (ClAmsCSIT *)entityRef.ptr;
+    csi = (ClAmsCSIT *)entityRef.ptr;
 
     clAmsMarkEntityDirty(&csi->config.entity);
 
-    AMS_CHECK_RC_ERROR ( clCrc32bitCompute( ( ClUint8T *)nvp.paramName.value, 
-                nvp.paramName.length, &entityKey, &keyLength));
+    AMS_CHECK_RC_ERROR ( clCrc32bitCompute( ( ClUint8T *)nvp.paramName.value, nvp.paramName.length, &entityKey, &keyLength));
 
     /*
      * Endianesss considerations. entityKey is 16bit but handle is either 32 or
@@ -2443,9 +2417,9 @@ exitfn:
 
 static ClRcT clAmsGetEntityListAllCallback(ClAmsEntityT *pEntity, ClPtrT userArg)
 {
-    ClAmsEntityListT *entityList = userArg;
+    ClAmsEntityListT *entityList = (ClAmsEntityListT*) userArg;
     ClAmsEntityRefT *pEntityRef = NULL;
-    pEntityRef = clHeapCalloc(1, sizeof(*pEntityRef));
+    pEntityRef = (ClAmsEntityRefT*) clHeapCalloc(1, sizeof(*pEntityRef));
     if(!pEntityRef)
         return CL_AMS_RC(CL_ERR_NO_MEMORY);
     memcpy(&pEntityRef->entity, pEntity, sizeof(pEntityRef->entity));
@@ -2493,9 +2467,9 @@ clAmsGetEntityList(
                    CL_OUT  ClAmsEntityBufferT  *entityListBuffer)
 
 {
-    ClAmsEntityRefT  entityRef = { {0},0 };
+    ClAmsEntityRefT  entityRef = { {CL_AMS_ENTITY_TYPE_ENTITY},0 };
     ClAmsEntityListT  *entityList = NULL; 
-    ClAmsEntityListT list = {0};
+    ClAmsEntityListT list = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClAmsEntityRefT *eRef = NULL;
     ClUint32T  i=0;
     ClBoolT terminateList = CL_FALSE;
@@ -2752,8 +2726,7 @@ clAmsGetEntityList(
     AMS_CHECKPTR (!entityList);
 
     entityListBuffer->count = entityList->numEntities;
-    entityListBuffer->entity = clHeapAllocate ((entityListBuffer->count)*
-                                               sizeof(ClAmsEntityT));
+    entityListBuffer->entity = (ClAmsEntityT*) clHeapAllocate ((entityListBuffer->count)* sizeof(ClAmsEntityT));
 
     for ( eRef = clAmsEntityListGetFirst(entityList);
           eRef != (ClAmsEntityRefT *) NULL;
@@ -2796,7 +2769,7 @@ clAmsGetOLEntityList(
                      CL_OUT  ClAmsEntityRefBufferT  *entityListBuffer)
 
 {
-    ClAmsEntityRefT  entityRef = { {0},0 };
+    ClAmsEntityRefT  entityRef = { {CL_AMS_ENTITY_TYPE_ENTITY},0 };
     ClAmsEntityListT  *entityList = NULL; 
     ClAmsEntityRefT *eRef = NULL;
     ClUint32T  size = 0;
@@ -2868,8 +2841,7 @@ clAmsGetOLEntityList(
     AMS_CHECKPTR (!entityList);
 
     entityListBuffer->count = entityList->numEntities;
-    entityListBuffer->entityRef = clHeapAllocate ((entityListBuffer->count)*
-                                                  size);
+    entityListBuffer->entityRef = (ClAmsEntityRefT*) clHeapAllocate ((entityListBuffer->count)* size);
 
     for ( eRef = clAmsEntityListGetFirst(entityList);
           eRef != (ClAmsEntityRefT *) NULL;
@@ -2937,7 +2909,7 @@ clAmsCSIAddToPGTrackList(
 
 {
 
-    ClAmsEntityRefT  entityRef = {{0},0,0};
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClAmsCSIPGTrackClientT  *pgClient = NULL;
     ClCntNodeHandleT  nodeHandle = NULL;
 
@@ -3001,7 +2973,7 @@ clAmsCSIAddToPGTrackList(
             return CL_OK;
         }
 
-        pgTrackClient->trackFlags&=~CL_AMS_PG_TRACK_CURRENT;
+        pgTrackClient->trackFlags = (ClAmsPGTrackFlagT) (pgTrackClient->trackFlags & ~CL_AMS_PG_TRACK_CURRENT);
 
     }
 
@@ -3035,7 +3007,7 @@ clAmsCSIAddToPGTrackList(
 
             }
 
-            pgClient->trackFlags |= pgTrackClient->trackFlags;
+            pgClient->trackFlags =  (ClAmsPGTrackFlagT) (pgClient->trackFlags | pgTrackClient->trackFlags);
             clAmsFreeMemory (pgTrackClient);
 
             return CL_OK;
@@ -3085,7 +3057,7 @@ clAmsCSIDeleteFromPGTrackList(
 
 {
 
-    ClAmsEntityRefT  entityRef = {{0},0,0 };
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0 };
     ClAmsCSIPGTrackClientT  *pgClient = NULL;
     ClCntNodeHandleT  nodeHandle = NULL;
 
@@ -3320,7 +3292,7 @@ clAmsAddGetEntityList(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT  sourceEntityRef = {{0},0,0};
+    ClAmsEntityRefT  sourceEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClAmsEntityRefT  *targetEntityRef = NULL;
     ClCntKeyHandleT  entityKey = NULL;
 
@@ -3333,7 +3305,7 @@ clAmsAddGetEntityList(
     if(ppTargetRef)
         *ppTargetRef =  NULL;
 
-    targetEntityRef = clHeapAllocate ( sizeof (ClAmsEntityRefT));
+    targetEntityRef = (ClAmsEntityRefT*) clHeapAllocate ( sizeof (ClAmsEntityRefT));
 
     AMS_CHECK_NO_MEMORY (targetEntityRef);
 
@@ -3932,8 +3904,8 @@ clAmsDeleteFromEntityList(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT  sourceEntityRef = {{0},0,0};
-    ClAmsEntityRefT  entityRef = {{0}};
+    ClAmsEntityRefT  sourceEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsEntityRefT  *targetEntityRef = &entityRef;
     ClCntKeyHandleT  entityKey = NULL;
 
@@ -4353,8 +4325,8 @@ clAmsCheckIfRefExist(
 
     ClRcT  rc1 = CL_OK;
     ClRcT  rc2 = CL_OK;
-    ClAmsEntityRefT  sourceEntityRef = {{0},0,0};
-    ClAmsEntityRefT  targetEntityRef = {{0},0,0};
+    ClAmsEntityRefT  sourceEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
+    ClAmsEntityRefT  targetEntityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClAmsEntityRefT  *foundRef = NULL;
     ClCntKeyHandleT  entityKey = NULL;
     ClAmsEntityListT  *entityList = NULL;
@@ -5009,8 +4981,8 @@ clAmsIsValidList (
 ClRcT clAmsEntitySetRefPtr(ClAmsEntityRefT  *sourceEntityRef,ClAmsEntityRefT  *targetEntityRef )
 {
     ClRcT rc;
-    ClAmsEntityTypeT  sourceEntityType = {0};
-    ClAmsEntityTypeT  targetEntityType = {0};
+    ClAmsEntityTypeT  sourceEntityType = {CL_AMS_ENTITY_TYPE_ENTITY};
+    ClAmsEntityTypeT  targetEntityType = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -5123,8 +5095,8 @@ clAmsEntityUnsetRefPtr(
         ClAmsEntityRefT  *targetEntityRef )
 
 {
-    ClAmsEntityTypeT  sourceEntityType = {0};
-    ClAmsEntityTypeT  targetEntityType = {0};
+    ClAmsEntityTypeT  sourceEntityType = {CL_AMS_ENTITY_TYPE_ENTITY};
+    ClAmsEntityTypeT  targetEntityType = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -5246,7 +5218,7 @@ clAmsValidateConfig(
         CL_IN  ClUint32T  mode )
 {
 
-    ClAmsEntityDbT  entityDb = {0};
+    ClAmsEntityDbT  entityDb = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClCntNodeHandleT  nodeHandle = NULL;
     ClAmsEntityT  *entity = NULL;
     ClUint32T i = 0;
@@ -5289,7 +5261,7 @@ clAmsValidateConfig(
 static ClRcT
 clAmsEntityMarshall(ClAmsEntityT *entity, ClPtrT userArg, ClUint32T marshallMask)
 {
-    ClAmsEntityDBWalkArgsT *arg = userArg;
+    ClAmsEntityDBWalkArgsT *arg = (ClAmsEntityDBWalkArgsT*) userArg;
     ClBufferHandleT inMsgHdl = arg->inMsgHdl;
     ClUint32T versionCode = arg->versionCode;
 
@@ -5947,7 +5919,7 @@ clAmsSetEntityTimer(
         CL_IN  ClAmsEntityTimerT  *entityTimer )
 {
 
-    ClAmsEntityRefT  entityRef = {{0},0,0};
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -6672,7 +6644,7 @@ clAmsDebugEnable(
         CL_IN  clAmsMgmtDebugEnableRequestT  *request )
 {
 
-    ClAmsEntityRefT  entityRef = {{0},0,0};
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -6711,9 +6683,11 @@ clAmsDebugDisable(
         CL_IN  clAmsMgmtDebugDisableRequestT  *request )
 {
 
-    ClAmsEntityRefT  entityRef = {{0},0,0};
+    ClAmsEntityRefT  entityRef;
 
     AMS_FUNC_ENTER (("\n"));
+
+    memset(&entityRef,0,sizeof(ClAmsEntityRefT));
 
     AMS_CHECKPTR ( !request );
 
@@ -6752,17 +6726,16 @@ clAmsDebugGet(
         CL_IN  clAmsMgmtDebugGetResponseT  *response )
 {
 
-    ClAmsEntityRefT  entityRef = {{0},0,0};
+    ClAmsEntityRefT  entityRef;
 
+    memset(&entityRef,0,sizeof(ClAmsEntityRefT));
     AMS_FUNC_ENTER (("\n"));
 
     AMS_CHECKPTR ( !response );
 
     memcpy (&entityRef.entity,entity,sizeof (ClAmsEntityT));
 
-    AMS_CALL( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[entity->type],
-                &entityRef) );
+    AMS_CALL( clAmsEntityDbFindEntity( &gAms.db.entityDb[entity->type], &entityRef) );
 
     AMS_CHECKPTR ( !entityRef.ptr );
 
@@ -7198,8 +7171,9 @@ clAmsUpdateAlarmHandle(
         CL_IN  ClUint32T  alarmHandle )
 {
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT  entityRef = {{0},0,0};
+    ClAmsEntityRefT  entityRef;
 
+    memset(&entityRef,0,sizeof(ClAmsEntityRefT));
     AMS_FUNC_ENTER (("\n"));
 
     AMS_CHECKPTR (!compName);
@@ -7260,7 +7234,7 @@ static ClRcT
 clAmsAssignCSICallback(ClAmsInvocationT *invocationData,ClPtrT arg)
 {
     ClAmsCSIT *csi = NULL;
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef;
     ClAmsCompT *comp = NULL;
     ClBoolT scFailover = CL_FALSE;
     ClRcT rc = CL_OK;
@@ -7277,13 +7251,10 @@ clAmsAssignCSICallback(ClAmsInvocationT *invocationData,ClPtrT arg)
     }
 
     memset(&entityRef,0,sizeof(entityRef));
-    memcpy(&entityRef.entity.name,&invocationData->compName,
-           sizeof(entityRef.entity.name));
+    memcpy(&entityRef.entity.name,&invocationData->compName, sizeof(entityRef.entity.name));
     entityRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
 
-    if( (rc = clAmsEntityDbFindEntity
-         (&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-          &entityRef)) != CL_OK)
+    if( (rc = clAmsEntityDbFindEntity (&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP], &entityRef)) != CL_OK)
     {
         clLogError("REPLAY", "CSI", "Unable to find Component [%.*s] in entityDB",
                    invocationData->compName.length-1, invocationData->compName.value);
@@ -7325,11 +7296,10 @@ clAmsReplayAssignCSIInvocation(ClPtrT arg)
 }
 
 static ClRcT
-clAmsInvocationCSIRemoveWalkCallback(ClAmsInvocationT *pInvocation,
-                                     ClPtrT pArg)
+clAmsInvocationCSIRemoveWalkCallback(ClAmsInvocationT *pInvocation, ClPtrT pArg)
 {
     ClRcT rc = CL_OK;
-    ClAmsCSIRemoveInvocationT *pCSIRemoveInvocation = pArg;
+    ClAmsCSIRemoveInvocationT *pCSIRemoveInvocation = (ClAmsCSIRemoveInvocationT*) pArg;
     ClAmsCSIT *csi = NULL;
     ClAmsCompT *comp = NULL;
     ClAmsSUT *su = NULL;
@@ -7373,12 +7343,8 @@ clAmsInvocationCSIRemoveWalkCallback(ClAmsInvocationT *pInvocation,
 
     if(!(currentIndex & 3))
     {
-        pCSIRemoveInvocation->pInvocations = clHeapRealloc(
-                                                           pCSIRemoveInvocation->
-                                                           pInvocations,
-                                                           sizeof(ClAmsInvocationT)
-                                                           *
-                                                           (currentIndex + 4));
+        pCSIRemoveInvocation->pInvocations = (ClAmsInvocationT*) clHeapRealloc( pCSIRemoveInvocation-> pInvocations,
+                                                           sizeof(ClAmsInvocationT) * (currentIndex + 4));
         CL_ASSERT(pCSIRemoveInvocation->pInvocations != NULL);
     }
     clLogDebug("INVOCATION", "RMV", "Invocation [%#llx] pending for component [%s], csi [%s]",
@@ -7392,21 +7358,13 @@ clAmsInvocationCSIRemoveWalkCallback(ClAmsInvocationT *pInvocation,
 }
 
 ClRcT 
-clAmsGetCSIRemoveInvocations(SaNameT *pNodeName,
-                             ClAmsInvocationT **ppInvocations,
-                             ClInt32T *pNumInvocations)
+clAmsGetCSIRemoveInvocations(SaNameT *pNodeName, ClAmsInvocationT **ppInvocations, ClInt32T *pNumInvocations)
 {
     ClRcT rc = CL_OK;
     ClAmsInvocationT *pInvocations = NULL;
-    ClAmsCSIRemoveInvocationT invocation = { 
-                                             .nr = 0,
-                                             .pInvocations = pInvocations,
-                                             .pNodeName = pNodeName,
-    };
+    ClAmsCSIRemoveInvocationT invocation = { pNodeName, pInvocations, 0 };
 
-    rc = clAmsInvocationListWalkAll(clAmsInvocationCSIRemoveWalkCallback,
-                                    (ClPtrT)&invocation,
-                                    CL_FALSE);
+    rc = clAmsInvocationListWalkAll(clAmsInvocationCSIRemoveWalkCallback, (ClPtrT)&invocation, CL_FALSE);
 
     *ppInvocations = invocation.pInvocations;
     *pNumInvocations = invocation.nr;
@@ -7417,8 +7375,7 @@ clAmsGetCSIRemoveInvocations(SaNameT *pNodeName,
 
 
 ClRcT
-clAmsCCBOpListInstantiate(
-        CL_OUT  ClCntHandleT  *ccbOpListHandle )
+clAmsCCBOpListInstantiate( CL_OUT  ClCntHandleT  *ccbOpListHandle )
 
 {
 
@@ -7854,7 +7811,7 @@ static ClRcT
 clAmsEntityDeleteSISURefs(ClAmsEntityT *entity, ClPtrT arg)
 {
     ClAmsSIT *si = (ClAmsSIT*)entity;
-    ClAmsSISUDeleteRefT *ref = arg;
+    ClAmsSISUDeleteRefT *ref = (ClAmsSISUDeleteRefT*) arg;
     ClAmsEntityRefT *suRef = NULL;
     ClAmsEntityRefT *entityRef =NULL;
     ClAmsSUT *su = NULL;
@@ -8193,7 +8150,7 @@ static ClRcT
 clAmsMatchCSITypeCallback(ClAmsEntityT *entity, ClPtrT userArg)
 {
     ClAmsCSIT *csi = (ClAmsCSIT*)entity;
-    SaNameT *csiType = userArg;
+    SaNameT *csiType = (SaNameT*) userArg;
     if(clAmsMatchCSIType(csi, csiType))
         return CL_AMS_RC(CL_ERR_ALREADY_EXIST);
     return CL_OK;
@@ -8264,7 +8221,7 @@ ClRcT clAmsSGFailoverHistoryConfigure(ClAmsSGT *sg)
             clLogError("FAILOVER", "HISTORY", "Skipping clustered failover timer configure for SG [%s] "
                        "because of error [%#x]", sg->config.entity.name.value, rc);
             clListDel(iter);
-            clTimerClusterFree(history->timer);
+            clTimerClusterFree((void**) history->timer);
             clHeapFree(history);           
             --sg->status.failoverHistoryCount;
             continue;
@@ -8376,12 +8333,12 @@ ClRcT clAmsSGFailoverHistoryCascade(ClAmsNodeT *node, ClAmsCompT **ppFaultyComp,
 
     if(!sg->config.maxFailovers) return rc;
 
-    newHistory = clHeapCalloc(1, sizeof(*newHistory));
+    newHistory = (ClAmsSGFailoverHistoryT*) clHeapCalloc(1, sizeof(*newHistory));
     CL_ASSERT(newHistory != NULL);
     /*
      * The history key below would be replicated across cluster with clustered timers.
      */
-    historyKey = clHeapCalloc(1, sizeof(*historyKey));
+    historyKey = (ClAmsSGFailoverHistoryKeyT*) clHeapCalloc(1, sizeof(*historyKey));
     CL_ASSERT(historyKey != NULL);
 
     timeout.tsSec = 0;
@@ -8431,7 +8388,7 @@ ClRcT clAmsSGFailoverHistoryCascade(ClAmsNodeT *node, ClAmsCompT **ppFaultyComp,
 ClRcT clAmsFailoverHistoryFind(ClAmsEntityT *entity, ClUint32T index,
                                ClAmsSGT **ppSG, ClAmsSGFailoverHistoryT **ppHistory)
 {
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClListHeadT *iter = NULL;
     ClAmsSGT *sg = NULL;
     ClRcT rc = CL_OK;
@@ -8469,7 +8426,7 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
     ClRcT rc;
     ClAmsEntityBufferT buffer = {0};
     ClAmsEntityRefT entityRef;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClUint32T i;
 
     rc = VDECL_VER(clXdrMarshallClAmsEntityListTypeT, 4, 0, 0)(&listType, msg, 0);
@@ -8549,7 +8506,7 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
                 for(eRef = clAmsEntityListGetFirst(&su->status.siList); eRef;
                     eRef = clAmsEntityListGetNext(&su->status.siList, eRef))
                 {
-                    ClAmsSUSIExtendedRefT targetRef = {{{0}}};
+                    ClAmsSUSIExtendedRefT targetRef;
                     ClAmsSUSIRefT *suSIRef = (ClAmsSUSIRefT*)eRef;
                     ClAmsSIT *si = (ClAmsSIT*)eRef->ptr;
                     memcpy(&targetRef.entityRef, &suSIRef->entityRef, sizeof(targetRef.entityRef));
@@ -8615,8 +8572,9 @@ static ClRcT clAmsDBGetEntity(ClAmsEntityTypeT type, ClAmsEntityListTypeT listTy
                 for(eRef = clAmsEntityListGetFirst(&si->status.suList); eRef;
                     eRef = clAmsEntityListGetNext(&si->status.suList, eRef))
                 {
-                    ClAmsSISUExtendedRefT targetRef = {{{0}}};
+                    ClAmsSISUExtendedRefT targetRef ;
                     ClAmsSISURefT *siSURef = (ClAmsSISURefT*)eRef;
+                    memset(&targetRef,0,sizeof(ClAmsSISUExtendedRefT));
                     memcpy(&targetRef.entityRef, &siSURef->entityRef, sizeof(targetRef.entityRef));
                     targetRef.rank = siSURef->rank;
                     targetRef.haState = siSURef->haState;
@@ -9060,7 +9018,7 @@ ClRcT clAmsBuildDirtyList(ClListHeadT *entityList)
 
     if(!gClAmsDirtyEntities)
     {
-        gClAmsDirtyEntities = clHeapCalloc(CL_IOC_MAX_NODES, sizeof(*gClAmsDirtyEntities));
+        gClAmsDirtyEntities = (ClAmsEntityT**) clHeapCalloc(CL_IOC_MAX_NODES, sizeof(*gClAmsDirtyEntities));
         CL_ASSERT(gClAmsDirtyEntities != NULL);
     }
     clLogDebug("BUILD", "DIRTY", "Adding dirty start");
@@ -9233,7 +9191,7 @@ void clAmsResetDirtyList(void)
 void clAmsMarkEntityDelete(ClAmsEntityT *entity)
 {
     ClAmsEntityT *entityRef = NULL;
-    entityRef = clHeapCalloc(1, sizeof(*entityRef));
+    entityRef = (ClAmsEntityT*) clHeapCalloc(1, sizeof(*entityRef));
     CL_ASSERT(entityRef != NULL);
     memcpy(entityRef, entity, sizeof(*entityRef));
     entityRef->dirtyList.pNext = entityRef->dirtyList.pPrev = NULL;

@@ -99,8 +99,8 @@ _clAmsSACSIHAStateGet(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT  compRef = {{0},0,0};
-    ClAmsEntityRefT  csiRef = {{0},0,0};
+    ClAmsEntityRefT  compRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
+    ClAmsEntityRefT  csiRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClAmsCompCSIRefT  *foundCSIRef = NULL;
     ClAmsCompT  *comp = NULL;
 
@@ -182,7 +182,7 @@ _clAmsSAPGTrackAdd(
         CL_INOUT  ClAmsPGNotificationBufferT  *notificationBuffer)
 {
     ClRcT  rc = CL_OK;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClAmsCSIPGTrackClientT  *pgTrackClient = NULL;
 
     AMS_FUNC_ENTER (("\n"));
@@ -195,12 +195,12 @@ _clAmsSAPGTrackAdd(
      * Add the client in the csi's pgTrackList 
      */
 
-    pgTrackClient = clHeapAllocate (sizeof (ClAmsCSIPGTrackClientT));
+    pgTrackClient = (ClAmsCSIPGTrackClientT*) clHeapAllocate (sizeof (ClAmsCSIPGTrackClientT));
 
     AMS_CHECK_NO_MEMORY (pgTrackClient);
 
     pgTrackClient->address = iocAddress;
-    pgTrackClient->trackFlags = trackFlags;
+    pgTrackClient->trackFlags = (ClAmsPGTrackFlagT) trackFlags;
     pgTrackClient->cpmHandle = cpmHandle;
 
     entity.type = CL_AMS_ENTITY_TYPE_CSI;
@@ -210,13 +210,7 @@ _clAmsSAPGTrackAdd(
 
     AMS_CHECK_SERVICE_STATE_AND_UNLOCK_MUTEX(gAms.serviceState, gAms.mutex);
 
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX ( 
-            clAmsCSIAddToPGTrackList(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                &entity,
-                pgTrackClient,
-                notificationBuffer),
-            gAms.mutex );
+    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX ( clAmsCSIAddToPGTrackList( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &entity, pgTrackClient, notificationBuffer), gAms.mutex );
 
     if ( trackFlags == CL_AMS_PG_TRACK_CURRENT )
     {
@@ -263,7 +257,7 @@ _clAmsSAPGTrackStop(
 
     ClRcT  rc = CL_OK;
     ClAmsCSIPGTrackClientT  pgTrackClient;
-    ClAmsEntityT  entity = {0};
+    ClAmsEntityT  entity = {CL_AMS_ENTITY_TYPE_ENTITY};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -279,12 +273,7 @@ _clAmsSAPGTrackStop(
 
     AMS_CHECK_SERVICE_STATE_AND_UNLOCK_MUTEX(gAms.serviceState, gAms.mutex);
 
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX ( 
-            clAmsCSIDeleteFromPGTrackList(
-                gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
-                entity,
-                &pgTrackClient),
-            gAms.mutex );
+    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX ( clAmsCSIDeleteFromPGTrackList( gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], entity, &pgTrackClient), gAms.mutex );
 
     AMS_CALL_CKPT_WRITE (clAmsCkptWrite(&gAms,CL_AMS_CKPT_WRITE_DB));
 
@@ -446,7 +435,7 @@ _clAmsSACSIQuiescingComplete(
     ClAmsCompT  *comp = NULL;
     ClAmsInvocationT data = {0};
     ClAmsInvocationT *invocationData = NULL;
-    ClAmsEntityRefT  compRef = { {0},0,0};
+    ClAmsEntityRefT  compRef = { {CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClUint32T  callbackType = 0;
 
     AMS_FUNC_ENTER (("\n"));
@@ -733,7 +722,7 @@ _clAmsSACSIOperationResponse(
 
     ClRcT  rc = CL_OK;
     ClUint32T  callbackType = 0;
-    ClAmsEntityRefT  compRef = { {0},0,0};
+    ClAmsEntityRefT  compRef = { {CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClAmsInvocationT data = {0};
     ClAmsInvocationT  *invocationData = NULL;
     ClAmsCompT  *comp = NULL;
@@ -941,7 +930,7 @@ _clAmsSAFaultReportCallback(
     ClAmsCompT  *comp = NULL;
     ClAmsSUT  *su = NULL;
     ClAmsNodeT  *node = NULL;
-    ClAmsNotificationDescriptorT notification = {0};
+    ClAmsNotificationDescriptorT notification = {CL_AMS_NOTIFICATION_NONE};
     SaNameT faultyCompName = {0};
 
     AMS_FUNC_ENTER (("\n"));
@@ -1007,7 +996,7 @@ _clAmsSAFaultReportCallback(
     memcpy ( &notification.entityName,&entity->name,sizeof(notification.entityName) );
     memcpy (&notification.faultyCompName, &faultyCompName, sizeof(notification.faultyCompName));
     notification.entityName.length = strlen((const ClCharT*)entity->name.value);
-    notification.recoveryActionTaken = recovery;
+    notification.recoveryActionTaken = (SaAmfRecommendedRecoveryT) recovery;
     notification.repairNecessary = repairNecessary;
 
     AMS_CALL_PUBLISH_NTF ( clAmsNotificationEventPublish( &notification ) );
@@ -1321,7 +1310,7 @@ _clAmsSAComponentOperationResponse(
 
     ClRcT  rc = CL_OK;
     ClAmsCompT  *comp = NULL;
-    ClAmsEntityRefT  compRef = { {0},0,0};
+    ClAmsEntityRefT  compRef = { {CL_AMS_ENTITY_TYPE_ENTITY},0,0};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -1550,7 +1539,7 @@ _clAmsSANodeJoin(
 {
 
     ClRcT  rc = CL_OK;
-    ClAmsEntityRefT  nodeRef = {{0},0,0};
+    ClAmsEntityRefT  nodeRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClAmsNodeT  *node = NULL;
 
     AMS_FUNC_ENTER (("\n"));
@@ -1616,7 +1605,7 @@ _clAmsSANodeLeave(
 
     ClRcT  rc = CL_OK;
     ClAmsNodeT  *node = NULL;
-    ClAmsEntityRefT  nodeRef = {{0},0,0};
+    ClAmsEntityRefT  nodeRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
     ClBoolT auditEpilogue = CL_FALSE;
 
     AMS_FUNC_ENTER (("\n"));
@@ -1894,7 +1883,7 @@ _clAmsSAStateChangeStandby2Active(
                                   ClUint32T  mode )
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityRefT thisNodeRef = {{0}};
+    ClAmsEntityRefT thisNodeRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsNodeT *thisNode = NULL;
     ClAmsNodeClusterMemberT nodeStatus = CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER;
 
@@ -2087,7 +2076,7 @@ _clAmsSAEntityPrint (
         CL_IN  ClAmsEntityT *entity )
 
 {
-    ClAmsEntityRefT  entityRef = {{0},0,0};
+    ClAmsEntityRefT  entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -2286,7 +2275,7 @@ _clAmsSAMarshalRmdParams(
     ClAmsCompT  *comp = NULL;
     ClAmsSUT  *parentSU = NULL;
     ClAmsNodeT  *parentNode = NULL;
-    ClAmsEntityRefT  compRef = {{0},0,0};
+    ClAmsEntityRefT  compRef = {{CL_AMS_ENTITY_TYPE_ENTITY},0,0};
 
     AMS_FUNC_ENTER (("\n"));
 
@@ -2295,9 +2284,7 @@ _clAmsSAMarshalRmdParams(
     compRef.entity.type = CL_AMS_ENTITY_TYPE_COMP;
     memcpy ( &compRef.entity.name, compName, sizeof (SaNameT));
 
-    AMS_CALL( clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
-                &compRef) );
+    AMS_CALL( clAmsEntityDbFindEntity( &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP], &compRef) );
 
     comp = (ClAmsCompT *)compRef.ptr;
 
@@ -2311,12 +2298,11 @@ _clAmsSAMarshalRmdParams(
 
     AMS_CHECKPTR ( !parentNode );
 
-    *nodeName = clHeapAllocate (parentNode->config.entity.name.length);
+    *nodeName = (ClCharT*) clHeapAllocate (parentNode->config.entity.name.length);
 
     AMS_CHECK_NO_MEMORY (nodeName);
 
-    memcpy (*nodeName, parentNode->config.entity.name.value, 
-            parentNode->config.entity.name.length );
+    memcpy (*nodeName, parentNode->config.entity.name.value, parentNode->config.entity.name.length );
     physAddr->nodeAddress = clIocLocalAddressGet(); 
     physAddr->portId = CL_IOC_CPM_PORT; 
 
@@ -2342,13 +2328,13 @@ ClRcT
 _clAmsSAEventServerTest()
 {
 
-    ClAmsNotificationDescriptorT notification = {0};
+    ClAmsNotificationDescriptorT notification = {CL_AMS_NOTIFICATION_NONE};
 
     notification.type = CL_AMS_NOTIFICATION_FAULT;
     notification.entityType = CL_AMS_ENTITY_TYPE_COMP;
     strcpy ( (ClCharT*)notification.entityName.value, "Test_Comp");
     notification.entityName.length = strlen ("Test_Comp");
-    notification.recoveryActionTaken = CL_AMS_RECOVERY_SU_RESTART;
+    notification.recoveryActionTaken = (SaAmfRecommendedRecoveryT) CL_AMS_RECOVERY_SU_RESTART;
     notification.repairNecessary = CL_TRUE;
 
     AMS_CALL ( clAmsNotificationEventPublish( &notification));
@@ -2360,7 +2346,7 @@ _clAmsSAEventServerTest()
 ClRcT
 _clAmsSANodeAdd(const ClCharT *nodeName)
 {
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClRcT rc = CL_OK;
 
     if(!nodeName) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
