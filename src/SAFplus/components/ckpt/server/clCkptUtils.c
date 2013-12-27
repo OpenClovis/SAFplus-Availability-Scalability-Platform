@@ -216,7 +216,7 @@ void    ckptSvrHdlDeleteCallback(ClCntKeyHandleT userKey,
     ClOsalMutexIdT ckptMutex;
     ClOsalMutexIdT *secMutex;
     ClUint32T numMutex;
-    ClUint32T i;
+    ClInt32T i;
     rc = clHandleCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
     if( (CL_OK != rc) || (NULL == pCkpt) )
     {
