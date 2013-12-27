@@ -245,6 +245,7 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused,
     }
 }
 
+#if 0
 ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,ClUint8T priority,ClUint8T protoType,ClUint32T length,ClIocPhysicalAddressT srcAddr)
 {
     ClIocNotificationT notification;
@@ -319,6 +320,7 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
         clBufferDelete(&eoRecvMsg);
     return CL_OK;
 }
+#endif
 
 static void gmsNotificationInitialize(void)
 {
@@ -333,6 +335,7 @@ static void gmsNotificationInitialize(void)
     compAddr.portId = CL_IOC_CPM_PORT;
     clCpmNotificationCallbackInstall(compAddr, gmsNotificationCallback, NULL, &gNotificationCallbackHandle);
 
+#if 0
     if (1)
     {
         
@@ -347,7 +350,8 @@ static void gmsNotificationInitialize(void)
 
         clEoProtoSwitch(&eoProtoDef);
     }
-    
+#endif
+
 }
 
 static ClRcT gmsClusterStart(void)
