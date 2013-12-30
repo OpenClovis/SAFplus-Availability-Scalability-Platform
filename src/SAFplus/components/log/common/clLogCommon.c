@@ -545,7 +545,6 @@ clLogShmGet(ClCharT   *shmName,
 void
 clLogStreamHeaderReset(ClLogStreamHeaderT      *pStreamHeader)
 {
-    clLogAlert("LOG", "RST", "Resetting Stream Header Parameters for StreamID [%u]", pStreamHeader->streamId_sec);
     pStreamHeader->update_status                       = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
     pStreamHeader->struct_id                           = CL_LOG_STREAM_HEADER_STRUCT_ID;
     pStreamHeader->streamId                            = pStreamHeader->streamId_sec;

@@ -261,6 +261,7 @@ clLogFlusherStart(void  *pData)
     if ((CL_LOG_STREAM_HEADER_STRUCT_ID != pHeader->struct_id) || (CL_LOG_STREAM_HEADER_UPDATE_COMPLETE != pHeader->update_status))
     {/* Stream Header is corrupted so reset Header parameters */
        clLogStreamHeaderReset(pHeader); 
+       clLogAlert("LOG", "RST", "Successfully Reset Stream Header parameters for Stream Id [%u]", pHeader->streamId_sec);
     }
     /*
      * Create a thread for flush interval
@@ -875,6 +876,7 @@ clLogFlusherRecordsGetMcast(ClLogSvrStreamDataT  *pStreamData,
     if ((CL_LOG_STREAM_HEADER_STRUCT_ID != pHeader->struct_id) || (CL_LOG_STREAM_HEADER_UPDATE_COMPLETE != pHeader->update_status))
     {/* Stream Header is corrupted so reset Header parameters */
        clLogStreamHeaderReset(pHeader); 
+       clLogAlert("LOG", "RST", "Successfully Reset Stream Header parameters for Stream Id [%u]", pHeader->streamId_sec);
     }
     if(pFlushRecord->multicast < 0 )
     {
