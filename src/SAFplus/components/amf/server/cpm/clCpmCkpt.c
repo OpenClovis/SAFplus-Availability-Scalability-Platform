@@ -277,7 +277,7 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
                     ||
                     CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc))
                 {
-                    ClCpmDynamicNodeT *dynamicNode = clHeapCalloc(1, sizeof(*dynamicNode));
+                    ClCpmDynamicNodeT *dynamicNode = (ClCpmDynamicNodeT*) clHeapCalloc(1, sizeof(*dynamicNode));
                     CL_ASSERT(dynamicNode != NULL);
                     rc = CL_OK;
                     memcpy(&dynamicNode->cpmLocalInfo, &cpmLBuffer, sizeof(dynamicNode->cpmLocalInfo));
@@ -343,7 +343,7 @@ static ClRcT cpmCpmLDeSerializerBaseVersion(ClBufferHandleT message, ClUint32T s
         rc = cpmNodeFindLocked((SaUint8T *)node->cpmLocalInfo.nodeName, &cpmL);
         if(rc == CL_OK)
         {
-            cpmL->pCpmLocalInfo = clHeapCalloc(1, sizeof(*cpmL->pCpmLocalInfo));
+            cpmL->pCpmLocalInfo = ( struct _ClCpmLocalInfoT_4_0_0*) clHeapCalloc(1, sizeof(*cpmL->pCpmLocalInfo));
             CL_ASSERT(cpmL->pCpmLocalInfo != NULL);
             memcpy(cpmL->pCpmLocalInfo, &node->cpmLocalInfo, sizeof(*cpmL->pCpmLocalInfo));
         }
@@ -605,7 +605,7 @@ ClRcT cpmCpmLCheckpointRead(void)
     /*
      * Consume the checkpoints
      */
-    if ((rc = cpmCpmLDeSerializer(ioVector->dataBuffer, ioVector->dataSize)) != CL_OK)
+    if ((rc = cpmCpmLDeSerializer((ClInt8T*) ioVector->dataBuffer, ioVector->dataSize)) != CL_OK)
         goto failure;
 
     if (ioVector->dataBuffer)

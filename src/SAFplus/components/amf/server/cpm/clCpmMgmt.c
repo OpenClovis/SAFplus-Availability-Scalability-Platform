@@ -49,7 +49,7 @@ void cpmFillCompConfig(const ClCpmMgmtCompT *compInfo,
      * Put the image name as first argument.
      */
     
-    compConfig->argv[0] = clHeapAllocate(strlen(compInfo->instantiationCMD)+1);
+    compConfig->argv[0] = (ClCharT*) clHeapAllocate(strlen(compInfo->instantiationCMD)+1);
     if (!compConfig->argv[0])
     {
         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
@@ -63,7 +63,7 @@ void cpmFillCompConfig(const ClCpmMgmtCompT *compInfo,
     
     for (i = 1; compInfo->argv[i]; ++i)
     {
-        compConfig->argv[i] = clHeapAllocate(strlen(compInfo->argv[i]) + 1);
+        compConfig->argv[i] = (ClCharT*) clHeapAllocate(strlen(compInfo->argv[i]) + 1);
         if (!compConfig->argv[i])
         {
             clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
@@ -91,7 +91,7 @@ static ClRcT cpmComponentAdd(ClCharT *compName)
         CL_AMS_COMP_PROPERTY_SA_AWARE,
         CL_CPM_COMP_SINGLE_PROCESS,
         "invalid",
-        {"invalid", NULL},
+        {(ClCharT*) "invalid", NULL},
         {NULL},
         "",
         "",
@@ -317,7 +317,7 @@ ClRcT cpmNodeAdd(ClCharT *nodeName)
         goto failure;
     }
 
-    cpm = clHeapAllocate(sizeof(ClCpmLT));
+    cpm = (ClCpmLT*) clHeapAllocate(sizeof(ClCpmLT));
     if (!cpm)
     {
         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
@@ -617,7 +617,7 @@ ClRcT cpmCompParseArgs(ClCpmCompConfigT *compConfig, ClCharT *cmd, ClUint32T *pA
             len = strlen(imageName);
             c = imageName;
         }
-        compConfig->argv[i] = clHeapAllocate(len + 1);
+        compConfig->argv[i] = (ClCharT*) clHeapAllocate(len + 1);
         if (!compConfig->argv[i])
         {
             clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_MGM,
@@ -718,7 +718,7 @@ ClRcT VDECL_VER(cpmCompConfigSet, 5, 1, 0)(ClEoDataT data,
  */
 static ClRcT compSetConfig(ClAmsCompConfigT *compConfig, ClUint64T mask)
 {
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsEntityRefT *targetRef = &entityRef;
     ClAmsSUT *su = NULL;
     ClIocAddressT nodeAddress = {{0}};
@@ -974,7 +974,7 @@ void cpmShowAll(ClCharT *entity)
     }
     
         
-    if (!e) e = "/tmp";
+    if (!e) e = (ClCharT*) "/tmp";
 
     clLogDebug("---","---","ASP_LOGDIR value %s",e);
 
@@ -995,7 +995,7 @@ ClRcT cpmComponentsAddDynamic(const ClCharT *node)
 {
     ClAmsMgmtHandleT mgmtHandle = 0;
     ClVersionT version = {'B', 0x1, 0x1 };
-    ClAmsEntityT entityNode = {0};
+    ClAmsEntityT entityNode = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClAmsEntityBufferT suBuffer = {0};
     ClAmsEntityBufferT compBuffer = {0};
     ClRcT rc = CL_OK;
@@ -1036,7 +1036,7 @@ ClRcT cpmComponentsAddDynamic(const ClCharT *node)
         for(j = 0; j < compBuffer.count; ++j)
         {
             ClAmsEntityT *comp = compBuffer.entity+j;
-            ClAmsCompConfigT compConfig = {{0}};
+            ClAmsCompConfigT compConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
             ClAmsEntityConfigT *entityConfig = NULL;
             rc = clAmsMgmtEntityGetConfig(mgmtHandle, comp,
                                           &entityConfig);
@@ -1086,8 +1086,8 @@ ClRcT cpmComponentsAddDynamic(const ClCharT *node)
 ClRcT cpmComponentAddDynamic(const ClCharT *compName)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityT comp = {0};
-    ClAmsCompConfigT compConfig = {{0}};
+    ClAmsEntityT comp = {CL_AMS_ENTITY_TYPE_ENTITY};
+    ClAmsCompConfigT compConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsMgmtHandleT mgmtHandle = 0;
     ClVersionT version = {'B', 0x1, 0x1 };
 
@@ -1110,7 +1110,7 @@ ClRcT cpmComponentAddDynamic(const ClCharT *compName)
      */
     if(CL_CPM_IS_ACTIVE())
     {
-        ClAmsEntityRefT entityRef = {{0}};
+        ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
         memcpy(&entityRef.entity, &comp, sizeof(entityRef.entity));
         rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_COMP],
                                      &entityRef);
@@ -1197,7 +1197,7 @@ ClRcT cpmCompAppendInstantiateCommand(ClCharT *compName,
     for(i = 1; (arg = comp->compConfig->argv[i]) && maxSize > 0; ++i)
     {
         len = strlen(arg);
-        if(len >= maxSize + 1) break; 
+        if(len >= (ClUint32T) (maxSize + 1)) break; 
         len = snprintf(instantiateCommand + bytes, maxSize, " ");
         if(!len) break;
         bytes += len;

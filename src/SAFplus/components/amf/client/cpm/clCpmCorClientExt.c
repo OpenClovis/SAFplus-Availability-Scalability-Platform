@@ -54,7 +54,7 @@ ClRcT clCpmSlotInfoGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
 {
     ClRcT rc = CL_OK;
     ClIocNodeAddressT masterIocAddress = 0;
-    ClCpmSlotInfoRecvT  slotInfoRecv = {0};
+    ClCpmSlotInfoRecvT  slotInfoRecv = { CL_CPM_SLOT_ID};
     ClUint32T           bufSize = 0;
     
     /* make a SYNC RMD to CPM/G master */

@@ -1104,7 +1104,7 @@ ClRcT cpmSelfShutDown(void)
     return rc;
 }
 
-void cpmWriteToFile(ClCharT *fname, ClCharT *s, ClCharT n)
+void cpmWriteToFile(ClCharT *fname,const  ClCharT *s, ClCharT n)
 {
     FILE *fp = NULL;
 
@@ -1395,7 +1395,7 @@ ClRcT cpmDequeueCmRequest(SaNameT *pNodeName, ClCmCpmMsgT *pRequest)
 ClRcT cpmEnqueueCmRequest(SaNameT *pNodeName, ClCmCpmMsgT *pRequest)
 {
     ClRcT rc;
-    ClCpmResetMsgT *resetMsg = clHeapCalloc(1, sizeof(*resetMsg));
+    ClCpmResetMsgT *resetMsg = (ClCpmResetMsgT*) clHeapCalloc(1, sizeof(*resetMsg));
     CL_ASSERT(resetMsg != NULL);
     resetMsg->msgType = _CM_RESET_MSG;
     memcpy(&resetMsg->cmResetMsg, pRequest, sizeof(resetMsg->cmResetMsg));
@@ -1428,7 +1428,7 @@ ClRcT cpmDequeueAspRequest(SaNameT *pNodeName, ClUint32T *nodeRequest)
 ClRcT cpmEnqueueAspRequest(SaNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClUint32T nodeRequest)
 {
     ClRcT rc = CL_OK;
-    ClCpmResetMsgT *resetMsg = clHeapCalloc(1, sizeof(*resetMsg));
+    ClCpmResetMsgT *resetMsg = (ClCpmResetMsgT*) clHeapCalloc(1, sizeof(*resetMsg));
     CL_ASSERT(resetMsg != NULL);
     resetMsg->msgType = _ASP_RESET_MSG;
     memcpy(&resetMsg->nodeName, pNodeName, sizeof(resetMsg->nodeName));
@@ -1634,7 +1634,7 @@ ClRcT _cpmNodeNameForNodeAddressGet(ClIocNodeAddressT nodeAddress, SaNameT *pNod
         clOsalMutexUnlock(&gpClCpm->cpmMutex);
         return CL_CPM_RC(CL_ERR_NOT_EXIST);
     }
-    if(gpClCpm->pCpmLocalInfo->nodeId == nodeAddress)
+    if(gpClCpm->pCpmLocalInfo->nodeId == (ClInt32T) nodeAddress)
     {
         saNameSet(pNodeName, gpClCpm->pCpmLocalInfo->nodeName);
         clOsalMutexUnlock(&gpClCpm->cpmMutex);
@@ -1680,7 +1680,7 @@ ClRcT cpmInitiatedSwitchOver(ClBoolT checkDeputy)
      * Do the cluster leave only if there is a
      * CPM/G standby in the cluster.
      */
-    if (!checkDeputy || (checkDeputy && gpClCpm->deputyNodeId != -1))
+    if (!checkDeputy || (checkDeputy && (ClInt32T) gpClCpm->deputyNodeId != -1))
     {
         /* Leave the GMS group, this will result in the switchover */
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL,
@@ -1933,7 +1933,7 @@ static void cpmInstallNodeInfo(void)
     ClAmsMgmtHandleT handle = {0};
     ClVersionT version = {'B',0x1,0x1};
     ClRcT rc = CL_OK;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     SaNameT key = {0};
 
     rc = clAmsMgmtInitialize(&handle, NULL, &version);

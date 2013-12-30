@@ -29,7 +29,7 @@
 #include <clCommon.h>
 #include <clCpmLog.h>
 
-ClCharT *clCpmLogMsg[] = {
+const ClCharT *clCpmLogMsg[] = {
     "Invalid message",
     /*
      * CL_CPM_LOG_HANDLE_MSG_START: Handle/Version related log messages 

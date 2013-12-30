@@ -744,7 +744,7 @@ ClBoolT cpmCompIsChildAlive(ClCpmComponentT *comp)
         pid = waitpid(comp->processId, &status, flags);
     } while ((-1 == pid) && (EINTR == errno));
     
-    if (comp->processId == pid)
+    if ( (ClInt32T) comp->processId == pid)
     {
         if (WIFEXITED(status)) goto no;
         else if (WIFSTOPPED(status)) 
@@ -903,9 +903,9 @@ static ClRcT clCpmFinalize(void)
         if (gpClCpm->pCpmConfig->cpmType == CL_CPM_GLOBAL)
         {
             /* Check if there is a standby */
-            if (((gpClCpm->activeMasterNodeId != -1) && 
-                    (gpClCpm->activeMasterNodeId != gpClCpm->pCpmLocalInfo->nodeId)) 
-                    || ( gpClCpm->deputyNodeId != -1))
+            if ((( (ClInt32T) gpClCpm->activeMasterNodeId != -1) && 
+                    ( (ClInt32T) gpClCpm->activeMasterNodeId != gpClCpm->pCpmLocalInfo->nodeId)) 
+                    || ( (ClInt32T) gpClCpm->deputyNodeId != -1))
             {
                 /* Need to call state change ? */
                 clAmsFinalize(&gAms,
@@ -1854,8 +1854,8 @@ ClRcT VDECL(compMgrEORegister)(ClEoDataT data,
     memset(&eoObj, 0, sizeof(eoObj));
     strncpy(eoObj.name, info.eoObj.name, sizeof(eoObj.name)-1);
     eoObj.eoID = info.eoObj.eoID;
-    eoObj.pri = info.eoObj.pri;
-    eoObj.state = info.eoObj.state;
+    eoObj.pri = (ClOsalThreadPriorityT) info.eoObj.pri;
+    eoObj.state = (ClEoStateT) info.eoObj.state;
     eoObj.threadRunning = info.eoObj.threadRunning;
     eoObj.noOfThreads = info.eoObj.noOfThreads;
     eoObj.eoInitDone = info.eoObj.eoInitDone;
@@ -2192,8 +2192,8 @@ ClRcT VDECL(compMgrEOStateUpdate)(ClEoDataT data,
     memset(&eoObj, 0, sizeof(eoObj));
     strncpy(eoObj.name, info.eoObj.name, sizeof(eoObj.name)-1);
     eoObj.eoID = info.eoObj.eoID;
-    eoObj.pri = info.eoObj.pri;
-    eoObj.state = info.eoObj.state;
+    eoObj.pri = (ClOsalThreadPriorityT) info.eoObj.pri;
+    eoObj.state = (ClEoStateT) info.eoObj.state;
     eoObj.threadRunning = info.eoObj.threadRunning;
     eoObj.noOfThreads = info.eoObj.noOfThreads;
     eoObj.eoInitDone = info.eoObj.eoInitDone;
@@ -3063,7 +3063,7 @@ static void cpmMarkRecovery(ClCpmComponentT *compRef, ClUint64T instantiateCooki
         /*
          *mark the recovery invocation.
          */
-        ClAmsInvocationT *pAmsInvocation = clHeapCalloc(1, sizeof(*pAmsInvocation));
+        ClAmsInvocationT *pAmsInvocation = (ClAmsInvocationT*) clHeapCalloc(1, sizeof(*pAmsInvocation));
         ClInvocationT recoveryInvocation = 0;
         CL_ASSERT(pAmsInvocation != NULL);
         saNameSet(&pAmsInvocation->compName, compRef->compConfig->compName);
@@ -3520,14 +3520,16 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
 {
     ClRcT rc = CL_OK;
     ClIocNodeAddressT iocAddress = 0;
-    ClIocNotificationT *notification = invocation;
-    ClIocNotificationT iocNotification = {0};
-    ClIocNotificationIdT notificationId = 0;
+    ClIocNotificationT *notification = (ClIocNotificationT*) invocation;
+    ClIocNotificationT iocNotification;
+    ClIocNotificationIdT notificationId;
     ClIocPortT iocPort = 0;
     ClUint32T protoVersion = 0;
     ClInt32T nodeUp = 0;
     ClGmsNodeIdT nodeId = 0;
 
+    memset(&iocNotification,0,sizeof(ClIocNotificationT));
+    memset(&notificationId,0,sizeof(ClIocNotificationIdT));
 
     if(!invocation) return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
 
@@ -3536,17 +3538,15 @@ static ClRcT clCpmIocNotificationHandler(ClPtrT invocation)
     protoVersion = ntohl(iocNotification.protoVersion);
     if(protoVersion != CL_IOC_NOTIFICATION_VERSION)
     {
-        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                   "CPM got ioc notification packet with version [%d]. "
-                   "Supported version [%d]", protoVersion, 
-                   CL_IOC_NOTIFICATION_VERSION);
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "CPM got ioc notification packet with version [%d]. "
+                   "Supported version [%d]", protoVersion, CL_IOC_NOTIFICATION_VERSION);
         rc = CL_CPM_RC(CL_ERR_VERSION_MISMATCH);
         return rc;
     }
     
     iocPort = ntohl(iocNotification.nodeAddress.iocPhyAddress.portId);
     iocAddress = ntohl(iocNotification.nodeAddress.iocPhyAddress.nodeAddress);    
-    notificationId = ntohl(iocNotification.id);
+    notificationId = (ClIocNotificationIdT) ntohl(iocNotification.id);
 
     CL_CPM_IOC_ADDRESS_SLOT_GET(iocAddress, nodeId);
 
@@ -3678,7 +3678,7 @@ static ClRcT clCpmIocNotificationEnqueue(ClIocNotificationT *notification, ClPtr
     ClIocNotificationT *job = NULL;
     ClRcT rc = CL_OK;
     if(!notification) return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-    job = clHeapCalloc(1, sizeof(*job));
+    job = (ClIocNotificationT*) clHeapCalloc(1, sizeof(*job));
     CL_ASSERT(job != NULL);
     memcpy(job, notification, sizeof(*job));
     rc = clJobQueuePush(&cpmNotificationQueue, clCpmIocNotificationHandler, (ClPtrT)job);
@@ -3801,7 +3801,7 @@ ClRcT compMgrPollThread(void)
                 {
                     if (ptr->nextPoll <= freq)
                     {
-                        ClEoIdT *pCookie = clHeapCalloc(1, sizeof(ClEoIdT));
+                        ClEoIdT *pCookie = (ClEoIdT*) clHeapCalloc(1, sizeof(ClEoIdT));
                         CL_ASSERT(pCookie != NULL);
                         *pCookie = ptr->eoptr->eoID;
                         memset(&outBuffer, 0,
@@ -4287,12 +4287,12 @@ static void loadAspNodeIp(const ClCharT *intf)
     {
         reqs += 5;
         ifc.ifc_len = reqs * sizeof(*ifreq);
-        ifc.ifc_buf = realloc(ifc.ifc_buf, sizeof(*ifreq) * reqs);
+        ifc.ifc_buf = (char*) realloc(ifc.ifc_buf, sizeof(*ifreq) * reqs);
         CL_ASSERT(ifc.ifc_buf != NULL);
         err = ioctl(fd, SIOCGIFCONF, &ifc);
         if(err < 0)
             goto out_free;
-    } while (ifc.ifc_len == reqs * sizeof(*ifreq));
+    } while (ifc.ifc_len == (ClInt32T) (reqs * sizeof(*ifreq)));
     
     ifreq = ifc.ifc_req;
     for(i = 0; i < ifc.ifc_len; i += sizeof(*ifreq))
@@ -4347,7 +4347,7 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
     ClCharT cpmName[CL_MAX_NAME_LENGTH] = {0};
 
     loadAspInstallInfo();
-    clLogCompName = "AMF"; /* Override generated eo name with a short name for our server */
+    clLogCompName = (ClCharT*) "AMF"; /* Override generated eo name with a short name for our server */
     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
                 "%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
     

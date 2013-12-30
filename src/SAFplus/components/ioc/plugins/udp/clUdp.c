@@ -319,7 +319,7 @@ ClRcT clUdpMapWalk(ClRcT (*callback)(ClIocUdpMapT *map, void *cookie), void *coo
 
         if(!(numEntries & growMask))
         {
-            addrMap = clHeapRealloc(addrMap, sizeof(*addrMap) * (numEntries + growMask + 1));
+            addrMap = (ClIocUdpMapT*) clHeapRealloc(addrMap, sizeof(*addrMap) * (numEntries + growMask + 1));
             CL_ASSERT(addrMap != NULL);
         }
         memcpy(addrMap+numEntries, map, sizeof(*map));
@@ -351,7 +351,7 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
     ClCharT addrStr[CL_MAX_NAME_LENGTH];
     ClIocNodeAddressT nodeBridge = slot;
     ClUint32T priority;
-    map = calloc(1, sizeof(*map));
+    map = (ClIocUdpMapT*) calloc(1, sizeof(*map));
     CL_ASSERT(map != NULL);
     if(!addr)
     {
@@ -500,7 +500,7 @@ static ClRcT _clUdpMapUpdateNotification(ClIocNotificationT *notification, ClPtr
 {
     ClIocUdpMapT *map = NULL;
     ClCharT addStr[INET_ADDRSTRLEN] = {0};
-    ClIocNotificationIdT notificationId = ntohl(notification->id);
+    ClIocNotificationIdT notificationId = (ClIocNotificationIdT) ntohl(notification->id);
     ClIocNodeAddressT nodeAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
     clOsalMutexLock(&gXportCtrl.mutex);
     switch (notificationId) 
@@ -611,12 +611,12 @@ static ClRcT clUdpGetNodeIpAddress(const ClCharT *xportType, const ClCharT *devI
         subnetMask = getenv(envSubNetType);
         if (subnetMask == NULL) 
         {
-            subnetMask = ASP_PLUGIN_SUBNET_DEFAULT;
+            subnetMask = (ClCharT*) ASP_PLUGIN_SUBNET_DEFAULT;
         }
         subnetPrefix = strrchr(subnetMask, '/');
         if(!subnetPrefix)
         {
-            subnetPrefix = ASP_PLUGIN_SUBNET_PREFIX_DEFAULT; 
+            subnetPrefix = (ClCharT*) ASP_PLUGIN_SUBNET_PREFIX_DEFAULT; 
         }
         else 
         {
@@ -704,7 +704,7 @@ static ClRcT checkInitSctp(void)
     const ClCharT *mode;
 
     if(!config)
-        config = ".";
+        config = (ClCharT*)".";
 
     parent = clParserOpenFile(config, CL_TRANSPORT_CONFIG_FILE);
     if(!parent)
@@ -797,6 +797,7 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     ClUint32T i;
     ClUint32T numNodes = 0;
     ClIocNodeAddressT *pNodes = NULL;
+    ClCharT addStr[INET_ADDRSTRLEN] = {0};
 
     rc = clIocTotalNeighborEntryGet(&numNodes);
     if(rc != CL_OK)
@@ -819,7 +820,6 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
         goto out;
     }
 
-    ClCharT addStr[INET_ADDRSTRLEN] = {0};
     /* insert into udp map */
     for (i = 0; i < numNodes; i++)
     {
@@ -849,7 +849,7 @@ ClRcT xportFinalize(ClInt32T xportId, ClBoolT nodeRep)
 static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
 {
     ClRcT rc = CL_OK;
-    ClIocUdpPrivateT *xportPrivate = cookie;
+    ClIocUdpPrivateT *xportPrivate = (ClIocUdpPrivateT*) cookie;
     ClUint8T buffer[0xffff+1];
     struct msghdr msgHdr;
     struct sockaddr peerAddress;
@@ -978,7 +978,7 @@ ClRcT xportBind(ClIocPortT port)
         goto out;
     }
 
-    xportPrivate = clHeapCalloc(1, sizeof(*xportPrivate));
+    xportPrivate = (ClIocUdpPrivateT*) clHeapCalloc(1, sizeof(*xportPrivate));
     CL_ASSERT(xportPrivate != NULL);
     xportPrivate->port = port;
     xportPrivate->fd = fd;
@@ -992,7 +992,7 @@ ClRcT xportBindClose(ClIocPortT port)
 {
     ClIocUdpPrivateT *xportPrivate = NULL;
     ClRcT rc = CL_OK;
-    if(!(xportPrivate = clTransportPrivateDataDelete(gClUdpXportId, port))) 
+    if(!(xportPrivate = (ClIocUdpPrivateT*) clTransportPrivateDataDelete(gClUdpXportId, port))) 
         return CL_ERR_NOT_EXIST;
     if(xportPrivate->port != port)
         return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
@@ -1020,7 +1020,7 @@ ClRcT xportListen(ClIocPortT port)
             clLogError("UDP", "LISTENER", "Bind failed for port [%#x] with error [%#x]", port, rc);
             goto out;
         }
-        xportPrivate = clHeapCalloc(1, sizeof(*xportPrivate));
+        xportPrivate = (ClIocUdpPrivateT*) clHeapCalloc(1, sizeof(*xportPrivate));
         CL_ASSERT(xportPrivate != NULL);
         xportPrivate->port = port;
         xportPrivate->fd = fd;
@@ -1057,7 +1057,7 @@ ClRcT xportListenStop(ClIocPortT port)
 {
     ClIocUdpPrivateT *xportPrivate = NULL;
     ClRcT rc = CL_OK;
-    if(!(xportPrivate = clTransportPrivateDataDelete(gClUdpXportId, port)))
+    if(!(xportPrivate = (ClIocUdpPrivateT*) clTransportPrivateDataDelete(gClUdpXportId, port)))
         return CL_ERR_INVALID_PARAMETER;
     if(xportPrivate->port != port)
     {
@@ -1194,7 +1194,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
 
 static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
 {
-    ClIocUdpArgsT *sendArgs = args;
+    ClIocUdpArgsT *sendArgs = (ClIocUdpArgsT*) args;
     struct sockaddr *destaddr = NULL;
     socklen_t addrlen = 0;
     struct msghdr msghdr;

@@ -66,7 +66,7 @@ static void clAmsTestEntityDeleteMarker(ClAmsTestEntitiesMarkerT *pMarker)
     {
     case CL_AMS_TEST_ENTITIES_TYPE_ENTITY_BUFFER:
         {
-            ClAmsEntityBufferT *pEntityBuffer = pMarker->pMarker;
+            ClAmsEntityBufferT *pEntityBuffer = (ClAmsEntityBufferT*) pMarker->pMarker;
             if(pEntityBuffer->entity)
             {
                 clHeapFree(pEntityBuffer->entity);
@@ -76,7 +76,7 @@ static void clAmsTestEntityDeleteMarker(ClAmsTestEntitiesMarkerT *pMarker)
         break;
     case CL_AMS_TEST_ENTITIES_TYPE_SU_SI_BUFFER:
         {
-            ClAmsSUSIRefBufferT *pSUSIRefBuffer = pMarker->pMarker;
+            ClAmsSUSIRefBufferT *pSUSIRefBuffer = (ClAmsSUSIRefBufferT*) pMarker->pMarker;
             if(pSUSIRefBuffer->entityRef)
             {
                 clHeapFree(pSUSIRefBuffer->entityRef);
@@ -87,7 +87,7 @@ static void clAmsTestEntityDeleteMarker(ClAmsTestEntitiesMarkerT *pMarker)
 
     case CL_AMS_TEST_ENTITIES_TYPE_SI_SU_BUFFER:
         {
-            ClAmsSISURefBufferT *pSISURefBuffer = pMarker->pMarker;
+            ClAmsSISURefBufferT *pSISURefBuffer = (ClAmsSISURefBufferT*) pMarker->pMarker;
             if(pSISURefBuffer->entityRef)
             {
                 clHeapFree(pSISURefBuffer->entityRef);
@@ -98,10 +98,10 @@ static void clAmsTestEntityDeleteMarker(ClAmsTestEntitiesMarkerT *pMarker)
         
     case CL_AMS_TEST_ENTITIES_TYPE_COMP_CSI_BUFFER:
         {
-            ClAmsCompCSIRefBufferT *pCompCSIRefBuffer = pMarker->pMarker;
+            ClAmsCompCSIRefBufferT *pCompCSIRefBuffer = (ClAmsCompCSIRefBufferT*) pMarker->pMarker;
             if(pCompCSIRefBuffer->entityRef)
             {
-                register ClInt32T i;
+                register ClUint32T i;
                 ClUint32T size = (ClUint32T)sizeof(ClAmsCompCSIRefT);
                 for(i = 0; i < pCompCSIRefBuffer->count;++i)
                 {
@@ -120,7 +120,7 @@ static void clAmsTestEntityDeleteMarker(ClAmsTestEntitiesMarkerT *pMarker)
 
     case CL_AMS_TEST_ENTITIES_TYPE_CSI_NVP_BUFFER:
         {
-            ClAmsCSINVPBufferT *pNVP = pMarker->pMarker;
+            ClAmsCSINVPBufferT *pNVP = (ClAmsCSINVPBufferT*) pMarker->pMarker;
             if(pNVP->nvp)
             {
                 clHeapFree(pNVP->nvp);
@@ -183,7 +183,7 @@ static ClBoolT clAmsTestEntityFindAndDeleteMarker(const ClCharT *pName)
 static __inline__ void clAmsTestEntityAddMarker(const ClCharT *pName,ClAmsTestEntitiesTypeT type,ClPtrT pEntity)
 {
     ClAmsTestEntitiesMarkerT *pMarker = NULL;
-    pMarker = calloc(1,sizeof(*pMarker));
+    pMarker = (ClAmsTestEntitiesMarkerT*) calloc(1,sizeof(*pMarker));
     CL_ASSERT(pMarker != NULL);
     pMarker->pName = pName;
     pMarker->type = type;

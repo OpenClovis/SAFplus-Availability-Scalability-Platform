@@ -39,7 +39,7 @@ extern "C"
 
 #define CL_CPM_CLIENT_LIB     "cpm"
 
-extern ClCharT *clCpmLogMsg[];
+extern const ClCharT *clCpmLogMsg[];
 
 /**
  * CPM-Handle/Version related messages

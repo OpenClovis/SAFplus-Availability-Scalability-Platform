@@ -146,7 +146,7 @@ SaAisErrorT saAmfDispatch(SaAmfHandleT amfHandle,
 {
     ClRcT rc;
     
-    rc = clCpmDispatch(amfHandle, dispatchFlags);
+    rc = clCpmDispatch(amfHandle, (ClDispatchFlagsT) dispatchFlags);
 
     return clClovisToSafError(rc);
 }
@@ -211,8 +211,7 @@ SaAisErrorT saAmfProtectionGroupTrack(SaAmfHandleT amfHandle,
     return clClovisToSafError(rc);
 }
 
-SaAisErrorT saAmfProtectionGroupTrackStop(SaAmfHandleT amfHandle,
-                                          const SaNameT *csiName)
+SaAisErrorT saAmfProtectionGroupTrackStop(SaAmfHandleT amfHandle, const SaNameT *csiName)
 {
     ClRcT rc;
     SaNameT csiNameInternal = {0};
@@ -242,18 +241,13 @@ SaAisErrorT saAmfComponentErrorReport(SaAmfHandleT amfHandle,
     saNameCopy((SaNameT*)&compNameInternal,
                (const SaNameT*)erroneousComponent);
 
-    rc = clCpmComponentFailureReport(amfHandle,
-                                     (const SaNameT *)&compNameInternal,
-                                     errorDetectionTime,
-                                     recommendedRecovery,
-                                     (ClUint32T)ntfIdentifier);
+    rc = clCpmComponentFailureReport(amfHandle, (const SaNameT *)&compNameInternal, errorDetectionTime,
+                                     (ClAmsLocalRecoveryT) recommendedRecovery, (ClUint32T)ntfIdentifier);
 
     return clClovisToSafError(rc);
 }
 
-SaAisErrorT saAmfComponentErrorClear(SaAmfHandleT amfHandle,
-                                     const SaNameT *compName,
-                                     SaNtfIdentifierT ntfIdentifier)
+SaAisErrorT saAmfComponentErrorClear(SaAmfHandleT amfHandle, const SaNameT *compName, SaNtfIdentifierT ntfIdentifier)
 {
     ClRcT rc;
     SaNameT compNameInternal = {0};
@@ -297,8 +291,8 @@ SaAisErrorT saAmfHealthcheckStart(SaAmfHandleT amfHandle,
     rc = clCpmHealthcheckStart(amfHandle,
                                (SaNameT *)&compNameInternal,
                                (ClAmsCompHealthcheckKeyT *)healthcheckKey,
-                               invocationType,
-                               recommendedRecovery);
+                               (ClAmsCompHealthcheckInvocationT) invocationType,
+                               (ClAmsRecoveryT) recommendedRecovery);
 
     return clClovisToSafError(rc);
 }

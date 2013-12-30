@@ -988,41 +988,32 @@ ClRcT clCpmComponentAddressGet(ClIocNodeAddressT nodeAddress,
 {
     ClRcT               rc = CL_OK;
     ClUint32T           bufSize = 0;
-    ClIocAddressIDLT    idlCompAddress = {0};
+    ClIocAddressIDLT    idlCompAddress;
 
     if (compName == NULL || compAddress == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
-                   CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
-                         CL_CPM_RC(CL_ERR_NULL_POINTER));
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_LOG_MESSAGE_0_NULL_ARGUMENT);
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"), CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
     bufSize = sizeof(ClIocAddressIDLT);
-    rc = clCpmClientRMDSyncNew(nodeAddress, CPM_COMPONENT_ADDRESS_GET,
-                               (ClUint8T *) compName, sizeof(SaNameT),
-                               (ClUint8T *) &idlCompAddress, &bufSize,
-                               CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
-                               clXdrMarshallSaNameT,
+    rc = clCpmClientRMDSyncNew(nodeAddress, CPM_COMPONENT_ADDRESS_GET, (ClUint8T *) compName, sizeof(SaNameT),
+                               (ClUint8T *) &idlCompAddress, &bufSize, CL_RMD_CALL_NEED_REPLY, 0, 0, 0, clXdrMarshallSaNameT,
                                UNMARSHALL_FN(ClIocAddressIDLT, 4, 0, 0));
     
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
-                   CL_CPM_LOG_1_CLIENT_COMP_ADDR_GET_ERR, rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_CLIENT_COMP_ADDR_GET_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
-                     ("%s Failed rc =%x\n", __FUNCTION__, rc), rc);
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("%s Failed rc =%x\n", __FUNCTION__, rc), rc);
 
     /*
      * Assuming we always get the physical address 
      */
     if (idlCompAddress.discriminant == CLIOCADDRESSIDLTIOCPHYADDRESS)
     {
-        compAddress->iocPhyAddress.nodeAddress =
-            idlCompAddress.clIocAddressIDLT.iocPhyAddress.nodeAddress;
-        compAddress->iocPhyAddress.portId =
-            idlCompAddress.clIocAddressIDLT.iocPhyAddress.portId;
+        compAddress->iocPhyAddress.nodeAddress = idlCompAddress.clIocAddressIDLT.iocPhyAddress.nodeAddress;
+        compAddress->iocPhyAddress.portId = idlCompAddress.clIocAddressIDLT.iocPhyAddress.portId;
     }
 
   failure:
@@ -1037,8 +1028,9 @@ ClRcT clCpmComponentAddressGetFast(ClIocNodeAddressT nodeAddress, SaNameT *compN
 {
     ClRcT rc = CL_OK;
     ClUint32T bufSize = 0;
-    ClIocAddressIDLT idlCompAddress = { 0 };
+    ClIocAddressIDLT idlCompAddress;
 
+    memset(&idlCompAddress,0,sizeof(ClIocAddressIDLT));
     if (compName == NULL || compAddress == NULL )
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_LOG_MESSAGE_0_NULL_ARGUMENT);
@@ -1125,7 +1117,7 @@ ClRcT clCpmComponentStatusGet(SaNameT *compName,
                               ClUint32T *OperationalState)
 {
     ClRcT rc = CL_OK;
-    ClCpmComponentStateT state = {0};
+    ClCpmComponentStateT state = {CL_AMS_OPER_STATE_NONE};
     ClCpmLifeCycleOprT status = {{0}};
     ClUint32T size = sizeof(ClCpmComponentStateT);
 
@@ -1310,13 +1302,10 @@ ClRcT clCpmBootLevelSet(CL_IN SaNameT *nodeName,
     }
     memcpy(&(bootOp.nodeName), nodeName, sizeof(SaNameT));
     bootOp.bootLevel = bootLevel;
-    bootOp.requestType = 0;
+    bootOp.requestType = CL_CPM_REQUEST_NONE;
 
-    rc = clCpmClientRMDAsyncNew(clIocLocalAddressGet(), CPM_BM_SET_LEVEL,
-            (ClUint8T *) &bootOp, size, NULL, 0,
-            0, 0, 0, CL_IOC_HIGH_PRIORITY,
-            MARSHALL_FN(ClCpmBootOperationT, 4, 0, 0)
-            );
+    rc = clCpmClientRMDAsyncNew(clIocLocalAddressGet(), CPM_BM_SET_LEVEL, (ClUint8T *) &bootOp, size, NULL, 0, 0, 0, 0, CL_IOC_HIGH_PRIORITY,
+            MARSHALL_FN(ClCpmBootOperationT, 4, 0, 0));
     
     if (rc != CL_OK)
     {
@@ -1478,10 +1467,8 @@ ClRcT clCpmComponentListDebugAll(ClIocNodeAddressT iocNodeAddress,
     return CL_OK;
     
  failure:
-    snprintf(buffer,
-             CL_MAX_NAME_LENGTH-1,
-             "Failed to get component list, error [%#x]", rc);
-    *retStr = clHeapAllocate(CL_MAX_NAME_LENGTH);
+    snprintf(buffer, CL_MAX_NAME_LENGTH-1, "Failed to get component list, error [%#x]", rc);
+    *retStr = (ClCharT* )clHeapAllocate(CL_MAX_NAME_LENGTH);
     if (*retStr) strncpy(*retStr, buffer, CL_MAX_NAME_LENGTH-1);
     clBufferDelete(&outMsgHdl);
     return rc;
@@ -1572,29 +1559,24 @@ ClRcT clCpmIocAddressForNodeGet(SaNameT nodeName,
     ClRcT   rc = CL_OK;
     ClUint32T bufSize = 0;
     ClIocNodeAddressT masterAddress = {0};
-    ClIocAddressIDLT idlNodeAddress = {0};
+    ClIocAddressIDLT idlNodeAddress;
     
+    memset(&idlNodeAddress,0,sizeof(ClIocAddressIDLT));
     rc = clCpmMasterAddressGet(&masterAddress);
-    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, 
-            ("Unable to get the master address, rc=[0x%x]\n", rc), rc);
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to get the master address, rc=[0x%x]\n", rc), rc);
 
     bufSize = sizeof(ClIocAddressIDLT);
-    rc = clCpmClientRMDSyncNew(masterAddress, CPM_NODE_IOC_ADDR_GET,
-                               (ClUint8T *) &nodeName, sizeof(SaNameT),
-                               (ClUint8T *) &idlNodeAddress, &bufSize,
-                               CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
-                               clXdrMarshallSaNameT,
-                               UNMARSHALL_FN(ClIocAddressIDLT, 4, 0, 0));
+    rc = clCpmClientRMDSyncNew(masterAddress, CPM_NODE_IOC_ADDR_GET, (ClUint8T *) &nodeName, sizeof(SaNameT),
+                               (ClUint8T *) &idlNodeAddress, &bufSize, CL_RMD_CALL_NEED_REPLY, 0, 0, 0,
+                               clXdrMarshallSaNameT, UNMARSHALL_FN(ClIocAddressIDLT, 4, 0, 0));
 
     /*
      * Assuming we always get the physical address 
      */
     if (idlNodeAddress.discriminant == CLIOCADDRESSIDLTIOCPHYADDRESS)
     {
-        pIocAddress->iocPhyAddress.nodeAddress =
-            idlNodeAddress.clIocAddressIDLT.iocPhyAddress.nodeAddress;
-        pIocAddress->iocPhyAddress.portId =
-            idlNodeAddress.clIocAddressIDLT.iocPhyAddress.portId;
+        pIocAddress->iocPhyAddress.nodeAddress = idlNodeAddress.clIocAddressIDLT.iocPhyAddress.nodeAddress;
+        pIocAddress->iocPhyAddress.portId = idlNodeAddress.clIocAddressIDLT.iocPhyAddress.portId;
     }
 
 failure:
@@ -1719,14 +1701,13 @@ failure:
 ClRcT clCpmSlotGet(ClCpmSlotInfoFieldIdT flag, ClCpmSlotInfoT *slotInfo)
 {
     ClRcT rc = CL_OK;
-    ClCpmSlotInfoRecvT slotInfoRecv = {0};
+    ClCpmSlotInfoRecvT slotInfoRecv = {CL_CPM_SLOT_ID};
     ClNodeCacheSlotInfoT nodeCacheSlotInfo = {0};
-    ClNodeCacheSlotInfoFieldT nodeCacheField = 0;
+    ClNodeCacheSlotInfoFieldT nodeCacheField;
 
     if(!slotInfo) return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
 
-    if(flag == CL_CPM_SLOT_ID ||
-       flag == CL_CPM_IOC_ADDRESS)
+    if(flag == CL_CPM_SLOT_ID || flag == CL_CPM_IOC_ADDRESS)
     {
         nodeCacheField = CL_NODE_CACHE_SLOT_ID;
         if(flag == CL_CPM_SLOT_ID)
@@ -1779,7 +1760,7 @@ ClRcT clCpmCompStatusGet(ClIocAddressT compAddr, ClStatusT *pStatus)
 
     rc = clIocCompStatusGet(compAddr.iocPhyAddress, &tempStatus);
     if(rc == CL_OK)
-        *pStatus = tempStatus;
+        *pStatus = (ClStatusT) tempStatus;
 
     return rc;
 }
@@ -1791,7 +1772,7 @@ ClRcT clCpmNodeStatusGet(ClIocNodeAddressT nodeAddr, ClStatusT *pStatus)
     
     rc = clIocRemoteNodeStatusGet(nodeAddr, &tempStatus);
     if(rc == CL_OK)
-        *pStatus = tempStatus;
+        *pStatus = (ClStatusT) tempStatus;
 
     return rc;
 }
@@ -2124,7 +2105,7 @@ ClRcT clCpmCompInfoGet(const SaNameT *compName,
 
     compInfo->numArgs = compInfoRecv.numArgs;
 
-    compInfo->args = clHeapAllocate(compInfo->numArgs * sizeof(ClCharT *));
+    compInfo->args = (ClCharT**) clHeapAllocate(compInfo->numArgs * sizeof(ClCharT *));
     if (!compInfo->args)
     {
         rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
@@ -2136,7 +2117,7 @@ ClRcT clCpmCompInfoGet(const SaNameT *compName,
         ClStringT *s = (compInfoRecv.args)+i;
         ClCharT **p = compInfo->args;
 
-        p[i] = clHeapAllocate(s->length+1);
+        p[i] = (ClCharT*) clHeapAllocate(s->length+1);
         if (!p[i])
         {
             rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
@@ -2392,7 +2373,7 @@ ClRcT clCpmTargetInfoInitialize(void)
     {
         if(!(numSlots & 7) )
         {
-            slots = realloc(slots, sizeof(*slots) * (numSlots + 8));
+            slots = (ClTargetSlotInfoT*) realloc(slots, sizeof(*slots) * (numSlots + 8));
             CL_ASSERT(slots != NULL);
             memset(slots + numSlots, 0, sizeof(*slots) * 8 );
         }
@@ -2442,7 +2423,7 @@ ClRcT clCpmTargetInfoInitialize(void)
 
 ClRcT clCpmTargetSlotInfoGet(const ClCharT *name, ClIocNodeAddressT addr, ClTargetSlotInfoT *slotInfo)
 {
-    register ClInt32T i;
+    register ClUint32T i;
 
     if(!name && !addr)
         return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);

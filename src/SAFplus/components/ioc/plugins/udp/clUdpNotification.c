@@ -256,7 +256,8 @@ ClRcT clIocPeerList(ClIocUdpMapT *map, void *args)
 
     if (rc == CL_OK)
     {
-        ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 200 };
+        ClIocSendOptionT sendOption = { CL_IOC_HIGH_PRIORITY};
+        sendOption.timeout = 200 ;
         rc = clIocSendWithXport((ClIocCommPortHandleT) &dummyCommPort, message, CL_IOC_NODE_DISCOVER_PEER_NOTIFICATION, destAddress,
                 &sendOption, gClUdpXportType, CL_FALSE);
         if (rc != CL_OK)
@@ -284,16 +285,17 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
     switch (socketType) {
     case 0:
         {
-            ClIocNotificationT notification = { 0 };
+            ClIocNotificationT notification;
             ClIocPhysicalAddressT compAddr = { 0 };
-            ClIocNotificationIdT id = 0;
+            ClIocNotificationIdT id;
 
+            memset(&notification,0,sizeof(ClIocNotificationT));
+            memset(&id,0,sizeof(ClIocNotificationIdT));
             memcpy((ClPtrT) &notification, pRecvBase, sizeof(notification));
 
-            compAddr.nodeAddress = ntohl(
-                    notification.nodeAddress.iocPhyAddress.nodeAddress);
+            compAddr.nodeAddress = ntohl( notification.nodeAddress.iocPhyAddress.nodeAddress);
             compAddr.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
-            id = ntohl(notification.id);
+            id = (ClIocNotificationIdT) ntohl(notification.id);
 
             if(id == CL_IOC_NODE_DISCOVER_NOTIFICATION)
             {
@@ -566,7 +568,7 @@ static ClRcT udpMcastSetup(void)
     if(gClMcastSupport)
     {
         ClCharT *mcastAddr = clTransportMcastAddressGet();
-        gClMcastPeers = clHeapCalloc(1, sizeof(*gClMcastPeers));
+        gClMcastPeers = (ClIocAddrMapT*) clHeapCalloc(1, sizeof(*gClMcastPeers));
         CL_ASSERT(gClMcastPeers != NULL);
         gClMcastPeers->family = PF_INET;
         gClMcastPeers->_addr.sin_addr.sin_family = PF_INET;
@@ -577,7 +579,7 @@ static ClRcT udpMcastSetup(void)
     }
     else
     {
-        gClMcastPeers = clHeapCalloc(gClNumMcastPeers, sizeof(*gClMcastPeers));
+        gClMcastPeers = (ClIocAddrMapT*) clHeapCalloc(gClNumMcastPeers, sizeof(*gClMcastPeers));
         CL_ASSERT(gClMcastPeers !=  NULL);
         rc = clTransportMcastPeerListGet(gClMcastPeers, &gClNumMcastPeers);
         if(rc != CL_OK)
@@ -623,26 +625,20 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
 
     if (sd < 0) 
     {
-        clLogError(
-                   "UDP",
-                   "NOTIF",
-                   "open socket failed with error [%s]", strerror(errno));
+        clLogError( "UDP", "NOTIF", "open socket failed with error [%s]", strerror(errno));
         return -1;
     }
 
     rc = fcntl(sd, F_SETFD, FD_CLOEXEC);
 
-    if (rc == -1) 
+    if ( (ClInt32T) rc == -1) 
     {
         goto out_close;
     }
 
     if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char *) &reuse, sizeof(reuse)) < 0) 
     {
-        clLogError(
-                   "UDP",
-                   "NOTIF",
-                   "setsockopt SO_REUSEADDR failed with error [%s]", strerror(errno));
+        clLogError( "UDP", "NOTIF", "setsockopt SO_REUSEADDR failed with error [%s]", strerror(errno));
         goto out_close;
     }
 
@@ -654,10 +650,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
 
     if (bind(sd, (struct sockaddr*) &localSock, sizeof(localSock))) 
     {
-        clLogError(
-                   "UDP",
-                   "NOTIF",
-                   "setsockopt for SO_REUSEADDR failed with error [%s]", strerror(errno));
+        clLogError( "UDP", "NOTIF", "setsockopt for SO_REUSEADDR failed with error [%s]", strerror(errno));
         goto out_close;
     }
 
@@ -672,10 +665,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
         if (setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &group,
                        sizeof(group)) < 0) 
         {
-            clLogError(
-                       "UDP",
-                       "NOTIF",
-                       "setsockopt IP_ADD_MEMBERSHIP failed with error [%s]", strerror(errno));
+            clLogError( "UDP", "NOTIF", "setsockopt IP_ADD_MEMBERSHIP failed with error [%s]", strerror(errno));
             goto out_close;
         }
 
@@ -685,10 +675,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
         struct in_addr iaddr;
         iaddr.s_addr = INADDR_ANY;
         if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, &iaddr, sizeof(iaddr)) < 0) {
-            clLogError(
-                       "UDP",
-                       "NOTIF",
-                       "setsockopt IP_MULTICAST_IF failed with error [%s]", strerror(errno));
+            clLogError( "UDP", "NOTIF", "setsockopt IP_MULTICAST_IF failed with error [%s]", strerror(errno));
             goto out_close;
         }
     }
@@ -723,10 +710,7 @@ static ClRcT udpEventSubscribe(ClBoolT pollThread)
         retCode = clOsalTaskCreateDetached(pTaskName, CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, (void* (*)(void*)) &clUdpEventHandler, NULL);
         if (retCode != CL_OK)
         {
-            clLogError(
-                    "UDP",
-                    "NOTIF",
-                    "Error : Event Handle thread did not start. error code 0x%x",retCode);
+            clLogError( "UDP", "NOTIF", "Error : Event Handle thread did not start. error code 0x%x",retCode);
             goto out;
         }
     }
@@ -738,10 +722,11 @@ static ClRcT udpEventSubscribe(ClBoolT pollThread)
 ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotificationIdT notifyId) 
 {
     ClRcT rc = CL_OK;
-    ClIocNotificationT notification = { 0 };
+    ClIocNotificationT notification;
     ClUint32T i;
     static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
 
+    memset(&notification,0,sizeof(ClIocNotificationT));
     if( (rc = udpMcastSetup() ) != CL_OK)
         return rc;
 
@@ -760,7 +745,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
         }
     }
 
-    notification.id = htonl(notifyId);
+    notification.id = (ClIocNotificationIdT) htonl(notifyId);
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     notification.nodeVersion = htonl(nodeVersion);
     notification.nodeAddress.iocPhyAddress.portId = htonl(portId);

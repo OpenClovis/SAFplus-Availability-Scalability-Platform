@@ -70,7 +70,8 @@ clTestReadSvrConfig(ClCharT **pServerIp, ClUint32T *pPort)
     ClCharT *port = NULL;
 
     /* Default values */
-    *pPort = 2727; *pServerIp="localhost";
+    *pPort = 2727; 
+    *pServerIp=(ClCharT*) "localhost";
     
     if(NULL == (port = getenv("CL_AMF_TEST_SERVER_PORT")))
     {

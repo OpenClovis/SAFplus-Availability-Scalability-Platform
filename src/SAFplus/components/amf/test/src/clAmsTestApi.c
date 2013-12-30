@@ -45,10 +45,7 @@ typedef struct ClAmsTestCase
 } ClAmsTestCaseT;
 
 
-static ClAmsTestCasesT gClAmsTestCases = {
-    .amsTestCaseList = CL_LIST_HEAD_INITIALIZER(gClAmsTestCases.amsTestCaseList),
-   .numTestCases = 0,
-};
+static ClAmsTestCasesT gClAmsTestCases = { 0,{(ClOsalSharedMutexFlagsT) 0}, CL_LIST_HEAD_INITIALIZER(gClAmsTestCases.amsTestCaseList), 0};
 
 static void clAmsTestTime(struct timeval *pStart,
                           struct timeval *pEnd,
@@ -131,7 +128,7 @@ ClRcT clAmsTestRegister(const ClCharT *pName,
     {
         goto out;
     }
-    pTestCase = calloc(1,sizeof(*pTestCase));
+    pTestCase = (ClAmsTestCaseT*) calloc(1,sizeof(*pTestCase));
     CL_ASSERT(pTestCase != NULL);
     pTestCase->pAmsTest = pAmsTest;
     pTestCase->numTests = numTests;
@@ -356,6 +353,7 @@ ClRcT clAmsTestInitialize(void)
     ClRcT rc;
     static ClVersionT version = { 'B',1,1 };
     static ClAmsMgmtCallbacksT callbacks;
+    
 
 #if defined (CL_AMS_MGMT_HOOKS)
     callbacks.pEntityAdminResponse=clAmsMgmtEntityAdminResponse;
