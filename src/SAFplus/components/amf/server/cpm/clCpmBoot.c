@@ -1676,7 +1676,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
                 }
             }
 
-            if (gpClCpm->ckptHandle != -1)
+            if ( (ClInt32T) gpClCpm->ckptHandle != -1)
             {
                 rc = clCkptFinalize(gpClCpm->ckptHandle);
                 if (rc != CL_OK)

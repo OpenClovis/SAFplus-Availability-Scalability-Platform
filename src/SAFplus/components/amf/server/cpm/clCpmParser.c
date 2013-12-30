@@ -76,7 +76,7 @@
 typedef struct
 {
     ClUint32T level;
-    ClCharT *compName;
+    const ClCharT *compName;
 } ClCpmAspCompMappingT;
 
 typedef struct
@@ -260,7 +260,7 @@ static void cpmValgrindFilterInitialize(void)
     ClCharT *nextToken = NULL;
 
     if(cpmValgrindFilterList) return ;
-    cpmValgrindFilterList = clHeapCalloc(4, sizeof(*cpmValgrindFilterList));
+    cpmValgrindFilterList = (ClCharT**) clHeapCalloc(4, sizeof(*cpmValgrindFilterList));
     CL_ASSERT(cpmValgrindFilterList != NULL);
 
     for(; n < 4; ++n) cpmValgrindFilterList[n] = NULL;
@@ -272,12 +272,12 @@ static void cpmValgrindFilterInitialize(void)
     token = strtok_r(filterList, " ", &nextToken);
     while(token)
     {
-        ClCharT *comp = clHeapCalloc(1, strlen(token)+1);
+        ClCharT *comp = (ClCharT*) clHeapCalloc(1, strlen(token)+1);
         CL_ASSERT(comp != NULL);
         strcpy(comp, token);
         if(n && !(n & 3))
         {
-            cpmValgrindFilterList = clHeapRealloc(cpmValgrindFilterList, sizeof(*cpmValgrindFilterList) * (n + 4));
+            cpmValgrindFilterList = (ClCharT**) clHeapRealloc(cpmValgrindFilterList, sizeof(*cpmValgrindFilterList) * (n + 4));
             CL_ASSERT(cpmValgrindFilterList != NULL);
         }
         cpmValgrindFilterList[n++] = comp;
@@ -286,7 +286,7 @@ static void cpmValgrindFilterInitialize(void)
 
     if(n && !(n & 3))
     {
-        cpmValgrindFilterList = clHeapRealloc(cpmValgrindFilterList, sizeof(*cpmValgrindFilterList) * (n+1));
+        cpmValgrindFilterList = (ClCharT**) clHeapRealloc(cpmValgrindFilterList, sizeof(*cpmValgrindFilterList) * (n+1));
         CL_ASSERT(cpmValgrindFilterList != NULL);
     }
     cpmValgrindFilterList[n] = NULL;
@@ -331,7 +331,7 @@ void cpmModifyCompArgs(ClCpmCompConfigT *newConfig, ClUint32T *pArgIndex)
     ClCharT logFileCmd[CL_MAX_NAME_LENGTH] = {0};
     ClCharT instantiateCMD[CL_MAX_NAME_LENGTH] = {0}, *pInst;
     ClCharT *valgrindCmdStr = clParseEnvStr("ASP_VALGRIND_CMD");
-    ClCharT *delim = " ";
+    ClCharT *delim = (ClCharT*) " ";
     ClCharT *valCmd = NULL;
     ClUint32T argIndex = *pArgIndex;
     ClCharT *aspLogDir = getenv("ASP_LOGDIR");
@@ -356,7 +356,7 @@ void cpmModifyCompArgs(ClCpmCompConfigT *newConfig, ClUint32T *pArgIndex)
     valCmd = strtok(valgrindCmd, delim);
     while (NULL != valCmd && (argIndex < CPM_MAX_ARGS - 1))
     {
-        newConfig->argv[argIndex] = clHeapAllocate(strlen(valCmd) + 1);
+        newConfig->argv[argIndex] = (ClCharT*) clHeapAllocate(strlen(valCmd) + 1);
         if (!newConfig->argv[argIndex])
         {
             clLogError(CPM_LOG_AREA_CPM, CL_LOG_AREA_UNSPECIFIED,
@@ -685,8 +685,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                                       clParserAttr(nameValue,
                                                    CL_CPM_PARSER_ATTR_COMP_TYPE_NAMVAL_NAME),
                                       "name field in nameValue doesn't exist");
-                newType->compConfig.env[envIndex] =
-                clHeapAllocate(sizeof(ClCpmEnvVarT));
+                newType->compConfig.env[envIndex] = (ClCpmEnvVarT*) clHeapAllocate(sizeof(ClCpmEnvVarT));
                 
                 if (newType->compConfig.env[envIndex] == NULL)
                     CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
@@ -1755,11 +1754,11 @@ ClRcT cpmParseAspConfig(ClParserPtrT configFile,
         }
         if(!strcmp(nodeConfig.cpmType, "LOCAL"))
         {
-            cpmNodeClassType = "CL_AMS_NODE_CLASS_C"; /*payloads can be added dynamically*/
+            cpmNodeClassType = (ClCharT*) "CL_AMS_NODE_CLASS_C"; /*payloads can be added dynamically*/
         }
         else
         {
-            cpmNodeClassType = "CL_AMS_NODE_CLASS_B";
+            cpmNodeClassType = (ClCharT*) "CL_AMS_NODE_CLASS_B";
         }
         goto load_classtype;
     }
@@ -1927,7 +1926,7 @@ ClRcT cpmParseAspConfig(ClParserPtrT configFile,
                     /*
                      * Add component reference to the service unit 
                      */
-                    compRef = clHeapAllocate(sizeof(ClCpmComponentRefT));
+                    compRef = (ClCpmComponentRefT*) clHeapAllocate(sizeof(ClCpmComponentRefT));
                     if (compRef == NULL)
                         CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
                                        CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
@@ -2175,7 +2174,7 @@ ClBoolT cpmIsAspSULoaded(const ClCharT *su)
     {
         ClCpmAspSUMappingT *suMap = scSUCompToLevelMapping;
         ClUint32T sus = CL_CPM_SC_ASP_SUS;
-        ClInt32T i;
+        ClUint32T i;
         if(!su) return CL_FALSE;
         for(i = 0; i < sus; ++i)
         {
@@ -3050,10 +3049,10 @@ ClRcT cpmSlotClassAdd(SaNameT *type, SaNameT *identifier, ClUint32T slotNumber)
         goto out;
     }
 
-    slots = clHeapCalloc(numSlots, sizeof(*slots));
+    slots = (ClUint32T*) clHeapCalloc(numSlots, sizeof(*slots));
     CL_ASSERT(slots != NULL);
 
-    classType = clHeapCalloc(1, sizeof(*classType));
+    classType = (ClCpmNodeClassTypeT*) clHeapCalloc(1, sizeof(*classType));
     CL_ASSERT(classType != NULL);
     saNameCopy(&classType->name, type);
     saNameCopy(&classType->identifier, identifier);
@@ -3094,7 +3093,7 @@ ClRcT cpmSlotClassAdd(SaNameT *type, SaNameT *identifier, ClUint32T slotNumber)
     {
         if(!classType)
         {
-            classType = clHeapCalloc(1, sizeof(*classType));
+            classType = (ClCpmNodeClassTypeT*) clHeapCalloc(1, sizeof(*classType));
             CL_ASSERT(classType != NULL);
             saNameCopy(&classType->name, type);
             saNameCopy(&classType->identifier, identifier);

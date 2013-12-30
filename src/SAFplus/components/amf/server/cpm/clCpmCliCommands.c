@@ -1146,7 +1146,7 @@ ClRcT clCpmNodeNameGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
         rc = CL_CPM_RC(CL_ERR_UNSPECIFIED);
         goto out;
     }
-    *retStr = clHeapCalloc(1,nodeName.length+1);
+    *retStr = (ClCharT*) clHeapCalloc(1,nodeName.length+1);
     if(!*retStr)
     {
         rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
@@ -1163,7 +1163,7 @@ ClRcT clCpmHeartbeat(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
 
-    *retStr = clHeapCalloc(sizeof(**retStr), 51);
+    *retStr = (ClCharT*) clHeapCalloc(sizeof(**retStr), 51);
     if(!*retStr)
     {
         goto out;
@@ -1223,7 +1223,7 @@ ClRcT clCpmRestart(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
 
-    *retStr = clHeapAllocate(2*CL_MAX_NAME_LENGTH+1);
+    *retStr = (ClCharT*) clHeapAllocate(2*CL_MAX_NAME_LENGTH+1);
     if (!*retStr)
     {
         goto out;
@@ -1279,7 +1279,7 @@ ClRcT clCpmMiddlewareRestartCommand(ClUint32T argc, ClCharT **argv, ClCharT **re
     ClBoolT graceful = CL_TRUE;
     ClBoolT nodeReset = CL_FALSE;
 
-    *retStr = clHeapAllocate(2*CL_MAX_NAME_LENGTH+1);
+    *retStr = (ClCharT*) clHeapAllocate(2*CL_MAX_NAME_LENGTH+1);
     if (!*retStr)
     {
         goto out;
@@ -1332,7 +1332,7 @@ ClRcT clCpmUptimeGet(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     ClTimeT curTime = 0;
     ClTimeT days = 0, hrs = 0, mins = 0, secs = 0;
 
-    *retStr = clHeapAllocate(2*CL_MAX_NAME_LENGTH+1);
+    *retStr = (ClCharT*) clHeapAllocate(2*CL_MAX_NAME_LENGTH+1);
     if (!*retStr)
     {
         goto out;

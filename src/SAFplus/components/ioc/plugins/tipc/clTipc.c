@@ -174,7 +174,7 @@ ClUint32T clTipcSetType(ClUint32T portId, ClBoolT setFlag)
 static ClRcT tipcDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
 {
     ClRcT rc = CL_OK;
-    ClTipcCommPortPrivateT *xportPrivate = cookie;
+    ClTipcCommPortPrivateT *xportPrivate = (ClTipcCommPortPrivateT*) cookie;
     ClUint8T buffer[0xffff+1];
     struct msghdr msgHdr;
     struct sockaddr_tipc peerAddress;
@@ -237,7 +237,7 @@ static ClRcT __xportBind(ClIocPortT portId, ClBoolT listen)
         return CL_OK;
     }
         
-    pTipcCommPort = clHeapCalloc(1,sizeof(*pTipcCommPort));
+    pTipcCommPort = (ClTipcCommPortPrivateT*) clHeapCalloc(1,sizeof(*pTipcCommPort));
     CL_ASSERT(pTipcCommPort != NULL);
     
     pTipcCommPort->fd = socket(AF_TIPC, SOCK_RDM, 0);
