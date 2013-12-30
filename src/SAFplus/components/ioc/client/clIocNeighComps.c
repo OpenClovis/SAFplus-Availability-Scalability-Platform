@@ -39,6 +39,7 @@
 #include <clIocSetup.h>
 #include <clIocMaster.h>
 #include <clIocConfig.h>
+#include <clIocIpi.h>
 
 #define CL_IOC_NEIGH_COMPS_SEGMENT_NAME   "/CL_IOC_NEIGHBOR_COMPONENTS"
 

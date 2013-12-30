@@ -31,6 +31,7 @@
 #include <errno.h>
 #include <clNodeCache.h>
 #include <clCpmExtApi.h>
+#include <clIocIpi.h>
 
 #define CL_NODE_CACHE_SEGMENT "/CL_NODE_CACHE"
 

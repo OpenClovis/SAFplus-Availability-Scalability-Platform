@@ -317,8 +317,7 @@ clLogHandleInitHandleInitialize(ClHandleDatabaseHandleT  hClntHandleDB,
     return rc;
 }
 
-void
-clLogHandleCleanupCb(void  *pData)
+void clLogHandleCleanupCb(void  *pData)
 {
     ClLogInitHandleDataT *pInit = (ClLogInitHandleDataT *)pData;
 

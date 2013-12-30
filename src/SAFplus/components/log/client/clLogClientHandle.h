@@ -110,8 +110,8 @@ ClRcT
 clLogHandleInitHandleInitialize(ClHandleDatabaseHandleT  hClntHandleDB,
                                 ClLogHandleT             hLog,
                                 const ClLogCallbacksT    *pCallbacks);
-void
-clLogHandleCleanupCb(void  *pData);
+
+void clLogHandleCleanupCb(void  *pData);
 
 ClRcT
 clLogHandleStreamHandleCreate(ClHandleT         hLog,

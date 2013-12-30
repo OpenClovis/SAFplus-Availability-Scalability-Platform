@@ -91,8 +91,7 @@ ClRcT clMsgQueueFinalize(void);
 void  clMsgQueueEmpty(ClMsgQueueInfoT *pQInfo);
 void  clMsgQueueFree(ClMsgQueueInfoT *pQInfo);
 ClRcT clMsgQueueFreeByHandle(SaMsgQueueHandleT qHandle);
-ClRcT clMsgQueueStatusGet(SaMsgQueueHandleT qHandle,
-                       SaMsgQueueStatusT *pQueueStatus);
+ClRcT clMsgQueueStatusGet(SaMsgQueueHandleT qHandle, SaMsgQueueStatusT *pQueueStatus);
 ClRcT clMsgQueueRetentionTimeSet(SaMsgQueueHandleT qHandle, SaTimeT *pRetenTime);
 ClRcT clMsgMessageCancel(SaMsgQueueHandleT qHandle);
 ClRcT clMsgQueueAllocate(
@@ -111,6 +110,11 @@ ClRcT clMsgQEntryAdd(SaNameT *pName, SaMsgQueueHandleT queueHandle, ClMsgQueueRe
 void clMsgQEntryDel(SaNameT *pQName);
 ClRcT clMsgToDestQueueMove(ClIocNodeAddressT destNode, SaNameT *pQName);
 ClRcT clMsgToLocalQueueMove(ClIocPhysicalAddressT srcAddr, SaNameT * pQName, ClBoolT qDelete);
+
+ClRcT clMsgQueueStatusGet_4_0_0( SaNameT *pQName, SaMsgQueueStatusT *pQueueStatus);
+ClRcT clMsgQueueMoveMessages_4_0_0( SaNameT *pQName, SaMsgQueueOpenFlagsT openFlags, ClBoolT qDelete);
+ClRcT clMsgQueueInfoGet_4_0_0( SaNameT *pQName, SaMsgQueueCreationAttributesT *pQNewAttrs);
+
 
 #ifdef __cplusplus
 }

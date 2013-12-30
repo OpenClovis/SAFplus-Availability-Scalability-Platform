@@ -110,7 +110,6 @@
         key = __p + 1;                              \
 }while(0)
 
-extern ClRcT clDbalLibInitialize(void);
 
 /**============================================================**/
 /** All static routines. Only to be used with in this file     **/

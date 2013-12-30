@@ -71,6 +71,14 @@ clLogClntStdStreamClose(ClUint32T  nStream);
 ClRcT    
 clLogSeverityFilterGet(ClLogStreamHandleT    hStream,
                        ClLogSeverityFilterT  *pSeverity);
+ClRcT clLogClientFilterSetNotify_4_0_0(
+                           /* Suppressing coverity warning for pass by value with below comment */
+                           // coverity[pass_by_value]
+                           SaNameT            streamName,
+                           ClLogStreamScopeT  streamScope,
+                           SaNameT            nodeName,
+                           ClLogFilterT       filter);
+
     
 #ifdef __cplusplus
 }

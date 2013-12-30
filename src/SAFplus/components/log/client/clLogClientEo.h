@@ -60,6 +60,9 @@ clLogClntEoUninstall(ClLogClntEoDataT   **ppClntEoEntry);
 ClRcT
 clLogClntEoEntryGet(ClLogClntEoDataT  **ppClntEoEntry);
 
+/*FIXME: This declaration has to go, only this fn is required from handle*/
+extern void clLogHandleCleanupCb(void *pData);
+
 #ifdef __cplusplus
 }
 #endif
