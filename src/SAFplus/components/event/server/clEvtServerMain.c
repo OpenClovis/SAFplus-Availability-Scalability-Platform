@@ -1031,6 +1031,13 @@ ClRcT VDECL(clEvtInitializeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle, 
 	if(evtInitReq.isExternal==1)
 	{
 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "initial broadcast from external app");
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "INI", "Check Pointing global Initialize ...");
+		rc = clEvtCkptGlobalCheckPointUserInfo(&evtInitReq);
+		if (CL_OK != rc)
+		{
+		    clLogError(CL_EVENT_LOG_AREA_SRV, "INI", "Check Pointing Initialize Failed...");
+		    goto inDataAllocated;
+		}		
 	}
     rc = clEvtInitializeViaRequest(&evtInitReq, CL_EVT_NORMAL_REQUEST);
     if (CL_EVENT_ERR_ALREADY_INITIALIZED == rc)
@@ -1194,6 +1201,13 @@ ClRcT VDECL(clEvtChannelOpenLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
 	if(evtChannelOpenRequest.isExternal==1)
 	{
 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "openchannel broadcast from external app");
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "INI", "Check Pointing global Initialize ...");
+		rc = clEvtCkptGlobalCheckPointChannelOpen(&evtChannelOpenRequest);
+		if (CL_OK != rc)
+		{
+		    clLogError(CL_EVENT_LOG_AREA_SRV, "INI", "Check Pointing Initialize Failed...");
+		    goto inDataAllocated;
+		}
 	}
     rc = clEvtChannelOpenViaRequest(&evtChannelOpenRequest, CL_EVT_NORMAL_REQUEST);
     if (CL_EVENT_ERR_EXIST == rc)
@@ -1521,6 +1535,16 @@ ClRcT VDECL(clEvtEventSubscribeLocal)(ClEoDataT cData, ClBufferHandleT inMsgHand
          clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "ignore subscribe broadcast from external app");
          return CL_ERR_IGNORE_REQUEST;
     }
+	else if(evtSubsReq.externalAddress!=0)
+	{
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "INI", "Check Pointing global channelSubs ...");
+	    rc = clEvtCkptGlobalCheckPointChannelSub(&evtSubsReq);
+		if (CL_OK != rc)
+		{
+		    clLogError(CL_EVENT_LOG_AREA_SRV, "INI", "Check Pointing channelSubs Failed...");
+		    goto inDataAllocated;
+		}
+	}
     /*
      * Verify if the Version is Compatible 
      */
@@ -2060,6 +2084,7 @@ failure:
     return rc;
 }
 
+int external=0;
 ClRcT VDECL(clEvtEventPublishExternal)(ClEoDataT cData,
         ClBufferHandleT inMsgHandle,
         ClBufferHandleT outMsgHandle)
