@@ -26,7 +26,7 @@
 #include <LogClient.h>
 
 /*FIXME: This declaration has to go, only this fn is required from handle*/
-extern void clLogHandleCleanupCb(void *pData);
+/*extern void clLogHandleCleanupCb(void *pData);*/
 
 ClRcT
 clLogClntEoEntryInstall(ClEoExecutionObjT  *pEoObj,
@@ -155,8 +155,7 @@ clLogClntEoEntryCreate(ClLogClntEoDataT  **ppClntEoEntry)
         return rc;
     }
 
-    rc = clHandleDatabaseCreate(clLogHandleCleanupCb,
-                                &(*ppClntEoEntry)->hClntHandleDB);
+    rc = clHandleDatabaseCreate(clLogHandleCleanupCb, &(*ppClntEoEntry)->hClntHandleDB);
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(

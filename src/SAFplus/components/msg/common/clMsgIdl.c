@@ -40,6 +40,8 @@ ClIdlHandleObjT gIdlBcastObj;
 ClIdlHandleT gIdlUcastHandle;
 ClIdlHandleT gIdlBcastHandle;
 
+//extern ClBoolT clMsgQCkptExists(const SaNameT *pQName, ClMsgQueueCkptDataT *pQueueData);
+
 ClRcT clMsgCommIdlInitialize(void)
 {
     ClRcT rc;
@@ -168,7 +170,7 @@ error_out:
     return rc;
 }
 
-ClBoolT clMsgQCkptExists(const SaNameT *pQName, ClMsgQueueCkptDataT *pQueueData);
+
 ClRcT clMsgQueueUnlinkToServer(SaNameT *pQName)
 {
     ClRcT rc;

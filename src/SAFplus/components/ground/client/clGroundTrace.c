@@ -30,6 +30,10 @@
 #include <clCommon.h>
 #include <clCommonErrors.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* These files are only used to compile clEo.c in the main component.
    If a library is being used by a component and it fills out the
    ASP_LIBS part in Makefile properly, then this file will not get
@@ -50,4 +54,6 @@ ClRcT clTraceLibFinalize(void)
     assert(CL_FALSE);
     return CL_OK;
 }
-
+#ifdef __cplusplus
+}
+#endif

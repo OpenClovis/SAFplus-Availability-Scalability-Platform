@@ -47,6 +47,7 @@
 #include  "ckptEockptServerExtCliServerFuncPeerClient.h"
 #include "ckptEockptServerActivePeerClient.h"
 #include "ckptClntEockptClntckptClntClient.h"
+#include "ckptClntEockptClntckptClntServer.h"
 #include  "ckptClntEoServer.h"
 #include  "ckptClntEoClient.h"
 #include  "ckptEoClient.h"
@@ -5385,11 +5386,7 @@ void ckptEventCallback(ClEventSubscriptionIdT    subscriptionId,
     }
 }
 
-ClRcT
-VDECL_VER(clCkptSectionUpdationNotification, 4, 0, 0)(SaNameT          *pName,
-                                  ClCkptSectionIdT *pSecId,      
-                                  ClUint32T        dataSize,   
-                                  ClUint8T         *pData) 
+ClRcT clCkptSectionUpdationNotification_4_0_0(SaNameT *pName, ClCkptSectionIdT *pSecId, ClUint32T  dataSize, ClUint8T  *pData) 
 {
     ClRcT                        rc             = CL_OK;
     ClUint32T                    cksum          = 0;
@@ -5532,10 +5529,7 @@ VDECL_VER(clCkptSectionUpdationNotification, 4, 0, 0)(SaNameT          *pName,
     return CL_OK;
 }
 
-ClRcT
-VDECL_VER(clCkptWriteUpdationNotification, 4, 0, 0)(SaNameT                 *pName,
-                                ClUint32T               numSections,
-                                ClCkptIOVectorElementT  *pIoVector)
+ClRcT clCkptWriteUpdationNotification_4_0_0(SaNameT  *pName, ClUint32T  numSections, ClCkptIOVectorElementT_4_0_0  *pIoVector)
 {
     ClRcT                        rc             = CL_OK;
     ClUint32T                    cksum          = 0;

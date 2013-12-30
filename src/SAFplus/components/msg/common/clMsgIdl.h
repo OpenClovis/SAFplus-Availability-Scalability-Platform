@@ -94,6 +94,8 @@ ClRcT clMsgMessageGet_Idl(
         SaNameT *pQName,
         SaTimeT timeout);
 
+extern ClBoolT clMsgQCkptExists(const SaNameT *pQName, ClMsgQueueCkptDataT *pQueueData);
+
 #ifdef __cplusplus
 }
 #endif
