@@ -118,6 +118,7 @@ extern "C"
     {
         ClUint32T operation;    /* Init / Finalize */
         ClEvtUserIdT userId;    /* User ID */
+        ClUint8T isExternal;
 
     } ClEvtCkptUserInfoT;
 
@@ -150,7 +151,7 @@ extern "C"
         ClEvtUserIdT userId;    /* User Id */
         ClUint32T chanHandle;   /* Channel Handle */
         SaNameT chanName;       /* Channel Name */
-
+        ClUint8T isExternal;
     } ClEvtCkptECHInfoT;
 
     typedef struct clEvtCkptECHInfoWithLen
@@ -191,6 +192,7 @@ extern "C"
         ClIocPortT commPort;    /* Port */
         ClUint8T *packedRbe;
         ClUint32T packedRbeLen;
+        ClUint32T externalAddress;
     } ClEvtCkptSubsInfoT;
 
     typedef struct clEvtCkptSubsInfoWithLen
@@ -273,6 +275,20 @@ extern "C"
                                       *pECHInfoWithLen);
     extern ClRcT clEvtCkptSubsInfoRead(ClEvtCkptSubsInfoWithLenT
                                        *pSubsInfoWithLen);
+    /*
+     ** Local Functions for global checkpoint
+     */
+    extern ClRcT clEventGlobalCkptInitial();
+    extern ClRcT clEvtCkptGlobalCheckPointChannelOpen(ClEvtChannelOpenRequestT	*pEvtChannelOpenRequest);
+    extern ClRcT clEvtCkptGlobalCheckPointUserInfo(ClEvtInitRequestT *pEvtInitReq);
+    extern ClRcT clEvtCkptGlobalCheckPointChannelSub(ClEvtSubscribeEventRequestT *pEvtSubsReq);
+    extern ClRcT clLogUserInfoCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq);
+    extern ClRcT clLogChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq);
+    extern ClRcT clLogChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq);
+    extern ClRcT clEventGlobalCkptFinalize();
+    extern ClRcT clEventExternalRecoverState(ClBoolT switchover);
+    extern ClRcT clEventGmsInit(void);
+
 
 
 # ifdef __cplusplus

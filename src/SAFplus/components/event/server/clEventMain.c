@@ -333,6 +333,33 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
                       "Event: clEvtInitialize failed [0x%X]\n\r", rc);
         return rc;
     }
+    
+    sleep(1);
+    if (clCpmIsSC())
+    {
+    	clLogDebug(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,"Event: Init CKPT Global");
+        rc = clEventGlobalCkptInitial();
+        if (rc != CL_OK)
+        {
+            clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,
+                      "Event: CKPT Global Init failed [0x%X]\n\r", rc);
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_CRITICAL, NULL,
+                   CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "Checkpoint Library",
+                   rc);
+            CL_FUNC_EXIT();  
+            clEventGlobalCkptFinalize();
+            return rc;
+        }
+        clLogDebug(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,"Event: Init Gms");
+        rc = clEventGmsInit();
+        if( CL_OK != rc )
+        {            
+        	clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,"Event: Init Gms failed");
+            return rc;
+        }
+    }
+    
+    
             
     /* Block on AMF dispatch file descriptor for callbacks.
        When this function returns its time to quit. */
