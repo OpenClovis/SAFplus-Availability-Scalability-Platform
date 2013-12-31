@@ -50,8 +50,7 @@
 #include "clVersionApi.h"
 #include "clGmsRmdClient.h"
 #include "clGmsApiClient.h"
-
-#define   CB_QUEUE_FIN             'f'
+#include "clGmsApi.h"
 
 
 /******************************************************************************
@@ -92,13 +91,11 @@ static ClVersionDatabaseT version_database = {
  * STATIC FUNCTIONS
  *****************************************************************************/
 
-static void
-gms_handle_instance_destructor(void *notused)
+static void gms_handle_instance_destructor(void *notused)
 {
     /*Destroy function for HandleDatabaseCreate. Not implemented*/
 }
 
-ClRcT clGmsLibInitialize(void);
 
 static ClRcT check_lib_init(void)
 {

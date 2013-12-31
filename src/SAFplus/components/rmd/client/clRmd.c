@@ -66,9 +66,8 @@ ClUint32T clRmdPrivateDataKey;
 
 extern ClRcT clRmdPrivateDataSet(void *data);
 extern ClRcT clRmdPrivateDataGet(void **data);
-
-extern ClRcT clEoGetRemoteObjectAndBlock(ClUint16T remoteObj,
-                                         ClEoExecutionObjT **pRemoteEoObj);
+/* This function was moved into clRmdMain.h
+extern ClRcT clEoGetRemoteObjectAndBlock(ClUint16T remoteObj, ClEoExecutionObjT **pRemoteEoObj);*/
 extern ClRcT clEoRemoteObjectUnblock(ClEoExecutionObjT *remoteEoObj);
 static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr, 
                               ClVersionT *version,

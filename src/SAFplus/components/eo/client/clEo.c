@@ -56,16 +56,19 @@
 #include <clCpmIpi.h>
 #include <clCmApi.h>
 #include <clTransport.h>
-
+#include "clEo.h"
+#if 0
 #define  CL_LOG_AREA "EO"
 #define  CL_LOG_CTXT_INI "INI"
 #define  CL_LOG_CTXT_FIN "FIN"
-
+#endif
 
 extern void clEoCleanup(ClEoExecutionObjT* pThis);
 extern void clEoReceiverUnblock(ClEoExecutionObjT *pThis);
 extern ClRcT clEoPriorityQueuesFinalize(ClBoolT force);
 extern void clLoadEnvVars();
+
+extern void eoProtoInit(void);
 
 /*
  * Local and master addresses. 
@@ -150,6 +153,7 @@ ClUint8T eoClientLibs[] =
     CL_FALSE,      /* Lib: PM */
 };
 
+#if 0
 /*
  * List of Library Initialize Functions 
  */
@@ -210,7 +214,7 @@ extern ClRcT clGmsLibFinalize(void);
 
 extern ClRcT clPMLibInitialize(void);
 extern ClRcT clPMLibFinalize(void);
-
+#endif
 #if 0
 extern ClRcT clCliLibInitialize(void);
 extern ClRcT clCliLibFinalize(void);

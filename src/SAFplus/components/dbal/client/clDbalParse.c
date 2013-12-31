@@ -33,6 +33,10 @@
 #include <clDebugApi.h>
 #include <clLogUtilApi.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 ClRcT dbalGetLibName(ClCharT  *pLibName)
 {
     ClParserPtrT   parent     = NULL ;   /*parent*/
@@ -68,3 +72,7 @@ ClRcT dbalGetLibName(ClCharT  *pLibName)
     if (parent != NULL) clParserFree(parent);
     return rc;
 }
+
+#ifdef __cplusplus
+ }
+#endif

@@ -67,6 +67,7 @@
 #include <clCpmServerFuncTable.h>
 #include <clAmsMgmtServerFuncTable.h>
 #include <clAmsEntityTriggerFuncTable.h>
+#include <clCpmInternal.h>
 #undef __CLIENT__
 
 #define __EO_CLIENT_TABLE_INDEX(port, funId) ( ((port) << CL_EO_CLIENT_BIT_SHIFT) | (funId) )
@@ -214,8 +215,8 @@ extern ClIocNodeAddressT gIocLocalBladeAddress;
 /*
  * These functions have been moved into clCpmInternal.h 
  */
-extern ClRcT clCpmExecutionObjectRegister(CL_IN ClEoExecutionObjT *pThis);
-extern ClRcT clCpmExecutionObjectStateUpdate(CL_IN ClEoExecutionObjT *pEOptr);
+//extern ClRcT clCpmExecutionObjectRegister(CL_IN ClEoExecutionObjT *pThis);
+//extern ClRcT clCpmExecutionObjectStateUpdate(CL_IN ClEoExecutionObjT *pEOptr);
 
 /*
  * XDR header files 
@@ -296,8 +297,7 @@ static ClRcT clEoStart(ClEoExecutionObjT *pThis);
  * Only RMD will use it 
  */
 ClRcT clEoRemoteObjectUnblock(ClEoExecutionObjT *remoteEoObj);
-ClRcT clEoGetRemoteObjectAndBlock(ClUint32T remoteObj,
-        ClEoExecutionObjT **pRemoteEoObj);
+ClRcT clEoGetRemoteObjectAndBlock(ClUint32T remoteObj, ClEoExecutionObjT **pRemoteEoObj);
 
 static ClRcT clEoDropPkt(ClEoExecutionObjT *pThis,
         ClBufferHandleT eoRecvMsg, ClUint8T priority,
