@@ -1764,7 +1764,11 @@ clLogMsgWriteConsole(ClHandleT       streamHdl,
                      ClUint32T       lineNum,
                      const ClCharT   *pFmtStr,
                      ...) CL_PRINTF_FORMAT(8, 9);
-
+ClUint32T clLogFormatRecordHeader(ClCharT *msgHeader, ClUint32T maxHeaderLen, ClCharT *msg, ClBoolT consoleFlag, ClUint32T  msgIdCnt,
+                                  ClLogSeverityT  severity, const ClCharT *pFileName, ClUint32T lineNum, const ClCharT *pArea, const ClCharT *pContext);
+ClUint32T clLogFormatRecord(ClCharT *msgHeader, ClUint32T maxHeaderLen, ClCharT *msg, ClUint32T maxMsgLen, ClBoolT consoleFlag, ClUint32T  msgIdCnt,
+                            ClLogSeverityT  severity, const ClCharT *pFileName, ClUint32T lineNum,const ClCharT *pArea, const ClCharT *pContext,
+                            const ClCharT *pFmtStr, ...);
 ClRcT clLogSeverityFilterToValueGet(ClLogSeverityFilterT filter, ClLogSeverityT* pSeverity);
 ClRcT clLogSeverityValueToFilterGet(ClLogSeverityT severity, ClLogSeverityFilterT* pFilter);
 

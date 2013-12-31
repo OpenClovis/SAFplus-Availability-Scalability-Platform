@@ -889,6 +889,66 @@ void clLogDebugFilterFinalize(void)
     gClRuleLockValid = CL_FALSE;
 }
 
+ClUint32T clLogFormatRecordHeader(ClCharT *msgHeader, ClUint32T maxHeaderLen, ClCharT *msg, ClBoolT consoleFlag, ClUint32T  msgIdCnt,
+                                  ClLogSeverityT  severity, const ClCharT *pFileName, ClUint32T lineNum, const ClCharT *pArea, const ClCharT *pContext )
+{
+    ClCharT      timeStr[40]  = {0};
+    ClNameT      nodeName     = {0};
+    ClUint32T    formatStrLen = 0;
+    ClCharT      *pSevName    = NULL;
+
+    if (consoleFlag)
+    {
+        pSevName = clLogSeverityStrGet(severity);
+    }
+    clLogTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
+    clCpmLocalNodeNameGet(&nodeName);
+    memset(msgHeader, 0, maxHeaderLen);
+
+    if(gClLogCodeLocationEnable)
+    {
+        if (consoleFlag)
+        {
+            formatStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRNT_FMT_STR_CONSOLE,
+                                timeStr, pFileName, lineNum, nodeName.length, nodeName.value, (int)getpid(),
+                                CL_EO_NAME, pArea, pContext, msgIdCnt, pSevName);
+        }
+        snprintf(msgHeader, maxHeaderLen-1, CL_LOG_PRNT_FMT_STR,
+                timeStr, pFileName, lineNum, nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, pArea, pContext);
+    }
+    else
+    {
+        if (consoleFlag)
+        {
+            formatStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1,
+                                CL_LOG_PRNT_FMT_STR_WO_FILE_CONSOLE, timeStr,
+                                nodeName.length, nodeName.value, (int)getpid(),
+                                CL_EO_NAME, pArea, pContext,
+                                msgIdCnt, pSevName);
+        }
+        snprintf(msgHeader, maxHeaderLen-1, CL_LOG_PRNT_FMT_STR_WO_FILE, timeStr,
+                nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, pArea, pContext);
+    }
+    return formatStrLen;
+}
+
+ClUint32T clLogFormatRecord(ClCharT *msgHeader, ClUint32T maxHeaderLen, ClCharT *msg, ClUint32T maxMsgLen, ClBoolT consoleFlag,
+                            ClUint32T  msgIdCnt, ClLogSeverityT  severity, const ClCharT *pFileName, ClUint32T lineNum,const ClCharT *pArea,
+                            const ClCharT *pContext, const ClCharT *pFmtStr, ...)
+{
+    va_list args;
+    ClUint32T    formatHdrLen = 0;
+
+    /* Format Message Header */
+    formatHdrLen = clLogFormatRecordHeader(msgHeader, maxHeaderLen, msg, consoleFlag, msgIdCnt, severity,  pFileName, lineNum, pArea, pContext );
+   
+    /* Format Message */ 
+    va_start(args, pFmtStr);
+    vsnprintf((msg + formatHdrLen), (maxMsgLen - formatHdrLen), pFmtStr, args);
+    va_end(args);
+    return formatHdrLen;
+}
+
 static ClRcT
 logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
                      ClLogSeverityT  severity,
@@ -907,7 +967,6 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
     ClCharT           msg[CL_LOG_MAX_MSG_LEN] = {0};
     ClCharT           msgHeader[CL_MAX_NAME_LENGTH];
     ClUint32T         formatStrLen        = 0;
-    ClCharT           *pSevName           = NULL;
     ClCharT           timeStr[40]          = {0};
     ClBoolT           match = CL_FALSE;
     ClBoolT           filterMatch = CL_FALSE;
@@ -930,7 +989,6 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
         clLogEnvironmentVariablesGet();
         clLogParse(CL_LOG_RULES_FILE, NULL, NULL);
     }
-    pSevName = clLogSeverityStrGet(severity);
     
     if( clLogSeveritySet == CL_FALSE )
     {
@@ -948,29 +1006,7 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
 #if 0
     if (!match) return CL_OK; /* Severity should squelch logs at the source */
 #endif
-    
-    if(gClLogCodeLocationEnable)        
-    {
-        formatStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRNT_FMT_STR_CONSOLE, 
-                                timeStr, pFileName, lineNum, nodeName.length, nodeName.value, (int)getpid(),
-                                CL_EO_NAME, pArea, pContext, msgIdCnt, pSevName);
-        snprintf(msgHeader, sizeof(msgHeader), CL_LOG_PRNT_FMT_STR,
-                 timeStr, pFileName, lineNum, nodeName.length, nodeName.value, (int)getpid(),
-                 CL_EO_NAME, pArea, pContext);
-        
-    }
-    else
-    {
-        formatStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1,
-                                CL_LOG_PRNT_FMT_STR_WO_FILE_CONSOLE, timeStr,  
-                                nodeName.length, nodeName.value, (int)getpid(),
-                                CL_EO_NAME, pArea, pContext,
-                                msgIdCnt, pSevName);
-        snprintf(msgHeader, sizeof(msgHeader), CL_LOG_PRNT_FMT_STR_WO_FILE, timeStr,
-                 nodeName.length, nodeName.value, (int)getpid(),
-                 CL_EO_NAME, pArea, pContext);
-    }
-
+    formatStrLen = clLogFormatRecordHeader(msgHeader, sizeof(msgHeader), msg, CL_TRUE, msgIdCnt, severity, pFileName, lineNum, pArea, pContext);
     /*
      * Dump to console first to be emitted into nodename log file
      */

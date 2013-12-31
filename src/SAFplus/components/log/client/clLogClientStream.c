@@ -540,30 +540,14 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
         CL_LOG_DEBUG_ERROR(("clOsalMutexLock(): rc[0x %x]", rc));
         return rc;
     }
-    if ((CL_LOG_STREAM_HEADER_STRUCT_ID != pStreamHeader->struct_id) || CL_LOG_STREAM_HEADER_UPDATE_COMPLETE != pStreamHeader->update_status)
+    if ((CL_LOG_STREAM_HEADER_STRUCT_ID != pStreamHeader->struct_id) || (CL_LOG_STREAM_HEADER_UPDATE_COMPLETE != pStreamHeader->update_status))
     { /* Stream Header is corruted so reset Stream Header Parameters */
         ClUint8T   alertMsg[100] = {0}; 
-        ClCharT    timeStr[40]   = {0};
-        ClNameT    nodeName     = {0};
         ClCharT    msgHeader[CL_MAX_NAME_LENGTH];
           
         clLogStreamHeaderReset(pStreamHeader); 
-
-        pStreamHeader->numDroppedRecords = 0; 
-        clLogTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
-        clCpmLocalNodeNameGet(&nodeName);
-        memset(msgHeader, 0, sizeof(msgHeader));
-        if(gClLogCodeLocationEnable)
-        {
-            snprintf(msgHeader, sizeof(msgHeader)-1, CL_LOG_PRNT_FMT_STR,
-               timeStr, __FILE__, __LINE__, nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, "LOG", "RWR");
-        }
-        else
-        {
-            snprintf(msgHeader, sizeof(msgHeader)-1, CL_LOG_PRNT_FMT_STR_WO_FILE, timeStr,
-               nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, "LOG", "RWR");
-        }
-        snprintf((char *)alertMsg, sizeof(alertMsg), "Successfully Reset Stream Header Parameters for StreamID [%u]", pStreamHeader->streamId_sec);
+        clLogFormatRecord(msgHeader, sizeof(msgHeader), (char *)alertMsg, sizeof(alertMsg), CL_FALSE, 0, severity, __FILE__, __LINE__,
+               "LOG", "RWR", "Successfully Reset Stream Header Parameters for StreamID [%u]", pStreamHeader->streamId_sec);
         ClLogClntStreamWritRecord(pStreamHeader, pStreamRecords, CL_LOG_SEV_ALERT, serviceId, msgId,
                                   pClntEoEntry->clientId, msgHeader, (ClUint8T *)"%s", alertMsg);
     }
@@ -591,25 +575,11 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
     if (nDroppedRecords)
     { /* Some Records got dropped, log this event */
         ClUint8T   alertMsg[100] = {0}; 
-        ClCharT    timeStr[40]   = {0};
-        ClNameT    nodeName     = {0};
         ClCharT    msgHeader[CL_MAX_NAME_LENGTH];
           
         pStreamHeader->numDroppedRecords = 0; 
-        clLogTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
-        clCpmLocalNodeNameGet(&nodeName);
-        memset(msgHeader, 0, sizeof(msgHeader));
-        if(gClLogCodeLocationEnable)
-        {
-            snprintf(msgHeader, sizeof(msgHeader)-1, CL_LOG_PRNT_FMT_STR,
-               timeStr, __FILE__, __LINE__, nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, "LOG", "RWR");
-        }
-        else
-        {
-            snprintf(msgHeader, sizeof(msgHeader)-1, CL_LOG_PRNT_FMT_STR_WO_FILE, timeStr,
-               nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, "LOG", "RWR");
-        }
-        snprintf((char *)alertMsg, sizeof(alertMsg), "Log buffer full... %d Records Dropped", nDroppedRecords);
+        clLogFormatRecord(msgHeader, sizeof(msgHeader), (char *)alertMsg, sizeof(alertMsg), CL_FALSE, 0, severity, __FILE__, __LINE__,
+               "LOG", "RWR", "Log buffer full... %d Records Dropped", nDroppedRecords);
         ClLogClntStreamWritRecord(pStreamHeader, pStreamRecords, CL_LOG_SEV_ALERT, serviceId, msgId,
                                   pClntEoEntry->clientId, msgHeader, (ClUint8T *)"%s", alertMsg);
     }

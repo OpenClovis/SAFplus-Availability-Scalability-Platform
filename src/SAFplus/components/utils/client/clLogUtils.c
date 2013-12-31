@@ -178,7 +178,6 @@ clLogFlushRecords(void)
     readIdx += numFlushed;
     readIdx %= CL_LOG_MAX_NUM_MSGS;
 }
-
 static ClRcT
 logVWriteDeferred(ClHandleT       handle,
                   ClLogSeverityT  severity,
@@ -262,30 +261,18 @@ logVWriteDeferred(ClHandleT       handle,
        if(CL_TRUE == logRecordDrop)
        { 
           ClUint16T    dropRecordIdx = 0;
-          ClCharT      timeStr[40]   = {0};
-          ClNameT       nodeName     = {0};
 
           dropRecordIdx = (writeIdx != 0)? (writeIdx-1) :(CL_LOG_MAX_NUM_MSGS - 1);
 
-          clLogTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
-          clCpmLocalNodeNameGet(&nodeName);
           gLogMsgArray[dropRecordIdx].handle    = handle;
           gLogMsgArray[dropRecordIdx].severity  = CL_LOG_SEV_ALERT;
           gLogMsgArray[dropRecordIdx].serviceId = serviceId;
           gLogMsgArray[dropRecordIdx].msgId     = msgId;
           gLogMsgArray[dropRecordIdx].msgHeader[0] = 0;
-          memset(gLogMsgArray[dropRecordIdx].msgHeader, 0, sizeof(gLogMsgArray[dropRecordIdx].msgHeader));
-          if(gClLogCodeLocationEnable)
-          {
-              snprintf(gLogMsgArray[dropRecordIdx].msgHeader, sizeof(gLogMsgArray[dropRecordIdx].msgHeader)-1, CL_LOG_PRNT_FMT_STR,
-                 timeStr, __FILE__, __LINE__, nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, "LOG", "RWR");
-          }
-          else
-          {
-              snprintf(gLogMsgArray[dropRecordIdx].msgHeader, sizeof(gLogMsgArray[dropRecordIdx].msgHeader)-1, CL_LOG_PRNT_FMT_STR_WO_FILE, timeStr,
-                 nodeName.length, nodeName.value, (int)getpid(), CL_EO_NAME, "LOG", "RWR");
-          }
-          snprintf(gLogMsgArray[dropRecordIdx].msg, CL_LOG_MAX_MSG_LEN, "Log buffer full... Some Records Dropped");
+
+          clLogFormatRecord(gLogMsgArray[dropRecordIdx].msgHeader, sizeof(gLogMsgArray[dropRecordIdx].msgHeader), gLogMsgArray[dropRecordIdx].msg,
+                 sizeof(gLogMsgArray[dropRecordIdx].msg), CL_FALSE, 0, CL_LOG_SEV_ALERT, __FILE__, __LINE__, "LOG", "RWR",
+                 "Log buffer full... Some Records Dropped");
 
           logRecordDrop = CL_FALSE;
        }
