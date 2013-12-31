@@ -5328,10 +5328,8 @@ clAmsPeSUFaultCallback_Step1(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n", su->config.entity.name.value) );
 
-    clLogInfo(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU,
-              "Fault on SU [%s] : Recovery [%s] :Step 2 Cleaning up",
-              su->config.entity.name.value,
-              CL_AMS_STRING_RECOVERY(su->status.recovery));
+    clLogInfo(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU, "Fault on SU [%s] : Recovery [%s] :Step 1 Cleaning up",
+                    su->config.entity.name.value, CL_AMS_STRING_RECOVERY(su->status.recovery));
 
     AMS_CALL ( clAmsPeSUCleanup(su) );
 

@@ -1326,9 +1326,9 @@ void ckptPeerDown(ClIocNodeAddressT   peerAddr, ClUint32T flag,
     }
     clLogMultiline(CL_LOG_SEV_DEBUG, CL_CKPT_AREA_PEER, CL_CKPT_CTX_PEER_DOWN, 
                    "Recieved peer down notification\n"
-                   "PeerAddr :[%d]\n"
-                   "flag     :[%d]\n"
-                   "portId   :[%d]", peerAddr, flag, portId);
+                   "PeerAddr :[0x%x]\n"
+                   "flag     :[0x%x]\n"
+                   "portId   :[0x%x]", peerAddr, flag, portId);
     if(gCkptSvr->masterInfo.masterAddr == gCkptSvr->localAddr || 
        gCkptSvr->masterInfo.deputyAddr == gCkptSvr->localAddr || 
        gCkptSvr->masterInfo.prevMasterAddr == gCkptSvr->localAddr ||

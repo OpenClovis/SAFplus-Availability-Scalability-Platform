@@ -5026,11 +5026,8 @@ ClRcT clEventCpmCleanup(ClCpmEventPayLoadT *pEvtCpmCleanupInfo)
     }
 
 // success:
-    clLogInfo("EVT", "CLP", 
-              "Cleaned up {node[%.*s]:eoIocPort[%#X]} since dead",
-              pEvtCpmCleanupInfo->nodeName.length, 
-              pEvtCpmCleanupInfo->nodeName.value, 
-              pEvtCpmCleanupInfo->eoIocPort);
+    clLogInfo("EVT", "CLP", "Cleaned up {node[%.*s]:eoIocPort[%#x]} since dead", pEvtCpmCleanupInfo->nodeName.length,
+                    pEvtCpmCleanupInfo->nodeName.value, pEvtCpmCleanupInfo->eoIocPort);
     clBufferDelete(&outMsgHandle);
 
     CL_FUNC_EXIT();
