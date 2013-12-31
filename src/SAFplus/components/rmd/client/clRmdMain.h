@@ -275,6 +275,8 @@ extern "C"
     ClRcT clRmdMarshallRmdHdr(ClRmdHdrT *pRmdHdr, ClUint8T *buffer, ClUint32T *bufferLen);
     ClRcT clRmdUnmarshallRmdHdr(ClBufferHandleT msg, ClRmdHdrT *pRmdHdr, ClUint32T *hdrLen);
 
+    extern ClRcT clEoGetRemoteObjectAndBlock(ClUint16T remoteObj, ClEoExecutionObjT **pRemoteEoObj);
+
 # ifdef __cplusplus
 }
 # endif

@@ -220,9 +220,7 @@ void    ckptSvrHdlDeleteCallback(ClCntKeyHandleT userKey,
     rc = clHandleCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
     if( (CL_OK != rc) || (NULL == pCkpt) )
     {
-        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_DEL, 
-                   "Failed to checkout handle [%#llX] while deleting rc [0x %x]",
-                   ckptHdl, rc);
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_DEL, "Failed to checkout handle [%#llX] while deleting rc [0x %x]", ckptHdl, rc);
         return;
     }
     ckptMutex = pCkpt->ckptMutex;
@@ -242,7 +240,7 @@ void    ckptSvrHdlDeleteCallback(ClCntKeyHandleT userKey,
      */
     if(numMutex > 1)
     {
-        for(i = 0; i < numMutex; ++i)
+        for(i = 0;(ClUint32T)  i < numMutex; ++i)
             if(secMutex[i] != CL_HANDLE_INVALID_VALUE)
                 clOsalMutexLock(secMutex[i]);
     }
