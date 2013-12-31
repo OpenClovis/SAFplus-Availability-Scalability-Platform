@@ -11496,7 +11496,7 @@ clAmsPeCompFaultReport(
      * such cases.
      */
 
-    if ( *escalation == CL_FALSE && *recovery <= CL_AMS_RECOVERY_NO_RECOMMENDATION )
+    if ( *escalation == CL_FALSE && *recovery < CL_AMS_RECOVERY_NO_RECOMMENDATION )
     {
         if ( clAmsEntityTimerIsRunning(
                                        (ClAmsEntityT *) comp,
@@ -14107,7 +14107,7 @@ clAmsPeCompCleanupCallback(
     comp->status.instantiateCount = 0;
     comp->status.instantiateDelayCount = 0;
 
-    if ( su->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED )
+    if ( su->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED && !su->status.numInstantiatedComp)
     {
         AMS_CALL ( clAmsPeSUCleanupCallback(su, CL_OK) );
     }
