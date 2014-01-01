@@ -608,7 +608,7 @@ ClRcT cpmPostCallback(ClCpmCallbackTypeT cbType,
     ClCpmCallbackQueueDataT *queueData = NULL;
     ClRcT rc = CL_OK;
     char chr = 'c';
-    //ClInt32T count = 0;
+    ClInt32T count = 0;
         
     queueData = clHeapAllocate(sizeof(ClCpmCallbackQueueDataT));
     CL_ASSERT(queueData != NULL);
@@ -625,7 +625,15 @@ ClRcT cpmPostCallback(ClCpmCallbackTypeT cbType,
         goto failure;
     }
     if(cbType != CL_CPM_FINALIZE)
-        /* count = */ write(cpmInstance->writeFd, (void *) &chr, 1);
+    {
+        count = write(cpmInstance->writeFd, (void *) &chr, 1);
+        if (count != 1)
+        {
+            clLogError("AMF","CB", "cannot kick AMF file descriptor.  Errno [%d]",errno);            
+        }
+        
+    }
+    
     clOsalMutexUnlock(cpmInstance->cbMutex);
     
     return rc;
