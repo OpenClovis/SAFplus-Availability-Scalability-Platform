@@ -45,6 +45,7 @@
 #include <clXdrApi.h>
 // added for using job queue for call backs
 #include "clJobQueue.h"
+#include "clGmsClientEoFunc.h"
 
 /******************************************************************************
  * Common RMD Call Wrapper

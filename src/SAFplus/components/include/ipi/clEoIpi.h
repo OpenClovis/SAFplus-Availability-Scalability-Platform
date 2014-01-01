@@ -39,6 +39,7 @@ extern "C" {
 
 #include <clEoApi.h>
 #include <clBufferApi.h>
+#include <clLogApi.h>
 #include <clIocApiExt.h>
 
 /* Default service RMD FN#*/
@@ -400,7 +401,7 @@ extern ClRcT clASPInitialize(void);
 
 extern ClRcT clASPFinalize(void);
     
-extern ClRcT clEoLibLog(ClUint32T libId,ClUint32T severity, const ClCharT *msg, ...);
+extern ClRcT clEoLibLog(ClUint32T libId,ClLogSeverityT severity, const ClCharT *msg, ...);
 
 extern void clEoNodeRepresentativeDeclare(const ClCharT *pNodeName);
 
