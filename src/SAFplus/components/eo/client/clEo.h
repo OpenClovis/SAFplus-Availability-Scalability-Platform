@@ -70,9 +70,10 @@ extern ClRcT clGmsLibFinalize(void);
 extern ClRcT clPMLibInitialize(void);
 extern ClRcT clPMLibFinalize(void);
 
+extern ClRcT clEoPriorityQueuesFinalize(ClBoolT force);
+
 #ifdef __cplusplus
 }
-
 #endif
 
 

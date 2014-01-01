@@ -171,6 +171,8 @@ extern "C" {
 
     extern ClRcT clEoProcessIocRecvPortNotification(ClEoExecutionObjT* pThis, ClBufferHandleT eoRecvMsg, ClUint8T priority, ClUint8T protoType, ClUint32T length, ClIocPhysicalAddressT srcAddr);
 
+    ClRcT clEoLibLog (ClUint32T compId,ClLogSeverityT severity, const ClCharT *msg, ...);
+
 #ifdef __cplusplus
 }
 
