@@ -450,7 +450,8 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
         CPM_CKPT_MAX_SECTION_SIZE,
         CPM_CKPT_MAX_SECTION_ID_SIZE
     };
-
+    ClCkptCheckpointCreationAttributesT* pCkptCreationAttributes = &ckptAttributes;
+    
     if(gpClCpm->ckptOpenHandle != CL_HANDLE_INVALID_VALUE)
     {
         clLogWarning("CKP", "INI", "Standby checkpoint already initialized. Skipping initialization");
@@ -465,7 +466,7 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
         rc = clCkptInitialize(&handle, &ckptCallbacks, &cpmCkptVersion);
         tries++;
         clLogNotice("CKP", "INI", "Try [%d] of [3] to initialize checkpoint service", tries);
-    } while( rc != CL_OK && tries < 3 && clOsalTaskDelay(delay) == CL_OK);
+    } while( (rc != CL_OK) && (tries < 3) && (clOsalTaskDelay(delay) == CL_OK));
     
     if(rc != CL_OK)
     {
@@ -480,16 +481,17 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
     tries = 0;
     do
     {   
-        rc = clCkptCheckpointOpen(gpClCpm->ckptHandle,
-                                    &gpClCpm->ckptCpmLName,
-                                    &ckptAttributes,
-                                    flags,
-                                    time,
-                                    &handle);
+        rc = clCkptCheckpointOpen(gpClCpm->ckptHandle,&gpClCpm->ckptCpmLName,pCkptCreationAttributes,flags,time,&handle);
 	    tries++;
         clLogNotice("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service, result [%x]", tries, rc);
         /* If the open gets an already exists error, then turn off the create flag */
-        if (CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc)) flags = flags & (~CL_CKPT_CHECKPOINT_CREATE);        
+        if (CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc))
+        {
+            clLogNotice("CKP", "OPEN", "Checkpoint already exists, no need to create it");
+            flags = (flags & (~CL_CKPT_CHECKPOINT_CREATE)) | CL_CKPT_CHECKPOINT_WRITE;
+            pCkptCreationAttributes = NULL;
+        }
+        
      } while( rc != CL_OK && tries < 3 && clOsalTaskDelay(delay) == CL_OK);
 
      if(rc != CL_OK)

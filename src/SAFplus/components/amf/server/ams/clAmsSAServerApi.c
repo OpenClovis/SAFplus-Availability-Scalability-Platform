@@ -1555,9 +1555,7 @@ exitfn:
  *
  */
 
-ClRcT 
-_clAmsSANodeJoin(
-        CL_IN  ClNameT  *nodeName )
+ClRcT _clAmsSANodeJoin(CL_IN  ClNameT  *nodeName )
 {
 
     ClRcT  rc = CL_OK;
@@ -1571,34 +1569,32 @@ _clAmsSANodeJoin(
     nodeRef.entity.type = CL_AMS_ENTITY_TYPE_NODE;
     memcpy ( &nodeRef.entity.name, nodeName, sizeof (ClNameT));
    
-    AMS_CALL ( clOsalMutexLock(gAms.mutex));
+    clOsalMutexLock(gAms.mutex);
 
     AMS_CHECK_SERVICE_STATE_AND_UNLOCK_MUTEX(gAms.serviceState, gAms.mutex);
-
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX (
-            clAmsEntityDbFindEntity(
-                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],
-                &nodeRef),
-            gAms.mutex );
-
+    
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_NODE],&nodeRef);
+    if ( rc != CL_OK )                        
+    {
+        clLogError("AMS", "DB", "Cannot find node entity [%s].  Will not let this node join the cluster.",nodeName->value);
+        goto unlock;
+    }
+    
     node = (ClAmsNodeT *)nodeRef.ptr;
 
-    AMS_CHECKPTR_AND_UNLOCK ( !node, gAms.mutex );
+    CL_ASSERT(node);
 
     clAmsEntityOpsClearNode(&node->config.entity, &node->status.entity);
+    clAmsPeNodeJoinCluster(node);
+    clAmsCkptWrite(&gAms,CL_AMS_CKPT_WRITE_DB);
+    rc = CL_OK;
 
-    AMS_CHECK_RC_ERROR_AND_UNLOCK_MUTEX( 
-            clAmsPeNodeJoinCluster(node), 
-            gAms.mutex );
-
-    AMS_CALL_CKPT_WRITE (clAmsCkptWrite(&gAms,CL_AMS_CKPT_WRITE_DB));
-
-    AMS_CALL ( clOsalMutexUnlock(gAms.mutex));
+unlock:
+    clOsalMutexUnlock(gAms.mutex);
 
 exitfn:
 
     return CL_AMS_RC (rc);
-
 }
 
 /*
@@ -1757,6 +1753,11 @@ _clAmsSACkptServerReady(
     for(int retry=0;retry<30;retry++)
     {
         rc = clAmsCkptInitialize(&gAms,ckptInitHandle,mode);
+        if (CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_HANDLE)
+        {
+            /* invalid master handle so there is no point in retrying.  But why would this occur? */
+            break;
+        }        
         if (rc == CL_OK) break;
         clLogInfo("AMS", "CKP", "AMS checkpoint initialization error [0x%x]...retrying in %d seconds",rc,retry/2+1);
         sleep(retry/2+1);      

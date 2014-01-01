@@ -147,9 +147,7 @@ static ClRcT cpmTimerCallback(void *arg)
                 clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
                            CL_CPM_LOG_2_LCM_COMP_OPER_ERR,
                            comp->compConfig->compName, "instantiated");
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("Component %s did not start within the specified limit\n",
-                                comp->compConfig->compName));
+                clLogError("CMP","MGT","Component %s did not start within the specified limit. ",comp->compConfig->compName);
                 rc = _cpmComponentCleanup(comp->compConfig->compName,
                                           NULL,
                                           gpClCpm->pCpmConfig->nodeName,
@@ -166,9 +164,7 @@ static ClRcT cpmTimerCallback(void *arg)
                 clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
                            CL_CPM_LOG_2_LCM_COMP_OPER_ERR,
                            comp->compConfig->compName, "terminated");
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("Component %s did not terminate within the specified limit\n",
-                                comp->compConfig->compName));
+                clLogError("CMP","MGT","Component [%s] did not terminate within the specified limit. ",comp->compConfig->compName);
                 rc = _cpmComponentCleanup(comp->compConfig->compName,
                                           NULL,
                                           gpClCpm->pCpmConfig->nodeName,
@@ -1625,6 +1621,7 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
 
         cpmComponentEventPublish(comp, CL_CPM_COMP_DEPARTURE, CL_FALSE);
     }
+#if 0
     else if (comp->compPresenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,
@@ -1633,6 +1630,7 @@ ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_WARNING, NULL,
                    CL_CPM_LOG_1_LCM_REG_MULTI_ERR, info.compName.value);
     }
+#endif
     else
     {
         if (comp->numProxiedComps != 0)
@@ -3756,28 +3754,26 @@ ClRcT _cpmComponentRestart(ClCharT *compName,
         if (comp->compOperState == CL_AMS_OPER_STATE_ENABLED)
         {
             clOsalMutexUnlock(comp->compMutex);
-            rc = _cpmComponentTerminate(compName, NULL, nodeName, srcAddress,
-                                        rmdNumber);
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
-                         ("Unable to terminate component while restarting %x\n",
-                          rc), rc);
+            clLogWarning("CMP","MGT","Cleanup component [%s] in preparation for restart. Oper state is ENABLED.",comp->compConfig->compName);
+            rc = _cpmComponentTerminate(compName, NULL, nodeName, srcAddress, rmdNumber);
+            CL_CPM_CHECK(CL_DEBUG_ERROR,("Unable to terminate component while restarting. Error [%x]",rc), rc);
         }
         else if (comp->compOperState == CL_AMS_OPER_STATE_DISABLED)
         {
             clOsalMutexUnlock(comp->compMutex);
-            rc = _cpmComponentCleanup(compName, NULL, nodeName, srcAddress, rmdNumber,
-                                      CL_CPM_CLEANUP);
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
-                         ("Unable to cleanup component while restarting %x\n",
-                          rc), rc);
-
+            clLogWarning("CMP","MGT","Cleanup component [%s] in preparation for restart. Oper state is DISABLED.",comp->compConfig->compName);
+            rc = _cpmComponentCleanup(compName, NULL, nodeName, srcAddress, rmdNumber,CL_CPM_CLEANUP);
+            if(CL_GET_ERROR_CODE(rc) != CL_OK)
+            {
+                clLogError("CMP","MGT","Unable to cleanup component [%s] while restarting. Error [%x]",comp->compConfig->compName,rc);
+            }
+            
             /*
              * Wait atleast 4 milliSeconds 
              */
             CPM_TIMED_WAIT(CL_CPM_RESTART_SLEEP);
 
-            rc = _cpmComponentInstantiate(compName, NULL, 0, 
-                                          nodeName, srcAddress, rmdNumber);
+            rc = _cpmComponentInstantiate(compName, NULL, 0,nodeName, srcAddress, rmdNumber);
         }
         else
         {
@@ -4799,8 +4795,7 @@ static ClRcT compHealthCheckAmfInvokedCB(ClPtrT arg)
         }
         
         clNameSet(&compHealthcheck.compName, comp->compConfig->compName);
-        
-        cpmHealthCheckTimerStart(comp);
+
         rc = CL_CPM_CALL_RMD_ASYNC_NEW(clIocLocalAddressGet(),
                                        eoPort,
                                        CPM_HEALTH_CHECK_FN_ID,
@@ -4822,8 +4817,18 @@ static ClRcT compHealthCheckAmfInvokedCB(ClPtrT arg)
                        "Unable to send heartbeat request to the component, "
                        "rc = [%#x]",
                        rc);
+            /*
+             * Delete invocation entry.
+             */
+            cpmInvocationDeleteInvocation(compHealthcheck.invocation);
             goto unlock;
         }
+
+        /*
+         * Restart cpmHealthcheckTimerHandle in case request successful or report to CPM that healthCheck failure.
+         * This would expect that component re-instantiated if previous instantiated failed.
+         */
+        cpmHealthCheckTimerStart(comp);
 
         comp->hbInvocationPending = CL_YES;
     }

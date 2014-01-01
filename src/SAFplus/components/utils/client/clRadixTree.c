@@ -344,7 +344,7 @@ ClRcT clRadixTreeDelete(ClRadixTreeHandleT handle, ClUint32T index, ClPtrT *item
 ClRcT clRadixTreeInit(ClRadixTreeHandleT *handle)
 {
     ClRadixTreeRootT *root = NULL;
-    if(!handle) return CL_ERR_INVALID_PARAMETER;
+    CL_ASSERT(handle != NULL);
     root = clHeapCalloc(1, sizeof(*root));
     CL_ASSERT(root != NULL);
     root->height = 0;

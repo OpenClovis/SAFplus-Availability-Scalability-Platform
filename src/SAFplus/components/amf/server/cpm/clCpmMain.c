@@ -174,15 +174,17 @@ static ClBoolT cpmIsConsoleStart = CL_FALSE;
 static ClUint32T myCh = 0;
 static ClUint32T mySl = 0;
 
+#if 0 /* Stone: cpm logging disabled -- logs use safplus_logd */
 static ClUint64T cpmLoggerFileSize = 50*1024*1024;
 static ClUint32T cpmLoggerFileRotations = 0x5;
-
-static ClFdT cpmLoggerFd;
 static ClInt32T cpmLoggerPipe[2];
-static ClCharT cpmLoggerFile[CL_MAX_NAME_LENGTH];
-
 static ClSizeT cpmLoggerTotalBytes;
 static ClOsalMutexT cpmLoggerMutex;
+#endif
+
+static ClFdT cpmLoggerFd;
+static ClCharT cpmLoggerFile[CL_MAX_NAME_LENGTH];
+
 
 static ClJobQueueT cpmNotificationQueue;
 
@@ -656,8 +658,7 @@ static ClRcT cpmAllocate(void)
 
 static void cpmSigintHandler(ClInt32T signum)
 {
-    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                  "Caught SIGINT or SIGTERM signal, shutting down the node...");
+    clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Caught signal [%d]. Should be SIGINT or SIGTERM signal, shutting down the node...",signum);
     clCpmNodeShutDown(clIocLocalAddressGet());
 }
 
@@ -876,8 +877,7 @@ static ClRcT clCpmFinalize(void)
     ClUint32T compCount = 0;
     ClCpmBootOperationT *bootOp = NULL;
 
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, NULL,
-               CL_CPM_LOG_0_SERVER_COMP_MGR_CLEANUP_INFO);
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, NULL, CL_CPM_LOG_0_SERVER_COMP_MGR_CLEANUP_INFO); /* Finalizing the CPM server */
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("COMP_MGR: Inside componentMgrCleanUp \n"));
 
     if (gpClCpm == NULL)
@@ -1023,10 +1023,8 @@ static ClRcT clCpmFinalize(void)
         CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get First component \n"),
                           rc);
 
-        rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
-                                  (ClCntDataHandleT *) &comp);
-        CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get component Data \n"),
-                          rc);
+        rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode, (ClCntDataHandleT *) &comp);
+        CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get component Data \n"), rc);
 
         compCount = gpClCpm->noOfComponent;
         while (compCount != 0)
@@ -1046,12 +1044,9 @@ static ClRcT clCpmFinalize(void)
             if (compCount)
             {
                 rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
-                CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR,
-                                  ("Unable to Get next component \n"), rc);
-                rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
-                                          (ClCntDataHandleT *) &comp);
-                CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR,
-                                  ("Unable to Get component Data \n"), rc);
+                CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get next component \n"), rc);
+                rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode, (ClCntDataHandleT *) &comp);
+                CL_CPM_LOCK_CHECK(CL_DEBUG_ERROR, ("Unable to Get component Data \n"), rc);
             }
         }
         /*
@@ -1088,8 +1083,7 @@ static ClRcT clCpmFinalize(void)
          */
         cpmCompConfigFinalize();
 
-        clEoClientUninstallTables(gpClCpm->cpmEoObj,
-                                  CL_EO_SERVER_SYM_MOD(gAspFuncTable, AMF));
+        clEoClientUninstallTables(gpClCpm->cpmEoObj, CL_EO_SERVER_SYM_MOD(gAspFuncTable, AMF));
 
         cpmDeAllocate();
         clOsalMutexUnlock(&gpClCpm->cpmShutdownMutex);
@@ -1152,6 +1146,7 @@ void cpmChangeCwd(void)
     }
 }
 
+#if 0 /* Stone: stdout log file rotation is disabled: see related comments for why */
 static void cpmLoggerRotate(void)
 {
     register ClInt32T i;
@@ -1190,7 +1185,9 @@ ClRcT cpmLoggerRotateEnable(void)
     clOsalMutexUnlock(&cpmLoggerMutex);
     return CL_OK;
 }
+#endif 
 
+#if 0
 /*
  * Reads from the pipe and dumps to the file.
  */
@@ -1199,13 +1196,25 @@ static void *cpmLoggerTask(void *arg)
     FILE *fptr = NULL;
     fptr = fdopen(cpmLoggerPipe[0], "rw");
     if(!fptr) return NULL;
-    for(;;)
+    for(;(feof(fptr)==0);)
     {
+        ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 30};
         ClCharT buf[1024];
         ClInt32T bytes = 0;
+        clOsalTaskDelay(delay);  /* To stop 100% CPU use if something happens that is unexpected */        
+        
         while(fgets(buf, sizeof(buf)-1, fptr))
         {
             bytes = strlen(buf);
+
+            /* Stone: stdout log file rotation is disabled because OpenClovis logs no longer go to this file by default.
+               We have seen multiple instances where the "stdin" side of this write has blocked, even when that side is the linux standard
+               "logger" program.  This stops all entities that write to the stdout out log (which was ALL of them).  This logging is
+               deprecated in favor of the shared memory logging system that drops logs rather than block.
+               
+               Additionally, the log rotation coded here may not even work, because changing this fd will not affect the fd inside child processes.               
+             */
+#if 0  
             clOsalMutexLock(&cpmLoggerMutex);
             cpmLoggerTotalBytes += bytes;
             if(cpmLoggerTotalBytes >= cpmLoggerFileSize)
@@ -1214,6 +1223,7 @@ static void *cpmLoggerTask(void *arg)
                 cpmLoggerRotate();
             }
             clOsalMutexUnlock(&cpmLoggerMutex);
+#endif            
             bytes = write(cpmLoggerFd, buf, bytes);
         }
     }
@@ -1261,6 +1271,7 @@ static ClRcT cpmCreateLoggerTaskPipe(const ClCharT *cpmLoggerFile)
     out:
     return rc;
 }
+#endif
 
 #ifdef VXWORKS_BUILD
 
@@ -1292,6 +1303,7 @@ static ClRcT cpmCreateLoggerTaskConsole(const ClCharT *cpmLoggerFile)
 
 #endif
 
+#if 0
 static ClRcT cpmCreateLoggerTask(const ClCharT *cpmLoggerFile)
 {
 #ifdef VXWORKS_BUILD
@@ -1301,8 +1313,8 @@ static ClRcT cpmCreateLoggerTask(const ClCharT *cpmLoggerFile)
     }
 #endif
     return cpmCreateLoggerTaskPipe(cpmLoggerFile);
-
 }
+#endif
 
 static void cpmLoggerSetFileName(void)
 {
@@ -1352,7 +1364,7 @@ static void cpmLoggerSetFileName(void)
 }
 
 
-
+#if 0  /* Stone: the CPM logger using stdout/stderr through pipes is broken because what happens to child processes when the pipe forwarding thread or this process dies/hangs -- they hang. */   
 static ClRcT cpmLoggerInitialize(void)
 {
     ClRcT rc = CL_OK;
@@ -1427,22 +1439,33 @@ static ClRcT cpmLoggerInitialize(void)
 
     return rc;
 }
+#endif
 
 void cpmRedirectOutput(void)
 {
     cpmLoggerSetFileName();
     if (cpmIsConsoleStart) return;
-    
-    cpmLoggerFd = open(cpmLoggerFile, O_RDWR | O_CREAT | O_APPEND, 0755);
-    if (-1 == cpmLoggerFd)
-    {
-        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                   "Unable to open file [%s] for writing : [%s]",
-                   cpmLoggerFile,
-                   strerror(errno));
-        return;
+
+    cpmLoggerFd = -1;
+
+    /* Bug 92: I do not know what is causing the file to not be openable but clearly it is happening.
+       If we cannot redirect STDOUT, it hangs SAFplus because whatever is reading STDOUT (console or whatever) runs out of buffer space.
+       So best to quit.
+     */
+    for(int retries=0;(cpmLoggerFd==-1) && (retries<5);retries++)
+    {        
+        cpmLoggerFd = open(cpmLoggerFile, O_RDWR | O_CREAT | O_APPEND, 0755);
+        if (-1 == cpmLoggerFd)
+        {
+            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"Unable to open file [%s] for writing : [%s]",cpmLoggerFile,strerror(errno));
+            sleep(20);
+        }
     }
-    
+    CL_ASSERT(cpmLoggerFd != -1);
+    if (cpmLoggerFd==-1)
+    {
+        exit(1);
+    }
     dup2(cpmLoggerFd, STDOUT_FILENO);
     dup2(cpmLoggerFd, STDERR_FILENO);
 }
@@ -1506,51 +1529,6 @@ ClRcT cpmEoDeSerialize(ClPtrT pData)
     return rc;
 }
 
-#ifdef CL_ENABLE_ASP_TRAFFIC_SHAPING
-
-#define CL_LEAKY_BUCKET_DEFAULT_VOL (200*1024)
-#define CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE (100*1024)
-#define CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL (400)
-
-static ClRcT clCpmLeakyBucketInitialize(void)
-{
-    ClInt64T leakyBucketVol = getenv("CL_LEAKY_BUCKET_VOL") ? 
-        (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_VOL")) : CL_LEAKY_BUCKET_DEFAULT_VOL;
-    ClInt64T leakyBucketLeakSize = getenv("CL_LEAKY_BUCKET_LEAK_SIZE") ?
-        (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_LEAK_SIZE")) : CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE;
-    ClTimerTimeOutT leakyBucketInterval = {.tsSec = 0, .tsMilliSec = CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL };
-    ClLeakyBucketWaterMarkT leakyBucketWaterMark = {0};
-    
-    leakyBucketWaterMark.lowWM = leakyBucketVol/3;
-    leakyBucketWaterMark.highWM = leakyBucketVol/2;
-    
-    leakyBucketWaterMark.lowWMDelay.tsSec = 0;
-    leakyBucketWaterMark.lowWMDelay.tsMilliSec = 50;
-
-    leakyBucketWaterMark.highWMDelay.tsSec = 0;
-    leakyBucketWaterMark.highWMDelay.tsMilliSec = 100;
-
-    leakyBucketInterval.tsMilliSec = getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL") ? atoi(getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL")) :
-        CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL;
-
-    clLogInfo("LEAKY", "BUCKET-INI", "Creating a leaky bucket with vol [%lld], leak size [%lld], interval [%d ms]",
-              leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval.tsMilliSec);
-
-    return clLeakyBucketCreateSoft(leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval, 
-                                   &leakyBucketWaterMark, 
-                                   &gClLeakyBucket);
-    
-}
-
-#else
-
-static ClRcT clCpmLeakyBucketInitialize(void)
-{
-    return CL_OK;
-}
-
-#endif
-
 ClBoolT clCpmSwitchoverInline(void)
 {
     return gClAmsSwitchoverInline;
@@ -1605,12 +1583,13 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
               "CPM's current working directory is [%s]",
               gpClCpm->logFilePath);
 
+#if 0  /* Stone: the CPM logger using stdout/stderr through pipes is broken because what happens to child processes when the pipe forwarding thread or this process dies/hangs -- they hang. */   
     if ((!cpmIsForeground) && (!cpmIsConsoleStart))
     {
-        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                  "Starting CPM's logger task..");
+        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Starting CPM's logger task..");
         cpmLoggerInitialize();
     }
+#endif    
 
     if( (rc = clJobQueueInit(&cpmNotificationQueue, 0, 1) ) != CL_OK)
     {
@@ -1632,8 +1611,6 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
                    "Task pool create returned [%#x]", rc);
         goto failure;
     }
-
-    clCpmLeakyBucketInitialize();
 
     /*
      * Initialize the node information which will be sent to CPM/G
@@ -2723,9 +2700,11 @@ static void cpmInvokeNodeCleanup(void)
 
 void cpmCommitSuicide(void)
 {
+    clLogAlert("AMF", "QIT", "AMF is stopping itself");
     cpmInvokeNodeCleanup();
     cpmKillAllComponents();
-    kill(0, SIGKILL);
+    exit(0);
+    //kill(0, SIGKILL);  // Stone: Why SIGKILL?
 }
 
 void cpmReset(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
@@ -2752,12 +2731,16 @@ void cpmReset(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
 void cpmRestart(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
 {
     FILE *fptr = NULL;
-
-    if( !pDelay || !pPersonality)
-        return;
-
-    if(pDelay->tsSec >= 3)
-        pDelay->tsSec >>= 1;
+    ClTimerTimeOutT defaultTime;
+    if (!pDelay)
+    {
+        defaultTime.tsSec = 2;
+        defaultTime.tsMilliSec = 0;
+        pDelay = &defaultTime;
+    }
+    
+        //if(pDelay->tsSec >= 3)
+        //    pDelay->tsSec >>= 1;
     /*
      *
      * We give a delay here, coz if it was a link snap and a 
@@ -2766,25 +2749,20 @@ void cpmRestart(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
      * sent by the kernel topology service to the subscribers, incase
      * we die at/before link re-establishment happens.
      */
-    clOsalTaskDelay(*pDelay);
+    clOsalTaskDelay(*pDelay);   
 
     fptr = fopen(CL_CPM_RESTART_FILE, "w");
     if(!fptr)
     {
-        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-                      "CPM %s recovery failure to trigger the restart. "\
-                      "Please ensure you restart ASP again", pPersonality);
+        if (!pPersonality) pPersonality = "";
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM, "AMF %s recovery failure to trigger the restart. Please ensure you restart SAFplus again", pPersonality);
 
     }
     else
     {
         fclose(fptr);
-        cpmCommitSuicide();
-        /*
-         * unreached.
-         */
     }
-
+    cpmCommitSuicide();
 }
 
 static void cpmRestartWorkers(void)
@@ -2918,6 +2896,7 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     ClRcT rc = CL_OK;
     ClCpmLocalInfoT *pCpmLocalInfo = NULL;
 
+    /* We are already active so nothing to do */
     if (gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE)
     {
         return rc;
@@ -2933,26 +2912,22 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
         goto failure;
     }
 
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
-                "Node [%d] is changing HA state from standby to active",
-                pCpmLocalInfo->nodeId);
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS, "Node [%d] is changing HA state from standby to active", pCpmLocalInfo->nodeId);
 
     /*
-     * Check if this node is capable of failing over before triggering
-     * the failover as it neednt be fully up to become active
+     * Check if this node is capable of failing over before triggering the failover as it neednt be fully up to become active
      */
     cpmFailoverRecover();
     rc = cpmUpdateTL(CL_AMS_HA_STATE_ACTIVE);
     if (rc != CL_OK)
     {
-        clLogCritical(CPM_LOG_AREA_CPM,
-                      CPM_LOG_CTX_CPM_TL,
-                      CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
-        goto failure;
+        // will only happen if the IOC transparent address can't be registered due to a conflict or a programmatic error
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_TL, CL_CPM_LOG_1_TL_UPDATE_FAILURE, rc);
+        cpmRestart(NULL, "controller");
+        CL_ASSERT(0);  // There is no return from cpmRestart...        
     }
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP,
-               "CPM reading its own checkpoints...");
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CKP, "AMF reading its own checkpoints...");
     rc = cpmCpmLCheckpointRead();
     if (CL_OK != rc)
     {
@@ -2970,8 +2945,7 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
                       "which has been mostly seen to be caused by xport config. issues."
                       "This node would be restarted in [%d] seconds", delay.tsSec);
         cpmRestart(&delay, "controller");
-        cpmSelfShutDown();
-        goto failure;
+        CL_ASSERT(0);  // There is no return from cpmRestart...
     }
 
     /*
@@ -2980,28 +2954,22 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     if ((gpClCpm->cpmToAmsCallback != NULL) && 
         (gpClCpm->cpmToAmsCallback->amsStateChange != NULL))
     {
-        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
-                   "Informing AMS on node [%d] to change state "
-                   "from standby to active...",
-                   pCpmLocalInfo->nodeId);
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS, "Informing AMF on node [%d] to change state from standby to active...", pCpmLocalInfo->nodeId);
 
-        rc = gpClCpm->cpmToAmsCallback->amsStateChange(CL_AMS_STATE_CHANGE_STANDBY_TO_ACTIVE |
-                                                       CL_AMS_STATE_CHANGE_USE_CHECKPOINT);
+        rc = gpClCpm->cpmToAmsCallback->amsStateChange(CL_AMS_STATE_CHANGE_STANDBY_TO_ACTIVE | CL_AMS_STATE_CHANGE_USE_CHECKPOINT);
         if (CL_OK != rc)
         {
-            clLogMultiline(CL_LOG_CRITICAL,
-                           CPM_LOG_AREA_CPM,
-                           CPM_LOG_CTX_CPM_AMS,
-                           "AMS state change from standby to active "
-                           "returned [%#x] -- \n"
-                           "The cluster has become unstable. \n"
-                           "Shutting down all the nodes in the cluster and "
-                           "doing self shutdown...",
-                           rc);
+            clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_AMS,
+                           "AMF state change from standby to active returned [%#x].\n"
+                           "This AMF is unable to become master.  Restarting. ",rc);
+            cpmRestart(NULL, "active");
+
+            /*  Stone: In this case I do not want to shutdown, I want to be restarted.
             cpmFailoverRecover();
             cpmShutdownAllNodes();
             cpmSelfShutDown();
-            goto failure;
+            */
+            CL_ASSERT(0);  // Should never be hit, Suicide should exit...
         }
 
         cpmWriteNodeStatToFile("AMS", CL_YES);
@@ -3052,13 +3020,9 @@ void cpmStandbyRecover(const ClGmsClusterNotificationBufferT
          */
         if (CL_OK != rc)
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                          "Unable to initialize AMS, "
-                          "error = [%#x]", rc);
-
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMS, error = [%#x]", rc);
             gpClCpm->amsToCpmCallback = NULL;
-            cpmSelfShutDown();
-
+            cpmRestart(NULL,NULL);
             goto failure;
         }
     }
@@ -3068,16 +3032,12 @@ void cpmStandbyRecover(const ClGmsClusterNotificationBufferT
                     
         if (!gpClCpm->polling)
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                          "AMS finalize called before AMS initialize "
-                          "during node shutdown.");
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"AMS finalize called before AMF initialize during node shutdown.");
         }
         else
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
-                          "Unable to initialize AMS, "
-                          "error = [%#x]", rc);
-            cpmSelfShutDown();
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,"Unable to initialize AMF, error = [%#x]", rc);
+            cpmRestart(NULL,NULL);
         }
         goto failure;
     }
@@ -3210,7 +3170,7 @@ void cpmEOHBFailure(ClCpmEOListNodeT *pThis)
             if (cpmIsCriticalComponent(&compName))
             {
                 clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
-                              "Critical ASP component [%s] failed. Killing node [%s]",
+                              "Critical SAFplus component [%s] failed. Killing node [%s]",
                               compName.value,
                               gpClCpm->pCpmLocalInfo->nodeName);
                 cpmCommitSuicide();
@@ -3736,13 +3696,17 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
     {
         clAmsCCBHandleDBCleanup(&notification);
     }
-#if 0 /* GAS: moved to GMS so that a leader election can occur if split brain heal */   
+    /*
+     * If GMS is still booting up, problem reported leader never reach on it.
+     * So, move below code from GMS to CPM.
+     */
     else if (notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION
             && notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
     {
         len = length - sizeof(notification);
         if (len == sizeof(ClUint32T))
         {
+#if 0
             ClUint32T currentLeader = 0;
             ClRcT rc = clBufferHeaderTrim(eoRecvMsg, sizeof(notification));
             if (rc == CL_OK)
@@ -3750,12 +3714,56 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                 clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&currentLeader, &len);
                 currentLeader = ntohl(currentLeader);
                 clLogDebug("GMS", "LEA", "Update current leader [%d]", currentLeader);
-                clNodeCacheLeaderUpdate(currentLeader, CL_FALSE);
+                clNodeCacheLeaderUpdate(currentLeader);
+            }
+#endif
+            ClUint32T reportedLeader = 0;
+            len = sizeof(ClUint32T);
+            ClIocNodeAddressT currentLeader;
+            clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&reportedLeader, &len);
+            reportedLeader = ntohl(reportedLeader);
+            if (clNodeCacheLeaderGet(&currentLeader) == CL_OK)
+            {
+                if (currentLeader == reportedLeader)
+                {
+                    clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].  Consistent with this node.", currentLeader,
+                                    reportedLeader);
+                }
+                else
+                {
+                    clLogAlert("NTF", "LEA", "Split brain.  Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]",
+                                    notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader, currentLeader);
+                    clNodeCacheLeaderUpdate(reportedLeader);
+
+                    /* Only update leaderID if msg come from SC's leader */
+                    if (clCpmIsSC() && (reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress))
+                    {
+                        /* Gas: take new leader and try register level 3 */
+                        clNodeCacheLeaderSend(reportedLeader);
+                        ClIocAddressT allNodeReps;
+                        allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+                        allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+                        static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
+                        ClUint32T myCapability = 0;
+                        ClIocNotificationT notification;
+                        notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
+                        notification.nodeVersion = htonl(nodeVersion);
+                        notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
+                        notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
+                        notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);  // htonl(1);
+                        clIocNotificationPacketSend(pThis->commObj, &notification, &allNodeReps, CL_FALSE, NULL );
+                    }
+                }
+            }
+            else
+            {
+                clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].", notification.nodeAddress.iocPhyAddress.nodeAddress,
+                                reportedLeader);
+                clNodeCacheLeaderSet(reportedLeader);
             }
         }
     }
-#endif
-    
+
     if(eoRecvMsg)
         clBufferDelete(&eoRecvMsg);
     return CL_OK;
@@ -4404,8 +4412,10 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
 
     loadAspInstallInfo();
 
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                "%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
+    printf("%s %s\n", CPM_ASP_WELCOME_MSG, gAspVersion);
+    printf("This file is the standard output of all applications.\n");
+    fflush(stdout);
     
     clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
               "Process [%s] started. PID [%d]",

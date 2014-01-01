@@ -2292,19 +2292,14 @@ clAmsPeNodeRestart(
     AMS_CHECK_NODE ( node );
 
     AMS_FUNC_ENTER ( ("Node [%s]\n", node->config.entity.name.value) );
+    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG,("Admin Operation [Restart] on Node [%s]\n",node->config.entity.name.value));
 
     if ( node->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-            ("Node [%s] is not instantiated. Ignoring Restart..\n",
-             node->config.entity.name.value) ); 
-
-        return CL_AMS_RC(CL_ERR_NO_OP);
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("Node [%s] is not instantiated. Resetting..\n", node->config.entity.name.value) );
+        clAmsPeNodeReset(node);
+        return clAmsPeNodeInstantiate(node);        
     }
-
-    AMS_ENTITY_LOG ( node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-            ("Admin Operation [Restart] on Node [%s]\n",
-             node->config.entity.name.value));
 
     if(clAmsInvocationsPendingForNode(node))
     {
@@ -2434,9 +2429,7 @@ clAmsPeNodeRepaired(
  * function.
  */
 
-ClRcT
-clAmsPeNodeJoinCluster(
-        CL_IN   ClAmsNodeT *node)
+ClRcT clAmsPeNodeJoinCluster(CL_IN   ClAmsNodeT *node)
 {
     AMS_OP_INCR(&gAms.ops);
 
@@ -2458,9 +2451,7 @@ clAmsPeNodeJoinCluster(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-             ("Node [%s] has joined cluster\n",
-              node->config.entity.name.value));
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_INFO,("Node [%s] has joined cluster\n",node->config.entity.name.value));
 
     /*
      * Mark node as cluster member and auto repair is set, reset
@@ -2475,7 +2466,7 @@ clAmsPeNodeJoinCluster(
     {
         if ( node->config.autoRepair )
         {
-            AMS_CALL ( clAmsPeNodeReset(node) );
+            clAmsPeNodeReset(node);
         }
         else
         {
@@ -3024,9 +3015,7 @@ clAmsPeNodeFaultReportProcess(
                            node->config.entity.name.value, rc);
             }
             
-            if(!node->config.isASPAware 
-               &&
-               node->config.autoRepair)
+            if((!node->config.isASPAware) && node->config.autoRepair)
             {
                 clAmsPeNodeReset(node);
             }
@@ -3297,7 +3286,7 @@ clAmsPeNodeInstantiate(
 
     if ( node->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED )
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
             ("Node [%s] is in Presence State [%s]. Ignoring instantiate request..\n",
              node->config.entity.name.value,
              CL_AMS_STRING_P_STATE(node->status.presenceState)) ); 
@@ -3312,7 +3301,7 @@ clAmsPeNodeInstantiate(
 
     if ( clAmsPeNodeIsInstantiable(node) != CL_OK ) 
     {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
             ("Node [%s] is not instantiable. Ignoring instantiate request..\n",
             node->config.entity.name.value));
 
@@ -3324,7 +3313,7 @@ clAmsPeNodeInstantiate(
      * instantiation.
      */
 
-    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,  CL_LOG_SEV_INFO,
              ("Instantiating Node [%s]. Marking SUs on node as instantiable\n",
               node->config.entity.name.value));
 
@@ -4328,9 +4317,7 @@ clAmsPeNodeComputeRecoveryAction(
  * as they need to be persistant.
  */
 
-ClRcT
-clAmsPeNodeReset(
-        CL_IN ClAmsNodeT *node)
+ClRcT clAmsPeNodeReset(CL_IN ClAmsNodeT *node)
 {
     ClAmsNodeClusterMemberT isClusterMember;
     ClBoolT wasMemberBefore;
@@ -4795,8 +4782,7 @@ clAmsPeSUShutdown(
                   su->config.entity.name.value);
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
-    
-#if 0
+
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "SHUTDOWN", 
@@ -4804,7 +4790,6 @@ clAmsPeSUShutdown(
                   sg->config.entity.name.value, su->config.entity.name.value);
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
-#endif
 
     readinessState = su->status.readinessState;
 
@@ -4898,7 +4883,6 @@ clAmsPeSUAdminRestart(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
-#if 0
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "RESTART", 
@@ -4906,7 +4890,6 @@ clAmsPeSUAdminRestart(
                   sg->config.entity.name.value, su->config.entity.name.value);
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
-#endif
 
     if ( (su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED) ||
          (clAmsPeSUIsInstantiable(su) != CL_OK) )
@@ -5345,10 +5328,8 @@ clAmsPeSUFaultCallback_Step1(
 
     AMS_FUNC_ENTER ( ("SU [%s]\n", su->config.entity.name.value) );
 
-    clLogInfo(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU,
-              "Fault on SU [%s] : Recovery [%s] :Step 2 Cleaning up",
-              su->config.entity.name.value,
-              CL_AMS_STRING_RECOVERY(su->status.recovery));
+    clLogInfo(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_SU, "Fault on SU [%s] : Recovery [%s] :Step 1 Cleaning up",
+                    su->config.entity.name.value, CL_AMS_STRING_RECOVERY(su->status.recovery));
 
     AMS_CALL ( clAmsPeSUCleanup(su) );
 
@@ -5485,8 +5466,8 @@ clAmsPeSUFaultCallback_Step2(
                 /*
                  * Start the auto adjust probation timer for this SU
                  */
-                if(sg->config.autoAdjust 
-                   && 
+                if(sg->config.autoAdjust
+                   &&
                    (su->config.rank ||
                     sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM))
                 {
@@ -5912,6 +5893,7 @@ ClRcT clAmsPeSUInstantiate(CL_IN       ClAmsSUT        *su)
          CL_AMS_STRING_P_STATE(su->status.presenceState)) ); 
 
     su->status.numInstantiatedComp = 0;
+    su->status.numBkInstantiatedComp = 0;
 
     if ( su->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING )
     {
@@ -6403,6 +6385,7 @@ clAmsPeSUTerminateCallback(
      * All components in SU have terminated successfully.
      */
     su->status.numInstantiatedComp = 0;
+    su->status.numBkInstantiatedComp = 0;
 
     if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING )
     {
@@ -11513,7 +11496,7 @@ clAmsPeCompFaultReport(
      * such cases.
      */
 
-    if ( *escalation == CL_FALSE && *recovery <= CL_AMS_RECOVERY_NO_RECOMMENDATION )
+    if ( *escalation == CL_FALSE && *recovery < CL_AMS_RECOVERY_NO_RECOMMENDATION )
     {
         if ( clAmsEntityTimerIsRunning(
                                        (ClAmsEntityT *) comp,
@@ -11760,8 +11743,9 @@ clAmsPeCompFaultCallback(
                         (ClAmsEntityT *)comp,
                         recovery,
                         repairNecessary)) != CL_OK )
-    { 
-        clLogWarning(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_COMP,
+    {
+        if (CL_GET_ERROR_CODE(rc) != CL_ERR_INVALID_HANDLE)  // Invalid handle is OK, it just means that alarm has not been initialized
+          clLogWarning(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_COMP,
                      "Fault on Component [%s]: Error [0x%x] when reporting "\
                      "fault to FM. Continuing..",
                      comp->config.entity.name.value,
@@ -12588,10 +12572,14 @@ clAmsPeCompInstantiateCallback(
         CL_IN       ClRcT               error)
 {
     ClAmsSUT *su;
+    ClAmsSGT *sg;
+
     ClAmsPresenceStateT compPresenceState;
+
 
     AMS_CHECK_COMP ( comp );
     AMS_CHECK_SU ( su = (ClAmsSUT *) comp->config.parentSU.ptr );
+    AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
 
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
 
@@ -12622,9 +12610,19 @@ clAmsPeCompInstantiateCallback(
          (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
     {
         AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
-            ("Component [%s] is [%s]. Ignoring instantiate callback..\n",
+            ("Component [%s] is [%s]. \n",
             comp->config.entity.name.value,
             CL_AMS_STRING_P_STATE(comp->status.presenceState)));
+
+        if (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED )
+        {
+            /* If SG auto repair is ON, call clAmsPeCompInstantiateError to cleanup the component
+             *  which will try to instantiate it again */
+            if ( sg->config.autoRepair )
+            {
+                AMS_CALL ( clAmsPeCompInstantiateError(comp, CL_AMS_RC(CL_ERR_INVALID_STATE)) );
+            }
+        }
 
         return CL_OK;
     }
@@ -12750,8 +12748,18 @@ clAmsPeCompInstantiateCallback(
          */
 
         su->status.numInstantiatedComp ++;
+        su->status.numBkInstantiatedComp ++;
 
         AMS_CALL ( clAmsPeSUInstantiateCallback(su, CL_OK) );
+    }
+
+    /* If numInstantiatedComp was changed & SG auto repair is ON,
+     * cleanup the SU to intantiate SU again */
+    if (( su->status.numBkInstantiatedComp == su->config.numComponents )
+            && (su->status.numInstantiatedComp != su->status.numBkInstantiatedComp)
+            && (sg->config.autoRepair))
+    {
+        clAmsPeSUCleanup(su);
     }
 
     return CL_OK;
@@ -14099,7 +14107,7 @@ clAmsPeCompCleanupCallback(
     comp->status.instantiateCount = 0;
     comp->status.instantiateDelayCount = 0;
 
-    if ( su->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED )
+    if ( su->status.presenceState != CL_AMS_PRESENCE_STATE_UNINSTANTIATED && !su->status.numInstantiatedComp)
     {
         AMS_CALL ( clAmsPeSUCleanupCallback(su, CL_OK) );
     }

@@ -844,9 +844,7 @@ ClRcT clEoMain(ClInt32T argc, ClCharT *argv[])
      * This should keep track of blocking APP initialize.
      */
 
-    clOsalMutexLock(&pThis->eoMutex);
-    ++pThis->refCnt;
-    clOsalMutexUnlock(&pThis->eoMutex);
+    clEoRefInc(pThis);
 
     rc = clEoConfig.clEoCreateCallout(argc, argv);
     if (rc != CL_OK)

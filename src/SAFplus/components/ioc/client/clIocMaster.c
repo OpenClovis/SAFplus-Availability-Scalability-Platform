@@ -68,7 +68,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
     if(portId >= CL_IOC_MAX_COMPONENTS_PER_NODE)
         return CL_IOC_RC(CL_ERR_OUT_OF_RANGE);
 
-    if(!gpClIocMasterSeg)
+    if(!gpClIocMasterSeg || !gpClIocNeighComps)
         return CL_IOC_RC(CL_ERR_NOT_INITIALIZED);
 
     if(pIocNodeAddress == NULL)
@@ -81,7 +81,6 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
         delay = *pDelay;
 
     clOsalSemLock(gClIocMasterSem);
-
     node = gpClIocMasterSeg[portId]; 
 
     if(node)
@@ -120,7 +119,6 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
         if(!nodeStatus)
             node = 0;
     }
-
     clOsalSemUnlock(gClIocMasterSem);
 
     if(node == 0)
@@ -137,7 +135,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
                 clOsalSemLock(gClIocMasterSem);
                 *pIocNodeAddress = gpClIocMasterSeg[portId] = node;
                 clOsalSemUnlock(gClIocMasterSem);
-                clLogInfo("IOC", "MASTER", "Setting node [%d] as master for comp [%d].", node, portId);
+                clLogInfo("IOC", "MASTER", "Setting node [0x%x] as master for comp [0x%x].", node, portId);
                 break;
             }
             CL_DEBUG_PRINT(CL_DEBUG_WARN,("Cannot get IOC master, return code [0x%x]",rc));
@@ -187,14 +185,13 @@ void clIocMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT mas
         if(!compAddr.nodeAddress)
         {
             resetAll = CL_TRUE;
-            if(!master)
+            if (!master)
             {
                 clLogInfo("IOC", "MASTER", "Resetting node info of master for all components");
             }
             else
             {
-                clLogInfo("IOC", "MASTER", "Resetting node master for all components to node [%d]",
-                          master);
+                clLogInfo("IOC", "MASTER", "Resetting node master for all components to node [0x%x]", master);
             }
         }
         for(i = CL_IOC_MIN_COMP_PORT ; i < CL_IOC_MAX_COMPONENTS_PER_NODE ; i++)
@@ -206,15 +203,6 @@ void clIocMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT mas
             else if(gpClIocMasterSeg[i] == compAddr.nodeAddress)
             {
                 gpClIocMasterSeg[i] = master;
-                if(!master)
-                {
-                    clLogInfo("IOC", "MASTER", "Resetting node info of master for comp [%d].", i);
-                }
-                else
-                {
-                    clLogInfo("IOC", "MASTER", "Resetting node master for comp [%d] to node [%d]",
-                              i, master);
-                }
             }
         }
     }
@@ -223,11 +211,11 @@ void clIocMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT mas
         gpClIocMasterSeg[compAddr.portId] = master;
         if(!master)
         {
-            clLogInfo("IOC", "MASTER", "Resetting segment info of master for comp [%d].", compAddr.portId);
+            clLogInfo("IOC", "MASTER", "Resetting segment info of master for comp [0x%x].", compAddr.portId);
         }
         else
         {
-            clLogInfo("IOC", "MASTER", "Resetting segment master for comp [%d] to node [%d]",
+            clLogInfo("IOC", "MASTER", "Resetting segment master for comp [0x%x] to node [0x%x]",
                       compAddr.portId, master);
         }
     }

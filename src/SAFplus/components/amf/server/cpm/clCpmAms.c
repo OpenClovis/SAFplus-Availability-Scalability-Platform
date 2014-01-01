@@ -864,8 +864,7 @@ ClRcT _cpmNodeDepartureAllowed(ClNameT *nodeName,
     
     if (!strcmp(nodeName->value, gpClCpm->pCpmLocalInfo->nodeName) && CL_CPM_IS_ACTIVE())
     {
-        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-                   "CPM/G active got termination request for itself...");
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM, "AMF active got termination request for itself...");
         
         if (cmRequest.cmCpmMsgType != CL_CM_BLADE_NODE_ERROR_REPORT)
         {
@@ -1162,7 +1161,7 @@ static ClRcT _cpmNodeFailFastRestart(ClNameT *nodeName, ClUint32T restartFlag)
                       "<invalid-node-type>",
                       nodeName->length,
                       nodeName->value);
-        cpmSelfShutDown();
+        cpmRestart(NULL, CL_CPM_IS_STANDBY() ? "standby":"controller");
     }
 
     return CL_OK;
@@ -2096,7 +2095,8 @@ ClRcT cpmReplayInvocations(ClBoolT canDelete)
                     }
                     clLogDebug("REPLAY", "INVOCATION", "Getting component address for [%s]",
                                pAmsInvocations[i]->compName.value);
-                    rc = clCpmComponentAddressGet(nodeAddress.iocPhyAddress.nodeAddress,
+
+                    rc = clCpmComponentAddressGetFast(nodeAddress.iocPhyAddress.nodeAddress,
                                                   &pAmsInvocations[i]->compName, &compAddress);
                     if(rc != CL_OK)
                     {

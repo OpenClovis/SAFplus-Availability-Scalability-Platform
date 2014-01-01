@@ -462,9 +462,10 @@ logFileOwnerLogFileCreateNPopulate(ClCharT        *pTimeStr,
         len = strlen(CL_LOG_DEFAULT_FILE_STRING_RESTART);
         snprintf(pRecord, recordSize, "%s", CL_LOG_DEFAULT_FILE_STRING_RESTART);
     }
-    memset(pRecord + len, ' ', recordSize - len - 1);
-    pRecord[recordSize - 1]='\n';
-    rc = clLogFileWrite(*pFp, pRecord, recordSize);
+    /*Last 1 Bye is reserved for record write in-progress indicator */
+    memset(pRecord + len, ' ', recordSize - len - 2); 
+    pRecord[recordSize - 2]='\n'; 
+    rc = clLogFileWrite(*pFp, pRecord, recordSize-1);
 //    fprintf(*pFp, "%.*s\n", recordSize, CL_LOG_DEFAULT_FILE_STRING); 
     if( CL_OK != rc )
     {
@@ -1443,7 +1444,8 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
                 sscanf((char*)pRecordIter, LOG_ASCII_DATA_LEN_FMT LOG_DATA_DELIMITER_FMT, &len);
                 pRecordIter += LOG_ASCII_DATA_LEN + LOG_DATA_DELIMITER_LEN; 
                 iov[idx].iov_base = (char*)pRecordIter;
-                iov[idx].iov_len  = CL_MIN(hdrLen + len + 1, recordSize - LOG_ASCII_METADATA_LEN);
+                /*Last 1 Bye is reserved for record write in-progress indicator */
+                iov[idx].iov_len  = CL_MIN(hdrLen + len + 1, recordSize - LOG_ASCII_METADATA_LEN - 1);
                 choppedLen = strlen((ClCharT *)iov[idx].iov_base) + 1;
                 /* Ensure that the record is CR terminated.
                    All ASCII records should have a \n from the client, but
@@ -1474,7 +1476,8 @@ clLogFileOwnerFileWrite(ClLogFileOwnerDataT  *pFileOwnerData,
                  * found a binary record,  
                  */
                 iov[idx].iov_base = (char*)pRecords;
-                iov[idx].iov_len  = recordSize; 
+                /*Last 1 Bye is reserved for record write in-progress indicator */
+                iov[idx].iov_len  = recordSize - 1; 
                 idx++;
             }
         }
@@ -2821,10 +2824,11 @@ clLogFileOwnerEntryFindNPersist(ClStringT   *fileName,
     ClUint32T              activeCnt          = 0;
     ClLogFileOwnerDataT   *pFileOwnerData     = NULL;
 
-    clLogDebug(CL_LOG_AREA_FILE_OWNER, CL_LOG_CTX_FO_INIT, 
+    /* spam log: clLogDebug(CL_LOG_AREA_FILE_OWNER, CL_LOG_CTX_FO_INIT, 
              "Persisting records [%d] for file [%.*s] [%.*s]", 
              numRecords, fileName->length, fileName->pValue, 
              fileLocation->length, fileLocation->pValue);
+    */
     /* Get the eo entry */
     rc = clLogFileOwnerEoEntryGet(&pFileOwnerEoEntry);
     if( CL_OK != rc )
@@ -2929,7 +2933,7 @@ clLogFileOwnerRecordPersist(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
     ClRcT                rc              = CL_OK;
     ClLogFileOwnerDataT  *pFileOwnerData = NULL;
 
-    clLogDebug("FILEOWN", "WRITE", "[%d] records to be persisted", numRecords);
+    /* spam log: clLogDebug("FILEOWN", "WRITE", "[%d] records to be persisted", numRecords); */
 
     rc = clCntNodeUserDataGet(pFileOwnerEoEntry->hFileTable, hFileNode, 
                               (ClCntDataHandleT *) &pFileOwnerData);
@@ -2968,7 +2972,7 @@ clLogFileRecordsPersist(ClLogFileOwnerEoDataT   *pFileOwnerEoEntry,
     ClUint32T  remNumRecs  = 0;
     ClUint32T  numRemBytes = 0;
 
-    clLogDebug("FILEOWN", "WRITE", "Num of bytes [%d] to be written", numBytes);
+    /* spam log: clLogDebug("FILEOWN", "WRITE", "Num of bytes [%d] to be written", numBytes); */
     
     if( pFileOwnerData->pFileHeader->remSize < numBytes )
     {

@@ -53,8 +53,8 @@ typedef struct ClLeakyBucketWaterMark
 
 extern ClRcT clLeakyBucketCreate(ClInt64T volume, ClInt64T leakSize, ClTimerTimeOutT leakInterval, ClLeakyBucketHandleT *handle);
 
-extern ClRcT clLeakyBucketCreateSoft(ClInt64T volume, ClInt64T leakSize, ClTimerTimeOutT leakInterval, 
-                                     ClLeakyBucketWaterMarkT *waterMark, ClLeakyBucketHandleT *handle);
+    /* Introduces a delay as the bucket nears empty */
+extern ClRcT clLeakyBucketCreateSoft(ClInt64T volume, ClInt64T leakSize, ClTimerTimeOutT leakInterval,ClLeakyBucketWaterMarkT *waterMark, ClLeakyBucketHandleT *handle);
 
 extern ClRcT clLeakyBucketDestroy(ClLeakyBucketHandleT *handle);
 

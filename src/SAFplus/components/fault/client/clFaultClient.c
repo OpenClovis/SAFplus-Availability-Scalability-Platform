@@ -144,6 +144,8 @@ ClRcT clFaultRepairAction(ClIocAddressT iocAddress,ClAlarmHandleT alarmHandle,Cl
     ClBufferHandleT inMsgHandle;
     ClRmdOptionsT opts = CL_RMD_DEFAULT_OPTIONS;
 
+	if(alarmHandle == 0) return CL_FAULT_RC(CL_ERR_INVALID_HANDLE);  // This is ok if mgmt is not being used
+	
 	faultVersionInfo = clHeapAllocate((ClUint32T)sizeof(ClFaultVersionInfoT));
 	if(faultVersionInfo == NULL)
 	{
@@ -153,16 +155,6 @@ ClRcT clFaultRepairAction(ClIocAddressT iocAddress,ClAlarmHandleT alarmHandle,Cl
 	CL_FAULT_VERSION_SET(faultVersionInfo->version);
 	faultVersionInfo->alarmHandle = alarmHandle;
 	faultVersionInfo->recoveryAction = recoveryActionTaken;
-
-	/*
-	   This is a check being made for the validity of the alarm handle.
-	 */
-	if(alarmHandle == 0)
-	{
-        clHeapFree(faultVersionInfo);
-        return CL_FAULT_RC(CL_ERR_INVALID_HANDLE);
-	}
-
 	iocAddress.iocPhyAddress.portId = CL_IOC_FAULT_PORT;
 
 	rc = clBufferCreate(&inMsgHandle);

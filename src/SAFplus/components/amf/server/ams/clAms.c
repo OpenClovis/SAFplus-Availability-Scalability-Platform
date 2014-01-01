@@ -71,7 +71,7 @@
 ClAmsT  gAms;
 
 ClBoolT gAmsDBRead = CL_FALSE;
-
+ClOsalTaskIdT gClusterStateVerifierTask;
 ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs = NULL;
 
 ClCpmCpmToAmsCallT gCpmToAmsCallbackFuncs = {
@@ -266,7 +266,9 @@ ClBoolT clAmsHasNodeJoined(ClUint32T slotId)
 {
     ClRcT rc;
     ClCpmLT *cpmL=NULL;
+    clOsalMutexLock(gpClCpm->cpmTableMutex);
     rc = cpmNodeFindByNodeId(slotId,&cpmL);
+    clOsalMutexUnlock(gpClCpm->cpmTableMutex);
     if (rc == CL_OK) return CL_TRUE;
     if (rc == CL_CPM_RC(CL_ERR_DOESNT_EXIST)) return CL_FALSE;
     clDbgCodeError(rc,("cpmNodeFindByNodeId failed for slot [%d], rc [%x:%s]",slotId,rc,clErrorToString(rc)));
@@ -358,8 +360,9 @@ static void *clAmsClusterStateVerifier(void *cookie)
                             notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
                             notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);  // htonl(1);
                             rc = clIocNotificationPacketSend(gpClCpm->cpmEoObj->commObj, &notification, &allNodeReps, CL_FALSE, NULL);
-                            //rc = clIocNotificationProxySend(
 
+                            checkFailed[i] = 0;
+                            continue;
                         }
                     
                         if (checkFailed[i] == 1) clLogWarning("AMS", "INI","Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF",ncInfo.name, i);
@@ -374,7 +377,24 @@ static void *clAmsClusterStateVerifier(void *cookie)
             }
         }
         
-        clOsalTaskDelay(delay);
+        clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
+        clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
+        clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
+        if (!gpClCpm)  /* Process is down! (should never happen b/c we are holding a reference) */
+        {
+            return NULL;
+        }
+        else       
+        {   
+            ClEoExecutionObjT *cpmEoObj = gpClCpm->cpmEoObj;
+            if (!cpmEoObj) return NULL;
+        
+            if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP) || !gpClCpm->polling)
+            {
+                clEoRefDec(cpmEoObj);
+            }
+        }
+        
     }
 
     return NULL;
@@ -551,10 +571,9 @@ clAmsStart(
 
     }
 
-    
+    clEoRefInc(gpClCpm->cpmEoObj);    
     /* Instantiate cluster state verifier */
-    clOsalTaskCreateDetached("cluster state verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clAmsClusterStateVerifier, NULL);
-
+    clOsalTaskCreateAttached("cluster state verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clAmsClusterStateVerifier, NULL,&gClusterStateVerifierTask);
     return CL_OK;
 }
 
@@ -594,6 +613,10 @@ clAmsFinalize(
         return CL_OK;
     }
 
+    gpClCpm->polling = CL_FALSE;                       // kick the verifier out of its loop
+    clOsalCondBroadcast(&gpClCpm->cpmEoObj->eoCond);  // Wake up the cluster state verifier (and anybody else that needs to be quitting)
+    clOsalTaskJoin(gClusterStateVerifierTask);        // wait until the thread is done before shutting down the rest & removing variables
+    
     clAmsEntityTriggerFinalize();
 
     clAmsEntityUserDataFinalize();
@@ -813,6 +836,7 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
              */
             if(node->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED)
             {
+                clLogWarning("AMF", "EVT", "Node [%s] is reentering cluster but still set as cluster member.  Returing try again.",pNodeName);
                 node->status.wasMemberBefore = CL_TRUE;
                 node->status.isClusterMember = CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER;
             }

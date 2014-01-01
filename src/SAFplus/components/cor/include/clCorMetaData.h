@@ -121,7 +121,8 @@
 /**
  * Wild Card Instance Id.
  */
-#define CL_COR_INSTANCE_WILD_CARD  0xFFFFFFFE 
+#define CL_COR_INSTANCE_WILD_CARD ((ClCorInstanceIdT) -2)
+        /* 0x7FFFFFFE  */
 #define CL_COR_SVC_WILD_CARD       ((ClCorMOServiceIdT)0xFFFE)
 
 

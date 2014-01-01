@@ -1764,7 +1764,11 @@ clLogMsgWriteConsole(ClHandleT       streamHdl,
                      ClUint32T       lineNum,
                      const ClCharT   *pFmtStr,
                      ...) CL_PRINTF_FORMAT(8, 9);
-
+ClUint32T clLogFormatRecordHeader(ClCharT *msgHeader, ClUint32T maxHeaderLen, ClCharT *msg, ClBoolT consoleFlag, ClUint32T  msgIdCnt,
+                                  ClLogSeverityT  severity, const ClCharT *pFileName, ClUint32T lineNum, const ClCharT *pArea, const ClCharT *pContext);
+ClUint32T clLogFormatRecord(ClCharT *msgHeader, ClUint32T maxHeaderLen, ClCharT *msg, ClUint32T maxMsgLen, ClBoolT consoleFlag, ClUint32T  msgIdCnt,
+                            ClLogSeverityT  severity, const ClCharT *pFileName, ClUint32T lineNum,const ClCharT *pArea, const ClCharT *pContext,
+                            const ClCharT *pFmtStr, ...);
 ClRcT clLogSeverityFilterToValueGet(ClLogSeverityFilterT filter, ClLogSeverityT* pSeverity);
 ClRcT clLogSeverityValueToFilterGet(ClLogSeverityT severity, ClLogSeverityFilterT* pFilter);
 
@@ -1782,6 +1786,15 @@ clLogStreamFilterGet(ClNameT                *pStreamName,
 
 ClLogSeverityT
 clLogSeverityGet(const ClCharT  *pSevName);
+
+extern ClRcT clLogTimeGet(ClCharT   *pStrTime, ClUint32T maxBytes);
+extern ClBoolT          gClLogCodeLocationEnable;
+#define CL_LOG_PRNT_FMT_STR               "%-26s [%s:%d] (%.*s.%d : %s.%3s.%3s"
+#define CL_LOG_PRNT_FMT_STR_CONSOLE       "%-26s [%s:%d] (%.*s.%d : %s.%3s.%3s.%05d : %6s) "
+
+#define CL_LOG_PRNT_FMT_STR_WO_FILE         "%-26s (%.*s.%d : %s.%3s.%3s"
+#define CL_LOG_PRNT_FMT_STR_WO_FILE_CONSOLE "%-26s (%.*s.%d : %s.%3s.%3s.%05d : %6s) "
+
 
 #include <ipi/clLogIpiWrap.h> 
 #ifdef __cplusplus

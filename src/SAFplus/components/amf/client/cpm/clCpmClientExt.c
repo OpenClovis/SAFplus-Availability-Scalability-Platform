@@ -1081,6 +1081,45 @@ ClRcT clCpmComponentAddressGet(ClIocNodeAddressT nodeAddress,
     return rc;
 }
 
+/*
+ * Get component address with highest priority and short timeout 200ms
+ * (not supported) just for internal using
+ */
+ClRcT clCpmComponentAddressGetFast(ClIocNodeAddressT nodeAddress, ClNameT *compName, ClIocAddressT *compAddress)
+{
+    ClRcT rc = CL_OK;
+    ClUint32T bufSize = 0;
+    ClIocAddressIDLT idlCompAddress = { 0 };
+
+    if (compName == NULL || compAddress == NULL )
+    {
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_CPM_CLIENT_LIB, CL_LOG_MESSAGE_0_NULL_ARGUMENT);
+        CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("Null ptr passed"), CL_CPM_RC(CL_ERR_NULL_POINTER));
+    }
+
+    bufSize = sizeof(ClIocAddressIDLT);
+    rc = clCpmClientRMDSyncNew(nodeAddress, CPM_COMPONENT_ADDRESS_GET, (ClUint8T *) compName, sizeof(ClNameT), (ClUint8T *) &idlCompAddress,
+                    &bufSize, CL_RMD_CALL_NEED_REPLY, CL_CPM_CLIENT_CONFIG_TIMEOUT, CL_CPM_CLIENT_CONFIG_RETRIES,
+                    CL_CPM_CLIENT_HIGH_PRIORITY, clXdrMarshallClNameT, UNMARSHALL_FN(ClIocAddressIDLT, 4, 0, 0));
+
+    if (rc != CL_OK)
+    {
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_CLIENT_COMP_ADDR_GET_ERR, rc);
+    }
+    CPM_CLIENT_CHECK(CL_DEBUG_ERROR, ("%s Failed rc =%x\n", __FUNCTION__, rc), rc);
+
+    /*
+     * Assuming we always get the physical address
+     */
+    if (idlCompAddress.discriminant == CLIOCADDRESSIDLTIOCPHYADDRESS)
+    {
+        compAddress->iocPhyAddress.nodeAddress = idlCompAddress.clIocAddressIDLT.iocPhyAddress.nodeAddress;
+        compAddress->iocPhyAddress.portId = idlCompAddress.clIocAddressIDLT.iocPhyAddress.portId;
+    }
+
+    failure: return rc;
+}
+
 ClRcT clCpmComponentIdGet(ClCpmHandleT cpmHandle,
                           ClNameT *compName,
                           ClUint32T *compId)

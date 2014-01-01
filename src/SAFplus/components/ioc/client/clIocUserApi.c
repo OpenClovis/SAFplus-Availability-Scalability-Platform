@@ -2962,15 +2962,20 @@ static ClRcT clIocLeakyBucketInitialize(void)
     gClIocTrafficShaper = clParseEnvBoolean("CL_ASP_TRAFFIC_SHAPER");
     if(gClIocTrafficShaper)
     {
-        ClInt64T leakyBucketVol = getenv("CL_LEAKY_BUCKET_VOL") ? 
-            (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_VOL")) : CL_LEAKY_BUCKET_DEFAULT_VOL;
-        ClInt64T leakyBucketLeakSize = getenv("CL_LEAKY_BUCKET_LEAK_SIZE") ?
-            (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_LEAK_SIZE")) : CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE;
-        ClTimerTimeOutT leakyBucketInterval = {.tsSec = 0, .tsMilliSec = CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL };
-        leakyBucketInterval.tsMilliSec = getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL") ? atoi(getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL")) :
-            CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL;
-        clLogInfo("LEAKY", "BUCKET-INI", "Creating a leaky bucket with vol [%lld], leak size [%lld], interval [%d ms]",
-                  leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval.tsMilliSec);
+    char* temp;
+
+    temp = getenv("CL_LEAKY_BUCKET_VOL"); 
+    ClInt64T leakyBucketVol = temp ? (ClInt64T)atoi(temp) : CL_LEAKY_BUCKET_DEFAULT_VOL;
+    temp = getenv("CL_LEAKY_BUCKET_LEAK_SIZE");
+    ClInt64T leakyBucketLeakSize = temp ? (ClInt64T)atoi(temp) : CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE;
+
+    ClTimerTimeOutT leakyBucketInterval;
+    temp = getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL");
+    leakyBucketInterval.tsSec = 0;
+    leakyBucketInterval.tsMilliSec = temp ? (ClInt64T)atoi(temp) : CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL;
+        
+        clLogInfo("LKB", "INI", "Creating a leaky bucket with vol [%lld], leak size [%lld], interval [%d ms]",leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval.tsMilliSec);
+        
         rc = clLeakyBucketCreate(leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval, &gClLeakyBucket);
     }
     return rc;

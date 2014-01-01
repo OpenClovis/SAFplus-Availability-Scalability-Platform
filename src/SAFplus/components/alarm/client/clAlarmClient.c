@@ -380,16 +380,7 @@ ClRcT clAlarmLibInitialize(void)
 	}
      
     clLogNotice( "ALM", "INT", "Initializing the alarm client library ...");
-
-    /* Leaky Bucket implementation */
-    rc = clAlarmLeakyBucketInitialize();
-    if (rc != CL_OK)
-    {
-        clLogError("ALM", "INT", "Failed to initialize the Leaky Bucket. rc [0x%x]", rc);
-        CL_FUNC_EXIT();
-        return rc;
-    }
-
+    
     rc = clEoMyEoObjectGet(&eoObj);
     if(CL_OK != rc)
     {
@@ -5265,49 +5256,3 @@ free_and_exit:
     return rc;
 }
 
-/*
- * Leaky bucket initialize.
- */
-
-#ifdef CL_ENABLE_ASP_TRAFFIC_SHAPING
-
-#define CL_LEAKY_BUCKET_DEFAULT_VOL (200*1024)
-#define CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE (100*1024)
-#define CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL (400)
-
-ClRcT clAlarmLeakyBucketInitialize(void)
-{
-    ClInt64T leakyBucketVol = getenv("CL_LEAKY_BUCKET_VOL") ? 
-        (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_VOL")) : CL_LEAKY_BUCKET_DEFAULT_VOL;
-    ClInt64T leakyBucketLeakSize = getenv("CL_LEAKY_BUCKET_LEAK_SIZE") ?
-        (ClInt64T)atoi(getenv("CL_LEAKY_BUCKET_LEAK_SIZE")) : CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE;
-    ClTimerTimeOutT leakyBucketInterval = {.tsSec = 0, .tsMilliSec = CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL };
-    ClLeakyBucketWaterMarkT leakyBucketWaterMark = {0};
-
-    leakyBucketWaterMark.lowWM = leakyBucketVol/3;
-    leakyBucketWaterMark.highWM = leakyBucketVol/2;
-    
-    leakyBucketWaterMark.lowWMDelay.tsSec = 0;
-    leakyBucketWaterMark.lowWMDelay.tsMilliSec = 50;
-
-    leakyBucketWaterMark.highWMDelay.tsSec = 0;
-    leakyBucketWaterMark.highWMDelay.tsMilliSec = 100;
-
-    leakyBucketInterval.tsMilliSec = getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL") ? atoi(getenv("CL_LEAKY_BUCKET_LEAK_INTERVAL")) :
-        CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL;
-
-    clLogInfo("ALM", "LEAKY-BUCKET-INI", "Creating a leaky bucket with vol [%lld], leak size [%lld], interval [%d ms]",
-                 leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval.tsMilliSec);
-
-    return clLeakyBucketCreateSoft(leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval, 
-                                   &leakyBucketWaterMark, &gClLeakyBucket);
-}
-
-#else
-
-ClRcT clAlarmLeakyBucketInitialize(void)
-{
-    return CL_OK;
-}
-
-#endif

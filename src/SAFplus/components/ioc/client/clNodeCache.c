@@ -735,7 +735,7 @@ ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     notification.id = htonl(CL_IOC_NODE_ARRIVAL_NOTIFICATION);
     notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
-    notification.nodeAddress.iocPhyAddress.portId = htonl(CL_IOC_CPM_PORT);
+    notification.nodeAddress.iocPhyAddress.portId = htonl(CL_IOC_GMS_PORT);
 
     clEoMyEoObjectGet(&eoObj);
 
@@ -785,7 +785,7 @@ ClRcT clNodeCacheLeaderSet(ClIocNodeAddressT leader)
 }
 
 
-ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader, ClBoolT send)
+ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader)
 {
     if(!gpClNodeCache) return CL_ERR_INVALID_PARAMETER;
 
@@ -847,12 +847,6 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader, ClBoolT send)
         */
     }
     clOsalSemUnlock(gClNodeCacheSem);
-
-    /* Update node cache on ALL nodes via a "gratuitous" IOC notification */
-    if (send)
-    {
-        clNodeCacheLeaderSend(currentLeader);
-    }
 
     return CL_OK;
 }

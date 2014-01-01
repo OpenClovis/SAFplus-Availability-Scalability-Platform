@@ -75,8 +75,7 @@ void clCkptLogError(ClUint32T   logLvl,
                     libName,CL_LOG_MESSAGE_0_RESOURCE_NON_EXISTENT);
             break;       
     case  CL_ERR_INVALID_HANDLE:
-            clLogWrite(CL_LOG_HANDLE_APP, severity, 
-                    libName,CL_LOG_MESSAGE_0_INVALID_HANDLE);
+            clLogWrite(CL_LOG_HANDLE_APP, severity,libName,"Invalid handle");
             break;       
     case  CL_ERR_INVALID_BUFFER:
             clLogWrite(CL_LOG_HANDLE_APP, severity, 

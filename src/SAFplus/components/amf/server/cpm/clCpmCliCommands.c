@@ -941,16 +941,19 @@ ClRcT clCpmCliNodeDelete(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
         rc = clBufferCreate(&message);
         if (argc != TWO_ARGUMENT)
         {
-            clBufferNBytesWrite(message,(ClUint8T *) STR_AND_SIZE("Usage: amfNodeTableDelete <slot num>\n"
+            clBufferNBytesWrite(message,(ClUint8T *) STR_AND_SIZE("Usage: nodeTableDelete <slot num>\n"
                                 "\tRemove the node from the AMF node table (for fault testing)\n"
                                                                   "\tslot num -- the node to remove\n"));
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
         }
         else
         {
-        ClUint32T slotnum = cpmCliStrToInt(argv[1]);
-        rc = cpmNodeDelByNodeId(slotnum);
-        clBufferNBytesWrite(message,(ClUint8T *) STR_AND_SIZE("OK\n"));
+            ClUint32T slotnum = cpmCliStrToInt(argv[1]);
+            rc = cpmNodeDelByNodeId(slotnum);
+            if (rc != CL_OK)
+                clBufferNBytesWrite(message,(ClUint8T *) STR_AND_SIZE("Error: Node ID does not exist in AMF node table\n"));
+            else
+                clBufferNBytesWrite(message,(ClUint8T *) STR_AND_SIZE("OK\n"));
         }
 
         clBufferFlatten(message, (ClUint8T **) retStr);
@@ -1192,6 +1195,7 @@ ClRcT clCpmHeartbeat(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     return rc;
 }
 
+#if 0
 ClRcT clCpmLogFileRotate(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
@@ -1212,6 +1216,7 @@ ClRcT clCpmLogFileRotate(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
     out:
     return rc;
 }
+#endif
 
 ClRcT clCpmRestart(ClUint32T argc, ClCharT **argv, ClCharT **retStr)
 {

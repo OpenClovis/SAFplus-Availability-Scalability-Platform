@@ -1307,9 +1307,9 @@ class Cli(cmd.Cmd):
         "                UL: Unlocked)\n" \
         "    CAS:        Computed administrative state (same values as AS)\n" \
         "    PS:         Presence state:\n" \
-        "                FIXME add details here\n" \
+        "                I: Instantiated, U: Uninstantiated\n" \
         "    OS:         Operational state:\n" \
-        "                FIXME add details here\n" \
+        "                E: Enabled, D: Disabled\n" \
         "    ISU:        # of instantiated SUs\n" \
         "    ASU:        # of assigned SUs\n"
         try:
@@ -1544,9 +1544,9 @@ class Cli(cmd.Cmd):
         "                UL: Unlocked)\n" \
         "    CAS:        Computed administrative state (same values as AS)\n" \
         "    PS:         Presence state:\n" \
-        "                FIXME add details here\n" \
+        "                I: Instantiated, U: Uninstantiated\n" \
         "    OS:         Operational state:\n" \
-        "                FIXME add details here\n" \
+        "                E: Enabled, D: Disabled\n" \
         "    RS:         Readiness state:\n" \
         "                FIXME add details here\n" \
         "    IC:         # of instantiated components\n" \
@@ -2118,7 +2118,10 @@ def main(argv):
             _do_colors = False
             
     if len(args):
-        cli.onecmd(' '.join(args))
+        t = ' '.join(args)
+        cmds = t.split(";")
+        for c in cmds:
+          cli.onecmd(c)
         sys.exit(_exit_code)
     else:
         _interactive_shell = True

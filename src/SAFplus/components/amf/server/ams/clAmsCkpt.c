@@ -298,8 +298,7 @@ static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
 
     if(rc != CL_OK )
     { 
-        AMS_LOG(CL_DEBUG_ERROR,("AMS Ckpt section overwrite failed for Section [%s] with error [0x%x]\n",
-                                pSection->value, rc));
+        AMS_LOG(CL_DEBUG_ERROR,("AMF checkpoint section overwrite failed for Section [%s] with error [0x%x]\n", pSection->value, rc));
         goto out_free;
     }
 
@@ -700,8 +699,7 @@ clAmsCkptInitialize(
     ClCkptHdlT  ckptOpenHandle = -1;
     ClNameT  ckptName = {0};
     const ClTimeT  timeout = CL_TIME_END;
-    const ClCkptOpenFlagsT  flags = 
-        CL_CKPT_CHECKPOINT_CREATE|CL_CKPT_CHECKPOINT_WRITE|CL_CKPT_CHECKPOINT_READ;
+    ClCkptOpenFlagsT  flags = CL_CKPT_CHECKPOINT_CREATE|CL_CKPT_CHECKPOINT_WRITE|CL_CKPT_CHECKPOINT_READ;
     ClCkptCheckpointCreationAttributesT  ckptAttributes = 
         {
             CL_CKPT_WR_ALL_REPLICAS | CL_CKPT_DISTRIBUTED,
@@ -713,6 +711,9 @@ clAmsCkptInitialize(
         };
     ClInt32T i;
     ClCharT *freq;
+    ClInt32T tries = 0;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
+    ClCkptCheckpointCreationAttributesT  *pCkptAttributes = &ckptAttributes;
 
     gClAmsCkptDifferential = clCkptDifferentialCheckpointStatusGet();
     if( (freq = getenv("CL_AMF_CKPT_FREQUENCY") ) )
@@ -766,13 +767,27 @@ clAmsCkptInitialize(
     ams->ckptVersionSection.length = strlen (AMS_CKPT_VERSION_SECTION) + 1;
 
     ams->ckptInitHandle = ckptInitHandle;
-    AMS_CHECK_RC_ERROR ( clCkptCheckpointOpen(
-                                              ckptInitHandle,
-                                              &ckptName,
-                                              &ckptAttributes,
-                                              flags,
-                                              timeout,
-                                              &ckptOpenHandle));
+    
+    do
+    {
+        rc = clCkptCheckpointOpen(ckptInitHandle,
+                                  &ckptName,
+                                  pCkptAttributes,
+                                  flags,
+                                  timeout,
+                                  &ckptOpenHandle);
+        tries++;
+        clLogNotice("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service, result [%x]", tries, rc);
+        if (CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc))
+        {
+            flags = (flags & (~CL_CKPT_CHECKPOINT_CREATE)) | CL_CKPT_CHECKPOINT_WRITE ;
+            pCkptAttributes  = NULL;
+        }
+    }while(rc != CL_OK && tries < 3 && clOsalTaskDelay(delay) == CL_OK);
+    if (rc != CL_OK)
+    {
+        goto exitfn;
+    }
     
     ams->ckptOpenHandle = ckptOpenHandle;
 
