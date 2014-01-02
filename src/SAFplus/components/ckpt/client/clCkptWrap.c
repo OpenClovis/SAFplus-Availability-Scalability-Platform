@@ -1238,7 +1238,7 @@ ClRcT clCkptActiveReplicaSet(ClCkptHdlT ckptHdl)
      * Return ERROR if the checkpoint has not been opened with create or
      * write mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag &  CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
