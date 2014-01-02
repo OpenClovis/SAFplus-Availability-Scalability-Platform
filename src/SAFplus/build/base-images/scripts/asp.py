@@ -250,12 +250,6 @@ def gen_asp_run_env_file(run_file, d):
     f.close()
     
 def set_up_asp_config():
-
-    if len(sys.argv) >= 2:    
-        if sys.argv[1] == 'help' :
-            usage() 
-            sys.exit(1)  
-
     def get_sandbox_dir():
         p = os.path.dirname(os.path.realpath(__file__))
         p = os.path.split(p)[0]
@@ -438,7 +432,8 @@ def init_log():
     logger.setLevel(logging.DEBUG)
 
     console = logging.StreamHandler(sys.stdout)
-    console.setLevel(logging.INFO)
+    #console.setLevel(logging.INFO)
+    console.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter('%(levelname)s %(message)s')
     console.setFormatter(formatter)
@@ -454,42 +449,6 @@ def is_executable_file(f):
     is_file = stat.S_ISREG(os.stat(f)[stat.ST_MODE])
     
     return is_file and os.access(f, os.R_OK | os.X_OK)
-
-def stop_amf_watchdog():
-    '''Depends on ps utility returning the first line
-    to be that of the watchdog process.
-    '''
-
-    p = '%s/safplus_watchdog.py' % get_asp_etc_dir()
-    cmd = sys_asp['get_amf_watchdog_pid_cmd'](p)
-    result=Popen(cmd)
-    # Eliminate the incorrect lines
-    psLine = filter(lambda x: not "grep" in x, result)
-
-    if len(psLine) == 0: # Its already dead
-      return
-    try:
-      wpid = int(psLine[0].split()[0])
-    except Exception, e:
-      print "Exception: %s" % str(e)
-      print "CMD: %s" % cmd
-      print "data: %s" % result
-      raise
-
-    try:
-        os.kill(wpid, signal.SIGKILL)
-    except OSError, e:
-        if e.errno == errno.ESRCH:
-            pass
-        else:
-            raise
-
-def start_amf_watchdog(stop_watchdog=True):
-    if stop_watchdog == True:
-	stop_amf_watchdog()
-    log.info('Starting AMF watchdog...')
-    cmd = sys_asp['get_start_amf_watchdog_cmd'](get_asp_etc_dir())
-    os.system(cmd)
 
 def stop_led_controller():
     cmd = 'pkill lifesignal 2>/dev/null'
@@ -680,8 +639,6 @@ def is_tipc_build(val=None):
         val = asp_env['build_tipc']
     res = checkTipc()
     return (bool(int(val)) and res)
-
-
 
 def config_tipc_module():
     if not is_tipc_build():
@@ -887,15 +844,16 @@ def load_config_tipc_module():
         elif tipc_state == (1, 1, 0):
             config_tipc_module()
         elif tipc_state == (1, 1, 1):
-            if not is_tipc_properly_configured():
+            if not is_tipc_properly_configured():  # To_Be_Done : Need to verify for enforced TIPC setting
                 log.debug('TIPC configuration mismatch.')
-                if enforce_tipc_settings():
-                    log.debug('The --enforce-tipc-settings option '
+                enforce_tipc_settings()
+                log.debug('The --enforce-tipc-settings option '
                               'is set, so using configuration in '
                               '%s/asp.conf.' % get_asp_etc_dir())
-                    unload_tipc_module()
-                    load_tipc_module()
-                    config_tipc_module()
+                unload_tipc_module()
+                load_tipc_module()
+                config_tipc_module()
+                """
                 elif ignore_tipc_settings():
                     log.debug('The --ignore-tipc-settings option '
                               'is set, so using system TIPC configuration...')
@@ -914,7 +872,7 @@ def load_config_tipc_module():
                                       get_asp_etc_dir()])
 
                     fail_and_exit(msg)
-                    
+                """    
 
     # Tipc module loading and configuring state machine :-(
     # (tipc_netid_defined ?, tipc_loaded ?, tipc_configured ?)
@@ -1135,32 +1093,11 @@ def remove_lock_file(asp_file):
     cmd = '[ -f %s ] && rm -f %s' % (asp_file, asp_file)
     system(cmd)
 
-def force_restart_safplus():
-    save_asp_runtime_files()
-    if is_tipc_build():
-        load_config_tipc_module()
-    set_ld_library_paths()
-    if is_system_controller():
-        start_snmp_daemon()
-    if is_simulation():
-        setup_gms_config()
-    run_custom_scripts('start')
-    start_amf()
-    if is_system_controller() and not is_simulation():
-        start_hpi_subagent()
-    if not is_simulation():
-        start_led_controller()
-
-
-def start_asp(stop_watchdog=True, force_start = False):
+def start_asp():
     try:
-        if False and not force_start:
-            proc_lock_file('touch')
-        check_asp_status(not force_start)
-        log.debug("cleanup");
-        kill_asp(False)
-        cleanup_asp()
-        save_asp_runtime_files()
+        cleanup_asp()                 # remove shared mem
+        save_asp_runtime_files()      # save previous core, log, files and clear DB files 
+
         load_config_tipc_module()
         set_ld_library_paths()
         if is_system_controller():
@@ -1173,7 +1110,6 @@ def start_asp(stop_watchdog=True, force_start = False):
             start_hpi_subagent()
         if not is_simulation():
             start_led_controller()
-        start_amf_watchdog(stop_watchdog)
     except:
         raise
 
@@ -1253,7 +1189,7 @@ def get_amf_pid(watchdog_pid = False):
          if valid[0] == 0:
             return int(valid[1])
     return 0;
-    
+
 def wait_until_amf_up():
     amf_pid = 0
     
@@ -1284,14 +1220,9 @@ def stop_asp():
         os.kill(amf_pid, signal.SIGINT)
         log.info('ASP is running with pid: %d' % amf_pid)
 
-    log.info('Stopping AMF watchdog...')
-    stop_amf_watchdog()
-
     log.info('Waiting for AMF to shutdown...')
     wait_for_asp_shutdown()
-
     run_custom_scripts('stop')
-
     kill_asp()
 
     proc_lock_file('remove')
@@ -1361,13 +1292,6 @@ def zap_asp(lock_remove = True):
         time.sleep(2) ## delay to give time for the zapped processes to exit
         unload_tipc_module()
 
-def restart_asp():
-    pass
-
-def start_asp_console():
-    os.putenv('ASP_CPM_LOGFILE', 'console')
-    start_asp()
-    
 def check_asp_status(watchdog_pid = False):
     v = is_asp_running(watchdog_pid)
     if v == 0:
@@ -1435,167 +1359,9 @@ def is_asp_running(watchdog_pid = False):
             return 2
     else:
         return 3
-    
-def usage():
-    print
-    print 'Usage : %s {start|stop|restart|console|status|zap|help} [options]' %\
-          os.path.splitext(os.path.basename(sys.argv[0]))[0]
-    print
-    print 'options can be one of the following : (these '\
-          'options only work with start command, '\
-          'e.g. etc/init.d/asp start -v etc.)'
-    print
-
-    l = ( ('-v', 'Be verbose'),
-          ('--enforce-tipc-settings',
-           'Use etc/asp.conf\'s TIPC settings '
-           'overriding the system TIPC settings'),
-          ('--ignore-tipc-settings',
-           'Use systems TIPC settings '
-           'ignoring the etc/asp.conf\'s settings'),
-          ('--remove-persistent-db',
-           'Delete all of the ASP persistent database files'),
-          ('--asp-log-level <level>',
-           'Start ASP with particular log level. <level> is '
-           '[trace|debug|info|notice|warning|error|critical]')
-        )
-
-    for o, h in l:
-        print '%-30s:  %s' % (o, h)
-
-def create_asp_cmd_marker(cmd):
-    execute_shell_cmd('echo "%s" > %s' %\
-                      (cmd,get_asp_cmd_marker_file()),
-                      'Failed to create [%s] marker' % cmd)
-
-def asp_driver(cmd):
-
-    cmd_map = {'start' : start_asp,
-               'stop' : stop_asp,
-               'restart': restart_asp,
-               'console' : start_asp_console,
-               'status' : get_asp_status,
-               'zap' : zap_asp,
-               'help' : usage
-               }
-
-    if cmd_map.has_key(cmd):
-        if cmd in ['zap','stop']:
-            create_asp_cmd_marker(cmd)
-            cmd_map[cmd]()
-        else:
-            cmd_map[cmd]()
-            create_asp_cmd_marker(cmd)
-    else:
-        fail_and_exit('Command [%s] not found !!' % cmd)
-
-def sanity_check():
-    def check_for_root_files(c):
-        cmd = 'find %s -uid 0 -type %s' % (get_asp_sandbox_dir(), c)
-        l = Popen(cmd)
-
-        if c == 'f':
-            t = 'files'
-        elif c == 'd':
-            t = 'directories'
-        else:
-            assert(0)
-
-        if l:
-            fail_and_exit('Some of the %s in the sandbox '
-                          'are owned by root. \nThis indicates that '
-                          'previously ASP may have been/is running '
-                          'in root user mode. \n'
-                          'Please delete those files to continue '
-                          'running/querying ASP as normal user or '
-                          'run/query ASP as root.' % t)
-
-    def check_for_root_shms():
-        cmd = 'find %s -uid 0 -type f -name \'CL_*\'' % sys_asp['shm_dir']
-        l = Popen(cmd)
-
-        if l:
-            fail_and_exit('Some of the shared memory segments '
-                          'in /dev/shm are owned by root. \n'
-                          'This indicates that previously ASP may '
-                          'have been/is running in root user mode. \n'
-                          'Please delete those files to continue '
-                          'running/querying ASP as normal user or '
-                          'run/query ASP as root.')
-
-    check_for_root_files('f')
-    check_for_root_files('d')
-
-    check_for_root_shms()
-
-def parse_command_line():
-    import getopt
-
-    try:
-        opts, args = getopt.getopt(sys.argv[2:],
-                                   'v',
-                                   ['enforce-tipc-settings',
-                                    'ignore-tipc-settings',
-                                    'remove-persistent-db',
-                                    'asp-log-level=',
-                                   ])
-    except getopt.GetoptError, e:
-        print 'Command line parsing failed, error [%s]' % e
-        usage()
-        sys.exit(1)
-
-    for o, a in opts:
-        if o == '-v':
-            import logging
-
-            for h in log.handlers:
-                h.setLevel(logging.DEBUG)
-        elif o == '--enforce-tipc-settings':
-            set_asp_env('enforce_tipc_settings', True)
-        elif o == '--ignore-tipc-settings':
-            set_asp_env('ignore_tipc_settings', True)
-        elif o == '--remove-persistent-db':
-            set_asp_env('remove_persistent_db', True)
-        elif o == '--asp-log-level':
-            l = ['trace', 'debug',
-                 'info', 'notice',
-                 'warning', 'error',
-                 'critical']
-            if a.lower() in l:
-                log_level = a.upper()
-                os.putenv('CL_LOG_SEVERITY', log_level)
-            else:
-                log.critical('Invalid ASP log level [%s]' % a)
-                usage()
-                sys.exit(1)
-
-def check_py_version():
-    min_req_version = (2, 3, 4)
-
-    if sys.version_info < min_req_version:
-        log.critical('This script requires python version %s '\
-                     'or later' % '.'.join(map(str, min_req_version)))
-        log.critical('You have python version %s' %\
-                     '.'.join(map(str, sys.version_info[0:3])))
-        sys.exit(1)
 
 def main():
-    check_py_version()
-
-    if len(sys.argv) < 2:
-        usage()
-        sys.exit(1)
-    else:
-        parse_command_line()
-
-    log_asp_env()
-
-    if not is_root():
-        if sys.argv[1] not in [ 'status' ]:
-            log.info('ASP is being run in non-root user mode.')
-            sanity_check()
-
-    asp_driver(sys.argv[1])
+    start_asp()
 
 log = init_log()
 sys_asp = init_sys_asp()
