@@ -75,10 +75,7 @@
 #include <clVersionApi.h>
 #include <clVersionErrors.h>
 
-ClRcT
-clVersionVerify (
-    ClVersionDatabaseT *versionDatabase,
-	ClVersionT *version)
+ClRcT clVersionVerify (ClVersionDatabaseT *versionDatabase, ClVersionT *version)
 {
 	int i;
 	ClRcT rc = CL_VERSION_RC(CL_ERR_VERSION_MISMATCH);
@@ -99,8 +96,7 @@ clVersionVerify (
 		/*
 		 * Check if caller requires and old release code that we don't support.
 		 */
-		if (version->releaseCode <
-            versionDatabase->versionsSupported[i].releaseCode)
+		if (version->releaseCode < versionDatabase->versionsSupported[i].releaseCode)
         {
 				break;
 		}
@@ -108,15 +104,13 @@ clVersionVerify (
 		/*
 		 * Check if we can support this release code.
 		 */
-		if (version->releaseCode ==
-            versionDatabase->versionsSupported[i].releaseCode)
+		if (version->releaseCode == versionDatabase->versionsSupported[i].releaseCode)
         {
 
 			/*
 			 * Check if we can support the major version requested.
 			 */
-			if (versionDatabase->versionsSupported[i].majorVersion >=
-                version->majorVersion)
+			if (versionDatabase->versionsSupported[i].majorVersion >= version->majorVersion)
             {
 				rc = CL_OK;
 				break;

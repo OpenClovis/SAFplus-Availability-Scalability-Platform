@@ -109,8 +109,9 @@ extern ClTestCaseData clCurTc;
  *  \sa clTestGroupFinalize()
  *
  */
+#ifndef     clTestGroupInitialize
 #define clTestGroupInitialize(name) do { clTestPrint(name); clTestGroupInitializeImpl(); } while(0)
-
+#endif
 /**
  ************************************
  *  \brief Stop the Test infrastructure
@@ -125,8 +126,9 @@ extern ClTestCaseData clCurTc;
  *  \sa clTestGroupInitialize()
  *
  */
+#ifndef     clTestGroupFinalize    
 #define clTestGroupFinalize() clTestGroupFinalizeImpl()
-
+#endif
 /**
  ************************************
  *  \brief Indicate that the Test Group cannot execute, if an expression evaluates to False.
@@ -483,6 +485,7 @@ do { \
  *   reflect the file/line of your test, not that of the helper function.
  *  \sa clTestPrint()
  */
+#ifndef clTestPrintAt    
 #define clTestPrintAt(__file, __line, __function, x) \
 do { \
     char __tempstr[2048]; \
@@ -491,7 +494,7 @@ do { \
     clTestPrintImpl(__file, __line, __function,__tempstr); \
     clLog(clTestLogLevel,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,__tempstr); \
 } while(0)
-
+#endif
 #else
 
 /* Make all macros a noop if CL_NO_TEST is defined */
