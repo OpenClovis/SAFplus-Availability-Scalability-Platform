@@ -1708,7 +1708,7 @@ ClRcT clCkptSectionCreate(
      * Return ERROR if the checkpoint has been opened in read mode.
      */
     if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE)
-     ||(pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
+     &&(pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
@@ -1885,7 +1885,7 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
      * Return ERROR in case the checkpoint was neither opened in write nor
      * create mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
@@ -2895,7 +2895,7 @@ ClRcT clCkptCheckpointWriteVector(ClCkptHdlT                     ckptHdl,
      * Return ERROR in case the checkpoint was neither opened in write nor
      * create mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
@@ -3081,7 +3081,7 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
      * Return ERROR in case the checkpoint was neither opened in write nor
      * create mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
@@ -4179,7 +4179,7 @@ ClRcT clCkptCheckpointSynchronize(ClCkptHdlT ckptHdl,
      * Return ERROR in case the checkpoint was neither opened in write nor
      * create mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
@@ -4453,7 +4453,7 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
      * Return ERROR in case the checkpoint was neither opened in write nor
      * create mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
