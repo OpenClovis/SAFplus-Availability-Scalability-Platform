@@ -84,6 +84,7 @@ clLogUtilLibFinalize(ClBoolT logLibInit);
  * This macro is for ASP components only, since it directs all logs
  * to the OpenClovis system log.
  */
+#ifndef SAFplus7    
 #define clLog(severity, area, context, ...)                     \
 do                                                              \
 {                                                               \
@@ -102,7 +103,7 @@ do                                                              \
                   pArea, pContext, __FILE__, __LINE__,          \
                   __VA_ARGS__);                                 \
 } while(0)
-
+    
 #define clLogDeferred(severity, area, context, ...)                     \
 do                                                                      \
 {                                                                       \
@@ -202,7 +203,7 @@ do                                                                      \
  * This macro is for ASP components only, since it directs all logs
  * to the OpenClovis system log.
  */
-
+#endif
 extern void parseMultiline(ClCharT **ppMsg, const ClCharT *pFmt, ...) CL_PRINTF_FORMAT(2, 3);
 
 #define clLogMultiline(severity, area, context, ...)                \

@@ -18,6 +18,24 @@
 # This file is included at the top of all other makefiles
 # It discovers the environment and sets standard variables.
 
+ifdef S7  # SAFplus v7
+
+SAFPLUS_TOOLCHAIN_DIR := /opt/clovis/6.1/buildtools/local
+
+MAKE_DIR := $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
+SAFPLUS_SRC_DIR ?= $(dir $(MAKE_DIR)../../)
+SAFPLUS_INC_DIR ?= $(SAFPLUS_SRC_DIR)/SAFplus/include7
+BOOST_DIR ?= $(SAFPLUS_SRC_DIR)../../boost
+CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR)
+CPP_FLAGS += -I$(BOOST_DIR)  -I.
+COMPILE_CPP = g++ -g -O0 -fPIC -c $(CPP_FLAGS) -o
+LINK_SO     = g++ -g -shared -o 
+LINK = g++ -g -O0 -fPIC $(LINK_FLAGS) -o $@
+
+LINK_LIBS ?=
+LINK_STD_LIBS += $(SAFPLUS_TOOLCHAIN_DIR)/lib/libboost_system.a -lpthread -lrt
+
+endif
 
 # If the chassis manager directory is not defined go look for it
 

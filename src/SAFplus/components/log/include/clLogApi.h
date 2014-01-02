@@ -248,6 +248,7 @@ typedef struct
  */
 typedef ClUint8T  ClLogStreamHandlerFlagsT;
 
+
 typedef enum
   {
 /**
@@ -300,6 +301,7 @@ typedef enum
  */
   CL_LOG_SEV_MAX    =    CL_LOG_SEV_DEBUG9
   } ClLogSeverityT;
+
 
 #if 0
 /**
