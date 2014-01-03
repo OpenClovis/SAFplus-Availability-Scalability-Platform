@@ -38,6 +38,7 @@ namespace SAFplusI
     public:
         SAFplus::HandleT stream;
         uint64_t offset;
+      SAFplus::LogSeverityT severity;
     };
 
 

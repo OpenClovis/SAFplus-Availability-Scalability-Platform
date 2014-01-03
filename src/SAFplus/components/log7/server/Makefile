@@ -10,17 +10,19 @@ LINK_EXE     := g++ -g -o
 LOG_SERVER_H := $(wildcard *.hpp) $(wildcard ../../../include7/*.hpp) 
 LOG_SERVER_SRC := $(wildcard *.cpp) ../clLogCommon.cpp
 LOG_SERVER_OBJ := $(subst .cpp,.o,$(LOG_SERVER_SRC))
+LOG_SERVER_OBJ := $(addprefix $(SAFPLUS_TARGET)/obj/,$(LOG_SERVER_OBJ))
 
-# TODO put the libs in a single architecture-specific place & define var
-LINK_LIBS += ../../osal7/clOsal.so
+DEP_LIBS += $(LIB_DIR)/clOsal.so
 
-all: splogd
+all: $(SAFPLUS_TARGET)/bin/splogd
 
-splogd: $(LOG_SERVER_OBJ)
-	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(LINK_STD_LIBS)
+$(SAFPLUS_TARGET)/bin/splogd: $(LOG_SERVER_OBJ) $(DEP_LIBS)
+	$(LINK_EXE) $@ $+ $(DEP_LIBS) $(LINK_STD_LIBS)
 
-%.o: %.cpp Makefile $(LOG_SERVER_H)
+$(SAFPLUS_TARGET)/obj/%.o: %.cpp Makefile $(LOG_SERVER_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
 	rm -f *.o splogd
+
+include ../../../mk/safplus_targets.mk

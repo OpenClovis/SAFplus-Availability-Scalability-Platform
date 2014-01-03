@@ -1,12 +1,14 @@
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 #include <clLogIpi.hpp>
+#include <clGlobals.hpp>
 
 using namespace boost::interprocess;
 using namespace SAFplusI;
 using namespace SAFplus;
 
 bool SAFplus::logCodeLocationEnable=true;
+SAFplus::LogSeverityT SAFplus::logSeverity=SAFplus::LOG_SEV_NOTICE;
 
 namespace SAFplusI
 {

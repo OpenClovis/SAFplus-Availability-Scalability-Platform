@@ -1,6 +1,6 @@
 
 #include <clLogApi.hpp>
-
+#include <clGlobals.hpp>
 #define this_error_indicates_missing_parens_around_string(...) __VA_ARGS__
 
 // I need ot override the output of the test macros because Osal is so fundamental that the test routines use it!
@@ -23,6 +23,16 @@ void TestLog_basic(void)
   logAlert("LOG","TST","Test Alert Log");
   
   //clTestCaseEnd((" "));
+  logSeverity = LOG_SEV_CRITICAL;
+  logCritical("LOG","TST","Test critical Log");
+  logError("LOG","TST","this log should not appear");
+  logSeverity = LOG_SEV_ERROR;
+  logError("LOG","TST","this log should appear");
+  logDebug("LOG","TST","this log should not appear");
+
+  logSeverity = LOG_SEV_TRACE;
+  logError("LOG","TST","this log should appear");
+  logDebug("LOG","TST","this log should appear");
   
 }
 

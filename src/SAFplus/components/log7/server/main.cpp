@@ -1,5 +1,6 @@
 #include <clLogIpi.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <clGlobals.hpp>
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace boost::posix_time;
@@ -17,8 +18,8 @@ LogConfig gConfig;
 
 void postRecord(LogBufferEntry* rec, char* msg)
 {
+  if (rec->severity > SAFplus::logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the client also does this check.
   printf("%s\n",msg);
-  
 }
 
 int main(int argc, char* argv[])
