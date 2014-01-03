@@ -3,16 +3,13 @@ include ../../../mk/preface.mk
 
 CLIENT_H := $(wildcard *.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp) 
 CLIENT_SRC := $(wildcard *.cpp)
-CLIENT_OBJ := $(subst .cpp,.o,$(CLIENT_SRC))
+CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cpp,.o,$(CLIENT_SRC)))
 
-# TODO use proper prefix variable
-LINK_STD_LIBS += /opt/clovis/6.1/sdk/prebuild/target/x86_64/linux-3.5.7/lib/libmw.so -ldl -lrt
+all: $(TEST_DIR)/testOsal
 
-all: testOsal
+$(TEST_DIR)/testOsal: $(CLIENT_OBJ)
+	$(LINK) $+ $(LINK_LIBS) $(LIB_DIR)/clOsal.so $(LINK_STD_LIBS)
 
-testOsal: $(CLIENT_OBJ)
-	$(LINK) $+ $(LINK_LIBS) ../clOsal.so $(LINK_STD_LIBS)
-
-%.o: %.cpp Makefile $(CLIENT_H)
+$(OBJ_DIR)/%.o: %.cpp Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 

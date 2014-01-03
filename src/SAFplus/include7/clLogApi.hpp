@@ -1,5 +1,14 @@
+#ifndef clLogApi_hpp
+#define clLogApi_hpp
 #include <clHandleApi.hpp>
-#include <clGlobals.hpp>
+
+#ifdef __GNUC__
+#define CL_DEPRECATED __attribute__((__deprecated__))
+#define CL_PRINTF_FORMAT(fmtPos, argPos) __attribute__((format(printf, fmtPos, argPos)))
+#else
+#define CL_DEPRECATED
+#define CL_PRINTF_FORMAT(fmtPos, argPos)
+#endif
 
 #define CL_LOG_CLIENT_VERSION    {'B', 0x01, 0x01}
 
@@ -71,9 +80,11 @@ typedef enum
   LOG_SEV_MAX = LOG_SEV_DEBUG9
   } LogSeverityT;
 
-  Logger* logInitialize(ClVersionT* pVersion=0);
 
 void logMsgWrite(HandleT streamHdl, LogSeverityT  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *pFmtStr,...) CL_PRINTF_FORMAT(8, 9);
+
+
+  Logger* logInitialize(void);
 
 };
 
@@ -142,3 +153,4 @@ do                                                                      \
 {                                                                       \
   SAFplus::logMsgWrite(streamHandle, severity, serviceId, area, context, __FILE__, __LINE__, __VA_ARGS__); \
 } while(0)
+#endif

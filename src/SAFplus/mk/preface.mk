@@ -23,9 +23,11 @@ ifdef S7  # SAFplus v7
 SAFPLUS_TOOLCHAIN_DIR := /opt/clovis/6.1/buildtools/local
 
 MAKE_DIR := $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
-SAFPLUS_SRC_DIR ?= $(dir $(MAKE_DIR)../../)
+#SAFPLUS_SRC_DIR ?= $(dir $(MAKE_DIR)../../)
+SAFPLUS_SRC_DIR ?= $(shell (cd $(MAKE_DIR)../../; pwd))
 SAFPLUS_INC_DIR ?= $(SAFPLUS_SRC_DIR)/SAFplus/include7
-BOOST_DIR ?= $(SAFPLUS_SRC_DIR)../../boost
+#BOOST_DIR ?= $(SAFPLUS_SRC_DIR)../../boost
+BOOST_DIR ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR)
 CPP_FLAGS += -I$(BOOST_DIR)  -I.
 COMPILE_CPP = g++ -g -O0 -fPIC -c $(CPP_FLAGS) -o
@@ -34,6 +36,27 @@ LINK = g++ -g -O0 -fPIC $(LINK_FLAGS) -o $@
 
 LINK_LIBS ?=
 LINK_STD_LIBS += $(SAFPLUS_TOOLCHAIN_DIR)/lib/libboost_system.a -lpthread -lrt
+LINK_SO_LIBS += -lpthread -lrt
+
+TARGET_OS ?= $(shell uname -r)
+TARGET_PLATFORM ?= $(shell uname -p)
+
+
+NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS))
+SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS); pwd))
+
+NOOP := $(shell echo $(SAFPLUS_TARGET))
+NOOP := $(shell mkdir -p $(SAFPLUS_TARGET)/lib)
+NOOP := $(shell mkdir -p $(SAFPLUS_TARGET)/mwobj)
+NOOP := $(shell mkdir -p $(SAFPLUS_TARGET)/obj)
+NOOP := $(shell mkdir -p $(SAFPLUS_TARGET)/bin)
+NOOP := $(shell mkdir -p $(SAFPLUS_TARGET)/test)
+
+TEST_DIR ?= $(SAFPLUS_TARGET)/test
+LIB_DIR ?= $(SAFPLUS_TARGET)/lib
+BIN_DIR ?= $(SAFPLUS_TARGET)/bin
+OBJ_DIR ?= $(SAFPLUS_TARGET)/obj
+MWOBJ_DIR ?= $(SAFPLUS_TARGET)/mwobj
 
 endif
 

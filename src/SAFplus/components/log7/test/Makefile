@@ -3,18 +3,19 @@ include ../../../mk/preface.mk
 
 CLIENT_H := $(wildcard *.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp) 
 CLIENT_SRC := $(wildcard *.cpp)
-CLIENT_OBJ := $(subst .cpp,.o,$(CLIENT_SRC))
+CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cpp,.o,$(CLIENT_SRC)))
 
-# TODO use proper prefix variable
-# LINK_STD_LIBS := /opt/clovis/6.1/sdk/prebuild/target/x86_64/linux-3.5.7/lib/libmw.so $(LINK_STD_LIBS)
+DEP_LIBS := $(LIB_DIR)/clLog.so $(LIB_DIR)/clUtils.so $(LIB_DIR)/clOsal.so
 
-all: testLog
+all: $(TEST_DIR)/testLog
 
-testLog: $(CLIENT_OBJ)
-	$(LINK) $+ $(LINK_LIBS) ../clLog.so ../../utils7/clUtils.so ../../osal7/clOsal.so  $(LINK_STD_LIBS) 
+$(TEST_DIR)/testLog: $(CLIENT_OBJ) $(DEP_LIBS)
+	$(LINK) $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
 
-%.o: %.cpp Makefile $(CLIENT_H)
+$(OBJ_DIR)/%.o: %.cpp Makefile ../../../mk/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
 	rm -f *.o testLog
+
+include ../../../mk/safplus_targets.mk

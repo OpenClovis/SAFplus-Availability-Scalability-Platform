@@ -31,17 +31,18 @@ static ClVersionDatabaseT gLogClntVersionDb = {
 
 static const ClCharT* logSeverityStrGet(SAFplus::LogSeverityT severity);
 
-Logger* SAFplus::logInitialize(ClVersionT* pVersion)
+Logger* SAFplus::logInitialize()
 {
     ClRcT       rc          = CL_OK;
     ClBoolT     firstHandle = CL_FALSE;
     ClIocPortT  port        = 0;
+#if 0    
     if (pVersion)
       {
         rc = clVersionVerify(&gLogClntVersionDb, pVersion);
         CL_ASSERT(CL_OK != rc);
       }
-
+#endif
     logInitializeSharedMem();
 
     utilsInitialize();  /* Logging uses globals initialized by utils, but is tolerant of uninitialized vals.  Utils may log so this must be run AFTER logging is inited */
@@ -54,6 +55,9 @@ void SAFplus::logMsgWrite(HandleT streamHdl, LogSeverityT  severity, uint_t serv
   ClCharT      timeStr[40]   = {0};
   ClCharT           msg[CL_LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
   va_list vaargs;
+
+  if (severity > logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the server ALSO does this check...
+  
   va_start(vaargs, pFmtStr);
   pSevName = logSeverityStrGet(severity);
 
@@ -61,17 +65,12 @@ void SAFplus::logMsgWrite(HandleT streamHdl, LogSeverityT  severity, uint_t serv
   // Create the log header
   if(logCodeLocationEnable)        
     {
-      msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR, 
-                           timeStr, pFileName, lineNum, SAFplus::ASP_NODENAME, pid,
-                              ((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
+      msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR, timeStr, pFileName, lineNum, SAFplus::ASP_NODENAME, pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
                 
     }
   else
     {
-      msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR_WO_FILE,
-                              timeStr, SAFplus::ASP_NODENAME, pid,
-                              ((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext,
-                              msgIdCnt, pSevName);
+      msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR_WO_FILE,timeStr, SAFplus::ASP_NODENAME, pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
     }
 
   // Now append the log message        
@@ -85,8 +84,9 @@ void SAFplus::logMsgWrite(HandleT streamHdl, LogSeverityT  severity, uint_t serv
   LogBufferEntry* rec = static_cast<LogBufferEntry*>((void*)(((char*)base)+clLogBufferSize-sizeof(LogBufferEntry)));  
   rec -= (clLogHeader->numRecords);
 
-  rec->stream = streamHdl;
-  rec->offset = clLogHeader->msgOffset;
+  rec->stream   = streamHdl;
+  rec->offset   = clLogHeader->msgOffset;
+  rec->severity = severity;
   memcpy(base+rec->offset, msg, msgStrLen+1); // length + 1 includes the null terminator
 
   clLogHeader->numRecords++;

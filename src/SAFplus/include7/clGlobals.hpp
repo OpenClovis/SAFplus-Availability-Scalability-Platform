@@ -1,10 +1,14 @@
 #include <clIocApi.h>
+#include <clLogApi.hpp>
 
 namespace SAFplus
 {
   extern pid_t pid;  // This process's ID 
   extern char* logCompName;  // Override this component name for display in the logs.  If this variable is not changed the name will be the SAF component name.
   extern bool  logCodeLocationEnable;
+
+  extern SAFplus::LogSeverityT logSeverity;
+  
   extern ClIocPortT  iocPort;  // The default communications port number for this component
 
 /** Name of the node.  Loaded from the same-named environment variable.  */
@@ -30,6 +34,8 @@ extern ClCharT ASP_CONFIG[CL_MAX_NAME_LENGTH];
 /** Dir where persistent db files are to be stored. Loaded from the same-named environment variable.  */
 extern ClCharT ASP_DBDIR[CL_MAX_NAME_LENGTH];
 
+
+  
 /** Variable to check if the current node is a system controller node.  Loaded from the same-named environment variable.  */
 extern ClBoolT SYSTEM_CONTROLLER; 
 /** Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.  */
