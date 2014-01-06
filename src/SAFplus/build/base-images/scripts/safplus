@@ -35,6 +35,11 @@ stop() {
     return $?
 }
 
+restart() {
+    $ASP_SCRIPT restart $*
+    return $?
+}
+
 status() {
     $ASP_SCRIPT status
     return $?
@@ -78,7 +83,7 @@ if [ "SunOS" = $THIS_OS ]
 then
     ASP_SCRIPT=$ASP_DIR/etc/asp_solaris.py
 else
-    ASP_SCRIPT=$ASP_DIR/etc/asp.py
+    ASP_SCRIPT=$ASP_DIR/etc/safplus_watchdog_start.py
 fi
 
 
@@ -102,9 +107,8 @@ case "$1" in
         ;;
 
     restart)
-	stop
+	restart
         shift
-	start $*
         RETVAL=$?
         ;;
 

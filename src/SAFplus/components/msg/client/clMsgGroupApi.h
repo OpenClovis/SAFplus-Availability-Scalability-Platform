@@ -49,6 +49,7 @@ typedef struct {
     SaAisErrorT rc;
 }ClMsgAppQGroupTrackCallbakParamsT;
 
+ClRcT clMsgClientsTrackCallback_4_0_0(SaMsgHandleT clientHandle, SaNameT *pGroupName, SaMsgQueueGroupNotificationBufferT *pData);
 #ifdef __cplusplus
 }
 #endif

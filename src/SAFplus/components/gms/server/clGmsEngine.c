@@ -247,12 +247,12 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused,
 
 ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,ClUint8T priority,ClUint8T protoType,ClUint32T length,ClIocPhysicalAddressT srcAddr)
 {
-    ClIocNotificationT notification = {0};
+    ClIocNotificationT notification;
     ClUint32T len = sizeof(notification);
 
     clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&notification, &len);
 
-    notification.id = ntohl(notification.id);
+    notification.id = (ClIocNotificationIdT) ntohl(notification.id);
     notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
 
@@ -296,7 +296,7 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
                                 static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
                                 ClUint32T myCapability = 0;
                                 ClIocNotificationT notification;
-                                notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
+                                notification.id = (ClIocNotificationIdT) htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
                                 notification.nodeVersion = htonl(nodeVersion);
                                 notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
                                 notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);

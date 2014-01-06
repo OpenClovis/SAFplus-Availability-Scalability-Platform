@@ -496,7 +496,7 @@ void cpmCompConfigCpy(ClCpmCompConfigT *toConfig,
 
     for (i = 0; (i < CPM_MAX_ARGS -1) && fromConfig->argv[i]; ++i)
     {
-        toConfig->argv[i] = clHeapAllocate(strlen(fromConfig->argv[i]) + 1);
+        toConfig->argv[i] = (ClCharT*) clHeapAllocate(strlen(fromConfig->argv[i]) + 1);
         if (!toConfig->argv[i])
         {
             clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
@@ -512,7 +512,7 @@ void cpmCompConfigCpy(ClCpmCompConfigT *toConfig,
 
     for (i = 0; fromConfig->env[i]; ++i)
     {
-        toConfig->env[i] = clHeapAllocate(sizeof(ClCpmEnvVarT));
+        toConfig->env[i] = (ClCpmEnvVarT*) clHeapAllocate(sizeof(ClCpmEnvVarT));
         if (!toConfig->env[i])
         {
             clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
@@ -2001,15 +2001,12 @@ ClRcT _cpmSaAwareComponentInstantiate(ClCharT *compName,
         ClCharT binary[CL_MAX_NAME_LENGTH] = {0};
         ClCharT *pBinPath = getenv(CL_ASP_BINDIR_PATH);
 
-        clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                    "Launching binary image [%s] as component [%s]...",
-                    comp->compConfig->argv[0],
+        clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Launching binary image [%s] as component [%s]...", comp->compConfig->argv[0],
                     comp->compConfig->compName);
 
         if (!pBinPath)
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                          "The ASP_BINDIR environmental variable is not set !");
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "The ASP_BINDIR environmental variable is not set !");
 
             rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_FAILED);
 
@@ -2022,18 +2019,11 @@ ClRcT _cpmSaAwareComponentInstantiate(ClCharT *compName,
             if (comp->compConfig->argv[0][0] == '/')
                 strncpy(binary,comp->compConfig->argv[0],sizeof(binary)-1);
             else
-              snprintf(binary,
-                     sizeof(binary),
-                     "%s/%s",
-                     pBinPath,
-                     comp->compConfig->argv[0]);
+              snprintf(binary, sizeof(binary), "%s/%s", pBinPath, comp->compConfig->argv[0]);
 
             if (access(binary, F_OK|X_OK))
             {
-                clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                              "Binary [%s] access error [%s] !",
-                              binary,
-                              strerror(errno));
+                clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Binary [%s] access error [%s] !", binary, strerror(errno));
 
                 rc = CL_CPM_RC(CL_CPM_ERR_OPERATION_FAILED);
                 goto failure;
@@ -2048,18 +2038,11 @@ ClRcT _cpmSaAwareComponentInstantiate(ClCharT *compName,
 
     if (IS_ASP_COMP(comp)) clCompTimerInstantiate(comp);
     
-    rc = clOsalProcessCreate(cpmSaAwareExecImage, 
-                             comp, 
-                             CL_OSAL_PROCESS_WITH_NEW_SESSION |
-                             CL_OSAL_PROCESS_WITH_NEW_GROUP,
-                             &childPid);
+    rc = clOsalProcessCreate(cpmSaAwareExecImage, comp, (ClOsalProcessFlagT) (CL_OSAL_PROCESS_WITH_NEW_SESSION | CL_OSAL_PROCESS_WITH_NEW_GROUP), &childPid);
 
     if (CL_OK != rc)
     {
-        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                      "Failed to start [%s], error [%#x]",
-                      comp->compConfig->argv[0],
-                      rc);
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Failed to start [%s], error [%#x]", comp->compConfig->argv[0], rc);
         if (IS_ASP_COMP(comp))clTimerStop(comp->cpmInstantiateTimerHandle);
         goto failure;
     }
@@ -2068,15 +2051,12 @@ ClRcT _cpmSaAwareComponentInstantiate(ClCharT *compName,
     comp->processId = childPid;
 #endif
 
-    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-              "Component [%s] started, PID [%d]",
-              comp->compConfig->compName,
-              comp->processId);
+    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Component [%s] started, PID [%d]", comp->compConfig->compName, comp->processId);
 
     return CL_OK;
 
     failure:
-    cpmCompRespondToCaller(comp, comp->requestType, rc);
+    cpmCompRespondToCaller(comp,(ClCpmCompRequestTypeT)  comp->requestType, rc);
 
     return CL_OK;
 }
@@ -2238,19 +2218,12 @@ ClRcT cpmNonProxiedNonPreinstantiableCompInstantiate(ClCpmComponentT *comp)
     ClRcT rc = CL_OK;
     ClOsalPidT childPid = 0;
 
-    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-               "Starting non proxied non preinstantiable component [%s]...",
-               comp->compConfig->compName);
+    clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Starting non proxied non preinstantiable component [%s]...",comp->compConfig->compName);
     
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                "Launching binary image [%s] as component [%s]...",
-                comp->compConfig->argv[0],
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Launching binary image [%s] as component [%s]...", comp->compConfig->argv[0],
                 comp->compConfig->compName);
 
-    rc = clOsalProcessCreate(cpmNonProxiedNonPreinstantiableExecImage,
-                             comp, 
-                             CL_OSAL_PROCESS_WITH_NEW_SESSION |
-                             CL_OSAL_PROCESS_WITH_NEW_GROUP,
+    rc = clOsalProcessCreate(cpmNonProxiedNonPreinstantiableExecImage, comp,(ClOsalProcessFlagT) (CL_OSAL_PROCESS_WITH_NEW_SESSION | CL_OSAL_PROCESS_WITH_NEW_GROUP),
                              &childPid);
     if (CL_OK != rc)
     {
@@ -2861,9 +2834,8 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
     {
         cachedConfigLoc = getenv("ASP_CONFIG");
         if(!cachedConfigLoc)
-            cachedConfigLoc = "/root/asp/etc";
-        snprintf(script, sizeof(script), "%s/asp.d/%s", 
-                 cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
+            cachedConfigLoc = (ClCharT*) "/root/asp/etc";
+        snprintf(script, sizeof(script), "%s/asp.d/%s", cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
         /*
          * Script exists?
          */
@@ -3818,7 +3790,7 @@ ClRcT VDECL(cpmComponentRestart)(ClEoDataT data,
     return rc;
 }
 
-ClCharT *_cpmReadinessStateNameGet(
+const ClCharT *_cpmReadinessStateNameGet(
     ClAmsReadinessStateT readinessState
 )
 {
@@ -3843,7 +3815,7 @@ ClCharT *_cpmReadinessStateNameGet(
     }
 }
 
-ClCharT *_cpmPresenceStateNameGet(
+const ClCharT *_cpmPresenceStateNameGet(
     ClAmsPresenceStateT presenceState
 )
 {
@@ -3884,7 +3856,7 @@ ClCharT *_cpmPresenceStateNameGet(
     }
 }
 
-ClCharT *_cpmOperStateNameGet(
+const ClCharT *_cpmOperStateNameGet(
     ClAmsOperStateT operState
 )
 {
@@ -4120,8 +4092,8 @@ static ClRcT cpmFailureReportTask(void *data)
        &&
        gpClCpm->cpmToAmsCallback->compErrorReport)
     {
-        ClErrorReportT *errorReport = data;
-        ClAmsEntityT entity = {0};
+        ClErrorReportT *errorReport = (ClErrorReportT*) data;
+        ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
         gpClCpm->cpmToAmsCallback->compErrorReport(
                                                    &errorReport->compName, 
                                                    errorReport->time, 
@@ -4147,7 +4119,7 @@ ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
 
     clLogTrace("COMP","FAILURE","Inside cpmComponentFailureReport \n");
 
-    errorReport = clHeapCalloc(1, sizeof(*errorReport));
+    errorReport = (ClErrorReportT*) clHeapCalloc(1, sizeof(*errorReport));
     CL_ASSERT(errorReport != NULL);
     
     rc = VDECL_VER(clXdrUnmarshallClErrorReportT, 4, 0, 0)(inMsgHandle, (void *)errorReport);
@@ -4178,7 +4150,7 @@ ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
 
     if (gpClCpm->cpmToAmsCallback != NULL && gpClCpm->cpmToAmsCallback->compErrorReport != NULL)
     {
-        ClAmsEntityT entity = {0};
+        ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
         errorReport->compName.length += 1;
         memcpy(&entity.name, &errorReport->compName, sizeof(entity.name));
         clAmsFaultQueueAdd(&entity);
@@ -5174,7 +5146,7 @@ ClRcT VDECL(cpmComponentInfoGet)(ClEoDataT data,
     compInfoRecv.numArgs = numArgs;
     if (compInfoRecv.numArgs)
     {
-        compInfoRecv.args = clHeapAllocate(compInfoRecv.numArgs * sizeof(ClStringT));
+        compInfoRecv.args = (ClStringT*) clHeapAllocate(compInfoRecv.numArgs * sizeof(ClStringT));
         if (!compInfoRecv.args)
         {
             rc = CL_CPM_RC(CL_ERR_NO_MEMORY);
@@ -5187,7 +5159,7 @@ ClRcT VDECL(cpmComponentInfoGet)(ClEoDataT data,
             ClStringT *s = (compInfoRecv.args)+(i-1);
             ClUint32T len = strlen(comp->compConfig->argv[i]);
         
-            s->pValue = clHeapAllocate(len);
+            s->pValue = (ClCharT*) clHeapAllocate(len);
             if (!s->pValue)
             {
                 rc = CL_CPM_RC(CL_ERR_NO_MEMORY);

@@ -53,8 +53,7 @@
 #endif
 
 extern ClRmdLibConfigT _clRmdConfig;
-extern ClRcT clEoGetRemoteObjectAndBlock(ClUint16T remoteObj,
-                                         ClEoExecutionObjT **pRemoteEoObj);
+//extern ClRcT clEoGetRemoteObjectAndBlock(ClUint16T remoteObj, ClEoExecutionObjT **pRemoteEoObj);
 
 /*
  * Version Related Definitions

@@ -32,10 +32,13 @@
 #include <clCommonErrors.h>
 #include <assert.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 /*
  * The below are weak and could be overriden by others
  */
-ClRcT clHeapLibCustomInitialize(const ClPtrT pConfig) CL_WEAK;
+ClRcT clHeapLibCustomInitialize(const ClPtrT  pConfig) CL_WEAK;
 ClRcT clHeapLibCustomFinalize(void) CL_WEAK;
 
 /*
@@ -54,3 +57,8 @@ ClRcT clHeapLibCustomFinalize(void)
 }
 
 ClUint16T gClRmdMaxRetries=8;
+
+
+#ifdef __cplusplus
+}
+#endif

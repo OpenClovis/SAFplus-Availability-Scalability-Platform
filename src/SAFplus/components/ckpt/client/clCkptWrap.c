@@ -47,6 +47,7 @@
 #include  "ckptEockptServerExtCliServerFuncPeerClient.h"
 #include "ckptEockptServerActivePeerClient.h"
 #include "ckptClntEockptClntckptClntClient.h"
+#include "ckptClntEockptClntckptClntServer.h"
 #include  "ckptClntEoServer.h"
 #include  "ckptClntEoClient.h"
 #include  "ckptEoClient.h"
@@ -1237,7 +1238,7 @@ ClRcT clCkptActiveReplicaSet(ClCkptHdlT ckptHdl)
      * Return ERROR if the checkpoint has not been opened with create or
      * write mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag &  CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
@@ -1707,7 +1708,7 @@ ClRcT clCkptSectionCreate(
      * Return ERROR if the checkpoint has been opened in read mode.
      */
     if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE)
-     ||(pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
+     &&(pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
         clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
@@ -1884,7 +1885,7 @@ ClRcT clCkptSectionDelete(ClCkptHdlT               ckptHdl,
      * Return ERROR in case the checkpoint was neither opened in write nor
      * create mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
@@ -2894,7 +2895,7 @@ ClRcT clCkptCheckpointWriteVector(ClCkptHdlT                     ckptHdl,
      * Return ERROR in case the checkpoint was neither opened in write nor
      * create mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
@@ -3080,7 +3081,7 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
      * Return ERROR in case the checkpoint was neither opened in write nor
      * create mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
@@ -4178,7 +4179,7 @@ ClRcT clCkptCheckpointSynchronize(ClCkptHdlT ckptHdl,
      * Return ERROR in case the checkpoint was neither opened in write nor
      * create mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
@@ -4452,7 +4453,7 @@ ClRcT clCkptCheckpointSynchronizeAsync(ClCkptHdlT    ckptHdl,
      * Return ERROR in case the checkpoint was neither opened in write nor
      * create mode.
      */
-    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) &&
          (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
     {
         rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
@@ -5385,11 +5386,7 @@ void ckptEventCallback(ClEventSubscriptionIdT    subscriptionId,
     }
 }
 
-ClRcT
-VDECL_VER(clCkptSectionUpdationNotification, 4, 0, 0)(SaNameT          *pName,
-                                  ClCkptSectionIdT *pSecId,      
-                                  ClUint32T        dataSize,   
-                                  ClUint8T         *pData) 
+ClRcT clCkptSectionUpdationNotification_4_0_0(SaNameT *pName, ClCkptSectionIdT *pSecId, ClUint32T  dataSize, ClUint8T  *pData) 
 {
     ClRcT                        rc             = CL_OK;
     ClUint32T                    cksum          = 0;
@@ -5532,10 +5529,7 @@ VDECL_VER(clCkptSectionUpdationNotification, 4, 0, 0)(SaNameT          *pName,
     return CL_OK;
 }
 
-ClRcT
-VDECL_VER(clCkptWriteUpdationNotification, 4, 0, 0)(SaNameT                 *pName,
-                                ClUint32T               numSections,
-                                ClCkptIOVectorElementT  *pIoVector)
+ClRcT clCkptWriteUpdationNotification_4_0_0(SaNameT  *pName, ClUint32T  numSections, ClCkptIOVectorElementT_4_0_0  *pIoVector)
 {
     ClRcT                        rc             = CL_OK;
     ClUint32T                    cksum          = 0;

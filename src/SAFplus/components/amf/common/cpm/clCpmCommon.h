@@ -44,7 +44,6 @@ extern "C"
     
 struct _ClCpmLocalInfoT_4_0_0;
     
-
 #define CPM_LOG_AREA_CPM               "CPM"
     
 #define CL_ASP_CONFIG_PATH             "ASP_CONFIG"
@@ -153,7 +152,7 @@ struct _ClCpmLocalInfoT_4_0_0;
 
 #define CL_CPM_INVOCATION_CB_TYPE_GET(invocationId, cbType) \
 {                                                           \
-    cbType = ((invocationId) >> 32);                        \
+    cbType =  ((invocationId) >> 32);                        \
 }
 
 #define CL_CPM_INVOCATION_KEY_GET(invocationId, invocation) \

@@ -105,7 +105,7 @@ static ClRcT _cpmCsiDescriptorPack(ClAmsCSIDescriptorT csiDescriptor,
     ClBufferHandleT message;
     ClUint32T msgLength = 0;
     ClUint32T numAttr = 0;
-    ClCpmCSIDescriptorNameValueT attrType = 0;
+    ClCpmCSIDescriptorNameValueT attrType = CL_CPM_CSI_ATTR_NONE;
     ClAmsCSIAttributeListT *attrList = NULL;
     ClUint8T *attributeName = NULL;
     ClUint8T *attributeValue = NULL;
@@ -1263,7 +1263,7 @@ ClRcT _cpmClusterReset(void)
     clIocTotalNeighborEntryGet(&numNodes);
     if(!numNodes)
         return CL_CPM_RC(CL_ERR_NOT_EXIST);
-    pNeighbors = clHeapCalloc(numNodes, sizeof(*pNeighbors));
+    pNeighbors = (ClIocNodeAddressT*) clHeapCalloc(numNodes, sizeof(*pNeighbors));
     CL_ASSERT(pNeighbors != NULL);
     clIocNeighborListGet(&numNodes, pNeighbors);
     if(!numNodes)
@@ -1470,7 +1470,7 @@ ClRcT VDECL(cpmCBResponse)(ClEoDataT data,
             else            /* Forward it to Active master */
             {
                 ClInt32T tries = 0;
-                ClTimerTimeOutT delay = {.tsMilliSec = 100, .tsSec = 0 };
+                ClTimerTimeOutT delay = {0, 100, };
                 ClUint8T priority = CL_IOC_CPM_PRIORITY(cbType);
                 /*
                  * This is the critical path to forward responses to AMS master.
@@ -1675,15 +1675,13 @@ ClRcT VDECL(cpmPGTrack)(ClEoDataT data,
     {
         if (recvBuff.responseNeeded == CL_TRUE)
         {
-            memcpy(&iocAddress, &recvBuff.iocAddress.clIocAddressIDLT,
-                   sizeof(iocAddress));
+            memcpy(&iocAddress, &recvBuff.iocAddress.clIocAddressIDLT, sizeof(iocAddress));
             /****************/
-            notificationBuffer = clHeapAllocate(sizeof(ClAmsPGNotificationBufferT));
+            notificationBuffer = (ClAmsPGNotificationBufferT*) clHeapAllocate(sizeof(ClAmsPGNotificationBufferT));
             if(notificationBuffer == NULL)
             {
                 rc = CL_ERR_NO_MEMORY;
-                CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, 
-                        ("Failed to allocate [%zd] bytes of memory, rc=[0x%x]\n", sizeof(ClAmsPGNotificationBufferT),rc), 
+                CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Failed to allocate [%zd] bytes of memory, rc=[0x%x]\n", sizeof(ClAmsPGNotificationBufferT),rc), 
                         rc);
             }
 
@@ -1823,22 +1821,20 @@ ClRcT clCpmAmsToCpmInitialize(CL_IN ClCpmAmsToCpmCallT **callback)
      * Check the input parameter 
      */
     if (callback == NULL)
-        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid parameter passed \n"),
-                     CL_CPM_RC(CL_ERR_NULL_POINTER));
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid parameter passed \n"), CL_CPM_RC(CL_ERR_NULL_POINTER));
 
     tmp = (ClCpmAmsToCpmCallT *) clHeapAllocate(sizeof(ClCpmAmsToCpmCallT));
     if (tmp == NULL)
-        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"),
-                     CL_CPM_RC(CL_ERR_NULL_POINTER));
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"), CL_CPM_RC(CL_ERR_NULL_POINTER));
 
     /*
      * Initialize the callback pointers 
      */
     tmp->compInstantiate = _cpmComponentInstantiate;
     tmp->compTerminate = _cpmComponentTerminate;
-    tmp->compCleanup = _cpmComponentCleanup;
+    tmp->compCleanup = (ClCpmComponentCleanupT) _cpmComponentCleanup;
     tmp->compRestart = _cpmComponentRestart;
-    tmp->compCSISet = _cpmComponentCSISet;
+    tmp->compCSISet = (ClCpmComponentCSISetT) _cpmComponentCSISet;
     tmp->compCSIRmv = _cpmComponentCSIRmv;
     tmp->compPGTrack = _cpmComponentPGTrack;
     tmp->nodeDepartureAllowed = _cpmNodeDepartureAllowed;
@@ -1903,9 +1899,9 @@ ClRcT cpmReplayInvocationAdd(ClUint32T cbType, const ClCharT *pCompName,
     /*
      * Remote node instantiate pending. So mark it and do it after failover prologue is through.
      */
-    pInvocation = clHeapCalloc(1, sizeof(*pInvocation));
+    pInvocation = (ClAmsInvocationT*) clHeapCalloc(1, sizeof(*pInvocation));
     CL_ASSERT(pInvocation != NULL);
-    pInvocation->cmd = cbType;
+    pInvocation->cmd = (ClAmsInvocationCmdT) cbType;
     saNameSet(&pInvocation->compName, pCompName);
     saNameSet(&pInvocation->csiName,  pNode);
 
@@ -2016,7 +2012,7 @@ ClRcT cpmReplayInvocationsGet(ClAmsInvocationT ***ppInvocations,
             {
                 invocation = pInvocation->invocation; /*as its instantiate cookie*/
             }
-            pInvocations = clHeapRealloc(pInvocations, sizeof(*pInvocations)*(numInvocations+1));
+            pInvocations = (ClAmsInvocationT**) clHeapRealloc(pInvocations, sizeof(*pInvocations)*(numInvocations+1));
             CL_ASSERT(pInvocations != NULL);
             pInvocation->invocation = invocation;
             pInvocations[numInvocations++] = pInvocation;

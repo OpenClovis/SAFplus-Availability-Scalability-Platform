@@ -1,6 +1,7 @@
 #undef  __SERVER__
 #define __CLIENT__
 #include <clGmsClientRmdFunc.h>
+#include <clGmsApiClient.h>
 
 ClRcT clGmsClientClientTableRegistrer(ClEoExecutionObjT* eo)
 {

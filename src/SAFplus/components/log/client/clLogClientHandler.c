@@ -25,6 +25,7 @@
 #include <clLogClientHandler.h>
 #include <clLogClientHandle.h>
 #include <LogPortStreamOwnerClient.h>
+#include "AppclientPortclientServer.h"
 
 static ClRcT
 clLogClntHdlrsStateUpdate(ClBitmapHandleT  hBitmap,
@@ -455,8 +456,7 @@ clLogClntHdlrAllHandlesClose(ClLogClntEoDataT        *pClntEoEntry,
     return rc;
 }
 
-ClRcT
-VDECL_VER(clLogClntFileHdlrDataReceive, 4, 0, 0)(
+ClRcT VDECL_VER(clLogClntFileHdlrDataReceive, 4, 0, 0)(
                              ClIocMulticastAddressT  streamMcastAddr, 
                              ClUint32T               seqNum, 
                              ClIocNodeAddressT       srcAddr,

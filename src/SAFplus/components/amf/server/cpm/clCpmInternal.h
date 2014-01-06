@@ -407,10 +407,10 @@ extern void compMgrStateStatusGet(ClUint32T  status,
                                   ClCharT   *pState,
                                   ClUint32T  pStateSize);
 
-extern ClCharT *_cpmOperStateNameGet(ClAmsOperStateT operState);
-extern ClCharT *_cpmPresenceStateNameGet(ClAmsPresenceStateT presenceState);
+extern const ClCharT *_cpmOperStateNameGet(ClAmsOperStateT operState);
+extern const ClCharT *_cpmPresenceStateNameGet(ClAmsPresenceStateT presenceState);
 
-extern ClCharT *_cpmReadinessStateNameGet(ClAmsReadinessStateT readinessState);
+extern const ClCharT *_cpmReadinessStateNameGet(ClAmsReadinessStateT readinessState);
 
 extern ClRcT cpmRequestFailedResponse(ClCharT *name,
                                       ClCharT *nodeName,

@@ -67,6 +67,8 @@ static ClEoCallbackDbT gpCallbackDb;
 
 static ClRcT clEoClientNotification(ClIocNotificationT *notificationInfo);
 
+//ClRcT clEoLibLog (ClUint32T compId,ClLogSeverityT severity, const ClCharT *msg, ...);
+
 ClRcT clEoWaterMarkHit(ClCompIdT compId, ClWaterMarkIdT wmId, ClWaterMarkT *pWaterMark, ClEoWaterMarkFlagT wmType, ClEoActionArgListT argList)
 {
     ClRcT rc = CL_OK;

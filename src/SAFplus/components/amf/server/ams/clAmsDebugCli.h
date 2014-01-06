@@ -124,7 +124,7 @@ clAmsDebugCliEntityMarkRepaired(
 extern ClRcT  
 clAmsDebugCliMakeEntityStruct(
         CL_OUT  ClAmsEntityT  *entity,
-        CL_IN  ClCharT  *entityName,
+        CL_IN  const ClCharT  *entityName,
         CL_IN  ClCharT  *entityType );
 
 extern void 

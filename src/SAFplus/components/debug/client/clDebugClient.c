@@ -31,6 +31,7 @@
 #include <clEoApi.h>
 #include <clDebugRmd.h>
 #include "clDebugCliFuncTable.h"
+#include <clDebug.h>
 
 ClRcT clDebugClientTableRegister(ClEoExecutionObjT *pThis)
 {

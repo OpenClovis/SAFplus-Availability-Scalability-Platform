@@ -162,7 +162,7 @@ ClRcT
 clAmsParserBooleanParser(
         CL_OUT ClBoolT *data_ptr,
         CL_IN ClParserPtrT ptr,
-        CL_IN ClCharT *str )
+        CL_IN const ClCharT *str )
 {
     ClParserPtrT data = NULL;
 
@@ -195,7 +195,7 @@ ClRcT
 clAmsParserUint32Parser(
         CL_OUT ClUint32T *data_ptr, 
         CL_IN ClParserPtrT ptr, 
-        CL_IN ClCharT *str )
+        CL_IN const ClCharT *str )
 {
 
     ClParserPtrT data = NULL;
@@ -221,7 +221,7 @@ ClRcT
 clAmsParserTimeoutParser ( 
         CL_OUT ClInt64T *data_ptr, 
         CL_IN ClParserPtrT ptr, 
-        CL_IN ClCharT *str,
+        CL_IN const ClCharT *str,
         CL_IN ClCharT *entityTypeName )
 {
     ClParserPtrT data = NULL;
@@ -790,7 +790,7 @@ ClRcT
 clAmsParserStringParser(
         ClCharT **data_ptr, 
         ClParserPtrT ptr, 
-        ClCharT *str )
+        const ClCharT *str )
 {
     const ClCharT *data = NULL;
     ClUint32T size=0;
@@ -802,7 +802,7 @@ clAmsParserStringParser(
     AMS_CHECKPTR_SILENT (!data);
 
     size = strlen (data) +1;
-    *data_ptr = clHeapAllocate (size);
+    *data_ptr = (ClCharT*) clHeapAllocate (size);
     memset (*data_ptr,0,size);
     strcpy (*data_ptr,data);
 
@@ -820,7 +820,7 @@ ClRcT
 clAmsParserSaNameParser (
         CL_OUT SaNameT *saName,
         CL_IN ClParserPtrT ptr, 
-        CL_IN ClCharT *str )
+        CL_IN const ClCharT *str )
 {
 
     ClParserPtrT data = NULL;
@@ -849,7 +849,7 @@ ClRcT clAmsParserEntityAttrParser(
         CL_OUT ClAmsEntityConfigT *entityConfig,
         CL_IN ClAmsEntityTypeT entityType,
         CL_IN ClParserPtrT ptr,
-        CL_IN ClCharT *str)
+        CL_IN const ClCharT *str)
 {
 
     const ClCharT *attr = NULL;
@@ -962,7 +962,7 @@ clAmsParserCSIDefParser(
      *  For each csiConfig go through the list of the csis 
      */
 
-    csiConfig = clHeapAllocate (sizeof (ClAmsCSIConfigT));
+    csiConfig = (ClAmsCSIConfigT*) clHeapAllocate (sizeof (ClAmsCSIConfigT));
 
     AMS_CHECK_NO_MEMORY ( csiConfig );
 
@@ -1032,7 +1032,7 @@ clAmsParserCSIDefParser(
 
      while (nameValueList)
      { 
-         ClAmsParserCSINVPListT  *nvp = clHeapAllocate (sizeof (ClAmsParserCSINVPListT));
+         ClAmsParserCSINVPListT  *nvp = (ClAmsParserCSINVPListT*) clHeapAllocate (sizeof (ClAmsParserCSINVPListT));
 
          AMS_CHECK_NO_MEMORY (nvp);
 
@@ -1060,7 +1060,7 @@ clAmsParserCSIDefParser(
              return rc;
          } 
          
-         nvp->csiName = clHeapAllocate(strlen((const ClCharT *)csiConfig->entity.name.value) + 1);
+         nvp->csiName = (ClCharT*) clHeapAllocate(strlen((const ClCharT *)csiConfig->entity.name.value) + 1);
          AMS_CHECK_NO_MEMORY (nvp->csiName);
          memset (nvp->csiName,0,strlen((const ClCharT *)csiConfig->entity.name.value) + 1);
          strcpy (nvp->csiName,(const ClCharT *)csiConfig->entity.name.value);
@@ -1133,7 +1133,7 @@ clAmsParserCompDefParser(
      *  For each compConfig go through the list of the comps 
      */
     
-    compConfig = clHeapCalloc (1, sizeof (ClAmsCompConfigT));
+    compConfig =(ClAmsCompConfigT*)  clHeapCalloc (1, sizeof (ClAmsCompConfigT));
     AMS_CHECK_NO_MEMORY (compConfig);
 
     /*
@@ -1177,7 +1177,7 @@ clAmsParserCompDefParser(
     }
 
     if (( rc = clAmsParserCompPropertyParser(
-                                             &compConfig->property,
+                                             (ClUint32T*) &compConfig->property,
                                              comp ))
         != CL_OK )
     {
@@ -1208,7 +1208,7 @@ clAmsParserCompDefParser(
                                     compConfig->instantiateCommand,
                                     sizeof(compConfig->instantiateCommand) - 1);*/
 
-    pSupportedCSITypes = clHeapCalloc(numSupportedCSITypes, 
+    pSupportedCSITypes = (SaNameT*) clHeapCalloc(numSupportedCSITypes, 
                                       (ClUint32T)sizeof(SaNameT));
     if(!pSupportedCSITypes)
     {
@@ -1293,9 +1293,7 @@ clAmsParserCompDefParser(
             csiTypeInstance = csiTypeInstance->next;
             if(csiTypeInstance)
             {
-                pSupportedCSITypes = clHeapRealloc(pSupportedCSITypes,
-                                                   (ClUint32T)sizeof(SaNameT)
-                                                   * (numSupportedCSITypes+1));
+                pSupportedCSITypes = (SaNameT*) clHeapRealloc(pSupportedCSITypes, (ClUint32T)sizeof(SaNameT) * (numSupportedCSITypes+1));
                 if(!pSupportedCSITypes)
                 {
                     AMS_LOG(CL_LOG_SEV_ERROR,
@@ -1455,7 +1453,7 @@ clAmsParserSIDefParser(
      *  For each siConfig go through the list of the sis 
      */
 
-    siConfig = clHeapAllocate (sizeof (ClAmsSIConfigT));
+    siConfig = (ClAmsSIConfigT*) clHeapAllocate (sizeof (ClAmsSIConfigT));
     AMS_CHECK_NO_MEMORY ( siConfig );
 
     /*
@@ -1574,7 +1572,7 @@ clAmsParserSUDefParser(
      *  For each suConfig go through the list of the sus 
      */
     
-    suConfig = clHeapAllocate (sizeof (ClAmsSUConfigT));
+    suConfig = (ClAmsSUConfigT*) clHeapAllocate (sizeof (ClAmsSUConfigT));
     AMS_CHECK_NO_MEMORY ( suConfig );
 
     /*
@@ -1705,7 +1703,7 @@ clAmsParserSGDefParser(
      *  For each sgConfig go through the list of the sgs 
      */
 
-    sgConfig = clHeapAllocate (sizeof (ClAmsSGConfigT));
+    sgConfig = (ClAmsSGConfigT*) clHeapAllocate (sizeof (ClAmsSGConfigT));
     AMS_CHECK_NO_MEMORY ( sgConfig );
 
 
@@ -2018,7 +2016,7 @@ clAmsParserAppDefParser(
      *  For each appConfig go through the list of the apps 
      */
     
-    appConfig = clHeapAllocate (sizeof (ClAmsAppConfigT));
+    appConfig = (ClAmsAppConfigT*) clHeapAllocate (sizeof (ClAmsAppConfigT));
     AMS_CHECK_NO_MEMORY ( appConfig );
 
     /*
@@ -2059,7 +2057,7 @@ clAmsParserNodeDefParser(
      *  For each nodeConfig go through the list of the nodes
      */
 
-    nodeConfig = clHeapAllocate (sizeof (ClAmsNodeConfigT));
+    nodeConfig = (ClAmsNodeConfigT*) clHeapAllocate (sizeof (ClAmsNodeConfigT));
     AMS_CHECK_NO_MEMORY ( nodeConfig );
 
     /*
@@ -2226,8 +2224,8 @@ clAmsParserNodeDefParser(
 
 ClRcT 
 clAmsParserEntityTypeParser(
-        CL_IN ClCharT *listName,
-        CL_IN ClCharT *entityName,
+        CL_IN const ClCharT *listName,
+        CL_IN const ClCharT *entityName,
         CL_IN ClAmsEntityTypeT entityType,
         CL_IN ClParserPtrT fileParserPtr )
 {
@@ -2339,8 +2337,8 @@ clAmsParserEntityTypeParser(
 
 ClRcT 
 clAmsParserMain(
-       CL_IN ClCharT *amfDefinitionFileName,
-       CL_IN ClCharT *amfConfigFileName )
+       CL_IN const ClCharT *amfDefinitionFileName,
+       CL_IN const ClCharT *amfConfigFileName )
 {
 
     ClRcT rc = CL_OK;
@@ -2352,23 +2350,15 @@ clAmsParserMain(
     
     if ( !filePath )
     {
-        AMS_LOG (CL_LOG_SEV_ERROR,
-                ("Environment variable [CL_ASP_CONFIG_PATH] is not set\n"));
+        AMS_LOG (CL_LOG_SEV_ERROR, ("Environment variable [CL_ASP_CONFIG_PATH] is not set\n"));
         return CL_AMS_RC (CL_AMS_ERR_BAD_CONFIG);
     }
 
     AMS_CHECKPTR ( !amfDefinitionFileName || !amfConfigFileName );
 
-    AMS_LOG (CL_LOG_SEV_TRACE,
-            ("Loading Config File [%s], Definitions File [%s]\n",
-             amfConfigFileName,
-             amfDefinitionFileName));
+    AMS_LOG (CL_LOG_SEV_TRACE, ("Loading Config File [%s], Definitions File [%s]\n", amfConfigFileName, amfDefinitionFileName));
 
-    if ( ( rc = clAmsMgmtInitialize(
-                    &gHandle,
-                    gAmsMgmtCallbacks,
-                    &gVersion ))
-            != CL_OK )
+    if ( ( rc = clAmsMgmtInitialize( &gHandle, gAmsMgmtCallbacks, &gVersion )) != CL_OK )
     {
         AMS_LOG (CL_LOG_SEV_ERROR,("Error in AMS Management library initialization\n"));
         return CL_AMS_RC (rc);
@@ -2380,92 +2370,50 @@ clAmsParserMain(
         return CL_AMS_RC (CL_AMS_ERR_BAD_CONFIG);
     }
 
-    if (( rc = clAmsParserEntityTypeParser(
-                    NODE_TYPES_TAG_NAME,
-                    NODE_TYPE_TAG_NAME,
-                    CL_AMS_ENTITY_TYPE_NODE,
-                    defFilePtr ))
-            != CL_OK )
+    if (( rc = clAmsParserEntityTypeParser( NODE_TYPES_TAG_NAME, NODE_TYPE_TAG_NAME, CL_AMS_ENTITY_TYPE_NODE, defFilePtr )) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    NODE_TYPES_TAG_NAME,amfDefinitionFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", NODE_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
 
-    if (( rc = clAmsParserEntityTypeParser(
-                    APP_TYPES_TAG_NAME,
-                    APP_TYPE_TAG_NAME,
-                    CL_AMS_ENTITY_TYPE_APP,
-                    defFilePtr ))
-            != CL_OK )
+    if (( rc = clAmsParserEntityTypeParser( APP_TYPES_TAG_NAME, APP_TYPE_TAG_NAME, CL_AMS_ENTITY_TYPE_APP, defFilePtr )) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    APP_TYPES_TAG_NAME,amfDefinitionFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", APP_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
 
 
-    if (( rc = clAmsParserEntityTypeParser(
-                    SG_TYPES_TAG_NAME,
-                    SG_TYPE_TAG_NAME,
-                    CL_AMS_ENTITY_TYPE_SG,
-                    defFilePtr ))
-            != CL_OK )
+    if (( rc = clAmsParserEntityTypeParser( SG_TYPES_TAG_NAME, SG_TYPE_TAG_NAME, CL_AMS_ENTITY_TYPE_SG, defFilePtr )) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    SG_TYPES_TAG_NAME,amfDefinitionFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", SG_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
 
 
-    if (( rc = clAmsParserEntityTypeParser(
-                    SU_TYPES_TAG_NAME,
-                    SU_TYPE_TAG_NAME,
-                    CL_AMS_ENTITY_TYPE_SU,
-                    defFilePtr ))
-            != CL_OK )
+    if (( rc = clAmsParserEntityTypeParser( SU_TYPES_TAG_NAME, SU_TYPE_TAG_NAME, CL_AMS_ENTITY_TYPE_SU, defFilePtr )) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    SU_TYPES_TAG_NAME,amfDefinitionFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", SU_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
 
 
-    if (( rc = clAmsParserEntityTypeParser(
-                    SI_TYPES_TAG_NAME,
-                    SI_TYPE_TAG_NAME,
-                    CL_AMS_ENTITY_TYPE_SI,
-                    defFilePtr ))
-            != CL_OK )
+    if (( rc = clAmsParserEntityTypeParser( SI_TYPES_TAG_NAME, SI_TYPE_TAG_NAME, CL_AMS_ENTITY_TYPE_SI, defFilePtr )) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    SI_TYPES_TAG_NAME,amfDefinitionFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", SI_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
 
 
-    if (( rc = clAmsParserEntityTypeParser(
-                    COMP_TYPES_TAG_NAME,
-                    COMP_TYPE_TAG_NAME,
-                    CL_AMS_ENTITY_TYPE_COMP,
-                    defFilePtr ))
-            != CL_OK )
+    if (( rc = clAmsParserEntityTypeParser( COMP_TYPES_TAG_NAME, COMP_TYPE_TAG_NAME, CL_AMS_ENTITY_TYPE_COMP, defFilePtr )) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    COMP_TYPES_TAG_NAME,amfDefinitionFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", COMP_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
 
 
-    if (( rc = clAmsParserEntityTypeParser(
-                    CSI_TYPES_TAG_NAME,
-                    CSI_TYPE_TAG_NAME,
-                    CL_AMS_ENTITY_TYPE_CSI,
-                    defFilePtr ))
-            != CL_OK )
+    if (( rc = clAmsParserEntityTypeParser( CSI_TYPES_TAG_NAME, CSI_TYPE_TAG_NAME, CL_AMS_ENTITY_TYPE_CSI, defFilePtr )) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    CSI_TYPES_TAG_NAME,amfDefinitionFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", CSI_TYPES_TAG_NAME,amfDefinitionFileName )) ;
         goto exitfn;
     }
 
@@ -2485,8 +2433,7 @@ clAmsParserMain(
 
     if (( rc = clAmsParserAmsConfigParser(configFilePtr )) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    AMS_CONFIG,amfConfigFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", AMS_CONFIG,amfConfigFileName )) ;
         goto exitfn;
     }
 
@@ -2499,8 +2446,7 @@ clAmsParserMain(
 
     if (( rc = clAmsParserNodeCreation(configFilePtr) ) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    NODE_INSTANCES_TAG_NAME,amfConfigFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", NODE_INSTANCES_TAG_NAME,amfConfigFileName )) ;
         goto exitfn;
     }
 
@@ -2510,8 +2456,7 @@ clAmsParserMain(
 
     if (( rc =  clAmsParserSGCreation(configFilePtr) ) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    SG_INSTANCES_TAG_NAME, amfConfigFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", SG_INSTANCES_TAG_NAME, amfConfigFileName )) ;
         goto exitfn;
     }
 
@@ -2519,8 +2464,7 @@ clAmsParserMain(
      * build the lists 
      */
 
-    if ( ( rc = clAmsParserCreateRelationship(
-                    configFilePtr,
+    if ( ( rc = clAmsParserCreateRelationship( configFilePtr,
                     NODE_INSTANCES_TAG_NAME,
                     NODE_INSTANCE_TAG_NAME,
                     NODE_DEPENDENCIES_TAG_NAME,
@@ -2530,8 +2474,7 @@ clAmsParserMain(
                     CL_AMS_ENTITY_TYPE_NODE ))
             != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    NODE_INSTANCES_TAG_NAME,amfConfigFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", NODE_INSTANCES_TAG_NAME,amfConfigFileName )) ;
         goto exitfn;
     }
  
@@ -2546,14 +2489,14 @@ clAmsParserMain(
                     CL_AMS_ENTITY_TYPE_SU ))
             != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                    SG_INSTANCES_TAG_NAME, amfConfigFileName )) ;
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", SG_INSTANCES_TAG_NAME, amfConfigFileName )) ;
         goto exitfn;
     }
 
     /*
      * Get SI lists
      */
+    {
 
     ClParserPtrT pInstances = NULL;
     ClParserPtrT pInstance = NULL;
@@ -2581,8 +2524,7 @@ clAmsParserMain(
                     CL_AMS_ENTITY_TYPE_SI ))
             != CL_OK )
         {
-            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                        SERVICE_INSTANCES_TAG_NAME, amfConfigFileName )) ;
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", SERVICE_INSTANCES_TAG_NAME, amfConfigFileName )) ;
             goto exitfn;
         }
 
@@ -2597,8 +2539,7 @@ clAmsParserMain(
                     CL_AMS_ENTITY_TYPE_SU ))
             != CL_OK )
         {
-            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n",
-                        SERVICE_INSTANCES_TAG_NAME, amfConfigFileName )) ;
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in parsing XML tag <%s> in file [%s]\n", SERVICE_INSTANCES_TAG_NAME, amfConfigFileName )) ;
             goto exitfn;
         }
 
@@ -2628,6 +2569,8 @@ clAmsParserMain(
 
         pInstance = pInstance->next; 
 
+    }
+  
     }
 
     if (( rc = clAmsMgmtFinalize(gHandle) )!= CL_OK )
@@ -2678,7 +2621,7 @@ clAmsParserAddEntityTypeConfig(
 
     AMS_CHECKPTR ( !head || !newEntityType.entityConfig)
 
-    newType = clHeapAllocate ( sizeof (ClAmsParserConfigTypeT));
+    newType = (ClAmsParserConfigTypeT*) clHeapAllocate ( sizeof (ClAmsParserConfigTypeT));
     AMS_CHECK_NO_MEMORY ( newType );
 
     ptr = *head;
@@ -2857,7 +2800,7 @@ clAmsParserNodeCreation(
 
     AMS_CHECKPTR ( !fileParserPtr );
 
-    nodeConfig = clHeapAllocate (sizeof (ClAmsNodeConfigT));
+    nodeConfig = (ClAmsNodeConfigT*) clHeapAllocate (sizeof (ClAmsNodeConfigT));
     AMS_CHECK_NO_MEMORY ( nodeConfig );
 
     nodeInstances  = clParserChild( fileParserPtr, NODE_INSTANCES_TAG_NAME);
@@ -2937,8 +2880,9 @@ clAmsParserSUCreation(
     ClCharT *suTypeName = NULL;
     ClCharT *suRank = NULL;
     ClAmsSUConfigT *suConfig = NULL;
-    ClAmsEntityT targetEntity = {0};
-
+    ClAmsEntityT targetEntity;
+  
+    memset(&targetEntity,0,sizeof(ClAmsEntityT));
     AMS_CHECKPTR ( !nodePtr || !nodeConfig );
 
     suInstances  = clParserChild( nodePtr, SU_INSTANCES_TAG_NAME);
@@ -2957,7 +2901,7 @@ clAmsParserSUCreation(
         return CL_OK;
     }
 
-    suConfig = clHeapAllocate (sizeof (ClAmsSUConfigT));
+    suConfig = (ClAmsSUConfigT*) clHeapAllocate (sizeof (ClAmsSUConfigT));
     AMS_CHECK_NO_MEMORY ( suConfig );
 
     /*
@@ -3092,27 +3036,26 @@ clAmsParserCompCreation(
     ClParserPtrT compInstances = NULL;
     ClAmsCompConfigT *compConfig = NULL;
     ClCharT *parentSU = NULL;
-    ClAmsEntityT targetEntity = {0};
+    ClAmsEntityT targetEntity;
 
+    memset(&targetEntity,0,sizeof(ClAmsEntityTypeT));
     AMS_CHECKPTR ( !suPtr || !suConfig || !parentNode );
 
     compInstances  = clParserChild( suPtr, COMP_INSTANCES_TAG_NAME);
     if ( !compInstances)
     {
-        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing for SU [%s] \n",
-                    COMP_INSTANCES_TAG_NAME,suConfig->entity.name.value));
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing for SU [%s] \n", COMP_INSTANCES_TAG_NAME,suConfig->entity.name.value));
         return CL_OK;
     }
 
     compInstance  = clParserChild( compInstances, COMP_INSTANCE_TAG_NAME);
     if ( !compInstance)
     {
-        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing for SU [%s] \n",
-                    COMP_INSTANCE_TAG_NAME,suConfig->entity.name.value));
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing for SU [%s] \n", COMP_INSTANCE_TAG_NAME,suConfig->entity.name.value));
         return CL_OK;
     }
 
-    compConfig = clHeapAllocate (sizeof( ClAmsCompConfigT));
+    compConfig = (ClAmsCompConfigT*) clHeapAllocate (sizeof( ClAmsCompConfigT));
     AMS_CHECK_NO_MEMORY ( compConfig );
 
     /*
@@ -3124,8 +3067,7 @@ clAmsParserCompCreation(
                     "name"))
             != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Attribute <name> is missing for SU [%s] \n",
-                    suConfig->entity.name.value));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Attribute <name> is missing for SU [%s] \n", suConfig->entity.name.value));
         goto exitfn;
     }
 
@@ -3226,7 +3168,7 @@ clAmsParserSGCreation(
         return CL_OK;
     }
 
-    sgConfig = clHeapAllocate (sizeof (ClAmsSGConfigT));
+    sgConfig = (ClAmsSGConfigT*) clHeapAllocate (sizeof (ClAmsSGConfigT));
     AMS_CHECK_NO_MEMORY ( sgConfig );
 
     while ( sgInstance )
@@ -3286,41 +3228,36 @@ clAmsParserSICreation(
     ClParserPtrT siInstances = NULL;
     ClCharT *parentSG = NULL;
     ClAmsSIConfigT *siConfig = NULL;
-    ClAmsEntityT targetEntity = {0};
+    ClAmsEntityT targetEntity;
 
+    memset(&targetEntity,0,sizeof(ClAmsEntityT));
     AMS_CHECKPTR ( !sgPtr || !sgConfig );
 
     siInstances  = clParserChild( sgPtr, SERVICE_INSTANCES_TAG_NAME);
     if ( !siInstances)
     {
-        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
-                    SERVICE_INSTANCES_TAG_NAME));
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n", SERVICE_INSTANCES_TAG_NAME));
         return CL_OK;
     }
 
     siInstance  = clParserChild( siInstances, SERVICE_INSTANCE_TAG_NAME);
     if ( !siInstance)
     {
-        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
-                    SERVICE_INSTANCE_TAG_NAME));
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n", SERVICE_INSTANCE_TAG_NAME));
         return CL_OK;
     }
 
-    siConfig = clHeapAllocate (sizeof (ClAmsSIConfigT));
+    siConfig = (ClAmsSIConfigT*) clHeapAllocate (sizeof (ClAmsSIConfigT));
     AMS_CHECK_NO_MEMORY ( siConfig );
 
     /*
      * Get the parent sg name here
      */
        
-     if ( ( rc =  clAmsParserStringParser (
-                     &parentSG,
-                     sgPtr,
-                     "name"))
+     if ( ( rc =  clAmsParserStringParser ( &parentSG, sgPtr, "name"))
              != CL_OK )
      {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Attribute <name> is missing for SG[%s] \n",
-                    sgConfig->entity.name.value));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Attribute <name> is missing for SG[%s] \n", sgConfig->entity.name.value));
          goto exitfn;
      }
 
@@ -3432,37 +3369,27 @@ ClRcT clAmsParserCSICreation(
     csiInstance  = clParserChild( csiInstances, CSI_INSTANCE_TAG_NAME);
     if ( !csiInstance)
     {
-        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n",
-                    CSI_INSTANCE_TAG_NAME));
+        AMS_LOG(CL_LOG_SEV_TRACE, ("Tag <%s> is missing in the file [clAmfConfig.xml]\n", CSI_INSTANCE_TAG_NAME));
         return CL_OK;
     }
 
-    csiConfig = clHeapCalloc (1, sizeof( ClAmsCSIConfigT));
+    csiConfig = (ClAmsCSIConfigT*) clHeapCalloc (1, sizeof( ClAmsCSIConfigT));
     AMS_CHECK_NO_MEMORY (csiConfig);
 
     /*
      * Get the parent SI name here
      */
    
-    if (( rc =  clAmsParserStringParser (
-                    &parentSIName,
-                    siPtr,
-                    "name" ))
-            != CL_OK )
+    if (( rc =  clAmsParserStringParser ( &parentSIName, siPtr, "name" )) != CL_OK )
     {
-        AMS_LOG(CL_LOG_SEV_ERROR, ("Attribute <name> is missing for SI [%s] \n",
-                    siConfig->entity.name.value));
+        AMS_LOG(CL_LOG_SEV_ERROR, ("Attribute <name> is missing for SI [%s] \n", siConfig->entity.name.value));
         goto exitfn;
     }
 
     while (csiInstance)
     {
 
-        AMS_CHECK_RC_ERROR( clAmsParserSetEntityConfig (
-                    csiInstance,
-                    CL_AMS_ENTITY_TYPE_CSI,
-                    (ClAmsEntityConfigT *)csiConfig,
-                    NULL) );
+        AMS_CHECK_RC_ERROR( clAmsParserSetEntityConfig ( csiInstance, CL_AMS_ENTITY_TYPE_CSI, (ClAmsEntityConfigT *)csiConfig, NULL) );
 
         /*
          * Set the parentSI for this CSI
@@ -3473,20 +3400,14 @@ ClRcT clAmsParserCSICreation(
         strcpy ( (ClCharT *)csiConfig->parentSI.entity.name.value,parentSIName);
         csiConfig->parentSI.entity.name.length = strlen (parentSIName) + 1;
 
-        AMS_CHECK_RC_ERROR( clAmsParserEntityCreate (
-                    (ClAmsEntityConfigT *)csiConfig) );
+        AMS_CHECK_RC_ERROR( clAmsParserEntityCreate ( (ClAmsEntityConfigT *)csiConfig) );
 
         /*
          * Set the the parentSI reference
          */
-        if (( rc = clAmsMgmtEntitySetRef (
-                        gHandle,
-                        &csiConfig->entity,
-                        &csiConfig->parentSI.entity ))
-                != CL_OK )
+        if (( rc = clAmsMgmtEntitySetRef ( gHandle, &csiConfig->entity, &csiConfig->parentSI.entity )) != CL_OK )
         {
-            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in setting SI [%s] reference for CSI [%s] \n",
-                        parentSIName,csiConfig->entity.name.value));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in setting SI [%s] reference for CSI [%s] \n", parentSIName,csiConfig->entity.name.value));
             goto exitfn;
         }
 
@@ -3494,25 +3415,15 @@ ClRcT clAmsParserCSICreation(
         /*
          * Read the nvp list for this entity
          */ 
-        if (( rc =  clAmsParserStringParser (
-                        &csiType,
-                        csiInstance,
-                        "type" ))
-                != CL_OK )
+        if (( rc =  clAmsParserStringParser ( &csiType, csiInstance, "type" )) != CL_OK )
         {
-            AMS_LOG(CL_LOG_SEV_ERROR,
-                    ("CSI [%s] : missing <type> attribute in file [clAmfConfig.xml]\n", 
-                     csiConfig->entity.name.value)); 
+            AMS_LOG(CL_LOG_SEV_ERROR, ("CSI [%s] : missing <type> attribute in file [clAmfConfig.xml]\n", csiConfig->entity.name.value)); 
             goto exitfn;
         }
 
-        if (( rc = clAmsParserCreateCSINVPList (
-                        (ClCharT *)csiConfig->entity.name.value,
-                        csiType ))
-                != CL_OK )
+        if (( rc = clAmsParserCreateCSINVPList ( (ClCharT *)csiConfig->entity.name.value, csiType )) != CL_OK )
         {
-            AMS_LOG(CL_LOG_SEV_ERROR, ("CSI [%s] : Error in creating Name Value Pair list\n",
-                        csiConfig->entity.name.value)) ;
+            AMS_LOG(CL_LOG_SEV_ERROR, ("CSI [%s] : Error in creating Name Value Pair list\n", csiConfig->entity.name.value)) ;
             goto exitfn;
         }
 
@@ -3520,15 +3431,9 @@ ClRcT clAmsParserCSICreation(
         /*
          * Add this csi in the siList
          */
-        if (( rc = clAmsMgmtEntityListEntityRefAdd(
-                        gHandle,
-                        &siConfig->entity,
-                        &csiConfig->entity,
-                        CL_AMS_SI_CONFIG_CSI_LIST ))
-                != CL_OK )
+        if (( rc = clAmsMgmtEntityListEntityRefAdd( gHandle, &siConfig->entity, &csiConfig->entity, CL_AMS_SI_CONFIG_CSI_LIST )) != CL_OK )
         {
-            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in adding CSI [%s] in the SI [%s] CSI list \n",
-                        csiConfig->entity.name.value,siConfig->entity.name.value ));
+            AMS_LOG(CL_LOG_SEV_ERROR, ("Error in adding CSI [%s] in the SI [%s] CSI list \n", csiConfig->entity.name.value,siConfig->entity.name.value ));
             goto exitfn;
         }
 
@@ -3560,10 +3465,10 @@ exitfn:
 ClRcT 
 clAmsParserCreateRelationship( 
         CL_IN ClParserPtrT fileParserPtr,
-        CL_IN ClCharT *instancesName,
-        CL_IN ClCharT *instanceName,
-        CL_IN ClCharT *listName,
-        CL_IN ClCharT *entityName,
+        CL_IN const ClCharT *instancesName,
+        CL_IN const ClCharT *instanceName,
+        CL_IN const ClCharT *listName,
+        CL_IN const ClCharT *entityName,
         CL_IN ClAmsEntityListTypeT entityListName,
         CL_IN ClAmsEntityTypeT sourceEntityType ,
         CL_IN ClAmsEntityTypeT targetEntityType ) 
@@ -3576,9 +3481,11 @@ clAmsParserCreateRelationship(
     ClParserPtrT pEntity = NULL;
     ClCharT *targetName = NULL;
     ClCharT *sourceEntityName = NULL;
-    ClAmsEntityT sourceEntity = {0};
-    ClAmsEntityT targetEntity = {0}; 
-
+    ClAmsEntityT sourceEntity;
+    ClAmsEntityT targetEntity;
+ 
+    memset(&sourceEntity,0,sizeof(ClAmsEntityT));
+    memset(&targetEntity,0,sizeof(ClAmsEntityT));
     AMS_CHECKPTR ( !fileParserPtr || !instancesName || !instanceName || !listName || !entityName );
 
     sourceEntity.type = sourceEntityType;
@@ -3825,8 +3732,9 @@ clAmsParserEntityCreate (
 {
 
     ClRcT rc = CL_OK;
-    ClAmsEntityT entity = {0};
-
+    ClAmsEntityT entity;
+ 
+    memset(&entity,0,sizeof(ClAmsEntityT));
     AMS_CHECKPTR ( !entityConfig );
     
     memcpy (&entity.name,&entityConfig->name,sizeof (SaNameT));
@@ -3961,14 +3869,15 @@ clAmsParserCreateCSINVPList (
 {
 
     ClRcT rc = CL_OK;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity;
     ClAmsParserConfigTypeT amfConfigType = {0};
     ClAmsCSINameValuePairT nvp = {{0},{0},{0}};
     ClAmsParserCSINVPListT *ptr = NULL;
 
+    memset(&entity,0,sizeof(ClAmsEntityT));
     AMS_CHECKPTR ( !csiName || !csiType );
 
-    amfConfigType.entityConfig = clHeapAllocate ( sizeof (ClAmsCSIConfigT));
+    amfConfigType.entityConfig = (ClAmsEntityConfigT*) clHeapAllocate ( sizeof (ClAmsCSIConfigT));
     AMS_CHECK_NO_MEMORY ( amfConfigType.entityConfig );
 
 

@@ -10,32 +10,7 @@ extern "C" {
 #endif
 
 #include <clGmsCommon.h>
-
-ClRcT VDECL (cl_gms_cluster_track_callback_rmd) (
-        CL_IN   ClEoDataT        c_data,     /* Unused */
-        CL_IN   ClBufferHandleT  in_buffer,  /* Input data from server */
-        CL_OUT  ClBufferHandleT  out_buffer);/* Never used */
-
-ClRcT VDECL (cl_gms_cluster_member_get_callback_rmd) (
-        CL_IN   ClEoDataT        c_data,     /* Unused */
-        CL_IN   ClBufferHandleT  in_buffer,  /* Input data from server */
-        CL_OUT  ClBufferHandleT  out_buffer);/* Never used */
-
-ClRcT VDECL (cl_gms_group_track_callback_rmd) (
-        CL_IN   ClEoDataT        c_data,     /* Unused */
-        CL_IN   ClBufferHandleT  in_buffer,  /* Input data from server */
-        CL_OUT  ClBufferHandleT  out_buffer);/* Never used */
-
-ClRcT VDECL (cl_gms_cluster_member_eject_callback_rmd) (
-        CL_IN   ClEoDataT        c_data,     /* Unused */
-        CL_IN   ClBufferHandleT  in_buffer,  /* Input data from server */
-        CL_OUT  ClBufferHandleT  out_buffer);/* Never used */
-
-ClRcT VDECL (cl_gms_group_mcast_callback_rmd) (
-        CL_IN   ClEoDataT        c_data,     /* Unused */
-        CL_IN   ClBufferHandleT  in_buffer,  /* Input data from server */
-        CL_OUT  ClBufferHandleT  out_buffer);/* Never used */
-
+#include "clGmsClientEoFunc.h"
 CL_EO_CALLBACK_TABLE_DECL(gmsCallbackFuncList)[] = 
 {
     VSYM_EMPTY(NULL,                                CL_GMS_CLIENT_RESERVED_CALLBACK),             /* 0 */

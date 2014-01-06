@@ -26,11 +26,9 @@ extern "C" {
 #include <clBitmapApi.h>    
 #include <clLogCommon.h>    
 
-ClRcT 
-clLogDebugRegister(void);
+ClRcT clLogDebugRegister(void);
 
-ClRcT 
-clLogDebugDeregister(void);
+ClRcT clLogDebugDeregister(void);
 
 #ifdef __cplusplus
 }

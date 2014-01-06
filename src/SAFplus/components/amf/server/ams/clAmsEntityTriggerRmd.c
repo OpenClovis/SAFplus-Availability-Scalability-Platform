@@ -13,7 +13,7 @@ static ClRcT VDECL(clAmsEntityTriggerLoadRmd)(ClEoDataT data,
                                               ClBufferHandleT outMsg)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClMetricT metric = {0};
 
     rc = VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsg, (ClPtrT)&entity);
@@ -70,7 +70,7 @@ static ClRcT VDECL(clAmsEntityTriggerRmd)(ClEoDataT data,
                                           ClBufferHandleT outMsg)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClMetricT metric = {0};
 
     rc = VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsg, &entity);
@@ -130,7 +130,7 @@ static ClRcT VDECL(clAmsEntityTriggerRecoveryResetRmd)(ClEoDataT data,
                                                        ClBufferHandleT outMsg)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClMetricT metric =  {0};
 
     rc = VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsg, &entity);
@@ -187,7 +187,7 @@ static ClRcT VDECL(clAmsEntityTriggerResetRmd)(ClEoDataT data,
                                                ClBufferHandleT outMsg)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClMetricT metric = {0};
     
     rc = VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsg, &entity);
@@ -246,9 +246,9 @@ static ClRcT clAmsEntityTriggerGetMetricHandler(ClEoDataT data,
                                                 ClBoolT loadDefault)
 {
     ClRcT rc = CL_OK;
-    ClAmsEntityT entity = {0};
+    ClAmsEntityT entity = {CL_AMS_ENTITY_TYPE_ENTITY};
     ClMetricT *pMetric  = NULL;
-    ClMetricIdT id = 0;
+    ClMetricIdT id = (ClMetricIdT)0;
 
     rc = VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsg, (ClPtrT)&entity);
     if(rc != CL_OK)
@@ -264,8 +264,7 @@ static ClRcT clAmsEntityTriggerGetMetricHandler(ClEoDataT data,
         goto out;
     }
 
-    pMetric = clHeapCalloc( id == CL_METRIC_ALL ? CL_METRIC_MAX : 1,
-                            sizeof(*pMetric));
+    pMetric = (ClMetricT*) clHeapCalloc( id == CL_METRIC_ALL ? CL_METRIC_MAX : 1, sizeof(*pMetric));
 
     if(pMetric == NULL)
     {

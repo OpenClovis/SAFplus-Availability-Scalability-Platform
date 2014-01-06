@@ -150,9 +150,9 @@ static ClRcT clAmsCkptCheckpointRead(
 
 static void amsCkptDifferenceVectorKeyGet(ClDifferenceVectorKeyT *key, SaNameT *pSection)
 {
-    key->groupKey = clHeapCalloc(1, sizeof(*key->groupKey));
+    key->groupKey = (ClStringT*) clHeapCalloc(1, sizeof(*key->groupKey));
     CL_ASSERT(key->groupKey != NULL);
-    key->sectionKey = clHeapCalloc(1, sizeof(*key->sectionKey));
+    key->sectionKey = (ClStringT*) clHeapCalloc(1, sizeof(*key->sectionKey));
     CL_ASSERT(key->sectionKey != NULL);
     key->groupKey->pValue = clStrdup("AMS_CKPT");
     CL_ASSERT(key->groupKey->pValue != NULL);
@@ -801,7 +801,7 @@ clAmsCkptInitialize(
 
     if ( (mode&CL_AMS_INSTANTIATE_MODE_ACTIVE ) )
     {
-        ClCharT    *initialData = "SECTION-START";
+        ClCharT    *initialData = (ClCharT*) "SECTION-START";
 
         /*
          * Create the DB and Invocation Pairs first
@@ -881,7 +881,7 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
     ClCharT *pSectionName = NULL;
     ClUint32T dbMode = 0; 
 
-    pSectionName = clHeapCalloc(1, pIOVector->sectionId.idLen + 1);
+    pSectionName = (ClCharT*) clHeapCalloc(1, pIOVector->sectionId.idLen + 1);
     if(!pSectionName) 
     {
         clLogError("CKPT", "NOTIFY", "Section malloc error");
@@ -1753,7 +1753,7 @@ clAmsReadXMLFile(
     }
 
 
-    data  = clHeapAllocate (buf.st_size + 1); 
+    data  = (ClCharT*) clHeapAllocate (buf.st_size + 1); 
 
     AMS_CHECK_NO_MEMORY ( data );
 
@@ -1833,7 +1833,7 @@ clAmsCkptFree( ClAmsT  *ams )
 {
 
     ClRcT  rc = CL_OK;
-    ClInt32T i;
+    ClUint32T i;
     static ClUint32T numPairs = 2;
 
     AMS_CHECKPTR (!ams);

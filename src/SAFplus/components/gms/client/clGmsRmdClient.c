@@ -45,6 +45,7 @@
 #include <clXdrApi.h>
 // added for using job queue for call backs
 #include "clJobQueue.h"
+#include "clGmsClientEoFunc.h"
 
 /******************************************************************************
  * Common RMD Call Wrapper
@@ -2007,8 +2008,7 @@ error_exit:
 }
 
 /*---------------------------------------------------------------------------*/
-ClRcT
-VDECL (cl_gms_cluster_track_callback_rmd) (
+ClRcT VDECL (cl_gms_cluster_track_callback_rmd) (
         CL_IN   ClEoDataT               c_data,     /* Unused */
         CL_IN   const ClBufferHandleT  in_buffer,  /* Input data from server */
         CL_OUT  ClBufferHandleT  out_buffer) /* Never used in callbacks */
@@ -2115,9 +2115,7 @@ error_exit:
 }
 
 /*---------------------------------------------------------------------------*/
-ClRcT
-VDECL (cl_gms_cluster_member_get_callback_rmd) (
-        CL_IN   ClEoDataT               c_data,     /* Unused */
+ClRcT VDECL (cl_gms_cluster_member_get_callback_rmd) ( CL_IN   ClEoDataT  c_data,     /* Unused */
         CL_IN   const ClBufferHandleT  in_buffer,  /* Input data from server */
         CL_OUT  ClBufferHandleT  out_buffer) /* Never used in callbacks */
 {
@@ -2225,8 +2223,7 @@ error_exit:
 
 /*---------------------------------------------------------------------------*/
 
-ClRcT
-VDECL (cl_gms_group_track_callback_rmd) (
+ClRcT VDECL (cl_gms_group_track_callback_rmd) (
         CL_IN   ClEoDataT               c_data,     /* Unused */
         CL_IN   ClBufferHandleT  in_buffer,  /* Input data from server */
         CL_OUT  ClBufferHandleT  out_buffer) /* Never used in callbacks */
@@ -2633,14 +2630,8 @@ cl_gms_clientlib_initialize_rmd (
         CL_IN   ClUint32T timeout ,
         CL_OUT  ClGmsClientInitResponseT** const res /* Never used in callbacks */
         ){
-    return cl_gms_call_rmd(
-            (ClUint32T) CL_GMS_CLIENT_INITIALIZE,
-            (void*) req, 
-            marshal_clientlib_initialize_data ,
-            (void**)res,
-            unmarshal_clientlib_initialize_data,
-            0x0
-            );
+    return cl_gms_call_rmd( (ClUint32T) CL_GMS_CLIENT_INITIALIZE, (void*) req, marshal_clientlib_initialize_data , (void**)res,
+                            unmarshal_clientlib_initialize_data, 0x0);
 }
 
 
@@ -2689,14 +2680,10 @@ emulate_rmd_call(
                     .numberOfMembers = 2
                 };
 
-                rc = clBufferNBytesWrite(out_buffer,
-                        (void*)&fake_resp_with_buf,
-                        sizeof(fake_resp_with_buf));
+                rc = clBufferNBytesWrite(out_buffer, (void*)&fake_resp_with_buf, sizeof(fake_resp_with_buf));
                 CL_ASSERT(rc == CL_OK);
 
-                rc = clBufferNBytesWrite(out_buffer,
-                        (void*)fake_notification,
-                        sizeof(fake_notification));
+                rc = clBufferNBytesWrite(out_buffer, (void*)fake_notification, sizeof(fake_notification));
                 CL_ASSERT(rc == CL_OK);
 
                 /*
@@ -2714,19 +2701,13 @@ emulate_rmd_call(
                 rc = clBufferCreate(&callback_buffer);
                 CL_ASSERT(rc == CL_OK);
 
-                rc = clBufferNBytesWrite(callback_buffer,
-                        (void*)&fake_callback_data,
-                        sizeof(fake_callback_data));
+                rc = clBufferNBytesWrite(callback_buffer, (void*)&fake_callback_data, sizeof(fake_callback_data));
                 CL_ASSERT(rc == CL_OK);
 
-                rc = clBufferNBytesWrite(callback_buffer,
-                        (void*)fake_notification,
-                        sizeof(fake_notification));
+                rc = clBufferNBytesWrite(callback_buffer, (void*)fake_notification, sizeof(fake_notification));
                 CL_ASSERT(rc == CL_OK);
 
-                rc = cl_gms_cluster_track_callback_rmd(0,
-                        callback_buffer,
-                        (ClBufferHandleT)NULL);
+                rc = cl_gms_cluster_track_callback_rmd(0, callback_buffer, (ClBufferHandleT)NULL);
 
                 break;
             }

@@ -82,7 +82,7 @@ ClRcT cpmUpdateTL(ClAmsHAStateT haState)
     {
         tlInfo.haState = CL_IOC_TL_ACTIVE;
 
-        if(gpClCpm->activeMasterNodeId != -1)
+        if( (ClInt32T) gpClCpm->activeMasterNodeId != -1)
         {
             clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                        "Deregistering TL entry for node [%d]",
@@ -165,14 +165,14 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
      * set to FALSE for a CURRENT async request from AMF.
      */
     if(leadershipChanged == CL_FALSE && 
-       notificationBuffer->leader == pCpmLocalInfo->nodeId &&
-       prevMasterNodeId != pCpmLocalInfo->nodeId && 
+       (ClInt32T) notificationBuffer->leader == pCpmLocalInfo->nodeId &&
+       (ClInt32T) prevMasterNodeId != pCpmLocalInfo->nodeId && 
        gpClCpm->haState == CL_AMS_HA_STATE_NONE)
         leadershipChanged = CL_TRUE;
         
     if (leadershipChanged == CL_TRUE)
     {
-        if (notificationBuffer->leader == pCpmLocalInfo->nodeId)
+        if ( (ClInt32T) notificationBuffer->leader == pCpmLocalInfo->nodeId)
         {
             clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                       "Node [%d] has become the leader of the cluster",
@@ -189,7 +189,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             }
             gpClCpm->deputyNodeId = notificationBuffer->deputy;
         }
-        else if (notificationBuffer->deputy == pCpmLocalInfo->nodeId)
+        else if ((ClInt32T) notificationBuffer->deputy == pCpmLocalInfo->nodeId)
         {
             clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                       "Node [%d] has become the deputy of the cluster",
@@ -210,7 +210,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
         }
 
         if ((gpClCpm->haState == CL_AMS_HA_STATE_ACTIVE) && 
-            (notificationBuffer->leader != pCpmLocalInfo->nodeId))
+            ( (ClInt32T) notificationBuffer->leader != pCpmLocalInfo->nodeId))
         {
             clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                        "Node [%d] is changing HA state from active to standby",
@@ -219,10 +219,9 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             /*
              * Deregister the entry during a state change.
              */
-            if (notificationBuffer->deputy != pCpmLocalInfo->nodeId)
+            if ( (ClInt32T) notificationBuffer->deputy != pCpmLocalInfo->nodeId)
             {
-                clIocTransparencyDeregister((pCpmLocalInfo->nodeId) <<
-                                            CL_CPM_IOC_SLOT_BITS);
+                clIocTransparencyDeregister((pCpmLocalInfo->nodeId) << CL_CPM_IOC_SLOT_BITS);
             }
 
             /*
@@ -265,11 +264,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                         
                         cpmActive2Standby(CL_NO);
                     }
-                    else if ((notificationBuffer->deputy == pCpmLocalInfo->nodeId)
-                             && 
-                             gpClCpm->polling 
-                             &&
-                             (gpClCpm->nodeLeaving == CL_FALSE))
+                    else if (( (ClInt32T) notificationBuffer->deputy == pCpmLocalInfo->nodeId) && gpClCpm->polling && (gpClCpm->nodeLeaving == CL_FALSE))
                     {
                         /*
                          * We try and handle a possible split brain
@@ -306,7 +301,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             }
         }
         else if ((gpClCpm->haState == CL_AMS_HA_STATE_STANDBY) && 
-                 (notificationBuffer->leader == pCpmLocalInfo->nodeId))
+                 ( (ClInt32T) notificationBuffer->leader == pCpmLocalInfo->nodeId))
         {
             rc = cpmStandby2Active(prevMasterNodeId, 
                                    notificationBuffer->deputy);
@@ -316,7 +311,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             }
         }
         else if ((gpClCpm->haState == CL_AMS_HA_STATE_NONE) && 
-                 (notificationBuffer->leader ==
+                 ( (ClInt32T) notificationBuffer->leader ==
                   pCpmLocalInfo->nodeId))
         {
             /*
@@ -479,8 +474,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                             notificationBuffer->notification->clusterChange);
             }
         }
-        else if ((gpClCpm->haState == CL_AMS_HA_STATE_NONE) &&
-                 (notificationBuffer->deputy == pCpmLocalInfo->nodeId))
+        else if ((gpClCpm->haState == CL_AMS_HA_STATE_NONE) && ( (ClInt32T) notificationBuffer->deputy == pCpmLocalInfo->nodeId))
         {
             if(CL_GMS_NODE_JOINED ==
                notificationBuffer->notification->clusterChange)
@@ -585,11 +579,11 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT *notificati
     }
     else if (CL_CPM_IS_WB())
     {
-        if (notificationBuffer->deputy == pCpmLocalInfo->nodeId)
+        if ((ClInt32T) notificationBuffer->deputy == pCpmLocalInfo->nodeId)
         {
             cpmPayload2StandbySC(notificationBuffer, pCpmLocalInfo);
         }
-        else if (notificationBuffer->leader == pCpmLocalInfo->nodeId)
+        else if ( (ClInt32T) notificationBuffer->leader == pCpmLocalInfo->nodeId)
         {
             clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
                           "currently we are not supporting promoting Payload to Active SC directly");
@@ -600,7 +594,7 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT *notificati
             ClGmsNodeIdT lastActive = gpClCpm->activeMasterNodeId;
             gpClCpm->activeMasterNodeId = notificationBuffer->leader;
             gpClCpm->deputyNodeId = notificationBuffer->deputy;
-            if(notificationBuffer->leader == -1)
+            if( (ClInt32T) notificationBuffer->leader == -1)
             {
                 clIocMasterCacheReset();
             }
@@ -611,7 +605,7 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT *notificati
 
             if (gpClCpm->bmTable->currentBootLevel > CL_CPM_BOOT_LEVEL_2 )
             {
-                if (-1 == notificationBuffer->leader)
+                if (-1 == (ClInt32T) notificationBuffer->leader)
                 {
                     clLogMultiline(CL_LOG_SEV_CRITICAL,
                                    CPM_LOG_AREA_CPM,
@@ -682,10 +676,7 @@ ClRcT cpmGmsInitialize(void)
     ClRcT rc = CL_OK;
     ClTimerTimeOutT timeOut = {0, 0};
 
-    ClGmsCallbacksT cpmGmsCallbacks =
-        {
-            .clGmsClusterTrackCallback = cpmClusterTrackCallBack
-        };
+    ClGmsCallbacksT cpmGmsCallbacks = { NULL, cpmClusterTrackCallBack, NULL, NULL };
     
     gpClCpm->version.releaseCode = 'B';
     gpClCpm->version.majorVersion = 0x01;

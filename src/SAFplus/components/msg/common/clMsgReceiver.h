@@ -68,6 +68,7 @@ ClRcT clMsgQueueGetMessagesAndMove(
         ClIocPhysicalAddressT destCompAddr);
 ClRcT clMsgReplyReceived(ClMsgMessageIovecT *pMessage, SaTimeT sendTime, SaMsgSenderIdT senderHandle, SaTimeT timeout);
 
+ClRcT clMsgMessageReceived_4_0_0(ClMsgMessageSendTypeT sendType, SaNameT *pDest, ClMsgMessageIovecT *pMessage, SaTimeT sendTime, ClHandleT senderHandle, SaTimeT timeout);
 
 #ifdef __cplusplus
 }

@@ -86,6 +86,7 @@ typedef struct ckptKey
     ClCharT       elemKey[1];
 }CkptElemKeyT;
 
+extern ClRcT clDbalLibInitialize(void);
 
 #ifdef __cplusplus
 }

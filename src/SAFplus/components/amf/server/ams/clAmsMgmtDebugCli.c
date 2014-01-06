@@ -305,7 +305,7 @@ static ClRcT amsMgmtEntity(const ClCharT *op,
     if(STREQ(op, "create") && 
        entityType == CL_AMS_ENTITY_TYPE_CSI)
     {
-        ClAmsCSIConfigT csiConfig = {{0}};
+        ClAmsCSIConfigT csiConfig = {{CL_AMS_ENTITY_TYPE_ENTITY}};
         ClUint64T bitMask = CSI_CONFIG_TYPE;
         memcpy(&csiConfig.entity, &entity, sizeof(csiConfig.entity));
         saNameSet(&csiConfig.type, (const ClCharT*)entity.name.value);
@@ -1201,8 +1201,7 @@ static ClRcT amsMgmtCompSet(ClUint32T argc,
             }
         }
         
-        compConfig.pSupportedCSITypes = clHeapRealloc(compConfig.pSupportedCSITypes,
-                                                      (compConfig.numSupportedCSITypes+1)*
+        compConfig.pSupportedCSITypes = (SaNameT*) clHeapRealloc(compConfig.pSupportedCSITypes, (compConfig.numSupportedCSITypes+1)*
                                                       (ClUint32T)sizeof(*compConfig.pSupportedCSITypes));
         if(!compConfig.pSupportedCSITypes)
         {
@@ -1226,8 +1225,9 @@ static ClRcT amsMgmtCompSet(ClUint32T argc,
     }
     else if (STREQ(attr, "capability_model"))
     {
-        ClAmsCompCapModelT capModel = 0;
+        ClAmsCompCapModelT capModel;
         
+        memset(&capModel,0,sizeof(ClAmsCompCapModelT));
         rc = amsEntityCapModelFromStrGet(value, &capModel);
         if (CL_OK != rc) goto failure;
 
@@ -1583,7 +1583,7 @@ static void amsMgmtMigrateListDisplay(ClAmsMgmtMigrateListT *migrateList,
     {                                                                   \
         ClInt32T extra = ( ( (bytes) + 1 + bytesWritten ) - currentSize); \
         currentSize += MAX_BUFFER_SIZE + extra;                         \
-        *ret = clHeapRealloc(*ret, currentSize);                        \
+        *ret = (ClCharT*) clHeapRealloc(*ret, currentSize);                        \
         CL_ASSERT(*ret != NULL);                                        \
     }                                                                   \
 }while(0)
@@ -1596,7 +1596,7 @@ static void amsMgmtMigrateListDisplay(ClAmsMgmtMigrateListT *migrateList,
         clHeapFree(*ret);
         *ret = NULL;
     }
-    *ret = clHeapCalloc(1, MAX_BUFFER_SIZE);
+    *ret = (ClCharT*) clHeapCalloc(1, MAX_BUFFER_SIZE);
     CL_ASSERT(*ret != NULL);
 
     if(migrateList->si.count)
@@ -1781,7 +1781,7 @@ ClRcT clAmsDebugCliMgmtApi(ClUint32T argc, ClCharT **argv, ClCharT **ret)
 
 static ClRcT amsMgmtAdminStateChangeTask(void *arg)
 {
-    ClAmsMgmtAdminChangeOperT *oper = arg;
+    ClAmsMgmtAdminChangeOperT *oper = (ClAmsMgmtAdminChangeOperT*) arg;
     ClAmsAdminStateT lastState = oper->lastState;
     ClAmsAdminStateT newState = oper->newState;
     ClInt32T tries = 0;
@@ -1917,7 +1917,7 @@ ClRcT clAmsMgmtAdminStateChange(ClAmsEntityT *entity,
             goto out;
         }
     }
-    oper = clHeapCalloc(1, sizeof(*oper));
+    oper = (ClAmsMgmtAdminChangeOperT*) clHeapCalloc(1, sizeof(*oper));
     CL_ASSERT(oper != NULL);
     memcpy(&oper->entity, entity, sizeof(oper->entity));
     oper->lastState = lastState;

@@ -393,7 +393,7 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                     }
                     else
                     {
-                        nodeStatusEntry = clHeapAllocate(sizeof(ClTipcNodeStatusT));
+                        nodeStatusEntry = (ClTipcNodeStatusT*) clHeapAllocate(sizeof(ClTipcNodeStatusT));
                         CL_ASSERT(nodeStatusEntry);
 
                         nodeStatusEntry->nodeAddress = compAddr.nodeAddress;

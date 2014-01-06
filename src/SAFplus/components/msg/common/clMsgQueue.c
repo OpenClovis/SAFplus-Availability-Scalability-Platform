@@ -312,10 +312,7 @@ error_out:
     return rc;
 }
 
-ClRcT VDECL_VER(clMsgQueueStatusGet, 4, 0, 0)(
-        SaNameT *pQName,
-        SaMsgQueueStatusT *pQueueStatus
-        )
+ClRcT clMsgQueueStatusGet_4_0_0( SaNameT *pQName, SaMsgQueueStatusT *pQueueStatus)
 {
     ClRcT rc = CL_OK;
     ClMsgQueueRecordT *pQEntry;
@@ -469,11 +466,7 @@ error_out:
     return rc;
 }
 
-ClRcT VDECL_VER(clMsgQueueMoveMessages, 4, 0, 0)(
-        SaNameT *pQName,
-        SaMsgQueueOpenFlagsT openFlags,
-        ClBoolT qDelete
-        )
+ClRcT clMsgQueueMoveMessages_4_0_0( SaNameT *pQName, SaMsgQueueOpenFlagsT openFlags, ClBoolT qDelete)
 {
     ClRcT rc;
     ClRcT retCode;

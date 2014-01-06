@@ -39,6 +39,7 @@
 #include <clIocSetup.h>
 #include <clIocMaster.h>
 #include <clIocConfig.h>
+#include <clIocIpi.h>
 
 #define CL_IOC_NEIGH_COMPS_SEGMENT_NAME   "/CL_IOC_NEIGHBOR_COMPONENTS"
 
@@ -58,7 +59,7 @@ ClUint8T *gpClIocNeighComps;
 static ClCharT gpClIocNeighCompsSegment[CL_IOC_SEGMENT_NAME_LENGTH + 1];
 static ClFdT gClIocNeighCompsFd;
 static ClUint32T gClIocNeighCompsInitialize;
-ClOsalSemIdT gClIocNeighborSem;
+static ClOsalSemIdT gClIocNeighborSem;
 
 #define IOC_LOG_AREA_SEGMENT	"SEG"
 #define IOC_LOG_AREA_STATUS	"STATUS"

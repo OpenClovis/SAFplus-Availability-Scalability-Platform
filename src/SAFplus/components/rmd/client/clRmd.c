@@ -66,10 +66,10 @@ ClUint32T clRmdPrivateDataKey;
 
 extern ClRcT clRmdPrivateDataSet(void *data);
 extern ClRcT clRmdPrivateDataGet(void **data);
+/* This function was moved into clRmdMain.h
+extern ClRcT clEoGetRemoteObjectAndBlock(ClUint16T remoteObj, ClEoExecutionObjT **pRemoteEoObj);
+extern ClRcT clEoRemoteObjectUnblock(ClEoExecutionObjT *remoteEoObj);*/
 
-extern ClRcT clEoGetRemoteObjectAndBlock(ClUint16T remoteObj,
-                                         ClEoExecutionObjT **pRemoteEoObj);
-extern ClRcT clEoRemoteObjectUnblock(ClEoExecutionObjT *remoteEoObj);
 static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr, 
                               ClVersionT *version,
                               ClUint32T funcId,
@@ -644,9 +644,7 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
             ((flags & CL_RMD_CALL_DO_NOT_OPTIMIZE) == 0) &&
             (remoteObjAddr.iocPhyAddress.nodeAddress == clIocLocalAddressGet()))
         {
-            retVal =
-                clEoGetRemoteObjectAndBlock(remoteObjAddr.iocPhyAddress.portId,
-                                            &remoteEoObj);
+            retVal = clEoGetRemoteObjectAndBlock(remoteObjAddr.iocPhyAddress.portId, &remoteEoObj);
 
             if(retVal == CL_OK)
             {

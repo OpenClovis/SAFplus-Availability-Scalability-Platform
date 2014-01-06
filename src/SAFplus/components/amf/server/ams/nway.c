@@ -1494,8 +1494,7 @@ clAmsPeSGAssignSUNway(
                     {
                         numMaxSIs = numSIs;
 
-                        scannedSIList = clHeapRealloc(scannedSIList,
-                                                      numSIs * sizeof(*scannedSIList));
+                        scannedSIList = (ClAmsSIT**) clHeapRealloc(scannedSIList, numSIs * sizeof(*scannedSIList));
                         CL_ASSERT(scannedSIList != NULL);
                     }
                     scannedSIList[numScannedSIs++] = si;
@@ -1571,7 +1570,7 @@ clAmsPeSURemoveStandbyNway(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMode,
 
                 if(targetSU->status.numActiveSIs >= sg->config.maxActiveSIsPerSU)
                 {
-                    __AmsStandbyRefT *standbyRef = clHeapCalloc(1, sizeof(*standbyRef));
+                    __AmsStandbyRefT *standbyRef = (__AmsStandbyRefT*) clHeapCalloc(1, sizeof(*standbyRef));
                     CL_ASSERT(standbyRef != NULL);
                     standbyRef->si = si;
                     standbyRef->su = targetSU;

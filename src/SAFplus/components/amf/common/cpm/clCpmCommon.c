@@ -142,16 +142,13 @@ ClRcT cpmInvocationGetWithLock(ClInvocationT invocationId,
      * Check the input parameter 
      */
     if ((data == NULL) || (cbType == NULL))
-        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid parameter passed \n"),
-                     CL_CPM_RC(CL_ERR_NULL_POINTER));
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Invalid parameter passed \n"), CL_CPM_RC(CL_ERR_NULL_POINTER));
 
-    rc = clCntNodeFind(gpClCpm->invocationTable,
-                       (ClCntKeyHandleT)&invocationId, &cntNodeHandle);
+    rc = clCntNodeFind(gpClCpm->invocationTable, (ClCntKeyHandleT)&invocationId, &cntNodeHandle);
     if (rc != CL_OK)
         goto failure;
 
-    rc = clCntNodeUserDataGet(gpClCpm->invocationTable, cntNodeHandle,
-                              (ClCntDataHandleT *) &invocationData);
+    rc = clCntNodeUserDataGet(gpClCpm->invocationTable, cntNodeHandle, (ClCntDataHandleT *) &invocationData);
     if (rc != CL_OK)
         goto failure;
 
@@ -378,7 +375,7 @@ ClRcT cpmNodeDelByNodeId(ClUint32T nodeId)
 
             if (tempCpmL->pCpmLocalInfo)
             {
-                if (tempCpmL->pCpmLocalInfo->nodeId == nodeId)
+                if ((ClUint32T) tempCpmL->pCpmLocalInfo->nodeId == nodeId)
                 {
                     clCntNodeDelete(gpClCpm->cpmTable,cpmNode);
                     gpClCpm->noOfCpm--;
@@ -420,13 +417,12 @@ ClUint32T cpmNodeFindByNodeId(ClUint32T nodeId, ClCpmLT **cpmL)
 
         while (cpmLCount)
         {
-            rc = clCntNodeUserDataGet(gpClCpm->cpmTable, cpmNode,
-                                      (ClCntDataHandleT *) &tempCpmL);
+            rc = clCntNodeUserDataGet(gpClCpm->cpmTable, cpmNode, (ClCntDataHandleT *) &tempCpmL);
             CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
             if (tempCpmL->pCpmLocalInfo)
             {
-                if (tempCpmL->pCpmLocalInfo->nodeId == nodeId)
+                if ((ClUint32T) tempCpmL->pCpmLocalInfo->nodeId == nodeId)
                 {
                     *cpmL = tempCpmL;
                     found = 1;
@@ -438,9 +434,7 @@ ClUint32T cpmNodeFindByNodeId(ClUint32T nodeId, ClCpmLT **cpmL)
             if (cpmLCount)
             {
                 rc = clCntNextNodeGet(gpClCpm->cpmTable, cpmNode, &cpmNode);
-                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
-                               CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc,
-                               rc, CL_LOG_HANDLE_APP);
+                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_CNT_NEXT_NODE_GET_ERR, "CPM-L", rc, rc, CL_LOG_HANDLE_APP);
             }
         }
     }
@@ -496,12 +490,12 @@ ClRcT cpmPrintDBXML(FILE *fp)
                  * If the node is a SC, display its data 
                  */
                 if(!strcmp((const ClCharT *)cpmL->nodeType.value, (const ClCharT *)gpClCpm->pCpmLocalInfo->nodeType.value)
-                    || cpmL->pCpmLocalInfo->nodeId == gpClCpm->activeMasterNodeId
-                    || cpmL->pCpmLocalInfo->nodeId == gpClCpm->deputyNodeId)
+                    || (ClUint32T) cpmL->pCpmLocalInfo->nodeId == gpClCpm->activeMasterNodeId
+                    || (ClUint32T) cpmL->pCpmLocalInfo->nodeId == gpClCpm->deputyNodeId)
                 {
                     fprintf(fp,"<node value=\"%s\">\n",cpmL->pCpmLocalInfo->nodeName);
                     fprintf(fp,"<id value=\"%d\"/>\n",cpmL->pCpmLocalInfo->nodeId);
-                    fprintf(fp,"<ha_state value=\"%s\"/>\n",cpmL->pCpmLocalInfo->nodeId == gpClCpm->activeMasterNodeId ? "active" : "standby");
+                    fprintf(fp,"<ha_state value=\"%s\"/>\n",(ClUint32T) cpmL->pCpmLocalInfo->nodeId == gpClCpm->activeMasterNodeId ? "active" : "standby");
                     fprintf(fp,"</node>\n");
                 }
             }

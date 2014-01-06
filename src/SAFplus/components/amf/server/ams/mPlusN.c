@@ -1411,8 +1411,7 @@ clAmsPeSGAssignSUMPlusN(
                     {
                         numMaxSIs = numSIs;
 
-                        scannedSIList = clHeapRealloc(scannedSIList,
-                                                      numSIs * sizeof(*scannedSIList));
+                        scannedSIList = (ClAmsSIT**) clHeapRealloc(scannedSIList, numSIs * sizeof(*scannedSIList));
                         CL_ASSERT(scannedSIList != NULL);
                     }
                     scannedSIList[numScannedSIs++] = si;
@@ -1508,7 +1507,7 @@ clAmsPeSURemoveStandbyMPlusN(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMod
     ClUint32T numActiveSIs = 0;
     ClUint32T numOtherSIs = 0;
     ClUint32T i = 0;
-    ClAmsEntityRemoveOpT removeOp = {{0}};
+    ClAmsEntityRemoveOpT removeOp = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsEntityRemoveOpT *pendingRemoveOp = NULL;
     
     if(!sg || !su || !activeSU || !reassignWork) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
@@ -1522,25 +1521,20 @@ clAmsPeSURemoveStandbyMPlusN(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMod
         return CL_OK;
     }
 
-    for(siRef = clAmsEntityListGetFirst(&su->status.siList);
-        siRef != NULL;
-        siRef = clAmsEntityListGetNext(&su->status.siList, siRef))
+    for(siRef = clAmsEntityListGetFirst(&su->status.siList); siRef != NULL; siRef = clAmsEntityListGetNext(&su->status.siList, siRef))
     {
         ClAmsSIT *si = (ClAmsSIT*)siRef->ptr;
         ClAmsEntityRefT *suRef = NULL;
         if(!(numActiveSIs & 7))
         {
-            activeSIs = clHeapRealloc(activeSIs,
-                                      (numActiveSIs + 8) * sizeof(*activeSIs));
+            activeSIs = (ClAmsSIT**) clHeapRealloc(activeSIs, (numActiveSIs + 8) * sizeof(*activeSIs));
             CL_ASSERT(activeSIs != NULL);
         }
         activeSIs[numActiveSIs++] = si;
         /*
          * Find a standby SU with the highest rank.
          */
-        for(suRef = clAmsEntityListGetFirst(&si->status.suList);
-            suRef != NULL;
-            suRef = clAmsEntityListGetNext(&si->status.suList, suRef))
+        for(suRef = clAmsEntityListGetFirst(&si->status.suList); suRef != NULL; suRef = clAmsEntityListGetNext(&si->status.suList, suRef))
         {
             ClAmsSUT *standbySU = (ClAmsSUT*)suRef->ptr;
             ClAmsSISURefT *siSURef = (ClAmsSISURefT*)suRef;
@@ -1557,9 +1551,7 @@ clAmsPeSURemoveStandbyMPlusN(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMod
              * If there is a pending SI remove for the standby SU,
              * skip the process.
              */
-            if(standbySU->status.entity.opStack.numOps > 0 
-               && 
-               clAmsEntityOpGet(&standbySU->config.entity, &standbySU->status.entity, 
+            if(standbySU->status.entity.opStack.numOps > 0 && clAmsEntityOpGet(&standbySU->config.entity, &standbySU->status.entity, 
                                 CL_AMS_ENTITY_OP_REMOVE_MPLUSN, (void**)&pendingRemoveOp, NULL) == CL_OK)
 
             {
@@ -1569,8 +1561,7 @@ clAmsPeSURemoveStandbyMPlusN(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMod
                 *activeSU = standbySU;
                 if( (switchoverMode & CL_AMS_ENTITY_SWITCHOVER_CONTROLLER) )
                 {
-                    clLogNotice("SI", "REPLAY", 
-                                "Skipping SI remove replay operation during controller switchover phase for SU "
+                    clLogNotice("SI", "REPLAY", "Skipping SI remove replay operation during controller switchover phase for SU "
                                 "[%s]", standbySU->config.entity.name.value);
                     clAmsEntityOpClear(&standbySU->config.entity, &standbySU->status.entity, 
                                        CL_AMS_ENTITY_OP_REMOVE_MPLUSN, NULL, NULL);
@@ -1634,8 +1625,7 @@ clAmsPeSURemoveStandbyMPlusN(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMod
         {
             if( !(numOtherSIs & 7 ) )
             {
-                otherSIs = clHeapRealloc(otherSIs, 
-                                         (numOtherSIs + 8) * sizeof(*otherSIs));
+                otherSIs = (ClAmsSIT**) clHeapRealloc(otherSIs, (numOtherSIs + 8) * sizeof(*otherSIs));
                 CL_ASSERT(otherSIs != NULL);
             }
             otherSIs[numOtherSIs++] = si;
@@ -1736,7 +1726,7 @@ ClRcT clAmsPeSUSIDependentsListMPlusN(ClAmsSUT *su,
          * This SI is not active assignable. Mark this SI and the
          * SU to which it belongs for a pending REASSIGN.
          */
-        reassignEntry = clHeapCalloc(1, sizeof(*reassignEntry));
+        reassignEntry = (ClAmsSIReassignEntryT*) clHeapCalloc(1, sizeof(*reassignEntry));
         CL_ASSERT(reassignEntry != NULL);
         reassignEntry->si = targetSI;
         clListAddTail(&reassignEntry->list, dependentSIList);
@@ -1921,7 +1911,7 @@ clAmsPeSGAutoAdjustMPlusN(ClAmsSGT *sg)
                     continue;
                 }
             }
-            adjustEntry = clHeapCalloc(1, sizeof(*adjustEntry));
+            adjustEntry = (ClAmsSUAdjustListT*) clHeapCalloc(1, sizeof(*adjustEntry));
             CL_ASSERT(adjustEntry != NULL);
             adjustEntry->su = leastSU;
             if(leastSU->status.numActiveSIs)
@@ -2000,7 +1990,7 @@ clAmsPeSGAutoAdjustMPlusN(ClAmsSGT *sg)
             /*
              * Add the lower ranked ones for active swap at the head.
              */
-            ClAmsSUAdjustListT *adjustEntry = clHeapCalloc(1, sizeof(*adjustEntry));
+            ClAmsSUAdjustListT *adjustEntry = (ClAmsSUAdjustListT*) clHeapCalloc(1, sizeof(*adjustEntry));
             CL_ASSERT(adjustEntry != NULL);
             adjustEntry->su = su;
             clListAdd(&adjustEntry->list, &suActiveAdjustList);
@@ -2008,7 +1998,7 @@ clAmsPeSGAutoAdjustMPlusN(ClAmsSGT *sg)
 
             if(lastStandbySU->status.numStandbySIs)
             {
-                adjustEntry = clHeapCalloc(1, sizeof(*adjustEntry));
+                adjustEntry = (ClAmsSUAdjustListT*) clHeapCalloc(1, sizeof(*adjustEntry));
                 CL_ASSERT(adjustEntry != NULL);
                 adjustEntry->su = lastStandbySU;
                 clListAddTail(&adjustEntry->list, &suStandbyAdjustList);
@@ -2232,17 +2222,14 @@ ClRcT clAmsPeSISwapMPlusN(ClAmsSIT *si, ClAmsSGT *sg)
          */
         if(!(numSwapSIs & 3 ))
         {
-            swapSIList = clHeapRealloc(swapSIList,
-                                       (ClUint32T)
-                                       sizeof(*swapSIList)*(numSwapSIs + 4));
+            swapSIList = (ClAmsSIT**) clHeapRealloc(swapSIList, (ClUint32T) sizeof(*swapSIList)*(numSwapSIs + 4));
             CL_ASSERT(swapSIList != NULL);
         }
 
         swapSIList[numSwapSIs++] = targetSI;
     }
 
-    swapSIListExtended = clHeapCalloc(sg->config.maxStandbySIsPerSU + numSwapSIs, 
-                                      sizeof(*swapSIListExtended));
+    swapSIListExtended = (ClAmsSIT**) clHeapCalloc(sg->config.maxStandbySIsPerSU + numSwapSIs, sizeof(*swapSIListExtended));
     CL_ASSERT(swapSIListExtended != NULL);
 
     /*
@@ -2312,10 +2299,10 @@ ClRcT clAmsPeSISwapMPlusN(ClAmsSIT *si, ClAmsSGT *sg)
 
     if(numSwapExtendedSIs > 0)
     {
-        ClAmsEntitySwapRemoveOpT swapOp = {{0}};
+        ClAmsEntitySwapRemoveOpT swapOp = {{CL_AMS_ENTITY_TYPE_ENTITY}};
         memcpy(&swapOp.entity, &activeSU->config.entity, sizeof(swapOp.entity));
         swapOp.sisRemoved = numSwapExtendedSIs;
-        swapOp.otherSIs = clHeapCalloc(numSwapExtendedSIs, sizeof(ClAmsEntityT));
+        swapOp.otherSIs = (ClAmsEntityT*) clHeapCalloc(numSwapExtendedSIs, sizeof(ClAmsEntityT));
         CL_ASSERT(swapOp.otherSIs != NULL);
         swapOp.numOtherSIs = numSwapExtendedSIs;
         for(i = 0; i < numSwapExtendedSIs; ++i)
@@ -2516,10 +2503,10 @@ clAmsPeEntityOpSwapRemove(ClAmsEntityT *entity,
                           ClUint32T dataSize,
                           ClBoolT recovery)
 {
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsEntitySwapRemoveOpT *swapOp = (ClAmsEntitySwapRemoveOpT*)data;
     ClRcT rc = CL_OK;
-    ClInt32T i;
+    ClUint32T i;
     ClAmsSUT *activeSU = NULL;
     ClAmsSUT *standbySU = NULL;
     ClAmsSIT **swapSIList = NULL;
@@ -2582,9 +2569,7 @@ clAmsPeEntityOpSwapRemove(ClAmsEntityT *entity,
          */
         if(!(numSwapSIs & 3 ))
         {
-            swapSIList = clHeapRealloc(swapSIList,
-                                       (ClUint32T)
-                                       sizeof(*swapSIList)*(numSwapSIs + 4));
+            swapSIList = (ClAmsSIT**) clHeapRealloc(swapSIList, (ClUint32T) sizeof(*swapSIList)*(numSwapSIs + 4));
             CL_ASSERT(swapSIList != NULL);
         }
 
@@ -2724,8 +2709,7 @@ clAmsPeEntityOpSwapRemove(ClAmsEntityT *entity,
 
     clAmsPeSIReassignEntryListDelete(&dependentSIList);
 
-    if(!sisReassigned || 
-       sisReassigned != numSwapSIs)
+    if(!sisReassigned || (ClUint32T) sisReassigned != numSwapSIs)
     {
         /*
          * Update pending op.
@@ -2786,7 +2770,7 @@ clAmsPeEntityOpSwapActive(ClAmsEntityT *entity,
 ClRcT
 clAmsPeEntityOpReduceRemove(ClAmsEntityT *entity, void *data, ClUint32T dataSize, ClBoolT recovery)
 {
-    ClAmsEntityReduceRemoveOpT *reduceOp = data;
+    ClAmsEntityReduceRemoveOpT *reduceOp = (ClAmsEntityReduceRemoveOpT*) data;
     
     if(!data) return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
 
@@ -2803,7 +2787,7 @@ clAmsPeEntityOpActiveRemove(ClAmsEntityT *entity,
                             ClUint32T dataSize,
                             ClBoolT recovery)
 {
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsSUT *failoverSU = NULL;
     ClAmsEntityRemoveOpT *activeRemoveOp = (ClAmsEntityRemoveOpT*)data;
     ClRcT rc = CL_OK;
@@ -2839,7 +2823,7 @@ clAmsPeEntityOpRemove(ClAmsEntityT *entity,
                       ClUint32T dataSize,
                       ClBoolT recovery)
 {
-    ClAmsEntityRefT entityRef = {{0}};
+    ClAmsEntityRefT entityRef = {{CL_AMS_ENTITY_TYPE_ENTITY}};
     ClAmsSUT *failoverSU = NULL;
     ClAmsEntityRemoveOpT *removeOp = (ClAmsEntityRemoveOpT*)data;
     ClRcT rc = CL_OK;

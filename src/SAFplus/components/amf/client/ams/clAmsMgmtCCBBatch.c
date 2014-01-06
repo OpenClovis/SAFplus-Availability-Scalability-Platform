@@ -116,7 +116,7 @@ ClRcT clAmsMgmtCCBBatchInitialize(ClAmsMgmtHandleT mgmtHandle, ClAmsMgmtCCBBatch
     ClAmsMgmtCCBBatchT *batch = NULL;
     ClRcT rc = CL_OK;
 
-    batch = clHeapCalloc(1, sizeof(*batch));
+    batch = (ClAmsMgmtCCBBatchT*) clHeapCalloc(1, sizeof(*batch));
     CL_ASSERT(batch != NULL);
 
     rc = amsMgmtCCBBatchBufferInitialize(batch);
