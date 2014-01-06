@@ -40,6 +40,7 @@
 #include <clEventUtilsIpi.h>
 #include <ipi/clHandleIpi.h>
 #include <ipi/clUtilsIpi.h>
+#include <clEventExtApi.h>
 #include "clEventServerToClientFuncTable.h"
 
 #include "xdrClEvtInitRequestT.h"

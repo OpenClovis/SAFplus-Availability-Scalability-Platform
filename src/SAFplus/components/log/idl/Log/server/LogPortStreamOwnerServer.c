@@ -30,7 +30,7 @@ ClRcT clLogStreamOwnerStreamOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT i
     ClUint8T  logOpenFlags;
     ClUint32T  nodeAddr;
     SaNameT  pStreamName;
-    ClUint32T  pStreamScope;
+    ClLogStreamScopeT  pStreamScope;
     SaNameT  pStreamScopeNode;
     ClUint32T  compId;
     ClLogStreamAttrIDLT_4_0_0  pStreamAttr;
@@ -43,7 +43,7 @@ ClRcT clLogStreamOwnerStreamOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT i
     memset(&(logOpenFlags), 0, sizeof(ClUint8T));
     memset(&(nodeAddr), 0, sizeof(ClUint32T));
     memset(&(pStreamName), 0, sizeof(SaNameT));
-    memset(&(pStreamScope), 0, sizeof(ClUint32T));
+    memset(&(pStreamScope), 0, sizeof(ClLogStreamScopeT));
     memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
     memset(&(compId), 0, sizeof(ClUint32T));
     memset(&(pStreamAttr), 0, sizeof(ClLogStreamAttrIDLT_4_0_0));
@@ -72,7 +72,7 @@ ClRcT clLogStreamOwnerStreamOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT i
         goto LL2;
     }
 
-    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(pStreamScope));
+    rc = clXdrUnmarshallClLogStreamScopeT_4_0_0( inMsgHdl,&(pStreamScope));
     if (CL_OK != rc)
     {
         goto LL3;
@@ -145,7 +145,7 @@ ClRcT clLogStreamOwnerStreamOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT i
         goto L3;
     }
 
-    rc = clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+    rc = clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
     if (CL_OK != rc)
     {
         goto L4;
@@ -211,7 +211,7 @@ LL7:  clXdrMarshallClUint16T(&(pStreamId), 0, 1);
 LL6:  clXdrMarshallClLogStreamAttrIDLT_4_0_0(&(pStreamAttr), 0, 1);
 LL5:  clXdrMarshallClUint32T(&(compId), 0, 1);
 LL4:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
-LL3:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+LL3:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 LL2:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
 LL1:  clXdrMarshallClUint32T(&(nodeAddr), 0, 1);
 LL0:  clXdrMarshallClUint8T(&(logOpenFlags), 0, 1);
@@ -222,7 +222,7 @@ L0:  clXdrMarshallClUint8T(&(logOpenFlags), 0, 1);
 L1:  clXdrMarshallClUint32T(&(nodeAddr), 0, 1);
 
 L2:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
-L3:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+L3:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 L4:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
 L5:  clXdrMarshallClUint32T(&(compId), 0, 1);
 L6:  clXdrMarshallClLogStreamAttrIDLT_4_0_0(&(pStreamAttr), 0, 1);
@@ -316,13 +316,13 @@ ClRcT clLogStreamOwnerStreamCloseServer_4_0_0(ClEoDataT eoData, ClBufferHandleT 
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
     SaNameT  pStreamName;
-    ClUint32T  pStreamScope;
+    ClLogStreamScopeT  pStreamScope;
     SaNameT  pStreamScopeNode;
     ClUint32T  nodeAddress;
     ClUint32T  compId;
 
     memset(&(pStreamName), 0, sizeof(SaNameT));
-    memset(&(pStreamScope), 0, sizeof(ClUint32T));
+    memset(&(pStreamScope), 0, sizeof(ClLogStreamScopeT));
     memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
     memset(&(nodeAddress), 0, sizeof(ClUint32T));
     memset(&(compId), 0, sizeof(ClUint32T));
@@ -334,7 +334,7 @@ ClRcT clLogStreamOwnerStreamCloseServer_4_0_0(ClEoDataT eoData, ClBufferHandleT 
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(pStreamScope));
+    rc = clXdrUnmarshallClLogStreamScopeT_4_0_0( inMsgHdl,&(pStreamScope));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -389,7 +389,7 @@ ClRcT clLogStreamOwnerStreamCloseServer_4_0_0(ClEoDataT eoData, ClBufferHandleT 
         goto L1;
     }
 
-    rc = clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+    rc = clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -424,13 +424,13 @@ L5:    return rc;
 LL4:  clXdrMarshallClUint32T(&(compId), 0, 1);
 LL3:  clXdrMarshallClUint32T(&(nodeAddress), 0, 1);
 LL2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
-LL1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+LL1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 LL0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
-L1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+L1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 L2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
 L3:  clXdrMarshallClUint32T(&(nodeAddress), 0, 1);
 L4:  clXdrMarshallClUint32T(&(compId), 0, 1);
@@ -469,13 +469,13 @@ ClRcT clLogStreamOwnerFilterSetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
     SaNameT  pStreamName;
-    ClUint32T  pStreamScope;
+    ClLogStreamScopeT  pStreamScope;
     SaNameT  pStreamScopeNode;
     ClUint8T  filterFlags;
     ClLogFilterT_4_0_0  pFilter;
 
     memset(&(pStreamName), 0, sizeof(SaNameT));
-    memset(&(pStreamScope), 0, sizeof(ClUint32T));
+    memset(&(pStreamScope), 0, sizeof(ClLogStreamScopeT));
     memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
     memset(&(filterFlags), 0, sizeof(ClUint8T));
     memset(&(pFilter), 0, sizeof(ClLogFilterT_4_0_0));
@@ -487,7 +487,7 @@ ClRcT clLogStreamOwnerFilterSetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(pStreamScope));
+    rc = clXdrUnmarshallClLogStreamScopeT_4_0_0( inMsgHdl,&(pStreamScope));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -542,7 +542,7 @@ ClRcT clLogStreamOwnerFilterSetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
         goto L1;
     }
 
-    rc = clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+    rc = clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -577,13 +577,13 @@ L5:    return rc;
 LL4:  clXdrMarshallClLogFilterT_4_0_0(&(pFilter), 0, 1);
 LL3:  clXdrMarshallClUint8T(&(filterFlags), 0, 1);
 LL2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
-LL1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+LL1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 LL0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
-L1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+L1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 L2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
 L3:  clXdrMarshallClUint8T(&(filterFlags), 0, 1);
 L4:  clXdrMarshallClLogFilterT_4_0_0(&(pFilter), 0, 1);
@@ -622,14 +622,14 @@ ClRcT clLogStreamOwnerHandlerRegisterServer_4_0_0(ClEoDataT eoData, ClBufferHand
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
     SaNameT  pStreamName;
-    ClUint32T  pStreamScope;
+    ClLogStreamScopeT  pStreamScope;
     SaNameT  pStreamScopeNode;
     ClUint8T  handlerFlags;
     ClUint32T  localAddr;
     ClUint32T  compId;
 
     memset(&(pStreamName), 0, sizeof(SaNameT));
-    memset(&(pStreamScope), 0, sizeof(ClUint32T));
+    memset(&(pStreamScope), 0, sizeof(ClLogStreamScopeT));
     memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
     memset(&(handlerFlags), 0, sizeof(ClUint8T));
     memset(&(localAddr), 0, sizeof(ClUint32T));
@@ -642,7 +642,7 @@ ClRcT clLogStreamOwnerHandlerRegisterServer_4_0_0(ClEoDataT eoData, ClBufferHand
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(pStreamScope));
+    rc = clXdrUnmarshallClLogStreamScopeT_4_0_0( inMsgHdl,&(pStreamScope));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -703,7 +703,7 @@ ClRcT clLogStreamOwnerHandlerRegisterServer_4_0_0(ClEoDataT eoData, ClBufferHand
         goto L1;
     }
 
-    rc = clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+    rc = clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -745,13 +745,13 @@ LL5:  clXdrMarshallClUint32T(&(compId), 0, 1);
 LL4:  clXdrMarshallClUint32T(&(localAddr), 0, 1);
 LL3:  clXdrMarshallClUint8T(&(handlerFlags), 0, 1);
 LL2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
-LL1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+LL1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 LL0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
-L1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+L1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 L2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
 L3:  clXdrMarshallClUint8T(&(handlerFlags), 0, 1);
 L4:  clXdrMarshallClUint32T(&(localAddr), 0, 1);
@@ -791,12 +791,12 @@ ClRcT clLogStreamOwnerStreamMcastGetServer_4_0_0(ClEoDataT eoData, ClBufferHandl
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
     SaNameT  pStreamName;
-    ClUint32T  pStreamScope;
+    ClLogStreamScopeT  pStreamScope;
     SaNameT  pStreamScopeNode;
     ClUint64T  mcastAddr;
 
     memset(&(pStreamName), 0, sizeof(SaNameT));
-    memset(&(pStreamScope), 0, sizeof(ClUint32T));
+    memset(&(pStreamScope), 0, sizeof(ClLogStreamScopeT));
     memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
     memset(&(mcastAddr), 0, sizeof(ClUint64T));
 
@@ -807,7 +807,7 @@ ClRcT clLogStreamOwnerStreamMcastGetServer_4_0_0(ClEoDataT eoData, ClBufferHandl
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(pStreamScope));
+    rc = clXdrUnmarshallClLogStreamScopeT_4_0_0( inMsgHdl,&(pStreamScope));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -850,7 +850,7 @@ ClRcT clLogStreamOwnerStreamMcastGetServer_4_0_0(ClEoDataT eoData, ClBufferHandl
         goto L1;
     }
 
-    rc = clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+    rc = clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -877,13 +877,13 @@ ClRcT clLogStreamOwnerStreamMcastGetServer_4_0_0(ClEoDataT eoData, ClBufferHandl
 L4:    return rc;
 
 LL2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
-LL1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+LL1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 LL0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
-L1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+L1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 L2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
 
 L3:  clXdrMarshallClUint64T(&(mcastAddr), 0, 1);
@@ -930,14 +930,14 @@ ClRcT clLogStreamOwnerHandlerDeregisterServer_4_0_0(ClEoDataT eoData, ClBufferHa
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
     SaNameT  pStreamName;
-    ClUint32T  pStreamScope;
+    ClLogStreamScopeT  pStreamScope;
     SaNameT  pStreamScopeNode;
     ClUint8T  handlerFlags;
     ClUint32T  localAddr;
     ClUint32T  compId;
 
     memset(&(pStreamName), 0, sizeof(SaNameT));
-    memset(&(pStreamScope), 0, sizeof(ClUint32T));
+    memset(&(pStreamScope), 0, sizeof(ClLogStreamScopeT));
     memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
     memset(&(handlerFlags), 0, sizeof(ClUint8T));
     memset(&(localAddr), 0, sizeof(ClUint32T));
@@ -950,7 +950,7 @@ ClRcT clLogStreamOwnerHandlerDeregisterServer_4_0_0(ClEoDataT eoData, ClBufferHa
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(pStreamScope));
+    rc = clXdrUnmarshallClLogStreamScopeT_4_0_0( inMsgHdl,&(pStreamScope));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -1011,7 +1011,7 @@ ClRcT clLogStreamOwnerHandlerDeregisterServer_4_0_0(ClEoDataT eoData, ClBufferHa
         goto L1;
     }
 
-    rc = clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+    rc = clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -1053,13 +1053,13 @@ LL5:  clXdrMarshallClUint32T(&(compId), 0, 1);
 LL4:  clXdrMarshallClUint32T(&(localAddr), 0, 1);
 LL3:  clXdrMarshallClUint8T(&(handlerFlags), 0, 1);
 LL2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
-LL1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+LL1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 LL0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
-L1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+L1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 L2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
 L3:  clXdrMarshallClUint8T(&(handlerFlags), 0, 1);
 L4:  clXdrMarshallClUint32T(&(localAddr), 0, 1);
@@ -1099,12 +1099,12 @@ ClRcT clLogStreamOwnerFilterGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
     SaNameT  pStreamName;
-    ClUint32T  pStreamScope;
+    ClLogStreamScopeT  pStreamScope;
     SaNameT  pStreamScopeNode;
     ClLogFilterT_4_0_0  pFilter;
 
     memset(&(pStreamName), 0, sizeof(SaNameT));
-    memset(&(pStreamScope), 0, sizeof(ClUint32T));
+    memset(&(pStreamScope), 0, sizeof(ClLogStreamScopeT));
     memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
     memset(&(pFilter), 0, sizeof(ClLogFilterT_4_0_0));
 
@@ -1115,7 +1115,7 @@ ClRcT clLogStreamOwnerFilterGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
         goto LL0;
     }
 
-    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(pStreamScope));
+    rc = clXdrUnmarshallClLogStreamScopeT_4_0_0( inMsgHdl,&(pStreamScope));
     if (CL_OK != rc)
     {
         goto LL1;
@@ -1158,7 +1158,7 @@ ClRcT clLogStreamOwnerFilterGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
         goto L1;
     }
 
-    rc = clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+    rc = clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
     if (CL_OK != rc)
     {
         goto L2;
@@ -1185,13 +1185,13 @@ ClRcT clLogStreamOwnerFilterGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT in
 L4:    return rc;
 
 LL2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
-LL1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+LL1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 LL0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
 
     return rc;
 
 L0:  clXdrMarshallSaNameT(&(pStreamName), 0, 1);
-L1:  clXdrMarshallClUint32T(&(pStreamScope), 0, 1);
+L1:  clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), 0, 1);
 L2:  clXdrMarshallSaNameT(&(pStreamScopeNode), 0, 1);
 
 L3:  clXdrMarshallClLogFilterT_4_0_0(&(pFilter), 0, 1);

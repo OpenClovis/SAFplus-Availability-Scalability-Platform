@@ -23,6 +23,7 @@
 #include <clLogFileOwner.h>
 #include <clLogFileOwnerUtils.h>
 #include <clLogFileOwnerEo.h>
+#include <LogPortFileHdlrServer.h>
 
 ClRcT
 clLogFileOwnerStreamMapPopulate(ClCntKeyHandleT   key,
@@ -597,8 +598,7 @@ clLogFileHdlrArchiveRecordsGet(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
     return CL_OK;
 }
 
-ClRcT
-VDECL_VER(clLogFileHdlrFileOpen, 4, 0, 0)(ClStringT  *fileName,
+ClRcT VDECL_VER(clLogFileHdlrFileOpen, 4, 0, 0)(ClStringT  *fileName,
                       ClStringT  *fileLocation,
                       ClUint32T  *pOperatingLvl)
 {

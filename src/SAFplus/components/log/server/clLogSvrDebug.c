@@ -25,6 +25,7 @@
 #include <clLogServerDump.h>
 #include <clLogStreamOwnerEo.h>
 #include <clLogServer.h>
+#include <clLogSvrDebug.h>
 #include <clCpmApi.h>
 
 ClVersionT  gVersion     = {'B', 1, 1};

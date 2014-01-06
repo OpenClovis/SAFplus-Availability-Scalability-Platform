@@ -30,14 +30,14 @@ static void clLogMasterAttrVerifyNGetAsyncCallback_4_0_0(ClRcT rc, void *pIdlCoo
     ClRcT retVal = CL_OK;
     ClLogStreamAttrIDLT_4_0_0  pStreamAttr;
     SaNameT  pStreamName;
-    ClUint32T  pStreamScope;
+    ClLogStreamScopeT  pStreamScope;
     SaNameT  pStreamScopeNode;
     ClUint16T  pStreamId;
     ClUint64T  pStreamMcastAddr;
 
     memset(&(pStreamAttr), 0, sizeof(ClLogStreamAttrIDLT_4_0_0));
     memset(&(pStreamName), 0, sizeof(SaNameT));
-    memset(&(pStreamScope), 0, sizeof(ClUint32T));
+    memset(&(pStreamScope), 0, sizeof(ClLogStreamScopeT));
     memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
     memset(&(pStreamId), 0, sizeof(ClUint16T));
     memset(&(pStreamMcastAddr), 0, sizeof(ClUint64T));
@@ -55,7 +55,7 @@ static void clLogMasterAttrVerifyNGetAsyncCallback_4_0_0(ClRcT rc, void *pIdlCoo
         goto L1;
     }
 
-    retVal = clXdrUnmarshallClUint32T(inMsgHdl, &(pStreamScope));
+    retVal = clXdrUnmarshallClLogStreamScopeT_4_0_0(inMsgHdl, &(pStreamScope));
     if (CL_OK != retVal)
     {
         goto L2;
@@ -106,7 +106,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN SaNameT* pStreamName, CL_IN ClUint32T* pStreamScope, CL_IN SaNameT* pStreamScopeNode, CL_INOUT ClUint16T* pStreamId, CL_OUT ClUint64T* pStreamMcastAddr,CL_IN LogClLogMasterAttrVerifyNGetAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN SaNameT* pStreamName, CL_IN ClLogStreamScopeT* pStreamScope, CL_IN SaNameT* pStreamScopeNode, CL_INOUT ClUint16T* pStreamId, CL_OUT ClUint64T* pStreamMcastAddr,CL_IN LogClLogMasterAttrVerifyNGetAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -164,7 +164,7 @@ ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
         goto L;
     }
 
-    rc = clXdrMarshallClUint32T(pStreamScope, inMsgHdl, 0);
+    rc = clXdrMarshallClLogStreamScopeT_4_0_0(pStreamScope, inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
@@ -201,8 +201,7 @@ ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
             goto L2;
         }
 
-        tempFlags |= pHandleObj->flags |
-                     (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT | CL_RMD_CALL_NEED_REPLY);
+        tempFlags |= pHandleObj->flags | (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT | CL_RMD_CALL_NEED_REPLY);
         
         pCookie->pCookie = cookie;
         pCookie->actualCallback = (void(*)())fpAsyncCallback;
@@ -218,8 +217,7 @@ ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_I
     }
     else
     {
-        tempFlags |= pHandleObj->flags |
-                         (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT);
+        tempFlags |= pHandleObj->flags | (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT);
         rc = clRmdWithMsgVer(address, &funcVer, funcNo, inMsgHdl, 0, tempFlags, &(pHandleObj->options),NULL);
         if(CL_OK != rc)
         {
@@ -247,13 +245,13 @@ static void clLogMasterStreamCloseNotifyAsyncCallback_4_0_0(ClRcT rc, void *pIdl
     ClStringT  pFileName;
     ClStringT  pFileLocation;
     SaNameT  pStreamName;
-    ClUint32T  pStreamScope;
+    ClLogStreamScopeT  pStreamScope;
     SaNameT  pStreamScopeNode;
 
     memset(&(pFileName), 0, sizeof(ClStringT));
     memset(&(pFileLocation), 0, sizeof(ClStringT));
     memset(&(pStreamName), 0, sizeof(SaNameT));
-    memset(&(pStreamScope), 0, sizeof(ClUint32T));
+    memset(&(pStreamScope), 0, sizeof(ClLogStreamScopeT));
     memset(&(pStreamScopeNode), 0, sizeof(SaNameT));
 
 
@@ -275,7 +273,7 @@ static void clLogMasterStreamCloseNotifyAsyncCallback_4_0_0(ClRcT rc, void *pIdl
         goto L2;
     }
 
-    retVal = clXdrUnmarshallClUint32T(inMsgHdl, &(pStreamScope));
+    retVal = clXdrUnmarshallClLogStreamScopeT_4_0_0(inMsgHdl, &(pStreamScope));
     if (CL_OK != retVal)
     {
         goto L3;
@@ -307,7 +305,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClStringT* pFileName, CL_IN ClStringT* pFileLocation, CL_IN SaNameT* pStreamName, CL_IN ClUint32T  pStreamScope, CL_IN SaNameT* pStreamScopeNode,CL_IN LogClLogMasterStreamCloseNotifyAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClStringT* pFileName, CL_IN ClStringT* pFileLocation, CL_IN SaNameT* pStreamName, CL_IN ClLogStreamScopeT  pStreamScope, CL_IN SaNameT* pStreamScopeNode,CL_IN LogClLogMasterStreamCloseNotifyAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -371,7 +369,7 @@ ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
         goto L;
     }
 
-    rc = clXdrMarshallClUint32T(&(pStreamScope), inMsgHdl, 0);
+    rc = clXdrMarshallClLogStreamScopeT_4_0_0(&(pStreamScope), inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
@@ -402,8 +400,7 @@ ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
             goto L2;
         }
 
-        tempFlags |= pHandleObj->flags |
-                     (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT | CL_RMD_CALL_NEED_REPLY);
+        tempFlags |= pHandleObj->flags | (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT | CL_RMD_CALL_NEED_REPLY);
         
         pCookie->pCookie = cookie;
         pCookie->actualCallback = (void(*)())fpAsyncCallback;
@@ -419,8 +416,7 @@ ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, C
     }
     else
     {
-        tempFlags |= pHandleObj->flags |
-                         (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT);
+        tempFlags |= pHandleObj->flags | (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT);
         rc = clRmdWithMsgVer(address, &funcVer, funcNo, inMsgHdl, 0, tempFlags, &(pHandleObj->options),NULL);
         if(CL_OK != rc)
         {

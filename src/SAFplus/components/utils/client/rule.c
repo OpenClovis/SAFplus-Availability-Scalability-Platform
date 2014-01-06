@@ -38,6 +38,7 @@
 
 #include <clRuleApi.h>
 #include <clRuleErrors.h>
+#include "rule.h"
 
 #define CL_RULE_MSG_BUF_LEN 256 
 
@@ -69,8 +70,7 @@
 /*                                                                        */
 /*                                                                        */
 /**************************************************************************/
-static ClRuleExprFlagsT
-rbeGetEndian ()
+static ClRuleExprFlagsT rbeGetEndian()
 {
     int i = 1;
     return (*((char *)&i) ? CL_RULE_LITTLE_END : CL_RULE_BIG_END);
@@ -96,8 +96,7 @@ rbeGetEndian ()
  *
  *
  */                                                                     
-ClRcT
-clRuleExprAllocate (ClUint8T len, ClRuleExprT* *pExpr)
+ClRcT clRuleExprAllocate (ClUint8T len, ClRuleExprT* *pExpr)
 {
     ClRuleExprT* expr;
 
@@ -189,8 +188,7 @@ ClRcT clRuleExprDeallocate (ClRuleExprT* expr)
  *
  *
  */
-ClRcT
-clRuleExprAppend (ClRuleExprT* first, ClRuleExprT* next)
+ClRcT clRuleExprAppend (ClRuleExprT* first, ClRuleExprT* next)
 {
     CL_FUNC_ENTER();
 
@@ -229,8 +227,7 @@ clRuleExprAppend (ClRuleExprT* first, ClRuleExprT* next)
  *  @version 1.0
  *
  */                                                                     
-ClRuleResultT
-rbeExprEvaluateOne (ClRuleExprT *expr, ClUint32T *data, int dataLen)
+ClRuleResultT rbeExprEvaluateOne (ClRuleExprT *expr, ClUint32T *data, int dataLen)
 {
     int i;
     ClUint16T offset;
@@ -357,8 +354,7 @@ rbeExprEvaluateOne (ClRuleExprT *expr, ClUint32T *data, int dataLen)
  *  @version 1.0
  *
  */                                                                     
-ClRuleResultT
-clRuleExprEvaluate (ClRuleExprT* expr, ClUint32T *data, int dataLen)
+ClRuleResultT clRuleExprEvaluate (ClRuleExprT* expr, ClUint32T *data, int dataLen)
 {
     ClRuleExprT* exprTmp;
 
@@ -477,8 +473,7 @@ clRuleExprEvaluate (ClRuleExprT* expr, ClUint32T *data, int dataLen)
     return (CL_RULE_FALSE);
 }
 
-ClRuleResultT
-clRuleExprEvaluateOne (ClRuleExprT* expr1, ClRuleExprT* expr2)
+ClRuleResultT clRuleExprEvaluateOne (ClRuleExprT* expr1, ClRuleExprT* expr2)
 {
     int i;
 
@@ -618,8 +613,7 @@ clRuleDoubleExprEvaluate (ClRuleExprT* expr1, ClRuleExprT* expr2)
  *  @version 1.0
  *
  */                                                                     
-ClRcT
-rbeExprConvertOne (ClRuleExprT* expr)
+ClRcT rbeExprConvertOne (ClRuleExprT* expr)
 {
     int i;
 
@@ -1406,8 +1400,7 @@ out:
  *  @version 1.0
  *                                                                     
  */
-ClRcT
-rbeExprPrintOne (ClRuleExprT* expr)
+ClRcT rbeExprPrintOne (ClRuleExprT* expr)
 {
     int i;
 
@@ -1494,8 +1487,7 @@ clRuleExprPrint (ClRuleExprT* expr)
  *  @version 1.0
  *                                                                     
  */
-ClRcT
-clRuleExprPrintToMessageBuffer(ClDebugPrintHandleT msgHandle, ClRuleExprT* pExpr)
+ClRcT clRuleExprPrintToMessageBuffer(ClDebugPrintHandleT msgHandle, ClRuleExprT* pExpr)
 {
     ClRcT rc = CL_OK;
 

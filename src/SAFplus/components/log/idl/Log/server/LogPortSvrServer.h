@@ -24,26 +24,26 @@ extern "C" {
 #include "xdrClLogFilterT.h"
 #include "xdrClLogStreamAttrIDLT.h"
 #include "xdrClLogCompDataT.h"
+#include "xdrClLogStreamScopeT.h"
 
 
-
-ClRcT clLogSvrStreamOpen_4_0_0(CL_IN SaNameT*  streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT*  streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0*  pStreamAttr, CL_IN ClUint8T  streamOpenFlags, CL_IN ClUint32T  compId, CL_IN ClUint32T  portId, CL_IN ClUint32T  isExternal, CL_OUT ClUint32T*  recordSize, CL_OUT ClStringT*  pShmName, CL_OUT ClUint32T*  pShmSize);
+ClRcT clLogSvrStreamOpen_4_0_0(CL_IN SaNameT*  streamName, CL_IN ClLogStreamScopeT streamScope, CL_IN SaNameT*  streamScopeNode, CL_IN ClLogStreamAttrIDLT_4_0_0*  pStreamAttr, CL_IN ClUint8T  streamOpenFlags, CL_IN ClUint32T  compId, CL_IN ClUint32T  portId, CL_IN ClUint32T  isExternal, CL_OUT ClUint32T*  recordSize, CL_OUT ClStringT*  pShmName, CL_OUT ClUint32T*  pShmSize);
 
 ClRcT clLogSvrStreamOpenResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_OUT  ClUint32T  recordSize,CL_OUT  ClStringT  pShmName,CL_OUT  ClUint32T  pShmSize);
 
-ClRcT clLogSvrStreamClose_4_0_0(CL_IN SaNameT*  streamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT*  streamScopeNode, CL_IN ClUint32T  compId);
+ClRcT clLogSvrStreamClose_4_0_0(CL_IN SaNameT*  streamName, CL_IN ClLogStreamScopeT  streamScope, CL_IN SaNameT*  streamScopeNode, CL_IN ClUint32T  compId);
 
 ClRcT clLogSvrStreamCloseResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clLogSvrFilterSet_4_0_0(CL_IN SaNameT*  pStreamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT*  pStreamScopeNode, CL_IN ClLogFilterT_4_0_0*  pFilter);
+ClRcT clLogSvrFilterSet_4_0_0(CL_IN SaNameT*  pStreamName, CL_IN ClLogStreamScopeT  streamScope, CL_IN SaNameT*  pStreamScopeNode, CL_IN ClLogFilterT_4_0_0*  pFilter);
 
 ClRcT clLogSvrFilterSetResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clLogSvrStreamHandleFlagsUpdate_4_0_0(CL_IN SaNameT*  pStreamName, CL_IN ClUint32T  streamScope, CL_IN SaNameT*  pStreamScopeNode, CL_IN ClUint8T  handleFlags, CL_IN ClUint16T  setFlags);
+ClRcT clLogSvrStreamHandleFlagsUpdate_4_0_0(CL_IN SaNameT*  pStreamName, CL_IN ClLogStreamScopeT  streamScope, CL_IN SaNameT*  pStreamScopeNode, CL_IN ClUint8T  handleFlags, CL_IN ClUint16T  setFlags);
 
 ClRcT clLogSvrStreamHandleFlagsUpdateResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clLogHandlerSvrAckSend_4_0_0(CL_IN SaNameT*  pStreamName, CL_IN SaNameT*  pNodeName, CL_IN ClUint32T  streamScope, CL_IN ClUint32T  sequenceNumber, CL_IN ClUint32T  numRecords, CL_IN ClHandleT  flushCookie);
+ClRcT clLogHandlerSvrAckSend_4_0_0(CL_IN SaNameT*  pStreamName, CL_IN SaNameT*  pNodeName, CL_IN ClLogStreamScopeT  streamScope, CL_IN ClUint32T  sequenceNumber, CL_IN ClUint32T  numRecords, CL_IN ClHandleT  flushCookie);
 
 ClRcT clLogHandlerSvrAckSendResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 

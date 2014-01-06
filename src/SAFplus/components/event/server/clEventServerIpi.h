@@ -75,8 +75,7 @@ extern "C"
     /*
      * The following API has been implemented in rule.c exclusively for event 
      */
-    extern ClRcT clRuleExprPrintToMessageBuffer(ClDebugPrintHandleT dbgHandle,
-                                                ClRuleExprT *expr);
+    extern ClRcT clRuleExprPrintToMessageBuffer(ClDebugPrintHandleT dbgHandle, ClRuleExprT *expr);
 
 /**************************************************************************************
                                 EM Internal Defenations

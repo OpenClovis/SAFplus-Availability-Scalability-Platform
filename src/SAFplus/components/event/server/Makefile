@@ -62,7 +62,8 @@ ASP_LIBS	:= libClTimer.a			\
                    libClDebugClient.a		\
                    libClLogClient.a		\
 		   libClIdl.a			\
-		   libClNameClient.a
+		   libClNameClient.a            \
+                   libClHal.a
 
 CPPFLAGS  += -I../client
 CPPFLAGS  += -I$(EVT_PATH)/common/idl/xdr

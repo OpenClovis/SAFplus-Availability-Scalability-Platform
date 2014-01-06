@@ -23,6 +23,7 @@
 #include <clBitmapApi.h>
 #include <clOsalErrors.h>
 
+#include <clLogApi.h>
 #include <clLogErrors.h>
 #include <clLogCommon.h>
 #include <clLogSvrCommon.h>
@@ -778,8 +779,7 @@ clLogStreamOwnerInfoCopy(ClLogStreamOwnerDataT   *pStreamOwnerData,
  *  - t5. Last compId - Remove the Entry.
  *  - t6. Trying to remove the NodeEntry, some other guy waiting on that.
  */
-ClRcT
-VDECL_VER(clLogStreamOwnerStreamClose, 4, 0, 0)(
+ClRcT VDECL_VER(clLogStreamOwnerStreamClose, 4, 0, 0)(
                             SaNameT            *pStreamName,
                             ClLogStreamScopeT  streamScope,
                             SaNameT            *pStreamScopeNode,
@@ -1172,7 +1172,7 @@ void
 clLogStreamOwnerMAVGResponse(ClIdlHandleT            hLogIdl,
                              ClLogStreamAttrIDLT     *pStreamAttr,
                              SaNameT                 *pStreamName,
-                             ClUint32T		     *pStreamScope, 
+                             ClLogStreamScopeT       *pStreamScope, 
                              SaNameT                 *pStreamScopeNode,
                              ClUint16T               *pStreamId,
                              ClIocMulticastAddressT  *pStreamMcastAddr,
@@ -1358,7 +1358,7 @@ clLogStreamOwnerMasterOpen(ClLogSOEoDataT         *pSoEoEntry,
     clLogDebug("SOW", "OPE", "Making call to master for stream open [%.*s]", 
             pStreamName->length, pStreamName->value); 
     rc = VDECL_VER(clLogMasterAttrVerifyNGetClientAsync, 4, 0, 0)(hLogIdl, pStreamAttr, pStreamName,
-                                              (ClUint32T *)&streamScope,pStreamScopeNode, 
+                                              &streamScope,pStreamScopeNode, 
                                               &streamId, &multiCastAddr,
                                               clLogStreamOwnerMAVGResponse,
                                               pCookie);
@@ -2869,8 +2869,7 @@ VDECL_VER(clLogStreamOwnerFilterGet, 4, 0, 0)(
     return  rc;
 }
 
-ClRcT
-VDECL_VER(clLogStreamOwnerStreamMcastGet, 4, 0, 0)(
+ClRcT VDECL_VER(clLogStreamOwnerStreamMcastGet, 4, 0, 0)(
                                SaNameT                 *pStreamName,
                                ClLogStreamScopeT       streamScope,
                                SaNameT                 *pStreamScopeNode,
@@ -2936,8 +2935,7 @@ VDECL_VER(clLogStreamOwnerStreamMcastGet, 4, 0, 0)(
     return  rc;
 }
 
-ClRcT
-VDECL_VER(clLogStreamOwnerHandlerRegister, 4, 0, 0)(
+ClRcT VDECL_VER(clLogStreamOwnerHandlerRegister, 4, 0, 0)(
                                 SaNameT                   *pStreamName,
                                 ClLogStreamScopeT         streamScope,
                                 SaNameT                   *pStreamScopeNode,

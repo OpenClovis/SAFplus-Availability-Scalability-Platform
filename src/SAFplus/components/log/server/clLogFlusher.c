@@ -23,6 +23,7 @@
 #include <AppclientPortclientClient.h>
 #include <clHandleIpi.h>
 #include <clLogFileOwner.h>
+#include "LogPortSvrServer.h"
 #include <clLogCommon.h>
 
 #ifndef POSIX_BUILD

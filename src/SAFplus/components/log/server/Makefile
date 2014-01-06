@@ -88,7 +88,8 @@ ASP_LIBS	:= libClTimer.a  		\
 			   libClIdl.a 			\
 			   libClIdlPtr.a 			\
 			   libClNameClient.a 	\
-			   libClLogClient.a
+			   libClLogClient.a     \
+                           libClHal.a
 
 # Third party libs needed to get asp_logd built:
 

@@ -28,6 +28,8 @@ extern "C" {
 #include <clLogStreamOwner.h>
 #include <clLogSvrCommon.h>    
 
+extern const ClCharT soSecPrefix[];
+
 #define  CL_LOG_SO_SEC_SIZE          2 * sizeof(SaNameT) + \
                                      sizeof(ClLogStreamOwnerDataT)  
 #define  CL_LOG_SO_SEC_ID_SIZE       sizeof(SaNameT) + sizeof(soSecPrefix) 
@@ -35,36 +37,21 @@ extern "C" {
 #define  CL_LOG_MICROS_IN_SEC        (1000L * 1000L)  
                                         /* 5 minutes */    
 
-extern ClRcT
-clLogSOLocalCkptGet(CL_IN ClLogSOEoDataT *pSoEoEntry);
+extern ClRcT clLogSOLocalCkptGet(CL_IN ClLogSOEoDataT *pSoEoEntry);
 
-extern ClRcT
-clLogStreamOwnerLocalCkptCreate(CL_IN ClCkptSvcHdlT  hLibInit); 
+extern ClRcT clLogStreamOwnerLocalCkptCreate(CL_IN ClCkptSvcHdlT  hLibInit); 
 
-extern ClRcT
-clLogStreamOwnerGlobalCheckpointRead(void);
+extern ClRcT clLogStreamOwnerGlobalCheckpointRead(void);
 
-extern ClRcT
-clLogStreamOwnerLocalCkptDelete(void);
+extern ClRcT clLogStreamOwnerLocalCkptDelete(void);
 
-extern ClRcT
-clLogStreamOwnerGlobalCkptGet(ClLogSOEoDataT         *pSoEoEntry,
-                              ClLogSvrCommonEoDataT  *pSvrCommonEoData, 
-                              ClBoolT                *pCreateCkpt);
+extern ClRcT clLogStreamOwnerGlobalCkptGet(ClLogSOEoDataT *pSoEoEntry, ClLogSvrCommonEoDataT  *pSvrCommonEoData, ClBoolT  *pCreateCkpt);
 
-extern ClRcT
-clLogStreamOwnerCkptRead(CL_IN ClHandleT       hLibCkpt, 
-                         CL_IN ClLogSOEoDataT  *pSoEoEntry);
+extern ClRcT clLogStreamOwnerCkptRead(CL_IN ClHandleT   hLibCkpt, CL_IN ClLogSOEoDataT  *pSoEoEntry);
 
-extern ClRcT
-clLogDsIdMapRecreate(CL_IN ClBitmapHandleT  hDsIdMap,
-                     CL_IN ClUint32T        dsId,
-                     CL_IN ClPtrT           pCookie);
-extern ClRcT 
-clLogSOStreamEntryRecreate(ClUint32T  dsId,
-                           ClAddrT    pBuffer,
-                           ClUint32T  size,
-                           ClPtrT     cookie);
+extern ClRcT clLogDsIdMapRecreate(CL_IN ClBitmapHandleT  hDsIdMap, CL_IN ClUint32T        dsId, CL_IN ClPtrT           pCookie);
+
+extern ClRcT clLogSOStreamEntryRecreate(ClUint32T  dsId, ClAddrT    pBuffer, ClUint32T  size, ClPtrT     cookie);
 
 extern ClRcT
 clLogStreamOwnerLocalCheckpoint(CL_IN ClLogSOEoDataT         *pSoEoData,
