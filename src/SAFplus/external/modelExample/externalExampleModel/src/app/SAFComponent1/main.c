@@ -35,6 +35,8 @@
 #include <saEvt.h>
 #include <clEventApi.h>
 #include <clEventExtApi.h>
+#include <clHandleApi.h>
+
 
 
 /* Local function declarations */
@@ -71,6 +73,7 @@ int  errorExit(SaAisErrorT rc);
  * Global Variables.
  *****************************************************************************/
 
+ClAmsHAStateT           ha_state = CL_AMS_HA_STATE_NONE;
 
 
 /* This process's SAF name */
@@ -80,7 +83,11 @@ SaNameT      appName = {0};
 #define PUBLISHER_NAME "TestEventPublisher"
 
 
+#define EVENT_CHANNEL_NAME1 "TestEventChannel1"
+#define PUBLISHER_NAME1 "TestEventPublisher1"
+
 static char     appname[80];
+static void appEventCallback(SaEvtSubscriptionIdT	subscriptionId,SaEvtEventHandleT eventHandle,SaSizeT eventDataSize);
 
 /*
  * ---END_APPLICATION_CODE---
@@ -92,9 +99,11 @@ static char     appname[80];
 
 pid_t mypid;
 SaAmfHandleT amfHandle;
-
+SaEvtHandleT      evtHandle;
+SaNameT                 evtChannelName;
+SaEvtChannelHandleT   evtChannelHandle = 0;
 ClBoolT unblockNow = CL_FALSE;
-
+ClRcT alarmClockLogInitialize( void );
 /*
  * Declare other global variables here.
  */
@@ -177,20 +186,20 @@ int main(int argc, char *argv[])
     gTestInfo.haState          = CL_AMS_HA_STATE_STANDBY;
     SaEvtChannelHandleT evtChannelHandle      = 0;
     SaEvtCallbacksT     evtCallbacks          = {NULL, NULL};
+    const SaEvtCallbacksT evtSubCallbacks =
+    {
+        NULL,
+        appEventCallback
+    };
+    SaVersionT  evtVersion = CL_EVENT_VERSION;
 
 #define min(x,y) ((x < y)? x: y)
 
     strncpy(appname, (char*)appName.value, min(sizeof appname, appName.length));
     appname[min(sizeof appname - 1, appName.length)] = 0;
-    //(void)ev_init(argc, argv, (char*)appName.value);
-
-    /* Set up console redirection for demo purposes */
-    /* Set up console redirection for demo purposes */
-    //(void)ev_init(argc, argv, appname);
-
     printf("EventPublisher : Initializing and registering with CPM...\n");
 
-    // Initialize the the event code
+    //==================Initialize the the event for publish====================================
     rc = saEvtInitialize(&gTestInfo.evtInitHandle,
                            &evtCallbacks,
                            &gTestInfo.evtVersion);
@@ -218,7 +227,7 @@ int main(int argc, char *argv[])
     rc = saEvtEventAllocate(evtChannelHandle, &gTestInfo.eventHandle);
     if (rc != SA_AIS_OK)
     {
-        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failed to cllocate event [0x%x]\n",
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failed to allocate event [0x%x]\n",
                 appname, rc);
         return rc;
     }
@@ -234,6 +243,42 @@ int main(int argc, char *argv[])
                 appname, rc);
         return rc;
     }
+
+    //==================Initialize the the event for subscriber====================================
+    rc = saEvtInitialize(&evtHandle, &evtSubCallbacks, &evtVersion);
+    if (rc != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s: Failed to init event mechanism [0x%x]\n",
+                appname, rc);
+        return rc;
+    }
+    // Open an event chanel so that we can subscribe to events on that channel
+    saNameSet(&evtChannelName,EVENT_CHANNEL_NAME1);
+    rc = saEvtChannelOpen(evtHandle,&evtChannelName,
+            (SA_EVT_CHANNEL_SUBSCRIBER |
+                SA_EVT_CHANNEL_CREATE),
+            (SaTimeT)SA_TIME_END,
+            &evtChannelHandle);
+    if (rc != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failure opening event channel[0x%x] at %ld\n", appname,
+                    rc, time(0L));
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failure opening event channel[0x%x]\n",
+                    appname, rc);
+        goto errorexit;
+    }
+
+    rc = saEvtEventSubscribe(evtChannelHandle, NULL, 1);
+    if (rc != SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t: Failed to subscribe to event channel [0x%x]\n",
+                    appname, rc);
+        clprintf(CL_LOG_SEV_ERROR,
+                    "%s\t:Failed to subscribe to event channel [0x%x]\n",
+                    appname, rc);
+        goto errorexit;
+    }
+
 
 
     clOsalTaskCreateDetached("testEvtMainLoop",
@@ -258,6 +303,11 @@ int main(int argc, char *argv[])
       clprintf (CL_LOG_SEV_INFO, "AMF Finalized");   
 
     return 0;
+    errorexit:
+        clprintf (CL_LOG_SEV_ERROR, "Component [%.*s] : PID [%d]. Initialization error [0x%x]\n",
+                  appName.length, appName.value, mypid, rc);
+
+        return -1;
 }
 
 
@@ -335,7 +385,9 @@ void safAssignWork(SaInvocationT       invocation,
                of the work (the time interval is configurable).
                So it is important to call this saAmfResponse function ASAP.
              */
+        	alarmClockLogInitialize();
         	gTestInfo.haState          = CL_AMS_HA_STATE_ACTIVE;
+        	ha_state = CL_AMS_HA_STATE_ACTIVE;
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
         }
@@ -789,3 +841,138 @@ testEvtMainLoop(void *thdParam)
 
     return NULL;
 }
+static void
+appEventCallback( SaEvtSubscriptionIdT	subscriptionId,
+                             SaEvtEventHandleT     eventHandle,
+			     SaSizeT eventDataSize)
+{
+    SaAisErrorT  saRc = SA_AIS_OK;
+    static ClPtrT   resTest = 0;
+    static ClSizeT  resSize = 0;
+
+    if (ha_state != CL_AMS_HA_STATE_ACTIVE)
+    {
+        return;
+    }
+    clprintf (CL_LOG_SEV_INFO,"We've got an event to receive\n");
+    if (resTest != 0)
+    {
+        // Maybe try to save the previously allocated buffer if it's big
+        // enough to hold the new event message.
+        clHeapFree((char *)resTest);
+        resTest = 0;
+        resSize = 0;
+    }
+    resTest = clHeapAllocate(eventDataSize + 1);
+    if (resTest == 0)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failed to allocate space for event\n",
+                    appname);
+        return;
+    }
+    *(((char *)resTest) + eventDataSize) = 0;
+    resSize = eventDataSize;
+    saRc = saEvtEventDataGet(eventHandle, resTest, &resSize);
+    if (saRc!= SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR, "%s\t:Failed to get event data [0x%x]\n",
+                    appname, saRc);
+    }
+
+    clprintf (CL_LOG_SEV_INFO,"received event: %s\n", (char *)resTest);
+    return;
+}
+static ClLogHandleT        logSvcHandle = CL_HANDLE_INVALID_VALUE;
+
+ClLogStreamHandleT  streamHandle = CL_HANDLE_INVALID_VALUE;
+ClLogStreamAttributesT myStreamAttr;
+
+ClRcT alarmClockLogInitialize( void )
+{
+    ClRcT      rc     = CL_OK;
+    ClVersionT version= {'B', 0x1, 0x1};
+    ClLogCallbacksT  logCallbacks = {0};
+    SaNameT       streamName;
+
+    logSvcHandle = CL_HANDLE_INVALID_VALUE;
+    streamHandle = CL_HANDLE_INVALID_VALUE;
+
+    /*
+    Initialize the client log library.
+
+        ClLogHandleT    *phLog,
+         - used for subsequent invocation of Log Service APIs
+          ClLogCallbacksT *pLogCallbacks,
+          ClLogFilterSetCallbackT - Callback after filter update is completed.
+          ClLogRecordDeliveryCallbackT - Callback for retrieving records
+          ClLogStreamOpenCallbackT     - Callback for clLogStreamOpenAsync()
+
+        ClVersionT         *pVersion`
+    */
+
+    rc = clLogInitialize(&logSvcHandle, &logCallbacks, &version);
+    if(CL_OK != rc)
+    {
+        // Error occured. Take appropriate action.
+        clprintf(CL_LOG_SEV_ERROR, "Failed to initialze log: %x\n", rc);
+        return rc;
+    }
+    sleep(5);
+    clprintf(CL_LOG_SEV_ERROR, "open clockStream 0 \n");
+    myStreamAttr.fileName = (char *)"clock.log";
+    myStreamAttr.fileLocation=(char *)".:var/log";
+    myStreamAttr.recordSize = 300;
+    myStreamAttr.fileUnitSize = 1000000;
+    myStreamAttr.fileFullAction = CL_LOG_FILE_FULL_ACTION_ROTATE;
+    myStreamAttr.maxFilesRotated = 10;
+    myStreamAttr.flushFreq = 10;
+    myStreamAttr.haProperty = 0;
+    myStreamAttr.flushInterval = 1 * (1000L * 1000L * 1000L);
+    myStreamAttr.waterMark.lowLimit = 0;
+    myStreamAttr.waterMark.highLimit = 0;
+    myStreamAttr.syslog = CL_FALSE;
+    clprintf(CL_LOG_SEV_ERROR, "open clockStream 1 \n");
+    /* Stream Name is defined in the IDE during
+     * modeling phase
+     */
+    saNameSet(&streamName,"clockStream");
+    //strcpy(streamName.value, "clockStream");
+    //streamName.length = strlen("clockStream");
+
+
+    /* open the clock stream
+     * ClLogHandleT  - returned with clLogInitialize()
+     * ClNameT       - name of the stream to open
+     * ClLogStreamScopeT  - scope can be global (cluster wide) or local
+     * ClLogStreamAttributesT * - set to null because this is precreated stream
+     * ClLogStreamOpenFlagsT  -  no stream open flags specified
+     * ClTimeT   timeout      - timeout set to zero, if failed return immed.
+     * ClLogStreamHandleT *   - stream handle returned if successful
+    */
+    clprintf(CL_LOG_SEV_ERROR, "open clockStream \n");
+    rc = clLogStreamOpen(logSvcHandle,
+                         streamName,
+                         CL_LOG_STREAM_GLOBAL,
+                         &myStreamAttr,
+                         CL_LOG_STREAM_CREATE,
+                         0,
+                         &streamHandle);
+    if(CL_OK != rc)
+    {
+        /* error occurred. Close Log Service handle and
+           return error code
+         */
+        clprintf(CL_LOG_SEV_ERROR, "Failed to open clockStream : %x\n", rc);
+        (void)clLogFinalize(logSvcHandle);
+        return rc;
+    }
+    rc = clLogWriteAsync(streamHandle,
+                         CL_LOG_SEV_NOTICE,
+                         10,
+                         CL_LOG_MSGID_PRINTF_FMT,
+                         "\n(%s:%d[pid=%d]) -->Alarm Clock Logging Begun<--\n",
+                         __FILE__, __LINE__,getpid());
+    return CL_OK;
+}
+
+

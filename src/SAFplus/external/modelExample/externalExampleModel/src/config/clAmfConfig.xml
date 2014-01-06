@@ -43,6 +43,23 @@
                 <componentInstance name="SAFComponent0I0" type="SAFComponent0"/>
               </componentInstances>
             </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports>
+            <xport>
+              <type>TIPC</type>
+              <plugin>libClTIPC.so</plugin>
+            </xport>
+            <xport>
+              <type>UDP</type>
+              <plugin>libClUDP.so</plugin>
+            </xport>
+          </xports>
+          <default>TIPC</default>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+        <nodeInstance chassisId="0" name="Node0I1" nodeMoId="\Chassis:0\Blade0:1" slotId="0" type="Node0">
+          <serviceUnitInstances>
             <serviceUnitInstance name="SAFComponent0SUI1" rank="0" type="SAFComponent0SU">
               <componentInstances>
                 <componentInstance name="SAFComponent0I1" type="SAFComponent0"/>
@@ -63,13 +80,30 @@
           <default>TIPC</default>
           <bridge>CL_FALSE</bridge>
         </nodeInstance>
-        <nodeInstance chassisId="0" name="Node1I0" nodeMoId="\Chassis:0\Blade0:1" slotId="0" type="Node1">
+        <nodeInstance chassisId="0" name="Node1I0" nodeMoId="\Chassis:0\Blade0:2" slotId="0" type="Node1">
           <serviceUnitInstances>
             <serviceUnitInstance name="SAFComponent1SUI0" rank="0" type="SAFComponent1SU">
               <componentInstances>
                 <componentInstance name="SAFComponent1I0" type="SAFComponent1"/>
               </componentInstances>
             </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports>
+            <xport>
+              <type>TIPC</type>
+              <plugin>libClTIPC.so</plugin>
+            </xport>
+            <xport>
+              <type>UDP</type>
+              <plugin>libClUDP.so</plugin>
+            </xport>
+          </xports>
+          <default>TIPC</default>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+        <nodeInstance chassisId="0" name="Node1I1" nodeMoId="\Chassis:0\Blade0:3" slotId="0" type="Node1">
+          <serviceUnitInstances>
             <serviceUnitInstance name="SAFComponent1SUI1" rank="0" type="SAFComponent1SU">
               <componentInstances>
                 <componentInstance name="SAFComponent1I1" type="SAFComponent1"/>

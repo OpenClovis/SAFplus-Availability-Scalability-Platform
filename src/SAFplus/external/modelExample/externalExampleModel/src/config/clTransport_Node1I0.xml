@@ -14,7 +14,9 @@
       </xports>
       <protocol default="TIPC">
         <node name="Node0I0" protocol="TIPC UDP"/>
+        <node name="Node0I1" protocol="TIPC UDP"/>
         <node name="Node1I0" protocol="TIPC UDP"/>
+        <node name="Node1I1" protocol="TIPC UDP"/>
       </protocol>
       <multicast address="225.1.1.1" port="5678"/>
       <heartbeat>
