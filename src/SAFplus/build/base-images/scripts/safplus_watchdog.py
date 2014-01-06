@@ -21,12 +21,11 @@ import sys
 import signal
 import time
 import logging 
-import pdb
 
-ASP_RESTART_FILE = 'safplus_restart'
 ASP_WATCHDOG_RESTART_FILE='safplus_restart_watchdog'
 ASP_REBOOT_FILE = 'safplus_reboot'
 ASP_RESTART_DISABLE_FILE = 'safplus_restart_disable'
+ASP_NO_RESTART_FILE = 'safplus_no_restart'
 
 SAFPLUS_RESTART_DELAY = 30  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
 
@@ -93,7 +92,7 @@ def start_ams():
 
 def watchdog_loop():
     run_dir = asp.get_asp_run_dir()
-    restart_file = run_dir + '/' + ASP_RESTART_FILE
+    no_restart_file = run_dir + '/' + ASP_NO_RESTART_FILE
     watchdog_restart_file = run_dir + '/' + ASP_WATCHDOG_RESTART_FILE
     reboot_file  = run_dir + '/' + ASP_REBOOT_FILE
     restart_disable_file = run_dir + '/' + ASP_RESTART_DISABLE_FILE
@@ -105,11 +104,9 @@ def watchdog_loop():
         try:
             pid = asp.get_amf_pid()
             if pid == 0:
-                if not os.path.isfile(restart_file):                    # Restart AMF if restart file not found                    
+                if not os.path.isfile(no_restart_file):                    # Restart AMF if restart file not found
                     print"Restart file not found : Starting AMF from Watchdog"
                     start_ams()
-                    safe_remove(restart_file)                           # remove file after successfully starting AMF
-                    print"removed restart file"
                 else:                                                   # Kill watchdog if restart file exist 
                     print" Restart file FOUND : self kill Watchdog"
                     stop_watchdog()

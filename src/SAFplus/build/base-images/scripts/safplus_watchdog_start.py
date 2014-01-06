@@ -43,6 +43,12 @@ def get_watchdog_pid():
     return wpid
 
 def start_watchdog():
+    saf_no_restart_file = asp.get_asp_run_dir() + '/' + safplus_watchdog.ASP_NO_RESTART_FILE
+    # remove restart file before start
+    if os.path.isfile(saf_no_restart_file):
+        safplus_watchdog.safe_remove(saf_no_restart_file)
+        print"REMOVED restart file %s" % saf_no_restart_file
+
     # check here for watchdog exist 
     watchdog_pid = get_watchdog_pid()
 
@@ -54,14 +60,20 @@ def start_watchdog():
                       (asp.get_asp_node_addr(), watchdog_pid), False)
 
 def stop_watchdog():
-    restart_file = asp.get_asp_run_dir() + '/' + safplus_watchdog.ASP_RESTART_FILE    
-    safplus_watchdog.safe_creat(restart_file)
+    saf_no_restart_file = asp.get_asp_run_dir() + '/' + safplus_watchdog.ASP_NO_RESTART_FILE    
+    safplus_watchdog.safe_creat(saf_no_restart_file)    # create restart file to prevent improper asp going down
     asp.stop_asp()
     safplus_watchdog.stop_watchdog()
-    safplus_watchdog.safe_remove(restart_file)
+    # remove restart file before start
+    if os.path.isfile(saf_no_restart_file):
+        safplus_watchdog.safe_remove(saf_no_restart_file)
+        print"REMOVED restart file %s" % saf_no_restart_file
 
 def restart_asp():
     asp.stop_asp()
+    # remove restart file
+    saf_no_restart_file = asp.get_asp_run_dir() + '/' + safplus_watchdog.ASP_NO_RESTART_FILE 
+    safplus_watchdog.safe_remove(saf_no_restart_file)
     # No need to start ASP, Watchdog will check and start ASP after 30 sec
 
 def saf_status():
