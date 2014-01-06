@@ -4,21 +4,21 @@
     <contains target="Node0"/>
     <contains target="Node1"/>
   </cluster>
-  <node name="Node0" rdn="1782362628" id="0" classType="CL_AMS_NODE_CLASS_B" subClassType=" " isSwappable="CL_TRUE" isRestartable="CL_TRUE" isASPAware="CL_TRUE" suFailoverDuration="10000" suFailoverCountMax="10" Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE">
+  <node name="Node0" rdn="1341414604" id="0" classType="CL_AMS_NODE_CLASS_B" subClassType=" " isSwappable="CL_TRUE" isRestartable="CL_TRUE" isASPAware="CL_TRUE" suFailoverDuration="10000" suFailoverCountMax="10" Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE">
     <contains target="SAFComponent0SU"/>
     <bridge>CL_FALSE</bridge>
   </node>
-  <node name="Node1" rdn="1906753043" id="0" classType="CL_AMS_NODE_CLASS_C" subClassType=" " isSwappable="CL_TRUE" isRestartable="CL_TRUE" isASPAware="CL_TRUE" suFailoverDuration="10000" suFailoverCountMax="10" Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE">
+  <node name="Node1" rdn="1597152064" id="0" classType="CL_AMS_NODE_CLASS_C" subClassType=" " isSwappable="CL_TRUE" isRestartable="CL_TRUE" isASPAware="CL_TRUE" suFailoverDuration="10000" suFailoverCountMax="10" Realizes="" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" autoRepair="CL_TRUE">
     <contains target="SAFComponent1SU"/>
     <bridge>CL_FALSE</bridge>
   </node>
-  <serviceUnit name="SAFComponent0SU" rdn="2029941757" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+  <serviceUnit name="SAFComponent0SU" rdn="38648058" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
     <contains target="SAFComponent0"/>
   </serviceUnit>
-  <serviceUnit name="SAFComponent1SU" rdn="52812139" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
+  <serviceUnit name="SAFComponent1SU" rdn="1554188850" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" isPreinstantiable="CL_TRUE" isRestartable="CL_TRUE" isContainerSU="CL_TRUE">
     <contains target="SAFComponent1"/>
   </serviceUnit>
-  <safComponent name="SAFComponent0" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="SAFComponent0" commandLineArgument="" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="553965786" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="5000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false">
+  <safComponent name="SAFComponent0" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="SAFComponent0" commandLineArgument="" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="275299388" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="5000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false">
     <csiTypes>
       <csiType name="SAFComponent0CSI"/>
     </csiTypes>
@@ -29,7 +29,7 @@
       <libs/>
     </eoProperties>
   </safComponent>
-  <safComponent name="SAFComponent1" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="SAFComponent1" commandLineArgument="" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="774802172" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="5000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false">
+  <safComponent name="SAFComponent1" capabilityModel="CL_AMS_COMP_CAP_X_ACTIVE_OR_Y_STANDBY" property="CL_AMS_SA_AWARE" processRel="CL_CPM_COMP_SINGLE_PROCESS" instantiateCommand="SAFComponent1" commandLineArgument="" environmentVariable="" terminateCommand="" cleanupCommand="" rdn="1686445310" isRestartable="CL_TRUE" nodeRebootCleanupFail="CL_TRUE" instantiateLevel="1" instantiateDelay="5000" numMaxInstantiate="1" numMaxInstantiateWithDelay="1" numMaxTerminate="1" numMaxAmStart="1" numMaxAmStop="1" numMaxActiveCSIs="1" numMaxStandbyCSIs="1" recoveryOnTimeout="CL_AMS_RECOVERY_NO_RECOMMENDATION" amStartCommand="" amStopCommand="" is3rdpartyComponent="false" isSNMPSubAgent="false">
     <csiTypes>
       <csiType name="SAFComponent1CSI"/>
     </csiTypes>
@@ -40,24 +40,24 @@
       <libs/>
     </eoProperties>
   </safComponent>
-  <serviceGroup name="SAFComponent0SG" rdn="932435832" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" failbackOption="CL_FALSE" restartDuration="10000" numPrefActiveSUs="1" numPrefStandbySUs="1" numPrefInserviceSUs="2" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+  <serviceGroup name="SAFComponent0SG" rdn="754907370" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" failbackOption="CL_FALSE" restartDuration="10000" numPrefActiveSUs="1" numPrefStandbySUs="1" numPrefInserviceSUs="2" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
     <associatedTo target="SAFComponent0SU"/>
     <associatedTo target="SAFComponent0SI"/>
   </serviceGroup>
-  <serviceGroup name="SAFComponent1SG" rdn="709331499" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" failbackOption="CL_FALSE" restartDuration="10000" numPrefActiveSUs="1" numPrefStandbySUs="1" numPrefInserviceSUs="2" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
+  <serviceGroup name="SAFComponent1SG" rdn="512209293" redundancyModel="CL_AMS_SG_REDUNDANCY_MODEL_TWO_N" failbackOption="CL_FALSE" restartDuration="10000" numPrefActiveSUs="1" numPrefStandbySUs="1" numPrefInserviceSUs="2" numPrefAssignedSUs="2" numPrefActiveSUsPerSI="1" maxActiveSIsPerSU="1" maxStandbySIsPerSU="1" compRestartDuration="10000" compRestartCountMax="1" suRestartDuration="10000" suRestartCountMax="1" failoverDuration="300000" maxFailovers="0" adminState="CL_AMS_ADMIN_STATE_UNLOCKED" loadingStrategy="CL_AMS_SG_LOADING_STRATEGY_LEAST_SI_PER_SU" numComponents="0" autoRepair="CL_FALSE" isCollocationAllowed="CL_TRUE" alphaFactor="100" betaFactor="0" autoAdjust="CL_FALSE" autoAdjustProbation="10000" reductionProcedure="CL_FALSE">
     <associatedTo target="SAFComponent1SU"/>
     <associatedTo target="SAFComponent1SI"/>
   </serviceGroup>
-  <serviceInstance name="SAFComponent0SI" rdn="286266625" rank="0" numCSIs="1" numStandbyAssignments="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+  <serviceInstance name="SAFComponent0SI" rdn="841443118" rank="0" numCSIs="1" numStandbyAssignments="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
     <contains target="SAFComponent0CSI"/>
   </serviceInstance>
-  <serviceInstance name="SAFComponent1SI" rdn="2109598327" rank="0" numCSIs="1" numStandbyAssignments="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
+  <serviceInstance name="SAFComponent1SI" rdn="863232348" rank="0" numCSIs="1" numStandbyAssignments="1" adminState="CL_AMS_ADMIN_STATE_UNLOCKED">
     <contains target="SAFComponent1CSI"/>
   </serviceInstance>
-  <componentServiceInstance name="SAFComponent0CSI" rdn="1572939265" rank="0">
+  <componentServiceInstance name="SAFComponent0CSI" rdn="1614295036" rank="0">
     <associatedTo target="SAFComponent0"/>
   </componentServiceInstance>
-  <componentServiceInstance name="SAFComponent1CSI" rdn="1150095700" rank="0">
+  <componentServiceInstance name="SAFComponent1CSI" rdn="476570211" rank="0">
     <associatedTo target="SAFComponent1"/>
   </componentServiceInstance>
 </component:componentInformation>

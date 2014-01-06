@@ -51,7 +51,7 @@ EXTRA_LDLIBS +=
 
 # ---END_APPLICATION_CODE---
  
-include $(CLOVIS_ROOT)/SAFplus/mk/make-server.mk
+include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
 
 # ---BEGIN_APPLICATION_CODE---
 # Define additional targets BELOW, so that they are not used as the default 

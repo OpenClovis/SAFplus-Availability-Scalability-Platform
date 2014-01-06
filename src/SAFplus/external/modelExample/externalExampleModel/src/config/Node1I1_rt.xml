@@ -2,7 +2,7 @@
 <openClovisAsp>
   <version v0="4.0.0">
     <compInstances xmlns="cpmconfig.ecore">
-      <compInst compName="SAFComponent1I0"/>
+      <compInst compName="SAFComponent1I1"/>
     </compInstances>
   </version>
 </openClovisAsp>

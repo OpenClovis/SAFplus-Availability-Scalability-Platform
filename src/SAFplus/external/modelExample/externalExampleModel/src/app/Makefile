@@ -23,7 +23,7 @@ SUBDIRS = SAFComponent0 SAFComponent1
 
 # ---END_APPLICATION_CODE---
 
-include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
+include $(CLOVIS_ROOT)/ASP/mk/make-subdir.mk
 
 # ---BEGIN_APPLICATION_CODE---
 
