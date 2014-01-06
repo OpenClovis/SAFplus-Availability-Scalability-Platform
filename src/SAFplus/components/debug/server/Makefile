@@ -57,6 +57,8 @@ ASP_LIBS	:= libClTimer.a \
                    libClDebugClient.a \
                    libClNameClient.a\
                    libClIdl.a \
+                   libClDbal.a\
+                   libClHal.a\
                    libClEventClient.a
 
 

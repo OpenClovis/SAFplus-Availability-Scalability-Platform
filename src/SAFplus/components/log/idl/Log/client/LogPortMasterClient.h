@@ -21,20 +21,20 @@ extern "C" {
 #include "../clientIDDefinitions.h"
 #include "xdrClLogStreamAttrIDLT.h"
 #include "xdrClLogCompDataT.h"
+#include "xdrClLogStreamScopeT.h"
 
 
-
-typedef void (*LogClLogMasterAttrVerifyNGetAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN SaNameT* pStreamName, CL_IN ClUint32T* pStreamScope, CL_IN SaNameT* pStreamScopeNode, CL_INOUT ClUint16T* pStreamId, CL_OUT ClUint64T* pStreamMcastAddr, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*LogClLogMasterAttrVerifyNGetAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN SaNameT* pStreamName, CL_IN ClLogStreamScopeT* pStreamScope, CL_IN SaNameT* pStreamScopeNode, CL_INOUT ClUint16T* pStreamId, CL_OUT ClUint64T* pStreamMcastAddr, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef LogClLogMasterAttrVerifyNGetAsyncCallbackT_4_0_0 LogClLogMasterAttrVerifyNGetAsyncCallbackT;
 
-ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN SaNameT* pStreamName, CL_IN ClUint32T* pStreamScope, CL_IN SaNameT* pStreamScopeNode, CL_INOUT ClUint16T* pStreamId, CL_OUT ClUint64T* pStreamMcastAddr,CL_IN LogClLogMasterAttrVerifyNGetAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clLogMasterAttrVerifyNGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_IN SaNameT* pStreamName, CL_IN ClLogStreamScopeT* pStreamScope, CL_IN SaNameT* pStreamScopeNode, CL_INOUT ClUint16T* pStreamId, CL_OUT ClUint64T* pStreamMcastAddr,CL_IN LogClLogMasterAttrVerifyNGetAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
-typedef void (*LogClLogMasterStreamCloseNotifyAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClStringT* pFileName, CL_IN ClStringT* pFileLocation, CL_IN SaNameT* pStreamName, CL_IN ClUint32T  pStreamScope, CL_IN SaNameT* pStreamScopeNode, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*LogClLogMasterStreamCloseNotifyAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClStringT* pFileName, CL_IN ClStringT* pFileLocation, CL_IN SaNameT* pStreamName, CL_IN ClLogStreamScopeT  pStreamScope, CL_IN SaNameT* pStreamScopeNode, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef LogClLogMasterStreamCloseNotifyAsyncCallbackT_4_0_0 LogClLogMasterStreamCloseNotifyAsyncCallbackT;
 
-ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClStringT* pFileName, CL_IN ClStringT* pFileLocation, CL_IN SaNameT* pStreamName, CL_IN ClUint32T  pStreamScope, CL_IN SaNameT* pStreamScopeNode,CL_IN LogClLogMasterStreamCloseNotifyAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clLogMasterStreamCloseNotifyClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClStringT* pFileName, CL_IN ClStringT* pFileLocation, CL_IN SaNameT* pStreamName, CL_IN ClLogStreamScopeT  pStreamScope, CL_IN SaNameT* pStreamScopeNode,CL_IN LogClLogMasterStreamCloseNotifyAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
 ClRcT clLogMasterStreamListGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_OUT ClUint32T* pNumStreams, CL_OUT ClUint32T* pBuffLen, CL_OUT ClUint8T** pBuffer);
 

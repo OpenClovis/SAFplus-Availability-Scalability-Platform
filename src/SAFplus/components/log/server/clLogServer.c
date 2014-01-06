@@ -45,6 +45,7 @@
 #include <AppclientPortclientClient.h>
 #include <xdrClLogCompDataT.h>
 #include <clLogOsal.h>
+#include <LogPortexternalServer.h>
 
 static ClRcT
 clLogSvrCompEntryAdd(CL_IN  ClLogSvrEoDataT        *pSvrEoEntry,
@@ -1498,7 +1499,7 @@ VDECL_VER(clLogSvrStreamOpen, 4, 0, 0)(
             pStreamName->length, pStreamName->value);
     rc = VDECL_VER(clLogStreamOwnerStreamOpenClientAsync, 4, 0, 0)(hLogIdl, streamOpenFlags, 
                                                localAddress, pStreamName,
-                                               (ClUint32T *)&streamScope, pStreamScopeNode,
+                                               &streamScope, pStreamScopeNode,
                                                &compId, &streamAttr, 
                                                &streamMcastAddr, &streamFilter,
                                                &ackerCnt, &nonAckerCnt, &streamId,

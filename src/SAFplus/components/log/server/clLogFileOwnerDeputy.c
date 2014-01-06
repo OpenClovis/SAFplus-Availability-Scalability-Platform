@@ -24,6 +24,7 @@
 #include <clLogMasterEo.h>
 #include <clLogFileOwnerEo.h>
 #include <LogPortMasterClient.h>
+#include <clLogFileOwnerDeputy.h>
 
 ClRcT
 clLogFileOwnerStreamReopen(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,

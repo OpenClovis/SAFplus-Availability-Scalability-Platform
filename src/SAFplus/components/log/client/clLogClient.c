@@ -1061,8 +1061,7 @@ ClRcT clLogStreamFilterSet(SaNameT                    *pStreamName,
     CL_LOG_DEBUG_VERBOSE(("scopeNode: %.*s", pStreamScopeNode->length,
                           pStreamScopeNode->value));
 
-    rc = VDECL_VER(clLogStreamOwnerFilterSetClientAsync, 4, 0, 0)(hSvrIdl, pStreamName,
-             streamScope, pStreamScopeNode, filterFlags, &filter, NULL, NULL);
+    rc = VDECL_VER(clLogStreamOwnerFilterSetClientAsync, 4, 0, 0)(hSvrIdl, pStreamName, streamScope, pStreamScopeNode, filterFlags, &filter, NULL, NULL);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("VDECL_VER(clLogSvrFilterSetClientAsync, 4, 0, 0)(): rc[0x%x]", rc));
@@ -1138,8 +1137,7 @@ clLogStreamFilterGet(SaNameT                  *pStreamName,
     CL_LOG_DEBUG_VERBOSE(("scopeNode: %.*s", pStreamScopeNode->length,
                           pStreamScopeNode->value));
 
-    rc = VDECL_VER(clLogStreamOwnerFilterGetClientSync, 4, 0, 0)(hSvrIdl, pStreamName,
-            streamScope, pStreamScopeNode, pFilter);
+    rc = VDECL_VER(clLogStreamOwnerFilterGetClientSync, 4, 0, 0)(hSvrIdl, pStreamName, streamScope, pStreamScopeNode, pFilter);
     if (CL_OK != rc)
     {
         CL_LOG_DEBUG_ERROR(("VDECL_VER(clLogStreamOwnerFilterGetClientSync, 4, 0, 0)(): rc[0x%x]", rc));
@@ -1302,11 +1300,7 @@ clLogHandlerRegister(ClLogHandleT              hLog,
         CL_LOG_CLEANUP(clIdlHandleFinalize(hClntIdl), CL_OK);
         return rc;
     }
-    rc = VDECL_VER(clLogStreamOwnerHandlerRegisterClientAsync, 4, 0, 0)(hClntIdl, &streamName,
-                                                    streamScope, &nodeName,
-                                                    handlerFlags, localAddr, 
-                                                    pClntEoEntry->compId,
-                                                    NULL, 0);
+    rc = VDECL_VER(clLogStreamOwnerHandlerRegisterClientAsync, 4, 0, 0)(hClntIdl, &streamName, streamScope, &nodeName, handlerFlags, localAddr, pClntEoEntry->compId, NULL, 0);
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clLogClntHandlerDeregister(*phStream, &hLog), CL_OK);
@@ -1473,12 +1467,7 @@ clLogHandlerRecordAck(ClLogStreamHandleT  hStream,
         strncpy((ClCharT *)nodeName.value, gStreamScopeGlobal, nodeName.length);
     }
 
-    rc = VDECL_VER(clLogHandlerSvrAckSendClientAsync, 4, 0, 0)(hClntIdl,
-                                           &pStreamHandlerData->streamName,
-                                           &nodeName, 
-                                           pStreamHandlerData->streamScope,
-                                           pKey->seqNum, numRecords,
-                                           pKey->hFlushCookie, NULL, NULL);
+    rc = VDECL_VER(clLogHandlerSvrAckSendClientAsync, 4, 0, 0)(hClntIdl, &pStreamHandlerData->streamName, &nodeName, pStreamHandlerData->streamScope, pKey->seqNum, numRecords, pKey->hFlushCookie, NULL, NULL);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clLogHandlerAckSendClientSync(): rc[0x %x]",

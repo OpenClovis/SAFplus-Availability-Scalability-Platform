@@ -27,6 +27,7 @@
 #include <clLogFileEvt.h>
 #include <xdrClLogCompDataT.h>
 #include <clCpmExtApi.h>
+#include <LogPortMasterServer.h>
 
 ClUint32T  gStreamCnt = 0;
 
@@ -841,8 +842,7 @@ clLogMasterFileEntryRemove(ClLogMasterEoDataT      *pMasterEoEntry,
     return rc;
 }
 
-ClRcT
-VDECL_VER(clLogMasterStreamCloseNotify, 4, 0, 0)(
+ClRcT VDECL_VER(clLogMasterStreamCloseNotify, 4, 0, 0)(
                              ClStringT          *pFileName,
                              ClStringT          *pFileLocation,
                              SaNameT            *pStreamName,
@@ -1089,8 +1089,7 @@ clLogMasterTableWalk(ClCntKeyHandleT   key,
     return rc;
 }
 
-ClRcT
-VDECL_VER(clLogMasterStreamListGet, 4, 0, 0)(ClUint32T  *pNumStreams, 
+ClRcT VDECL_VER(clLogMasterStreamListGet, 4, 0, 0)(ClUint32T  *pNumStreams, 
                          ClUint32T  *pBuffLength,
                          ClUint8T   **ppBuffer)
 {
