@@ -4348,8 +4348,9 @@ ClBoolT clEoQueueAmfResponseFind(ClUint32T pri)
 }
 
 #ifdef NO_SAF
+
 extern ClIocConfigT pAllConfig;
-extern ClInt32T clAspLocalId;
+extern ClUint32T clAspLocalId;
 extern ClHeapConfigT *pHeapConfigUser;
 static ClHeapConfigT heapConfig;
 static ClEoMemConfigT memConfig;
