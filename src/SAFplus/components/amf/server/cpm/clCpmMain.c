@@ -89,6 +89,7 @@
 #include <clCpmIpi.h>
 #include <clTimeServer.h>
 #include <clAmfPluginApi.h>
+#include <clNodeCache.h>
 /*
  * XDR header files 
  */
@@ -3709,17 +3710,11 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
     notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
 
-    if(notification.id == CL_IOC_COMP_DEATH_NOTIFICATION ||
-       notification.id == CL_IOC_NODE_LEAVE_NOTIFICATION ||
-       notification.id == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
-    {
-        clAmsCCBHandleDBCleanup(&notification);
-    }
     /*
      * If GMS is still booting up, problem reported leader never reach on it.
      * So, move below code from GMS to CPM.
      */
-    else if (notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION
+    if (notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION
             && notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
     {
         len = length - sizeof(notification);
