@@ -35,6 +35,9 @@
 #include <clOsalApi.h>
 #include <clMsgReceiver.h>
 #include <clTaskPool.h>
+#include <msgIdlClientCallsFromClientServer.h>
+#include <msgIdlClientCallsFromServerServer.h>
+#include <msgIdlClientQueueCallsFromClientServer.h>
 
 ClRcT VDECL_VER(clMsgQueueUnlink, 4, 0, 0)(SaNameT *pQName)
 {
@@ -71,9 +74,7 @@ error_out:
     return rc;
 }
 
-ClRcT VDECL_VER(clMsgQueueOpen, 4, 0, 0)(SaNameT *pQName, 
-        SaMsgQueueCreationAttributesT *pCreationAttributes, 
-        SaMsgQueueOpenFlagsT openFlags)
+ClRcT VDECL_VER(clMsgQueueOpen, 4, 0, 0)(SaNameT *pQName, SaMsgQueueCreationAttributesT *pCreationAttributes, SaMsgQueueOpenFlagsT openFlags)
 {
     ClRcT rc = CL_OK;
     ClIocPhysicalAddressT srcAddr;

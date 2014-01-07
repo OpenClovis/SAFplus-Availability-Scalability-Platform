@@ -43,7 +43,7 @@
 #include <clCpmApi.h>
 #include <clMsgDebugInternal.h>
 #include <clMsgCkptServer.h>
-
+#include <msgIdlClientGroupCallsFromClientServer.h>
 
 ClRcT VDECL_VER(clMsgQueueGroupCreate, 4, 0, 0)(SaNameT *pGroupName, SaMsgQueueGroupPolicyT qPolicy)
 {
@@ -184,9 +184,7 @@ error_out:
 }
 
 
-ClRcT VDECL_VER(clMsgQueueGroupDelete, 4, 0, 0)(
-        const SaNameT *pGroupName
-        )
+ClRcT VDECL_VER(clMsgQueueGroupDelete, 4, 0, 0)( const SaNameT *pGroupName)
 {
     ClRcT rc = CL_OK;
 
@@ -420,10 +418,7 @@ error_out:
 
 
 
-ClRcT VDECL_VER(clMsgQueueGroupTrackStop, 4, 0, 0)(
-        SaMsgHandleT msgHandle,
-        const SaNameT *pGroupName
-        )
+ClRcT VDECL_VER(clMsgQueueGroupTrackStop, 4, 0, 0)( SaMsgHandleT msgHandle, const SaNameT *pGroupName)
 {
     ClRcT rc = CL_OK;
     ClRcT retCode;

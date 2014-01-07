@@ -47,9 +47,8 @@
 #include "clLogUtilApi.h"
 #include "clCkptExtApi.h"
 #include "clCkptMaster.h"
+#include "clCkptDataBackup.h"
 
-extern ClRcT ckptMasterDatabasePack(ClBufferHandleT  outMsg);
-extern ClRcT ckptDbPack(ClBufferHandleT   *pOutMsg,ClIocNodeAddressT        peerAddr);
 ClCkptSvcHdlT          gCkptHandle;
 ClOsalMutexIdT         gMutex = NULL;
 ClTimerHandleT         gTimerHdl;
@@ -59,23 +58,7 @@ ClTimerHandleT         gTimerHdl;
 #define CL_CKPT_METADATA            1
 
 /* Checkpoint name */
-SaNameT gCkptName = {sizeof(CL_CKPT_MASTERDB_CKPT_NAME),
-                     CL_CKPT_MASTERDB_CKPT_NAME};
-
-
-ClRcT ckptMetaDataSerializer(ClUint32T dataSetID, ClAddrT* ppData,
-                        ClUint32T* pDataLen, ClPtrT pCookie);
-
-ClRcT ckptMetaDataDeserializer(ClUint32T dataSetID, ClAddrT pData,
-                       ClUint32T dataLen, ClPtrT pCookie);
-
-ClRcT ckptCheckpointsSerializer(ClUint32T dataSetID, ClAddrT* ppData,
-                        ClUint32T* pDataLen, ClPtrT pCookie);
-
-ClRcT ckptCheckpointsDeserializer(ClUint32T dataSetID, ClAddrT pData,
-                       ClUint32T dataLen, ClPtrT pCookie);
-
-
+SaNameT gCkptName = {sizeof(CL_CKPT_MASTERDB_CKPT_NAME), CL_CKPT_MASTERDB_CKPT_NAME};
 
 /**
  *  Name: ckptDataPeriodicSave
@@ -94,27 +77,21 @@ ClRcT ckptDataPeriodicSave()
     ClRcT rc = CL_OK;
 
     /* Write to metadata dataset */
-    rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
-                CL_CKPT_METADATA, 0);
+    rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName, CL_CKPT_METADATA, 0);
     if(CL_OK != rc)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Write Failed, "
-                    "  rc = %x \n", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
-                   CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Write Failed, " "  rc = %x \n", rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
 
         CL_FUNC_EXIT();
     }
 
     /* Wriet to checkpoint info dataset */
-    rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName,
-                CL_CKPT_CHECKPOINTS, 0);
+    rc = clCkptLibraryCkptDataSetWrite(gCkptHandle, &gCkptName, CL_CKPT_CHECKPOINTS, 0);
     if(CL_OK != rc)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Write Failed, " 
-                  " rc = %x \n", rc);
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, 
-                   CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Write Failed, " " rc = %x \n", rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, NULL, CL_LOG_MESSAGE_1_CKPT_WRITE_FAILED, rc);
 
         CL_FUNC_EXIT();
     }
@@ -153,8 +130,7 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
     rc = clCkptLibraryInitialize(&gCkptHandle);
     if(CL_OK != rc)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Library Initialize Failed, "
-                   "rc = %x \n", rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Library Initialize Failed, rc = %x \n", rc);
         CL_FUNC_EXIT();
         return rc;
     }
@@ -164,8 +140,7 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
     rc = clCkptLibraryDoesCkptExist(gCkptHandle, &gCkptName, &retVal);
     if(rc != CL_OK)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n Ckpt: CKPT Initialize Failed,"
-                   "rc = %x \n", rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n Ckpt: CKPT Initialize Failed, rc = %x \n", rc);
         CL_FUNC_EXIT();
         goto label4;
     }
@@ -182,49 +157,33 @@ ClRcT ckptDataBackupInitialize(ClUint8T *pFlag)
     rc = clCkptLibraryCkptCreate(gCkptHandle, &gCkptName); 
     if(CL_OK != rc)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Check Point Create Failed, "
-                   "rc = %x \n",rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Check Point Create Failed, rc = %x \n",rc);
         goto label4;
     }
 
     /* Create a deta set to store checkpoints' related metadata */
-    rc =  clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName,
-                        CL_CKPT_METADATA, 
-                        0, 0,
-                        ckptMetaDataSerializer,
-                        ckptMetaDataDeserializer
-                        );
+    rc =  clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName, CL_CKPT_METADATA, 0, 0, ckptMetaDataSerializer, ckptMetaDataDeserializer);
     if(CL_OK != rc)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Data Set Create Failed "
-                   "rc = %x \n", rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Data Set Create Failed rc = %x \n", rc);
         goto label3;
     }
 
     /* Create a dataset to store checkpoints' info */
-    rc =  clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName,
-                        CL_CKPT_CHECKPOINTS, 
-                        0, 0,
-                        ckptCheckpointsSerializer,
-                        ckptCheckpointsDeserializer
-                        );
+    rc = clCkptLibraryCkptDataSetCreate(gCkptHandle, &gCkptName, CL_CKPT_CHECKPOINTS, 0, 0, ckptCheckpointsSerializer, ckptCheckpointsDeserializer);
     if(CL_OK != rc)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Data Set Create Failed, "
-                   "rc = %x \n", rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Data Set Create Failed, rc = %x \n", rc);
         goto label2;
     }
                                                                                                                              
     /* Start the periodic timer */
     timeOut.tsSec      = 5;
     timeOut.tsMilliSec = 0;
-    rc = clTimerCreateAndStart(timeOut, CL_TIMER_REPETITIVE,
-                    CL_TIMER_SEPARATE_CONTEXT, (ClTimerCallBackT) ckptDataPeriodicSave,
-                    (void*)NULL, &gTimerHdl);
+    rc = clTimerCreateAndStart(timeOut, CL_TIMER_REPETITIVE, CL_TIMER_SEPARATE_CONTEXT, (ClTimerCallBackT) ckptDataPeriodicSave, (void*)NULL, &gTimerHdl);
     if(CL_OK != rc)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Data Set Create Failed, "
-                                       "rc = %x \n", rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\n CKPT Data Set Create Failed, rc = %x \n", rc);
         goto label1;
     }
     
@@ -264,8 +223,7 @@ label0:
  *
  */
 
-ClRcT ckptMetaDataSerializer(ClUint32T dataSetID, ClAddrT* ppData,
-                        ClUint32T* pDataLen, ClPtrT pCookie)
+ClRcT ckptMetaDataSerializer(ClUint32T dataSetID, ClAddrT* ppData, ClUint32T* pDataLen, ClPtrT pCookie)
 {
     ClRcT                  rc        = CL_OK;
     ClBufferHandleT outMsgHdl = 0;
@@ -324,8 +282,7 @@ ClRcT ckptMetaDataSerializer(ClUint32T dataSetID, ClAddrT* ppData,
  *
  */
 
-ClRcT ckptCheckpointsSerializer(ClUint32T dataSetID, ClAddrT* ppData,
-                        ClUint32T* pDataLen, ClPtrT pCookie)
+ClRcT ckptCheckpointsSerializer(ClUint32T dataSetID, ClAddrT* ppData, ClUint32T* pDataLen, ClPtrT pCookie)
 {
     ClRcT                  rc        = CL_OK;
     ClBufferHandleT outMsgHdl = 0;
@@ -392,8 +349,7 @@ ClRcT ckptCheckpointsSerializer(ClUint32T dataSetID, ClAddrT* ppData,
  *
  */
 
-ClRcT ckptMetaDataDeserializer(ClUint32T dataSetID, ClAddrT pData,
-                            ClUint32T dataLen, ClPtrT pCookie)
+ClRcT ckptMetaDataDeserializer(ClUint32T dataSetID, ClAddrT pData, ClUint32T dataLen, ClPtrT pCookie)
 {
     ClRcT                  rc     = CL_OK; 
     ClBufferHandleT msgHdl = 0;
@@ -435,8 +391,7 @@ ClRcT ckptMetaDataDeserializer(ClUint32T dataSetID, ClAddrT pData,
  *
  */
 
-ClRcT ckptCheckpointsDeserializer(ClUint32T dataSetID, ClAddrT pData,
-                            ClUint32T dataLen, ClPtrT pCookie)
+ClRcT ckptCheckpointsDeserializer(ClUint32T dataSetID, ClAddrT pData, ClUint32T dataLen, ClPtrT pCookie)
 {
     ClRcT                  rc     = CL_OK; 
     ClBufferHandleT msgHdl = 0;
@@ -561,12 +516,10 @@ ClRcT ckptPersistentMemoryRead()
     }
 
     /* Read checkpoint meta data */
-    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName,
-           CL_CKPT_METADATA, 0);
+    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName, CL_CKPT_METADATA, 0);
     if(CL_OK != rc)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Read Failed, "
-                                       "rc = %x \n", rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Read Failed, " "rc = %x \n", rc);
         /* Release the semaphore */
         clOsalMutexUnlock(gMutex);
         CL_FUNC_EXIT();
@@ -574,12 +527,10 @@ ClRcT ckptPersistentMemoryRead()
     }
 
     /* Read checkpoints */
-    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName,
-           CL_CKPT_CHECKPOINTS, 0);
+    rc = clCkptLibraryCkptDataSetRead(gCkptHandle, &gCkptName, CL_CKPT_CHECKPOINTS, 0);
     if(CL_OK != rc)
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Read Failed, "
-                                       "rc = %x \n", rc);
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nCKPT DataSet Read Failed, " "rc = %x \n", rc);
         /* Release the semaphore */
         clOsalMutexUnlock(gMutex);
         CL_FUNC_EXIT();

@@ -55,6 +55,7 @@
 #include "xdrCkptMasterDBClientInfoT.h"
 #include <ckptEockptServerCliServerFuncServer.h>
 #include <ckptEockptServerPeerPeerClient.h>
+#include <ckptEockptServerPeerPeerServer.h>
 
 /* Handle related headers */
 #include <clHandleApi.h>

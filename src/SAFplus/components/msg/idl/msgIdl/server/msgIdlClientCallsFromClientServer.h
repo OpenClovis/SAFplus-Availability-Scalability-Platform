@@ -32,7 +32,7 @@ ClRcT clMsgFin_4_0_0(CL_IN ClHandleT  msgHandle);
 
 ClRcT clMsgFinResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgMessageGet_4_0_0(CL_IN SaNameT*  pQueueName, CL_IN ClInt64T  timeout);
+ClRcT clMsgMessageGet_4_0_0(CL_IN const SaNameT*  pQueueName, CL_IN ClInt64T  timeout);
 
 ClRcT clMsgMessageGetResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 

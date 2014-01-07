@@ -31,11 +31,11 @@ ClRcT clMsgQueueOpen_4_0_0(CL_IN SaNameT*  pQueueName, CL_IN SaMsgQueueCreationA
 
 ClRcT clMsgQueueOpenResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgQueueRetentionClose_4_0_0(CL_IN SaNameT*  pQueueName);
+ClRcT clMsgQueueRetentionClose_4_0_0(CL_IN const SaNameT*  pQueueName);
 
 ClRcT clMsgQueueRetentionCloseResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgQueuePersistRedundancy_4_0_0(CL_IN SaNameT*  queue, CL_IN ClIocPhysicalAddressT_4_0_0  srcAddr, CL_IN ClUint16T  qDelete);
+ClRcT clMsgQueuePersistRedundancy_4_0_0(CL_IN const SaNameT*  queue, CL_IN ClIocPhysicalAddressT_4_0_0  srcAddr, CL_IN ClUint16T  qDelete);
 
 ClRcT clMsgQueuePersistRedundancyResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 

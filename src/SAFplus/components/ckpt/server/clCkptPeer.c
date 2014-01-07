@@ -48,6 +48,10 @@
 #include <ckptEockptServerPeerPeerExtFuncClient.h>
 #include <ckptEockptServerCliServerFuncClient.h>
 #include <ckptEockptServerExtCliServerFuncClient.h>
+#include <ckptEockptServerExtCliServerFuncServer.h>
+#include <ckptEockptServerPeerPeerServer.h>
+#include <ckptEockptServerMasterActiveServer.h>
+#include <ckptEockptServerActivePeerServer.h>
 #include <ipi/clHandleIpi.h>
 #include <clXdrApi.h>
 #include <clCkptMasterUtils.h>
@@ -86,8 +90,7 @@ typedef struct ClCkptPackArgs
 /*
   This routine packs the complete checkpoint DB 
 */
-ClRcT   ckptDbPack( ClBufferHandleT   *pOutMsg, 
-                    ClIocNodeAddressT        peerAddr)
+ClRcT   ckptDbPack( ClBufferHandleT   *pOutMsg, ClIocNodeAddressT        peerAddr)
 {
     ClRcT                       rc = CL_OK;  
     CkptT                       *pCkpt  = NULL;

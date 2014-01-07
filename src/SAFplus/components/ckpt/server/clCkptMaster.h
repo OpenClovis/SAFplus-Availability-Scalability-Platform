@@ -172,12 +172,11 @@ typedef struct ClCkptReplicateTimerArgs
 /**====================================**/
 
 
-extern void 	ckptCkptListDeleteCallback();
-extern ClInt32T ckptCkptListKeyComp();
-extern ClInt32T ckptMastHdlListtKeyComp();
+extern void 	ckptCkptListDeleteCallback(ClCntKeyHandleT  userKey, ClCntDataHandleT userData);
+extern ClInt32T ckptCkptListKeyComp(ClCntKeyHandleT key1, ClCntKeyHandleT key2);
+extern ClInt32T ckptMastHdlListtKeyComp(ClCntKeyHandleT key1, ClCntKeyHandleT key2);
 
-extern ClRcT clCkpMastertReplicaInfoUpdate(ClHandleT hdl, SaNameT *pName,
-                                           ClIocNodeAddressT *pActAddr);
+extern ClRcT clCkpMastertReplicaInfoUpdate(ClHandleT hdl, SaNameT *pName, ClIocNodeAddressT *pActAddr);
                                             
 extern ClRcT clCkptReplicaNodeGet(ClIocNodeAddressT *pNodeAddr);
 extern ClRcT _clCkptMasterClose(ClHandleT clientHdl, ClIocNodeAddressT localAddr, ClUint32T flag);

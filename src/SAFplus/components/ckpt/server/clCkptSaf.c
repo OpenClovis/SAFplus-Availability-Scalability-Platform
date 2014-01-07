@@ -53,6 +53,11 @@
 #include <ckptEockptServerPeerPeerClient.h>
 #include <ckptClntEockptClntckptClntClient.h>
 #include <xdrClCkptAppInfoT.h>
+#include <ckptEockptServerPeerPeerServer.h>
+#include <ckptEockptServerMasterActiveServer.h>
+#include <ckptEockptServerActivePeerServer.h>
+#include <ckptEockptServerExtCliServerFuncServer.h>
+#include <ckptEockptServerExtServerFuncServer.h>
 
 extern CkptSvrCbT  *gCkptSvr;
 
@@ -4309,8 +4314,7 @@ exitOnError:
 }
 
 
-ClRcT
-VDECL_VER(clCkptCheckpointReplicaRemove, 4, 0, 0)(ClHandleT  ckptHdl, 
+ClRcT VDECL_VER(clCkptCheckpointReplicaRemove, 4, 0, 0)(ClHandleT  ckptHdl, 
                               ClUint32T  localAddr)
 {
     ClRcT              rc          = CL_OK;

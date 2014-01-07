@@ -47,6 +47,7 @@
 #include <clMsgIdl.h>
 #include <clMsgCkptServer.h>
 #include <clMsgGeneral.h>
+#include <msgIdlClientCallsFromClientServer.h>
 
 /**************************************************************************************************/
 #define CL_MSG_CLIENT_BUCKET_BITS       (6)
