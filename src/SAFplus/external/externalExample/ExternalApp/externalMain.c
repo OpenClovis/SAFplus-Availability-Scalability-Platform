@@ -30,6 +30,7 @@
 #define __LOGICAL_ADDRESS(a) CL_IOC_LOGICAL_ADDRESS_FORM(CL_IOC_STATIC_LOGICAL_ADDRESS_START + (a))
 #define __RPC_SERVER_ADDRESS __LOGICAL_ADDRESS(4)
 #define LOCAL_ADDRESS 4
+#define LOOP_COUNT 5
 extern ClRcT clRmdLibInitialize(ClPtrT pConfig);
 
 
@@ -304,7 +305,7 @@ testEvtMainLoop()
         appPublishEvent();        
         sleep(2);
         i++;
-        if(i==5)
+        if(i==LOOP_COUNT)
         {
             return;
         }
