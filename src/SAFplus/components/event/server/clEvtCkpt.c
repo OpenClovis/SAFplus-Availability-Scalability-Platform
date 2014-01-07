@@ -3541,7 +3541,7 @@ ClRcT clEventUserInfoCheckpointCreate(SaNameT         *pCkptName)
     ClInt32T                             tries = 0;
     static ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 100};
     creationAtt.creationFlags     = CL_CKPT_CHECKPOINT_COLLOCATED | CL_CKPT_ALL_OPEN_ARE_REPLICAS;
-    creationAtt.checkpointSize    = MAX_CHANNEL * CL_EVENT_USER_INFO_SIZE;
+    creationAtt.checkpointSize    = MAX_USER * CL_EVENT_USER_INFO_SIZE;
     creationAtt.retentionDuration = CL_EVENT_CKPT_RETENTION_DURATION;
     creationAtt.maxSections       = MAX_USER;// max user
     creationAtt.maxSectionSize    = CL_EVENT_USER_INFO_SIZE;
@@ -3590,7 +3590,7 @@ ClRcT clEvtCkptGlobalCheckPointUserInfo(ClEvtInitRequestT *pEvtInitReq)
     ClCkptSectionCreationAttributesT  secAttr                 = {0};
     ClBoolT                           createdSec              = CL_FALSE;
 
-    secId.idLen = 21;
+    secId.idLen = 16;
     secId.id    = (ClUint8T*)clHeapCalloc(secId.idLen, sizeof(ClCharT));
     if( NULL == secId.id )
     {
@@ -3600,8 +3600,9 @@ ClRcT clEvtCkptGlobalCheckPointUserInfo(ClEvtInitRequestT *pEvtInitReq)
     ClUint64T section_index = pEvtInitReq->userId.evtHandle; /*our section name apparently*/    
     char buff[21];
     sprintf(buff, "%llu", section_index);
-    memcpy(secId.id,buff,21);
+    memcpy(secId.id,buff,16);
     clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEvtCkptGlobalCheckPointUserInfo : userId.evtHandle: [%s]", buff);
+    clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEvtCkptGlobalCheckPointUserInfo : userId.evtHandle len: [%d]", (&secId)->idLen);
     secAttr.sectionId      = &secId;
     secAttr.expirationTime = CL_TIME_END;    
     
@@ -3944,7 +3945,7 @@ clEventChannelSubEntryUnpackNAdd(ClBufferHandleT        msg)
 //***************************** Delete channel open checkpoint *********************************
 // Remove channel open checpoint section when channel close
 //**********************************************************************************************
-ClRcT clLogChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
+ClRcT clEvtChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 {
 	ClRcT  rc = CL_OK;
     ClCkptSectionIdT                  secId                   = {0};
@@ -3971,7 +3972,7 @@ ClRcT clLogChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 //***************************** Delete channel open checkpoint *********************************
 // Remove channel sub checpoint section when channel un subcribe
 //**********************************************************************************************
-ClRcT clLogChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
+ClRcT clEvtChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 {
 	ClRcT  rc = CL_OK;
     ClCkptSectionIdT                  secId                   = {0};
@@ -3998,23 +3999,22 @@ ClRcT clLogChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 //***************************** Delete channel open checkpoint *********************************
 // Remove user info checpoint section when finalize event
 //**********************************************************************************************
-ClRcT clLogUserInfoCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
+ClRcT clEvtUserInfoCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 {
 	ClRcT  rc = CL_OK;
-    ClCkptSectionIdT                  secId                   = {0};
-    secId.idLen = 21;
+    ClCkptSectionIdT                  secId                   = {0};    
+    secId.idLen = 16;
     secId.id    = (ClUint8T*)clHeapCalloc(secId.idLen, sizeof(ClCharT));
     if( NULL == secId.id )
     {
         clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clHeapCalloc()");
         return CL_EVENTS_RC(CL_ERR_NO_MEMORY);
     }
-    ClUint64T section_index = pEvtUnsubsReq->userId.evtHandle; /*our section name apparently*/
-    clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEvtCkptGlobalCheckPointUserInfo : userId.evtHandle: [%#llX]", section_index);
+    ClUint64T section_index = pEvtUnsubsReq->userId.evtHandle; /*our section name apparently*/    
     char buff[21];
     sprintf(buff, "%llu", section_index);
-    memcpy(secId.id,buff,21);
-    clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEvtCkptGlobalCheckPointUserInfo : userId.evtHandle: [%s]", buff);   
+    memcpy(secId.id,buff,16);  
+    clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEvtCkptGlobalCheckPointUserInfo : userId.evtHandle: [%s]", buff);    
     if( (0 != (&secId)->idLen) && (NULL != (&secId)->id) )
     {
        rc = clCkptSectionDelete(ckpt_user_info_handle,&secId); 

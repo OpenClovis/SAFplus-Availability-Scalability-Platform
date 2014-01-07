@@ -3038,26 +3038,23 @@ ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData, ClBufferHandleT inMs
          * this is for GLOBAL scope 
          */
         CL_EVT_SET_GLOBAL_SCOPE(evtUnsubsReq.evtChannelHandle);
-
         rc = clEvtEventCleanupViaRequest(&evtUnsubsReq, CL_EVT_NORMAL_REQUEST);
         if (CL_OK != rc)
         {
             goto inDataAllocated;
         }
-
         /*
          * this is for local scope 
          */
         CL_EVT_SET_LOCAL_SCOPE(evtUnsubsReq.evtChannelHandle);
-
         rc = clEvtEventCleanupViaRequest(&evtUnsubsReq, CL_EVT_NORMAL_REQUEST);
         if (CL_OK != rc)
         {
             goto inDataAllocated;
         }
-
         if(0 == evtUnsubsReq.userId.evtHandle)
         {
+
             /* This may be the call clEventCpmCleanup which passes evtHandle as 0 and just provides the 
              * eoIocPort for the application going down. Do a walk on the database for the node with 
              * the eoIocPort = the eoIocPort passed by the call. 
@@ -3087,18 +3084,15 @@ ClRcT VDECL(clEvtEventUnsubscribeAllLocal)(ClEoDataT cData, ClBufferHandleT inMs
             goto inDataAllocated;
         }
     }
-
     rc = clEvtCkptCheckPointAll();
     if (CL_OK != rc)
     {
         goto inDataAllocated;
     }
-
 // success:
     clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Unsubscribe All successful"); // NTC
-
     CL_FUNC_EXIT();
-    return rc;
+    return rc;	
 
 inDataAllocated:  // NTC also more info in the log
 
@@ -3132,7 +3126,6 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
     ClCntNodeHandleT userOfEchNodeHandle = CL_HANDLE_INVALID_VALUE;
 
     ClOsalMutexIdT mutexId = 0;
-
     clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "clEvtEventCleanupViaRequest: User [" PFMT_ClEvtUserIdT "], channel [%.*s] hdl [%llx]",PVAL_ClEvtUserIdT(pEvtUnsubsReq->userId),pEvtUnsubsReq->evtChannelName.length,pEvtUnsubsReq->evtChannelName.value,pEvtUnsubsReq->evtChannelHandle);
                         
     CL_FUNC_ENTER();
@@ -3152,7 +3145,7 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
     }
 
     /*
-     * Channel Information 
+     * Channel Information 	
      */
     clOsalMutexLock(mutexId);
     rc = clCntFirstNodeGet(pEvtChannelInfo->evtChannelContainer, &evtChannelNodeHandle1);
@@ -3180,13 +3173,11 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
         {
             goto mutexLocked;
         }
-
         rc = clCntNodeUserKeyGet(pEvtChannelInfo->evtChannelContainer, evtChannelNodeHandle, (ClCntDataHandleT *) &pEvtChannelKey);
         if (CL_OK != rc && CL_ERR_NOT_EXIST != CL_GET_ERROR_CODE(rc)) // NTC
         {
             goto mutexLocked;
         }
-
         CL_EVT_CHANNEL_ID_GET(pEvtUnsubsReq->evtChannelHandle, channelId);
         CL_EVT_CHANNEL_USER_TYPE_GET(pEvtUnsubsReq->evtChannelHandle, userType);
 
@@ -3197,7 +3188,6 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
         {
             case CL_EVT_CHANNEL_CLOSE:
                 clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Channel Close");
-
                 if ((channelId == pEvtChannelKey->channelId) && (0 == clEvtUtilsNameCmp(&pEvtChannelKey->channelName, &pEvtUnsubsReq->evtChannelName)))
                 {
 
@@ -3230,7 +3220,15 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
                             }
                         }
                     }
-
+                	if(pEvtUnsubsReq->isExternal==1)
+                	{
+                		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "remove event channel open ckpt");
+                		rc = clEvtChannelOpenCkptDelete(pEvtUnsubsReq);
+                		if (CL_OK != rc)
+                		{
+                		    clLogError(CL_EVENT_LOG_AREA_SRV, "CLN","remove event channel open error rc [0x%x]! ",rc);
+                		}
+                	}
                     
                     // clOsalMutexUnlock(mutexId); // NTC why not include check point under this?
 #ifndef CKPT_ENABLED
@@ -3262,9 +3260,7 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
                 if (CL_OK == rc)
                 {
                     clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Found user [" PFMT_ClEvtUserIdT "]", PVAL_ClEvtUserIdT(pEvtUnsubsReq->userId));
-                    
                     rc = clCntNodeUserDataGet(pEvtChannelDB->evtChannelUserInfo, userOfEchNodeHandle, (ClCntDataHandleT *) &userType);
-
                     unSubsRc = clEvtUnSubsEventTypeWalk(pEvtChannelDB->eventTypeInfo, pEvtUnsubsReq);
 
                     /*
@@ -3278,7 +3274,6 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
                     {
                         pEvtChannelDB->publisherRefCount--;
                     }
-
                     /*
                      * Delete the user information EM 
                      */
@@ -3289,7 +3284,6 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
                         clLogWarning(CL_EVENT_LOG_AREA_SRV, "CLN", "Error [0x%x] delete user handle [%p]", rc, userOfEchNodeHandle);
                     }
                     
-
                     /*
                      * If both publishers and subscribers of an event channel become zero then delete the channel
                      */
@@ -3304,7 +3298,6 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
                     }
 
                 }
-
 #ifndef CKPT_ENABLED
                 if (CL_EVT_NORMAL_REQUEST == type)
                 {
@@ -3317,6 +3310,7 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
                                 pEvtUnsubsReq->userId.evtHandle, rc);
                         goto failure; // NTC if mutexLocked
                     }
+
                 }
 #endif
 
@@ -3339,7 +3333,15 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
                     clLogWarning(CL_EVENT_LOG_AREA_SRV, "CLN", "Channel Id [%d,%d] and/or channel name mismatch [%.*s,%.*s]", channelId,pEvtChannelKey->channelId,pEvtChannelKey->channelName.length,pEvtChannelKey->channelName.value,pEvtUnsubsReq->evtChannelName.length,pEvtUnsubsReq->evtChannelName.value);
                     
                 }
-                
+            	if(pEvtUnsubsReq->isExternal==1)
+            	{
+            		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "remove event subcriber ckpt");
+            		rc = clEvtChannelSubCkptDelete(pEvtUnsubsReq);
+            		if (CL_OK != rc)
+            		{
+            		    clLogError(CL_EVENT_LOG_AREA_SRV, "CLN","remove event subcriber error rc [0x%x]! ",rc);    		                      
+                    }
+            	}              
 
 #ifndef CKPT_ENABLED
                 if (CL_EVT_NORMAL_REQUEST == type)
@@ -3365,9 +3367,16 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
 
 success:
     clOsalMutexUnlock(mutexId);
-
+    if(pEvtUnsubsReq->isExternal==1 && pEvtUnsubsReq->reqFlag==CL_EVT_FINALIZE)
+    {
+    	clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "remove event user info ckpt");
+    	rc = clEvtUserInfoCkptDelete(pEvtUnsubsReq);
+    	if (CL_OK != rc)
+    	{
+            clLogError(CL_EVENT_LOG_AREA_SRV, "CLN","remove event user info error rc [0x%x]! ",rc);                		
+         }
+    }
     clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Cleanup Via Request successful");
-
     CL_FUNC_EXIT();
     return CL_OK;
 

@@ -51,7 +51,7 @@ extern "C"
      * To Enable Check Pointing Support 
      */
     /*
-     * @
+     * @Log
      */
 # if 1
 #  define CKPT_ENABLED
@@ -282,9 +282,9 @@ extern "C"
     extern ClRcT clEvtCkptGlobalCheckPointChannelOpen(ClEvtChannelOpenRequestT	*pEvtChannelOpenRequest);
     extern ClRcT clEvtCkptGlobalCheckPointUserInfo(ClEvtInitRequestT *pEvtInitReq);
     extern ClRcT clEvtCkptGlobalCheckPointChannelSub(ClEvtSubscribeEventRequestT *pEvtSubsReq);
-    extern ClRcT clLogUserInfoCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq);
-    extern ClRcT clLogChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq);
-    extern ClRcT clLogChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq);
+    extern ClRcT clEvtUserInfoCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq);
+    extern ClRcT clEvtChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq);
+    extern ClRcT clEvtChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq);
     extern ClRcT clEventGlobalCkptFinalize();
     extern ClRcT clEventExternalRecoverState(ClBoolT switchover);
     extern ClRcT clEventGmsInit(void);
