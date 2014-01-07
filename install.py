@@ -856,7 +856,7 @@ class ASPInstaller:
             
             cmd = ''
             if syscall('which wget 2>/dev/null'):
-                cmd = 'wget -t 3 --no-check-certificate '
+                cmd = 'wget -t 3 --no-check-certificate --no-passive-ftp'
             elif syscall('which curl 2>/dev/null'):
                 cmd = 'curl -OL '
             
