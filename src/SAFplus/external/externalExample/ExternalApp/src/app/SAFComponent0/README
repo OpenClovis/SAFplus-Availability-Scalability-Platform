@@ -1,4 +1,0 @@
-This is a sample/test application that demonstartes low-level IOC message
-sending and receiving, without even the EO layer getting involved.  This
-application can be started from the command line and is not a managed
-component.
