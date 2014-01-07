@@ -3701,12 +3701,13 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                            ClUint32T length,
                            ClIocPhysicalAddressT srcAddr)
 {
-    ClIocNotificationT notification = {0};
+    ClIocNotificationT notification;
     ClUint32T len = sizeof(notification);
 
+    memset(&notification,0,sizeof(ClIocNotificationT));
     clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&notification, &len);
 
-    notification.id = ntohl(notification.id);
+    notification.id = (ClIocNotificationIdT) ntohl(notification.id);
     notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
 
@@ -3760,7 +3761,7 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                         static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
                         ClUint32T myCapability = 0;
                         ClIocNotificationT notification;
-                        notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
+                        notification.id = (ClIocNotificationIdT) htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
                         notification.nodeVersion = htonl(nodeVersion);
                         notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
                         notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);

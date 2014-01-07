@@ -679,10 +679,7 @@ error_out:
 }
 
 
-SaAisErrorT
-saMsgQueueGroupTrackStop (
-	SaMsgHandleT msgHandle,
-	const SaNameT *pGroupName)
+SaAisErrorT saMsgQueueGroupTrackStop ( SaMsgHandleT msgHandle, const SaNameT *pGroupName)
 {
     ClRcT rc = CL_OK;
     ClRcT retCode;

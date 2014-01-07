@@ -65,7 +65,8 @@ ASP_LIBS	:= libClTimer.a \
                    libClLogClient.a \
                    libClDebugClient.a \
                    libClNameClient.a\
-                   libClIdl.a
+                   libClIdl.a\
+                   libClHal.a
 
 #                   libClNameServerXdr.a\
  #                  libClNameCommonXdr.a 

@@ -67,7 +67,8 @@ ASP_LIBS	:= libClUtils.a \
                    libClIdl.a	\
                    libClCkpt.a\
                    libClDbal.a \
-                   libClIdlPtr.a
+                   libClIdlPtr.a\
+                   libClHal.a
 
 # List any third party libs needed to get this server built (or None):
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable

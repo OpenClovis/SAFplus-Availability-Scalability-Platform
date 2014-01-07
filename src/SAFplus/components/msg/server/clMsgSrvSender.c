@@ -27,6 +27,7 @@
 #include <clMsgCommon.h>
 #include <clLogApi.h>
 #include <clXdrApi.h>
+#include <clMsgReceiver.h>
 
 ClRcT clMsgMessageReceiveCallback(SaMsgQueueHandleT qHandle)
 {

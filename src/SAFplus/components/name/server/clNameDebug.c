@@ -31,26 +31,26 @@
 
 #include <clEoApi.h>
 #include <clDebugApi.h>
+#include <clNameIpi.h>
 
 #define NAME_LOG_AREA_DEBUG	"DBG"
 #define NAME_LOG_CTX_NAME_REG	"REG"
 
 ClHandleT  gNameDebugReg = CL_HANDLE_INVALID_VALUE;
 
-extern ClRcT cliNSRegister(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSComponentDeregister(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSServiceDeregister(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSContextCreate(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSContextDelete(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSListEntries(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSListEntries(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSObjectReferenceQuery(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSObjectMapQuery(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSAttributeLevelQuery(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSAllObjectMapsQuery(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSInitialize(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSFinalize(int argc, char **argv, char** retStr, ClUint32T flag);
-extern ClRcT cliNSDataDump(int argc, char **argv, char** retStr, ClUint32T flag);
+extern ClRcT cliNSRegister(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSComponentDeregister(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSServiceDeregister(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSContextCreate(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSContextDelete(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSListEntries(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSObjectReferenceQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSObjectMapQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSAttributeLevelQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSAllObjectMapsQuery(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSInitialize(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSFinalize(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
+extern ClRcT cliNSDataDump(ClUint32T argc, ClCharT **argv, ClCharT** retStr);
 
 
 static ClDebugFuncEntryT nameDebugFuncList[] = {

@@ -144,8 +144,7 @@ void ckptInfoVersionConvertBackward(CkptInfoT *pDstCkptInfo, VDECL_VER(CkptInfoT
 ClRcT   ckptDbUnpack(ClBufferHandleT   inMsg);
 
 /* This routine packs the complete checkpoint DB */
-ClRcT   ckptDbPack(ClBufferHandleT   *pOutMsg, 
-                   ClIocNodeAddressT        peerAddr);
+ClRcT   ckptDbPack(ClBufferHandleT   *pOutMsg, ClIocNodeAddressT        peerAddr);
 ClRcT  clCkptCheckpointAsync(ClEoDataT data,
                         ClBufferHandleT  inMsg,
                         ClBufferHandleT  outMsg);

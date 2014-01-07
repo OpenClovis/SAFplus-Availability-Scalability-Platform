@@ -52,7 +52,7 @@ extern CkptSvrCbT  *gCkptSvr;
 
 extern ClVersionT gVersion;
 
-void clCkptTrackCallback();
+void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer, ClUint32T  numberOfMembers, ClRcT rc);
 
 
 /*
@@ -71,8 +71,7 @@ ClGmsCallbacksT ckptGmsCallbacks = {
 /*
  * Key compare function for clientHdl list
  */
-ClInt32T ckptCkptListKeyComp(ClCntKeyHandleT key1,
-                             ClCntKeyHandleT key2)
+ClInt32T ckptCkptListKeyComp(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
     return (ClWordT)key1 - (ClWordT)key2;
 }
@@ -81,8 +80,7 @@ ClInt32T ckptCkptListKeyComp(ClCntKeyHandleT key1,
  * Delete callback function for clientHdl list.
  */
  
-void ckptCkptListDeleteCallback(ClCntKeyHandleT  userKey,
-                                ClCntDataHandleT userData)
+void ckptCkptListDeleteCallback(ClCntKeyHandleT  userKey, ClCntDataHandleT userData)
 {
     CkptNodeListInfoT   *peerInfoDH = (CkptNodeListInfoT *) userData;
     clHeapFree(peerInfoDH);
@@ -94,8 +92,7 @@ void ckptCkptListDeleteCallback(ClCntKeyHandleT  userKey,
  * Key compare function for masterHdl list.
  */
  
-ClInt32T ckptMastHdlListtKeyComp(ClCntKeyHandleT key1,
-                             ClCntKeyHandleT key2)
+ClInt32T ckptMastHdlListtKeyComp(ClCntKeyHandleT key1, ClCntKeyHandleT key2)
 {
     return *(ClHandleT *)key1 - *(ClHandleT *)key2;
 }
@@ -251,9 +248,7 @@ void   _clCkptAddressesUpdate
  * whenever leader or deputy address gets changed.
  */
  
-void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
-                         ClUint32T                       numberOfMembers,
-                         ClRcT                           rc)
+void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer, ClUint32T  numberOfMembers, ClRcT rc)
 {
     ClIocNodeAddressT deputy = 0;
     ClIocNodeAddressT newDeputy = 0;
@@ -797,27 +792,15 @@ _ckptMasterPeerListInfoCreate(ClIocNodeAddressT nodeAddr,
      * Create the list to store the client hdls that
      * will be opened on that node.
      */
-    rc = clCntLlistCreate(ckptCkptListKeyComp,
-            ckptCkptListDeleteCallback,
-            ckptCkptListDeleteCallback,
-            CL_CNT_UNIQUE_KEY,
-            &pPeerInfo->ckptList);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
-            ("CkptList create failed rc[0x %x]\n",rc),
-            rc);
+    rc = clCntLlistCreate(ckptCkptListKeyComp, ckptCkptListDeleteCallback,ckptCkptListDeleteCallback, CL_CNT_UNIQUE_KEY, &pPeerInfo->ckptList);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("CkptList create failed rc[0x %x]\n",rc), rc);
 
     /* 
      * Create the list to store the master hdls for checkpoints that
      * will be created on that node.
      */
-    rc = clCntLlistCreate(ckptMastHdlListtKeyComp,
-            ckptMastHdlListDeleteCallback,
-            ckptMastHdlListDeleteCallback,
-            CL_CNT_UNIQUE_KEY,
-            &pPeerInfo->mastHdlList);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
-            ("MastHdlList create failed rc[0x %x]\n",rc),
-            rc);
+    rc = clCntLlistCreate(ckptMastHdlListtKeyComp, ckptMastHdlListDeleteCallback, ckptMastHdlListDeleteCallback, CL_CNT_UNIQUE_KEY, &pPeerInfo->mastHdlList);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("MastHdlList create failed rc[0x %x]\n",rc), rc);
 
     if(credential == CL_CKPT_CREDENTIAL_POSITIVE)
         gCkptSvr->masterInfo.availPeerCount++;
@@ -825,11 +808,8 @@ _ckptMasterPeerListInfoCreate(ClIocNodeAddressT nodeAddr,
     /*
      * Add the node to the master's peer list.
      */
-    rc = clCntNodeAdd(gCkptSvr->masterInfo.peerList, (ClPtrT)(ClWordT)nodeAddr,
-            (ClCntDataHandleT)pPeerInfo, NULL);
-    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR,
-            ("PeerInfo Add is failed rc[0x %x]\n",rc),
-            rc);
+    rc = clCntNodeAdd(gCkptSvr->masterInfo.peerList, (ClPtrT)(ClWordT)nodeAddr, (ClCntDataHandleT)pPeerInfo, NULL);
+    CKPT_ERR_CHECK(CL_CKPT_SVR,CL_LOG_SEV_ERROR, ("PeerInfo Add is failed rc[0x %x]\n",rc), rc);
     return rc;        
 
 exitOnError:    

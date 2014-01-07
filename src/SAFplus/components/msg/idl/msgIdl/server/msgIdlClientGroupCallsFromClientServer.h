@@ -33,7 +33,7 @@ ClRcT clMsgQueueGroupCreate_4_0_0(CL_IN SaNameT*  pGroupName, CL_IN SaMsgQueueGr
 
 ClRcT clMsgQueueGroupCreateResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgQueueGroupDelete_4_0_0(CL_IN SaNameT*  pGroupName);
+ClRcT clMsgQueueGroupDelete_4_0_0(CL_IN const SaNameT*  pGroupName);
 
 ClRcT clMsgQueueGroupDeleteResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
@@ -45,11 +45,11 @@ ClRcT clMsgQueueGroupRemove_4_0_0(CL_IN SaNameT*  pGroupName, CL_IN SaNameT*  pQ
 
 ClRcT clMsgQueueGroupRemoveResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 
-ClRcT clMsgQueueGroupTrack_4_0_0(CL_IN ClHandleT  clientHandle, CL_IN ClHandleT  msgHandle, CL_IN SaNameT*  pGroupName, CL_IN ClUint8T  trackFlag, CL_INOUT SaMsgQueueGroupNotificationBufferT_4_0_0*  pNotificationBuffer);
+ClRcT clMsgQueueGroupTrack_4_0_0(CL_IN ClHandleT  clientHandle, CL_IN ClHandleT  msgHandle, CL_IN const  SaNameT*  pGroupName, CL_IN ClUint8T  trackFlag, CL_INOUT SaMsgQueueGroupNotificationBufferT_4_0_0*  pNotificationBuffer);
 
 ClRcT clMsgQueueGroupTrackResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  SaMsgQueueGroupNotificationBufferT_4_0_0  pNotificationBuffer);
 
-ClRcT clMsgQueueGroupTrackStop_4_0_0(CL_IN ClHandleT  msgHandle, CL_IN SaNameT*  pGroupName);
+ClRcT clMsgQueueGroupTrackStop_4_0_0(CL_IN ClHandleT  msgHandle, CL_IN const SaNameT*  pGroupName);
 
 ClRcT clMsgQueueGroupTrackStopResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
 

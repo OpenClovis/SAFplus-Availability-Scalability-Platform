@@ -70,7 +70,8 @@ ASP_LIBS	:= libClTimer.a \
                libClDebugClient.a \
                libClLogClient.a \
                libClIdl.a \
-               libClNameClient.a
+               libClNameClient.a\
+               libClHal.a
 
 # List any third party libs needed to get this server built (or None):
 
