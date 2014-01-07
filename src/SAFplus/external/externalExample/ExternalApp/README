@@ -1,0 +1,10 @@
+Build ExternalApp :
+g++ -o externalMain externalMain.c alarmClockLog.c -I<SAFPLUS_INCLUDE> -DNO_SAF  -lm -lmw  -L<externalLib> -lrt -lm -ldl -lpthread -lezxml
+Run ExternalApp :
+export LD_LIBRARY_PATH=<externalLib>
+export ASP_CONFIG=etc
+export ASP_NODENAME=<Application name>
+modprobe tipc
+tipc-config -netid=<netid> -addr=<1.1.5> -be=<bearer>
+./externalMain (Must run externalExampleModel first)
+
