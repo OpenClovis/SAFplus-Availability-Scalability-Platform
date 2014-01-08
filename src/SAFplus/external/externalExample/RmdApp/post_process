@@ -1,0 +1,60 @@
+#!/bin/bash
+#
+# This script is to translate measured data from the csa701 sample application
+# to a plot that can be embedded into a report.
+#
+
+# set -x
+
+input_file=2xceleron
+
+cat $input_file | \
+    awk '/^#/{next}{print $1,$3,$6,$7}' | \
+    cat > res.dat
+
+
+octave > /dev/null <<EOF
+load res.dat
+n = res(1,2);           # number of samples
+x = res(:,1);           # x values
+m = res(:,3);           # mean y values
+x2 = res(:,1)+60+8+20+14
+ms = res(:,4);          # mean of square y values
+var = ms - (m.*m);      # variance
+hc = 2.06*sqrt(var/n);  # halp confidence length
+
+#   confidence interval table
+#       z_{1-alpha/2}
+#   n   90%     95%
+#----------------------------
+#   10  1.812   2.228
+#   20  1.725   2.086
+#   25  1.708   2.060
+#   50  1.676   2.009
+
+loglog(x,m,'-*')
+xlabel('Message size [bytes]')
+ylabel('Roundtrip latency [microseconds]')
+title('IOC Latency')
+__gnuplot_set__ grid
+__gnuplot_set__ terminal postscript enhanced 
+__gnuplot_set__ output 'res.eps'
+replot
+
+__gnuplot_set__ output 'tmp.eps'
+loglog(x2,m,'-*')
+xlabel('Ethernet frame size [bytes]')
+ylabel('Roundtrip latency [microseconds]')
+title('IOC Latency')
+__gnuplot_set__ grid
+__gnuplot_set__ terminal postscript enhanced 
+__gnuplot_set__ output 'res_total.eps'
+replot
+
+quit
+EOF
+
+epstopdf res.eps
+epstopdf res_total.eps
+
+/bin/rm -fr res.dat
