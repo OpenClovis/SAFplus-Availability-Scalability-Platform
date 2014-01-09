@@ -58,6 +58,7 @@ void dispatchLoop(void);
 void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState);
 int  errorExit(SaAisErrorT rc);
 
+void* logLoop(void*);
 
 /******************************************************************************
  * Optional Features
@@ -389,6 +390,8 @@ void safAssignWork(SaInvocationT       invocation,
         	gTestInfo.haState          = CL_AMS_HA_STATE_ACTIVE;
         	ha_state = CL_AMS_HA_STATE_ACTIVE;
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
+            ClRcT rc = clOsalTaskCreateDetached("Logging Loop", CL_OSAL_SCHED_OTHER, 0, 0, logLoop, NULL);
+            assert(rc==CL_OK);
             break;
         }
 
@@ -918,8 +921,8 @@ ClRcT alarmClockLogInitialize( void )
         return rc;
     }
     sleep(5);
-    clprintf(CL_LOG_SEV_ERROR, "open clockStream 0 \n");
-    myStreamAttr.fileName = (char *)"clock.log";
+    clprintf(CL_LOG_SEV_ERROR, "open External log \n");
+    myStreamAttr.fileName = (char *)"external.log";
     myStreamAttr.fileLocation=(char *)".:var/log";
     myStreamAttr.recordSize = 300;
     myStreamAttr.fileUnitSize = 1000000;
@@ -935,7 +938,7 @@ ClRcT alarmClockLogInitialize( void )
     /* Stream Name is defined in the IDE during
      * modeling phase
      */
-    saNameSet(&streamName,"clockStream");
+    saNameSet(&streamName,"externalAppStream");
     //strcpy(streamName.value, "clockStream");
     //streamName.length = strlen("clockStream");
 
@@ -949,7 +952,7 @@ ClRcT alarmClockLogInitialize( void )
      * ClTimeT   timeout      - timeout set to zero, if failed return immed.
      * ClLogStreamHandleT *   - stream handle returned if successful
     */
-    clprintf(CL_LOG_SEV_ERROR, "open clockStream \n");
+    clprintf(CL_LOG_SEV_ERROR, "open external log \n");
     rc = clLogStreamOpen(logSvcHandle,
                          streamName,
                          CL_LOG_STREAM_GLOBAL,
@@ -966,13 +969,22 @@ ClRcT alarmClockLogInitialize( void )
         (void)clLogFinalize(logSvcHandle);
         return rc;
     }
-    rc = clLogWriteAsync(streamHandle,
-                         CL_LOG_SEV_NOTICE,
-                         10,
-                         CL_LOG_MSGID_PRINTF_FMT,
-                         "\n(%s:%d[pid=%d]) -->Alarm Clock Logging Begun<--\n",
-                         __FILE__, __LINE__,getpid());
+    
+    rc = clLogWriteAsync(streamHandle, CL_LOG_SEV_NOTICE, 10, CL_LOG_MSGID_PRINTF_FMT, "\n(%s:%d[pid=%d]) External log open and ready to receive logs.\n", __FILE__, __LINE__,getpid());
     return CL_OK;
 }
 
 
+void* logLoop(void* nothing)
+{
+    int i;
+    clprintf(CL_LOG_SEV_ERROR, "Starting Log loop");
+    while(1)
+    {
+        i++;        
+        clLogWriteAsync(streamHandle, CL_LOG_SEV_NOTICE, 10, CL_LOG_MSGID_PRINTF_FMT, "log loop: %d",i);
+        sleep(5);        
+    }
+
+    return 0;
+}

@@ -20,16 +20,17 @@
 #include <clEventApi.h>
 #include <clEventExtApi.h>
 #include <clLogApi.h>
-// log external
-#include "alarmClockLog.h"
 
 
+// Logging utility routines are located in a separate file.
+#include "log.h"
 
+
+#define LOCAL_ADDRESS 7
 
 //***********External***********************************
 #define __LOGICAL_ADDRESS(a) CL_IOC_LOGICAL_ADDRESS_FORM(CL_IOC_STATIC_LOGICAL_ADDRESS_START + (a))
-#define __RPC_SERVER_ADDRESS __LOGICAL_ADDRESS(5)
-#define LOCAL_ADDRESS 5
+#define __RPC_SERVER_ADDRESS __LOGICAL_ADDRESS(LOCAL_ADDRESS)
 #define LOOP_COUNT 5
 extern ClRcT clRmdLibInitialize(ClPtrT pConfig);
 
@@ -96,10 +97,25 @@ int main(int argc, char **argv)
     rc = clExtRmdServerInit(NULL);
     if(rc != CL_OK)
     {
-        printf("Error : Failed to init Rmd Server\n");
+        printf("Error : Failed to init Rmd Server. Error 0x%x\n", rc);
+        return rc;
     }
     else
     {
+        printf("Open a global log stream and write several records to active PY node\n");        
+        if ((rc=logInitialize()) == CL_OK)
+        {
+            printf("log Initialized\n"); 
+            logWrite(CL_LOG_SEV_NOTICE,"This is a test of an external app doing logging");
+            for(int i=0;i<100;i++)
+               logWrite(CL_LOG_SEV_NOTICE,"external app log %d", i);
+        }
+        else
+        {
+            printf("Unable to open log.  Error 0x%x\n",rc);
+            return rc;
+        }
+
         //open a subscribe event channel and start
         const SaEvtCallbacksT evtCallbacks =
         {
@@ -135,8 +151,7 @@ int main(int argc, char **argv)
             goto errorexit;
         }
         //open a global log stream and write several records
-        printf("Open a global log stream and write several records to active PY node\n");        
-        alarmClockLogInitialize();
+        
         printf("Open a publisher event channel\n");        
         // open a publisher event channel and 
         openPublisherChannel();

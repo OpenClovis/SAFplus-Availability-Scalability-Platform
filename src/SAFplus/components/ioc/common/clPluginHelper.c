@@ -525,7 +525,7 @@ void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelper
     if (vipCopy->ip && vipCopy->dev && vipCopy->netmask) 
     {
         char execLine[301];
-        snprintf(execLine, 300, "%s/virtualIp %s %s %s %s %s ", getenv("ASP_BINDIR"), cmd, vipCopy->ip, vipCopy->netmask, vipCopy->dev, vipCopy->subnetPrefix);
+        snprintf(execLine, 300, "%s/virtualIp %s %s %s %s %s ", ASP_BINDIR, cmd, vipCopy->ip, vipCopy->netmask, vipCopy->dev, vipCopy->subnetPrefix);
         clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
         __attribute__((unused)) ClRcT result = system(execLine);
 

@@ -7,10 +7,10 @@
           <type>TIPC</type>
           <plugin>libClTIPC.so</plugin>
         </xport>
-        <xport>
+        <!-- xport>
           <type>UDP</type>
           <plugin>libClUDP.so</plugin>
-        </xport>
+        </xport -->
       </xports>
       <protocol default="TIPC">
         <node name="Node0I0" protocol="TIPC UDP"/>
