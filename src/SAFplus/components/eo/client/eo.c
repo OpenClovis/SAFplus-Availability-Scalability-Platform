@@ -107,6 +107,9 @@ static ClInt32T gClEoThreadCount;
 static ClInt32T gClEoReceiverSpawned;
 static ClBoolT gClEoStaticQueueInitialized=CL_FALSE;
 extern ClIocNodeAddressT gIocLocalBladeAddress;
+
+extern ClRcT clLoadEnvVars();
+
 /*
  * To debug the creation and deletion of threads.
  */
@@ -3943,7 +3946,7 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
     ClIocRecvParamT *pRecvParam = NULL;
     ClEoExecutionObjT *pThis = gpExecutionObject;
 
-    clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clEoJobHandler");
+    //clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clEoJobHandler");
 
     if(pJob == NULL)
     {
@@ -3973,13 +3976,12 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
 
             if((rc = gpClEoSerialize((ClPtrT)&serialize)) != CL_OK)
             {
-                clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"EO Serialization " \
-                           "failed with [rc=0x%x]\n",rc);
+                clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"EO Serialization failed with [rc=0x%x]\n",rc);
                 goto done;
             }
         }    
 #endif
-    clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clEoJobHandler, calling a registered message handler");
+        //clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clEoJobHandler, calling a registered message handler");
     rc = gClEoProtoList[pRecvParam->protoType].func(pThis,
                                                     pJob->msg,
                                                     pRecvParam->priority,
@@ -3998,8 +4000,7 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
 #endif
     if (rc != CL_OK)
     {
-        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "Invoking Callback Failed, rc=0x%x\n", rc);
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED, "Invoking Callback Failed, rc=0x%x\n", rc);
     }
 
  done:
@@ -4392,7 +4393,13 @@ clExtInitialize ( ClInt32T ioc_address_local )
     clAspLocalId = ioc_address_local;
     heapConfig.mode = CL_HEAP_NATIVE_MODE;
     memConfig.memLimit = 0;
+
+    clLoadEnvVars();
+    // If ASP_BINDIR is not set then set it to the current directory
+    if (ASP_BINDIR[0]==0) { ASP_BINDIR[0] = '.'; ASP_BINDIR[1] = 0; }
+    
     rc = clIocParseConfig(NULL, &gpClIocConfig);
+    
     if(rc != CL_OK)
     {
         clOsalPrintf("Error : Failed to parse clIocConfig.xml file. error code = 0x%x\n",rc);
@@ -4419,12 +4426,13 @@ clExtInitialize ( ClInt32T ioc_address_local )
         clLogError("RMDSERVER", "clExtInitialize","Buffer initialization failed\n");
         return rc;
     }
+    
     pAllConfig.iocConfigInfo.isNodeRepresentative = CL_TRUE;
     gIsNodeRepresentative = CL_TRUE;
     if ((rc = clIocLibInitialize(NULL)) != CL_OK)
     {
         clLogError("RMDSERVER", "clExtInitialize","IOC initialization failed with rc = 0x%x\n", rc);
-        exit(1);
+        return rc;
     }
     return rc;
 }

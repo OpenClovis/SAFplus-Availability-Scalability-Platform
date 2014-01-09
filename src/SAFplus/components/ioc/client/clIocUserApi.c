@@ -3132,9 +3132,7 @@ ClRcT clIocLibInitialize(ClPtrT pConfig)
     ClRcT rc = CL_OK;
 
     clTaskPoolInitialize();
-
-    clTaskPoolInitialize();
-
+    
     iocConfig.version = CL_IOC_HEADER_VERSION;
     iocConfig.nodeAddress = clAspLocalId;
 

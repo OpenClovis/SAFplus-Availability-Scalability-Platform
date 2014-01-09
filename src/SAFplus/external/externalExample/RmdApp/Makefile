@@ -28,11 +28,9 @@ COMPNAME	:=      externalRmd
 SRC_FILES := $(wildcard *.c) $(wildcard ./common/*.c)
 
 DEP_COMP_LIST	:= 	utils osal timer buffer cnt ioc eo rmd external
- 
 
 ASP_LIBS := libmw.a
- 
-                   
+
 #SYS_LIBS	:= 	-lpthread
 EXTRA_CFLAGS += -I$(KERNEL_DIRE)/include -I$(TIPC_INC_DIR) -I$(KERNEL_DIRE)/$(TIPC_INC_DIR)  -I$(ASP_CONFIG) -I./common -D__EXPORTED_HEADERS__ 
 BUILD_CPLUSPLUS = 1

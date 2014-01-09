@@ -60,7 +60,7 @@
 
 extern void clEoCleanup(ClEoExecutionObjT* pThis);
 extern void clEoReceiverUnblock(ClEoExecutionObjT *pThis);
-extern void clLoadEnvVars();
+extern ClRcT clLoadEnvVars();
 
 extern void eoProtoInit(void);
 
@@ -220,8 +220,9 @@ void clAppConfigure(ClEoConfigT* clEoConfig,ClUint8T* basicLibs,ClUint8T* client
     if (clientLibs) memcpy(&eoClientLibs, clientLibs,sizeof(eoClientLibs));
 }
 
-void clLoadEnvVars()
+ClRcT clLoadEnvVars()
 {
+    ClRcT rc = CL_OK;
     ClCharT missing[512];
     ClCharT * temp=NULL;
     ClInt32T i = 0; 
@@ -269,9 +270,8 @@ void clLoadEnvVars()
 
     if (missing[0])
     {
-        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "The following required environment variables are not set: %s. Exiting", missing);
-        exit(1);  
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "The following required environment variables are not set: %s.", missing);
+        rc =  CL_ERR_DOESNT_EXIST;
     }
 
     if (1)
@@ -288,11 +288,12 @@ void clLoadEnvVars()
     
         else
         {
-            clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "ASP_NODEADDR environment variable not set, exiting");
-            exit(1);
+            clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "ASP_NODEADDR environment variable not set.");
+            rc = CL_ERR_DOESNT_EXIST;
         }
     }
-    
+
+    return rc;
 }
 
 
@@ -738,7 +739,7 @@ ClRcT clASPInitialize(void)
         return CL_OK;
     }
     
-    clLoadEnvVars();
+    if (clLoadEnvVars() != CL_OK) exit(1);  // Returns an error if essential variables are not set
     
     rc = clEoSetup();
     if(rc != CL_OK)

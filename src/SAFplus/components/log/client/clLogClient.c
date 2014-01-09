@@ -589,22 +589,20 @@ clLogStreamOpen(ClLogHandleT            hLog,
 
     if( 0 != timeout )
     {
-        clLogDebug("LOG", "OPE", "Sending stream 1 ");
+        //clLogDebug("LOG", "OPE", "Sending stream 1 ");
 
 #ifdef NO_SAF
         server.addressType      = CL_IDL_ADDRESSTYPE_IOC;
-        server.address.iocAddress.iocPhyAddress.nodeAddress
-            = CL_IOC_BROADCAST_ADDRESS;
+        server.address.iocAddress.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
         server.address.iocAddress.iocPhyAddress.portId = CL_IOC_LOG_PORT;
         clLogDebug("LOG", "OPE", "Sending stream 2 ");
 #else
         server.addressType      = CL_IDL_ADDRESSTYPE_IOC;
-        server.address.iocAddress.iocPhyAddress.nodeAddress
-            = clIocLocalAddressGet();
+        server.address.iocAddress.iocPhyAddress.nodeAddress = clIocLocalAddressGet();
         server.address.iocAddress.iocPhyAddress.portId = CL_IOC_LOG_PORT;
         clLogDebug("LOG", "OPE", "Sending stream 3 ");
-
 #endif
+        
         idlObj.address          = server;
         idlObj.flags            = CL_RMD_CALL_DO_NOT_OPTIMIZE;
         idlObj.options.timeout  = timeout;
