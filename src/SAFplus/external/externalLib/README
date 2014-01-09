@@ -1,0 +1,8 @@
+Step to make the externalLib : 
+-  mkdir prebuildExternal
+-  cd prebuildExternal
+-  /opt/clovis/6.1/configure 
+-  cd asp/build/local/
+-  add EXTRA_CFLAGS += -DNO_SAF to Makefile (line 40).
+-  make
+-  copy  libmw.so and other .so library from target folder to externalLib and rename
