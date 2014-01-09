@@ -28,8 +28,8 @@
 
 //***********External***********************************
 #define __LOGICAL_ADDRESS(a) CL_IOC_LOGICAL_ADDRESS_FORM(CL_IOC_STATIC_LOGICAL_ADDRESS_START + (a))
-#define __RPC_SERVER_ADDRESS __LOGICAL_ADDRESS(4)
-#define LOCAL_ADDRESS 4
+#define __RPC_SERVER_ADDRESS __LOGICAL_ADDRESS(5)
+#define LOCAL_ADDRESS 5
 #define LOOP_COUNT 5
 extern ClRcT clRmdLibInitialize(ClPtrT pConfig);
 
@@ -60,8 +60,10 @@ gTestInfoT gTestInfo;
 #define EVENT_CHANNEL_NAME "TestEventChannel"
 #define PUBLISHER_NAME "TestEventPublisher"
 SaNameT                 evtChannelName;
+//handle for subscribe event
 SaEvtChannelHandleT   evtChannelHandle = 0;
 SaEvtHandleT      evtHandle;
+//handle for public event
 SaEvtChannelHandleT evtChannelHandlePublic      = 0;
 //*************************************************
 
@@ -133,36 +135,36 @@ int main(int argc, char **argv)
             goto errorexit;
         }
         //open a global log stream and write several records
-        printf("Open a global log stream and write several records\n");        
+        printf("Open a global log stream and write several records to active PY node\n");        
         alarmClockLogInitialize();
-        printf("open a publisher event channel\n");        
+        printf("Open a publisher event channel\n");        
         // open a publisher event channel and 
         openPublisherChannel();
-        printf("start public event\n");        
+        printf("Start publishing events.\nThe PY component on active PY node subscribes to these events and logs them so you can verify receipt by looking in the clock.log.latest and app.lates  on node active PY node .\n");        
         testEvtMainLoop();
-        printf("...................unsubscribe event chanel.............................\n");        
+        printf("Unsubscribe event chanel.............................\n");        
         rc = saEvtEventUnsubscribe(evtChannelHandle,1);
 	if (rc != SA_AIS_OK) 
 		printf("Channel unsubscribe result: %d\n", rc);
-        printf("...................close subscribe event chanel.............................\n");        
+        printf("Close subscribe event chanel.............................\n");        
         rc = saEvtChannelClose(evtChannelHandle);
 	if (rc != SA_AIS_OK) 
 		printf("Channel close result: %d\n", rc);
-        printf("....................close publish event channel.............................\n");        
+        printf("Close publish event channel.............................\n");        
         rc = saEvtChannelClose(evtChannelHandlePublic);
 	if (rc != SA_AIS_OK) 
 		printf("Channel close result: %d\n", rc);
-        printf("....................finalize publish event handle.............................\n");        
+        printf("Finalize publish event handle.............................\n");        
         saEvtFinalize(gTestInfo.evtInitHandle);
-        printf("....................finalize xubscribe event handle.............................\n");        
+        printf("Finalize xubscribe event handle.............................\n");        
         saEvtFinalize(evtHandle);
         openPublisherChannel();
         testEvtMainLoop();
-        printf("....................close publish event channel.............................\n");        
+        printf("Close publish event channel.............................\n");        
         rc = saEvtChannelClose(evtChannelHandlePublic);
 	if (rc != SA_AIS_OK) 
 		printf("Channel close result: %d\n", rc);
-        printf("....................finalize publish event handle.............................\n");        
+        printf("Finalize publish event handle.............................\n");        
         saEvtFinalize(gTestInfo.evtInitHandle);
     }    
     return 0;
@@ -294,21 +296,19 @@ appPublishEvent()
     return CL_OK;
 }
 
-
 static void
 testEvtMainLoop()
 {
     /* Main loop: Keep printing and publishing unless we are suspended */
     int i=0;
-    while (1)
+    SaAisErrorT  saRc = SA_AIS_OK;
+    for(int i=0; i<LOOP_COUNT; i++)
     {
-        appPublishEvent();        
+        //appPublishEvent();   
+        ClEventIdT      eventId         = 0;
+        printf("Publishing Event\n");     
+        saRc = saEvtEventPublish(gTestInfo.eventHandle, (void *)"Event from external application", strlen("Event from external application"), &eventId);
         sleep(2);
-        i++;
-        if(i==LOOP_COUNT)
-        {
-            return;
-        }
     }
 }    
 
@@ -341,7 +341,7 @@ appEventCallback( SaEvtSubscriptionIdT	subscriptionId,
     {
         printf("Failed to get event data [0x%x]\n",saRc);
     }
-    printf ("received event: %s\n", (char *)resTest);
+    printf ("Received event from internal node: %s\n", (char *)resTest);
     return;
 }
 
@@ -362,7 +362,7 @@ SaAisErrorT openPublisherChannel()
         gTestInfo.running          = 1;
         gTestInfo.exiting          = 0;
         SaEvtCallbacksT     evtCallbacks          = {NULL, NULL};
-        printf("....................initial event.................... \n");
+        printf("Initial event.................... \n");
         rc = saEvtInitialize(&gTestInfo.evtInitHandle,
                        &evtCallbacks,
                        &gTestInfo.evtVersion);
@@ -400,7 +400,7 @@ SaAisErrorT openPublisherChannel()
             printf( "Failed to set event attributes [0x%x]\n",rc);
             return rc;
         }
-        printf( "....................start publish event....................\n");
+        printf( "Ttart publish event....................\n");
         return rc;
 }
 
