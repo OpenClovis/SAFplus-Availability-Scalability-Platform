@@ -415,9 +415,12 @@ quiet_cmd_ln = LN      $(call quiet-strip,$@)
 # Rule definitions
 #
 ################################################################################
+$(shell mkdir -p $(OBJ_DIR))
+$(shell mkdir -p $(LIB_DIR))
 
 #-------------------------------------------------------------------------------
 # Generating .o from .c .C .cc or .cpp (compiling):
+
 $(OBJ_DIR)/%.o: %.C
 	$(call cmd,cc_o_c)
 
@@ -631,7 +634,7 @@ ifeq ($(TARGET_QNX), 1)
 	@ if [ "$$INSTANTIATE_IMAGES" != "NO" ]; then make instantiate; else true; fi
 	@ make post-images
 else
-    
+
 ifdef SOLARIS_BUILD
 	@ gmake base-images
 	$(RUN_SCRIPT) $(MODEL_PATH)/target.conf;
@@ -835,7 +838,17 @@ $(foreach lib,$(ALL_SHARED_LIB_NAMES), \
         ))
 endif
 include $(INC_DIR)/libs.mk
+
 $(LIB_DIR)/$(SHARED_DIR):
+	$(call cmd,mkdir)
+
+$(MODEL_LIB):
+	$(call cmd,mkdir)
+
+$(MODEL_BIN):
+	$(call cmd,mkdir)
+
+$(LIB_DIR):
 	$(call cmd,mkdir)
 
 $(OBJ_DIR):
