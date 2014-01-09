@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <CompileConfigs:ComponentsInfo xmlns:CompileConfigs="Comps.ecore">
+      <COR savetype="CL_COR_DELTA_SAVE"/>
+      <FM localProbationPeriod="10">
+        <localSeqTableEntry Category="com" EscalationLevel="Level1" Function="foo1" IsExtern="false" Severity="MN"/>
+      </FM>
+      <NS maxentries="256" maxglobalcontexts="10" maxlocalcontexts="2"/>
+      <RMD maxretries="8"/>
+      <PM>
+        <appConfigInterval applicationName="SCComponent" value="3000"/>
+        <appConfigInterval applicationName="PYComponent" value="3000"/>
+        <appConfigInterval applicationName="SCComponent" value="3000"/>
+        <appConfigInterval applicationName="PYComponent" value="3000"/>
+        <compConfigInterval componentName="SCComponentI0" type="SCComponent" value="0"/>
+        <compConfigInterval componentName="SCComponentI1" type="SCComponent" value="0"/>
+        <compConfigInterval componentName="PYComponentI0" type="PYComponent" value="0"/>
+        <compConfigInterval componentName="PYComponentI1" type="PYComponent" value="0"/>
+      </PM>
+    </CompileConfigs:ComponentsInfo>
+  </version>
+</openClovisAsp>
