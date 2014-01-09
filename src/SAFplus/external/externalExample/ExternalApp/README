@@ -13,8 +13,8 @@ start Node0I0 Node0I1 and Node1I1 from externalExampleModel
 ./externalMain 
 
 Test : 
-Externalapp write log to clock.log.latest file on Node1I1  successful.
-Externalapp send event to Node1I1  successful (sys.latest).
+Externalapp write log to clock.log.latest file on Node1I0  successful.
+Externalapp send event to Node1I0  successful (sys.latest).
 Externalapp receive event from Node1I1  successful (sys.latest).
 
 Test system controler failover :
