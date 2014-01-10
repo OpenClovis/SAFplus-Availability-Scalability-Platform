@@ -33,8 +33,7 @@ ClRcT logInitialize( void )
         printf("Failed to initialze log: %x\n", rc);
         return rc;
     }
-    //sleep(5);
-    
+  
     myStreamAttr.fileName = (char *)"external.log";            
     myStreamAttr.fileLocation=(char *)".:var/log";
     myStreamAttr.recordSize = 300;
