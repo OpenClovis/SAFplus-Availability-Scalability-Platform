@@ -4464,7 +4464,6 @@ failure:
 
 ClInt32T main(ClInt32T argc, ClCharT *argv[], ClCharT *envp[])
 {
-    ClInt32T pid = 0;
     ClRcT rc = CL_OK;
 
 #ifdef QNX_BUILD
@@ -4492,7 +4491,10 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[], ClCharT *envp[])
      */
     setenv("ASP_NODENAME", clCpmNodeName, 1);
 
-    if (cpmIsForeground)
+    /* Code was changed so the startup script daemonizes the watchdog.  So it is unnecessary for AMF to do so */
+    cpmIsForeground = 1;
+    
+    if (1) // (cpmIsForeground)
     {
         rc = cpmMain(argc, argv);
         if (CL_OK != rc)
@@ -4500,8 +4502,11 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[], ClCharT *envp[])
             clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Main function of CPM failed, error [%#x]", rc);
         }
     }
+#if 0    
     else
     {
+    ClInt32T pid = 0;
+        
         pid = fork();
         if (0 == pid)
         {
@@ -4527,7 +4532,7 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[], ClCharT *envp[])
             rc = CL_CPM_RC(CL_OSAL_ERR_OS_ERROR);
         }
     }
-
+#endif
     return rc;
 }
 
