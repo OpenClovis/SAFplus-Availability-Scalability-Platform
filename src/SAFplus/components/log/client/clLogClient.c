@@ -646,6 +646,7 @@ clLogStreamOpen(ClLogHandleT            hLog,
     ClUint32T isExternal =0;
 #ifdef NO_SAF
     isExternal =1;
+    delay.tsSec = 4;
 #endif
     /* Make the sync call to the Server*/
     clLogDebug("LOG", "OPE", "Sending stream [%.*s] open call to server", streamName.length, streamName.value);

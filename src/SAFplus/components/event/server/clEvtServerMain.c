@@ -1201,7 +1201,7 @@ ClRcT VDECL(clEvtChannelOpenLocal)(ClEoDataT cData, ClBufferHandleT inMsgHandle,
 	if(evtChannelOpenRequest.isExternal==1)
 	{
 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "openchannel broadcast from external app");
-		clLogDebug(CL_EVENT_LOG_AREA_SRV, "INI", "Check Pointing global Initialize ...");
+		clLogDebug(CL_EVENT_LOG_AREA_SRV, "INI", "Check Pointing global channel open ...");
 		rc = clEvtCkptGlobalCheckPointChannelOpen(&evtChannelOpenRequest);
 		if (CL_OK != rc)
 		{
@@ -3224,10 +3224,6 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
                 	{
                 		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "remove event channel open ckpt");
                 		rc = clEvtChannelOpenCkptDelete(pEvtUnsubsReq);
-                		if (CL_OK != rc)
-                		{
-                		    clLogError(CL_EVENT_LOG_AREA_SRV, "CLN","remove event channel open error rc [0x%x]! ",rc);
-                		}
                 	}
                     
                     // clOsalMutexUnlock(mutexId); // NTC why not include check point under this?
@@ -3327,21 +3323,18 @@ ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, 
                     {
                         goto mutexLocked;
                     }
+                	if(pEvtUnsubsReq->isExternal==1)
+                	{
+                		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "remove event subcriber ckpt");
+                		rc = clEvtChannelSubCkptDelete(pEvtUnsubsReq);            		
+                	} 
                 }
                 else
                 {
                     clLogWarning(CL_EVENT_LOG_AREA_SRV, "CLN", "Channel Id [%d,%d] and/or channel name mismatch [%.*s,%.*s]", channelId,pEvtChannelKey->channelId,pEvtChannelKey->channelName.length,pEvtChannelKey->channelName.value,pEvtUnsubsReq->evtChannelName.length,pEvtUnsubsReq->evtChannelName.value);
                     
                 }
-            	if(pEvtUnsubsReq->isExternal==1)
-            	{
-            		clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "remove event subcriber ckpt");
-            		rc = clEvtChannelSubCkptDelete(pEvtUnsubsReq);
-            		if (CL_OK != rc)
-            		{
-            		    clLogError(CL_EVENT_LOG_AREA_SRV, "CLN","remove event subcriber error rc [0x%x]! ",rc);    		                      
-                    }
-            	}              
+             
 
 #ifndef CKPT_ENABLED
                 if (CL_EVT_NORMAL_REQUEST == type)
@@ -3371,10 +3364,6 @@ success:
     {
     	clLogDebug(CL_EVENT_LOG_AREA_SRV, "ECH", "remove event user info ckpt");
     	rc = clEvtUserInfoCkptDelete(pEvtUnsubsReq);
-    	if (CL_OK != rc)
-    	{
-            clLogError(CL_EVENT_LOG_AREA_SRV, "CLN","remove event user info error rc [0x%x]! ",rc);                		
-         }
     }
     clLogTrace(CL_EVENT_LOG_AREA_SRV, "CLN", "Cleanup Via Request successful");
     CL_FUNC_EXIT();

@@ -3609,9 +3609,17 @@ ClRcT clEvtCkptGlobalCheckPointUserInfo(ClEvtInitRequestT *pEvtInitReq)
     rc = clCkptSectionCreate(ckpt_user_info_handle, &secAttr, NULL, 0);
     if( CL_OK != rc )
     {
-        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEvtCkptGlobalCheckPointUserInfo : clCkptSectionCreate(): rc[0x %x]", rc);
-        clHeapFree(secId.id);
-        return rc;
+        clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEvtCkptGlobalCheckPointUserInfo : clCkptSectionCreate(): rc[0x %x]", rc);
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) 
+        {
+            clLogNotice("INFO", "SYNCUP","Section already exists.");
+            rc = CL_OK;     
+        }
+        else
+        {
+        	clHeapFree(secId.id);
+            return rc;
+        }
     }
     
     rc = clBufferCreate(&msg);
@@ -3696,8 +3704,16 @@ ClRcT clEvtCkptGlobalCheckPointChannelOpen(ClEvtChannelOpenRequestT
     if( CL_OK != rc )
     {
         clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEvtCkptGlobalCheckPointChannelOpen: clCkptSectionCreate(): rc[0x %x]", rc);
-        clHeapFree(secId.id);
-        return rc;
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) 
+        {
+            clLogNotice("INFO", "SYNCUP","Section already exists.");
+            rc = CL_OK;     
+        }
+        else
+        {
+        	clHeapFree(secId.id);
+            return rc;
+        }
     }
 
     rc = clBufferCreate(&msg);
@@ -3783,8 +3799,16 @@ ClRcT clEvtCkptGlobalCheckPointChannelSub(ClEvtSubscribeEventRequestT *pEvtSubsR
     if( CL_OK != rc )
     {
         clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEvtCkptGlobalCheckPointChannelSub: clCkptSectionCreate(): rc[0x %x]", rc);
-        clHeapFree(secId.id);
-        return rc;
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) 
+        {
+            clLogNotice("INFO", "SYNCUP","Section already exists.");
+            rc = CL_OK;     
+        }
+        else
+        {
+        	clHeapFree(secId.id);
+            return rc;
+        }
     }
 
     rc = clBufferCreate(&msg);
@@ -3960,11 +3984,21 @@ ClRcT clEvtChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
     
     if( (0 != (&secId)->idLen) && (NULL != (&secId)->id) )
     {
-       rc = clCkptSectionDelete(ckpt_channel_open_handle,&secId); 
-       if( CL_OK != rc )
-       {
-    	   clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);
-       }
+        rc = clCkptSectionDelete(ckpt_channel_open_handle,&secId); 
+        if( CL_OK != rc )
+        {
+            if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) 
+            {
+                clLogDebug("INFO", "SYNCUP","Section already deleted.");
+                rc = CL_OK;     
+            }
+            else
+            {
+            	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);  
+                return rc;
+            }
+    
+        }
     }
     return rc;
 }
@@ -3990,7 +4024,16 @@ ClRcT clEvtChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
        rc = clCkptSectionDelete(ckpt_channel_sub_handle,&secId); 
        if( CL_OK != rc )
        {
-    	   clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);
+           if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) 
+           {
+               clLogDebug("INFO", "SYNCUP","Section already deleted.");
+               rc = CL_OK;     
+           }
+           else
+           {
+        	   clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);
+               return rc;
+           }
        }
     }
     return rc;
@@ -4020,7 +4063,16 @@ ClRcT clEvtUserInfoCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
        rc = clCkptSectionDelete(ckpt_user_info_handle,&secId); 
        if( CL_OK != rc )
        {
-    	   clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);
+           if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) 
+           {
+               clLogDebug("INFO", "SYNCUP","Section already deleted.");
+               rc = CL_OK;     
+           }
+           else
+           {
+        	   clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);
+               return rc;
+           }
        }
     }
     return rc;
