@@ -180,301 +180,156 @@ typedef struct compMgrClientInfo
  * The CPM-EO functionality. Most of it is obsolete and has been
  * removed. Should go away.
  */
-ClRcT VDECL(compMgrEORegister)(ClEoDataT data,
-                               ClBufferHandleT inMsgHandle,
-                               ClBufferHandleT outMsgHandle);
+ClRcT VDECL(compMgrEORegister)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(compMgrFuncEOWalk)(ClEoDataT data,
-                               ClBufferHandleT inMsgHandle,
-                               ClBufferHandleT outMsgHandle);
+ClRcT VDECL(compMgrFuncEOWalk)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(compMgrEOStateUpdate)(ClEoDataT data,
-                                  ClBufferHandleT inMsgHandle,
-                                  ClBufferHandleT outMsgHandle);
+ClRcT VDECL(compMgrEOStateUpdate)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(compMgrEOStateSet)(ClEoDataT data,
-                               ClBufferHandleT inMsgHandle,
-                               ClBufferHandleT outMsgHandle);
+ClRcT VDECL(compMgrEOStateSet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(compMgrEOPing)(ClEoDataT data,
-                           ClBufferHandleT inMsgHandle,
-                           ClBufferHandleT outMsgHandle);
+ClRcT VDECL(compMgrEOPing)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(compMgrEOListShow)(ClEoDataT data,
-                               ClBufferHandleT inMsgHandle,
-                               ClBufferHandleT outMsgHandle);
+ClRcT VDECL(compMgrEOListShow)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(compMgrEORmdStats)(ClEoDataT data,
-                               ClBufferHandleT inMsgHandle,
-                               ClBufferHandleT outMsgHandle);
+ClRcT VDECL(compMgrEORmdStats)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
 /**
  * Component life cycle management/SAF related functionality.
  */
-ClRcT VDECL(cpmClientInitialize)(ClEoDataT data,
-                                 ClBufferHandleT inMsgHandle,
-                                 ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmClientInitialize)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmClientFinalize)(ClEoDataT data,
-                               ClBufferHandleT inMsgHandle,
-                               ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmClientFinalize)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentRegister)(ClEoDataT data,
-                                  ClBufferHandleT inMsgHandle,
-                                  ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentRegister)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data,
-                                    ClBufferHandleT inMsgHandle,
-                                    ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentUnregister)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentHealthcheckStart)(ClEoDataT data,
-                                          ClBufferHandleT inMsgHandle,
-                                          ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentHealthcheckStart)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentHealthcheckStop)(ClEoDataT data,
-                                         ClBufferHandleT inMsgHandle,
-                                         ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentHealthcheckStop)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentHealthcheckConfirm)(ClEoDataT data,
-                                            ClBufferHandleT inMsgHandle,
-                                            ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentHealthcheckConfirm)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentInstantiate)(ClEoDataT data,
-                                     ClBufferHandleT inMsgHandle,
-                                     ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentInstantiate)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentTerminate)(ClEoDataT data,
-                                   ClBufferHandleT inMsgHandle,
-                                   ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentTerminate)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentCleanup)(ClEoDataT data,
-                                 ClBufferHandleT inMsgHandle,
-                                 ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentCleanup)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentRestart)(ClEoDataT data,
-                                 ClBufferHandleT inMsgHandle,
-                                 ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentRestart)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentIdGet)(ClEoDataT data,
-                               ClBufferHandleT inMsgHandle,
-                               ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentIdGet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentLAUpdate)(ClEoDataT data,
-                                  ClBufferHandleT inMsgHandle,
-                                  ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentLAUpdate)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentPIDGet)(ClEoDataT data,
-                                ClBufferHandleT inMsgHandle,
-                                ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentPIDGet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentStatusGet)(ClEoDataT data,
-                                   ClBufferHandleT inMsgHandle,
-                                   ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentStatusGet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentListDebugAll)(ClEoDataT data,
-                                      ClBufferHandleT inMsgHandle,
-                                      ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentListDebugAll)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentAddressGet)(ClEoDataT data,
-                                    ClBufferHandleT inMsgHandle,
-                                    ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentAddressGet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentMoPathGet)(ClEoDataT data,
-                                   ClBufferHandleT inMsgHandle,
-                                   ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentMoPathGet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentInfoGet)(ClEoDataT data,
-                                 ClBufferHandleT inMsgHandle,
-                                 ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentInfoGet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
 /**
  * SAF related functionality.
  */
-ClRcT VDECL(cpmComponentCSISet)(ClEoDataT data,
-                                ClBufferHandleT inMsgHandle,
-                                ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentCSISet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
 
-ClRcT VDECL(cpmComponentCSIRmv)(ClEoDataT data,
-                                ClBufferHandleT inMsgHandle,
-                                ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentCSIRmv)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmCBResponse)(ClEoDataT data,
-                           ClBufferHandleT inMsgHandle,
-                           ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmCBResponse)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmPGTrack)(ClEoDataT data,
-                        ClBufferHandleT inMsgHandle,
-                        ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmPGTrack)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmPGTrackStop)(ClEoDataT data,
-                            ClBufferHandleT inMsgHandle,
-                            ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmPGTrackStop)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentHAStateGet)(ClEoDataT data,
-                                    ClBufferHandleT inMsgHandle,
-                                    ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentHAStateGet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmQuiescingComplete)(ClEoDataT data,
-                                  ClBufferHandleT inMsgHandle,
-                                  ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmQuiescingComplete)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data,
-                                       ClBufferHandleT inMsgHandle,
-                                       ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentFailureReport)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmComponentFailureClear)(ClEoDataT data,
-                                      ClBufferHandleT inMsgHandle,
-                                      ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmComponentFailureClear)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
 /**
  * Misc.
  */
-ClRcT VDECL(cpmIsCompRestarted)(ClEoDataT data,
-                                ClBufferHandleT inMsgHandle,
-                                ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmIsCompRestarted)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmAspCompLcmResHandle)(ClEoDataT data,
-                                    ClBufferHandleT inMsgHandle,
-                                    ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmAspCompLcmResHandle)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmResetNodeElseCommitSuicideRmd)(ClEoDataT data,
-                                              ClBufferHandleT inMsgHandle,
-                                              ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmResetNodeElseCommitSuicideRmd)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
 /**
  * CPM-CPM related functionality.
  */
-ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
-                                 ClBufferHandleT inMsgHandle,
-                                 ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmCpmLocalDeregister)(ClEoDataT data,
-                                   ClBufferHandleT inMsgHandle,
-                                   ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmCpmLocalDeregister)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmCpmConfirm)(ClEoDataT data,
-                           ClBufferHandleT inMsgHandle,
-                           ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmCpmConfirm)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
 /**
  * Boot manager functionality. Should go away.
  */
-ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data,
-                             ClBufferHandleT inMsgHandle,
-                             ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmBootLevelGet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data,
-                             ClBufferHandleT inMsgHandle,
-                             ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmBootLevelSet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data,
-                             ClBufferHandleT inMsgHandle,
-                             ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmBootLevelMax)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
 /**
  * Misc.
  */
-ClRcT VDECL(cpmNodeCpmLResponse)(ClEoDataT data,
-                                 ClBufferHandleT inMsgHandle,
-                                 ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmNodeCpmLResponse)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
-                                    ClBufferHandleT inMsgHandle,
-                                    ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmNodeShutDown)(ClEoDataT data,
-                             ClBufferHandleT inMsgHandle,
-                             ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmNodeShutDown)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data,
-                                     ClBufferHandleT inMsgHandle,
-                                     ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmNodeArrivalDeparture)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
-                            ClBufferHandleT inMsgHandle,
-                            ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmIocAddressForNodeGet)( ClEoDataT data, 
-                                      ClBufferHandleT inMsgHandle,
-                                      ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmIocAddressForNodeGet)( ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
-ClRcT VDECL(cpmGoBackToRegisterCallback)(ClEoDataT data,
-                                         ClBufferHandleT inMsgHandle,
-                                         ClBufferHandleT outMsgHandle);
+ClRcT VDECL(cpmGoBackToRegisterCallback)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
 
 /**
  * Client side RMD wrappers for CPM.
  */
 
-ClRcT clCpmClientRMDSync(ClIocNodeAddressT destAddr,
-                         ClUint32T fcnId,
-                         ClUint8T *pInBuf,
-                         ClUint32T inBufLen,
-                         ClUint8T *pOutBuf,
-                         ClUint32T *pOutBufLen,
-                         ClUint32T flags,
-                         ClUint32T timeOut,
-                         ClUint32T maxRetries,
-                         ClUint8T priority);
+ClRcT clCpmClientRMDSync(ClIocNodeAddressT destAddr, ClUint32T fcnId, ClUint8T *pInBuf, ClUint32T inBufLen, ClUint8T *pOutBuf,
+                         ClUint32T *pOutBufLen, ClUint32T flags, ClUint32T timeOut, ClUint32T maxRetries, ClUint8T priority);
 
-ClRcT clCpmClientRMDSyncNew(ClIocNodeAddressT destAddr,
-                            ClUint32T fcnId,
-                            ClUint8T *pInBuf,
-                            ClUint32T inBufLen,
-                            ClUint8T *pOutBuf,
-                            ClUint32T *pOutBufLen,
-                            ClUint32T flags,
-                            ClUint32T timeOut,
-                            ClUint32T maxRetries,
-                            ClUint8T priority,
-                            ClCpmMarshallT marshallFunction,
-                            ClCpmUnmarshallT unmarshallFunction);
+ClRcT clCpmClientRMDSyncNew(ClIocNodeAddressT destAddr, ClUint32T fcnId, ClUint8T *pInBuf, ClUint32T inBufLen, ClUint8T *pOutBuf,
+                            ClUint32T *pOutBufLen, ClUint32T flags, ClUint32T timeOut, ClUint32T maxRetries, ClUint8T priority,
+                            ClCpmMarshallT marshallFunction, ClCpmUnmarshallT unmarshallFunction);
 
-ClRcT clCpmClientRMDAsync(ClIocNodeAddressT destAddr,
-                          ClUint32T fcnId,
-                          ClUint8T *pInBuf,
-                          ClUint32T inBufLen,
-                          ClUint8T *pOutBuf,
-                          ClUint32T *pOutBufLen,
-                          ClUint32T flags,
-                          ClUint32T timeOut,
-                          ClUint32T maxRetries,
-                          ClUint32T priority);
+ClRcT clCpmClientRMDAsync(ClIocNodeAddressT destAddr, ClUint32T fcnId, ClUint8T *pInBuf, ClUint32T inBufLen, ClUint8T *pOutBuf,
+                          ClUint32T *pOutBufLen, ClUint32T flags, ClUint32T timeOut, ClUint32T maxRetries, ClUint32T priority);
 
-ClRcT clCpmClientRMDAsyncNew(ClIocNodeAddressT destAddr,
-                             ClUint32T fcnId,
-                             ClUint8T *pInBuf,
-                             ClUint32T inBufLen,
-                             ClUint8T *pOutBuf,
-                             ClUint32T *pOutBufLen,
-                             ClUint32T flags,
-                             ClUint32T timeOut,
-                             ClUint32T maxRetries,
-                             ClUint32T priority,
+ClRcT clCpmClientRMDAsyncNew(ClIocNodeAddressT destAddr, ClUint32T fcnId, ClUint8T *pInBuf, ClUint32T inBufLen, ClUint8T *pOutBuf,
+                             ClUint32T *pOutBufLen, ClUint32T flags, ClUint32T timeOut, ClUint32T maxRetries, ClUint32T priority,
                              ClCpmMarshallT marshallFunction);
 
 extern void clCpmCompTerminateSet(ClBoolT doTerminate);    
 
-extern ClRcT VDECL(cpmNodeConfigSet)(ClEoDataT data,
-                                     ClBufferHandleT inMsgHdl,
-                                     ClBufferHandleT outMsgHdl);
+extern ClRcT VDECL(cpmNodeConfigSet)(ClEoDataT data, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl);
 
-extern ClRcT VDECL(cpmNodeConfigGet)(ClEoDataT data,
-                                     ClBufferHandleT inMsgHdl,
-                                     ClBufferHandleT outMsgHdl);
+extern ClRcT VDECL(cpmNodeConfigGet)(ClEoDataT data, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl);
 
-extern ClRcT VDECL(cpmNodeRestart)(ClEoDataT data,
-                                   ClBufferHandleT inMsgHdl,
-                                   ClBufferHandleT outMsgHdl);
+extern ClRcT VDECL(cpmNodeRestart)(ClEoDataT data, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl);
 
-extern ClRcT VDECL(cpmMiddlewareRestart)(ClEoDataT data,
-                                         ClBufferHandleT inMsgHdl,
-                                         ClBufferHandleT outMsgHdl);
+extern ClRcT VDECL(cpmMiddlewareRestart)(ClEoDataT data, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl);
 
-extern ClRcT VDECL_VER(cpmCompConfigSet, 5, 1, 0)(ClEoDataT data,
-                                                  ClBufferHandleT inMsgHdl,
-                                                  ClBufferHandleT outMsgHdl);
+extern ClRcT VDECL_VER(cpmCompConfigSet, 5, 1, 0)(ClEoDataT data, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl);
 
 extern ClRcT clCpmClientTableRegister(ClEoExecutionObjT *eo);
 

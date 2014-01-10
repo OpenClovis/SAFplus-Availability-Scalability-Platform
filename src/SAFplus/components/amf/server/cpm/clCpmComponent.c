@@ -2243,12 +2243,8 @@ ClRcT cpmNonProxiedNonPreinstantiableCompInstantiate(ClCpmComponentT *comp)
 
 }
                                                      
-ClRcT _cpmComponentInstantiate(ClCharT *compName,
-                               ClCharT *proxyCompName,
-                               ClUint64T instantiateCookie,
-                               ClCharT *nodeName,
-                               ClIocPhysicalAddressT *srcAddress,
-                               ClUint32T rmdNumber)
+ClRcT _cpmComponentInstantiate(ClCharT *compName, ClCharT *proxyCompName, ClUint64T instantiateCookie, ClCharT *nodeName,
+                               ClIocPhysicalAddressT *srcAddress, ClUint32T rmdNumber)
 {
     ClCpmComponentT *comp = NULL;
     ClUint32T rc = CL_OK;
@@ -2385,23 +2381,16 @@ failure:
     return rc;
 }
 
-ClRcT VDECL(cpmComponentInstantiate)(ClEoDataT data,
-                                     ClBufferHandleT inMsgHandle,
-                                     ClBufferHandleT outMsgHandle)
+ClRcT VDECL(cpmComponentInstantiate)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
     ClCpmLifeCycleOprT info = {{0}};
 
     rc = VDECL_VER(clXdrUnmarshallClCpmLifeCycleOprT, 4, 0, 0)(inMsgHandle, (void *) &info);
-    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_INVALID_BUFFER, rc, CL_LOG_HANDLE_APP);
 
-    rc = _cpmComponentInstantiate((ClCharT *)((info.name).value),
-                                  (ClCharT *)((info.proxyCompName).value),
-                                  info.instantiateCookie,
-                                  (ClCharT *)((info.nodeName).value),
-                                  &(info.srcAddress), 
-                                  info.rmdNumber);
+    rc = _cpmComponentInstantiate((ClCharT *)((info.name).value), (ClCharT *)((info.proxyCompName).value), info.instantiateCookie,
+                                  (ClCharT *)((info.nodeName).value), &(info.srcAddress), info.rmdNumber);
 
     return rc;
 
@@ -3307,12 +3296,8 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
     return rc;
 }
 
-ClRcT _cpmComponentCleanup(ClCharT *compName,
-                           ClCharT *proxyCompName,
-                           ClCharT *nodeName,
-                           ClIocPhysicalAddressT *srcAddress,
-                           ClUint32T rmdNumber,
-                           ClCpmCompRequestTypeT requestType)
+ClRcT _cpmComponentCleanup(ClCharT *compName, ClCharT *proxyCompName, ClCharT *nodeName, ClIocPhysicalAddressT *srcAddress,
+                           ClUint32T rmdNumber, ClCpmCompRequestTypeT requestType)
 {
 
     ClCpmComponentT *comp = NULL;
@@ -4323,11 +4308,8 @@ ClRcT cpmComponentEventCleanup(ClCpmComponentT *comp)
     rc = clEventCpmCleanup(&cpmPayLoadData);
     if (CL_OK != rc)
     {
-        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
-                   "Unable to inform event server about "
-                   "the failed component [%s], error [%#x]",
-                   comp->compConfig->compName,
-                   rc);
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT, "Unable to inform event server about " "the failed component [%s], error [%#x]",
+                   comp->compConfig->compName, rc);
     }
 
     return rc;

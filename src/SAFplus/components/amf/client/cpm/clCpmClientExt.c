@@ -455,20 +455,19 @@ ClRcT clCpmClientRMDAsyncNew(ClIocNodeAddressT destAddr,
 
     iocAddress.iocPhyAddress.nodeAddress = destAddr;
     iocAddress.iocPhyAddress.portId = CL_IOC_CPM_PORT;
+   
     if (inBufLen)
     {
         rc = clBufferCreate(&inMsgHdl);
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
-                       CL_CPM_LOG_1_BUF_CREATE_ERR, rc);
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_BUF_CREATE_ERR, rc);
             goto failure;
         }
         rc = marshallFunction((void *) pInBuf, inMsgHdl, 0);
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
-                       CL_CPM_LOG_1_BUF_WRITE_ERR, rc);
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_BUF_WRITE_ERR, rc);
             goto out_delete;
         }
     }
@@ -477,18 +476,14 @@ ClRcT clCpmClientRMDAsyncNew(ClIocNodeAddressT destAddr,
         rc = clBufferCreate(&outMsgHdl);
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
-                       CL_CPM_LOG_1_BUF_CREATE_ERR, rc);
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_BUF_CREATE_ERR, rc);
             goto out_delete;
         }
     }
-    retCode =
-        clRmdWithMsg(iocAddress, (ClUint32T) fcnId, inMsgHdl, outMsgHdl,
-                     CL_RMD_CALL_ASYNC | (flags), &rmdOptions, NULL);
+    retCode = clRmdWithMsg(iocAddress, (ClUint32T) fcnId, inMsgHdl, outMsgHdl, CL_RMD_CALL_ASYNC | (flags), &rmdOptions, NULL);
     if (retCode != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
-                   CL_CPM_LOG_1_RMD_CALL_ERR, retCode);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_RMD_CALL_ERR, retCode);
         goto out_delete;
     }
 
@@ -498,8 +493,7 @@ ClRcT clCpmClientRMDAsyncNew(ClIocNodeAddressT destAddr,
         rc = clBufferDelete(&inMsgHdl);
         if (rc != CL_OK)
         {
-            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
-                       CL_CPM_LOG_1_BUF_DELETE_ERR, rc);
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_BUF_DELETE_ERR, rc);
         }
     }
 
@@ -527,8 +521,7 @@ ClRcT clCpmExecutionObjectStateSet(ClIocNodeAddressT compAddr,
                    CL_CPM_LOG_1_CLIENT_EO_STATE_SET_ERR, rc);
     }
 
-    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
-                     ("clCpmExecutionObjectStateSet  Failed %d\n", rc), rc);
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("clCpmExecutionObjectStateSet  Failed %d\n", rc), rc);
 
   failure:
     return rc;
@@ -708,19 +701,15 @@ ClRcT clCpmExecutionObjectStateUpdate(ClEoExecutionObjT *pEOptr)
  * Obsolete CPM life cycle management functions. Will be removed in future.
  */
 
-ClRcT clCpmComponentInstantiate(SaNameT *compName,
-                                SaNameT *nodeName,
-                                ClCpmLcmReplyT *srcInfo)
+ClRcT clCpmComponentInstantiate(SaNameT *compName, SaNameT *nodeName, ClCpmLcmReplyT *srcInfo)
 {
     ClRcT rc = CL_OK;
     ClCpmLifeCycleOprT compInstantiate = {{0}};
 
     if (compName == NULL || nodeName == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
-                   CL_LOG_MESSAGE_0_NULL_ARGUMENT);
-        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"),
-                         CL_CPM_RC(CL_ERR_NULL_POINTER));
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_LOG_MESSAGE_0_NULL_ARGUMENT);
+        CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Null ptr passed"), CL_CPM_RC(CL_ERR_NULL_POINTER));
     }
 
     memcpy(&(compInstantiate.name), compName, sizeof(SaNameT));
@@ -738,21 +727,14 @@ ClRcT clCpmComponentInstantiate(SaNameT *compName,
         compInstantiate.rmdNumber = 0;
     }
 
-    rc = clCpmClientRMDAsyncNew(clIocLocalAddressGet(),
-                                CPM_COMPONENT_INSTANTIATE,
-                                (ClUint8T *) &compInstantiate,
-                                sizeof(ClCpmLifeCycleOprT), NULL, NULL,
-                                0, 0, 0, 0,
-                                MARSHALL_FN(ClCpmLifeCycleOprT, 4, 0, 0)
-    );
+    rc = clCpmClientRMDAsyncNew(clIocLocalAddressGet(), CPM_COMPONENT_INSTANTIATE, (ClUint8T *) &compInstantiate,
+                                sizeof(ClCpmLifeCycleOprT), NULL, NULL, 0, 0, 0, 0, MARSHALL_FN(ClCpmLifeCycleOprT, 4, 0, 0));
 
     if (rc != CL_OK)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB,
-                   CL_CPM_LOG_1_CLIENT_COMP_INSTANTIATE_ERR, rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_CLIENT_COMP_INSTANTIATE_ERR, rc);
     }
-    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR,
-                     ("clCpmComponentInstantiate Failed rc =%x\n", rc), rc);
+    CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("clCpmComponentInstantiate Failed rc =%x\n", rc), rc);
 
   failure:
     return rc;

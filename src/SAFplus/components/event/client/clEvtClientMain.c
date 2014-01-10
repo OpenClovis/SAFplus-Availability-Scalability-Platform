@@ -36,6 +36,7 @@
 #include <clOsalApi.h>
 #include <clIocApi.h>
 #include <clCpmApi.h>
+#include <clEventApi.h>
 #include <clEventClientIpi.h>
 #include <clEventUtilsIpi.h>
 #include <ipi/clHandleIpi.h>
@@ -47,6 +48,7 @@
 #include "xdrClEvtChannelOpenRequestT.h"
 #include "xdrClEvtSubscribeEventRequestT.h"
 #include "xdrClEvtUnsubscribeEventRequestT.h"
+#include "clEvtClientMain.h"
 
 /* 
  * Added for getting local system time
@@ -136,8 +138,7 @@ ClUint32T gEvtInitCount = 0;
 #define isLastFinalize() ((0 == gEvtInitCount)? CL_TRUE : CL_FALSE)
 
 
-ClRcT clEvtInitHandleValidate(ClEventInitHandleT evtHandle,
-        ClEvtClientHeadT *pEvtClientHead)
+ClRcT clEvtInitHandleValidate(ClEventInitHandleT evtHandle, ClEvtClientHeadT *pEvtClientHead)
 {
     ClRcT rc = CL_OK;
 
@@ -167,8 +168,7 @@ failure:
 }
 
 
-ClRcT clEvtInitValidate(ClEoExecutionObjT **pEoObj,
-        ClEvtClientHeadT **ppEvtClientHead)
+ClRcT clEvtInitValidate(ClEoExecutionObjT **pEoObj, ClEvtClientHeadT **ppEvtClientHead)
 {
     ClRcT rc = CL_OK;
 
@@ -347,11 +347,8 @@ failure:
     return CL_EVENTS_RC(rc);
 }
 
-static void evtEventDeliverCallbackDispatch(ClEvtInitInfoT *pInitInfo,
-                                            ClUint8T version,
-                                            ClEventSubscriptionIdT subscriptionId,
-                                            ClEventHandleT eventHandle,
-                                            ClSizeT dataSize)
+static void evtEventDeliverCallbackDispatch(ClEvtInitInfoT *pInitInfo, ClUint8T version, ClEventSubscriptionIdT subscriptionId,
+                                            ClEventHandleT eventHandle, ClSizeT dataSize)
                                               
 {
     ClUint32T i;
@@ -790,8 +787,7 @@ void handleDestroyCallback(void * pInstance)
     }
 }
 
-ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
-                      ClEvtClientHeadT **ppEvtClientHead)
+ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj, ClEvtClientHeadT **ppEvtClientHead)
 {
     ClRcT rc = CL_OK;
 
@@ -811,8 +807,7 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
     pEvtClientHead = (ClEvtClientHeadT*) clHeapAllocate(sizeof(ClEvtClientHeadT));
     if (NULL == pEvtClientHead)
     {
-        clLogError("EVT", "INI", 
-                   CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+        clLogError("EVT", "INI", CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
         rc = CL_EVENT_ERR_NO_MEM;
         goto failure;
     }
@@ -823,8 +818,7 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
     rc = clEventClientInstallTables(pEoObj);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "INI", 
-                   "Installing EM client failed  [%#X]", rc);
+        clLogError("EVT", "INI", "Installing EM client failed  [%#X]", rc);
         goto clientHeadAllocated;
     }
     
@@ -848,8 +842,7 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
                             (void *) pEvtClientHead);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "INI", 
-                   "Unable to set EO private data [%#X]", rc);
+        clLogError("EVT", "INI", "Unable to set EO private data [%#X]", rc);
         goto clientInstalled;
     }
 
@@ -859,8 +852,7 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
     rc =  clHandleDatabaseCreate(handleDestroyCallback, &pEvtClientHead->evtClientHandleDatabase);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "INI", 
-                   CL_LOG_MESSAGE_1_HANDLE_DB_CREATION_FAILED, rc);
+        clLogError("EVT", "INI", CL_LOG_MESSAGE_1_HANDLE_DB_CREATION_FAILED, rc);
         rc = CL_EVENT_ERR_NO_RESOURCE;    
         goto clientInstalled;
     }
@@ -889,8 +881,7 @@ ClRcT clEvtClientInit(ClEoExecutionObjT **ppEoObj,
 
     failure:
     rc = CL_EVENTS_RC(rc);
-    clLogError("EVT", "INI", 
-               "Event Client Init failed, rc[%#X]", rc);
+    clLogError("EVT", "INI", "Event Client Init failed, rc[%#X]", rc);
     CL_FUNC_EXIT();
     return rc;
 }
@@ -935,9 +926,7 @@ failure:
 }
 #endif
 
-ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle,
-                                   const ClEventVersionCallbacksT *pEvtCallbackTable,
-                                   ClUint32T numCallbacks,
+ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle, const ClEventVersionCallbacksT *pEvtCallbackTable, ClUint32T numCallbacks,
                                    ClVersionT *pVersion)
 {
     ClRcT rc = CL_OK;
@@ -2033,12 +2022,8 @@ ClRcT clEventFinalize(ClEventInitHandleT evtHandle)
     return rc;
 }
 
-ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle,
-        const SaNameT *pChannelName,
-        ClEventChannelOpenFlagsT evtChannelOpenFlag,
-        ClEventChannelHandleT *pEvtChannelHandle,
-        ClEvtClientHeadT **ppEvtClientHead,
-        ClBufferHandleT *pInMsgHandle,
+ClRcT clEvtChannelOpenPrologue(ClEventInitHandleT evtHandle, const SaNameT *pChannelName, ClEventChannelOpenFlagsT evtChannelOpenFlag,
+        ClEventChannelHandleT *pEvtChannelHandle, ClEvtClientHeadT **ppEvtClientHead, ClBufferHandleT *pInMsgHandle,
         ClBufferHandleT *pOutMsgHandle)
 {
     ClRcT rc = CL_OK;
@@ -2186,10 +2171,7 @@ failure:
     return rc;
 }
 
-ClRcT clEvtChannelOpenEpilogue(ClRcT rc, ClEvtClientHeadT *pEvtClientHead,
-        ClEventChannelHandleT *pEvtChannelHandle,
-        ClBufferHandleT *pInMsgHandle,
-        ClBufferHandleT *pOutMsgHandle)
+ClRcT clEvtChannelOpenEpilogue(ClRcT rc, ClEvtClientHeadT *pEvtClientHead, ClEventChannelHandleT *pEvtChannelHandle, ClBufferHandleT *pInMsgHandle, ClBufferHandleT *pOutMsgHandle)
 {
     CL_FUNC_ENTER();
 
@@ -2343,9 +2325,7 @@ failure:
     return rc;
 }
 
-void clEvtAsyncChanOpenCbReceive(ClRcT apiResult, void *pCookie,
-        ClBufferHandleT inMsgHandle,
-        ClBufferHandleT outMsgHandle)
+void clEvtAsyncChanOpenCbReceive(ClRcT apiResult, void *pCookie, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
 
@@ -4950,7 +4930,7 @@ ClRcT clEventCpmCleanup(ClCpmEventPayLoadT *pEvtCpmCleanupInfo)
     ClIocNodeAddressT localIocAddress = 0;
     ClEvtUnsubscribeEventRequestT unsubscribeRequest = { 0 };
     ClIocAddressT destAddr = {{0}};
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500};
+    ClTimerTimeOutT delay = { 0, 500};
     ClInt32T tries = 0;
 
     CL_FUNC_ENTER();

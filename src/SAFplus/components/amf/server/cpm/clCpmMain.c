@@ -100,7 +100,6 @@
 #include "xdrClCpmEventNodePayLoadT.h"
 #include "xdrClCpmClientInfoIDLT.h"
 #include "xdrClEoExecutionObjIDLT.h"
-
 #define CPM_LOG_AREA_LOGGER	"LOG"
 #define CPM_LOG_CTX_LOGGER_INI	"INI"
 #ifdef CL_CPM_AMS
@@ -200,12 +199,10 @@ static ClBoolT __cpmIsInfrastructureComponent(const ClCharT *compName);
 
 static ClRcT compMgrPollThread(void);
 
-static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
-                                  ClBufferHandleT eoRecvMsg,
-                                  ClUint8T priority,
-                                  ClUint8T protoType,
-                                  ClUint32T length,
-                                  ClIocPhysicalAddressT srcAddr);
+static ClRcT cpmMain(ClInt32T argc, ClCharT *argv[]);
+
+static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg, ClUint8T priority, ClUint8T protoType,
+                                  ClUint32T length, ClIocPhysicalAddressT srcAddr);
 
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 static ClIocAddressT allNodeReps;
@@ -882,22 +879,18 @@ static ClRcT clCpmFinalize(void)
     ClUint32T compCount = 0;
     ClCpmBootOperationT *bootOp = NULL;
 
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, NULL,
-               CL_CPM_LOG_0_SERVER_COMP_MGR_CLEANUP_INFO);
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, NULL, CL_CPM_LOG_0_SERVER_COMP_MGR_CLEANUP_INFO);
     clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_MGM,"COMP_MGR: Inside componentMgrCleanUp \n");
 
     if (gpClCpm == NULL)
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, NULL,
-                   CL_CPM_LOG_1_SERVER_COMP_MGR_INIT_ERR, rc);
-        clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_MGM,
-                   "COMP_MGR: Component Mgr Not initialized \n");
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_INFO, NULL, CL_CPM_LOG_1_SERVER_COMP_MGR_INIT_ERR, rc);
+        clLogTrace(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_MGM, "COMP_MGR: Component Mgr Not initialized \n");
         return CL_CPM_RC(CL_ERR_DUPLICATE);
     }
     else
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ALERT, NULL,
-                   CL_CPM_LOG_1_SERVER_COMP_MGR_NODE_SHUTDOWN_INFO,
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ALERT, NULL, CL_CPM_LOG_1_SERVER_COMP_MGR_NODE_SHUTDOWN_INFO,
                    gpClCpm->pCpmLocalInfo->nodeName);
 
 #ifdef CL_CPM_AMS
@@ -1558,34 +1551,29 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
      * Allocate and initilize the CPM structure 
      */
     rc = cpmAllocate();
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_CPM_ALLOCATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_CPM_ALLOCATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     /*
      * Read/parse the configuration file and populate the gpClCpm structure 
      */
+    
     rc = cpmGetConfig();
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_CPM_CONFIG_GET_ERR, rc,
-                   rc, CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_SERVER_CPM_CONFIG_GET_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     gClAmsSwitchoverInline = clParseEnvBoolean("CL_AMF_SWITCHOVER_INLINE");
     gClAmsPayloadResetDisable = clParseEnvBoolean("CL_AMF_PAYLOAD_RESET_DISABLE");
 
     if (!cpmIsForeground)
     {
-        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                  "Starting CPM as a daemon...");
+        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Starting CPM as a daemon...");
     }
     else
     {
-        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                  "Starting CPM as a foreground process...");
+        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Starting CPM as a foreground process...");
     }
 
     strncpy(gpClCpm->logFilePath, cpmCwd, CL_MAX_NAME_LENGTH-1);
-    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-              "CPM's current working directory is [%s]",
-              gpClCpm->logFilePath);
+    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "CPM's current working directory is [%s]", gpClCpm->logFilePath);
 
 #if 0  /* Stone: the CPM logger using stdout/stderr through pipes is broken because what happens to child processes when the pipe forwarding thread or this process dies/hangs -- they hang. */   
     if ((!cpmIsForeground) && (!cpmIsConsoleStart))
@@ -1597,8 +1585,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
 
     if( (rc = clJobQueueInit(&cpmNotificationQueue, 0, 1) ) != CL_OK)
     {
-        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                   "CPM notification job queue initialize returned [%#x]", rc);
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "CPM notification job queue initialize returned [%#x]", rc);
         goto failure;
     }
 
@@ -1606,8 +1593,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
 
     if( (rc = clTaskPoolCreate(&gCpmFaultPool, 1, 0, 0)) != CL_OK)
     {
-        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                   "Task pool create returned [%#x]", rc);
+        clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Task pool create returned [%#x]", rc);
         goto failure;
     }
 
@@ -1615,8 +1601,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
      * Initialize the node information which will be sent to CPM/G
      * active.
      */
-    strcpy((ClCharT *) gpClCpm->pCpmLocalInfo->nodeName,
-           (ClCharT *) gpClCpm->pCpmConfig->nodeName);
+    strcpy((ClCharT *) gpClCpm->pCpmLocalInfo->nodeName, (ClCharT *) gpClCpm->pCpmConfig->nodeName);
     gpClCpm->pCpmLocalInfo->cpmAddress.nodeAddress = clIocLocalAddressGet();
     gpClCpm->pCpmLocalInfo->cpmAddress.portId = CL_IOC_CPM_PORT;
     gpClCpm->pCpmLocalInfo->status = CL_CPM_EO_ALIVE;
@@ -1630,7 +1615,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     /* For CPM-CM interaction */
     gpClCpm->pCpmLocalInfo->slotNumber = ASP_NODEADDR;
     gpClCpm->pCpmLocalInfo->nodeId = gpClCpm->pCpmLocalInfo->slotNumber;
-
+    
     clLogMultiline(CL_LOG_SEV_DEBUG, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
                    "This node information -- \n"
                    "Node name : [%s] \n"
@@ -1651,15 +1636,13 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     strcpy((ClCharT *)gpClCpm->name.value, CL_CPM_COMPONENT_NAME);
     gpClCpm->name.length = strlen((const ClCharT *)gpClCpm->name.value);
 
+    
     /*
      * Initialize all the component names on which CPM is dependent upon 
      */
-    sprintf(gpClCpm->corServerName, "%s_%s", CL_CPM_COMPONENT_COR_NAME,
-            gpClCpm->pCpmConfig->nodeName);
-    sprintf(gpClCpm->eventServerName, "%s_%s", CL_CPM_COMPONENT_EVENT_NAME,
-            gpClCpm->pCpmConfig->nodeName);
-    sprintf(gpClCpm->logServerName, "%s_%s", CL_CPM_COMPONENT_LOG_NAME,
-            gpClCpm->pCpmConfig->nodeName);
+    sprintf(gpClCpm->corServerName, "%s_%s", CL_CPM_COMPONENT_COR_NAME, gpClCpm->pCpmConfig->nodeName);
+    sprintf(gpClCpm->eventServerName, "%s_%s", CL_CPM_COMPONENT_EVENT_NAME, gpClCpm->pCpmConfig->nodeName);
+    sprintf(gpClCpm->logServerName, "%s_%s", CL_CPM_COMPONENT_LOG_NAME, gpClCpm->pCpmConfig->nodeName);
 
     sprintf((ClCharT *)gpClCpm->ckptCpmLName.value, "%s", gpClCpm->name.value);
     gpClCpm->ckptCpmLName.length = strlen((const ClCharT *)gpClCpm->ckptCpmLName.value);
@@ -1673,26 +1656,22 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     gpClCpm->nodeLeaving = CL_FALSE;
 
     rc = clEoMyEoObjectGet(&gpClCpm->cpmEoObj);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_OBJECT_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_OBJECT_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     CL_ASSERT(gpClCpm->cpmEoObj != NULL);
 
-    rc = clEoClientInstallTables(gpClCpm->cpmEoObj,
-                                 CL_EO_SERVER_SYM_MOD(gAspFuncTable, AMF));
-
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_CLIENT_INST_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    rc = clEoClientInstallTables(gpClCpm->cpmEoObj, CL_EO_SERVER_SYM_MOD(gAspFuncTable, AMF));
+  
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_CLIENT_INST_ERR, rc, rc, CL_LOG_HANDLE_APP);
     rc = clCpmClientTableRegister(gpClCpm->cpmEoObj);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_CLIENT_INST_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+     
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_EO_CLIENT_INST_ERR, rc, rc, CL_LOG_HANDLE_APP);
     
     /*
      * Install EO protocol to get IOC notifications for component
      * death, node death etc.
      */
     cpmIocNotificationProtoInstall();
-
     if((rc = cpmCmRequestDSInitialize()) != CL_OK)
         goto failure;
 
@@ -1701,11 +1680,9 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
      * creation 
      */
     rc = clDebugLibInitialize();
-    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED,
-                   "DEBUG", rc, rc, CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_2_LIBRARY_INIT_FAILED, "DEBUG", rc, rc, CL_LOG_HANDLE_APP);
     rc = cpmDebugRegister();
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_DEBUG_REG_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_DEBUG_REG_ERR, rc, rc, CL_LOG_HANDLE_APP);
     
     /*
      * this flag will be unset during BM shutdown 
@@ -1714,17 +1691,14 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
 
 #ifdef CL_CPM_AMS
     rc = clCpmAmsToCpmInitialize(&(gpClCpm->amsToCpmCallback));
-    CL_CPM_CHECK(CL_LOG_SEV_ERROR,
-                 ("Unable Initialize AmsToCpm callback %x\n", rc), rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable Initialize AmsToCpm callback %x\n", rc), rc);
 
     gpClCpm->cpmToAmsCallback =
         (ClCpmCpmToAmsCallT *) clHeapAllocate(sizeof(ClCpmCpmToAmsCallT));
     if (gpClCpm->cpmToAmsCallback == NULL)
-        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"),
-                     CL_CPM_RC(CL_ERR_NO_MEMORY));
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to allocate memory \n"), CL_CPM_RC(CL_ERR_NO_MEMORY));
 
-    rc = clAmsInitialize(&gAms, gpClCpm->amsToCpmCallback,
-                         gpClCpm->cpmToAmsCallback);
+    rc = clAmsInitialize(&gAms, gpClCpm->amsToCpmCallback, gpClCpm->cpmToAmsCallback);
     CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to initialize AMS %x\n", rc), rc);
 #endif
 
@@ -1733,9 +1707,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     {
         gpClCpm->haState = CL_AMS_HA_STATE_ACTIVE;
         rc = cpmUpdateTL(gpClCpm->haState);
-        CL_CPM_CHECK(CL_LOG_SEV_ERROR, 
-                     ("unable to update TL for master address, exiting %x\n", rc), 
-                     rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("unable to update TL for master address, exiting %x\n", rc), rc);
     }
 #endif
     gpClCpm->activeMasterNodeId = 0;
@@ -1763,17 +1735,16 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
      * GAS: Better to use this thread for the boot manager and spawn compMgrPollThread only if needed
      * b/c its not used anymore
      */
+    
     rc = cpmBmInitialize(&(gpClCpm->bmTaskId), gpClCpm->cpmEoObj);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_INIT_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BM_INIT_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     /*
      * Start doing health check of all component/EO running in the system.
      * This should return only when nodeshutdown is called 
      */
     
-    clLog(CL_LOG_SEV_NOTICE, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
-          "AMF server fully up");
+    clLog(CL_LOG_SEV_NOTICE, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "AMF server fully up");
     
     compMgrPollThread();
 
@@ -3795,7 +3766,7 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
  *    CL_OK                    - everything is ok <br>
  */
 
-ClRcT compMgrPollThread(void)
+static ClRcT compMgrPollThread(void)
 {
     ClCpmEOListNodeT *ptr = NULL;
 
@@ -4416,25 +4387,19 @@ static void loadAspInstallInfo(void)
         aspDir = "/root/asp";
     clCpmTargetVersionGet(gAspVersion, sizeof(gAspVersion)-1); /* load the asp version */
     loadAspNodeIp(intf); /* load the ip address of the node pertaining to link name */
-    snprintf(gAspInstallInfo, sizeof(gAspInstallInfo), "interface=%s:%s,version=%s,dir=%s",
-             intf, gAspNodeIp, gAspVersion, aspDir);
+    snprintf(gAspInstallInfo, sizeof(gAspInstallInfo), "interface=%s:%s,version=%s,dir=%s", intf, gAspNodeIp, gAspVersion, aspDir);
 }
 
-ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
+static ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
     ClCharT cpmName[CL_MAX_NAME_LENGTH] = {0};
-
     loadAspInstallInfo();
     clLogCompName = (ClCharT*) "AMF"; /* Override generated eo name with a short name for our server */
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                "%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
-    
-    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-              "Process [%s] started. PID [%d]",
-              argv[0],
-              (int)getpid());
-
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
+   
+    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Process [%s] started. PID [%d]", argv[0], (int)getpid());
+  
     /* To make the AMF environment "look" like the rest of the components to our common libraries (like EO) we set a few
        environment variables.  These env vars are normally set by the AMF before spawning a component */
     
@@ -4444,7 +4409,6 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
      * The variable 'clCpmNodeName' should now be set.  We set the env var ASP_NODENAME so that log library can pick it up.
      */
     setenv("ASP_NODENAME", clCpmNodeName, 1);
-    
     /*
      * Set the IOC address for this node.
      */
@@ -4458,22 +4422,16 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
     }
 
     /* For now variable was set as optional but would be good if it was set   setenv("ASP_APP_BINDIR", temp, 1); */
-
-    
     clEoNodeRepresentativeDeclare(clCpmNodeName);
     clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
     rc = clEoInitialize(argc, argv);
     if (CL_OK != rc)
     {
-        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                   "Process [%s] exited abnormally. Exit code [%u/0x%x]",
-                   argv[0], rc, rc);
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Process [%s] exited abnormally. Exit code [%u/0x%x]", argv[0], rc, rc);
         goto failure;
     }
-
-    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-              "Process [%s] exited normally",
-              argv[0]);
+    
+    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Process [%s] exited normally", argv[0]);
 
     return CL_OK;
 
@@ -4491,12 +4449,9 @@ ClRcT cpmValidateEnv(void)
     {
         /* Note, Multiline logging is not available at this point since heap
            is not initialized */ 
-        clLog(CL_LOG_SEV_CRITICAL, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-              "The environmental variable ASP_WITHOUT_CPM is set!!");
-        clLog(CL_LOG_SEV_CRITICAL, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                       "CPM cannot proceed if this variable is set "
-                       "in its environment. Please unset this variable "
-                       "to continue.");
+        clLog(CL_LOG_SEV_CRITICAL, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "The environmental variable ASP_WITHOUT_CPM is set!!");
+        clLog(CL_LOG_SEV_CRITICAL, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "CPM cannot proceed if this variable is set "
+                       "in its environment. Please unset this variable " "to continue.");
         goto failure;
     }
 
@@ -4519,21 +4474,18 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[], ClCharT *envp[])
     rc = cpmValidateEnv();
     if (CL_OK != rc)
     {
-        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                   "Validation of CPM environment failed, error [%#x]",
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Validation of CPM environment failed, error [%#x]",
                    rc);
         return rc;
     }
-    
     rc = clCpmParseCmdLine(argc, argv);
     if (rc != CL_OK)
     {
-        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                      "Wrong command line arguments, error [%#x]",
-                      rc);
+        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Wrong command line arguments, error [%#x]", rc);
         return rc;
     }
     clAmsSetInstantiateCommand(argc, argv);
+
     /*
      * The variable 'clCpmNodeName' should now be set.  We set the env
      * var ASP_NODENAME so that log library can pick it up.
@@ -4545,9 +4497,7 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[], ClCharT *envp[])
         rc = cpmMain(argc, argv);
         if (CL_OK != rc)
         {
-            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                       "Main function of CPM failed, error [%#x]",
-                       rc);
+            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Main function of CPM failed, error [%#x]", rc);
         }
     }
     else
@@ -4556,26 +4506,20 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[], ClCharT *envp[])
         if (0 == pid)
         {
 #ifdef QNX_BUILD
-            procmgr_daemon(EXIT_SUCCESS,
-                           (PROCMGR_DAEMON_NOCHDIR |
-                            PROCMGR_DAEMON_NOCLOSE |
-                            PROCMGR_DAEMON_NODEVNULL));
+            procmgr_daemon(EXIT_SUCCESS, (PROCMGR_DAEMON_NOCHDIR | PROCMGR_DAEMON_NOCLOSE | PROCMGR_DAEMON_NODEVNULL));
 #else
             cpmDaemonize_step1();
 #endif
             cpmDaemonize_step2();
-
             rc = cpmMain(argc, argv);
             if (CL_OK != rc)
             {
-                clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                           "Main function of CPM failed, error [%#x]",
-                           rc);
+                clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Main function of CPM failed, error [%#x]", rc);
             }
         }
         else if (0 < pid)
         {
-            exit(0);
+              exit(0);
         }
         else
         {

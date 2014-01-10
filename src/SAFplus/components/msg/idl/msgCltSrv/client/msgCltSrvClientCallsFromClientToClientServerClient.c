@@ -327,7 +327,7 @@ ClRcT clMsgQueueMoveMessagesClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN Sa
     return rc;
 }
 
-ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T sendType, CL_IN SaNameT* pDestination, CL_IN ClMsgMessageIovecT_4_0_0* pMessage, CL_IN ClInt64T sendTime, CL_IN ClHandleT senderHandle, CL_IN ClInt64T timeout)
+ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgMessageSendTypeT sendType, CL_IN SaNameT* pDestination, CL_IN ClMsgMessageIovecT_4_0_0* pMessage, CL_IN ClInt64T sendTime, CL_IN ClHandleT senderHandle, CL_IN ClInt64T timeout)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -349,10 +349,8 @@ ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUi
     }
     else if (CL_IDL_ADDRESSTYPE_NAME == pHandleObj->address.addressType)
     {
-        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name),
-                                        pHandleObj->address.address.nameAddress.attrCount,
-                                        pHandleObj->address.address.nameAddress.attr,
-                                        pHandleObj->address.address.nameAddress.contextCookie,
+        rc = clNameToObjectReferenceGet(&(pHandleObj->address.address.nameAddress.name), pHandleObj->address.address.nameAddress.attrCount,
+                                        pHandleObj->address.address.nameAddress.attr, pHandleObj->address.address.nameAddress.contextCookie,
                                         (ClUint64T*)&address);
         if (CL_OK != rc)
         {
@@ -370,7 +368,7 @@ ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUi
         return rc;
     }
 
-    rc = clXdrMarshallClUint32T(&(sendType), inMsgHdl, 0);
+    rc = clXdrMarshallClMsgMessageSendTypeT_4_0_0(&(sendType), inMsgHdl, 0);
     if (CL_OK != rc)
     {
         return rc;
@@ -407,8 +405,7 @@ ClRcT clMsgMessageReceivedClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUi
     }
 
 
-    tempFlags |= pHandleObj->flags |
-                 (CL_RMD_CALL_NON_PERSISTENT);
+    tempFlags |= pHandleObj->flags | (CL_RMD_CALL_NON_PERSISTENT);
     tempFlags &= ~CL_RMD_CALL_ASYNC;
 
     rc = clRmdWithMsgVer(address, &funcVer, funcNo, inMsgHdl, outMsgHdl, tempFlags, &(pHandleObj->options), NULL);
@@ -428,14 +425,14 @@ static void clMsgMessageReceivedAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, 
 {
     ClIdlCookieT* pCookie = (ClIdlCookieT*)pIdlCookie;
     ClRcT retVal = CL_OK;
-    ClUint32T  sendType;
+    ClMsgMessageSendTypeT  sendType;
     SaNameT  pDestination;
     ClMsgMessageIovecT_4_0_0  pMessage;
     ClInt64T  sendTime;
     ClHandleT  senderHandle;
     ClInt64T  timeout;
 
-    memset(&(sendType), 0, sizeof(ClUint32T));
+    memset(&(sendType), 0, sizeof(ClMsgMessageSendTypeT));
     memset(&(pDestination), 0, sizeof(SaNameT));
     memset(&(pMessage), 0, sizeof(ClMsgMessageIovecT_4_0_0));
     memset(&(sendTime), 0, sizeof(ClInt64T));
@@ -443,7 +440,7 @@ static void clMsgMessageReceivedAsyncCallback_4_0_0(ClRcT rc, void *pIdlCookie, 
     memset(&(timeout), 0, sizeof(ClInt64T));
 
 
-    retVal = clXdrUnmarshallClUint32T(inMsgHdl, &(sendType));
+    retVal = clXdrUnmarshallClMsgMessageSendTypeT_4_0_0(inMsgHdl, &(sendType));
     if (CL_OK != retVal)
     {
         goto L0;
@@ -500,7 +497,7 @@ L0:  clHeapFree(pCookie);
 }
 
 
-ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint32T  sendType, CL_IN SaNameT* pDestination, CL_IN ClMsgMessageIovecT_4_0_0* pMessage, CL_IN ClInt64T  sendTime, CL_IN ClHandleT  senderHandle, CL_IN ClInt64T  timeout,CL_IN MsgCltSrvClMsgMessageReceivedAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
+ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClMsgMessageSendTypeT  sendType, CL_IN SaNameT* pDestination, CL_IN ClMsgMessageIovecT_4_0_0* pMessage, CL_IN ClInt64T  sendTime, CL_IN ClHandleT  senderHandle, CL_IN ClInt64T  timeout,CL_IN MsgCltSrvClMsgMessageReceivedAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie)
 {
     ClRcT rc = CL_OK;
     ClVersionT funcVer = {4, 0, 0};
@@ -546,7 +543,7 @@ ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClU
         goto L;
     }
 
-    rc = clXdrMarshallClUint32T(&(sendType), inMsgHdl, 0);
+    rc = clXdrMarshallClMsgMessageSendTypeT_4_0_0(&(sendType), inMsgHdl, 0);
     if (CL_OK != rc)
     {
         goto L;
@@ -601,8 +598,7 @@ ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClU
             goto L2;
         }
 
-        tempFlags |= pHandleObj->flags |
-                     (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT | CL_RMD_CALL_NEED_REPLY);
+        tempFlags |= pHandleObj->flags | (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT | CL_RMD_CALL_NEED_REPLY);
         
         pCookie->pCookie = cookie;
         pCookie->actualCallback = (void(*)())fpAsyncCallback;
@@ -618,8 +614,7 @@ ClRcT clMsgMessageReceivedClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClU
     }
     else
     {
-        tempFlags |= pHandleObj->flags |
-                         (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT);
+        tempFlags |= pHandleObj->flags | (CL_RMD_CALL_ASYNC | CL_RMD_CALL_NON_PERSISTENT);
         rc = clRmdWithMsgVer(address, &funcVer, funcNo, inMsgHdl, 0, tempFlags, &(pHandleObj->options),NULL);
         if(CL_OK != rc)
         {

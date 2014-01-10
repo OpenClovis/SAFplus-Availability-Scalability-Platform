@@ -51,6 +51,7 @@
 #include <clCpmLog.h>
 #include <clAms.h>
 #include <clIocIpi.h>
+#include <clCpmGms.h>
 
 extern ClAmsT gAms;
 

@@ -29,6 +29,8 @@
 #include <clCpmExtApi.h>
 #include <clCpmInternal.h>
 #include <clCpmCor.h>
+#include <clCpmMgmt.h>
+#include <clCpmClient.h>
 #include <xdrClCpmCompConfigSetT.h>
 
 #define CL_CPM_COMP_CLEANUP_SCRIPT "safplus_cleanup.sh"
@@ -675,9 +677,7 @@ static ClRcT compConfigSet(ClCpmComponentT *comp,
     return rc;
 }
 
-ClRcT VDECL_VER(cpmCompConfigSet, 5, 1, 0)(ClEoDataT data,
-                                           ClBufferHandleT inMsgHdl,
-                                           ClBufferHandleT outMsgHdl)
+ClRcT VDECL_VER(cpmCompConfigSet, 5, 1, 0)(ClEoDataT data, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl)
 {
     ClRcT rc = CL_OK;
     ClCpmComponentT *comp = NULL;
@@ -702,9 +702,7 @@ ClRcT VDECL_VER(cpmCompConfigSet, 5, 1, 0)(ClEoDataT data,
     }
 
     clOsalMutexLock(comp->compMutex);
-    rc = compConfigSet(comp, compConfig.bitmask, 
-                  (ClCharT*)compConfig.instantiateCommand,
-                  (ClAmsCompPropertyT)compConfig.property);
+    rc = compConfigSet(comp, compConfig.bitmask, (ClCharT*)compConfig.instantiateCommand, (ClAmsCompPropertyT)compConfig.property);
     clOsalMutexUnlock(comp->compMutex);
 
     clOsalMutexUnlock(gpClCpm->compTableMutex);
@@ -779,8 +777,7 @@ static ClRcT compSetConfig(ClAmsCompConfigT *compConfig, ClUint64T mask)
         goto out;
     }
 
-    clLogNotice("COMP", "CONFIG", "Updating component config at node [%d]",
-                nodeAddress.iocPhyAddress.nodeAddress);
+    clLogNotice("COMP", "CONFIG", "Updating component config at node [%d]", nodeAddress.iocPhyAddress.nodeAddress);
     rc = clCpmCompConfigSet(nodeAddress.iocPhyAddress.nodeAddress, (ClCharT *) compConfig->entity.name.value,
                     compConfig->instantiateCommand, compConfig->property, mask);
 

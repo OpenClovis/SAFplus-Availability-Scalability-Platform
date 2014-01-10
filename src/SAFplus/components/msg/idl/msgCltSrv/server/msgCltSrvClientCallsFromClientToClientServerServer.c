@@ -451,14 +451,14 @@ ClRcT clMsgMessageReceivedServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
     ClRcT rc = CL_OK;
-    ClUint32T  sendType;
+    ClMsgMessageSendTypeT  sendType;
     SaNameT  pDestination;
     ClMsgMessageIovecT_4_0_0  pMessage;
     ClInt64T  sendTime;
     ClHandleT  senderHandle;
     ClInt64T  timeout;
 
-    memset(&(sendType), 0, sizeof(ClUint32T));
+    memset(&(sendType), 0, sizeof(ClMsgMessageSendTypeT));
     memset(&(pDestination), 0, sizeof(SaNameT));
     memset(&(pMessage), 0, sizeof(ClMsgMessageIovecT_4_0_0));
     memset(&(sendTime), 0, sizeof(ClInt64T));
@@ -466,7 +466,7 @@ ClRcT clMsgMessageReceivedServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
     memset(&(timeout), 0, sizeof(ClInt64T));
 
 
-    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(sendType));
+    rc = clXdrUnmarshallClMsgMessageSendTypeT_4_0_0( inMsgHdl,&(sendType));
     if (CL_OK != rc)
     {
         goto LL0;
@@ -527,7 +527,7 @@ ClRcT clMsgMessageReceivedServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHd
        goto L0;
     }
     
-    rc = clXdrMarshallClUint32T(&(sendType), 0, 1);
+    rc = clXdrMarshallClMsgMessageSendTypeT_4_0_0(&(sendType), 0, 1);
     if (CL_OK != rc)
     {
         goto L1;
@@ -576,11 +576,11 @@ LL4:  clXdrMarshallClHandleT(&(senderHandle), 0, 1);
 LL3:  clXdrMarshallClInt64T(&(sendTime), 0, 1);
 LL2:  clXdrMarshallClMsgMessageIovecT_4_0_0(&(pMessage), 0, 1);
 LL1:  clXdrMarshallSaNameT(&(pDestination), 0, 1);
-LL0:  clXdrMarshallClUint32T(&(sendType), 0, 1);
+LL0:  clXdrMarshallClMsgMessageSendTypeT_4_0_0(&(sendType), 0, 1);
 
     return rc;
 
-L0:  clXdrMarshallClUint32T(&(sendType), 0, 1);
+L0:  clXdrMarshallClMsgMessageSendTypeT_4_0_0(&(sendType), 0, 1);
 L1:  clXdrMarshallSaNameT(&(pDestination), 0, 1);
 L2:  clXdrMarshallClMsgMessageIovecT_4_0_0(&(pMessage), 0, 1);
 L3:  clXdrMarshallClInt64T(&(sendTime), 0, 1);

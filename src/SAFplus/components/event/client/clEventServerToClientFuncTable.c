@@ -33,7 +33,7 @@
 
 #undef __CLIENT__
 #include "clEventClientFuncTable.h"
-
+#include <clEventServerToClientFuncTable.h> 
 
 ClRcT clEventClientInstallTables(ClEoExecutionObjT *pEoObj)
 {
