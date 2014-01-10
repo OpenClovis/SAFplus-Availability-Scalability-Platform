@@ -142,7 +142,6 @@ int main(int argc, char **argv)
                     rc, time(0L));
             goto errorexit;
         }
-        sleep(5);
         rc = saEvtEventSubscribe(evtChannelHandle, NULL, 1);
         if (rc != SA_AIS_OK)
         {
@@ -322,8 +321,7 @@ testEvtMainLoop()
         //appPublishEvent();   
         ClEventIdT      eventId         = 0;
         printf("Publishing Event\n");     
-        saRc = saEvtEventPublish(gTestInfo.eventHandle, (void *)"Event from external application", strlen("Event from external application"), &eventId);
-        sleep(2);
+        saRc = saEvtEventPublish(gTestInfo.eventHandle, (void *)"Event from external application", strlen("Event from external application"), &eventId);   
     }
 }    
 
