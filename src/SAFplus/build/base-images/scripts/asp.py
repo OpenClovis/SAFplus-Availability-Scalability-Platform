@@ -14,7 +14,7 @@
 # 
 # For more  information,  see the  file COPYING provided with this
 # material.
-
+import pdb
 import sys
 import os
 import time
@@ -27,6 +27,9 @@ import commands
 
 AmfName = "safplus_amf"
 
+ASP_REBOOT_FILE = 'safplus_reboot'
+SAFPLUS_STOP_FILE = 'safplus_stop'
+
 try:
     set
 except NameError:
@@ -34,6 +37,22 @@ except NameError:
     set = sets.Set
 
 SystemErrorNoSuchFileOrDir = 127
+
+def touch(f):
+    f = file(f,'a')
+    f.close()
+
+def safe_remove(f):
+    print "removing %s" % f
+    try:
+        os.remove(f)
+    except:
+        print "exception"
+        os.system('rm -f %s' %f)
+
+def remove_stop_file():
+    stopFile = get_asp_run_dir() + '/' + SAFPLUS_STOP_FILE
+    safe_remove(stopFile)
 
 def init_sys_asp():
     def on_platform(p):
@@ -234,7 +253,7 @@ def gen_asp_run_env_file(run_file, d):
         if not is_root():
             return
         fail_and_exit('Could not create file %s' % run_file)
-    print >> f, '# This file is auto-generated when ASP is started, please do not modify'
+    print >> f, '# This file is auto-generated when SAFplus is started, please do not modify'
     print >> f, 'ASP_DIR=%s' % d['sandbox_dir']
     print >> f, 'ASP_BINDIR=%s' % d['bin_dir']
     print >> f, 'ASP_APP_BINDIR=%s' % d['bin_dir']
@@ -891,7 +910,7 @@ def load_config_tipc_module():
     time.sleep(5) ## delay for possible tipc unload/reload bugs resulting in tipc split brain
     if not is_root():
         if not is_tipc_loaded():
-            fail_and_exit('ASP is not being run in root user mode '
+            fail_and_exit('SAFplus is not being run in root user mode '
                           'and TIPC module is not loaded.\n'
                           'Please run ASP as either root '
                           'or load and configure TIPC module properly '
@@ -1202,7 +1221,7 @@ def wait_until_amf_up():
 
     return amf_pid
     
-def stop_asp():
+def stop_amf():
     def wait_for_asp_shutdown():
         t = sys_asp['asp_shutdown_wait_timeout']
         for i in range(t/6):
@@ -1213,14 +1232,13 @@ def stop_asp():
 
     amf_pid = get_amf_pid()
     if amf_pid == 0:
-        log.warning('ASP is not running on node [%s]. Cleaning up anyway...' %
-                    get_asp_node_addr())
+        log.warning('SAFplus is not running on node [%s]. Cleaning up anyway...' % get_asp_node_addr())
     else:
-        log.info('Stopping AMF...')
+        log.info('Stopping SAFplus AMF...')
         os.kill(amf_pid, signal.SIGINT)
-        log.info('ASP is running with pid: %d' % amf_pid)
+        log.info('SAFplus is running with pid: %d' % amf_pid)
 
-    log.info('Waiting for AMF to shutdown...')
+    log.info('Waiting for SAFplus AMF to shutdown...')
     wait_for_asp_shutdown()
     run_custom_scripts('stop')
     kill_asp()
@@ -1295,18 +1313,18 @@ def zap_asp(lock_remove = True):
 def check_asp_status(watchdog_pid = False):
     v = is_asp_running(watchdog_pid)
     if v == 0:
-        fail_and_exit('ASP is already running on node [%s], pid [%s]' %\
+        fail_and_exit('SAFplus is already running on node [%s], pid [%s]' %\
                       (get_asp_node_addr(), get_amf_pid(watchdog_pid)), False)
     elif v == 2:
-        fail_and_exit('ASP is still booting up/shutting down on node [%s], '
+        fail_and_exit('SAFplus is still booting up/shutting down on node [%s], '
                       'pid [%s]. '
                       'Please give \'stop\' or \'zap\' command and '
                       'then continue' %\
                       (get_asp_node_addr(), get_amf_pid(watchdog_pid)), False)
     elif v == 3:
-        fail_and_exit('ASP is already running with pid [%s], but it was not '
+        fail_and_exit('SAFplus is already running with pid [%s], but it was not '
                       'started from this sandbox [%s]. Please check if '
-                      'ASP was already started from some other '
+                      'SAFplus was already started from some other '
                       'sandbox directory.' %\
                       (get_amf_pid(watchdog_pid), get_asp_sandbox_dir()))
 
@@ -1314,15 +1332,15 @@ def get_asp_status(to_shell=True):
     v = is_asp_running(watchdog_pid = True)
 
     if v == 0:
-        log.info('ASP is running on node [%s], pid [%s]' %\
+        log.info('SAFplus is running on node [%s], pid [%s]' %\
                  (get_asp_node_addr(), get_amf_pid(True)))
     elif v == 1:
-        log.info('ASP is not running on node [%s]' %\
+        log.info('SAFplus is not running on node [%s]' %\
                  get_asp_node_addr())
     elif v == 2:
-        log.info('ASP is booting up/shutting down')
+        log.info('SAFplus is booting up/shutting down')
     elif v == 3:
-        log.info('ASP is running with pid [%s], but it was not '
+        log.info('SAFplus is running with pid [%s], but it was not '
                  'started from this sandbox [%s].' %\
                  (get_amf_pid(True), get_asp_sandbox_dir()))
 
