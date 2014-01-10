@@ -38,6 +38,7 @@
 #include <msgIdlClientCallsFromClientServer.h>
 #include <msgIdlClientCallsFromServerServer.h>
 #include <msgIdlClientQueueCallsFromClientServer.h>
+#include <msgCltSrvClientCallsFromClientToClientServerServer.h>
 
 ClRcT VDECL_VER(clMsgQueueUnlink, 4, 0, 0)(SaNameT *pQName)
 {

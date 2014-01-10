@@ -714,7 +714,7 @@ error_out:
 
 
 static void clMsgAppMessageDeliveredCallbackFunc(ClIdlHandleT idlHandle,
-        ClUint32T  sendType,
+        ClMsgMessageSendTypeT  sendType,
         SaNameT *pDest,
         ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,
@@ -1577,7 +1577,7 @@ error_out:
 
 
 static void clMsgAppMessageReplyDeliveredCallbackFunc(ClIdlHandleT idlHandle,
-        ClUint32T  sendType,
+        ClMsgMessageSendTypeT  sendType,
         SaNameT *pDest,
         ClMsgMessageIovecT *pMessage,
         SaTimeT sendTime,

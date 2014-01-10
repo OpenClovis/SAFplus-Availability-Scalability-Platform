@@ -294,15 +294,12 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
         /*
          * Could be a proxied on a different node. 
          */
-        if(rc != CL_OK 
-           && 
-           cpmComponentAddDynamic((const ClCharT *)compName.value) == CL_OK)
+        if(rc != CL_OK && cpmComponentAddDynamic((const ClCharT *)compName.value) == CL_OK)
         {
             rc = cpmCompFind(compName.value, gpClCpm->compTable, &comp);
         }
 
-        CL_CPM_CHECK(CL_LOG_SEV_ERROR,
-                     ("Unable to find component %s \n", compName.value), rc);
+        CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to find component %s \n", compName.value), rc);
 
         /* PROXIED: Added Switch-Case
          * Check for component property. For proxied components CSI set request

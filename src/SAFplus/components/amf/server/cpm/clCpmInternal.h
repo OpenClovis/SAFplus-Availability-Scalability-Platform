@@ -375,7 +375,7 @@ extern ClRcT _cpmComponentCleanup(ClCharT *compName,
                                   ClCharT *nodeName,
                                   ClIocPhysicalAddressT *srcAddress,
                                   ClUint32T rmdNumber,
-                                  ClUint32T requestType);
+                                  ClCpmCompRequestTypeT requestType);
 
 extern ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
                                        ClCharT *compName,

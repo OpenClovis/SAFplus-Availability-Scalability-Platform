@@ -72,6 +72,9 @@
 
 #include "eo.h"
 
+static ClRcT clEoJobQueueWMAction(ClEoExecutionObjT *, ClEoStaticQueueInfoT *, ClUint32T);
+static ClRcT clEoJobQueueLogAction(ClEoExecutionObjT *, ClEoStaticQueueInfoT *, ClUint32T);
+
 /*The queue infos for various actions*/
 static ClEoStaticQueueInfoT gEoActionStaticQueueInfo[EO_ACTION_STATIC_QUEUE_INFO_SIZE];
 static ClEoStaticQueueInfoT gEoLogStaticQueueInfo[EO_LOG_STATIC_QUEUE_INFO_SIZE];
@@ -109,7 +112,6 @@ static ClBoolT gClEoStaticQueueInitialized=CL_FALSE;
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 
 extern ClRcT clLoadEnvVars();
-
 /*
  * To debug the creation and deletion of threads.
  */
@@ -150,6 +152,40 @@ extern ClRcT clEoClientCallbackDbFinalize(void);
 #ifdef NO_SAF
 static ClJobQueueT pRmdQueue;
 #endif
+
+static ClRcT (*gpClEoSerialize)(ClPtrT pData);
+static ClRcT (*gpClEoDeSerialize)(ClPtrT pData);
+
+
+/*****************************************************************************/
+/************************** EO CLient Function implementation ****************/
+static ClRcT clEoSvcPrioritySet(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
+
+static ClRcT clEoGetState(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
+
+static ClRcT clEoSetState(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
+
+static ClRcT clEoShowRmdStats(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
+
+static ClRcT clEoIsAlive(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
+/*****************************************************************************/
+
+
+static ClUint32T eoGlobalHashFunction(ClCntKeyHandleT key);
+static ClInt32T eoGlobalHashKeyCmp(ClCntKeyHandleT key1, ClCntKeyHandleT key2);
+static void eoGlobalHashDeleteCallback(ClCntKeyHandleT userKey, ClCntDataHandleT userData);
+static ClRcT eoAddEntryInGlobalTable(ClEoExecutionObjT *eoObj, ClIocPortT eoPort);
+static ClRcT eoDeleteEntryFromGlobalTable(ClIocPortT eoPort);
+static ClRcT clEoStart(ClEoExecutionObjT *pThis);
+
+static ClRcT clEoDropPkt(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg, ClUint8T priority, ClUint8T protoType, ClUint32T length,
+        ClIocPhysicalAddressT srcAddr);
+
+static ClRcT clEoLogLevelSet(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
+static ClRcT clEoLogLevelGet(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
+static ClRcT clEoCustomActionIntimation(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
+
+static ClRcT clEoPriorityQueuesInitialize(void);
 
 
 #define CL_EO_CUSTOM_ACTION_INTIMATION_FN_ID CL_EO_GET_FULL_FN_NUM(CL_EO_EO_MGR_CLIENT_TABLE_ID, 7)
@@ -810,7 +846,7 @@ static ClRcT eoClientTableRegister(ClEoExecutionObjT *pThis,
 {
     ClInt32T i;
     ClRcT rc = CL_OK;
-
+    
     if(!clientTable) return CL_EO_RC(CL_ERR_INVALID_PARAMETER);
 
     for (i = 0; clientTable[i].funTable; ++i)
@@ -1486,7 +1522,7 @@ ClRcT clEoClientInstallTable(ClEoExecutionObjT *pThis,
 
     client = pThis->pServerTable + clientID;
     client->data = data;
-    
+ 
     for (i = 0; i < nentries; ++i)
     {
         ClEoPayloadWithReplyCallbackServerT *entry = pfunTable + i;
@@ -1500,8 +1536,7 @@ ClRcT clEoClientInstallTable(ClEoExecutionObjT *pThis,
             rc = clRadixTreeInsert(client->funTable, index, (ClPtrT)&entry->fun, &lastFun);
             if (CL_OK != rc)
             {
-                clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
-                           "radix tree insert error [%d] for fun id [%d], "
+                clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "radix tree insert error [%d] for fun id [%d], "
                            "version [%#x]\n", rc, funId, version);
                 goto out_delete;
             }
@@ -1542,15 +1577,10 @@ static ClRcT eoClientInstallTables(ClEoExecutionObjT *pThis,
 
     for(i = 0; table[i].funTable; ++i)
     {
-        rc = clEoClientInstallTable(pThis,
-                                    table[i].clientID,
-                                    data,
-                                    table[i].funTable,
-                                    table[i].funTableSize);
+        rc = clEoClientInstallTable(pThis, table[i].clientID, data, table[i].funTable, table[i].funTableSize);
         if(rc != CL_OK)
         {
-            clLogError("EO", "CLNT-INSTALL", "EO client table deploy returned [%d] for table id [%d]",
-                       rc, i);
+            clLogError("EO", "CLNT-INSTALL", "EO client table deploy returned [%d] for table id [%d]", rc, i);
             CL_ASSERT(0);
             break;
         }
@@ -3981,7 +4011,7 @@ ClRcT clEoJobHandler(ClEoJobT *pJob)
             }
         }    
 #endif
-        //clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clEoJobHandler, calling a registered message handler");
+//    clLogInfo(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"clEoJobHandler, calling a registered message handler");
     rc = gClEoProtoList[pRecvParam->protoType].func(pThis,
                                                     pJob->msg,
                                                     pRecvParam->priority,
@@ -4393,13 +4423,12 @@ clExtInitialize ( ClInt32T ioc_address_local )
     clAspLocalId = ioc_address_local;
     heapConfig.mode = CL_HEAP_NATIVE_MODE;
     memConfig.memLimit = 0;
-
+   
     clLoadEnvVars();
     // If ASP_BINDIR is not set then set it to the current directory
     if (ASP_BINDIR[0]==0) { ASP_BINDIR[0] = '.'; ASP_BINDIR[1] = 0; }
-    
     rc = clIocParseConfig(NULL, &gpClIocConfig);
-    
+ 
     if(rc != CL_OK)
     {
         clOsalPrintf("Error : Failed to parse clIocConfig.xml file. error code = 0x%x\n",rc);
@@ -4426,7 +4455,6 @@ clExtInitialize ( ClInt32T ioc_address_local )
         clLogError("RMDSERVER", "clExtInitialize","Buffer initialization failed\n");
         return rc;
     }
-    
     pAllConfig.iocConfigInfo.isNodeRepresentative = CL_TRUE;
     gIsNodeRepresentative = CL_TRUE;
     if ((rc = clIocLibInitialize(NULL)) != CL_OK)

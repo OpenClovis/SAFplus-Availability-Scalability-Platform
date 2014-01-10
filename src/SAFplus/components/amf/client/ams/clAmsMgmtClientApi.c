@@ -53,6 +53,7 @@
 #include <clAmsMgmtHooks.h>
 #include <clEoApi.h>
 #include <clHash.h>
+#include <clAmsMgmtClientIpi.h>
 static ClEoExecutionObjT *gpEOObj;
 
 /******************************************************************************

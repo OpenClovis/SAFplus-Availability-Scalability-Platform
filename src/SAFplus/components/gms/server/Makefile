@@ -73,6 +73,7 @@ ASP_LIBS	:= libClTimer.a \
                    libClLogClient.a \
                    libClCkpt.a \
                    libClDbal.a \
+                   libClHal.a  \
                    libaisexec.a \
                    libtotem_pg.a\
 		   libClGms.a

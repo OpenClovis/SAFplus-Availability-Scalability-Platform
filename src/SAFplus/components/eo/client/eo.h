@@ -113,47 +113,12 @@ typedef struct ClEoStaticQueue
 
 #define EO_BUCKET_SZ 64
 
-static ClRcT clEoJobQueueWMAction(ClEoExecutionObjT *, ClEoStaticQueueInfoT *, ClUint32T);
-static ClRcT clEoJobQueueLogAction(ClEoExecutionObjT *, ClEoStaticQueueInfoT *, ClUint32T);
-
-static ClRcT (*gpClEoSerialize)(ClPtrT pData);
-static ClRcT (*gpClEoDeSerialize)(ClPtrT pData);
-
-/*****************************************************************************/
-/************************** EO CLient Function implementation ****************/
-static ClRcT clEoSvcPrioritySet(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
-
-static ClRcT clEoGetState(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
-
-static ClRcT clEoSetState(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
-
-static ClRcT clEoShowRmdStats(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
-
-static ClRcT clEoIsAlive(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
-/*****************************************************************************/
-
-static ClUint32T eoGlobalHashFunction(ClCntKeyHandleT key);
-static ClInt32T eoGlobalHashKeyCmp(ClCntKeyHandleT key1, ClCntKeyHandleT key2);
-static void eoGlobalHashDeleteCallback(ClCntKeyHandleT userKey, ClCntDataHandleT userData);
-static ClRcT eoAddEntryInGlobalTable(ClEoExecutionObjT *eoObj, ClIocPortT eoPort);
-static ClRcT eoDeleteEntryFromGlobalTable(ClIocPortT eoPort);
-static ClRcT clEoStart(ClEoExecutionObjT *pThis);
-
-
 /*
  * Only RMD will use it 
  */
 extern ClRcT clEoRemoteObjectUnblock(ClEoExecutionObjT *remoteEoObj);
 ClRcT clEoGetRemoteObjectAndBlock(ClUint32T remoteObj, ClEoExecutionObjT **pRemoteEoObj);
 
-static ClRcT clEoDropPkt(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg, ClUint8T priority, ClUint8T protoType, ClUint32T length,
-        ClIocPhysicalAddressT srcAddr);
-
-static ClRcT clEoLogLevelSet(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
-static ClRcT clEoLogLevelGet(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
-static ClRcT clEoCustomActionIntimation(ClUint32T data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
-
-static ClRcT clEoPriorityQueuesInitialize(void);
 ClRcT clEoPriorityQueuesFinalize(ClBoolT force);
 
 

@@ -516,8 +516,7 @@ extern "C"
  *  \sa clEventInitialize(), clEventSelectionObjectGet()
  *
  */
-    ClRcT clEventDispatch(ClEventInitHandleT evtHandle,
-                          ClDispatchFlagsT dispatchFlags);
+    ClRcT clEventDispatch(ClEventInitHandleT evtHandle, ClDispatchFlagsT dispatchFlags);
 
 
 /**

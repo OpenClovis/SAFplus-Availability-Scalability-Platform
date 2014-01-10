@@ -46,6 +46,7 @@
 #include <clLogApi.h>
 #include <clXdrApi.h>
 #include "clGmsRmdServer.h"
+#include <clGmsEoFunc.h>
 
 /******************************************************************************
  * API Function Implementations

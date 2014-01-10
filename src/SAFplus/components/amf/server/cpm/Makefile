@@ -80,6 +80,7 @@ ASP_LIBS	:=                          \
                 libClAmsMgmt.a              \
                 libClAmsServer.a            \
                 libClGms.a                  \
+                libClHal.a                  \
                 $(CL_CM)
 
 # List any third party libs needed to get this server built (or None):

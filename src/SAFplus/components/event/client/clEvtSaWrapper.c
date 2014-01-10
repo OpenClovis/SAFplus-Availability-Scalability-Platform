@@ -75,8 +75,7 @@ do{\
 
 SaEvtHandleT *gpEvtHandle = NULL;
 
-extern ClRcT clEvtInitValidate(ClEoExecutionObjT **pEoObj,
-        ClEvtClientHeadT **ppEvtClientHead);
+extern ClRcT clEvtInitValidate(ClEoExecutionObjT **pEoObj, ClEvtClientHeadT **ppEvtClientHead);
 
 /* Database Keeping the actual callbacks */
 ClHandleDatabaseHandleT gSaEvtHandleDatabase; 
@@ -526,8 +525,7 @@ SaAisErrorT saEvtSelectionObjectGet(SaEvtHandleT evtHandle,
     return clEvtSafErrorMap(rc);
 }
 
-SaAisErrorT saEvtDispatch(SaEvtHandleT evtHandle,
-                          SaDispatchFlagsT dispatchFlags)
+SaAisErrorT saEvtDispatch(SaEvtHandleT evtHandle, SaDispatchFlagsT dispatchFlags)
 {
     ClRcT rc = CL_OK;
 
@@ -536,8 +534,7 @@ SaAisErrorT saEvtDispatch(SaEvtHandleT evtHandle,
         return SA_AIS_ERR_BAD_FLAGS;
     }
     
-    rc = clEventDispatch((ClEventInitHandleT) evtHandle,
-                         (ClDispatchFlagsT) dispatchFlags);
+    rc = clEventDispatch((ClEventInitHandleT) evtHandle, (ClDispatchFlagsT) dispatchFlags);
 
     return clEvtSafErrorMap(rc);
 }

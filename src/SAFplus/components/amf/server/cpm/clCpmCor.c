@@ -42,7 +42,7 @@
 # include <clCpmCor.h>
 # include <clCpmLog.h>
 # include <clCpmInternal.h>
-
+#include <clCpmClient.h>
 
 /*
  * XDR header files 
@@ -130,9 +130,7 @@ failure:
  * Given slot Id return the nodeName, MoId and IOC address of the node.
  */
 
-ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data,
-                            ClBufferHandleT inMsgHandle,
-                            ClBufferHandleT outMsgHandle)
+ClRcT VDECL(cpmSlotInfoGet)(ClEoDataT data, ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle)
 {
     ClRcT rc = CL_OK;
     ClCntNodeHandleT hNode = 0;
