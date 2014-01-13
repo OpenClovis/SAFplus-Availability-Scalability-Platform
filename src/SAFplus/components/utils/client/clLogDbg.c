@@ -1021,8 +1021,16 @@ clLogMsgWrite(ClLogStreamHandleT streamHdl,
     ClRcT rc = CL_OK;
     va_list vaargs;
     va_start(vaargs, pFmtStr);
-    rc = logVMsgWriteDeferred(streamHdl, severity, serviceId, pArea, pContext,
-                              pFileName, lineNum, CL_FALSE, CL_TRUE, pFmtStr, vaargs);
+#ifdef NO_SAF
+  ClCharT           msg[CL_LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
+  unsigned int            msgStrLen;
+  msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, "[%s:%d] (%3s.%3s: %s) ",pFileName, lineNum,pArea,pContext, clLogSeverityStrGet(clLogDefaultSeverity));
+  msgStrLen += vsnprintf(msg + msgStrLen, CL_LOG_MAX_MSG_LEN - msgStrLen, pFmtStr, vaargs);
+  if (msgStrLen > CL_LOG_MAX_MSG_LEN-1) msgStrLen=CL_LOG_MAX_MSG_LEN-1;
+  printf(msg); printf("\n"); fflush(stdout);
+#else    
+    rc = logVMsgWriteDeferred(streamHdl, severity, serviceId, pArea, pContext, pFileName, lineNum, CL_FALSE, CL_TRUE, pFmtStr, vaargs);
+#endif    
     va_end(vaargs);
     return rc;
 }
