@@ -140,7 +140,7 @@ extern ClRcT clLoadEnvVars();
 
 extern ClUint32T clEoWithOutCpm;
 
-ClBoolT clEoLibInitialized;
+ClBoolT clEoLibInitialized=CL_FALSE;
 
 #define CL_NUM_JOB_QUEUES CL_IOC_MAX_PRIORITIES
 
@@ -2901,20 +2901,15 @@ ClRcT clEoLibInitialize()
     rc = clOsalMutexInit(&gClEoJobMutex);
     if(rc != CL_OK)
     {
-        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "EO job mutex init returned [%#x]", rc);
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED, "EO job mutex init returned [%#x]", rc);
         CL_FUNC_EXIT();
         return rc;
     }
 
-    rc = clCntHashtblCreate(EO_BUCKET_SZ, eoGlobalHashKeyCmp,
-            eoGlobalHashFunction, eoGlobalHashDeleteCallback,
-            eoGlobalHashDeleteCallback, CL_CNT_UNIQUE_KEY,
-            &gEOObjHashTable);
+    rc = clCntHashtblCreate(EO_BUCKET_SZ, eoGlobalHashKeyCmp, eoGlobalHashFunction, eoGlobalHashDeleteCallback, eoGlobalHashDeleteCallback, CL_CNT_UNIQUE_KEY, &gEOObjHashTable);
     if (rc != CL_OK)
     {
-        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "\n EO: Hash Table Creation FAILED \n");
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"EO: Hash Table Creation FAILED.");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -2922,8 +2917,7 @@ ClRcT clEoLibInitialize()
     if (rc != CL_OK)
     {
         clCntDelete(gEOObjHashTable);
-        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "\n EO: EOHashTableLock  creation failed \n");
+        clLogError(CL_LOG_EO_AREA,CL_LOG_CONTEXT_UNSPECIFIED,"EO: gEOObjHashTableLock creation failed.");
         CL_FUNC_EXIT();
         return rc;
     }
@@ -4437,31 +4431,48 @@ clExtInitialize ( ClInt32T ioc_address_local )
 
     if ((rc = clOsalInitialize(NULL)) != CL_OK)
     {
-        clLogError("RMDSERVER", "clExtInitialize","OSAL initialization failed\n");
+        clLogError("EXT", "INI","OSAL initialization failed. rc [0x%x]",rc);
         return rc;
     }
     if ((rc = clMemInitialize()) != CL_OK)
     {
-        clLogError("RMDSERVER", "clExtInitialize","Heap initialization failed\n");
+        clLogError("EXT", "INI","Heap initialization failed. rc [0x%x]",rc);
         return rc;
     }
     if ((rc = clTimerInitialize(NULL)) != CL_OK)
     {
-        clLogError("RMDSERVER", "clExtInitialize","Timer initialization failed\n");
+        clLogError("EXT", "INI","Timer initialization failed. rc [0x%x]",rc);
         return rc;
     }
     if ((rc = clBufferInitialize(NULL)) != CL_OK)
     {
-        clLogError("RMDSERVER", "clExtInitialize","Buffer initialization failed\n");
+        clLogError("EXT", "INI","Buffer initialization failed. rc [0x%x]",rc);
         return rc;
     }
+
+    clEoLibInitialize();
+    
     pAllConfig.iocConfigInfo.isNodeRepresentative = CL_TRUE;
     gIsNodeRepresentative = CL_TRUE;
     if ((rc = clIocLibInitialize(NULL)) != CL_OK)
     {
-        clLogError("RMDSERVER", "clExtInitialize","IOC initialization failed with rc = 0x%x\n", rc);
+        clLogError("EXT", "INI","IOC initialization failed with rc [0x%x]", rc);
         return rc;
     }
+
+    if ((rc = clRmdLibInitialize(NULL)) != CL_OK)
+    {
+        clLogError("EXT", "INI","RMD initialization failed with rc [0x%x]", rc);
+        return rc;
+    }
+
+    rc = clExtRmdServerInit(NULL);
+    if(rc != CL_OK)
+    {
+        clLogError("EXT", "INI","Failed to initialize the RMD server. Error [0x%x]", rc);
+        return rc;
+    }
+    
     return rc;
 }
 

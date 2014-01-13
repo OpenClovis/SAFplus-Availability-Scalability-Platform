@@ -565,11 +565,9 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
     if( CL_LOG_MSGID_PRINTF_FMT == msgId )
     {
         ClInt32T nbytes = 0;
-        clLogDebug("LOG", "OPE", "streamname 2 ");
         if(recSize < LOG_ASCII_MIN_REC_SIZE ) /* just a minimum record size taking care of the headers*/
         {
-            printf("LOG record size has to be minimum [%d] bytes. Got [%d] bytes\n",
-                   LOG_ASCII_MIN_REC_SIZE, recSize);
+            printf("LOG record size has to be minimum [%d] bytes. Got [%d] bytes\n", LOG_ASCII_MIN_REC_SIZE, recSize);
             return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
         }
         /*
@@ -1019,8 +1017,7 @@ clLogClientMsgWriteWithHeader(ClLogSeverityT     severity,
 
         if(recSize < LOG_ASCII_MIN_REC_SIZE ) /* just a minimum record size taking care of the headers*/
         {
-            printf("LOG record size has to be minimum [%d] bytes. Got [%d] bytes\n", 
-                   LOG_ASCII_MIN_REC_SIZE, recSize);
+            printf("LOG record size has to be minimum [%d] bytes. Got [%d] bytes\n", LOG_ASCII_MIN_REC_SIZE, recSize);
             return CL_LOG_RC(CL_ERR_INVALID_PARAMETER);
         }
         /*

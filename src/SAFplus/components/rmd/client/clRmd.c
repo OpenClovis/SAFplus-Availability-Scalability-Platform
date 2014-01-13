@@ -758,7 +758,7 @@ static ClRcT clRmdWithMessage(ClIocAddressT remoteObjAddr,  /* remote OM addr */
         ClUint8T protoType = (flags & CL_RMD_CALL_ORDERED)? 
             CL_IOC_RMD_ORDERED_PROTO : CL_IOC_RMD_ASYNC_REQUEST_PROTO;
 
-        RMD_DBG4((" RMD ASync Path\n"));
+        //RMD_DBG4((" RMD ASync Path\n"));
         /*
          * Async
          */
@@ -1169,8 +1169,7 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
         if (retVal != CL_OK)
         {
             clLogWarning("RMD","SND","In RMD, IOC call failed with error [%x].  MsgId [0x%x]", retVal, nwMsgId);
-            clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
-                                      (ClPtrT)(ClWordT)nwMsgId);
+            clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle, (ClPtrT)(ClWordT)nwMsgId);
             RMD_STAT_INC(pRmdObject->rmdStats.nFailedCalls);            
             if(i > 0)
             {

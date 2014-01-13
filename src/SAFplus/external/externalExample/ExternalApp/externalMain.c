@@ -26,7 +26,7 @@
 #include "log.h"
 
 
-#define LOCAL_ADDRESS 7
+#define LOCAL_ADDRESS 5
 
 //***********External***********************************
 #define __LOGICAL_ADDRESS(a) CL_IOC_LOGICAL_ADDRESS_FORM(CL_IOC_STATIC_LOGICAL_ADDRESS_START + (a))
@@ -66,15 +66,56 @@ SaEvtChannelHandleT   evtChannelHandle = 0;
 SaEvtHandleT      evtHandle;
 //handle for public event
 SaEvtChannelHandleT evtChannelHandlePublic      = 0;
-//*************************************************
+//************************************************/
+
+static void appEventCallback( SaEvtSubscriptionIdT	subscriptionId, SaEvtEventHandleT     eventHandle, SaSizeT eventDataSize);
 
 
+#include <clNodeCache.h>
 
+const char* Cap2Str(ClUint32T cap)
+{
+    if(CL_NODE_CACHE_LEADER_CAPABILITY(cap)) return "leader";
+    if (CL_NODE_CACHE_SC_CAPABILITY(cap)) return "controller";
+    if (CL_NODE_CACHE_PL_CAPABILITY(cap)) return "payload";
+    return "unknown";
+}
+void nodeCacheWait(void)
+{
+    unsigned int done = CL_FALSE;
+    ClNodeCacheMemberT nodes[64];
+    ClUint32T numNodes;
+    ClIocNodeAddressT leader;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 700 };  
 
-static void
-appEventCallback( SaEvtSubscriptionIdT	subscriptionId,
-                             SaEvtEventHandleT     eventHandle,
-			     SaSizeT eventDataSize);
+    // I need to wait for one SC to tell us about itself for registration and one payload to come up to receive my logs
+    // This is specific to this demo.  Your application may need to wait for different nodes...
+    while(done != 3)  
+    {
+        numNodes = 64;
+
+        printf("Nodes in the cluster:\n");
+        clNodeCacheViewGet(nodes,&numNodes);
+        for (int i = 0; i<numNodes;i++)
+        {
+            printf("%30s: Address: %d,  Version: %x  Capability: %s\n",nodes[i].name,nodes[i].address,nodes[i].version,Cap2Str(nodes[i].capability));
+            if (CL_NODE_CACHE_LEADER_CAPABILITY(nodes[i].capability)) done |=1;
+            if ((nodes[i].address != LOCAL_ADDRESS) && (CL_NODE_CACHE_PL_CAPABILITY(nodes[i].capability))) done |=2;
+        }
+        
+#if 0  // GAS why is the node cache leader not being updated?
+        ClRcT rc = clNodeCacheLeaderGet(&leader);
+        if (rc == CL_OK)
+        {
+            done = CL_TRUE;            
+        }
+#endif        
+        
+        if (done != 3) clOsalTaskDelay(delay);        
+    }
+    
+    
+}
 
 
 int main(int argc, char **argv)
@@ -85,105 +126,96 @@ int main(int argc, char **argv)
     rc = clExtInitialize(ioc_address_local);
     if (rc != CL_OK)
     {
-        printf("Error: failed to Initialize ASP libraries\n");
+        printf("Error: failed to Initialize SAFplus libraries\n");
         exit(1);
     }
-    if ((rc = clRmdLibInitialize(NULL)) != CL_OK)
+
+    nodeCacheWait();
+
+    // Demonstrate logging */
+    printf("\n\nOpen a global log stream and write several records to active PY node\n");        
+    if ((rc=logInitialize()) == CL_OK)
     {
-        printf("Error: RMD initialization failed with rc = 0x%x\n", rc);
-        exit(1);
-    }
-    printf("....................Info: start external rmd server....................\n");
-    rc = clExtRmdServerInit(NULL);
-    if(rc != CL_OK)
-    {
-        printf("Error : Failed to init Rmd Server. Error 0x%x\n", rc);
-        return rc;
+        printf("log Initialized\n"); 
+        logWrite(CL_LOG_SEV_NOTICE,"This is a test of an external app doing logging");
+        for(int i=0;i<100;i++)
+        {
+            ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1 };  
+            logWrite(CL_LOG_SEV_NOTICE,"external app log %d", i);
+            clOsalTaskDelay(delay);            
+        }            
     }
     else
     {
-        printf("Open a global log stream and write several records to active PY node\n");        
-        if ((rc=logInitialize()) == CL_OK)
-        {
-            printf("log Initialized\n"); 
-            logWrite(CL_LOG_SEV_NOTICE,"This is a test of an external app doing logging");
-            for(int i=0;i<100;i++)
-               logWrite(CL_LOG_SEV_NOTICE,"external app log %d", i);
-        }
-        else
-        {
-            printf("Unable to open log.  Error 0x%x\n",rc);
-            return rc;
-        }
+        printf("Unable to open log.  Error 0x%x\n",rc);
+        return rc;
+    }
 
-        //open a subscribe event channel and start
-        const SaEvtCallbacksT evtCallbacks =
-        {
-            NULL,
-            appEventCallback
-        };
-        SaVersionT  evtVersion = CL_EVENT_VERSION;
-        rc = saEvtInitialize(&evtHandle, &evtCallbacks, &evtVersion);
-        if (rc != SA_AIS_OK)
-        {
-            printf("Failed to init event mechanism [0x%x]\n",rc);
-            return rc;
-        }
 
-        saNameSet(&evtChannelName,EVENT_CHANNEL_NAME);
-        rc = saEvtChannelOpen(evtHandle,&evtChannelName,
-            (SA_EVT_CHANNEL_SUBSCRIBER |
-                SA_EVT_CHANNEL_CREATE),
-            (SaTimeT)SA_TIME_END,
-            &evtChannelHandle);
-        if (rc != SA_AIS_OK)
-        {
-            printf("Failure opening event channel[0x%x] at %ld\n",
-                    rc, time(0L));
-            goto errorexit;
-        }
-        rc = saEvtEventSubscribe(evtChannelHandle, NULL, 1);
-        if (rc != SA_AIS_OK)
-        {
-            printf("Failed to subscribe to event channel [0x%x]\n",
-                        rc);
-            goto errorexit;
-        }
-        //open a global log stream and write several records
+
+    //  Open a subscribe event channel and start receiving events.
+    printf("\n\nOpen an Event subscription\n");        
+    const SaEvtCallbacksT evtCallbacks =
+    {
+        NULL,
+        appEventCallback
+    };
+    SaVersionT  evtVersion = CL_EVENT_VERSION;
+    rc = saEvtInitialize(&evtHandle, &evtCallbacks, &evtVersion);
+    if (rc != SA_AIS_OK)
+    {
+        printf("Failed to init event mechanism [0x%x]\n",rc);
+        return rc;
+    }
+
+    saNameSet(&evtChannelName,EVENT_CHANNEL_NAME);
+    rc = saEvtChannelOpen(evtHandle,&evtChannelName, (SA_EVT_CHANNEL_SUBSCRIBER | SA_EVT_CHANNEL_CREATE), (SaTimeT)SA_TIME_END, &evtChannelHandle);
+    if (rc != SA_AIS_OK)
+    {
+        printf("Failure opening event channel[0x%x] at %ld\n", rc, time(0L));
+        goto errorexit;
+    }
+    rc = saEvtEventSubscribe(evtChannelHandle, NULL, 1);
+    if (rc != SA_AIS_OK)
+    {
+        printf("Failed to subscribe to event channel [0x%x]\n", rc);
+        goto errorexit;
+    }
+    //open a global log stream and write several records
         
-        printf("Open a publisher event channel\n");        
-        // open a publisher event channel and 
-        openPublisherChannel();
-        printf("Start publishing events.\nThe PY component on active PY node subscribes to these events and logs them so you can verify receipt by looking in the clock.log.latest and app.lates  on node active PY node .\n");        
-        testEvtMainLoop();
-        printf("Unsubscribe event chanel.............................\n");        
-        rc = saEvtEventUnsubscribe(evtChannelHandle,1);
-	if (rc != SA_AIS_OK) 
-		printf("Channel unsubscribe result: %d\n", rc);
-        printf("Close subscribe event chanel.............................\n");        
-        rc = saEvtChannelClose(evtChannelHandle);
-	if (rc != SA_AIS_OK) 
-		printf("Channel close result: %d\n", rc);
-        printf("Close publish event channel.............................\n");        
-        rc = saEvtChannelClose(evtChannelHandlePublic);
-	if (rc != SA_AIS_OK) 
-		printf("Channel close result: %d\n", rc);
-        printf("Finalize publish event handle.............................\n");        
-        saEvtFinalize(gTestInfo.evtInitHandle);
-        printf("Finalize xubscribe event handle.............................\n");        
-        saEvtFinalize(evtHandle);
-        openPublisherChannel();
-        testEvtMainLoop();
-        printf("Close publish event channel.............................\n");        
-        rc = saEvtChannelClose(evtChannelHandlePublic);
-	if (rc != SA_AIS_OK) 
-		printf("Channel close result: %d\n", rc);
-        printf("Finalize publish event handle.............................\n");        
-        saEvtFinalize(gTestInfo.evtInitHandle);
-    }    
+    printf("Open a publisher event channel\n");        
+    // open a publisher event channel and 
+    openPublisherChannel();
+    printf("Start publishing events.\nThe PY component on active PY node subscribes to these events and logs them so you can verify receipt by looking in the clock.log.latest and app.lates  on node active PY node .\n");        
+    testEvtMainLoop();
+    printf("Unsubscribe event chanel.............................\n");        
+    rc = saEvtEventUnsubscribe(evtChannelHandle,1);
+    if (rc != SA_AIS_OK) 
+        printf("Channel unsubscribe result: %d\n", rc);
+    printf("Close subscribe event chanel.............................\n");        
+    rc = saEvtChannelClose(evtChannelHandle);
+    if (rc != SA_AIS_OK) 
+        printf("Channel close result: %d\n", rc);
+    printf("Close publish event channel.............................\n");        
+    rc = saEvtChannelClose(evtChannelHandlePublic);
+    if (rc != SA_AIS_OK) 
+        printf("Channel close result: %d\n", rc);
+    // never inited: printf("Finalize publish event handle.............................\n");        
+    //    saEvtFinalize(gTestInfo.evtInitHandle);
+    printf("Finalize xubscribe event handle.............................\n");        
+    saEvtFinalize(evtHandle);
+    openPublisherChannel();
+    testEvtMainLoop();
+    printf("Close publish event channel.............................\n");        
+    rc = saEvtChannelClose(evtChannelHandlePublic);
+    if (rc != SA_AIS_OK) 
+        printf("Channel close result: %d\n", rc);
+    // never inited printf("Finalize publish event handle.............................\n");        
+    //   saEvtFinalize(gTestInfo.evtInitHandle);
+    
     return 0;
-    errorexit:
-        printf ("Initialization error [0x%x]\n",rc);
+errorexit:
+    printf ("Initialization error [0x%x]\n",rc);
 }
 
 
