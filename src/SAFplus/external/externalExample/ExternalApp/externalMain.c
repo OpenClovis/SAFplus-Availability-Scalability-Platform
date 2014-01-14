@@ -24,14 +24,15 @@
 
 // Logging utility routines are located in a separate file.
 #include "log.h"
+#define LOOP_COUNT 5
 
 
+/* This local address must match the TIPC node address */
 #define LOCAL_ADDRESS 5
 
 //***********External***********************************
 #define __LOGICAL_ADDRESS(a) CL_IOC_LOGICAL_ADDRESS_FORM(CL_IOC_STATIC_LOGICAL_ADDRESS_START + (a))
 #define __RPC_SERVER_ADDRESS __LOGICAL_ADDRESS(LOCAL_ADDRESS)
-#define LOOP_COUNT 5
 extern ClRcT clRmdLibInitialize(ClPtrT pConfig);
 
 
@@ -342,25 +343,21 @@ appPublishEvent()
     return CL_OK;
 }
 
-static void
-testEvtMainLoop()
+static void testEvtMainLoop()
 {
     /* Main loop: Keep printing and publishing unless we are suspended */
     int i=0;
     SaAisErrorT  saRc = SA_AIS_OK;
-    for(int i=0; i<LOOP_COUNT; i++)
+    for(int i=0; i< LOOP_COUNT; i++)
     {
         //appPublishEvent();   
         ClEventIdT      eventId         = 0;
         printf("Publishing Event\n");     
-        saRc = saEvtEventPublish(gTestInfo.eventHandle, (void *)"Event from external application", strlen("Event from external application"), &eventId);   
+        saRc = saEvtEventPublish(gTestInfo.eventHandle, (void *)"Event from external application", strlen("Event from external application")+1, &eventId);   
     }
 }    
 
-static void
-appEventCallback( SaEvtSubscriptionIdT	subscriptionId,
-                             SaEvtEventHandleT     eventHandle,
-			     SaSizeT eventDataSize)
+static void appEventCallback( SaEvtSubscriptionIdT	subscriptionId, SaEvtEventHandleT     eventHandle, SaSizeT eventDataSize)
 {
     SaAisErrorT  saRc = SA_AIS_OK;
     static ClPtrT   resTest = 0;
@@ -392,60 +389,60 @@ appEventCallback( SaEvtSubscriptionIdT	subscriptionId,
 
 SaAisErrorT openPublisherChannel()
 {
-        SaAisErrorT  rc = SA_AIS_OK;
-        gTestInfo.tstRegEoObj      = 0;
+    SaAisErrorT  rc = SA_AIS_OK;
+    gTestInfo.tstRegEoObj      = 0;
   	gTestInfo.evtInitHandle    = 0;
   	gTestInfo.eventHandle      = 0;
-        gTestInfo.version.releaseCode                    = 'B';
-        gTestInfo.version.majorVersion                   = 01;
-        gTestInfo.version.minorVersion                   = 01;
-        gTestInfo.evtVersion.releaseCode                    = 'B';
-        gTestInfo.evtVersion.majorVersion                   = 01;
-        gTestInfo.evtVersion.minorVersion                   = 01;
-        saNameSet(&gTestInfo.evtChannelName,EVENT_CHANNEL_NAME_1);
-        saNameSet(&gTestInfo.publisherName,PUBLISHER_NAME_1);
-        gTestInfo.running          = 1;
-        gTestInfo.exiting          = 0;
-        SaEvtCallbacksT     evtCallbacks          = {NULL, NULL};
-        printf("Initial event.................... \n");
-        rc = saEvtInitialize(&gTestInfo.evtInitHandle,
-                       &evtCallbacks,
-                       &gTestInfo.evtVersion);
-        if (rc != SA_AIS_OK)
-        {
-            printf( "Failed to init event system[0x%x]\n",rc);
-            return rc;
-        }
-        rc = saEvtChannelOpen (gTestInfo.evtInitHandle,
-                             &gTestInfo.evtChannelName,
-                            (SA_EVT_CHANNEL_PUBLISHER |
-                             SA_EVT_CHANNEL_CREATE),
-                             (ClTimeT)SA_TIME_END,
-                             &evtChannelHandlePublic);
-        if (rc != SA_AIS_OK)
-        {
-            printf( "Failed to open event channel [0x%x]\n",rc);
-            return rc;
-        }
-
-        rc = saEvtEventAllocate(evtChannelHandlePublic, &gTestInfo.eventHandle);
-        if (rc != SA_AIS_OK)
-        {
-            printf( "Failed to cllocate event [0x%x]\n",rc);
-            return rc;
-        }
-
-        rc = saEvtEventAttributesSet(gTestInfo.eventHandle,
-                NULL,
-                1,
-                0,
-                &gTestInfo.publisherName);
-        if (rc != SA_AIS_OK)
-        {
-            printf( "Failed to set event attributes [0x%x]\n",rc);
-            return rc;
-        }
-        printf( "Ttart publish event....................\n");
+    gTestInfo.version.releaseCode                    = 'B';
+    gTestInfo.version.majorVersion                   = 01;
+    gTestInfo.version.minorVersion                   = 01;
+    gTestInfo.evtVersion.releaseCode                    = 'B';
+    gTestInfo.evtVersion.majorVersion                   = 01;
+    gTestInfo.evtVersion.minorVersion                   = 01;
+    saNameSet(&gTestInfo.evtChannelName,EVENT_CHANNEL_NAME);
+    saNameSet(&gTestInfo.publisherName,PUBLISHER_NAME_1);
+    gTestInfo.running          = 1;
+    gTestInfo.exiting          = 0;
+    SaEvtCallbacksT     evtCallbacks          = {NULL, NULL};
+    printf("Initial event.................... \n");
+    rc = saEvtInitialize(&gTestInfo.evtInitHandle,
+                         &evtCallbacks,
+                         &gTestInfo.evtVersion);
+    if (rc != SA_AIS_OK)
+    {
+        printf( "Failed to init event system[0x%x]\n",rc);
         return rc;
+    }
+
+    printf("Opening event publisher to channel [%s]\n",gTestInfo.evtChannelName.value);
+    rc = saEvtChannelOpen (gTestInfo.evtInitHandle,
+                           &gTestInfo.evtChannelName,
+                           (SA_EVT_CHANNEL_PUBLISHER | SA_EVT_CHANNEL_CREATE),
+                           (ClTimeT)SA_TIME_END,
+                           &evtChannelHandlePublic);
+    if (rc != SA_AIS_OK)
+    {
+        printf( "Failed to open event channel [0x%x]\n",rc);
+        return rc;
+    }
+
+    rc = saEvtEventAllocate(evtChannelHandlePublic, &gTestInfo.eventHandle);
+    if (rc != SA_AIS_OK)
+    {
+        printf( "Failed to cllocate event [0x%x]\n",rc);
+        return rc;
+    }
+
+    rc = saEvtEventAttributesSet(gTestInfo.eventHandle,
+                                 NULL,
+                                 1,
+                                 0,
+                                 &gTestInfo.publisherName);
+    if (rc != SA_AIS_OK)
+    {
+        printf( "Failed to set event attributes [0x%x]\n",rc);
+        return rc;
+    }
+    return rc;
 }
 
