@@ -640,7 +640,6 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
         CL_LOG_DEBUG_VERBOSE(("msgId: %hu", msgId));
         memcpy(pRecord, &msgId, sizeof(ClUint16T));
         pRecord += sizeof(ClUint16T);
-        clLogDebug("LOG", "OPE", "streamname 12 ");
         rc = clOsalNanoTimeGet_L(&timeStamp);
         if( CL_OK != rc )
         {
@@ -655,7 +654,7 @@ clLogClntStreamWriteWithHeader(ClLogClntEoDataT    *pClntEoEntry,
         pRecord += sizeof(sequenceNum);
         CL_LOG_DEBUG_VERBOSE(("sequenceNum: %lld", sequenceNum));
         rc = clLogClientMsgArgCopy(msgId, args, recSize - (pRecord - pRecStart), pRecord);
-        clLogDebug("LOG", "OPE", "sending external log to Master node ..." );
+        CL_LOG_DEBUG_VERBOSE(("sending external log to Master node ..."));
     }
     rc=VDECL_VER(clLogExternalSendClientAsync, 4, 0, 0)(pClntEoEntry->hClntIdl, recSize, pRecStart, &pUserKey->streamName, &pUserKey->streamScopeNode,NULL, NULL);
     if( CL_OK != rc )
