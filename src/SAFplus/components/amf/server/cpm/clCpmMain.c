@@ -3735,11 +3735,17 @@ ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                                     notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader, currentLeader);
                     clNodeCacheLeaderUpdate(reportedLeader);
 
-                    /* Only update leaderID if msg come from SC's leader */
-                    if (clCpmIsSC() && (reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress))
+                    /* Only update leaderID if msg come from SC's leader or bridge leader */
+                    if (reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress || (currentLeader == notification.nodeAddress.iocPhyAddress.nodeAddress))
                     {
-                        /* Gas: take new leader and try register level 3 */
-                        clNodeCacheLeaderSend(reportedLeader);
+                        /* Take new leader and try back to register for recovering */
+                        if (clCpmIsSC())
+                        {
+                            /*
+                             * Sending to all Payload nodes in this sub-brain to update leader according to this change
+                             */
+                            clNodeCacheLeaderSend(reportedLeader);
+                        }
                         ClIocAddressT allNodeReps;
                         allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
                         allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
