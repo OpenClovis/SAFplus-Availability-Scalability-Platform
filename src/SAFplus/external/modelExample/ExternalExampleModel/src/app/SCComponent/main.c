@@ -64,7 +64,8 @@ void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState);
 int  errorExit(SaAisErrorT rc);
 SaAisErrorT openPublisherChannel();
 
-#define EVENT_CHANNEL_NAME "TestEventChannel"
+#define EVENT_CHANNEL_NAME "TestEventChannel1"
+#define EVENT_CHANNEL_PUB_NAME "TestEventChannel"
 #define PUBLISHER_NAME "SCComponent"
 SaNameT                 evtChannelName;
 //handle for subscribe event
@@ -128,7 +129,7 @@ int main(int argc, char *argv[])
     }
     
     CL_ASSERT(openPublisherChannel()==SA_AIS_OK);
-    
+
     dispatchLoop();
     
     /* Do the application specific finalization here. */
@@ -392,6 +393,7 @@ void initializeAmf(void)
 
 static void appEventCallback( SaEvtSubscriptionIdT	subscriptionId, SaEvtEventHandleT     eventHandle, SaSizeT eventDataSize)
 {
+    clprintf (CL_LOG_SEV_INFO,"Received event from external app");
     SaAisErrorT  saRc = SA_AIS_OK;
     static ClPtrT   resTest = 0;
     static ClSizeT  resSize = 0;
@@ -429,9 +431,9 @@ void publishEvent(void)
     SaAisErrorT  saRc = SA_AIS_OK;
     ClEventIdT      eventId         = 0;
     const char* evtcontents = "Event from SCComponent application";
-    clprintf(CL_LOG_SEV_INFO,"publishing event [%s] to [%s]", evtcontents, EVENT_CHANNEL_NAME);
+    clprintf(CL_LOG_SEV_INFO,"publishing event [%s] to [%s]", evtcontents, EVENT_CHANNEL_PUB_NAME);
     saRc = saEvtEventPublish(eventForPub, (void *)evtcontents, strlen(evtcontents)+1, &eventId);
-    CL_ASSERT(saRc == SA_AIS_OK);
+    //CL_ASSERT(saRc == SA_AIS_OK);
 }
 
 
@@ -441,7 +443,7 @@ SaAisErrorT openPublisherChannel()
     SaNameT myName;
     SaAisErrorT  rc = SA_AIS_OK;
 
-    saNameSet(&evtChannelName,EVENT_CHANNEL_NAME);
+    saNameSet(&evtChannelName,EVENT_CHANNEL_PUB_NAME);
     saNameSet(&myName,PUBLISHER_NAME);
     
     printf("Opening event publisher to channel [%s]\n",evtChannelName.value);
@@ -512,7 +514,7 @@ void dispatchLoop(void)
 {        
   SaAisErrorT         rc = SA_AIS_OK;
   SaSelectionObjectT amf_dispatch_fd;
-  SaSelectionObjectT evt_dispatch_fd;
+  //SaSelectionObjectT evt_dispatch_fd;
   int maxFd;
   fd_set read_fds;
 
@@ -528,15 +530,12 @@ void dispatchLoop(void)
     errorExit(rc);
   /* if ( (rc = saCkptSelectionObjectGet(ckptLibraryHandle, &ckpt_dispatch_fd)) != SA_AIS_OK)
        errorExit(rc); */
-  if ( (rc = saEvtSelectionObjectGet(evtHandle, &evt_dispatch_fd)) != SA_AIS_OK)
-      errorExit(rc);
     
   maxFd = amf_dispatch_fd;  /* maxFd = max(amf_dispatch_fd,ckpt_dispatch_fd); */
   do
     {
       FD_ZERO(&read_fds);
       FD_SET(amf_dispatch_fd, &read_fds);
-      FD_SET(evt_dispatch_fd, &read_fds);
       /* FD_SET(ckpt_dispatch_fd, &read_fds); */
       struct timeval timeout;
       timeout.tv_sec = 1;
@@ -555,7 +554,6 @@ void dispatchLoop(void)
         }
       publishEvent();
       if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
-      if (FD_ISSET(evt_dispatch_fd,&read_fds)) saEvtDispatch(evtHandle, SA_DISPATCH_ALL);
       /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
     }while(!unblockNow);      
 }
