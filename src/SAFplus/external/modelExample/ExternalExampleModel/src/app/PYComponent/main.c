@@ -80,12 +80,10 @@ ClAmsHAStateT           ha_state = CL_AMS_HA_STATE_NONE;
 /* This process's SAF name */
 SaNameT      appName = {0};
 
-#define EVENT_CHANNEL_NAME "TestEventChannel"
+#define EVENT_CHANNEL_PUB_NAME "TestEventChannel"
 #define PUBLISHER_NAME "TestEventPublisher"
+#define EVENT_CHANNEL_SUB_NAME "TestEventChannel1"
 
-
-#define EVENT_CHANNEL_NAME1 "TestEventChannel1"
-#define PUBLISHER_NAME1 "TestEventPublisher1"
 
 static char     appname[80];
 static void appEventCallback(SaEvtSubscriptionIdT	subscriptionId,SaEvtEventHandleT eventHandle,SaSizeT eventDataSize);
@@ -180,7 +178,7 @@ int main(int argc, char *argv[])
     gTestInfo.evtVersion.releaseCode                    = 'B';
     gTestInfo.evtVersion.majorVersion                   = 01;
     gTestInfo.evtVersion.minorVersion                   = 01;
-    saNameSet(&gTestInfo.evtChannelName,EVENT_CHANNEL_NAME);
+    saNameSet(&gTestInfo.evtChannelName,EVENT_CHANNEL_PUB_NAME);
     saNameSet(&gTestInfo.publisherName,PUBLISHER_NAME);
     gTestInfo.running          = 1;
     gTestInfo.exiting          = 0;
@@ -254,7 +252,7 @@ int main(int argc, char *argv[])
         return rc;
     }
     // Open an event chanel so that we can subscribe to events on that channel
-    saNameSet(&evtChannelName,EVENT_CHANNEL_NAME1);
+    saNameSet(&evtChannelName,EVENT_CHANNEL_SUB_NAME);
     rc = saEvtChannelOpen(evtHandle,&evtChannelName,
             (SA_EVT_CHANNEL_SUBSCRIBER |
                 SA_EVT_CHANNEL_CREATE),
@@ -781,13 +779,14 @@ generate_load_average(char **data, ClSizeT *data_len)
 static ClRcT
 appPublishEvent()
 {
+
     ClEventIdT      eventId         = 0;
     static int      index           = 0;
     SaSizeT         data_len        = 0;
     SaAisErrorT	    saRc = SA_AIS_OK;
     char            *data           = 0;
     typedef void (*Generator)(char **, ClSizeT*);
-    clprintf(CL_LOG_SEV_ERROR, "Publish time event to external application \n");
+    clprintf(CL_LOG_SEV_INFO, "Publish time event to external application \n");
     //
     // Note: to add a new generator, just define it above and then include
     // the new functions name in the generators list.
@@ -977,7 +976,7 @@ ClRcT alarmClockLogInitialize( void )
 
 void* logLoop(void* nothing)
 {
-    int i;
+    int i=0;
     clprintf(CL_LOG_SEV_ERROR, "Starting Log loop");
     while(1)
     {

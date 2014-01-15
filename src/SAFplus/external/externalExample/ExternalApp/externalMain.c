@@ -24,7 +24,7 @@
 
 // Logging utility routines are located in a separate file.
 #include "log.h"
-#define LOOP_COUNT 5
+#define LOOP_COUNT 150
 
 
 /* This local address must match the TIPC node address */
@@ -60,7 +60,6 @@ gTestInfoT gTestInfo;
 
 //********************subscribe *******************
 #define EVENT_CHANNEL_NAME "TestEventChannel"
-#define PUBLISHER_NAME "TestEventPublisher"
 SaNameT                 evtChannelName;
 //handle for subscribe event
 SaEvtChannelHandleT   evtChannelHandle = 0;
@@ -87,7 +86,9 @@ void nodeCacheWait(void)
     ClNodeCacheMemberT nodes[64];
     ClUint32T numNodes;
     ClIocNodeAddressT leader;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 700 };  
+    ClTimerTimeOutT delay;
+    delay.tsSec = 0;
+    delay.tsMilliSec = 700;  
 
     // I need to wait for one SC to tell us about itself for registration and one payload to come up to receive my logs
     // This is specific to this demo.  Your application may need to wait for different nodes...
@@ -141,7 +142,9 @@ int main(int argc, char **argv)
         logWrite(CL_LOG_SEV_NOTICE,"This is a test of an external app doing logging");
         for(int i=0;i<100;i++)
         {
-            ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1 };  
+            ClTimerTimeOutT delay;
+            delay.tsSec = 0;
+            delay.tsMilliSec = 10; 
             logWrite(CL_LOG_SEV_NOTICE,"external app log %d", i);
             clOsalTaskDelay(delay);            
         }            
@@ -352,8 +355,15 @@ static void testEvtMainLoop()
     {
         //appPublishEvent();   
         ClEventIdT      eventId         = 0;
-        printf("Publishing Event\n");     
-        saRc = saEvtEventPublish(gTestInfo.eventHandle, (void *)"Event from external application", strlen("Event from external application")+1, &eventId);   
+        printf("Publishing Event\n");  
+        ClCharT buff[40] = {0};
+        memset(buff,0,sizeof(buff));
+        sprintf(buff,"Event from external application_%d",i);
+        saRc = saEvtEventPublish(gTestInfo.eventHandle, (const void*)buff, strlen(buff), &eventId);   
+        ClTimerTimeOutT delay;
+        delay.tsSec = 0;
+        delay.tsMilliSec = 200;
+        clOsalTaskDelay(delay);
     }
 }    
 
@@ -399,7 +409,7 @@ SaAisErrorT openPublisherChannel()
     gTestInfo.evtVersion.releaseCode                    = 'B';
     gTestInfo.evtVersion.majorVersion                   = 01;
     gTestInfo.evtVersion.minorVersion                   = 01;
-    saNameSet(&gTestInfo.evtChannelName,EVENT_CHANNEL_NAME);
+    saNameSet(&gTestInfo.evtChannelName,EVENT_CHANNEL_NAME_1);
     saNameSet(&gTestInfo.publisherName,PUBLISHER_NAME_1);
     gTestInfo.running          = 1;
     gTestInfo.exiting          = 0;
