@@ -7,13 +7,9 @@
           <type>TIPC</type>
           <plugin>libClTIPC.so</plugin>
         </xport>
-        <xport>
-          <type>UDP</type>
-          <plugin>libClUDP.so</plugin>
-        </xport>
       </xports>
       <protocol default="TIPC">
-        <node name="Node0I0" protocol="TIPC UDP"/>
+        <node name="Node0I0" protocol="TIPC"/>
       </protocol>
       <multicast address="225.1.1.1" port="5678"/>
       <heartbeat>

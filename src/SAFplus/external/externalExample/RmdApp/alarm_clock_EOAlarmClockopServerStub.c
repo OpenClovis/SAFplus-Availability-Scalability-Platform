@@ -29,15 +29,5 @@ ClRcT GetTime_4_0_0(CL_OUT acTimeT_4_0_0*  current)
     return CL_OK;
 }    
 
-ClRcT SetTime_4_0_0(CL_IN acTimeT_4_0_0  time)
-{
-	printf("Called SetTime RPC function: %d:%d:%d", time.hour,time.minute,time.second);
-    return CL_OK;
-}    
-
-ClRcT SetAlarm_4_0_0(CL_IN alarmReactionT_4_0_0  effect, CL_IN acTimeT_4_0_0  time)
-{
-	printf("Called SetAlarm RPC function %d:%d:%d effect %d",time.hour,time.minute,time.second,effect);
-	return CL_OK;
-}    
+  
 
