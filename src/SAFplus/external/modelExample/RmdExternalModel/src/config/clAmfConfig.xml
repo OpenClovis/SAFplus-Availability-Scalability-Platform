@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <amfConfig xmlns="cpmconfig.ecore" version="B.01.01">
+      <cpmConfigs>
+        <cpmConfig cpmType="GLOBAL" nodeType="SC">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="corSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+        <cpmConfig cpmType="LOCAL" nodeType="PY">
+          <bootConfigs>
+            <bootConfig defaultBootLevel="5" maxBootLevel="6" name="default"/>
+          </bootConfigs>
+          <aspServiceUnits>
+            <aspServiceUnit name="gmsSU"/>
+            <aspServiceUnit name="eventSU"/>
+            <aspServiceUnit name="ckptSU"/>
+            <aspServiceUnit name="txnSU"/>
+            <aspServiceUnit name="oampSU"/>
+            <aspServiceUnit name="logSU"/>
+            <aspServiceUnit name="nameSU"/>
+            <aspServiceUnit name="msgSU"/>
+          </aspServiceUnits>
+        </cpmConfig>
+      </cpmConfigs>
+      <nodeInstances>
+        <nodeInstance chassisId="0" name="SCI0" nodeMoId="\Chassis:0\Blade0:0" slotId="0" type="SC">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="SCComponentSUI0" rank="0" type="SCComponentSU">
+              <componentInstances>
+                <componentInstance name="SCComponentI0" type="SCComponent"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports>
+            <xport>
+              <type>TIPC</type>
+              <plugin>libClTIPC.so</plugin>
+            </xport>
+          </xports>
+          <default>TIPC</default>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+        <nodeInstance chassisId="0" name="SCI1" nodeMoId="\Chassis:0\Blade0:1" slotId="0" type="SC">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="SCComponentSUI1" rank="0" type="SCComponentSU">
+              <componentInstances>
+                <componentInstance name="SCComponentI1" type="SCComponent"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports>
+            <xport>
+              <type>TIPC</type>
+              <plugin>libClTIPC.so</plugin>
+            </xport>
+          </xports>
+          <default>TIPC</default>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+        <nodeInstance chassisId="0" name="PYI0" nodeMoId="\Chassis:0\Blade0:2" slotId="0" type="PY">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="PYComponentSUI0" rank="0" type="PYComponentSU">
+              <componentInstances>
+                <componentInstance name="PYComponentI0" type="PYComponent"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports>
+            <xport>
+              <type>TIPC</type>
+              <plugin>libClTIPC.so</plugin>
+            </xport>
+          </xports>
+          <default>TIPC</default>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+        <nodeInstance chassisId="0" name="PYI1" nodeMoId="\Chassis:0\Blade0:3" slotId="0" type="PY">
+          <serviceUnitInstances>
+            <serviceUnitInstance name="PYComponentSUI1" rank="0" type="PYComponentSU">
+              <componentInstances>
+                <componentInstance name="PYComponentI1" type="PYComponent"/>
+              </componentInstances>
+            </serviceUnitInstance>
+          </serviceUnitInstances>
+          <dependencies node=""/>
+          <xports>
+            <xport>
+              <type>TIPC</type>
+              <plugin>libClTIPC.so</plugin>
+            </xport>
+          </xports>
+          <default>TIPC</default>
+          <bridge>CL_FALSE</bridge>
+        </nodeInstance>
+      </nodeInstances>
+      <serviceGroups>
+        <serviceGroup name="SCComponentSGI0" type="SCComponentSG">
+          <serviceInstances>
+            <serviceInstance name="SCComponentSII0" type="SCComponentSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="SCComponentCSII0" type="SCComponentCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>SCComponentSUI0</associatedServiceUnit>
+            <associatedServiceUnit>SCComponentSUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+        <serviceGroup name="PYComponentSGI0" type="PYComponentSG">
+          <serviceInstances>
+            <serviceInstance name="PYComponentSII0" type="PYComponentSI">
+              <componentServiceInstances>
+                <componentServiceInstance name="PYComponentCSII0" type="PYComponentCSI">
+                  <dependencies componentServiceInstance=""/>
+                </componentServiceInstance>
+              </componentServiceInstances>
+              <dependencies serviceInstance=""/>
+              <prefferedServiceUnits prefferedServiceUnit=""/>
+            </serviceInstance>
+          </serviceInstances>
+          <associatedServiceUnits>
+            <associatedServiceUnit>PYComponentSUI0</associatedServiceUnit>
+            <associatedServiceUnit>PYComponentSUI1</associatedServiceUnit>
+          </associatedServiceUnits>
+        </serviceGroup>
+      </serviceGroups>
+    </amfConfig>
+  </version>
+</openClovisAsp>
