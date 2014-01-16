@@ -27,8 +27,6 @@ ClRcT clAlarm_clock_EOIdlSyncDefer(ClIdlHandleT *pIdlHdl);
 ClRcT clAlarm_clock_EOClientUninstall(void);
 extern ClRcT clAlarm_clock_EOClientInstall(void);
 extern ClRcT GetTimeServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
-extern ClRcT SetTimeServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
-extern ClRcT SetAlarmServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClUint32T  alarm_clock_EOidlSyncKey;
 extern ClHandleDatabaseHandleT  alarm_clock_EOidlDatabaseHdl;
 

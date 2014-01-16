@@ -30,15 +30,6 @@ ClRcT GetTime_4_0_0(CL_OUT acTimeT_4_0_0*  current);
 
 ClRcT GetTimeResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_OUT  acTimeT_4_0_0  current);
 
-ClRcT SetTime_4_0_0(CL_IN acTimeT_4_0_0  time);
-
-ClRcT SetTimeResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
-
-ClRcT SetAlarm_4_0_0(CL_IN alarmReactionT_4_0_0  effect, CL_IN acTimeT_4_0_0  time);
-
-ClRcT SetAlarmResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode);
-
-
 #ifdef __cplusplus
 }
 #endif
