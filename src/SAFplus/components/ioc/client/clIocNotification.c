@@ -837,10 +837,15 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
 
     if ((compAddr.portId == 0) && (event == CL_IOC_NODE_DOWN) && (compAddr.nodeAddress == gIocLocalBladeAddress))
     {
+#ifdef NO_SAF
+        // The external application is connected to TIPC but not AMF -- exactly what we system looks at to trigger
+        // it to kick the node out of the cluster.  So do not quit yourself if you are external...
+#else        
         ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
         clLogCritical ("IOC", "NOT", "Controller has kicked this node out of the cluster -- quitting in 1 second.");
         clOsalTaskDelay(delay);
-        exit(0);        
+        exit(0);
+#endif        
     }
     
     out:

@@ -3370,7 +3370,7 @@ ClRcT clEventGlobalCkptInitial()
 	    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"create userInfo global checkpoint failed");
 	    	return rc;
 	    }
-	    if(clCpmIsSC())
+	    if(clCpmIsMaster())
 	    {
 	    	rc = clCkptActiveReplicaSet(ckpt_user_info_handle);	
 	    }
@@ -3381,7 +3381,7 @@ ClRcT clEventGlobalCkptInitial()
 	    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"create User channelOpen global checkpoint failed()");
 	      	return rc;
 	    }
-	    if(clCpmIsSC())
+	    if(clCpmIsMaster())
 	    {
 	    	rc = clCkptActiveReplicaSet(ckpt_channel_open_handle);	
 	    }
@@ -3392,7 +3392,7 @@ ClRcT clEventGlobalCkptInitial()
 	    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"create channelSub global checkpoint failed()");
 	      	return rc;
 	    }
-	    if(clCpmIsSC())
+	    if(clCpmIsMaster())
 	    {
 	    	rc = clCkptActiveReplicaSet(ckpt_channel_sub_handle);	
 	    }
@@ -4443,6 +4443,9 @@ clEventAddrUpdate(ClIocNodeAddressT  leader,
 	{
 		currentNodeLeader = leader;
 		clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"...................clEventAddrUpdate() : leader change to me \n");
+    	rc = clCkptActiveReplicaSet(ckpt_user_info_handle);	
+    	rc = clCkptActiveReplicaSet(ckpt_channel_open_handle);	
+    	rc = clCkptActiveReplicaSet(ckpt_channel_sub_handle);
 	    rc = clEventExternalRecoverState(CL_TRUE);
 		return rc;
 	}

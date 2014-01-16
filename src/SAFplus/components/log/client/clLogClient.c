@@ -589,18 +589,14 @@ clLogStreamOpen(ClLogHandleT            hLog,
 
     if( 0 != timeout )
     {
-        //clLogDebug("LOG", "OPE", "Sending stream 1 ");
-
 #ifdef NO_SAF
         server.addressType      = CL_IDL_ADDRESSTYPE_IOC;
         server.address.iocAddress.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
         server.address.iocAddress.iocPhyAddress.portId = CL_IOC_LOG_PORT;
-        clLogDebug("LOG", "OPE", "Sending stream 2 ");
 #else
         server.addressType      = CL_IDL_ADDRESSTYPE_IOC;
         server.address.iocAddress.iocPhyAddress.nodeAddress = clIocLocalAddressGet();
         server.address.iocAddress.iocPhyAddress.portId = CL_IOC_LOG_PORT;
-        clLogDebug("LOG", "OPE", "Sending stream 3 ");
 #endif
         
         idlObj.address          = server;
@@ -619,8 +615,7 @@ clLogStreamOpen(ClLogHandleT            hLog,
 #ifdef NO_SAF
     server.addressType      = CL_IDL_ADDRESSTYPE_IOC;
     server.address.iocAddress.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-    server.address.iocAddress.iocPhyAddress.portId = CL_IOC_LOG_PORT;
-    clLogDebug("LOG", "OPE", "Sending stream 4 ");
+    server.address.iocAddress.iocPhyAddress.portId = CL_IOC_LOG_PORT;    
     idlObj.address          = server;
     idlObj.flags            = CL_RMD_CALL_DO_NOT_OPTIMIZE;
     idlObj.options.timeout  = timeout;
@@ -646,10 +641,10 @@ clLogStreamOpen(ClLogHandleT            hLog,
     ClUint32T isExternal =0;
 #ifdef NO_SAF
     isExternal =1;
-    delay.tsSec = 4;
+    delay.tsSec = 2;
 #endif
     /* Make the sync call to the Server*/
-    clLogDebug("LOG", "OPE", "Sending stream [%.*s] open call to server", streamName.length, streamName.value);
+    CL_LOG_DEBUG_VERBOSE(("Sending stream [%.*s] open call to server", streamName.length, streamName.value));
     do
     {
         rc = VDECL_VER(clLogSvrStreamOpenClientSync, 4, 0, 0)(pClntEoEntry->hClntIdl, &streamName, streamScope,
@@ -657,7 +652,7 @@ clLogStreamOpen(ClLogHandleT            hLog,
                                                               pClntEoEntry->compId, appPort,isExternal,&recSize, &shmName, &shmSize);
     }while(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN 
            && 
-           ++maxTries < 5 
+           ++maxTries < 15 
            && 
            clOsalTaskDelay(delay) == CL_OK);
 
@@ -679,13 +674,8 @@ clLogStreamOpen(ClLogHandleT            hLog,
         clHeapFree(shmName.pValue);
         return rc;
     }
-#ifdef NO_SAF
-    sleep(4);
-    clLogDebug("LOG", "OPE", "clLogClntSSOResponseProcess with out open share memory. record Size = [%u] ",recSize );
-#endif
     rc = clLogClntSSOResponseProcess(hLog, &streamName, &nodeName,
                                      &shmName, shmSize, phStream,recSize);
-
     clHeapFree(shmName.pValue);
 
     if( CL_OK != rc )
@@ -897,7 +887,7 @@ clLogVWriteAsyncWithHeader(ClLogStreamHandleT  hStream,
                                         msgId, pMsgHeader, args, pInfo->hClntStreamNode);
     if( CL_OK != rc )
     {
-    	clLogDebug("LOG", "OPE", "clLogClntStreamWriteWithHeader ok 0");
+    	CL_LOG_DEBUG_VERBOSE(("clLogClntStreamWriteWithHeader ok 0"));
         CL_LOG_CLEANUP(clHandleCheckin(pClntEoEntry->hClntHandleDB, hStream),
                 CL_OK);
         if(unlock)

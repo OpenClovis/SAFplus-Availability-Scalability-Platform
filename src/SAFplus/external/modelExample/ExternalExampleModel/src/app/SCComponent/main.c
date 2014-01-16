@@ -28,6 +28,7 @@
 #include <clCommon.h>
 
 /* SAFplus Client Includes */
+#include <clDebugApi.h>
 #include <clLogApi.h>
 #include <clCpmApi.h>
 #include <saAmf.h>
@@ -42,6 +43,8 @@
 #include <clHandleApi.h>
 
 /* Local function declarations */
+ClRcT evtSub(void);
+
 
 /* The application should fill these functions */
 void safTerminate(SaInvocationT invocation, const SaNameT *compName);
@@ -59,7 +62,15 @@ void initializeAmf(void);
 void dispatchLoop(void);
 void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState);
 int  errorExit(SaAisErrorT rc);
+SaAisErrorT openPublisherChannel();
 
+#define EVENT_CHANNEL_NAME "TestEventChannel1"
+#define EVENT_CHANNEL_PUB_NAME "TestEventChannel"
+#define PUBLISHER_NAME "SCComponent"
+SaNameT                 evtChannelName;
+//handle for subscribe event
+SaEvtChannelHandleT     evtChannelHandle = 0;
+SaEvtHandleT            evtHandle;
 
 /******************************************************************************
  * Optional Features
@@ -111,6 +122,14 @@ int main(int argc, char *argv[])
     strncpy(appname, (char*)appName.value, min(sizeof appname, appName.length));
     appname[min(sizeof appname - 1, appName.length)] = 0;
     clprintf(CL_LOG_SEV_INFO, "Instantiated as component instance %s.\n", appName.value);
+
+    if (evtSub() != CL_OK)
+    {
+        CL_ASSERT(0);
+    }
+    
+    CL_ASSERT(openPublisherChannel()==SA_AIS_OK);
+
     dispatchLoop();
     
     /* Do the application specific finalization here. */
@@ -369,13 +388,133 @@ void initializeAmf(void)
     
     clprintf (CL_LOG_SEV_INFO, "Component [%.*s] : PID [%d]. Initializing\n", appName.length, appName.value, mypid);
     clprintf (CL_LOG_SEV_INFO, "   IOC Address             : 0x%x\n", clIocLocalAddressGet());
-    clprintf (CL_LOG_SEV_INFO, "   IOC Port                : 0x%x\n", iocPort);
+    clprintf (CL_LOG_SEV_INFO, "   IOC Port                : 0x%x\n", iocPort);    
 }
+
+static void appEventCallback( SaEvtSubscriptionIdT	subscriptionId, SaEvtEventHandleT     eventHandle, SaSizeT eventDataSize)
+{
+    clprintf (CL_LOG_SEV_INFO,"Received event from external app");
+    SaAisErrorT  saRc = SA_AIS_OK;
+    static ClPtrT   resTest = 0;
+    static ClSizeT  resSize = 0;
+    if (resTest != 0)
+    {
+        // Maybe try to save the previously allocated buffer if it's big
+        // enough to hold the new event message.
+        clHeapFree((char *)resTest);
+        resTest = 0;
+        resSize = 0;
+    }
+    resTest = clHeapAllocate(eventDataSize + 1);
+    if (resTest == 0)
+    {
+        clprintf(CL_LOG_SEV_ERROR,"Failed to allocate space for event");
+        return;
+    }
+    
+    *(((char *)resTest) + eventDataSize) = 0;
+    resSize = eventDataSize;
+    saRc = saEvtEventDataGet(eventHandle, resTest, &resSize);
+    if (saRc!= SA_AIS_OK)
+    {
+        clprintf(CL_LOG_SEV_ERROR,"Failed to get event data [0x%x]\n",saRc);
+    }
+    clprintf (CL_LOG_SEV_INFO,"Received event from external app: %s\n", (char *)resTest);
+    return;
+}
+
+SaEvtChannelHandleT pubChannelHandle = 0;
+SaEvtEventHandleT eventForPub;
+
+void publishEvent(void)
+{
+    SaAisErrorT  saRc = SA_AIS_OK;
+    ClEventIdT      eventId         = 0;
+    const char* evtcontents = "Event from SCComponent application";
+    clprintf(CL_LOG_SEV_INFO,"publishing event [%s] to [%s]", evtcontents, EVENT_CHANNEL_PUB_NAME);
+    saRc = saEvtEventPublish(eventForPub, (void *)evtcontents, strlen(evtcontents)+1, &eventId);
+    //CL_ASSERT(saRc == SA_AIS_OK);
+}
+
+
+SaAisErrorT openPublisherChannel()
+{
+    SaNameT evtChannelName;
+    SaNameT myName;
+    SaAisErrorT  rc = SA_AIS_OK;
+
+    saNameSet(&evtChannelName,EVENT_CHANNEL_PUB_NAME);
+    saNameSet(&myName,PUBLISHER_NAME);
+    
+    printf("Opening event publisher to channel [%s]\n",evtChannelName.value);
+    rc = saEvtChannelOpen (evtHandle, &evtChannelName, (SA_EVT_CHANNEL_PUBLISHER | SA_EVT_CHANNEL_CREATE), (ClTimeT)SA_TIME_END, &pubChannelHandle);
+    if (rc != SA_AIS_OK)
+    {
+        printf( "Failed to open event channel [0x%x]\n",rc);
+        return rc;
+    }
+
+    rc = saEvtEventAllocate(pubChannelHandle, &eventForPub);
+    if (rc != SA_AIS_OK)
+    {
+        printf( "Failed to cllocate event [0x%x]\n",rc);
+        return rc;
+    }
+
+    rc = saEvtEventAttributesSet(eventForPub, NULL, 1, 0, &myName);
+    if (rc != SA_AIS_OK)
+    {
+        printf( "Failed to set event attributes [0x%x]\n",rc);
+        return rc;
+    }
+    return rc;
+}
+
+
+
+
+ClRcT evtSub(void)
+{
+    ClRcT rc = CL_OK;
+        //  Open a subscribe event channel and start receiving events.
+    clprintf(CL_LOG_SEV_INFO,"Open Event subscription to %s", EVENT_CHANNEL_NAME);        
+    const SaEvtCallbacksT evtCallbacks =
+    {
+        NULL,
+        appEventCallback
+    };
+    SaVersionT  evtVersion = CL_EVENT_VERSION;
+    rc = saEvtInitialize(&evtHandle, &evtCallbacks, &evtVersion);
+    if (rc != SA_AIS_OK)
+    {
+        printf("Failed to init event mechanism [0x%x]\n",rc);
+        return rc;
+    }
+
+    saNameSet(&evtChannelName,EVENT_CHANNEL_NAME);
+    rc = saEvtChannelOpen(evtHandle,&evtChannelName, (SA_EVT_CHANNEL_SUBSCRIBER | SA_EVT_CHANNEL_CREATE), (SaTimeT)SA_TIME_END, &evtChannelHandle);
+    if (rc != SA_AIS_OK)
+    {
+        printf("Failure opening event channel[0x%x] at %ld\n", rc, time(0L));
+        return rc;
+        
+    }
+    rc = saEvtEventSubscribe(evtChannelHandle, NULL, 1);
+    if (rc != SA_AIS_OK)
+    {
+        printf("Failed to subscribe to event channel [0x%x]\n", rc);
+        return rc;
+    }
+
+    return CL_OK;
+}
+
 
 void dispatchLoop(void)
 {        
   SaAisErrorT         rc = SA_AIS_OK;
   SaSelectionObjectT amf_dispatch_fd;
+  //SaSelectionObjectT evt_dispatch_fd;
   int maxFd;
   fd_set read_fds;
 
@@ -398,8 +537,11 @@ void dispatchLoop(void)
       FD_ZERO(&read_fds);
       FD_SET(amf_dispatch_fd, &read_fds);
       /* FD_SET(ckpt_dispatch_fd, &read_fds); */
-        
-      if( select(maxFd + 1, &read_fds, NULL, NULL, NULL) < 0)
+      struct timeval timeout;
+      timeout.tv_sec = 1;
+      timeout.tv_usec = 0;
+      
+      if( select(maxFd + 1, &read_fds, NULL, NULL, &timeout) < 0)
         {
           char errorStr[80];
           int err = errno;
@@ -410,6 +552,7 @@ void dispatchLoop(void)
           clprintf (CL_LOG_SEV_ERROR, "Error [%d] during dispatch loop select() call: [%s]",err,errorStr);
           break;
         }
+      publishEvent();
       if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
       /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
     }while(!unblockNow);      
