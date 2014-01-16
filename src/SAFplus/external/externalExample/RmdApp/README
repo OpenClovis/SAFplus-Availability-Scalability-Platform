@@ -7,8 +7,9 @@ export LD_LIBRARY_PATH= <externalLib>
 export ASP_CONFIG=etc	
 modprobe tipc
 tipc-config -netid=<netid> -addr=1.1.4 -be=<bearer>
-start Node0I0 from rmdExampleModel
-./rmdExternalMain
-start Node1I0 from rmdExampleModel
+start SCI0 and SCI1 from rmdExampleModel
+Run ./rmdExternalMain
 
-Test : Node1I0 send rmd sync and async to Node0I0 and RmdApp to get current time
+Test : 
+ - PYI0 send rmd sync and async Rmd to SCI0 and external App to get current time.
+ - external app send sync Rmd to SC01 to get current time.
