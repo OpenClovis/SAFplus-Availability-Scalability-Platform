@@ -1,8 +1,0 @@
-Build RmdApp :
-g++ -o rmdExternalMain rmdExternalMain.c  alarm_clock_EOClient.c alarm_clock_EOServer.c  alarm_clock_EOAlarmClockopServerStub.c alarm_clock_EOAlarmClockopServer.c common/clIdlOpen.c common/xdrAcClockTMarshall.c common/xdrAcClockTUnMarshall.c common/xdrAcTimeTMarshall.c common/xdrAcTimeTUnMarshall.c -I<SAFPlus_INCLUDE>  -DNO_SAF  -lm -lmw  -L<externalLib> -lrt -lm -ldl -lpthread
-Run RmdApp : 
-export LD_LIBRARY_PATH= <externalLib>
-export ASP_CONFIG=etc	
-modprobe tipc
-tipc-config -netid=<netid> -addr=1.1.4 -be=<bearer>
-./rmdExternalMain
