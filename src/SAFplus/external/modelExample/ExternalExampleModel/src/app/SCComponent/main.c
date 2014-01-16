@@ -445,7 +445,8 @@ SaAisErrorT openPublisherChannel()
 
     saNameSet(&evtChannelName,EVENT_CHANNEL_PUB_NAME);
     saNameSet(&myName,PUBLISHER_NAME);
-    
+
+    #if 0
     printf("Opening event publisher to channel [%s]\n",evtChannelName.value);
     rc = saEvtChannelOpen (evtHandle, &evtChannelName, (SA_EVT_CHANNEL_PUBLISHER | SA_EVT_CHANNEL_CREATE), (ClTimeT)SA_TIME_END, &pubChannelHandle);
     if (rc != SA_AIS_OK)
@@ -453,8 +454,9 @@ SaAisErrorT openPublisherChannel()
         printf( "Failed to open event channel [0x%x]\n",rc);
         return rc;
     }
-
-    rc = saEvtEventAllocate(pubChannelHandle, &eventForPub);
+#endif
+    
+    rc = saEvtEventAllocate(evtChannelHandle, &eventForPub);
     if (rc != SA_AIS_OK)
     {
         printf( "Failed to cllocate event [0x%x]\n",rc);
@@ -492,7 +494,7 @@ ClRcT evtSub(void)
     }
 
     saNameSet(&evtChannelName,EVENT_CHANNEL_NAME);
-    rc = saEvtChannelOpen(evtHandle,&evtChannelName, (SA_EVT_CHANNEL_SUBSCRIBER | SA_EVT_CHANNEL_CREATE), (SaTimeT)SA_TIME_END, &evtChannelHandle);
+    rc = saEvtChannelOpen(evtHandle,&evtChannelName, (SA_EVT_CHANNEL_PUBLISHER | SA_EVT_CHANNEL_SUBSCRIBER | SA_EVT_CHANNEL_CREATE), (SaTimeT)SA_TIME_END, &evtChannelHandle);
     if (rc != SA_AIS_OK)
     {
         printf("Failure opening event channel[0x%x] at %ld\n", rc, time(0L));
