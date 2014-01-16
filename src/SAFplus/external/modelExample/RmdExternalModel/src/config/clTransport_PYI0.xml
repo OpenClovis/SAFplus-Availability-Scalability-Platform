@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<openClovisAsp>
+  <version v0="4.0.0">
+    <multixport:multixport xmlns:multixport="multixport.ecore">
+      <xports>
+        <xport>
+          <type>TIPC</type>
+          <plugin>libClTIPC.so</plugin>
+        </xport>
+      </xports>
+      <protocol default="TIPC">
+        <node name="SCI0" protocol="TIPC"/>
+        <node name="SCI1" protocol="TIPC"/>
+        <node name="PYI0" protocol="TIPC"/>
+        <node name="PYI1" protocol="TIPC"/>
+      </protocol>
+    </multixport:multixport>
+  </version>
+</openClovisAsp>

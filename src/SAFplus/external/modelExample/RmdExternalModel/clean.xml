@@ -1,0 +1,16 @@
+<?xml version='1.0'?>
+<project name="Clean" default="all">
+<!-- Build -->	
+<target name="clean">
+	<exec dir="${projectarea.loc}" executable="${script.file}" failonerror="true">
+	<arg line="${project.name}"/>
+	<arg line="${toolchain.name}"/>
+	</exec>		
+</target>
+<!--
+Target to build Project.
+-->
+<target name="all"
+    depends="clean"/>
+    <echo>make clean started for ${project.name}</echo>
+</project>
