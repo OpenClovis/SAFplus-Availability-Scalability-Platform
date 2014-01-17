@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     ClRcT rc = CL_OK;
     rc = clExtInitialize(ioc_address_local);
     sleep(7);  // wait for node cache sync
-    nodeCachePoll();
+    // This call loops forever printing the current cluster membership state -- for debugging and illustrative purposes: nodeCachePoll();
     
     if (rc != CL_OK)
     {
