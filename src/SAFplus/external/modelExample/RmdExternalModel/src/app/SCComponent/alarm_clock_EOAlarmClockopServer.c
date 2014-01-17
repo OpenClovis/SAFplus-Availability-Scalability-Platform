@@ -18,8 +18,8 @@
 #include "alarm_clock_EOAlarmClockopServer.h"
 #include "alarm_clock_EOServer.h"
 
-ClHandleDatabaseHandleT  alarm_clock_EOidlDatabaseHdl = 0;
-ClUint32T                alarm_clock_EOidlSyncKey     = 0;
+extern ClUint32T  alarm_clock_EOidlSyncKey;
+extern ClHandleDatabaseHandleT  alarm_clock_EOidlDatabaseHdl;
 
 
 
@@ -113,6 +113,4 @@ Label1:
 Label0:
     return rc;
 }
-
-
 

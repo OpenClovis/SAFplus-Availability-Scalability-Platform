@@ -1,3 +1,4 @@
+
 /*********************************************************************
 * File: 
 *********************************************************************/
@@ -11,27 +12,27 @@
 *     
 *********************************************************************/
 
-#ifndef _ALARM_CLOCK_EO_SERVER_H_
-#define _ALARM_CLOCK_EO_SERVER_H_
+#ifndef _ALARM_CLOCK_EOALARMCLOCKOP_SERVER_H_
+#define _ALARM_CLOCK_EOALARMCLOCKOP_SERVER_H_
 #ifdef __cplusplus
 extern "C" {
 #endif
 #include <clXdrApi.h>
 #include <clIdlApi.h>
 #include <ipi/clRmdIpi.h>
-#include "./common/clientIDDefinitions.h"
-#include "./common/xdrAlarmReactionT.h"
-#include "./common/xdrAcTimeT.h"
+#include "../common/clientIDDefinitions.h"
+#include "xdrAlarmReactionT.h"
+#include "xdrAcTimeT.h"
 
-ClRcT clAlarm_clock_EOIdlSyncDefer(ClIdlHandleT *pIdlHdl);
-ClRcT clAlarm_clock_EOClientUninstall(void);
-extern ClRcT clAlarm_clock_EOClientInstall(void);
-extern ClRcT GetTimeServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
-extern ClUint32T  alarm_clock_EOidlSyncKey;
-extern ClHandleDatabaseHandleT  alarm_clock_EOidlDatabaseHdl;
+
+
+ClRcT GetTime_4_0_0(CL_OUT acTimeT_4_0_0*  current);
+
+ClRcT GetTimeResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_OUT  acTimeT_4_0_0  current);
+
+
 
 #ifdef __cplusplus
 }
-
 #endif
-#endif /*_ALARM_CLOCK_EO_SERVER_H_*/
+#endif /*_ALARM_CLOCK_EOALARMCLOCKOP_SERVER_H_*/

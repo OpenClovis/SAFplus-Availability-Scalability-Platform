@@ -3689,12 +3689,12 @@ clAmsCompValidateConfig(
     AMS_VALIDATE_BOOL_VALUE(comp->config.isRestartable);
     AMS_VALIDATE_BOOL_VALUE(comp->config.nodeRebootCleanupFail);
 
-    if (    comp->config.numMaxInstantiate <= 0 ||
-            comp->config.numMaxInstantiateWithDelay <= 0 ||
-            comp->config.numMaxTerminate <=0 ||
-            comp->config.numMaxAmStart <=0 ||
-            comp->config.numMaxAmStop <=0 ||
-            comp->config.numMaxActiveCSIs <=0 )
+    if (    comp->config.numMaxInstantiate < 0 ||
+            comp->config.numMaxInstantiateWithDelay < 0 ||
+            comp->config.numMaxTerminate < 0 ||
+            comp->config.numMaxAmStart < 0 ||
+            comp->config.numMaxAmStop < 0 ||
+            comp->config.numMaxActiveCSIs < 0 )
     {
         AMS_LOG ( CL_LOG_SEV_ERROR,("Component [%s] should have positive values for " 
                                   "attributes : numMaxInstantiate, numMaxInstantiateWithDelay, " 

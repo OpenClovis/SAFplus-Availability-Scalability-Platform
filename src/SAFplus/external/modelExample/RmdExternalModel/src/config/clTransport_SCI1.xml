@@ -9,14 +9,11 @@
         </xport>
       </xports>
       <protocol default="TIPC">
-        <node name="Node0I0" protocol="TIPC"/>
+        <node name="SCI0" protocol="TIPC"/>
+        <node name="SCI1" protocol="TIPC"/>
+        <node name="PYI0" protocol="TIPC"/>
+        <node name="PYI1" protocol="TIPC"/>
       </protocol>
-      <multicast address="225.1.1.1" port="5678"/>
-      <heartbeat>
-        <interval>3000</interval>
-        <intervalLocal>3000</intervalLocal>
-        <retries>3</retries>
-      </heartbeat>
     </multixport:multixport>
   </version>
 </openClovisAsp>

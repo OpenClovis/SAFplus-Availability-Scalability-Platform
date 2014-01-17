@@ -25,9 +25,8 @@ ClRcT GetTime_4_0_0(CL_OUT acTimeT_4_0_0*  current)
 	current->hour = tm.tm_hour;
 	current->minute = tm.tm_min;
 	current->second = tm.tm_sec;
-	printf("GetTime_4_0_0 : Called GetTime RPC function : %d:%d:%d \n" ,tm.tm_hour,tm.tm_min,tm.tm_sec);
+	printf("Called GetTime RPC function");
     return CL_OK;
 }    
 
-  
 
