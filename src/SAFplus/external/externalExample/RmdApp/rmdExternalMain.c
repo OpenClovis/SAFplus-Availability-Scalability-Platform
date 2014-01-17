@@ -56,6 +56,42 @@ ClRcT eoTableInitialize(ClIocLogicalAddressT addr, ClIocPortT port)
     return clrc;
 }
 
+#include <clNodeCache.h>
+
+const char* Cap2Str(ClUint32T cap)
+{
+    if(CL_NODE_CACHE_LEADER_CAPABILITY(cap)) return "leader";
+    if (CL_NODE_CACHE_SC_CAPABILITY(cap)) return "controller";
+    if (CL_NODE_CACHE_PL_CAPABILITY(cap)) return "payload";
+    return "unknown";
+}
+void nodeCachePoll(void)
+{
+    unsigned int done = CL_FALSE;
+    ClNodeCacheMemberT nodes[64];
+    ClUint32T numNodes;
+    ClIocNodeAddressT leader;
+    ClTimerTimeOutT delay;
+    delay.tsSec = 1;
+    delay.tsMilliSec = 0;  
+
+    while(1)  
+    {
+        numNodes = 64;
+
+        printf("Nodes in the cluster:\n");
+        clNodeCacheViewGet(nodes,&numNodes);
+        for (int i = 0; i<numNodes;i++)
+        {
+            printf("%30s: Address: %d,  Version: %x  Capability: %s\n",nodes[i].name,nodes[i].address,nodes[i].version,Cap2Str(nodes[i].capability));
+        }      
+        
+        clOsalTaskDelay(delay);        
+    }
+    
+    
+}
+
 
 int main(int argc, char **argv)
 {
@@ -63,6 +99,9 @@ int main(int argc, char **argv)
     int ioc_address_local = LOCAL_ADDRESS;
     ClRcT rc = CL_OK;
     rc = clExtInitialize(ioc_address_local);
+    sleep(7);  // wait for node cache sync
+    nodeCachePoll();
+    
     if (rc != CL_OK)
     {
         printf("Error: failed to Initialize External libraries\n");

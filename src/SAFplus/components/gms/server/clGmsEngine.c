@@ -845,14 +845,12 @@ _clGmsEngineLeaderElect(
         if ((currentNode->nodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId) && 
             (*leaderNodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId))
         {
-            clLog(DBG, CLM, NA,
-                    "I am the leader. Updating my global data structure");
+            clLog(DBG, CLM, NA, "I am the leader. Updating my global data structure");
             /* If I am elected as leader, update the global database.*/
             gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader = CL_TRUE;
-            gmsGlobalInfo.config.thisNodeInfo.isPreferredLeader = 
-                currentNode->isPreferredLeader;
-            gmsGlobalInfo.config.thisNodeInfo.leaderPreferenceSet = 
-                currentNode->leaderPreferenceSet;
+            gmsGlobalInfo.config.thisNodeInfo.isPreferredLeader = currentNode->isPreferredLeader;
+            gmsGlobalInfo.config.thisNodeInfo.leaderPreferenceSet = currentNode->leaderPreferenceSet;
+
         }
     }
 
@@ -868,7 +866,17 @@ _clGmsEngineLeaderElect(
          * "gratuitous" sending of our view of the leader to other AMFs to update
          *  node cache on ALL nodes via a "gratuitous" IOC notification
          */
-        clNodeCacheLeaderSend(*leaderNodeId);
+        clNodeCacheLeaderSend(*leaderNodeId);  // GAS, seems to be not working... 
+
+        if (gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader == CL_TRUE)
+        {
+            /* Notify all nodes that I am the leader.  It is necessary to do this so that external apps/nodes (with no AMF or GMS) receive the new leader notification */
+            ClIocAddressT allNodeReps;            
+            allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+            allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+            ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, currentNode->nodeId, CL_IOC_BROADCAST_ADDRESS);
+            clIocNotificationNodeStatusSend(gmsGlobalInfo.gmsEoObject->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, currentNode->nodeId, (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
+        }
     }
 
 done_return:
