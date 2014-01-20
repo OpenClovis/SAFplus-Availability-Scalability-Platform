@@ -4465,12 +4465,7 @@ ClRcT cpmValidateEnv(void)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_OP_NOT_PERMITTED);
 
-    gClAspRestart = clParseEnvBoolean("ASP_RESTART_ASP");
-
-    if (clParseEnvBoolean("ASP_NODE_RESTART") == CL_TRUE)
-    {
-        gClAspRestart = CL_TRUE;
-    }
+    gClAspRestart = clParseEnvBoolean("ASP_NODE_RESTART");
 
     if (clParseEnvBoolean("ASP_WITHOUT_CPM") == CL_TRUE)
     {
