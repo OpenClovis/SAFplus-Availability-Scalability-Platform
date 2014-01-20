@@ -190,6 +190,8 @@ static ClJobQueueT cpmNotificationQueue;
 
 static ClInt32T cpmValgrindTimeout;
 
+static ClBoolT gClAspRestart = CL_FALSE;
+
 static ClRcT clCpmIocNotificationEnqueue(ClIocNotificationT *notification, ClPtrT cookie);
 static ClBoolT __cpmIsInfrastructureComponent(const ClCharT *compName);
 
@@ -1089,7 +1091,9 @@ static ClRcT clCpmFinalize(void)
         clOsalMutexUnlock(&gpClCpm->cpmShutdownMutex);
     }
 
+    if(!gClAspRestart)
     {
+        clLogDebug("AMF","FIN","clCpmFinalize(): write safplus_restart_disable and shut down the node...");
         FILE *fptr = fopen(CL_CPM_RESTART_DISABLE_FILE, "w");
         if(fptr) fclose(fptr);
     }
@@ -4460,6 +4464,13 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
 ClRcT cpmValidateEnv(void)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_OP_NOT_PERMITTED);
+
+    gClAspRestart = clParseEnvBoolean("ASP_RESTART_ASP");
+
+    if (clParseEnvBoolean("ASP_NODE_RESTART") == CL_TRUE)
+    {
+        gClAspRestart = CL_TRUE;
+    }
 
     if (clParseEnvBoolean("ASP_WITHOUT_CPM") == CL_TRUE)
     {
