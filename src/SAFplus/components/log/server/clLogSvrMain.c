@@ -95,6 +95,7 @@ ClUint8T clEoClientLibs[] = {
 #define LOGD_RESTART_COUNT_FILE "logd_restart_count"
 #define CL_LOG_DEFAULT_MAX_RESTART_COUNT 5
 #define CL_LOG_DEFAULT_MAX_DISK_SPACE_USAGE 80 
+#define LOGD_NODE_SHUTDOWN_REQ "logd_node_shutdown_req"
 static ClHandleT shLogDummyIdl = CL_HANDLE_INVALID_VALUE;
 ClBoolT gClLogSvrExiting = CL_FALSE;
 
@@ -124,6 +125,32 @@ static void clLogSetRestartCount(ClCharT *fileName, int restartCount)
     }
 }
  
+static void clLogUpdateNodeShutdownReqFile(int flag)
+{
+    const ClCharT    *filePath = NULL;
+    ClCharT          *fileName = NULL;
+    FILE             *file = NULL;
+    int              filePathLen = 0;
+
+    if (!(filePath = getenv("ASP_RUNDIR")))
+    {
+        filePath = ".";
+    }
+    filePathLen = strlen(filePath);
+    fileName = (ClCharT *) malloc(filePathLen + strlen(LOGD_NODE_SHUTDOWN_REQ) + 5);
+    if(fileName)
+    {
+        sprintf(fileName, "%s/%s", filePath, LOGD_NODE_SHUTDOWN_REQ);  
+        file = fopen(fileName, "w+");
+        if (file)
+        {
+            fprintf(file, "%d", flag);
+            fclose(file);
+        }
+        free(fileName);
+    }
+}
+
 static void clLogSigintHandler(ClInt32T signum)
 {
     const ClCharT    *filePath = NULL;
@@ -186,12 +213,15 @@ static void clLogSigintHandler(ClInt32T signum)
     {
         restartCount = 0;
         clLogSetRestartCount(fileName, restartCount);
+        free(fileName);
+        clLogUpdateNodeShutdownReqFile(1);
         clCpmNodeShutDown(clIocLocalAddressGet());
     }
     else
     {
         restartCount++;
         clLogSetRestartCount(fileName, restartCount);
+        free(fileName);
         exit(1);
     }
 }
@@ -326,7 +356,10 @@ clLogSvrInitialize(ClUint32T argc,
         CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
         return rc;
     }
+    /* Handle SIGBUS Signal */
+    clLogUpdateNodeShutdownReqFile(0);
     clLogSigHandlerInstall();
+
     rc = clLogStreamOwnerLocalBootup();
     if( CL_OK != rc )
     {
