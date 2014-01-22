@@ -2423,12 +2423,13 @@ ClRcT clCpmClientFinalize(ClCpmHandleT cpmHandle)
 
         goto failure;
     }
+
+    cpmInstance->finalize = 1;
     if(cpmInstance->writeFd != 0)
     {
         rc = cpmPostCallback(CL_CPM_FINALIZE, NULL, cpmInstance);
         count = write(cpmInstance->writeFd, (void *) &chr, 1);
     }
-    cpmInstance->finalize = 1;
     /*if(cpmInstance->dispatchType == CL_DISPATCH_ONE || 
         cpmInstance->dispatchType == CL_DISPATCH_ALL) 
     {
@@ -2627,20 +2628,67 @@ void cpmInvokeCallback(ClCpmCallbackTypeT cbType, void *param, ClCpmInstanceT * 
     return;
 }
 
+static ClCpmCallbackQueueDataT * getRequest(ClCpmInstanceT *cpmInstance, ClBoolT blocking)
+{
+    ssize_t size = 0;
+    ClCharT chr1;
+    ClRcT rc;
+    ClCpmCallbackQueueDataT *queueData = NULL;
+    
+    /* if blocking read the pipe and block if there is nothing to get */
+    if (blocking)
+        while ( ((size = read(cpmInstance->readFd, (void *) &chr1, 1) ) < 0) && (errno == EINTR) );
+    
+    rc = clOsalMutexLock(cpmInstance->cbMutex);
+    CL_ASSERT(rc==CL_OK);
+
+    /* In the nonblocking case we want to do this inside the mutex to ensure that if the queue size diverges from the count of characters in the readFd (should never happen)
+       we read the proper one */
+    
+    if (!blocking)  /* Only read the fd if there is data available.  This should never happen... but the queue size is authoritative the readFd length is just an indicator */
+    {
+        struct timeval timeout;
+        fd_set fds;
+        int fd = cpmInstance->readFd;
+        
+        timeout.tv_sec = 0;  /* Do not block */
+        timeout.tv_usec = 0;
+        FD_ZERO(&fds);
+        FD_SET(fd, &fds);
+        if (select(fd+1, &fds, 0, 0,&timeout)>=0) /* there is data available */
+        {
+            if (FD_ISSET(fd,&fds)) read(fd, (void *) &chr1, 1);
+        }
+        
+    }
+    
+    rc = clQueueNodeDelete(cpmInstance->cbQueue, (ClQueueDataT *) &queueData);
+    if (rc != CL_OK)
+    {
+        queueData = NULL;
+    }
+
+    rc = clOsalMutexUnlock(cpmInstance->cbMutex);
+    CL_ASSERT(rc==CL_OK);
+
+    return queueData;
+}
+
+
 ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle, CL_IN ClDispatchFlagsT dispatchFlags)
 {
     ClRcT rc = CL_OK;
     ClCpmInstanceT *cpmInstance = NULL;
     ClCpmCallbackQueueDataT *queueData = NULL;
     ClCpmCallbackQueueDataT tempQueueData = {(ClCpmCallbackTypeT) 0};
-    ClCharT chr1;
-    ClUint32T queueSize = 0;
-    ssize_t size = 0;
-
+    //ClUint32T queueSize = 0;
+    
     rc = clHandleCheckout(handle_database, cpmHandle, (void **) &cpmInstance);
     if (rc != CL_OK)
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_HANDLE_CHECKOUT_ERR, rc);
+        CL_ASSERT(0);  /* we must be able to access the cpm handle or something is very wrong (or program is shutting down and this API was improperly called) */
+        
     }
     CPM_CLIENT_CHECK(CL_LOG_SEV_ERROR, ("Unable to checkout handle %x\n", rc), rc);
 
@@ -2650,6 +2698,7 @@ ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle, CL_IN ClDispatchFlagsT dispatc
          * Dequeue the first pending request
          */
         cpmInstance->dispatchType = CL_DISPATCH_ONE;
+#if 0        
         rc = clQueueSizeGet(cpmInstance->cbQueue, &queueSize);
         if (rc != CL_OK)
             clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED, "Unable to get queue Size %x\n", rc);
@@ -2661,8 +2710,7 @@ ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle, CL_IN ClDispatchFlagsT dispatc
         /* 
          *  read the pipe and proceed with the callback 
          */
-        while ( (size = read(cpmInstance->readFd, (void *) &chr1, 1) ) < 0
-                && (errno == EINTR) );
+        while ( ((size = read(cpmInstance->readFd, (void *) &chr1, 1) ) < 0) && (errno == EINTR) );
         
         if(size <= 0 ) 
             goto failure;
@@ -2685,12 +2733,17 @@ ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle, CL_IN ClDispatchFlagsT dispatc
         }
 
         rc = clOsalMutexUnlock(cpmInstance->cbMutex);
-        /*
-         * process the CB 
-         */
+#endif
+        queueData = getRequest(cpmInstance,CL_FALSE);
+        if (cpmInstance->finalize) goto failure;
+
+        if (queueData)        /* process the callback */
+        {            
         memcpy(&tempQueueData, queueData, sizeof(tempQueueData));
         clHeapFree(queueData);
         cpmInvokeCallback(tempQueueData.cbType, tempQueueData.params, cpmInstance);
+        }
+        
     }
     else if (dispatchFlags == CL_DISPATCH_ALL)
     {
@@ -2698,9 +2751,11 @@ ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle, CL_IN ClDispatchFlagsT dispatc
          * FIXME dequeue the first pending request, process it dequeue the next 
          * pending request, process it drain the whole queue 
          */
-        while(1)
+        if (1)
         {
             cpmInstance->dispatchType = CL_DISPATCH_ALL;
+
+#if 0            
             queueSize = 0;
             rc = clQueueSizeGet(cpmInstance->cbQueue, &queueSize);
             if (rc != CL_OK)
@@ -2746,7 +2801,25 @@ ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle, CL_IN ClDispatchFlagsT dispatc
                 cpmInvokeCallback(tempQueueData.cbType, tempQueueData.params, cpmInstance);
                 queueSize--;
             }
+#endif
+            do
+            {
+        
+                queueData = getRequest(cpmInstance,CL_FALSE);
+                if (cpmInstance->finalize) goto failure;
+        
+                /*
+                 * process the CB 
+                 */
+                if ((queueData) && (!cpmInstance->finalize))
+                {   
+                    memcpy(&tempQueueData, queueData, sizeof(tempQueueData));
+                    clHeapFree(queueData);
+                    cpmInvokeCallback(tempQueueData.cbType, tempQueueData.params, cpmInstance);
+                }   
+            } while (queueData != 0);
         }
+        
     }
     else if(dispatchFlags == CL_DISPATCH_BLOCKING)
     {
@@ -2756,6 +2829,7 @@ ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle, CL_IN ClDispatchFlagsT dispatc
         while (1)
         {
             cpmInstance->dispatchType = CL_DISPATCH_BLOCKING;
+#if 0            
             while ( (size = read(cpmInstance->readFd, (void *) &chr1, 1) ) < 0 
                     && (errno == EINTR) );
             
@@ -2785,12 +2859,17 @@ ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle, CL_IN ClDispatchFlagsT dispatc
             }
 
             rc = clOsalMutexUnlock(cpmInstance->cbMutex);
-            /*
-             * process the CB 
-             */
-            memcpy(&tempQueueData, queueData, sizeof(tempQueueData));
-            clHeapFree(queueData);
-            cpmInvokeCallback(tempQueueData.cbType, tempQueueData.params, cpmInstance);
+#endif
+            queueData = getRequest(cpmInstance,CL_TRUE);
+            if (cpmInstance->finalize) goto failure;
+
+            if (queueData) /* process the CB */
+            {               
+                memcpy(&tempQueueData, queueData, sizeof(tempQueueData));
+                clHeapFree(queueData);
+                cpmInvokeCallback(tempQueueData.cbType, tempQueueData.params, cpmInstance);
+            }
+            
         }
     }
     else
@@ -2800,7 +2879,7 @@ ClRcT clCpmDispatch(CL_IN ClCpmHandleT cpmHandle, CL_IN ClDispatchFlagsT dispatc
     }
     return rc;
 
-  failure:
+  failure:    
     return rc;
 }
 

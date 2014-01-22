@@ -178,6 +178,9 @@ int main(int argc, char *argv[])
     clprintf (CL_LOG_SEV_INFO, "   IOC Port                : 0x%x\n", iocPort);
 
 
+    if ( (rc = saAmfSelectionObjectGet(amfHandle, &dispatch_fd)) != SA_AIS_OK)
+        goto errorexit;
+    
     /*
      * Block on AMF dispatch file descriptor for callbacks
      */
