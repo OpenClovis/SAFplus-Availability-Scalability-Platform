@@ -721,11 +721,11 @@ ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capabili
     return CL_OK;
 }
 
-ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
+ClRcT clNodeCacheLeaderIocSend(ClIocNodeAddressT currentLeader, ClIocAddressT *dstAddr)
 {
     ClRcT rc = CL_OK;
     ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 200 };
-    ClIocPhysicalAddressT compAddr = { .nodeAddress = CL_IOC_BROADCAST_ADDRESS, .portId = CL_IOC_CPM_PORT };
+
     ClTimerTimeOutT delay = { .tsSec = 0, .tsMilliSec = 200 };
     ClUint32T i = 0;
     ClBufferHandleT message = 0;
@@ -735,7 +735,7 @@ ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
     notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
     notification.id = htonl(CL_IOC_NODE_ARRIVAL_NOTIFICATION);
     notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
-    notification.nodeAddress.iocPhyAddress.portId = htonl(CL_IOC_GMS_PORT);
+    notification.nodeAddress.iocPhyAddress.portId = htonl(CL_IOC_CPM_PORT);
 
     clEoMyEoObjectGet(&eoObj);
 
@@ -763,10 +763,27 @@ ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
         return rc;
     }
 
-    rc = clIocSend(eoObj->commObj, message, CL_IOC_PORT_NOTIFICATION_PROTO, (ClIocAddressT *) &compAddr, &sendOption);
+    rc = clIocSend(eoObj->commObj, message, CL_IOC_PORT_NOTIFICATION_PROTO, dstAddr, &sendOption);
 
     clBufferDelete(&message);
+
     return rc;
+
+}
+
+ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
+{
+    ClIocPhysicalAddressT compAddr = { .nodeAddress = CL_IOC_BROADCAST_ADDRESS, .portId = CL_IOC_CPM_PORT };
+    return clNodeCacheLeaderIocSend(currentLeader, (ClIocAddressT *) &compAddr);
+}
+
+/*
+ * Send to local GMS to force do elect
+ */
+ClRcT clNodeCacheLeaderSendLocal(ClIocNodeAddressT currentLeader)
+{
+    ClIocPhysicalAddressT compAddr = { .nodeAddress = clIocLocalAddressGet(), .portId = CL_IOC_GMS_PORT };
+    return clNodeCacheLeaderIocSend(currentLeader, (ClIocAddressT *)  &compAddr);
 }
 
 ClRcT clNodeCacheLeaderSet(ClIocNodeAddressT leader)

@@ -94,6 +94,9 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader);
 /* This function to send leader node to cluster */
 ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader);
 
+/* This function to send leader node to trigger GMS re-elect */
+ClRcT clNodeCacheLeaderSendLocal(ClIocNodeAddressT currentLeader);
+
 /** This function sets the leader without cleaning up any prior leader marking.  This is used to update the database so that split brain can be detected */
 ClRcT  clNodeCacheLeaderSet(ClIocNodeAddressT leader);
     
