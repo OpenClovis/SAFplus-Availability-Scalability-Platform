@@ -35,6 +35,7 @@
 #include <clTimerApi.h>
 #include <clOsalApi.h>
 #include <clIocApi.h>
+#include <clNodeCache.h>
 #include <clCpmApi.h>
 #include <clEventApi.h>
 #include <clEventClientIpi.h>
@@ -70,6 +71,7 @@
 #ifdef VERSION_READY
 # include <clVersionApi.h>
 
+
 static ClVersionT gEvtAppToClientVersionsSupported[] = {
     CL_EVENT_VERSION,
     /*
@@ -80,6 +82,34 @@ static ClVersionDatabaseT gEvtAppToClientVersionDb = {
     sizeof(gEvtAppToClientVersionsSupported) / sizeof(ClVersionT),
     gEvtAppToClientVersionsSupported
 };
+
+#ifdef NO_SAF
+
+ClIocNodeAddressT getLeader(void)
+{    
+    ClNodeCacheMemberT nodes[64];
+    ClUint32T numNodes;
+    ClTimerTimeOutT delay;
+    delay.tsSec = 0;
+    delay.tsMilliSec = 700;
+    ClIocNodeAddressT leaderAddress;
+    leaderAddress= CL_IOC_BROADCAST_ADDRESS;
+
+    numNodes = 64;
+    clNodeCacheViewGet(nodes,&numNodes);
+    for (int i = 0; i<numNodes;i++)
+    {       	
+        if (CL_NODE_CACHE_LEADER_CAPABILITY(nodes[i].capability))
+        {
+        	leaderAddress=nodes[i].address;
+        }
+    }
+    clLogDebug("EVT", "INI","leader address: %d ", leaderAddress);
+    return leaderAddress;
+}   
+    
+
+#endif
 
 static ClOsalMutexT gEvtReceiveMutex;
 /*
@@ -992,7 +1022,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle, const ClEvent
 
 
 #ifdef NO_SAF
-    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    destAddr.iocPhyAddress.nodeAddress = getLeader();
     evtInitReq.isExternal=1;
 #else
     ClIocNodeAddressT localIocAddress;
@@ -1858,7 +1888,7 @@ ClRcT clEventFinalize(ClEventInitHandleT evtHandle)
     destAddr.iocPhyAddress.nodeAddress = localIocAddress;
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
 #ifdef NO_SAF
-    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    destAddr.iocPhyAddress.nodeAddress = getLeader();
     clLogNotice("LOG", "OPE", "broadcast unsubscribe external ");
 #endif
 
@@ -2287,7 +2317,7 @@ ClRcT clEventChannelOpen(ClEventInitHandleT evtHandle,
     destAddr.iocPhyAddress.nodeAddress = clIocLocalAddressGet();
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
 #ifdef NO_SAF
-    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    destAddr.iocPhyAddress.nodeAddress = getLeader();
     clLogDebug("LOG", "OPE", "broadcast open stream external ");
 #endif
 
@@ -2718,7 +2748,7 @@ ClRcT clEventChannelClose(ClEventChannelHandleT channelHandle)
 
 
 #ifdef NO_SAF
-    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    destAddr.iocPhyAddress.nodeAddress = getLeader();
     clLogNotice("LOG", "OPE", "broadcast unsubscribe external ");
 #endif
     do
@@ -2954,7 +2984,7 @@ ClRcT clEventExtWithRbeSubscribe(const ClEventChannelHandleT channelHandle,
     destAddr.iocPhyAddress.nodeAddress = localIocAddress;
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
 #ifdef NO_SAF
-    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    destAddr.iocPhyAddress.nodeAddress = getLeader();
 #endif
     do
     {
@@ -3209,7 +3239,7 @@ ClRcT clEventUnsubscribe(ClEventChannelHandleT channelHandle,
     destAddr.iocPhyAddress.nodeAddress = localIocAddress;
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
 #ifdef NO_SAF
-    destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    destAddr.iocPhyAddress.nodeAddress = getLeader();
     clLogNotice("LOG", "OPE", "broadcast unsubscribe external ");
 #endif
     do
@@ -4770,6 +4800,7 @@ ClRcT clEventPublish(ClEventHandleT eventHandle, const void *pEventData,
     destAddr.iocPhyAddress.nodeAddress = localIocAddress;
     destAddr.iocPhyAddress.portId = CL_EVT_COMM_PORT;
 #ifdef NO_SAF
+    //destAddr.iocPhyAddress.nodeAddress = getLeader();
     destAddr.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
 #endif
 
