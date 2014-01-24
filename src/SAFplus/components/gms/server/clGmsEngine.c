@@ -277,6 +277,8 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
             rc = _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
             if (leaderNodeId != CL_GMS_INVALID_NODE_ID && leaderNodeId != reportedLeader)
             {
+                clLogDebug("NTF", "LEA", "I am going to leave as leader changed from [0x%x0] to [0x%x]", leaderNodeId, reportedLeader);
+                clNodeCacheLeaderUpdate(reportedLeader);
                 clIocNotificationNodeLeave(pThis->commObj, clIocLocalAddressGet());
             }
         }
@@ -627,6 +629,7 @@ _clGmsEngineLeaderElect(
     ClGmsClusterMemberT *currentNode = NULL;
     ClGmsNodeIdT lastLeader = 0;
     ClUint32T           i = 0;
+    ClBoolT leadershipChanged = CL_TRUE;
 
     /* Leader election cannot happen yet... we must wait */
     if (!bootTimeElectionDone) return CL_ERR_TRY_AGAIN;    
@@ -687,7 +690,6 @@ _clGmsEngineLeaderElect(
         clLog(CL_LOG_ERROR, CLM,NA,"Leader election failed for group [%d]. rc = 0x%x",groupId,rc);
         goto done_return;
     }
-
 
     clLog(CL_LOG_DEBUG,CLM,NA, "Leader election is done. Now updating the leadership status");
 
@@ -757,6 +759,10 @@ _clGmsEngineLeaderElect(
                 leaderElectionTimerRun(CL_TRUE, &reElectTimeout);
             }
         }
+        else
+        {
+            leadershipChanged = CL_FALSE;
+        }
 
         /* If I am the leader then I need to update my global data structure */
         if ((currentNode->nodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId) && (*leaderNodeId == gmsGlobalInfo.config.thisNodeInfo.nodeId))
@@ -779,20 +785,24 @@ _clGmsEngineLeaderElect(
     {
         /* Update current leader */
         clNodeCacheLeaderUpdate(*leaderNodeId);
-        /*
-         * "gratuitous" sending of our view of the leader to other AMFs to update
-         *  node cache on ALL nodes via a "gratuitous" IOC notification
-         */
-        clNodeCacheLeaderSend(*leaderNodeId);
 
-        if (gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader == CL_TRUE)
+        if (leadershipChanged)
         {
-            /* Notify all nodes that I am the leader.  It is necessary to do this so that external apps/nodes (with no AMF or GMS) receive the new leader notification */
-            ClIocAddressT allNodeReps;
-            allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-            allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
-            ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, currentNode->nodeId, CL_IOC_BROADCAST_ADDRESS);
-            clIocNotificationNodeStatusSend(gmsGlobalInfo.gmsEoObject->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, currentNode->nodeId, (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
+            /*
+             * "gratuitous" sending of our view of the leader to other AMFs to update
+             *  node cache on ALL nodes via a "gratuitous" IOC notification
+             */
+            clNodeCacheLeaderSend(*leaderNodeId);
+
+            if (gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader == CL_TRUE)
+            {
+                /* Notify all nodes that I am the leader.  It is necessary to do this so that external apps/nodes (with no AMF or GMS) receive the new leader notification */
+                ClIocAddressT allNodeReps;
+                allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+                allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+                ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, currentNode->nodeId, CL_IOC_BROADCAST_ADDRESS);
+                clIocNotificationNodeStatusSend(gmsGlobalInfo.gmsEoObject->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, currentNode->nodeId, (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
+            }
         }
     }
 
