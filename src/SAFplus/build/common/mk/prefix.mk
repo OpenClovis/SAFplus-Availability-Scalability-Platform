@@ -67,7 +67,6 @@ buildtools_dir:=/opt/clovis/buildtools
 # FIXME: This should not even be here:
 #
 ifndef CROSS_BUILD
-
 # This is the native build
 CC  ?= gcc
 GCC ?= $(CC)
@@ -89,7 +88,6 @@ endif				# LDFLAGS
 # appropriate path.
 #
 else # ifndef CROSS_BUILD
-
 # Need to define: ARCH, MARCH, 
 
 BUILDTOOLS_PATH:=       $(buildtools_dir)/$(CROSS_BUILD)

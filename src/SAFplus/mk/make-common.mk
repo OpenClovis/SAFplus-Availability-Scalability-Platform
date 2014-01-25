@@ -210,7 +210,7 @@ else
     ifeq ($(WIND_VER),0)
         TOP_CFLAGS  = -c -Wall -D_GNU_SOURCE
     else
-        TOP_CFLAGS  = -c -Wall -Werror -D_GNU_SOURCE $(SPECIAL_CFLAGS)
+        TOP_CFLAGS  = -c -Wall -D_GNU_SOURCE $(SPECIAL_CFLAGS)
     endif
 endif
 ifeq ($(BUILD_WARNINGS),1)
@@ -291,6 +291,10 @@ SHARED_LDFLAGS	+= $(EXTRA_SHARED_LDFLAGS)
 SPLINTCMD	= splint
 SPLINTFLAGS	+= +posixlib -preproc -badflag -warnsysfiles \
                    -nof -weak -line-len 360 -unrecog
+
+CXXFLAGS := $(CFLAGS) # $(filter-out -std=c99,$(CFLAGS))
+# -Werror -- Note compiler complains when c++ is compiled with -std=c99, but precompiler complains when it is NOT defined so warnings can't be errors.
+CFLAGS += -Werror  # force all warnings to be errors for extra clean compilation
 
 # The compilation/link flags are passed to lower directories as well
 export EXTRA_CFLAGS EXTRA_CPPFLAGS EXTRA_LDFLAGS EXTRA_LDLIBS
@@ -379,6 +383,9 @@ quiet_cmd_depend = DEP     $(call quiet-strip,$@)
 quiet_cmd_cc_o_c = CC      $(call quiet-strip,$@)
       cmd_cc_o_c = $(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(OUTPUT_OPTION) $<
 
+quiet_cmd_cxx_o_c = CC      $(call quiet-strip,$@)
+      cmd_cxx_o_c = $(CC) $(filter-out -Werror,$(CXXFLAGS) $(CPPFLAGS)) $(TARGET_ARCH) $(OUTPUT_OPTION) $<
+
 #-------------------------------------------------------------------------------
 # Link an executable from .o and lib files
 # To be called as $(call cmd,link,<object-files>)
@@ -422,28 +429,28 @@ $(shell mkdir -p $(LIB_DIR))
 # Generating .o from .c .C .cc or .cpp (compiling):
 
 $(OBJ_DIR)/%.o: %.C
-	$(call cmd,cc_o_c)
+	$(call cmd,cxx_o_c)
 
 $(OBJ_DIR)/%.o: %.cc
-	$(call cmd,cc_o_c)
+	$(call cmd,cxx_o_c)
 
 $(OBJ_DIR)/%.o: %.cpp
-	$(call cmd,cc_o_c)
+	$(call cmd,cxx_o_c)
 
 $(OBJ_DIR)/%.o: %.c
 	$(call cmd,cc_o_c)
 
 $(OBJ_DIR)/%.o: %.cxx
-	$(call cmd,cc_o_c)
+	$(call cmd,cxx_o_c)
 
 $(OBJ_DIR)/%.o: %.CC
-	$(call cmd,cc_o_c)
+	$(call cmd,cxx_o_c)
 
 $(OBJ_DIR)/%.o: %.CPP
-	$(call cmd,cc_o_c)
+	$(call cmd,cxx_o_c)
 
 $(OBJ_DIR)/%.o: %.CXX
-	$(call cmd,cc_o_c)
+	$(call cmd,cxx_o_c)
 
 
 #-------------------------------------------------------------------------------

@@ -80,19 +80,23 @@ ifndef CROSS_BUILD
 BUILDTOOLS_PATH:=       $(buildtools_dir)/local
 
 # This is the native build
-ifeq ($(BUILD_PLUS),1)
- ifeq ($(CL_BINMODE),32)
-  CC  = g++ -m32
- else
-  CC  = g++
- endif
-else
- ifeq ($(CL_BINMODE),32)
-  CC  = gcc -m32
- else
-  CC  = gcc
- endif
+ifeq ($(CC),cc)  # If CC is not defined by the environment, override it because we do not want to use "cc" as the compiler.   CC ?= gcc cannot be used because make implicitly defines CC if it is not defined in the env. So ?= will never set CC.
+  ifeq ($(BUILD_PLUS),1)
+    ifeq ($(CL_BINMODE),32)
+      CC  := g++ -m32
+    else
+      CC  := g++
+    endif
+  else
+    ifeq ($(CL_BINMODE),32)
+      CC  := gcc -m32
+    else
+      CC  := gcc
+    endif
+  endif
 endif
+
+
 GCC ?= $(CC)
 CXX ?= g++
 AR  ?= ar

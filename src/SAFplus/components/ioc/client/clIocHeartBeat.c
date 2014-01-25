@@ -1078,7 +1078,7 @@ ClRcT _clIocSetHeartBeatConfig()
             if (!gClHeartBeatPlugin)
             {
                 clLogWarning( "IOC", "HBT", "Unable to find the heartbeat method in plugin : %s", dlerror());
-                *(void**) &gClHeartBeatPlugin = (void*) HeartBeatPluginDefault;
+                gClHeartBeatPlugin = HeartBeatPluginDefault;
                 dlclose(gClPluginHandle);
                 gClPluginHandle = NULL;
             }
