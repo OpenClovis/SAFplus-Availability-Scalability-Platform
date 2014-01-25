@@ -27,7 +27,7 @@ DEP_DIR		:= $(ASP_TARGET)/dep/$(COMPNAME)
 LIB_DIR		:= $(ASP_TARGET)/lib
 include $(CLOVIS_ROOT)/SAFplus/mk/prefix.mk
 
-override CC = gcc
+#override CC = gcc
 #AR = ar
 RM = rm -f
 CFLAGS += -Wall -O2 
