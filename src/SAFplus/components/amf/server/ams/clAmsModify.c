@@ -8705,12 +8705,12 @@ clAmsDBGet(ClBufferHandleT msg)
     {
         ClAmsEntityTypeT type;
         ClAmsEntityListTypeT listType;
-    }map[] = { {.type = CL_AMS_ENTITY_TYPE_NODE, .listType = CL_AMS_NODE_LIST},
-               {.type = CL_AMS_ENTITY_TYPE_SU,   .listType = CL_AMS_SU_LIST},
-               {.type = CL_AMS_ENTITY_TYPE_SG,   .listType = CL_AMS_SG_LIST},
-               {.type = CL_AMS_ENTITY_TYPE_SI,   .listType = CL_AMS_SI_LIST},
-               {.type = CL_AMS_ENTITY_TYPE_CSI,  .listType = CL_AMS_CSI_LIST},
-               {.type = CL_AMS_ENTITY_TYPE_COMP, .listType = CL_AMS_COMP_LIST},
+    }map[] = { { CL_AMS_ENTITY_TYPE_NODE,  CL_AMS_NODE_LIST },
+               { CL_AMS_ENTITY_TYPE_SU,    CL_AMS_SU_LIST   },
+               { CL_AMS_ENTITY_TYPE_SG,    CL_AMS_SG_LIST   },
+               { CL_AMS_ENTITY_TYPE_SI,    CL_AMS_SI_LIST   },
+               { CL_AMS_ENTITY_TYPE_CSI,   CL_AMS_CSI_LIST  },
+               { CL_AMS_ENTITY_TYPE_COMP,  CL_AMS_COMP_LIST },
     };
     ClUint32T i;
     for(i = 0; i < sizeof(map)/sizeof(map[0]); ++i)

@@ -349,7 +349,7 @@ static void safTerminate(SaInvocationT invocation, const SaNameT *compName)
     if(gClMsgInit)
     {
         ClBoolT lockStatus = CL_TRUE;
-        ClTimerTimeOutT timeout = {.tsSec = 0, .tsMilliSec = 0};
+        ClTimerTimeOutT timeout = { 0, 0};
         clOsalMutexLock(&gClMsgFinalizeLock);
         while(gClMsgSvcRefCnt > 0)
         {

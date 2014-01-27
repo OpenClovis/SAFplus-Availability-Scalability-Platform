@@ -2490,27 +2490,21 @@ clAmsPeReplayCSIRemoveInvocations(ClAmsNodeT *node, ClAmsInvocationT *pInvocatio
             SaNameT localNodeName = {0};
             ClAmsCSIReplayFilterT filters[] = {
                 { 
-                    .node = &node->config.entity.name,
-                    .clearInvocation = CL_FALSE,
+                     &node->config.entity.name,
+                     CL_FALSE,
                 },
                 {
-                    .node = &localNodeName,
-                    .clearInvocation = CL_TRUE,
+                    &localNodeName,
+                    CL_TRUE,
                 },
             };
             clCpmLocalNodeNameGet(&localNodeName);
-            clAmsPeReplayCSIRemoveCallbacks(pInvocations, 
-                                            numInvocations, 
-                                            filters,
-                                            2,
-                                            CL_AMS_ENTITY_SWITCHOVER_FAST | CL_AMS_ENTITY_SWITCHOVER_REPLAY
-                                            );
+            clAmsPeReplayCSIRemoveCallbacks(pInvocations, numInvocations, filters, 2, CL_AMS_ENTITY_SWITCHOVER_FAST | CL_AMS_ENTITY_SWITCHOVER_REPLAY);
             clAmsPeReplayCSIRemove2(node, pInvocations, numInvocations, scFailover);
         }
         else
         {
-            clAmsPeReplayCSIRemoveCallbacks(pInvocations, numInvocations, NULL, 0,
-                                            CL_AMS_ENTITY_SWITCHOVER_FAST | CL_AMS_ENTITY_SWITCHOVER_REPLAY);
+            clAmsPeReplayCSIRemoveCallbacks(pInvocations, numInvocations, NULL, 0, CL_AMS_ENTITY_SWITCHOVER_FAST | CL_AMS_ENTITY_SWITCHOVER_REPLAY);
         }
     }
 }

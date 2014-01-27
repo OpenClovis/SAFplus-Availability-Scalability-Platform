@@ -838,7 +838,7 @@ static ClRcT rmdAckSend(ClEoExecutionObjT *pThis,ClRmdAckSendContextT *pSendCont
     return rc;
 }
 
-ClRcT rmdResponseSend(ClEoExecutionObjT *pThis,
+static ClRcT rmdResponseSend(ClEoExecutionObjT *pThis,
                       ClRmdResponeContextT *pSendContext,
                       ClBufferHandleT replyMsg, 
                       ClRcT rc,

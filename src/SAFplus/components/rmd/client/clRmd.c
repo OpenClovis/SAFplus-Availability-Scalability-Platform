@@ -279,11 +279,8 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
     ClIocPortT dstPort = 0;
     ClUint32T nodeVersion = 0;
     ClVersionT version = { CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION };
-    static ClInt32T minVersion = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE,
-                                                  CL_MAJOR_VERSION_BASE,
-                                                  CL_MINOR_VERSION_BASE);
+    static ClInt32T minVersion = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
     CL_FUNC_ENTER();
-
     if (rmdInitDone == CL_FALSE)
     {
         RMD_DBG1(("RMD is not initialized\n"));
@@ -292,14 +289,10 @@ ClRcT clRmdWithMsg(ClIocAddressT remoteObjAddr, /* remote Obj addr */
     }
 
     clEoMyEoIocPortGet(&srcPort);
-
 #ifdef RMD_DISABLE_HIGH_PRI
     if ((srcPort != CL_IOC_CPM_PORT) && (pOptions && CL_IOC_HIGH_PRIORITY == pOptions->priority))
     {
-        clLogCritical("RMD","MSG",
-                       "High priority RMD called by someone "
-                        "other than CPM !!!, port = [%#x]\n", 
-                        srcPort);
+        clLogCritical("RMD","MSG", "High priority RMD called by someone " "other than CPM !!!, port = [%#x]\n", srcPort);
     }
 #endif
 
@@ -1789,7 +1782,7 @@ static ClRcT rmdMetricDumpInterval(void *unused)
 ClRcT rmdMetricInitialize(void)
 {
     ClRcT rc = CL_OK;
-    ClTimerTimeOutT delay = {.tsSec = 60, .tsMilliSec = 0 };
+    ClTimerTimeOutT delay = { 60, 0 };
     rmdMetricStatus = 0;
     if(clParseEnvBoolean("ASP_RMD_METRIC") == CL_TRUE)
         rmdMetricStatus = 1;

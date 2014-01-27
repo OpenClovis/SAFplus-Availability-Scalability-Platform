@@ -80,7 +80,7 @@
 #define ASP_PRECLEANUP_SCRIPT "asp_precleanup.sh"
 
 #define CPM_TIMED_WAIT(millisec) do {                               \
-    ClTimerTimeOutT _delay = {.tsSec = 0, .tsMilliSec = millisec }; \
+    ClTimerTimeOutT _delay = { 0, millisec }; \
     clOsalTaskDelay(_delay);                                        \
 }while(0)
 
@@ -181,11 +181,7 @@ static ClRcT cpmTimerCallback(void *arg)
                      */
                     CPM_TIMED_WAIT(CL_CPM_RESTART_SLEEP);
 
-                    _cpmComponentInstantiate(comp->compConfig->compName,
-                                             NULL,
-                                             0,
-                                             gpClCpm->pCpmConfig->nodeName,
-                                             &(comp->requestSrcAddress),
+                    _cpmComponentInstantiate(comp->compConfig->compName, NULL, 0, gpClCpm->pCpmConfig->nodeName, &(comp->requestSrcAddress),
                                              comp->requestRmdNumber);
                 }
             }
@@ -843,7 +839,7 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
            )
         {
             ClInt32T tries = 0;
-            ClTimerTimeOutT delay = { .tsSec = 1, .tsMilliSec = 0};
+            ClTimerTimeOutT delay = {  1,  0};
             /*
              * We could be in the middle of a master transitioning phase
              */

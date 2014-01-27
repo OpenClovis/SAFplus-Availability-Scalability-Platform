@@ -65,7 +65,7 @@ static ClRcT clAmsTriggerLoadRmd(ClAmsEntityT *pEntity, ClMetricT *pMetric,
 
     while(tries++ < 2)
     {
-        ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
+        ClTimerTimeOutT delay = { 1, 0};
         rc = clCpmMasterAddressGet(&master.iocPhyAddress.nodeAddress);
         if(rc == CL_OK)
             goto out_success;
@@ -215,7 +215,7 @@ static ClRcT clAmsTriggerGetMetricHandler(ClAmsEntityT *pEntity, ClMetricIdT id,
 
     while(tries++ < 3)
     {
-        ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
+        ClTimerTimeOutT delay = { 1, 0};
         rc = clCpmMasterAddressGet(&master.iocPhyAddress.nodeAddress);
         if(rc == CL_OK)
             goto out_success;

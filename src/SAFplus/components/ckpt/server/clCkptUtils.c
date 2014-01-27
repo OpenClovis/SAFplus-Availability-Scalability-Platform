@@ -2034,9 +2034,7 @@ ClInt32T ckptHdlNonUniqueKeyCompare(ClCntDataHandleT givenData, ClCntDataHandleT
 ClDifferenceVectorKeyT *ckptDifferenceVectorKeyGet(const SaNameT *pCkptName, const ClCkptSectionIdT *pSectionId)
 {
     ClDifferenceVectorKeyT *key = (ClDifferenceVectorKeyT*) clHeapCalloc(1, sizeof(*key));
-    static ClCkptSectionIdT defaultSectionId = { .idLen = sizeof("defaultSection")-1, 
-                                                 .id = (ClUint8T*)"defaultSection", 
-    };
+    static ClCkptSectionIdT defaultSectionId = {  sizeof("defaultSection")-1, (ClUint8T*)"defaultSection" };
     CL_ASSERT(key != NULL);
     key->groupKey = (ClStringT*) clHeapCalloc(1, sizeof(*key->groupKey));
     CL_ASSERT(key->groupKey != NULL);

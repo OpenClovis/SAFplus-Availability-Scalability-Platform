@@ -254,9 +254,7 @@ typedef struct ClIocNeighbor
     ClUint32T status;
 }ClIocNeighborT;
 
-static ClIocNeighborListT gClIocNeighborList = {
-    .neighborList = CL_LIST_HEAD_INITIALIZER(gClIocNeighborList.neighborList),
-};
+static ClIocNeighborListT gClIocNeighborList = { CL_LIST_HEAD_INITIALIZER(gClIocNeighborList.neighborList) };
 
 
 #define CL_IOC_MICRO_SLEEP_INTERVAL 1000*10 /* 10 milli second */
@@ -662,6 +660,7 @@ static ClRcT iocCommPortCreate(ClUint32T portId, ClIocCommPortFlagsT portType,
 ClRcT clIocCommPortCreateStatic(ClUint32T portId, ClIocCommPortFlagsT portType,
                                 ClIocCommPortT *pIocCommPort, const ClCharT *xportType)
 {
+    
     ClRcT rc = iocCommPortCreate(portId, portType, pIocCommPort, xportType, CL_TRUE);
     if(rc != CL_OK && CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST)
         rc = CL_OK;
@@ -1291,7 +1290,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
          * Fragment it to 64 K size and return
          */
         ClIocFragHeaderT userFragHeader = {{0}};
-        struct iovec  header = { .iov_base = (void*)&userFragHeader, .iov_len = sizeof(userFragHeader) };
+        struct iovec  header = { (void*)&userFragHeader, sizeof(userFragHeader) };
         struct iovec *target = NULL;
         IOVecIteratorT iovecIterator = {0};
         struct iovec *src= NULL;
@@ -1515,8 +1514,7 @@ ClRcT clIocSendWithXport(ClIocCommPortHandleT commPortHandle,
                          ClIocAddressT *destAddress, ClIocSendOptionT *pSendOption,
                          ClCharT *xportType, ClBoolT proxy)
 {
-    return clIocSendWithXportRelay(commPortHandle, message, protoType,
-                                   NULL, destAddress, pSendOption, xportType, proxy);
+    return clIocSendWithXportRelay(commPortHandle, message, protoType, NULL, destAddress, pSendOption, xportType, proxy);
 }
 
 ClRcT clIocSendWithRelay(ClIocCommPortHandleT commPortHandle,
@@ -1524,17 +1522,14 @@ ClRcT clIocSendWithRelay(ClIocCommPortHandleT commPortHandle,
                          ClIocAddressT *srcAddress, ClIocAddressT *destAddress, 
                          ClIocSendOptionT *pSendOption)
 {
-    return clIocSendWithXportRelay(commPortHandle, message, protoType,
-                                   srcAddress, destAddress, pSendOption, 
-                                   NULL, CL_FALSE);
+    return clIocSendWithXportRelay(commPortHandle, message, protoType, srcAddress, destAddress, pSendOption, NULL, CL_FALSE);
 }
 
 ClRcT clIocSend(ClIocCommPortHandleT commPortHandle,
                 ClBufferHandleT message, ClUint8T protoType,
                 ClIocAddressT *destAddress, ClIocSendOptionT *pSendOption)
 {
-    return clIocSendWithXportRelay(commPortHandle, message, protoType,
-                                   NULL, destAddress, pSendOption, NULL, CL_FALSE);
+    return clIocSendWithXportRelay(commPortHandle, message, protoType, NULL, destAddress, pSendOption, NULL, CL_FALSE);
 }
 
 ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
@@ -1880,8 +1875,7 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
         userHeader.pktTime = clHtonl64(pktTime);
 #endif
 
-        retCode =
-            clBufferDataPrepend(message, (ClUint8T *) &userHeader,
+        retCode = clBufferDataPrepend(message, (ClUint8T *) &userHeader,
                                 sizeof(ClIocHeaderT));
         if(retCode != CL_OK)	
         {
@@ -2149,8 +2143,7 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
     rc = clBufferLengthGet(message, &msgLength);
     if (rc != CL_OK || msgLength == 0)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST,
-                   "Failed to get the length of the message. error code 0x%x", rc);
+        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST, "Failed to get the length of the message. error code 0x%x", rc);
         rc = CL_IOC_RC(CL_ERR_INVALID_BUFFER);
         goto out;
     }
@@ -2175,8 +2168,7 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
 
         rc = clBufferHeaderTrim(message, sizeof(ClIocHeaderT));
         if(rc != CL_OK) {
-            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST,
-                       "\nERROR: Buffer header trim failed RC = 0x%x\n", rc);
+            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST, "\nERROR: Buffer header trim failed RC = 0x%x\n", rc);
             continue;
         }
 
@@ -2185,13 +2177,10 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
         userHeader->dstAddress.iocPhyAddress.portId = 
             htonl(((ClIocPhysicalAddressT *)&replicastList[i])->portId);
 
-        rc =
-            clBufferDataPrepend(message, (ClUint8T *) userHeader,
-                                sizeof(ClIocHeaderT));
+        rc = clBufferDataPrepend(message, (ClUint8T *) userHeader, sizeof(ClIocHeaderT));
         if(rc != CL_OK)
         {
-            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST,
-                       "\nERROR: Prepend buffer data failed = 0x%x\n", rc);
+            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST, "\nERROR: Prepend buffer data failed = 0x%x\n", rc);
             continue;
         }
 
@@ -2243,10 +2232,8 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
     return rc;
 }
 
-ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, 
-                    ClIocDispatchOptionT *pRecvOption, ClUint8T *buffer,
-                    ClUint32T bufSize, ClBufferHandleT message,
-                    ClIocRecvParamT *pRecvParam)
+ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption, ClUint8T *buffer,
+                    ClUint32T bufSize, ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
     ClRcT rc = CL_OK;
     ClIocHeaderT userHeader = { 0 };
@@ -2256,9 +2243,8 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
     ClUint32T bytes = bufSize;
     ClBoolT relay = CL_FALSE;
     ClBoolT syncReassembly = CL_FALSE;
-    static ClIocDispatchOptionT recvOption = { .timeout = CL_IOC_TIMEOUT_FOREVER, 
-                                                   .sync = CL_FALSE,
-    };
+    static ClIocDispatchOptionT recvOption = {  CL_IOC_TIMEOUT_FOREVER, CL_FALSE };
+   
 
 #ifdef CL_IOC_COMPRESSION
     ClTimeT pktSendTime = 0;
@@ -2279,14 +2265,10 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
     if(bytes <= size)
     {
         /*Check for port exit message*/
-        if(bytes == sizeof(CL_IOC_PORT_EXIT_MESSAGE)
-           && 
-           !strncmp((ClCharT*)buffer,CL_IOC_PORT_EXIT_MESSAGE,sizeof(CL_IOC_PORT_EXIT_MESSAGE))
-           )
+        if(bytes == sizeof(CL_IOC_PORT_EXIT_MESSAGE) && !strncmp((ClCharT*)buffer,CL_IOC_PORT_EXIT_MESSAGE,sizeof(CL_IOC_PORT_EXIT_MESSAGE)))
         {
-            ClTimerTimeOutT waitTime = {.tsSec=0,.tsMilliSec=200};
-            clLogInfo(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,
-                      "PORT EXIT MESSAGE received for portid:0x%x,EO [%s]\n",pIocCommPort->portId,CL_EO_NAME);
+            ClTimerTimeOutT waitTime = { 0, 200};
+            clLogInfo(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV, "PORT EXIT MESSAGE received for portid:0x%x,EO [%s]\n",pIocCommPort->portId,CL_EO_NAME);
             rc = CL_IOC_RC(CL_IOC_ERR_RECV_UNBLOCKED);
             clOsalMutexLock(&pIocCommPort->unblockMutex);
             if(!pIocCommPort->blocked)
@@ -2299,8 +2281,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
             clOsalMutexUnlock(&pIocCommPort->unblockMutex);
             goto out;
         }
-        clLogCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet. "
-                                           "The packet is an invalid or a corrupted one. "
+        clLogCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet. " "The packet is an invalid or a corrupted one. "
                                            "Packet size if %d, rc = %x\n", bytes, rc);
         goto out;
     }
@@ -2830,8 +2811,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
                                    userHeader.srcAddress.iocPhyAddress.portId,
                                    bcastList[i].iocPhyAddress.nodeAddress,
                                    bcastList[i].iocPhyAddress.portId, xportType);
-                        clIocSendWithXportRelay((ClIocCommPortHandleT)commPort, message, 
-                                                userHeader.protocolType,
+                        clIocSendWithXportRelay((ClIocCommPortHandleT)commPort, message, userHeader.protocolType,
                                                 &userHeader.srcAddress, &bcastList[i],
                                                 &sendOption, (ClCharT*)xportType, CL_FALSE);
                         clBufferReadOffsetSet(message, 0, CL_BUFFER_SEEK_SET);
@@ -2914,11 +2894,9 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     return rc;
 }
 
-ClRcT clIocReceive(ClIocCommPortHandleT commPortHdl,
-                   ClIocRecvOptionT *pRecvOption,
-                   ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
+ClRcT clIocReceive(ClIocCommPortHandleT commPortHdl, ClIocRecvOptionT *pRecvOption, ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
-    ClIocDispatchOptionT dispatchOption = {.timeout = CL_IOC_TIMEOUT_FOREVER, .sync = CL_TRUE};
+    ClIocDispatchOptionT dispatchOption = { CL_IOC_TIMEOUT_FOREVER,  CL_TRUE};
     if(pRecvOption)
     {
         dispatchOption.timeout = pRecvOption->recvTimeout;
@@ -2926,11 +2904,9 @@ ClRcT clIocReceive(ClIocCommPortHandleT commPortHdl,
     return clTransportRecv(NULL, commPortHdl, &dispatchOption, NULL, 0, message, pRecvParam);
 }
 
-ClRcT clIocReceiveAsync(ClIocCommPortHandleT commPortHdl,
-                        ClIocRecvOptionT *pRecvOption,
-                        ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
+ClRcT clIocReceiveAsync(ClIocCommPortHandleT commPortHdl, ClIocRecvOptionT *pRecvOption, ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
-    ClIocDispatchOptionT dispatchOption = {.timeout = CL_IOC_TIMEOUT_FOREVER, .sync = CL_FALSE};
+    ClIocDispatchOptionT dispatchOption = { CL_IOC_TIMEOUT_FOREVER, CL_FALSE};
     if(pRecvOption)
     {
         dispatchOption.timeout = pRecvOption->recvTimeout;
@@ -2938,12 +2914,10 @@ ClRcT clIocReceiveAsync(ClIocCommPortHandleT commPortHdl,
     return clTransportRecv(NULL, commPortHdl, &dispatchOption, NULL, 0, message, pRecvParam);
 }
 
-ClRcT clIocReceiveWithBuffer(ClIocCommPortHandleT commPortHdl,
-                             ClIocRecvOptionT *pRecvOption,
-                             ClUint8T *buffer, ClUint32T bufSize,
+ClRcT clIocReceiveWithBuffer(ClIocCommPortHandleT commPortHdl, ClIocRecvOptionT *pRecvOption, ClUint8T *buffer, ClUint32T bufSize,
                              ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
-    ClIocDispatchOptionT dispatchOption = {.timeout = CL_IOC_TIMEOUT_FOREVER, .sync = CL_TRUE };
+    ClIocDispatchOptionT dispatchOption = { CL_IOC_TIMEOUT_FOREVER,  CL_TRUE };
     if(!buffer) return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     if(pRecvOption)
     {
@@ -2952,12 +2926,10 @@ ClRcT clIocReceiveWithBuffer(ClIocCommPortHandleT commPortHdl,
     return clTransportRecv(NULL, commPortHdl, &dispatchOption, buffer, bufSize, message, pRecvParam);
 }
 
-ClRcT clIocReceiveWithBufferAsync(ClIocCommPortHandleT commPortHdl,
-                                  ClIocRecvOptionT *pRecvOption,
-                                  ClUint8T *buffer, ClUint32T bufSize,
+ClRcT clIocReceiveWithBufferAsync(ClIocCommPortHandleT commPortHdl, ClIocRecvOptionT *pRecvOption, ClUint8T *buffer, ClUint32T bufSize,
                                   ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
-    ClIocDispatchOptionT dispatchOption = {.timeout = CL_IOC_TIMEOUT_FOREVER, .sync = CL_FALSE };
+    ClIocDispatchOptionT dispatchOption = { CL_IOC_TIMEOUT_FOREVER, CL_FALSE };
     if(!buffer) return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     if(pRecvOption)
     {
@@ -2966,8 +2938,7 @@ ClRcT clIocReceiveWithBufferAsync(ClIocCommPortHandleT commPortHdl,
     return clTransportRecv(NULL, commPortHdl, &dispatchOption, buffer, bufSize, message, pRecvParam);
 }
 
-ClRcT clIocCommPortModeGet(ClIocCommPortHandleT iocCommPort,
-        ClIocCommPortModeT *modeType)
+ClRcT clIocCommPortModeGet(ClIocCommPortHandleT iocCommPort, ClIocCommPortModeT *modeType)
 {
     NULL_CHECK(modeType);
     *modeType = CL_IOC_BLOCKING_MODE;
@@ -3028,22 +2999,18 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     if (gIocInit == CL_TRUE)
         return CL_OK;
 
-    if (CL_IOC_PHYSICAL_ADDRESS_TYPE !=
-        CL_IOC_ADDRESS_TYPE_FROM_NODE_ADDRESS((pConf->nodeAddress)))
+    if (CL_IOC_PHYSICAL_ADDRESS_TYPE != CL_IOC_ADDRESS_TYPE_FROM_NODE_ADDRESS((pConf->nodeAddress)))
     {
         clLogCritical(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,
                       "\nCritical : Invalid IOC address: Node Address [0x%x] is an invalid physical address.\n",pConf->nodeAddress);
         return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     }
-    
-    if ((CL_IOC_RESERVED_ADDRESS == pConf->nodeAddress) ||
-        (CL_IOC_BROADCAST_ADDRESS == pConf->nodeAddress))
+    if ((CL_IOC_RESERVED_ADDRESS == pConf->nodeAddress) || (CL_IOC_BROADCAST_ADDRESS == pConf->nodeAddress))
     {
         clLogCritical(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,
                       "\nCritical : Invalid IOC address: Node Address [0x%x] is one of the reserved IOC addresses.\n ",pConf->nodeAddress);
         return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     }
-
     gIocLocalBladeAddress = ((ClIocLibConfigT *) pConf)->nodeAddress;
 
     ASP_NODEADDR = gIocLocalBladeAddress;
@@ -3173,11 +3140,9 @@ ClRcT clIocCommPortReceiverUnblock(ClIocCommPortHandleT portHandle)
     ClIocCommPortT *pIocCommPort = (ClIocCommPortT *)portHandle;
     ClRcT rc = CL_OK;
     ClUint32T portId;
-    ClTimerTimeOutT timeout = {.tsSec=0,.tsMilliSec=200};
+    ClTimerTimeOutT timeout = { 0, 200};
     ClInt32T tries=0;
-    static struct iovec exitVector = {.iov_base = (void*)CL_IOC_PORT_EXIT_MESSAGE,
-                                      .iov_len = sizeof(CL_IOC_PORT_EXIT_MESSAGE),
-    };
+    static struct iovec exitVector = { (void*)CL_IOC_PORT_EXIT_MESSAGE,  sizeof(CL_IOC_PORT_EXIT_MESSAGE) };
     ClIocAddressT destAddress;
     portId = pIocCommPort->portId;
     memset(&destAddress, 0, sizeof(destAddress));
@@ -3187,8 +3152,7 @@ ClRcT clIocCommPortReceiverUnblock(ClIocCommPortHandleT portHandle)
     /*Grab the lock to avoid a race with lost wakeups triggered by the recv.*/
     clOsalMutexLock(&pIocCommPort->unblockMutex);
     ++pIocCommPort->blocked;
-    if( (rc = clTransportSend(NULL, pIocCommPort->portId, CL_IOC_HIGH_PRIORITY,
-                              &destAddress, &exitVector, 1, 0) ) != CL_OK)
+    if( (rc = clTransportSend(NULL, pIocCommPort->portId, CL_IOC_HIGH_PRIORITY, &destAddress, &exitVector, 1, 0) ) != CL_OK)
     {
         clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,"Error sending port exit message to port:0x%x.errno=%d\n",portId,errno);
         rc = CL_IOC_RC(CL_ERR_UNSPECIFIED);

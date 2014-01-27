@@ -19,6 +19,10 @@
 #ifndef __CL_TIPC_SETUP_H__
 #define __CL_TIPC_SETUP_H__
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <clIocConfig.h>
 #include <clIocSetup.h>
 
@@ -38,4 +42,8 @@ extern ClRcT clTipcFdGet(ClIocPortT port, ClInt32T *fd);
 extern ClRcT clTipcDoesNodeAlreadyExist(void);
 extern ClInt32T gClTipcXportId;
 extern ClCharT  gClTipcXportType[CL_MAX_NAME_LENGTH];
+
+#ifdef __cplusplus
+   }
+#endif
 #endif

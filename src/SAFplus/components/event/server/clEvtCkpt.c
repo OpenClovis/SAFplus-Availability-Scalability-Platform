@@ -3446,7 +3446,7 @@ ClRcT clEventChannelOpenCheckpointCreate(SaNameT         *pCkptName)
     ClCkptCheckpointCreationAttributesT  creationAtt    = {0};
     ClCkptOpenFlagsT                     openFlags      = 0;
     ClInt32T                             tries = 0;
-    static ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 100};  
+    static ClTimerTimeOutT delay = { 0, 100};  
     creationAtt.creationFlags     = CL_CKPT_CHECKPOINT_COLLOCATED | CL_CKPT_ALL_OPEN_ARE_REPLICAS;
     creationAtt.checkpointSize    = MAX_CHANNEL * CL_EVENT_CHANNEL_OPEN_SIZE;
     creationAtt.retentionDuration = CL_EVENT_CKPT_RETENTION_DURATION;
@@ -3454,13 +3454,10 @@ ClRcT clEventChannelOpenCheckpointCreate(SaNameT         *pCkptName)
     creationAtt.maxSectionSize    = CL_EVENT_CHANNEL_OPEN_SIZE;
     creationAtt.maxSectionIdSize  = CL_CHANNEL_OPEN_SEC_ID_SIZE;
 
-    openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE |
-        CL_CKPT_CHECKPOINT_READ;
+    openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
 
     reopen:
-    rc = clCkptCheckpointOpen(ckpt_svc_handle,
-                              pCkptName, &creationAtt, openFlags, 5000L,
-                              &ckpt_channel_open_handle);
+    rc = clCkptCheckpointOpen(ckpt_svc_handle, pCkptName, &creationAtt, openFlags, 5000L, &ckpt_channel_open_handle);
     if( rc != CL_OK )
     {
         /*
@@ -3491,7 +3488,7 @@ ClRcT clEventChannelSubCheckpointCreate(SaNameT         *pCkptName)
     ClCkptCheckpointCreationAttributesT  creationAtt    = {0};
     ClCkptOpenFlagsT                     openFlags      = 0;
     ClInt32T                             tries = 0;
-    static ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 100};
+    static ClTimerTimeOutT delay = { 0, 100};
 
 
     creationAtt.creationFlags     = CL_CKPT_CHECKPOINT_COLLOCATED | CL_CKPT_ALL_OPEN_ARE_REPLICAS;
@@ -3539,7 +3536,7 @@ ClRcT clEventUserInfoCheckpointCreate(SaNameT         *pCkptName)
     ClCkptCheckpointCreationAttributesT  creationAtt    = {0};
     ClCkptOpenFlagsT                     openFlags      = 0;
     ClInt32T                             tries = 0;
-    static ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 100};
+    static ClTimerTimeOutT delay = { 0, 100};
     creationAtt.creationFlags     = CL_CKPT_CHECKPOINT_COLLOCATED | CL_CKPT_ALL_OPEN_ARE_REPLICAS;
     creationAtt.checkpointSize    = MAX_USER * CL_EVENT_USER_INFO_SIZE;
     creationAtt.retentionDuration = CL_EVENT_CKPT_RETENTION_DURATION;

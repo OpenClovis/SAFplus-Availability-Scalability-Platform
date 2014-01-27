@@ -166,7 +166,7 @@ static int
 clTestSend(ClUint32T nbToBeWritten, ClCharT *buf)
 {
 
-    if( send(gSockFd, buf, nbToBeWritten, 0) != nbToBeWritten )
+    if( (ClUint32T)send(gSockFd, buf, nbToBeWritten, 0) != nbToBeWritten )
     {
         perror("");
         clprintf(CL_LOG_SEV_ERROR, "Error in send()");

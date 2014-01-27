@@ -69,8 +69,7 @@ extern "C"
     /*
      * Latest supported Version of Rmd
      */
-# define CL_RMD_VERSION {.releaseCode = CL_RELEASE_VERSION, .majorVersion = CL_MAJOR_VERSION,\
-            .minorVersion = CL_MINOR_VERSION }
+# define CL_RMD_VERSION { CL_RELEASE_VERSION,  CL_MAJOR_VERSION, CL_MINOR_VERSION }
 
 # define CL_RMD_VERSION_SET(version) (version).releaseCode =  CL_RELEASE_VERSION, \
                                      (version).majorVersion = CL_MAJOR_VERSION,\

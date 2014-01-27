@@ -1686,7 +1686,6 @@ clBMBufferDataPrepend(ClBufferCtrlHeaderT *pCtrlHeader,
     ClUint8T* pTemp = NULL;
     ClUint8T* pBufferToCopy = NULL;
     ClUint32T remainingSpace = 0;
-       
     /* Dont allow more than what was allocated for the head room */
     remainingSpace = pFirstBufferHeader->startOffset - CL_BUFFER_OVERHEAD;
    
@@ -2419,8 +2418,7 @@ clBufferFinalize ()
 
 /*****************************************************************************/
 
-ClRcT
-clBufferCreate (ClBufferHandleT *pBufferHandle)
+ClRcT clBufferCreate (ClBufferHandleT *pBufferHandle)
 {
     CL_FUNC_ENTER();
     CL_FUNC_EXIT();
@@ -2428,8 +2426,7 @@ clBufferCreate (ClBufferHandleT *pBufferHandle)
 }
 
 /*****************************************************************************/
-ClRcT
-clBufferCreateAndAllocate (ClUint32T size, ClBufferHandleT *pBufferHandle)
+ClRcT clBufferCreateAndAllocate (ClUint32T size, ClBufferHandleT *pBufferHandle)
 {
     ClRcT errorCode = CL_OK;
     ClBufferCtrlHeaderT* pCtrlHeader = NULL;
@@ -2986,14 +2983,11 @@ clBufferChecksum32Compute(ClBufferHandleT bufferHandle,
 
 /*****************************************************************************/
 
-ClRcT
-clBufferDataPrepend (ClBufferHandleT bufferHandle, ClUint8T *pByteBuffer, 
-                     ClUint32T numberOfBytesToWrite)
+ClRcT clBufferDataPrepend (ClBufferHandleT bufferHandle, ClUint8T *pByteBuffer, ClUint32T numberOfBytesToWrite)
 {
     ClRcT errorCode = CL_OK;
     ClBufferCtrlHeaderT* pCtrlHeader = NULL;
     ClBufferHeaderT* pBufferHeader = NULL;
-
     CL_FUNC_ENTER();
     if(gBufferManagementInfo.isInitialized == CL_FALSE) 
     {
@@ -3004,8 +2998,7 @@ clBufferDataPrepend (ClBufferHandleT bufferHandle, ClUint8T *pByteBuffer,
     }
     
     pCtrlHeader = (ClBufferCtrlHeaderT *)bufferHandle;
-    pBufferHeader = (ClBufferHeaderT*)((char*)bufferHandle + 
-                                       CL_BUFFER_OVERHEAD_CTRL);
+    pBufferHeader = (ClBufferHeaderT*)((char*) bufferHandle + CL_BUFFER_OVERHEAD_CTRL);
 
     NULL_CHECK(pCtrlHeader);
     NULL_CHECK(pBufferHeader);

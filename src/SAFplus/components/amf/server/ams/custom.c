@@ -1044,14 +1044,14 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
         ClAmsHAStateT currentHAState;
     } suSIAssignmentMap[2] = {
         {
-            .su = activeSU,
-            .haState = CL_AMS_HA_STATE_ACTIVE,
-            .currentHAState = CL_AMS_HA_STATE_NONE,
+             activeSU,
+             CL_AMS_HA_STATE_ACTIVE,
+             CL_AMS_HA_STATE_NONE,
         },
         {
-            .su = standbySU,
-            .haState = CL_AMS_HA_STATE_STANDBY,
-            .currentHAState = CL_AMS_HA_STATE_NONE,
+            standbySU,
+            CL_AMS_HA_STATE_STANDBY,
+            CL_AMS_HA_STATE_NONE,
         },
     };
 

@@ -64,9 +64,7 @@ static ClOsalMutexT gIocEventHandlerSendLock;
 
 static ClIocCommPortT dummyCommPort;
 static ClIocLocalCompsAddressT allLocalComps;
-static ClIocAddressT allNodeReps = {
-        .iocPhyAddress = { CL_IOC_BROADCAST_ADDRESS, CL_IOC_XPORT_PORT }
-};
+static ClIocAddressT allNodeReps = { .iocPhyAddress = { CL_IOC_BROADCAST_ADDRESS, CL_IOC_XPORT_PORT } };
 
 static ClUint32T threadContFlag = 1;
 static ClUint32T gNumDiscoveredPeers;
@@ -281,6 +279,7 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
     ClRcT rc = CL_OK;
     ClUint8T *pRecvBase = (ClUint8T*) pMsgHdr->msg_iov->iov_base;
     ClCharT addStr[INET_ADDRSTRLEN] = {0};
+    
 
     switch (socketType) {
     case 0:
@@ -315,9 +314,7 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                     return rc; /*ignore self discover*/
                 }
 
-                ClIocPhysicalAddressT destAddress = {.nodeAddress = compAddr.nodeAddress,
-                                                     .portId = compAddr.portId,
-                };
+                ClIocPhysicalAddressT destAddress = { compAddr.nodeAddress, compAddr.portId };
 
                 notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
                 notification.nodeAddress.iocPhyAddress.portId = htonl(CL_IOC_XPORT_PORT);
@@ -899,8 +896,7 @@ ClRcT clUdpEventHandlerInitialize(void)
 }
 
 ClRcT clUdpEventHandlerFinalize(void) {
-    ClTimerTimeOutT timeout = { .tsSec = 0, .tsMilliSec =
-            CL_IOC_MAIN_THREAD_WAIT_TIME };
+    ClTimerTimeOutT timeout = {  0, CL_IOC_MAIN_THREAD_WAIT_TIME };
 
     /* If service was never initialized, don't finalize */
     if (!eventHandlerInited)

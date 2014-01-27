@@ -430,7 +430,7 @@ clLogFileOwnerStateRecover(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry,
     ClUint32T     buffLen    = 0;
     ClUint32T     numEntries = 0;
     ClUint32T     retryCnt   = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec =  50 };
+    ClTimerTimeOutT delay = { 0,  50 };
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     rc = clLogSvrIdlHandleInitialize(CL_LOG_STREAM_GLOBAL, &hLogIdl);

@@ -832,7 +832,7 @@ ClRcT VDECL(cpmNodeShutDown)(ClEoDataT data,
 
         if(CL_CPM_IS_WB())
         {
-            ClTimerTimeOutT delay = {.tsSec = 6, .tsMilliSec = 0 };
+            ClTimerTimeOutT delay = { 6, 0 };
             clLogNotice("NODE", "SHUTDOWN", "Worker node got a restart request from the master."
                         "This should be mostly from a split brain recovery");
             cpmRestart(&delay, "payload");
@@ -915,7 +915,7 @@ static void startShutdownTimer(ClIocNodeAddressT nodeAddress)
 {
 #define ASP_SHUTDOWN_DEFAULT_TIMEOUT (120)
     ClTimerHandleT timer;
-    ClTimerTimeOutT timeout = {.tsSec = ASP_SHUTDOWN_DEFAULT_TIMEOUT, .tsMilliSec = 0 };
+    ClTimerTimeOutT timeout = { ASP_SHUTDOWN_DEFAULT_TIMEOUT, 0 };
     ClRcT rc;
     ClCharT *str;
     if( (str = getenv("ASP_SHUTDOWN_TIMEOUT") ) )
@@ -1958,7 +1958,7 @@ static void cpmInstallNodeInfo(void)
          */
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_BAD_OPERATION)
         {
-            static ClTimerTimeOutT delay = {.tsSec = 2 };
+            static ClTimerTimeOutT delay = { 2 };
             clLogNotice("NODE", "RESTART", 
                         "Restarting node [%s] since the leadership view "
                         "seems to be inconsistent. Try increasing bootElectionTimeout "
@@ -2102,7 +2102,7 @@ static void __cpmRegisterWithActive(ClBoolT reregister)
                     {
                         ClRcT rc2;
                         ClIocNodeAddressT iocAddress;
-                        ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
+                        ClTimerTimeOutT delay = { 1,  0 };
                         clLogWarning(CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_CPM,"AMF standby/Worker blade waiting for AMF active to come up...");
                         rc2 = clCpmMasterAddressGetExtended(&iocAddress, 3, &delay);
                         if (rc2 == CL_OK)
@@ -2156,7 +2156,7 @@ static void __cpmRegisterWithActive(ClBoolT reregister)
     {
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_STATE)
         {
-            static ClTimerTimeOutT delay = { .tsSec = 3, .tsMilliSec = 0 };
+            static ClTimerTimeOutT delay = { 3, 0 };
             invalid_state:
             clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
                           "This node failed to register with master because of invalid state. "
@@ -2287,7 +2287,7 @@ static ClRcT cpmPayloadRegisterCallback(void *unused)
 static ClRcT cpmPayloadRegister(void)
 {
     ClTimerHandleT timer = {0};
-    ClTimerTimeOutT timeout = {.tsSec = 1, .tsMilliSec = 0};
+    ClTimerTimeOutT timeout = { 1, 0};
     cpmBmRespTimerStop();
     return clTimerCreateAndStart(timeout, CL_TIMER_VOLATILE, CL_TIMER_SEPARATE_CONTEXT,
                                  cpmPayloadRegisterCallback, NULL, &timer);

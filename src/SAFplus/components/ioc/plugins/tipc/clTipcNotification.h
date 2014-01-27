@@ -19,6 +19,10 @@
 #ifndef __CL_TIPC_NOTIFICATION_H_
 #define __CL_TIPC_NOTIFICATION_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <clIocApi.h>
 
 #define CL_TIPC_SUBSCR_TIMEOUT 3000
@@ -26,4 +30,7 @@
 ClRcT clTipcEventHandlerInitialize(void);
 ClRcT clTipcEventHandlerFinalize(void);
 
+#ifdef __cplusplus
+  }
+#endif
 #endif

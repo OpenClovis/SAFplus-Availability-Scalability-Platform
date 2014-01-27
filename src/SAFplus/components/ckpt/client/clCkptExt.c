@@ -791,13 +791,13 @@ ClRcT clCkptLibraryCkptDataSetCreate (ClCkptSvcHdlT   ckptHdl,
     
     ClCkptDataSetCallbackT table[1] = { 
         {
-        .version = {
-                .releaseCode = CL_RELEASE_VERSION, 
-                .majorVersion = CL_MAJOR_VERSION, 
-                .minorVersion = CL_MINOR_VERSION
+            {
+               CL_RELEASE_VERSION, 
+               CL_MAJOR_VERSION, 
+               CL_MINOR_VERSION
             },
-        .serialiser = dsSerialiser,
-        .deSerialiser = dsDeserialiser
+        dsSerialiser,
+        dsDeserialiser
         },
     };
     return clCkptLibraryCkptDataSetVersionCreate(ckptHdl, pCkptName, dsId, grpId, order, table, 1);
@@ -1121,10 +1121,7 @@ ClRcT clCkptLibraryCkptDataSetWrite (ClCkptSvcHdlT   ckptHdl,
                                      ClUint32T        dsId, 
                                      ClPtrT        cookie)
 {
-    ClVersionT version = {.releaseCode = CL_RELEASE_VERSION, 
-                          .majorVersion = CL_MAJOR_VERSION,
-                          .minorVersion = CL_MINOR_VERSION
-    };
+    ClVersionT version = { CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION };
     return clCkptLibraryCkptDataSetVersionWrite(ckptHdl, pCkptName, dsId, cookie, &version);
 }
                                            
@@ -1245,13 +1242,13 @@ ClRcT clCkptLibraryCkptElementCreate(ClCkptSvcHdlT        ckptHdl,
 {
     ClCkptDataSetCallbackT table[1] = {
         { 
-          .version = { 
-                .releaseCode = CL_RELEASE_VERSION, 
-                .majorVersion = CL_MAJOR_VERSION, 
-                .minorVersion = CL_MINOR_VERSION 
+            { 
+                CL_RELEASE_VERSION, 
+                CL_MAJOR_VERSION, 
+                CL_MINOR_VERSION 
             },
-          .serialiser = elemSerialiser,
-          .deSerialiser = elemDeserialiser,
+            elemSerialiser,
+            elemDeserialiser,
         },
     };
 
@@ -1369,13 +1366,8 @@ ClRcT clCkptLibraryCkptElementWrite (ClCkptSvcHdlT   ckptHdl,
                                     ClUint32T       keyLen,
                                     ClPtrT       cookie)
 {
-    ClVersionT version = {
-        .releaseCode = CL_RELEASE_VERSION,
-        .majorVersion = CL_MAJOR_VERSION,
-        .minorVersion = CL_MINOR_VERSION,
-    };
-    return clCkptLibraryCkptElementVersionWrite(ckptHdl, pCkptName, dsId,
-                                                elemKey, keyLen, cookie, &version);
+    ClVersionT version = {  CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION };
+    return clCkptLibraryCkptElementVersionWrite(ckptHdl, pCkptName, dsId, elemKey, keyLen, cookie, &version);
 }
 
 /*

@@ -436,7 +436,7 @@ static SaAisErrorT clMsgQueueOpenInternal(
     ClBoolT                          qExists;
     ClMsgQueueCkptDataT              queueData;
     ClInt32T                         tries = 0;
-    ClTimerTimeOutT                  delay = {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT                  delay = { 0, 500 };
 
     CL_MSG_INIT_CHECK(rc);
     if( rc != CL_OK)

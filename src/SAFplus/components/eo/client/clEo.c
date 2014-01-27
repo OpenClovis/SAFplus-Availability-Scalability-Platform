@@ -424,9 +424,8 @@ static ClRcT clEoEssentialLibInitialize(void)
         {
             if (CL_GET_ERROR_CODE(rc) != CL_ERR_INITIALIZED) /* Already Initialized is benign */
             {
-                
-            clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-                  "Failed to initialize essential library [%s], error [0x%x]",
+               
+            clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to initialize essential library [%s], error [0x%x]",
                   gEssentialLibInfo[i].libName, rc);
             return rc;
             }
@@ -466,21 +465,19 @@ static ClRcT clAspBasicLibInitialize()
 {
     ClUint32T i = 0;
     ClRcT rc = CL_OK;
-    ClUint32T tableSize =
-        sizeof(gClBasicLibInitTable) / sizeof(ClInitFinalizeDef);
+    ClUint32T tableSize = sizeof(gClBasicLibInitTable) / sizeof(ClInitFinalizeDef);
     for (i = 0; i < tableSize; i++)
     {
         if (gClBasicLibInitTable[i].fn == NULL) continue;
 
         if (eoBasicLibs[i] == CL_TRUE)
         {
-            clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI,
-                  "Initializing basic library [%s]...",
-                  gClBasicLibInitTable[i].libName);
+
+            clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing basic library [%s]...", gClBasicLibInitTable[i].libName);
             if (CL_OK != (rc = gClBasicLibInitTable[i].fn()))
             {
-                clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-                      "Failed to initialize basic library [%s], error [0x%x]",
+
+                clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to initialize basic library [%s], error [0x%x]",
                       gClBasicLibInitTable[i].libName, rc);
                 return rc;
             }
@@ -541,8 +538,7 @@ ClRcT clAspClientLibInitialize(void)
 {
     ClUint32T i = 0;
     ClRcT rc = CL_OK;
-    ClUint32T tableSize =
-        sizeof(gClClientLibInitTable) / sizeof(ClInitFinalizeDef);
+    ClUint32T tableSize = sizeof(gClClientLibInitTable) / sizeof(ClInitFinalizeDef);
 
     for (i = 0; i < tableSize; i++)
     {
@@ -554,13 +550,10 @@ ClRcT clAspClientLibInitialize(void)
 
         if (eoClientLibs[i] == CL_TRUE)
         {
-            clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI,
-                  "Initializing client library [%s]...",
-                  gClClientLibInitTable[i].libName);
+            clLog(CL_LOG_SEV_DEBUG, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing client library [%s]...", gClClientLibInitTable[i].libName);
             if (CL_OK != (rc = gClClientLibInitTable[i].fn()))
             {
-                clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-                      "Failed to initialize client library [%s], error [0x%x]",
+                clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to initialize client library [%s], error [0x%x]",
                       gClClientLibInitTable[i].libName, rc);
                 return rc;
             }
@@ -633,13 +626,11 @@ ClRcT clEoSetup(void)
     /*
      * Okay always parse the ioc config file
      */
-    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
-          "Reading IOC configuration file, for node [%s]", gClEoNodeName);
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Reading IOC configuration file, for node [%s]", gClEoNodeName);
     rc = clIocParseConfig(gClEoNodeName,&gpClEoIocConfig);
     if(rc != CL_OK)
     {
-        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "Failed to parse IOC config file, error [0x%x]", rc);
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to parse IOC config file, error [0x%x]", rc);
         return rc;
     }
     
@@ -650,8 +641,7 @@ ClRcT clEoSetup(void)
     }
 #endif 
 
-    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
-          "Reading EO configuration file");
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Reading EO configuration file");
     
     if(NULL != clEoProgName)
     {
@@ -666,18 +656,15 @@ ClRcT clEoSetup(void)
         
     if ( rc != CL_OK )
     {
-        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "Failed to parse EO config file, error [0x%x]", rc);
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to parse EO config file, error [0x%x]", rc);
         return rc;
     }
 
-    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI,
-          "Initializing essential libraries...");
+    clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing essential libraries...");
     rc = clEoEssentialLibInitialize();
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "Failed to initialize all essential libraries, error [0x%x]", rc);
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to initialize all essential libraries, error [0x%x]", rc);
         return rc;
     }
     clLogUtilLibInitialize();
@@ -712,13 +699,12 @@ ClRcT clEoSetup(void)
     {
         return rc;
     }
-
+    
     clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Initializing client libraries...");
     rc = clAspClientLibInitialize();
     if (rc != CL_OK)
     {
-        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI,
-              "Failed to initialize all client libraries, error [0x%x]", rc);
+        clLog(CL_LOG_SEV_CRITICAL, CL_LOG_AREA, CL_LOG_CTXT_INI, "Failed to initialize all client libraries, error [0x%x]", rc);
         return rc;
     }
 
@@ -880,10 +866,10 @@ ClRcT clEoInitialize(ClInt32T argc, ClCharT *argv[])
 
     ClEoExecutionObjT *pThis = NULL;
 
-    ClTimerTimeOutT waitForExit = {.tsSec = 0, .tsMilliSec = 0 };
+    ClTimerTimeOutT waitForExit = { 0,  0 };
 
     clEoProgName = argv[0];
-    
+   
     clLog(CL_LOG_SEV_INFO, CL_LOG_AREA, CL_LOG_CTXT_INI, "Process [%s] started. PID [%d]", clEoProgName, (int)getpid());
     
     clEoStaticQueueInit();

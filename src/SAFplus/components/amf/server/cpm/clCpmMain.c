@@ -535,37 +535,26 @@ static ClRcT cpmAllocate(void)
 {
     ClRcT rc = CL_OK;
     ClCharT *str = NULL;
-
     gpClCpm = &gClCpm;
 
     gpClCpm->bootTime = clOsalStopWatchTimeGet();
-    gpClCpm->pCpmLocalInfo =
-        (ClCpmLocalInfoT *) clHeapCalloc(1,(ClUint32T) sizeof(ClCpmLocalInfoT));
+    
+    gpClCpm->pCpmLocalInfo = (ClCpmLocalInfoT *) clHeapCalloc(1,(ClUint32T) sizeof(ClCpmLocalInfoT));
     if (gpClCpm->pCpmLocalInfo == NULL)
-        CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
-                       CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                       CL_CPM_RC(CL_ERR_NO_MEMORY), 
-                       CL_LOG_HANDLE_APP);
+        CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED, CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_HANDLE_APP);
 
-    gpClCpm->pCpmConfig =
-        (ClCpmCfgT *) clHeapCalloc(1,(ClUint32T) sizeof(ClCpmCfgT));
+    gpClCpm->pCpmConfig = (ClCpmCfgT *) clHeapCalloc(1,(ClUint32T) sizeof(ClCpmCfgT));
     if (gpClCpm->pCpmConfig == NULL)
-        CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
-                       CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                       CL_CPM_RC(CL_ERR_NO_MEMORY),
-                       CL_LOG_HANDLE_APP);
+        CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED, CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexInit(&gpClCpm->cpmMutex);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexInit(&gpClCpm->heartbeatMutex);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     rc = clOsalCondInit(&gpClCpm->heartbeatCond);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     /*
      * Disable heartbeating by default.
@@ -575,20 +564,16 @@ static ClRcT cpmAllocate(void)
     clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
 
     rc = clOsalMutexInit(&gpClCpm->cpmGmsMutex);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
     
     rc = clOsalCondInit(&gpClCpm->cpmGmsCondVar);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexCreate(&(gpClCpm->eoListMutex));
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexCreate(&(gpClCpm->cpmTableMutex));
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
     /*
      * CompId needs to be unique in the system/cluster. But at the same time 
      * compId are allocated/generated locally. Hence to generate the globally 
@@ -605,29 +590,22 @@ static ClRcT cpmAllocate(void)
      * to store the pending response from the component in response to the
      * callback invoked by CPM 
      */
-    rc = clCntHashtblCreate(CL_CPM_INVOCATION_BUCKET_SIZE,
-                            cpmInvocationStoreCompare,
-                            cpmInvocationStoreHashFunc, NULL,
-                            cpmInvocationDelete, CL_CNT_UNIQUE_KEY,
-                            &gpClCpm->invocationTable);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    rc = clCntHashtblCreate(CL_CPM_INVOCATION_BUCKET_SIZE, cpmInvocationStoreCompare, cpmInvocationStoreHashFunc, NULL,
+                            cpmInvocationDelete, CL_CNT_UNIQUE_KEY, &gpClCpm->invocationTable);
+
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_1_CNT_CREATE_FAILED, rc, rc, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexCreate(&(gpClCpm->invocationMutex));
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexInit(&gpClCpm->clusterMutex);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexInit(&gpClCpm->compTerminateMutex);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     rc = clOsalMutexInit(&gpClCpm->cpmShutdownMutex);
-    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
     clOsalMutexLock(&gpClCpm->cpmGmsMutex); 
     gpClCpm->trackCallbackInProgress = CL_FALSE;
@@ -648,7 +626,7 @@ static ClRcT cpmAllocate(void)
         }
         clLogNotice("VALGRIND", "DELAY", "DELAY configured is [%d] secs", cpmValgrindTimeout);
     }
-        
+    
     return CL_OK;
 
     failure:
@@ -1442,6 +1420,7 @@ static ClRcT cpmLoggerInitialize(void)
 void cpmRedirectOutput(void)
 {
     cpmLoggerSetFileName();
+
     if (cpmIsConsoleStart) return;
 
     cpmLoggerFd = -1;
@@ -2768,7 +2747,7 @@ static void cpmFailoverRecover(void)
     if (gpClCpm->bmTable->currentBootLevel !=
         gpClCpm->pCpmLocalInfo->defaultBootLevel)
     {
-        ClTimerTimeOutT delay = {.tsSec = 5, .tsMilliSec = 0 };
+        ClTimerTimeOutT delay = { 5, 0 };
         clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
                       "This standby node cannot become active "
                       "as its still booting up at level [%d] "
@@ -2786,7 +2765,7 @@ static void cpmFailoverRecover(void)
 
 void cpmActive2Standby(ClBoolT shouldRestartWorkers)
 {
-    ClTimerTimeOutT delay = {.tsSec = 5, .tsMilliSec = 0 };
+    ClTimerTimeOutT delay = { 5, 0 };
 
     /*
      * This condition would happen only with 2 CPMGS.
@@ -2901,7 +2880,7 @@ ClRcT cpmStandby2Active(ClGmsNodeIdT prevMasterNodeId,
     rc = cpmCpmLCheckpointRead();
     if (CL_OK != rc)
     {
-        ClTimerTimeOutT delay = {.tsSec = 5, .tsMilliSec = 0 };
+        ClTimerTimeOutT delay = { 5,  0 };
         clLogMultiline(CL_LOG_SEV_CRITICAL,
                        CPM_LOG_AREA_CPM,
                        CPM_LOG_CTX_CPM_CKP,
@@ -3665,7 +3644,7 @@ static ClRcT clCpmIocNotificationEnqueue(ClIocNotificationT *notification, ClPtr
 /*
  * Unused now because of the above fast interface through notifications
  */
-ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
+static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                            ClBufferHandleT eoRecvMsg,
                            ClUint8T priority,
                            ClUint8T protoType,
@@ -3777,7 +3756,7 @@ static ClRcT compMgrPollThread(void)
     ClUint32T outLen = (ClUint32T) sizeof(ClCpmSchedFeedBackT);
     ClRcT rc = CL_OK;
     ClTimerTimeOutT timeOut;
-    ClTimerTimeOutT heartbeatWait = {.tsSec=0,.tsMilliSec=0};
+    ClTimerTimeOutT heartbeatWait = { 0, 0};
     ClUint32T freq = gpClCpm->pCpmConfig->defaultFreq, cpmCount;
     ClIocNodeAddressT myOMAddress = { 0 };
     ClCntNodeHandleT hNode = 0;
@@ -4284,7 +4263,7 @@ ClEoConfigT clEoConfig =
     NULL,
     cpmHealthCheck,
     NULL,
-    .needSerialization = CL_TRUE,
+    CL_TRUE,
 };
 
 ClUint8T clEoBasicLibs[] =
@@ -4397,7 +4376,7 @@ static ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
     loadAspInstallInfo();
     clLogCompName = (ClCharT*) "AMF"; /* Override generated eo name with a short name for our server */
     clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "%s %s", CPM_ASP_WELCOME_MSG, gAspVersion);
-   
+  
     clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Process [%s] started. PID [%d]", argv[0], (int)getpid());
   
     /* To make the AMF environment "look" like the rest of the components to our common libraries (like EO) we set a few
@@ -4442,7 +4421,7 @@ static ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
 ClRcT cpmValidateEnv(void)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_OP_NOT_PERMITTED);
-
+  
     gClSigTermRestart = clParseEnvBoolean("ASP_RESTART_SIGTERM");
 
     if (clParseEnvBoolean("ASP_WITHOUT_CPM") == CL_TRUE)
@@ -4454,7 +4433,6 @@ ClRcT cpmValidateEnv(void)
                        "in its environment. Please unset this variable " "to continue.");
         goto failure;
     }
-
     return CL_OK;
 failure:
     return rc;

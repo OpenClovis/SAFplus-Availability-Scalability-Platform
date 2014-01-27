@@ -446,7 +446,7 @@ clAmsStart(
         ClIocNodeAddressT localAddress = clIocLocalAddressGet();
         ClIocNodeAddressT masterAddress = 0;
         ClInt32T retries = 0;
-        ClTimerTimeOutT delay = {.tsSec = 2, .tsMilliSec = 0};
+        ClTimerTimeOutT delay = { 2, 0};
 
         ams->mode &= ~CL_AMS_INSTANTIATE_MODE_STANDBY;
 
@@ -454,9 +454,7 @@ clAmsStart(
 
         if (CL_OK != rc)
         {
-            clLogCritical("AMS", "BOO",
-                          "The cluster is in inconsistent state. "
-                          "This node is the master, but master address get failed "
+            clLogCritical("AMS", "BOO", "The cluster is in inconsistent state. " "This node is the master, but master address get failed "
                           "with error [%#x]", rc);
             return rc;
         }
@@ -469,17 +467,13 @@ clAmsStart(
          * also exists on that standby. We retry before giving up since we are fine with the GMS    
          * view and the peer could be in the middle of exiting the cluster.
          */
-        while(masterAddress != localAddress 
-              && 
-              retries++ < 10)
+        while(masterAddress != localAddress && retries++ < 10)
         {
             clOsalTaskDelay(delay);
             rc = clCpmMasterAddressGet(&masterAddress);
             if(rc != CL_OK)
             {
-                clLogCritical("AMS", "BOO",
-                              "The cluster is in inconsistent state. "
-                              "This node is the master, but master address get failed "
+                clLogCritical("AMS", "BOO", "The cluster is in inconsistent state. " "This node is the master, but master address get failed "
                               "with error [%#x]", rc);
                 return rc;
             }
@@ -487,12 +481,9 @@ clAmsStart(
 
         if(masterAddress != localAddress)
         {
-            ClTimerTimeOutT delay = {.tsSec = 5, .tsMilliSec = 0 };
-            clLogCritical("AMS", "BOO",
-                          "Inconsistency between GMS and IOC configuration detected, "
-                          "master address as per GMS is [%#x], but master address "
-                          "as per IOC is [%#x]",
-                          localAddress, masterAddress);
+            ClTimerTimeOutT delay = { 5, 0 };
+            clLogCritical("AMS", "BOO", "Inconsistency between GMS and IOC configuration detected, "
+                          "master address as per GMS is [%#x], but master address " "as per IOC is [%#x]", localAddress, masterAddress);
             clLogCritical("AMS", "BOO", "This node would be restarted in [%d] secs", delay.tsSec);
             cpmRestart(&delay, "Controller");
             return CL_AMS_RC(CL_ERR_INVALID_STATE);

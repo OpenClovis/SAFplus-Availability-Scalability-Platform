@@ -59,9 +59,7 @@
 
 ClCkptClntInfoT  gClntInfo = {0};
 static ClInt32T gClDifferentialCkpt = -1;
-static ClCkptSectionIdT gClDefaultSection = {.idLen = sizeof("defaultSection"),
-                                             .id = (ClUint8T*)"defaultSection"
-};
+static ClCkptSectionIdT gClDefaultSection = { sizeof("defaultSection"), (ClUint8T*)"defaultSection" };
 
 /*
  * Supporetd version.
@@ -547,7 +545,7 @@ ClRcT ckptLocalCallForOpen(ClCkptSvcHdlT     ckptSvcHdl,
     ClCkptHdlT            *pCkptHdl     = NULL;
     ClCkptCheckpointCreationAttributesT ckptAttr = {0};
     ClInt32T              retryCount   = 0;
-    ClTimerTimeOutT t = {.tsSec = 0, .tsMilliSec=250};
+    ClTimerTimeOutT t = { 0, 250};
 
     /*
      * Validate all input variables
@@ -767,11 +765,8 @@ exitOnError:
            &&
            !(ckptAttr.creationFlags & CL_CKPT_PEER_TO_PEER_CACHE_DISABLE))
         {
-            ClIocPhysicalAddressT compAddr = {.nodeAddress = CL_IOC_BROADCAST_ADDRESS,
-                                              .portId = 0
-            };
-            clCpmNotificationCallbackInstall(compAddr, ckptNotificationCallback,
-                                             NULL, &pInitInfo->ckptNotificationHandle);
+            ClIocPhysicalAddressT compAddr = { CL_IOC_BROADCAST_ADDRESS,  0 };
+            clCpmNotificationCallbackInstall(compAddr, ckptNotificationCallback, NULL, &pInitInfo->ckptNotificationHandle);
         }
 
         /* 
@@ -2172,7 +2167,7 @@ ClRcT clCkptSectionIterationInitialize(ClCkptHdlT             ckptHdl,
     ClVersionT             ckptVersion        = {0};
     ClUint32T              maxRetry           = 0;
     ClUint8T               status = CL_IOC_NODE_DOWN;
-    ClTimerTimeOutT        delay = {.tsSec = 0, .tsMilliSec = 500};
+    ClTimerTimeOutT        delay = { 0, 500};
         
     /*
      * Verify the input parameters.
@@ -2656,7 +2651,7 @@ ClRcT clCkptSectionCheck(ClCkptHdlT             ckptHdl,
     ClBoolT                tryAgain           = CL_FALSE;
     ClUint32T              maxRetry           = 0;
     ClUint8T               status = CL_IOC_NODE_DOWN;
-    ClTimerTimeOutT        delay = {.tsSec = 0, .tsMilliSec = 50};
+    ClTimerTimeOutT        delay = { 0, 50};
         
     /*
      * Verify the input parameters.
@@ -2839,7 +2834,7 @@ ClRcT clCkptCheckpointWriteVector(ClCkptHdlT                     ckptHdl,
     ClUint32T           maxRetry   = 0;
     ClIocPortT          iocPort    = 0;
     ClUint8T            status = CL_IOC_NODE_DOWN;
-    ClTimerTimeOutT     delay =  {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT     delay =  { 0, 500 };
 
     /*
      * Input parameter verification.
@@ -3025,7 +3020,7 @@ ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
     ClIocPortT          iocPort    = 0;
     ClUint8T            status = CL_IOC_NODE_DOWN;
     ClBoolT             clientUpdate = CL_FALSE;
-    ClTimerTimeOutT     delay =  {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT     delay =  { 0, 500 };
 
     /*
      * Input parameter verification.
@@ -3328,7 +3323,7 @@ ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
     ClUint32T          maxRetry   = 0;
     ClIocPortT         iocPort    = 0;
     ClUint8T           status = CL_IOC_NODE_DOWN;
-    ClTimerTimeOutT    delay = {.tsSec = 0, .tsMilliSec = 500};
+    ClTimerTimeOutT    delay = { 0, 500};
     /*
      * Input parameter verification.
      */
@@ -3537,7 +3532,7 @@ ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
     ClIocPortT         iocPort    = 0;
     ClUint8T           status = CL_IOC_NODE_DOWN;
     ClBoolT            clientUpdate = CL_FALSE;
-    ClTimerTimeOutT    delay = {.tsSec = 0, .tsMilliSec = 500};
+    ClTimerTimeOutT    delay = { 0,  500};
     /*
      * Input parameter verification.
      */
@@ -3819,7 +3814,7 @@ ClRcT  clCkptCheckpointRead(ClCkptHdlT              ckptHdl,
     ClUint32T               tempError      = 0;
     ClBoolT                 tryAgain       = CL_FALSE;
     ClUint32T               maxRetry       = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT delay = { 0, 500 };
 
     /* Clear out the extra error field to not cause confusion */
     if( pError != NULL ) *pError = 0;
@@ -4034,7 +4029,7 @@ ClRcT  clCkptCheckpointReadSections(ClCkptHdlT              ckptHdl,
     ClCkptSvcHdlT           ckptSvcHdl     = CL_CKPT_INVALID_HDL;
     ClBoolT                 tryAgain       = CL_FALSE;
     ClUint32T               maxRetry       = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT delay = { 0, 500 };
 
     /*
      * Input parameter verification.

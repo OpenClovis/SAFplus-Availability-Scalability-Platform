@@ -502,9 +502,7 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
                                       ClIocAddressT *allLocalComps, 
                                       ClIocAddressT *allNodeReps, ClCharT *xportType)
 {
-    ClIocPhysicalAddressT notificationCompAddr = {.nodeAddress = notificationNodeAddr,
-                                                  .portId = CL_IOC_XPORT_PORT
-    };
+    ClIocPhysicalAddressT notificationCompAddr = { notificationNodeAddr,  CL_IOC_XPORT_PORT };
     ClIocNotificationT notification ;
     ClRcT rc = CL_OK;
     ClUint32T status;
@@ -516,8 +514,7 @@ ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort,
     if(id == CL_IOC_COMP_DEATH_NOTIFICATION)
         id = CL_IOC_NODE_LEAVE_NOTIFICATION;
 
-    if( id == CL_IOC_NODE_ARRIVAL_NOTIFICATION ||
-        id == CL_IOC_NODE_LINK_UP_NOTIFICATION)
+    if( id == CL_IOC_NODE_ARRIVAL_NOTIFICATION || id == CL_IOC_NODE_LINK_UP_NOTIFICATION)
     {
         status = CL_IOC_NODE_UP;
     }
@@ -622,9 +619,7 @@ ClRcT clIocNotificationCompStatusSend(ClIocCommPortHandleT commPort, ClUint32T s
                                       ClIocAddressT *allLocalComps, 
                                       ClIocAddressT *allNodeReps, ClCharT *xportType)
 {
-    ClIocPhysicalAddressT compAddr = {.nodeAddress = gIocLocalBladeAddress,
-                                      .portId = portId
-    };
+    ClIocPhysicalAddressT compAddr = { gIocLocalBladeAddress,  portId };
     ClIocNotificationT notification;
 
     memset(&notification,0,sizeof(ClIocNotificationT));
@@ -841,7 +836,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         // The external application is connected to TIPC but not AMF -- exactly what we system looks at to trigger
         // it to kick the node out of the cluster.  So do not quit yourself if you are external...
 #else        
-        ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
+        ClTimerTimeOutT delay = { 1, 0 };
         clLogCritical ("IOC", "NOT", "Controller has kicked this node out of the cluster -- quitting in 1 second.");
         clOsalTaskDelay(delay);
         exit(0);

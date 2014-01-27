@@ -653,22 +653,18 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
     ClCkptSectionIdT       secId             = {0};
     ClUint32T              dsId              = 0;
     ClUint32T              tries             = 0;
-    static ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
+    static ClTimerTimeOutT delay = { 1,  0};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    hStreamTable = (CL_LOG_STREAM_GLOBAL == streamScope)
-                   ? pSoEoEntry->hGStreamOwnerTable 
-                   : pSoEoEntry->hLStreamOwnerTable ;
-    rc = clCntNodeUserDataGet(hStreamTable, hStreamOwnerNode,
-                            (ClCntDataHandleT *) &pStreamOwnerData);
+    hStreamTable = (CL_LOG_STREAM_GLOBAL == streamScope) ? pSoEoEntry->hGStreamOwnerTable : pSoEoEntry->hLStreamOwnerTable ;
+    rc = clCntNodeUserDataGet(hStreamTable, hStreamOwnerNode, (ClCntDataHandleT *) &pStreamOwnerData);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(( "clCntNodeUserDataGet(): rc[0x %x]", rc));
         return rc;
     }    
-    rc = clLogStreamOwnerCkptInfoGet(hStreamTable, hStreamOwnerNode, 
-                                     &secId, &dsId);
+    rc = clLogStreamOwnerCkptInfoGet(hStreamTable, hStreamOwnerNode, &secId, &dsId);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(( "clLogStreamOwnerCkptInfoGet(): rc[0x %x]", rc));
@@ -688,9 +684,7 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
      * waiting on the variable
      * 
      */
-    while( (rc = clOsalCondDestroy_L(&pStreamOwnerData->nodeCond) ) != CL_OK 
-           && 
-           ++tries < 2)
+    while( (rc = clOsalCondDestroy_L(&pStreamOwnerData->nodeCond) ) != CL_OK && ++tries < 2)
     {
         pStreamOwnerData->condDelete = CL_TRUE;
         CL_LOG_CLEANUP(clOsalCondBroadcast(&pStreamOwnerData->nodeCond), CL_OK);
@@ -1474,7 +1468,7 @@ clLogStreamOwnerEntryProcess(ClLogSOEoDataT          *pSoEoEntry,
 {
     ClRcT            rc       = CL_OK;
     ClUint16T        refCount =  0;
-    ClTimerTimeOutT timeout = {.tsSec = 0, .tsMilliSec = 0 };
+    ClTimerTimeOutT timeout = { 0, 0 };
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     /*

@@ -73,7 +73,7 @@
     #define PTHREAD_MUTEX_INITIALIZER { { 0, 0, 0, 0, 0, } }
 #endif
 
-static ClLogRulesT gClLogRules  = { .numFilters = 0, .pFilters = NULL };
+static ClLogRulesT gClLogRules  = { 0,  NULL };
 
 ClHandleT         CL_LOG_HANDLE_SYS = CL_HANDLE_INVALID_VALUE;
 ClHandleT         CL_LOG_HANDLE_APP = CL_HANDLE_INVALID_VALUE;

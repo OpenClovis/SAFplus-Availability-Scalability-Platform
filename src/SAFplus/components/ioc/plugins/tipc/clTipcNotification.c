@@ -121,8 +121,7 @@ static void _clTipcNodeStatusDelete(ClTipcNodeStatusT *entry)
     clHeapFree(entry);
 }
 
-static ClRcT tipcSubscribe(ClInt32T fd, ClUint32T portId, 
-                           ClUint32T lowerInstance, ClUint32T upperInstance, ClUint32T timeout)
+static ClRcT tipcSubscribe(ClInt32T fd, ClUint32T portId, ClUint32T lowerInstance, ClUint32T upperInstance, ClUint32T timeout)
 {
     struct tipc_subscr subscr = {{0}};
     ClInt32T rc;
@@ -180,7 +179,6 @@ static ClInt32T clTipcSubscriptionSocketCreate(void)
         close(sd);
         return -1;
     }
-
     memset(&topsrv,0,sizeof(topsrv));
     topsrv.family = AF_TIPC;
     topsrv.addrtype = TIPC_ADDR_NAME;
@@ -214,48 +212,34 @@ static ClRcT tipcEventRegister(ClBoolT deregister)
         return CL_IOC_RC(CL_ERR_LIBRARY);
 
     /* SUBSCRIPTION : For getting the node arrival or departure events. */
-    tipcSubscribe(handlerFd[0],
-                  CL_TIPC_SET_TYPE(CL_IOC_DM_PORT),
-                  CL_IOC_MIN_NODE_ADDRESS,
-                  CL_IOC_MAX_NODE_ADDRESS,
-                  CL_IOC_TIMEOUT_FOREVER);
+    tipcSubscribe(handlerFd[0], CL_TIPC_SET_TYPE(CL_IOC_DM_PORT), CL_IOC_MIN_NODE_ADDRESS, CL_IOC_MAX_NODE_ADDRESS, CL_IOC_TIMEOUT_FOREVER);
 
-    tipcSubscribe( handlerFd[0],
-                   CL_TIPC_SET_TYPE(CL_IOC_XPORT_PORT),
-                   CL_IOC_MIN_NODE_ADDRESS,
-                   CL_IOC_MAX_NODE_ADDRESS,
+    tipcSubscribe( handlerFd[0], CL_TIPC_SET_TYPE(CL_IOC_XPORT_PORT), CL_IOC_MIN_NODE_ADDRESS, CL_IOC_MAX_NODE_ADDRESS,
                    CL_IOC_TIMEOUT_FOREVER);
 
     /* SUBSCRIPTION : For getting the intranode component arrival or departure events. */
-    tipcSubscribe( handlerFd[0],
-                   CL_IOC_TIPC_ADDRESS_TYPE_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress),
-                   CL_TIPC_SET_TYPE(CL_IOC_MIN_COMP_PORT),
-                   CL_TIPC_SET_TYPE(CL_IOC_MAX_COMP_PORT),
+    tipcSubscribe( handlerFd[0], CL_IOC_TIPC_ADDRESS_TYPE_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress),
+                   CL_TIPC_SET_TYPE(CL_IOC_MIN_COMP_PORT), CL_TIPC_SET_TYPE(CL_IOC_MAX_COMP_PORT),
                    CL_IOC_TIMEOUT_FOREVER);
 
-    rc = clIocCommPortCreateStatic(CL_IOC_DM_PORT, CL_IOC_RELIABLE_MESSAGING, 
-                                   &discoveryCommPort, gClTipcXportType);
+    rc = clIocCommPortCreateStatic(CL_IOC_DM_PORT, CL_IOC_RELIABLE_MESSAGING, &discoveryCommPort, gClTipcXportType);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "Comm port create for notification port [%#x] returned with [%#x]",
-                   CL_IOC_DM_PORT, rc);
+        clLogError("NOTIF", "INIT", "Comm port create for notification port [%#x] returned with [%#x]", CL_IOC_DM_PORT, rc);
         goto out;
     }
 
     rc = clTipcFdGet(CL_IOC_DM_PORT, &handlerFd[1]);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "TIPC notification fd for port [%#x] returned with [%#x]",
-                   CL_IOC_DM_PORT, rc);
+        clLogError("NOTIF", "INIT", "TIPC notification fd for port [%#x] returned with [%#x]", CL_IOC_DM_PORT, rc);
         goto out;
     }
 
-    rc = clIocCommPortCreateStatic(CL_IOC_XPORT_PORT, CL_IOC_RELIABLE_MESSAGING, 
-                                   &dummyCommPort, gClTipcXportType);
+    rc = clIocCommPortCreateStatic(CL_IOC_XPORT_PORT, CL_IOC_RELIABLE_MESSAGING, &dummyCommPort, gClTipcXportType);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "Comm port create for notification port [%#x] returned with [%#x]",
-                   CL_IOC_XPORT_PORT, rc);
+        clLogError("NOTIF", "INIT", "Comm port create for notification port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
         goto out;
     }
 
@@ -266,38 +250,30 @@ static ClRcT tipcEventRegister(ClBoolT deregister)
     rc = clTipcFdGet(CL_IOC_XPORT_PORT, &handlerFd[2]);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "TIPC notification fd for port [%#x] returned with [%#x]",
-                   CL_IOC_XPORT_PORT, rc);
+        clLogError("NOTIF", "INIT", "TIPC notification fd for port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
         goto out;
     }
 
-    rc = clTransportListenerAdd(gNotificationListener, 
-                                handlerFd[0], tipcEventHandler, (void*)&handlerFd[0]);
+    rc = clTransportListenerAdd(gNotificationListener, handlerFd[0], tipcEventHandler, (void*)&handlerFd[0]);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", 
-                   "Listener register for topology socket returned with [%#x]", rc);
+        clLogError("NOTIF", "INIT", "Listener register for topology socket returned with [%#x]", rc);
         goto out;
     }
 
-    rc = clTransportListenerAdd(gNotificationListener, 
-                                handlerFd[1], tipcEventHandler, (void*)&handlerFd[1]);
+    rc = clTransportListenerAdd(gNotificationListener, handlerFd[1], tipcEventHandler, (void*)&handlerFd[1]);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", 
-                   "Listener register for discovery port returned with [%#x]", rc);
+        clLogError("NOTIF", "INIT", "Listener register for discovery port returned with [%#x]", rc);
         goto out;
     }
     
-    rc = clTransportListenerAdd(gNotificationListener, 
-                                handlerFd[2], tipcEventHandler, (void*)&handlerFd[2]);
+    rc = clTransportListenerAdd(gNotificationListener, handlerFd[2], tipcEventHandler, (void*)&handlerFd[2]);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT",
-                   "Listener register for notification port returned with [%#x]", rc);
+        clLogError("NOTIF", "INIT", "Listener register for notification port returned with [%#x]", rc);
         goto out;
     }
-
     out:
     return rc;
 }
@@ -332,7 +308,7 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
     ClRcT rc = CL_OK;
     ClIocPhysicalAddressT compAddr={0};
     ClTimerHandleT timer = {0};
-    ClTimerTimeOutT timeout = {.tsSec = 0, .tsMilliSec = CL_TIPC_SUBSCR_TIMEOUT};
+    ClTimerTimeOutT timeout = { 0,  CL_TIPC_SUBSCR_TIMEOUT};
     ClTipcNodeStatusT* nodeStatusEntry = NULL;
 
     switch(socketType)

@@ -351,11 +351,9 @@ clLogClntStreamEntryAdd(ClCntHandleT       hClntTable,
     }
 
     memcpy(pStreamData->shmName.pValue, pShmName->pValue, pShmName->length);
-    CL_LOG_DEBUG_VERBOSE(("Opening Shared Memory Segment: %s",
-                          pStreamData->shmName.pValue));
+    CL_LOG_DEBUG_VERBOSE(("Opening Shared Memory Segment: %s", pStreamData->shmName.pValue));
 #ifndef NO_SAF
-    rc = clOsalShmOpen_L(pStreamData->shmName.pValue, CL_LOG_SHM_OPEN_FLAGS,
-                         CL_LOG_SHM_MODE, &fd);
+    rc = clOsalShmOpen_L(pStreamData->shmName.pValue, CL_LOG_SHM_OPEN_FLAGS, CL_LOG_SHM_MODE, &fd);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clOsalShmOpen(): rc[0x %x]", rc));
@@ -370,7 +368,7 @@ clLogClntStreamEntryAdd(ClCntHandleT       hClntTable,
     memset(&statbuf, 0, sizeof(statbuf));
     while(tries++ < 3 && !fstat(fd, &statbuf))
     {
-        if(statbuf.st_size < shmSize)
+        if((ClUint32T) statbuf.st_size < shmSize)
         {
             sleep(1);
         }
@@ -385,8 +383,7 @@ clLogClntStreamEntryAdd(ClCntHandleT       hClntTable,
         pStreamData = NULL;
         return CL_LOG_RC(CL_ERR_LIBRARY);
     }
-    rc = clOsalMmap_L(NULL, shmSize, CL_LOG_MMAP_PROT_FLAGS, CL_LOG_MMAP_FLAGS,
-                      fd, 0, (void **) &pStreamData->pStreamHeader);
+    rc = clOsalMmap_L(NULL, shmSize, CL_LOG_MMAP_PROT_FLAGS, CL_LOG_MMAP_FLAGS, fd, 0, (void **) &pStreamData->pStreamHeader);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clOsalMmap(): rc[0x %x]", rc));
@@ -400,15 +397,10 @@ clLogClntStreamEntryAdd(ClCntHandleT       hClntTable,
     CL_LOG_DEBUG_VERBOSE(("Mmapped Shared Memory Segment"));
 
     pStreamData->pStreamHeader->shmSize = shmSize;
-    headerSize                  =
-        CL_LOG_HEADER_SIZE_GET(pStreamData->pStreamHeader->maxMsgs, 
-                               pStreamData->pStreamHeader->maxComps);
-    pStreamData->pStreamRecords = ((ClUint8T *) (pStreamData->pStreamHeader)) +
-        headerSize;
-    CL_LOG_DEBUG_VERBOSE(("pStreamHeader : %p",
-                          (void *) pStreamData->pStreamHeader));
-    CL_LOG_DEBUG_VERBOSE(("msgMap: %p",
-                          (void *) (pStreamData->pStreamHeader + 1)));
+    headerSize                  = CL_LOG_HEADER_SIZE_GET(pStreamData->pStreamHeader->maxMsgs, pStreamData->pStreamHeader->maxComps);
+    pStreamData->pStreamRecords = ((ClUint8T *) (pStreamData->pStreamHeader)) + headerSize;
+    CL_LOG_DEBUG_VERBOSE(("pStreamHeader : %p", (void *) pStreamData->pStreamHeader));
+    CL_LOG_DEBUG_VERBOSE(("msgMap: %p", (void *) (pStreamData->pStreamHeader + 1)));
     CL_LOG_DEBUG_VERBOSE(("pStreamRecords: %p", pStreamData->pStreamRecords));
 #endif
     rc = clBitmapCreate(&(pStreamData->hStreamBitmap), 0);
@@ -432,17 +424,14 @@ clLogClntStreamEntryAdd(ClCntHandleT       hClntTable,
     {
         CL_LOG_DEBUG_ERROR(("clOsalProcessSharedMutexInit(): rc[0x %x]", rc));
         CL_LOG_CLEANUP(clBitmapDestroy(pStreamData->hStreamBitmap), CL_OK);
-        CL_LOG_CLEANUP(clOsalMunmap_L(pStreamData->pStreamHeader, shmSize),
-                       CL_OK);
+        CL_LOG_CLEANUP(clOsalMunmap_L(pStreamData->pStreamHeader, shmSize), CL_OK);
         clHeapFree(pStreamData->shmName.pValue);
         clHeapFree(pStreamData);
         pStreamData = NULL;
         return rc;
     }
 
-    rc = clCntNodeAddAndNodeGet(hClntTable,(ClCntKeyHandleT) pStreamKey,
-                                (ClCntDataHandleT) pStreamData, NULL,
-                                phStreamNode);
+    rc = clCntNodeAddAndNodeGet(hClntTable,(ClCntKeyHandleT) pStreamKey, (ClCntDataHandleT) pStreamData, NULL, phStreamNode);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCntNodeAddAndNodeGet(): rc[0x %x]", rc));

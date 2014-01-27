@@ -80,7 +80,7 @@ ClEoConfigT clEoConfig = {
     clGmsServerStateChange,              /* state change callback           */
     clGmsServerHealthCheck,              /* health checking callback        */  
     NULL,
-    .needSerialization = CL_TRUE,
+    CL_TRUE,
     };
 
 

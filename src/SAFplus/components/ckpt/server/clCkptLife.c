@@ -298,10 +298,7 @@ ClRcT   ckptShutDown()
     return CL_OK;
 }
 
-void
-clCkptIocNodedownCallback(ClIocNotificationIdT eventId, 
-                           ClPtrT               pArg,
-                           ClIocAddressT        *pAddress)
+void clCkptIocNodedownCallback(ClIocNotificationIdT eventId, ClPtrT   pArg, ClIocAddressT  *pAddress)
 {
     ClRcT             ret        = CL_OK;
     ClIocNodeAddressT masterAddr = 0;
@@ -341,7 +338,7 @@ clCkptIocNodedownCallback(ClIocNotificationIdT eventId,
             clCkptMasterAddressUpdate(deputyAddr, -1);
         else
         {
-            ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 50 };
+            ClTimerTimeOutT delay = { 0, 50 };
             ret = clCpmMasterAddressGetExtended(&tmpMasterAddr, 3, &delay);
             if (ret == CL_OK)
             {
@@ -358,9 +355,7 @@ clCkptIocNodedownCallback(ClIocNotificationIdT eventId,
          ckptPeerDown(masterAddr, CL_CKPT_NODE_DOWN, 0);
          return;
     }
-    else if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION  
-            || 
-            eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+    else if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION  || eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
     {
         if(pAddress->iocPhyAddress.nodeAddress == gCkptSvr->masterInfo.deputyAddr)
         {
@@ -382,8 +377,7 @@ clCkptIocNodedownCallback(ClIocNotificationIdT eventId,
 
 }
 
-ClRcT
-clCkptIocCallbackUpdate(void)
+ClRcT clCkptIocCallbackUpdate(void)
 {
     ClRcT                 rc       = CL_OK;
     ClIocPhysicalAddressT compAddr = {0};

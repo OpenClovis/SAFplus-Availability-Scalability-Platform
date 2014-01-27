@@ -732,8 +732,7 @@ static ClRcT clEoCreateSystemCallout(ClEoExecutionObjT *pThis)
     ClRcT rc = CL_OK;
 
     if (pThis == NULL)
-        EO_CHECK(CL_LOG_SEV_ERROR, ("Improper reference to EO Object \n"),
-                CL_EO_RC(CL_ERR_NULL_POINTER));
+        EO_CHECK(CL_LOG_SEV_ERROR, ("Improper reference to EO Object \n"), CL_EO_RC(CL_ERR_NULL_POINTER));
 
     /*
      * Register for node notification for all EO's other than amf or node representative
@@ -742,11 +741,8 @@ static ClRcT clEoCreateSystemCallout(ClEoExecutionObjT *pThis)
      */
     if(!gIsNodeRepresentative)
     {
-        ClIocPhysicalAddressT compAddr = {.nodeAddress = CL_IOC_BROADCAST_ADDRESS,
-                                          .portId = CL_IOC_CPM_PORT
-        };
-        clCpmNotificationCallbackInstall(compAddr, eoNotificationCallback, 
-                                         NULL, &gClEoNotificationHandle);
+        ClIocPhysicalAddressT compAddr = {CL_IOC_BROADCAST_ADDRESS, CL_IOC_CPM_PORT };
+        clCpmNotificationCallbackInstall(compAddr, eoNotificationCallback, NULL, &gClEoNotificationHandle);
     }
     /*
      * Registration with component manager 
@@ -1154,7 +1150,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
 {
     ClRcT rc = CL_OK;
     ClEoClientObjT *pClient = NULL;
-    ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
+    ClTimerTimeOutT delay = {1, 0};
     ClInt32T tries = 0;
     CL_FUNC_ENTER();
 
@@ -1214,10 +1210,8 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
     (*ppThis)->clEoStateChgCallout = pConfig->clEoStateChgCallout;
     (*ppThis)->clEoHealthCheckCallout = pConfig->clEoHealthCheckCallout;
 
-    rc = clCntLlistCreate((ClCntKeyCompareCallbackT) clEoDataCompare,
-                          (ClCntDeleteCallbackT) NULL,
-                          (ClCntDeleteCallbackT) NULL, CL_CNT_UNIQUE_KEY,
-                          &((*ppThis)->pEOPrivDataHdl));
+    rc = clCntLlistCreate((ClCntKeyCompareCallbackT) clEoDataCompare, (ClCntDeleteCallbackT) NULL,
+                          (ClCntDeleteCallbackT) NULL, CL_CNT_UNIQUE_KEY, &((*ppThis)->pEOPrivDataHdl));
     if (rc != CL_OK)
     {
         clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
@@ -1253,14 +1247,11 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
     }
     #endif
 
-    pClient =
-        (ClEoClientObjT *) clHeapAllocate(sizeof(ClEoClientObjT) *
-                                          ((*ppThis)->maxNoClients + 1));
+    pClient = (ClEoClientObjT *) clHeapAllocate(sizeof(ClEoClientObjT) * ((*ppThis)->maxNoClients + 1));
     if (pClient == NULL)
     {
         rc = CL_EO_RC(CL_ERR_NO_MEMORY);
-        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
-                   "Memory allocation failed, error [0x%x]", rc);
+        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "Memory allocation failed, error [0x%x]", rc);
         /*
          * Do necessary cleanup 
          */
@@ -1282,11 +1273,8 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
 
     do 
     {
-        rc = clIocCommPortCreate((ClUint32T) pConfig->reqIocPort,
-                                 CL_IOC_RELIABLE_MESSAGING, &((*ppThis)->commObj));
-    } while( CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST &&
-             ++tries <= 5 &&
-             clOsalTaskDelay(delay) == CL_OK);
+        rc = clIocCommPortCreate((ClUint32T) pConfig->reqIocPort, CL_IOC_RELIABLE_MESSAGING, &((*ppThis)->commObj));
+    } while( CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST && ++tries <= 5 && clOsalTaskDelay(delay) == CL_OK);
 
 
     if( CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST )
@@ -1299,8 +1287,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
     }
     if (rc != CL_OK)
     {
-        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
-                   "clIocCommPortCreate() failed, error [0x%x]", rc);
+        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "clIocCommPortCreate() failed, error [0x%x]", rc);
         /*
          * Do necessary cleanup 
          */
@@ -1312,9 +1299,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
         rc = clIocCommPortGet((*ppThis)->commObj, &((*ppThis)->eoPort));
         if (rc != CL_OK)
         {
-            clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
-                       "Could not get IOC communication port info, error [0x%x]",
-                       rc);
+            clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "Could not get IOC communication port info, error [0x%x]", rc);
             goto eoIocCommPortCreated;
         }
     }
@@ -1322,19 +1307,16 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
     rc = clIocPortNotification((*ppThis)->eoPort, CL_IOC_NOTIFICATION_ENABLE);
     if(rc != CL_OK)
     {
-        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
-                "Failed to enable the port notification. error [0x%x]", rc);
+        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "Failed to enable the port notification. error [0x%x]", rc);
         goto eoIocCommPortCreated;
     }
 
-    clLogInfo(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
-              "Own IOC port is [0x%x]", (*ppThis)->eoPort);
+    clLogInfo(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "Own IOC port is [0x%x]", (*ppThis)->eoPort);
 
     rc = clRmdObjInit(&((*ppThis)->rmdObj));
     if (rc != CL_OK)
     {
-        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
-                   "clRmdObjInit() failed, error [0x%x]", rc);
+        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "clRmdObjInit() failed, error [0x%x]", rc);
         goto eoIocCommPortCreated;
     }
 
@@ -1351,8 +1333,7 @@ ClRcT clEoCreate(ClEoConfigT *pConfig, ClEoExecutionObjT **ppThis)
     {
         gpExecutionObject = NULL;
         gEOIocPort = 0;
-        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE,
-                   "clEoStart() failed, error [0x%x]", rc);
+        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_CREATE, "clEoStart() failed, error [0x%x]", rc);
         goto eoRmdObjInitalized;
     }
 
@@ -1506,10 +1487,7 @@ ClRcT clEoClientUninstallTable(ClEoExecutionObjT *pThis,
     return CL_OK;
 }
 
-ClRcT clEoClientInstallTable(ClEoExecutionObjT *pThis,
-                             ClUint32T clientID,
-                             ClEoDataT data,
-                             ClEoPayloadWithReplyCallbackServerT *pfunTable,
+ClRcT clEoClientInstallTable(ClEoExecutionObjT *pThis, ClUint32T clientID, ClEoDataT data, ClEoPayloadWithReplyCallbackServerT *pfunTable,
                              ClUint32T nentries)
 {
     ClRcT rc = CL_EO_RC(CL_ERR_INVALID_PARAMETER);
@@ -1529,7 +1507,6 @@ ClRcT clEoClientInstallTable(ClEoExecutionObjT *pThis,
         ClUint32T funId = entry->funId & CL_EO_FN_MASK;
         ClUint32T version = entry->version;
         ClUint32T index = __CLIENT_RADIX_TREE_INDEX(funId, version);
-
         if (entry->fun)
         {
             ClPtrT lastFun = NULL;
@@ -1566,9 +1543,7 @@ ClRcT clEoClientInstallTable(ClEoExecutionObjT *pThis,
     return rc;
 }
 
-static ClRcT eoClientInstallTables(ClEoExecutionObjT *pThis,
-                                   ClEoPayloadWithReplyCallbackTableServerT *table,
-                                   ClEoDataT data)
+static ClRcT eoClientInstallTables(ClEoExecutionObjT *pThis, ClEoPayloadWithReplyCallbackTableServerT *table, ClEoDataT data)
 {
     ClInt32T i;
     ClRcT rc = CL_OK;
@@ -3035,7 +3010,6 @@ ClRcT clEoMyEoObjectGet(ClEoExecutionObjT **ppEOObj)
         return CL_EO_RC(CL_ERR_INVALID_STATE);
 
     *ppEOObj = gpExecutionObject;
-
     CL_FUNC_EXIT();
     return CL_OK;
 }
@@ -3580,7 +3554,7 @@ static ClRcT clEoPriorityQueuesInitialize(void)
 {
     ClUint32T index = 0 ;
     ClRcT rc = CL_OK;
-    ClTimerTimeOutT monitorThreshold = { .tsSec = CL_TASKPOOL_MONITOR_INTERVAL, .tsMilliSec = 0 };
+    ClTimerTimeOutT monitorThreshold = { CL_TASKPOOL_MONITOR_INTERVAL, 0 };
     typedef struct ClEoPriorityQueueConfig
     {
         ClIocPriorityT priority;
@@ -3589,43 +3563,43 @@ static ClRcT clEoPriorityQueuesInitialize(void)
 #ifndef VXWORKS_BUILD
     ClEoPriorityQueueConfigT priorityQueues[] = { 
         { 
-            .priority = CL_IOC_DEFAULT_PRIORITY,
-            .maxThreads = 8,
+            CL_IOC_DEFAULT_PRIORITY,
+            8,
         },
         {
-            .priority = CL_IOC_HIGH_PRIORITY,
-            .maxThreads = 8,
+            CL_IOC_HIGH_PRIORITY,
+            8,
         },
         {
-            .priority = CL_IOC_LOW_PRIORITY,
-            .maxThreads = 4,
+            CL_IOC_LOW_PRIORITY,
+            4,
         },
         {
-            .priority = CL_IOC_ORDERED_PRIORITY,
-            .maxThreads = 1,
+            CL_IOC_ORDERED_PRIORITY,
+            1,
         },
         {
-            .priority = CL_IOC_NOTIFICATION_PRIORITY,
-            .maxThreads = 1,
+            CL_IOC_NOTIFICATION_PRIORITY,
+            1,
         },
         {
-            .priority = CL_IOC_RESERVED_PRIORITY,
-            .maxThreads = 2,
+            CL_IOC_RESERVED_PRIORITY,
+            2,
         },
     };
 #else
     ClEoPriorityQueueConfigT priorityQueues[] = { 
         { 
-            .priority = CL_IOC_DEFAULT_PRIORITY,
-            .maxThreads = 4,
+            CL_IOC_DEFAULT_PRIORITY,
+            4,
         },
         {
-            .priority = CL_IOC_HIGH_PRIORITY,
-            .maxThreads = 1,
+            CL_IOC_HIGH_PRIORITY,
+            1,
         },
         {
-            .priority = CL_IOC_ORDERED_PRIORITY,
-            .maxThreads = 1,
+            CL_IOC_ORDERED_PRIORITY,
+            1,
         },
     };
 
@@ -3777,8 +3751,8 @@ static ClRcT clEoIocRecvQueueProcess(ClEoExecutionObjT *pThis)
     ClBufferHandleT eoRecvMsg = 0;
     ClIocRecvOptionT recvOption = {0};
     ClIocRecvParamT recvParam = {0};
-    ClPoolShrinkOptionsT shrinkOptions = { .shrinkFlags = CL_POOL_SHRINK_ALL };
-    ClTimerTimeOutT timeOut = {.tsSec = 0,.tsMilliSec = CL_EO_MEM_TIMEOUT };
+    ClPoolShrinkOptionsT shrinkOptions = { CL_POOL_SHRINK_ALL };
+    ClTimerTimeOutT timeOut = { 0, CL_EO_MEM_TIMEOUT };
     ClInt32T maxTries = CL_EO_MEM_TRIES;
     ClInt32T tries = 0;
     ClOsalTaskIdT selfTaskId = 0;

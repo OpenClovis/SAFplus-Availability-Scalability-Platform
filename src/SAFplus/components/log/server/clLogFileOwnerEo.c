@@ -213,7 +213,7 @@ clLogFileOwnerShutdown(void)
 {
     ClRcT                   rc                  = CL_OK;
     ClLogFileOwnerEoDataT  *pFileOwnerEoEntry = NULL;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT delay = { 0,  500 };
     ClInt32T retries = 0;
     ClBoolT lockDestroyed = CL_FALSE;
 

@@ -113,24 +113,24 @@ static ClCpmAspCompMappingT ckptSUMap[] = {
 
 #define ASP_NODE_SU_COMP_MAP                    \
     {                                           \
-        .su = "logSU",                          \
-        .suCompMap = logSUMap,                  \
+         "logSU",                               \
+         logSUMap,                              \
     },                                          \
     {                                           \
-        .su = "gmsSU",                          \
-        .suCompMap = gmsSUMap,                  \
+         "gmsSU",                               \
+         gmsSUMap,                              \
     },                                          \
     {                                           \
-        .su = "eventSU",                        \
-        .suCompMap = eventSUMap,                \
+        "eventSU",                              \
+        eventSUMap,                             \
     },                                          \
     {                                           \
-        .su = "nameSU",                         \
-        .suCompMap = nameSUMap,                 \
+        "nameSU",                               \
+        nameSUMap,                              \
     },                                          \
     {                                           \
-        .su = "ckptSU",                         \
-        .suCompMap = ckptSUMap,                 \
+        "ckptSU",                               \
+        ckptSUMap,                              \
     }
 
 static ClCpmAspSUMappingT scSUCompToLevelMapping[] = 
@@ -425,15 +425,10 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
     ClCharT *str = NULL;
 
     ClRcT rc = CL_OK;
+ 
+    CPM_PARSER_NULL_CHECK(compTypes, clParserChild(file, CL_CPM_PARSER_TAG_COMP_TYPES), "compTypes tag does not exist in XML file");
 
-    CPM_PARSER_NULL_CHECK(compTypes,
-                          clParserChild(file, CL_CPM_PARSER_TAG_COMP_TYPES),
-                          "compTypes tag does not exist in XML file");
-
-    CPM_PARSER_HANDLE_NULL_CHECK(compType,
-                                 clParserChild(compTypes,
-                                               CL_CPM_PARSER_TAG_COMP_TYPE),
-                                 "compType tag does not exist");
+    CPM_PARSER_HANDLE_NULL_CHECK(compType, clParserChild(compTypes, CL_CPM_PARSER_TAG_COMP_TYPE), "compType tag does not exist");
 
     prev = newType = cpmCompList;
     /*
@@ -455,59 +450,40 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
          */
         newType = (ClCpmCompInfoT *) clHeapAllocate(sizeof(ClCpmCompInfoT));
         if (newType == NULL)
-            CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
-                           CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                           CL_CPM_RC(CL_ERR_NO_MEMORY), 
-                           CL_LOG_HANDLE_APP);
+            CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED, CL_CPM_RC(CL_ERR_NO_MEMORY), CL_LOG_HANDLE_APP);
         memset(newType,0,sizeof(ClCpmCompInfoT));
         
 
-        CPM_PARSER_NULL_CHECK(type,
-                              clParserAttr(compType,
-                                           CL_CPM_PARSER_ATTR_COMP_TYPE_NAME),
-                              "name in compType doesn't exist");
+        CPM_PARSER_NULL_CHECK(type, clParserAttr(compType, CL_CPM_PARSER_ATTR_COMP_TYPE_NAME), "name in compType doesn't exist");
         strcpy(newType->compType, type);
 
         newType->compConfig.isAspComp = isAspComp;
         
-        CPM_PARSER_NULL_CHECK(temp,
-                              clParserChild(compType,
-                                            CL_CPM_PARSER_TAG_COMP_TYPE_PROPERTY),
-                              "property in compType doesn't exist");
+        CPM_PARSER_NULL_CHECK(temp, clParserChild(compType, CL_CPM_PARSER_TAG_COMP_TYPE_PROPERTY), "property in compType doesn't exist");
         str = temp->txt;
         if (str)
         {
             if (strcmp(str, "CL_AMS_SA_AWARE") == 0)
-                newType->compConfig.compProperty =
-                    CL_AMS_COMP_PROPERTY_SA_AWARE;
+                newType->compConfig.compProperty = CL_AMS_COMP_PROPERTY_SA_AWARE;
             else if (strcmp(str, "CL_AMS_PROXIED_PREINSTANTIABLE") == 0)
-                newType->compConfig.compProperty =
-                    CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE;
+                newType->compConfig.compProperty = CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE;
             else if (strcmp(str, "CL_AMS_PROXIED_NON_PREINSTANTIABLE") == 0)
-                newType->compConfig.compProperty =
-                    CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE;
+                newType->compConfig.compProperty = CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE;
             else if (strcmp(str, "CL_AMS_NON_PROXIED_NON_PREINSTANTIABLE") == 0)
-                newType->compConfig.compProperty =
-                    CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE;
+                newType->compConfig.compProperty = CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE;
             else
             {
                 rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
-                               CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR, "property",
-                               rc, rc, CL_LOG_HANDLE_APP);
+                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR, "property", rc, rc, CL_LOG_HANDLE_APP);
             }
         }
         else
         {
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-            CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
-                           "property", rc, rc, CL_LOG_HANDLE_APP);
+            CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR, "property", rc, rc, CL_LOG_HANDLE_APP);
         }
 
-        CPM_PARSER_NULL_CHECK(temp,
-                              clParserChild(compType,
-                                            CL_CPM_PARSER_TAG_COMP_TYPE_PROCREL),
-                              "processRel field in component doesn't exist");
+        CPM_PARSER_NULL_CHECK(temp, clParserChild(compType, CL_CPM_PARSER_TAG_COMP_TYPE_PROCREL), "processRel field in component doesn't exist");
         str = temp->txt;
         if (str)
         {
@@ -522,28 +498,18 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
             else
             {
                 rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
-                               CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
-                               "processRel", rc, rc,
-                               CL_LOG_HANDLE_APP);
+                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR, "processRel", rc, rc, CL_LOG_HANDLE_APP);
             }
         }
         else
         {
             rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-            CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
-                           "processRel", rc, rc,
-                           CL_LOG_HANDLE_APP);
+            CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR, "processRel", rc, rc, CL_LOG_HANDLE_APP);
         }
 
-        CPM_PARSER_NULL_CHECK(temp,
-                              clParserChild(compType,
-                                            CL_CPM_PARSER_TAG_COMP_TYPE_INST_CMD),
-                              "instantiateCommand doesn't exist in compType ");
-        if (newType->compConfig.compProperty !=
-            CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE ||
-            newType->compConfig.compProperty !=
-            CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE)
+        CPM_PARSER_NULL_CHECK(temp, clParserChild(compType, CL_CPM_PARSER_TAG_COMP_TYPE_INST_CMD), "instantiateCommand doesn't exist in compType ");
+        if (newType->compConfig.compProperty != CL_AMS_COMP_PROPERTY_PROXIED_PREINSTANTIABLE ||
+            newType->compConfig.compProperty != CL_AMS_COMP_PROPERTY_PROXIED_NON_PREINSTANTIABLE)
         {
             str = temp->txt;
             if (str)
@@ -553,10 +519,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
             else
             {
                 rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR,
-                               CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR,
-                               "instantiateCommand", rc, rc,
-                               CL_LOG_HANDLE_APP);
+                CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INVALID_VAL_ERR, "instantiateCommand", rc, rc, CL_LOG_HANDLE_APP);
             }
         }
 
@@ -616,6 +579,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
         rc = cpmCompParseArgs(&newType->compConfig, newType->compConfig.instantiationCMD, &argIndex);
         if(rc != CL_OK)
         {
+
             clLogError("PARSE", "COMP", "Unable to parse instantiation command [%s]. "
                        "Error [%#x]", newType->compConfig.instantiationCMD, rc);
             goto failure;
@@ -625,10 +589,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
         /*
          * The args is mandatory. 
          */
-        CPM_PARSER_HANDLE_NULL_CHECK(args,
-                                     clParserChild(compType,
-                                                   CL_CPM_PARSER_TAG_COMP_TYPE_ARGS),
-                                     "args doesn't exist in compType");
+        CPM_PARSER_HANDLE_NULL_CHECK(args, clParserChild(compType, CL_CPM_PARSER_TAG_COMP_TYPE_ARGS), "args doesn't exist in compType");
         if (args != NULL)
         {
             /*
@@ -637,10 +598,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
             argument = clParserChild(args, CL_CPM_PARSER_TAG_COMP_TYPE_ARG);
             while (argument != NULL && (argIndex < CPM_MAX_ARGS - 1))
             {
-                CPM_PARSER_NULL_CHECK(value,
-                                      clParserAttr(argument,
-                                                   CL_CPM_PARSER_ATTR_COMP_TYPE_ARG_VALUE),
-                                      "value field in argument doesn't exist");
+                CPM_PARSER_NULL_CHECK(value, clParserAttr(argument, CL_CPM_PARSER_ATTR_COMP_TYPE_ARG_VALUE), "value field in argument doesn't exist");
 
                 ClCharT evalvalue[CPM_MAX_ARGS] = { 0 };
                 strncat(evalvalue, value, CPM_MAX_ARGS - 1);
@@ -650,13 +608,9 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                  */
                 evalEnv(evalvalue);
 
-                newType->compConfig.argv[argIndex] =
-                    (ClCharT *) clHeapAllocate(strlen(evalvalue) + 1);
+                newType->compConfig.argv[argIndex] = (ClCharT *) clHeapAllocate(strlen(evalvalue) + 1);
                 if (newType->compConfig.argv[argIndex] == NULL)
-                    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR,
-                                   CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED,
-                                   CL_CPM_RC(CL_ERR_NO_MEMORY),
-                                   CL_LOG_HANDLE_APP);
+                    CL_CPM_CHECK_0(CL_LOG_SEV_ERROR, CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED, CL_CPM_RC(CL_ERR_NO_MEMORY),CL_LOG_HANDLE_APP);
                 strcpy(newType->compConfig.argv[argIndex], evalvalue);
                 argIndex++;
                 argument = argument->next;
@@ -668,10 +622,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
         /*
          * The envs is mandatory. 
          */
-        CPM_PARSER_HANDLE_NULL_CHECK(envs,
-                                     clParserChild(compType,
-                                                   CL_CPM_PARSER_TAG_COMP_TYPE_ENVS),
-                                     "envs doesn't exist in compType");
+        CPM_PARSER_HANDLE_NULL_CHECK(envs, clParserChild(compType, CL_CPM_PARSER_TAG_COMP_TYPE_ENVS), "envs doesn't exist in compType");
         if (envs != NULL)
         {
             /*
@@ -681,10 +632,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                 clParserChild(envs, CL_CPM_PARSER_TAG_COMP_TYPE_NAME_VALUE);
             while (nameValue != NULL)
             {
-                CPM_PARSER_NULL_CHECK(name,
-                                      clParserAttr(nameValue,
-                                                   CL_CPM_PARSER_ATTR_COMP_TYPE_NAMVAL_NAME),
-                                      "name field in nameValue doesn't exist");
+                CPM_PARSER_NULL_CHECK(name, clParserAttr(nameValue, CL_CPM_PARSER_ATTR_COMP_TYPE_NAMVAL_NAME), "name field in nameValue doesn't exist");
                 newType->compConfig.env[envIndex] = (ClCpmEnvVarT*) clHeapAllocate(sizeof(ClCpmEnvVarT));
                 
                 if (newType->compConfig.env[envIndex] == NULL)
@@ -697,13 +645,9 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                         name,
                         strlen(name));
 
-                CPM_PARSER_NULL_CHECK(value,
-                                      clParserAttr(nameValue,
-                                                   CL_CPM_PARSER_ATTR_COMP_TYPE_NAMVAL_VAL),
+                CPM_PARSER_NULL_CHECK(value, clParserAttr(nameValue, CL_CPM_PARSER_ATTR_COMP_TYPE_NAMVAL_VAL),
                                       "value field in nameValue doesn't exist");
-                strncpy(newType->compConfig.env[envIndex]->envValue,
-                        value,
-                        strlen(value));
+                strncpy(newType->compConfig.env[envIndex]->envValue, value, strlen(value));
                 
                 envIndex++;
                 nameValue = nameValue->next;
@@ -711,9 +655,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
         }
         newType->compConfig.env[envIndex] = NULL;
 
-        CPM_PARSER_HANDLE_NULL_CHECK(temp,
-                                     clParserChild(compType,
-                                                   CL_CPM_PARSER_TAG_COMP_TYPE_TERM_CMD),
+        CPM_PARSER_HANDLE_NULL_CHECK(temp, clParserChild(compType, CL_CPM_PARSER_TAG_COMP_TYPE_TERM_CMD),
                                      "terminateCommand doesn't exist in compType");
         if (temp != NULL)
         {
@@ -726,9 +668,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
         else
             strcpy(newType->compConfig.terminationCMD, NULL_STRING);
 
-        CPM_PARSER_HANDLE_NULL_CHECK(temp,
-                                     clParserChild(compType,
-                                                   CL_CPM_PARSER_TAG_COMP_TYPE_CLEANUP_CMD),
+        CPM_PARSER_HANDLE_NULL_CHECK(temp, clParserChild(compType, CL_CPM_PARSER_TAG_COMP_TYPE_CLEANUP_CMD),
                                      "cleanupCommand doesn't exist in compType");
         if (temp != NULL)
         {
@@ -741,15 +681,11 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
         else
             strcpy(newType->compConfig.cleanupCMD, NULL_STRING);
 
-        CPM_PARSER_HANDLE_NULL_CHECK(timeouts,
-                                     clParserChild(compType,
-                                                   CL_CPM_PARSER_TAG_COMP_TYPE_TIME_OUTS),
+        CPM_PARSER_HANDLE_NULL_CHECK(timeouts, clParserChild(compType, CL_CPM_PARSER_TAG_COMP_TYPE_TIME_OUTS),
                                      "timeouts field in compType doesn't exist");
         if (timeouts != NULL)
         {
-            CPM_PARSER_HANDLE_NULL_CHECK(temp,
-                                         clParserChild(timeouts,
-                                                       CL_CPM_PARSER_TAG_COMP_TYPE_TOUT_INST),
+            CPM_PARSER_HANDLE_NULL_CHECK(temp, clParserChild(timeouts, CL_CPM_PARSER_TAG_COMP_TYPE_TOUT_INST),
                                          "instantiateTimeout field in timouts doesn't exist");
             if (temp != NULL)
             {
@@ -759,24 +695,18 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                     timeoutvalue = atoi(str);
                     if (timeoutvalue == 0)
                     {
-                        newType->compConfig.compInstantiateTimeout =
-                            CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                        newType->compConfig.compInstantiateTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
                     }
                     else
-                        newType->compConfig.compInstantiateTimeout =
-                            timeoutvalue;
+                        newType->compConfig.compInstantiateTimeout = timeoutvalue;
                 }
                 else
-                    newType->compConfig.compInstantiateTimeout =
-                        CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                    newType->compConfig.compInstantiateTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
             }
             else
-                newType->compConfig.compInstantiateTimeout =
-                    CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                newType->compConfig.compInstantiateTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
 
-            CPM_PARSER_HANDLE_NULL_CHECK(temp,
-                                         clParserChild(timeouts,
-                                                       CL_CPM_PARSER_TAG_COMP_TYPE_TOUT_TERM),
+            CPM_PARSER_HANDLE_NULL_CHECK(temp, clParserChild(timeouts, CL_CPM_PARSER_TAG_COMP_TYPE_TOUT_TERM),
                                          "terminateTimeout field in timouts doesn't exist");
             if (temp != NULL)
             {
@@ -786,26 +716,20 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                     timeoutvalue = atoi(str);
                     if (timeoutvalue == 0)
                     {
-                        newType->compConfig.compTerminateCallbackTimeOut =
-                            CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                        newType->compConfig.compTerminateCallbackTimeOut = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
                     }
                     else
-                        newType->compConfig.compTerminateCallbackTimeOut =
-                            timeoutvalue;
+                        newType->compConfig.compTerminateCallbackTimeOut = timeoutvalue;
                 }
                 else
                 {
-                    newType->compConfig.compTerminateCallbackTimeOut =
-                        CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                    newType->compConfig.compTerminateCallbackTimeOut = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
                 }
             }
             else
-                newType->compConfig.compTerminateCallbackTimeOut =
-                    CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                newType->compConfig.compTerminateCallbackTimeOut = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
 
-            CPM_PARSER_HANDLE_NULL_CHECK(temp,
-                                         clParserChild(timeouts,
-                                                       CL_CPM_PARSER_TAG_COMP_TYPE_TOUT_CLEANUP),
+            CPM_PARSER_HANDLE_NULL_CHECK(temp, clParserChild(timeouts, CL_CPM_PARSER_TAG_COMP_TYPE_TOUT_CLEANUP),
                                          "cleanupTimeout field in timouts doesn't exist");
             if (temp != NULL)
             {
@@ -815,27 +739,22 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                     timeoutvalue = atoi(str);
                     if (timeoutvalue == 0)
                     {
-                        newType->compConfig.compCleanupTimeout =
-                            CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                        newType->compConfig.compCleanupTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
                     }
                     else
                         newType->compConfig.compCleanupTimeout = timeoutvalue;
                 }
                 else
                 {
-                    newType->compConfig.compCleanupTimeout =
-                        CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                    newType->compConfig.compCleanupTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
                 }
             }
             else
             {
-                newType->compConfig.compCleanupTimeout =
-                    CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                newType->compConfig.compCleanupTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
             }
 
-            CPM_PARSER_HANDLE_NULL_CHECK(temp,
-                                         clParserChild(timeouts,
-                                                       CL_CPM_PARSER_TAG_COMP_TYPE_TOUT_PROXY_INST),
+            CPM_PARSER_HANDLE_NULL_CHECK(temp, clParserChild(timeouts, CL_CPM_PARSER_TAG_COMP_TYPE_TOUT_PROXY_INST),
                                          "proxiedCompInstantiateTimeout field in timouts doesn't exist");
             if (temp != NULL)
             {
@@ -846,30 +765,24 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                     if (timeoutvalue == 0)
                     {
                         newType->compConfig.
-                            compProxiedCompInstantiateCallbackTimeout =
-                            CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                            compProxiedCompInstantiateCallbackTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
                     }
                     else
                         newType->compConfig.
-                            compProxiedCompInstantiateCallbackTimeout =
-                            timeoutvalue;
+                            compProxiedCompInstantiateCallbackTimeout = timeoutvalue;
                 }
                 else
                 {
                     newType->compConfig.
-                        compProxiedCompInstantiateCallbackTimeout =
-                        CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                        compProxiedCompInstantiateCallbackTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
                 }
             }
             else
             {
-                newType->compConfig.compProxiedCompInstantiateCallbackTimeout =
-                    CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+                newType->compConfig.compProxiedCompInstantiateCallbackTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
             }
 
-            CPM_PARSER_HANDLE_NULL_CHECK(temp,
-                                         clParserChild(timeouts,
-                                                       CL_CPM_PARSER_TAG_COMP_TYPE_TOUT_PROXY_CLN),
+            CPM_PARSER_HANDLE_NULL_CHECK(temp, clParserChild(timeouts, CL_CPM_PARSER_TAG_COMP_TYPE_TOUT_PROXY_CLN),
                                          "proxiedCompCleanupTimeout field in timouts doesn't exist");
             if (temp != NULL)
             {
@@ -898,27 +811,18 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
         }
         else
         {
-            newType->compConfig.compInstantiateTimeout =
-                CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
-            newType->compConfig.compTerminateCallbackTimeOut =
-                CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
-            newType->compConfig.compCleanupTimeout =
-                CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
-            newType->compConfig.compProxiedCompInstantiateCallbackTimeout =
-                CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
-            newType->compConfig.compProxiedCompCleanupCallbackTimeout =
-                CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+            newType->compConfig.compInstantiateTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+            newType->compConfig.compTerminateCallbackTimeOut = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+            newType->compConfig.compCleanupTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+            newType->compConfig.compProxiedCompInstantiateCallbackTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
+            newType->compConfig.compProxiedCompCleanupCallbackTimeout = CL_CPM_COMPONENT_DEFAULT_TIMEOUT;
         }
 
-        CPM_PARSER_HANDLE_NULL_CHECK(healthCheck,
-                                     clParserChild(compType,
-                                                   CL_CPM_PARSER_TAG_COMP_TYPE_HEALTHCHECK),
+        CPM_PARSER_HANDLE_NULL_CHECK(healthCheck, clParserChild(compType, CL_CPM_PARSER_TAG_COMP_TYPE_HEALTHCHECK),
                                      "healthCheck tag in compType doesn't exist");
         if (healthCheck)
         {
-            CPM_PARSER_NULL_CHECK(temp,
-                                  clParserChild(healthCheck,
-                                                CL_CPM_PARSER_TAG_COMP_TYPE_HC_PERIOD),
+            CPM_PARSER_NULL_CHECK(temp, clParserChild(healthCheck, CL_CPM_PARSER_TAG_COMP_TYPE_HC_PERIOD),
                                   "period tag in healthCheck does not exist");
             str = temp->txt;
             if (str)
@@ -931,9 +835,7 @@ static ClRcT cpmParseCompInfo(ClParserPtrT file, ClBoolT isAspComp)
                 else newType->compConfig.healthCheckConfig.period = CL_CPM_COMPONENT_DEFAULT_HC_TIMEOUT;
             }
 
-            CPM_PARSER_NULL_CHECK(temp,
-                                  clParserChild(healthCheck,
-                                                CL_CPM_PARSER_TAG_COMP_TYPE_HC_MAX_DURAION),
+            CPM_PARSER_NULL_CHECK(temp, clParserChild(healthCheck, CL_CPM_PARSER_TAG_COMP_TYPE_HC_MAX_DURAION),
                                   "period tag in healthCheck does not exist");
             str = temp->txt;
             if (str)
@@ -2597,8 +2499,7 @@ static void cpmParseGmsConfig(void)
     if( (str = getenv("CL_ASP_BOOT_ELECTION_TIMEOUT")))
     {
         gpClCpm->cpmGmsTimeout = atoi(str);
-        clLogInfo("CPM", "GMS", "Using GMS timeout of [%d] secs",
-                  gpClCpm->cpmGmsTimeout);
+        clLogInfo("CPM", "GMS", "Using GMS timeout of [%d] secs", gpClCpm->cpmGmsTimeout);
         return ;
     }
     if(!(str = getenv("ASP_CONFIG")))
@@ -2624,8 +2525,7 @@ static void cpmParseGmsConfig(void)
     }
     gpClCpm->cpmGmsTimeout = atoi(electionTimeout->txt);
     clParserFree(xml);
-    clLogInfo("CPM", "GMS", "Using GMS timeout of [%d] secs",
-              gpClCpm->cpmGmsTimeout);
+    clLogInfo("CPM", "GMS", "Using GMS timeout of [%d] secs", gpClCpm->cpmGmsTimeout);
 }
 
 /*
@@ -2644,30 +2544,24 @@ ClRcT cpmGetConfig(void)
     ClCharT *filePath = NULL;
     ClRcT rc = CL_OK;
 
-
     filePath = getenv(CL_ASP_CONFIG_PATH);
     if (filePath != NULL)
     {
         configFile = clParserOpenFile(filePath, CL_CPM_CONFIG_FILE_NAME);
-        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc,
-                       rc, CL_LOG_HANDLE_APP);
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
         defFile = clParserOpenFile(filePath, CL_CPM_DEF_FILE_NAME);
-        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc,
-                       rc, CL_LOG_HANDLE_APP);
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
         aspDefFile = clParserOpenFile(filePath, CL_CPM_ASP_DEF_FILE_NAME);
-        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc,
-                       rc, CL_LOG_HANDLE_APP);
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
         aspInstFile = clParserOpenFile(filePath, CL_CPM_ASP_INST_FILE_NAME);
-        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc,
-                       rc, CL_LOG_HANDLE_APP);
+        CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_PARSER_FILE_PARSE_ERR, rc, rc, CL_LOG_HANDLE_APP);
     }
     else
     {
-        clLogError(CPM_LOG_AREA_CONFIG,CPM_LOG_CTX_CONFIG_GET,
-                   "ASP_CONFIG path is not set in the environment \n");
+        clLogError(CPM_LOG_AREA_CONFIG,CPM_LOG_CTX_CONFIG_GET, "ASP_CONFIG path is not set in the environment \n");
         exit(1);
     }
 
@@ -2675,12 +2569,12 @@ ClRcT cpmGetConfig(void)
      * Parse all the component definition. 
      */
     rc = cpmParseCompInfo(defFile, CL_FALSE);
-    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INFO_PARSE_ERR,
-                   "component", rc, rc, CL_LOG_HANDLE_APP);
+ 
+    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INFO_PARSE_ERR, "component", rc, rc, CL_LOG_HANDLE_APP);
 
     rc = cpmParseCompInfo(aspDefFile, CL_TRUE);
-    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INFO_PARSE_ERR,
-                   "component", rc, rc, CL_LOG_HANDLE_APP);
+     
+    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INFO_PARSE_ERR, "component", rc, rc, CL_LOG_HANDLE_APP);
 
 #if CPM_DEBUG
     displayCompList(cpmCompList);
@@ -2692,10 +2586,10 @@ ClRcT cpmGetConfig(void)
     {
         ClCpmNodeConfigT nodeConfig = {{0}};
         ClTimerTimeOutT delays[] =  {  /*have the backoff tries as power of 2*/
-            {.tsSec = 2, .tsMilliSec = 0 },
-            {.tsSec = 4, .tsMilliSec = 0 },
-            {.tsSec = 6, .tsMilliSec = 0 },
-            {.tsSec = 8, .tsMilliSec = 0 },
+            { 2,  0 },
+            { 4,  0 },
+            { 6,  0 },
+            { 8,  0 },
         };
         ClInt32T maxTries = (ClUint32T)sizeof(delays)/sizeof(delays[0]) - 1;
         ClInt32T tries = 0;
@@ -2728,8 +2622,7 @@ ClRcT cpmGetConfig(void)
 
         if(rc != CL_OK && CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_SUPPORTED)
         {
-            clLogError(CPM_LOG_AREA_CONFIG,CPM_LOG_CTX_CONFIG_GET, 
-                       "CPM exiting because of master address get failure with [%#x]", rc);
+            clLogError(CPM_LOG_AREA_CONFIG,CPM_LOG_CTX_CONFIG_GET, "CPM exiting because of master address get failure with [%#x]", rc);
             exit(1);
         }
         
@@ -2784,12 +2677,10 @@ ClRcT cpmGetConfig(void)
         }
     }
 
-    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INFO_PARSE_ERR, "node",
-                   rc, rc, CL_LOG_HANDLE_APP);
+    CL_CPM_CHECK_2(CL_LOG_SEV_ERROR, CL_CPM_LOG_2_PARSER_INFO_PARSE_ERR, "node", rc, rc, CL_LOG_HANDLE_APP);
 
     rc = cpmTableInitialize();
-    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to initialize the bmTable failed\n"),
-                 rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("Unable to initialize the bmTable failed\n"), rc);
 
     /*
      * Now populate the CPM Data Structures definition. 
@@ -2838,7 +2729,6 @@ ClRcT cpmGetConfig(void)
     cpmParseGmsConfig();
 
     rc = CL_OK;
-
     failure:
     if (configFile != NULL)
         clParserFree(configFile);
