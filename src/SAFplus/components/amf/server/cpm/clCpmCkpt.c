@@ -126,10 +126,7 @@ static ClRcT cpmCpmLSerializer(ClInt8T **data, ClUint32T *size)
     ClUint32T cpmLCount = 0;
     ClCpmLT *cpmL = NULL;
     ClCntNodeHandleT cpmNode = 0;
-    ClVersionT version = {.releaseCode = CL_RELEASE_VERSION,
-                          .majorVersion = CL_MAJOR_VERSION,
-                          .minorVersion = CL_MINOR_VERSION
-    };
+    ClVersionT version = { CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION };
 
     rc = clBufferCreate(&message);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_BUF_CREATE_ERR, rc, rc,
@@ -439,7 +436,7 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
     ClCkptOpenFlagsT flags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_READ;
     ClTimeT time = 0;
     ClInt32T tries = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500};
+    ClTimerTimeOutT delay = { 0, 500};
 
     ClCkptCheckpointCreationAttributesT ckptAttributes =
     {
@@ -513,7 +510,7 @@ ClRcT cpmCpmLActiveCheckpointInitialize(void)
     ClCkptOpenFlagsT flags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_READ | CL_CKPT_CHECKPOINT_WRITE;
     ClCkptHdlT  ckptHandle = 0;
     ClTimeT time = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500};
+    ClTimerTimeOutT delay = { 0,  500};
     ClInt32T tries = 0;
     ClCkptCheckpointCreationAttributesT ckptAttributes =
     {

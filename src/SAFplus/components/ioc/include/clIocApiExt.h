@@ -260,9 +260,7 @@ extern "C"
  *  clIocLibFinalize(), clIocLibConfigGet(). 
  * 
  */
-    ClRcT clIocLibInitialize(
-            ClPtrT pConfig
-            );
+    ClRcT clIocLibInitialize( ClPtrT pConfig);
 
 
 
@@ -292,9 +290,7 @@ extern "C"
  * 
  * 
  */
-    ClRcT clIocLibFinalize(
-    void
-    );
+    ClRcT clIocLibFinalize(void);
 
 
 

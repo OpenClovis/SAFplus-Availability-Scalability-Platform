@@ -888,7 +888,7 @@ clLogStreamOwnerCheckpointCreate(ClLogSOEoDataT  *pSoEoEntry,
     ClUint32T                            sectionSize    = 0;
     ClInt32T                             tries = 0;
     ClIocNodeAddressT                    localAddr = clIocLocalAddressGet();
-    static ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 100};
+    static ClTimerTimeOutT delay = { 0,  100};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
@@ -899,22 +899,17 @@ clLogStreamOwnerCheckpointCreate(ClLogSOEoDataT  *pSoEoEntry,
     }
 
     creationAtt.creationFlags     = CL_CKPT_CHECKPOINT_COLLOCATED | CL_CKPT_ALL_OPEN_ARE_REPLICAS;
-    creationAtt.checkpointSize    = 
-        pCommonEoData->maxStreams * CL_LOG_SO_SEC_SIZE; 
+    creationAtt.checkpointSize    = pCommonEoData->maxStreams * CL_LOG_SO_SEC_SIZE; 
     creationAtt.retentionDuration = CL_STREAMOWNER_CKPT_RETENTION_DURATION;
     creationAtt.maxSections       = pCommonEoData->maxStreams;
-    sectionSize                   = pCommonEoData->maxComponents * 
-        sizeof(ClLogCompKeyT); 
+    sectionSize                   = pCommonEoData->maxComponents * sizeof(ClLogCompKeyT); 
     creationAtt.maxSectionSize    = CL_LOG_SO_SEC_SIZE + sectionSize;
     creationAtt.maxSectionIdSize  = CL_LOG_SO_SEC_ID_SIZE;
 
-    openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE |
-        CL_CKPT_CHECKPOINT_READ;
+    openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
 
     reopen:
-    rc = clCkptCheckpointOpen(pCommonEoData->hSvrCkpt, 
-                              pCkptName, &creationAtt, openFlags, 5000L,
-                              &pSoEoEntry->hCkpt);
+    rc = clCkptCheckpointOpen(pCommonEoData->hSvrCkpt, pCkptName, &creationAtt, openFlags, 5000L, &pSoEoEntry->hCkpt);
     if( rc != CL_OK )
     {
         /*

@@ -318,7 +318,7 @@ cosTaskCreate(const ClCharT* pTaskName, ClOsalSchedulePolicyT schedulePolicy, Cl
     pthread_t thread;
     pthread_attr_t	taskAttribute;
     ClUint32T retCode = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT delay = { 0,  500 };
     ClInt32T tries = 0;
 
     /* This posix implementation assumes that the Clovis schedulePolicy enum == 

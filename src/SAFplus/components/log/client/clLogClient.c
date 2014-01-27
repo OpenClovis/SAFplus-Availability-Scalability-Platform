@@ -520,7 +520,7 @@ clLogStreamOpen(ClLogHandleT            hLog,
     ClIocPortT           appPort       = 0;
     ClUint32T            shmSize       = 0;
     ClUint32T            recSize       = 0;
-    ClTimerTimeOutT      delay         = {.tsSec = 2, .tsMilliSec = 0};
+    ClTimerTimeOutT      delay         = {2, 0};
     ClInt32T maxTries = 0;
 
     CL_LOG_DEBUG_TRACE(("Enter"));

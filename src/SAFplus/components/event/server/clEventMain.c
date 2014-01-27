@@ -276,7 +276,7 @@ ClEoConfigT clEoConfig = {
     NULL,                       /* Function Callback to change the Application
                                  * state */
     NULL,
-    .needSerialization = CL_TRUE
+    CL_TRUE
 };
 
 /*

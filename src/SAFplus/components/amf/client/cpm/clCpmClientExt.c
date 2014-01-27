@@ -501,9 +501,7 @@ ClRcT clCpmClientRMDAsyncNew(ClIocNodeAddressT destAddr,
     return retCode;
 }
 
-ClRcT clCpmExecutionObjectStateSet(ClIocNodeAddressT compAddr,
-                                   ClEoIdT eoId,
-                                   ClEoStateT state)
+ClRcT clCpmExecutionObjectStateSet(ClIocNodeAddressT compAddr, ClEoIdT eoId, ClEoStateT state)
 {
     ClRcT rc = CL_OK;
 
@@ -1879,7 +1877,7 @@ ClRcT clCpmNodeRestart(ClIocNodeAddressT iocNodeAddress, ClBoolT graceful)
     ClRcT rc = CL_OK;
     ClIocNodeAddressT masterAddress = 0;
     ClCpmRestartSendT cpmRestartSend = {0};
-    ClTimerTimeOutT delay = {.tsSec = 2, .tsMilliSec = 0};
+    ClTimerTimeOutT delay = { 2, 0};
     ClInt32T tries = 0;
 
     do
@@ -1982,7 +1980,7 @@ ClRcT clCpmMiddlewareRestart(ClIocNodeAddressT iocNodeAddress, ClBoolT graceful,
     ClRcT rc = CL_OK;
     ClIocNodeAddressT masterAddress = 0;
     ClCpmMiddlewareResetT cpmMiddlewareReset = {0};
-    ClTimerTimeOutT delay = {.tsSec = 2, .tsMilliSec = 0};
+    ClTimerTimeOutT delay = { 2, 0};
     ClInt32T tries = 0;
 
     do
@@ -2270,7 +2268,7 @@ ClRcT clCpmTargetVersionGet(ClCharT *aspVersion, ClUint32T maxBytes)
 ClRcT clCpmTargetInfoInitialize(void)
 {
 #define CL_TARGET_INFO_FILE "targetconf.xml"
-#define CL_TARGET_INFO_VERSION {.releaseCode = 5, .majorVersion = 0, .minorVersion = 0 }
+#define CL_TARGET_INFO_VERSION { 5,  0, 0 }
 
     ClParserPtrT file;
     ClParserPtrT child;

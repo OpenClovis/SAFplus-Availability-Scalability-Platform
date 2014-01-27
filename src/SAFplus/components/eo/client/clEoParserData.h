@@ -60,30 +60,30 @@ static ClParserTagT clEoConfigParserTags[] = {
 
 static ClParserTagT clEoMemConfigParserTags[] = {
     {
-        .pTag = "heapConfig",
-        .tagType = CL_PARSER_STR_TAG,
-        .tagSize = CL_TAG_SIZE(ClEoParseInfoT,heapConfigName),
-        .tagOffset = CL_TAG_OFFSET(ClEoParseInfoT,heapConfigName),
+        "heapConfig",
+        CL_PARSER_STR_TAG,
+        CL_TAG_SIZE(ClEoParseInfoT,heapConfigName),
+        CL_TAG_OFFSET(ClEoParseInfoT,heapConfigName),
     },
     {
-        .pTag = "bufferConfig",
-        .tagType = CL_PARSER_STR_TAG,
-        .tagSize = CL_TAG_SIZE(ClEoParseInfoT,buffConfigName),
-        .tagOffset = CL_TAG_OFFSET(ClEoParseInfoT,buffConfigName),
+        "bufferConfig",
+        CL_PARSER_STR_TAG,
+        CL_TAG_SIZE(ClEoParseInfoT,buffConfigName),
+        CL_TAG_OFFSET(ClEoParseInfoT,buffConfigName),
     },
     {
-        .pTag = "memoryConfig",
-        .tagType = CL_PARSER_STR_TAG,
-        .tagSize = CL_TAG_SIZE(ClEoParseInfoT,memConfigName),
-        .tagOffset = CL_TAG_OFFSET(ClEoParseInfoT,memConfigName),
+        "memoryConfig",
+        CL_PARSER_STR_TAG,
+        CL_TAG_SIZE(ClEoParseInfoT,memConfigName),
+        CL_TAG_OFFSET(ClEoParseInfoT,memConfigName),
     },
 };
 static ClParserTagT clEoIocNameConfigParserTags[] = {
     {
-        .pTag = "iocConfig",
-        .tagType = CL_PARSER_STR_TAG,
-        .tagSize = CL_TAG_SIZE(ClEoParseInfoT,iocConfigName),
-        .tagOffset = CL_TAG_OFFSET(ClEoParseInfoT,iocConfigName),
+        "iocConfig",
+        CL_PARSER_STR_TAG,
+        CL_TAG_SIZE(ClEoParseInfoT,iocConfigName),
+        CL_TAG_OFFSET(ClEoParseInfoT,iocConfigName),
     },
 };
 
@@ -156,60 +156,60 @@ static ClParserDataT clEoConfigListParserData = CPDI_EO_BASE("EOList",((ClParser
  */
 static ClParserTagT clHeapConfigParserTags[] = {
     {
-        .pTag = "name",
-        .tagType = CL_PARSER_CUSTOM_TAG,
-        .tagSize = CL_PARSER_ATTR_SIZE,
+        "name",
+        CL_PARSER_CUSTOM_TAG,
+        CL_PARSER_ATTR_SIZE,
         /*
          * Since we are going to skip update for this value,
          * we go for an invalid tag offset.
          */
-        .tagOffset = 0,
-        .pTagFmt = clHeapConfigNameTagFmt,
+        0,
+        clHeapConfigNameTagFmt,
     },
     {
-        .pTag = "mode",
-        .tagType = CL_PARSER_CUSTOM_TAG,
-        .tagSize = CL_TAG_SIZE(ClHeapConfigT,mode),
-        .tagOffset = CL_TAG_OFFSET(ClHeapConfigT,mode),
-        .pTagFmt = clHeapConfigModeTagFmt,
+        "mode",
+        CL_PARSER_CUSTOM_TAG,
+        CL_TAG_SIZE(ClHeapConfigT,mode),
+        CL_TAG_OFFSET(ClHeapConfigT,mode),
+        clHeapConfigModeTagFmt,
     },
     {
-        .pTag = "lazyMode",
-        .tagType = CL_PARSER_BOOL_TAG,
-        .tagSize = CL_TAG_SIZE(ClHeapConfigT,lazy),
-        .tagOffset = CL_TAG_OFFSET(ClHeapConfigT,lazy),
-        .pTagFmt = NULL,
+        "lazyMode",
+        CL_PARSER_BOOL_TAG,
+        CL_TAG_SIZE(ClHeapConfigT,lazy),
+        CL_TAG_OFFSET(ClHeapConfigT,lazy),
+        NULL,
     },
 };
 
 static ClParserTagT clPoolConfigParserTags[] = {
     {
-        .pTag = "chunkSize",
-        .tagType = CL_PARSER_UINT32_TAG,
-        .tagSize  = CL_TAG_SIZE(ClPoolConfigT,chunkSize),
-        .tagOffset = CL_TAG_OFFSET(ClPoolConfigT,chunkSize),
-        .pTagFmt = NULL,
+        "chunkSize",
+        CL_PARSER_UINT32_TAG,
+        CL_TAG_SIZE(ClPoolConfigT,chunkSize),
+        CL_TAG_OFFSET(ClPoolConfigT,chunkSize),
+        NULL,
     },
     {
-        .pTag = "initialSize",
-        .tagType = CL_PARSER_UINT32_TAG,
-        .tagSize = CL_TAG_SIZE(ClPoolConfigT,initialPoolSize),
-        .tagOffset = CL_TAG_OFFSET(ClPoolConfigT,initialPoolSize),
-        .pTagFmt = NULL,
+        "initialSize",
+        CL_PARSER_UINT32_TAG,
+        CL_TAG_SIZE(ClPoolConfigT,initialPoolSize),
+        CL_TAG_OFFSET(ClPoolConfigT,initialPoolSize),
+        NULL,
     },
     {
-        .pTag = "incrementSize",
-        .tagType = CL_PARSER_UINT32_TAG,
-        .tagSize = CL_TAG_SIZE(ClPoolConfigT,incrementPoolSize),
-        .tagOffset = CL_TAG_OFFSET(ClPoolConfigT,incrementPoolSize),
-        .pTagFmt = NULL,
+        "incrementSize",
+        CL_PARSER_UINT32_TAG,
+        CL_TAG_SIZE(ClPoolConfigT,incrementPoolSize),
+        CL_TAG_OFFSET(ClPoolConfigT,incrementPoolSize),
+        NULL,
     },
     {
-        .pTag = "maxSize",
-        .tagType = CL_PARSER_UINT32_TAG,
-        .tagSize = CL_TAG_SIZE(ClPoolConfigT,maxPoolSize),
-        .tagOffset = CL_TAG_OFFSET(ClPoolConfigT,maxPoolSize),
-        .pTagFmt = NULL
+        "maxSize",
+        CL_PARSER_UINT32_TAG,
+        CL_TAG_SIZE(ClPoolConfigT,maxPoolSize),
+        CL_TAG_OFFSET(ClPoolConfigT,maxPoolSize),
+        NULL
     },
 };
 
@@ -252,27 +252,27 @@ static ClParserDataT clHeapChildrenParserData[] = {
  */
 static ClParserTagT clBufferConfigParserTags[] = {
     {
-        .pTag = "name",
-        .tagType = CL_PARSER_CUSTOM_TAG,
-        .tagSize = CL_PARSER_ATTR_SIZE,
-        .tagOffset = 0,
-        .pTagFmt = clBufferConfigNameTagFmt,
+        "name",
+        CL_PARSER_CUSTOM_TAG,
+        CL_PARSER_ATTR_SIZE,
+        0,
+        clBufferConfigNameTagFmt,
     },
 
     {
-        .pTag = "lazyMode",
-        .tagType = CL_PARSER_BOOL_TAG,
-        .tagSize = CL_TAG_SIZE(ClBufferPoolConfigT,lazy),
-        .tagOffset = CL_TAG_OFFSET(ClBufferPoolConfigT,lazy),
-        .pTagFmt = NULL,
+        "lazyMode",
+        CL_PARSER_BOOL_TAG,
+        CL_TAG_SIZE(ClBufferPoolConfigT,lazy),
+        CL_TAG_OFFSET(ClBufferPoolConfigT,lazy),
+        NULL,
     },
 
     {
-        .pTag = "mode",
-        .tagType = CL_PARSER_CUSTOM_TAG,
-        .tagSize = CL_TAG_SIZE(ClBufferPoolConfigT,mode),
-        .tagOffset = CL_TAG_OFFSET(ClBufferPoolConfigT,mode),
-        .pTagFmt = clBufferConfigModeTagFmt,
+        "mode",
+        CL_PARSER_CUSTOM_TAG,
+        CL_TAG_SIZE(ClBufferPoolConfigT,mode),
+        CL_TAG_OFFSET(ClBufferPoolConfigT,mode),
+        clBufferConfigModeTagFmt,
     },
 
 };
@@ -282,18 +282,18 @@ static ClParserTagT clBufferConfigParserTags[] = {
  */
 static ClParserTagT clMemConfigParserTags[] = {
     {
-        .pTag = "name",
-        .tagType = CL_PARSER_CUSTOM_TAG,
-        .tagSize = CL_PARSER_ATTR_SIZE,
-        .tagOffset = 0,
-        .pTagFmt = clMemConfigNameTagFmt,
+        "name",
+        CL_PARSER_CUSTOM_TAG,
+        CL_PARSER_ATTR_SIZE,
+        0,
+        clMemConfigNameTagFmt,
     },
     {
-        .pTag = "processUpperLimit",
-        .tagType = CL_PARSER_UINT32_TAG,
-        .tagSize = CL_TAG_SIZE(ClEoMemConfigT,memLimit),
-        .tagOffset = CL_TAG_OFFSET(ClEoMemConfigT,memLimit),
-        .pTagFmt = NULL,
+        "processUpperLimit",
+        CL_PARSER_UINT32_TAG,
+        CL_TAG_SIZE(ClEoMemConfigT,memLimit),
+        CL_TAG_OFFSET(ClEoMemConfigT,memLimit),
+        NULL,
     },
 };
 
@@ -302,20 +302,20 @@ static ClParserTagT clMemConfigParserTags[] = {
  */
 static ClParserTagT clWaterMarkParserTags[] = {
     {
-        .pTag = "lowLimit",
-        .tagType = CL_PARSER_UINT64_TAG,
-        .tagSize = CL_TAG_SIZE(ClWaterMarkT,lowLimit),
-        .tagOffset = CL_TAG_OFFSET(ClWaterMarkT,lowLimit),
-        .pTagFmt = NULL,
-        .pTagValidate = clWaterMarkValidate,
+        "lowLimit",
+        CL_PARSER_UINT64_TAG,
+        CL_TAG_SIZE(ClWaterMarkT,lowLimit),
+        CL_TAG_OFFSET(ClWaterMarkT,lowLimit),
+        NULL,
+        clWaterMarkValidate,
     },
     {
-        .pTag = "highLimit",
-        .tagType = CL_PARSER_UINT64_TAG,
-        .tagSize = CL_TAG_SIZE(ClWaterMarkT,highLimit),
-        .tagOffset = CL_TAG_OFFSET(ClWaterMarkT,highLimit),
-        .pTagFmt = NULL,
-        .pTagValidate = clWaterMarkValidate,
+        "highLimit",
+        CL_PARSER_UINT64_TAG,
+        CL_TAG_SIZE(ClWaterMarkT,highLimit),
+        CL_TAG_OFFSET(ClWaterMarkT,highLimit),
+        NULL,
+        clWaterMarkValidate,
     },
 };
 
@@ -324,11 +324,11 @@ static ClParserTagT clWaterMarkParserTags[] = {
  */
 static ClParserTagT clWaterMarkActionParserTags[] = {
     {
-        .pTag = "enable",
-        .tagType = CL_PARSER_CUSTOM_TAG,
-        .tagSize = CL_TAG_SIZE(ClEoActionInfoT,bitMap),
-        .tagOffset = CL_TAG_OFFSET(ClEoActionInfoT,bitMap),
-        .pTagFmt = clWaterMarkActionTagFmt,
+        "enable",
+        CL_PARSER_CUSTOM_TAG,
+        CL_TAG_SIZE(ClEoActionInfoT,bitMap),
+        CL_TAG_OFFSET(ClEoActionInfoT,bitMap),
+        clWaterMarkActionTagFmt,
     },
 };
 
@@ -572,20 +572,20 @@ static ClParserDataT clIocConfigRecvQChildrenParserData[] = {
 };
 static ClParserTagT clIocRecvQConfigParserTags[] = {
     {
-        .pTag = "size",
-        .tagType = CL_PARSER_UINT32_TAG,
-        .tagSize  = CL_TAG_SIZE(ClIocQueueInfoT,queueSize),
-        .tagOffset = CL_TAG_OFFSET(ClIocQueueInfoT,queueSize),
-        .pTagFmt = NULL,
+        "size",
+        CL_PARSER_UINT32_TAG,
+        CL_TAG_SIZE(ClIocQueueInfoT,queueSize),
+        CL_TAG_OFFSET(ClIocQueueInfoT,queueSize),
+        NULL,
     },
 };
 static ClParserTagT clIocConfigParserTags[] = {
     {
-        .pTag = "name",
-        .tagType = CL_PARSER_CUSTOM_TAG,
-        .tagSize = CL_PARSER_ATTR_SIZE,
-        .tagOffset = 0,
-        .pTagFmt = clIocConfigNameTagFmt,
+        "name",
+        CL_PARSER_CUSTOM_TAG,
+        CL_PARSER_ATTR_SIZE,
+        0,
+        clIocConfigNameTagFmt,
     }
 }; 
 static ClParserDataT clIocConfigRecvQParserData[] = {

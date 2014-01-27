@@ -95,6 +95,7 @@
 #include <clNetwork.h>
 #include <clTimeServer.h>
 #include <clTransport.h>
+#include <clTipc.h>
 
 #define TIPC_LOG_AREA_TIPC		"TIPC"
 #define TIPC_LOG_CTX_TIPC_DISPATCH	"DISP"
@@ -486,8 +487,7 @@ ClRcT clTipcGetAddress(struct sockaddr_tipc *pAddress,
     return CL_OK;
 }
 
-ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption,
-                ClUint8T *pBuffer, ClUint32T bufSize, 
+ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption, ClUint8T *pBuffer, ClUint32T bufSize, 
                 ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
     ClRcT rc = CL_OK;
@@ -791,9 +791,7 @@ ClRcT xportMaxPayloadSizeGet(ClUint32T *pSize)
     return CL_OK;
 }
 
-ClRcT xportTransparencyRegister(ClIocPortT port,
-                                ClIocLogicalAddressT logicalAddr,
-                                ClUint32T haState)
+ClRcT xportTransparencyRegister(ClIocPortT port, ClIocLogicalAddressT logicalAddr, ClUint32T haState)
 {
     ClInt32T scope = 1;
     struct sockaddr_tipc address;
@@ -988,8 +986,7 @@ ClRcT xportServerReady(ClIocAddressT *pAddress)
     return rc;
 }
 
-ClRcT xportMasterAddressGet(ClIocLogicalAddressT logicalAddress, ClIocPortT portId,
-                            ClIocNodeAddressT *pIocNodeAddress)
+ClRcT xportMasterAddressGet(ClIocLogicalAddressT logicalAddress, ClIocPortT portId, ClIocNodeAddressT *pIocNodeAddress)
 {
     struct sockaddr_tipc topsrv;
     ClInt32T fd;

@@ -27,6 +27,7 @@
 #include <clDbalApi.h>
 #include <clDebugApi.h>
 #include "clovisDbalInternal.h"
+#include "clDbalInterface.h"
 #include <clDbalCfg.h>
 
 extern ClDbalFunctionPtrsT *gDbalFunctionPtrs;
@@ -47,113 +48,60 @@ typedef struct SQLiteDBHandle_t {
 
 }SQLiteDBHandle_t;
 
-ClRcT clDbalInterface(ClDbalFunctionPtrsT *);
+/*ClRcT clDbalInterface(ClDbalFunctionPtrsT *);*/
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBCreate(ClDBNameT dbName,
-        SQLiteDBHandle_t* pSQLiteHandle);
+static ClRcT cdbSQLiteDBCreate(ClDBNameT dbName, SQLiteDBHandle_t* pSQLiteHandle);
 /*****************************************************************************/
-static ClRcT  
-cdbSQLiteDBOpen(ClDBFileT    dbFile,
-        ClDBNameT    dbName, 
-        ClDBFlagT    dbFlag,
-        ClUint32T   maxKeySize,
-        ClUint32T   maxRecordSize,
+static ClRcT  cdbSQLiteDBOpen(ClDBFileT dbFile, ClDBNameT  dbName, ClDBFlagT  dbFlag, ClUint32T  maxKeySize, ClUint32T maxRecordSize,
         ClDBHandleT* pDBHandle);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBClose(ClDBHandleT dbHandle);
+static ClRcT cdbSQLiteDBClose(ClDBHandleT dbHandle);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBSync(ClDBHandleT dbHandle,
-                ClUint32T flags);
+static ClRcT cdbSQLiteDBSync(ClDBHandleT dbHandle, ClUint32T flags);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBRecordAdd(ClDBHandleT      dbHandle,
-                       ClDBKeyT         dbKey,
-                       ClUint32T       keySize,
-                       ClDBRecordT      dbRec,
-                       ClUint32T       recSize);
+static ClRcT cdbSQLiteDBRecordAdd(ClDBHandleT  dbHandle, ClDBKeyT dbKey, ClUint32T  keySize, ClDBRecordT  dbRec, ClUint32T  recSize);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBRecordReplace(ClDBHandleT      dbHandle,
-                           ClDBKeyT         dbKey,
-                           ClUint32T       keySize,
-                           ClDBRecordT      dbRec,
-                           ClUint32T       recSize);
+static ClRcT cdbSQLiteDBRecordReplace(ClDBHandleT  dbHandle, ClDBKeyT  dbKey, ClUint32T  keySize, ClDBRecordT  dbRec, ClUint32T recSize);
 /*****************************************************************************/
-static ClRcT  
-cdbSQLiteDBRecordGet(ClDBHandleT      dbHandle,
-                       ClDBKeyT         dbKey,
-                       ClUint32T       keySize,
-                       ClDBRecordT*     pDBRec,
-                       ClUint32T*      pRecSize);
+static ClRcT  cdbSQLiteDBRecordGet(ClDBHandleT  dbHandle, ClDBKeyT   dbKey, ClUint32T   keySize, ClDBRecordT*  pDBRec, ClUint32T*  pRecSize);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBRecordDelete(ClDBHandleT      dbHandle,
-                          ClDBKeyT         dbKey,
-                          ClUint32T       keySize);
+static ClRcT cdbSQLiteDBRecordDelete(ClDBHandleT   dbHandle, ClDBKeyT    dbKey, ClUint32T   keySize);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBFirstRecordGet(ClDBHandleT      dbHandle,
-                            ClDBKeyT*        pDBKey,
-                            ClUint32T*      pKeySize,
-                            ClDBRecordT*     pDBRec,
-                            ClUint32T*      pRecSize);
+static ClRcT cdbSQLiteDBFirstRecordGet(ClDBHandleT dbHandle, ClDBKeyT* pDBKey, ClUint32T* pKeySize, ClDBRecordT* pDBRec, ClUint32T*  pRecSize);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBNextRecordGet(ClDBHandleT      dbHandle,
-                           ClDBKeyT         currentKey,
-                           ClUint32T       currentKeySize,
-                           ClDBKeyT*        pDBNextKey,
-                           ClUint32T*      pNextKeySize,
-                           ClDBRecordT*     pDBNextRec,
-                           ClUint32T*      pNextRecSize);
+static ClRcT cdbSQLiteDBNextRecordGet(ClDBHandleT  dbHandle, ClDBKeyT  currentKey, ClUint32T  currentKeySize, ClDBKeyT*  pDBNextKey,                        ClUint32T*  pNextKeySize, ClDBRecordT*  pDBNextRec, ClUint32T*  pNextRecSize);
 /*****************************************************************************/
-static ClRcT  
-cdbSQLiteDBTxnOpen(ClDBFileT    dbFile,
-               ClDBNameT    dbName, 
-               ClDBFlagT    dbFlag,
-               ClUint32T    maxKeySize,
-               ClUint32T    maxRecordSize,
-               ClDBHandleT* pDBHandle);
+static ClRcT  cdbSQLiteDBTxnOpen(ClDBFileT dbFile, ClDBNameT  dbName, ClDBFlagT dbFlag, ClUint32T  maxKeySize, ClUint32T  maxRecordSize, ClDBHandleT* pDBHandle);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBTransactionBegin(ClDBHandleT  dbHandle);
+static ClRcT cdbSQLiteDBTransactionBegin(ClDBHandleT  dbHandle);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBTransactionCommit(ClDBHandleT  dbHandle);
+static ClRcT cdbSQLiteDBTransactionCommit(ClDBHandleT  dbHandle);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBTransactionAbort(ClDBHandleT  dbHandle);
+static ClRcT cdbSQLiteDBTransactionAbort(ClDBHandleT  dbHandle);
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBRecordFree(ClDBHandleT  dbHandle,
-                        ClDBRecordT  dbRec );
+static ClRcT cdbSQLiteDBRecordFree(ClDBHandleT  dbHandle, ClDBRecordT  dbRec );
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBKeyFree(ClDBHandleT  dbHandle,
-                     ClDBKeyT     dbKey );
+static ClRcT cdbSQLiteDBKeyFree(ClDBHandleT  dbHandle, ClDBKeyT     dbKey );
 /*****************************************************************************/
-ClRcT
-cdbSQLiteDBInitialize(ClDBFileT    dbEnvFile);
+static ClRcT cdbSQLiteDBInitialize(ClDBFileT    dbEnvFile);
 /*****************************************************************************/
 
 /* Earlier versions of sqlite 3 (3.3.6 for example) defined the 
    sqlite3_clear_bindings routine as experimental.  Some Linux distributions do
    not include the "experimental" APIs in the sqlite library.  Therefore,
    we have reproduced the routine here. */
-static int cl_clear_bindings(sqlite3_stmt *pStmt){
+static int cl_clear_bindings(sqlite3_stmt *pStmt)
+{
   int i;
   int rc = SQLITE_OK;
-  for(i=1; rc==SQLITE_OK && i<=sqlite3_bind_parameter_count(pStmt); i++){
+  for(i=1; rc==SQLITE_OK && i<=sqlite3_bind_parameter_count(pStmt); i++)
+  {
     rc = sqlite3_bind_null(pStmt, i);
   }
   return rc;
 }
 
-ClRcT
-clDbalConfigInitialize(void* pDbalConfiguration)
+ClRcT clDbalConfigInitialize(void* pDbalConfiguration)
 {
     ClRcT errorCode = CL_OK;
     ClDbalConfigurationT* pConfig = NULL;
@@ -175,8 +123,7 @@ clDbalConfigInitialize(void* pDbalConfiguration)
     return(CL_OK);
 }
 
-ClRcT
-cdbSQLiteDBInitialize(ClDBFileT dbEnvFile)
+static ClRcT cdbSQLiteDBInitialize(ClDBFileT dbEnvFile)
 {
     /* 
      * No need for configuration as of now.
@@ -186,9 +133,7 @@ cdbSQLiteDBInitialize(ClDBFileT dbEnvFile)
     return CL_OK;
 }
 
-static ClRcT
-cdbSQLiteDBCreate(ClDBNameT dbName,
-        SQLiteDBHandle_t* pSQLiteHandle)
+static ClRcT cdbSQLiteDBCreate(ClDBNameT dbName, SQLiteDBHandle_t* pSQLiteHandle)
 {
     sqlite3_stmt* stmt = NULL; 
     ClRcT rc = CL_OK;
@@ -245,12 +190,7 @@ cdbSQLiteDBCreate(ClDBNameT dbName,
     return rc;
 }
 
-static ClRcT  
-cdbSQLiteDBOpen(ClDBFileT    dbFile,
-        ClDBNameT    dbName, 
-        ClDBFlagT    dbFlag,
-        ClUint32T   maxKeySize,
-        ClUint32T   maxRecordSize,
+static ClRcT  cdbSQLiteDBOpen(ClDBFileT    dbFile, ClDBNameT    dbName, ClDBFlagT    dbFlag, ClUint32T   maxKeySize, ClUint32T   maxRecordSize,
         ClDBHandleT* pDBHandle)
 {
     ClRcT errorCode = CL_OK;
@@ -1153,9 +1093,7 @@ cdbSQLiteDBRecordFree(ClDBHandleT  dbHandle,
 }
 
 /*****************************************************************************/
-static ClRcT
-cdbSQLiteDBKeyFree(ClDBHandleT  dbHandle,
-                     ClDBKeyT     dbKey)
+static ClRcT cdbSQLiteDBKeyFree(ClDBHandleT  dbHandle, ClDBKeyT     dbKey)
 {
     ClRcT errorCode = CL_OK;
 
@@ -1167,8 +1105,7 @@ cdbSQLiteDBKeyFree(ClDBHandleT  dbHandle,
 }
 
 /****************************************************************************/
-ClRcT
-clDbalEngineFinalize()
+ClRcT clDbalEngineFinalize()
 {
     return CL_OK;
 }

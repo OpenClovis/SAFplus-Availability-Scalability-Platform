@@ -65,7 +65,7 @@ static ClEoExecutionObjT *gpEOObj;
 
 #define AMS_ADMIN_API_CALL(amsHandle, retry, rc, fn) do {   \
     ClInt32T iter = 0;                                      \
-    ClTimerTimeOutT delay = {.tsSec=2,.tsMilliSec=0};       \
+    ClTimerTimeOutT delay = { 2, 0};			    \
     do {                                                    \
         rc = (fn);                                          \
     } while((retry) &&                                      \
@@ -6611,7 +6611,7 @@ ClRcT clAmsMgmtDBGetNodeCompList(ClAmsMgmtDBHandleT cache,
     ClRcT rc = CL_OK;
     ClAmsEntityBufferT compBuffer = {0};
     ClAmsEntityBufferT suBuffer = {0};
-    ClAmsEntityT entity = {.type = CL_AMS_ENTITY_TYPE_NODE};
+    ClAmsEntityT entity = { CL_AMS_ENTITY_TYPE_NODE};
 
     if(!cache || !nodeName) 
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);

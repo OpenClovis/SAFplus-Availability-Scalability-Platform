@@ -44,16 +44,16 @@ static ClBackingStorageReadWalkT clBackingStorageReadWalkFile;
 
 static ClBackingStorageOperationsT gClBackingStorageOperationsFile = 
    {
-        .pInit = clBackingStorageInitFile,
-        .pWrite = clBackingStorageWriteFile, 
-        .pRead = clBackingStorageReadFile,
-        .pWriteVector = clBackingStorageWriteVectorFile,
-        .pReadVector = clBackingStorageReadVectorFile,
-        .pReadWalk = clBackingStorageReadWalkFile,
+         clBackingStorageInitFile,
+         clBackingStorageWriteFile, 
+         clBackingStorageReadFile,
+         clBackingStorageWriteVectorFile,
+         clBackingStorageReadVectorFile,
+         clBackingStorageReadWalkFile,
    };
 
 static ClBackingStorageOperationsT *gpClBackingStorageOperations[CL_BACKING_STORAGE_TYPE_MAX+1] = {
-    [CL_BACKING_STORAGE_TYPE_FILE] = &gClBackingStorageOperationsFile,
+     &gClBackingStorageOperationsFile,
 };
 
 ClRcT clBackingStorageCreate(ClBackingStorageHandleT *pHandle, ClBackingStorageTypeT type, const ClBackingStorageAttributesT *pAttr, const ClBackingStorageOperationsT *pOperations)

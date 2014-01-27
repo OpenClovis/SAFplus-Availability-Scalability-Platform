@@ -179,9 +179,7 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
     while( (tp->flags & CL_TASK_POOL_RUNNING) ) /* Gas TODO, trigger tasks to quit*/
     {      
         ClRcT clrc = CL_OK;
-        ClTimerTimeOutT timer = { .tsSec = CL_TASK_POOL_IDLE_TIMEOUT, 
-                                  .tsMilliSec = 0 
-        };  /* should be configurable? */
+        ClTimerTimeOutT timer = { CL_TASK_POOL_IDLE_TIMEOUT, 0 };  /* should be configurable? */
         if (tp->preIdleFn) 
         {
             clOsalMutexUnlock(&tp->mutex);
@@ -263,7 +261,7 @@ void clTaskPoolEntry(ClTaskPoolArgT *pArg)
                 /*
                  * We block here for a resume to wake us back.
                  */
-                ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 0 };
+                ClTimerTimeOutT delay = { 0,  0 };
                 clMetricAdjust(&tp->numIdleTasks,1);
                 clrc = clOsalCondWait (&tp->cond, &tp->mutex, delay);
                 clMetricAdjust(&tp->numIdleTasks,-1);
@@ -519,7 +517,7 @@ ClRcT clTaskPoolStop(ClTaskPoolHandleT handle)
     ClTaskPoolT *tp = (ClTaskPoolT*)handle;
     ClOsalTaskIdT taskId = 0;
     ClInt32T i = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500};
+    ClTimerTimeOutT delay = { 0,500};
 
     if(!tp) 
     {
@@ -587,7 +585,7 @@ ClRcT clTaskPoolQuiesce(ClTaskPoolHandleT handle)
     ClTaskPoolT *tp = handle;
     ClOsalTaskIdT taskId = 0;
     ClInt32T pendingJobs = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 50 };
+    ClTimerTimeOutT delay = { 0, 50 };
     ClInt32T i = 0;
 
     if(!tp)
@@ -684,9 +682,7 @@ static ClRcT clTaskPoolMonitor(void *pArg)
 ClRcT clTaskPoolMonitorStart(ClTaskPoolHandleT handle, ClTimerTimeOutT monitorThreshold, ClTaskPoolMonitorCallbackT monitorCallback)
 {
     ClTaskPoolT *tp = handle;
-    ClTimerTimeOutT monitorInterval = {.tsSec = CL_TASKPOOL_DEFAULT_MONITOR_INTERVAL,
-                                       .tsMilliSec = 0
-    };
+    ClTimerTimeOutT monitorInterval = { CL_TASKPOOL_DEFAULT_MONITOR_INTERVAL, 0 };
     ClTimeT monitorUnits = 0;
     ClTimeT monitorDefaultUnits = (ClTimeT)monitorInterval.tsSec * 1000 + monitorInterval.tsMilliSec;;
     ClRcT rc = CL_OK;

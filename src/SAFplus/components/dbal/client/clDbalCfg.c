@@ -66,8 +66,7 @@ static ClBoolT gDlOpen = CL_FALSE;
 *
 * @returns CL_OK - Success<br>
 */
-ClRcT 
-clDbalLibInitialize(void)
+ClRcT clDbalLibInitialize(void)
 {
     ClRcT          rc = CL_OK;
 
@@ -110,13 +109,11 @@ clDbalLibInitialize(void)
                 if (!err) err = "unknown";
 
                 clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
-                               "Error in finding the symbol 'clDbalInterface' in shared library '%s': [%s]",
-                                libName, err);
+                               "Error in finding the symbol 'clDbalInterface' in shared library '%s': [%s]", libName, err);
 
                 if(0 != dlclose(gDlHandle))
                 {
-                    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
-                                   "Error while unloading DBAL shared library!");
+                    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Error while unloading DBAL shared library!");
                 }
                 goto out;
             }
@@ -133,9 +130,7 @@ clDbalLibInitialize(void)
         {
             char* err = dlerror();
             if (!err) err = "unknown";          
-            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
-                           "Error finding opening shared library '%s': [%s]",
-                            libName,err);
+            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Error finding opening shared library '%s': [%s]", libName,err);
             goto out;
         }
         rc = CL_OK;
@@ -150,8 +145,7 @@ clDbalLibInitialize(void)
     return (rc);
 }
 
-ClRcT 
-clDbalLibFinalize(void)
+ClRcT clDbalLibFinalize(void)
 {
     if(gClDbalInitialized == CL_FALSE)
     {

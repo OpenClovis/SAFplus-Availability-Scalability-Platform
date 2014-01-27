@@ -92,7 +92,7 @@ clLogIocNodedownCallback(ClIocNotificationIdT eventId,
             rc = clLogAddrUpdate(pSvrCommonEoData->deputyAddr, -1);
         else
         {
-            ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 50 };
+            ClTimerTimeOutT delay = { 0, 50 };
             ret = clCpmMasterAddressGetExtended(&tmpMasterAddr, 3, &delay);
             if (ret == CL_OK)
             {

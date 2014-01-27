@@ -2695,7 +2695,7 @@ clLogSvrStdStreamShmCreate(SaNameT                 *pStreamName,
         memset(&statbuf, 0, sizeof(statbuf));
         while(tries++ < 3 && !fstat(shmFd, &statbuf))
         {
-            if(statbuf.st_size < shmSize)
+            if((ClUint32T) statbuf.st_size < shmSize)
             {
                 sleep(1);
             }

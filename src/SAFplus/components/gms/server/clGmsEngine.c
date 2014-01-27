@@ -195,20 +195,13 @@ static ClRcT timerCallback( void *arg )
 
 static ClRcT leaderElectionTimerRun(ClBoolT restart, ClTimerTimeOutT *pTimeOut)
 {
-    ClTimerTimeOutT timeOut = {.tsSec = gmsGlobalInfo.config.bootElectionTimeout, .tsMilliSec=0 };
+    ClTimerTimeOutT timeOut = { gmsGlobalInfo.config.bootElectionTimeout, 0 };
     if(restart && timerHandle)
         clTimerDeleteAsync(&timerHandle);
     if(pTimeOut)  timeOut = *pTimeOut;
     timerRestarted = CL_TRUE;
     clLogNotice(GEN, NA, "Starting boot time election timer for [%d] secs", timeOut.tsSec);
-    return clTimerCreateAndStart(
-            timeOut,
-            CL_TIMER_ONE_SHOT,
-            CL_TIMER_TASK_CONTEXT,
-            timerCallback,
-            NULL,
-            &timerHandle 
-            );
+    return clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, timerCallback, NULL, &timerHandle);
 }
 
 /*
@@ -831,10 +824,7 @@ _clGmsEngineLeaderElect(
                  * But mark the node with a promotion capability in case it doesn't get reset
                  * due to the premature switchover again. Also trigger re-election
                  */
-                ClTimerTimeOutT reElectTimeout = 
-                { .tsSec = gmsGlobalInfo.config.bootElectionTimeout + gmsGlobalInfo.config.leaderSoakInterval,
-                  .tsMilliSec = 0 
-                };
+                ClTimerTimeOutT reElectTimeout = { gmsGlobalInfo.config.bootElectionTimeout + gmsGlobalInfo.config.leaderSoakInterval, 0 };
                 viewNode->viewMember.clusterMember.isCurrentLeader = __SC_PROMOTE_CAPABILITY_MASK;
                 *leaderNodeId = CL_GMS_INVALID_NODE_ID;
                 leaderElectionTimerRun(CL_TRUE, &reElectTimeout);

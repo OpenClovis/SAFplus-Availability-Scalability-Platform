@@ -818,7 +818,7 @@ static ClRcT transportListenerFinalize(ClXportCtrlT *xportCtrl)
         /*
          * Signal the listener thread to wind up and wait for it to exit.
          */
-        ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 0};
+        ClTimerTimeOutT delay = { 0, 0};
         xportCtrl->flags &= ~__LISTENER_ACTIVE;
         transportBreakerWakeup(xportCtrl);
         clOsalCondSignal(&xportCtrl->cond);
@@ -1847,15 +1847,13 @@ ClRcT clTransportLayerInitialize(void)
     xports = clParserChild(parent, "xports");
     if(!xports)
     {
-        clLogError("XPORT", "INIT", "No xports tag found for transport initialize in [%s]", 
-                   CL_TRANSPORT_CONFIG_FILE);
+        clLogError("XPORT", "INIT", "No xports tag found for transport initialize in [%s]", CL_TRANSPORT_CONFIG_FILE);
         goto out_free;
     }
     xport = clParserChild(xports, "xport");
     if(!xport)
     {
-        clLogError("XPORT", "INIT", "No xport tag found for transport initialize in [%s]", 
-                   CL_TRANSPORT_CONFIG_FILE);
+        clLogError("XPORT", "INIT", "No xport tag found for transport initialize in [%s]", CL_TRANSPORT_CONFIG_FILE);
         goto out_free;
     }
     while(xport)
@@ -2191,8 +2189,7 @@ ClRcT clTransportNotificationInitialize(const ClCharT *type)
         }
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] notify initialize failed with [%#x]", 
-                       type, rc);
+            clLogError("XPORT", "NOTIFY", "Transport [%s] notify initialize failed with [%#x]", type, rc);
         }
         return rc;
     }

@@ -3035,7 +3035,7 @@ ClRcT _nameSvcContextDeleteLocked(ClNameSvcInfoIDLT* nsInfo, ClUint32T  flag,
     }
     else
     {
-        ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 50 };
+        ClTimerTimeOutT delay = { 0, 50 };
         ret = clCpmMasterAddressGetExtended(&gMasterAddress, 3, &delay);
         if (ret != CL_OK)
         {

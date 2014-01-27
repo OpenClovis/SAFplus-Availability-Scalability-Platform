@@ -470,7 +470,7 @@ static void *
 clLogDeferredHandler(void  *pData)
 {
     ClRcT                 rc       = CL_OK;
-    ClTimerTimeOutT       timeOut  ={.tsSec = 0, .tsMilliSec = 0};
+    ClTimerTimeOutT       timeOut  ={ 0,  0};
     ClUint16T             numRecs  = 0;
     ClLogDeferredHeaderT  msg[CL_LOG_MAX_FLUSH_COUNT];
     static ClUint16T      lastReadIdx = 0xFFFF;

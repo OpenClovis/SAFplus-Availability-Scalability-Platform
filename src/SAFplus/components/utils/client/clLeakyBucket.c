@@ -148,7 +148,7 @@ static ClRcT __clLeakyBucketFill(ClLeakyBucketT *bucket,
                                  ClBoolT block)
 {
     ClRcT rc = CL_OK;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 0};
+    ClTimerTimeOutT delay = { 0, 0};
 
     clOsalMutexLock(&bucket->mutex);
 

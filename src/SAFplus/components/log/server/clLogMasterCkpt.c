@@ -105,7 +105,7 @@ clLogMasterCkptGet(void)
     ClTimeT                              timeout         = 5000L;
     ClIocNodeAddressT                    localAddr = clIocLocalAddressGet();
     ClInt32T tries = 0;
-    static ClTimerTimeOutT delay = { .tsSec = 0, .tsMilliSec = 100 };
+    static ClTimerTimeOutT delay = {  0,  100 };
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -115,8 +115,7 @@ clLogMasterCkptGet(void)
         return rc;
     }
     ckptAttr.creationFlags     = CL_CKPT_CHECKPOINT_COLLOCATED | CL_CKPT_ALL_OPEN_ARE_REPLICAS;
-    ckptAttr.checkpointSize    = pMasterEoEntry->maxFiles
-        * pMasterEoEntry->sectionSize;
+    ckptAttr.checkpointSize    = pMasterEoEntry->maxFiles * pMasterEoEntry->sectionSize;
     ckptAttr.retentionDuration = CL_LOGMASTER_CKPT_RETENTION_DURATION;
     ckptAttr.maxSections       = pMasterEoEntry->maxFiles;
     ckptAttr.maxSectionSize    = pMasterEoEntry->sectionSize;
@@ -127,21 +126,17 @@ clLogMasterCkptGet(void)
     //                          NULL, openFlags, 0,  &pMasterEoEntry->hCkpt);
     //    if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
     //  {
-    openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE
-        | CL_CKPT_CHECKPOINT_READ;
+    openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
 
     reopen:
-    rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName,
-                              &ckptAttr,openFlags, timeout,
-                              &pMasterEoEntry->hCkpt);
+    rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName, &ckptAttr,openFlags, timeout, &pMasterEoEntry->hCkpt);
     if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != rc) )
     {
         /*
          * No replica found and we are the only master.
          * Delete and try re-opening the checkpoint
          */
-        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE &&
-           pCommonEoEntry->masterAddr == localAddr)
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE && pCommonEoEntry->masterAddr == localAddr)
         {
             if(tries++ < 1)
             {
@@ -229,17 +224,13 @@ clLogMasterDataCheckpoint(ClLogMasterEoDataT  *pMasterEoEntry,
     return rc;
 }
 
-static ClRcT
-clLogMasterEoEntryCheckpoint(ClLogMasterEoDataT *pMasterEoEntry)
+static ClRcT clLogMasterEoEntryCheckpoint(ClLogMasterEoDataT *pMasterEoEntry)
 {
     ClRcT            rc          = CL_OK;
     ClBufferHandleT  hEoEntryBuf = CL_HANDLE_INVALID_VALUE;
     ClUint8T         *pBuffer    = NULL;
     ClUint32T        bufferLen   = 0;
-    ClVersionT       version     = {.releaseCode = CL_RELEASE_VERSION,
-                                    .majorVersion = CL_MAJOR_VERSION,
-                                    .minorVersion = CL_MINOR_VERSION,
-    };
+    ClVersionT       version     = { CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION };
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     rc = clBufferCreate(&hEoEntryBuf);
@@ -283,9 +274,7 @@ clLogMasterEoEntryCheckpoint(ClLogMasterEoDataT *pMasterEoEntry)
         return rc;
     }
 
-    rc = clCkptSectionOverwrite(pMasterEoEntry->hCkpt, 
-                                &gLogMasterDefaultSectionId, pBuffer,
-                                bufferLen);
+    rc = clCkptSectionOverwrite(pMasterEoEntry->hCkpt, &gLogMasterDefaultSectionId, pBuffer, bufferLen);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCkptSectionOverwrite(): rc[0x %x]", rc));
@@ -374,22 +363,17 @@ clLogMasterFileEntryPack(ClLogMasterEoDataT  *pMasterEoEntry,
     ClLogFileKeyT    *pFileKey     = NULL;
     ClLogFileDataT   *pFileData    = NULL;
     ClRcT            rc            = CL_OK;
-    ClVersionT       version       = { .releaseCode = CL_RELEASE_VERSION,
-                                       .majorVersion = CL_MAJOR_VERSION,
-                                       .minorVersion = CL_MINOR_VERSION,
-    };
+    ClVersionT       version       = {  CL_RELEASE_VERSION, CL_MAJOR_VERSION, CL_MINOR_VERSION };
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    rc = clCntNodeUserKeyGet(pMasterEoEntry->hMasterFileTable,
-                             hFileNode, (ClCntKeyHandleT *) &pFileKey);
+    rc = clCntNodeUserKeyGet(pMasterEoEntry->hMasterFileTable, hFileNode, (ClCntKeyHandleT *) &pFileKey);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCntNodeUserKeyGet(): rc[0x %x]", rc));
         return rc;
     }
 
-    rc = clCntNodeUserDataGet(pMasterEoEntry->hMasterFileTable,
-                              hFileNode, (ClCntDataHandleT *) &pFileData);
+    rc = clCntNodeUserDataGet(pMasterEoEntry->hMasterFileTable, hFileNode, (ClCntDataHandleT *) &pFileData);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCntNodeUserDataGet(): rc[0x %x]", rc));

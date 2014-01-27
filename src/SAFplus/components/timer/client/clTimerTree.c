@@ -270,7 +270,7 @@ static ClRcT timerClusterPackAll(ClBufferHandleT msg)
  */
 static ClRcT timerClusterTask(ClPtrT pThrottle)
 {
-    ClTimerTimeOutT frequency = {.tsSec = 10, .tsMilliSec = 0};
+    ClTimerTimeOutT frequency = {10, 0};
     ClBufferHandleT msg = 0;
     static ClTimeT lastRunTime;
     ClTimeT currentTime = 0;
@@ -833,7 +833,7 @@ static ClRcT timerDeleteLocked(ClTimerT *pTimer, ClTimerHandleT *pTimerHandle,
                                ClBoolT asyncFlag, ClBoolT *pFreeTimer)
 {
     ClRcT rc = CL_OK;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 50 };
+    ClTimerTimeOutT delay = { 0, 50 };
     ClInt32T runCounter = 0;
     ClOsalTaskIdT selfId = 0;
 

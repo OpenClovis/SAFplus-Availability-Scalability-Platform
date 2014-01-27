@@ -354,7 +354,7 @@ ClRcT clCachedCkptInitialize(ClCachedCkptSvcInfoT *serviceInfo,
     SaCkptHandleT		ckptSvcHandle = 0;
     SaCkptCheckpointHandleT	ckptHandle = 0;
     SaVersionT			ckptVersion = {'B', 0x01, 0x01};
-    ClTimerTimeOutT		delay = {.tsSec = 0, .tsMilliSec = 500};
+    ClTimerTimeOutT		delay = { 0, 500};
     ClInt32T			tries = 0;
     ClCharT cacheName[CL_MAX_NAME_LENGTH];
     ClUint32T                   shmSize = clCachedCkptShmSizeGet(cachSize);
@@ -556,7 +556,7 @@ ClRcT clCachedCkptSectionCreate(ClCachedCkptSvcInfoT *serviceInfo,
     ClSizeT ckptedDataSize = sectionData->dataSize + sizeof(ClIocAddressT);
     ClUint32T network_byte_order;
     ClInt32T tries = 0;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT delay = { 0, 500 };
 
     ckptedData = (ClUint8T *) clHeapAllocate(ckptedDataSize);
     if(ckptedData == NULL)

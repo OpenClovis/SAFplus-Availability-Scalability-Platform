@@ -883,12 +883,10 @@ static ClPtrT clAmsEntityTriggerRecoveryThread(ClPtrT pArg)
 #define MAX_RECOVERY_MASK (0x3)
 
     static ClInt32T numRecovery = 0;
-    ClTimerTimeOutT timeout = {.tsSec = 0, .tsMilliSec = 0 };
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500 };
+    ClTimerTimeOutT timeout = { 0,  0 };
+    ClTimerTimeOutT delay =   { 0,  500 };
 
-    static ClAmsListHeadT recoveryList = {.numElements = 0,
-                                          .list = CL_LIST_HEAD_INITIALIZER(recoveryList.list),
-    };
+    static ClAmsListHeadT recoveryList = { 0, CL_LIST_HEAD_INITIALIZER(recoveryList.list) };
     clOsalMutexLock(&gClAmsEntityTriggerRecoveryCtrl.list.mutex);
     while(gClAmsEntityTriggerRecoveryCtrl.running == CL_TRUE)
     {

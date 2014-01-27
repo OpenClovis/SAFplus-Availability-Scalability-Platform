@@ -224,7 +224,7 @@ ClRcT clAmsTestRun(ClAmsTestTypeT type,
             {
                 if(type == CL_AMS_TEST_TYPE_ASYNC)
                 {
-                    ClTimerTimeOutT delay = {.tsSec=0,.tsMilliSec=100};
+                    ClTimerTimeOutT delay = {0,100};
                     clOsalTaskDelay(delay);
                 }
             }

@@ -59,9 +59,7 @@
  * RETURNS:                                                 
  *                                                         
  **/
-ClRcT clRmdInvoke(ClEoPayloadWithReplyCallbackT func, ClEoDataT eoArg,
-                  ClBufferHandleT inMsgHdl,
-                  ClBufferHandleT outMsgHdl)
+ClRcT clRmdInvoke(ClEoPayloadWithReplyCallbackT func, ClEoDataT eoArg, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl)
 {
 
     ClRmdHdrT inHdr = {{0}};

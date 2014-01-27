@@ -2415,7 +2415,7 @@ static ClUint32T debugCliShell(ClDebugCliT* pDebugObj)
                              (pDebugObj->context.isCommPortValid))
                     {
                        ClInt32T tries = 0;
-                       ClTimerTimeOutT delay = {.tsSec = 2, .tsMilliSec = 0};
+                       ClTimerTimeOutT delay = { 2, 0};
                        do
                        {
                            retCode = invoke(pDebugObj, pDebugObj->argc, pDebugObj->argv, &retStr);

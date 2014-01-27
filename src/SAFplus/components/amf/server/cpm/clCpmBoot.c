@@ -100,7 +100,6 @@ ClRcT cpmBmInitialize(ClOsalTaskIdT *pTaskId, ClEoExecutionObjT *pThis)
 
     ClUint32T priority  = CL_OSAL_THREAD_PRI_NOT_APPLICABLE;
     ClUint32T stackSize = 0;
-
     rc = clOsalTaskCreateAttached("cpmBm", CL_OSAL_SCHED_OTHER, priority, stackSize, bmInitialize, pThis, pTaskId);
     CL_CPM_CHECK_1(CL_LOG_SEV_ERROR, CL_CPM_LOG_1_OSAL_TASK_CREATE_ERR, rc, rc, CL_LOG_HANDLE_APP);
 
@@ -1160,7 +1159,7 @@ ClRcT cpmBmRespTimerCallback(ClPtrT unused)
             clOsalMutexLock(&gpClCpm->cpmMutex);
             if(rc != CL_OK)
             {
-                ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
+                ClTimerTimeOutT delay = { 1, 0};
                 clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
                            "Standby/worker blade registration with master failed with [%#x]. Restarting node", rc);
                 cpmRestart(&delay, "registration");
@@ -1310,9 +1309,8 @@ static ClRcT cpmBmStartNextLevel(cpmBMT *cpmBmTable)
          */
         timeOut.tsSec = 0;
         timeOut.tsMilliSec = CL_CPM_COMPONENT_DEFAULT_TIMEOUT * 2;
-        while (((rc =
-                 clOsalCondWait(cpmBmTable->lcmCondVar, cpmBmTable->lcmCondVarMutex,
-                                timeOut)) == CL_OSAL_RC(CL_ERR_TIMEOUT)) && (gpClCpm->cpmShutDown == CL_TRUE))
+        while (((rc = clOsalCondWait(cpmBmTable->lcmCondVar, cpmBmTable->lcmCondVarMutex, timeOut)) == CL_OSAL_RC(CL_ERR_TIMEOUT))
+                 && (gpClCpm->cpmShutDown == CL_TRUE))
         {
             continue;
         }

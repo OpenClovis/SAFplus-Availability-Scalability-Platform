@@ -29,11 +29,9 @@ typedef struct ClListHead
 
 #define CL_LIST_HEAD_EMPTY(head) ( (head)->pNext == (head) )
 
-#define CL_LIST_HEAD_INITIALIZER(head)          \
-    { .pNext = &(head),.pPrev = &(head) }
+#define CL_LIST_HEAD_INITIALIZER(head)   { &(head), &(head) }
 
-#define CL_LIST_HEAD_DECLARE(head)                      \
-    ClListHeadT head = CL_LIST_HEAD_INITIALIZER(head)
+#define CL_LIST_HEAD_DECLARE(head)  ClListHeadT head = CL_LIST_HEAD_INITIALIZER(head)
 
 #define CL_LIST_HEAD_INIT(head) do {            \
     (head)->pPrev = (head);                     \

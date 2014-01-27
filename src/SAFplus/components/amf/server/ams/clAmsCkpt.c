@@ -1600,11 +1600,11 @@ static ClRcT amsCkptWriteCallback(ClPtrT unused)
     static ClTimeT lastWriteTime;
     static ClUint32T numErrors;
     static ClUint32T numWrites;
-    static ClTimerTimeOutT writePause = {.tsSec = 0, .tsMilliSec = AMS_CKPT_WRITE_PAUSE_MSEC };
+    static ClTimerTimeOutT writePause = { 0, AMS_CKPT_WRITE_PAUSE_MSEC };
     ClRcT rc;
     ClTimeT currentTime;
     currentTime = clOsalStopWatchTimeGet();
-    if((lastTime 
+    if((lastTime
         && 
         currentTime - lastTime < AMS_CKPT_FREQUENCY_USEC)
        ||

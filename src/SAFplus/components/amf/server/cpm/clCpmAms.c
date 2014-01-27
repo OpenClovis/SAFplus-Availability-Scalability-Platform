@@ -259,8 +259,7 @@ ClRcT _cpmComponentCSISet(ClCharT *targetComponentName,
      * pack the ClAmsCSIDescriptorT 
      */
     rc = _cpmCsiDescriptorPack(csiDescriptor, haState, &buffer, &bufferLength);
-    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("unable to pack the csiDescriptor %x\n", rc),
-                 rc);
+    CL_CPM_CHECK(CL_LOG_SEV_ERROR, ("unable to pack the csiDescriptor %x\n", rc), rc);
 
     /*
      * Allocate the memory for the send buffer 
@@ -992,7 +991,7 @@ void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag)
         {
         case CL_CPM_RESTART_ASP:
             {
-                ClTimerTimeOutT delay = {.tsSec = 6, .tsMilliSec = 0 };
+                ClTimerTimeOutT delay = { 6, 0 };
                 const ClCharT *personality = "controller";
                 if(gpClCpm->bmTable
                    &&

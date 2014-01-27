@@ -166,7 +166,7 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
     const ClEventCallbacksT evtCallbacks = 
     {
         NULL,
-        .clEvtEventDeliverCallback=clAmsClientNotificationCallback,
+        clAmsClientNotificationCallback,
     };
     SaNameT evtChannelName = { sizeof(CL_AMS_EVENT_CHANNEL_NAME)-1, CL_AMS_EVENT_CHANNEL_NAME };
     ClVersionT version = {'B', 0x1, 0x1};

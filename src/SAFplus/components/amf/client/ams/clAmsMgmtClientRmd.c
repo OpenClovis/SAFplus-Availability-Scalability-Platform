@@ -89,7 +89,7 @@ ClRcT cl_ams_ccb_batch_rmd(
     ClUint32T  rmd_flags;
     ClRmdOptionsT  rmd_options = CL_RMD_DEFAULT_OPTIONS;
     ClInt32T tries = 0;
-    ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
+    ClTimerTimeOutT delay = { 1, 0 };
     ClVersionT version = {0};
 
     /* Argument (sanity) checking */
@@ -143,7 +143,7 @@ cl_ams_call_rmd_ver(
     ClUint32T  rmd_flags;
     ClRmdOptionsT  rmd_options = CL_RMD_DEFAULT_OPTIONS;
     ClInt32T tries = 0;
-    ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
+    ClTimerTimeOutT delay = { 1, 0 };
     ClVersionT version = {0};
 #endif
 
