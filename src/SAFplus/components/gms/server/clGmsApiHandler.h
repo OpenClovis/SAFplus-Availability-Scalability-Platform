@@ -178,7 +178,8 @@ _clGmsEngineLeaderElect(
         ClGmsViewNodeT          *node ,
         ClGmsGroupChangesT       cond,
         ClGmsNodeIdT            *leaderNodeId ,
-        ClGmsNodeIdT            *deputyNodeId );
+        ClGmsNodeIdT            *deputyNodeId,
+        ClBoolT forceChanged);
 
 extern int clGmsSendMsg(
         ClGmsViewMemberT        *memberNodeInfo,
