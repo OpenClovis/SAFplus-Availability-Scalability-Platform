@@ -696,14 +696,12 @@ help:
 	@echo  '  splint-report-tarball - Creates tarball from splint.log files'
 	@echo  ''
 	@echo  'Static analysers:'
-	@$(MAKE) --no-print-directory \
-		               -f $(CLOVIS_ROOT)/SAFplus/mk/make-check.mk help
+	@$(MAKE) --no-print-directory -f $(CLOVIS_ROOT)/SAFplus/mk/make-check.mk help
 	@echo  ''
-	@$(MAKE) --no-print-directory \
-		               -f $(CLOVIS_ROOT)/SAFplus/mk/make-gcov.mk gcovhelp
+	@$(MAKE) --no-print-directory -f $(CLOVIS_ROOT)/SAFplus/mk/make-gcov.mk gcovhelp
+# GAS fails if using a "standard" (non-OpenClovis style) crossbuild
 	@echo  'Cross-build and cross-compilation:'
-	@$(MAKE) --no-print-directory \
-		               -f $(CLOVIS_ROOT)/SAFplus/mk/make-cross.mk crosshelp
+	-@$(MAKE) --no-print-directory -f $(CLOVIS_ROOT)/SAFplus/mk/make-cross.mk crosshelp
 	@echo  ''
 	@echo  'Packaging:'
 	@echo  '  images          - Create run-time images for target platform.'

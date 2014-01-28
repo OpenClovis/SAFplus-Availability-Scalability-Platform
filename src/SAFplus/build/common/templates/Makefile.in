@@ -24,8 +24,9 @@
 
 export SAFPLUS_MODEL_DIR=@SAFPLUS_MODEL_DIR@
 export SAFPLUS_SRC_DIR=@SAFPLUS_SRC_DIR@
+export SAFPLUS_MAKE_VARIANT=@SAFPLUS_MAKE_VARIANT@
 export TOOLCHAIN_DIR=@TOOLCHAIN_DIR@
-include $(SAFPLUS_MODEL_DIR)/build/$(TOOLCHAIN_DIR)/mk/define.mk
+include $(SAFPLUS_MODEL_DIR)/build/$(SAFPLUS_MAKE_VARIANT)/mk/define.mk
 
 
 #ifdef ModelOnly # Once you've compiled everything once, you can use "make ModelOnly=1" to rebuild just your model

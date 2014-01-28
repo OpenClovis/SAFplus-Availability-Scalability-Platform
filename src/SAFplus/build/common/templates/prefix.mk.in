@@ -62,11 +62,15 @@
 export CROSS_FLAG=@CROSS_FLAG@
 export KERNEL_FLAG=@KERNEL_FLAG@
 
+ifneq (@SAFPLUS_MAKE_VARIANT@,)
+  export SAFPLUS_MAKE_VARIANT=@SAFPLUS_MAKE_VARIANT@
+else
 ifeq ($(CROSS_FLAG),1)
     export CROSS_BUILD=@CROSS_BUILD@
     ifeq ($(KERNEL_VERSION),1)
         export KERNEL=@KERNEL@
     endif
+endif
 endif
 
 export BUILD_ROOT=@BUILD_ROOT@

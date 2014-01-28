@@ -133,41 +133,44 @@ clean:
 depend:
 	makedepend -Y -- $(CFLAGS) $(CPPFLAGS) $(EXEC_SRC) $(TOTEM_SRC) $(LCR_SRC) > /dev/null 2>&1
 
+# not worth the time to clean up this OSS code so running without warnings-as-errors as new compilers are more picky than previous.
+ALL_FLAGS:=$(filter-out -Werror,$(CFLAGS) $(CPPFLAGS))
+
 $(MAIN_OBJS): $(MAIN_SRC)
 	$(shell mkdir -p $(DEP_DIR) $(OBJ_DIR))
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $(*F).c
+	$(Q)$(CC) $(ALL_FLAGS) -c -o $@ $(*F).c
 
 $(OTHER_OBJS): $(MAIN_SRC)
 	$(shell mkdir -p $(DEP_DIR) $(OBJ_DIR))
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $(*F).c
+	$(Q)$(CC) $(ALL_FLAGS) -c -o $@ $(*F).c
 
 $(TOTEM_OBJS): $(MAIN_SRC)
 	$(shell mkdir -p $(DEP_DIR) $(OBJ_DIR))
-	$(Q)$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $(*F).c
+	$(Q)$(CC) $(ALL_FLAGS) -c -o $@ $(*F).c
 
 # - fPIC rules required for service handler shared objects
 $(OBJ_DIR)/lcr_ifact.o: ../lcr/lcr_ifact.c
 	$(shell mkdir -p $(DEP_DIR) $(OBJ_DIR))
-	$(CC) $(CFLAGS) $(CPPFLAGS) -I../lcr -c -o $@ ../lcr/lcr_ifact.c
+	$(CC) $(ALL_FLAGS) -I../lcr -c -o $@ ../lcr/lcr_ifact.c
 
 #
 #$(OBJ_DIR)/aisparser.o: aisparser.c
-#	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $(*F).c
+#	$(CC) $(ALL_FLAGS) -c -o $@ $(*F).c
 #
 #$(OBJ_DIR)/vsf_ykd.o: vsf_ykd.c
-#	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $(*F).c
+#	$(CC) $(ALL_FLAGS) -c -o $@ $(*F).c
 #
 $(OBJ_DIR)/clovis_gms_wrapper.o: clovis_gms_wrapper.c
 	$(shell mkdir -p $(DEP_DIR) $(OBJ_DIR))
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(CLOVIS_FLAGS) -c -o $@ $(*F).c
+	$(CC) $(ALL_FLAGS) $(CLOVIS_FLAGS) -c -o $@ $(*F).c
 
 $(OBJ_DIR)/clovis_wrapper_xdr_marshall.o: clovis_wrapper_xdr_marshall.c
 	$(shell mkdir -p $(DEP_DIR) $(OBJ_DIR))
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(CLOVIS_FLAGS) -c -o $@ $(*F).c
+	$(CC) $(ALL_FLAGS) $(CLOVIS_FLAGS) -c -o $@ $(*F).c
 
 $(OBJ_DIR)/clovis_wrapper_xdr_unmarshall.o: clovis_wrapper_xdr_unmarshall.c
 	$(shell mkdir -p $(DEP_DIR) $(OBJ_DIR))
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(CLOVIS_FLAGS) -c -o $@ $(*F).c
+	$(CC) $(ALL_FLAGS)  $(CLOVIS_FLAGS) -c -o $@ $(*F).c
 
 #$(OBJ_DIR)/objdb.o: objdb.c
 #	$(CC) $(CFLAGS) $(CPPFLAGS) -c -o $@ $(*F).c

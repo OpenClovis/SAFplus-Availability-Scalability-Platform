@@ -309,7 +309,7 @@ void ezxml_proc_inst(ezxml_root_t root, char *s, size_t len)
         return;
     }
 
-    if (! root->pi[0]) *(root->pi = (char**) malloc(sizeof(char **))) = NULL; //first pi
+    if (! root->pi[0]) *(root->pi = (char***) malloc(sizeof(char ***))) = NULL; //first pi
 
     while (root->pi[i] && strcmp(target, root->pi[i][0])) i++; // find target
     if (! root->pi[i]) { // new target
