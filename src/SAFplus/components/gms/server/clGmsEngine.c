@@ -277,7 +277,7 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
             rc = _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId, CL_FALSE);
             if (leaderNodeId != CL_GMS_INVALID_NODE_ID && leaderNodeId != reportedLeader)
             {
-                clLogDebug("NTF", "LEA", "I am going to leave as leader changed from [0x%x0] to [0x%x]", leaderNodeId, reportedLeader);
+                clLogDebug("NTF", "LEA", "I am going to leave as leader changed from [0x%x] to [0x%x]", leaderNodeId, reportedLeader);
                 clNodeCacheLeaderUpdate(reportedLeader);
                 clIocNotificationNodeLeave(pThis->commObj, clIocLocalAddressGet());
             }
