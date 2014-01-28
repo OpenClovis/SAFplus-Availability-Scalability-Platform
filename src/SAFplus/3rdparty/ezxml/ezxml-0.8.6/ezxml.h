@@ -35,9 +35,9 @@ extern "C" {
 #endif
 
 #define EZXML_BUFSIZE 1024 // size of internal memory buffers
-#define EZXML_NAMEM   0x80 // name is malloced
-#define EZXML_TXTM    0x40 // txt is malloced
-#define EZXML_DUP     0x20 // attribute name and value are strduped
+#define EZXML_NAMEM   ((unsigned char) 0x80) // name is malloced
+#define EZXML_TXTM    ((unsigned char) 0x40) // txt is malloced
+#define EZXML_DUP     ((unsigned char) 0x20) // attribute name and value are strduped
 
 typedef struct ezxml *ezxml_t;
 struct ezxml {

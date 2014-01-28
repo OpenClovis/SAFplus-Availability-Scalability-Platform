@@ -23,7 +23,7 @@
 
 # Pull in the SAFplus prebuild or the customer model's definitions
 ifdef SAFPLUS_MODEL_DIR
-include $(SAFPLUS_MODEL_DIR)/build/$(TOOLCHAIN_DIR)/mk/define.mk
+include $(SAFPLUS_MODEL_DIR)/build/$(SAFPLUS_MAKE_VARIANT)/mk/define.mk
 else # If no model is defined, attempt to find the prebuild area
 thisdir := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 prebuildCandidate := $(abspath $(thisdir)/../../../prebuild/asp/build/local/mk)

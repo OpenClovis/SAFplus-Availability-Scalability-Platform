@@ -358,7 +358,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT AWK CPP LN_S SET_MAKE RANLIB ac_ct_RANLIB EGREP LIBOBJS ASP_MODEL_NAME CLOVIS_ROOT BUILD_ROOT OPENHPICFLAGS OPENHPILIBS LDEMULATION SNMP_BUILD CROSS_FLAG CROSS_BUILD PREFIX CM_BUILD HCL_CM HPI_EMERSON HPI_OPENHPI CL_TARGET_PLATFORM CL_TARGET_OS KERNEL_FLAG KERNEL LTLIBOBJS ASP_BUILD ASP_INSTALLDIR sdk_dir MODEL_BUILD ASP_SIMULATION ASP_VALGRIND_CMD PACKAGE_VERSION TARGET_QNX TARGET_SOLARIS BUILD_TIPC SAFPLUS_BUILD_PYTHON SAFPLUS_BUILD_JAVA SAFPLUS_BUILD_CPP SAFPLUS_SRC_DIR SAFPLUS_MODEL_DIR SAFPLUS_BASE_DIR SAFPLUS_SDK_DIR SAFPLUS_IDE_DIR SAFPLUS_PSP_DIR SAFPLUS_BTL_DIR'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT AWK CPP LN_S SET_MAKE RANLIB ac_ct_RANLIB EGREP LIBOBJS ASP_MODEL_NAME CLOVIS_ROOT BUILD_ROOT OPENHPICFLAGS OPENHPILIBS LDEMULATION SNMP_BUILD CROSS_FLAG CROSS_BUILD SAFPLUS_MAKE_VARIANT PREFIX CM_BUILD HCL_CM HPI_EMERSON HPI_OPENHPI CL_TARGET_PLATFORM CL_TARGET_OS KERNEL_FLAG KERNEL LTLIBOBJS ASP_BUILD ASP_INSTALLDIR sdk_dir MODEL_BUILD ASP_SIMULATION ASP_VALGRIND_CMD PACKAGE_VERSION TARGET_QNX TARGET_SOLARIS BUILD_TIPC SAFPLUS_BUILD_PYTHON SAFPLUS_BUILD_JAVA SAFPLUS_BUILD_CPP SAFPLUS_SRC_DIR SAFPLUS_MODEL_DIR SAFPLUS_BASE_DIR SAFPLUS_SDK_DIR SAFPLUS_IDE_DIR SAFPLUS_PSP_DIR SAFPLUS_BTL_DIR'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -733,6 +733,7 @@ done
 build=$build_alias
 host=$host_alias
 target=$target_alias
+TARGET=$target_alias
 
 # FIXME: To remove some day.
 if test "x$host_alias" != x; then
@@ -1722,11 +1723,19 @@ fi
 
 # End project area creation
 
+# Use standard crossbuild flags
+if test "${host_alias+set}" = set; then
+export SAFPLUS_MAKE_VARIANT=${host}
+else
+export SAFPLUS_MAKE_VARIANT=local
+fi
+
+# Preserve compatibility with the "old" openclovis custom crossbuild style
 # Check whether --with-cross-build or --without-cross-build was given.
 if test "${with_cross_build+set}" = set; then
   withval="$with_cross_build"
   export CROSS_FLAG=1 ;
-                                   export CROSS_BUILD=$with_cross_build
+  export CROSS_BUILD=$with_cross_build
   export TOOLCHAIN_DIR=$CL_BUILDTOOLS/$with_cross_build
 								   
 else
@@ -1737,9 +1746,8 @@ fi;
 # Check whether --with-kernel-build or --without-kernel-build was given.
 if test "${with_kernel_build+set}" = set; then
   withval="$with_kernel_build"
-
-                                    export KERNEL_FLAG=1;
-                                    export KERNEL=$with_kernel_build
+  export KERNEL_FLAG=1;
+  export KERNEL=$with_kernel_build
 else
   export KERNEL_FLAG=0;
 
@@ -2054,7 +2062,12 @@ if [ -n "$CL_BINMODE" -a "$CL_BINMODE" != "default" ]
 then
     CL_TARGET_PLATFORM="${CL_TARGET_PLATFORM}_$CL_BINMODE"
 fi
-export CL_TARGET_PLATFORM
+if [ -n "$ARCH" ]; then
+  export CL_TARGET_PLATFORM=$ARCH
+  unset KERNEL_SOURCE
+else
+  export CL_TARGET_PLATFORM
+fi
 
 export PKG_CONFIG_PATH=$CL_BUILDTOOLS/local/lib/pkgconfig:/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
 
@@ -2104,11 +2117,18 @@ fi
 ##########################################################
 
 if [ $PROJECT_ONLY = 0 ]; then
-    if [ $CROSS_FLAG == 1 ]; then
-        export BUILD_ROOT=$PROJECT_ROOT/$ASP_MODEL_NAME/build/$CROSS_BUILD
-    else
-        export BUILD_ROOT=$PROJECT_ROOT/$ASP_MODEL_NAME/build/local
-    fi
+    export BUILD_ROOT=$PROJECT_ROOT/$ASP_MODEL_NAME/build/$SAFPLUS_MAKE_VARIANT
+
+#    if [ $CROSS_FLAG == 1 ]; then
+#        export BUILD_ROOT=$PROJECT_ROOT/$ASP_MODEL_NAME/build/$CROSS_BUILD
+#    else
+#      if [ -n $TARGET ]; then       
+#        export BUILD_ROOT=$PROJECT_ROOT/$ASP_MODEL_NAME/build/$TARGET
+#        export CROSS_BUILD=$TARGET
+#      else
+#        export BUILD_ROOT=$PROJECT_ROOT/$ASP_MODEL_NAME/build/local
+#      fi
+#    fi
     mkdir -p $BUILD_ROOT
 fi
 
@@ -7329,11 +7349,14 @@ fi
 done
 
 
-
-HOST_OS=`uname -s`
-if [ $HOST_OS == "SunOS" ]; then
-	export CL_TARGET_OS=$HOST_OS.$CL_TARGET_PLATFORM
+if [ -n "$TARGET" ]; then
+  export CL_TARGET_OS=$TARGET
+  HOST_OS=""
 else
+  HOST_OS=`uname -s`
+  if [ $HOST_OS == "SunOS" ]; then
+	  export CL_TARGET_OS=$HOST_OS.$CL_TARGET_PLATFORM
+  else
     if [ $TARGET_QNX = 1 ]; then
         export CL_TARGET_OS="qnx6.4.0"
     else
@@ -7351,11 +7374,12 @@ else
 	        fi	
             fi
         fi
-	KERNEL_MAJOR_VERSION=`awk '$2=="LINUX_VERSION_CODE"{print rshift($3,16)}' $KERNEL_VERSION_FILE`
-	KERNEL_MINOR_VERSION=`awk '$2=="LINUX_VERSION_CODE"{print and(rshift($3,8),0xff)}' $KERNEL_VERSION_FILE`
-	KERNEL_PATCH_VERSION=`awk '$2=="LINUX_VERSION_CODE"{print and($3,0xff)}' $KERNEL_VERSION_FILE`
-	export CL_TARGET_OS=linux-$KERNEL_MAJOR_VERSION.$KERNEL_MINOR_VERSION.$KERNEL_PATCH_VERSION
+	    KERNEL_MAJOR_VERSION=`awk '$2=="LINUX_VERSION_CODE"{print rshift($3,16)}' $KERNEL_VERSION_FILE`
+	    KERNEL_MINOR_VERSION=`awk '$2=="LINUX_VERSION_CODE"{print and(rshift($3,8),0xff)}' $KERNEL_VERSION_FILE`
+	    KERNEL_PATCH_VERSION=`awk '$2=="LINUX_VERSION_CODE"{print and($3,0xff)}' $KERNEL_VERSION_FILE`
+	    export CL_TARGET_OS=linux-$KERNEL_MAJOR_VERSION.$KERNEL_MINOR_VERSION.$KERNEL_PATCH_VERSION
     fi
+  fi
 fi
 # AA
 # If we are doing a model-only build, ensure that we have SAFplus libraries in
@@ -7373,14 +7397,16 @@ fi
 # AA
 # Set TIPC_INC_DIR variable
 if [ $BUILD_TIPC = 1 ]; then
-	if [ $HOST_OS == "SunOS" ]; then
+	if [ "$HOST_OS" == "SunOS" ]; then
 		TIPC_INCLUDE=/opt/SUNWtipc/include/solaris
 	else
         if [ $TARGET_QNX = 1 ]; then
             TIPC_INCLUDE=/opt/clovis/buildtools/$CROSS_BUILD/include
         else
-	        if [ $KERNEL_PATCH_VERSION -lt 15 ]; then
+	        if [ -n "${KERNEL_PATCH_VERSION+set}" ]; then
+              if [ "$KERNEL_PATCH_VERSION" -lt 15 ]; then
             	TIPC_INC_DIR=include/net/tipc
+              fi
 	        else
             	TIPC_INC_DIR=include
 	        fi
@@ -7389,7 +7415,11 @@ if [ $BUILD_TIPC = 1 ]; then
             	if [ -f $TOOLCHAIN_DIR/modules/tipc.ko ]; then
             	    TIPC_INCLUDE=$TOOLCHAIN_DIR/include
             	else
-            	    TIPC_INCLUDE=$KERNEL_SOURCE/$TIPC_INC_DIR
+                  if [ -n "$KERNEL_SOURCE" ]; then
+            	    TIPC_INCLUDE=$TIPC_INC_DIR
+                  else
+                    TIPC_INCLUDE=$KERNEL_SOURCE/$TIPC_INC_DIR
+                  fi
             	fi
 	        fi
         fi
@@ -8322,6 +8352,7 @@ s,@LDEMULATION@,$LDEMULATION,;t t
 s,@SNMP_BUILD@,$SNMP_BUILD,;t t
 s,@CROSS_FLAG@,$CROSS_FLAG,;t t
 s,@CROSS_BUILD@,$CROSS_BUILD,;t t
+s,@SAFPLUS_MAKE_VARIANT@,$SAFPLUS_MAKE_VARIANT,;t t
 s,@PREFIX@,$PREFIX,;t t
 s,@CM_BUILD@,$CM_BUILD,;t t
 s,@MODEL_PATH@,$MODEL_PATH,;t t

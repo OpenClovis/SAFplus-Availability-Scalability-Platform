@@ -15,16 +15,16 @@
 # For more  information,  see the  file COPYING provided with this
 # material.
 
+echo "MODEL_PATH = ${MODEL_PATH}"
+echo "TARGET_OS = ${CL_TARGET_OS}"
+echo "TARGET_PLATFORM = ${CL_TARGET_PLATFORM}"
+echo "CROSS_BUILD = ${CROSS_BUILD}"
+
 #
 # if CROSS_BUILD is empty, set it to 'local'
 if [ ! $CROSS_BUILD ]; then
     CROSS_BUILD=local
 fi
-
-echo "MODEL_PATH = ${MODEL_PATH}"
-echo "TARGET_OS = ${CL_TARGET_OS}"
-echo "TARGET_PLATFORM = ${CL_TARGET_PLATFORM}"
-echo "CROSS_BUILD = ${CROSS_BUILD}"
 
 if [ $ASP_BUILD = 1 -a $MODEL_BUILD = 0 ]; then
     LABEL_FILE="${MODEL_PATH}/target/${CL_TARGET_PLATFORM}/${CL_TARGET_OS}/build_label"
