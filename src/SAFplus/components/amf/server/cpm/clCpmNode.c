@@ -106,7 +106,7 @@ static ClVersionDatabaseT clCpmServerToServerVersionDb =
 };
 
 typedef ClRcT (*funcArray[]) (void);
-
+extern ClBoolT gCpmShuttingDown;
 
 ClRcT CL_CPM_CALL_RMD_SYNC(ClIocNodeAddressT destAddr,
                            ClIocPortT eoPort,
@@ -977,6 +977,8 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
             }
             return rc;
         }
+        
+        gCpmShuttingDown = CL_TRUE;
         startShutdownTimer(iocAddress);
     }
 

@@ -73,6 +73,7 @@ ClAmsT  gAms;
 ClBoolT gAmsDBRead = CL_FALSE;
 ClOsalTaskIdT gClusterStateVerifierTask;
 ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs = NULL;
+ClBoolT gCpmShuttingDown =  CL_FALSE;
 
 ClCpmCpmToAmsCallT gCpmToAmsCallbackFuncs = {
     _clAmsSACSIHAStateGet,
@@ -795,9 +796,7 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
     if(!pNodeName)
         return rc;
     clOsalMutexLock(gAms.mutex);
-    if(!gAms.isEnabled 
-       || 
-       gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE)
+    if((!gAms.isEnabled) || (gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE) || (gCpmShuttingDown))
     {
         clLogNotice("NODE", "JOIN", "Returning try again for node join as ams state is not up");
         rc = CL_AMS_RC(CL_ERR_TRY_AGAIN);
