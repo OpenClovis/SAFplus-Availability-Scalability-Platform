@@ -12,7 +12,7 @@
         <perennialStreamsData>
           <stream name="appStream">
             <fileName>app</fileName>
-            <fileLocation>*:/tmp</fileLocation>
+            <fileLocation>.:var/log</fileLocation>
             <fileUnitSize>1500000</fileUnitSize>
             <recordSize>300</recordSize>
             <fileFullAction>WRAP</fileFullAction>
@@ -23,7 +23,7 @@
           </stream>
           <stream name="sysStream">
             <fileName>sys</fileName>
-            <fileLocation>*:/tmp</fileLocation>
+            <fileLocation>.:var/log</fileLocation>
             <fileUnitSize>1500000</fileUnitSize>
             <recordSize>300</recordSize>
             <fileFullAction>WRAP</fileFullAction>

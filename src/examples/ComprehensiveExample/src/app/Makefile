@@ -15,7 +15,7 @@
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
-SUBDIRS =  OnePlusOneCHKPT TwoPlusOneCHKPT Provisioning Alarm EventPublisher EventSubscriber 
+SUBDIRS =  OnePlusOneCHKPT TwoPlusOneCHKPT  EventPublisher EventSubscriber  
 
 ifeq ($(SNMP_BUILD),1)
     SUBDIRS += SNMPSubAgent

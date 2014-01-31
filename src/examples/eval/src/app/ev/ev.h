@@ -20,8 +20,16 @@
  * Build: 3.0.1
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern ClRcT
 clEvalAppLogStreamOpen(ClCharT             *pAppName,
                        ClLogStreamHandleT  *pLogAppStream);
 extern ClRcT 
 clEvalAppLogStreamClose(ClLogStreamHandleT  appStream);
+
+#ifdef __cplusplus
+    }
+#endif

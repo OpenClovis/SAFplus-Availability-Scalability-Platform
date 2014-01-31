@@ -28,7 +28,7 @@ void checkpointSynchronizeCompleted (SaInvocationT invocation,SaAisErrorT error)
 
 SaAisErrorT checkpoint_initialize(void)
 {
-    SaAisErrorT      rc = CL_OK;
+    SaAisErrorT      rc = SA_AIS_OK;
     SaVersionT ckpt_version = {'B', 1, 1};
     SaNameT    ckpt_name = { strlen(CKPT_NAME), CKPT_NAME };
     SaCkptCallbacksT callbacks;
@@ -73,9 +73,12 @@ SaAisErrorT checkpoint_initialize(void)
     if (rc != SA_AIS_OK)
     {
         clprintf(CL_LOG_SEV_ERROR,"Failed [0x%x] to open checkpoint",rc);
-        return rc;
+        
     }
-    clprintf(CL_LOG_SEV_INFO,"Checkpoint opened (handle=0x%llx)", ckpt_handle);
+    else
+    {
+        clprintf(CL_LOG_SEV_INFO,"Checkpoint opened (handle=0x%llx)", ckpt_handle);
+    }
     return rc;
 }
 
@@ -152,9 +155,9 @@ SaAisErrorT checkpoint_write_seq(ClUint32T seq)
     return rc;
 }
 
-ClRcT checkpoint_read_seq(ClUint32T *seq)
+SaAisErrorT checkpoint_read_seq(ClUint32T *seq)
 {
-    SaAisErrorT rc = CL_OK;
+    SaAisErrorT rc = SA_AIS_OK;
     ClUint32T err_idx; /* Error index in ioVector */
     ClUint32T seq_no = 0xffffffff;
     SaCkptIOVectorElementT iov = {
@@ -169,17 +172,17 @@ ClRcT checkpoint_read_seq(ClUint32T *seq)
     if (rc != SA_AIS_OK)
     {
         if (rc != SA_AIS_ERR_NOT_EXIST)  /* NOT_EXIST is ok, just means no active has written */
-            return CL_OK;
+            return SA_AIS_OK;
         
         clprintf(CL_LOG_SEV_ERROR,"Error: [0x%x] from checkpoint read, err_idx = %u", rc, err_idx);
     }
 
     *seq = ntohl(seq_no);
     
-    return CL_OK;
+    return SA_AIS_OK;
 }
 
-ClRcT checkpoint_replica_activate(void)
+SaAisErrorT checkpoint_replica_activate(void)
 {
     SaAisErrorT rc = SA_AIS_OK;
 
@@ -187,7 +190,7 @@ ClRcT checkpoint_replica_activate(void)
     {
         clprintf(CL_LOG_SEV_ERROR, "checkpoint_replica_activate failed [0x%x] in ActiveReplicaSet", rc);
     }
-    else rc = CL_OK;
+    else rc = SA_AIS_OK;
 
     return rc;
 }

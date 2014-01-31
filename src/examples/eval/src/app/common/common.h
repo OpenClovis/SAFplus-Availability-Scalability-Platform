@@ -23,6 +23,10 @@
  *
  */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define EVENT_CHANNEL_NAME "csa11[23]TestEvents"
 #define PUBLISHER_NAME "csa11[23]_Publisher"
 #define EVENT_TYPE 5432
@@ -33,3 +37,7 @@ typedef enum {
     MY_EO_CLIENT_ID = CL_EO_CLOVIS_RESERVED_CLIENTID_END,
     MY_MAX_EO_CLIENT_ID
 } MyEoClientIds;
+
+#ifdef __cplusplus
+  }
+#endif
