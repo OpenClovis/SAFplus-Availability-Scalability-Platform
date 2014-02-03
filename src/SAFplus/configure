@@ -358,7 +358,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT AWK CPP LN_S SET_MAKE RANLIB ac_ct_RANLIB EGREP LIBOBJS ASP_MODEL_NAME CLOVIS_ROOT BUILD_ROOT OPENHPICFLAGS OPENHPILIBS LDEMULATION SNMP_BUILD CROSS_FLAG CROSS_BUILD SAFPLUS_MAKE_VARIANT PREFIX CM_BUILD HCL_CM HPI_EMERSON HPI_OPENHPI CL_TARGET_PLATFORM CL_TARGET_OS KERNEL_FLAG KERNEL LTLIBOBJS ASP_BUILD ASP_INSTALLDIR sdk_dir MODEL_BUILD ASP_SIMULATION ASP_VALGRIND_CMD PACKAGE_VERSION TARGET_QNX TARGET_SOLARIS BUILD_TIPC SAFPLUS_BUILD_PYTHON SAFPLUS_BUILD_JAVA SAFPLUS_BUILD_CPP SAFPLUS_SRC_DIR SAFPLUS_MODEL_DIR SAFPLUS_BASE_DIR SAFPLUS_SDK_DIR SAFPLUS_IDE_DIR SAFPLUS_PSP_DIR SAFPLUS_BTL_DIR'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT AWK CPP LN_S SET_MAKE RANLIB ac_ct_RANLIB EGREP LIBOBJS ASP_MODEL_NAME CLOVIS_ROOT BUILD_ROOT OPENHPICFLAGS OPENHPILIBS LDEMULATION SNMP_BUILD CROSS_FLAG CROSS_BUILD SAFPLUS_MAKE_VARIANT COPY_PREREQUISITES PREFIX CM_BUILD HCL_CM HPI_EMERSON HPI_OPENHPI CL_TARGET_PLATFORM CL_TARGET_OS KERNEL_FLAG KERNEL LTLIBOBJS ASP_BUILD ASP_INSTALLDIR sdk_dir MODEL_BUILD ASP_SIMULATION ASP_VALGRIND_CMD PACKAGE_VERSION TARGET_QNX TARGET_SOLARIS BUILD_TIPC SAFPLUS_BUILD_PYTHON SAFPLUS_BUILD_JAVA SAFPLUS_BUILD_CPP SAFPLUS_SRC_DIR SAFPLUS_MODEL_DIR SAFPLUS_BASE_DIR SAFPLUS_SDK_DIR SAFPLUS_IDE_DIR SAFPLUS_PSP_DIR SAFPLUS_BTL_DIR'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -924,6 +924,9 @@ OpenClovis Specific configuration attributes:
                          toolchain.  The following toolchain(s) are available
                          at your host:
 $(ls -1 $CL_BUILDTOOLS | grep -v local | awk '{print "\t\t\t\t", $1}')
+
+  --without-prerequisites
+                         Disable prerequisities copy.
 
   --with-kernel-build=KERNELNAME
                          Name of an alternative kernel under the given
@@ -1737,11 +1740,23 @@ if test "${with_cross_build+set}" = set; then
   export CROSS_FLAG=1 ;
   export CROSS_BUILD=$with_cross_build
   export TOOLCHAIN_DIR=$CL_BUILDTOOLS/$with_cross_build
-								   
+
 else
   export CROSS_FLAG=0;
 
 fi;
+
+# Check whether --with-snmp-build or --without-cm-build was specified
+if [ "${with_prerequisites+set}" = set ]; then
+  withval=$with_prerequisites
+  if [ "$with_prerequisites" == 'no' ]; then
+    export COPY_PREREQUISITES="false"
+  else
+    export COPY_PREREQUISITES="true"
+  fi
+else
+  export COPY_PREREQUISITES="true"
+fi
 
 # Check whether --with-kernel-build or --without-kernel-build was given.
 if test "${with_kernel_build+set}" = set; then
@@ -8353,6 +8368,7 @@ s,@SNMP_BUILD@,$SNMP_BUILD,;t t
 s,@CROSS_FLAG@,$CROSS_FLAG,;t t
 s,@CROSS_BUILD@,$CROSS_BUILD,;t t
 s,@SAFPLUS_MAKE_VARIANT@,$SAFPLUS_MAKE_VARIANT,;t t
+s,@COPY_PREREQUISITES@,$COPY_PREREQUISITES,;t t
 s,@PREFIX@,$PREFIX,;t t
 s,@CM_BUILD@,$CM_BUILD,;t t
 s,@MODEL_PATH@,$MODEL_PATH,;t t

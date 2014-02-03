@@ -18,13 +18,8 @@
 echo "MODEL_PATH = ${MODEL_PATH}"
 echo "TARGET_OS = ${CL_TARGET_OS}"
 echo "TARGET_PLATFORM = ${CL_TARGET_PLATFORM}"
-echo "CROSS_BUILD = ${CROSS_BUILD}"
-
-#
-# if CROSS_BUILD is empty, set it to 'local'
-if [ ! $CROSS_BUILD ]; then
-    CROSS_BUILD=local
-fi
+echo "COPY_PREREQUISITES = ${COPY_PREREQUISITES}"
+echo "SAFPLUS_MAKE_VARIANT = ${SAFPLUS_MAKE_VARIANT}"
 
 if [ $ASP_BUILD = 1 -a $MODEL_BUILD = 0 ]; then
     LABEL_FILE="${MODEL_PATH}/target/${CL_TARGET_PLATFORM}/${CL_TARGET_OS}/build_label"
@@ -55,17 +50,17 @@ fi
 if [ -f ${LABEL_FILE} ]
 then
     OLD_LABEL=`cat ${LABEL_FILE}`
-    if [ ! -z "${OLD_LABEL}" -a "${OLD_LABEL}" != "${CROSS_BUILD}" ]
+    if [ ! -z "${OLD_LABEL}" -a "${OLD_LABEL}" != "${SAFPLUS_MAKE_VARIANT}" ]
     then
         echo "old label does not match new cross build label"
         echo "old label file = ${LABEL_FILE}"
         echo "old label = ${OLD_LABEL}"
-        echo "new label = ${CROSS_BUILD}"
+        echo "new label = ${SAFPLUS_MAKE_VARIANT}"
         exit 1
     fi
 
     # Just in case the build has the correct cross build tools.
-    if [ ! -z "${OLD_LABEL}" -a "${OLD_LABEL}" = "${CROSS_BUILD}" ]
+    if [ ! -z "${OLD_LABEL}" -a "${OLD_LABEL}" = "${SAFPLUS_MAKE_VARIANT}" ]
     then
         exit 0
     fi
@@ -83,11 +78,17 @@ then
     exit 1
 fi
 
-touch "${LABEL_FILE}" && echo "${CROSS_BUILD}" > "${LABEL_FILE}"
+touch "${LABEL_FILE}"
 if [ $? -ne 0 ]
 then
     echo "Error encountered in updating label file"
     echo "Label file = ${LABEL_FILE}"
     exit 1
 fi
+
+tee $LABEL_FILE <<EOF > /dev/null
+BUILD_LABEL="${SAFPLUS_MAKE_VARIANT}"
+COPY_PREREQUISITES="${COPY_PREREQUISITES}"
+EOF
+
 exit 0
