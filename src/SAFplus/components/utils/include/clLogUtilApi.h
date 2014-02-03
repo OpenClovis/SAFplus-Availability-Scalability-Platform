@@ -88,7 +88,7 @@ clLogUtilLibFinalize(ClBoolT logLibInit);
 
 #ifdef NO_SAF
 #define clLog(severity, area, context, ...) do { printf(__VA_ARGS__); printf("\n"); fflush(stdout); } while(0)
-#else    
+#else
 #define clLog(severity, area, context, ...)                     \
 do                                                              \
 {                                                               \
@@ -107,6 +107,7 @@ do                                                              \
                   pArea, pContext, __FILE__, __LINE__,          \
                   __VA_ARGS__);                                 \
 } while(0)
+    
 #endif
     
 #define clLogDeferred(severity, area, context, ...)                     \
