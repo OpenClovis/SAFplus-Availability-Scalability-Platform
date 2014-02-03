@@ -22,15 +22,16 @@
 
 MACH=`uname -m`
 populate_prereqs() {
-    if [ $# -ne 4 ]
+    if [ $# -ne 5 ]
     then
-        echo "Usage: populate_image source target arch system buildtools"
+        echo "Usage: populate_image source copyreq target arch system buildtools"
         return 1
     fi
     BUILDTOOL_DIR=$1
-    TARGET_MODEL=$2
-    ARCH=$3
-    SYS=$4
+    COPY_PREREQUISITES=$2
+    TARGET_MODEL=$3
+    ARCH=$4
+    SYS=$5
 
     # verify target images directory
 
@@ -92,7 +93,7 @@ populate_prereqs() {
     echo ""
     echo "*** Populating platform specific blade image at $imagedir with third party prerequisites... "
 
-    if [ ! $BUILDTOOL_DIR = local ]; then
+    if [ ! "$BUILDTOOL_DIR" = "local" -a "${COPY_PREREQUISITES}" = "true" ]; then
         # If this is a cross build, use prerequisite files from the toolchain
         echo "Cross build detected, using prerequisites from $BUILDTOOL_DIR toolchain"
 
@@ -363,7 +364,7 @@ populate_prereqs() {
             exit 1
         fi
 
-    else # [ "$BUILDTOOL_DIR" = "local" ];
+    elif [ "$BUILDTOOL_DIR" = "local" ]; then
         echo "Installing prerequisites from local system:"
         echo -n "  "
 
@@ -735,7 +736,9 @@ populate_prereqs() {
         if [ $res != 0 ]; then
             exit 1
         fi
-
+    else
+        echo "Not Installing prerequisites."
+        echo -n "  "
     fi
 }
 
@@ -800,15 +803,15 @@ do
                     echo "No build label information in ${sys}/build_label"
                     echo "This is an error, aborting..."
                     exit 1
-                
+
                 # Now, it would be really nice if we could do some
                 # extra validation on the SYS and ARCH names.  We'll
                 # settle for looking for directories in the ${sys}
                 # directory
                 elif [ -d ${sys}/bin -a -d ${sys}/lib ]
                 then
-                    BUILD_LABEL=`cat ${sys}/build_label`
-                    populate_prereqs "${BUILD_LABEL}" "${PROJECT_ROOT}/target/${ASP_MODEL_NAME}" "${ARCH}" "${SYS}"
+                    source ${sys}/build_label
+                    populate_prereqs "${BUILD_LABEL}" "${COPY_PREREQUISITES}" "${PROJECT_ROOT}/target/${ASP_MODEL_NAME}" "${ARCH}" "${SYS}"
                     if [ $? -ne 0 ]
                     then
                         echo "Failure populating image for arch: ${arch} sys: ${SYS}"
