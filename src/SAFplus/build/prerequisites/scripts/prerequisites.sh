@@ -363,7 +363,7 @@ populate_prereqs() {
             exit 1
         fi
 
-    else [ "$BUILDTOOL_DIR" = "local" ]; then
+    else # [ "$BUILDTOOL_DIR" = "local" ];
         echo "Installing prerequisites from local system:"
         echo -n "  "
 

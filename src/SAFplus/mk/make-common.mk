@@ -239,9 +239,13 @@ ifeq ($(BUILD_PLUS),0)
         endif
     endif
 endif
+
+# Override all "C" compiling to use the C++ compiler if BUILD_PLUS is 1
 ifeq ($(BUILD_PLUS),1)
 TOP_CFLAGS      += -Wno-deprecated
+CC              := $(CXX)
 endif
+
 OPT_CFLAGS	= -O2
 PURIFY_CFLAGS	= -DWITH_PURIFY
 ifeq ($(BUILD_SHARED), 0)
@@ -251,14 +255,14 @@ ifeq ($(BUILD_SHARED), 0)
 endif
 ifeq ($(BUILD_PURIFY),1)
     CFLAGS	+= $(PURIFY_CFLAGS)
-    EXTRA_CFLAGS	+= $(PURIFY_CFLAGS)
+    EXTRA_CFLAGS += $(PURIFY_CFLAGS)
     CC		:= purify $(CC)
 endif
 
 GCOV_CFLAGS	= -fprofile-arcs -ftest-coverage -DGCOV
 ifeq ($(BUILD_GCOV),1)
     CFLAGS	+= $(GCOV_CFLAGS)
-    EXTRA_CFLAGS	+= $(GCOV_CFLAGS)
+    EXTRA_CFLAGS += $(GCOV_CFLAGS)
     LDFLAGS	+= $(GCOV_CFLAGS)
 endif
 
