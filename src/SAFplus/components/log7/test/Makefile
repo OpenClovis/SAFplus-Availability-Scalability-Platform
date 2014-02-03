@@ -16,6 +16,6 @@ $(OBJ_DIR)/%.o: %.cpp Makefile ../../../mk/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f *.o testLog
+	rm -f $(OBJ_DIR)/*.o $(TEST_DIR)/testLog
 
 include ../../../mk/safplus_targets.mk
