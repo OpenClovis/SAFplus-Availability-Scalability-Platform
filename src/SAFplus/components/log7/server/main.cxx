@@ -7,14 +7,7 @@ using namespace boost::posix_time;
 
 #define Dbg printf
 
-class LogConfig
-{
-public:
-  uint64_t logFlushInterval;
-  LogConfig():logFlushInterval(5000) {}
-};
-
-LogConfig gConfig;
+#include "logcfg.hxx"
 
 void postRecord(LogBufferEntry* rec, char* msg)
 {
@@ -22,10 +15,15 @@ void postRecord(LogBufferEntry* rec, char* msg)
   printf("%s\n",msg);
 }
 
+
 int main(int argc, char* argv[])
 {
+  // Load logging configuration
+  LogCfg* cfg = loadLogCfg();
+  // Initialize
   logInitializeSharedMem();
 
+  // Log processing Loop
   while(1)
     {
       int recnum;
@@ -63,7 +61,7 @@ int main(int argc, char* argv[])
         }
 
       // Wait for more records
-      if (serverSem.timed_lock(gConfig.logFlushInterval))
+      if (serverSem.timed_lock(cfg->serverConfig.processingInterval))
         {
           Dbg("timed_wait TRUE\n");
         }
