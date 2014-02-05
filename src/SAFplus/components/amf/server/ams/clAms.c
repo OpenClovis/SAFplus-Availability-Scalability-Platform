@@ -73,6 +73,10 @@ ClAmsT  gAms;
 ClBoolT gAmsDBRead = CL_FALSE;
 ClOsalTaskIdT gClusterStateVerifierTask;
 ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs = NULL;
+
+/* When system controller node is going down, "gCpmShuttingDown"  variable stops payloads coming up and it is added
+ * instead of using already existed variable ("gpClCpm->cpmShutDown") inorder to prevent destabiliaztion of 6.0 code.
+ */
 ClBoolT gCpmShuttingDown =  CL_FALSE;
 
 ClCpmCpmToAmsCallT gCpmToAmsCallbackFuncs = {
