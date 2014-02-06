@@ -34,7 +34,7 @@ namespace SAFplusLog {
         this->addKey("name");
     };
 
-    Stream::Stream(string nameValue): ClMgtObject("stream"), name("name"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope") {
+  Stream::Stream(string nameValue): ClMgtObject("stream"), name("name"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope"), fp(NULL) {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");

@@ -22,6 +22,10 @@ public:
 
   uint64_t id[2];
 public:
+  bool operator == (const HandleT& other)
+  {
+    return ((id[0] == other.id[0])&&(id[1]==other.id[1]));
+  }
   HandleT(HandleType t,uint64_t idx, uint16_t process=0xffff,uint16_t node=0xffff,uint_t clusterId=0xfff)
   {
     // TODO: add all handle formats

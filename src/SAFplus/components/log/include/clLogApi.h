@@ -254,7 +254,7 @@ typedef enum
 /**
  * setting severity as EMERGENCY.
  */
-    CL_LOG_SEV_EMERGENCY = 0x1,
+    CL_LOG_SEV_EMERGENCY = 0x0,
 /**
  * setting severity as ALERT. 
  */

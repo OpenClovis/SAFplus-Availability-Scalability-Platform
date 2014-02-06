@@ -13,6 +13,19 @@ LogCfg logcfg;
 
 Stream* createStreamCfg(const char* name, const char* filename, const char* location, unsigned long int fileSize, unsigned long int logRecSize, const char* fullAction, int numFilesRotate, int flushQSize, int flushInterval,bool syslog,const char* scope)
 {
+  Stream* s = new Stream();
+  s->setNameValue(name);
+  s->setFileNameValue(filename);
+  s->setFileLocationValue(location);
+  s->fileUnitSize = fileSize;
+  s->recordSize = logRecSize;
+  s->setFileFullActionValue(fullAction);
+  s->maximumFilesRotated = numFilesRotate;
+  s->flushFreq = flushQSize;
+  s->flushInterval = flushInterval;
+  s->syslog = syslog;
+  s->setStreamScopeValue(scope);
+  return s;
 }
 
 LogCfg* loadLogCfg()
