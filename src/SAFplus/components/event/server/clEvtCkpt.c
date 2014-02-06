@@ -3962,6 +3962,52 @@ clEventChannelSubEntryUnpackNAdd(ClBufferHandleT        msg)
     return rc;
 }    
 
+ClRcT
+clEventChannelSubEntryClean(ClBufferHandleT        msg,ClIocNodeAddressT  nodeLeave)
+{
+    ClRcT             rc         = CL_OK;
+    ClEvtSubscribeEventRequestT *pEvtSubsReq = NULL;
+    pEvtSubsReq = (ClEvtSubscribeEventRequestT*)clHeapCalloc(1, sizeof(ClEvtSubscribeEventRequestT));
+    if( NULL == pEvtSubsReq )
+    {
+        clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clHeapCalloc()");
+        return CL_EVENTS_RC(CL_ERR_NO_MEMORY);
+    }    
+    rc = VDECL_VER(clXdrUnmarshallClEvtSubscribeEventRequestT, 4, 0, 0)(msg,pEvtSubsReq);
+    if( CL_OK != rc )
+    {        
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"SubscribeEventRequestT: rc[0x %x]", rc);
+        return rc;
+    }   
+    clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"\n Simulator UnSubscribe via Request for Channel[%*s] \n",
+			pEvtSubsReq->evtChannelName.length,pEvtSubsReq->evtChannelName.value);
+    if(pEvtSubsReq->externalAddress==nodeLeave)
+    {
+        clLogDebug("CKPT", "CLEAN", "unsubscriber all channel of node [%d]",pEvtSubsReq->externalAddress);
+        ClEvtUnsubscribeEventRequestT unsubsReq;
+        memset(&unsubsReq, 0, sizeof(ClEvtUnsubscribeEventRequestT));
+        unsubsReq.evtChannelHandle = pEvtSubsReq->evtChannelHandle;
+        unsubsReq.userId = pEvtSubsReq->userId;
+        unsubsReq.subscriptionId = pEvtSubsReq->subscriptionId;
+        unsubsReq.reqFlag = CL_EVT_UNSUBSCRIBE;
+        clEvtUtilsNameCpy(&unsubsReq.evtChannelName,
+                      &pEvtSubsReq->evtChannelName);
+
+        rc = clEvtEventCleanupViaRequest(&unsubsReq, CL_EVT_NORMAL_REQUEST);
+        if (CL_OK != rc)
+        {
+            clLogError(EVENT_LOG_AREA_EVENT,CL_LOG_CONTEXT_UNSPECIFIED,
+                   "\nUnsubscribe via Request for Channel[%*s]"
+                   "Failed [%x]\n",
+                   unsubsReq.evtChannelName.length,
+                   unsubsReq.evtChannelName.value, rc);
+            CL_FUNC_EXIT();
+            return rc;
+        }
+    }
+    
+    return rc;
+}    
 
 //***************************** Delete channel open checkpoint *********************************
 // Remove channel open checpoint section when channel close
@@ -4001,7 +4047,7 @@ ClRcT clEvtChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 }
 
 //***************************** Delete channel open checkpoint *********************************
-// Remove channel sub checpoint section when channel un subcribe
+// Remove channel sub checpoint section when channel un subscribe
 //**********************************************************************************************
 ClRcT clEvtChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 {
@@ -4174,6 +4220,51 @@ clChannelSubEntryRecover(ClCkptSectionDescriptorT  *pSecDescriptor)
     clHeapFree(ioVector.dataBuffer);
 	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clChannelSubEntryRecover(): End");
 
+    return rc;
+} 
+ClRcT
+clChannelSubEntryClean(ClCkptSectionDescriptorT  *pSecDescriptor,ClIocNodeAddressT  nodeLeave)
+{
+    ClRcT                   rc     = CL_OK;
+    ClCkptIOVectorElementT  ioVector       = {{0}};
+    ClUint32T               errIndex       = 0;
+    ClBufferHandleT        msg            = CL_HANDLE_INVALID_VALUE;
+    
+    ioVector.sectionId  = pSecDescriptor->sectionId; 
+    ioVector.dataBuffer = NULL;
+    ioVector.dataSize   = 0;
+    ioVector.readSize   = 0;
+    ioVector.dataOffset = 0;
+    rc = clCkptCheckpointRead(ckpt_channel_sub_handle, &ioVector, 1, &errIndex);
+    if( CL_OK != rc )
+    {
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptCheckpointRead(): rc[0x %x]", rc);
+        return rc;
+    }
+    if(ioVector.readSize <= 0)
+    {
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"Global stream ChannelSub Clean failed because of inconsistent ckpt "
+                            "data of size [%lld]",
+                            ioVector.readSize);
+        clHeapFree(ioVector.dataBuffer);
+        return CL_EVENTS_RC(CL_ERR_INVALID_STATE);
+    }
+    rc = clBufferCreate(&msg);
+    if( CL_OK != rc )
+    {
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clBufferCreate()");
+        return rc;
+    }    
+    rc = clBufferNBytesWrite(msg, (ClUint8T *)ioVector.dataBuffer, ioVector.readSize);
+    if( CL_OK != rc )
+    {
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clBufferNBytesWrite(): rc[0x %x]", rc);
+        clBufferDelete(&msg);
+        return rc;
+    }  
+    //simulate re sub
+    clEventChannelSubEntryClean(msg,nodeLeave);
+    clHeapFree(ioVector.dataBuffer);
     return rc;
 } 
 
@@ -4451,12 +4542,74 @@ clEventAddrUpdate(ClIocNodeAddressT  leader,
     return rc;
 }
 
+ClRcT
+clEventCleanAllChannel(ClIocNodeAddressT  nodeLeave)
+{
+    ClRcT                  rc                = CL_OK;
+    ClHandleT                 hSecIter      = CL_HANDLE_INVALID_VALUE;
+    ClCkptSectionDescriptorT  secDescriptor[10];    
+    ClUint16T count;
+    count=0;
+    rc = clCkptSectionIterationInitialize(ckpt_channel_sub_handle,
+                                          CL_CKPT_SECTIONS_ANY, 
+                                          CL_TIME_END, &hSecIter);
+    if( CL_OK != rc )
+    {
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionIterationInitialize(): rc[0x %x]",
+                            rc);
+        return rc;
+    }       
+    do
+    {    
+        rc = clCkptSectionIterationNext(hSecIter, &secDescriptor[count]);
+        if( (rc != CL_OK))
+        {
+            if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc)
+                ||
+                CL_CKPT_ERR_NO_SECTIONS == CL_GET_ERROR_CODE(rc))
+            {
+            	
+                rc = CL_OK;
+            }
+            clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionIterationNext(): rc[0x %x]",rc);
+            break;
+        }
+        count++;
+        /* 
+         * Create the entries as many as we can, so explicitly
+         * not checking the rc.
+         */
+    }while((rc == CL_OK));    
+    CL_EVENT_CLEANUP(clCkptSectionIterationFinalize(hSecIter), CL_OK);
+    clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"Clean [%d] Channel Subscriber", count);            
+    for(int i=0 ; i<count; i++)
+    {
+        clChannelSubEntryClean(&secDescriptor[i],nodeLeave);        
+        clHeapFree(secDescriptor[i].sectionId.id);
+    }
+    return rc;
+}
+
 static 
 void clEventTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
                         ClUint32T                       numberOfMembers,
                         ClRcT                           rc)
 {
+    clLogDebug("CKPT", "CLEAN", "clEventTrackCallback event ");
     clEventAddrUpdate(notificationBuffer->leader, notificationBuffer->deputy);
+    if(clCpmIsMaster())
+    {    	
+    	int i;
+        for (i = 0; i < numberOfMembers; i++) 
+        {
+            if(notificationBuffer->notification[i].clusterChange==(ClInt32T)CL_GMS_MEMBER_LEFT)
+            {
+                //unsubscriber all external channel of this node
+                clLogDebug("CKPT", "CLEAN", "unsubscriber all channel of node [%d]",notificationBuffer->notification[i].clusterNode.nodeAddress.iocPhyAddress.nodeAddress);
+                clEventCleanAllChannel((ClIocNodeAddressT)notificationBuffer->notification[i].clusterNode.nodeAddress.iocPhyAddress.nodeAddress);
+            }          
+        }
+    }
 }
 
 ClRcT
@@ -4520,5 +4673,51 @@ clEventGmsFinalize(void)
     }
     return rc;
 }        
+
+static ClHandleT  gIocCallbackHandle = CL_HANDLE_INVALID_VALUE;
+
+void
+clEventIocNodedownCallback(ClIocNotificationIdT eventId, 
+                           ClPtrT               pArg,
+                           ClIocAddressT        *pAddress)
+{
+    /*
+     * If master node is down, ask deputy to change the master address 
+     */    
+    
+    clLogDebug("ACT", "IOC", "Received ioc notification [%d] for node [%d], port [%d]. ",
+               eventId, pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
+    if( (eventId == CL_IOC_NODE_LEAVE_NOTIFICATION ||
+         eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION))
+    {
+        /*
+         * this particular event callback will be called when the current
+         * master is shutting down or killed. 
+         */
+        clLogNotice("EVT", "IOC"," clean all subscriber ");
+        clEventCleanAllChannel(pAddress->iocPhyAddress.nodeAddress);
+        /* The current deputy node will be selected as master
+         * while waiting for the GMS elects new master/deputy.
+         */
+         return;
+    }
+}
+ClRcT clEventIocCallbackUpdate(void)
+{
+    ClRcT                 rc       = CL_OK;
+    ClIocPhysicalAddressT compAddr = {0};
+
+    /* deregister the old adress */
+    if(CL_HANDLE_INVALID_VALUE != gIocCallbackHandle)
+    {
+        return rc;
+    }
+    compAddr.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    compAddr.portId      = CL_IOC_CKPT_PORT;
+    /* register for new address */
+    clCpmNotificationCallbackInstall(compAddr, clEventIocNodedownCallback, 
+                                       NULL, &gIocCallbackHandle);
+    return rc;
+}
 
 #endif
