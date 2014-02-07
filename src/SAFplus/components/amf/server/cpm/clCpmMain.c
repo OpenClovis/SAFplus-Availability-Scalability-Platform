@@ -2820,7 +2820,7 @@ static void cpmFailoverRecover(void)
 
 void cpmActive2Standby(ClBoolT shouldRestartWorkers)
 {
-    ClTimerTimeOutT delay = {.tsSec = 10, .tsMilliSec = 0 };
+    ClTimerTimeOutT delay = {.tsSec = 5, .tsMilliSec = 0 };
 
     /*
      * This condition would happen only with 2 CPMGS.

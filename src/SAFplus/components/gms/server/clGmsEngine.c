@@ -135,8 +135,8 @@ static ClRcT timerCallback( void *arg )
                                   NULL , 
                                   CL_GMS_MEMBER_JOINED,
                                   &leaderNodeId,
-                                  &deputyNodeId,
-                                  CL_TRUE);
+                                  &deputyNodeId
+                                   );
 
     if (rc != CL_OK)
     {
@@ -274,7 +274,7 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
             ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
             ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
 
-            rc = _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId, CL_FALSE);
+            rc = _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
             if (leaderNodeId != CL_GMS_INVALID_NODE_ID && leaderNodeId != reportedLeader)
             {
                 clLogDebug("NTF", "LEA", "I am going to leave as leader changed from [0x%x] to [0x%x]", leaderNodeId, reportedLeader);
@@ -620,8 +620,7 @@ _clGmsEngineLeaderElect(
         CL_IN   ClGmsViewNodeT* const       node ,
         CL_IN   const ClGmsGroupChangesT    cond,
         CL_OUT  ClGmsNodeIdT*   const       leaderNodeId ,
-        CL_OUT  ClGmsNodeIdT*   const       deputyNodeId,
-        ClBoolT forceChanged)
+        CL_OUT  ClGmsNodeIdT*   const       deputyNodeId )
 {
     ClRcT   rc = CL_OK;
     ClGmsClusterNotificationBufferT buffer = {0};
@@ -787,7 +786,7 @@ _clGmsEngineLeaderElect(
         /* Update current leader */
         clNodeCacheLeaderUpdate(*leaderNodeId);
 
-        if (forceChanged || leadershipChanged)
+        if (leadershipChanged)
         {
             /*
              * "gratuitous" sending of our view of the leader to other AMFs to update
@@ -879,8 +878,7 @@ _clGmsEnginePreferredLeaderElect(
             NULL,
             CL_GMS_LEADER_ELECT_API_REQUEST,
             &leaderNode,
-            &deputyNode,
-            CL_TRUE);
+            &deputyNode);
 
     if ((rc != CL_OK) && (rc != CL_ERR_ALREADY_EXIST))
     {
@@ -1089,7 +1087,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         return rc;
     }
 
-    rc = _clGmsEngineLeaderElect(groupId, node, CL_GMS_MEMBER_JOINED, &newLeader, &newDeputy, CL_TRUE);
+    rc = _clGmsEngineLeaderElect(groupId, node, CL_GMS_MEMBER_JOINED, &newLeader, &newDeputy);
 
     if (rc != CL_OK)
     {
@@ -1263,8 +1261,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
                 NULL,   /* FIXME: need to send the node leaving the cluster*/
                 CL_GMS_MEMBER_LEFT,
                 &new_leader,
-                &new_deputy,
-                CL_TRUE
+                &new_deputy 
                 );
 
         if (CL_GET_ERROR_CODE(rc) == CL_GMS_ERR_EMPTY_GROUP)

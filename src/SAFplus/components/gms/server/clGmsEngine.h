@@ -45,8 +45,8 @@ _clGmsEngineLeaderElect(
         CL_IN   ClGmsViewNodeT          *node ,
         CL_IN   ClGmsGroupChangesT       cond,
         CL_OUT  ClGmsNodeIdT            *leaderNodeId ,
-        CL_OUT  ClGmsNodeIdT            *deputyNodeId,
-        ClBoolT forceChanged);
+        CL_OUT  ClGmsNodeIdT            *deputyNodeId 
+        );
 
 extern ClRcT _clGmsEngineStart();
 
