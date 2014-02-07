@@ -357,6 +357,7 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
         	clLogCritical(EVENT_LOG_AREA,EVENT_LOG_CTX_EVENT_INI,"Event: Init Gms failed");
             return rc;
         }
+        clEventIocCallbackUpdate();
     }
     
     

@@ -288,6 +288,9 @@ extern "C"
     extern ClRcT clEventGlobalCkptFinalize();
     extern ClRcT clEventExternalRecoverState(ClBoolT switchover);
     extern ClRcT clEventGmsInit(void);
+    extern ClRcT clEventIocCallbackUpdate(void);
+
+    
 
 
 
