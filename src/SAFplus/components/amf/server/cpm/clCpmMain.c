@@ -2679,7 +2679,6 @@ void cpmReset(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
 
 void cpmRestart(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
 {
-    FILE *fptr = NULL;
     ClTimerTimeOutT defaultTime;
     if (!pDelay)
     {
