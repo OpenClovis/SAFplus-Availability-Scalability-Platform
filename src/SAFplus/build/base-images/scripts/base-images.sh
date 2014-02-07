@@ -206,8 +206,9 @@ populate_image() {
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_run $imagedir/bin
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_console $imagedir/bin
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus $imagedir/etc/init.d
-    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/asp.py $imagedir/etc
+    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus.py $imagedir/etc
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/asp_*.py $imagedir/etc
+    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_*.py $imagedir/etc
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_watchdog.py $imagedir/etc
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_watchdog_start.py $imagedir/etc
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/tools/logTools/clLogViewer/safplus_binlogviewer $imagedir/bin

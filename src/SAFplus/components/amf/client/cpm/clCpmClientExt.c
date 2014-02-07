@@ -2469,24 +2469,5 @@ ClBoolT clCpmIsSCCapable(void)
     return cachedState ? CL_TRUE : CL_FALSE;
 }
 
-#ifdef __linux__
-
-void clCpmWatchdogRestart(ClBoolT abort)
-{
-    pid_t amf = getppid();
-    FILE *fptr ;
-    fptr = fopen(CL_CPM_WATCHDOG_RESTART_FILE, "w");
-    fclose(fptr);
-    clLogNotice("WATCHDOG", "RESTART", "Recovering cluster through a node restart with TIPC module reload");
-    /*
-     * Kill the parent or amf 
-     */
-    kill(amf, SIGKILL);
-    CL_ASSERT(0); /*crash self*/
-}
-
-#else
-
 void clCpmWatchdogRestart(ClBoolT abort) { return; }
 
-#endif

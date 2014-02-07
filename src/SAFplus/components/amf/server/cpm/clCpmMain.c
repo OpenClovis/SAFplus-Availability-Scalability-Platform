@@ -1066,7 +1066,7 @@ static ClRcT clCpmFinalize(void)
 
     if(!gClSigTermPending || !gClSigTermRestart)
     {
-        FILE *fptr = fopen(CL_CPM_RESTART_DISABLE_FILE, "w");
+        FILE *fptr = fopen(CL_CPM_SAFPLUS_STOP_FILE, "w");
         if(fptr) fclose(fptr);
     }
 
@@ -2700,17 +2700,6 @@ void cpmRestart(ClTimerTimeOutT *pDelay, const ClCharT *pPersonality)
      */
     clOsalTaskDelay(*pDelay);   
 
-    fptr = fopen(CL_CPM_RESTART_FILE, "w");
-    if(!fptr)
-    {
-        if (!pPersonality) pPersonality = "";
-        clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM, "AMF %s recovery failure to trigger the restart. Please ensure you restart SAFplus again", pPersonality);
-
-    }
-    else
-    {
-        fclose(fptr);
-    }
     cpmCommitSuicide();
 }
 

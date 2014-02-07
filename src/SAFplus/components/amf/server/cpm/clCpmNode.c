@@ -1150,7 +1150,7 @@ void cpmWriteNodeStatToFile(const ClCharT *who, ClBoolT isUp)
     if (!strcmp(who, "CPM"))
     {
         strncpy(fname, aspRunPath, CL_MAX_NAME_LENGTH-1);
-        strncat(fname, "/aspstate", CL_MAX_NAME_LENGTH-1);
+        strncat(fname, "/safplus_state", CL_MAX_NAME_LENGTH-1);
         snprintf(iocAddrStr, CL_MAX_NAME_LENGTH-1,
                  "-%d", clIocLocalAddressGet());
         strncat(fname, iocAddrStr, CL_MAX_NAME_LENGTH-1);

@@ -43,9 +43,7 @@ extern "C" {
  * Version supported for the EO library by CPM.
  */
 #define CL_CPM_EO_VERSION_NO                0x0100
-#define CL_CPM_RESTART_FILE "safplus_restart"
-#define CL_CPM_REBOOT_FILE  "safplus_reboot"
-#define CL_CPM_WATCHDOG_RESTART_FILE "safplus_restart_watchdog"
+#define CL_CPM_REBOOT_FILE            "safplus_reboot"
 
 /**
  *  The structure ClCpmFuncWalkT is passed as an argument to function compoFuncEOWalk.

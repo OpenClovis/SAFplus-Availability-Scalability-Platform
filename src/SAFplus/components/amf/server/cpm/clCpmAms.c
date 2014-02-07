@@ -1022,7 +1022,7 @@ void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag)
                 /*
                  * Tell the watchdog to disable ASP restarts.
                  */
-                FILE *fptr = fopen(CL_CPM_RESTART_DISABLE_FILE, "w");
+                FILE *fptr = fopen(CL_CPM_SAFPLUS_STOP_FILE, "w");
                 if(fptr) fclose(fptr);
             }
             /*

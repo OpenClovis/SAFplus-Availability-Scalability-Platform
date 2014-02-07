@@ -11,12 +11,10 @@ is_tipc_loaded_cmd = 'lsmod | grep tipc'
 
 get_amf_pid_cmd = 'ps -o pid,cmd -A'
 
-shm_dir = os.getenv('ASP_SHM_DIR') or '/dev/shm'
+shm_dir = os.getenv('ASP_SHM_DIR') or 'dev/shm'
 
 core_file_dir = ''
 core_file_regex = 'core.*'
-
-asp_shutdown_wait_timeout = 30
 
 def system(cmd):
     """Similar to the os.system call, except that both the output and
@@ -33,10 +31,8 @@ def system(cmd):
             signal = retval & 0x7f
             core   = ((retval & 0x80) !=0)
             retval = retval >> 8
-        #print 'popen Command return value %s, Output:\n%s' % (str(retval),output)
         return (retval, output, signal, core)
     else :
-        #print 'Executing command: %s' % cmd
         child = subprocess.Popen(cmd, shell=True,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE,
@@ -55,7 +51,6 @@ def system(cmd):
         signal = retval & 0x7f
         core   = ((retval & 0x80) !=0)
         retval = retval >> 8
-        #print 'Subprocess Command return value %s, Output:\n%s' % (str(retval),output)
         del child
         return (retval, output, signal, core)
 
@@ -94,14 +89,14 @@ def getMultiLink():
     num = len(output)    
     return (num,output)
 
-def get_kill_asp_cmd(f):
+def get_kill_amf_cmd(f):
     return 'killall -KILL %s 2> /dev/null' % f
 
-def get_amf_watchdog_pid_cmd(p):
+def get_pid_cmd(p):
     return 'ps -e -o pid,cmd | grep \'%s\'' % p
 
 def get_start_amf_watchdog_cmd(p):
     return 'setsid %s/safplus_watchdog.py &' % p
 
-def get_cleanup_asp_cmd(p):
+def get_cleanup_safplus_cmd(p):
     return 'rm -f /%s/CL*_%s' % (shm_dir, p)

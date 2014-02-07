@@ -15,22 +15,21 @@
 # For more  information,  see the  file COPYING provided with this
 # material.
 
-import asp
+import safplus
+import safplus_tipc
 import os
 import sys
 import time
-import logging 
+import logging
+import signal 
 import safplus_watchdog
 import commands
-
-def touch(f):
-    f = file(f,'a')
-    f.close()
+#import pdb
 
 def get_watchdog_pid():
-    p = '%s/safplus_watchdog.py' % asp.get_asp_etc_dir()
-    cmd = asp.sys_asp['get_amf_watchdog_pid_cmd'](p)
-    result = asp.sys_asp['Popen'](cmd)
+    p = '%s/safplus_watchdog.py' % safplus.SAFPLUS_ETC_DIR
+    cmd = safplus.get_pid_cmd(p)
+    result = safplus.Popen(cmd)
 
     # Eliminate the incorrect lines
     psLine = filter(lambda x: not "grep" in x, result)
@@ -46,59 +45,85 @@ def get_watchdog_pid():
       raise
     return wpid
 
-def start_watchdog():
-    # check here for watchdog exist 
-    watchdog_pid = get_watchdog_pid()
+def get_watchdog_pid_cmd(p):
+    return 'ps -e -o pid,cmd | grep \'%s\'' % p
 
+def kill_watchdog():
+    p = '%s/safplus_watchdog.py' % safplus.SAFPLUS_ETC_DIR
+    cmd = get_watchdog_pid_cmd(p)
+    result = os.popen(cmd)
+
+    # Eliminate the incorrect lines
+    psLine = filter(lambda x: not "grep" in x, result)
+
+    if len(psLine) == 0: # Its already dead
+      return
+    try:
+      wpid = int(psLine[0].split()[0])
+    except Exception, e:
+      print "Exception: %s" % str(e)
+      print "CMD: %s" % cmd
+      print "data: %s" % result
+      raise
+
+    try:
+        os.kill(wpid, signal.SIGKILL)
+    except OSError, e:
+        if e.errno == errno.ESRCH:
+            pass
+        else:
+            raise
+
+def set_ld_library_paths():
+    safplus_dir = safplus.sandbox_dir
+
+    p = [
+        safplus_dir + '/lib',
+        safplus_dir + '/lib/openhpi',
+        '/usr/lib',
+        '/usr/local/lib'
+        ]
+
+    old_ld_path = os.getenv('LD_LIBRARY_PATH')
+    if old_ld_path:
+        p.insert(0, old_ld_path)
+
+    v = ':'.join(p)
+    os.putenv('LD_LIBRARY_PATH', v)
+
+def start_watchdog():
+    # check whether watchdog exist 
+    watchdog_pid = get_watchdog_pid()
     if not watchdog_pid:
+        logging.info("Loading TIPC ")
+        safplus_tipc.load_config_tipc_module()
+        set_ld_library_paths()
+
         # setsid <prog> & daemonizes...
-        cmd = 'setsid %s/safplus_watchdog.py &' % asp.get_asp_etc_dir()
+        cmd = 'setsid %s/safplus_watchdog.py &' % safplus.SAFPLUS_ETC_DIR
         os.system(cmd)
     else:
-        asp.fail_and_exit('SAFplus is already running on node [%s], pid [%s]' % (asp.get_asp_node_addr(), watchdog_pid), False)
+        safplus.fail_and_exit('SAFplus is already running on node [%s], pid [%s]' % (safplus.get_safplus_node_addr(), watchdog_pid))
 
 def stop_watchdog():
-    stopFile = asp.get_asp_run_dir() + '/' + asp.SAFPLUS_STOP_FILE 
-    touch(stopFile)    # create restart file to prevent improper asp going down
-    asp.stop_amf()
-    # Unnecessary: watchdog will quit when it sees the stop file: safplus_watchdog.stop_watchdog()
-    # remove restart file before start
-    #if os.path.isfile(saf_no_restart_file):
-    #    safplus_watchdog.safe_remove(saf_no_restart_file)
-    #    print"REMOVED restart file %s" % saf_no_restart_file
+    safplus.stop_amf()
  
-def restart_asp():
+def restart_safplus():
     # remove no restart file, to make sure a restart occurs
-    asp.remove_stop_file()
-    asp.stop_amf()
-    # No need to start SAFplus, Watchdog will check and start ASP after 30 sec
+    safplus.remove_stop_file()
+    safplus.stop_amf()
+    # No need to start SAFplus, Watchdog will check and start AMF after 30 sec
 
 def saf_status():
-    asp.get_asp_status()
+    safplus.get_safplus_status()
 
-"""
-def redirect_file():
-    UMASK = 0
-    WORKDIR = asp.get_asp_run_dir()
-    MAXFD = 1024
-
-    os.chdir(WORKDIR)
-    os.umask(UMASK)
-
-    import resource
-    maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
-    if maxfd == resource.RLIM_INFINITY:
-        maxfd = MAXFD  
-    for fd in range(0, maxfd):  commenting as files are not created to close
-        try:
-            os.close(fd)
-        except OSError:
-            pass
-"""
+def saf_zap():
+    kill_watchdog()    # Added as watchdog takes 30 sec for it to check and come down after stopping AMF
+    safplus.zap_amf()
 
 def watchdog_usage():
     print
-    print 'Usage : %s {start|stop|restart|status|help  _____WIP_____ }' %\
+    print 'Usage : %s { start | stop | restart | status | zap | help }' %\
           os.path.splitext(os.path.basename(sys.argv[0]))[0]
     print
 
@@ -115,20 +140,20 @@ def check_py_version():
 def watchdog_driver(cmd):
     cmd_map = {'start'    : start_watchdog,
                'stop'     : stop_watchdog,
-               'restart'  : restart_asp,
+               'restart'  : restart_safplus,
                'status'   : saf_status,
+               'zap'      : saf_zap,
                'help'     : watchdog_usage
                }
     if cmd_map.has_key(cmd):
-        #create_watchdog_cmd_marker(cmd)  # for printing the executing line and for displaying err
         cmd_map[cmd]()
     else:
-        asp.fail_and_exit('Command [%s] not found !!' % cmd)
+        safplus.fail_and_exit('Command [%s] not found !!' % cmd)
 
 def main():
     check_py_version()
-    #redirect_file() commenting as the files need not be closed
-    logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(message)s', level=logging.INFO)
+    safplus.import_os_adoption_layer()
+    logging.basicConfig(filename='%s/amf_watchdog.log' % safplus.SAFPLUS_LOG_DIR, format='%(levelname)s %(message)s', level=logging.INFO)
     
     if len(sys.argv) >= 2:    
         if sys.argv[1] == 'help' :

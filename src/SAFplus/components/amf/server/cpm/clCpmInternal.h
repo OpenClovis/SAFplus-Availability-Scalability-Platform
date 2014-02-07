@@ -122,10 +122,9 @@ extern ClTaskPoolHandleT gCpmFaultPool;
                                         ( (flag) == CL_CPM_RESTART_NODE ) ? "NODE_RESET" : \
                                         ( (flag) == CL_CPM_HALT_ASP ) ? "NODE_HALT" : "NODE_STOPPED" )
 /*
- * Disable watchdog ASP restarts on node failover/failfast with 
- * ASP_NODE_REBOOT_DISABLE set.
+ * Create file to indicate watchdog for SAFplus_AMF has done gracefull sgutdown 
  */
-#define CL_CPM_RESTART_DISABLE_FILE "safplus_restart_disable"
+#define CL_CPM_SAFPLUS_STOP_FILE "safplus_stop"
 
 /*
  * Bug 4690:
