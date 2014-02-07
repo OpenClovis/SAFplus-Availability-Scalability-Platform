@@ -33,8 +33,7 @@ extern "C"
 } /* end extern 'C' */
 #endif
 
-#define clLogDebug(...)
-#define clLogError(...)
+#define clLog(...)
 
 #ifdef MGT_ACCESS
 #define CL_IOC_MGT_NETCONF_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 1)
@@ -214,6 +213,7 @@ ClRcT ClMgtRoot::registerRpc(const std::string module,
     return rc;
 }
 
+#ifdef MGT_ACCESS
 void clMgtMsgEditHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
         ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize)
 {
@@ -252,7 +252,6 @@ void clMgtMsgEditHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
     memcpy(*ppOutMsg, &rc, *outMsgSize);
 }
 
-#ifdef MGT_ACCESS
 void clMgtMsgGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
         ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize)
 {

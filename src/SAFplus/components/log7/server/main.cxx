@@ -90,12 +90,14 @@ void logInitializeStreams(LogCfg* cfg)
         {
           Stream* s = (Stream*) (*objs)[i];
           Dbg("Initializing stream %s file: %s location: %s\n", s->name.value().c_str(),s->fileName.value().c_str(),s->fileLocation.value().c_str());
-          std::string& s = s->fileLocation.value();
+          std::string& str = s->fileLocation.value();
 
-          if (s[0] == ".")  // . for the location means 'this node'
+#if 0 // Incomplete implementation
+          if (str[0] == ".")  // . for the location means 'this node'
             {
               
             }
+#endif
         }      
     }
   
