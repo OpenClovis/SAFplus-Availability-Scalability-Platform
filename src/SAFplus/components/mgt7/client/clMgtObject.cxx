@@ -29,6 +29,8 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
+using namespace std;
+
 ClTransaction ClMgtObject::NO_TRANSACTION = ClTransaction();
 
 ClMgtObject::ClMgtObject(const char* name)

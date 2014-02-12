@@ -33,6 +33,8 @@ extern "C"
 } /* end extern 'C' */
 #endif
 
+using namespace std;
+
 #define clLog(...)
 
 #ifdef MGT_ACCESS

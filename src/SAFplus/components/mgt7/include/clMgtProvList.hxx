@@ -48,13 +48,13 @@ class ClMgtProvList: public ClMgtObject
 {
 protected:
     /* This variable is used to index the value in Transaction object.*/
-	vector<ClInt32T> mValIndexes;
+    std::vector<ClInt32T> mValIndexes;
 
 public:
     /**
      *  Value of the "ClMgtProv" object
      */
-    vector<T> Value;
+    std::vector<T> Value;
 
 public:
     ClMgtProvList(const char* name);
@@ -84,20 +84,20 @@ public:
     std::string toStringItemAt(T &x);
 
     // Overload PointList stream insertion operator
-    inline friend ostream & operator<<(ostream &os, const ClMgtProvList &b)
+    inline friend std::ostream & operator<<(std::ostream &os, const ClMgtProvList &b)
     {
-        copy(b.Value.begin(), b.Value.end(), ostream_iterator<T>(b));
+        copy(b.Value.begin(), b.Value.end(), std::ostream_iterator<T>(b));
         return os;
     }
 
     // Overload PointList stream extraction operator
-    inline friend istream & operator>>(istream &is, const ClMgtProvList &b)
+    inline friend std::istream & operator>>(std::istream &is, const ClMgtProvList &b)
     {
-        copy(istream_iterator<T>(is), istream_iterator<T>(), back_inserter(b));
+        copy(std::istream_iterator<T>(is), std::istream_iterator<T>(), std::back_inserter(b));
         return is;
     }
 
-    virtual vector<string> *getChildNames();
+    virtual std::vector<std::string> *getChildNames();
 
 };
 template<class T>
@@ -184,7 +184,7 @@ void ClMgtProvList<T>::set(ClTransaction& t)
         valIndex = mValIndexes[i];
         char *valstr = (char *) t.get(valIndex);
         T value;
-        stringstream ss;
+        std::stringstream ss;
 
         if (((typeid(T) == typeid(bool)) || (typeid(T) == typeid(ClBoolT))) && (!strcmp((char*)valstr, "true")))
         {
@@ -206,7 +206,7 @@ void ClMgtProvList<T>::set(ClTransaction& t)
  * List-leaf doesn't have children
  */
 template <class T>
-vector<string> *ClMgtProvList<T>::getChildNames()
+std::vector<std::string> *ClMgtProvList<T>::getChildNames()
 {
     return NULL;
 }

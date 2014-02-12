@@ -38,8 +38,6 @@ typedef struct ClTransactionData
     ClCharT *data;
 } ClTransactionDataT;
 
-using namespace std;
-
 class ClTransaction {
 protected:
     std::vector<ClTransactionDataT*> mData;

@@ -178,7 +178,7 @@ public:
 
     ClBoolT isKeysMatch(std::map<std::string, std::string> *keys);
 
-    virtual vector<string> *getChildNames();
+    virtual std::vector<std::string> *getChildNames();
 
     /* persistent db to database */
     virtual ClRcT write();

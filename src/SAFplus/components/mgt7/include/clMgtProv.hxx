@@ -32,6 +32,7 @@
 #define CLMGTPROV_HPP_
 
 #include "clMgtObject.hxx"
+#include "clMgtDatabase.hxx"
 #include "clLogApi.h"
 
 #include <typeinfo>
@@ -61,11 +62,20 @@ public:
     /**
      * \brief   Define basic assignment operator
      */
-    ClMgtProv<T>& operator = (const T& val) { Value = val; return *this;}
+    ClMgtProv<T>& operator = (const T& val)
+    {
+        Value = val;
+        setDb();
+        return *this;
+    }
     /**
      * \brief   Define basic access (type cast) operator
      */
-    operator T& () { return Value; }
+    operator T& ()
+    {
+        getDb();
+        return Value;
+    }
     /**
      * \brief   Define basic comparison
      */
@@ -86,22 +96,37 @@ public:
      */
     virtual void set(ClTransaction& t);
 
-  /**
+    /**
      * \brief   Define formal access operation
      */
-    T& value() { return Value; }
+    T& value()
+    {
+        getDb();
+        return Value;
+    }
 
-    inline friend ostream & operator<< (ostream &os, const ClMgtProv &b)
+    inline friend std::ostream & operator<< (std::ostream &os, const ClMgtProv &b)
     {
         return os<<(T)b.Value;
     }
 
-    inline friend istream & operator>> (istream &is, const ClMgtProv &b)
+    inline friend std::istream & operator>> (std::istream &is, const ClMgtProv &b)
     {
         return is>>(T)(b.Value);
     }
 
-    virtual vector<string> *getChildNames();
+    virtual std::vector<std::string> *getChildNames();
+
+    /**
+     * \brief   Function to set data to database
+     */
+    ClRcT setDb();
+
+    /**
+     * \brief   Function to get data from database
+     */
+    ClRcT getDb();
+
 };
 
 /*
@@ -122,6 +147,7 @@ ClMgtProv<T>::~ClMgtProv()
 template <class T>
 std::string ClMgtProv<T>::toString()
 {
+    getDb();
     std::stringstream ss;
     ss << Value;
     return "<" + Name + ">" + ss.str() + "</" + Name + ">";
@@ -168,7 +194,6 @@ ClBoolT ClMgtProv<T>::validate(void *pBuffer, ClUint64T buffLen, ClTransaction& 
     nodetyp = xmlTextReaderNodeType(reader);
     valstr = (xmlChar *)xmlTextReaderValue(reader);
 
-
     if ((nodetyp != XML_TEXT_NODE) || (depth != 1))
     {
         xmlFreeTextReader(reader);
@@ -208,6 +233,8 @@ void ClMgtProv<T>::set(ClTransaction& t)
         ss >> Value;
     }
 
+    setDb();
+
     mValIndex = -1;
 }
 
@@ -215,9 +242,53 @@ void ClMgtProv<T>::set(ClTransaction& t)
  * Leaf doesn't have children
  */
 template <class T>
-vector<string> *ClMgtProv<T>::getChildNames()
+std::vector<std::string> *ClMgtProv<T>::getChildNames()
 {
     return NULL;
+}
+
+template <class T>
+ClRcT ClMgtProv<T>::setDb()
+{
+    std::string key = getFullXpath();
+
+    std::stringstream ss;
+    ss << Value;
+
+    ClMgtDatabase *db = ClMgtDatabase::getInstance();
+
+    return db->setRecord(key, ss.str());
+}
+
+template <class T>
+ClRcT ClMgtProv<T>::getDb()
+{
+    ClRcT rc = CL_OK;
+    std::string key = getFullXpath();
+    std::string value;
+
+    ClMgtDatabase *db = ClMgtDatabase::getInstance();
+
+    rc = db->getRecord(key, value);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    std::stringstream ss;
+
+    if (((typeid(T) == typeid(bool)) || (typeid(T) == typeid(ClBoolT))) && (!value.compare("true")))
+    {
+        ss << "1";
+        ss >> Value;
+    }
+    else
+    {
+        ss << value;
+        ss >> Value;
+    }
+
+    return rc;
 }
 
 #endif /* CLMGTPROV_HPP_ */

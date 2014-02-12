@@ -48,8 +48,6 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
-using namespace std;
-
 #define CL_NETCONF_BIND_TYPE 0
 #define CL_SNMP_BIND_TYPE 1
 

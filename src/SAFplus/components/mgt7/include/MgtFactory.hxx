@@ -28,8 +28,6 @@
 #include <clMgtObject.hxx>
 #include <MgtCreatorImpl.hxx>
 
-using namespace std;
-
 class MgtFactory
 {
     private:
@@ -44,11 +42,11 @@ class MgtFactory
             static MgtFactory instance;
             return &instance;
         }
-        static ClMgtObject* create(const string& xpath);
+        static ClMgtObject* create(const std::string& xpath);
         static void registerXpath(const std::string& xpath, IMgtCreator* creatorFn);
 
     private:
-        static map<string, IMgtCreator* > &getObjectCreatorMap();
+        static std::map<std::string, IMgtCreator* > &getObjectCreatorMap();
 };
 
 #define REGISTER(classname) \

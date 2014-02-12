@@ -46,8 +46,6 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
-using namespace std;
-
 /**
  *  ClMgtList class provides APIs to manage Yang lists
  */

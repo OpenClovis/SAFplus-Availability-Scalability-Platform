@@ -45,8 +45,6 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
-using namespace std;
-
 #define CL_MAX_HISTORY_ARRAY 60
 
 /**

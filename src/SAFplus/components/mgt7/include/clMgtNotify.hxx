@@ -43,8 +43,6 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
-using namespace std;
-
 /**
  *  ClMgtNotify class provides APIs to manage Yang notifications
  */

@@ -34,6 +34,8 @@ extern "C"
 } /* end extern 'C' */
 #endif
 
+using namespace std;
+
 #define clLog(...)
 
 #define CL_IOC_MGT_NETCONF_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 1)

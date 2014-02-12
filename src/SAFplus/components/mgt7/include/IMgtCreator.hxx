@@ -23,8 +23,6 @@
 #include <string>
 #include <clMgtObject.hxx>
 
-using namespace std;
-
 class IMgtCreator
 {
     public:

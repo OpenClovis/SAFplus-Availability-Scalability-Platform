@@ -34,8 +34,6 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
-using namespace std;
-
 class ClMgtRpc {
 public:
     std::string Name;

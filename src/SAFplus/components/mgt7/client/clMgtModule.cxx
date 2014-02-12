@@ -31,6 +31,8 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
+using namespace std;
+
 #define clLog(...)
 
 ClMgtModule::ClMgtModule(const char* name)

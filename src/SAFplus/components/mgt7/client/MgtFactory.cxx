@@ -19,6 +19,8 @@
 
 #include "MgtFactory.hxx"
 
+using namespace std;
+
 void MgtFactory::registerXpath(const std::string& xpath, IMgtCreator* creatorFn)
 {
     getObjectCreatorMap()[xpath] = creatorFn;
@@ -51,7 +53,7 @@ MgtFactory::~MgtFactory()
     // TODO Auto-generated destructor stub
 }
 
-map<std::string, IMgtCreator*>& MgtFactory::getObjectCreatorMap()
+std::map<std::string, IMgtCreator*>& MgtFactory::getObjectCreatorMap()
 {
     static std::map<std::string, IMgtCreator*> mgtObjectCreatorMap;
     return mgtObjectCreatorMap;

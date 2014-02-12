@@ -47,8 +47,6 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
-using namespace std;
-
 /**
  * ClMgtModule class provides APIs to manage a MGT modules
  */

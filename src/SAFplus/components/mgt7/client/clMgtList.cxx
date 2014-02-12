@@ -29,6 +29,8 @@ extern "C"
 } /* end extern 'C' */
 #endif
 
+using namespace std;
+
 #define clLog(...)
 
 ClMgtList::ClMgtList(const char* name) :
