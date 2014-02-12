@@ -14,3 +14,5 @@ $(SAFPLUS_TARGET)/lib/clLog.so: $(LOG_CLIENT_OBJ)
 $(MWOBJ_DIR)/%.o: %.cpp Makefile $(LOG_SERVER_H)
 	$(COMPILE_CPP) $@ $<
 
+clean:
+	rm -f $(SAFPLUS_TARGET)/lib/clLog.o $(MWOBJ_DIR)/*.o
