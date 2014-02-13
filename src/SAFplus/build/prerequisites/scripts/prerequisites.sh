@@ -99,9 +99,9 @@ populate_prereqs() {
 
         toolchaindir=$TOOLCHAIN_DIR
         if [ ! \( "$toolchaindir" != "/" -a -d $toolchaindir \) ]; then
-            echo "Tool chain directory: $toolchaindir is not a proper directory"
-            exit 1
-        fi
+            echo "Tool chain directory: $toolchaindir is not a proper directory...skipping third party prerequisites"
+            
+        else
         
         cd $toolchaindir
         source config.mk
@@ -362,6 +362,7 @@ populate_prereqs() {
         done
         if [ $res != 0 ]; then
             exit 1
+        fi
         fi
 
     elif [ "$BUILDTOOL_DIR" = "local" ]; then

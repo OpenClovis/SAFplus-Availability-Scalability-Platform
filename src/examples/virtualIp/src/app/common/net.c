@@ -209,7 +209,7 @@ ClRcT SendArp(const char* host, const char* dev)
 
 void GetVirtualAddressInfoAsp(ClAmsCSIDescriptorT* csiDescriptor, VirtualIpAddress* vip)
 {
-    int i;
+    unsigned int i;
     vip->ip[0] = 0;
     vip->netmask[0] = 0;
     vip->dev[0] = 0;
@@ -274,7 +274,7 @@ void AddRemVirtualAddress(const char *cmd,const VirtualIpAddress* vip)
     if (cmd[0] == 'u') up = 1;
     
     
-    VirtualIpAddress* vipCopy = malloc(sizeof(VirtualIpAddress));
+    VirtualIpAddress* vipCopy = (VirtualIpAddress*) malloc(sizeof(VirtualIpAddress));
     memcpy(vipCopy,vip,sizeof(VirtualIpAddress));
     
     if (vipCopy->ip && vipCopy->dev && vipCopy->netmask)

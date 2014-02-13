@@ -105,12 +105,15 @@ ifndef BUILD_GCOV
 endif
 export BUILD_GCOV
 
+# CFLAGS itself cannot be modified or changed.  It is inherited from the environment, so if it is, sub-makes will modify it again, resulting in ugly repeated flags
+LOCAL_CFLAGS := $(CFLAGS)
+
 #-------------------------------------------------------------------------------
 # To build for Solaris use SOLARIS_BUILD=1 flag on the make command line
 ifdef SOLARIS_BUILD
-    CFLAGS += -DSOLARIS_BUILD
+    LOCAL_CFLAGS += -DSOLARIS_BUILD
     ifndef BUILD_WITHOUT_C99
-        CFLAGS += -D_XOPEN_SOURCE=600 -D__EXTENSIONS__=1
+        LOCAL_CFLAGS += -D_XOPEN_SOURCE=600 -D__EXTENSIONS__=1
     endif
     CC = gcc
 endif
@@ -119,27 +122,27 @@ endif
 # To build with debug, use the CL_DEBUG=1 flag on the make command line
 ifdef PROF
   ifeq ("$(origin PROF)", "command line")
-	CFLAGS += -pg
+	LOCAL_CFLAGS += -pg
         LDFLAGS += -pg
   endif
 endif
 ifdef O
   ifeq ("$(origin O)", "command line")
-	CFLAGS += -O$(O) -fno-strict-aliasing -g
+	LOCAL_CFLAGS += -O$(O) -fno-strict-aliasing -g
 
   endif
 endif
 ifndef O
   ifeq ("$(CL_TARGET_PLATFORM)", "ppc")
-    CFLAGS += -fno-strict-aliasing -g
+    LOCAL_CFLAGS += -fno-strict-aliasing -g
   else
     ifeq ($(TARGET_QNX), 1)
-      CFLAGS += -fno-strict-aliasing -g
+      LOCAL_CFLAGS += -fno-strict-aliasing -g
     else
      ifeq ($(TARGET_VXWORKS), 1)
-      CFLAGS += -fno-strict-aliasing -g
+      LOCAL_CFLAGS += -fno-strict-aliasing -g
      else
-      CFLAGS += -Os -fno-strict-aliasing -g
+      LOCAL_CFLAGS += -Os -fno-strict-aliasing -g
      endif
     endif
   endif
@@ -147,7 +150,7 @@ endif
 
 ifdef CL_DEBUG
         # -DRECORD_TXN
-	CFLAGS += -g -DCL_DEBUG
+	LOCAL_CFLAGS += -g -DCL_DEBUG
 endif
 export CL_DEBUG
 
@@ -164,7 +167,7 @@ endif
 export BUILD_SHARED
 
 ifeq ($(BUILD_SHARED),0)
-    CFLAGS += -Wl,static
+    LOCAL_CFLAGS += -Wl,static
 endif
 
 #-------------------------------------------------------------------------------
@@ -233,11 +236,13 @@ ifeq ($(BUILD_PLUS),0)
          ifeq ($(TARGET_VXWORKS), 1)
             TOP_C99FLAGS :=
          else
-            TOP_C99FLAGS      := -std=c99 -pedantic
+            TOP_C99FLAGS      := -DTEST -std=c99 -pedantic
          endif
-
         endif
     endif
+else
+BUILD_WITHOUT_C99 := 1
+TOP_C99FLAGS := -pedantic
 endif
 
 # Override all "C" compiling to use the C++ compiler if BUILD_PLUS is 1
@@ -249,19 +254,19 @@ endif
 OPT_CFLAGS	= -O2
 PURIFY_CFLAGS	= -DWITH_PURIFY
 ifeq ($(BUILD_SHARED), 0)
- CFLAGS += -DWITH_STATIC 
+ LOCAL_CFLAGS += -DWITH_STATIC 
  BUILD_STATIC=1
  export BUILD_STATIC
 endif
 ifeq ($(BUILD_PURIFY),1)
-    CFLAGS	+= $(PURIFY_CFLAGS)
+    LOCAL_CFLAGS	+= $(PURIFY_CFLAGS)
     EXTRA_CFLAGS += $(PURIFY_CFLAGS)
     CC		:= purify $(CC)
 endif
 
 GCOV_CFLAGS	= -fprofile-arcs -ftest-coverage -DGCOV
 ifeq ($(BUILD_GCOV),1)
-    CFLAGS	+= $(GCOV_CFLAGS)
+    LOCAL_CFLAGS	+= $(GCOV_CFLAGS)
     EXTRA_CFLAGS += $(GCOV_CFLAGS)
     LDFLAGS	+= $(GCOV_CFLAGS)
 endif
@@ -274,14 +279,14 @@ ifeq ($(BUILD_OSAL_DEBUG), 1)
 	TOP_CFLAGS += -DCL_OSAL_DEBUG
 endif
 
-CFLAGS		+= $(TOP_CFLAGS)
+LOCAL_CFLAGS		+= $(TOP_CFLAGS)
 ifndef BUILD_WITHOUT_C99 
-    CFLAGS		+= $(TOP_C99FLAGS)
+    LOCAL_CFLAGS		+= $(TOP_C99FLAGS)
 endif
 ifeq ($(BUILD_SHARED), 1)
-    CFLAGS		+= -fPIC 
+    LOCAL_CFLAGS		+= -fPIC 
 endif
-CFLAGS		+= $(EXTRA_CFLAGS)
+LOCAL_CFLAGS		+= $(EXTRA_CFLAGS)
 CPPFLAGS	+= $(EXTRA_CPPFLAGS)
 ifndef SOLARIS_BUILD
 ifeq ($(BUILD_SHARED), 1)
@@ -296,12 +301,20 @@ SPLINTCMD	= splint
 SPLINTFLAGS	+= +posixlib -preproc -badflag -warnsysfiles \
                    -nof -weak -line-len 360 -unrecog
 
-CXXFLAGS := $(CFLAGS) # $(filter-out -std=c99,$(CFLAGS))
+CXXFLAGS := $(filter-out -std=c99,$(LOCAL_CFLAGS)) -Wno-variadic-macros -std=gnu++11
+# even though variadic macros are not technically supported in c++, g++ and other compilers support them
 # -Werror -- Note compiler complains when c++ is compiled with -std=c99, but precompiler complains when it is NOT defined so warnings can't be errors.
-CFLAGS += -Werror  # force all warnings to be errors for extra clean compilation
+LOCAL_CFLAGS += -Werror  # force all warnings to be errors for extra clean compilation
 
 # The compilation/link flags are passed to lower directories as well
 export EXTRA_CFLAGS EXTRA_CPPFLAGS EXTRA_LDFLAGS EXTRA_LDLIBS
+
+# Debugging that dumps the important variables
+# $(warning LOCAL_CFLAGS $(LOCAL_CFLAGS))
+# $(warning CXXFLAGS $(CXXFLAGS))
+# $(warning EXTRA_CFLAGS $(EXTRA_CFLAGS))
+# $(warning EXTRA_CPPFLAGS $(EXTRA_CPPFLAGS))
+
 
 #-------------------------------------------------------------------------------
 # Normally, we echo the whole command before executing it. By making
@@ -372,7 +385,7 @@ define make-depend
 	   -MT $3 \
 	   -MT $2 \
 	   $(CPPFLAGS) \
-	   $(CFLAGS) \
+	   $(LOCAL_CFLAGS) \
 	   $(TARGET_ARCH) \
 	   $1
 endef
@@ -384,8 +397,13 @@ quiet_cmd_depend = DEP     $(call quiet-strip,$@)
 
 #-------------------------------------------------------------------------------
 # Build .o files from .c
+ifeq ($(BUILD_PLUS),1)  # build .c code with c++ compiler
 quiet_cmd_cc_o_c = CC      $(call quiet-strip,$@)
-      cmd_cc_o_c = $(CC) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(OUTPUT_OPTION) $<
+      cmd_cc_o_c = $(CC)  $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(OUTPUT_OPTION) $<
+else
+quiet_cmd_cc_o_c = CC      $(call quiet-strip,$@)
+      cmd_cc_o_c = $(CC) $(LOCAL_CFLAGS) $(CPPFLAGS) $(TARGET_ARCH) $(OUTPUT_OPTION) $<
+endif
 
 quiet_cmd_cxx_o_c = CC      $(call quiet-strip,$@)
       cmd_cxx_o_c = $(CC) $(filter-out -Werror,$(CXXFLAGS) $(CPPFLAGS)) $(TARGET_ARCH) $(OUTPUT_OPTION) $<

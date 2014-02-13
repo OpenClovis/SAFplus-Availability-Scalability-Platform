@@ -35,8 +35,8 @@
 #include "../common/netwrapper.h"
 
 ClRcT GetVaiFromCsi(const SaNameT       *compName,const unsigned char* name, VirtualIpAddress* ret);
-ClRcT OperateOnAllCsis(const SaNameT       *compName,char* op,SaAmfCSIDescriptorT* csiDescriptor);
-void HandleCsiChange(char* op, const SaNameT* compName, SaAmfCSIDescriptorT* csiDescriptor);
+ClRcT OperateOnAllCsis(const SaNameT       *compName,const char* op,SaAmfCSIDescriptorT* csiDescriptor);
+void HandleCsiChange(const char* op, const SaNameT* compName, SaAmfCSIDescriptorT* csiDescriptor);
 
 /* Local function declarations */
 
@@ -504,7 +504,7 @@ ClRcT GetVaiFromCsi(const SaNameT       *compName,const unsigned char* name, Vir
 {
     ClRcT rc;
     ClCpmCompCSIRefT csiRef = { 0 };
-    ClInt32T i;
+    unsigned int i;
     SaNameT saname;
 
     saNameFromSaName(&saname,compName);
@@ -546,11 +546,11 @@ ClRcT GetVaiFromCsi(const SaNameT       *compName,const unsigned char* name, Vir
 }
 
 
-ClRcT OperateOnAllCsis(const SaNameT *compName,char* op,SaAmfCSIDescriptorT* csiDescriptor)
+ClRcT OperateOnAllCsis(const SaNameT *compName,const char* op,SaAmfCSIDescriptorT* csiDescriptor)
 {    
     ClRcT rc;
     ClCpmCompCSIRefT csiRef = { 0 };
-    ClInt32T i;
+    unsigned int i;
     SaNameT saname;
 
     saNameFromSaName(&saname,compName);
@@ -586,7 +586,7 @@ ClRcT OperateOnAllCsis(const SaNameT *compName,char* op,SaAmfCSIDescriptorT* csi
     
 }
 
-void HandleCsiChange(char* op,const SaNameT* compName, SaAmfCSIDescriptorT* csiDescriptor)
+void HandleCsiChange(const char* op,const SaNameT* compName, SaAmfCSIDescriptorT* csiDescriptor)
 {
     
             if (csiDescriptor->csiFlags == CL_AMS_CSI_FLAG_TARGET_ALL)

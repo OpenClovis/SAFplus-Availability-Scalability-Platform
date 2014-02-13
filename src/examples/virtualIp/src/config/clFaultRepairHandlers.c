@@ -22,11 +22,3 @@
 /*
  * ---END_APPLICATION_CODE---
  */
-
-
-ClFaultRepairHandlerTableT gRepairHdlrList[] =
-{
-
-    {0,  (ClFaultRepairHandlerT) NULL}
-
-};
