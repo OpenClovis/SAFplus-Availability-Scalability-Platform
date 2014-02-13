@@ -35,7 +35,9 @@ extern "C"
 
 using namespace std;
 
+#ifdef SAFplus7
 #define clLog(...)
+#endif
 
 #ifdef MGT_ACCESS
 #define CL_IOC_MGT_NETCONF_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 1)

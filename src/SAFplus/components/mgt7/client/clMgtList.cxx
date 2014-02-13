@@ -31,7 +31,9 @@ extern "C"
 
 using namespace std;
 
+#ifdef SAFplus7
 #define clLog(...)
+#endif
 
 ClMgtList::ClMgtList(const char* name) :
         ClMgtObject(name)

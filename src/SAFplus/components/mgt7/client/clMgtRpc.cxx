@@ -29,7 +29,9 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
+#ifdef SAFplus7
 #define clLog(...)
+#endif
 
 ClMgtRpc::ClMgtRpc(const char* name) : mInParams(""), mOutParams("")
 {
