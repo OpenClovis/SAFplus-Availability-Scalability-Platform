@@ -14,3 +14,28 @@ struct:
 
 This is use for db.iterators()
 
+Mapping xpath with value in db 
+[/log/logConfigData/maximumStreams]  [256]
+[/log/logConfigData/maximumComponents] ->[256]
+[/log/logConfigData/maximumSharedMemoryPages] ->[50]
+[/log/logConfigData/maximumRecordsInPacket] ->[100]
+[/log/perennialStreamsData/stream[@name='appStream']/fileName] ->[app]
+[/log/perennialStreamsData/stream[@name='appStream']/fileLocation] ->[.:var/log]
+[/log/perennialStreamsData/stream[@name='appStream']/fileUnitSize] ->[1500000]
+[/log/perennialStreamsData/stream[@name='appStream']/recordSize] ->[300]
+[/log/perennialStreamsData/stream[@name='appStream']/fileFullAction] ->[ROTATE]
+[/log/perennialStreamsData/stream[@name='appStream']/maximumFilesRotated] ->[3]
+[/log/perennialStreamsData/stream[@name='appStream']/flushFreq] ->[20]
+[/log/perennialStreamsData/stream[@name='appStream']/flushInterval] ->[20000000]
+[/log/perennialStreamsData/stream[@name='appStream']/syslog] ->[no]
+[/log/perennialStreamsData/stream[@name='sysStream']/fileName] ->[sys]
+[/log/perennialStreamsData/stream[@name='sysStream']/fileLocation] ->[.:var/log]
+[/log/perennialStreamsData/stream[@name='sysStream']/fileUnitSize] ->[1500000]
+[/log/perennialStreamsData/stream[@name='sysStream']/recordSize] ->[300]
+[/log/perennialStreamsData/stream[@name='sysStream']/fileFullAction] ->[ROTATE]
+[/log/perennialStreamsData/stream[@name='sysStream']/maximumFilesRotated] ->[3]
+[/log/perennialStreamsData/stream[@name='sysStream']/flushFreq] ->[20]
+[/log/perennialStreamsData/stream[@name='sysStream']/flushInterval] ->[20000000]
+[/log/perennialStreamsData/stream[@name='sysStream']/syslog] ->[no]
+
+
