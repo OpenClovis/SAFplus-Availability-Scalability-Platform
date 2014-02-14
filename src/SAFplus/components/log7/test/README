@@ -1,0 +1,16 @@
+Those files is used for testing without SAFplus service:
+
+1. clLog.xml -> cfg of service Log
+
+2. clLog.db -> binary database  mapping hash xpath and value is generated from clLog.xml, 
+struct:
+| hash xpath | value
+--------------------
+
+3. clLog.idx -> binary database mapping hash xpath and xpath value is generated from clLog.xml, 
+struct:
+| hash xpath | xpath
+--------------------
+
+This is use for db.iterators()
+

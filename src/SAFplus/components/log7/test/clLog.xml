@@ -1,0 +1,32 @@
+<log>
+	<logConfigData>
+		<maximumStreams>256</maximumStreams>
+		<maximumComponents>256</maximumComponents>
+		<maximumSharedMemoryPages>100</maximumSharedMemoryPages>
+		<maximumRecordsInPacket>150</maximumRecordsInPacket>
+	</logConfigData>
+	<perennialStreamsData>
+		<stream name="appStream">
+			<fileName>app</fileName>
+			<fileLocation>.:var/log</fileLocation>
+			<fileUnitSize>1500000</fileUnitSize>
+			<recordSize>300</recordSize>
+			<fileFullAction>ROTATE</fileFullAction>
+			<maximumFilesRotated>3</maximumFilesRotated>
+			<flushFreq>20</flushFreq>
+			<flushInterval>20000000</flushInterval>
+			<syslog>no</syslog>
+		</stream>
+		<stream name="sysStream">
+			<fileName>sys</fileName>
+			<fileLocation>.:var/log</fileLocation>
+			<fileUnitSize>1500000</fileUnitSize>
+			<recordSize>300</recordSize>
+			<fileFullAction>ROTATE</fileFullAction>
+			<maximumFilesRotated>3</maximumFilesRotated>
+			<flushFreq>20</flushFreq>
+			<flushInterval>20000000</flushInterval>
+			<syslog>no</syslog>
+		</stream>
+	</perennialStreamsData>
+</log>
