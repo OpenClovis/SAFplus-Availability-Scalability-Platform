@@ -94,7 +94,7 @@ public:
      */
     void setValue(T value);
 
-    virtual std::string toString();
+    virtual void toString(std::stringstream& xmlString);
 
     /**
      * \brief   Virtual function to validate object data

@@ -7,7 +7,6 @@ CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
 
 # Management includes and libraries
 CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
-LINK_STD_LIBS +=   -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2
 
 COMPILE_CPP := g++ -g -O0 -fPIC -c $(CPP_FLAGS) -o
 LINK_SO     := g++ -g -shared -o 
@@ -30,7 +29,7 @@ $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 $(LIB_DIR)/clDbal7.so: $(SAFPLUS_DBAL_OBJ)
-	$(LINK_SO) $@  $+ $(LINK_STD_LIBS) -lpthread -lstdc++ -ldl -lrt -lm -lsqlite3
+	$(LINK_SO) $@  $+ -lsqlite3
 
 $(MWOBJ_DIR)/clDbalCfg.o: ../../dbal/client/clDbalCfg.c
 	$(COMPILE_C) $@ $<

@@ -61,7 +61,7 @@ public:
 
     virtual ~ClMgtProvList();
 
-    virtual std::string toString();
+    virtual void toString(std::stringstream& xmlString);
 
     /**
      * \brief   Virtual function to validate object data
@@ -120,14 +120,12 @@ std::string ClMgtProvList<T>::toStringItemAt(T &x)
 }
 
 template<class T>
-std::string ClMgtProvList<T>::toString()
+void ClMgtProvList<T>::toString(std::stringstream& xmlString)
 {
-    std::string strOut;
     for (unsigned int i = 0; i < Value.size(); i++)
     {
-        strOut += toStringItemAt(Value.at(i));
+        xmlString << toStringItemAt(Value.at(i));
     }
-    return strOut;
 }
 
 template<class T>
