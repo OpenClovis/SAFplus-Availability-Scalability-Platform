@@ -11,15 +11,17 @@
 #include "clMgtProv.hxx"
 #include <string>
 #include "Stream.hxx"
+#include "clCustomization.h"
 
 using namespace std;
+using namespace SAFplusI;
 
 namespace SAFplusLog {
 
     /* Apply MGT object factory */
     REGISTERIMPL(Stream, /SAFplusLog/StreamConfig/stream)
 
-    Stream::Stream(): ClMgtObject("stream"), name("name"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope") {
+    Stream::Stream(): ClMgtObject("stream"), name("name"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope"),fileBuffer(LogDefaultFileBufferSize),msgBuffer(LogDefaultMessageBufferSize),fp(NULL) {
         this->addChildObject(&name, "name");
         this->addChildObject(&fileName, "fileName");
         this->addChildObject(&fileLocation, "fileLocation");
@@ -32,9 +34,11 @@ namespace SAFplusLog {
         this->addChildObject(&syslog, "syslog");
         this->addChildObject(&streamScope, "streamScope");
         this->addKey("name");
+        //fileBuffer.prepare(LogDefaultFileBufferSize);
+        //msgBuffer.prepare(LogDefaultMessageBufferSize);
     };
 
-  Stream::Stream(string nameValue): ClMgtObject("stream"), name("name"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope"), fp(NULL) {
+  Stream::Stream(string nameValue): ClMgtObject("stream"), name("name"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope"), fileBuffer(LogDefaultFileBufferSize),msgBuffer(LogDefaultMessageBufferSize),fp(NULL) {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");

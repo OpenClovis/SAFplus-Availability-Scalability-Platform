@@ -12,6 +12,9 @@
 #include "clMgtObject.hxx"
 #include "NumLogs.hxx"
 #include "clMgtProv.hxx"
+#include "boost/asio.hpp"
+//#include <boost/iostreams/stream.hpp>
+#include "DoublingBuffer.hxx"
 #include <string>
 
 using namespace std;
@@ -211,6 +214,17 @@ namespace SAFplusLog {
 
       FILE* fp;  // If this stream will be output to a file on this node, this is pointer to that file handle.  Otherwise NULL
       int fileIdx;  // If the file is being rotated, this is the current file count.  i.e. file name is ("%s%d.log",fileName,fileIdx)
+      int fileSize; // Current length of the open file
+      //boost::asio::streambuf fileBuffer; //char* fileBuffer; // logs are spooled to this buffer and then written to the file all at once
+      //std::ostream fileStream;
+      //boost::asio::streambuf msgBuffer; //char* msgBuffer; // logs are spooled to this buffer and then written to the network as one packet
+      //std::ostream msgStream;
+      SAFplus::DoublingCharBuffer fileBuffer; // logs are spooled to this buffer and then written to the file all at once
+      SAFplus::DoublingCharBuffer msgBuffer;  // logs are spooled to this buffer and then written to the network as one packet
+      bool sendMsg;                               // Does this stream need to be sent to anyone else?
+      bool dirty;                             // Has this stream been changed?
+
+
       /* End custom code */
       
     };

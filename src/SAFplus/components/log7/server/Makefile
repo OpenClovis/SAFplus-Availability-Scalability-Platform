@@ -16,7 +16,7 @@ COMPILE_CPP := g++ -g -O0 -fPIC -c $(CPP_FLAGS) -o
 LINK_SO     := g++ -g -shared -o 
 LINK_EXE     := g++ -g -o 
 
-LOG_SERVER_H := $(wildcard *.hpp) $(wildcard ../../../include7/*.hpp) 
+LOG_SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
 LOG_SERVER_SRC := $(wildcard *.cxx)
 LOG_SERVER_OBJ := $(subst .cpp,.o, $(subst .cxx,.o,$(LOG_SERVER_SRC)))
 LOG_SERVER_OBJ := $(addprefix $(SAFPLUS_TARGET)/obj/,$(LOG_SERVER_OBJ))

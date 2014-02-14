@@ -2,6 +2,7 @@
 
 #include <clLogIpi.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/lexical_cast.hpp>
 #include <clGlobals.hpp>
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -62,6 +63,8 @@ void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg)
       return;
     }
 
+  strmCfg->dirty = true;  // We wrote something to this stream
+  
   if (strmCfg->syslog)  // output this log to syslog
     {
       syslog(logLevel2SyslogLevel(rec->severity),msg);
@@ -69,9 +72,49 @@ void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg)
 
   if (strmCfg->fp)  // If the file handle is non zero, write the log to that file.
     {
-      fputs(msg,strmCfg->fp);
-      // TO DO, need to fflush() this file handle after ALL the logs have been processed (do it in main outside of the loop).
+      strmCfg->fileBuffer += msg;
+      strmCfg->fileBuffer += "\n";
     }
+  if (strmCfg->sendMsg)
+    {
+      strmCfg->msgBuffer += msg;
+      strmCfg->msgBuffer += "\n";
+    }
+}
+
+void finishLogProcessing(LogCfg* cfg)
+{
+  ClMgtObjectMap::iterator iter;
+  ClMgtObjectMap::iterator end = cfg->streamConfig.end();
+  for (iter = cfg->streamConfig.begin(); iter != end; iter++)
+    {
+      vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) iter->second;
+        int temp = objs->size();
+        for(int i = 0; i < temp; i++)
+          {
+            Stream* s = (Stream*) (*objs)[i];
+            if (s->dirty)
+              {
+                if (s->fp)
+                  {
+                    //int sz = s->fileBuffer.size();
+                    //boost::asio::streambuf::const_buffers_type bufs = s->fileBuffer.data();
+                    //assert(sz == boost::asio::buffer_size(bufs));  // If the whole size is not the same as this one buffer I am confused about the API
+                    //fwrite(boost::asio::buffer_cast<const char*>(bufs),sizeof(char),boost::asio::buffer_size(bufs),s->fp);
+                    s->fileBuffer.fwrite(s->fp);                    
+                    fflush(s->fp);
+                    s->fileBuffer.consume();
+                  }
+                if (s->sendMsg)
+                  {
+                    // TODO: read checkpoint to determine who wants to hear about these logs and send the log message buffer to them.
+                    s->msgBuffer.consume();
+                  }
+  
+                s->dirty = false;
+              }
+          }
+    }  
 }
 
 // Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
@@ -90,14 +133,16 @@ void logInitializeStreams(LogCfg* cfg)
         {
           Stream* s = (Stream*) (*objs)[i];
           Dbg("Initializing stream %s file: %s location: %s\n", s->name.value().c_str(),s->fileName.value().c_str(),s->fileLocation.value().c_str());
-          std::string& str = s->fileLocation.value();
+          std::string& loc = s->fileLocation.value();
 
-#if 0 // Incomplete implementation
-          if (str[0] == ".")  // . for the location means 'this node'
+          if ((loc[0] == '.')&&(loc[1] == ':'))  // . for the location means 'this node'
             {
+              s->fileIdx = 0;  // TODO:  this index should be initialized by looking at log files currently in the directory and their modification dates.
+              std::string fname(loc.substr(2,-1) +  "/" + s->fileName.value() + boost::lexical_cast<std::string>(s->fileIdx) + ".log");
+              s->fp = fopen(fname.c_str(),"a");
+              Dbg("Opening file: %s %s\n", fname.c_str(), (s->fp) ? "OK":"FAILED");
               
             }
-#endif
         }      
     }
   
@@ -151,16 +196,17 @@ int main(int argc, char* argv[])
           clLogHeader->numRecords = 0; // No records left in the buffer
           clLogHeader->msgOffset = sizeof(LogBufferHeader); // All log messages consumed, so reset the offset.
           clientMutex.unlock(); // OK let the log clients back in
+          finishLogProcessing(cfg);
         }
 
       // Wait for more records
       if (serverSem.timed_lock(cfg->serverConfig.processingInterval))
-        {
+        {  // kicked awake
           Dbg("timed_wait TRUE\n");
         }
-      else
+      else  // Timed out
         {
-          Dbg("timed_wait FALSE\n");
+          //Dbg("timed_wait FALSE\n");
         }
     }
 }
