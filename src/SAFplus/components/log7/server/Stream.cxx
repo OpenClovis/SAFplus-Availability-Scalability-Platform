@@ -11,7 +11,7 @@
 #include "clMgtProv.hxx"
 #include <string>
 #include "Stream.hxx"
-#include "clCustomization.h"
+#include "clCustomization.hxx"
 
 using namespace std;
 using namespace SAFplusI;
