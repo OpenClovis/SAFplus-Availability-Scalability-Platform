@@ -25,7 +25,7 @@ LOG_SERVER_OBJ := $(addprefix $(SAFPLUS_TARGET)/obj/,$(LOG_SERVER_OBJ))
 all: $(SAFPLUS_TARGET)/bin/splogd
 
 $(SAFPLUS_TARGET)/bin/splogd: $(LOG_SERVER_OBJ) $(DEP_LIBS)
-	$(LINK_EXE) $@ $+ -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml
+	$(LINK_EXE) $@ $+ -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -L$(BOOST_DIR)/stage/lib/ -lboost_system
 
 $(SAFPLUS_TARGET)/obj/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	$(COMPILE_CPP) $@ $<

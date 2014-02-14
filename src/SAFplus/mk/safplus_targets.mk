@@ -10,3 +10,5 @@ $(LIB_DIR)/clOsal7.so:
 
 $(LIB_DIR)/clMgt7.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/client
+
+SAFplusSOs := $(LIB_DIR)/clUtils7.so $(LIB_DIR)/clOsal7.so $(LIB_DIR)/clMgt7.so $(LIB_DIR)/clLog.so 
