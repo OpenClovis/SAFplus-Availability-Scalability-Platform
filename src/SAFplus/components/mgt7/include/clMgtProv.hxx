@@ -57,7 +57,8 @@ public:
     ClMgtProv(const char* name);
     virtual ~ClMgtProv();
 
-    virtual std::string toString();
+    virtual void toString(std::stringstream& xmlString);
+    virtual std::string strValue();
 
     /**
      * \brief   Define basic assignment operator
@@ -145,12 +146,19 @@ ClMgtProv<T>::~ClMgtProv()
 {}
 
 template <class T>
-std::string ClMgtProv<T>::toString()
+void ClMgtProv<T>::toString(std::stringstream& xmlString)
+{
+    getDb();
+    xmlString << "<" << Name << ">" << Value << "</" << Name << ">";
+}
+
+template <class T>
+std::string ClMgtProv<T>::strValue()
 {
     getDb();
     std::stringstream ss;
-    ss << Value;
-    return "<" + Name + ">" + ss.str() + "</" + Name + ">";
+    ss <<  Value ;
+    return ss.str();
 }
 
 template <class T>

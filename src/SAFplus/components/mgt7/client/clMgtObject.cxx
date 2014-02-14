@@ -461,10 +461,7 @@ ClBoolT ClMgtObject::isKeysMatch(std::map<std::string, std::string> *keys)
         {
             string keyVal = static_cast<string>((*mapIndex).second);
 
-            std::stringstream xmlString;
-            itemKey->toString(xmlString);
-
-            if (keyVal.compare(xmlString.str()) != 0)
+            if (keyVal.compare(itemKey->strValue()) != 0)
             {
                 isMatch = CL_FALSE;
                 break;
@@ -527,6 +524,28 @@ std::string ClMgtObject::getFullXpath()
     {
         xpath.append("/").append(this->Name);
     }
+
+    if (Keys.size() > 0)
+    {
+        ClMgtObject *itemKey = getChildObject(Keys[0]);
+        xpath.append("[").append(Keys[0]).append("=");
+        if (itemKey)
+        {
+            xpath.append(strValue());
+        }
+
+        for(int i = 1; i< Keys.size(); i++)
+        {
+            itemKey = getChildObject(Keys[i]);
+            xpath.append(",").append(Keys[i]).append("=");
+            if (itemKey)
+            {
+                xpath.append(strValue());
+            }
+        }
+        xpath.append("]");
+    }
+
     return xpath;
 
 }

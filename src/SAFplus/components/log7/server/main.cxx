@@ -105,6 +105,10 @@ void logInitializeStreams(LogCfg* cfg)
 
 int main(int argc, char* argv[])
 {
+  /* Initialize mgt database  */
+  ClMgtDatabase *db = ClMgtDatabase::getInstance();
+  db->initializeDB("clLog");
+
   // Load logging configuration
   LogCfg* cfg = loadLogCfg();
   // Initialize

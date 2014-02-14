@@ -46,7 +46,8 @@ public:
     ClMgtStat(const char* name);
     virtual ~ClMgtStat();
 
-    virtual std::string toString();
+    virtual void toString(std::stringstream& xmlString);
+    virtual std::string strValue();
 
     /**
      * \brief   Virtual function to validate object data
@@ -79,11 +80,18 @@ ClMgtStat<T>::~ClMgtStat()
 {}
 
 template <class T>
-std::string ClMgtStat<T>::toString()
+void ClMgtStat<T>::toString(std::stringstream& xmlString)
 {
+    xmlString << "<" << Name << ">" << Value << "</" << Name << ">";
+}
+
+template <class T>
+std::string ClMgtStat<T>::strValue()
+{
+    getDb();
     std::stringstream ss;
-    ss << Value;
-    return "<" + Name + ">" + ss.str() + "</" + Name + ">";
+    ss <<  Value ;
+    return ss.str();
 }
 
 template <class T>

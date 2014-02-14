@@ -100,11 +100,7 @@ ClBoolT ClMgtList::isEntryExist(ClMgtObject* entry)
 
             if ((inputKey != NULL) && (itemKey))
             {
-                std::stringstream itemString, inputString;
-                itemKey->toString(itemString);
-                inputKey->toString(inputString);
-
-                if (inputString.str().compare(itemString.str()) != 0)
+                if (inputKey->strValue().compare(itemKey->strValue()) != 0)
                 {
                     itemFound = CL_FALSE;
                     break;
@@ -149,10 +145,7 @@ ClMgtObject* ClMgtList::findEntryByKeys(
             {
                 string keyVal = static_cast<string>((*mapIndex).second);
 
-                std::stringstream itemString;
-                itemKey->toString(itemString);
-
-                if (keyVal.compare(itemString.str()) != 0)
+                if (keyVal.compare(itemKey->strValue()) != 0)
                 {
                     itemFound = CL_FALSE;
                     break;

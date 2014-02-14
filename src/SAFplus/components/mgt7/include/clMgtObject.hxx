@@ -158,6 +158,7 @@ public:
      */
     virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
     virtual void toString(std::stringstream& xmlString);
+    virtual std::string strValue() {return "";}
 
     /**
      * \brief	Virtual function called from netconf server to set object data
