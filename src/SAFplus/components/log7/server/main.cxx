@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 {
   /* Initialize mgt database  */
   ClMgtDatabase *db = ClMgtDatabase::getInstance();
-  db->initializeDB("clLog");
+  db->initializeDB("SAFplusLog");
 
   // Load logging configuration
   LogCfg* cfg = loadLogCfg();

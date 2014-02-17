@@ -528,19 +528,19 @@ std::string ClMgtObject::getFullXpath()
     if (Keys.size() > 0)
     {
         ClMgtObject *itemKey = getChildObject(Keys[0]);
-        xpath.append("[").append(Keys[0]).append("=");
+        xpath.append("[@").append(Keys[0]).append("='");
         if (itemKey)
         {
-            xpath.append(strValue());
+            xpath.append(strValue()).append("'");
         }
 
         for(int i = 1; i< Keys.size(); i++)
         {
             itemKey = getChildObject(Keys[i]);
-            xpath.append(",").append(Keys[i]).append("=");
+            xpath.append(",@").append(Keys[i]).append("=");
             if (itemKey)
             {
-                xpath.append(strValue());
+                xpath.append(strValue()).append("'");
             }
         }
         xpath.append("]");

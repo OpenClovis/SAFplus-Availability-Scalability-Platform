@@ -28,26 +28,19 @@ Stream* createStreamCfg(const char* name, const char* filename, const char* loca
   return s;
 }
 
+/* Initialization code would load the configuration from the database rather than setting it by hand.
+ */
 LogCfg* loadLogCfg()
 {
-  //ClRcT rc = logCfg.loadModule();
-  //logCfg.initialize();
-
-
-  /* It is a valid and common use case to set (and read) configuration by hand as shown below.
-     But, normally initialization code would load the configuration from the database rather than setting it by hand.
-   */
-  logcfg.serverConfig.maximumStreams = 100U;
-  logcfg.serverConfig.maximumStreams = 10;  // ???
-  logcfg.serverConfig.maximumSharedMemoryPages = 1000;
-  logcfg.serverConfig.maximumRecordsInPacket = 1024*10;
-  logcfg.serverConfig.processingInterval = 1000;
-  
-  Stream* s = createStreamCfg("sys","sys",".:var/log",32*1024*1024, 2048, "ROTATE", 10, 200, 500, false, "GLOBAL");
+  //Stream* s = createStreamCfg("sys","sys",".:var/log",32*1024*1024, 2048, "ROTATE", 10, 200, 500, false, "GLOBAL");
+  Stream* s = new Stream();
+  s->setNameValue("sysStream");
   logcfg.streamConfig.addChildObject(s,"sys");
 
-  s = createStreamCfg("app","app",".:var/log",32*1024*1024, 2048, "ROTATE", 10, 200, 500, false, "GLOBAL");  
+  //s = createStreamCfg("app","app",".:var/log",32*1024*1024, 2048, "ROTATE", 10, 200, 500, false, "GLOBAL");
+  s = new Stream();
+  s->setNameValue("appStream");
   logcfg.streamConfig.addChildObject(s,"app");
-  
-  return &logcfg;   
+
+  return &logcfg;
 }

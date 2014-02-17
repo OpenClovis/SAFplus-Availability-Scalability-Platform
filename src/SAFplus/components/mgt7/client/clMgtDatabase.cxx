@@ -66,6 +66,13 @@ ClRcT ClMgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySiz
 
     std::string dbNameData = "";
 
+    if( (rc=clOsalInitialize(NULL)) != CL_OK ||
+        (rc=clHeapInit()) != CL_OK ||
+        (rc=clBufferInitialize(NULL)) != CL_OK)
+    {
+        return rc;
+    }
+
     /*Initialize dbal if not initialized*/
     rc = clDbalLibInitialize();
     if (CL_OK != rc)
