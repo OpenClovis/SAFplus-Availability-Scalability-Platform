@@ -2,7 +2,7 @@
 #include "logcfg.hxx"
 using namespace SAFplusLog;
 
-LogCfg::LogCfg():ClMgtObject("log")
+LogCfg::LogCfg():ClMgtObject("SAFplusLog")
 {
   this->addChildObject(&serverConfig, "serverConfig");
   this->addChildObject(&streamConfig, "streamConfig");
