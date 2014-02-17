@@ -34,12 +34,12 @@ LogCfg* loadLogCfg()
 {
   //Stream* s = createStreamCfg("sys","sys",".:var/log",32*1024*1024, 2048, "ROTATE", 10, 200, 500, false, "GLOBAL");
   Stream* s = new Stream();
-  s->setNameValue("sysStream");
+  s->setNameValue("sys");
   logcfg.streamConfig.addChildObject(s,"sys");
 
   //s = createStreamCfg("app","app",".:var/log",32*1024*1024, 2048, "ROTATE", 10, 200, 500, false, "GLOBAL");
   s = new Stream();
-  s->setNameValue("appStream");
+  s->setNameValue("app");
   logcfg.streamConfig.addChildObject(s,"app");
 
   return &logcfg;
