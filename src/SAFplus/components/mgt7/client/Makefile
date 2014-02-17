@@ -44,4 +44,4 @@ $(MWOBJ_DIR)/clovisSQLite.o: ../../dbal/plugins/sqlite/clovisSQLite.c
 	$(COMPILE_C) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/clMgt7.so $(MWOBJ_DIR)/*.o
+	rm -f $(LIB_DIR)/clMgt7.so $(LIB_DIR)/clDbal7.so $(MWOBJ_DIR)/*.o
