@@ -1,11 +1,12 @@
 <SAFplusLog>
-	<logConfigData>
+	<ServerConfig>
 		<maximumStreams>256</maximumStreams>
 		<maximumComponents>256</maximumComponents>
 		<maximumSharedMemoryPages>50</maximumSharedMemoryPages>
 		<maximumRecordsInPacket>100</maximumRecordsInPacket>
-	</logConfigData>
-	<perennialStreamsData>
+		<processingInterval>1500</processingInterval>
+	</ServerConfig>
+	<StreamConfig>
 		<stream name="appStream">
 			<fileName>app</fileName>
 			<fileLocation>.:var/log</fileLocation>
@@ -28,5 +29,5 @@
 			<flushInterval>20000000</flushInterval>
 			<syslog>no</syslog>
 		</stream>
-	</perennialStreamsData>
+	</StreamConfig>
 </SAFplusLog>
