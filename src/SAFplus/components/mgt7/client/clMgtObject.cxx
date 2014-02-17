@@ -531,7 +531,7 @@ std::string ClMgtObject::getFullXpath()
         xpath.append("[@").append(Keys[0]).append("='");
         if (itemKey)
         {
-            xpath.append(strValue()).append("'");
+            xpath.append(itemKey->strValue()).append("'");
         }
 
         for(int i = 1; i< Keys.size(); i++)
@@ -540,7 +540,7 @@ std::string ClMgtObject::getFullXpath()
             xpath.append(",@").append(Keys[i]).append("=");
             if (itemKey)
             {
-                xpath.append(strValue()).append("'");
+                xpath.append(itemKey->strValue()).append("'");
             }
         }
         xpath.append("]");

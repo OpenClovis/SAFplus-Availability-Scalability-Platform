@@ -155,7 +155,6 @@ void ClMgtProv<T>::toString(std::stringstream& xmlString)
 template <class T>
 std::string ClMgtProv<T>::strValue()
 {
-    getDb();
     std::stringstream ss;
     ss <<  Value ;
     return ss.str();
