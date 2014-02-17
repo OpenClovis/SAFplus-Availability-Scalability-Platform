@@ -1,9 +1,9 @@
-<log>
+<SAFplusLog>
 	<logConfigData>
 		<maximumStreams>256</maximumStreams>
 		<maximumComponents>256</maximumComponents>
-		<maximumSharedMemoryPages>100</maximumSharedMemoryPages>
-		<maximumRecordsInPacket>150</maximumRecordsInPacket>
+		<maximumSharedMemoryPages>50</maximumSharedMemoryPages>
+		<maximumRecordsInPacket>100</maximumRecordsInPacket>
 	</logConfigData>
 	<perennialStreamsData>
 		<stream name="appStream">
@@ -29,4 +29,4 @@
 			<syslog>no</syslog>
 		</stream>
 	</perennialStreamsData>
-</log>
+</SAFplusLog>
