@@ -153,6 +153,19 @@ def watchdog_driver(cmd):
 def main():
     check_py_version()
     safplus.import_os_adoption_layer()
+
+    try: # Make the run directory
+      os.makedirs(safplus.SAFPLUS_RUN_DIR)
+    except OSError, e:  # Already exists
+      import errno
+      if e.errno != errno.EEXIST: raise    
+
+    try:  # Make the logging directory
+      os.makedirs(safplus.SAFPLUS_LOG_DIR)
+    except OSError, e:  # Already exists
+      import errno
+      if e.errno != errno.EEXIST: raise    
+
     logging.basicConfig(filename='%s/amf_watchdog.log' % safplus.SAFPLUS_LOG_DIR, format='%(levelname)s %(message)s', level=logging.INFO)
     
     if len(sys.argv) >= 2:    
