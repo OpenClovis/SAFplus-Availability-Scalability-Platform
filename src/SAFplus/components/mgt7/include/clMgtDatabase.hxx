@@ -32,6 +32,7 @@
 #define CLMGTDATABASE_HXX_
 
 #include <string>
+#include <vector>
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,6 +56,7 @@ protected:
 
     ClBoolT mInitialized;
     ClDBHandleT mDbDataHdl;
+    ClDBHandleT mDbIterHdl;
 
 public:
     virtual ~ClMgtDatabase();
@@ -83,6 +85,11 @@ public:
      * \brief	Function to get record from Db
      */
     ClRcT getRecord(const std::string &key, std::string &value);
+
+    /**
+     * \brief   Function to return iterators match with xpath
+     */
+    std::vector<std::string> iterate(const std::string &xpath);
 
 };
 

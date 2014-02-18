@@ -65,6 +65,7 @@ ClRcT ClMgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySiz
     ClDBHandleT dbDataHdl = 0; /* Database handle*/
 
     std::string dbNameData = "";
+    std::string dbNameIdx = "";
 
     if( (rc=clOsalInitialize(NULL)) != CL_OK ||
         (rc=clHeapInit()) != CL_OK ||
@@ -89,6 +90,19 @@ ClRcT ClMgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySiz
     }
 
     mDbDataHdl = dbDataHdl;
+
+    /*
+     * Open the index DB
+     */
+    dbNameIdx.append(dbName).append(".idx");
+    rc = clDbalOpen(dbNameIdx.c_str(), dbNameIdx.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize, &dbDataHdl);
+    if (CL_OK != rc)
+    {
+        goto exitOnError;
+    }
+
+    mDbIterHdl = dbDataHdl;
+
     mInitialized = CL_TRUE;
     return rc;
 
@@ -107,6 +121,10 @@ ClRcT ClMgtDatabase::finalizeDB()
     /* Close the data DB */
     clDbalClose (mDbDataHdl);
     mDbDataHdl = 0;
+
+    /* Close the index DB */
+    clDbalClose (mDbIterHdl);
+    mDbIterHdl = 0;
 
     /*Finalize dbal */
     clDbalLibFinalize();
@@ -155,3 +173,55 @@ ClRcT ClMgtDatabase::getRecord(const std::string &key, std::string &value)
     return rc;
 }
 
+std::vector<std::string> ClMgtDatabase::iterate(const std::string &xpath)
+{
+    ClUint32T   keySize         = 0;
+    ClUint32T   dataSize        = 0;
+    ClUint32T   nextKeySize     = 0;
+    ClUint32T   *recKey           = NULL;
+    ClUint32T   *nextKey        = NULL;
+    ClCharT     *recData          = NULL;
+    ClRcT rc = CL_OK;
+
+    std::vector<std::string> iter;
+
+    /*
+     * Iterators key value
+     */
+    rc = clDbalFirstRecordGet(mDbIterHdl, (ClDBKeyT*)&recKey, &keySize, (ClDBRecordT*)&recData, &dataSize);
+    if (rc != CL_OK)
+    {
+        return iter;
+    }
+
+    std::string value(recData, dataSize);
+
+    /*
+     * Compare if key match xpath
+     */
+    if (!value.compare(0, xpath.length(), xpath))
+        iter.push_back(value);
+
+    while (1)
+    {
+        if ((rc = clDbalNextRecordGet(mDbIterHdl, (ClDBKeyT)recKey, keySize,
+                        (ClDBKeyT*)&nextKey, &nextKeySize,
+                        (ClDBRecordT*)&recData, &dataSize)) != CL_OK)
+        {
+            rc = CL_OK;
+            break;
+        }
+        recKey = nextKey;
+        keySize = nextKeySize;
+
+        value.clear();
+        value.append(recData, dataSize);
+
+        /*
+         * Compare if key match xpath
+         */
+        if (!value.compare(0, xpath.length(), xpath))
+            iter.push_back(value);
+    }
+    return iter;
+}
