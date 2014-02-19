@@ -31,23 +31,14 @@
 #ifndef CLMGTSTAT_HXX_
 #define CLMGTSTAT_HXX_
 
-#include "clMgtObject.hxx"
+#include "clMgtProv.hxx"
 
 template <class T>
-class ClMgtStat : public ClMgtObject
+class ClMgtStat : public ClMgtProv<T>
 {
-public:
-    /**
-     *  Value of the "ClMgtProv" object
-     */
-    T		Value;
-
 public:
     ClMgtStat(const char* name);
     virtual ~ClMgtStat();
-
-    virtual void toString(std::stringstream& xmlString);
-    virtual std::string strValue();
 
     /**
      * \brief   Virtual function to validate object data
@@ -72,27 +63,12 @@ public:
  */
 
 template <class T>
-ClMgtStat<T>::ClMgtStat(const char* name) : ClMgtObject(name)
+ClMgtStat<T>::ClMgtStat(const char* name) : ClMgtProv<T>(name)
 {}
 
 template <class T>
 ClMgtStat<T>::~ClMgtStat()
 {}
-
-template <class T>
-void ClMgtStat<T>::toString(std::stringstream& xmlString)
-{
-    xmlString << "<" << Name << ">" << Value << "</" << Name << ">";
-}
-
-template <class T>
-std::string ClMgtStat<T>::strValue()
-{
-    getDb();
-    std::stringstream ss;
-    ss <<  Value ;
-    return ss.str();
-}
 
 template <class T>
 ClBoolT ClMgtStat<T>::validate( void *pBuffer, ClUint64T buffLen, ClTransaction& t)
