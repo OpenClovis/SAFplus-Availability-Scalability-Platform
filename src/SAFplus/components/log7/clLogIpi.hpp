@@ -20,18 +20,19 @@ namespace SAFplusI
     };
     
 
-    class LogBufferHeader
-    {
-    public:
-        uint64_t structId;
-        uint_t numRecords;
-        uint_t msgOffset;
+  class LogBufferHeader
+  {
+  public:
+    uint64_t structId;
+    pid_t    serverPid;  // This is used to ensure that 2 servers don't fight for the logs...
+    uint_t numRecords;
+    uint_t msgOffset;
 
     LogBufferHeader()
-        {
-        }
+    {
+    }
     
-    };
+  };
 
     class LogBufferEntry
     {

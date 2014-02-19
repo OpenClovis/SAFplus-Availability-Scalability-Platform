@@ -51,4 +51,6 @@ public:
     void clean();
 };
 
+extern ClTransaction NO_TXN;
+
 #endif /* CLMGTTRANSACTION_HXX_ */

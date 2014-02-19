@@ -18,6 +18,13 @@ namespace SAFplusI
         LogDefaultMessageBufferSize = 16*1024,
     };
 
+    /* CHECKPOINT */
+    enum
+    {
+        CkptMinSize = 4*1024,
+        CkptDefaultSize = 64*1024,
+    };
+
 
 
 };

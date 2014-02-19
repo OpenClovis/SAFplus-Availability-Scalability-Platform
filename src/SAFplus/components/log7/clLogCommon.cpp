@@ -22,6 +22,11 @@ LogBufferHeader* clLogHeader;
 SAFplus::ProcSemT clientMutex("LogClientMutex",1);
 SAFplus::ProcSemT serverSem("LogServerSem",0);
 
+  // Even if not explicitly used in the code, this API is used during dev
+void logCleanupSharedMem()
+  {
+    shared_memory_object::remove("SAFplusLog");
+  }
 
 void logInitializeSharedMem()
 {

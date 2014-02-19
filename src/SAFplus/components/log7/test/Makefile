@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_LOG_TEST:=1  # Identify what is being built, so safplus_targets does not override
 include ../../../mk/preface.mk
 
 CLIENT_H := $(wildcard *.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp) 

@@ -9,36 +9,36 @@
 namespace SAFplus
 {
 
-typedef  enum 
+  typedef  enum 
     {
       PointerHandle,
       TransientHandle,
       PersistentHandle
     } HandleType;
 
-class HandleT
-{
-public:
+  class HandleT
+  {
+  public:
 
-  uint64_t id[2];
-public:
-  bool operator == (const HandleT& other)
-  {
-    return ((id[0] == other.id[0])&&(id[1]==other.id[1]));
-  }
-  HandleT(HandleType t,uint64_t idx, uint16_t process=0xffff,uint16_t node=0xffff,uint_t clusterId=0xfff)
-  {
-    // TODO: add all handle formats
-    if (t==PersistentHandle)
-      {
-        id[0]=idx;  // TODO: change to proper handle format as per docs
-      }
-    else
-      {
-        assert(0);
-      }
-  }
-};
+    uint64_t id[2];
+  public:
+    bool operator == (const HandleT& other)
+    {
+      return ((id[0] == other.id[0])&&(id[1]==other.id[1]));
+    }
+    HandleT(HandleType t,uint64_t idx, uint16_t process=0xffff,uint16_t node=0xffff,uint_t clusterId=0xfff)
+    {
+      // TODO: add all handle formats
+      if (t==PersistentHandle)
+	{
+	  id[0]=idx;  // TODO: change to proper handle format as per docs
+	}
+      else
+	{
+	  assert(0);
+	}
+    }
+  };
 
   class WellKnownHandleT:public HandleT
   {
@@ -50,6 +50,7 @@ public:
 
   // Well Known IDs
 
+  const WellKnownHandleT INVALID_HDL(0,0);
   const WellKnownHandleT SYS_LOG(1,0);
   const WellKnownHandleT APP_LOG(2,0);
   const WellKnownHandleT LOG_STREAM_CKPT(3,0,0);  // The checkpoint that matches log stream names to data

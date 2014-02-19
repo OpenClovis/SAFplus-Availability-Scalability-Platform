@@ -9,4 +9,4 @@ clean:
 
 include ../mk/safplus_targets.mk
 
-all: $(SAFplusSOs)
+all: $(SAFplusSOs)  $(SAFplusServices) $(SAFplusTests) 

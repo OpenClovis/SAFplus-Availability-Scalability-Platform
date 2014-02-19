@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_LOG_SERVER:=1  # Identify what is being built, so safplus_targets does not override
 include ../../../mk/preface.mk
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
