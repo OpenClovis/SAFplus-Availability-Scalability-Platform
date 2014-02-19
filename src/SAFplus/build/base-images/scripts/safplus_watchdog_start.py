@@ -24,8 +24,11 @@ import logging
 import signal 
 import safplus_watchdog
 import commands
-#import pdb
+# import pdb
 
+RemovePersistentDb = False
+TipcSettings=None
+ 
 def get_watchdog_pid():
     p = '%s/safplus_watchdog.py' % safplus.SAFPLUS_ETC_DIR
     cmd = safplus.get_pid_cmd(p)
@@ -92,11 +95,14 @@ def set_ld_library_paths():
     os.putenv('LD_LIBRARY_PATH', v)
 
 def start_watchdog():
+    global TipcSettings
     # check whether watchdog exist 
     watchdog_pid = get_watchdog_pid()
     if not watchdog_pid:
-        logging.info("Loading TIPC ")
-        safplus_tipc.load_config_tipc_module()
+        if TipcSettings=='enforce': 
+          safplus_tipc.unload_tipc_module()
+        if TipcSettings!='ignore': 
+          safplus_tipc.load_config_tipc_module()
         set_ld_library_paths()
 
         # setsid <prog> & daemonizes...
@@ -123,17 +129,39 @@ def saf_zap():
 
 def watchdog_usage():
     print
-    print 'Usage : %s { start | stop | restart | status | zap | help }' %\
+    print 'Usage : %s { start | stop | restart | status | zap | help } ' %\
           os.path.splitext(os.path.basename(sys.argv[0]))[0]
     print
+    print
+    print 'options can be one of the following : (these '\
+          'options only work with start command, '\
+          'e.g. etc/init.d/asp start -v etc.)'
+    print
+
+    l = ( ('-v', 'Be verbose'),
+          ('--enforce-tipc-settings',
+           'Use etc/asp.conf\'s TIPC settings '
+           'overriding the system TIPC settings'),
+          ('--ignore-tipc-settings',
+           'Use systems TIPC settings '
+           'ignoring the etc/asp.conf\'s settings'),
+          ('--remove-persistent-db',
+           'Delete all of the ASP persistent database files'),
+          ('--log-level <level>',
+           'Start ASP with particular log level. <level> is '
+           '[trace|debug|info|notice|warning|error|critical]')
+        )
+
+    for o, h in l:
+        print '%-30s: %s' % (o, h)
 
 def check_py_version():
     min_req_version = (2, 3, 4)
 
     if sys.version_info < min_req_version:
-        log.critical('This script requires python version %s '\
+        logging.critical('This script requires python version %s '\
                      'or later' % '.'.join(map(str, min_req_version)))
-        log.critical('You have python version %s' %\
+        logging.critical('You have python version %s' %\
                      '.'.join(map(str, sys.version_info[0:3])))
         sys.exit(1)
 
@@ -150,30 +178,73 @@ def watchdog_driver(cmd):
     else:
         safplus.fail_and_exit('Command [%s] not found !!' % cmd)
 
-def main():
+
+def parse_command_line(args):
+    global RemovePersistentDb,TipcSettings
+    import getopt
+    optdict = {}
+    try:
+        opts, args = getopt.getopt(args, 'v', ['enforce-tipc-settings', 'ignore-tipc-settings', 'remove-persistent-db', 'log-level=',
+                                   ])
+    except getopt.GetoptError, e:
+        print 'Command line parsing failed, error [%s]' % e
+        usage()
+        sys.exit(1)
+
+    for o, a in opts:
+        if o == '-v':
+            logging.getLogger().setLevel(logging.DEBUG)
+            #for h in logging.handlers:
+            #    h.setLevel(logging.DEBUG)
+        elif o == '--enforce-tipc-settings':
+            TipcSettings='enforce'
+            logging.info("tipc settings is 'enforce'")
+        elif o == '--ignore-tipc-settings':
+            TipcSettings='ignore'
+            logging.info("tipc settings is 'ignore'")
+        elif o == '--remove-persistent-db':
+            RemovePersistentDb=True
+            os.putenv('SAFPLUS_REMOVE_DB', 'TRUE')
+        elif o == '--log-level':
+            l = ['trace', 'debug',
+                 'info', 'notice',
+                 'warning', 'error',
+                 'critical']
+            if a.lower() in l:
+                logging.info('SAFplus log level is [%s]' % a.lower())
+                log_level = a.upper()
+                os.putenv('CL_LOG_SEVERITY', log_level)
+            else:
+                logging.critical('Invalid SAFplus log level [%s]' % a)
+                usage()
+                sys.exit(1)
+    return optdict
+
+def mkdir(d):
+    try: # Make the directory
+      os.makedirs(d)
+    except OSError, e:  # Already exists
+      import errno
+      if e.errno != errno.EEXIST: raise    
+
+
+def main(argv):
     check_py_version()
-    safplus.import_os_adoption_layer()
+    safplus.import_os_adaption_layer()
 
-    try: # Make the run directory
-      os.makedirs(safplus.SAFPLUS_RUN_DIR)
-    except OSError, e:  # Already exists
-      import errno
-      if e.errno != errno.EEXIST: raise    
+    logging.basicConfig(format='%(levelname)s %(message)s', level=logging.WARNING)
+    if sys.argv[1] == 'help' :
+      watchdog_usage() 
+      return 1
+    parse_command_line(argv[2:])
+    if RemovePersistentDb:
+      shutil.rmtree(safplus.SAFPLUS_DB_DIR,ignore_errors=True)
 
-    try:  # Make the logging directory
-      os.makedirs(safplus.SAFPLUS_LOG_DIR)
-    except OSError, e:  # Already exists
-      import errno
-      if e.errno != errno.EEXIST: raise    
+    mkdir(safplus.SAFPLUS_RUN_DIR)
+    mkdir(safplus.SAFPLUS_LOG_DIR)
+    mkdir(safplus.SAFPLUS_DB_DIR)
 
-    logging.basicConfig(filename='%s/amf_watchdog.log' % safplus.SAFPLUS_LOG_DIR, format='%(levelname)s %(message)s', level=logging.INFO)
-    
-    if len(sys.argv) >= 2:    
-        if sys.argv[1] == 'help' :
-            watchdog_usage() 
-            sys.exit(1)  
-
-    watchdog_driver(sys.argv[1])
+    watchdog_driver(argv[1])
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)

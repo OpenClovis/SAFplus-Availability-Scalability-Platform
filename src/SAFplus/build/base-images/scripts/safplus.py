@@ -24,7 +24,8 @@ import re
 import glob
 import commands
 import subprocess
-#import pdb
+import pdb
+import logging
 
 AmfName = "safplus_amf"
 os_platform = None
@@ -34,11 +35,13 @@ SAFPLUS_STOP_FILE    = 'safplus_stop'     # File in created while SAF is gracefu
 SAFPLUS_STATUS_FILE  = 'safplus_state'    # File to contain the status of SAFplus in form of int in location sandbox_dir/var/run
                                           # 0 -> running, 1 -> not running, 2 -> booting/shutting down.
 SystemErrorNoSuchFileOrDir = 127
-SAFPLUS_SHUTDOWN_WAIT_TIMEOUT  = 30
+SAFPLUS_SHUTDOWN_WAIT_TIMEOUT  = 10
 
 SAF_AMF_START_CMD_CHASSIS    = '-c'        # tag for Chassi number in start command
 SAF_AMF_START_CMD_LOCAL_SLOT = '-l'        # tag for Slot number in start command
 SAF_AMF_START_CMD_NODE_NAME  = '-n'        # tag for Node Name in start command
+
+log = logging
 
 def get_sandbox_dir():
     p = os.path.dirname(os.path.realpath(__file__))
@@ -48,7 +51,7 @@ def get_sandbox_dir():
 # Global variable to store sandbox directory
 sandbox_dir = get_sandbox_dir()
 
-def import_os_adoption_layer():
+def import_os_adaption_layer():
     global os_platform
     def on_platform(p):
         return p in sys.platform
@@ -98,8 +101,8 @@ def touch(f):
 def safe_remove(f):
     try:
         os.remove(f)
-    except:
-        print "exception while removing %s" %f
+    except Exception, e:
+        log.debug("Exception %s while removing %s" % (str(e),f))
         os.system('rm -f %s' %f)
 
 def remove_stop_file():
@@ -151,8 +154,6 @@ def is_system_controller(): return safplus_getenv('SYSTEM_CONTROLLER')
 def is_simulation(): return safplus_getenv('ASP_SIMULATION', default='0')
    
 def is_tipc_build(): return safplus_getenv('BUILD_TIPC', default='1')
-
-def remove_persistent_db(): return 1 #'remove_persistent_db' in safplus_env
 
 def save_previous_logs(): return int(safplus_getenv('ASP_SAVE_PREV_LOGS', default='0'))
 
@@ -545,7 +546,7 @@ def save_safplus_runtime_files():
         rm_runtime_files()
         save_cores()
             
-    if remove_persistent_db():
+    if 0: # remove_persistent_db:  This is removed during the initial startup (but should it be removed whenever the AMF is restarted?)
         safplus_db_dir = SAFPLUS_DB_DIR
         cmd = 'rm -rf %s/*' % safplus_db_dir
         execute_shell_cmd(cmd, 'Failed to delete [%s]' % safplus_db_dir)
@@ -573,6 +574,7 @@ def start_amf():
                                 SAF_AMF_START_CMD_LOCAL_SLOT, get_safplus_node_addr(),\
                                 SAF_AMF_START_CMD_NODE_NAME, get_safplus_node_name()],\
                                 stdout=log_file, stderr=log_file, shell=False)
+    return process
 
 def cleanup_and_start_ams():
     try:
@@ -586,14 +588,15 @@ def cleanup_and_start_ams():
             start_snmp_daemon()
 
         run_custom_scripts('start')
-        start_amf()
+        process = start_amf()
 
         if is_system_controller() and not is_simulation():
             start_hpi_subagent()
         if not is_simulation():
             start_led_controller()
-    except:
-        raise Exception
+        return process
+    except Exception, e:
+        raise e
 
 def start_openhpid(stop_watchdog=False):
     try:
@@ -646,7 +649,7 @@ def get_amf_pid():
 
 def stop_amf():
     stopFile = SAFPLUS_RUN_DIR + '/' + SAFPLUS_STOP_FILE 
-    touch(stopFile)    # create 'safplus_stop' file to indicate gracefull shutdown of SAFplus_AMF
+    touch(stopFile)    # create 'safplus_stop' file to indicate graceful shutdown of SAFplus_AMF
 
     def wait_for_safplus_shutdown():
         t = SAFPLUS_SHUTDOWN_WAIT_TIMEOUT
@@ -659,15 +662,18 @@ def stop_amf():
     amf_pid = get_amf_pid()
     if amf_pid == 0:
         log.warning('SAFplus is not running on node [%s]. Cleaning up anyway...' % get_safplus_node_addr())
+        kill_amf()
+        run_custom_scripts('stop')
     else:
         log.info('Stopping SAFplus AMF...')
         os.kill(amf_pid, signal.SIGINT)
-        log.info('SAFplus is running with pid: %d' % amf_pid)
+        log.debug('SAFplus is running with pid: %d' % amf_pid)
+        log.info('Waiting for SAFplus AMF to shutdown...')
+        wait_for_safplus_shutdown()
+        amf_pid = get_amf_pid()
+        if amf_pid: kill_amf()
+        run_custom_scripts('stop')
 
-    log.info('Waiting for SAFplus AMF to shutdown...')
-    wait_for_safplus_shutdown()
-    run_custom_scripts('stop')
-    kill_amf()
 
     if not is_simulation():
         unload_tipc_module()
@@ -685,6 +691,7 @@ def cleanup_safplus():
       raise
 
 def kill_amf():
+    log.info('Killing SAFplus...')
     b = SAFPLUS_BIN_DIR
 
     if is_valgrind_build():
@@ -767,13 +774,13 @@ def is_amf_running():
 def get_safplus_status(to_shell=True):
     v = is_amf_running()
     if v == 0:
-        log.info('SAFplus is running on node [%s], pid [%s]' % (get_safplus_node_addr(), get_amf_pid() ))
+        print 'SAFplus is running on node [%s], pid [%s]' % (get_safplus_node_addr(), get_amf_pid() )
     elif v == 1:
-        log.info('SAFplus is not running on node [%s]' % get_safplus_node_addr())
+        print 'SAFplus is not running on node [%s]' % get_safplus_node_addr()
     elif v == 2:
-        log.info('SAFplus is booting up/shutting down')
+        print 'SAFplus is booting up/shutting down'
     elif v == 3:
-        log.info('SAFplus is running with pid [%s], but it was not started from this sandbox [%s].' % (get_amf_pid(), sandbox_dir))
+        print 'SAFplus is running with pid [%s], but it was not started from this sandbox [%s].' % (get_amf_pid(), sandbox_dir)
 
     if to_shell:
         sys.exit(v)
@@ -787,7 +794,7 @@ def get_pid_cmd(p):
 def main():
     start_asp()
 
-log = init_log()
+# log = init_log()  # Note, this logging config is interesting, but the users of this lib should call init_log to configure it... going with simplicity right now
 put_safplus_config()    # load evn variables related to SAF execution
 
 if __name__ == '__main__':

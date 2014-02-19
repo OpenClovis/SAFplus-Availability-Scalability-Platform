@@ -22,9 +22,10 @@ import sys
 import signal
 import time
 import logging
+import subprocess
 #import pdb
 
-SAFPLUS_POLL_INTERVAL = 30  # How long to delay for watchdog to check for the presene of SAFplus_AMF. If SAFplus_AMF is not running and safplus_stop file is not present, watchdog will start SAFplus_AMF
+SAFPLUS_POLL_INTERVAL = 10  # How long to delay for watchdog to check for the presene of SAFplus_AMF. If SAFplus_AMF is not running and safplus_stop file is not present, watchdog will start SAFplus_AMF
 
 def wdSleep(amt):
     """Sleep and refuse to let anything kick me awake"""
@@ -39,36 +40,49 @@ def wdSleep(amt):
         except:
           pass
 
-def start_ams():
-    safplus.cleanup_and_start_ams()
-
 def watchdog_loop():
     run_dir = safplus.SAFPLUS_RUN_DIR
     reboot_file  = run_dir + '/' + safplus.SAFPLUS_REBOOT_FILE
     stop_file    = run_dir + '/' + safplus.SAFPLUS_STOP_FILE
     safplus.safe_remove(reboot_file)
     safplus.remove_stop_file()
+    amfproc = None
 
     while True:
         try:
-            pid = safplus.get_amf_pid()
-            if pid == 0:
+            #pid = safplus.get_amf_pid()
+            #if pid == 0:
+            if not amfproc:
                 if os.path.isfile(stop_file):   # Kill watchdog if stop file exists        
-                    print "Stop file exists: SAFplus is stopping"
+                    logging.info("Stop file exists: SAFplus is stopping")
                     return
                 else:                           # Restart AMF if stop file not found
-                    print "Stop file not found: Starting AMF from Watchdog"
-                    if not safplus_tipc.is_tipc_loaded():
-                        safplus_tipc.load_config_tipc_module()
-                    start_ams()
-            wdSleep(SAFPLUS_POLL_INTERVAL)
+                    logging.info("Stop file not found: Starting AMF from watchdog")
+                    safplus.kill_amf()  # when AMF dies, kill all its children to make sure there are no orphaned processes hanging around.  This only kills binaries in the bin directory, rather than all children...
+                    amfproc = safplus.cleanup_and_start_ams()
+            # Python 3:
+#            try:
+#              Python 3: amfproc.wait(SAFPLUS_POLL_INTERVAL)
+#              del amfproc
+#              amfproc = None
+#            except subprocess.TimeoutExpired, e:
+#              pass
+
+#            if amfproc.poll():
+#              del amfproc
+#              amfproc = None
+#            wdSleep(SAFPLUS_POLL_INTERVAL)
+            amfproc.wait() 
+            del amfproc
+            amfproc = None
+
         except Exception, e:
-            print "Exception %s" % str(e)
-            pass 
+            print "Exception: %s" % str(e)
+            time.sleep(5)
 
 def main():
-    safplus.import_os_adoption_layer()
-    logging.basicConfig(filename='%s/amf_watchdog.log' % safplus.SAFPLUS_LOG_DIR, format='%(levelname)s %(message)s', level=logging.INFO)
+    safplus.import_os_adaption_layer()
+    logging.basicConfig(filename='%s/amf_watchdog.log' % safplus.SAFPLUS_LOG_DIR, format='%(levelname)s %(message)s', level=logging.DEBUG)
     watchdog_loop()
 
 if __name__ == '__main__':

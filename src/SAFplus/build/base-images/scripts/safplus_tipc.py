@@ -27,6 +27,8 @@ import glob
 import commands
 #import pdb
 
+log = logging
+
 def system(cmd)   : return safplus.system(cmd)
 
 def Popen(cmd)    : return safplus.Popen(cmd)
@@ -236,7 +238,7 @@ def load_config_tipc_module():
         log.debug("skipping tipc: plugin not built")
         return
         
-    logging.debug("load tipc")
+    logging.info("Loading TIPC")
 
     def is_tipc_netid_defined():
         return get_safplus_tipc_netid() != 'undefined'
