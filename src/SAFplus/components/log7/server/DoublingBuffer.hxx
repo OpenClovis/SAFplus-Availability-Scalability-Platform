@@ -1,3 +1,6 @@
+#pragma once
+#include <algorithm>
+
 namespace SAFplus
 {
 
@@ -31,7 +34,7 @@ namespace SAFplus
 
     DoublingBuffer<T>& append (const T* items,int nItems)
     {
-      if (curSize+nItems >= maxSize) resize(max(maxSize*2,curSize+nItems));
+      if (curSize+nItems >= maxSize) resize(std::max(maxSize*2,curSize+nItems));
       if (curSize < maxSize)
         {
           memcpy(&buf[curSize],items,nItems*sizeof(T));

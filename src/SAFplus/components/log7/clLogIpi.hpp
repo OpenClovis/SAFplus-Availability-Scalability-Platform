@@ -25,9 +25,9 @@ namespace SAFplusI
   public:
     uint64_t structId;
     pid_t    serverPid;  // This is used to ensure that 2 servers don't fight for the logs...
-    uint_t numRecords;
-    uint_t msgOffset;
-
+    uint_t   numRecords;
+    uint_t   msgOffset;
+    uint_t   extra[12];  // Expansion space so new fields can be added but old versions can still read the shared memory
     LogBufferHeader()
     {
     }

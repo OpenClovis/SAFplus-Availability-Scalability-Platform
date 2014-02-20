@@ -1,0 +1,7 @@
+These Yang files describe the configuration and statistics for services available through SAFplus.
+
+C++ software the represents these Yang files can be regenerated using the management add-on product in the following manner:
+
+export PYANG_PLUGINPATH=<mgt repository>/pyplugin
+# <mgt repository>/3rdparty/pyang/bin/pyang --path=`pwd` -f y2cpp <your file>.yang --y2cpp-output ~/tmp/ --y2cpp-mgt <mgt repository>
+

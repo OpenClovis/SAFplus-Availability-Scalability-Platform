@@ -12,14 +12,15 @@
 #include "clMgtObject.hxx"
 #include "NumLogs.hxx"
 #include "clMgtProv.hxx"
-#include "boost/asio.hpp"
-//#include <boost/iostreams/stream.hpp>
-#include "DoublingBuffer.hxx"
 #include <string>
 
-using namespace std;
+#include "boost/asio.hpp"
+#include "DoublingBuffer.hxx"
 
 namespace SAFplusLog {
+
+    enum FileFullActionOption { ROTATE, WRAP, HALT };
+    enum StreamScopeOption { GLOBAL, LOCAL };
 
     class Stream : public ClMgtObject {
 
@@ -31,17 +32,17 @@ namespace SAFplusLog {
         /*
          * Name of the stream
          */
-        ClMgtProv<string> name;
+        ClMgtProv<std::string> name;
 
         /*
          * Output file name
          */
-        ClMgtProv<string> fileName;
+        ClMgtProv<std::string> fileName;
 
         /*
          * Node and directory where the file is to be output
          */
-        ClMgtProv<string> fileLocation;
+        ClMgtProv<std::string> fileLocation;
 
         /*
          * Maximum size of a log file
@@ -56,7 +57,7 @@ namespace SAFplusLog {
         /*
          * Action to take when the log file is full
          */
-        ClMgtProv<string> fileFullAction;
+        ClMgtProv<int> fileFullAction;
 
         /*
          * If fileFullAction is ROTATE, this field indicates the number of files to rotate.
@@ -81,123 +82,123 @@ namespace SAFplusLog {
         /*
          * Is this log stream available across the entire cluster, or just available on the node?
          */
-        ClMgtProv<string> streamScope;
+        ClMgtProv<int> streamScope;
 
     public:
         Stream();
-        Stream(string nameValue);
-        vector<string> getKeys();
-        vector<string> *getChildNames();
+        Stream(std::string nameValue);
+        std::vector<std::string> getKeys();
+        std::vector<std::string> *getChildNames();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/name
          */
-        string getNameValue();
+        std::string getName();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/name
          */
-        void setNameValue(string nameValue);
+        void setName(std::string nameValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/fileName
          */
-        string getFileNameValue();
+        std::string getFileName();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/fileName
          */
-        void setFileNameValue(string fileNameValue);
+        void setFileName(std::string fileNameValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/fileLocation
          */
-        string getFileLocationValue();
+        std::string getFileLocation();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/fileLocation
          */
-        void setFileLocationValue(string fileLocationValue);
+        void setFileLocation(std::string fileLocationValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/fileUnitSize
          */
-        unsigned long int getFileUnitSizeValue();
+        unsigned long int getFileUnitSize();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/fileUnitSize
          */
-        void setFileUnitSizeValue(unsigned long int fileUnitSizeValue);
+        void setFileUnitSize(unsigned long int fileUnitSizeValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/recordSize
          */
-        unsigned long int getRecordSizeValue();
+        unsigned long int getRecordSize();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/recordSize
          */
-        void setRecordSizeValue(unsigned long int recordSizeValue);
+        void setRecordSize(unsigned long int recordSizeValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/fileFullAction
          */
-        string getFileFullActionValue();
+        FileFullActionOption getFileFullAction();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/fileFullAction
          */
-        void setFileFullActionValue(string fileFullActionValue);
+        void setFileFullAction(FileFullActionOption fileFullActionValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/maximumFilesRotated
          */
-        unsigned int getMaximumFilesRotatedValue();
+        unsigned int getMaximumFilesRotated();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/maximumFilesRotated
          */
-        void setMaximumFilesRotatedValue(unsigned int maximumFilesRotatedValue);
+        void setMaximumFilesRotated(unsigned int maximumFilesRotatedValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/flushFreq
          */
-        unsigned int getFlushFreqValue();
+        unsigned int getFlushFreq();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/flushFreq
          */
-        void setFlushFreqValue(unsigned int flushFreqValue);
+        void setFlushFreq(unsigned int flushFreqValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/flushInterval
          */
-        unsigned long int getFlushIntervalValue();
+        unsigned long int getFlushInterval();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/flushInterval
          */
-        void setFlushIntervalValue(unsigned long int flushIntervalValue);
+        void setFlushInterval(unsigned long int flushIntervalValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/syslog
          */
-        bool getSyslogValue();
+        bool getSyslog();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/syslog
          */
-        void setSyslogValue(bool syslogValue);
+        void setSyslog(bool syslogValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/streamScope
          */
-        string getStreamScopeValue();
+        StreamScopeOption getStreamScope();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/streamScope
          */
-        void setStreamScopeValue(string streamScopeValue);
+        void setStreamScope(StreamScopeOption streamScopeValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs
@@ -210,23 +211,21 @@ namespace SAFplusLog {
         void addNumLogs(NumLogs *numLogsValue);
         ~Stream();
 
-      /* Custom code -- NOT autogenerated */
+       /* Custom code -- NOT autogenerated */
+ 
+       FILE* fp;  // If this stream will be output to a file on this node, this is pointer to that file handle.  Otherwise NULL
+       int fileIdx;  // If the file is being rotated, this is the current file count.  i.e. file name is ("%s%d.log",fileName,fileIdx)
+       int fileSize; // Current length of the open file
+       //boost::asio::streambuf fileBuffer; //char* fileBuffer; // logs are spooled to this buffer and then written to the file all at once
+       //std::ostream fileStream;
+       //boost::asio::streambuf msgBuffer; //char* msgBuffer; // logs are spooled to this buffer and then written to the network as one packet
+       //std::ostream msgStream;
+       SAFplus::DoublingCharBuffer fileBuffer; // logs are spooled to this buffer and then written to the file all at once
+       SAFplus::DoublingCharBuffer msgBuffer;  // logs are spooled to this buffer and then written to the network as one packet
+       bool sendMsg;                               // Does this stream need to be sent to anyone else?
+       bool dirty;                             // Has this stream been changed?
 
-      FILE* fp;  // If this stream will be output to a file on this node, this is pointer to that file handle.  Otherwise NULL
-      int fileIdx;  // If the file is being rotated, this is the current file count.  i.e. file name is ("%s%d.log",fileName,fileIdx)
-      int fileSize; // Current length of the open file
-      //boost::asio::streambuf fileBuffer; //char* fileBuffer; // logs are spooled to this buffer and then written to the file all at once
-      //std::ostream fileStream;
-      //boost::asio::streambuf msgBuffer; //char* msgBuffer; // logs are spooled to this buffer and then written to the network as one packet
-      //std::ostream msgStream;
-      SAFplus::DoublingCharBuffer fileBuffer; // logs are spooled to this buffer and then written to the file all at once
-      SAFplus::DoublingCharBuffer msgBuffer;  // logs are spooled to this buffer and then written to the network as one packet
-      bool sendMsg;                               // Does this stream need to be sent to anyone else?
-      bool dirty;                             // Has this stream been changed?
-
-
-      /* End custom code */
-      
+       /* End custom code */
     };
 }
 /* namespace SAFplusLog */

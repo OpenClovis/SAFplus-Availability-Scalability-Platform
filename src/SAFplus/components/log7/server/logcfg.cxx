@@ -11,20 +11,20 @@ LogCfg::LogCfg():ClMgtObject("SAFplusLog")
 LogCfg logcfg;
 
 
-Stream* createStreamCfg(const char* name, const char* filename, const char* location, unsigned long int fileSize, unsigned long int logRecSize, const char* fullAction, int numFilesRotate, int flushQSize, int flushInterval,bool syslog,const char* scope)
+Stream* createStreamCfg(const char* name, const char* filename, const char* location, unsigned long int fileSize, unsigned long int logRecSize, SAFplusLog::FileFullActionOption fullAction, int numFilesRotate, int flushQSize, int flushInterval,bool syslog,SAFplusLog::StreamScopeOption scope)
 {
   Stream* s = new Stream();
-  s->setNameValue(name);
-  s->setFileNameValue(filename);
-  s->setFileLocationValue(location);
+  s->setName(name);
+  s->setFileName(filename);
+  s->setFileLocation(location);
   s->fileUnitSize = fileSize;
   s->recordSize = logRecSize;
-  s->setFileFullActionValue(fullAction);
+  s->setFileFullAction(fullAction);
   s->maximumFilesRotated = numFilesRotate;
   s->flushFreq = flushQSize;
   s->flushInterval = flushInterval;
   s->syslog = syslog;
-  s->setStreamScopeValue(scope);
+  s->setStreamScope(scope);
   return s;
 }
 
@@ -32,14 +32,14 @@ Stream* createStreamCfg(const char* name, const char* filename, const char* loca
  */
 LogCfg* loadLogCfg()
 {
-  //Stream* s = createStreamCfg("sys","sys",".:var/log",32*1024*1024, 2048, "ROTATE", 10, 200, 500, false, "GLOBAL");
+  //Stream* s = createStreamCfg("sys","sys",".:var/log",32*1024*1024, 2048, SAFplusLog::ROTATE, 10, 200, 500, false, SAFplusLog::GLOBAL);
   Stream* s = new Stream();
-  s->setNameValue("sys");
+  s->setName("sys");
   logcfg.streamConfig.addChildObject(s,"sys");
 
-  //s = createStreamCfg("app","app",".:var/log",32*1024*1024, 2048, "ROTATE", 10, 200, 500, false, "GLOBAL");
+  //s = createStreamCfg("app","app",".:var/log",32*1024*1024, 2048, SAFplusLog::ROTATE, 10, 200, 500, false, SAFplusLog::GLOBAL);
   s = new Stream();
-  s->setNameValue("app");
+  s->setName("app");
   logcfg.streamConfig.addChildObject(s,"app");
 
   return &logcfg;

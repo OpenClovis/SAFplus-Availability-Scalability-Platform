@@ -12,7 +12,7 @@
 #include <string>
 #include "Stream.hxx"
 #include "clCustomization.hxx"
-
+ 
 using namespace std;
 using namespace SAFplusI;
 
@@ -21,7 +21,9 @@ namespace SAFplusLog {
     /* Apply MGT object factory */
     REGISTERIMPL(Stream, /SAFplusLog/StreamConfig/stream)
 
-    Stream::Stream(): ClMgtObject("stream"), name("name"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope"),fileBuffer(LogDefaultFileBufferSize),msgBuffer(LogDefaultMessageBufferSize),fp(NULL) {
+    Stream::Stream(): ClMgtObject("stream"), name("name"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope")
+      ,fileBuffer(LogDefaultFileBufferSize),msgBuffer(LogDefaultMessageBufferSize),fp(NULL)  // additions 
+ {
         this->addChildObject(&name, "name");
         this->addChildObject(&fileName, "fileName");
         this->addChildObject(&fileLocation, "fileLocation");
@@ -34,11 +36,11 @@ namespace SAFplusLog {
         this->addChildObject(&syslog, "syslog");
         this->addChildObject(&streamScope, "streamScope");
         this->addKey("name");
-        //fileBuffer.prepare(LogDefaultFileBufferSize);
-        //msgBuffer.prepare(LogDefaultMessageBufferSize);
     };
 
-  Stream::Stream(string nameValue): ClMgtObject("stream"), name("name"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope"), fileBuffer(LogDefaultFileBufferSize),msgBuffer(LogDefaultMessageBufferSize),fp(NULL) {
+    Stream::Stream(string nameValue): ClMgtObject("stream"), name("name"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope")
+      ,fileBuffer(LogDefaultFileBufferSize),msgBuffer(LogDefaultMessageBufferSize),fp(NULL)  // additions 
+ {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -67,155 +69,155 @@ namespace SAFplusLog {
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/name
      */
-    string Stream::getNameValue() {
+    string Stream::getName() {
         return this->name.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/name
      */
-    void Stream::setNameValue(string nameValue) {
+    void Stream::setName(string nameValue) {
         this->name.Value = nameValue;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/fileName
      */
-    string Stream::getFileNameValue() {
+    string Stream::getFileName() {
         return this->fileName.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/fileName
      */
-    void Stream::setFileNameValue(string fileNameValue) {
+    void Stream::setFileName(string fileNameValue) {
         this->fileName.Value = fileNameValue;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/fileLocation
      */
-    string Stream::getFileLocationValue() {
+    string Stream::getFileLocation() {
         return this->fileLocation.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/fileLocation
      */
-    void Stream::setFileLocationValue(string fileLocationValue) {
+    void Stream::setFileLocation(string fileLocationValue) {
         this->fileLocation.Value = fileLocationValue;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/fileUnitSize
      */
-    unsigned long int Stream::getFileUnitSizeValue() {
+    unsigned long int Stream::getFileUnitSize() {
         return this->fileUnitSize.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/fileUnitSize
      */
-    void Stream::setFileUnitSizeValue(unsigned long int fileUnitSizeValue) {
+    void Stream::setFileUnitSize(unsigned long int fileUnitSizeValue) {
         this->fileUnitSize.Value = fileUnitSizeValue;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/recordSize
      */
-    unsigned long int Stream::getRecordSizeValue() {
+    unsigned long int Stream::getRecordSize() {
         return this->recordSize.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/recordSize
      */
-    void Stream::setRecordSizeValue(unsigned long int recordSizeValue) {
+    void Stream::setRecordSize(unsigned long int recordSizeValue) {
         this->recordSize.Value = recordSizeValue;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/fileFullAction
      */
-    string Stream::getFileFullActionValue() {
-        return this->fileFullAction.Value;
+    FileFullActionOption Stream::getFileFullAction() {
+        return static_cast<FileFullActionOption>(this->fileFullAction.Value);
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/fileFullAction
      */
-    void Stream::setFileFullActionValue(string fileFullActionValue) {
-        this->fileFullAction.Value = fileFullActionValue;
+    void Stream::setFileFullAction(FileFullActionOption fileFullActionValue) {
+        this->fileFullAction.Value = static_cast<int>(fileFullActionValue);
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/maximumFilesRotated
      */
-    unsigned int Stream::getMaximumFilesRotatedValue() {
+    unsigned int Stream::getMaximumFilesRotated() {
         return this->maximumFilesRotated.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/maximumFilesRotated
      */
-    void Stream::setMaximumFilesRotatedValue(unsigned int maximumFilesRotatedValue) {
+    void Stream::setMaximumFilesRotated(unsigned int maximumFilesRotatedValue) {
         this->maximumFilesRotated.Value = maximumFilesRotatedValue;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/flushFreq
      */
-    unsigned int Stream::getFlushFreqValue() {
+    unsigned int Stream::getFlushFreq() {
         return this->flushFreq.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/flushFreq
      */
-    void Stream::setFlushFreqValue(unsigned int flushFreqValue) {
+    void Stream::setFlushFreq(unsigned int flushFreqValue) {
         this->flushFreq.Value = flushFreqValue;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/flushInterval
      */
-    unsigned long int Stream::getFlushIntervalValue() {
+    unsigned long int Stream::getFlushInterval() {
         return this->flushInterval.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/flushInterval
      */
-    void Stream::setFlushIntervalValue(unsigned long int flushIntervalValue) {
+    void Stream::setFlushInterval(unsigned long int flushIntervalValue) {
         this->flushInterval.Value = flushIntervalValue;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/syslog
      */
-    bool Stream::getSyslogValue() {
+    bool Stream::getSyslog() {
         return this->syslog.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/syslog
      */
-    void Stream::setSyslogValue(bool syslogValue) {
+    void Stream::setSyslog(bool syslogValue) {
         this->syslog.Value = syslogValue;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/streamScope
      */
-    string Stream::getStreamScopeValue() {
-        return this->streamScope.Value;
+    StreamScopeOption Stream::getStreamScope() {
+        return static_cast<StreamScopeOption>(this->streamScope.Value);
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/streamScope
      */
-    void Stream::setStreamScopeValue(string streamScopeValue) {
-        this->streamScope.Value = streamScopeValue;
+    void Stream::setStreamScope(StreamScopeOption streamScopeValue) {
+        this->streamScope.Value = static_cast<int>(streamScopeValue);
     };
 
     /*

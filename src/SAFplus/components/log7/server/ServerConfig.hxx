@@ -12,8 +12,6 @@
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 
-using namespace std;
-
 namespace SAFplusLog {
 
     class ServerConfig : public ClMgtObject {
@@ -50,57 +48,57 @@ namespace SAFplusLog {
 
     public:
         ServerConfig();
-        vector<string> *getChildNames();
+        std::vector<std::string> *getChildNames();
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumStreams
          */
-        unsigned int getMaximumStreamsValue();
+        unsigned int getMaximumStreams();
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumStreams
          */
-        void setMaximumStreamsValue(unsigned int maximumStreamsValue);
+        void setMaximumStreams(unsigned int maximumStreamsValue);
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumComponents
          */
-        unsigned int getMaximumComponentsValue();
+        unsigned int getMaximumComponents();
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumComponents
          */
-        void setMaximumComponentsValue(unsigned int maximumComponentsValue);
+        void setMaximumComponents(unsigned int maximumComponentsValue);
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
          */
-        unsigned int getMaximumSharedMemoryPagesValue();
+        unsigned int getMaximumSharedMemoryPages();
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
          */
-        void setMaximumSharedMemoryPagesValue(unsigned int maximumSharedMemoryPagesValue);
+        void setMaximumSharedMemoryPages(unsigned int maximumSharedMemoryPagesValue);
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
          */
-        unsigned int getMaximumRecordsInPacketValue();
+        unsigned int getMaximumRecordsInPacket();
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
          */
-        void setMaximumRecordsInPacketValue(unsigned int maximumRecordsInPacketValue);
+        void setMaximumRecordsInPacket(unsigned int maximumRecordsInPacketValue);
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/processingInterval
          */
-        unsigned long int getProcessingIntervalValue();
+        unsigned long int getProcessingInterval();
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/processingInterval
          */
-        void setProcessingIntervalValue(unsigned long int processingIntervalValue);
+        void setProcessingInterval(unsigned long int processingIntervalValue);
         ~ServerConfig();
 
     };

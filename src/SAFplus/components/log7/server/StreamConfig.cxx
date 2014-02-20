@@ -37,7 +37,7 @@ namespace SAFplusLog {
             vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
             for (unsigned int i = 0; i < objs->size(); i++) {
                 ClMgtObject* childObject = (*objs)[i];
-                if (((Stream*)childObject)->getNameValue() == nameValue) {
+                if (((Stream*)childObject)->getName() == nameValue) {
                     return (Stream*)childObject;
                 }
             }

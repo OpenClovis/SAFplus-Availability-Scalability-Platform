@@ -13,8 +13,6 @@
 #include "MgtFactory.hxx"
 #include "clMgtProvList.hxx"
 
-using namespace std;
-
 namespace SAFplusLog {
 
     class NumLogs : public ClMgtObject {
@@ -35,97 +33,97 @@ namespace SAFplusLog {
 
     public:
         NumLogs();
-        vector<string> *getChildNames();
+        std::vector<std::string> *getChildNames();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/current
          */
-        unsigned long int getCurrentValue();
+        unsigned long int getCurrent();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/current
          */
-        void setCurrentValue(unsigned long int currentValue);
+        void setCurrent(unsigned long int currentValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history10sec
          */
-        vector<unsigned long int> getHistory10secValue();
+        std::vector<unsigned long int> getHistory10sec();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history10sec
          */
-        void setHistory10secValue(unsigned long int history10secValue);
+        void setHistory10sec(unsigned long int history10secValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1min
          */
-        vector<unsigned long int> getHistory1minValue();
+        std::vector<unsigned long int> getHistory1min();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1min
          */
-        void setHistory1minValue(unsigned long int history1minValue);
+        void setHistory1min(unsigned long int history1minValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history10min
          */
-        vector<unsigned long int> getHistory10minValue();
+        std::vector<unsigned long int> getHistory10min();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history10min
          */
-        void setHistory10minValue(unsigned long int history10minValue);
+        void setHistory10min(unsigned long int history10minValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1hour
          */
-        vector<unsigned long int> getHistory1hourValue();
+        std::vector<unsigned long int> getHistory1hour();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1hour
          */
-        void setHistory1hourValue(unsigned long int history1hourValue);
+        void setHistory1hour(unsigned long int history1hourValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history12hour
          */
-        vector<unsigned long int> getHistory12hourValue();
+        std::vector<unsigned long int> getHistory12hour();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history12hour
          */
-        void setHistory12hourValue(unsigned long int history12hourValue);
+        void setHistory12hour(unsigned long int history12hourValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1day
          */
-        vector<unsigned long int> getHistory1dayValue();
+        std::vector<unsigned long int> getHistory1day();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1day
          */
-        void setHistory1dayValue(unsigned long int history1dayValue);
+        void setHistory1day(unsigned long int history1dayValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1week
          */
-        vector<unsigned long int> getHistory1weekValue();
+        std::vector<unsigned long int> getHistory1week();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1week
          */
-        void setHistory1weekValue(unsigned long int history1weekValue);
+        void setHistory1week(unsigned long int history1weekValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1month
          */
-        vector<unsigned long int> getHistory1monthValue();
+        std::vector<unsigned long int> getHistory1month();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1month
          */
-        void setHistory1monthValue(unsigned long int history1monthValue);
+        void setHistory1month(unsigned long int history1monthValue);
         ~NumLogs();
 
     };

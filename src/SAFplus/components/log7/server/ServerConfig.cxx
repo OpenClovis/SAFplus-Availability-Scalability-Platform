@@ -33,70 +33,70 @@ namespace SAFplusLog {
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumStreams
      */
-    unsigned int ServerConfig::getMaximumStreamsValue() {
+    unsigned int ServerConfig::getMaximumStreams() {
         return this->maximumStreams.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumStreams
      */
-    void ServerConfig::setMaximumStreamsValue(unsigned int maximumStreamsValue) {
+    void ServerConfig::setMaximumStreams(unsigned int maximumStreamsValue) {
         this->maximumStreams.Value = maximumStreamsValue;
     };
 
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumComponents
      */
-    unsigned int ServerConfig::getMaximumComponentsValue() {
+    unsigned int ServerConfig::getMaximumComponents() {
         return this->maximumComponents.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumComponents
      */
-    void ServerConfig::setMaximumComponentsValue(unsigned int maximumComponentsValue) {
+    void ServerConfig::setMaximumComponents(unsigned int maximumComponentsValue) {
         this->maximumComponents.Value = maximumComponentsValue;
     };
 
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
      */
-    unsigned int ServerConfig::getMaximumSharedMemoryPagesValue() {
+    unsigned int ServerConfig::getMaximumSharedMemoryPages() {
         return this->maximumSharedMemoryPages.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
      */
-    void ServerConfig::setMaximumSharedMemoryPagesValue(unsigned int maximumSharedMemoryPagesValue) {
+    void ServerConfig::setMaximumSharedMemoryPages(unsigned int maximumSharedMemoryPagesValue) {
         this->maximumSharedMemoryPages.Value = maximumSharedMemoryPagesValue;
     };
 
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
      */
-    unsigned int ServerConfig::getMaximumRecordsInPacketValue() {
+    unsigned int ServerConfig::getMaximumRecordsInPacket() {
         return this->maximumRecordsInPacket.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
      */
-    void ServerConfig::setMaximumRecordsInPacketValue(unsigned int maximumRecordsInPacketValue) {
+    void ServerConfig::setMaximumRecordsInPacket(unsigned int maximumRecordsInPacketValue) {
         this->maximumRecordsInPacket.Value = maximumRecordsInPacketValue;
     };
 
     /*
      * XPATH: /SAFplusLog/ServerConfig/processingInterval
      */
-    unsigned long int ServerConfig::getProcessingIntervalValue() {
+    unsigned long int ServerConfig::getProcessingInterval() {
         return this->processingInterval.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/ServerConfig/processingInterval
      */
-    void ServerConfig::setProcessingIntervalValue(unsigned long int processingIntervalValue) {
+    void ServerConfig::setProcessingInterval(unsigned long int processingIntervalValue) {
         this->processingInterval.Value = processingIntervalValue;
     };
 

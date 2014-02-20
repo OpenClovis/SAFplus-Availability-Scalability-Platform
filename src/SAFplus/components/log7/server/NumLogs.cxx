@@ -38,126 +38,126 @@ namespace SAFplusLog {
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/current
      */
-    unsigned long int NumLogs::getCurrentValue() {
+    unsigned long int NumLogs::getCurrent() {
         return this->current.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/current
      */
-    void NumLogs::setCurrentValue(unsigned long int currentValue) {
+    void NumLogs::setCurrent(unsigned long int currentValue) {
         this->current.Value = currentValue;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history10sec
      */
-    vector<unsigned long int> NumLogs::getHistory10secValue() {
+    vector<unsigned long int> NumLogs::getHistory10sec() {
         return this->history10sec.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history10sec
      */
-    void NumLogs::setHistory10secValue(unsigned long int history10secValue) {
+    void NumLogs::setHistory10sec(unsigned long int history10secValue) {
         this->history10sec.Value.push_back(history10secValue);
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1min
      */
-    vector<unsigned long int> NumLogs::getHistory1minValue() {
+    vector<unsigned long int> NumLogs::getHistory1min() {
         return this->history1min.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1min
      */
-    void NumLogs::setHistory1minValue(unsigned long int history1minValue) {
+    void NumLogs::setHistory1min(unsigned long int history1minValue) {
         this->history1min.Value.push_back(history1minValue);
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history10min
      */
-    vector<unsigned long int> NumLogs::getHistory10minValue() {
+    vector<unsigned long int> NumLogs::getHistory10min() {
         return this->history10min.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history10min
      */
-    void NumLogs::setHistory10minValue(unsigned long int history10minValue) {
+    void NumLogs::setHistory10min(unsigned long int history10minValue) {
         this->history10min.Value.push_back(history10minValue);
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1hour
      */
-    vector<unsigned long int> NumLogs::getHistory1hourValue() {
+    vector<unsigned long int> NumLogs::getHistory1hour() {
         return this->history1hour.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1hour
      */
-    void NumLogs::setHistory1hourValue(unsigned long int history1hourValue) {
+    void NumLogs::setHistory1hour(unsigned long int history1hourValue) {
         this->history1hour.Value.push_back(history1hourValue);
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history12hour
      */
-    vector<unsigned long int> NumLogs::getHistory12hourValue() {
+    vector<unsigned long int> NumLogs::getHistory12hour() {
         return this->history12hour.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history12hour
      */
-    void NumLogs::setHistory12hourValue(unsigned long int history12hourValue) {
+    void NumLogs::setHistory12hour(unsigned long int history12hourValue) {
         this->history12hour.Value.push_back(history12hourValue);
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1day
      */
-    vector<unsigned long int> NumLogs::getHistory1dayValue() {
+    vector<unsigned long int> NumLogs::getHistory1day() {
         return this->history1day.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1day
      */
-    void NumLogs::setHistory1dayValue(unsigned long int history1dayValue) {
+    void NumLogs::setHistory1day(unsigned long int history1dayValue) {
         this->history1day.Value.push_back(history1dayValue);
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1week
      */
-    vector<unsigned long int> NumLogs::getHistory1weekValue() {
+    vector<unsigned long int> NumLogs::getHistory1week() {
         return this->history1week.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1week
      */
-    void NumLogs::setHistory1weekValue(unsigned long int history1weekValue) {
+    void NumLogs::setHistory1week(unsigned long int history1weekValue) {
         this->history1week.Value.push_back(history1weekValue);
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1month
      */
-    vector<unsigned long int> NumLogs::getHistory1monthValue() {
+    vector<unsigned long int> NumLogs::getHistory1month() {
         return this->history1month.Value;
     };
 
     /*
      * XPATH: /SAFplusLog/StreamConfig/stream/numLogs/history1month
      */
-    void NumLogs::setHistory1monthValue(unsigned long int history1monthValue) {
+    void NumLogs::setHistory1month(unsigned long int history1monthValue) {
         this->history1month.Value.push_back(history1monthValue);
     };
 

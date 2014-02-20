@@ -14,8 +14,6 @@
 #include "MgtFactory.hxx"
 #include <string>
 
-using namespace std;
-
 namespace SAFplusLog {
 
     class StreamConfig : public ClMgtObject {
@@ -27,12 +25,12 @@ namespace SAFplusLog {
 
     public:
         StreamConfig();
-        vector<string> *getChildNames();
+        std::vector<std::string> *getChildNames();
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream
          */
-        Stream* getStream(string nameValue);
+        Stream* getStream(std::string nameValue);
 
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream
@@ -42,7 +40,7 @@ namespace SAFplusLog {
         /*
          * XPATH: /SAFplusLog/StreamConfig/stream
          */
-        void addStream(string nameValue);
+        void addStream(std::string nameValue);
         ~StreamConfig();
 
     };
