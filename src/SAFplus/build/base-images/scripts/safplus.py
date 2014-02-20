@@ -26,6 +26,7 @@ import commands
 import subprocess
 import pdb
 import logging
+import safplus_tipc
 
 AmfName = "safplus_amf"
 os_platform = None
@@ -151,9 +152,9 @@ def is_disable_core(): return bool(int(safplus_getenv('ASP_DISABLE_CORE', defaul
 
 def is_system_controller(): return safplus_getenv('SYSTEM_CONTROLLER')
 
-def is_simulation(): return safplus_getenv('ASP_SIMULATION', default='0')
+def is_simulation(): return bool(int(safplus_getenv('ASP_SIMULATION', default='0')))
    
-def is_tipc_build(): return safplus_getenv('BUILD_TIPC', default='1')
+def is_tipc_build(): return bool(int(safplus_getenv('BUILD_TIPC', default='1')))
 
 def save_previous_logs(): return int(safplus_getenv('ASP_SAVE_PREV_LOGS', default='0'))
 
@@ -676,7 +677,7 @@ def stop_amf():
 
 
     if not is_simulation():
-        unload_tipc_module()
+        safplus_tipc.unload_tipc_module()
 
 def cleanup_safplus():
     node_addr = get_safplus_node_addr()
