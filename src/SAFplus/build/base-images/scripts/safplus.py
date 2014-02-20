@@ -150,7 +150,7 @@ def is_valgrind_build(): return bool(len(get_safplus_valgrind_cmd().strip()))
 
 def is_disable_core(): return bool(int(safplus_getenv('ASP_DISABLE_CORE', default=0)))
 
-def is_system_controller(): return safplus_getenv('SYSTEM_CONTROLLER')
+def is_system_controller(): return bool(int(safplus_getenv('SYSTEM_CONTROLLER')))
 
 def is_simulation(): return bool(int(safplus_getenv('ASP_SIMULATION', default='0')))
    
