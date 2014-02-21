@@ -39,7 +39,7 @@ def get_safplus_node_name(): return safplus.safplus_getenv('NODENAME')
 
 def get_safplus_tipc_netid(): return safplus.safplus_getenv('TIPC_NETID', default='undefined')
 
-def is_system_controller(): return bool(int(safplus.safplus_getenv('SYSTEM_CONTROLLER')))
+def is_system_controller(): return safplus.safplus_getenv('SYSTEM_CONTROLLER')
 
 def is_simulation(): return bool(int(safplus.safplus_getenv('ASP_SIMULATION', default='0')))
    
@@ -133,7 +133,7 @@ def checkTipc():
     log.debug("checkTipc: %s" % str(res))
     return res
 
-def is_tipc_build(): return  bool(int(safplus.safplus_getenv('BUILD_TIPC', default='1')))
+def is_tipc_build(): return  safplus.safplus_getenv('BUILD_TIPC', default='1')
 
 def config_tipc_module():
     if not is_tipc_build():
