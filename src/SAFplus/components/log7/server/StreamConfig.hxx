@@ -22,6 +22,7 @@ namespace SAFplusLog {
         REGISTER(StreamConfig);
 
     public:
+        virtual void load();
 
     public:
         StreamConfig();

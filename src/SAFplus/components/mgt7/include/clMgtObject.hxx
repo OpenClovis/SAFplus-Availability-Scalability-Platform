@@ -193,6 +193,8 @@ public:
     void dumpXpath();
 
     std::string getFullXpath();
+
+    virtual void load();
 };
 
 #endif /* CLMGTOBJECT_H_ */
