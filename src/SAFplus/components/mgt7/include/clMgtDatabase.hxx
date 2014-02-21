@@ -77,6 +77,11 @@ public:
     ClRcT finalizeDB();
 
     /**
+     * \brief	Function to check if the DB is initiated or not
+     */
+    ClBoolT isInitialized();
+
+    /**
      * \brief	Function to set record to Db
      */
     ClRcT setRecord(const std::string &key, const std::string &value);
@@ -85,6 +90,16 @@ public:
      * \brief	Function to get record from Db
      */
     ClRcT getRecord(const std::string &key, std::string &value);
+
+    /**
+     * \brief	Function to insert record to Db
+     */
+    ClRcT insertRecord(const std::string &key, const std::string &value);
+
+    /**
+     * \brief	Function to delete record out of Db
+     */
+    ClRcT deleteRecord(const std::string &key);
 
     /**
      * \brief   Function to return iterators match with xpath

@@ -86,7 +86,7 @@ ClRcT ClMgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySiz
     rc = clDbalOpen(dbNameData.c_str(), dbNameData.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize, &dbDataHdl);
     if (CL_OK != rc)
     {
-        goto exitOnError;
+        goto exitOnError1;
     }
 
     mDbDataHdl = dbDataHdl;
@@ -98,7 +98,7 @@ ClRcT ClMgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySiz
     rc = clDbalOpen(dbNameIdx.c_str(), dbNameIdx.c_str(), CL_DB_APPEND, maxKeySize, maxRecordSize, &dbDataHdl);
     if (CL_OK != rc)
     {
-        goto exitOnError;
+        goto exitOnError2;
     }
 
     mDbIterHdl = dbDataHdl;
@@ -106,7 +106,10 @@ ClRcT ClMgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySiz
     mInitialized = CL_TRUE;
     return rc;
 
-exitOnError:
+exitOnError2:
+    clDbalClose (mDbDataHdl);
+    mDbDataHdl = 0;
+exitOnError1:
     clDbalLibFinalize();
     return rc;
 }
@@ -173,6 +176,56 @@ ClRcT ClMgtDatabase::getRecord(const std::string &key, std::string &value)
     return rc;
 }
 
+ClRcT ClMgtDatabase::insertRecord(const std::string &key, const std::string &value)
+{
+    ClRcT rc = CL_OK;
+
+    if(!mInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    ClUint32T hashKey = getHashKeyFn(key.c_str());
+
+    /*
+     * Insert into idx table
+     */
+    rc = clDbalRecordInsert(mDbIterHdl, (ClDBKeyT) & hashKey, sizeof(hashKey), (ClDBRecordT) key.c_str(), key.length());
+    if (rc != CL_OK)
+    {
+        return rc;
+    }
+
+    /*
+     * Insert into data table
+     */
+    rc = clDbalRecordInsert(mDbDataHdl, (ClDBKeyT) & hashKey, sizeof(hashKey), (ClDBRecordT) value.c_str(), value.length());
+    if (rc != CL_OK)
+    {
+        clDbalRecordDelete(mDbIterHdl, (ClDBKeyT) & hashKey, sizeof(hashKey));
+    }
+
+    return rc;
+}
+
+ClRcT ClMgtDatabase::deleteRecord(const std::string &key)
+{
+    ClRcT rc = CL_OK;
+
+    if(!mInitialized)
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    ClUint32T hashKey = getHashKeyFn(key.c_str());
+
+    rc = clDbalRecordDelete(mDbIterHdl, (ClDBKeyT) & hashKey, sizeof(hashKey));
+
+    rc = clDbalRecordDelete(mDbDataHdl, (ClDBKeyT) & hashKey, sizeof(hashKey));
+
+    return rc;
+}
+
 std::vector<std::string> ClMgtDatabase::iterate(const std::string &xpath)
 {
     ClUint32T   keySize         = 0;
@@ -224,4 +277,9 @@ std::vector<std::string> ClMgtDatabase::iterate(const std::string &xpath)
             iter.push_back(value);
     }
     return iter;
+}
+
+ClBoolT ClMgtDatabase::isInitialized()
+{
+    return mInitialized;
 }
