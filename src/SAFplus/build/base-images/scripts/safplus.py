@@ -567,7 +567,7 @@ def start_amf():
      
     cmd = '%s/%s' %(SAFPLUS_BIN_DIR, AmfName)
     chassi_count = '0' 
-    log.info('Starting AMF...')
+    log.info('Starting AMF (%s)...' % cmd)
 
     process = subprocess.Popen([cmd,\
                                 SAF_AMF_START_CMD_CHASSIS, chassi_count,\
@@ -577,26 +577,27 @@ def start_amf():
     return process
 
 def cleanup_and_start_ams():
-    try:
-        log.debug("Cleanup SAFplus")
-        cleanup_safplus()                 # remove shared mem
 
+    log.debug("Cleanup SAFplus")
+    cleanup_safplus()                 # remove shared mem
+
+    try:
         log.debug("Save Previous Logs ")
         save_safplus_runtime_files()      # save previous core, log, files and clear DB files 
+    except Exception, e:
+        log.warning("Exception when generating crash dump: %s" % str(e))
 
-        if is_system_controller():
+    if is_system_controller():
             start_snmp_daemon()
 
-        run_custom_scripts('start')
-        process = start_amf()
+    run_custom_scripts('start')
+    process = start_amf()
 
-        if is_system_controller() and not is_simulation():
-            start_hpi_subagent()
-        if not is_simulation():
-            start_led_controller()
-        return process
-    except Exception, e:
-        raise e
+    if is_system_controller() and not is_simulation():
+        start_hpi_subagent()
+    if not is_simulation():
+        start_led_controller()
+    return process
 
 def start_openhpid(stop_watchdog=False):
     try:
@@ -686,8 +687,8 @@ def cleanup_safplus():
         os.system(cmd_list)
     except Exception, e:
       print "Exception: %s" % str(e)
-      print "CMD: %s" % cmd
-      print "data: %s" % result
+      print "CMD: %s" % cmd_list
+      # print "data: %s" % result
       raise
 
 def kill_amf():

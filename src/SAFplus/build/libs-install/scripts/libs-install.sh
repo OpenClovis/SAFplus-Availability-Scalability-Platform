@@ -20,7 +20,8 @@
 # PREFIX
 ##############################################################################
 
-LIBS_INSTALL_PATH=$PREFIX/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib
+LIBS_INSTALL_PATH=$PREFIX/prebuild/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib
+BIN_INSTALL_PATH=$PREFIX/prebuild/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/bin
 INCLUDE_PATH=$PREFIX/include
 
 #Use different commands for Solaris
@@ -33,6 +34,9 @@ fi
 
 if [ ! -d $LIBS_INSTALL_PATH ]; then
     mkdir -p $LIBS_INSTALL_PATH
+fi
+if [ ! -d $BIN_INSTALL_PATH ]; then
+    mkdir -p $BIN_INSTALL_PATH
 fi
 
 if [ ! -d $INCLUDE_PATH ]; then
@@ -55,13 +59,17 @@ echo "done."
 #
 # Copy built libs to install path
 echo -n "Installing SAFplus libraries to $PREFIX..."
-cp -r $ASP_LIB/* $LIBS_INSTALL_PATH
-cp -r $PROJECT_ROOT/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib/* $LIBS_INSTALL_PATH
+cp -rf $ASP_LIB/* $LIBS_INSTALL_PATH
+cp -rf $PROJECT_ROOT/target/$CL_TARGET_PLATFORM/$CL_TARGET_OS/lib/* $LIBS_INSTALL_PATH
 # As libCmServer locate at asp/target, need to copy from there
 # when making asp-install
 if [ "$ASP_MODEL_NAME" == "asp" ]; then
-cp -r $MODEL_LIB/* $LIBS_INSTALL_PATH
+cp -rf $MODEL_LIB/* $LIBS_INSTALL_PATH
 fi
+echo "Done writing $LIBS_INSTALL_PATH."
+echo -n "Installing SAFplus binaries to $PREFIX..."
+cp -rf $ASP_BINDIR/* $BIN_INSTALL_PATH
+echo "Done writing $BIN_INSTALL_PATH."
 echo "done."
 
 #

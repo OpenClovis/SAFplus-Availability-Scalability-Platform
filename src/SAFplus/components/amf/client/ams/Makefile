@@ -41,11 +41,11 @@ EXTRA_CPPFLAGS  += -I$(AMF_PATH)/server/ams -I$(AMF_PATH)/common/ams/idl/xdr -I$
 
 ##### Source files for the client of this component
 
-SRC_FILES	:= clAmsMgmtClientApi.c		\
-		   clAmsMgmtClientRmd.c		\
-           ClAmsMgmtCCBBatch.c \
-		   clAmsTriggerClient.c         \
-		   clAmsClientNotification.c          \
+SRC_FILES	:= clAmsMgmtClientApi.c		       \
+		   clAmsMgmtClientRmd.c		       \
+                   clAmsMgmtCCBBatch.c                 \
+		   clAmsTriggerClient.c                \
+		   clAmsClientNotification.c           \
 		   ${AMF_PATH}/common/ams/clAmsUtils.c \
 
 

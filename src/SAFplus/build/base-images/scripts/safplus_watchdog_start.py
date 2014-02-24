@@ -24,6 +24,7 @@ import logging
 import signal 
 import safplus_watchdog
 import commands
+import shutil
 # import pdb
 
 RemovePersistentDb = False
