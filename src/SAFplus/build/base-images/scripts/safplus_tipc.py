@@ -41,7 +41,7 @@ def get_safplus_tipc_netid(): return safplus.safplus_getenv('TIPC_NETID', defaul
 
 def is_system_controller(): return safplus.safplus_getenv('SYSTEM_CONTROLLER')
 
-def is_simulation(): return safplus.safplus_getenv('ASP_SIMULATION', default='0')
+def is_simulation(): return bool(int(safplus.safplus_getenv('ASP_SIMULATION', default='0')))
    
 def enforce_tipc_settings(): return 'enforce_tipc_settings' in safplus_env
 
@@ -95,7 +95,7 @@ def get_tipc_config_cmd():
     tipc_config_cmd = 'tipc-config'
 
     ret, output, signal, core = system(cmd)
-    if ret == SystemErrorNoSuchFileOrDir:
+    if ret == safplus.SystemErrorNoSuchFileOrDir:
         log.debug('The tipc-config command is not in $PATH')
         tipc_config_cmd = safplus.SAFPLUS_BIN_DIR + os.sep + tipc_config_cmd
         if not os.path.exists(tipc_config_cmd):

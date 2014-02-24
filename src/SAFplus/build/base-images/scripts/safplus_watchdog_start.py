@@ -233,7 +233,7 @@ def main(argv):
     check_py_version()
     safplus.import_os_adaption_layer()
 
-    logging.basicConfig(format='%(levelname)s %(message)s', level=logging.WARNING)
+    logging.basicConfig(format='%(levelname)s %(message)s', level=logging.INFO)
     if sys.argv[1] == 'help' :
       watchdog_usage() 
       return 1
