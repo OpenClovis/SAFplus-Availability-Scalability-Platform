@@ -88,15 +88,15 @@ endif
 	INC_DIR		:= $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/inc/$(BUILD_SUBPATH)
 	LIB_DIR		:= $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/lib
 	ETC_DIR		:= $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/etc
+        BIN_DIR		:= $(PROJECT_ROOT)/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS)/bin
 else
 	OBJ_DIR 	:= $(MODEL_TARGET)/obj/$(BUILD_SUBPATH)
 	DEP_DIR 	:= $(MODEL_TARGET)/dep/$(BUILD_SUBPATH)
 	INC_DIR	        := $(MODEL_TARGET)/inc/$(BUILD_SUBPATH)
 	LIB_DIR		:= $(MODEL_TARGET)/lib
 	ETC_DIR		:= $(MODEL_TARGET)/etc
-
+        BIN_DIR		:= $(MODEL_BIN)
 endif
-BIN_DIR			:= $(MODEL_BIN)
 
 #$(warning OBJ_DIR:$(OBJ_DIR))
 #$(warning DEP_DIR:$(DEP_DIR))

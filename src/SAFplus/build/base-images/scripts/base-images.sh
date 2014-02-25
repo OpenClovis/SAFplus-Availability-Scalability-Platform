@@ -228,6 +228,9 @@ populate_image() {
    	   else
 		 echo "WARNING: the prebuild directory $ASP_PREBUILD_BINDIR does not exist!"	
    	   fi
+    else
+	         echo "Copying SAFplus server binaries from $ASP_BINDIR"
+		 ${INSTALL} $exe_flags $ASP_BINDIR/* $imagedir/bin
     fi
     echo cd $imagedir ln -s etc/init.d/safplus ${ASP_MODEL_NAME}
     (cd $imagedir; ln -s etc/init.d/safplus ${ASP_MODEL_NAME})
@@ -371,7 +374,7 @@ q
 EOF
 if [ $? -ne 0 ]
 then
-    echo "Failed to update target.conf (in ${MODEL_PATH}) with"
+    echo "Failed to updte target.conf (in ${MODEL_PATH}) with"
     echo "new ARCH information: ${NEW_ARCH}"
     exit 1
 fi

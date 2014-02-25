@@ -53,7 +53,7 @@ def execute_shell_cmd(cmd, err_msg, fail_on_error=True):
     ret, out, sig, core = system(cmd)
 
     if ret and fail_on_error:
-        fail_and_exit('%s : attempted: [%s], output: [%s]'
+        safplus.fail_and_exit('%s : attempted: [%s], output: [%s]'
                       % (err_msg, cmd, out))
     elif ret:
         log.warning('%s : attempted: [%s], output: [%s]'
@@ -100,7 +100,7 @@ def get_tipc_config_cmd():
         tipc_config_cmd = safplus.SAFPLUS_BIN_DIR + os.sep + tipc_config_cmd
         if not os.path.exists(tipc_config_cmd):
             log.critical('The tipc-config command is not found in %s !!' % safplus.SAFPLUS_BIN_DIR)
-            fail_and_exit('This indicates some serious configuration '
+            safplus.fail_and_exit('This indicates some serious configuration '
                          'problem while deploying SAFplus image on target.')
         else:
             return tipc_config_cmd
@@ -166,14 +166,14 @@ def config_tipc_module():
             cmd = 'tipc-config -bd=eth:%s' %(link_name[0])
             ret, output, signal, core = system(cmd)
             system("rmmod tipc")  
-            fail_and_exit(msg)
+            safplus.fail_and_exit(msg)
 
         elif 'TIPC module not installed' in output_buf:
             msg = ''.join(['Failed to configure the tipc module. ',                           
                            'The tipc kernel module is not loaded. ',                           
                            'Use \'lsmod | grep tipc\' to see that '
                            'it is not loaded.'])
-            fail_and_exit(msg)
+            safplus.fail_and_exit(msg)
 
         else:
             msg1 = ''.join(['Failed to configure the tipc module. ',                           
@@ -186,7 +186,7 @@ def config_tipc_module():
                               '2. The tipc-config command is in your $PATH.',                              
                               '3. Values for TIPC_NETID, DEFAULT_NODEADDR '
                               'and LINK_NAME are correct in %s/asp.conf.' % safplus.SAFPLUS_ETC_DIR])
-            fail_and_exit(msg1 + msg2)
+            safplus.fail_and_exit(msg1 + msg2)
     for x in range(1,num) :       
         cmd = '%s -be=eth:%s' % (get_tipc_config_cmd(),link_name[x])
         log.debug('enable bearer name : %s ...' %(cmd))
@@ -223,7 +223,7 @@ def load_tipc_module():
         cmd = 'insmod %s/modules/tipc.ko' % sandbox
         ret, output, signal, core = system(cmd)
         if ret:
-            fail_and_exit('Failed to load TIPC module: attempted: %s, output was: %s' % cmd, ''.join(output))
+            safplus.fail_and_exit('Failed to load TIPC module: attempted: %s, output was: %s' % cmd, ''.join(output))
 
 def is_tipc_loaded():
     cmd = safplus.is_tipc_loaded_cmd()
@@ -295,7 +295,7 @@ def load_config_tipc_module():
             msg = '\n'.join([ 'This is an invalid state %s, '
                               'and indicates a bug.' % tipc_state])
 
-        fail_and_exit(msg)
+        safplus.fail_and_exit(msg)
 
     def tipc_valid_state(tipc_state):
         if tipc_state == (0, 1, 0):
@@ -305,7 +305,7 @@ def load_config_tipc_module():
                               
                               'If tipc-config is not in your $PATH, '
                               'you can find it in %s' % safplus.SAFPLUS_BIN_DIR])
-            fail_and_exit(msg)
+            safplus.fail_and_exit(msg)
         elif tipc_state == (0, 1, 1):
             pass
         elif tipc_state == (1, 0, 0):
@@ -342,7 +342,7 @@ def load_config_tipc_module():
                                       'to proceed further.' %
                                       safplus.SAFPLUS_ETC_DIR])
 
-                    fail_and_exit(msg)
+                    safplus.fail_and_exit(msg)
                 """    
 
     # Tipc module loading and configuring state machine :-(
@@ -362,7 +362,7 @@ def load_config_tipc_module():
     time.sleep(5) ## delay for possible tipc unload/reload bugs resulting in tipc split brain
     if not is_root():
         if not is_tipc_loaded():
-            fail_and_exit('SAFplus is not being run in root user mode '
+            safplus.fail_and_exit('SAFplus is not being run in root user mode '
                           'and TIPC module is not loaded.\n'
                           'Please run SAFplus as either root '
                           'or load and configure TIPC module properly '
