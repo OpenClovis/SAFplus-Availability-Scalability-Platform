@@ -366,6 +366,7 @@ static ClRcT cpmHealthCheckTimerCallback(void *arg)
     clLogNotice("HEALTH", "CHECK", "Health check failure detected for component [%.*s], instantiate cookie [%lld]",
                 compName.length, compName.value, comp->instantiateCookie);
 
+    comp->hbFailureDetected = CL_TRUE;
     clCpmCompPreCleanupInvoke(comp);
     clCpmComponentFailureReportWithCookie(0,
                                           &compName,
@@ -636,6 +637,7 @@ ClRcT cpmCompConfigure(ClCpmCompConfigT *compCfg, ClCpmComponentT **component)
 
         tmpComp->cpmProxiedInstTimerHandle = CL_HANDLE_INVALID_VALUE;
         tmpComp->cpmProxiedCleanupTimerHandle = CL_HANDLE_INVALID_VALUE;
+        tmpComp->hbFailureDetected = CL_FALSE;
     }
     else
     {
@@ -648,6 +650,7 @@ ClRcT cpmCompConfigure(ClCpmCompConfigT *compCfg, ClCpmComponentT **component)
 
         tmpComp->hbInvocationPending = CL_NO;
         tmpComp->hcConfirmed = CL_NO;
+        tmpComp->hbFailureDetected = CL_FALSE;
     }
 
     rc = clOsalMutexCreate(&(tmpComp->compMutex));
@@ -1030,6 +1033,7 @@ void cpmResponse(ClRcT retCode,
                 ClNameT compName = {0};
 
                 clNameSet(&compName, comp->compConfig->compName);
+                comp->hbFailureDetected = CL_TRUE;
                 clCpmCompPreCleanupInvoke(comp);
                 clCpmComponentFailureReportWithCookie(0,
                                                       &compName,
@@ -2531,18 +2535,22 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
                 /*
                  * No terminate command defined. So issue a SIGKILL.
                  */
-                clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                          "No %s command specified. Sending SIGKILL "
-                          "to component [%s]", 
-                          cleanup ? "cleanup" : "terminate",
-                          comp->compConfig->compName);
+                clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "No %s command specified. Sending SIGKILL " "to component [%s]", 
+                          cleanup ? "cleanup" : "terminate", comp->compConfig->compName);
 
-                if (-1 == kill(comp->processId, SIGKILL))
+                if (comp->hbFailureDetected)
                 {
-                    clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
-                               "Unable to stop component [%s] : [%s]",
-                               comp->compConfig->compName,
-                               strerror(errno));
+                    rc = kill(comp->processId, SIGABRT);
+                    comp->hbFailureDetected = CL_FALSE;
+                }
+                else
+                {
+                    rc = kill(comp->processId, SIGKILL);
+                }
+                if (-1 == rc)
+                {
+                    rc = CL_CPM_RC(CL_ERR_LIBRARY);
+                    clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Unable to stop component [%s] : [%s]", comp->compConfig->compName, strerror(errno));
                     goto out;
                 }
             }
@@ -2848,8 +2856,7 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
         cachedConfigLoc = getenv("ASP_CONFIG");
         if(!cachedConfigLoc)
             cachedConfigLoc = "/root/asp/etc";
-        snprintf(script, sizeof(script), "%s/asp.d/%s", 
-                 cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
+        snprintf(script, sizeof(script), "%s/asp.d/%s", cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
         /*
          * Script exists?
          */
@@ -2861,11 +2868,8 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
 
     if(!cachedState) goto out;
  
-    snprintf(cmdBuf, sizeof(cmdBuf), "ASP_COMPNAME=%s %s",
-             comp->compConfig->compName, script);
-    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
-                "Invoking precleanup command [%s] for Component [%s]",
-                cmdBuf, comp->compConfig->compName);
+    snprintf(cmdBuf, sizeof(cmdBuf), "ASP_COMPNAME=%s %s", comp->compConfig->compName, script);
+    clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Invoking precleanup command [%s] for Component [%s]", cmdBuf, comp->compConfig->compName);
 
     status = system(cmdBuf);
     (void)status; /*unused*/
@@ -2900,7 +2904,16 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
      * Issue an unconditional sigkill incase cleanup didn't terminate 
      * component.
      */
-    kill(comp->processId, SIGKILL);
+    if (comp->hbFailureDetected)
+    {
+        kill(comp->processId, SIGABRT);
+        comp->hbFailureDetected = CL_FALSE;
+    }
+    else
+    {
+        kill(comp->processId, SIGKILL);
+    }
+
     return rc;
 }
 
@@ -3072,7 +3085,19 @@ ClRcT cpmCompCleanup(ClCharT *compName)
                     comp->compPresenceState = CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
                 }
             }
-            else if(comp->processId) kill(comp->processId, SIGKILL);
+            else if(comp->processId) 
+            {
+                if (comp->hbFailureDetected)
+                {
+                    kill(comp->processId, SIGABRT);
+                    comp->hbFailureDetected = CL_FALSE;
+                }
+                else
+                {
+                    kill(comp->processId, SIGKILL);
+               }
+            }
+
         }
     }
 
@@ -4853,7 +4878,7 @@ static ClRcT compHealthCheckClientInvokedCB(ClPtrT arg)
         ClNameT compName = {0};
 
         clNameSet(&compName, comp->compConfig->compName);
-
+        comp->hbFailureDetected = CL_TRUE;
         clCpmCompPreCleanupInvoke(comp);
         clCpmComponentFailureReportWithCookie(0,
                                               &compName,
@@ -5167,6 +5192,7 @@ ClRcT VDECL(cpmComponentHealthcheckConfirm)(ClEoDataT data,
 
     if (cpmCompHealthcheck.healthcheckResult != CL_OK)
     {
+        comp->hbFailureDetected = CL_TRUE;
         clCpmCompPreCleanupInvoke(comp);
         clCpmComponentFailureReportWithCookie(0,
                                               &cpmCompHealthcheck.compName,

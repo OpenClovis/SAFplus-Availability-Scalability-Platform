@@ -74,6 +74,11 @@ ClBoolT gAmsDBRead = CL_FALSE;
 ClOsalTaskIdT gClusterStateVerifierTask;
 ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs = NULL;
 
+/* When system controller node is going down, "gCpmShuttingDown"  variable stops payloads coming up and it is added
+ * instead of using already existed variable ("gpClCpm->cpmShutDown") inorder to prevent destabiliaztion of 6.0 code.
+ */
+ClBoolT gCpmShuttingDown =  CL_FALSE;
+
 ClCpmCpmToAmsCallT gCpmToAmsCallbackFuncs = {
     _clAmsSACSIHAStateGet,
     _clAmsSACSIQuiescingComplete,
@@ -795,9 +800,7 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
     if(!pNodeName)
         return rc;
     clOsalMutexLock(gAms.mutex);
-    if(!gAms.isEnabled 
-       || 
-       gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE)
+    if((!gAms.isEnabled) || (gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE) || (gCpmShuttingDown))
     {
         clLogNotice("NODE", "JOIN", "Returning try again for node join as ams state is not up");
         rc = CL_AMS_RC(CL_ERR_TRY_AGAIN);

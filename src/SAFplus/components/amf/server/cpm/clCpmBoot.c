@@ -315,26 +315,49 @@ static void *bmInitialize(void *threadArg)
                         /*
                          * send response to the caller 
                          */
-                        rc = CL_CPM_CALL_RMD_ASYNC_NEW(pBootOp->srcAddress.
-                                                       nodeAddress,
-                                                       pBootOp->srcAddress.portId,
-                                                       pBootOp->rmdNumber,
-                                                       (ClUint8T *)
-                                                       &setLevelResponse,
-                                                       sizeof
-                                                       (ClCpmBmSetLevelResponseT),
-                                                       NULL,
-                                                       NULL,
-                                                       CL_RMD_CALL_ATMOST_ONCE,
-                                                       0,
-                                                       0,
-                                                       0,
-                                                       NULL,
-                                                       NULL,
-                                                       MARSHALL_FN(ClCpmBmSetLevelResponseT, 4, 0, 0));
+                        ClTimerTimeOutT timeOut = {1, 0};
+                        int retries = 0;
+                        while (retries < 3)
+                        {
+                            rc = CL_CPM_CALL_RMD_ASYNC_NEW(pBootOp->srcAddress.nodeAddress,
+                                                           pBootOp->srcAddress.portId,
+                                                           pBootOp->rmdNumber,
+                                                           (ClUint8T *)
+                                                           &setLevelResponse,
+                                                           sizeof
+                                                           (ClCpmBmSetLevelResponseT),
+                                                           NULL,
+                                                           NULL,
+                                                           CL_RMD_CALL_ATMOST_ONCE,
+                                                           0,
+                                                           0,
+                                                           0,
+                                                           NULL,
+                                                           NULL,
+                                                           MARSHALL_FN(ClCpmBmSetLevelResponseT, 4, 0, 0));
+                            if ((CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE) ||
+                                            (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE))
+                            {
+                                clOsalTaskDelay(timeOut);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                            clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT, "Response caller return [0x%x]", rc);
+                            retries++;
+                        }
+
                         if (rc != CL_OK)
-                            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                           ("Response call failed. %x\n", rc));
+                        {
+                            clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
+                                          "Master has died/not accessible "
+                                          "when I am booting."
+                                          "Sending response to caller returned "
+                                          "error [%#x] doing self shutdown...",
+                                          rc);
+                            cpmRestart(NULL, CL_CPM_IS_STANDBY() ? "standby":"controller");
+                        }
                     }
                 }
                 

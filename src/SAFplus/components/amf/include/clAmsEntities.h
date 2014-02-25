@@ -637,7 +637,6 @@ typedef struct
     ClAmsEntityTimerT       suProbationTimer;   /**<probation timer details*/
     ClAmsEntityTimerT       suAssignmentTimer;  /** pref.assignment timer*/
     ClUint32T               numInstantiatedComp;/**< num instantiated comps    */
-    ClUint32T               numBkInstantiatedComp; /**< backup num instantiated comps    */
     ClUint32T               numPIComp;          /**< preinstantiable comps     */
     ClUint32T               instantiateLevel;  /** SUs current instantiate level */
     ClUint32T               numWaitAdjustments; /**< adjustments waited for higher rank realignments for active*/

@@ -3419,12 +3419,12 @@ clAmsCompValidateConfig(
     AMS_VALIDATE_BOOL_VALUE(comp->config.isRestartable);
     AMS_VALIDATE_BOOL_VALUE(comp->config.nodeRebootCleanupFail);
 
-    if (    comp->config.numMaxInstantiate <= 0 ||
-            comp->config.numMaxInstantiateWithDelay <= 0 ||
-            comp->config.numMaxTerminate <=0 ||
-            comp->config.numMaxAmStart <=0 ||
-            comp->config.numMaxAmStop <=0 ||
-            comp->config.numMaxActiveCSIs <=0 )
+    if (    comp->config.numMaxInstantiate < 0 ||
+            comp->config.numMaxInstantiateWithDelay < 0 ||
+            comp->config.numMaxTerminate < 0 ||
+            comp->config.numMaxAmStart < 0 ||
+            comp->config.numMaxAmStop < 0 ||
+            comp->config.numMaxActiveCSIs < 0 )
     {
         AMS_LOG ( CL_DEBUG_ERROR,("Component [%s] should have positive values for " 
                 "attributes : numMaxInstantiate, numMaxInstantiateWithDelay, " 
@@ -4159,6 +4159,7 @@ clAmsEntityTimerDelete(CL_IN  ClAmsEntityT  *entity, CL_IN  ClAmsEntityTimerType
         {
             AMS_CALL ( clTimerDeleteAsync (&entityTimer->handle) );
         }
+        entityTimer->entity = (ClAmsEntityT *) NULL;
         entityTimer->handle = 0;
         entityTimer->count = 0;
     }
@@ -4294,6 +4295,7 @@ clAmsEntityTimerUpdate(
         /*
          * Delete the timer to cause a refresh create on the next timer start
          */
+        entityTimer->entity = (ClAmsEntityT *) NULL;
         entityTimer->count = 0;
         clTimerDeleteAsync (&entityTimer->handle);
         entityTimer->handle = 0;
@@ -4556,10 +4558,16 @@ clAmsEntityTimeout(
 
     AMS_CALL ( clOsalMutexLock(ams->mutex) );
 
+    if( !timer->entity)
+    {
+        AMS_CALL ( clOsalMutexUnlock(ams->mutex) );
+        goto check_service_state;
+    }
+
     if ( !timer->count )
     {
         AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
-                       ("Timer Pop/Ignored: Entity [%s] Type [%s] : Ignoring timer as it was cleared while waiting for mutex\n", 
+                       ("Timer Pop/Ignored: Entity [%s] Type [%s] : Ignoring timer as it was cleared while waiting for mutex\n",
                         timer->entity->name.value,
                         CL_AMS_STRING_TIMER(timer->type)));
     }

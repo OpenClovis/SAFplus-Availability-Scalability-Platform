@@ -905,8 +905,7 @@ clLogFileOwnerFileEntryAdd(ClCntHandleT         hFileTable,
     maxRecInFunit = CL_LOG_MAX_RECCOUNT_GET(pFileOwnerData->streamAttr);
     /*FIXME this should be calculated based on passed streamAttr*/
     pStreamAttr->waterMark.highLimit = (90 * maxRecInFunit) / 100;
-    pFileOwnerData->streamAttr.waterMark.highLimit =
-        pStreamAttr->waterMark.highLimit;
+    pFileOwnerData->streamAttr.waterMark.highLimit = pStreamAttr->waterMark.highLimit;
     
     rc = clLogFileOwnerFileEntryInit(pFileOwnerData, pStreamAttr,
                                      restart, 0);

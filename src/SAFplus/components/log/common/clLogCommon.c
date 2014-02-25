@@ -285,12 +285,9 @@ clLogPerennialStreamsDataGet(ClLogStreamAttrIDLT  *pStreamAttr,
             }
         }
 
-        pStreamAttr[count].haProperty         = 
-            CL_LOG_DEFAULT_HA_PROPERTY;
-        pStreamAttr[count].waterMark.lowLimit = 
-            CL_LOG_DEFAULT_LOW_WATER_MARK;
-        pStreamAttr[count].waterMark.lowLimit = 
-            CL_LOG_DEFAULT_HIGH_WATER_MARK;
+        pStreamAttr[count].haProperty         = CL_LOG_DEFAULT_HA_PROPERTY;
+        pStreamAttr[count].waterMark.lowLimit = CL_LOG_DEFAULT_LOW_WATER_MARK;
+        pStreamAttr[count].waterMark.highLimit = CL_LOG_DEFAULT_HIGH_WATER_MARK;
 
         count++;
         fd1 = fd1->next;

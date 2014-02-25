@@ -26,6 +26,11 @@
 #include <clLogSvrCommon.h>
 #include <clLogFileEvt.h>
 #include <clLogSvrDebug.h>
+#include <string.h>
+#include <sys/statvfs.h>
+#include <signal.h>
+#include <errno.h>
+
 
 static ClRcT 
 clLogSvrInitialize(ClUint32T  argc, ClCharT  *argv[]);
@@ -87,8 +92,156 @@ ClUint8T clEoClientLibs[] = {
     CL_FALSE,    /* pm */
 };
 
+#define LOGD_RESTART_COUNT_FILE "logd_restart_count"
+#define CL_LOG_DEFAULT_MAX_RESTART_COUNT 5
+#define CL_LOG_DEFAULT_MAX_DISK_SPACE_USAGE 80 
+#define LOGD_NODE_SHUTDOWN_REQ "logd_node_shutdown_req"
 static ClHandleT shLogDummyIdl = CL_HANDLE_INVALID_VALUE;
 ClBoolT gClLogSvrExiting = CL_FALSE;
+
+static int clLogGetRestartCount(ClCharT *fileName)
+{ 
+    FILE *file = NULL;
+    int  restartCount = 0;
+
+    file = fopen(fileName, "r");
+    if (file)
+    {   int count = 0;
+        count = fscanf(file, "%d", &restartCount);
+        fclose(file);
+    }
+    return restartCount;
+}
+
+static void clLogSetRestartCount(ClCharT *fileName, int restartCount)
+{
+    FILE *file = NULL;
+
+    file = fopen(fileName, "w+");
+    if (file)
+    {
+        fprintf(file, "%d", restartCount);
+        fclose(file);
+    }
+}
+ 
+static void clLogUpdateNodeShutdownReqFile(int flag)
+{
+    const ClCharT    *filePath = NULL;
+    ClCharT          *fileName = NULL;
+    FILE             *file = NULL;
+    int              filePathLen = 0;
+
+    if (!(filePath = getenv("ASP_RUNDIR")))
+    {
+        filePath = ".";
+    }
+    filePathLen = strlen(filePath);
+    fileName = (ClCharT *) malloc(filePathLen + strlen(LOGD_NODE_SHUTDOWN_REQ) + 5);
+    if(fileName)
+    {
+        sprintf(fileName, "%s/%s", filePath, LOGD_NODE_SHUTDOWN_REQ);  
+        file = fopen(fileName, "w+");
+        if (file)
+        {
+            fprintf(file, "%d", flag);
+            fclose(file);
+        }
+        free(fileName);
+    }
+}
+
+static void clLogSigintHandler(ClInt32T signum)
+{
+    const ClCharT    *filePath = NULL;
+    unsigned long    blocks, freeblks;
+    int              clLogMaxDiskSpaceUsage = CL_LOG_DEFAULT_MAX_DISK_SPACE_USAGE;
+    int              restartCount = 0;
+    int              clLogMaxRestartCount = CL_LOG_DEFAULT_MAX_RESTART_COUNT;
+    int              filePathLen = 0;
+    struct statvfs   buf;
+    ClCharT          *fileName = NULL;
+    ClCharT          *maxDiskSpaceUsage = NULL;
+    ClCharT          *maxRestartCount = NULL;
+    static ClBoolT   sigHndlInProgress = CL_FALSE;
+    ClBoolT          shutdownNode = CL_FALSE;
+
+    if (CL_TRUE == sigHndlInProgress)
+    {/* SIGBUS Handling is already in-progress, so skip it */  
+       return;
+    }
+    sigHndlInProgress = CL_TRUE;
+
+    CL_LOG_DEBUG_ERROR(("Caught signal [%d]. Should be SIGBUS",signum));
+
+   /* Check for Disk Space Usage */ 
+    if ((maxDiskSpaceUsage = getenv("CL_LOG_MAX_DISK_SPACE_USAGE")))
+    {
+        clLogMaxDiskSpaceUsage = atoi(maxDiskSpaceUsage); 
+    }
+    filePath = getenv("CL_LOG_DISK_SPACE_FILE_PATH");
+    if (!statvfs(filePath, &buf))
+    {
+        blocks = buf.f_blocks;
+        freeblks = buf.f_bfree;
+        if  ( (freeblks * 100) /(blocks)  < (100 - clLogMaxDiskSpaceUsage))
+        {   /* Disk space usage is exceeded maximum usage limit so halt the system */
+            shutdownNode = CL_TRUE;
+        }
+    }
+
+    /* Get Logd Restart Count And Shutdown Node if it exceeds maximum restart count else commit suicide by using exit() */
+    if ((maxRestartCount = getenv("CL_LOG_MAX_RESTART_COUNT")))
+    {
+        clLogMaxRestartCount = atoi(getenv("CL_LOG_MAX_RESTART_COUNT"));
+    }
+    if (!(filePath = getenv("ASP_RUNDIR")))
+    {
+        filePath = ".";
+    }
+    filePathLen = strlen(filePath);
+    fileName = (ClCharT *) malloc(filePathLen + strlen(LOGD_RESTART_COUNT_FILE) + 5);
+    sprintf(fileName, "%s/%s", filePath, LOGD_RESTART_COUNT_FILE);  
+
+    restartCount = clLogGetRestartCount(fileName); 
+    if (clLogMaxRestartCount <= restartCount)
+    { /* Exceeded Maximum Restart Count, So Halt Node */
+            shutdownNode = CL_TRUE;
+    }
+
+    if (CL_TRUE == shutdownNode)
+    {
+        restartCount = 0;
+        clLogSetRestartCount(fileName, restartCount);
+        free(fileName);
+        clLogUpdateNodeShutdownReqFile(1);
+        clCpmNodeShutDown(clIocLocalAddressGet());
+    }
+    else
+    {
+        restartCount++;
+        clLogSetRestartCount(fileName, restartCount);
+        free(fileName);
+        exit(1);
+    }
+}
+
+static void clLogSigHandlerInstall(void)
+{
+    struct sigaction newAction;
+
+    newAction.sa_handler = clLogSigintHandler;
+    sigemptyset(&newAction.sa_mask);
+    newAction.sa_flags = SA_RESTART;
+
+    if (-1 == sigaction(SIGBUS, &newAction, NULL))
+    {
+        perror("sigaction for SIGBUS failed");
+        CL_LOG_DEBUG_ERROR(("Unable to install signal handler for SIGBUS"));
+    }
+
+    return;
+}
 
 ClRcT 
 clLogSvrTerminate(ClInvocationT invocation,
@@ -203,6 +356,9 @@ clLogSvrInitialize(ClUint32T argc,
         CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
         return rc;
     }
+    /* Handle SIGBUS Signal */
+    clLogUpdateNodeShutdownReqFile(0);
+    clLogSigHandlerInstall();
 
     rc = clLogStreamOwnerLocalBootup();
     if( CL_OK != rc )

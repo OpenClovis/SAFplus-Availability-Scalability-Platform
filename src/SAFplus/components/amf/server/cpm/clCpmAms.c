@@ -1025,6 +1025,7 @@ void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag)
                 /*
                  * Tell the watchdog to disable ASP restarts.
                  */
+                clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS, "Tell the watchdog to disable ASP restarts");
                 FILE *fptr = fopen(CL_CPM_RESTART_DISABLE_FILE, "w");
                 if(fptr) fclose(fptr);
             }

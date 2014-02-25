@@ -124,6 +124,11 @@ def amf_watchdog_loop():
                         else:
                             asp.proc_lock_file('remove')
                             sys.exit(1)
+                    else:
+                        logging.debug('AMF watchdog ignoring node faulure, as it might be due to shutdown request from logd')
+                        asp.proc_lock_file('remove')
+                        sys.exit(1)
+
             else:
                 # pid is nonzero => amf is up
                 # handle openhpid here
