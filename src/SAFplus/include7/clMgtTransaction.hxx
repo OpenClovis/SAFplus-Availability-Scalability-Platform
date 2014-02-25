@@ -1,1 +1,0 @@
-../components/mgt7/include/clMgtTransaction.hxx

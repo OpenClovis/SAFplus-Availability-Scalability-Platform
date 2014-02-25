@@ -17,7 +17,7 @@
  * material.
  */
 
-#include "clMgtTransaction.hxx"
+#include "clTransaction.hxx"
 
 #ifdef __cplusplus
 extern "C" {
@@ -76,3 +76,10 @@ void ClTransaction::clean()
         remove(i);
     }
 }
+
+ClTransaction NO_TXN;
+
+namespace SAFplus
+{
+  ClTransaction& NO_TXN=::NO_TXN;
+};

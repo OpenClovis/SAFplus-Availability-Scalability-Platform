@@ -23,6 +23,11 @@ namespace SAFplusI
     {
         CkptMinSize = 4*1024,
         CkptDefaultSize = 64*1024,
+
+        CkptMinRows = 2,
+        CkptDefaultRows = 256,
+
+
     };
 
 

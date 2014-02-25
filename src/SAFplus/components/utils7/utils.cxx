@@ -13,8 +13,6 @@
 
 #include <clHandleApi.hpp>
 
-ClTransaction NO_TXN;
-
 namespace SAFplus
 {
 
@@ -49,9 +47,10 @@ ClBoolT ASP_SC_PROMOTE = CL_FALSE;
   /** True if this component is not under AMF control (will not receive CSI callbacks) */
 bool clWithoutAmf;
 
-uint64_t curHandleIdx = 0;
+uint64_t curHandleIdx = 1;
 
 LogSeverityT logSeverityGet(const ClCharT  *pSevName);
+
   
   //  char* ASP_NODENAME=NULL;
   //char* ASP_COMPNAME=NULL;
@@ -438,7 +437,7 @@ bool clVersionVerify (ClVersionDatabaseT *versionDatabase, ClVersionT *version)
   HandleT HandleT::create(void)
   {
     // TODO: mutex lock around this
-    HandleT hdl(TransientHandle,curHandleIdx++,pid); // TODO node and clusterId
+    HandleT hdl(PersistentHandle,curHandleIdx++,pid); // TODO node and clusterId
     return hdl;
   }
   

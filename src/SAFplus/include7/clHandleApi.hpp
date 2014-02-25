@@ -2,6 +2,7 @@
 #define clHandleApi_hpp
 #include <cltypes.h>
 #include <assert.h>
+#include <stdio.h>
 
 #define CL_ASSERT assert
 #define SAFplus7  // for integration within the older code
@@ -19,27 +20,35 @@ namespace SAFplus
   class HandleT
   {
   public:
-
     uint64_t id[2];
   public:
-    bool operator == (const HandleT& other)
+    char* toStr(char* buffer) const
+    {
+      sprintf(buffer,"%ld.%ld",id[0],id[1]);
+      return buffer;
+    }
+
+    bool operator == (const HandleT& other) const
     {
       return ((id[0] == other.id[0])&&(id[1]==other.id[1]));
     }
+    HandleT() { id[0] = 0; id[1] = 0; }
     HandleT(HandleType t,uint64_t idx, uint16_t process=0xffff,uint16_t node=0xffff,uint_t clusterId=0xfff)
     {
       // TODO: add all handle formats
       if (t==PersistentHandle)
 	{
 	  id[0]=idx;  // TODO: change to proper handle format as per docs
+          id[1]=0;
 	}
       else
 	{
 	  assert(0);
 	}
     }
+    static HandleT create(void);  // Get a new handle.
   };
-
+  
   class WellKnownHandleT:public HandleT
   {
   public:
