@@ -63,5 +63,30 @@ namespace SAFplusLog {
     StreamConfig::~StreamConfig() {
     };
 
+    void StreamConfig:: load()
+    {
+        ClMgtDatabase *db = ClMgtDatabase::getInstance();
+
+        std::vector<std::string> iter = db->iterate("/SAFplusLog/StreamConfig/stream");
+
+        for (std::vector<std::string>::iterator it=iter.begin(); it!=iter.end(); it++)
+        {
+            int start = strlen("/SAFplusLog/StreamConfig/stream[@name='");
+            int end = ((std::string)(*it)).find("']", start);
+
+            if ((start > 0) && (end - start > 0))
+            {
+                std::string keyVal = ((std::string)(*it)).substr(start, end - start);
+                Stream* s = (Stream*) this->getChildObject(keyVal);
+                if (!s)
+                {
+                    s = new Stream;
+                    s->setName(keyVal);
+                    this->addChildObject(s, keyVal);
+                }
+            }
+        }
+    }
+
 }
 /* namespace SAFplusLog */

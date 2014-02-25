@@ -50,6 +50,7 @@ protected:
     /* This variable is used to index the value in Transaction object.*/
     std::vector<ClInt32T> mValIndexes;
 
+    void pushBackValue(std::string strVal);
 public:
     /**
      *  Value of the "ClMgtProv" object
@@ -99,6 +100,16 @@ public:
 
     virtual std::vector<std::string> *getChildNames();
 
+    /**
+     * \brief   Function to set data to database
+     */
+    ClRcT setDb();
+
+    /**
+     * \brief   Function to get data from database
+     */
+    ClRcT getDb();
+
 };
 template<class T>
 ClMgtProvList<T>::ClMgtProvList(const char* name) :
@@ -116,15 +127,16 @@ std::string ClMgtProvList<T>::toStringItemAt(T &x)
 {
     std::stringstream ss;
     ss << x;
-    return "<" + Name + ">" + ss.str() + "</" + Name + ">";
+    return ss.str();
 }
 
 template<class T>
 void ClMgtProvList<T>::toString(std::stringstream& xmlString)
 {
+    getDb();
     for (unsigned int i = 0; i < Value.size(); i++)
     {
-        xmlString << toStringItemAt(Value.at(i));
+        xmlString << "<" << Name << ">" << toStringItemAt(Value.at(i)) << "</" << Name << ">";
     }
 }
 
@@ -173,30 +185,40 @@ void ClMgtProvList<T>::abort(ClTransaction& t)
 }
 
 template<class T>
+void ClMgtProvList<T>::pushBackValue(std::string strVal)
+{
+    T value;
+    std::stringstream ss;
+
+    if (((typeid(T) == typeid(bool)) || (typeid(T) == typeid(ClBoolT))) && (!strVal.compare("true")))
+    {
+        ss << "1";
+        ss >> value;
+    }
+    else
+    {
+       ss << strVal;
+       ss >> value;
+    }
+
+    Value.push_back(value);
+}
+
+template<class T>
 void ClMgtProvList<T>::set(ClTransaction& t)
 {
     ClInt32T valIndex;
+
+    Value.clear();
 
     for (unsigned int i = 0; i < mValIndexes.size(); i++)
     {
         valIndex = mValIndexes[i];
         char *valstr = (char *) t.get(valIndex);
-        T value;
-        std::stringstream ss;
-
-        if (((typeid(T) == typeid(bool)) || (typeid(T) == typeid(ClBoolT))) && (!strcmp((char*)valstr, "true")))
-        {
-            ss << "1";
-            ss >> value;
-        }
-        else
-        {
-           ss << valstr;
-           ss >> value;
-        }
-
-        Value.push_back(value);
+        this->pushBackValue(valstr);
     }
+
+    setDb();
 
     mValIndexes.clear();
 }
@@ -207,6 +229,87 @@ template <class T>
 std::vector<std::string> *ClMgtProvList<T>::getChildNames()
 {
     return NULL;
+}
+
+template <class T>
+ClRcT ClMgtProvList<T>::setDb()
+{
+    ClRcT rc = CL_OK;
+    std::string key = getFullXpath();
+
+    ClMgtDatabase *db = ClMgtDatabase::getInstance();
+    if(!db->isInitialized())
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    std::vector<std::string> iter = db->iterate(key);
+
+    int updateCount = (iter.size() < Value.size()) ? iter.size() : Value.size();
+
+    for (int i = 1; i <= updateCount; i++)
+    {
+        std::string itemkey = "";
+        std::stringstream s;
+        s << i;
+        itemkey.append(key).append("[").append(s.str()).append("]");
+        if (!db->setRecord(itemkey, toStringItemAt(Value.at(i-1))))
+        {
+            db->insertRecord(itemkey, toStringItemAt(Value.at(i-1)));
+        }
+    }
+
+    if (iter.size() < Value.size())
+    {
+        for (int i = iter.size() + 1; i <= Value.size(); i++)
+        {
+            std::string itemkey = "";
+            std::stringstream s;
+            s << i;
+            itemkey.append(key).append("[").append(s.str()).append("]");
+            db->insertRecord(itemkey, toStringItemAt(Value.at(i-1)));
+        }
+    }
+    else
+    {
+        for (int i = Value.size() + 1; i <= iter.size(); i++)
+        {
+            std::string itemkey = "";
+            std::stringstream s;
+            s << i;
+            itemkey.append(key).append("[").append(s.str()).append("]");
+            db->deleteRecord(itemkey);
+        }
+    }
+
+    return rc;
+}
+
+template <class T>
+ClRcT ClMgtProvList<T>::getDb()
+{
+    ClRcT rc = CL_OK;
+    std::string key = getFullXpath();
+
+    ClMgtDatabase *db = ClMgtDatabase::getInstance();
+    if(!db->isInitialized())
+    {
+        return CL_ERR_NOT_INITIALIZED;
+    }
+
+    std::vector<std::string> iter = db->iterate(key);
+
+    Value.clear();
+    for (std::vector<std::string>::iterator it=iter.begin(); it!=iter.end(); it++)
+    {
+        std::string value;
+        if (db->getRecord(*it, value))
+        {
+            this->pushBackValue(value);
+        }
+    }
+
+    return rc;
 }
 
 #endif /* CLMGTPROVLIST_HXX_ */

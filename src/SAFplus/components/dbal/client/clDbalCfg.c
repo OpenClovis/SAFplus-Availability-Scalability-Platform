@@ -44,6 +44,10 @@
 #include <clDbalCfg.h>
 #include <clovisDbalInternal.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* GLOBALs */
 static ClDbalFunctionPtrsT dbalFunctionPtrs;
 static ClBoolT gClDbalInitialized = CL_FALSE;
@@ -166,3 +170,7 @@ ClRcT clDbalLibFinalize(void)
 #endif
     return CL_OK;
 }
+
+#ifdef __cplusplus
+ }
+#endif

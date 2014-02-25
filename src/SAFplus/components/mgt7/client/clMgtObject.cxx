@@ -550,3 +550,7 @@ std::string ClMgtObject::getFullXpath()
 
 }
 
+void ClMgtObject::load()
+{
+
+}

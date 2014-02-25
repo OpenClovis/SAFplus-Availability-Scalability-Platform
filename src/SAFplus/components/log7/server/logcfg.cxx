@@ -32,15 +32,21 @@ Stream* createStreamCfg(const char* name, const char* filename, const char* loca
  */
 LogCfg* loadLogCfg()
 {
-  //Stream* s = createStreamCfg("sys","sys",".:var/log",32*1024*1024, 2048, SAFplusLog::ROTATE, 10, 200, 500, false, SAFplusLog::GLOBAL);
-  Stream* s = new Stream();
-  s->setName("sys");
-  logcfg.streamConfig.addChildObject(s,"sys");
+  logcfg.streamConfig.load();  // Load up all children of streamConfig (recursively) from the DB
 
-  //s = createStreamCfg("app","app",".:var/log",32*1024*1024, 2048, SAFplusLog::ROTATE, 10, 200, 500, false, SAFplusLog::GLOBAL);
-  s = new Stream();
-  s->setName("app");
-  logcfg.streamConfig.addChildObject(s,"app");
+  Stream* s =  (Stream*)logcfg.streamConfig.getChildObject("sys");
+  if (!s)  // The sys log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
+    {
+      Stream* s = createStreamCfg("sys","sys",".:var/log",32*1024*1024, 2048, SAFplusLog::ROTATE, 10, 200, 500, false, SAFplusLog::GLOBAL);
+      logcfg.streamConfig.addChildObject(s,"sys");
+    }
+
+  s =  (Stream*)logcfg.streamConfig.getChildObject("app");
+  if (!s)  // The all log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
+    {
+      s = createStreamCfg("app","app",".:var/log",32*1024*1024, 2048, SAFplusLog::ROTATE, 10, 200, 500, false, SAFplusLog::GLOBAL);
+      logcfg.streamConfig.addChildObject(s,"app");
+    }
 
   return &logcfg;
 }
