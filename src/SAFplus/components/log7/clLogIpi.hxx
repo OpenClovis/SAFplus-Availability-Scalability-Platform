@@ -6,9 +6,9 @@
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
 
-#include <clThreadApi.hpp>
-#include <clHandleApi.hpp>
-#include <clLogApi.hpp>
+#include <clThreadApi.hxx>
+#include <clHandleApi.hxx>
+#include <clLogApi.hxx>
 
 namespace SAFplusI
 {
@@ -37,17 +37,17 @@ namespace SAFplusI
     class LogBufferEntry
     {
     public:
-        SAFplus::HandleT stream;
+        SAFplus::Handle stream;
         uint64_t offset;
-      SAFplus::LogSeverityT severity;
+      SAFplus::LogSeverity severity;
     };
 
 
-  extern SAFplus::ProcSemT clientMutex;
-  extern SAFplus::ProcSemT serverSem;
+  extern SAFplus::ProcSem clientMutex;
+  extern SAFplus::ProcSem serverSem;
   
   extern boost::interprocess::shared_memory_object* clLogSharedMem;
-  extern  boost::interprocess::mapped_region* clLogBuffer;
+  extern boost::interprocess::mapped_region* clLogBuffer;
   extern int clLogBufferSize;
   extern LogBufferHeader* clLogHeader;
 

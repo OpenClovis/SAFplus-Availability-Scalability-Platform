@@ -1,4 +1,4 @@
-#include <clThreadApi.hpp>
+#include <clThreadApi.hxx>
 #include <cltypes.h>
 #include <clCksmApi.h>
 #include <clCommon.h>
@@ -103,12 +103,12 @@ typedef union CosSemCtl_u
 } CosSemCtl_t;
 
   
-  ProcSemT::ProcSemT(unsigned int key,int initialValue)
+  ProcSem::ProcSem(unsigned int key,int initialValue)
   {
     init(key,initialValue);   
   }
 
-  ProcSemT::ProcSemT(const char* key,int initialValue)
+  ProcSem::ProcSem(const char* key,int initialValue)
   {
     ClUint32T realKey;
     int keyLen = strlen(key);
@@ -116,7 +116,7 @@ typedef union CosSemCtl_u
     init(realKey,initialValue);
   }
   
-  void ProcSemT::init(unsigned int key,int initialValue)
+  void ProcSem::init(unsigned int key,int initialValue)
   {
     uint_t retry;
     uint_t flags = 0666;
@@ -157,7 +157,7 @@ typedef union CosSemCtl_u
       }    
   }
   
-  void ProcSemT::lock(int amt)
+  void ProcSem::lock(int amt)
     {
       struct sembuf sembuf = {0,-1*amt,SEM_UNDO};
       int err;
@@ -172,9 +172,9 @@ typedef union CosSemCtl_u
         }
     }
 
-  void ProcSemT::wake(int amt,void* cookie) { unlock(amt); }  
+  void ProcSem::wake(int amt,void* cookie) { unlock(amt); }  
   
-  void ProcSemT::unlock(int amt)
+  void ProcSem::unlock(int amt)
     {
       struct sembuf sembuf = {0,amt,SEM_UNDO};
       int err;
@@ -189,7 +189,7 @@ typedef union CosSemCtl_u
         }
     }
   
-  bool ProcSemT::try_lock(int amt)
+  bool ProcSem::try_lock(int amt)
   {
     struct sembuf sembuf = {0,-1*amt,SEM_UNDO | IPC_NOWAIT};
     int err;
@@ -205,7 +205,7 @@ typedef union CosSemCtl_u
     return true;
   }
   
-  bool ProcSemT::timed_lock(uint64_t mSec,int amt)
+  bool ProcSem::timed_lock(uint64_t mSec,int amt)
     {
       struct sembuf sembuf = {0,-1*amt,SEM_UNDO};
       struct timespec timeout = {mSec/1000,((long)mSec%1000)*1000L*1000L};  // tv_sec, tv_nsec
@@ -227,4 +227,13 @@ typedef union CosSemCtl_u
       return true;
     }
 
+  template<class bstMutT> void tMutex<bstMutT>::wake(int amt,void* cookie)
+  {
+    unlock();
+  };
+
+  // Instantiate these templates
+  template class tMutex<boost::timed_mutex>;
+  template class tMutex<boost::recursive_timed_mutex>;
+  
 };

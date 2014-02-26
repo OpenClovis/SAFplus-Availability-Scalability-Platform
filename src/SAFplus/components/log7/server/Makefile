@@ -8,7 +8,7 @@ SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. 
-DEP_LIBS += $(LIB_DIR)/clOsal7.so $(LIB_DIR)/clMgt7.so $(LIB_DIR)/clLog.so $(LIB_DIR)/clUtils7.so $(LIB_DIR)/clDbal7.so
+DEP_LIBS += $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclDbal7.so $(LIB_DIR)/libclOsal7.so 
 
 # Management includes and libraries
 CPP_FLAGS += -I../../mgt7/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
@@ -20,7 +20,7 @@ LINK_EXE     := g++ -g -o
 LOG_SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
 LOG_SERVER_SRC := $(wildcard *.cxx)
 LOG_SERVER_OBJ := $(subst .cpp,.o, $(subst .cxx,.o,$(LOG_SERVER_SRC)))
-LOG_SERVER_OBJ := $(addprefix $(SAFPLUS_TARGET)/obj/,$(LOG_SERVER_OBJ))
+LOG_SERVER_OBJ := $(addprefix $(OBJ_DIR)/logsvr/,$(LOG_SERVER_OBJ))
 
 
 all: $(SAFPLUS_TARGET)/bin/splogd
@@ -28,10 +28,11 @@ all: $(SAFPLUS_TARGET)/bin/splogd
 $(SAFPLUS_TARGET)/bin/splogd: $(LOG_SERVER_OBJ) $(DEP_LIBS)
 	$(LINK_EXE) $@ $+ -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -L$(BOOST_DIR)/stage/lib/ -lboost_system
 
-$(SAFPLUS_TARGET)/obj/%.o: %.cxx Makefile $(LOG_SERVER_H)
+$(OBJ_DIR)/logsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)
+	-mkdir -p $(OBJ_DIR)/logsvr/
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(SAFPLUS_TARGET)/obj/*.o $(SAFPLUS_TARGET)/bin/splogd
+	rm -f $(OBJ_DIR)/logsvr/*.o $(SAFPLUS_TARGET)/bin/splogd
 
 include ../../../mk/safplus_targets.mk

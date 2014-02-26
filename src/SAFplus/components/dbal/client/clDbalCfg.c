@@ -109,7 +109,7 @@ ClRcT clDbalLibInitialize(void)
             *(void**)&dbalGenericInterface = dlsym(gDlHandle,"clDbalInterface");
             if (NULL == dbalGenericInterface)
             {
-                char* err = dlerror();
+                const char* err = dlerror();
                 if (!err) err = "unknown";
 
                 clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
@@ -132,7 +132,7 @@ ClRcT clDbalLibInitialize(void)
         }
         else
         {
-            char* err = dlerror();
+            const char* err = dlerror();
             if (!err) err = "unknown";          
             clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Error finding opening shared library '%s': [%s]", libName,err);
             goto out;

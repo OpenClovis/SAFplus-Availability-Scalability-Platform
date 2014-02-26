@@ -6,8 +6,7 @@ CLIENT_H := $(wildcard *.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp)
 CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
-DEP_LIBS := $(LIB_DIR)/clCkpt.so $(LIB_DIR)/clLog.so $(LIB_DIR)/clUtils7.so $(LIB_DIR)/clOsal7.so
-# $(LIB_DIR)/clLog.so $(LIB_DIR)/clUtils7.so $(LIB_DIR)/clOsal7.so
+DEP_LIBS := $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclOsal7.so
 
 all: $(TEST_DIR)/testCkpt
 

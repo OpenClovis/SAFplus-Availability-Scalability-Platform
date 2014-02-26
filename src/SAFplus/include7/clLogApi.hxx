@@ -1,6 +1,6 @@
 #ifndef clLogApi_hpp
 #define clLogApi_hpp
-#include <clHandleApi.hpp>
+#include <clHandleApi.hxx>
 
 #ifdef __GNUC__
 #define CL_DEPRECATED __attribute__((__deprecated__))
@@ -78,10 +78,10 @@ typedef enum
  * Maximum severity level. 
  */
   LOG_SEV_MAX = LOG_SEV_DEBUG9
-  } LogSeverityT;
+  } LogSeverity;
 
 
-void logMsgWrite(HandleT streamHdl, LogSeverityT  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *pFmtStr,...) CL_PRINTF_FORMAT(8, 9);
+void logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *pFmtStr,...) CL_PRINTF_FORMAT(8, 9);
 
 
   Logger* logInitialize(void);

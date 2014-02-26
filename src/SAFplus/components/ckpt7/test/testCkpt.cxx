@@ -1,6 +1,6 @@
-#include <clCommon.hpp>
-#include <clLogApi.hpp>
-#include <clGlobals.hpp>
+#include <clCommon.hxx>
+#include <clLogApi.hxx>
+#include <clGlobals.hxx>
 
 #include <clCkptApi.hxx>
 

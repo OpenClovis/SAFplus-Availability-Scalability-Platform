@@ -1,6 +1,6 @@
 
-#include <clLogApi.hpp>
-#include <clGlobals.hpp>
+#include <clLogApi.hxx>
+#include <clGlobals.hxx>
 #define this_error_indicates_missing_parens_around_string(...) __VA_ARGS__
 
 // I need ot override the output of the test macros because Osal is so fundamental that the test routines use it!

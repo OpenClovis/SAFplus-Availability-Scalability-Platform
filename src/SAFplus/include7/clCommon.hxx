@@ -1,4 +1,4 @@
-#include <clGlobals.hpp>
+#include <clGlobals.hxx>
 
 namespace SAFplus
 {

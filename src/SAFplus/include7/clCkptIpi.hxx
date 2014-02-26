@@ -12,7 +12,7 @@
 
 
 // SAFplus includes
-#include <clHandleApi.hpp>
+#include <clHandleApi.hxx>
 #include <clTransaction.hxx>
 
 namespace SAFplus
@@ -47,7 +47,7 @@ namespace SAFplusI
     public:
         uint64_t structId;
         pid_t    serverPid;  // This is used to ensure that 2 servers don't fight for the logs...
-        SAFplus::HandleT handle;
+        SAFplus::Handle handle;
     };
 
   class BufferPtr:public boost::interprocess::offset_ptr<SAFplus::Buffer>

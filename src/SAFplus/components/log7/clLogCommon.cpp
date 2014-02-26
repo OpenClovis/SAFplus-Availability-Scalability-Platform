@@ -1,14 +1,14 @@
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
-#include <clLogIpi.hpp>
-#include <clGlobals.hpp>
+#include <clLogIpi.hxx>
+#include <clGlobals.hxx>
 
 using namespace boost::interprocess;
 using namespace SAFplusI;
 using namespace SAFplus;
 
 bool SAFplus::logCodeLocationEnable=true;
-SAFplus::LogSeverityT SAFplus::logSeverity=SAFplus::LOG_SEV_NOTICE;
+SAFplus::LogSeverity SAFplus::logSeverity=SAFplus::LOG_SEV_NOTICE;
 
 namespace SAFplusI
 {
@@ -19,8 +19,8 @@ int clLogBufferSize=0;
 LogBufferHeader* clLogHeader;
 
 // Client mutex starts "given", server wakeup starts "taken"  
-SAFplus::ProcSemT clientMutex("LogClientMutex",1);
-SAFplus::ProcSemT serverSem("LogServerSem",0);
+SAFplus::ProcSem clientMutex("LogClientMutex",1);
+SAFplus::ProcSem serverSem("LogServerSem",0);
 
   // Even if not explicitly used in the code, this API is used during dev
 void logCleanupSharedMem()

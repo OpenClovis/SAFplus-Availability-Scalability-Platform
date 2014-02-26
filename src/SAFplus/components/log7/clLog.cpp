@@ -5,8 +5,8 @@ using namespace boost::interprocess;
 #include <clCommon.h>
 #include <clEoApi.h>
 
-#include <clLogIpi.hpp>
-#include <clCommon.hpp>
+#include <clLogIpi.hxx>
+#include <clCommon.hxx>
 /* Old code */
 #include <clLogApi.h>
 
@@ -18,7 +18,7 @@ using namespace SAFplus;
 using namespace SAFplusI;
 
 uint_t msgIdCnt=0;
-char* SAFplus::logCompName=NULL;
+const char* SAFplus::logCompName=NULL;
 bool  logCodeLocationEnable=true;
 /* Supported Client Version */
 static ClVersionT gLogClntVersionsSupported[] = {CL_LOG_CLIENT_VERSION};
@@ -29,7 +29,7 @@ static ClVersionDatabaseT gLogClntVersionDb = {
     gLogClntVersionsSupported
 };
 
-static const ClCharT* logSeverityStrGet(SAFplus::LogSeverityT severity);
+static const ClCharT* logSeverityStrGet(SAFplus::LogSeverity severity);
 
 Logger* SAFplus::logInitialize()
 {
@@ -48,7 +48,7 @@ Logger* SAFplus::logInitialize()
     utilsInitialize();  /* Logging uses globals initialized by utils, but is tolerant of uninitialized vals.  Utils may log so this must be run AFTER logging is inited */
 }
 
-void SAFplus::logMsgWrite(HandleT streamHdl, LogSeverityT  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *pFmtStr,...)
+void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *pFmtStr,...)
 {
   uint_t            msgStrLen;
   const ClCharT    *pSevName           = NULL;
@@ -99,7 +99,7 @@ void SAFplus::logMsgWrite(HandleT streamHdl, LogSeverityT  severity, uint_t serv
   va_end(vaargs);
 }
 
-static const ClCharT* logSeverityStrGet(LogSeverityT severity)
+static const ClCharT* logSeverityStrGet(LogSeverity severity)
 {
   if( severity == LOG_SEV_EMERGENCY )
     {

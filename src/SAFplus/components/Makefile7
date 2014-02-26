@@ -5,8 +5,9 @@ all:
 	echo blah
 
 clean:
-	rm -rf $(SAFPLUS_TARGET) $(MWOBJ_DIR)
+	rm -rf $(SAFPLUS_TARGET) $(MWOBJ_DIR) $(OBJ_DIR)
 
 include ../mk/safplus_targets.mk
 
 all: $(SAFplusSOs)  $(SAFplusServices) $(SAFplusTests) 
+

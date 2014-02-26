@@ -4,7 +4,7 @@
 //#include <boost/interprocess/shared_memory_object.hpp>
 //#include <boost/interprocess/mapped_region.hpp>
 
-#include <clCommon.hpp>
+#include <clCommon.hxx>
 
 #include <clCkptIpi.hxx>
 #include <clCkptApi.hxx>
@@ -35,7 +35,7 @@ bool SAFplusI::BufferPtrContentsEqual::operator() (const BufferPtr& x, const Buf
       
 }
 
-void SAFplus::Checkpoint::init(const HandleT& handle, uint_t _flags,uint_t size, uint_t rows)
+void SAFplus::Checkpoint::init(const Handle& handle, uint_t _flags,uint_t size, uint_t rows)
 {
   flags = _flags;
   char tempStr[81];
@@ -121,8 +121,8 @@ const Buffer& SAFplus::Checkpoint::read (const uintcw_t key) const
 
 const Buffer& SAFplus::Checkpoint::read (const char* key) const
 {
-  size_t len = strlen(key)+1;  // I'm going to take the /0 so Buffer's can be manipulated as strings
-  char data[sizeof(Buffer)-1+len];
+  size_t len = strlen(key)+1;  // +1 b/c I'm going to take the /0 so Buffers can be manipulated as strings
+  char data[sizeof(Buffer)-1+len]; // -1 because inside Buffer the data field is already length one.
   Buffer* b = new(data) Buffer(len);
   *b = key;
   return read(*b);

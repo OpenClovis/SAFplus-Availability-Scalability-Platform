@@ -1,4 +1,4 @@
-#include <clThreadApi.hpp>
+#include <clThreadApi.hxx>
 #include <cltypes.h>
 #include <clCksmApi.h>
 #include <clCommon.h>
@@ -6,12 +6,12 @@
 #include <errno.h>
 #include <stdio.h>
 
-#include <clLogApi.hpp>
-#include <clCommon.hpp>
-#include <clGlobals.hpp>
+#include <clLogApi.hxx>
+#include <clCommon.hxx>
+#include <clGlobals.hxx>
 #include <clTransaction.hxx>
 
-#include <clHandleApi.hpp>
+#include <clHandleApi.hxx>
 
 namespace SAFplus
 {
@@ -49,7 +49,7 @@ bool clWithoutAmf;
 
 uint64_t curHandleIdx = 1;
 
-LogSeverityT logSeverityGet(const ClCharT  *pSevName);
+LogSeverity logSeverityGet(const ClCharT  *pSevName);
 
   
   //  char* ASP_NODENAME=NULL;
@@ -206,7 +206,7 @@ void loadEnvVars()
     }
 }
 
-LogSeverityT logSeverityGet(const ClCharT  *pSevName)
+LogSeverity logSeverityGet(const ClCharT  *pSevName)
 {
     if( NULL == pSevName )
     {
@@ -434,10 +434,10 @@ bool clVersionVerify (ClVersionDatabaseT *versionDatabase, ClVersionT *version)
   }
 
   
-  HandleT HandleT::create(void)
+  Handle Handle::create(void)
   {
     // TODO: mutex lock around this
-    HandleT hdl(PersistentHandle,curHandleIdx++,pid); // TODO node and clusterId
+    Handle hdl(PersistentHandle,curHandleIdx++,pid); // TODO node and clusterId
     return hdl;
   }
   

@@ -12,7 +12,7 @@
 #include <string>
 
 // SAFplus includes
-#include <clHandleApi.hpp>
+#include <clHandleApi.hxx>
 #include <clTransaction.hxx>
 
 #include <clCkptIpi.hxx>
@@ -22,7 +22,7 @@ namespace SAFplus
 
   class Buffer
   {
-    uint32_t refAndLen;
+    uint32_t refAndLen; // 8 bits (highest) reference count and 24 bits length combined into one.
   public:
     Buffer() { refAndLen=0;}
     Buffer(uint_t _len) { refAndLen = (1UL<<24) | (_len&0x00ffffff); }
@@ -33,7 +33,7 @@ namespace SAFplus
     void decRef(uint_t amt = 1) { if (ref() < amt) refAndLen &= 0x00ffffff; else refAndLen -= (amt<<24); }
 
     /** The buffer */
-    char data[1];  // Not really length 1
+    char data[1];  // Not really length 1, this structure will be malloced and placed on a much larger buffer so data is actually len() long
 
     Buffer& operator = (char c)
     {
@@ -97,14 +97,14 @@ namespace SAFplus
         EXISTING = 0x1000, // This checkpoint must be already in existence.  In this case, no other flags need to be passed since the existing checkpoint's flags will be used. 
       };
 
-    Checkpoint(const HandleT& handle, uint_t flags,uint_t size=0, uint_t rows=0)  // Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created and a new handle assigned
+    Checkpoint(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0)  // Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created and a new handle assigned
     { init(handle,flags,size,rows);}
     
     Checkpoint(uint_t flags,uint_t size=0, uint_t rows=0)  // Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.
-    { init(SAFplus::HandleT::create(),flags,size,rows);}
+    { init(SAFplus::Handle::create(),flags,size,rows);}
 
     Checkpoint():hdr(NULL),flags(0) {}  // 2 step initialization
-    void init(const HandleT& handle, uint_t flags,uint_t size=0, uint_t rows=0);
+    void init(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0);
 
     // TBD when name service is ready; just resolve name to a handle, or create a name->new handle->new checkpoint object mapping if the name does not exist.
     //Checkpoint(const char* name,uint_t flags);

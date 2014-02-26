@@ -1,13 +1,13 @@
 #include <clIocApi.h>
-#include <clLogApi.hpp>
+#include <clLogApi.hxx>
 
 namespace SAFplus
 {
   extern pid_t pid;  // This process's ID 
-  extern char* logCompName;  // Override this component name for display in the logs.  If this variable is not changed the name will be the SAF component name.
+  extern const char* logCompName;  // Override this component name for display in the logs.  If this variable is not changed the name will be the SAF component name.
   extern bool  logCodeLocationEnable;
 
-  extern SAFplus::LogSeverityT logSeverity;
+  extern SAFplus::LogSeverity logSeverity;
   
   extern ClIocPortT  iocPort;  // The default communications port number for this component
 

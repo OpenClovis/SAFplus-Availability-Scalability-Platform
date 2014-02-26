@@ -21,13 +21,13 @@ namespace SAFplus
   };
 
   /* Interprocess semaphore must use SYS-V semaphores because they can be automatically released on process death.  Api signatures are very similar to c++ boost library. */
-  class ProcSemT:public SemI
+  class ProcSem:public SemI
   {
   protected:
     int semId;
   public:
-    ProcSemT(unsigned int key,int initialValue=0);
-    ProcSemT(const char* key,int initialValue=0);
+    ProcSem(unsigned int key,int initialValue=0);
+    ProcSem(const char* key,int initialValue=0);
     void init(unsigned int key,int initialValue);
     void wake(int amt,void* cookie=NULL);
     void lock(int amt=1);
@@ -44,12 +44,12 @@ namespace SAFplus
   public:
     void wake(int amt,void* cookie=NULL);
     void lock(void) { mutex.lock(); }
-    void unlock(void) { mutex.lock(); }
+    void unlock(void) { mutex.unlock(); }
     bool try_lock(void) { return mutex.try_lock(); }
   };
 
   typedef class tMutex<boost::timed_mutex> Mutex;
-  typedef class tMutex<boost::recursive_timed_mutex> rMutex;
+  typedef class tMutex<boost::recursive_timed_mutex> RecursiveMutex;
 
 
 

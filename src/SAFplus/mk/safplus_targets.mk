@@ -1,20 +1,23 @@
 
-$(LIB_DIR)/clLog.so:
+$(LIB_DIR)/libclLog.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/log7
 
-$(LIB_DIR)/clUtils7.so:
+$(LIB_DIR)/libclUtils7.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/utils7
 
-$(LIB_DIR)/clOsal7.so:
+$(LIB_DIR)/libclOsal7.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/osal7
 
-$(LIB_DIR)/clMgt7.so:
+$(LIB_DIR)/libclMgt7.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/client
 
-$(LIB_DIR)/clCkpt.so:
+$(LIB_DIR)/libclCkpt.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/ckpt7
 
-SAFplusSOs := $(LIB_DIR)/clCkpt.so $(LIB_DIR)/clUtils7.so $(LIB_DIR)/clOsal7.so $(LIB_DIR)/clMgt7.so $(LIB_DIR)/clLog.so 
+$(LIB_DIR)/libclMgt.so:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/ckpt7
+
+SAFplusSOs := $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclLog.so 
 
 ifndef SAFPLUS_LOG_TEST
 $(TEST_DIR)/testLog:
@@ -23,9 +26,20 @@ endif
 
 ifndef SAFPLUS_LOG_SERVER
 $(SAFPLUS_TARGET)/bin/splogd:
-	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/log7/test
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/log7/server
 endif
 
-SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt
+ifndef SAFPLUS_CKPT_TEST
+$(TEST_DIR)/testCkpt:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/ckpt7/test
+endif
+
+ifndef SAFPLUS_MGT_TEST
+$(TEST_DIR)/testmgt:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/test
+endif
+
+
+SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt
 
 SAFplusServices := $(SAFPLUS_TARGET)/bin/splogd

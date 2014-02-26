@@ -3,10 +3,10 @@
 #include <vector>
 using namespace std;
 
-#include <clLogIpi.hpp>
+#include <clLogIpi.hxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/lexical_cast.hpp>
-#include <clGlobals.hpp>
+#include <clGlobals.hxx>
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace boost::posix_time;
