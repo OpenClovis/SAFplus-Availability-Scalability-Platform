@@ -36,7 +36,7 @@
 #include <vector>
 #include <map>
 
-#include "clMgtTransaction.hxx"
+#include "clTransaction.hxx"
 #include "clMgtMsg.hxx"
 
 #ifdef __cplusplus

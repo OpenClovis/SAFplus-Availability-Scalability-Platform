@@ -204,10 +204,11 @@ void ClMgtHistoryStat<T>::set(ClTransaction& t)
 }
 
 template <class T>
-std::string ClMgtHistoryStat<T>::toString()
+void ClMgtHistoryStat<T>::toString(std::stringstream& xmlString)
 {
-    std::stringstream xmlString;
     ClUint32T i;
+
+    xmlString << "<" << Name << ">";
 
     xmlString << "<current>" << mCurrent << "</current>";
 
@@ -251,7 +252,7 @@ std::string ClMgtHistoryStat<T>::toString()
         xmlString << "<history1month>" << mHistory1Month[i] << "</history1month>";
     }
 
-    return "<" + Name + ">" + xmlString.str() + "</" + Name + ">";
+    xmlString << "</" << Name << ">";
 }
 
 template <class T>
