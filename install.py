@@ -7,6 +7,7 @@ import errno
 import types
 import urllib2
 import string
+from subprocess import Popen, PIPE
 
 # make sure they have a proper version of python
 if sys.version_info[:3] < (2, 4, 3):
@@ -1335,19 +1336,17 @@ class ASPInstaller:
 
     def install_IDE(self):
         self.feedback('Starting IDE installation...')
-        cmds = ['cd %s' % self.WORKING_DIR, 
-                'tar cf - $IDE | ( cd %s; tar xfm -)' % self.INSTALL_DIR]
+        cmds = ['cp -rf %s/$IDE %s' % (self.WORKING_DIR, self.INSTALL_DIR)]
 
         if self.GPL:
-            cmds.append('tar cf - src/$IDE | ( cd $PACKAGE_ROOT; tar xfm -)')
+            cmds.append('cp -rf %s/src/$IDE $PACKAGE_ROOT' % self.WORKING_DIR)
         
         self.feedback("Linking Eclipse in %s..." % self.IDE_ROOT)
-        cmds.append('cd %s' % self.IDE_ROOT)
-        cmds.append('rm -rf eclipse/plugins/*clovis* >/dev/null 2>&1') # remove redundant clovis plugins if any
-        cmds.append("sed -e '/-showsplash\|org.eclipse.platform/d' eclipse/eclipse.ini > eclipse/eclipse_ini.tmp")
-        cmds.append('rm eclipse/eclipse.ini')
-        cmds.append('mv eclipse/eclipse_ini.tmp eclipse/eclipse.ini')
-        cmds.append('mv -f %s/plugins/* %s/plugins >/dev/null 2>&1' % (self.IDE_ROOT,self.ECLIPSE))
+        cmds.append('rm -rf %s/eclipse/plugins/*clovis*' % self.IDE_ROOT) # remove redundant clovis plugins if any
+        cmds.append("sed -e '/-showsplash\|org.eclipse.platform/d' %s/eclipse/eclipse.ini > %s/eclipse/eclipse_ini.tmp" % (self.IDE_ROOT, self.IDE_ROOT))
+        cmds.append('rm %s/eclipse/eclipse.ini' % self.IDE_ROOT)
+        cmds.append('mv %s/eclipse/eclipse_ini.tmp %s/eclipse/eclipse.ini' % (self.IDE_ROOT, self.IDE_ROOT))
+        cmds.append('mv -f %s/plugins/* %s/plugins' % (self.IDE_ROOT,self.ECLIPSE))
         cmds.append('rm -rf %s/plugins' % self.IDE_ROOT)
 
         # update config.ini
@@ -1356,7 +1355,7 @@ class ASPInstaller:
         # initialize private configuration
         cmds.append('%s/eclipse -initialize' % self.ECLIPSE)
 
-        self.run_command_list(cmds)
+        self.run_each_command_in_list(cmds)
 
         # Delete help cache if the build we are installing is newer than
         # the build we last installed
@@ -1554,6 +1553,23 @@ class ASPInstaller:
         if ret != 0:
             self.feedback('[ERROR] command failed: "%s"' % cmd)
 
+    def run_each_command_in_list(self, cmds):
+        """ takes a list of unix commands,
+        injects the proper values, and runs each of them , exiting on failure"""
+
+        for i in range(len(cmds)):
+            cmds[i] = self.parse_unix_vars(cmds[i])
+            assert '$' not in cmds[i]
+
+        #cmd = ' && '.join(cmds)
+        #ret = cli_cmd(cmd)
+        for i in range(len(cmds)):
+            self.feedback(cmds[i])
+            process = Popen([cmds[i]], stdout=PIPE, stderr=PIPE, shell=True)
+            stdout, stderr = process.communicate()
+            if stderr:
+                self.feedback('[ERROR] command "%s" failed: "%s"' % (cmds[i], str(stderr)))
+                sys.exit(1)
 
 
     def parse_unix_vars(self, line):
