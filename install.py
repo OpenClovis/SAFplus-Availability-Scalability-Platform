@@ -1292,7 +1292,7 @@ class ASPInstaller:
 
         cmds = ['cp -rf $WORKING_DIR/$IDE $PACKAGE_ROOT']
         if self.GPL:
-            cmds.append('tar cf - $WORKING_DIR/src/$IDE | tar xfm - -C $PACKAGE_ROOT')
+            cmds.append('cp -rf $WORKING_DIR/src/$IDE $PACKAGE_ROOT')
         
         self.feedback("Linking Eclipse in %s..." % self.PACKAGE_ROOT)
 
