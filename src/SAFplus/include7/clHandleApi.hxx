@@ -10,6 +10,15 @@
 namespace SAFplus
 {
 
+  #define HDL_TYPE_ID_MASK            0xF000000000000000ULL
+  #define HDL_CLUSTER_ID_MASK         0x0FFF000000000000ULL
+  #define HDL_NODE_ID_MASK            0x0000FFFF00000000ULL
+  #define HDL_PROCESS_ID_MASK         0x00000000FFFFFFFFULL
+
+  #define HDL_TYPE_ID_SHIFT            60
+  #define HDL_CLUSTER_ID_SHIFT         48
+  #define HDL_NODE_ID_SHIFT            32
+
   typedef  enum 
     {
       PointerHandle,
@@ -33,26 +42,53 @@ namespace SAFplus
       return ((id[0] == other.id[0])&&(id[1]==other.id[1]));
     }
     Handle() { id[0] = 0; id[1] = 0; }
-    Handle(HandleType t,uint64_t idx, uint16_t process=0xffff,uint16_t node=0xffff,uint_t clusterId=0xfff)
+    Handle(HandleType t,uint64_t idx, uint32_t process=0xffffffff,uint16_t node=0xffff,uint_t clusterId=0xfff)
     {
-      // TODO: add all handle formats
-      if (t==PersistentHandle)
-	{
-	  id[0]=idx;  // TODO: change to proper handle format as per docs
-          id[1]=0;
-	}
-      else
-	{
-	  assert(0);
-	}
+      uint64_t id0 = (( ((uint64_t)t) << HDL_TYPE_ID_SHIFT) & HDL_TYPE_ID_MASK)
+                   | (( ((uint64_t)clusterId) << HDL_CLUSTER_ID_SHIFT) & HDL_CLUSTER_ID_MASK)
+                   | (( ((uint64_t)node) << HDL_NODE_ID_SHIFT) & HDL_NODE_ID_MASK)
+                   | (  ((uint64_t)process) & HDL_PROCESS_ID_MASK);
+
+      id[0]=id0;
+      id[1]=idx;
     }
+
+    HandleType getType()
+    {
+      HandleType t = (HandleType)((id[0] & HDL_TYPE_ID_MASK) >> HDL_TYPE_ID_SHIFT);
+      return t;
+    }
+
+    uint64_t getIndex()
+    {
+      return id[1];
+    }
+
+    uint32_t getProcess()
+    {
+      uint32_t process = (uint32_t)(id[0] & HDL_PROCESS_ID_MASK);
+      return process;
+    }
+
+    uint16_t getNode()
+    {
+      uint16_t node = (uint16_t)((id[0] & HDL_NODE_ID_MASK) >> HDL_NODE_ID_SHIFT);
+      return node;
+    }
+
+    uint_t getCluster()
+    {
+      uint_t clusterId = (uint_t)((id[0] & HDL_CLUSTER_ID_MASK) >> HDL_CLUSTER_ID_SHIFT);
+      return clusterId;
+    }
+
     static Handle create(void);  // Get a new handle.
   };
   
   class WellKnownHandle:public Handle
   {
   public:
-    WellKnownHandle(uint64_t idx,uint16_t process=0xffff,uint16_t node=0xffff,uint_t clusterId=0xfff):Handle(PersistentHandle,idx)
+    WellKnownHandle(uint64_t idx,uint32_t process=0xffffffff,uint16_t node=0xffff,uint_t clusterId=0xfff):Handle(PersistentHandle,idx)
     {
     }
   };
