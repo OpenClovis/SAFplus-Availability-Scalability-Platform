@@ -1431,14 +1431,15 @@ if [ -c config.log ]; then
     rm -f config.log
 fi
 
-CL_BUILDTOOLS=$buildtool_dir
-CL_THIRDPARTY_BASE=$thirdparty_base_dir
+#move these lines of code because of github bug #132
+#CL_BUILDTOOLS=$buildtool_dir
+#CL_THIRDPARTY_BASE=$thirdparty_base_dir
 
-if [ -f $CL_BUILDTOOLS/local/bin/net-snmp-config ]; then
-	export NET_SNMP_CONFIG=$CL_BUILDTOOLS/local/bin/net-snmp-config
-else
-	export NET_SNMP_CONFIG=net-snmp-config
-fi
+#if [ -f $CL_BUILDTOOLS/local/bin/net-snmp-config ]; then
+#	export NET_SNMP_CONFIG=$CL_BUILDTOOLS/local/bin/net-snmp-config
+#else
+#	export NET_SNMP_CONFIG=net-snmp-config
+#fi
 
 ## cd ..;
 export PROJECT_ROOT=$origDir
@@ -1677,6 +1678,15 @@ echo "Model Name:      " $ASP_MODEL_NAME  "  Model:" $SAFPLUS_MODEL_DIR  " Build
 #if [ "${ASP_BUILD}" = 1 ]; then
 #    echo "Building a local copy of SAFplus libraries"
 #fi
+# Fix github bug #132
+CL_BUILDTOOLS=$buildtool_dir
+CL_THIRDPARTY_BASE=$thirdparty_base_dir
+
+if [ -f $CL_BUILDTOOLS/local/bin/net-snmp-config ]; then
+	export NET_SNMP_CONFIG=$CL_BUILDTOOLS/local/bin/net-snmp-config
+else
+	export NET_SNMP_CONFIG=net-snmp-config
+fi
 
 sdk_tag=sdk-$PACKAGE_VERSION
 if [ $MODEL_BUILD = 1 ]; then
