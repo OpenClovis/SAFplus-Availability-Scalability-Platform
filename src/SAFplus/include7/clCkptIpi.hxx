@@ -53,8 +53,8 @@ namespace SAFplusI
   class BufferPtr:public boost::interprocess::offset_ptr<SAFplus::Buffer>
   {
   public:
-    BufferPtr(SAFplus::Buffer* b):offset_ptr(b) {}
-    BufferPtr():offset_ptr() {}
+    BufferPtr(SAFplus::Buffer* b):boost::interprocess::offset_ptr<SAFplus::Buffer>(b) {}
+    BufferPtr():boost::interprocess::offset_ptr<SAFplus::Buffer>() {}
   };
 
   struct BufferPtrContentsEqual
