@@ -747,7 +747,7 @@ def zap_amf():
     kill_amf()
 
     if not is_simulation():
-        unload_tipc_module()
+        safplus_tipc.unload_tipc_module()
 
 def is_amf_running():
     '''
