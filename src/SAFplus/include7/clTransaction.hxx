@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <string>
+#include "clHandleApi.hxx"
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,30 +33,34 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
-typedef struct ClTransactionData
-{
-	ClUint64T len;
-    ClCharT *data;
-} ClTransactionDataT;
-
-class ClTransaction {
-protected:
-    std::vector<ClTransactionDataT*> mData;
-public:
-    ClTransaction();
-    virtual ~ClTransaction();
-    void add(void *pBuffer, ClUint64T buffLen);
-    void* get(ClUint32T index);
-    void remove(ClUint32T index);
-    ClUint32T getSize();
-    void clean();
-};
-
-extern ClTransaction NO_TXN;  // Deprecated
-
 namespace SAFplus
 {
-  extern ClTransaction& NO_TXN;
+  class TransactionOperation;
+
+  class Transaction
+  {
+  protected:
+      Handle mHandle;
+      std::vector<TransactionOperation*> mOperations;
+  public:
+      Transaction();
+      virtual ~Transaction();
+
+      ClRcT addOperation(TransactionOperation *operation);
+
+      void commit();
+      void abort();
+  };
+
+  class TransactionOperation
+  {
+  public:
+      virtual bool validate(Transaction& t) = 0;
+      virtual void commit() = 0;
+      virtual void abort() = 0;
+  };
+
+  extern Transaction NO_TXN;
 };
 
 #endif /* CLMGTTRANSACTION_HXX_ */

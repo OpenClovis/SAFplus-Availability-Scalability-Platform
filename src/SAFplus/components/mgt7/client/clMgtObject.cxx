@@ -31,8 +31,6 @@ extern "C" {
 
 using namespace std;
 
-ClTransaction ClMgtObject::NO_TRANSACTION = ClTransaction();
-
 ClMgtObject::ClMgtObject(const char* name)
 {
     Name.assign(name);
@@ -203,7 +201,7 @@ ClMgtObject *ClMgtObject::getChildObject(const std::string objectName, ClUint32T
 /*
 * Virtual function called from netconf server to validate object data
 */
-ClBoolT ClMgtObject::validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t)
+ClBoolT ClMgtObject::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
     xmlChar                             *valstr, *namestr;
     int                                 ret, nodetyp, depth;
@@ -309,7 +307,7 @@ ClBoolT ClMgtObject::validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t
 
                     if (mgtObject->isKeysMatch(&keys) == CL_TRUE)
                     {
-                        if(mgtObject->validate(strChildData, strlen(strChildData), t) == CL_FALSE)
+                        if(mgtObject->set(strChildData, strlen(strChildData), t) == CL_FALSE)
                         {
                             xmlFreeTextReader(reader);
                             free(strChildData);
@@ -355,23 +353,6 @@ ClBoolT ClMgtObject::validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t
     return CL_TRUE;
 }
 
-void ClMgtObject::abort(ClTransaction& t)
-{
-    ClUint32T i;
-    map<string, vector<ClMgtObject*>* >::iterator mapIndex;
-
-    for (mapIndex = mChildren.begin(); mapIndex != mChildren.end(); ++mapIndex)
-    {
-        vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
-
-        for(i = 0; i< objs->size(); i++)
-        {
-            ClMgtObject* mgtChildObject = (*objs)[i];
-            mgtChildObject->abort(t);
-        }
-    }
-}
-
 void ClMgtObject::toString(std::stringstream& xmlString)
 {
     ClUint32T i;
@@ -408,38 +389,6 @@ void ClMgtObject::get(void **ppBuffer, ClUint64T *pBuffLen)
     }
 
     strncat((char *)*ppBuffer, xmlString.str().c_str(), *pBuffLen - 1 );
-}
-
-void ClMgtObject::set(ClTransaction& t)
-{
-    ClUint32T i;
-    map<string, vector<ClMgtObject*>* >::iterator mapIndex;
-
-    for (mapIndex = mChildren.begin(); mapIndex != mChildren.end(); ++mapIndex)
-    {
-        vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
-
-        for(i = 0; i< objs->size(); i++)
-        {
-            ClMgtObject* mgtChildObject = (*objs)[i];
-            mgtChildObject->set(t);
-        }
-    }
-}
-
-void ClMgtObject::set(void *pBuffer, ClUint64T buffLen)
-{
-    ClTransaction t;
-
-    if (this->validate(pBuffer, buffLen, t))
-    {
-        this->set(t);
-    }
-    else
-    {
-        this->abort(t);
-    }
-    t.clean();
 }
 
 ClBoolT ClMgtObject::isKeysMatch(std::map<std::string, std::string> *keys)

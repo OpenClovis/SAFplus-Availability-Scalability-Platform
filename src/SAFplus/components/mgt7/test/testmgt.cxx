@@ -3,56 +3,12 @@
 
 #include <stdio.h>
 
-void testTransaction()
+/*
+ * This test case make sure a ClMgtProv object work with the Transaction
+ */
+void testTransaction01()
 {
-    ClInt32T index;
-    ClCharT inVal[] = "Value";
-    ClTransaction t;
-
-    index = t.getSize();
-    if (index != 0)
-    {
-        printf("FAIL: Invalid ClTransaction initialization [index=%d].\n", index);
-        return;
-    }
-
-    printf("PASS: ClTransaction initialization.\n");
-
-    t.add((void *)inVal, strlen((char *)inVal) + 1);
-
-    index = t.getSize();
-    if (index != 1)
-    {
-        printf("FAIL: Invalid ClTransaction adding [index=%d].\n", index);
-        return;
-    }
-
-    printf("PASS: ClTransaction adding.\n");
-
-    ClCharT *outVal = (char *) t.get(index - 1);
-    if ((!outVal) || (strcmp(inVal, outVal)))
-    {
-        printf("FAIL: Invalid getting [in value = %s] [out value = %s].\n", inVal, outVal);
-        return;
-    }
-
-    printf("PASS: ClTransaction getting.\n");
-
-    t.clean();
-
-    index = t.getSize();
-    if (index != 0)
-    {
-        printf("FAIL: Invalid ClTransaction cleaning [index=%d].\n", index);
-        return;
-    }
-
-    printf("PASS: ClTransaction cleaning.\n");
-}
-
-void testMgtTransaction()
-{
-    ClTransaction t;
+    SAFplus::Transaction t;
     ClInt32T index;
     ClCharT failVal[] = "<failtest>Value</failtest>";
     ClCharT passVal[] = "<test>Value</test>";
@@ -60,50 +16,33 @@ void testMgtTransaction()
     ClMgtProv<std::string> testVal("test");
     testVal.Value = "Init";
 
-    if (testVal.validate(failVal, strlen(failVal), t))
+    if (testVal.set(failVal, strlen(failVal), t))
     {
-        testVal.set(t);
+        t.commit();
     }
     else
     {
-        testVal.abort(t);
+        t.abort();
     }
 
-    index = t.getSize();
-    if (index != 0)
+    if (testVal.Value.compare("Init") != 0 )
     {
-        printf("FAIL: Test 01 - MGT with ClTransaction - abort.\n");
+        printf("FAIL: Test 01 - MGT with Transaction - abort.\n");
         return;
     }
 
-    if (testVal.validate(passVal, strlen(passVal), t))
+    if (testVal.set(passVal, strlen(passVal), t))
     {
-        testVal.set(t);
+        t.commit();
     }
     else
     {
-        testVal.abort(t);
-    }
-
-    index = t.getSize();
-    if (index != 1)
-    {
-        printf("FAIL: Test 02 - MGT with ClTransaction - set.\n");
-        return;
+        t.abort();
     }
 
     if (testVal.Value.compare("Value") != 0 )
     {
-        printf("FAIL: Test 03 - MGT with ClTransaction - check value.\n");
-        return;
-    }
-
-    t.clean();
-
-    index = t.getSize();
-    if (index != 0)
-    {
-        printf("FAIL: Invalid ClTransaction cleaning [index=%d].\n", index);
+        printf("FAIL: Test 02 - MGT with Transaction - check value.\n");
         return;
     }
 
@@ -113,9 +52,7 @@ void testMgtTransaction()
 
 int main(int argc, char* argv[])
 {
-    testTransaction();
-
-    testMgtTransaction();
+    testTransaction01();
 
     return 0;
 }

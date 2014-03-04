@@ -99,17 +99,7 @@ public:
     /**
      * \brief   Virtual function to validate object data
      */
-    virtual ClBoolT validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t);
-
-    /**
-     * \brief   Virtual function to abort object modification
-     */
-    virtual void abort(ClTransaction& t);
-
-    /**
-     * \brief	Virtual function called from netconf server to set object data
-     */
-    virtual void set(ClTransaction& t);
+    virtual ClBoolT validate(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     /**
      * \brief	Virtual function to calculate current value of the clMgtHistoryStat on timer
@@ -186,21 +176,9 @@ ClMgtHistoryStat<T>::~ClMgtHistoryStat()
 }
 
 template <class T>
-ClBoolT ClMgtHistoryStat<T>::validate( void *pBuffer, ClUint64T buffLen, ClTransaction& t)
+ClBoolT ClMgtHistoryStat<T>::validate( void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
     return CL_FALSE;
-}
-
-template <class T>
-void ClMgtHistoryStat<T>::abort(ClTransaction& t)
-{
-    // Do nothing
-}
-
-template <class T>
-void ClMgtHistoryStat<T>::set(ClTransaction& t)
-{
-    // Do nothing
 }
 
 template <class T>

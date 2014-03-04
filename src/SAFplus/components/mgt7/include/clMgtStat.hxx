@@ -43,17 +43,7 @@ public:
     /**
      * \brief   Virtual function to validate object data
      */
-    virtual ClBoolT validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t);
-
-    /**
-     * \brief   Virtual function to abort object modification
-     */
-    virtual void abort(ClTransaction& t);
-
-    /**
-     * \brief	Virtual function called from netconf server to set object data
-     */
-    virtual void set(ClTransaction& t);
+    virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
 };
 
@@ -71,20 +61,9 @@ ClMgtStat<T>::~ClMgtStat()
 {}
 
 template <class T>
-ClBoolT ClMgtStat<T>::validate( void *pBuffer, ClUint64T buffLen, ClTransaction& t)
+ClBoolT ClMgtStat<T>::set( void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
     return CL_FALSE;
-}
-
-template <class T>
-void ClMgtStat<T>::abort(ClTransaction& t)
-{
-}
-
-template <class T>
-void ClMgtStat<T>::set(ClTransaction& t)
-{
-    // Do nothing
 }
 
 #endif /* CLMGTSTAT_HXX_ */

@@ -85,17 +85,7 @@ public:
   /**
      * \brief   Virtual function to validate object data
      */
-    virtual ClBoolT validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t);
-
-    /**
-     * \brief   Virtual function to abort object modification
-     */
-    virtual void abort(ClTransaction& t);
-
-    /**
-     * \brief	Virtual function called from netconf server to set object data
-     */
-    virtual void set(ClTransaction& t);
+    virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     /**
      * \brief   Define formal access operation
@@ -130,6 +120,82 @@ public:
 
 };
 
+template <class T>
+class ProvOperation : public SAFplus::TransactionOperation
+{
+protected:
+    ClMgtProv<T> *mOwner;
+    void         *mData;
+
+public:
+    ProvOperation()
+    {
+        mOwner = NULL;
+        mData = NULL;
+    }
+    void setData(ClMgtProv<T> *owner, void *data, ClUint64T buffLen);
+    virtual bool validate(SAFplus::Transaction& t);
+    virtual void commit();
+    virtual void abort();
+};
+
+/*
+ * Implementation of ProvOperation class
+ * G++ compiler: template function declarations and implementations must appear in the same file.
+ */
+
+template <class T>
+void ProvOperation<T>::setData(ClMgtProv<T> *owner, void *data, ClUint64T buffLen)
+{
+    mOwner = owner;
+    mData = new char[buffLen];
+    memcpy(mData, data, buffLen);
+}
+
+template <class T>
+bool ProvOperation<T>::validate(SAFplus::Transaction& t)
+{
+    if ((!mOwner) || (!mData))
+        return false;
+
+    return true;
+}
+
+template <class T>
+void ProvOperation<T>::commit()
+{
+    if ((!mOwner) || (!mData))
+        return;
+
+    std::stringstream ss;
+
+    char *valstr = (char *) mData;
+
+    if (((typeid(T) == typeid(bool)) || (typeid(T) == typeid(ClBoolT))) && (!strcmp((char*)valstr, "true")))
+    {
+        ss << "1";
+        ss >> mOwner->Value;
+    }
+    else
+    {
+        ss << valstr;
+        ss >> mOwner->Value;
+    }
+
+    mOwner->setDb();
+    delete mData;
+    mData = NULL;
+}
+
+template <class T>
+void ProvOperation<T>::abort()
+{
+    if ((!mOwner) || (!mData))
+        return;
+
+    delete mData;
+    mData = NULL;
+}
 /*
  * Implementation of ClMgtProv class
  * G++ compiler: template function declarations and implementations must appear in the same file.
@@ -161,7 +227,7 @@ std::string ClMgtProv<T>::strValue()
 }
 
 template <class T>
-ClBoolT ClMgtProv<T>::validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t)
+ClBoolT ClMgtProv<T>::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
     xmlChar        *valstr, *namestr;
     int             ret, nodetyp, depth;
@@ -207,18 +273,15 @@ ClBoolT ClMgtProv<T>::validate(void *pBuffer, ClUint64T buffLen, ClTransaction& 
         return CL_FALSE;
     }
 
-    mValIndex = t.getSize();
-    t.add((void *)valstr, strlen((char *)valstr) + 1);
+    ProvOperation<T> *opt = new ProvOperation<T>;
+    opt->setData(this, (void *)valstr, strlen((char *)valstr) + 1);
+    t.addOperation(opt);
+
     xmlFreeTextReader(reader);
-    return CL_TRUE;
+    return opt->validate(t);
 }
 
-template <class T>
-void ClMgtProv<T>::abort(ClTransaction& t)
-{
-    mValIndex = -1;
-}
-
+/*
 template <class T>
 void ClMgtProv<T>::set(ClTransaction& t)
 {
@@ -244,6 +307,8 @@ void ClMgtProv<T>::set(ClTransaction& t)
 
     mValIndex = -1;
 }
+
+*/
 
 /*
  * Leaf doesn't have children

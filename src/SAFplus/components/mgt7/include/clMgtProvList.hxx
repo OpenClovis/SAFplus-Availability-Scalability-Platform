@@ -68,19 +68,7 @@ public:
      * \brief   Virtual function to validate object data
      */
     virtual ClBoolT
-    validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t);
-
-    /**
-     * \brief   Virtual function to abort object modification
-     */
-    virtual void
-    abort(ClTransaction& t);
-
-    /**
-     * \brief   Virtual function called from netconf server to set object data
-     */
-    virtual void
-    set(ClTransaction& t = NO_TRANSACTION);
+    set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     std::string toStringItemAt(T &x);
 
@@ -141,12 +129,12 @@ void ClMgtProvList<T>::toString(std::stringstream& xmlString)
 }
 
 template<class T>
-ClBoolT ClMgtProvList<T>::validate(void *pBuffer, ClUint64T buffLen,
-        ClTransaction& t)
+ClBoolT ClMgtProvList<T>::set(void *pBuffer, ClUint64T buffLen,
+        SAFplus::Transaction& t)
 {
     const xmlChar *valstr, *namestr;
     int ret;
-    ClInt32T valIndex;
+    //ClInt32T valIndex;
 
     xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen,
             NULL, NULL, 0);
@@ -166,9 +154,9 @@ ClBoolT ClMgtProvList<T>::validate(void *pBuffer, ClUint64T buffLen,
                         && !xmlTextReaderIsEmptyElement(reader))
                 {
                     valstr = xmlTextReaderConstValue(reader);
-                    valIndex = t.getSize();
-                    t.add((void *)valstr, strlen((char *)valstr) + 1);
-                    mValIndexes.push_back(valIndex);
+                    //valIndex = t.getSize();
+                    //t.add((void *)valstr, strlen((char *)valstr) + 1);
+                    //mValIndexes.push_back(valIndex);
                 }
             }
             ret = xmlTextReaderRead(reader);
@@ -176,12 +164,6 @@ ClBoolT ClMgtProvList<T>::validate(void *pBuffer, ClUint64T buffLen,
         xmlFreeTextReader(reader);
     }
     return CL_TRUE;
-}
-
-template<class T>
-void ClMgtProvList<T>::abort(ClTransaction& t)
-{
-    mValIndexes.clear();
 }
 
 template<class T>
@@ -204,6 +186,7 @@ void ClMgtProvList<T>::pushBackValue(std::string strVal)
     Value.push_back(value);
 }
 
+/*
 template<class T>
 void ClMgtProvList<T>::set(ClTransaction& t)
 {
@@ -222,6 +205,8 @@ void ClMgtProvList<T>::set(ClTransaction& t)
 
     mValIndexes.clear();
 }
+*/
+
 /*
  * List-leaf doesn't have children
  */
