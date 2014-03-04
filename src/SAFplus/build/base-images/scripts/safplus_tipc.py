@@ -25,6 +25,7 @@ import errno
 import re
 import glob
 import commands
+import safplus_watchdog_start
 #import pdb
 
 log = logging
@@ -43,9 +44,9 @@ def is_system_controller(): return safplus.safplus_getenv('SYSTEM_CONTROLLER')
 
 def is_simulation(): return bool(int(safplus.safplus_getenv('ASP_SIMULATION', default='0')))
    
-def enforce_tipc_settings(): return 'enforce_tipc_settings' in safplus_env
+def enforce_tipc_settings(): return safplus_watchdog_start.TipcSettings=='enforce'
 
-def ignore_tipc_settings(): return 'ignore_tipc_settings' in safplus_env
+def ignore_tipc_settings(): return safplus_watchdog_start.TipcSettings=='ignore'
 
 def get_link_name(): return safplus.safplus_getenv('LINK_NAME', default='eth0')
 
