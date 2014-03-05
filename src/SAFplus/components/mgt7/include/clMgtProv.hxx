@@ -148,7 +148,10 @@ template <class T>
 void ProvOperation<T>::setData(ClMgtProv<T> *owner, void *data, ClUint64T buffLen)
 {
     mOwner = owner;
-    mData = new char[buffLen];
+    mData = (void *) malloc (buffLen);
+
+    if(!mData) return;
+
     memcpy(mData, data, buffLen);
 }
 
@@ -183,7 +186,7 @@ void ProvOperation<T>::commit()
     }
 
     mOwner->setDb();
-    delete mData;
+    free(mData);
     mData = NULL;
 }
 
@@ -193,7 +196,7 @@ void ProvOperation<T>::abort()
     if ((!mOwner) || (!mData))
         return;
 
-    delete mData;
+    free(mData);
     mData = NULL;
 }
 /*
@@ -277,38 +280,10 @@ ClBoolT ClMgtProv<T>::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction
     opt->setData(this, (void *)valstr, strlen((char *)valstr) + 1);
     t.addOperation(opt);
 
+    xmlFree(valstr);
     xmlFreeTextReader(reader);
     return opt->validate(t);
 }
-
-/*
-template <class T>
-void ClMgtProv<T>::set(ClTransaction& t)
-{
-    std::stringstream ss;
-
-    if (mValIndex == -1)
-        return;
-
-    char *valstr = (char *) t.get(mValIndex);
-
-    if (((typeid(T) == typeid(bool)) || (typeid(T) == typeid(ClBoolT))) && (!strcmp((char*)valstr, "true")))
-    {
-        ss << "1";
-        ss >> Value;
-    }
-    else
-    {
-        ss << valstr;
-        ss >> Value;
-    }
-
-    setDb();
-
-    mValIndex = -1;
-}
-
-*/
 
 /*
  * Leaf doesn't have children
