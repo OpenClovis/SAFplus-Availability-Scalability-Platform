@@ -49,18 +49,19 @@ fi
 # match then complain and exit with an error code.
 if [ -f ${LABEL_FILE} ]
 then
-    OLD_LABEL=`cat ${LABEL_FILE}`
-    if [ ! -z "${OLD_LABEL}" -a "${OLD_LABEL}" != "${SAFPLUS_MAKE_VARIANT}" ]
+    OLD_LABEL=`head -1 ${LABEL_FILE}`
+    OLD_LABEL=${OLD_LABEL#BUILD_LABEL=}    
+    if [ ! -z "${OLD_LABEL}" -a "${OLD_LABEL}" != \""${SAFPLUS_MAKE_VARIANT}"\" ]
     then
         echo "old label does not match new cross build label"
         echo "old label file = ${LABEL_FILE}"
         echo "old label = ${OLD_LABEL}"
-        echo "new label = ${SAFPLUS_MAKE_VARIANT}"
+        echo "new label = \"${SAFPLUS_MAKE_VARIANT}\""
         exit 1
     fi
 
     # Just in case the build has the correct cross build tools.
-    if [ ! -z "${OLD_LABEL}" -a "${OLD_LABEL}" = "${SAFPLUS_MAKE_VARIANT}" ]
+    if [ ! -z "${OLD_LABEL}" -a "${OLD_LABEL}" = \""${SAFPLUS_MAKE_VARIANT}"\" ]
     then
         exit 0
     fi
