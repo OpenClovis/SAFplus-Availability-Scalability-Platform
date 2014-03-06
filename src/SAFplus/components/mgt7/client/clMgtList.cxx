@@ -238,7 +238,7 @@ void ClMgtList::toString(std::stringstream& xmlString)
 
 }
 
-ClBoolT ClMgtList::validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t)
+ClBoolT ClMgtList::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
     xmlChar *valstr, *namestr;
     int ret, nodetyp, depth;
@@ -306,7 +306,7 @@ ClBoolT ClMgtList::validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t)
                 ClMgtObject* entry = findEntryByKeys(&keys);
                 if (entry != NULL)
                 {
-                    if (entry->validate(strChildData, strlen(strChildData), t)
+                    if (entry->set(strChildData, strlen(strChildData), t)
                             == CL_FALSE)
                     {
                         xmlFreeTextReader(reader);
@@ -352,27 +352,4 @@ ClBoolT ClMgtList::validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t)
     return CL_TRUE;
 }
 
-void ClMgtList::abort(ClTransaction& t)
-{
-    ClUint32T i;
-
-    for (i = 0; i < mEntries.size(); i++)
-    {
-        ClMgtObject *entry = mEntries[i];
-
-        entry->abort(t);
-    }
-}
-
-void ClMgtList::set(ClTransaction& t)
-{
-    ClUint32T i;
-
-    for (i = 0; i < mEntries.size(); i++)
-    {
-        ClMgtObject *entry = mEntries[i];
-
-        entry->set(t);
-    }
-}
 

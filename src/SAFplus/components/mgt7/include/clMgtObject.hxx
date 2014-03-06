@@ -69,7 +69,6 @@ public:
     std::string Name;
     std::vector<std::string> Keys;
     ClMgtObject *Parent;
-    static ClTransaction NO_TRANSACTION;
 
 public:
     ClMgtObject(const char* name);
@@ -146,12 +145,7 @@ public:
     /**
      * \brief   Virtual function to validate object data
      */
-    virtual ClBoolT validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t);
-
-    /**
-     * \brief   Virtual function to abort object modification
-     */
-    virtual void abort(ClTransaction& t);
+    virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     /**
      * \brief	Virtual function called from netconf server to get object data
@@ -163,7 +157,6 @@ public:
     /**
      * \brief	Virtual function called from netconf server to set object data
      */
-    virtual void set(ClTransaction& t);
     void set(void *pBuffer, ClUint64T buffLen);
 
     /**

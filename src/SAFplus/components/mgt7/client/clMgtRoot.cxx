@@ -55,7 +55,7 @@ ClMgtRoot *ClMgtRoot::getInstance()
 ClMgtRoot::~ClMgtRoot()
 {
 #ifdef MGT_ACCESS
-  
+
     /*
      * Do the application specific finalization here.
      */
@@ -238,18 +238,17 @@ void clMgtMsgEditHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
     if (!object)
         return;
 
-    ClTransaction t;
+    SAFplus::Transaction t;
 
-    if (object->validate(data, dataSize, t))
+    if (object->set(data, dataSize, t) == CL_TRUE)
     {
-        object->set(t);
+        t.commit();
     }
     else
     {
-        object->abort(t);
+        t.abort();
         rc = CL_ERR_INVALID_PARAMETER;
     }
-    t.clean();
 
     *outMsgSize = sizeof(ClRcT);
     *ppOutMsg = malloc(*outMsgSize);
@@ -409,7 +408,7 @@ void clMgtMsgOidSetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
     if (!object)
         return;
 
-    ClTransaction t;
+    SAFplus::Transaction t;
 
     string strInMsg((ClCharT *)editData->data);
 
@@ -419,16 +418,15 @@ void clMgtMsgOidSetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
                 + ">";
     }
 
-    if (object->validate((void *) strInMsg.c_str(), strInMsg.length(), t))
+    if (object->set((void *) strInMsg.c_str(), strInMsg.length(), t))
     {
-        object->set(t);
+        t.commit();
     }
     else
     {
-        object->abort(t);
+        t.abort();
         rc = CL_ERR_INVALID_PARAMETER;
     }
-    t.clean();
 
     *outMsgSize = sizeof(ClRcT);
     *ppOutMsg = malloc(*outMsgSize);

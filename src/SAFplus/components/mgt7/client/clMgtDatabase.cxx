@@ -137,7 +137,6 @@ ClRcT ClMgtDatabase::finalizeDB()
 ClRcT ClMgtDatabase::setRecord(const std::string &key, const std::string &value)
 {
     ClRcT rc = CL_OK;
-    ClUint32T dataSize = 0;
 
     if(!mInitialized)
     {

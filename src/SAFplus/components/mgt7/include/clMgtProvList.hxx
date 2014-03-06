@@ -43,19 +43,18 @@
 /*
  *
  */
+template <class T>
+class ProvListOperation;
+
 template<class T>
 class ClMgtProvList: public ClMgtObject
 {
-protected:
-    /* This variable is used to index the value in Transaction object.*/
-    std::vector<ClInt32T> mValIndexes;
-
-    void pushBackValue(std::string strVal);
 public:
     /**
      *  Value of the "ClMgtProv" object
      */
     std::vector<T> Value;
+    ProvListOperation<T> *mOpt;
 
 public:
     ClMgtProvList(const char* name);
@@ -68,19 +67,7 @@ public:
      * \brief   Virtual function to validate object data
      */
     virtual ClBoolT
-    validate(void *pBuffer, ClUint64T buffLen, ClTransaction& t);
-
-    /**
-     * \brief   Virtual function to abort object modification
-     */
-    virtual void
-    abort(ClTransaction& t);
-
-    /**
-     * \brief   Virtual function called from netconf server to set object data
-     */
-    virtual void
-    set(ClTransaction& t = NO_TRANSACTION);
+    set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     std::string toStringItemAt(T &x);
 
@@ -110,12 +97,93 @@ public:
      */
     ClRcT getDb();
 
+    void pushBackValue(std::string strVal);
 };
+
+template <class T>
+class ProvListOperation : public SAFplus::TransactionOperation
+{
+protected:
+    ClMgtProvList<T> *mOwner;
+    std::vector<void *> mData;
+
+public:
+    ProvListOperation()
+    {
+        mOwner = NULL;
+    }
+    void setOwner(ClMgtProvList<T> *owner);
+    void addData(void *data, ClUint64T buffLen);
+    virtual bool validate(SAFplus::Transaction& t);
+    virtual void commit();
+    virtual void abort();
+};
+
+template <class T>
+void ProvListOperation<T>::setOwner(ClMgtProvList<T> *owner)
+{
+    mOwner = owner;
+}
+
+template <class T>
+void ProvListOperation<T>::addData(void *data, ClUint64T buffLen)
+{
+    void *tempData = (void *) malloc (buffLen);
+
+    if(!tempData) return;
+
+    memcpy(tempData, data, buffLen);
+    mData.push_back(tempData);
+}
+
+template <class T>
+bool ProvListOperation<T>::validate(SAFplus::Transaction& t)
+{
+    if ((!mOwner) || (mData.size() == 0))
+        return false;
+
+    return true;
+}
+
+template <class T>
+void ProvListOperation<T>::commit()
+{
+    if ((!mOwner) || (mData.size() == 0))
+        return;
+
+    mOwner->Value.clear();
+
+    for(unsigned int i = 0; i < mData.size(); i++)
+    {
+        mOwner->pushBackValue((char *)mData[i]);
+        free(mData[i]);
+    }
+
+    mOwner->setDb();
+    mOwner->mOpt = NULL;
+    mData.clear();
+}
+
+template <class T>
+void ProvListOperation<T>::abort()
+{
+    if ((!mOwner) || (mData.size() == 0))
+        return;
+
+    for(unsigned int i = 0; i < mData.size(); i++)
+    {
+        free(mData[i]);
+    }
+
+    mOwner->mOpt = NULL;
+    mData.clear();
+}
+
 template<class T>
 ClMgtProvList<T>::ClMgtProvList(const char* name) :
         ClMgtObject(name)
 {
-    mValIndexes.clear();
+    mOpt = NULL;
 }
 
 template<class T>
@@ -141,12 +209,12 @@ void ClMgtProvList<T>::toString(std::stringstream& xmlString)
 }
 
 template<class T>
-ClBoolT ClMgtProvList<T>::validate(void *pBuffer, ClUint64T buffLen,
-        ClTransaction& t)
+ClBoolT ClMgtProvList<T>::set(void *pBuffer, ClUint64T buffLen,
+        SAFplus::Transaction& t)
 {
     const xmlChar *valstr, *namestr;
     int ret;
-    ClInt32T valIndex;
+    bool addOpt = false;
 
     xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen,
             NULL, NULL, 0);
@@ -166,22 +234,28 @@ ClBoolT ClMgtProvList<T>::validate(void *pBuffer, ClUint64T buffLen,
                         && !xmlTextReaderIsEmptyElement(reader))
                 {
                     valstr = xmlTextReaderConstValue(reader);
-                    valIndex = t.getSize();
-                    t.add((void *)valstr, strlen((char *)valstr) + 1);
-                    mValIndexes.push_back(valIndex);
+                    if (!mOpt)
+                    {
+                        mOpt = new ProvListOperation<T>;
+                        mOpt->setOwner(this);
+                        addOpt = true;
+                    }
+
+                    mOpt->addData((void *)valstr, strlen((char *)valstr) + 1);
                 }
             }
             ret = xmlTextReaderRead(reader);
         }
         xmlFreeTextReader(reader);
     }
-    return CL_TRUE;
-}
 
-template<class T>
-void ClMgtProvList<T>::abort(ClTransaction& t)
-{
-    mValIndexes.clear();
+    if (!mOpt)
+        return CL_FALSE;
+
+    if (addOpt)
+        t.addOperation(mOpt);
+
+    return mOpt->validate(t);
 }
 
 template<class T>
@@ -204,24 +278,6 @@ void ClMgtProvList<T>::pushBackValue(std::string strVal)
     Value.push_back(value);
 }
 
-template<class T>
-void ClMgtProvList<T>::set(ClTransaction& t)
-{
-    ClInt32T valIndex;
-
-    Value.clear();
-
-    for (unsigned int i = 0; i < mValIndexes.size(); i++)
-    {
-        valIndex = mValIndexes[i];
-        char *valstr = (char *) t.get(valIndex);
-        this->pushBackValue(valstr);
-    }
-
-    setDb();
-
-    mValIndexes.clear();
-}
 /*
  * List-leaf doesn't have children
  */

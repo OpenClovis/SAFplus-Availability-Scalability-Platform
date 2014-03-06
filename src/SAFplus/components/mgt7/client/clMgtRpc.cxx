@@ -63,17 +63,15 @@ void ClMgtRpc::addOutParam(std::string param, ClMgtObject *mgtObject)
 
 ClBoolT ClMgtRpc::setInParams(void *pBuffer, ClUint64T buffLen)
 {
-    ClTransaction t;
-    if(mInParams.validate(pBuffer,buffLen, t) == CL_TRUE)
+    SAFplus::Transaction t;
+    if(mInParams.set(pBuffer,buffLen, t) == CL_TRUE)
     {
-        mInParams.set(t);
-        t.clean();
+        t.commit();
         return CL_TRUE;
     }
     else
     {
-        mInParams.abort(t);
-        t.clean();
+        t.abort();
         return CL_FALSE;
     }
 }

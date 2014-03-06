@@ -27,59 +27,54 @@ extern "C" {
 } /* end extern 'C' */
 #endif
 
-ClTransaction::ClTransaction() {
-}
-
-ClTransaction::~ClTransaction() {
-	// TODO Auto-generated destructor stub
-}
-
-void ClTransaction::add(void *pBuffer, ClUint64T buffLen)
-{
-    ClTransactionDataT *transaction = new (ClTransactionDataT);
-    transaction->len = buffLen;
-    transaction->data = new char[buffLen];
-    memcpy(transaction->data, pBuffer, buffLen);
-    mData.push_back(transaction);
-}
-
-void* ClTransaction::get(ClUint32T index)
-{
-    if (index >= mData.size())
-    {
-        return NULL;
-    }
-
-    ClTransactionDataT *transaction = mData[index];
-    return transaction->data;
-}
-
-void ClTransaction::remove(ClUint32T index)
-{
-    ClTransactionDataT *transaction = mData[index];
-    delete(transaction->data);
-    delete(transaction);
-    mData.erase(mData.begin() + index);
-}
-
-ClUint32T ClTransaction::getSize()
-{
-    return mData.size();
-}
-
-void ClTransaction::clean()
-{
-    ClInt32T i;
-
-    for(i = mData.size() - 1; i>=0; i--)
-    {
-        remove(i);
-    }
-}
-
-ClTransaction NO_TXN;
-
 namespace SAFplus
 {
-  ClTransaction& NO_TXN=::NO_TXN;
+
+Transaction::Transaction()
+{
+    mHandle = Handle::create();
+}
+
+Transaction::~Transaction()
+{
+
+}
+
+void Transaction::commit()
+{
+    for(unsigned int i = 0; i < mOperations.size(); i++)
+    {
+        mOperations[i]->commit();
+        delete mOperations[i];
+    }
+    mOperations.clear();
+}
+
+void Transaction::abort()
+{
+    for(unsigned int i = 0; i < mOperations.size(); i++)
+    {
+        mOperations[i]->abort();
+        delete mOperations[i];
+    }
+    mOperations.clear();
+}
+
+ClRcT Transaction::addOperation(TransactionOperation *operation)
+{
+    ClRcT rc = CL_OK;
+
+    if (!operation)
+    {
+        rc = CL_ERR_NULL_POINTER;
+        return rc;
+    }
+
+    mOperations.push_back(operation);
+
+    return rc;
+}
+
+Transaction NO_TXN;
+
 };
