@@ -1,4 +1,4 @@
-module safplustypes_module
+module SAFplusTypes
 {
     namespace "http://www.openclovis.org/ns/types";
     prefix "types";
@@ -11,6 +11,44 @@ module safplustypes_module
     description "Initial type definitions";
   }
 
+    extension c-decl
+    {
+      argument "declaration";
+      description "Jam a C language declaration into this object";
+    }
+
+    extension c-existing
+    {
+      argument "name";
+      description "This object already exists, and is called 'name' in the code; do not generate code";
+    }
+
+    extension alias
+    {
+      argument "name";
+      description "Another name for the same thing";
+    }
+
+    extension ide
+    {
+      argument "query";
+    }
+    extension ide-group
+    {
+      argument "name";
+    }
+
+    extension ide-dialog
+    {
+      argument "title";
+      description "This command triggers a sub-window (not necessarily a modal dialog box) that is created for these options.  If the value is 'class <name>' or 'object <name>' this indicates that this subwindow should be instantiated as the custom code denoted by <name>.  All other values are the title of the sub-window."; 
+    }
+
+    typedef SaTimeT
+    {
+      type uint64;
+      description "A representation of a time interval, specified in milliseconds";
+    }
 
   grouping intStatistic
     {

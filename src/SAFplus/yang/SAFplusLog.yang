@@ -2,7 +2,7 @@ module SAFplusLog {
 
     namespace "http://www.openclovis.org/ns/log";
     prefix "SAFplusLog";
-    import safplustypes_module { prefix "safplus"; }
+    import SAFplusTypes { prefix "safplus"; }
     organization
         "OpenClovis Solutions, Inc";
 
