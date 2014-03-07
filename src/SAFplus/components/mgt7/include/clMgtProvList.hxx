@@ -67,8 +67,13 @@ public:
      * \brief   Virtual function to validate object data
      */
     virtual ClBoolT
-    set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
+    /**
+     * \brief   Virtual function to validate object data; throws transaction exception if fails
+     */
+    virtual void xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+  
     std::string toStringItemAt(T &x);
 
     // Overload PointList stream insertion operator
@@ -208,8 +213,13 @@ void ClMgtProvList<T>::toString(std::stringstream& xmlString)
     }
 }
 
+template<class T> void ClMgtProvList<T>::xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+{
+  if (!set(pBuffer,buffLen,t)) throw SAFplus::TransactionException(t);
+}
+
 template<class T>
-ClBoolT ClMgtProvList<T>::set(void *pBuffer, ClUint64T buffLen,
+ClBoolT ClMgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen,
         SAFplus::Transaction& t)
 {
     const xmlChar *valstr, *namestr;

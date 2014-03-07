@@ -85,7 +85,8 @@ public:
   /**
      * \brief   Virtual function to validate object data
      */
-    virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    virtual void xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     /**
      * \brief   Define formal access operation
@@ -229,8 +230,13 @@ std::string ClMgtProv<T>::strValue()
     return ss.str();
 }
 
+template <class T> void ClMgtProv<T>::xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+{
+  if (!set(pBuffer,buffLen,t)) throw SAFplus::TransactionException(t);
+}
+
 template <class T>
-ClBoolT ClMgtProv<T>::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+ClBoolT ClMgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
     xmlChar        *valstr, *namestr;
     int             ret, nodetyp, depth;

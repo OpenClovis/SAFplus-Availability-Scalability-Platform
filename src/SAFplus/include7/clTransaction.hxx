@@ -22,6 +22,7 @@
 
 #include <vector>
 #include <string>
+#include <exception>
 #include "clHandleApi.hxx"
 
 #ifdef __cplusplus
@@ -36,7 +37,20 @@ extern "C" {
 namespace SAFplus
 {
   class TransactionOperation;
-
+  class Transaction;
+  
+  class TransactionException: public std::exception
+  {
+  protected:
+    Transaction& txn;
+  public:
+    TransactionException(Transaction& t):txn(t) {}
+    virtual const char* what() const throw()
+    {
+      return "TODO";
+    }
+  };
+  
   class Transaction
   {
   protected:

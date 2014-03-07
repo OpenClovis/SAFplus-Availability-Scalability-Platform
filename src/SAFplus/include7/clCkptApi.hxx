@@ -131,10 +131,10 @@ namespace SAFplus
       clAsp::Error is raised if there is an underlying SAF write error
       that cannot be automatically handled
    */    
-    void write(const Buffer& key, const Buffer& value,ClTransaction& t=SAFplus::NO_TXN);
-    void write(const uintcw_t key, const Buffer& value,ClTransaction& t=SAFplus::NO_TXN);
-    void write(const char* key, const Buffer& value,ClTransaction& t=SAFplus::NO_TXN);
-    void write(const std::string& key, const Buffer& value,ClTransaction& t=SAFplus::NO_TXN);
+    void write(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+    void write(const uintcw_t key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+    void write(const char* key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+    void write(const std::string& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
 
 
     typedef SAFplusI::CkptMapPair KeyValuePair;

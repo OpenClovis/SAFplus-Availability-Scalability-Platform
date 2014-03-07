@@ -138,7 +138,7 @@ const Buffer& SAFplus::Checkpoint::read (const std::string& key) const
 }
 
 
-void SAFplus::Checkpoint::write (const uintcw_t key,const Buffer& value,ClTransaction& t)
+void SAFplus::Checkpoint::write (const uintcw_t key,const Buffer& value,Transaction& t)
 {
   char data[sizeof(Buffer)-1+sizeof(uintcw_t)];
   Buffer* b = new(data) Buffer(sizeof(uintcw_t));
@@ -147,7 +147,7 @@ void SAFplus::Checkpoint::write (const uintcw_t key,const Buffer& value,ClTransa
 }
 
 
-void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,ClTransaction& t)
+void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transaction& t)
 {
   //Buffer* existing = read(key);
   uint_t newlen = value.len();
