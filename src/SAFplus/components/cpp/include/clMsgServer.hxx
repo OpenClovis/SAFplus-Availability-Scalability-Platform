@@ -8,8 +8,18 @@ namespace SAFplus
 
   class MsgServer;
   class MsgTracker;
-  
-  typedef void (*MsgHandler) (ClIocAddressT from, MsgServer* q, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+  class MsgHandler;
+
+  //typedef void (*MsgHandler) (ClIocAddressT from, MsgServer* q, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+
+  // derive from this class to add message handling functionality to your object
+  class MsgHandlerI
+  {
+    virtual ~MsgHandlerI();
+
+  public:
+    virtual void MsgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+  };
 
   const ClWordT NUM_MSG_TYPES=256;
   

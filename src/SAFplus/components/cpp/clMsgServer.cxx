@@ -224,14 +224,14 @@ namespace SAFplus
   void MsgTrackerHandler(MsgTracker* rm)
   {
     MsgServer* q = rm->q;
-    MsgHandler func = q->handlers[rm->header.protoType];
-    if (func != 0)
+    MsgHandler msgHandler = q->handlers[rm->header.protoType];
+    if (msgHandler != 0)
       {
         ClRcT rc;
         ClUint8T* buf=0;
         rc = clBufferFlatten(rm->msg,&buf);
         CL_ASSERT(rc == CL_OK); // Can hit an error if out of memory
-        func(rm->header.srcAddr, q, buf, rm->header.length,q->cookies[rm->header.protoType]);
+        msgHandler.MsgHandler(rm->header.srcAddr, q, buf, rm->header.length,q->cookies[rm->header.protoType]);
         clHeapFree(buf);
       }
 
