@@ -16,33 +16,27 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-#include <clLogApi.hxx>
-#include <clGlobals.hxx>
 
-#include <clIocProtocols.h>
 #include "clSafplusMsgServer.hxx"
-#include "MsgHandlerProtocols.hxx"
 
-using namespace SAFplus;
-
-//Auto scanning
-#define IOC_PORT 65
-
-//Msg server listening
-SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT);
-
-int
-main(void)
+namespace SAFplus
 {
-    MsgHandlerProtocols handler;
+    SAFplus::SafplusMsgServer::SafplusMsgServer(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads, Options flags) :
+                    MsgServer(port, maxPendingMsgs, maxHandlerThreads, flags)
+    {
 
-    // Handle IOC Heartbeat protocol
-    safplusMsgServer.RegisterHandler(CL_IOC_PROTO_HB, handler, NULL);
+    }
 
-    // Handle IOC Control Protocol
-    safplusMsgServer.RegisterHandler(CL_IOC_PROTO_CTL, handler, NULL);
+    void
+    SAFplus::SafplusMsgServer::RegisterHandler(ClWordT type, MsgHandler handler, ClPtrT cookie)
+    {
+        SAFplus::MsgServer::RegisterHandler(type, handler, cookie);
+    }
 
-    safplusMsgServer.Start();
+    void
+    SAFplus::SafplusMsgServer::RemoveHandler(ClWordT type)
+    {
+        SAFplus::MsgServer::RemoveHandler(type);
+    }
 
 }
-

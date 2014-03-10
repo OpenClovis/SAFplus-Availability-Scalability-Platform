@@ -20,21 +20,59 @@
 #ifndef CLMSGHANDLER_HXX_
 #define CLMSGHANDLER_HXX_
 
-#include "clMsgServer.hxx"
+#include <clIocApi.h>
 
 namespace SAFplus
 {
+    class MsgServer;
+}
 
-    class MsgHandler : public SAFplus::MsgHandlerI
+namespace SAFplusI
+{
+
+    // derive from this class to add message handling functionality to your object
+    class MsgHandlerI
     {
         public:
             virtual
-            ~MsgHandler();
+            ~MsgHandlerI() {};
 
         public:
             virtual void
-            MsgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+            msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie) = 0;
+    };
+}
+
+namespace SAFplus
+{
+    class MsgServer;
+    class MsgHandler : public SAFplusI::MsgHandlerI
+    {
+        public:
+            MsgHandler();
+            virtual
+            ~MsgHandler();
+            bool operator!=(const MsgHandler &obj)
+                {
+                    if (*this != obj)
+                        return true;
+                    return false;
+                }
+
+            bool operator==(const MsgHandler &obj)
+                {
+                    if (*this == obj)
+                        return true;
+                    return false;
+                }
+        public:
+            virtual void
+            msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+
     };
 
+    extern MsgHandler NO_HANDLER;
+
 } /* namespace SAFplus */
+
 #endif /* CLMSGHANDLER_HXX_ */

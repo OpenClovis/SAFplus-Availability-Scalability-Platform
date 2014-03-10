@@ -16,33 +16,39 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
+#include <iostream>
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
-
-#include <clIocProtocols.h>
+#include <clIocApi.h>
 #include "clSafplusMsgServer.hxx"
-#include "MsgHandlerProtocols.hxx"
 
+using namespace std;
 using namespace SAFplus;
 
 //Auto scanning
-#define IOC_PORT 65
-
-//Msg server listening
-SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT);
+#define IOC_PORT 0
+#define IOC_PORT_SERVER 65
 
 int
 main(void)
 {
-    MsgHandlerProtocols handler;
+    ClIocAddressT iocDest;
 
-    // Handle IOC Heartbeat protocol
-    safplusMsgServer.RegisterHandler(CL_IOC_PROTO_HB, handler, NULL);
+    ClRcT rc = CL_OK;
 
-    // Handle IOC Control Protocol
-    safplusMsgServer.RegisterHandler(CL_IOC_PROTO_CTL, handler, NULL);
+    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK)
+    {
+        cout<<"ERROR:"<<CL_GET_ERROR_CODE(rc)<<endl;
+        exit(0);
+    }
 
-    safplusMsgServer.Start();
+    // Port communication
+    SafplusMsgServer msgClient(IOC_PORT);
 
+    iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
+    char helloMsg[] = "Hello world!";
+
+    msgClient.SendMsg(iocDest, helloMsg, sizeof(helloMsg), CL_IOC_PROTO_CTL);
 }
 

@@ -17,17 +17,28 @@
  * material.
  */
 
-#include <iostream>
-#include "MsgHandlerProto.hxx"
+#ifndef MSGHANDLERPROTOCOLS_HXX_
+#define MSGHANDLERPROTOCOLS_HXX_
 
-using namespace std;
+#include "clMsgHandler.hxx"
 
 namespace SAFplus
 {
 
-    void
-    MsgHandlerProto::MsgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    /*
+     *
+     */
+    class MsgHandlerProtocols : public SAFplus::MsgHandler
     {
-        cout<<"Testing handle from:"<<from<<endl;
-    }
+        public:
+            MsgHandlerProtocols();
+            virtual
+            ~MsgHandlerProtocols();
+
+        public:
+            virtual void
+            msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+    };
+
 } /* namespace SAFplus */
+#endif /* MSGHANDLERPROTOCOLS_HXX_ */

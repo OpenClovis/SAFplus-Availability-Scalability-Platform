@@ -6,22 +6,30 @@ CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
-SENDER_SRC := sender.cxx
-SENDER_OBJ := $(OBJ_DIR)/sender.o
+MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
-RECEIVER_SRC := receiver.cxx
-RECEIVER_OBJ := $(OBJ_DIR)/receiver.o
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
 
-DEP_LIBS := $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclIoc7.so 
+# Management includes and libraries
+CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
-LINK_STD_LIBS += -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system
+SENDER_SRC := ClientTest.cxx
+SENDER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SENDER_SRC)))
+$(warning $(SENDER_OBJ))
 
-all: $(TEST_DIR)/sender $(TEST_DIR)/receiver
+RECEIVER_SRC := MsgHandlerProtocols.cxx ServerTest.cxx
+RECEIVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(RECEIVER_SRC)))
 
-$(TEST_DIR)/sender: $(SENDER_OBJ) $(DEP_LIBS)
+DEP_LIBS := $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclIoc7.so
+
+LINK_STD_LIBS += -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system
+
+all: $(TEST_DIR)/ClientTest $(TEST_DIR)/ServerTest
+
+$(TEST_DIR)/ClientTest: $(SENDER_OBJ) $(DEP_LIBS)
 	$(LINK) $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS) 
 
-$(TEST_DIR)/receiver: $(RECEIVER_OBJ) $(DEP_LIBS)
+$(TEST_DIR)/ServerTest: $(RECEIVER_OBJ) $(DEP_LIBS)
 	$(LINK) $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)

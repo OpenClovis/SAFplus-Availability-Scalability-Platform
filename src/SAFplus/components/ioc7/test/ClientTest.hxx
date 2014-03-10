@@ -17,27 +17,24 @@
  * material.
  */
 
-#include "clSafplusMsgServer.hxx"
+#ifndef CLIENTTEST_HXX_
+#define CLIENTTEST_HXX_
+
+#include "clMsgHandler.hxx"
 
 namespace SAFplus
 {
 
-    SAFplus::SafplusMsgServer::SafplusMsgServer(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads, Options flags) :
-                    MsgServer(port, maxPendingMsgs, maxHandlerThreads, flags)
+    /*
+     *
+     */
+    class ClientTest
     {
+        public:
+            ClientTest();
+            virtual
+            ~ClientTest();
+    };
 
-    }
-
-    void
-    SAFplus::SafplusMsgServer::RegisterHandler(ClWordT type, MsgHandler handler, ClPtrT cookie)
-    {
-        SAFplus::MsgServer::RegisterHandler(type, handler, cookie);
-    }
-
-    void
-    SAFplus::SafplusMsgServer::RemoveHandler(ClWordT type)
-    {
-        SAFplus::MsgServer::RemoveHandler(type);
-    }
-
-}
+} /* namespace SAFplus */
+#endif /* CLIENTTEST_HXX_ */
