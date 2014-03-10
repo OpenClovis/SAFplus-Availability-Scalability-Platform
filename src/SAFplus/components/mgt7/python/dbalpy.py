@@ -117,8 +117,11 @@ class PyDBAL():
             else:
                 self.xpathParentDB[xpath] = 1
 
-            for elchild in element.children():
-                self._load(elchild, xpath)
+            if len(element.children()) > 0:
+                for elchild in element.children():
+                    self._load(elchild, xpath)
+            else:
+                self.xpathDB[xpath] = str()
 
         elif len(str(element).strip()) > 0:
             self.xpathDB[xpath] = str(element).strip()
