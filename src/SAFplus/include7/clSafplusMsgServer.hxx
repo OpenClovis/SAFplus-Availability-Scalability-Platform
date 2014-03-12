@@ -20,6 +20,7 @@
 #ifndef CLSAFPLUSMSGSERVER_HXX_
 #define CLSAFPLUSMSGSERVER_HXX_
 
+#include "clMsgHandler.hxx"
 #include "clMsgServer.hxx"
 
 namespace SAFplus
@@ -28,8 +29,9 @@ namespace SAFplus
     class SafplusMsgServer : public SAFplus::MsgServer
     {
         public:
+            SafplusMsgServer() {};
             SafplusMsgServer(ClWordT port, ClWordT maxPendingMsgs = 0, ClWordT maxHandlerThreads = 1, Options flags = DEFAULT_OPTIONS);
-            ~SafplusMsgServer();
+            ~SafplusMsgServer() {};
 
             /** Handle a particular type of message
                  @param type    A number from 0 to 255 indicating the message type
@@ -58,8 +60,8 @@ namespace SAFplus
             ClPtrT cookies[NUM_MSG_TYPES];
     };
 
-    extern SafplusMsgServer safplusMsgServer;
-
 }
+
+extern SAFplus::SafplusMsgServer safplusMsgServer;
 
 #endif /* CLSAFPLUSMSGSERVER_HXX_ */

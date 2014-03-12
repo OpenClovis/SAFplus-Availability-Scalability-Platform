@@ -1,0 +1,74 @@
+// To generate code use: /code/git/mgt/3rdparty/pyang/bin/pyang --path=`pwd` -f y2cpp /code/git/SAFplus7/src/SAFplus/yang/SAFplusMsgServer.yang --y2cpp-output ~/tmp/ --y2cpp-mgt /code/git/mgt
+
+module SAFplusMsgServer
+  {
+
+  namespace "http://www.openclovis.org/ns/msgserver";
+  prefix "SAFplusMsg";
+
+  organization
+        "OpenClovis Solutions, Inc";
+
+  contact
+        "Andrew Stone <stone@openclovis.com>";
+
+  description
+        "Configuration for Intelligent Object Communication (IOC). This document is released under the GNU General Public License V2.0 or OpenClovis Commerical license.";
+
+  revision 2014-03-10 
+    {
+        description "Initial description";
+        reference "Note, some of the description text is sourced from the Service Availability Forum Application Interface Specification document SAI-AIS-AMF-B.04.01.  The SAI-AIS-AMF document is released under the Artistic License 2.0 and within the context of this license this document can be considered a modified version.  This document adheres to Artistic License provision 4.b, allowing distribution of modified versions so long as the modified version bears a different name and does not prevent installation of the standard version.";
+    }
+
+    grouping xportConfig {
+
+        leaf type {
+            type string;
+            description "Transport protocol";
+        }
+    
+        leaf plugin {
+            type string;
+            description "Plugin file name";
+        }
+    }
+
+    grouping nodeConfig {
+
+        leaf name {
+            type string;
+            description "Node name in cluster";
+        }
+    
+        leaf protocol {
+            type string;
+            description "Protocols supported";
+        }
+    }
+
+    container xports
+    {
+        list xport {
+            key "type";
+            uses xportConfig;
+            description "Configuration transport protocol type and plugin";
+        }
+        description "All transport protocol defined in the system";
+    }
+
+    container protocol
+    {
+        leaf defaultProtocol {
+            description "Takes as argument a default string.";
+            type string;
+        }
+        
+        list nodes {
+            key "name";
+            uses nodeConfig;
+            description "Configuration for well-known protocols supported on node";
+        }
+        description "Configuration protocol for cluster";
+    }
+  }

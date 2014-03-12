@@ -16,23 +16,30 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
+#include <iostream>
+#include "MsgHandlerProtocols.hxx"
 
-#ifndef MSGHANDLERPROTO_HXX_
-#define MSGHANDLERPROTO_HXX_
-
-#include "clMsgHandler.hxx"
-#include "MsgHandlerProto.hxx"
+using namespace std;
 
 namespace SAFplus
 {
 
-    class MsgHandlerProto : public SAFplus::MsgHandler
+    MsgHandlerProtocols::MsgHandlerProtocols()
     {
-        public:
-            MsgHandlerProto();
-            virtual
-            ~MsgHandlerProto();
-    };
+        // TODO Auto-generated constructor stub
+
+    }
+
+    MsgHandlerProtocols::~MsgHandlerProtocols()
+    {
+        // TODO Auto-generated destructor stub
+    }
+
+    void
+    MsgHandlerProtocols::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    {
+        cout<<"Testing handle from:["<<from.iocPhyAddress.nodeAddress<<",";
+        cout<<from.iocPhyAddress.portId<<"]"<<endl;
+    }
 
 } /* namespace SAFplus */
-#endif /* MSGHANDLERPROTO_HXX_ */
