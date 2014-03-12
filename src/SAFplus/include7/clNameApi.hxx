@@ -34,14 +34,14 @@ namespace SAFplus
   class NameRegistrar
   {
   protected:
-     static Checkpoint m_checkpoint;
+     static SAFplus::Checkpoint m_checkpoint;
 
   public:
      NameRegistrar();
      NameRegistrar(const char* name, SAFplus::Handle handle, void* object=NULL);
      NameRegistrar(const std::string& name, SAFplus::Handle handle, void* object=NULL);
      NameRegistrar(const char* name, SAFplus::Buffer*);
-     NameRegistrar(const std::string& name, SAFplus::Buffer*);
+     NameRegistrar(const std::string& name, SAFplus::Buffer*);     
      //NameRegistrar(std::string name, SAFplus::Handle handle);
      /*void nameInitialize();
      void nameSet(string name, HandleT handle);
@@ -92,6 +92,7 @@ namespace SAFplus
      SAFplus::Buffer& getData(const std::string& name) throw(NameException&);
      virtual ~NameRegistrar();
   };
+  
 }
 
 #endif
