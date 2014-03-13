@@ -13,6 +13,28 @@
 
 #include <clHandleApi.hxx>
 
+// Override with boost function API (same as DoublingBuffer.hxx), libmw is obsolete
+#ifdef __cplusplus
+extern "C"
+{
+#endif /* endif for __cplusplus */
+
+  ClPtrT clHeapAllocate(CL_IN ClUint32T size)
+  {
+      std::cout<<"Override clHeapAllocate"<<std::endl;
+      return NULL;
+  }
+
+  ClPtrT clHeapCalloc(ClUint32T numChunks,ClUint32T chunkSize)
+  {
+      std::cout<<"Override clHeapCalloc"<<std::endl;
+      return NULL;
+  }
+
+#ifdef __cplusplus
+}
+#endif /* endif for __cplusplus */
+
 namespace SAFplus
 {
 
@@ -440,5 +462,5 @@ bool clVersionVerify (ClVersionDatabaseT *versionDatabase, ClVersionT *version)
     Handle hdl(PersistentHandle,curHandleIdx++,pid); // TODO node and clusterId
     return hdl;
   }
-  
+
 };

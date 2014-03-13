@@ -29,6 +29,9 @@ using namespace SAFplus;
 #define IOC_PORT 0
 #define IOC_PORT_SERVER 65
 
+ClUint32T clAspLocalId = 0x1;
+ClBoolT gIsNodeRepresentative = CL_TRUE;
+
 int
 main(void)
 {
@@ -36,10 +39,10 @@ main(void)
 
     ClRcT rc = CL_OK;
 
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK)
+    rc = clIocLibInitialize(NULL);
+    if (rc != CL_OK)
     {
-        cout<<"ERROR:"<<CL_GET_ERROR_CODE(rc)<<endl;
-        exit(0);
+        cout<<"IOC  initialization failed with error code = "<<std::hex <<rc<<endl;
     }
 
     // Port communication

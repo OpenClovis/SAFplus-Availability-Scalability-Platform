@@ -81,6 +81,12 @@
 #ifndef _CL_IOC_API_H_
 # define _CL_IOC_API_H_
 
+#include <assert.h>
+
+#ifdef SAFplus7
+#define CL_ASSERT assert
+#endif
+
 # ifdef __cplusplus
 extern "C"
 {

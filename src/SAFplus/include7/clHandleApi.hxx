@@ -5,7 +5,9 @@
 #include <stdio.h>
 
 #define CL_ASSERT assert
+#ifndef SAFplus7
 #define SAFplus7  // for integration within the older code
+#endif
 
 namespace SAFplus
 {
