@@ -35,13 +35,16 @@ namespace SAFplus
   {
   protected:
      static SAFplus::Checkpoint m_checkpoint;
-
+     SAFplusI::CkptHashMap m_mapData;
+     SAFplusI::CkptHashMap m_mapObject;
   public:
+#if 0
      NameRegistrar();
      NameRegistrar(const char* name, SAFplus::Handle handle, void* object=NULL);
      NameRegistrar(const std::string& name, SAFplus::Handle handle, void* object=NULL);
      NameRegistrar(const char* name, SAFplus::Buffer*);
      NameRegistrar(const std::string& name, SAFplus::Buffer*);     
+#endif
      //NameRegistrar(std::string name, SAFplus::Handle handle);
      /*void nameInitialize();
      void nameSet(string name, HandleT handle);
@@ -55,8 +58,8 @@ namespace SAFplus
       the void* object pointer is local to this process; it does not need to be part of the checkpoint.
       This association is valid for all SAFplus API name lookups, and for AMF entity names.
       */
-     void set(const char* name, SAFplus::Handle handle, void* object=NULL);
-     void set(const std::string& name, SAFplus::Handle handle, void* object=NULL);
+     void set(const char* name, SAFplus::Handle handle, void* object=NULL, size_t objlen=0);
+     void set(const std::string& name, SAFplus::Handle handle, void* object=NULL, size_t objlen=0);
    
      /* Associate a name with a handle and pointer and associate a handle with a pointer (if object != NULL).
         If the name does not exist, it is created.  If the name exists, this mapping is appended (the original mapping is not removed).
@@ -65,8 +68,8 @@ namespace SAFplus
         If the name has more than one mapping another mapping will become the default response for this name. 
         This association is valid for all SAFplus API name lookups, and for AMF entity names.
      */   
-     void append(const char* name, SAFplus::Handle handle, void* object=NULL);
-     void append(const std::string& name, SAFplus::Handle handle, void* object=NULL);
+     void append(const char* name, SAFplus::Handle handle, void* object=NULL,size_t objlen=0);
+     void append(const std::string& name, SAFplus::Handle handle, void* object=NULL,size_t objlen=0);
      
      // Associate name with arbitrary data. A copy of the data is made.
      void set(const char* name, const void* data, int length);

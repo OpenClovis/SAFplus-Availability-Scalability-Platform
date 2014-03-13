@@ -7,9 +7,10 @@ using namespace SAFplusI;
 
 Checkpoint NameRegistrar::m_checkpoint(Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
 
-SAFplus::NameRegistrar::NameRegistrar()
+/*SAFplus::NameRegistrar::NameRegistrar()
 {   
-}
+}*/
+#if 0
 SAFplus::NameRegistrar::NameRegistrar(const char* name, SAFplus::Handle handle, void* object/*=NULL*/)
 {
    set(name, handle, object);
@@ -26,7 +27,8 @@ SAFplus::NameRegistrar::NameRegistrar(const std::string& name, SAFplus::Buffer* 
 {
    set(name, buf);
 }
-void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, void* object/*=NULL*/)
+#endif
+void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, void* object/*=NULL*/,size_t objlen)
 {   
    size_t keyLen = sizeof(Handle);
    char data[sizeof(Buffer)-1+keyLen];
@@ -47,13 +49,24 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, void*
    }
    // TODO Associate this handle to the object
    // ...
+   len = strlen(name)+1; //include '\0' for data
+   char* pbuf = new char[len+sizeof(SAFplus::Buffer)-1]; 
+   SAFplus::Buffer* k = new (pbuf) SAFplus::Buffer(len);
+   *k = name;
+
+   char* pvbuf = new char[objlen+sizeof(SAFplus::Buffer)-1];
+   SAFplus::Buffer* v = new (pvbuf) SAFplus::Buffer(objlen); 
+   memcpy(v->data, object, objlen);
+   SAFplusI::BufferPtr kb(k),kv(v);
+   SAFplusI::CkptMapPair vt(kb,kv);
+   m_mapObject.insert(vt);
 }
-void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Handle handle, void* object/*=NULL*/)
+void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Handle handle, void* object/*=NULL*/,size_t objlen)
 {
-   set(name.data(), handle, object);
+   set(name.data(), handle, object,objlen);
 }
 
-void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, void* object/*=NULL*/)
+void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, void* object/*=NULL*/,size_t objlen)
 {
    size_t len = sizeof(Handle);
    char data[sizeof(Buffer)-1+len];
@@ -63,11 +76,11 @@ void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, vo
    if (&buf == NULL)
    {
       //There is no any name associated with this handle. Create first
-      set(name, handle, object);
+      set(name, handle, object,objlen);
    }
    else
    {
-      // TODO A name exists, add one more association. Does ckpt7 support this
+      // TODO A name exists, add one more association. Does ckpt7 support this?
       // ...
    }
    
@@ -77,11 +90,11 @@ void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, vo
       return;
    }
    // TODO Associate this handle to the object
-   // ...
+   // ...   
 }
-void SAFplus::NameRegistrar::append(const std::string& name, SAFplus::Handle handle, void* object/*=NULL*/)
+void SAFplus::NameRegistrar::append(const std::string& name, SAFplus::Handle handle, void* object/*=NULL*/,size_t objlen)
 {
-   append(name.data(), handle, object);
+   append(name.data(), handle, object, objlen);
 }
 
 void SAFplus::NameRegistrar::set(const char* name, const void* data, int length)
@@ -142,7 +155,12 @@ SAFplus::Handle& SAFplus::NameRegistrar::getHandle(const char* name) throw(NameE
           {
              BufferPtr kname = vt.first;
              assert(kname);
-             return (Handle&)kname->data;
+             uint64_t len = kname->len();
+             char temp[len];
+             memcpy(temp, kname->data, len);
+             Handle* handle = new(kname->data) Handle();
+             memcpy(kname->data, temp, len);
+             return *handle;
           }
        }
     }
