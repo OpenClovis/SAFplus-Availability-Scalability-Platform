@@ -25,16 +25,30 @@
 
 using namespace SAFplus;
 
-//Auto scanning
-#define IOC_PORT 65
+#define IOC_PORT_SERVER 65
 
-//Msg server listening
-SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT);
+ClUint32T clAspLocalId = 0x1;
+ClBoolT gIsNodeRepresentative = CL_TRUE;
 
 int
 main(void)
 {
     MsgHandlerProtocols handler;
+    ClRcT rc = CL_OK;
+
+    /*
+     * initialize SAFplus libraries
+     */
+    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
+                    clBufferInitialize(NULL)) != CL_OK)
+    {
+
+    }
+
+    clIocLibInitialize(NULL);
+
+    //Msg server listening
+    SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER);
 
     // Handle IOC Heartbeat protocol
     safplusMsgServer.RegisterHandler(CL_IOC_PROTO_HB, handler, NULL);
@@ -43,6 +57,9 @@ main(void)
     safplusMsgServer.RegisterHandler(CL_IOC_PROTO_CTL, handler, NULL);
 
     safplusMsgServer.Start();
+
+    // Loop forever
+    while(1);
 
 }
 

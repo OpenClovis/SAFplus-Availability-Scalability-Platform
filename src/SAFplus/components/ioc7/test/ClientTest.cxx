@@ -26,11 +26,11 @@ using namespace std;
 using namespace SAFplus;
 
 //Auto scanning
-#define IOC_PORT 0
+#define IOC_PORT 64
 #define IOC_PORT_SERVER 65
 
 ClUint32T clAspLocalId = 0x1;
-ClBoolT gIsNodeRepresentative = CL_TRUE;
+ClBoolT gIsNodeRepresentative = CL_FALSE;
 
 int
 main(void)
@@ -39,11 +39,16 @@ main(void)
 
     ClRcT rc = CL_OK;
 
-    rc = clIocLibInitialize(NULL);
-    if (rc != CL_OK)
+    /*
+     * initialize SAFplus libraries 
+     */
+    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
+                    clBufferInitialize(NULL)) != CL_OK)
     {
-        cout<<"IOC  initialization failed with error code = "<<std::hex <<rc<<endl;
+
     }
+
+    clIocLibInitialize(NULL);
 
     // Port communication
     SafplusMsgServer msgClient(IOC_PORT);

@@ -35,6 +35,6 @@ $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/libclIoc7.so $(OBJ_DIR)/*.o
+	rm -f $(LIB_DIR)/libclIoc7.so $(OBJ_DIR)/*.o  $(TEST_DIR)/*
 
 include ../../../mk/safplus_targets.mk
