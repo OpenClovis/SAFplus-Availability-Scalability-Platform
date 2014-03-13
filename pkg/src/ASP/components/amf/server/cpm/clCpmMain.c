@@ -101,6 +101,7 @@
 #include "xdrClCpmEventNodePayLoadT.h"
 #include "xdrClCpmClientInfoIDLT.h"
 #include "xdrClEoExecutionObjIDLT.h"
+#include "xdrClCpmStatQueryResponseT.h"
 
 #ifdef CL_CPM_AMS
 #include <clAms.h>
@@ -193,6 +194,12 @@ static ClBoolT gClSigTermRestart;
 
 static ClRcT clCpmIocNotificationEnqueue(ClIocNotificationT *notification, ClPtrT cookie);
 
+static void *cpmCustomHeartbeat(void *threadArg);
+void cpmCustomStaticticFeedBack(ClRcT retCode,
+                            void *pThiscpmL,
+                            ClBufferHandleT sendMsg,
+                            ClBufferHandleT recvMsg);
+
 #undef __CLIENT__
 #include "clCpmServerFuncTable.h"
 
@@ -204,6 +211,9 @@ static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                                   ClUint8T protoType,
                                   ClUint32T length,
                                   ClIocPhysicalAddressT srcAddr);
+
+ClRcT cpmCustomHeartbeatInitialize();
+
 
 /*
  * FIXME: added to get around unresolved symbol errors for clEoConfig and
@@ -527,6 +537,28 @@ static ClRcT cpmAllocate(void)
     clOsalMutexLock(&gpClCpm->heartbeatMutex);
     gpClCpm->enableHeartbeat = CL_FALSE;
     clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
+    
+    
+
+//*********** custom heartbeat******************   
+    rc = clOsalMutexInit(&gpClCpm->customHeartbeatMutex);
+    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
+                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+
+    rc = clOsalCondInit(&gpClCpm->customHeartbeatCond);
+    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
+                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+
+    /*
+     * Disable heartbeating by default.
+     */
+    clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
+    gpClCpm->enableCustomHeartbeat = CL_TRUE;
+    clOsalMutexUnlock(&gpClCpm->customHeartbeatMutex);
+    
+//*********** custom heartbeat******************   
+
+    
 
     rc = clOsalMutexInit(&gpClCpm->cpmGmsMutex);
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
@@ -1476,6 +1508,10 @@ static ClRcT clCpmLeakyBucketInitialize(void)
 
 #endif
 
+
+
+
+
 static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
@@ -1699,7 +1735,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     
     clLog(CL_LOG_NOTICE, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
         "AMF server fully up");
-        
+    
     compMgrPollThread();
 
   failure:
@@ -2469,6 +2505,10 @@ void cpmCpmLHBFailure(ClCpmLocalInfoT *cpmL)
 
     cpmFailoverNode(cpmL->nodeId, CL_FALSE);
 }
+
+
+
+
 
 void cpmLocalHealthFeedBack(ClRcT retCode,
                             void *pThiscpmL,
@@ -3638,7 +3678,8 @@ ClRcT compMgrPollThread(void)
     ClCpmLT *cpmInfo = NULL;
 
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside compMgrPollThread \n"));
-
+    clLog(CL_LOG_DEBUG, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+        "Inside compMgrPollThread \n");
     rc = clEoMyEoIocPortSet(gpClCpm->cpmEoObj->eoPort);
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc,
                    rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
@@ -3650,7 +3691,10 @@ ClRcT compMgrPollThread(void)
      * Get the local OMAddress 
      */
     myOMAddress = clIocLocalAddressGet();
-
+    clLog(CL_LOG_DEBUG, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+        "Inside compMgrPollThread : START THREAD \n");
+    
+    rc=cpmCustomHeartbeatInitialize();
     clOsalMutexLock(&gpClCpm->heartbeatMutex);
     restart_heartbeat:
     while (gpClCpm->polling && gpClCpm->enableHeartbeat == CL_TRUE)
@@ -3884,6 +3928,270 @@ failure:
     return rc;
 }
 
+
+//************************************Custom HeartBeat*******************************************************
+/*
+ *  Custom HeartBeat 
+ */
+#define CL_CPM_CUSTOM_DEFAULT_TIMEOUT 3000
+#define CL_CUSTOM_CPU_THRESHOLD 90
+#define CL_CUSTOM_MEM_THRESHOLD 90
+
+/*
+ * Creates and starts the custom heartbeat thread. 
+ */
+ClRcT cpmCustomHeartbeatInitialize()
+{
+    ClRcT rc = CL_OK;
+
+    ClUint32T priority  = CL_OSAL_THREAD_PRI_NOT_APPLICABLE;
+    ClUint32T stackSize = CL_OSAL_MIN_STACK_SIZE;
+    ClOsalTaskIdT         taskId        = 0;
+    rc = clOsalTaskCreateAttached("cpmCustomHeartbeat",
+                                  CL_OSAL_SCHED_OTHER,
+                                  priority,
+                                  stackSize,
+                                  cpmCustomHeartbeat,
+                                  NULL,
+                                  &taskId);
+    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_TASK_CREATE_ERR, rc, rc,
+                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+
+  failure:
+    return rc;
+}
+
+void cpmCustomStaticticFeedBack(ClRcT retCode,
+                            void *pThiscpmL,
+                            ClBufferHandleT sendMsg,
+                            ClBufferHandleT recvMsg)
+{
+	ClCpmStatQueryResponseT outBuffer ={0};
+	outBuffer.cpuUsed=1;
+	outBuffer.physMemUsed=1;
+    ClRcT rc = CL_OK;
+    ClCpmLT *pCpmLocal = (ClCpmLT *)pThiscpmL;
+    ClCpmLocalInfoT *pCpmL = NULL; 
+
+    CL_ASSERT(pCpmLocal != NULL);
+    
+    pCpmL = pCpmLocal->pCpmLocalInfo;
+    if (!pCpmL)
+    {
+        clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
+                     "Node [%s] has already been unregistered, "
+                     "ignoring the statictic information feedback...",
+                     pCpmLocal->nodeName);
+        goto failure;
+    }
+
+    if (CL_RMD_TIMEOUT_UNREACHABLE_CHECK(retCode))
+    {
+        if (pCpmL->status != CL_CPM_EO_DEAD)
+        {
+            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
+                       "statictic information feedback returned "
+                       "timeout for node [%s], ",
+                       pCpmLocal->nodeName);
+            cpmCpmLHBFailure(pCpmL);
+        }
+    }
+    else
+    {
+        rc = VDECL_VER(clXdrUnmarshallClCpmStatQueryResponseT, 4, 0, 0)(recvMsg, (void *)&outBuffer);
+        if (rc != CL_OK)
+        {
+            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
+                       "Unmarshalling of statictic information feedback failed, "
+                       "error [%#x]",
+                       rc);
+            goto failure;
+        }
+        //print Node Information statictic
+        clLogMultiline(CL_LOG_DEBUG,
+                       CPM_LOG_AREA_CPM,
+                       CPM_LOG_CTX_CPM_AMS,
+                       "CPM/L [%s] Statictic Information \n"
+                       "    1. Node CPU Used : [%f]  . \n"
+                       "    2. Node Physical Memory Used : [%lld]. \n"
+                       "    3. Node Physical Memory Total : [%lld]. \n"
+                       "    4. Node Memory Used : [%f]  . \n"
+                       "    5. Node Disk Total : [%lld]. \n"
+                       "    6. Node Disk Available : [%lld]. \n"
+                       "    7. Node Disk Free : [%lld]. \n"
+                       "    8. Node Disk Used : [%lld]. \n",
+                       pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100, outBuffer.physMemUsed,outBuffer.physMemTotal,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal,outBuffer.physDiskTotal, outBuffer.physDiskAvailable, outBuffer.physDiskFree, outBuffer.physDiskUsed);
+        
+        
+        if(outBuffer.cpuUsed/100 >= CL_CUSTOM_CPU_THRESHOLD)
+        {
+        	clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_AMS,"CPM/L [%s] : CPU threshold exceeded [%f]  .\n "
+        			                                                            "             Failover this node \n",pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100);
+        	cpmFailoverNode(pCpmLocal->pCpmLocalInfo->nodeId, CL_FALSE);
+        }
+        if((outBuffer.physMemUsed*100)/outBuffer.physMemTotal >= CL_CUSTOM_MEM_THRESHOLD)
+        {
+        	clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_AMS,"CPM/L [%s] : Memory threshold exceeded [%f]  .\n "
+        	        			                                                "              Failover this node \n" , pCpmLocal->nodeName,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal);
+        	cpmFailoverNode(pCpmLocal->pCpmLocalInfo->nodeId, CL_FALSE);
+        }
+    }
+
+failure:
+    clBufferDelete(&recvMsg);
+    return;
+}
+
+static void *cpmCustomHeartbeat(void *threadArg)
+{
+    ClUint32T outLen = (ClUint32T) sizeof(ClCpmStatQueryResponseT);
+    ClRcT rc = CL_OK;
+    ClTimerTimeOutT timeOut;
+    ClTimerTimeOutT heartbeatWait = {.tsSec=0,.tsMilliSec=0};
+    ClUint32T freq = CL_CPM_CUSTOM_DEFAULT_TIMEOUT, cpmCount;
+    ClCpmStatQueryResponseT    outBuffer;
+    ClCntNodeHandleT hNode = 0;
+    ClCpmLT *cpmInfo = NULL;
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside cpmCustomHeartbeat \n"));
+    clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
+    restart_heartbeat:
+    while (gpClCpm->enableCustomHeartbeat == CL_TRUE)
+    {
+        clOsalMutexUnlock(&gpClCpm->customHeartbeatMutex);
+        /*
+         * Do CustomHealthCheck of CPM 
+         */
+        if ( CL_CPM_IS_ACTIVE() && gpClCpm->noOfCpm)
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
+                           ("Inside Polling while loop for CPMs %d\n",
+                            gpClCpm->noOfCpm));
+            cpmCount = gpClCpm->noOfCpm;
+            rc = clCntFirstNodeGet(gpClCpm->cpmTable, &hNode);
+            if (rc != CL_OK)
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                               ("Unable to Get First CPM %x\n", rc));
+            while (cpmCount)
+            {
+                rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
+                                          (ClCntDataHandleT *) &cpmInfo);
+                CL_CPM_CHECK_1(CL_DEBUG_ERROR,
+                               CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc,
+                               CL_LOG_ERROR, CL_LOG_HANDLE_APP);
+                if ((cpmInfo->pCpmLocalInfo) &&
+                    (cpmInfo->pCpmLocalInfo->cpmAddress.nodeAddress !=
+                     gpClCpm->pCpmLocalInfo->cpmAddress.nodeAddress) &&
+                    (cpmInfo->pCpmLocalInfo->status != CL_CPM_EO_DEAD))
+                {
+                    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
+                                   ("Sending statictic information request to CPMs of node: %s\n",
+                                    cpmInfo->nodeName));
+                   
+                    memset(&outBuffer, 0, (size_t) sizeof(ClCpmStatQueryResponseT));  
+                    rc = CL_CPM_CALL_RMD_ASYNC_NEW(cpmInfo->pCpmLocalInfo->
+                                                   cpmAddress.nodeAddress,
+                                                   cpmInfo->pCpmLocalInfo->
+                                                   cpmAddress.portId,
+                                                   CL_EO_NODE_STATICTIC_GET_FN_ID,
+                                                   NULL,
+                                                   0,
+                                                   (ClUint8T *) &outBuffer,
+                                                   &outLen,
+                                                   CL_RMD_CALL_NEED_REPLY,
+                                                   0,
+                                                   0,
+                                                   1,
+                                                   (void *) (cpmInfo), 
+                                                   cpmCustomStaticticFeedBack,
+                                                   MARSHALL_FN(ClCpmStatQueryResponseT, 4, 0, 0));
+                    if ((CL_GET_ERROR_CODE(rc) ==
+                         CL_IOC_ERR_COMP_UNREACHABLE ||
+                         CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE ||
+                         CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+                        && CL_GET_CID(rc) == CL_CID_IOC)
+                    {
+                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                                       ("HOST is unreachable so handle it as a failure \n"));
+                        cpmCpmLHBFailure(cpmInfo->pCpmLocalInfo);
+                        clLog(CL_LOG_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                                        "HOST is unreachable so handle it as a failure \n""");
+                    }
+                    else if (rc != CL_OK)
+                    {
+                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                                       ("Error occured while sending statictic information request to other CPM %x\n",
+                                        rc));
+                        clLog(CL_LOG_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                        		"Error occured while sending statictic information request to other CPM %x\n",
+                        		                                        rc);
+                    }
+
+                }
+                cpmCount--;
+                if (cpmCount)
+                {
+                    rc = clCntNextNodeGet(gpClCpm->cpmTable, hNode, &hNode);
+                    if (rc != CL_OK)
+                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                                       ("Unable to Get Node  Data %x\n", rc));
+                        clLog(CL_LOG_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                        		"Unable to Get Node  Data %x\n", rc);
+                }
+            }
+        }
+        timeOut.tsSec = 0;
+        timeOut.tsMilliSec = freq;
+        clOsalTaskDelay(timeOut);
+        clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
+    }
+    /* 
+     * We come out with lock held     */
+
+    clOsalCondWait(&gpClCpm->customHeartbeatCond, &gpClCpm->customHeartbeatMutex,heartbeatWait);
+    goto restart_heartbeat;
+
+    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Out of custom loop"));
+
+    /*
+     * clOsalPrintf("Polling Thread Exited ....... \n");
+     */
+
+    return NULL;
+
+failure:
+    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, NULL,
+               CL_CPM_LOG_0_SERVER_POLL_THREAD_EXIT_INFO);
+    return NULL;
+}
+
+
+
+void cpmShutdownCustomHeartbeat(void)
+{
+    clOsalMutexLock(&gpClCpm->customHeartbeatMutex);    
+    clOsalCondSignal(&gpClCpm->customHeartbeatCond);
+    clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
+}
+
+void cpmEnableCustomHeartbeat(void)
+{
+    clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
+    if(gpClCpm->enableCustomHeartbeat == CL_FALSE)
+    {
+        gpClCpm->enableCustomHeartbeat = CL_TRUE;
+        clOsalCondSignal(&gpClCpm->customHeartbeatCond);
+    }
+    clOsalMutexUnlock(&gpClCpm->customHeartbeatMutex);
+}
+void cpmDisableCustomHeartbeat(void)
+{
+    clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
+    gpClCpm->enableCustomHeartbeat = CL_FALSE;
+    clOsalMutexUnlock(&gpClCpm->customHeartbeatMutex);
+}
+
+//************************************************************************
+
 void cpmShutdownHeartbeat(void)
 {
     clOsalMutexLock(&gpClCpm->heartbeatMutex);
@@ -3930,7 +4238,7 @@ static void printUsage(char *progname)
                  " --nodename=<nodeName>\n", progname);
     clOsalPrintf("Options:\n");
     clOsalPrintf("-c, --chassis=ID       Chassis ID\n");
-    clOsalPrintf("-l, --localslot=ID     Local slot ID\n");
+    clOsalPrintf("-l, --localslot=ID     Local slotvariable ID\n");
     clOsalPrintf("-n, --nodename=name    Node name\n");
     clOsalPrintf("-f, --foreground       Run AMF as foreground process\n");
     clOsalPrintf("-h, --help             Display this help and exit\n");
@@ -4447,6 +4755,9 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[], ClCharT *envp[])
 
     return rc;
 }
+
+
+
 
 
 #endif

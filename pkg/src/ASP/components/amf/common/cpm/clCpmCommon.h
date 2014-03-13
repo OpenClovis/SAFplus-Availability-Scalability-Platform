@@ -296,6 +296,7 @@ typedef struct clCpm
      * enable it.
      */
     ClBoolT enableHeartbeat;
+    
 
     /**
      * Flag to indicate wether the event server is up. If the flag is
@@ -328,6 +329,10 @@ typedef struct clCpm
 
     ClOsalMutexT heartbeatMutex;
     ClOsalCondT  heartbeatCond;
+    
+    ClBoolT enableCustomHeartbeat;    
+    ClOsalMutexT customHeartbeatMutex;
+    ClOsalCondT  customHeartbeatCond;
 
     /**
      * Mutex to have exclusive access to the eo list.

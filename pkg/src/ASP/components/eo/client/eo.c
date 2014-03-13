@@ -71,6 +71,12 @@
 #include <clCpmServerFuncTable.h>
 #include <clAmsMgmtServerFuncTable.h>
 #include <clAmsEntityTriggerFuncTable.h>
+#include <xdrClCpmStatQueryResponseT.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/sysinfo.h>
+#include <sys/statvfs.h> 
+
 #undef __CLIENT__
 
 #define __EO_CLIENT_TABLE_INDEX(port, funId) ( ((port) << CL_EO_CLIENT_BIT_SHIFT) | (funId) )
@@ -273,6 +279,9 @@ static ClRcT clEoShowRmdStats(ClUint32T data,
 
 static ClRcT clEoIsAlive(ClUint32T data, ClBufferHandleT inMsgHandle,
         ClBufferHandleT outMsgHandle);
+
+static ClRcT clEoNodeStatGet(ClEoDataT data,ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle);
+
 /*****************************************************************************/
 
 static ClUint32T eoGlobalHashFunction(ClCntKeyHandleT key);
@@ -337,6 +346,8 @@ static ClEoPayloadWithReplyCallbackT defaultServiceFuncList[] = {
     (ClEoPayloadWithReplyCallbackT) clEoLogLevelSet,    /* 5 */
     (ClEoPayloadWithReplyCallbackT) clEoLogLevelGet, /* 6 */
     (ClEoPayloadWithReplyCallbackT) clEoCustomActionIntimation, /* 7 */
+    (ClEoPayloadWithReplyCallbackT) clEoNodeStatGet, /* 8 */
+
 };
 
 
@@ -3374,6 +3385,112 @@ static ClRcT clEoIsAlive(ClUint32T data, ClBufferHandleT inMsgHandle,
 failure:
         return rc;
 }
+//Minh ****************************get node Information**********************************
+struct sysinfo memInfo;    
+#define INTERVAL 3 
+
+static long long int lastTotalUser, lastTotalUserLow, lastTotalSys, lastTotalIdle;
+
+void init()
+{
+    FILE* file = fopen("/proc/stat", "r");
+    ClRcT rc = CL_OK;
+    rc = fscanf(file, "cpu %lld %lld %lld %lld", &lastTotalUser, &lastTotalUserLow,
+        &lastTotalSys, &lastTotalIdle);
+    fclose(file);
+}
+
+double getCurrentValue()
+{
+    init();
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500};
+    clOsalTaskDelay(delay);
+    double percent;
+    FILE* file;
+    long long int totalUser, totalUserLow, totalSys, totalIdle, total;
+
+    file = fopen("/proc/stat", "r");
+    ClRcT rc = CL_OK;
+    rc= fscanf(file, "cpu %lld %lld %lld %lld", &totalUser, &totalUserLow,
+        &totalSys, &totalIdle);
+    fclose(file);
+
+
+    if (totalUser < lastTotalUser || totalUserLow < lastTotalUserLow ||
+        totalSys < lastTotalSys || totalIdle < lastTotalIdle){
+        //Overflow detection. Just skip this value.
+        percent = -1.0;
+    }
+    else{
+        total = (totalUser - lastTotalUser) + (totalUserLow - lastTotalUserLow) +
+            (totalSys - lastTotalSys);
+        percent = total;
+        total += (totalIdle - lastTotalIdle);
+        percent /= total;
+        percent *= 100;
+    }
+    lastTotalUser = totalUser;
+    lastTotalUserLow = totalUserLow;
+    lastTotalSys = totalSys;
+    lastTotalIdle = totalIdle;
+    return percent;
+}
+
+ClRcT getNodeStat(ClCpmStatQueryResponseT *statInfo)
+{
+    struct statvfs fiData;
+    char fnPath[128];
+    strcpy(fnPath, "/");
+    statInfo->cpuUsed= getCurrentValue() * 100;
+    sysinfo (&memInfo);    
+    statInfo->physMemUsed = memInfo.totalram - memInfo.freeram;
+    statInfo->physMemUsed *= memInfo.mem_unit;
+    statInfo->physMemUsed /= (1024);
+        
+    statInfo->physMemTotal= memInfo.totalram;
+    statInfo->physMemTotal *= memInfo.mem_unit;
+    statInfo->physMemTotal=statInfo->physMemTotal/1024;
+    
+    double temp = getCurrentValue();
+    if((statvfs(fnPath,&fiData)) < 0 ) 
+    {
+    	statInfo->physDiskTotal = 0;
+    	statInfo->physDiskAvailable = 0;
+    	statInfo->physDiskFree = 0;
+    	statInfo->physDiskUsed = 0;
+        return CL_FALSE;
+        clLogNotice("EO", "NODESTATICTIC", "Get node stat failed");
+    }else
+    {
+        statInfo->physDiskTotal = fiData.f_blocks * fiData.f_frsize / 1024;
+    	statInfo->physDiskAvailable = fiData.f_bavail * fiData.f_frsize / 1024;
+    	statInfo->physDiskFree = fiData.f_bfree * fiData.f_frsize / 1024;
+    	statInfo->physDiskUsed = statInfo->physDiskTotal - statInfo->physDiskFree;
+    	clLogNotice("EO", "NODESTATICTIC", "Get node stat successful [%lld] [%lld] [%lld] [%lld] [%lld] [%f] [%lld] [%lld]",
+    			statInfo->physDiskTotal, statInfo->physDiskAvailable, statInfo->physDiskFree, statInfo->physDiskUsed,statInfo->cpuUsed,temp,statInfo->physMemUsed,statInfo->physMemTotal);
+    	    	
+    }   
+    return CL_OK; 
+}
+
+static ClRcT clEoNodeStatGet(ClEoDataT data,ClBufferHandleT inMsgHandle, ClBufferHandleT outMsgHandle)
+{	
+    ClRcT rc = CL_OK;
+    ClCpmStatQueryResponseT    statInfo = {0};	
+    rc = getNodeStat(&statInfo);
+    clLogNotice("EO", "NODESTATICTIC", "Get node statictic");
+    clLogNotice("EO", "NODESTATICTIC", "Get node stat successful [%lld] [%lld] [%lld] [%lld] [%lld]  [%lld] [%lld]",
+        			statInfo.physDiskTotal, statInfo.physDiskAvailable, statInfo.physDiskFree, statInfo.physDiskUsed,statInfo.cpuUsed,statInfo.physMemUsed,statInfo.physMemTotal);
+
+    if(rc != CL_OK)
+    	goto failure;
+    rc = VDECL_VER(clXdrMarshallClCpmStatQueryResponseT, 4, 0, 0)((void *) &statInfo, outMsgHandle,0);
+    
+  failure:
+    return rc;
+}
+
+//*******************************************************************************************************
 
 ClRcT clEoCustomActionRegister(void (*callback)(ClUint32T type, ClUint8T *data, ClUint32T len))
 {

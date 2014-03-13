@@ -224,6 +224,15 @@
             <DataMember name="returnCode" type="ClUint32T"/>
             <DataMember name="requestType" type="ClCpmCompRequestTypeT"/>
         </Struct>
+        
+        <Struct name="ClCpmStatQueryResponseT" defNeed="Yes">
+            <DataMember name="cpuUsed" type="ClUint64T"/>
+            <DataMember name="physMemUsed" type="ClUint64T"/>
+            <DataMember name="physDiskTotal" type="ClUint64T"/>
+            <DataMember name="physDiskAvailable" type="ClUint64T"/>
+            <DataMember name="physDiskFree" type="ClUint64T"/>
+            <DataMember name="physDiskUsed" type="ClUint64T"/>            
+        </Struct>
 
         <!-- Structures related to the CPM-AMS interaction -->
 
