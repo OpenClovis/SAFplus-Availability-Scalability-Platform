@@ -7,7 +7,7 @@
 // SAFplus includes
 #include <clHandleApi.hxx>
 #include <clCkptApi.hxx>
-
+#include <clCkptIpi.hxx>
 
 namespace SAFplus
 {
@@ -35,9 +35,15 @@ namespace SAFplus
   {
   protected:
      static SAFplus::Checkpoint m_checkpoint;
-     SAFplusI::CkptHashMap m_mapData;
-     SAFplusI::CkptHashMap m_mapObject;
+     SAFplusI::CkptHashMap m_mapData;//(boost::hash<SAFplusI::CkptMapKey>(), SAFplusI::BufferPtrContentsEqual()); // keep association between name and arbitrary data
+     SAFplusI::CkptHashMap m_mapObject; // keep association between handle and an object
+  private:
+     //static NameRegistrar* name;
+        
+     //NameRegistrar(){}
+     
   public:
+     //static NameRegistrar* getInstance() { name = new NameRegistrar(); return name;}
 #if 0
      NameRegistrar();
      NameRegistrar(const char* name, SAFplus::Handle handle, void* object=NULL);
@@ -95,7 +101,6 @@ namespace SAFplus
      SAFplus::Buffer& getData(const std::string& name) throw(NameException&);
      virtual ~NameRegistrar();
   };
-  
-}
 
+}
 #endif

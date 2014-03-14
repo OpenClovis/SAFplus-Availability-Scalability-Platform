@@ -39,6 +39,10 @@ $(TEST_DIR)/testmgt:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/test
 endif
 
+ifndef SAFPLUS_NAME_TEST
+$(TEST_DIR)/testName:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/name7/test
+endif
 
 SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt
 
