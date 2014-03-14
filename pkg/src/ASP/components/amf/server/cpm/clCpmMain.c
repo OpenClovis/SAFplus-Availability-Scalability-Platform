@@ -194,11 +194,20 @@ static ClBoolT gClSigTermRestart;
 
 static ClRcT clCpmIocNotificationEnqueue(ClIocNotificationT *notification, ClPtrT cookie);
 
+typedef struct _ClCustomHeartbeatData{
+    ClBoolT    enable;
+    ClUint32T    cpuThreshold;
+    ClUint32T    memThreshold;
+    ClUint32T    interval;
+}ClCustomHeartbeatData;
+
+ClCustomHeartbeatData customConfig = {0};
 static void *cpmCustomHeartbeat(void *threadArg);
 void cpmCustomStaticticFeedBack(ClRcT retCode,
                             void *pThiscpmL,
                             ClBufferHandleT sendMsg,
                             ClBufferHandleT recvMsg);
+static void cpmCustomHeartbeatConfigParser();
 
 #undef __CLIENT__
 #include "clCpmServerFuncTable.h"
@@ -552,8 +561,9 @@ static ClRcT cpmAllocate(void)
     /*
      * Disable heartbeating by default.
      */
+    cpmCustomHeartbeatConfigParser();
     clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
-    gpClCpm->enableCustomHeartbeat = CL_TRUE;
+    gpClCpm->enableCustomHeartbeat = customConfig.enable;
     clOsalMutexUnlock(&gpClCpm->customHeartbeatMutex);
     
 //*********** custom heartbeat******************   
@@ -3933,9 +3943,108 @@ failure:
 /*
  *  Custom HeartBeat 
  */
-#define CL_CPM_CUSTOM_DEFAULT_TIMEOUT 3000
+
 #define CL_CUSTOM_CPU_THRESHOLD 90
 #define CL_CUSTOM_MEM_THRESHOLD 90
+#define CL_CUSTOM_INTERVAL 5000
+#define CL_CUSTOM_HEARTBEAT_DEFAULT_FILECONFIG "customHeartbeat.xml"
+
+
+
+static void cpmCustomHeartbeatConfigParser()
+{
+    ClParserPtrT  head      = NULL;
+    ClCharT       *aspPath  = NULL;
+    ClParserPtrT  fd        = NULL;    
+    ClParserPtrT  enable     = NULL;
+    ClParserPtrT  cpuThreshold     = NULL;
+    ClParserPtrT  memThreshold     = NULL;
+    ClParserPtrT  interval     = NULL;
+    clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Get heartbeat configuration");
+    aspPath = getenv("ASP_CONFIG");
+    if( aspPath != NULL ) 
+    {
+        head = clParserOpenFile(aspPath, CL_CUSTOM_HEARTBEAT_DEFAULT_FILECONFIG);	
+        if( head == NULL )
+        {
+        	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB", "Config file clLog.xml is missing,Using default configuration");
+            goto ParseError;
+
+        }
+    }
+    else
+    {        
+    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB", "ASP_CONFIG path is not set in the environment");
+        goto ParseError;
+    }
+
+    if(NULL == (fd = clParserChild(head, "customHeartBeat")))
+    {
+    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB", "log tag is not proper, file %s/%s",  aspPath, CL_CUSTOM_HEARTBEAT_DEFAULT_FILECONFIG);
+        goto ParseError;
+    }
+    customConfig.enable = CL_FALSE;
+    enable = clParserChild(fd, "enable");
+    if (enable == NULL)
+    {
+    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'enable\' "
+                  "entry is not found");
+        goto ParseError;        
+    }
+    clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Disable custom heartbeat ?  [%s] ", enable->txt);
+    if(!strncasecmp(enable->txt, "true", 4))
+    {
+    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Enable custom heartbeat %s",enable->txt);
+    	customConfig.enable = CL_TRUE;
+    }
+    if(!strncasecmp(enable->txt, "false", 5))
+    {
+    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Disable custom heartbeat %s", enable->txt);
+    	customConfig.enable = CL_FALSE;
+    }
+    
+    //parse cpuThreshold
+    cpuThreshold = clParserChild(fd, "cpuThreshold");
+    if (cpuThreshold == NULL)
+    {
+    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'cpuThreshold\' "
+                  "entry is not found");
+        goto ParseError;        
+    }
+    customConfig.cpuThreshold =atoi(cpuThreshold->txt);
+    
+    //parse memThreshold
+    memThreshold = clParserChild(fd, "memThreshold");
+    if (memThreshold == NULL)
+    {
+    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'memThreshold\' "
+                  "entry is not found");
+        goto ParseError;        
+    }
+    customConfig.memThreshold =atoi(memThreshold->txt);
+    
+    //parse interval
+    interval = clParserChild(fd, "interval");
+    if (interval == NULL)
+    {
+    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'interval\' "
+                  "entry is not found");
+        goto ParseError;        
+    }
+    customConfig.interval =atoi(interval->txt);
+    
+    clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Parser custom heartbeat Configuration memThreshold [%d]  cpuThreshold [%d]  interval [%d]",customConfig.memThreshold,customConfig.cpuThreshold,customConfig.interval);
+    return;
+    
+    ParseError:
+    clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Using default custom heartbeat configuration");
+    customConfig.enable =CL_FALSE;
+    customConfig.memThreshold =CL_CUSTOM_CPU_THRESHOLD;
+    customConfig.cpuThreshold =CL_CUSTOM_MEM_THRESHOLD;
+    customConfig.interval =CL_CUSTOM_INTERVAL;
+    
+    
+}
 
 /*
  * Creates and starts the custom heartbeat thread. 
@@ -3978,7 +4087,7 @@ void cpmCustomStaticticFeedBack(ClRcT retCode,
     pCpmL = pCpmLocal->pCpmLocalInfo;
     if (!pCpmL)
     {
-        clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
+        clLogWarning(CPM_LOG_AREA_CPM, "CHB",
                      "Node [%s] has already been unregistered, "
                      "ignoring the statictic information feedback...",
                      pCpmLocal->nodeName);
@@ -3989,7 +4098,7 @@ void cpmCustomStaticticFeedBack(ClRcT retCode,
     {
         if (pCpmL->status != CL_CPM_EO_DEAD)
         {
-            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
+            clLogError(CPM_LOG_AREA_CPM, "CHB",
                        "statictic information feedback returned "
                        "timeout for node [%s], ",
                        pCpmLocal->nodeName);
@@ -4010,7 +4119,7 @@ void cpmCustomStaticticFeedBack(ClRcT retCode,
         //print Node Information statictic
         clLogMultiline(CL_LOG_DEBUG,
                        CPM_LOG_AREA_CPM,
-                       CPM_LOG_CTX_CPM_AMS,
+                       "CHB",
                        "CPM/L [%s] Statictic Information \n"
                        "    1. Node CPU Used : [%f]  . \n"
                        "    2. Node Physical Memory Used : [%lld]. \n"
@@ -4023,15 +4132,15 @@ void cpmCustomStaticticFeedBack(ClRcT retCode,
                        pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100, outBuffer.physMemUsed,outBuffer.physMemTotal,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal,outBuffer.physDiskTotal, outBuffer.physDiskAvailable, outBuffer.physDiskFree, outBuffer.physDiskUsed);
         
         
-        if(outBuffer.cpuUsed/100 >= CL_CUSTOM_CPU_THRESHOLD)
+        if(outBuffer.cpuUsed/100 >= customConfig.cpuThreshold)
         {
-        	clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_AMS,"CPM/L [%s] : CPU threshold exceeded [%f]  .\n "
+        	clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : CPU threshold exceeded [%f]  .\n "
         			                                                            "             Failover this node \n",pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100);
         	cpmFailoverNode(pCpmLocal->pCpmLocalInfo->nodeId, CL_FALSE);
         }
-        if((outBuffer.physMemUsed*100)/outBuffer.physMemTotal >= CL_CUSTOM_MEM_THRESHOLD)
+        if((outBuffer.physMemUsed*100)/outBuffer.physMemTotal >= customConfig.memThreshold)
         {
-        	clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,CPM_LOG_CTX_CPM_AMS,"CPM/L [%s] : Memory threshold exceeded [%f]  .\n "
+        	clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : Memory threshold exceeded [%f]  .\n "
         	        			                                                "              Failover this node \n" , pCpmLocal->nodeName,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal);
         	cpmFailoverNode(pCpmLocal->pCpmLocalInfo->nodeId, CL_FALSE);
         }
@@ -4048,7 +4157,7 @@ static void *cpmCustomHeartbeat(void *threadArg)
     ClRcT rc = CL_OK;
     ClTimerTimeOutT timeOut;
     ClTimerTimeOutT heartbeatWait = {.tsSec=0,.tsMilliSec=0};
-    ClUint32T freq = CL_CPM_CUSTOM_DEFAULT_TIMEOUT, cpmCount;
+    ClUint32T freq = customConfig.interval, cpmCount;
     ClCpmStatQueryResponseT    outBuffer;
     ClCntNodeHandleT hNode = 0;
     ClCpmLT *cpmInfo = NULL;

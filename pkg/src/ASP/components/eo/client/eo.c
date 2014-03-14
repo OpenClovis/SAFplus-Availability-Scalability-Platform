@@ -3385,7 +3385,7 @@ static ClRcT clEoIsAlive(ClUint32T data, ClBufferHandleT inMsgHandle,
 failure:
         return rc;
 }
-//Minh ****************************get node Information**********************************
+//****************************get node Information**********************************
 struct sysinfo memInfo;    
 #define INTERVAL 3 
 
@@ -3429,10 +3429,6 @@ double getCurrentValue()
         percent /= total;
         percent *= 100;
     }
-    lastTotalUser = totalUser;
-    lastTotalUserLow = totalUserLow;
-    lastTotalSys = totalSys;
-    lastTotalIdle = totalIdle;
     return percent;
 }
 
