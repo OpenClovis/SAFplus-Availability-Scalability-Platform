@@ -14,7 +14,53 @@
 // SAFplus includes
 #include <clHandleApi.hxx>
 #include <clThreadApi.hxx>
+#include <clNameApi.hxx>
+namespace SAFplus
+{
+  typedef SAFplus::Handle EntityIdentifier;
 
+  class GroupIdentity
+  {
+    public:
+      EntityIdentifier id;
+      uint64_t credentials;
+      SAFplus::Buffer* data;
+      uint capabilities;
+      uint dataLen;
+      GroupIdentity& operator=(GroupIdentity const& c)  // Cannot be copied due to size issues, unless lengths are the same
+      {
+        id            = c.id;
+        credentials   = c.credentials;
+        capabilities  = c.capabilities;
+        dataLen       = c.dataLen;
+        data          = new(c.data->data) Buffer(sizeof(c.dataLen));
+      }
+      GroupIdentity()
+      {
+        credentials = 0;
+      }
+      GroupIdentity(EntityIdentifier me,uint64_t credentials,SAFplus::Buffer *dat,uint datalen,uint capabilities)
+      {
+        id = me;
+        credentials = credentials;
+        capabilities = capabilities;
+        dataLen = datalen;
+        char tmpData[sizeof(SAFplus::Buffer)-1+datalen];
+        data = new(tmpData) Buffer(datalen);
+        memcpy((char *)data->data,(char *)dat->data,datalen);
+      }
+  };
+
+  class GroupWakeable:public Wakeable
+  {
+    public:
+      void wake(int amt,void* cookie=NULL)
+      {
+        printf("WAKE UP!");
+      }
+  };
+
+}
 namespace SAFplusI
 {
   class GroupBufferHeader;
@@ -44,27 +90,6 @@ namespace SAFplusI
 
 namespace SAFplus
 {
-  typedef SAFplus::Handle EntityIdentifier;
-
-  class GroupIdentity
-  {
-    public:
-      EntityIdentifier id;
-      uint64_t credentials;
-      SAFplus::Buffer *data;
-      uint capabilities;
-      uint dataLen;
-  };
-
-  class GroupWakeable:public Wakeable
-  {
-    public:
-      void wake(int amt,void* cookie=NULL)
-      {
-        printf("WAKE UP!");
-      }
-  };
-
   class Group
   {
     public:
