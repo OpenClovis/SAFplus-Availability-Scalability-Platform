@@ -14,7 +14,7 @@ CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 CLIENT_SRC_IOC := $(notdir $(wildcard ../../ioc/client/*.c) $(wildcard ../../ioc/common/*.c))
 CLIENT_OBJ_IOC := $(addprefix $(MWOBJ_DIR)/,$(subst .c,.o,$(CLIENT_SRC_IOC)))
 
-DEP_LIBS += $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclMgt7.so
+DEP_LIBS +=$(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclMgt7.so
 
 all: $(LIB_DIR)/libclIoc7.so
 
