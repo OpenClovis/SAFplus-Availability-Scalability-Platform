@@ -27,7 +27,7 @@ using namespace std;
 using namespace SAFplus;
 
 //Auto scanning
-#define IOC_PORT 64
+#define IOC_PORT 0
 #define IOC_PORT_SERVER 65
 
 ClUint32T clAspLocalId = 0x1;
