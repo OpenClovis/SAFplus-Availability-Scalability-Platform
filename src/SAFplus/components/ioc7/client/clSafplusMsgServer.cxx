@@ -28,7 +28,7 @@ namespace SAFplus
     }
 
     void
-    SAFplus::SafplusMsgServer::RegisterHandler(ClWordT type, MsgHandler handler, ClPtrT cookie)
+    SAFplus::SafplusMsgServer::RegisterHandler(ClWordT type, MsgHandler *handler, ClPtrT cookie)
     {
         SAFplus::MsgServer::RegisterHandler(type, handler, cookie);
     }

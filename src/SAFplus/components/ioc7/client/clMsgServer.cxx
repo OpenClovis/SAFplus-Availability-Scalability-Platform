@@ -10,9 +10,6 @@
 
 namespace SAFplus
 {
-  //Null object
-  SAFplus::MsgHandler NO_HANDLER;
-
   class MsgTracker
   {
   public:
@@ -44,7 +41,7 @@ namespace SAFplus
     reliability = CL_IOC_RELIABLE_MESSAGING; // CL_IOC_UNRELIABLE_MESSAGING
     for (ClWordT i=0;i<NUM_MSG_TYPES;i++)
     {
-        handlers[i] = NO_HANDLER;
+        handlers[i] = NULL;
         cookies[i] = 0;
     }
     sendFailureTimeoutMs = 100;
@@ -230,14 +227,14 @@ namespace SAFplus
   void MsgTrackerHandler(MsgTracker* rm)
   {
     MsgServer* q = rm->q;
-    MsgHandler msgHandler = q->handlers[rm->header.protoType];
-    if (msgHandler != NO_HANDLER)
+    MsgHandler *msgHandler = q->handlers[rm->header.protoType];
+    if (msgHandler != NULL)
       {
         ClRcT rc;
         ClUint8T* buf=0;
         rc = clBufferFlatten(rm->msg,&buf);
         CL_ASSERT(rc == CL_OK); // Can hit an error if out of memory
-        msgHandler.msgHandler(rm->header.srcAddr, q, buf, rm->header.length,q->cookies[rm->header.protoType]);
+        msgHandler->msgHandler(rm->header.srcAddr, q, buf, rm->header.length,q->cookies[rm->header.protoType]);
         clHeapFree(buf);
       }
 
@@ -267,7 +264,7 @@ namespace SAFplus
     clJobQueueQuiesce(&jq);
   }
 
-  void MsgServer::RegisterHandler(ClWordT msgtype,  MsgHandler handler, ClPtrT cookie)
+  void MsgServer::RegisterHandler(ClWordT msgtype, MsgHandler *handler, ClPtrT cookie)
   {
     if ((msgtype >= NUM_MSG_TYPES)||(msgtype <0))
       {
@@ -285,7 +282,7 @@ namespace SAFplus
         logDebug("IOC", "MSG", "message type [%d] out of range [0-255]",(int)msgtype);
         throw Error(ClError, CL_ERR_INVALID_PARAMETER,MsgServerFailure,"message type out of range");
       }
-    handlers[msgtype] = NO_HANDLER;
+    handlers[msgtype] = NULL;
   }
 
   

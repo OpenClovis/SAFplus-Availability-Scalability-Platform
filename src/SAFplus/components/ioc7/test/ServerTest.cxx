@@ -51,10 +51,10 @@ main(void)
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER);
 
     // Handle IOC Heartbeat protocol
-    safplusMsgServer.RegisterHandler(CL_IOC_PROTO_HB, handler, NULL);
+    safplusMsgServer.RegisterHandler(CL_IOC_PROTO_HB, &handler, NULL);
 
     // Handle IOC Control Protocol
-    safplusMsgServer.RegisterHandler(CL_IOC_PROTO_CTL, handler, NULL);
+    safplusMsgServer.RegisterHandler(CL_IOC_PROTO_CTL, &handler, NULL);
 
     safplusMsgServer.Start();
 

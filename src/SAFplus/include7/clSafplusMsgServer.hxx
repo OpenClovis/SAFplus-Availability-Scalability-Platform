@@ -39,7 +39,7 @@ namespace SAFplus
                  @param cookie  This pointer will be passed to you handler function
              */
             void
-            RegisterHandler(ClWordT type, MsgHandler handler, ClPtrT cookie);
+            RegisterHandler(ClWordT type, MsgHandler *handler, ClPtrT cookie);
 
             /** Remove the handler for particular type of message */
             void
@@ -56,7 +56,7 @@ namespace SAFplus
              */
 
         protected:
-            MsgHandler handlers[NUM_MSG_TYPES];
+            MsgHandler *handlers[NUM_MSG_TYPES];
             ClPtrT cookies[NUM_MSG_TYPES];
     };
 

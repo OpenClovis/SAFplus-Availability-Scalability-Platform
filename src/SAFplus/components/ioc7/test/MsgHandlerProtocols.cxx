@@ -38,8 +38,9 @@ namespace SAFplus
     void
     MsgHandlerProtocols::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
-        cout<<"Testing handle from:["<<from.iocPhyAddress.nodeAddress<<",";
-        cout<<from.iocPhyAddress.portId<<"]"<<endl;
+        string recMsg((const char*) msg, msglen);
+        cout << "==> Handle for message: " << recMsg << " from [" << std::hex << "0x" << from.iocPhyAddress.nodeAddress << ":"
+                << std::hex << "0x" << from.iocPhyAddress.portId << "]" << endl;
     }
 
 } /* namespace SAFplus */

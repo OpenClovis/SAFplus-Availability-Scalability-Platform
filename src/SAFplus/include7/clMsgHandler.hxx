@@ -52,26 +52,11 @@ namespace SAFplus
             MsgHandler();
             virtual
             ~MsgHandler();
-            bool operator!=(const MsgHandler &obj)
-                {
-                    if (*this != obj)
-                        return true;
-                    return false;
-                }
-
-            bool operator==(const MsgHandler &obj)
-                {
-                    if (*this == obj)
-                        return true;
-                    return false;
-                }
         public:
             virtual void
             msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 
     };
-
-    extern MsgHandler NO_HANDLER;
 
 } /* namespace SAFplus */
 

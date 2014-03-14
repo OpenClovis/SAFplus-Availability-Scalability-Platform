@@ -17,6 +17,7 @@
  * material.
  */
 #include <iostream>
+#include <sstream>
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include <clIocApi.h>
@@ -55,8 +56,14 @@ main(void)
 
     iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
-    char helloMsg[] = "Hello world!";
+    char helloMsg[] = "Hello world ";
 
-    msgClient.SendMsg(iocDest, helloMsg, sizeof(helloMsg), CL_IOC_PROTO_CTL);
+    for (int i=0; i<100;i++)
+    {
+        stringstream strHello;
+        strHello << helloMsg << i;
+        msgClient.SendMsg(iocDest, (void *)strHello.str().c_str(), strHello.str().length(), CL_IOC_PROTO_CTL);
+        sleep(1);
+    }
 }
 
