@@ -199,6 +199,7 @@ typedef struct _ClCustomHeartbeatData{
     ClUint32T    cpuThreshold;
     ClUint32T    memThreshold;
     ClUint32T    interval;
+    ClUint32T    maxExceedOccurences;
 }ClCustomHeartbeatData;
 
 ClCustomHeartbeatData customConfig = {0};
@@ -3947,7 +3948,10 @@ failure:
 #define CL_CUSTOM_CPU_THRESHOLD 90
 #define CL_CUSTOM_MEM_THRESHOLD 90
 #define CL_CUSTOM_INTERVAL 5000
+#define CL_MAX_NODE 50
 #define CL_CUSTOM_HEARTBEAT_DEFAULT_FILECONFIG "customHeartbeat.xml"
+ClUint32T cpuThresholdExceedCount[CL_MAX_NODE];
+ClUint32T memThresholdExceedCount[CL_MAX_NODE];
 
 
 
@@ -3960,6 +3964,7 @@ static void cpmCustomHeartbeatConfigParser()
     ClParserPtrT  cpuThreshold     = NULL;
     ClParserPtrT  memThreshold     = NULL;
     ClParserPtrT  interval     = NULL;
+    ClParserPtrT  exceedCount     = NULL;
     clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Get heartbeat configuration");
     aspPath = getenv("ASP_CONFIG");
     if( aspPath != NULL ) 
@@ -4033,6 +4038,16 @@ static void cpmCustomHeartbeatConfigParser()
     }
     customConfig.interval =atoi(interval->txt);
     
+    //parse exceed threshold count
+    exceedCount = clParserChild(fd,"maxExceedOccurences");
+    if (exceedCount == NULL)
+    {
+    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'maxExceedOccurences\' "
+                  "entry is not found");
+        goto ParseError;        
+    }
+    customConfig.maxExceedOccurences =atoi(exceedCount->txt);
+    
     clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Parser custom heartbeat Configuration memThreshold [%d]  cpuThreshold [%d]  interval [%d]",customConfig.memThreshold,customConfig.cpuThreshold,customConfig.interval);
     return;
     
@@ -4042,6 +4057,11 @@ static void cpmCustomHeartbeatConfigParser()
     customConfig.memThreshold =CL_CUSTOM_CPU_THRESHOLD;
     customConfig.cpuThreshold =CL_CUSTOM_MEM_THRESHOLD;
     customConfig.interval =CL_CUSTOM_INTERVAL;
+    for (ClUint32T i=1 ;i<CL_MAX_NODE;i++)
+    {
+    	cpuThresholdExceedCount[i]=0;
+    	memThresholdExceedCount[i]=0;
+    }
     
     
 }
@@ -4070,7 +4090,7 @@ ClRcT cpmCustomHeartbeatInitialize()
     return rc;
 }
 
-void cpmCustomStaticticFeedBack(ClRcT retCode,
+void cpmCustomStatisticFeedBack(ClRcT retCode,
                             void *pThiscpmL,
                             ClBufferHandleT sendMsg,
                             ClBufferHandleT recvMsg)
@@ -4089,7 +4109,7 @@ void cpmCustomStaticticFeedBack(ClRcT retCode,
     {
         clLogWarning(CPM_LOG_AREA_CPM, "CHB",
                      "Node [%s] has already been unregistered, "
-                     "ignoring the statictic information feedback...",
+                     "ignoring the statistic information feedback...",
                      pCpmLocal->nodeName);
         goto failure;
     }
@@ -4099,7 +4119,7 @@ void cpmCustomStaticticFeedBack(ClRcT retCode,
         if (pCpmL->status != CL_CPM_EO_DEAD)
         {
             clLogError(CPM_LOG_AREA_CPM, "CHB",
-                       "statictic information feedback returned "
+                       "statistic information feedback returned "
                        "timeout for node [%s], ",
                        pCpmLocal->nodeName);
             cpmCpmLHBFailure(pCpmL);
@@ -4111,16 +4131,16 @@ void cpmCustomStaticticFeedBack(ClRcT retCode,
         if (rc != CL_OK)
         {
             clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
-                       "Unmarshalling of statictic information feedback failed, "
+                       "Unmarshalling of statistic information feedback failed, "
                        "error [%#x]",
                        rc);
             goto failure;
         }
-        //print Node Information statictic
+        //print Node Information statistic
         clLogMultiline(CL_LOG_DEBUG,
                        CPM_LOG_AREA_CPM,
                        "CHB",
-                       "CPM/L [%s] Statictic Information \n"
+                       "CPM/L [%s] Statistic Information \n"
                        "    1. Node CPU Used : [%f]  . \n"
                        "    2. Node Physical Memory Used : [%lld]. \n"
                        "    3. Node Physical Memory Total : [%lld]. \n"
@@ -4131,18 +4151,45 @@ void cpmCustomStaticticFeedBack(ClRcT retCode,
                        "    8. Node Disk Used : [%lld]. \n",
                        pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100, outBuffer.physMemUsed,outBuffer.physMemTotal,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal,outBuffer.physDiskTotal, outBuffer.physDiskAvailable, outBuffer.physDiskFree, outBuffer.physDiskUsed);
         
-        
+        ClInt32T nodeId=pCpmLocal->pCpmLocalInfo->nodeId;
         if(outBuffer.cpuUsed/100 >= customConfig.cpuThreshold)
         {
-        	clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : CPU threshold exceeded [%f]  .\n "
-        			                                                            "             Failover this node \n",pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100);
-        	cpmFailoverNode(pCpmLocal->pCpmLocalInfo->nodeId, CL_FALSE);
+        	if(cpuThresholdExceedCount[nodeId]>=customConfig.maxExceedOccurences)
+        	{
+        	    clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : CPU threshold exceeded [%f] %d times .\n "
+        			                                                            "             Failover this node \n",pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100,cpuThresholdExceedCount[pCpmLocal->pCpmLocalInfo->nodeId]);
+            	memThresholdExceedCount[nodeId]=0;
+        		cpuThresholdExceedCount[nodeId]=0;
+        	    cpmFailoverNode(nodeId, CL_FALSE);
+
+        	}
+        	else
+        	{
+        		cpuThresholdExceedCount[nodeId]++;
+        	}
+        }
+        else
+        {
+        	cpuThresholdExceedCount[pCpmLocal->pCpmLocalInfo->nodeId]=0;
         }
         if((outBuffer.physMemUsed*100)/outBuffer.physMemTotal >= customConfig.memThreshold)
         {
-        	clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : Memory threshold exceeded [%f]  .\n "
-        	        			                                                "              Failover this node \n" , pCpmLocal->nodeName,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal);
-        	cpmFailoverNode(pCpmLocal->pCpmLocalInfo->nodeId, CL_FALSE);
+        	if(memThresholdExceedCount[nodeId]>=customConfig.maxExceedOccurences)
+        	{        	
+        	    clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : Memory threshold exceeded [%f] %d times .\n "
+        	        			                                                "              Failover this node \n" , pCpmLocal->nodeName,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal,memThresholdExceedCount[pCpmLocal->pCpmLocalInfo->nodeId]);
+        	    memThresholdExceedCount[nodeId]=0;
+            	cpuThresholdExceedCount[nodeId]=0;
+        	    cpmFailoverNode(nodeId, CL_FALSE);
+        	}
+        	else
+        	{
+        		memThresholdExceedCount[nodeId]++;
+        	}
+        }
+        else
+        {
+        	memThresholdExceedCount[nodeId]=0;
         }
     }
 
@@ -4192,16 +4239,13 @@ static void *cpmCustomHeartbeat(void *threadArg)
                      gpClCpm->pCpmLocalInfo->cpmAddress.nodeAddress) &&
                     (cpmInfo->pCpmLocalInfo->status != CL_CPM_EO_DEAD))
                 {
-                    CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                                   ("Sending statictic information request to CPMs of node: %s\n",
-                                    cpmInfo->nodeName));
-                   
+                  
                     memset(&outBuffer, 0, (size_t) sizeof(ClCpmStatQueryResponseT));  
                     rc = CL_CPM_CALL_RMD_ASYNC_NEW(cpmInfo->pCpmLocalInfo->
                                                    cpmAddress.nodeAddress,
                                                    cpmInfo->pCpmLocalInfo->
                                                    cpmAddress.portId,
-                                                   CL_EO_NODE_STATICTIC_GET_FN_ID,
+                                                   CL_NODE_STATISTIC_GET_FN_ID,
                                                    NULL,
                                                    0,
                                                    (ClUint8T *) &outBuffer,
@@ -4211,7 +4255,7 @@ static void *cpmCustomHeartbeat(void *threadArg)
                                                    0,
                                                    1,
                                                    (void *) (cpmInfo), 
-                                                   cpmCustomStaticticFeedBack,
+                                                   cpmCustomStatisticFeedBack,
                                                    MARSHALL_FN(ClCpmStatQueryResponseT, 4, 0, 0));
                     if ((CL_GET_ERROR_CODE(rc) ==
                          CL_IOC_ERR_COMP_UNREACHABLE ||
@@ -4222,17 +4266,12 @@ static void *cpmCustomHeartbeat(void *threadArg)
                         CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                                        ("HOST is unreachable so handle it as a failure \n"));
                         cpmCpmLHBFailure(cpmInfo->pCpmLocalInfo);
-                        clLog(CL_LOG_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
-                                        "HOST is unreachable so handle it as a failure \n""");
                     }
                     else if (rc != CL_OK)
                     {
                         CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                       ("Error occured while sending statictic information request to other CPM %x\n",
+                                       ("Error occured while sending statistic information request to other CPM %x\n",
                                         rc));
-                        clLog(CL_LOG_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
-                        		"Error occured while sending statictic information request to other CPM %x\n",
-                        		                                        rc);
                     }
 
                 }

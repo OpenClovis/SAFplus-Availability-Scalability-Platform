@@ -120,7 +120,7 @@ typedef enum
     /**
      * Retrieves the log level of the EO.
      */
-    CL_EO_NODE_STATICTIC_GET_FN_ID =
+    CL_NODE_STATISTIC_GET_FN_ID =
     CL_EO_GET_FULL_FN_NUM(CL_EO_EO_MGR_CLIENT_TABLE_ID, 8),
     /**
      * End of EO Function.

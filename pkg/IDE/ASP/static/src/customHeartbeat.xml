@@ -2,8 +2,9 @@
 <cpm:CustomHeartbeatConfig xmlns:cpm="cpm.ecore">
 <customHeartBeat>
   <enable>true</enable>
-  <cpuThreshold>85</cpuThreshold>
-  <memThreshold>85</memThreshold>
+  <cpuThreshold>95</cpuThreshold>
+  <memThreshold>95</memThreshold>
   <interval>5000</interval>
-</customHeartBeat>
+  <maxExceedOccurences>2</maxExceedOccurences>  
+<customHeartBeat>
 </cpm:CustomHeartbeatConfig>

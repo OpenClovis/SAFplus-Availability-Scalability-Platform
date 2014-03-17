@@ -3446,8 +3446,7 @@ ClRcT getNodeStat(ClCpmStatQueryResponseT *statInfo)
     statInfo->physMemTotal= memInfo.totalram;
     statInfo->physMemTotal *= memInfo.mem_unit;
     statInfo->physMemTotal=statInfo->physMemTotal/1024;
-    
-    double temp = getCurrentValue();
+        
     if((statvfs(fnPath,&fiData)) < 0 ) 
     {
     	statInfo->physDiskTotal = 0;
@@ -3455,16 +3454,12 @@ ClRcT getNodeStat(ClCpmStatQueryResponseT *statInfo)
     	statInfo->physDiskFree = 0;
     	statInfo->physDiskUsed = 0;
         return CL_FALSE;
-        clLogNotice("EO", "NODESTATICTIC", "Get node stat failed");
     }else
     {
         statInfo->physDiskTotal = fiData.f_blocks * fiData.f_frsize / 1024;
     	statInfo->physDiskAvailable = fiData.f_bavail * fiData.f_frsize / 1024;
     	statInfo->physDiskFree = fiData.f_bfree * fiData.f_frsize / 1024;
     	statInfo->physDiskUsed = statInfo->physDiskTotal - statInfo->physDiskFree;
-    	clLogNotice("EO", "NODESTATICTIC", "Get node stat successful [%lld] [%lld] [%lld] [%lld] [%lld] [%f] [%lld] [%lld]",
-    			statInfo->physDiskTotal, statInfo->physDiskAvailable, statInfo->physDiskFree, statInfo->physDiskUsed,statInfo->cpuUsed,temp,statInfo->physMemUsed,statInfo->physMemTotal);
-    	    	
     }   
     return CL_OK; 
 }
@@ -3474,10 +3469,6 @@ static ClRcT clEoNodeStatGet(ClEoDataT data,ClBufferHandleT inMsgHandle, ClBuffe
     ClRcT rc = CL_OK;
     ClCpmStatQueryResponseT    statInfo = {0};	
     rc = getNodeStat(&statInfo);
-    clLogNotice("EO", "NODESTATICTIC", "Get node statictic");
-    clLogNotice("EO", "NODESTATICTIC", "Get node stat successful [%lld] [%lld] [%lld] [%lld] [%lld]  [%lld] [%lld]",
-        			statInfo.physDiskTotal, statInfo.physDiskAvailable, statInfo.physDiskFree, statInfo.physDiskUsed,statInfo.cpuUsed,statInfo.physMemUsed,statInfo.physMemTotal);
-
     if(rc != CL_OK)
     	goto failure;
     rc = VDECL_VER(clXdrMarshallClCpmStatQueryResponseT, 4, 0, 0)((void *) &statInfo, outMsgHandle,0);
