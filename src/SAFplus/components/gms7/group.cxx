@@ -41,8 +41,11 @@ SAFplus::Group::Group(std::string handleName)
 
 void SAFplus::Group::init(SAFplus::Handle groupHandle)
 {
-  char              sharedMemName[]= "ABC";
+  char              sharedMemName[]= "GMS_SHM";
   int               numOfRows = SAFplusI::GROUP_SEGMENT_ROWS;
+
+  /* No entity is registered at this time */
+  lastRegisteredEntity = INVALID_HDL;
 
   /* Check whether handle is valid */
   if (groupHandle == INVALID_HDL)
@@ -62,11 +65,9 @@ void SAFplus::Group::init(SAFplus::Handle groupHandle)
     hdr = msm.construct<SAFplusI::GroupBufferHeader>("GroupBufferHeader") ();
     hdr->serverPid = getpid();
     hdr->structId = SAFplusI::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7;
-    printf("MSM OK");
   }
   catch(interprocess_exception &e)
   {
-    printf("interprocess_exception \n");
     if (e.get_error_code() == already_exists_error)
     {
         hdr = msm.find_or_construct<SAFplusI::GroupBufferHeader>("GroupBufferHeader") ();
@@ -76,9 +77,7 @@ void SAFplus::Group::init(SAFplus::Handle groupHandle)
         {
           hdr->serverPid = getpid();
           hdr->structId = SAFplusI::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7;
-          printf("RETRIES NG \n");
         }
-        printf("RETRIES OK \n");
     }
     else
     {
@@ -93,7 +92,7 @@ void SAFplus::Group::init(SAFplus::Handle groupHandle)
   assert(hdr);
 }
 
-void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities, bool wake)
+void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities)
 {
   /*Check in share memory if entity exists*/
   char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
@@ -102,9 +101,10 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
   //*((EntityIdentifier *) b->data) = me;
   GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(b));
 
-  printf("Enter registerEntity \n");
+
   if (contents == map->end()) //Not exits
   {
+    lastRegisteredEntity = me;
     /* Allocate shared memory */
     SAFplus::Buffer* key = new (msm.allocate(sizeof(EntityIdentifier) + sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (sizeof(EntityIdentifier)); //Area to store key
     SAFplus::Buffer* val = new (msm.allocate(sizeof(GroupIdentity) + sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (sizeof(GroupIdentity));       //Area to store data struct
@@ -129,24 +129,23 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
     SAFplusI::GroupMapPair vt(kb,kv);
     map->insert(vt);
 
-    /*NOTE: the wakeable will send notification to the whole cluster to update the latest data*/
-    if (wake)
-    {
-      wakeable->wake(1);
-    }
-    printf("Exit registerEntity. Insertion is ok. \n");
+    /* Notify other entities about new entity*/
+    wakeable->wake(1);
   }
   else
   {
     /* TODO: handle entity existing case */
-    printf("Exit registerEntity. Entity existed. \n");
+    ;
   }
 }
 
-void SAFplus::Group::deregister(EntityIdentifier me, bool wake)
+void SAFplus::Group::deregister(EntityIdentifier me)
 {
-  printf("Enter deregister \n");
-
+  /* Use last registered entity if me is 0 */
+  if(me == INVALID_HDL)
+  {
+    me = lastRegisteredEntity;
+  }
   /*Check in share memory if entity exists*/
   char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
   SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
@@ -156,7 +155,6 @@ void SAFplus::Group::deregister(EntityIdentifier me, bool wake)
   if(contents == map->end())
   {
     /*TODO: Entity didn't exist. */
-    printf("Exit deregister. Entity didn't exist \n");
     return;
   }
   SAFplusI::BufferPtr curval = contents->second;
@@ -170,18 +168,22 @@ void SAFplus::Group::deregister(EntityIdentifier me, bool wake)
 
   /* Delete data from map */
   map->erase(contents);
-
-  /*NOTE: the wakeable will send notification to the whole cluster to update the latest data*/
-  if (wake)
+  /* Active or Standby entity leave group. Re-elect */
+  if(activeEntity == me || standbyEntity == me)
   {
-    wakeable->wake(1);
+    elect();
   }
-  printf("Exit deregister. Deregister OK \n");
+  /*NOTE: the wakeable will send notification to the whole cluster to update the latest data*/
+  wakeable->wake(1);
 }
 
 void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
 {
-  printf("Enter setCapabilities \n");
+  /* Use last registered entity if me is 0 */
+  if(me == INVALID_HDL)
+  {
+    me = lastRegisteredEntity;
+  }
   /*Check in share memory if entity exists*/
   char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
   SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
@@ -191,13 +193,11 @@ void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
   if(contents == map->end())
   {
     /*TODO: EntityIdentifier didn't exist. */
-    printf("Exit setCapabilities. Entity didn't exist \n");
     return;
   }
 
   SAFplusI::BufferPtr curval = contents->second;
   ((GroupIdentity *)(((Buffer *)curval.get())->data))->capabilities = capabilities;
-  printf("Exit setCapabilities. Updated new capabilities \n");
 }
 
 uint SAFplus::Group::getCapabilities(EntityIdentifier id)
@@ -211,7 +211,6 @@ uint SAFplus::Group::getCapabilities(EntityIdentifier id)
   if(contents == map->end())
   {
     /*TODO: Entity didn't exist. */
-    printf("EntifyIdentifier doen't exits \n");
     return 0;
   }
 
@@ -221,7 +220,6 @@ uint SAFplus::Group::getCapabilities(EntityIdentifier id)
 
 SAFplus::Buffer& SAFplus::Group::getData(EntityIdentifier id)
 {
-  printf("Enter getData\n");
   /*Check in share memory if entity exists*/
   char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
   SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
@@ -229,23 +227,30 @@ SAFplus::Buffer& SAFplus::Group::getData(EntityIdentifier id)
   GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(b));
   if(contents == map->end())
   {
-    printf("Exit getData. Entity didn't exist \n");
     return *((Buffer*) NULL);
   }
   SAFplusI::BufferPtr curval = contents->second;
-  printf("Exit getData.\n");
-  /* TODO: Why GroupEntity::data did not exist after re-run */
-  return *((GroupIdentity *)(((Buffer *)curval.get())->data))->data;
+  /* TODO: Which data should be returned? Group identity or data member of group identity? */
+  //return *((GroupIdentity *)(((Buffer *)curval.get())->data))->data;
+  return *(curval.get());
 }
 
-// Calls for an election
+  /*
+  Called by group member to select a new ACTIVE/STANDBY role
+  Return a pair: first is active entity and second is standby entity
+  Algorithm:
+    * - Loop through entity mapping table
+    * - Select entity with highest credentials for active role
+    * - Select entity with second highest credential for standby role
+    * - Check whether entities are allowed new role, then changing their roles
+    * - Update capability of other entities if role changed
+    * - Notify to other group member about roles changing
+  */
 std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::elect()
 {
-  /*TODO Implement "bully" election*/
   uint highestCredentials = 0,lowerCredentials = 0, curEntityCredentials = 0;
-
-  active = INVALID_HDL;
-  standby = INVALID_HDL;
+  EntityIdentifier entityIdenFirst = INVALID_HDL, entityIdenSecond = INVALID_HDL;
+  bool isRoleChanged = false;
 
   for (GroupHashMap::iterator i = map->begin();i != map->end();i++)
   {
@@ -253,8 +258,8 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::elect()
     curEntityCredentials = ((GroupIdentity *)(((Buffer *)curval.get())->data))->credentials;
     if(highestCredentials == 0 || lowerCredentials == 0)
     {
-      active = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
-      standby = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
+      entityIdenFirst = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
+      entityIdenSecond = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
       highestCredentials = curEntityCredentials;
       lowerCredentials = curEntityCredentials;
     }
@@ -262,28 +267,79 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::elect()
     {
       if(curEntityCredentials > lowerCredentials && curEntityCredentials <= highestCredentials)
       {
-        standby = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
+        entityIdenSecond = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
         lowerCredentials = curEntityCredentials;
       }
       else if(curEntityCredentials > highestCredentials)
       {
-        standby = active;
+        entityIdenSecond = entityIdenFirst;
         lowerCredentials = highestCredentials;
-        active = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
+        entityIdenFirst = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
         highestCredentials = curEntityCredentials;
       }
       else
       {
-        ;
+        continue;
       }
     }
   }
-  return std::pair<EntityIdentifier,EntityIdentifier>(active, standby);
+  /* Update standby and active entity */
+  if(!(entityIdenFirst == INVALID_HDL) && !(entityIdenFirst == activeEntity))
+  {
+    /* Check if entity is allowed ACTIVE */
+    uint capability = getCapabilities(entityIdenFirst);
+    if((capability & SAFplus::Group::ACCEPT_ACTIVE) == SAFplus::Group::ACCEPT_ACTIVE)
+    {
+      isRoleChanged = true;
+      activeEntity = entityIdenFirst;
+    }
+
+  }
+  if(!(entityIdenSecond == INVALID_HDL) && !(entityIdenSecond == standbyEntity))
+  {
+    /* Check if entity is allowed STANDBY */
+    uint capability = getCapabilities(entityIdenSecond);
+    if((capability & SAFplus::Group::ACCEPT_STANDBY) == SAFplus::Group::ACCEPT_STANDBY)
+    {
+      isRoleChanged = true;
+      standbyEntity = entityIdenSecond;
+    }
+  }
+
+  /* Reset state IS_LEADER/IS_STANDBY of other entities */
+  for (GroupHashMap::iterator i = map->begin();isRoleChanged && i != map->end();i++)
+  {
+    SAFplusI::BufferPtr curkey = i->first;
+    EntityIdentifier item = *(EntityIdentifier *)(curkey.get()->data);
+    uint currentCapability = getCapabilities(item);
+    if(item == activeEntity) //This is an active entity
+    {
+      currentCapability |= SAFplus::Group::IS_ACTIVE;
+      currentCapability &= ~SAFplus::Group::IS_STANDBY;
+    }
+    else if(item == standbyEntity) //This is a standby entity
+    {
+      currentCapability |= SAFplus::Group::IS_STANDBY;
+      currentCapability &= ~SAFplus::Group::IS_ACTIVE;
+    }
+    else //other members
+    {
+      currentCapability &= ~SAFplus::Group::IS_STANDBY;
+      currentCapability &= ~SAFplus::Group::IS_ACTIVE;
+    }
+    setCapabilities(currentCapability,item);
+  }
+
+  /* TODO: Send notification about role changes */
+  if(isRoleChanged)
+  {
+    wakeable->wake(1);
+  }
+  return std::pair<EntityIdentifier,EntityIdentifier>(entityIdenFirst, entityIdenSecond);
 }
 
 bool SAFplus::Group::isMember(EntityIdentifier id)
 {
-  printf("Enter isMember\n");
   /*Check in share memory if entity exists*/
   char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
   SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
@@ -292,29 +348,27 @@ bool SAFplus::Group::isMember(EntityIdentifier id)
 
   if(contents == map->end())
   {
-    printf("Exit isMember. Not found\n");
     return false;
   }
   else
   {
-    printf("Exit isMember. OK\n");
     return true;
   }
 }
 
 void SAFplus::Group::setNotification(SAFplus::Wakeable& w)
 {
-  wakeable = (GroupWakeable *)&w;
+  wakeable = (Wakeable *)&w;
 }
 
 EntityIdentifier SAFplus::Group::getActive(void) const
 {
-  return active;
+  return activeEntity;
 }
 
 EntityIdentifier SAFplus::Group::getStandby(void) const
 {
-  return standby;
+  return standbyEntity;
 }
 
 /*
@@ -369,4 +423,10 @@ bool SAFplus::Group::Iterator::operator !=(const SAFplus::Group::Iterator& other
   if (group != otherValue.group) return true;
   if (iter != otherValue.iter) return true;
   return false;
+}
+
+void SAFplus::Group::receiveNotification()
+{
+  /* TODO: check notification type and do approriate actions */
+  ;
 }

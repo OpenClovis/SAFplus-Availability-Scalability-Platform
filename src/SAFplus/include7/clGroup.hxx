@@ -25,9 +25,9 @@ namespace SAFplus
       EntityIdentifier id;
       uint64_t credentials;
       SAFplus::Buffer* data;
-      uint capabilities;
+      uint capabilities; //Capabilities is a bitmap. It also contains state of group member
       uint dataLen;
-      GroupIdentity& operator=(GroupIdentity const& c)  // Cannot be copied due to size issues, unless lengths are the same
+      GroupIdentity& operator=(GroupIdentity const& c)
       {
         id            = c.id;
         credentials   = c.credentials;
@@ -50,16 +50,6 @@ namespace SAFplus
         memcpy((char *)data->data,(char *)dat->data,datalen);
       }
   };
-
-  class GroupWakeable:public Wakeable
-  {
-    public:
-      void wake(int amt,void* cookie=NULL)
-      {
-        printf("WAKE UP!");
-      }
-  };
-
 }
 namespace SAFplusI
 {
@@ -110,13 +100,13 @@ namespace SAFplus
       Group(std::string name);
 
       // register a member of the group.  This is separate from the constructor so someone can iterate through members of the group without being a member.  Caller owns data when register returns.
-      void registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities, bool wake = true);
+      void registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities);
 
       // If me=0 (default), use the group identifier the last call to "register" was called with.
-      void deregister(EntityIdentifier me, bool wake = true);
+      void deregister(EntityIdentifier me = INVALID_HDL);
 
       // If default me=0, use the group identifier the last call to "register" was called with.
-      void setCapabilities(uint capabilities, EntityIdentifier me);
+      void setCapabilities(uint capabilities, EntityIdentifier me = INVALID_HDL);
 
       // This also returns the current active/standby state of the entity since that is part of the capabilities bitmap.
       uint getCapabilities(EntityIdentifier id);
@@ -165,16 +155,18 @@ namespace SAFplus
 
       EntityIdentifier getActive(void) const;
       EntityIdentifier getStandby(void) const;
-
+    private:
+        void receiveNotification(); // Call when notifications arrived. Notifications are: member leave/join, member fail, member 's role change
     protected:
       boost::interprocess::managed_shared_memory msm;
       SAFplusI::GroupHashMap*          map;
       SAFplusI::GroupBufferHeader*      hdr;
       SAFplus::Handle                  handle;
 
-      SAFplus::GroupWakeable*          wakeable;
-      EntityIdentifier                 active;
-      EntityIdentifier                 standby;
+      SAFplus::Wakeable*               wakeable;
+      EntityIdentifier                 activeEntity;
+      EntityIdentifier                 standbyEntity;
+      EntityIdentifier                 lastRegisteredEntity;
 
   };
 
