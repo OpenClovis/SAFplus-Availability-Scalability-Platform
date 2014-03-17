@@ -20,11 +20,20 @@
 #ifndef CLSAFPLUSMSGSERVER_HXX_
 #define CLSAFPLUSMSGSERVER_HXX_
 
+#include <boost/interprocess/sync/interprocess_mutex.hpp>
+#include <boost/interprocess/sync/interprocess_condition.hpp>
+#include <boost/interprocess/sync/scoped_lock.hpp>
 #include "clMsgHandler.hxx"
 #include "clMsgServer.hxx"
+#include "clThreadApi.hxx"
 
 namespace SAFplus
 {
+#define MSGSIZE 4096
+    struct MsgReply
+    {
+        char buffer[MSGSIZE];
+    };
 
     class SafplusMsgServer : public SAFplus::MsgServer
     {
@@ -54,12 +63,22 @@ namespace SAFplus
              Raises the "Error" Exception if something goes wrong, or if the destination queue does not
              exist.
              */
+            MsgReply *SendReply(ClIocAddressT destination, void* buffer, ClWordT length,ClWordT msgtype=0);
 
         protected:
             MsgHandler *handlers[NUM_MSG_TYPES];
             ClPtrT cookies[NUM_MSG_TYPES];
-    };
 
+        public:
+            /**
+             * msg buffer for reply data
+             */
+            MsgReply msgReply;
+
+            // Msg sending and wakable on reply
+            boost::interprocess::interprocess_mutex      msgSendReplyMutex;
+            boost::interprocess::interprocess_condition  condMsgSendReplyMutex;
+    };
 }
 
 extern SAFplus::SafplusMsgServer safplusMsgServer;

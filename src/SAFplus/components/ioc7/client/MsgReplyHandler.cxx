@@ -16,41 +16,45 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-#include <iostream>
-#include "MsgHandlerProtocols.hxx"
-#include "clMsgServer.hxx"
 
-using namespace std;
+#include <iostream>
+#include "MsgReplyHandler.hxx"
+#include "clSafplusMsgServer.hxx"
+#include "clLogApi.hxx"
 
 namespace SAFplus
 {
+    class SafplusMsgServer;
 
-    MsgHandlerProtocols::MsgHandlerProtocols()
+    MsgReplyHandler::MsgReplyHandler()
     {
         // TODO Auto-generated constructor stub
 
     }
 
-    MsgHandlerProtocols::~MsgHandlerProtocols()
+    MsgReplyHandler::~MsgReplyHandler()
     {
         // TODO Auto-generated destructor stub
     }
 
     void
-    MsgHandlerProtocols::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    MsgReplyHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
-        char helloMsg[] = "Hello world reply";
-
-        string recMsg((const char*) msg, msglen);
-        cout << "==> Handle for message: " << recMsg << " from [" << std::hex << "0x" << from.iocPhyAddress.nodeAddress << ":"
-                << std::hex << "0x" << from.iocPhyAddress.portId << "]" << endl;
-
         /**
          * TODO:
-         * Reply, need to check message type to reply
-         * Maybe sync queue, Async callback etc
+         * process ONE or ALL or FOREVER
          */
-        svr->SendMsg(from, helloMsg, sizeof(helloMsg), CL_IOC_SAF_MSG_REPLY_PROTO);
+        svr->Stop();
+        if (cookie)
+        {
+            memcpy(cookie, msg, msglen);
+        }
+
+        SAFplus::SafplusMsgServer *safplusMsgServer = reinterpret_cast<SAFplus::SafplusMsgServer*>(svr);
+
+        //Signal to wake
+        safplusMsgServer->condMsgSendReplyMutex.notify_one();
+
     }
 
 } /* namespace SAFplus */

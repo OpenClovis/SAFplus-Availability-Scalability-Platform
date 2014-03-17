@@ -17,14 +17,18 @@
  * material.
  */
 
+#include <clIocProtocols.h>
 #include "clSafplusMsgServer.hxx"
+#include "MsgReplyHandler.hxx"
+
 
 namespace SAFplus
 {
     SAFplus::SafplusMsgServer::SafplusMsgServer(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads, Options flags) :
                     MsgServer(port, maxPendingMsgs, maxHandlerThreads, flags)
     {
-
+        MsgHandler *replyHandler = new MsgReplyHandler();
+        this->RegisterHandler(CL_IOC_SAF_MSG_REPLY_PROTO, replyHandler, &msgReply);
     }
 
     void
@@ -37,6 +41,22 @@ namespace SAFplus
     SAFplus::SafplusMsgServer::RemoveHandler(ClWordT type)
     {
         SAFplus::MsgServer::RemoveHandler(type);
+    }
+
+    MsgReply *SafplusMsgServer::SendReply(ClIocAddressT destination, void* buffer, ClWordT length, ClWordT msgtype)
+    {
+        boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(msgSendReplyMutex);
+        memset(&msgReply, 0, sizeof(MsgReply));
+        SendMsg(destination, buffer, length, msgtype);
+        /**
+         * Sending Sync type, need to start listen on replying to wake
+         */
+        Start();
+        /**
+         * Wait on condition
+         */
+        condMsgSendReplyMutex.wait(lock);
+        return &msgReply;
     }
 
 }

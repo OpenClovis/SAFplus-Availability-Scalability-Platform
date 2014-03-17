@@ -51,18 +51,20 @@ main(void)
 
     clIocLibInitialize(NULL);
 
-    // Port communication
-    SafplusMsgServer msgClient(IOC_PORT);
-
     iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
     char helloMsg[] = "Hello world ";
 
     for (int i=0; i<100;i++)
     {
+        // Port communication
+        // TODO: Process ONE or ALL or FOREVER
+        SafplusMsgServer msgClient(IOC_PORT);
+
         stringstream strHello;
         strHello << helloMsg << i;
-        msgClient.SendMsg(iocDest, (void *)strHello.str().c_str(), strHello.str().length(), CL_IOC_PROTO_CTL);
+        MsgReply *msgReply = msgClient.SendReply(iocDest, (void *)strHello.str().c_str(), strHello.str().length(), CL_IOC_PROTO_CTL);
+        std::cout<<"GOT REPLY:"<<msgReply->buffer<<std::endl;
         sleep(1);
     }
 }
