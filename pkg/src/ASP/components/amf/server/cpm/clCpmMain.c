@@ -3689,8 +3689,6 @@ ClRcT compMgrPollThread(void)
     ClCpmLT *cpmInfo = NULL;
 
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside compMgrPollThread \n"));
-    clLog(CL_LOG_DEBUG, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
-        "Inside compMgrPollThread \n");
     rc = clEoMyEoIocPortSet(gpClCpm->cpmEoObj->eoPort);
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc,
                    rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
@@ -3702,9 +3700,7 @@ ClRcT compMgrPollThread(void)
      * Get the local OMAddress 
      */
     myOMAddress = clIocLocalAddressGet();
-    clLog(CL_LOG_DEBUG, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
-        "Inside compMgrPollThread : START THREAD \n");
-    
+   
     rc=cpmCustomHeartbeatInitialize();
     clOsalMutexLock(&gpClCpm->heartbeatMutex);
     restart_heartbeat:
