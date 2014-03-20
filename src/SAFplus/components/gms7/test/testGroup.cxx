@@ -18,12 +18,43 @@ using namespace SAFplus;
 int testRegisterAndConsistent();
 int testElect();
 int testGetData();
+int testIterator();
+class testWakeble:public SAFplus::Wakeable
+{
+  public:
+    void wake(int amt,void* cookie=NULL)
+    {
+      printf("WAKE! Something changed! \n");
+    }
+};
 int main()
 {
   //testRegisterAndConsistent();
-  //testElect();
-  testGetData();
+  testElect();
+  //testGetData();
+  //testIterator();
   return 0;
+}
+
+int testIterator()
+{
+  Group gms("tester");
+  EntityIdentifier entityId1 = SAFplus::Handle::create();
+  EntityIdentifier entityId2 = SAFplus::Handle::create();
+  EntityIdentifier entityId3 = SAFplus::Handle::create();
+
+  gms.registerEntity(entityId1,20,"ID1",3,20);
+  gms.registerEntity(entityId2,50,"ID2",3,30);
+  gms.registerEntity(entityId3,10,"ID3",3,10);
+
+  SAFplus::Group::Iterator iter = gms.begin();
+  while(iter != gms.end())
+  {
+    SAFplusI::BufferPtr curkey = iter->first;
+    EntityIdentifier item = *(EntityIdentifier *)(curkey.get()->data);
+    printf("Entity capability: %d \n",gms.getCapabilities(item));
+    iter++;
+  }
 }
 
 int testRegisterAndConsistent()
@@ -38,9 +69,9 @@ int testRegisterAndConsistent()
   printf("Is already member? %s \n",isMember ? "YES":"NO");
   if(isMember)
   {
-    gms.deregister(me,false);
+    gms.deregister(me);
   }
-  gms.registerEntity(me,credentials,(void *)&data,dataLength,capabilities,false);
+  gms.registerEntity(me,credentials,(void *)&data,dataLength,capabilities);
 
   capabilities = gms.getCapabilities(me);
   printf("CAP: %d \n",capabilities);
@@ -59,9 +90,9 @@ int testGetData()
   EntityIdentifier entityId2 = SAFplus::Handle::create();
   EntityIdentifier entityId3 = SAFplus::Handle::create();
 
-  gms.registerEntity(entityId1,20,"ID1",3,20,false);
-  gms.registerEntity(entityId2,50,"ID2",3,50,false);
-  gms.registerEntity(entityId3,10,"ID3",3,10,false);
+  gms.registerEntity(entityId1,20,"ID1",3,20);
+  gms.registerEntity(entityId2,50,"ID2",3,50);
+  gms.registerEntity(entityId3,10,"ID3",3,10);
 
   printf("Entity 2 's data: %s \n",(gms.getData(entityId2)).data);
 }
@@ -69,15 +100,27 @@ int testGetData()
 int testElect()
 {
   Group gms("tester");
+  uint capability = 0;
+  testWakeble tw;
+  SAFplus::Wakeable *w = &tw;
+
   EntityIdentifier entityId1 = SAFplus::Handle::create();
   EntityIdentifier entityId2 = SAFplus::Handle::create();
   EntityIdentifier entityId3 = SAFplus::Handle::create();
 
-  gms.registerEntity(entityId1,20,"ID1",3,20,false);
-  gms.registerEntity(entityId2,50,"ID2",3,50,false);
-  gms.registerEntity(entityId3,10,"ID3",3,10,false);
+  gms.setNotification(*w);
+  gms.registerEntity(entityId1,20,"ID1",3,20);
+  gms.registerEntity(entityId2,50,"ID2",3,50);
+  gms.registerEntity(entityId3,10,"ID3",3,10);
 
-  std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs = gms.elect();
+  capability |= SAFplus::Group::IS_ACTIVE;
+  gms.setCapabilities(capability,entityId3);
+  capability &= ~SAFplus::Group::IS_ACTIVE;
+  capability |= SAFplus::Group::ACCEPT_ACTIVE | SAFplus::Group::ACCEPT_STANDBY | 16;
+  gms.setCapabilities(capability,entityId1);
+  gms.setCapabilities(capability,entityId2);
+  std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs;
+  int rc =  gms.elect(activeStandbyPairs);
 
   int activeCapabilities = gms.getCapabilities(activeStandbyPairs.first);
   int standbyCapabilities = gms.getCapabilities(activeStandbyPairs.second);
