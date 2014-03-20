@@ -68,7 +68,7 @@ main(void)
         // TODO: Process ONE or ALL or FOREVER
         stringstream strHello;
         strHello << helloMsg << i;
-        std::cout<<"SENDING:"<<helloMsg<<std::endl;
+        std::cout<<"SENDING:"<<strHello<<std::endl;
         MsgReply *msgReply = msgClient.SendReply(iocDest, (void *)strHello.str().c_str(), strHello.str().length(), CL_IOC_PROTO_CTL);
         std::cout<<"GOT REPLY:"<<msgReply->buffer<<std::endl;
         sleep(1);
