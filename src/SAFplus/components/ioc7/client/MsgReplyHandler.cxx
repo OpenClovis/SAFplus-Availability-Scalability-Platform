@@ -44,7 +44,6 @@ namespace SAFplus
          * TODO:
          * process ONE or ALL or FOREVER
          */
-        svr->Stop();
         if (cookie)
         {
             memcpy(cookie, msg, msglen);
@@ -53,7 +52,7 @@ namespace SAFplus
         SAFplus::SafplusMsgServer *safplusMsgServer = reinterpret_cast<SAFplus::SafplusMsgServer*>(svr);
 
         //Signal to wake
-        safplusMsgServer->condMsgSendReplyMutex.notify_one();
+        safplusMsgServer->condMsgSendReplyMutex.notify_all();
 
     }
 

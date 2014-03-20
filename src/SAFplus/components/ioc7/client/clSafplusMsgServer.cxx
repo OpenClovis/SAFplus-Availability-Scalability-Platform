@@ -45,13 +45,19 @@ namespace SAFplus
 
     MsgReply *SafplusMsgServer::SendReply(ClIocAddressT destination, void* buffer, ClWordT length, ClWordT msgtype)
     {
+        /*
+         * Lock on send
+         */
         boost::interprocess::scoped_lock<boost::interprocess::interprocess_mutex> lock(msgSendReplyMutex);
         memset(&msgReply, 0, sizeof(MsgReply));
+
+        /*
+         * Send message
+         */
         SendMsg(destination, buffer, length, msgtype);
         /**
          * Sending Sync type, need to start listen on replying to wake
          */
-        Start();
         /**
          * Wait on condition
          */

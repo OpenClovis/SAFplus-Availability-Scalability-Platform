@@ -50,7 +50,8 @@ namespace SAFplus
          * Reply, need to check message type to reply
          * Maybe sync queue, Async callback etc
          */
-        svr->SendMsg(from, helloMsg, sizeof(helloMsg), CL_IOC_SAF_MSG_REPLY_PROTO);
+        recMsg.append(":").append(helloMsg);
+        svr->SendMsg(from, (void *)recMsg.c_str(), recMsg.length(), CL_IOC_SAF_MSG_REPLY_PROTO);
     }
 
 } /* namespace SAFplus */
