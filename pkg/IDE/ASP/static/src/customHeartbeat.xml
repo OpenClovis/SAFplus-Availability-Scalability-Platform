@@ -5,6 +5,7 @@
   <cpuThreshold>95</cpuThreshold>
   <memThreshold>95</memThreshold>
   <interval>5000</interval>
-  <maxExceedOccurences>2</maxExceedOccurences>  
+  <maxExceedOccurences>2</maxExceedOccurences>
+  <maxRmdExceedOccurences>2</maxRmdExceedOccurences>  
 <customHeartBeat>
 </cpm:CustomHeartbeatConfig>

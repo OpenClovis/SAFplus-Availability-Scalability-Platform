@@ -200,6 +200,7 @@ typedef struct _ClCustomHeartbeatData{
     ClUint32T    memThreshold;
     ClUint32T    interval;
     ClUint32T    maxExceedOccurences;
+    ClUint32T    maxRmdExceedOccurences;
 }ClCustomHeartbeatData;
 
 ClCustomHeartbeatData customConfig = {0};
@@ -3944,10 +3945,11 @@ failure:
 #define CL_CUSTOM_CPU_THRESHOLD 90
 #define CL_CUSTOM_MEM_THRESHOLD 90
 #define CL_CUSTOM_INTERVAL 5000
-#define CL_MAX_NODE 50
+#define CL_MAX_NODE 1024
 #define CL_CUSTOM_HEARTBEAT_DEFAULT_FILECONFIG "customHeartbeat.xml"
 ClUint32T cpuThresholdExceedCount[CL_MAX_NODE];
 ClUint32T memThresholdExceedCount[CL_MAX_NODE];
+ClUint32T rmdThresholdExceedCount[CL_MAX_NODE];
 
 
 
@@ -3961,6 +3963,8 @@ static void cpmCustomHeartbeatConfigParser()
     ClParserPtrT  memThreshold     = NULL;
     ClParserPtrT  interval     = NULL;
     ClParserPtrT  exceedCount     = NULL;
+    ClParserPtrT  rmdExceedCount     = NULL;
+
     clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Get heartbeat configuration");
     aspPath = getenv("ASP_CONFIG");
     if( aspPath != NULL ) 
@@ -4043,7 +4047,15 @@ static void cpmCustomHeartbeatConfigParser()
         goto ParseError;        
     }
     customConfig.maxExceedOccurences =atoi(exceedCount->txt);
-    
+    //parse exceed threshold count
+    rmdExceedCount = clParserChild(fd,"maxRmdExceedOccurences");
+    if (rmdExceedCount == NULL)
+    {
+    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'maxRmdExceedOccurences\' "
+                  "entry is not found");
+        goto ParseError;        
+    }
+    customConfig.maxRmdExceedOccurences =atoi(rmdExceedCount->txt);    
     clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Parser custom heartbeat Configuration memThreshold [%d]  cpuThreshold [%d]  interval [%d]",customConfig.memThreshold,customConfig.cpuThreshold,customConfig.interval);
     return;
     
@@ -4055,11 +4067,10 @@ static void cpmCustomHeartbeatConfigParser()
     customConfig.interval =CL_CUSTOM_INTERVAL;
     for (ClUint32T i=1 ;i<CL_MAX_NODE;i++)
     {
-    	cpuThresholdExceedCount[i]=0;
-    	memThresholdExceedCount[i]=0;
+        cpuThresholdExceedCount[i]=0;
+        memThresholdExceedCount[i]=0;
+        rmdThresholdExceedCount[i]=0;
     }
-    
-    
 }
 
 /*
@@ -4091,6 +4102,7 @@ void cpmCustomStatisticFeedBack(ClRcT retCode,
                             ClBufferHandleT sendMsg,
                             ClBufferHandleT recvMsg)
 {
+	ClInt32T nodeId;
 	ClCpmStatQueryResponseT outBuffer ={0};
 	outBuffer.cpuUsed=1;
 	outBuffer.physMemUsed=1;
@@ -4109,7 +4121,7 @@ void cpmCustomStatisticFeedBack(ClRcT retCode,
                      pCpmLocal->nodeName);
         goto failure;
     }
-
+    nodeId=pCpmLocal->pCpmLocalInfo->nodeId;
     if (CL_RMD_TIMEOUT_UNREACHABLE_CHECK(retCode))
     {
         if (pCpmL->status != CL_CPM_EO_DEAD)
@@ -4118,7 +4130,21 @@ void cpmCustomStatisticFeedBack(ClRcT retCode,
                        "statistic information feedback returned "
                        "timeout for node [%s], ",
                        pCpmLocal->nodeName);
-            cpmCpmLHBFailure(pCpmL);
+            
+            if(rmdThresholdExceedCount[nodeId]>=customConfig.maxRmdExceedOccurences)
+            {
+            	clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : rmd threshold exceeded %d times .\n "
+            	        			                                                            "             Failover this node \n",pCpmLocal->nodeName,rmdThresholdExceedCount[nodeId]);
+                memThresholdExceedCount[nodeId]=0;
+        	    cpuThresholdExceedCount[nodeId]=0;
+        	    rmdThresholdExceedCount[nodeId]=0;  
+                cpmFailoverNode(nodeId, CL_FALSE);
+
+            }
+            else
+            {
+                rmdThresholdExceedCount[nodeId]++;
+            }
         }
     }
     else
@@ -4147,45 +4173,46 @@ void cpmCustomStatisticFeedBack(ClRcT retCode,
                        "    8. Node Disk Used : [%lld]. \n",
                        pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100, outBuffer.physMemUsed,outBuffer.physMemTotal,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal,outBuffer.physDiskTotal, outBuffer.physDiskAvailable, outBuffer.physDiskFree, outBuffer.physDiskUsed);
         
-        ClInt32T nodeId=pCpmLocal->pCpmLocalInfo->nodeId;
         if(outBuffer.cpuUsed/100 >= customConfig.cpuThreshold)
         {
-        	if(cpuThresholdExceedCount[nodeId]>=customConfig.maxExceedOccurences)
-        	{
+            if(cpuThresholdExceedCount[nodeId]>=customConfig.maxExceedOccurences)
+            {
         	    clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : CPU threshold exceeded [%f] %d times .\n "
-        			                                                            "             Failover this node \n",pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100,cpuThresholdExceedCount[pCpmLocal->pCpmLocalInfo->nodeId]);
-            	memThresholdExceedCount[nodeId]=0;
-        		cpuThresholdExceedCount[nodeId]=0;
+        			                                                            "             Failover this node \n",pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100,cpuThresholdExceedCount[nodeId]);
+                memThresholdExceedCount[nodeId]=0;
+                cpuThresholdExceedCount[nodeId]=0;
+                rmdThresholdExceedCount[nodeId]=0;        		
         	    cpmFailoverNode(nodeId, CL_FALSE);
 
         	}
         	else
         	{
-        		cpuThresholdExceedCount[nodeId]++;
+                cpuThresholdExceedCount[nodeId]++;
         	}
         }
         else
         {
-        	cpuThresholdExceedCount[pCpmLocal->pCpmLocalInfo->nodeId]=0;
+            cpuThresholdExceedCount[pCpmLocal->pCpmLocalInfo->nodeId]=0;
         }
         if((outBuffer.physMemUsed*100)/outBuffer.physMemTotal >= customConfig.memThreshold)
         {
-        	if(memThresholdExceedCount[nodeId]>=customConfig.maxExceedOccurences)
-        	{        	
+            if(memThresholdExceedCount[nodeId]>=customConfig.maxExceedOccurences)
+            {        	
         	    clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : Memory threshold exceeded [%f] %d times .\n "
-        	        			                                                "              Failover this node \n" , pCpmLocal->nodeName,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal,memThresholdExceedCount[pCpmLocal->pCpmLocalInfo->nodeId]);
+        	        			                                                "              Failover this node \n" , pCpmLocal->nodeName,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal,memThresholdExceedCount[nodeId]);
         	    memThresholdExceedCount[nodeId]=0;
-            	cpuThresholdExceedCount[nodeId]=0;
-        	    cpmFailoverNode(nodeId, CL_FALSE);
-        	}
-        	else
-        	{
-        		memThresholdExceedCount[nodeId]++;
-        	}
+                cpuThresholdExceedCount[nodeId]=0;
+                rmdThresholdExceedCount[nodeId]=0;        		
+                cpmFailoverNode(nodeId, CL_FALSE);
+            }
+            else
+            {
+                memThresholdExceedCount[nodeId]++;
+            }
         }
         else
         {
-        	memThresholdExceedCount[nodeId]=0;
+            memThresholdExceedCount[nodeId]=0;
         }
     }
 
