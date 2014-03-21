@@ -25,6 +25,6 @@
 # Subdirectories having Makefiles and need recursive escalation:
 # common should always be before client and server
 
-SUBDIRS          = ezxml utils openais
+SUBDIRS          = ezxml utils openais base
 
 include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk

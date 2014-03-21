@@ -90,6 +90,14 @@ OPENHPISUBAGENT=openhpi-subagent
 OPENHPISUBAGENT_VER=2.3.4
 OPENHPISUBAGENT_PKG=$(OPENHPISUBAGENT)-$(OPENHPISUBAGENT_VER).tar.gz
 
+LIBXML2=libxml2
+LIBXML2_VER=2.9.0
+LIBXML2_PKG=$(LIBXML2)-$(LIBXML2_VER).tar.gz
+
+BOOST=boost
+BOOST_VER=1.55.0
+BOOST_PKG=$(BOOST)_$(subst .,_,$(BOOST_VER)).tar.gz
+
 #PyHPI=py-openhpi
 #PyHPI_VER=1.1
 #PyHPI_PKG=$(PyHPI)-$(PyHPI_VER).tar.gz
@@ -147,7 +155,7 @@ else
 XconfNETSNMP_PKG:=
 endif
 
-all: $(InstDir) $(NETSNMP) $(OPENHPI) $(OPENHPISUBAGENT)
+all: $(InstDir) $(NETSNMP) $(OPENHPI) $(OPENHPISUBAGENT) $(LIBXML2) $(BOOST)
 
 $(InstDir):
 	mkdir -p $@
@@ -264,4 +272,21 @@ $(EXPAT): $(EXPAT_PKG)
 
 $(EXPAT_PKG):
 	wget http://nchc.dl.sourceforge.net/project/expat/expat/$(EXPAT_VER)/$(EXPAT)-$(EXPAT_VER).tar.gz
+
+$(LIBXML2):$(LIBXML2_PKG)
+	(tar xvfz $<  > /dev/null)
+	(cd $(LIBXML2)-$(LIBXML2_VER); $(Xenv); $(Xargs) ./configure --with-debug --with-run-debug --with-mem-debug CFLAGS="-O0 -g" --prefix=$(InstDir) $(Xconfigure))
+	(cd $(LIBXML2)-$(LIBXML2_VER); $(Xenv); make)
+	(cd $(LIBXML2)-$(LIBXML2_VER); $(Xenv); make install)
+
+$(LIBXML2_PKG):
+	wget ftp://xmlsoft.org/libxml2/$(LIBXML2_PKG)
+
+$(BOOST):$(BOOST_PKG)
+	(tar xvfz $<  > /dev/null)
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); $(Xargs) ./bootstrap.sh --prefix=$(InstDir) --without-icu $(Xconfigure))
+	(cd $(BOOST)_$(subst .,_,$(BOOST_VER)); $(Xenv); ./b2 install)
+
+$(BOOST_PKG):
+	wget http://sourceforge.net/projects/boost/files/$(BOOST)/$(BOOST_VER)/$(BOOST_PKG)
 
