@@ -52,7 +52,7 @@ namespace SAFplus
         SAFplus::SafplusMsgServer *safplusMsgServer = reinterpret_cast<SAFplus::SafplusMsgServer*>(svr);
 
         //Signal to wake
-        safplusMsgServer->condMsgSendReplyMutex.notify_all();
+        safplusMsgServer->msgSendConditionMutex.notify_all();
 
     }
 

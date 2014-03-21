@@ -1,6 +1,10 @@
+#ifndef CLTHREADAPI_HXX_
+#define CLTHREADAPI_HXX_
+
 #include <boost/thread/mutex.hpp> 
 #include <boost/thread/recursive_mutex.hpp> 
 #include <boost/thread/locks.hpp> 
+#include <boost/thread/condition_variable.hpp>
 
 namespace SAFplus
 {
@@ -52,6 +56,51 @@ namespace SAFplus
   typedef class tMutex<boost::recursive_timed_mutex> RecursiveMutex;
 
 
+  /**
+   * Class derive from boost::condition_variable_any
+   */
+  class ThreadCondition
+  {
+      public:
+          /**
+           * Signal to wakeup
+           */
+          void notify_one()
+          {
+              waitCondition.notify_one();
+          }
+
+          /**
+           * Signal to wakeup
+           */
+          void notify_all()
+          {
+              waitCondition.notify_all();
+          }
+
+          /*
+           * Do not encourage, wait forever
+           */
+          void wait(SAFplus::Mutex &mutex)
+          {
+              boost::unique_lock<SAFplus::Mutex> lock(mutex);
+              waitCondition.wait(lock);
+          }
+
+          /**
+           * Wait duration to wake up
+           */
+          void timed_wait(SAFplus::Mutex &mutex, int duration)
+          {
+              boost::unique_lock<SAFplus::Mutex> lock(mutex);
+              boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(duration);
+              waitCondition.timed_wait(lock, timeout);
+          }
+
+      public:
+          boost::condition_variable_any waitCondition;
+  };
 
 };
 
+#endif //CLTHREADAPI_HXX_

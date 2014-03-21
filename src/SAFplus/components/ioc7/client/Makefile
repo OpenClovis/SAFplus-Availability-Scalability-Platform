@@ -16,6 +16,7 @@ CLIENT_OBJ_IOC := $(addprefix $(MWOBJ_DIR)/,$(subst .c,.o,$(CLIENT_SRC_IOC)))
 
 DEP_LIBS +=$(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclMgt7.so
 
+LINK_SO_LIBS += -lboost_thread
 all: $(LIB_DIR)/libclIoc7.so
 
 $(LIB_DIR)/libclIoc7.so: $(CLIENT_OBJ_IOC) $(CLIENT_OBJ) $(DEP_LIBS)

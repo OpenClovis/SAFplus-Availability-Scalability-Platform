@@ -23,6 +23,7 @@
 #include <boost/interprocess/sync/interprocess_mutex.hpp>
 #include <boost/interprocess/sync/interprocess_condition.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include "clMsgHandler.hxx"
 #include "clMsgServer.hxx"
 #include "clThreadApi.hxx"
@@ -76,8 +77,8 @@ namespace SAFplus
             MsgReply msgReply;
 
             // Msg sending and wakable on reply
-            boost::interprocess::interprocess_mutex      msgSendReplyMutex;
-            boost::interprocess::interprocess_condition  condMsgSendReplyMutex;
+            Mutex      msgSendReplyMutex;
+            ThreadCondition msgSendConditionMutex;
     };
 }
 
