@@ -12,6 +12,10 @@
 namespace SAFplus
 {
 
+  typedef boost::unordered_map <SAFplusI::CkptMapKey, SAFplusI::CkptMapValue> HashMap;
+  typedef std::vector<SAFplus::Handle> Vector;
+  
+
   class NameException: public std::exception
   {
   protected:	
@@ -35,37 +39,32 @@ namespace SAFplus
   {
   protected:
      static SAFplus::Checkpoint m_checkpoint;
-     SAFplusI::CkptHashMap m_mapData;//(boost::hash<SAFplusI::CkptMapKey>(), SAFplusI::BufferPtrContentsEqual()); // keep association between name and arbitrary data
-     SAFplusI::CkptHashMap m_mapObject; // keep association between handle and an object
+     HashMap m_mapData; // keep association between name and arbitrary data
+     HashMap m_mapObject; // keep association between handle and an object
   private:
      //static NameRegistrar* name;
         
      //NameRegistrar(){}
      
   public:
-     //static NameRegistrar* getInstance() { name = new NameRegistrar(); return name;}
-#if 0
-     NameRegistrar();
-     NameRegistrar(const char* name, SAFplus::Handle handle, void* object=NULL);
-     NameRegistrar(const std::string& name, SAFplus::Handle handle, void* object=NULL);
-     NameRegistrar(const char* name, SAFplus::Buffer*);
-     NameRegistrar(const std::string& name, SAFplus::Buffer*);     
-#endif
-     //NameRegistrar(std::string name, SAFplus::Handle handle);
-     /*void nameInitialize();
-     void nameSet(string name, HandleT handle);
-     void nameSet(string name, void* data, int dataLen);
-     HandleT nameGet(string name);
-     int nameGet(string name, void* data, int maxDataLen);
-     */
+     typedef enum 
+     {
+        MODE_REDUNDANCY,
+        MODE_ROUND_ROBIN,
+        MODE_PREFER_LOCAL,
+        MODE_NO_CHANGE
+     } MappingMode;
+      //static NameRegistrar* getInstance() { name = new NameRegistrar(); return name;}
      /* Associate a name with a handle and pointer and associate a handle with a pointer.
       If the name does not exist, it is created.  If it exists, it is overwritten.
       If the handle format contains a node or process designator, then this mapping will be removed when the node/process fails.
       the void* object pointer is local to this process; it does not need to be part of the checkpoint.
       This association is valid for all SAFplus API name lookups, and for AMF entity names.
       */
-     void set(const char* name, SAFplus::Handle handle, void* object=NULL, size_t objlen=0);
-     void set(const std::string& name, SAFplus::Handle handle, void* object=NULL, size_t objlen=0);
+     //void setMode(const char* name, MappingMode mode);
+     //void setMode(const std::string& name, MappingMode mode);
+     void set(const char* name, SAFplus::Handle handle, MappingMode m, void* object=NULL, size_t objlen=0);
+     void set(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object=NULL, size_t objlen=0);
    
      /* Associate a name with a handle and pointer and associate a handle with a pointer (if object != NULL).
         If the name does not exist, it is created.  If the name exists, this mapping is appended (the original mapping is not removed).
@@ -74,8 +73,8 @@ namespace SAFplus
         If the name has more than one mapping another mapping will become the default response for this name. 
         This association is valid for all SAFplus API name lookups, and for AMF entity names.
      */   
-     void append(const char* name, SAFplus::Handle handle, void* object=NULL,size_t objlen=0);
-     void append(const std::string& name, SAFplus::Handle handle, void* object=NULL,size_t objlen=0);
+     void append(const char* name, SAFplus::Handle handle, MappingMode m, void* object=NULL,size_t objlen=0);
+     void append(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object=NULL,size_t objlen=0);
      
      // Associate name with arbitrary data. A copy of the data is made.
      void set(const char* name, const void* data, int length);
@@ -99,8 +98,31 @@ namespace SAFplus
      // Do not free the returned buffer, call Buffer.decRef();
      SAFplus::Buffer& getData(const char* name) throw(NameException&);
      SAFplus::Buffer& getData(const std::string& name) throw(NameException&);
+
+     //**** This is the dummy function for testing to get iocNodeAddr ********
+     ClIocNodeAddressT clIocLocalAddressGet() { return 2; }
+     void dump();
+     
      virtual ~NameRegistrar();
   };
 
+  class HandleMappingMode
+  {
+  protected:
+     NameRegistrar::MappingMode m_mode;
+     Vector m_handles;
+  public:
+     HandleMappingMode(NameRegistrar::MappingMode mode, Vector handles): m_mode(mode), m_handles(handles)
+     {        
+     }
+     NameRegistrar::MappingMode getMappingMode()
+     {
+        return m_mode;
+     }
+     Vector getHandles()
+     {
+        return m_handles;
+     }
+  };
 }
 #endif

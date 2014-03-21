@@ -9,41 +9,22 @@ using namespace SAFplusI;
 
 Checkpoint NameRegistrar::m_checkpoint(Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
 
-/*SAFplus::NameRegistrar::NameRegistrar()
-{
-   //m_checkpoint(Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);   
-}*/
-#if 0
-SAFplus::NameRegistrar::NameRegistrar(const char* name, SAFplus::Handle handle, void* object/*=NULL*/)
-{
-   set(name, handle, object);
-}
-SAFplus::NameRegistrar::NameRegistrar(const std::string& name, SAFplus::Handle handle, void* object/*=NULL*/)
-{
-   set(name, handle, object);
-}
-SAFplus::NameRegistrar::NameRegistrar(const char* name, SAFplus::Buffer* buf)
-{
-   set(name, buf);
-}
-SAFplus::NameRegistrar::NameRegistrar(const std::string& name, SAFplus::Buffer* buf)
-{
-   set(name, buf);
-}
-#endif
-#if 0
-void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, void* object/*=NULL*/,size_t objlen)
+NameRegistrar name;
+
+void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/,size_t objlen)
 {   
-   size_t keyLen = sizeof(Handle);
+   size_t keyLen = strlen(name)+1;
    char data[sizeof(Buffer)-1+keyLen];
    Buffer* key = new(data) Buffer(keyLen);
-   memcpy(key->data, &handle, keyLen);
+   *key = name;
    
-   size_t valLen = strlen(name)+1;
+   Vector vector;
+   vector.push_back(handle);   
+   HandleMappingMode hm(m, vector);
+   size_t valLen = sizeof(hm);
    char vdata[sizeof(Buffer)-1+valLen];
-   Buffer* val = new(vdata) Buffer(valLen);
-   *val = name;
-
+   Buffer* val = new(vdata) Buffer(valLen);   
+   memcpy(val->data, &hm, valLen);
    Transaction t;
    m_checkpoint.write(*key,*val,t);
    if (!object)
@@ -52,14 +33,15 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, void*
       return;
    }
    // Associate this handle to the object
-   keyLen = strlen(name)+1; //include '\0' for data
+   keyLen = sizeof(handle);
    char* pbuf = new char[keyLen+sizeof(SAFplus::Buffer)-1]; 
    SAFplus::Buffer* k = new (pbuf) SAFplus::Buffer(keyLen);
-   *k = name;
+   memcpy(k->data, &handle, keyLen);
    //Find to see if the key exists?
-   CkptHashMap::iterator contents = m_mapObject.find(SAFplusI::BufferPtr(k));  
+   HashMap::iterator contents = m_mapObject.find(SAFplusI::BufferPtr(k));  
    if (contents != m_mapObject.end()) // record already exists; overwrite
    {
+      delete k; // Release the buffer allocated for the key
       SAFplusI::BufferPtr& curval = contents->second;
       if (curval)
       {
@@ -67,8 +49,7 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, void*
          {
             if (curval->len() == objlen)
             {
-               memcpy (curval->data, object, objlen);
-               delete k; // Release the buffer allocated for the key
+               memcpy (curval->data, object, objlen);               
                return;
             }
             // Replace the Buffer with a new one
@@ -98,27 +79,42 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, void*
    SAFplusI::CkptMapPair vt(kb,kv);
    m_mapObject.insert(vt);
 }
-void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Handle handle, void* object/*=NULL*/,size_t objlen)
+void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/,size_t objlen)
 {
-   set(name.data(), handle, object,objlen);
+   set(name.data(), handle, m, object,objlen);
 }
 
-void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, void* object/*=NULL*/,size_t objlen)
+void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/,size_t objlen)
 {
-   size_t len = sizeof(Handle);
+   size_t len = strlen(name)+1;
    char data[sizeof(Buffer)-1+len];
    Buffer* key = new(data) Buffer(len);
-   memcpy(key->data, &handle, len);
+   *key = name;
    const Buffer& buf = m_checkpoint.read(*key);
    if (&buf == NULL)
    {
       //There is no any name associated with this handle. Create first
-      set(name, handle, object,objlen);
+      set(name, handle, m, object, objlen);
    }
    else
    {
-      // TODO A name exists, add one more association. Does ckpt7 support this?
-      // ...
+      // TODO A name exists, add one more association.
+      HandleMappingMode* phm = (HandleMappingMode*) buf.data;
+      if (phm != NULL)
+      {
+         Vector newHandles = phm->getHandles();        
+         newHandles.push_back(handle);
+         MappingMode mm = phm->getMappingMode();
+         if (m != MODE_NO_CHANGE) mm = m;
+         //re-write the new buffer
+         HandleMappingMode hm(mm, newHandles);
+         size_t valLen = sizeof(hm);
+         char vdata[sizeof(Buffer)-1+valLen];
+         Buffer* val = new(vdata) Buffer(valLen);   
+         memcpy(val->data, &hm, valLen);
+         Transaction t;
+         m_checkpoint.write(*key,*val,t);
+      }
    }
    
    if (!object)
@@ -127,11 +123,56 @@ void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, vo
       return;
    }
    // TODO Associate this handle to the object
-   // ...   
+   size_t keyLen = sizeof(handle);
+   char* pbuf = new char[keyLen+sizeof(SAFplus::Buffer)-1]; 
+   SAFplus::Buffer* k = new (pbuf) SAFplus::Buffer(keyLen);
+   memcpy(k->data, &handle, keyLen);
+   //Find to see if the key exists?
+   HashMap::iterator contents = m_mapObject.find(SAFplusI::BufferPtr(k));  
+   if (contents != m_mapObject.end()) // record already exists; overwrite
+   {
+      SAFplusI::BufferPtr& curval = contents->second;
+      if (curval)
+      {
+         if (curval->ref() == 1)
+         {
+            if (curval->len() == objlen)
+            {
+               memcpy (curval->data, object, objlen);
+               delete k; // Release the buffer allocated for the key
+               return;
+            }
+            // Replace the Buffer with a new one
+            char* pvbuf = new char[objlen+sizeof(SAFplus::Buffer)-1];
+            //char pvbuf[objlen+sizeof(SAFplus::Buffer)-1];
+            SAFplus::Buffer* v = new (pvbuf) SAFplus::Buffer (objlen);
+            memcpy (v->data, object, objlen);
+            SAFplus::Buffer* old = curval.get();
+            curval = v;
+            if (old->ref() == 1)
+            {
+               delete old;
+            }
+            else
+            {
+               old->decRef();	
+            }
+            delete k; // Release the buffer allocated for the key
+            return;
+         }
+      }
+   }
+   char* pvbuf = new char[objlen+sizeof(SAFplus::Buffer)-1];   
+   SAFplus::Buffer* v = new (pvbuf) SAFplus::Buffer(objlen); 
+   memcpy(v->data, object, objlen);
+   SAFplusI::BufferPtr kb(k),kv(v);
+   SAFplusI::CkptMapPair vt(kb,kv);
+   m_mapObject.insert(vt);
 }
-void SAFplus::NameRegistrar::append(const std::string& name, SAFplus::Handle handle, void* object/*=NULL*/,size_t objlen)
+
+void SAFplus::NameRegistrar::append(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/,size_t objlen)
 {
-   append(name.data(), handle, object, objlen);
+   append(name.data(), handle, m, object, objlen);
 }
 
 void SAFplus::NameRegistrar::set(const char* name, const void* data, int length)
@@ -141,7 +182,7 @@ void SAFplus::NameRegistrar::set(const char* name, const void* data, int length)
    SAFplus::Buffer* k = new (pbuf) SAFplus::Buffer(keyLen);
    *k = name;
    //Find to see if the key exists?
-   CkptHashMap::iterator contents = m_mapData.find(SAFplusI::BufferPtr(k));  
+   HashMap::iterator contents = m_mapData.find(SAFplusI::BufferPtr(k));  
    if (contents != m_mapObject.end()) // record already exists; overwrite
    {
       SAFplusI::BufferPtr& curval = contents->second;
@@ -192,7 +233,7 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Buffer* p_buf)
    SAFplus::Buffer* k = new (pbuf) SAFplus::Buffer(keyLen);
    *k = name;
    //Find to see if the key exists?
-   CkptHashMap::iterator contents = m_mapData.find(SAFplusI::BufferPtr(k));  
+   HashMap::iterator contents = m_mapData.find(SAFplusI::BufferPtr(k));  
    if (contents != m_mapObject.end()) // record already exists; overwrite
    {
       SAFplusI::BufferPtr& curval = contents->second;
@@ -237,12 +278,12 @@ std::pair<SAFplus::Handle&,void*> SAFplus::NameRegistrar::get(const char* name) 
    {
       Handle& handle = getHandle(name);
       //Next: get the void* object associated with the name then make the pair to return
-      size_t keyLen = strlen(name)+1; //include '\0' for data
+      size_t keyLen = sizeof(handle); //include '\0' for data
       char buf[keyLen+sizeof(SAFplus::Buffer)-1]; 
       SAFplus::Buffer* k = new (buf) SAFplus::Buffer(keyLen);
-      *k = name;
+      memcpy(k->data, &handle, keyLen);
       //Find to see if the key exists?
-      CkptHashMap::iterator contents = m_mapObject.find(SAFplusI::BufferPtr(k));  
+      HashMap::iterator contents = m_mapObject.find(SAFplusI::BufferPtr(k));  
       if (contents != m_mapObject.end()) // record already exists; return its value
       {
          SAFplusI::BufferPtr& curval = contents->second;
@@ -275,48 +316,58 @@ std::pair<SAFplus::Handle&,void*> SAFplus::NameRegistrar::get(const std::string&
 
 SAFplus::Handle& SAFplus::NameRegistrar::getHandle(const char* name) throw(NameException&)
 {
-   //Loop thru the Iterator of checkpoint to find the name
-   CkptHashMap::iterator ibegin = m_checkpoint.begin().iter;
-   CkptHashMap::iterator iend = m_checkpoint.end().iter;
-   //std::pair<SAFplus::Handle&,void*> ret;
-   //char errmsg[255];
-   for(CkptHashMap::iterator iter = ibegin; iter != iend; iter++)
+   size_t len = strlen(name)+1;
+   char data[sizeof(Buffer)-1+len];
+   Buffer* key = new(data) Buffer(len);
+   *key = name;
+   const Buffer& buf = m_checkpoint.read(*key);
+   if (&buf != NULL)
    {
-       //SAFplusI::BufferPtr& curval = iter.second;       
-       CkptHashMap::value_type vt = *iter;
-       BufferPtr& curval = vt.second;
-       if (curval)
-       {
-          if (strcmp(name, curval->data) == 0) // the name exists
-          {
-             BufferPtr kname = vt.first;
-             assert(kname);
-             uint64_t len = kname->len();
-             char temp[len];
-             memcpy(temp, kname->data, len);
-             Handle* handle = new(kname->data) Handle();
-             memcpy(kname->data, temp, len);
-             return *handle;
-          }
-       }
-    }
-#if 0
-             else
-             {
-                strcpy(errmsg, "Format of string handle is not valid");
-             }
-          }
-          else
-          {
-             strcpy(errmsg, "Name provided doesn't exist");
-          }
-       }        
-       else
-       {
-          strcpy(errmsg, "The value for the key provided is null");
-       }
+      HandleMappingMode* phm = (HandleMappingMode*) buf.data;
+      MappingMode m = phm->getMappingMode();      
+      size_t sz = phm->getHandles().size();
+      if (m == MODE_REDUNDANCY)
+      {
+         // first association must be returned
+         assert(sz > 0);    
+         return phm->getHandles().at(0);
+      }
+      else if (m == MODE_ROUND_ROBIN)
+      {
+         srand (time(NULL));
+         int idx = rand() % sz;
+         assert(idx >=0 && idx < sz);
+         return phm->getHandles().at(idx);
+      }
+      else if (m == MODE_PREFER_LOCAL)
+      {
+         pid_t thisPid = getpid();
+         int i;
+         for(i=0;i<sz;i++)
+         {
+            if (phm->getHandles().at(i).getProcess() == (uint32_t)thisPid)
+            {
+               return phm->getHandles().at(i);
+            }
+         }
+         //No process match, get handle of THIS NODE
+         for(i=0;i<sz;i++)
+         {
+            ClIocNodeAddressT thisNode = clIocLocalAddressGet();
+            if ((uint32_t)phm->getHandles().at(i).getNode() == thisNode)
+            {
+               return phm->getHandles().at(i);
+            }
+         }
+         // If no any match, get "closer" handle over others. It may latest handle
+         return phm->getHandles().at(sz-1);
+      }
+      else // Other case, REDUNDANCY mode is picked
+      {
+         assert(sz > 0);
+         return phm->getHandles().at(0);
+      }
    }
-#endif
    throw NameException("name provided does not exist");
 }
 SAFplus::Handle& SAFplus::NameRegistrar::getHandle(const std::string& name) throw(NameException&)
@@ -339,7 +390,7 @@ SAFplus::Buffer& SAFplus::NameRegistrar::getData(const char* name) throw(NameExc
    SAFplus::Buffer* k = new (buf) SAFplus::Buffer(keyLen);
    *k = name;
    //Find to see if the key exists?
-   CkptHashMap::iterator contents = m_mapData.find(SAFplusI::BufferPtr(k));  
+   HashMap::iterator contents = m_mapData.find(SAFplusI::BufferPtr(k));  
    if (contents != m_mapObject.end()) // record already exists; return its value
    {
       SAFplusI::BufferPtr& curval = contents->second;
@@ -364,12 +415,40 @@ SAFplus::Buffer& SAFplus::NameRegistrar::getData(const std::string& name) throw(
       throw ne;
    }
 }
+
+void SAFplus::NameRegistrar::dump()
+{
+   CkptHashMap::iterator ibegin = m_checkpoint.begin().iter;
+   CkptHashMap::iterator iend = m_checkpoint.end().iter;  
+   for(CkptHashMap::iterator iter = ibegin; iter != iend; iter++)
+   {
+       //SAFplusI::BufferPtr& curval = iter.second;       
+       CkptHashMap::value_type vt = *iter;
+       BufferPtr curkey = vt.first;
+       printf("---------------------------------\n");      
+       if (curkey)
+       {
+          printf("key [%s]\n", curkey->data);
+       }       
+       BufferPtr& curval = vt.second;
+       if (curval)
+       {
+          HandleMappingMode* phm = (HandleMappingMode*) curval->data;          
+          Vector v = phm->getHandles();
+          size_t sz = v.size();
+          for(int i=0;i<sz;i++)
+          {
+             printf("val [0x%x.0x%x]\n", v[i].id[0],v[i].id[1]);
+          }
+       }
+    }
+}
+
 SAFplus::NameRegistrar::~NameRegistrar()
 {
    // Free 2 maps
-   for(CkptHashMap::iterator iter = m_mapObject.begin(); iter != m_mapObject.end(); iter++)
-   {
-       //CkptHashMap::value_type t = *iter; // value_type is SAFplusI::CkptMapPair; t.first is SAFplusI::BufferPtr       
+   for(HashMap::iterator iter = m_mapObject.begin(); iter != m_mapObject.end(); iter++)
+   {       
        const SAFplusI::BufferPtr& k = iter->first;       
        SAFplusI::BufferPtr& v = iter->second;
        if (k) 
@@ -384,7 +463,7 @@ SAFplus::NameRegistrar::~NameRegistrar()
        }       
    }
    m_mapObject.clear();
-   for(CkptHashMap::iterator iter = m_mapData.begin(); iter != m_mapData.end(); iter++)
+   for(HashMap::iterator iter = m_mapData.begin(); iter != m_mapData.end(); iter++)
    {
        //CkptHashMap::value_type t = *iter;
        const SAFplusI::BufferPtr& k = iter->first;       
@@ -402,4 +481,3 @@ SAFplus::NameRegistrar::~NameRegistrar()
    }
    m_mapData.clear();
 }
-#endif
