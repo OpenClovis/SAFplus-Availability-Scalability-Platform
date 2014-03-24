@@ -35,17 +35,14 @@ void MsgHandlerProtocols::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT 
   }
   switch(rxMsg->messageType)
   {
-    case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
-      nodeJoinHandle();
+    case CLUSTER_NODE_ARRIVAL:
+      entityJoinHandle(rxMsg);
       break;
-    case CL_IOC_NODE_LEAVE_NOTIFICATION:
-      nodeLeaveHandle();
+    case CLUSTER_NODE_LEAVE:
+      entityLeaveHandle(rxMsg);
       break;
-    case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
-      compJoinHandle();
-      break;
-    case CL_IOC_COMP_DEATH_NOTIFICATION:
-      compLeaveHandle();
+    case CLUSTER_NODE_ELECT:
+      entityElectHandle();
       break;
     default: //Unsupported
       break;

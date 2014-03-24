@@ -1,16 +1,8 @@
 /* Standard headers */
 #include <string>
-#include <boost/functional/hash.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/allocators/allocator.hpp>
-#include <boost/interprocess/errors.hpp>
-#include <boost/unordered_map.hpp>
-#include <functional>
-#include <boost/functional/hash.hpp>
-
 /* SAFplus headers */
 #include <clCommon.hxx>
-#include <clNameApi.hxx>
+//#include <clNameApi.hxx>
 #include <clGroup.hxx>
 
 using namespace boost::interprocess;
@@ -178,7 +170,7 @@ void SAFplus::Group::deregister(EntityIdentifier me)
   /* Notify other entities about new entity*/
   if(wakeable)
   {
-    wakeable->wake(1);
+    wakeable->wake(2);
   }
 }
 
@@ -366,7 +358,7 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
-      wakeable->wake(1);
+      wakeable->wake(3);
     }
     return 0;
   }
@@ -383,7 +375,7 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
-      wakeable->wake(1);
+      wakeable->wake(3);
     }
     return 1;
   }
@@ -400,7 +392,7 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
-      wakeable->wake(1);
+      wakeable->wake(3);
     }
     return 2;
   }

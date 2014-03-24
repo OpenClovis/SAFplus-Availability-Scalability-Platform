@@ -8,26 +8,18 @@
 #include <clHandleApi.hxx>
 #include <clNameApi.hxx>
 #include <clGroup.hxx>
-
-namespace SAFplus
-{
-
+using namespace SAFplus;
   typedef enum
   {
       CLUSTER_NODE_ARRIVAL,
       CLUSTER_NODE_LEAVE,
-      CLUSTER_NODE_ELECT_LEADER_CHANGE,
-      CLUSTER_NODE_ELECT_DEPUTY_CHANGE,
-      CLUSTER_COMP_ARRIVAL,
-      CLUSTER_COMP_LEAVE,
-      CLUSTER_COMP_FAILED
+      CLUSTER_NODE_ELECT,
   } messageTypeT;
 
   typedef struct
   {
-    EntityIdentifier entity;
-    bool             isLeader;
-    bool             capabilities;
+    GroupIdentity    grpIdentity;
+    //bool             isLeader;
   } notificationData;
 
   typedef struct
@@ -38,13 +30,7 @@ namespace SAFplus
     notificationData *data;
   } messageProtocol;
 
-  void nodeJoinHandle(ClIocAddressT *pAddress);
-  void nodeLeaveHandle(ClIocAddressT *pAddress);
-  int getDataFromNodeCache(ClIocNodeAddressT nodeAddress, int groupId,GroupIdentity &grpIdentity);
-  EntityIdentifier getEntityIdentifierFromAddress(ClIocNodeAddressT nodeAddress);
-  void registerCpmNotificationCallback();
-  static void sendBroadcast(void* data, int dataLength);
-  void registerAndStartMessageHandler();
-}
-
+  void entityJoinHandle(messageProtocol *rxMsg);
+  void entityLeaveHandle(messageProtocol *rxMsg);
+  void entityElectHandle();
 #endif

@@ -10,8 +10,6 @@
 
 // SAFplus includes
 #include <clHandleApi.hxx>
-#include <clCkptIpi.hxx>
-#include <clCkptApi.hxx>
 #include <clGroup.hxx>
 
 using namespace SAFplus;

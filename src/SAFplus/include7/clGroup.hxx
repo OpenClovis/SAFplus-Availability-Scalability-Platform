@@ -9,8 +9,6 @@
 #include <boost/interprocess/errors.hpp>
 #include <boost/unordered_map.hpp>
 #include <functional>
-#include <boost/functional/hash.hpp>
-
 // SAFplus includes
 #include <clHandleApi.hxx>
 #include <clThreadApi.hxx>
