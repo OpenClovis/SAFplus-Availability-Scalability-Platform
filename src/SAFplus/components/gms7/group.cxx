@@ -1,16 +1,8 @@
 /* Standard headers */
 #include <string>
-#include <boost/functional/hash.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/allocators/allocator.hpp>
-#include <boost/interprocess/errors.hpp>
-#include <boost/unordered_map.hpp>
-#include <functional>
-#include <boost/functional/hash.hpp>
-
 /* SAFplus headers */
 #include <clCommon.hxx>
-#include <clNameApi.hxx>
+//#include <clNameApi.hxx>
 #include <clGroup.hxx>
 
 using namespace boost::interprocess;
@@ -142,6 +134,11 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
   }
 }
 
+void SAFplus::Group::registerEntity(GroupIdentity grpIdentity)
+{
+  registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
+}
+
 void SAFplus::Group::deregister(EntityIdentifier me)
 {
   /* Use last registered entity if me is 0 */
@@ -173,7 +170,7 @@ void SAFplus::Group::deregister(EntityIdentifier me)
   /* Notify other entities about new entity*/
   if(wakeable)
   {
-    wakeable->wake(1);
+    wakeable->wake(2);
   }
 }
 
@@ -262,96 +259,78 @@ void SAFplus::Group::updateGroupRoles()
   }
 }
 
+EntityIdentifier SAFplus::Group::electLeader()
+{
+  uint highestCredentials = 0, curCredentials = 0;
+  uint curCapabilities = 0;
+  EntityIdentifier leaderEntity = INVALID_HDL;
+  for (GroupHashMap::iterator i = map->begin();i != map->end();i++)
+  {
+    SAFplusI::BufferPtr curval = i->second;
+    curCredentials = ((GroupIdentity *)(((Buffer *)curval.get())->data))->credentials;
+    curCapabilities = ((GroupIdentity *)(((Buffer *)curval.get())->data))->capabilities;
+    if((curCapabilities & SAFplus::Group::ACCEPT_ACTIVE) != 0)
+    {
+      if(highestCredentials < curCredentials)
+      {
+        highestCredentials = curCredentials;
+        leaderEntity = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
+      }
+    }
+  }
+  return leaderEntity;
+
+}
+EntityIdentifier SAFplus::Group::electDeputy(EntityIdentifier highestCreEntity)
+{
+  uint highestCredentials = 0, curCredentials = 0;
+  uint curCapabilities = 0;
+  EntityIdentifier deputyEntity = INVALID_HDL, curEntity = INVALID_HDL;
+  for (GroupHashMap::iterator i = map->begin();i != map->end();i++)
+  {
+    SAFplusI::BufferPtr curval = i->second;
+    curCredentials = ((GroupIdentity *)(((Buffer *)curval.get())->data))->credentials;
+    curCapabilities = ((GroupIdentity *)(((Buffer *)curval.get())->data))->capabilities;
+    if((curCapabilities & SAFplus::Group::ACCEPT_STANDBY) != 0)
+    {
+      curEntity = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
+      if((highestCredentials < curCredentials) && !(curEntity == highestCreEntity))
+      {
+        highestCredentials = curCredentials;
+        deputyEntity = curEntity;
+      }
+    }
+  }
+  return deputyEntity;
+}
+
 std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles(int electionType)
 {
   uint highestCredentials = 0,lowerCredentials = 0, curEntityCredentials = 0;
+  uint curCapability;
   EntityIdentifier activeCandidate = INVALID_HDL, standbyCandidate = INVALID_HDL;
 
   if(electionType == SAFplus::Group::ELECTION_TYPE_BOTH)
   {
-    for (GroupHashMap::iterator i = map->begin();i != map->end();i++)
+    activeCandidate = electLeader();
+    if(activeCandidate == INVALID_HDL)
     {
-      SAFplusI::BufferPtr curval = i->second;
-      curEntityCredentials = ((GroupIdentity *)(((Buffer *)curval.get())->data))->credentials;
-      if(highestCredentials == 0 || lowerCredentials == 0)
-      {
-        activeCandidate = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
-        standbyCandidate = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
-        highestCredentials = curEntityCredentials;
-        lowerCredentials = curEntityCredentials;
-      }
-      else
-      {
-        if(curEntityCredentials > lowerCredentials && curEntityCredentials <= highestCredentials)
-        {
-          standbyCandidate = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
-          lowerCredentials = curEntityCredentials;
-        }
-        else if(curEntityCredentials > highestCredentials)
-        {
-          standbyCandidate = activeCandidate;
-          lowerCredentials = highestCredentials;
-          activeCandidate = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
-          highestCredentials = curEntityCredentials;
-        }
-        else
-        {
-          continue;
-        }
-      }
+      return std::pair<EntityIdentifier,EntityIdentifier>(INVALID_HDL,INVALID_HDL);
     }
-    if(activeCandidate == INVALID_HDL || standbyCandidate == INVALID_HDL)
-    {
-      return std::pair<EntityIdentifier,EntityIdentifier>(activeEntity,standbyEntity);
-    }
-    else
-    {
-      return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
-    }
+    standbyCandidate = electDeputy(activeCandidate);
+    return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
   }
   else if(electionType == SAFplus::Group::ELECTION_TYPE_STANDBY)
   {
-    for (GroupHashMap::iterator i = map->begin();i != map->end();i++)
-    {
-      SAFplusI::BufferPtr curval = i->second;
-      curEntityCredentials = ((GroupIdentity *)(((Buffer *)curval.get())->data))->credentials;
-      EntityIdentifier curEntity = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
-      if(highestCredentials < curEntityCredentials && !(curEntity == standbyEntity || curEntity == activeEntity))
-      {
-        highestCredentials = curEntityCredentials;
-        standbyCandidate = curEntity;
-      }
-    }
-    if(standbyCandidate == INVALID_HDL)
-    {
-      return std::pair<EntityIdentifier,EntityIdentifier>(activeEntity,standbyEntity);
-    }
-    else
-    {
-      return std::pair<EntityIdentifier,EntityIdentifier>(activeEntity,standbyCandidate);
-    }
+    activeCandidate = activeEntity;
+    standbyCandidate = electDeputy(activeCandidate);
+    return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
   }
   else if(electionType == SAFplus::Group::ELECTION_TYPE_ACTIVE)
   {
-    for (GroupHashMap::iterator i = map->begin();i != map->end();i++)
-    {
-      SAFplusI::BufferPtr curval = i->second;
-      curEntityCredentials = ((GroupIdentity *)(((Buffer *)curval.get())->data))->credentials;
-      EntityIdentifier curEntity = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
-      if(highestCredentials < curEntityCredentials && !(curEntity == standbyEntity || curEntity == activeEntity))
-      {
-        highestCredentials = curEntityCredentials;
-        activeCandidate = curEntity;
-      }
-    }
-    if(activeCandidate == INVALID_HDL)
-    {
-      return std::pair<EntityIdentifier,EntityIdentifier>(activeEntity,standbyEntity);
-    }
-    else
-    {
-      return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyEntity);
-    }
+    activeCandidate = electLeader();
+    return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
+
   }
 }
 
@@ -366,31 +345,20 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
       /* Update standby and active entity */
     if(!(candidatePair.first == INVALID_HDL) && !(candidatePair.first == activeEntity))
     {
-      /* Check if entity is allowed ACTIVE */
-      uint capability = getCapabilities(candidatePair.first);
-      if((capability & SAFplus::Group::ACCEPT_ACTIVE) == SAFplus::Group::ACCEPT_ACTIVE)
-      {
         isRoleChanged = true;
         activeEntity = candidatePair.first;
-      }
-
     }
     if(!(candidatePair.second == INVALID_HDL) && !(candidatePair.second == standbyEntity))
     {
-      /* Check if entity is allowed STANDBY */
-      uint capability = getCapabilities(candidatePair.second);
-      if((capability & SAFplus::Group::ACCEPT_STANDBY) == SAFplus::Group::ACCEPT_STANDBY)
-      {
         isRoleChanged = true;
         standbyEntity = candidatePair.second;
-      }
     }
     res.first = activeEntity;
     res.second = standbyEntity;
     updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
-      wakeable->wake(1);
+      wakeable->wake(3);
     }
     return 0;
   }
@@ -399,20 +367,15 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     candidatePair = electForRoles(SAFplus::Group::ELECTION_TYPE_STANDBY);
     if(!(candidatePair.second == INVALID_HDL) && !(candidatePair.second == standbyEntity))
     {
-      /* Check if entity is allowed STANDBY */
-      uint capability = getCapabilities(candidatePair.second);
-      if((capability & SAFplus::Group::ACCEPT_STANDBY) == SAFplus::Group::ACCEPT_STANDBY)
-      {
-        isRoleChanged = true;
-        standbyEntity = candidatePair.second;
-      }
+      isRoleChanged = true;
+      standbyEntity = candidatePair.second;
     }
     res.first = activeEntity;
     res.second = standbyEntity;
     updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
-      wakeable->wake(1);
+      wakeable->wake(3);
     }
     return 1;
   }
@@ -421,20 +384,15 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     candidatePair = electForRoles(SAFplus::Group::ELECTION_TYPE_ACTIVE);
     if(!(candidatePair.first == INVALID_HDL) && !(candidatePair.first == activeEntity))
     {
-      /* Check if entity is allowed STANDBY */
-      uint capability = getCapabilities(candidatePair.first);
-      if((capability & SAFplus::Group::ACCEPT_ACTIVE) == SAFplus::Group::ACCEPT_ACTIVE)
-      {
         isRoleChanged = true;
         activeEntity = candidatePair.first;
-      }
     }
     res.first = activeEntity;
     res.second = standbyEntity;
     updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
-      wakeable->wake(1);
+      wakeable->wake(3);
     }
     return 2;
   }
