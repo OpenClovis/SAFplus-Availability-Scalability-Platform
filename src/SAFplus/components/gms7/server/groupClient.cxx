@@ -7,11 +7,13 @@
 #include <clCkptIpi.hxx>
 #include <clCkptApi.hxx>
 #endif
+#include <clIocApi.h>
 #include <clGroup.hxx>
 #include <groupServer.hxx>
 #include "clSafplusMsgServer.hxx"
 
 using namespace SAFplus;
+using namespace std;
 int testRegisterAndConsistent();
 int testElect();
 int testGetData();
@@ -19,7 +21,14 @@ int testIterator();
 void sendMessage(void* data, int dataLength,int port);
 int sendDataToGms(GroupIdentity grpIdentity, messageTypeT messageType, int port);
 
-
+class ClientMsgHandler:public SAFplus::MsgHandler
+{
+  public:
+    void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    {
+      std::cout << "Received broadcast from [0x" << from.iocPhyAddress.nodeAddress << "," << from.iocPhyAddress.portId << "] \n";
+    }
+};
 #ifdef __WAKE
 class testWakeble:public SAFplus::Wakeable
 {
@@ -35,47 +44,68 @@ class testWakeble:public SAFplus::Wakeable
 #define GMS_PORT_1 69
 #define GMS_PORT_2 70
 #define CLIENT_PORT 71
+
+
+ClUint32T clAspLocalId = 0x1;
+ClBoolT gIsNodeRepresentative = CL_FALSE;
+ClientMsgHandler *handler = new ClientMsgHandler();
+SafplusMsgServer *msgClient;
 void sendMessage(void* data, int dataLength,int port)
 {
-  SafplusMsgServer msgClient(CLIENT_PORT);
+
+
   ClIocAddressT iocDest;
-  iocDest.iocPhyAddress.nodeAddress = clIocLocalAddressGet(); //same node
+  if(port == (int)GMS_PORT_1)
+    iocDest.iocPhyAddress.nodeAddress = 1; //same node
+  else
+    iocDest.iocPhyAddress.nodeAddress = 2; //same node
   iocDest.iocPhyAddress.portId = port;
-  MsgReply *msgReply = msgClient.SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+  MsgReply *msgReply = msgClient->SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
 }
 int sendDataToGms(GroupIdentity grpIdentity, messageTypeT messageType, int port)
 {
   messageProtocol broadcastMsg;
-  notificationData broadcastData;
-  broadcastData.grpIdentity = grpIdentity;
   broadcastMsg.messageType = messageType;
   broadcastMsg.groupId = 0;
   broadcastMsg.numberOfItems = 1;
-  broadcastMsg.data = &broadcastData;
-  sendMessage((void *)&broadcastMsg,sizeof(messageProtocol) + (broadcastMsg.numberOfItems * sizeof(notificationData)),port);
+  broadcastMsg.grpIdentity = grpIdentity;
+  cout << "DATA: Credential: " << grpIdentity.credentials << " Capabilities:" << grpIdentity.capabilities << "\n";
+  sendMessage((void *)&broadcastMsg,sizeof(messageProtocol),port);
 }
 int main()
 {
   int nodeAddress = 0;
+  ClRcT rc = CL_OK;
   messageTypeT nodeJoin = CLUSTER_NODE_ARRIVAL, nodeLeave = CLUSTER_NODE_LEAVE;
   EntityIdentifier entityId1 = SAFplus::Handle(PersistentHandle,0,0,nodeAddress++,0);
   EntityIdentifier entityId2 = SAFplus::Handle(PersistentHandle,0,0,nodeAddress++,0);
   EntityIdentifier entityId3 = SAFplus::Handle(PersistentHandle,0,0,nodeAddress++,0);
-  GroupIdentity grpIdentity1(entityId1,ACTIVE_CREDENTIAL,(SAFplus::Buffer *)0,0,3);
-  GroupIdentity grpIdentity2(entityId2,STANDBY_CREDENTIAL,(SAFplus::Buffer *)0,0,3);
-  GroupIdentity grpIdentity3(entityId3,100,(SAFplus::Buffer *)0,0,0);
+  GroupIdentity grpIdentity1(entityId1,(int)ACTIVE_CREDENTIAL,(SAFplus::Buffer *)0,0,11);
+  GroupIdentity grpIdentity2(entityId2,(int)STANDBY_CREDENTIAL,(SAFplus::Buffer *)0,0,15);
+  GroupIdentity grpIdentity3(entityId3,100,(SAFplus::Buffer *)0,0,10);
+  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+  {
 
-  sendDataToGms(grpIdentity1,nodeJoin,GMS_PORT_1);
-  sleep(1);
+  }
+  clIocLibInitialize(NULL);
+  msgClient = new SafplusMsgServer(CLIENT_PORT);
+  msgClient->RegisterHandler(CL_IOC_PROTO_MSG, handler, NULL);
+  msgClient->Start();
+  cout << "Send Entity Join \n";
+  sendDataToGms(grpIdentity1,nodeJoin,GMS_PORT_2);
+  cout << "Send Entity Join \n";
   sendDataToGms(grpIdentity2,nodeJoin,GMS_PORT_2);
-  sleep(1);
+  cout << "Send Entity Join \n";
   sendDataToGms(grpIdentity3,nodeJoin,GMS_PORT_2);
-  sleep(1);
+  cout << "Send Elect request \n";
   sendDataToGms(grpIdentity1,CLUSTER_NODE_ELECT,GMS_PORT_1);
   //testRegisterAndConsistent();
   //testElect();
   //testGetData();
   //testIterator();
+  msgClient->Stop();
+  cout << "Done but not die \n";
+  while(1);
   return 0;
 }
 

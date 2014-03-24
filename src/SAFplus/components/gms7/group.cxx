@@ -32,7 +32,7 @@ SAFplus::Group::Group(std::string handleName)
 
 void SAFplus::Group::init(SAFplus::Handle groupHandle)
 {
-  char              sharedMemName[]= "GMS_SHM";
+  char              sharedMemName[80];
 
   /* No entity is registered at this time */
   lastRegisteredEntity = INVALID_HDL;
@@ -43,6 +43,9 @@ void SAFplus::Group::init(SAFplus::Handle groupHandle)
   {
     /* TODO: Create new handle*/
   }
+  /* Create unique name for shared memory */
+  groupHandle.toStr(sharedMemName);
+
   initializeSharedMemory(sharedMemName);
 }
 
@@ -341,21 +344,26 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
 
   if(electionType == (int)SAFplus::Group::ELECTION_TYPE_BOTH)
   {
+    int rc = 0;
     candidatePair = electForRoles(SAFplus::Group::ELECTION_TYPE_BOTH);
       /* Update standby and active entity */
     if(!(candidatePair.first == INVALID_HDL) && !(candidatePair.first == activeEntity))
     {
         isRoleChanged = true;
+        rc ++;
         activeEntity = candidatePair.first;
+        std::cout << "Active entity had been elected! \n";
     }
     if(!(candidatePair.second == INVALID_HDL) && !(candidatePair.second == standbyEntity))
     {
         isRoleChanged = true;
+        rc ++;
         standbyEntity = candidatePair.second;
+        std::cout << "Standby entity had been elected! \n";
     }
     res.first = activeEntity;
     res.second = standbyEntity;
-    updateGroupRoles();
+    //updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
       wakeable->wake(3);
@@ -372,7 +380,7 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     }
     res.first = activeEntity;
     res.second = standbyEntity;
-    updateGroupRoles();
+    //updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
       wakeable->wake(3);
@@ -389,7 +397,7 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     }
     res.first = activeEntity;
     res.second = standbyEntity;
-    updateGroupRoles();
+    //updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
       wakeable->wake(3);

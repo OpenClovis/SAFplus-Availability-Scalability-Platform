@@ -32,7 +32,7 @@ namespace SAFplus
         credentials   = c.credentials;
         capabilities  = c.capabilities;
         dataLen       = c.dataLen;
-        data          = new(c.data->data) Buffer(sizeof(c.dataLen));
+        //data          = new(c.data->data) Buffer(sizeof(c.dataLen));
       }
       GroupIdentity()
       {
@@ -41,9 +41,9 @@ namespace SAFplus
       GroupIdentity(EntityIdentifier me,uint64_t credentials,SAFplus::Buffer *dat,uint datalen,uint capabilities)
       {
         id = me;
-        credentials = credentials;
-        capabilities = capabilities;
-        dataLen = datalen;
+        this->credentials = credentials;
+        this->capabilities = capabilities;
+        this->dataLen = datalen;
         char tmpData[sizeof(SAFplus::Buffer)-1+datalen];
         data = new(tmpData) Buffer(datalen);
         memcpy((char *)data->data,(char *)dat->data,datalen);

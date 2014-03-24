@@ -10,7 +10,9 @@
 
 // SAFplus includes
 #include <clHandleApi.hxx>
+#include <clIocApi.h>
 #include <clGroup.hxx>
+
 
 using namespace SAFplus;
 int testRegisterAndConsistent();
