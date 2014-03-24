@@ -51,7 +51,13 @@ namespace SAFplus
          * Maybe sync queue, Async callback etc
          */
         recMsg.append(":").append(helloMsg);
-        svr->SendMsg(from, (void *)recMsg.c_str(), recMsg.length(), CL_IOC_SAF_MSG_REPLY_PROTO);
+        try
+        {
+            svr->SendMsg(from, (void *)recMsg.c_str(), recMsg.length(), CL_IOC_SAF_MSG_REPLY_PROTO);
+        }
+        catch (...)
+        {
+        }
     }
 
 } /* namespace SAFplus */

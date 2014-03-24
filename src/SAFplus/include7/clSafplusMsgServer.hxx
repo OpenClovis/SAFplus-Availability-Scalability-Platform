@@ -41,7 +41,9 @@ namespace SAFplus
         public:
             SafplusMsgServer() {};
             SafplusMsgServer(ClWordT port, ClWordT maxPendingMsgs = 0, ClWordT maxHandlerThreads = 1, Options flags = DEFAULT_OPTIONS);
-            ~SafplusMsgServer() {};
+            ~SafplusMsgServer() {
+                msgSendConditionMutex.notify_all();
+            };
 
             /** Handle a particular type of message
                  @param type    A number from 0 to 255 indicating the message type

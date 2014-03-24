@@ -49,14 +49,24 @@ namespace SAFplus
         /*
          * Send message
          */
-        SendMsg(destination, buffer, length, msgtype);
+        try
+        {
+            SendMsg(destination, buffer, length, msgtype);
+        }
+        catch (...)
+        {
+            return NULL;
+        }
         /**
          * Sending Sync type, need to start listen on replying to wake
          */
         /**
          * Wait on condition
          */
-        msgSendConditionMutex.timed_wait(msgSendReplyMutex, 4000);
+        while (strlen(msgReply.buffer) < 2)
+        {
+            if (!msgSendConditionMutex.timed_wait(msgSendReplyMutex, 4000)) return &msgReply;
+        }
         return &msgReply;
     }
 

@@ -165,6 +165,11 @@ namespace SAFplus
     
       } while((retry < 3)&&(rc!=CL_OK));
 
+    if (send_msg)
+    {
+        clBufferDelete(&send_msg);
+    }
+
     if (CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE)
       {
         /* Well, maybe no one is able to take over for this IOC address, so I've got to pass the

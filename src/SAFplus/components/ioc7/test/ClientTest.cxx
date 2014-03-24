@@ -62,15 +62,16 @@ main(void)
     /* Loop receive on loop */
 
     msgClient.Start();
-    for (int i=0; i<100;i++)
+    int i = 0;
+    while(1)
     {
         // Port communication
         // TODO: Process ONE or ALL or FOREVER
         stringstream strHello;
-        strHello << helloMsg << i;
-        std::cout<<"SENDING:"<<strHello.str()<<std::endl;
+        strHello << helloMsg << i++;
+        std::cout<<"Process:"<<getpid()<<", SENDING:"<<strHello.str()<<std::endl;
         MsgReply *msgReply = msgClient.SendReply(iocDest, (void *)strHello.str().c_str(), strHello.str().length(), CL_IOC_PROTO_CTL);
-        std::cout<<"GOT REPLY:"<<msgReply->buffer<<std::endl;
+        std::cout<<"Process:"<<getpid()<<", GOT REPLY:"<<msgReply->buffer<<std::endl;
     }
 }
 

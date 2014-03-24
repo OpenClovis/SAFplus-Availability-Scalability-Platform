@@ -48,7 +48,7 @@ main(void)
     clIocLibInitialize(NULL);
 
     //Msg server listening
-    SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER);
+    SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);
 
     // Handle IOC Heartbeat protocol
     safplusMsgServer.RegisterHandler(CL_IOC_PROTO_HB, &handler, NULL);
