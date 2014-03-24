@@ -15,6 +15,7 @@
 #include <clHandleApi.hxx>
 #include <clThreadApi.hxx>
 #include <clNameApi.hxx>
+
 namespace SAFplus
 {
   typedef SAFplus::Handle EntityIdentifier;
@@ -70,12 +71,6 @@ namespace SAFplusI
       SAFplus::Handle handle;
   };
 
-  enum
-  {
-    GROUP_SEGMENT_SIZE = 65536, // Which size is enough to contain group map ?
-    GROUP_SEGMENT_ROWS = 256,
-    CL_GROUP_BUFFER_HEADER_STRUCT_ID_7 = 0x5941234,
-  };
 }
 
 namespace SAFplus
@@ -90,6 +85,19 @@ namespace SAFplus
         IS_ACTIVE      = 4,
         IS_STANDBY     = 8
       };
+      enum
+      {
+        ELECTION_TYPE_BOTH = 1,     // Elect both active/standby roles
+        ELECTION_TYPE_ACTIVE  = 2,  // Elect active role only
+        ELECTION_TYPE_STANDBY  = 4, // Elect standby role only
+      };
+      enum
+      {
+        GROUP_SEGMENT_SIZE = 65536, // Which size is enough to contain group map ?
+        GROUP_SEGMENT_ROWS = 256,
+        CL_GROUP_BUFFER_HEADER_STRUCT_ID_7 = 0x5941234,
+        GROUP_CAPABILITY_MASK = 0xfffff0
+      };
 
       Group(SAFplus::Handle groupHandle) { init(groupHandle); }
       Group(); // Deferred initialization
@@ -101,6 +109,8 @@ namespace SAFplus
 
       // register a member of the group.  This is separate from the constructor so someone can iterate through members of the group without being a member.  Caller owns data when register returns.
       void registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities);
+
+      void registerEntity(GroupIdentity grpIdentity);
 
       // If me=0 (default), use the group identifier the last call to "register" was called with.
       void deregister(EntityIdentifier me = INVALID_HDL);
@@ -114,11 +124,20 @@ namespace SAFplus
       // This also returns the current active/standby state of the entity since that is part of the capabilities bitmap.
       SAFplus::Buffer& getData(EntityIdentifier id);
 
-      // Calls for an election
-      std::pair<EntityIdentifier,EntityIdentifier> elect();
+      // Calls for an election with specified role
+      int elect(std::pair<EntityIdentifier,EntityIdentifier> &res,int electionType = (int)SAFplus::Group::ELECTION_TYPE_BOTH );
 
       typedef SAFplusI::GroupMapPair KeyValuePair;
 
+    private:
+      EntityIdentifier electLeader();
+      EntityIdentifier electDeputy(EntityIdentifier highestCreEntity);
+      void initializeSharedMemory(char sharedMemName[]);
+      void updateGroupRoles();
+      std::pair<EntityIdentifier,EntityIdentifier> electForRoles(int electionType);
+      void sendNotification(int notificationType, void* data); //Used to notify other nodes or members about group membership/role changed
+
+    public:
       // std template like iterator
       class Iterator
       {
@@ -155,18 +174,16 @@ namespace SAFplus
 
       EntityIdentifier getActive(void) const;
       EntityIdentifier getStandby(void) const;
-    private:
-        void receiveNotification(); // Call when notifications arrived. Notifications are: member leave/join, member fail, member 's role change
+
     protected:
       boost::interprocess::managed_shared_memory msm;
-      SAFplusI::GroupHashMap*          map;
+      SAFplusI::GroupHashMap*           map;
       SAFplusI::GroupBufferHeader*      hdr;
-      SAFplus::Handle                  handle;
-
-      SAFplus::Wakeable*               wakeable;
-      EntityIdentifier                 activeEntity;
-      EntityIdentifier                 standbyEntity;
-      EntityIdentifier                 lastRegisteredEntity;
+      SAFplus::Handle                   handle;
+      SAFplus::Wakeable*                wakeable;
+      EntityIdentifier                  activeEntity;
+      EntityIdentifier                  standbyEntity;
+      EntityIdentifier                  lastRegisteredEntity;
 
   };
 
