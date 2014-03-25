@@ -3,6 +3,7 @@
 #include <clGlobals.hxx>
 #include <clTimerApi.h>
 
+
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace std;
@@ -11,47 +12,111 @@ using namespace std;
 #define GMS_PORT_1 69
 #define GMS_PORT_2 70
 
+/* SAFplus specified variables */
+ClUint32T clAspLocalId = atoi(getenv("NODEADDR"));
+ClBoolT gIsNodeRepresentative = CL_TRUE;
+ClIocNodeAddressT myNodeAddress = clAspLocalId;
+ClHandleT gNotificationCallbackHandle = CL_HANDLE_INVALID_VALUE;
+/* Global variables */
+SAFplus::Group    clusterNodeGrp("CLUSTER_NODE");
+
+
 class ServerMsgHandler:public SAFplus::MsgHandler
 {
   public:
     void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
-      messageProtocol *rxMsg = (messageProtocol *)msg;
-      /* If local message, ignore */
-      switch(rxMsg->messageType)
+      int msgType = *(int *)cookie;
+      cout << "GMS_SERVER[" << clAspLocalId << "]: Cookie: " << msgType << "\n";
+      switch(msgType)
       {
-        case CLUSTER_NODE_ARRIVAL:
-          entityJoinHandle(rxMsg);
+        case 1:
+        {
+          messageProtocol *rxMsg = (messageProtocol *)msg;
+          /* If local message, ignore */
+          if(from.iocPhyAddress.nodeAddress == clAspLocalId && (from.iocPhyAddress.portId == GMS_PORT_1 || from.iocPhyAddress.portId == GMS_PORT_2))
+          {
+            return;
+          }
+          switch(rxMsg->messageType)
+          {
+            case CLUSTER_NODE_ARRIVAL:
+              entityJoinHandle(rxMsg);
+              break;
+            case CLUSTER_NODE_LEAVE:
+              entityLeaveHandle(rxMsg);
+              break;
+            case CLUSTER_NODE_ELECT:
+              entityElectHandle();
+              break;
+            default: //Unsupported
+              break;
+          }
           break;
-        case CLUSTER_NODE_LEAVE:
-          entityLeaveHandle(rxMsg);
+        }
+        default:
+        {
+          cout << "GMS_SERVER[" << clAspLocalId << "]: Not yet supported \n";
           break;
-        case CLUSTER_NODE_ELECT:
-          entityElectHandle();
-          break;
-        default: //Unsupported
-          break;
+        }
       }
     }
 };
 
-/* SAFplus specified variables */
-ClUint32T clAspLocalId = atoi(getenv("NODEADDR"));
-ClBoolT gIsNodeRepresentative = CL_TRUE;
-ClIocNodeAddressT myNodeAddress = clAspLocalId;
-/* Global variables */
 ServerMsgHandler *handler = new ServerMsgHandler();
-SAFplus::Group    clusterNodeGrp("CLUSTER_NODE");
+/* Notification to detect node status*/
+void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused, ClIocAddressT *pAddress)
+{
+  ClRcT rc = CL_OK;
+  if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION || eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+  {
+    cout << "GMS_SERVER[" << myNodeAddress << "]: Received left node event. Do nothing.. \n";
+  }
+  else
+  {
+    cout << "GMS_SERVER[" << myNodeAddress << "]: Received newly join node [" << pAddress->iocPhyAddress.nodeAddress << "," <<  pAddress->iocPhyAddress.portId << "]\n";
 
+    /* Broadcast data to newly join node */
+    if((pAddress->iocPhyAddress.nodeAddress != myNodeAddress) && (pAddress->iocPhyAddress.portId == GMS_PORT_1 || pAddress->iocPhyAddress.portId == GMS_PORT_2))
+    {
+      sendInfomationToNewNode(pAddress);
+    }
+  }
+}
+void gmsNotificationInitialize()
+{
+  ClIocPhysicalAddressT compAddr = {0};
+  compAddr.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+  compAddr.portId = CL_IOC_CPM_PORT;
+  clCpmNotificationCallbackInstall(compAddr, gmsNotificationCallback, NULL, &gNotificationCallbackHandle);
+}
+void sendInfomationToNewNode(ClIocAddressT *pAddress)
+{
+  messageProtocol broadcastMsg;
+  broadcastMsg.messageType = CLUSTER_NODE_ARRIVAL;
+  broadcastMsg.groupId = 0;
+  broadcastMsg.numberOfItems = 1;
 
-
+  SAFplus::Group::Iterator iter = clusterNodeGrp.begin();
+  while(iter != clusterNodeGrp.end())
+  {
+    SAFplusI::BufferPtr curval = iter->second;
+    GroupIdentity item = *(GroupIdentity *)(curval.get()->data);
+    broadcastMsg.grpIdentity = item;
+    sendBroadcast((void *)&broadcastMsg,sizeof(messageProtocol));
+    iter++;
+    cout << "GMS_SERVER[" << myNodeAddress << "]: Send data to GMS_SERVER[" <<  pAddress->iocPhyAddress.nodeAddress;
+  }
+}
 void initializeSAFplus()
 {
+
 }
 void registerAndStartMessageHandler(int port)
 {
+  int cookieMsg = 1;
   SAFplus::SafplusMsgServer safplusMsgServer(port);
-  safplusMsgServer.RegisterHandler(CL_IOC_PROTO_MSG, handler, NULL);
+  safplusMsgServer.RegisterHandler(CL_IOC_PROTO_MSG, handler, (int *)&cookieMsg);
   safplusMsgServer.Start();
 }
 void sendBroadcast(void* data, int dataLength)
@@ -93,7 +158,7 @@ void entityLeaveHandle(messageProtocol *rxMsg)
   bool needReelect = false;
   int reElectType = 0;
   GroupIdentity grpIdentity = rxMsg->grpIdentity;
-  if(! clusterNodeGrp.isMember(grpIdentity.id))
+  if(clusterNodeGrp.isMember(grpIdentity.id))
   {
     if(grpIdentity.id == clusterNodeGrp.getActive())
     {
@@ -127,7 +192,7 @@ void entityLeaveHandle(messageProtocol *rxMsg)
   }
   else
   {
-    cout << "GMS_SERVER[" << myNodeAddress << "]: " << "Entity didn't exist!";
+    cout << "GMS_SERVER[" << myNodeAddress << "]: " << "Entity didn't exist! \n";
   }
 
 
@@ -148,13 +213,12 @@ void entityElectHandle()
 int main(int argc, char* argv[])
 {
   ClRcT rc;
-  if(argc < 2)
-  {
-    cout << "Usage: ServerTest <listenport> \n";
-    return 0;
-  }
+  int listenPort = GMS_PORT_1;
 
-  int listenPort = atoi(argv[1]);
+  if(clAspLocalId > 1)
+  {
+    listenPort = GMS_PORT_2;
+  }
   initializeSAFplus();
   if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
   {
@@ -164,6 +228,10 @@ int main(int argc, char* argv[])
   clIocLibInitialize(NULL);
   /* Create message handler to receive message from other group servers */
   registerAndStartMessageHandler(listenPort);
+  /* Initialize callback to receive notification from CPM */
+  //gmsNotificationInitialize();
+
+  cout << "\nGMS_SERVER[" << myNodeAddress << "]: Initialized success! \n";
   /* Dispatch */
   while(1)
   {

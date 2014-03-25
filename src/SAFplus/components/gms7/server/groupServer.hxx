@@ -7,6 +7,7 @@
 // SAFplus includes
 #include <clHandleApi.hxx>
 #include <clGroup.hxx>
+#include <clCpmApi.h>
 
 typedef enum
 {
@@ -26,6 +27,9 @@ typedef struct
 void entityJoinHandle(messageProtocol *rxMsg);
 void entityLeaveHandle(messageProtocol *rxMsg);
 void entityElectHandle();
-
+void sendBroadcast(void* data, int dataLength);
+void sendInfomationToNewNode(ClIocAddressT *pAddress);
+void gmsNotificationInitialize();
+void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused, ClIocAddressT *pAddress);
 
 #endif

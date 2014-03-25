@@ -52,15 +52,27 @@ ClientMsgHandler *handler = new ClientMsgHandler();
 SafplusMsgServer *msgClient;
 void sendMessage(void* data, int dataLength,int port)
 {
-
-
+  ClBoolT msgSent = false;
   ClIocAddressT iocDest;
   if(port == (int)GMS_PORT_1)
     iocDest.iocPhyAddress.nodeAddress = 1; //same node
   else
     iocDest.iocPhyAddress.nodeAddress = 2; //same node
   iocDest.iocPhyAddress.portId = port;
-  MsgReply *msgReply = msgClient->SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+  while(msgSent == false)
+  {
+    try
+    {
+      MsgReply *msgReply = msgClient->SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+      msgSent = true;
+    }
+    catch(...)
+    {
+      //cout << "GMS_CLIENT: Sent message failed! Retrying... \n";
+      //sleep(1);
+    }
+  }
+
 }
 int sendDataToGms(GroupIdentity grpIdentity, messageTypeT messageType, int port)
 {
@@ -69,7 +81,7 @@ int sendDataToGms(GroupIdentity grpIdentity, messageTypeT messageType, int port)
   broadcastMsg.groupId = 0;
   broadcastMsg.numberOfItems = 1;
   broadcastMsg.grpIdentity = grpIdentity;
-  cout << "DATA: Credential: " << grpIdentity.credentials << " Capabilities:" << grpIdentity.capabilities << "\n";
+  cout << "GMS_CLIENT: DATA: Credential: " << grpIdentity.credentials << " Capabilities:" << grpIdentity.capabilities << "\n";
   sendMessage((void *)&broadcastMsg,sizeof(messageProtocol),port);
 }
 int main()
@@ -80,9 +92,9 @@ int main()
   EntityIdentifier entityId1 = SAFplus::Handle(PersistentHandle,0,0,nodeAddress++,0);
   EntityIdentifier entityId2 = SAFplus::Handle(PersistentHandle,0,0,nodeAddress++,0);
   EntityIdentifier entityId3 = SAFplus::Handle(PersistentHandle,0,0,nodeAddress++,0);
-  GroupIdentity grpIdentity1(entityId1,(int)ACTIVE_CREDENTIAL,(SAFplus::Buffer *)0,0,11);
-  GroupIdentity grpIdentity2(entityId2,(int)STANDBY_CREDENTIAL,(SAFplus::Buffer *)0,0,15);
-  GroupIdentity grpIdentity3(entityId3,100,(SAFplus::Buffer *)0,0,10);
+  GroupIdentity standbyEntity(entityId1,90,(SAFplus::Buffer *)0,0,11); //Allow active & standby
+  GroupIdentity candidateEntity(entityId2,80,(SAFplus::Buffer *)0,0,15); //Allow active & standby
+  GroupIdentity activeEntity(entityId3,100,(SAFplus::Buffer *)0,0,10); //Allow Active
   if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
   {
 
@@ -90,21 +102,40 @@ int main()
   clIocLibInitialize(NULL);
   msgClient = new SafplusMsgServer(CLIENT_PORT);
   msgClient->RegisterHandler(CL_IOC_PROTO_MSG, handler, NULL);
-  msgClient->Start();
-  cout << "Send Entity Join \n";
-  sendDataToGms(grpIdentity1,nodeJoin,GMS_PORT_2);
-  cout << "Send Entity Join \n";
-  sendDataToGms(grpIdentity2,nodeJoin,GMS_PORT_2);
-  cout << "Send Entity Join \n";
-  sendDataToGms(grpIdentity3,nodeJoin,GMS_PORT_2);
-  cout << "Send Elect request \n";
-  sendDataToGms(grpIdentity1,CLUSTER_NODE_ELECT,GMS_PORT_1);
-  //testRegisterAndConsistent();
-  //testElect();
-  //testGetData();
-  //testIterator();
+  //msgClient->Start();
+  cout << "GMS_CLIENT: Send Entity Join for server #2 \n";
+  sendDataToGms(standbyEntity,nodeJoin,GMS_PORT_2);
+  cout << "GMS_CLIENT: Send Entity Join for server #2 \n";
+  sendDataToGms(candidateEntity,nodeJoin,GMS_PORT_2);
+  cout << "GMS_CLIENT: Send Entity Join for server #2 \n";
+  sendDataToGms(activeEntity,nodeJoin,GMS_PORT_2);
+
+  /* Node, 2 server must be give the same result */
+  cout << "GMS_CLIENT: Send Elect request for server #1 \n";
+  sendDataToGms(standbyEntity,CLUSTER_NODE_ELECT,GMS_PORT_1);
+  cout << "GMS_CLIENT: Send Elect request for server #2 \n";
+  sendDataToGms(standbyEntity,CLUSTER_NODE_ELECT,GMS_PORT_2);
+
+  getchar();
+
+  cout << "GMS_CLIENT: Send Entity (standby) Leave for server #1 \n";
+  sendDataToGms(standbyEntity,nodeLeave,GMS_PORT_1);
+
+  getchar();
+  cout << "GMS_CLIENT: Send Entity (Standby) Join for server #1 \n";
+  sendDataToGms(standbyEntity,nodeJoin,GMS_PORT_1);
+  cout << "GMS_CLIENT: Send Elect request for server #2 \n";
+  sendDataToGms(standbyEntity,CLUSTER_NODE_ELECT,GMS_PORT_2);
+  cout << "GMS_CLIENT: Send Elect request for server #1 \n";
+  sendDataToGms(standbyEntity,CLUSTER_NODE_ELECT,GMS_PORT_1);
+
+  getchar();
+  cout << "GMS_CLIENT: Send Entity (active) Leave for server #2 \n";
+  sendDataToGms(activeEntity,nodeLeave,GMS_PORT_2);
+
   msgClient->Stop();
-  cout << "Done but not die \n";
+  cout << "GMS_CLIENT: Done but not die \n";
+  getchar();
   while(1);
   return 0;
 }
