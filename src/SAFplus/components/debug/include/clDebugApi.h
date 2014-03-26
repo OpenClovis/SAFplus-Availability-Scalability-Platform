@@ -206,7 +206,15 @@ enum
  */
 #ifndef __KERNEL__
 #include <assert.h>
-#define CL_ASSERT(expr) do { if (clDbgPauseOnCodeError&&(!(expr))) clDbgCodeError(0,("Assertion failed")); else assert((expr)); } while(0)   
+#define CL_ASSERT(expr)                          \
+do                                               \
+{                                                \
+    ClBoolT val = (expr)?CL_TRUE:CL_FALSE;       \
+    if (clDbgPauseOnCodeError && !val )          \
+        clDbgCodeError(0,("Assertion failed"));  \
+    else                                         \
+        assert(val);                             \
+} while(0)
 #endif /* __KERNEL__ */
 
 struct clEoExecutionObj;
