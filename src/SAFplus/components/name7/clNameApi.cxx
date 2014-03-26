@@ -15,7 +15,7 @@ Checkpoint NameRegistrar::m_checkpoint(Checkpoint::REPLICATED|Checkpoint::SHARED
 
 NameRegistrar name;
 
-void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/,size_t objlen)
+void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
 {   
    size_t keyLen = strlen(name)+1;
    char data[sizeof(Buffer)-1+keyLen];
@@ -57,12 +57,12 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, Mappi
    m_mapObject.insert(vt);  
 }
 
-void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/,size_t objlen)
+void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
 {
-   set(name.data(), handle, m, object,objlen);
+   set(name.data(), handle, m, object);
 }
 
-void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/,size_t objlen)
+void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
 {
    size_t len = strlen(name)+1;
    char data[sizeof(Buffer)-1+len];
@@ -72,7 +72,7 @@ void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, Ma
    if (&buf == NULL)
    {
       //There is no any name associated with this handle. Create first
-      set(name, handle, m, object, objlen);
+      set(name, handle, m, object);
    }
    else
    {
@@ -122,9 +122,9 @@ void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, Ma
    m_mapObject.insert(vt);
 }
 
-void SAFplus::NameRegistrar::append(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/,size_t objlen)
+void SAFplus::NameRegistrar::append(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
 {
-   append(name.data(), handle, m, object, objlen);
+   append(name.data(), handle, m, object);
 }
 
 void SAFplus::NameRegistrar::set(const char* name, const void* data, int length)

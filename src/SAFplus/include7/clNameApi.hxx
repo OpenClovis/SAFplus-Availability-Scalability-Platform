@@ -68,8 +68,8 @@ namespace SAFplus
       */
      //void setMode(const char* name, MappingMode mode);
      //void setMode(const std::string& name, MappingMode mode);
-     void set(const char* name, SAFplus::Handle handle, MappingMode m, void* object=NULL, size_t objlen=0);
-     void set(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object=NULL, size_t objlen=0);
+     void set(const char* name, SAFplus::Handle handle, MappingMode m, void* object=NULL);
+     void set(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object=NULL);
    
      /* Associate a name with a handle and pointer and associate a handle with a pointer (if object != NULL).
         If the name does not exist, it is created.  If the name exists, this mapping is appended (the original mapping is not removed).
@@ -78,8 +78,8 @@ namespace SAFplus
         If the name has more than one mapping another mapping will become the default response for this name. 
         This association is valid for all SAFplus API name lookups, and for AMF entity names.
      */   
-     void append(const char* name, SAFplus::Handle handle, MappingMode m, void* object=NULL,size_t objlen=0);
-     void append(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object=NULL,size_t objlen=0);
+     void append(const char* name, SAFplus::Handle handle, MappingMode m, void* object=NULL);
+     void append(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object=NULL);
      
      // Associate name with arbitrary data. A copy of the data is made.
      void set(const char* name, const void* data, int length);
