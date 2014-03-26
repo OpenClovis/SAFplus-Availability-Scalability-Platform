@@ -9,10 +9,15 @@
 #include <clCkptApi.hxx>
 #include <clCkptIpi.hxx>
 
+#include <boost/serialization/base_object.hpp>
+
 namespace SAFplus
 {
 
-  typedef boost::unordered_map <SAFplusI::CkptMapKey, SAFplusI::CkptMapValue> HashMap;
+  typedef std::pair<const SAFplus::Handle,void*> ObjMapPair;
+  typedef std::pair<const SAFplus::Handle,SAFplusI::CkptMapValue> MapPair; 
+  typedef boost::unordered_map <SAFplus::Handle, SAFplusI::CkptMapValue> HashMap;
+  typedef boost::unordered_map <SAFplus::Handle, void*> ObjHashMap;
   typedef std::vector<SAFplus::Handle> Vector;
   
 
@@ -40,7 +45,7 @@ namespace SAFplus
   protected:
      static SAFplus::Checkpoint m_checkpoint;
      HashMap m_mapData; // keep association between name and arbitrary data
-     HashMap m_mapObject; // keep association between handle and an object
+     ObjHashMap m_mapObject; // keep association between handle and an object
   private:
      //static NameRegistrar* name;
         
@@ -86,11 +91,12 @@ namespace SAFplus
   
      // Get a handle associated with the data
      // The SAFplus APIs use these calls to resolve names to handles or objects.
-     std::pair<SAFplus::Handle&,void*> get(const char* name) throw(NameException&);
-     std::pair<SAFplus::Handle&,void*> get(const std::string& name) throw(NameException&);
+     std::pair<SAFplus::Handle,void*> get(const char* name) throw(NameException&);
+     std::pair<SAFplus::Handle,void*> get(const std::string& name) throw(NameException&);
+     void* get(const SAFplus::Handle&) throw(NameException&);
    
-     SAFplus::Handle& getHandle(const char* name) throw(NameException&);
-     SAFplus::Handle& getHandle(const std::string& name) throw(NameException&);
+     SAFplus::Handle getHandle(const char* name) throw(NameException&);
+     SAFplus::Handle getHandle(const std::string& name) throw(NameException&);
    
        
      // Get a handle associated with the data
@@ -102,6 +108,7 @@ namespace SAFplus
      //**** This is the dummy function for testing to get iocNodeAddr ********
      ClIocNodeAddressT clIocLocalAddressGet() { return 2; }
      void dump();
+     void dumpObj();
      
      virtual ~NameRegistrar();
   };
@@ -111,7 +118,14 @@ namespace SAFplus
   protected:
      NameRegistrar::MappingMode m_mode;
      Vector m_handles;
+     friend class boost::serialization::access;
+     template<class Archive>
+     void serialize(Archive & ar, const unsigned int version)
+     {
+        ar & m_mode & m_handles;
+     }     
   public:
+     HandleMappingMode(){}
      HandleMappingMode(NameRegistrar::MappingMode mode, Vector handles): m_mode(mode), m_handles(handles)
      {        
      }
@@ -124,5 +138,11 @@ namespace SAFplus
         return m_handles;
      }
   };
+  
+  std::size_t hash_value(SAFplus::Handle const& h)
+  {
+     boost::hash<uint64_t> hasher;        
+     return hasher(h.id[0]|h.id[1]);
+  }    
 }
 #endif

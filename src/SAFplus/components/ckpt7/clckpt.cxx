@@ -162,16 +162,20 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
         {
           if (curval->ref() == 1)  // This hash table is the only thing using this value right now
             {
-              if (curval->len() == newlen) // lengths are the same, most efficient is to just copy the new data onto the old.
+              if (curval->len() == newlen) {// lengths are the same, most efficient is to just copy the new data onto the old.
                 memcpy (curval->data,value.data,newlen);
-              return;
+                return;
+              }
             }
           // Replace the Buffer with a new one
           SAFplus::Buffer* v = new (msm.allocate(newlen+sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (newlen);  // Place a new buffer object into the segment, -1 b/c data is a 1 byte char already
           SAFplus::Buffer* old = curval.get();
+          *v = value;
           curval = v;
-          if (old->ref()==1) msm.deallocate(old);  // if I'm the last owner, let this go.
-          else old->decRef();	
+          if (old->ref()==1) 
+            msm.deallocate(old);  // if I'm the last owner, let this go.
+          else 
+            old->decRef();	
           return;
         }
     }

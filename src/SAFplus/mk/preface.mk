@@ -35,7 +35,7 @@ LINK_SO     = g++ -g -shared -o
 LINK = g++ -g -O0 -fPIC $(LINK_FLAGS) -o $@
 
 LINK_LIBS ?=
-LINK_STD_LIBS += $(SAFPLUS_TOOLCHAIN_DIR)/lib/libboost_system.a -lpthread -lrt
+LINK_STD_LIBS += $(SAFPLUS_TOOLCHAIN_DIR)/lib/libboost_system.a -lpthread -lrt -L$(BOOST_DIR)/lib -lboost_serialization
 LINK_SO_LIBS += -lpthread -lrt
 
 TARGET_OS ?= $(shell uname -r)
