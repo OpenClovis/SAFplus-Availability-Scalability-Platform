@@ -13,6 +13,9 @@
 #include <clHandleApi.hxx>
 #include <clThreadApi.hxx>
 #include <clNameApi.hxx>
+#include <clIocApi.h>
+#include <clLogApi.hxx>
+
 
 namespace SAFplus
 {
@@ -131,7 +134,6 @@ namespace SAFplus
       EntityIdentifier electLeader();
       EntityIdentifier electDeputy(EntityIdentifier highestCreEntity);
       void initializeSharedMemory(char sharedMemName[]);
-      void updateGroupRoles();
       std::pair<EntityIdentifier,EntityIdentifier> electForRoles(int electionType);
       void sendNotification(int notificationType, void* data); //Used to notify other nodes or members about group membership/role changed
 

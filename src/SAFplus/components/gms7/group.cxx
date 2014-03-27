@@ -2,49 +2,51 @@
 #include <string>
 /* SAFplus headers */
 #include <clCommon.hxx>
-//#include <clNameApi.hxx>
 #include <clGroup.hxx>
 
 using namespace boost::interprocess;
 using namespace SAFplus;
 using namespace SAFplusI;
+using namespace std;
 
-/* TODO: Remove all printf, it is used for debugging */
+extern SAFplus::NameRegistrar name;
+extern ClUint32T clAspLocalId;
+
 SAFplus::Group::Group(std::string handleName)
 {
   handle  = INVALID_HDL;
   try
   {
-    /* TODO: resolve handle from name via NameRegistrar, uncomment below line */
-    //handle = name.getHandle(handleName);
-    /* TODO: remove below line, it is for testing */
-    handle = SAFplus::Handle::create();
+    /* Get handle from name service */
+    handle = name.getHandle(handleName);
   }
   catch (SAFplus::NameException& ex)
   {
+    logDebug("GMS", "HDL","Can't get handler from give name %s",handleName.c_str());
     /* If handle did not exist, Create it */
     handle = SAFplus::Handle::create();
-    /* TODO: uncomment below line. After created handle, register it with Name Service*/
-    //name.set(handleName,handle);
+    /* Store to name service */
+    name.set(handleName,(void *)&handle,sizeof(SAFplus::Handle));
   }
   init(handle);
 }
-
 void SAFplus::Group::init(SAFplus::Handle groupHandle)
 {
-  char              sharedMemName[80];
+  char              sharedMemName[20];
 
   /* No entity is registered at this time */
   lastRegisteredEntity = INVALID_HDL;
   wakeable             = (SAFplus::Wakeable *)0;
 
   /* Check whether handle is valid */
-  if (groupHandle == INVALID_HDL)
+  if(groupHandle == INVALID_HDL)
   {
-    /* TODO: Create new handle*/
+    logError("GMS", "HDL","Invalid handler for group");
+    assert(0);
   }
+
   /* Create unique name for shared memory */
-  groupHandle.toStr(sharedMemName);
+  sprintf(sharedMemName,"CL_GMS_%d",clAspLocalId);
 
   initializeSharedMemory(sharedMemName);
 }
@@ -59,6 +61,7 @@ void SAFplus::Group::initializeSharedMemory(char sharedMemName[])
   try
   {
     hdr = msm.construct<SAFplusI::GroupBufferHeader>("GroupBufferHeader") ();
+    assert(hdr);
     hdr->serverPid = getpid();
     hdr->structId = SAFplus::Group::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7;
   }
@@ -67,6 +70,7 @@ void SAFplus::Group::initializeSharedMemory(char sharedMemName[])
     if (e.get_error_code() == already_exists_error)
     {
         hdr = msm.find_or_construct<SAFplusI::GroupBufferHeader>("GroupBufferHeader") ();
+        assert(hdr);
         int     retries  =  0;
         while ((hdr->structId != SAFplus::Group::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7)&&(retries<2)) { retries++; sleep(1); }  // If another process just barely beat me to the creation, I better wait.
         if (retries >= 2)
@@ -77,15 +81,13 @@ void SAFplus::Group::initializeSharedMemory(char sharedMemName[])
     }
     else
     {
-      printf("Error %d \n",e.get_error_code());
+      logError("GMS", "MEM","Initialize shared memory error [0x%x]", e.get_error_code());
       throw;
     }
   }
 
   /* Create GroupHashMap located in the shared memory */
   map = msm.find_or_construct<GroupHashMap>("GroupHashMap") ( (int)SAFplus::Group::GROUP_SEGMENT_ROWS, boost::hash<GroupMapKey>(), BufferPtrContentsEqual(), msm.get_allocator<GroupMapPair>());
-
-  assert(hdr);
 }
 
 void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities)
@@ -93,10 +95,8 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
   /*Check in share memory if entity exists*/
   char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
   SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
-  memcpy((char *)b->data,(char *)&me,sizeof(EntityIdentifier));
-  //*((EntityIdentifier *) b->data) = me;
+  *((EntityIdentifier *) b->data) = me;
   GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(b));
-
 
   if (contents == map->end())
   {
@@ -128,12 +128,10 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
     {
       wakeable->wake(1);
     }
-
   }
   else
   {
-    /* TODO: handle entity existing case */
-    ;
+    logDebug("GMS", "REG","Entity already exist");
   }
 }
 
@@ -157,19 +155,30 @@ void SAFplus::Group::deregister(EntityIdentifier me)
 
   if(contents == map->end())
   {
-    /*TODO: Entity didn't exist. */
+    logDebug("GMS", "DEREG","Entity did not exist");
     return;
   }
   SAFplusI::BufferPtr curval = contents->second;
   SAFplusI::BufferPtr curkey = contents->first;
-  /* Delete allocated memory for current EntityIdentifier */
+  SAFplus::Buffer* tmp = ((GroupIdentity *)(((Buffer *)curval.get())->data))->data;
 
-  /*TODO: Deallocate stored area in Group Identity */
+  /* Delete allocated memory for current EntityIdentifier */
   msm.deallocate(curkey.get());
   msm.deallocate(curval.get());
+  msm.deallocate(tmp);
 
   /* Delete data from map */
   map->erase(contents);
+  /* Reelect if leaving entity is standby/active */
+  if(activeEntity == me || standbyEntity == me)
+  {
+    if(activeEntity == me)
+    {
+      activeEntity = standbyEntity;
+    }
+    standbyEntity = INVALID_HDL;
+    electForRoles(SAFplus::Group::ELECTION_TYPE_STANDBY);
+  }
   /* Notify other entities about new entity*/
   if(wakeable)
   {
@@ -192,7 +201,7 @@ void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
 
   if(contents == map->end())
   {
-    /*TODO: EntityIdentifier did not exist. */
+    logDebug("GMS", "SETCAP","Entity did not exist");
     return;
   }
 
@@ -210,7 +219,7 @@ uint SAFplus::Group::getCapabilities(EntityIdentifier id)
 
   if(contents == map->end())
   {
-    /*TODO: Entity did not exist. */
+    logDebug("GMS", "GETCAP","Entity did not exist");
     return 0;
   }
 
@@ -228,38 +237,13 @@ SAFplus::Buffer& SAFplus::Group::getData(EntityIdentifier id)
 
   if(contents == map->end())
   {
+    logDebug("GMS", "GETDATA","Entity did not exist");
     return *((Buffer*) NULL);
   }
   SAFplusI::BufferPtr curval = contents->second;
   /* TODO: Which data should be returned? Group identity or data member of group identity? */
   //return *((GroupIdentity *)(((Buffer *)curval.get())->data))->data;
   return *(curval.get());
-}
-
-void SAFplus::Group::updateGroupRoles()
-{
-  for (GroupHashMap::iterator i = map->begin(); i != map->end();i++)
-  {
-    SAFplusI::BufferPtr curkey = i->first;
-    EntityIdentifier item = *(EntityIdentifier *)(curkey.get()->data);
-    uint currentCapability = getCapabilities(item);
-    if(item == activeEntity) //This is an active entity
-    {
-      currentCapability |= SAFplus::Group::IS_ACTIVE;
-      currentCapability &= ~SAFplus::Group::IS_STANDBY;
-    }
-    else if(item == standbyEntity) //This is a standby entity
-    {
-      currentCapability |= SAFplus::Group::IS_STANDBY;
-      currentCapability &= ~SAFplus::Group::IS_ACTIVE;
-    }
-    else //other members
-    {
-      currentCapability &= ~SAFplus::Group::IS_STANDBY;
-      currentCapability &= ~SAFplus::Group::IS_ACTIVE;
-    }
-    setCapabilities(currentCapability,item);
-  }
 }
 
 EntityIdentifier SAFplus::Group::electLeader()
@@ -344,26 +328,22 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
 
   if(electionType == (int)SAFplus::Group::ELECTION_TYPE_BOTH)
   {
-    int rc = 0;
     candidatePair = electForRoles(SAFplus::Group::ELECTION_TYPE_BOTH);
       /* Update standby and active entity */
     if(!(candidatePair.first == INVALID_HDL) && !(candidatePair.first == activeEntity))
     {
         isRoleChanged = true;
-        rc ++;
         activeEntity = candidatePair.first;
-        std::cout << "Active entity had been elected! \n";
+        logInfo("GMS", "ELECT","Active entity had been elected");
     }
     if(!(candidatePair.second == INVALID_HDL) && !(candidatePair.second == standbyEntity))
     {
         isRoleChanged = true;
-        rc ++;
         standbyEntity = candidatePair.second;
-        std::cout << "Standby entity had been elected! \n";
+        logInfo("GMS", "ELECT","Standby entity had been elected");
     }
     res.first = activeEntity;
     res.second = standbyEntity;
-    //updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
       wakeable->wake(3);
@@ -377,10 +357,10 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     {
       isRoleChanged = true;
       standbyEntity = candidatePair.second;
+      logInfo("GMS", "ELECT","Standby entity had been elected");
     }
     res.first = activeEntity;
     res.second = standbyEntity;
-    //updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
       wakeable->wake(3);
@@ -394,16 +374,17 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     {
         isRoleChanged = true;
         activeEntity = candidatePair.first;
+        logInfo("GMS", "ELECT","Active entity had been elected");
     }
     res.first = activeEntity;
     res.second = standbyEntity;
-    //updateGroupRoles();
     if(isRoleChanged && wakeable)
     {
       wakeable->wake(3);
     }
     return 2;
   }
+  logError("GMS","ELECT","Invalid election type");
   res.first = INVALID_HDL;
   res.second = INVALID_HDL;
   return 0;
@@ -430,6 +411,7 @@ bool SAFplus::Group::isMember(EntityIdentifier id)
 void SAFplus::Group::setNotification(SAFplus::Wakeable& w)
 {
   wakeable = (Wakeable *)&w;
+  logInfo("GMS", "SETNOTI","Notification had been set");
 }
 
 EntityIdentifier SAFplus::Group::getActive(void) const

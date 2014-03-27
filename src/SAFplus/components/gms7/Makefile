@@ -1,17 +1,23 @@
 S7 := 1
 include ../../mk/preface.mk
 
-GROUP_CLIENT_H := $(wildcard *.hpp) $(wildcard ../../include7/*.hpp) $(wildcard ../../include7/*.hxx)
-GROUP_CLIENT_SRC := $(wildcard *.cxx)
-GROUP_CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(GROUP_CLIENT_SRC)))
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
+
+CLIENT_H := $(wildcard *.hxx) $(wildcard ../../include7/*.hxx)
+CLIENT_SRC := $(wildcard *.cxx)
+CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
+
+DEP_LIBS +=$(LIB_DIR)/libclLog.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclOsal7.so
 
 all: $(LIB_DIR)/libclGroup.so
 
-$(SAFPLUS_TARGET)/lib/libclGroup.so: $(GROUP_CLIENT_OBJ)
-	$(LINK_SO) $@ $+  -lpthread -lrt
+$(LIB_DIR)/libclGroup.so: $(CLIENT_OBJ_IOC) $(CLIENT_OBJ) $(DEP_LIBS)
+	$(LINK_SO) $@ $+ $(LINK_SO_LIBS)
 
-$(MWOBJ_DIR)/%.o: %.cxx Makefile $(GROUP_CLIENT_H)
+$(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f  $(SAFPLUS_TARGET)/lib/libclGroup.so $(MWOBJ_DIR)/*.o
+	rm -f $(LIB_DIR)/*.so $(MWOBJ_DIR)/*.o
+
+include ../../mk/safplus_targets.mk

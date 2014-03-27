@@ -35,8 +35,9 @@ LINK_SO     = g++ -g -shared -o
 LINK = g++ -g -O0 -fPIC $(LINK_FLAGS) -o $@
 
 LINK_LIBS ?=
-LINK_STD_LIBS += -L$(BOOST_DIR)/stage/lib -lboost_thread -lboost_system -lpthread -lrt
-LINK_SO_LIBS += -L$(BOOST_DIR)/stage/lib -lboost_thread -lboost_system -lpthread -lrt
+
+LINK_STD_LIBS += -L$(BOOST_DIR)/stage/lib -L$(BOOST_DIR)/lib -lboost_thread  -lboost_serialization -lboost_system -lpthread -lrt
+LINK_SO_LIBS += -L$(BOOST_DIR)/stage/lib -L$(BOOST_DIR)/lib -lboost_thread  -lboost_serialization -lboost_system -lpthread -lrt
 
 TARGET_OS ?= $(shell uname -r)
 TARGET_PLATFORM ?= $(shell uname -p)

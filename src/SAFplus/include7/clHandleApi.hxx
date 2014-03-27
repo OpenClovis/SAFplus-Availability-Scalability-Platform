@@ -4,6 +4,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <boost/serialization/base_object.hpp>
+
 #define CL_ASSERT assert
 #ifndef SAFplus7
 #define SAFplus7  // for integration within the older code
@@ -31,6 +33,12 @@ namespace SAFplus
   class Handle
   {
   public:
+    friend class boost::serialization::access;
+    template<class Archive>
+    void serialize(Archive & ar, const unsigned int version)
+    {
+       ar & id;
+    }
     uint64_t id[2];
   public:
     char* toStr(char* buffer) const
@@ -42,7 +50,8 @@ namespace SAFplus
     bool operator == (const Handle& other) const
     {
       return ((id[0] == other.id[0])&&(id[1]==other.id[1]));
-    }
+    }    
+
     Handle() { id[0] = 0; id[1] = 0; }
     Handle(HandleType t,uint64_t idx, uint32_t process=0xffffffff,uint16_t node=0xffff,uint_t clusterId=0xfff)
     {

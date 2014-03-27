@@ -10,29 +10,34 @@
 
 // SAFplus includes
 #include <clHandleApi.hxx>
+#include <clLogApi.hxx>
 #include <clIocApi.h>
 #include <clGroup.hxx>
-
+#include <clGlobals.hxx>
 
 using namespace SAFplus;
+using namespace std;
 int testRegisterAndConsistent();
 int testElect();
 int testGetData();
 int testIterator();
+int testRegisterAndDeregister();
+ClUint32T clAspLocalId = 1;
 class testWakeble:public SAFplus::Wakeable
 {
   public:
     void wake(int amt,void* cookie=NULL)
     {
-      printf("WAKE! Something changed! \n");
+      cout << "WAKE! AMT = " << amt << "\n";
     }
 };
 int main()
 {
   //testRegisterAndConsistent();
-  testElect();
+  //testElect();
   //testGetData();
   //testIterator();
+  testRegisterAndDeregister();
   return 0;
 }
 
@@ -125,5 +130,28 @@ int testElect()
   int activeCapabilities = gms.getCapabilities(activeStandbyPairs.first);
   int standbyCapabilities = gms.getCapabilities(activeStandbyPairs.second);
   printf("Active CAP: %d \t Standby CAP: %d \n",activeCapabilities,standbyCapabilities);
+  return 0;
+}
+
+int testRegisterAndDeregister()
+{
+  Group gms("tester");
+  testWakeble tw;
+  SAFplus::Wakeable *w = &tw;
+  cout << "TEST START \n\n";
+  EntityIdentifier entityId1 = SAFplus::Handle::create();
+  gms.setNotification(*w);
+  cout << "Register entity \n";
+  gms.registerEntity(entityId1,20,"ID1",3,20);
+  cout << "De-register entity \n";
+  gms.deregister(entityId1);
+  cout << "Register entity \n";
+  gms.registerEntity(entityId1,20,"ID1",3,20);
+  cout << "De-register entity with default argument \n";
+  gms.deregister();
+  cout << "Still to be member? It should answer NO \n";
+  cout << (gms.isMember(entityId1) ? "YES" : "NO") << "\n";
+
+  cout << "TEST END \n\n";
   return 0;
 }
