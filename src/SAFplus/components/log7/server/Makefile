@@ -26,7 +26,7 @@ LOG_SERVER_OBJ := $(addprefix $(OBJ_DIR)/logsvr/,$(LOG_SERVER_OBJ))
 all: $(SAFPLUS_TARGET)/bin/splogd
 
 $(SAFPLUS_TARGET)/bin/splogd: $(LOG_SERVER_OBJ) $(DEP_LIBS)
-	$(LINK_EXE) $@ $+ -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -L$(BOOST_DIR)/stage/lib/ -lboost_system
+	$(LINK_EXE) $@ $+ -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/logsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	-mkdir -p $(OBJ_DIR)/logsvr/

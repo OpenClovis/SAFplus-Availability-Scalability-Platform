@@ -52,8 +52,11 @@ namespace SAFplusI
   extern LogBufferHeader* clLogHeader;
 
 
-void logInitializeSharedMem(void);  
-void logTimeGet(char   *pStrTime, int maxBytes);
+  void logInitializeSharedMem(void);  
+  void logTimeGet(char   *pStrTime, int maxBytes);
+
+  uint_t formatMsgPrefix(char* msg, SAFplus::LogSeverity severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum);
+  void writeToSharedMem(SAFplus::Handle streamHdl,SAFplus::LogSeverity severity, char* msg, int msgStrLen);
 
 };
 

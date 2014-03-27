@@ -48,38 +48,46 @@ Logger* SAFplus::logInitialize()
     utilsInitialize();  /* Logging uses globals initialized by utils, but is tolerant of uninitialized vals.  Utils may log so this must be run AFTER logging is inited */
 }
 
-void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *pFmtStr,...)
+void SAFplus::logStrWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *str)
 {
   uint_t            msgStrLen;
-  const ClCharT    *pSevName           = NULL;
-  ClCharT      timeStr[40]   = {0};
   ClCharT           msg[CL_LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
-  va_list vaargs;
-
-  if (severity > logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the server ALSO does this check...
   
-  va_start(vaargs, pFmtStr);
+  if (severity > logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the server ALSO does this check...
+
+  msgStrLen = formatMsgPrefix(msg,severity, serviceId, pArea, pContext, pFileName, lineNum);
+  // Now append the log message
+  strncat(msg + msgStrLen,str,CL_LOG_MAX_MSG_LEN - msgStrLen);
+  msgStrLen = strlen(msg);
+  
+  writeToSharedMem(streamHdl,severity,msg,msgStrLen);
+}
+
+uint_t SAFplusI::formatMsgPrefix(char* msg, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum)
+{
+  const ClCharT    *pSevName           = NULL;
+  uint_t            msgStrLen;
+  ClCharT           timeStr[40]   = {0};
   pSevName = logSeverityStrGet(severity);
 
   SAFplusI::logTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
   // Create the log header
-  if(logCodeLocationEnable)        
+  if(SAFplus::logCodeLocationEnable)        
     {
-      msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR, timeStr, pFileName, lineNum, SAFplus::ASP_NODENAME, pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
-                
+      msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR, timeStr, pFileName, lineNum, SAFplus::ASP_NODENAME, pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);              
     }
   else
     {
       msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR_WO_FILE,timeStr, SAFplus::ASP_NODENAME, pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
     }
+  
+  return msgStrLen;
+}
 
-  // Now append the log message        
-  msgStrLen += vsnprintf(msg + msgStrLen, CL_LOG_MAX_MSG_LEN - msgStrLen, pFmtStr, vaargs);
-  if (msgStrLen > CL_LOG_MAX_MSG_LEN-1) msgStrLen=CL_LOG_MAX_MSG_LEN-1;  // if too big, vsnprintf returns the number of bytes that WOULD HAVE BEEN written.
-  
-  char *base    = (char*) clLogBuffer->get_address();
-  
-  //clientMutex.wait();
+void SAFplusI::writeToSharedMem(Handle streamHdl,LogSeverity severity, char* msg, int msgStrLen)
+{
+  char *base    = (char*) clLogBuffer->get_address();  
+
   clientMutex.lock();
   LogBufferEntry* rec = static_cast<LogBufferEntry*>((void*)(((char*)base)+clLogBufferSize-sizeof(LogBufferEntry)));  
   rec -= (clLogHeader->numRecords);
@@ -96,7 +104,27 @@ void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t servic
 
   //clLogHeader->clientMutex.post();
   clientMutex.unlock();
+}
+
+void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *pFmtStr,...)
+{
+  uint_t            msgStrLen;
+  const ClCharT    *pSevName           = NULL;
+  ClCharT           timeStr[40]   = {0};
+  ClCharT           msg[CL_LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
+  va_list vaargs;
+
+  if (severity > SAFplus::logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the server ALSO does this check...
+  
+  va_start(vaargs, pFmtStr);
+
+  msgStrLen = formatMsgPrefix(msg,severity, serviceId, pArea, pContext, pFileName, lineNum);
+  // Now append the log message        
+  msgStrLen += vsnprintf(msg + msgStrLen, CL_LOG_MAX_MSG_LEN - msgStrLen, pFmtStr, vaargs);
+  if (msgStrLen > CL_LOG_MAX_MSG_LEN-1) msgStrLen=CL_LOG_MAX_MSG_LEN-1;  // if too big, vsnprintf returns the number of bytes that WOULD HAVE BEEN written.
   va_end(vaargs);
+  
+  writeToSharedMem(streamHdl,severity,msg,msgStrLen);
 }
 
 static const ClCharT* logSeverityStrGet(LogSeverity severity)

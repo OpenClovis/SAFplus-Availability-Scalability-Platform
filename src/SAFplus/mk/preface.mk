@@ -35,8 +35,8 @@ LINK_SO     = g++ -g -shared -o
 LINK = g++ -g -O0 -fPIC $(LINK_FLAGS) -o $@
 
 LINK_LIBS ?=
-LINK_STD_LIBS += $(SAFPLUS_TOOLCHAIN_DIR)/lib/libboost_system.a -lpthread -lrt
-LINK_SO_LIBS += -lpthread -lrt
+LINK_STD_LIBS += -L$(BOOST_DIR)/stage/lib -lboost_thread -lboost_system -lpthread -lrt
+LINK_SO_LIBS += -L$(BOOST_DIR)/stage/lib -lboost_thread -lboost_system -lpthread -lrt
 
 TARGET_OS ?= $(shell uname -r)
 TARGET_PLATFORM ?= $(shell uname -p)
@@ -55,8 +55,10 @@ NOOP := $(shell mkdir -p $(SAFPLUS_TARGET)/test)
 TEST_DIR ?= $(SAFPLUS_TARGET)/test
 LIB_DIR ?= $(SAFPLUS_TARGET)/lib
 BIN_DIR ?= $(SAFPLUS_TARGET)/bin
-OBJ_DIR ?= $(SAFPLUS_TARGET)/obj
+# All objects that should end up into libmw.so:
 MWOBJ_DIR ?= $(SAFPLUS_TARGET)/mwobj
+# All other objects
+OBJ_DIR ?= $(SAFPLUS_TARGET)/obj
 
 endif
 

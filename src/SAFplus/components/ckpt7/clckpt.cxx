@@ -130,7 +130,7 @@ const Buffer& SAFplus::Checkpoint::read (const char* key) const
 
 const Buffer& SAFplus::Checkpoint::read (const std::string& key) const
 {
-  size_t len = key.length()+1;  // I'm going to take the /0 so Buffer's can be manipulated as strings
+  size_t len = key.length()+1;  // I'm going to take the /0 so Buffers can be manipulated as strings
   char data[sizeof(Buffer)-1+len];
   Buffer* b = new(data) Buffer(len);
   *b = key.data();
@@ -145,6 +145,47 @@ void SAFplus::Checkpoint::write (const uintcw_t key,const Buffer& value,Transact
   *((uintcw_t*) b->data) = key;
   write(*b,value,t);
 }
+   
+void SAFplus::Checkpoint::write(const char* key, const Buffer& value,Transaction& t)
+  {
+    // Doing a copy just to create a Buffer object is not efficient and should be fixed with a direct void* interface into the checkpoint system.
+    int klen = strlen(key)+1;  // +1 for the null term
+    char kmem[sizeof(Buffer)-1+klen];
+    Buffer* kb = new(kmem) Buffer(klen);
+    memcpy(kb->data,key,klen);
+
+    write(*kb,value,t);
+  }
+
+void SAFplus::Checkpoint::write(const std::string& key, const Buffer& value,Transaction& t)
+  {
+    // Doing a copy just to create a Buffer object is not efficient and should be fixed with a direct void* interface into the checkpoint system.
+    int klen = key.length()+1;  // +1 for the null term
+    char kmem[sizeof(Buffer)-1+klen];
+    Buffer* kb = new(kmem) Buffer(klen);
+    memcpy(kb->data,key.c_str(),klen);
+
+    write(*kb,value,t);
+  }
+
+void SAFplus::Checkpoint::write(const std::string& key, const std::string& value,Transaction& t)
+  {
+    // Doing a copy just to create a Buffer object is not efficient and should be fixed with a direct void* interface into the checkpoint system.
+
+    int klen = key.length()+1;  // +1 for the null term
+    char kmem[sizeof(Buffer)-1+klen];
+
+    int vlen = value.length()+1;
+    char vmem[sizeof(Buffer)-1+vlen];
+
+    Buffer* kb = new(kmem) Buffer(klen);
+    memcpy(kb->data,key.c_str(),klen);
+    Buffer* vb = new(vmem) Buffer(vlen);
+    memcpy(vb->data, value.c_str(),vlen);
+
+    write(*kb,*vb,t);
+  }
+
 
 
 void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transaction& t)

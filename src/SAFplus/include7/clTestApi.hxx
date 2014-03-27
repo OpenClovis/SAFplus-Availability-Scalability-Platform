@@ -114,7 +114,7 @@ extern ClTestCaseData clCurTc;
  *
  */
 #ifndef     clTestGroupInitialize
-#define clTestGroupInitialize(name) do { clTestPrint(name); clTestGroupInitializeImpl(); } while(0)
+#define clTestGroupInitialize(name) do { clTestPrint(name); SAFplusI::clTestGroupInitializeImpl(); } while(0)
 #endif
 /**
  ************************************
@@ -131,7 +131,7 @@ extern ClTestCaseData clCurTc;
  *
  */
 #ifndef     clTestGroupFinalize    
-#define clTestGroupFinalize() clTestGroupFinalizeImpl()
+#define clTestGroupFinalize() SAFplusI::clTestGroupFinalizeImpl()
 #endif
 /**
  ************************************
@@ -183,7 +183,7 @@ do { \
 #define clTestCase(name, test) \
 do { \
     clTestCaseStart(name); \
-    clCurTc.malfPops = 0; \
+    SAFplusI::clCurTc.malfPops = 0; \
     test; \
     clTestCaseEnd((" ")); \
 } while (0)
@@ -205,15 +205,15 @@ do { \
  */
 #define clTestCaseStart(testname) \
 do { \
-    clTestPrintIndent+=2; \
-    clPushTestCase(&clCurTc); \
-    clCurTc.passed=0; \
-    clCurTc.failed=0; \
-    clCurTc.malfunction=0; \
-    clCurTc.malfPops = 1; \
-    snprintf(clCurTc.name, ClTestCaseMaxNameLen, \
+    SAFplus::testPrintIndent+=2; \
+    clPushTestCase(&SAFplusI::clCurTc); \
+    SAFplusI::clCurTc.passed=0; \
+    SAFplusI::clCurTc.failed=0; \
+    SAFplusI::clCurTc.malfunction=0; \
+    SAFplusI::clCurTc.malfPops = 1; \
+    snprintf(SAFplusI::clCurTc.name, TestCaseMaxNameLen, \
         this_error_indicates_missing_parens_around_string testname); \
-    clTestPrint(("Test case started [%s]:\n", clCurTc.name)); \
+    clTestPrint(("Test case started [%s]:\n", SAFplusI::clCurTc.name)); \
 } while(0)
 
 /**
@@ -225,7 +225,7 @@ do { \
  *  \sa clTestCase(), clTestCaseStart(), clTestCaseNumErrors(), clTestCaseNumMalfunctions(), clTestCaseNumPasses()
  *
  */
-#define clTestCaseNumErrors() clCurTc.failed
+#define clTestCaseNumErrors() SAFplusI::clCurTc.failed
 
 /**
  ************************************
@@ -236,7 +236,7 @@ do { \
  *  \sa clTestCase(), clTestCaseStart(), clTestCaseNumErrors(), clTestCaseNumMalfunctions(), clTestCaseNumPasses()
  *
  */
-#define clTestCaseNumMalfunctions() clCurTc.malfunction
+#define clTestCaseNumMalfunctions() SAFplusI::clCurTc.malfunction
 
 /**
  ************************************
@@ -247,7 +247,7 @@ do { \
  *  \sa clTestCase(), clTestCaseStart(), clTestCaseNumErrors(), clTestCaseNumMalfunctions(), clTestCaseNumPasses()
  *
  */
-#define clTestCaseNumPasses() clCurTc.passed
+#define clTestCaseNumPasses() SAFplusI::clCurTc.passed
 
 /**
  ************************************
@@ -269,19 +269,19 @@ do { \
     clTestPrint(("Test case completed [%s]. " \
                  "Subcases: [%d] passed, [%d] failed, [%d] malfunction.\n" \
                  "Synopsis:\n", \
-                 clCurTc.name, clCurTc.passed, \
-                 clCurTc.failed, clCurTc.malfunction)); \
+                 SAFplusI::clCurTc.name, SAFplusI::clCurTc.passed, \
+                 SAFplusI::clCurTc.failed, SAFplusI::clCurTc.malfunction)); \
     clTestPrint(synopsis); \
-    clTestPrintIndent-=2; \
-    int malf=clCurTc.malfunction; \
-    int fail = clCurTc.failed; \
-    clPopTestCase(&clCurTc); \
+    SAFplus::testPrintIndent-=2; \
+    int malf=SAFplusI::clCurTc.malfunction; \
+    int fail = SAFplusI::clCurTc.failed; \
+    clPopTestCase(&SAFplusI::clCurTc); \
     if (fail) \
-        clCurTc.failed++; \
+        SAFplusI::clCurTc.failed++; \
     else if (malf) \
-        clCurTc.malfunction++; \
+        SAFplusI::clCurTc.malfunction++; \
     else \
-        clCurTc.passed++; \
+        SAFplusI::clCurTc.passed++; \
 } while(0)
 
 /**
@@ -307,10 +307,10 @@ do { \
         clTestPrint(("Test case malfunction [%s]. " \
                      "Subtests: [%d] Passed, [%d] Failed.\n" \
                      "Malfunction reason:\n", \
-                     clCurTc.name, clCurTc.passed, clCurTc.failed)); \
+                     SAFplusI::clCurTc.name, SAFplusI::clCurTc.passed, SAFplusI::clCurTc.failed)); \
         clTestPrint(reason); \
-        if (clCurTc.malfPops) clPopTestCase(&clCurTc); \
-        clCurTc.malfunction++; \
+        if (SAFplusI::clCurTc.malfPops) clPopTestCase(&SAFplusI::clCurTc); \
+        SAFplusI::clCurTc.malfunction++; \
         execOnFailure; \
     }  \
 } while(0)
@@ -336,18 +336,18 @@ do { \
  */
 #define clTest(string, predicate, errorPrintf)\
 do{ \
-    char __id[ClTestMaxNameLen]; \
-    char __error[ClTestMaxNameLen]=""; \
+  char __id[SAFplus::TestMaxNameLen];		\
+    char __error[SAFplus::TestMaxNameLen]=""; \
     int __ok = predicate; \
-    snprintf(__id, ClTestMaxNameLen, \
+    snprintf(__id, SAFplus::TestMaxNameLen, \
              this_error_indicates_missing_parens_around_string string); \
     if (!__ok) \
-        snprintf(__error, ClTestMaxNameLen, \
+        snprintf(__error, SAFplus::TestMaxNameLen, \
             this_error_indicates_missing_parens_around_string errorPrintf); \
-    clTestImpl(__FILE__, __LINE__, __FUNCTION__, __id, __error, __ok); \
+    SAFplusI::clTestImpl(__FILE__, __LINE__, __FUNCTION__, __id, __error, __ok); \
 } while(0)
 
-// do { clTestPrint(string); { int result = (predicate); if (result) { clCurTc.passed++; clTestPrint((": Ok\n")); } else { clCurTc.failed++; clTestPrint((": %s:%d: Test (" #predicate ") failed.  ", __FILE__, __LINE__)); clTestPrint(errorPrintf); clTestPrint(("\n")); } } } while(0)
+// do { clTestPrint(string); { int result = (predicate); if (result) { SAFplusI::clCurTc.passed++; clTestPrint((": Ok\n")); } else { SAFplusI::clCurTc.failed++; clTestPrint((": %s:%d: Test (" #predicate ") failed.  ", __FILE__, __LINE__)); clTestPrint(errorPrintf); clTestPrint(("\n")); } } } while(0)
 
 /**
  ************************************
@@ -375,10 +375,10 @@ do { \
     { \
         int result = (predicate); \
         if (result) { \
-            clCurTc.passed++; \
+            SAFplusI::clCurTc.passed++; \
             clTestPrint((": Ok\n")); \
         } else { \
-            clCurTc.failed++; \
+            SAFplusI::clCurTc.failed++; \
             clTestPrint((": %s:%d: Test (" #predicate ") failed.  ", \
                          __FILE__, __LINE__)); \
             clTestPrint(errorPrintf); \
@@ -419,7 +419,7 @@ do { \
  */
 #define clTestFailedAt(__file, __line, __string) \
 do { \
-    clCurTc.failed++; \
+    SAFplusI::clCurTc.failed++; \
     clTestPrint((": %s:%d: Test failed.  ", __file, __line)); \
     clTestPrint(__string); \
     clTestPrint(("\n")); \
@@ -458,7 +458,7 @@ do { \
  */
 #define clTestSuccessAt(__file, __line, __string) \
 { \
-    clCurTc.passed++; \
+    SAFplusI::clCurTc.passed++; \
     clTestPrintAt(__file,__line, __FUNCTION__, __string); \
     clTestPrintAt(__file,__line, __FUNCTION__, (": Ok\n")); \
 } while (0)
@@ -495,7 +495,7 @@ do { \
     char __tempstr[2048]; \
     snprintf(__tempstr,2048, \
              this_error_indicates_missing_parens_around_string x); \
-    clTestPrintImpl(__file, __line, __function,__tempstr); \
+    SAFplusI::clTestPrintImpl(__file, __line, __function,__tempstr);	\
     appLog(APP_LOG,testLogLevel,0,"TST","___",__tempstr); \
 } while(0)
 #endif

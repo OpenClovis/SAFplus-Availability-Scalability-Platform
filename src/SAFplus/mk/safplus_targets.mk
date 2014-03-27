@@ -1,6 +1,7 @@
-
+ifndef SAFPLUS_LOG_LIB
 $(LIB_DIR)/libclLog.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/log7
+endif
 
 $(LIB_DIR)/libclUtils7.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/utils7
@@ -47,3 +48,6 @@ endif
 SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt
 
 SAFplusServices := $(SAFPLUS_TARGET)/bin/splogd
+
+cleanall:
+	rm -f $(SAFplusTests) $(SAFplusSOs) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/*
