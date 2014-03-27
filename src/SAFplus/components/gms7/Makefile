@@ -18,6 +18,6 @@ $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/*.so $(MWOBJ_DIR)/*.o
+	rm -f $(LIB_DIR)/libclGroup.so $(MWOBJ_DIR)/group.o
 
 include ../../mk/safplus_targets.mk

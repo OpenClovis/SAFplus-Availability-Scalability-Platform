@@ -7,7 +7,7 @@ CLIENT_SRC := testGroup.cxx
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
 DEP_LIBS := $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclLog.so
-LINK_STD_LIBS += -L$(SAFPLUS_TOOLCHAIN_DIR)/lib -lboost_thread
+LINK_STD_LIBS += -L$(BOOST_DIR)/stage/lib -lboost_thread -lboost_system
 all: $(TEST_DIR)/testGroup
 
 $(TEST_DIR)/testGroup:  $(OBJ_DIR)/testGroup.o $(DEP_LIBS)
@@ -19,7 +19,7 @@ $(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)
 
 test: all
 	cp $(TEST_DIR)/testGroup .
-	export LD_LIBRARY_PATH=$(SAFPLUS_TOOLCHAIN_DIR)/lib:$(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))/lib
+	export LD_LIBRARY_PATH=$(BOOST_DIR)/stage/lib:$(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))/lib
 	./testGroup
 	rm testGroup
 

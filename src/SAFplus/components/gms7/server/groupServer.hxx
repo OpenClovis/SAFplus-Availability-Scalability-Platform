@@ -29,6 +29,7 @@ void entityLeaveHandle(messageProtocol *rxMsg);
 void entityElectHandle();
 void sendBroadcast(void* data, int dataLength);
 void sendInfomationToNewNode(ClIocAddressT *pAddress);
+void convertIocAddressToHandle(ClIocAddressT *pAddress, SAFplus::Handle *pHandle);
 void gmsNotificationInitialize();
 void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused, ClIocAddressT *pAddress);
 

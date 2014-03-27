@@ -14,6 +14,7 @@
 #include <clIocApi.h>
 #include <clGroup.hxx>
 #include <clGlobals.hxx>
+#include <clNameApi.hxx>
 
 using namespace SAFplus;
 using namespace std;
@@ -22,7 +23,9 @@ int testElect();
 int testGetData();
 int testIterator();
 int testRegisterAndDeregister();
+
 ClUint32T clAspLocalId = 1;
+extern SAFplus::NameRegistrar name;
 class testWakeble:public SAFplus::Wakeable
 {
   public:
@@ -138,7 +141,7 @@ int testRegisterAndDeregister()
   Group gms("tester");
   testWakeble tw;
   SAFplus::Wakeable *w = &tw;
-  cout << "TEST START \n\n";
+  cout << "\n\nTEST START \n";
   EntityIdentifier entityId1 = SAFplus::Handle::create();
   gms.setNotification(*w);
   cout << "Register entity \n";
@@ -151,7 +154,17 @@ int testRegisterAndDeregister()
   gms.deregister();
   cout << "Still to be member? It should answer NO \n";
   cout << (gms.isMember(entityId1) ? "YES" : "NO") << "\n";
+  cout << "Register entity \n";
+  gms.registerEntity(entityId1,20,"ID1",3,50);
+  cout << "Get group handle from name service \n";
 
+  SAFplus::Handle hdl = name.getHandle("tester");
+  Group *gms1 = (Group *)name.get(hdl);
+  if(gms1 != NULL)
+  {
+    cout << "Get capability from object: " << gms1->getCapabilities(entityId1) << "\n";
+  }
   cout << "TEST END \n\n";
+
   return 0;
 }

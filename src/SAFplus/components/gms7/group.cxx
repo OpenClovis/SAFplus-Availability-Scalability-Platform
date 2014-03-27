@@ -19,14 +19,15 @@ SAFplus::Group::Group(std::string handleName)
   {
     /* Get handle from name service */
     handle = name.getHandle(handleName);
+    name.set(handleName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY,(void*)this);
   }
   catch (SAFplus::NameException& ex)
   {
     logDebug("GMS", "HDL","Can't get handler from give name %s",handleName.c_str());
     /* If handle did not exist, Create it */
-    handle = SAFplus::Handle::create();
+    handle = SAFplus::Handle(PersistentHandle,0,getpid(),clAspLocalId);
     /* Store to name service */
-    name.set(handleName,(void *)&handle,sizeof(SAFplus::Handle));
+    name.set(handleName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY,(void*)this);
   }
   init(handle);
 }

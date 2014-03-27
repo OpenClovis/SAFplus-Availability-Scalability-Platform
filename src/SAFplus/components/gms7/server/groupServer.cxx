@@ -108,6 +108,10 @@ void sendInfomationToNewNode(ClIocAddressT *pAddress)
     cout << "GMS_SERVER[" << myNodeAddress << "]: Send data to GMS_SERVER[" <<  pAddress->iocPhyAddress.nodeAddress;
   }
 }
+void convertIocAddressToHandle(ClIocAddressT *pAddress, SAFplus::Handle *pHandle)
+{
+  *pHandle = SAFplus::Handle(PersistentHandle,0,pAddress->iocPhyAddress.portId,pAddress->iocPhyAddress.nodeAddress,0);
+}
 void initializeSAFplus()
 {
 
