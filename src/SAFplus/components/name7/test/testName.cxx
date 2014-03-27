@@ -112,9 +112,13 @@ int main(int argc, char* argv[])
 
    char data[120];
    strcpy(data, "This is arbitrary data example. Don't care its content");
-   name.set(name1, data, strlen(data)+1);
-   strcpy(data, "This is another arbitrary data example. Don't care its content!...");
-   name.set(name2, data, strlen(data)+1);
+   try {
+      name.set(name1, data, strlen(data)+1);
+      strcpy(data, "This is another arbitrary data example. Don't care its content!...");
+      name.set(name2, data, strlen(data)+1);
+   }catch (NameException ne) {
+       printf("Exception [%s]\n", ne.what());
+   }
    //pid_t thispid = getpid();
    //ObjTest* obj2 = new ObjTest("Jane");
    //testNameAppend("_111000111", NameRegistrar::MODE_PREFER_LOCAL, 0xaabbe4, NULL, (uint32_t)thispid);
@@ -138,7 +142,11 @@ int main(int argc, char* argv[])
    char temp[sz];
    SAFplus::Buffer* pbuf = new(temp) SAFplus::Buffer(sz);
    *pbuf = modbuf;
-   name.set(name1, pbuf);
+   try {
+      name.set(name1, pbuf);
+   }catch (NameException ne) {
+      printf("Exception [%s]", ne.what()); 
+   }
    try {
       SAFplus::Buffer& buf = name.getData(name1);
       printf("name [%s]: buf [%s]\n", name1, buf.data);
@@ -148,6 +156,19 @@ int main(int argc, char* argv[])
    }
    
 #endif
+   //char data[120];
+   strcpy(data, "This is arbitrary data example. Don't care its content");
+   try {
+      name.set("aaaa", data, strlen(data)+1);
+   }catch (NameException ne) {
+      printf("Exception [%s]\n", ne.what());
+   }
+   SAFplus::Buffer buf;
+   try {
+      name.set("aaaa", &buf);
+   }catch (NameException ne) {
+      printf("Exception [%s]\n", ne.what());
+   }
    name.dump();
    return 0;
 }

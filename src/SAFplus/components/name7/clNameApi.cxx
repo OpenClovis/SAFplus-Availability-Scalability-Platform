@@ -127,12 +127,13 @@ void SAFplus::NameRegistrar::append(const std::string& name, SAFplus::Handle han
    append(name.data(), handle, m, object);
 }
 
-void SAFplus::NameRegistrar::set(const char* name, const void* data, int length)
+void SAFplus::NameRegistrar::set(const char* name, const void* data, int length) throw (NameException&)
 {
    Handle handle;
    try {
       handle = getHandle(name);
    }catch (NameException ne) {
+      ne.addMsg(". The name may be not registered with any handle");
       throw ne;
    }   
    //Find to see if the key exists?
@@ -174,17 +175,22 @@ void SAFplus::NameRegistrar::set(const char* name, const void* data, int length)
    MapPair vt(handle,kv);
    m_mapData.insert(vt);
 }
-void SAFplus::NameRegistrar::set(const std::string& name, const void* data, int length)
+void SAFplus::NameRegistrar::set(const std::string& name, const void* data, int length) throw (NameException&)
 {
-   set(name.data(), data, length);
+   try {
+      set(name.data(), data, length);
+   }catch (NameException ne) {
+      throw ne;
+   }
 }
 
-void SAFplus::NameRegistrar::set(const char* name, SAFplus::Buffer* p_buf)
+void SAFplus::NameRegistrar::set(const char* name, SAFplus::Buffer* p_buf) throw (NameException&)
 {
    Handle handle;
    try {
       handle = getHandle(name);
    }catch (NameException ne) {
+      ne.addMsg(". The name may be not registered with any handle");
       throw ne;
    } 
    //Find to see if the key exists?
@@ -221,9 +227,13 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Buffer* p_buf)
    //p_buf->addRef(); // add 1 reference to the callee
    m_mapData.insert(vt);
 }
-void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Buffer* p_buf)
+void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Buffer* p_buf) throw (NameException&)
 {
-   set(name.data(), p_buf);
+   try {
+      set(name.data(), p_buf);
+   }catch (NameException ne) {
+      throw ne;
+   }
 }
 
 std::pair<SAFplus::Handle,void*> SAFplus::NameRegistrar::get(const char* name) throw(NameException&)

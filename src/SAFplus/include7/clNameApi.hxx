@@ -31,6 +31,10 @@ namespace SAFplus
      {
 	m_errMessage = errMessage;
      }
+     void addMsg(const char* msg)
+     {
+        m_errMessage += msg;
+     }
      virtual const char* what()
      {
 	return m_errMessage.c_str();
@@ -82,12 +86,12 @@ namespace SAFplus
      void append(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object=NULL);
      
      // Associate name with arbitrary data. A copy of the data is made.
-     void set(const char* name, const void* data, int length);
-     void set(const std::string& name, const void* data, int length);
+     void set(const char* name, const void* data, int length) throw (NameException&);
+     void set(const std::string& name, const void* data, int length) throw (NameException&); 
    
      // Associate name with arbitrary data. A copy of the data is NOT made; this call transfers the reference count (ownership) to the callee.
-     void set(const char* name, SAFplus::Buffer*);
-     void set(const std::string& name, SAFplus::Buffer*);
+     void set(const char* name, SAFplus::Buffer*) throw (NameException&);
+     void set(const std::string& name, SAFplus::Buffer*) throw (NameException&);
   
      // Get a handle associated with the data
      // The SAFplus APIs use these calls to resolve names to handles or objects.
