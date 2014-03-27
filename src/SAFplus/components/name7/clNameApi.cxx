@@ -296,7 +296,7 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
       ia >> hm;      
       MappingMode m = hm.getMappingMode();      
       size_t sz = hm.getHandles().size();
-      int idx = 0;
+      int idx = -1;
       if (m == MODE_REDUNDANCY)
       {
          // first association must be returned
@@ -320,7 +320,7 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
             }
          }
          //No process match, get handle of THIS NODE
-         if (i >= sz)
+         if (idx == -1)
          {
             for(i=0;i<sz;i++)
 	    {
@@ -332,7 +332,7 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
             }
          }
          // If no any match, get "closer" handle over others. It may be the latest one
-         if (i>=sz) idx = sz-1;         
+         if (idx == -1) idx = sz-1;
       }
       else // Other case, REDUNDANCY mode is picked
       {

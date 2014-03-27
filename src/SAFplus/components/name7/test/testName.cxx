@@ -170,5 +170,7 @@ int main(int argc, char* argv[])
       printf("Exception [%s]\n", ne.what());
    }
    name.dump();
+   delete obj;
+   delete obj2;
    return 0;
 }
