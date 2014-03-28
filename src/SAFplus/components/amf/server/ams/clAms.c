@@ -319,6 +319,10 @@ static void *clAmsClusterStateVerifier(void *cookie)
             for(i=1; i< CL_IOC_MAX_NODES; i++)
             {
                 if (i == localAddress) continue;
+                /*
+                 * If node is going to terminal, exit this thread ASAP
+                 */
+                if (gCpmShuttingDown) goto nodeShutdown;
 
                 ClNodeCacheMemberT ncInfo;
                 rc = clNodeCacheMemberGet(i, &ncInfo);
@@ -361,6 +365,8 @@ static void *clAmsClusterStateVerifier(void *cookie)
         clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
         clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
         clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
+
+        nodeShutdown:
         if (!gpClCpm)  /* Process is down! (should never happen b/c we are holding a reference) */
         {
             return NULL;
