@@ -6,6 +6,8 @@ namespace SAFplus
   extern pid_t pid;  // This process's ID 
   extern const char* logCompName;  // Override this component name for display in the logs.  If this variable is not changed the name will be the SAF component name.
   extern bool  logCodeLocationEnable;
+  /** Set this to a file descriptor to echo all logs that pass the severity limit to it this fd on the client side.  For example, use 1 to send to stdout.  -1 to turn off (default) */
+  extern int logEchoToFd;
 
   extern SAFplus::LogSeverity logSeverity;
   

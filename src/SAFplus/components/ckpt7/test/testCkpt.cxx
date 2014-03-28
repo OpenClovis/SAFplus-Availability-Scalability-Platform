@@ -130,6 +130,7 @@ void test_readwrite()
 int main(int argc, char* argv[])
 {
   logInitialize();
+  logEchoToFd = 1;  // echo logs to stdout for debugging
   utilsInitialize();
   clTestGroupInitialize(("Test Checkpoint"));
   clTestCase(("Basic Read/Write"), test_readwrite());

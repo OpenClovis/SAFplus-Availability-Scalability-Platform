@@ -153,7 +153,7 @@ void SAFplus::Checkpoint::write(const char* key, const Buffer& value,Transaction
     char kmem[sizeof(Buffer)-1+klen];
     Buffer* kb = new(kmem) Buffer(klen);
     memcpy(kb->data,key,klen);
-
+    kb->setNullT(true);
     write(*kb,value,t);
   }
 
@@ -164,6 +164,7 @@ void SAFplus::Checkpoint::write(const std::string& key, const Buffer& value,Tran
     char kmem[sizeof(Buffer)-1+klen];
     Buffer* kb = new(kmem) Buffer(klen);
     memcpy(kb->data,key.c_str(),klen);
+    kb->setNullT(true);
 
     write(*kb,value,t);
   }
@@ -182,11 +183,12 @@ void SAFplus::Checkpoint::write(const std::string& key, const std::string& value
     memcpy(kb->data,key.c_str(),klen);
     Buffer* vb = new(vmem) Buffer(vlen);
     memcpy(vb->data, value.c_str(),vlen);
-
+    kb->setNullT(true);
+    vb->setNullT(true);
     write(*kb,*vb,t);
   }
 
-
+bool SAFplus::Buffer::isNullT() const { return (refAndLen&NullTMask)>0; }
 
 void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transaction& t)
 {
@@ -204,7 +206,8 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
           if (curval->ref() == 1)  // This hash table is the only thing using this value right now
             {
               if (curval->len() == newlen) {// lengths are the same, most efficient is to just copy the new data onto the old.
-                memcpy (curval->data,value.data,newlen);
+                //memcpy (curval->data,value.data,newlen);
+		*curval = value;
                 return;
               }
             }
