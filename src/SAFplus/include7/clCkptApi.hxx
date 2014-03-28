@@ -17,20 +17,32 @@
 
 #include <clCkptIpi.hxx>
 
+#define	NullTMask 0x800000UL
+
 namespace SAFplus
 {
 
   class Buffer
   {
-    uint32_t refAndLen; // 8 bits (highest) reference count and 24 bits length combined into one.
+    uint32_t refAndLen; // 8 bits (highest) reference count, 2 bits to indicate whether the key and value are null terminated (strings), and 22 bits length combined into one.
   public:
+    enum 
+      {
+	LenMask = 0x7fffff,
+        NullTShift = 23,
+        RefMask = 0xff000000,
+        RefShift = 24
+      };
+
     Buffer() { refAndLen=0;}
-    Buffer(uint_t _len) { refAndLen = (1UL<<24) | (_len&0x00ffffff); }
-    uint_t len() const { return refAndLen&0x00ffffff; }
-    void setLen(uint_t len) { refAndLen = (refAndLen&0xff000000) | len&0x00ffffff; }
-    uint_t ref() const { return refAndLen >> 24; }
-    void addRef(uint_t amt = 1) { refAndLen += (amt<<24); }
-    void decRef(uint_t amt = 1) { if (ref() < amt) refAndLen &= 0x00ffffff; else refAndLen -= (amt<<24); }
+    Buffer(uint_t _len) { refAndLen = (1UL<<RefShift) | (_len&LenMask); }
+    uint_t len() const { return refAndLen&LenMask; }
+    void setNullT(uint_t val) { refAndLen = refAndLen & (~NullTMask) | (val<<NullTShift); }
+    bool isNullT() const; // { printf("isnullt %lx %lx\n",refAndLen, refAndLen&NullTMask); return (refAndLen&NullTMask)>0; } // (((refAndLen >> NullTShift)&1) == 1);
+    void setLen(uint_t len) { refAndLen = (refAndLen&0xff000000) | len&LenMask; }
+    uint_t ref() const { return refAndLen >> RefShift; }
+    void addRef(uint_t amt = 1) { refAndLen += (amt<<RefShift); }
+    void decRef(uint_t amt = 1) { if (ref() < amt) refAndLen &= ~RefMask; else refAndLen -= (amt<<RefShift); }
 
     /** The buffer */
     char data[1];  // Not really length 1, this structure will be malloced and placed on a much larger buffer so data is actually len() long
@@ -43,6 +55,11 @@ namespace SAFplus
     Buffer& operator = (const char* s)
     {
       strncpy(data,s,len());
+    }
+
+    char* get()
+    {
+      return data;
     }
  
     operator char* ()
@@ -61,6 +78,8 @@ namespace SAFplus
     Buffer& operator=(Buffer const& c)  // Cannot be copied due to size issues, unless lengths are the same
     {
       assert(len() == c.len());
+      setNullT(c.isNullT());
+      printf("nullt? %d %d\n", c.isNullT(),isNullT());
       memcpy(data,c.data,len());
     }
 
@@ -93,7 +112,6 @@ namespace SAFplus
 	RETAINED = 0x20, // If all instances are closed, this checkpoint is not automatically removed
 	LOCAL =    0x40, // This checkpoint exists only on this blade.
         VARIABLE_SIZE = 0x80,  // Pass this into maxSize to dynamically re-allocate when needed
-
         EXISTING = 0x1000, // This checkpoint must be already in existence.  In this case, no other flags need to be passed since the existing checkpoint's flags will be used. 
       };
 

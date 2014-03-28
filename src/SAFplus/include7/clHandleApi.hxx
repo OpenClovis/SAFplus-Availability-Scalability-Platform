@@ -26,8 +26,8 @@ namespace SAFplus
   typedef  enum 
     {
       PointerHandle,
-      TransientHandle,
-      PersistentHandle
+      TransientHandle, // this handle uses slot numbers and process ids so won't be the same across restarts
+      PersistentHandle // this handle uses AMF entity ids so persists.
     } HandleType;
 
   class Handle
@@ -109,10 +109,11 @@ namespace SAFplus
   const WellKnownHandle INVALID_HDL(0,0);
   const WellKnownHandle SYS_LOG(1,0);
   const WellKnownHandle APP_LOG(2,0);
-  const WellKnownHandle LOG_STREAM_CKPT(3,0,0);  // The checkpoint that matches log stream names to data
-  const WellKnownHandle GRP_CKPT(4,0,0);         // The checkpoint that matches group names to groups
-  const WellKnownHandle CKPT_CKPT(5,0,0);        // The checkpoint that matches names to checkpoints
-  const WellKnownHandle NAME_CKPT(6,0,0);        // The checkpoint that matches names to arbitrary data
+  const WellKnownHandle TEST_LOG(3,0);
+  const WellKnownHandle LOG_STREAM_CKPT(4,0,0);  // The checkpoint that matches log stream names to data
+  const WellKnownHandle GRP_CKPT(5,0,0);         // The checkpoint that matches group names to groups
+  const WellKnownHandle CKPT_CKPT(6,0,0);        // The checkpoint that matches names to checkpoints
+  const WellKnownHandle NAME_CKPT(7,0,0);        // The checkpoint that matches names to arbitrary data
 
   // Return a handle that refers to the node.  If no argument, use this node.
   Handle getNodeHandle(int nodeNum=0);

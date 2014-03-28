@@ -11,9 +11,9 @@ PY_CLIENT_SRC := $(wildcard *.cxx)
 PY_CLIENT_OBJ := $(subst .cxx,.o,$(PY_CLIENT_SRC))
 PY_CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(PY_CLIENT_SRC)))
 
-all: $(LIB_DIR)/pySafplus.so
+all: $(LIB_DIR)/pySAFplus.so
 
-$(SAFPLUS_TARGET)/lib/pySafplus.so:  $(PY_CLIENT_OBJ) $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclOsal7.so
+$(SAFPLUS_TARGET)/lib/pySAFplus.so:  $(PY_CLIENT_OBJ)  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclOsal7.so
 	$(LINK_SO) $@ $+  $(LIB_DIR)/libclLog.so $(PY_LIB) $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(LOG_SERVER_H)

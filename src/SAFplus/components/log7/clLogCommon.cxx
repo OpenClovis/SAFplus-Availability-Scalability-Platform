@@ -9,6 +9,8 @@ using namespace SAFplus;
 
 bool SAFplus::logCodeLocationEnable=true;
 SAFplus::LogSeverity SAFplus::logSeverity=SAFplus::LOG_SEV_NOTICE;
+/** Set this to a file descriptor to echo all logs that pass the severity limit to it this fd on the client side.  For example, use 1 to send to stdout.  -1 to turn off (default) */
+int SAFplus::logEchoToFd=-1;
 
 namespace SAFplusI
 {
