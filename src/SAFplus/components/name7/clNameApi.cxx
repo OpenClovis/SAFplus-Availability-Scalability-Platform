@@ -59,7 +59,7 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, Mappi
 
 void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
 {
-   set(name.data(), handle, m, object);
+   set(name.c_str(), handle, m, object);
 }
 
 void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
@@ -124,7 +124,7 @@ void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, Ma
 
 void SAFplus::NameRegistrar::append(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
 {
-   append(name.data(), handle, m, object);
+   append(name.c_str(), handle, m, object);
 }
 
 void SAFplus::NameRegistrar::set(const char* name, const void* data, int length) throw (NameException&)
@@ -178,7 +178,7 @@ void SAFplus::NameRegistrar::set(const char* name, const void* data, int length)
 void SAFplus::NameRegistrar::set(const std::string& name, const void* data, int length) throw (NameException&)
 {
    try {
-      set(name.data(), data, length);
+      set(name.c_str(), data, length);
    }catch (NameException ne) {
       throw ne;
    }
@@ -230,7 +230,7 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Buffer* p_buf) throw
 void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Buffer* p_buf) throw (NameException&)
 {
    try {
-      set(name.data(), p_buf);
+      set(name.c_str(), p_buf);
    }catch (NameException ne) {
       throw ne;
    }
@@ -262,7 +262,7 @@ std::pair<SAFplus::Handle,void*> SAFplus::NameRegistrar::get(const std::string& 
 {
    try
    {
-      return get(name.data());
+      return get(name.c_str());
    }
    catch(NameException ne)
    {
@@ -348,7 +348,7 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const std::string& name) throw
 {
    try
    {
-      return getHandle(name.data());
+      return getHandle(name.c_str());
    }                
    catch (NameException ne)
    {
@@ -384,7 +384,7 @@ SAFplus::Buffer& SAFplus::NameRegistrar::getData(const std::string& name) throw(
 {
    try 
    {
-      return getData(name.data());
+      return getData(name.c_str());
    }
    catch (NameException ne)
    {

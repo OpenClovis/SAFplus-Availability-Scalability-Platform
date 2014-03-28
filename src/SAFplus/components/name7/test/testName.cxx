@@ -20,7 +20,7 @@ public:
       nm = name;
    }
    void greet(){
-      printf("%s greets from ObjTest\n", nm.data());
+      printf("%s greets from ObjTest\n", nm.c_str());
    }       
 };
 
@@ -72,27 +72,16 @@ void testNameAppend(const char* n, NameRegistrar::MappingMode m, uint32_t idx, v
 
 int main(int argc, char* argv[])
 {
-#if 0
-   testNameSetGet("_111000111", NameRegistrar::MODE_REDUNDANCY, 0xaabbcc);
-   testNameAppend("_111000111", NameRegistrar::MODE_NO_CHANGE, 0xaabbdd);
-   testNameAppend("_111000111", NameRegistrar::MODE_NO_CHANGE, 0xaabbe0);
-   testNameAppend("_111000111", NameRegistrar::MODE_NO_CHANGE, 0xaabbe2);
-   pid_t thispid = getpid();
-   testNameAppend("_111000111", NameRegistrar::MODE_NO_CHANGE, 0xaabbe4, (uint32_t)thispid);
-   testNameAppend("_111000111", NameRegistrar::MODE_NO_CHANGE, 0xaabbe4, 0xffffffff, 2);
-#endif
-
 #if 1
-   ObjTest* obj = new ObjTest("Jim");   
+   ObjTest* jim = new ObjTest("Jim");   
    //obj->greet();
    const char* name1 = "_111000111";
-   testNameSetGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbcc, obj);
-   testNameAppend(name1, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbdd, obj);
-   ObjTest* obj2 = new ObjTest("Jimmy");
+   testNameSetGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbcc, jim);
+   testNameAppend(name1, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbdd, jim);
+   ObjTest* jane = new ObjTest("Jane");
    const char* name2 = "_011000111";
-   testNameSetGet(name2, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbce, obj2);
-   //testNameAppend("_111000111", NameRegistrar::MODE_REDUNDANCY, 0xaabbe0);
-   //testNameAppend("_111000111", NameRegistrar::MODE_NO_CHANGE, 0xaabbe2);
+   testNameSetGet(name2, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbce, jane);
+   
    name.dumpObj();
    try {
      std::pair<SAFplus::Handle,void*>ho = name.get(name1);
@@ -119,12 +108,7 @@ int main(int argc, char* argv[])
    }catch (NameException ne) {
        printf("Exception [%s]\n", ne.what());
    }
-   //pid_t thispid = getpid();
-   //ObjTest* obj2 = new ObjTest("Jane");
-   //testNameAppend("_111000111", NameRegistrar::MODE_PREFER_LOCAL, 0xaabbe4, NULL, (uint32_t)thispid);
-   //testNameAppend("_111000111", NameRegistrar::MODE_PREFER_LOCAL, 0xaabbe4, NULL, 0xffffffff, 2);
-   //std::pair<SAFplus::Handle&,void*>ho2 = name.get("_111000111");
-   //((ObjTest*)ho2.second)->greet();
+   
    try {
       SAFplus::Buffer& buf = name.getData(name1);
       printf("name [%s]: buf [%s]\n", name1, buf.data);
@@ -157,6 +141,7 @@ int main(int argc, char* argv[])
    
 #endif
    //char data[120];
+#if 1
    strcpy(data, "This is arbitrary data example. Don't care its content");
    try {
       name.set("aaaa", data, strlen(data)+1);
@@ -169,8 +154,18 @@ int main(int argc, char* argv[])
    }catch (NameException ne) {
       printf("Exception [%s]\n", ne.what());
    }
-   name.dump();
-   delete obj;
-   delete obj2;
+   delete jim;
+   delete jane;
+// Test with "prefer local" mode
+   pid_t thispid = getpid();   
+   const char* name3 = "_001000111";
+   testNameSetGet(name3, NameRegistrar::MODE_REDUNDANCY, 0xaabbe4, NULL);
+   testNameAppend(name3, NameRegistrar::MODE_NO_CHANGE, 0xaabbe5, NULL);
+   testNameAppend(name3, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbe7, NULL, (uint32_t)thispid);
+#endif
+   //const char* name3 = "_001000111";
+   testNameAppend(name3, NameRegistrar::MODE_NO_CHANGE, 0xaabbe9, NULL, 0xffffffff, 2);
+
+   name.dump();   
    return 0;
 }
