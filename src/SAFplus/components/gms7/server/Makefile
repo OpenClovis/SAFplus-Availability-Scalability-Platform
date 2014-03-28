@@ -1,41 +1,39 @@
 S7 := 1
+SAFPLUS_LOG_SERVER:=1  # Identify what is being built, so safplus_targets does not override
 include ../../../mk/preface.mk
 
-CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
+MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
 SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
-MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
+CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..
+DEP_LIBS += $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclDbal7.so $(LIB_DIR)/libclOsal7.so
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
+# Management includes and libraries
+CPP_FLAGS += -I../../mgt7/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
-SENDER_SRC := groupClient.cxx
-SENDER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SENDER_SRC)))
+COMPILE_CPP := g++ -g -O0 -fPIC -c $(CPP_FLAGS) -o
+LINK_SO     := g++ -g -shared -o
+LINK_EXE     := g++ -g -o
 
-RECEIVER_SRC := groupServer.cxx
-RECEIVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(RECEIVER_SRC)))
+GROUP_SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp)
+GROUP_SERVER_SRC := $(wildcard *.cxx)
+GROUP_SERVER_OBJ := $(subst .cpp,.o, $(subst .cxx,.o,$(GROUP_SERVER_SRC)))
+GROUP_SERVER_OBJ := $(addprefix $(OBJ_DIR)/groupsvr/,$(GROUP_SERVER_OBJ))
 
-DEP_LIBS :=  $(LIB_DIR)/libclName.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclLog.so
 
-LINK_STD_LIBS += -lpthread -lstdc++ -ldl -lrt -lm -L$(SAFPLUS_TOOLCHAIN_DIR)/lib -lboost_thread -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml
+all: $(SAFPLUS_TARGET)/bin/spgroupd
 
-all: $(TEST_DIR)/ClientTest $(TEST_DIR)/ServerTest
+$(SAFPLUS_TARGET)/bin/spgroupd: $(GROUP_SERVER_OBJ) $(DEP_LIBS)
+	$(LINK_EXE) $@ $+ -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS)
+	cp $(SAFPLUS_TARGET)/bin/spgroupd .
 
-$(TEST_DIR)/ClientTest: $(SENDER_OBJ) $(DEP_LIBS)
-	$(LINK) $+  $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
-
-$(TEST_DIR)/ServerTest: $(RECEIVER_OBJ) $(DEP_LIBS)
-	$(LINK) $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
-
-$(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
+$(OBJ_DIR)/groupsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)
+	-mkdir -p $(OBJ_DIR)/groupsvr/
 	$(COMPILE_CPP) $@ $<
 
-test: all
-	cp -f $(TEST_DIR)/ClientTest .
-	cp -f $(TEST_DIR)/ServerTest .
-
 clean:
-	rm -f $(OBJ_DIR)/groupClient.o $(OBJ_DIR)/groupServer.o $(TEST_DIR)/ClientTest $(TEST_DIR)/ServerTest
+	rm -f $(OBJ_DIR)/groupsvr/*.o $(SAFPLUS_TARGET)/bin/spgroupd
 
 include ../../../mk/safplus_targets.mk

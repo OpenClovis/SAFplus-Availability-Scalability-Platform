@@ -170,15 +170,14 @@ void SAFplus::Group::deregister(EntityIdentifier me)
 
   /* Delete data from map */
   map->erase(contents);
-  /* Reelect if leaving entity is standby/active */
-  if(activeEntity == me || standbyEntity == me)
+  /* Update if leaving entity is standby/active */
+  if(activeEntity == me)
   {
-    if(activeEntity == me)
-    {
-      activeEntity = standbyEntity;
-    }
+    activeEntity = INVALID_HDL;
+  }
+  if(standbyEntity == me)
+  {
     standbyEntity = INVALID_HDL;
-    electForRoles(SAFplus::Group::ELECTION_TYPE_STANDBY);
   }
   /* Notify other entities about new entity*/
   if(wakeable)
@@ -208,6 +207,16 @@ void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
 
   SAFplusI::BufferPtr curval = contents->second;
   ((GroupIdentity *)(((Buffer *)curval.get())->data))->capabilities = capabilities;
+
+  /*Update active/standby based on new capabilities*/
+  if((capabilities & SAFplus::Group::IS_ACTIVE) != 0)
+  {
+    activeEntity = me;
+  }
+  if((capabilities & SAFplus::Group::IS_STANDBY) != 0)
+  {
+    standbyEntity = me;
+  }
 }
 
 uint SAFplus::Group::getCapabilities(EntityIdentifier id)
@@ -334,17 +343,15 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     if(!(candidatePair.first == INVALID_HDL) && !(candidatePair.first == activeEntity))
     {
         isRoleChanged = true;
-        activeEntity = candidatePair.first;
         logInfo("GMS", "ELECT","Active entity had been elected");
     }
     if(!(candidatePair.second == INVALID_HDL) && !(candidatePair.second == standbyEntity))
     {
         isRoleChanged = true;
-        standbyEntity = candidatePair.second;
         logInfo("GMS", "ELECT","Standby entity had been elected");
     }
-    res.first = activeEntity;
-    res.second = standbyEntity;
+    res.first = candidatePair.first;
+    res.second = candidatePair.second;
     if(isRoleChanged && wakeable)
     {
       wakeable->wake(3);
@@ -357,11 +364,10 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     if(!(candidatePair.second == INVALID_HDL) && !(candidatePair.second == standbyEntity))
     {
       isRoleChanged = true;
-      standbyEntity = candidatePair.second;
       logInfo("GMS", "ELECT","Standby entity had been elected");
     }
-    res.first = activeEntity;
-    res.second = standbyEntity;
+    res.first = candidatePair.first;
+    res.second = candidatePair.second;
     if(isRoleChanged && wakeable)
     {
       wakeable->wake(3);
@@ -374,11 +380,10 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     if(!(candidatePair.first == INVALID_HDL) && !(candidatePair.first == activeEntity))
     {
         isRoleChanged = true;
-        activeEntity = candidatePair.first;
         logInfo("GMS", "ELECT","Active entity had been elected");
     }
-    res.first = activeEntity;
-    res.second = standbyEntity;
+    res.first = candidatePair.first;
+    res.second = candidatePair.second;
     if(isRoleChanged && wakeable)
     {
       wakeable->wake(3);

@@ -1,7 +1,6 @@
 #include "clSafplusMsgServer.hxx"
 #include "groupServer.hxx"
 #include <clGlobals.hxx>
-#include <clTimerApi.h>
 
 
 using namespace SAFplus;
@@ -13,235 +12,207 @@ using namespace std;
 #define GMS_PORT_2 70
 
 /* SAFplus specified variables */
-ClUint32T clAspLocalId = atoi(getenv("NODEADDR"));
-ClBoolT gIsNodeRepresentative = CL_TRUE;
-ClIocNodeAddressT myNodeAddress = clAspLocalId;
-ClHandleT gNotificationCallbackHandle = CL_HANDLE_INVALID_VALUE;
-/* Global variables */
+
+/* Well-known groups */
 SAFplus::Group    clusterNodeGrp("CLUSTER_NODE");
+SAFplus::Group    clusterCompGrp("CLUSTER_COMP");
 
-
-class ServerMsgHandler:public SAFplus::MsgHandler
-{
-  public:
-    void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
-    {
-      int msgType = *(int *)cookie;
-      cout << "GMS_SERVER[" << clAspLocalId << "]: Cookie: " << msgType << "\n";
-      switch(msgType)
-      {
-        case 1:
-        {
-          messageProtocol *rxMsg = (messageProtocol *)msg;
-          /* If local message, ignore */
-          if(from.iocPhyAddress.nodeAddress == clAspLocalId && (from.iocPhyAddress.portId == GMS_PORT_1 || from.iocPhyAddress.portId == GMS_PORT_2))
-          {
-            return;
-          }
-          switch(rxMsg->messageType)
-          {
-            case CLUSTER_NODE_ARRIVAL:
-              entityJoinHandle(rxMsg);
-              break;
-            case CLUSTER_NODE_LEAVE:
-              entityLeaveHandle(rxMsg);
-              break;
-            case CLUSTER_NODE_ELECT:
-              entityElectHandle();
-              break;
-            default: //Unsupported
-              break;
-          }
-          break;
-        }
-        default:
-        {
-          cout << "GMS_SERVER[" << clAspLocalId << "]: Not yet supported \n";
-          break;
-        }
-      }
-    }
-};
-
-ServerMsgHandler *handler = new ServerMsgHandler();
-/* Notification to detect node status*/
-void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused, ClIocAddressT *pAddress)
-{
-  ClRcT rc = CL_OK;
-  if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION || eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
-  {
-    cout << "GMS_SERVER[" << myNodeAddress << "]: Received left node event. Do nothing.. \n";
-  }
-  else
-  {
-    cout << "GMS_SERVER[" << myNodeAddress << "]: Received newly join node [" << pAddress->iocPhyAddress.nodeAddress << "," <<  pAddress->iocPhyAddress.portId << "]\n";
-
-    /* Broadcast data to newly join node */
-    if((pAddress->iocPhyAddress.nodeAddress != myNodeAddress) && (pAddress->iocPhyAddress.portId == GMS_PORT_1 || pAddress->iocPhyAddress.portId == GMS_PORT_2))
-    {
-      sendInfomationToNewNode(pAddress);
-    }
-  }
-}
-void gmsNotificationInitialize()
-{
-  ClIocPhysicalAddressT compAddr = {0};
-  compAddr.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-  compAddr.portId = CL_IOC_CPM_PORT;
-  clCpmNotificationCallbackInstall(compAddr, gmsNotificationCallback, NULL, &gNotificationCallbackHandle);
-}
-void sendInfomationToNewNode(ClIocAddressT *pAddress)
-{
-  messageProtocol broadcastMsg;
-  broadcastMsg.messageType = CLUSTER_NODE_ARRIVAL;
-  broadcastMsg.groupId = 0;
-  broadcastMsg.numberOfItems = 1;
-
-  SAFplus::Group::Iterator iter = clusterNodeGrp.begin();
-  while(iter != clusterNodeGrp.end())
-  {
-    SAFplusI::BufferPtr curval = iter->second;
-    GroupIdentity item = *(GroupIdentity *)(curval.get()->data);
-    broadcastMsg.grpIdentity = item;
-    sendBroadcast((void *)&broadcastMsg,sizeof(messageProtocol));
-    iter++;
-    cout << "GMS_SERVER[" << myNodeAddress << "]: Send data to GMS_SERVER[" <<  pAddress->iocPhyAddress.nodeAddress;
-  }
-}
-void convertIocAddressToHandle(ClIocAddressT *pAddress, SAFplus::Handle *pHandle)
-{
-  *pHandle = SAFplus::Handle(PersistentHandle,0,pAddress->iocPhyAddress.portId,pAddress->iocPhyAddress.nodeAddress,0);
-}
-void initializeSAFplus()
-{
-
-}
-void registerAndStartMessageHandler(int port)
-{
-  int cookieMsg = 1;
-  SAFplus::SafplusMsgServer safplusMsgServer(port);
-  safplusMsgServer.RegisterHandler(CL_IOC_PROTO_MSG, handler, (int *)&cookieMsg);
-  safplusMsgServer.Start();
-}
-void sendBroadcast(void* data, int dataLength)
-{
-  SafplusMsgServer msgClient(IOC_PORT);
-  ClIocAddressT iocDest;
-  if(clAspLocalId == 1) //If current node is 1, send to node 2
-  {
-    iocDest.iocPhyAddress.nodeAddress = 2;
-    iocDest.iocPhyAddress.portId = (int)GMS_PORT_2;
-  }
-  else
-  {
-    iocDest.iocPhyAddress.nodeAddress = 1;
-    iocDest.iocPhyAddress.portId = (int)GMS_PORT_1;
-  }
-
-  MsgReply *msgReply = msgClient.SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
-}
-void entityJoinHandle(messageProtocol *rxMsg)
-{
-  GroupIdentity grpIdentity = rxMsg->grpIdentity;
-  if(clusterNodeGrp.isMember(grpIdentity.id))
-  {
-    cout << "GMS_SERVER[" << myNodeAddress << "]: " << "Already member! No broadcast needed! \n";
-    return;
-  }
-  cout << "GMS_SERVER[" << myNodeAddress << "]: " << "DATA: Credential: " << grpIdentity.credentials << " Capabilities:" << grpIdentity.capabilities << "\n";
-  clusterNodeGrp.registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
-  messageProtocol broadcastMsg;
-  broadcastMsg.messageType = CLUSTER_NODE_ARRIVAL;
-  broadcastMsg.groupId = 0;
-  broadcastMsg.numberOfItems = 1;
-  broadcastMsg.grpIdentity = grpIdentity;
-  sendBroadcast((void *)&broadcastMsg,sizeof(messageProtocol));
-}
-void entityLeaveHandle(messageProtocol *rxMsg)
-{
-  bool needReelect = false;
-  int reElectType = 0;
-  GroupIdentity grpIdentity = rxMsg->grpIdentity;
-  if(clusterNodeGrp.isMember(grpIdentity.id))
-  {
-    if(grpIdentity.id == clusterNodeGrp.getActive())
-    {
-      cout << "GMS_SERVER[" << myNodeAddress << "]: " << "Active entity left \n";
-      reElectType = (int)SAFplus::Group::ELECTION_TYPE_ACTIVE;
-    }
-    else if(grpIdentity.id == clusterNodeGrp.getStandby())
-    {
-      cout << "GMS_SERVER[" << myNodeAddress << "]: " << "Standby entity left \n";
-      reElectType = (int)SAFplus::Group::ELECTION_TYPE_STANDBY;
-    }
-    clusterNodeGrp.deregister(grpIdentity.id);
-    messageProtocol broadcastMsg;
-    broadcastMsg.messageType = CLUSTER_NODE_LEAVE;
-    broadcastMsg.groupId = 0;
-    broadcastMsg.numberOfItems = 1;
-    broadcastMsg.grpIdentity = grpIdentity;
-    sendBroadcast((void *)&broadcastMsg,sizeof(messageProtocol));
-
-    if(reElectType != 0)
-    {
-      std:pair<EntityIdentifier,EntityIdentifier> res;
-      uint capabilities;
-      int rs = clusterNodeGrp.elect(res,reElectType);
-      cout << "GMS_SERVER[" << myNodeAddress << "]: " << "Election result: " << rs << "\n";
-      capabilities = clusterNodeGrp.getCapabilities(res.first);
-      cout << "GMS_SERVER[" << myNodeAddress << "]: " << "--> Active had capability: " << capabilities << "\n";
-      capabilities = clusterNodeGrp.getCapabilities(res.second);
-      cout << "GMS_SERVER[" << myNodeAddress << "]: " << "--> Standby had capability: " << capabilities << "\n";
-    }
-  }
-  else
-  {
-    cout << "GMS_SERVER[" << myNodeAddress << "]: " << "Entity didn't exist! \n";
-  }
-
-
-}
-void entityElectHandle()
-{
-  std:pair<EntityIdentifier,EntityIdentifier> res;
-  uint capabilities;
-  int rs = clusterNodeGrp.elect(res,SAFplus::Group::ELECTION_TYPE_BOTH);
-
-  cout << "GMS_SERVER[" << myNodeAddress << "]: " << "Election result: " << rs << "\n";
-  capabilities = clusterNodeGrp.getCapabilities(res.first);
-  cout << "GMS_SERVER[" << myNodeAddress << "]: " << "--> Active had capability: " << capabilities << "\n";
-  capabilities = clusterNodeGrp.getCapabilities(res.second);
-  cout << "GMS_SERVER[" << myNodeAddress << "]: " << "--> Standby had capability: " << capabilities << "\n";
-
-}
+/*
+GROUP SERVICE DESIGNATION
+*************************************************************************
+* - Running on some SC Nodes (a Master - active role - and several Slaves)
+* - Tracking the Nodes/Components membership and role
+* - When a component join/leave/failed:
+*     - All GMS services will do appropriate action on that membership changes
+*     - No broadcast needed
+* - When a node join:
+*     - Master node will add information of newly node (filter admission)
+*     - Master node will send broadcast of newly node to all node
+*     - Slave nodes will add information (received from server), no need to broadcast
+* - When a node leave:
+*     - All GMS services will update the GMS data
+*     - If the left node is a Master Node:
+*         - Slave Node (with standby role)  entity will become Master Node (with active role)
+*         - Broadcast role change to other nodes
+*         - Master Node will elect for a new Standby role
+*         - Broadcast role change to other nodes
+*     - If the left node is a Slave Node and was taking Standby role
+*         - Master Node will elect for a new Standby role
+*         - Broadcast role change to other nodes
+*     - Others: do nothing
+*************************************************************************
+*/
 int main(int argc, char* argv[])
 {
   ClRcT rc;
-  int listenPort = GMS_PORT_1;
-
-  if(clAspLocalId > 1)
+  rc = initializeServices();
+  if(CL_OK != rc)
   {
-    listenPort = GMS_PORT_2;
+    logError("GMS","SERVER","Initialize server error");
+    return rc;
   }
-  initializeSAFplus();
-  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
-  {
-    cout << "GMS_SERVER[" << myNodeAddress << "]: " << "Initialize error! \n";
-    return 0;
-  }
-  clIocLibInitialize(NULL);
-  /* Create message handler to receive message from other group servers */
-  registerAndStartMessageHandler(listenPort);
-  /* Initialize callback to receive notification from CPM */
-  //gmsNotificationInitialize();
-
-  cout << "\nGMS_SERVER[" << myNodeAddress << "]: Initialized success! \n";
   /* Dispatch */
   while(1)
   {
     ;
   }
-
-  cout << "Server is shutting down...";
   return 0;
+}
+
+ClRcT initializeServices()
+{
+  ClRcT   rc            = CL_OK;
+  int     messageScope  = GMS_MESSAGE;
+
+  /* Initialize necessary libraries */
+  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+  {
+    return rc;
+  }
+  clIocLibInitialize(NULL);
+
+  /* Initialize message handler */
+  GroupMessageHandler         *groupMessageHandler = new GroupMessageHandler();
+  SAFplus::SafplusMsgServer   groupMsgServer(GMS_PORT);
+  SAFplus::SafplusMsgServer   clusterMsgServer(AMF_PORT);
+  groupMsgServer.RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, (int *)&messageScope);
+  /* TODO: Register to message from AMF */
+  messageScope = AMF_MESSAGE;
+  clusterMsgServer.RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, (int *)&messageScope);
+
+  /* Start the message handlers */
+  clusterMsgServer.Start();
+  groupMsgServer.Start();
+}
+
+void NodeJoinFromMaster(GroupMessageProtocolT *msg)
+{
+  GroupIdentity *grpIdentity = (GroupIdentity *)msg->data;
+  if(clusterNodeGrp.isMember(grpIdentity->id))
+  {
+    logDebug("GMS","SERVER","Node is already group member");
+    return;
+  }
+  clusterNodeGrp.registerEntity(grpIdentity->id,grpIdentity->credentials, grpIdentity->data, grpIdentity->dataLen, grpIdentity->capabilities);
+}
+
+void NodeLeave(ClIocAddressT *pAddress)
+{
+  GroupIdentity grpIdentity;
+  getNodeInfo(pAddress,&grpIdentity);
+  if(clusterNodeGrp.isMember(grpIdentity.id))
+  {
+    clusterNodeGrp.deregister(grpIdentity.id);
+    if(clusterNodeGrp.getActive() == grpIdentity.id)
+    {
+      /*Update Node with standby role to active role*/
+      EntityIdentifier standbyNode = clusterNodeGrp.getStandby();
+      int currentCapability = clusterNodeGrp.getCapabilities(standbyNode);
+      currentCapability |= SAFplus::Group::IS_ACTIVE;
+      currentCapability &= ~SAFplus::Group::IS_STANDBY;
+      clusterNodeGrp.setCapabilities(currentCapability,standbyNode);
+
+      /* TODO: Send role change notification */
+
+      /* Elect for standby role on Master node only */
+      if(isMasterNode())
+      {
+        std::pair<EntityIdentifier,EntityIdentifier> electResult;
+        clusterNodeGrp.elect(electResult,SAFplus::Group::ELECTION_TYPE_STANDBY);
+        if(electResult.second == INVALID_HDL)
+        {
+          logError("GMS","SERVER","Can't elect for standby role");
+          return;
+        }
+        standbyNode = electResult.second;
+        currentCapability = clusterNodeGrp.getCapabilities(standbyNode);
+        currentCapability |= SAFplus::Group::IS_STANDBY;
+        currentCapability &= ~SAFplus::Group::IS_ACTIVE;
+        clusterNodeGrp.setCapabilities(currentCapability,standbyNode);
+
+        /* TODO: Send role change notification */
+      }
+
+
+    }
+    else if(clusterNodeGrp.getStandby() == grpIdentity.id)
+    {
+      /* Elect for standby role on Master node only */
+      if(isMasterNode())
+      {
+        std::pair<EntityIdentifier,EntityIdentifier> electResult;
+        clusterNodeGrp.elect(electResult,SAFplus::Group::ELECTION_TYPE_STANDBY);
+        if(electResult.second == INVALID_HDL)
+        {
+          logError("GMS","SERVER","Can't elect for standby role");
+          return;
+        }
+        EntityIdentifier standbyNode = electResult.second;
+        int currentCapability = clusterNodeGrp.getCapabilities(standbyNode);
+        currentCapability |= SAFplus::Group::IS_STANDBY;
+        currentCapability &= ~SAFplus::Group::IS_ACTIVE;
+        clusterNodeGrp.setCapabilities(currentCapability,standbyNode);
+        /* TODO: Send role change notification */
+      }
+    }
+  }
+  else
+  {
+    logDebug("GMS","SERVER","Node isn't a group member");
+  }
+}
+
+void NodeJoin(ClIocAddressT *pAddress)
+{
+  if(isMasterNode())
+  {
+    GroupIdentity grpIdentity;
+    getNodeInfo(pAddress,&grpIdentity);
+    clusterNodeGrp.registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
+    /* TODO: Send node join broadcast message */
+  }
+}
+
+void RoleChangeFromMaster(GroupMessageProtocolT *msg)
+{
+  /* TODO: Implement me */
+}
+void ComponentJoin(ClIocAddressT *pAddress)
+{
+  GroupIdentity grpIdentity;
+  getNodeInfo(pAddress,&grpIdentity);
+  if(clusterCompGrp.isMember(grpIdentity.id))
+  {
+    logDebug("GMS","SERVER", "Component is already a group member");
+    return;
+  }
+  clusterCompGrp.registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
+}
+
+void ComponentLeave(ClIocAddressT *pAddress)
+{
+  GroupIdentity grpIdentity;
+  getNodeInfo(pAddress,&grpIdentity);
+  if(!clusterCompGrp.isMember(grpIdentity.id))
+  {
+    logDebug("GMS","SERVER", "Component isn't a group member");
+    return;
+  }
+  clusterCompGrp.deregister(grpIdentity.id);
+}
+
+void  getNodeInfo(ClIocAddressT* pAddress, GroupIdentity *grpIdentity)
+{
+  /* TODO: Implement me */
+}
+
+bool  isMasterNode()
+{
+  /* TODO: Implement me */
+  return true;
+}
+
+void  sendNotification(GroupMessageTypeT messageType,void* data, GroupMessageSendModeT messageMode)
+{
+    /* TODO: Implement me */
 }
