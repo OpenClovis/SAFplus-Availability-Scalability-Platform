@@ -1724,7 +1724,6 @@ cclRBTreeContainerUserDataGet (ClCntHandleT     rbtHandle,
                                ClCntDataHandleT *pUserData)
 {
   BaseLinkedListNode_t *pTemp    = NULL;
-  ElementHandle_t      *pElement = NULL;
 
   /* Validate the node handle */
   pTemp = (BaseLinkedListNode_t*)nodeHandle;
@@ -1736,8 +1735,8 @@ cclRBTreeContainerUserDataGet (ClCntHandleT     rbtHandle,
   }
 
   /* Check this handle belongs to this RBtree */
-  pElement = (ElementHandle_t *) pTemp->parentNodeHandle; 
 #if 0
+  ElementHandle_t      *pElement = (ElementHandle_t *) pTemp->parentNodeHandle; 
   if( pElement->hListHead != rbtHandle )
   {
       returnCntError(CL_ERR_INVALID_HANDLE, 

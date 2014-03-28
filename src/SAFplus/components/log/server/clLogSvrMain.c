@@ -113,8 +113,78 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[])
    return 0;
 }
 
+#if 0  // This no-ops the log server
+ClRcT clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
+{
+    SaAmfCallbacksT     callbacks = {0};
+    SaVersionT          version;
+    
+    ClRcT            rc            = CL_OK;
+    ClBoolT          *pCookie      = NULL;
+	
+    clLogCompName =(ClCharT*) "LOG"; /* Override generated eo name with a short name for our server */
+    gClLogServer = CL_FALSE;  /* Mark me as the log server */
 
+    clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Log Server initialization started...");
 
+    clAppConfigure(&clEoConfig,clEoBasicLibs,clEoClientLibs);
+
+    version.releaseCode  = 'B';
+    version.majorVersion = 0x01;
+    version.minorVersion = 0x01;
+
+    callbacks.saAmfHealthcheckCallback          = NULL; /* rarely necessary because SAFplus monitors the process */
+    callbacks.saAmfComponentTerminateCallback   = clLogSvrTerminate;
+    callbacks.saAmfCSISetCallback               = NULL;
+    callbacks.saAmfCSIRemoveCallback            = NULL;
+    callbacks.saAmfProtectionGroupTrackCallback = NULL;        
+    callbacks.saAmfProxiedComponentInstantiateCallback    = NULL;
+    callbacks.saAmfProxiedComponentCleanupCallback    = NULL;
+
+    rc = saAmfInitialize(&amfHandle, &callbacks, &version);
+    if( SA_AIS_OK != rc )
+    {
+        CL_LOG_DEBUG_ERROR(("saAmfInitialize(): rc[0x %x]", rc));
+        return rc;
+    }
+          
+
+    rc = saAmfComponentNameGet(amfHandle, &logServerName);
+    if( SA_AIS_OK != rc )
+    {
+        CL_LOG_DEBUG_ERROR(("saAmfComponentNameGet(): rc[0x %x]", rc));
+        saAmfFinalize(amfHandle);
+        CL_LOG_CLEANUP(clLogSvrEoDataFinalize(), CL_OK);
+        CL_LOG_CLEANUP(clLogSvrEoDataFree(), CL_OK);
+        clHeapFree(pCookie);
+        CL_LOG_CLEANUP(clLogStreamOwnerLocalShutdown(), CL_OK);
+        CL_LOG_CLEANUP(clLogStreamOwnerEoDataFree(), CL_OK);
+        CL_LOG_CLEANUP(clLogSvrCommonDataFinalize(), CL_OK);
+        CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
+        return rc;
+    }
+    rc = saAmfComponentRegister(amfHandle, &logServerName, NULL);
+    if( SA_AIS_OK != rc )
+    {
+        CL_LOG_DEBUG_ERROR(("saAmfComponentRegister(): rc[0x %x]", rc));
+        CL_LOG_CLEANUP(clLogSvrEoDataFinalize(), CL_OK);
+        CL_LOG_CLEANUP(clLogSvrEoDataFree(), CL_OK);
+        clHeapFree(pCookie);
+        CL_LOG_CLEANUP(clLogStreamOwnerLocalShutdown(), CL_OK);
+        CL_LOG_CLEANUP(clLogStreamOwnerEoDataFree(), CL_OK);
+        CL_LOG_CLEANUP(clLogSvrCommonDataFinalize(), CL_OK);
+        CL_LOG_CLEANUP(clIdlHandleFinalize(shLogDummyIdl), CL_OK);
+        saAmfFinalize(amfHandle);
+        return rc;
+    }   
+
+    clLogNotice(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Log Server partially up");
+
+    CL_LOG_DEBUG_TRACE(("Exit"));
+    return CL_OK;					    
+}
+
+#else
 ClRcT 
 clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
 {
@@ -287,6 +357,7 @@ clLogSvrInitialize(ClUint32T argc,ClCharT   *argv[])
     CL_LOG_DEBUG_TRACE(("Exit"));
     return CL_OK;					    
 }
+#endif
 
 /*
  * clCompAppTerminate
@@ -311,7 +382,9 @@ void clLogSvrTerminate(SaInvocationT invocation, const SaNameT *compName)
     }
     hCpm = pSvrEoEntry->hCpm;
     saAmfComponentUnregister(amfHandle,compName, NULL);
+#if 1
     CL_LOG_CLEANUP(clLogSvrShutdown(), CL_OK);
+#endif    
     saAmfFinalize(amfHandle);
     saAmfResponse(amfHandle, invocation, SA_AIS_OK);
 
@@ -322,6 +395,7 @@ void clLogSvrTerminate(SaInvocationT invocation, const SaNameT *compName)
 
 }
 
+#if 1
 ClRcT
 clLogSvrShutdown(void)
 {
@@ -343,6 +417,7 @@ clLogSvrShutdown(void)
 	CL_LOG_DEBUG_TRACE(("Exit"));	
     return CL_OK;
 }
+#endif
 
 ClRcT
 clLogSvrHealthCheck(ClEoSchedFeedBackT* pSchFeedback)

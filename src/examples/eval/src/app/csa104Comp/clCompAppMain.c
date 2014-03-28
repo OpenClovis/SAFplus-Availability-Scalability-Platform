@@ -80,7 +80,7 @@ ClBoolT unblockNow = CL_FALSE;
  */
 
 /* csa102: high availability variables */
-SaAmfHAStateT  ha_state = 0;            /* HA state           */
+SaAmfHAStateT  ha_state = (SaAmfHAStateT) 0; /* HA state starts invalid         */
 /* csa103: checkpointing variables */
 ClUint32T      seq      = 0; /* Sequence number for print lines */
 /* csa104: manageability variables */

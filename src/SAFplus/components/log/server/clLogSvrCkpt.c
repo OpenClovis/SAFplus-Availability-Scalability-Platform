@@ -644,8 +644,7 @@ clLogSvrStreamEntryRecreate(ClUint32T  dsId,
         return rc;
     }
     
-    rc = clLogSvrStreamEntryUnpackNAdd(pSvrEoEntry, pSvrCommonEoEntry, 
-                                       inMsg, dsId);
+    rc = clLogSvrStreamEntryUnpackNAdd(pSvrEoEntry, pSvrCommonEoEntry, inMsg, dsId);
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clBufferDelete(&inMsg), CL_OK);
@@ -688,8 +687,7 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
         CL_LOG_DEBUG_ERROR(("clXdrUnmarshallSaNameT(): rc[0x %x]\n", rc));
         return rc;
     }
-    CL_LOG_DEBUG_VERBOSE(("streamName: %*s", streamName.length,
-                          streamName.value));
+    CL_LOG_DEBUG_VERBOSE(("streamName: %*s", streamName.length, streamName.value));
 
     rc = clXdrUnmarshallSaNameT(msg, &streamScopeNode);
     if( CL_OK != rc )
@@ -697,8 +695,7 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
         CL_LOG_DEBUG_ERROR(("clXdrUnmarshallSaNameT(): rc[0x %x]\n", rc));
         return rc;
     }
-    CL_LOG_DEBUG_VERBOSE(("streamScopeNode: %*s", streamScopeNode.length,
-                          streamScopeNode.value));
+    CL_LOG_DEBUG_VERBOSE(("streamScopeNode: %*s", streamScopeNode.length, streamScopeNode.value));
 
     rc = clXdrUnmarshallClStringT(msg, &fileName);
     if(CL_OK != rc)
@@ -721,8 +718,7 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     }
     CL_LOG_DEBUG_VERBOSE(("compSize : %u", compTableSize));
     
-    rc = clLogStreamKeyCreate(&streamName, &streamScopeNode,
-                              pSvrCommonEoEntry->maxStreams, &pStreamKey);
+    rc = clLogStreamKeyCreate(&streamName, &streamScopeNode, pSvrCommonEoEntry->maxStreams, &pStreamKey);
     if( CL_OK != rc )
     {
         return rc;
@@ -732,32 +728,36 @@ clLogSvrStreamEntryUnpackNAdd(ClLogSvrEoDataT        *pSvrEoEntry,
     {
         return rc;
     }
-    rc = clLogSvrStreamEntryAdd(pSvrEoEntry, pSvrCommonEoEntry,
-                                pStreamKey, &shmName, &hSvrStreamNode);
+
+    clLogInfo("LOG","CRT","Recreating log stream [%*s] shared memory [%*s] located at [%*s] from persistent checkpoint",streamName.length,streamName.value,shmName.length,shmName.pValue,streamScopeNode.length, streamScopeNode.value);
+    
+    rc = clLogSvrStreamEntryAdd(pSvrEoEntry, pSvrCommonEoEntry, pStreamKey, &shmName, &hSvrStreamNode);
     clHeapFree(shmName.pValue);
+    shmName.pValue=NULL; shmName.length=0;
+
+    if (CL_ERR_DUPLICATE == CL_GET_ERROR_CODE(rc))    /* But if it is a duplicate stream should we do the items below? (if so we need to load hSvrStreamNode...) */
+    {
+        return rc;
+    }
+    
     if( CL_OK != rc )
     {
         clLogStreamKeyDestroy(pStreamKey);
         return rc;
     }
-
-    rc = clLogSvrCompEntryRecreate(pSvrCommonEoEntry, pSvrEoEntry,  
-                                   hSvrStreamNode, msg, compTableSize);
-    if( CL_OK != rc )
+    
+    rc = clLogSvrCompEntryRecreate(pSvrCommonEoEntry, pSvrEoEntry,hSvrStreamNode, msg, compTableSize);
+    if(( CL_OK != rc )&&(CL_ERR_DUPLICATE != CL_GET_ERROR_CODE(rc)))
     {
-        CL_LOG_CLEANUP(clCntNodeDelete(pSvrEoEntry->hSvrStreamTable, 
-                                       hSvrStreamNode), CL_OK);
+        CL_LOG_CLEANUP(clCntNodeDelete(pSvrEoEntry->hSvrStreamTable, hSvrStreamNode), CL_OK);
         return rc;
     }
 
-    rc = clLogSvrShmOpenNFlusherCreate(pSvrEoEntry, &streamName, 
-                                       &streamScopeNode, &fileName,
-                                       &fileLocation, hSvrStreamNode, dsId);
-    if( CL_OK != rc )
+    rc = clLogSvrShmOpenNFlusherCreate(pSvrEoEntry, &streamName, &streamScopeNode, &fileName, &fileLocation, hSvrStreamNode, dsId);
+    if (( CL_OK != rc )&&(CL_ERR_DUPLICATE != CL_GET_ERROR_CODE(rc)))
     {
         CL_LOG_DEBUG_ERROR(("clLogSvrShmOpenAndFlusherCreate(): rc[0x %x]\n", rc));
-        CL_LOG_CLEANUP(clCntNodeDelete(pSvrEoEntry->hSvrStreamTable, 
-                       hSvrStreamNode), CL_OK);
+        CL_LOG_CLEANUP(clCntNodeDelete(pSvrEoEntry->hSvrStreamTable, hSvrStreamNode), CL_OK);
     }
 
     CL_LOG_DEBUG_TRACE(("Exit"));
@@ -819,8 +819,7 @@ clLogSvrShmOpenNFlusherCreate(ClLogSvrEoDataT   *pSvrEoEntry,
         return rc;
     }
 
-    rc = clOsalShmOpen_L(pSvrStreamData->shmName.pValue, CL_LOG_SHM_OPEN_FLAGS,
-                         CL_LOG_SHM_MODE, &fd);
+    rc = clOsalShmOpen_L(pSvrStreamData->shmName.pValue, CL_LOG_SHM_CREATE_FLAGS, CL_LOG_SHM_MODE, &fd);
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clOsalShmOpen(): rc[0x %x]\n", rc));

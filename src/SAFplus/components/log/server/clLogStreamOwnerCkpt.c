@@ -888,7 +888,7 @@ clLogStreamOwnerCheckpointCreate(ClLogSOEoDataT  *pSoEoEntry,
     ClUint32T                            sectionSize    = 0;
     ClInt32T                             tries = 0;
     ClIocNodeAddressT                    localAddr = clIocLocalAddressGet();
-    static ClTimerTimeOutT delay = { 0,  100};
+    static ClTimerTimeOutT delay = { 0,  500};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     

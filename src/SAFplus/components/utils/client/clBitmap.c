@@ -40,7 +40,7 @@ clBitmapRealloc(ClBitmapInfoT  *pBitmapInfo,
     ClUint32T  nBytes = 0;
     ClUint32T  nInit  = 0;
 
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Enter: %u", bitNum);
+    //clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Enter: %u", bitNum);
 
     nBytes = bitNum / CL_BM_BITS_IN_BYTE;
     ++nBytes; /* bitNum is 0-based */
@@ -57,7 +57,7 @@ clBitmapRealloc(ClBitmapInfoT  *pBitmapInfo,
     memset(&(pBitmapInfo->pBitmap[pBitmapInfo->nBytes]), 0, nInit);
     pBitmapInfo->nBytes = nBytes;
 
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Exit");
+    //clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Exit");
     return rc;
 }
 
@@ -67,7 +67,7 @@ clBitmapInfoInitialize(ClBitmapInfoT  *pBitmapInfo,
 {
     ClRcT          rc           = CL_OK;    
 
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Enter");
+    //clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Enter");
 
     rc = clOsalMutexCreate(&(pBitmapInfo->bitmapLock));
     if( CL_OK != rc )
@@ -88,7 +88,7 @@ clBitmapInfoInitialize(ClBitmapInfoT  *pBitmapInfo,
     }
     pBitmapInfo->nBits = bitNum + 1; /* bitNum is 0-based FIXME i felt this is
                                       wrong*/
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Exit");
+    //clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Exit");
     return rc;
 }
 
@@ -101,7 +101,7 @@ clBitmapCreate(ClBitmapHandleT  *phBitmap,
 {
     ClRcT          rc           = CL_OK;
 
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Enter");
+    //clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Enter");
 
     if ( NULL == phBitmap)
     {
@@ -123,7 +123,7 @@ clBitmapCreate(ClBitmapHandleT  *phBitmap,
         return rc;
     }
     
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Exit");
+    //clLogTrace(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Exit");
     return rc; 
 }
 

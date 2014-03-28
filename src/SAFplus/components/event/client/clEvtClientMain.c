@@ -602,8 +602,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
         pEvtPrimaryHeader->publisherNameLen + pEvtPrimaryHeader->patternSectionLen +
         pEvtPrimaryHeader->eventDataSize + sizeof(*pEvtSecHeader);
 
-    if(len > headerLen && 
-       len == headerLen + sizeof(ClEvtEventTertiaryHeaderT))
+    if(len > headerLen && len == headerLen + sizeof(ClEvtEventTertiaryHeaderT))
     {
         ClEvtEventTertiaryHeaderT *pEvtTertiaryHeader = (ClEvtEventTertiaryHeaderT*)(pEvtSecHeader + 1);
         ClEvtEventTertiaryHeaderT evtTertiaryHeader = {0};
@@ -621,10 +620,11 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     /* 
      * Check out the InitInfo of this client from the Handle Database
      */
+
+    ClHdlDatabaseT *hdbp = (ClHdlDatabaseT*) pEvtClientHead->evtClientHandleDatabase;
     if (1) /* Find the client handle from the server's handle -- ugly, but there will be very few handles... */
     {
         rc = CL_EVENT_ERR_BAD_HANDLE;
-        ClHdlDatabaseT *hdbp = (ClHdlDatabaseT*) pEvtClientHead->evtClientHandleDatabase;
         for (ClWordT handle = 0; handle < hdbp->n_handles; handle++) 
         {
             if (hdbp->handles[handle].state != HANDLE_STATE_EMPTY) 
@@ -647,7 +647,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     
     if (CL_OK != rc)
     {
-        clLogError("EVT", "EVR", CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
+        clLogError("EVT", "EVR", "Server sent invalid server handle [%#llX]",evtSecHeader.evtHandle);
         rc = CL_EVENT_ERR_BAD_HANDLE;
         goto eventBufferCreated;
     }
@@ -719,8 +719,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     rc = clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, evtSecHeader.evtHandle);
     if (CL_OK != rc)
     {
-        clLogError("EVT", "EVR", 
-                   CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
+        clLogError("EVT", "EVR", CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         goto resetReceiveStatus;
     }
 
@@ -731,8 +730,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
         clOsalCondBroadcast(pInitInfo->receiveCond);
     clOsalMutexUnlock(&gEvtReceiveMutex);
 
-    clLogTrace("EVT", "REC",
-               "Event was received successfully");
+    clLogTrace("EVT", "REC", "Event was received successfully");
 
     clHeapFree(pInData); // Free the buffer from clBufferFlatten()
 
@@ -759,8 +757,7 @@ ClRcT VDECL(clEvtEventReceive)(ClEoDataT data, ClBufferHandleT inMsgHandle,
     rc = CL_EVENTS_RC(rc);
     if(rc != CL_EVENT_ERR_INTERNAL)
     {
-        clLogError("EVT", "REC",
-                   "Receive of Event failed, rc[0x%x]", rc);
+        clLogError("EVT", "REC", "Receive of Event failed, rc[0x%x]", rc);
     }
 
     clHeapFree(pInData); // Free the buffer from clBufferFlatten()
@@ -1104,8 +1101,10 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle, const ClEvent
     do
     {
         rc = clRmdWithMsg(destAddr, EO_CL_EVT_INTIALIZE, inMsgHandle, outMsgHandle, CL_RMD_CALL_NEED_REPLY | CL_RMD_CALL_ATMOST_ONCE, &rmdOptions, NULL);
-    } while(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN 
-            && 
+    } while((CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN 
+            ||
+             ((CL_GET_ERROR_CODE(rc) == CL_EO_ERR_FUNC_NOT_REGISTERED) &&  (CL_GET_CID(rc) == CL_CID_EO)))
+            &&
             ++tries < 5 
             &&
             clOsalTaskDelay(delay) == CL_OK);
@@ -1122,7 +1121,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle, const ClEvent
             {
                 clLogError("EVT", "INI", 
                         "Buffer Flatten failed, rc=[%#X]", rc);
-                goto inMsgCreated;
+                goto failure;
             }
 
             clLogError("EVT", "INI", 
@@ -1145,7 +1144,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle, const ClEvent
         }
 
         clBufferDelete(&outMsgHandle);
-        goto inMsgCreated;
+        goto failure;
     }
     else
     {
@@ -1156,7 +1155,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle, const ClEvent
         if (CL_OK != rc)
         {
             clLogError("EVT", "INI", "Reading evtHandle from outMessage Failed [%#X]", rc);
-            goto inMsgCreated;
+            goto failure;
         }
     }
     /*
@@ -1168,7 +1167,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle, const ClEvent
     {
         clLogError("EVT", "INI", CL_LOG_MESSAGE_1_HANDLE_CHECKOUT_FAILED, rc);
         rc = CL_EVENT_ERR_BAD_HANDLE;
-        goto inMsgCreated;
+        goto failure;
     }
 
     if (NULL != pEvtCallbackTable)
@@ -1188,7 +1187,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle, const ClEvent
     if(rc != CL_OK)
     {
         clLogError("EVT", "INI", "Event initialize conditional variable create returned with error [%#x]", rc);
-        goto inMsgCreated;
+        goto failure;
     }
     pInitInfo->handleType = CL_EVENT_INIT_HANDLE;
     pInitInfo->queueFlag = CL_FALSE;
@@ -1198,7 +1197,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle, const ClEvent
     if (CL_OK != rc)
     {
         clLogError("EVT", "INI", CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
-        goto inMsgCreated;
+        goto failure;
     }
 
     /*
@@ -1224,10 +1223,7 @@ ClRcT clEventInitializeWithVersion(ClEventInitHandleT *pEvtHandle, const ClEvent
 
     CL_FUNC_EXIT();
     return CL_OK;
-
-inMsgCreated:
-    clBufferDelete(&inMsgHandle);
-
+    
 failure:
     rc = CL_EVENTS_RC(rc);
     clLogError("EVT", "INI", 

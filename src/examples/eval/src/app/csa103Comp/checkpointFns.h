@@ -6,8 +6,8 @@ extern "C" {
 #endif
 
 #define CKPT_NAME     "csa103Ckpt"  /* Checkpoint name for this application  */
-SaCkptHandleT  ckptLibraryHandle; /* Checkpointing service handle       */
-SaCkptCheckpointHandleT ckpt_handle;  /* Checkpoint handle        */
+extern SaCkptHandleT  ckptLibraryHandle; /* Checkpointing service handle       */
+extern SaCkptCheckpointHandleT ckpt_handle;  /* Checkpoint handle        */
 #define CKPT_SID_NAME "1"           /* Checkpoint section id                 */
 extern SaCkptSectionIdT ckpt_sid;
 

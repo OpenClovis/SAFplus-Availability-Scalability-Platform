@@ -60,7 +60,7 @@
 /* Contex for a GMS "instance" - i.e. one user of GMS service */
 
 /* Instance handle database */
-ClHandleDatabaseHandleT handle_database;
+ClHandleDatabaseHandleT gmsHandleDb=CL_HANDLE_INVALID_VALUE;
 
 /* 
  * Thread specific data key which will hold handle for a particular
@@ -122,12 +122,15 @@ ClRcT clGmsLibInitialize(void)
     
     if (lib_initialized == CL_FALSE)
     {
-        rc = clHandleDatabaseCreate(gms_handle_instance_destructor,
-                                    &handle_database);
-        if (rc != CL_OK)
-        {
-            goto error_exit;
+        if (gmsHandleDb == CL_HANDLE_INVALID_VALUE)
+        {            
+            rc = clHandleDatabaseCreate(gms_handle_instance_destructor, &gmsHandleDb);
+            if (rc != CL_OK)
+            {
+                goto error_exit;
+            }
         }
+        
         
         /*
          * FIXME: On the long run, when multiple EOs can exist in same process,
@@ -137,23 +140,12 @@ ClRcT clGmsLibInitialize(void)
         rc = clEoMyEoObjectGet(&eo);
         if (rc != CL_OK)
         {
-            if ((clHandleDatabaseDestroy( handle_database )) != CL_OK)
-            {
-                clLogError(GEN,DB,
-                           "\nclHandleDatabaseDestroy failed");
-            }
             goto error_exit;
         }
         
         rc = clGmsClientRmdTableInstall(eo);
         if (rc != CL_OK)
         {
-            if ((clHandleDatabaseDestroy( handle_database )) != CL_OK)
-            {
-                clLogError(GEN,DB,
-                           "\nclHandleDatabaseDestroy failed");
-            }
-
             if ((clEoClientUninstall( eo , CL_GMS_CLIENT_TABLE_ID )) != CL_OK)
             {
                 clLogError(GEN,NA,
@@ -191,17 +183,18 @@ ClRcT clGmsLibFinalize(void)
 
     if (lib_initialized == CL_TRUE)
     {
-        rc = clHandleDatabaseDestroy(handle_database);
+#if 0   // Let it leak if we are quitting.  If we are not quitting, we'll reuse it on reinitialization.     
+        rc = clHandleDatabaseDestroy(gmsHandleDb);
         if (rc != CL_OK)
         {
             goto error_exit;
         }
-
+#endif
+        
         rc = clEoMyEoObjectGet(&eo);
         if (rc != CL_OK)
         {
-           clLogError(GEN,NA,
-                      "clEoMyEoObjectGet Failed with RC - 0x%x\n",rc);
+           clLogError(GEN,NA, "clEoMyEoObjectGet Failed with RC - 0x%x\n",rc);
         }
 
         clGmsClientClientTableDeregistrer(eo);
@@ -210,15 +203,12 @@ ClRcT clGmsLibFinalize(void)
         rc = clGmsClientRmdTableUnInstall(eo);
         if (rc != CL_OK)
         {
-            clLogError(GEN,NA,
-                       "clEoClientUninstall Failed with RC - 0x%x\n",rc);
+            clLogError(GEN,NA, "clEoClientUninstall Failed with RC - 0x%x\n",rc);
         }
 
         lib_initialized = CL_FALSE;
     }
-
-error_exit:
-
+    
     return rc;
 }
 
@@ -271,11 +261,14 @@ ClRcT clGmsInitialize(
     }
     
     /* Step 1: Checking inputs */
-    
+    CL_ASSERT(gmsHandle != NULL);
+    CL_ASSERT(version != NULL);
+#if 0    
     if ((gmsHandle == NULL) || (version == NULL))
     {
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
+#endif    
 
     *gmsHandle = CL_HANDLE_INVALID_VALUE;
 
@@ -284,48 +277,55 @@ ClRcT clGmsInitialize(
     rc = clVersionVerify (&version_database, version);
     if (rc != CL_OK)
     {
-        return CL_GMS_RC(CL_ERR_VERSION_MISMATCH);
-        
+        return CL_GMS_RC(CL_ERR_VERSION_MISMATCH); 
     }
 
     /* Step 3: Obtain unique handle */
-
-    rc = clHandleCreate(handle_database,
-                        sizeof(struct gms_instance),
-                        gmsHandle);
+    rc = clHandleCreate(gmsHandleDb, sizeof(struct gms_instance), gmsHandle);
+    CL_ASSERT(rc == CL_OK);
+#if 0    
     if (rc != CL_OK)
     {
         rc = CL_GMS_RC(CL_ERR_NO_RESOURCE);
         goto error_no_destroy;
     }
+#endif    
+    clLogInfo("GMS","CLT","GMS client handle is [%llX]",*gmsHandle);
     
-    rc = clHandleCheckout(handle_database, *gmsHandle, (void **)&gms_instance_ptr);
-
+    rc = clHandleCheckout(gmsHandleDb, *gmsHandle, (void **)&gms_instance_ptr);
+    CL_ASSERT(rc == CL_OK);
+    CL_ASSERT(gms_instance_ptr != NULL);
+#if 0    
     if(rc != CL_OK)
     {
         goto error_destroy;
     }
-
     if (gms_instance_ptr == NULL)
     {
-        clHandleCheckin(handle_database, *gmsHandle);
+        clHandleCheckin(gmsHandleDb, *gmsHandle);
         rc = CL_GMS_RC(CL_ERR_NULL_POINTER);
         goto error_destroy;
     }
+#endif
 
     rc = clGmsMutexCreate(&gms_instance_ptr->response_mutex);
+    CL_ASSERT(rc == CL_OK);
+#if 0    
     if(rc != CL_OK)
     {
-        clHandleCheckin(handle_database, *gmsHandle);
+        clHandleCheckin(gmsHandleDb, *gmsHandle);
         goto error_destroy;
     }
-
+#endif
     /* Create the key for thread specific data set */
     rc = gmsTaskKeyCreate();
+    CL_ASSERT(rc == CL_OK);
+#if 0    
     if(rc != CL_OK)
     {
         clLogError("TASK", "KEY", "TaskKeyCreate returned [%#x]", rc);
     }
+#endif    
 
     /* Step 4: Negotiate version with the server */
     req.clientVersion.releaseCode = version->releaseCode;
@@ -335,18 +335,16 @@ ClRcT clGmsInitialize(
     rc = cl_gms_clientlib_initialize_rmd(&req, 0x0 ,&res );
     if(rc != CL_OK )
     {
-        clLogError(GEN,NA,
-                   "\n cl_gms_clientlib_initialize_rmd failed with rc:0x%x ",rc);
+        clLogError(GEN,NA,"cl_gms_clientlib_initialize_rmd failed with rc:0x%x ",rc);
         clGmsMutexDelete(gms_instance_ptr->response_mutex);
         gms_instance_ptr->response_mutex = 0;
         gmsTaskKeyDelete();
-        clHandleCheckin(handle_database, *gmsHandle);
+        clHandleCheckin(gmsHandleDb, *gmsHandle);
         rc = CL_GMS_RC(rc);
         goto error_destroy;
     }
     
     /* Step 5: Initialize instance entry */
-    
     if (gmsCallbacks) 
     {
         memcpy(&gms_instance_ptr->callbacks, gmsCallbacks, sizeof(ClGmsCallbacksT));
@@ -356,25 +354,22 @@ ClRcT clGmsInitialize(
         memset(&gms_instance_ptr->callbacks, 0, sizeof(ClGmsCallbacksT));
     }
 
-    memset(&gms_instance_ptr->cluster_notification_buffer, 0,
-           sizeof(ClGmsClusterNotificationBufferT));
-    memset(&gms_instance_ptr->group_notification_buffer, 0,
-           sizeof(ClGmsGroupNotificationBufferT));
+    memset(&gms_instance_ptr->cluster_notification_buffer, 0, sizeof(ClGmsClusterNotificationBufferT));
+    memset(&gms_instance_ptr->group_notification_buffer, 0, sizeof(ClGmsGroupNotificationBufferT));
 
     /* Step 6: Decrement handle use count and return */
-    if ((clHandleCheckin(handle_database, *gmsHandle)) != CL_OK)
+    if ((clHandleCheckin(gmsHandleDb, *gmsHandle)) != CL_OK)
     {
-        clLogError(GEN,DB,
-                   "\nclHandleCheckin failed");
+        clLogError(GEN,DB, "\nclHandleCheckin failed");
     }
     clHeapFree(res);
     return CL_OK;
 
     error_destroy:
-    clHandleDestroy(handle_database, *gmsHandle);
+    clHandleDestroy(gmsHandleDb, *gmsHandle);
     *gmsHandle = CL_HANDLE_INVALID_VALUE;
 
-    error_no_destroy:
+    //error_no_destroy:
     return rc;
 }
 
@@ -387,7 +382,7 @@ ClRcT clGmsFinalize(
 	struct gms_instance *gms_instance_ptr = NULL;
 	ClRcT rc= CL_OK;
 
-	rc = clHandleCheckout(handle_database, gmsHandle, (void **)&gms_instance_ptr);
+	rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void **)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return CL_GMS_RC(CL_ERR_INVALID_HANDLE);
@@ -409,7 +404,7 @@ ClRcT clGmsFinalize(
 	 */
 	if (gms_instance_ptr->finalize) {
 		clGmsMutexUnlock(gms_instance_ptr->response_mutex);
-		if ((clHandleCheckin(handle_database, gmsHandle)) != CL_OK)
+		if ((clHandleCheckin(gmsHandleDb, gmsHandle)) != CL_OK)
         {
             clLogError(GEN,DB,
                        "\nclHandleCheckin Error");
@@ -429,13 +424,13 @@ ClRcT clGmsFinalize(
         clLogError("TASK", "KEY", "TaskKeyDelete returned [%#x]", rc);
     }
 
-	if ((clHandleDestroy(handle_database, gmsHandle)) != CL_OK)
+	if ((clHandleDestroy(gmsHandleDb, gmsHandle)) != CL_OK)
     {
         clLogError(GEN,NA,
                    "\nclHandleDestroy Error");
     }
     
-	if ((clHandleCheckin(handle_database, gmsHandle)) != CL_OK)
+	if ((clHandleCheckin(gmsHandleDb, gmsHandle)) != CL_OK)
     {
         clLogError(GEN,NA,
                    "\nclHandleCheckin Error");
@@ -474,7 +469,7 @@ ClRcT clGmsClusterJoin(
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -512,7 +507,7 @@ ClRcT clGmsClusterJoin(
     clHeapFree((void*)res);
     
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CLM,NA,
                    "\nclHandleCheckin failed");
@@ -544,7 +539,7 @@ ClRcT clGmsClusterJoinAsync(
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -581,7 +576,7 @@ ClRcT clGmsClusterJoinAsync(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CLM,NA,
                    "\nclHandleCheckin failed");
@@ -607,7 +602,7 @@ static ClRcT gmsClusterLeave(
     ClGmsClusterLeaveResponseT          *res = NULL;
     
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -649,7 +644,7 @@ static ClRcT gmsClusterLeave(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CLM,NA,
                    "\nclHandleCheckin failed");
@@ -689,7 +684,7 @@ ClRcT clGmsClusterLeaveAsync(
     ClGmsClusterLeaveResponseT          *res = NULL;
     
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -722,7 +717,7 @@ ClRcT clGmsClusterLeaveAsync(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CLM,NA,
                    "\nclHandleCheckin failed");
@@ -774,7 +769,7 @@ ClRcT clGmsClusterTrack(
         return CL_GMS_RC(CL_ERR_BAD_FLAG);
     }
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return CL_GMS_RC(CL_ERR_INVALID_HANDLE);
@@ -905,7 +900,7 @@ error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
 error_checkin:
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLog(ERROR,CLM,NA,"clHandleCheckin Failed");
     }
@@ -925,7 +920,7 @@ ClRcT clGmsClusterTrackStop(
     ClGmsClusterTrackStopResponseT *res = NULL;
     
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return CL_GMS_RC(CL_ERR_INVALID_HANDLE);
@@ -957,7 +952,7 @@ ClRcT clGmsClusterTrackStop(
 error_exit:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
 
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CLM,NA,
                    "\nclHandleCheckin failed");
@@ -987,7 +982,7 @@ ClRcT clGmsClusterMemberGet(
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
      
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -1024,7 +1019,7 @@ error_exit:
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CLM,NA,
                    "\nclHandleCheckin failed");
@@ -1048,7 +1043,7 @@ ClRcT clGmsClusterMemberGetAsync(
     ClGmsClusterMemberGetAsyncResponseT *res = NULL;
         
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -1087,7 +1082,7 @@ error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
 error_checkin:
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CLM,NA,
                     "\nclHandleCheckin failed");
@@ -1118,7 +1113,7 @@ ClRcT clGmsClusterLeaderElect(
     }
 
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -1150,7 +1145,7 @@ ClRcT clGmsClusterLeaderElect(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(LEA,NA,
                    "\nclHandleCheckin failed");
@@ -1175,7 +1170,7 @@ ClRcT clGmsClusterMemberEject(
     ClGmsClusterMemberEjectResponseT    *res = NULL;
     
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -1205,7 +1200,7 @@ ClRcT clGmsClusterMemberEject(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CLM,NA,
                    "\nclHandleCheckin failed");
@@ -1261,7 +1256,7 @@ ClRcT clGmsClusterTrackCallbackHandler(
     clLog(INFO,NA,NA,"received cluster track callback");
 
     gmsHandle = res->gmsHandle;
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         goto error_free_res;
@@ -1289,7 +1284,7 @@ ClRcT clGmsClusterTrackCallbackHandler(
   
 
 error_checkin_free_res:
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CLM,NA,
                    "\nclHandleCheckin failed");
@@ -1319,7 +1314,7 @@ ClRcT clGmsClusterMemberGetCallbackHandler(
     CL_ASSERT(res != NULL);
     
     gmsHandle = res->gmsHandle;
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         goto error_free_res;
@@ -1346,7 +1341,7 @@ ClRcT clGmsClusterMemberGetCallbackHandler(
                               (res->invocation, &res->member, res->rc);
 
 error_checkin_free_res:
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CLM,NA,
                    "\nclHandleCheckin failed");
@@ -1372,7 +1367,7 @@ ClRcT clGmsClusterMemberEjectCallbackHandler(
     CL_ASSERT(res != NULL);
     
     gmsHandle = res->gmsHandle;
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         goto error_free_res;
@@ -1401,7 +1396,7 @@ ClRcT clGmsClusterMemberEjectCallbackHandler(
                                (res->reason);
      
 error_checkin_free_res:
-    if (clHandleCheckin(handle_database, gmsHandle))
+    if (clHandleCheckin(gmsHandleDb, gmsHandle))
     {
         clLogError(CLM,NA,
                    "\nclHandleCheckin failed");

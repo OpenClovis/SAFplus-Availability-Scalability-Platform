@@ -749,9 +749,7 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
         }
         else
         {
-            rc = clLogSvrStdStreamShmCreate(pStreamName, pShmName, *pShmSize, pStreamAttr,
-                                            *pStreamId, pStreamMcastAddr,
-                                            pStreamFilter, &pSvrStreamData->pStreamHeader);
+            rc = clLogSvrStdStreamShmCreate(pStreamName, pShmName, *pShmSize, pStreamAttr, *pStreamId, pStreamMcastAddr, pStreamFilter, &pSvrStreamData->pStreamHeader);
             CL_ASSERT(rc == CL_OK);
 #if 0
             if( CL_OK != rc )
@@ -1133,31 +1131,25 @@ clLogSvrStreamEntryAdd(ClLogSvrEoDataT        *pSvrEoEntry,
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    pSvrStreamData = (ClLogSvrStreamDataT*) clHeapCalloc(1, sizeof(ClLogSvrStreamDataT));
-CL_ASSERT(pSvrStreamData != NULL);
-#if 0
-    if( NULL == pSvrStreamData )
-    {
-        CL_LOG_DEBUG_ERROR(("clHeapCalloc(): rc[0x %x]", rc));
-        return CL_LOG_RC(CL_ERR_NULL_POINTER);
-    }
-#endif
+    ClCntHandleT cmpTableHdl=0;
     
     rc = clCntHashtblCreate(pSvrCommonEoEntry->maxComponents,
                             clLogSvrCompKeyCompare, clLogSvrCompHashFn,
                             clLogSvrCompDeleteCb, clLogSvrCompDeleteCb,
                             CL_CNT_UNIQUE_KEY,
-                            &(pSvrStreamData->hComponentTable));
-    CL_ASSERT(rc == CL_OK);
-#if 0
-    if( CL_OK != rc )
+                            &cmpTableHdl);
+
+    // opening this steam > once...
+    if (CL_ERR_DUPLICATE == CL_GET_ERROR_CODE(rc))
     {
-        CL_LOG_DEBUG_ERROR(("clCntHashtblCreate(): rc[0x %x]", rc));
-        clHeapFree(pSvrStreamData);
         return rc;
     }
-#endif
+    
+    CL_ASSERT(rc == CL_OK);
 
+    pSvrStreamData = (ClLogSvrStreamDataT*) clHeapCalloc(1, sizeof(ClLogSvrStreamDataT));
+    CL_ASSERT(pSvrStreamData != NULL);
+    pSvrStreamData->hComponentTable = cmpTableHdl;
     pSvrStreamData->dsId           = CL_LOG_INVALID_DSID;
     pSvrStreamData->pStreamHeader  = NULL;
     pSvrStreamData->shmName.length = 0;
@@ -1180,9 +1172,8 @@ CL_ASSERT(pSvrStreamData != NULL);
                                 (ClCntKeyHandleT) pStreamKey,
                                 (ClCntDataHandleT) pSvrStreamData, NULL, 
                                 phSvrStreamNode);
-    CL_ASSERT(rc == CL_OK);
-#if 0    
-    if( CL_OK != rc )
+    
+    if(CL_ERR_DUPLICATE == CL_GET_ERROR_CODE(rc)) // Duplicate is ok, just clean up.
     {
         CL_LOG_DEBUG_ERROR(("clCntNodeAddAndNodeGet(): rc[0x %x]", rc));
         CL_LOG_CLEANUP(clCntDelete(pSvrStreamData->hComponentTable), CL_OK);
@@ -1190,7 +1181,9 @@ CL_ASSERT(pSvrStreamData != NULL);
         clHeapFree(pSvrStreamData);
         return rc;
     }
-#endif
+
+    CL_ASSERT(rc == CL_OK);
+
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
 }
@@ -1247,7 +1240,7 @@ clLogSvrStreamEntryGet(CL_IN   ClLogSvrEoDataT   *pSvrEoEntry,
             }
             rc = clLogSvrStreamEntryAdd(pSvrEoEntry, pSvrCommonEoEntry, pStreamKey,&shmName,phSvrStreamNode);
             clHeapFree(shmName.pValue);
-            if( CL_OK != rc )
+            if(( CL_OK != rc )&&CL_ERR_DUPLICATE != CL_GET_ERROR_CODE(rc))
             {
                 CL_ASSERT(0);
                 CL_LOG_DEBUG_ERROR(("clLogStreamEntryAdd(): rc[0x %x]", rc));

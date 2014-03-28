@@ -827,7 +827,7 @@ ClRcT clEvtChannelDBDelete(ClEvtChannelDBT *pChannelInfoDb)
 
     rc = clOsalMutexDelete(pChannelInfoDb->channelLevelMutex);
 
-    clLogTrace(CL_EVENT_LOG_AREA_SRV, "ECH", "Event Channel Database Deletion Successful");
+    clLogTrace(CL_EVENT_LOG_AREA_SRV, "ECH", "Event Channel Database Deletion Successful %d", rc);
 
     CL_FUNC_EXIT();
     return CL_OK;
@@ -1974,7 +1974,12 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey, ClCntDataHandleT use
 #endif
 
     pEvtTertiaryHeader = (ClEvtEventTertiaryHeaderT*)(pEvtSecHeader + 1);
+#ifdef NO_UNALIGNED_ACCESS
+    memcpy(&pEvtTertiaryHeader->eoId,&pEvtSubsKey->userId.eoIocPort,sizeof(pEvtTertiaryHeader->eoId));
+#else
     pEvtTertiaryHeader->eoId = pEvtSubsKey->userId.eoIocPort;
+#endif    
+
     rc = clBufferCreate(&inMsgHandle);
     rc = clBufferNBytesWrite(inMsgHandle, (ClUint8T *) pEvtPrimaryHeader, dataLength);
     /*
