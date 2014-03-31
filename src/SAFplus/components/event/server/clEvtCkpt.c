@@ -1281,7 +1281,7 @@ ClRcT clEvtCkptECHWalk(ClCntKeyHandleT userKey, ClCntDataHandleT userData,
      */
     evtCkptUserofECHInfo.operation = CL_EVT_CKPT_OP_ECH_OPEN;
     evtCkptUserofECHInfo.chanHandle =
-        CL_EVT_CHANNEL_HANDLE_FORM(pEvtECHInfoWithMutex->scope,
+        CL_EVT_CHANNEL_HANDLE_FORM(CL_EVENT_CHANNEL_SUBSCRIBER | pEvtECHInfoWithMutex->scope,
                                    pECHKey->channelId);
     clEvtUtilsNameCpy(&evtCkptUserofECHInfo.chanName,
                       &((ClEvtChannelKeyT *) userKey)->channelName);

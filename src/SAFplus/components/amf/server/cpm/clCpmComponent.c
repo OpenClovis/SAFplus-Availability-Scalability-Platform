@@ -470,6 +470,26 @@ static ClRcT clCompTimerProxiedCleanup(ClCpmComponentT *comp)
 }
 #endif
 
+static ClRcT eventPublishQueueCallback(ClCallbackT cb, ClPtrT data, ClPtrT arg)
+{
+    ClEventPublishDataT *jobTemp = arg;
+    ClEventPublishDataT *job = data;
+    ClCpmComponentT *compTemp = &jobTemp->comp;
+    ClCpmComponentT *comp = &job->comp;
+
+    if ((jobTemp->compEvent == CL_CPM_COMP_DEATH) && (job->compEvent == CL_CPM_COMP_DEATH) && (comp->eoID == compTemp->eoID)
+                    && (comp->eoPort == compTemp->eoPort))
+    {
+        /*
+         * Combine event publishing and cleanup with one job and ignore the other one
+         */
+        job->eventCleanup = CL_TRUE;
+        compTemp->compEventPublished = CL_TRUE;
+    }
+
+    return CL_OK;
+}
+
 /*
  * Free the Component structure completely including all substructures 
  */
@@ -4413,19 +4433,15 @@ static ClRcT _cpmComponentEventPublish(ClCpmComponentT *comp,
 
     if (compEvent == CL_CPM_COMP_DEATH)
     {
-        ClCpmComponentT *compTemp = NULL;
-        rc = cpmCompFind(comp->compConfig->compName, gpClCpm->compTable, &compTemp);
-        if (CL_OK == rc && (compTemp->compEventPublished == CL_TRUE || (compTemp->instantiateCookie != comp->instantiateCookie)))
+        if (comp->compEventPublished == CL_TRUE)
         {
             /*
-             * If event already published or component arrival just come, ignore publishing
+             * If event already published, ignore publishing
              */
             clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,
-                            "Skipping comp event already published for component eo port [%#x], eoID [%#llx]",
-                            compTemp->eoPort, compTemp->eoID);
+                    "Skipping comp event already published for component eo port [%#x], eoID [%#llx]", comp->eoPort, comp->eoID);
             return CL_OK;
         }
-
     }
     else if (compEvent == CL_CPM_COMP_DEPARTURE)
     {
@@ -4544,15 +4560,7 @@ static ClRcT _cpmComponentEventPublish(ClCpmComponentT *comp,
     {
         if (compEvent == CL_CPM_COMP_DEATH)
         {
-            ClCpmComponentT *compTemp = NULL;
-            rc = cpmCompFind(comp->compConfig->compName, gpClCpm->compTable, &compTemp);
-            /*
-             * If component table is still refer to old, mark as published
-             */
-            if (CL_OK == rc && (compTemp->instantiateCookie == comp->instantiateCookie))
-            {
-                compTemp->compEventPublished = CL_TRUE;
-            }
+            comp->compEventPublished = CL_TRUE;
         }
     }
 
@@ -4610,6 +4618,10 @@ ClRcT cpmComponentEventPublish(ClCpmComponentT *comp,
     job->compEvent = compEvent;
     job->eventCleanup = eventCleanup;
 
+    /*
+     * Filter job for the same component to ignore in the future
+     */
+    clJobQueueWalk(&eventPublishQueue, eventPublishQueueCallback, job);
     rc = clJobQueuePush(&eventPublishQueue, cpmComponentEventPublishDelay, (ClPtrT)job);
     if(rc != CL_OK)
     {
@@ -4619,6 +4631,10 @@ ClRcT cpmComponentEventPublish(ClCpmComponentT *comp,
         clHeapFree(job);
     }
 
+    if (compEvent == CL_CPM_COMP_DEATH)
+    {
+        comp->compEventPublished = CL_TRUE;
+    }
     return rc;
 }
 

@@ -4773,7 +4773,7 @@ ClRcT clEventPublish(ClEventHandleT eventHandle, const void *pEventData,
     {
         rc = clRmdWithMsg(destAddr, EO_CL_EVT_PUBLISH, newMsgHandle, outMsgHandle,
                           CL_RMD_CALL_NEED_REPLY, &rmdOptions, NULL);
-    } while(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN
+    } while((CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN || CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE)
             &&
             ++tries < 5
             &&
