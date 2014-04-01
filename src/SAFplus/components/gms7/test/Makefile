@@ -10,10 +10,10 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
 
-SENDER_SRC := groupClient.cxx
+SENDER_SRC := groupClientTest.cxx
 SENDER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SENDER_SRC)))
 
-RECEIVER_SRC := groupServer.cxx
+RECEIVER_SRC := groupServerTest.cxx
 RECEIVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(RECEIVER_SRC)))
 
 UNITTEST_SRC := testGroup.cxx
