@@ -2,12 +2,12 @@
 
 using namespace SAFplus;
 
-extern void NodeJoinFromMaster(GroupMessageProtocolT *msg);
-extern void RoleChangeFromMaster(GroupMessageProtocolT *msg);
-extern void NodeJoin(ClIocAddressT *pAddress);
-extern void NodeLeave(ClIocAddressT *pAddress);
-extern void ComponentJoin(ClIocAddressT *pAddress);
-extern void ComponentLeave(ClIocAddressT *pAddress);
+extern void nodeJoinFromMaster(GroupMessageProtocolT *msg);
+extern void roleChangeFromMaster(GroupMessageProtocolT *msg);
+extern void nodeJoin(ClIocAddressT *pAddress);
+extern void nodeLeave(ClIocAddressT *pAddress);
+extern void componentJoin(ClIocAddressT *pAddress);
+extern void componentLeave(ClIocAddressT *pAddress);
 
 void GroupMessageHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
 {
@@ -24,11 +24,11 @@ void GroupMessageHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT 
     {
       case CLUSTER_NODE_ARRIVAL:
         logInfo("GMS","MSGHDL","Node join message from Master");
-        NodeJoinFromMaster(rxMsg);
+        nodeJoinFromMaster(rxMsg);
         break;
       case CLUSTER_NODE_ROLE_NOTIFY:
         logInfo("GMS","MSGHDL","Role change message from Master");
-        RoleChangeFromMaster(rxMsg);
+        roleChangeFromMaster(rxMsg);
         break;
       default:
         logDebug("GMS","MSGHDL","Unsupported message");
@@ -37,7 +37,7 @@ void GroupMessageHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT 
   }
   else if(messageScope == AMF_MESSAGE)
   {
-
+    /* TODO: handle notification (node join/leave, component membership) from AMF server */
   }
   else
   {

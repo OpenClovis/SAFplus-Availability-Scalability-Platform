@@ -9,8 +9,10 @@
 #include <clGroup.hxx>
 #include <clCpmApi.h>
 #include "groupMessageHandler.hxx"
+#include "clNodeCache.h"
 
-#define GMS_PORT 69
+#define IOC_PORT 0
+#define GMS_PORT 6
 #define AMF_PORT 17
 
 typedef enum
@@ -18,6 +20,12 @@ typedef enum
   CLUSTER_NODE_ARRIVAL,
   CLUSTER_NODE_ROLE_NOTIFY
 } GroupMessageTypeT;
+
+typedef enum
+{
+  ROLE_ACTIVE,
+  ROLE_STANDBY
+} GroupRoleNotifyTypeT;
 
 typedef enum
 {
@@ -35,27 +43,26 @@ typedef enum
 typedef struct
 {
   GroupMessageTypeT  messageType;
-  ClIocAddressT     *eAddress;
-  int                groupId;
-  int                numberOfItems;
+  GroupRoleNotifyTypeT  roleType;
   void*              data;
 } GroupMessageProtocolT;
 
 /* Functions to process message from Master Node */
-void NodeJoinFromMaster(GroupMessageProtocolT *msg);
-void RoleChangeFromMaster(GroupMessageProtocolT *msg);
+void nodeJoinFromMaster(GroupMessageProtocolT *msg);
+void roleChangeFromMaster(GroupMessageProtocolT *msg);
 
 /* Functions to process notification from AMF */
-void NodeJoin(ClIocAddressT *pAddress);
-void NodeLeave(ClIocAddressT *pAddress);
-void ComponentJoin(ClIocAddressT *pAddress);
-void ComponentLeave(ClIocAddressT *pAddress);
+void nodeJoin(ClIocAddressT *pAddress);
+void nodeLeave(ClIocAddressT *pAddress);
+void componentJoin(ClIocAddressT *pAddress);
+void componentLeave(ClIocAddressT *pAddress);
 
 /* Utility functions */
 ClRcT initializeServices();
 void  getNodeInfo(ClIocAddressT* pAddress, SAFplus::GroupIdentity *grpIdentity);
 bool  isMasterNode();
-void  sendNotification(GroupMessageTypeT messageType,void* data, GroupMessageSendModeT messageMode =  SEND_BROADCAST);
+void  sendNotification(void* data, int dataLength, GroupMessageSendModeT messageMode =  SEND_BROADCAST);
+SAFplus::EntityIdentifier createHandleFromAddress(ClIocAddressT* pAddress, int pid = 0);
 
 /* Global variables */
 

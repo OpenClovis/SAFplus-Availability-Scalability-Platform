@@ -7,12 +7,9 @@ using namespace SAFplus;
 using namespace SAFplusI;
 using namespace std;
 
-#define IOC_PORT 0
-#define GMS_PORT_1 69
-#define GMS_PORT_2 70
-
 /* SAFplus specified variables */
-
+ClUint32T clAspLocalId = 1;
+ClBoolT gIsNodeRepresentative = CL_TRUE;
 /* Well-known groups */
 SAFplus::Group    clusterNodeGrp("CLUSTER_NODE");
 SAFplus::Group    clusterCompGrp("CLUSTER_COMP");
@@ -27,7 +24,7 @@ GROUP SERVICE DESIGNATION
 *     - No broadcast needed
 * - When a node join:
 *     - Master node will add information of newly node (filter admission)
-*     - Master node will send broadcast of newly node to all node
+*     - Master node will send broadcast of newly node to all nodes
 *     - Slave nodes will add information (received from server), no need to broadcast
 * - When a node leave:
 *     - All GMS services will update the GMS data
@@ -85,7 +82,7 @@ ClRcT initializeServices()
   groupMsgServer.Start();
 }
 
-void NodeJoinFromMaster(GroupMessageProtocolT *msg)
+void nodeJoinFromMaster(GroupMessageProtocolT *msg)
 {
   GroupIdentity *grpIdentity = (GroupIdentity *)msg->data;
   if(clusterNodeGrp.isMember(grpIdentity->id))
@@ -96,7 +93,7 @@ void NodeJoinFromMaster(GroupMessageProtocolT *msg)
   clusterNodeGrp.registerEntity(grpIdentity->id,grpIdentity->credentials, grpIdentity->data, grpIdentity->dataLen, grpIdentity->capabilities);
 }
 
-void NodeLeave(ClIocAddressT *pAddress)
+void nodeLeave(ClIocAddressT *pAddress)
 {
   GroupIdentity grpIdentity;
   getNodeInfo(pAddress,&grpIdentity);
@@ -112,7 +109,12 @@ void NodeLeave(ClIocAddressT *pAddress)
       currentCapability &= ~SAFplus::Group::IS_STANDBY;
       clusterNodeGrp.setCapabilities(currentCapability,standbyNode);
 
-      /* TODO: Send role change notification */
+      /* Send role change notification */
+      GroupMessageProtocolT sndMessage;
+      sndMessage.messageType = CLUSTER_NODE_ROLE_NOTIFY;
+      sndMessage.roleType    = ROLE_ACTIVE;
+      sndMessage.data        = &standbyNode;
+      sendNotification((void *)&sndMessage,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
 
       /* Elect for standby role on Master node only */
       if(isMasterNode())
@@ -130,10 +132,13 @@ void NodeLeave(ClIocAddressT *pAddress)
         currentCapability &= ~SAFplus::Group::IS_ACTIVE;
         clusterNodeGrp.setCapabilities(currentCapability,standbyNode);
 
-        /* TODO: Send role change notification */
+        /* Send role change notification */
+        GroupMessageProtocolT sndMessage;
+        sndMessage.messageType = CLUSTER_NODE_ROLE_NOTIFY;
+        sndMessage.roleType    = ROLE_STANDBY;
+        sndMessage.data        = &standbyNode;
+        sendNotification((void *)&sndMessage,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
       }
-
-
     }
     else if(clusterNodeGrp.getStandby() == grpIdentity.id)
     {
@@ -152,7 +157,24 @@ void NodeLeave(ClIocAddressT *pAddress)
         currentCapability |= SAFplus::Group::IS_STANDBY;
         currentCapability &= ~SAFplus::Group::IS_ACTIVE;
         clusterNodeGrp.setCapabilities(currentCapability,standbyNode);
-        /* TODO: Send role change notification */
+
+        /* Send role change notification */
+        GroupMessageProtocolT sndMessage;
+        sndMessage.messageType = CLUSTER_NODE_ROLE_NOTIFY;
+        sndMessage.roleType    = ROLE_STANDBY;
+        sndMessage.data        = &standbyNode;
+        sendNotification((void *)&sndMessage,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
+      }
+    }
+    /* Remove all entity which belong to this node */
+    SAFplus::Group::Iterator iter = clusterCompGrp.begin();
+    while(iter != clusterCompGrp.end())
+    {
+      SAFplusI::BufferPtr curkey = iter->first;
+      EntityIdentifier item = *(EntityIdentifier *)(curkey.get()->data);
+      if(item.getNode() == pAddress->iocPhyAddress.nodeAddress)
+      {
+        clusterCompGrp.deregister(item);
       }
     }
   }
@@ -162,22 +184,61 @@ void NodeLeave(ClIocAddressT *pAddress)
   }
 }
 
-void NodeJoin(ClIocAddressT *pAddress)
+void nodeJoin(ClIocAddressT *pAddress)
 {
   if(isMasterNode())
   {
     GroupIdentity grpIdentity;
     getNodeInfo(pAddress,&grpIdentity);
     clusterNodeGrp.registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
-    /* TODO: Send node join broadcast message */
+
+    /* Send node join broadcast message */
+    GroupMessageProtocolT sndMessage;
+    sndMessage.messageType = CLUSTER_NODE_ARRIVAL;
+    sndMessage.data        = &grpIdentity;
+    sendNotification((void *)&sndMessage,sizeof(GroupMessageProtocolT) + sizeof(GroupIdentity));
   }
 }
 
-void RoleChangeFromMaster(GroupMessageProtocolT *msg)
+void roleChangeFromMaster(GroupMessageProtocolT *msg)
 {
-  /* TODO: Implement me */
+  if(msg == NULL)
+  {
+    logError("GMS","SERVER","Null pointer");
+    return;
+  }
+  if(msg->messageType != CLUSTER_NODE_ROLE_NOTIFY)
+  {
+    logError("GMS","SERVER","Invalid message");
+    return;
+  }
+  switch(msg->roleType)
+  {
+    case ROLE_ACTIVE:
+    {
+      EntityIdentifier activeEntity = *(EntityIdentifier *)msg->data;
+      int currentCapability = clusterNodeGrp.getCapabilities(activeEntity);
+      currentCapability |= SAFplus::Group::IS_ACTIVE;
+      currentCapability &= ~SAFplus::Group::IS_STANDBY;
+      clusterNodeGrp.setCapabilities(currentCapability,activeEntity);
+      break;
+    }
+    case ROLE_STANDBY:
+    {
+      EntityIdentifier standbyEntity = *(EntityIdentifier *)msg->data;
+      int currentCapability = clusterNodeGrp.getCapabilities(standbyEntity);
+      currentCapability |= SAFplus::Group::IS_STANDBY;
+      currentCapability &= ~SAFplus::Group::IS_ACTIVE;
+      clusterNodeGrp.setCapabilities(currentCapability,standbyEntity);
+      break;
+    }
+    default:
+    {
+      break;
+    }
+  }
 }
-void ComponentJoin(ClIocAddressT *pAddress)
+void componentJoin(ClIocAddressT *pAddress)
 {
   GroupIdentity grpIdentity;
   getNodeInfo(pAddress,&grpIdentity);
@@ -189,7 +250,7 @@ void ComponentJoin(ClIocAddressT *pAddress)
   clusterCompGrp.registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
 }
 
-void ComponentLeave(ClIocAddressT *pAddress)
+void componentLeave(ClIocAddressT *pAddress)
 {
   GroupIdentity grpIdentity;
   getNodeInfo(pAddress,&grpIdentity);
@@ -203,16 +264,72 @@ void ComponentLeave(ClIocAddressT *pAddress)
 
 void  getNodeInfo(ClIocAddressT* pAddress, GroupIdentity *grpIdentity)
 {
-  /* TODO: Implement me */
+  if(grpIdentity == NULL || pAddress == NULL)
+  {
+    logError("GMS","SERVER","Null pointer");
+    return;
+  }
+  ClNodeCacheMemberT member = {0};
+  if(clNodeCacheMemberGetExtendedSafe(pAddress->iocPhyAddress.nodeAddress, &member, 10, 200) != CL_OK)
+  {
+    grpIdentity->id = createHandleFromAddress(pAddress);
+    grpIdentity->capabilities = member.capability;
+    grpIdentity->credentials = member.address + CL_IOC_MAX_NODES + 1;
+    grpIdentity->data = (Buffer *)NULL;
+    grpIdentity->dataLen = 0;
+  }
+}
+
+EntityIdentifier createHandleFromAddress(ClIocAddressT* pAddress, int pid)
+{
+  EntityIdentifier me = SAFplus::Handle(PersistentHandle,0,pid,pAddress->iocPhyAddress.nodeAddress,0);
+  return me;
 }
 
 bool  isMasterNode()
 {
-  /* TODO: Implement me */
-  return true;
+  if(clCpmIsMaster() != 0)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
 }
 
-void  sendNotification(GroupMessageTypeT messageType,void* data, GroupMessageSendModeT messageMode)
+void  sendNotification(void* data, int dataLength, GroupMessageSendModeT messageMode )
 {
-    /* TODO: Implement me */
+    switch(messageMode)
+    {
+      case SEND_BROADCAST:
+      {
+        SafplusMsgServer msgClient(IOC_PORT);
+        ClIocAddressT iocDest;
+        iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+        iocDest.iocPhyAddress.portId      = GMS_PORT;
+        msgClient.SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+        break;
+      }
+      case SEND_TO_MASTER:
+      {
+        SafplusMsgServer msgClient(IOC_PORT);
+        ClIocAddressT iocDest;
+        ClIocNodeAddressT masterAddress = 0;
+        clCpmMasterAddressGet(&masterAddress);
+        iocDest.iocPhyAddress.nodeAddress = masterAddress;
+        iocDest.iocPhyAddress.portId      = GMS_PORT;
+        msgClient.SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+        break;
+      }
+      case LOCAL_ROUND_ROBIN:
+      {
+        break;
+      }
+      default:
+      {
+        logError("GMS","SERVER","Unknown message sending mode");
+        break;
+      }
+    }
 }
