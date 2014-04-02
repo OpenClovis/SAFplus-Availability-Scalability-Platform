@@ -456,7 +456,7 @@ populate_prereqs() {
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="install net-snmp"
             cp -R --parents -L lib/libnetsnmp* $imagedir
-            res_array[${#res_array[@]}]=$?
+            res_array[${#res_array[@]}]=0  # if may fail if no snmp...
             op_array[${#op_array[@]}]="copy in libnetsnmp"
             cp -R --parents -L share/snmp $imagedir
             res_array[${#res_array[@]}]=$?
@@ -481,7 +481,7 @@ populate_prereqs() {
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="install net-snmp"
             cp -R --parents -L lib/libnetsnmp* $imagedir
-            res_array[${#res_array[@]}]=$?
+            res_array[${#res_array[@]}]=0
             op_array[${#op_array[@]}]="copy in libnetsnmp"
             cp -R --parents -L share/snmp $imagedir
             res_array[${#res_array[@]}]=$?

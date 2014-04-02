@@ -282,7 +282,7 @@ ClRcT corObjectTreeFinalize(void)
 	ClCorMOIdPtrT cookie = &tmpMOId;
 	ObjTree_t tmpTree = *objTree;
 	ClUint32T idx = 0;
-	ClRcT rc = CL_OK;
+    ClRcT rc;
 
 	clCorMoIdInitialize(cookie);
 	tmpWalkDetails.fpNode = (MArrayNodeFP) _clCorObjTreeDelete;
@@ -297,7 +297,7 @@ ClRcT corObjectTreeFinalize(void)
 		   rc);
 	
     clHeapFree(objTree);
-
+    if (rc != CL_OK) clLogDebug("OT","FIN","corObjectTreeFinalize returned [0x%x]", rc);
 	return CL_OK;
 }
 

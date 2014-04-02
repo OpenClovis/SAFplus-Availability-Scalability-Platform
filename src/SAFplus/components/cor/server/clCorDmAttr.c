@@ -567,7 +567,7 @@ dmObjectAttrInit(CORAttr_h this,
 {
     ClInt32T sz = 4;
     ClRcT ret   = CL_OK;
-    Byte_h src   = 0;
+    //Byte_h src   = 0;
     Byte_h dst   = 0;
     ClInt32T arritems = 0;
     ClInt32T items = 0;
@@ -583,7 +583,7 @@ dmObjectAttrInit(CORAttr_h this,
     
     dst = *buf;
     sz = dmClassAttrTypeSize(this->attrType, this->attrValue);
-    src = (Byte_h)&this->attrValue.init;
+    //src = (Byte_h)&this->attrValue.init;
 
     if(sz < 0) 
       {
@@ -1295,32 +1295,37 @@ ClRcT clCorPrintAttr2Buffer(ClBufferHandleT  msgBufHdl,CORAttr_h attrH,ClUint8T 
             /* Complex data types */
             case CL_COR_ASSOCIATION_ATTR:
               {
-                DMObjHandle_h   oh_handle                   = NULL;
-                ClInt32T        items                       = 0;
-                ClInt32T        i                           = 0;
-                sprintf(corStr, "  [Assoc Class:0x%04x   ]", attrH->attrType.u.remClassId);
-                clBufferNBytesWrite (msgBufHdl, (ClUint8T*)corStr, strlen(corStr));
+                  DMObjHandle_h   oh_handle                   = NULL;
+                  ClInt32T        items                       = 0;
+                  ClInt32T        i                           = 0;
+                  sprintf(corStr, "  [Assoc Class:0x%04x   ]", attrH->attrType.u.remClassId);
+                  clBufferNBytesWrite (msgBufHdl, (ClUint8T*)corStr, strlen(corStr));
 
-                items = attrH->attrValue.max;
-                sz = dmClassAttrTypeSize(attrH->attrType, attrH->attrValue);
-                sz /= items;
+                  items = attrH->attrValue.max;
+                  sz = dmClassAttrTypeSize(attrH->attrType, attrH->attrValue);
+                  sz /= items;
         
-                sprintf(corStr, "  =  [");
-                clBufferNBytesWrite (msgBufHdl, (ClUint8T*)corStr, strlen(corStr));
-                for(i = 0; i < items; *data+=sz) 
+                  sprintf(corStr, "  =  [");
+                  clBufferNBytesWrite (msgBufHdl, (ClUint8T*)corStr, strlen(corStr));
+                  for(i = 0; i < items; *data+=sz) 
                   {
-                    corStr[0]='\0';
-                    oh_handle = *((DMObjHandle_h*)data);
+                      corStr[0]='\0';
+                      oh_handle = *((DMObjHandle_h*)data);
 
-                    sprintf(corStr, "0x%02x",i);
-                    clBufferNBytesWrite (msgBufHdl, (ClUint8T*)corStr, strlen(corStr));
-                    i++;
-                    if(i < items)
-                    {
-                        sprintf(corStr,", ");
-                        clBufferNBytesWrite (msgBufHdl, (ClUint8T*)corStr, strlen(corStr));
+                      sprintf(corStr, "0x%02x",i);
+                      clBufferNBytesWrite (msgBufHdl, (ClUint8T*)corStr, strlen(corStr));
+                      i++;
+                      if(i < items)
+                      {
+                          sprintf(corStr,", ");
+                          clBufferNBytesWrite (msgBufHdl, (ClUint8T*)corStr, strlen(corStr));
+                      }
+                      DM_OH_SHOW_VERBOSE(*oh_handle);
+                      if (oh_handle)
+                      {
+                          // Fake a use so the compiler does not complain.
                     }
-                    DM_OH_SHOW_VERBOSE(*oh_handle);
+                    
                   }
                 sprintf(corStr, "]");
                 clBufferNBytesWrite (msgBufHdl, (ClUint8T*)corStr,
@@ -1441,7 +1446,7 @@ ClRcT clCorRuntimeAttrGet(ClCorObjectHandleT objHandle, ClCorAttrPathPtrT pAttrP
 ClRcT
 dmObjectAttrShow(CORAttr_h this, Byte_h*   cookie)
 {
-    ClCorTypeT      typ                         = 0;
+    //ClCorTypeT      typ                         = 0;
     CORClass_h      clsHdl                      = NULL;
     char            attrName[80]                = {0};
     ClCharT         corStr[CL_COR_CLI_STR_LEN]  = {0};
@@ -1459,7 +1464,7 @@ dmObjectAttrShow(CORAttr_h this, Byte_h*   cookie)
     Byte_h buf = (tmpTrio->buf + this->offset);
     ClBufferHandleT msgHdl =  tmpTrio->pMsg;
    
-    typ    = this->attrType.type;
+    //typ    = this->attrType.type;
     clsHdl = tmpTrio->type;
 
     clLogDebug("CLI", "ATTRSHOW", "AttrShow: classId [%d], attrId [%d]", 

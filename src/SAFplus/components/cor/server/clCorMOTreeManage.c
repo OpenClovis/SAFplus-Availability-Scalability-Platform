@@ -134,21 +134,22 @@ _moTreeNodeDelete(ClUint32T Idx,
 ClRcT corMoTreeFinalize(void)
 {
 	ClCorMOClassPathT MoTreePath;
-        ClCorMOClassPathPtrT cookie = &MoTreePath;
+    ClCorMOClassPathPtrT cookie = &MoTreePath;
 	MArrayWalk_t tmpWalkDetails = {0};
 	MArrayWalk_h walkCookie = &tmpWalkDetails;
 	MOTree_t tmpTree = *moTree;
 	ClUint32T idx = 0;
-	ClRcT rc = CL_OK;
+    ClRcT rc;
 
-        clCorMoClassPathInitialize(cookie);
-        tmpWalkDetails.flags = CL_COR_MOTREE_WALK;
+    clCorMoClassPathInitialize(cookie);
+    tmpWalkDetails.flags = CL_COR_MOTREE_WALK;
 	tmpWalkDetails.fpNode = (MArrayNodeFP) _moTreeNodeDelete;
 	tmpWalkDetails.fpData = (MArrayNodeFP) _moTreeNodeDelete;
 	tmpWalkDetails.cookie = (void **) &cookie;
-	
-        mArrayDelete(idx, &tmpTree, _moTreeNodeDelete, _moTreeNodeDelete, (void **)&walkCookie, rc);	
+
+    mArrayDelete(idx, &tmpTree, _moTreeNodeDelete, _moTreeNodeDelete, (void **)&walkCookie, rc);
     clHeapFree(moTree);
+    if (rc != CL_OK) clLogDebug("OT","FIN","corMoTreeFinalize error [0x%x]", rc);
 	return CL_OK;
 }
 

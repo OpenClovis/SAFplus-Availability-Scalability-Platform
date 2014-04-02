@@ -5829,10 +5829,8 @@ clAmsPeSUInstantiate2(ClAmsSUT *su, ClUint32T *pNumComponents)
     if(pNumComponents)
         *pNumComponents = numComponents;
 
-    if(numComponents)
-    {
-        clLogInfo("SU", "INST", "SU [%s] instantiated [%d] components at level [%d]", su->config.entity.name.value, numComponents, su->status.instantiateLevel);
-    }
+    clLogInfo("SU", "INST", "SU [%s] instantiated [%d] components at level [%d]", su->config.entity.name.value, numComponents, su->status.instantiateLevel);
+
     return CL_OK;
 }
 
@@ -13690,8 +13688,10 @@ clAmsPeCompTerminateCallback(
         return clAmsPeCompRestartCallback_Step1(comp, CL_OK);
     }
 
+    /* Calling terminal if su->status.numInstantiatedComp == 0 */
     if ( (su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING) ||
-         (su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING) )
+         (su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING) ||
+         !su->status.numInstantiatedComp)
     {
         AMS_CALL ( clAmsPeSUTerminateCallback(su, CL_OK) );
     }

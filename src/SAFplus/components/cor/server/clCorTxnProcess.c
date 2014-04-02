@@ -2002,7 +2002,7 @@ _clCorRegularizeGetJobs(CL_IN ClCorMOIdPtrT   pMoId,
     ClCorAttrIdT                attrId              = 0;
     ClUint32T                   size                = 0;
     ClCorTxnAttrSetJobNodeT     *pAttrGetJobNode    = NULL;
-    ClUint32T                   count               = 0;
+    //ClUint32T                   count               = 0;
     ClUint32T                   items    = 0;
     ClUint32T                   elemSize = 0;
     ClInt32T                    index     = 0;
@@ -2019,7 +2019,7 @@ _clCorRegularizeGetJobs(CL_IN ClCorMOIdPtrT   pMoId,
         return (CL_OK);
     }
 
-    count = pObjJobNode->job.numJobs;
+    //count = pObjJobNode->job.numJobs;
     pAttrGetJobNode = pObjJobNode->head;
 
     while(pAttrGetJobNode)
