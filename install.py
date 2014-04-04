@@ -32,15 +32,15 @@ except ImportError:
 # Settings
 # ------------------------------------------------------------------------------
 
-THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.24'                # Look for PKG starting with this name
-THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.24.tar'            # search this package if no 3rdPartyPkg found
+THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.26'                # Look for PKG starting with this name
+THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.26.tar'            # search this package if no 3rdPartyPkg found
 PSP_NAME_STARTS_WITH  = 'openclovis-safplus-psp'                # Look for PKG starting with this name
 PSPPKG_DEFAULT        = 'openclovis-safplus-psp-6.1-private.tar.gz'            # search this package if no 3rdPartyPkg found
 PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_32'
 PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_32.tar.gz'
 if determine_bit() == 64:
-  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.24-x86_64'       # Look for PKG starting with this name
-  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.24-x86_64.tar'
+  THIRDPARTY_NAME_STARTS_WITH  = '3rdparty-base-1.26-x86_64'       # Look for PKG starting with this name
+  THIRDPARTYPKG_DEFAULT        = '3rdparty-base-1.26-x86_64.tar'
   PRE_INSTALL_PKG = 'preinstall_CentOs_6.x_64.tar.gz'
   PRE_INSTALL_PKG_NAME = 'preinstall_CentOs_6.x_64'
 SUPPORT_EMAIL                = 'support@openclovis.com'            # email for script maintainer
@@ -431,10 +431,8 @@ class ASPInstaller:
                         self.feedback('tipc major : %s - tipc minor : %s '%(TIPC_MAJOR_VERSION,TIPC_MINOR_VERSION))
                 
                         if TIPC_MAJOR_VERSION != 1:
-                            # install tipcutil 1.1.9
-                            #dep.installedver = 'Warning: incompatible version, won\'t install'
-                            self.TIPC_CONFIG_VERSION ='tipcutils-1.1.9.tar.gz'                            
-                            dep.pkg_name =  self.TIPC_CONFIG_VERSION
+                           # Use the version determined by looking at the linux kernel revision during install init (packages.py)                        
+                            self.TIPC_CONFIG_VERSION = dep.pkg_name
                             self.installQueue.append(dep)
                             continue
                         
@@ -1070,7 +1068,7 @@ class ASPInstaller:
                 if type(dep.build_cmds) == types.FunctionType:
                     dep.build_cmds = dep.build_cmds()
                 if dep.name == 'tipc-config':
-                    tipcPkgName = 'tipc-1.7.7.tar.gz'
+                    tipcPkgName = dep.pkg_name
                     syscall('tar xfm "%s" %s' % (self.THIRDPARTYPKG_PATH,tipcPkgName))    # pull out of pkg
                     syscall('tar zxf %s' % tipcPkgName)
                     exdir = tipcPkgName.replace('.tar.gz', '').replace('.tgz', '')

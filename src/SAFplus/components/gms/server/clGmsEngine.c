@@ -259,7 +259,7 @@ ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,C
 
     gmsNotificationCallback(notification.id, 0, &notification.nodeAddress);
 
-    clLogDebug("NTF", "LEA", "Node [0x%x] arrival msg len [%u] notif len [%lu]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,sizeof(notification));
+    clLogDebug("NTF", "LEA", "Node [0x%x] arrival msg len [%u] notif len [%lu]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,(unsigned long) sizeof(notification));
 
     if (notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION)
     {
