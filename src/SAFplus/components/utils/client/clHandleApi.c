@@ -637,7 +637,9 @@ clHandleDestroy (
 
     hdlDbValidityChk(hdbp);
     handle = CL_HDL_IDX(handle); /* once we've verified it, we only care about the index */
-    
+
+    clLogDebug("HDL", "DEL", "Deleting [%p:%#llX]", (ClPtrT) hdbp, handle);
+   
     /*
      * Decrementing handle to ensure the non-zero handle interface.
      */
@@ -657,6 +659,7 @@ clHandleDestroy (
     }
 
     ec = pthread_mutex_lock (&hdbp->mutex);
+    CL_ASSERT(ec == 0);
     if (ec != 0)
     {
         return CL_HANDLE_RC(CL_ERR_MUTEX_ERROR);
@@ -778,9 +781,8 @@ clHandleCheckout(
              * to verify the handle does exist or not.
              * so removing the debug pause
              */
-#if 0
+
             clDbgCodeError(rc, ("Handle [%p:%#llX] is not allocated", (ClPtrT) hdbp, (handle+1)));
-#endif
         }
         else if (state == HANDLE_STATE_PENDINGREMOVAL)
         {

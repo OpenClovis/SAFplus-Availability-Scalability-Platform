@@ -69,7 +69,7 @@ gms_instance {
     ClTmsGroupMessageDeliveryCallbackT  mcastMessageDeliveryCallback;
 }ClGmsLibInstanceT;
 
-extern ClHandleDatabaseHandleT handle_database;
+ClHandleDatabaseHandleT gmsHandleDb;
 
 extern ClRcT clGmsClusterTrackCallbackHandler (
         CL_IN   ClGmsClusterTrackCallbackDataT *res);

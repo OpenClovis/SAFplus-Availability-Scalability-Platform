@@ -44,7 +44,7 @@ ClRcT clTmsGroupCreate(
         return CL_GMS_RC(CL_ERR_NULL_POINTER);
     }
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -83,7 +83,7 @@ ClRcT clTmsGroupCreate(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    clHandleCheckin(handle_database, gmsHandle);
+    clHandleCheckin(gmsHandleDb, gmsHandle);
     return CL_GMS_RC(rc);
 }
 
@@ -101,7 +101,7 @@ ClRcT clTmsGroupDestroy(
     ClGmsGroupDestroyResponseT            *res = NULL;
 
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -127,7 +127,7 @@ ClRcT clTmsGroupDestroy(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    clHandleCheckin(handle_database, gmsHandle);
+    clHandleCheckin(gmsHandleDb, gmsHandle);
     return CL_GMS_RC(rc);
 }
 
@@ -154,7 +154,7 @@ ClRcT clTmsGroupJoin(
 
     CL_GMS_SET_CLIENT_VERSION( req );
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -220,7 +220,7 @@ ClRcT clTmsGroupJoin(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    clHandleCheckin(handle_database, gmsHandle);
+    clHandleCheckin(gmsHandleDb, gmsHandle);
     return CL_GMS_RC(rc);
 }
 
@@ -242,7 +242,7 @@ ClRcT clTmsGroupLeave(
 
     CL_GMS_SET_CLIENT_VERSION( req );
 
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -291,7 +291,7 @@ ClRcT clTmsGroupLeave(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    clHandleCheckin(handle_database, gmsHandle);
+    clHandleCheckin(gmsHandleDb, gmsHandle);
     return CL_GMS_RC(rc);
 }
 
@@ -337,7 +337,7 @@ ClRcT clTmsGroupTrack(
         return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
     }
     
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return CL_GMS_RC(CL_ERR_INVALID_HANDLE);
@@ -447,7 +447,7 @@ error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
 error_checkin:
-    if (clHandleCheckin(handle_database, gmsHandle) != CL_OK)
+    if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)
     {
         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
                    "\nclHandleCheckin Failed");
@@ -469,7 +469,7 @@ ClRcT clTmsGroupTrackStop(
     ClGmsGroupTrackStopResponseT   *res = NULL;
 
     CL_GMS_SET_CLIENT_VERSION( req );
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -497,7 +497,7 @@ ClRcT clTmsGroupTrackStop(
 error_exit:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
     
-    clHandleCheckin(handle_database, gmsHandle);
+    clHandleCheckin(gmsHandleDb, gmsHandle);
     return rc;
 }
 
@@ -516,7 +516,7 @@ ClRcT clTmsListGroups(
 
     CL_GMS_SET_CLIENT_VERSION( req );
 
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -543,7 +543,7 @@ ClRcT clTmsListGroups(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
 
-    clHandleCheckin(handle_database, gmsHandle);
+    clHandleCheckin(gmsHandleDb, gmsHandle);
     return CL_GMS_RC(rc);
 }
 
@@ -569,7 +569,7 @@ ClRcT clTmsGetGroupInfo(
 
     CL_GMS_SET_CLIENT_VERSION( req );
 
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -596,7 +596,7 @@ ClRcT clTmsGetGroupInfo(
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
 
-    clHandleCheckin(handle_database, gmsHandle);
+    clHandleCheckin(gmsHandleDb, gmsHandle);
     return CL_GMS_RC(rc);
 }
 
@@ -623,7 +623,7 @@ ClRcT clTmsSendAll(CL_IN   ClTmsHandleT        gmsHandle,
 
     CL_GMS_SET_CLIENT_VERSION(req);
 
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         return rc;
@@ -654,7 +654,7 @@ ClRcT clTmsSendAll(CL_IN   ClTmsHandleT        gmsHandle,
 error_unlock_checkin:
     clGmsMutexUnlock(gms_instance_ptr->response_mutex);
 
-    clHandleCheckin(handle_database, gmsHandle);
+    clHandleCheckin(gmsHandleDb, gmsHandle);
     return CL_GMS_RC(rc);
 }
 
@@ -671,7 +671,7 @@ ClRcT clTmsGroupTrackCallbackHandler(
     CL_ASSERT(res != NULL);
     
     gmsHandle = res->gmsHandle;
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         goto error_free_res;
@@ -693,7 +693,7 @@ ClRcT clTmsGroupTrackCallbackHandler(
                   (res->groupId, &res->buffer, res->numberOfMembers, res->rc);
 
 error_checkin_free_res:
-    clHandleCheckin(handle_database, gmsHandle);
+    clHandleCheckin(gmsHandleDb, gmsHandle);
 
 error_free_res:
     /* Need to free data (res) if are not able to call the actual callback */
@@ -718,7 +718,7 @@ ClRcT clTmsGroupMcastCallbackHandler(
     CL_ASSERT(res != NULL);
     
     gmsHandle = res->gmsHandle;
-    rc = clHandleCheckout(handle_database, gmsHandle, (void**)&gms_instance_ptr);
+    rc = clHandleCheckout(gmsHandleDb, gmsHandle, (void**)&gms_instance_ptr);
     if (rc != CL_OK)
     {
         goto error_free_res;
@@ -739,7 +739,7 @@ ClRcT clTmsGroupMcastCallbackHandler(
                   (res->groupId, res->memberId, res->dataSize, res->data);
 
 error_checkin_free_res:
-    clHandleCheckin(handle_database, gmsHandle);
+    clHandleCheckin(gmsHandleDb, gmsHandle);
 
 error_free_res:
     /* Need to free data (res) if are not able to call the actual callback */

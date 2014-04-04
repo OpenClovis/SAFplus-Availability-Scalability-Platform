@@ -88,8 +88,7 @@ ClUint32T delta_t   = 1000;     // time between printouts  in milliseconds
 ClUint32T counter   = 0;        // the value we print out.
 ClUint32T counter_threshold   = 55;        // the value determining the counter threshold.
 static int            running  = 1; /* Running state: 0=suspended; 1=resumed */
-static ClAmsHAStateT  ha_state = CL_AMS_HA_STATE_NONE; /* HA state           */
-
+static SaAmfHAStateT  ha_state = (SaAmfHAStateT) 0; /* HA state starts invalid         */
 #define CKPT_NAME     "csa105Ckpt"  // checkpoint name for this app
 static ClCkptSvcHdlT  ckpt_svc_handle;   // handle for checkpoint service
 static ClCkptHdlT     ckpt_handle;  // handle for our checkpoint
@@ -200,7 +199,7 @@ int main(int argc, char *argv[])
 
     clprintf(CL_LOG_SEV_INFO,"csa105: instantiated as component instance %s.", appname);
 
-    if (ha_state != CL_AMS_HA_STATE_ACTIVE)
+    if (ha_state != SA_AMF_HA_ACTIVE)
     {
         clprintf(CL_LOG_SEV_INFO,"%s: Waiting for CSI assignment...", appname);
     }
@@ -240,7 +239,7 @@ if ((rc = clDataTapInit(DATA_TAP_DEFAULT_FLAGS, 105)) != CL_OK)
      */
     do
     {
-        if (running && ha_state == CL_AMS_HA_STATE_ACTIVE)
+        if (running && ha_state == SA_AMF_HA_ACTIVE)
         {
             clprintf(CL_LOG_SEV_INFO,"%s: Hello World! (count = %d)", appname, counter);
 #ifdef CL_INST
@@ -464,7 +463,7 @@ void clCompAppAMFCSISet(SaInvocationT       invocation,
              * for the CSI.
              */
 
-            if (ha_state == CL_AMS_HA_STATE_STANDBY)
+            if (ha_state == SA_AMF_HA_STANDBY)
             {
                 checkpoint_read_counter(&counter);
             }

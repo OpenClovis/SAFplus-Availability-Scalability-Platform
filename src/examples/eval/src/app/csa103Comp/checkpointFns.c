@@ -4,6 +4,9 @@
 #include <saCkpt.h>
 #include "checkpointFns.h"
 
+SaCkptHandleT  ckptLibraryHandle; /* Checkpointing service handle       */
+SaCkptCheckpointHandleT ckpt_handle;  /* Checkpoint handle        */
+
 extern ClBoolT unblockNow;
 extern ClLogStreamHandleT gEvalLogStream;
 extern SaAmfHAStateT  ha_state;

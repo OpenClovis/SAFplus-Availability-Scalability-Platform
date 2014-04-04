@@ -36,6 +36,7 @@
 #include <clBufferApi.h>
 
 #include <clGmsErrors.h>
+#include <clErrorApi.h>
 #include <clGmsCommon.h>
 #include <clGmsRmdClient.h>
 #include <clHandleApi.h>
@@ -2029,7 +2030,11 @@ ClRcT VDECL (cl_gms_cluster_track_callback_rmd) (
         return CL_ERR_UNSPECIFIED;
     }
 
-    rc = clHandleCheckout( handle_database , res->gmsHandle, (void**)&gmsInstance);
+    CL_ASSERT(gmsHandleDb);
+    clLogDebug("GMS","TRK","clHandleCheckout(%p,%llX)", gmsHandleDb,res->gmsHandle);
+    rc = clHandleCheckout( gmsHandleDb , res->gmsHandle, (void**)&gmsInstance);
+    clLogDebug("GMS","TRK","clHandleCheckout(%p,%llX) -> 0x%x,%s", gmsHandleDb,res->gmsHandle,rc,clErrorToString(rc));
+    
     if(rc){
         return CL_ERR_INVALID_HANDLE;
     }
@@ -2135,7 +2140,7 @@ ClRcT VDECL (cl_gms_cluster_member_get_callback_rmd) ( CL_IN   ClEoDataT  c_data
         return CL_ERR_UNSPECIFIED;
     }
 
-    rc = clHandleCheckout( handle_database , res->gmsHandle, (void **)&gmsInstance);
+    rc = clHandleCheckout( gmsHandleDb , res->gmsHandle, (void **)&gmsInstance);
     if(rc){
         return CL_ERR_INVALID_HANDLE;
     }
@@ -2233,7 +2238,6 @@ ClRcT VDECL (cl_gms_group_track_callback_rmd) (
 
     // added code for cluster callback handle in queue
     ClGmsLibInstanceT *gmsInstance = NULL;
-    ClGmsHandleT gmsHandle = CL_HANDLE_INVALID_VALUE;
 
     rc = unmarshalClGmsGroupTrackCallbackData(in_buffer, &res);
     if (rc != CL_OK)
@@ -2246,13 +2250,12 @@ ClRcT VDECL (cl_gms_group_track_callback_rmd) (
         return CL_ERR_UNSPECIFIED;
     }
 
-    rc = clHandleCheckout(handle_database ,res->gmsHandle, (void **)&gmsInstance);
+    rc = clHandleCheckout(gmsHandleDb ,res->gmsHandle, (void **)&gmsInstance);
     if(rc)
     {
         return CL_ERR_INVALID_HANDLE;
     }
 
-    gmsHandle = res->gmsHandle;
 
     #if 1
     // instead of directly invking the call back handler invoke through job queue

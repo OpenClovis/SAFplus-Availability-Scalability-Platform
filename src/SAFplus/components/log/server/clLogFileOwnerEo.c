@@ -24,8 +24,10 @@
 #include <clLogMaster.h>
 #include <clLogOsal.h>
 
-ClRcT
-clLogFileOwnerEoDataInit(ClLogFileOwnerEoDataT  **ppFileOwnerEoEntry)
+
+//ClLogFileOwnerEoDataT logFileOwner;
+
+ClRcT clLogFileOwnerEoDataInit(ClLogFileOwnerEoDataT  **ppFileOwnerEoEntry)
 {
     ClRcT              rc      = CL_OK;
     ClEoExecutionObjT  *pEoObj = NULL;
@@ -81,10 +83,20 @@ clLogFileOwnerEoDataInit(ClLogFileOwnerEoDataT  **ppFileOwnerEoEntry)
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
+
+    /* No-ops this function     
+    *ppFileOwnerEoEntry = &logFileOwner;
+
+    (*ppFileOwnerEoEntry)->hStreamDB  = CL_HANDLE_INVALID_VALUE;
+    (*ppFileOwnerEoEntry)->hFileTable = CL_HANDLE_INVALID_VALUE;
+    (*ppFileOwnerEoEntry)->hLog       = CL_HANDLE_INVALID_VALUE;
+    (*ppFileOwnerEoEntry)->activeCnt  = 0;
+    (*ppFileOwnerEoEntry)->terminate  = CL_FALSE;
+    return CL_OK;
+    */
 }
 
-ClRcT
-clLogFileOwnerEoDataFinalize(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry)
+ClRcT clLogFileOwnerEoDataFinalize(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry)
 {
     ClRcT             rc            = CL_OK;
 
@@ -92,8 +104,9 @@ clLogFileOwnerEoDataFinalize(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry)
 
     clLogWarning("FOW", "DEL", "FileOwner eo is getting deleted");
     rc = clOsalMutexLock_L(&pFileOwnerEoEntry->fileTableLock);
-    if( CL_OK != rc )
+    if ( CL_OK != rc )
     {
+        clDbgCodeError(rc,("object used after lock deleted"));        
         return rc;
     }
     if( CL_HANDLE_INVALID_VALUE != pFileOwnerEoEntry->hFileTable )
@@ -102,22 +115,21 @@ clLogFileOwnerEoDataFinalize(ClLogFileOwnerEoDataT  *pFileOwnerEoEntry)
     }
     if( CL_HANDLE_INVALID_VALUE != pFileOwnerEoEntry->hStreamDB )
     {
-        CL_LOG_CLEANUP(clHandleDatabaseDestroy(pFileOwnerEoEntry->hStreamDB),
-                       CL_OK);
+        CL_LOG_CLEANUP(clHandleDatabaseDestroy(pFileOwnerEoEntry->hStreamDB), CL_OK);
     }
     pFileOwnerEoEntry->status = CL_LOG_FILEOWNER_STATE_CLOSED;
-    CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
-            CL_OK);
-    CL_LOG_CLEANUP(clOsalMutexDestroy_L(&pFileOwnerEoEntry->fileTableLock),
-                   CL_OK);
-
+    CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock), CL_OK);
+    CL_LOG_CLEANUP(clOsalMutexDestroy_L(&pFileOwnerEoEntry->fileTableLock), CL_OK);
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
 }
 
-ClRcT
-clLogFileOwnerEoEntryGet(ClLogFileOwnerEoDataT  **ppFileOwnerEoEntry)
+ClRcT clLogFileOwnerEoEntryGet(ClLogFileOwnerEoDataT  **ppFileOwnerEoEntry)
 {
+    //  no-ops this function
+    //*ppFileOwnerEoEntry = &logFileOwner;
+    //return CL_OK;
+
     ClRcT              rc      = CL_OK;
     ClEoExecutionObjT  *pEoObj = NULL;
 
@@ -139,6 +151,7 @@ clLogFileOwnerEoEntryGet(ClLogFileOwnerEoDataT  **ppFileOwnerEoEntry)
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;
+
 }
 
  /*

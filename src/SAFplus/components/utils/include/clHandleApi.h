@@ -364,7 +364,7 @@ typedef enum handle_state
 {
 	HANDLE_STATE_EMPTY = 0,      /* Value of 0 must indicate unused state */
 	HANDLE_STATE_USED,
-	HANDLE_STATE_PENDINGREMOVAL
+	HANDLE_STATE_PENDINGREMOVAL,
 } ClHdlStateT;
 
 

@@ -91,7 +91,7 @@ SaCkptSectionIdT ckpt_sid = { /* Section id for checkpoints           */
 };
 
 ClUint32T      seq      = 0; /* Sequence number for print lines       */
-SaAmfHAStateT  ha_state = 0; /* HA state           */
+SaAmfHAStateT  ha_state = (SaAmfHAStateT) 0; /* HA state starts invalid         */
 
 /* Declare other global variables here. */
 

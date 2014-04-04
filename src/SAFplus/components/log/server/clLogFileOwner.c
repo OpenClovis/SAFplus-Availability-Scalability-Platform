@@ -2222,14 +2222,12 @@ clLogFileOwnerStreamCreateEvent(SaNameT              *pStreamName,
         return rc;
     }
 
-    rc = clLogFileOwnerLocationVerify(pFileOwnerEoEntry, &pStreamAttr->fileLocation,
-                                      &fileOwner);  
+    rc = clLogFileOwnerLocationVerify(pFileOwnerEoEntry, &pStreamAttr->fileLocation, &fileOwner);  
     if( (CL_OK != rc) || (CL_FALSE == fileOwner) )
     {
         return rc;
     }
-    clLogDebug(CL_LOG_AREA_FILE_OWNER, CL_LOG_CTX_FO_INIT, 
-               " %d is fileOwner for fileName %s", clIocLocalAddressGet(), pStreamAttr->fileName.pValue);
+    clLogDebug(CL_LOG_AREA_FILE_OWNER, CL_LOG_CTX_FO_INIT, " %d is fileOwner for fileName %s", clIocLocalAddressGet(), pStreamAttr->fileName.pValue);
     rc = clOsalMutexLock_L(&pFileOwnerEoEntry->fileTableLock);
     if( CL_OK != rc )
     {
@@ -2292,6 +2290,7 @@ clLogFileOwnerStreamCreateEvent(SaNameT              *pStreamName,
     rc = clOsalMutexLock_L(&pFileOwnerEoEntry->fileTableLock);
     if( (CL_OK != rc) || (CL_OK != retCode) )
     {
+        clDbgPause();
         CL_LOG_CLEANUP(clLogFileOwnerStreamEntryRemove(pFileOwnerEoEntry, 
                                                        hFileNode, pStreamName,
                                                        streamScope,
@@ -2308,6 +2307,7 @@ clLogFileOwnerStreamCreateEvent(SaNameT              *pStreamName,
                                           pStreamScopeNode, &hStreamNode);
     if( CL_OK != rc )
     {
+        clDbgPause();
         if(logHandlerRegister)
             clLogHandlerDeregister(hFileOwner);
         CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
@@ -2332,8 +2332,7 @@ clLogFileOwnerStreamCreateEvent(SaNameT              *pStreamName,
             return rc;
         }
     }
-    CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),
-                                 CL_OK);
+    CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pFileOwnerEoEntry->fileTableLock),CL_OK);
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return rc;

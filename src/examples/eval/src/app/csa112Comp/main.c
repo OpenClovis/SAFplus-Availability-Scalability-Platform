@@ -82,7 +82,7 @@ SaNameT      appName = {0};
 ClBoolT unblockNow = CL_FALSE;
 
 /* csa112: high availability variables */
-SaAmfHAStateT  ha_state = 0;            /* HA state           */
+SaAmfHAStateT  ha_state = (SaAmfHAStateT) 0;            /* HA state starts invalid       */
 int              running = 1;    // run state: 0=suspended, 1=resumed
 //int              exiting = 0;    // Flag to tell main loop to exit
 
@@ -627,7 +627,7 @@ static void generate_time_of_day(char **data, ClSizeT *data_len)
 
     // magic number, but well, that's what ctime_r needs
     *data_len = 26;
-    *data = clHeapAllocate(*data_len);
+    *data = (char*) clHeapAllocate(*data_len);
     if (*data == 0)
     {
         *data_len = 0;
@@ -671,7 +671,7 @@ static void generate_load_average(char **data, ClSizeT *data_len)
     }
     close(fd);
     *data_len = num_read + 1;
-    *data = clHeapAllocate(*data_len);
+    *data = (char*) clHeapAllocate(*data_len);
     if (data == 0)
     {
         clprintf(CL_LOG_SEV_ERROR,"Failed to allocate memory for loadavg contents");

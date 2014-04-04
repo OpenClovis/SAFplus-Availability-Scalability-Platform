@@ -275,31 +275,21 @@ clLogGmsInit(void)
     
     do
     {
-        rc = clGmsInitialize(&hGms, &logGmsCallbacks,
-                             &version);
+        rc = clGmsInitialize(&hGms, &logGmsCallbacks, &version);
         if( CL_OK != rc )
         {
-            usleep(100);
+            usleep(10000);
         }
         numRetries++;
-    }while((rc != CL_OK) && 
-           (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && 
-           (numRetries < CL_LOG_MAX_RETRIES));
+    }while((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && (numRetries < CL_LOG_MAX_RETRIES));
 
     if( rc != CL_OK )
     {
         CL_LOG_DEBUG_ERROR(("clGmsInitialize(): rc[0x %x]\n", rc)); 
         return rc;
     }
-    rc = clGmsClusterTrack( hGms,
-                            CL_GMS_TRACK_CHANGES | CL_GMS_TRACK_CURRENT, 
-                            &notBuffer);
-    if (CL_OK != rc)
-    {
-        clGmsFinalize(hGms);
-        CL_LOG_DEBUG_ERROR(("clGmsClusterTrack(): rc[0x %x]\n", rc));
-        return rc;
-    }
+    rc = clGmsClusterTrack( hGms, CL_GMS_TRACK_CHANGES | CL_GMS_TRACK_CURRENT, &notBuffer);
+    CL_ASSERT(rc == CL_OK);
     rc = clLogAddrUpdate(notBuffer.leader, notBuffer.deputy);
     if (CL_OK != rc)
     {
