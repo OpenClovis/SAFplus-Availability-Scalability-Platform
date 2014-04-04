@@ -21,6 +21,10 @@
 ##############################################################################
 
 MACH=`uname -m`
+if [ ${MACH} != 'i386' ] ; then #uname -m may show i386,i486,i686... they're so-called 32 bits but the system prefix lib directory is i386-
+  MACH2='i386' # default for 32 bits
+fi
+
 populate_prereqs() {
     if [ $# -ne 4 ]
     then
@@ -399,6 +403,12 @@ populate_prereqs() {
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="copy in db"
             cd - >/dev/null 2>&1
+        elif [ -f /usr/lib/${MACH2}-linux-gnu/libdb.so ]; then
+            cd /usr/lib/${MACH2}-linux-gnu
+            tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in db"
+            cd - >/dev/null 2>&1
         elif [ -f /usr/lib/`uname -i`-linux-gnu/libdb.so ]; then
             cd /usr/lib/`uname -i`-linux-gnu
             tar cfh - libdb[.-]* | tar xf - -C $imagedir/lib
@@ -429,6 +439,12 @@ populate_prereqs() {
             cd - >/dev/null 2>&1
         elif [ -f /usr/lib/${MACH}-linux-gnu/libgdbm.so ]; then
             cd /usr/lib/${MACH}-linux-gnu
+            tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
+            res_array[${#res_array[@]}]=$?
+            op_array[${#op_array[@]}]="copy in gdbm"
+            cd - >/dev/null 2>&1
+        elif [ -f /usr/lib/${MACH2}-linux-gnu/libgdbm.so ]; then
+            cd /usr/lib/${MACH2}-linux-gnu
             tar cfh - libgdbm.* | tar xf - -C $imagedir/lib
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="copy in gdbm"
@@ -620,6 +636,8 @@ populate_prereqs() {
 		    GLIB_LIB_DIR=/usr/lib/`uname -i`-linux-gnu
 		  elif [ -f /usr/lib/${MACH}-linux-gnu/libglib-2.0.so ]; then
 		    GLIB_LIB_DIR=/usr/lib/${MACH}-linux-gnu
+                 elif [ -f /usr/lib/${MACH2}-linux-gnu/libglib-2.0.so ]; then
+		    GLIB_LIB_DIR=/usr/lib/${MACH2}-linux-gnu
 		  else
 		    export PKG_CONFIG_PATH=${toolchaindir}/lib/pkgconfig:$PKG_CONFIG_PATH
 		    GLIB_LIB_DIR=$(pkg-config --libs-only-L glib-2.0 | sed -e 's/^.*-L//g')
