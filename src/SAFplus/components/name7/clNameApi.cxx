@@ -93,7 +93,7 @@ void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, Ma
       boost::iostreams::back_insert_device<std::string> inserter(serial_str);
       boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> > s2(inserter);
       boost::archive::binary_oarchive oa(s2);
-      oa << hm2;   
+      oa << hm2;
       s2.flush();
       size_t valLen = serial_str.size();
       char vdata[sizeof(Buffer)-1+valLen];
@@ -236,7 +236,7 @@ void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Buffer* p_buf
    }
 }
 
-std::pair<SAFplus::Handle,void*> SAFplus::NameRegistrar::get(const char* name) throw(NameException&)
+ObjMapPair SAFplus::NameRegistrar::get(const char* name) throw(NameException&)
 {
    try
    {
@@ -248,17 +248,17 @@ std::pair<SAFplus::Handle,void*> SAFplus::NameRegistrar::get(const char* name) t
          void* curObj = contents->second;
          if (curObj)
          {                   
-            return std::pair<SAFplus::Handle,void*>(handle, curObj);                     
+            return ObjMapPair(handle, curObj);                     
          }
       }
-      return (std::pair<SAFplus::Handle&,void*>(handle, NULL));
+      return ObjMapPair(handle, NULL);
    }                
    catch (NameException ne)
    {
       throw ne;
    }
 }
-std::pair<SAFplus::Handle,void*> SAFplus::NameRegistrar::get(const std::string& name) throw(NameException&)
+ObjMapPair SAFplus::NameRegistrar::get(const std::string& name) throw(NameException&)
 {
    try
    {

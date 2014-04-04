@@ -84,17 +84,17 @@ int main(int argc, char* argv[])
    
    name.dumpObj();
    try {
-     std::pair<SAFplus::Handle,void*>ho = name.get(name1);
+     ObjMapPair ho = name.get(name1);
      ObjTest* po = (ObjTest*)ho.second;     
-      po->greet();
+     po->greet();
    }catch (NameException ne) {
       printf("Exception [%s]\n", ne.what());
    }
    
    try {
-     std::pair<SAFplus::Handle,void*>ho = name.get(name2);
+     ObjMapPair ho = name.get(name2);
      ObjTest* po = (ObjTest*)ho.second;     
-      po->greet();
+     po->greet();
    }catch (NameException ne) {
       printf("Exception [%s]\n", ne.what());
    }

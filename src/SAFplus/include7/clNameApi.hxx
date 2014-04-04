@@ -48,7 +48,7 @@ namespace SAFplus
   {
   protected:
      static SAFplus::Checkpoint m_checkpoint;
-     HashMap m_mapData; // keep association between name and arbitrary data
+     HashMap m_mapData; // keep association between handle and its arbitrary data
      ObjHashMap m_mapObject; // keep association between handle and an object
   private:
      //static NameRegistrar* name;
@@ -95,8 +95,8 @@ namespace SAFplus
   
      // Get a handle associated with the data
      // The SAFplus APIs use these calls to resolve names to handles or objects.
-     std::pair<SAFplus::Handle,void*> get(const char* name) throw(NameException&);
-     std::pair<SAFplus::Handle,void*> get(const std::string& name) throw(NameException&);
+     ObjMapPair get(const char* name) throw(NameException&);
+     ObjMapPair get(const std::string& name) throw(NameException&);
      void* get(const SAFplus::Handle&) throw(NameException&);
    
      SAFplus::Handle getHandle(const char* name) throw(NameException&);
@@ -113,6 +113,7 @@ namespace SAFplus
      ClIocNodeAddressT clIocLocalAddressGet() { return 2; }
      void dump();
      void dumpObj();
+     //***********************************************************************
      
      virtual ~NameRegistrar();
   };
