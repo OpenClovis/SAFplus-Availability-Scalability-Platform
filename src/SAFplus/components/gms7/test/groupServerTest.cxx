@@ -192,8 +192,8 @@ void entityLeaveHandle(messageProtocol *rxMsg)
       cout << "GMS_SERVER[" << myNodeAddress << "]: " << "--> Active had capability: " << capabilities << "\n";
       capabilities = clusterNodeGrp.getCapabilities(res.second);
       cout << "GMS_SERVER[" << myNodeAddress << "]: " << "--> Standby had capability: " << capabilities << "\n";
-      clusterNodeGrp.setCapabilities(clusterNodeGrp.getCapabilities(res.first),res.first);
-      clusterNodeGrp.setCapabilities(clusterNodeGrp.getCapabilities(res.second), res.second);
+      clusterNodeGrp.setActive(res.first);
+      clusterNodeGrp.setStandby(res.second);
     }
   }
   else
@@ -214,8 +214,8 @@ void entityElectHandle()
   cout << "GMS_SERVER[" << myNodeAddress << "]: " << "--> Active had capability: " << capabilities << "\n";
   capabilities = clusterNodeGrp.getCapabilities(res.second);
   cout << "GMS_SERVER[" << myNodeAddress << "]: " << "--> Standby had capability: " << capabilities << "\n";
-  clusterNodeGrp.setCapabilities(clusterNodeGrp.getCapabilities(res.first) | SAFplus::Group::IS_ACTIVE,res.first);
-  clusterNodeGrp.setCapabilities(clusterNodeGrp.getCapabilities(res.second) | SAFplus::Group::IS_STANDBY, res.second);
+  clusterNodeGrp.setActive(res.first);
+  clusterNodeGrp.setStandby(res.second);
 }
 int main(int argc, char* argv[])
 {
