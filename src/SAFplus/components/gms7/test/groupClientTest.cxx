@@ -88,7 +88,11 @@ int main()
   clIocLibInitialize(NULL);
   msgClient = new SafplusMsgServer(CLIENT_PORT);
   msgClient->RegisterHandler(CL_IOC_PROTO_MSG, handler, NULL);
-
+#ifdef __TESTREALSERVER
+  cout << "GMS_CLIENT: Signal to master node \n";
+  sendDataToGms(standbyEntity,nodeJoin,GMS_PORT_1);
+  while(1);
+#endif // __TESTREALSERVER
   cout << "GMS_CLIENT: Send Entity Join for server #2 \n";
   sendDataToGms(standbyEntity,nodeJoin,GMS_PORT_2);
   cout << "GMS_CLIENT: Send Entity Join for server #2 \n";

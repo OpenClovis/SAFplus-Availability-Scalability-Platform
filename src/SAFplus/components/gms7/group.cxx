@@ -123,7 +123,7 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
     SAFplusI::BufferPtr kb(key),kv(val);
     SAFplusI::GroupMapPair vt(kb,kv);
     map->insert(vt);
-
+    logError("GMS", "REG","Register Entity successfully");
     /* Notify other entities about new entity*/
     if(wakeable)
     {
@@ -207,16 +207,6 @@ void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
 
   SAFplusI::BufferPtr curval = contents->second;
   ((GroupIdentity *)(((Buffer *)curval.get())->data))->capabilities = capabilities;
-
-  /*Update active/standby based on new capabilities*/
-  if((capabilities & SAFplus::Group::IS_ACTIVE) != 0)
-  {
-    activeEntity = me;
-  }
-  if((capabilities & SAFplus::Group::IS_STANDBY) != 0)
-  {
-    standbyEntity = me;
-  }
 }
 
 uint SAFplus::Group::getCapabilities(EntityIdentifier id)
@@ -423,6 +413,30 @@ void SAFplus::Group::setNotification(SAFplus::Wakeable& w)
 EntityIdentifier SAFplus::Group::getActive(void) const
 {
   return activeEntity;
+}
+
+void SAFplus::Group::setActive(EntityIdentifier id)
+{
+  if(isMember(id))
+  {
+    activeEntity = id;
+  }
+  else
+  {
+    logDebug("GMS","SETACT","Node isn't a group member");
+  }
+}
+
+void SAFplus::Group::setStandby(EntityIdentifier id)
+{
+  if(isMember(id))
+  {
+    standbyEntity = id;
+  }
+  else
+  {
+    logDebug("GMS","SETACT","Node isn't a group member");
+  }
 }
 
 EntityIdentifier SAFplus::Group::getStandby(void) const

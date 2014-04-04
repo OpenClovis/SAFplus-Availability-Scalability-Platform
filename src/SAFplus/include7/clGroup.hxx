@@ -40,6 +40,7 @@ namespace SAFplus
       GroupIdentity()
       {
         credentials = 0;
+        id = SAFplus::Handle::create();
       }
       GroupIdentity(EntityIdentifier me,uint64_t credentials,SAFplus::Buffer *dat,uint datalen,uint capabilities)
       {
@@ -173,7 +174,9 @@ namespace SAFplus
       void setNotification(SAFplus::Wakeable& w);  // call w.wake when someone enters/leaves the group or an active or standby assignment or transition occurs.  Pass what happened into the wakeable.
 
       EntityIdentifier getActive(void) const;
+      void setActive(EntityIdentifier id);
       EntityIdentifier getStandby(void) const;
+      void setStandby(EntityIdentifier id);
 
     protected:
       boost::interprocess::managed_shared_memory msm;
