@@ -3697,6 +3697,25 @@ clAmsPeNodeEvaluateWork(
     return CL_OK;
 }
 
+ClBoolT isMe(ClAmsNodeT *node)
+{
+   ClIocNodeAddressT me = clIocLocalAddressGet();
+   ClCpmSlotInfoT slotInfo;
+   memset(&slotInfo, 0, sizeof(slotInfo));
+   clNameCopy(&slotInfo.nodeName, &node->config.entity.name);
+   ClRcT rc = clCpmSlotGet(CL_CPM_NODENAME, &slotInfo);   
+   if (rc == CL_OK)
+   {
+      if (slotInfo.nodeIocAddress == me)
+         return CL_TRUE;
+   }
+   else
+   {
+      clLogError("---","---", "clCpmSlotGet error [0x%x]", rc);
+   }
+   return CL_FALSE;
+}
+
 /*
  * clAmsPeNodeSwitchoverWork
  * -------------------------
@@ -3742,19 +3761,21 @@ clAmsPeNodeSwitchoverWork(
     AMS_CALL ( clAmsEntityTimerStop((ClAmsEntityT *) node,
                                     CL_AMS_NODE_TIMER_SUFAILOVER) );
 
-    if(node->status.isClusterMember == CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER
-        ||
-       node->status.operState == CL_AMS_OPER_STATE_DISABLED)
+    if (!isMe(node))
     {
-        notificationType = CL_AMS_NOTIFICATION_NODE_FAILOVER;
-    }
+        if(node->status.isClusterMember == CL_AMS_NODE_IS_NOT_CLUSTER_MEMBER
+            ||
+           node->status.operState == CL_AMS_OPER_STATE_DISABLED)
+        {
+            notificationType = CL_AMS_NOTIFICATION_NODE_FAILOVER;
+        }
 
-    if(clAmsGenericNotificationEventPayloadSet(notificationType, &node->config.entity,
+        if(clAmsGenericNotificationEventPayloadSet(notificationType, &node->config.entity,
                                                &notification) == CL_OK)
-    {
-        clAmsNotificationEventPublish(&notification);
+        {
+            clAmsNotificationEventPublish(&notification);
+        }
     }
-
     /*
      * Tell this node's dependents that it is switching over. The switchover mode
      * will automatically be overridden at the component level if the node is
