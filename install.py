@@ -579,8 +579,8 @@ class ASPInstaller:
                 self.feedback('Installation Type:\n')
                 self.feedback('    1) Standard          -  Select all default options')
                 self.feedback('    2) Custom            -  Recommended')
-                self.feedback('    3) Preinstall Only   -  Only does the preinstall phase')
-                self.feedback('    4) Install Only      -  Only does the install phase')
+                self.feedback('    3) Preinstall Only   -  Uses your distro package manager to install needed\n                            prerequisites (must be root).')
+                self.feedback('    4) Install Only      -  Installs SAFplus code, IDE, and prerequisites not\n                            supplied with your linux distro.')
                 
                 strin = self.get_user_feedback('\nPlease choose an installation option [default: 2]: ')
                 
@@ -927,11 +927,13 @@ class ASPInstaller:
 
             else:
                syscall('apt-get update;')      
-               self.debug('Apt-Get Installing: ' + install_str)
+               self.debug('Installing via apt-get: ' + install_str)
                (retval, result, signal, core) = system('apt-get -y --force-yes install %s' % install_str)
-               self.debug(str(result))
+               self.debug("Result: %d, output: %s" % (retval, str(result)))
                if "Could not get lock" in "".join(result):
                  self.feedback("Could not get the lock, is another package manager running?\n", fatal=True)
+               if retval != 0:
+                 self.feedback("\n\nPreinstall was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (install_str,"".join(result)), fatal=True)
 
             self.feedback('Successfully installed preinstall dependencies.')
         

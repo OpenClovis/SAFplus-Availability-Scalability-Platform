@@ -773,41 +773,13 @@ class Debian(OS):
             self.pre_dep_list.append(D)
 
 # ------------------------------------------------------------------------------
-class Mint(OS):
+class Mint(Ubuntu):
     """ LinuxMint Distro class """
     
     def pre_init(self):
         self.name = 'LinuxMint'
         self.apt = True
     
-    def load_preinstall_deps(self):
-        
-        deps =  ['build-essential',
-                 'linux-headers-' + self.kernelVerString,
-                 'gettext',
-                 'uuid-dev',
-                 'bison',
-                 'flex',
-                 'gawk',
-                 'pkg-config',
-                 'libglib2.0-dev',
-                 'libgdbm-dev',
-                 'libdb-dev',
-                 'libsqlite3-0',
-                 'libsqlite3-dev',
-                 'e2fsprogs',
-                 'libperl-dev',
-                 'libltdl3-dev',
-                 'e2fslibs-dev',
-                 'libsnmp-dev',
-                 'zlib1g-dev',
-                 'tipcutils']
-        
-        
-        for name in deps:
-            D = objects.RepoDep(name)
-            self.pre_dep_list.append(D)
-
 # ------------------------------------------------------------------------------
 class Other(OS):
     
@@ -830,7 +802,6 @@ def determine_os():
         and return the proper OS object
         Returns None if unable to determine OS 
         """
-    
     hostos = syscall('uname -s').lower()
     
     if hostos == 'linux':
