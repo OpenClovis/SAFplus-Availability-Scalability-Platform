@@ -455,10 +455,8 @@ class ASPInstaller:
                         self.feedback('tipc major : %s - tipc minor : %s '%(TIPC_MAJOR_VERSION,TIPC_MINOR_VERSION))
                 
                         if TIPC_MAJOR_VERSION != 1:
-                            # install tipcutil 1.1.9
-                            #dep.installedver = 'Warning: incompatible version, won\'t install'
-                            self.TIPC_CONFIG_VERSION ='tipcutils-1.1.9.tar.gz'                            
-                            dep.pkg_name =  self.TIPC_CONFIG_VERSION
+                            # Use the version determined by looking at the linux kernel revision during install init (packages.py)                        
+                            self.TIPC_CONFIG_VERSION = dep.pkg_name
                             self.installQueue.append(dep)
                             continue
                         
@@ -605,8 +603,8 @@ class ASPInstaller:
                 self.feedback('Installation Type:\n')
                 self.feedback('    1) Standard          -  Select all default options')
                 self.feedback('    2) Custom            -  Recommended')
-                self.feedback('    3) Preinstall Only   -  Only does the preinstall phase')
-                self.feedback('    4) Install Only      -  Only does the install phase')
+                self.feedback('    3) Preinstall Only   -  Uses your distro package manager to install needed\n                            prerequisites (must be root).')
+                self.feedback('    4) Install Only      -  Installs SAFplus code, IDE, and prerequisites not\n                            supplied with your linux distro.')
 
                 if self.NO_INTERACTION == True:
                     strin = '1'
@@ -966,10 +964,13 @@ class ASPInstaller:
 
             else:
                syscall('apt-get update;')      
-               self.debug('Apt-Get Installing: ' + install_str)
+               self.debug('Installing via apt-get: ' + install_str)
                (retval, result, signal, core) = system('apt-get -y --force-yes install %s' % install_str)
+               self.debug("Result: %d, output: %s" % (retval, str(result)))
                if "Could not get lock" in "".join(result):
                  self.feedback("Could not get the lock, is another package manager running?\n", fatal=True)
+               if retval != 0:
+                 self.feedback("\n\nPreinstall was not successful.  You may need to install some of the following packages yourself.\n%s\n\nOutput of apt-get was:\n%s" % (install_str,"".join(result)), fatal=True)
             self.feedback('Successfully installed preinstall dependencies.')
         
         
@@ -1107,7 +1108,7 @@ class ASPInstaller:
                 if type(dep.build_cmds) == types.FunctionType:
                     dep.build_cmds = dep.build_cmds()
                 if dep.name == 'tipc-config':
-                    tipcPkgName = 'tipc-1.7.7.tar.gz'
+                    tipcPkgName = dep.pkg_name
                     syscall('tar xfm "%s" %s' % (self.THIRDPARTYPKG_PATH,tipcPkgName))    # pull out of pkg
                     syscall('tar zxf %s' % tipcPkgName)
                     exdir = tipcPkgName.replace('.tar.gz', '').replace('.tgz', '')
