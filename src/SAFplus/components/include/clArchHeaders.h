@@ -85,4 +85,8 @@
 #endif
 /*==========================================*/
 
+#ifdef __arm__
+#define NO_UNALIGNED_ACCESS
+#endif
+
 #endif

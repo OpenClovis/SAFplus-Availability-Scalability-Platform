@@ -1915,6 +1915,7 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey, ClCntDataHandleT use
     ClEvtEventPrimaryHeaderT *pEvtPrimaryHeader = (ClEvtEventPrimaryHeaderT *) userArg;
     ClEvtEventSecondaryHeaderT evtSecHeader = {0};
     ClEvtEventSecondaryHeaderT *pEvtSecHeader = NULL;
+    ClEvtEventTertiaryHeaderT evtHeader3 = {0};
     ClEvtEventTertiaryHeaderT *pEvtTertiaryHeader = NULL;
     ClEvtSubsKeyT *pEvtSubsKey = (ClEvtSubsKeyT *) userKey;
     ClIocNodeAddressT iocLocalAddress = 0;
@@ -1974,7 +1975,12 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey, ClCntDataHandleT use
 #endif
 
     pEvtTertiaryHeader = (ClEvtEventTertiaryHeaderT*)(pEvtSecHeader + 1);
+#ifdef NO_UNALIGNED_ACCESS
+    memcpy(pEvtTertiaryHeader->eoId,pEvtSubsKey->userId.eoIocPort,sizeof(pEvtTertiaryHeader->eoId));
+#else
     pEvtTertiaryHeader->eoId = pEvtSubsKey->userId.eoIocPort;
+#endif    
+
     rc = clBufferCreate(&inMsgHandle);
     rc = clBufferNBytesWrite(inMsgHandle, (ClUint8T *) pEvtPrimaryHeader, dataLength);
     /*
