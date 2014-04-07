@@ -489,14 +489,20 @@ populate_prereqs() {
             fi
             cd - >/dev/null 2>&1
         else
-            cd $(net-snmp-config --prefix)
+            cd $(net-snmp-config --prefix)           
             # pwd
             # echo install $exe_flags sbin/snmp* $imagedir/bin
             install $exe_flags sbin/snmp* $imagedir/bin  # May not exist
             install $exe_flags bin/net-s* $imagedir/bin
             res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="install net-snmp"
-            cp -R --parents -L lib/libnetsnmp* $imagedir
+            op_array[${#op_array[@]}]="install net-snmp"           
+            if [ -f lib/${MACH}-linux-gnu/libnetsnmp.so ]; then
+                cp -R -L lib/${MACH}-linux-gnu/libnetsnmp* $imagedir/lib
+            elif [ -f lib/${MACH2}-linux-gnu/libnetsnmp.so ]; then
+                cp -R -L lib/${MACH2}-linux-gnu/libnetsnmp* $imagedir/lib
+            else
+                cp -R --parents -L lib/libnetsnmp* $imagedir
+            fi
             res_array[${#res_array[@]}]=0
             op_array[${#op_array[@]}]="copy in libnetsnmp"
             cp -R --parents -L share/snmp $imagedir
