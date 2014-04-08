@@ -308,8 +308,9 @@ static void *clAmsClusterStateVerifier(void *cookie)
     ClTimerTimeOutT delay = {60,0};
     ClIocNodeAddressT localAddress = clIocLocalAddressGet();
     ClIocNodeAddressT masterAddress;
-    
-    while(1)
+
+    /* Quit verifier task when node is going down */
+    while (!gCpmShuttingDown)
     {
         ClUint32T i;
         masterAddress=CL_IOC_MAX_NODES;
@@ -600,6 +601,7 @@ clAmsFinalize(
         return CL_OK;
     }
 
+    gCpmShuttingDown = CL_TRUE;
     gpClCpm->polling = CL_FALSE;                       // kick the verifier out of its loop
     clOsalCondBroadcast(&gpClCpm->cpmEoObj->eoCond);  // Wake up the cluster state verifier (and anybody else that needs to be quitting)
     clOsalTaskJoin(gClusterStateVerifierTask);        // wait until the thread is done before shutting down the rest & removing variables
