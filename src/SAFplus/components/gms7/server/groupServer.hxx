@@ -58,13 +58,15 @@ void componentJoin(ClIocAddressT *pAddress);
 void componentLeave(ClIocAddressT *pAddress);
 void elect();
 /* Utility functions */
+ClRcT timerCallback( void *arg );
 ClRcT initializeServices();
 ClRcT initializeClusterNodeGroup();
-void  getNodeInfo(ClIocNodeAddressT nAddress, SAFplus::GroupIdentity *grpIdentity);
+void  getNodeInfo(ClIocNodeAddressT nAddress, SAFplus::GroupIdentity *grpIdentity, int pid = 0);
 bool  isMasterNode();
+void fillSendMessage(void* data, GroupMessageTypeT msgType,GroupMessageSendModeT msgSendMode = SEND_BROADCAST, GroupRoleNotifyTypeT roleType = ROLE_ACTIVE);
 void  sendNotification(void* data, int dataLength, GroupMessageSendModeT messageMode =  SEND_BROADCAST);
 SAFplus::EntityIdentifier createHandleFromAddress(ClIocNodeAddressT nAddress, int pid = 0);
-
+void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused, ClIocAddressT *pAddress);
 /* Global variables */
 
 

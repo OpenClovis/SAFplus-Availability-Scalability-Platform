@@ -21,48 +21,21 @@ ClBoolT gIsNodeRepresentative = CL_TRUE;
 #define logDebug(area, context,M,...)       fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 #define logTrace(area, context,M,...)       fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
 
-#define GMS_PORT_BASE 90
-static int numOfEntity = 0;
 #endif // __TEST
 /* Well-known groups */
 SAFplus::Group    clusterNodeGrp("CLUSTER_NODE");
 SAFplus::Group    clusterCompGrp("CLUSTER_COMP");
 GroupMessageHandler         *groupMessageHandler;
 SAFplus::SafplusMsgServer   *groupMsgServer;
-/*
-GROUP SERVICE DESIGNATION
-*************************************************************************
-* - Running on some SC Nodes (a Master - active role - and several Slaves)
-* - Tracking the Nodes/Components membership and role
-* - Initialize:
-*     - Create cluster node group from cache
-*     - If master, broadcast to other nodes
-*     - If slave:
-*         - Add new information
-*         - Send to master my node address
-* - When a component join/leave/failed:
-*     - All GMS services will do appropriate action on that membership changes
-*     - No broadcast needed
-* - When a node join:
-*     - Master node will add information of newly node (filter admission)
-*     - Master node will send broadcast of newly node to all nodes
-*     - Slave nodes will add information (received from server), no need to broadcast
-* - When a node leave:
-*     - All GMS services will update the GMS data
-*     - If the left node is a Master Node:
-*         - Slave Node (with standby role)  entity will become Master Node (with active role)
-*         - Broadcast role change to other nodes
-*         - Master Node will elect for a new Standby role
-*         - Broadcast role change to other nodes
-*     - If the left node is a Slave Node and was taking Standby role
-*         - Master Node will elect for a new Standby role
-*         - Broadcast role change to other nodes
-*     - Others: do nothing
-*************************************************************************
-*/
+int               populationTimeOut = 5;
+ClTimerHandleT    timerHandle = NULL;
+ClHandleT gNotificationCallbackHandle = CL_HANDLE_INVALID_VALUE;
+
+/* Server process */
 int main(int argc, char* argv[])
 {
   ClRcT rc;
+  ClTimerTimeOutT timeOut = { populationTimeOut, 0 };
 
   rc = initializeServices();
   if(CL_OK != rc)
@@ -80,14 +53,8 @@ int main(int argc, char* argv[])
     clNodeCacheCapabilitySet(clAspLocalId,1,CL_NODE_CACHE_CAP_ASSIGN);
   }
 #endif // __TEST
-  /* Read from node cache to know node information */
-  rc = initializeClusterNodeGroup();
-  if(CL_OK != rc)
-  {
-    logError("GMS","SERVER","Initialize cluster node group error [%#x]",rc);
-    return rc;
-  }
-
+  /* Wait some second for the first election */
+  clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, timerCallback, NULL, &timerHandle);
   /* Update cluster node group membership from NodeCache*/
   logInfo("GMS","SERVER","Initialize successfully");
   /* Dispatch */
@@ -103,6 +70,7 @@ ClRcT initializeServices()
   ClRcT   rc            = CL_OK;
   int     messageScope  = GMS_MESSAGE;
   ClIocNodeAddressT     currentLeader;
+  ClIocPhysicalAddressT compAddr = {0};
   /* Initialize log service */
   SAFplus::logCompName = "GroupServer";
   logSeverity = LOG_SEV_MAX;
@@ -122,18 +90,20 @@ ClRcT initializeServices()
     clNodeCacheLeaderUpdate(1);
   }
 #endif
+
   /* Initialize message handler */
   groupMessageHandler = new GroupMessageHandler();
-#ifndef __TEST
   groupMsgServer = new SAFplus::SafplusMsgServer(GMS_PORT);
-#else
-  groupMsgServer = new SAFplus::SafplusMsgServer(GMS_PORT_BASE + clAspLocalId);
-#endif
   messageScope  = 1;
   groupMsgServer->RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, (int *)&messageScope);
 
   /* Start the message handlers */
   groupMsgServer->Start();
+
+  /* Initialize notification callback */
+  compAddr.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+  compAddr.portId = CL_IOC_CPM_PORT;
+  clCpmNotificationCallbackInstall(compAddr, gmsNotificationCallback, NULL, &gNotificationCallbackHandle);
 }
 
 ClRcT initializeClusterNodeGroup()
@@ -177,9 +147,6 @@ void nodeJoinFromMaster(GroupMessageProtocolT *msg)
     return;
   }
   clusterNodeGrp.registerEntity(grpIdentity);
-#ifdef __TEST
-  numOfEntity ++;
-#endif // __TEST
 }
 
 void nodeLeave(ClIocNodeAddressT nAddress)
@@ -198,18 +165,17 @@ void nodeLeave(ClIocNodeAddressT nAddress)
       /*Update Node with standby role to active role*/
       EntityIdentifier standbyNode = clusterNodeGrp.getStandby();
       clusterNodeGrp.setActive(standbyNode);
-
-      /* Send role change notification */
-      GroupMessageProtocolT *sndMessage = (GroupMessageProtocolT *)clHeapCalloc(1,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
-      sndMessage->messageType = CLUSTER_NODE_ROLE_NOTIFY;
-      sndMessage->roleType    = ROLE_ACTIVE;
-      memcpy(sndMessage->data,&standbyNode,sizeof(EntityIdentifier));
-      sendNotification((void *)sndMessage,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
-      clHeapFree(sndMessage);
-
+      /* I am becoming master node */
+      if(standbyNode.getNode() == clIocLocalAddressGet())
+      {
+        clNodeCacheLeaderUpdate(clIocLocalAddressGet());
+        logDebug("GMS","SERVER","Node [%d] is new master node",clIocLocalAddressGet());
+      }
       /* Elect for standby role on Master node only */
       if(isMasterNode())
       {
+        /* Send role change notification */
+        fillSendMessage(&standbyNode,CLUSTER_NODE_ROLE_NOTIFY,SEND_BROADCAST,ROLE_ACTIVE);
         logDebug("GMS","SERVER","Re-elect standby role from Master node");
         std::pair<EntityIdentifier,EntityIdentifier> electResult;
         clusterNodeGrp.elect(electResult,SAFplus::Group::ELECTION_TYPE_STANDBY);
@@ -223,12 +189,7 @@ void nodeLeave(ClIocNodeAddressT nAddress)
         clusterNodeGrp.setStandby(standbyNode);
         logDebug("GMS","SERVER","Notify about new standby role");
         /* Send role change notification */
-        GroupMessageProtocolT *sndMessage = (GroupMessageProtocolT *)clHeapCalloc(1,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
-        sndMessage->messageType = CLUSTER_NODE_ROLE_NOTIFY;
-        sndMessage->roleType    = ROLE_STANDBY;
-        memcpy(sndMessage->data,&standbyNode,sizeof(EntityIdentifier));
-        sendNotification((void *)sndMessage,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
-        clHeapFree(sndMessage);
+        fillSendMessage(&standbyNode,CLUSTER_NODE_ROLE_NOTIFY,SEND_BROADCAST,ROLE_STANDBY);
       }
     }
     else if(curStandby == grpIdentity.id)
@@ -250,12 +211,7 @@ void nodeLeave(ClIocNodeAddressT nAddress)
         clusterNodeGrp.setStandby(standbyNode);
         logDebug("GMS","SERVER","Notify about new standby role");
         /* Send role change notification */
-        GroupMessageProtocolT *sndMessage = (GroupMessageProtocolT *)clHeapCalloc(1,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
-        sndMessage->messageType = CLUSTER_NODE_ROLE_NOTIFY;
-        sndMessage->roleType    = ROLE_STANDBY;
-        memcpy(sndMessage->data,&standbyNode,sizeof(EntityIdentifier));
-        sendNotification((void *)sndMessage,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
-        clHeapFree(sndMessage);
+        fillSendMessage(&standbyNode,CLUSTER_NODE_ROLE_NOTIFY,SEND_BROADCAST,ROLE_STANDBY);
       }
     }
     /* Remove all entity which belong to this node */
@@ -275,7 +231,35 @@ void nodeLeave(ClIocNodeAddressT nAddress)
     logDebug("GMS","SERVER","Node isn't a group member");
   }
 }
-
+void fillSendMessage(void* data, GroupMessageTypeT msgType,GroupMessageSendModeT msgSendMode, GroupRoleNotifyTypeT roleType)
+{
+  int msgLen = 0;
+  int msgDataLen = 0;
+  switch(msgType)
+  {
+    case NODE_JOIN_FROM_SC:
+      msgLen = sizeof(GroupMessageProtocolT) + sizeof(GroupIdentity);
+      msgDataLen = sizeof(GroupIdentity);
+      break;
+    case NODE_JOIN_FROM_CACHE:
+      msgLen = sizeof(GroupMessageProtocolT) + sizeof(ClIocNodeAddressT);
+      msgDataLen = sizeof(ClIocNodeAddressT);
+      break;
+    case CLUSTER_NODE_ROLE_NOTIFY:
+      msgLen = sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier);
+      msgDataLen = sizeof(EntityIdentifier);
+      break;
+    default:
+      return;
+  }
+  char msgPayload[sizeof(Buffer)-1+msgLen];
+  Buffer* buff = new(msgPayload) Buffer(msgLen);
+  GroupMessageProtocolT *sndMessage = (GroupMessageProtocolT *)buff;
+  sndMessage->messageType = msgType;
+  sndMessage->roleType = roleType;
+  memcpy(sndMessage->data,data,msgDataLen);
+  sendNotification((void *)sndMessage,msgLen,msgSendMode);
+}
 void nodeJoin(ClIocNodeAddressT nAddress)
 {
   GroupIdentity grpIdentity;
@@ -289,33 +273,17 @@ void nodeJoin(ClIocNodeAddressT nAddress)
   if(isMasterNode())
   {
     clusterNodeGrp.registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
-#ifdef __TEST
-    numOfEntity++;
-#endif // __TEST
     /* Send node join broadcast message */
-    GroupMessageProtocolT *sndMessage = (GroupMessageProtocolT *)clHeapCalloc(1,sizeof(GroupMessageProtocolT) + sizeof(GroupIdentity));
-    sndMessage->messageType = NODE_JOIN_FROM_SC;
-    memcpy(sndMessage->data,&grpIdentity,sizeof(GroupIdentity));
-    sendNotification((void *)sndMessage,sizeof(GroupMessageProtocolT) + sizeof(GroupIdentity));
-    clHeapFree(sndMessage);
+    fillSendMessage(&grpIdentity,NODE_JOIN_FROM_SC);
   }
   else
   {
     clusterNodeGrp.registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
-#ifdef __TEST
-    numOfEntity ++;
-    if(nAddress == clAspLocalId)
-#else
     if(nAddress == clIocLocalAddressGet())
-#endif // __TEST
     {
       logDebug("GMS","SERVER","Notify master node about my membership");
       /* Send message to Master so that he can know my membership */
-      GroupMessageProtocolT *sndMessage = (GroupMessageProtocolT *)clHeapCalloc(1,sizeof(GroupMessageProtocolT) + sizeof(ClIocNodeAddressT));
-      sndMessage->messageType = NODE_JOIN_FROM_CACHE;
-      memcpy(sndMessage->data,&nAddress,sizeof(ClIocNodeAddressT));
-      sendNotification((void *)sndMessage,sizeof(GroupMessageProtocolT) + sizeof(ClIocNodeAddressT),SEND_TO_MASTER);
-      clHeapFree(sndMessage);
+      fillSendMessage(&nAddress,NODE_JOIN_FROM_CACHE,SEND_TO_MASTER);
     }
   }
 }
@@ -357,8 +325,10 @@ void roleChangeFromMaster(GroupMessageProtocolT *msg)
 }
 void componentJoin(ClIocAddressT *pAddress)
 {
+  /* TODO: How to get component process id */
+  int componentProcessId = 0;
   GroupIdentity grpIdentity;
-  getNodeInfo(pAddress->iocPhyAddress.nodeAddress,&grpIdentity);
+  getNodeInfo(pAddress->iocPhyAddress.nodeAddress,&grpIdentity,componentProcessId);
   if(clusterCompGrp.isMember(grpIdentity.id))
   {
     logDebug("GMS","SERVER", "Component is already a group member");
@@ -369,8 +339,10 @@ void componentJoin(ClIocAddressT *pAddress)
 
 void componentLeave(ClIocAddressT *pAddress)
 {
+  /* TODO: How to get component process id */
+  int componentProcessId = 0;
   GroupIdentity grpIdentity;
-  getNodeInfo(pAddress->iocPhyAddress.nodeAddress,&grpIdentity);
+  getNodeInfo(pAddress->iocPhyAddress.nodeAddress,&grpIdentity,componentProcessId);
   if(!clusterCompGrp.isMember(grpIdentity.id))
   {
     logDebug("GMS","SERVER", "Component isn't a group member");
@@ -379,7 +351,7 @@ void componentLeave(ClIocAddressT *pAddress)
   clusterCompGrp.deregister(grpIdentity.id);
 }
 
-void getNodeInfo(ClIocNodeAddressT nAddress, GroupIdentity *grpIdentity)
+void getNodeInfo(ClIocNodeAddressT nAddress, GroupIdentity *grpIdentity, int pid)
 {
   if(grpIdentity == NULL)
   {
@@ -389,7 +361,7 @@ void getNodeInfo(ClIocNodeAddressT nAddress, GroupIdentity *grpIdentity)
   ClNodeCacheMemberT member = {0};
   if(clNodeCacheMemberGetExtendedSafe(nAddress, &member, 10, 200) == CL_OK)
   {
-    grpIdentity->id = createHandleFromAddress(nAddress);
+    grpIdentity->id = createHandleFromAddress(nAddress,pid);
     grpIdentity->capabilities = member.capability;
     grpIdentity->credentials = member.address + CL_IOC_MAX_NODES + 1;
     grpIdentity->data = (Buffer *)NULL;
@@ -418,7 +390,6 @@ bool isMasterNode()
     return false;
   }
 }
-#ifndef __TEST
 void sendNotification(void* data, int dataLength, GroupMessageSendModeT messageMode )
 {
     switch(messageMode)
@@ -430,8 +401,7 @@ void sendNotification(void* data, int dataLength, GroupMessageSendModeT messageM
         iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
         iocDest.iocPhyAddress.portId      = GMS_PORT;
         logInfo("GMS","SERVER","Sending broadcast message");
-        /* TODO: Use async communication here */
-        groupMsgServer->SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+        groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
         break;
       }
       case SEND_TO_MASTER:
@@ -443,8 +413,7 @@ void sendNotification(void* data, int dataLength, GroupMessageSendModeT messageM
         iocDest.iocPhyAddress.nodeAddress = masterAddress;
         iocDest.iocPhyAddress.portId      = GMS_PORT;
         logInfo("GMS","SERVER","Sending message to Master");
-        /* TODO: Use async communication here */
-        groupMsgServer->SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+        groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
         break;
       }
       case LOCAL_ROUND_ROBIN:
@@ -459,48 +428,6 @@ void sendNotification(void* data, int dataLength, GroupMessageSendModeT messageM
       }
     }
 }
-#else
-void sendNotification(void* data, int dataLength, GroupMessageSendModeT messageMode )
-{
-    switch(messageMode)
-    {
-      case SEND_BROADCAST:
-      {
-        logInfo("GMS","SERVER","Sending broadcast message");
-        ClIocAddressT iocDest;
-        iocDest.iocPhyAddress.nodeAddress = 1;
-        iocDest.iocPhyAddress.portId      = GMS_PORT_BASE + iocDest.iocPhyAddress.nodeAddress;
-        groupMsgServer->SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
-        iocDest.iocPhyAddress.nodeAddress = 2;
-        iocDest.iocPhyAddress.portId      = GMS_PORT_BASE + iocDest.iocPhyAddress.nodeAddress;
-        groupMsgServer->SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
-        iocDest.iocPhyAddress.nodeAddress = 3;
-        iocDest.iocPhyAddress.portId      = GMS_PORT_BASE + iocDest.iocPhyAddress.nodeAddress;
-        groupMsgServer->SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
-        break;
-      }
-      case SEND_TO_MASTER:
-      {
-        ClIocAddressT iocDest;
-        iocDest.iocPhyAddress.nodeAddress = 1;
-        iocDest.iocPhyAddress.portId      = GMS_PORT_BASE + iocDest.iocPhyAddress.nodeAddress;
-        logInfo("GMS","SERVER","Sending message to Master");
-        groupMsgServer->SendReply(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
-        break;
-      }
-      case LOCAL_ROUND_ROBIN:
-      {
-        logInfo("GMS","SERVER","Sending message round robin");
-        break;
-      }
-      default:
-      {
-        logError("GMS","SERVER","Unknown message sending mode");
-        break;
-      }
-    }
-}
-#endif
 void elect()
 {
   if(isMasterNode())
@@ -512,24 +439,46 @@ void elect()
       clusterNodeGrp.setActive(electResult.first);
       logDebug("GMS","TEST","Active role had been elected node: [%d],capabilities: [%d]  ",electResult.first.getNode(),clusterNodeGrp.getCapabilities(electResult.first));
       /* Send Role change broadcast */
-      GroupMessageProtocolT *sndMessage = (GroupMessageProtocolT *)clHeapCalloc(1,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
-      sndMessage->messageType = CLUSTER_NODE_ROLE_NOTIFY;
-      sndMessage->roleType = ROLE_ACTIVE;
-      memcpy(sndMessage->data,&electResult.first,sizeof(EntityIdentifier));
-      sendNotification((void *)sndMessage,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
-      clHeapFree(sndMessage);
+      fillSendMessage(&electResult.first,CLUSTER_NODE_ROLE_NOTIFY,SEND_BROADCAST,ROLE_ACTIVE);
     }
     if(!(electResult.second == INVALID_HDL))
     {
       clusterNodeGrp.setStandby(electResult.second);
       logDebug("GMS","TEST","Standby role had been elected node: [%d],capabilities: [%d]  ",electResult.second.getNode(),clusterNodeGrp.getCapabilities(electResult.second));
       /* Send Role change broadcast */
-      GroupMessageProtocolT *sndMessage = (GroupMessageProtocolT *)clHeapCalloc(1,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
-      sndMessage->messageType = CLUSTER_NODE_ROLE_NOTIFY;
-      sndMessage->roleType = ROLE_STANDBY;
-      memcpy(sndMessage->data,&electResult.second,sizeof(EntityIdentifier));
-      sendNotification((void *)sndMessage,sizeof(GroupMessageProtocolT) + sizeof(EntityIdentifier));
-      clHeapFree(sndMessage);
+      fillSendMessage(&electResult.second,CLUSTER_NODE_ROLE_NOTIFY,SEND_BROADCAST,ROLE_STANDBY);
     }
   }
 }
+
+ClRcT timerCallback( void *arg )
+{
+  ClRcT rc = CL_OK;
+  logDebug("GMS","TIMER","Timer callback!");
+  clTimerDeleteAsync(&timerHandle);
+  rc = initializeClusterNodeGroup();
+  if(CL_OK != rc)
+  {
+    logError("GMS","TIMER","Initialize cluster node group error [%#x]",rc);
+    return rc;
+  }
+  elect();
+
+  return rc;
+}
+
+void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused, ClIocAddressT *pAddress)
+{
+  ClRcT rc = CL_OK;
+  if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION || eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+  {
+    logDebug("GMS","SERVER","Received node LEAVE notification");
+    nodeLeave(pAddress->iocPhyAddress.nodeAddress);
+  }
+  else
+  {
+    logDebug("GMS","SERVER","Received node JOIN notification");
+    nodeJoin(pAddress->iocPhyAddress.nodeAddress);
+  }
+}
+

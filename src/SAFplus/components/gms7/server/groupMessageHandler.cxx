@@ -35,7 +35,7 @@ void GroupMessageHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT 
     /* Emulate message node leave */
     if(from.iocPhyAddress.portId == 72)
     {
-      nodeLeave(3);
+      nodeLeave(1);
       return;
     }
     /* Emulate elect request */
@@ -46,11 +46,7 @@ void GroupMessageHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT 
     }
 #endif // __TEST
 
-#ifndef __TEST
     if(from.iocPhyAddress.nodeAddress == clIocLocalAddressGet())
-#else
-    if(from.iocPhyAddress.nodeAddress == clAspLocalId)
-#endif
     {
       logDebug("GMS","MSGHDL","Local message. Ignored");
       return;
