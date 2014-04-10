@@ -35,7 +35,7 @@ void GroupMessageHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT 
     /* Emulate message node leave */
     if(from.iocPhyAddress.portId == 72)
     {
-      nodeLeave(1);
+      nodeLeave(3);
       return;
     }
     /* Emulate elect request */
