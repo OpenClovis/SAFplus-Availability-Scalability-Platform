@@ -43,7 +43,7 @@ namespace SAFplus
         SAFplus::MsgServer::RemoveHandler(type);
     }
 
-    MsgReply *SafplusMsgServer::SendReply(ClIocAddressT destination, void* buffer, ClWordT length, ClWordT msgtype)
+    MsgReply *SafplusMsgServer::SendReply(ClIocAddressT destination, void* buffer, ClWordT length, ClWordT msgtype, Wakeable *wakeable)
     {
         memset(&msgReply, 0, sizeof(MsgReply));
         /*
@@ -60,12 +60,22 @@ namespace SAFplus
         /**
          * Sending Sync type, need to start listen on replying to wake
          */
-        /**
-         * Wait on condition
-         */
-        while (strlen(msgReply.buffer) < 2)
+        if (wakeable == NULL)
         {
-            if (!msgSendConditionMutex.timed_wait(msgSendReplyMutex, 4000)) return &msgReply;
+            /**
+             * Wait on condition
+             */
+            while (strlen(msgReply.buffer) < 2)
+            {
+                if (!msgSendConditionMutex.timed_wait(msgSendReplyMutex, 4000)) return &msgReply;
+            }
+        }
+        else
+        {
+            /*
+             * GAS: using mutex on wakeable object
+             */
+            wakeable->wake(0, &msgReply);
         }
         return &msgReply;
     }
