@@ -27,7 +27,6 @@ all: $(SAFPLUS_TARGET)/bin/spgroupd
 
 $(SAFPLUS_TARGET)/bin/spgroupd: $(GROUP_SERVER_OBJ) $(DEP_LIBS)
 	$(LINK_EXE) $@ $+ -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS)
-	cp $(SAFPLUS_TARGET)/bin/spgroupd .
 
 $(OBJ_DIR)/groupsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	-mkdir -p $(OBJ_DIR)/groupsvr/

@@ -30,6 +30,7 @@ SAFplus::SafplusMsgServer   *groupMsgServer;
 int               populationTimeOut = 5;
 ClTimerHandleT    timerHandle = NULL;
 ClHandleT gNotificationCallbackHandle = CL_HANDLE_INVALID_VALUE;
+ClBoolT           isCacheRefreshed = CL_FALSE;
 
 /* Server process */
 int main(int argc, char* argv[])
@@ -53,8 +54,8 @@ int main(int argc, char* argv[])
     clNodeCacheCapabilitySet(clAspLocalId,1,CL_NODE_CACHE_CAP_ASSIGN);
   }
 #endif // __TEST
-  /* Wait some second for the first election */
-  clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, timerCallback, NULL, &timerHandle);
+  /* Wait some second for the first cache population and leader election */
+  clTimerCreateAndStart( timeOut, CL_TIMER_VOLATILE, CL_TIMER_SEPARATE_CONTEXT, timerCallback, NULL, &timerHandle);
   /* Update cluster node group membership from NodeCache*/
   logInfo("GMS","SERVER","Initialize successfully");
   /* Dispatch */
@@ -77,7 +78,7 @@ ClRcT initializeServices()
   logInitialize();
 
   /* Initialize necessary libraries */
-  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK)
   {
     return rc;
   }
@@ -101,9 +102,7 @@ ClRcT initializeServices()
   groupMsgServer->Start();
 
   /* Initialize notification callback */
-  compAddr.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-  compAddr.portId = CL_IOC_CPM_PORT;
-  clCpmNotificationCallbackInstall(compAddr, gmsNotificationCallback, NULL, &gNotificationCallbackHandle);
+  clIocNotificationRegister(iocNotificationCallback,NULL);
 }
 
 ClRcT initializeClusterNodeGroup()
@@ -126,7 +125,7 @@ ClRcT initializeClusterNodeGroup()
     logInfo("GMS","SERVER","Information from cache: address[%d], capability[%d]",pMembers[i].address,pMembers[i].capability);
     nodeJoin(pMembers[i].address);
   }
-
+  isCacheRefreshed = CL_TRUE;
 out_free:
   clHeapFree(pMembers);
   return rc;
@@ -152,7 +151,7 @@ void nodeJoinFromMaster(GroupMessageProtocolT *msg)
 void nodeLeave(ClIocNodeAddressT nAddress)
 {
   GroupIdentity grpIdentity;
-  getNodeInfo(nAddress,&grpIdentity);
+  grpIdentity.id = createHandleFromAddress(nAddress,0);
   if(clusterNodeGrp.isMember(grpIdentity.id))
   {
     EntityIdentifier curActive = clusterNodeGrp.getActive();
@@ -263,7 +262,12 @@ void fillSendMessage(void* data, GroupMessageTypeT msgType,GroupMessageSendModeT
 void nodeJoin(ClIocNodeAddressT nAddress)
 {
   GroupIdentity grpIdentity;
-  getNodeInfo(nAddress,&grpIdentity);
+  ClRcT rc = CL_OK;
+  rc = getNodeInfo(nAddress,&grpIdentity);
+  if(CL_OK != rc)
+  {
+    return;
+  }
   if(clusterNodeGrp.isMember(grpIdentity.id))
   {
     logInfo("GMS","SERVER","Node already a member");
@@ -323,12 +327,12 @@ void roleChangeFromMaster(GroupMessageProtocolT *msg)
     }
   }
 }
-void componentJoin(ClIocAddressT *pAddress)
+void componentJoin(ClIocAddressT address)
 {
   /* TODO: How to get component process id */
-  int componentProcessId = 0;
+  int componentProcessId = address.iocPhyAddress.portId;
   GroupIdentity grpIdentity;
-  getNodeInfo(pAddress->iocPhyAddress.nodeAddress,&grpIdentity,componentProcessId);
+  getNodeInfo(address.iocPhyAddress.nodeAddress,&grpIdentity,componentProcessId);
   if(clusterCompGrp.isMember(grpIdentity.id))
   {
     logDebug("GMS","SERVER", "Component is already a group member");
@@ -337,12 +341,12 @@ void componentJoin(ClIocAddressT *pAddress)
   clusterCompGrp.registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
 }
 
-void componentLeave(ClIocAddressT *pAddress)
+void componentLeave(ClIocAddressT address)
 {
   /* TODO: How to get component process id */
-  int componentProcessId = 0;
+  int componentProcessId = address.iocPhyAddress.portId;
   GroupIdentity grpIdentity;
-  getNodeInfo(pAddress->iocPhyAddress.nodeAddress,&grpIdentity,componentProcessId);
+  getNodeInfo(address.iocPhyAddress.nodeAddress,&grpIdentity,componentProcessId);
   if(!clusterCompGrp.isMember(grpIdentity.id))
   {
     logDebug("GMS","SERVER", "Component isn't a group member");
@@ -351,12 +355,12 @@ void componentLeave(ClIocAddressT *pAddress)
   clusterCompGrp.deregister(grpIdentity.id);
 }
 
-void getNodeInfo(ClIocNodeAddressT nAddress, GroupIdentity *grpIdentity, int pid)
+ClRcT getNodeInfo(ClIocNodeAddressT nAddress, GroupIdentity *grpIdentity, int pid)
 {
   if(grpIdentity == NULL)
   {
     logError("GMS","SERVER","Null pointer");
-    return;
+    return CL_ERR_NULL_POINTER;
   }
   ClNodeCacheMemberT member = {0};
   if(clNodeCacheMemberGetExtendedSafe(nAddress, &member, 10, 200) == CL_OK)
@@ -366,10 +370,12 @@ void getNodeInfo(ClIocNodeAddressT nAddress, GroupIdentity *grpIdentity, int pid
     grpIdentity->credentials = member.address + CL_IOC_MAX_NODES + 1;
     grpIdentity->data = (Buffer *)NULL;
     grpIdentity->dataLen = 0;
+    return CL_OK;
   }
   else
   {
     logError("GMS","SERVER","Can't get node info from cache");
+    return CL_ERR_NOT_INITIALIZED;
   }
 }
 
@@ -401,7 +407,14 @@ void sendNotification(void* data, int dataLength, GroupMessageSendModeT messageM
         iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
         iocDest.iocPhyAddress.portId      = GMS_PORT;
         logInfo("GMS","SERVER","Sending broadcast message");
-        groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+        try
+        {
+          groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+        }
+        catch (...)
+        {
+          logDebug("GMS","SERVER","Failed to send");
+        }
         break;
       }
       case SEND_TO_MASTER:
@@ -413,7 +426,14 @@ void sendNotification(void* data, int dataLength, GroupMessageSendModeT messageM
         iocDest.iocPhyAddress.nodeAddress = masterAddress;
         iocDest.iocPhyAddress.portId      = GMS_PORT;
         logInfo("GMS","SERVER","Sending message to Master");
-        groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+        try
+        {
+          groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+        }
+        catch (...)
+        {
+          logDebug("GMS","SERVER","Failed to send");
+        }
         break;
       }
       case LOCAL_ROUND_ROBIN:
@@ -467,18 +487,58 @@ ClRcT timerCallback( void *arg )
   return rc;
 }
 
-void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused, ClIocAddressT *pAddress)
+ClRcT iocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie)
 {
   ClRcT rc = CL_OK;
-  if(eventId == CL_IOC_NODE_LEAVE_NOTIFICATION || eventId == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
+  ClIocAddressT address;
+  ClIocNotificationIdT eventId = (ClIocNotificationIdT) ntohl(notification->id);
+  ClIocNodeAddressT nodeAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
+  ClIocPortT portId = ntohl(notification->nodeAddress.iocPhyAddress.portId);
+  logDebug("GMS","SERVER","Received IOC notification [0x%x] callback from node [%d]",eventId,nodeAddress);
+  switch(eventId)
   {
-    logDebug("GMS","SERVER","Received node LEAVE notification");
-    nodeLeave(pAddress->iocPhyAddress.nodeAddress);
+    case CL_IOC_NODE_LEAVE_NOTIFICATION:
+    case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
+    {
+      logDebug("GMS","SERVER","Received node LEAVE notification");
+      nodeLeave(nodeAddress);
+      break;
+    }
+    case CL_IOC_NODE_ARRIVAL_NOTIFICATION:
+    {
+      logDebug("GMS","SERVER","Received node JOIN notification");
+      if(isCacheRefreshed == CL_FALSE)
+      {
+        initializeClusterNodeGroup();
+      }
+      if(nodeAddress == clIocLocalAddressGet())
+      {
+        break;
+      }
+      nodeJoin(nodeAddress);
+      break;
+    }
+    case CL_IOC_COMP_ARRIVAL_NOTIFICATION:
+    {
+      logDebug("GMS","SERVER","Received component ARRIVAL notification");
+      address.iocPhyAddress.nodeAddress = nodeAddress;
+      address.iocPhyAddress.portId = portId;
+      componentJoin(address);
+      break;
+    }
+    case CL_IOC_COMP_DEATH_NOTIFICATION:
+    {
+      logDebug("GMS","SERVER","Received component DEATH notification");
+      address.iocPhyAddress.nodeAddress = nodeAddress;
+      address.iocPhyAddress.portId = portId;
+      componentLeave(address);
+      break;
+    }
+    default:
+    {
+      logDebug("GMS","SERVER","Received unsupported notification");
+      break;
+    }
   }
-  else
-  {
-    logDebug("GMS","SERVER","Received node JOIN notification");
-    nodeJoin(pAddress->iocPhyAddress.nodeAddress);
-  }
+  return rc;
 }
-
