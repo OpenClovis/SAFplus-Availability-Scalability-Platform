@@ -6278,7 +6278,7 @@ clAmsPeSUTerminate(
         return CL_OK;
     }
 
-    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_LOG_SEV_INFO,
             ("Terminating SU [%s]. Presence State [%s]\n",
              su->config.entity.name.value,
              CL_AMS_STRING_P_STATE(su->status.presenceState)) ); 
