@@ -163,7 +163,7 @@ static ClRcT clEventUserInfoCheckpointCreate(SaNameT         *pCkptName);
 static ClRcT clEventChannelOpenCheckpointCreate(SaNameT         *pCkptName);
 static ClRcT clEventChannelSubCheckpointCreate(SaNameT         *pCkptName);
 static 
-void clEventTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
+void clEventTrackCallback(ClGmsHandleT handle, ClGmsClusterNotificationBufferT *notificationBuffer,
                         ClUint32T                       numberOfMembers,
                         ClRcT                           rc);
 
@@ -4591,7 +4591,7 @@ clEventCleanAllChannel(ClIocNodeAddressT  nodeLeave)
 }
 
 static 
-void clEventTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
+void clEventTrackCallback(ClGmsHandleT handle, ClGmsClusterNotificationBufferT *notificationBuffer,
                         ClUint32T                       numberOfMembers,
                         ClRcT                           rc)
 {

@@ -662,30 +662,16 @@ _aspErrToAisErr(
 }
 
 
-static void clGmsClusterMemberGetCallbackWrapper (
+static void clGmsClusterMemberGetCallbackWrapper (CL_IN ClGmsHandleT localHandle,
         CL_IN const ClInvocationT         invocation,
         CL_IN const ClGmsClusterMemberT* const clusterMember,
         CL_IN const ClRcT                 rc)
 {
     SaClmClusterNodeT *safNode = NULL;
     ClRcT              error = CL_OK;
-    ClGmsHandleT localHandle = CL_HANDLE_INVALID_VALUE;
-    ClGmsHandleT *pGmsHandle = NULL;
     SaClmClusterNodeGetDataT   *callbackArg = NULL;
     SaClmInstanceT      *clmInstance = NULL;
     
-    /* 
-     * Get the handle context in which this callback is invoked,
-     * by using thread specific data.
-     */
-    error = clOsalTaskDataGet(clGmsPrivateDataKey, (ClOsalTaskDataT*)&pGmsHandle);
-    if (error != CL_OK)
-    {
-        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
-                   "clOsalTaskDataGet failed with rc 0x%x\n",error);
-    }
-    localHandle = *pGmsHandle;
-
     /* Handle checkout */
     error = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (error != CL_OK)
@@ -760,31 +746,17 @@ error_exit:
     return;
 }
 
-static void clGmsClusterTrackCallbackWrapper (
+static void clGmsClusterTrackCallbackWrapper (ClGmsHandleT localHandle,
         CL_IN const ClGmsClusterNotificationBufferT* const notificationBuffer,
         CL_IN const ClUint32T             numberOfMembers,
         CL_IN const ClRcT                 rc)
 {
     ClRcT                          error = CL_OK;
-    ClGmsHandleT localHandle = CL_HANDLE_INVALID_VALUE;
-    ClGmsHandleT *pGmsHandle = NULL;
     SaClmClusterNotificationBufferT *safbuf = NULL;
     SaClmInstanceT      *clmInstance = NULL;
     ClUint32T                       index = 0;
     SaClmClusterTrackDataT          *callbackArg;
-
-    /*
-     * Get the handle context in which this callback is invoked,
-     * by using thread specific data.
-     */
-    error = clOsalTaskDataGet(clGmsPrivateDataKey, (ClOsalTaskDataT*)&pGmsHandle);
-    if (error != CL_OK)
-    {
-        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
-                   "clOsalTaskDataGet failed with error 0x%x\n",error);
-    }
-    localHandle = *pGmsHandle;
-
+    
     /* Handle checkout */
     error = clHandleCheckout(databaseHandle, localHandle, (void**)&clmInstance);
     if (error != CL_OK)
@@ -798,8 +770,7 @@ static void clGmsClusterTrackCallbackWrapper (
     safbuf = (SaClmClusterNotificationBufferT*) clHeapAllocate(sizeof(SaClmClusterNotificationBufferT));
     if (safbuf == NULL)
     {
-        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
-                   "Cluster Track Callback failed due to no memory");
+        clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK, "Cluster Track Callback failed due to no memory");
         goto error_return;
     }
 
@@ -813,8 +784,7 @@ static void clGmsClusterTrackCallbackWrapper (
                                        *(sizeof(SaClmClusterNotificationT)));
         if (safbuf->notification == NULL)
         {
-            clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK,
-                       "Cluster Track Callback failed due to no memory");
+            clLogError(GMS_LOG_AREA_CLM,GMS_LOG_CTX_CLM_CALLBACK, "Cluster Track Callback failed due to no memory");
             clHeapFree(safbuf);
             goto error_return;
         }

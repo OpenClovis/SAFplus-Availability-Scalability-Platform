@@ -83,7 +83,7 @@ static ClGmsClusterManageCallbacksT        clusterManageCallback = {
     .clGmsMemberEjectCallback = clGmsClusterMemberEjectCallbackFunction
 };
 
-static void clGmsClusterTrackCallbackFuntion (
+static void clGmsClusterTrackCallbackFuntion (CL_IN ClGmsHandleT handle,
         CL_IN const ClGmsClusterNotificationBufferT *notificationBuffer,
         CL_IN ClUint32T             numberOfMembers,
         CL_IN ClRcT                 rc)

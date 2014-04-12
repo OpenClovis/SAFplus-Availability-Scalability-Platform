@@ -43,7 +43,6 @@ extern "C" {
 
 #include <clGmsCommon.h>
 
-extern ClUint32T  clGmsPrivateDataKey;
 /******************************************************************************
  * Constants and Functions to receive async call from the server
  *****************************************************************************/

@@ -2017,7 +2017,6 @@ ClRcT VDECL (cl_gms_cluster_track_callback_rmd) (
     ClRcT rc = CL_OK;
     ClGmsClusterTrackCallbackDataT *res = NULL;
     ClGmsLibInstanceT *gmsInstance = NULL;
-    ClGmsHandleT gmsHandle = CL_HANDLE_INVALID_VALUE;
     
     rc = unmarshalClGmsClusterTrackCallbackData(in_buffer, &res);
     if (rc != CL_OK)
@@ -2038,20 +2037,7 @@ ClRcT VDECL (cl_gms_cluster_track_callback_rmd) (
     if(rc){
         return CL_ERR_INVALID_HANDLE;
     }
-
-    gmsHandle = res->gmsHandle;
-    /* 
-     * Before invoking the callback, set gmsHandle as a thread specific data.
-     * This will be used in SAF wrapper to keep the context. In other callbacks
-     * this will be ignored.
-     */
-    rc = clOsalTaskDataSet(clGmsPrivateDataKey, &gmsHandle);
-    if (rc != CL_OK)
-    {
-        clLogError(CLM,GMS_LOG_CTX_CLM_RMD,
-                   "clOsalTaskDataSet on handle failed with rc 0x%x\n",rc);
-    }
-
+    
     /* if the library is in saf mode then queue the data in the callback queue
      *  and return , dispatch api will dequeue the callback data and will call
      *  the callback from the application thread 
@@ -2127,7 +2113,6 @@ ClRcT VDECL (cl_gms_cluster_member_get_callback_rmd) ( CL_IN   ClEoDataT  c_data
     ClRcT rc = CL_OK;
     ClGmsClusterMemberGetCallbackDataT *res = NULL;
     ClGmsLibInstanceT *gmsInstance = NULL;
-    ClGmsHandleT gmsHandle = CL_HANDLE_INVALID_VALUE;
 
     rc = unmarshalClGmsClusterMemberGetCallbackData(in_buffer, &res);
     if (rc != CL_OK)
@@ -2141,24 +2126,11 @@ ClRcT VDECL (cl_gms_cluster_member_get_callback_rmd) ( CL_IN   ClEoDataT  c_data
     }
 
     rc = clHandleCheckout( gmsHandleDb , res->gmsHandle, (void **)&gmsInstance);
-    if(rc){
+    if(rc)
+    {
         return CL_ERR_INVALID_HANDLE;
     }
-
-    gmsHandle = res->gmsHandle;
-    /*
-     * Before invoking the callback, set gmsHandle as a thread specific data.
-     * This will be used in SAF wrapper to keep the context. In other callbacks
-     * this will be ignored.
-     */
-    rc = clOsalTaskDataSet(clGmsPrivateDataKey, &gmsHandle);
-    if (rc != CL_OK)
-    {
-        clLogError(CLM,NA,
-                   "clOsalTaskDataSet on handle failed with rc 0x%x\n",rc);
-    }
-
-
+    
     return clGmsClusterMemberGetCallbackHandler(res);
 }
 

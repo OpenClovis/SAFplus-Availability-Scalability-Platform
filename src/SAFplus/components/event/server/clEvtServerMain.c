@@ -1915,7 +1915,7 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey, ClCntDataHandleT use
     ClEvtEventPrimaryHeaderT *pEvtPrimaryHeader = (ClEvtEventPrimaryHeaderT *) userArg;
     ClEvtEventSecondaryHeaderT evtSecHeader = {0};
     ClEvtEventSecondaryHeaderT *pEvtSecHeader = NULL;
-    ClEvtEventTertiaryHeaderT evtHeader3 = {0};
+    //ClEvtEventTertiaryHeaderT evtHeader3 = {0};
     ClEvtEventTertiaryHeaderT *pEvtTertiaryHeader = NULL;
     ClEvtSubsKeyT *pEvtSubsKey = (ClEvtSubsKeyT *) userKey;
     ClIocNodeAddressT iocLocalAddress = 0;

@@ -52,7 +52,7 @@ extern CkptSvrCbT  *gCkptSvr;
 
 extern ClVersionT gVersion;
 
-void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer, ClUint32T  numberOfMembers, ClRcT rc);
+void clCkptTrackCallback(ClGmsHandleT handle, ClGmsClusterNotificationBufferT *notificationBuffer, ClUint32T  numberOfMembers, ClRcT rc);
 
 
 /*
@@ -248,7 +248,7 @@ void   _clCkptAddressesUpdate
  * whenever leader or deputy address gets changed.
  */
  
-void clCkptTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer, ClUint32T  numberOfMembers, ClRcT rc)
+void clCkptTrackCallback(ClGmsHandleT handle, ClGmsClusterNotificationBufferT *notificationBuffer, ClUint32T  numberOfMembers, ClRcT rc)
 {
     ClIocNodeAddressT deputy = 0;
     ClIocNodeAddressT newDeputy = 0;

@@ -62,13 +62,6 @@
 /* Instance handle database */
 ClHandleDatabaseHandleT gmsHandleDb=CL_HANDLE_INVALID_VALUE;
 
-/* 
- * Thread specific data key which will hold handle for a particular
- * invocation of the callback.
- */
-ClUint32T       clGmsPrivateDataKey = 0;
-static ClBoolT  gClTaskKeyCreated = CL_FALSE;
-
 /* Flag to show if library is initialized */
 static ClBoolT lib_initialized = CL_FALSE;
 
@@ -212,29 +205,6 @@ ClRcT clGmsLibFinalize(void)
     return rc;
 }
 
-static ClRcT gmsTaskKeyCreate(void)
-{
-    ClRcT rc = CL_OK;
-    if(gClTaskKeyCreated) return CL_OK;
-    rc = clOsalTaskKeyCreate(&clGmsPrivateDataKey, NULL);
-    if (rc != CL_OK)
-    {
-        return rc;
-    }
-    gClTaskKeyCreated = CL_TRUE;
-    return rc;
-}
-
-static ClRcT gmsTaskKeyDelete(void)
-{
-    ClRcT rc = CL_OK;
-    if(!gClTaskKeyCreated) return CL_OK;
-    gClTaskKeyCreated = CL_FALSE;
-    /* Delete the key for thread specific data set */
-    rc = clOsalTaskKeyDelete(clGmsPrivateDataKey);
-    return rc;
-}
-
 
 /******************************************************************************
  * EXPORTED API FUNCTIONS
@@ -317,15 +287,6 @@ ClRcT clGmsInitialize(
         goto error_destroy;
     }
 #endif
-    /* Create the key for thread specific data set */
-    rc = gmsTaskKeyCreate();
-    CL_ASSERT(rc == CL_OK);
-#if 0    
-    if(rc != CL_OK)
-    {
-        clLogError("TASK", "KEY", "TaskKeyCreate returned [%#x]", rc);
-    }
-#endif    
 
     /* Step 4: Negotiate version with the server */
     req.clientVersion.releaseCode = version->releaseCode;
@@ -338,7 +299,6 @@ ClRcT clGmsInitialize(
         clLogError(GEN,NA,"cl_gms_clientlib_initialize_rmd failed with rc:0x%x ",rc);
         clGmsMutexDelete(gms_instance_ptr->response_mutex);
         gms_instance_ptr->response_mutex = 0;
-        gmsTaskKeyDelete();
         clHandleCheckin(gmsHandleDb, *gmsHandle);
         rc = CL_GMS_RC(rc);
         goto error_destroy;
@@ -416,14 +376,7 @@ ClRcT clGmsFinalize(
 
 	clGmsMutexUnlock(gms_instance_ptr->response_mutex);
 	clGmsMutexDelete(gms_instance_ptr->response_mutex);
-
-    /* Delete the key for thread specific data set */
-    rc = gmsTaskKeyDelete();
-    if (rc != CL_OK)
-    {
-        clLogError("TASK", "KEY", "TaskKeyDelete returned [%#x]", rc);
-    }
-
+    
 	if ((clHandleDestroy(gmsHandleDb, gmsHandle)) != CL_OK)
     {
         clLogError(GEN,NA,
@@ -1280,7 +1233,7 @@ ClRcT clGmsClusterTrackCallbackHandler(
      * it out from what we provide here.
      */
             (*gms_instance_ptr->callbacks.clGmsClusterTrackCallback)
-            (&res->buffer, res->numberOfMembers, res->rc);
+            (gmsHandle, &res->buffer, res->numberOfMembers, res->rc);
   
 
 error_checkin_free_res:
@@ -1337,8 +1290,7 @@ ClRcT clGmsClusterMemberGetCallbackHandler(
      * free the data we provide.  If it needs to reatin it, it has to copy
      * it out from what we provide here.
      */
-    (*gms_instance_ptr->callbacks.clGmsClusterMemberGetCallback)
-                              (res->invocation, &res->member, res->rc);
+    (*gms_instance_ptr->callbacks.clGmsClusterMemberGetCallback) (res->gmsHandle, res->invocation, &res->member, res->rc);
 
 error_checkin_free_res:
     if (clHandleCheckin(gmsHandleDb, gmsHandle) != CL_OK)

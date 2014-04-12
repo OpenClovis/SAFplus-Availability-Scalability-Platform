@@ -639,7 +639,7 @@ void cpmHandleGroupInformation(const ClGmsClusterNotificationBufferT *notificati
     return;
 }
 
-void cpmClusterTrackCallBack(const ClGmsClusterNotificationBufferT *clusterNotificationBuffer, ClUint32T nMembers, ClRcT rc)
+void cpmClusterTrackCallBack(ClGmsHandleT handle, const ClGmsClusterNotificationBufferT *clusterNotificationBuffer, ClUint32T nMembers, ClRcT rc)
 {
     clLogMultiline(CL_LOG_SEV_DEBUG, CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_GMS,
                    "Received cluster track callback from GMS on node [%s] -- \n"
