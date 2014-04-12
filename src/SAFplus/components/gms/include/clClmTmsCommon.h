@@ -700,6 +700,7 @@ ClRcT clGmsCompUpNotify (
  *
  */
 typedef void (*ClGmsClusterTrackCallbackT) (
+        CL_IN ClGmsHandleT handle,                                
         CL_IN const ClGmsClusterNotificationBufferT *notificationBuffer,
         CL_IN ClUint32T             numberOfMembers,
         CL_IN ClRcT                 rc);            
@@ -731,6 +732,7 @@ typedef void (*ClGmsClusterTrackCallbackT) (
  *
  */
 typedef void (*ClGmsClusterMemberGetCallbackT) (
+        CL_IN ClGmsHandleT          localHandle,                    
         CL_IN ClInvocationT         invocation,     
         CL_IN const ClGmsClusterMemberT *clusterMember, 
         CL_IN ClRcT                 rc);            

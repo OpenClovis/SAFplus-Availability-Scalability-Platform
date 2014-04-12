@@ -38,18 +38,18 @@ extern "C" {
         }\
     }while(0);
 
-extern   ClUint32T   clGmsPrivateDataKey;
 /* Static Funciton Declarations */
 static SaAisErrorT _aspErrToAisErr(ClRcT clError);
 
 static void saClmHandleInstanceDestructor(void* cbArgs);
 
 static void clGmsClusterMemberGetCallbackWrapper (
+        CL_IN ClGmsHandleT localHandle, 
         CL_IN const ClInvocationT         invocation,
         CL_IN const ClGmsClusterMemberT* const clusterMember,
         CL_IN const ClRcT                 rc);
 
-static void clGmsClusterTrackCallbackWrapper (
+static void clGmsClusterTrackCallbackWrapper (ClGmsHandleT gmsHandle,
         CL_IN const ClGmsClusterNotificationBufferT* const notificationBuffer,
         CL_IN const ClUint32T             numberOfMembers,
         CL_IN const ClRcT                 rc);
