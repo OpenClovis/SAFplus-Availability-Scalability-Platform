@@ -1021,7 +1021,7 @@ clLogMsgWrite(ClLogStreamHandleT streamHdl,
     ClRcT rc = CL_OK;
     va_list vaargs;
     va_start(vaargs, pFmtStr);
-#ifdef NO_SAF
+#if ((defined NO_SAF) || (defined  __arm__))  // ARM is temporary; logging not working right now in arm
   ClCharT           msg[CL_LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
   unsigned int            msgStrLen;
   msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, "[%s:%d] (%3s.%3s: %s) ",pFileName, lineNum,pArea,pContext, clLogSeverityStrGet(clLogDefaultSeverity));
