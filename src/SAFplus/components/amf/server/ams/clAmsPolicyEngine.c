@@ -4555,6 +4555,18 @@ clAmsPeSUForceLockOperation(
     {
         clAmsPeSUComputeAdminState(su, &adminState);
 
+        /*
+         * Removed SU out of SG's instantiated list if it is available
+         */
+        if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED )
+        {
+            /*
+             * Removed SU out of SG's instantiated/instantiable list if it is available
+             */
+            AMS_CALL(clAmsPeSUMarkUninstantiated(su));
+            AMS_CALL(clAmsPeSUMarkUninstantiable(su));
+        }
+
         if(adminState != CL_AMS_ADMIN_STATE_UNLOCKED)
         {
             clLogError("SU", "LOCK-FORCE", "Admin state of the SU has to be unlocked for force lock to work. "
@@ -6418,6 +6430,11 @@ clAmsPeSUTerminateCallback(
         {
             node->status.numInstantiatedSUs --;
         }
+        /*
+         * Removed SU out of SG's instantiated/instantiable list if it is available
+         */
+        AMS_CALL(clAmsPeSUMarkUninstantiated(su));
+        AMS_CALL(clAmsPeSUMarkUninstantiable(su));
     }
 
     AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
@@ -13711,8 +13728,7 @@ clAmsPeCompTerminateCallback(
 
     /* Calling terminal if su->status.numInstantiatedComp == 0 */
     if ( (su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING) ||
-         (su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING) ||
-         !su->status.numInstantiatedComp)
+         (su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING))
     {
         AMS_CALL ( clAmsPeSUTerminateCallback(su, CL_OK) );
     }
