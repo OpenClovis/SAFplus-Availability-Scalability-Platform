@@ -4537,6 +4537,62 @@ exitOnError:
 }
 
 
+/* It is necessary to initialize the events 'out of band' because events uses checkpoint! */
+static void* initializeEventThread(void* nothing)
+{
+    ClRcT rc;
+    ClVersionT         evtVersion    = CL_EVENT_VERSION;
+    ClTimerTimeOutT delay = { 0, 500};
+        
+    
+    /*
+     * In case some failure occurs during event library initialization,
+     * normal checkpoint operations will still work. Problems will 
+     * occur only if the active address of non-collocated checkpoint
+     * gets updated.
+     */
+    do
+    {
+        clOsalTaskDelay(delay); // stop spin loop if event server isn't ready        
+        rc = clEventInitialize(&gClntInfo.ckptEvtHdl, &ckptEvtCallbacks, &evtVersion);
+        if(CL_OK != rc)
+        {
+            CKPT_DEBUG_E(("Ckpt event client initialize failed in rc[0x %x]. Retrying...\n",rc));
+        }
+    } while (CL_OK!=rc);
+    
+    {
+        rc = clEventChannelOpen(gClntInfo.ckptEvtHdl, &ckptSubChannelName,
+                                CL_EVENT_GLOBAL_CHANNEL | CL_EVENT_CHANNEL_SUBSCRIBER,
+                                (ClTimeT)-1, &gClntInfo.ckptChannelSubHdl);
+        if(CL_OK != rc)
+        {
+            CKPT_DEBUG_E(("Ckpt:Ckpt Initialize failed in rc[0x %x]\n",
+                          rc));
+            CKPT_DEBUG_E(("Sync Checkpoint will work fine. Async "
+                          "Checkpoint Operation will fail if activeaddress"
+                          "is changed.\n"));
+            clEventFinalize(gClntInfo.ckptEvtHdl);
+        }
+        else
+        {
+            rc = clEventSubscribe(gClntInfo.ckptChannelSubHdl, NULL , 2, 
+                                  NULL);
+            if(CL_OK != rc)
+            {
+                CKPT_DEBUG_E(("Ckpt:Ckpt Initialize failed in rc"
+                              "[0x %x]\n",rc));
+                CKPT_DEBUG_E(("Sync Checkpoint will work fine. Async "
+                              "Checkpoint Operation will fail if active"
+                              "address is changed.\n"));
+                clEventChannelClose(gClntInfo.ckptChannelSubHdl);
+                clEventFinalize(gClntInfo.ckptEvtHdl);
+            }
+        }
+    }
+    return NULL;
+}
+
 
 /*
  * Function for initializing the checkpoint library.
@@ -4552,7 +4608,6 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
     CkptInitInfoT      *pInitInfo    = NULL;
     ClIocNodeAddressT  mastNodeAddr  = 0;
     ClRcT              rc            = CL_OK;
-    ClVersionT         evtVersion    = CL_EVENT_VERSION;
 
     CKPT_DEBUG_T(("pCkptHdl : %p pCallbacks: %p pVersion: %p\n",
                    (void *)pCkptSvcHandle, (void *)pCallbacks, 
@@ -4620,7 +4675,14 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
        /*
         * First instance of initialization.
         */
-        
+        /* I cannot create initialize the event system synchronously because the event server uses the checkpoint client
+           to load its event channels.  But checkpoint's event use is only for a rare failover condition so it is ok for it to
+           init later (when event server comes up).
+        */
+        gClntInfo.ckptEvtHdl = CL_HANDLE_INVALID_VALUE;
+        gClntInfo.ckptChannelSubHdl = CL_HANDLE_INVALID_VALUE;
+        rc = clOsalTaskCreateDetached ("initckpteventsub",CL_OSAL_SCHED_OTHER,CL_OSAL_THREAD_PRI_NOT_APPLICABLE,0,initializeEventThread,NULL);
+        CL_ASSERT(rc == CL_OK);
        /* 
         * Create a handle database that will contain all 
         * service, checkpoint and iteration related handles.
@@ -4772,49 +4834,7 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
          * First instance of initialization.
          */
 
-         /*
-          * In case some failure occurs during event library initialization,
-          * normal checkpoint operations will still work. Problems will 
-          * occur only if the active address of non-collocated checkpoint
-          * gets updated.
-          */
-        rc = clEventInitialize(&gClntInfo.ckptEvtHdl, &ckptEvtCallbacks, 
-                               &evtVersion);
-        if(CL_OK != rc)
-        {
-            CKPT_DEBUG_E(("Ckpt:Ckpt Initialize failed in rc[0x %x]\n",rc));
-            goto exitOnError;
-        }
-        else
-        {
-            rc = clEventChannelOpen(gClntInfo.ckptEvtHdl, &ckptSubChannelName,
-                    CL_EVENT_GLOBAL_CHANNEL | CL_EVENT_CHANNEL_SUBSCRIBER,
-                    (ClTimeT)-1, &gClntInfo.ckptChannelSubHdl);
-            if(CL_OK != rc)
-            {
-                CKPT_DEBUG_E(("Ckpt:Ckpt Initialize failed in rc[0x %x]\n",
-                            rc));
-                CKPT_DEBUG_E(("Sync Checkpoint will work fine. Async "
-                            "Checkpoint Operation will fail if activeaddress"
-                            "is changed.\n"));
-                clEventFinalize(gClntInfo.ckptEvtHdl);
-            }
-            else
-            {
-                rc = clEventSubscribe(gClntInfo.ckptChannelSubHdl, NULL , 2, 
-                                      NULL);
-                if(CL_OK != rc)
-                {
-                    CKPT_DEBUG_E(("Ckpt:Ckpt Initialize failed in rc"
-                                "[0x %x]\n",rc));
-                    CKPT_DEBUG_E(("Sync Checkpoint will work fine. Async "
-                                "Checkpoint Operation will fail if active"
-                                "address is changed.\n"));
-                    clEventChannelClose(gClntInfo.ckptChannelSubHdl);
-                    clEventFinalize(gClntInfo.ckptEvtHdl);
-                }
-            }
-        }
+ 
     }   
     /*
      * Increment the service initialization count.

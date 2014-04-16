@@ -1024,10 +1024,14 @@ clLogMsgWrite(ClLogStreamHandleT streamHdl,
 #if ((defined NO_SAF) || (defined  __arm__))  // ARM is temporary; logging not working right now in arm
   ClCharT           msg[CL_LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
   unsigned int            msgStrLen;
-  msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, "[%s:%d] (%3s.%3s: %s) ",pFileName, lineNum,pArea,pContext, clLogSeverityStrGet(clLogDefaultSeverity));
-  msgStrLen += vsnprintf(msg + msgStrLen, CL_LOG_MAX_MSG_LEN - msgStrLen, pFmtStr, vaargs);
-  if (msgStrLen > CL_LOG_MAX_MSG_LEN-1) msgStrLen=CL_LOG_MAX_MSG_LEN-1;
-  printf(msg); printf("\n"); fflush(stdout);
+  if (severity <= clLogDefaultSeverity)
+  {
+      msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, "[%s:%d] (%3s(%d).%3s.%3s: %s) ",pFileName, lineNum,((clLogCompName!=NULL) ? clLogCompName:ASP_COMPNAME),(int) getpid(),pArea,pContext, clLogSeverityStrGet(severity));
+      msgStrLen += vsnprintf(msg + msgStrLen, CL_LOG_MAX_MSG_LEN - msgStrLen, pFmtStr, vaargs);
+      if (msgStrLen > CL_LOG_MAX_MSG_LEN-1) msgStrLen=CL_LOG_MAX_MSG_LEN-1;
+      printf(msg); printf("\n"); fflush(stdout);
+  }
+  
 #else    
     rc = logVMsgWriteDeferred(streamHdl, severity, serviceId, pArea, pContext, pFileName, lineNum, CL_FALSE, CL_TRUE, pFmtStr, vaargs);
 #endif    

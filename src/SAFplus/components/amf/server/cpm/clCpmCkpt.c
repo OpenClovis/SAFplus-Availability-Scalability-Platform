@@ -466,6 +466,7 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
     if(rc != CL_OK)
     {
         clLogError("CKP", "INI", "CKPT initialize for standby failed with [%#x]", rc);
+        CL_ASSERT(0);  // System won't work if there's no checkpoint
         return rc;
     }
 
@@ -492,7 +493,7 @@ ClRcT cpmCpmLStandbyCheckpointInitialize(void)
      if(rc != CL_OK)
      {
          clLogError("CKP", "OPEN", "CKPT open for standby failed with [%#x]", rc);
-         
+         CL_ASSERT(0);  // GAS debug
      }
      else
      {
@@ -510,7 +511,7 @@ ClRcT cpmCpmLActiveCheckpointInitialize(void)
     ClCkptOpenFlagsT flags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_READ | CL_CKPT_CHECKPOINT_WRITE;
     ClCkptHdlT  ckptHandle = 0;
     ClTimeT time = 0;
-    ClTimerTimeOutT delay = { 0,  500};
+    ClTimerTimeOutT delay = { 1,  0};
     ClInt32T tries = 0;
     ClCkptCheckpointCreationAttributesT ckptAttributes =
     {
@@ -539,6 +540,7 @@ ClRcT cpmCpmLActiveCheckpointInitialize(void)
     if(rc != CL_OK)
     {
         clLogError("CKP", "INI", "CKPT initialize for active returned [%#x]", rc);
+        CL_ASSERT(rc==CL_OK);  // system is not going to work if we can't use checkpoint
         goto failure;
     }
 
@@ -546,25 +548,33 @@ ClRcT cpmCpmLActiveCheckpointInitialize(void)
 
     clCkptReplicaChangeRegister(cpmCkptReplicaChangeCallback);
 
-    if ((rc = clCkptCheckpointOpen(handle,
-                                   &gpClCpm->ckptCpmLName,
-                                   &ckptAttributes,
-                                   flags,
-                                   time,
-                                   &ckptHandle)) != CL_OK)
-      goto failure;
+
+    tries = 0;
+    do
+    {
+        rc = clCkptCheckpointOpen(handle,&gpClCpm->ckptCpmLName,&ckptAttributes,flags,time,&ckptHandle);
+    } while (rc != CL_OK && tries++ < 10 && clOsalTaskDelay(delay) == CL_OK);
+     
+    if(rc != CL_OK)
+    {
+        CL_ASSERT(rc==CL_OK);  // system is not going to work if we can't use checkpoint
+        goto failure;
+    }
+    
 
     gpClCpm->ckptOpenHandle = ckptHandle;
 
     rc = clCkptActiveReplicaSet(gpClCpm->ckptOpenHandle);
     if (CL_OK != rc)
     {
+        CL_ASSERT(rc==CL_OK);  // system is not going to work if we can't use checkpoint
         goto failure;
     }
 
     return rc;
 
 failure:
+    CL_ASSERT(0);  // system is not going to work if we can't use checkpoint
     return rc;
 }
 

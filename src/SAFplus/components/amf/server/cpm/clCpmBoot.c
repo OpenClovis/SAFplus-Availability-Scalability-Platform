@@ -1607,6 +1607,7 @@ static ClRcT cpmBmStopCurrentLevel(cpmBMT *cpmBmTable)
                  * since it is resulting CPM to shutdown leaving the other 
                  * ASP components alive.
                  */
+                gpClCpm->ckptOpenHandle = CL_HANDLE_INVALID_VALUE;
                 if (rc != CL_OK)
                 {
                     clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
