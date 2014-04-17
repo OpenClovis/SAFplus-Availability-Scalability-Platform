@@ -61,7 +61,8 @@
             <EnumMember name="CL_AMS_NOTIFICATION_ENTITY_DELETE" value="12"/>
             <EnumMember name="CL_AMS_NOTIFICATION_OPER_STATE_CHANGE" value="13"/>
             <EnumMember name="CL_AMS_NOTIFICATION_ADMIN_STATE_CHANGE" value="14"/>
-            <EnumMember name="CL_AMS_NOTIFICATION_MAX" value="15"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_SG_UNASSIGNED" value="15"/>
+            <EnumMember name="CL_AMS_NOTIFICATION_MAX" value="16"/>
         </Enum>
 
         <Enum name="ClAmsCompCapModelT">

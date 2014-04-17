@@ -18286,11 +18286,29 @@ amsPeCompRemoveCSICallback(
                 {
                     event = CL_AMS_NOTIFICATION_SI_PARTIALLY_ASSIGNED;
                 }
-                CL_AMS_NOTIFICATION_PUBLISH(su,
-                                            (ClAmsEntityRefT *)&tSiRef,
-                                            currentHaState,
-                                            event,
-                                            switchoverMode);
+                else
+                {
+                    if (!clAmsPeSGHasAssignments(sg) )
+                    {
+                        event = CL_AMS_NOTIFICATION_SG_UNASSIGNED;
+                    }
+                }
+                if (event == CL_AMS_NOTIFICATION_SG_UNASSIGNED)
+                {
+                    CL_AMS_NOTIFICATION_PUBLISH(sg,
+                                                (ClAmsEntityRefT *)&tSiRef,
+                                                currentHaState,
+                                                event,
+                                                switchoverMode);
+                }
+                else
+                {
+                    CL_AMS_NOTIFICATION_PUBLISH(su,
+                                                (ClAmsEntityRefT *)&tSiRef,
+                                                currentHaState,
+                                                event,
+                                                switchoverMode);
+                }
                 clLogDebug("SU_SI", "REMOVE", "SU remove SI callback for SU [%s], SI [%s]",
                            su->config.entity.name.value, si->config.entity.name.value);
                 AMS_CALL ( clAmsPeSURemoveSICallback(su, si, error, switchoverMode) );
