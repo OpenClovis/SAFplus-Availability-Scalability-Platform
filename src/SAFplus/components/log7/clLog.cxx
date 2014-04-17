@@ -151,7 +151,7 @@ void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t servic
   if (msgStrLen > CL_LOG_MAX_MSG_LEN-1) msgStrLen=CL_LOG_MAX_MSG_LEN-1;  // if too big, vsnprintf returns the number of bytes that WOULD HAVE BEEN written.
   va_end(vaargs);
   
-  if (logEchoToFd != -1) write(logEchoToFd,msg,msgStrLen);
+  if (logEchoToFd != -1) { write(logEchoToFd,msg,msgStrLen); write(logEchoToFd,"\n",sizeof("\n")-1); }
   writeToSharedMem(streamHdl,severity,msg,msgStrLen);
 }
 

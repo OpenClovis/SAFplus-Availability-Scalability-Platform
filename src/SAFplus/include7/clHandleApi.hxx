@@ -115,6 +115,8 @@ namespace SAFplus
   const WellKnownHandle CKPT_CKPT(6,0,0);        // The checkpoint that matches names to checkpoints
   const WellKnownHandle NAME_CKPT(7,0,0);        // The checkpoint that matches names to arbitrary data
 
+  const WellKnownHandle CLUSTER_GROUP(8,0,0);    // This group represents nodes (AMF instances) running in the cluster
+
   // Return a handle that refers to the node.  If no argument, use this node.
   Handle getNodeHandle(int nodeNum=0);
 

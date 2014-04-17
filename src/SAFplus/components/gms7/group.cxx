@@ -15,6 +15,8 @@ extern ClUint32T clAspLocalId;
 SAFplus::Group::Group(std::string handleName)
 {
   handle  = INVALID_HDL;
+  activeEntity = INVALID_HDL;
+  standbyEntity = INVALID_HDL;
   try
   {
     /* Get handle from name service */
@@ -31,6 +33,14 @@ SAFplus::Group::Group(std::string handleName)
   }
   init(handle);
 }
+
+SAFplus::Group::Group()
+{
+  handle = INVALID_HDL;
+  activeEntity = INVALID_HDL;
+  standbyEntity = INVALID_HDL;
+}
+
 void SAFplus::Group::init(SAFplus::Handle groupHandle)
 {
   char              sharedMemName[20];
@@ -123,7 +133,7 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
     SAFplusI::BufferPtr kb(key),kv(val);
     SAFplusI::GroupMapPair vt(kb,kv);
     map->insert(vt);
-    logError("GMS", "REG","Register Entity successfully");
+    logInfo("GMS", "REG","Entity registration successful");
     /* Notify other entities about new entity*/
     if(wakeable)
     {
@@ -132,7 +142,7 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
   }
   else
   {
-    logDebug("GMS", "REG","Entity already exist");
+    logDebug("GMS", "REG","Entity already exists");
   }
 }
 
@@ -323,6 +333,7 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles(int e
 
 int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int electionType)
 {
+  int ret=0;
   bool isRoleChanged = false;
   std::pair<EntityIdentifier,EntityIdentifier> candidatePair;
 
@@ -342,11 +353,6 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     }
     res.first = candidatePair.first;
     res.second = candidatePair.second;
-    if(isRoleChanged && wakeable)
-    {
-      wakeable->wake(3);
-    }
-    return 0;
   }
   else if(electionType == (int)SAFplus::Group::ELECTION_TYPE_STANDBY)
   {
@@ -358,11 +364,6 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     }
     res.first = candidatePair.first;
     res.second = candidatePair.second;
-    if(isRoleChanged && wakeable)
-    {
-      wakeable->wake(3);
-    }
-    return 1;
   }
   else if(electionType == (int)SAFplus::Group::ELECTION_TYPE_ACTIVE)
   {
@@ -374,15 +375,18 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     }
     res.first = candidatePair.first;
     res.second = candidatePair.second;
-    if(isRoleChanged && wakeable)
-    {
-      wakeable->wake(3);
-    }
-    return 2;
   }
-  logError("GMS","ELECT","Invalid election type");
-  res.first = INVALID_HDL;
-  res.second = INVALID_HDL;
+  else
+    {
+      logError("GMS","ELECT","Invalid election type");
+    }
+
+  if(isRoleChanged)
+    {
+      activeEntity = res.first;
+      standbyEntity = res.second;
+      if (wakeable)  wakeable->wake(3);  // Can't wake until this group has updated its internal state
+    }
   return 0;
 }
 

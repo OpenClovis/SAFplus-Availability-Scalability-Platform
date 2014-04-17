@@ -32,7 +32,7 @@ CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR)
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -DSAFplus7
 COMPILE_CPP = g++ -g -O0 -fPIC -c $(CPP_FLAGS) -o
 LINK_SO     = g++ -g -shared -o 
-LINK = g++ -g -O0 -fPIC $(LINK_FLAGS) -o $@
+LINK_EXE    = g++ -g -O0 -fPIC $(LINK_FLAGS) -o
 
 LINK_LIBS ?=
 

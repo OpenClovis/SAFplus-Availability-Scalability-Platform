@@ -236,10 +236,11 @@ typedef union CosSemCtl_u
   template class tMutex<boost::timed_mutex>;
   template class tMutex<boost::recursive_timed_mutex>;
   
-
   /**
    * Implement class ThreadCondition
    */
+  ThreadCondition::ThreadCondition() {};
+
    void ThreadCondition::notify_one()
    {
        waitCondition.notify_one();
@@ -250,17 +251,20 @@ typedef union CosSemCtl_u
        waitCondition.notify_all();
    }
 
+  void ThreadCondition::wake(int amt,void* cookie)
+   {
+       waitCondition.notify_all();
+   }
+
    void ThreadCondition::wait(SAFplus::Mutex &mutex)
    {
-       boost::unique_lock<SAFplus::Mutex> lock(mutex);
-       waitCondition.wait(lock);
+       waitCondition.wait(mutex);
    }
 
    bool ThreadCondition::timed_wait(SAFplus::Mutex &mutex, int duration)
    {
-       boost::unique_lock<SAFplus::Mutex> lock(mutex);
        boost::system_time const timeout = boost::get_system_time() + boost::posix_time::milliseconds(duration);
-       return waitCondition.timed_wait(lock, timeout);
+       return waitCondition.timed_wait(mutex, timeout);
    }
 
 };

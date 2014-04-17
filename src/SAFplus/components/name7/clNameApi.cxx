@@ -419,7 +419,7 @@ void SAFplus::NameRegistrar::dump()
           size_t sz = v.size();
           for(int i=0;i<sz;i++)
           {
-             printf("val [0x%x.0x%x]\n", v[i].id[0],v[i].id[1]);
+            printf("val [0x%lx.0x%lx]\n", (long unsigned int) v[i].id[0],(long unsigned int) v[i].id[1]);
           }
        }
     }
@@ -432,7 +432,7 @@ void SAFplus::NameRegistrar::dumpObj()
        ObjHashMap::value_type vt = *iter;
        Handle curkey = vt.first;
        printf("---------------------------------\n");      
-       printf("key [0x%x.0x%x]\n", curkey.id[0], curkey.id[1]);              
+       printf("key [0x%lx.0x%lx]\n", curkey.id[0], curkey.id[1]);              
        void* obj = vt.second;
        if (obj)
        {

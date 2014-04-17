@@ -1,35 +1,29 @@
-
-#include <clThreadApi.hpp>
-
-#define this_error_indicates_missing_parens_around_string(...) __VA_ARGS__
-
-// I need ot override the output of the test macros because Osal is so fundamental that the test routines use it!
-#define clTestPrintAt(__file, __line, __function, x) do { printf( this_error_indicates_missing_parens_around_string x); } while(0)
-#define clTestGroupInitialize(name) printf("Running test group %s\n", name)
-#define clTestGroupFinalize() do { } while(0)
-
-#include <clTestApi.h>
-
+#include <boost/thread.hpp>
+#include <clThreadApi.hxx>
+#include <clTestApi.hxx>
+#include <clLogApi.hxx>
+#include <clGlobals.hxx>
+#include <clCommon.hxx>
 
 using namespace SAFplus;
 
 
-void TestProcSemT_oneProcess(void)
+void TestProcSem_oneProcess(void)
 {
 }
 
-void TestProcSemT_basic(void)
+void TestProcSem_basic(void)
 {
-  clTestCaseStart(("Basic ProcSemT"));
+  clTestCaseStart(("Basic ProcSem"));
   if (1)
     {
-    ProcSemT s1(1,1);
+    ProcSem s1(1,1);
     s1.lock();  /* Should NOT hang here */
     }
 
   if (1)
     {
-    ProcSemT s1(1,0);
+    ProcSem s1(1,0);
     clTest(("try_lock returns False when sem is 0"), s1.try_lock()==0, (" "));
     s1.unlock();                 // test "giving"
     clTest(("make sure try_lock correctly takes the sem."), s1.try_lock()==1, (" "));
@@ -47,19 +41,64 @@ void TestProcSemT_basic(void)
   
 }
 
-
-void testProcSemT(void)
+class SleepWaker
 {
-  TestProcSemT_basic();
-  TestProcSemT_oneProcess();
+public:
+  unsigned long int delay;
+  Wakeable* wake;
+  const char* printThis;
+  SleepWaker(Wakeable&w,unsigned long int dly,const char *print):printThis(print) { wake=&w; delay=dly; };
+  void operator()()
+  {
+        boost::this_thread::sleep(boost::posix_time::milliseconds(delay));
+        printf(printThis);
+	wake->wake(1,NULL);
+  }
+};
+
+void testCondition(void)
+{
+  Mutex m;
+  ThreadCondition c;
+ 
+  clTestCaseStart(("Basic Condition"));
+
+  if (1)
+    { 
+      ScopedLock<> lock(m);
+      boost::thread(SleepWaker(c,1000,"Kicking the condition\n"));
+      clTest(("condition kicker"), c.timed_wait(m,2000)==1, (" "));
+    }
+
+  if (1)
+    { 
+      ScopedLock<> lock(m);
+      boost::thread(SleepWaker(c,2000,"Not Kicking the condition soon enough\n"));
+      clTest(("condition abort before kicker"), c.timed_wait(m,1000)==0, (" "));
+      clTest(("condition kicker"), c.timed_wait(m,2000)==1, (" "));  // If I don't wait until the thread quits it will be accessing out of scope stack vars...
+    }
+
+  clTestCaseEnd((" "));
+
+}
+
+void testProcSem(void)
+{
+  TestProcSem_basic();
+  TestProcSem_oneProcess();
 }
 
 
 
 int main(int argc, char* argv[])
 {
+  logInitialize();
+  logEchoToFd = 1;  // echo logs to stdout for debugging  
+  utilsInitialize();
+
   clTestGroupInitialize(("Osal"));
-  testProcSemT();
+  testProcSem();
+  testCondition();
   clTestGroupFinalize(); 
 }
 
