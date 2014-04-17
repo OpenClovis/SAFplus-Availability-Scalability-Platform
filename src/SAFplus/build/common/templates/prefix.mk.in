@@ -81,7 +81,7 @@ include $(BUILD_ROOT)/mk/define.mk
 # FIXME: This should not even be here:
 #
 ifndef CROSS_BUILD
-BUILDTOOLS_PATH:=       $(buildtools_dir)/local
+BUILDTOOLS_PATH:=       $(buildtools_dir)/$(CL_TARGET_PLATFORM)
 
 # This is the native build
 ifeq ($(CC),cc)  # If CC is not defined by the environment, override it because we do not want to use "cc" as the compiler.   CC ?= gcc cannot be used because make implicitly defines CC if it is not defined in the env. So ?= will never set CC.
