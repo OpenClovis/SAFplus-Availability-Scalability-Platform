@@ -42,6 +42,9 @@ void sendMessage(void* data, int dataLength,int port)
     iocDest.iocPhyAddress.nodeAddress = 1; //same node
   else
     iocDest.iocPhyAddress.nodeAddress = 2; //same node
+#ifdef __TESTREALSERVER
+    iocDest.iocPhyAddress.nodeAddress = 1;
+ #endif // __TESTREALSERVER
   iocDest.iocPhyAddress.portId = port;
   while(msgSent == false)
   {
@@ -86,11 +89,25 @@ int main()
     return 0;
   }
   clIocLibInitialize(NULL);
-  msgClient = new SafplusMsgServer(CLIENT_PORT);
+  if(getenv("TEST_CLIENT_PORT"))
+  {
+    msgClient = new SafplusMsgServer(atoi(getenv("TEST_CLIENT_PORT")));
+  }
+  else
+  {
+    msgClient = new SafplusMsgServer(CLIENT_PORT);
+  }
   msgClient->RegisterHandler(CL_IOC_PROTO_MSG, handler, NULL);
 #ifdef __TESTREALSERVER
   cout << "GMS_CLIENT: Signal to master node \n";
-  sendDataToGms(standbyEntity,nodeJoin,GMS_PORT_1);
+  if(getenv("TEST_SERVER_PORT"))
+  {
+    sendDataToGms(standbyEntity,nodeJoin,atoi(getenv("TEST_SERVER_PORT")));
+  }
+  else
+  {
+    sendDataToGms(standbyEntity,nodeJoin,91);
+  }
   while(1);
 #endif // __TESTREALSERVER
   cout << "GMS_CLIENT: Send Entity Join for server #2 \n";

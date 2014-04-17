@@ -133,7 +133,7 @@ void SAFplus::NameRegistrar::set(const char* name, const void* data, int length)
    Handle handle;
    try {
       handle = getHandle(name);
-   }catch (NameException ne) {
+   }catch (NameException &ne) {
       ne.addMsg(". The name may be not registered with any handle");
       throw ne;
    }   
@@ -180,7 +180,7 @@ void SAFplus::NameRegistrar::set(const std::string& name, const void* data, int 
 {
    try {
       set(name.c_str(), data, length);
-   }catch (NameException ne) {
+   }catch (NameException &ne) {
       throw ne;
    }
 }
@@ -190,7 +190,7 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Buffer* p_buf) throw
    Handle handle;
    try {
       handle = getHandle(name);
-   }catch (NameException ne) {
+   }catch (NameException &ne) {
       ne.addMsg(". The name may be not registered with any handle");
       throw ne;
    } 
@@ -232,7 +232,7 @@ void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Buffer* p_buf
 {
    try {
       set(name.c_str(), p_buf);
-   }catch (NameException ne) {
+   }catch (NameException &ne) {
       throw ne;
    }
 }
@@ -254,7 +254,7 @@ ObjMapPair SAFplus::NameRegistrar::get(const char* name) throw(NameException&)
       }
       return ObjMapPair(handle, NULL);
    }                
-   catch (NameException ne)
+   catch (NameException &ne)
    {
       throw ne;
    }
@@ -265,7 +265,7 @@ ObjMapPair SAFplus::NameRegistrar::get(const std::string& name) throw(NameExcept
    {
       return get(name.c_str());
    }
-   catch(NameException ne)
+   catch(NameException &ne)
    {
       throw ne;
    }
@@ -352,7 +352,7 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const std::string& name) throw
    {
       return getHandle(name.c_str());
    }                
-   catch (NameException ne)
+   catch (NameException &ne)
    {
       throw ne;
    }   
@@ -364,7 +364,7 @@ SAFplus::Buffer& SAFplus::NameRegistrar::getData(const char* name) throw(NameExc
    Handle handle;
    try {
       handle = getHandle(name);
-   }catch (NameException ne) {
+   }catch (NameException &ne) {
       throw ne;
    } 
    //Find to see if the key exists?
@@ -388,7 +388,7 @@ SAFplus::Buffer& SAFplus::NameRegistrar::getData(const std::string& name) throw(
    {
       return getData(name.c_str());
    }
-   catch (NameException ne)
+   catch (NameException &ne)
    {
       throw ne;
    }
