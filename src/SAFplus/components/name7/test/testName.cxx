@@ -4,6 +4,7 @@
 
 #include <clNameApi.hxx>
 #include <stdio.h>
+#define __THREAD
 using namespace SAFplus;
 using namespace SAFplusI;
 
@@ -24,11 +25,20 @@ public:
    }       
 };
 
+typedef struct {
+   char name[100];
+   NameRegistrar::MappingMode mm;
+   uint32_t idx;
+   uint32_t proc;
+   uint32_t node;
+   void* obj;
+}Params;
+
 
 void testNameSetGet(const char* n, NameRegistrar::MappingMode m, uint32_t idx, void* obj = NULL, uint32_t process=0xffffffff, uint32_t node=0xffff)
 {
    Handle h(PointerHandle, idx, process, node);
-   Handle h2(PointerHandle, idx+1, process, node);
+   //Handle h2(PointerHandle, idx+1, process, node);
    //const char* xy = "_111000111";
    name.set(n, h, m, obj);
    try {
@@ -70,8 +80,54 @@ void testNameAppend(const char* n, NameRegistrar::MappingMode m, uint32_t idx, v
    }   
 }
 
+void* threadSetProc(void* p)
+{
+   Params* pr = (Params*)p;
+   testNameSetGet(pr->name, pr->mm, pr->idx, pr->obj, pr->proc, pr->node);
+   delete pr;
+   return 0;
+}
+
+void* threadAppendProc(void* p)
+{
+   Params* pr = (Params*)p;
+   testNameAppend(pr->name, pr->mm, pr->idx, pr->obj, pr->proc, pr->node);
+   delete pr;
+   return 0;
+}
+
+void threadNameSetGet(const char* n, NameRegistrar::MappingMode m, uint32_t idx, void* obj = NULL, uint32_t process=0xffffffff, uint32_t node=0xffff)
+{
+   Params* p = new Params;
+   strcpy(p->name,n);
+   p->mm = m;
+   p->idx = idx;
+   p->proc = process;
+   p->node = node;
+   p->obj = obj;
+   pthread_t thid;
+   pthread_create(&thid, NULL, threadSetProc, (void*)p);
+   pthread_join(thid, NULL);
+}
+
+void threadNameAppendGet(const char* n, NameRegistrar::MappingMode m, uint32_t idx, void* obj = NULL, uint32_t process=0xffffffff, uint32_t node=0xffff)
+{
+   Params* p = new Params;
+   strcpy(p->name,n);
+   p->mm = m;
+   p->idx = idx;
+   p->proc = process;
+   p->node = node;
+   p->obj = obj;
+   pthread_t thid;
+   pthread_create(&thid, NULL, threadAppendProc, (void*)p);
+   pthread_join(thid, NULL);
+}
+
+
 int main(int argc, char* argv[])
 {
+#ifndef __THREAD
 #if 1
    ObjTest* jim = new ObjTest("Jim");   
    //obj->greet();
@@ -165,7 +221,33 @@ int main(int argc, char* argv[])
 #endif
    //const char* name3 = "_001000111";
    testNameAppend(name3, NameRegistrar::MODE_NO_CHANGE, 0xaabbe9, NULL, 0xffffffff, 2);
-
+#else
+   const char* name1 = "_1100";   
+   threadNameSetGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc1);
+   uint32_t idx = 0xaabbc2;
+   int i;
+   for(i=0;i<30;i++) {
+     threadNameAppendGet(name1, NameRegistrar::MODE_PREFER_LOCAL, idx);
+     idx+=2;
+   } 
+   /*threadNameAppendGet(name1, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbc2);
+   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc4);
+   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc6);      
+   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc8);
+   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbca);
+   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbcc);
+   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbce);
+   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc6);*/
+   const char* name2 = "_0100";   
+   threadNameSetGet(name2, NameRegistrar::MODE_REDUNDANCY, 0xaabbe1);  
+   idx=0xaabbe2;
+   for(i=0;i<30;i++) {
+     threadNameAppendGet(name2, NameRegistrar::MODE_ROUND_ROBIN, idx);     
+     idx+=2;
+   }   
+   //threadNameAppendGet(name2, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbec);
+   //threadNameAppendGet(name2, NameRegistrar::MODE_REDUNDANCY, 0xaabbee);
+#endif
    name.dump();   
    return 0;
 }

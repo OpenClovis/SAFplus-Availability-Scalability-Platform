@@ -1,3 +1,4 @@
+#include <clIocApi.h>
 #include <clCommon.hxx>
 #include <clNameApi.hxx>
 #include <clCustomization.hxx>
@@ -319,12 +320,13 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
                idx = i;
             }
          }
-         //No process match, get handle of THIS NODE
+         //No process match, get handle of THIS NODE        
          if (idx == -1)
          {
+            ClIocNodeAddressT thisNode = clIocLocalAddressGet();
+            printf("getHandle of name [%s]: thisNode [%d]\n", name, thisNode);
             for(i=0;i<sz;i++)
-	    {
-		ClIocNodeAddressT thisNode = clIocLocalAddressGet();
+	    {		                
 		if ((uint32_t)hm.getHandles().at(i).getNode() == thisNode)
 		{		
                    idx = i;

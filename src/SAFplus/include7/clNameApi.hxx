@@ -110,7 +110,7 @@ namespace SAFplus
      SAFplus::Buffer& getData(const std::string& name) throw(NameException&);
 
      //**** This is the dummy function for testing to get iocNodeAddr ********
-     ClIocNodeAddressT clIocLocalAddressGet() { return 2; }
+     //ClIocNodeAddressT clIocLocalAddressGet() { return 2; }
      void dump();
      void dumpObj();
      //***********************************************************************
