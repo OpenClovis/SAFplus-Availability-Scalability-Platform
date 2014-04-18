@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "ZeroBasedCounter64.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(ZeroBasedCounter64, /ietf-yang-types/zero-based-counter64)
-
-    ZeroBasedCounter64::ZeroBasedCounter64() {
+     ZeroBasedCounter64::ZeroBasedCounter64() {
     };
 
     unsigned long int ZeroBasedCounter64::getValue() {
@@ -26,19 +21,19 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    ZeroBasedCounter64& ZeroBasedCounter64::operator=(ZeroBasedCounter64& zeroBasedCounter64) {
+    ietfYangTypes::ZeroBasedCounter64& ZeroBasedCounter64::operator=(ietfYangTypes::ZeroBasedCounter64& zeroBasedCounter64) {
         Value = zeroBasedCounter64.Value;
         return *this;
     };
 
-    ZeroBasedCounter64::~ZeroBasedCounter64() {
+     ZeroBasedCounter64::~ZeroBasedCounter64() {
     };
 
-    ostream& operator<<(ostream& os, const ZeroBasedCounter64& zeroBasedCounter64) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ZeroBasedCounter64& zeroBasedCounter64) {
         return os << zeroBasedCounter64.Value;
     };
 
-    istream& operator>>(istream& in, ZeroBasedCounter64& zeroBasedCounter64) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::ZeroBasedCounter64& zeroBasedCounter64) {
         return in >> zeroBasedCounter64.Value;
     };
 

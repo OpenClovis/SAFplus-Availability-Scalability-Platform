@@ -25,10 +25,10 @@ namespace SAFplusAmf {
         ClMgtProv<long int> value;
 
     public:
-        Capacity();
-        Capacity(std::string resourceValue);
+         Capacity();
+         Capacity(std::string resourceValue);
         std::vector<std::string> getKeys();
-        std::vector<std::string> *getChildNames();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/Node/capacity/resource
@@ -49,7 +49,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/Node/capacity/value
          */
         void setValue(long int valueValue);
-        ~Capacity();
+         ~Capacity();
 
     };
 }

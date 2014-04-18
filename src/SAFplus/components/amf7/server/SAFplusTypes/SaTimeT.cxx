@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "SaTimeT.hxx"
 
-using namespace std;
 
 namespace SAFplusTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(SaTimeT, /SAFplusTypes/SaTimeT)
-
-    SaTimeT::SaTimeT() {
+     SaTimeT::SaTimeT() {
     };
 
     unsigned long int SaTimeT::getValue() {
@@ -26,19 +21,19 @@ namespace SAFplusTypes {
         this->Value = value;
     };
 
-    SaTimeT& SaTimeT::operator=(SaTimeT& SaTimeT) {
+    SAFplusTypes::SaTimeT& SaTimeT::operator=(SAFplusTypes::SaTimeT& SaTimeT) {
         Value = SaTimeT.Value;
         return *this;
     };
 
-    SaTimeT::~SaTimeT() {
+     SaTimeT::~SaTimeT() {
     };
 
-    ostream& operator<<(ostream& os, const SaTimeT& SaTimeT) {
+    std::ostream& operator<<(std::ostream& os, const SAFplusTypes::SaTimeT& SaTimeT) {
         return os << SaTimeT.Value;
     };
 
-    istream& operator>>(istream& in, SaTimeT& SaTimeT) {
+    std::istream& operator>>(std::istream& in, SAFplusTypes::SaTimeT& SaTimeT) {
         return in >> SaTimeT.Value;
     };
 

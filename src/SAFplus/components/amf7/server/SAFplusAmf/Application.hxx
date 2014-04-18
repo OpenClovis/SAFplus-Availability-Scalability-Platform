@@ -7,10 +7,11 @@
 #ifndef APPLICATION_HXX_
 #define APPLICATION_HXX_
 
-#include <vector>
-#include "MgtFactory.hxx"
+#include "NumServiceGroups.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
+#include <vector>
+#include "MgtFactory.hxx"
 #include "NumServiceGroups.hxx"
 #include "AdministrativeState.hxx"
 #include <string>
@@ -37,13 +38,13 @@ namespace SAFplusAmf {
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        ClMgtProv<AdministrativeState> adminState;
+        ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
     public:
-        Application();
-        Application(std::string nameValue);
+         Application();
+         Application(std::string nameValue);
         std::vector<std::string> getKeys();
-        std::vector<std::string> *getChildNames();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/Application/name
@@ -68,23 +69,23 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Application/adminState
          */
-        AdministrativeState getAdminState();
+        SAFplusAmf::AdministrativeState getAdminState();
 
         /*
          * XPATH: /SAFplusAmf/Application/adminState
          */
-        void setAdminState(AdministrativeState adminStateValue);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
 
         /*
          * XPATH: /SAFplusAmf/Application/NumServiceGroups
          */
-        NumServiceGroups* getNumServiceGroups();
+        SAFplusAmf::NumServiceGroups* getNumServiceGroups();
 
         /*
          * XPATH: /SAFplusAmf/Application/NumServiceGroups
          */
-        void addNumServiceGroups(NumServiceGroups *NumServiceGroupsValue);
-        ~Application();
+        void addNumServiceGroups(SAFplusAmf::NumServiceGroups *NumServiceGroupsValue);
+         ~Application();
 
     };
 }

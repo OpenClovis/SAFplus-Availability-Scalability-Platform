@@ -7,27 +7,22 @@
 #ifndef PRESENCESTATE_HXX_
 #define PRESENCESTATE_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace SAFplusAmf {
 
     class PresenceState {
-
-        /* Apply MGT object factory */
-        REGISTER(PresenceState);
-
     public:
         int Value;
 
     public:
-        PresenceState();
+         PresenceState();
         int getValue();
         void setValue(int value);
-        PresenceState& operator=(PresenceState& PresenceState);
-        friend std::ostream& operator<<(std::ostream& os, const PresenceState& PresenceState);
-        friend std::istream& operator>>(std::istream& in, PresenceState& PresenceState);
-        ~PresenceState();
+        SAFplusAmf::PresenceState& operator=(SAFplusAmf::PresenceState& PresenceState);
+        friend std::ostream& operator<<(std::ostream& os, const SAFplusAmf::PresenceState& PresenceState);
+        friend std::istream& operator>>(std::istream& in, SAFplusAmf::PresenceState& PresenceState);
+         ~PresenceState();
 
     };
 }

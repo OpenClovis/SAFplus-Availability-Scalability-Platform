@@ -38,8 +38,8 @@ namespace SAFplusAmf {
         ClMgtProv<unsigned long int> timeout;
 
     public:
-        Instantiate();
-        std::vector<std::string> *getChildNames();
+         Instantiate();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/Component/instantiate/command
@@ -70,7 +70,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/Component/instantiate/timeout
          */
         void setTimeout(unsigned long int timeoutValue);
-        ~Instantiate();
+         ~Instantiate();
 
     };
 }

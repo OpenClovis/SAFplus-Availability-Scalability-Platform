@@ -11,7 +11,6 @@
 #include "MgtFactory.hxx"
 #include "Timeouts.hxx"
 
-using namespace std;
 using namespace SAFplusTypes;
 
 namespace SAFplusAmf {
@@ -19,60 +18,60 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Timeouts, /SAFplusAmf/Component/timeouts)
 
-    Timeouts::Timeouts(): ClMgtObject("timeouts"), quiescingComplete("quiescingComplete"), workRemoval("workRemoval"), workAssignment("workAssignment") {
+     Timeouts::Timeouts(): ClMgtObject("timeouts"), quiescingComplete("quiescingComplete"), workRemoval("workRemoval"), workAssignment("workAssignment") {
         this->addChildObject(&quiescingComplete, "quiescingComplete");
         this->addChildObject(&workRemoval, "workRemoval");
         this->addChildObject(&workAssignment, "workAssignment");
     };
 
-    vector<string> *Timeouts::getChildNames() {
-        string childNames[] = { "quiescingComplete", "workRemoval", "workAssignment" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* Timeouts::getChildNames() {
+        std::string childNames[] = { "quiescingComplete", "workRemoval", "workAssignment" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
      */
-    SaTimeT Timeouts::getQuiescingComplete() {
+    SAFplusTypes::SaTimeT Timeouts::getQuiescingComplete() {
         return this->quiescingComplete.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
      */
-    void Timeouts::setQuiescingComplete(SaTimeT quiescingCompleteValue) {
+    void Timeouts::setQuiescingComplete(SAFplusTypes::SaTimeT quiescingCompleteValue) {
         this->quiescingComplete.Value = quiescingCompleteValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
      */
-    SaTimeT Timeouts::getWorkRemoval() {
+    SAFplusTypes::SaTimeT Timeouts::getWorkRemoval() {
         return this->workRemoval.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
      */
-    void Timeouts::setWorkRemoval(SaTimeT workRemovalValue) {
+    void Timeouts::setWorkRemoval(SAFplusTypes::SaTimeT workRemovalValue) {
         this->workRemoval.Value = workRemovalValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
      */
-    SaTimeT Timeouts::getWorkAssignment() {
+    SAFplusTypes::SaTimeT Timeouts::getWorkAssignment() {
         return this->workAssignment.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
      */
-    void Timeouts::setWorkAssignment(SaTimeT workAssignmentValue) {
+    void Timeouts::setWorkAssignment(SAFplusTypes::SaTimeT workAssignmentValue) {
         this->workAssignment.Value = workAssignmentValue;
     };
 
-    Timeouts::~Timeouts() {
+     Timeouts::~Timeouts() {
     };
 
 }

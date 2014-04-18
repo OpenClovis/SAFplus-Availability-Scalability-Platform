@@ -7,28 +7,23 @@
 #ifndef DATEANDTIME_HXX_
 #define DATEANDTIME_HXX_
 
-#include "MgtFactory.hxx"
-#include <string>
 #include <iostream>
+#include <string>
 
 namespace ietfYangTypes {
 
     class DateAndTime {
-
-        /* Apply MGT object factory */
-        REGISTER(DateAndTime);
-
     public:
         std::string Value;
 
     public:
-        DateAndTime();
+         DateAndTime();
         std::string getValue();
         void setValue(std::string value);
-        DateAndTime& operator=(DateAndTime& dateAndTime);
-        friend std::ostream& operator<<(std::ostream& os, const DateAndTime& dateAndTime);
-        friend std::istream& operator>>(std::istream& in, DateAndTime& dateAndTime);
-        ~DateAndTime();
+        ietfYangTypes::DateAndTime& operator=(ietfYangTypes::DateAndTime& dateAndTime);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::DateAndTime& dateAndTime);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::DateAndTime& dateAndTime);
+         ~DateAndTime();
 
     };
 }

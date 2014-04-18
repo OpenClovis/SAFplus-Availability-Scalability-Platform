@@ -7,18 +7,23 @@
 #ifndef SERVICEGROUP_HXX_
 #define SERVICEGROUP_HXX_
 
+#include <string>
 #include "SpareServiceUnits.hxx"
+#include "IdleServiceUnits.hxx"
+#include "SaTimeT.hxx"
+#include "MgtFactory.hxx"
+#include "ServiceUnitRestart.hxx"
+#include "AdministrativeState.hxx"
+#include "SpareServiceUnits.hxx"
+#include "ComponentRestart.hxx"
 #include "clMgtObject.hxx"
 #include "AssignedServiceUnits.hxx"
 #include "clMgtProv.hxx"
-#include "SaTimeT.hxx"
+#include "AssignedServiceUnits.hxx"
 #include "ComponentRestart.hxx"
-#include "IdleServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
-#include "AdministrativeState.hxx"
-#include <string>
+#include "IdleServiceUnits.hxx"
 
 namespace SAFplusAmf {
 
@@ -42,7 +47,7 @@ namespace SAFplusAmf {
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        ClMgtProv<AdministrativeState> adminState;
+        ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.
@@ -53,7 +58,7 @@ namespace SAFplusAmf {
         /*
          * The time between checks to see if auto adjustment is needed.
          */
-        ClMgtProv<SaTimeT> autoAdjustInterval;
+        ClMgtProv<SAFplusTypes::SaTimeT> autoAdjustInterval;
 
         /*
          * 
@@ -81,10 +86,10 @@ namespace SAFplusAmf {
         ClMgtProv<unsigned int> maxStandbyWorkAssignments;
 
     public:
-        ServiceGroup();
-        ServiceGroup(std::string nameValue);
+         ServiceGroup();
+         ServiceGroup(std::string nameValue);
         std::vector<std::string> getKeys();
-        std::vector<std::string> *getChildNames();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/name
@@ -109,12 +114,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/adminState
          */
-        AdministrativeState getAdminState();
+        SAFplusAmf::AdministrativeState getAdminState();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/adminState
          */
-        void setAdminState(AdministrativeState adminStateValue);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoRepair
@@ -139,12 +144,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
          */
-        SaTimeT getAutoAdjustInterval();
+        SAFplusTypes::SaTimeT getAutoAdjustInterval();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
          */
-        void setAutoAdjustInterval(SaTimeT autoAdjustIntervalValue);
+        void setAutoAdjustInterval(SAFplusTypes::SaTimeT autoAdjustIntervalValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumActiveServiceUnits
@@ -199,53 +204,53 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/ComponentRestart
          */
-        ComponentRestart* getComponentRestart();
+        SAFplusAmf::ComponentRestart* getComponentRestart();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/ComponentRestart
          */
-        void addComponentRestart(ComponentRestart *ComponentRestartValue);
+        void addComponentRestart(SAFplusAmf::ComponentRestart *ComponentRestartValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart
          */
-        ServiceUnitRestart* getServiceUnitRestart();
+        SAFplusAmf::ServiceUnitRestart* getServiceUnitRestart();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart
          */
-        void addServiceUnitRestart(ServiceUnitRestart *ServiceUnitRestartValue);
+        void addServiceUnitRestart(SAFplusAmf::ServiceUnitRestart *ServiceUnitRestartValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/assignedServiceUnits
          */
-        AssignedServiceUnits* getAssignedServiceUnits();
+        SAFplusAmf::AssignedServiceUnits* getAssignedServiceUnits();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/assignedServiceUnits
          */
-        void addAssignedServiceUnits(AssignedServiceUnits *assignedServiceUnitsValue);
+        void addAssignedServiceUnits(SAFplusAmf::AssignedServiceUnits *assignedServiceUnitsValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits
          */
-        IdleServiceUnits* getIdleServiceUnits();
+        SAFplusAmf::IdleServiceUnits* getIdleServiceUnits();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits
          */
-        void addIdleServiceUnits(IdleServiceUnits *idleServiceUnitsValue);
+        void addIdleServiceUnits(SAFplusAmf::IdleServiceUnits *idleServiceUnitsValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits
          */
-        SpareServiceUnits* getSpareServiceUnits();
+        SAFplusAmf::SpareServiceUnits* getSpareServiceUnits();
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits
          */
-        void addSpareServiceUnits(SpareServiceUnits *spareServiceUnitsValue);
-        ~ServiceGroup();
+        void addSpareServiceUnits(SAFplusAmf::SpareServiceUnits *spareServiceUnitsValue);
+         ~ServiceGroup();
 
     };
 }

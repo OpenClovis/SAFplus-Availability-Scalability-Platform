@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "AdministrativeState.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(AdministrativeState, /SAFplusAmf/AdministrativeState)
-
-    AdministrativeState::AdministrativeState() {
+     AdministrativeState::AdministrativeState() {
     };
 
     int AdministrativeState::getValue() {
@@ -26,19 +21,19 @@ namespace SAFplusAmf {
         this->Value = value;
     };
 
-    AdministrativeState& AdministrativeState::operator=(AdministrativeState& AdministrativeState) {
+    SAFplusAmf::AdministrativeState& AdministrativeState::operator=(SAFplusAmf::AdministrativeState& AdministrativeState) {
         Value = AdministrativeState.Value;
         return *this;
     };
 
-    AdministrativeState::~AdministrativeState() {
+     AdministrativeState::~AdministrativeState() {
     };
 
-    ostream& operator<<(ostream& os, const AdministrativeState& AdministrativeState) {
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::AdministrativeState& AdministrativeState) {
         return os << AdministrativeState.Value;
     };
 
-    istream& operator>>(istream& in, AdministrativeState& AdministrativeState) {
+    std::istream& operator>>(std::istream& in, SAFplusAmf::AdministrativeState& AdministrativeState) {
         return in >> AdministrativeState.Value;
     };
 

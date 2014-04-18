@@ -8,10 +8,12 @@
 #define NODE_HXX_
 
 #include <map>
+#include <vector>
 #include "Capacity.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
+#include "Capacity.hxx"
+#include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
@@ -39,7 +41,7 @@ namespace SAFplusAmf {
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        ClMgtProv<AdministrativeState> adminState;
+        ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
@@ -62,10 +64,10 @@ namespace SAFplusAmf {
         ClMgtProv<bool> failFastOnCleanupFailure;
 
     public:
-        Node();
-        Node(std::string nameValue);
+         Node();
+         Node(std::string nameValue);
         std::vector<std::string> getKeys();
-        std::vector<std::string> *getChildNames();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/Node/name
@@ -90,12 +92,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Node/adminState
          */
-        AdministrativeState getAdminState();
+        SAFplusAmf::AdministrativeState getAdminState();
 
         /*
          * XPATH: /SAFplusAmf/Node/adminState
          */
-        void setAdminState(AdministrativeState adminStateValue);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
 
         /*
          * XPATH: /SAFplusAmf/Node/operState
@@ -140,12 +142,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Node/capacity
          */
-        Capacity* getCapacity(std::string resourceValue);
+        SAFplusAmf::Capacity* getCapacity(std::string resourceValue);
 
         /*
          * XPATH: /SAFplusAmf/Node/capacity
          */
-        void addCapacity(Capacity *capacityValue);
+        void addCapacity(SAFplusAmf::Capacity *capacityValue);
 
         /*
          * XPATH: /SAFplusAmf/Node/capacity
@@ -155,13 +157,13 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
          */
-        ServiceUnitFailureEscalationPolicy* getServiceUnitFailureEscalationPolicy();
+        SAFplusAmf::ServiceUnitFailureEscalationPolicy* getServiceUnitFailureEscalationPolicy();
 
         /*
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
          */
-        void addServiceUnitFailureEscalationPolicy(ServiceUnitFailureEscalationPolicy *serviceUnitFailureEscalationPolicyValue);
-        ~Node();
+        void addServiceUnitFailureEscalationPolicy(SAFplusAmf::ServiceUnitFailureEscalationPolicy *serviceUnitFailureEscalationPolicyValue);
+         ~Node();
 
     };
 }

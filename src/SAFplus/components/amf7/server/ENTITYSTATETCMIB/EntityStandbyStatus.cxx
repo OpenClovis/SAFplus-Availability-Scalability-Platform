@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "EntityStandbyStatus.hxx"
 
-using namespace std;
 
 namespace ENTITYSTATETCMIB {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(EntityStandbyStatus, /ENTITY-STATE-TC-MIB/EntityStandbyStatus)
-
-    EntityStandbyStatus::EntityStandbyStatus() {
+     EntityStandbyStatus::EntityStandbyStatus() {
     };
 
     int EntityStandbyStatus::getValue() {
@@ -26,19 +21,19 @@ namespace ENTITYSTATETCMIB {
         this->Value = value;
     };
 
-    EntityStandbyStatus& EntityStandbyStatus::operator=(EntityStandbyStatus& EntityStandbyStatus) {
+    ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus::operator=(ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus) {
         Value = EntityStandbyStatus.Value;
         return *this;
     };
 
-    EntityStandbyStatus::~EntityStandbyStatus() {
+     EntityStandbyStatus::~EntityStandbyStatus() {
     };
 
-    ostream& operator<<(ostream& os, const EntityStandbyStatus& EntityStandbyStatus) {
+    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus) {
         return os << EntityStandbyStatus.Value;
     };
 
-    istream& operator>>(istream& in, EntityStandbyStatus& EntityStandbyStatus) {
+    std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus) {
         return in >> EntityStandbyStatus.Value;
     };
 

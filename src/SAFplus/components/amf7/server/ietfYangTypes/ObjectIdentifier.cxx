@@ -4,42 +4,37 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <string>
 #include <iostream>
 #include "ObjectIdentifier.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(ObjectIdentifier, /ietf-yang-types/object-identifier)
-
-    ObjectIdentifier::ObjectIdentifier() {
+     ObjectIdentifier::ObjectIdentifier() {
     };
 
-    string ObjectIdentifier::getValue() {
+    std::string ObjectIdentifier::getValue() {
         return this->Value;
     };
 
-    void ObjectIdentifier::setValue(string value) {
+    void ObjectIdentifier::setValue(std::string value) {
         this->Value = value;
     };
 
-    ObjectIdentifier& ObjectIdentifier::operator=(ObjectIdentifier& objectIdentifier) {
+    ietfYangTypes::ObjectIdentifier& ObjectIdentifier::operator=(ietfYangTypes::ObjectIdentifier& objectIdentifier) {
         Value = objectIdentifier.Value;
         return *this;
     };
 
-    ObjectIdentifier::~ObjectIdentifier() {
+     ObjectIdentifier::~ObjectIdentifier() {
     };
 
-    ostream& operator<<(ostream& os, const ObjectIdentifier& objectIdentifier) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ObjectIdentifier& objectIdentifier) {
         return os << objectIdentifier.Value;
     };
 
-    istream& operator>>(istream& in, ObjectIdentifier& objectIdentifier) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::ObjectIdentifier& objectIdentifier) {
         return in >> objectIdentifier.Value;
     };
 

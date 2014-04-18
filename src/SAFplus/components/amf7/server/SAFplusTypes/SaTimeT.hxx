@@ -7,27 +7,22 @@
 #ifndef SATIMET_HXX_
 #define SATIMET_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace SAFplusTypes {
 
     class SaTimeT {
-
-        /* Apply MGT object factory */
-        REGISTER(SaTimeT);
-
     public:
         unsigned long int Value;
 
     public:
-        SaTimeT();
+         SaTimeT();
         unsigned long int getValue();
         void setValue(unsigned long int value);
-        SaTimeT& operator=(SaTimeT& SaTimeT);
-        friend std::ostream& operator<<(std::ostream& os, const SaTimeT& SaTimeT);
-        friend std::istream& operator>>(std::istream& in, SaTimeT& SaTimeT);
-        ~SaTimeT();
+        SAFplusTypes::SaTimeT& operator=(SAFplusTypes::SaTimeT& SaTimeT);
+        friend std::ostream& operator<<(std::ostream& os, const SAFplusTypes::SaTimeT& SaTimeT);
+        friend std::istream& operator>>(std::istream& in, SAFplusTypes::SaTimeT& SaTimeT);
+         ~SaTimeT();
 
     };
 }

@@ -11,47 +11,46 @@
 #include <string>
 #include "Capacity.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(Capacity, /SAFplusAmf/Node/capacity)
 
-    Capacity::Capacity(): ClMgtObject("capacity"), resource("resource"), value("value") {
+     Capacity::Capacity(): ClMgtObject("capacity"), resource("resource"), value("value") {
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
         this->addKey("resource");
     };
 
-    Capacity::Capacity(string resourceValue): ClMgtObject("capacity"), resource("resource"), value("value") {
+     Capacity::Capacity(std::string resourceValue): ClMgtObject("capacity"), resource("resource"), value("value") {
         this->resource.Value =  resourceValue;
         this->addKey("resource");
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
     };
 
-    vector<string> Capacity::getKeys() {
-        string keyNames[] = { "resource" };
-        return vector<string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
+    std::vector<std::string> Capacity::getKeys() {
+        std::string keyNames[] = { "resource" };
+        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    vector<string> *Capacity::getChildNames() {
-        string childNames[] = { "resource", "value" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* Capacity::getChildNames() {
+        std::string childNames[] = { "resource", "value" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/capacity/resource
      */
-    string Capacity::getResource() {
+    std::string Capacity::getResource() {
         return this->resource.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/capacity/resource
      */
-    void Capacity::setResource(string resourceValue) {
+    void Capacity::setResource(std::string resourceValue) {
         this->resource.Value = resourceValue;
     };
 
@@ -69,7 +68,7 @@ namespace SAFplusAmf {
         this->value.Value = valueValue;
     };
 
-    Capacity::~Capacity() {
+     Capacity::~Capacity() {
     };
 
 }

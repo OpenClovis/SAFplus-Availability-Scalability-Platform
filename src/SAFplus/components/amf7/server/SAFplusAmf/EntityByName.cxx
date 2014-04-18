@@ -11,52 +11,51 @@
 #include <string>
 #include "EntityByName.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(EntityByName, /SAFplusAmf/EntityByName)
 
-    EntityByName::EntityByName(): ClMgtObject("EntityByName"), name("name"), entity("entity") {
+     EntityByName::EntityByName(): ClMgtObject("EntityByName"), name("name"), entity("entity") {
         this->addChildObject(&name, "name");
         this->addChildObject(&entity, "entity");
     };
 
-    vector<string> *EntityByName::getChildNames() {
-        string childNames[] = { "name", "entity" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* EntityByName::getChildNames() {
+        std::string childNames[] = { "name", "entity" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/EntityByName/name
      */
-    string EntityByName::getName() {
+    std::string EntityByName::getName() {
         return this->name.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/EntityByName/name
      */
-    void EntityByName::setName(string nameValue) {
+    void EntityByName::setName(std::string nameValue) {
         this->name.Value = nameValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/EntityByName/entity
      */
-    string EntityByName::getEntity() {
+    std::string EntityByName::getEntity() {
         return this->entity.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/EntityByName/entity
      */
-    void EntityByName::setEntity(string entityValue) {
+    void EntityByName::setEntity(std::string entityValue) {
         this->entity.Value = entityValue;
     };
 
-    EntityByName::~EntityByName() {
+     EntityByName::~EntityByName() {
     };
 
 }

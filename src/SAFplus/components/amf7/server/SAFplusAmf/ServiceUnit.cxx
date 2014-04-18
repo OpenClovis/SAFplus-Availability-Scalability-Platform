@@ -4,31 +4,32 @@
  * plug-in of pyang.
  */ 
 
-#include "ReadinessState.hxx"
 #include "RestartCount.hxx"
 #include "StandbyServiceInstances.hxx"
+#include <string>
+#include "RestartCount.hxx"
+#include "StandbyServiceInstances.hxx"
+#include "MgtFactory.hxx"
+#include "AdministrativeState.hxx"
+#include "ActiveServiceInstances.hxx"
+#include "ActiveServiceInstances.hxx"
+#include "ReadinessState.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "HighAvailabilityReadinessState.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
-#include "AdministrativeState.hxx"
-#include "ActiveServiceInstances.hxx"
-#include <string>
 #include "clMgtProvList.hxx"
 #include "ServiceUnit.hxx"
 
-using namespace std;
-using namespace SAFplusAmf;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceUnit, /SAFplusAmf/ServiceUnit)
 
-    ServiceUnit::ServiceUnit(): ClMgtObject("ServiceUnit"), name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preInstantiable("preInstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances") {
+     ServiceUnit::ServiceUnit(): ClMgtObject("ServiceUnit"), name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preInstantiable("preInstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
@@ -45,7 +46,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-    ServiceUnit::ServiceUnit(string nameValue): ClMgtObject("ServiceUnit"), name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preInstantiable("preInstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances") {
+     ServiceUnit::ServiceUnit(std::string nameValue): ClMgtObject("ServiceUnit"), name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preInstantiable("preInstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -63,27 +64,27 @@ namespace SAFplusAmf {
         this->addChildObject(&assignedServiceInstances, "assignedServiceInstances");
     };
 
-    vector<string> ServiceUnit::getKeys() {
-        string keyNames[] = { "name" };
-        return vector<string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
+    std::vector<std::string> ServiceUnit::getKeys() {
+        std::string keyNames[] = { "name" };
+        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    vector<string> *ServiceUnit::getChildNames() {
-        string childNames[] = { "name", "id", "adminState", "rank", "failover", "preInstantiable", "saAmfSUHostNodeOrNodeGroup", "presenceState", "readinessState", "haReadinessState", "haState", "operState", "assignedServiceInstances", "activeServiceInstances", "standbyServiceInstances", "restartCount" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* ServiceUnit::getChildNames() {
+        std::string childNames[] = { "name", "id", "adminState", "rank", "failover", "preInstantiable", "saAmfSUHostNodeOrNodeGroup", "presenceState", "readinessState", "haReadinessState", "haState", "operState", "assignedServiceInstances", "activeServiceInstances", "standbyServiceInstances", "restartCount" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/name
      */
-    string ServiceUnit::getName() {
+    std::string ServiceUnit::getName() {
         return this->name.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/name
      */
-    void ServiceUnit::setName(string nameValue) {
+    void ServiceUnit::setName(std::string nameValue) {
         this->name.Value = nameValue;
     };
 
@@ -104,14 +105,14 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/adminState
      */
-    AdministrativeState ServiceUnit::getAdminState() {
+    SAFplusAmf::AdministrativeState ServiceUnit::getAdminState() {
         return this->adminState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/adminState
      */
-    void ServiceUnit::setAdminState(AdministrativeState adminStateValue) {
+    void ServiceUnit::setAdminState(SAFplusAmf::AdministrativeState adminStateValue) {
         this->adminState.Value = adminStateValue;
     };
 
@@ -160,70 +161,70 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/saAmfSUHostNodeOrNodeGroup
      */
-    string ServiceUnit::getSaAmfSUHostNodeOrNodeGroup() {
+    std::string ServiceUnit::getSaAmfSUHostNodeOrNodeGroup() {
         return this->saAmfSUHostNodeOrNodeGroup.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/saAmfSUHostNodeOrNodeGroup
      */
-    void ServiceUnit::setSaAmfSUHostNodeOrNodeGroup(string saAmfSUHostNodeOrNodeGroupValue) {
+    void ServiceUnit::setSaAmfSUHostNodeOrNodeGroup(std::string saAmfSUHostNodeOrNodeGroupValue) {
         this->saAmfSUHostNodeOrNodeGroup.Value = saAmfSUHostNodeOrNodeGroupValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/presenceState
      */
-    PresenceState ServiceUnit::getPresenceState() {
+    SAFplusAmf::PresenceState ServiceUnit::getPresenceState() {
         return this->presenceState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/presenceState
      */
-    void ServiceUnit::setPresenceState(PresenceState presenceStateValue) {
+    void ServiceUnit::setPresenceState(SAFplusAmf::PresenceState presenceStateValue) {
         this->presenceState.Value = presenceStateValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/readinessState
      */
-    ReadinessState ServiceUnit::getReadinessState() {
+    SAFplusAmf::ReadinessState ServiceUnit::getReadinessState() {
         return this->readinessState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/readinessState
      */
-    void ServiceUnit::setReadinessState(ReadinessState readinessStateValue) {
+    void ServiceUnit::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue) {
         this->readinessState.Value = readinessStateValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/haReadinessState
      */
-    HighAvailabilityReadinessState ServiceUnit::getHaReadinessState() {
+    SAFplusAmf::HighAvailabilityReadinessState ServiceUnit::getHaReadinessState() {
         return this->haReadinessState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/haReadinessState
      */
-    void ServiceUnit::setHaReadinessState(HighAvailabilityReadinessState haReadinessStateValue) {
+    void ServiceUnit::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue) {
         this->haReadinessState.Value = haReadinessStateValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/haState
      */
-    HighAvailabilityState ServiceUnit::getHaState() {
+    SAFplusAmf::HighAvailabilityState ServiceUnit::getHaState() {
         return this->haState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/haState
      */
-    void ServiceUnit::setHaState(HighAvailabilityState haStateValue) {
+    void ServiceUnit::setHaState(SAFplusAmf::HighAvailabilityState haStateValue) {
         this->haState.Value = haStateValue;
     };
 
@@ -244,60 +245,60 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/assignedServiceInstances
      */
-    vector<string> ServiceUnit::getAssignedServiceInstances() {
+    std::vector<std::string> ServiceUnit::getAssignedServiceInstances() {
         return this->assignedServiceInstances.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/assignedServiceInstances
      */
-    void ServiceUnit::setAssignedServiceInstances(string assignedServiceInstancesValue) {
+    void ServiceUnit::setAssignedServiceInstances(std::string assignedServiceInstancesValue) {
         this->assignedServiceInstances.Value.push_back(assignedServiceInstancesValue);
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/activeServiceInstances
      */
-    ActiveServiceInstances* ServiceUnit::getActiveServiceInstances() {
+    SAFplusAmf::ActiveServiceInstances* ServiceUnit::getActiveServiceInstances() {
         return (ActiveServiceInstances*)this->getChildObject("activeServiceInstances");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/activeServiceInstances
      */
-    void ServiceUnit::addActiveServiceInstances(ActiveServiceInstances *activeServiceInstancesValue) {
+    void ServiceUnit::addActiveServiceInstances(SAFplusAmf::ActiveServiceInstances *activeServiceInstancesValue) {
         this->addChildObject(activeServiceInstancesValue, "activeServiceInstances");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/standbyServiceInstances
      */
-    StandbyServiceInstances* ServiceUnit::getStandbyServiceInstances() {
+    SAFplusAmf::StandbyServiceInstances* ServiceUnit::getStandbyServiceInstances() {
         return (StandbyServiceInstances*)this->getChildObject("standbyServiceInstances");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/standbyServiceInstances
      */
-    void ServiceUnit::addStandbyServiceInstances(StandbyServiceInstances *standbyServiceInstancesValue) {
+    void ServiceUnit::addStandbyServiceInstances(SAFplusAmf::StandbyServiceInstances *standbyServiceInstancesValue) {
         this->addChildObject(standbyServiceInstancesValue, "standbyServiceInstances");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/restartCount
      */
-    RestartCount* ServiceUnit::getRestartCount() {
+    SAFplusAmf::RestartCount* ServiceUnit::getRestartCount() {
         return (RestartCount*)this->getChildObject("restartCount");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/restartCount
      */
-    void ServiceUnit::addRestartCount(RestartCount *restartCountValue) {
+    void ServiceUnit::addRestartCount(SAFplusAmf::RestartCount *restartCountValue) {
         this->addChildObject(restartCountValue, "restartCount");
     };
 
-    ServiceUnit::~ServiceUnit() {
+     ServiceUnit::~ServiceUnit() {
     };
 
 }

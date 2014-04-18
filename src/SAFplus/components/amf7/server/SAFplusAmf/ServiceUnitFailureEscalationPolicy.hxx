@@ -30,11 +30,11 @@ namespace SAFplusAmf {
         /*
          * The time period (in milliseconds) involved.
          */
-        ClMgtProv<SaTimeT> duration;
+        ClMgtProv<SAFplusTypes::SaTimeT> duration;
 
     public:
-        ServiceUnitFailureEscalationPolicy();
-        std::vector<std::string> *getChildNames();
+         ServiceUnitFailureEscalationPolicy();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy/maximum
@@ -49,13 +49,13 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy/duration
          */
-        SaTimeT getDuration();
+        SAFplusTypes::SaTimeT getDuration();
 
         /*
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy/duration
          */
-        void setDuration(SaTimeT durationValue);
-        ~ServiceUnitFailureEscalationPolicy();
+        void setDuration(SAFplusTypes::SaTimeT durationValue);
+         ~ServiceUnitFailureEscalationPolicy();
 
     };
 }

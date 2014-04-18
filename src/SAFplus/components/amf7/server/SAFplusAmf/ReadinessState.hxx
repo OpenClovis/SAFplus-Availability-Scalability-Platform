@@ -7,27 +7,22 @@
 #ifndef READINESSSTATE_HXX_
 #define READINESSSTATE_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace SAFplusAmf {
 
     class ReadinessState {
-
-        /* Apply MGT object factory */
-        REGISTER(ReadinessState);
-
     public:
         int Value;
 
     public:
-        ReadinessState();
+         ReadinessState();
         int getValue();
         void setValue(int value);
-        ReadinessState& operator=(ReadinessState& ReadinessState);
-        friend std::ostream& operator<<(std::ostream& os, const ReadinessState& ReadinessState);
-        friend std::istream& operator>>(std::istream& in, ReadinessState& ReadinessState);
-        ~ReadinessState();
+        SAFplusAmf::ReadinessState& operator=(SAFplusAmf::ReadinessState& ReadinessState);
+        friend std::ostream& operator<<(std::ostream& os, const SAFplusAmf::ReadinessState& ReadinessState);
+        friend std::istream& operator>>(std::istream& in, SAFplusAmf::ReadinessState& ReadinessState);
+         ~ReadinessState();
 
     };
 }

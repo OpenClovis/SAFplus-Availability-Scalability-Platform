@@ -11,49 +11,48 @@
 #include <string>
 #include "Cleanup.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(Cleanup, /SAFplusAmf/Component/cleanup)
 
-    Cleanup::Cleanup(): ClMgtObject("cleanup"), command("command"), args("args"), timeout("timeout") {
+     Cleanup::Cleanup(): ClMgtObject("cleanup"), command("command"), args("args"), timeout("timeout") {
         this->addChildObject(&command, "command");
         this->addChildObject(&args, "args");
         this->addChildObject(&timeout, "timeout");
     };
 
-    vector<string> *Cleanup::getChildNames() {
-        string childNames[] = { "command", "args", "timeout" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* Cleanup::getChildNames() {
+        std::string childNames[] = { "command", "args", "timeout" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup/command
      */
-    string Cleanup::getCommand() {
+    std::string Cleanup::getCommand() {
         return this->command.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup/command
      */
-    void Cleanup::setCommand(string commandValue) {
+    void Cleanup::setCommand(std::string commandValue) {
         this->command.Value = commandValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup/args
      */
-    string Cleanup::getArgs() {
+    std::string Cleanup::getArgs() {
         return this->args.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup/args
      */
-    void Cleanup::setArgs(string argsValue) {
+    void Cleanup::setArgs(std::string argsValue) {
         this->args.Value = argsValue;
     };
 
@@ -71,7 +70,7 @@ namespace SAFplusAmf {
         this->timeout.Value = timeoutValue;
     };
 
-    Cleanup::~Cleanup() {
+     Cleanup::~Cleanup() {
     };
 
 }

@@ -4,30 +4,33 @@
  * plug-in of pyang.
  */ 
 
+#include <string>
 #include "SpareServiceUnits.hxx"
+#include "IdleServiceUnits.hxx"
+#include "SaTimeT.hxx"
+#include "MgtFactory.hxx"
+#include "ServiceUnitRestart.hxx"
+#include "AdministrativeState.hxx"
+#include "SpareServiceUnits.hxx"
+#include "ComponentRestart.hxx"
 #include "clMgtObject.hxx"
 #include "AssignedServiceUnits.hxx"
 #include "clMgtProv.hxx"
-#include "SaTimeT.hxx"
+#include "AssignedServiceUnits.hxx"
 #include "ComponentRestart.hxx"
-#include "IdleServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
-#include "AdministrativeState.hxx"
-#include <string>
+#include "IdleServiceUnits.hxx"
 #include "ServiceGroup.hxx"
 
-using namespace std;
 using namespace SAFplusTypes;
-using namespace SAFplusAmf;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceGroup, /SAFplusAmf/ServiceGroup)
 
-    ServiceGroup::ServiceGroup(): ClMgtObject("ServiceGroup"), name("name"), id("id"), adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments") {
+     ServiceGroup::ServiceGroup(): ClMgtObject("ServiceGroup"), name("name"), id("id"), adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
@@ -42,7 +45,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-    ServiceGroup::ServiceGroup(string nameValue): ClMgtObject("ServiceGroup"), name("name"), id("id"), adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments") {
+     ServiceGroup::ServiceGroup(std::string nameValue): ClMgtObject("ServiceGroup"), name("name"), id("id"), adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -58,27 +61,27 @@ namespace SAFplusAmf {
         this->addChildObject(&maxStandbyWorkAssignments, "maxStandbyWorkAssignments");
     };
 
-    vector<string> ServiceGroup::getKeys() {
-        string keyNames[] = { "name" };
-        return vector<string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
+    std::vector<std::string> ServiceGroup::getKeys() {
+        std::string keyNames[] = { "name" };
+        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    vector<string> *ServiceGroup::getChildNames() {
-        string childNames[] = { "name", "id", "adminState", "autoRepair", "autoAdjust", "autoAdjustInterval", "preferredNumActiveServiceUnits", "preferredNumStandbyServiceUnits", "preferredNumIdleServiceUnits", "maxActiveWorkAssignments", "maxStandbyWorkAssignments", "ComponentRestart", "ServiceUnitRestart", "assignedServiceUnits", "idleServiceUnits", "spareServiceUnits" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* ServiceGroup::getChildNames() {
+        std::string childNames[] = { "name", "id", "adminState", "autoRepair", "autoAdjust", "autoAdjustInterval", "preferredNumActiveServiceUnits", "preferredNumStandbyServiceUnits", "preferredNumIdleServiceUnits", "maxActiveWorkAssignments", "maxStandbyWorkAssignments", "ComponentRestart", "ServiceUnitRestart", "assignedServiceUnits", "idleServiceUnits", "spareServiceUnits" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/name
      */
-    string ServiceGroup::getName() {
+    std::string ServiceGroup::getName() {
         return this->name.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/name
      */
-    void ServiceGroup::setName(string nameValue) {
+    void ServiceGroup::setName(std::string nameValue) {
         this->name.Value = nameValue;
     };
 
@@ -99,14 +102,14 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/adminState
      */
-    AdministrativeState ServiceGroup::getAdminState() {
+    SAFplusAmf::AdministrativeState ServiceGroup::getAdminState() {
         return this->adminState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/adminState
      */
-    void ServiceGroup::setAdminState(AdministrativeState adminStateValue) {
+    void ServiceGroup::setAdminState(SAFplusAmf::AdministrativeState adminStateValue) {
         this->adminState.Value = adminStateValue;
     };
 
@@ -141,14 +144,14 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
      */
-    SaTimeT ServiceGroup::getAutoAdjustInterval() {
+    SAFplusTypes::SaTimeT ServiceGroup::getAutoAdjustInterval() {
         return this->autoAdjustInterval.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
      */
-    void ServiceGroup::setAutoAdjustInterval(SaTimeT autoAdjustIntervalValue) {
+    void ServiceGroup::setAutoAdjustInterval(SAFplusTypes::SaTimeT autoAdjustIntervalValue) {
         this->autoAdjustInterval.Value = autoAdjustIntervalValue;
     };
 
@@ -225,74 +228,74 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ComponentRestart
      */
-    ComponentRestart* ServiceGroup::getComponentRestart() {
+    SAFplusAmf::ComponentRestart* ServiceGroup::getComponentRestart() {
         return (ComponentRestart*)this->getChildObject("ComponentRestart");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ComponentRestart
      */
-    void ServiceGroup::addComponentRestart(ComponentRestart *ComponentRestartValue) {
+    void ServiceGroup::addComponentRestart(SAFplusAmf::ComponentRestart *ComponentRestartValue) {
         this->addChildObject(ComponentRestartValue, "ComponentRestart");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart
      */
-    ServiceUnitRestart* ServiceGroup::getServiceUnitRestart() {
+    SAFplusAmf::ServiceUnitRestart* ServiceGroup::getServiceUnitRestart() {
         return (ServiceUnitRestart*)this->getChildObject("ServiceUnitRestart");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart
      */
-    void ServiceGroup::addServiceUnitRestart(ServiceUnitRestart *ServiceUnitRestartValue) {
+    void ServiceGroup::addServiceUnitRestart(SAFplusAmf::ServiceUnitRestart *ServiceUnitRestartValue) {
         this->addChildObject(ServiceUnitRestartValue, "ServiceUnitRestart");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/assignedServiceUnits
      */
-    AssignedServiceUnits* ServiceGroup::getAssignedServiceUnits() {
+    SAFplusAmf::AssignedServiceUnits* ServiceGroup::getAssignedServiceUnits() {
         return (AssignedServiceUnits*)this->getChildObject("assignedServiceUnits");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/assignedServiceUnits
      */
-    void ServiceGroup::addAssignedServiceUnits(AssignedServiceUnits *assignedServiceUnitsValue) {
+    void ServiceGroup::addAssignedServiceUnits(SAFplusAmf::AssignedServiceUnits *assignedServiceUnitsValue) {
         this->addChildObject(assignedServiceUnitsValue, "assignedServiceUnits");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits
      */
-    IdleServiceUnits* ServiceGroup::getIdleServiceUnits() {
+    SAFplusAmf::IdleServiceUnits* ServiceGroup::getIdleServiceUnits() {
         return (IdleServiceUnits*)this->getChildObject("idleServiceUnits");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits
      */
-    void ServiceGroup::addIdleServiceUnits(IdleServiceUnits *idleServiceUnitsValue) {
+    void ServiceGroup::addIdleServiceUnits(SAFplusAmf::IdleServiceUnits *idleServiceUnitsValue) {
         this->addChildObject(idleServiceUnitsValue, "idleServiceUnits");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits
      */
-    SpareServiceUnits* ServiceGroup::getSpareServiceUnits() {
+    SAFplusAmf::SpareServiceUnits* ServiceGroup::getSpareServiceUnits() {
         return (SpareServiceUnits*)this->getChildObject("spareServiceUnits");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits
      */
-    void ServiceGroup::addSpareServiceUnits(SpareServiceUnits *spareServiceUnitsValue) {
+    void ServiceGroup::addSpareServiceUnits(SAFplusAmf::SpareServiceUnits *spareServiceUnitsValue) {
         this->addChildObject(spareServiceUnitsValue, "spareServiceUnits");
     };
 
-    ServiceGroup::~ServiceGroup() {
+     ServiceGroup::~ServiceGroup() {
     };
 
 }

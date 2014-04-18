@@ -7,27 +7,22 @@
 #ifndef COUNTER32_HXX_
 #define COUNTER32_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace ietfYangTypes {
 
     class Counter32 {
-
-        /* Apply MGT object factory */
-        REGISTER(Counter32);
-
     public:
         unsigned int Value;
 
     public:
-        Counter32();
+         Counter32();
         unsigned int getValue();
         void setValue(unsigned int value);
-        Counter32& operator=(Counter32& counter32);
-        friend std::ostream& operator<<(std::ostream& os, const Counter32& counter32);
-        friend std::istream& operator>>(std::istream& in, Counter32& counter32);
-        ~Counter32();
+        ietfYangTypes::Counter32& operator=(ietfYangTypes::Counter32& counter32);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Counter32& counter32);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Counter32& counter32);
+         ~Counter32();
 
     };
 }

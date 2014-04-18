@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "Gauge32.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(Gauge32, /ietf-yang-types/gauge32)
-
-    Gauge32::Gauge32() {
+     Gauge32::Gauge32() {
     };
 
     unsigned int Gauge32::getValue() {
@@ -26,19 +21,19 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    Gauge32& Gauge32::operator=(Gauge32& gauge32) {
+    ietfYangTypes::Gauge32& Gauge32::operator=(ietfYangTypes::Gauge32& gauge32) {
         Value = gauge32.Value;
         return *this;
     };
 
-    Gauge32::~Gauge32() {
+     Gauge32::~Gauge32() {
     };
 
-    ostream& operator<<(ostream& os, const Gauge32& gauge32) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Gauge32& gauge32) {
         return os << gauge32.Value;
     };
 
-    istream& operator>>(istream& in, Gauge32& gauge32) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::Gauge32& gauge32) {
         return in >> gauge32.Value;
     };
 

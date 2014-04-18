@@ -9,23 +9,25 @@
 #include "StandbyWeight.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
+#include "StandbyAssignments.hxx"
+#include "StandbyWeight.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "ActiveAssignments.hxx"
 #include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
 #include "ActiveWeight.hxx"
 #include <string>
+#include "ActiveWeight.hxx"
 #include "ServiceInstance.hxx"
 
-using namespace std;
-using namespace SAFplusAmf;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceInstance, /SAFplusAmf/ServiceInstance)
 
-    ServiceInstance::ServiceInstance(): ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank") {
+     ServiceInstance::ServiceInstance(): ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
@@ -34,7 +36,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-    ServiceInstance::ServiceInstance(string nameValue): ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank") {
+     ServiceInstance::ServiceInstance(std::string nameValue): ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -44,27 +46,27 @@ namespace SAFplusAmf {
         this->addChildObject(&rank, "rank");
     };
 
-    vector<string> ServiceInstance::getKeys() {
-        string keyNames[] = { "name" };
-        return vector<string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
+    std::vector<std::string> ServiceInstance::getKeys() {
+        std::string keyNames[] = { "name" };
+        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    vector<string> *ServiceInstance::getChildNames() {
-        string childNames[] = { "name", "id", "adminState", "assignmentState", "rank", "activeWeight", "standbyWeight", "activeAssignments", "standbyAssignments" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* ServiceInstance::getChildNames() {
+        std::string childNames[] = { "name", "id", "adminState", "assignmentState", "rank", "activeWeight", "standbyWeight", "activeAssignments", "standbyAssignments" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/name
      */
-    string ServiceInstance::getName() {
+    std::string ServiceInstance::getName() {
         return this->name.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/name
      */
-    void ServiceInstance::setName(string nameValue) {
+    void ServiceInstance::setName(std::string nameValue) {
         this->name.Value = nameValue;
     };
 
@@ -85,14 +87,14 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/adminState
      */
-    AdministrativeState ServiceInstance::getAdminState() {
+    SAFplusAmf::AdministrativeState ServiceInstance::getAdminState() {
         return this->adminState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/adminState
      */
-    void ServiceInstance::setAdminState(AdministrativeState adminStateValue) {
+    void ServiceInstance::setAdminState(SAFplusAmf::AdministrativeState adminStateValue) {
         this->adminState.Value = adminStateValue;
     };
 
@@ -127,11 +129,11 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/activeWeight
      */
-    ActiveWeight* ServiceInstance::getActiveWeight(string resourceValue) {
-        map<string, vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find("activeWeight");
+    SAFplusAmf::ActiveWeight* ServiceInstance::getActiveWeight(std::string resourceValue) {
+        std::map<std::string, std::vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find("activeWeight");
         /* Check if MGT module already exists in the database */
         if (mapIndex != mChildren.end()) {
-            vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
+            std::vector<ClMgtObject*> *objs = (std::vector<ClMgtObject*>*) (*mapIndex).second;
             for (unsigned int i = 0; i < objs->size(); i++) {
                 ClMgtObject* childObject = (*objs)[i];
                 if (((ActiveWeight*)childObject)->getResource() == resourceValue) {
@@ -145,14 +147,14 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/activeWeight
      */
-    void ServiceInstance::addActiveWeight(ActiveWeight *activeWeightValue) {
+    void ServiceInstance::addActiveWeight(SAFplusAmf::ActiveWeight *activeWeightValue) {
         this->addChildObject(activeWeightValue, "activeWeight");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/activeWeight
      */
-    void ServiceInstance::addActiveWeight(string resourceValue) {
+    void ServiceInstance::addActiveWeight(std::string resourceValue) {
         ActiveWeight *objactiveWeight = new ActiveWeight(resourceValue);
         this->addChildObject(objactiveWeight, "activeWeight");
     };
@@ -160,11 +162,11 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
      */
-    StandbyWeight* ServiceInstance::getStandbyWeight(string resourceValue) {
-        map<string, vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find("standbyWeight");
+    SAFplusAmf::StandbyWeight* ServiceInstance::getStandbyWeight(std::string resourceValue) {
+        std::map<std::string, std::vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find("standbyWeight");
         /* Check if MGT module already exists in the database */
         if (mapIndex != mChildren.end()) {
-            vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
+            std::vector<ClMgtObject*> *objs = (std::vector<ClMgtObject*>*) (*mapIndex).second;
             for (unsigned int i = 0; i < objs->size(); i++) {
                 ClMgtObject* childObject = (*objs)[i];
                 if (((StandbyWeight*)childObject)->getResource() == resourceValue) {
@@ -178,14 +180,14 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
      */
-    void ServiceInstance::addStandbyWeight(StandbyWeight *standbyWeightValue) {
+    void ServiceInstance::addStandbyWeight(SAFplusAmf::StandbyWeight *standbyWeightValue) {
         this->addChildObject(standbyWeightValue, "standbyWeight");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
      */
-    void ServiceInstance::addStandbyWeight(string resourceValue) {
+    void ServiceInstance::addStandbyWeight(std::string resourceValue) {
         StandbyWeight *objstandbyWeight = new StandbyWeight(resourceValue);
         this->addChildObject(objstandbyWeight, "standbyWeight");
     };
@@ -193,32 +195,32 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
      */
-    ActiveAssignments* ServiceInstance::getActiveAssignments() {
+    SAFplusAmf::ActiveAssignments* ServiceInstance::getActiveAssignments() {
         return (ActiveAssignments*)this->getChildObject("activeAssignments");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
      */
-    void ServiceInstance::addActiveAssignments(ActiveAssignments *activeAssignmentsValue) {
+    void ServiceInstance::addActiveAssignments(SAFplusAmf::ActiveAssignments *activeAssignmentsValue) {
         this->addChildObject(activeAssignmentsValue, "activeAssignments");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
      */
-    StandbyAssignments* ServiceInstance::getStandbyAssignments() {
+    SAFplusAmf::StandbyAssignments* ServiceInstance::getStandbyAssignments() {
         return (StandbyAssignments*)this->getChildObject("standbyAssignments");
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
      */
-    void ServiceInstance::addStandbyAssignments(StandbyAssignments *standbyAssignmentsValue) {
+    void ServiceInstance::addStandbyAssignments(SAFplusAmf::StandbyAssignments *standbyAssignmentsValue) {
         this->addChildObject(standbyAssignmentsValue, "standbyAssignments");
     };
 
-    ServiceInstance::~ServiceInstance() {
+     ServiceInstance::~ServiceInstance() {
     };
 
 }

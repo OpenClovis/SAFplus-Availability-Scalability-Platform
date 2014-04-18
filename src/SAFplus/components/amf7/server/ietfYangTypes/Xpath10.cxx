@@ -4,42 +4,37 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
-#include <string>
 #include <iostream>
+#include <string>
 #include "Xpath10.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(Xpath10, /ietf-yang-types/xpath1.0)
-
-    Xpath10::Xpath10() {
+     Xpath10::Xpath10() {
     };
 
-    string Xpath10::getValue() {
+    std::string Xpath10::getValue() {
         return this->Value;
     };
 
-    void Xpath10::setValue(string value) {
+    void Xpath10::setValue(std::string value) {
         this->Value = value;
     };
 
-    Xpath10& Xpath10::operator=(Xpath10& xpath10) {
+    ietfYangTypes::Xpath10& Xpath10::operator=(ietfYangTypes::Xpath10& xpath10) {
         Value = xpath10.Value;
         return *this;
     };
 
-    Xpath10::~Xpath10() {
+     Xpath10::~Xpath10() {
     };
 
-    ostream& operator<<(ostream& os, const Xpath10& xpath10) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Xpath10& xpath10) {
         return os << xpath10.Value;
     };
 
-    istream& operator>>(istream& in, Xpath10& xpath10) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::Xpath10& xpath10) {
         return in >> xpath10.Value;
     };
 

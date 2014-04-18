@@ -12,14 +12,21 @@
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
 #include "Instantiate.hxx"
+#include "RestartCount.hxx"
+#include "Terminate.hxx"
 #include "Cleanup.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
+#include "Cleanup.hxx"
 #include "ReadinessState.hxx"
+#include "Timeouts.hxx"
 #include "clMgtObject.hxx"
+#include "Instantiate.hxx"
 #include "clMgtProv.hxx"
+#include "StandbyAssignments.hxx"
 #include "HighAvailabilityReadinessState.hxx"
 #include <vector>
+#include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
 #include "Terminate.hxx"
@@ -27,7 +34,7 @@
 
 namespace SAFplusAmf {
 
-    enum CapabilityModelOption { x_active_and_y_standby, x_active_or_y_standby, 1_active_or_y_standby, 1_active_or_1_standby, x_active, 1_active, non-pre-instantiable };
+    enum CapabilityModelOption { x_active_and_y_standby, x_active_or_y_standby, one_active_or_y_standby, one_active_or_one_standby, x_active, one_active, nonPreInstantiable };
     enum RecoveryOption { NoRecommendation, Restart, Failover, NodeSwitchover, NodeFailover, NodeFailfast, ClusterReset, ApplicationRestart, ContainerRestart };
 
     class Component : public ClMgtObject {
@@ -46,7 +53,7 @@ namespace SAFplusAmf {
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
         ClMgtProv<unsigned short int> id;
-        ClMgtProv<PresenceState> presence;
+        ClMgtProv<SAFplusAmf::PresenceState> presence;
 
         /*
          * This is defined by the SA-Forum AMF specificaion but is read-only because it is an emergent property based on values in saAmfCompNumMaxActiveCSIs and saAmfCompNumMaxStandbyCSIs.
@@ -72,13 +79,13 @@ namespace SAFplusAmf {
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
          */
         ClMgtProv<bool> operState;
-        ClMgtProv<ReadinessState> readinessState;
+        ClMgtProv<SAFplusAmf::ReadinessState> readinessState;
 
         /*
          * This state field covers ALL work assignments...
          */
-        ClMgtProv<HighAvailabilityReadinessState> haReadinessState;
-        ClMgtProv<HighAvailabilityState> haState;
+        ClMgtProv<SAFplusAmf::HighAvailabilityReadinessState> haReadinessState;
+        ClMgtProv<SAFplusAmf::HighAvailabilityState> haState;
 
         /*
          * Compatible SA-Forum API version
@@ -128,10 +135,10 @@ namespace SAFplusAmf {
         ClMgtProvList<std::string> proxied;
 
     public:
-        Component();
-        Component(std::string nameValue);
+         Component();
+         Component(std::string nameValue);
         std::vector<std::string> getKeys();
-        std::vector<std::string> *getChildNames();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/Component/name
@@ -156,12 +163,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Component/presence
          */
-        PresenceState getPresence();
+        SAFplusAmf::PresenceState getPresence();
 
         /*
          * XPATH: /SAFplusAmf/Component/presence
          */
-        void setPresence(PresenceState presenceValue);
+        void setPresence(SAFplusAmf::PresenceState presenceValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/capabilityModel
@@ -216,32 +223,32 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Component/readinessState
          */
-        ReadinessState getReadinessState();
+        SAFplusAmf::ReadinessState getReadinessState();
 
         /*
          * XPATH: /SAFplusAmf/Component/readinessState
          */
-        void setReadinessState(ReadinessState readinessStateValue);
+        void setReadinessState(SAFplusAmf::ReadinessState readinessStateValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/haReadinessState
          */
-        HighAvailabilityReadinessState getHaReadinessState();
+        SAFplusAmf::HighAvailabilityReadinessState getHaReadinessState();
 
         /*
          * XPATH: /SAFplusAmf/Component/haReadinessState
          */
-        void setHaReadinessState(HighAvailabilityReadinessState haReadinessStateValue);
+        void setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/haState
          */
-        HighAvailabilityState getHaState();
+        SAFplusAmf::HighAvailabilityState getHaState();
 
         /*
          * XPATH: /SAFplusAmf/Component/haState
          */
-        void setHaState(HighAvailabilityState haStateValue);
+        void setHaState(SAFplusAmf::HighAvailabilityState haStateValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/safVersion
@@ -356,73 +363,73 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Component/activeAssignments
          */
-        ActiveAssignments* getActiveAssignments();
+        SAFplusAmf::ActiveAssignments* getActiveAssignments();
 
         /*
          * XPATH: /SAFplusAmf/Component/activeAssignments
          */
-        void addActiveAssignments(ActiveAssignments *activeAssignmentsValue);
+        void addActiveAssignments(SAFplusAmf::ActiveAssignments *activeAssignmentsValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/standbyAssignments
          */
-        StandbyAssignments* getStandbyAssignments();
+        SAFplusAmf::StandbyAssignments* getStandbyAssignments();
 
         /*
          * XPATH: /SAFplusAmf/Component/standbyAssignments
          */
-        void addStandbyAssignments(StandbyAssignments *standbyAssignmentsValue);
+        void addStandbyAssignments(SAFplusAmf::StandbyAssignments *standbyAssignmentsValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/instantiate
          */
-        Instantiate* getInstantiate();
+        SAFplusAmf::Instantiate* getInstantiate();
 
         /*
          * XPATH: /SAFplusAmf/Component/instantiate
          */
-        void addInstantiate(Instantiate *instantiateValue);
+        void addInstantiate(SAFplusAmf::Instantiate *instantiateValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/terminate
          */
-        Terminate* getTerminate();
+        SAFplusAmf::Terminate* getTerminate();
 
         /*
          * XPATH: /SAFplusAmf/Component/terminate
          */
-        void addTerminate(Terminate *terminateValue);
+        void addTerminate(SAFplusAmf::Terminate *terminateValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/cleanup
          */
-        Cleanup* getCleanup();
+        SAFplusAmf::Cleanup* getCleanup();
 
         /*
          * XPATH: /SAFplusAmf/Component/cleanup
          */
-        void addCleanup(Cleanup *cleanupValue);
+        void addCleanup(SAFplusAmf::Cleanup *cleanupValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/timeouts
          */
-        Timeouts* getTimeouts();
+        SAFplusAmf::Timeouts* getTimeouts();
 
         /*
          * XPATH: /SAFplusAmf/Component/timeouts
          */
-        void addTimeouts(Timeouts *timeoutsValue);
+        void addTimeouts(SAFplusAmf::Timeouts *timeoutsValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/restartCount
          */
-        RestartCount* getRestartCount();
+        SAFplusAmf::RestartCount* getRestartCount();
 
         /*
          * XPATH: /SAFplusAmf/Component/restartCount
          */
-        void addRestartCount(RestartCount *restartCountValue);
-        ~Component();
+        void addRestartCount(SAFplusAmf::RestartCount *restartCountValue);
+         ~Component();
 
     };
 }

@@ -4,42 +4,37 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
-#include <string>
 #include <iostream>
+#include <string>
 #include "DateAndTime.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(DateAndTime, /ietf-yang-types/date-and-time)
-
-    DateAndTime::DateAndTime() {
+     DateAndTime::DateAndTime() {
     };
 
-    string DateAndTime::getValue() {
+    std::string DateAndTime::getValue() {
         return this->Value;
     };
 
-    void DateAndTime::setValue(string value) {
+    void DateAndTime::setValue(std::string value) {
         this->Value = value;
     };
 
-    DateAndTime& DateAndTime::operator=(DateAndTime& dateAndTime) {
+    ietfYangTypes::DateAndTime& DateAndTime::operator=(ietfYangTypes::DateAndTime& dateAndTime) {
         Value = dateAndTime.Value;
         return *this;
     };
 
-    DateAndTime::~DateAndTime() {
+     DateAndTime::~DateAndTime() {
     };
 
-    ostream& operator<<(ostream& os, const DateAndTime& dateAndTime) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::DateAndTime& dateAndTime) {
         return os << dateAndTime.Value;
     };
 
-    istream& operator>>(istream& in, DateAndTime& dateAndTime) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::DateAndTime& dateAndTime) {
         return in >> dateAndTime.Value;
     };
 

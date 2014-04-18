@@ -7,28 +7,23 @@
 #ifndef XPATH10_HXX_
 #define XPATH10_HXX_
 
-#include "MgtFactory.hxx"
-#include <string>
 #include <iostream>
+#include <string>
 
 namespace ietfYangTypes {
 
     class Xpath10 {
-
-        /* Apply MGT object factory */
-        REGISTER(Xpath10);
-
     public:
         std::string Value;
 
     public:
-        Xpath10();
+         Xpath10();
         std::string getValue();
         void setValue(std::string value);
-        Xpath10& operator=(Xpath10& xpath10);
-        friend std::ostream& operator<<(std::ostream& os, const Xpath10& xpath10);
-        friend std::istream& operator>>(std::istream& in, Xpath10& xpath10);
-        ~Xpath10();
+        ietfYangTypes::Xpath10& operator=(ietfYangTypes::Xpath10& xpath10);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Xpath10& xpath10);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Xpath10& xpath10);
+         ~Xpath10();
 
     };
 }

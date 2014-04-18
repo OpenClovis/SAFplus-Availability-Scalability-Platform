@@ -4,42 +4,37 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
-#include <string>
 #include <iostream>
+#include <string>
 #include "MacAddress.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(MacAddress, /ietf-yang-types/mac-address)
-
-    MacAddress::MacAddress() {
+     MacAddress::MacAddress() {
     };
 
-    string MacAddress::getValue() {
+    std::string MacAddress::getValue() {
         return this->Value;
     };
 
-    void MacAddress::setValue(string value) {
+    void MacAddress::setValue(std::string value) {
         this->Value = value;
     };
 
-    MacAddress& MacAddress::operator=(MacAddress& macAddress) {
+    ietfYangTypes::MacAddress& MacAddress::operator=(ietfYangTypes::MacAddress& macAddress) {
         Value = macAddress.Value;
         return *this;
     };
 
-    MacAddress::~MacAddress() {
+     MacAddress::~MacAddress() {
     };
 
-    ostream& operator<<(ostream& os, const MacAddress& macAddress) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::MacAddress& macAddress) {
         return os << macAddress.Value;
     };
 
-    istream& operator>>(istream& in, MacAddress& macAddress) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::MacAddress& macAddress) {
         return in >> macAddress.Value;
     };
 

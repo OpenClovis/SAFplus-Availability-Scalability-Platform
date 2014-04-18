@@ -7,28 +7,23 @@
 #ifndef MACADDRESS_HXX_
 #define MACADDRESS_HXX_
 
-#include "MgtFactory.hxx"
-#include <string>
 #include <iostream>
+#include <string>
 
 namespace ietfYangTypes {
 
     class MacAddress {
-
-        /* Apply MGT object factory */
-        REGISTER(MacAddress);
-
     public:
         std::string Value;
 
     public:
-        MacAddress();
+         MacAddress();
         std::string getValue();
         void setValue(std::string value);
-        MacAddress& operator=(MacAddress& macAddress);
-        friend std::ostream& operator<<(std::ostream& os, const MacAddress& macAddress);
-        friend std::istream& operator>>(std::istream& in, MacAddress& macAddress);
-        ~MacAddress();
+        ietfYangTypes::MacAddress& operator=(ietfYangTypes::MacAddress& macAddress);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::MacAddress& macAddress);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::MacAddress& macAddress);
+         ~MacAddress();
 
     };
 }

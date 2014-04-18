@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "HighAvailabilityState.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(HighAvailabilityState, /SAFplusAmf/HighAvailabilityState)
-
-    HighAvailabilityState::HighAvailabilityState() {
+     HighAvailabilityState::HighAvailabilityState() {
     };
 
     int HighAvailabilityState::getValue() {
@@ -26,19 +21,19 @@ namespace SAFplusAmf {
         this->Value = value;
     };
 
-    HighAvailabilityState& HighAvailabilityState::operator=(HighAvailabilityState& HighAvailabilityState) {
+    SAFplusAmf::HighAvailabilityState& HighAvailabilityState::operator=(SAFplusAmf::HighAvailabilityState& HighAvailabilityState) {
         Value = HighAvailabilityState.Value;
         return *this;
     };
 
-    HighAvailabilityState::~HighAvailabilityState() {
+     HighAvailabilityState::~HighAvailabilityState() {
     };
 
-    ostream& operator<<(ostream& os, const HighAvailabilityState& HighAvailabilityState) {
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::HighAvailabilityState& HighAvailabilityState) {
         return os << HighAvailabilityState.Value;
     };
 
-    istream& operator>>(istream& in, HighAvailabilityState& HighAvailabilityState) {
+    std::istream& operator>>(std::istream& in, SAFplusAmf::HighAvailabilityState& HighAvailabilityState) {
         return in >> HighAvailabilityState.Value;
     };
 

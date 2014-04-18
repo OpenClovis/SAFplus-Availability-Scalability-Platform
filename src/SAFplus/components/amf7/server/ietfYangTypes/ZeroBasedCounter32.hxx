@@ -7,27 +7,22 @@
 #ifndef ZEROBASEDCOUNTER32_HXX_
 #define ZEROBASEDCOUNTER32_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace ietfYangTypes {
 
     class ZeroBasedCounter32 {
-
-        /* Apply MGT object factory */
-        REGISTER(ZeroBasedCounter32);
-
     public:
         unsigned int Value;
 
     public:
-        ZeroBasedCounter32();
+         ZeroBasedCounter32();
         unsigned int getValue();
         void setValue(unsigned int value);
-        ZeroBasedCounter32& operator=(ZeroBasedCounter32& zeroBasedCounter32);
-        friend std::ostream& operator<<(std::ostream& os, const ZeroBasedCounter32& zeroBasedCounter32);
-        friend std::istream& operator>>(std::istream& in, ZeroBasedCounter32& zeroBasedCounter32);
-        ~ZeroBasedCounter32();
+        ietfYangTypes::ZeroBasedCounter32& operator=(ietfYangTypes::ZeroBasedCounter32& zeroBasedCounter32);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ZeroBasedCounter32& zeroBasedCounter32);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::ZeroBasedCounter32& zeroBasedCounter32);
+         ~ZeroBasedCounter32();
 
     };
 }

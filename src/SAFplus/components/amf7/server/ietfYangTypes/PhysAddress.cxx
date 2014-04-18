@@ -4,42 +4,37 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
-#include <string>
 #include <iostream>
+#include <string>
 #include "PhysAddress.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(PhysAddress, /ietf-yang-types/phys-address)
-
-    PhysAddress::PhysAddress() {
+     PhysAddress::PhysAddress() {
     };
 
-    string PhysAddress::getValue() {
+    std::string PhysAddress::getValue() {
         return this->Value;
     };
 
-    void PhysAddress::setValue(string value) {
+    void PhysAddress::setValue(std::string value) {
         this->Value = value;
     };
 
-    PhysAddress& PhysAddress::operator=(PhysAddress& physAddress) {
+    ietfYangTypes::PhysAddress& PhysAddress::operator=(ietfYangTypes::PhysAddress& physAddress) {
         Value = physAddress.Value;
         return *this;
     };
 
-    PhysAddress::~PhysAddress() {
+     PhysAddress::~PhysAddress() {
     };
 
-    ostream& operator<<(ostream& os, const PhysAddress& physAddress) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::PhysAddress& physAddress) {
         return os << physAddress.Value;
     };
 
-    istream& operator>>(istream& in, PhysAddress& physAddress) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::PhysAddress& physAddress) {
         return in >> physAddress.Value;
     };
 

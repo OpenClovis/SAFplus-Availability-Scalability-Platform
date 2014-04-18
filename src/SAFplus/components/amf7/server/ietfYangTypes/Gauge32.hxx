@@ -7,27 +7,22 @@
 #ifndef GAUGE32_HXX_
 #define GAUGE32_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace ietfYangTypes {
 
     class Gauge32 {
-
-        /* Apply MGT object factory */
-        REGISTER(Gauge32);
-
     public:
         unsigned int Value;
 
     public:
-        Gauge32();
+         Gauge32();
         unsigned int getValue();
         void setValue(unsigned int value);
-        Gauge32& operator=(Gauge32& gauge32);
-        friend std::ostream& operator<<(std::ostream& os, const Gauge32& gauge32);
-        friend std::istream& operator>>(std::istream& in, Gauge32& gauge32);
-        ~Gauge32();
+        ietfYangTypes::Gauge32& operator=(ietfYangTypes::Gauge32& gauge32);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Gauge32& gauge32);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Gauge32& gauge32);
+         ~Gauge32();
 
     };
 }

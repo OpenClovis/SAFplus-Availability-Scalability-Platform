@@ -11,7 +11,6 @@
 #include "MgtFactory.hxx"
 #include "ServiceUnitRestart.hxx"
 
-using namespace std;
 using namespace SAFplusTypes;
 
 namespace SAFplusAmf {
@@ -19,14 +18,14 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceUnitRestart, /SAFplusAmf/ServiceGroup/ServiceUnitRestart)
 
-    ServiceUnitRestart::ServiceUnitRestart(): ClMgtObject("ServiceUnitRestart"), maximum("maximum"), duration("duration") {
+     ServiceUnitRestart::ServiceUnitRestart(): ClMgtObject("ServiceUnitRestart"), maximum("maximum"), duration("duration") {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");
     };
 
-    vector<string> *ServiceUnitRestart::getChildNames() {
-        string childNames[] = { "maximum", "duration" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* ServiceUnitRestart::getChildNames() {
+        std::string childNames[] = { "maximum", "duration" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
@@ -46,18 +45,18 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/duration
      */
-    SaTimeT ServiceUnitRestart::getDuration() {
+    SAFplusTypes::SaTimeT ServiceUnitRestart::getDuration() {
         return this->duration.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/duration
      */
-    void ServiceUnitRestart::setDuration(SaTimeT durationValue) {
+    void ServiceUnitRestart::setDuration(SAFplusTypes::SaTimeT durationValue) {
         this->duration.Value = durationValue;
     };
 
-    ServiceUnitRestart::~ServiceUnitRestart() {
+     ServiceUnitRestart::~ServiceUnitRestart() {
     };
 
 }

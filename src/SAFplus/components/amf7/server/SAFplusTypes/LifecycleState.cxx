@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "LifecycleState.hxx"
 
-using namespace std;
 
 namespace SAFplusTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(LifecycleState, /SAFplusTypes/lifecycleState)
-
-    LifecycleState::LifecycleState() {
+     LifecycleState::LifecycleState() {
     };
 
     int LifecycleState::getValue() {
@@ -26,19 +21,19 @@ namespace SAFplusTypes {
         this->Value = value;
     };
 
-    LifecycleState& LifecycleState::operator=(LifecycleState& lifecycleState) {
+    SAFplusTypes::LifecycleState& LifecycleState::operator=(SAFplusTypes::LifecycleState& lifecycleState) {
         Value = lifecycleState.Value;
         return *this;
     };
 
-    LifecycleState::~LifecycleState() {
+     LifecycleState::~LifecycleState() {
     };
 
-    ostream& operator<<(ostream& os, const LifecycleState& lifecycleState) {
+    std::ostream& operator<<(std::ostream& os, const SAFplusTypes::LifecycleState& lifecycleState) {
         return os << lifecycleState.Value;
     };
 
-    istream& operator>>(istream& in, LifecycleState& lifecycleState) {
+    std::istream& operator>>(std::istream& in, SAFplusTypes::LifecycleState& lifecycleState) {
         return in >> lifecycleState.Value;
     };
 

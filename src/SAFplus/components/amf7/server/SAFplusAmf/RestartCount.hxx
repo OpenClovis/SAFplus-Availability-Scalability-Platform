@@ -32,8 +32,8 @@ namespace SAFplusAmf {
         ClMgtProvList<unsigned long int> history1month;
 
     public:
-        RestartCount();
-        std::vector<std::string> *getChildNames();
+         RestartCount();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/restartCount/current
@@ -124,7 +124,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ServiceUnit/restartCount/history1month
          */
         void setHistory1month(unsigned long int history1monthValue);
-        ~RestartCount();
+         ~RestartCount();
 
     };
 }

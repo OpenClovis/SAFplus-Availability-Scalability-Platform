@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "Timeticks.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(Timeticks, /ietf-yang-types/timeticks)
-
-    Timeticks::Timeticks() {
+     Timeticks::Timeticks() {
     };
 
     unsigned int Timeticks::getValue() {
@@ -26,19 +21,19 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    Timeticks& Timeticks::operator=(Timeticks& timeticks) {
+    ietfYangTypes::Timeticks& Timeticks::operator=(ietfYangTypes::Timeticks& timeticks) {
         Value = timeticks.Value;
         return *this;
     };
 
-    Timeticks::~Timeticks() {
+     Timeticks::~Timeticks() {
     };
 
-    ostream& operator<<(ostream& os, const Timeticks& timeticks) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Timeticks& timeticks) {
         return os << timeticks.Value;
     };
 
-    istream& operator>>(istream& in, Timeticks& timeticks) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::Timeticks& timeticks) {
         return in >> timeticks.Value;
     };
 

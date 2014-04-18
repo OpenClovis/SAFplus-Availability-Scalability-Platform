@@ -7,27 +7,22 @@
 #ifndef GAUGE64_HXX_
 #define GAUGE64_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace ietfYangTypes {
 
     class Gauge64 {
-
-        /* Apply MGT object factory */
-        REGISTER(Gauge64);
-
     public:
         unsigned long int Value;
 
     public:
-        Gauge64();
+         Gauge64();
         unsigned long int getValue();
         void setValue(unsigned long int value);
-        Gauge64& operator=(Gauge64& gauge64);
-        friend std::ostream& operator<<(std::ostream& os, const Gauge64& gauge64);
-        friend std::istream& operator>>(std::istream& in, Gauge64& gauge64);
-        ~Gauge64();
+        ietfYangTypes::Gauge64& operator=(ietfYangTypes::Gauge64& gauge64);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Gauge64& gauge64);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Gauge64& gauge64);
+         ~Gauge64();
 
     };
 }

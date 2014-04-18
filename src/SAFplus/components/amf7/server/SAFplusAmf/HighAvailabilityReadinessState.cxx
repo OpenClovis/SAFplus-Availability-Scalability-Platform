@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "HighAvailabilityReadinessState.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(HighAvailabilityReadinessState, /SAFplusAmf/HighAvailabilityReadinessState)
-
-    HighAvailabilityReadinessState::HighAvailabilityReadinessState() {
+     HighAvailabilityReadinessState::HighAvailabilityReadinessState() {
     };
 
     int HighAvailabilityReadinessState::getValue() {
@@ -26,19 +21,19 @@ namespace SAFplusAmf {
         this->Value = value;
     };
 
-    HighAvailabilityReadinessState& HighAvailabilityReadinessState::operator=(HighAvailabilityReadinessState& HighAvailabilityReadinessState) {
+    SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState::operator=(SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState) {
         Value = HighAvailabilityReadinessState.Value;
         return *this;
     };
 
-    HighAvailabilityReadinessState::~HighAvailabilityReadinessState() {
+     HighAvailabilityReadinessState::~HighAvailabilityReadinessState() {
     };
 
-    ostream& operator<<(ostream& os, const HighAvailabilityReadinessState& HighAvailabilityReadinessState) {
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState) {
         return os << HighAvailabilityReadinessState.Value;
     };
 
-    istream& operator>>(istream& in, HighAvailabilityReadinessState& HighAvailabilityReadinessState) {
+    std::istream& operator>>(std::istream& in, SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState) {
         return in >> HighAvailabilityReadinessState.Value;
     };
 

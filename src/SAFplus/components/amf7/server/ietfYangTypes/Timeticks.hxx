@@ -7,27 +7,22 @@
 #ifndef TIMETICKS_HXX_
 #define TIMETICKS_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace ietfYangTypes {
 
     class Timeticks {
-
-        /* Apply MGT object factory */
-        REGISTER(Timeticks);
-
     public:
         unsigned int Value;
 
     public:
-        Timeticks();
+         Timeticks();
         unsigned int getValue();
         void setValue(unsigned int value);
-        Timeticks& operator=(Timeticks& timeticks);
-        friend std::ostream& operator<<(std::ostream& os, const Timeticks& timeticks);
-        friend std::istream& operator>>(std::istream& in, Timeticks& timeticks);
-        ~Timeticks();
+        ietfYangTypes::Timeticks& operator=(ietfYangTypes::Timeticks& timeticks);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Timeticks& timeticks);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Timeticks& timeticks);
+         ~Timeticks();
 
     };
 }

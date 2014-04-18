@@ -25,10 +25,10 @@ namespace SAFplusAmf {
         ClMgtProv<long int> value;
 
     public:
-        ActiveWeight();
-        ActiveWeight(std::string resourceValue);
+         ActiveWeight();
+         ActiveWeight(std::string resourceValue);
         std::vector<std::string> getKeys();
-        std::vector<std::string> *getChildNames();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeWeight/resource
@@ -49,7 +49,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ServiceInstance/activeWeight/value
          */
         void setValue(long int valueValue);
-        ~ActiveWeight();
+         ~ActiveWeight();
 
     };
 }

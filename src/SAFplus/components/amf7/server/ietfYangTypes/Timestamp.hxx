@@ -7,27 +7,22 @@
 #ifndef TIMESTAMP_HXX_
 #define TIMESTAMP_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace ietfYangTypes {
 
     class Timestamp {
-
-        /* Apply MGT object factory */
-        REGISTER(Timestamp);
-
     public:
         unsigned int Value;
 
     public:
-        Timestamp();
+         Timestamp();
         unsigned int getValue();
         void setValue(unsigned int value);
-        Timestamp& operator=(Timestamp& timestamp);
-        friend std::ostream& operator<<(std::ostream& os, const Timestamp& timestamp);
-        friend std::istream& operator>>(std::istream& in, Timestamp& timestamp);
-        ~Timestamp();
+        ietfYangTypes::Timestamp& operator=(ietfYangTypes::Timestamp& timestamp);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Timestamp& timestamp);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Timestamp& timestamp);
+         ~Timestamp();
 
     };
 }

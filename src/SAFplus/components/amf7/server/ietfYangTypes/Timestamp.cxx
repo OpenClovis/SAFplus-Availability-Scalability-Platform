@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "Timestamp.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(Timestamp, /ietf-yang-types/timestamp)
-
-    Timestamp::Timestamp() {
+     Timestamp::Timestamp() {
     };
 
     unsigned int Timestamp::getValue() {
@@ -26,19 +21,19 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    Timestamp& Timestamp::operator=(Timestamp& timestamp) {
+    ietfYangTypes::Timestamp& Timestamp::operator=(ietfYangTypes::Timestamp& timestamp) {
         Value = timestamp.Value;
         return *this;
     };
 
-    Timestamp::~Timestamp() {
+     Timestamp::~Timestamp() {
     };
 
-    ostream& operator<<(ostream& os, const Timestamp& timestamp) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Timestamp& timestamp) {
         return os << timestamp.Value;
     };
 
-    istream& operator>>(istream& in, Timestamp& timestamp) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::Timestamp& timestamp) {
         return in >> timestamp.Value;
     };
 

@@ -11,14 +11,13 @@
 #include "clMgtProvList.hxx"
 #include "IdleServiceUnits.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(IdleServiceUnits, /SAFplusAmf/ServiceGroup/idleServiceUnits)
 
-    IdleServiceUnits::IdleServiceUnits(): ClMgtObject("idleServiceUnits"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month") {
+     IdleServiceUnits::IdleServiceUnits(): ClMgtObject("idleServiceUnits"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month") {
         this->addChildObject(&current, "current");
         this->addChildObject(&history10sec, "history10sec");
         this->addChildObject(&history1min, "history1min");
@@ -30,9 +29,9 @@ namespace SAFplusAmf {
         this->addChildObject(&history1month, "history1month");
     };
 
-    vector<string> *IdleServiceUnits::getChildNames() {
-        string childNames[] = { "current", "history10sec", "history1min", "history10min", "history1hour", "history12hour", "history1day", "history1week", "history1month" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* IdleServiceUnits::getChildNames() {
+        std::string childNames[] = { "current", "history10sec", "history1min", "history10min", "history1hour", "history12hour", "history1day", "history1week", "history1month" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
@@ -52,7 +51,7 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits/history10sec
      */
-    vector<unsigned long int> IdleServiceUnits::getHistory10sec() {
+    std::vector<unsigned long int> IdleServiceUnits::getHistory10sec() {
         return this->history10sec.Value;
     };
 
@@ -66,7 +65,7 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits/history1min
      */
-    vector<unsigned long int> IdleServiceUnits::getHistory1min() {
+    std::vector<unsigned long int> IdleServiceUnits::getHistory1min() {
         return this->history1min.Value;
     };
 
@@ -80,7 +79,7 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits/history10min
      */
-    vector<unsigned long int> IdleServiceUnits::getHistory10min() {
+    std::vector<unsigned long int> IdleServiceUnits::getHistory10min() {
         return this->history10min.Value;
     };
 
@@ -94,7 +93,7 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits/history1hour
      */
-    vector<unsigned long int> IdleServiceUnits::getHistory1hour() {
+    std::vector<unsigned long int> IdleServiceUnits::getHistory1hour() {
         return this->history1hour.Value;
     };
 
@@ -108,7 +107,7 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits/history12hour
      */
-    vector<unsigned long int> IdleServiceUnits::getHistory12hour() {
+    std::vector<unsigned long int> IdleServiceUnits::getHistory12hour() {
         return this->history12hour.Value;
     };
 
@@ -122,7 +121,7 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits/history1day
      */
-    vector<unsigned long int> IdleServiceUnits::getHistory1day() {
+    std::vector<unsigned long int> IdleServiceUnits::getHistory1day() {
         return this->history1day.Value;
     };
 
@@ -136,7 +135,7 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits/history1week
      */
-    vector<unsigned long int> IdleServiceUnits::getHistory1week() {
+    std::vector<unsigned long int> IdleServiceUnits::getHistory1week() {
         return this->history1week.Value;
     };
 
@@ -150,7 +149,7 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits/history1month
      */
-    vector<unsigned long int> IdleServiceUnits::getHistory1month() {
+    std::vector<unsigned long int> IdleServiceUnits::getHistory1month() {
         return this->history1month.Value;
     };
 
@@ -161,7 +160,7 @@ namespace SAFplusAmf {
         this->history1month.Value.push_back(history1monthValue);
     };
 
-    IdleServiceUnits::~IdleServiceUnits() {
+     IdleServiceUnits::~IdleServiceUnits() {
     };
 
 }

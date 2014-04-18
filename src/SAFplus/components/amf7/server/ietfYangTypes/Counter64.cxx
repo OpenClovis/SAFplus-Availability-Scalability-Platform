@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "Counter64.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(Counter64, /ietf-yang-types/counter64)
-
-    Counter64::Counter64() {
+     Counter64::Counter64() {
     };
 
     unsigned long int Counter64::getValue() {
@@ -26,19 +21,19 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    Counter64& Counter64::operator=(Counter64& counter64) {
+    ietfYangTypes::Counter64& Counter64::operator=(ietfYangTypes::Counter64& counter64) {
         Value = counter64.Value;
         return *this;
     };
 
-    Counter64::~Counter64() {
+     Counter64::~Counter64() {
     };
 
-    ostream& operator<<(ostream& os, const Counter64& counter64) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Counter64& counter64) {
         return os << counter64.Value;
     };
 
-    istream& operator>>(istream& in, Counter64& counter64) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::Counter64& counter64) {
         return in >> counter64.Value;
     };
 

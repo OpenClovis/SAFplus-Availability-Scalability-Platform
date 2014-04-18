@@ -7,28 +7,23 @@
 #ifndef ENTITYALARMSTATUS_HXX_
 #define ENTITYALARMSTATUS_HXX_
 
-#include "MgtFactory.hxx"
-#include <bitset>
 #include <iostream>
+#include <bitset>
 
 namespace ENTITYSTATETCMIB {
 
     class EntityAlarmStatus {
-
-        /* Apply MGT object factory */
-        REGISTER(EntityAlarmStatus);
+    public:
+        std::bitset<7> Value;
 
     public:
-        bitset<7> Value;
-
-    public:
-        EntityAlarmStatus();
-        bitset<7> getValue();
-        void setValue(bitset<7> value);
-        EntityAlarmStatus& operator=(EntityAlarmStatus& EntityAlarmStatus);
-        friend std::ostream& operator<<(std::ostream& os, const EntityAlarmStatus& EntityAlarmStatus);
-        friend std::istream& operator>>(std::istream& in, EntityAlarmStatus& EntityAlarmStatus);
-        ~EntityAlarmStatus();
+         EntityAlarmStatus();
+        std::bitset<7> getValue();
+        void setValue(std::bitset<7> value);
+        ENTITYSTATETCMIB::EntityAlarmStatus& operator=(ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
+        friend std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
+        friend std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
+         ~EntityAlarmStatus();
 
     };
 }

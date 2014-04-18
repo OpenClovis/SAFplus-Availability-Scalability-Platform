@@ -12,12 +12,16 @@
 #include "StandbyWeight.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
+#include "StandbyAssignments.hxx"
+#include "StandbyWeight.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "ActiveAssignments.hxx"
 #include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
 #include "ActiveWeight.hxx"
 #include <string>
+#include "ActiveWeight.hxx"
 
 namespace SAFplusAmf {
 
@@ -43,7 +47,7 @@ namespace SAFplusAmf {
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        ClMgtProv<AdministrativeState> adminState;
+        ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * The assignment state of a service instance indicates whether the service represented by this service instance is being provided or not by some service unit.
@@ -56,10 +60,10 @@ namespace SAFplusAmf {
         ClMgtProv<unsigned int> rank;
 
     public:
-        ServiceInstance();
-        ServiceInstance(std::string nameValue);
+         ServiceInstance();
+         ServiceInstance(std::string nameValue);
         std::vector<std::string> getKeys();
-        std::vector<std::string> *getChildNames();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/name
@@ -84,12 +88,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/adminState
          */
-        AdministrativeState getAdminState();
+        SAFplusAmf::AdministrativeState getAdminState();
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/adminState
          */
-        void setAdminState(AdministrativeState adminStateValue);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
@@ -114,12 +118,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeWeight
          */
-        ActiveWeight* getActiveWeight(std::string resourceValue);
+        SAFplusAmf::ActiveWeight* getActiveWeight(std::string resourceValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeWeight
          */
-        void addActiveWeight(ActiveWeight *activeWeightValue);
+        void addActiveWeight(SAFplusAmf::ActiveWeight *activeWeightValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeWeight
@@ -129,12 +133,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
          */
-        StandbyWeight* getStandbyWeight(std::string resourceValue);
+        SAFplusAmf::StandbyWeight* getStandbyWeight(std::string resourceValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
          */
-        void addStandbyWeight(StandbyWeight *standbyWeightValue);
+        void addStandbyWeight(SAFplusAmf::StandbyWeight *standbyWeightValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
@@ -144,23 +148,23 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
          */
-        ActiveAssignments* getActiveAssignments();
+        SAFplusAmf::ActiveAssignments* getActiveAssignments();
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
          */
-        void addActiveAssignments(ActiveAssignments *activeAssignmentsValue);
+        void addActiveAssignments(SAFplusAmf::ActiveAssignments *activeAssignmentsValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
          */
-        StandbyAssignments* getStandbyAssignments();
+        SAFplusAmf::StandbyAssignments* getStandbyAssignments();
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
          */
-        void addStandbyAssignments(StandbyAssignments *standbyAssignmentsValue);
-        ~ServiceInstance();
+        void addStandbyAssignments(SAFplusAmf::StandbyAssignments *standbyAssignmentsValue);
+         ~ServiceInstance();
 
     };
 }

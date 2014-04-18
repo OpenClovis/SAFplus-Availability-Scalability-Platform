@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "PresenceState.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(PresenceState, /SAFplusAmf/PresenceState)
-
-    PresenceState::PresenceState() {
+     PresenceState::PresenceState() {
     };
 
     int PresenceState::getValue() {
@@ -26,19 +21,19 @@ namespace SAFplusAmf {
         this->Value = value;
     };
 
-    PresenceState& PresenceState::operator=(PresenceState& PresenceState) {
+    SAFplusAmf::PresenceState& PresenceState::operator=(SAFplusAmf::PresenceState& PresenceState) {
         Value = PresenceState.Value;
         return *this;
     };
 
-    PresenceState::~PresenceState() {
+     PresenceState::~PresenceState() {
     };
 
-    ostream& operator<<(ostream& os, const PresenceState& PresenceState) {
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::PresenceState& PresenceState) {
         return os << PresenceState.Value;
     };
 
-    istream& operator>>(istream& in, PresenceState& PresenceState) {
+    std::istream& operator>>(std::istream& in, SAFplusAmf::PresenceState& PresenceState) {
         return in >> PresenceState.Value;
     };
 

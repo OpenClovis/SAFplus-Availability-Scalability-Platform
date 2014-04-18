@@ -37,18 +37,18 @@ namespace SAFplusAmf {
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        ClMgtProv<AdministrativeState> adminState;
+        ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * When the cluster is first started, no work will be assigned until either ALL configured service units are instantiated or this time duration elapses.  By giving every node a chance to come up fully, this ensures that initial work assignments are as close as possible to preferred work assignments.
          */
-        ClMgtProv<SaTimeT> startupAssignmentDelay;
+        ClMgtProv<SAFplusTypes::SaTimeT> startupAssignmentDelay;
 
     public:
-        Cluster();
-        Cluster(std::string nameValue);
+         Cluster();
+         Cluster(std::string nameValue);
         std::vector<std::string> getKeys();
-        std::vector<std::string> *getChildNames();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/Cluster/name
@@ -73,23 +73,23 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Cluster/adminState
          */
-        AdministrativeState getAdminState();
+        SAFplusAmf::AdministrativeState getAdminState();
 
         /*
          * XPATH: /SAFplusAmf/Cluster/adminState
          */
-        void setAdminState(AdministrativeState adminStateValue);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
 
         /*
          * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
          */
-        SaTimeT getStartupAssignmentDelay();
+        SAFplusTypes::SaTimeT getStartupAssignmentDelay();
 
         /*
          * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
          */
-        void setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue);
-        ~Cluster();
+        void setStartupAssignmentDelay(SAFplusTypes::SaTimeT startupAssignmentDelayValue);
+         ~Cluster();
 
     };
 }

@@ -412,11 +412,11 @@ point.  The operational, administrative, and presence states of a service unit, 
 	  {
 	    description "For a certain component service type, the component supports all values of the HA state. It can be assigned either the active HA state for x component service instances or the standby HA state for y component service instances at a time.";
 	  }
-	  enum 1_active_or_y_standby
+	  enum one_active_or_y_standby
 	  {
 	    description "For a certain component service type, the component supports all values of the HA state. It can be assigned either the active HA state for only one component service instance or the standby HA state for y component service instances at a time.";
 	  }
-	  enum 1_active_or_1_standby
+	  enum one_active_or_one_standby
 	  {
 	    description "For a certain component service type, the component supports all values of the HA state, and it can be assigned either the active HA state or the standby HA state for only one component service instance at a time.";
 	  }
@@ -424,7 +424,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	  {
 	    description "for a certain component service type, the component cannot be assigned the standby HA state for component service instances, but it can be assigned the active HA state for x component service instances at a time.";
 	  }
-	  enum 1_active
+	  enum one_active
 	  {
 	    description "for a certain component service type, the component cannot be assigned the standby HA state for component service instances, but it can be assigned the active HA state for only one component service instance at a time.";
 	  }
@@ -645,7 +645,7 @@ are switched over to other nodes (component service instances are not abruptly r
 	  enum ApplicationRestart
 	  {
 	    value 8;
-	    description "The application should be completely terminated and then started again by first terminating all of its service units and then starting them again, ensuring that—during the termination phase of the restart procedure—service instances of the application are not reassigned.";
+	    description "The application should be completely terminated and then started again by first terminating all of its service units and then starting them again, ensuring that during the termination phase of the restart procedure service instances of the application are not reassigned.";
 	  }
 	  enum ContainerRestart
 	  {

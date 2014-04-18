@@ -12,14 +12,13 @@
 #include <string>
 #include "ComponentServiceInstance.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(ComponentServiceInstance, /SAFplusAmf/ComponentServiceInstance)
 
-    ComponentServiceInstance::ComponentServiceInstance(): ClMgtObject("ComponentServiceInstance"), name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies") {
+     ComponentServiceInstance::ComponentServiceInstance(): ClMgtObject("ComponentServiceInstance"), name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&protectionGroup, "protectionGroup");
@@ -27,7 +26,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-    ComponentServiceInstance::ComponentServiceInstance(string nameValue): ClMgtObject("ComponentServiceInstance"), name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies") {
+     ComponentServiceInstance::ComponentServiceInstance(std::string nameValue): ClMgtObject("ComponentServiceInstance"), name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -36,27 +35,27 @@ namespace SAFplusAmf {
         this->addChildObject(&dependencies, "dependencies");
     };
 
-    vector<string> ComponentServiceInstance::getKeys() {
-        string keyNames[] = { "name" };
-        return vector<string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
+    std::vector<std::string> ComponentServiceInstance::getKeys() {
+        std::string keyNames[] = { "name" };
+        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    vector<string> *ComponentServiceInstance::getChildNames() {
-        string childNames[] = { "name", "id", "protectionGroup", "dependencies" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* ComponentServiceInstance::getChildNames() {
+        std::string childNames[] = { "name", "id", "protectionGroup", "dependencies" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/name
      */
-    string ComponentServiceInstance::getName() {
+    std::string ComponentServiceInstance::getName() {
         return this->name.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/name
      */
-    void ComponentServiceInstance::setName(string nameValue) {
+    void ComponentServiceInstance::setName(std::string nameValue) {
         this->name.Value = nameValue;
     };
 
@@ -77,32 +76,32 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/protectionGroup
      */
-    vector<string> ComponentServiceInstance::getProtectionGroup() {
+    std::vector<std::string> ComponentServiceInstance::getProtectionGroup() {
         return this->protectionGroup.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/protectionGroup
      */
-    void ComponentServiceInstance::setProtectionGroup(string protectionGroupValue) {
+    void ComponentServiceInstance::setProtectionGroup(std::string protectionGroupValue) {
         this->protectionGroup.Value.push_back(protectionGroupValue);
     };
 
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/dependencies
      */
-    vector<string> ComponentServiceInstance::getDependencies() {
+    std::vector<std::string> ComponentServiceInstance::getDependencies() {
         return this->dependencies.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/dependencies
      */
-    void ComponentServiceInstance::setDependencies(string dependenciesValue) {
+    void ComponentServiceInstance::setDependencies(std::string dependenciesValue) {
         this->dependencies.Value.push_back(dependenciesValue);
     };
 
-    ComponentServiceInstance::~ComponentServiceInstance() {
+     ComponentServiceInstance::~ComponentServiceInstance() {
     };
 
 }

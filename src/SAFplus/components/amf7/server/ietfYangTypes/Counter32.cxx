@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "Counter32.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(Counter32, /ietf-yang-types/counter32)
-
-    Counter32::Counter32() {
+     Counter32::Counter32() {
     };
 
     unsigned int Counter32::getValue() {
@@ -26,19 +21,19 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    Counter32& Counter32::operator=(Counter32& counter32) {
+    ietfYangTypes::Counter32& Counter32::operator=(ietfYangTypes::Counter32& counter32) {
         Value = counter32.Value;
         return *this;
     };
 
-    Counter32::~Counter32() {
+     Counter32::~Counter32() {
     };
 
-    ostream& operator<<(ostream& os, const Counter32& counter32) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Counter32& counter32) {
         return os << counter32.Value;
     };
 
-    istream& operator>>(istream& in, Counter32& counter32) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::Counter32& counter32) {
         return in >> counter32.Value;
     };
 

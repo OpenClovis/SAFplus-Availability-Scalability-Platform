@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "EntityUsageState.hxx"
 
-using namespace std;
 
 namespace ENTITYSTATETCMIB {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(EntityUsageState, /ENTITY-STATE-TC-MIB/EntityUsageState)
-
-    EntityUsageState::EntityUsageState() {
+     EntityUsageState::EntityUsageState() {
     };
 
     int EntityUsageState::getValue() {
@@ -26,19 +21,19 @@ namespace ENTITYSTATETCMIB {
         this->Value = value;
     };
 
-    EntityUsageState& EntityUsageState::operator=(EntityUsageState& EntityUsageState) {
+    ENTITYSTATETCMIB::EntityUsageState& EntityUsageState::operator=(ENTITYSTATETCMIB::EntityUsageState& EntityUsageState) {
         Value = EntityUsageState.Value;
         return *this;
     };
 
-    EntityUsageState::~EntityUsageState() {
+     EntityUsageState::~EntityUsageState() {
     };
 
-    ostream& operator<<(ostream& os, const EntityUsageState& EntityUsageState) {
+    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityUsageState& EntityUsageState) {
         return os << EntityUsageState.Value;
     };
 
-    istream& operator>>(istream& in, EntityUsageState& EntityUsageState) {
+    std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityUsageState& EntityUsageState) {
         return in >> EntityUsageState.Value;
     };
 

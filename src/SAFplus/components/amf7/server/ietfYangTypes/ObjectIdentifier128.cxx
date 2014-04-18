@@ -4,42 +4,37 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <string>
 #include <iostream>
 #include "ObjectIdentifier128.hxx"
 
-using namespace std;
 
 namespace ietfYangTypes {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(ObjectIdentifier128, /ietf-yang-types/object-identifier-128)
-
-    ObjectIdentifier128::ObjectIdentifier128() {
+     ObjectIdentifier128::ObjectIdentifier128() {
     };
 
-    string ObjectIdentifier128::getValue() {
+    std::string ObjectIdentifier128::getValue() {
         return this->Value;
     };
 
-    void ObjectIdentifier128::setValue(string value) {
+    void ObjectIdentifier128::setValue(std::string value) {
         this->Value = value;
     };
 
-    ObjectIdentifier128& ObjectIdentifier128::operator=(ObjectIdentifier128& objectIdentifier128) {
+    ietfYangTypes::ObjectIdentifier128& ObjectIdentifier128::operator=(ietfYangTypes::ObjectIdentifier128& objectIdentifier128) {
         Value = objectIdentifier128.Value;
         return *this;
     };
 
-    ObjectIdentifier128::~ObjectIdentifier128() {
+     ObjectIdentifier128::~ObjectIdentifier128() {
     };
 
-    ostream& operator<<(ostream& os, const ObjectIdentifier128& objectIdentifier128) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ObjectIdentifier128& objectIdentifier128) {
         return os << objectIdentifier128.Value;
     };
 
-    istream& operator>>(istream& in, ObjectIdentifier128& objectIdentifier128) {
+    std::istream& operator>>(std::istream& in, ietfYangTypes::ObjectIdentifier128& objectIdentifier128) {
         return in >> objectIdentifier128.Value;
     };
 

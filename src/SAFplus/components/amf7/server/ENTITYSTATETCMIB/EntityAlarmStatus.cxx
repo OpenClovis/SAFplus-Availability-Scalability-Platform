@@ -4,42 +4,37 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
-#include <bitset>
 #include <iostream>
+#include <bitset>
 #include "EntityAlarmStatus.hxx"
 
-using namespace std;
 
 namespace ENTITYSTATETCMIB {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(EntityAlarmStatus, /ENTITY-STATE-TC-MIB/EntityAlarmStatus)
-
-    EntityAlarmStatus::EntityAlarmStatus() {
+     EntityAlarmStatus::EntityAlarmStatus() {
     };
 
-    bitset<7> EntityAlarmStatus::getValue() {
+    std::bitset<7> EntityAlarmStatus::getValue() {
         return this->Value;
     };
 
-    void EntityAlarmStatus::setValue(bitset<7> value) {
+    void EntityAlarmStatus::setValue(std::bitset<7> value) {
         this->Value = value;
     };
 
-    EntityAlarmStatus& EntityAlarmStatus::operator=(EntityAlarmStatus& EntityAlarmStatus) {
+    ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus::operator=(ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus) {
         Value = EntityAlarmStatus.Value;
         return *this;
     };
 
-    EntityAlarmStatus::~EntityAlarmStatus() {
+     EntityAlarmStatus::~EntityAlarmStatus() {
     };
 
-    ostream& operator<<(ostream& os, const EntityAlarmStatus& EntityAlarmStatus) {
+    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus) {
         return os << EntityAlarmStatus.Value;
     };
 
-    istream& operator>>(istream& in, EntityAlarmStatus& EntityAlarmStatus) {
+    std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus) {
         return in >> EntityAlarmStatus.Value;
     };
 

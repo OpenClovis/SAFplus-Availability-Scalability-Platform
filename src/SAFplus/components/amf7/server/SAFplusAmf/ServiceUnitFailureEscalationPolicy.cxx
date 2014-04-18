@@ -11,7 +11,6 @@
 #include "MgtFactory.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 
-using namespace std;
 using namespace SAFplusTypes;
 
 namespace SAFplusAmf {
@@ -19,14 +18,14 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceUnitFailureEscalationPolicy, /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy)
 
-    ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy(): ClMgtObject("serviceUnitFailureEscalationPolicy"), maximum("maximum"), duration("duration") {
+     ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy(): ClMgtObject("serviceUnitFailureEscalationPolicy"), maximum("maximum"), duration("duration") {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");
     };
 
-    vector<string> *ServiceUnitFailureEscalationPolicy::getChildNames() {
-        string childNames[] = { "maximum", "duration" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* ServiceUnitFailureEscalationPolicy::getChildNames() {
+        std::string childNames[] = { "maximum", "duration" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
@@ -46,18 +45,18 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy/duration
      */
-    SaTimeT ServiceUnitFailureEscalationPolicy::getDuration() {
+    SAFplusTypes::SaTimeT ServiceUnitFailureEscalationPolicy::getDuration() {
         return this->duration.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy/duration
      */
-    void ServiceUnitFailureEscalationPolicy::setDuration(SaTimeT durationValue) {
+    void ServiceUnitFailureEscalationPolicy::setDuration(SAFplusTypes::SaTimeT durationValue) {
         this->duration.Value = durationValue;
     };
 
-    ServiceUnitFailureEscalationPolicy::~ServiceUnitFailureEscalationPolicy() {
+     ServiceUnitFailureEscalationPolicy::~ServiceUnitFailureEscalationPolicy() {
     };
 
 }

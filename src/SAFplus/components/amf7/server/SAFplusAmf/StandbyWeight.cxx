@@ -11,47 +11,46 @@
 #include <string>
 #include "StandbyWeight.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(StandbyWeight, /SAFplusAmf/ServiceInstance/standbyWeight)
 
-    StandbyWeight::StandbyWeight(): ClMgtObject("standbyWeight"), resource("resource"), value("value") {
+     StandbyWeight::StandbyWeight(): ClMgtObject("standbyWeight"), resource("resource"), value("value") {
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
         this->addKey("resource");
     };
 
-    StandbyWeight::StandbyWeight(string resourceValue): ClMgtObject("standbyWeight"), resource("resource"), value("value") {
+     StandbyWeight::StandbyWeight(std::string resourceValue): ClMgtObject("standbyWeight"), resource("resource"), value("value") {
         this->resource.Value =  resourceValue;
         this->addKey("resource");
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
     };
 
-    vector<string> StandbyWeight::getKeys() {
-        string keyNames[] = { "resource" };
-        return vector<string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
+    std::vector<std::string> StandbyWeight::getKeys() {
+        std::string keyNames[] = { "resource" };
+        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    vector<string> *StandbyWeight::getChildNames() {
-        string childNames[] = { "resource", "value" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* StandbyWeight::getChildNames() {
+        std::string childNames[] = { "resource", "value" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight/resource
      */
-    string StandbyWeight::getResource() {
+    std::string StandbyWeight::getResource() {
         return this->resource.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight/resource
      */
-    void StandbyWeight::setResource(string resourceValue) {
+    void StandbyWeight::setResource(std::string resourceValue) {
         this->resource.Value = resourceValue;
     };
 
@@ -69,7 +68,7 @@ namespace SAFplusAmf {
         this->value.Value = valueValue;
     };
 
-    StandbyWeight::~StandbyWeight() {
+     StandbyWeight::~StandbyWeight() {
     };
 
 }

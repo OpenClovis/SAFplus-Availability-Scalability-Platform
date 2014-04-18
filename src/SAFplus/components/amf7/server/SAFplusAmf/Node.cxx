@@ -5,25 +5,25 @@
  */ 
 
 #include <map>
+#include <vector>
 #include "Capacity.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
+#include "Capacity.hxx"
+#include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include <string>
 #include "Node.hxx"
 
-using namespace std;
-using namespace SAFplusAmf;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(Node, /SAFplusAmf/Node)
 
-    Node::Node(): ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure") {
+     Node::Node(): ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
@@ -34,7 +34,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-    Node::Node(string nameValue): ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure") {
+     Node::Node(std::string nameValue): ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -46,27 +46,27 @@ namespace SAFplusAmf {
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
     };
 
-    vector<string> Node::getKeys() {
-        string keyNames[] = { "name" };
-        return vector<string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
+    std::vector<std::string> Node::getKeys() {
+        std::string keyNames[] = { "name" };
+        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    vector<string> *Node::getChildNames() {
-        string childNames[] = { "name", "id", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* Node::getChildNames() {
+        std::string childNames[] = { "name", "id", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/name
      */
-    string Node::getName() {
+    std::string Node::getName() {
         return this->name.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/name
      */
-    void Node::setName(string nameValue) {
+    void Node::setName(std::string nameValue) {
         this->name.Value = nameValue;
     };
 
@@ -87,14 +87,14 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Node/adminState
      */
-    AdministrativeState Node::getAdminState() {
+    SAFplusAmf::AdministrativeState Node::getAdminState() {
         return this->adminState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/adminState
      */
-    void Node::setAdminState(AdministrativeState adminStateValue) {
+    void Node::setAdminState(SAFplusAmf::AdministrativeState adminStateValue) {
         this->adminState.Value = adminStateValue;
     };
 
@@ -157,11 +157,11 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Node/capacity
      */
-    Capacity* Node::getCapacity(string resourceValue) {
-        map<string, vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find("capacity");
+    SAFplusAmf::Capacity* Node::getCapacity(std::string resourceValue) {
+        std::map<std::string, std::vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find("capacity");
         /* Check if MGT module already exists in the database */
         if (mapIndex != mChildren.end()) {
-            vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
+            std::vector<ClMgtObject*> *objs = (std::vector<ClMgtObject*>*) (*mapIndex).second;
             for (unsigned int i = 0; i < objs->size(); i++) {
                 ClMgtObject* childObject = (*objs)[i];
                 if (((Capacity*)childObject)->getResource() == resourceValue) {
@@ -175,14 +175,14 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Node/capacity
      */
-    void Node::addCapacity(Capacity *capacityValue) {
+    void Node::addCapacity(SAFplusAmf::Capacity *capacityValue) {
         this->addChildObject(capacityValue, "capacity");
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/capacity
      */
-    void Node::addCapacity(string resourceValue) {
+    void Node::addCapacity(std::string resourceValue) {
         Capacity *objcapacity = new Capacity(resourceValue);
         this->addChildObject(objcapacity, "capacity");
     };
@@ -190,18 +190,18 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
      */
-    ServiceUnitFailureEscalationPolicy* Node::getServiceUnitFailureEscalationPolicy() {
+    SAFplusAmf::ServiceUnitFailureEscalationPolicy* Node::getServiceUnitFailureEscalationPolicy() {
         return (ServiceUnitFailureEscalationPolicy*)this->getChildObject("serviceUnitFailureEscalationPolicy");
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
      */
-    void Node::addServiceUnitFailureEscalationPolicy(ServiceUnitFailureEscalationPolicy *serviceUnitFailureEscalationPolicyValue) {
+    void Node::addServiceUnitFailureEscalationPolicy(SAFplusAmf::ServiceUnitFailureEscalationPolicy *serviceUnitFailureEscalationPolicyValue) {
         this->addChildObject(serviceUnitFailureEscalationPolicyValue, "serviceUnitFailureEscalationPolicy");
     };
 
-    Node::~Node() {
+     Node::~Node() {
     };
 
 }

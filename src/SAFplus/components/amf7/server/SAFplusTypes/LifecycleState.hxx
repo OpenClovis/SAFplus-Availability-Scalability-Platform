@@ -7,27 +7,22 @@
 #ifndef LIFECYCLESTATE_HXX_
 #define LIFECYCLESTATE_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace SAFplusTypes {
 
     class LifecycleState {
-
-        /* Apply MGT object factory */
-        REGISTER(LifecycleState);
-
     public:
         int Value;
 
     public:
-        LifecycleState();
+         LifecycleState();
         int getValue();
         void setValue(int value);
-        LifecycleState& operator=(LifecycleState& lifecycleState);
-        friend std::ostream& operator<<(std::ostream& os, const LifecycleState& lifecycleState);
-        friend std::istream& operator>>(std::istream& in, LifecycleState& lifecycleState);
-        ~LifecycleState();
+        SAFplusTypes::LifecycleState& operator=(SAFplusTypes::LifecycleState& lifecycleState);
+        friend std::ostream& operator<<(std::ostream& os, const SAFplusTypes::LifecycleState& lifecycleState);
+        friend std::istream& operator>>(std::istream& in, SAFplusTypes::LifecycleState& lifecycleState);
+         ~LifecycleState();
 
     };
 }

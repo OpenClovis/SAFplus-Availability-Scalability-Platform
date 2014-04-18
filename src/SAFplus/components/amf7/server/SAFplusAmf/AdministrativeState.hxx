@@ -7,27 +7,22 @@
 #ifndef ADMINISTRATIVESTATE_HXX_
 #define ADMINISTRATIVESTATE_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace SAFplusAmf {
 
     class AdministrativeState {
-
-        /* Apply MGT object factory */
-        REGISTER(AdministrativeState);
-
     public:
         int Value;
 
     public:
-        AdministrativeState();
+         AdministrativeState();
         int getValue();
         void setValue(int value);
-        AdministrativeState& operator=(AdministrativeState& AdministrativeState);
-        friend std::ostream& operator<<(std::ostream& os, const AdministrativeState& AdministrativeState);
-        friend std::istream& operator>>(std::istream& in, AdministrativeState& AdministrativeState);
-        ~AdministrativeState();
+        SAFplusAmf::AdministrativeState& operator=(SAFplusAmf::AdministrativeState& AdministrativeState);
+        friend std::ostream& operator<<(std::ostream& os, const SAFplusAmf::AdministrativeState& AdministrativeState);
+        friend std::istream& operator>>(std::istream& in, SAFplusAmf::AdministrativeState& AdministrativeState);
+         ~AdministrativeState();
 
     };
 }

@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "ReadinessState.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(ReadinessState, /SAFplusAmf/ReadinessState)
-
-    ReadinessState::ReadinessState() {
+     ReadinessState::ReadinessState() {
     };
 
     int ReadinessState::getValue() {
@@ -26,19 +21,19 @@ namespace SAFplusAmf {
         this->Value = value;
     };
 
-    ReadinessState& ReadinessState::operator=(ReadinessState& ReadinessState) {
+    SAFplusAmf::ReadinessState& ReadinessState::operator=(SAFplusAmf::ReadinessState& ReadinessState) {
         Value = ReadinessState.Value;
         return *this;
     };
 
-    ReadinessState::~ReadinessState() {
+     ReadinessState::~ReadinessState() {
     };
 
-    ostream& operator<<(ostream& os, const ReadinessState& ReadinessState) {
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::ReadinessState& ReadinessState) {
         return os << ReadinessState.Value;
     };
 
-    istream& operator>>(istream& in, ReadinessState& ReadinessState) {
+    std::istream& operator>>(std::istream& in, SAFplusAmf::ReadinessState& ReadinessState) {
         return in >> ReadinessState.Value;
     };
 

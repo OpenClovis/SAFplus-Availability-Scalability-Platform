@@ -7,28 +7,23 @@
 #ifndef OBJECTIDENTIFIER128_HXX_
 #define OBJECTIDENTIFIER128_HXX_
 
-#include "MgtFactory.hxx"
 #include <string>
 #include <iostream>
 
 namespace ietfYangTypes {
 
     class ObjectIdentifier128 {
-
-        /* Apply MGT object factory */
-        REGISTER(ObjectIdentifier128);
-
     public:
         std::string Value;
 
     public:
-        ObjectIdentifier128();
+         ObjectIdentifier128();
         std::string getValue();
         void setValue(std::string value);
-        ObjectIdentifier128& operator=(ObjectIdentifier128& objectIdentifier128);
-        friend std::ostream& operator<<(std::ostream& os, const ObjectIdentifier128& objectIdentifier128);
-        friend std::istream& operator>>(std::istream& in, ObjectIdentifier128& objectIdentifier128);
-        ~ObjectIdentifier128();
+        ietfYangTypes::ObjectIdentifier128& operator=(ietfYangTypes::ObjectIdentifier128& objectIdentifier128);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ObjectIdentifier128& objectIdentifier128);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::ObjectIdentifier128& objectIdentifier128);
+         ~ObjectIdentifier128();
 
     };
 }

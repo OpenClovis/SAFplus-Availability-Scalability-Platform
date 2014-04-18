@@ -7,27 +7,22 @@
 #ifndef ENTITYSTANDBYSTATUS_HXX_
 #define ENTITYSTANDBYSTATUS_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace ENTITYSTATETCMIB {
 
     class EntityStandbyStatus {
-
-        /* Apply MGT object factory */
-        REGISTER(EntityStandbyStatus);
-
     public:
         int Value;
 
     public:
-        EntityStandbyStatus();
+         EntityStandbyStatus();
         int getValue();
         void setValue(int value);
-        EntityStandbyStatus& operator=(EntityStandbyStatus& EntityStandbyStatus);
-        friend std::ostream& operator<<(std::ostream& os, const EntityStandbyStatus& EntityStandbyStatus);
-        friend std::istream& operator>>(std::istream& in, EntityStandbyStatus& EntityStandbyStatus);
-        ~EntityStandbyStatus();
+        ENTITYSTATETCMIB::EntityStandbyStatus& operator=(ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus);
+        friend std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus);
+        friend std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus);
+         ~EntityStandbyStatus();
 
     };
 }

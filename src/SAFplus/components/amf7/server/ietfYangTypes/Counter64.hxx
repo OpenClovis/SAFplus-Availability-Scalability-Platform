@@ -7,27 +7,22 @@
 #ifndef COUNTER64_HXX_
 #define COUNTER64_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace ietfYangTypes {
 
     class Counter64 {
-
-        /* Apply MGT object factory */
-        REGISTER(Counter64);
-
     public:
         unsigned long int Value;
 
     public:
-        Counter64();
+         Counter64();
         unsigned long int getValue();
         void setValue(unsigned long int value);
-        Counter64& operator=(Counter64& counter64);
-        friend std::ostream& operator<<(std::ostream& os, const Counter64& counter64);
-        friend std::istream& operator>>(std::istream& in, Counter64& counter64);
-        ~Counter64();
+        ietfYangTypes::Counter64& operator=(ietfYangTypes::Counter64& counter64);
+        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Counter64& counter64);
+        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Counter64& counter64);
+         ~Counter64();
 
     };
 }

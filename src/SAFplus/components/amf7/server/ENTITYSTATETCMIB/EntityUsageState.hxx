@@ -7,27 +7,22 @@
 #ifndef ENTITYUSAGESTATE_HXX_
 #define ENTITYUSAGESTATE_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace ENTITYSTATETCMIB {
 
     class EntityUsageState {
-
-        /* Apply MGT object factory */
-        REGISTER(EntityUsageState);
-
     public:
         int Value;
 
     public:
-        EntityUsageState();
+         EntityUsageState();
         int getValue();
         void setValue(int value);
-        EntityUsageState& operator=(EntityUsageState& EntityUsageState);
-        friend std::ostream& operator<<(std::ostream& os, const EntityUsageState& EntityUsageState);
-        friend std::istream& operator>>(std::istream& in, EntityUsageState& EntityUsageState);
-        ~EntityUsageState();
+        ENTITYSTATETCMIB::EntityUsageState& operator=(ENTITYSTATETCMIB::EntityUsageState& EntityUsageState);
+        friend std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityUsageState& EntityUsageState);
+        friend std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityUsageState& EntityUsageState);
+         ~EntityUsageState();
 
     };
 }

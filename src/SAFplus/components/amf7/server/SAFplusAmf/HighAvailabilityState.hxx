@@ -7,27 +7,22 @@
 #ifndef HIGHAVAILABILITYSTATE_HXX_
 #define HIGHAVAILABILITYSTATE_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace SAFplusAmf {
 
     class HighAvailabilityState {
-
-        /* Apply MGT object factory */
-        REGISTER(HighAvailabilityState);
-
     public:
         int Value;
 
     public:
-        HighAvailabilityState();
+         HighAvailabilityState();
         int getValue();
         void setValue(int value);
-        HighAvailabilityState& operator=(HighAvailabilityState& HighAvailabilityState);
-        friend std::ostream& operator<<(std::ostream& os, const HighAvailabilityState& HighAvailabilityState);
-        friend std::istream& operator>>(std::istream& in, HighAvailabilityState& HighAvailabilityState);
-        ~HighAvailabilityState();
+        SAFplusAmf::HighAvailabilityState& operator=(SAFplusAmf::HighAvailabilityState& HighAvailabilityState);
+        friend std::ostream& operator<<(std::ostream& os, const SAFplusAmf::HighAvailabilityState& HighAvailabilityState);
+        friend std::istream& operator>>(std::istream& in, SAFplusAmf::HighAvailabilityState& HighAvailabilityState);
+         ~HighAvailabilityState();
 
     };
 }

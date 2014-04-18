@@ -7,27 +7,22 @@
 #ifndef ENTITYOPERSTATE_HXX_
 #define ENTITYOPERSTATE_HXX_
 
-#include "MgtFactory.hxx"
 #include <iostream>
 
 namespace ENTITYSTATETCMIB {
 
     class EntityOperState {
-
-        /* Apply MGT object factory */
-        REGISTER(EntityOperState);
-
     public:
         int Value;
 
     public:
-        EntityOperState();
+         EntityOperState();
         int getValue();
         void setValue(int value);
-        EntityOperState& operator=(EntityOperState& EntityOperState);
-        friend std::ostream& operator<<(std::ostream& os, const EntityOperState& EntityOperState);
-        friend std::istream& operator>>(std::istream& in, EntityOperState& EntityOperState);
-        ~EntityOperState();
+        ENTITYSTATETCMIB::EntityOperState& operator=(ENTITYSTATETCMIB::EntityOperState& EntityOperState);
+        friend std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityOperState& EntityOperState);
+        friend std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityOperState& EntityOperState);
+         ~EntityOperState();
 
     };
 }

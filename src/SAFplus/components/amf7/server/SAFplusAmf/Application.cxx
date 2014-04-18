@@ -4,31 +4,30 @@
  * plug-in of pyang.
  */ 
 
-#include <vector>
-#include "MgtFactory.hxx"
+#include "NumServiceGroups.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
+#include <vector>
+#include "MgtFactory.hxx"
 #include "NumServiceGroups.hxx"
 #include "AdministrativeState.hxx"
 #include <string>
 #include "Application.hxx"
 
-using namespace std;
-using namespace SAFplusAmf;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(Application, /SAFplusAmf/Application)
 
-    Application::Application(): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState") {
+     Application::Application(): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
         this->addKey("name");
     };
 
-    Application::Application(string nameValue): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState") {
+     Application::Application(std::string nameValue): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -36,27 +35,27 @@ namespace SAFplusAmf {
         this->addChildObject(&adminState, "adminState");
     };
 
-    vector<string> Application::getKeys() {
-        string keyNames[] = { "name" };
-        return vector<string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
+    std::vector<std::string> Application::getKeys() {
+        std::string keyNames[] = { "name" };
+        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    vector<string> *Application::getChildNames() {
-        string childNames[] = { "name", "id", "adminState", "NumServiceGroups" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* Application::getChildNames() {
+        std::string childNames[] = { "name", "id", "adminState", "NumServiceGroups" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/name
      */
-    string Application::getName() {
+    std::string Application::getName() {
         return this->name.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/name
      */
-    void Application::setName(string nameValue) {
+    void Application::setName(std::string nameValue) {
         this->name.Value = nameValue;
     };
 
@@ -77,32 +76,32 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Application/adminState
      */
-    AdministrativeState Application::getAdminState() {
+    SAFplusAmf::AdministrativeState Application::getAdminState() {
         return this->adminState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/adminState
      */
-    void Application::setAdminState(AdministrativeState adminStateValue) {
+    void Application::setAdminState(SAFplusAmf::AdministrativeState adminStateValue) {
         this->adminState.Value = adminStateValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/NumServiceGroups
      */
-    NumServiceGroups* Application::getNumServiceGroups() {
+    SAFplusAmf::NumServiceGroups* Application::getNumServiceGroups() {
         return (NumServiceGroups*)this->getChildObject("NumServiceGroups");
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/NumServiceGroups
      */
-    void Application::addNumServiceGroups(NumServiceGroups *NumServiceGroupsValue) {
+    void Application::addNumServiceGroups(SAFplusAmf::NumServiceGroups *NumServiceGroupsValue) {
         this->addChildObject(NumServiceGroupsValue, "NumServiceGroups");
     };
 
-    Application::~Application() {
+     Application::~Application() {
     };
 
 }

@@ -32,8 +32,8 @@ namespace SAFplusAmf {
         ClMgtProvList<unsigned long int> history1month;
 
     public:
-        ActiveAssignments();
-        std::vector<std::string> *getChildNames();
+         ActiveAssignments();
+        std::vector<std::string>* getChildNames();
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments/current
@@ -124,7 +124,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments/history1month
          */
         void setHistory1month(unsigned long int history1monthValue);
-        ~ActiveAssignments();
+         ~ActiveAssignments();
 
     };
 }

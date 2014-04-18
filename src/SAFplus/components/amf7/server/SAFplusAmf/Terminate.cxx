@@ -11,49 +11,48 @@
 #include <string>
 #include "Terminate.hxx"
 
-using namespace std;
 
 namespace SAFplusAmf {
 
     /* Apply MGT object factory */
     REGISTERIMPL(Terminate, /SAFplusAmf/Component/terminate)
 
-    Terminate::Terminate(): ClMgtObject("terminate"), command("command"), args("args"), timeout("timeout") {
+     Terminate::Terminate(): ClMgtObject("terminate"), command("command"), args("args"), timeout("timeout") {
         this->addChildObject(&command, "command");
         this->addChildObject(&args, "args");
         this->addChildObject(&timeout, "timeout");
     };
 
-    vector<string> *Terminate::getChildNames() {
-        string childNames[] = { "command", "args", "timeout" };
-        return new vector<string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    std::vector<std::string>* Terminate::getChildNames() {
+        std::string childNames[] = { "command", "args", "timeout" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate/command
      */
-    string Terminate::getCommand() {
+    std::string Terminate::getCommand() {
         return this->command.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate/command
      */
-    void Terminate::setCommand(string commandValue) {
+    void Terminate::setCommand(std::string commandValue) {
         this->command.Value = commandValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate/args
      */
-    string Terminate::getArgs() {
+    std::string Terminate::getArgs() {
         return this->args.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate/args
      */
-    void Terminate::setArgs(string argsValue) {
+    void Terminate::setArgs(std::string argsValue) {
         this->args.Value = argsValue;
     };
 
@@ -71,7 +70,7 @@ namespace SAFplusAmf {
         this->timeout.Value = timeoutValue;
     };
 
-    Terminate::~Terminate() {
+     Terminate::~Terminate() {
     };
 
 }

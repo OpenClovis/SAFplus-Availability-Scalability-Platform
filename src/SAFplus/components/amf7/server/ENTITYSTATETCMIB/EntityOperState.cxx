@@ -4,18 +4,13 @@
  * plug-in of pyang.
  */ 
 
-#include "MgtFactory.hxx"
 #include <iostream>
 #include "EntityOperState.hxx"
 
-using namespace std;
 
 namespace ENTITYSTATETCMIB {
 
-    /* Apply MGT object factory */
-    REGISTERIMPL(EntityOperState, /ENTITY-STATE-TC-MIB/EntityOperState)
-
-    EntityOperState::EntityOperState() {
+     EntityOperState::EntityOperState() {
     };
 
     int EntityOperState::getValue() {
@@ -26,19 +21,19 @@ namespace ENTITYSTATETCMIB {
         this->Value = value;
     };
 
-    EntityOperState& EntityOperState::operator=(EntityOperState& EntityOperState) {
+    ENTITYSTATETCMIB::EntityOperState& EntityOperState::operator=(ENTITYSTATETCMIB::EntityOperState& EntityOperState) {
         Value = EntityOperState.Value;
         return *this;
     };
 
-    EntityOperState::~EntityOperState() {
+     EntityOperState::~EntityOperState() {
     };
 
-    ostream& operator<<(ostream& os, const EntityOperState& EntityOperState) {
+    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityOperState& EntityOperState) {
         return os << EntityOperState.Value;
     };
 
-    istream& operator>>(istream& in, EntityOperState& EntityOperState) {
+    std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityOperState& EntityOperState) {
         return in >> EntityOperState.Value;
     };
 
