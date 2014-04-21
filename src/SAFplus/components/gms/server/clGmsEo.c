@@ -430,7 +430,7 @@ void dispatchLoop(void)
           strerror_r(err, errorStr, 79);
           break;
         }
-      if ((!unblockNow && (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
+      if ((!unblockNow && (FD_ISSET(amf_dispatch_fd,&read_fds)))) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
       /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
     }while(!unblockNow);      
 }
