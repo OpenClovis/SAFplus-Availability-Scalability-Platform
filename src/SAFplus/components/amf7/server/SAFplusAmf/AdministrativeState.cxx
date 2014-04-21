@@ -21,7 +21,7 @@ namespace SAFplusAmf {
         this->Value = value;
     };
 
-    SAFplusAmf::AdministrativeState& AdministrativeState::operator=(SAFplusAmf::AdministrativeState& AdministrativeState) {
+    SAFplusAmf::AdministrativeState& AdministrativeState::operator=(const SAFplusAmf::AdministrativeState& AdministrativeState) {
         Value = AdministrativeState.Value;
         return *this;
     };

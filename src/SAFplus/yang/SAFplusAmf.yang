@@ -524,7 +524,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf-list commandEnvironment
       {
 	type string;
-	description "List of environment variables in the form '<VARIABLE>=<VALUE>' the form the environment in which this component should be started";
+	description "List of environment variables in the form '<VARIABLE>=<VALUE>\n<VARIABLE2>=<VALUE2>\n' the form the environment in which this component should be started";
 	safplus:ide "Environment";
       }
 

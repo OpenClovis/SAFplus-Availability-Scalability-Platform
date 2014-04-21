@@ -12,9 +12,11 @@
 #include <clCommon.hxx>
 #include <clMgtApi.hxx>
 
+#include <SAFplusAmf.hxx>
+
 using namespace SAFplus;
 
-
+SAFplusAmf::SAFplusAmfRoot cfg;
 
 enum
   {
@@ -92,14 +94,15 @@ int main(int argc, char* argv[])
   utilsInitialize();
 
   // GAS DEBUG:
-  SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
+  SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
 
   myHandle = Handle::create();  // Actually, in the AMF's case I probably want to create a well-known component handle (i.e. the AMF on node X), not handle that means "pid-Y-on-node-X".  But it does not matter. It would just be so a helper function could be created.
 
   /* Initialize mgt database  */
   ClMgtDatabase *db = ClMgtDatabase::getInstance();
   db->initializeDB("SAFplusAmf");
-  
+  cfg.load(db);
+
   logServer = boost::thread(LogServer());
 
   // Needed?
@@ -113,14 +116,14 @@ int main(int argc, char* argv[])
   // Once SAFplus is up, we can become a full member of the group.  The basic credential is the node's address.  
   // TODO: implement an environment variable to override this basic credential so users can control which node becomes master.
 
-  if (SYSTEM_CONTROLLER) 
+  if (SAFplus::SYSTEM_CONTROLLER) 
     {
-      credential = ASP_NODEADDR | SC_ELECTION_BIT;
+      credential = SAFplus::ASP_NODEADDR | SC_ELECTION_BIT;
       capabilities = Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE;
     }
-  else if (ASP_SC_PROMOTE) // A promotable payload can only become standby at first.
+  else if (SAFplus::ASP_SC_PROMOTE) // A promotable payload can only become standby at first.
     {      
-      credential = ASP_NODEADDR;
+      credential =  SAFplus::ASP_NODEADDR;
       capabilities = Group::ACCEPT_STANDBY;
     }
   else  // Don't elect me!!!!

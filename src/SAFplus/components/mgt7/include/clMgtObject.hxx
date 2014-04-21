@@ -190,6 +190,8 @@ public:
     virtual void load();
 };
 
+typedef ClMgtObject ClMgtList;
+
 #endif /* CLMGTOBJECT_H_ */
 
 /** \} */

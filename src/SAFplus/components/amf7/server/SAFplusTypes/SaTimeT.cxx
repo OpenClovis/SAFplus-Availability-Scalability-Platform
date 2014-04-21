@@ -21,7 +21,7 @@ namespace SAFplusTypes {
         this->Value = value;
     };
 
-    SAFplusTypes::SaTimeT& SaTimeT::operator=(SAFplusTypes::SaTimeT& SaTimeT) {
+    SAFplusTypes::SaTimeT& SaTimeT::operator=(const SAFplusTypes::SaTimeT& SaTimeT) {
         Value = SaTimeT.Value;
         return *this;
     };

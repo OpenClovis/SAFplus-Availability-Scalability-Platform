@@ -19,7 +19,7 @@ namespace SAFplusAmf {
          AdministrativeState();
         int getValue();
         void setValue(int value);
-        SAFplusAmf::AdministrativeState& operator=(SAFplusAmf::AdministrativeState& AdministrativeState);
+        SAFplusAmf::AdministrativeState& operator=(const SAFplusAmf::AdministrativeState& AdministrativeState);
         friend std::ostream& operator<<(std::ostream& os, const SAFplusAmf::AdministrativeState& AdministrativeState);
         friend std::istream& operator>>(std::istream& in, SAFplusAmf::AdministrativeState& AdministrativeState);
          ~AdministrativeState();
