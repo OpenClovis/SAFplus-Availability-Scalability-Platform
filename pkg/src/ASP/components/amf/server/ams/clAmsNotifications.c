@@ -549,8 +549,6 @@ static ClRcT clAmsSINotificationEventPayloadSet(const ClAmsEntityT *entity,
 }
 
 static ClRcT clAmsSGNotificationEventPayloadSet(const ClAmsEntityT *entity,
-                                                const ClAmsEntityRefT *entityRef,
-                                                const ClAmsHAStateT lastHAState,
                                                 const ClAmsNotificationTypeT ntfType,
                                                 ClAmsNotificationDescriptorT *notification)
 {
@@ -651,8 +649,6 @@ ClRcT clAmsNotificationEventPayloadSet(const ClAmsEntityT *entity,
     case CL_AMS_ENTITY_TYPE_SG:
         {
             clAmsSGNotificationEventPayloadSet(entity,
-                                               entityRef,
-                                               lastHAState,
                                                ntfType,
                                                notification);
             break;
