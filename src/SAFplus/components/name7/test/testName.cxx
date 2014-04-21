@@ -5,6 +5,7 @@
 #include <clNameApi.hxx>
 #include <stdio.h>
 #define __THREAD
+#undef __THREAD
 using namespace SAFplus;
 using namespace SAFplusI;
 
@@ -44,14 +45,14 @@ void testNameSetGet(const char* n, NameRegistrar::MappingMode m, uint32_t idx, v
    try {
      SAFplus::Handle oh = name.getHandle(n);
      //char buf[100];
-     printf("Handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     printf("Handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);
    }catch (NameException &ne) {
       printf("Error [%s]\n", ne.what());     
    }
    try {
      SAFplus::Handle oh = name.getHandle("blah");
      //char buf[100];
-     printf("Handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     printf("Handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);
    }catch (NameException &ne) {
       printf("Error [%s]\n", ne.what());     
    }   
@@ -67,14 +68,14 @@ void testNameAppend(const char* n, NameRegistrar::MappingMode m, uint32_t idx, v
    try {
      SAFplus::Handle oh = name.getHandle(n);
      //char buf[100];
-     printf("Handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     printf("Handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);
    }catch (NameException &ne) {
       printf("Error [%s]\n", ne.what());     
    }
    try {
      SAFplus::Handle oh = name.getHandle("blah");
      //char buf[100];
-     printf("Handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     printf("Handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);
    }catch (NameException &ne) {
       printf("Error [%s]\n", ne.what());     
    }   
@@ -131,11 +132,11 @@ int main(int argc, char* argv[])
 #if 1
    ObjTest* jim = new ObjTest("Jim");   
    //obj->greet();
-   const char* name1 = "_111000111";
+   const char* name1 = "_name1";
    testNameSetGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbcc, jim);
    testNameAppend(name1, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbdd, jim);
    ObjTest* jane = new ObjTest("Jane");
-   const char* name2 = "_011000111";
+   const char* name2 = "_name2";
    testNameSetGet(name2, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbce, jane);
    
    name.dumpObj();
@@ -214,15 +215,35 @@ int main(int argc, char* argv[])
    delete jane;
 // Test with "prefer local" mode
    pid_t thispid = getpid();   
-   const char* name3 = "_001000111";
+   const char* name3 = "_name3";
    testNameSetGet(name3, NameRegistrar::MODE_REDUNDANCY, 0xaabbe4, NULL);
    testNameAppend(name3, NameRegistrar::MODE_NO_CHANGE, 0xaabbe5, NULL);
    testNameAppend(name3, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbe7, NULL, (uint32_t)thispid);
+   printf("----Dumpping the name service database---\n");
+   name.dump();   
+   printf("---------process failed------------\n");
+   name.processFailed(thispid, 0);
+   //name.dump();
 #endif
    //const char* name3 = "_001000111";
    testNameAppend(name3, NameRegistrar::MODE_NO_CHANGE, 0xaabbe9, NULL, 0xffffffff, 2);
+   name.dump();
+   printf("---------node failed------------\n");
+   name.nodeFailed(2, 0);
+   
+   const char* name4 = "_name4";
+   testNameSetGet(name4, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbf1, NULL, (uint32_t)thispid);
+   name.dump();
+   printf("---------process failed------------\n");
+   name.processFailed(thispid, 0);
+
+   const char* name5 = "_name5";
+   testNameSetGet(name5, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbf2, NULL, 0xffffffff, 2);
+   name.dump();
+   printf("---------node failed------------\n");
+   name.nodeFailed(2, 0);
 #else
-   const char* name1 = "_1100";   
+   const char* name1 = "_name1";   
    threadNameSetGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc1);
    uint32_t idx = 0xaabbc2;
    int i;
@@ -238,7 +259,7 @@ int main(int argc, char* argv[])
    threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbcc);
    threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbce);
    threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc6);*/
-   const char* name2 = "_0100";   
+   const char* name2 = "_name2";   
    threadNameSetGet(name2, NameRegistrar::MODE_REDUNDANCY, 0xaabbe1);  
    idx=0xaabbe2;
    for(i=0;i<30;i++) {
@@ -248,6 +269,7 @@ int main(int argc, char* argv[])
    //threadNameAppendGet(name2, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbec);
    //threadNameAppendGet(name2, NameRegistrar::MODE_REDUNDANCY, 0xaabbee);
 #endif
+   printf("----Dumpping the name service database---\n");
    name.dump();   
    return 0;
 }

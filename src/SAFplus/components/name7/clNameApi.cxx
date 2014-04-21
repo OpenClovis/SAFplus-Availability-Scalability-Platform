@@ -38,8 +38,7 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, Mappi
    Buffer* val = new(vdata) Buffer(valLen);   
    memcpy(val->data, serial_str.data(), valLen);
 
-   Transaction t;
-   m_checkpoint.write(*key,*val,t);
+   m_checkpoint.write(*key,*val);
    if (!object)
    {
       //Don't care the object
@@ -84,24 +83,23 @@ void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, Ma
       boost::archive::binary_iarchive ia(s);
       HandleMappingMode hm;  
       ia >> hm;
-      Vector newHandles = hm.getHandles();        
-      newHandles.push_back(handle);
-      MappingMode mm = hm.getMappingMode();
+      Vector& handles = hm.getHandles();        
+      handles.push_back(handle);
+      MappingMode& mm = hm.getMappingMode();
       if (m != MODE_NO_CHANGE) mm = m;
-      //re-write the new buffer
-      HandleMappingMode hm2(mm, newHandles);
+      //re-write the new buffer      
       std::string serial_str;
       boost::iostreams::back_insert_device<std::string> inserter(serial_str);
       boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> > s2(inserter);
       boost::archive::binary_oarchive oa(s2);
-      oa << hm2;
+      oa << hm;
       s2.flush();
       size_t valLen = serial_str.size();
       char vdata[sizeof(Buffer)-1+valLen];
       Buffer* val = new(vdata) Buffer(valLen);   
       memcpy(val->data, serial_str.data(), valLen);
-      Transaction t;
-      m_checkpoint.write(*key,*val,t);
+
+      m_checkpoint.write(*key,*val);
    }
    
    if (!object)
@@ -295,8 +293,9 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
       boost::archive::binary_iarchive ia(s);
       HandleMappingMode hm;  
       ia >> hm;      
-      MappingMode m = hm.getMappingMode();      
-      size_t sz = hm.getHandles().size();
+      MappingMode& m = hm.getMappingMode();
+      Vector& handles = hm.getHandles();
+      size_t sz = handles.size();
       int idx = -1;
       if (m == MODE_REDUNDANCY)
       {
@@ -315,7 +314,7 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
          int i;
          for(i=0;i<sz;i++)
          {
-            if (hm.getHandles().at(i).getProcess() == (uint32_t)thisPid)
+            if (handles[i].getProcess() == (uint32_t)thisPid)
             {
                idx = i;
             }
@@ -327,7 +326,7 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
             printf("getHandle of name [%s]: thisNode [%d]\n", name, thisNode);
             for(i=0;i<sz;i++)
 	    {		                
-		if ((uint32_t)hm.getHandles().at(i).getNode() == thisNode)
+		if ((uint32_t)handles[i].getNode() == thisNode)
 		{		
                    idx = i;
 		}
@@ -342,7 +341,7 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
          idx = 0;
       }
       assert(idx >=0 && idx < sz);
-      return hm.getHandles().at(idx);
+      return handles[idx];
    }
    throw NameException("name provided does not exist");
 }
@@ -394,6 +393,79 @@ SAFplus::Buffer& SAFplus::NameRegistrar::getData(const std::string& name) throw(
    }
 }
 
+void SAFplus::NameRegistrar::handleFailure(const FailureType failureType, const uint32_t id, const uint32_t amfId)
+{
+   CkptHashMap::iterator ibegin = m_checkpoint.begin().iter;
+   CkptHashMap::iterator iend = m_checkpoint.end().iter;  
+   for(CkptHashMap::iterator iter = ibegin; iter != iend; iter++)
+   {
+      CkptHashMap::value_type vt = *iter;
+
+      BufferPtr curkey = vt.first;
+      printf("handleFailure(): key [%s]\n", curkey.get()->data);            
+
+      BufferPtr& curval = vt.second;
+      if (curval)
+      {
+         boost::iostreams::basic_array_source<char> device(curval->data, curval->len());
+         boost::iostreams::stream<boost::iostreams::basic_array_source<char> > s(device);
+         boost::archive::binary_iarchive ia(s);
+         HandleMappingMode hm;  
+         ia >> hm;
+         Vector& handles = hm.getHandles();
+         size_t sz = handles.size();
+         if (hm.getMappingMode() != NameRegistrar::MODE_PREFER_LOCAL)
+         {
+            continue;
+         }
+         for(int i=0;i<sz;i++)
+         {
+            if ((failureType == NameRegistrar::FAILURE_PROCESS && handles[i].getProcess() == id) ||
+                (failureType == NameRegistrar::FAILURE_NODE && handles[i].getNode() == (uint16_t)id))
+            {            
+               if (sz == 1) // There is only one handle registered, then remove the name and its value
+               {
+                  printf("Removing element with key [%s]\n", curkey.get()->data);
+                  m_checkpoint.remove(curval);                   
+                  m_checkpoint.remove(curkey, true);
+               }
+               else  //Remove this element and push remaining handles back to checkpoint
+               {
+                  printf("Removing one handle of key [%s]\n", curkey.get()->data);
+                  handles.erase(handles.begin()+i);
+                  std::string serial_str;
+                  boost::iostreams::back_insert_device<std::string> inserter(serial_str);
+                  boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> > s(inserter);
+                  boost::archive::binary_oarchive oa(s);
+                  oa << hm;   
+                  s.flush();
+                  size_t valLen = serial_str.size();
+                  char vdata[sizeof(Buffer)-1+valLen];
+                  Buffer* val = new(vdata) Buffer(valLen);   
+                  memcpy(val->data, serial_str.data(), valLen);
+                  m_checkpoint.write(*curkey.get(),*val);
+               }                
+               //return;
+            }
+         }          
+      }
+      else
+      {
+         printf("handleFailure(): name data is empty");
+      }
+   }
+}
+
+void SAFplus::NameRegistrar::processFailed(const uint32_t pid, const uint32_t amfId)
+{
+   handleFailure(NameRegistrar::FAILURE_PROCESS, pid, amfId);
+}
+
+void SAFplus::NameRegistrar::nodeFailed(const uint16_t slotNum, const uint32_t amfId)
+{
+   handleFailure(NameRegistrar::FAILURE_NODE, (uint32_t)slotNum, amfId);  
+}
+
 void SAFplus::NameRegistrar::dump()
 {
    CkptHashMap::iterator ibegin = m_checkpoint.begin().iter;
@@ -415,7 +487,7 @@ void SAFplus::NameRegistrar::dump()
           boost::archive::binary_iarchive ia(s);
           HandleMappingMode hm;  
           ia >> hm;
-          Vector v = hm.getHandles();
+          Vector& v = hm.getHandles();
           size_t sz = v.size();
           for(int i=0;i<sz;i++)
           {

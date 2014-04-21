@@ -63,6 +63,12 @@ namespace SAFplus
         MODE_PREFER_LOCAL,
         MODE_NO_CHANGE
      } MappingMode;
+     
+     typedef enum 
+     {
+        FAILURE_PROCESS,
+        FAILURE_NODE
+     } FailureType;
       //static NameRegistrar* getInstance() { name = new NameRegistrar(); return name;}
      /* Associate a name with a handle and pointer and associate a handle with a pointer.
       If the name does not exist, it is created.  If it exists, it is overwritten.
@@ -109,6 +115,10 @@ namespace SAFplus
      SAFplus::Buffer& getData(const char* name) throw(NameException&);
      SAFplus::Buffer& getData(const std::string& name) throw(NameException&);
 
+     //Failure handling
+     void processFailed(const uint32_t pid, const uint32_t amfId);
+     void nodeFailed(const uint16_t slotNum, const uint32_t amfId);
+     void handleFailure(const FailureType failureType, const uint32_t id, const uint32_t amfId);
      //**** This is the dummy function for testing to get iocNodeAddr ********
      //ClIocNodeAddressT clIocLocalAddressGet() { return 2; }
      void dump();
@@ -134,13 +144,21 @@ namespace SAFplus
      HandleMappingMode(NameRegistrar::MappingMode mode, Vector handles): m_mode(mode), m_handles(handles)
      {        
      }
-     NameRegistrar::MappingMode getMappingMode()
+     NameRegistrar::MappingMode& getMappingMode()
      {
         return m_mode;
      }
-     Vector getHandles()
+     Vector& getHandles()
      {
         return m_handles;
+     }     
+     void setHandles(Vector handles)
+     {
+        m_handles = handles;
+     }
+     void setMode(NameRegistrar::MappingMode m)
+     {
+        m_mode = m;
      }
   };
   

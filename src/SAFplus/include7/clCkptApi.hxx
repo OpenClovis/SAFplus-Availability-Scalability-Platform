@@ -155,6 +155,8 @@ namespace SAFplus
     void write(const std::string& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
     void write(const std::string& key, const std::string& value,Transaction& t=SAFplus::NO_TXN);
 
+    void remove(const SAFplusI::BufferPtr& bufPtr, bool isKey=false, Transaction& t=SAFplus::NO_TXN);
+    void remove(Buffer* buf, bool isKey=false, Transaction& t=SAFplus::NO_TXN);    
 
     typedef SAFplusI::CkptMapPair KeyValuePair;
 

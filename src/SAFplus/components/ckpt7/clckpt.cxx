@@ -235,6 +235,29 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
   
 }
 
+void SAFplus::Checkpoint::remove(const SAFplusI::BufferPtr& bufPtr, bool isKey, Transaction& t)
+{
+  if (isKey)
+  {    
+    map->erase(bufPtr);    
+  }
+
+  if (bufPtr.get()->ref() == 1)
+  {
+    msm.deallocate(bufPtr.get());
+  }
+  else
+  {
+    bufPtr.get()->decRef();
+  }
+}
+
+void SAFplus::Checkpoint::remove(Buffer* buf, bool isKey, Transaction& t)
+{
+  SAFplusI::BufferPtr kb(buf);
+  remove(kb, isKey, t);
+}
+
 void SAFplus::Checkpoint::remove(char* name)
 {
   //char tempStr[81];
