@@ -162,6 +162,8 @@ def amf_watchdog_loop():
 
 def redirect_file():
 
+    #Save current directory
+    CURDIR = os.getcwd()
     UMASK = 0
     WORKDIR = asp.get_asp_run_dir()
     MAXFD = 1024
@@ -185,6 +187,9 @@ def redirect_file():
     #os.open(redirect_to, os.O_RDWR | os.O_CREAT)
     #os.dup2(0, 1)
     #os.dup2(0, 2)
+
+    #Revert to current directory
+    os.chdir(CURDIR)
 
 def main():    
     asp.check_py_version()
