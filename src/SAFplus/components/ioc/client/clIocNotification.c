@@ -754,6 +754,83 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
                           pRecvBase + sizeof(userHeader));
         return CL_OK;
     }
+    
+    //****************************************reliable IOC source***********************************************************
+#ifdef RELIABLE_IOC
+    //Sender process data control from receiver    
+    if (userHeader.protocolType == CL_IOC_SEND_ACK_PROTO)
+    {   
+        clLogDebug("PROXY", "RECV","Received ACK data");
+        ClUint8T* pBuffer = pRecvBase + sizeof(userHeader);
+        ClUint32T bytes = recvLen - sizeof(userHeader);
+        if(!pBuffer)
+        {
+            clLogDebug("PROXY", "RECV","ACK data buffer invalid");
+            goto out;
+        }
+        ClIocAddressT destAddress= {{0}};
+        destAddress.iocPhyAddress.nodeAddress=srcAddr.nodeAddress;
+        destAddress.iocPhyAddress.portId=srcAddr.portId;
+        ClUint32T portId= ntohl(userHeader.dstAddress.iocPhyAddress.portId);
+        if(bytes>8)
+        {            
+            goto out;
+            clLogDebug("PROXY", "RECV","ACK data size invalid");
+        }
+        ClUint32T messageId=((ClUint32T*)pBuffer)[0];
+        ClUint32T fragmentId=((ClUint32T*)pBuffer)[1];
+        //senderBufferACKCallBack(userHeader.messageId, &destAddress,fragmentId,portId);
+        return CL_OK;
+    }
+    
+    if (userHeader.protocolType == CL_IOC_SEND_NAK_PROTO)
+    {
+        clLogDebug("PROXY", "RECV","Received NAK data");
+        //process NAK IOC event
+        ClUint8T* pBuffer = pRecvBase + sizeof(userHeader);
+        ClUint32T bytes = recvLen - sizeof(userHeader);
+        if(!pBuffer)
+        {
+            clLogDebug("PROXY", "RECV","NAK data buffer invalid");
+            goto out;
+        }
+        ClIocAddressT destAddress= {{0}};
+        destAddress.iocPhyAddress.nodeAddress=srcAddr.nodeAddress;
+        destAddress.iocPhyAddress.portId=srcAddr.portId;
+        ClUint32T portId= ntohl(userHeader.dstAddress.iocPhyAddress.portId);
+        ClUint32T fragmentId=((ClUint32T*)pBuffer)[1];
+        ClUint8T *ppBuffer = pBuffer;
+        ppBuffer = pBuffer + sizeof(ClUint32T);
+        bytes -= sizeof(ClUint32T);
+        //senderBufferNAKCallBack(userHeader.messageId,&destAddress,portId,(ClUint32T*)pBuffer,bytes/sizeof(ClUint32T));
+        return CL_OK;
+     }
+    if (userHeader.protocolType == CL_IOC_DROP_REQUEST_PROTO)
+    {
+        clLogDebug("PROXY", "RECV","Received Drop request");
+        ClUint8T* pBuffer = pRecvBase + sizeof(userHeader);
+        ClUint32T bytes = recvLen - sizeof(userHeader);
+        if(!pBuffer)
+        {
+            clLogDebug("PROXY", "RECV","Drop data buffer invalid");
+            goto out;
+        }
+        ClIocAddressT destAddress= {{0}};
+        destAddress.iocPhyAddress.nodeAddress=ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
+        destAddress.iocPhyAddress.portId=ntohl(userHeader.srcAddress.iocPhyAddress.portId);
+        ClUint32T portId= srcAddr.portId;
+        if(bytes>4)
+        {            
+            clLogDebug("PROXY", "RECV","Drop request data size invalid");
+            goto out;
+        }
+        ClUint32T messageId=((ClUint32T*)pBuffer)[0];
+        //receiverDropMsgCallback(srcAddress,messageId,pIocCommPort->portId);
+        //process NAK IOC event
+        return CL_OK;
+    }
+#endif
+//****************************************reliable IOC source***********************************************************    
 
     memcpy(&notification, pRecvBase + sizeof(userHeader), sizeof(notification));
     if(ntohl(notification.protoVersion) != CL_IOC_NOTIFICATION_VERSION)
