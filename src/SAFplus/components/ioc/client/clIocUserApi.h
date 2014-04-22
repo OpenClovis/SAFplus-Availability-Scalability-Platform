@@ -46,8 +46,8 @@ typedef struct
 #ifdef RELIABLE_IOC
     ClUint32T messageId;
     ClBoolT isReliable;
-    ClUint32T piggyBackACKLength;
-    ClUint32T piggyBackNAKLength;
+    ClUint32T piggyBackACK;
+    ClUint32T piggyBackACKMessageId;
 #endif
 #ifdef CL_IOC_COMPRESSION
     ClTimeT       pktTime;
