@@ -10,13 +10,15 @@ using namespace SAFplusI;
 using namespace std;
 
 extern SAFplus::NameRegistrar name;
-extern ClUint32T clAspLocalId;
+Checkpoint Group::mCheckpoint(Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
 
 SAFplus::Group::Group(std::string handleName)
 {
   handle  = INVALID_HDL;
   activeEntity = INVALID_HDL;
   standbyEntity = INVALID_HDL;
+  lastRegisteredEntity = INVALID_HDL;
+  wakeable             = (SAFplus::Wakeable *)0;
   try
   {
     /* Get handle from name service */
@@ -27,7 +29,7 @@ SAFplus::Group::Group(std::string handleName)
   {
     logDebug("GMS", "HDL","Can't get handler from give name %s",handleName.c_str());
     /* If handle did not exist, Create it */
-    handle = SAFplus::Handle(PersistentHandle,0,getpid(),clAspLocalId);
+    handle = SAFplus::Handle(PersistentHandle,0,getpid(),clIocLocalAddressGet());
     /* Store to name service */
     name.set(handleName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY,(void*)this);
   }
@@ -39,101 +41,47 @@ SAFplus::Group::Group()
   handle = INVALID_HDL;
   activeEntity = INVALID_HDL;
   standbyEntity = INVALID_HDL;
+  lastRegisteredEntity = INVALID_HDL;
+  wakeable             = (SAFplus::Wakeable *)0;
 }
 
 void SAFplus::Group::init(SAFplus::Handle groupHandle)
 {
-  char              sharedMemName[20];
 
-  /* No entity is registered at this time */
-  lastRegisteredEntity = INVALID_HDL;
-  wakeable             = (SAFplus::Wakeable *)0;
-
-  /* Check whether handle is valid */
-  if(groupHandle == INVALID_HDL)
-  {
-    logError("GMS", "HDL","Invalid handler for group");
-    assert(0);
-  }
-
-  /* Create unique name for shared memory */
-  sprintf(sharedMemName,"CL_GMS_%d",clAspLocalId);
-
-  initializeSharedMemory(sharedMemName);
-}
-
-void SAFplus::Group::initializeSharedMemory(char sharedMemName[])
-{
-  /* Remove old shared memory which is allocated by me */
-  shared_memory_object::remove(sharedMemName);
-
-  /* Create shared memory */
-  msm = managed_shared_memory(open_or_create, sharedMemName, SAFplus::Group::GROUP_SEGMENT_SIZE);
-  try
-  {
-    hdr = msm.construct<SAFplusI::GroupBufferHeader>("GroupBufferHeader") ();
-    assert(hdr);
-    hdr->serverPid = getpid();
-    hdr->structId = SAFplus::Group::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7;
-  }
-  catch(interprocess_exception &e)
-  {
-    if (e.get_error_code() == already_exists_error)
-    {
-        hdr = msm.find_or_construct<SAFplusI::GroupBufferHeader>("GroupBufferHeader") ();
-        assert(hdr);
-        int     retries  =  0;
-        while ((hdr->structId != SAFplus::Group::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7)&&(retries<2)) { retries++; sleep(1); }  // If another process just barely beat me to the creation, I better wait.
-        if (retries >= 2)
-        {
-          hdr->serverPid = getpid();
-          hdr->structId = SAFplus::Group::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7;
-        }
-    }
-    else
-    {
-      logError("GMS", "MEM","Initialize shared memory error [0x%x]", e.get_error_code());
-      throw;
-    }
-  }
-
-  /* Create GroupHashMap located in the shared memory */
-  map = msm.find_or_construct<GroupHashMap>("GroupHashMap") ( (int)SAFplus::Group::GROUP_SEGMENT_ROWS, boost::hash<GroupMapKey>(), BufferPtrContentsEqual(), msm.get_allocator<GroupMapPair>());
 }
 
 void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities)
 {
   /*Check in share memory if entity exists*/
-  char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-  SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
-  *((EntityIdentifier *) b->data) = me;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(b));
+  char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
+  SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
+  *((EntityIdentifier *) key->data) = me;
+  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(key));
 
+  /* The entity was not exits, insert */
   if (contents == map->end())
   {
     /* Keep track of last register entity */
     lastRegisteredEntity = me;
     /* Allocate shared memory to store data*/
-    SAFplus::Buffer* key = new (msm.allocate(sizeof(EntityIdentifier) + sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (sizeof(EntityIdentifier)); //Area to store key
-    SAFplus::Buffer* val = new (msm.allocate(sizeof(GroupIdentity) + sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (sizeof(GroupIdentity));       //Area to store data struct
-
-    /* Create information to store*/
-    memcpy((char *)key->data,(char *)&me,sizeof(EntityIdentifier));
-
+    char vval[sizeof(GroupIdentity) + sizeof(SAFplus::Buffer)-1];
+    SAFplus::Buffer* val = new(vval) Buffer(sizeof(GroupIdentity));
     GroupIdentity groupIdentity;
     groupIdentity.id = me;
     groupIdentity.credentials = credentials;
     groupIdentity.capabilities = capabilities;
     groupIdentity.dataLen = dataLength;
-    groupIdentity.data = new (msm.allocate(dataLength + sizeof(SAFplus::Buffer) - 1)) SAFplus::Buffer (dataLength);
-    memcpy((char *)groupIdentity.data->data,(char *)data, dataLength);
-    memcpy((char *)val->data,(char *)&groupIdentity,sizeof(GroupIdentity));
-
+    memcpy(val->data,&groupIdentity,sizeof(GroupIdentity));
+    Transaction t;
+    mCheckpoint.write(*key,*val,t);
+    char vdat[dataLength + sizeof(SAFplus::Buffer)-1];
+    SAFplus::Buffer* dat = new(vdat) Buffer(dataLength);
+    memcpy(dat->data,data,dataLength);
     /* Store in the shared memory */
-    SAFplusI::BufferPtr kb(key),kv(val);
-    SAFplusI::GroupMapPair vt(kb,kv);
+    SAFplusI::BufferPtr kb(key),kv(dat);
+    SAFplus::GroupMapPair vt(kb,kv);
     map->insert(vt);
-    logInfo("GMS", "REG","Entity registration successful");
+    logDebug("GMS", "REG","Entity registration successful");
     /* Notify other entities about new entity*/
     if(wakeable)
     {
@@ -142,7 +90,41 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
   }
   else
   {
-    logDebug("GMS", "REG","Entity already exists");
+    uint oldLen = 0;
+    Transaction t;
+    logDebug("GMS", "REG","Entity exits. Update its information");
+    const Buffer& val = mCheckpoint.read(*key);
+    GroupIdentity *groupIdentity = (GroupIdentity *)val.data;
+    oldLen = groupIdentity->dataLen;
+    groupIdentity->credentials = credentials;
+    groupIdentity->capabilities = capabilities;
+    groupIdentity->dataLen = dataLength;
+    mCheckpoint.write(*key,val,t);
+
+    if(oldLen == dataLength)
+    {
+      Buffer *curData = contents->second.get();
+      memcpy(curData->data,data,oldLen);
+    }
+    else
+    {
+      Buffer *oldData = contents->second.get();
+      char vdat[dataLength + sizeof(SAFplus::Buffer)-1];
+      SAFplus::Buffer* dat = new(vdat) Buffer(dataLength);
+      memcpy(dat->data,data,dataLength);
+      map->erase(contents);
+      SAFplusI::BufferPtr kb(key),kv(dat);
+      SAFplus::GroupMapPair vt(kb,kv);
+      map->insert(vt);
+      if(oldData->ref() == 1)
+      {
+        delete oldData;
+      }
+      else
+      {
+        oldData->decRef(1);
+      }
+    }
   }
 }
 
@@ -159,25 +141,16 @@ void SAFplus::Group::deregister(EntityIdentifier me)
     me = lastRegisteredEntity;
   }
   /*Check in share memory if entity exists*/
-  char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-  SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
-  *((EntityIdentifier *) b->data) = me;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(b));
+  char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
+  SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
+  *((EntityIdentifier *) key->data) = me;
+  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(key));
 
   if(contents == map->end())
   {
-    logDebug("GMS", "DEREG","Entity did not exist");
+    logDebug("GMS", "DEREG","Entity was not exist");
     return;
   }
-  SAFplusI::BufferPtr curval = contents->second;
-  SAFplusI::BufferPtr curkey = contents->first;
-  SAFplus::Buffer* tmp = ((GroupIdentity *)(((Buffer *)curval.get())->data))->data;
-
-  /* Delete allocated memory for current EntityIdentifier */
-  msm.deallocate(curkey.get());
-  msm.deallocate(curval.get());
-  msm.deallocate(tmp);
-
   /* Delete data from map */
   map->erase(contents);
   /* Update if leaving entity is standby/active */
@@ -192,7 +165,7 @@ void SAFplus::Group::deregister(EntityIdentifier me)
   /* Notify other entities about new entity*/
   if(wakeable)
   {
-    wakeable->wake(2);
+    wakeable->wake(1);
   }
 }
 
@@ -204,10 +177,10 @@ void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
     me = lastRegisteredEntity;
   }
   /*Check in share memory if entity exists*/
-  char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-  SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
-  *((EntityIdentifier *) b->data) = me;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(b));
+  char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
+  SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
+  *((EntityIdentifier *) key->data) = me;
+  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(key));
 
   if(contents == map->end())
   {
@@ -215,45 +188,46 @@ void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
     return;
   }
 
-  SAFplusI::BufferPtr curval = contents->second;
-  ((GroupIdentity *)(((Buffer *)curval.get())->data))->capabilities = capabilities;
+  const Buffer &curVal = mCheckpoint.read(*key);
+  GroupIdentity *grp = (GroupIdentity *)curVal.data;
+  grp->capabilities = capabilities;
+  Transaction t;
+  mCheckpoint.write(*key,curVal,t);
 }
 
 uint SAFplus::Group::getCapabilities(EntityIdentifier id)
 {
   /*Check in share memory if entity exists*/
-  char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-  SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
-  *((EntityIdentifier *) b->data) = id;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(b));
+  char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
+  SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
+  *((EntityIdentifier *) key->data) = id;
+  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(key));
 
   if(contents == map->end())
   {
     logDebug("GMS", "GETCAP","Entity did not exist");
     return 0;
   }
-
+  const Buffer &curVal = mCheckpoint.read(*key);
   SAFplusI::BufferPtr curval = contents->second;
-  return ((GroupIdentity *)(((Buffer *)curval.get())->data))->capabilities;
+  GroupIdentity *grp = (GroupIdentity *)curVal.data;
+  return grp->capabilities;
 }
 
 SAFplus::Buffer& SAFplus::Group::getData(EntityIdentifier id)
 {
   /*Check in share memory if entity exists*/
-  char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-  SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
-  *((EntityIdentifier *) b->data) = id;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(b));
+  char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
+  SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
+  *((EntityIdentifier *) key->data) = id;
+  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(key));
 
   if(contents == map->end())
   {
     logDebug("GMS", "GETDATA","Entity did not exist");
     return *((Buffer*) NULL);
   }
-  SAFplusI::BufferPtr curval = contents->second;
-  /* TODO: Which data should be returned? Group identity or data member of group identity? */
-  //return *((GroupIdentity *)(((Buffer *)curval.get())->data))->data;
-  return *(curval.get());
+  return *(contents->second.get());
 }
 
 EntityIdentifier SAFplus::Group::electLeader()
@@ -263,15 +237,18 @@ EntityIdentifier SAFplus::Group::electLeader()
   EntityIdentifier leaderEntity = INVALID_HDL;
   for (GroupHashMap::iterator i = map->begin();i != map->end();i++)
   {
-    SAFplusI::BufferPtr curval = i->second;
-    curCredentials = ((GroupIdentity *)(((Buffer *)curval.get())->data))->credentials;
-    curCapabilities = ((GroupIdentity *)(((Buffer *)curval.get())->data))->capabilities;
+    Buffer *key = i->second.get();
+    const Buffer &val = mCheckpoint.read(*key);
+    GroupIdentity *grp = (GroupIdentity *)val.data;
+
+    curCredentials = grp->credentials;
+    curCapabilities = grp->capabilities;
     if((curCapabilities & SAFplus::Group::ACCEPT_ACTIVE) != 0)
     {
       if(highestCredentials < curCredentials)
       {
         highestCredentials = curCredentials;
-        leaderEntity = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
+        leaderEntity = grp->id;
       }
     }
   }
@@ -285,12 +262,14 @@ EntityIdentifier SAFplus::Group::electDeputy(EntityIdentifier highestCreEntity)
   EntityIdentifier deputyEntity = INVALID_HDL, curEntity = INVALID_HDL;
   for (GroupHashMap::iterator i = map->begin();i != map->end();i++)
   {
-    SAFplusI::BufferPtr curval = i->second;
-    curCredentials = ((GroupIdentity *)(((Buffer *)curval.get())->data))->credentials;
-    curCapabilities = ((GroupIdentity *)(((Buffer *)curval.get())->data))->capabilities;
+    Buffer *key = i->second.get();
+    const Buffer &val = mCheckpoint.read(*key);
+    GroupIdentity *grp = (GroupIdentity *)val.data;
+    curCredentials = grp->credentials;
+    curCapabilities = grp->capabilities;
     if((curCapabilities & SAFplus::Group::ACCEPT_STANDBY) != 0)
     {
-      curEntity = ((GroupIdentity *)(((Buffer *)curval.get())->data))->id;
+      curEntity = grp->id;
       if((highestCredentials < curCredentials) && !(curEntity == highestCreEntity))
       {
         highestCredentials = curCredentials;
@@ -331,7 +310,7 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles(int e
   }
 }
 
-int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int electionType)
+std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::elect(int electionType)
 {
   int ret=0;
   bool isRoleChanged = false;
@@ -344,15 +323,15 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     if(!(candidatePair.first == INVALID_HDL) && !(candidatePair.first == activeEntity))
     {
         isRoleChanged = true;
+        activeEntity = candidatePair.first;
         logInfo("GMS", "ELECT","Active entity had been elected");
     }
     if(!(candidatePair.second == INVALID_HDL) && !(candidatePair.second == standbyEntity))
     {
         isRoleChanged = true;
+        standbyEntity = candidatePair.second;
         logInfo("GMS", "ELECT","Standby entity had been elected");
     }
-    res.first = candidatePair.first;
-    res.second = candidatePair.second;
   }
   else if(electionType == (int)SAFplus::Group::ELECTION_TYPE_STANDBY)
   {
@@ -360,10 +339,9 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     if(!(candidatePair.second == INVALID_HDL) && !(candidatePair.second == standbyEntity))
     {
       isRoleChanged = true;
+      standbyEntity = candidatePair.second;
       logInfo("GMS", "ELECT","Standby entity had been elected");
     }
-    res.first = candidatePair.first;
-    res.second = candidatePair.second;
   }
   else if(electionType == (int)SAFplus::Group::ELECTION_TYPE_ACTIVE)
   {
@@ -371,23 +349,21 @@ int SAFplus::Group::elect(std::pair<EntityIdentifier,EntityIdentifier> &res, int
     if(!(candidatePair.first == INVALID_HDL) && !(candidatePair.first == activeEntity))
     {
         isRoleChanged = true;
+        activeEntity = candidatePair.second;
         logInfo("GMS", "ELECT","Active entity had been elected");
     }
-    res.first = candidatePair.first;
-    res.second = candidatePair.second;
   }
   else
-    {
-      logError("GMS","ELECT","Invalid election type");
-    }
+  {
+    logError("GMS","ELECT","Invalid election type");
+    return std::pair<EntityIdentifier,EntityIdentifier>(INVALID_HDL,INVALID_HDL);
+  }
 
   if(isRoleChanged)
-    {
-      activeEntity = res.first;
-      standbyEntity = res.second;
-      if (wakeable)  wakeable->wake(3);  // Can't wake until this group has updated its internal state
-    }
-  return 0;
+  {
+    if (wakeable)  wakeable->wake(3);  // Can't wake until this group has updated its internal state
+  }
+  return candidatePair;
 }
 
 bool SAFplus::Group::isMember(EntityIdentifier id)
