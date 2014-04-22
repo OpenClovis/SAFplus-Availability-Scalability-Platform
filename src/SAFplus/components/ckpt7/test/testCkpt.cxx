@@ -21,6 +21,7 @@ void test_readwrite()
       char vdata[sizeof(Buffer)-1+sizeof(int)*10];
       Buffer* val = new(vdata) Buffer(sizeof(int)*10);
 
+      // Write some data
       for (int i=0;i<100;i++)
         {
           for (int j=0;j<10;j++)  // Set the data to something verifiable
@@ -29,7 +30,8 @@ void test_readwrite()
             }
           c1.write(i,*val);
         }
- 
+
+      // Read it
       for (int i=0;i<100;i++)
         {
           const Buffer& output = c1.read(i);
@@ -48,13 +50,31 @@ void test_readwrite()
             }
         }
 
+      // Dump and delete it
       printf("ITERATOR: \n");
+      int prior=-1;
       for (Checkpoint::Iterator i=c1.begin();i!=c1.end();i++)
         {
           SAFplus::Checkpoint::KeyValuePair& item = *i;
           int tmp = *((int*) (*item.first).data);
           printf("key: %d, value: %s\n",tmp,(*item.second).data);
+          if (prior!=-1)
+            {
+              c1.remove(prior);
+            }
+          prior = tmp;
         }
+
+      int count = 0;
+      for (Checkpoint::Iterator i=c1.begin();i!=c1.end();i++)
+        {
+          SAFplus::Checkpoint::KeyValuePair& item = *i;
+          int tmp = *((int*) (*item.first).data);
+          printf("key: %d, value: %s\n",tmp,(*item.second).data);
+          count++;
+        }
+      clTest(("All items deleted"),count==0,("count %d",count));
+
       clTestCaseEnd((""));
     }
 

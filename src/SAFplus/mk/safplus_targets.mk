@@ -50,4 +50,4 @@ SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt
 SAFplusServices := $(SAFPLUS_TARGET)/bin/splogd
 
 cleanall:
-	rm -f $(SAFplusTests) $(SAFplusSOs) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/*
+	rm -f $(SAFplusTests) $(SAFplusSOs) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*

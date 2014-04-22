@@ -11,15 +11,12 @@ DEP_LIBS := $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclLog.
 all: $(TEST_DIR)/testName
 
 $(TEST_DIR)/testName:  $(OBJ_DIR)/testName.o $(DEP_LIBS)
-	$(LINK) $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/testName
-
-cleanall:
-	rm -f $(OBJ_DIR)/*.o $(MWOBJ_DIR)/*.o $(LIB_DIR)/*.so $(TEST_DIR)/testName
 
 include ../../../mk/safplus_targets.mk

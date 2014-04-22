@@ -155,8 +155,12 @@ namespace SAFplus
     void write(const std::string& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
     void write(const std::string& key, const std::string& value,Transaction& t=SAFplus::NO_TXN);
 
+    void remove(const Buffer& key,Transaction& t=SAFplus::NO_TXN);
+    void remove(const uintcw_t key,Transaction& t=SAFplus::NO_TXN);
+#if 0    
     void remove(const SAFplusI::BufferPtr& bufPtr, bool isKey=false, Transaction& t=SAFplus::NO_TXN);
-    void remove(Buffer* buf, bool isKey=false, Transaction& t=SAFplus::NO_TXN);    
+    void remove(Buffer* buf, bool isKey=false, Transaction& t=SAFplus::NO_TXN);
+#endif    
 
     typedef SAFplusI::CkptMapPair KeyValuePair;
 
@@ -187,8 +191,9 @@ namespace SAFplus
       //void getCkptData(void);
       Checkpoint* ckpt;
       SAFplusI::CkptMapPair* curval;
-//Buffer *pData;
-//Buffer *pKey;
+
+      friend class Checkpoint;
+    protected:
       SAFplusI::CkptHashMap::iterator iter;
     };
 
@@ -198,7 +203,7 @@ namespace SAFplus
 
     // debugging
     void dump();
-    static void remove(char* name);
+    static void dbgRemove(char* name);
     void stats();
   protected:
     //boost::interprocess::shared_memory_object* sharedMemHandle;

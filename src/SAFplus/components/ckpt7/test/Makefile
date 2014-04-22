@@ -11,10 +11,10 @@ DEP_LIBS := $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclUtils
 all: $(TEST_DIR)/testCkpt
 
 $(TEST_DIR)/testCkpt:  $(OBJ_DIR)/testCkpt.o $(DEP_LIBS)
-	$(LINK) $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
 
 $(TEST_DIR)/try: $(CLIENT_OBJ) $(DEP_LIBS)
-	$(LINK) $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
 	cp $(TEST_DIR)/try .
 
 $(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)

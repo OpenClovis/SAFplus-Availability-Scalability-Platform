@@ -235,6 +235,38 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
   
 }
 
+void SAFplus::Checkpoint::remove (const uintcw_t key,Transaction& t)
+{
+  char data[sizeof(Buffer)-1+sizeof(uintcw_t)];
+  Buffer* b = new(data) Buffer(sizeof(uintcw_t));
+  *((uintcw_t*) b->data) = key;
+  remove(*b,t);
+}
+
+void SAFplus::Checkpoint::remove(const Buffer& key,Transaction& t)
+{
+  CkptHashMap::iterator contents = map->find(SAFplusI::BufferPtr((Buffer*)&key));
+
+  while (contents != map->end())
+    {
+      SAFplusI::BufferPtr& curval = contents->second;  // remove the value
+      SAFplus::Buffer* val = curval.get();
+      if (val->ref()==1) 
+        msm.deallocate(val);  // if I'm the last owner, let this go.
+      else 
+        val->decRef();	
+
+      curval = contents->first;    
+      val = curval.get();  // remove the key
+      if (val->ref()==1) 
+        msm.deallocate(val);  // if I'm the last owner, let this go.
+      else 
+        val->decRef();
+      contents++;
+    }
+}
+
+#if 0
 void SAFplus::Checkpoint::remove(const SAFplusI::BufferPtr& bufPtr, bool isKey, Transaction& t)
 {
   if (isKey)
@@ -257,8 +289,9 @@ void SAFplus::Checkpoint::remove(Buffer* buf, bool isKey, Transaction& t)
   SAFplusI::BufferPtr kb(buf);
   remove(kb, isKey, t);
 }
+#endif
 
-void SAFplus::Checkpoint::remove(char* name)
+void SAFplus::Checkpoint::dbgRemove(char* name)
 {
   //char tempStr[81];
   //hdr->handle.toStr(tempStr);
