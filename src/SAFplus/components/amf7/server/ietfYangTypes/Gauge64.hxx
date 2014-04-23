@@ -16,13 +16,13 @@ namespace ietfYangTypes {
         unsigned long int Value;
 
     public:
-         Gauge64();
+        Gauge64();
         unsigned long int getValue();
         void setValue(unsigned long int value);
-        ietfYangTypes::Gauge64& operator=(ietfYangTypes::Gauge64& gauge64);
+        ietfYangTypes::Gauge64& operator=(const ietfYangTypes::Gauge64& gauge64);
         friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Gauge64& gauge64);
-        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Gauge64& gauge64);
-         ~Gauge64();
+        friend std::istream& operator>>(std::istream& is, ietfYangTypes::Gauge64& gauge64);
+        ~Gauge64();
 
     };
 }

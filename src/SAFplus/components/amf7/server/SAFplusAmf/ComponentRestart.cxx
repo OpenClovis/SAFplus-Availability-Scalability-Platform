@@ -18,7 +18,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ComponentRestart, /SAFplusAmf/ServiceGroup/ComponentRestart)
 
-     ComponentRestart::ComponentRestart(): ClMgtObject("ComponentRestart"), maximum("maximum"), duration("duration") {
+    ComponentRestart::ComponentRestart(): ClMgtObject("ComponentRestart"), maximum("maximum"), duration("duration") {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");
     };
@@ -56,7 +56,7 @@ namespace SAFplusAmf {
         this->duration.Value = durationValue;
     };
 
-     ComponentRestart::~ComponentRestart() {
+    ComponentRestart::~ComponentRestart() {
     };
 
 }

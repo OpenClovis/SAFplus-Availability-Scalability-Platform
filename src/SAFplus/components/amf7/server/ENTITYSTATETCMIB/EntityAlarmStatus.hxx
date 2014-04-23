@@ -17,13 +17,13 @@ namespace ENTITYSTATETCMIB {
         std::bitset<7> Value;
 
     public:
-         EntityAlarmStatus();
+        EntityAlarmStatus();
         std::bitset<7> getValue();
         void setValue(std::bitset<7> value);
-        ENTITYSTATETCMIB::EntityAlarmStatus& operator=(ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
+        ENTITYSTATETCMIB::EntityAlarmStatus& operator=(const ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
         friend std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
-        friend std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
-         ~EntityAlarmStatus();
+        friend std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
+        ~EntityAlarmStatus();
 
     };
 }

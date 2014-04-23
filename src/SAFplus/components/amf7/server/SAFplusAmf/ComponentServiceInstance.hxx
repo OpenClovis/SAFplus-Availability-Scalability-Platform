@@ -44,8 +44,8 @@ namespace SAFplusAmf {
         ClMgtProvList<std::string> dependencies;
 
     public:
-         ComponentServiceInstance();
-         ComponentServiceInstance(std::string nameValue);
+        ComponentServiceInstance();
+        ComponentServiceInstance(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -88,7 +88,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ComponentServiceInstance/dependencies
          */
         void setDependencies(std::string dependenciesValue);
-         ~ComponentServiceInstance();
+        ~ComponentServiceInstance();
 
     };
 }

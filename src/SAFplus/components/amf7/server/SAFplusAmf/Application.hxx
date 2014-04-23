@@ -41,8 +41,8 @@ namespace SAFplusAmf {
         ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
     public:
-         Application();
-         Application(std::string nameValue);
+        Application();
+        Application(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -85,7 +85,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/Application/NumServiceGroups
          */
         void addNumServiceGroups(SAFplusAmf::NumServiceGroups *NumServiceGroupsValue);
-         ~Application();
+        ~Application();
 
     };
 }

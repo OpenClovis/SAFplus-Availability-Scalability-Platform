@@ -4,21 +4,22 @@
  * plug-in of pyang.
  */ 
 
+#include "AssignmentState.hxx"
+#include <string>
+#include "StandbyWeight.hxx"
 #include <map>
-#include "clMgtObject.hxx"
-#include "StandbyWeight.hxx"
-#include "clMgtProv.hxx"
-#include "StandbyAssignments.hxx"
 #include "StandbyAssignments.hxx"
 #include "StandbyWeight.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
-#include "ActiveAssignments.hxx"
 #include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
 #include "ActiveWeight.hxx"
-#include <string>
 #include "ActiveWeight.hxx"
+#include "clMgtObject.hxx"
+#include "clMgtProv.hxx"
+#include "StandbyAssignments.hxx"
+#include <vector>
+#include "ActiveAssignments.hxx"
 #include "ServiceInstance.hxx"
 
 
@@ -27,7 +28,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceInstance, /SAFplusAmf/ServiceInstance)
 
-     ServiceInstance::ServiceInstance(): ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank") {
+    ServiceInstance::ServiceInstance(): ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
@@ -36,7 +37,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-     ServiceInstance::ServiceInstance(std::string nameValue): ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank") {
+    ServiceInstance::ServiceInstance(std::string nameValue): ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -101,15 +102,15 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
      */
-    AssignmentStateOption ServiceInstance::getAssignmentState() {
-        return static_cast<AssignmentStateOption>(this->assignmentState.Value);
+    SAFplusAmf::AssignmentState ServiceInstance::getAssignmentState() {
+        return this->assignmentState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
      */
-    void ServiceInstance::setAssignmentState(AssignmentStateOption assignmentStateValue) {
-        this->assignmentState.Value = static_cast<int>(assignmentStateValue);
+    void ServiceInstance::setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue) {
+        this->assignmentState.Value = assignmentStateValue;
     };
 
     /*
@@ -220,7 +221,7 @@ namespace SAFplusAmf {
         this->addChildObject(standbyAssignmentsValue, "standbyAssignments");
     };
 
-     ServiceInstance::~ServiceInstance() {
+    ServiceInstance::~ServiceInstance() {
     };
 
 }

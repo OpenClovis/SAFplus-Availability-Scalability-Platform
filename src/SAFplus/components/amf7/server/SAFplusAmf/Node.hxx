@@ -64,8 +64,8 @@ namespace SAFplusAmf {
         ClMgtProv<bool> failFastOnCleanupFailure;
 
     public:
-         Node();
-         Node(std::string nameValue);
+        Node();
+        Node(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -163,7 +163,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
          */
         void addServiceUnitFailureEscalationPolicy(SAFplusAmf::ServiceUnitFailureEscalationPolicy *serviceUnitFailureEscalationPolicyValue);
-         ~Node();
+        ~Node();
 
     };
 }

@@ -4,37 +4,32 @@
  * plug-in of pyang.
  */ 
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 #include "HighAvailabilityReadinessState.hxx"
 
 
 namespace SAFplusAmf {
 
-     HighAvailabilityReadinessState::HighAvailabilityReadinessState() {
+    /*
+     * Provide an implementation of the en2str_vec lookup table.
+     */
+    const HighAvailabilityReadinessStateManager::vec_t HighAvailabilityReadinessStateManager::en2str_vec = {
+            pair_t(HighAvailabilityReadinessState::readyForAssignment, "readyForAssignment"),
+            pair_t(HighAvailabilityReadinessState::readyForActiveDegrated, "readyForActiveDegrated"),
+            pair_t(HighAvailabilityReadinessState::notReadyForActive, "notReadyForActive"),
+            pair_t(HighAvailabilityReadinessState::notReadyForAssignment, "notReadyForAssignment")
+    }; // uses c++11 initializer lists 
+
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::HighAvailabilityReadinessState& highAvailabilityReadinessState) {
+        return os << HighAvailabilityReadinessStateManager::toString(highAvailabilityReadinessState);
     };
 
-    int HighAvailabilityReadinessState::getValue() {
-        return this->Value;
-    };
-
-    void HighAvailabilityReadinessState::setValue(int value) {
-        this->Value = value;
-    };
-
-    SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState::operator=(SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState) {
-        Value = HighAvailabilityReadinessState.Value;
-        return *this;
-    };
-
-     HighAvailabilityReadinessState::~HighAvailabilityReadinessState() {
-    };
-
-    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState) {
-        return os << HighAvailabilityReadinessState.Value;
-    };
-
-    std::istream& operator>>(std::istream& in, SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState) {
-        return in >> HighAvailabilityReadinessState.Value;
+    std::istream& operator>>(std::istream& is, SAFplusAmf::HighAvailabilityReadinessState& highAvailabilityReadinessState) {
+        std::string buf;
+        is >> buf;
+        highAvailabilityReadinessState = HighAvailabilityReadinessStateManager::toEnum(buf);
+        return is;
     };
 
 }

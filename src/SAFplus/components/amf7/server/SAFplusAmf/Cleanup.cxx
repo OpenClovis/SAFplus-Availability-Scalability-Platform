@@ -17,7 +17,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Cleanup, /SAFplusAmf/Component/cleanup)
 
-     Cleanup::Cleanup(): ClMgtObject("cleanup"), command("command"), args("args"), timeout("timeout") {
+    Cleanup::Cleanup(): ClMgtObject("cleanup"), command("command"), args("args"), timeout("timeout") {
         this->addChildObject(&command, "command");
         this->addChildObject(&args, "args");
         this->addChildObject(&timeout, "timeout");
@@ -70,7 +70,7 @@ namespace SAFplusAmf {
         this->timeout.Value = timeoutValue;
     };
 
-     Cleanup::~Cleanup() {
+    Cleanup::~Cleanup() {
     };
 
 }

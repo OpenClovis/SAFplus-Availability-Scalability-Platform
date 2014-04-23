@@ -20,14 +20,14 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Application, /SAFplusAmf/Application)
 
-     Application::Application(): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState") {
+    Application::Application(): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
         this->addKey("name");
     };
 
-     Application::Application(std::string nameValue): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState") {
+    Application::Application(std::string nameValue): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -101,7 +101,7 @@ namespace SAFplusAmf {
         this->addChildObject(NumServiceGroupsValue, "NumServiceGroups");
     };
 
-     Application::~Application() {
+    Application::~Application() {
     };
 
 }

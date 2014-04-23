@@ -17,7 +17,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Terminate, /SAFplusAmf/Component/terminate)
 
-     Terminate::Terminate(): ClMgtObject("terminate"), command("command"), args("args"), timeout("timeout") {
+    Terminate::Terminate(): ClMgtObject("terminate"), command("command"), args("args"), timeout("timeout") {
         this->addChildObject(&command, "command");
         this->addChildObject(&args, "args");
         this->addChildObject(&timeout, "timeout");
@@ -70,7 +70,7 @@ namespace SAFplusAmf {
         this->timeout.Value = timeoutValue;
     };
 
-     Terminate::~Terminate() {
+    Terminate::~Terminate() {
     };
 
 }

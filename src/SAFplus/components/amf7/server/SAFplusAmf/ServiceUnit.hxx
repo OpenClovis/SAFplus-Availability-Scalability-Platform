@@ -84,8 +84,8 @@ namespace SAFplusAmf {
         ClMgtProvList<std::string> assignedServiceInstances;
 
     public:
-         ServiceUnit();
-         ServiceUnit(std::string nameValue);
+        ServiceUnit();
+        ServiceUnit(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -248,7 +248,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ServiceUnit/restartCount
          */
         void addRestartCount(SAFplusAmf::RestartCount *restartCountValue);
-         ~ServiceUnit();
+        ~ServiceUnit();
 
     };
 }

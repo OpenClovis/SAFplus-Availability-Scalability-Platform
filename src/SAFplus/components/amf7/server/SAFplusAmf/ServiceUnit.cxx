@@ -29,7 +29,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceUnit, /SAFplusAmf/ServiceUnit)
 
-     ServiceUnit::ServiceUnit(): ClMgtObject("ServiceUnit"), name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preInstantiable("preInstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances") {
+    ServiceUnit::ServiceUnit(): ClMgtObject("ServiceUnit"), name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preInstantiable("preInstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
@@ -46,7 +46,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-     ServiceUnit::ServiceUnit(std::string nameValue): ClMgtObject("ServiceUnit"), name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preInstantiable("preInstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances") {
+    ServiceUnit::ServiceUnit(std::string nameValue): ClMgtObject("ServiceUnit"), name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preInstantiable("preInstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -298,7 +298,7 @@ namespace SAFplusAmf {
         this->addChildObject(restartCountValue, "restartCount");
     };
 
-     ServiceUnit::~ServiceUnit() {
+    ServiceUnit::~ServiceUnit() {
     };
 
 }

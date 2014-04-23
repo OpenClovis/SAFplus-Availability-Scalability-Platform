@@ -7,23 +7,24 @@
 #ifndef ADMINISTRATIVESTATE_HXX_
 #define ADMINISTRATIVESTATE_HXX_
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 
 namespace SAFplusAmf {
 
-    class AdministrativeState {
-    public:
-        int Value;
+    enum class AdministrativeState {
+        off=0, idle=1, on=2
+    };
+    std::ostream& operator<<(std::ostream& os, const AdministrativeState& e);
+    std::istream& operator>>(std::istream& is, AdministrativeState& e);
 
+    /*
+     * This is the class that will handle the conversion for us.
+     */
+    class AdministrativeStateManager : public SAFplus::MgtEnumType<AdministrativeStateManager, AdministrativeState> {
+        AdministrativeStateManager();  // private to prevent instantiation
     public:
-         AdministrativeState();
-        int getValue();
-        void setValue(int value);
-        SAFplusAmf::AdministrativeState& operator=(const SAFplusAmf::AdministrativeState& AdministrativeState);
-        friend std::ostream& operator<<(std::ostream& os, const SAFplusAmf::AdministrativeState& AdministrativeState);
-        friend std::istream& operator>>(std::istream& in, SAFplusAmf::AdministrativeState& AdministrativeState);
-         ~AdministrativeState();
-
+        static const vec_t en2str_vec;  // This is the lookup table.
     };
 }
 /* namespace SAFplusAmf */

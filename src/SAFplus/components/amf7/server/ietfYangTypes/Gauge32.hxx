@@ -16,13 +16,13 @@ namespace ietfYangTypes {
         unsigned int Value;
 
     public:
-         Gauge32();
+        Gauge32();
         unsigned int getValue();
         void setValue(unsigned int value);
-        ietfYangTypes::Gauge32& operator=(ietfYangTypes::Gauge32& gauge32);
+        ietfYangTypes::Gauge32& operator=(const ietfYangTypes::Gauge32& gauge32);
         friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Gauge32& gauge32);
-        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Gauge32& gauge32);
-         ~Gauge32();
+        friend std::istream& operator>>(std::istream& is, ietfYangTypes::Gauge32& gauge32);
+        ~Gauge32();
 
     };
 }

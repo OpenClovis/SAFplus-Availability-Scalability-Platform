@@ -10,7 +10,7 @@
 
 namespace ietfYangTypes {
 
-     Counter64::Counter64() {
+    Counter64::Counter64() {
     };
 
     unsigned long int Counter64::getValue() {
@@ -21,20 +21,20 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    ietfYangTypes::Counter64& Counter64::operator=(ietfYangTypes::Counter64& counter64) {
+    ietfYangTypes::Counter64& Counter64::operator=(const ietfYangTypes::Counter64& counter64) {
         Value = counter64.Value;
         return *this;
     };
 
-     Counter64::~Counter64() {
+    Counter64::~Counter64() {
     };
 
     std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Counter64& counter64) {
         return os << counter64.Value;
     };
 
-    std::istream& operator>>(std::istream& in, ietfYangTypes::Counter64& counter64) {
-        return in >> counter64.Value;
+    std::istream& operator>>(std::istream& is, ietfYangTypes::Counter64& counter64) {
+        return is >> counter64.Value;
     };
 
 }

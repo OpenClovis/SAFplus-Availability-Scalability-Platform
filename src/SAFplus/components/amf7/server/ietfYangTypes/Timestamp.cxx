@@ -10,7 +10,7 @@
 
 namespace ietfYangTypes {
 
-     Timestamp::Timestamp() {
+    Timestamp::Timestamp() {
     };
 
     unsigned int Timestamp::getValue() {
@@ -21,20 +21,20 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    ietfYangTypes::Timestamp& Timestamp::operator=(ietfYangTypes::Timestamp& timestamp) {
+    ietfYangTypes::Timestamp& Timestamp::operator=(const ietfYangTypes::Timestamp& timestamp) {
         Value = timestamp.Value;
         return *this;
     };
 
-     Timestamp::~Timestamp() {
+    Timestamp::~Timestamp() {
     };
 
     std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Timestamp& timestamp) {
         return os << timestamp.Value;
     };
 
-    std::istream& operator>>(std::istream& in, ietfYangTypes::Timestamp& timestamp) {
-        return in >> timestamp.Value;
+    std::istream& operator>>(std::istream& is, ietfYangTypes::Timestamp& timestamp) {
+        return is >> timestamp.Value;
     };
 
 }

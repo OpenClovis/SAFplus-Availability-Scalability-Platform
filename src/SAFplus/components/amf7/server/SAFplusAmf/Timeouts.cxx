@@ -18,7 +18,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Timeouts, /SAFplusAmf/Component/timeouts)
 
-     Timeouts::Timeouts(): ClMgtObject("timeouts"), quiescingComplete("quiescingComplete"), workRemoval("workRemoval"), workAssignment("workAssignment") {
+    Timeouts::Timeouts(): ClMgtObject("timeouts"), quiescingComplete("quiescingComplete"), workRemoval("workRemoval"), workAssignment("workAssignment") {
         this->addChildObject(&quiescingComplete, "quiescingComplete");
         this->addChildObject(&workRemoval, "workRemoval");
         this->addChildObject(&workAssignment, "workAssignment");
@@ -71,7 +71,7 @@ namespace SAFplusAmf {
         this->workAssignment.Value = workAssignmentValue;
     };
 
-     Timeouts::~Timeouts() {
+    Timeouts::~Timeouts() {
     };
 
 }

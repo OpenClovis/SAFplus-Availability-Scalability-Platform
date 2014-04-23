@@ -45,8 +45,8 @@ namespace SAFplusAmf {
         ClMgtProv<SAFplusTypes::SaTimeT> startupAssignmentDelay;
 
     public:
-         Cluster();
-         Cluster(std::string nameValue);
+        Cluster();
+        Cluster(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -89,7 +89,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
          */
         void setStartupAssignmentDelay(SAFplusTypes::SaTimeT startupAssignmentDelayValue);
-         ~Cluster();
+        ~Cluster();
 
     };
 }

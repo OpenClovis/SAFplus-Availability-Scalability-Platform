@@ -47,11 +47,12 @@ SAFplus::Group::Group()
 
 void SAFplus::Group::init(SAFplus::Handle groupHandle)
 {
-
+  map = new SAFplus::GroupHashMap;
 }
 
 void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities)
 {
+  assert(map);
   /*Check in share memory if entity exists*/
   char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
   SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));

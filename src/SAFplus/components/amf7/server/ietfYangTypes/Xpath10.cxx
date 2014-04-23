@@ -11,7 +11,7 @@
 
 namespace ietfYangTypes {
 
-     Xpath10::Xpath10() {
+    Xpath10::Xpath10() {
     };
 
     std::string Xpath10::getValue() {
@@ -22,20 +22,20 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    ietfYangTypes::Xpath10& Xpath10::operator=(ietfYangTypes::Xpath10& xpath10) {
+    ietfYangTypes::Xpath10& Xpath10::operator=(const ietfYangTypes::Xpath10& xpath10) {
         Value = xpath10.Value;
         return *this;
     };
 
-     Xpath10::~Xpath10() {
+    Xpath10::~Xpath10() {
     };
 
     std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Xpath10& xpath10) {
         return os << xpath10.Value;
     };
 
-    std::istream& operator>>(std::istream& in, ietfYangTypes::Xpath10& xpath10) {
-        return in >> xpath10.Value;
+    std::istream& operator>>(std::istream& is, ietfYangTypes::Xpath10& xpath10) {
+        return is >> xpath10.Value;
     };
 
 }

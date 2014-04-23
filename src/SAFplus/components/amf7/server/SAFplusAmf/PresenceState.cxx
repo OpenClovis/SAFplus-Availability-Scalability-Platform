@@ -4,37 +4,35 @@
  * plug-in of pyang.
  */ 
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 #include "PresenceState.hxx"
 
 
 namespace SAFplusAmf {
 
-     PresenceState::PresenceState() {
+    /*
+     * Provide an implementation of the en2str_vec lookup table.
+     */
+    const PresenceStateManager::vec_t PresenceStateManager::en2str_vec = {
+            pair_t(PresenceState::uninstantiated, "uninstantiated"),
+            pair_t(PresenceState::instantiating, "instantiating"),
+            pair_t(PresenceState::instantiated, "instantiated"),
+            pair_t(PresenceState::terminating, "terminating"),
+            pair_t(PresenceState::restarting, "restarting"),
+            pair_t(PresenceState::instantiationFailed, "instantiationFailed"),
+            pair_t(PresenceState::terminationFailed, "terminationFailed")
+    }; // uses c++11 initializer lists 
+
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::PresenceState& presenceState) {
+        return os << PresenceStateManager::toString(presenceState);
     };
 
-    int PresenceState::getValue() {
-        return this->Value;
-    };
-
-    void PresenceState::setValue(int value) {
-        this->Value = value;
-    };
-
-    SAFplusAmf::PresenceState& PresenceState::operator=(SAFplusAmf::PresenceState& PresenceState) {
-        Value = PresenceState.Value;
-        return *this;
-    };
-
-     PresenceState::~PresenceState() {
-    };
-
-    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::PresenceState& PresenceState) {
-        return os << PresenceState.Value;
-    };
-
-    std::istream& operator>>(std::istream& in, SAFplusAmf::PresenceState& PresenceState) {
-        return in >> PresenceState.Value;
+    std::istream& operator>>(std::istream& is, SAFplusAmf::PresenceState& presenceState) {
+        std::string buf;
+        is >> buf;
+        presenceState = PresenceStateManager::toEnum(buf);
+        return is;
     };
 
 }

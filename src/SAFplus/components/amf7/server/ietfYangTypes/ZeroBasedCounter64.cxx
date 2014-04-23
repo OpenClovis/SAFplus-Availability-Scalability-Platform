@@ -10,7 +10,7 @@
 
 namespace ietfYangTypes {
 
-     ZeroBasedCounter64::ZeroBasedCounter64() {
+    ZeroBasedCounter64::ZeroBasedCounter64() {
     };
 
     unsigned long int ZeroBasedCounter64::getValue() {
@@ -21,20 +21,20 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    ietfYangTypes::ZeroBasedCounter64& ZeroBasedCounter64::operator=(ietfYangTypes::ZeroBasedCounter64& zeroBasedCounter64) {
+    ietfYangTypes::ZeroBasedCounter64& ZeroBasedCounter64::operator=(const ietfYangTypes::ZeroBasedCounter64& zeroBasedCounter64) {
         Value = zeroBasedCounter64.Value;
         return *this;
     };
 
-     ZeroBasedCounter64::~ZeroBasedCounter64() {
+    ZeroBasedCounter64::~ZeroBasedCounter64() {
     };
 
     std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ZeroBasedCounter64& zeroBasedCounter64) {
         return os << zeroBasedCounter64.Value;
     };
 
-    std::istream& operator>>(std::istream& in, ietfYangTypes::ZeroBasedCounter64& zeroBasedCounter64) {
-        return in >> zeroBasedCounter64.Value;
+    std::istream& operator>>(std::istream& is, ietfYangTypes::ZeroBasedCounter64& zeroBasedCounter64) {
+        return is >> zeroBasedCounter64.Value;
     };
 
 }

@@ -4,37 +4,32 @@
  * plug-in of pyang.
  */ 
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 #include "EntityUsageState.hxx"
 
 
 namespace ENTITYSTATETCMIB {
 
-     EntityUsageState::EntityUsageState() {
+    /*
+     * Provide an implementation of the en2str_vec lookup table.
+     */
+    const EntityUsageStateManager::vec_t EntityUsageStateManager::en2str_vec = {
+            pair_t(EntityUsageState::unknown, "unknown"),
+            pair_t(EntityUsageState::idle, "idle"),
+            pair_t(EntityUsageState::active, "active"),
+            pair_t(EntityUsageState::busy, "busy")
+    }; // uses c++11 initializer lists 
+
+    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityUsageState& entityUsageState) {
+        return os << EntityUsageStateManager::toString(entityUsageState);
     };
 
-    int EntityUsageState::getValue() {
-        return this->Value;
-    };
-
-    void EntityUsageState::setValue(int value) {
-        this->Value = value;
-    };
-
-    ENTITYSTATETCMIB::EntityUsageState& EntityUsageState::operator=(ENTITYSTATETCMIB::EntityUsageState& EntityUsageState) {
-        Value = EntityUsageState.Value;
-        return *this;
-    };
-
-     EntityUsageState::~EntityUsageState() {
-    };
-
-    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityUsageState& EntityUsageState) {
-        return os << EntityUsageState.Value;
-    };
-
-    std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityUsageState& EntityUsageState) {
-        return in >> EntityUsageState.Value;
+    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityUsageState& entityUsageState) {
+        std::string buf;
+        is >> buf;
+        entityUsageState = EntityUsageStateManager::toEnum(buf);
+        return is;
     };
 
 }

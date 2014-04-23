@@ -38,7 +38,7 @@ namespace SAFplusAmf {
         ClMgtProv<SAFplusTypes::SaTimeT> workAssignment;
 
     public:
-         Timeouts();
+        Timeouts();
         std::vector<std::string>* getChildNames();
 
         /*
@@ -70,7 +70,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
          */
         void setWorkAssignment(SAFplusTypes::SaTimeT workAssignmentValue);
-         ~Timeouts();
+        ~Timeouts();
 
     };
 }

@@ -17,13 +17,13 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ActiveWeight, /SAFplusAmf/ServiceInstance/activeWeight)
 
-     ActiveWeight::ActiveWeight(): ClMgtObject("activeWeight"), resource("resource"), value("value") {
+    ActiveWeight::ActiveWeight(): ClMgtObject("activeWeight"), resource("resource"), value("value") {
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
         this->addKey("resource");
     };
 
-     ActiveWeight::ActiveWeight(std::string resourceValue): ClMgtObject("activeWeight"), resource("resource"), value("value") {
+    ActiveWeight::ActiveWeight(std::string resourceValue): ClMgtObject("activeWeight"), resource("resource"), value("value") {
         this->resource.Value =  resourceValue;
         this->addKey("resource");
         this->addChildObject(&resource, "resource");
@@ -68,7 +68,7 @@ namespace SAFplusAmf {
         this->value.Value = valueValue;
     };
 
-     ActiveWeight::~ActiveWeight() {
+    ActiveWeight::~ActiveWeight() {
     };
 
 }

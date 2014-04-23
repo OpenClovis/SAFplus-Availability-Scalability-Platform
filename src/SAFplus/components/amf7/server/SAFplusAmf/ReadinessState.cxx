@@ -4,37 +4,31 @@
  * plug-in of pyang.
  */ 
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 #include "ReadinessState.hxx"
 
 
 namespace SAFplusAmf {
 
-     ReadinessState::ReadinessState() {
+    /*
+     * Provide an implementation of the en2str_vec lookup table.
+     */
+    const ReadinessStateManager::vec_t ReadinessStateManager::en2str_vec = {
+            pair_t(ReadinessState::outOfService, "outOfService"),
+            pair_t(ReadinessState::inService, "inService"),
+            pair_t(ReadinessState::stopping, "stopping")
+    }; // uses c++11 initializer lists 
+
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::ReadinessState& readinessState) {
+        return os << ReadinessStateManager::toString(readinessState);
     };
 
-    int ReadinessState::getValue() {
-        return this->Value;
-    };
-
-    void ReadinessState::setValue(int value) {
-        this->Value = value;
-    };
-
-    SAFplusAmf::ReadinessState& ReadinessState::operator=(SAFplusAmf::ReadinessState& ReadinessState) {
-        Value = ReadinessState.Value;
-        return *this;
-    };
-
-     ReadinessState::~ReadinessState() {
-    };
-
-    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::ReadinessState& ReadinessState) {
-        return os << ReadinessState.Value;
-    };
-
-    std::istream& operator>>(std::istream& in, SAFplusAmf::ReadinessState& ReadinessState) {
-        return in >> ReadinessState.Value;
+    std::istream& operator>>(std::istream& is, SAFplusAmf::ReadinessState& readinessState) {
+        std::string buf;
+        is >> buf;
+        readinessState = ReadinessStateManager::toEnum(buf);
+        return is;
     };
 
 }

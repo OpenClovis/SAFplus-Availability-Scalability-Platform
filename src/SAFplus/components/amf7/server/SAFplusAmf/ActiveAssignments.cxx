@@ -17,7 +17,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ActiveAssignments, /SAFplusAmf/ServiceInstance/activeAssignments)
 
-     ActiveAssignments::ActiveAssignments(): ClMgtObject("activeAssignments"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month") {
+    ActiveAssignments::ActiveAssignments(): ClMgtObject("activeAssignments"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month") {
         this->addChildObject(&current, "current");
         this->addChildObject(&history10sec, "history10sec");
         this->addChildObject(&history1min, "history1min");
@@ -160,7 +160,7 @@ namespace SAFplusAmf {
         this->history1month.Value.push_back(history1monthValue);
     };
 
-     ActiveAssignments::~ActiveAssignments() {
+    ActiveAssignments::~ActiveAssignments() {
     };
 
 }

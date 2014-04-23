@@ -1,5 +1,5 @@
 S7 := 1
-SAFPLUS_LOG_SERVER:=1  # Identify what is being built, so safplus_targets does not override
+SAFPLUS_AMF_SERVER:=1  # Identify what is being built, so safplus_targets does not override
 include ../../../mk/preface.mk
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
@@ -45,6 +45,10 @@ $(OBJ_DIR)/amfsvr/%.o: ENTITYSTATETCMIB/%.cxx Makefile $(SERVER_H)
 	$(COMPILE_CPP) $@ $<
 gen:	
 	PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusAmf.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
+
+gentest:	
+	PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusAmf.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
+
 
 clean:
 	rm -f $(OBJ_DIR)/amfsvr/*.o $(SAFPLUS_TARGET)/bin/safplus_amf

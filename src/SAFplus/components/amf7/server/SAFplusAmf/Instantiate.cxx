@@ -17,7 +17,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Instantiate, /SAFplusAmf/Component/instantiate)
 
-     Instantiate::Instantiate(): ClMgtObject("instantiate"), command("command"), args("args"), timeout("timeout") {
+    Instantiate::Instantiate(): ClMgtObject("instantiate"), command("command"), args("args"), timeout("timeout") {
         this->addChildObject(&command, "command");
         this->addChildObject(&args, "args");
         this->addChildObject(&timeout, "timeout");
@@ -70,7 +70,7 @@ namespace SAFplusAmf {
         this->timeout.Value = timeoutValue;
     };
 
-     Instantiate::~Instantiate() {
+    Instantiate::~Instantiate() {
     };
 
 }

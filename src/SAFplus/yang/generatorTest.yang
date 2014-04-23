@@ -1,0 +1,110 @@
+module generatorTest 
+{
+
+  namespace "http://www.openclovis.org/ns/generatorTest";
+  prefix "gt";
+  //import importGT { prefix "igt"; }  // Testing that imported stuff works.
+
+  organization
+    "OpenClovis Solutions, Inc";
+
+  contact
+    "Andrew Stone <stone@openclovis.com>";
+
+  description
+    "Test the SAFplus code generation with different yang file definitions.";
+
+  revision 2014-03-03 
+  {
+    description "Initial description";
+    reference "";
+  }
+
+    typedef AdministrativeState
+    {
+      type enumeration
+      {
+        enum off
+          {
+	    //safplus:alias "lockedInstantiation";
+            description "SA-Forum 'lockedInstantiation': the administrator has prevented the service unit from being instantiated by the Availability Management Framework.";
+	    value 0; 
+	  }
+        enum idle 
+	{ 
+	  //safplus:alias "locked";
+	  value 1;
+	  description "SA-Forum 'locked': the administrator has prevented the service unit from taking service instance assignments.";
+	}
+        enum on
+	{ 
+	  //safplus:alias "unlocked";
+	  value 2;
+	  description "SA-Forum 'unlocked': the service unit has not been directly prohibited from taking service instance assignments by the administrator.";
+	}
+      }
+      default "on";  
+    }
+
+  
+  container BasicDataTypes
+  {
+    leaf stringTest
+      {
+      type string;
+      }
+
+    leaf int64Test
+    {
+      type int64;
+    }
+    // and so on...
+
+    leaf adminState
+      {
+        type AdministrativeState;
+	//safplus:ide "Initial state: ";
+	description "Does the operator want this entity to be off, idle, or in service?";
+      }
+    
+  }
+
+
+  // Should produce a class named like "TestUncontainedElement" containing "name" and "data" fields.  The module class should contain a member object std::vector<TestUncontainedElement> or equivalent
+  list TestUncontainedList
+  {
+    key "name";
+    description "";
+
+    leaf name
+    {
+      type string;
+    }
+    leaf data
+    {
+      type int64;
+    }
+  }
+
+
+
+  container TestContainedList
+  {
+    list TclItem
+    {
+      key "name";
+      description "";
+
+      // SA-Forum defined fields
+      leaf name
+      {
+	type string;
+      }
+      leaf data
+      {
+	type int64;
+      }
+    }
+  }
+
+}

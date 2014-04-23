@@ -25,7 +25,7 @@ namespace SAFplusAmf {
         ClMgtProv<std::string> entity;
 
     public:
-         EntityByName();
+        EntityByName();
         std::vector<std::string>* getChildNames();
 
         /*
@@ -47,7 +47,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/EntityByName/entity
          */
         void setEntity(std::string entityValue);
-         ~EntityByName();
+        ~EntityByName();
 
     };
 }

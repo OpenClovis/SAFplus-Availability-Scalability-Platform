@@ -14,7 +14,9 @@
 #include "Cleanup.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
+#include "CapabilityModel.hxx"
 #include "Cleanup.hxx"
+#include "Recovery.hxx"
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "clMgtObject.hxx"
@@ -36,7 +38,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Component, /SAFplusAmf/Component)
 
-     Component::Component(): ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied") {
+    Component::Component(): ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&presence, "presence");
@@ -62,7 +64,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-     Component::Component(std::string nameValue): ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied") {
+    Component::Component(std::string nameValue): ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -144,15 +146,15 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Component/capabilityModel
      */
-    CapabilityModelOption Component::getCapabilityModel() {
-        return static_cast<CapabilityModelOption>(this->capabilityModel.Value);
+    SAFplusAmf::CapabilityModel Component::getCapabilityModel() {
+        return this->capabilityModel.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/capabilityModel
      */
-    void Component::setCapabilityModel(CapabilityModelOption capabilityModelValue) {
-        this->capabilityModel.Value = static_cast<int>(capabilityModelValue);
+    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue) {
+        this->capabilityModel.Value = capabilityModelValue;
     };
 
     /*
@@ -354,15 +356,15 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Component/recovery
      */
-    RecoveryOption Component::getRecovery() {
-        return static_cast<RecoveryOption>(this->recovery.Value);
+    SAFplusAmf::Recovery Component::getRecovery() {
+        return this->recovery.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/recovery
      */
-    void Component::setRecovery(RecoveryOption recoveryValue) {
-        this->recovery.Value = static_cast<int>(recoveryValue);
+    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue) {
+        this->recovery.Value = recoveryValue;
     };
 
     /*
@@ -505,7 +507,7 @@ namespace SAFplusAmf {
         this->addChildObject(restartCountValue, "restartCount");
     };
 
-     Component::~Component() {
+    Component::~Component() {
     };
 
 }

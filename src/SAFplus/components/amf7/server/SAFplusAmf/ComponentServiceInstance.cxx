@@ -18,7 +18,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ComponentServiceInstance, /SAFplusAmf/ComponentServiceInstance)
 
-     ComponentServiceInstance::ComponentServiceInstance(): ClMgtObject("ComponentServiceInstance"), name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies") {
+    ComponentServiceInstance::ComponentServiceInstance(): ClMgtObject("ComponentServiceInstance"), name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&protectionGroup, "protectionGroup");
@@ -26,7 +26,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-     ComponentServiceInstance::ComponentServiceInstance(std::string nameValue): ClMgtObject("ComponentServiceInstance"), name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies") {
+    ComponentServiceInstance::ComponentServiceInstance(std::string nameValue): ClMgtObject("ComponentServiceInstance"), name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -101,7 +101,7 @@ namespace SAFplusAmf {
         this->dependencies.Value.push_back(dependenciesValue);
     };
 
-     ComponentServiceInstance::~ComponentServiceInstance() {
+    ComponentServiceInstance::~ComponentServiceInstance() {
     };
 
 }

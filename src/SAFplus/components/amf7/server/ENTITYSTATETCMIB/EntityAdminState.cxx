@@ -4,37 +4,32 @@
  * plug-in of pyang.
  */ 
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 #include "EntityAdminState.hxx"
 
 
 namespace ENTITYSTATETCMIB {
 
-     EntityAdminState::EntityAdminState() {
+    /*
+     * Provide an implementation of the en2str_vec lookup table.
+     */
+    const EntityAdminStateManager::vec_t EntityAdminStateManager::en2str_vec = {
+            pair_t(EntityAdminState::unknown, "unknown"),
+            pair_t(EntityAdminState::locked, "locked"),
+            pair_t(EntityAdminState::shuttingDown, "shuttingDown"),
+            pair_t(EntityAdminState::unlocked, "unlocked")
+    }; // uses c++11 initializer lists 
+
+    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityAdminState& entityAdminState) {
+        return os << EntityAdminStateManager::toString(entityAdminState);
     };
 
-    int EntityAdminState::getValue() {
-        return this->Value;
-    };
-
-    void EntityAdminState::setValue(int value) {
-        this->Value = value;
-    };
-
-    ENTITYSTATETCMIB::EntityAdminState& EntityAdminState::operator=(ENTITYSTATETCMIB::EntityAdminState& EntityAdminState) {
-        Value = EntityAdminState.Value;
-        return *this;
-    };
-
-     EntityAdminState::~EntityAdminState() {
-    };
-
-    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityAdminState& EntityAdminState) {
-        return os << EntityAdminState.Value;
-    };
-
-    std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityAdminState& EntityAdminState) {
-        return in >> EntityAdminState.Value;
+    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityAdminState& entityAdminState) {
+        std::string buf;
+        is >> buf;
+        entityAdminState = EntityAdminStateManager::toEnum(buf);
+        return is;
     };
 
 }

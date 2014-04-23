@@ -11,7 +11,7 @@
 
 namespace ietfYangTypes {
 
-     MacAddress::MacAddress() {
+    MacAddress::MacAddress() {
     };
 
     std::string MacAddress::getValue() {
@@ -22,20 +22,20 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    ietfYangTypes::MacAddress& MacAddress::operator=(ietfYangTypes::MacAddress& macAddress) {
+    ietfYangTypes::MacAddress& MacAddress::operator=(const ietfYangTypes::MacAddress& macAddress) {
         Value = macAddress.Value;
         return *this;
     };
 
-     MacAddress::~MacAddress() {
+    MacAddress::~MacAddress() {
     };
 
     std::ostream& operator<<(std::ostream& os, const ietfYangTypes::MacAddress& macAddress) {
         return os << macAddress.Value;
     };
 
-    std::istream& operator>>(std::istream& in, ietfYangTypes::MacAddress& macAddress) {
-        return in >> macAddress.Value;
+    std::istream& operator>>(std::istream& is, ietfYangTypes::MacAddress& macAddress) {
+        return is >> macAddress.Value;
     };
 
 }

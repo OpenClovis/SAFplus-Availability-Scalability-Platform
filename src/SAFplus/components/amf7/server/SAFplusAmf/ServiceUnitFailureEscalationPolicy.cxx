@@ -18,7 +18,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceUnitFailureEscalationPolicy, /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy)
 
-     ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy(): ClMgtObject("serviceUnitFailureEscalationPolicy"), maximum("maximum"), duration("duration") {
+    ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy(): ClMgtObject("serviceUnitFailureEscalationPolicy"), maximum("maximum"), duration("duration") {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");
     };
@@ -56,7 +56,7 @@ namespace SAFplusAmf {
         this->duration.Value = durationValue;
     };
 
-     ServiceUnitFailureEscalationPolicy::~ServiceUnitFailureEscalationPolicy() {
+    ServiceUnitFailureEscalationPolicy::~ServiceUnitFailureEscalationPolicy() {
     };
 
 }

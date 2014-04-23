@@ -20,7 +20,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Cluster, /SAFplusAmf/Cluster)
 
-     Cluster::Cluster(): ClMgtObject("Cluster"), name("name"), id("id"), adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay") {
+    Cluster::Cluster(): ClMgtObject("Cluster"), name("name"), id("id"), adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
@@ -28,7 +28,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-     Cluster::Cluster(std::string nameValue): ClMgtObject("Cluster"), name("name"), id("id"), adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay") {
+    Cluster::Cluster(std::string nameValue): ClMgtObject("Cluster"), name("name"), id("id"), adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -103,7 +103,7 @@ namespace SAFplusAmf {
         this->startupAssignmentDelay.Value = startupAssignmentDelayValue;
     };
 
-     Cluster::~Cluster() {
+    Cluster::~Cluster() {
     };
 
 }

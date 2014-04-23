@@ -23,7 +23,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Node, /SAFplusAmf/Node)
 
-     Node::Node(): ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure") {
+    Node::Node(): ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure") {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
@@ -34,7 +34,7 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-     Node::Node(std::string nameValue): ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure") {
+    Node::Node(std::string nameValue): ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure") {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -201,7 +201,7 @@ namespace SAFplusAmf {
         this->addChildObject(serviceUnitFailureEscalationPolicyValue, "serviceUnitFailureEscalationPolicy");
     };
 
-     Node::~Node() {
+    Node::~Node() {
     };
 
 }

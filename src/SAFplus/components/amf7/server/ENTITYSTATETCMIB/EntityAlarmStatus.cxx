@@ -11,7 +11,7 @@
 
 namespace ENTITYSTATETCMIB {
 
-     EntityAlarmStatus::EntityAlarmStatus() {
+    EntityAlarmStatus::EntityAlarmStatus() {
     };
 
     std::bitset<7> EntityAlarmStatus::getValue() {
@@ -22,20 +22,20 @@ namespace ENTITYSTATETCMIB {
         this->Value = value;
     };
 
-    ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus::operator=(ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus) {
+    ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus::operator=(const ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus) {
         Value = EntityAlarmStatus.Value;
         return *this;
     };
 
-     EntityAlarmStatus::~EntityAlarmStatus() {
+    EntityAlarmStatus::~EntityAlarmStatus() {
     };
 
     std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus) {
         return os << EntityAlarmStatus.Value;
     };
 
-    std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus) {
-        return in >> EntityAlarmStatus.Value;
+    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus) {
+        return is >> EntityAlarmStatus.Value;
     };
 
 }

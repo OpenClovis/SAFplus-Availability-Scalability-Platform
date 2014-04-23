@@ -7,23 +7,24 @@
 #ifndef ENTITYSTANDBYSTATUS_HXX_
 #define ENTITYSTANDBYSTATUS_HXX_
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 
 namespace ENTITYSTATETCMIB {
 
-    class EntityStandbyStatus {
-    public:
-        int Value;
+    enum class EntityStandbyStatus {
+        unknown=1, hotStandby=2, coldStandby=3, providingService=4
+    };
+    std::ostream& operator<<(std::ostream& os, const EntityStandbyStatus& e);
+    std::istream& operator>>(std::istream& is, EntityStandbyStatus& e);
 
+    /*
+     * This is the class that will handle the conversion for us.
+     */
+    class EntityStandbyStatusManager : public SAFplus::MgtEnumType<EntityStandbyStatusManager, EntityStandbyStatus> {
+        EntityStandbyStatusManager();  // private to prevent instantiation
     public:
-         EntityStandbyStatus();
-        int getValue();
-        void setValue(int value);
-        ENTITYSTATETCMIB::EntityStandbyStatus& operator=(ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus);
-        friend std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus);
-        friend std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus);
-         ~EntityStandbyStatus();
-
+        static const vec_t en2str_vec;  // This is the lookup table.
     };
 }
 /* namespace ENTITYSTATETCMIB */

@@ -18,7 +18,7 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceUnitRestart, /SAFplusAmf/ServiceGroup/ServiceUnitRestart)
 
-     ServiceUnitRestart::ServiceUnitRestart(): ClMgtObject("ServiceUnitRestart"), maximum("maximum"), duration("duration") {
+    ServiceUnitRestart::ServiceUnitRestart(): ClMgtObject("ServiceUnitRestart"), maximum("maximum"), duration("duration") {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");
     };
@@ -56,7 +56,7 @@ namespace SAFplusAmf {
         this->duration.Value = durationValue;
     };
 
-     ServiceUnitRestart::~ServiceUnitRestart() {
+    ServiceUnitRestart::~ServiceUnitRestart() {
     };
 
 }

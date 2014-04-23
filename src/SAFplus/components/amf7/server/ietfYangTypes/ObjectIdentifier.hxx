@@ -17,13 +17,13 @@ namespace ietfYangTypes {
         std::string Value;
 
     public:
-         ObjectIdentifier();
+        ObjectIdentifier();
         std::string getValue();
         void setValue(std::string value);
-        ietfYangTypes::ObjectIdentifier& operator=(ietfYangTypes::ObjectIdentifier& objectIdentifier);
+        ietfYangTypes::ObjectIdentifier& operator=(const ietfYangTypes::ObjectIdentifier& objectIdentifier);
         friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ObjectIdentifier& objectIdentifier);
-        friend std::istream& operator>>(std::istream& in, ietfYangTypes::ObjectIdentifier& objectIdentifier);
-         ~ObjectIdentifier();
+        friend std::istream& operator>>(std::istream& is, ietfYangTypes::ObjectIdentifier& objectIdentifier);
+        ~ObjectIdentifier();
 
     };
 }

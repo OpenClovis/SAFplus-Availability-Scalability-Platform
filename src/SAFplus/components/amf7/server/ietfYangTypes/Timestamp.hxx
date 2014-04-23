@@ -16,13 +16,13 @@ namespace ietfYangTypes {
         unsigned int Value;
 
     public:
-         Timestamp();
+        Timestamp();
         unsigned int getValue();
         void setValue(unsigned int value);
-        ietfYangTypes::Timestamp& operator=(ietfYangTypes::Timestamp& timestamp);
+        ietfYangTypes::Timestamp& operator=(const ietfYangTypes::Timestamp& timestamp);
         friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Timestamp& timestamp);
-        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Timestamp& timestamp);
-         ~Timestamp();
+        friend std::istream& operator>>(std::istream& is, ietfYangTypes::Timestamp& timestamp);
+        ~Timestamp();
 
     };
 }

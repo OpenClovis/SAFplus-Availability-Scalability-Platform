@@ -7,23 +7,24 @@
 #ifndef HIGHAVAILABILITYREADINESSSTATE_HXX_
 #define HIGHAVAILABILITYREADINESSSTATE_HXX_
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 
 namespace SAFplusAmf {
 
-    class HighAvailabilityReadinessState {
-    public:
-        int Value;
+    enum class HighAvailabilityReadinessState {
+        readyForAssignment, readyForActiveDegrated, notReadyForActive, notReadyForAssignment
+    };
+    std::ostream& operator<<(std::ostream& os, const HighAvailabilityReadinessState& e);
+    std::istream& operator>>(std::istream& is, HighAvailabilityReadinessState& e);
 
+    /*
+     * This is the class that will handle the conversion for us.
+     */
+    class HighAvailabilityReadinessStateManager : public SAFplus::MgtEnumType<HighAvailabilityReadinessStateManager, HighAvailabilityReadinessState> {
+        HighAvailabilityReadinessStateManager();  // private to prevent instantiation
     public:
-         HighAvailabilityReadinessState();
-        int getValue();
-        void setValue(int value);
-        SAFplusAmf::HighAvailabilityReadinessState& operator=(SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState);
-        friend std::ostream& operator<<(std::ostream& os, const SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState);
-        friend std::istream& operator>>(std::istream& in, SAFplusAmf::HighAvailabilityReadinessState& HighAvailabilityReadinessState);
-         ~HighAvailabilityReadinessState();
-
+        static const vec_t en2str_vec;  // This is the lookup table.
     };
 }
 /* namespace SAFplusAmf */

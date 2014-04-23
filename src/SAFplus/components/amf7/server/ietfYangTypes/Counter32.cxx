@@ -10,7 +10,7 @@
 
 namespace ietfYangTypes {
 
-     Counter32::Counter32() {
+    Counter32::Counter32() {
     };
 
     unsigned int Counter32::getValue() {
@@ -21,20 +21,20 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    ietfYangTypes::Counter32& Counter32::operator=(ietfYangTypes::Counter32& counter32) {
+    ietfYangTypes::Counter32& Counter32::operator=(const ietfYangTypes::Counter32& counter32) {
         Value = counter32.Value;
         return *this;
     };
 
-     Counter32::~Counter32() {
+    Counter32::~Counter32() {
     };
 
     std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Counter32& counter32) {
         return os << counter32.Value;
     };
 
-    std::istream& operator>>(std::istream& in, ietfYangTypes::Counter32& counter32) {
-        return in >> counter32.Value;
+    std::istream& operator>>(std::istream& is, ietfYangTypes::Counter32& counter32) {
+        return is >> counter32.Value;
     };
 
 }

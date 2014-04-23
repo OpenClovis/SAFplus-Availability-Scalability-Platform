@@ -4,37 +4,31 @@
  * plug-in of pyang.
  */ 
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 #include "LifecycleState.hxx"
 
 
 namespace SAFplusTypes {
 
-     LifecycleState::LifecycleState() {
-    };
-
-    int LifecycleState::getValue() {
-        return this->Value;
-    };
-
-    void LifecycleState::setValue(int value) {
-        this->Value = value;
-    };
-
-    SAFplusTypes::LifecycleState& LifecycleState::operator=(SAFplusTypes::LifecycleState& lifecycleState) {
-        Value = lifecycleState.Value;
-        return *this;
-    };
-
-     LifecycleState::~LifecycleState() {
-    };
+    /*
+     * Provide an implementation of the en2str_vec lookup table.
+     */
+    const LifecycleStateManager::vec_t LifecycleStateManager::en2str_vec = {
+            pair_t(LifecycleState::start, "start"),
+            pair_t(LifecycleState::idle, "idle"),
+            pair_t(LifecycleState::stop, "stop")
+    }; // uses c++11 initializer lists 
 
     std::ostream& operator<<(std::ostream& os, const SAFplusTypes::LifecycleState& lifecycleState) {
-        return os << lifecycleState.Value;
+        return os << LifecycleStateManager::toString(lifecycleState);
     };
 
-    std::istream& operator>>(std::istream& in, SAFplusTypes::LifecycleState& lifecycleState) {
-        return in >> lifecycleState.Value;
+    std::istream& operator>>(std::istream& is, SAFplusTypes::LifecycleState& lifecycleState) {
+        std::string buf;
+        is >> buf;
+        lifecycleState = LifecycleStateManager::toEnum(buf);
+        return is;
     };
 
 }

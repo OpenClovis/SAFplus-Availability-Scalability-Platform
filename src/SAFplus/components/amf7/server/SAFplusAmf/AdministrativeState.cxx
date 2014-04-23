@@ -4,37 +4,31 @@
  * plug-in of pyang.
  */ 
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 #include "AdministrativeState.hxx"
 
 
 namespace SAFplusAmf {
 
-     AdministrativeState::AdministrativeState() {
+    /*
+     * Provide an implementation of the en2str_vec lookup table.
+     */
+    const AdministrativeStateManager::vec_t AdministrativeStateManager::en2str_vec = {
+            pair_t(AdministrativeState::off, "off"),
+            pair_t(AdministrativeState::idle, "idle"),
+            pair_t(AdministrativeState::on, "on")
+    }; // uses c++11 initializer lists 
+
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::AdministrativeState& administrativeState) {
+        return os << AdministrativeStateManager::toString(administrativeState);
     };
 
-    int AdministrativeState::getValue() {
-        return this->Value;
-    };
-
-    void AdministrativeState::setValue(int value) {
-        this->Value = value;
-    };
-
-    SAFplusAmf::AdministrativeState& AdministrativeState::operator=(const SAFplusAmf::AdministrativeState& AdministrativeState) {
-        Value = AdministrativeState.Value;
-        return *this;
-    };
-
-     AdministrativeState::~AdministrativeState() {
-    };
-
-    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::AdministrativeState& AdministrativeState) {
-        return os << AdministrativeState.Value;
-    };
-
-    std::istream& operator>>(std::istream& in, SAFplusAmf::AdministrativeState& AdministrativeState) {
-        return in >> AdministrativeState.Value;
+    std::istream& operator>>(std::istream& is, SAFplusAmf::AdministrativeState& administrativeState) {
+        std::string buf;
+        is >> buf;
+        administrativeState = AdministrativeStateManager::toEnum(buf);
+        return is;
     };
 
 }
