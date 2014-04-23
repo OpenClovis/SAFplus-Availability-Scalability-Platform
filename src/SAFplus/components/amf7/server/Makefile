@@ -7,7 +7,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
-CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. 
+CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -std=c++11
 DEP_LIBS += $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclDbal7.so $(LIB_DIR)/libclOsal7.so 
 
 # Management includes and libraries
