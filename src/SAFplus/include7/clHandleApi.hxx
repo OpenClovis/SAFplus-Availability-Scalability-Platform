@@ -43,7 +43,7 @@ namespace SAFplus
   public:
     char* toStr(char* buffer) const
     {
-      sprintf(buffer,"%ld.%ld",id[0],id[1]);
+      sprintf(buffer,"%lx.%lx",id[0],id[1]);
       return buffer;
     }
 

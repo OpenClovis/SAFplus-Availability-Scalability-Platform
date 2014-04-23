@@ -9,11 +9,16 @@
 using namespace SAFplus;
 
 
-void test_readwrite()
+SAFplus::Handle test_readwrite()
 {
+  SAFplus::Handle ret = INVALID_HDL;
+  int LoopCount=10;
   Checkpoint c1(Checkpoint::SHARED | Checkpoint::LOCAL);
   c1.stats();
+
+  printf("Dump of current checkpoint\n");
   c1.dump();
+  printf("Dump finished\n");
 
   if (1)
     {
@@ -22,7 +27,7 @@ void test_readwrite()
       Buffer* val = new(vdata) Buffer(sizeof(int)*10);
 
       // Write some data
-      for (int i=0;i<100;i++)
+      for (int i=0;i<LoopCount;i++)
         {
           for (int j=0;j<10;j++)  // Set the data to something verifiable
             {
@@ -31,8 +36,19 @@ void test_readwrite()
           c1.write(i,*val);
         }
 
+      // Dump and delete it
+      printf("integer ITERATOR: \n");
+      for (Checkpoint::Iterator i=c1.begin();i!=c1.end();i++)
+        {
+          SAFplus::Checkpoint::KeyValuePair& item = *i;
+          int tmp = *((int*) (*item.first).data);
+          printf("key: %d, value: %d\n",tmp,*((int*) (*item.second).data));
+        }
+      
+      printf("READ: \n");
+
       // Read it
-      for (int i=0;i<100;i++)
+      for (int i=0;i<LoopCount;i++)
         {
           const Buffer& output = c1.read(i);
           clTest(("Record exists"), &output != NULL, (""));
@@ -51,26 +67,29 @@ void test_readwrite()
         }
 
       // Dump and delete it
-      printf("ITERATOR: \n");
+      printf("integer ITERATOR: \n");
       int prior=-1;
       for (Checkpoint::Iterator i=c1.begin();i!=c1.end();i++)
         {
           SAFplus::Checkpoint::KeyValuePair& item = *i;
           int tmp = *((int*) (*item.first).data);
-          printf("key: %d, value: %s\n",tmp,(*item.second).data);
+          printf("key: %d, value: %d\n",tmp,*((int*) (*item.second).data));
           if (prior!=-1)
             {
-              c1.remove(prior);
+              c1.remove(prior);  // note that you can't delete the element that the iterator is sitting on or the iterator won't work
             }
           prior = tmp;
         }
+      if (prior!=-1) c1.remove(prior);
+      
 
+      printf("What's left: \n");
       int count = 0;
       for (Checkpoint::Iterator i=c1.begin();i!=c1.end();i++)
         {
           SAFplus::Checkpoint::KeyValuePair& item = *i;
           int tmp = *((int*) (*item.first).data);
-          printf("key: %d, value: %s\n",tmp,(*item.second).data);
+          printf("key: %d, value: %d\n",tmp,*((int*) (*item.second).data));
           count++;
         }
       clTest(("All items deleted"),count==0,("count %d",count));
@@ -83,10 +102,11 @@ void test_readwrite()
       clTestCaseStart(("String key"));
 
       Checkpoint c2(Checkpoint::SHARED | Checkpoint::LOCAL);
+      ret = c2.handle();
       char vdata[sizeof(Buffer)-1+sizeof(int)*10];
       Buffer* val = new(vdata) Buffer(sizeof(int)*10);
 
-      for (int i=0;i<100;i++)
+      for (int i=0;i<LoopCount;i++)
         {
 	  std::string k;
 	  std::string k1;
@@ -102,7 +122,7 @@ void test_readwrite()
           c2.write(k1,v);
         }
 
-      for (int i=0;i<100;i++)
+      for (int i=0;i<LoopCount;i++)
         {
 	  std::string k;
 	  std::string k1;
@@ -140,19 +160,76 @@ void test_readwrite()
         {
           SAFplus::Checkpoint::KeyValuePair& item = *i;
           char* key = (char*) (*item.first).data;
-          printf("key: %s, value: %s\n",key,(*item.second).data);
+          printf("key: %s, value: %d\n",key,*((int*) (*item.second).data));
         }
+      clTestCaseEnd((""));
+    }
+  return ret;
+}
+
+
+void test_reopen(SAFplus::Handle handle)
+{
+  int LoopCount=10;
+
+  if (1)
+    {
+      clTestCaseStart(("String key"));
+
+      Checkpoint c2(handle,Checkpoint::SHARED | Checkpoint::LOCAL);
+      char vdata[sizeof(Buffer)-1+sizeof(int)*10];
+      Buffer* val = new(vdata) Buffer(sizeof(int)*10);
+
+      for (int i=0;i<LoopCount;i++)
+        {
+	  std::string k;
+	  std::string k1;
+	  std::string v;
+          k.append("key ").append(std::to_string(i));
+          k1.append("keystr ").append(std::to_string(i));
+
+          const Buffer& output = c2.read(k);
+          clTest(("Record exists"), &output != NULL, (""));
+          if (&output)
+            {
+	      for (int j=0;j<10;j++)
+		{
+		  int tmp = ((int*)output.data)[j];
+		  if (tmp != i+j)
+		    {
+		      clTestFailed(("Stored data MISCOMPARE i:%d, j:%d, expected:%d, got:%d\n", i,j,i+j,tmp));
+		      j=10; // break out of the loop
+		    }
+		}
+            }
+
+          const Buffer& output1 = c2.read(k1);
+          clTest(("Record exists"), &output1 != NULL, (""));
+          if (&output1)
+            {
+	      char* s = (char*) output1.data;
+              printf("%s\n",s);
+	    }
+
+        }
+
       clTestCaseEnd((""));
     }
 }
 
+
+
   
 int main(int argc, char* argv[])
 {
+  SAFplus::Handle hdl;
   logInitialize();
   logEchoToFd = 1;  // echo logs to stdout for debugging
   utilsInitialize();
   clTestGroupInitialize(("Test Checkpoint"));
-  clTestCase(("Basic Read/Write"), test_readwrite());
+  clTestCase(("Basic Read/Write"), hdl = test_readwrite());
+
+  clTestCase(("Reopen"), test_reopen(hdl));
+
   clTestGroupFinalize();
 }

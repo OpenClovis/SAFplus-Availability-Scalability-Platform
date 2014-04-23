@@ -23,7 +23,4 @@ $(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)
 clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/testCkpt
 
-cleanall:
-	rm -f $(OBJ_DIR)/*.o $(MWOBJ_DIR)/*.o $(LIB_DIR)/*.so $(TEST_DIR)/testCkpt
-
 include ../../../mk/safplus_targets.mk

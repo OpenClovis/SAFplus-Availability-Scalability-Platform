@@ -12,13 +12,22 @@ $(LIB_DIR)/libclOsal7.so:
 $(LIB_DIR)/libclMgt7.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/client
 
-$(LIB_DIR)/libclCkpt.so:
+$(LIB_DIR)/libclCkpt.so: $(wildcard $(SAFPLUS_SRC_DIR)/SAFplus/components/ckpt7/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/SAFplus/include7/*.hxx) 
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/ckpt7
 
-$(LIB_DIR)/libclMgt.so:
-	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/ckpt7
+$(LIB_DIR)/libclMgt.so: 
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7
 
-SAFplusSOs := $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclLog.so 
+ifndef SAFPLUS_LOG_LIB
+$(LIB_DIR)/libclGroup.so: 
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/gms7
+endif
+
+$(LIB_DIR)/libclName.so: 
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/name7
+
+# ordered by dependency
+SAFplusSOs :=   $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so  $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so
 
 ifndef SAFPLUS_LOG_TEST
 $(TEST_DIR)/testLog:
@@ -45,9 +54,14 @@ $(TEST_DIR)/testName:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/name7/test
 endif
 
+ifndef SAFPLUS_AMF_SERVER
+$(SAFPLUS_TARGET)/bin/safplus_amf:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/amf7/server
+endif
+
 SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt
 
-SAFplusServices := $(SAFPLUS_TARGET)/bin/splogd
+SAFplusServices := $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
 
 cleanall:
-	rm -f $(SAFplusTests) $(SAFplusSOs) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*
+	rm -f $(SAFplusTests) $(SAFplusSOs) $(SAFplusServices) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*

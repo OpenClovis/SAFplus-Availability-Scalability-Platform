@@ -79,7 +79,7 @@ namespace SAFplus
     {
       assert(len() == c.len());
       setNullT(c.isNullT());
-      printf("nullt? %d %d\n", c.isNullT(),isNullT());
+      //printf("nullt? %d %d\n", c.isNullT(),isNullT());
       memcpy(data,c.data,len());
     }
 
@@ -193,13 +193,15 @@ namespace SAFplus
       SAFplusI::CkptMapPair* curval;
 
       friend class Checkpoint;
-    protected:
+      protected:
       SAFplusI::CkptHashMap::iterator iter;
     };
 
     // the begin and end of the iterator look up
     Iterator begin();
     Iterator end();
+
+    const SAFplus::Handle& handle() { return hdr->handle; } // its read only
 
     // debugging
     void dump();
@@ -211,7 +213,7 @@ namespace SAFplus
     boost::interprocess::managed_shared_memory msm;
     SAFplusI::CkptBufferHeader*     hdr;
     SAFplusI::CkptHashMap*          map;
-    uint_t                flags;
+    uint_t                        flags;
   };
 }
 
