@@ -199,6 +199,12 @@ clAmsDebugCliEntityPrint(
         CL_OUT  ClCharT  **ret);
 
 extern ClRcT
+clAmsDebugCliAssignSU(
+        CL_IN  ClUint32T argc,
+        CL_IN  ClCharT **argv,
+        CL_OUT  ClCharT** ret);
+    
+extern ClRcT
 clAmsDebugCliEntityDebugEnable(
         CL_IN  ClUint32T  argc,
         CL_IN  ClCharT  **argv,

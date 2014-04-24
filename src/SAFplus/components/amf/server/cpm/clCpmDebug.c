@@ -356,7 +356,11 @@ static ClDebugFuncEntryT cpmSCDebugFuncList[] =
         "nodeTableDelete",
         "Delete node in AMF node table (for fault testing)"
     },
-     
+    {
+        clAmsDebugCliAssignSU,
+        "assignSUtoSI",
+        "Assigns specific service units to a service instance (for the custom redundancy model)"
+    },     
     CPM_DEBUG_CLI_COMMON_FUNC_LIST,
     
     {

@@ -15251,7 +15251,15 @@ clAmsPeCompAssignCSIExtended(
                                  csi->config.entity.name.value,
                                  comp->config.entity.name.value));
                 activeSwap = CL_TRUE;
-                activeComp = standbyComp;
+                standbyRank = 0;
+                if (standbyComp)
+                {
+                    activeComp = standbyComp;
+                }
+                else
+                {
+                    activeComp = comp;
+                }
             }
             lastActiveComp = activeComp;
             if(!lastActiveComp)
