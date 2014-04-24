@@ -299,6 +299,12 @@ static ClDebugFuncEntryT cpmSCDebugFuncList[] =
     },
     
     {
+        clAmsDebugCliAssignSU,
+        "assignSUtoSI",
+        "Assigns specific service units to a service instance (for the custom redundancy model)"
+    },
+    
+    {
         clAmsDebugCliXMLizeDB,
         "amsDbXMLize",
         "Utility API for XMLizing the contents of ams DB"
