@@ -39,10 +39,13 @@ clAmsPeSIIsActiveAssignableCustom(CL_IN ClAmsSIT *si)
 
     AMS_CALL ( clAmsPeSIComputeAdminState(si, &adminState) );
 
+    clLogDebug("IAA", "SIT", "Is Active Assignable? SI [%.*s] Admin State [%d].",si->config.entity.name.length,si->config.entity.name.value,adminState);
+
     if ( adminState == CL_AMS_ADMIN_STATE_UNLOCKED )
     {
         if ( si->status.numActiveAssignments < sg->config.numPrefActiveSUsPerSI )
         {
+            clLogDebug("IAA", "SIT", "checking SI [%.*s] dependencies to determine assignable status.",si->config.entity.name.length,si->config.entity.name.value);
             return clAmsEntityListWalkGetEntity(
                                                 &si->config.siDependenciesList,
                                                 (ClAmsEntityCallbackT)clAmsPeSIIsActiveAssignable2);
@@ -150,20 +153,22 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
             while( (siSURef = clAmsCustomAssignmentIterNext(&iter)) )
             {
                 ClAmsSUT *su;
-                if(siSURef->haState != CL_AMS_HA_STATE_ACTIVE) continue;
-                su = (ClAmsSUT*)siSURef->entityRef.ptr;
-                if(clAmsPeSUIsAssignable(su) != CL_OK)
-                    continue;
-                if(su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE)
-                    continue;
-                if(clAmsPeCheckAssignedCustom(su, si))
-                    continue;
-                if(su->status.numActiveSIs >= sg->config.maxActiveSIsPerSU)
-                    continue;
-                *targetSI = si;
-                if(targetSU)
-                    *targetSU = su;
-                break;
+                if ((siSURef->haState == CL_AMS_HA_STATE_ACTIVE)||(siSURef->haState == CL_AMS_HA_STATE_STANDBY))
+                {                    
+                    su = (ClAmsSUT*)siSURef->entityRef.ptr;
+                    if(clAmsPeSUIsAssignable(su) != CL_OK)
+                        continue;
+                    if(su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE)
+                        continue;
+                    if(clAmsPeCheckAssignedCustom(su, si))
+                        continue;
+                    if(su->status.numActiveSIs >= sg->config.maxActiveSIsPerSU)
+                        continue;
+                    *targetSI = si;
+                    if(targetSU)
+                        *targetSU = su;
+                    break;
+                }                
             }
             clAmsCustomAssignmentIterEnd(&iter);
             if(*targetSI) return CL_OK;

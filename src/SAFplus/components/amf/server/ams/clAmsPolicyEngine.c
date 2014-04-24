@@ -11174,6 +11174,8 @@ clAmsPeSIIsActiveAssignable2(
         //            clAmsPeSIIsAssignable2);
     }
 
+    clLogDebug("IAA", "SIT", "SI [%.*s] is not assignable.  OperState is [%d].",si->config.entity.name.length,si->config.entity.name.value,si->status.operState);
+
     return CL_AMS_RC(CL_AMS_ERR_SI_NOT_ASSIGNABLE);
 }
 
@@ -15142,6 +15144,8 @@ clAmsPeCompAssignCSIExtended(
 
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
 
+    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("INSIDE clAmsPeCompAssignCSIExtended\n"))
+
     /*
      * Step 1: Verify if this CSI is already assigned to this Component.  If not, 
      * then create an appropriate csiRef. If yes, just reuse the existing csiRef. 
@@ -15177,6 +15181,7 @@ clAmsPeCompAssignCSIExtended(
 
         if ( haState == CL_AMS_HA_STATE_ACTIVE )
         {
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("haState == active.\n"))
             activeComp = comp;
             standbyRank = 0;
         }
@@ -15185,6 +15190,7 @@ clAmsPeCompAssignCSIExtended(
             ClAmsCompT *standbyComp = NULL;
             activeComp = NULL;
             standbyRank = 1;
+            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("haState == standby.\n"))
 
             for ( entityRef = clAmsEntityListGetFirst(&csi->status.pgList);
                   entityRef != (ClAmsEntityRefT *) NULL;
@@ -15195,15 +15201,19 @@ clAmsPeCompAssignCSIExtended(
                 if ( cRef->haState == CL_AMS_HA_STATE_ACTIVE )
                 {
                     activeComp = (ClAmsCompT *) entityRef->ptr;
+                    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("active comp found [%.*s].\n",activeComp->config.entity.name.length,activeComp->config.entity.name.value));
+                    
                 }
 
                 if ( cRef->haState == CL_AMS_HA_STATE_STANDBY )
                 {
                     standbyComp = (ClAmsCompT*)entityRef->ptr;
+                    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("standby comp found [%.*s].\n",standbyComp->config.entity.name.length,standbyComp->config.entity.name.value));
+                    
                     standbyRank++;
                 }
             }
-
+            
             if ( !activeComp )
             {
                 AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,

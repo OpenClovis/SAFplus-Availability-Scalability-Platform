@@ -1601,24 +1601,26 @@ error_print:
     return rc;
 }
 
-ClRcT   
+ClRcT
 clAmsDebugCliAssignSU(
-        CL_IN  ClUint32T argc,
-        CL_IN  ClCharT **argv,
-        CL_OUT  ClCharT** ret)
+        CL_IN ClUint32T argc,
+        CL_IN ClCharT **argv,
+        CL_OUT ClCharT** ret)
 {
     *ret = clHeapAllocate (MAX_BUFFER_SIZE + 1);
     if ( argc != 4 )
     {
-        strcpy(*ret," USAGE: assignSU SI activeSU standbySU\n");
+        strcpy(*ret," USAGE: assignSU <SI> <activeSU or NULL> <standbySU or NULL>\n");
         return CL_AMS_RC(CL_ERR_INVALID_PARAMETER);
     }
+    ClCharT* active = strncmp(argv[2],"NULL",4) ? argv[2] : NULL;
+    ClCharT* standby = strncmp(argv[3],"NULL",4) ? argv[3] : NULL;
     
-    ClRcT  rc = clAmsMgmtSIAssignSU(argv[1],argv[2],argv[3]);
+    ClRcT rc = clAmsMgmtSIAssignSU(argv[1],active,standby);
     if (rc != CL_OK)
         snprintf(*ret, 1024, "Error [0x%x] [%s]\n", rc, clErrorToString(rc));
 
-    return CL_OK;    
+    return CL_OK;
 }
 
 
