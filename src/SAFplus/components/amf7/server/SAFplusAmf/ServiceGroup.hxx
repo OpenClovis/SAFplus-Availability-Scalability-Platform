@@ -86,8 +86,8 @@ namespace SAFplusAmf {
         ClMgtProv<unsigned int> maxStandbyWorkAssignments;
 
     public:
-         ServiceGroup();
-         ServiceGroup(std::string nameValue);
+        ServiceGroup();
+        ServiceGroup(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -250,7 +250,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits
          */
         void addSpareServiceUnits(SAFplusAmf::SpareServiceUnits *spareServiceUnitsValue);
-         ~ServiceGroup();
+        ~ServiceGroup();
 
     };
 }

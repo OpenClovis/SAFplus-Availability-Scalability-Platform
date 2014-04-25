@@ -11,7 +11,7 @@ DEP_LIBS := $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsa
 all: $(TEST_DIR)/testLog
 
 $(TEST_DIR)/testLog: $(CLIENT_OBJ) $(DEP_LIBS)
-	$(LINK) $+ $(LINK_LIBS) $(DEP_LIBS) -L$(BOOST_DIR)/stage/lib/ -lboost_system
+	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(DEP_LIBS) -L$(BOOST_DIR)/stage/lib/ -lboost_system
 
 $(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

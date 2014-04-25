@@ -10,31 +10,38 @@
 
 namespace SAFplusTypes {
 
-     SaTimeT::SaTimeT() {
+    SaTimeT::SaTimeT()
+    {
     };
 
-    unsigned long int SaTimeT::getValue() {
+    unsigned long int SaTimeT::getValue()
+    {
         return this->Value;
     };
 
-    void SaTimeT::setValue(unsigned long int value) {
+    void SaTimeT::setValue(unsigned long int value)
+    {
         this->Value = value;
     };
 
-    SAFplusTypes::SaTimeT& SaTimeT::operator=(const SAFplusTypes::SaTimeT& SaTimeT) {
+    SAFplusTypes::SaTimeT& SaTimeT::operator=(const SAFplusTypes::SaTimeT& SaTimeT)
+    {
         Value = SaTimeT.Value;
         return *this;
     };
 
-     SaTimeT::~SaTimeT() {
+    SaTimeT::~SaTimeT()
+    {
     };
 
-    std::ostream& operator<<(std::ostream& os, const SAFplusTypes::SaTimeT& SaTimeT) {
+    std::ostream& operator<<(std::ostream& os, const SAFplusTypes::SaTimeT& SaTimeT)
+    {
         return os << SaTimeT.Value;
     };
 
-    std::istream& operator>>(std::istream& in, SAFplusTypes::SaTimeT& SaTimeT) {
-        return in >> SaTimeT.Value;
+    std::istream& operator>>(std::istream& is, SAFplusTypes::SaTimeT& SaTimeT)
+    {
+        return is >> SaTimeT.Value;
     };
 
 }

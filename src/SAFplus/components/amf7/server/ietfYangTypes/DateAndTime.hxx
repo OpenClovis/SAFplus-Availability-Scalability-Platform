@@ -17,13 +17,13 @@ namespace ietfYangTypes {
         std::string Value;
 
     public:
-         DateAndTime();
+        DateAndTime();
         std::string getValue();
         void setValue(std::string value);
-        ietfYangTypes::DateAndTime& operator=(ietfYangTypes::DateAndTime& dateAndTime);
+        ietfYangTypes::DateAndTime& operator=(const ietfYangTypes::DateAndTime& dateAndTime);
         friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::DateAndTime& dateAndTime);
-        friend std::istream& operator>>(std::istream& in, ietfYangTypes::DateAndTime& dateAndTime);
-         ~DateAndTime();
+        friend std::istream& operator>>(std::istream& is, ietfYangTypes::DateAndTime& dateAndTime);
+        ~DateAndTime();
 
     };
 }

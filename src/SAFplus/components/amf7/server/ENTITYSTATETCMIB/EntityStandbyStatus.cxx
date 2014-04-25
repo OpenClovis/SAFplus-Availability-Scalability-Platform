@@ -4,37 +4,34 @@
  * plug-in of pyang.
  */ 
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 #include "EntityStandbyStatus.hxx"
 
 
 namespace ENTITYSTATETCMIB {
 
-     EntityStandbyStatus::EntityStandbyStatus() {
+    /*
+     * Provide an implementation of the en2str_vec lookup table.
+     */
+    const EntityStandbyStatusManager::vec_t EntityStandbyStatusManager::en2str_vec = {
+            pair_t(EntityStandbyStatus::unknown, "unknown"),
+            pair_t(EntityStandbyStatus::hotStandby, "hotStandby"),
+            pair_t(EntityStandbyStatus::coldStandby, "coldStandby"),
+            pair_t(EntityStandbyStatus::providingService, "providingService")
+    }; // uses c++11 initializer lists 
+
+    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityStandbyStatus& entityStandbyStatus)
+    {
+        return os << EntityStandbyStatusManager::toString(entityStandbyStatus);
     };
 
-    int EntityStandbyStatus::getValue() {
-        return this->Value;
-    };
-
-    void EntityStandbyStatus::setValue(int value) {
-        this->Value = value;
-    };
-
-    ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus::operator=(ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus) {
-        Value = EntityStandbyStatus.Value;
-        return *this;
-    };
-
-     EntityStandbyStatus::~EntityStandbyStatus() {
-    };
-
-    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus) {
-        return os << EntityStandbyStatus.Value;
-    };
-
-    std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityStandbyStatus& EntityStandbyStatus) {
-        return in >> EntityStandbyStatus.Value;
+    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityStandbyStatus& entityStandbyStatus)
+    {
+        std::string buf;
+        is >> buf;
+        entityStandbyStatus = EntityStandbyStatusManager::toEnum(buf);
+        return is;
     };
 
 }

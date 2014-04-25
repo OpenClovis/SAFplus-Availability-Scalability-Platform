@@ -17,13 +17,15 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Terminate, /SAFplusAmf/Component/terminate)
 
-     Terminate::Terminate(): ClMgtObject("terminate"), command("command"), args("args"), timeout("timeout") {
+    Terminate::Terminate(): ClMgtObject("terminate"), command("command"), args("args"), timeout("timeout")
+    {
         this->addChildObject(&command, "command");
         this->addChildObject(&args, "args");
         this->addChildObject(&timeout, "timeout");
     };
 
-    std::vector<std::string>* Terminate::getChildNames() {
+    std::vector<std::string>* Terminate::getChildNames()
+    {
         std::string childNames[] = { "command", "args", "timeout" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
@@ -31,46 +33,53 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Component/terminate/command
      */
-    std::string Terminate::getCommand() {
+    std::string Terminate::getCommand()
+    {
         return this->command.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate/command
      */
-    void Terminate::setCommand(std::string commandValue) {
+    void Terminate::setCommand(std::string commandValue)
+    {
         this->command.Value = commandValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate/args
      */
-    std::string Terminate::getArgs() {
+    std::string Terminate::getArgs()
+    {
         return this->args.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate/args
      */
-    void Terminate::setArgs(std::string argsValue) {
+    void Terminate::setArgs(std::string argsValue)
+    {
         this->args.Value = argsValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate/timeout
      */
-    unsigned long int Terminate::getTimeout() {
+    unsigned long int Terminate::getTimeout()
+    {
         return this->timeout.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate/timeout
      */
-    void Terminate::setTimeout(unsigned long int timeoutValue) {
+    void Terminate::setTimeout(unsigned long int timeoutValue)
+    {
         this->timeout.Value = timeoutValue;
     };
 
-     Terminate::~Terminate() {
+    Terminate::~Terminate()
+    {
     };
 
 }

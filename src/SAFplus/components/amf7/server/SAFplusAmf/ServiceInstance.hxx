@@ -7,25 +7,24 @@
 #ifndef SERVICEINSTANCE_HXX_
 #define SERVICEINSTANCE_HXX_
 
-#include <map>
-#include "clMgtObject.hxx"
+#include "AssignmentState.hxx"
 #include "StandbyWeight.hxx"
-#include "clMgtProv.hxx"
-#include "StandbyAssignments.hxx"
-#include "StandbyAssignments.hxx"
 #include "StandbyWeight.hxx"
-#include <vector>
+#include "StandbyAssignments.hxx"
+#include "clMgtList.hxx"
 #include "MgtFactory.hxx"
-#include "ActiveAssignments.hxx"
 #include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
 #include "ActiveWeight.hxx"
 #include <string>
+#include "clMgtObject.hxx"
+#include "clMgtProv.hxx"
+#include "StandbyAssignments.hxx"
+#include <vector>
+#include "ActiveAssignments.hxx"
 #include "ActiveWeight.hxx"
 
 namespace SAFplusAmf {
-
-    enum AssignmentStateOption { unassigned, fullyAssigned, partiallyAssigned };
 
     class ServiceInstance : public ClMgtObject {
 
@@ -52,16 +51,26 @@ namespace SAFplusAmf {
         /*
          * The assignment state of a service instance indicates whether the service represented by this service instance is being provided or not by some service unit.
          */
-        ClMgtProv<int> assignmentState;
+        ClMgtProv<SAFplusAmf::AssignmentState> assignmentState;
 
         /*
          * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
          */
         ClMgtProv<unsigned int> rank;
 
+        /*
+         * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
+         */
+        ClMgtList activeWeightList;
+
+        /*
+         * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
+         */
+        ClMgtList standbyWeightList;
+
     public:
-         ServiceInstance();
-         ServiceInstance(std::string nameValue);
+        ServiceInstance();
+        ServiceInstance(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -98,12 +107,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
          */
-        AssignmentStateOption getAssignmentState();
+        SAFplusAmf::AssignmentState getAssignmentState();
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
          */
-        void setAssignmentState(AssignmentStateOption assignmentStateValue);
+        void setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/rank
@@ -126,11 +135,6 @@ namespace SAFplusAmf {
         void addActiveWeight(SAFplusAmf::ActiveWeight *activeWeightValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/activeWeight
-         */
-        void addActiveWeight(std::string resourceValue);
-
-        /*
          * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
          */
         SAFplusAmf::StandbyWeight* getStandbyWeight(std::string resourceValue);
@@ -139,11 +143,6 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
          */
         void addStandbyWeight(SAFplusAmf::StandbyWeight *standbyWeightValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
-         */
-        void addStandbyWeight(std::string resourceValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments
@@ -164,7 +163,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ServiceInstance/standbyAssignments
          */
         void addStandbyAssignments(SAFplusAmf::StandbyAssignments *standbyAssignmentsValue);
-         ~ServiceInstance();
+        ~ServiceInstance();
 
     };
 }

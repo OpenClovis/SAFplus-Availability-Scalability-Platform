@@ -7,23 +7,24 @@
 #ifndef READINESSSTATE_HXX_
 #define READINESSSTATE_HXX_
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 
 namespace SAFplusAmf {
 
-    class ReadinessState {
-    public:
-        int Value;
+    enum class ReadinessState {
+        outOfService, inService, stopping
+    };
+    std::ostream& operator<<(std::ostream& os, const ReadinessState& e);
+    std::istream& operator>>(std::istream& is, ReadinessState& e);
 
+    /*
+     * This is the class that will handle the conversion for us.
+     */
+    class ReadinessStateManager : public SAFplus::MgtEnumType<ReadinessStateManager, ReadinessState> {
+        ReadinessStateManager();  // private to prevent instantiation
     public:
-         ReadinessState();
-        int getValue();
-        void setValue(int value);
-        SAFplusAmf::ReadinessState& operator=(SAFplusAmf::ReadinessState& ReadinessState);
-        friend std::ostream& operator<<(std::ostream& os, const SAFplusAmf::ReadinessState& ReadinessState);
-        friend std::istream& operator>>(std::istream& in, SAFplusAmf::ReadinessState& ReadinessState);
-         ~ReadinessState();
-
+        static const vec_t en2str_vec;  // This is the lookup table.
     };
 }
 /* namespace SAFplusAmf */

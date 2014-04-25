@@ -7,23 +7,24 @@
 #ifndef ENTITYOPERSTATE_HXX_
 #define ENTITYOPERSTATE_HXX_
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 
 namespace ENTITYSTATETCMIB {
 
-    class EntityOperState {
-    public:
-        int Value;
+    enum class EntityOperState {
+        unknown=1, disabled=2, enabled=3, testing=4
+    };
+    std::ostream& operator<<(std::ostream& os, const EntityOperState& e);
+    std::istream& operator>>(std::istream& is, EntityOperState& e);
 
+    /*
+     * This is the class that will handle the conversion for us.
+     */
+    class EntityOperStateManager : public SAFplus::MgtEnumType<EntityOperStateManager, EntityOperState> {
+        EntityOperStateManager();  // private to prevent instantiation
     public:
-         EntityOperState();
-        int getValue();
-        void setValue(int value);
-        ENTITYSTATETCMIB::EntityOperState& operator=(ENTITYSTATETCMIB::EntityOperState& EntityOperState);
-        friend std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityOperState& EntityOperState);
-        friend std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityOperState& EntityOperState);
-         ~EntityOperState();
-
+        static const vec_t en2str_vec;  // This is the lookup table.
     };
 }
 /* namespace ENTITYSTATETCMIB */

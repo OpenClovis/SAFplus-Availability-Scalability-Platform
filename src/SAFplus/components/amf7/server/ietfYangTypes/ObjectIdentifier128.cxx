@@ -11,31 +11,38 @@
 
 namespace ietfYangTypes {
 
-     ObjectIdentifier128::ObjectIdentifier128() {
+    ObjectIdentifier128::ObjectIdentifier128()
+    {
     };
 
-    std::string ObjectIdentifier128::getValue() {
+    std::string ObjectIdentifier128::getValue()
+    {
         return this->Value;
     };
 
-    void ObjectIdentifier128::setValue(std::string value) {
+    void ObjectIdentifier128::setValue(std::string value)
+    {
         this->Value = value;
     };
 
-    ietfYangTypes::ObjectIdentifier128& ObjectIdentifier128::operator=(ietfYangTypes::ObjectIdentifier128& objectIdentifier128) {
+    ietfYangTypes::ObjectIdentifier128& ObjectIdentifier128::operator=(const ietfYangTypes::ObjectIdentifier128& objectIdentifier128)
+    {
         Value = objectIdentifier128.Value;
         return *this;
     };
 
-     ObjectIdentifier128::~ObjectIdentifier128() {
+    ObjectIdentifier128::~ObjectIdentifier128()
+    {
     };
 
-    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ObjectIdentifier128& objectIdentifier128) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ObjectIdentifier128& objectIdentifier128)
+    {
         return os << objectIdentifier128.Value;
     };
 
-    std::istream& operator>>(std::istream& in, ietfYangTypes::ObjectIdentifier128& objectIdentifier128) {
-        return in >> objectIdentifier128.Value;
+    std::istream& operator>>(std::istream& is, ietfYangTypes::ObjectIdentifier128& objectIdentifier128)
+    {
+        return is >> objectIdentifier128.Value;
     };
 
 }

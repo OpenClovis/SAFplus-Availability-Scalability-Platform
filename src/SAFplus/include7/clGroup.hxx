@@ -3,9 +3,6 @@
 
 // Standard includes
 #include <string>
-#include <boost/functional/hash.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/errors.hpp>
 #include <boost/unordered_map.hpp>
 #include <functional>
@@ -15,11 +12,18 @@
 #include <clNameApi.hxx>
 #include <clIocApi.h>
 #include <clLogApi.hxx>
+#include <clCkptApi.hxx>
+#include <clCustomization.hxx>
 
 
 namespace SAFplus
 {
+  typedef SAFplusI::BufferPtr  GroupMapKey;
+  typedef SAFplusI::BufferPtr  GroupMapValue;
   typedef SAFplus::Handle EntityIdentifier;
+
+  typedef std::pair<const GroupMapKey,GroupMapValue> GroupMapPair;
+  typedef boost::unordered_map < GroupMapKey, GroupMapValue> GroupHashMap;
 
   class GroupIdentity
   {
@@ -27,7 +31,7 @@ namespace SAFplus
       EntityIdentifier id;
       uint64_t credentials;
       SAFplus::Buffer* data;
-      uint capabilities; //Capabilities is a bitmap. It also contains state of group member
+      uint capabilities;
       uint dataLen;
       GroupIdentity& operator=(GroupIdentity const& c)
       {
@@ -35,12 +39,11 @@ namespace SAFplus
         credentials   = c.credentials;
         capabilities  = c.capabilities;
         dataLen       = c.dataLen;
-        //data          = new(c.data->data) Buffer(sizeof(c.dataLen));
       }
       GroupIdentity()
       {
         credentials = 0;
-        id = SAFplus::Handle::create();
+        capabilities = 0;
       }
       GroupIdentity(EntityIdentifier me,uint64_t credentials,SAFplus::Buffer *dat,uint datalen,uint capabilities)
       {
@@ -53,30 +56,7 @@ namespace SAFplus
         memcpy((char *)data->data,(char *)dat->data,datalen);
       }
   };
-}
-namespace SAFplusI
-{
-  class GroupBufferHeader;
 
-  typedef SAFplusI::BufferPtr  GroupMapKey;
-  typedef SAFplusI::BufferPtr  GroupMapValue;
-
-  typedef std::pair<const GroupMapKey,GroupMapValue> GroupMapPair;
-  typedef boost::interprocess::allocator<GroupMapValue, boost::interprocess::managed_shared_memory::segment_manager> GroupAllocator;
-  typedef boost::unordered_map < GroupMapKey, GroupMapValue, boost::hash<GroupMapKey>, BufferPtrContentsEqual, GroupAllocator> GroupHashMap;
-
-  class GroupBufferHeader
-  {
-    public:
-      uint64_t structId;
-      pid_t    serverPid;  // This is used to ensure that 2 servers don't fight for the memory
-      SAFplus::Handle handle;
-  };
-
-}
-
-namespace SAFplus
-{
   class Group
   {
     public:
@@ -92,13 +72,6 @@ namespace SAFplus
         ELECTION_TYPE_BOTH = 1,     // Elect both active/standby roles
         ELECTION_TYPE_ACTIVE  = 2,  // Elect active role only
         ELECTION_TYPE_STANDBY  = 4, // Elect standby role only
-      };
-      enum
-      {
-        GROUP_SEGMENT_SIZE = 65536, // Which size is enough to contain group map ?
-        GROUP_SEGMENT_ROWS = 256,
-        CL_GROUP_BUFFER_HEADER_STRUCT_ID_7 = 0x5941234,
-        GROUP_CAPABILITY_MASK = 0xfffff0
       };
 
       Group(SAFplus::Handle groupHandle) { init(groupHandle); }
@@ -127,16 +100,14 @@ namespace SAFplus
       SAFplus::Buffer& getData(EntityIdentifier id);
 
       // Calls for an election with specified role
-      int elect(std::pair<EntityIdentifier,EntityIdentifier> &res,int electionType = (int)SAFplus::Group::ELECTION_TYPE_BOTH );
+      std::pair<EntityIdentifier,EntityIdentifier>  elect(int electionType = (int)SAFplus::Group::ELECTION_TYPE_BOTH );
 
-      typedef SAFplusI::GroupMapPair KeyValuePair;
+      typedef SAFplus::GroupMapPair KeyValuePair;
 
     private:
       EntityIdentifier electLeader();
       EntityIdentifier electDeputy(EntityIdentifier highestCreEntity);
-      void initializeSharedMemory(char sharedMemName[]);
       std::pair<EntityIdentifier,EntityIdentifier> electForRoles(int electionType);
-      void sendNotification(int notificationType, void* data); //Used to notify other nodes or members about group membership/role changed
 
     public:
       // std template like iterator
@@ -161,9 +132,9 @@ namespace SAFplus
         const KeyValuePair* operator->() const { return curval; }
 
         Group* group;
-        SAFplusI::GroupMapPair* curval;
+        SAFplus::GroupMapPair* curval;
 
-        SAFplusI::GroupHashMap::iterator iter;
+        SAFplus::GroupHashMap::iterator iter;
       };
 
       Iterator begin();
@@ -179,17 +150,14 @@ namespace SAFplus
       void setStandby(EntityIdentifier id);
 
     protected:
-      boost::interprocess::managed_shared_memory msm;
-      SAFplusI::GroupHashMap*           map;
-      SAFplusI::GroupBufferHeader*      hdr;
+      static SAFplus::Checkpoint        mCheckpoint;
+      SAFplus::GroupHashMap*            map;
       SAFplus::Handle                   handle;
       SAFplus::Wakeable*                wakeable;
       EntityIdentifier                  activeEntity;
       EntityIdentifier                  standbyEntity;
       EntityIdentifier                  lastRegisteredEntity;
-
   };
-
 }
 
 #endif

@@ -32,7 +32,7 @@ namespace SAFplusAmf {
         ClMgtProvList<unsigned long int> history1month;
 
     public:
-         IdleServiceUnits();
+        IdleServiceUnits();
         std::vector<std::string>* getChildNames();
 
         /*
@@ -124,7 +124,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits/history1month
          */
         void setHistory1month(unsigned long int history1monthValue);
-         ~IdleServiceUnits();
+        ~IdleServiceUnits();
 
     };
 }

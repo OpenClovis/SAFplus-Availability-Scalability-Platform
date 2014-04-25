@@ -17,25 +17,29 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ActiveWeight, /SAFplusAmf/ServiceInstance/activeWeight)
 
-     ActiveWeight::ActiveWeight(): ClMgtObject("activeWeight"), resource("resource"), value("value") {
+    ActiveWeight::ActiveWeight(): ClMgtObject("activeWeight"), resource("resource"), value("value")
+    {
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
         this->addKey("resource");
     };
 
-     ActiveWeight::ActiveWeight(std::string resourceValue): ClMgtObject("activeWeight"), resource("resource"), value("value") {
+    ActiveWeight::ActiveWeight(std::string resourceValue): ClMgtObject("activeWeight"), resource("resource"), value("value")
+    {
         this->resource.Value =  resourceValue;
         this->addKey("resource");
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
     };
 
-    std::vector<std::string> ActiveWeight::getKeys() {
+    std::vector<std::string> ActiveWeight::getKeys()
+    {
         std::string keyNames[] = { "resource" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    std::vector<std::string>* ActiveWeight::getChildNames() {
+    std::vector<std::string>* ActiveWeight::getChildNames()
+    {
         std::string childNames[] = { "resource", "value" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
@@ -43,32 +47,37 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/activeWeight/resource
      */
-    std::string ActiveWeight::getResource() {
+    std::string ActiveWeight::getResource()
+    {
         return this->resource.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/activeWeight/resource
      */
-    void ActiveWeight::setResource(std::string resourceValue) {
+    void ActiveWeight::setResource(std::string resourceValue)
+    {
         this->resource.Value = resourceValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/activeWeight/value
      */
-    long int ActiveWeight::getValue() {
+    long int ActiveWeight::getValue()
+    {
         return this->value.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/activeWeight/value
      */
-    void ActiveWeight::setValue(long int valueValue) {
+    void ActiveWeight::setValue(long int valueValue)
+    {
         this->value.Value = valueValue;
     };
 
-     ActiveWeight::~ActiveWeight() {
+    ActiveWeight::~ActiveWeight()
+    {
     };
 
 }

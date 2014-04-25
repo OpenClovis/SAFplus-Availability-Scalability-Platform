@@ -10,31 +10,38 @@
 
 namespace ietfYangTypes {
 
-     Gauge32::Gauge32() {
+    Gauge32::Gauge32()
+    {
     };
 
-    unsigned int Gauge32::getValue() {
+    unsigned int Gauge32::getValue()
+    {
         return this->Value;
     };
 
-    void Gauge32::setValue(unsigned int value) {
+    void Gauge32::setValue(unsigned int value)
+    {
         this->Value = value;
     };
 
-    ietfYangTypes::Gauge32& Gauge32::operator=(ietfYangTypes::Gauge32& gauge32) {
+    ietfYangTypes::Gauge32& Gauge32::operator=(const ietfYangTypes::Gauge32& gauge32)
+    {
         Value = gauge32.Value;
         return *this;
     };
 
-     Gauge32::~Gauge32() {
+    Gauge32::~Gauge32()
+    {
     };
 
-    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Gauge32& gauge32) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Gauge32& gauge32)
+    {
         return os << gauge32.Value;
     };
 
-    std::istream& operator>>(std::istream& in, ietfYangTypes::Gauge32& gauge32) {
-        return in >> gauge32.Value;
+    std::istream& operator>>(std::istream& is, ietfYangTypes::Gauge32& gauge32)
+    {
+        return is >> gauge32.Value;
     };
 
 }

@@ -7,12 +7,12 @@
 #ifndef NODE_HXX_
 #define NODE_HXX_
 
-#include <map>
 #include <vector>
 #include "Capacity.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "Capacity.hxx"
+#include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
@@ -63,9 +63,14 @@ namespace SAFplusAmf {
          */
         ClMgtProv<bool> failFastOnCleanupFailure;
 
+        /*
+         * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
+         */
+        ClMgtList capacityList;
+
     public:
-         Node();
-         Node(std::string nameValue);
+        Node();
+        Node(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -150,11 +155,6 @@ namespace SAFplusAmf {
         void addCapacity(SAFplusAmf::Capacity *capacityValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/capacity
-         */
-        void addCapacity(std::string resourceValue);
-
-        /*
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
          */
         SAFplusAmf::ServiceUnitFailureEscalationPolicy* getServiceUnitFailureEscalationPolicy();
@@ -163,7 +163,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
          */
         void addServiceUnitFailureEscalationPolicy(SAFplusAmf::ServiceUnitFailureEscalationPolicy *serviceUnitFailureEscalationPolicyValue);
-         ~Node();
+        ~Node();
 
     };
 }

@@ -16,13 +16,13 @@ namespace ietfYangTypes {
         unsigned int Value;
 
     public:
-         Timeticks();
+        Timeticks();
         unsigned int getValue();
         void setValue(unsigned int value);
-        ietfYangTypes::Timeticks& operator=(ietfYangTypes::Timeticks& timeticks);
+        ietfYangTypes::Timeticks& operator=(const ietfYangTypes::Timeticks& timeticks);
         friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Timeticks& timeticks);
-        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Timeticks& timeticks);
-         ~Timeticks();
+        friend std::istream& operator>>(std::istream& is, ietfYangTypes::Timeticks& timeticks);
+        ~Timeticks();
 
     };
 }

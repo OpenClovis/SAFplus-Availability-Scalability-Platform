@@ -4,37 +4,34 @@
  * plug-in of pyang.
  */ 
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 #include "HighAvailabilityState.hxx"
 
 
 namespace SAFplusAmf {
 
-     HighAvailabilityState::HighAvailabilityState() {
+    /*
+     * Provide an implementation of the en2str_vec lookup table.
+     */
+    const HighAvailabilityStateManager::vec_t HighAvailabilityStateManager::en2str_vec = {
+            pair_t(HighAvailabilityState::active, "active"),
+            pair_t(HighAvailabilityState::standby, "standby"),
+            pair_t(HighAvailabilityState::quiescing, "quiescing"),
+            pair_t(HighAvailabilityState::idle, "idle")
+    }; // uses c++11 initializer lists 
+
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::HighAvailabilityState& highAvailabilityState)
+    {
+        return os << HighAvailabilityStateManager::toString(highAvailabilityState);
     };
 
-    int HighAvailabilityState::getValue() {
-        return this->Value;
-    };
-
-    void HighAvailabilityState::setValue(int value) {
-        this->Value = value;
-    };
-
-    SAFplusAmf::HighAvailabilityState& HighAvailabilityState::operator=(SAFplusAmf::HighAvailabilityState& HighAvailabilityState) {
-        Value = HighAvailabilityState.Value;
-        return *this;
-    };
-
-     HighAvailabilityState::~HighAvailabilityState() {
-    };
-
-    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::HighAvailabilityState& HighAvailabilityState) {
-        return os << HighAvailabilityState.Value;
-    };
-
-    std::istream& operator>>(std::istream& in, SAFplusAmf::HighAvailabilityState& HighAvailabilityState) {
-        return in >> HighAvailabilityState.Value;
+    std::istream& operator>>(std::istream& is, SAFplusAmf::HighAvailabilityState& highAvailabilityState)
+    {
+        std::string buf;
+        is >> buf;
+        highAvailabilityState = HighAvailabilityStateManager::toEnum(buf);
+        return is;
     };
 
 }

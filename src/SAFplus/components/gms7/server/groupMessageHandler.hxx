@@ -2,7 +2,7 @@
 #define groupMessageHandler_hxx
 
 #include <clSafplusMsgServer.hxx>
-#include "groupServer.hxx"
+#include "GroupServer.hxx"
 #include <clGlobals.hxx>
 #include <clLogApi.hxx>
 

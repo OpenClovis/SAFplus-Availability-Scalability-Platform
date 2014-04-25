@@ -17,13 +17,13 @@ namespace ietfYangTypes {
         std::string Value;
 
     public:
-         PhysAddress();
+        PhysAddress();
         std::string getValue();
         void setValue(std::string value);
-        ietfYangTypes::PhysAddress& operator=(ietfYangTypes::PhysAddress& physAddress);
+        ietfYangTypes::PhysAddress& operator=(const ietfYangTypes::PhysAddress& physAddress);
         friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::PhysAddress& physAddress);
-        friend std::istream& operator>>(std::istream& in, ietfYangTypes::PhysAddress& physAddress);
-         ~PhysAddress();
+        friend std::istream& operator>>(std::istream& is, ietfYangTypes::PhysAddress& physAddress);
+        ~PhysAddress();
 
     };
 }

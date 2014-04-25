@@ -33,7 +33,7 @@ namespace SAFplusAmf {
         ClMgtProv<SAFplusTypes::SaTimeT> duration;
 
     public:
-         ServiceUnitRestart();
+        ServiceUnitRestart();
         std::vector<std::string>* getChildNames();
 
         /*
@@ -55,7 +55,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/duration
          */
         void setDuration(SAFplusTypes::SaTimeT durationValue);
-         ~ServiceUnitRestart();
+        ~ServiceUnitRestart();
 
     };
 }

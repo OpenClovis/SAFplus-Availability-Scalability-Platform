@@ -426,8 +426,11 @@ void SAFplus::NameRegistrar::handleFailure(const FailureType failureType, const 
                if (sz == 1) // There is only one handle registered, then remove the name and its value
                {
                   printf("Removing element with key [%s]\n", curkey.get()->data);
+#if 0                  
                   m_checkpoint.remove(curval);                   
                   m_checkpoint.remove(curkey, true);
+#endif
+                  m_checkpoint.remove(*curkey);
                }
                else  //Remove this element and push remaining handles back to checkpoint
                {

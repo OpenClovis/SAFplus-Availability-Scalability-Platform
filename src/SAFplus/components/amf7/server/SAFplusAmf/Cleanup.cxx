@@ -17,13 +17,15 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Cleanup, /SAFplusAmf/Component/cleanup)
 
-     Cleanup::Cleanup(): ClMgtObject("cleanup"), command("command"), args("args"), timeout("timeout") {
+    Cleanup::Cleanup(): ClMgtObject("cleanup"), command("command"), args("args"), timeout("timeout")
+    {
         this->addChildObject(&command, "command");
         this->addChildObject(&args, "args");
         this->addChildObject(&timeout, "timeout");
     };
 
-    std::vector<std::string>* Cleanup::getChildNames() {
+    std::vector<std::string>* Cleanup::getChildNames()
+    {
         std::string childNames[] = { "command", "args", "timeout" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
@@ -31,46 +33,53 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Component/cleanup/command
      */
-    std::string Cleanup::getCommand() {
+    std::string Cleanup::getCommand()
+    {
         return this->command.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup/command
      */
-    void Cleanup::setCommand(std::string commandValue) {
+    void Cleanup::setCommand(std::string commandValue)
+    {
         this->command.Value = commandValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup/args
      */
-    std::string Cleanup::getArgs() {
+    std::string Cleanup::getArgs()
+    {
         return this->args.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup/args
      */
-    void Cleanup::setArgs(std::string argsValue) {
+    void Cleanup::setArgs(std::string argsValue)
+    {
         this->args.Value = argsValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup/timeout
      */
-    unsigned long int Cleanup::getTimeout() {
+    unsigned long int Cleanup::getTimeout()
+    {
         return this->timeout.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup/timeout
      */
-    void Cleanup::setTimeout(unsigned long int timeoutValue) {
+    void Cleanup::setTimeout(unsigned long int timeoutValue)
+    {
         this->timeout.Value = timeoutValue;
     };
 
-     Cleanup::~Cleanup() {
+    Cleanup::~Cleanup()
+    {
     };
 
 }

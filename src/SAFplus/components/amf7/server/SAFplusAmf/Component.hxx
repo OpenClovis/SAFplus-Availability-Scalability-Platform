@@ -17,7 +17,9 @@
 #include "Cleanup.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
+#include "CapabilityModel.hxx"
 #include "Cleanup.hxx"
+#include "Recovery.hxx"
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "clMgtObject.hxx"
@@ -33,9 +35,6 @@
 #include "clMgtProvList.hxx"
 
 namespace SAFplusAmf {
-
-    enum CapabilityModelOption { x_active_and_y_standby, x_active_or_y_standby, one_active_or_y_standby, one_active_or_one_standby, x_active, one_active, nonPreInstantiable };
-    enum RecoveryOption { NoRecommendation, Restart, Failover, NodeSwitchover, NodeFailover, NodeFailfast, ClusterReset, ApplicationRestart, ContainerRestart };
 
     class Component : public ClMgtObject {
 
@@ -58,7 +57,7 @@ namespace SAFplusAmf {
         /*
          * This is defined by the SA-Forum AMF specificaion but is read-only because it is an emergent property based on values in saAmfCompNumMaxActiveCSIs and saAmfCompNumMaxStandbyCSIs.
          */
-        ClMgtProv<int> capabilityModel;
+        ClMgtProv<SAFplusAmf::CapabilityModel> capabilityModel;
 
         /*
          * Maximum number of active work assignments this component can handle.
@@ -99,7 +98,9 @@ namespace SAFplusAmf {
         ClMgtProv<std::string> swBundle;
 
         /*
-         * List of environment variables in the form '<VARIABLE>=<VALUE>' the form the environment in which this component should be started
+         * List of environment variables in the form '<VARIABLE>=<VALUE>
+<VARIABLE2>=<VALUE2>
+' the form the environment in which this component should be started
          */
         ClMgtProvList<std::string> commandEnvironment;
 
@@ -117,7 +118,7 @@ namespace SAFplusAmf {
          * How long to delay between instantiation attempts
          */
         ClMgtProv<unsigned int> delayBetweenInstantiation;
-        ClMgtProv<int> recovery;
+        ClMgtProv<SAFplusAmf::Recovery> recovery;
 
         /*
          * Set to true if this component can be restarted on failure, without this event registering as a fault
@@ -135,8 +136,8 @@ namespace SAFplusAmf {
         ClMgtProvList<std::string> proxied;
 
     public:
-         Component();
-         Component(std::string nameValue);
+        Component();
+        Component(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -173,12 +174,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Component/capabilityModel
          */
-        CapabilityModelOption getCapabilityModel();
+        SAFplusAmf::CapabilityModel getCapabilityModel();
 
         /*
          * XPATH: /SAFplusAmf/Component/capabilityModel
          */
-        void setCapabilityModel(CapabilityModelOption capabilityModelValue);
+        void setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/maxActiveAssignments
@@ -323,12 +324,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/Component/recovery
          */
-        RecoveryOption getRecovery();
+        SAFplusAmf::Recovery getRecovery();
 
         /*
          * XPATH: /SAFplusAmf/Component/recovery
          */
-        void setRecovery(RecoveryOption recoveryValue);
+        void setRecovery(SAFplusAmf::Recovery recoveryValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/restartable
@@ -429,7 +430,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/Component/restartCount
          */
         void addRestartCount(SAFplusAmf::RestartCount *restartCountValue);
-         ~Component();
+        ~Component();
 
     };
 }

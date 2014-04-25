@@ -7,23 +7,24 @@
 #ifndef ENTITYUSAGESTATE_HXX_
 #define ENTITYUSAGESTATE_HXX_
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 
 namespace ENTITYSTATETCMIB {
 
-    class EntityUsageState {
-    public:
-        int Value;
+    enum class EntityUsageState {
+        unknown=1, idle=2, active=3, busy=4
+    };
+    std::ostream& operator<<(std::ostream& os, const EntityUsageState& e);
+    std::istream& operator>>(std::istream& is, EntityUsageState& e);
 
+    /*
+     * This is the class that will handle the conversion for us.
+     */
+    class EntityUsageStateManager : public SAFplus::MgtEnumType<EntityUsageStateManager, EntityUsageState> {
+        EntityUsageStateManager();  // private to prevent instantiation
     public:
-         EntityUsageState();
-        int getValue();
-        void setValue(int value);
-        ENTITYSTATETCMIB::EntityUsageState& operator=(ENTITYSTATETCMIB::EntityUsageState& EntityUsageState);
-        friend std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityUsageState& EntityUsageState);
-        friend std::istream& operator>>(std::istream& in, ENTITYSTATETCMIB::EntityUsageState& EntityUsageState);
-         ~EntityUsageState();
-
+        static const vec_t en2str_vec;  // This is the lookup table.
     };
 }
 /* namespace ENTITYSTATETCMIB */

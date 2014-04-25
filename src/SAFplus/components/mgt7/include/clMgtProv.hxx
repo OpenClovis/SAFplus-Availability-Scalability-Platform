@@ -219,7 +219,10 @@ template <class T>
 void ClMgtProv<T>::toString(std::stringstream& xmlString)
 {
     getDb();
-    xmlString << "<" << Name << ">" << Value << "</" << Name << ">";
+    xmlString << "<";
+    xmlString << Name << ">";
+    xmlString << Value;
+    xmlString << "</" << Name << ">";
 }
 
 template <class T>

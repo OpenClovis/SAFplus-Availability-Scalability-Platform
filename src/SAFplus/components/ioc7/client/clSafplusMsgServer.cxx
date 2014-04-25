@@ -32,18 +32,18 @@ namespace SAFplus
     }
 
     void
-    SAFplus::SafplusMsgServer::RegisterHandler(ClWordT type, MsgHandler *handler, ClPtrT cookie)
+    SAFplus::SafplusMsgServer::registerHandler(ClWordT type, MsgHandler *handler, ClPtrT cookie)
     {
         SAFplus::MsgServer::RegisterHandler(type, handler, cookie);
     }
 
     void
-    SAFplus::SafplusMsgServer::RemoveHandler(ClWordT type)
+    SAFplus::SafplusMsgServer::removeHandler(ClWordT type)
     {
         SAFplus::MsgServer::RemoveHandler(type);
     }
 
-    MsgReply *SafplusMsgServer::SendReply(ClIocAddressT destination, void* buffer, ClWordT length, ClWordT msgtype, Wakeable *wakeable)
+    MsgReply *SafplusMsgServer::sendReply(ClIocAddressT destination, void* buffer, ClWordT length, ClWordT msgtype, Wakeable *wakeable)
     {
         memset(&msgReply, 0, sizeof(MsgReply));
         /*

@@ -11,31 +11,38 @@
 
 namespace ietfYangTypes {
 
-     ObjectIdentifier::ObjectIdentifier() {
+    ObjectIdentifier::ObjectIdentifier()
+    {
     };
 
-    std::string ObjectIdentifier::getValue() {
+    std::string ObjectIdentifier::getValue()
+    {
         return this->Value;
     };
 
-    void ObjectIdentifier::setValue(std::string value) {
+    void ObjectIdentifier::setValue(std::string value)
+    {
         this->Value = value;
     };
 
-    ietfYangTypes::ObjectIdentifier& ObjectIdentifier::operator=(ietfYangTypes::ObjectIdentifier& objectIdentifier) {
+    ietfYangTypes::ObjectIdentifier& ObjectIdentifier::operator=(const ietfYangTypes::ObjectIdentifier& objectIdentifier)
+    {
         Value = objectIdentifier.Value;
         return *this;
     };
 
-     ObjectIdentifier::~ObjectIdentifier() {
+    ObjectIdentifier::~ObjectIdentifier()
+    {
     };
 
-    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ObjectIdentifier& objectIdentifier) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ObjectIdentifier& objectIdentifier)
+    {
         return os << objectIdentifier.Value;
     };
 
-    std::istream& operator>>(std::istream& in, ietfYangTypes::ObjectIdentifier& objectIdentifier) {
-        return in >> objectIdentifier.Value;
+    std::istream& operator>>(std::istream& is, ietfYangTypes::ObjectIdentifier& objectIdentifier)
+    {
+        return is >> objectIdentifier.Value;
     };
 
 }

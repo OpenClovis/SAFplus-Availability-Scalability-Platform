@@ -16,13 +16,13 @@ namespace ietfYangTypes {
         unsigned long int Value;
 
     public:
-         Counter64();
+        Counter64();
         unsigned long int getValue();
         void setValue(unsigned long int value);
-        ietfYangTypes::Counter64& operator=(ietfYangTypes::Counter64& counter64);
+        ietfYangTypes::Counter64& operator=(const ietfYangTypes::Counter64& counter64);
         friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Counter64& counter64);
-        friend std::istream& operator>>(std::istream& in, ietfYangTypes::Counter64& counter64);
-         ~Counter64();
+        friend std::istream& operator>>(std::istream& is, ietfYangTypes::Counter64& counter64);
+        ~Counter64();
 
     };
 }

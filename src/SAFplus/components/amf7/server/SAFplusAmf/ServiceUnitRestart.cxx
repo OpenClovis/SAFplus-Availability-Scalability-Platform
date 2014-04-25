@@ -18,12 +18,14 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceUnitRestart, /SAFplusAmf/ServiceGroup/ServiceUnitRestart)
 
-     ServiceUnitRestart::ServiceUnitRestart(): ClMgtObject("ServiceUnitRestart"), maximum("maximum"), duration("duration") {
+    ServiceUnitRestart::ServiceUnitRestart(): ClMgtObject("ServiceUnitRestart"), maximum("maximum"), duration("duration")
+    {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");
     };
 
-    std::vector<std::string>* ServiceUnitRestart::getChildNames() {
+    std::vector<std::string>* ServiceUnitRestart::getChildNames()
+    {
         std::string childNames[] = { "maximum", "duration" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
@@ -31,32 +33,37 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/maximum
      */
-    unsigned long int ServiceUnitRestart::getMaximum() {
+    unsigned long int ServiceUnitRestart::getMaximum()
+    {
         return this->maximum.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/maximum
      */
-    void ServiceUnitRestart::setMaximum(unsigned long int maximumValue) {
+    void ServiceUnitRestart::setMaximum(unsigned long int maximumValue)
+    {
         this->maximum.Value = maximumValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/duration
      */
-    SAFplusTypes::SaTimeT ServiceUnitRestart::getDuration() {
+    SAFplusTypes::SaTimeT ServiceUnitRestart::getDuration()
+    {
         return this->duration.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/duration
      */
-    void ServiceUnitRestart::setDuration(SAFplusTypes::SaTimeT durationValue) {
+    void ServiceUnitRestart::setDuration(SAFplusTypes::SaTimeT durationValue)
+    {
         this->duration.Value = durationValue;
     };
 
-     ServiceUnitRestart::~ServiceUnitRestart() {
+    ServiceUnitRestart::~ServiceUnitRestart()
+    {
     };
 
 }

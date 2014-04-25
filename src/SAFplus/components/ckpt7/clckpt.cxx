@@ -17,6 +17,7 @@ using namespace SAFplusI;
 
 #define BOOST_CKPT_OVERHEAD 0x100
 
+
 std::size_t SAFplusI::hash_value(BufferPtr const& b)  // Actually hashes the buffer not the pointer of course
     {
       if (!b) return 0; // Hash NULL to 0
@@ -35,13 +36,13 @@ bool SAFplusI::BufferPtrContentsEqual::operator() (const BufferPtr& x, const Buf
       
 }
 
-void SAFplus::Checkpoint::init(const Handle& handle, uint_t _flags,uint_t size, uint_t rows)
+void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uint_t rows)
 {
   flags = _flags;
   char tempStr[81];
-  if (handle==INVALID_HDL)
+  if (hdl==INVALID_HDL)
     {
-      // Allocate a new handle
+      // Allocate a new hdl
     }
 
   if (size < CkptMinSize) size = CkptDefaultSize;
@@ -49,7 +50,7 @@ void SAFplus::Checkpoint::init(const Handle& handle, uint_t _flags,uint_t size, 
   if (rows < CkptMinRows) rows = CkptDefaultRows;
 
   //sharedMemHandle = NULL;
-  handle.toStr(tempStr);
+  hdl.toStr(tempStr);
   //strcpy(tempStr,"test");  // DEBUGGING always uses one segment
 
   if (flags & EXISTING)  // Try to create it first if the flags don't require that it exists.
@@ -64,7 +65,7 @@ void SAFplus::Checkpoint::init(const Handle& handle, uint_t _flags,uint_t size, 
   try
     {
       hdr = msm.construct<SAFplusI::CkptBufferHeader>("header") ();                                 // Ok it created one so initialize
-      //hdr->handle = 0;
+      hdr->handle = hdl;
       hdr->serverPid = getpid();
       hdr->structId=SAFplusI::CL_CKPT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
     }
@@ -77,7 +78,7 @@ void SAFplus::Checkpoint::init(const Handle& handle, uint_t _flags,uint_t size, 
 	  while ((hdr->structId != CL_CKPT_BUFFER_HEADER_STRUCT_ID_7)&&(retries<2)) { retries++; sleep(1); }  // If another process just barely beat me to the creation, I better wait.
 	  if (retries>=2)
 	    {
-	      //hdr->handle = 0;
+	      hdr->handle = hdl;
 	      hdr->serverPid = getpid();
 	      hdr->structId=SAFplusI::CL_CKPT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
 	    }
@@ -235,6 +236,43 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
   
 }
 
+void SAFplus::Checkpoint::remove (const uintcw_t key,Transaction& t)
+{
+  char data[sizeof(Buffer)-1+sizeof(uintcw_t)];
+  Buffer* b = new(data) Buffer(sizeof(uintcw_t));
+  *((uintcw_t*) b->data) = key;
+  remove(*b,t);
+}
+
+void SAFplus::Checkpoint::remove(const Buffer& key,Transaction& t)
+{
+  CkptHashMap::iterator contents = map->find(SAFplusI::BufferPtr((Buffer*)&key));
+
+  while (contents != map->end())
+    {
+      SAFplusI::BufferPtr value = contents->second;  // remove the value
+      SAFplusI::BufferPtr curkey   = contents->first;  // remove the key
+
+      map->erase(curkey);
+      
+      SAFplus::Buffer* val = value.get();
+      if (val->ref()==1) 
+        msm.deallocate(val);  // if I'm the last owner, let this go.
+      else 
+        val->decRef();	
+     
+      val = curkey.get();
+      if (val->ref()==1) 
+        msm.deallocate(val);  // if I'm the last owner, let this go.
+      else 
+        val->decRef();
+
+      
+      contents++;
+    }
+}
+
+#if 0
 void SAFplus::Checkpoint::remove(const SAFplusI::BufferPtr& bufPtr, bool isKey, Transaction& t)
 {
   if (isKey)
@@ -257,8 +295,9 @@ void SAFplus::Checkpoint::remove(Buffer* buf, bool isKey, Transaction& t)
   SAFplusI::BufferPtr kb(buf);
   remove(kb, isKey, t);
 }
+#endif
 
-void SAFplus::Checkpoint::remove(char* name)
+void SAFplus::Checkpoint::dbgRemove(char* name)
 {
   //char tempStr[81];
   //hdr->handle.toStr(tempStr);

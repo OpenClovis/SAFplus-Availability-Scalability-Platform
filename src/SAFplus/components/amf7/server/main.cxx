@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
     {
       // By waiting, other nodes that are booting can come up.  This makes the system more consistently elect a particular node as ACTIVE when the cluster is started.  Note that this is just convenient for users, it does not matter to the system which node is elected active.
       boost::this_thread::sleep(boost::posix_time::milliseconds(STARTUP_ELECTION_DELAY_MS));
-      int rc =  clusterGroup.elect(activeStandbyPairs);
+      activeStandbyPairs = clusterGroup.elect();
       // GAS TODO:  What errors can be returned?
     }
 

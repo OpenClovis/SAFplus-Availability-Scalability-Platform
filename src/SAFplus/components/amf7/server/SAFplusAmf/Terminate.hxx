@@ -38,7 +38,7 @@ namespace SAFplusAmf {
         ClMgtProv<unsigned long int> timeout;
 
     public:
-         Terminate();
+        Terminate();
         std::vector<std::string>* getChildNames();
 
         /*
@@ -70,7 +70,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/Component/terminate/timeout
          */
         void setTimeout(unsigned long int timeoutValue);
-         ~Terminate();
+        ~Terminate();
 
     };
 }

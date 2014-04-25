@@ -7,23 +7,24 @@
 #ifndef LIFECYCLESTATE_HXX_
 #define LIFECYCLESTATE_HXX_
 
+#include "MgtEnumType.hxx"
 #include <iostream>
 
 namespace SAFplusTypes {
 
-    class LifecycleState {
-    public:
-        int Value;
+    enum class LifecycleState {
+        start, idle, stop
+    };
+    std::ostream& operator<<(std::ostream& os, const LifecycleState& e);
+    std::istream& operator>>(std::istream& is, LifecycleState& e);
 
+    /*
+     * This is the class that will handle the conversion for us.
+     */
+    class LifecycleStateManager : public SAFplus::MgtEnumType<LifecycleStateManager, LifecycleState> {
+        LifecycleStateManager();  // private to prevent instantiation
     public:
-         LifecycleState();
-        int getValue();
-        void setValue(int value);
-        SAFplusTypes::LifecycleState& operator=(SAFplusTypes::LifecycleState& lifecycleState);
-        friend std::ostream& operator<<(std::ostream& os, const SAFplusTypes::LifecycleState& lifecycleState);
-        friend std::istream& operator>>(std::istream& in, SAFplusTypes::LifecycleState& lifecycleState);
-         ~LifecycleState();
-
+        static const vec_t en2str_vec;  // This is the lookup table.
     };
 }
 /* namespace SAFplusTypes */

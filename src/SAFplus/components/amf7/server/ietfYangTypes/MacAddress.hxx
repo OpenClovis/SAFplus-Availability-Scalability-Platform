@@ -17,13 +17,13 @@ namespace ietfYangTypes {
         std::string Value;
 
     public:
-         MacAddress();
+        MacAddress();
         std::string getValue();
         void setValue(std::string value);
-        ietfYangTypes::MacAddress& operator=(ietfYangTypes::MacAddress& macAddress);
+        ietfYangTypes::MacAddress& operator=(const ietfYangTypes::MacAddress& macAddress);
         friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::MacAddress& macAddress);
-        friend std::istream& operator>>(std::istream& in, ietfYangTypes::MacAddress& macAddress);
-         ~MacAddress();
+        friend std::istream& operator>>(std::istream& is, ietfYangTypes::MacAddress& macAddress);
+        ~MacAddress();
 
     };
 }

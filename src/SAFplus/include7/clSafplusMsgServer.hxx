@@ -51,11 +51,11 @@ namespace SAFplus
                  @param cookie  This pointer will be passed to you handler function
              */
             void
-            RegisterHandler(ClWordT type, MsgHandler *handler, ClPtrT cookie);
+            registerHandler(ClWordT type, MsgHandler *handler, ClPtrT cookie);
 
             /** Remove the handler for particular type of message */
             void
-            RemoveHandler(ClWordT type);
+            removeHandler(ClWordT type);
 
             /** Send a message
                  @param msgtype The destination message handler
@@ -66,7 +66,7 @@ namespace SAFplus
              Raises the "Error" Exception if something goes wrong, or if the destination queue does not
              exist.
              */
-            MsgReply *SendReply(ClIocAddressT destination, void* buffer, ClWordT length,ClWordT msgtype=0, Wakeable *wakeable = NULL);
+            MsgReply *sendReply(ClIocAddressT destination, void* buffer, ClWordT length,ClWordT msgtype=0, Wakeable *wakeable = NULL);
 
         protected:
             MsgHandler *handlers[NUM_MSG_TYPES];

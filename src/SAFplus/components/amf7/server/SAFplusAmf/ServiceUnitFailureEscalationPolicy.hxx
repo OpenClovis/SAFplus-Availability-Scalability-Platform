@@ -33,7 +33,7 @@ namespace SAFplusAmf {
         ClMgtProv<SAFplusTypes::SaTimeT> duration;
 
     public:
-         ServiceUnitFailureEscalationPolicy();
+        ServiceUnitFailureEscalationPolicy();
         std::vector<std::string>* getChildNames();
 
         /*
@@ -55,7 +55,7 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy/duration
          */
         void setDuration(SAFplusTypes::SaTimeT durationValue);
-         ~ServiceUnitFailureEscalationPolicy();
+        ~ServiceUnitFailureEscalationPolicy();
 
     };
 }
