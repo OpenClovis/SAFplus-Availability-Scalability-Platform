@@ -395,16 +395,14 @@ SAFplus::Buffer& SAFplus::NameRegistrar::getData(const std::string& name) throw(
 
 void SAFplus::NameRegistrar::handleFailure(const FailureType failureType, const uint32_t id, const uint32_t amfId)
 {
-   CkptHashMap::iterator ibegin = m_checkpoint.begin().iter;
-   CkptHashMap::iterator iend = m_checkpoint.end().iter;  
-   for(CkptHashMap::iterator iter = ibegin; iter != iend; iter++)
+   SAFplus::Checkpoint::Iterator ibegin = m_checkpoint.begin();
+   SAFplus::Checkpoint::Iterator iend = m_checkpoint.end();  
+   for(SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
    {
-      CkptHashMap::value_type vt = *iter;
-
-      BufferPtr curkey = vt.first;
+      BufferPtr curkey = iter->first;
       printf("handleFailure(): key [%s]\n", curkey.get()->data);            
 
-      BufferPtr& curval = vt.second;
+      BufferPtr& curval = iter->second;
       if (curval)
       {
          boost::iostreams::basic_array_source<char> device(curval->data, curval->len());
