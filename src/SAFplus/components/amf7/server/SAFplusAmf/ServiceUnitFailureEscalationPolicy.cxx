@@ -18,12 +18,14 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ServiceUnitFailureEscalationPolicy, /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy)
 
-    ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy(): ClMgtObject("serviceUnitFailureEscalationPolicy"), maximum("maximum"), duration("duration") {
+    ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy(): ClMgtObject("serviceUnitFailureEscalationPolicy"), maximum("maximum"), duration("duration")
+    {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");
     };
 
-    std::vector<std::string>* ServiceUnitFailureEscalationPolicy::getChildNames() {
+    std::vector<std::string>* ServiceUnitFailureEscalationPolicy::getChildNames()
+    {
         std::string childNames[] = { "maximum", "duration" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
@@ -31,32 +33,37 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy/maximum
      */
-    unsigned long int ServiceUnitFailureEscalationPolicy::getMaximum() {
+    unsigned long int ServiceUnitFailureEscalationPolicy::getMaximum()
+    {
         return this->maximum.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy/maximum
      */
-    void ServiceUnitFailureEscalationPolicy::setMaximum(unsigned long int maximumValue) {
+    void ServiceUnitFailureEscalationPolicy::setMaximum(unsigned long int maximumValue)
+    {
         this->maximum.Value = maximumValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy/duration
      */
-    SAFplusTypes::SaTimeT ServiceUnitFailureEscalationPolicy::getDuration() {
+    SAFplusTypes::SaTimeT ServiceUnitFailureEscalationPolicy::getDuration()
+    {
         return this->duration.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy/duration
      */
-    void ServiceUnitFailureEscalationPolicy::setDuration(SAFplusTypes::SaTimeT durationValue) {
+    void ServiceUnitFailureEscalationPolicy::setDuration(SAFplusTypes::SaTimeT durationValue)
+    {
         this->duration.Value = durationValue;
     };
 
-    ServiceUnitFailureEscalationPolicy::~ServiceUnitFailureEscalationPolicy() {
+    ServiceUnitFailureEscalationPolicy::~ServiceUnitFailureEscalationPolicy()
+    {
     };
 
 }

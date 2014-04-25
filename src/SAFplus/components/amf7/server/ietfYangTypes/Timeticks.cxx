@@ -10,30 +10,37 @@
 
 namespace ietfYangTypes {
 
-    Timeticks::Timeticks() {
+    Timeticks::Timeticks()
+    {
     };
 
-    unsigned int Timeticks::getValue() {
+    unsigned int Timeticks::getValue()
+    {
         return this->Value;
     };
 
-    void Timeticks::setValue(unsigned int value) {
+    void Timeticks::setValue(unsigned int value)
+    {
         this->Value = value;
     };
 
-    ietfYangTypes::Timeticks& Timeticks::operator=(const ietfYangTypes::Timeticks& timeticks) {
+    ietfYangTypes::Timeticks& Timeticks::operator=(const ietfYangTypes::Timeticks& timeticks)
+    {
         Value = timeticks.Value;
         return *this;
     };
 
-    Timeticks::~Timeticks() {
+    Timeticks::~Timeticks()
+    {
     };
 
-    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Timeticks& timeticks) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Timeticks& timeticks)
+    {
         return os << timeticks.Value;
     };
 
-    std::istream& operator>>(std::istream& is, ietfYangTypes::Timeticks& timeticks) {
+    std::istream& operator>>(std::istream& is, ietfYangTypes::Timeticks& timeticks)
+    {
         return is >> timeticks.Value;
     };
 

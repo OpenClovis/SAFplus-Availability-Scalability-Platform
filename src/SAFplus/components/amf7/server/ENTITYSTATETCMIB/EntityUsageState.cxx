@@ -21,11 +21,13 @@ namespace ENTITYSTATETCMIB {
             pair_t(EntityUsageState::busy, "busy")
     }; // uses c++11 initializer lists 
 
-    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityUsageState& entityUsageState) {
+    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityUsageState& entityUsageState)
+    {
         return os << EntityUsageStateManager::toString(entityUsageState);
     };
 
-    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityUsageState& entityUsageState) {
+    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityUsageState& entityUsageState)
+    {
         std::string buf;
         is >> buf;
         entityUsageState = EntityUsageStateManager::toEnum(buf);

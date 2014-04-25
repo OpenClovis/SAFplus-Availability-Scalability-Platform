@@ -26,11 +26,13 @@ namespace SAFplusAmf {
             pair_t(Recovery::ContainerRestart, "ContainerRestart")
     }; // uses c++11 initializer lists 
 
-    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::Recovery& recovery) {
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::Recovery& recovery)
+    {
         return os << RecoveryManager::toString(recovery);
     };
 
-    std::istream& operator>>(std::istream& is, SAFplusAmf::Recovery& recovery) {
+    std::istream& operator>>(std::istream& is, SAFplusAmf::Recovery& recovery)
+    {
         std::string buf;
         is >> buf;
         recovery = RecoveryManager::toEnum(buf);

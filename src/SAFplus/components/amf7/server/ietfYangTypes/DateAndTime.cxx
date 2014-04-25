@@ -11,30 +11,37 @@
 
 namespace ietfYangTypes {
 
-    DateAndTime::DateAndTime() {
+    DateAndTime::DateAndTime()
+    {
     };
 
-    std::string DateAndTime::getValue() {
+    std::string DateAndTime::getValue()
+    {
         return this->Value;
     };
 
-    void DateAndTime::setValue(std::string value) {
+    void DateAndTime::setValue(std::string value)
+    {
         this->Value = value;
     };
 
-    ietfYangTypes::DateAndTime& DateAndTime::operator=(const ietfYangTypes::DateAndTime& dateAndTime) {
+    ietfYangTypes::DateAndTime& DateAndTime::operator=(const ietfYangTypes::DateAndTime& dateAndTime)
+    {
         Value = dateAndTime.Value;
         return *this;
     };
 
-    DateAndTime::~DateAndTime() {
+    DateAndTime::~DateAndTime()
+    {
     };
 
-    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::DateAndTime& dateAndTime) {
+    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::DateAndTime& dateAndTime)
+    {
         return os << dateAndTime.Value;
     };
 
-    std::istream& operator>>(std::istream& is, ietfYangTypes::DateAndTime& dateAndTime) {
+    std::istream& operator>>(std::istream& is, ietfYangTypes::DateAndTime& dateAndTime)
+    {
         return is >> dateAndTime.Value;
     };
 

@@ -17,12 +17,14 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(EntityById, /SAFplusAmf/EntityById)
 
-    EntityById::EntityById(): ClMgtObject("EntityById"), id("id"), entity("entity") {
+    EntityById::EntityById(): ClMgtObject("EntityById"), id("id"), entity("entity")
+    {
         this->addChildObject(&id, "id");
         this->addChildObject(&entity, "entity");
     };
 
-    std::vector<std::string>* EntityById::getChildNames() {
+    std::vector<std::string>* EntityById::getChildNames()
+    {
         std::string childNames[] = { "id", "entity" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
@@ -30,32 +32,37 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/EntityById/id
      */
-    unsigned short int EntityById::getId() {
+    unsigned short int EntityById::getId()
+    {
         return this->id.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/EntityById/id
      */
-    void EntityById::setId(unsigned short int idValue) {
+    void EntityById::setId(unsigned short int idValue)
+    {
         this->id.Value = idValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/EntityById/entity
      */
-    std::string EntityById::getEntity() {
+    std::string EntityById::getEntity()
+    {
         return this->entity.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/EntityById/entity
      */
-    void EntityById::setEntity(std::string entityValue) {
+    void EntityById::setEntity(std::string entityValue)
+    {
         this->entity.Value = entityValue;
     };
 
-    EntityById::~EntityById() {
+    EntityById::~EntityById()
+    {
     };
 
 }

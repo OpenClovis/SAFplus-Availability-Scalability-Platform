@@ -17,13 +17,15 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Instantiate, /SAFplusAmf/Component/instantiate)
 
-    Instantiate::Instantiate(): ClMgtObject("instantiate"), command("command"), args("args"), timeout("timeout") {
+    Instantiate::Instantiate(): ClMgtObject("instantiate"), command("command"), args("args"), timeout("timeout")
+    {
         this->addChildObject(&command, "command");
         this->addChildObject(&args, "args");
         this->addChildObject(&timeout, "timeout");
     };
 
-    std::vector<std::string>* Instantiate::getChildNames() {
+    std::vector<std::string>* Instantiate::getChildNames()
+    {
         std::string childNames[] = { "command", "args", "timeout" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
@@ -31,46 +33,53 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Component/instantiate/command
      */
-    std::string Instantiate::getCommand() {
+    std::string Instantiate::getCommand()
+    {
         return this->command.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/instantiate/command
      */
-    void Instantiate::setCommand(std::string commandValue) {
+    void Instantiate::setCommand(std::string commandValue)
+    {
         this->command.Value = commandValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/instantiate/args
      */
-    std::string Instantiate::getArgs() {
+    std::string Instantiate::getArgs()
+    {
         return this->args.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/instantiate/args
      */
-    void Instantiate::setArgs(std::string argsValue) {
+    void Instantiate::setArgs(std::string argsValue)
+    {
         this->args.Value = argsValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/instantiate/timeout
      */
-    unsigned long int Instantiate::getTimeout() {
+    unsigned long int Instantiate::getTimeout()
+    {
         return this->timeout.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/instantiate/timeout
      */
-    void Instantiate::setTimeout(unsigned long int timeoutValue) {
+    void Instantiate::setTimeout(unsigned long int timeoutValue)
+    {
         this->timeout.Value = timeoutValue;
     };
 
-    Instantiate::~Instantiate() {
+    Instantiate::~Instantiate()
+    {
     };
 
 }

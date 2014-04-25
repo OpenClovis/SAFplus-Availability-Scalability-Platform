@@ -38,7 +38,8 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Component, /SAFplusAmf/Component)
 
-    Component::Component(): ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied") {
+    Component::Component(): ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied")
+    {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&presence, "presence");
@@ -64,7 +65,8 @@ namespace SAFplusAmf {
         this->addKey("name");
     };
 
-    Component::Component(std::string nameValue): ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied") {
+    Component::Component(std::string nameValue): ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied")
+    {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -91,12 +93,14 @@ namespace SAFplusAmf {
         this->addChildObject(&proxied, "proxied");
     };
 
-    std::vector<std::string> Component::getKeys() {
+    std::vector<std::string> Component::getKeys()
+    {
         std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    std::vector<std::string>* Component::getChildNames() {
+    std::vector<std::string>* Component::getChildNames()
+    {
         std::string childNames[] = { "name", "id", "presence", "capabilityModel", "maxActiveAssignments", "maxStandbyAssignments", "activeAssignments", "standbyAssignments", "assignedWork", "operState", "readinessState", "haReadinessState", "haState", "safVersion", "compCategory", "swBundle", "commandEnvironment", "instantiate", "terminate", "cleanup", "maxInstantInstantiations", "maxDelayedInstantiations", "delayBetweenInstantiation", "timeouts", "recovery", "restartable", "restartCount", "proxy", "proxied" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
@@ -104,410 +108,469 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Component/name
      */
-    std::string Component::getName() {
+    std::string Component::getName()
+    {
         return this->name.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/name
      */
-    void Component::setName(std::string nameValue) {
+    void Component::setName(std::string nameValue)
+    {
         this->name.Value = nameValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/id
      */
-    unsigned short int Component::getId() {
+    unsigned short int Component::getId()
+    {
         return this->id.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/id
      */
-    void Component::setId(unsigned short int idValue) {
+    void Component::setId(unsigned short int idValue)
+    {
         this->id.Value = idValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/presence
      */
-    SAFplusAmf::PresenceState Component::getPresence() {
+    SAFplusAmf::PresenceState Component::getPresence()
+    {
         return this->presence.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/presence
      */
-    void Component::setPresence(SAFplusAmf::PresenceState presenceValue) {
+    void Component::setPresence(SAFplusAmf::PresenceState presenceValue)
+    {
         this->presence.Value = presenceValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/capabilityModel
      */
-    SAFplusAmf::CapabilityModel Component::getCapabilityModel() {
+    SAFplusAmf::CapabilityModel Component::getCapabilityModel()
+    {
         return this->capabilityModel.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/capabilityModel
      */
-    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue) {
+    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue)
+    {
         this->capabilityModel.Value = capabilityModelValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/maxActiveAssignments
      */
-    unsigned int Component::getMaxActiveAssignments() {
+    unsigned int Component::getMaxActiveAssignments()
+    {
         return this->maxActiveAssignments.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/maxActiveAssignments
      */
-    void Component::setMaxActiveAssignments(unsigned int maxActiveAssignmentsValue) {
+    void Component::setMaxActiveAssignments(unsigned int maxActiveAssignmentsValue)
+    {
         this->maxActiveAssignments.Value = maxActiveAssignmentsValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/maxStandbyAssignments
      */
-    unsigned int Component::getMaxStandbyAssignments() {
+    unsigned int Component::getMaxStandbyAssignments()
+    {
         return this->maxStandbyAssignments.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/maxStandbyAssignments
      */
-    void Component::setMaxStandbyAssignments(unsigned int maxStandbyAssignmentsValue) {
+    void Component::setMaxStandbyAssignments(unsigned int maxStandbyAssignmentsValue)
+    {
         this->maxStandbyAssignments.Value = maxStandbyAssignmentsValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/assignedWork
      */
-    std::vector<std::string> Component::getAssignedWork() {
+    std::vector<std::string> Component::getAssignedWork()
+    {
         return this->assignedWork.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/assignedWork
      */
-    void Component::setAssignedWork(std::string assignedWorkValue) {
+    void Component::setAssignedWork(std::string assignedWorkValue)
+    {
         this->assignedWork.Value.push_back(assignedWorkValue);
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/operState
      */
-    bool Component::getOperState() {
+    bool Component::getOperState()
+    {
         return this->operState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/operState
      */
-    void Component::setOperState(bool operStateValue) {
+    void Component::setOperState(bool operStateValue)
+    {
         this->operState.Value = operStateValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/readinessState
      */
-    SAFplusAmf::ReadinessState Component::getReadinessState() {
+    SAFplusAmf::ReadinessState Component::getReadinessState()
+    {
         return this->readinessState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/readinessState
      */
-    void Component::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue) {
+    void Component::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue)
+    {
         this->readinessState.Value = readinessStateValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/haReadinessState
      */
-    SAFplusAmf::HighAvailabilityReadinessState Component::getHaReadinessState() {
+    SAFplusAmf::HighAvailabilityReadinessState Component::getHaReadinessState()
+    {
         return this->haReadinessState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/haReadinessState
      */
-    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue) {
+    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue)
+    {
         this->haReadinessState.Value = haReadinessStateValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/haState
      */
-    SAFplusAmf::HighAvailabilityState Component::getHaState() {
+    SAFplusAmf::HighAvailabilityState Component::getHaState()
+    {
         return this->haState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/haState
      */
-    void Component::setHaState(SAFplusAmf::HighAvailabilityState haStateValue) {
+    void Component::setHaState(SAFplusAmf::HighAvailabilityState haStateValue)
+    {
         this->haState.Value = haStateValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/safVersion
      */
-    std::string Component::getSafVersion() {
+    std::string Component::getSafVersion()
+    {
         return this->safVersion.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/safVersion
      */
-    void Component::setSafVersion(std::string safVersionValue) {
+    void Component::setSafVersion(std::string safVersionValue)
+    {
         this->safVersion.Value = safVersionValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/compCategory
      */
-    unsigned int Component::getCompCategory() {
+    unsigned int Component::getCompCategory()
+    {
         return this->compCategory.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/compCategory
      */
-    void Component::setCompCategory(unsigned int compCategoryValue) {
+    void Component::setCompCategory(unsigned int compCategoryValue)
+    {
         this->compCategory.Value = compCategoryValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/swBundle
      */
-    std::string Component::getSwBundle() {
+    std::string Component::getSwBundle()
+    {
         return this->swBundle.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/swBundle
      */
-    void Component::setSwBundle(std::string swBundleValue) {
+    void Component::setSwBundle(std::string swBundleValue)
+    {
         this->swBundle.Value = swBundleValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/commandEnvironment
      */
-    std::vector<std::string> Component::getCommandEnvironment() {
+    std::vector<std::string> Component::getCommandEnvironment()
+    {
         return this->commandEnvironment.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/commandEnvironment
      */
-    void Component::setCommandEnvironment(std::string commandEnvironmentValue) {
+    void Component::setCommandEnvironment(std::string commandEnvironmentValue)
+    {
         this->commandEnvironment.Value.push_back(commandEnvironmentValue);
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/maxInstantInstantiations
      */
-    unsigned int Component::getMaxInstantInstantiations() {
+    unsigned int Component::getMaxInstantInstantiations()
+    {
         return this->maxInstantInstantiations.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/maxInstantInstantiations
      */
-    void Component::setMaxInstantInstantiations(unsigned int maxInstantInstantiationsValue) {
+    void Component::setMaxInstantInstantiations(unsigned int maxInstantInstantiationsValue)
+    {
         this->maxInstantInstantiations.Value = maxInstantInstantiationsValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/maxDelayedInstantiations
      */
-    unsigned int Component::getMaxDelayedInstantiations() {
+    unsigned int Component::getMaxDelayedInstantiations()
+    {
         return this->maxDelayedInstantiations.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/maxDelayedInstantiations
      */
-    void Component::setMaxDelayedInstantiations(unsigned int maxDelayedInstantiationsValue) {
+    void Component::setMaxDelayedInstantiations(unsigned int maxDelayedInstantiationsValue)
+    {
         this->maxDelayedInstantiations.Value = maxDelayedInstantiationsValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/delayBetweenInstantiation
      */
-    unsigned int Component::getDelayBetweenInstantiation() {
+    unsigned int Component::getDelayBetweenInstantiation()
+    {
         return this->delayBetweenInstantiation.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/delayBetweenInstantiation
      */
-    void Component::setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue) {
+    void Component::setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue)
+    {
         this->delayBetweenInstantiation.Value = delayBetweenInstantiationValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/recovery
      */
-    SAFplusAmf::Recovery Component::getRecovery() {
+    SAFplusAmf::Recovery Component::getRecovery()
+    {
         return this->recovery.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/recovery
      */
-    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue) {
+    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue)
+    {
         this->recovery.Value = recoveryValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/restartable
      */
-    bool Component::getRestartable() {
+    bool Component::getRestartable()
+    {
         return this->restartable.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/restartable
      */
-    void Component::setRestartable(bool restartableValue) {
+    void Component::setRestartable(bool restartableValue)
+    {
         this->restartable.Value = restartableValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/proxy
      */
-    std::string Component::getProxy() {
+    std::string Component::getProxy()
+    {
         return this->proxy.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/proxy
      */
-    void Component::setProxy(std::string proxyValue) {
+    void Component::setProxy(std::string proxyValue)
+    {
         this->proxy.Value = proxyValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/proxied
      */
-    std::vector<std::string> Component::getProxied() {
+    std::vector<std::string> Component::getProxied()
+    {
         return this->proxied.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/proxied
      */
-    void Component::setProxied(std::string proxiedValue) {
+    void Component::setProxied(std::string proxiedValue)
+    {
         this->proxied.Value.push_back(proxiedValue);
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/activeAssignments
      */
-    SAFplusAmf::ActiveAssignments* Component::getActiveAssignments() {
+    SAFplusAmf::ActiveAssignments* Component::getActiveAssignments()
+    {
         return (ActiveAssignments*)this->getChildObject("activeAssignments");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/activeAssignments
      */
-    void Component::addActiveAssignments(SAFplusAmf::ActiveAssignments *activeAssignmentsValue) {
+    void Component::addActiveAssignments(SAFplusAmf::ActiveAssignments *activeAssignmentsValue)
+    {
         this->addChildObject(activeAssignmentsValue, "activeAssignments");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/standbyAssignments
      */
-    SAFplusAmf::StandbyAssignments* Component::getStandbyAssignments() {
+    SAFplusAmf::StandbyAssignments* Component::getStandbyAssignments()
+    {
         return (StandbyAssignments*)this->getChildObject("standbyAssignments");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/standbyAssignments
      */
-    void Component::addStandbyAssignments(SAFplusAmf::StandbyAssignments *standbyAssignmentsValue) {
+    void Component::addStandbyAssignments(SAFplusAmf::StandbyAssignments *standbyAssignmentsValue)
+    {
         this->addChildObject(standbyAssignmentsValue, "standbyAssignments");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/instantiate
      */
-    SAFplusAmf::Instantiate* Component::getInstantiate() {
+    SAFplusAmf::Instantiate* Component::getInstantiate()
+    {
         return (Instantiate*)this->getChildObject("instantiate");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/instantiate
      */
-    void Component::addInstantiate(SAFplusAmf::Instantiate *instantiateValue) {
+    void Component::addInstantiate(SAFplusAmf::Instantiate *instantiateValue)
+    {
         this->addChildObject(instantiateValue, "instantiate");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate
      */
-    SAFplusAmf::Terminate* Component::getTerminate() {
+    SAFplusAmf::Terminate* Component::getTerminate()
+    {
         return (Terminate*)this->getChildObject("terminate");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/terminate
      */
-    void Component::addTerminate(SAFplusAmf::Terminate *terminateValue) {
+    void Component::addTerminate(SAFplusAmf::Terminate *terminateValue)
+    {
         this->addChildObject(terminateValue, "terminate");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup
      */
-    SAFplusAmf::Cleanup* Component::getCleanup() {
+    SAFplusAmf::Cleanup* Component::getCleanup()
+    {
         return (Cleanup*)this->getChildObject("cleanup");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/cleanup
      */
-    void Component::addCleanup(SAFplusAmf::Cleanup *cleanupValue) {
+    void Component::addCleanup(SAFplusAmf::Cleanup *cleanupValue)
+    {
         this->addChildObject(cleanupValue, "cleanup");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/timeouts
      */
-    SAFplusAmf::Timeouts* Component::getTimeouts() {
+    SAFplusAmf::Timeouts* Component::getTimeouts()
+    {
         return (Timeouts*)this->getChildObject("timeouts");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/timeouts
      */
-    void Component::addTimeouts(SAFplusAmf::Timeouts *timeoutsValue) {
+    void Component::addTimeouts(SAFplusAmf::Timeouts *timeoutsValue)
+    {
         this->addChildObject(timeoutsValue, "timeouts");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/restartCount
      */
-    SAFplusAmf::RestartCount* Component::getRestartCount() {
+    SAFplusAmf::RestartCount* Component::getRestartCount()
+    {
         return (RestartCount*)this->getChildObject("restartCount");
     };
 
     /*
      * XPATH: /SAFplusAmf/Component/restartCount
      */
-    void Component::addRestartCount(SAFplusAmf::RestartCount *restartCountValue) {
+    void Component::addRestartCount(SAFplusAmf::RestartCount *restartCountValue)
+    {
         this->addChildObject(restartCountValue, "restartCount");
     };
 
-    Component::~Component() {
+    Component::~Component()
+    {
     };
 
 }

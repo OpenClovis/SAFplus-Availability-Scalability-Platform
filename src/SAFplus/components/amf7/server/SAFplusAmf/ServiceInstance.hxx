@@ -8,21 +8,21 @@
 #define SERVICEINSTANCE_HXX_
 
 #include "AssignmentState.hxx"
-#include <string>
 #include "StandbyWeight.hxx"
-#include <map>
+#include "StandbyWeight.hxx"
 #include "StandbyAssignments.hxx"
-#include "StandbyWeight.hxx"
+#include "clMgtList.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
 #include "ActiveWeight.hxx"
-#include "ActiveWeight.hxx"
+#include <string>
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
+#include "ActiveWeight.hxx"
 
 namespace SAFplusAmf {
 
@@ -57,6 +57,16 @@ namespace SAFplusAmf {
          * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
          */
         ClMgtProv<unsigned int> rank;
+
+        /*
+         * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
+         */
+        ClMgtList activeWeightList;
+
+        /*
+         * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
+         */
+        ClMgtList standbyWeightList;
 
     public:
         ServiceInstance();
@@ -125,11 +135,6 @@ namespace SAFplusAmf {
         void addActiveWeight(SAFplusAmf::ActiveWeight *activeWeightValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceInstance/activeWeight
-         */
-        void addActiveWeight(std::string resourceValue);
-
-        /*
          * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
          */
         SAFplusAmf::StandbyWeight* getStandbyWeight(std::string resourceValue);
@@ -138,11 +143,6 @@ namespace SAFplusAmf {
          * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
          */
         void addStandbyWeight(SAFplusAmf::StandbyWeight *standbyWeightValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
-         */
-        void addStandbyWeight(std::string resourceValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments

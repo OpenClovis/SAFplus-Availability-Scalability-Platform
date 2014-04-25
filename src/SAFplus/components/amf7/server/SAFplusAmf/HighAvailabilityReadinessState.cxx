@@ -21,11 +21,13 @@ namespace SAFplusAmf {
             pair_t(HighAvailabilityReadinessState::notReadyForAssignment, "notReadyForAssignment")
     }; // uses c++11 initializer lists 
 
-    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::HighAvailabilityReadinessState& highAvailabilityReadinessState) {
+    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::HighAvailabilityReadinessState& highAvailabilityReadinessState)
+    {
         return os << HighAvailabilityReadinessStateManager::toString(highAvailabilityReadinessState);
     };
 
-    std::istream& operator>>(std::istream& is, SAFplusAmf::HighAvailabilityReadinessState& highAvailabilityReadinessState) {
+    std::istream& operator>>(std::istream& is, SAFplusAmf::HighAvailabilityReadinessState& highAvailabilityReadinessState)
+    {
         std::string buf;
         is >> buf;
         highAvailabilityReadinessState = HighAvailabilityReadinessStateManager::toEnum(buf);

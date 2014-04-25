@@ -20,14 +20,16 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(Application, /SAFplusAmf/Application)
 
-    Application::Application(): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState") {
+    Application::Application(): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState")
+    {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
         this->addKey("name");
     };
 
-    Application::Application(std::string nameValue): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState") {
+    Application::Application(std::string nameValue): ClMgtObject("Application"), name("name"), id("id"), adminState("adminState")
+    {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
@@ -35,12 +37,14 @@ namespace SAFplusAmf {
         this->addChildObject(&adminState, "adminState");
     };
 
-    std::vector<std::string> Application::getKeys() {
+    std::vector<std::string> Application::getKeys()
+    {
         std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
-    std::vector<std::string>* Application::getChildNames() {
+    std::vector<std::string>* Application::getChildNames()
+    {
         std::string childNames[] = { "name", "id", "adminState", "NumServiceGroups" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
@@ -48,60 +52,69 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/Application/name
      */
-    std::string Application::getName() {
+    std::string Application::getName()
+    {
         return this->name.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/name
      */
-    void Application::setName(std::string nameValue) {
+    void Application::setName(std::string nameValue)
+    {
         this->name.Value = nameValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/id
      */
-    unsigned short int Application::getId() {
+    unsigned short int Application::getId()
+    {
         return this->id.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/id
      */
-    void Application::setId(unsigned short int idValue) {
+    void Application::setId(unsigned short int idValue)
+    {
         this->id.Value = idValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/adminState
      */
-    SAFplusAmf::AdministrativeState Application::getAdminState() {
+    SAFplusAmf::AdministrativeState Application::getAdminState()
+    {
         return this->adminState.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/adminState
      */
-    void Application::setAdminState(SAFplusAmf::AdministrativeState adminStateValue) {
+    void Application::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
+    {
         this->adminState.Value = adminStateValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/NumServiceGroups
      */
-    SAFplusAmf::NumServiceGroups* Application::getNumServiceGroups() {
+    SAFplusAmf::NumServiceGroups* Application::getNumServiceGroups()
+    {
         return (NumServiceGroups*)this->getChildObject("NumServiceGroups");
     };
 
     /*
      * XPATH: /SAFplusAmf/Application/NumServiceGroups
      */
-    void Application::addNumServiceGroups(SAFplusAmf::NumServiceGroups *NumServiceGroupsValue) {
+    void Application::addNumServiceGroups(SAFplusAmf::NumServiceGroups *NumServiceGroupsValue)
+    {
         this->addChildObject(NumServiceGroupsValue, "NumServiceGroups");
     };
 
-    Application::~Application() {
+    Application::~Application()
+    {
     };
 
 }

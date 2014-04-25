@@ -15,7 +15,7 @@
 
 #include <EntityByName.hxx>
 #include <EntityById.hxx>
-
+#include <clMgtList.hxx>
 
 namespace SAFplusAmf
 {

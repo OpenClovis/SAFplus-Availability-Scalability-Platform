@@ -18,12 +18,14 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(ComponentRestart, /SAFplusAmf/ServiceGroup/ComponentRestart)
 
-    ComponentRestart::ComponentRestart(): ClMgtObject("ComponentRestart"), maximum("maximum"), duration("duration") {
+    ComponentRestart::ComponentRestart(): ClMgtObject("ComponentRestart"), maximum("maximum"), duration("duration")
+    {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");
     };
 
-    std::vector<std::string>* ComponentRestart::getChildNames() {
+    std::vector<std::string>* ComponentRestart::getChildNames()
+    {
         std::string childNames[] = { "maximum", "duration" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
@@ -31,32 +33,37 @@ namespace SAFplusAmf {
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ComponentRestart/maximum
      */
-    unsigned long int ComponentRestart::getMaximum() {
+    unsigned long int ComponentRestart::getMaximum()
+    {
         return this->maximum.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ComponentRestart/maximum
      */
-    void ComponentRestart::setMaximum(unsigned long int maximumValue) {
+    void ComponentRestart::setMaximum(unsigned long int maximumValue)
+    {
         this->maximum.Value = maximumValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ComponentRestart/duration
      */
-    SAFplusTypes::SaTimeT ComponentRestart::getDuration() {
+    SAFplusTypes::SaTimeT ComponentRestart::getDuration()
+    {
         return this->duration.Value;
     };
 
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/ComponentRestart/duration
      */
-    void ComponentRestart::setDuration(SAFplusTypes::SaTimeT durationValue) {
+    void ComponentRestart::setDuration(SAFplusTypes::SaTimeT durationValue)
+    {
         this->duration.Value = durationValue;
     };
 
-    ComponentRestart::~ComponentRestart() {
+    ComponentRestart::~ComponentRestart()
+    {
     };
 
 }

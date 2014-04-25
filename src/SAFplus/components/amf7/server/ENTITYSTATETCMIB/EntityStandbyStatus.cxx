@@ -21,11 +21,13 @@ namespace ENTITYSTATETCMIB {
             pair_t(EntityStandbyStatus::providingService, "providingService")
     }; // uses c++11 initializer lists 
 
-    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityStandbyStatus& entityStandbyStatus) {
+    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityStandbyStatus& entityStandbyStatus)
+    {
         return os << EntityStandbyStatusManager::toString(entityStandbyStatus);
     };
 
-    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityStandbyStatus& entityStandbyStatus) {
+    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityStandbyStatus& entityStandbyStatus)
+    {
         std::string buf;
         is >> buf;
         entityStandbyStatus = EntityStandbyStatusManager::toEnum(buf);
