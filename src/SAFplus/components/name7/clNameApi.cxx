@@ -468,18 +468,20 @@ void SAFplus::NameRegistrar::nodeFailed(const uint16_t slotNum, const uint32_t a
 
 void SAFplus::NameRegistrar::dump()
 {
-   CkptHashMap::iterator ibegin = m_checkpoint.begin().iter;
-   CkptHashMap::iterator iend = m_checkpoint.end().iter;  
-   for(CkptHashMap::iterator iter = ibegin; iter != iend; iter++)
+   //CkptHashMap::iterator ibegin = m_checkpoint.begin().iter;
+   //CkptHashMap::iterator iend = m_checkpoint.end().iter;  
+   SAFplus::Checkpoint::Iterator ibegin = m_checkpoint.begin();
+   SAFplus::Checkpoint::Iterator iend = m_checkpoint.end(); 
+   for(SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
    {
-       CkptHashMap::value_type vt = *iter;
-       BufferPtr curkey = vt.first;
+       //CkptHashMap::value_type vt = *iter;
+       BufferPtr curkey = iter->first;
        printf("---------------------------------\n");      
        if (curkey)
        {
           printf("key [%s]\n", curkey->data);
        }       
-       BufferPtr& curval = vt.second;
+       BufferPtr& curval = iter->second;
        if (curval)
        {
           boost::iostreams::basic_array_source<char> device(curval->data, curval->len());

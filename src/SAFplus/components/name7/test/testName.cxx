@@ -7,7 +7,6 @@
 #define __THREAD
 #undef __THREAD
 using namespace SAFplus;
-using namespace SAFplusI;
 
 extern NameRegistrar name;
 //NameRegistrar gname;
