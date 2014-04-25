@@ -20,9 +20,9 @@ namespace ietfYangTypes {
         DateAndTime();
         std::string getValue();
         void setValue(std::string value);
-        ietfYangTypes::DateAndTime& operator=(const ietfYangTypes::DateAndTime& dateAndTime);
-        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::DateAndTime& dateAndTime);
-        friend std::istream& operator>>(std::istream& is, ietfYangTypes::DateAndTime& dateAndTime);
+        ietfYangTypes::DateAndTime& operator=(const ietfYangTypes::DateAndTime &dateAndTime);
+        friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::DateAndTime &dateAndTime);
+        friend std::istream& operator>>(std::istream &is, ietfYangTypes::DateAndTime &dateAndTime);
         ~DateAndTime();
 
     };

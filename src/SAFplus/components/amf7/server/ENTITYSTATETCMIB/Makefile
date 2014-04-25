@@ -34,7 +34,7 @@ LIB_NAMES       = libENTITYSTATETCMIB
 SRC_FILES_libENTITYSTATETCMIB := $(wildcard *.cxx) $(wildcard *.C)
 
 # List any third party libs needed to get this server built (or None):
-THIRD_PARTY_PATH = /code/git/SAFplus7/src/../../mgt/3rdparty
+THIRD_PARTY_PATH = /home/hoangle/git/SAFplus_7/src/../../mgt/3rdparty
 THIRD_PARTY_TARGET := $(THIRD_PARTY_PATH)/build
 
 XML2_INC_BASE := $(THIRD_PARTY_TARGET)/include/libxml2
@@ -48,13 +48,13 @@ THIRDPARTY_LIBS += -L$(THIRD_PARTY_TARGET)/lib -lxml2
 EXTRA_LDLIBS += 
 
 CPPFLAGS += -I$(ASP_INCLUDE) \
-            -I/code/git/SAFplus7/src/../../mgt/model/src/app/include \
-            -I/code/git/SAFplus7/src/../../mgt/model/src/app/client
+            -I/home/hoangle/git/SAFplus_7/src/../../mgt/model/src/app/include \
+            -I/home/hoangle/git/SAFplus_7/src/../../mgt/model/src/app/client
 
-CPPFLAGS += -I/code/git/SAFplus7/src/SAFplus/components/amf7/server/SAFplusTypes \
-            -I/code/git/SAFplus7/src/SAFplus/components/amf7/server/SAFplusAmf \
-            -I/code/git/SAFplus7/src/SAFplus/components/amf7/server/ENTITYSTATETCMIB \
-            -I/code/git/SAFplus7/src/SAFplus/components/amf7/server/ietfYangTypes
+CPPFLAGS += -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/amf7/server/SAFplusTypes \
+            -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/amf7/server/SAFplusAmf \
+            -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/amf7/server/ENTITYSTATETCMIB \
+            -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/amf7/server/ietfYangTypes
 
 BUILD_WITHOUT_C99 := 1
 LDFLAGS += -lstdc++

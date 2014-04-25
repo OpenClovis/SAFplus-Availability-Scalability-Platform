@@ -24,12 +24,12 @@ namespace SAFplusAmf {
             pair_t(CapabilityModel::nonPreInstantiable, "nonPreInstantiable")
     }; // uses c++11 initializer lists 
 
-    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::CapabilityModel& capabilityModel)
+    std::ostream& operator<<(std::ostream &os, const SAFplusAmf::CapabilityModel &capabilityModel)
     {
         return os << CapabilityModelManager::toString(capabilityModel);
     };
 
-    std::istream& operator>>(std::istream& is, SAFplusAmf::CapabilityModel& capabilityModel)
+    std::istream& operator>>(std::istream &is, SAFplusAmf::CapabilityModel &capabilityModel)
     {
         std::string buf;
         is >> buf;

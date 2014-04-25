@@ -25,7 +25,7 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    ietfYangTypes::PhysAddress& PhysAddress::operator=(const ietfYangTypes::PhysAddress& physAddress)
+    ietfYangTypes::PhysAddress& PhysAddress::operator=(const ietfYangTypes::PhysAddress &physAddress)
     {
         Value = physAddress.Value;
         return *this;
@@ -35,12 +35,12 @@ namespace ietfYangTypes {
     {
     };
 
-    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::PhysAddress& physAddress)
+    std::ostream& operator<<(std::ostream &os, const ietfYangTypes::PhysAddress &physAddress)
     {
         return os << physAddress.Value;
     };
 
-    std::istream& operator>>(std::istream& is, ietfYangTypes::PhysAddress& physAddress)
+    std::istream& operator>>(std::istream &is, ietfYangTypes::PhysAddress &physAddress)
     {
         return is >> physAddress.Value;
     };

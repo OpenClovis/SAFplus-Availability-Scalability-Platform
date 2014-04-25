@@ -20,12 +20,12 @@ namespace SAFplusAmf {
             pair_t(AdministrativeState::on, "on")
     }; // uses c++11 initializer lists 
 
-    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::AdministrativeState& administrativeState)
+    std::ostream& operator<<(std::ostream &os, const SAFplusAmf::AdministrativeState &administrativeState)
     {
         return os << AdministrativeStateManager::toString(administrativeState);
     };
 
-    std::istream& operator>>(std::istream& is, SAFplusAmf::AdministrativeState& administrativeState)
+    std::istream& operator>>(std::istream &is, SAFplusAmf::AdministrativeState &administrativeState)
     {
         std::string buf;
         is >> buf;

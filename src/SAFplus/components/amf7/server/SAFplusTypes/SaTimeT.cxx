@@ -24,7 +24,7 @@ namespace SAFplusTypes {
         this->Value = value;
     };
 
-    SAFplusTypes::SaTimeT& SaTimeT::operator=(const SAFplusTypes::SaTimeT& SaTimeT)
+    SAFplusTypes::SaTimeT& SaTimeT::operator=(const SAFplusTypes::SaTimeT &SaTimeT)
     {
         Value = SaTimeT.Value;
         return *this;
@@ -34,12 +34,12 @@ namespace SAFplusTypes {
     {
     };
 
-    std::ostream& operator<<(std::ostream& os, const SAFplusTypes::SaTimeT& SaTimeT)
+    std::ostream& operator<<(std::ostream &os, const SAFplusTypes::SaTimeT &SaTimeT)
     {
         return os << SaTimeT.Value;
     };
 
-    std::istream& operator>>(std::istream& is, SAFplusTypes::SaTimeT& SaTimeT)
+    std::istream& operator>>(std::istream &is, SAFplusTypes::SaTimeT &SaTimeT)
     {
         return is >> SaTimeT.Value;
     };

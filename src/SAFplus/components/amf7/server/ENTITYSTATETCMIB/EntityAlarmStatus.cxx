@@ -25,7 +25,7 @@ namespace ENTITYSTATETCMIB {
         this->Value = value;
     };
 
-    ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus::operator=(const ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus)
+    ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus::operator=(const ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus)
     {
         Value = EntityAlarmStatus.Value;
         return *this;
@@ -35,12 +35,12 @@ namespace ENTITYSTATETCMIB {
     {
     };
 
-    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus)
+    std::ostream& operator<<(std::ostream &os, const ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus)
     {
         return os << EntityAlarmStatus.Value;
     };
 
-    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus)
+    std::istream& operator>>(std::istream &is, ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus)
     {
         return is >> EntityAlarmStatus.Value;
     };

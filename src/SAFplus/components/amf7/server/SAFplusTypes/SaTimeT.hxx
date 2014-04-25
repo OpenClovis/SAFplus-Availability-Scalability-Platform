@@ -19,9 +19,9 @@ namespace SAFplusTypes {
         SaTimeT();
         unsigned long int getValue();
         void setValue(unsigned long int value);
-        SAFplusTypes::SaTimeT& operator=(const SAFplusTypes::SaTimeT& SaTimeT);
-        friend std::ostream& operator<<(std::ostream& os, const SAFplusTypes::SaTimeT& SaTimeT);
-        friend std::istream& operator>>(std::istream& is, SAFplusTypes::SaTimeT& SaTimeT);
+        SAFplusTypes::SaTimeT& operator=(const SAFplusTypes::SaTimeT &SaTimeT);
+        friend std::ostream& operator<<(std::ostream &os, const SAFplusTypes::SaTimeT &SaTimeT);
+        friend std::istream& operator>>(std::istream &is, SAFplusTypes::SaTimeT &SaTimeT);
         ~SaTimeT();
 
     };

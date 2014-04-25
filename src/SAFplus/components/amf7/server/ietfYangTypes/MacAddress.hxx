@@ -20,9 +20,9 @@ namespace ietfYangTypes {
         MacAddress();
         std::string getValue();
         void setValue(std::string value);
-        ietfYangTypes::MacAddress& operator=(const ietfYangTypes::MacAddress& macAddress);
-        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::MacAddress& macAddress);
-        friend std::istream& operator>>(std::istream& is, ietfYangTypes::MacAddress& macAddress);
+        ietfYangTypes::MacAddress& operator=(const ietfYangTypes::MacAddress &macAddress);
+        friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::MacAddress &macAddress);
+        friend std::istream& operator>>(std::istream &is, ietfYangTypes::MacAddress &macAddress);
         ~MacAddress();
 
     };

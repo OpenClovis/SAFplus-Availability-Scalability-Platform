@@ -24,7 +24,7 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    ietfYangTypes::Counter64& Counter64::operator=(const ietfYangTypes::Counter64& counter64)
+    ietfYangTypes::Counter64& Counter64::operator=(const ietfYangTypes::Counter64 &counter64)
     {
         Value = counter64.Value;
         return *this;
@@ -34,12 +34,12 @@ namespace ietfYangTypes {
     {
     };
 
-    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Counter64& counter64)
+    std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Counter64 &counter64)
     {
         return os << counter64.Value;
     };
 
-    std::istream& operator>>(std::istream& is, ietfYangTypes::Counter64& counter64)
+    std::istream& operator>>(std::istream &is, ietfYangTypes::Counter64 &counter64)
     {
         return is >> counter64.Value;
     };

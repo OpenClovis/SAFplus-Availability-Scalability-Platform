@@ -25,7 +25,7 @@ namespace ietfYangTypes {
         this->Value = value;
     };
 
-    ietfYangTypes::ObjectIdentifier& ObjectIdentifier::operator=(const ietfYangTypes::ObjectIdentifier& objectIdentifier)
+    ietfYangTypes::ObjectIdentifier& ObjectIdentifier::operator=(const ietfYangTypes::ObjectIdentifier &objectIdentifier)
     {
         Value = objectIdentifier.Value;
         return *this;
@@ -35,12 +35,12 @@ namespace ietfYangTypes {
     {
     };
 
-    std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ObjectIdentifier& objectIdentifier)
+    std::ostream& operator<<(std::ostream &os, const ietfYangTypes::ObjectIdentifier &objectIdentifier)
     {
         return os << objectIdentifier.Value;
     };
 
-    std::istream& operator>>(std::istream& is, ietfYangTypes::ObjectIdentifier& objectIdentifier)
+    std::istream& operator>>(std::istream &is, ietfYangTypes::ObjectIdentifier &objectIdentifier)
     {
         return is >> objectIdentifier.Value;
     };
