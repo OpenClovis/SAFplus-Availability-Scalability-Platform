@@ -21,12 +21,12 @@ namespace ENTITYSTATETCMIB {
             pair_t(EntityAdminState::unlocked, "unlocked")
     }; // uses c++11 initializer lists 
 
-    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityAdminState& entityAdminState)
+    std::ostream& operator<<(std::ostream &os, const ENTITYSTATETCMIB::EntityAdminState &entityAdminState)
     {
         return os << EntityAdminStateManager::toString(entityAdminState);
     };
 
-    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityAdminState& entityAdminState)
+    std::istream& operator>>(std::istream &is, ENTITYSTATETCMIB::EntityAdminState &entityAdminState)
     {
         std::string buf;
         is >> buf;

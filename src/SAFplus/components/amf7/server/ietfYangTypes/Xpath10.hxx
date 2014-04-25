@@ -20,9 +20,9 @@ namespace ietfYangTypes {
         Xpath10();
         std::string getValue();
         void setValue(std::string value);
-        ietfYangTypes::Xpath10& operator=(const ietfYangTypes::Xpath10& xpath10);
-        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Xpath10& xpath10);
-        friend std::istream& operator>>(std::istream& is, ietfYangTypes::Xpath10& xpath10);
+        ietfYangTypes::Xpath10& operator=(const ietfYangTypes::Xpath10 &xpath10);
+        friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Xpath10 &xpath10);
+        friend std::istream& operator>>(std::istream &is, ietfYangTypes::Xpath10 &xpath10);
         ~Xpath10();
 
     };

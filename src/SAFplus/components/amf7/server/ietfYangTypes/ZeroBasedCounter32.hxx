@@ -19,9 +19,9 @@ namespace ietfYangTypes {
         ZeroBasedCounter32();
         unsigned int getValue();
         void setValue(unsigned int value);
-        ietfYangTypes::ZeroBasedCounter32& operator=(const ietfYangTypes::ZeroBasedCounter32& zeroBasedCounter32);
-        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ZeroBasedCounter32& zeroBasedCounter32);
-        friend std::istream& operator>>(std::istream& is, ietfYangTypes::ZeroBasedCounter32& zeroBasedCounter32);
+        ietfYangTypes::ZeroBasedCounter32& operator=(const ietfYangTypes::ZeroBasedCounter32 &zeroBasedCounter32);
+        friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::ZeroBasedCounter32 &zeroBasedCounter32);
+        friend std::istream& operator>>(std::istream &is, ietfYangTypes::ZeroBasedCounter32 &zeroBasedCounter32);
         ~ZeroBasedCounter32();
 
     };

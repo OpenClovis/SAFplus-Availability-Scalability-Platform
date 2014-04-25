@@ -20,9 +20,9 @@ namespace ietfYangTypes {
         ObjectIdentifier128();
         std::string getValue();
         void setValue(std::string value);
-        ietfYangTypes::ObjectIdentifier128& operator=(const ietfYangTypes::ObjectIdentifier128& objectIdentifier128);
-        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::ObjectIdentifier128& objectIdentifier128);
-        friend std::istream& operator>>(std::istream& is, ietfYangTypes::ObjectIdentifier128& objectIdentifier128);
+        ietfYangTypes::ObjectIdentifier128& operator=(const ietfYangTypes::ObjectIdentifier128 &objectIdentifier128);
+        friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::ObjectIdentifier128 &objectIdentifier128);
+        friend std::istream& operator>>(std::istream &is, ietfYangTypes::ObjectIdentifier128 &objectIdentifier128);
         ~ObjectIdentifier128();
 
     };

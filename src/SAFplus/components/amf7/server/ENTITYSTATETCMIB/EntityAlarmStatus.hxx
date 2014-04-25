@@ -20,9 +20,9 @@ namespace ENTITYSTATETCMIB {
         EntityAlarmStatus();
         std::bitset<7> getValue();
         void setValue(std::bitset<7> value);
-        ENTITYSTATETCMIB::EntityAlarmStatus& operator=(const ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
-        friend std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
-        friend std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus);
+        ENTITYSTATETCMIB::EntityAlarmStatus& operator=(const ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus);
+        friend std::ostream& operator<<(std::ostream &os, const ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus);
+        friend std::istream& operator>>(std::istream &is, ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus);
         ~EntityAlarmStatus();
 
     };

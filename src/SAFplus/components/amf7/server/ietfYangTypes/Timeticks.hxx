@@ -19,9 +19,9 @@ namespace ietfYangTypes {
         Timeticks();
         unsigned int getValue();
         void setValue(unsigned int value);
-        ietfYangTypes::Timeticks& operator=(const ietfYangTypes::Timeticks& timeticks);
-        friend std::ostream& operator<<(std::ostream& os, const ietfYangTypes::Timeticks& timeticks);
-        friend std::istream& operator>>(std::istream& is, ietfYangTypes::Timeticks& timeticks);
+        ietfYangTypes::Timeticks& operator=(const ietfYangTypes::Timeticks &timeticks);
+        friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Timeticks &timeticks);
+        friend std::istream& operator>>(std::istream &is, ietfYangTypes::Timeticks &timeticks);
         ~Timeticks();
 
     };

@@ -24,12 +24,12 @@ namespace SAFplusAmf {
             pair_t(PresenceState::terminationFailed, "terminationFailed")
     }; // uses c++11 initializer lists 
 
-    std::ostream& operator<<(std::ostream& os, const SAFplusAmf::PresenceState& presenceState)
+    std::ostream& operator<<(std::ostream &os, const SAFplusAmf::PresenceState &presenceState)
     {
         return os << PresenceStateManager::toString(presenceState);
     };
 
-    std::istream& operator>>(std::istream& is, SAFplusAmf::PresenceState& presenceState)
+    std::istream& operator>>(std::istream &is, SAFplusAmf::PresenceState &presenceState)
     {
         std::string buf;
         is >> buf;

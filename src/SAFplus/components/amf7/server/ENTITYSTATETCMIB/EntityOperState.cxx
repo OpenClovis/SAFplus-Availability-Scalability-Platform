@@ -21,12 +21,12 @@ namespace ENTITYSTATETCMIB {
             pair_t(EntityOperState::testing, "testing")
     }; // uses c++11 initializer lists 
 
-    std::ostream& operator<<(std::ostream& os, const ENTITYSTATETCMIB::EntityOperState& entityOperState)
+    std::ostream& operator<<(std::ostream &os, const ENTITYSTATETCMIB::EntityOperState &entityOperState)
     {
         return os << EntityOperStateManager::toString(entityOperState);
     };
 
-    std::istream& operator>>(std::istream& is, ENTITYSTATETCMIB::EntityOperState& entityOperState)
+    std::istream& operator>>(std::istream &is, ENTITYSTATETCMIB::EntityOperState &entityOperState)
     {
         std::string buf;
         is >> buf;
