@@ -126,7 +126,7 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
         lookAfter = NULL;
     }
     else
-    {
+    {        
         /*
          * Check assignment preference enqueued in each of the SIs
          */
@@ -138,6 +138,7 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
             ClAmsSISURefT *siSURef = NULL;
             ClAmsSIT *si = (ClAmsSIT*)entityRef->ptr;
             ClAmsSGT *sg = NULL;
+            ClAmsSUT *foundSu = NULL;
             ClAmsCustomAssignmentIterT iter = {0};
             if(!si) 
                 continue;
@@ -149,29 +150,56 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
             {
                 continue;
             }
+            ClBoolT preferred = CL_FALSE;
+            
             clAmsCustomAssignmentIterInit(&iter, si);
             while( (siSURef = clAmsCustomAssignmentIterNext(&iter)) )
             {
-                ClAmsSUT *su;
                 if ((siSURef->haState == CL_AMS_HA_STATE_ACTIVE)||(siSURef->haState == CL_AMS_HA_STATE_STANDBY))
                 {                    
-                    su = (ClAmsSUT*)siSURef->entityRef.ptr;
+                    ClAmsSUT* su = (ClAmsSUT*)siSURef->entityRef.ptr;
+                    
                     if(clAmsPeSUIsAssignable(su) != CL_OK)
                         continue;
                     if(su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE)
                         continue;
-                    if(clAmsPeCheckAssignedCustom(su, si))
-                        continue;
+                    // This code blocks multiple SIs from being assigned to one SU
+                    //if(clAmsPeCheckAssignedCustom(su, si))
+                    //    continue;
                     if(su->status.numActiveSIs >= sg->config.maxActiveSIsPerSU)
                         continue;
+                    
+                    // Ok it passed all checks, this SI/SU pair is a candidate for Active.
+                    
                     *targetSI = si;
-                    if(targetSU)
-                        *targetSU = su;
-                    break;
+                    foundSu = su;
+                    if (targetSU) *targetSU = su;
+                    if (siSURef->haState == CL_AMS_HA_STATE_ACTIVE)  // Its the preferred active so take it.  If its standby we'll keep looking
+                    {
+                        preferred = CL_TRUE;
+                        break;
+                    }                   
                 }                
             }
             clAmsCustomAssignmentIterEnd(&iter);
-            if(*targetSI) return CL_OK;
+
+            if ((!preferred)&&(foundSu)&&(foundSu->status.numDelayAssignments < 4 ))
+            {
+                ++foundSu->status.numDelayAssignments;
+                clLogDebug("CUST", "ASSIGN", "Delaying preferred standby SI [%s] active assignment to SU [%s] by [%d] ms. Delay [%d] of [4]",
+                           si->config.entity.name.value, 
+                           foundSu->config.entity.name.value, foundSu->status.numDelayAssignments,
+                           CL_AMS_SU_ASSIGNMENT_DELAY);
+
+                AMS_CALL ( clAmsEntityTimerStart((ClAmsEntityT*)foundSu, CL_AMS_SU_TIMER_ASSIGNMENT) );
+                                    
+            }
+            else
+            {
+                if (foundSu) foundSu->status.numDelayAssignments = 0;            
+                if(*targetSI) return CL_OK;
+            }
+            
         }
     }
     *targetSI = NULL;
@@ -231,10 +259,13 @@ clAmsPeSGFindSIForStandbyAssignmentCustom(
                 continue;
             if(su->status.numStandbySIs >= sg->config.maxStandbySIsPerSU)
                 continue;
+            // Ok all checks passed.  This is a viable candidate
             *targetSI = si;
-            if(targetSU)
-                *targetSU = su;
-            break;
+            if(targetSU) *targetSU = su;
+            if (siSURef->haState == CL_AMS_HA_STATE_STANDBY)  // Its the preferred standby so take it.  If its something else we'll keep looking
+            {
+                break;
+            }
         }
         clAmsCustomAssignmentIterEnd(&iter);
         if(*targetSI)
