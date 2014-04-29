@@ -3,7 +3,6 @@
 
 // Standard includes
 #include <string>
-#include <boost/interprocess/errors.hpp>
 #include <boost/unordered_map.hpp>
 #include <functional>
 // SAFplus includes
@@ -18,9 +17,9 @@
 
 namespace SAFplus
 {
-  typedef SAFplusI::BufferPtr  GroupMapKey;
-  typedef SAFplusI::BufferPtr  GroupMapValue;
   typedef SAFplus::Handle EntityIdentifier;
+  typedef EntityIdentifier  GroupMapKey;
+  typedef SAFplus::Buffer   GroupMapValue;
 
   typedef std::pair<const GroupMapKey,GroupMapValue> GroupMapPair;
   typedef boost::unordered_map < GroupMapKey, GroupMapValue> GroupHashMap;
@@ -30,7 +29,6 @@ namespace SAFplus
     public:
       EntityIdentifier id;
       uint64_t credentials;
-      SAFplus::Buffer* data;
       uint capabilities;
       uint dataLen;
       GroupIdentity& operator=(GroupIdentity const& c)
@@ -42,18 +40,17 @@ namespace SAFplus
       }
       GroupIdentity()
       {
+        id = INVALID_HDL;
         credentials = 0;
         capabilities = 0;
+        dataLen = 0;
       }
-      GroupIdentity(EntityIdentifier me,uint64_t credentials,SAFplus::Buffer *dat,uint datalen,uint capabilities)
+      GroupIdentity(EntityIdentifier me,uint64_t credentials,uint datalen,uint capabilities)
       {
         id = me;
         this->credentials = credentials;
         this->capabilities = capabilities;
         this->dataLen = datalen;
-        char tmpData[sizeof(SAFplus::Buffer)-1+datalen];
-        data = new(tmpData) Buffer(datalen);
-        memcpy((char *)data->data,(char *)dat->data,datalen);
       }
   };
 
@@ -151,13 +148,14 @@ namespace SAFplus
 
     protected:
       static SAFplus::Checkpoint        mCheckpoint;
-      SAFplus::GroupHashMap*            map;
+      SAFplus::GroupHashMap*            groupMap;
       SAFplus::Handle                   handle;
       SAFplus::Wakeable*                wakeable;
       EntityIdentifier                  activeEntity;
       EntityIdentifier                  standbyEntity;
       EntityIdentifier                  lastRegisteredEntity;
   };
+  std::size_t hash_value(SAFplus::Handle const& h);
 }
 
 #endif

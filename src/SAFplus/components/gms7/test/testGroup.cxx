@@ -25,7 +25,7 @@ int testIterator();
 int testRegisterAndDeregister();
 
 ClUint32T clAspLocalId = 1;
-extern SAFplus::NameRegistrar name;
+
 class testWakeble:public SAFplus::Wakeable
 {
   public:
@@ -34,12 +34,13 @@ class testWakeble:public SAFplus::Wakeable
       cout << "WAKE! AMT = " << amt << "\n";
     }
 };
+
 int main()
 {
-  //testRegisterAndConsistent();
-  //testElect();
-  //testGetData();
-  //testIterator();
+  testRegisterAndConsistent();
+  testElect();
+  testGetData();
+  testIterator();
   testRegisterAndDeregister();
   return 0;
 }
@@ -58,8 +59,7 @@ int testIterator()
   SAFplus::Group::Iterator iter = gms.begin();
   while(iter != gms.end())
   {
-    SAFplusI::BufferPtr curkey = iter->first;
-    EntityIdentifier item = *(EntityIdentifier *)(curkey.get()->data);
+    EntityIdentifier item = iter->first;
     printf("Entity capability: %d \n",gms.getCapabilities(item));
     iter++;
   }
@@ -101,8 +101,9 @@ int testGetData()
   gms.registerEntity(entityId1,20,"ID1",3,20);
   gms.registerEntity(entityId2,50,"ID2",3,50);
   gms.registerEntity(entityId3,10,"ID3",3,10);
-
+  printf("Entity 1 's data: %s \n",(gms.getData(entityId1)).data);
   printf("Entity 2 's data: %s \n",(gms.getData(entityId2)).data);
+  printf("Entity 3 's data: %s \n",(gms.getData(entityId3)).data);
 }
 
 int testElect()
@@ -127,8 +128,7 @@ int testElect()
   capability |= SAFplus::Group::ACCEPT_ACTIVE | SAFplus::Group::ACCEPT_STANDBY | 16;
   gms.setCapabilities(capability,entityId1);
   gms.setCapabilities(capability,entityId2);
-  std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs;
-  int rc =  gms.elect(activeStandbyPairs);
+  std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs = gms.elect();
 
   int activeCapabilities = gms.getCapabilities(activeStandbyPairs.first);
   int standbyCapabilities = gms.getCapabilities(activeStandbyPairs.second);
@@ -156,15 +156,6 @@ int testRegisterAndDeregister()
   cout << (gms.isMember(entityId1) ? "YES" : "NO") << "\n";
   cout << "Register entity \n";
   gms.registerEntity(entityId1,20,"ID1",3,50);
-  cout << "Get group handle from name service \n";
-
-  SAFplus::Handle hdl = name.getHandle("tester");
-  Group *gms1 = (Group *)name.get(hdl);
-  if(gms1 != NULL)
-  {
-    cout << "Get capability from object: " << gms1->getCapabilities(entityId1) << "\n";
-  }
-  cout << "TEST END \n\n";
 
   return 0;
 }

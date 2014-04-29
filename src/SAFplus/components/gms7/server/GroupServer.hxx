@@ -12,6 +12,7 @@
 #include "clNodeCache.h"
 #include <clIocIpi.h>
 #include <clOsalApi.h>
+#include <clHeapApi.h>
 
 namespace SAFplusI
 {
@@ -22,6 +23,7 @@ namespace SAFplusI
     MSG_ELECT_REQUEST,
     MSG_UNDEFINED
   } GroupMessageTypeT;
+
   typedef enum
   {
     ROLE_ACTIVE,
@@ -66,7 +68,9 @@ namespace SAFplusI
       void componentJoin(ClIocAddressT address);
       void componentLeave(ClIocAddressT address);
       void dumpClusterNodeGroup();
-      ClRcT initializeServices();
+      static ClRcT initializeLibraries();
+      static ClRcT finalizeLibraries();
+      static SAFplus::SafplusMsgServer   *groupMsgServer;
       ClTimerHandleT               electTimerHandle;
       ClTimerHandleT               roleNotiTimerHandle;
       ClBoolT                      isElectTimerRunning;
@@ -74,8 +78,8 @@ namespace SAFplusI
     protected:
       static GroupServer* instance;
       GroupServer();
+      ~GroupServer();
     private:
-      SAFplus::SafplusMsgServer   *groupMsgServer;
       ClRcT getNodeInfo(ClIocNodeAddressT nAddress, SAFplus::GroupIdentity *grpIdentity, int pid = 0);
       bool  isMasterNode();
       bool  isActiveNode();

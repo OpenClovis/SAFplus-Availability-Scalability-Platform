@@ -47,20 +47,20 @@ SAFplus::Group::Group()
 
 void SAFplus::Group::init(SAFplus::Handle groupHandle)
 {
-  map = new SAFplus::GroupHashMap;
+  groupMap = new SAFplus::GroupHashMap;
 }
 
 void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities)
 {
-  assert(map);
+  assert(groupMap);
   /*Check in share memory if entity exists*/
   char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
   SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
   *((EntityIdentifier *) key->data) = me;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(key));
+  GroupHashMap::iterator contents = groupMap->find(me);
 
   /* The entity was not exits, insert */
-  if (contents == map->end())
+  if (contents == groupMap->end())
   {
     /* Keep track of last register entity */
     lastRegisteredEntity = me;
@@ -79,9 +79,8 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
     SAFplus::Buffer* dat = new(vdat) Buffer(dataLength);
     memcpy(dat->data,data,dataLength);
     /* Store in the shared memory */
-    SAFplusI::BufferPtr kb(key),kv(dat);
-    SAFplus::GroupMapPair vt(kb,kv);
-    map->insert(vt);
+    SAFplus::GroupMapPair vt(me,*dat);
+    groupMap->insert(vt);
     logDebug("GMS", "REG","Entity registration successful");
     /* Notify other entities about new entity*/
     if(wakeable)
@@ -104,26 +103,25 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
 
     if(oldLen == dataLength)
     {
-      Buffer *curData = contents->second.get();
-      memcpy(curData->data,data,oldLen);
+      Buffer &curData = contents->second;
+      memcpy(curData.data,data,oldLen);
     }
     else
     {
-      Buffer *oldData = contents->second.get();
+      Buffer &oldData = contents->second;
       char vdat[dataLength + sizeof(SAFplus::Buffer)-1];
       SAFplus::Buffer* dat = new(vdat) Buffer(dataLength);
       memcpy(dat->data,data,dataLength);
-      map->erase(contents);
-      SAFplusI::BufferPtr kb(key),kv(dat);
-      SAFplus::GroupMapPair vt(kb,kv);
-      map->insert(vt);
-      if(oldData->ref() == 1)
+      groupMap->erase(contents);
+      SAFplus::GroupMapPair vt(me,*dat);
+      groupMap->insert(vt);
+      if(oldData.ref() == 1)
       {
         delete oldData;
       }
       else
       {
-        oldData->decRef(1);
+        oldData.decRef(1);
       }
     }
   }
@@ -131,7 +129,7 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
 
 void SAFplus::Group::registerEntity(GroupIdentity grpIdentity)
 {
-  registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
+  registerEntity(grpIdentity.id,grpIdentity.credentials, NULL, grpIdentity.dataLen, grpIdentity.capabilities);
 }
 
 void SAFplus::Group::deregister(EntityIdentifier me)
@@ -145,15 +143,29 @@ void SAFplus::Group::deregister(EntityIdentifier me)
   char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
   SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
   *((EntityIdentifier *) key->data) = me;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(key));
+  GroupHashMap::iterator contents = groupMap->find(me);
 
-  if(contents == map->end())
+  if(contents == groupMap->end())
   {
     logDebug("GMS", "DEREG","Entity was not exist");
     return;
   }
+  Buffer &oldData = contents->second;
+#if 0
+  if(oldData.ref() == 1)
+  {
+    delete oldData;
+  }
+  else
+  {
+    oldData.decRef(1);
+  }
+#endif
+  /* Remove from checkpoint */
+  Transaction t;
+  mCheckpoint.remove(*key,t);
   /* Delete data from map */
-  map->erase(contents);
+  groupMap->erase(contents);
   /* Update if leaving entity is standby/active */
   if(activeEntity == me)
   {
@@ -181,9 +193,9 @@ void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
   char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
   SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
   *((EntityIdentifier *) key->data) = me;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(key));
+  GroupHashMap::iterator contents = groupMap->find(me);
 
-  if(contents == map->end())
+  if(contents == groupMap->end())
   {
     logDebug("GMS", "SETCAP","Entity did not exist");
     return;
@@ -202,15 +214,14 @@ uint SAFplus::Group::getCapabilities(EntityIdentifier id)
   char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
   SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
   *((EntityIdentifier *) key->data) = id;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(key));
+  GroupHashMap::iterator contents = groupMap->find(id);
 
-  if(contents == map->end())
+  if(contents == groupMap->end())
   {
     logDebug("GMS", "GETCAP","Entity did not exist");
     return 0;
   }
   const Buffer &curVal = mCheckpoint.read(*key);
-  SAFplusI::BufferPtr curval = contents->second;
   GroupIdentity *grp = (GroupIdentity *)curVal.data;
   return grp->capabilities;
 }
@@ -218,17 +229,14 @@ uint SAFplus::Group::getCapabilities(EntityIdentifier id)
 SAFplus::Buffer& SAFplus::Group::getData(EntityIdentifier id)
 {
   /*Check in share memory if entity exists*/
-  char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-  SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
-  *((EntityIdentifier *) key->data) = id;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(key));
+  GroupHashMap::iterator contents = groupMap->find(id);
 
-  if(contents == map->end())
+  if(contents == groupMap->end())
   {
     logDebug("GMS", "GETDATA","Entity did not exist");
     return *((Buffer*) NULL);
   }
-  return *(contents->second.get());
+  return contents->second;
 }
 
 EntityIdentifier SAFplus::Group::electLeader()
@@ -236,9 +244,11 @@ EntityIdentifier SAFplus::Group::electLeader()
   uint highestCredentials = 0, curCredentials = 0;
   uint curCapabilities = 0;
   EntityIdentifier leaderEntity = INVALID_HDL;
-  for (GroupHashMap::iterator i = map->begin();i != map->end();i++)
+  for (GroupHashMap::iterator i = groupMap->begin();i != groupMap->end();i++)
   {
-    Buffer *key = i->second.get();
+    char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
+    SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
+    *((EntityIdentifier *) key->data) = i->first;
     const Buffer &val = mCheckpoint.read(*key);
     GroupIdentity *grp = (GroupIdentity *)val.data;
 
@@ -261,9 +271,12 @@ EntityIdentifier SAFplus::Group::electDeputy(EntityIdentifier highestCreEntity)
   uint highestCredentials = 0, curCredentials = 0;
   uint curCapabilities = 0;
   EntityIdentifier deputyEntity = INVALID_HDL, curEntity = INVALID_HDL;
-  for (GroupHashMap::iterator i = map->begin();i != map->end();i++)
+  for (GroupHashMap::iterator i = groupMap->begin();i != groupMap->end();i++)
   {
-    Buffer *key = i->second.get();
+    char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
+    SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
+    *((EntityIdentifier *) key->data) = i->first;
+
     const Buffer &val = mCheckpoint.read(*key);
     GroupIdentity *grp = (GroupIdentity *)val.data;
     curCredentials = grp->credentials;
@@ -308,6 +321,10 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles(int e
     activeCandidate = electLeader();
     return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
 
+  }
+  else
+  {
+    return std::pair<EntityIdentifier,EntityIdentifier>(INVALID_HDL,INVALID_HDL);
   }
 }
 
@@ -369,13 +386,8 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::elect(int electionT
 
 bool SAFplus::Group::isMember(EntityIdentifier id)
 {
-  /*Check in share memory if entity exists*/
-  char tmpData[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-  SAFplus::Buffer* b = new(tmpData) Buffer(sizeof(EntityIdentifier));
-  *((EntityIdentifier *) b->data) = id;
-  GroupHashMap::iterator contents = map->find(SAFplusI::BufferPtr(b));
-
-  if(contents == map->end())
+  GroupHashMap::iterator contents = groupMap->find(id);
+  if(contents == groupMap->end())
   {
     return false;
   }
@@ -428,8 +440,8 @@ EntityIdentifier SAFplus::Group::getStandby(void) const
 SAFplus::Group::Iterator SAFplus::Group::begin()
 {
   SAFplus::Group::Iterator i(this);
-  assert(this->map);
-  i.iter = this->map->begin();
+  assert(this->groupMap);
+  i.iter = this->groupMap->begin();
   i.curval = &(*i.iter);
   return i;
 }
@@ -437,8 +449,8 @@ SAFplus::Group::Iterator SAFplus::Group::begin()
 SAFplus::Group::Iterator SAFplus::Group::end()
 {
   SAFplus::Group::Iterator i(this);
-  assert(this->map);
-  i.iter = this->map->end();
+  assert(this->groupMap);
+  i.iter = this->groupMap->end();
   i.curval = &(*i.iter);
   return i;
 }
@@ -473,4 +485,10 @@ bool SAFplus::Group::Iterator::operator !=(const SAFplus::Group::Iterator& other
   if (group != otherValue.group) return true;
   if (iter != otherValue.iter) return true;
   return false;
+}
+
+std::size_t SAFplus::hash_value(SAFplus::Handle const& h)
+{
+  boost::hash<uint64_t> hasher;
+  return hasher(h.id[0]|h.id[1]);
 }

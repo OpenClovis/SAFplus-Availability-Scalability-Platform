@@ -3,7 +3,21 @@
 using namespace SAFplus;
 using namespace SAFplusI;
 
+#ifdef __TEST
+extern ClUint32T clAspLocalId;
+#define logEmergency(area, context,M, ...)  fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define logAlert(area, context,M,...)       fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define logCritical(area, context,M,...)    fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define logError(area, context,M,...)       fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define logWarning(area, context,M,...)     fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define logNotice(area, context,M, ...)     fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define logInfo(area, context, M,...)       fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define logDebug(area, context,M,...)       fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#define logTrace(area, context,M,...)       fprintf(stderr, "GMS::%s:%d: " M "\n", __FILE__, __LINE__, ##__VA_ARGS__)
+#endif
+
 GroupServer* GroupServer::instance = NULL;
+SafplusMsgServer* GroupServer::groupMsgServer = NULL;
 
 GroupServer* GroupServer::getInstance()
 {
@@ -13,15 +27,10 @@ GroupServer* GroupServer::getInstance()
   }
   return instance;
 }
+/* This will start the Group Server and listening on GMS_PORT */
 void*  gmsServiceThread(void *arg)
 {
-  ClRcT rc;
-  rc = GroupServer::getInstance()->initializeServices();
-  if(CL_OK != rc)
-  {
-    logError("GMS","SERVER","Initialize server error [%#x]",rc);
-    return NULL;
-  }
+  GroupServer::initializeLibraries();
 #ifdef __TEST
   if(clAspLocalId == 1) //MASTER
   {
@@ -32,26 +41,36 @@ void*  gmsServiceThread(void *arg)
     clNodeCacheCapabilitySet(clAspLocalId,1,CL_NODE_CACHE_CAP_ASSIGN);
   }
 #endif // __TEST
-  logInfo("GMS","SERVER","Initialize successfully");
+  GroupMessageHandler *groupMessageHandler = new GroupMessageHandler();
+  GroupServer::groupMsgServer = new SAFplus::SafplusMsgServer(CL_IOC_GMS_PORT);
+  GroupServer::groupMsgServer->RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, NULL);
+  GroupServer::groupMsgServer->Start();
+  /* Initialize notification callback */
+  clIocNotificationRegister(iocNotificationCallback,NULL);
   while(!GroupServer::getInstance()->finished)
   {
     ;
   }
+  GroupServer::groupMsgServer->Stop();
+  GroupServer::groupMsgServer->RemoveHandler(CL_IOC_PROTO_MSG);
+  clIocNotificationDeregister(iocNotificationCallback);
+  logInfo("GMS","SERVER","Task stopped");
+  GroupServer::finalizeLibraries();
   return NULL;
 }
+/* The API for user to create and start Group Server */
 void GroupServer::clGrpStartServer()
 {
   finished = CL_FALSE;
   ClRcT rc = clOsalTaskCreateDetached("gms_service",CL_OSAL_SCHED_OTHER,CL_OSAL_THREAD_PRI_NOT_APPLICABLE,4096,gmsServiceThread,NULL);
   if(CL_OK != rc)
   {
-    logError("GMS","SERVER","Error in creating gms task");
+    logError("GMS","SERVER","Error in creating Group Server task");
     CL_ASSERT(0);
   }
-  groupMsgServer->Stop();
-  logInfo("GMS","SERVER","Task finished");
+  logInfo("GMS","SERVER","Task started");
 }
-
+/* The API for user to stop group server */
 void GroupServer::clGrpStopServer()
 {
   finished = CL_TRUE;
@@ -65,9 +84,11 @@ GroupServer::GroupServer()
   roleNotiTimerHandle = NULL;
   finished = CL_FALSE;
   isElectTimerRunning = CL_FALSE;
-  GroupMessageHandler *groupMessageHandler = new GroupMessageHandler();
-  groupMsgServer = new SAFplus::SafplusMsgServer(CL_IOC_GMS_PORT);
-  groupMsgServer->RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, NULL);
+}
+
+GroupServer::~GroupServer()
+{
+  delete instance;
 }
 
 void GroupServer::nodeJoinFromMaster(GroupMessageProtocol *msg)
@@ -145,13 +166,13 @@ void GroupServer::nodeJoin(ClIocNodeAddressT nAddress)
 
   if(isMasterNode())
   {
-    clusterNodeGrp->registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
+    clusterNodeGrp->registerEntity(grpIdentity.id,grpIdentity.credentials, NULL, grpIdentity.dataLen, grpIdentity.capabilities);
     /* Send node join broadcast message */
     fillSendMessage(&grpIdentity,MSG_NODE_JOIN);
   }
   else
   {
-    clusterNodeGrp->registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
+    clusterNodeGrp->registerEntity(grpIdentity.id,grpIdentity.credentials, NULL, grpIdentity.dataLen, grpIdentity.capabilities);
   }
 }
 
@@ -200,8 +221,7 @@ void GroupServer::nodeLeave(ClIocNodeAddressT nAddress)
     SAFplus::Group::Iterator iter = clusterCompGrp->begin();
     while(iter != clusterCompGrp->end())
     {
-      SAFplusI::BufferPtr curkey = iter->first;
-      EntityIdentifier item = *(EntityIdentifier *)(curkey.get()->data);
+      EntityIdentifier item = iter->first;
       if(item.getNode() == nAddress)
       {
         clusterCompGrp->deregister(item);
@@ -219,7 +239,7 @@ void GroupServer::componentJoin(ClIocAddressT address)
   int componentProcessId = address.iocPhyAddress.portId;
   GroupIdentity grpIdentity;
   getNodeInfo(address.iocPhyAddress.nodeAddress,&grpIdentity,componentProcessId);
-  clusterCompGrp->registerEntity(grpIdentity.id,grpIdentity.credentials, grpIdentity.data, grpIdentity.dataLen, grpIdentity.capabilities);
+  clusterCompGrp->registerEntity(grpIdentity.id,grpIdentity.credentials, NULL, grpIdentity.dataLen, grpIdentity.capabilities);
 }
 
 void GroupServer::componentLeave(ClIocAddressT address)
@@ -254,15 +274,19 @@ ClRcT electRequestTimer(void *arg)
     logError("GMS","SERVER","Can not elect");
     return CL_ERR_INVALID_STATE;
   }
-  /* If active member, send notification */
+  /* If active member, send notification and wait for confliction checking */
   if(GroupServer::getInstance()->clusterNodeGrp->getActive().getNode() == clIocLocalAddressGet())
   {
     GroupServer::getInstance()->fillSendMessage(&(res.first),MSG_ROLE_NOTIFY,SEND_BROADCAST,ROLE_ACTIVE);
     GroupServer::getInstance()->fillSendMessage(&(res.second),MSG_ROLE_NOTIFY,SEND_BROADCAST,ROLE_STANDBY);
   }
-  /* If not active member, wait for notification */
-  ClTimerTimeOutT timeOut = { 10, 0 };
-  clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, roleNotificationTimer, NULL, &(GroupServer::getInstance()->roleNotiTimerHandle));
+  else
+  {
+    /* If not active member, wait for notification */
+    ClTimerTimeOutT timeOut = { 10, 0 };
+    clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, roleNotificationTimer, NULL, &(GroupServer::getInstance()->roleNotiTimerHandle));
+  }
+  GroupServer::getInstance()->isElectTimerRunning = CL_FALSE;
   return CL_OK;
 }
 
@@ -314,7 +338,7 @@ ClRcT iocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie)
   return rc;
 }
 
-ClRcT GroupServer::initializeServices()
+ClRcT GroupServer::initializeLibraries()
 {
   ClRcT   rc            = CL_OK;
   ClIocNodeAddressT     currentLeader;
@@ -338,12 +362,14 @@ ClRcT GroupServer::initializeServices()
     clNodeCacheLeaderUpdate(1);
   }
 #endif
+}
 
-  /* Start the message handlers */
-  groupMsgServer->Start();
-
-  /* Initialize notification callback */
-  clIocNotificationRegister(iocNotificationCallback,NULL);
+ClRcT GroupServer::finalizeLibraries()
+{
+  clIocLibFinalize();
+  clTimerFinalize();
+  clBufferFinalize();
+  clHeapExit();
 }
 
 ClRcT GroupServer::getNodeInfo(ClIocNodeAddressT nAddress, SAFplus::GroupIdentity *grpIdentity, int pid)
@@ -359,7 +385,6 @@ ClRcT GroupServer::getNodeInfo(ClIocNodeAddressT nAddress, SAFplus::GroupIdentit
     grpIdentity->id = createHandleFromAddress(nAddress,pid);
     grpIdentity->capabilities = member.capability;
     grpIdentity->credentials = member.address + CL_IOC_MAX_NODES + 1;
-    grpIdentity->data = (Buffer *)NULL;
     grpIdentity->dataLen = 0;
     return CL_OK;
   }
@@ -488,29 +513,34 @@ void GroupServer::elect(ClBoolT isRequest,GroupMessageProtocol *msg)
   if(isRequest == CL_FALSE)
   {
     GroupIdentity grpIdentity = *(GroupIdentity *)msg->data;
+    logInfo("GMS","ELECT","Election infor: %d  %d",grpIdentity.id.getNode(),grpIdentity.capabilities);
     clusterNodeGrp->registerEntity(grpIdentity);
   }
   if(isElectTimerRunning == CL_FALSE)
   {
     GroupIdentity grpIdentity;
     ClRcT rc = getNodeInfo(clIocLocalAddressGet(),&grpIdentity);
+    clusterNodeGrp->registerEntity(grpIdentity);
     if(rc == CL_OK)
     {
+      logInfo("GMS","ELECT","Sending elect request to all members");
       fillSendMessage(&grpIdentity,MSG_ELECT_REQUEST);
     }
     isElectTimerRunning = CL_TRUE;
     ClTimerTimeOutT timeOut = { 10, 0 };
+    logInfo("GMS","ELECT","Start wait for credential from others");
     clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, electRequestTimer, NULL, &electTimerHandle);
   }
 }
 
 void GroupServer::dumpClusterNodeGroup()
 {
+  logInfo("GMS","DUMP","Start dumping data");
   SAFplus::Group::Iterator iter = clusterNodeGrp->begin();
   while(iter != clusterNodeGrp->end())
   {
-    SAFplusI::BufferPtr curval = iter->second;
-    GroupIdentity *item = (GroupIdentity *)(curval.get()->data);
+    Buffer& curval = iter->second;
+    GroupIdentity *item = (GroupIdentity *)(&curval);
     logInfo("GMS","DUMP","Node [%d] has capabilities [%d] and credentials [%ld]",item->id.getNode(),item->capabilities,item->credentials);
     iter++;
   }
