@@ -162,10 +162,5 @@ namespace SAFplus
      }
   };
   
-  std::size_t hash_value(SAFplus::Handle const& h)
-  {
-     boost::hash<uint64_t> hasher;        
-     return hasher(h.id[0]|h.id[1]);
-  }    
 }
 #endif

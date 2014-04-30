@@ -6,12 +6,17 @@ CLIENT_H := $(wildcard *.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp)
 CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
-DEP_LIBS := $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so
+#DEP_LIBS := $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so
+# Specify the required libraries
+SAFPLUS_LIBS := clLog clUtils7 clOsal7
+# Then use these in the make rule
+SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 all: $(TEST_DIR)/testLog
 
-$(TEST_DIR)/testLog: $(CLIENT_OBJ) $(DEP_LIBS)
-	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(DEP_LIBS) -L$(BOOST_DIR)/stage/lib/ -lboost_system
+$(TEST_DIR)/testLog: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

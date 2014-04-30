@@ -5,6 +5,7 @@
 #include <stdio.h>
 
 #include <boost/serialization/base_object.hpp>
+#include <boost/functional/hash.hpp> 
 
 #define CL_ASSERT assert
 #ifndef SAFplus7
@@ -96,7 +97,13 @@ namespace SAFplus
     static Handle create(void);  // Get a new handle.
   };
   
-  class WellKnownHandle:public Handle
+  inline std::size_t hash_value(Handle const& h)
+  {
+     boost::hash<uint64_t> hasher;        
+     return hasher(h.id[0]|h.id[1]);
+  }     
+
+ class WellKnownHandle:public Handle
   {
   public:
     WellKnownHandle(uint64_t idx,uint32_t process=0xffffffff,uint16_t node=0xffff,uint_t clusterId=0xfff):Handle(PersistentHandle,idx)

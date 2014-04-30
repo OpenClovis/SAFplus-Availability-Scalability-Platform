@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_IOC_TEST := 1
 include ../../../mk/preface.mk
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
@@ -19,17 +20,21 @@ SENDER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SENDER_SRC)))
 RECEIVER_SRC := MsgHandlerProtocols.cxx ServerTest.cxx
 RECEIVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(RECEIVER_SRC)))
 
-DEP_LIBS := $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclIoc7.so
+# Specify the required libraries
+SAFPLUS_LIBS := clOsal7 clUtils7 clLog clIoc7 clMgt7
+# Then use these in the make rule
+SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml
 
 all: $(TEST_DIR)/ClientTest $(TEST_DIR)/ServerTest
 
-$(TEST_DIR)/ClientTest: $(SENDER_OBJ) $(DEP_LIBS)
-	$(LINK) $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS) 
+$(TEST_DIR)/ClientTest: $(SENDER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
+	$(LINK_EXE) $@ $(SENDER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
-$(TEST_DIR)/ServerTest: $(RECEIVER_OBJ) $(DEP_LIBS)
-	$(LINK) $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)
+$(TEST_DIR)/ServerTest: $(RECEIVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
+	$(LINK_EXE) $@ $(RECEIVER_OBJ) $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

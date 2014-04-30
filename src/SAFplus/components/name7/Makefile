@@ -6,12 +6,17 @@ NAME_CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(NAME_CLIENT_SRC))
 
 SAFPLUS_SDK_TARGET=$(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(CL_TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
-DEP_LIBS := $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so
+# Specify the required libraries
+SAFPLUS_LIBS := clCkpt clUtils7 clOsal7 clLog
+# Then use these in the make rule
+SAFPLUS_DEP_LIBS  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 all: $(LIB_DIR)/libclName.so
 
 $(SAFPLUS_TARGET)/lib/libclName.so: $(NAME_CLIENT_OBJ) Makefile
-	$(LINK_SO) $@  $(NAME_CLIENT_OBJ) -lpthread -lrt -L$(SAFPLUS_SDK_TARGET)/lib $(DEP_LIBS) -lmw -ldl
+	$(LINK_SO) $@  $(NAME_CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
+#-lpthread -lrt -L$(SAFPLUS_SDK_TARGET)/lib -lmw -ldl
 
 $(MWOBJ_DIR)/%.o: %.cxx #Makefile
 	$(COMPILE_CPP) $@ $<

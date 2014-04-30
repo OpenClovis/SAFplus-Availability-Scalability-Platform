@@ -183,7 +183,7 @@ ClRcT ClMgtList::addEntry(ClMgtObject* entry)
     }
 
     mEntries.push_back(entry);
-
+    addChildObject(entry, entry->Name);
     return rc;
 }
 
@@ -193,6 +193,7 @@ ClRcT ClMgtList::removeEntry(ClUint32T index)
 
     if ((0 <= index) && (index < mEntries.size()))
     {
+        removeChildObject(mEntries[index]->Name);
         mEntries.erase(mEntries.begin() + index);
         rc = CL_OK;
     }

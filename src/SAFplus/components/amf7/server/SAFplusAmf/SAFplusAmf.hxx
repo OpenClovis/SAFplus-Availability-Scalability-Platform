@@ -14,9 +14,10 @@
 #include "clMgtProv.hxx"
 #include "SaTimeT.hxx"
 
-namespace SAFplusAmf {
-
-    class SAFplusAmfRoot : public ClMgtObject {
+namespace SAFplusAmf
+{
+    class SAFplusAmfRoot : public ClMgtObject
+    {
 
         /* Apply MGT object factory */
         REGISTER(SAFplusAmfRoot);

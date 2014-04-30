@@ -1,6 +1,10 @@
 #include <boost/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/asio/ip/address.hpp>
+#include <boost/filesystem/operations.hpp>
+#include <boost/foreach.hpp>
+#include <boost/unordered_map.hpp>
+
 #include <clHandleApi.hxx>
 #include <clLogApi.hxx>
 #include <clCkptApi.hxx>
@@ -12,9 +16,18 @@
 #include <clCommon.hxx>
 #include <clMgtApi.hxx>
 
+#include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmf.hxx>
-
+#include <clSafplusMsgServer.hxx>
 using namespace SAFplus;
+
+typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPolicyMap;
+
+RedPolicyMap redPolicies;
+
+// IOC related globals
+ClUint32T clAspLocalId = 0x1;
+ClBoolT   gIsNodeRepresentative = CL_TRUE;
 
 SAFplusAmf::SAFplusAmfRoot cfg;
 
@@ -22,7 +35,7 @@ enum
   {
     NODENAME_LEN = 16*8,              // Make sure it is a multiple of 64 bits
     SC_ELECTION_BIT = 1<<8,           // This bit is set in the credential if the node is a system controller, making SCs preferred 
-    STARTUP_ELECTION_DELAY_MS = 5000  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
+    STARTUP_ELECTION_DELAY_MS = 2000  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
   };
 
 // For now, this needs to be a "flat" class since it will be directly serialized and passed to the group's registerEntity function
@@ -41,7 +54,7 @@ public:
 volatile bool    quitting=false;  // Set to true to tell all threads to quit
 Group            clusterGroup;
 ClusterGroupData clusterGroupData;  // The info we tell other nodes about this node.
-Handle          myHandle;  // This handle resolves to THIS process.
+Handle           myHandle;  // This handle resolves to THIS process.
 unsigned int     myRole = 0;
 unsigned int     capabilities=0;
 unsigned int     credential=0;
@@ -55,7 +68,7 @@ struct LogServer
   {
     while(!quitting)
       {
-	printf("log server code here");
+	//printf("log server code here\n");
 	sleep(1);
       }
   }
@@ -63,9 +76,16 @@ struct LogServer
 
 
 
-void activeAudit(void)  // Check to make sure DB and the system state are in sync
+void activeAudit()  // Check to make sure DB and the system state are in sync
 {
   logDebug("AUD","ACT","Active Audit");
+  RedPolicyMap::iterator it;
+
+  for (it = redPolicies.begin(); it != redPolicies.end();it++)
+    {
+      ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*>(it->second->pluginApi);
+       pp->activeAudit(&cfg);
+    }
 }
 
 void standbyAudit(void) // Check to make sure DB and the system state are in sync
@@ -84,6 +104,43 @@ void becomeStandby(void)
 }
 
 
+void loadAmfPlugins()
+{
+  // pick the SAFplus directory or the current directory if it is not defined.
+  const char * soPath = (SAFplus::ASP_APP_BINDIR[0] == 0) ? ".":SAFplus::ASP_APP_BINDIR;
+  
+  boost::filesystem::path p(soPath);
+  boost::filesystem::directory_iterator it(p),eod;
+
+  BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(it, eod))   
+  {
+    if (p.extension()==".so")
+      {
+        if (p.string().find("AmfPolicy") != std::string::npos)
+          {
+          if(is_regular_file(p))
+            {
+              const char *s = p.c_str();
+              clLogInfo("POL","LOAD","Loading policy: %s", s);
+              ClPluginHandle* plug = clLoadPlugin(CL_AMF_POLICY_PLUGIN_ID,CL_AMF_POLICY_PLUGIN_VER,s);
+              if (plug)
+                {
+                  ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*> (plug->pluginApi);
+                  if (pp)
+                    {
+                      redPolicies[pp->policyId] = plug;
+                      clLogError("POL","LOAD","AMF Policy plugin [%s] load succeeded.", p.c_str());
+                    }
+                  else clLogError("POL","LOAD","AMF Policy plugin [%s] load failed.", p.c_str());
+                }
+              else clLogError("POL","LOAD","Policy [%s] load failed.", p.c_str());
+            } 
+            
+          }
+      }
+  }  
+}
+
 int main(int argc, char* argv[])
 {
   Mutex m;
@@ -92,6 +149,17 @@ int main(int argc, char* argv[])
   logInitialize();
   logEchoToFd = 1;  // echo logs to stdout for debugging
   utilsInitialize();
+
+  ClRcT rc;
+  // initialize SAFplus6 libraries 
+  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+    {
+      assert(0);
+    }
+
+    rc = clIocLibInitialize(NULL);
+    assert(rc==CL_OK);
+
 
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
@@ -107,6 +175,8 @@ int main(int argc, char* argv[])
 
   // Needed?
   //groupServer = boost::thread(GroupServer());
+
+  loadAmfPlugins();
   
   clusterGroup.init(CLUSTER_GROUP);
   clusterGroup.setNotification(somethingChanged);

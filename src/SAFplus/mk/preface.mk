@@ -30,7 +30,7 @@ SAFPLUS_INC_DIR ?= $(SAFPLUS_SRC_DIR)/SAFplus/include7
 BOOST_DIR ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR)
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -DSAFplus7
-COMPILE_CPP = g++ -g -O0 -fPIC -c $(CPP_FLAGS) -o
+COMPILE_CPP = g++ -std=c++11 -g -O0 -fPIC -c $(CPP_FLAGS) -o
 LINK_SO     = g++ -g -shared -o 
 LINK_EXE    = g++ -g -O0 -fPIC $(LINK_FLAGS) -o
 

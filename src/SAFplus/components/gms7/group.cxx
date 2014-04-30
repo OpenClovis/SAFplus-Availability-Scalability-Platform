@@ -486,9 +486,3 @@ bool SAFplus::Group::Iterator::operator !=(const SAFplus::Group::Iterator& other
   if (iter != otherValue.iter) return true;
   return false;
 }
-
-std::size_t SAFplus::hash_value(SAFplus::Handle const& h)
-{
-  boost::hash<uint64_t> hasher;
-  return hasher(h.id[0]|h.id[1]);
-}

@@ -94,7 +94,8 @@ typedef enum
  * Macros to log messages at different levels of severity
    streamHandle, severity, serviceId, area, context, ...) \
  */
-    
+#define logWrite(severity, area, context, ...) appLog(APP_LOG, severity, 0, area, context, __VA_ARGS__)
+
 #define logEmergency(area, context, ...) appLog(APP_LOG, SAFplus::LOG_SEV_EMERGENCY, 0, area, context, __VA_ARGS__)
 
 #define logAlert(area, context, ...) appLog(APP_LOG,SAFplus::LOG_SEV_ALERT, 0,area, context, __VA_ARGS__)

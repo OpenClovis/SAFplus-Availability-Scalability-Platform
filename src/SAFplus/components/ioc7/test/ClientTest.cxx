@@ -49,7 +49,8 @@ main(void)
 
     }
 
-    clIocLibInitialize(NULL);
+    rc = clIocLibInitialize(NULL);
+    assert(rc==CL_OK);
 
     iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
@@ -70,7 +71,7 @@ main(void)
         stringstream strHello;
         strHello << helloMsg << i++;
         std::cout<<"Process:"<<getpid()<<", SENDING:"<<strHello.str()<<std::endl;
-        MsgReply *msgReply = msgClient.SendReply(iocDest, (void *)strHello.str().c_str(), strHello.str().length(), CL_IOC_PROTO_CTL);
+        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *)strHello.str().c_str(), strHello.str().length(), CL_IOC_PROTO_CTL);
         std::cout<<"Process:"<<getpid()<<", GOT REPLY:"<<msgReply->buffer<<std::endl;
     }
 }

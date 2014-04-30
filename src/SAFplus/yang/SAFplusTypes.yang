@@ -17,6 +17,12 @@ module SAFplusTypes
       description "Jam a C language declaration into this object";
     }
 
+    extension c-type
+    {
+      argument "declaration";
+      description "Override the normal type that would be generated with this type";
+    }
+
     extension c-existing
     {
       argument "name";

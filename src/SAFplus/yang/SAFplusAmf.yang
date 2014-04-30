@@ -710,7 +710,7 @@ are switched over to other nodes (component service instances are not abruptly r
 	safplus:alias saAmfCSIDependencies;
 	description "";
         type instance-identifier;
-        safplus:c-decl "Entity* entity";
+        safplus:c-type "ComponentServiceInstance*";
       }
 
      }
