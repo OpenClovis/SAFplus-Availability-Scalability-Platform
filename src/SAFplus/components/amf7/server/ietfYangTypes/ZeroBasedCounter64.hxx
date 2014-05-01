@@ -4,12 +4,15 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef ZEROBASEDCOUNTER64_HXX_
 #define ZEROBASEDCOUNTER64_HXX_
+#include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
 
-namespace ietfYangTypes {
+namespace ietfYangTypes
+  {
 
     class ZeroBasedCounter64 {
     public:

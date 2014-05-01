@@ -4,8 +4,10 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef NODE_HXX_
 #define NODE_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include <vector>
 #include "Capacity.hxx"
@@ -19,7 +21,8 @@
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include <string>
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class Node : public ClMgtObject {
 

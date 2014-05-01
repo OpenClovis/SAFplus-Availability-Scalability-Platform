@@ -4,16 +4,17 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef CLEANUP_HXX_
 #define CLEANUP_HXX_
+#include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include <string>
+#include "clMgtObject.hxx"
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class Cleanup : public ClMgtObject {
 
@@ -22,54 +23,9 @@ namespace SAFplusAmf {
 
     public:
 
-        /*
-         * Specify both name of the binary here
-         */
-        ClMgtProv<std::string> command;
-
-        /*
-         * Specify the arguments as if you are writing them on the command line
-         */
-        ClMgtProv<std::string> args;
-
-        /*
-         * The maximum time this operation should take before the AMF receives a response or the command completes.  Specified in milliseconds.
-         */
-        ClMgtProv<unsigned long int> timeout;
-
     public:
         Cleanup();
         std::vector<std::string>* getChildNames();
-
-        /*
-         * XPATH: /SAFplusAmf/Component/cleanup/command
-         */
-        std::string getCommand();
-
-        /*
-         * XPATH: /SAFplusAmf/Component/cleanup/command
-         */
-        void setCommand(std::string commandValue);
-
-        /*
-         * XPATH: /SAFplusAmf/Component/cleanup/args
-         */
-        std::string getArgs();
-
-        /*
-         * XPATH: /SAFplusAmf/Component/cleanup/args
-         */
-        void setArgs(std::string argsValue);
-
-        /*
-         * XPATH: /SAFplusAmf/Component/cleanup/timeout
-         */
-        unsigned long int getTimeout();
-
-        /*
-         * XPATH: /SAFplusAmf/Component/cleanup/timeout
-         */
-        void setTimeout(unsigned long int timeoutValue);
         ~Cleanup();
 
     };

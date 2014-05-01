@@ -4,17 +4,20 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef COMPONENTSERVICEINSTANCE_HXX_
 #define COMPONENTSERVICEINSTANCE_HXX_
+#include "SAFplusAmfCommon.hxx"
 
-#include <vector>
-#include "MgtFactory.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
-#include "clMgtProvList.hxx"
+#include <vector>
+#include "MgtFactory.hxx"
 #include <string>
+#include "clMgtProvList.hxx"
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class ComponentServiceInstance : public ClMgtObject {
 
@@ -41,7 +44,7 @@ namespace SAFplusAmf {
         /*
          * 
          */
-        ClMgtProvList<std::string> dependencies;
+        ClMgtProvList<SAFplusAmf::ComponentServiceInstance*> dependencies;
 
     public:
         ComponentServiceInstance();
@@ -82,12 +85,12 @@ namespace SAFplusAmf {
         /*
          * XPATH: /SAFplusAmf/ComponentServiceInstance/dependencies
          */
-        std::vector<std::string> getDependencies();
+        std::vector<SAFplusAmf::ComponentServiceInstance*> getDependencies();
 
         /*
          * XPATH: /SAFplusAmf/ComponentServiceInstance/dependencies
          */
-        void setDependencies(std::string dependenciesValue);
+        void setDependencies(SAFplusAmf::ComponentServiceInstance* dependenciesValue);
         ~ComponentServiceInstance();
 
     };

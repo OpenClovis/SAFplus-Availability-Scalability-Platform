@@ -4,28 +4,33 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef SERVICEGROUP_HXX_
 #define SERVICEGROUP_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include <string>
-#include "SpareServiceUnits.hxx"
-#include "IdleServiceUnits.hxx"
 #include "SaTimeT.hxx"
 #include "MgtFactory.hxx"
+#include "NumSpareServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include "AdministrativeState.hxx"
-#include "SpareServiceUnits.hxx"
 #include "ComponentRestart.hxx"
+#include "NumIdleServiceUnits.hxx"
 #include "clMgtObject.hxx"
-#include "AssignedServiceUnits.hxx"
 #include "clMgtProv.hxx"
-#include "AssignedServiceUnits.hxx"
 #include "ComponentRestart.hxx"
+#include "NumIdleServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include <vector>
-#include "IdleServiceUnits.hxx"
+#include "NumAssignedServiceUnits.hxx"
+#include "NumSpareServiceUnits.hxx"
+#include "NumAssignedServiceUnits.hxx"
+#include "clMgtProvList.hxx"
+#include "ServiceUnit.hxx"
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class ServiceGroup : public ClMgtObject {
 
@@ -50,13 +55,17 @@ namespace SAFplusAmf {
         ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
-         * Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.
+         * Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.  A 'false' value will cause the system to wait for operator intervention (via the repair API) before attempting to restart this entity.
          */
         ClMgtProv<bool> autoRepair;
+
+        /*
+         * Match this service group as closely as possible to the preferred high availability configuration.  For example, if the preferred active comes online, 'fail-back' to it.  Another example is if a new work assignment is provisioned, the system could remove an existing standby assignment so the new active can be provisioned.
+         */
         ClMgtProv<bool> autoAdjust;
 
         /*
-         * The time between checks to see if auto adjustment is needed.
+         * The time between checks to see if adjustment is needed.
          */
         ClMgtProv<SAFplusTypes::SaTimeT> autoAdjustInterval;
 
@@ -84,6 +93,11 @@ namespace SAFplusAmf {
          * The maximum number of standby work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.
          */
         ClMgtProv<unsigned int> maxStandbyWorkAssignments;
+
+        /*
+         * This component is the proxy for the components listed here.
+         */
+        ClMgtProvList<SAFplusAmf::ServiceUnit*> serviceUnits;
 
     public:
         ServiceGroup();
@@ -202,54 +216,64 @@ namespace SAFplusAmf {
         void setMaxStandbyWorkAssignments(unsigned int maxStandbyWorkAssignmentsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/ComponentRestart
+         * XPATH: /SAFplusAmf/ServiceGroup/serviceUnits
+         */
+        std::vector<SAFplusAmf::ServiceUnit*> getServiceUnits();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceGroup/serviceUnits
+         */
+        void setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceGroup/componentRestart
          */
         SAFplusAmf::ComponentRestart* getComponentRestart();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/ComponentRestart
+         * XPATH: /SAFplusAmf/ServiceGroup/componentRestart
          */
-        void addComponentRestart(SAFplusAmf::ComponentRestart *ComponentRestartValue);
+        void addComponentRestart(SAFplusAmf::ComponentRestart *componentRestartValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart
+         * XPATH: /SAFplusAmf/ServiceGroup/serviceUnitRestart
          */
         SAFplusAmf::ServiceUnitRestart* getServiceUnitRestart();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart
+         * XPATH: /SAFplusAmf/ServiceGroup/serviceUnitRestart
          */
-        void addServiceUnitRestart(SAFplusAmf::ServiceUnitRestart *ServiceUnitRestartValue);
+        void addServiceUnitRestart(SAFplusAmf::ServiceUnitRestart *serviceUnitRestartValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/assignedServiceUnits
+         * XPATH: /SAFplusAmf/ServiceGroup/numAssignedServiceUnits
          */
-        SAFplusAmf::AssignedServiceUnits* getAssignedServiceUnits();
+        SAFplusAmf::NumAssignedServiceUnits* getNumAssignedServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/assignedServiceUnits
+         * XPATH: /SAFplusAmf/ServiceGroup/numAssignedServiceUnits
          */
-        void addAssignedServiceUnits(SAFplusAmf::AssignedServiceUnits *assignedServiceUnitsValue);
+        void addNumAssignedServiceUnits(SAFplusAmf::NumAssignedServiceUnits *numAssignedServiceUnitsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits
+         * XPATH: /SAFplusAmf/ServiceGroup/numIdleServiceUnits
          */
-        SAFplusAmf::IdleServiceUnits* getIdleServiceUnits();
+        SAFplusAmf::NumIdleServiceUnits* getNumIdleServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/idleServiceUnits
+         * XPATH: /SAFplusAmf/ServiceGroup/numIdleServiceUnits
          */
-        void addIdleServiceUnits(SAFplusAmf::IdleServiceUnits *idleServiceUnitsValue);
+        void addNumIdleServiceUnits(SAFplusAmf::NumIdleServiceUnits *numIdleServiceUnitsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits
+         * XPATH: /SAFplusAmf/ServiceGroup/numSpareServiceUnits
          */
-        SAFplusAmf::SpareServiceUnits* getSpareServiceUnits();
+        SAFplusAmf::NumSpareServiceUnits* getNumSpareServiceUnits();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits
+         * XPATH: /SAFplusAmf/ServiceGroup/numSpareServiceUnits
          */
-        void addSpareServiceUnits(SAFplusAmf::SpareServiceUnits *spareServiceUnitsValue);
+        void addNumSpareServiceUnits(SAFplusAmf::NumSpareServiceUnits *numSpareServiceUnitsValue);
         ~ServiceGroup();
 
     };

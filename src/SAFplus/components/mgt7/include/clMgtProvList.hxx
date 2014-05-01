@@ -102,7 +102,7 @@ public:
      */
     ClRcT getDb();
 
-    void pushBackValue(std::string strVal);
+    void pushBackValue(const std::string& strVal);
 };
 
 template <class T>
@@ -269,11 +269,14 @@ ClBoolT ClMgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen,
 }
 
 template<class T>
-void ClMgtProvList<T>::pushBackValue(std::string strVal)
+void ClMgtProvList<T>::pushBackValue(const std::string& strVal)
 {
     T value;
     std::stringstream ss;
 
+    demarshall(strVal,this,value); 
+
+#if 0
     if (((typeid(T) == typeid(bool)) || (typeid(T) == typeid(ClBoolT))) && (!strVal.compare("true")))
     {
         ss << "1";
@@ -284,6 +287,7 @@ void ClMgtProvList<T>::pushBackValue(std::string strVal)
        ss << strVal;
        ss >> value;
     }
+#endif    
 
     Value.push_back(value);
 }
@@ -371,7 +375,9 @@ ClRcT ClMgtProvList<T>::getDb()
         std::string value;
         if (db->getRecord(*it, value))
         {
-            this->pushBackValue(value);
+          //          T value;
+          // destore(rec,this,&value); 
+          this->pushBackValue(value);
         }
     }
 

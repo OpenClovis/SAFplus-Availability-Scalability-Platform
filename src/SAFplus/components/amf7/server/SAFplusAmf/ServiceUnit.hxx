@@ -4,8 +4,10 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef SERVICEUNIT_HXX_
 #define SERVICEUNIT_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "RestartCount.hxx"
 #include "StandbyServiceInstances.hxx"
@@ -25,7 +27,8 @@
 #include "PresenceState.hxx"
 #include "clMgtProvList.hxx"
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class ServiceUnit : public ClMgtObject {
 

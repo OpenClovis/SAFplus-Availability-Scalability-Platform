@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef PRESENCESTATE_HXX_
 #define PRESENCESTATE_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
-    enum class PresenceState {
+    enum class PresenceState
+  {
         uninstantiated, instantiating, instantiated, terminating, restarting, instantiationFailed, terminationFailed
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const PresenceState& e);
     std::istream& operator>>(std::istream& is, PresenceState& e);
 

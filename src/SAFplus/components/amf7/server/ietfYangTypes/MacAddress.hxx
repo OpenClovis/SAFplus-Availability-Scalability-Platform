@@ -4,13 +4,16 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef MACADDRESS_HXX_
 #define MACADDRESS_HXX_
+#include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
 #include <string>
 
-namespace ietfYangTypes {
+namespace ietfYangTypes
+  {
 
     class MacAddress {
     public:

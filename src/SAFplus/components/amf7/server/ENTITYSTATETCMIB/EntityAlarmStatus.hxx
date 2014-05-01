@@ -4,13 +4,16 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef ENTITYALARMSTATUS_HXX_
 #define ENTITYALARMSTATUS_HXX_
+#include "ENTITYSTATETCMIBCommon.hxx"
 
 #include <iostream>
 #include <bitset>
 
-namespace ENTITYSTATETCMIB {
+namespace ENTITYSTATETCMIB
+  {
 
     class EntityAlarmStatus {
     public:

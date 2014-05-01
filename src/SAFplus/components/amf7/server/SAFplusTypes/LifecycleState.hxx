@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef LIFECYCLESTATE_HXX_
 #define LIFECYCLESTATE_HXX_
+#include "SAFplusTypesCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace SAFplusTypes {
+namespace SAFplusTypes
+  {
 
-    enum class LifecycleState {
+    enum class LifecycleState
+  {
         start, idle, stop
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const LifecycleState& e);
     std::istream& operator>>(std::istream& is, LifecycleState& e);
 

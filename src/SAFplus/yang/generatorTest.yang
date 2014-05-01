@@ -3,7 +3,7 @@ module generatorTest
 
   namespace "http://www.openclovis.org/ns/generatorTest";
   prefix "gt";
-  //import importGT { prefix "igt"; }  // Testing that imported stuff works.
+  import SAFplusTypes { prefix "safplus"; }
 
   organization
     "OpenClovis Solutions, Inc";
@@ -20,7 +20,16 @@ module generatorTest
     reference "";
   }
 
-    typedef AdministrativeState
+     leaf-list serviceUnits
+     {
+       safplus:alias saAmfCompCurrProxiedNames;
+       safplus:c-type "ServiceUnit*";
+       type instance-identifier;
+       description "This component is the proxy for the components listed here.";
+     }
+  
+
+  typedef AdministrativeState
     {
       type enumeration
       {
@@ -68,7 +77,6 @@ module generatorTest
       }
     
   }
-
 
   // Should produce a class named like "TestUncontainedElement" containing "name" and "data" fields.  The module class should contain a member object std::vector<TestUncontainedElement> or equivalent
   list TestUncontainedList

@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef ENTITYUSAGESTATE_HXX_
 #define ENTITYUSAGESTATE_HXX_
+#include "ENTITYSTATETCMIBCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace ENTITYSTATETCMIB {
+namespace ENTITYSTATETCMIB
+  {
 
-    enum class EntityUsageState {
+    enum class EntityUsageState
+  {
         unknown=1, idle=2, active=3, busy=4
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const EntityUsageState& e);
     std::istream& operator>>(std::istream& is, EntityUsageState& e);
 

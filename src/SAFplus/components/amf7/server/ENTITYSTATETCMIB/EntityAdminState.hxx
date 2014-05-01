@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef ENTITYADMINSTATE_HXX_
 #define ENTITYADMINSTATE_HXX_
+#include "ENTITYSTATETCMIBCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace ENTITYSTATETCMIB {
+namespace ENTITYSTATETCMIB
+  {
 
-    enum class EntityAdminState {
+    enum class EntityAdminState
+  {
         unknown=1, locked=2, shuttingDown=3, unlocked=4
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const EntityAdminState& e);
     std::istream& operator>>(std::istream& is, EntityAdminState& e);
 

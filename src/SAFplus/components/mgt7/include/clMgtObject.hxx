@@ -27,7 +27,7 @@
  *  \addtogroup mgt
  *  \{
  */
-
+#pragma once
 #ifndef CLMGTOBJECT_H_
 #define CLMGTOBJECT_H_
 
@@ -42,7 +42,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <clCommon.h>
+  //#include <clCommon.h>
 #include <libxml/xmlreader.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
@@ -50,6 +50,22 @@ extern "C" {
 #ifdef __cplusplus
 } /* end extern 'C' */
 #endif
+
+#include <clCommon.hxx>
+
+namespace SAFplus
+{
+  class MgtError:public Error
+  {
+    MgtError(const char* error);
+  };
+
+  class DemarshallError:public MgtError
+  {
+    DemarshallError(const char* error);
+  };
+  
+};
 
 class ClMgtObject;
 
@@ -75,12 +91,27 @@ public:
     virtual ~ClMgtObject();
 
     /**
+     * \brief	Find the root of this management tree
+     */
+  ClMgtObject* root(void);
+
+    /**
+     * \brief	Find the child or grandchild recursively with this name
+     */
+  ClMgtObject* deepFind(const std::string &s);
+
+  /**
+     * \brief	Find the child or grandchild recursively with this name
+     */
+  ClMgtObject* find(const std::string &s);
+ 
+    /**
      * \brief	Get child iterator beginning
      */
   ClMgtObjectMap::iterator begin(void) { return mChildren.begin(); }
 
   /**
-     * \end	Get child iterator end
+     * \brief	Get child iterator end
      */
   ClMgtObjectMap::iterator end(void) { return mChildren.end(); }
 
@@ -189,6 +220,19 @@ public:
 
     virtual void load();
 };
+
+
+inline void demarshall(const std::string& obj,ClMgtObject* context, std::string& result) { result=obj; }
+// True is 1, anything that begins with t,T,y,Y (for yes).  False is 0, anything that begins with f,F,n or N (for no)
+inline void demarshall(const std::string& obj,ClMgtObject* context, bool& result); // throw(DemarshallError);
+inline void demarshall(const std::string& obj,ClMgtObject* context, ClBoolT& result); // throw(DemarshallError);
+
+template<typename T> inline void demarshall(const std::string& strVal,ClMgtObject* context, T& result) // throw(DemarshallError)
+{
+  std::stringstream ss;
+  ss << strVal;
+  ss >> result;
+}
 
 #endif /* CLMGTOBJECT_H_ */
 

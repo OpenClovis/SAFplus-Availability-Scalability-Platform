@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef ENTITYOPERSTATE_HXX_
 #define ENTITYOPERSTATE_HXX_
+#include "ENTITYSTATETCMIBCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace ENTITYSTATETCMIB {
+namespace ENTITYSTATETCMIB
+  {
 
-    enum class EntityOperState {
+    enum class EntityOperState
+  {
         unknown=1, disabled=2, enabled=3, testing=4
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const EntityOperState& e);
     std::istream& operator>>(std::istream& is, EntityOperState& e);
 

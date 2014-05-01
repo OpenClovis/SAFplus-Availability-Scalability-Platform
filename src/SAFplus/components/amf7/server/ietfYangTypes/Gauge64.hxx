@@ -4,12 +4,15 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef GAUGE64_HXX_
 #define GAUGE64_HXX_
+#include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
 
-namespace ietfYangTypes {
+namespace ietfYangTypes
+  {
 
     class Gauge64 {
     public:

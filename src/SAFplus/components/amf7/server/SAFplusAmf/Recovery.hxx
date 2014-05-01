@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef RECOVERY_HXX_
 #define RECOVERY_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
-    enum class Recovery {
+    enum class Recovery
+  {
         NoRecommendation=1, Restart=2, Failover=3, NodeSwitchover=4, NodeFailover=5, NodeFailfast=6, ClusterReset=7, ApplicationRestart=8, ContainerRestart=9
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const Recovery& e);
     std::istream& operator>>(std::istream& is, Recovery& e);
 

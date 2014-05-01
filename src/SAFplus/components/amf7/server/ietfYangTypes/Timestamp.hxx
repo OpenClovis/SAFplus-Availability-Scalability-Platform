@@ -4,12 +4,15 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef TIMESTAMP_HXX_
 #define TIMESTAMP_HXX_
+#include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
 
-namespace ietfYangTypes {
+namespace ietfYangTypes
+  {
 
     class Timestamp {
     public:

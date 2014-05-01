@@ -4,8 +4,10 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef SAFPLUSAMFROOT_HXX_
 #define SAFPLUSAMFROOT_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "clMgtList.hxx"
 #include <vector>
@@ -15,9 +17,9 @@
 #include "SaTimeT.hxx"
 
 namespace SAFplusAmf
-{
-    class SAFplusAmfRoot : public ClMgtObject
-    {
+  {
+
+    class SAFplusAmfRoot : public ClMgtObject {
 
         /* Apply MGT object factory */
         REGISTER(SAFplusAmfRoot);
@@ -41,7 +43,7 @@ namespace SAFplusAmf
         ClMgtList nodeList;
 
         /*
-         * 
+         * A Service Group is a Service Availability Forum defined concept that corresponds to a group of redundant processes that should fail over as a unit.
          */
         ClMgtList serviceGroupList;
 

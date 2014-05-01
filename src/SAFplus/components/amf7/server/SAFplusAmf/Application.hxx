@@ -4,8 +4,10 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef APPLICATION_HXX_
 #define APPLICATION_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "NumServiceGroups.hxx"
 #include "clMgtObject.hxx"
@@ -16,7 +18,8 @@
 #include "AdministrativeState.hxx"
 #include <string>
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class Application : public ClMgtObject {
 

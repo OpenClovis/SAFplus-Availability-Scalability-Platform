@@ -276,7 +276,7 @@ point.  The operational, administrative, and presence states of a service unit, 
     {
       key "name";
       uses EntityId;
-      description "";
+      description "A Service Group is a Service Availability Forum defined concept that corresponds to a group of redundant processes that should fail over as a unit.";
  
       // SA-Forum defined fields
       leaf adminState
@@ -295,7 +295,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type boolean;
 	safplus:alias saAmfSGAutoRepair;
 	safplus:ide "Auto-repair: ";
-	description "Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.";
+	description "Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.  A 'false' value will cause the system to wait for operator intervention (via the repair API) before attempting to restart this entity.";
       }
 
       leaf autoAdjust
@@ -303,12 +303,13 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type boolean;
 	safplus:alias saAmfSGAutoAdjust;
 	safplus:ide "Auto-adjust: ";
+        description "Match this service group as closely as possible to the preferred high availability configuration.  For example, if the preferred active comes online, 'fail-back' to it.  Another example is if a new work assignment is provisioned, the system could remove an existing standby assignment so the new active can be provisioned.";
       }
       leaf autoAdjustInterval
       {
 	type safplus:SaTimeT;
 	safplus:alias saAmfSGAutoAdjustProb;
-	description "The time between checks to see if auto adjustment is needed.";
+	description "The time between checks to see if adjustment is needed.";
       }
 
       leaf preferredNumActiveServiceUnits
@@ -349,32 +350,41 @@ point.  The operational, administrative, and presence states of a service unit, 
 	description "The maximum number of standby work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.";
       }
 
-      container ComponentRestart
+      container componentRestart
       {
 	safplus:ide-group "Component fault escalation policy: ";
 	uses EscalationPolicy;
 	description "";
       }
-      container ServiceUnitRestart
+
+      container serviceUnitRestart
       {
 	safplus:ide-group "Service Unit fault escalation policy: ";
 	uses EscalationPolicy;
 	description "";
       }
+
+     leaf-list serviceUnits
+     {
+       safplus:alias saAmfCompCurrProxiedNames;
+       safplus:c-type "SAFplusAmf::ServiceUnit*";
+       type instance-identifier;
+       description "This component is the proxy for the components listed here.";
+     }
       
-      container assignedServiceUnits
+      container numAssignedServiceUnits
       {
 	safplus:alias saAmfSGNumCurrAssignedSUs;
 	uses safplus:intStatistic;
         config false;
       }
-      container idleServiceUnits
+      container numIdleServiceUnits
       {
 	safplus:alias saAmfSGNumCurrInstantiatedSpareSUs;
 	uses safplus:intStatistic;
         config false;	
       }	
-      container spareServiceUnits
+      container numSpareServiceUnits
       {
 	safplus:alias saAmfSGNumCurrNonInstantiatedSpareSUs;
 	uses safplus:intStatistic;
@@ -710,7 +720,7 @@ are switched over to other nodes (component service instances are not abruptly r
 	safplus:alias saAmfCSIDependencies;
 	description "";
         type instance-identifier;
-        safplus:c-type "ComponentServiceInstance*";
+        safplus:c-type "SAFplusAmf::ComponentServiceInstance*";
       }
 
      }

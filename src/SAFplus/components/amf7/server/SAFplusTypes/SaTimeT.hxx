@@ -4,12 +4,15 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef SATIMET_HXX_
 #define SATIMET_HXX_
+#include "SAFplusTypesCommon.hxx"
 
 #include <iostream>
 
-namespace SAFplusTypes {
+namespace SAFplusTypes
+  {
 
     class SaTimeT {
     public:

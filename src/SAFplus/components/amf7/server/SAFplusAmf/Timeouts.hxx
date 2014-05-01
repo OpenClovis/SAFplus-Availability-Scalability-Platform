@@ -4,8 +4,10 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef TIMEOUTS_HXX_
 #define TIMEOUTS_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
@@ -13,7 +15,8 @@
 #include <vector>
 #include "MgtFactory.hxx"
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class Timeouts : public ClMgtObject {
 

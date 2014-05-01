@@ -4,8 +4,10 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef ACTIVEWEIGHT_HXX_
 #define ACTIVEWEIGHT_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
@@ -13,7 +15,8 @@
 #include "MgtFactory.hxx"
 #include <string>
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class ActiveWeight : public ClMgtObject {
 

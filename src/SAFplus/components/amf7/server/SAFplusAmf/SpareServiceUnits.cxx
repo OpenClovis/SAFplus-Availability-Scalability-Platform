@@ -4,11 +4,9 @@
  * plug-in of pyang.
  */ 
 
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtProvList.hxx"
+#include "clMgtObject.hxx"
 #include "SpareServiceUnits.hxx"
 
 
@@ -17,167 +15,14 @@ namespace SAFplusAmf {
     /* Apply MGT object factory */
     REGISTERIMPL(SpareServiceUnits, /SAFplusAmf/ServiceGroup/spareServiceUnits)
 
-    SpareServiceUnits::SpareServiceUnits(): ClMgtObject("spareServiceUnits"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month")
+    SpareServiceUnits::SpareServiceUnits(): ClMgtObject("spareServiceUnits")
     {
-        this->addChildObject(&current, "current");
-        this->addChildObject(&history10sec, "history10sec");
-        this->addChildObject(&history1min, "history1min");
-        this->addChildObject(&history10min, "history10min");
-        this->addChildObject(&history1hour, "history1hour");
-        this->addChildObject(&history12hour, "history12hour");
-        this->addChildObject(&history1day, "history1day");
-        this->addChildObject(&history1week, "history1week");
-        this->addChildObject(&history1month, "history1month");
     };
 
     std::vector<std::string>* SpareServiceUnits::getChildNames()
     {
         std::string childNames[] = { "current", "history10sec", "history1min", "history10min", "history1hour", "history12hour", "history1day", "history1week", "history1month" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/current
-     */
-    unsigned long int SpareServiceUnits::getCurrent()
-    {
-        return this->current.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/current
-     */
-    void SpareServiceUnits::setCurrent(unsigned long int currentValue)
-    {
-        this->current.Value = currentValue;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history10sec
-     */
-    std::vector<unsigned long int> SpareServiceUnits::getHistory10sec()
-    {
-        return this->history10sec.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history10sec
-     */
-    void SpareServiceUnits::setHistory10sec(unsigned long int history10secValue)
-    {
-        this->history10sec.Value.push_back(history10secValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history1min
-     */
-    std::vector<unsigned long int> SpareServiceUnits::getHistory1min()
-    {
-        return this->history1min.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history1min
-     */
-    void SpareServiceUnits::setHistory1min(unsigned long int history1minValue)
-    {
-        this->history1min.Value.push_back(history1minValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history10min
-     */
-    std::vector<unsigned long int> SpareServiceUnits::getHistory10min()
-    {
-        return this->history10min.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history10min
-     */
-    void SpareServiceUnits::setHistory10min(unsigned long int history10minValue)
-    {
-        this->history10min.Value.push_back(history10minValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history1hour
-     */
-    std::vector<unsigned long int> SpareServiceUnits::getHistory1hour()
-    {
-        return this->history1hour.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history1hour
-     */
-    void SpareServiceUnits::setHistory1hour(unsigned long int history1hourValue)
-    {
-        this->history1hour.Value.push_back(history1hourValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history12hour
-     */
-    std::vector<unsigned long int> SpareServiceUnits::getHistory12hour()
-    {
-        return this->history12hour.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history12hour
-     */
-    void SpareServiceUnits::setHistory12hour(unsigned long int history12hourValue)
-    {
-        this->history12hour.Value.push_back(history12hourValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history1day
-     */
-    std::vector<unsigned long int> SpareServiceUnits::getHistory1day()
-    {
-        return this->history1day.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history1day
-     */
-    void SpareServiceUnits::setHistory1day(unsigned long int history1dayValue)
-    {
-        this->history1day.Value.push_back(history1dayValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history1week
-     */
-    std::vector<unsigned long int> SpareServiceUnits::getHistory1week()
-    {
-        return this->history1week.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history1week
-     */
-    void SpareServiceUnits::setHistory1week(unsigned long int history1weekValue)
-    {
-        this->history1week.Value.push_back(history1weekValue);
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history1month
-     */
-    std::vector<unsigned long int> SpareServiceUnits::getHistory1month()
-    {
-        return this->history1month.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceGroup/spareServiceUnits/history1month
-     */
-    void SpareServiceUnits::setHistory1month(unsigned long int history1monthValue)
-    {
-        this->history1month.Value.push_back(history1monthValue);
     };
 
     SpareServiceUnits::~SpareServiceUnits()

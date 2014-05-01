@@ -4,13 +4,16 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef PHYSADDRESS_HXX_
 #define PHYSADDRESS_HXX_
+#include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
 #include <string>
 
-namespace ietfYangTypes {
+namespace ietfYangTypes
+  {
 
     class PhysAddress {
     public:

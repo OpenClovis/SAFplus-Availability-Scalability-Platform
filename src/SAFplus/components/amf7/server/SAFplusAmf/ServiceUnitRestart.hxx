@@ -4,16 +4,17 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef SERVICEUNITRESTART_HXX_
 #define SERVICEUNITRESTART_HXX_
+#include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
-#include "SaTimeT.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "clMgtObject.hxx"
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class ServiceUnitRestart : public ClMgtObject {
 
@@ -22,39 +23,9 @@ namespace SAFplusAmf {
 
     public:
 
-        /*
-         * The maximum number of events that can occur within that time period before escalation occurs.
-         */
-        ClMgtProv<unsigned long int> maximum;
-
-        /*
-         * The time period (in milliseconds) involved.
-         */
-        ClMgtProv<SAFplusTypes::SaTimeT> duration;
-
     public:
         ServiceUnitRestart();
         std::vector<std::string>* getChildNames();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/maximum
-         */
-        unsigned long int getMaximum();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/maximum
-         */
-        void setMaximum(unsigned long int maximumValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/duration
-         */
-        SAFplusTypes::SaTimeT getDuration();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceGroup/ServiceUnitRestart/duration
-         */
-        void setDuration(SAFplusTypes::SaTimeT durationValue);
         ~ServiceUnitRestart();
 
     };

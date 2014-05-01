@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef CAPABILITYMODEL_HXX_
 #define CAPABILITYMODEL_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
-    enum class CapabilityModel {
+    enum class CapabilityModel
+  {
         x_active_and_y_standby, x_active_or_y_standby, one_active_or_y_standby, one_active_or_one_standby, x_active, one_active, nonPreInstantiable
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const CapabilityModel& e);
     std::istream& operator>>(std::istream& is, CapabilityModel& e);
 

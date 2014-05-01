@@ -4,8 +4,10 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef CLUSTER_HXX_
 #define CLUSTER_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
@@ -15,7 +17,8 @@
 #include "AdministrativeState.hxx"
 #include <string>
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class Cluster : public ClMgtObject {
 

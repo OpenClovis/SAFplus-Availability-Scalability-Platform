@@ -4,12 +4,15 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef COUNTER32_HXX_
 #define COUNTER32_HXX_
+#include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
 
-namespace ietfYangTypes {
+namespace ietfYangTypes
+  {
 
     class Counter32 {
     public:

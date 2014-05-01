@@ -4,8 +4,10 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef COMPONENT_HXX_
 #define COMPONENT_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "RestartCount.hxx"
 #include <string>
@@ -34,7 +36,8 @@
 #include "Terminate.hxx"
 #include "clMgtProvList.hxx"
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class Component : public ClMgtObject {
 

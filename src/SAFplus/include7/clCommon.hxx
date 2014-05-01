@@ -1,3 +1,4 @@
+#pragma once
 #include <clGlobals.hxx>
 
 namespace SAFplus
@@ -86,4 +87,14 @@ namespace SAFplus
   {
     Checkpoint = 0x20,
   };
+
+  class Error: public std::exception
+  {
+  public:
+    virtual const char* what() const throw()
+    {
+      return "My exception happened";
+    }
+  };
+  
 };  

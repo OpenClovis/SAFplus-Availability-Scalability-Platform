@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef HIGHAVAILABILITYSTATE_HXX_
 #define HIGHAVAILABILITYSTATE_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
-    enum class HighAvailabilityState {
+    enum class HighAvailabilityState
+  {
         active, standby, quiescing, idle
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const HighAvailabilityState& e);
     std::istream& operator>>(std::istream& is, HighAvailabilityState& e);
 

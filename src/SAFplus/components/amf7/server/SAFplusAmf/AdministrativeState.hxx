@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef ADMINISTRATIVESTATE_HXX_
 #define ADMINISTRATIVESTATE_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
-    enum class AdministrativeState {
+    enum class AdministrativeState
+  {
         off=0, idle=1, on=2
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const AdministrativeState& e);
     std::istream& operator>>(std::istream& is, AdministrativeState& e);
 

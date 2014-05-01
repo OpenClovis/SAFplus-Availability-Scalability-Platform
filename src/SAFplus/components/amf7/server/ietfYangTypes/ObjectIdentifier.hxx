@@ -4,13 +4,16 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef OBJECTIDENTIFIER_HXX_
 #define OBJECTIDENTIFIER_HXX_
+#include "ietfYangTypesCommon.hxx"
 
 #include <string>
 #include <iostream>
 
-namespace ietfYangTypes {
+namespace ietfYangTypes
+  {
 
     class ObjectIdentifier {
     public:

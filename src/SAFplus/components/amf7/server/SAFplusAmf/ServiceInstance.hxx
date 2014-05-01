@@ -4,8 +4,10 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef SERVICEINSTANCE_HXX_
 #define SERVICEINSTANCE_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "AssignmentState.hxx"
 #include "StandbyWeight.hxx"
@@ -24,7 +26,8 @@
 #include "ActiveAssignments.hxx"
 #include "ActiveWeight.hxx"
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
     class ServiceInstance : public ClMgtObject {
 

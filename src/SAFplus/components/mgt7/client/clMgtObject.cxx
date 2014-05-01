@@ -47,6 +47,49 @@ ClMgtObject::~ClMgtObject()
     }
 }
 
+ClMgtObject* ClMgtObject::root(void)
+{
+  ClMgtObject* ret = this;
+  while(ret->Parent) ret = ret->Parent;
+  return ret;
+}
+
+ClMgtObject* ClMgtObject::deepFind(const std::string &s)
+{
+  ClMgtObject* ret = find(s);
+  if (ret) return ret;
+  
+  ClMgtObjectMap::iterator it;
+  ClMgtObjectMap::iterator end = mChildren.end();
+
+  for (it = mChildren.begin();it != end;it++)
+    {
+      vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) it->second;
+      int nObjs = objs->size();
+      for(int i = 0; i < nObjs; i++)
+         {
+           ClMgtObject* obj = (ClMgtObject*) (*objs)[i];
+           ret = obj->deepFind(s);
+           if (ret) return ret;
+         }
+    }  
+}
+
+ClMgtObject* ClMgtObject::find(const std::string &s)
+{
+  ClMgtObjectMap::iterator it = mChildren.find(s);
+  if (it != mChildren.end())
+    {
+      vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) it->second;
+      int nObjs = objs->size();
+      assert(nObjs == 1);
+      ClMgtObject* obj = (ClMgtObject*) (*objs)[0];
+      return obj;
+    }
+  return NULL;
+}
+
+
 ClRcT ClMgtObject::bindNetconf(const std::string module, const std::string route)
 {
     return ClMgtRoot::getInstance()->bindMgtObject(CL_NETCONF_BIND_TYPE, this, module, route);
@@ -502,4 +545,19 @@ std::string ClMgtObject::getFullXpath()
 void ClMgtObject::load()
 {
 
+}
+
+
+inline void demarshall(const std::string& obj,ClMgtObject* context, bool& result)
+{
+  if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1')) { result=1; return; }
+  if ((obj[0] == 'f') || (obj[0] == 'F') || (obj[0] == '0') || (obj[0] == 'n') || (obj[0] == 'N')) { result=0; return; }
+  throw DemarshallError("cannot demarshall into a boolean");
+}
+
+inline void demarshall(const std::string& obj,ClMgtObject* context, ClBoolT& result)
+{
+  if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1')) { result=1; return; }
+  if ((obj[0] == 'f') || (obj[0] == 'F') || (obj[0] == '0') || (obj[0] == 'n') || (obj[0] == 'N')) { result=0; return; }
+  throw DemarshallError("cannot demarshall into a boolean");
 }

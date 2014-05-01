@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef ASSIGNMENTSTATE_HXX_
 #define ASSIGNMENTSTATE_HXX_
+#include "SAFplusAmfCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace SAFplusAmf {
+namespace SAFplusAmf
+  {
 
-    enum class AssignmentState {
+    enum class AssignmentState
+  {
         unassigned, fullyAssigned, partiallyAssigned
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const AssignmentState& e);
     std::istream& operator>>(std::istream& is, AssignmentState& e);
 

@@ -4,13 +4,16 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef XPATH10_HXX_
 #define XPATH10_HXX_
+#include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
 #include <string>
 
-namespace ietfYangTypes {
+namespace ietfYangTypes
+  {
 
     class Xpath10 {
     public:

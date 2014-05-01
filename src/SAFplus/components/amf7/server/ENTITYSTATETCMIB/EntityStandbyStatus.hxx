@@ -4,17 +4,21 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef ENTITYSTANDBYSTATUS_HXX_
 #define ENTITYSTANDBYSTATUS_HXX_
+#include "ENTITYSTATETCMIBCommon.hxx"
 
 #include "MgtEnumType.hxx"
 #include <iostream>
 
-namespace ENTITYSTATETCMIB {
+namespace ENTITYSTATETCMIB
+  {
 
-    enum class EntityStandbyStatus {
+    enum class EntityStandbyStatus
+  {
         unknown=1, hotStandby=2, coldStandby=3, providingService=4
-    };
+      };
     std::ostream& operator<<(std::ostream& os, const EntityStandbyStatus& e);
     std::istream& operator>>(std::istream& is, EntityStandbyStatus& e);
 

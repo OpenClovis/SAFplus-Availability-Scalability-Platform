@@ -4,13 +4,16 @@
  * plug-in of pyang.
  */ 
 
+#pragma once
 #ifndef DATEANDTIME_HXX_
 #define DATEANDTIME_HXX_
+#include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
 #include <string>
 
-namespace ietfYangTypes {
+namespace ietfYangTypes
+  {
 
     class DateAndTime {
     public:
