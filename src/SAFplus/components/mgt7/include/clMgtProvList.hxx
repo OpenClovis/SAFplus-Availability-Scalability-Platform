@@ -40,6 +40,8 @@
 #include <sstream>
 #include <vector>
 
+namespace SAFplus
+{
 /*
  *
  */
@@ -276,19 +278,6 @@ void ClMgtProvList<T>::pushBackValue(const std::string& strVal)
 
     demarshall(strVal,this,value); 
 
-#if 0
-    if (((typeid(T) == typeid(bool)) || (typeid(T) == typeid(ClBoolT))) && (!strVal.compare("true")))
-    {
-        ss << "1";
-        ss >> value;
-    }
-    else
-    {
-       ss << strVal;
-       ss >> value;
-    }
-#endif    
-
     Value.push_back(value);
 }
 
@@ -383,5 +372,5 @@ ClRcT ClMgtProvList<T>::getDb()
 
     return rc;
 }
-
+};
 #endif /* CLMGTPROVLIST_HXX_ */

@@ -27,26 +27,27 @@
  *  \addtogroup mgt
  *  \{
  */
-
+#pragma once
 #ifndef CLMGTHISTORYSTAT_HXX_
 #define CLMGTHISTORYSTAT_HXX_
 
 #include <vector>
 #include "clMgtObject.hxx"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
+extern "C"
+{
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clTimerApi.h>
 #include <clDebugApi.h>
-#ifdef __cplusplus
 } /* end extern 'C' */
-#endif
+
 
 #define CL_MAX_HISTORY_ARRAY 60
 
+namespace SAFplus
+{
 /**
  *  MgtHistoryStat class provides APIs to manage MGT historical data
  */
@@ -416,6 +417,7 @@ T ClMgtHistoryStat<T>::calculateCurrentValue()
     return 0;
 }
 
+};
 
 #endif /* CLMGTHISTORYSTAT_HXX_ */
 

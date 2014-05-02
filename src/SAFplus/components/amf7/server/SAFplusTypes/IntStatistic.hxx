@@ -18,21 +18,21 @@
 namespace SAFplusTypes
   {
 
-    class IntStatistic : public ClMgtObject {
+    class IntStatistic : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(IntStatistic);
+        MGT_REGISTER(IntStatistic);
 
     public:
-        ClMgtProv<unsigned long int> current;
-        ClMgtProvList<unsigned long int> history10sec;
-        ClMgtProvList<unsigned long int> history1min;
-        ClMgtProvList<unsigned long int> history10min;
-        ClMgtProvList<unsigned long int> history1hour;
-        ClMgtProvList<unsigned long int> history12hour;
-        ClMgtProvList<unsigned long int> history1day;
-        ClMgtProvList<unsigned long int> history1week;
-        ClMgtProvList<unsigned long int> history1month;
+        SAFplus::ClMgtProv<unsigned long int> current;
+        SAFplus::ClMgtProvList<unsigned long int> history10sec;
+        SAFplus::ClMgtProvList<unsigned long int> history1min;
+        SAFplus::ClMgtProvList<unsigned long int> history10min;
+        SAFplus::ClMgtProvList<unsigned long int> history1hour;
+        SAFplus::ClMgtProvList<unsigned long int> history12hour;
+        SAFplus::ClMgtProvList<unsigned long int> history1day;
+        SAFplus::ClMgtProvList<unsigned long int> history1week;
+        SAFplus::ClMgtProvList<unsigned long int> history1month;
 
     public:
         IntStatistic();

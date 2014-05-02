@@ -6,6 +6,7 @@
 #include "ServiceGroup.hxx"
 
 using namespace SAFplusAmf;
+using namespace SAFplus;
 
 
 namespace SAFplusAmf

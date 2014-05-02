@@ -16,10 +16,10 @@
 namespace SAFplusAmf
   {
 
-    class Instantiate : public ClMgtObject {
+    class Instantiate : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Instantiate);
+        MGT_REGISTER(Instantiate);
 
     public:
 

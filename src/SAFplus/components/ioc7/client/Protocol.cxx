@@ -14,11 +14,12 @@
 #include "Protocol.hxx"
 
 using namespace std;
+using namespace SAFplus;
 
 namespace SAFplusMsgServer {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Protocol, /SAFplusMsgServer/protocol)
+    MGT_REGISTER_IMPL(Protocol, /SAFplusMsgServer/protocol)
 
     Protocol::Protocol(): ClMgtObject("protocol"), defaultProtocol("defaultProtocol") {
         this->addChildObject(&defaultProtocol, "defaultProtocol");

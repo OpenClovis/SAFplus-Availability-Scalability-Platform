@@ -16,10 +16,10 @@
 namespace SAFplusAmf
   {
 
-    class NumSpareServiceUnits : public ClMgtObject {
+    class NumSpareServiceUnits : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(NumSpareServiceUnits);
+        MGT_REGISTER(NumSpareServiceUnits);
 
     public:
 

@@ -16,10 +16,10 @@
 namespace SAFplusTypes
   {
 
-    class MemUtilization : public ClMgtObject {
+    class MemUtilization : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(MemUtilization);
+        MGT_REGISTER(MemUtilization);
 
     public:
 

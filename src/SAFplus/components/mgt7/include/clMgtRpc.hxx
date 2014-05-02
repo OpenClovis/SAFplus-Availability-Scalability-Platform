@@ -24,18 +24,14 @@
 #include <string>
 #include "clMgtMsg.hxx"
 #include "clMgtObject.hxx"
+#include "clCommon.hxx"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <clCommon.h>
+namespace SAFplus
+{
 
-#ifdef __cplusplus
-} /* end extern 'C' */
-#endif
-
-class ClMgtRpc {
-public:
+  class ClMgtRpc
+  {
+  public:
     std::string Name;
     std::string Module;
     std::string ErrorMsg;
@@ -43,39 +39,39 @@ public:
     /*
      * Store the list of input parameters
      */
-	ClMgtObject mInParams;
+    ClMgtObject mInParams;
 
     /*
      * Store the list of output parameters
      */
-	ClMgtObject mOutParams;
+    ClMgtObject mOutParams;
 
-public:
+  public:
     ClMgtRpc(const char* name);
-	virtual ~ClMgtRpc();
+    virtual ~ClMgtRpc();
 
-	/**
-	 * Function to add input parameter
-	 */
-	void addInParam(std::string param, ClMgtObject *mgtObject);
+    /**
+     * Function to add input parameter
+     */
+    void addInParam(std::string param, ClMgtObject *mgtObject);
 
-	/**
-	 * Function to add output parameter
-	 */
-	void addOutParam(std::string param, ClMgtObject *mgtObject);
+    /**
+     * Function to add output parameter
+     */
+    void addOutParam(std::string param, ClMgtObject *mgtObject);
 
-	/**
-	 * Function to set value to an input parameter
-	 */
-	ClBoolT setInParams(void *pBuffer, ClUint64T buffLen);
-
-
-	void getOutParams(void **ppBuffer, ClUint64T *pBuffLen);
+    /**
+     * Function to set value to an input parameter
+     */
+    ClBoolT setInParams(void *pBuffer, ClUint64T buffLen);
 
 
-	virtual ClBoolT validate() = 0;
-	virtual ClBoolT invoke() = 0;
-	virtual ClBoolT postReply() = 0;
+    void getOutParams(void **ppBuffer, ClUint64T *pBuffLen);
+
+
+    virtual ClBoolT validate() = 0;
+    virtual ClBoolT invoke() = 0;
+    virtual ClBoolT postReply() = 0;
 
     /**
      * \brief   Function to register a Rpc to the server
@@ -84,7 +80,7 @@ public:
      * \return  CL_ERR_ALREADY_EXIST    Rpc already exists
      */
     ClRcT registerRpc();
-
+  };
 };
 
 #endif /* CLMGTRPC_HXX_ */

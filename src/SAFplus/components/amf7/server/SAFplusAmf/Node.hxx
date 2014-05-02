@@ -24,52 +24,52 @@
 namespace SAFplusAmf
   {
 
-    class Node : public ClMgtObject {
+    class Node : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Node);
+        MGT_REGISTER(Node);
 
     public:
 
         /*
          * Unique name of this entity
          */
-        ClMgtProv<std::string> name;
+        SAFplus::ClMgtProv<std::string> name;
 
         /*
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
-        ClMgtProv<unsigned short int> id;
+        SAFplus::ClMgtProv<unsigned short int> id;
 
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
          */
-        ClMgtProv<bool> operState;
+        SAFplus::ClMgtProv<bool> operState;
 
         /*
          * Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.
          */
-        ClMgtProv<bool> autoRepair;
+        SAFplus::ClMgtProv<bool> autoRepair;
 
         /*
          * If a component fails to instantiate on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true
          */
-        ClMgtProv<bool> failFastOnInstantiationFailure;
+        SAFplus::ClMgtProv<bool> failFastOnInstantiationFailure;
 
         /*
          * If a component's cleanup script fails on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true
          */
-        ClMgtProv<bool> failFastOnCleanupFailure;
+        SAFplus::ClMgtProv<bool> failFastOnCleanupFailure;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
          */
-        ClMgtList capacityList;
+        SAFplus::ClMgtList capacityList;
 
     public:
         Node();

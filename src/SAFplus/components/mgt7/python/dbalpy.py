@@ -4,7 +4,7 @@
 This module provides interfaces to access the DBAL provided by SAFplus library.
 """
 import pdb
-import os
+import os, sys
 import pyDbal
 import microdom
 
@@ -261,7 +261,23 @@ class PyDBAL():
                 return e
         raise ValueError(0x13)
 
-if __name__ == '__main__':
+
+def main(argv):
+  if len(argv) != 3:
+    print "Usage:\n '%s -x <xml file>': Encode xml file to database file\n" % argv[0]
+    print " '%s -d <database file>': Read database file into xml file\n" % argv[0]
+    return -1
+  
+  if argv[1] == '-x':
+    print "Reading file %s" % argv[2]    
+    data = PyDBAL(argv[2]) # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
+    data.Finalize()
+
+  if argv[1] == '-d':
+    print "NOT implemented"
+  
+
+def Test():
     test = PyDBAL("SAFplusLog") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
 
     # Iterators
@@ -290,3 +306,5 @@ if __name__ == '__main__':
 
     test.Finalize()
 
+if __name__ == '__main__':
+  main(sys.argv)

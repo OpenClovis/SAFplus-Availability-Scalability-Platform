@@ -15,9 +15,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(ServiceUnitRestart, /SAFplusAmf/ServiceGroup/serviceUnitRestart)
+    MGT_REGISTER_IMPL(ServiceUnitRestart, /SAFplusAmf/ServiceGroup/serviceUnitRestart)
 
-    ServiceUnitRestart::ServiceUnitRestart(): ClMgtObject("serviceUnitRestart")
+    ServiceUnitRestart::ServiceUnitRestart(): SAFplus::ClMgtObject("serviceUnitRestart")
     {
     };
 

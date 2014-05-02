@@ -32,72 +32,72 @@
 namespace SAFplusAmf
   {
 
-    class ServiceGroup : public ClMgtObject {
+    class ServiceGroup : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(ServiceGroup);
+        MGT_REGISTER(ServiceGroup);
 
     public:
 
         /*
          * Unique name of this entity
          */
-        ClMgtProv<std::string> name;
+        SAFplus::ClMgtProv<std::string> name;
 
         /*
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
-        ClMgtProv<unsigned short int> id;
+        SAFplus::ClMgtProv<unsigned short int> id;
 
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.  A 'false' value will cause the system to wait for operator intervention (via the repair API) before attempting to restart this entity.
          */
-        ClMgtProv<bool> autoRepair;
+        SAFplus::ClMgtProv<bool> autoRepair;
 
         /*
          * Match this service group as closely as possible to the preferred high availability configuration.  For example, if the preferred active comes online, 'fail-back' to it.  Another example is if a new work assignment is provisioned, the system could remove an existing standby assignment so the new active can be provisioned.
          */
-        ClMgtProv<bool> autoAdjust;
+        SAFplus::ClMgtProv<bool> autoAdjust;
 
         /*
          * The time between checks to see if adjustment is needed.
          */
-        ClMgtProv<SAFplusTypes::SaTimeT> autoAdjustInterval;
+        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> autoAdjustInterval;
 
         /*
          * 
          */
-        ClMgtProv<unsigned int> preferredNumActiveServiceUnits;
+        SAFplus::ClMgtProv<unsigned int> preferredNumActiveServiceUnits;
 
         /*
          * 
          */
-        ClMgtProv<unsigned int> preferredNumStandbyServiceUnits;
+        SAFplus::ClMgtProv<unsigned int> preferredNumStandbyServiceUnits;
 
         /*
          * An idle service unit is running but is not assigned active or standby.  This concept is functionally equivalent to the saAmfSGNumPrefInserviceSUs since Active+Standby+Idle = Inservice
          */
-        ClMgtProv<unsigned int> preferredNumIdleServiceUnits;
+        SAFplus::ClMgtProv<unsigned int> preferredNumIdleServiceUnits;
 
         /*
          * The maximum number of active work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.
          */
-        ClMgtProv<unsigned int> maxActiveWorkAssignments;
+        SAFplus::ClMgtProv<unsigned int> maxActiveWorkAssignments;
 
         /*
          * The maximum number of standby work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.
          */
-        ClMgtProv<unsigned int> maxStandbyWorkAssignments;
+        SAFplus::ClMgtProv<unsigned int> maxStandbyWorkAssignments;
 
         /*
          * This component is the proxy for the components listed here.
          */
-        ClMgtProvList<SAFplusAmf::ServiceUnit*> serviceUnits;
+        SAFplus::ClMgtProvList<SAFplusAmf::ServiceUnit*> serviceUnits;
 
     public:
         ServiceGroup();

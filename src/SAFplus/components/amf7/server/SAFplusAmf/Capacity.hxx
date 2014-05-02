@@ -18,14 +18,14 @@
 namespace SAFplusAmf
   {
 
-    class Capacity : public ClMgtObject {
+    class Capacity : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Capacity);
+        MGT_REGISTER(Capacity);
 
     public:
-        ClMgtProv<std::string> resource;
-        ClMgtProv<long int> value;
+        SAFplus::ClMgtProv<std::string> resource;
+        SAFplus::ClMgtProv<long int> value;
 
     public:
         Capacity();

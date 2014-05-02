@@ -19,9 +19,9 @@ namespace SAFplusTypes
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Sensor, /sensor)
+    MGT_REGISTER_IMPL(Sensor, /sensor)
 
-    Sensor::Sensor(): ClMgtObject("sensor"), name("name"), desc("desc")
+    Sensor::Sensor(): SAFplus::ClMgtObject("sensor"), name("name"), desc("desc")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&desc, "desc");

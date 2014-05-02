@@ -19,68 +19,68 @@
 namespace SAFplusAmf
   {
 
-    class SAFplusAmfRoot : public ClMgtObject {
+    class SAFplusAmfRoot : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(SAFplusAmfRoot);
+        MGT_REGISTER(SAFplusAmfRoot);
 
     public:
 
         /*
          * This attribute indicates the interval at which the corresponding healthcheck should be initiated (in milliseconds).
          */
-        ClMgtProv<SAFplusTypes::SaTimeT> healthCheckPeriod;
+        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> healthCheckPeriod;
 
         /*
          * This attribute indicates the maximum time allowable for components to not reply to the health check (in milliseconds).  After this time passes with no response from the component, it will be faulted
          */
-        ClMgtProv<SAFplusTypes::SaTimeT> healthCheckMaxSilence;
+        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> healthCheckMaxSilence;
 
         /*
          * 
          */
-        ClMgtList clusterList;
-        ClMgtList nodeList;
+        SAFplus::ClMgtList clusterList;
+        SAFplus::ClMgtList nodeList;
 
         /*
          * A Service Group is a Service Availability Forum defined concept that corresponds to a group of redundant processes that should fail over as a unit.
          */
-        ClMgtList serviceGroupList;
+        SAFplus::ClMgtList serviceGroupList;
 
         /*
          * 
          */
-        ClMgtList componentList;
+        SAFplus::ClMgtList componentList;
 
         /*
          * 
          */
-        ClMgtList componentServiceInstanceList;
+        SAFplus::ClMgtList componentServiceInstanceList;
 
         /*
          * 
          */
-        ClMgtList serviceInstanceList;
+        SAFplus::ClMgtList serviceInstanceList;
 
         /*
          * 
          */
-        ClMgtList serviceUnitList;
+        SAFplus::ClMgtList serviceUnitList;
 
         /*
          * 
          */
-        ClMgtList applicationList;
+        SAFplus::ClMgtList applicationList;
 
         /*
          * Look up any entity by its string name
          */
-        ClMgtList entityByNameList;
+        SAFplus::ClMgtList entityByNameList;
 
         /*
          * Look up any entity by its identifier
          */
-        ClMgtList entityByIdList;
+        SAFplus::ClMgtList entityByIdList;
 
     public:
         SAFplusAmfRoot();
@@ -105,7 +105,7 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/healthCheckMaxSilence
          */
         void setHealthCheckMaxSilence(SAFplusTypes::SaTimeT healthCheckMaxSilenceValue);
-        void load(ClMgtDatabase *db);
+        void load(SAFplus::ClMgtDatabase *db);
         ~SAFplusAmfRoot();
 
     };

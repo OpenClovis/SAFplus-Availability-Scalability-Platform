@@ -34,22 +34,20 @@
 #include <string>
 #include <vector>
 
-#ifdef __cplusplus
 extern "C" {
 #include <clCommon.h>
 #include <clDbalApi.h>
-#endif
-
-#ifdef __cplusplus
 } /* end extern 'C' */
-#endif
 
 #define MGT_DB_MAX_NUMBER_RECORD 1024
 #define MGT_DB_MAX_SIZE_RECORD 1024
 
-class ClMgtDatabase
+namespace SAFplus
 {
-protected:
+
+  class ClMgtDatabase
+  {
+  protected:
     ClMgtDatabase();
 
     static ClMgtDatabase *singletonInstance;
@@ -58,7 +56,7 @@ protected:
     ClDBHandleT mDbDataHdl;
     ClDBHandleT mDbIterHdl;
 
-public:
+  public:
     virtual ~ClMgtDatabase();
 
     /**
@@ -106,8 +104,9 @@ public:
      */
     std::vector<std::string> iterate(const std::string &xpath);
 
+  };
 };
-
+  
 #endif /* CLMGTDATABASE_HXX_ */
 
 /** \} */

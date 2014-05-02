@@ -16,10 +16,10 @@
 namespace SAFplusAmf
   {
 
-    class ActiveServiceInstances : public ClMgtObject {
+    class ActiveServiceInstances : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(ActiveServiceInstances);
+        MGT_REGISTER(ActiveServiceInstances);
 
     public:
 

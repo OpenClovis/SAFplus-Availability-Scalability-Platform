@@ -88,14 +88,14 @@ void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg)
 void finishLogProcessing(LogCfg* cfg)
 {
   ClMgtObjectMap::iterator iter;
-  ClMgtObjectMap::iterator end = cfg->streamConfig.end();
-  for (iter = cfg->streamConfig.begin(); iter != end; iter++)
+  ClMgtObjectMap::iterator end = cfg->streamConfig.streamList.end();
+  for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
     {
       vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) iter->second;
         int temp = objs->size();
         for(int i = 0; i < temp; i++)
           {
-            Stream* s = (Stream*) (*objs)[i];
+            Stream* s = dynamic_cast<Stream*>((*objs)[i]);
             if (s->dirty)
               {
                 if (s->fp)
@@ -127,14 +127,14 @@ void logInitializeStreams(LogCfg* cfg)
   // if rotate
   // determine the current fileIdx by looking at the current files in the directory and adding one.
   ClMgtObjectMap::iterator iter;
-  ClMgtObjectMap::iterator end = cfg->streamConfig.end();
-  for (iter = cfg->streamConfig.begin(); iter != end; iter++)
+  ClMgtObjectMap::iterator end = cfg->streamConfig.streamList.end();
+  for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
     {
         vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) iter->second;
         int temp = objs->size();
         for(int i = 0; i < temp; i++)
         {
-          Stream* s = (Stream*) (*objs)[i];
+          Stream* s = dynamic_cast<Stream*>((*objs)[i]);
           Dbg("Initializing stream %s file: %s location: %s\n", s->name.value().c_str(),s->fileName.value().c_str(),s->fileLocation.value().c_str());
           std::string& loc = s->fileLocation.value();
 
@@ -146,6 +146,29 @@ void logInitializeStreams(LogCfg* cfg)
               Dbg("Opening file: %s %s\n", fname.c_str(), (s->fp) ? "OK":"FAILED");
               
             }
+        }      
+    }
+  
+}
+
+// Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
+void dumpStreams(LogCfg* cfg)
+{
+  // Open FP if needed
+  // if rotate
+  // determine the current fileIdx by looking at the current files in the directory and adding one.
+  ClMgtObjectMap::iterator iter;
+  ClMgtObjectMap::iterator end = cfg->streamConfig.streamList.end();
+  for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
+    {
+        vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) iter->second;
+        int temp = objs->size();
+        for(int i = 0; i < temp; i++)
+        {
+          Stream* s = dynamic_cast<Stream*>((*objs)[i]);
+          Dbg("Address %p\n", s);
+          Dbg("  Stream %s file: %s location: %s\n", s->name.value().c_str(),s->fileName.value().c_str(),s->fileLocation.value().c_str());
+          std::string& loc = s->fileLocation.value();
         }      
     }
   
@@ -163,8 +186,8 @@ int main(int argc, char* argv[])
   logInitializeSharedMem();
 
     // Hard code the well known streams
-  appStreamCfg = (Stream*) cfg->streamConfig.getChildObject("app");
-  sysStreamCfg = (Stream*) cfg->streamConfig.getChildObject("sys");
+  appStreamCfg = dynamic_cast<Stream*> (cfg->streamConfig.streamList.getChildObject("app"));
+  sysStreamCfg = dynamic_cast<Stream*> (cfg->streamConfig.streamList.getChildObject("sys"));
 
   logInitializeStreams(cfg);
   

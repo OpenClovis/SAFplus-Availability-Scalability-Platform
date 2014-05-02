@@ -27,7 +27,7 @@
  *  \addtogroup mgt
  *  \{
  */
-
+#pragma once
 #ifndef CLMGTPROV_HPP_
 #define CLMGTPROV_HPP_
 
@@ -37,8 +37,11 @@
 
 #include <typeinfo>
 #include <iostream>
+
+namespace SAFplus
+{
 /**
- *  ClMgtProv class provides APIs to manage "provisioned" objects
+ *  ClMgtProv class provides APIs to manage "provisioned" objects.  Provisioned objects are those that represent configuration that needs to be set by the operator.  This is in contrast to statistics objects which are not set by the operator.
  */
 template <class T>
 class ClMgtProv : public ClMgtObject
@@ -347,6 +350,7 @@ ClRcT ClMgtProv<T>::getDb()
     return rc;
 }
 
+};
 #endif /* CLMGTPROV_HPP_ */
 
 /** \} */

@@ -28,9 +28,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(ServiceInstance, /SAFplusAmf/ServiceInstance)
+    MGT_REGISTER_IMPL(ServiceInstance, /SAFplusAmf/ServiceInstance)
 
-    ServiceInstance::ServiceInstance(): ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(): SAFplus::ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
@@ -42,7 +42,7 @@ namespace SAFplusAmf
         this->addKey("name");
     };
 
-    ServiceInstance::ServiceInstance(std::string nameValue): ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(std::string nameValue): SAFplus::ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
         this->name.Value =  nameValue;
         this->addKey("name");

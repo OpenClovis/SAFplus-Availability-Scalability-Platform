@@ -34,19 +34,18 @@
 #include <map>
 #include <string>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+extern "C"
+{
 #include <clCommon.h>
-
-#ifdef __cplusplus
 } /* end extern 'C' */
-#endif
 
+namespace SAFplus
+{
 /**
  *  ClMgtNotify class provides APIs to manage Yang notifications
  */
-class ClMgtNotify {
+class ClMgtNotify
+{
 private:
     /*
      * Store the list of notification leaf
@@ -80,6 +79,7 @@ public:
      * Function to send notification to the netconf server
      */
     void sendNotification();
+};
 };
 
 #endif /* CLMGTNOTIFY_HXX_ */

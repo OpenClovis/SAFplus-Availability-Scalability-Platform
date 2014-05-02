@@ -15,9 +15,9 @@ namespace SAFplusTypes
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(CpuUtilization, /SAFplusTypes/processStats/cpuUtilization)
+    MGT_REGISTER_IMPL(CpuUtilization, /SAFplusTypes/processStats/cpuUtilization)
 
-    CpuUtilization::CpuUtilization(): ClMgtObject("cpuUtilization")
+    CpuUtilization::CpuUtilization(): SAFplus::ClMgtObject("cpuUtilization")
     {
     };
 

@@ -38,20 +38,20 @@
 #include "clMgtNotify.hxx"
 #include "clMgtRpc.hxx"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+
+extern "C"
+{
 #include <clCommon.h>
-
-#ifdef __cplusplus
 } /* end extern 'C' */
-#endif
 
-/**
- * ClMgtModule class provides APIs to manage a MGT modules
- */
-class ClMgtModule {
-private:
+namespace SAFplus
+{
+  /**
+   * ClMgtModule class provides APIs to manage a MGT modules
+   */
+  class ClMgtModule
+  {
+  private:
     /*
      * Store the list of MGT object
      */
@@ -67,10 +67,10 @@ private:
      */
     std::map<std::string, ClMgtRpc*> mMgtRpcs;
 
-public:
+  public:
     std::string Name;
 
-public:
+  public:
     ClMgtModule(const char* name);
     virtual ~ClMgtModule();
 
@@ -162,6 +162,8 @@ public:
      * \return	If the function fails, the return value is NULL
      */
     ClMgtRpc *getMgtRpc(const std::string rpcName);
+  };
+
 };
 
 #endif /* CLMGTMODULE_HXX_ */

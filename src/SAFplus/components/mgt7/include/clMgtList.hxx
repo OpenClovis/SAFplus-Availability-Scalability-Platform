@@ -27,7 +27,7 @@
  *  \addtogroup mgt
  *  \{
  */
-
+#pragma once
 #ifndef CLMGTLIST_HXX_
 #define CLMGTLIST_HXX_
 
@@ -37,21 +37,21 @@
 #include "clMgtObject.hxx"
 #include "clMgtMsg.hxx"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <clCommon.h>
 
-#ifdef __cplusplus
-} /* end extern 'C' */
-#endif
-
-/**
- *  ClMgtList class provides APIs to manage Yang lists
- */
-class ClMgtList : public ClMgtObject
+extern "C"
 {
-protected:
+#include <clCommon.h>
+} /* end extern 'C' */
+
+namespace SAFplus
+{
+
+  /**
+   *  ClMgtList class provides APIs to manage Yang lists
+   */
+  class ClMgtList : public ClMgtObject
+  {
+  protected:
     /*
      * Store the list entries
      */
@@ -60,7 +60,7 @@ protected:
     //ClBoolT isEntryExist(ClMgtObject* entry);
     ClMgtObject* findEntryByKeys(std::map<std::string, std::string> *keys);
 
-public:
+  public:
     ClMgtList(const char* name);
     virtual ~ClMgtList();
     ClBoolT isEntryExist(ClMgtObject* entry);
@@ -117,6 +117,8 @@ public:
      * \brief   Virtual function to validate object data
      */
     virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+
+  };
 
 };
 

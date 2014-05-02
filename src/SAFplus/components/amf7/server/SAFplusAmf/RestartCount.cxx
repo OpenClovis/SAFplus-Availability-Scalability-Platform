@@ -15,9 +15,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(RestartCount, /SAFplusAmf/ServiceUnit/restartCount)
+    MGT_REGISTER_IMPL(RestartCount, /SAFplusAmf/ServiceUnit/restartCount)
 
-    RestartCount::RestartCount(): ClMgtObject("restartCount")
+    RestartCount::RestartCount(): SAFplus::ClMgtObject("restartCount")
     {
     };
 

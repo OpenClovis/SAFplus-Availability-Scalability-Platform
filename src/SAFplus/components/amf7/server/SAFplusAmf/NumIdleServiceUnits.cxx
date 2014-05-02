@@ -15,9 +15,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(NumIdleServiceUnits, /SAFplusAmf/ServiceGroup/numIdleServiceUnits)
+    MGT_REGISTER_IMPL(NumIdleServiceUnits, /SAFplusAmf/ServiceGroup/numIdleServiceUnits)
 
-    NumIdleServiceUnits::NumIdleServiceUnits(): ClMgtObject("numIdleServiceUnits")
+    NumIdleServiceUnits::NumIdleServiceUnits(): SAFplus::ClMgtObject("numIdleServiceUnits")
     {
     };
 

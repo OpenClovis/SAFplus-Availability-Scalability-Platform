@@ -18,27 +18,27 @@
 namespace SAFplusAmf
   {
 
-    class Execution : public ClMgtObject {
+    class Execution : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Execution);
+        MGT_REGISTER(Execution);
 
     public:
 
         /*
          * Specify both name of the binary here
          */
-        ClMgtProv<std::string> command;
+        SAFplus::ClMgtProv<std::string> command;
 
         /*
          * Specify the arguments as if you are writing them on the command line
          */
-        ClMgtProv<std::string> args;
+        SAFplus::ClMgtProv<std::string> args;
 
         /*
          * The maximum time this operation should take before the AMF receives a response or the command completes.  Specified in milliseconds.
          */
-        ClMgtProv<unsigned long int> timeout;
+        SAFplus::ClMgtProv<unsigned long int> timeout;
 
     public:
         Execution();

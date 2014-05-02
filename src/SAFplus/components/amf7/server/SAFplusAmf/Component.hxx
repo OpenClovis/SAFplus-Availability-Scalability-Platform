@@ -39,104 +39,104 @@
 namespace SAFplusAmf
   {
 
-    class Component : public ClMgtObject {
+    class Component : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Component);
+        MGT_REGISTER(Component);
 
     public:
 
         /*
          * Unique name of this entity
          */
-        ClMgtProv<std::string> name;
+        SAFplus::ClMgtProv<std::string> name;
 
         /*
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
-        ClMgtProv<unsigned short int> id;
-        ClMgtProv<SAFplusAmf::PresenceState> presence;
+        SAFplus::ClMgtProv<unsigned short int> id;
+        SAFplus::ClMgtProv<SAFplusAmf::PresenceState> presence;
 
         /*
          * This is defined by the SA-Forum AMF specificaion but is read-only because it is an emergent property based on values in saAmfCompNumMaxActiveCSIs and saAmfCompNumMaxStandbyCSIs.
          */
-        ClMgtProv<SAFplusAmf::CapabilityModel> capabilityModel;
+        SAFplus::ClMgtProv<SAFplusAmf::CapabilityModel> capabilityModel;
 
         /*
          * Maximum number of active work assignments this component can handle.
          */
-        ClMgtProv<unsigned int> maxActiveAssignments;
+        SAFplus::ClMgtProv<unsigned int> maxActiveAssignments;
 
         /*
          * Maximum number of standby work assignments this component can handle.
          */
-        ClMgtProv<unsigned int> maxStandbyAssignments;
+        SAFplus::ClMgtProv<unsigned int> maxStandbyAssignments;
 
         /*
          * Currently assigned work.
          */
-        ClMgtProvList<std::string> assignedWork;
+        SAFplus::ClMgtProvList<std::string> assignedWork;
 
         /*
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
          */
-        ClMgtProv<bool> operState;
-        ClMgtProv<SAFplusAmf::ReadinessState> readinessState;
+        SAFplus::ClMgtProv<bool> operState;
+        SAFplus::ClMgtProv<SAFplusAmf::ReadinessState> readinessState;
 
         /*
          * This state field covers ALL work assignments...
          */
-        ClMgtProv<SAFplusAmf::HighAvailabilityReadinessState> haReadinessState;
-        ClMgtProv<SAFplusAmf::HighAvailabilityState> haState;
+        SAFplus::ClMgtProv<SAFplusAmf::HighAvailabilityReadinessState> haReadinessState;
+        SAFplus::ClMgtProv<SAFplusAmf::HighAvailabilityState> haState;
 
         /*
          * Compatible SA-Forum API version
          */
-        ClMgtProv<std::string> safVersion;
-        ClMgtProv<unsigned int> compCategory;
+        SAFplus::ClMgtProv<std::string> safVersion;
+        SAFplus::ClMgtProv<unsigned int> compCategory;
 
         /*
          * What software installation bundle does this component come from
          */
-        ClMgtProv<std::string> swBundle;
+        SAFplus::ClMgtProv<std::string> swBundle;
 
         /*
          * List of environment variables in the form '<VARIABLE>=<VALUE>
 <VARIABLE2>=<VALUE2>
 ' the form the environment in which this component should be started
          */
-        ClMgtProvList<std::string> commandEnvironment;
+        SAFplus::ClMgtProvList<std::string> commandEnvironment;
 
         /*
          * How many times to attempt to instantiate this entity without delay.  If the number of instantiation attempts exceeds both this and the max delayed instantiations field, the fault will be elevated to the Service Unit level.
          */
-        ClMgtProv<unsigned int> maxInstantInstantiations;
+        SAFplus::ClMgtProv<unsigned int> maxInstantInstantiations;
 
         /*
          * How many times to attempt to instantiate this entity after an initial delay.  If the number of instantiation attempts exceeds both this and the max instant instantiations field, the fault will be elevated to the Service Unit level.
          */
-        ClMgtProv<unsigned int> maxDelayedInstantiations;
+        SAFplus::ClMgtProv<unsigned int> maxDelayedInstantiations;
 
         /*
          * How long to delay between instantiation attempts
          */
-        ClMgtProv<unsigned int> delayBetweenInstantiation;
-        ClMgtProv<SAFplusAmf::Recovery> recovery;
+        SAFplus::ClMgtProv<unsigned int> delayBetweenInstantiation;
+        SAFplus::ClMgtProv<SAFplusAmf::Recovery> recovery;
 
         /*
          * Set to true if this component can be restarted on failure, without this event registering as a fault
          */
-        ClMgtProv<bool> restartable;
+        SAFplus::ClMgtProv<bool> restartable;
 
         /*
          * The component listed here is this component's proxy.
          */
-        ClMgtProv<std::string> proxy;
+        SAFplus::ClMgtProv<std::string> proxy;
 
         /*
          * This component is the proxy for the components listed here.
          */
-        ClMgtProvList<std::string> proxied;
+        SAFplus::ClMgtProvList<std::string> proxied;
 
     public:
         Component();

@@ -16,20 +16,21 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-
+#pragma once
 #ifndef IMGTCREATOR_HXX_
 #define IMGTCREATOR_HXX_
 
 #include <string>
 #include <clMgtObject.hxx>
-
-class IMgtCreator
+namespace SAFplus
 {
-    public:
-        IMgtCreator(const std::string& xpath);
-        virtual ~IMgtCreator();
+  class IMgtCreator
+  {
+  public:
+    IMgtCreator(const std::string& xpath);
+    virtual ~IMgtCreator();
 
-        virtual ClMgtObject* create() = 0;
+    virtual ClMgtObject* create() = 0;
+  };
 };
-
 #endif /* IMGTCREATOR_HXX_ */

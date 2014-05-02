@@ -43,45 +43,47 @@ using namespace std;
 #define CL_IOC_MGT_NETCONF_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 1)
 #define CL_IOC_MGT_SNMP_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 2)
 
-ClMgtNotify::ClMgtNotify(const char* name)
+namespace SAFplus
 {
+  ClMgtNotify::ClMgtNotify(const char* name)
+  {
     Name.assign(name);
     Module.assign("");
-}
+  }
 
-ClMgtNotify::~ClMgtNotify()
-{
-}
+  ClMgtNotify::~ClMgtNotify()
+  {
+  }
 
-void ClMgtNotify::addLeaf(std::string leaf, std::string defaultValue)
-{
+  void ClMgtNotify::addLeaf(std::string leaf, std::string defaultValue)
+  {
     mLeafList.insert(pair<string, string>(leaf, defaultValue));
-}
-void ClMgtNotify::setLeaf(std::string leaf, std::string value)
-{
+  }
+  void ClMgtNotify::setLeaf(std::string leaf, std::string value)
+  {
     mLeafList[leaf] = value;
-}
+  }
 
-void ClMgtNotify::getLeaf(std::string leaf, std::string *value)
-{
+  void ClMgtNotify::getLeaf(std::string leaf, std::string *value)
+  {
     *value = mLeafList[leaf];
-}
+  }
 
-void ClMgtNotify::sendNotification()
-{
+  void ClMgtNotify::sendNotification()
+  {
     if (!strcmp(Module.c_str(), ""))
-    {
+      {
         clLogError("MGT", "RPC", "Cannot send Notification [%s]", Name.c_str());
         return;
-    }
+      }
 #ifdef MGT_ACCESS
     ClMgtIoc* mgtIocInstance = ClMgtIoc::getInstance();
 
     char *buffer = (char *) malloc(MGT_MAX_DATA_LEN);
     if (!buffer)
-    {
+      {
         return;
-    }
+      }
 
     ClMgtMessageNotifyTypeT *notifyData = (ClMgtMessageNotifyTypeT *)buffer;
     ClCharT *data = notifyData->data;
@@ -96,20 +98,20 @@ void ClMgtNotify::sendNotification()
 
     map<std::string, std::string>::iterator mapIndex;
     for (mapIndex = mLeafList.begin(); mapIndex != mLeafList.end(); ++mapIndex)
-    {
+      {
         std::string leafName = (*mapIndex).first;
         std::string leafVal = mLeafList[leafName];
 
         snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>",
-                leafName.c_str());
+                 leafName.c_str());
         strcat(data, strTemp);
         snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "%s", leafVal.c_str());
         strcat(data, strTemp);
         snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>",
-                leafName.c_str());
+                 leafName.c_str());
         strcat(data, strTemp);
 
-    }
+      }
 
     snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", this->Name.c_str());
     strcat(data, strTemp);
@@ -124,7 +126,7 @@ void ClMgtNotify::sendNotification()
     allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_NETCONF_PORT;
     mgtIocInstance->sendIocMsgAsync(&allNodeReps, CL_MGT_MSG_NOTIF, notifyData,
-            sizeof(ClMgtMessageNotifyTypeT) + dataSize, NULL, NULL);
+                                    sizeof(ClMgtMessageNotifyTypeT) + dataSize, NULL, NULL);
 
     /*
      * TODO: switch to Async
@@ -134,8 +136,9 @@ void ClMgtNotify::sendNotification()
     allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_SNMP_PORT;
 
     mgtIocInstance->sendIocMsgAsync(&allNodeReps, CL_MGT_MSG_NOTIF, notifyData,
-            sizeof(ClMgtMessageNotifyTypeT) + dataSize, NULL, NULL);
+                                    sizeof(ClMgtMessageNotifyTypeT) + dataSize, NULL, NULL);
 
     free(buffer);
 #endif
+  }
 }

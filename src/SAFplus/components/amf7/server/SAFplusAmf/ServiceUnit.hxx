@@ -30,61 +30,61 @@
 namespace SAFplusAmf
   {
 
-    class ServiceUnit : public ClMgtObject {
+    class ServiceUnit : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(ServiceUnit);
+        MGT_REGISTER(ServiceUnit);
 
     public:
 
         /*
          * Unique name of this entity
          */
-        ClMgtProv<std::string> name;
+        SAFplus::ClMgtProv<std::string> name;
 
         /*
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
-        ClMgtProv<unsigned short int> id;
+        SAFplus::ClMgtProv<unsigned short int> id;
 
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
          */
-        ClMgtProv<unsigned int> rank;
+        SAFplus::ClMgtProv<unsigned int> rank;
 
         /*
          * TODO
          */
-        ClMgtProv<bool> failover;
+        SAFplus::ClMgtProv<bool> failover;
 
         /*
          * Can this service unit be instantiated before being assigned active?  True if ALL components are preinstantiable.
          */
-        ClMgtProv<bool> preInstantiable;
+        SAFplus::ClMgtProv<bool> preInstantiable;
 
         /*
          * The service unit can only be instantiated on the node (if a node is specified) or on one of the nodes of the node group (if a node group is configured).
          */
-        ClMgtProv<std::string> saAmfSUHostNodeOrNodeGroup;
-        ClMgtProv<SAFplusAmf::PresenceState> presenceState;
-        ClMgtProv<SAFplusAmf::ReadinessState> readinessState;
+        SAFplus::ClMgtProv<std::string> saAmfSUHostNodeOrNodeGroup;
+        SAFplus::ClMgtProv<SAFplusAmf::PresenceState> presenceState;
+        SAFplus::ClMgtProv<SAFplusAmf::ReadinessState> readinessState;
 
         /*
          * This state field covers ALL work assignments...
          */
-        ClMgtProv<SAFplusAmf::HighAvailabilityReadinessState> haReadinessState;
-        ClMgtProv<SAFplusAmf::HighAvailabilityState> haState;
+        SAFplus::ClMgtProv<SAFplusAmf::HighAvailabilityReadinessState> haReadinessState;
+        SAFplus::ClMgtProv<SAFplusAmf::HighAvailabilityState> haState;
 
         /*
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
          */
-        ClMgtProv<bool> operState;
-        ClMgtProvList<std::string> assignedServiceInstances;
+        SAFplus::ClMgtProv<bool> operState;
+        SAFplus::ClMgtProvList<std::string> assignedServiceInstances;
 
     public:
         ServiceUnit();

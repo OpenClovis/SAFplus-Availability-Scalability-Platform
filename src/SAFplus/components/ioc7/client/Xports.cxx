@@ -17,7 +17,7 @@ using namespace std;
 namespace SAFplusMsgServer {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Xports, /SAFplusMsgServer/xports)
+    MGT_REGISTER_IMPL(Xports, /SAFplusMsgServer/xports)
 
     Xports::Xports(): ClMgtObject("xports") {
     };

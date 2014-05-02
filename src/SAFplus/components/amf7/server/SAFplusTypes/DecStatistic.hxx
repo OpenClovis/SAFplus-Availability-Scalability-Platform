@@ -18,21 +18,21 @@
 namespace SAFplusTypes
   {
 
-    class DecStatistic : public ClMgtObject {
+    class DecStatistic : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(DecStatistic);
+        MGT_REGISTER(DecStatistic);
 
     public:
-        ClMgtProv<long> current;
-        ClMgtProvList<long> history10sec;
-        ClMgtProvList<long> history1min;
-        ClMgtProvList<long> history10min;
-        ClMgtProvList<long> history1hour;
-        ClMgtProvList<long> history12hour;
-        ClMgtProvList<long> history1day;
-        ClMgtProvList<long> history1week;
-        ClMgtProvList<long> history1month;
+        SAFplus::ClMgtProv<long> current;
+        SAFplus::ClMgtProvList<long> history10sec;
+        SAFplus::ClMgtProvList<long> history1min;
+        SAFplus::ClMgtProvList<long> history10min;
+        SAFplus::ClMgtProvList<long> history1hour;
+        SAFplus::ClMgtProvList<long> history12hour;
+        SAFplus::ClMgtProvList<long> history1day;
+        SAFplus::ClMgtProvList<long> history1week;
+        SAFplus::ClMgtProvList<long> history1month;
 
     public:
         DecStatistic();

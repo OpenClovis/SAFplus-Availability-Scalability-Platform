@@ -13,24 +13,26 @@
 #include "MgtFactory.hxx"
 #include <string>
 
-namespace SAFplusMsgServer {
+namespace SAFplusMsgServer
+{
 
-    class Nodes : public ClMgtObject {
+    class Nodes : public SAFplus::ClMgtObject
+    {
 
         /* Apply MGT object factory */
-        REGISTER(Nodes);
+        MGT_REGISTER(Nodes);
 
     public:
 
         /*
          * Node name in cluster
          */
-        ClMgtProv<std::string> name;
+        SAFplus::ClMgtProv<std::string> name;
 
         /*
          * Protocols supported
          */
-        ClMgtProv<std::string> protocol;
+        SAFplus::ClMgtProv<std::string> protocol;
 
     public:
         Nodes();

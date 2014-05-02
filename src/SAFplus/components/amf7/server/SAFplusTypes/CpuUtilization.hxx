@@ -16,10 +16,10 @@
 namespace SAFplusTypes
   {
 
-    class CpuUtilization : public ClMgtObject {
+    class CpuUtilization : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(CpuUtilization);
+        MGT_REGISTER(CpuUtilization);
 
     public:
 

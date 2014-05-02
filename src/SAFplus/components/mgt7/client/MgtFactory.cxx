@@ -20,7 +20,8 @@
 #include "MgtFactory.hxx"
 
 using namespace std;
-
+namespace SAFplus
+{
 void MgtFactory::registerXpath(const std::string& xpath, IMgtCreator* creatorFn)
 {
     getObjectCreatorMap()[xpath] = creatorFn;
@@ -58,3 +59,4 @@ std::map<std::string, IMgtCreator*>& MgtFactory::getObjectCreatorMap()
     static std::map<std::string, IMgtCreator*> mgtObjectCreatorMap;
     return mgtObjectCreatorMap;
 }
+};

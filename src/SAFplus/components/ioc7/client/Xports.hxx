@@ -16,10 +16,10 @@
 
 namespace SAFplusMsgServer {
 
-    class Xports : public ClMgtObject {
+  class Xports : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Xports);
+        MGT_REGISTER(Xports);
 
     public:
 

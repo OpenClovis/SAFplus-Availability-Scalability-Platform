@@ -16,7 +16,7 @@ using namespace std;
 namespace SAFplusMsgServer {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Xport, /SAFplusMsgServer/xports/xport)
+    MGT_REGISTER_IMPL(Xport, /SAFplusMsgServer/xports/xport)
 
     Xport::Xport(): ClMgtObject("xport"), type("type"), plugin("plugin") {
         this->addChildObject(&type, "type");

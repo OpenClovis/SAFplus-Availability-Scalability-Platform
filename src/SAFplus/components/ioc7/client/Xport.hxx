@@ -13,24 +13,26 @@
 #include "MgtFactory.hxx"
 #include <string>
 
-namespace SAFplusMsgServer {
+namespace SAFplusMsgServer
+{
 
-    class Xport : public ClMgtObject {
+  class Xport : public SAFplus::ClMgtObject
+  {
 
         /* Apply MGT object factory */
-        REGISTER(Xport);
+        MGT_REGISTER(Xport);
 
     public:
 
         /*
          * Transport protocol
          */
-        ClMgtProv<std::string> type;
+        SAFplus::ClMgtProv<std::string> type;
 
         /*
          * Plugin file name
          */
-        ClMgtProv<std::string> plugin;
+        SAFplus::ClMgtProv<std::string> plugin;
 
     public:
         Xport();

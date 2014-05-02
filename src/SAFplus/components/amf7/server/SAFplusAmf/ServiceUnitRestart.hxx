@@ -16,10 +16,10 @@
 namespace SAFplusAmf
   {
 
-    class ServiceUnitRestart : public ClMgtObject {
+    class ServiceUnitRestart : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(ServiceUnitRestart);
+        MGT_REGISTER(ServiceUnitRestart);
 
     public:
 

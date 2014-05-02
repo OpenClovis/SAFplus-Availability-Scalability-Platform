@@ -21,27 +21,27 @@
 namespace SAFplusAmf
   {
 
-    class Application : public ClMgtObject {
+    class Application : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Application);
+        MGT_REGISTER(Application);
 
     public:
 
         /*
          * Unique name of this entity
          */
-        ClMgtProv<std::string> name;
+        SAFplus::ClMgtProv<std::string> name;
 
         /*
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
-        ClMgtProv<unsigned short int> id;
+        SAFplus::ClMgtProv<unsigned short int> id;
 
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
     public:
         Application();

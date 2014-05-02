@@ -15,9 +15,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Cleanup, /SAFplusAmf/Component/cleanup)
+    MGT_REGISTER_IMPL(Cleanup, /SAFplusAmf/Component/cleanup)
 
-    Cleanup::Cleanup(): ClMgtObject("cleanup")
+    Cleanup::Cleanup(): SAFplus::ClMgtObject("cleanup")
     {
     };
 

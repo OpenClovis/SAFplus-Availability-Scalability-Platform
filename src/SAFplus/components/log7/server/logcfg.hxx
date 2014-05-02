@@ -1,13 +1,16 @@
 #include <ServerConfig.hxx>
 #include <StreamConfig.hxx>
+#include <FileFullAction.hxx>
 #include <Stream.hxx>
+#include <StreamScope.hxx>
+
 #include <clMgtModule.hxx>
 
 //ClMgtModule    logCfg("log");
 
 
 // Top level class the represents the log.yang file.  I think that this should be auto-generated.
-class LogCfg : public ClMgtObject
+class LogCfg : public SAFplus::ClMgtObject
 {
 public:
   SAFplusLog::ServerConfig serverConfig;

@@ -34,6 +34,8 @@ extern "C"
 #define DBAL_DB_KEY_SIZE (1 << DBAL_DB_KEY_BITS)
 #define DBAL_DB_KEY_MASK (DBAL_DB_KEY_SIZE - 1)
 
+namespace SAFplus
+{
 static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
 {
     ClUint32T cksum = 0;
@@ -45,8 +47,7 @@ ClMgtDatabase *ClMgtDatabase::singletonInstance = 0;
 
 ClMgtDatabase *ClMgtDatabase::getInstance()
 {
-    return (singletonInstance ? singletonInstance : (singletonInstance =
-                                        new ClMgtDatabase()));
+    return (singletonInstance ? singletonInstance : (singletonInstance = new ClMgtDatabase()));
 }
 
 ClMgtDatabase::~ClMgtDatabase()
@@ -282,3 +283,4 @@ ClBoolT ClMgtDatabase::isInitialized()
 {
     return mInitialized;
 }
+};

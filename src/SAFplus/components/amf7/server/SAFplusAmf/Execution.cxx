@@ -17,9 +17,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Execution, /execution)
+    MGT_REGISTER_IMPL(Execution, /execution)
 
-    Execution::Execution(): ClMgtObject("execution"), command("command"), args("args"), timeout("timeout")
+    Execution::Execution(): SAFplus::ClMgtObject("execution"), command("command"), args("args"), timeout("timeout")
     {
         this->addChildObject(&command, "command");
         this->addChildObject(&args, "args");

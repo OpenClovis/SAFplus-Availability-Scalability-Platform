@@ -15,9 +15,9 @@ namespace SAFplusTypes
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(MemUtilization, /SAFplusTypes/processStats/memUtilization)
+    MGT_REGISTER_IMPL(MemUtilization, /SAFplusTypes/processStats/memUtilization)
 
-    MemUtilization::MemUtilization(): ClMgtObject("memUtilization")
+    MemUtilization::MemUtilization(): SAFplus::ClMgtObject("memUtilization")
     {
     };
 

@@ -19,32 +19,32 @@
 namespace SAFplusAmf
   {
 
-    class ComponentServiceInstance : public ClMgtObject {
+    class ComponentServiceInstance : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(ComponentServiceInstance);
+        MGT_REGISTER(ComponentServiceInstance);
 
     public:
 
         /*
          * Unique name of this entity
          */
-        ClMgtProv<std::string> name;
+        SAFplus::ClMgtProv<std::string> name;
 
         /*
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
-        ClMgtProv<unsigned short int> id;
+        SAFplus::ClMgtProv<unsigned short int> id;
 
         /*
          * A protection group for a specific component service instance is the group of components to which the component service instance has been assigned
          */
-        ClMgtProvList<std::string> protectionGroup;
+        SAFplus::ClMgtProvList<std::string> protectionGroup;
 
         /*
          * 
          */
-        ClMgtProvList<SAFplusAmf::ComponentServiceInstance*> dependencies;
+        SAFplus::ClMgtProvList<SAFplusAmf::ComponentServiceInstance*> dependencies;
 
     public:
         ComponentServiceInstance();

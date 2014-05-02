@@ -7,7 +7,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
-CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -std=c++11
+CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..
 
 # Specify the required libraries
 SAFPLUS_LIBS := clMgt7 clGroup clName clCkpt clUtils7 clLog clDbal7 clOsal7 
@@ -28,7 +28,7 @@ SERVER_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(SERVER_OBJ))
 
 all: $(SAFPLUS_TARGET)/bin/customAmfPolicy.so $(SAFPLUS_TARGET)/bin/safplus_amf
 
-$(SAFPLUS_TARGET)/bin/customAmfPolicy.so: $(OBJ_DIR)/amfsvr/customAmfPolicy.o
+$(SAFPLUS_TARGET)/bin/customAmfPolicy.so: $(OBJ_DIR)/amfsvr/customAmfPolicy.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/customAmfPolicy.o $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
 
 

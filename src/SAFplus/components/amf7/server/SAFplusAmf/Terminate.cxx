@@ -15,9 +15,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Terminate, /SAFplusAmf/Component/terminate)
+    MGT_REGISTER_IMPL(Terminate, /SAFplusAmf/Component/terminate)
 
-    Terminate::Terminate(): ClMgtObject("terminate")
+    Terminate::Terminate(): SAFplus::ClMgtObject("terminate")
     {
     };
 

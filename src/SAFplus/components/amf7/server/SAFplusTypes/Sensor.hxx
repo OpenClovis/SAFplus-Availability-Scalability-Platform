@@ -20,14 +20,14 @@
 namespace SAFplusTypes
   {
 
-    class Sensor : public ClMgtObject {
+    class Sensor : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Sensor);
+        MGT_REGISTER(Sensor);
 
     public:
-        ClMgtProv<std::string> name;
-        ClMgtProv<std::string> desc;
+        SAFplus::ClMgtProv<std::string> name;
+        SAFplus::ClMgtProv<std::string> desc;
 
     public:
         Sensor();

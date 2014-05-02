@@ -16,10 +16,10 @@
 namespace SAFplusAmf
   {
 
-    class RestartCount : public ClMgtObject {
+    class RestartCount : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(RestartCount);
+        MGT_REGISTER(RestartCount);
 
     public:
 

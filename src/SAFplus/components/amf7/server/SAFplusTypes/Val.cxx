@@ -15,9 +15,9 @@ namespace SAFplusTypes
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Val, /SAFplusTypes/sensor/val)
+    MGT_REGISTER_IMPL(Val, /SAFplusTypes/sensor/val)
 
-    Val::Val(): ClMgtObject("val")
+    Val::Val(): SAFplus::ClMgtObject("val")
     {
     };
 

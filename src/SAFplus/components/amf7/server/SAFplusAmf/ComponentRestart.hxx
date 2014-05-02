@@ -16,10 +16,10 @@
 namespace SAFplusAmf
   {
 
-    class ComponentRestart : public ClMgtObject {
+    class ComponentRestart : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(ComponentRestart);
+        MGT_REGISTER(ComponentRestart);
 
     public:
 

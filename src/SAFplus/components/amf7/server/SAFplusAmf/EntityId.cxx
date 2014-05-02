@@ -17,9 +17,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(EntityId, /EntityId)
+    MGT_REGISTER_IMPL(EntityId, /EntityId)
 
-    EntityId::EntityId(): ClMgtObject("EntityId"), name("name"), id("id")
+    EntityId::EntityId(): SAFplus::ClMgtObject("EntityId"), name("name"), id("id")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");

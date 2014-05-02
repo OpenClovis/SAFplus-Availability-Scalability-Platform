@@ -18,14 +18,14 @@
 namespace SAFplusAmf
   {
 
-    class EntityById : public ClMgtObject {
+    class EntityById : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(EntityById);
+        MGT_REGISTER(EntityById);
 
     public:
-        ClMgtProv<unsigned short int> id;
-        ClMgtProv<std::string> entity;
+        SAFplus::ClMgtProv<unsigned short int> id;
+        SAFplus::ClMgtProv<std::string> entity;
 
     public:
         EntityById();

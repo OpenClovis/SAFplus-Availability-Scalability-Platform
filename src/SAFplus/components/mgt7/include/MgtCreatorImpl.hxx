@@ -16,20 +16,22 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-
+#pragma once
 #ifndef MGTCREATORIMPL_HXX_
 #define MGTCREATORIMPL_HXX_
 
 #include "IMgtCreator.hxx"
-
-template <class T>
-class MgtCreatorImpl : public IMgtCreator
+namespace SAFplus
 {
-    public:
-        MgtCreatorImpl<T>(const std::string& xpath) : IMgtCreator(xpath) {}
-        virtual ~MgtCreatorImpl() {};
-        virtual ClMgtObject* create() { return new T; }
 
+  template <class T>
+  class MgtCreatorImpl : public IMgtCreator
+  {
+  public:
+    MgtCreatorImpl<T>(const std::string& xpath) : IMgtCreator(xpath) {}
+    virtual ~MgtCreatorImpl() {};
+    virtual ClMgtObject* create() { return new T; }
+
+  };
 };
-
 #endif /* MGTCREATORIMPL_HXX_ */

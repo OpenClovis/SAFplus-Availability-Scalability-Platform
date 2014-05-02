@@ -11,11 +11,11 @@ namespace SAFplusAmf
   class ServiceUnit;
   
   
-  void demarshall(const std::string& obj,ClMgtObject* context, ComponentServiceInstance*& result);
-  void demarshall(const std::string& obj,ClMgtObject* context, ServiceInstance*& result);
-  void demarshall(const std::string& obj,ClMgtObject* context, Component*& result);
-  void demarshall(const std::string& obj,ClMgtObject* context, ServiceGroup*& result);
-  void demarshall(const std::string& obj,ClMgtObject* context, ServiceUnit*& result);
+  void demarshall(const std::string& obj,SAFplus::ClMgtObject* context, ComponentServiceInstance*& result);
+  void demarshall(const std::string& obj,SAFplus::ClMgtObject* context, ServiceInstance*& result);
+  void demarshall(const std::string& obj,SAFplus::ClMgtObject* context, Component*& result);
+  void demarshall(const std::string& obj,SAFplus::ClMgtObject* context, ServiceGroup*& result);
+  void demarshall(const std::string& obj,SAFplus::ClMgtObject* context, ServiceUnit*& result);
 };
 
 

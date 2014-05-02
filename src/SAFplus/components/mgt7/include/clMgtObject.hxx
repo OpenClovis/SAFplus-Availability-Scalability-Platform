@@ -39,17 +39,13 @@
 #include "clTransaction.hxx"
 #include "clMgtMsg.hxx"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-  //#include <clCommon.h>
+extern "C"
+{
 #include <libxml/xmlreader.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 #include <libxml/xmlstring.h>
-#ifdef __cplusplus
 } /* end extern 'C' */
-#endif
 
 #include <clCommon.hxx>
 
@@ -57,15 +53,16 @@ namespace SAFplus
 {
   class MgtError:public Error
   {
+  public:
     MgtError(const char* error);
   };
 
   class DemarshallError:public MgtError
   {
+  public:
     DemarshallError(const char* error);
   };
   
-};
 
 class ClMgtObject;
 
@@ -74,7 +71,8 @@ typedef std::map<std::string, std::vector<ClMgtObject*>* > ClMgtObjectMap;
 /**
  * ClMgtObject class which provides APIs to manage a MGT object
  */
-class ClMgtObject {
+class ClMgtObject
+{
 protected:
     /*
      * Store the child node
@@ -219,6 +217,9 @@ public:
     std::string getFullXpath();
 
     virtual void load();
+
+  // Debugging API only:
+    void dbgDumpChildren();
 };
 
 
@@ -233,7 +234,7 @@ template<typename T> inline void demarshall(const std::string& strVal,ClMgtObjec
   ss << strVal;
   ss >> result;
 }
-
+};
 #endif /* CLMGTOBJECT_H_ */
 
 /** \} */

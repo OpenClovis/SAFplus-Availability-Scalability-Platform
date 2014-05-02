@@ -16,10 +16,10 @@
 namespace SAFplusAmf
   {
 
-    class Terminate : public ClMgtObject {
+    class Terminate : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Terminate);
+        MGT_REGISTER(Terminate);
 
     public:
 

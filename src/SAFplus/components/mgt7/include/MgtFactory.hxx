@@ -16,7 +16,7 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-
+#pragma once
 #ifndef MGTFACTORY_HXX_
 #define MGTFACTORY_HXX_
 
@@ -27,34 +27,36 @@
 
 #include <clMgtObject.hxx>
 #include <MgtCreatorImpl.hxx>
-
-class MgtFactory
+namespace SAFplus
 {
-    private:
-        MgtFactory();
-        MgtFactory(const MgtFactory &) { }
-        MgtFactory &operator=(const MgtFactory &) { return *this; }
+  class MgtFactory
+  {
+  private:
+    MgtFactory();
+    MgtFactory(const MgtFactory &) { }
+    MgtFactory &operator=(const MgtFactory &) { return *this; }
 
-    public:
-        ~MgtFactory();
-        static MgtFactory *getInstance()
-        {
-            static MgtFactory instance;
-            return &instance;
-        }
-        static ClMgtObject* create(const std::string& xpath);
-        static void registerXpath(const std::string& xpath, IMgtCreator* creatorFn);
+  public:
+    ~MgtFactory();
+    static MgtFactory *getInstance()
+    {
+      static MgtFactory instance;
+      return &instance;
+    }
+    static ClMgtObject* create(const std::string& xpath);
+    static void registerXpath(const std::string& xpath, IMgtCreator* creatorFn);
 
-    private:
-        static std::map<std::string, IMgtCreator* > &getObjectCreatorMap();
+  private:
+    static std::map<std::string, IMgtCreator* > &getObjectCreatorMap();
+  };
 };
 
-#define REGISTER(classname) \
+#define MGT_REGISTER(classname) \
     private: \
-    static const MgtCreatorImpl<classname> creator;
+    static const SAFplus::MgtCreatorImpl<classname> creator;
 
-#define REGISTERIMPL(classname, xpath) \
-    const MgtCreatorImpl<classname> classname::creator(#xpath);
+#define MGT_REGISTER_IMPL(classname, xpath) \
+    const SAFplus::MgtCreatorImpl<classname> classname::creator(#xpath);
 
 
 #endif /* MGTFACTORY_HXX_ */

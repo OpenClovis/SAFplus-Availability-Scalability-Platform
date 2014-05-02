@@ -17,16 +17,16 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Capacity, /SAFplusAmf/Node/capacity)
+    MGT_REGISTER_IMPL(Capacity, /SAFplusAmf/Node/capacity)
 
-    Capacity::Capacity(): ClMgtObject("capacity"), resource("resource"), value("value")
+    Capacity::Capacity(): SAFplus::ClMgtObject("capacity"), resource("resource"), value("value")
     {
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
         this->addKey("resource");
     };
 
-    Capacity::Capacity(std::string resourceValue): ClMgtObject("capacity"), resource("resource"), value("value")
+    Capacity::Capacity(std::string resourceValue): SAFplus::ClMgtObject("capacity"), resource("resource"), value("value")
     {
         this->resource.Value =  resourceValue;
         this->addKey("resource");

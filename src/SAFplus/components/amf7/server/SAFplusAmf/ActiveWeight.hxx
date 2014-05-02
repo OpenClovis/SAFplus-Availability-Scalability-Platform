@@ -18,14 +18,14 @@
 namespace SAFplusAmf
   {
 
-    class ActiveWeight : public ClMgtObject {
+    class ActiveWeight : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(ActiveWeight);
+        MGT_REGISTER(ActiveWeight);
 
     public:
-        ClMgtProv<std::string> resource;
-        ClMgtProv<long int> value;
+        SAFplus::ClMgtProv<std::string> resource;
+        SAFplus::ClMgtProv<long int> value;
 
     public:
         ActiveWeight();

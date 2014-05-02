@@ -16,10 +16,10 @@
 namespace SAFplusTypes
   {
 
-    class Failures : public ClMgtObject {
+    class Failures : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Failures);
+        MGT_REGISTER(Failures);
 
     public:
 

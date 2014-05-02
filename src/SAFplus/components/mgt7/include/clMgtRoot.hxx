@@ -39,18 +39,13 @@
 #include "clMgtIoc.hxx"
 #endif
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <clCommon.h>
-
-#ifdef __cplusplus
-} /* end extern 'C' */
-#endif
+#include "clCommon.hxx"
 
 #define CL_NETCONF_BIND_TYPE 0
 #define CL_SNMP_BIND_TYPE 1
 
+namespace SAFplus
+{
 /**
  * ClMgtRoot class provides APIs to setup the MGT database
  */
@@ -126,7 +121,7 @@ public:
      */
     ClRcT registerRpc(const std::string module, const std::string rpcName);
 };
-
+};
 #endif /* CLMGTROOT_H_ */
 
 /** \} */

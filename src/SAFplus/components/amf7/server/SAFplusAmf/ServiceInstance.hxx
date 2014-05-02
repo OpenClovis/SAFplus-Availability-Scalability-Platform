@@ -29,47 +29,47 @@
 namespace SAFplusAmf
   {
 
-    class ServiceInstance : public ClMgtObject {
+    class ServiceInstance : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(ServiceInstance);
+        MGT_REGISTER(ServiceInstance);
 
     public:
 
         /*
          * Unique name of this entity
          */
-        ClMgtProv<std::string> name;
+        SAFplus::ClMgtProv<std::string> name;
 
         /*
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
-        ClMgtProv<unsigned short int> id;
+        SAFplus::ClMgtProv<unsigned short int> id;
 
         /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * The assignment state of a service instance indicates whether the service represented by this service instance is being provided or not by some service unit.
          */
-        ClMgtProv<SAFplusAmf::AssignmentState> assignmentState;
+        SAFplus::ClMgtProv<SAFplusAmf::AssignmentState> assignmentState;
 
         /*
          * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
          */
-        ClMgtProv<unsigned int> rank;
+        SAFplus::ClMgtProv<unsigned int> rank;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
          */
-        ClMgtList activeWeightList;
+        SAFplus::ClMgtList activeWeightList;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
          */
-        ClMgtList standbyWeightList;
+        SAFplus::ClMgtList standbyWeightList;
 
     public:
         ServiceInstance();

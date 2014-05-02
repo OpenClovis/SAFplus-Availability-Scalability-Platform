@@ -16,10 +16,10 @@
 namespace SAFplusTypes
   {
 
-    class Val : public ClMgtObject {
+    class Val : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Val);
+        MGT_REGISTER(Val);
 
     public:
 

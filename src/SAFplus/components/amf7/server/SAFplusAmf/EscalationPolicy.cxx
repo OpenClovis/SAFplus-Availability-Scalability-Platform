@@ -18,9 +18,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(EscalationPolicy, /EscalationPolicy)
+    MGT_REGISTER_IMPL(EscalationPolicy, /EscalationPolicy)
 
-    EscalationPolicy::EscalationPolicy(): ClMgtObject("EscalationPolicy"), maximum("maximum"), duration("duration")
+    EscalationPolicy::EscalationPolicy(): SAFplus::ClMgtObject("EscalationPolicy"), maximum("maximum"), duration("duration")
     {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");

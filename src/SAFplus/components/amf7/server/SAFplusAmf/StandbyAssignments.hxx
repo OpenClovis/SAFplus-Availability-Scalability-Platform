@@ -16,10 +16,10 @@
 namespace SAFplusAmf
   {
 
-    class StandbyAssignments : public ClMgtObject {
+    class StandbyAssignments : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(StandbyAssignments);
+        MGT_REGISTER(StandbyAssignments);
 
     public:
 

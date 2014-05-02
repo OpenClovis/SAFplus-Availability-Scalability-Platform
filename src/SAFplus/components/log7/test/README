@@ -38,3 +38,6 @@ Mapping xpath with value in db
 [/SAFplusLog/StreamConfig/stream[@name='sys']/flushFreq] -> [20]
 [/SAFplusLog/StreamConfig/stream[@name='sys']/flushInterval] -> [20000000]
 [/SAFplusLog/StreamConfig/stream[@name='sys']/syslog] -> [no]
+
+
+python /code/git/SAFplus7/src/target/x86_64/3.5.0-37-lowlatency/lib/dbalpy.py -x SAFplusLog

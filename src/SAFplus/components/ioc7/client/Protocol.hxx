@@ -15,19 +15,21 @@
 #include "Nodes.hxx"
 #include <string>
 
-namespace SAFplusMsgServer {
+namespace SAFplusMsgServer
+{
 
-    class Protocol : public ClMgtObject {
+    class Protocol : public SAFplus::ClMgtObject
+    {
 
         /* Apply MGT object factory */
-        REGISTER(Protocol);
+        MGT_REGISTER(Protocol);
 
     public:
 
         /*
          * Takes as argument a default string.
          */
-        ClMgtProv<std::string> defaultProtocol;
+        SAFplus::ClMgtProv<std::string> defaultProtocol;
 
     public:
         Protocol();

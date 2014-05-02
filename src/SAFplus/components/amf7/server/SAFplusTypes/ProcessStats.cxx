@@ -21,9 +21,9 @@ namespace SAFplusTypes
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(ProcessStats, /processStats)
+    MGT_REGISTER_IMPL(ProcessStats, /processStats)
 
-    ProcessStats::ProcessStats(): ClMgtObject("processStats")
+    ProcessStats::ProcessStats(): SAFplus::ClMgtObject("processStats")
     {
     };
 

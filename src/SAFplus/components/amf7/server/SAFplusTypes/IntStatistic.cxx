@@ -17,9 +17,9 @@ namespace SAFplusTypes
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(IntStatistic, /intStatistic)
+    MGT_REGISTER_IMPL(IntStatistic, /intStatistic)
 
-    IntStatistic::IntStatistic(): ClMgtObject("intStatistic"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month")
+    IntStatistic::IntStatistic(): SAFplus::ClMgtObject("intStatistic"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month")
     {
         this->addChildObject(&current, "current");
         this->addChildObject(&history10sec, "history10sec");

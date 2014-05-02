@@ -22,10 +22,10 @@
 namespace SAFplusTypes
   {
 
-    class ProcessStats : public ClMgtObject {
+    class ProcessStats : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(ProcessStats);
+        MGT_REGISTER(ProcessStats);
 
     public:
 

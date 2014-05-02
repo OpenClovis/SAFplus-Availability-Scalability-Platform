@@ -19,7 +19,8 @@
 
 #include <IMgtCreator.hxx>
 #include <MgtFactory.hxx>
-
+namespace SAFplus
+{
 IMgtCreator::IMgtCreator(const std::string& xpath)
 {
     MgtFactory::registerXpath(xpath, this);
@@ -29,4 +30,4 @@ IMgtCreator::~IMgtCreator()
 {
     // TODO Auto-generated destructor stub
 }
-
+}

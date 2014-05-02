@@ -15,9 +15,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Instantiate, /SAFplusAmf/Component/instantiate)
+    MGT_REGISTER_IMPL(Instantiate, /SAFplusAmf/Component/instantiate)
 
-    Instantiate::Instantiate(): ClMgtObject("instantiate")
+    Instantiate::Instantiate(): SAFplus::ClMgtObject("instantiate")
     {
     };
 

@@ -16,10 +16,10 @@
 namespace SAFplusAmf
   {
 
-    class Cleanup : public ClMgtObject {
+    class Cleanup : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Cleanup);
+        MGT_REGISTER(Cleanup);
 
     public:
 

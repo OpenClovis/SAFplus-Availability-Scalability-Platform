@@ -16,7 +16,7 @@ using namespace std;
 namespace SAFplusMsgServer {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Nodes, /SAFplusMsgServer/protocol/nodes)
+    MGT_REGISTER_IMPL(Nodes, /SAFplusMsgServer/protocol/nodes)
 
     Nodes::Nodes(): ClMgtObject("nodes"), name("name"), protocol("protocol") {
         this->addChildObject(&name, "name");

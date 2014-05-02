@@ -33,63 +33,66 @@ extern "C" {
 #define clLog(...)
 #endif
 
-ClMgtRpc::ClMgtRpc(const char* name) : mInParams(""), mOutParams("")
+namespace SAFplus
 {
+  ClMgtRpc::ClMgtRpc(const char* name) : mInParams(""), mOutParams("")
+  {
     Name.assign(name);
     Module.assign("");
     ErrorMsg.assign("");
     mInParams.Name.assign("input");
     mOutParams.Name.assign("output");
-}
+  }
 
-ClMgtRpc::~ClMgtRpc()
-{}
+  ClMgtRpc::~ClMgtRpc()
+  {}
 
-/**
- * Function to add input parameter
- */
-void ClMgtRpc::addInParam(std::string param, ClMgtObject *mgtObject)
-{
-	mInParams.addChildObject(mgtObject,param);
-}
+  /**
+   * Function to add input parameter
+   */
+  void ClMgtRpc::addInParam(std::string param, ClMgtObject *mgtObject)
+  {
+    mInParams.addChildObject(mgtObject,param);
+  }
 
-/**
- * Function to add output parameter
- */
-void ClMgtRpc::addOutParam(std::string param, ClMgtObject *mgtObject)
-{
-	mOutParams.addChildObject(mgtObject,param);
-}
+  /**
+   * Function to add output parameter
+   */
+  void ClMgtRpc::addOutParam(std::string param, ClMgtObject *mgtObject)
+  {
+    mOutParams.addChildObject(mgtObject,param);
+  }
 
-ClBoolT ClMgtRpc::setInParams(void *pBuffer, ClUint64T buffLen)
-{
+  ClBoolT ClMgtRpc::setInParams(void *pBuffer, ClUint64T buffLen)
+  {
     SAFplus::Transaction t;
     if(mInParams.set(pBuffer,buffLen, t) == CL_TRUE)
-    {
+      {
         t.commit();
         return CL_TRUE;
-    }
+      }
     else
-    {
+      {
         t.abort();
         return CL_FALSE;
-    }
-}
+      }
+  }
 
 
-void ClMgtRpc::getOutParams(void **ppBuffer, ClUint64T *pBuffLen)
-{
-	mOutParams.get(ppBuffer,pBuffLen);
-}
+  void ClMgtRpc::getOutParams(void **ppBuffer, ClUint64T *pBuffLen)
+  {
+    mOutParams.get(ppBuffer,pBuffLen);
+  }
 
-ClRcT ClMgtRpc::registerRpc()
-{
+  ClRcT ClMgtRpc::registerRpc()
+  {
     if (!strcmp(Module.c_str(), ""))
-    {
+      {
         clLogError("MGT","RPC", "Cannot register RPC [%s]", Name.c_str());
         return CL_ERR_NOT_EXIST;
-    }
+      }
 
     return ClMgtRoot::getInstance()->registerRpc(Module, Name);
-}
+  }
 
+}

@@ -16,15 +16,11 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 # Management includes and libraries
-CPP_FLAGS += -I../../mgt7/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
+CPP_FLAGS += -I../../mgt7/include -ISAFplusLog -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
-COMPILE_CPP := g++ -g -O0 -fPIC -c $(CPP_FLAGS) -o
-LINK_SO     := g++ -g -shared -o 
-LINK_EXE     := g++ -g -o 
-
-LOG_SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
-LOG_SERVER_SRC := $(wildcard *.cxx)
-LOG_SERVER_OBJ := $(subst .cpp,.o, $(subst .cxx,.o,$(LOG_SERVER_SRC)))
+LOG_SERVER_H := $(wildcard SAFplusLog/*.hxx) $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
+LOG_SERVER_SRC := $(wildcard SAFplusLog/*.cxx) $(wildcard *.cxx)
+LOG_SERVER_OBJ := $(subst .cxx,.o,$(notdir $(LOG_SERVER_SRC)))
 LOG_SERVER_OBJ := $(addprefix $(OBJ_DIR)/logsvr/,$(LOG_SERVER_OBJ))
 
 
@@ -36,6 +32,14 @@ $(SAFPLUS_TARGET)/bin/splogd: $(LOG_SERVER_OBJ) $(SAFPLUS_DEP_LIBS)
 $(OBJ_DIR)/logsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	-mkdir -p $(OBJ_DIR)/logsvr/
 	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/logsvr/%.o: SAFplusLog/%.cxx
+	-mkdir -p $(OBJ_DIR)/logsvr/
+	$(COMPILE_CPP) $@ $<
+
+
+gen:	
+	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusLog.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
 
 clean:
 	rm -f $(OBJ_DIR)/logsvr/*.o $(SAFPLUS_TARGET)/bin/splogd

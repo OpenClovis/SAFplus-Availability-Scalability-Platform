@@ -27,16 +27,18 @@
  *  \addtogroup mgt
  *  \{
  */
-
+#pragma once
 #ifndef CLMGTSTAT_HXX_
 #define CLMGTSTAT_HXX_
 
 #include "clMgtProv.hxx"
 
-template <class T>
-class ClMgtStat : public ClMgtProv<T>
+namespace SAFplus
 {
-public:
+  template <class T>
+  class ClMgtStat : public ClMgtProv<T>
+  {
+  public:
     ClMgtStat(const char* name);
     virtual ~ClMgtStat();
 
@@ -45,27 +47,27 @@ public:
      */
     virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
-};
+  };
 
-/*
- * Implementation of ClMgtStat class
- * G++ compiler: template function declarations and implementations must appear in the same file.
- */
+  /*
+   * Implementation of ClMgtStat class
+   * G++ compiler: template function declarations and implementations must appear in the same file.
+   */
 
-template <class T>
-ClMgtStat<T>::ClMgtStat(const char* name) : ClMgtProv<T>(name)
-{}
+  template <class T>
+  ClMgtStat<T>::ClMgtStat(const char* name) : ClMgtProv<T>(name)
+  {}
 
-template <class T>
-ClMgtStat<T>::~ClMgtStat()
-{}
+  template <class T>
+  ClMgtStat<T>::~ClMgtStat()
+  {}
 
-template <class T>
-ClBoolT ClMgtStat<T>::set( void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
-{
+  template <class T>
+  ClBoolT ClMgtStat<T>::set( void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+  {
     return CL_FALSE;
+  }
 }
-
 #endif /* CLMGTSTAT_HXX_ */
 
 /** \} */

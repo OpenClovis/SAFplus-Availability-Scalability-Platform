@@ -18,27 +18,27 @@
 namespace SAFplusAmf
   {
 
-    class Timeouts : public ClMgtObject {
+    class Timeouts : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(Timeouts);
+        MGT_REGISTER(Timeouts);
 
     public:
 
         /*
          * How much time to give a component to gracefully finish handling its work before faulting it, in milliseconds.
          */
-        ClMgtProv<SAFplusTypes::SaTimeT> quiescingComplete;
+        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> quiescingComplete;
 
         /*
          * How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.
          */
-        ClMgtProv<SAFplusTypes::SaTimeT> workRemoval;
+        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> workRemoval;
 
         /*
          * How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.
          */
-        ClMgtProv<SAFplusTypes::SaTimeT> workAssignment;
+        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> workAssignment;
 
     public:
         Timeouts();

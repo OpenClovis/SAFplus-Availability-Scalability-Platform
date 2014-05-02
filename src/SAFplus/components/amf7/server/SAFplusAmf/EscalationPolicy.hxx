@@ -18,22 +18,22 @@
 namespace SAFplusAmf
   {
 
-    class EscalationPolicy : public ClMgtObject {
+    class EscalationPolicy : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(EscalationPolicy);
+        MGT_REGISTER(EscalationPolicy);
 
     public:
 
         /*
          * The maximum number of events that can occur within that time period before escalation occurs.
          */
-        ClMgtProv<unsigned long int> maximum;
+        SAFplus::ClMgtProv<unsigned long int> maximum;
 
         /*
          * The time period (in milliseconds) involved.
          */
-        ClMgtProv<SAFplusTypes::SaTimeT> duration;
+        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> duration;
 
     public:
         EscalationPolicy();

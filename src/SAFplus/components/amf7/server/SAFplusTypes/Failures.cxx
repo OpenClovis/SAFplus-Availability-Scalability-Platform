@@ -15,9 +15,9 @@ namespace SAFplusTypes
   {
 
     /* Apply MGT object factory */
-    REGISTERIMPL(Failures, /SAFplusTypes/processStats/failures)
+    MGT_REGISTER_IMPL(Failures, /SAFplusTypes/processStats/failures)
 
-    Failures::Failures(): ClMgtObject("failures")
+    Failures::Failures(): SAFplus::ClMgtObject("failures")
     {
     };
 

@@ -16,10 +16,10 @@
 namespace SAFplusAmf
   {
 
-    class ServiceUnitFailureEscalationPolicy : public ClMgtObject {
+    class ServiceUnitFailureEscalationPolicy : public SAFplus::ClMgtObject {
 
         /* Apply MGT object factory */
-        REGISTER(ServiceUnitFailureEscalationPolicy);
+        MGT_REGISTER(ServiceUnitFailureEscalationPolicy);
 
     public:
 
