@@ -35,16 +35,18 @@ module SAFplusTypes
       description "Another name for the same thing";
     }
 
-    extension ide
+    extension ui-prompt
     {
       argument "query";
     }
-    extension ide-group
+    extension ui-group
     {
       argument "name";
     }
 
-    extension ide-dialog
+    extension atomic;
+
+    extension ui-dialog
     {
       argument "title";
       description "This command triggers a sub-window (not necessarily a modal dialog box) that is created for these options.  If the value is 'class <name>' or 'object <name>' this indicates that this subwindow should be instantiated as the custom code denoted by <name>.  All other values are the title of the sub-window."; 
@@ -53,6 +55,7 @@ module SAFplusTypes
     typedef SaTimeT
     {
       type uint64;
+      c-existing "SaTimeT";
       description "A representation of a time interval, specified in milliseconds";
     }
 

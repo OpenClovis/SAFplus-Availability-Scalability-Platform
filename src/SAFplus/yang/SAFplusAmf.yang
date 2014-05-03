@@ -47,13 +47,13 @@ module SAFplusAmf
       {
 	type uint64;
 	description "The maximum number of events that can occur within that time period before escalation occurs.";
-	safplus:ide "Number of events: ";
+	safplus:ui-prompt "Number of events: ";
       }
       leaf duration
       {
 	type safplus:SaTimeT;
 	description "The time period (in milliseconds) involved.";
-	safplus:ide "within time: ";
+	safplus:ui-prompt "within time: ";
       }
     }
 
@@ -170,21 +170,21 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type string;
 	description "Specify both name of the binary here";
-	safplus:ide "Command: ";
+	safplus:ui-prompt "Command: ";
 	default "";
       }
       leaf args
       {
 	type string;
 	description "Specify the arguments as if you are writing them on the command line";
-	safplus:ide "Arguments: ";
+	safplus:ui-prompt "Arguments: ";
 	default "";
       }
       leaf timeout
       {
 	type uint64;
 	description "The maximum time this operation should take before the AMF receives a response or the command completes.  Specified in milliseconds.";
-	safplus:ide "Maximum Time: ";
+	safplus:ui-prompt "Maximum Time: ";
 	default 120000;
       }
     }
@@ -199,7 +199,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf adminState
       {
         type AdministrativeState;
-	safplus:ide "Initial state: ";
+	safplus:ui-prompt "Initial state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
       leaf startupAssignmentDelay
@@ -219,7 +219,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf adminState
       {
         type AdministrativeState;
-	safplus:ide "Initial node state: ";
+	safplus:ui-prompt "Initial node state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
       leaf operState
@@ -247,26 +247,26 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	uses EscalationPolicy;
 	description "The maximum Service Unit failure rate allowed before this node is faulted";
-	safplus:ide-group "Service Unit Failure Escalation Policy";
+	safplus:ui-group "Service Unit Failure Escalation Policy";
       }
 
       leaf autoRepair
       {
 	type boolean;
-	safplus:ide "Auto-repair: ";
+	safplus:ui-prompt "Auto-repair: ";
 	description "Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.";
       }
       leaf failFastOnInstantiationFailure
       {
 	type boolean;
 	description "If a component fails to instantiate on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
-	safplus:ide "Reboot node if component instantiation repeatedly fails? ";
+	safplus:ui-prompt "Reboot node if component instantiation repeatedly fails? ";
       }
       leaf failFastOnCleanupFailure
       {
 	type boolean;
 	description "If a component's cleanup script fails on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
-	safplus:ide "Reboot node if component cleanup repeatedly fails? ";
+	safplus:ui-prompt "Reboot node if component cleanup repeatedly fails? ";
       }
       
     }
@@ -283,7 +283,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
         type AdministrativeState;
 	safplus:alias saAmfSGAdminState;
-	safplus:ide "Initial state: ";
+	safplus:ui-prompt "Initial state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
 
@@ -294,7 +294,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type boolean;
 	safplus:alias saAmfSGAutoRepair;
-	safplus:ide "Auto-repair: ";
+	safplus:ui-prompt "Auto-repair: ";
 	description "Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.  A 'false' value will cause the system to wait for operator intervention (via the repair API) before attempting to restart this entity.";
       }
 
@@ -302,7 +302,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type boolean;
 	safplus:alias saAmfSGAutoAdjust;
-	safplus:ide "Auto-adjust: ";
+	safplus:ui-prompt "Auto-adjust: ";
         description "Match this service group as closely as possible to the preferred high availability configuration.  For example, if the preferred active comes online, 'fail-back' to it.  Another example is if a new work assignment is provisioned, the system could remove an existing standby assignment so the new active can be provisioned.";
       }
       leaf autoAdjustInterval
@@ -315,20 +315,20 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf preferredNumActiveServiceUnits
       {
 	safplus:alias saAmfSGNumPrefActiveSUs;
-	safplus:ide "Active: ";
+	safplus:ui-prompt "Active: ";
 	type uint32;
 	description "";
       }
       leaf preferredNumStandbyServiceUnits
       {
 	safplus:alias saAmfSGNumPrefStandbySUs;
-	safplus:ide "Standby: ";
+	safplus:ui-prompt "Standby: ";
 	type uint32;
 	description "";
       }
       leaf preferredNumIdleServiceUnits
       {
-	safplus:ide "Idle: ";
+	safplus:ui-prompt "Idle: ";
 	type uint32;
 	description "An idle service unit is running but is not assigned active or standby.  This concept is functionally equivalent to the saAmfSGNumPrefInserviceSUs since Active+Standby+Idle = Inservice";
       }
@@ -337,14 +337,14 @@ point.  The operational, administrative, and presence states of a service unit, 
       
       leaf maxActiveWorkAssignments
       {
-	safplus:ide "Active workload: ";
+	safplus:ui-prompt "Active workload: ";
 	safplus:alias saAmfSGMaxActiveSIsperSU;
 	type uint32;
 	description "The maximum number of active work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.";
       }
       leaf maxStandbyWorkAssignments
       {
-	safplus:ide "Standby workload: ";
+	safplus:ui-prompt "Standby workload: ";
 	safplus:alias saAmfSGMaxStandbySIsperSU;
 	type uint32;
 	description "The maximum number of standby work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.";
@@ -352,14 +352,14 @@ point.  The operational, administrative, and presence states of a service unit, 
 
       container componentRestart
       {
-	safplus:ide-group "Component fault escalation policy: ";
+	safplus:ui-group "Component fault escalation policy: ";
 	uses EscalationPolicy;
 	description "";
       }
 
       container serviceUnitRestart
       {
-	safplus:ide-group "Service Unit fault escalation policy: ";
+	safplus:ui-group "Service Unit fault escalation policy: ";
 	uses EscalationPolicy;
 	description "";
       }
@@ -398,6 +398,7 @@ point.  The operational, administrative, and presence states of a service unit, 
     {
       key "name";
       description "";
+      safplus:atomic;
       uses EntityId;
       leaf presence
       {
@@ -450,7 +451,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf maxActiveAssignments
       {
 	safplus:alias saAmfCompNumMaxActiveCSIs;
-	safplus:ide "maximum active work assignments";
+	safplus:ui-prompt "maximum active work assignments";
 	type uint32;
 	default 1;
 	description "Maximum number of active work assignments this component can handle.";
@@ -458,7 +459,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf maxStandbyAssignments
       {
 	safplus:alias saAmfCompNumMaxStandbyCSIs;
-	safplus:ide "maximum standby work assignments";
+	safplus:ui-prompt "maximum standby work assignments";
 	type uint32;
 	default 1;
 	description "Maximum number of standby work assignments this component can handle.";
@@ -535,21 +536,21 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type string;
 	description "List of environment variables in the form '<VARIABLE>=<VALUE>\n<VARIABLE2>=<VALUE2>\n' the form the environment in which this component should be started";
-	safplus:ide "Environment";
+	safplus:ui-prompt "Environment";
       }
 
       container instantiate
       {
 	uses execution;
 	description "How to start up this component";
-	safplus:ide "Execution";
+	safplus:ui-prompt "Execution";
       }
 
       container terminate
       {
 	uses execution;
 	description "Optional: This will be run just before the component's process (if it exists) is told to terminate.";
-	safplus:ide "Termination";
+	safplus:ui-prompt "Termination";
       }
 
       container cleanup
@@ -564,7 +565,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 1;
 	description "How many times to attempt to instantiate this entity without delay.  If the number of instantiation attempts exceeds both this and the max delayed instantiations field, the fault will be elevated to the Service Unit level.";
-	safplus:ide "Max instant instantiations: ";
+	safplus:ui-prompt "Max instant instantiations: ";
       }
 
       leaf maxDelayedInstantiations
@@ -573,7 +574,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 1;
 	description "How many times to attempt to instantiate this entity after an initial delay.  If the number of instantiation attempts exceeds both this and the max instant instantiations field, the fault will be elevated to the Service Unit level.";
-	safplus:ide "Max delayed instantiations: ";
+	safplus:ui-prompt "Max delayed instantiations: ";
       }
 
       leaf delayBetweenInstantiation
@@ -582,7 +583,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 10000;
 	description "How long to delay between instantiation attempts";
-	safplus:ide "Delay between instantiations: ";
+	safplus:ui-prompt "Delay between instantiations: ";
       }
 
       container timeouts
@@ -590,7 +591,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	leaf quiescingComplete
 	{
 	  safplus:alias saAmfCompQuiescingCompleteTimeout;
-	  safplus:ide "Quiescing complete";
+	  safplus:ui-prompt "Quiescing complete";
 	  type safplus:SaTimeT;
 	  default 120000; // 2 minutes
 	  description "How much time to give a component to gracefully finish handling its work before faulting it, in milliseconds.";
@@ -598,7 +599,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	leaf workRemoval
 	{
 	  safplus:alias saAmfCompCSIRmvCallbackTimeout;
-	  safplus:ide "Work removal";
+	  safplus:ui-prompt "Work removal";
 	  type safplus:SaTimeT;
 	  default 120000; // 2 minutes
 	  description "How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
@@ -607,7 +608,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	leaf workAssignment
 	{
 	  safplus:alias saAmfCompCSISetCallbackTimeout;
-	  safplus:ide "Work assignment";
+	  safplus:ui-prompt "Work assignment";
 	  type safplus:SaTimeT;
 	  default 120000; // 2 minutes
 	  description "How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
@@ -700,8 +701,6 @@ are switched over to other nodes (component service instances are not abruptly r
     }
 
 
-
-
     list ComponentServiceInstance
     {
       key "name";
@@ -736,7 +735,7 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf adminState
       {
         type AdministrativeState;
-	safplus:ide "Initial state: ";
+	safplus:ui-prompt "Initial state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
       
@@ -756,7 +755,7 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf rank
       {
 	safplus:alias saAmfSIRank;
-	safplus:ide   "Rank";
+	safplus:ui-prompt   "Rank";
 	type uint32;
 	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.";
       }
@@ -804,7 +803,7 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf adminState
       {
         type AdministrativeState;
-	safplus:ide "Initial state: ";
+	safplus:ui-prompt "Initial state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
       // skipped saAmfSUType
@@ -812,7 +811,7 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf rank
       {
 	safplus:alias saAmfSURank;
-	safplus:ide   "Rank";
+	safplus:ui-prompt   "Rank";
 	type uint32;
 	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.";
       }
@@ -914,7 +913,7 @@ are switched over to other nodes (component service instances are not abruptly r
       {
         type AdministrativeState;
 	safplus:alias saAmfApplicationAdminState;
-	safplus:ide "Initial state: ";
+	safplus:ui-prompt "Initial state: ";
 	description "Does the operator want this entity to be off, idle, or in service?";
       }
       // skipping SAF: app type 
@@ -962,7 +961,7 @@ are switched over to other nodes (component service instances are not abruptly r
     {
       description "This attribute indicates the interval at which the corresponding healthcheck should be initiated (in milliseconds).";
       type safplus:SaTimeT;
-      safplus:ide "AMF health check period";
+      safplus:ui-prompt "AMF health check period";
       default 0;
     }
 
@@ -970,7 +969,7 @@ are switched over to other nodes (component service instances are not abruptly r
     {
       description "This attribute indicates the maximum time allowable for components to not reply to the health check (in milliseconds).  After this time passes with no response from the component, it will be faulted";
       type safplus:SaTimeT;
-      safplus:ide "Max health check response time";   
+      safplus:ui-prompt "Max health check response time";   
       default 0; // disabled
     }
 

@@ -32,9 +32,14 @@ endif
 #	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7
 #endif
 
-ifndef SAFPLUS_LOG_LIB
+ifndef SAFPLUS_GROUP_LIB
 $(LIB_DIR)/libclGroup.so: 
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/gms7
+endif
+
+ifndef SAFPLUS_GROUP_SERVER_LIB
+$(LIB_DIR)/libclGroupServer.so: 
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/gms7/server
 endif
 
 ifndef SAFPLUS_NAME_LIB
@@ -43,7 +48,7 @@ $(LIB_DIR)/libclName.so:
 endif
 
 # ordered by dependency
-SAFplusSOs :=   $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so  $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so
+SAFplusSOs :=   $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so  $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclGroupServer.so
 
 
 
@@ -72,6 +77,11 @@ $(TEST_DIR)/testmgt:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/test
 endif
 
+ifndef SAFPLUS_GROUP_TEST
+$(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/gms7/test
+endif
+
 ifndef SAFPLUS_NAME_TEST
 $(TEST_DIR)/testName:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/name7/test
@@ -82,7 +92,7 @@ $(SAFPLUS_TARGET)/bin/safplus_amf:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/amf7/server
 endif
 
-SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt $(TEST_DIR)/ClientTest
+SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt $(TEST_DIR)/ClientTest $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
 
 SAFplusServices := $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
 

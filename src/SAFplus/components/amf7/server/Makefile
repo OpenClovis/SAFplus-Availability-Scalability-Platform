@@ -10,14 +10,14 @@ SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PL
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..
 
 # Specify the required libraries
-SAFPLUS_LIBS := clMgt7 clGroup clName clCkpt clUtils7 clLog clDbal7 clOsal7 
+SAFPLUS_LIBS := clMgt7 clGroup clGroupServer clName clCkpt clUtils7 clLog clDbal7 clOsal7 
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 
 # Management includes and libraries
-CPP_FLAGS += -I../../mgt7/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ -ISAFplusTypes -IietfYangTypes -ISAFplusAmf
+CPP_FLAGS += -I../../mgt7/include -I$(SAFPLUS_SRC_DIR)/SAFplus/components/gms7 -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ -ISAFplusTypes -IietfYangTypes -ISAFplusAmf
 
 SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard SAFplusTypes/*.hxx) $(wildcard ietfYangTypes/*.hxx) $(wildcard ENTITYSTATETCMIB/*.hxx)
 SERVER_SRC := main.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx) $(wildcard ietfYangTypes/*.cxx) $(wildcard ENTITYSTATETCMIB/*.cxx)
@@ -63,4 +63,4 @@ gen:
 clean:
 	rm -f $(OBJ_DIR)/amfsvr/*.o $(SAFPLUS_TARGET)/bin/safplus_amf
 
-include ../../../mk/safplus_targets.mk
+# include ../../../mk/safplus_targets.mk

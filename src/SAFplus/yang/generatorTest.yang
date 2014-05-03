@@ -23,7 +23,7 @@ module generatorTest
      leaf-list serviceUnits
      {
        safplus:alias saAmfCompCurrProxiedNames;
-       safplus:c-type "ServiceUnit*";
+       safplus:c-type "::ServiceUnit*";
        type instance-identifier;
        description "This component is the proxy for the components listed here.";
      }
@@ -58,6 +58,7 @@ module generatorTest
   
   container BasicDataTypes
   {
+    safplus:atomic;
     leaf stringTest
       {
       type string;

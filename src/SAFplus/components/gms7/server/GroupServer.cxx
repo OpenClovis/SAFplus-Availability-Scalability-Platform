@@ -535,13 +535,13 @@ void GroupServer::elect(ClBoolT isRequest,GroupMessageProtocol *msg)
 
 void GroupServer::dumpClusterNodeGroup()
 {
-  logInfo("GMS","DUMP","Start dumping data");
+  logInfo("GMS","DUMP","Start dumping cluster");
   SAFplus::Group::Iterator iter = clusterNodeGrp->begin();
   while(iter != clusterNodeGrp->end())
   {
     Buffer& curval = iter->second;
     GroupIdentity *item = (GroupIdentity *)(&curval);
-    logInfo("GMS","DUMP","Node [%d] has capabilities [%d] and credentials [%ld]",item->id.getNode(),item->capabilities,item->credentials);
+    logInfo("GMS","DUMP","Node [%d] has capabilities [%d] and credentials [0x%lx]",item->id.getNode(),item->capabilities,item->credentials);
     iter++;
   }
 }

@@ -87,7 +87,7 @@ namespace SAFplus
 
   };
 
-    std::size_t hash_value(Buffer const& b)
+  inline std::size_t hash_value(Buffer const& b)
     {
         boost::hash<int> hasher;
         std::size_t seed = 0;

@@ -16,6 +16,8 @@
 #include <clCommon.hxx>
 #include <clMgtApi.hxx>
 
+#include "server/GroupServer.hxx"
+
 #include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmf.hxx>
 #include <clSafplusMsgServer.hxx>
@@ -26,7 +28,8 @@ typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPo
 RedPolicyMap redPolicies;
 
 // IOC related globals
-ClUint32T clAspLocalId = 0x1;
+ClUint32T clAspLocalId = 0x2;
+ClUint32T chassisId = 0x0;
 ClBoolT   gIsNodeRepresentative = CL_TRUE;
 
 SAFplusAmf::SAFplusAmfRoot cfg;
@@ -141,11 +144,125 @@ void loadAmfPlugins()
   }  
 }
 
+
+void printUsage(char* progname)
+{
+    clOsalPrintf("Usage: %s -c <Chassis ID> -l <Local Slot ID> -n <Node Name> \n", progname);
+    clOsalPrintf("Example : %s -c 0 -l 1 -n node_0\n", progname);
+    clOsalPrintf("or\n");
+    clOsalPrintf("Example : %s --chassis=0 --localslot=1"
+                 " --nodename=<nodeName>\n", progname);
+    clOsalPrintf("Options:\n");
+    clOsalPrintf("-c, --chassis=ID       Chassis ID\n");
+    clOsalPrintf("-l, --localslot=ID     Local slot ID\n");
+    clOsalPrintf("-n, --nodename=name    Node name\n");
+    //clOsalPrintf("-f, --foreground       Run AMF as foreground process\n");
+    clOsalPrintf("-h, --help             Display this help and exit\n");  
+}
+
+static ClRcT cpmStrToInt(const ClCharT *str, ClUint32T *pNumber)
+{
+    ClUint32T i = 0;
+
+    for (i = 0; str[i] != '\0'; ++i) 
+    {
+        if (!isdigit(str[i])) 
+        {
+            goto not_valid;
+        }
+    }
+
+    *pNumber = atoi(str);
+
+    return CL_OK;
+
+not_valid:
+    return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+}
+
+int parseArgs(int argc, char* argv[])
+{
+    ClInt32T option = 0;
+    ClInt32T nargs = 0;
+    ClRcT rc = CL_OK;
+    
+    const ClCharT *short_options = ":c:l:m:n:p:fh";
+
+#ifndef POSIX_ONLY
+    const struct option long_options[] = {
+        {"chassis",     1, NULL, 'c'},
+        {"localslot",   1, NULL, 'l'},
+        {"nodename",    1, NULL, 'n'},
+        {"profile",     1, NULL, 'p'},
+        {"foreground",  0, NULL, 'f'},
+        {"help",        0, NULL, 'h'},
+        { NULL,         0, NULL,  0 }
+    };
+#endif
+    
+
+
+#ifndef POSIX_ONLY
+    while((option = getopt_long(argc, argv, short_options, long_options, NULL)) != -1)
+#else
+    while((option = getopt(argc, argv, short_options)) != -1)
+#endif
+        switch(option)
+        {
+            case 'h':   
+                printUsage(argv[0]);
+                /* This is not an error */
+                exit(0);
+            case 'c':   
+                rc = cpmStrToInt(optarg, &chassisId);
+                if (CL_OK != rc) 
+                {
+                  clLogError("AMF","BOOT","[%s] is not a valid chassis id.", optarg);
+                  return -1;
+                }
+                break;
+             case 'l':   
+                rc = cpmStrToInt(optarg, &clAspLocalId);
+                if (CL_OK != rc) 
+                {
+                  logError("AMF","BOOT", "[%s] is not a valid slot id, ", optarg);
+                  return -1;
+                }                
+                ++nargs;
+                break;
+            case 'n':
+              strncpy(SAFplus::ASP_NODENAME, optarg, CL_MAX_NAME_LENGTH-1);
+              strncpy(::ASP_NODENAME, optarg, CL_MAX_NAME_LENGTH-1);
+              ++nargs;
+              break;
+#if 0            
+            case 'p':
+            {
+                strncpy(clCpmBootProfile, optarg, CL_MAX_NAME_LENGTH-1);
+                ++nargs;
+            }           
+            break;
+#endif            
+            case '?':
+              logError("AMF","BOOT", "Unknown option [%c]", optopt);
+              return -1;
+              break;
+            default :   
+                logError("AMF","BOOT", "Unknown error");
+                return -1;
+            break;
+        }
+
+    return 1;
+}
+
 int main(int argc, char* argv[])
 {
   Mutex m;
   ThreadCondition somethingChanged;
 
+  if (parseArgs(argc,argv)<=0) return -1;
+  
   logInitialize();
   logEchoToFd = 1;  // echo logs to stdout for debugging
   utilsInitialize();
@@ -160,7 +277,9 @@ int main(int argc, char* argv[])
     rc = clIocLibInitialize(NULL);
     assert(rc==CL_OK);
 
-
+    SAFplusI::GroupServer* grpSvr = SAFplusI::GroupServer::getInstance();
+    grpSvr->clGrpStartServer();
+  
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
 
@@ -220,17 +339,20 @@ int main(int argc, char* argv[])
     {
       ScopedLock<> lock(m);
 
-      if (!firstTime && (somethingChanged.timed_wait(m,10000)==0))
+      if (!firstTime && (somethingChanged.timed_wait(m,2000)==0))
 	{  // Timeout
 	  logDebug("IDL","---","...waiting for something to happen...");
 	  if (myRole == Group::IS_ACTIVE) activeAudit();    // Check to make sure DB and the system state are in sync
 	  if (myRole == Group::IS_STANDBY) standbyAudit();  // Check to make sure DB and the system state are in sync
+          
+          grpSvr->dumpClusterNodeGroup();
 	}
       else
 	{  // Something changed in the group.
 	  firstTime=false;
 	  activeStandbyPairs.first = clusterGroup.getActive();
 	  activeStandbyPairs.second = clusterGroup.getStandby();
+          if ((activeStandbyPairs.first == INVALID_HDL)||(activeStandbyPairs.second == INVALID_HDL)) clusterGroup.elect();
 	  if (myRole == Group::IS_ACTIVE) CL_ASSERT(activeStandbyPairs.first == myHandle);  // Once I become ACTIVE I can never lose it.
           else
 	    {
@@ -252,8 +374,7 @@ int main(int argc, char* argv[])
 		}
 	    }
 	}
-      
     }
   
-
+  grpSvr->clGrpStopServer();
 }
