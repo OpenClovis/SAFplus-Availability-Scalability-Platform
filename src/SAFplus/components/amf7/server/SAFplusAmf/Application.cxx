@@ -8,10 +8,12 @@
 #include "NumServiceGroups.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
+#include "ServiceGroup.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "NumServiceGroups.hxx"
 #include "AdministrativeState.hxx"
+#include "clMgtProvList.hxx"
 #include <string>
 #include "Application.hxx"
 
@@ -22,21 +24,25 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Application, /SAFplusAmf/Application)
 
-    Application::Application(): SAFplus::ClMgtObject("Application"), name("name"), id("id"), adminState("adminState")
+    Application::Application(): SAFplus::ClMgtObject("Application"), name("name"), id("id"), adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
+        this->addChildObject(&serviceGroups, "serviceGroups");
+        this->addChildObject(&keepTogether, "keepTogether");
         this->addKey("name");
     };
 
-    Application::Application(std::string nameValue): SAFplus::ClMgtObject("Application"), name("name"), id("id"), adminState("adminState")
+    Application::Application(std::string nameValue): SAFplus::ClMgtObject("Application"), name("name"), id("id"), adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
         this->name.Value =  nameValue;
         this->addKey("name");
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
+        this->addChildObject(&serviceGroups, "serviceGroups");
+        this->addChildObject(&keepTogether, "keepTogether");
     };
 
     std::vector<std::string> Application::getKeys()
@@ -47,7 +53,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Application::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "adminState", "NumServiceGroups" };
+        std::string childNames[] = { "name", "id", "adminState", "numServiceGroups", "serviceGroups", "keepTogether" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -100,19 +106,51 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Application/NumServiceGroups
+     * XPATH: /SAFplusAmf/Application/serviceGroups
      */
-    SAFplusAmf::NumServiceGroups* Application::getNumServiceGroups()
+    std::vector<SAFplusAmf::ServiceGroup*> Application::getServiceGroups()
     {
-        return (NumServiceGroups*)this->getChildObject("NumServiceGroups");
+        return this->serviceGroups.Value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/Application/NumServiceGroups
+     * XPATH: /SAFplusAmf/Application/serviceGroups
      */
-    void Application::addNumServiceGroups(SAFplusAmf::NumServiceGroups *NumServiceGroupsValue)
+    void Application::setServiceGroups(SAFplusAmf::ServiceGroup* serviceGroupsValue)
     {
-        this->addChildObject(NumServiceGroupsValue, "NumServiceGroups");
+        this->serviceGroups.Value.push_back(serviceGroupsValue);
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Application/keepTogether
+     */
+    bool Application::getKeepTogether()
+    {
+        return this->keepTogether.Value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Application/keepTogether
+     */
+    void Application::setKeepTogether(bool keepTogetherValue)
+    {
+        this->keepTogether.Value = keepTogetherValue;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Application/numServiceGroups
+     */
+    SAFplusAmf::NumServiceGroups* Application::getNumServiceGroups()
+    {
+        return (NumServiceGroups*)this->getChildObject("numServiceGroups");
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Application/numServiceGroups
+     */
+    void Application::addNumServiceGroups(SAFplusAmf::NumServiceGroups *numServiceGroupsValue)
+    {
+        this->addChildObject(numServiceGroupsValue, "numServiceGroups");
     };
 
     Application::~Application()

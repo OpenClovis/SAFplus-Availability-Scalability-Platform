@@ -11,8 +11,13 @@
 
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
+#include "ServiceInstance.hxx"
+#include "Data.hxx"
+#include "Component.hxx"
+#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "Data.hxx"
 #include <string>
 #include "clMgtProvList.hxx"
 
@@ -45,6 +50,13 @@ namespace SAFplusAmf
          * 
          */
         SAFplus::ClMgtProvList<SAFplusAmf::ComponentServiceInstance*> dependencies;
+        SAFplus::ClMgtProv<SAFplusAmf::ServiceInstance*> serviceInstance;
+        SAFplus::ClMgtProv<SAFplusAmf::Component*> component;
+
+        /*
+         * Arbitrary data that defines the work needed to be done.
+         */
+        SAFplus::ClMgtList dataList;
 
     public:
         ComponentServiceInstance();
@@ -91,6 +103,36 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/ComponentServiceInstance/dependencies
          */
         void setDependencies(SAFplusAmf::ComponentServiceInstance* dependenciesValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/serviceInstance
+         */
+        SAFplusAmf::ServiceInstance* getServiceInstance();
+
+        /*
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/serviceInstance
+         */
+        void setServiceInstance(SAFplusAmf::ServiceInstance* serviceInstanceValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/component
+         */
+        SAFplusAmf::Component* getComponent();
+
+        /*
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/component
+         */
+        void setComponent(SAFplusAmf::Component* componentValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/data
+         */
+        SAFplusAmf::Data* getData(std::string nameValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/data
+         */
+        void addData(SAFplusAmf::Data *dataValue);
         ~ComponentServiceInstance();
 
     };

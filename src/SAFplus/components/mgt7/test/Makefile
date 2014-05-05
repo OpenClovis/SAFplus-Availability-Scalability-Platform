@@ -20,10 +20,6 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 # Management includes and libraries
 CPP_FLAGS += -I../../mgt7/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
-COMPILE_CPP := g++ -g -O0 -fPIC -c $(CPP_FLAGS) -o
-LINK_SO     := g++ -g -shared -o 
-LINK_EXE     := g++ -g -o 
-
 MGT_TEST_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
 MGT_TEST_SRC := $(wildcard *.cxx)
 MGT_TEST_OBJ := $(subst .cpp,.o, $(subst .cxx,.o,$(MGT_TEST_SRC)))
@@ -33,7 +29,7 @@ MGT_TEST_OBJ := $(addprefix $(OBJ_DIR)/,$(MGT_TEST_OBJ))
 all: $(SAFPLUS_TARGET)/bin/testmgt
 
 $(SAFPLUS_TARGET)/bin/testmgt: $(MGT_TEST_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(MGT_TEST_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -L$(BOOST_DIR)/stage/lib/ -lboost_system
+	$(LINK_EXE) $@ $(MGT_TEST_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(MGT_TEST_H)
 	$(COMPILE_CPP) $@ $<

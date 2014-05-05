@@ -1,5 +1,5 @@
 S7 := 1
-SAFPLUS_LOG_LIB := 1
+SAFPLUS_GROUP_LIB := 1
 include ../../mk/preface.mk
 
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include

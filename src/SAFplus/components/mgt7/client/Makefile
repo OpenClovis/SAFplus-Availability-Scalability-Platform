@@ -8,9 +8,6 @@ CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
 # Management includes and libraries
 CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
-COMPILE_CPP := g++ -g -O0 -fPIC -c $(CPP_FLAGS) -o
-LINK_SO     := g++ -g -shared -o 
-
 C_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR) -I$(SAFPLUS_SRC_DIR)/SAFplus/components/dbal/common -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable
 COMPILE_C = g++ -g -O0 -fPIC -c $(C_FLAGS) -o
 

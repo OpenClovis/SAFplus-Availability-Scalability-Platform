@@ -91,9 +91,14 @@ namespace SAFplus
   class Error: public std::exception
   {
   public:
+  const char* errStr;
+    Error(const char* str): errStr(str) 
+    {
+    }
+
     virtual const char* what() const throw()
     {
-      return "My exception happened";
+      return errStr;
     }
   };
   

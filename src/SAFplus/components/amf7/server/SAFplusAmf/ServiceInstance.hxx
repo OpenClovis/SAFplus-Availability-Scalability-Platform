@@ -13,6 +13,7 @@
 #include "StandbyWeight.hxx"
 #include "StandbyWeight.hxx"
 #include "StandbyAssignments.hxx"
+#include "ComponentServiceInstance.hxx"
 #include "clMgtList.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
@@ -22,9 +23,11 @@
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
+#include "ServiceGroup.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "ActiveWeight.hxx"
+#include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
   {
@@ -60,6 +63,12 @@ namespace SAFplusAmf
          * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
          */
         SAFplus::ClMgtProv<unsigned int> rank;
+
+        /*
+         * Component Service Instances in this Service group
+         */
+        SAFplus::ClMgtProvList<SAFplusAmf::ComponentServiceInstance*> componentServiceInstances;
+        SAFplus::ClMgtProv<SAFplusAmf::ServiceGroup*> serviceGroup;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
@@ -126,6 +135,26 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/ServiceInstance/rank
          */
         void setRank(unsigned int rankValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/componentServiceInstances
+         */
+        std::vector<SAFplusAmf::ComponentServiceInstance*> getComponentServiceInstances();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/componentServiceInstances
+         */
+        void setComponentServiceInstances(SAFplusAmf::ComponentServiceInstance* componentServiceInstancesValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
+         */
+        SAFplusAmf::ServiceGroup* getServiceGroup();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
+         */
+        void setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeWeight

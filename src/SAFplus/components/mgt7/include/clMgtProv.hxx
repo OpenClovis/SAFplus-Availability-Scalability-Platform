@@ -177,17 +177,7 @@ void ProvOperation<T>::commit()
     std::stringstream ss;
 
     char *valstr = (char *) mData;
-
-    if (((typeid(T) == typeid(bool)) || (typeid(T) == typeid(ClBoolT))) && (!strcmp((char*)valstr, "true")))
-    {
-        ss << "1";
-        ss >> mOwner->Value;
-    }
-    else
-    {
-        ss << valstr;
-        ss >> mOwner->Value;
-    }
+    deXMLize(valstr,mOwner,mOwner->Value);
 
     mOwner->setDb();
     free(mData);
@@ -333,20 +323,9 @@ ClRcT ClMgtProv<T>::getDb()
     {
         return rc;
     }
-
-    std::stringstream ss;
-
-    if (((typeid(T) == typeid(bool)) || (typeid(T) == typeid(ClBoolT))) && (!value.compare("true")))
-    {
-        ss << "1";
-        ss >> Value;
-    }
-    else
-    {
-        ss << value;
-        ss >> Value;
-    }
-
+  
+    deXMLize(value,this,Value);
+    
     return rc;
 }
 

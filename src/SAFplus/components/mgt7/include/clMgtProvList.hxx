@@ -274,9 +274,8 @@ template<class T>
 void ClMgtProvList<T>::pushBackValue(const std::string& strVal)
 {
     T value;
-    std::stringstream ss;
 
-    demarshall(strVal,this,value); 
+    deXMLize(strVal,this,value); 
 
     Value.push_back(value);
 }

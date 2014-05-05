@@ -14,8 +14,10 @@
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
+#include "clMgtProvList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include <string>
+#include "ServiceUnit.hxx"
 #include "Node.hxx"
 
 
@@ -25,7 +27,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Node, /SAFplusAmf/Node)
 
-    Node::Node(): SAFplus::ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), capacityList("capacity")
+    Node::Node(): SAFplus::ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
@@ -34,11 +36,12 @@ namespace SAFplusAmf
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
+        this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
         this->addKey("name");
     };
 
-    Node::Node(std::string nameValue): SAFplus::ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), capacityList("capacity")
+    Node::Node(std::string nameValue): SAFplus::ClMgtObject("Node"), name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->name.Value =  nameValue;
         this->addKey("name");
@@ -49,6 +52,7 @@ namespace SAFplusAmf
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
+        this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
     };
 
@@ -60,7 +64,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Node::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure" };
+        std::string childNames[] = { "name", "id", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "serviceUnits" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -174,6 +178,22 @@ namespace SAFplusAmf
     void Node::setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue)
     {
         this->failFastOnCleanupFailure.Value = failFastOnCleanupFailureValue;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Node/serviceUnits
+     */
+    std::vector<SAFplusAmf::ServiceUnit*> Node::getServiceUnits()
+    {
+        return this->serviceUnits.Value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Node/serviceUnits
+     */
+    void Node::setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue)
+    {
+        this->serviceUnits.Value.push_back(serviceUnitsValue);
     };
 
     /*

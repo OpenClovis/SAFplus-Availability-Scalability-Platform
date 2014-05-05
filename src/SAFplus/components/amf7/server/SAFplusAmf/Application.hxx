@@ -12,10 +12,12 @@
 #include "NumServiceGroups.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
+#include "ServiceGroup.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "NumServiceGroups.hxx"
 #include "AdministrativeState.hxx"
+#include "clMgtProvList.hxx"
 #include <string>
 
 namespace SAFplusAmf
@@ -42,6 +44,16 @@ namespace SAFplusAmf
          * Does the operator want this entity to be off, idle, or in service?
          */
         SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+
+        /*
+         * Service Groups in this Application
+         */
+        SAFplus::ClMgtProvList<SAFplusAmf::ServiceGroup*> serviceGroups;
+
+        /*
+         * SAFplus Extension: To the greatest extent possible, all Service Groups in this application will be Active (or standby) on the same node.  This will only be not true if service groups are not configured to run on the same nodes.
+         */
+        SAFplus::ClMgtProv<bool> keepTogether;
 
     public:
         Application();
@@ -80,14 +92,34 @@ namespace SAFplusAmf
         void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
 
         /*
-         * XPATH: /SAFplusAmf/Application/NumServiceGroups
+         * XPATH: /SAFplusAmf/Application/serviceGroups
+         */
+        std::vector<SAFplusAmf::ServiceGroup*> getServiceGroups();
+
+        /*
+         * XPATH: /SAFplusAmf/Application/serviceGroups
+         */
+        void setServiceGroups(SAFplusAmf::ServiceGroup* serviceGroupsValue);
+
+        /*
+         * XPATH: /SAFplusAmf/Application/keepTogether
+         */
+        bool getKeepTogether();
+
+        /*
+         * XPATH: /SAFplusAmf/Application/keepTogether
+         */
+        void setKeepTogether(bool keepTogetherValue);
+
+        /*
+         * XPATH: /SAFplusAmf/Application/numServiceGroups
          */
         SAFplusAmf::NumServiceGroups* getNumServiceGroups();
 
         /*
-         * XPATH: /SAFplusAmf/Application/NumServiceGroups
+         * XPATH: /SAFplusAmf/Application/numServiceGroups
          */
-        void addNumServiceGroups(SAFplusAmf::NumServiceGroups *NumServiceGroupsValue);
+        void addNumServiceGroups(SAFplusAmf::NumServiceGroups *numServiceGroupsValue);
         ~Application();
 
     };

@@ -15,9 +15,9 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(NumServiceGroups, /SAFplusAmf/Application/NumServiceGroups)
+    MGT_REGISTER_IMPL(NumServiceGroups, /SAFplusAmf/Application/numServiceGroups)
 
-    NumServiceGroups::NumServiceGroups(): SAFplus::ClMgtObject("NumServiceGroups")
+    NumServiceGroups::NumServiceGroups(): SAFplus::ClMgtObject("numServiceGroups")
     {
     };
 

@@ -18,8 +18,10 @@
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
+#include "clMgtProvList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include <string>
+#include "ServiceUnit.hxx"
 
 namespace SAFplusAmf
   {
@@ -65,6 +67,11 @@ namespace SAFplusAmf
          * If a component's cleanup script fails on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true
          */
         SAFplus::ClMgtProv<bool> failFastOnCleanupFailure;
+
+        /*
+         * Service Units configured to be instantiated on this node.
+         */
+        SAFplus::ClMgtProvList<SAFplusAmf::ServiceUnit*> serviceUnits;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
@@ -146,6 +153,16 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/Node/failFastOnCleanupFailure
          */
         void setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue);
+
+        /*
+         * XPATH: /SAFplusAmf/Node/serviceUnits
+         */
+        std::vector<SAFplusAmf::ServiceUnit*> getServiceUnits();
+
+        /*
+         * XPATH: /SAFplusAmf/Node/serviceUnits
+         */
+        void setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue);
 
         /*
          * XPATH: /SAFplusAmf/Node/capacity

@@ -6,7 +6,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "RestartCount.hxx"
-#include <string>
+#include "Recovery.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
 #include "Instantiate.hxx"
@@ -17,7 +17,7 @@
 #include "ActiveAssignments.hxx"
 #include "CapabilityModel.hxx"
 #include "Cleanup.hxx"
-#include "Recovery.hxx"
+#include <string>
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "clMgtObject.hxx"
@@ -29,6 +29,7 @@
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
+#include "ServiceUnit.hxx"
 #include "Terminate.hxx"
 #include "clMgtProvList.hxx"
 #include "Component.hxx"
@@ -40,7 +41,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Component, /SAFplusAmf/Component)
 
-    Component::Component(): SAFplus::ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied")
+    Component::Component(): SAFplus::ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
@@ -60,6 +61,7 @@ namespace SAFplusAmf
         this->addChildObject(&maxInstantInstantiations, "maxInstantInstantiations");
         this->addChildObject(&maxDelayedInstantiations, "maxDelayedInstantiations");
         this->addChildObject(&delayBetweenInstantiation, "delayBetweenInstantiation");
+        this->addChildObject(&serviceUnit, "serviceUnit");
         this->addChildObject(&recovery, "recovery");
         this->addChildObject(&restartable, "restartable");
         this->addChildObject(&proxy, "proxy");
@@ -67,7 +69,7 @@ namespace SAFplusAmf
         this->addKey("name");
     };
 
-    Component::Component(std::string nameValue): SAFplus::ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied")
+    Component::Component(std::string nameValue): SAFplus::ClMgtObject("Component"), name("name"), id("id"), presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied")
     {
         this->name.Value =  nameValue;
         this->addKey("name");
@@ -89,6 +91,7 @@ namespace SAFplusAmf
         this->addChildObject(&maxInstantInstantiations, "maxInstantInstantiations");
         this->addChildObject(&maxDelayedInstantiations, "maxDelayedInstantiations");
         this->addChildObject(&delayBetweenInstantiation, "delayBetweenInstantiation");
+        this->addChildObject(&serviceUnit, "serviceUnit");
         this->addChildObject(&recovery, "recovery");
         this->addChildObject(&restartable, "restartable");
         this->addChildObject(&proxy, "proxy");
@@ -103,7 +106,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Component::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "presence", "capabilityModel", "maxActiveAssignments", "maxStandbyAssignments", "activeAssignments", "standbyAssignments", "assignedWork", "operState", "readinessState", "haReadinessState", "haState", "safVersion", "compCategory", "swBundle", "commandEnvironment", "instantiate", "terminate", "cleanup", "maxInstantInstantiations", "maxDelayedInstantiations", "delayBetweenInstantiation", "timeouts", "recovery", "restartable", "restartCount", "proxy", "proxied" };
+        std::string childNames[] = { "name", "id", "presence", "capabilityModel", "maxActiveAssignments", "maxStandbyAssignments", "activeAssignments", "standbyAssignments", "assignedWork", "operState", "readinessState", "haReadinessState", "haState", "safVersion", "compCategory", "swBundle", "commandEnvironment", "instantiate", "terminate", "cleanup", "maxInstantInstantiations", "maxDelayedInstantiations", "delayBetweenInstantiation", "timeouts", "serviceUnit", "recovery", "restartable", "restartCount", "proxy", "proxied" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -393,6 +396,22 @@ namespace SAFplusAmf
     void Component::setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue)
     {
         this->delayBetweenInstantiation.Value = delayBetweenInstantiationValue;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Component/serviceUnit
+     */
+    SAFplusAmf::ServiceUnit* Component::getServiceUnit()
+    {
+        return this->serviceUnit.Value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Component/serviceUnit
+     */
+    void Component::setServiceUnit(SAFplusAmf::ServiceUnit* serviceUnitValue)
+    {
+        this->serviceUnit.Value = serviceUnitValue;
     };
 
     /*

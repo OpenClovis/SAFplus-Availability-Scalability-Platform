@@ -268,6 +268,13 @@ point.  The operational, administrative, and presence states of a service unit, 
 	description "If a component's cleanup script fails on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
 	safplus:ui-prompt "Reboot node if component cleanup repeatedly fails? ";
       }
+
+    leaf-list serviceUnits
+      {
+       safplus:c-type "SAFplusAmf::ServiceUnit*";
+       type instance-identifier;
+       description "Service Units configured to be instantiated on this node.";
+      }
       
     }
 
@@ -363,14 +370,6 @@ point.  The operational, administrative, and presence states of a service unit, 
 	uses EscalationPolicy;
 	description "";
       }
-
-     leaf-list serviceUnits
-     {
-       safplus:alias saAmfCompCurrProxiedNames;
-       safplus:c-type "SAFplusAmf::ServiceUnit*";
-       type instance-identifier;
-       description "This component is the proxy for the components listed here.";
-     }
       
       container numAssignedServiceUnits
       {
@@ -390,6 +389,27 @@ point.  The operational, administrative, and presence states of a service unit, 
 	uses safplus:intStatistic;
         config false;	
       }	
+
+     leaf-list serviceUnits
+      {
+       safplus:c-type "SAFplusAmf::ServiceUnit*";
+       type instance-identifier;
+       description "Service Units in this Service Group";
+      }
+     leaf-list serviceInstances
+      {
+       safplus:c-type "SAFplusAmf::ServiceInstance*";
+       type instance-identifier;
+       description "Service Instances (work) in this Service group";
+      }
+
+     // parent pointers
+
+     leaf application
+     {
+        type instance-identifier;
+        safplus:c-type "Application*";
+     }
       
      
     }
@@ -613,9 +633,16 @@ point.  The operational, administrative, and presence states of a service unit, 
 	  default 120000; // 2 minutes
 	  description "How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.";
 	}
-
-
       }
+
+     leaf serviceUnit
+     {
+        type instance-identifier;
+        safplus:c-type "ServiceUnit*";
+     }
+
+
+     
 
       leaf recovery
       {
@@ -722,7 +749,34 @@ are switched over to other nodes (component service instances are not abruptly r
         safplus:c-type "SAFplusAmf::ComponentServiceInstance*";
       }
 
+      list data
+      {
+        key "name";
+        leaf name
+	{
+	  type string;
+	}
+        leaf val
+	{
+	  type string;
+	}
+        description "Arbitrary data that defines the work needed to be done.";
+      }
+
+     // Parent pointers
+     leaf serviceInstance
+     {
+        type instance-identifier;
+        safplus:c-type "ServiceInstance*";       
      }
+
+     leaf component
+     {
+        type instance-identifier;
+        safplus:c-type "Component*";
+        config false;  // The component handling this work is assigned at run time by the AMF
+     }
+    }
 
     // done
     list ServiceInstance
@@ -776,7 +830,6 @@ are switched over to other nodes (component service instances are not abruptly r
 	description "An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.";
       }
 
-
       // SAFplus extensions
       container activeAssignments
       {
@@ -793,9 +846,23 @@ are switched over to other nodes (component service instances are not abruptly r
         config false;
       }
 
+     leaf-list componentServiceInstances
+      {
+       safplus:c-type "SAFplusAmf::ComponentServiceInstance*";
+       type instance-identifier;
+       description "Component Service Instances in this Service group";
+      }
+
+     // Parent pointers
+     leaf serviceGroup
+     {
+        type instance-identifier;
+        safplus:c-type "ServiceGroup*";       
+     }
+
     }
  
-    // done
+
     list ServiceUnit
     {
       key "name";
@@ -811,7 +878,7 @@ are switched over to other nodes (component service instances are not abruptly r
       leaf rank
       {
 	safplus:alias saAmfSURank;
-	safplus:ui-prompt   "Rank";
+	safplus:ui-prompt "Rank";
 	type uint32;
 	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.";
       }
@@ -825,7 +892,7 @@ are switched over to other nodes (component service instances are not abruptly r
 
       // skipped Maintenance Campaign, string
 
-      leaf preInstantiable
+      leaf preinstantiable
       {
 	type boolean;
 	config false;
@@ -872,19 +939,19 @@ are switched over to other nodes (component service instances are not abruptly r
      leaf-list assignedServiceInstances
      {
         type instance-identifier;
-        safplus:c-decl "Entity* entity";       
+        safplus:c-type "ServiceInstance*";       
      }
 
      // ?? saAmfSUHostedByNode string
        
 
-     container activeServiceInstances
+     container numActiveServiceInstances
       {
 	safplus:alias saAmfSUNumCurrActiveSIs;
 	uses safplus:intStatistic;
         config false;
       }
-     container standbyServiceInstances
+     container numStandbyServiceInstances
       {
 	safplus:alias saAmfSUNumCurrStandbySIs;
 	uses safplus:intStatistic;
@@ -898,11 +965,30 @@ are switched over to other nodes (component service instances are not abruptly r
         config false;
       }
 
+     // Child pointers
+     leaf-list components
+     {
+        type instance-identifier;
+        safplus:c-type "Component*";       
+     }
 
-      description "";
+     // Parent pointers
+     leaf node
+     {
+        type instance-identifier;
+        safplus:c-type "Node*";       
+     }
+
+     leaf serviceGroup
+     {
+        type instance-identifier;
+        safplus:c-type "ServiceGroup*";       
+     }
+
+      description "A Service Unit is a group of processes that all fail over together.  All service unit members must be run on the same node.";
     }
 
-    // done
+
     list Application
     {
       key "name";
@@ -918,12 +1004,27 @@ are switched over to other nodes (component service instances are not abruptly r
       }
       // skipping SAF: app type 
       
-      container NumServiceGroups  // Note, defined but never described in AMF spec
+      container numServiceGroups  // Note, defined but never described in AMF spec
       {
 	safplus:alias saAmfApplicationCurrNumSGs;
 	uses safplus:intStatistic;
         config false;
       }
+
+      leaf-list serviceGroups
+      {
+       safplus:c-type "SAFplusAmf::ServiceGroup*";
+       type instance-identifier;
+       description "Service Groups in this Application";
+      }
+
+      leaf keepTogether
+      {
+        type boolean;
+	safplus:ui-prompt "Initial state: ";
+	description "SAFplus Extension: To the greatest extent possible, all Service Groups in this application will be Active (or standby) on the same node.  This will only be not true if service groups are not configured to run on the same nodes.";
+      }
+
 
     }
 

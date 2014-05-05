@@ -172,17 +172,27 @@ namespace SAFplus
     return rc;
   }
 
-  ClRcT ClMgtObject::addChildObject(ClMgtObject *mgtObject, const std::string objectName)
+
+  ClRcT ClMgtObject::addChildObject(ClMgtObject *mgtObject, const char* objectName)
+    {
+    std::string name(objectName);
+    return addChildObject(mgtObject,name);
+    }
+
+
+  ClRcT ClMgtObject::addChildObject(ClMgtObject *mgtObject, const std::string& objectName)
   {
     ClRcT rc = CL_OK;
-
     if (mgtObject == NULL)
       {
         return CL_ERR_NULL_POINTER;
       }
 
+    const std::string* name = &objectName;    
+    if (name == nullptr) name = &mgtObject->Name;
+
     /* Check if MGT object already exists in the database */
-    map<string, vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find(objectName);
+    map<string, vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find(*name);
     std::vector<ClMgtObject*> *objs;
 
     if (mapIndex != mChildren.end())
@@ -192,7 +202,7 @@ namespace SAFplus
     else
       {
         objs = new vector<ClMgtObject*>;
-        mChildren.insert(pair<string, vector<ClMgtObject *>* >(objectName, objs));
+        mChildren.insert(pair<string, vector<ClMgtObject *>* >(*name, objs));
       }
 
     /* Insert MGT object into the database */
@@ -567,17 +577,18 @@ namespace SAFplus
       
   }
 
-  inline void demarshall(const std::string& obj,ClMgtObject* context, bool& result)
+  void deXMLize(const std::string& obj,ClMgtObject* context, bool& result)
   {
     if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1')) { result=1; return; }
     if ((obj[0] == 'f') || (obj[0] == 'F') || (obj[0] == '0') || (obj[0] == 'n') || (obj[0] == 'N')) { result=0; return; }
-    throw DemarshallError("cannot demarshall into a boolean");
+    throw SerializationError("cannot deXMLize into a boolean");
   }
 
-  inline void demarshall(const std::string& obj,ClMgtObject* context, ClBoolT& result)
+  void deXMLize(const std::string& obj,ClMgtObject* context, ClBoolT& result)
   {
     if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1')) { result=1; return; }
     if ((obj[0] == 'f') || (obj[0] == 'F') || (obj[0] == '0') || (obj[0] == 'n') || (obj[0] == 'N')) { result=0; return; }
-    throw DemarshallError("cannot demarshall into a boolean");
+    throw SerializationError("cannot deXMLize into a boolean");
   }
+
 }

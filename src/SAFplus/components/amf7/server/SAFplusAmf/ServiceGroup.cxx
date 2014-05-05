@@ -15,6 +15,8 @@
 #include "NumIdleServiceUnits.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
+#include "Application.hxx"
+#include "ServiceInstance.hxx"
 #include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
@@ -22,8 +24,8 @@
 #include "NumAssignedServiceUnits.hxx"
 #include "NumSpareServiceUnits.hxx"
 #include "NumAssignedServiceUnits.hxx"
-#include "clMgtProvList.hxx"
 #include "ServiceUnit.hxx"
+#include "clMgtProvList.hxx"
 #include "ServiceGroup.hxx"
 
 using namespace SAFplusTypes;
@@ -34,7 +36,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceGroup, /SAFplusAmf/ServiceGroup)
 
-    ServiceGroup::ServiceGroup(): SAFplus::ClMgtObject("ServiceGroup"), name("name"), id("id"), adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits")
+    ServiceGroup::ServiceGroup(): SAFplus::ClMgtObject("ServiceGroup"), name("name"), id("id"), adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
@@ -48,10 +50,12 @@ namespace SAFplusAmf
         this->addChildObject(&maxActiveWorkAssignments, "maxActiveWorkAssignments");
         this->addChildObject(&maxStandbyWorkAssignments, "maxStandbyWorkAssignments");
         this->addChildObject(&serviceUnits, "serviceUnits");
+        this->addChildObject(&serviceInstances, "serviceInstances");
+        this->addChildObject(&application, "application");
         this->addKey("name");
     };
 
-    ServiceGroup::ServiceGroup(std::string nameValue): SAFplus::ClMgtObject("ServiceGroup"), name("name"), id("id"), adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits")
+    ServiceGroup::ServiceGroup(std::string nameValue): SAFplus::ClMgtObject("ServiceGroup"), name("name"), id("id"), adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
     {
         this->name.Value =  nameValue;
         this->addKey("name");
@@ -67,6 +71,8 @@ namespace SAFplusAmf
         this->addChildObject(&maxActiveWorkAssignments, "maxActiveWorkAssignments");
         this->addChildObject(&maxStandbyWorkAssignments, "maxStandbyWorkAssignments");
         this->addChildObject(&serviceUnits, "serviceUnits");
+        this->addChildObject(&serviceInstances, "serviceInstances");
+        this->addChildObject(&application, "application");
     };
 
     std::vector<std::string> ServiceGroup::getKeys()
@@ -77,7 +83,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* ServiceGroup::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "adminState", "autoRepair", "autoAdjust", "autoAdjustInterval", "preferredNumActiveServiceUnits", "preferredNumStandbyServiceUnits", "preferredNumIdleServiceUnits", "maxActiveWorkAssignments", "maxStandbyWorkAssignments", "componentRestart", "serviceUnitRestart", "serviceUnits", "numAssignedServiceUnits", "numIdleServiceUnits", "numSpareServiceUnits" };
+        std::string childNames[] = { "name", "id", "adminState", "autoRepair", "autoAdjust", "autoAdjustInterval", "preferredNumActiveServiceUnits", "preferredNumStandbyServiceUnits", "preferredNumIdleServiceUnits", "maxActiveWorkAssignments", "maxStandbyWorkAssignments", "componentRestart", "serviceUnitRestart", "numAssignedServiceUnits", "numIdleServiceUnits", "numSpareServiceUnits", "serviceUnits", "serviceInstances", "application" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -271,6 +277,38 @@ namespace SAFplusAmf
     void ServiceGroup::setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue)
     {
         this->serviceUnits.Value.push_back(serviceUnitsValue);
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ServiceGroup/serviceInstances
+     */
+    std::vector<SAFplusAmf::ServiceInstance*> ServiceGroup::getServiceInstances()
+    {
+        return this->serviceInstances.Value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ServiceGroup/serviceInstances
+     */
+    void ServiceGroup::setServiceInstances(SAFplusAmf::ServiceInstance* serviceInstancesValue)
+    {
+        this->serviceInstances.Value.push_back(serviceInstancesValue);
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ServiceGroup/application
+     */
+    SAFplusAmf::Application* ServiceGroup::getApplication()
+    {
+        return this->application.Value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ServiceGroup/application
+     */
+    void ServiceGroup::setApplication(SAFplusAmf::Application* applicationValue)
+    {
+        this->application.Value = applicationValue;
     };
 
     /*

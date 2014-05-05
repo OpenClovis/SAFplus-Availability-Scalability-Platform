@@ -17,17 +17,22 @@ SERVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SERVER_SRC)))
 UNITTEST_SRC := testGroup.cxx
 UNITTEST_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(UNITTEST_SRC)))
 
-DEP_LIBS :=  $(LIB_DIR)/libclGroupServer.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclLog.so
+# Specify the required libraries
+SAFPLUS_LIBS := clGroupServer clName clMgt7 clIoc7 clGroup clUtils7 clOsal7 clCkpt clLog
+# Then use these in the make rule
+SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-LINK_STD_LIBS += -lpthread -lstdc++ -ldl -lrt -lm -L$(SAFPLUS_TOOLCHAIN_DIR)/lib -lboost_thread -L$(SAFPLUS_SDK_TARGET)/lib
+LINK_STD_LIBS := -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -lxml2 -L$(MGT_SRC_DIR)/3rdparty/build/lib -lstdc++ -lm $(LINK_STD_LIBS)
+#-L$(SAFPLUS_TOOLCHAIN_DIR)/lib -L$(SAFPLUS_SDK_TARGET)/lib
 
 all: $(TEST_DIR)/testGroupServer $(TEST_DIR)/testGroup
 
-$(TEST_DIR)/testGroupServer: $(OBJ_DIR)/testGroupServer.o $(DEP_LIBS)
-	$(LINK_EXE) $@ $+  $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS)  -lClOsal -lClAmfClient -lClUtils -lClTimer -lClBuffer
+$(TEST_DIR)/testGroupServer: $(OBJ_DIR)/testGroupServer.o $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $+  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
-$(TEST_DIR)/testGroup: $(OBJ_DIR)/testGroup.o $(DEP_LIBS)
-	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(DEP_LIBS) $(LINK_STD_LIBS) 
+$(TEST_DIR)/testGroup: $(OBJ_DIR)/testGroup.o $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
 $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

@@ -50,68 +50,75 @@ extern "C"
 #include <clCommon.hxx>
 
 namespace SAFplus
-{
+  {
   class MgtError:public Error
-  {
-  public:
-    MgtError(const char* error);
-  };
+    {
+    public:
+      MgtError(const char* error): Error(error)
+      {
+      }
+    
+    };
 
-  class DemarshallError:public MgtError
-  {
-  public:
-    DemarshallError(const char* error);
-  };
+  //  Can be thrown on marshal, demarshal, XMLize or deXMLize
+  class SerializationError:public MgtError
+    {
+    public:
+      SerializationError(const char* error):MgtError(error) 
+      {
+      }
+    
+    };
   
 
-class ClMgtObject;
+  class ClMgtObject;
 
-typedef std::map<std::string, std::vector<ClMgtObject*>* > ClMgtObjectMap;
+  typedef std::map<std::string, std::vector<ClMgtObject*>* > ClMgtObjectMap;
 
 /**
  * ClMgtObject class which provides APIs to manage a MGT object
  */
-class ClMgtObject
-{
-protected:
+  class ClMgtObject
+    {
+  protected:
     /*
      * Store the child node
      */
     ClMgtObjectMap mChildren;
 
-public:
+  public:
     std::string Name;
     std::vector<std::string> Keys;
     ClMgtObject *Parent;
 
-public:
+  public:
     ClMgtObject(const char* name);
     virtual ~ClMgtObject();
 
     /**
      * \brief	Find the root of this management tree
      */
-  ClMgtObject* root(void);
+    ClMgtObject* root(void);
 
     /**
      * \brief	Find the child or grandchild recursively with this name
      */
-  ClMgtObject* deepFind(const std::string &s);
+    ClMgtObject* deepFind(const std::string &s);
 
-  /**
+    /**
      * \brief	Find the child or grandchild recursively with this name
      */
-  ClMgtObject* find(const std::string &s);
+    ClMgtObject* find(const std::string &s);
  
     /**
      * \brief	Get child iterator beginning
      */
-  ClMgtObjectMap::iterator begin(void) { return mChildren.begin(); }
+    ClMgtObjectMap::iterator begin(void) { return mChildren.begin(); }
 
-  /**
+    /**
      * \brief	Get child iterator end
      */
-  ClMgtObjectMap::iterator end(void) { return mChildren.end(); }
+    ClMgtObjectMap::iterator end(void) { return mChildren.end(); }
 
     /**
      * \brief	Function to add a key
@@ -148,12 +155,13 @@ public:
     /**
      * \brief	Function to add a child object
      * \param	mgtObject				MGT object to be added
-     * \param	objectName				MGT object name
+     * \param	objectName				MGT object name.  If not supplied, the mgtObject's name will be used
      * \return	CL_OK					Everything is OK
      * \return	CL_ERR_ALREADY_EXIST	Module already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT addChildObject(ClMgtObject *mgtObject, const std::string objectName);
+    ClRcT addChildObject(ClMgtObject *mgtObject, std::string const& objectName=*((std::string*)nullptr));
+    ClRcT addChildObject(ClMgtObject *mgtObject, const char* objectName);
 
     /**
      * \brief	Function to remove a child object
@@ -218,23 +226,36 @@ public:
 
     virtual void load();
 
-  // Debugging API only:
+    // Debugging API only:
     void dbgDumpChildren();
-};
+    };
 
 
-inline void demarshall(const std::string& obj,ClMgtObject* context, std::string& result) { result=obj; }
+  inline void deXMLize(const std::string& obj,ClMgtObject* context, std::string& result) { result=obj; }
 // True is 1, anything that begins with t,T,y,Y (for yes).  False is 0, anything that begins with f,F,n or N (for no)
-inline void demarshall(const std::string& obj,ClMgtObject* context, bool& result); // throw(DemarshallError);
-inline void demarshall(const std::string& obj,ClMgtObject* context, ClBoolT& result); // throw(DemarshallError);
+  void deXMLize(const std::string& obj,ClMgtObject* context, bool& result); // throw(SerializationError);
+  void deXMLize(const std::string& obj,ClMgtObject* context, ClBoolT& result); // throw(SerializationError);
 
-template<typename T> inline void demarshall(const std::string& strVal,ClMgtObject* context, T& result) // throw(DemarshallError)
-{
-  std::stringstream ss;
-  ss << strVal;
-  ss >> result;
-}
-};
+  inline void deXMLize(const char* obj,ClMgtObject* context, std::string& result) { result=obj; }
+
+  template<typename T> inline void deXMLize(const std::string& strVal,ClMgtObject* context, T& result) // throw(SerializationError)
+    {
+    std::stringstream ss;
+    ss << strVal;
+    // If you need to write a deXMLize for your custom type, you will
+    // get  this inscrutiable error: cannot bind
+    // std::basic_istream<char> lvalue to std::basic_istream<char>&& 
+    ss >> result;
+    }
+  template<typename T> inline void deXMLize(const char* strVal,ClMgtObject* context, T& result) // throw(SerializationError)
+    {
+    std::stringstream ss;
+    ss << strVal;
+    // If you need to write a deXMLize for your custom type, you will
+    // get  this inscrutiable error: cannot bind std::basic_istream<char> lvalue to std::basic_istream<char>&& 
+    ss >> result;  
+    }
+  };
 #endif /* CLMGTOBJECT_H_ */
 
 /** \} */

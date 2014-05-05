@@ -19,6 +19,8 @@
 #include "NumIdleServiceUnits.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
+#include "Application.hxx"
+#include "ServiceInstance.hxx"
 #include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
@@ -26,8 +28,8 @@
 #include "NumAssignedServiceUnits.hxx"
 #include "NumSpareServiceUnits.hxx"
 #include "NumAssignedServiceUnits.hxx"
-#include "clMgtProvList.hxx"
 #include "ServiceUnit.hxx"
+#include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
   {
@@ -95,9 +97,15 @@ namespace SAFplusAmf
         SAFplus::ClMgtProv<unsigned int> maxStandbyWorkAssignments;
 
         /*
-         * This component is the proxy for the components listed here.
+         * Service Units in this Service Group
          */
         SAFplus::ClMgtProvList<SAFplusAmf::ServiceUnit*> serviceUnits;
+
+        /*
+         * Service Instances (work) in this Service group
+         */
+        SAFplus::ClMgtProvList<SAFplusAmf::ServiceInstance*> serviceInstances;
+        SAFplus::ClMgtProv<SAFplusAmf::Application*> application;
 
     public:
         ServiceGroup();
@@ -224,6 +232,26 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/ServiceGroup/serviceUnits
          */
         void setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceGroup/serviceInstances
+         */
+        std::vector<SAFplusAmf::ServiceInstance*> getServiceInstances();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceGroup/serviceInstances
+         */
+        void setServiceInstances(SAFplusAmf::ServiceInstance* serviceInstancesValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceGroup/application
+         */
+        SAFplusAmf::Application* getApplication();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceGroup/application
+         */
+        void setApplication(SAFplusAmf::Application* applicationValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/componentRestart

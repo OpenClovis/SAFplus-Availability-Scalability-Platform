@@ -9,6 +9,7 @@
 #include "StandbyWeight.hxx"
 #include "StandbyWeight.hxx"
 #include "StandbyAssignments.hxx"
+#include "ComponentServiceInstance.hxx"
 #include "clMgtList.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
@@ -18,9 +19,11 @@
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
+#include "ServiceGroup.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "ActiveWeight.hxx"
+#include "clMgtProvList.hxx"
 #include "ServiceInstance.hxx"
 
 
@@ -30,19 +33,21 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceInstance, /SAFplusAmf/ServiceInstance)
 
-    ServiceInstance::ServiceInstance(): SAFplus::ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(): SAFplus::ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&assignmentState, "assignmentState");
         this->addChildObject(&rank, "rank");
+        this->addChildObject(&componentServiceInstances, "componentServiceInstances");
+        this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
         this->addKey("name");
     };
 
-    ServiceInstance::ServiceInstance(std::string nameValue): SAFplus::ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(std::string nameValue): SAFplus::ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
         this->name.Value =  nameValue;
         this->addKey("name");
@@ -51,6 +56,8 @@ namespace SAFplusAmf
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&assignmentState, "assignmentState");
         this->addChildObject(&rank, "rank");
+        this->addChildObject(&componentServiceInstances, "componentServiceInstances");
+        this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
     };
@@ -63,7 +70,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* ServiceInstance::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "adminState", "assignmentState", "rank", "activeWeight", "standbyWeight", "activeAssignments", "standbyAssignments" };
+        std::string childNames[] = { "name", "id", "adminState", "assignmentState", "rank", "activeWeight", "standbyWeight", "activeAssignments", "standbyAssignments", "componentServiceInstances", "serviceGroup" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -145,6 +152,38 @@ namespace SAFplusAmf
     void ServiceInstance::setRank(unsigned int rankValue)
     {
         this->rank.Value = rankValue;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ServiceInstance/componentServiceInstances
+     */
+    std::vector<SAFplusAmf::ComponentServiceInstance*> ServiceInstance::getComponentServiceInstances()
+    {
+        return this->componentServiceInstances.Value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ServiceInstance/componentServiceInstances
+     */
+    void ServiceInstance::setComponentServiceInstances(SAFplusAmf::ComponentServiceInstance* componentServiceInstancesValue)
+    {
+        this->componentServiceInstances.Value.push_back(componentServiceInstancesValue);
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
+     */
+    SAFplusAmf::ServiceGroup* ServiceInstance::getServiceGroup()
+    {
+        return this->serviceGroup.Value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
+     */
+    void ServiceInstance::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue)
+    {
+        this->serviceGroup.Value = serviceGroupValue;
     };
 
     /*

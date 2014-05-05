@@ -10,21 +10,25 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "RestartCount.hxx"
-#include "StandbyServiceInstances.hxx"
+#include "Node.hxx"
 #include <string>
+#include "NumActiveServiceInstances.hxx"
 #include "RestartCount.hxx"
-#include "StandbyServiceInstances.hxx"
+#include "Component.hxx"
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
-#include "ActiveServiceInstances.hxx"
-#include "ActiveServiceInstances.hxx"
+#include "NumStandbyServiceInstances.hxx"
 #include "ReadinessState.hxx"
+#include "NumActiveServiceInstances.hxx"
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
+#include "ServiceInstance.hxx"
 #include "HighAvailabilityReadinessState.hxx"
+#include "ServiceGroup.hxx"
 #include <vector>
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
+#include "NumStandbyServiceInstances.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
@@ -65,7 +69,7 @@ namespace SAFplusAmf
         /*
          * Can this service unit be instantiated before being assigned active?  True if ALL components are preinstantiable.
          */
-        SAFplus::ClMgtProv<bool> preInstantiable;
+        SAFplus::ClMgtProv<bool> preinstantiable;
 
         /*
          * The service unit can only be instantiated on the node (if a node is specified) or on one of the nodes of the node group (if a node group is configured).
@@ -84,7 +88,10 @@ namespace SAFplusAmf
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
          */
         SAFplus::ClMgtProv<bool> operState;
-        SAFplus::ClMgtProvList<std::string> assignedServiceInstances;
+        SAFplus::ClMgtProvList<SAFplusAmf::ServiceInstance*> assignedServiceInstances;
+        SAFplus::ClMgtProvList<SAFplusAmf::Component*> components;
+        SAFplus::ClMgtProv<SAFplusAmf::Node*> node;
+        SAFplus::ClMgtProv<SAFplusAmf::ServiceGroup*> serviceGroup;
 
     public:
         ServiceUnit();
@@ -143,14 +150,14 @@ namespace SAFplusAmf
         void setFailover(bool failoverValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceUnit/preInstantiable
+         * XPATH: /SAFplusAmf/ServiceUnit/preinstantiable
          */
-        bool getPreInstantiable();
+        bool getPreinstantiable();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceUnit/preInstantiable
+         * XPATH: /SAFplusAmf/ServiceUnit/preinstantiable
          */
-        void setPreInstantiable(bool preInstantiableValue);
+        void setPreinstantiable(bool preinstantiableValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/saAmfSUHostNodeOrNodeGroup
@@ -215,32 +222,62 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/assignedServiceInstances
          */
-        std::vector<std::string> getAssignedServiceInstances();
+        std::vector<SAFplusAmf::ServiceInstance*> getAssignedServiceInstances();
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/assignedServiceInstances
          */
-        void setAssignedServiceInstances(std::string assignedServiceInstancesValue);
+        void setAssignedServiceInstances(SAFplusAmf::ServiceInstance* assignedServiceInstancesValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceUnit/activeServiceInstances
+         * XPATH: /SAFplusAmf/ServiceUnit/components
          */
-        SAFplusAmf::ActiveServiceInstances* getActiveServiceInstances();
+        std::vector<SAFplusAmf::Component*> getComponents();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceUnit/activeServiceInstances
+         * XPATH: /SAFplusAmf/ServiceUnit/components
          */
-        void addActiveServiceInstances(SAFplusAmf::ActiveServiceInstances *activeServiceInstancesValue);
+        void setComponents(SAFplusAmf::Component* componentsValue);
 
         /*
-         * XPATH: /SAFplusAmf/ServiceUnit/standbyServiceInstances
+         * XPATH: /SAFplusAmf/ServiceUnit/node
          */
-        SAFplusAmf::StandbyServiceInstances* getStandbyServiceInstances();
+        SAFplusAmf::Node* getNode();
 
         /*
-         * XPATH: /SAFplusAmf/ServiceUnit/standbyServiceInstances
+         * XPATH: /SAFplusAmf/ServiceUnit/node
          */
-        void addStandbyServiceInstances(SAFplusAmf::StandbyServiceInstances *standbyServiceInstancesValue);
+        void setNode(SAFplusAmf::Node* nodeValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceUnit/serviceGroup
+         */
+        SAFplusAmf::ServiceGroup* getServiceGroup();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceUnit/serviceGroup
+         */
+        void setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceUnit/numActiveServiceInstances
+         */
+        SAFplusAmf::NumActiveServiceInstances* getNumActiveServiceInstances();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceUnit/numActiveServiceInstances
+         */
+        void addNumActiveServiceInstances(SAFplusAmf::NumActiveServiceInstances *numActiveServiceInstancesValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceUnit/numStandbyServiceInstances
+         */
+        SAFplusAmf::NumStandbyServiceInstances* getNumStandbyServiceInstances();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceUnit/numStandbyServiceInstances
+         */
+        void addNumStandbyServiceInstances(SAFplusAmf::NumStandbyServiceInstances *numStandbyServiceInstancesValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/restartCount

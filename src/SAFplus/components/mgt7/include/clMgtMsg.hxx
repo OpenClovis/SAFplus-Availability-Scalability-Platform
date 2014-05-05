@@ -20,10 +20,8 @@
 #ifndef CL_MGT_MSG_H_
 #define CL_MGT_MSG_H_
 
-#ifdef __cplusplus
 extern "C"
 {
-#endif
 
 #include <clCommon.h>
 #include <clCommonErrors.h>
@@ -146,9 +144,9 @@ extern "C"
 
 #endif
 
-#ifdef __cplusplus
-} /* end extern 'C' */
-#endif
+
+  } /* end extern 'C' */
+
 
 #endif /* CL_MGT_MGT_H_ */
 

@@ -10,7 +10,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "RestartCount.hxx"
-#include <string>
+#include "Recovery.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
 #include "Instantiate.hxx"
@@ -21,7 +21,7 @@
 #include "ActiveAssignments.hxx"
 #include "CapabilityModel.hxx"
 #include "Cleanup.hxx"
-#include "Recovery.hxx"
+#include <string>
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "clMgtObject.hxx"
@@ -33,6 +33,7 @@
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
+#include "ServiceUnit.hxx"
 #include "Terminate.hxx"
 #include "clMgtProvList.hxx"
 
@@ -121,6 +122,7 @@ namespace SAFplusAmf
          * How long to delay between instantiation attempts
          */
         SAFplus::ClMgtProv<unsigned int> delayBetweenInstantiation;
+        SAFplus::ClMgtProv<SAFplusAmf::ServiceUnit*> serviceUnit;
         SAFplus::ClMgtProv<SAFplusAmf::Recovery> recovery;
 
         /*
@@ -323,6 +325,16 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/Component/delayBetweenInstantiation
          */
         void setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue);
+
+        /*
+         * XPATH: /SAFplusAmf/Component/serviceUnit
+         */
+        SAFplusAmf::ServiceUnit* getServiceUnit();
+
+        /*
+         * XPATH: /SAFplusAmf/Component/serviceUnit
+         */
+        void setServiceUnit(SAFplusAmf::ServiceUnit* serviceUnitValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/recovery

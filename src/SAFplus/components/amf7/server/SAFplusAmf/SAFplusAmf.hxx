@@ -9,12 +9,12 @@
 #define SAFPLUSAMFROOT_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtList.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
 #include "clMgtObject.hxx"
+#include "clMgtList.hxx"
+#include "MgtFactory.hxx"
 #include "clMgtProv.hxx"
 #include "SaTimeT.hxx"
+#include <vector>
 
 namespace SAFplusAmf
   {
@@ -63,7 +63,7 @@ namespace SAFplusAmf
         SAFplus::ClMgtList serviceInstanceList;
 
         /*
-         * 
+         * A Service Unit is a group of processes that all fail over together.  All service unit members must be run on the same node.
          */
         SAFplus::ClMgtList serviceUnitList;
 
@@ -109,6 +109,8 @@ namespace SAFplusAmf
         ~SAFplusAmfRoot();
 
     };
-}
+  };
+
+
 /* namespace SAFplusAmf */
 #endif /* SAFPLUSAMFROOT_HXX_ */

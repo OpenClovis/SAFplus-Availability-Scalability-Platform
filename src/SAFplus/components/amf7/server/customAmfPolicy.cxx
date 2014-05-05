@@ -2,11 +2,11 @@
 #include <clLogApi.hxx>
 #include <clAmfApi.hxx>
 #include <vector>
-using namespace std;
 
 #include <SAFplusAmf.hxx>
 #include <ServiceGroup.hxx>
 
+using namespace std;
 using namespace SAFplus;
 using namespace SAFplusAmf;
 
