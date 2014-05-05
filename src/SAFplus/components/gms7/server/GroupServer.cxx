@@ -28,46 +28,54 @@ GroupServer* GroupServer::getInstance()
   return instance;
 }
 /* This will start the Group Server and listening on GMS_PORT */
-void*  gmsServiceThread(void *arg)
-{
-  GroupServer::initializeLibraries();
+
+struct GmsServiceThread
+  {
+  void operator()()
+    {
+    GroupServer::initializeLibraries();
 #ifdef __TEST
-  if(clAspLocalId == 1) //MASTER
-  {
-    clNodeCacheCapabilitySet(1,2,CL_NODE_CACHE_CAP_ASSIGN);
-  }
-  else
-  {
-    clNodeCacheCapabilitySet(clAspLocalId,1,CL_NODE_CACHE_CAP_ASSIGN);
-  }
+    if(clAspLocalId == 1) //MASTER
+      {
+      clNodeCacheCapabilitySet(1,2,CL_NODE_CACHE_CAP_ASSIGN);
+      }
+    else
+      {
+      clNodeCacheCapabilitySet(clAspLocalId,1,CL_NODE_CACHE_CAP_ASSIGN);
+      }
 #endif // __TEST
-  GroupMessageHandler *groupMessageHandler = new GroupMessageHandler();
-  GroupServer::groupMsgServer = new SAFplus::SafplusMsgServer(CL_IOC_GMS_PORT);
-  GroupServer::groupMsgServer->RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, NULL);
-  GroupServer::groupMsgServer->Start();
-  /* Initialize notification callback */
-  clIocNotificationRegister(iocNotificationCallback,NULL);
-  while(!GroupServer::getInstance()->finished)
-  {
-    ;
-  }
-  GroupServer::groupMsgServer->Stop();
-  GroupServer::groupMsgServer->RemoveHandler(CL_IOC_PROTO_MSG);
-  clIocNotificationDeregister(iocNotificationCallback);
-  logInfo("GMS","SERVER","Task stopped");
-  GroupServer::finalizeLibraries();
-  return NULL;
-}
+    GroupMessageHandler *groupMessageHandler = new GroupMessageHandler();
+    GroupServer::groupMsgServer = new SAFplus::SafplusMsgServer(CL_IOC_GMS_PORT);
+    GroupServer::groupMsgServer->RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, NULL);
+    GroupServer::groupMsgServer->Start();
+    /* Initialize notification callback */
+    clIocNotificationRegister(iocNotificationCallback,NULL);
+    while(!GroupServer::getInstance()->finished)
+      {
+      ;
+      }
+    GroupServer::groupMsgServer->Stop();
+    GroupServer::groupMsgServer->RemoveHandler(CL_IOC_PROTO_MSG);
+    clIocNotificationDeregister(iocNotificationCallback);
+    logInfo("GMS","SERVER","Task stopped");
+    GroupServer::finalizeLibraries();
+    }
+  };
+  
 /* The API for user to create and start Group Server */
 void GroupServer::clGrpStartServer()
 {
   finished = CL_FALSE;
+#if 0
   ClRcT rc = clOsalTaskCreateDetached("gms_service",CL_OSAL_SCHED_OTHER,CL_OSAL_THREAD_PRI_NOT_APPLICABLE,4096,gmsServiceThread,NULL);
   if(CL_OK != rc)
   {
     logError("GMS","SERVER","Error in creating Group Server task");
     CL_ASSERT(0);
   }
+#endif
+  serviceThread = boost::thread(GmsServiceThread());
+  
   logInfo("GMS","SERVER","Task started");
 }
 /* The API for user to stop group server */

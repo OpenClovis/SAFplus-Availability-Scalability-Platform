@@ -23,13 +23,13 @@ SAFPLUS_LIBS := clGroupServer clName clMgt7 clIoc7 clGroup clUtils7 clOsal7 clCk
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-LINK_STD_LIBS := -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -lxml2 -L$(MGT_SRC_DIR)/3rdparty/build/lib -lstdc++ -lm $(LINK_STD_LIBS)
+LINK_STD_LIBS := -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lstdc++ -lm $(LINK_STD_LIBS)
 #-L$(SAFPLUS_TOOLCHAIN_DIR)/lib -L$(SAFPLUS_SDK_TARGET)/lib
 
 all: $(TEST_DIR)/testGroupServer $(TEST_DIR)/testGroup
 
-$(TEST_DIR)/testGroupServer: $(OBJ_DIR)/testGroupServer.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $+  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
+$(TEST_DIR)/testGroupServer: $(OBJ_DIR)/testGroupServer.o $(SAFPLUS_DEP_LIBS) Makefile
+	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 $(TEST_DIR)/testGroup: $(OBJ_DIR)/testGroup.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 

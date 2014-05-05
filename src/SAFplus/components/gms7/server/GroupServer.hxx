@@ -3,6 +3,7 @@
 
 // Standard includes
 #include <string>
+#include <boost/thread.hpp>
 
 // SAFplus includes
 #include <clHandleApi.hxx>
@@ -76,6 +77,7 @@ namespace SAFplusI
       ClBoolT                      isElectTimerRunning;
       ClBoolT                      finished;
     protected:
+      boost::thread serviceThread;
       static GroupServer* instance;
       GroupServer();
       ~GroupServer();

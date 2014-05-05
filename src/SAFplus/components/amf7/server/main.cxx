@@ -221,14 +221,18 @@ int parseArgs(int argc, char* argv[])
             }
           break;
         case 'l':   
-          rc = cpmStrToInt(optarg, &clAspLocalId);
-          if (CL_OK != rc) 
-            {
-            logError("AMF","BOOT", "[%s] is not a valid slot id, ", optarg);
-            return -1;
-            }                
-          ++nargs;
-          break;
+        {
+        ClUint32T temp=0;
+        rc = cpmStrToInt(optarg, &temp);
+        SAFplus::ASP_NODEADDR = temp;
+          
+        if (CL_OK != rc) 
+          {
+          logError("AMF","BOOT", "[%s] is not a valid slot id, ", optarg);
+          return -1;
+          }                
+        ++nargs;
+        } break;
         case 'n':
           strncpy(SAFplus::ASP_NODENAME, optarg, CL_MAX_NAME_LENGTH-1);
           strncpy(::ASP_NODENAME, optarg, CL_MAX_NAME_LENGTH-1);
@@ -273,6 +277,7 @@ int main(int argc, char* argv[])
     assert(0);
     }
 
+  clAspLocalId  = SAFplus::ASP_NODEADDR;  // remove clAspLocalId
   rc = clIocLibInitialize(NULL);
   assert(rc==CL_OK);
 
@@ -321,6 +326,7 @@ int main(int argc, char* argv[])
     }
 
   clusterGroup.registerEntity(myHandle, credential, (void*) &clusterGroupData, sizeof(ClusterGroupData),capabilities);
+  logInfo("AMF","HDL", "I AM [%lx:%lx]", myHandle.id[0],myHandle.id[1]);
 
   std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs;
   activeStandbyPairs.first = clusterGroup.getActive();

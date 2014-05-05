@@ -25,7 +25,7 @@ LINK_SO_LIBS += -lboost_thread
 all: $(LIB_DIR)/libclIoc7.so
 
 $(LIB_DIR)/libclIoc7.so: $(CLIENT_OBJ_IOC) $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(CLIENT_OBJ_IOC) $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(CLIENT_OBJ_IOC) $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS)
 
 $(MWOBJ_DIR)/%.o: ../../ioc/client/%.c Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

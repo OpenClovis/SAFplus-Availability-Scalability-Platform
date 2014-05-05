@@ -43,7 +43,7 @@ ClBoolT SYSTEM_CONTROLLER = CL_FALSE;
 /** Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.  */
 ClBoolT ASP_SC_PROMOTE = CL_FALSE;
 
-  pid_t pid = 0;
+pid_t pid = 0;
   /** True if this component is not under AMF control (will not receive CSI callbacks) */
 bool clWithoutAmf;
 
@@ -437,7 +437,7 @@ bool clVersionVerify (ClVersionDatabaseT *versionDatabase, ClVersionT *version)
   Handle Handle::create(void)
   {
     // TODO: mutex lock around this
-    Handle hdl(PersistentHandle,curHandleIdx++,pid); // TODO node and clusterId
+    Handle hdl(PersistentHandle,curHandleIdx++,pid,ASP_NODEADDR); // TODO node and clusterId
     return hdl;
   }
 
