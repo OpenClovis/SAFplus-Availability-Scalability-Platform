@@ -22,8 +22,6 @@ namespace SAFplusAmf
         MGT_REGISTER(NumStandbyServiceInstances);
 
     public:
-
-    public:
         NumStandbyServiceInstances();
         std::vector<std::string>* getChildNames();
         ~NumStandbyServiceInstances();

@@ -22,8 +22,6 @@ namespace SAFplusTypes
         MGT_REGISTER(CpuUtilization);
 
     public:
-
-    public:
         CpuUtilization();
         std::vector<std::string>* getChildNames();
         ~CpuUtilization();

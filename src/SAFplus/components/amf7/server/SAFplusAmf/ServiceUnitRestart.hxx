@@ -22,8 +22,6 @@ namespace SAFplusAmf
         MGT_REGISTER(ServiceUnitRestart);
 
     public:
-
-    public:
         ServiceUnitRestart();
         std::vector<std::string>* getChildNames();
         ~ServiceUnitRestart();

@@ -22,8 +22,6 @@ namespace SAFplusAmf
         MGT_REGISTER(RestartCount);
 
     public:
-
-    public:
         RestartCount();
         std::vector<std::string>* getChildNames();
         ~RestartCount();

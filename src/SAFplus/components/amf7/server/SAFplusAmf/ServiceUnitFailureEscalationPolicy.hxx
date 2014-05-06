@@ -22,8 +22,6 @@ namespace SAFplusAmf
         MGT_REGISTER(ServiceUnitFailureEscalationPolicy);
 
     public:
-
-    public:
         ServiceUnitFailureEscalationPolicy();
         std::vector<std::string>* getChildNames();
         ~ServiceUnitFailureEscalationPolicy();

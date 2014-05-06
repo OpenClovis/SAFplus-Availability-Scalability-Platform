@@ -22,8 +22,6 @@ namespace SAFplusTypes
         MGT_REGISTER(Failures);
 
     public:
-
-    public:
         Failures();
         std::vector<std::string>* getChildNames();
         ~Failures();

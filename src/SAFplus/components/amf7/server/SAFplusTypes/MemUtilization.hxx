@@ -22,8 +22,6 @@ namespace SAFplusTypes
         MGT_REGISTER(MemUtilization);
 
     public:
-
-    public:
         MemUtilization();
         std::vector<std::string>* getChildNames();
         ~MemUtilization();

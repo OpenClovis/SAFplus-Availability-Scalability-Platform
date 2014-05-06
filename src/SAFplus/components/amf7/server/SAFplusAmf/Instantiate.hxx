@@ -22,8 +22,6 @@ namespace SAFplusAmf
         MGT_REGISTER(Instantiate);
 
     public:
-
-    public:
         Instantiate();
         std::vector<std::string>* getChildNames();
         ~Instantiate();

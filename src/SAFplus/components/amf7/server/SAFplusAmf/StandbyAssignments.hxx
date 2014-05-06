@@ -22,8 +22,6 @@ namespace SAFplusAmf
         MGT_REGISTER(StandbyAssignments);
 
     public:
-
-    public:
         StandbyAssignments();
         std::vector<std::string>* getChildNames();
         ~StandbyAssignments();

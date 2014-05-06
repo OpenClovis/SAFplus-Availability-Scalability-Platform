@@ -22,8 +22,6 @@ namespace SAFplusAmf
         MGT_REGISTER(NumAssignedServiceUnits);
 
     public:
-
-    public:
         NumAssignedServiceUnits();
         std::vector<std::string>* getChildNames();
         ~NumAssignedServiceUnits();

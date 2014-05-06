@@ -22,8 +22,6 @@ namespace SAFplusTypes
         MGT_REGISTER(Val);
 
     public:
-
-    public:
         Val();
         std::vector<std::string>* getChildNames();
         ~Val();

@@ -23,8 +23,6 @@ namespace SAFplusTypes
 
     class ProcessStats : public SAFplus::ClMgtObject {
     public:
-
-    public:
         ProcessStats();
         std::vector<std::string>* getChildNames();
 

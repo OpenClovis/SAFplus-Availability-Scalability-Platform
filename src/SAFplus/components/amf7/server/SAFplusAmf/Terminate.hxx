@@ -22,8 +22,6 @@ namespace SAFplusAmf
         MGT_REGISTER(Terminate);
 
     public:
-
-    public:
         Terminate();
         std::vector<std::string>* getChildNames();
         ~Terminate();

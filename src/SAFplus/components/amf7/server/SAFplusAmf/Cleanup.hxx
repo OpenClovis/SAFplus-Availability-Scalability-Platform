@@ -22,8 +22,6 @@ namespace SAFplusAmf
         MGT_REGISTER(Cleanup);
 
     public:
-
-    public:
         Cleanup();
         std::vector<std::string>* getChildNames();
         ~Cleanup();

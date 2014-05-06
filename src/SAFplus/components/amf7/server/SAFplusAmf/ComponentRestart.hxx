@@ -22,8 +22,6 @@ namespace SAFplusAmf
         MGT_REGISTER(ComponentRestart);
 
     public:
-
-    public:
         ComponentRestart();
         std::vector<std::string>* getChildNames();
         ~ComponentRestart();
