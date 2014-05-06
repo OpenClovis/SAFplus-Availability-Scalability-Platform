@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "EscalationPolicy.hxx"
 #include "ComponentRestart.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ComponentRestart, /SAFplusAmf/ServiceGroup/componentRestart)
 
-    ComponentRestart::ComponentRestart(): SAFplus::ClMgtObject("componentRestart")
+    ComponentRestart::ComponentRestart()
     {
     };
 

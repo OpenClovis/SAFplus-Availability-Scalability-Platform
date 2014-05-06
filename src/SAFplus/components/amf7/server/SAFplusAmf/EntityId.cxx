@@ -5,19 +5,15 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
+#include <vector>
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
 #include <string>
 #include "EntityId.hxx"
 
 
 namespace SAFplusAmf
   {
-
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(EntityId, /EntityId)
 
     EntityId::EntityId(): SAFplus::ClMgtObject("EntityId"), name("name"), id("id")
     {

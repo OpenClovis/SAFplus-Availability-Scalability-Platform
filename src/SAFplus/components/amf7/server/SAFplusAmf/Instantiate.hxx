@@ -9,14 +9,14 @@
 #define INSTANTIATE_HXX_
 #include "SAFplusAmfCommon.hxx"
 
+#include "Execution.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
 
 namespace SAFplusAmf
   {
 
-    class Instantiate : public SAFplus::ClMgtObject {
+    class Instantiate : public Execution {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Instantiate);

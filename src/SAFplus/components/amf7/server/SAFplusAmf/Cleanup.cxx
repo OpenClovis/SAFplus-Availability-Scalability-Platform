@@ -5,9 +5,9 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
+#include "Execution.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
 #include "Cleanup.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Cleanup, /SAFplusAmf/Component/cleanup)
 
-    Cleanup::Cleanup(): SAFplus::ClMgtObject("cleanup")
+    Cleanup::Cleanup()
     {
     };
 

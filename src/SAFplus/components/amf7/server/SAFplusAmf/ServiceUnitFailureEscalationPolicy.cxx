@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "EscalationPolicy.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceUnitFailureEscalationPolicy, /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy)
 
-    ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy(): SAFplus::ClMgtObject("serviceUnitFailureEscalationPolicy")
+    ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy()
     {
     };
 

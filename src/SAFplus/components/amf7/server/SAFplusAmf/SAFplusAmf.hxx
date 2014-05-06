@@ -9,12 +9,12 @@
 #define SAFPLUSAMFROOT_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
 #include "clMgtList.hxx"
+#include <vector>
 #include "MgtFactory.hxx"
+#include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "SaTimeT.hxx"
-#include <vector>
 
 namespace SAFplusAmf
   {
@@ -109,8 +109,6 @@ namespace SAFplusAmf
         ~SAFplusAmfRoot();
 
     };
-  };
-
-
+}
 /* namespace SAFplusAmf */
 #endif /* SAFPLUSAMFROOT_HXX_ */

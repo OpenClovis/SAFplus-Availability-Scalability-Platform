@@ -9,7 +9,7 @@
 #define COMPONENTSERVICEINSTANCE_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
 #include "Data.hxx"
@@ -17,14 +17,14 @@
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "EntityId.hxx"
 #include "Data.hxx"
-#include <string>
 #include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
   {
 
-    class ComponentServiceInstance : public SAFplus::ClMgtObject {
+    class ComponentServiceInstance : public EntityId {
 
         /* Apply MGT object factory */
         MGT_REGISTER(ComponentServiceInstance);

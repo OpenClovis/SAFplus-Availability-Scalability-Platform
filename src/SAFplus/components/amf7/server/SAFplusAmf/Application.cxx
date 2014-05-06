@@ -6,15 +6,15 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "NumServiceGroups.hxx"
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "NumServiceGroups.hxx"
 #include "AdministrativeState.hxx"
+#include "EntityId.hxx"
 #include "clMgtProvList.hxx"
-#include <string>
 #include "Application.hxx"
 
 
@@ -24,7 +24,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Application, /SAFplusAmf/Application)
 
-    Application::Application(): SAFplus::ClMgtObject("Application"), name("name"), id("id"), adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
+    Application::Application(): name("name"), id("id"), adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
@@ -34,7 +34,7 @@ namespace SAFplusAmf
         this->addKey("name");
     };
 
-    Application::Application(std::string nameValue): SAFplus::ClMgtObject("Application"), name("name"), id("id"), adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
+    Application::Application(std::string nameValue): name("name"), id("id"), adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
         this->name.Value =  nameValue;
         this->addKey("name");

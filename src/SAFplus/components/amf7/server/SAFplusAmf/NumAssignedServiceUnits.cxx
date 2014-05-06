@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "IntStatistic.hxx"
 #include "NumAssignedServiceUnits.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(NumAssignedServiceUnits, /SAFplusAmf/ServiceGroup/numAssignedServiceUnits)
 
-    NumAssignedServiceUnits::NumAssignedServiceUnits(): SAFplus::ClMgtObject("numAssignedServiceUnits")
+    NumAssignedServiceUnits::NumAssignedServiceUnits()
     {
     };
 

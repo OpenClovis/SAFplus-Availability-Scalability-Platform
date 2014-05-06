@@ -5,11 +5,11 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include "Capacity.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include <string>
 #include "StandbyWeight.hxx"
 
 
@@ -19,14 +19,14 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(StandbyWeight, /SAFplusAmf/ServiceInstance/standbyWeight)
 
-    StandbyWeight::StandbyWeight(): SAFplus::ClMgtObject("standbyWeight"), resource("resource"), value("value")
+    StandbyWeight::StandbyWeight(): resource("resource"), value("value")
     {
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
         this->addKey("resource");
     };
 
-    StandbyWeight::StandbyWeight(std::string resourceValue): SAFplus::ClMgtObject("standbyWeight"), resource("resource"), value("value")
+    StandbyWeight::StandbyWeight(std::string resourceValue): resource("resource"), value("value")
     {
         this->resource.Value =  resourceValue;
         this->addKey("resource");

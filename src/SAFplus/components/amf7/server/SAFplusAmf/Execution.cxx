@@ -5,19 +5,15 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
+#include <vector>
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
 #include <string>
 #include "Execution.hxx"
 
 
 namespace SAFplusAmf
   {
-
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Execution, /execution)
 
     Execution::Execution(): SAFplus::ClMgtObject("execution"), command("command"), args("args"), timeout("timeout")
     {

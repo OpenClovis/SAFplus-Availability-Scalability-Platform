@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "IntStatistic.hxx"
 #include "NumSpareServiceUnits.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(NumSpareServiceUnits, /SAFplusAmf/ServiceGroup/numSpareServiceUnits)
 
-    NumSpareServiceUnits::NumSpareServiceUnits(): SAFplus::ClMgtObject("numSpareServiceUnits")
+    NumSpareServiceUnits::NumSpareServiceUnits()
     {
     };
 

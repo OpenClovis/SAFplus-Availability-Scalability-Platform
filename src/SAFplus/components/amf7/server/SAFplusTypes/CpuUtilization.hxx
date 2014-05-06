@@ -9,14 +9,14 @@
 #define CPUUTILIZATION_HXX_
 #include "SAFplusTypesCommon.hxx"
 
+#include "DecStatistic.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
 
 namespace SAFplusTypes
   {
 
-    class CpuUtilization : public SAFplus::ClMgtObject {
+    class CpuUtilization : public DecStatistic {
 
         /* Apply MGT object factory */
         MGT_REGISTER(CpuUtilization);

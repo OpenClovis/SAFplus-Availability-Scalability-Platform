@@ -5,19 +5,15 @@
  */ 
 #include "SAFplusTypesCommon.hxx"
 
+#include <vector>
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
 #include "clMgtProvList.hxx"
 #include "DecStatistic.hxx"
 
 
 namespace SAFplusTypes
   {
-
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(DecStatistic, /decStatistic)
 
     DecStatistic::DecStatistic(): SAFplus::ClMgtObject("decStatistic"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month")
     {

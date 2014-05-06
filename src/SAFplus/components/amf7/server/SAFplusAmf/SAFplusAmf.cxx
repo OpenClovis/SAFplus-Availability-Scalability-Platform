@@ -16,76 +16,73 @@
 using namespace SAFplusTypes;
 
 namespace SAFplusAmf
-{
-extern void createTestDataSet(SAFplusAmfRoot* self);
-
-  /* Apply MGT object factory */
-  MGT_REGISTER_IMPL(SAFplusAmfRoot, /SAFplusAmf)
-
-  SAFplusAmfRoot::SAFplusAmfRoot(): SAFplus::ClMgtObject("SAFplusAmfRoot"), healthCheckPeriod("healthCheckPeriod"), healthCheckMaxSilence("healthCheckMaxSilence"), clusterList("Cluster"), nodeList("Node"), serviceGroupList("ServiceGroup"), componentList("Component"), componentServiceInstanceList("ComponentServiceInstance"), serviceInstanceList("ServiceInstance"), serviceUnitList("ServiceUnit"), applicationList("Application"), entityByNameList("EntityByName"), entityByIdList("EntityById")
   {
-    this->addChildObject(&healthCheckPeriod, "healthCheckPeriod");
-    this->addChildObject(&healthCheckMaxSilence, "healthCheckMaxSilence");
-    this->addChildObject(&clusterList, "Cluster");
-    this->addChildObject(&nodeList, "Node");
-    this->addChildObject(&serviceGroupList, "ServiceGroup");
-    this->addChildObject(&componentList, "Component");
-    this->addChildObject(&componentServiceInstanceList, "ComponentServiceInstance");
-    this->addChildObject(&serviceInstanceList, "ServiceInstance");
-    this->addChildObject(&serviceUnitList, "ServiceUnit");
-    this->addChildObject(&applicationList, "Application");
-    this->addChildObject(&entityByNameList, "EntityByName");
-    this->addChildObject(&entityByIdList, "EntityById");
-  };
 
-  std::vector<std::string>* SAFplusAmfRoot::getChildNames()
-  {
-    std::string childNames[] = { "Cluster", "Node", "ServiceGroup", "Component", "ComponentServiceInstance", "ServiceInstance", "ServiceUnit", "Application", "EntityByName", "EntityById", "healthCheckPeriod", "healthCheckMaxSilence" };
-    return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
-  };
+    /* Apply MGT object factory */
+    MGT_REGISTER_IMPL(SAFplusAmfRoot, /SAFplusAmf)
 
-  /*
-   * XPATH: /SAFplusAmf/healthCheckPeriod
-   */
-  SAFplusTypes::SaTimeT SAFplusAmfRoot::getHealthCheckPeriod()
-  {
-    return this->healthCheckPeriod.Value;
-  };
+    SAFplusAmfRoot::SAFplusAmfRoot(): SAFplus::ClMgtObject("SAFplusAmfRoot"), healthCheckPeriod("healthCheckPeriod"), healthCheckMaxSilence("healthCheckMaxSilence"), clusterList("Cluster"), nodeList("Node"), serviceGroupList("ServiceGroup"), componentList("Component"), componentServiceInstanceList("ComponentServiceInstance"), serviceInstanceList("ServiceInstance"), serviceUnitList("ServiceUnit"), applicationList("Application"), entityByNameList("EntityByName"), entityByIdList("EntityById")
+    {
+        this->addChildObject(&healthCheckPeriod, "healthCheckPeriod");
+        this->addChildObject(&healthCheckMaxSilence, "healthCheckMaxSilence");
+        this->addChildObject(&clusterList, "Cluster");
+        this->addChildObject(&nodeList, "Node");
+        this->addChildObject(&serviceGroupList, "ServiceGroup");
+        this->addChildObject(&componentList, "Component");
+        this->addChildObject(&componentServiceInstanceList, "ComponentServiceInstance");
+        this->addChildObject(&serviceInstanceList, "ServiceInstance");
+        this->addChildObject(&serviceUnitList, "ServiceUnit");
+        this->addChildObject(&applicationList, "Application");
+        this->addChildObject(&entityByNameList, "EntityByName");
+        this->addChildObject(&entityByIdList, "EntityById");
+    };
 
-  /*
-   * XPATH: /SAFplusAmf/healthCheckPeriod
-   */
-  void SAFplusAmfRoot::setHealthCheckPeriod(SAFplusTypes::SaTimeT healthCheckPeriodValue)
-  {
-    this->healthCheckPeriod.Value = healthCheckPeriodValue;
-  };
+    std::vector<std::string>* SAFplusAmfRoot::getChildNames()
+    {
+        std::string childNames[] = { "Cluster", "Node", "ServiceGroup", "Component", "ComponentServiceInstance", "ServiceInstance", "ServiceUnit", "Application", "EntityByName", "EntityById", "healthCheckPeriod", "healthCheckMaxSilence" };
+        return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    };
 
-  /*
-   * XPATH: /SAFplusAmf/healthCheckMaxSilence
-   */
-  SAFplusTypes::SaTimeT SAFplusAmfRoot::getHealthCheckMaxSilence()
-  {
-    return this->healthCheckMaxSilence.Value;
-  };
+    /*
+     * XPATH: /SAFplusAmf/healthCheckPeriod
+     */
+    SAFplusTypes::SaTimeT SAFplusAmfRoot::getHealthCheckPeriod()
+    {
+        return this->healthCheckPeriod.Value;
+    };
 
-  /*
-   * XPATH: /SAFplusAmf/healthCheckMaxSilence
-   */
-  void SAFplusAmfRoot::setHealthCheckMaxSilence(SAFplusTypes::SaTimeT healthCheckMaxSilenceValue)
-  {
-    this->healthCheckMaxSilence.Value = healthCheckMaxSilenceValue;
-  };
+    /*
+     * XPATH: /SAFplusAmf/healthCheckPeriod
+     */
+    void SAFplusAmfRoot::setHealthCheckPeriod(SAFplusTypes::SaTimeT healthCheckPeriodValue)
+    {
+        this->healthCheckPeriod.Value = healthCheckPeriodValue;
+    };
 
-  void SAFplusAmfRoot::load(SAFplus::ClMgtDatabase *db)
-  {
-  createTestDataSet(this);
-  
-    /* TODO: */
-  };
+    /*
+     * XPATH: /SAFplusAmf/healthCheckMaxSilence
+     */
+    SAFplusTypes::SaTimeT SAFplusAmfRoot::getHealthCheckMaxSilence()
+    {
+        return this->healthCheckMaxSilence.Value;
+    };
 
-  SAFplusAmfRoot::~SAFplusAmfRoot()
-  {
-  };
+    /*
+     * XPATH: /SAFplusAmf/healthCheckMaxSilence
+     */
+    void SAFplusAmfRoot::setHealthCheckMaxSilence(SAFplusTypes::SaTimeT healthCheckMaxSilenceValue)
+    {
+        this->healthCheckMaxSilence.Value = healthCheckMaxSilenceValue;
+    };
+
+    void SAFplusAmfRoot::load(SAFplus::ClMgtDatabase *db)
+    {
+        /* TODO: */
+    };
+
+    SAFplusAmfRoot::~SAFplusAmfRoot()
+    {
+    };
 
 }
 /* namespace SAFplusAmf */

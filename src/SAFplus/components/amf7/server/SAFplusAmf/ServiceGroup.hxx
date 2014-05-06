@@ -17,7 +17,6 @@
 #include "AdministrativeState.hxx"
 #include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
-#include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "Application.hxx"
 #include "ServiceInstance.hxx"
@@ -28,13 +27,14 @@
 #include "NumAssignedServiceUnits.hxx"
 #include "NumSpareServiceUnits.hxx"
 #include "NumAssignedServiceUnits.hxx"
+#include "EntityId.hxx"
 #include "ServiceUnit.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
   {
 
-    class ServiceGroup : public SAFplus::ClMgtObject {
+    class ServiceGroup : public EntityId {
 
         /* Apply MGT object factory */
         MGT_REGISTER(ServiceGroup);

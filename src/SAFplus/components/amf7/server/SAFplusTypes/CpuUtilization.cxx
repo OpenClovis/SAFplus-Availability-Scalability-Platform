@@ -5,9 +5,9 @@
  */ 
 #include "SAFplusTypesCommon.hxx"
 
+#include "DecStatistic.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
 #include "CpuUtilization.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusTypes
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(CpuUtilization, /SAFplusTypes/processStats/cpuUtilization)
 
-    CpuUtilization::CpuUtilization(): SAFplus::ClMgtObject("cpuUtilization")
+    CpuUtilization::CpuUtilization()
     {
     };
 

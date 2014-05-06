@@ -10,29 +10,29 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "AssignmentState.hxx"
-#include "StandbyWeight.hxx"
+#include <string>
 #include "StandbyWeight.hxx"
 #include "StandbyAssignments.hxx"
 #include "ComponentServiceInstance.hxx"
 #include "clMgtList.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
-#include "AdministrativeState.hxx"
 #include "ActiveWeight.hxx"
-#include <string>
-#include "clMgtObject.hxx"
+#include "AdministrativeState.hxx"
+#include "StandbyWeight.hxx"
+#include "ActiveWeight.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
-#include "ActiveWeight.hxx"
+#include "EntityId.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
   {
 
-    class ServiceInstance : public SAFplus::ClMgtObject {
+    class ServiceInstance : public EntityId {
 
         /* Apply MGT object factory */
         MGT_REGISTER(ServiceInstance);

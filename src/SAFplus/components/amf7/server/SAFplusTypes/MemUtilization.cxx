@@ -5,9 +5,9 @@
  */ 
 #include "SAFplusTypesCommon.hxx"
 
+#include "DecStatistic.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
 #include "MemUtilization.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusTypes
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(MemUtilization, /SAFplusTypes/processStats/memUtilization)
 
-    MemUtilization::MemUtilization(): SAFplus::ClMgtObject("memUtilization")
+    MemUtilization::MemUtilization()
     {
     };
 

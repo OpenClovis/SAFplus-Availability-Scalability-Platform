@@ -11,11 +11,10 @@
 
 #include "clMgtObject.hxx"
 #include "MemUtilization.hxx"
-#include "CpuUtilization.hxx"
 #include "MemUtilization.hxx"
 #include "Failures.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
+#include "CpuUtilization.hxx"
 #include "Failures.hxx"
 #include "CpuUtilization.hxx"
 
@@ -23,10 +22,6 @@ namespace SAFplusTypes
   {
 
     class ProcessStats : public SAFplus::ClMgtObject {
-
-        /* Apply MGT object factory */
-        MGT_REGISTER(ProcessStats);
-
     public:
 
     public:

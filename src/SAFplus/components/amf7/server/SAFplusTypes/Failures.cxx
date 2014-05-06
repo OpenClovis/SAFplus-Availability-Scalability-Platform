@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "IntStatistic.hxx"
 #include "Failures.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusTypes
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Failures, /SAFplusTypes/processStats/failures)
 
-    Failures::Failures(): SAFplus::ClMgtObject("failures")
+    Failures::Failures()
     {
     };
 

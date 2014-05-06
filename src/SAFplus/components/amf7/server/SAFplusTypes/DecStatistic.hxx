@@ -9,20 +9,15 @@
 #define DECSTATISTIC_HXX_
 #include "SAFplusTypesCommon.hxx"
 
+#include <vector>
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusTypes
   {
 
     class DecStatistic : public SAFplus::ClMgtObject {
-
-        /* Apply MGT object factory */
-        MGT_REGISTER(DecStatistic);
-
     public:
         SAFplus::ClMgtProv<long> current;
         SAFplus::ClMgtProvList<long> history10sec;

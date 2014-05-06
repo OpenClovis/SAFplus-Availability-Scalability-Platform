@@ -11,12 +11,12 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "EscalationPolicy.hxx"
 
 namespace SAFplusAmf
   {
 
-    class ComponentRestart : public SAFplus::ClMgtObject {
+    class ComponentRestart : public EscalationPolicy {
 
         /* Apply MGT object factory */
         MGT_REGISTER(ComponentRestart);

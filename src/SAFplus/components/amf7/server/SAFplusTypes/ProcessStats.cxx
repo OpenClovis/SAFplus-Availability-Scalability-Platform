@@ -7,11 +7,10 @@
 
 #include "clMgtObject.hxx"
 #include "MemUtilization.hxx"
-#include "CpuUtilization.hxx"
 #include "MemUtilization.hxx"
 #include "Failures.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
+#include "CpuUtilization.hxx"
 #include "Failures.hxx"
 #include "CpuUtilization.hxx"
 #include "ProcessStats.hxx"
@@ -19,9 +18,6 @@
 
 namespace SAFplusTypes
   {
-
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ProcessStats, /processStats)
 
     ProcessStats::ProcessStats(): SAFplus::ClMgtObject("processStats")
     {

@@ -9,16 +9,16 @@
 #define STANDBYWEIGHT_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include "Capacity.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include <string>
 
 namespace SAFplusAmf
   {
 
-    class StandbyWeight : public SAFplus::ClMgtObject {
+    class StandbyWeight : public Capacity {
 
         /* Apply MGT object factory */
         MGT_REGISTER(StandbyWeight);

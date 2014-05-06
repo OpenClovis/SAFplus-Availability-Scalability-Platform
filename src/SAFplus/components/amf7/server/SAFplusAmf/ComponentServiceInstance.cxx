@@ -5,7 +5,7 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
 #include "Data.hxx"
@@ -13,8 +13,8 @@
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "EntityId.hxx"
 #include "Data.hxx"
-#include <string>
 #include "clMgtProvList.hxx"
 #include "ComponentServiceInstance.hxx"
 
@@ -25,7 +25,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ComponentServiceInstance, /SAFplusAmf/ComponentServiceInstance)
 
-    ComponentServiceInstance::ComponentServiceInstance(): SAFplus::ClMgtObject("ComponentServiceInstance"), name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
+    ComponentServiceInstance::ComponentServiceInstance(): name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
@@ -37,7 +37,7 @@ namespace SAFplusAmf
         this->addKey("name");
     };
 
-    ComponentServiceInstance::ComponentServiceInstance(std::string nameValue): SAFplus::ClMgtObject("ComponentServiceInstance"), name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
+    ComponentServiceInstance::ComponentServiceInstance(std::string nameValue): name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
     {
         this->name.Value =  nameValue;
         this->addKey("name");

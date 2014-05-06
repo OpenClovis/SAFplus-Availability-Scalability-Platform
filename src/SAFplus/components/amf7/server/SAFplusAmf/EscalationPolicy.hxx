@@ -9,20 +9,15 @@
 #define ESCALATIONPOLICY_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
 #include "SaTimeT.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
+#include "clMgtObject.hxx"
+#include "clMgtProv.hxx"
 
 namespace SAFplusAmf
   {
 
     class EscalationPolicy : public SAFplus::ClMgtObject {
-
-        /* Apply MGT object factory */
-        MGT_REGISTER(EscalationPolicy);
-
     public:
 
         /*

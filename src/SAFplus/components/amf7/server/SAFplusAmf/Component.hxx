@@ -10,7 +10,8 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "RestartCount.hxx"
-#include "Recovery.hxx"
+#include <string>
+#include "HighAvailabilityReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
 #include "Instantiate.hxx"
@@ -21,26 +22,25 @@
 #include "ActiveAssignments.hxx"
 #include "CapabilityModel.hxx"
 #include "Cleanup.hxx"
-#include <string>
+#include "Recovery.hxx"
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
-#include "clMgtObject.hxx"
 #include "Instantiate.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
-#include "HighAvailabilityReadinessState.hxx"
+#include "Terminate.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
+#include "EntityId.hxx"
 #include "ServiceUnit.hxx"
-#include "Terminate.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
   {
 
-    class Component : public SAFplus::ClMgtObject {
+    class Component : public EntityId {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Component);

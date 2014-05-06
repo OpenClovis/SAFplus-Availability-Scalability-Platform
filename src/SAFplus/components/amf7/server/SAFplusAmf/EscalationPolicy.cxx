@@ -5,20 +5,16 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
 #include "SaTimeT.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
+#include "clMgtObject.hxx"
+#include "clMgtProv.hxx"
 #include "EscalationPolicy.hxx"
 
 using namespace SAFplusTypes;
 
 namespace SAFplusAmf
   {
-
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(EscalationPolicy, /EscalationPolicy)
 
     EscalationPolicy::EscalationPolicy(): SAFplus::ClMgtObject("EscalationPolicy"), maximum("maximum"), duration("duration")
     {

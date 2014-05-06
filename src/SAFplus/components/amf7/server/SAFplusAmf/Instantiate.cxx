@@ -5,9 +5,9 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
+#include "Execution.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
 #include "Instantiate.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Instantiate, /SAFplusAmf/Component/instantiate)
 
-    Instantiate::Instantiate(): SAFplus::ClMgtObject("instantiate")
+    Instantiate::Instantiate()
     {
     };
 

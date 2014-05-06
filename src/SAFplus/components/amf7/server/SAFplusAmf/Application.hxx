@@ -10,20 +10,20 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "NumServiceGroups.hxx"
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "NumServiceGroups.hxx"
 #include "AdministrativeState.hxx"
+#include "EntityId.hxx"
 #include "clMgtProvList.hxx"
-#include <string>
 
 namespace SAFplusAmf
   {
 
-    class Application : public SAFplus::ClMgtObject {
+    class Application : public EntityId {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Application);

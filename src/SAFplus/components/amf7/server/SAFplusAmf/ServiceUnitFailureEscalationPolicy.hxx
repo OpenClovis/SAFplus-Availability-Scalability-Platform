@@ -11,12 +11,12 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "EscalationPolicy.hxx"
 
 namespace SAFplusAmf
   {
 
-    class ServiceUnitFailureEscalationPolicy : public SAFplus::ClMgtObject {
+    class ServiceUnitFailureEscalationPolicy : public EscalationPolicy {
 
         /* Apply MGT object factory */
         MGT_REGISTER(ServiceUnitFailureEscalationPolicy);

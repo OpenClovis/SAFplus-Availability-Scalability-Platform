@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "IntStatistic.hxx"
 #include "ActiveAssignments.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ActiveAssignments, /SAFplusAmf/ServiceInstance/activeAssignments)
 
-    ActiveAssignments::ActiveAssignments(): SAFplus::ClMgtObject("activeAssignments")
+    ActiveAssignments::ActiveAssignments()
     {
     };
 

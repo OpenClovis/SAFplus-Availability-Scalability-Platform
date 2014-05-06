@@ -20,7 +20,6 @@
 #include "NumStandbyServiceInstances.hxx"
 #include "ReadinessState.hxx"
 #include "NumActiveServiceInstances.hxx"
-#include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
 #include "HighAvailabilityReadinessState.hxx"
@@ -28,13 +27,14 @@
 #include <vector>
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
+#include "EntityId.hxx"
 #include "NumStandbyServiceInstances.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
   {
 
-    class ServiceUnit : public SAFplus::ClMgtObject {
+    class ServiceUnit : public EntityId {
 
         /* Apply MGT object factory */
         MGT_REGISTER(ServiceUnit);

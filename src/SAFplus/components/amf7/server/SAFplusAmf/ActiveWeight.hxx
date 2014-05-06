@@ -9,16 +9,16 @@
 #define ACTIVEWEIGHT_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include "Capacity.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include <string>
 
 namespace SAFplusAmf
   {
 
-    class ActiveWeight : public SAFplus::ClMgtObject {
+    class ActiveWeight : public Capacity {
 
         /* Apply MGT object factory */
         MGT_REGISTER(ActiveWeight);

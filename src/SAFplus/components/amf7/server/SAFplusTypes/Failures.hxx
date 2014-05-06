@@ -11,12 +11,12 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "IntStatistic.hxx"
 
 namespace SAFplusTypes
   {
 
-    class Failures : public SAFplus::ClMgtObject {
+    class Failures : public IntStatistic {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Failures);

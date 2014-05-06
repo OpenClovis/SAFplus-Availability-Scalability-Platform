@@ -5,13 +5,13 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include "SaTimeT.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
-#include <string>
+#include "EntityId.hxx"
 #include "Cluster.hxx"
 
 using namespace SAFplusTypes;
@@ -22,7 +22,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Cluster, /SAFplusAmf/Cluster)
 
-    Cluster::Cluster(): SAFplus::ClMgtObject("Cluster"), name("name"), id("id"), adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
+    Cluster::Cluster(): name("name"), id("id"), adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
@@ -31,7 +31,7 @@ namespace SAFplusAmf
         this->addKey("name");
     };
 
-    Cluster::Cluster(std::string nameValue): SAFplus::ClMgtObject("Cluster"), name("name"), id("id"), adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
+    Cluster::Cluster(std::string nameValue): name("name"), id("id"), adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
     {
         this->name.Value =  nameValue;
         this->addKey("name");

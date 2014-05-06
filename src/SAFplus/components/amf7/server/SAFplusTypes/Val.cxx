@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "IntStatistic.hxx"
 #include "Val.hxx"
 
 
@@ -17,7 +17,7 @@ namespace SAFplusTypes
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Val, /SAFplusTypes/sensor/val)
 
-    Val::Val(): SAFplus::ClMgtObject("val")
+    Val::Val()
     {
     };
 

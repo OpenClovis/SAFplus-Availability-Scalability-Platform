@@ -9,14 +9,14 @@
 #define MEMUTILIZATION_HXX_
 #include "SAFplusTypesCommon.hxx"
 
+#include "DecStatistic.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
 
 namespace SAFplusTypes
   {
 
-    class MemUtilization : public SAFplus::ClMgtObject {
+    class MemUtilization : public DecStatistic {
 
         /* Apply MGT object factory */
         MGT_REGISTER(MemUtilization);

@@ -9,14 +9,14 @@
 #define CLEANUP_HXX_
 #include "SAFplusAmfCommon.hxx"
 
+#include "Execution.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
 
 namespace SAFplusAmf
   {
 
-    class Cleanup : public SAFplus::ClMgtObject {
+    class Cleanup : public Execution {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Cleanup);

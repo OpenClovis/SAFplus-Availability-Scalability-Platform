@@ -9,20 +9,15 @@
 #define ENTITYID_HXX_
 #include "SAFplusAmfCommon.hxx"
 
+#include <vector>
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
 #include <string>
 
 namespace SAFplusAmf
   {
 
     class EntityId : public SAFplus::ClMgtObject {
-
-        /* Apply MGT object factory */
-        MGT_REGISTER(EntityId);
-
     public:
 
         /*

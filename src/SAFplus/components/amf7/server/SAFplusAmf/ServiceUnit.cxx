@@ -16,7 +16,6 @@
 #include "NumStandbyServiceInstances.hxx"
 #include "ReadinessState.hxx"
 #include "NumActiveServiceInstances.hxx"
-#include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
 #include "HighAvailabilityReadinessState.hxx"
@@ -24,6 +23,7 @@
 #include <vector>
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
+#include "EntityId.hxx"
 #include "NumStandbyServiceInstances.hxx"
 #include "clMgtProvList.hxx"
 #include "ServiceUnit.hxx"
@@ -35,7 +35,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceUnit, /SAFplusAmf/ServiceUnit)
 
-    ServiceUnit::ServiceUnit(): SAFplus::ClMgtObject("ServiceUnit"), name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup")
+    ServiceUnit::ServiceUnit(): name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
@@ -56,7 +56,7 @@ namespace SAFplusAmf
         this->addKey("name");
     };
 
-    ServiceUnit::ServiceUnit(std::string nameValue): SAFplus::ClMgtObject("ServiceUnit"), name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup")
+    ServiceUnit::ServiceUnit(std::string nameValue): name("name"), id("id"), adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup")
     {
         this->name.Value =  nameValue;
         this->addKey("name");

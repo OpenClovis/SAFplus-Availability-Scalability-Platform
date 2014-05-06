@@ -9,20 +9,15 @@
 #define INTSTATISTIC_HXX_
 #include "SAFplusTypesCommon.hxx"
 
+#include <vector>
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusTypes
   {
 
     class IntStatistic : public SAFplus::ClMgtObject {
-
-        /* Apply MGT object factory */
-        MGT_REGISTER(IntStatistic);
-
     public:
         SAFplus::ClMgtProv<unsigned long int> current;
         SAFplus::ClMgtProvList<unsigned long int> history10sec;

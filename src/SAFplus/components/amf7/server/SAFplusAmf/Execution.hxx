@@ -9,20 +9,15 @@
 #define EXECUTION_HXX_
 #include "SAFplusAmfCommon.hxx"
 
+#include <vector>
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
 #include <string>
 
 namespace SAFplusAmf
   {
 
     class Execution : public SAFplus::ClMgtObject {
-
-        /* Apply MGT object factory */
-        MGT_REGISTER(Execution);
-
     public:
 
         /*

@@ -11,7 +11,7 @@
 
 #include <vector>
 #include "Capacity.hxx"
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include "Capacity.hxx"
 #include "clMgtList.hxx"
@@ -20,13 +20,13 @@
 #include "AdministrativeState.hxx"
 #include "clMgtProvList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
-#include <string>
+#include "EntityId.hxx"
 #include "ServiceUnit.hxx"
 
 namespace SAFplusAmf
   {
 
-    class Node : public SAFplus::ClMgtObject {
+    class Node : public EntityId {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Node);

@@ -6,23 +6,23 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "AssignmentState.hxx"
-#include "StandbyWeight.hxx"
+#include <string>
 #include "StandbyWeight.hxx"
 #include "StandbyAssignments.hxx"
 #include "ComponentServiceInstance.hxx"
 #include "clMgtList.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
-#include "AdministrativeState.hxx"
 #include "ActiveWeight.hxx"
-#include <string>
-#include "clMgtObject.hxx"
+#include "AdministrativeState.hxx"
+#include "StandbyWeight.hxx"
+#include "ActiveWeight.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
-#include "ActiveWeight.hxx"
+#include "EntityId.hxx"
 #include "clMgtProvList.hxx"
 #include "ServiceInstance.hxx"
 
@@ -33,7 +33,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceInstance, /SAFplusAmf/ServiceInstance)
 
-    ServiceInstance::ServiceInstance(): SAFplus::ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(): name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
@@ -47,7 +47,7 @@ namespace SAFplusAmf
         this->addKey("name");
     };
 
-    ServiceInstance::ServiceInstance(std::string nameValue): SAFplus::ClMgtObject("ServiceInstance"), name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(std::string nameValue): name("name"), id("id"), adminState("adminState"), assignmentState("assignmentState"), rank("rank"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
         this->name.Value =  nameValue;
         this->addKey("name");

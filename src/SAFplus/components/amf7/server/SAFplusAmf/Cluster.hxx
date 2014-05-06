@@ -9,18 +9,18 @@
 #define CLUSTER_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include "SaTimeT.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
-#include <string>
+#include "EntityId.hxx"
 
 namespace SAFplusAmf
   {
 
-    class Cluster : public SAFplus::ClMgtObject {
+    class Cluster : public EntityId {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Cluster);

@@ -11,12 +11,12 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "IntStatistic.hxx"
 
 namespace SAFplusAmf
   {
 
-    class NumStandbyServiceInstances : public SAFplus::ClMgtObject {
+    class NumStandbyServiceInstances : public SAFplusTypes::IntStatistic {
 
         /* Apply MGT object factory */
         MGT_REGISTER(NumStandbyServiceInstances);

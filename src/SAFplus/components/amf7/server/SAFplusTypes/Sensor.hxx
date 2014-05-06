@@ -11,7 +11,6 @@
 
 #include "Val.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
 #include "clMgtObject.hxx"
 #include "Val.hxx"
 #include "clMgtProv.hxx"
@@ -21,10 +20,6 @@ namespace SAFplusTypes
   {
 
     class Sensor : public SAFplus::ClMgtObject {
-
-        /* Apply MGT object factory */
-        MGT_REGISTER(Sensor);
-
     public:
         SAFplus::ClMgtProv<std::string> name;
         SAFplus::ClMgtProv<std::string> desc;
