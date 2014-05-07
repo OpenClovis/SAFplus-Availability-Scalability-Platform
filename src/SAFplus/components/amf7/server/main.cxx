@@ -264,10 +264,11 @@ int main(int argc, char* argv[])
   Mutex m;
   ThreadCondition somethingChanged;
 
-  if (parseArgs(argc,argv)<=0) return -1;
-  
   logInitialize();
   logEchoToFd = 1;  // echo logs to stdout for debugging
+
+  if (parseArgs(argc,argv)<=0) return -1;
+  
   utilsInitialize();
 
   ClRcT rc;

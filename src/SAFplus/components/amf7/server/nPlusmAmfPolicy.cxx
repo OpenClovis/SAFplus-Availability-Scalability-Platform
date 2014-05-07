@@ -52,25 +52,30 @@ namespace SAFplus
         logInfo("N+M","AUDIT","Auditing service group %s", name.c_str());
         if (1) // TODO: figure out if this Policy should control this Service group
           {
+          ClMgtObjectMap::iterator itsu;
           ClMgtObjectMap::iterator endsu = sg->serviceUnits.end();
-          for (itsu = cfg->sg->serviceUnits.begin(); itsu != endsu; itsu++)
+          for (itsu = sg->serviceUnits.begin(); itsu != endsu; itsu++)
             {
             vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) itsu->second;
             int temp = objs->size();
             for(int i = 0; i < temp; i++)
               {
+              std::string suName = itsu->first;
               ServiceUnit* su = dynamic_cast<ServiceUnit*>((*objs)[i]);
+              logInfo("N+M","AUDIT","Auditing su %s", suName.c_str());
 
+              ClMgtObjectMap::iterator itcomp;
               ClMgtObjectMap::iterator endcomp = su->components.end();
-              for (itcomp = su->components.begin(); itcomp != endsu; itcomp++)
+              for (itcomp = su->components.begin(); itcomp != endcomp; itcomp++)
                 {
+                std::string compName = itcomp->first;
+                logInfo("N+M","AUDIT","Auditing comp %s ", compName.c_str());
                 vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) itcomp->second;
                 int temp = objs->size();
                 for(int i = 0; i < temp; i++)
                   {
-                  Component* comp = dynamic_cast<Component*>((*objs)[i]);
-                  
-                  
+                  Component* comp = dynamic_cast<Component*>((*objs)[i]);                  
+                  logInfo("N+M","AUDIT","Auditing component %s", comp->name.Value.c_str());
                   }
                 }
           

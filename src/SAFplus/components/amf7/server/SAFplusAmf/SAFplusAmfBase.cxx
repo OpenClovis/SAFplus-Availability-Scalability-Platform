@@ -22,9 +22,10 @@ namespace SAFplusAmf
     return ret;
     }
 
-  Node* createNode(const char* name, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool failFastOnInstantiationFailure, bool failFastOnCleanupFailure)
+  Node* createNode(const char* nam, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool failFastOnInstantiationFailure, bool failFastOnCleanupFailure)
     {
-    Node* ret = new Node(name);
+    Node* ret = new Node(nam);
+    ret->Name = nam;  // TBD: ctor should set
     ret->id = getAmfId();
     ret->adminState.Value = adminState;
     ret->autoRepair = autoRepair;
@@ -34,9 +35,10 @@ namespace SAFplusAmf
     }
 
 
-  ServiceGroup* createServiceGroup(const char* name, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool autoAdjust, SaTimeT autoAdjustInterval,unsigned int preferredNumActiveServiceUnits,unsigned int preferredNumStandbyServiceUnits,unsigned int preferredNumIdleServiceUnits,unsigned int maxActiveWorkAssignments,unsigned int maxStandbyWorkAssignments )
+  ServiceGroup* createServiceGroup(const char* nam, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool autoAdjust, SaTimeT autoAdjustInterval,unsigned int preferredNumActiveServiceUnits,unsigned int preferredNumStandbyServiceUnits,unsigned int preferredNumIdleServiceUnits,unsigned int maxActiveWorkAssignments,unsigned int maxStandbyWorkAssignments )
     {
-    ServiceGroup* ret = new ServiceGroup(name);
+    ServiceGroup* ret = new ServiceGroup(nam);
+    ret->Name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
     ret->adminState.Value                = adminState;
     ret->autoRepair                      = autoRepair;
@@ -52,26 +54,29 @@ namespace SAFplusAmf
     }
 
 
-  ServiceInstance* createServiceInstance(const char* name, const SAFplusAmf::AdministrativeState& adminState, int rank)
+  ServiceInstance* createServiceInstance(const char* nam, const SAFplusAmf::AdministrativeState& adminState, int rank)
     {
-    ServiceInstance* ret = new ServiceInstance(name);
+    ServiceInstance* ret = new ServiceInstance(nam);
+    ret->Name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
     ret->adminState.Value                = adminState;
     ret->rank                            = rank;
     return ret;
     }
 
-  ComponentServiceInstance* createComponentServiceInstance(const char* name)
+  ComponentServiceInstance* createComponentServiceInstance(const char* nam)
     {
-    ComponentServiceInstance* ret = new ComponentServiceInstance(name);
+    ComponentServiceInstance* ret = new ComponentServiceInstance(nam);
+    ret->Name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
     return ret;
     }
 
 
-  ServiceUnit* createServiceUnit(const char* name, const SAFplusAmf::AdministrativeState& adminState, int rank, bool failover)
+  ServiceUnit* createServiceUnit(const char* nam, const SAFplusAmf::AdministrativeState& adminState, int rank, bool failover)
     {
-    ServiceUnit* ret = new ServiceUnit(name);
+    ServiceUnit* ret = new ServiceUnit(nam);
+    ret->Name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
     ret->adminState.Value                = adminState;
     ret->rank                            = rank;
@@ -80,9 +85,10 @@ namespace SAFplusAmf
     }
 
 
-  Component* createComponent(const char* name, SAFplusAmf::CapabilityModel capabilityModel,unsigned int maxActiveAssignments,unsigned int maxStandbyAssignments,std::string safVersion, unsigned int compCategory,const std::string& swBundle,const std::string& env,unsigned int maxInstantInstantiations,unsigned int maxDelayedInstantiations,unsigned int delayBetweenInstantiation,SAFplusAmf::Recovery recovery,bool restartable,const std::string& proxy,const std::string& proxied)
+  Component* createComponent(const char* nam, SAFplusAmf::CapabilityModel capabilityModel,unsigned int maxActiveAssignments,unsigned int maxStandbyAssignments,std::string safVersion, unsigned int compCategory,const std::string& swBundle,const std::string& env,unsigned int maxInstantInstantiations,unsigned int maxDelayedInstantiations,unsigned int delayBetweenInstantiation,SAFplusAmf::Recovery recovery,bool restartable,const std::string& proxy,const std::string& proxied)
     {
-    Component* ret = new Component(name);
+    Component* ret = new Component(nam);
+    ret->Name = nam;  // TBD: ctor should set
     ret->id = getAmfId();
     ret->capabilityModel = capabilityModel;
     ret->maxActiveAssignments = maxActiveAssignments;
@@ -97,7 +103,9 @@ namespace SAFplusAmf
     ret->recovery = recovery;
     ret->restartable = restartable;
     ret->proxy = proxy;
-    // GAS TODO: ClMgtProvList needs code accessors: ret->proxied = proxied;
+    // GAS TODO: ClMgtProvList needs code accessors: ret->proxied =
+    // proxied;
+    return ret;
     }
 
   void createTestDataSet(SAFplusAmfRoot* self)
