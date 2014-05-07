@@ -5,13 +5,11 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "SaTimeT.hxx"
 #include <vector>
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "EscalationPolicy.hxx"
 
-using namespace SAFplusTypes;
 
 namespace SAFplusAmf
   {
@@ -47,7 +45,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EscalationPolicy/duration
      */
-    SAFplusTypes::SaTimeT EscalationPolicy::getDuration()
+    SaTimeT EscalationPolicy::getDuration()
     {
         return this->duration.Value;
     };
@@ -55,7 +53,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EscalationPolicy/duration
      */
-    void EscalationPolicy::setDuration(SAFplusTypes::SaTimeT durationValue)
+    void EscalationPolicy::setDuration(SaTimeT durationValue)
     {
         this->duration.Value = durationValue;
     };

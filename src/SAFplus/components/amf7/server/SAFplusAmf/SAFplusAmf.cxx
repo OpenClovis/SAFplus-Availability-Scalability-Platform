@@ -5,15 +5,13 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
+#include "clMgtObject.hxx"
+#include "clMgtProv.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
-#include "SaTimeT.hxx"
 #include "SAFplusAmf.hxx"
 
-using namespace SAFplusTypes;
 
 namespace SAFplusAmf
   {
@@ -46,7 +44,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/healthCheckPeriod
      */
-    SAFplusTypes::SaTimeT SAFplusAmfRoot::getHealthCheckPeriod()
+    SaTimeT SAFplusAmfRoot::getHealthCheckPeriod()
     {
         return this->healthCheckPeriod.Value;
     };
@@ -54,7 +52,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/healthCheckPeriod
      */
-    void SAFplusAmfRoot::setHealthCheckPeriod(SAFplusTypes::SaTimeT healthCheckPeriodValue)
+    void SAFplusAmfRoot::setHealthCheckPeriod(SaTimeT healthCheckPeriodValue)
     {
         this->healthCheckPeriod.Value = healthCheckPeriodValue;
     };
@@ -62,7 +60,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/healthCheckMaxSilence
      */
-    SAFplusTypes::SaTimeT SAFplusAmfRoot::getHealthCheckMaxSilence()
+    SaTimeT SAFplusAmfRoot::getHealthCheckMaxSilence()
     {
         return this->healthCheckMaxSilence.Value;
     };
@@ -70,7 +68,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/healthCheckMaxSilence
      */
-    void SAFplusAmfRoot::setHealthCheckMaxSilence(SAFplusTypes::SaTimeT healthCheckMaxSilenceValue)
+    void SAFplusAmfRoot::setHealthCheckMaxSilence(SaTimeT healthCheckMaxSilenceValue)
     {
         this->healthCheckMaxSilence.Value = healthCheckMaxSilenceValue;
     };

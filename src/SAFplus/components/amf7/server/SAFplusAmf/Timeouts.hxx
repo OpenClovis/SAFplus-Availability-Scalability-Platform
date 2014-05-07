@@ -9,11 +9,10 @@
 #define TIMEOUTS_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
-#include "SaTimeT.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "clMgtObject.hxx"
+#include "clMgtProv.hxx"
 
 namespace SAFplusAmf
   {
@@ -28,17 +27,17 @@ namespace SAFplusAmf
         /*
          * How much time to give a component to gracefully finish handling its work before faulting it, in milliseconds.
          */
-        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> quiescingComplete;
+        SAFplus::ClMgtProv<SaTimeT> quiescingComplete;
 
         /*
          * How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.
          */
-        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> workRemoval;
+        SAFplus::ClMgtProv<SaTimeT> workRemoval;
 
         /*
          * How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.
          */
-        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> workAssignment;
+        SAFplus::ClMgtProv<SaTimeT> workAssignment;
 
     public:
         Timeouts();
@@ -47,32 +46,32 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
          */
-        SAFplusTypes::SaTimeT getQuiescingComplete();
+        SaTimeT getQuiescingComplete();
 
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
          */
-        void setQuiescingComplete(SAFplusTypes::SaTimeT quiescingCompleteValue);
+        void setQuiescingComplete(SaTimeT quiescingCompleteValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
          */
-        SAFplusTypes::SaTimeT getWorkRemoval();
+        SaTimeT getWorkRemoval();
 
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
          */
-        void setWorkRemoval(SAFplusTypes::SaTimeT workRemovalValue);
+        void setWorkRemoval(SaTimeT workRemovalValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
          */
-        SAFplusTypes::SaTimeT getWorkAssignment();
+        SaTimeT getWorkAssignment();
 
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
          */
-        void setWorkAssignment(SAFplusTypes::SaTimeT workAssignmentValue);
+        void setWorkAssignment(SaTimeT workAssignmentValue);
         ~Timeouts();
 
     };

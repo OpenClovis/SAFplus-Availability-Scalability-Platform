@@ -9,12 +9,11 @@
 #define SAFPLUSAMFROOT_HXX_
 #include "SAFplusAmfCommon.hxx"
 
+#include "clMgtObject.hxx"
+#include "clMgtProv.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
-#include "SaTimeT.hxx"
 
 namespace SAFplusAmf
   {
@@ -29,12 +28,12 @@ namespace SAFplusAmf
         /*
          * This attribute indicates the interval at which the corresponding healthcheck should be initiated (in milliseconds).
          */
-        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> healthCheckPeriod;
+        SAFplus::ClMgtProv<SaTimeT> healthCheckPeriod;
 
         /*
          * This attribute indicates the maximum time allowable for components to not reply to the health check (in milliseconds).  After this time passes with no response from the component, it will be faulted
          */
-        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> healthCheckMaxSilence;
+        SAFplus::ClMgtProv<SaTimeT> healthCheckMaxSilence;
 
         /*
          * 
@@ -89,22 +88,22 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/healthCheckPeriod
          */
-        SAFplusTypes::SaTimeT getHealthCheckPeriod();
+        SaTimeT getHealthCheckPeriod();
 
         /*
          * XPATH: /SAFplusAmf/healthCheckPeriod
          */
-        void setHealthCheckPeriod(SAFplusTypes::SaTimeT healthCheckPeriodValue);
+        void setHealthCheckPeriod(SaTimeT healthCheckPeriodValue);
 
         /*
          * XPATH: /SAFplusAmf/healthCheckMaxSilence
          */
-        SAFplusTypes::SaTimeT getHealthCheckMaxSilence();
+        SaTimeT getHealthCheckMaxSilence();
 
         /*
          * XPATH: /SAFplusAmf/healthCheckMaxSilence
          */
-        void setHealthCheckMaxSilence(SAFplusTypes::SaTimeT healthCheckMaxSilenceValue);
+        void setHealthCheckMaxSilence(SaTimeT healthCheckMaxSilenceValue);
         void load(SAFplus::ClMgtDatabase *db);
         ~SAFplusAmfRoot();
 

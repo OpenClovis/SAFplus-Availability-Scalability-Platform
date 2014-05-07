@@ -9,7 +9,6 @@
 #define ESCALATIONPOLICY_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "SaTimeT.hxx"
 #include <vector>
 #include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
@@ -28,7 +27,7 @@ namespace SAFplusAmf
         /*
          * The time period (in milliseconds) involved.
          */
-        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> duration;
+        SAFplus::ClMgtProv<SaTimeT> duration;
 
     public:
         EscalationPolicy();
@@ -47,12 +46,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/EscalationPolicy/duration
          */
-        SAFplusTypes::SaTimeT getDuration();
+        SaTimeT getDuration();
 
         /*
          * XPATH: /SAFplusAmf/EscalationPolicy/duration
          */
-        void setDuration(SAFplusTypes::SaTimeT durationValue);
+        void setDuration(SaTimeT durationValue);
         ~EscalationPolicy();
 
     };

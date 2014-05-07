@@ -34,7 +34,7 @@ namespace SAFplusAmf
     }
 
 
-  ServiceGroup* createServiceGroup(const char* name, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool autoAdjust,SAFplusTypes::SaTimeT autoAdjustInterval,unsigned int preferredNumActiveServiceUnits,unsigned int preferredNumStandbyServiceUnits,unsigned int preferredNumIdleServiceUnits,unsigned int maxActiveWorkAssignments,unsigned int maxStandbyWorkAssignments )
+  ServiceGroup* createServiceGroup(const char* name, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool autoAdjust, SaTimeT autoAdjustInterval,unsigned int preferredNumActiveServiceUnits,unsigned int preferredNumStandbyServiceUnits,unsigned int preferredNumIdleServiceUnits,unsigned int maxActiveWorkAssignments,unsigned int maxStandbyWorkAssignments )
     {
     ServiceGroup* ret = new ServiceGroup(name);
     ret->id                              = getAmfId();
@@ -84,8 +84,7 @@ namespace SAFplusAmf
 
   void createTestDataSet(SAFplusAmfRoot* self)
     {
-    SAFplusTypes::SaTimeT st;
-    st.Value = 0;
+    SaTimeT st = 0;
     //SAFplusAmf::AdministrativeState as;
     //as.Value = 2;
     Node* node[2];

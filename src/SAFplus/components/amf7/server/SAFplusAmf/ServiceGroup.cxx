@@ -6,7 +6,6 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
-#include "SaTimeT.hxx"
 #include "MgtFactory.hxx"
 #include "NumSpareServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
@@ -24,11 +23,10 @@
 #include "NumSpareServiceUnits.hxx"
 #include "NumAssignedServiceUnits.hxx"
 #include "EntityId.hxx"
-#include "ServiceUnit.hxx"
 #include "clMgtProvList.hxx"
+#include "ServiceUnit.hxx"
 #include "ServiceGroup.hxx"
 
-using namespace SAFplusTypes;
 
 namespace SAFplusAmf
   {
@@ -170,7 +168,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
      */
-    SAFplusTypes::SaTimeT ServiceGroup::getAutoAdjustInterval()
+    SaTimeT ServiceGroup::getAutoAdjustInterval()
     {
         return this->autoAdjustInterval.Value;
     };
@@ -178,7 +176,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
      */
-    void ServiceGroup::setAutoAdjustInterval(SAFplusTypes::SaTimeT autoAdjustIntervalValue)
+    void ServiceGroup::setAutoAdjustInterval(SaTimeT autoAdjustIntervalValue)
     {
         this->autoAdjustInterval.Value = autoAdjustIntervalValue;
     };
