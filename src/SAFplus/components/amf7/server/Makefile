@@ -26,10 +26,13 @@ SERVER_OBJ := $(subst .cxx,.o,$(notdir $(SERVER_SRC)))
 SERVER_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(SERVER_OBJ))
 
 
-all: $(SAFPLUS_TARGET)/bin/customAmfPolicy.so $(SAFPLUS_TARGET)/bin/safplus_amf
+all: $(SAFPLUS_TARGET)/bin/customAmfPolicy.so $(SAFPLUS_TARGET)/bin/nPlusmAmfPolicy.so  $(SAFPLUS_TARGET)/bin/safplus_amf
 
 $(SAFPLUS_TARGET)/bin/customAmfPolicy.so: $(OBJ_DIR)/amfsvr/customAmfPolicy.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/customAmfPolicy.o $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
+
+$(SAFPLUS_TARGET)/bin/nPlusmAmfPolicy.so: $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o $(SAFPLUS_DEP_LIBS)
+	$(LINK_SO) $@ $(OBJ_DIR)/amfsvr/nPlusmAmfPolicy.o $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lboost_filesystem $(LINK_SO_LIBS)
 
 
 $(SAFPLUS_TARGET)/bin/safplus_amf: $(SERVER_OBJ) $(SAFPLUS_DEP_LIBS)

@@ -26,9 +26,9 @@ namespace SAFplus
 
   typedef  enum 
     {
+      PersistentHandle=0, // this handle uses AMF entity ids so persists.
       PointerHandle,
       TransientHandle, // this handle uses slot numbers and process ids so won't be the same across restarts
-      PersistentHandle // this handle uses AMF entity ids so persists.
     } HandleType;
 
   class Handle
@@ -106,14 +106,14 @@ namespace SAFplus
  class WellKnownHandle:public Handle
   {
   public:
-    WellKnownHandle(uint64_t idx,uint32_t process=0xffffffff,uint16_t node=0xffff,uint_t clusterId=0xfff):Handle(PersistentHandle,idx)
+    WellKnownHandle(uint64_t idx,uint32_t process=0xffffffff,uint16_t node=0xffff,uint_t clusterId=0xfff):Handle(PersistentHandle,idx,process,node,clusterId)
     {
     }
   };
 
   // Well Known IDs
 
-  const WellKnownHandle INVALID_HDL(0,0);
+  const WellKnownHandle INVALID_HDL(0,0,0,0);
   const WellKnownHandle SYS_LOG(1,0);
   const WellKnownHandle APP_LOG(2,0);
   const WellKnownHandle TEST_LOG(3,0);

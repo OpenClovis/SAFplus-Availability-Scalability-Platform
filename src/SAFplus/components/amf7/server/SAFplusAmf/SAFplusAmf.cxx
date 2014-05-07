@@ -75,10 +75,14 @@ namespace SAFplusAmf
         this->healthCheckMaxSilence.Value = healthCheckMaxSilenceValue;
     };
 
+  void createTestDataSet(SAFplusAmfRoot* self);
+  
     void SAFplusAmfRoot::load(SAFplus::ClMgtDatabase *db)
-    {
+      {
         /* TODO: */
-    };
+      createTestDataSet(this);
+    
+      };
 
     SAFplusAmfRoot::~SAFplusAmfRoot()
     {

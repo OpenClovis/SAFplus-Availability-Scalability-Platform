@@ -51,6 +51,24 @@ namespace SAFplusAmf
     return ret;
     }
 
+
+  ServiceInstance* createServiceInstance(const char* name, const SAFplusAmf::AdministrativeState& adminState, int rank)
+    {
+    ServiceInstance* ret = new ServiceInstance(name);
+    ret->id                              = getAmfId();
+    ret->adminState.Value                = adminState;
+    ret->rank                            = rank;
+    return ret;
+    }
+
+  ComponentServiceInstance* createComponentServiceInstance(const char* name)
+    {
+    ComponentServiceInstance* ret = new ComponentServiceInstance(name);
+    ret->id                              = getAmfId();
+    return ret;
+    }
+
+
   ServiceUnit* createServiceUnit(const char* name, const SAFplusAmf::AdministrativeState& adminState, int rank, bool failover)
     {
     ServiceUnit* ret = new ServiceUnit(name);
@@ -97,17 +115,29 @@ namespace SAFplusAmf
     ServiceUnit* su[2];
     su[0] = createServiceUnit("su0", SAFplusAmf::AdministrativeState::on,0,true);
     //su[1] = createServiceUnit(const char* name, const SAFplusAmf::AdministrativeState& adminState, int rank, bool failover);
+    ServiceInstance* si;
+    si = createServiceInstance("si", SAFplusAmf::AdministrativeState::on,0);
+
+    ComponentServiceInstance* csi;
+    csi = createComponentServiceInstance("csi");
 
     // Put the elements in their type-lookup arrays
     self->nodeList.addChildObject(node[0]);
     self->serviceGroupList.addChildObject(sg);
     self->componentList.addChildObject(comp[0]);
+    self->serviceInstanceList.addChildObject(si);
+    self->componentServiceInstanceList.addChildObject(csi);
 
     // Connect the elements
     node[0]->serviceUnits.addChildObject(su[0]);
     sg->serviceUnits.addChildObject(su[0]);
     su[0]->components.addChildObject(comp[0]);
-    //sg->serviceInstances.addChildObject(si);
+    
+    sg->serviceInstances.addChildObject(si);
+    si->serviceGroup.Value = sg;
+   
+    csi->serviceInstance.Value = si;
+    si->componentServiceInstances.addChildObject(csi);    
     }
 
   void deXMLize(const std::string& obj,ClMgtObject* context, ComponentServiceInstance*& result)

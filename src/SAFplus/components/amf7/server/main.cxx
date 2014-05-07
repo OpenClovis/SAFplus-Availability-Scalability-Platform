@@ -132,7 +132,7 @@ void loadAmfPlugins()
             if (pp)
               {
               redPolicies[pp->policyId] = plug;
-              clLogError("POL","LOAD","AMF Policy plugin [%s] load succeeded.", p.c_str());
+              clLogError("POL","LOAD","AMF Policy [%d] plugin [%s] load succeeded.", pp->policyId, p.c_str());
               }
             else clLogError("POL","LOAD","AMF Policy plugin [%s] load failed.", p.c_str());
             }
@@ -330,7 +330,9 @@ int main(int argc, char* argv[])
 
   std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs;
   activeStandbyPairs.first = clusterGroup.getActive();
-
+  activeStandbyPairs.second = clusterGroup.getStandby();
+  logInfo("AMF","BOOT", "Active [%lx:%lx] Standby: [%lx:%lx]", activeStandbyPairs.first.id[0],activeStandbyPairs.first.id[1],activeStandbyPairs.second.id[0],activeStandbyPairs.second.id[1]);
+  
   if (activeStandbyPairs.first == INVALID_HDL)  // If nobody is active, I need to call for an election
     {
     // By waiting, other nodes that are booting can come up.  This makes the system more consistently elect a particular node as ACTIVE when the cluster is started.  Note that this is just convenient for users, it does not matter to the system which node is elected active.
@@ -349,7 +351,10 @@ int main(int argc, char* argv[])
       logDebug("IDL","---","...waiting for something to happen...");
       if (myRole == Group::IS_ACTIVE) activeAudit();    // Check to make sure DB and the system state are in sync
       if (myRole == Group::IS_STANDBY) standbyAudit();  // Check to make sure DB and the system state are in sync
-          
+
+      // GAS DBG: just to test audit with election not working
+      activeAudit();
+
       grpSvr->dumpClusterNodeGroup();
       }
     else
