@@ -11,7 +11,6 @@
 
 #include <string>
 #include "clMgtProv.hxx"
-#include "SaTimeT.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
@@ -45,7 +44,7 @@ namespace SAFplusAmf
         /*
          * When the cluster is first started, no work will be assigned until either ALL configured service units are instantiated or this time duration elapses.  By giving every node a chance to come up fully, this ensures that initial work assignments are as close as possible to preferred work assignments.
          */
-        SAFplus::ClMgtProv<SAFplusTypes::SaTimeT> startupAssignmentDelay;
+        SAFplus::ClMgtProv<SaTimeT> startupAssignmentDelay;
 
     public:
         Cluster();
@@ -86,12 +85,12 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
          */
-        SAFplusTypes::SaTimeT getStartupAssignmentDelay();
+        SaTimeT getStartupAssignmentDelay();
 
         /*
          * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
          */
-        void setStartupAssignmentDelay(SAFplusTypes::SaTimeT startupAssignmentDelayValue);
+        void setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue);
         ~Cluster();
 
     };

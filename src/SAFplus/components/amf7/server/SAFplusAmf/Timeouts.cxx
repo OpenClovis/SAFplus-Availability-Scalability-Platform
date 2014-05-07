@@ -5,14 +5,12 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
-#include "SaTimeT.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "clMgtObject.hxx"
+#include "clMgtProv.hxx"
 #include "Timeouts.hxx"
 
-using namespace SAFplusTypes;
 
 namespace SAFplusAmf
   {
@@ -36,7 +34,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
      */
-    SAFplusTypes::SaTimeT Timeouts::getQuiescingComplete()
+    SaTimeT Timeouts::getQuiescingComplete()
     {
         return this->quiescingComplete.Value;
     };
@@ -44,7 +42,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
      */
-    void Timeouts::setQuiescingComplete(SAFplusTypes::SaTimeT quiescingCompleteValue)
+    void Timeouts::setQuiescingComplete(SaTimeT quiescingCompleteValue)
     {
         this->quiescingComplete.Value = quiescingCompleteValue;
     };
@@ -52,7 +50,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
      */
-    SAFplusTypes::SaTimeT Timeouts::getWorkRemoval()
+    SaTimeT Timeouts::getWorkRemoval()
     {
         return this->workRemoval.Value;
     };
@@ -60,7 +58,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
      */
-    void Timeouts::setWorkRemoval(SAFplusTypes::SaTimeT workRemovalValue)
+    void Timeouts::setWorkRemoval(SaTimeT workRemovalValue)
     {
         this->workRemoval.Value = workRemovalValue;
     };
@@ -68,7 +66,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
      */
-    SAFplusTypes::SaTimeT Timeouts::getWorkAssignment()
+    SaTimeT Timeouts::getWorkAssignment()
     {
         return this->workAssignment.Value;
     };
@@ -76,7 +74,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
      */
-    void Timeouts::setWorkAssignment(SAFplusTypes::SaTimeT workAssignmentValue)
+    void Timeouts::setWorkAssignment(SaTimeT workAssignmentValue)
     {
         this->workAssignment.Value = workAssignmentValue;
     };

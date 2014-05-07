@@ -7,14 +7,12 @@
 
 #include <string>
 #include "clMgtProv.hxx"
-#include "SaTimeT.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
 #include "EntityId.hxx"
 #include "Cluster.hxx"
 
-using namespace SAFplusTypes;
 
 namespace SAFplusAmf
   {
@@ -104,7 +102,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
      */
-    SAFplusTypes::SaTimeT Cluster::getStartupAssignmentDelay()
+    SaTimeT Cluster::getStartupAssignmentDelay()
     {
         return this->startupAssignmentDelay.Value;
     };
@@ -112,7 +110,7 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
      */
-    void Cluster::setStartupAssignmentDelay(SAFplusTypes::SaTimeT startupAssignmentDelayValue)
+    void Cluster::setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue)
     {
         this->startupAssignmentDelay.Value = startupAssignmentDelayValue;
     };
