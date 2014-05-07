@@ -140,6 +140,15 @@ typedef enum
     CL_IOC_SAF_MSG_REQUEST_PROTO    =   0x18,
 
     CL_IOC_SAF_MSG_REPLY_PROTO    =     0x19,            
+    /**
+* Here the reserved protocols for ReliableIoc Data control end.
+*/
+   CL_IOC_SEND_ACK_PROTO =   0x20,
+   CL_IOC_SEND_ACK_MESSAGE_PROTO =   0x21,
+   CL_IOC_SEND_NAK_PROTO =   0x22,
+   CL_IOC_DROP_REQUEST_PROTO =   0x23,
+
+    
 /**
  * Here the reserved protocols for ASP end.
  */

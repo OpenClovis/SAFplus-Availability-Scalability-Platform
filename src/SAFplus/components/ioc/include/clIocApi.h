@@ -992,6 +992,7 @@ typedef enum {
  *  clIocCommPortDelete().
  *
  */
+
     ClRcT clIocSend(
     CL_IN ClIocCommPortHandleT commPortHandle,
     CL_IN ClBufferHandleT message,
@@ -1000,6 +1001,13 @@ typedef enum {
     CL_IN ClIocSendOptionT * pSendOption
     );
 
+    ClRcT clIocSendReliable(
+    CL_IN ClIocCommPortHandleT commPortHandle,
+    CL_IN ClBufferHandleT message,
+    CL_IN ClUint8T protoType,
+    CL_IN ClIocAddressT * pDestAddr,
+    CL_IN ClIocSendOptionT * pSendOption
+    );
 
 
 /**

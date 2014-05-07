@@ -49,7 +49,7 @@ ifeq ($(strip $(CHECK_INOTIFY)), )
 endif
 #CPPFLAGS	   += -I$(TIPC_INCLUDE)
 EXTRA_CPPFLAGS += -D__EXPORTED_HEADERS__ -I$(TIPC_INCLUDE)
-EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable 
+EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable -Wno-unused-function -Wno-unused-but-set-variable -Wno-unused-variable
 
 
 ifdef SOLARIS_BUILD
