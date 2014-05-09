@@ -23,6 +23,7 @@ namespace SAFplusAmf
 
     public:
         Instantiate();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~Instantiate();
 

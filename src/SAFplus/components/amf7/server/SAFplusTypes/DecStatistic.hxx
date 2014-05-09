@@ -31,6 +31,7 @@ namespace SAFplusTypes
 
     public:
         DecStatistic();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*

@@ -44,10 +44,13 @@ struct GmsServiceThread
       clNodeCacheCapabilitySet(clAspLocalId,1,CL_NODE_CACHE_CAP_ASSIGN);
       }
 #endif // __TEST
+    if (!GroupServer::groupMsgServer)
+      {
+      GroupServer::groupMsgServer = new SAFplus::SafplusMsgServer(CL_IOC_GMS_PORT);
+      GroupServer::groupMsgServer->Start();
+      }
     GroupMessageHandler *groupMessageHandler = new GroupMessageHandler();
-    GroupServer::groupMsgServer = new SAFplus::SafplusMsgServer(CL_IOC_GMS_PORT);
     GroupServer::groupMsgServer->RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, NULL);
-    GroupServer::groupMsgServer->Start();
     /* Initialize notification callback */
     clIocNotificationRegister(iocNotificationCallback,NULL);
     while(!GroupServer::getInstance()->finished)
@@ -117,7 +120,7 @@ void GroupServer::roleChangeFromMaster(GroupMessageProtocol *msg)
     logError("GMS","SERVER","Null pointer");
     return;
   }
-  if(msg->messageType != MSG_ROLE_NOTIFY)
+  if(msg->messageType != GroupMessageTypeT::MSG_ROLE_NOTIFY)
   {
     logError("GMS","SERVER","Invalid message");
     return;
@@ -125,7 +128,7 @@ void GroupServer::roleChangeFromMaster(GroupMessageProtocol *msg)
   clTimerDeleteAsync(&roleNotiTimerHandle);
   switch(msg->roleType)
   {
-    case ROLE_ACTIVE:
+    case GroupRoleNotifyTypeT::ROLE_ACTIVE:
     {
       EntityIdentifier activeEntity = *(EntityIdentifier *)msg->data;
       /* Mismatching between received and local active result */
@@ -139,7 +142,7 @@ void GroupServer::roleChangeFromMaster(GroupMessageProtocol *msg)
       logDebug("GMS","SERVER","Active role had been set");
       break;
     }
-    case ROLE_STANDBY:
+    case GroupRoleNotifyTypeT::ROLE_STANDBY:
     {
       EntityIdentifier standbyEntity = *(EntityIdentifier *)msg->data;
       /* Mismatching between received and local active result */
@@ -176,7 +179,7 @@ void GroupServer::nodeJoin(ClIocNodeAddressT nAddress)
   {
     clusterNodeGrp->registerEntity(grpIdentity.id,grpIdentity.credentials, NULL, grpIdentity.dataLen, grpIdentity.capabilities);
     /* Send node join broadcast message */
-    fillSendMessage(&grpIdentity,MSG_NODE_JOIN);
+    fillSendMessage(&grpIdentity,GroupMessageTypeT::MSG_NODE_JOIN);
   }
   else
   {
@@ -210,7 +213,7 @@ void GroupServer::nodeLeave(ClIocNodeAddressT nAddress)
       if(isMasterNode())
       {
         /* Send role change notification */
-        fillSendMessage(&standbyNode,MSG_ROLE_NOTIFY,SEND_BROADCAST,ROLE_ACTIVE);
+        fillSendMessage(&standbyNode,GroupMessageTypeT::MSG_ROLE_NOTIFY,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_ACTIVE);
         logDebug("GMS","SERVER","Re-elect standby role from Master node");
         elect();
       }
@@ -285,8 +288,8 @@ ClRcT electRequestTimer(void *arg)
   /* If active member, send notification and wait for confliction checking */
   if(GroupServer::getInstance()->clusterNodeGrp->getActive().getNode() == clIocLocalAddressGet())
   {
-    GroupServer::getInstance()->fillSendMessage(&(res.first),MSG_ROLE_NOTIFY,SEND_BROADCAST,ROLE_ACTIVE);
-    GroupServer::getInstance()->fillSendMessage(&(res.second),MSG_ROLE_NOTIFY,SEND_BROADCAST,ROLE_STANDBY);
+    GroupServer::getInstance()->fillSendMessage(&(res.first),GroupMessageTypeT::MSG_ROLE_NOTIFY,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_ACTIVE);
+    GroupServer::getInstance()->fillSendMessage(&(res.second),GroupMessageTypeT::MSG_ROLE_NOTIFY,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_STANDBY);
   }
   else
   {
@@ -433,15 +436,15 @@ void GroupServer::fillSendMessage(void* data, GroupMessageTypeT msgType,GroupMes
   int msgDataLen = 0;
   switch(msgType)
   {
-    case MSG_NODE_JOIN:
+    case GroupMessageTypeT::MSG_NODE_JOIN:
       msgLen = sizeof(GroupMessageProtocol) + sizeof(GroupIdentity);
       msgDataLen = sizeof(GroupIdentity);
       break;
-    case MSG_ROLE_NOTIFY:
+    case GroupMessageTypeT::MSG_ROLE_NOTIFY:
       msgLen = sizeof(GroupMessageProtocol) + sizeof(EntityIdentifier);
       msgDataLen = sizeof(EntityIdentifier);
       break;
-    case MSG_ELECT_REQUEST:
+    case GroupMessageTypeT::MSG_ELECT_REQUEST:
       msgLen = sizeof(GroupMessageProtocol) + sizeof(GroupIdentity);
       msgDataLen = sizeof(GroupIdentity);
       break;
@@ -461,7 +464,7 @@ void  GroupServer::sendNotification(void* data, int dataLength, GroupMessageSend
 {
   switch(messageMode)
   {
-    case SEND_BROADCAST:
+    case GroupMessageSendModeT::SEND_BROADCAST:
     {
       /* Destination is broadcast address */
       ClIocAddressT iocDest;
@@ -478,7 +481,7 @@ void  GroupServer::sendNotification(void* data, int dataLength, GroupMessageSend
       }
       break;
     }
-    case SEND_TO_MASTER:
+    case GroupMessageSendModeT::SEND_TO_MASTER:
     {
       /* Destination is Master node address */
       ClIocAddressT iocDest;
@@ -497,7 +500,7 @@ void  GroupServer::sendNotification(void* data, int dataLength, GroupMessageSend
       }
       break;
     }
-    case SEND_LOCAL_RR:
+    case GroupMessageSendModeT::SEND_LOCAL_RR:
     {
       logInfo("GMS","SERVER","Sending message round robin");
       break;
@@ -532,7 +535,7 @@ void GroupServer::elect(ClBoolT isRequest,GroupMessageProtocol *msg)
     if(rc == CL_OK)
     {
       logInfo("GMS","ELECT","Sending elect request to all members");
-      fillSendMessage(&grpIdentity,MSG_ELECT_REQUEST);
+      fillSendMessage(&grpIdentity,GroupMessageTypeT::MSG_ELECT_REQUEST);
     }
     isElectTimerRunning = CL_TRUE;
     ClTimerTimeOutT timeOut = { 10, 0 };

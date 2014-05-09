@@ -1,5 +1,6 @@
 #include "groupMessageHandler.hxx"
-
+#include "GroupServer.hxx"
+#include "clGroupIpi.hxx"
 using namespace SAFplus;
 using namespace SAFplusI;
 
@@ -36,15 +37,15 @@ void GroupMessageHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT 
     }
     switch(rxMsg->messageType)
     {
-      case MSG_NODE_JOIN:
+      case GroupMessageTypeT::MSG_NODE_JOIN:
         logDebug("GMS","MSGHDL","Node join message from Master");
         GroupServer::getInstance()->nodeJoinFromMaster(rxMsg);
         break;
-      case MSG_ROLE_NOTIFY:
+      case GroupMessageTypeT::MSG_ROLE_NOTIFY:
         logDebug("GMS","MSGHDL","Role change message from Master");
         GroupServer::getInstance()->roleChangeFromMaster(rxMsg);
         break;
-      case MSG_ELECT_REQUEST:
+      case GroupMessageTypeT::MSG_ELECT_REQUEST:
         logDebug("GMS","MSGHDL","Election information request");
         GroupServer::getInstance()->elect(CL_FALSE,rxMsg);
         break;

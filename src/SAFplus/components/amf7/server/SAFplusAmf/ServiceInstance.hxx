@@ -11,21 +11,17 @@
 
 #include "AssignmentState.hxx"
 #include <string>
-#include "StandbyWeight.hxx"
-#include "StandbyAssignments.hxx"
-#include "ComponentServiceInstance.hxx"
-#include "clMgtList.hxx"
-#include "MgtFactory.hxx"
-#include "ActiveAssignments.hxx"
-#include "ActiveWeight.hxx"
-#include "AdministrativeState.hxx"
-#include "StandbyWeight.hxx"
-#include "ActiveWeight.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
+#include "StandbyAssignments.hxx"
 #include "ServiceGroup.hxx"
+#include "ComponentServiceInstance.hxx"
+#include "clMgtList.hxx"
 #include <vector>
+#include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
+#include "ActiveAssignments.hxx"
+#include "AdministrativeState.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
 
@@ -73,6 +69,7 @@ namespace SAFplusAmf
     public:
         ServiceInstance();
         ServiceInstance(std::string myNameValue);
+        void toString(std::stringstream &xmlString);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -125,26 +122,6 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
          */
         void setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/activeWeight
-         */
-        SAFplusAmf::ActiveWeight* getActiveWeight(std::string resourceValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/activeWeight
-         */
-        void addActiveWeight(SAFplusAmf::ActiveWeight *activeWeightValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
-         */
-        SAFplusAmf::StandbyWeight* getStandbyWeight(std::string resourceValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight
-         */
-        void addStandbyWeight(SAFplusAmf::StandbyWeight *standbyWeightValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments

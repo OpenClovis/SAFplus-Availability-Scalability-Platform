@@ -29,18 +29,21 @@ namespace SAFplusAmf
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&serviceGroups, "serviceGroups");
         this->addChildObject(&keepTogether, "keepTogether");
-        this->addKey("myName");
         this->name.assign("Application");
     };
 
     Application::Application(std::string myNameValue): adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
         this->myName.value =  myNameValue;
-        this->addKey("myName");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&serviceGroups, "serviceGroups");
         this->addChildObject(&keepTogether, "keepTogether");
         this->name.assign("Application");
+    };
+
+    void Application::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
     };
 
     std::vector<std::string> Application::getKeys()
@@ -108,7 +111,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::NumServiceGroups* Application::getNumServiceGroups()
     {
-        return (NumServiceGroups*)this->getChildObject("numServiceGroups");
+        return dynamic_cast<NumServiceGroups*>(this->getChildObject("numServiceGroups"));
     };
 
     /*

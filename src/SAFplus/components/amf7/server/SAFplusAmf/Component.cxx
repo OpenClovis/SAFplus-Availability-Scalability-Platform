@@ -64,14 +64,12 @@ namespace SAFplusAmf
         this->addChildObject(&restartable, "restartable");
         this->addChildObject(&proxy, "proxy");
         this->addChildObject(&proxied, "proxied");
-        this->addKey("myName");
         this->name.assign("Component");
     };
 
     Component::Component(std::string myNameValue): presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied")
     {
         this->myName.value =  myNameValue;
-        this->addKey("myName");
         this->addChildObject(&presence, "presence");
         this->addChildObject(&capabilityModel, "capabilityModel");
         this->addChildObject(&maxActiveAssignments, "maxActiveAssignments");
@@ -94,6 +92,11 @@ namespace SAFplusAmf
         this->addChildObject(&proxy, "proxy");
         this->addChildObject(&proxied, "proxied");
         this->name.assign("Component");
+    };
+
+    void Component::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
     };
 
     std::vector<std::string> Component::getKeys()
@@ -449,7 +452,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::ActiveAssignments* Component::getActiveAssignments()
     {
-        return (ActiveAssignments*)this->getChildObject("activeAssignments");
+        return dynamic_cast<ActiveAssignments*>(this->getChildObject("activeAssignments"));
     };
 
     /*
@@ -465,7 +468,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::StandbyAssignments* Component::getStandbyAssignments()
     {
-        return (StandbyAssignments*)this->getChildObject("standbyAssignments");
+        return dynamic_cast<StandbyAssignments*>(this->getChildObject("standbyAssignments"));
     };
 
     /*
@@ -481,7 +484,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::Instantiate* Component::getInstantiate()
     {
-        return (Instantiate*)this->getChildObject("instantiate");
+        return dynamic_cast<Instantiate*>(this->getChildObject("instantiate"));
     };
 
     /*
@@ -497,7 +500,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::Terminate* Component::getTerminate()
     {
-        return (Terminate*)this->getChildObject("terminate");
+        return dynamic_cast<Terminate*>(this->getChildObject("terminate"));
     };
 
     /*
@@ -513,7 +516,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::Cleanup* Component::getCleanup()
     {
-        return (Cleanup*)this->getChildObject("cleanup");
+        return dynamic_cast<Cleanup*>(this->getChildObject("cleanup"));
     };
 
     /*
@@ -529,7 +532,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::Timeouts* Component::getTimeouts()
     {
-        return (Timeouts*)this->getChildObject("timeouts");
+        return dynamic_cast<Timeouts*>(this->getChildObject("timeouts"));
     };
 
     /*
@@ -545,7 +548,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::RestartCount* Component::getRestartCount()
     {
-        return (RestartCount*)this->getChildObject("restartCount");
+        return dynamic_cast<RestartCount*>(this->getChildObject("restartCount"));
     };
 
     /*

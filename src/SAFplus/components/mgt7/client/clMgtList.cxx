@@ -44,189 +44,27 @@ namespace SAFplus
     {
     }
 
-#if 0
-  ClRcT MgtList::addKey(std::string key)
-    {
-    ClRcT rc = CL_OK;
-
-    ClUint32T i;
-    for (i = 0; i < mKeys.size(); i++)
-      {
-      if (mKeys[i].compare(key) == 0)
-        {
-        rc = CL_ERR_ALREADY_EXIST;
-        logWarning("MGT", "LIST", "Key [%s] already exists", key.c_str());
-        return rc;
-        }
-      }
-    mKeys.push_back(key);
-    return rc;
-    }
-
-  ClRcT MgtList::removeKey(std::string key)
-    {
-    ClRcT rc = CL_ERR_NOT_EXIST;
-    ClUint32T i;
-
-    for (i = 0; i < mKeys.size(); i++)
-      {
-      if (mKeys[i].compare(key) == 0)
-        {
-        mKeys.erase(mKeys.begin() + i);
-        rc = CL_OK;
-        break;
-        }
-      }
-    return rc;
-    }
-
-  void MgtList::removeAllKeys()
-    {
-    mKeys.clear();
-    }
-#endif
-
-
-  ClBoolT MgtList::isEntryExist(MgtObject* entry)
-    {
-    std::vector<MgtObject*>::iterator it;
-    std::vector<MgtObject*>::iterator end = mEntries.end();
-    for (it=mEntries.begin();it!=end; it++)
-      {
-      if (*it && ((*it)->name == entry->name)) return true;
-      }
-    return false;
-
-#if 0
-    ClBoolT isExist = CL_FALSE;
-
-    ClUint32T i, j;
-
-    for (i = 0; i < mEntries.size(); i++)
-      {
-
-      ClBoolT itemFound = CL_TRUE;
-      for (j = 0; j < mKeys.size(); j++)
-        {
-        MgtObject *inputKey = entry->getChildObject(mKeys[j]);
-        MgtObject *itemKey = mEntries[i]->getChildObject(mKeys[j]);
-
-        if ((inputKey != NULL) && (itemKey))
-          {
-          if (inputKey->strValue().compare(itemKey->strValue()) != 0)
-            {
-            itemFound = CL_FALSE;
-            break;
-            }
-          }
-        else
-          {
-          itemFound = CL_FALSE;
-          break;
-          }
-        }
-      if (itemFound)
-        {
-        isExist = CL_TRUE;
-        break;
-        }
-      }
-
-    return isExist;
-#endif
-    }
-
-
-#if 0
-  MgtObject* MgtList::findEntryByKeys(std::map<std::string, std::string> *keys)
-    {
-    ClUint32T i, j;
-
-    for (i = 0; i < mEntries.size(); i++)
-      {
-      ClBoolT itemFound = CL_TRUE;
-      for (j = 0; j < mKeys.size(); j++)
-        {
-        MgtObject *itemKey = mEntries[i]->getChildObject(mKeys[j]);
-
-        map<string, string>::iterator mapIndex = keys->find(mKeys[j]);
-        if (mapIndex == keys->end())
-          {
-          itemFound = CL_FALSE;
-          break;
-          }
-
-        if (itemKey)
-          {
-          string keyVal = static_cast<string>((*mapIndex).second);
-
-          if (keyVal.compare(itemKey->strValue()) != 0)
-            {
-            itemFound = CL_FALSE;
-            break;
-            }
-          }
-        else
-          {
-          itemFound = CL_FALSE;
-          break;
-          }
-        }
-      if (itemFound)
-        {
-        return mEntries[i];
-        }
-      }
-    return NULL;
-    }
-#endif
-
-
-  ClRcT MgtList::removeEntry(ClUint32T index)
-    {
-    ClRcT rc = CL_ERR_NOT_EXIST;
-
-    if ((0 <= index) && (index < mEntries.size()))
-      {
-      mEntries.erase(mEntries.begin() + index);
-      rc = CL_OK;
-      }
-
-    return rc;
-    }
-
   void MgtList::removeAllChildren()
     {
-    mEntries.clear();
-    }
-
-  MgtObject* MgtList::getEntry(ClUint32T index)
-    {
-    if ((0 <= index) && (index < mEntries.size()))
-      {
-      MgtObject *entry = mEntries[index];
-      return entry;
-      }
-
-    return NULL;
+    children.clear();
     }
 
   ClUint32T MgtList::getEntrySize()
     {
-    return (ClUint32T) mEntries.size();
+    return (ClUint32T) children.size();
     }
 
   void MgtList::toString(std::stringstream& xmlString)
     {
-    ClUint32T i;
-
-    for (i = 0; i < mEntries.size(); i++)
+    Map::iterator i;
+    Map::iterator end = children.end();
+    for (i = children.begin(); i != end; i++)
       {
-      MgtObject *entry = mEntries[i];
+      MgtObject *entry = i->second;
+      assert(entry);  // should be no NULL entries... erase don't nullptr them
       if (entry)
         entry->toString(xmlString);
       }
-
     }
 
   ClBoolT MgtList::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
@@ -346,21 +184,61 @@ namespace SAFplus
 
   ClRcT MgtList::removeChildObject(const std::string& objectName)
     {
-    for (int i = 0; i < mEntries.size(); i++)
-      {
-      MgtObject *entry = mEntries[i];
-      if ((entry)&&(entry->name == objectName)) { mEntries[i] = nullptr; return CL_OK; }
-      }
-    return CL_ERR_NOT_EXIST;
+    children.erase(objectName);
     }
 
   ClRcT MgtList::addChildObject(MgtObject *mgtObject, const std::string& objectName)
     {
     ClRcT rc = CL_OK;
     assert(mgtObject);
-    assert(&objectName == nullptr);  // lists do not have named elements
 
-    assert(isEntryExist(mgtObject)==false);
-    mEntries.push_back(mgtObject);
+    const std::string* name = &objectName;
+    if (!name) name = &mgtObject->name;
+    children[*name] = mgtObject;
     }
+
+  MgtObject::Iterator MgtList::begin(void)
+    {
+    MgtObject::Iterator ret;
+    Map::iterator bgn = children.begin();
+    Map::iterator end = children.end();
+    if (bgn == end) // Handle the empty map case
+      {
+      ret.b = &mgtIterEnd;
+      }
+    else
+      {
+      HiddenIterator* h = new HiddenIterator();
+      h->it = bgn;
+      h->end = end;
+      h->current.first = h->it->first;
+      h->current.second = h->it->second;
+      ret.b  = h;
+      }
+
+    return ret;
+    }
+
+  bool MgtList::HiddenIterator::next()
+    {
+    it++;
+    if (it == end)
+      {
+      current.first = "";
+      current.second = nullptr;
+      return false;
+      }
+    else
+      {
+      current.first = it->first;
+      current.second = it->second;
+      return true;
+      }
+    }
+
+  void MgtList::HiddenIterator::del()
+    {
+    delete this;
+    }
+
   };

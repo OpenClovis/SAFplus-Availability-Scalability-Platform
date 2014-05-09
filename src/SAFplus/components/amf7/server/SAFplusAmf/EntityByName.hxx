@@ -29,6 +29,7 @@ namespace SAFplusAmf
 
     public:
         EntityByName();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*

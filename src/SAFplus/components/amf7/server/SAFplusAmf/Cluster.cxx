@@ -24,17 +24,20 @@ namespace SAFplusAmf
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&startupAssignmentDelay, "startupAssignmentDelay");
-        this->addKey("myName");
         this->name.assign("Cluster");
     };
 
     Cluster::Cluster(std::string myNameValue): adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
     {
         this->myName.value =  myNameValue;
-        this->addKey("myName");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&startupAssignmentDelay, "startupAssignmentDelay");
         this->name.assign("Cluster");
+    };
+
+    void Cluster::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
     };
 
     std::vector<std::string> Cluster::getKeys()

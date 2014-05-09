@@ -10,10 +10,8 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
-#include "Capacity.hxx"
 #include <string>
 #include "clMgtProv.hxx"
-#include "Capacity.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
@@ -71,6 +69,7 @@ namespace SAFplusAmf
     public:
         Node();
         Node(std::string myNameValue);
+        void toString(std::stringstream &xmlString);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -133,16 +132,6 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/Node/serviceUnits
          */
         void setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue);
-
-        /*
-         * XPATH: /SAFplusAmf/Node/capacity
-         */
-        SAFplusAmf::Capacity* getCapacity(std::string resourceValue);
-
-        /*
-         * XPATH: /SAFplusAmf/Node/capacity
-         */
-        void addCapacity(SAFplusAmf::Capacity *capacityValue);
 
         /*
          * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy

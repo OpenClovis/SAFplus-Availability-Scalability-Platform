@@ -2,6 +2,11 @@
 #include <clMgtApi.hxx>
 #include <clAmfApi.hxx>
 
+namespace SAFplusAmf
+{
+class SAFplusAmfRoot;
+}
+
 namespace SAFplus
 {
 
@@ -15,8 +20,8 @@ enum
   {
   public:
     AmfRedundancyPolicy policyId;
-    virtual void activeAudit(MgtObject* root) = 0;
-    virtual void standbyAudit(MgtObject* root) = 0;
+    virtual void activeAudit(SAFplusAmf::SAFplusAmfRoot* root) = 0;
+    virtual void standbyAudit(SAFplusAmf::SAFplusAmfRoot* root) = 0;
   
     // The copy constructor is disabled to ensure that the only copy of this
     // class exists in the shared memory lib.

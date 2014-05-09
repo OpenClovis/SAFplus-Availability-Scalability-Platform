@@ -51,14 +51,12 @@ namespace SAFplusAmf
         this->addChildObject(&components, "components");
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
-        this->addKey("myName");
         this->name.assign("ServiceUnit");
     };
 
     ServiceUnit::ServiceUnit(std::string myNameValue): adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup")
     {
         this->myName.value =  myNameValue;
-        this->addKey("myName");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&rank, "rank");
         this->addChildObject(&failover, "failover");
@@ -74,6 +72,11 @@ namespace SAFplusAmf
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->name.assign("ServiceUnit");
+    };
+
+    void ServiceUnit::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
     };
 
     std::vector<std::string> ServiceUnit::getKeys()
@@ -317,7 +320,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::NumActiveServiceInstances* ServiceUnit::getNumActiveServiceInstances()
     {
-        return (NumActiveServiceInstances*)this->getChildObject("numActiveServiceInstances");
+        return dynamic_cast<NumActiveServiceInstances*>(this->getChildObject("numActiveServiceInstances"));
     };
 
     /*
@@ -333,7 +336,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::NumStandbyServiceInstances* ServiceUnit::getNumStandbyServiceInstances()
     {
-        return (NumStandbyServiceInstances*)this->getChildObject("numStandbyServiceInstances");
+        return dynamic_cast<NumStandbyServiceInstances*>(this->getChildObject("numStandbyServiceInstances"));
     };
 
     /*
@@ -349,7 +352,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::RestartCount* ServiceUnit::getRestartCount()
     {
-        return (RestartCount*)this->getChildObject("restartCount");
+        return dynamic_cast<RestartCount*>(this->getChildObject("restartCount"));
     };
 
     /*

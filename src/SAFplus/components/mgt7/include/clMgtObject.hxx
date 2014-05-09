@@ -45,6 +45,7 @@
 namespace SAFplus
   {
   class ClMgtDatabase;
+  class MgtObject;
 
   class MgtError:public Error
     {
@@ -63,7 +64,6 @@ namespace SAFplus
       NoDataError(const char* error): Error(error)
       {
       }
-    
     };
 
   //  Can be thrown on marshal, demarshal, XMLize or deXMLize
@@ -73,28 +73,28 @@ namespace SAFplus
       SerializationError(const char* error):MgtError(error) 
       {
       }
-    
     };
 
   // This is the hidden virtual iterator underneath MgtObject iterators.
   class MgtIteratorBase
-    {      
+    {
   public:
-    bool operator++() 
+    int refs;
+    std::pair<std::string, MgtObject*> current;
+    MgtIteratorBase(): current("",nullptr),refs(1) {};
+    bool operator++()
       {
       return next();
       }
-      
 
     virtual ~MgtIteratorBase() 
       {
       }
-      
-    virtual bool next()=0;
-    virtual void del()=0;
+    virtual bool next();
+    virtual void del();
     };
 
-
+extern MgtIteratorBase mgtIterEnd;
 
 /**
  * MgtObject class which provides APIs to manage a MGT object
@@ -110,60 +110,46 @@ namespace SAFplus
     virtual ~MgtObject();
 
     class Iterator
-      {      
+      {
+    public:  // Do not use
+      Iterator():b(&mgtIterEnd) {}  // b must ALWAYS be valid
+      Iterator(const Iterator& i);
+      Iterator& operator=(const Iterator& i);
       friend class MgtObject;
-    protected:
       MgtIteratorBase* b;
     public:
-      // b "knows" about this variable because it was given a ref to
-      // this iter during construction.
-      // If at end(), value will be nullptr
-      std::pair<std::string, MgtObject*> current;
 
-      inline bool operator !=(const Iterator& e) const
-        {
-        // in the case of end() e.value will be nullptr, triggering
-        // this quick compare
-        if (current.second != e.current.second) return false;  
-        if (e.current.second == nullptr)
-          {
-          if (current.second == nullptr) return true;
-          else return false; // one is null other is not; must be !=
-          }
-        else if (current.second == nullptr) return false;  // one is null other is not; must be !=
-        
-        // ok if this is "real" comparison of two iterators, check the
-        // names also
-        if (current.first != e.current.first) return false;
-
-        // The iterators are pointing at the same object so we'll
-        // define that as =, even tho the iterators themselves may not
-        // be equivalent.
-        return true;
-        }
+      bool operator !=(const Iterator& e) const;
 
       inline bool operator++(int)
         {
-        return b->next();
+        if (b) return b->next();
+        else return false;
         }
       inline bool operator++()
         {
-        return b->next();
+        if (b) return b->next();
+        else return false;
         }
-      
+
       ~Iterator()
         {
-        b->del();
+        if (b) 
+          { 
+          b->refs--; 
+          if (b->refs==0) b->del();
+          }
+        b = nullptr;
         }
 
       const std::pair<std::string, MgtObject* >* operator ->() const
         {
-        return &current;
-        }      
+        return &b->current;
+        }
       const std::pair<std::string, MgtObject* >& operator *() const
         {
-        return current;
-        }      
+        return b->current;
+        }
       };
 
     /**  TODO: Should be unnecessary but code gen is using it
@@ -247,7 +233,7 @@ namespace SAFplus
      */
       MgtObject *getChildObject(const std::string& objectName) 
       {
-      find(objectName);
+      return find(objectName);
       }
 
     /**

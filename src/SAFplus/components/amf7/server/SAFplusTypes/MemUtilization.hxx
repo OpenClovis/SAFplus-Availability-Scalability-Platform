@@ -23,6 +23,7 @@ namespace SAFplusTypes
 
     public:
         MemUtilization();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~MemUtilization();
 

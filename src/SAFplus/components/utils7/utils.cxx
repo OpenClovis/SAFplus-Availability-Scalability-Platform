@@ -320,6 +320,7 @@ void saNameConcat(SaNameT* nameOut, const SaNameT *prefix, const char* separator
     nameOut->length=curpos;
 }
 
+
 ClBoolT clParseEnvBoolean(const ClCharT* envvar)
 {
     ClCharT* val = NULL;

@@ -37,6 +37,7 @@ namespace SAFplusAmf
 
     public:
         Execution();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*

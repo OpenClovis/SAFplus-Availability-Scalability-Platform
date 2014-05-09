@@ -23,6 +23,7 @@ namespace SAFplusAmf
 
     public:
         NumActiveServiceInstances();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~NumActiveServiceInstances();
 

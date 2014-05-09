@@ -1,3 +1,4 @@
+#if 0
 #ifndef groupMessageHandler_hxx
 #define groupMessageHandler_hxx
 
@@ -13,3 +14,4 @@ class GroupMessageHandler:public SAFplus::MsgHandler
 };
 
 #endif // groupMessageHandler_hxx
+#endif

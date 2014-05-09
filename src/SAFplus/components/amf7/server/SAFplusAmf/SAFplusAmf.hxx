@@ -83,6 +83,7 @@ namespace SAFplusAmf
 
     public:
         SAFplusAmfRoot();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*
@@ -104,7 +105,6 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/healthCheckMaxSilence
          */
         void setHealthCheckMaxSilence(SaTimeT healthCheckMaxSilenceValue);
-        void load(SAFplus::ClMgtDatabase *db);
         ~SAFplusAmfRoot();
 
     };

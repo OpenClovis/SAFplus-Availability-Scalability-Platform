@@ -22,6 +22,11 @@ namespace SAFplusAmf
         this->name.assign("terminate");
     };
 
+    void Terminate::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
+    };
+
     std::vector<std::string>* Terminate::getChildNames()
     {
         std::string childNames[] = { "command", "args", "timeout" };

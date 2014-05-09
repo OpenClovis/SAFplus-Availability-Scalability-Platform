@@ -178,7 +178,8 @@ int main(int argc, char* argv[])
   sysStreamCfg = dynamic_cast<Stream*> (cfg->streamConfig.streamList.getChildObject("sys"));
 
   logInitializeStreams(cfg);
-  
+  dumpStreams(cfg);  
+
   // Log processing Loop
   while(1)
     {

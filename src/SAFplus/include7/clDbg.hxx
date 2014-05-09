@@ -12,7 +12,7 @@ extern int clDbgCompTimeoutOverride;
 extern int clDbgLogLevel;             
 extern int clDbgResourceLogLevel;
 extern int clDbgReverseTiming;
-}
+
 
 /**
  ************************************
@@ -41,34 +41,6 @@ extern int clDbgReverseTiming;
  */
 #define clDbgPause() clDbgPauseFn(__FILE__,__LINE__)
 void clDbgPauseFn(const char* file, int line);
-
-/**
- ************************************
- *  \page clDbgResume
- *
- *  \par Synopsis:
- *  Continue a paused thread -- do not call in code!
- *
- *  \par Header File:
- *  clDbg.h
- *
- *  \par Syntax:
- *  \code 	 void clDebugPause();                          
- *  \endcode
- *
- *  \par Description:
- *  Call this function from the debugger to resume a paused thread this thread. 
- *  Useful when you don't have a chance to set a breakpoint.
- *
- *  \par Library File:
- *   libClDebugClient.a
- *
- *  \par Related Function(s):
- *   \ref "clDebugResume"
- */
-void clDbgResume();
-
-void clDbgMsg(int pid, const char* file, int line, const char* fn, int level, const char* str);
 
 /**
  ************************************
@@ -169,7 +141,35 @@ do { \
      clDbgRootCauseError(CL_ERR_NO_RESOURCE,__VA_ARGS__); \
 } while(0)
 
+};
 
+
+/**
+ ************************************
+ *  \page clDbgResume
+ *
+ *  \par Synopsis:
+ *  DEBUGGING: Continue a paused thread -- do not call in code!
+ *
+ *  \par Header File:
+ *  clDbg.h
+ *
+ *  \par Syntax:
+ *  \code 	 void clDebugPause();                          
+ *  \endcode
+ *
+ *  \par Description:
+ *  Call this function from the debugger to resume a paused thread this thread. 
+ *  Useful when you don't have a chance to set a breakpoint.
+ *  This function is outside that SAFplus namespace for convenience in gdb.
+ *
+ *  \par Library File:
+ *   libClDebugClient.a
+ *
+ *  \par Related Function(s):
+ *   \ref "clDebugResume"
+ */
+extern "C" void clDbgResume();
 
 
 #endif

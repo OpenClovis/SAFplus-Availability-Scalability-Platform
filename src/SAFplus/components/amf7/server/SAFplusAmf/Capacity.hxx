@@ -24,6 +24,7 @@ namespace SAFplusAmf
 
     public:
         Capacity();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*
