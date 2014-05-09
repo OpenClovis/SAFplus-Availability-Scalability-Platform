@@ -1,12 +1,5 @@
 // Standard includes
 #include <string>
-#include <boost/functional/hash.hpp>
-#include <boost/interprocess/managed_shared_memory.hpp>
-#include <boost/interprocess/allocators/allocator.hpp>
-#include <boost/interprocess/errors.hpp>
-#include <boost/unordered_map.hpp>
-#include <functional>
-#include <boost/functional/hash.hpp>
 
 // SAFplus includes
 #include <clHandleApi.hxx>
@@ -18,144 +11,205 @@
 
 using namespace SAFplus;
 using namespace std;
-int testRegisterAndConsistent();
-int testElect();
-int testGetData();
-int testIterator();
-int testRegisterAndDeregister();
+int testCapabilities(int mode);
+int testGroupElect(int mode);
+int testGetData(int mode);
+int testGroupIterator(int mode);
+int testRegisterAndDeregister(int mode);
 
 ClUint32T clAspLocalId = 1;
-
+ClBoolT   gIsNodeRepresentative = CL_TRUE;
 class testWakeble:public SAFplus::Wakeable
 {
   public:
+    int amtsig;
     void wake(int amt,void* cookie=NULL)
     {
       cout << "WAKE! AMT = " << amt << "\n";
     }
+    testWakeble()
+    {
+      amtsig = -1;
+    }
 };
 
-int main()
+int main(int argc, char* argv[])
 {
-  testRegisterAndConsistent();
-  testElect();
-  testGetData();
-  testIterator();
-  testRegisterAndDeregister();
+  int tc = -1;
+  int mode = SAFplus::Group::DATA_IN_CHECKPOINT;
+  if(argc >= 2)
+  {
+    if(argc > 2)
+    {
+      mode = SAFplus::Group::DATA_IN_MEMORY;
+    }
+    tc = atoi(argv[1]);
+  }
+  switch(tc)
+  {
+    case 0:
+      testRegisterAndDeregister(mode);
+      break;
+    case 1:
+      testGroupIterator(mode);
+      break;
+    case 2:
+      testGetData(mode);
+      break;
+    case 3:
+      testCapabilities(mode);
+      break;
+    case 4:
+      testGroupElect(mode);
+      break;
+    default:
+      cout << "Usage: testGroup <testcase> [m]\n";
+      cout << "-------------------------------\n";
+      cout << "m: MEMORY, (default CHECKPOINT)\n";
+      cout << "0. Register and deregister \n";
+      cout << "1. Group iterator \n";
+      cout << "2. Group associated data \n";
+      cout << "3. Entity capabilities \n";
+      cout << "4. Group election \n";
+      cout << "-------------------------------\n";
+      break;
+  }
   return 0;
 }
 
-int testIterator()
+int testGroupIterator(int mode)
 {
-  Group gms("tester");
+  cout << "TC: GROUP ITERATOR START \n";
+  Group gms(__FUNCTION__,mode);
   EntityIdentifier entityId1 = SAFplus::Handle::create();
   EntityIdentifier entityId2 = SAFplus::Handle::create();
   EntityIdentifier entityId3 = SAFplus::Handle::create();
-
+  cout << "TC: register 3 entity \n";
   gms.registerEntity(entityId1,20,"ID1",3,20);
   gms.registerEntity(entityId2,50,"ID2",3,30);
   gms.registerEntity(entityId3,10,"ID3",3,10);
-
+  cout << "TC: start iterate \n";
   SAFplus::Group::Iterator iter = gms.begin();
   while(iter != gms.end())
   {
     EntityIdentifier item = iter->first;
-    printf("Entity capability: %d \n",gms.getCapabilities(item));
+    cout << "--> TC: Entity capabilites: " << gms.getCapabilities(item) << "\n";
     iter++;
   }
+  cout << "TC: GROUP ITERATOR END \n";
+  return 0;
 }
 
-int testRegisterAndConsistent()
+int testCapabilities(int mode)
 {
-  Group gms("tester");
+  cout << "TC: GROUP CAPABILITIES START \n";
+  Group gms(__FUNCTION__,mode);
   EntityIdentifier me = SAFplus::Handle::create();
   uint64_t credentials = 5;
   std::string data = "DATA";
   int dataLength = 4;
   uint capabilities = 100;
+  cout << "TC: Where the anonymous entity is a member? \n";
   bool isMember = gms.isMember(me);
-  printf("Is already member? %s \n",isMember ? "YES":"NO");
+  cout << "--> TC: " << (isMember ? "YES" : "NO") << "\n";
   if(isMember)
   {
     gms.deregister(me);
   }
+  cout << "TC: Register entity with capabilities " << capabilities << "\n";
   gms.registerEntity(me,credentials,(void *)&data,dataLength,capabilities);
-
+  cout << "TC: Check registered capabilities \n";
   capabilities = gms.getCapabilities(me);
-  printf("CAP: %d \n",capabilities);
-
+  cout << "--> TC: " << capabilities << "\n";
+  cout << "TC: Set new capabilities [20] for entity \n";
   gms.setCapabilities(20,me);
+  cout << "TC: Check new capabilities \n";
   capabilities = gms.getCapabilities(me);
-  printf("CAP: %d \n",capabilities);
-
+  cout << "--> TC: " << capabilities << "\n";
+  cout << "TC: GROUP CAPABILITIES END \n";
   return 0;
 }
 
-int testGetData()
+int testGetData(int mode)
 {
-  Group gms("tester");
+  cout << "TC: ENTITY ASSOCIATED DATA START \n";
+  Group gms(__FUNCTION__,mode);
   EntityIdentifier entityId1 = SAFplus::Handle::create();
   EntityIdentifier entityId2 = SAFplus::Handle::create();
   EntityIdentifier entityId3 = SAFplus::Handle::create();
-
+  cout << "TC: Registered 3 entities with data are: ID1,ID2,ID3 \n";
   gms.registerEntity(entityId1,20,"ID1",3,20);
   gms.registerEntity(entityId2,50,"ID2",3,50);
   gms.registerEntity(entityId3,10,"ID3",3,10);
-  printf("Entity 1 's data: %s \n",(gms.getData(entityId1)).data);
-  printf("Entity 2 's data: %s \n",(gms.getData(entityId2)).data);
-  printf("Entity 3 's data: %s \n",(gms.getData(entityId3)).data);
+  cout << "TC: Get data of 3 entities \n";
+  cout << "--> TC: Entity 1: " << gms.getData(entityId1).data << "\n";
+  cout << "--> TC: Entity 1: " << gms.getData(entityId2).data << "\n";
+  cout << "--> TC: Entity 1: " << gms.getData(entityId3).data << "\n";
+  cout << "TC: ENTITY ASSOCIATED DATA END \n";
+  return 0;
 }
 
-int testElect()
+int testGroupElect(int mode)
 {
-  Group gms("tester");
+  cout << "TC: GROUP ELECTION START \n";
+  Group gms(__FUNCTION__,mode);
   uint capability = 0;
   testWakeble tw;
-  SAFplus::Wakeable *w = &tw;
+  //SAFplus::Wakeable *w = &tw;
+  gms.setNotification(tw);
 
   EntityIdentifier entityId1 = SAFplus::Handle::create();
   EntityIdentifier entityId2 = SAFplus::Handle::create();
   EntityIdentifier entityId3 = SAFplus::Handle::create();
 
-  gms.setNotification(*w);
+  cout << "TC: Register 3 entities \n";
   gms.registerEntity(entityId1,20,"ID1",3,20);
   gms.registerEntity(entityId2,50,"ID2",3,50);
   gms.registerEntity(entityId3,10,"ID3",3,10);
 
+  cout << "TC: Entity 3 set IS_ACTIVE \n";
   capability |= SAFplus::Group::IS_ACTIVE;
   gms.setCapabilities(capability,entityId3);
+  cout << "TC: Entity 1,2 set both ACCEPT_ACTIVE and ACCEPT_STANDBY \n";
   capability &= ~SAFplus::Group::IS_ACTIVE;
   capability |= SAFplus::Group::ACCEPT_ACTIVE | SAFplus::Group::ACCEPT_STANDBY | 16;
   gms.setCapabilities(capability,entityId1);
   gms.setCapabilities(capability,entityId2);
+  cout << "TC: Start wait for election \n";
   std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs = gms.elect();
-
-  int activeCapabilities = gms.getCapabilities(activeStandbyPairs.first);
-  int standbyCapabilities = gms.getCapabilities(activeStandbyPairs.second);
-  printf("Active CAP: %d \t Standby CAP: %d \n",activeCapabilities,standbyCapabilities);
+  while(tw.amtsig != SAFplus::Group::ELECTION_FINISH_SIG)
+  {
+    ;
+  }
+  cout << "TC: Election done, checking result \n";
+  int activeCapabilities = gms.getCapabilities(gms.getActive());
+  int standbyCapabilities = gms.getCapabilities(gms.getStandby());
+  cout << "--> TC: Active " << gms.getData(gms.getActive()).data << "\n";
+  cout << "--> TC: Standby " << gms.getData(gms.getStandby()).data << "\n";
+  cout << "TC: GROUP ELECTION END \n";
   return 0;
 }
 
-int testRegisterAndDeregister()
+int testRegisterAndDeregister(int mode)
 {
-  Group gms("tester");
-  testWakeble tw;
-  SAFplus::Wakeable *w = &tw;
-  cout << "\n\nTEST START \n";
-  EntityIdentifier entityId1 = SAFplus::Handle::create();
-  gms.setNotification(*w);
-  cout << "Register entity \n";
-  gms.registerEntity(entityId1,20,"ID1",3,20);
-  cout << "De-register entity \n";
-  gms.deregister(entityId1);
-  cout << "Register entity \n";
-  gms.registerEntity(entityId1,20,"ID1",3,20);
-  cout << "De-register entity with default argument \n";
-  gms.deregister();
-  cout << "Still to be member? It should answer NO \n";
-  cout << (gms.isMember(entityId1) ? "YES" : "NO") << "\n";
-  cout << "Register entity \n";
-  gms.registerEntity(entityId1,20,"ID1",3,50);
+  cout << "TC: GROUP REGISTER AND DEREGISTER START \n";
+  Group gms(__FUNCTION__,mode);
 
+  cout << "TC: Register entity \n";
+  EntityIdentifier entityId1 = SAFplus::Handle::create();
+  gms.registerEntity(entityId1,20,"ID1",3,20);
+  cout << "TC: Deregister entity \n";
+  gms.deregister(entityId1);
+  cout << "TC: Register entity \n";
+  gms.registerEntity(entityId1,20,"ID1",3,20);
+  cout << "TC: Deregister entity with INVALID_HDL \n";
+  gms.deregister();
+  cout << "TC: Check whether entity is still a member? \n";
+  cout << "--> TC: " << (gms.isMember(entityId1) ? "YES" : "NO") << "\n";
+  cout << "TC: Register entity \n";
+  gms.registerEntity(entityId1,20,"ID1",3,20);
+  cout << "TC: Check whether entity is still a member? \n";
+  cout << "--> TC: " << (gms.isMember(entityId1) ? "YES" : "NO") << "\n";
+  cout << "TC: GROUP REGISTER AND DEREGISTER END \n";
   return 0;
 }
