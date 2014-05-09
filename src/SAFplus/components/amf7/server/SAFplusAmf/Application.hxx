@@ -31,55 +31,25 @@ namespace SAFplusAmf
     public:
 
         /*
-         * Unique name of this entity
-         */
-        SAFplus::ClMgtProv<std::string> name;
-
-        /*
-         * Each SAFplus AMF entity gets a unique numerical identifier
-         */
-        SAFplus::ClMgtProv<unsigned short int> id;
-
-        /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * Service Groups in this Application
          */
-        SAFplus::ClMgtProvList<SAFplusAmf::ServiceGroup*> serviceGroups;
+        SAFplus::MgtProvList<SAFplusAmf::ServiceGroup*> serviceGroups;
 
         /*
          * SAFplus Extension: To the greatest extent possible, all Service Groups in this application will be Active (or standby) on the same node.  This will only be not true if service groups are not configured to run on the same nodes.
          */
-        SAFplus::ClMgtProv<bool> keepTogether;
+        SAFplus::MgtProv<bool> keepTogether;
 
     public:
         Application();
-        Application(std::string nameValue);
+        Application(std::string myNameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
-
-        /*
-         * XPATH: /SAFplusAmf/Application/name
-         */
-        std::string getName();
-
-        /*
-         * XPATH: /SAFplusAmf/Application/name
-         */
-        void setName(std::string nameValue);
-
-        /*
-         * XPATH: /SAFplusAmf/Application/id
-         */
-        unsigned short int getId();
-
-        /*
-         * XPATH: /SAFplusAmf/Application/id
-         */
-        void setId(unsigned short int idValue);
 
         /*
          * XPATH: /SAFplusAmf/Application/adminState

@@ -9,47 +9,40 @@
 #define CAPACITY_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
 #include <string>
+#include "clMgtContainer.hxx"
+#include "clMgtProv.hxx"
 
 namespace SAFplusAmf
   {
 
-    class Capacity : public SAFplus::ClMgtObject {
-
-        /* Apply MGT object factory */
-        MGT_REGISTER(Capacity);
-
+    class Capacity : public SAFplus::MgtContainer {
     public:
-        SAFplus::ClMgtProv<std::string> resource;
-        SAFplus::ClMgtProv<long int> value;
+        SAFplus::MgtProv<std::string> resource;
+        SAFplus::MgtProv<long int> value;
 
     public:
         Capacity();
-        Capacity(std::string resourceValue);
-        std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/Node/capacity/resource
+         * XPATH: /SAFplusAmf/Capacity/resource
          */
         std::string getResource();
 
         /*
-         * XPATH: /SAFplusAmf/Node/capacity/resource
+         * XPATH: /SAFplusAmf/Capacity/resource
          */
         void setResource(std::string resourceValue);
 
         /*
-         * XPATH: /SAFplusAmf/Node/capacity/value
+         * XPATH: /SAFplusAmf/Capacity/value
          */
         long int getValue();
 
         /*
-         * XPATH: /SAFplusAmf/Node/capacity/value
+         * XPATH: /SAFplusAmf/Capacity/value
          */
         void setValue(long int valueValue);
         ~Capacity();

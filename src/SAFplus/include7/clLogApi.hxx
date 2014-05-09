@@ -23,7 +23,9 @@ public:
   
 enum
   {
-    CL_LOG_BUFFER_DEFAULT_LENGTH = 1024*1024  // use clLogBufferSize in your code for the actual size.
+    CL_LOG_BUFFER_DEFAULT_LENGTH = 1024*1024,  // use clLogBufferSize in your code for the actual size.
+    LOG_MAX_MSG_LEN  = 1024,
+
   };
   
   

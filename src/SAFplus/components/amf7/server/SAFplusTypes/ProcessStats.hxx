@@ -9,19 +9,19 @@
 #define PROCESSSTATS_HXX_
 #include "SAFplusTypesCommon.hxx"
 
-#include "clMgtObject.hxx"
 #include "MemUtilization.hxx"
 #include "MemUtilization.hxx"
 #include "Failures.hxx"
 #include <vector>
 #include "CpuUtilization.hxx"
+#include "clMgtContainer.hxx"
 #include "Failures.hxx"
 #include "CpuUtilization.hxx"
 
 namespace SAFplusTypes
   {
 
-    class ProcessStats : public SAFplus::ClMgtObject {
+    class ProcessStats : public SAFplus::MgtContainer {
     public:
         ProcessStats();
         std::vector<std::string>* getChildNames();

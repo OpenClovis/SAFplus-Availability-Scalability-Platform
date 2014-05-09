@@ -5,11 +5,11 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
+#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include <string>
 #include "Data.hxx"
 
 
@@ -19,47 +19,47 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Data, /SAFplusAmf/ComponentServiceInstance/data)
 
-    Data::Data(): SAFplus::ClMgtObject("data"), name("name"), val("val")
+    Data::Data(): SAFplus::MgtList("data"), myName("myName"), val("val")
     {
-        this->addChildObject(&name, "name");
+        this->addChildObject(&myName, "myName");
         this->addChildObject(&val, "val");
-        this->addKey("name");
+        this->addKey("myName");
     };
 
-    Data::Data(std::string nameValue): SAFplus::ClMgtObject("data"), name("name"), val("val")
+    Data::Data(std::string myNameValue): SAFplus::MgtList("data"), myName("myName"), val("val")
     {
-        this->name.Value =  nameValue;
-        this->addKey("name");
-        this->addChildObject(&name, "name");
+        this->myName.value =  myNameValue;
+        this->addKey("myName");
+        this->addChildObject(&myName, "myName");
         this->addChildObject(&val, "val");
     };
 
     std::vector<std::string> Data::getKeys()
     {
-        std::string keyNames[] = { "name" };
+        std::string keyNames[] = { "myName" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* Data::getChildNames()
     {
-        std::string childNames[] = { "name", "val" };
+        std::string childNames[] = { "myName", "val" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
+     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/myName
      */
-    std::string Data::getName()
+    std::string Data::getMyName()
     {
-        return this->name.Value;
+        return this->myName.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
+     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/myName
      */
-    void Data::setName(std::string nameValue)
+    void Data::setMyName(std::string myNameValue)
     {
-        this->name.Value = nameValue;
+        this->myName.value = myNameValue;
     };
 
     /*
@@ -67,7 +67,7 @@ namespace SAFplusAmf
      */
     std::string Data::getVal()
     {
-        return this->val.Value;
+        return this->val.value;
     };
 
     /*
@@ -75,7 +75,7 @@ namespace SAFplusAmf
      */
     void Data::setVal(std::string valValue)
     {
-        this->val.Value = valValue;
+        this->val.value = valValue;
     };
 
     Data::~Data()

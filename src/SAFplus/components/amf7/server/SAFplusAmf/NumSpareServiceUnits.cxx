@@ -19,6 +19,7 @@ namespace SAFplusAmf
 
     NumSpareServiceUnits::NumSpareServiceUnits()
     {
+        this->name.assign("numSpareServiceUnits");
     };
 
     std::vector<std::string>* NumSpareServiceUnits::getChildNames()

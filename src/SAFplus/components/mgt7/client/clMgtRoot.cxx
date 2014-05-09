@@ -27,17 +27,11 @@ extern "C"
 {
 #endif
 #include <clCommonErrors.h>
-#include <clDebugApi.h>
-
 #ifdef __cplusplus
 } /* end extern 'C' */
 #endif
 
 using namespace std;
-
-#ifdef SAFplus7
-#define clLog(...)
-#endif
 
 #ifdef MGT_ACCESS
 #define CL_IOC_MGT_NETCONF_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 1)
@@ -46,15 +40,15 @@ using namespace std;
 
 namespace SAFplus
 {
-  ClMgtRoot *ClMgtRoot::singletonInstance = 0;
+  MgtRoot *MgtRoot::singletonInstance = 0;
 
-  ClMgtRoot *ClMgtRoot::getInstance()
+  MgtRoot *MgtRoot::getInstance()
   {
     return (singletonInstance ? singletonInstance : (singletonInstance =
-                                                     new ClMgtRoot()));
+                                                     new MgtRoot()));
   }
 
-  ClMgtRoot::~ClMgtRoot()
+  MgtRoot::~MgtRoot()
   {
 #ifdef MGT_ACCESS
 
@@ -66,7 +60,7 @@ namespace SAFplus
 #endif    
   }
 
-  ClMgtRoot::ClMgtRoot()
+  MgtRoot::MgtRoot()
   {
 #ifdef MGT_ACCESS
     /*
@@ -86,7 +80,7 @@ namespace SAFplus
 #endif    
   }
 
-  ClRcT ClMgtRoot::loadMgtModule(ClMgtModule *module, std::string moduleName)
+  ClRcT MgtRoot::loadMgtModule(MgtModule *module, std::string moduleName)
   {
     if (module == NULL)
       {
@@ -96,48 +90,46 @@ namespace SAFplus
     /* Check if MGT module already exists in the database */
     if (mMgtModules.find(moduleName) != mMgtModules.end())
       {
-        clLogDebug("MGT", "LOAD", "Module [%s] already exists!",
-                   moduleName.c_str());
+        logDebug("MGT", "LOAD", "Module [%s] already exists!", moduleName.c_str());
         return CL_ERR_ALREADY_EXIST;
       }
 
     /* Insert MGT module into the database */
-    mMgtModules.insert(pair<string, ClMgtModule *>(moduleName.c_str(), module));
-    clLogDebug("MGT", "LOAD", "Module [%s] added successfully!",
-               moduleName.c_str());
+    mMgtModules.insert(pair<string, MgtModule *>(moduleName.c_str(), module));
+    logDebug("MGT", "LOAD", "Module [%s] added successfully!", moduleName.c_str());
 
     return CL_OK;
   }
 
-  ClRcT ClMgtRoot::unloadMgtModule(std::string moduleName)
+  ClRcT MgtRoot::unloadMgtModule(std::string moduleName)
   {
     /* Check if MGT module already exists in the database */
     if (mMgtModules.find(moduleName) == mMgtModules.end())
       {
-        clLogDebug("MGT", "LOAD", "Module [%s] is not existing!",
+        logDebug("MGT", "LOAD", "Module [%s] is not existing!",
                    moduleName.c_str());
         return CL_ERR_NOT_EXIST;
       }
 
     /* Remove MGT module out off the database */
     mMgtModules.erase(moduleName);
-    clLogDebug("MGT", "LOAD", "Module [%s] removed successful!",
+    logDebug("MGT", "LOAD", "Module [%s] removed successful!",
                moduleName.c_str());
 
     return CL_OK;
   }
 
-  ClMgtModule *ClMgtRoot::getMgtModule(const std::string moduleName)
+  MgtModule *MgtRoot::getMgtModule(const std::string moduleName)
   {
-    map<string, ClMgtModule*>::iterator mapIndex = mMgtModules.find(moduleName);
+    map<string, MgtModule*>::iterator mapIndex = mMgtModules.find(moduleName);
     if (mapIndex != mMgtModules.end())
       {
-        return static_cast<ClMgtModule *>((*mapIndex).second);
+        return static_cast<MgtModule *>((*mapIndex).second);
       }
     return NULL;
   }
 
-  ClRcT ClMgtRoot::bindMgtObject(ClUint8T bindType, ClMgtObject *object,
+  ClRcT MgtRoot::bindMgtObject(ClUint8T bindType, MgtObject *object,
                                  const std::string module, const std::string route)
   {
     ClRcT rc = CL_OK;
@@ -148,10 +140,10 @@ namespace SAFplus
       }
 
     /* Check if MGT module already exists in the database */
-    ClMgtModule *mgtModule = getMgtModule(module);
+    MgtModule *mgtModule = getMgtModule(module);
     if (mgtModule == NULL)
       {
-        clLogDebug("MGT", "BIND", "Module [%s] does not exist!",
+        logDebug("MGT", "BIND", "Module [%s] does not exist!",
                    module.c_str());
         return CL_ERR_NOT_EXIST;
       }
@@ -159,7 +151,7 @@ namespace SAFplus
     rc = mgtModule->addMgtObject(object, route);
     if ((rc != CL_OK) && (rc != CL_ERR_ALREADY_EXIST))
       {
-        clLogDebug("MGT", "BIND",
+        logDebug("MGT", "BIND",
                    "Binding module [%s], route [%s], returning rc[0x%x].",
                    module.c_str(), route.c_str(), rc);
         return rc;
@@ -196,7 +188,7 @@ namespace SAFplus
     return rc;
   }
 
-  ClRcT ClMgtRoot::registerRpc(const std::string module,
+  ClRcT MgtRoot::registerRpc(const std::string module,
                                const std::string rpcName)
   {
     ClRcT rc = CL_OK;
@@ -225,18 +217,18 @@ namespace SAFplus
   {
     ClRcT rc = CL_OK;
 
-    clLogDebug("NETCONF", "COMP", "Receive Edit MSG");
+    logDebug("NETCONF", "COMP", "Receive Edit MSG");
 
     ClMgtMessageEditTypeT *editData = (ClMgtMessageEditTypeT *) pInMsg;
     ClCharT *data = editData->data;
     ClUint32T dataSize = strlen(data);
 
-    ClMgtModule * module = ClMgtRoot::getInstance()->getMgtModule(
+    MgtModule * module = MgtRoot::getInstance()->getMgtModule(
                                                                   editData->module);
     if (!module)
       return;
 
-    ClMgtObject * object = module->getMgtObject(editData->route);
+    MgtObject * object = module->getMgtObject(editData->route);
     if (!object)
       return;
 
@@ -261,16 +253,16 @@ namespace SAFplus
                          ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize)
   {
     ClMgtMessageBindTypeT *bindData = (ClMgtMessageBindTypeT *) pInMsg;
-    clLogDebug("NETCONF", "COMP",
+    logDebug("NETCONF", "COMP",
                "Received Get request from [%d.%x] for module [%s] route [%s]",
                bindData->iocAddress.nodeAddress, bindData->iocAddress.portId,
                bindData->module, bindData->route);
 
-    ClMgtModule * module = ClMgtRoot::getInstance()->getMgtModule(
+    MgtModule * module = MgtRoot::getInstance()->getMgtModule(
                                                                   bindData->module);
     if (!module)
       {
-        clLogError(
+        logError(
                    "NETCONF",
                    "COMP",
                    "Received Get request from [%d.%x] for Non-existent module [%s] route [%s]",
@@ -279,10 +271,10 @@ namespace SAFplus
         return;
       }
 
-    ClMgtObject * object = module->getMgtObject(bindData->route);
+    MgtObject * object = module->getMgtObject(bindData->route);
     if (!object)
       {
-        clLogError(
+        logError(
                    "NETCONF",
                    "COMP",
                    "Received Get request from [%d.%x] for Non-existent route [%s] module [%s]",
@@ -297,7 +289,7 @@ namespace SAFplus
   void clMgtMsgRpcHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
                          ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize)
   {
-    clLogDebug("NETCONF", "COMP", "Receive Rpc MSG");
+    logDebug("NETCONF", "COMP", "Receive Rpc MSG");
     ClMgtMessageRpcTypeT *rpcData = (ClMgtMessageRpcTypeT *) pInMsg;
     ClCharT *data = rpcData->data;
     ClUint32T dataSize = strlen(data);
@@ -307,7 +299,7 @@ namespace SAFplus
         *ppOutMsg = (void *) calloc(MGT_MAX_DATA_LEN, sizeof(char));
       }
 
-    ClMgtModule * module = ClMgtRoot::getInstance()->getMgtModule(
+    MgtModule * module = MgtRoot::getInstance()->getMgtModule(
                                                                   rpcData->module);
     if (!module)
       {
@@ -341,7 +333,7 @@ namespace SAFplus
           }
         else
           {
-            clLogDebug("MGT", "INI", "Validation error : %s",
+            logDebug("MGT", "INI", "Validation error : %s",
                        rpc->ErrorMsg.c_str());
             if (rpc->ErrorMsg.length() == 0)
               snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
@@ -397,16 +389,16 @@ namespace SAFplus
 
     ClMgtMsgOidSetType *editData = (ClMgtMsgOidSetType *) pInMsg;
 
-    clLogDebug("SNM", "COMP", "Receive 'edit' opcode, data [%s]",
+    logDebug("SNM", "COMP", "Receive 'edit' opcode, data [%s]",
                (ClCharT *)editData->data);
 
-    ClMgtModule * module = ClMgtRoot::getInstance()->getMgtModule(
+    MgtModule * module = MgtRoot::getInstance()->getMgtModule(
                                                                   editData->module);
 
     if (!module)
       return;
 
-    ClMgtObject * object = module->getMgtObject(editData->oid);
+    MgtObject * object = module->getMgtObject(editData->oid);
     if (!object)
       return;
 
@@ -438,16 +430,16 @@ namespace SAFplus
   void clMgtMsgOidGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
                             ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize)
   {
-    clLogDebug("SNM", "COMP", "Receive 'get' opcode");
+    logDebug("SNM", "COMP", "Receive 'get' opcode");
 
     ClMgtMsgOidBindTypeT *bindData = (ClMgtMsgOidBindTypeT *) pInMsg;
 
-    ClMgtModule * module = ClMgtRoot::getInstance()->getMgtModule(
+    MgtModule * module = MgtRoot::getInstance()->getMgtModule(
                                                                   bindData->module);
     if (!module)
       return;
 
-    ClMgtObject * object = module->getMgtObject(bindData->oid);
+    MgtObject * object = module->getMgtObject(bindData->oid);
     if (!object)
       return;
 

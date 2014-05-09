@@ -1,5 +1,7 @@
 #pragma once
 #include <algorithm>
+#include <assert.h>
+#include <string.h>
 
 namespace SAFplus
 {

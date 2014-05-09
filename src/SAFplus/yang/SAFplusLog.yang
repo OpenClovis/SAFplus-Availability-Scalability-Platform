@@ -33,7 +33,7 @@ module SAFplusLog {
 
         description "Configurable attributes relating to the log stream";
 
-        leaf name {
+        leaf myName {
             type string;
             description "Name of the stream";
         }

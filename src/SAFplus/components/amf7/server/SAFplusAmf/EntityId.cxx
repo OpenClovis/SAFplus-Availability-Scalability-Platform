@@ -6,41 +6,41 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
 #include <string>
+#include "clMgtContainer.hxx"
+#include "clMgtProv.hxx"
 #include "EntityId.hxx"
 
 
 namespace SAFplusAmf
   {
 
-    EntityId::EntityId(): SAFplus::ClMgtObject("EntityId"), name("name"), id("id")
+    EntityId::EntityId(): SAFplus::MgtContainer("EntityId"), myName("myName"), id("id")
     {
-        this->addChildObject(&name, "name");
+        this->addChildObject(&myName, "myName");
         this->addChildObject(&id, "id");
     };
 
     std::vector<std::string>* EntityId::getChildNames()
     {
-        std::string childNames[] = { "name", "id" };
+        std::string childNames[] = { "myName", "id" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityId/name
+     * XPATH: /SAFplusAmf/EntityId/myName
      */
-    std::string EntityId::getName()
+    std::string EntityId::getMyName()
     {
-        return this->name.Value;
+        return this->myName.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityId/name
+     * XPATH: /SAFplusAmf/EntityId/myName
      */
-    void EntityId::setName(std::string nameValue)
+    void EntityId::setMyName(std::string myNameValue)
     {
-        this->name.Value = nameValue;
+        this->myName.value = myNameValue;
     };
 
     /*
@@ -48,7 +48,7 @@ namespace SAFplusAmf
      */
     unsigned short int EntityId::getId()
     {
-        return this->id.Value;
+        return this->id.value;
     };
 
     /*
@@ -56,7 +56,7 @@ namespace SAFplusAmf
      */
     void EntityId::setId(unsigned short int idValue)
     {
-        this->id.Value = idValue;
+        this->id.value = idValue;
     };
 
     EntityId::~EntityId()

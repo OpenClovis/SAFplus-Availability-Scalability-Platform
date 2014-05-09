@@ -1,5 +1,7 @@
 #pragma once
 #include <clGlobals.hxx>
+#include <clDbg.hxx>
+
 
 namespace SAFplus
 {

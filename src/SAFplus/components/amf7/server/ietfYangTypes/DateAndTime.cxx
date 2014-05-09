@@ -29,7 +29,7 @@ namespace ietfYangTypes
 
     ietfYangTypes::DateAndTime& DateAndTime::operator=(const ietfYangTypes::DateAndTime &dateAndTime)
     {
-        Value = dateAndTime.Value;
+        Value = dateAndTime.value;
         return *this;
     };
 
@@ -39,12 +39,12 @@ namespace ietfYangTypes
 
     std::ostream& operator<<(std::ostream &os, const ietfYangTypes::DateAndTime &dateAndTime)
     {
-        return os << dateAndTime.Value;
+        return os << dateAndTime.value;
     };
 
     std::istream& operator>>(std::istream &is, ietfYangTypes::DateAndTime &dateAndTime)
     {
-        return is >> dateAndTime.Value;
+        return is >> dateAndTime.value;
     };
 
 }

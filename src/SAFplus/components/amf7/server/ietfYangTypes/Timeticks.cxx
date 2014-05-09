@@ -28,7 +28,7 @@ namespace ietfYangTypes
 
     ietfYangTypes::Timeticks& Timeticks::operator=(const ietfYangTypes::Timeticks &timeticks)
     {
-        Value = timeticks.Value;
+        Value = timeticks.value;
         return *this;
     };
 
@@ -38,12 +38,12 @@ namespace ietfYangTypes
 
     std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Timeticks &timeticks)
     {
-        return os << timeticks.Value;
+        return os << timeticks.value;
     };
 
     std::istream& operator>>(std::istream &is, ietfYangTypes::Timeticks &timeticks)
     {
-        return is >> timeticks.Value;
+        return is >> timeticks.value;
     };
 
 }

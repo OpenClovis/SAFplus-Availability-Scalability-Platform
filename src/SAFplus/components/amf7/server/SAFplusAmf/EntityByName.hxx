@@ -9,37 +9,37 @@
 #define ENTITYBYNAME_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
+#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include <string>
 
 namespace SAFplusAmf
   {
 
-    class EntityByName : public SAFplus::ClMgtObject {
+    class EntityByName : public SAFplus::MgtList {
 
         /* Apply MGT object factory */
         MGT_REGISTER(EntityByName);
 
     public:
-        SAFplus::ClMgtProv<std::string> name;
-        SAFplus::ClMgtProv<std::string> entity;
+        SAFplus::MgtProv<std::string> myName;
+        SAFplus::MgtProv<std::string> entity;
 
     public:
         EntityByName();
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/EntityByName/name
+         * XPATH: /SAFplusAmf/EntityByName/myName
          */
-        std::string getName();
+        std::string getMyName();
 
         /*
-         * XPATH: /SAFplusAmf/EntityByName/name
+         * XPATH: /SAFplusAmf/EntityByName/myName
          */
-        void setName(std::string nameValue);
+        void setMyName(std::string myNameValue);
 
         /*
          * XPATH: /SAFplusAmf/EntityByName/entity

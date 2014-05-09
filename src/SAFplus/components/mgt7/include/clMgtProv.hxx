@@ -31,20 +31,29 @@
 #ifndef CLMGTPROV_HPP_
 #define CLMGTPROV_HPP_
 
-#include "clMgtObject.hxx"
-#include "clMgtDatabase.hxx"
-#include "clLogApi.h"
-
 #include <typeinfo>
 #include <iostream>
+
+extern "C"
+{
+#include <libxml/xmlreader.h>
+#include <libxml/xmlmemory.h>
+#include <libxml/parser.h>
+#include <libxml/xmlstring.h>
+} /* end extern 'C' */
+
+#include "clMgtObject.hxx"
+#include "clMgtDatabase.hxx"
+#include "clLogApi.hxx"
+
 
 namespace SAFplus
 {
 /**
- *  ClMgtProv class provides APIs to manage "provisioned" objects.  Provisioned objects are those that represent configuration that needs to be set by the operator.  This is in contrast to statistics objects which are not set by the operator.
+ *  MgtProv class provides APIs to manage "provisioned" objects.  Provisioned objects are those that represent configuration that needs to be set by the operator.  This is in contrast to statistics objects which are not set by the operator.
  */
 template <class T>
-class ClMgtProv : public ClMgtObject
+class MgtProv : public MgtObject
 {
 protected:
     /* This variable is used to index the value in Transaction object.*/
@@ -52,23 +61,24 @@ protected:
 
 public:
     /**
-     *  Value of the "ClMgtProv" object
+     *  Value of the "MgtProv" object
      */
-    T		Value;
+    T value;
 
 public:
-    ClMgtProv(const char* name);
-    virtual ~ClMgtProv();
+    MgtProv(const char* name);
+    virtual ~MgtProv();
 
     virtual void toString(std::stringstream& xmlString);
     virtual std::string strValue();
 
+
     /**
      * \brief   Define basic assignment operator
      */
-    ClMgtProv<T>& operator = (const T& val)
+    MgtProv<T>& operator = (const T& val)
     {
-        Value = val;
+        value = val;
         setDb();
         return *this;
     }
@@ -78,12 +88,12 @@ public:
     operator T& ()
     {
         getDb();
-        return Value;
+        return value;
     }
     /**
      * \brief   Define basic comparison
      */
-    bool operator == (const T& val) { return Value==val; }
+    bool operator == (const T& val) { return value==val; }
 
   /**
      * \brief   Virtual function to validate object data
@@ -94,20 +104,20 @@ public:
     /**
      * \brief   Define formal access operation
      */
-    T& value()
+    T& val()
     {
         getDb();
-        return Value;
+        return value;
     }
 
-    inline friend std::ostream & operator<< (std::ostream &os, const ClMgtProv &b)
+    inline friend std::ostream & operator<< (std::ostream &os, const MgtProv &b)
     {
-        return os<<(T)b.Value;
+        return os<<(T)b.value;
     }
 
-    inline friend std::istream & operator>> (std::istream &is, const ClMgtProv &b)
+    inline friend std::istream & operator>> (std::istream &is, const MgtProv &b)
     {
-        return is>>(T)(b.Value);
+        return is>>(T)(b.value);
     }
 
     virtual std::vector<std::string> *getChildNames();
@@ -128,7 +138,7 @@ template <class T>
 class ProvOperation : public SAFplus::TransactionOperation
 {
 protected:
-    ClMgtProv<T> *mOwner;
+    MgtProv<T> *mOwner;
     void         *mData;
 
 public:
@@ -137,7 +147,7 @@ public:
         mOwner = NULL;
         mData = NULL;
     }
-    void setData(ClMgtProv<T> *owner, void *data, ClUint64T buffLen);
+    void setData(MgtProv<T> *owner, void *data, ClUint64T buffLen);
     virtual bool validate(SAFplus::Transaction& t);
     virtual void commit();
     virtual void abort();
@@ -149,7 +159,7 @@ public:
  */
 
 template <class T>
-void ProvOperation<T>::setData(ClMgtProv<T> *owner, void *data, ClUint64T buffLen)
+void ProvOperation<T>::setData(MgtProv<T> *owner, void *data, ClUint64T buffLen)
 {
     mOwner = owner;
     mData = (void *) malloc (buffLen);
@@ -177,7 +187,7 @@ void ProvOperation<T>::commit()
     std::stringstream ss;
 
     char *valstr = (char *) mData;
-    deXMLize(valstr,mOwner,mOwner->Value);
+    deXMLize(valstr,mOwner,mOwner->value);
 
     mOwner->setDb();
     free(mData);
@@ -194,45 +204,45 @@ void ProvOperation<T>::abort()
     mData = NULL;
 }
 /*
- * Implementation of ClMgtProv class
+ * Implementation of MgtProv class
  * G++ compiler: template function declarations and implementations must appear in the same file.
  */
 
 template <class T>
-ClMgtProv<T>::ClMgtProv(const char* name) : ClMgtObject(name)
+MgtProv<T>::MgtProv(const char* name) : MgtObject(name)
 {
     mValIndex = -1;
 }
 
 template <class T>
-ClMgtProv<T>::~ClMgtProv()
+MgtProv<T>::~MgtProv()
 {}
 
 template <class T>
-void ClMgtProv<T>::toString(std::stringstream& xmlString)
+void MgtProv<T>::toString(std::stringstream& xmlString)
 {
     getDb();
     xmlString << "<";
-    xmlString << Name << ">";
-    xmlString << Value;
-    xmlString << "</" << Name << ">";
+    xmlString << name << ">";
+    xmlString << value;
+    xmlString << "</" << name << ">";
 }
 
 template <class T>
-std::string ClMgtProv<T>::strValue()
+std::string MgtProv<T>::strValue()
 {
     std::stringstream ss;
-    ss <<  Value ;
+    ss <<  value ;
     return ss.str();
 }
 
-template <class T> void ClMgtProv<T>::xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+template <class T> void MgtProv<T>::xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
   if (!set(pBuffer,buffLen,t)) throw SAFplus::TransactionException(t);
 }
 
 template <class T>
-ClBoolT ClMgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+ClBoolT MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
     xmlChar        *valstr, *namestr;
     int             ret, nodetyp, depth;
@@ -255,7 +265,7 @@ ClBoolT ClMgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Trans
 
     namestr = (xmlChar *)xmlTextReaderConstName(reader);
 
-    if (strcmp((char *)namestr, Name.c_str()))
+    if (strcmp((char *)namestr, name.c_str()))
     {
         xmlFreeTextReader(reader);
         return CL_FALSE;
@@ -291,18 +301,18 @@ ClBoolT ClMgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Trans
  * Leaf doesn't have children
  */
 template <class T>
-std::vector<std::string> *ClMgtProv<T>::getChildNames()
+std::vector<std::string> *MgtProv<T>::getChildNames()
 {
     return NULL;
 }
 
 template <class T>
-ClRcT ClMgtProv<T>::setDb()
+ClRcT MgtProv<T>::setDb()
 {
     std::string key = getFullXpath();
 
     std::stringstream ss;
-    ss << Value;
+    ss << value;
 
     ClMgtDatabase *db = ClMgtDatabase::getInstance();
 
@@ -310,7 +320,7 @@ ClRcT ClMgtProv<T>::setDb()
 }
 
 template <class T>
-ClRcT ClMgtProv<T>::getDb()
+ClRcT MgtProv<T>::getDb()
 {
     ClRcT rc = CL_OK;
     std::string key = getFullXpath();
@@ -323,9 +333,8 @@ ClRcT ClMgtProv<T>::getDb()
     {
         return rc;
     }
-  
-    deXMLize(value,this,Value);
-    
+
+    deXMLize(value,this,value);
     return rc;
 }
 

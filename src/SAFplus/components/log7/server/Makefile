@@ -16,7 +16,7 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 # Management includes and libraries
-CPP_FLAGS += -I../../mgt7/include -ISAFplusLog -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
+CPP_FLAGS += -I../../mgt7/include -ISAFplusLog -ISAFplusTypes -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
 LOG_SERVER_H := $(wildcard SAFplusLog/*.hxx) $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
 LOG_SERVER_SRC := $(wildcard SAFplusLog/*.cxx) $(wildcard *.cxx)
@@ -40,6 +40,11 @@ $(OBJ_DIR)/logsvr/%.o: SAFplusLog/%.cxx
 
 gen:	
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusLog.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
+
+cleangen:
+	(cd SAFplusLog; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
+	(cd SAFplusTypes; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
+	(cd ietfYangTypes; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
 
 clean:
 	rm -f $(OBJ_DIR)/logsvr/*.o $(SAFPLUS_TARGET)/bin/splogd

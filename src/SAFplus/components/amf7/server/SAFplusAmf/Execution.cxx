@@ -6,16 +6,16 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
 #include <string>
+#include "clMgtContainer.hxx"
+#include "clMgtProv.hxx"
 #include "Execution.hxx"
 
 
 namespace SAFplusAmf
   {
 
-    Execution::Execution(): SAFplus::ClMgtObject("execution"), command("command"), args("args"), timeout("timeout")
+    Execution::Execution(): SAFplus::MgtContainer("execution"), command("command"), args("args"), timeout("timeout")
     {
         this->addChildObject(&command, "command");
         this->addChildObject(&args, "args");
@@ -33,7 +33,7 @@ namespace SAFplusAmf
      */
     std::string Execution::getCommand()
     {
-        return this->command.Value;
+        return this->command.value;
     };
 
     /*
@@ -41,7 +41,7 @@ namespace SAFplusAmf
      */
     void Execution::setCommand(std::string commandValue)
     {
-        this->command.Value = commandValue;
+        this->command.value = commandValue;
     };
 
     /*
@@ -49,7 +49,7 @@ namespace SAFplusAmf
      */
     std::string Execution::getArgs()
     {
-        return this->args.Value;
+        return this->args.value;
     };
 
     /*
@@ -57,7 +57,7 @@ namespace SAFplusAmf
      */
     void Execution::setArgs(std::string argsValue)
     {
-        this->args.Value = argsValue;
+        this->args.value = argsValue;
     };
 
     /*
@@ -65,7 +65,7 @@ namespace SAFplusAmf
      */
     unsigned long int Execution::getTimeout()
     {
-        return this->timeout.Value;
+        return this->timeout.value;
     };
 
     /*
@@ -73,7 +73,7 @@ namespace SAFplusAmf
      */
     void Execution::setTimeout(unsigned long int timeoutValue)
     {
-        this->timeout.Value = timeoutValue;
+        this->timeout.value = timeoutValue;
     };
 
     Execution::~Execution()

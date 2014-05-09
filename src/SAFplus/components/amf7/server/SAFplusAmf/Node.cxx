@@ -27,10 +27,8 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Node, /SAFplusAmf/Node)
 
-    Node::Node(): name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(): adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
-        this->addChildObject(&name, "name");
-        this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
         this->addChildObject(&autoRepair, "autoRepair");
@@ -38,15 +36,14 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
-        this->addKey("name");
+        this->addKey("myName");
+        this->name.assign("Node");
     };
 
-    Node::Node(std::string nameValue): name("name"), id("id"), adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(std::string myNameValue): adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
-        this->name.Value =  nameValue;
-        this->addKey("name");
-        this->addChildObject(&name, "name");
-        this->addChildObject(&id, "id");
+        this->myName.value =  myNameValue;
+        this->addKey("myName");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
         this->addChildObject(&autoRepair, "autoRepair");
@@ -54,50 +51,19 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
+        this->name.assign("Node");
     };
 
     std::vector<std::string> Node::getKeys()
     {
-        std::string keyNames[] = { "name" };
+        std::string keyNames[] = { "myName" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* Node::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "serviceUnits" };
+        std::string childNames[] = { "myName", "id", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "serviceUnits" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Node/name
-     */
-    std::string Node::getName()
-    {
-        return this->name.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Node/name
-     */
-    void Node::setName(std::string nameValue)
-    {
-        this->name.Value = nameValue;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Node/id
-     */
-    unsigned short int Node::getId()
-    {
-        return this->id.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Node/id
-     */
-    void Node::setId(unsigned short int idValue)
-    {
-        this->id.Value = idValue;
     };
 
     /*
@@ -105,7 +71,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::AdministrativeState Node::getAdminState()
     {
-        return this->adminState.Value;
+        return this->adminState.value;
     };
 
     /*
@@ -113,7 +79,7 @@ namespace SAFplusAmf
      */
     void Node::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
     {
-        this->adminState.Value = adminStateValue;
+        this->adminState.value = adminStateValue;
     };
 
     /*
@@ -121,7 +87,7 @@ namespace SAFplusAmf
      */
     bool Node::getOperState()
     {
-        return this->operState.Value;
+        return this->operState.value;
     };
 
     /*
@@ -129,7 +95,7 @@ namespace SAFplusAmf
      */
     void Node::setOperState(bool operStateValue)
     {
-        this->operState.Value = operStateValue;
+        this->operState.value = operStateValue;
     };
 
     /*
@@ -137,7 +103,7 @@ namespace SAFplusAmf
      */
     bool Node::getAutoRepair()
     {
-        return this->autoRepair.Value;
+        return this->autoRepair.value;
     };
 
     /*
@@ -145,7 +111,7 @@ namespace SAFplusAmf
      */
     void Node::setAutoRepair(bool autoRepairValue)
     {
-        this->autoRepair.Value = autoRepairValue;
+        this->autoRepair.value = autoRepairValue;
     };
 
     /*
@@ -153,7 +119,7 @@ namespace SAFplusAmf
      */
     bool Node::getFailFastOnInstantiationFailure()
     {
-        return this->failFastOnInstantiationFailure.Value;
+        return this->failFastOnInstantiationFailure.value;
     };
 
     /*
@@ -161,7 +127,7 @@ namespace SAFplusAmf
      */
     void Node::setFailFastOnInstantiationFailure(bool failFastOnInstantiationFailureValue)
     {
-        this->failFastOnInstantiationFailure.Value = failFastOnInstantiationFailureValue;
+        this->failFastOnInstantiationFailure.value = failFastOnInstantiationFailureValue;
     };
 
     /*
@@ -169,7 +135,7 @@ namespace SAFplusAmf
      */
     bool Node::getFailFastOnCleanupFailure()
     {
-        return this->failFastOnCleanupFailure.Value;
+        return this->failFastOnCleanupFailure.value;
     };
 
     /*
@@ -177,7 +143,7 @@ namespace SAFplusAmf
      */
     void Node::setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue)
     {
-        this->failFastOnCleanupFailure.Value = failFastOnCleanupFailureValue;
+        this->failFastOnCleanupFailure.value = failFastOnCleanupFailureValue;
     };
 
     /*
@@ -185,7 +151,7 @@ namespace SAFplusAmf
      */
     std::vector<SAFplusAmf::ServiceUnit*> Node::getServiceUnits()
     {
-        return this->serviceUnits.Value;
+        return this->serviceUnits.value;
     };
 
     /*
@@ -193,7 +159,7 @@ namespace SAFplusAmf
      */
     void Node::setServiceUnits(SAFplusAmf::ServiceUnit* serviceUnitsValue)
     {
-        this->serviceUnits.Value.push_back(serviceUnitsValue);
+        this->serviceUnits.value.push_back(serviceUnitsValue);
     };
 
     /*
@@ -217,7 +183,7 @@ namespace SAFplusAmf
      */
     void Node::addCapacity(SAFplusAmf::Capacity *capacityValue)
     {
-        this->capacityList.addEntry(capacityValue);
+        this->capacityList.addChildObject(capacityValue);
     };
 
     /*

@@ -49,30 +49,30 @@ namespace SAFplus
   /**
    * ClMgtModule class provides APIs to manage a MGT modules
    */
-  class ClMgtModule
+  class MgtModule
   {
   private:
     /*
      * Store the list of MGT object
      */
-    std::map<std::string, ClMgtObject*> mMgtObjects;
+    std::map<std::string, MgtObject*> mMgtObjects;
 
     /*
      * Store the list of MGT notify
      */
-    std::map<std::string, ClMgtNotify*> mMgtNotifies;
+    std::map<std::string, MgtNotify*> mMgtNotifies;
 
     /*
      * Store the list of MGT addRpc
      */
-    std::map<std::string, ClMgtRpc*> mMgtRpcs;
+    std::map<std::string, MgtRpc*> mMgtRpcs;
 
   public:
-    std::string Name;
+    std::string name;
 
   public:
-    ClMgtModule(const char* name);
-    virtual ~ClMgtModule();
+    MgtModule(const char* name);
+    virtual ~MgtModule();
 
     /**
      * \brief	Function to load a MGT module into the netconf server
@@ -94,7 +94,7 @@ namespace SAFplus
      * \return	CL_ERR_ALREADY_EXIST	Module already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT addMgtObject(ClMgtObject *mgtObject, const std::string route);
+    ClRcT addMgtObject(MgtObject *mgtObject, const std::string route);
 
     /**
      * \brief	Function to remove a MGT object
@@ -102,7 +102,7 @@ namespace SAFplus
      * \return	CL_OK					Everything is OK
      * \return	CL_ERR_NOT_EXIST		MGT object does not exist
      */
-    ClRcT removeMgtObject(const std::string route);
+    ClRcT removeMgtObject(const std::string& route);
 
     /**
      * \brief	Function to get a MGT object from the database
@@ -110,7 +110,7 @@ namespace SAFplus
      * \return	If the function succeeds, the return value is a MGT object
      * \return	If the function fails, the return value is NULL
      */
-    ClMgtObject *getMgtObject(const std::string route);
+    MgtObject *getMgtObject(const std::string& route);
 
     /**
      * \brief	Function to add a MGT MGT notification into the database
@@ -119,7 +119,7 @@ namespace SAFplus
      * \return	CL_ERR_ALREADY_EXIST	MGT notification already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT addMgtNotify(ClMgtNotify *mgtNotify);
+    ClRcT addMgtNotify(MgtNotify *mgtNotify);
 
     /**
      * \brief	Function to remove a MGT object
@@ -127,7 +127,7 @@ namespace SAFplus
      * \return	CL_OK					Everything is OK
      * \return	CL_ERR_NOT_EXIST		MGT notification does not exist
      */
-    ClRcT removeMgtNotify(const std::string notifyName);
+    ClRcT removeMgtNotify(const std::string& notifyName);
 
     /**
      * \brief	Function to get a MGT notification from the database
@@ -135,7 +135,7 @@ namespace SAFplus
      * \return	If the function succeeds, the return value is a MGT notification
      * \return	If the function fails, the return value is NULL
      */
-    ClMgtNotify *getMgtNotify(const std::string notifyName);
+    MgtNotify *getMgtNotify(const std::string& notifyName);
 
     /**
      * \brief	Function to add a MGT RPC into the database
@@ -145,7 +145,7 @@ namespace SAFplus
      * \return	CL_ERR_ALREADY_EXIST	MGT RPC already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT addMgtRpc(ClMgtRpc *mgtRpc);
+    ClRcT addMgtRpc(MgtRpc *mgtRpc);
 
     /**
      * \brief	Function to remove a MGT object
@@ -153,7 +153,7 @@ namespace SAFplus
      * \return	CL_OK					Everything is OK
      * \return	CL_ERR_NOT_EXIST		MGT RPC does not exist
      */
-    ClRcT removeMgtRpc(const std::string rpcName);
+    ClRcT removeMgtRpc(const std::string& rpcName);
 
     /**
      * \brief	Function to get a MGT RPC from the database
@@ -161,7 +161,7 @@ namespace SAFplus
      * \return	If the function succeeds, the return value is a MGT RPC
      * \return	If the function fails, the return value is NULL
      */
-    ClMgtRpc *getMgtRpc(const std::string rpcName);
+    MgtRpc *getMgtRpc(const std::string& rpcName);
   };
 
 };

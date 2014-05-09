@@ -43,7 +43,7 @@ namespace SAFplus
       static MgtFactory instance;
       return &instance;
     }
-    static ClMgtObject* create(const std::string& xpath);
+    static MgtObject* create(const std::string& xpath);
     static void registerXpath(const std::string& xpath, IMgtCreator* creatorFn);
 
   private:

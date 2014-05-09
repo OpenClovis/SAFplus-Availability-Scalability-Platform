@@ -5,39 +5,20 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
 #include <vector>
-#include "MgtFactory.hxx"
 #include <string>
+#include "clMgtContainer.hxx"
+#include "clMgtProv.hxx"
 #include "Capacity.hxx"
 
 
 namespace SAFplusAmf
   {
 
-    /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(Capacity, /SAFplusAmf/Node/capacity)
-
-    Capacity::Capacity(): SAFplus::ClMgtObject("capacity"), resource("resource"), value("value")
+    Capacity::Capacity(): SAFplus::MgtContainer("Capacity"), resource("resource"), value("value")
     {
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
-        this->addKey("resource");
-    };
-
-    Capacity::Capacity(std::string resourceValue): SAFplus::ClMgtObject("capacity"), resource("resource"), value("value")
-    {
-        this->resource.Value =  resourceValue;
-        this->addKey("resource");
-        this->addChildObject(&resource, "resource");
-        this->addChildObject(&value, "value");
-    };
-
-    std::vector<std::string> Capacity::getKeys()
-    {
-        std::string keyNames[] = { "resource" };
-        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* Capacity::getChildNames()
@@ -47,35 +28,35 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/capacity/resource
+     * XPATH: /SAFplusAmf/Capacity/resource
      */
     std::string Capacity::getResource()
     {
-        return this->resource.Value;
+        return this->resource.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/capacity/resource
+     * XPATH: /SAFplusAmf/Capacity/resource
      */
     void Capacity::setResource(std::string resourceValue)
     {
-        this->resource.Value = resourceValue;
+        this->resource.value = resourceValue;
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/capacity/value
+     * XPATH: /SAFplusAmf/Capacity/value
      */
     long int Capacity::getValue()
     {
-        return this->value.Value;
+        return this->value.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/capacity/value
+     * XPATH: /SAFplusAmf/Capacity/value
      */
     void Capacity::setValue(long int valueValue)
     {
-        this->value.Value = valueValue;
+        this->value.value = valueValue;
     };
 
     Capacity::~Capacity()

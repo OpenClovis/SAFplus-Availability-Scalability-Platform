@@ -159,7 +159,7 @@ typedef union CosSemCtl_u
   
   void ProcSem::lock(int amt)
     {
-      struct sembuf sembuf = {0,-1*amt,SEM_UNDO};
+      struct sembuf sembuf = {0,-1*((short int)amt),SEM_UNDO};
       int err;
       do
         {        
@@ -176,7 +176,7 @@ typedef union CosSemCtl_u
   
   void ProcSem::unlock(int amt)
     {
-      struct sembuf sembuf = {0,amt,SEM_UNDO};
+      struct sembuf sembuf = {0,((short int)amt),SEM_UNDO};
       int err;
       do
         {        
@@ -191,7 +191,7 @@ typedef union CosSemCtl_u
   
   bool ProcSem::try_lock(int amt)
   {
-    struct sembuf sembuf = {0,-1*amt,SEM_UNDO | IPC_NOWAIT};
+    struct sembuf sembuf = {0,-1*((short int)amt),SEM_UNDO | IPC_NOWAIT};
     int err;
     do
       {        
@@ -207,7 +207,7 @@ typedef union CosSemCtl_u
   
   bool ProcSem::timed_lock(uint64_t mSec,int amt)
     {
-      struct sembuf sembuf = {0,-1*amt,SEM_UNDO};
+      struct sembuf sembuf = {0,-1*((short int)amt),SEM_UNDO};
       struct timespec timeout = {mSec/1000,((long)mSec%1000)*1000L*1000L};  // tv_sec, tv_nsec
       int err;
       do

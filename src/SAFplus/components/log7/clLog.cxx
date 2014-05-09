@@ -7,8 +7,8 @@ using namespace boost::interprocess;
 
 #include <clLogIpi.hxx>
 #include <clCommon.hxx>
-/* Old code */
-#include <clLogApi.h>
+
+#include <clLogApi.hxx>
 
 
 static const char* CL_LOG_PRINT_FMT_STR     =         "%-26s [%s:%d] (%s.%d : %s.%3s.%3s:%05d : %s) ";
@@ -60,11 +60,11 @@ uint_t SAFplusI::formatMsgPrefix(char* msg, LogSeverity  severity, uint_t servic
   // Create the log header
   if(SAFplus::logCodeLocationEnable)        
     {
-      msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR, timeStr, pFileName, lineNum, SAFplus::ASP_NODENAME, pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);              
+      msgStrLen = snprintf(msg, SAFplus::LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR, timeStr, pFileName, lineNum, SAFplus::ASP_NODENAME, pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);              
     }
   else
     {
-      msgStrLen = snprintf(msg, CL_LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR_WO_FILE,timeStr, SAFplus::ASP_NODENAME, pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
+      msgStrLen = snprintf(msg, SAFplus::LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR_WO_FILE,timeStr, SAFplus::ASP_NODENAME, pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
     }
   
   return msgStrLen;

@@ -19,6 +19,7 @@ namespace SAFplusAmf
 
     NumServiceGroups::NumServiceGroups()
     {
+        this->name.assign("numServiceGroups");
     };
 
     std::vector<std::string>* NumServiceGroups::getChildNames()

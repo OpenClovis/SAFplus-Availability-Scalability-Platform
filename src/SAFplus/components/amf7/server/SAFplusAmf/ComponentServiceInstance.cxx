@@ -25,73 +25,39 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ComponentServiceInstance, /SAFplusAmf/ComponentServiceInstance)
 
-    ComponentServiceInstance::ComponentServiceInstance(): name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
+    ComponentServiceInstance::ComponentServiceInstance(): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
     {
-        this->addChildObject(&name, "name");
-        this->addChildObject(&id, "id");
         this->addChildObject(&protectionGroup, "protectionGroup");
         this->addChildObject(&dependencies, "dependencies");
         this->addChildObject(&serviceInstance, "serviceInstance");
         this->addChildObject(&component, "component");
         this->addChildObject(&dataList, "data");
-        this->addKey("name");
+        this->addKey("myName");
+        this->name.assign("ComponentServiceInstance");
     };
 
-    ComponentServiceInstance::ComponentServiceInstance(std::string nameValue): name("name"), id("id"), protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
+    ComponentServiceInstance::ComponentServiceInstance(std::string myNameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
     {
-        this->name.Value =  nameValue;
-        this->addKey("name");
-        this->addChildObject(&name, "name");
-        this->addChildObject(&id, "id");
+        this->myName.value =  myNameValue;
+        this->addKey("myName");
         this->addChildObject(&protectionGroup, "protectionGroup");
         this->addChildObject(&dependencies, "dependencies");
         this->addChildObject(&serviceInstance, "serviceInstance");
         this->addChildObject(&component, "component");
         this->addChildObject(&dataList, "data");
+        this->name.assign("ComponentServiceInstance");
     };
 
     std::vector<std::string> ComponentServiceInstance::getKeys()
     {
-        std::string keyNames[] = { "name" };
+        std::string keyNames[] = { "myName" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* ComponentServiceInstance::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "protectionGroup", "dependencies", "data", "serviceInstance", "component" };
+        std::string childNames[] = { "myName", "id", "protectionGroup", "dependencies", "data", "serviceInstance", "component" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/name
-     */
-    std::string ComponentServiceInstance::getName()
-    {
-        return this->name.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/name
-     */
-    void ComponentServiceInstance::setName(std::string nameValue)
-    {
-        this->name.Value = nameValue;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/id
-     */
-    unsigned short int ComponentServiceInstance::getId()
-    {
-        return this->id.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/id
-     */
-    void ComponentServiceInstance::setId(unsigned short int idValue)
-    {
-        this->id.Value = idValue;
     };
 
     /*
@@ -99,7 +65,7 @@ namespace SAFplusAmf
      */
     std::vector<std::string> ComponentServiceInstance::getProtectionGroup()
     {
-        return this->protectionGroup.Value;
+        return this->protectionGroup.value;
     };
 
     /*
@@ -107,7 +73,7 @@ namespace SAFplusAmf
      */
     void ComponentServiceInstance::setProtectionGroup(std::string protectionGroupValue)
     {
-        this->protectionGroup.Value.push_back(protectionGroupValue);
+        this->protectionGroup.value.push_back(protectionGroupValue);
     };
 
     /*
@@ -115,7 +81,7 @@ namespace SAFplusAmf
      */
     std::vector<SAFplusAmf::ComponentServiceInstance*> ComponentServiceInstance::getDependencies()
     {
-        return this->dependencies.Value;
+        return this->dependencies.value;
     };
 
     /*
@@ -123,7 +89,7 @@ namespace SAFplusAmf
      */
     void ComponentServiceInstance::setDependencies(SAFplusAmf::ComponentServiceInstance* dependenciesValue)
     {
-        this->dependencies.Value.push_back(dependenciesValue);
+        this->dependencies.value.push_back(dependenciesValue);
     };
 
     /*
@@ -131,7 +97,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::ServiceInstance* ComponentServiceInstance::getServiceInstance()
     {
-        return this->serviceInstance.Value;
+        return this->serviceInstance.value;
     };
 
     /*
@@ -139,7 +105,7 @@ namespace SAFplusAmf
      */
     void ComponentServiceInstance::setServiceInstance(SAFplusAmf::ServiceInstance* serviceInstanceValue)
     {
-        this->serviceInstance.Value = serviceInstanceValue;
+        this->serviceInstance.value = serviceInstanceValue;
     };
 
     /*
@@ -147,7 +113,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::Component* ComponentServiceInstance::getComponent()
     {
-        return this->component.Value;
+        return this->component.value;
     };
 
     /*
@@ -155,18 +121,18 @@ namespace SAFplusAmf
      */
     void ComponentServiceInstance::setComponent(SAFplusAmf::Component* componentValue)
     {
-        this->component.Value = componentValue;
+        this->component.value = componentValue;
     };
 
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/data
      */
-    SAFplusAmf::Data* ComponentServiceInstance::getData(std::string nameValue)
+    SAFplusAmf::Data* ComponentServiceInstance::getData(std::string myNameValue)
     {
         for (unsigned int i = 0; i < this->dataList.getEntrySize(); i++)
         {
             Data* childObject = (Data*)this->dataList.getEntry(i);
-            if (childObject->getName() == nameValue)
+            if (childObject->getMyName() == myNameValue)
             {
                 return childObject;
             }
@@ -179,7 +145,7 @@ namespace SAFplusAmf
      */
     void ComponentServiceInstance::addData(SAFplusAmf::Data *dataValue)
     {
-        this->dataList.addEntry(dataValue);
+        this->dataList.addChildObject(dataValue);
     };
 
     ComponentServiceInstance::~ComponentServiceInstance()

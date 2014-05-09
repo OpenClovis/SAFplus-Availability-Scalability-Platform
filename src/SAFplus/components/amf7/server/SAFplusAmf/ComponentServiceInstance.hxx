@@ -32,57 +32,27 @@ namespace SAFplusAmf
     public:
 
         /*
-         * Unique name of this entity
-         */
-        SAFplus::ClMgtProv<std::string> name;
-
-        /*
-         * Each SAFplus AMF entity gets a unique numerical identifier
-         */
-        SAFplus::ClMgtProv<unsigned short int> id;
-
-        /*
          * A protection group for a specific component service instance is the group of components to which the component service instance has been assigned
          */
-        SAFplus::ClMgtProvList<std::string> protectionGroup;
+        SAFplus::MgtProvList<std::string> protectionGroup;
 
         /*
          * 
          */
-        SAFplus::ClMgtProvList<SAFplusAmf::ComponentServiceInstance*> dependencies;
-        SAFplus::ClMgtProv<SAFplusAmf::ServiceInstance*> serviceInstance;
-        SAFplus::ClMgtProv<SAFplusAmf::Component*> component;
+        SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*> dependencies;
+        SAFplus::MgtProv<SAFplusAmf::ServiceInstance*> serviceInstance;
+        SAFplus::MgtProv<SAFplusAmf::Component*> component;
 
         /*
          * Arbitrary data that defines the work needed to be done.
          */
-        SAFplus::ClMgtList dataList;
+        SAFplus::MgtList dataList;
 
     public:
         ComponentServiceInstance();
-        ComponentServiceInstance(std::string nameValue);
+        ComponentServiceInstance(std::string myNameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
-
-        /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/name
-         */
-        std::string getName();
-
-        /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/name
-         */
-        void setName(std::string nameValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/id
-         */
-        unsigned short int getId();
-
-        /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/id
-         */
-        void setId(unsigned short int idValue);
 
         /*
          * XPATH: /SAFplusAmf/ComponentServiceInstance/protectionGroup
@@ -127,7 +97,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ComponentServiceInstance/data
          */
-        SAFplusAmf::Data* getData(std::string nameValue);
+        SAFplusAmf::Data* getData(std::string myNameValue);
 
         /*
          * XPATH: /SAFplusAmf/ComponentServiceInstance/data

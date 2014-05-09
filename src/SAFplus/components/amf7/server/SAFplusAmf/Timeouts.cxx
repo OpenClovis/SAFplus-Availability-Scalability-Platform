@@ -7,7 +7,7 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 #include "Timeouts.hxx"
 
@@ -18,7 +18,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Timeouts, /SAFplusAmf/Component/timeouts)
 
-    Timeouts::Timeouts(): SAFplus::ClMgtObject("timeouts"), quiescingComplete("quiescingComplete"), workRemoval("workRemoval"), workAssignment("workAssignment")
+    Timeouts::Timeouts(): SAFplus::MgtContainer("timeouts"), quiescingComplete("quiescingComplete"), workRemoval("workRemoval"), workAssignment("workAssignment")
     {
         this->addChildObject(&quiescingComplete, "quiescingComplete");
         this->addChildObject(&workRemoval, "workRemoval");
@@ -36,7 +36,7 @@ namespace SAFplusAmf
      */
     SaTimeT Timeouts::getQuiescingComplete()
     {
-        return this->quiescingComplete.Value;
+        return this->quiescingComplete.value;
     };
 
     /*
@@ -44,7 +44,7 @@ namespace SAFplusAmf
      */
     void Timeouts::setQuiescingComplete(SaTimeT quiescingCompleteValue)
     {
-        this->quiescingComplete.Value = quiescingCompleteValue;
+        this->quiescingComplete.value = quiescingCompleteValue;
     };
 
     /*
@@ -52,7 +52,7 @@ namespace SAFplusAmf
      */
     SaTimeT Timeouts::getWorkRemoval()
     {
-        return this->workRemoval.Value;
+        return this->workRemoval.value;
     };
 
     /*
@@ -60,7 +60,7 @@ namespace SAFplusAmf
      */
     void Timeouts::setWorkRemoval(SaTimeT workRemovalValue)
     {
-        this->workRemoval.Value = workRemovalValue;
+        this->workRemoval.value = workRemovalValue;
     };
 
     /*
@@ -68,7 +68,7 @@ namespace SAFplusAmf
      */
     SaTimeT Timeouts::getWorkAssignment()
     {
-        return this->workAssignment.Value;
+        return this->workAssignment.value;
     };
 
     /*
@@ -76,7 +76,7 @@ namespace SAFplusAmf
      */
     void Timeouts::setWorkAssignment(SaTimeT workAssignmentValue)
     {
-        this->workAssignment.Value = workAssignmentValue;
+        this->workAssignment.value = workAssignmentValue;
     };
 
     Timeouts::~Timeouts()

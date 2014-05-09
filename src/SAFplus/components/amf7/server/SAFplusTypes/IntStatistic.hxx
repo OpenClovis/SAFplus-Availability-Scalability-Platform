@@ -10,24 +10,24 @@
 #include "SAFplusTypesCommon.hxx"
 
 #include <vector>
-#include "clMgtObject.hxx"
+#include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusTypes
   {
 
-    class IntStatistic : public SAFplus::ClMgtObject {
+    class IntStatistic : public SAFplus::MgtContainer {
     public:
-        SAFplus::ClMgtProv<unsigned long int> current;
-        SAFplus::ClMgtProvList<unsigned long int> history10sec;
-        SAFplus::ClMgtProvList<unsigned long int> history1min;
-        SAFplus::ClMgtProvList<unsigned long int> history10min;
-        SAFplus::ClMgtProvList<unsigned long int> history1hour;
-        SAFplus::ClMgtProvList<unsigned long int> history12hour;
-        SAFplus::ClMgtProvList<unsigned long int> history1day;
-        SAFplus::ClMgtProvList<unsigned long int> history1week;
-        SAFplus::ClMgtProvList<unsigned long int> history1month;
+        SAFplus::MgtProv<unsigned long int> current;
+        SAFplus::MgtProvList<unsigned long int> history10sec;
+        SAFplus::MgtProvList<unsigned long int> history1min;
+        SAFplus::MgtProvList<unsigned long int> history10min;
+        SAFplus::MgtProvList<unsigned long int> history1hour;
+        SAFplus::MgtProvList<unsigned long int> history12hour;
+        SAFplus::MgtProvList<unsigned long int> history1day;
+        SAFplus::MgtProvList<unsigned long int> history1week;
+        SAFplus::MgtProvList<unsigned long int> history1month;
 
     public:
         IntStatistic();

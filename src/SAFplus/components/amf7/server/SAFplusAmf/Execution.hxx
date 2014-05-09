@@ -10,30 +10,30 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
 #include <string>
+#include "clMgtContainer.hxx"
+#include "clMgtProv.hxx"
 
 namespace SAFplusAmf
   {
 
-    class Execution : public SAFplus::ClMgtObject {
+    class Execution : public SAFplus::MgtContainer {
     public:
 
         /*
          * Specify both name of the binary here
          */
-        SAFplus::ClMgtProv<std::string> command;
+        SAFplus::MgtProv<std::string> command;
 
         /*
          * Specify the arguments as if you are writing them on the command line
          */
-        SAFplus::ClMgtProv<std::string> args;
+        SAFplus::MgtProv<std::string> args;
 
         /*
          * The maximum time this operation should take before the AMF receives a response or the command completes.  Specified in milliseconds.
          */
-        SAFplus::ClMgtProv<unsigned long int> timeout;
+        SAFplus::MgtProv<unsigned long int> timeout;
 
     public:
         Execution();

@@ -23,57 +23,50 @@
 #include "clMgtIoc.hxx"
 #endif
 
-#ifdef __cplusplus
 extern "C"
 {
-#endif
 #include <clCommonErrors.h>
-#include <clDebugApi.h>
-
-#ifdef __cplusplus
 } /* end extern 'C' */
-#endif
+
+#include <clLogApi.hxx>
 
 using namespace std;
 
-#ifdef SAFplus7
-#define clLog(...)
-#endif
 
 #define CL_IOC_MGT_NETCONF_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 1)
 #define CL_IOC_MGT_SNMP_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 2)
 
 namespace SAFplus
 {
-  ClMgtNotify::ClMgtNotify(const char* name)
+  MgtNotify::MgtNotify(const char* nam)
   {
-    Name.assign(name);
+    name.assign(nam);
     Module.assign("");
   }
 
-  ClMgtNotify::~ClMgtNotify()
+  MgtNotify::~MgtNotify()
   {
   }
 
-  void ClMgtNotify::addLeaf(std::string leaf, std::string defaultValue)
+  void MgtNotify::addLeaf(std::string leaf, std::string defaultValue)
   {
     mLeafList.insert(pair<string, string>(leaf, defaultValue));
   }
-  void ClMgtNotify::setLeaf(std::string leaf, std::string value)
+  void MgtNotify::setLeaf(std::string leaf, std::string value)
   {
     mLeafList[leaf] = value;
   }
 
-  void ClMgtNotify::getLeaf(std::string leaf, std::string *value)
+  void MgtNotify::getLeaf(std::string leaf, std::string *value)
   {
     *value = mLeafList[leaf];
   }
 
-  void ClMgtNotify::sendNotification()
+  void MgtNotify::sendNotification()
   {
     if (!strcmp(Module.c_str(), ""))
       {
-        clLogError("MGT", "RPC", "Cannot send Notification [%s]", Name.c_str());
+        logError("MGT", "RPC", "Cannot send Notification [%s]", name.c_str());
         return;
       }
 #ifdef MGT_ACCESS
@@ -90,10 +83,10 @@ namespace SAFplus
     ClUint32T dataSize;
 
     strcpy(notifyData->module, this->Module.c_str());
-    strcpy(notifyData->notify, this->Name.c_str());
+    strcpy(notifyData->notify, this->name.c_str());
 
     char strTemp[CL_MAX_NAME_LENGTH];
-    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", this->Name.c_str());
+    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", this->name.c_str());
     strcpy(data, strTemp);
 
     map<std::string, std::string>::iterator mapIndex;
@@ -113,7 +106,7 @@ namespace SAFplus
 
       }
 
-    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", this->Name.c_str());
+    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", this->name.c_str());
     strcat(data, strTemp);
     dataSize = strlen(data) + 1;
 

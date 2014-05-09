@@ -29,7 +29,7 @@ namespace ietfYangTypes
 
     ietfYangTypes::Xpath10& Xpath10::operator=(const ietfYangTypes::Xpath10 &xpath10)
     {
-        Value = xpath10.Value;
+        Value = xpath10.value;
         return *this;
     };
 
@@ -39,12 +39,12 @@ namespace ietfYangTypes
 
     std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Xpath10 &xpath10)
     {
-        return os << xpath10.Value;
+        return os << xpath10.value;
     };
 
     std::istream& operator>>(std::istream &is, ietfYangTypes::Xpath10 &xpath10)
     {
-        return is >> xpath10.Value;
+        return is >> xpath10.value;
     };
 
 }

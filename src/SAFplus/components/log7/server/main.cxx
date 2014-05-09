@@ -86,93 +86,81 @@ void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg)
 }
 
 void finishLogProcessing(LogCfg* cfg)
-{
-  ClMgtObjectMap::iterator iter;
-  ClMgtObjectMap::iterator end = cfg->streamConfig.streamList.end();
+  {
+  MgtObject::Iterator iter;
+  MgtObject::Iterator end = cfg->streamConfig.streamList.end();
   for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
     {
-      vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) iter->second;
-        int temp = objs->size();
-        for(int i = 0; i < temp; i++)
-          {
-            Stream* s = dynamic_cast<Stream*>((*objs)[i]);
-            if (s->dirty)
-              {
-                if (s->fp)
-                  {
-                    //int sz = s->fileBuffer.size();
-                    //boost::asio::streambuf::const_buffers_type bufs = s->fileBuffer.data();
-                    //assert(sz == boost::asio::buffer_size(bufs));  // If the whole size is not the same as this one buffer I am confused about the API
-                    //fwrite(boost::asio::buffer_cast<const char*>(bufs),sizeof(char),boost::asio::buffer_size(bufs),s->fp);
-                    s->fileBuffer.fwrite(s->fp);                    
-                    fflush(s->fp);
-                    s->fileBuffer.consume();
-                  }
-                if (s->sendMsg)
-                  {
-                    // TODO: read checkpoint to determine who wants to hear about these logs and send the log message buffer to them.
-                    s->msgBuffer.consume();
-                  }
+    Stream* s = dynamic_cast<Stream*>(iter->second);
+    if (s->dirty)
+      {
+      if (s->fp)
+        {
+        //int sz = s->fileBuffer.size();
+        //boost::asio::streambuf::const_buffers_type bufs = s->fileBuffer.data();
+        //assert(sz == boost::asio::buffer_size(bufs));  // If the whole size is not the same as this one buffer I am confused about the API
+        //fwrite(boost::asio::buffer_cast<const char*>(bufs),sizeof(char),boost::asio::buffer_size(bufs),s->fp);
+        s->fileBuffer.fwrite(s->fp);                    
+        fflush(s->fp);
+        s->fileBuffer.consume();
+        }
+      if (s->sendMsg)
+        {
+        // TODO: read checkpoint to determine who wants to hear about these logs and send the log message buffer to them.
+        s->msgBuffer.consume();
+        }
   
-                s->dirty = false;
-              }
-          }
+      s->dirty = false;
+      }
+          
     }  
-}
+  }
 
 // Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
 void logInitializeStreams(LogCfg* cfg)
-{
+  {
   // Open FP if needed
   // if rotate
   // determine the current fileIdx by looking at the current files in the directory and adding one.
-  ClMgtObjectMap::iterator iter;
-  ClMgtObjectMap::iterator end = cfg->streamConfig.streamList.end();
+  MgtObject::Iterator iter;
+  MgtObject::Iterator end = cfg->streamConfig.streamList.end();
   for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
     {
-        vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) iter->second;
-        int temp = objs->size();
-        for(int i = 0; i < temp; i++)
-        {
-          Stream* s = dynamic_cast<Stream*>((*objs)[i]);
-          Dbg("Initializing stream %s file: %s location: %s\n", s->name.value().c_str(),s->fileName.value().c_str(),s->fileLocation.value().c_str());
-          std::string& loc = s->fileLocation.value();
+    Stream* s = dynamic_cast<Stream*>(iter->second);
+    Dbg("Initializing stream %s file: %s location: %s\n", s->name.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str());
+    std::string& loc = s->fileLocation.value;
 
-          if ((loc[0] == '.')&&(loc[1] == ':'))  // . for the location means 'this node'
-            {
-              s->fileIdx = 0;  // TODO:  this index should be initialized by looking at log files currently in the directory and their modification dates.
-              std::string fname(loc.substr(2,-1) +  "/" + s->fileName.value() + boost::lexical_cast<std::string>(s->fileIdx) + ".log");
-              s->fp = fopen(fname.c_str(),"a");
-              Dbg("Opening file: %s %s\n", fname.c_str(), (s->fp) ? "OK":"FAILED");
+    if ((loc[0] == '.')&&(loc[1] == ':'))  // . for the location means 'this node'
+      {
+      s->fileIdx = 0;  // TODO:  this index should be initialized by looking at log files currently in the directory and their modification dates.
+      std::string fname(loc.substr(2,-1) +  "/" + s->fileName.value + boost::lexical_cast<std::string>(s->fileIdx) + ".log");
+      s->fp = fopen(fname.c_str(),"a");
+      Dbg("Opening file: %s %s\n", fname.c_str(), (s->fp) ? "OK":"FAILED");
               
-            }
-        }      
+      }
+            
     }
   
-}
+  }
 
 // Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
 void dumpStreams(LogCfg* cfg)
-{
+  {
   // Open FP if needed
   // if rotate
   // determine the current fileIdx by looking at the current files in the directory and adding one.
-  ClMgtObjectMap::iterator iter;
-  ClMgtObjectMap::iterator end = cfg->streamConfig.streamList.end();
+  MgtObject::Iterator iter;
+  MgtObject::Iterator end = cfg->streamConfig.streamList.end();
   for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
     {
-        vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) iter->second;
-        int temp = objs->size();
-        for(int i = 0; i < temp; i++)
-        {
-          Stream* s = dynamic_cast<Stream*>((*objs)[i]);
-          Dbg("Address %p\n", s);
-          Dbg("  Stream %s file: %s location: %s\n", s->name.value().c_str(),s->fileName.value().c_str(),s->fileLocation.value().c_str());
-          std::string& loc = s->fileLocation.value();
-        }      
+    Stream* s = dynamic_cast<Stream*>(iter->second);
+    Dbg("Address %p\n", s);
+    Dbg("  Stream %s file: %s location: %s\n", s->name.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str());
+    std::string& loc = s->fileLocation.value;
+           
     }
   
-}
+  }
 
 int main(int argc, char* argv[])
 {

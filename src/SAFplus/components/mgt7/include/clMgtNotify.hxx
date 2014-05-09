@@ -42,9 +42,9 @@ extern "C"
 namespace SAFplus
 {
 /**
- *  ClMgtNotify class provides APIs to manage Yang notifications
+ *  MgtNotify class provides APIs to manage Yang notifications
  */
-class ClMgtNotify
+class MgtNotify
 {
 private:
     /*
@@ -53,12 +53,12 @@ private:
     std::map<std::string, std::string> mLeafList;
 
 public:
-    std::string Name;
+    std::string name;
     std::string Module;
 
 public:
-    ClMgtNotify(const char* name);
-    virtual ~ClMgtNotify();
+    MgtNotify(const char* name);
+    virtual ~MgtNotify();
 
     /**
      * Function add a leaf to the notification

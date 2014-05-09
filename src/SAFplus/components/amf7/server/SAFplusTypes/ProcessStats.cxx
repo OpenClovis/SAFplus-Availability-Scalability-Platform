@@ -5,12 +5,12 @@
  */ 
 #include "SAFplusTypesCommon.hxx"
 
-#include "clMgtObject.hxx"
 #include "MemUtilization.hxx"
 #include "MemUtilization.hxx"
 #include "Failures.hxx"
 #include <vector>
 #include "CpuUtilization.hxx"
+#include "clMgtContainer.hxx"
 #include "Failures.hxx"
 #include "CpuUtilization.hxx"
 #include "ProcessStats.hxx"
@@ -19,7 +19,7 @@
 namespace SAFplusTypes
   {
 
-    ProcessStats::ProcessStats(): SAFplus::ClMgtObject("processStats")
+    ProcessStats::ProcessStats(): SAFplus::MgtContainer("processStats")
     {
     };
 

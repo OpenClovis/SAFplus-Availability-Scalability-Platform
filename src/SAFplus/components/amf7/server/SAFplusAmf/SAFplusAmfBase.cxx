@@ -25,9 +25,9 @@ namespace SAFplusAmf
   Node* createNode(const char* nam, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool failFastOnInstantiationFailure, bool failFastOnCleanupFailure)
     {
     Node* ret = new Node(nam);
-    ret->Name = nam;  // TBD: ctor should set
+    ret->name = nam;  // TBD: ctor should set
     ret->id = getAmfId();
-    ret->adminState.Value = adminState;
+    ret->adminState.value = adminState;
     ret->autoRepair = autoRepair;
     ret->failFastOnInstantiationFailure = failFastOnInstantiationFailure;
     ret->failFastOnCleanupFailure = failFastOnCleanupFailure;
@@ -38,9 +38,9 @@ namespace SAFplusAmf
   ServiceGroup* createServiceGroup(const char* nam, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool autoAdjust, SaTimeT autoAdjustInterval,unsigned int preferredNumActiveServiceUnits,unsigned int preferredNumStandbyServiceUnits,unsigned int preferredNumIdleServiceUnits,unsigned int maxActiveWorkAssignments,unsigned int maxStandbyWorkAssignments )
     {
     ServiceGroup* ret = new ServiceGroup(nam);
-    ret->Name = nam;  // TBD: ctor should set
+    ret->name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
-    ret->adminState.Value                = adminState;
+    ret->adminState.value                = adminState;
     ret->autoRepair                      = autoRepair;
     ret->autoAdjust                      = autoAdjust;
     ret->autoAdjustInterval              = autoAdjustInterval;
@@ -57,9 +57,9 @@ namespace SAFplusAmf
   ServiceInstance* createServiceInstance(const char* nam, const SAFplusAmf::AdministrativeState& adminState, int rank)
     {
     ServiceInstance* ret = new ServiceInstance(nam);
-    ret->Name = nam;  // TBD: ctor should set
+    ret->name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
-    ret->adminState.Value                = adminState;
+    ret->adminState.value                = adminState;
     ret->rank                            = rank;
     return ret;
     }
@@ -67,7 +67,7 @@ namespace SAFplusAmf
   ComponentServiceInstance* createComponentServiceInstance(const char* nam)
     {
     ComponentServiceInstance* ret = new ComponentServiceInstance(nam);
-    ret->Name = nam;  // TBD: ctor should set
+    ret->name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
     return ret;
     }
@@ -76,9 +76,9 @@ namespace SAFplusAmf
   ServiceUnit* createServiceUnit(const char* nam, const SAFplusAmf::AdministrativeState& adminState, int rank, bool failover)
     {
     ServiceUnit* ret = new ServiceUnit(nam);
-    ret->Name = nam;  // TBD: ctor should set
+    ret->name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
-    ret->adminState.Value                = adminState;
+    ret->adminState.value                = adminState;
     ret->rank                            = rank;
     ret->failover                        = failover;
     return ret;
@@ -88,7 +88,7 @@ namespace SAFplusAmf
   Component* createComponent(const char* nam, SAFplusAmf::CapabilityModel capabilityModel,unsigned int maxActiveAssignments,unsigned int maxStandbyAssignments,std::string safVersion, unsigned int compCategory,const std::string& swBundle,const std::string& env,unsigned int maxInstantInstantiations,unsigned int maxDelayedInstantiations,unsigned int delayBetweenInstantiation,SAFplusAmf::Recovery recovery,bool restartable,const std::string& proxy,const std::string& proxied)
     {
     Component* ret = new Component(nam);
-    ret->Name = nam;  // TBD: ctor should set
+    ret->name = nam;  // TBD: ctor should set
     ret->id = getAmfId();
     ret->capabilityModel = capabilityModel;
     ret->maxActiveAssignments = maxActiveAssignments;
@@ -112,7 +112,7 @@ namespace SAFplusAmf
     {
     SaTimeT st = 0;
     //SAFplusAmf::AdministrativeState as;
-    //as.Value = 2;
+    //as.value = 2;
     Node* node[2];
     node[0]  = createNode("ctrl0",SAFplusAmf::AdministrativeState::on,true,false,false);
     ServiceGroup* sg = createServiceGroup("sg0",SAFplusAmf::AdministrativeState::on,true,false,st,1,1,1,1,1);
@@ -141,17 +141,17 @@ namespace SAFplusAmf
     su[0]->components.addChildObject(comp[0]);
     
     sg->serviceInstances.addChildObject(si);
-    si->serviceGroup.Value = sg;
+    si->serviceGroup.value = sg;
    
-    csi->serviceInstance.Value = si;
+    csi->serviceInstance.value = si;
     si->componentServiceInstances.addChildObject(csi);    
     }
 
-  void deXMLize(const std::string& obj,ClMgtObject* context, ComponentServiceInstance*& result)
+  void deXMLize(const std::string& obj,MgtObject* context, ComponentServiceInstance*& result)
     {
     SAFplusAmfRoot* root = (SAFplusAmfRoot*) context->root();
     assert(root);
-    ClMgtObject* found = root->deepFind(obj);
+    MgtObject* found = root->deepFind(obj);
     if (found)
       {
       result = (ComponentServiceInstance*) found;
@@ -169,11 +169,11 @@ namespace SAFplusAmf
   
     }
 
-  void deXMLize(const std::string& obj,ClMgtObject* context, ServiceInstance*& result)
+  void deXMLize(const std::string& obj,MgtObject* context, ServiceInstance*& result)
     {
     SAFplusAmfRoot* root = (SAFplusAmfRoot*) context->root();
     assert(root);
-    ClMgtObject* found = root->deepFind(obj);
+    MgtObject* found = root->deepFind(obj);
     if (found)
       {
       result = (ServiceInstance*) found;
@@ -191,11 +191,11 @@ namespace SAFplusAmf
   
     }
 
-  void deXMLize(const std::string& obj,ClMgtObject* context, Component*& result)
+  void deXMLize(const std::string& obj,MgtObject* context, Component*& result)
     {
     SAFplusAmfRoot* root = (SAFplusAmfRoot*) context->root();
     assert(root);
-    ClMgtObject* found = root->deepFind(obj);
+    MgtObject* found = root->deepFind(obj);
     if (found)
       {
       result = (Component*) found;
@@ -212,11 +212,11 @@ namespace SAFplusAmf
       } 
     }
 
-  void deXMLize(const std::string& obj,ClMgtObject* context, ServiceGroup*& result)
+  void deXMLize(const std::string& obj,MgtObject* context, ServiceGroup*& result)
     {
     SAFplusAmfRoot* root = (SAFplusAmfRoot*) context->root();
     assert(root);
-    ClMgtObject* found = root->deepFind(obj);
+    MgtObject* found = root->deepFind(obj);
     if (found)
       {
       result = (ServiceGroup*) found;
@@ -233,11 +233,11 @@ namespace SAFplusAmf
       } 
     }
 
-  void deXMLize(const std::string& obj,ClMgtObject* context, ServiceUnit*& result)
+  void deXMLize(const std::string& obj,MgtObject* context, ServiceUnit*& result)
     {
     SAFplusAmfRoot* root = (SAFplusAmfRoot*) context->root();
     assert(root);
-    ClMgtObject* found = root->deepFind(obj);
+    MgtObject* found = root->deepFind(obj);
     if (found)
       {
       result = (ServiceUnit*) found;
@@ -254,11 +254,11 @@ namespace SAFplusAmf
       } 
     }
 
-  void deXMLize(const std::string& obj,ClMgtObject* context, Application*& result)
+  void deXMLize(const std::string& obj,MgtObject* context, Application*& result)
     {
     SAFplusAmfRoot* root = (SAFplusAmfRoot*) context->root();
     assert(root);
-    ClMgtObject* found = root->deepFind(obj);
+    MgtObject* found = root->deepFind(obj);
     if (found)
       {
       result = (Application*) found;
@@ -275,11 +275,11 @@ namespace SAFplusAmf
       } 
     }
 
-  void deXMLize(const std::string& obj,ClMgtObject* context, Node*& result)
+  void deXMLize(const std::string& obj,MgtObject* context, Node*& result)
     {
     SAFplusAmfRoot* root = (SAFplusAmfRoot*) context->root();
     assert(root);
-    ClMgtObject* found = root->deepFind(obj);
+    MgtObject* found = root->deepFind(obj);
     if (found)
       {
       result = (Node*) found;
@@ -297,43 +297,43 @@ namespace SAFplusAmf
     }
  
  
-  void deXMLize(const char* obj,SAFplus::ClMgtObject* context, Node*& result)
+  void deXMLize(const char* obj,SAFplus::MgtObject* context, Node*& result)
     {
     // TODO: Implement directly for efficiency
     deXMLize(std::string(obj),context,result);   
     }
 
-  void deXMLize(const char* obj,SAFplus::ClMgtObject* context, ComponentServiceInstance*& result)
+  void deXMLize(const char* obj,SAFplus::MgtObject* context, ComponentServiceInstance*& result)
     {
     // TODO: Implement directly for efficiency
     deXMLize(std::string(obj),context,result);   
     }
 
-  void deXMLize(const char* obj,SAFplus::ClMgtObject* context, ServiceInstance*& result)
+  void deXMLize(const char* obj,SAFplus::MgtObject* context, ServiceInstance*& result)
     {
     // TODO: Implement directly for efficiency
     deXMLize(std::string(obj),context,result);    
     }
 
-  void deXMLize(const char* obj,SAFplus::ClMgtObject* context, Component*& result)
+  void deXMLize(const char* obj,SAFplus::MgtObject* context, Component*& result)
     {
     // TODO: Implement directly for efficiency
     deXMLize(std::string(obj),context,result);   
     }
 
-  void deXMLize(const char* obj,SAFplus::ClMgtObject* context, ServiceGroup*& result)
+  void deXMLize(const char* obj,SAFplus::MgtObject* context, ServiceGroup*& result)
     {
     // TODO: Implement directly for efficiency
     deXMLize(std::string(obj),context,result);   
     }
 
-  void deXMLize(const char* obj,SAFplus::ClMgtObject* context, ServiceUnit*& result)
+  void deXMLize(const char* obj,SAFplus::MgtObject* context, ServiceUnit*& result)
     {
     // TODO: Implement directly for efficiency
     deXMLize(std::string(obj),context,result);   
     }
 
-  void deXMLize(const char* obj,SAFplus::ClMgtObject* context, Application*& result)
+  void deXMLize(const char* obj,SAFplus::MgtObject* context, Application*& result)
     {
     // TODO: Implement directly for efficiency
     deXMLize(std::string(obj),context,result);   

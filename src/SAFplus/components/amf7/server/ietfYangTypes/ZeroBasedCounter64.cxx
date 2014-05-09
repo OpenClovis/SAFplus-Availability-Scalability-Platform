@@ -28,7 +28,7 @@ namespace ietfYangTypes
 
     ietfYangTypes::ZeroBasedCounter64& ZeroBasedCounter64::operator=(const ietfYangTypes::ZeroBasedCounter64 &zeroBasedCounter64)
     {
-        Value = zeroBasedCounter64.Value;
+        Value = zeroBasedCounter64.value;
         return *this;
     };
 
@@ -38,12 +38,12 @@ namespace ietfYangTypes
 
     std::ostream& operator<<(std::ostream &os, const ietfYangTypes::ZeroBasedCounter64 &zeroBasedCounter64)
     {
-        return os << zeroBasedCounter64.Value;
+        return os << zeroBasedCounter64.value;
     };
 
     std::istream& operator>>(std::istream &is, ietfYangTypes::ZeroBasedCounter64 &zeroBasedCounter64)
     {
-        return is >> zeroBasedCounter64.Value;
+        return is >> zeroBasedCounter64.value;
     };
 
 }

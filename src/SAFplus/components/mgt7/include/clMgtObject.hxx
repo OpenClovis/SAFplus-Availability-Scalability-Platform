@@ -19,7 +19,7 @@
 
 /**
  *  \file
- *  \brief Header file of the ClMgtObject class which provides APIs to manage MGT objects
+ *  \brief Header file of the MgtObject class which provides APIs to manage MGT objects
  *  \ingroup mgt
  */
 
@@ -39,22 +39,28 @@
 #include "clTransaction.hxx"
 #include "clMgtMsg.hxx"
 
-extern "C"
-{
-#include <libxml/xmlreader.h>
-#include <libxml/xmlmemory.h>
-#include <libxml/parser.h>
-#include <libxml/xmlstring.h>
-} /* end extern 'C' */
 
 #include <clCommon.hxx>
 
 namespace SAFplus
   {
+  class ClMgtDatabase;
+
   class MgtError:public Error
     {
     public:
       MgtError(const char* error): Error(error)
+      {
+      }
+    
+    };
+
+
+  // this management node is not a leaf but you tried to assign it data
+  class NoDataError:public Error
+    {
+    public:
+      NoDataError(const char* error): Error(error)
       {
       }
     
@@ -69,65 +75,106 @@ namespace SAFplus
       }
     
     };
-  
 
-  class ClMgtObject;
+  // This is the hidden virtual iterator underneath MgtObject iterators.
+  class MgtIteratorBase
+    {      
+  public:
+    bool operator++() 
+      {
+      return next();
+      }
+      
 
-  typedef std::map<std::string, std::vector<ClMgtObject*>* > ClMgtObjectMap;
+    virtual ~MgtIteratorBase() 
+      {
+      }
+      
+    virtual bool next()=0;
+    virtual void del()=0;
+    };
+
+
 
 /**
- * ClMgtObject class which provides APIs to manage a MGT object
+ * MgtObject class which provides APIs to manage a MGT object
  */
-  class ClMgtObject
+  class MgtObject
     {
-  protected:
-    /*
-     * Store the child node
-     */
-    ClMgtObjectMap mChildren;
+  public:
+    std::string name;
+    MgtObject *parent;
 
   public:
-    std::string Name;
-    std::vector<std::string> Keys;
-    ClMgtObject *Parent;
+    MgtObject(const char* name);
+    virtual ~MgtObject();
 
-  public:
-    ClMgtObject(const char* name);
-    virtual ~ClMgtObject();
+    class Iterator
+      {      
+      friend class MgtObject;
+    protected:
+      MgtIteratorBase* b;
+    public:
+      // b "knows" about this variable because it was given a ref to
+      // this iter during construction.
+      // If at end(), value will be nullptr
+      std::pair<std::string, MgtObject*> current;
 
-    /**
-     * \brief	Find the root of this management tree
-     */
-    ClMgtObject* root(void);
+      inline bool operator !=(const Iterator& e) const
+        {
+        // in the case of end() e.value will be nullptr, triggering
+        // this quick compare
+        if (current.second != e.current.second) return false;  
+        if (e.current.second == nullptr)
+          {
+          if (current.second == nullptr) return true;
+          else return false; // one is null other is not; must be !=
+          }
+        else if (current.second == nullptr) return false;  // one is null other is not; must be !=
+        
+        // ok if this is "real" comparison of two iterators, check the
+        // names also
+        if (current.first != e.current.first) return false;
 
-    /**
-     * \brief	Find the child or grandchild recursively with this name
-     */
-    ClMgtObject* deepFind(const std::string &s);
+        // The iterators are pointing at the same object so we'll
+        // define that as =, even tho the iterators themselves may not
+        // be equivalent.
+        return true;
+        }
 
-    /**
-     * \brief	Find the child or grandchild recursively with this name
-     */
-    ClMgtObject* find(const std::string &s);
- 
-    /**
-     * \brief	Get child iterator beginning
-     */
-    ClMgtObjectMap::iterator begin(void) { return mChildren.begin(); }
+      inline bool operator++(int)
+        {
+        return b->next();
+        }
+      inline bool operator++()
+        {
+        return b->next();
+        }
+      
+      ~Iterator()
+        {
+        b->del();
+        }
 
-    /**
-     * \brief	Get child iterator end
-     */
-    ClMgtObjectMap::iterator end(void) { return mChildren.end(); }
+      const std::pair<std::string, MgtObject* >* operator ->() const
+        {
+        return &current;
+        }      
+      const std::pair<std::string, MgtObject* >& operator *() const
+        {
+        return current;
+        }      
+      };
 
-    /**
+    /**  TODO: Should be unnecessary but code gen is using it
      * \brief	Function to add a key
      * \param	key							Key of the list
      * \return	CL_OK						Everything is OK
      * \return	CL_ERR_ALREADY_EXIST		Key already exists
      */
-    ClRcT addKey(std::string key);
+    ClRcT addKey(std::string key) {}
 
+#if 0
     /**
      * \brief	Function to remove a key
      * \param	key							Key of the list
@@ -151,6 +198,7 @@ namespace SAFplus
      * \return	CL_ERR_NOT_EXIST			List entry does not exist
      */
     ClRcT removeChildName(std::string name);
+#endif
 
     /**
      * \brief	Function to add a child object
@@ -160,8 +208,8 @@ namespace SAFplus
      * \return	CL_ERR_ALREADY_EXIST	Module already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT addChildObject(ClMgtObject *mgtObject, std::string const& objectName=*((std::string*)nullptr));
-    ClRcT addChildObject(ClMgtObject *mgtObject, const char* objectName);
+    virtual ClRcT addChildObject(MgtObject *mgtObject, std::string const& objectName=*((std::string*)nullptr));
+    virtual ClRcT addChildObject(MgtObject *mgtObject, const char* objectName);
 
     /**
      * \brief	Function to remove a child object
@@ -169,7 +217,27 @@ namespace SAFplus
      * \return	CL_OK					Everything is OK
      * \return	CL_ERR_NOT_EXIST		MGT object does not exist
      */
-    ClRcT removeChildObject(const std::string objectName, ClUint32T index = 0);
+    virtual ClRcT removeChildObject(const std::string& objectName);
+    virtual void removeAllChildren();
+
+    /**
+     * \brief	Find the root of this management tree
+     */
+    MgtObject* root(void);
+
+    /**
+     * \brief	Find the child or grandchild recursively with this name
+     */
+    virtual MgtObject* deepFind(const std::string &name);
+    virtual MgtObject* deepMatch(const std::string &nameSpec);
+
+    /**
+     * \brief	Find the first child with this name
+     * \param	name				MGT object name
+     * \return	If the function succeeds, the return value is a MGT object
+     * \return	If the function fails, the return value is NULL
+     */
+    virtual MgtObject* find(const std::string &name);
 
     /**
      * \brief	Function to get a child object
@@ -177,7 +245,29 @@ namespace SAFplus
      * \return	If the function succeeds, the return value is a MGT object
      * \return	If the function fails, the return value is NULL
      */
-    ClMgtObject *getChildObject(const std::string objectName, ClUint32T index = 0);
+      MgtObject *getChildObject(const std::string& objectName) 
+      {
+      find(objectName);
+      }
+
+    /**
+     * \brief	Find children whos name fits the name specification
+     * \param	nameSpec The name specification: use directory-style wildcards. TODO: should it be XPATH style?
+     * \return	If the function succeeds, the return value is an iterator of all compliant mgt objects.
+     */
+
+    virtual MgtObject::Iterator multiFind(const std::string &nameSpec);
+    virtual MgtObject::Iterator multiMatch(const std::string &nameSpec);
+ 
+    /**
+     * \brief	Get child iterator beginning
+     */
+    virtual MgtObject::Iterator begin(void);
+
+    /**
+     * \brief	Get child iterator end
+     */
+    virtual MgtObject::Iterator end(void);
 
     /**
      * \brief   Virtual function to validate object data
@@ -188,8 +278,12 @@ namespace SAFplus
      * \brief	Virtual function called from netconf server to get object data
      */
     virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
-    virtual void toString(std::stringstream& xmlString);
+    virtual void toString(std::stringstream& xmlString)=0;
     virtual std::string strValue() {return "";}
+
+
+        /** \brief Returns true if the name matches the namespec.. */
+    virtual bool match( const std::string &name, const std::string &spec);
 
     /**
      * \brief	Virtual function called from netconf server to set object data
@@ -207,38 +301,46 @@ namespace SAFplus
     ClRcT bindNetconf(const std::string module, const std::string route);
     ClRcT bindSnmp(const std::string module, const std::string route);
 
-    ClBoolT isKeysMatch(std::map<std::string, std::string> *keys);
+        // key vector is not necessary
+    //ClBoolT isKeysMatch(std::map<std::string, std::string> *keys);
 
-    virtual std::vector<std::string> *getChildNames();
+    // Should be unnecessary, we have an iterator
+    //virtual std::vector<std::string> *getChildNames();
 
-    /* persistent db to database */
-    virtual ClRcT write();
 
-    /* unmashall db to object */
-    virtual ClRcT read();
+    /** \brief persist to database. 
+     *  \param db The database to access. by default it uses the
+     *  globally defined database. 
+     */
+    virtual ClRcT write(ClMgtDatabase *db=NULL);
+
+    /** \brief Load object from database. 
+     *  \param db The database to access. by default it uses the
+     *  globally defined database. 
+     */
+    virtual ClRcT read(ClMgtDatabase *db=NULL);
 
     /* iterator db key and bind to object */
-    virtual ClRcT iterator();
+    // not implemented virtual ClRcT iterator();
 
     void dumpXpath();
 
     std::string getFullXpath();
 
-    virtual void load();
 
     // Debugging API only:
     void dbgDumpChildren();
     };
 
 
-  inline void deXMLize(const std::string& obj,ClMgtObject* context, std::string& result) { result=obj; }
+  inline void deXMLize(const std::string& obj,MgtObject* context, std::string& result) { result=obj; }
 // True is 1, anything that begins with t,T,y,Y (for yes).  False is 0, anything that begins with f,F,n or N (for no)
-  void deXMLize(const std::string& obj,ClMgtObject* context, bool& result); // throw(SerializationError);
-  void deXMLize(const std::string& obj,ClMgtObject* context, ClBoolT& result); // throw(SerializationError);
+  void deXMLize(const std::string& obj,MgtObject* context, bool& result); // throw(SerializationError);
+  void deXMLize(const std::string& obj,MgtObject* context, ClBoolT& result); // throw(SerializationError);
 
-  inline void deXMLize(const char* obj,ClMgtObject* context, std::string& result) { result=obj; }
+  inline void deXMLize(const char* obj,MgtObject* context, std::string& result) { result=obj; }
 
-  template<typename T> inline void deXMLize(const std::string& strVal,ClMgtObject* context, T& result) // throw(SerializationError)
+  template<typename T> inline void deXMLize(const std::string& strVal,MgtObject* context, T& result) // throw(SerializationError)
     {
     std::stringstream ss;
     ss << strVal;
@@ -247,7 +349,7 @@ namespace SAFplus
     // std::basic_istream<char> lvalue to std::basic_istream<char>&& 
     ss >> result;
     }
-  template<typename T> inline void deXMLize(const char* strVal,ClMgtObject* context, T& result) // throw(SerializationError)
+  template<typename T> inline void deXMLize(const char* strVal,MgtObject* context, T& result) // throw(SerializationError)
     {
     std::stringstream ss;
     ss << strVal;
@@ -256,6 +358,7 @@ namespace SAFplus
     ss >> result;  
     }
   };
+
 #endif /* CLMGTOBJECT_H_ */
 
 /** \} */

@@ -7,17 +7,17 @@
 
 #include "Val.hxx"
 #include <vector>
-#include "clMgtObject.hxx"
-#include "Val.hxx"
-#include "clMgtProv.hxx"
 #include <string>
+#include "clMgtContainer.hxx"
+#include "clMgtProv.hxx"
+#include "Val.hxx"
 #include "Sensor.hxx"
 
 
 namespace SAFplusTypes
   {
 
-    Sensor::Sensor(): SAFplus::ClMgtObject("sensor"), name("name"), desc("desc")
+    Sensor::Sensor(): SAFplus::MgtContainer("sensor"), name("name"), desc("desc")
     {
         this->addChildObject(&name, "name");
         this->addChildObject(&desc, "desc");
@@ -34,7 +34,7 @@ namespace SAFplusTypes
      */
     std::string Sensor::getName()
     {
-        return this->name.Value;
+        return this->name.value;
     };
 
     /*
@@ -42,7 +42,7 @@ namespace SAFplusTypes
      */
     void Sensor::setName(std::string nameValue)
     {
-        this->name.Value = nameValue;
+        this->name.value = nameValue;
     };
 
     /*
@@ -50,7 +50,7 @@ namespace SAFplusTypes
      */
     std::string Sensor::getDesc()
     {
-        return this->desc.Value;
+        return this->desc.value;
     };
 
     /*
@@ -58,7 +58,7 @@ namespace SAFplusTypes
      */
     void Sensor::setDesc(std::string descValue)
     {
-        this->desc.Value = descValue;
+        this->desc.value = descValue;
     };
 
     /*

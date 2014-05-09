@@ -6,7 +6,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
-#include "clMgtObject.hxx"
+#include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 #include "EscalationPolicy.hxx"
 
@@ -14,7 +14,7 @@
 namespace SAFplusAmf
   {
 
-    EscalationPolicy::EscalationPolicy(): SAFplus::ClMgtObject("EscalationPolicy"), maximum("maximum"), duration("duration")
+    EscalationPolicy::EscalationPolicy(): SAFplus::MgtContainer("EscalationPolicy"), maximum("maximum"), duration("duration")
     {
         this->addChildObject(&maximum, "maximum");
         this->addChildObject(&duration, "duration");
@@ -31,7 +31,7 @@ namespace SAFplusAmf
      */
     unsigned long int EscalationPolicy::getMaximum()
     {
-        return this->maximum.Value;
+        return this->maximum.value;
     };
 
     /*
@@ -39,7 +39,7 @@ namespace SAFplusAmf
      */
     void EscalationPolicy::setMaximum(unsigned long int maximumValue)
     {
-        this->maximum.Value = maximumValue;
+        this->maximum.value = maximumValue;
     };
 
     /*
@@ -47,7 +47,7 @@ namespace SAFplusAmf
      */
     SaTimeT EscalationPolicy::getDuration()
     {
-        return this->duration.Value;
+        return this->duration.value;
     };
 
     /*
@@ -55,7 +55,7 @@ namespace SAFplusAmf
      */
     void EscalationPolicy::setDuration(SaTimeT durationValue)
     {
-        this->duration.Value = durationValue;
+        this->duration.value = durationValue;
     };
 
     EscalationPolicy::~EscalationPolicy()

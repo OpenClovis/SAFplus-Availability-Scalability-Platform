@@ -10,39 +10,39 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
-#include "clMgtObject.hxx"
-#include "clMgtProv.hxx"
 #include <string>
+#include "clMgtContainer.hxx"
+#include "clMgtProv.hxx"
 
 namespace SAFplusAmf
   {
 
-    class EntityId : public SAFplus::ClMgtObject {
+    class EntityId : public SAFplus::MgtContainer {
     public:
 
         /*
          * Unique name of this entity
          */
-        SAFplus::ClMgtProv<std::string> name;
+        SAFplus::MgtProv<std::string> myName;
 
         /*
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
-        SAFplus::ClMgtProv<unsigned short int> id;
+        SAFplus::MgtProv<unsigned short int> id;
 
     public:
         EntityId();
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/EntityId/name
+         * XPATH: /SAFplusAmf/EntityId/myName
          */
-        std::string getName();
+        std::string getMyName();
 
         /*
-         * XPATH: /SAFplusAmf/EntityId/name
+         * XPATH: /SAFplusAmf/EntityId/myName
          */
-        void setName(std::string nameValue);
+        void setMyName(std::string myNameValue);
 
         /*
          * XPATH: /SAFplusAmf/EntityId/id

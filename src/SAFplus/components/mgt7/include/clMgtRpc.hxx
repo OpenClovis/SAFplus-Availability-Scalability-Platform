@@ -22,43 +22,44 @@
 
 #include <map>
 #include <string>
-#include "clMgtMsg.hxx"
-#include "clMgtObject.hxx"
-#include "clCommon.hxx"
+#include <clMgtMsg.hxx>
+#include <clMgtObject.hxx>
+#include <clMgtContainer.hxx>
+#include <clCommon.hxx>
 
 namespace SAFplus
 {
 
-  class ClMgtRpc
+  class MgtRpc
   {
   public:
-    std::string Name;
+    std::string name;
     std::string Module;
     std::string ErrorMsg;
 
     /*
      * Store the list of input parameters
      */
-    ClMgtObject mInParams;
+    MgtContainer mInParams;  // TODO: I think this needs to be a MgtObject* because we do not know what the top-level type of the input parameters is.
 
     /*
      * Store the list of output parameters
      */
-    ClMgtObject mOutParams;
+    MgtContainer mOutParams;  // TODO: I think this needs to be a MgtObject* because we do not know what the top-level type of the input parameters is.
 
   public:
-    ClMgtRpc(const char* name);
-    virtual ~ClMgtRpc();
+    MgtRpc(const char* name);
+    virtual ~MgtRpc();
 
     /**
      * Function to add input parameter
      */
-    void addInParam(std::string param, ClMgtObject *mgtObject);
+    void addInParam(std::string param, MgtObject *mgtObject);
 
     /**
      * Function to add output parameter
      */
-    void addOutParam(std::string param, ClMgtObject *mgtObject);
+    void addOutParam(std::string param, MgtObject *mgtObject);
 
     /**
      * Function to set value to an input parameter

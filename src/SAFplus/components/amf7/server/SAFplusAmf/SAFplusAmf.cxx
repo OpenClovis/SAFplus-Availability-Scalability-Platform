@@ -5,11 +5,11 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "clMgtContainer.hxx"
 #include "SAFplusAmf.hxx"
 
 
@@ -19,7 +19,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(SAFplusAmfRoot, /SAFplusAmf)
 
-    SAFplusAmfRoot::SAFplusAmfRoot(): SAFplus::ClMgtObject("SAFplusAmfRoot"), healthCheckPeriod("healthCheckPeriod"), healthCheckMaxSilence("healthCheckMaxSilence"), clusterList("Cluster"), nodeList("Node"), serviceGroupList("ServiceGroup"), componentList("Component"), componentServiceInstanceList("ComponentServiceInstance"), serviceInstanceList("ServiceInstance"), serviceUnitList("ServiceUnit"), applicationList("Application"), entityByNameList("EntityByName"), entityByIdList("EntityById")
+    SAFplusAmfRoot::SAFplusAmfRoot(): SAFplus::MgtContainer("SAFplusAmf"), healthCheckPeriod("healthCheckPeriod"), healthCheckMaxSilence("healthCheckMaxSilence"), clusterList("Cluster"), nodeList("Node"), serviceGroupList("ServiceGroup"), componentList("Component"), componentServiceInstanceList("ComponentServiceInstance"), serviceInstanceList("ServiceInstance"), serviceUnitList("ServiceUnit"), applicationList("Application"), entityByNameList("EntityByName"), entityByIdList("EntityById")
     {
         this->addChildObject(&healthCheckPeriod, "healthCheckPeriod");
         this->addChildObject(&healthCheckMaxSilence, "healthCheckMaxSilence");
@@ -46,7 +46,7 @@ namespace SAFplusAmf
      */
     SaTimeT SAFplusAmfRoot::getHealthCheckPeriod()
     {
-        return this->healthCheckPeriod.Value;
+        return this->healthCheckPeriod.value;
     };
 
     /*
@@ -54,7 +54,7 @@ namespace SAFplusAmf
      */
     void SAFplusAmfRoot::setHealthCheckPeriod(SaTimeT healthCheckPeriodValue)
     {
-        this->healthCheckPeriod.Value = healthCheckPeriodValue;
+        this->healthCheckPeriod.value = healthCheckPeriodValue;
     };
 
     /*
@@ -62,7 +62,7 @@ namespace SAFplusAmf
      */
     SaTimeT SAFplusAmfRoot::getHealthCheckMaxSilence()
     {
-        return this->healthCheckMaxSilence.Value;
+        return this->healthCheckMaxSilence.value;
     };
 
     /*
@@ -70,17 +70,13 @@ namespace SAFplusAmf
      */
     void SAFplusAmfRoot::setHealthCheckMaxSilence(SaTimeT healthCheckMaxSilenceValue)
     {
-        this->healthCheckMaxSilence.Value = healthCheckMaxSilenceValue;
+        this->healthCheckMaxSilence.value = healthCheckMaxSilenceValue;
     };
 
-  void createTestDataSet(SAFplusAmfRoot* self);
-  
     void SAFplusAmfRoot::load(SAFplus::ClMgtDatabase *db)
-      {
+    {
         /* TODO: */
-      createTestDataSet(this);
-    
-      };
+    };
 
     SAFplusAmfRoot::~SAFplusAmfRoot()
     {

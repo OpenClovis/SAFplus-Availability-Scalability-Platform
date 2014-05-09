@@ -19,7 +19,7 @@
 
 /**
  *  \file
- *  \brief Header file of ClMgtRoot class which provides APIs to setup the MGT database
+ *  \brief Header file of MgtRoot class which provides APIs to setup the MGT database
  *  \ingroup mgt
  */
 
@@ -47,31 +47,31 @@
 namespace SAFplus
 {
 /**
- * ClMgtRoot class provides APIs to setup the MGT database
+ * MgtRoot class provides APIs to setup the MGT database
  */
-class ClMgtRoot {
+class MgtRoot {
 protected:
-    ClMgtRoot();
+    MgtRoot();
     /*
      * Init singleton for context object
      */
-    static ClMgtRoot *singletonInstance;
+    static MgtRoot *singletonInstance;
 
     /*
      * Store the list of MGT module
      */
-    std::map<std::string, ClMgtModule*> mMgtModules;
+    std::map<std::string, MgtModule*> mMgtModules;
 #ifdef MGT_ACCESS
     ClMgtIoc mIocSnmp;
     ClMgtIoc mIocNetconf;
 #endif  
 public:
-    virtual ~ClMgtRoot();
+    virtual ~MgtRoot();
 
     /**
-     * \brief	Function to create/get the singleton object of the ClMgtRoot class
+     * \brief	Function to create/get the singleton object of the MgtRoot class
      */
-    static ClMgtRoot *getInstance();
+    static MgtRoot *getInstance();
 
     /**
      * \brief	Function to load MGT module to the system
@@ -81,7 +81,7 @@ public:
      * \return	CL_ERR_ALREADY_EXIST	MGT module already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT loadMgtModule(ClMgtModule *module, const std::string moduleName);
+    ClRcT loadMgtModule(MgtModule *module, const std::string moduleName);
 
     /**
      * \brief	Function to unload MGT module from the system
@@ -97,7 +97,7 @@ public:
      * \return	If the function succeeds, the return value is a MGT module
      * \return	If the function fails, the return value is NULL
      */
-    ClMgtModule *getMgtModule(const std::string moduleName);
+    MgtModule *getMgtModule(const std::string moduleName);
 
     /**
      * \brief	Function to bind a MGT object to a specific manageability subtree within a particular module
@@ -109,7 +109,7 @@ public:
      * \return	CL_ERR_ALREADY_EXIST	MGT object already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT bindMgtObject(ClUint8T bindType, ClMgtObject *object, const std::string module, const std::string route);
+    ClRcT bindMgtObject(ClUint8T bindType, MgtObject *object, const std::string module, const std::string route);
 
     /**
      * \brief   Function to bind a MGT object to a specific manageability subtree within a particular module

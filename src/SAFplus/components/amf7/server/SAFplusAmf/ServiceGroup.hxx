@@ -41,96 +41,66 @@ namespace SAFplusAmf
     public:
 
         /*
-         * Unique name of this entity
-         */
-        SAFplus::ClMgtProv<std::string> name;
-
-        /*
-         * Each SAFplus AMF entity gets a unique numerical identifier
-         */
-        SAFplus::ClMgtProv<unsigned short int> id;
-
-        /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * Automatically attempt to bring this entity back into a healthy state if its operational state becomes disabled.  A 'false' value will cause the system to wait for operator intervention (via the repair API) before attempting to restart this entity.
          */
-        SAFplus::ClMgtProv<bool> autoRepair;
+        SAFplus::MgtProv<bool> autoRepair;
 
         /*
          * Match this service group as closely as possible to the preferred high availability configuration.  For example, if the preferred active comes online, 'fail-back' to it.  Another example is if a new work assignment is provisioned, the system could remove an existing standby assignment so the new active can be provisioned.
          */
-        SAFplus::ClMgtProv<bool> autoAdjust;
+        SAFplus::MgtProv<bool> autoAdjust;
 
         /*
          * The time between checks to see if adjustment is needed.
          */
-        SAFplus::ClMgtProv<SaTimeT> autoAdjustInterval;
+        SAFplus::MgtProv<SaTimeT> autoAdjustInterval;
 
         /*
          * 
          */
-        SAFplus::ClMgtProv<unsigned int> preferredNumActiveServiceUnits;
+        SAFplus::MgtProv<unsigned int> preferredNumActiveServiceUnits;
 
         /*
          * 
          */
-        SAFplus::ClMgtProv<unsigned int> preferredNumStandbyServiceUnits;
+        SAFplus::MgtProv<unsigned int> preferredNumStandbyServiceUnits;
 
         /*
          * An idle service unit is running but is not assigned active or standby.  This concept is functionally equivalent to the saAmfSGNumPrefInserviceSUs since Active+Standby+Idle = Inservice
          */
-        SAFplus::ClMgtProv<unsigned int> preferredNumIdleServiceUnits;
+        SAFplus::MgtProv<unsigned int> preferredNumIdleServiceUnits;
 
         /*
          * The maximum number of active work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.
          */
-        SAFplus::ClMgtProv<unsigned int> maxActiveWorkAssignments;
+        SAFplus::MgtProv<unsigned int> maxActiveWorkAssignments;
 
         /*
          * The maximum number of standby work assignments that can be placed on a single service unit (and therefore component/process) simultaneously.
          */
-        SAFplus::ClMgtProv<unsigned int> maxStandbyWorkAssignments;
+        SAFplus::MgtProv<unsigned int> maxStandbyWorkAssignments;
 
         /*
          * Service Units in this Service Group
          */
-        SAFplus::ClMgtProvList<SAFplusAmf::ServiceUnit*> serviceUnits;
+        SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*> serviceUnits;
 
         /*
          * Service Instances (work) in this Service group
          */
-        SAFplus::ClMgtProvList<SAFplusAmf::ServiceInstance*> serviceInstances;
-        SAFplus::ClMgtProv<SAFplusAmf::Application*> application;
+        SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*> serviceInstances;
+        SAFplus::MgtProv<SAFplusAmf::Application*> application;
 
     public:
         ServiceGroup();
-        ServiceGroup(std::string nameValue);
+        ServiceGroup(std::string myNameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceGroup/name
-         */
-        std::string getName();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceGroup/name
-         */
-        void setName(std::string nameValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceGroup/id
-         */
-        unsigned short int getId();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceGroup/id
-         */
-        void setId(unsigned short int idValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/adminState

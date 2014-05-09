@@ -27,7 +27,7 @@ void MgtFactory::registerXpath(const std::string& xpath, IMgtCreator* creatorFn)
     getObjectCreatorMap()[xpath] = creatorFn;
 }
 
-ClMgtObject* MgtFactory::create(const std::string& xpath)
+MgtObject* MgtFactory::create(const std::string& xpath)
 {
     std::map<std::string, IMgtCreator*>::iterator i;
 
@@ -39,7 +39,7 @@ ClMgtObject* MgtFactory::create(const std::string& xpath)
     }
     else
     {
-        return (ClMgtObject*) NULL;
+        return (MgtObject*) NULL;
     }
 }
 

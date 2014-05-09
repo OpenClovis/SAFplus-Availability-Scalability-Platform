@@ -40,71 +40,41 @@ namespace SAFplusAmf
     public:
 
         /*
-         * Unique name of this entity
-         */
-        SAFplus::ClMgtProv<std::string> name;
-
-        /*
-         * Each SAFplus AMF entity gets a unique numerical identifier
-         */
-        SAFplus::ClMgtProv<unsigned short int> id;
-
-        /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * The assignment state of a service instance indicates whether the service represented by this service instance is being provided or not by some service unit.
          */
-        SAFplus::ClMgtProv<SAFplusAmf::AssignmentState> assignmentState;
+        SAFplus::MgtProv<SAFplusAmf::AssignmentState> assignmentState;
 
         /*
          * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
          */
-        SAFplus::ClMgtProv<unsigned int> rank;
+        SAFplus::MgtProv<unsigned int> rank;
 
         /*
          * Component Service Instances in this Service group
          */
-        SAFplus::ClMgtProvList<SAFplusAmf::ComponentServiceInstance*> componentServiceInstances;
-        SAFplus::ClMgtProv<SAFplusAmf::ServiceGroup*> serviceGroup;
+        SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*> componentServiceInstances;
+        SAFplus::MgtProv<SAFplusAmf::ServiceGroup*> serviceGroup;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
          */
-        SAFplus::ClMgtList activeWeightList;
+        SAFplus::MgtList activeWeightList;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
          */
-        SAFplus::ClMgtList standbyWeightList;
+        SAFplus::MgtList standbyWeightList;
 
     public:
         ServiceInstance();
-        ServiceInstance(std::string nameValue);
+        ServiceInstance(std::string myNameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/name
-         */
-        std::string getName();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/name
-         */
-        void setName(std::string nameValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/id
-         */
-        unsigned short int getId();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/id
-         */
-        void setId(unsigned short int idValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/adminState

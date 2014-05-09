@@ -16,93 +16,91 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-
-#include "clMgtRoot.hxx"
-#include "clMgtObject.hxx"
 #include <iostream>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <clDebugApi.h>
-#ifdef __cplusplus
+#include <clCommon.hxx>
+#include <clMgtRoot.hxx>
+#include <clMgtObject.hxx>
+
+
+extern "C"
+{
+#include <libxml/xmlreader.h>
+#include <libxml/xmlmemory.h>
+#include <libxml/parser.h>
+#include <libxml/xmlstring.h>
 } /* end extern 'C' */
-#endif
+
+
 
 using namespace std;
 
 namespace SAFplus
 {
-  ClMgtObject::ClMgtObject(const char* name)
+  MgtObject::MgtObject(const char* nam)
   {
-    Name.assign(name);
-    Parent = NULL;
+    name.assign(name);
+    parent = NULL;
   }
 
-  ClMgtObject::~ClMgtObject()
+  MgtObject::~MgtObject()
   {
-    map<string, vector<ClMgtObject*>* >::iterator mapIndex;
-    for(mapIndex = mChildren.begin(); mapIndex != mChildren.end(); ++mapIndex)
-      {
-        std::vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
-        //delete objs;  // GAS note: MUST be reference counted AND only if this object is new-ed.  Most objects will be members of other objects
-      }
   }
 
-  ClMgtObject* ClMgtObject::root(void)
+  MgtObject* MgtObject::root(void)
   {
-    ClMgtObject* ret = this;
-    while(ret->Parent) ret = ret->Parent;
+    MgtObject* ret = this;
+    while(ret->parent) ret = ret->parent;
     return ret;
   }
 
-  ClMgtObject* ClMgtObject::deepFind(const std::string &s)
-  {
-    ClMgtObject* ret = find(s);
-    if (ret) return ret;
-  
-    ClMgtObjectMap::iterator it;
-    ClMgtObjectMap::iterator end = mChildren.end();
 
-    for (it = mChildren.begin();it != end;it++)
-      {
-        vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) it->second;
-        int nObjs = objs->size();
-        for(int i = 0; i < nObjs; i++)
-          {
-            ClMgtObject* obj = (ClMgtObject*) (*objs)[i];
-            ret = obj->deepFind(s);
-            if (ret) return ret;
-          }
-      }  
+
+  ClRcT MgtObject::bindNetconf(const std::string module, const std::string route)
+  {
+    return MgtRoot::getInstance()->bindMgtObject(CL_NETCONF_BIND_TYPE, this, module, route);
   }
 
-  ClMgtObject* ClMgtObject::find(const std::string &s)
+  ClRcT MgtObject::bindSnmp(const std::string module, const std::string route)
   {
-    ClMgtObjectMap::iterator it = mChildren.find(s);
-    if (it != mChildren.end())
-      {
-        vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) it->second;
-        int nObjs = objs->size();
-        assert(nObjs == 1);
-        ClMgtObject* obj = (ClMgtObject*) (*objs)[0];
-        return obj;
-      }
-    return NULL;
+    return MgtRoot::getInstance()->bindMgtObject(CL_SNMP_BIND_TYPE, this, module, route);
   }
 
-
-  ClRcT ClMgtObject::bindNetconf(const std::string module, const std::string route)
+bool MgtObject::match( const std::string &name, const std::string &spec)
   {
-    return ClMgtRoot::getInstance()->bindMgtObject(CL_NETCONF_BIND_TYPE, this, module, route);
+  return (name == spec);  // TODO, add wildcard matching (* and ?)
   }
 
-  ClRcT ClMgtObject::bindSnmp(const std::string module, const std::string route)
-  {
-    return ClMgtRoot::getInstance()->bindMgtObject(CL_SNMP_BIND_TYPE, this, module, route);
-  }
+MgtObject::Iterator MgtObject::begin(void) { MgtObject::Iterator ret; ret.b=nullptr; ret.current.second = nullptr; return ret; }
+MgtObject::Iterator MgtObject::end(void) { MgtObject::Iterator ret; ret.b=nullptr; ret.current.second = nullptr; return ret; }
+MgtObject::Iterator MgtObject::multiFind(const std::string &nameSpec) { MgtObject::Iterator ret; ret.b=nullptr; ret.current.second = nullptr; return ret; }
+MgtObject::Iterator MgtObject::multiMatch(const std::string &nameSpec) { MgtObject::Iterator ret; ret.b=nullptr; ret.current.second = nullptr; return ret; }
 
-  ClRcT ClMgtObject::addKey(std::string key)
+  MgtObject* MgtObject::find(const std::string &name) { return nullptr; }
+  MgtObject* MgtObject::deepFind(const std::string &name) { return nullptr; }
+  MgtObject* MgtObject::deepMatch(const std::string &name) { return nullptr; }
+
+  ClRcT MgtObject::removeChildObject(const std::string& objectName)
+    {
+    clDbgCodeError(CL_ERR_BAD_OPERATION,"This node does not support children");
+    return CL_ERR_NOT_EXIST;
+    }
+
+  ClRcT MgtObject::addChildObject(MgtObject *mgtObject, std::string const& objectName)
+    {
+    clDbgCodeError(CL_ERR_BAD_OPERATION,"This node does not support children");
+    return CL_ERR_BAD_OPERATION;
+    }
+
+  ClRcT MgtObject::addChildObject(MgtObject *mgtObject, const char* objectName)
+    {
+    clDbgCodeError(CL_ERR_BAD_OPERATION,"This node does not support children");
+    return CL_ERR_BAD_OPERATION;
+    }
+
+
+#if 0
+  ClRcT MgtObject::addKey(std::string key)
   {
     ClRcT rc = CL_OK;
 
@@ -120,7 +118,7 @@ namespace SAFplus
     return rc;
   }
 
-  ClRcT ClMgtObject::removeKey(std::string key)
+  ClRcT MgtObject::removeKey(std::string key)
   {
     ClRcT rc = CL_ERR_NOT_EXIST;
     ClUint32T i;
@@ -137,7 +135,8 @@ namespace SAFplus
     return rc;
   }
 
-  ClRcT ClMgtObject::addChildName(std::string name)
+
+  ClRcT MgtObject::addChildName(std::string name)
   {
     ClRcT rc = CL_OK;
 
@@ -146,17 +145,17 @@ namespace SAFplus
         return CL_ERR_ALREADY_EXIST;
       }
 
-    std::vector<ClMgtObject*> *objs = new (std::vector<ClMgtObject*>);
+    std::vector<MgtObject*> *objs = new (std::vector<MgtObject*>);
 
-    mChildren.insert(pair<string, vector<ClMgtObject *>* >(name, objs));
+    mChildren.insert(pair<string, vector<MgtObject *>* >(name, objs));
 
     return rc;
   }
 
-  ClRcT ClMgtObject::removeChildName(std::string name)
+  ClRcT MgtObject::removeChildName(std::string name)
   {
     ClRcT rc = CL_ERR_NOT_EXIST;
-    map<string, vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find(name);
+    map<string, vector<MgtObject*>* >::iterator mapIndex = mChildren.find(name);
 
     /* Check if MGT module already exists in the database */
     if (mapIndex == mChildren.end())
@@ -164,100 +163,22 @@ namespace SAFplus
         return CL_ERR_NOT_EXIST;
       }
 
-    std::vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
+    std::vector<MgtObject*> *objs = (vector<MgtObject*>*) (*mapIndex).second;
     /* Remove MGT module out off the database */
     mChildren.erase(name);
     delete objs;
 
     return rc;
   }
-
-
-  ClRcT ClMgtObject::addChildObject(ClMgtObject *mgtObject, const char* objectName)
-    {
-    std::string name(objectName);
-    return addChildObject(mgtObject,name);
-    }
-
-
-  ClRcT ClMgtObject::addChildObject(ClMgtObject *mgtObject, const std::string& objectName)
-  {
-    ClRcT rc = CL_OK;
-    if (mgtObject == NULL)
-      {
-        return CL_ERR_NULL_POINTER;
-      }
-
-    const std::string* name = &objectName;    
-    if (name == nullptr) name = &mgtObject->Name;
-
-    /* Check if MGT object already exists in the database */
-    map<string, vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find(*name);
-    std::vector<ClMgtObject*> *objs;
-
-    if (mapIndex != mChildren.end())
-      {
-        objs = (vector<ClMgtObject*>*) (*mapIndex).second;
-      }
-    else
-      {
-        objs = new vector<ClMgtObject*>;
-        mChildren.insert(pair<string, vector<ClMgtObject *>* >(*name, objs));
-      }
-
-    /* Insert MGT object into the database */
-    objs->push_back(mgtObject);
-    mgtObject->Parent = this;
-
-    return rc;
-  }
-
-  ClRcT ClMgtObject::removeChildObject(const std::string objectName, ClUint32T index)
-  {
-    ClRcT rc = CL_OK;
-
-    map<string, vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find(objectName);
-
-    /* Check if MGT module already exists in the database */
-    if (mapIndex == mChildren.end())
-      {
-        return CL_ERR_NOT_EXIST;
-      }
-
-    std::vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
-
-    /* Remove MGT module out off the database */
-    if (index >= objs->size())
-      {
-        return CL_ERR_INVALID_PARAMETER;
-      }
-    objs->erase (objs->begin() + index);
-
-    return rc;
-  }
-
-  ClMgtObject *ClMgtObject::getChildObject(const std::string objectName, ClUint32T index)
-  {
-    map<string, vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find(objectName);
-
-    /* Check if MGT module already exists in the database */
-    if (mapIndex != mChildren.end())
-      {
-        vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
-        if (index < objs->size())
-          {
-            return (*objs)[index];
-          }
-      }
-
-    return NULL;
-  }
+#endif
 
   /*
    * Virtual function called from netconf server to validate object data
    */
-  ClBoolT ClMgtObject::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+  ClBoolT MgtObject::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
   {
+  clDbgNotImplemented("MgtObject::set");
+#if 0
     xmlChar                             *valstr, *namestr;
     int                                 ret, nodetyp, depth;
 
@@ -270,7 +191,7 @@ namespace SAFplus
     char                                keyVal[MGT_MAX_ATTR_STR_LEN];
 
     char                                strTemp[CL_MAX_NAME_LENGTH];
-    std::vector<ClMgtObject*>           *objs = NULL;
+    std::vector<MgtObject*>           *objs = NULL;
     std::map<std::string, std::string>  keys;
     ClBoolT                             isKey = CL_FALSE;
     ClUint32T                           i;
@@ -293,7 +214,7 @@ namespace SAFplus
       }
 
     namestr = (xmlChar *)xmlTextReaderConstName(reader);
-    if (strcmp((char *)namestr, Name.c_str()))
+    if (strcmp((char *)namestr, name.c_str()))
       {
         xmlFreeTextReader(reader);
         free(strChildData);
@@ -314,7 +235,7 @@ namespace SAFplus
           if (depth == 1)
             {
               strcpy(strChildData, strTemp);
-              map<string, vector<ClMgtObject*>* >::iterator mapIndex = mChildren.find((char *)namestr);
+              map<string, vector<MgtObject*>* >::iterator mapIndex = find((char *)namestr);
 
               if (mapIndex == mChildren.end())
                 {
@@ -323,7 +244,7 @@ namespace SAFplus
                   return CL_FALSE;
                 }
 
-              objs = (vector<ClMgtObject*>*) (*mapIndex).second;
+              objs = (vector<MgtObject*>*) (*mapIndex).second;
 
               if (objs->size() == 0)
                 {
@@ -358,7 +279,7 @@ namespace SAFplus
 
               for (i = 0; i< objs->size(); i++)
                 {
-                  ClMgtObject* mgtObject = (*objs)[i];
+                  MgtObject* mgtObject = (*objs)[i];
 
                   if (mgtObject->isKeysMatch(&keys) == CL_TRUE)
                     {
@@ -405,32 +326,13 @@ namespace SAFplus
 
     xmlFreeTextReader(reader);
     free(strChildData);
+#endif
     return CL_TRUE;
+
   }
 
-  void ClMgtObject::toString(std::stringstream& xmlString)
-  {
-    ClUint32T i;
 
-    map<string, vector<ClMgtObject*>* >::iterator mapIndex;
-
-    xmlString << "<" << Name << ">";
-
-    for (mapIndex = mChildren.begin(); mapIndex != mChildren.end(); ++mapIndex)
-      {
-        vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) (*mapIndex).second;
-
-        for(i = 0; i< objs->size(); i++)
-          {
-            ClMgtObject* mgtChildObject = (*objs)[i];
-            mgtChildObject->toString(xmlString);
-          }
-      }
-
-    xmlString << "</" << Name << ">";
-  }
-
-  void ClMgtObject::get(void **ppBuffer, ClUint64T *pBuffLen)
+  void MgtObject::get(void **ppBuffer, ClUint64T *pBuffLen)
   {
     std::stringstream xmlString;
 
@@ -446,13 +348,14 @@ namespace SAFplus
     strncat((char *)*ppBuffer, xmlString.str().c_str(), *pBuffLen - 1 );
   }
 
-  ClBoolT ClMgtObject::isKeysMatch(std::map<std::string, std::string> *keys)
+#if 0
+  ClBoolT MgtObject::isKeysMatch(std::map<std::string, std::string> *keys)
   {
     ClBoolT isMatch = CL_TRUE;
     ClUint32T i;
     for (i = 0; i< Keys.size(); i++)
       {
-        ClMgtObject *itemKey = getChildObject(Keys[i]);
+        MgtObject *itemKey = getChildObject(Keys[i]);
 
         map<string, string>::iterator mapIndex = keys->find(Keys[i]);
         if (mapIndex == keys->end())
@@ -479,59 +382,51 @@ namespace SAFplus
       }
     return isMatch;
   }
-
-  vector<string> *ClMgtObject::getChildNames()
-  {
-    return new vector<string>();
-  }
+#endif
 
   /* persistent db to database */
-  ClRcT ClMgtObject::write()
+  ClRcT MgtObject::write(ClMgtDatabase* db)
   {
 
     return CL_OK;
   }
 
   /* unmashall db to object */
-  ClRcT ClMgtObject::read()
+  ClRcT MgtObject::read(ClMgtDatabase* db)
   {
 
     return CL_OK;
   }
 
-  /* iterator db key and bind to object */
-  ClRcT ClMgtObject::iterator()
-  {
-    return CL_OK;
-  }
 
   /*
    * Dump Xpath structure
    */
-  void ClMgtObject::dumpXpath()
+  void MgtObject::dumpXpath()
   {
 
   }
 
-  std::string ClMgtObject::getFullXpath()
+  std::string MgtObject::getFullXpath()
   {
     std::string xpath = "";
-    if (Parent != NULL)
+    if (parent != NULL)
       {
-        std::string parentXpath = Parent->getFullXpath();
+        std::string parentXpath = parent->getFullXpath();
         if (parentXpath.length() > 0)
           {
-            xpath = parentXpath.append("/").append(this->Name);
+            xpath = parentXpath.append("/").append(this->name);
           }
       }
     else
       {
-        xpath.append("/").append(this->Name);
+        xpath.append("/").append(this->name);
       }
 
+#if 0
     if (Keys.size() > 0)
       {
-        ClMgtObject *itemKey = getChildObject(Keys[0]);
+        MgtObject *itemKey = getChildObject(Keys[0]);
         xpath.append("[@").append(Keys[0]).append("='");
         if (itemKey)
           {
@@ -549,42 +444,33 @@ namespace SAFplus
           }
         xpath.append("]");
       }
+#endif
 
     return xpath;
 
   }
 
-  void ClMgtObject::load()
+
+void MgtObject::dbgDumpChildren()
   {
-
+  MgtObject::Iterator iter;
+  MgtObject::Iterator endd = end();
+  for (iter = begin(); iter != endd; iter++)
+    {
+    const std::string& name = iter->first;
+    MgtObject* obj = iter->second;
+    printf("%s location: %p\n", obj->name.c_str(), obj);
+    }
   }
 
-  void ClMgtObject::dbgDumpChildren()
-  {   
-    ClMgtObjectMap::iterator iter;
-    ClMgtObjectMap::iterator end = mChildren.end();
-    for (iter = mChildren.begin(); iter != end; iter++)
-      {
-        std::string name = iter->first;
-        vector<ClMgtObject*> *objs = (vector<ClMgtObject*>*) iter->second;
-        int temp = objs->size();
-        for(int i = 0; i < temp; i++)
-          {
-            ClMgtObject* s = (*objs)[i];
-            printf("%s location: %p\n", name.c_str(), s);
-          }      
-      }
-      
-  }
-
-  void deXMLize(const std::string& obj,ClMgtObject* context, bool& result)
+  void deXMLize(const std::string& obj,MgtObject* context, bool& result)
   {
     if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1')) { result=1; return; }
     if ((obj[0] == 'f') || (obj[0] == 'F') || (obj[0] == '0') || (obj[0] == 'n') || (obj[0] == 'N')) { result=0; return; }
     throw SerializationError("cannot deXMLize into a boolean");
   }
 
-  void deXMLize(const std::string& obj,ClMgtObject* context, ClBoolT& result)
+  void deXMLize(const std::string& obj,MgtObject* context, ClBoolT& result)
   {
     if ((obj[0] == 't') || (obj[0] == 'T') || (obj[0] == '1')) { result=1; return; }
     if ((obj[0] == 'f') || (obj[0] == 'F') || (obj[0] == '0') || (obj[0] == 'n') || (obj[0] == 'N')) { result=0; return; }

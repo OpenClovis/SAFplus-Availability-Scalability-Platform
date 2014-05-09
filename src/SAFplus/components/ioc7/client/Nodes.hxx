@@ -16,7 +16,7 @@
 namespace SAFplusMsgServer
 {
 
-    class Nodes : public SAFplus::ClMgtObject
+    class Nodes : public SAFplus::MgtObject
     {
 
         /* Apply MGT object factory */

@@ -6,7 +6,7 @@
 #include "SAFplusTypesCommon.hxx"
 
 #include <vector>
-#include "clMgtObject.hxx"
+#include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtProvList.hxx"
 #include "DecStatistic.hxx"
@@ -15,7 +15,7 @@
 namespace SAFplusTypes
   {
 
-    DecStatistic::DecStatistic(): SAFplus::ClMgtObject("decStatistic"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month")
+    DecStatistic::DecStatistic(): SAFplus::MgtContainer("decStatistic"), current("current"), history10sec("history10sec"), history1min("history1min"), history10min("history10min"), history1hour("history1hour"), history12hour("history12hour"), history1day("history1day"), history1week("history1week"), history1month("history1month")
     {
         this->addChildObject(&current, "current");
         this->addChildObject(&history10sec, "history10sec");
@@ -39,7 +39,7 @@ namespace SAFplusTypes
      */
     long DecStatistic::getCurrent()
     {
-        return this->current.Value;
+        return this->current.value;
     };
 
     /*
@@ -47,7 +47,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setCurrent(long currentValue)
     {
-        this->current.Value = currentValue;
+        this->current.value = currentValue;
     };
 
     /*
@@ -55,7 +55,7 @@ namespace SAFplusTypes
      */
     std::vector<long> DecStatistic::getHistory10sec()
     {
-        return this->history10sec.Value;
+        return this->history10sec.value;
     };
 
     /*
@@ -63,7 +63,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory10sec(long history10secValue)
     {
-        this->history10sec.Value.push_back(history10secValue);
+        this->history10sec.value.push_back(history10secValue);
     };
 
     /*
@@ -71,7 +71,7 @@ namespace SAFplusTypes
      */
     std::vector<long> DecStatistic::getHistory1min()
     {
-        return this->history1min.Value;
+        return this->history1min.value;
     };
 
     /*
@@ -79,7 +79,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1min(long history1minValue)
     {
-        this->history1min.Value.push_back(history1minValue);
+        this->history1min.value.push_back(history1minValue);
     };
 
     /*
@@ -87,7 +87,7 @@ namespace SAFplusTypes
      */
     std::vector<long> DecStatistic::getHistory10min()
     {
-        return this->history10min.Value;
+        return this->history10min.value;
     };
 
     /*
@@ -95,7 +95,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory10min(long history10minValue)
     {
-        this->history10min.Value.push_back(history10minValue);
+        this->history10min.value.push_back(history10minValue);
     };
 
     /*
@@ -103,7 +103,7 @@ namespace SAFplusTypes
      */
     std::vector<long> DecStatistic::getHistory1hour()
     {
-        return this->history1hour.Value;
+        return this->history1hour.value;
     };
 
     /*
@@ -111,7 +111,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1hour(long history1hourValue)
     {
-        this->history1hour.Value.push_back(history1hourValue);
+        this->history1hour.value.push_back(history1hourValue);
     };
 
     /*
@@ -119,7 +119,7 @@ namespace SAFplusTypes
      */
     std::vector<long> DecStatistic::getHistory12hour()
     {
-        return this->history12hour.Value;
+        return this->history12hour.value;
     };
 
     /*
@@ -127,7 +127,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory12hour(long history12hourValue)
     {
-        this->history12hour.Value.push_back(history12hourValue);
+        this->history12hour.value.push_back(history12hourValue);
     };
 
     /*
@@ -135,7 +135,7 @@ namespace SAFplusTypes
      */
     std::vector<long> DecStatistic::getHistory1day()
     {
-        return this->history1day.Value;
+        return this->history1day.value;
     };
 
     /*
@@ -143,7 +143,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1day(long history1dayValue)
     {
-        this->history1day.Value.push_back(history1dayValue);
+        this->history1day.value.push_back(history1dayValue);
     };
 
     /*
@@ -151,7 +151,7 @@ namespace SAFplusTypes
      */
     std::vector<long> DecStatistic::getHistory1week()
     {
-        return this->history1week.Value;
+        return this->history1week.value;
     };
 
     /*
@@ -159,7 +159,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1week(long history1weekValue)
     {
-        this->history1week.Value.push_back(history1weekValue);
+        this->history1week.value.push_back(history1weekValue);
     };
 
     /*
@@ -167,7 +167,7 @@ namespace SAFplusTypes
      */
     std::vector<long> DecStatistic::getHistory1month()
     {
-        return this->history1month.Value;
+        return this->history1month.value;
     };
 
     /*
@@ -175,7 +175,7 @@ namespace SAFplusTypes
      */
     void DecStatistic::setHistory1month(long history1monthValue)
     {
-        this->history1month.Value.push_back(history1monthValue);
+        this->history1month.value.push_back(history1monthValue);
     };
 
     DecStatistic::~DecStatistic()

@@ -30,7 +30,7 @@ namespace SAFplus
     IMgtCreator(const std::string& xpath);
     virtual ~IMgtCreator();
 
-    virtual ClMgtObject* create() = 0;
+    virtual MgtObject* create() = 0;
   };
 };
 #endif /* IMGTCREATOR_HXX_ */

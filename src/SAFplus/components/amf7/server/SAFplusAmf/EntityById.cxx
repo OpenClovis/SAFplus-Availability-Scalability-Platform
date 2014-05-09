@@ -5,11 +5,11 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
+#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include <string>
 #include "EntityById.hxx"
 
 
@@ -19,7 +19,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(EntityById, /SAFplusAmf/EntityById)
 
-    EntityById::EntityById(): SAFplus::ClMgtObject("EntityById"), id("id"), entity("entity")
+    EntityById::EntityById(): SAFplus::MgtList("EntityById"), id("id"), entity("entity")
     {
         this->addChildObject(&id, "id");
         this->addChildObject(&entity, "entity");
@@ -36,7 +36,7 @@ namespace SAFplusAmf
      */
     unsigned short int EntityById::getId()
     {
-        return this->id.Value;
+        return this->id.value;
     };
 
     /*
@@ -44,7 +44,7 @@ namespace SAFplusAmf
      */
     void EntityById::setId(unsigned short int idValue)
     {
-        this->id.Value = idValue;
+        this->id.value = idValue;
     };
 
     /*
@@ -52,7 +52,7 @@ namespace SAFplusAmf
      */
     std::string EntityById::getEntity()
     {
-        return this->entity.Value;
+        return this->entity.value;
     };
 
     /*
@@ -60,7 +60,7 @@ namespace SAFplusAmf
      */
     void EntityById::setEntity(std::string entityValue)
     {
-        this->entity.Value = entityValue;
+        this->entity.value = entityValue;
     };
 
     EntityById::~EntityById()

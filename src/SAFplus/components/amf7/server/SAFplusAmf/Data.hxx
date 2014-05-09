@@ -9,39 +9,39 @@
 #define DATA_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
+#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include <string>
 
 namespace SAFplusAmf
   {
 
-    class Data : public SAFplus::ClMgtObject {
+    class Data : public SAFplus::MgtList {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Data);
 
     public:
-        SAFplus::ClMgtProv<std::string> name;
-        SAFplus::ClMgtProv<std::string> val;
+        SAFplus::MgtProv<std::string> myName;
+        SAFplus::MgtProv<std::string> val;
 
     public:
         Data();
-        Data(std::string nameValue);
+        Data(std::string myNameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/myName
          */
-        std::string getName();
+        std::string getMyName();
 
         /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/myName
          */
-        void setName(std::string nameValue);
+        void setMyName(std::string myNameValue);
 
         /*
          * XPATH: /SAFplusAmf/ComponentServiceInstance/data/val

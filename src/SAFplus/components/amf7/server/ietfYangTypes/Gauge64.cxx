@@ -28,7 +28,7 @@ namespace ietfYangTypes
 
     ietfYangTypes::Gauge64& Gauge64::operator=(const ietfYangTypes::Gauge64 &gauge64)
     {
-        Value = gauge64.Value;
+        Value = gauge64.value;
         return *this;
     };
 
@@ -38,12 +38,12 @@ namespace ietfYangTypes
 
     std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Gauge64 &gauge64)
     {
-        return os << gauge64.Value;
+        return os << gauge64.value;
     };
 
     std::istream& operator>>(std::istream &is, ietfYangTypes::Gauge64 &gauge64)
     {
-        return is >> gauge64.Value;
+        return is >> gauge64.value;
     };
 
 }

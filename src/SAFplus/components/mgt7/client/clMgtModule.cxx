@@ -25,7 +25,6 @@
 extern "C" {
 #endif
 #include <clCommonErrors.h>
-#include <clDebugApi.h>
 
 #ifdef __cplusplus
 } /* end extern 'C' */
@@ -33,31 +32,28 @@ extern "C" {
 
 using namespace std;
 
-#ifdef SAFplus7
-#define clLog(...)
-#endif
 
 namespace SAFplus
 {
-  ClMgtModule::ClMgtModule(const char* name)
+  MgtModule::MgtModule(const char* nam)
   {
-    Name.assign(name);
+    name.assign(nam);
   }
 
-  ClMgtModule::~ClMgtModule()
-  {
-  }
-
-  void ClMgtModule::initialize()
+  MgtModule::~MgtModule()
   {
   }
 
-  ClRcT ClMgtModule::loadModule()
+  void MgtModule::initialize()
   {
-    return ClMgtRoot::getInstance()->loadMgtModule(this, this->Name);
   }
 
-  ClRcT ClMgtModule::addMgtObject(ClMgtObject *mgtObject, const std::string route)
+  ClRcT MgtModule::loadModule()
+  {
+    return MgtRoot::getInstance()->loadMgtModule(this, this->name);
+  }
+
+  ClRcT MgtModule::addMgtObject(MgtObject *mgtObject, const std::string route)
   {
     ClRcT rc = CL_OK;
 
@@ -69,46 +65,46 @@ namespace SAFplus
     /* Check if MGT object already exists in the database */
     if (mMgtObjects.find(route) != mMgtObjects.end())
       {
-        clLogDebug("MGT", "ROUTE", "Route [%s] already exists!", route.c_str());
+        logDebug("MGT", "ROUTE", "Route [%s] already exists!", route.c_str());
         return CL_ERR_ALREADY_EXIST;
       }
 
     /* Insert MGT object into the database */
-    mMgtObjects.insert(pair<string, ClMgtObject *> (route.c_str(), mgtObject));
-    clLogDebug("MGT", "ROUTE", "Route [%s] added successfully!", route.c_str());
+    mMgtObjects.insert(pair<string, MgtObject *> (route.c_str(), mgtObject));
+    logDebug("MGT", "ROUTE", "Route [%s] added successfully!", route.c_str());
 
     return rc;
   }
 
-  ClRcT ClMgtModule::removeMgtObject(std::string route)
+  ClRcT MgtModule::removeMgtObject(const std::string& route)
   {
     ClRcT rc = CL_OK;
 
     /* Check if MGT module already exists in the database */
     if (mMgtObjects.find(route) == mMgtObjects.end())
       {
-        clLogDebug("MGT", "ROUTE", "Routing [%s] does not exist!", route.c_str());
+        logDebug("MGT", "ROUTE", "Routing [%s] does not exist!", route.c_str());
         return CL_ERR_NOT_EXIST;
       }
 
     /* Remove MGT module out off the database */
     mMgtObjects.erase(route);
-    clLogDebug("MGT", "ROUTE", "Routing [%s] removed successful!", route.c_str());
+    logDebug("MGT", "ROUTE", "Routing [%s] removed successful!", route.c_str());
 
     return rc;
   }
 
-  ClMgtObject *ClMgtModule::getMgtObject(const std::string route)
+  MgtObject *MgtModule::getMgtObject(const std::string& route)
   {
-    map<string, ClMgtObject*>::iterator mapIndex = mMgtObjects.find(route);
+    map<string, MgtObject*>::iterator mapIndex = mMgtObjects.find(route);
     if (mapIndex != mMgtObjects.end())
       {
-        return static_cast<ClMgtObject *>((*mapIndex).second);
+        return static_cast<MgtObject *>((*mapIndex).second);
       }
     return NULL;
   }
 
-  ClRcT ClMgtModule::addMgtNotify(ClMgtNotify *mgtNotify)
+  ClRcT MgtModule::addMgtNotify(MgtNotify *mgtNotify)
   {
     ClRcT rc = CL_OK;
 
@@ -118,50 +114,50 @@ namespace SAFplus
       }
 
     /* Check if MGT notification already exists in the database */
-    if (mMgtNotifies.find(mgtNotify->Name) != mMgtNotifies.end())
+    if (mMgtNotifies.find(mgtNotify->name) != mMgtNotifies.end())
       {
-        clLogDebug("MGT", "NOT", "Notify [%s] is already existing!", mgtNotify->Name.c_str());
+        logDebug("MGT", "NOT", "Notify [%s] is already existing!", mgtNotify->name.c_str());
         return CL_ERR_ALREADY_EXIST;
       }
 
     /* Insert MGT notification into the database */
-    mMgtNotifies.insert(pair<string, ClMgtNotify *> (mgtNotify->Name.c_str(), mgtNotify));
-    mgtNotify->Module.assign(this->Name);
+    mMgtNotifies.insert(pair<string, MgtNotify *> (mgtNotify->name.c_str(), mgtNotify));
+    mgtNotify->Module.assign(this->name);
 
-    clLogDebug("MGT", "NOT", "Notify [%s] added successful!", mgtNotify->Name.c_str());
+    logDebug("MGT", "NOT", "Notify [%s] added successful!", mgtNotify->name.c_str());
 
     return rc;
   }
 
-  ClRcT ClMgtModule::removeMgtNotify(std::string notifyName)
+  ClRcT MgtModule::removeMgtNotify(const std::string& notifyName)
   {
     ClRcT rc = CL_OK;
 
     /* Check if MGT module already exists in the database */
     if (mMgtNotifies.find(notifyName) == mMgtNotifies.end())
       {
-        clLogDebug("MGT", "NOT", "Notify [%s] does not exist!", notifyName.c_str());
+        logDebug("MGT", "NOT", "Notify [%s] does not exist!", notifyName.c_str());
         return CL_ERR_NOT_EXIST;
       }
 
     /* Remove MGT module out off the database */
     mMgtNotifies.erase(notifyName);
-    clLogDebug("MGT", "NOT", "Notify [%s] removed successful!", notifyName.c_str());
+    logDebug("MGT", "NOT", "Notify [%s] removed successful!", notifyName.c_str());
 
     return rc;
   }
 
-  ClMgtNotify *ClMgtModule::getMgtNotify(const std::string notifyName)
+  MgtNotify *MgtModule::getMgtNotify(const std::string& notifyName)
   {
-    map<string, ClMgtNotify*>::iterator mapIndex = mMgtNotifies.find(notifyName);
+    map<string, MgtNotify*>::iterator mapIndex = mMgtNotifies.find(notifyName);
     if (mapIndex != mMgtNotifies.end())
       {
-        return static_cast<ClMgtNotify *>((*mapIndex).second);
+        return static_cast<MgtNotify *>((*mapIndex).second);
       }
     return NULL;
   }
 
-  ClRcT ClMgtModule::addMgtRpc(ClMgtRpc *mgtRpc)
+  ClRcT MgtModule::addMgtRpc(MgtRpc *mgtRpc)
   {
     ClRcT rc = CL_OK;
 
@@ -171,44 +167,44 @@ namespace SAFplus
       }
 
     /* Check if MGT RPC already exists in the database */
-    if (mMgtRpcs.find(mgtRpc->Name) != mMgtRpcs.end())
+    if (mMgtRpcs.find(mgtRpc->name) != mMgtRpcs.end())
       {
-        clLogDebug("MGT", "RPC", "RPC [%s] is already existing!", mgtRpc->Name.c_str());
+        logDebug("MGT", "RPC", "RPC [%s] is already existing!", mgtRpc->name.c_str());
         return CL_ERR_ALREADY_EXIST;
       }
 
     /* Insert MGT RPC into the database */
-    mMgtRpcs.insert(pair<string, ClMgtRpc *> (mgtRpc->Name.c_str(), mgtRpc));
-    mgtRpc->Module.assign(this->Name);
-    clLogDebug("MGT", "RPC", "RPC [%s] added successful!", mgtRpc->Name.c_str());
+    mMgtRpcs.insert(pair<string, MgtRpc *> (mgtRpc->name.c_str(), mgtRpc));
+    mgtRpc->Module.assign(this->name);
+    logDebug("MGT", "RPC", "RPC [%s] added successful!", mgtRpc->name.c_str());
 
     return rc;
   }
 
-  ClRcT ClMgtModule::removeMgtRpc(std::string rpcName)
+  ClRcT MgtModule::removeMgtRpc(const std::string& rpcName)
   {
     ClRcT rc = CL_OK;
 
     /* Check if MGT module already exists in the database */
     if (mMgtRpcs.find(rpcName) == mMgtRpcs.end())
       {
-        clLogDebug("MGT", "RPC", "RPC [%s] does not exist!", rpcName.c_str());
+        logDebug("MGT", "RPC", "RPC [%s] does not exist!", rpcName.c_str());
         return CL_ERR_NOT_EXIST;
       }
 
     /* Remove MGT module out off the database */
     mMgtRpcs.erase(rpcName);
-    clLogDebug("MGT", "RPC", "RPC [%s] removed successful!", rpcName.c_str());
+    logDebug("MGT", "RPC", "RPC [%s] removed successful!", rpcName.c_str());
 
     return rc;
   }
 
-  ClMgtRpc *ClMgtModule::getMgtRpc(const std::string rpcName)
+  MgtRpc *MgtModule::getMgtRpc(const std::string& rpcName)
   {
-    map<string, ClMgtRpc*>::iterator mapIndex = mMgtRpcs.find(rpcName);
+    map<string, MgtRpc*>::iterator mapIndex = mMgtRpcs.find(rpcName);
     if (mapIndex != mMgtRpcs.end())
       {
-        return static_cast<ClMgtRpc *>((*mapIndex).second);
+        return static_cast<MgtRpc *>((*mapIndex).second);
       }
     return NULL;
   }

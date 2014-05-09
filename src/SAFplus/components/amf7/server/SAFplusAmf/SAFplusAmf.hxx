@@ -9,16 +9,16 @@
 #define SAFPLUSAMFROOT_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "clMgtContainer.hxx"
 
 namespace SAFplusAmf
   {
 
-    class SAFplusAmfRoot : public SAFplus::ClMgtObject {
+    class SAFplusAmfRoot : public SAFplus::MgtContainer {
 
         /* Apply MGT object factory */
         MGT_REGISTER(SAFplusAmfRoot);
@@ -28,58 +28,58 @@ namespace SAFplusAmf
         /*
          * This attribute indicates the interval at which the corresponding healthcheck should be initiated (in milliseconds).
          */
-        SAFplus::ClMgtProv<SaTimeT> healthCheckPeriod;
+        SAFplus::MgtProv<SaTimeT> healthCheckPeriod;
 
         /*
          * This attribute indicates the maximum time allowable for components to not reply to the health check (in milliseconds).  After this time passes with no response from the component, it will be faulted
          */
-        SAFplus::ClMgtProv<SaTimeT> healthCheckMaxSilence;
+        SAFplus::MgtProv<SaTimeT> healthCheckMaxSilence;
 
         /*
          * 
          */
-        SAFplus::ClMgtList clusterList;
-        SAFplus::ClMgtList nodeList;
+        SAFplus::MgtList clusterList;
+        SAFplus::MgtList nodeList;
 
         /*
          * A Service Group is a Service Availability Forum defined concept that corresponds to a group of redundant processes that should fail over as a unit.
          */
-        SAFplus::ClMgtList serviceGroupList;
+        SAFplus::MgtList serviceGroupList;
 
         /*
          * 
          */
-        SAFplus::ClMgtList componentList;
+        SAFplus::MgtList componentList;
 
         /*
          * 
          */
-        SAFplus::ClMgtList componentServiceInstanceList;
+        SAFplus::MgtList componentServiceInstanceList;
 
         /*
          * 
          */
-        SAFplus::ClMgtList serviceInstanceList;
+        SAFplus::MgtList serviceInstanceList;
 
         /*
          * A Service Unit is a group of processes that all fail over together.  All service unit members must be run on the same node.
          */
-        SAFplus::ClMgtList serviceUnitList;
+        SAFplus::MgtList serviceUnitList;
 
         /*
          * 
          */
-        SAFplus::ClMgtList applicationList;
+        SAFplus::MgtList applicationList;
 
         /*
          * Look up any entity by its string name
          */
-        SAFplus::ClMgtList entityByNameList;
+        SAFplus::MgtList entityByNameList;
 
         /*
          * Look up any entity by its identifier
          */
-        SAFplus::ClMgtList entityByIdList;
+        SAFplus::MgtList entityByIdList;
 
     public:
         SAFplusAmfRoot();

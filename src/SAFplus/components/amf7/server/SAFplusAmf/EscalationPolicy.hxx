@@ -10,24 +10,24 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
-#include "clMgtObject.hxx"
+#include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 
 namespace SAFplusAmf
   {
 
-    class EscalationPolicy : public SAFplus::ClMgtObject {
+    class EscalationPolicy : public SAFplus::MgtContainer {
     public:
 
         /*
          * The maximum number of events that can occur within that time period before escalation occurs.
          */
-        SAFplus::ClMgtProv<unsigned long int> maximum;
+        SAFplus::MgtProv<unsigned long int> maximum;
 
         /*
          * The time period (in milliseconds) involved.
          */
-        SAFplus::ClMgtProv<SaTimeT> duration;
+        SAFplus::MgtProv<SaTimeT> duration;
 
     public:
         EscalationPolicy();

@@ -42,82 +42,52 @@ namespace SAFplusAmf
     public:
 
         /*
-         * Unique name of this entity
-         */
-        SAFplus::ClMgtProv<std::string> name;
-
-        /*
-         * Each SAFplus AMF entity gets a unique numerical identifier
-         */
-        SAFplus::ClMgtProv<unsigned short int> id;
-
-        /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
          */
-        SAFplus::ClMgtProv<unsigned int> rank;
+        SAFplus::MgtProv<unsigned int> rank;
 
         /*
          * TODO
          */
-        SAFplus::ClMgtProv<bool> failover;
+        SAFplus::MgtProv<bool> failover;
 
         /*
          * Can this service unit be instantiated before being assigned active?  True if ALL components are preinstantiable.
          */
-        SAFplus::ClMgtProv<bool> preinstantiable;
+        SAFplus::MgtProv<bool> preinstantiable;
 
         /*
          * The service unit can only be instantiated on the node (if a node is specified) or on one of the nodes of the node group (if a node group is configured).
          */
-        SAFplus::ClMgtProv<std::string> saAmfSUHostNodeOrNodeGroup;
-        SAFplus::ClMgtProv<SAFplusAmf::PresenceState> presenceState;
-        SAFplus::ClMgtProv<SAFplusAmf::ReadinessState> readinessState;
+        SAFplus::MgtProv<std::string> saAmfSUHostNodeOrNodeGroup;
+        SAFplus::MgtProv<SAFplusAmf::PresenceState> presenceState;
+        SAFplus::MgtProv<SAFplusAmf::ReadinessState> readinessState;
 
         /*
          * This state field covers ALL work assignments...
          */
-        SAFplus::ClMgtProv<SAFplusAmf::HighAvailabilityReadinessState> haReadinessState;
-        SAFplus::ClMgtProv<SAFplusAmf::HighAvailabilityState> haState;
+        SAFplus::MgtProv<SAFplusAmf::HighAvailabilityReadinessState> haReadinessState;
+        SAFplus::MgtProv<SAFplusAmf::HighAvailabilityState> haState;
 
         /*
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
          */
-        SAFplus::ClMgtProv<bool> operState;
-        SAFplus::ClMgtProvList<SAFplusAmf::ServiceInstance*> assignedServiceInstances;
-        SAFplus::ClMgtProvList<SAFplusAmf::Component*> components;
-        SAFplus::ClMgtProv<SAFplusAmf::Node*> node;
-        SAFplus::ClMgtProv<SAFplusAmf::ServiceGroup*> serviceGroup;
+        SAFplus::MgtProv<bool> operState;
+        SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*> assignedServiceInstances;
+        SAFplus::MgtProvList<SAFplusAmf::Component*> components;
+        SAFplus::MgtProv<SAFplusAmf::Node*> node;
+        SAFplus::MgtProv<SAFplusAmf::ServiceGroup*> serviceGroup;
 
     public:
         ServiceUnit();
-        ServiceUnit(std::string nameValue);
+        ServiceUnit(std::string myNameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceUnit/name
-         */
-        std::string getName();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceUnit/name
-         */
-        void setName(std::string nameValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceUnit/id
-         */
-        unsigned short int getId();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceUnit/id
-         */
-        void setId(unsigned short int idValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/adminState

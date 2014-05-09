@@ -5,11 +5,10 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "Capacity.hxx"
-#include <string>
-#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include <string>
+#include "Capacity.hxx"
 #include "StandbyWeight.hxx"
 
 
@@ -19,19 +18,17 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(StandbyWeight, /SAFplusAmf/ServiceInstance/standbyWeight)
 
-    StandbyWeight::StandbyWeight(): resource("resource"), value("value")
+    StandbyWeight::StandbyWeight()
     {
-        this->addChildObject(&resource, "resource");
-        this->addChildObject(&value, "value");
         this->addKey("resource");
+        this->name.assign("standbyWeight");
     };
 
-    StandbyWeight::StandbyWeight(std::string resourceValue): resource("resource"), value("value")
+    StandbyWeight::StandbyWeight(std::string resourceValue)
     {
-        this->resource.Value =  resourceValue;
+        this->resource.value =  resourceValue;
         this->addKey("resource");
-        this->addChildObject(&resource, "resource");
-        this->addChildObject(&value, "value");
+        this->name.assign("standbyWeight");
     };
 
     std::vector<std::string> StandbyWeight::getKeys()
@@ -44,38 +41,6 @@ namespace SAFplusAmf
     {
         std::string childNames[] = { "resource", "value" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight/resource
-     */
-    std::string StandbyWeight::getResource()
-    {
-        return this->resource.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight/resource
-     */
-    void StandbyWeight::setResource(std::string resourceValue)
-    {
-        this->resource.Value = resourceValue;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight/value
-     */
-    long int StandbyWeight::getValue()
-    {
-        return this->value.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight/value
-     */
-    void StandbyWeight::setValue(long int valueValue)
-    {
-        this->value.Value = valueValue;
     };
 
     StandbyWeight::~StandbyWeight()

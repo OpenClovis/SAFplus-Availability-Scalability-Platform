@@ -9,11 +9,10 @@
 #define STANDBYWEIGHT_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "Capacity.hxx"
-#include <string>
-#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include <string>
+#include "Capacity.hxx"
 
 namespace SAFplusAmf
   {
@@ -24,34 +23,10 @@ namespace SAFplusAmf
         MGT_REGISTER(StandbyWeight);
 
     public:
-        SAFplus::ClMgtProv<std::string> resource;
-        SAFplus::ClMgtProv<long int> value;
-
-    public:
         StandbyWeight();
         StandbyWeight(std::string resourceValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight/resource
-         */
-        std::string getResource();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight/resource
-         */
-        void setResource(std::string resourceValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight/value
-         */
-        long int getValue();
-
-        /*
-         * XPATH: /SAFplusAmf/ServiceInstance/standbyWeight/value
-         */
-        void setValue(long int valueValue);
         ~StandbyWeight();
 
     };

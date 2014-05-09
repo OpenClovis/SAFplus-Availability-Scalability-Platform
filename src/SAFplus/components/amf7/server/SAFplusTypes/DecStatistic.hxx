@@ -10,24 +10,24 @@
 #include "SAFplusTypesCommon.hxx"
 
 #include <vector>
-#include "clMgtObject.hxx"
+#include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusTypes
   {
 
-    class DecStatistic : public SAFplus::ClMgtObject {
+    class DecStatistic : public SAFplus::MgtContainer {
     public:
-        SAFplus::ClMgtProv<long> current;
-        SAFplus::ClMgtProvList<long> history10sec;
-        SAFplus::ClMgtProvList<long> history1min;
-        SAFplus::ClMgtProvList<long> history10min;
-        SAFplus::ClMgtProvList<long> history1hour;
-        SAFplus::ClMgtProvList<long> history12hour;
-        SAFplus::ClMgtProvList<long> history1day;
-        SAFplus::ClMgtProvList<long> history1week;
-        SAFplus::ClMgtProvList<long> history1month;
+        SAFplus::MgtProv<long> current;
+        SAFplus::MgtProvList<long> history10sec;
+        SAFplus::MgtProvList<long> history1min;
+        SAFplus::MgtProvList<long> history10min;
+        SAFplus::MgtProvList<long> history1hour;
+        SAFplus::MgtProvList<long> history12hour;
+        SAFplus::MgtProvList<long> history1day;
+        SAFplus::MgtProvList<long> history1week;
+        SAFplus::MgtProvList<long> history1month;
 
     public:
         DecStatistic();

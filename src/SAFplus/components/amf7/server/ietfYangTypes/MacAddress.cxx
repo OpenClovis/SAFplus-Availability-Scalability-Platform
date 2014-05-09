@@ -29,7 +29,7 @@ namespace ietfYangTypes
 
     ietfYangTypes::MacAddress& MacAddress::operator=(const ietfYangTypes::MacAddress &macAddress)
     {
-        Value = macAddress.Value;
+        Value = macAddress.value;
         return *this;
     };
 
@@ -39,12 +39,12 @@ namespace ietfYangTypes
 
     std::ostream& operator<<(std::ostream &os, const ietfYangTypes::MacAddress &macAddress)
     {
-        return os << macAddress.Value;
+        return os << macAddress.value;
     };
 
     std::istream& operator>>(std::istream &is, ietfYangTypes::MacAddress &macAddress)
     {
-        return is >> macAddress.Value;
+        return is >> macAddress.value;
     };
 
 }

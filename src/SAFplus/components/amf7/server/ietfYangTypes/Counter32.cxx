@@ -28,7 +28,7 @@ namespace ietfYangTypes
 
     ietfYangTypes::Counter32& Counter32::operator=(const ietfYangTypes::Counter32 &counter32)
     {
-        Value = counter32.Value;
+        Value = counter32.value;
         return *this;
     };
 
@@ -38,12 +38,12 @@ namespace ietfYangTypes
 
     std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Counter32 &counter32)
     {
-        return os << counter32.Value;
+        return os << counter32.value;
     };
 
     std::istream& operator>>(std::istream &is, ietfYangTypes::Counter32 &counter32)
     {
-        return is >> counter32.Value;
+        return is >> counter32.value;
     };
 
 }

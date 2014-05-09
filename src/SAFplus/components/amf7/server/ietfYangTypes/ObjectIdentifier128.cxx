@@ -29,7 +29,7 @@ namespace ietfYangTypes
 
     ietfYangTypes::ObjectIdentifier128& ObjectIdentifier128::operator=(const ietfYangTypes::ObjectIdentifier128 &objectIdentifier128)
     {
-        Value = objectIdentifier128.Value;
+        Value = objectIdentifier128.value;
         return *this;
     };
 
@@ -39,12 +39,12 @@ namespace ietfYangTypes
 
     std::ostream& operator<<(std::ostream &os, const ietfYangTypes::ObjectIdentifier128 &objectIdentifier128)
     {
-        return os << objectIdentifier128.Value;
+        return os << objectIdentifier128.value;
     };
 
     std::istream& operator>>(std::istream &is, ietfYangTypes::ObjectIdentifier128 &objectIdentifier128)
     {
-        return is >> objectIdentifier128.Value;
+        return is >> objectIdentifier128.value;
     };
 
 }

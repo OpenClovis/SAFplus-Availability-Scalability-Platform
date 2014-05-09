@@ -26,7 +26,7 @@ module SAFplusAmf
 
     grouping EntityId
     {
-      leaf name
+      leaf myName
       {
 	type string ;
 	description "Unique name of this entity";
@@ -192,7 +192,7 @@ point.  The operational, administrative, and presence states of a service unit, 
     // done
     list Cluster
     {
-      key "name";
+      key "myName";
       uses EntityId;
       description "";
       // SA-Forum defined fields
@@ -213,7 +213,7 @@ point.  The operational, administrative, and presence states of a service unit, 
     // done per spec
     list Node
     {
-      key "name";
+      key "myName";
       uses EntityId;
       // SA-Forum defined fields
       leaf adminState
@@ -281,7 +281,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 
     list ServiceGroup
     {
-      key "name";
+      key "myName";
       uses EntityId;
       description "A Service Group is a Service Availability Forum defined concept that corresponds to a group of redundant processes that should fail over as a unit.";
  
@@ -416,7 +416,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 
     list Component
     {
-      key "name";
+      key "myName";
       description "";
       safplus:atomic;
       uses EntityId;
@@ -730,7 +730,7 @@ are switched over to other nodes (component service instances are not abruptly r
 
     list ComponentServiceInstance
     {
-      key "name";
+      key "myName";
       uses EntityId;
       description "";
 
@@ -751,8 +751,8 @@ are switched over to other nodes (component service instances are not abruptly r
 
       list data
       {
-        key "name";
-        leaf name
+        key "myName";
+        leaf myName
 	{
 	  type string;
 	}
@@ -781,7 +781,7 @@ are switched over to other nodes (component service instances are not abruptly r
     // done
     list ServiceInstance
     {
-      key "name";
+      key "myName";
       uses EntityId;
       description "";
 
@@ -865,7 +865,7 @@ are switched over to other nodes (component service instances are not abruptly r
 
     list ServiceUnit
     {
-      key "name";
+      key "myName";
       uses EntityId;
       leaf adminState
       {
@@ -991,7 +991,7 @@ are switched over to other nodes (component service instances are not abruptly r
 
     list Application
     {
-      key "name";
+      key "myName";
       uses EntityId;
       description "";
       // SA-Forum defined fields
@@ -1031,9 +1031,9 @@ are switched over to other nodes (component service instances are not abruptly r
     list EntityByName
     {
       description "Look up any entity by its string name";
-      key "name";
+      key "myName";
       config false;
-      leaf name
+      leaf myName
       {
 	type string;
       }

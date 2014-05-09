@@ -3,7 +3,7 @@
 using namespace SAFplusLog;
 using namespace SAFplus;
 
-LogCfg::LogCfg():ClMgtObject("SAFplusLog")
+LogCfg::LogCfg():MgtContainer("SAFplusLog")
 {
   this->addChildObject(&serverConfig, "serverConfig");
   this->addChildObject(&streamConfig, "streamConfig");
@@ -12,10 +12,11 @@ LogCfg::LogCfg():ClMgtObject("SAFplusLog")
 LogCfg logcfg;
 
 
-Stream* createStreamCfg(const char* name, const char* filename, const char* location, unsigned long int fileSize, unsigned long int logRecSize, SAFplusLog::FileFullAction fullAction, int numFilesRotate, int flushQSize, int flushInterval,bool syslog,SAFplusLog::StreamScope scope)
+Stream* createStreamCfg(const char* nam, const char* filename, const char* location, unsigned long int fileSize, unsigned long int logRecSize, SAFplusLog::FileFullAction fullAction, int numFilesRotate, int flushQSize, int flushInterval,bool syslog,SAFplusLog::StreamScope scope)
 {
   Stream* s = new Stream();
-  s->setName(name);
+  s->name.assign(nam);
+  s->setMyName(nam);
   s->setFileName(filename);
   s->setFileLocation(location);
   s->fileUnitSize = fileSize;
@@ -33,16 +34,16 @@ Stream* createStreamCfg(const char* name, const char* filename, const char* loca
  */
 LogCfg* loadLogCfg()
 {
-  logcfg.streamConfig.load();  // Load up all children of streamConfig (recursively) from the DB
+  logcfg.streamConfig.read();  // Load up all children of streamConfig (recursively) from the DB
 
-  Stream* s =  (Stream*)logcfg.streamConfig.streamList.getChildObject("sys");
+  Stream* s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("sys"));
   if (!s)  // The sys log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
       s = createStreamCfg("sys","sys",".:var/log",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::GLOBAL);
       logcfg.streamConfig.streamList.addChildObject(s,"sys");
     }
 
-  s =  (Stream*)logcfg.streamConfig.streamList.getChildObject("app");
+  s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("app"));
   if (!s)  // The all log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
       s = createStreamCfg("app","app",".:var/log",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::GLOBAL);

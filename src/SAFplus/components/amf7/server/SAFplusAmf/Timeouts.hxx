@@ -11,13 +11,13 @@
 
 #include <vector>
 #include "MgtFactory.hxx"
-#include "clMgtObject.hxx"
+#include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 
 namespace SAFplusAmf
   {
 
-    class Timeouts : public SAFplus::ClMgtObject {
+    class Timeouts : public SAFplus::MgtContainer {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Timeouts);
@@ -27,17 +27,17 @@ namespace SAFplusAmf
         /*
          * How much time to give a component to gracefully finish handling its work before faulting it, in milliseconds.
          */
-        SAFplus::ClMgtProv<SaTimeT> quiescingComplete;
+        SAFplus::MgtProv<SaTimeT> quiescingComplete;
 
         /*
          * How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.
          */
-        SAFplus::ClMgtProv<SaTimeT> workRemoval;
+        SAFplus::MgtProv<SaTimeT> workRemoval;
 
         /*
          * How much time to give a component to executes its work (component service instance) removal callback before faulting the component.  Specified in milliseconds.
          */
-        SAFplus::ClMgtProv<SaTimeT> workAssignment;
+        SAFplus::MgtProv<SaTimeT> workAssignment;
 
     public:
         Timeouts();

@@ -20,67 +20,33 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Cluster, /SAFplusAmf/Cluster)
 
-    Cluster::Cluster(): name("name"), id("id"), adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
+    Cluster::Cluster(): adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
     {
-        this->addChildObject(&name, "name");
-        this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&startupAssignmentDelay, "startupAssignmentDelay");
-        this->addKey("name");
+        this->addKey("myName");
+        this->name.assign("Cluster");
     };
 
-    Cluster::Cluster(std::string nameValue): name("name"), id("id"), adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
+    Cluster::Cluster(std::string myNameValue): adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
     {
-        this->name.Value =  nameValue;
-        this->addKey("name");
-        this->addChildObject(&name, "name");
-        this->addChildObject(&id, "id");
+        this->myName.value =  myNameValue;
+        this->addKey("myName");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&startupAssignmentDelay, "startupAssignmentDelay");
+        this->name.assign("Cluster");
     };
 
     std::vector<std::string> Cluster::getKeys()
     {
-        std::string keyNames[] = { "name" };
+        std::string keyNames[] = { "myName" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* Cluster::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "adminState", "startupAssignmentDelay" };
+        std::string childNames[] = { "myName", "id", "adminState", "startupAssignmentDelay" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Cluster/name
-     */
-    std::string Cluster::getName()
-    {
-        return this->name.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Cluster/name
-     */
-    void Cluster::setName(std::string nameValue)
-    {
-        this->name.Value = nameValue;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Cluster/id
-     */
-    unsigned short int Cluster::getId()
-    {
-        return this->id.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Cluster/id
-     */
-    void Cluster::setId(unsigned short int idValue)
-    {
-        this->id.Value = idValue;
     };
 
     /*
@@ -88,7 +54,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::AdministrativeState Cluster::getAdminState()
     {
-        return this->adminState.Value;
+        return this->adminState.value;
     };
 
     /*
@@ -96,7 +62,7 @@ namespace SAFplusAmf
      */
     void Cluster::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
     {
-        this->adminState.Value = adminStateValue;
+        this->adminState.value = adminStateValue;
     };
 
     /*
@@ -104,7 +70,7 @@ namespace SAFplusAmf
      */
     SaTimeT Cluster::getStartupAssignmentDelay()
     {
-        return this->startupAssignmentDelay.Value;
+        return this->startupAssignmentDelay.value;
     };
 
     /*
@@ -112,7 +78,7 @@ namespace SAFplusAmf
      */
     void Cluster::setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue)
     {
-        this->startupAssignmentDelay.Value = startupAssignmentDelayValue;
+        this->startupAssignmentDelay.value = startupAssignmentDelayValue;
     };
 
     Cluster::~Cluster()

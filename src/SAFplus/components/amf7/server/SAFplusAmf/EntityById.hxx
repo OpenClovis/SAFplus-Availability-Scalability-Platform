@@ -9,23 +9,23 @@
 #define ENTITYBYID_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
+#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include <string>
 
 namespace SAFplusAmf
   {
 
-    class EntityById : public SAFplus::ClMgtObject {
+    class EntityById : public SAFplus::MgtList {
 
         /* Apply MGT object factory */
         MGT_REGISTER(EntityById);
 
     public:
-        SAFplus::ClMgtProv<unsigned short int> id;
-        SAFplus::ClMgtProv<std::string> entity;
+        SAFplus::MgtProv<unsigned short int> id;
+        SAFplus::MgtProv<std::string> entity;
 
     public:
         EntityById();

@@ -24,69 +24,35 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Application, /SAFplusAmf/Application)
 
-    Application::Application(): name("name"), id("id"), adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
+    Application::Application(): adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
-        this->addChildObject(&name, "name");
-        this->addChildObject(&id, "id");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&serviceGroups, "serviceGroups");
         this->addChildObject(&keepTogether, "keepTogether");
-        this->addKey("name");
+        this->addKey("myName");
+        this->name.assign("Application");
     };
 
-    Application::Application(std::string nameValue): name("name"), id("id"), adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
+    Application::Application(std::string myNameValue): adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
-        this->name.Value =  nameValue;
-        this->addKey("name");
-        this->addChildObject(&name, "name");
-        this->addChildObject(&id, "id");
+        this->myName.value =  myNameValue;
+        this->addKey("myName");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&serviceGroups, "serviceGroups");
         this->addChildObject(&keepTogether, "keepTogether");
+        this->name.assign("Application");
     };
 
     std::vector<std::string> Application::getKeys()
     {
-        std::string keyNames[] = { "name" };
+        std::string keyNames[] = { "myName" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* Application::getChildNames()
     {
-        std::string childNames[] = { "name", "id", "adminState", "numServiceGroups", "serviceGroups", "keepTogether" };
+        std::string childNames[] = { "myName", "id", "adminState", "numServiceGroups", "serviceGroups", "keepTogether" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Application/name
-     */
-    std::string Application::getName()
-    {
-        return this->name.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Application/name
-     */
-    void Application::setName(std::string nameValue)
-    {
-        this->name.Value = nameValue;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Application/id
-     */
-    unsigned short int Application::getId()
-    {
-        return this->id.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Application/id
-     */
-    void Application::setId(unsigned short int idValue)
-    {
-        this->id.Value = idValue;
     };
 
     /*
@@ -94,7 +60,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::AdministrativeState Application::getAdminState()
     {
-        return this->adminState.Value;
+        return this->adminState.value;
     };
 
     /*
@@ -102,7 +68,7 @@ namespace SAFplusAmf
      */
     void Application::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
     {
-        this->adminState.Value = adminStateValue;
+        this->adminState.value = adminStateValue;
     };
 
     /*
@@ -110,7 +76,7 @@ namespace SAFplusAmf
      */
     std::vector<SAFplusAmf::ServiceGroup*> Application::getServiceGroups()
     {
-        return this->serviceGroups.Value;
+        return this->serviceGroups.value;
     };
 
     /*
@@ -118,7 +84,7 @@ namespace SAFplusAmf
      */
     void Application::setServiceGroups(SAFplusAmf::ServiceGroup* serviceGroupsValue)
     {
-        this->serviceGroups.Value.push_back(serviceGroupsValue);
+        this->serviceGroups.value.push_back(serviceGroupsValue);
     };
 
     /*
@@ -126,7 +92,7 @@ namespace SAFplusAmf
      */
     bool Application::getKeepTogether()
     {
-        return this->keepTogether.Value;
+        return this->keepTogether.value;
     };
 
     /*
@@ -134,7 +100,7 @@ namespace SAFplusAmf
      */
     void Application::setKeepTogether(bool keepTogetherValue)
     {
-        this->keepTogether.Value = keepTogetherValue;
+        this->keepTogether.value = keepTogetherValue;
     };
 
     /*

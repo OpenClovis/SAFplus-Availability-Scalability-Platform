@@ -15,8 +15,8 @@ enum
   {
   public:
     AmfRedundancyPolicy policyId;
-    virtual void activeAudit(ClMgtObject* root) = 0;
-    virtual void standbyAudit(ClMgtObject* root) = 0;
+    virtual void activeAudit(MgtObject* root) = 0;
+    virtual void standbyAudit(MgtObject* root) = 0;
   
     // The copy constructor is disabled to ensure that the only copy of this
     // class exists in the shared memory lib.

@@ -43,33 +43,32 @@
 namespace SAFplus
 {
 /*
- *
+ * Represents YANG leaf-list primitive
  */
 template <class T>
 class ProvListOperation;
 
 template<class T>
-class ClMgtProvList: public ClMgtObject
+class MgtProvList: public MgtObject
 {
 public:
     /**
-     *  Value of the "ClMgtProv" object
+     *  value of the "ClMgtProv" object
      */
-    std::vector<T> Value;
+    std::vector<T> value;
     ProvListOperation<T> *mOpt;
 
 public:
-    ClMgtProvList(const char* name);
+    MgtProvList(const char* name);
 
-    virtual ~ClMgtProvList();
+    virtual ~MgtProvList();
 
     virtual void toString(std::stringstream& xmlString);
 
     /**
      * \brief   Virtual function to validate object data
      */
-    virtual ClBoolT
-    set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     /**
      * \brief   Virtual function to validate object data; throws transaction exception if fails
@@ -79,20 +78,20 @@ public:
     std::string toStringItemAt(T &x);
 
     // Overload PointList stream insertion operator
-    inline friend std::ostream & operator<<(std::ostream &os, const ClMgtProvList &b)
+    inline friend std::ostream & operator<<(std::ostream &os, const MgtProvList &b)
     {
-        copy(b.Value.begin(), b.Value.end(), std::ostream_iterator<T>(b));
+        copy(b.value.begin(), b.value.end(), std::ostream_iterator<T>(b));
         return os;
     }
 
     // Overload PointList stream extraction operator
-    inline friend std::istream & operator>>(std::istream &is, const ClMgtProvList &b)
+    inline friend std::istream & operator>>(std::istream &is, const MgtProvList &b)
     {
         copy(std::istream_iterator<T>(is), std::istream_iterator<T>(), std::back_inserter(b));
         return is;
     }
 
-    virtual std::vector<std::string> *getChildNames();
+    //virtual std::vector<std::string> *getChildNames();
 
     /**
      * \brief   Function to set data to database
@@ -111,7 +110,7 @@ template <class T>
 class ProvListOperation : public SAFplus::TransactionOperation
 {
 protected:
-    ClMgtProvList<T> *mOwner;
+    MgtProvList<T> *mOwner;
     std::vector<void *> mData;
 
 public:
@@ -119,7 +118,7 @@ public:
     {
         mOwner = NULL;
     }
-    void setOwner(ClMgtProvList<T> *owner);
+    void setOwner(MgtProvList<T> *owner);
     void addData(void *data, ClUint64T buffLen);
     virtual bool validate(SAFplus::Transaction& t);
     virtual void commit();
@@ -127,7 +126,7 @@ public:
 };
 
 template <class T>
-void ProvListOperation<T>::setOwner(ClMgtProvList<T> *owner)
+void ProvListOperation<T>::setOwner(MgtProvList<T> *owner)
 {
     mOwner = owner;
 }
@@ -158,7 +157,7 @@ void ProvListOperation<T>::commit()
     if ((!mOwner) || (mData.size() == 0))
         return;
 
-    mOwner->Value.clear();
+    mOwner->value.clear();
 
     for(unsigned int i = 0; i < mData.size(); i++)
     {
@@ -187,18 +186,18 @@ void ProvListOperation<T>::abort()
 }
 
 template<class T>
-ClMgtProvList<T>::ClMgtProvList(const char* name) :
-        ClMgtObject(name)
+MgtProvList<T>::MgtProvList(const char* name) :
+  MgtObject(name)
 {
     mOpt = NULL;
 }
 
 template<class T>
-ClMgtProvList<T>::~ClMgtProvList()
+MgtProvList<T>::~MgtProvList()
 {
 }
 template<class T>
-std::string ClMgtProvList<T>::toStringItemAt(T &x)
+std::string MgtProvList<T>::toStringItemAt(T &x)
 {
     std::stringstream ss;
     ss << x;
@@ -206,22 +205,22 @@ std::string ClMgtProvList<T>::toStringItemAt(T &x)
 }
 
 template<class T>
-void ClMgtProvList<T>::toString(std::stringstream& xmlString)
+void MgtProvList<T>::toString(std::stringstream& xmlString)
 {
     getDb();
-    for (unsigned int i = 0; i < Value.size(); i++)
+    for (unsigned int i = 0; i < value.size(); i++)
     {
-        xmlString << "<" << Name << ">" << toStringItemAt(Value.at(i)) << "</" << Name << ">";
+        xmlString << "<" << name << ">" << toStringItemAt(value.at(i)) << "</" << name << ">";
     }
 }
 
-template<class T> void ClMgtProvList<T>::xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+template<class T> void MgtProvList<T>::xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
   if (!set(pBuffer,buffLen,t)) throw SAFplus::TransactionException(t);
 }
 
 template<class T>
-ClBoolT ClMgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen,
+ClBoolT MgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen,
         SAFplus::Transaction& t)
 {
     const xmlChar *valstr, *namestr;
@@ -239,7 +238,7 @@ ClBoolT ClMgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen,
             namestr = xmlTextReaderConstName(reader);
 
             if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT
-                    && !strcmp((const char*) namestr, Name.c_str()))
+                    && !strcmp((const char*) namestr, name.c_str()))
             {
                 ret = xmlTextReaderRead(reader);
                 if (ret && xmlTextReaderHasValue(reader)
@@ -271,26 +270,28 @@ ClBoolT ClMgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen,
 }
 
 template<class T>
-void ClMgtProvList<T>::pushBackValue(const std::string& strVal)
+void MgtProvList<T>::pushBackValue(const std::string& strVal)
 {
-    T value;
+    T val;
 
-    deXMLize(strVal,this,value); 
+    deXMLize(strVal,this,val); 
 
-    Value.push_back(value);
+    value.push_back(val);
 }
 
+#if 0
 /*
  * List-leaf doesn't have children
  */
 template <class T>
-std::vector<std::string> *ClMgtProvList<T>::getChildNames()
+std::vector<std::string> *MgtProvList<T>::getChildNames()
 {
     return NULL;
 }
+#endif
 
 template <class T>
-ClRcT ClMgtProvList<T>::setDb()
+ClRcT MgtProvList<T>::setDb()
 {
     ClRcT rc = CL_OK;
     std::string key = getFullXpath();
@@ -303,7 +304,7 @@ ClRcT ClMgtProvList<T>::setDb()
 
     std::vector<std::string> iter = db->iterate(key);
 
-    int updateCount = (iter.size() < Value.size()) ? iter.size() : Value.size();
+    int updateCount = (iter.size() < value.size()) ? iter.size() : value.size();
 
     for (int i = 1; i <= updateCount; i++)
     {
@@ -311,26 +312,26 @@ ClRcT ClMgtProvList<T>::setDb()
         std::stringstream s;
         s << i;
         itemkey.append(key).append("[").append(s.str()).append("]");
-        if (!db->setRecord(itemkey, toStringItemAt(Value.at(i-1))))
+        if (!db->setRecord(itemkey, toStringItemAt(value.at(i-1))))
         {
-            db->insertRecord(itemkey, toStringItemAt(Value.at(i-1)));
+            db->insertRecord(itemkey, toStringItemAt(value.at(i-1)));
         }
     }
 
-    if (iter.size() < Value.size())
+    if (iter.size() < value.size())
     {
-        for (int i = iter.size() + 1; i <= Value.size(); i++)
+        for (int i = iter.size() + 1; i <= value.size(); i++)
         {
             std::string itemkey = "";
             std::stringstream s;
             s << i;
             itemkey.append(key).append("[").append(s.str()).append("]");
-            db->insertRecord(itemkey, toStringItemAt(Value.at(i-1)));
+            db->insertRecord(itemkey, toStringItemAt(value.at(i-1)));
         }
     }
     else
     {
-        for (int i = Value.size() + 1; i <= iter.size(); i++)
+        for (int i = value.size() + 1; i <= iter.size(); i++)
         {
             std::string itemkey = "";
             std::stringstream s;
@@ -344,7 +345,7 @@ ClRcT ClMgtProvList<T>::setDb()
 }
 
 template <class T>
-ClRcT ClMgtProvList<T>::getDb()
+ClRcT MgtProvList<T>::getDb()
 {
     ClRcT rc = CL_OK;
     std::string key = getFullXpath();
@@ -357,7 +358,7 @@ ClRcT ClMgtProvList<T>::getDb()
 
     std::vector<std::string> iter = db->iterate(key);
 
-    Value.clear();
+    value.clear();
     for (std::vector<std::string>::iterator it=iter.begin(); it!=iter.end(); it++)
     {
         std::string value;

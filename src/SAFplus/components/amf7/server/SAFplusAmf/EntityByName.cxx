@@ -5,11 +5,11 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtObject.hxx"
+#include <string>
 #include "clMgtProv.hxx"
+#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
-#include <string>
 #include "EntityByName.hxx"
 
 
@@ -19,32 +19,32 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(EntityByName, /SAFplusAmf/EntityByName)
 
-    EntityByName::EntityByName(): SAFplus::ClMgtObject("EntityByName"), name("name"), entity("entity")
+    EntityByName::EntityByName(): SAFplus::MgtList("EntityByName"), myName("myName"), entity("entity")
     {
-        this->addChildObject(&name, "name");
+        this->addChildObject(&myName, "myName");
         this->addChildObject(&entity, "entity");
     };
 
     std::vector<std::string>* EntityByName::getChildNames()
     {
-        std::string childNames[] = { "name", "entity" };
+        std::string childNames[] = { "myName", "entity" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityByName/name
+     * XPATH: /SAFplusAmf/EntityByName/myName
      */
-    std::string EntityByName::getName()
+    std::string EntityByName::getMyName()
     {
-        return this->name.Value;
+        return this->myName.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityByName/name
+     * XPATH: /SAFplusAmf/EntityByName/myName
      */
-    void EntityByName::setName(std::string nameValue)
+    void EntityByName::setMyName(std::string myNameValue)
     {
-        this->name.Value = nameValue;
+        this->myName.value = myNameValue;
     };
 
     /*
@@ -52,7 +52,7 @@ namespace SAFplusAmf
      */
     std::string EntityByName::getEntity()
     {
-        return this->entity.Value;
+        return this->entity.value;
     };
 
     /*
@@ -60,7 +60,7 @@ namespace SAFplusAmf
      */
     void EntityByName::setEntity(std::string entityValue)
     {
-        this->entity.Value = entityValue;
+        this->entity.value = entityValue;
     };
 
     EntityByName::~EntityByName()

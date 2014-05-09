@@ -5,11 +5,10 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "Capacity.hxx"
-#include <string>
-#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include <string>
+#include "Capacity.hxx"
 #include "ActiveWeight.hxx"
 
 
@@ -19,19 +18,17 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ActiveWeight, /SAFplusAmf/ServiceInstance/activeWeight)
 
-    ActiveWeight::ActiveWeight(): resource("resource"), value("value")
+    ActiveWeight::ActiveWeight()
     {
-        this->addChildObject(&resource, "resource");
-        this->addChildObject(&value, "value");
         this->addKey("resource");
+        this->name.assign("activeWeight");
     };
 
-    ActiveWeight::ActiveWeight(std::string resourceValue): resource("resource"), value("value")
+    ActiveWeight::ActiveWeight(std::string resourceValue)
     {
-        this->resource.Value =  resourceValue;
+        this->resource.value =  resourceValue;
         this->addKey("resource");
-        this->addChildObject(&resource, "resource");
-        this->addChildObject(&value, "value");
+        this->name.assign("activeWeight");
     };
 
     std::vector<std::string> ActiveWeight::getKeys()
@@ -44,38 +41,6 @@ namespace SAFplusAmf
     {
         std::string childNames[] = { "resource", "value" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceInstance/activeWeight/resource
-     */
-    std::string ActiveWeight::getResource()
-    {
-        return this->resource.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceInstance/activeWeight/resource
-     */
-    void ActiveWeight::setResource(std::string resourceValue)
-    {
-        this->resource.Value = resourceValue;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceInstance/activeWeight/value
-     */
-    long int ActiveWeight::getValue()
-    {
-        return this->value.Value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ServiceInstance/activeWeight/value
-     */
-    void ActiveWeight::setValue(long int valueValue)
-    {
-        this->value.Value = valueValue;
     };
 
     ActiveWeight::~ActiveWeight()

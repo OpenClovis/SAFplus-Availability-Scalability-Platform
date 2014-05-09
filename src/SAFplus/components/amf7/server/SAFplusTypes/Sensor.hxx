@@ -11,18 +11,18 @@
 
 #include "Val.hxx"
 #include <vector>
-#include "clMgtObject.hxx"
-#include "Val.hxx"
-#include "clMgtProv.hxx"
 #include <string>
+#include "clMgtContainer.hxx"
+#include "clMgtProv.hxx"
+#include "Val.hxx"
 
 namespace SAFplusTypes
   {
 
-    class Sensor : public SAFplus::ClMgtObject {
+    class Sensor : public SAFplus::MgtContainer {
     public:
-        SAFplus::ClMgtProv<std::string> name;
-        SAFplus::ClMgtProv<std::string> desc;
+        SAFplus::MgtProv<std::string> name;
+        SAFplus::MgtProv<std::string> desc;
 
     public:
         Sensor();

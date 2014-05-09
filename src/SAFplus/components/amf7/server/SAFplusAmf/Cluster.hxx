@@ -27,50 +27,20 @@ namespace SAFplusAmf
     public:
 
         /*
-         * Unique name of this entity
-         */
-        SAFplus::ClMgtProv<std::string> name;
-
-        /*
-         * Each SAFplus AMF entity gets a unique numerical identifier
-         */
-        SAFplus::ClMgtProv<unsigned short int> id;
-
-        /*
          * Does the operator want this entity to be off, idle, or in service?
          */
-        SAFplus::ClMgtProv<SAFplusAmf::AdministrativeState> adminState;
+        SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
          * When the cluster is first started, no work will be assigned until either ALL configured service units are instantiated or this time duration elapses.  By giving every node a chance to come up fully, this ensures that initial work assignments are as close as possible to preferred work assignments.
          */
-        SAFplus::ClMgtProv<SaTimeT> startupAssignmentDelay;
+        SAFplus::MgtProv<SaTimeT> startupAssignmentDelay;
 
     public:
         Cluster();
-        Cluster(std::string nameValue);
+        Cluster(std::string myNameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
-
-        /*
-         * XPATH: /SAFplusAmf/Cluster/name
-         */
-        std::string getName();
-
-        /*
-         * XPATH: /SAFplusAmf/Cluster/name
-         */
-        void setName(std::string nameValue);
-
-        /*
-         * XPATH: /SAFplusAmf/Cluster/id
-         */
-        unsigned short int getId();
-
-        /*
-         * XPATH: /SAFplusAmf/Cluster/id
-         */
-        void setId(unsigned short int idValue);
 
         /*
          * XPATH: /SAFplusAmf/Cluster/adminState

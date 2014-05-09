@@ -18,238 +18,226 @@
  */
 
 #include "clMgtList.hxx"
+#include "clLogApi.hxx"
 
-#ifdef __cplusplus
 extern "C"
-{
-#endif
+  {
+#include <libxml/xmlreader.h>
+#include <libxml/xmlmemory.h>
+#include <libxml/parser.h>
+#include <libxml/xmlstring.h>
+
 #include <clCommonErrors.h>
-#include <clDebugApi.h>
-#ifdef __cplusplus
-} /* end extern 'C' */
-#endif
+//#include <clDebugApi.h>
+  } /* end extern 'C' */
 
 using namespace std;
 
-#ifdef SAFplus7
-#define clLog(...)
-#endif
-
 namespace SAFplus
-{
-  ClMgtList::ClMgtList(const char* name) :
-    ClMgtObject(name)
   {
-  }
+  MgtList::MgtList(const char* name) :
+    MgtObject(name)
+    {
+    }
 
-  ClMgtList::~ClMgtList()
-  {
-  }
+  MgtList::~MgtList()
+    {
+    }
 
-  ClRcT ClMgtList::addKey(std::string key)
-  {
+#if 0
+  ClRcT MgtList::addKey(std::string key)
+    {
     ClRcT rc = CL_OK;
 
     ClUint32T i;
     for (i = 0; i < mKeys.size(); i++)
       {
-        if (mKeys[i].compare(key) == 0)
-          {
-            rc = CL_ERR_ALREADY_EXIST;
-            clLogWarning("MGT", "LIST", "Key [%s] already exists", key.c_str());
-            return rc;
-          }
+      if (mKeys[i].compare(key) == 0)
+        {
+        rc = CL_ERR_ALREADY_EXIST;
+        logWarning("MGT", "LIST", "Key [%s] already exists", key.c_str());
+        return rc;
+        }
       }
     mKeys.push_back(key);
     return rc;
-  }
+    }
 
-  ClRcT ClMgtList::removeKey(std::string key)
-  {
+  ClRcT MgtList::removeKey(std::string key)
+    {
     ClRcT rc = CL_ERR_NOT_EXIST;
     ClUint32T i;
 
     for (i = 0; i < mKeys.size(); i++)
       {
-        if (mKeys[i].compare(key) == 0)
-          {
-            mKeys.erase(mKeys.begin() + i);
-            rc = CL_OK;
-            break;
-          }
+      if (mKeys[i].compare(key) == 0)
+        {
+        mKeys.erase(mKeys.begin() + i);
+        rc = CL_OK;
+        break;
+        }
       }
     return rc;
-  }
+    }
 
-  void ClMgtList::removeAllKeys()
-  {
+  void MgtList::removeAllKeys()
+    {
     mKeys.clear();
-  }
+    }
+#endif
 
-  ClBoolT ClMgtList::isEntryExist(ClMgtObject* entry)
-  {
+
+  ClBoolT MgtList::isEntryExist(MgtObject* entry)
+    {
+    std::vector<MgtObject*>::iterator it;
+    std::vector<MgtObject*>::iterator end = mEntries.end();
+    for (it=mEntries.begin();it!=end; it++)
+      {
+      if (*it && ((*it)->name == entry->name)) return true;
+      }
+    return false;
+
+#if 0
     ClBoolT isExist = CL_FALSE;
 
     ClUint32T i, j;
 
     for (i = 0; i < mEntries.size(); i++)
       {
-        ClBoolT itemFound = CL_TRUE;
-        for (j = 0; j < mKeys.size(); j++)
-          {
-            ClMgtObject *inputKey = entry->getChildObject(mKeys[j]);
-            ClMgtObject *itemKey = mEntries[i]->getChildObject(mKeys[j]);
 
-            if ((inputKey != NULL) && (itemKey))
-              {
-                if (inputKey->strValue().compare(itemKey->strValue()) != 0)
-                  {
-                    itemFound = CL_FALSE;
-                    break;
-                  }
-              }
-            else
-              {
-                itemFound = CL_FALSE;
-                break;
-              }
-          }
-        if (itemFound)
+      ClBoolT itemFound = CL_TRUE;
+      for (j = 0; j < mKeys.size(); j++)
+        {
+        MgtObject *inputKey = entry->getChildObject(mKeys[j]);
+        MgtObject *itemKey = mEntries[i]->getChildObject(mKeys[j]);
+
+        if ((inputKey != NULL) && (itemKey))
           {
-            isExist = CL_TRUE;
+          if (inputKey->strValue().compare(itemKey->strValue()) != 0)
+            {
+            itemFound = CL_FALSE;
             break;
+            }
           }
+        else
+          {
+          itemFound = CL_FALSE;
+          break;
+          }
+        }
+      if (itemFound)
+        {
+        isExist = CL_TRUE;
+        break;
+        }
       }
 
     return isExist;
-  }
+#endif
+    }
 
-  ClMgtObject* ClMgtList::findEntryByKeys(
-                                          std::map<std::string, std::string> *keys)
-  {
+
+#if 0
+  MgtObject* MgtList::findEntryByKeys(std::map<std::string, std::string> *keys)
+    {
     ClUint32T i, j;
 
     for (i = 0; i < mEntries.size(); i++)
       {
-        ClBoolT itemFound = CL_TRUE;
-        for (j = 0; j < mKeys.size(); j++)
+      ClBoolT itemFound = CL_TRUE;
+      for (j = 0; j < mKeys.size(); j++)
+        {
+        MgtObject *itemKey = mEntries[i]->getChildObject(mKeys[j]);
+
+        map<string, string>::iterator mapIndex = keys->find(mKeys[j]);
+        if (mapIndex == keys->end())
           {
-            ClMgtObject *itemKey = mEntries[i]->getChildObject(mKeys[j]);
-
-            map<string, string>::iterator mapIndex = keys->find(mKeys[j]);
-            if (mapIndex == keys->end())
-              {
-                itemFound = CL_FALSE;
-                break;
-              }
-
-            if (itemKey)
-              {
-                string keyVal = static_cast<string>((*mapIndex).second);
-
-                if (keyVal.compare(itemKey->strValue()) != 0)
-                  {
-                    itemFound = CL_FALSE;
-                    break;
-                  }
-              }
-            else
-              {
-                itemFound = CL_FALSE;
-                break;
-              }
+          itemFound = CL_FALSE;
+          break;
           }
-        if (itemFound)
+
+        if (itemKey)
           {
-            return mEntries[i];
+          string keyVal = static_cast<string>((*mapIndex).second);
+
+          if (keyVal.compare(itemKey->strValue()) != 0)
+            {
+            itemFound = CL_FALSE;
+            break;
+            }
           }
+        else
+          {
+          itemFound = CL_FALSE;
+          break;
+          }
+        }
+      if (itemFound)
+        {
+        return mEntries[i];
+        }
       }
     return NULL;
-  }
+    }
+#endif
 
-  ClRcT ClMgtList::addEntry(ClMgtObject* entry)
-  {
-    ClRcT rc = CL_OK;
 
-    if (entry == NULL)
-      {
-        clLogError("MGT", "LIST", "Null pointer input");
-        return CL_ERR_NULL_POINTER;
-      }
-
-    if (isEntryExist(entry) == CL_TRUE)
-      {
-        clLogWarning("MGT", "LIST", "Entry [%s] already exists",
-                     entry->Name.c_str());
-        return CL_ERR_ALREADY_EXIST;
-      }
-
-    mEntries.push_back(entry);
-    addChildObject(entry, entry->Name);
-    return rc;
-  }
-
-  ClRcT ClMgtList::removeEntry(ClUint32T index)
-  {
+  ClRcT MgtList::removeEntry(ClUint32T index)
+    {
     ClRcT rc = CL_ERR_NOT_EXIST;
 
     if ((0 <= index) && (index < mEntries.size()))
       {
-        removeChildObject(mEntries[index]->Name);
-        mEntries.erase(mEntries.begin() + index);
-        rc = CL_OK;
+      mEntries.erase(mEntries.begin() + index);
+      rc = CL_OK;
       }
 
     return rc;
-  }
+    }
 
-  void ClMgtList::removeAllEntries()
-  {
+  void MgtList::removeAllChildren()
+    {
     mEntries.clear();
-  }
+    }
 
-  ClMgtObject* ClMgtList::getEntry(ClUint32T index)
-  {
+  MgtObject* MgtList::getEntry(ClUint32T index)
+    {
     if ((0 <= index) && (index < mEntries.size()))
       {
-        ClMgtObject *entry = mEntries[index];
-        return entry;
+      MgtObject *entry = mEntries[index];
+      return entry;
       }
 
     return NULL;
-  }
+    }
 
-  ClUint32T ClMgtList::getEntrySize()
-  {
+  ClUint32T MgtList::getEntrySize()
+    {
     return (ClUint32T) mEntries.size();
-  }
-  ClUint32T ClMgtList::getKeySize()
-  {
-    return (ClUint32T) mKeys.size();
-  }
+    }
 
-  void ClMgtList::toString(std::stringstream& xmlString)
-  {
+  void MgtList::toString(std::stringstream& xmlString)
+    {
     ClUint32T i;
 
     for (i = 0; i < mEntries.size(); i++)
       {
-        ClMgtObject *entry = mEntries[i];
-
+      MgtObject *entry = mEntries[i];
+      if (entry)
         entry->toString(xmlString);
       }
 
-  }
+    }
 
-  ClBoolT ClMgtList::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
-  {
+  ClBoolT MgtList::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+    {
     xmlChar *valstr, *namestr;
     int ret, nodetyp, depth;
 
     char *strChildData = (char *) malloc(MGT_MAX_DATA_LEN);
     if (!strChildData)
       {
-        return CL_FALSE;
+      return CL_FALSE;
       }
 
     char keyVal[MGT_MAX_ATTR_STR_LEN];
@@ -260,100 +248,119 @@ namespace SAFplus
     ClUint32T i;
 
     xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen,
-                                                 NULL, NULL, 0);
+      NULL, NULL, 0);
     if (!reader)
       {
-        free(strChildData);
-        return CL_FALSE;
+      free(strChildData);
+      return CL_FALSE;
       }
 
     do
       {
-        depth = xmlTextReaderDepth(reader);
-        nodetyp = xmlTextReaderNodeType(reader);
-        namestr = (xmlChar *) xmlTextReaderConstName(reader);
-        valstr = (xmlChar *) xmlTextReaderValue(reader);
+      depth = xmlTextReaderDepth(reader);
+      nodetyp = xmlTextReaderNodeType(reader);
+      namestr = (xmlChar *) xmlTextReaderConstName(reader);
+      valstr = (xmlChar *) xmlTextReaderValue(reader);
 
-        switch (nodetyp)
-          {
-          case XML_ELEMENT_NODE:
-            /* classify element as empty or start */
-            snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", namestr);
-            if (depth == 0)
+      switch (nodetyp)
+        {
+        case XML_ELEMENT_NODE:
+          /* classify element as empty or start */
+          snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", namestr);
+          if (depth == 0)
+            {
+            strcpy(strChildData, strTemp);
+            keys.clear();
+            }
+          else if (depth == 1)
+            {
+            strcat(strChildData, strTemp);
+#if 0 // TODO
+            for (i = 0; i < mKeys.size(); i++)
               {
-                strcpy(strChildData, strTemp);
-                keys.clear();
+              if (mKeys[i].compare((char *) namestr) == 0)
+                {
+                isKey = CL_TRUE;
+                break;
+                }
               }
-            else if (depth == 1)
+#endif
+            }
+          else
+            {
+            strcat(strChildData, strTemp);
+            }
+          break;
+        case XML_ELEMENT_DECL:
+          snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", namestr);
+          if (depth == 0)
+            {
+            strcat(strChildData, strTemp);
+            MgtObject* entry = NULL;  // TODO: was findEntryByKeys(&keys);
+            if (entry != NULL)
               {
-                strcat(strChildData, strTemp);
-                for (i = 0; i < mKeys.size(); i++)
-                  {
-                    if (mKeys[i].compare((char *) namestr) == 0)
-                      {
-                        isKey = CL_TRUE;
-                        break;
-                      }
-                  }
+              if (entry->set(strChildData, strlen(strChildData), t) == CL_FALSE)
+                {
+                xmlFreeTextReader(reader);
+                free(strChildData);
+                return CL_FALSE;
+                }
               }
-            else
+            }
+          else if (depth == 1)
+            {
+            strcat(strChildData, strTemp);
+            if (isKey == CL_TRUE)
               {
-                strcat(strChildData, strTemp);
+              keys.insert(pair<string, string>((char *) namestr, keyVal));
+              isKey = CL_FALSE;
               }
-            break;
-          case XML_ELEMENT_DECL:
-            snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", namestr);
-            if (depth == 0)
+            }
+          else
+            {
+            strcat(strChildData, strTemp);
+            }
+          break;
+        case XML_TEXT_NODE:
+          if (depth > 0)
+            {
+            strcat(strChildData, (char *) valstr);
+            if (isKey == CL_TRUE)
               {
-                strcat(strChildData, strTemp);
-                ClMgtObject* entry = findEntryByKeys(&keys);
-                if (entry != NULL)
-                  {
-                    if (entry->set(strChildData, strlen(strChildData), t)
-                        == CL_FALSE)
-                      {
-                        xmlFreeTextReader(reader);
-                        free(strChildData);
-                        return CL_FALSE;
-                      }
-                  }
+              strcpy(keyVal, (char *) valstr);
               }
-            else if (depth == 1)
-              {
-                strcat(strChildData, strTemp);
-                if (isKey == CL_TRUE)
-                  {
-                    keys.insert(pair<string, string>((char *) namestr, keyVal));
-                    isKey = CL_FALSE;
-                  }
-              }
-            else
-              {
-                strcat(strChildData, strTemp);
-              }
-            break;
-          case XML_TEXT_NODE:
-            if (depth > 0)
-              {
-                strcat(strChildData, (char *) valstr);
-                if (isKey == CL_TRUE)
-                  {
-                    strcpy(keyVal, (char *) valstr);
-                  }
-              }
-            break;
-          default:
-            /* unused node type -- keep trying */
-            break;
-          }
+            }
+          break;
+        default:
+          /* unused node type -- keep trying */
+          break;
+        }
 
-        ret = xmlTextReaderRead(reader);
+      ret = xmlTextReaderRead(reader);
       } while (ret);
 
     xmlFreeTextReader(reader);
     free(strChildData);
     return CL_TRUE;
-  }
+    }
 
+  ClRcT MgtList::removeChildObject(const std::string& objectName)
+    {
+    for (int i = 0; i < mEntries.size(); i++)
+      {
+      MgtObject *entry = mEntries[i];
+      if ((entry)&&(entry->name == objectName)) { mEntries[i] = nullptr; return CL_OK; }
+      }
+    return CL_ERR_NOT_EXIST;
+    }
 
-};
+  ClRcT MgtList::addChildObject(MgtObject *mgtObject, const std::string& objectName)
+    {
+    ClRcT rc = CL_OK;
+    assert(mgtObject);
+    assert(&objectName == nullptr);  // lists do not have named elements
+
+    assert(isEntryExist(mgtObject)==false);
+    mEntries.push_back(mgtObject);
+    }
+  };

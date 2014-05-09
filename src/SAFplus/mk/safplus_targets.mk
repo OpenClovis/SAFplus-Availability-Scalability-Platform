@@ -1,3 +1,6 @@
+SAFPLUS_IOC_TEST:=1
+SAFPLUS_IOC_LIB:=1
+
 ifndef SAFPLUS_LOG_LIB
 $(LIB_DIR)/libclLog.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/log7
@@ -48,7 +51,8 @@ $(LIB_DIR)/libclName.so:
 endif
 
 # ordered by dependency
-SAFplusSOs :=   $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so  $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclGroupServer.so
+# $(LIB_DIR)/libclIoc7.so
+SAFplusSOs :=   $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so  $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclGroupServer.so
 
 
 

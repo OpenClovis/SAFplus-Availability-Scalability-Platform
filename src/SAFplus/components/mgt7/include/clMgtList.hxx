@@ -47,23 +47,25 @@ namespace SAFplus
 {
 
   /**
-   *  ClMgtList class provides APIs to manage Yang lists
+   *  MgtList class provides APIs to manage Yang lists
    */
-  class ClMgtList : public ClMgtObject
+  class MgtList : public MgtObject
   {
   protected:
     /*
      * Store the list entries
      */
-    std::vector<ClMgtObject*> mEntries;
-    std::vector<std::string> mKeys;
-    //ClBoolT isEntryExist(ClMgtObject* entry);
-    ClMgtObject* findEntryByKeys(std::map<std::string, std::string> *keys);
+    std::vector<MgtObject*> mEntries;
+    //std::vector<std::string> mKeys;
+    ClBoolT isEntryExist(MgtObject* entry);
+    //?MgtObject* findEntryByKeys(std::map<std::string, std::string> *keys);
 
   public:
-    ClMgtList(const char* name);
-    virtual ~ClMgtList();
-    ClBoolT isEntryExist(ClMgtObject* entry);
+    MgtList(const char* name);
+    virtual ~MgtList();
+    //ClBoolT isEntryExist(MgtObject* entry);
+
+#if 0
     /**
      * \brief	Function to add a key
      * \param	key							Key of the list
@@ -80,6 +82,7 @@ namespace SAFplus
      */
     ClRcT removeKey(std::string key);
     void removeAllKeys();
+
     /**
      * \brief	Function to add a list entry to a list
      * \param	entry						Pointer to the list entry
@@ -88,7 +91,19 @@ namespace SAFplus
      * \return	CL_ERR_INVALID_PARAMETER	Input parameter is invalid
      * \return	CL_ERR_ALREADY_EXIST		List entry already exists
      */
-    ClRcT addEntry(ClMgtObject* entry);
+    ClRcT addEntry(MgtObject* entry);
+
+#endif
+    virtual ClRcT removeChildObject(const std::string& objectName);
+    void removeAllChildren();
+
+    /**
+     * \brief	Function to get a list entry from the database
+     * \param	index						Index of the entry
+     * \return	If the function succeeds, the return value is a MGT container
+     * \return	If the function fails, the return value is NULL
+     */
+    MgtObject* getEntry(ClUint32T index);
 
     /**
      * \brief	Function to remove a list entry
@@ -97,14 +112,9 @@ namespace SAFplus
      * \return	CL_ERR_NOT_EXIST			List entry does not exist
      */
     ClRcT removeEntry(ClUint32T index);
-    void removeAllEntries();
-    /**
-     * \brief	Function to get a list entry from the database
-     * \param	index						Index of the entry
-     * \return	If the function succeeds, the return value is a MGT container
-     * \return	If the function fails, the return value is NULL
-     */
-    ClMgtObject* getEntry(ClUint32T index);
+
+    virtual ClRcT addChildObject(MgtObject *mgtObject, std::string const& objectName=*((std::string*)nullptr));
+  
 
     /**
      * \brief	Function called from netconf server to get data of the list

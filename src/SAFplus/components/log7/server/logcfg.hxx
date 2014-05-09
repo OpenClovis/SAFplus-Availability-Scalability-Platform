@@ -10,7 +10,7 @@
 
 
 // Top level class the represents the log.yang file.  I think that this should be auto-generated.
-class LogCfg : public SAFplus::ClMgtObject
+class LogCfg : public SAFplus::MgtContainer
 {
 public:
   SAFplusLog::ServerConfig serverConfig;
