@@ -139,7 +139,7 @@ module SAFplusLog {
     container StreamConfig
     {
         list stream {
-            key "name";
+            key "myName";
             uses StreamAttributes;
             uses StreamStatistics;
             description "Configuration and statistics for a particular log stream";
