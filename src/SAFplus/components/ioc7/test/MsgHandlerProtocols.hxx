@@ -20,6 +20,7 @@
 #ifndef MSGHANDLERPROTOCOLS_HXX_
 #define MSGHANDLERPROTOCOLS_HXX_
 
+#include "test.pb.h"
 #include "clMsgHandler.hxx"
 
 namespace SAFplus

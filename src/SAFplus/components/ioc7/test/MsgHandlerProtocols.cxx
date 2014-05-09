@@ -42,7 +42,14 @@ namespace SAFplus
         char helloMsg[] = "Hello world reply";
 
         string recMsg((const char*) msg, msglen);
-        cout << "==> Handle for message: " << recMsg << " from [" << std::hex << "0x" << from.iocPhyAddress.nodeAddress << ":"
+
+        testprotobuf::Person *person = new testprotobuf::Person;
+
+        person->ParseFromString(recMsg);
+
+        std::cout<<person->name()<<" - "<<person->id()<<std::endl;
+
+        cout << "==> Handle for message: " << person->DebugString() << " from [" << std::hex << "0x" << from.iocPhyAddress.nodeAddress << ":"
                 << std::hex << "0x" << from.iocPhyAddress.portId << "]" << endl;
 
         /**

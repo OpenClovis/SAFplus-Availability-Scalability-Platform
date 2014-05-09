@@ -12,7 +12,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
 
 # Management includes and libraries
-CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
+CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ `pkg-config --cflags protobuf`
 
 SENDER_SRC := ClientTest.cxx
 SENDER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SENDER_SRC)))
@@ -30,14 +30,18 @@ LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -l
 
 all: $(TEST_DIR)/ClientTest $(TEST_DIR)/ServerTest
 
-$(TEST_DIR)/ClientTest: $(SENDER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
-	$(LINK_EXE) $@ $(SENDER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
+$(TEST_DIR)/ClientTest: $(OBJ_DIR)/test.pb.o $(SENDER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
+	$(LINK_EXE) $@ $(SENDER_OBJ) $(OBJ_DIR)/test.pb.o $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) `pkg-config --libs protobuf`
 
-$(TEST_DIR)/ServerTest: $(RECEIVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
-	$(LINK_EXE) $@ $(RECEIVER_OBJ) $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
+$(TEST_DIR)/ServerTest: $(OBJ_DIR)/test.pb.o $(RECEIVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
+	$(LINK_EXE) $@ $(RECEIVER_OBJ) $(OBJ_DIR)/test.pb.o $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) `pkg-config --libs protobuf`
 
 $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/test.pb.o: test.proto
+	protoc --cpp_out=. test.proto
+	$(COMPILE_CPP) $@ test.pb.cc
 
 clean:
 	rm -f $(OBJ_DIR)/*.o  $(TEST_DIR)/*
