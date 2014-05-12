@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
   else if(getenv("PLNODE") || clAspLocalId != 1)
   {
     credential =  clAspLocalId;
-    capabilities = Group::ACCEPT_STANDBY;
+    capabilities = Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE;
   }
   me = new SAFplus::Handle(PersistentHandle,0,0,clAspLocalId,0);
   clusterGroup.init(CLUSTER_GROUP);
@@ -87,18 +87,6 @@ int main(int argc, char* argv[])
   if(getenv("SCNODE") || clAspLocalId == 1)
   {
     cout << "I leave cluster now \n";
-    clusterGroup.deregister(*me);
-    while(wakeable.wakeSignal != Group::NODE_LEAVE_SIG)
-    {
-      ;
-    }
-    return 0;
-  }
-  wait(10);
-  if(clAspLocalId == 3)
-  {
-    cout << "I leave cluster now \n";
-    wakeable.wakeSignal = -1;
     clusterGroup.deregister(*me);
     while(wakeable.wakeSignal != Group::NODE_LEAVE_SIG)
     {
