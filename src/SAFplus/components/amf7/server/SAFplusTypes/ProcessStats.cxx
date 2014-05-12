@@ -23,6 +23,11 @@ namespace SAFplusTypes
     {
     };
 
+    void ProcessStats::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
+    };
+
     std::vector<std::string>* ProcessStats::getChildNames()
     {
         std::string childNames[] = { "failures", "cpuUtilization", "memUtilization" };
@@ -34,7 +39,7 @@ namespace SAFplusTypes
      */
     SAFplusTypes::Failures* ProcessStats::getFailures()
     {
-        return (Failures*)this->getChildObject("failures");
+        return dynamic_cast<Failures*>(this->getChildObject("failures"));
     };
 
     /*
@@ -50,7 +55,7 @@ namespace SAFplusTypes
      */
     SAFplusTypes::CpuUtilization* ProcessStats::getCpuUtilization()
     {
-        return (CpuUtilization*)this->getChildObject("cpuUtilization");
+        return dynamic_cast<CpuUtilization*>(this->getChildObject("cpuUtilization"));
     };
 
     /*
@@ -66,7 +71,7 @@ namespace SAFplusTypes
      */
     SAFplusTypes::MemUtilization* ProcessStats::getMemUtilization()
     {
-        return (MemUtilization*)this->getChildObject("memUtilization");
+        return dynamic_cast<MemUtilization*>(this->getChildObject("memUtilization"));
     };
 
     /*

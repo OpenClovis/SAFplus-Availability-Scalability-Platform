@@ -138,7 +138,7 @@ void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t servic
   uint_t            msgStrLen;
   const ClCharT    *pSevName           = NULL;
   ClCharT           timeStr[40]   = {0};
-  ClCharT           msg[CL_LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
+  ClCharT           msg[SAFplus::LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
   va_list vaargs;
 
   if (severity > SAFplus::logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the server ALSO does this check...
@@ -147,8 +147,8 @@ void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t servic
 
   msgStrLen = formatMsgPrefix(msg,severity, serviceId, pArea, pContext, pFileName, lineNum);
   // Now append the log message        
-  msgStrLen += vsnprintf(msg + msgStrLen, CL_LOG_MAX_MSG_LEN - msgStrLen, pFmtStr, vaargs);
-  if (msgStrLen > CL_LOG_MAX_MSG_LEN-1) msgStrLen=CL_LOG_MAX_MSG_LEN-1;  // if too big, vsnprintf returns the number of bytes that WOULD HAVE BEEN written.
+  msgStrLen += vsnprintf(msg + msgStrLen, SAFplus::LOG_MAX_MSG_LEN - msgStrLen, pFmtStr, vaargs);
+  if (msgStrLen > SAFplus::LOG_MAX_MSG_LEN-1) msgStrLen=SAFplus::LOG_MAX_MSG_LEN-1;  // if too big, vsnprintf returns the number of bytes that WOULD HAVE BEEN written.
   va_end(vaargs);
   
   if (logEchoToFd != -1) { write(logEchoToFd,msg,msgStrLen); write(logEchoToFd,"\n",sizeof("\n")-1); }
@@ -158,13 +158,13 @@ void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t servic
 void SAFplus::logStrWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *str)
 {
   uint_t            msgStrLen;
-  ClCharT           msg[CL_LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
+  ClCharT           msg[SAFplus::LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
   
   if (severity > logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the server ALSO does this check...
 
   msgStrLen = formatMsgPrefix(msg,severity, serviceId, pArea, pContext, pFileName, lineNum);
   // Now append the log message
-  strncat(msg + msgStrLen,str,CL_LOG_MAX_MSG_LEN - msgStrLen);
+  strncat(msg + msgStrLen,str,SAFplus::LOG_MAX_MSG_LEN - msgStrLen);
   msgStrLen = strlen(msg);
 
   if (logEchoToFd != -1) write(logEchoToFd,msg,msgStrLen);

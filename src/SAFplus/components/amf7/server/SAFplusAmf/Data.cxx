@@ -23,15 +23,18 @@ namespace SAFplusAmf
     {
         this->addChildObject(&myName, "myName");
         this->addChildObject(&val, "val");
-        this->addKey("myName");
     };
 
     Data::Data(std::string myNameValue): SAFplus::MgtList("data"), myName("myName"), val("val")
     {
         this->myName.value =  myNameValue;
-        this->addKey("myName");
         this->addChildObject(&myName, "myName");
         this->addChildObject(&val, "val");
+    };
+
+    void Data::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
     };
 
     std::vector<std::string> Data::getKeys()

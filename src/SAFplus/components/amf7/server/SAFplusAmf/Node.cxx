@@ -6,10 +6,8 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
-#include "Capacity.hxx"
 #include <string>
 #include "clMgtProv.hxx"
-#include "Capacity.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
@@ -36,14 +34,12 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
-        this->addKey("myName");
         this->name.assign("Node");
     };
 
     Node::Node(std::string myNameValue): adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
         this->myName.value =  myNameValue;
-        this->addKey("myName");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
         this->addChildObject(&autoRepair, "autoRepair");
@@ -52,6 +48,11 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
         this->name.assign("Node");
+    };
+
+    void Node::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
     };
 
     std::vector<std::string> Node::getKeys()
@@ -163,35 +164,11 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Node/capacity
-     */
-    SAFplusAmf::Capacity* Node::getCapacity(std::string resourceValue)
-    {
-        for (unsigned int i = 0; i < this->capacityList.getEntrySize(); i++)
-        {
-            Capacity* childObject = (Capacity*)this->capacityList.getEntry(i);
-            if (childObject->getResource() == resourceValue)
-            {
-                return childObject;
-            }
-        }
-        return NULL;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/Node/capacity
-     */
-    void Node::addCapacity(SAFplusAmf::Capacity *capacityValue)
-    {
-        this->capacityList.addChildObject(capacityValue);
-    };
-
-    /*
      * XPATH: /SAFplusAmf/Node/serviceUnitFailureEscalationPolicy
      */
     SAFplusAmf::ServiceUnitFailureEscalationPolicy* Node::getServiceUnitFailureEscalationPolicy()
     {
-        return (ServiceUnitFailureEscalationPolicy*)this->getChildObject("serviceUnitFailureEscalationPolicy");
+        return dynamic_cast<ServiceUnitFailureEscalationPolicy*>(this->getChildObject("serviceUnitFailureEscalationPolicy"));
     };
 
     /*

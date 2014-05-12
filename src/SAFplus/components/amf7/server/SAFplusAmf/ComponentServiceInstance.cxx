@@ -8,13 +8,11 @@
 #include <string>
 #include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
-#include "Data.hxx"
 #include "Component.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "EntityId.hxx"
-#include "Data.hxx"
 #include "clMgtProvList.hxx"
 #include "ComponentServiceInstance.hxx"
 
@@ -32,20 +30,23 @@ namespace SAFplusAmf
         this->addChildObject(&serviceInstance, "serviceInstance");
         this->addChildObject(&component, "component");
         this->addChildObject(&dataList, "data");
-        this->addKey("myName");
         this->name.assign("ComponentServiceInstance");
     };
 
     ComponentServiceInstance::ComponentServiceInstance(std::string myNameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
     {
         this->myName.value =  myNameValue;
-        this->addKey("myName");
         this->addChildObject(&protectionGroup, "protectionGroup");
         this->addChildObject(&dependencies, "dependencies");
         this->addChildObject(&serviceInstance, "serviceInstance");
         this->addChildObject(&component, "component");
         this->addChildObject(&dataList, "data");
         this->name.assign("ComponentServiceInstance");
+    };
+
+    void ComponentServiceInstance::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
     };
 
     std::vector<std::string> ComponentServiceInstance::getKeys()
@@ -122,30 +123,6 @@ namespace SAFplusAmf
     void ComponentServiceInstance::setComponent(SAFplusAmf::Component* componentValue)
     {
         this->component.value = componentValue;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/data
-     */
-    SAFplusAmf::Data* ComponentServiceInstance::getData(std::string myNameValue)
-    {
-        for (unsigned int i = 0; i < this->dataList.getEntrySize(); i++)
-        {
-            Data* childObject = (Data*)this->dataList.getEntry(i);
-            if (childObject->getMyName() == myNameValue)
-            {
-                return childObject;
-            }
-        }
-        return NULL;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/data
-     */
-    void ComponentServiceInstance::addData(SAFplusAmf::Data *dataValue)
-    {
-        this->dataList.addChildObject(dataValue);
     };
 
     ComponentServiceInstance::~ComponentServiceInstance()

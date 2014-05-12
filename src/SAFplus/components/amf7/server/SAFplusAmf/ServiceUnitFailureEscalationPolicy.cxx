@@ -22,6 +22,11 @@ namespace SAFplusAmf
         this->name.assign("serviceUnitFailureEscalationPolicy");
     };
 
+    void ServiceUnitFailureEscalationPolicy::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
+    };
+
     std::vector<std::string>* ServiceUnitFailureEscalationPolicy::getChildNames()
     {
         std::string childNames[] = { "maximum", "duration" };

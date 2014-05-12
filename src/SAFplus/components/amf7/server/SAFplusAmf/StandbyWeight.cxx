@@ -20,15 +20,18 @@ namespace SAFplusAmf
 
     StandbyWeight::StandbyWeight()
     {
-        this->addKey("resource");
         this->name.assign("standbyWeight");
     };
 
     StandbyWeight::StandbyWeight(std::string resourceValue)
     {
         this->resource.value =  resourceValue;
-        this->addKey("resource");
         this->name.assign("standbyWeight");
+    };
+
+    void StandbyWeight::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
     };
 
     std::vector<std::string> StandbyWeight::getKeys()

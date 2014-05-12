@@ -46,8 +46,10 @@ namespace SAFplus
 
  
   ClBoolT clParseEnvBoolean(const char* envvar);
+  inline bool parseEnvBoolean(const char* envvar) { clParseEnvBoolean(envvar); }
 
   ClCharT *clParseEnvStr(const char* envvar);
+  inline char* parseEnvStr(const char* envvar) { clParseEnvStr(envvar); }
 
   
   /** \brief  Load the SaNameT structure.

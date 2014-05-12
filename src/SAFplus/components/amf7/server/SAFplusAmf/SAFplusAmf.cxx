@@ -35,6 +35,11 @@ namespace SAFplusAmf
         this->addChildObject(&entityByIdList, "EntityById");
     };
 
+    void SAFplusAmfRoot::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
+    };
+
     std::vector<std::string>* SAFplusAmfRoot::getChildNames()
     {
         std::string childNames[] = { "Cluster", "Node", "ServiceGroup", "Component", "ComponentServiceInstance", "ServiceInstance", "ServiceUnit", "Application", "EntityByName", "EntityById", "healthCheckPeriod", "healthCheckMaxSilence" };
@@ -71,11 +76,6 @@ namespace SAFplusAmf
     void SAFplusAmfRoot::setHealthCheckMaxSilence(SaTimeT healthCheckMaxSilenceValue)
     {
         this->healthCheckMaxSilence.value = healthCheckMaxSilenceValue;
-    };
-
-    void SAFplusAmfRoot::load(SAFplus::ClMgtDatabase *db)
-    {
-        /* TODO: */
     };
 
     SAFplusAmfRoot::~SAFplusAmfRoot()

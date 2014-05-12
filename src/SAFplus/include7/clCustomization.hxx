@@ -1,36 +1,40 @@
 /* This file contains configurable defaults for the entire set of SAFplus services */
-
+#pragma once
+#ifndef CL_CUSTOMIZATION_HXX
+#define CL_CUSTOMIZATION_HXX
 /* Configuration parameters that are part of the API */
 namespace SAFplus
-{
+  {
     
-};
+  };
 
 
 /* Configuration parameters that are used internally */
 namespace SAFplusI
-{
+  {
 
-    /* LOGGING */
-    enum
+  /* LOGGING */
+  enum
     {
-        LogDefaultFileBufferSize = 16*1024,
-        LogDefaultMessageBufferSize = 16*1024,
+    LogDefaultFileBufferSize = 16*1024,
+    LogDefaultMessageBufferSize = 16*1024,
     };
 
-    /* CHECKPOINT */
-    enum
+  /* CHECKPOINT */
+  enum
     {
-        CkptMinSize = 4*1024,
-        CkptDefaultSize = 64*1024,
+    CkptMinSize = 4*1024,
+    CkptDefaultSize = 64*1024,
 
-        CkptMinRows = 2,
-        CkptDefaultRows = 256,
+    CkptMinRows = 2,
+    CkptDefaultRows = 256,
 
 
     };
 
 
 
-};
+  };
+
+#endif
 

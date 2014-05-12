@@ -48,14 +48,12 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&serviceInstances, "serviceInstances");
         this->addChildObject(&application, "application");
-        this->addKey("myName");
         this->name.assign("ServiceGroup");
     };
 
     ServiceGroup::ServiceGroup(std::string myNameValue): adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
     {
         this->myName.value =  myNameValue;
-        this->addKey("myName");
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&autoAdjust, "autoAdjust");
@@ -69,6 +67,11 @@ namespace SAFplusAmf
         this->addChildObject(&serviceInstances, "serviceInstances");
         this->addChildObject(&application, "application");
         this->name.assign("ServiceGroup");
+    };
+
+    void ServiceGroup::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
     };
 
     std::vector<std::string> ServiceGroup::getKeys()
@@ -280,7 +283,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::ComponentRestart* ServiceGroup::getComponentRestart()
     {
-        return (ComponentRestart*)this->getChildObject("componentRestart");
+        return dynamic_cast<ComponentRestart*>(this->getChildObject("componentRestart"));
     };
 
     /*
@@ -296,7 +299,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::ServiceUnitRestart* ServiceGroup::getServiceUnitRestart()
     {
-        return (ServiceUnitRestart*)this->getChildObject("serviceUnitRestart");
+        return dynamic_cast<ServiceUnitRestart*>(this->getChildObject("serviceUnitRestart"));
     };
 
     /*
@@ -312,7 +315,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::NumAssignedServiceUnits* ServiceGroup::getNumAssignedServiceUnits()
     {
-        return (NumAssignedServiceUnits*)this->getChildObject("numAssignedServiceUnits");
+        return dynamic_cast<NumAssignedServiceUnits*>(this->getChildObject("numAssignedServiceUnits"));
     };
 
     /*
@@ -328,7 +331,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::NumIdleServiceUnits* ServiceGroup::getNumIdleServiceUnits()
     {
-        return (NumIdleServiceUnits*)this->getChildObject("numIdleServiceUnits");
+        return dynamic_cast<NumIdleServiceUnits*>(this->getChildObject("numIdleServiceUnits"));
     };
 
     /*
@@ -344,7 +347,7 @@ namespace SAFplusAmf
      */
     SAFplusAmf::NumSpareServiceUnits* ServiceGroup::getNumSpareServiceUnits()
     {
-        return (NumSpareServiceUnits*)this->getChildObject("numSpareServiceUnits");
+        return dynamic_cast<NumSpareServiceUnits*>(this->getChildObject("numSpareServiceUnits"));
     };
 
     /*

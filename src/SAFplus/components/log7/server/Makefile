@@ -18,8 +18,8 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 # Management includes and libraries
 CPP_FLAGS += -I../../mgt7/include -ISAFplusLog -ISAFplusTypes -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
-LOG_SERVER_H := $(wildcard SAFplusLog/*.hxx) $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
-LOG_SERVER_SRC := $(wildcard SAFplusLog/*.cxx) $(wildcard *.cxx)
+LOG_SERVER_H := $(wildcard SAFplusLog/*.hxx) $(wildcard SAFplusTypes/*.hxx) $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
+LOG_SERVER_SRC := $(wildcard SAFplusLog/*.cxx) $(wildcard SAFplusTypes/*.cxx) $(wildcard *.cxx)
 LOG_SERVER_OBJ := $(subst .cxx,.o,$(notdir $(LOG_SERVER_SRC)))
 LOG_SERVER_OBJ := $(addprefix $(OBJ_DIR)/logsvr/,$(LOG_SERVER_OBJ))
 
@@ -34,6 +34,10 @@ $(OBJ_DIR)/logsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	$(COMPILE_CPP) $@ $<
 
 $(OBJ_DIR)/logsvr/%.o: SAFplusLog/%.cxx
+	-mkdir -p $(OBJ_DIR)/logsvr/
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/logsvr/%.o: SAFplusTypes/%.cxx
 	-mkdir -p $(OBJ_DIR)/logsvr/
 	$(COMPILE_CPP) $@ $<
 

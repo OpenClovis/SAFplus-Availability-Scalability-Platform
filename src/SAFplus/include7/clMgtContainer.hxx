@@ -43,15 +43,27 @@ class MgtContainer:public MgtObject
   {
   protected:
   // Store the child nodes
+  typedef MgtObjectMap Map;
     MgtObjectMap children;
-  public:
 
-  class Iterator:MgtIteratorBase
+  class HiddenIterator:public MgtIteratorBase
     {
   public:
-    MgtObject::Iterator* mgi;
+    //MgtContainer* tainer;
+    MgtObjectMap::iterator it;
+    MgtObjectMap::iterator end;
+
+    virtual bool next();
+    virtual void del();
+
     };
-  typedef Iterator iterator;
+
+  public:
+
+  class Iterator:public MgtObjectMap::iterator
+    {
+    public:
+    };
 
     MgtContainer():MgtObject("") {}
     MgtContainer(const char* name):MgtObject(name) {}
@@ -59,7 +71,7 @@ class MgtContainer:public MgtObject
 
 
     virtual MgtObject::Iterator begin(void);
-    virtual MgtObject::Iterator end(void);
+    // Override not needed, end is the same: virtual MgtObject::Iterator end(void);
 
     virtual ClRcT addChildObject(MgtObject *mgtObject, std::string const& objectName=*((std::string*)nullptr));
     virtual ClRcT addChildObject(MgtObject *mgtObject, const char* objectName);
@@ -68,16 +80,18 @@ class MgtContainer:public MgtObject
     virtual MgtObject* find(const std::string &name);
     virtual MgtObject* deepFind(const std::string &name);
     virtual MgtObject* deepMatch(const std::string &nameSpec);
+
     virtual MgtObject::Iterator multiFind(const std::string &nameSpec);
     virtual MgtObject::Iterator multiMatch(const std::string &nameSpec);
 
-    virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
-    virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
     virtual void toString(std::stringstream& xmlString);
     virtual std::string strValue() {return "";}
 
-    virtual ClRcT write(ClMgtDatabase *db=NULL);
-    virtual ClRcT read(ClMgtDatabase *db=NULL);
+    // not implemented yet
+    //virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    //virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
+    //virtual ClRcT write(ClMgtDatabase *db=NULL);
+    //virtual ClRcT read(ClMgtDatabase *db=NULL);
   
   };
 

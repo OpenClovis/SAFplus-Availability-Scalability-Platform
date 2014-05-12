@@ -12,13 +12,11 @@
 #include <string>
 #include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
-#include "Data.hxx"
 #include "Component.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "EntityId.hxx"
-#include "Data.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
@@ -51,6 +49,7 @@ namespace SAFplusAmf
     public:
         ComponentServiceInstance();
         ComponentServiceInstance(std::string myNameValue);
+        void toString(std::stringstream &xmlString);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
@@ -93,16 +92,6 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/ComponentServiceInstance/component
          */
         void setComponent(SAFplusAmf::Component* componentValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/data
-         */
-        SAFplusAmf::Data* getData(std::string myNameValue);
-
-        /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/data
-         */
-        void addData(SAFplusAmf::Data *dataValue);
         ~ComponentServiceInstance();
 
     };

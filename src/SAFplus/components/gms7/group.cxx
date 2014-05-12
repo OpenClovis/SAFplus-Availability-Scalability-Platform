@@ -105,12 +105,17 @@ ClRcT SAFplus::Group::initializeLibraries()
  * Start the group message server, the main communication method for groups
  */
 void SAFplus::Group::startMessageServer()
-{
+  {
+  if (!Group::groupMsgServer)
+    {
+    Group::groupMsgServer = new SAFplus::SafplusMsgServer(CL_IOC_GMS_PORT);
+    Group::groupMsgServer->Start();
+    }
+
   GroupMessageHandler *groupMessageHandler = new GroupMessageHandler(this);
-  Group::groupMsgServer = new SAFplus::SafplusMsgServer(CL_IOC_GMS_PORT);
   Group::groupMsgServer->RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, NULL);
-  Group::groupMsgServer->Start();
-}
+
+  }
 /**
  * Do the real election after timer had expired
  */

@@ -972,8 +972,7 @@ static ClRcT HeartBeatPluginDefault(ClUint32T interval, ClUint32T retires) {
         }
     }
     {
-    ClTimerTimeOutT timeOut = { .tsSec = interval
-            / 1000, .tsMilliSec = interval % 1000 };
+    ClTimerTimeOutT timeOut = { interval / 1000, interval % 1000 };
     
     rc = CL_ERR_INVALID_PARAMETER;
 

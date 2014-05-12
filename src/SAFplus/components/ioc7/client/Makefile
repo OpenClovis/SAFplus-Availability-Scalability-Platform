@@ -36,6 +36,12 @@ $(MWOBJ_DIR)/%.o: ../../ioc/common/%.c Makefile $(CLIENT_H)
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
+gen:
+	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusMsgServer.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
+
+cleangen:
+	(cd SAFplusMsgServer; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
+
 clean:
 	rm -f $(LIB_DIR)/*.so $(MWOBJ_DIR)/*.o
 

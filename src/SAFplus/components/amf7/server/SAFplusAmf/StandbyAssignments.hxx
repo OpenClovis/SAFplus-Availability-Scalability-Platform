@@ -23,6 +23,7 @@ namespace SAFplusAmf
 
     public:
         StandbyAssignments();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~StandbyAssignments();
 

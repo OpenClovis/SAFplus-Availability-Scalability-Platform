@@ -50,7 +50,7 @@ namespace SAFplusI
   class GroupMessageHandler:public SAFplus::MsgHandler
   {
     public:
-      GroupMessageHandler(SAFplus::Group *grp);
+      GroupMessageHandler(SAFplus::Group *grp=nullptr);
       void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
     private:
       SAFplus::Group* mGroup;

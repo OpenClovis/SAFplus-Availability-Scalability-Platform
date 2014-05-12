@@ -173,7 +173,7 @@ namespace SAFplus
       Iterator begin();
       Iterator end();
 
-    private:
+    public: //private:
       // Handle node join message
       void nodeJoinHandle(SAFplusI::GroupMessageProtocol *rxMsg);
 

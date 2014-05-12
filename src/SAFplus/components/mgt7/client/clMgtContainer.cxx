@@ -43,6 +43,55 @@ namespace SAFplus
       }  
     }
 
+
+  MgtObject::Iterator MgtContainer::begin(void)
+    {
+    MgtObject::Iterator ret;
+    Map::iterator bgn = children.begin();
+    Map::iterator end = children.end();
+    if (bgn == end) // Handle the empty map case
+      {
+      ret.b = &mgtIterEnd;
+      }
+    else
+      {
+      HiddenIterator* h = new HiddenIterator();
+      h->it = bgn;
+      h->end = end;
+      h->current.first = h->it->first;
+      h->current.second = h->it->second;
+      ret.b  = h;
+      }
+
+    return ret;
+
+    }
+
+bool MgtContainer::HiddenIterator::next()
+{
+    it++;
+    if (it == end)
+      {
+      current.first = "";
+      current.second = nullptr;
+      return false;
+      }
+    else
+      {
+      current.first = it->first;
+      current.second = it->second;  
+      return true;
+      }
+}
+
+void MgtContainer::HiddenIterator::del()
+{
+delete this;
+}
+
+
+
+
   MgtObject* MgtContainer::deepMatch(const std::string &s)
     {
     MgtObjectMap::iterator it;
@@ -68,6 +117,22 @@ namespace SAFplus
       }
     return NULL;
     }
+
+  MgtObject::Iterator MgtContainer::multiFind(const std::string &nameSpec)
+    {
+    clDbgNotImplemented("multiFind");
+    MgtObject::Iterator ret; 
+    return ret;
+    }
+
+  MgtObject::Iterator MgtContainer::multiMatch(const std::string &nameSpec)
+    {
+    clDbgNotImplemented("");
+    MgtObject::Iterator ret; 
+    return ret;
+
+    }
+
 
 
   ClRcT MgtContainer::removeChildObject(const std::string& objectName)

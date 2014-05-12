@@ -31,6 +31,7 @@ namespace SAFplusAmf
 
     public:
         EscalationPolicy();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*
