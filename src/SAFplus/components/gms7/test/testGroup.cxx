@@ -26,6 +26,7 @@ class testWakeble:public SAFplus::Wakeable
     void wake(int amt,void* cookie=NULL)
     {
       cout << "WAKE! AMT = " << amt << "\n";
+      amtsig = amt;
     }
     testWakeble()
     {
@@ -134,6 +135,7 @@ int testGetData(int mode)
 {
   cout << "TC: ENTITY ASSOCIATED DATA START \n";
   Group gms(__FUNCTION__,mode);
+  char* data;
   EntityIdentifier entityId1 = SAFplus::Handle::create();
   EntityIdentifier entityId2 = SAFplus::Handle::create();
   EntityIdentifier entityId3 = SAFplus::Handle::create();
@@ -142,9 +144,12 @@ int testGetData(int mode)
   gms.registerEntity(entityId2,50,"ID2",3,50);
   gms.registerEntity(entityId3,10,"ID3",3,10);
   cout << "TC: Get data of 3 entities \n";
-  cout << "--> TC: Entity 1: " << gms.getData(entityId1).data << "\n";
-  cout << "--> TC: Entity 1: " << gms.getData(entityId2).data << "\n";
-  cout << "--> TC: Entity 1: " << gms.getData(entityId3).data << "\n";
+  data = (char *)gms.getData(entityId1);
+  cout << "--> TC: Entity 1: " << data << "\n";
+  data = (char *)gms.getData(entityId2);
+  cout << "--> TC: Entity 2: " << data << "\n";
+  data = (char *)gms.getData(entityId3);
+  cout << "--> TC: Entity 3: " << data << "\n";
   cout << "TC: ENTITY ASSOCIATED DATA END \n";
   return 0;
 }
@@ -155,6 +160,7 @@ int testGroupElect(int mode)
   Group gms(__FUNCTION__,mode);
   uint capability = 0;
   testWakeble tw;
+  char* name;
   //SAFplus::Wakeable *w = &tw;
   gms.setNotification(tw);
 
@@ -184,8 +190,10 @@ int testGroupElect(int mode)
   cout << "TC: Election done, checking result \n";
   int activeCapabilities = gms.getCapabilities(gms.getActive());
   int standbyCapabilities = gms.getCapabilities(gms.getStandby());
-  cout << "--> TC: Active " << gms.getData(gms.getActive()).data << "\n";
-  cout << "--> TC: Standby " << gms.getData(gms.getStandby()).data << "\n";
+  name = (char *)gms.getData(gms.getActive());
+  cout << "--> TC: Active " << name << "\n";
+  name = (char *)gms.getData(gms.getStandby());
+  cout << "--> TC: Standby " << name  << "\n";
   cout << "TC: GROUP ELECTION END \n";
   return 0;
 }

@@ -30,7 +30,7 @@ namespace SAFplus
 {
   typedef SAFplus::Handle EntityIdentifier;
   typedef EntityIdentifier  GroupMapKey;
-  typedef SAFplus::Buffer   GroupMapValue;
+  typedef void*             GroupMapValue;
 
   typedef std::pair<const GroupMapKey,GroupMapValue> GroupMapPair;
   typedef boost::unordered_map < GroupMapKey, GroupMapValue> GroupHashMap;
@@ -95,12 +95,12 @@ namespace SAFplus
       };
 
       Group(SAFplus::Handle groupHandle) { init(groupHandle); }
-      Group(int dataStoreMode = DATA_IN_CHECKPOINT); // Deferred initialization
+      Group(int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT); // Deferred initialization
 
       void init(SAFplus::Handle groupHandle);
 
       // Named group uses the name service to resolve the name to a handle
-      Group(std::string name,int dataStoreMode = DATA_IN_CHECKPOINT);
+      Group(std::string name,int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT);
 
       // register a member of the group.  This is separate from the constructor so someone can iterate through members of the group without being a member.  Caller owns data when register returns.
       void registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify = true);
@@ -117,7 +117,7 @@ namespace SAFplus
       uint getCapabilities(EntityIdentifier id);
 
       // This also returns the current active/standby state of the entity since that is part of the capabilities bitmap.
-      SAFplus::Buffer& getData(EntityIdentifier id);
+      void* getData(EntityIdentifier id);
 
       // Calls for an election with specified role
       std::pair<EntityIdentifier,EntityIdentifier>  elect();
@@ -141,6 +141,9 @@ namespace SAFplus
 
       // My information
       GroupIdentity                     myInformation;
+
+      // Communication port
+      int                               groupCommunicationPort;
 
       typedef SAFplus::GroupMapPair KeyValuePair;
       // std template like iterator
@@ -201,15 +204,15 @@ namespace SAFplus
       void setStandby(EntityIdentifier id);
 
       // Read/write to group database
-      Buffer& readFromDatabase(Buffer *key);
-      void writeToDatabase(Buffer *key, Buffer *val);
-      void removeFromDatabase(Buffer* key);
+      void* readFromDatabase(Buffer *key);
+      void  writeToDatabase(Buffer *key, void *);
+      void  removeFromDatabase(Buffer* key);
 
       // Message server
       void startMessageServer();
       void fillSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType);
       void sendNotification(void* data, int dataLength, SAFplusI::GroupMessageSendModeT messageMode);
-      static SAFplus::SafplusMsgServer   *groupMsgServer;
+      SAFplus::SafplusMsgServer   *groupMsgServer;
 
       // Whether there is an running election
       static  bool isElectionRunning;
@@ -233,8 +236,8 @@ namespace SAFplus
 
     protected:
       static SAFplus::Checkpoint        mGroupCkpt;             // The checkpoint where storing entity information if mode is CHECKPOINT
-      SAFplus::GroupHashMap*            mGroupMap;              // The map where store entity information if mode is MEMORY
-      SAFplus::GroupHashMap*            groupDataMap;           // The map where store entity associated data
+      SAFplus::GroupHashMap             mGroupMap;              // The map where store entity information if mode is MEMORY
+      SAFplus::GroupHashMap             groupDataMap;           // The map where store entity associated data
       SAFplus::Handle                   handle;                 // The handle of this group, store/retrieve from name
       SAFplus::Wakeable*                wakeable;               // Wakeable object for async communication
       EntityIdentifier                  activeEntity;           // Current active entity
