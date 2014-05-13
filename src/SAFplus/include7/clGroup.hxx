@@ -136,6 +136,9 @@ namespace SAFplus
       // Enable/disable auto election whenever join/leave/fail occurs
       bool                              automaticElection;
 
+      // Whether election should be run again
+      bool                              needReElect;
+
       // Time (second) to delay from boot until auto election
       int                               minimumElectionTime;
 

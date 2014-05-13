@@ -32,7 +32,7 @@ void wait(int seconds)
 }
 int main(int argc, char* argv[])
 {
-  Group            clusterGroup;
+  Group            clusterGroup(SAFplus::Group::DATA_IN_CHECKPOINT);
   ConditionWake    wakeable;
   EntityIdentifier *me;
   unsigned int credential = 0;
@@ -69,31 +69,33 @@ int main(int argc, char* argv[])
   me = new SAFplus::Handle(PersistentHandle,0,0,clAspLocalId,0);
   clusterGroup.init(CLUSTER_GROUP);
   clusterGroup.setNotification(wakeable);
+  // Wait for other nodes finished booting
   wait(5);
   clusterGroup.registerEntity(*me, credential, NULL, 0,capabilities);
-  wait(5);
   if(getenv("SCNODE") || clAspLocalId == 1)
   {
+    wait(5);
+    // Call for election
     clusterGroup.elect();
-      while(wakeable.wakeSignal != Group::ELECTION_FINISH_SIG)
-      {
-        ;
-      }
-      cout << "Active: " << clusterGroup.getActive().getNode() << "\n";
-      cout << "Standby: " << clusterGroup.getStandby().getNode() << "\n";
-  }
-  wait(10);
-  cout << "My node id is: " << clusterGroup.myInformation.id.getNode() << "\n";
-  if(getenv("SCNODE") || clAspLocalId == 1)
-  {
+    // Wait until election finished
+    while(wakeable.wakeSignal != Group::ELECTION_FINISH_SIG)
+    {
+      ;
+    }
+    cout << "Active: " << clusterGroup.getActive().getNode() << "\n";
+    cout << "Standby: " << clusterGroup.getStandby().getNode() << "\n";
+    wait(10);
+    // Scenarios active node leave the cluster
     cout << "I leave cluster now \n";
     clusterGroup.deregister(*me);
+    // Wait for node leave complete
     while(wakeable.wakeSignal != Group::NODE_LEAVE_SIG)
     {
       ;
     }
     return 0;
   }
+  // Other node: wait forever
   while(1)
   {
     ;
