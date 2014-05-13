@@ -134,14 +134,22 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
     std::pair<EntityIdentifier,EntityIdentifier> res = instance->electForRoles(ELECTION_TYPE_BOTH);
     EntityIdentifier activeElected = res.first;
     EntityIdentifier standbyElected = res.second;
-    /* Below should never happen, no role was elected */
+    /* Below should never happen, we can't elect a standby with no active */
+    if (standbyElected != INVALID_HDL)
+    {
+      assert(activeElected != INVALID_HDL);
+    }
+    /* Below can happen if no entity is electable in the group (only watchers) */
     if(activeElected == INVALID_HDL && standbyElected == INVALID_HDL)
     {
-      logError("GMS","ELECT","Election result isn't valid");
-      assert(0);
+      logWarning("GMS","ELECT","Election did not succeed -- no entity can assume a role");
     }
+    else
+    {
     /* Elected at least standby or active role */
     logInfo("GMS","ELECT","Success with active[%d] and standby[%d]",activeElected.getNode(),standbyElected.getNode());
+    }
+
     /* If I am active member, send notification */
     if(activeElected == instance->myInformation.id)
     {

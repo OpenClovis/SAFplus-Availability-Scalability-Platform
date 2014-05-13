@@ -1,0 +1,24 @@
+module unitTest 
+{
+
+  namespace "http://www.openclovis.org/ns/unitTest";
+  prefix "ut";
+ 
+  list TestUncontainedList
+  {
+    key "name";
+    description "";
+
+    leaf name
+    {
+      type string;
+    }
+    leaf data
+    {
+      type int64;
+    }
+  }
+
+
+
+}

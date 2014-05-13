@@ -16,13 +16,11 @@
 #include <clCommon.hxx>
 #include <clMgtApi.hxx>
 
-#include "server/GroupServer.hxx"
-
 #include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmf.hxx>
 #include <clSafplusMsgServer.hxx>
 
-//#define GRP
+#define GRP
 
 using namespace SAFplus;
 using namespace SAFplusAmf;
@@ -59,7 +57,7 @@ public:
 
 
 volatile bool    quitting=false;  // Set to true to tell all threads to quit
-Group            clusterGroup;
+Group            clusterGroup(SAFplus::Group::DATA_IN_CHECKPOINT);
 ClusterGroupData clusterGroupData;  // The info we tell other nodes about this node.
 Handle           myHandle;  // This handle resolves to THIS process.
 unsigned int     myRole = 0;
@@ -290,11 +288,6 @@ int main(int argc, char* argv[])
   rc = clIocLibInitialize(NULL);
   assert(rc==CL_OK);
 
-#ifdef GRP
-  SAFplusI::GroupServer* grpSvr = SAFplusI::GroupServer::getInstance();
-  grpSvr->clGrpStartServer();
-#endif
-  
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
 
@@ -375,10 +368,7 @@ int main(int argc, char* argv[])
       if (myRole == Group::IS_STANDBY) standbyAudit();  // Check to make sure DB and the system state are in sync
 
       // GAS DBG: just to test audit with election not working
-      activeAudit();
-#ifdef GRP
-      grpSvr->dumpClusterNodeGroup();
-#endif
+      // activeAudit();
       }
     else
       {  // Something changed in the group.
@@ -410,7 +400,4 @@ int main(int argc, char* argv[])
         }
       }
     }
-#ifdef GRP  
-  grpSvr->clGrpStopServer();
-#endif
   }
