@@ -84,6 +84,7 @@ int main(int argc, char* argv[])
     }
     cout << "Active: " << clusterGroup.getActive().getNode() << "\n";
     cout << "Standby: " << clusterGroup.getStandby().getNode() << "\n";
+#if 0 // Node leave based on event
     wait(10);
     // Scenarios active node leave the cluster
     cout << "I leave cluster now \n";
@@ -94,6 +95,7 @@ int main(int argc, char* argv[])
       ;
     }
     return 0;
+#endif
   }
   // Other node: wait forever
   while(1)

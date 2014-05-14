@@ -10,6 +10,7 @@
 #include <clThreadApi.hxx>
 #include <clNameApi.hxx>
 #include <clIocApi.h>
+#include <clIocIpi.h>
 #include <clLogApi.hxx>
 #include <clCkptApi.hxx>
 #include <clCustomization.hxx>
@@ -236,6 +237,8 @@ namespace SAFplus
       // Role change timer callback
       static ClRcT roleChangeRequest(void *arg);
 
+      // IOC notification callback
+      static ClRcT iocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie);
 
     protected:
       static SAFplus::Checkpoint        mGroupCkpt;             // The checkpoint where storing entity information if mode is CHECKPOINT

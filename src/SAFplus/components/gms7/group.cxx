@@ -84,8 +84,52 @@ void SAFplus::Group::init(SAFplus::Handle groupHandle)
   }
   /* Initialize neccessary library */
   initializeLibraries();
+  clIocNotificationRegister(iocNotificationCallback,&handle);
   /* Start the message communication between groups */
   startMessageServer();
+}
+/**
+ * IOC notification to detect node leave
+ */
+ClRcT SAFplus::Group::iocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie)
+{
+  ClRcT rc = CL_OK;
+  ClIocAddressT address;
+  ClIocNotificationIdT eventId = (ClIocNotificationIdT) ntohl(notification->id);
+  ClIocNodeAddressT nodeAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
+  ClIocPortT portId = ntohl(notification->nodeAddress.iocPhyAddress.portId);
+  switch(eventId)
+  {
+    case CL_IOC_NODE_LEAVE_NOTIFICATION:
+    case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
+    {
+      logDebug("GMS","IOC","Received node leave notification");
+      try
+      {
+        SAFplus::Handle groupHdl = *(SAFplus::Handle *)cookie;
+        Group *instance = (Group *)name.get(groupHdl);
+        for (SAFplus::GroupHashMap::iterator i = instance->groupDataMap.begin();i != instance->groupDataMap.end();i++)
+        {
+          EntityIdentifier curIter = i->first;
+          if(curIter.getNode() == nodeAddress)
+          {
+            instance->deregister(curIter,false);
+          }
+        }
+      }
+      catch(std::exception &ex)
+      {
+        logError("GMS","...","Exception: %s",ex.what());
+      }
+      break;
+    }
+    default:
+    {
+      logInfo("GMS","IOC","Received event [%d] from IOC notification",eventId);
+      break;
+    }
+  }
+  return rc;
 }
 /**
  * Initialize necessary libraries
