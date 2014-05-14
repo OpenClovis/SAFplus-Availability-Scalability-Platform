@@ -725,6 +725,13 @@ are switched over to other nodes (component service instances are not abruptly r
        description "This component is the proxy for the components listed here.";
      }
 
+    leaf processId
+      {
+      description "The process id of this component (if it is instantiated as a process), or 0"
+      default 0;
+      type int32;
+      config false;
+      }
     }
 
 

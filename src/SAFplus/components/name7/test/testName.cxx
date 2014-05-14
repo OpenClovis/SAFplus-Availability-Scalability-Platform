@@ -8,7 +8,7 @@
 #undef __THREAD
 using namespace SAFplus;
 
-extern NameRegistrar name;
+
 //NameRegistrar gname;
 //NameRegistrar& gname = NameRegistrar::getInstance();
 
@@ -127,6 +127,13 @@ void threadNameAppendGet(const char* n, NameRegistrar::MappingMode m, uint32_t i
 
 int main(int argc, char* argv[])
 {
+  logInitialize();
+  logEchoToFd = 1;  // echo logs to stdout for debugging
+  utilsInitialize();
+
+  // If the environment is not properly set up, just assume a reasonable node address to run the local tests
+  if (SAFplus::ASP_NODEADDR == ~((ClWordT) 0))  SAFplus::ASP_NODEADDR=1;
+
 #ifndef __THREAD
 #if 1
    ObjTest* jim = new ObjTest("Jim");   

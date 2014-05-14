@@ -1,6 +1,5 @@
 module unitTest 
 {
-
   namespace "http://www.openclovis.org/ns/unitTest";
   prefix "ut";
  
@@ -18,7 +17,4 @@ module unitTest
       type int64;
     }
   }
-
-
-
 }

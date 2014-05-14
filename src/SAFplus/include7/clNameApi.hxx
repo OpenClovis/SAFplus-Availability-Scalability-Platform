@@ -161,6 +161,8 @@ namespace SAFplus
         m_mode = m;
      }
   };
-  
+
+  //? Singleton class that handles all name access
+  extern NameRegistrar name;  
 }
 #endif

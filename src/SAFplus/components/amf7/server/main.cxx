@@ -15,6 +15,7 @@
 #include <clGlobals.hxx>
 #include <clCommon.hxx>
 #include <clMgtApi.hxx>
+#include <clNameApi.hxx>
 
 #include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmf.hxx>
@@ -186,7 +187,6 @@ int parseArgs(int argc, char* argv[])
   ClInt32T option = 0;
   ClInt32T nargs = 0;
   ClRcT rc = CL_OK;
-    
   const ClCharT *short_options = ":c:l:m:n:p:fh";
 
 #ifndef POSIX_ONLY
@@ -200,7 +200,6 @@ int parseArgs(int argc, char* argv[])
     { NULL,         0, NULL,  0 }
     };
 #endif
-    
 
 
 #ifndef POSIX_ONLY
@@ -222,17 +221,16 @@ int parseArgs(int argc, char* argv[])
             return -1;
             }
           break;
-        case 'l':   
+        case 'l':
         {
         ClUint32T temp=0;
         rc = cpmStrToInt(optarg, &temp);
         SAFplus::ASP_NODEADDR = temp;
-          
-        if (CL_OK != rc) 
+        if (CL_OK != rc)
           {
           logError("AMF","BOOT", "[%s] is not a valid slot id, ", optarg);
           return -1;
-          }                
+          }
         ++nargs;
         } break;
         case 'n':
@@ -274,7 +272,7 @@ int main(int argc, char* argv[])
   logEchoToFd = 1;  // echo logs to stdout for debugging
 
   if (parseArgs(argc,argv)<=0) return -1;
-  
+
   utilsInitialize();
 
   ClRcT rc;
@@ -292,6 +290,8 @@ int main(int argc, char* argv[])
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
 
   myHandle = Handle::create();  // Actually, in the AMF's case I probably want to create a well-known component handle (i.e. the AMF on node X), not handle that means "pid-Y-on-node-X".  But it does not matter. It would just be so a helper function could be created.
+  // Register a mapping between this node's name and its handle.
+  name.set(SAFplus::ASP_NODENAME,myHandle,NameRegistrar::MODE_NO_CHANGE);
 
   /* Initialize mgt database  */
   ClMgtDatabase *db = ClMgtDatabase::getInstance();
@@ -301,8 +301,6 @@ int main(int argc, char* argv[])
 
   logServer = boost::thread(LogServer());
 
-  // Needed?
-  //groupServer = boost::thread(GroupServer());
 
   loadAmfPlugins();
 
@@ -322,7 +320,7 @@ int main(int argc, char* argv[])
     capabilities = Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE;
     }
   else if (SAFplus::ASP_SC_PROMOTE) // A promotable payload can only become standby at first.
-    {      
+    {
     credential =  SAFplus::ASP_NODEADDR;
     capabilities = Group::ACCEPT_STANDBY;
     }

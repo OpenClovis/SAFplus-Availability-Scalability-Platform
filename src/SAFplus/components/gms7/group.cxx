@@ -3,12 +3,13 @@
 /* SAFplus headers */
 #include <clCommon.hxx>
 #include <clGroup.hxx>
+#include <clNameApi.hxx>
 
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace std;
 
-extern SAFplus::NameRegistrar name;
+
 /**
  * Static member
  */

@@ -14,7 +14,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 all: $(LIB_DIR)/libclName.so
 
-$(SAFPLUS_TARGET)/lib/libclName.so: $(NAME_CLIENT_OBJ) Makefile
+$(SAFPLUS_TARGET)/lib/libclName.so: $(NAME_CLIENT_OBJ) Makefile $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@  $(NAME_CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 #-lpthread -lrt -L$(SAFPLUS_SDK_TARGET)/lib -lmw -ldl
 

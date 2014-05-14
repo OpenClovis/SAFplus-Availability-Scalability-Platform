@@ -14,7 +14,7 @@ using namespace SAFplusI;
 
 Checkpoint NameRegistrar::m_checkpoint(Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
 
-NameRegistrar name;
+NameRegistrar SAFplus::name;
 
 void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
 {   
@@ -322,7 +322,7 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
          //No process match, get handle of THIS NODE        
          if (idx == -1)
          {
-            ClIocNodeAddressT thisNode = clIocLocalAddressGet();
+            ClIocNodeAddressT thisNode = SAFplus::ASP_NODEADDR; //clIocLocalAddressGet();
             printf("getHandle of name [%s]: thisNode [%d]\n", name, thisNode);
             for(i=0;i<sz;i++)
 	    {		                
