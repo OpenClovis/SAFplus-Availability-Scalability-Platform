@@ -2,12 +2,7 @@
 #include <clCommon.hxx>
 #include <clNameApi.hxx>
 #include <clCustomization.hxx>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/iostreams/device/back_inserter.hpp>
-#include <boost/iostreams/stream.hpp>
-#include <boost/iostreams/stream_buffer.hpp>
+#include <clGlobals.hxx>
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -16,32 +11,113 @@ Checkpoint NameRegistrar::m_checkpoint(Checkpoint::REPLICATED|Checkpoint::SHARED
 
 NameRegistrar SAFplus::name;
 
-void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
-{   
-   size_t keyLen = strlen(name)+1;
-   char data[sizeof(Buffer)-1+keyLen];
-   Buffer* key = new(data) Buffer(keyLen);
-   *key = name;
-   
-   Vector vector;
-   vector.push_back(handle);   
-   HandleMappingMode hm(m, vector);
-
-   std::string serial_str;
-   boost::iostreams::back_insert_device<std::string> inserter(serial_str);
-   boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> > s(inserter);
-   boost::archive::binary_oarchive oa(s);
-   oa << hm;   
-   s.flush();
-   size_t valLen = serial_str.size();
+void NameRegistrar::set(const char* name, Handle handle, MappingMode m)
+{  
+#if 0
+   short numHandles = 1;
+   size_t valLen = sizeof(HandleData)+numHandles-1;
    char vdata[sizeof(Buffer)-1+valLen];
    Buffer* val = new(vdata) Buffer(valLen);   
-   memcpy(val->data, serial_str.data(), valLen);
+   HandleData* data = (HandleData*) val->data;
+   data->structIdAndEndian = STRID;
+   data->numHandles = numHandles;   
+   data->mappingMode = m;
+   data->handles[i] = handle;      
+   m_checkpoint.write(name,*val);
+#endif
+   HandleData data;
+   data.structIdAndEndian = NameRegistrar::STRID;
+   data.mappingMode = m;
+   data.numHandles = 1;
+   data.handles[0] = handle;   
+   set(name, &data, sizeof(data));
+}
 
-   m_checkpoint.write(*key,*val);
-   if (!object)
+void NameRegistrar::set(const std::string& name, Handle handle, MappingMode m)
+{
+   set(name.c_str(), handle, m);
+}
+
+void NameRegistrar::append(const char* name, Handle handle, MappingMode m) throw (NameException&)
+{
+   const Buffer& buf = m_checkpoint.read(name);
+   if (&buf == NULL)
    {
-      //Don't care the object
+      //There is no any name associated with this handle. Create first
+      set(name, handle, m);
+   }
+   else
+   {
+      // TODO A name exists, add one more association.
+      HandleData* data = (HandleData*) buf.data;   
+      if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
+      {
+         throw NameException("Unable to append the handle because only arbitrary data registered for this name");
+      }     
+      short numHandles = data->numHandles+1;
+#if 0
+      size_t valLen = sizeof(HandleData)+numHandles-1;
+      char vdata[sizeof(Buffer)-1+valLen];
+      Buffer* val = new(vdata) Buffer(valLen);   
+      HandleData* newData = (HandleData*) val->data;
+      newData->structIdAndEndian = data->structIdAndEndian;
+      newData->numHandles = numHandles;
+      if (m == MODE_NO_CHANGE)
+      {
+         newData->mappingMode = data->mappingMode;   
+      }   
+      else
+      {
+         newData->mappingMode = m;
+      }
+      for (int i =0;i<numHandles-1;i++)
+      {
+         newData->handles[i] = data->handles[i];
+      }
+      newData->handle[numHandles-1] = handle;      
+      m_checkpoint.write(name,*val);
+#endif
+      size_t hLen = sizeof(HandleData)+sizeof(Handle)*(numHandles-1);
+      char hdata[hLen];
+      HandleData* newData = new(hdata) HandleData;
+      newData->structIdAndEndian = data->structIdAndEndian;
+      newData->numHandles = numHandles;
+      if (m == MODE_NO_CHANGE)
+      {
+         newData->mappingMode = data->mappingMode;   
+      }   
+      else
+      {
+         newData->mappingMode = m;
+      }
+      for (int i =0;i<numHandles-1;i++)
+      {
+         newData->handles[i] = data->handles[i];
+      }
+      newData->handles[numHandles-1] = handle;
+      set(name, newData, hLen);
+   }
+}
+
+void NameRegistrar::append(const std::string& name, Handle handle, MappingMode m) throw (NameException&)
+{
+   try {
+      append(name.c_str(), handle, m);
+   }
+   catch (NameException ne) {
+      throw ne;
+   }
+}
+
+void NameRegistrar::setLocalObject(const char* name, void* object)
+{
+   Handle handle;
+   try
+   {
+      handle = getHandle(name);
+   }
+   catch(NameException ne) 
+   {
       return;
    }
    //Find to see if the key exists?
@@ -53,61 +129,17 @@ void SAFplus::NameRegistrar::set(const char* name, SAFplus::Handle handle, Mappi
       //delete oldObj; Do not delete the object; it must be deleted by owner process
       return;
    }
-   SAFplus::ObjMapPair vt(handle,object);
+   ObjMapPair vt(handle,object);
    m_mapObject.insert(vt);  
 }
 
-void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
+void setLocalObject(const std::string& name, void* object)
 {
-   set(name.c_str(), handle, m, object);
+   setLocalObject(name.c_str(), object);
 }
 
-void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
-{
-   size_t len = strlen(name)+1;
-   char data[sizeof(Buffer)-1+len];
-   Buffer* key = new(data) Buffer(len);
-   *key = name;
-   const Buffer& buf = m_checkpoint.read(*key);
-   if (&buf == NULL)
-   {
-      //There is no any name associated with this handle. Create first
-      set(name, handle, m, object);
-   }
-   else
-   {
-      // TODO A name exists, add one more association.
-      size_t sz = buf.len();      
-      boost::iostreams::basic_array_source<char> device(buf.data, sz);
-      boost::iostreams::stream<boost::iostreams::basic_array_source<char> > s(device);
-      boost::archive::binary_iarchive ia(s);
-      HandleMappingMode hm;  
-      ia >> hm;
-      Vector& handles = hm.getHandles();        
-      handles.push_back(handle);
-      MappingMode& mm = hm.getMappingMode();
-      if (m != MODE_NO_CHANGE) mm = m;
-      //re-write the new buffer      
-      std::string serial_str;
-      boost::iostreams::back_insert_device<std::string> inserter(serial_str);
-      boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> > s2(inserter);
-      boost::archive::binary_oarchive oa(s2);
-      oa << hm;
-      s2.flush();
-      size_t valLen = serial_str.size();
-      char vdata[sizeof(Buffer)-1+valLen];
-      Buffer* val = new(vdata) Buffer(valLen);   
-      memcpy(val->data, serial_str.data(), valLen);
-
-      m_checkpoint.write(*key,*val);
-   }
-   
-   if (!object)
-   {
-      //Don't care the object
-      return;
-   }
-   // TODO Associate this handle to the object
+void NameRegistrar::setLocalObject(Handle handle, void* object)
+{   
    //Find to see if the key exists?
    ObjHashMap::iterator contents = m_mapObject.find(handle);  
    if (contents != m_mapObject.end()) // record already exists; overwrite
@@ -117,64 +149,20 @@ void SAFplus::NameRegistrar::append(const char* name, SAFplus::Handle handle, Ma
       //delete oldObj; Do not delete the object; it must be deleted by owner process
       return;
    }   
-   SAFplus::ObjMapPair vt(handle,object);
+   ObjMapPair vt(handle,object);
    m_mapObject.insert(vt);
 }
 
-void SAFplus::NameRegistrar::append(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object/*=NULL*/)
-{
-   append(name.c_str(), handle, m, object);
+void NameRegistrar::set(const char* name, const void* data, int length) throw (NameException&)
+{   
+   size_t valLen = length;
+   char vdata[sizeof(Buffer)-1+valLen];
+   Buffer* val = new(vdata) Buffer(valLen);   
+   memcpy(val->data, data, valLen);
+   m_checkpoint.write(name,*val);
 }
 
-void SAFplus::NameRegistrar::set(const char* name, const void* data, int length) throw (NameException&)
-{
-   Handle handle;
-   try {
-      handle = getHandle(name);
-   }catch (NameException &ne) {
-      ne.addMsg(". The name may be not registered with any handle");
-      throw ne;
-   }   
-   //Find to see if the key exists?
-   HashMap::iterator contents = m_mapData.find(handle);  
-   if (contents != m_mapData.end()) // record already exists; overwrite
-   {
-      SAFplusI::BufferPtr& curval = contents->second;
-      if (curval)
-      {
-         if (curval->ref() == 1)
-         {
-            if (curval->len() == length)
-            {
-               memcpy (curval->data, data, length);
-               return;
-            }
-            // Replace the Buffer with a new one
-            char* pvbuf = new char[length+sizeof(SAFplus::Buffer)-1];
-            SAFplus::Buffer* v = new (pvbuf) SAFplus::Buffer (length);
-            memcpy (v->data, data, length);
-            SAFplus::Buffer* old = curval.get();
-            curval = v;
-            if (old->ref() == 1)
-            {
-               delete old;
-            }
-            else
-            {
-               old->decRef();	
-            }
-            return;
-         }
-      }
-   }
-   char* pvbuf = new char[length+sizeof(SAFplus::Buffer)-1];
-   SAFplus::Buffer* v = new (pvbuf) SAFplus::Buffer(length); 
-   memcpy(v->data, data, length);
-   SAFplusI::BufferPtr kv(v);
-   MapPair vt(handle,kv);
-   m_mapData.insert(vt);
-}
-void SAFplus::NameRegistrar::set(const std::string& name, const void* data, int length) throw (NameException&)
+void NameRegistrar::set(const std::string& name, const void* data, int length) throw (NameException&)
 {
    try {
       set(name.c_str(), data, length);
@@ -183,50 +171,12 @@ void SAFplus::NameRegistrar::set(const std::string& name, const void* data, int 
    }
 }
 
-void SAFplus::NameRegistrar::set(const char* name, SAFplus::Buffer* p_buf) throw (NameException&)
+void NameRegistrar::set(const char* name, Buffer* p_buf) throw (NameException&)
 {
-   Handle handle;
-   try {
-      handle = getHandle(name);
-   }catch (NameException &ne) {
-      ne.addMsg(". The name may be not registered with any handle");
-      throw ne;
-   } 
-   //Find to see if the key exists?
-   HashMap::iterator contents = m_mapData.find(handle);  
-   if (contents != m_mapData.end()) // record already exists; overwrite
-   {
-      SAFplusI::BufferPtr& curval = contents->second;
-      if (curval)
-      {
-         if (curval->ref() == 1)
-         {
-            if (curval->len() == p_buf->len())
-            {
-               memcpy (curval->data, p_buf->data, p_buf->len());
-               return;
-            }
-            // Replace the Buffer with a new one
-            SAFplus::Buffer* old = curval.get();
-            curval = p_buf;
-            if (old->ref() == 1)
-            {
-               delete old;
-            }
-            else
-            {
-               old->decRef();	
-            }
-            return;
-         }
-      }
-   }
-   SAFplusI::BufferPtr kv(p_buf);
-   MapPair vt(handle,kv);
-   //p_buf->addRef(); // add 1 reference to the callee
-   m_mapData.insert(vt);
+   m_checkpoint.write(name,*p_buf);
 }
-void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Buffer* p_buf) throw (NameException&)
+
+void NameRegistrar::set(const std::string& name, Buffer* p_buf) throw (NameException&)
 {
    try {
       set(name.c_str(), p_buf);
@@ -235,8 +185,9 @@ void SAFplus::NameRegistrar::set(const std::string& name, SAFplus::Buffer* p_buf
    }
 }
 
-ObjMapPair SAFplus::NameRegistrar::get(const char* name) throw(NameException&)
+RefObjMapPair NameRegistrar::get(const char* name) throw(NameException&)
 {
+#if 0
    try
    {
       Handle handle = getHandle(name);
@@ -256,12 +207,63 @@ ObjMapPair SAFplus::NameRegistrar::get(const char* name) throw(NameException&)
    {
       throw ne;
    }
+#endif
+   try
+   {
+      Handle& handle = getHandle(name);   
+      try
+      {
+         void* obj = get(handle);
+         return RefObjMapPair(handle, obj); 
+      }                
+      catch (NameException &ne)
+      { // Not throwing, continue to search below
+      }
+      Checkpoint::Iterator ibegin = m_checkpoint.begin();
+      Checkpoint::Iterator iend = m_checkpoint.end();  
+      for(Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
+      {
+         BufferPtr curkey = iter->first;
+         printf("Get object: key [%s]\n", curkey.get()->data);            
+
+         BufferPtr& curval = iter->second;
+         if (curval)
+         {
+            HandleData* data = (HandleData*) curval->data;
+            if ((data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) || // Arbitrary data in this case
+                (strcmp(curkey.get()->data, name)))
+            { 
+               continue;
+            }                           
+            short sz = data->numHandles;   
+            for(int i=0;i<sz;i++)
+            {  
+               try
+               {
+                  void* obj = get(data->handles[i]);
+                  return RefObjMapPair(handle, obj); 
+               }                
+               catch (NameException &ne)
+               { // Not throwing, continue to search
+               }           
+            }                  
+         }
+      }
+      return RefObjMapPair(handle, NULL);
+   }
+   catch (NameException &ne)
+   {
+      throw ne;
+   }
 }
-ObjMapPair SAFplus::NameRegistrar::get(const std::string& name) throw(NameException&)
+
+RefObjMapPair NameRegistrar::get(const std::string& name) throw(NameException&)
 {
    try
    {
-      return get(name.c_str());
+      //return get(name.c_str());
+      RefObjMapPair hobj = get(name.c_str());
+      return hobj;
    }
    catch(NameException &ne)
    {
@@ -269,7 +271,7 @@ ObjMapPair SAFplus::NameRegistrar::get(const std::string& name) throw(NameExcept
    }
 }
 
-void* SAFplus::NameRegistrar::get(const SAFplus::Handle& handle) throw (NameException&)
+void* NameRegistrar::get(const Handle& handle) throw (NameException&)
 {
    ObjHashMap::iterator contents = m_mapObject.find(handle);  
    if (contents != m_mapObject.end()) // record already exists; return its value
@@ -279,23 +281,18 @@ void* SAFplus::NameRegistrar::get(const SAFplus::Handle& handle) throw (NameExce
    throw NameException("Handle provided does not exist");
 }
 
-SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameException&)
+Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
 {
-   size_t len = strlen(name)+1;
-   char data[sizeof(Buffer)-1+len];
-   Buffer* key = new(data) Buffer(len);
-   *key = name;
-   const Buffer& buf = m_checkpoint.read(*key);
+   const Buffer& buf = m_checkpoint.read(name);
    if (&buf != NULL)
    {      
-      boost::iostreams::basic_array_source<char> device(buf.data, buf.len());
-      boost::iostreams::stream<boost::iostreams::basic_array_source<char> > s(device);
-      boost::archive::binary_iarchive ia(s);
-      HandleMappingMode hm;  
-      ia >> hm;      
-      MappingMode& m = hm.getMappingMode();
-      Vector& handles = hm.getHandles();
-      size_t sz = handles.size();
+      HandleData* data = (HandleData*) buf.data;
+      if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
+      {
+         throw NameException("Unable to get handle because only arbitrary data registered for this name");
+      } 
+      size_t sz = data->numHandles;
+      MappingMode m = data->mappingMode;
       int idx = -1;
       if (m == MODE_REDUNDANCY)
       {
@@ -314,7 +311,7 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
          int i;
          for(i=0;i<sz;i++)
          {
-            if (handles[i].getProcess() == (uint32_t)thisPid)
+            if (data->handles[i].getProcess() == (uint32_t)thisPid)
             {
                idx = i;
             }
@@ -323,10 +320,11 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
          if (idx == -1)
          {
             ClIocNodeAddressT thisNode = SAFplus::ASP_NODEADDR; //clIocLocalAddressGet();
+
             printf("getHandle of name [%s]: thisNode [%d]\n", name, thisNode);
             for(i=0;i<sz;i++)
 	    {		                
-		if ((uint32_t)handles[i].getNode() == thisNode)
+		if ((uint32_t)data->handles[i].getNode() == thisNode)
 		{		
                    idx = i;
 		}
@@ -341,15 +339,23 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const char* name) throw(NameEx
          idx = 0;
       }
       assert(idx >=0 && idx < sz);
-      return handles[idx];
+      if (data->structIdAndEndian == STRIDEN) // Need to swap the endian
+      {
+         data->handles[idx].id[0] = ENDIAN_SWAP_U64(data->handles[idx].id[0]);
+         data->handles[idx].id[1] = ENDIAN_SWAP_U64(data->handles[idx].id[1]);
+         return data->handles[idx];
+      }
+      return data->handles[idx];
    }
    throw NameException("name provided does not exist");
 }
-SAFplus::Handle SAFplus::NameRegistrar::getHandle(const std::string& name) throw(NameException&)
+
+Handle& NameRegistrar::getHandle(const std::string& name) throw(NameException&)
 {
    try
    {
-      return getHandle(name.c_str());
+      Handle& handle = getHandle(name.c_str());
+      return handle;
    }                
    catch (NameException &ne)
    {
@@ -357,31 +363,22 @@ SAFplus::Handle SAFplus::NameRegistrar::getHandle(const std::string& name) throw
    }   
 }
 
-
-SAFplus::Buffer& SAFplus::NameRegistrar::getData(const char* name) throw(NameException&)
-{         
-   Handle handle;
-   try {
-      handle = getHandle(name);
-   }catch (NameException &ne) {
-      throw ne;
-   } 
-   //Find to see if the key exists?
-   HashMap::iterator contents = m_mapData.find(handle);  
-   if (contents != m_mapData.end()) // record already exists; return its value
-   {
-      SAFplusI::BufferPtr& curval = contents->second;
-      if (curval)
+const Buffer& NameRegistrar::getData(const char* name) throw(NameException&)
+{
+   const Buffer& buf = m_checkpoint.read(name);
+   if (&buf != NULL)
+   {      
+      HandleData* data = (HandleData*) buf.data;
+      if (data->structIdAndEndian == STRID || data->structIdAndEndian == STRIDEN) // Handles in this case
       {
-         if (curval->ref() >= 1)
-         {           
-            return *curval.get();        
-         }
-       }
-    }
-    throw NameException("Name provided does not exist");   
+         throw NameException("Unable to get arbitrary data because only handle registered for this name");
+      }
+      return buf; 
+   }
+   throw NameException("Name provided does not exist"); 
 }
-SAFplus::Buffer& SAFplus::NameRegistrar::getData(const std::string& name) throw(NameException&)
+
+const Buffer& NameRegistrar::getData(const std::string& name) throw(NameException&)
 {
    try 
    {
@@ -393,11 +390,11 @@ SAFplus::Buffer& SAFplus::NameRegistrar::getData(const std::string& name) throw(
    }
 }
 
-void SAFplus::NameRegistrar::handleFailure(const FailureType failureType, const uint32_t id, const uint32_t amfId)
+void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t id, const uint32_t amfId)
 {
-   SAFplus::Checkpoint::Iterator ibegin = m_checkpoint.begin();
-   SAFplus::Checkpoint::Iterator iend = m_checkpoint.end();  
-   for(SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
+   Checkpoint::Iterator ibegin = m_checkpoint.begin();
+   Checkpoint::Iterator iend = m_checkpoint.end();  
+   for(Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
    {
       BufferPtr curkey = iter->first;
       printf("handleFailure(): key [%s]\n", curkey.get()->data);            
@@ -405,21 +402,20 @@ void SAFplus::NameRegistrar::handleFailure(const FailureType failureType, const 
       BufferPtr& curval = iter->second;
       if (curval)
       {
-         boost::iostreams::basic_array_source<char> device(curval->data, curval->len());
-         boost::iostreams::stream<boost::iostreams::basic_array_source<char> > s(device);
-         boost::archive::binary_iarchive ia(s);
-         HandleMappingMode hm;  
-         ia >> hm;
-         Vector& handles = hm.getHandles();
-         size_t sz = handles.size();
-         if (hm.getMappingMode() != NameRegistrar::MODE_PREFER_LOCAL)
-         {
+         HandleData* data = (HandleData*) curval->data;
+         if ((data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) || // Arbitrary data in this case
+             (data->mappingMode != NameRegistrar::MODE_PREFER_LOCAL))
+         { 
             continue;
-         }
+         }                           
+         short sz = data->numHandles;
+         short numHandles = sz;
+         unsigned char markedRemoval[sz];
+         memset(markedRemoval, 0, sz);
          for(int i=0;i<sz;i++)
          {
-            if ((failureType == NameRegistrar::FAILURE_PROCESS && handles[i].getProcess() == id) ||
-                (failureType == NameRegistrar::FAILURE_NODE && handles[i].getNode() == (uint16_t)id))
+            if ((failureType == NameRegistrar::FAILURE_PROCESS && data->handles[i].getProcess() == id) ||
+                (failureType == NameRegistrar::FAILURE_NODE && data->handles[i].getNode() == (uint16_t)id))
             {            
                if (sz == 1) // There is only one handle registered, then remove the name and its value
                {
@@ -431,24 +427,33 @@ void SAFplus::NameRegistrar::handleFailure(const FailureType failureType, const 
                   m_checkpoint.remove(*curkey);
                }
                else  //Remove this element and push remaining handles back to checkpoint
-               {
-                  printf("Removing one handle of key [%s]\n", curkey.get()->data);
-                  handles.erase(handles.begin()+i);
-                  std::string serial_str;
-                  boost::iostreams::back_insert_device<std::string> inserter(serial_str);
-                  boost::iostreams::stream<boost::iostreams::back_insert_device<std::string> > s(inserter);
-                  boost::archive::binary_oarchive oa(s);
-                  oa << hm;   
-                  s.flush();
-                  size_t valLen = serial_str.size();
-                  char vdata[sizeof(Buffer)-1+valLen];
-                  Buffer* val = new(vdata) Buffer(valLen);   
-                  memcpy(val->data, serial_str.data(), valLen);
-                  m_checkpoint.write(*curkey.get(),*val);
+               {                 
+                  markedRemoval[i] = 1;
+                  numHandles--;                 
                }                
                //return;
             }
-         }          
+         }
+         if (numHandles == sz) // No handles is removed. continue
+         {
+            continue;
+         }
+         size_t hLen = sizeof(HandleData)+sizeof(Handle)*(numHandles-1);
+         char hdata[hLen];
+         HandleData* newData = new(hdata) HandleData;
+         newData->structIdAndEndian = data->structIdAndEndian;
+         newData->numHandles = numHandles;         
+         newData->mappingMode = data->mappingMode;
+         int j=0;
+         for (int i=0;i<sz;i++)
+         {
+            if (!markedRemoval[i])
+            {
+               newData->handles[j] = data->handles[i];
+               j++;
+            }
+         }      
+         set(curkey.get()->data, newData, hLen);                   
       }
       else
       {
@@ -457,25 +462,22 @@ void SAFplus::NameRegistrar::handleFailure(const FailureType failureType, const 
    }
 }
 
-void SAFplus::NameRegistrar::processFailed(const uint32_t pid, const uint32_t amfId)
+void NameRegistrar::processFailed(const uint32_t pid, const uint32_t amfId)
 {
    handleFailure(NameRegistrar::FAILURE_PROCESS, pid, amfId);
 }
 
-void SAFplus::NameRegistrar::nodeFailed(const uint16_t slotNum, const uint32_t amfId)
+void NameRegistrar::nodeFailed(const uint16_t slotNum, const uint32_t amfId)
 {
    handleFailure(NameRegistrar::FAILURE_NODE, (uint32_t)slotNum, amfId);  
 }
 
-void SAFplus::NameRegistrar::dump()
-{
-   //CkptHashMap::iterator ibegin = m_checkpoint.begin().iter;
-   //CkptHashMap::iterator iend = m_checkpoint.end().iter;  
+void NameRegistrar::dump()
+{  
    SAFplus::Checkpoint::Iterator ibegin = m_checkpoint.begin();
    SAFplus::Checkpoint::Iterator iend = m_checkpoint.end(); 
    for(SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
    {
-       //CkptHashMap::value_type vt = *iter;
        BufferPtr curkey = iter->first;
        printf("---------------------------------\n");      
        if (curkey)
@@ -485,22 +487,24 @@ void SAFplus::NameRegistrar::dump()
        BufferPtr& curval = iter->second;
        if (curval)
        {
-          boost::iostreams::basic_array_source<char> device(curval->data, curval->len());
-          boost::iostreams::stream<boost::iostreams::basic_array_source<char> > s(device);
-          boost::archive::binary_iarchive ia(s);
-          HandleMappingMode hm;  
-          ia >> hm;
-          Vector& v = hm.getHandles();
-          size_t sz = v.size();
-          for(int i=0;i<sz;i++)
-          {
-            printf("val [0x%lx.0x%lx]\n", (long unsigned int) v[i].id[0],(long unsigned int) v[i].id[1]);
+          HandleData* data = (HandleData*) curval->data;
+          if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
+          { 
+             printf("Arbitrary data [%s]\n", curval->data);
+          }
+          else
+          { 
+             size_t sz = data->numHandles;
+             for(int i=0;i<sz;i++)
+             {
+                printf("val [0x%lx.0x%lx]\n", (long unsigned int) data->handles[i].id[0],(long unsigned int) data->handles[i].id[1]);
+             }
           }
        }
     }
 }
 
-void SAFplus::NameRegistrar::dumpObj()
+void NameRegistrar::dumpObj()
 {
    for(ObjHashMap::iterator iter = m_mapObject.begin(); iter != m_mapObject.end(); iter++)
    {
@@ -520,43 +524,6 @@ void SAFplus::NameRegistrar::dumpObj()
     }
 }
 
-SAFplus::NameRegistrar::~NameRegistrar()
-{
-   // Free 2 maps
-#if 0
-   for(ObjHashMap::iterator iter = m_mapObject.begin(); iter != m_mapObject.end(); iter++)
-   {       
-       const SAFplusI::BufferPtr& k = iter->first;       
-       //SAFplusI::BufferPtr& v = iter->second;
-       if (k) 
-       {
-          if  (k->ref() == 1) delete k.get();
-          else k->decRef();
-       }
-       /*if (v)
-       {
-          if  (v->ref() == 1) delete v.get();
-          else v->decRef();
-       }*/       
-   }
-
-   m_mapObject.clear();
-#endif
-   for(HashMap::iterator iter = m_mapData.begin(); iter != m_mapData.end(); iter++)
-   {
-       //CkptHashMap::value_type t = *iter;
-       //const SAFplusI::BufferPtr& k = iter->first;       
-       SAFplusI::BufferPtr& v = iter->second;
-       /*if (k)
-       {
-          if  (k->ref() == 1) delete k.get();
-          else k->decRef();
-       }*/       
-       if (v)
-       {
-          if  (v->ref() == 1) delete v.get();
-          else v->decRef();
-       }       
-   }
-   m_mapData.clear();
+NameRegistrar::~NameRegistrar()
+{  
 }

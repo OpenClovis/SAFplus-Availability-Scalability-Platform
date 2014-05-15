@@ -1,3 +1,7 @@
+/*? Singleton class that handles all name access
+    extern NameRegistrar name;
+    inside SAFplus namespace...
+*/
 #ifndef clNameApi_hxx
 #define clNameApi_hxx
 // Standard includes
@@ -9,14 +13,24 @@
 #include <clCkptApi.hxx>
 #include <clCkptIpi.hxx>
 
-#include <boost/serialization/base_object.hpp>
+//#include <boost/serialization/base_object.hpp>
 
 namespace SAFplus
 {
 
-  typedef std::pair<const SAFplus::Handle,void*> ObjMapPair;
-  typedef std::pair<const SAFplus::Handle,SAFplusI::CkptMapValue> MapPair; 
-  typedef boost::unordered_map <SAFplus::Handle, SAFplusI::CkptMapValue> HashMap;
+  typedef uint64_t U64;
+  #define ENDIAN_SWAP_U64(val) ((U64) ( \
+    (((U64) (val) & (U64) 0x00000000000000ff) << 56) | \
+    (((U64) (val) & (U64) 0x000000000000ff00) << 40) | \
+    (((U64) (val) & (U64) 0x0000000000ff0000) << 24) | \
+    (((U64) (val) & (U64) 0x00000000ff000000) <<  8) | \
+    (((U64) (val) & (U64) 0x000000ff00000000) >>  8) | \
+    (((U64) (val) & (U64) 0x0000ff0000000000) >> 24) | \
+    (((U64) (val) & (U64) 0x00ff000000000000) >> 40) | \
+    (((U64) (val) & (U64) 0xff00000000000000) >> 56)))
+
+  typedef std::pair<const SAFplus::Handle,void*> ObjMapPair; 
+  typedef std::pair<const SAFplus::Handle&,void*> RefObjMapPair;
   typedef boost::unordered_map <SAFplus::Handle, void*> ObjHashMap;
   typedef std::vector<SAFplus::Handle> Vector;
   
@@ -48,7 +62,7 @@ namespace SAFplus
   {
   protected:
      static SAFplus::Checkpoint m_checkpoint;
-     HashMap m_mapData; // keep association between handle and its arbitrary data
+     //HashMap m_mapData; // keep association between handle and its arbitrary data
      ObjHashMap m_mapObject; // keep association between handle and an object
   private:
      //static NameRegistrar* name;
@@ -69,6 +83,12 @@ namespace SAFplus
         FAILURE_PROCESS,
         FAILURE_NODE
      } FailureType;
+
+     enum 
+     {
+        STRID = 0x1234,
+        STRIDEN = 0x4321
+     };
       //static NameRegistrar* getInstance() { name = new NameRegistrar(); return name;}
      /* Associate a name with a handle and pointer and associate a handle with a pointer.
       If the name does not exist, it is created.  If it exists, it is overwritten.
@@ -78,8 +98,8 @@ namespace SAFplus
       */
      //void setMode(const char* name, MappingMode mode);
      //void setMode(const std::string& name, MappingMode mode);
-     void set(const char* name, SAFplus::Handle handle, MappingMode m, void* object=NULL);
-     void set(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object=NULL);
+     void set(const char* name, SAFplus::Handle handle, MappingMode m);
+     void set(const std::string& name, SAFplus::Handle handle, MappingMode m);
    
      /* Associate a name with a handle and pointer and associate a handle with a pointer (if object != NULL).
         If the name does not exist, it is created.  If the name exists, this mapping is appended (the original mapping is not removed).
@@ -88,8 +108,12 @@ namespace SAFplus
         If the name has more than one mapping another mapping will become the default response for this name. 
         This association is valid for all SAFplus API name lookups, and for AMF entity names.
      */   
-     void append(const char* name, SAFplus::Handle handle, MappingMode m, void* object=NULL);
-     void append(const std::string& name, SAFplus::Handle handle, MappingMode m, void* object=NULL);
+     void append(const char* name, SAFplus::Handle handle, MappingMode m=MODE_NO_CHANGE) throw (NameException&);
+     void append(const std::string& name, SAFplus::Handle handle, MappingMode m=MODE_NO_CHANGE) throw (NameException&);
+
+     void setLocalObject(const char* name, void* object);
+     void setLocalObject(const std::string& name, void* object);
+     void setLocalObject(SAFplus::Handle handle, void* object);
      
      // Associate name with arbitrary data. A copy of the data is made.
      void set(const char* name, const void* data, int length) throw (NameException&);
@@ -101,19 +125,19 @@ namespace SAFplus
   
      // Get a handle associated with the data
      // The SAFplus APIs use these calls to resolve names to handles or objects.
-     ObjMapPair get(const char* name) throw(NameException&);
-     ObjMapPair get(const std::string& name) throw(NameException&);
+     RefObjMapPair get(const char* name) throw(NameException&);
+     RefObjMapPair get(const std::string& name) throw(NameException&);
      void* get(const SAFplus::Handle&) throw(NameException&);
    
-     SAFplus::Handle getHandle(const char* name) throw(NameException&);
-     SAFplus::Handle getHandle(const std::string& name) throw(NameException&);
+     SAFplus::Handle& getHandle(const char* name) throw(NameException&);
+     SAFplus::Handle& getHandle(const std::string& name) throw(NameException&);
    
        
      // Get a handle associated with the data
      // The SAFplus APIs use these calls to resolve names to handles or objects.
      // Do not free the returned buffer, call Buffer.decRef();
-     SAFplus::Buffer& getData(const char* name) throw(NameException&);
-     SAFplus::Buffer& getData(const std::string& name) throw(NameException&);
+     const SAFplus::Buffer& getData(const char* name) throw(NameException&);
+     const SAFplus::Buffer& getData(const std::string& name) throw(NameException&);
 
      //Failure handling
      void processFailed(const uint32_t pid, const uint32_t amfId);
@@ -128,41 +152,18 @@ namespace SAFplus
      virtual ~NameRegistrar();
   };
 
-  class HandleMappingMode
+  typedef struct
   {
-  protected:
-     NameRegistrar::MappingMode m_mode;
-     Vector m_handles;
-     friend class boost::serialization::access;
-     template<class Archive>
-     void serialize(Archive & ar, const unsigned int version)
-     {
-        ar & m_mode & m_handles;
-     }     
   public:
-     HandleMappingMode(){}
-     HandleMappingMode(NameRegistrar::MappingMode mode, Vector handles): m_mode(mode), m_handles(handles)
-     {        
-     }
-     NameRegistrar::MappingMode& getMappingMode()
-     {
-        return m_mode;
-     }
-     Vector& getHandles()
-     {
-        return m_handles;
-     }     
-     void setHandles(Vector handles)
-     {
-        m_handles = handles;
-     }
-     void setMode(NameRegistrar::MappingMode m)
-     {
-        m_mode = m;
-     }
-  };
+     short structIdAndEndian;
+     short numHandles;
+     NameRegistrar::MappingMode mappingMode;     
+     short extra;
+     SAFplus::Handle handles[1];     
+  }HandleData;  
 
   //? Singleton class that handles all name access
   extern NameRegistrar name;  
 }
+
 #endif
