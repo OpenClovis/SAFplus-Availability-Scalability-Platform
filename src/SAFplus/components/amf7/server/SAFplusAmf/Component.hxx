@@ -130,6 +130,11 @@ namespace SAFplusAmf
          */
         SAFplus::MgtProvList<std::string> proxied;
 
+        /*
+         * The process id of this component (if it is instantiated as a process), or 0
+         */
+        SAFplus::MgtProv<int> processId;
+
     public:
         Component();
         Component(std::string myNameValue);
@@ -346,6 +351,16 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/Component/proxied
          */
         void setProxied(std::string proxiedValue);
+
+        /*
+         * XPATH: /SAFplusAmf/Component/processId
+         */
+        int getProcessId();
+
+        /*
+         * XPATH: /SAFplusAmf/Component/processId
+         */
+        void setProcessId(int processIdValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/activeAssignments

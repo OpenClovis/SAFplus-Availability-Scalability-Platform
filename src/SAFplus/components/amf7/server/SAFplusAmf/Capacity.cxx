@@ -5,18 +5,29 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include <vector>
 #include <string>
-#include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
+#include "clMgtList.hxx"
+#include <vector>
+#include "MgtFactory.hxx"
 #include "Capacity.hxx"
 
 
 namespace SAFplusAmf
   {
 
-    Capacity::Capacity(): SAFplus::MgtContainer("Capacity"), resource("resource"), value("value")
+    /* Apply MGT object factory */
+    MGT_REGISTER_IMPL(Capacity, /SAFplusAmf/Node/capacity)
+
+    Capacity::Capacity(): SAFplus::MgtList("capacity"), resource("resource"), value("value")
     {
+        this->addChildObject(&resource, "resource");
+        this->addChildObject(&value, "value");
+    };
+
+    Capacity::Capacity(std::string resourceValue): SAFplus::MgtList("capacity"), resource("resource"), value("value")
+    {
+        this->resource.value =  resourceValue;
         this->addChildObject(&resource, "resource");
         this->addChildObject(&value, "value");
     };
@@ -26,6 +37,12 @@ namespace SAFplusAmf
         /* TODO:  */
     };
 
+    std::vector<std::string> Capacity::getKeys()
+    {
+        std::string keyNames[] = { "resource" };
+        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
+    };
+
     std::vector<std::string>* Capacity::getChildNames()
     {
         std::string childNames[] = { "resource", "value" };
@@ -33,7 +50,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Capacity/resource
+     * XPATH: /SAFplusAmf/Node/capacity/resource
      */
     std::string Capacity::getResource()
     {
@@ -41,7 +58,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Capacity/resource
+     * XPATH: /SAFplusAmf/Node/capacity/resource
      */
     void Capacity::setResource(std::string resourceValue)
     {
@@ -49,7 +66,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Capacity/value
+     * XPATH: /SAFplusAmf/Node/capacity/value
      */
     long int Capacity::getValue()
     {
@@ -57,7 +74,7 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/Capacity/value
+     * XPATH: /SAFplusAmf/Node/capacity/value
      */
     void Capacity::setValue(long int valueValue)
     {

@@ -29,7 +29,7 @@ namespace ENTITYSTATETCMIB
 
     ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus::operator=(const ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus)
     {
-        Value = EntityAlarmStatus.Value;
+        Value = EntityAlarmStatus.value;
         return *this;
     };
 
@@ -39,12 +39,12 @@ namespace ENTITYSTATETCMIB
 
     std::ostream& operator<<(std::ostream &os, const ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus)
     {
-        return os << EntityAlarmStatus.Value;
+        return os << EntityAlarmStatus.value;
     };
 
     std::istream& operator>>(std::istream &is, ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus)
     {
-        return is >> EntityAlarmStatus.Value;
+        return is >> EntityAlarmStatus.value;
     };
 
 }

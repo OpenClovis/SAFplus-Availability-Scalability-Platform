@@ -61,6 +61,7 @@ volatile bool    quitting=false;  // Set to true to tell all threads to quit
 Group            clusterGroup(SAFplus::Group::DATA_IN_CHECKPOINT);
 ClusterGroupData clusterGroupData;  // The info we tell other nodes about this node.
 Handle           myHandle;  // This handle resolves to THIS process.
+Handle           nodeHandle; //? The handle associated with this node
 unsigned int     myRole = 0;
 unsigned int     capabilities=0;
 unsigned int     credential=0;
@@ -118,7 +119,7 @@ void loadAmfPlugins()
   boost::filesystem::path p(soPath);
   boost::filesystem::directory_iterator it(p),eod;
 
-  BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(it, eod))   
+  BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(it, eod))
     {
     if (p.extension()==".so")
       {
@@ -289,9 +290,10 @@ int main(int argc, char* argv[])
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
 
-  myHandle = Handle::create();  // Actually, in the AMF's case I probably want to create a well-known component handle (i.e. the AMF on node X), not handle that means "pid-Y-on-node-X".  But it does not matter. It would just be so a helper function could be created.
+  myHandle = Handle::create();  // TODO: Actually, in the AMF's case I probably want to create a well-known component handle (i.e. the AMF on node X), not handle that means "pid-Y-on-node-X".  But it does not matter. It would just be so a helper function could be created.
   // Register a mapping between this node's name and its handle.
-  name.set(SAFplus::ASP_NODENAME,myHandle,NameRegistrar::MODE_NO_CHANGE);
+  nodeHandle = myHandle; // TODO: No should be different
+  name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
 
   /* Initialize mgt database  */
   ClMgtDatabase *db = ClMgtDatabase::getInstance();

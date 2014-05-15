@@ -96,6 +96,16 @@ namespace SAFplus
   {
   public:
   const char* errStr;
+
+  enum
+    {
+    UNKNOWN=0,
+    NOT_IMPLEMENTED=1,
+    
+    // For simplicity put derived class error categories here
+    PROCESS_ERRORS = 1000
+    };
+    
     Error(const char* str): errStr(str) 
     {
     }

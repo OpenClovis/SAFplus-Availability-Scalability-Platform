@@ -1,3 +1,4 @@
+#pragma once
 #ifndef CLTHREADAPI_HXX_
 #define CLTHREADAPI_HXX_
 

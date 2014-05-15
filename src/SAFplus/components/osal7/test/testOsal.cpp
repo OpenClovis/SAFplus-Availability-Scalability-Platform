@@ -1,9 +1,9 @@
 #include <boost/thread.hpp>
-#include <clThreadApi.hxx>
 #include <clTestApi.hxx>
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include <clCommon.hxx>
+#include <clOsalApi.hxx>
 
 using namespace SAFplus;
 
@@ -88,6 +88,18 @@ void testProcSem(void)
   TestProcSem_oneProcess();
 }
 
+void testProcess(void)
+{
+  clTestCaseStart(("Process Information"));
+  int pid = getpid();
+
+  Process proc(pid);
+  std::string s = proc.getCmdline();
+  printf("This process' command line: %s\n", s.c_str());
+  clTest(("command line matches"), s.find("testOsal") != std::string::npos, ("")); 
+  clTestCaseEnd((" "));
+}
+
 
 
 int main(int argc, char* argv[])
@@ -99,6 +111,7 @@ int main(int argc, char* argv[])
   clTestGroupInitialize(("Osal"));
   testProcSem();
   testCondition();
+  testProcess();
   clTestGroupFinalize(); 
 }
 

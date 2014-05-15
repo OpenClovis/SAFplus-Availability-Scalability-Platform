@@ -17,9 +17,8 @@
 namespace SAFplusTypes
   {
 
-    Sensor::Sensor(): SAFplus::MgtContainer("sensor"), name("name"), desc("desc")
+    Sensor::Sensor(): SAFplus::MgtContainer("sensor"), desc("desc")
     {
-        this->addChildObject(&name, "name");
         this->addChildObject(&desc, "desc");
     };
 
@@ -39,7 +38,7 @@ namespace SAFplusTypes
      */
     std::string Sensor::getName()
     {
-        return this->name.value;
+        return this->name;
     };
 
     /*
@@ -47,7 +46,7 @@ namespace SAFplusTypes
      */
     void Sensor::setName(std::string nameValue)
     {
-        this->name.value = nameValue;
+        this->name = nameValue;
     };
 
     /*

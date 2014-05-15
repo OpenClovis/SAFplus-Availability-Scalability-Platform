@@ -727,7 +727,7 @@ are switched over to other nodes (component service instances are not abruptly r
 
     leaf processId
       {
-      description "The process id of this component (if it is instantiated as a process), or 0"
+      description "The process id of this component (if it is instantiated as a process), or 0";
       default 0;
       type int32;
       config false;

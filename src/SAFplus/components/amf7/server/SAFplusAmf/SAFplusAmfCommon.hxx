@@ -11,8 +11,8 @@ namespace SAFplusAmf
   class Component;
   class ServiceGroup;
   class ServiceUnit;
-  class Node;  
-    
+  class Node;
+
   void deXMLize(const std::string& obj,SAFplus::MgtObject* context, ComponentServiceInstance*& result);
   void deXMLize(const std::string& obj,SAFplus::MgtObject* context, ServiceInstance*& result);
   void deXMLize(const std::string& obj,SAFplus::MgtObject* context, Component*& result);
