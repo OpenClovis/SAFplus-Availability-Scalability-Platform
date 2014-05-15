@@ -35,6 +35,7 @@ SAFplus::Group::Group(std::string handleName,int dataStoreMode, int comPort)
   groupMsgServer       = NULL;
   groupCommunicationPort  = comPort;
   needReElect          = false;
+  stickyMode           = true;
   /* Try to register with name service so that callback function can use this group*/
   try
   {
@@ -68,6 +69,7 @@ SAFplus::Group::Group(int dataStoreMode,int comPort)
   groupMsgServer  = NULL;
   groupCommunicationPort = comPort;
   needReElect          = false;
+  stickyMode           = true;
 }
 /**
  * API to initialize group service
@@ -200,6 +202,22 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
     {
       instance->setActive(activeElected);
       instance->setStandby(standbyElected);
+      if(instance->stickyMode)
+      {
+        uint capabilities = 0;
+        if(activeElected != INVALID_HDL)
+        {
+          capabilities = instance->getCapabilities(activeElected);
+          capabilities |= SAFplus::Group::CRED_ACTIVE_BIT;
+          instance->setCapabilities(capabilities,activeElected);
+        }
+        if(standbyElected != INVALID_HDL)
+        {
+          capabilities = instance->getCapabilities(standbyElected);
+          capabilities |= SAFplus::Group::CRED_STANDBY_BIT;
+          instance->setCapabilities(capabilities,standbyElected);
+        }
+      }
       instance->fillSendMessage(&activeElected,GroupMessageTypeT::MSG_ROLE_NOTIFY,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_ACTIVE);
       instance->fillSendMessage(&standbyElected,GroupMessageTypeT::MSG_ROLE_NOTIFY,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_STANDBY);
       logInfo("GMS","ELECT","I, Node [%d] took active roles",instance->myInformation.id.getNode());
@@ -225,6 +243,22 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
        {
          instance->setActive(activeElected);
          instance->setStandby(standbyElected);
+         if(instance->stickyMode)
+         {
+           uint capabilities = 0;
+           if(activeElected != INVALID_HDL)
+           {
+             capabilities = instance->getCapabilities(activeElected);
+             capabilities |= SAFplus::Group::CRED_ACTIVE_BIT;
+             instance->setCapabilities(capabilities,activeElected);
+           }
+           if(standbyElected != INVALID_HDL)
+           {
+             capabilities = instance->getCapabilities(standbyElected);
+             capabilities |= SAFplus::Group::CRED_STANDBY_BIT;
+             instance->setCapabilities(capabilities,standbyElected);
+           }
+         }
          /* Wait 10 seconds to received role changed from active member */
          ClTimerTimeOutT timeOut = { 10, 0 };
          clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, Group::roleChangeRequest, (void* )arg, &Group::roleWaitingTHandle);

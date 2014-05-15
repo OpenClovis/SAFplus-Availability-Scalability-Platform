@@ -94,6 +94,11 @@ namespace SAFplus
         DATA_IN_CHECKPOINT = 1,   // Group database is in checkpoint
         DATA_IN_MEMORY     = 2    // Group database is in memory
       };
+      enum
+      {
+        CRED_ACTIVE_BIT  = 1<<11,   // Extra credentials for active entity
+        CRED_STANDBY_BIT = 1 << 10  // Extra credentials for standby entity
+      };
 
       Group(SAFplus::Handle groupHandle) { init(groupHandle); }
       Group(int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT); // Deferred initialization
@@ -148,6 +153,9 @@ namespace SAFplus
 
       // Communication port
       int                               groupCommunicationPort;
+
+      // Allow active/standby to be active/standby again
+      bool                              stickyMode;
 
       typedef SAFplus::GroupMapPair KeyValuePair;
       // std template like iterator
