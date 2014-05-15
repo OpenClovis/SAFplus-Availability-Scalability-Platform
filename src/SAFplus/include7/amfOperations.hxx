@@ -7,9 +7,15 @@ namespace SAFplusAmf
 
 namespace SAFplusI
   {
+  enum class CompStatus
+    {
+    Uninstantiated = 0,
+    Instantiated = 1
+    };
+
   class AmfOperations
     {
     public:
-      getCompState(SAFplusAmf::Component* comp);
-    }
+      CompStatus getCompState(SAFplusAmf::Component* comp);
+    };
   };

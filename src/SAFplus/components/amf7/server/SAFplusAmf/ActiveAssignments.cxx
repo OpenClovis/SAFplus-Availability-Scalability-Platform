@@ -15,7 +15,7 @@ namespace SAFplusAmf
   {
 
     /* Apply MGT object factory */
-    MGT_REGISTER_IMPL(ActiveAssignments, /SAFplusAmf/Component/activeAssignments)
+    MGT_REGISTER_IMPL(ActiveAssignments, /SAFplusAmf/ServiceInstance/activeAssignments)
 
     ActiveAssignments::ActiveAssignments()
     {
