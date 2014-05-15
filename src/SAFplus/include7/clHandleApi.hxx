@@ -4,7 +4,6 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include <boost/serialization/base_object.hpp>
 #include <boost/functional/hash.hpp> 
 
 #define CL_ASSERT assert
@@ -33,13 +32,7 @@ namespace SAFplus
 
   class Handle
   {
-  public:
-    friend class boost::serialization::access;
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int version)
-    {
-       ar & id;
-    }
+  public:    
     uint64_t id[2];
   public:
     char* toStr(char* buffer) const

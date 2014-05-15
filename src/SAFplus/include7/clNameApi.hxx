@@ -32,8 +32,6 @@ namespace SAFplus
   typedef std::pair<const SAFplus::Handle,void*> ObjMapPair; 
   typedef std::pair<const SAFplus::Handle&,void*> RefObjMapPair;
   typedef boost::unordered_map <SAFplus::Handle, void*> ObjHashMap;
-  typedef std::vector<SAFplus::Handle> Vector;
-  
 
   class NameException: public std::exception
   {
