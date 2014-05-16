@@ -133,7 +133,7 @@ void NameRegistrar::setLocalObject(const char* name, void* object)
    m_mapObject.insert(vt);  
 }
 
-void setLocalObject(const std::string& name, void* object)
+void NameRegistrar::setLocalObject(const std::string& name, void* object)
 {
    setLocalObject(name.c_str(), object);
 }

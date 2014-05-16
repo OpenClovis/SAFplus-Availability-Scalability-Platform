@@ -41,16 +41,17 @@ SAFplus::Group::Group(std::string handleName,int dataStoreMode, int comPort)
   {
     /* Get handle from name service */
     handle = name.getHandle(handleName);
-    name.set(handleName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY,(void*)this);
   }
   catch (SAFplus::NameException& ex)
   {
     logDebug("GMS", "HDL","Can't get handler from give name %s",handleName.c_str());
     /* If handle did not exist, Create it */
     handle = SAFplus::Handle(PersistentHandle,0,getpid(),clIocLocalAddressGet());
-    /* Store to name service */
-    name.set(handleName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY,(void*)this);
   }
+
+  /* Store to name service */
+  name.set(handleName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY);
+  name.setLocalObject(handleName,(void*)this);
   init(handle);
 }
 /**
@@ -82,7 +83,8 @@ void SAFplus::Group::init(SAFplus::Handle groupHandle)
     handle = groupHandle;
     char hdlName[80];
     handle.toStr(hdlName);
-    name.set(hdlName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY,(void*)this);
+    name.set(hdlName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY);
+    name.setLocalObject(hdlName, (void*) this);
   }
   /* Initialize neccessary library */
   initializeLibraries();

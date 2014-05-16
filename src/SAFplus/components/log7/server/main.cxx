@@ -180,6 +180,8 @@ int main(int argc, char* argv[])
   logInitializeStreams(cfg);
   dumpStreams(cfg);  
 
+  SAFplus::logSeverity= LOG_SEV_MAX;  // DEBUG
+
   // Log processing Loop
   while(1)
     {

@@ -271,6 +271,7 @@ int main(int argc, char* argv[])
 
   logInitialize();
   logEchoToFd = 1;  // echo logs to stdout for debugging
+  logSeverity = LOG_SEV_MAX;
 
   if (parseArgs(argc,argv)<=0) return -1;
 
@@ -378,7 +379,16 @@ int main(int argc, char* argv[])
       activeStandbyPairs.second = clusterGroup.getStandby();
       if ((activeStandbyPairs.first == INVALID_HDL)||(activeStandbyPairs.second == INVALID_HDL)) clusterGroup.elect();
 #endif
-      if (myRole == Group::IS_ACTIVE) CL_ASSERT(activeStandbyPairs.first == myHandle);  // Once I become ACTIVE I can never lose it.
+      if (myRole == Group::IS_ACTIVE) 
+        {
+        //CL_ASSERT(activeStandbyPairs.first == myHandle);  // Once I become ACTIVE I can never lose it.
+        if (activeStandbyPairs.first != myHandle) // I am no longer active
+          {
+          //stopActive(); TBD
+          myRole = 0;
+          
+          }
+        }
       else
         {
         if (activeStandbyPairs.first == myHandle)  // I just became active

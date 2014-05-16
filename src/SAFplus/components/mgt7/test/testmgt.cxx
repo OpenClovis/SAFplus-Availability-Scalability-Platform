@@ -16,19 +16,19 @@ void testTransaction01()
     ClCharT failVal[] = "<failtest>Value</failtest>";
     ClCharT passVal[] = "<test>Value</test>";
 
-    ClMgtProv<std::string> testVal("test");
-    testVal.Value = "Init";
+    MgtProv<std::string> testVal("test");
+    testVal.value = "Init";
 
     if (testVal.set(failVal, strlen(failVal), t))
     {
         t.commit();
     }
-    else
+    else // expected to fail
     {
-        t.abort();
+        t.abort(); 
     }
 
-    if (testVal.Value.compare("Init") != 0 )
+    if (testVal.value.compare("Init") != 0 )
     {
         printf("FAIL: testTransaction01 - abort.\n");
         return;
@@ -43,7 +43,7 @@ void testTransaction01()
         t.abort();
     }
 
-    if (testVal.Value.compare("Value") != 0 )
+    if (testVal.value.compare("Value") != 0 )
     {
         printf("FAIL: testTransaction01 - set value.\n");
         return;
@@ -63,8 +63,8 @@ void testTransaction02()
     ClCharT passVal1[] = "<test>Value1</test>";
     ClCharT passVal2[] = "<test>Value2</test>";
 
-    ClMgtProvList<std::string> testVal("test");
-    testVal.Value.push_back("Init");
+    MgtProvList<std::string> testVal("test");
+    testVal.value.push_back("Init");
 
     if (testVal.set(failVal, strlen(failVal), t))
     {
@@ -75,7 +75,7 @@ void testTransaction02()
         t.abort();
     }
 
-    if ((testVal.Value.size() != 1) || (testVal.Value[0].compare("Init") != 0 ))
+    if ((testVal.value.size() != 1) || (testVal.value[0].compare("Init") != 0 ))
     {
         printf("FAIL: testTransaction02 - abort.\n");
         return;
@@ -98,7 +98,7 @@ void testTransaction02()
         t.abort();
     }
 
-    if ((testVal.Value.size() != 2) || (testVal.Value[0].compare("Value1") != 0 ) || (testVal.Value[1].compare("Value2") != 0 ))
+    if ((testVal.value.size() != 2) || (testVal.value[0].compare("Value1") != 0 ) || (testVal.value[1].compare("Value2") != 0 ))
     {
         printf("FAIL: testTransaction02 - set value.\n");
         return;
@@ -120,7 +120,7 @@ void testTransaction02()
         t.abort();
     }
 
-    if ((testVal.Value.size() != 2) || (testVal.Value[0].compare("Value1") != 0 ) || (testVal.Value[1].compare("Value2") != 0 ))
+    if ((testVal.value.size() != 2) || (testVal.value[0].compare("Value1") != 0 ) || (testVal.value[1].compare("Value2") != 0 ))
     {
         printf("FAIL: testTransaction02 - set value again.\n");
         return;
@@ -138,9 +138,9 @@ void testTransactionExceptions()
     ClCharT passVal1[] = "<test>Value1</test>";
     ClCharT passVal2[] = "<test>Value2</test>";
 
-    ClMgtProvList<std::string> testVal("test");
-    ClMgtProvList<std::string> testVal1("test");
-    testVal.Value.push_back("Init");
+    MgtProvList<std::string> testVal("test");
+    MgtProvList<std::string> testVal1("test");
+    testVal.value.push_back("Init");
 
     // Test proper commit
     try
@@ -152,7 +152,7 @@ void testTransactionExceptions()
       {
         printf("FAIL: This case should have passed\n");
       }
-    if ((testVal.Value.size() != 1) || (testVal.Value[0].compare("Value1") != 0 ))
+    if ((testVal.value.size() != 1) || (testVal.value[0].compare("Value1") != 0 ))
     {
         printf("FAIL: transaction did not commit\n");
     }    
@@ -178,11 +178,11 @@ void testTransactionExceptions()
       {
         printf("FAIL: This case should have passed\n");
       }
-    if ((testVal.Value.size() != 1) || (testVal.Value[0].compare("Value2") != 0 ))
+    if ((testVal.value.size() != 1) || (testVal.value[0].compare("Value2") != 0 ))
     {
         printf("FAIL: transaction did not commit\n");
     }    
-    if ((testVal1.Value.size() != 1) || (testVal1.Value[0].compare("Value1") != 0 ))
+    if ((testVal1.value.size() != 1) || (testVal1.value[0].compare("Value1") != 0 ))
     {
         printf("FAIL: transaction did not commit\n");
     }    
@@ -198,7 +198,7 @@ void testTransactionExceptions()
       {
         printf("PASS: This case should have raised an exception\n");
       }
-    if ((testVal.Value.size() != 1) && (testVal.Value[0].compare("Value1") == 0 ))
+    if ((testVal.value.size() != 1) && (testVal.value[0].compare("Value1") == 0 ))
     {
         printf("FAIL: transaction should not have committed but value is set!\n");
     }    
@@ -214,8 +214,8 @@ void testGarbage()
     ClCharT failVal[] = "<failtest>Value</failtest>";
     ClCharT passVal[] = "<test>Value</test>";
 
-    ClMgtProv<std::string> testVal("test");
-    testVal.Value = "Init";
+    MgtProv<std::string> testVal("test");
+    testVal.value = "Init";
 
     if (testVal.set(strAndLen("<badtag>VALUE</badtag>"), t))
     {

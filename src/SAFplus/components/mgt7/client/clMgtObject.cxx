@@ -39,7 +39,7 @@ namespace SAFplus
   {
   MgtObject::MgtObject(const char* nam)
     {
-    name.assign(name);
+    name.assign(nam);
     parent = NULL;
     }
 

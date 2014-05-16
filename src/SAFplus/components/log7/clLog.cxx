@@ -81,7 +81,21 @@ void SAFplusI::writeToSharedMem(Handle streamHdl,LogSeverity severity, char* msg
   rec->stream   = streamHdl;
   rec->offset   = clLogHeader->msgOffset;
   rec->severity = severity;
-  memcpy(base+rec->offset, msg, msgStrLen+1); // length + 1 includes the null terminator
+  if (rec->offset + msgStrLen+1 < SAFplus::CL_LOG_BUFFER_DEFAULT_LENGTH)
+    {
+    memcpy(base+rec->offset, msg, msgStrLen+1); // length + 1 includes the null terminator
+    }
+  else
+    {
+    msgStrLen = sizeof("Log buffer overflow");
+    if (rec->offset + msgStrLen +1 < SAFplus::CL_LOG_BUFFER_DEFAULT_LENGTH)
+      strcpy(base+rec->offset, "Log buffer overflow");
+    else
+      {
+      clientMutex.unlock();
+      return; // No room even to write the overflow message
+      }
+    }
 
   clLogHeader->numRecords++;
   clLogHeader->msgOffset += msgStrLen+1;

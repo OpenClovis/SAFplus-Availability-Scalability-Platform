@@ -28,10 +28,14 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml
 
-all: $(TEST_DIR)/ClientTest $(TEST_DIR)/ServerTest
+all: 
+	echo skipped
+
+# $(TEST_DIR)/ClientTest $(TEST_DIR)/ServerTest
 
 $(TEST_DIR)/ClientTest: $(OBJ_DIR)/test.pb.o $(SENDER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
-	$(LINK_EXE) $@ $(SENDER_OBJ) $(OBJ_DIR)/test.pb.o $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) `pkg-config --libs protobuf`
+	$(LINK_EXE) $@ $(SENDER_OBJ) $(OBJ_DIR)/test.pb.o $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
+# `pkg-config --libs protobuf`
 
 $(TEST_DIR)/ServerTest: $(OBJ_DIR)/test.pb.o $(RECEIVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 	$(LINK_EXE) $@ $(RECEIVER_OBJ) $(OBJ_DIR)/test.pb.o $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) `pkg-config --libs protobuf`
