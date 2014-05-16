@@ -314,24 +314,28 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
             if (data->handles[i].getProcess() == (uint32_t)thisPid)
             {
                idx = i;
+               break;
             }
          }
          //No process match, get handle of THIS NODE        
          if (idx == -1)
          {
-            ClIocNodeAddressT thisNode = SAFplus::ASP_NODEADDR; //clIocLocalAddressGet();
-
+            ClIocNodeAddressT thisNode = SAFplus::ASP_NODEADDR;
             printf("getHandle of name [%s]: thisNode [%d]\n", name, thisNode);
             for(i=0;i<sz;i++)
 	    {		                
 		if ((uint32_t)data->handles[i].getNode() == thisNode)
 		{		
                    idx = i;
+                   break;
 		}
             }
          }
          // If no any match, get "closer" handle over others. It may be the latest one
-         if (idx == -1) idx = sz-1;
+         if (idx == -1)
+         {
+            idx = sz-1;
+         }
       }
       else // Other case, REDUNDANCY mode is picked
       {
@@ -342,8 +346,7 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
       if (data->structIdAndEndian == STRIDEN) // Need to swap the endian
       {
          data->handles[idx].id[0] = ENDIAN_SWAP_U64(data->handles[idx].id[0]);
-         data->handles[idx].id[1] = ENDIAN_SWAP_U64(data->handles[idx].id[1]);
-         return data->handles[idx];
+         data->handles[idx].id[1] = ENDIAN_SWAP_U64(data->handles[idx].id[1]);         
       }
       return data->handles[idx];
    }
