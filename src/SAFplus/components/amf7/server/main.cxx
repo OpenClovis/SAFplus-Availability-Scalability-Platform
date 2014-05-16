@@ -377,6 +377,7 @@ int main(int argc, char* argv[])
 #ifdef GRP
       activeStandbyPairs.first = clusterGroup.getActive();
       activeStandbyPairs.second = clusterGroup.getStandby();
+      assert((activeStandbyPairs.first != activeStandbyPairs.second) || ((activeStandbyPairs.first == INVALID_HDL)&&(activeStandbyPairs.second == INVALID_HDL)) );
       if ((activeStandbyPairs.first == INVALID_HDL)||(activeStandbyPairs.second == INVALID_HDL)) clusterGroup.elect();
 #endif
       if (myRole == Group::IS_ACTIVE) 
@@ -386,7 +387,6 @@ int main(int argc, char* argv[])
           {
           //stopActive(); TBD
           myRole = 0;
-          
           }
         }
       else

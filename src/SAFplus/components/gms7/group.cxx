@@ -28,7 +28,7 @@ SAFplus::Group::Group(std::string handleName,int dataStoreMode, int comPort)
   activeEntity = INVALID_HDL;
   standbyEntity = INVALID_HDL;
   lastRegisteredEntity = INVALID_HDL;
-  automaticElection    = false;
+  automaticElection    = true;
   minimumElectionTime  = 10;
   wakeable             = (SAFplus::Wakeable *)0;
   dataStoringMode      = dataStoreMode;
@@ -202,6 +202,7 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
     /* If I am active member, send notification */
     if(activeElected == instance->myInformation.id)
     {
+      assert(activeElected != standbyElected);
       instance->setActive(activeElected);
       instance->setStandby(standbyElected);
       if(instance->stickyMode)
@@ -240,9 +241,11 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
        {
          logInfo("GMS","ELECT","I am normal member");
        }
-       /* If role change message come before I am finished election */
+       /* If role change message come before I am finished election,
+        * accept it. */
        if(instance->getActive() != activeElected || instance->getStandby() != standbyElected)
        {
+         assert(activeElected != standbyElected);
          instance->setActive(activeElected);
          instance->setStandby(standbyElected);
          if(instance->stickyMode)
@@ -261,11 +264,15 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
              instance->setCapabilities(capabilities,standbyElected);
            }
          }
-         /* Wait 10 seconds to received role changed from active member */
+#if 0
+         /* Wait 10 seconds to received role changed from active member. */
+         /* TODO: document: why wait? */
          ClTimerTimeOutT timeOut = { 10, 0 };
          clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, Group::roleChangeRequest, (void* )arg, &Group::roleWaitingTHandle);
+#endif
        }
-       else
+       
+       if (1) // else
        {
          isElectionRunning = false;
          isElectionFinished = true;
@@ -604,11 +611,7 @@ void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
   /* Delete associated data of entity */
   groupDataMap.erase(contents);
   /* User should remove unused associated data */
-  /* Notify other entities about new entity*/
-  if(wakeable)
-  {
-    wakeable->wake(NODE_LEAVE_SIG);
-  }
+
   if(needNotify == true)
   {
     fillSendMessage((void *)&me,GroupMessageTypeT::MSG_NODE_LEAVE,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
@@ -620,30 +623,40 @@ void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
   /* Update if leaving entity is standby/active */
   if(activeEntity == me && (myInformation.id == standbyEntity || standbyEntity == INVALID_HDL))
   {
-    logDebug("GMS","DEREG","Leaving node had active role. Re-elect");
-    activeEntity = standbyEntity;
+    if (standbyEntity == INVALID_HDL) logDebug("GMS","DEREG","Leaving node had active role.");
+    else logDebug("GMS","DEREG","Leaving node had active role. Standby is now Active.");
+
+    // Promote the standby to active in a manner which NEVER allows other threads to see both the standby and active as the same node
+    Handle tmp = standbyEntity;
+    standbyEntity = INVALID_HDL;
+    activeEntity = tmp;
+
     /* This should not happen */
     if(standbyEntity == INVALID_HDL && isBootTimeElectionDone == true)
     {
       /* TODO: report fault ?? */
     }
-    /* Now, elect for the new standby */
-    elect();
-    return;
+
   }
-  if(standbyEntity == me && myInformation.id == activeEntity)
+  else if(standbyEntity == me && myInformation.id == activeEntity)
   {
-    logDebug("GMS","DEREG","Leaving node had standby role. Re-elect");
+    logDebug("GMS","DEREG","Leaving node had standby role.");
     standbyEntity = INVALID_HDL;
     /* Now, elect for the new standby */
-    elect();
-    return;
   }
-  if(automaticElection)
+  if(automaticElection)  // since something failed, run a re-election automatically if that is the configured behavior
   {
     logInfo("GMS","REG","Run election based on configuration");
     elect();
   }
+
+   /* We need to other entities about the left node, but only AFTER
+    * we have handled it. */
+  if(wakeable)
+    {
+    wakeable->wake(NODE_LEAVE_SIG);
+    }
+
 }
 /**
  * API to set entity 's capabilities
@@ -793,18 +806,20 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles(int e
   }
   else if(electionType == SAFplus::Group::ELECTION_TYPE_STANDBY)
   {
+    assert(0);  // dead code
     activeCandidate = activeEntity;
     standbyCandidate = electDeputy(activeCandidate);
     return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
   }
   else if(electionType == SAFplus::Group::ELECTION_TYPE_ACTIVE)
   {
+    assert(0);  // dead code
     activeCandidate = electLeader();
     return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
-
   }
   else
   {
+    assert(0);  // Application programming error
     return std::pair<EntityIdentifier,EntityIdentifier>(INVALID_HDL,INVALID_HDL);
   }
 }
