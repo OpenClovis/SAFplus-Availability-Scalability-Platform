@@ -8,7 +8,7 @@ using namespace SAFplusAmf;
 using namespace SAFplus;
 
 extern Handle           nodeHandle; //? The handle associated with this node
-namespace SAFplusI
+namespace SAFplus
   {
 
   CompStatus AmfOperations::getCompState(SAFplusAmf::Component* comp)

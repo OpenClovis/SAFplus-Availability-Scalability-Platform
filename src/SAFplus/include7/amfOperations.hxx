@@ -5,7 +5,7 @@ namespace SAFplusAmf
   class Component;
   }
 
-namespace SAFplusI
+namespace SAFplus
   {
   enum class CompStatus
     {
@@ -16,6 +16,7 @@ namespace SAFplusI
   class AmfOperations
     {
     public:
+      //? Get the current component state from the node on which it is running
       CompStatus getCompState(SAFplusAmf::Component* comp);
     };
   };

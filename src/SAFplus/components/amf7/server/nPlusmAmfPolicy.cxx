@@ -62,7 +62,7 @@ namespace SAFplus
             logInfo("N+M","AUDIT","Auditing comp %s ", compName.c_str());
             Component* comp = dynamic_cast<Component*>(itcomp->second);
             logInfo("N+M","AUDIT","Auditing component %s", comp->name.c_str());
-            //ops->getCompState(comp);
+            amfOps->getCompState(comp);
             }
           }
         }

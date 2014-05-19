@@ -111,7 +111,7 @@ void becomeStandby(void)
   }
 
 
-void loadAmfPlugins()
+void loadAmfPlugins(AmfOperations& amfOps)
   {
   // pick the SAFplus directory or the current directory if it is not defined.
   const char * soPath = (SAFplus::ASP_APP_BINDIR[0] == 0) ? ".":SAFplus::ASP_APP_BINDIR;
@@ -135,12 +135,20 @@ void loadAmfPlugins()
             ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*> (plug->pluginApi);
             if (pp)
               {
-              redPolicies[pp->policyId] = plug;
-              clLogError("POL","LOAD","AMF Policy [%d] plugin [%s] load succeeded.", pp->policyId, p.c_str());
+              bool result = pp->initialize(&amfOps);
+              if (result)
+                {
+                redPolicies[pp->policyId] = plug;
+                clLogInfo("POL","LOAD","AMF Policy [%d] plugin [%s] load succeeded.", pp->policyId, p.c_str());
+                }
+              else
+                {
+                clLogError("POL","LOAD","AMF Policy plugin [%s] load failed.  Plugin initialize error.", p.c_str());
+                }
               }
-            else clLogError("POL","LOAD","AMF Policy plugin [%s] load failed.", p.c_str());
+            else clLogError("POL","LOAD","AMF Policy plugin [%s] load failed.  Incorrect plugin type.", p.c_str());
             }
-          else clLogError("POL","LOAD","Policy [%s] load failed.", p.c_str());
+          else clLogError("POL","LOAD","Policy [%s] load failed.  Incorrect plugin Identifier or version.", p.c_str());
           } 
             
         }
@@ -304,8 +312,9 @@ int main(int argc, char* argv[])
 
   logServer = boost::thread(LogServer());
 
+  AmfOperations amfOps;
 
-  loadAmfPlugins();
+  loadAmfPlugins(amfOps);
 
 #ifdef GRP  
   clusterGroup.init(CLUSTER_GROUP);
@@ -348,7 +357,8 @@ int main(int argc, char* argv[])
   if (activeStandbyPairs.first == INVALID_HDL)  // If nobody is active, I need to call for an election
     {
     // By waiting, other nodes that are booting can come up.  This makes the system more consistently elect a particular node as ACTIVE when the cluster is started.  Note that this is just convenient for users, it does not matter to the system which node is elected active.
-    boost::this_thread::sleep(boost::posix_time::milliseconds(STARTUP_ELECTION_DELAY_MS));
+    // Commented out because the election has a 10 second delay
+    // boost::this_thread::sleep(boost::posix_time::milliseconds(STARTUP_ELECTION_DELAY_MS));
 #ifdef GRP
     activeStandbyPairs = clusterGroup.elect();
     // GAS TODO:  What errors can be returned?
