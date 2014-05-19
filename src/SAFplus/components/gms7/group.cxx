@@ -9,7 +9,6 @@ using namespace SAFplus;
 using namespace SAFplusI;
 using namespace std;
 
-
 /**
  * Static member
  */
@@ -64,7 +63,7 @@ SAFplus::Group::Group(int dataStoreMode,int comPort)
   standbyEntity = INVALID_HDL;
   lastRegisteredEntity = INVALID_HDL;
   wakeable             = (SAFplus::Wakeable *)0;
-  automaticElection    = false;
+  automaticElection    = true;
   minimumElectionTime  = 10;
   dataStoringMode = dataStoreMode;
   groupMsgServer  = NULL;
@@ -165,7 +164,6 @@ void SAFplus::Group::startMessageServer()
   }
   GroupMessageHandler *groupMessageHandler = new GroupMessageHandler(this);
   groupMsgServer->RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, NULL);
-
 }
 /**
  * Do the real election after timer had expired
@@ -180,7 +178,7 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
     /* Get current group handle from name service */
     SAFplus::Handle hdl = *(SAFplus::Handle *)arg;
     Group *instance = (Group *)name.get(hdl);
-    std::pair<EntityIdentifier,EntityIdentifier> res = instance->electForRoles(ELECTION_TYPE_BOTH);
+    std::pair<EntityIdentifier,EntityIdentifier> res = instance->electForRoles();
     EntityIdentifier activeElected = res.first;
     EntityIdentifier standbyElected = res.second;
     /* Below should never happen, we can't elect a standby with no active */
@@ -213,6 +211,7 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
           capabilities = instance->getCapabilities(activeElected);
           capabilities |= SAFplus::Group::CRED_ACTIVE_BIT;
           instance->setCapabilities(capabilities,activeElected);
+          instance->myInformation.capabilities = capabilities;
         }
         if(standbyElected != INVALID_HDL)
         {
@@ -262,6 +261,10 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
              capabilities = instance->getCapabilities(standbyElected);
              capabilities |= SAFplus::Group::CRED_STANDBY_BIT;
              instance->setCapabilities(capabilities,standbyElected);
+             if(standbyElected == instance->myInformation.id)
+             {
+               instance->myInformation.capabilities = capabilities;
+             }
            }
          }
 #if 0
@@ -399,8 +402,19 @@ void SAFplus::Group::electionRequestHandle(SAFplusI::GroupMessageProtocol *rxMsg
     {
       fillSendMessage(&myInformation,GroupMessageTypeT::MSG_ELECT_REQUEST,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
     }
-    /* Wait for 10 seconds before doing election */
-    ClTimerTimeOutT timeOut = { 10, 0 };
+    ClTimerTimeOutT timeOut = { 0, 0 };
+    /* If I am the member who call election */
+    if(rxMsg == NULL)
+    {
+      /* Wait for 10 seconds before doing election */
+      timeOut.tsSec = 10;
+    }
+    else /* Not all member are wait for 10 seconds */
+    {
+      /* Wait for 9 seconds before doing election */
+      /* This is to enable election occur at the same time for all nodes */
+      timeOut.tsSec = 9;
+    }
     clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, Group::electionRequest, (void* )&handle, &electionRequestTHandle);
   }
   if(rxMsg != NULL)
@@ -630,13 +644,6 @@ void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
     Handle tmp = standbyEntity;
     standbyEntity = INVALID_HDL;
     activeEntity = tmp;
-
-    /* This should not happen */
-    if(standbyEntity == INVALID_HDL && isBootTimeElectionDone == true)
-    {
-      /* TODO: report fault ?? */
-    }
-
   }
   else if(standbyEntity == me && myInformation.id == activeEntity)
   {
@@ -646,16 +653,16 @@ void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
   }
   if(automaticElection)  // since something failed, run a re-election automatically if that is the configured behavior
   {
-    logInfo("GMS","REG","Run election based on configuration");
+    logInfo("GMS","DEREG","Run election based on configuration");
     elect();
   }
 
    /* We need to other entities about the left node, but only AFTER
     * we have handled it. */
   if(wakeable)
-    {
+  {
     wakeable->wake(NODE_LEAVE_SIG);
-    }
+  }
 
 }
 /**
@@ -728,13 +735,22 @@ void* SAFplus::Group::getData(EntityIdentifier id)
   return contents->second;
 }
 /**
- * Find the entity with highest credential and ACCEPT_ACTIVE capabilities
+ * Election for leader/deputy
  */
-EntityIdentifier SAFplus::Group::electLeader()
+EntityIdentifier SAFplus::Group::electARole(EntityIdentifier ignoreMe)
 {
+  uint requiredCapabilities = 0,curCapabilities = 0;
   uint highestCredentials = 0, curCredentials = 0;
-  uint curCapabilities = 0;
-  EntityIdentifier leaderEntity = INVALID_HDL;
+  EntityIdentifier curEntity = INVALID_HDL, electedEntity = INVALID_HDL;
+
+  if(ignoreMe == INVALID_HDL) // Required capabilities to become an active
+  {
+    requiredCapabilities = SAFplus::Group::ACCEPT_ACTIVE;
+  }
+  else // // Required capabilities to become a standby
+  {
+    requiredCapabilities = SAFplus::Group::ACCEPT_STANDBY;
+  }
   for (GroupHashMap::iterator i = groupDataMap.begin();i != groupDataMap.end();i++)
   {
     char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
@@ -742,86 +758,34 @@ EntityIdentifier SAFplus::Group::electLeader()
     *((EntityIdentifier *) key->data) = i->first;
 
     GroupIdentity *grp = (GroupIdentity *)readFromDatabase(key);
-    curCredentials = grp->credentials;
+    curCredentials  = grp->credentials;
     curCapabilities = grp->capabilities;
-    if((curCapabilities & SAFplus::Group::ACCEPT_ACTIVE) != 0)
+    curEntity       = grp->id;
+    if(((curCapabilities & requiredCapabilities) != 0) && (curEntity !=  ignoreMe))
     {
       if(highestCredentials < curCredentials)
       {
         highestCredentials = curCredentials;
-        leaderEntity = grp->id;
+        electedEntity = curEntity;
       }
     }
   }
-  return leaderEntity;
-}
-/**
- * Find the entity with second highest credential and ACCEPT_STANDBY capabilities
- * The highest credential is belong to active entity
- */
-EntityIdentifier SAFplus::Group::electDeputy(EntityIdentifier highestCreEntity)
-{
-  uint highestCredentials = 0, curCredentials = 0;
-  uint curCapabilities = 0;
-  EntityIdentifier deputyEntity = INVALID_HDL, curEntity = INVALID_HDL;
-  for (GroupHashMap::iterator i = groupDataMap.begin();i != groupDataMap.end();i++)
-  {
-    char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-    SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
-    *((EntityIdentifier *) key->data) = i->first;
-
-    GroupIdentity *grp = (GroupIdentity *)readFromDatabase(key);
-    curCredentials = grp->credentials;
-    curCapabilities = grp->capabilities;
-    if((curCapabilities & SAFplus::Group::ACCEPT_STANDBY) != 0)
-    {
-      curEntity = grp->id;
-      if((highestCredentials < curCredentials) && !(curEntity == highestCreEntity))
-      {
-        highestCredentials = curCredentials;
-        deputyEntity = curEntity;
-      }
-    }
-  }
-  return deputyEntity;
+  return electedEntity;
 }
 /**
  * Do election to find the required roles pairs <active,standby>
  */
-std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles(int electionType)
+std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
 {
-  uint highestCredentials = 0,lowerCredentials = 0, curEntityCredentials = 0;
-  uint curCapability;
   EntityIdentifier activeCandidate = INVALID_HDL, standbyCandidate = INVALID_HDL;
 
-  if(electionType == SAFplus::Group::ELECTION_TYPE_BOTH)
+  activeCandidate = electARole();
+  if(activeCandidate == INVALID_HDL)
   {
-    activeCandidate = electLeader();
-    if(activeCandidate == INVALID_HDL)
-    {
-      return std::pair<EntityIdentifier,EntityIdentifier>(INVALID_HDL,INVALID_HDL);
-    }
-    standbyCandidate = electDeputy(activeCandidate);
-    return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
-  }
-  else if(electionType == SAFplus::Group::ELECTION_TYPE_STANDBY)
-  {
-    assert(0);  // dead code
-    activeCandidate = activeEntity;
-    standbyCandidate = electDeputy(activeCandidate);
-    return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
-  }
-  else if(electionType == SAFplus::Group::ELECTION_TYPE_ACTIVE)
-  {
-    assert(0);  // dead code
-    activeCandidate = electLeader();
-    return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
-  }
-  else
-  {
-    assert(0);  // Application programming error
     return std::pair<EntityIdentifier,EntityIdentifier>(INVALID_HDL,INVALID_HDL);
   }
+  standbyCandidate = electARole(activeCandidate);
+  return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
 }
 /**
  * API allow member call for election based on group database
