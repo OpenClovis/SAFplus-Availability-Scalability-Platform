@@ -201,11 +201,10 @@ namespace SAFplus
       // Handle election request message
       void electionRequestHandle(SAFplusI::GroupMessageProtocol *rxMsg);
 
-      std::pair<EntityIdentifier,EntityIdentifier> electForRoles(int electionType);
+      std::pair<EntityIdentifier,EntityIdentifier> electForRoles();
 
       // Election utility
-      EntityIdentifier electLeader();
-      EntityIdentifier electDeputy(EntityIdentifier highestCreEntity);
+      EntityIdentifier electARole(EntityIdentifier ignoreMe = INVALID_HDL);
 
       // Initialize/Finalize libraries
       ClRcT initializeLibraries();
