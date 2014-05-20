@@ -1,184 +1,431 @@
+#include "clIocReliableLossList.h"
+
 /*
- * Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
- *
- * This file is available  under  a  commercial  license  from  the
- * copyright  holder or the GNU General Public License Version 2.0.
- *
- * The source code for  this program is not published  or otherwise
- * divested of  its trade secrets, irrespective  of  what  has been
- * deposited with the U.S. Copyright office.
- *
- * This program is distributed in the  hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied  warranty  of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
- * General Public License for more details.
- *
- * For more  information, see  the file  COPYING provided with this
- * material.
- */
+** private protos
+static void freeList(ClFragmentListHeadT **list);
+*/
 
-
-#include <clIocReliableLossList.h>
-
-
-void lossListAppend(ClFragmentListHeadT *pHead,ClUint32T num)
+/*
+**  initList()
+**  initialize a list
+**
+**  Parameters:
+**  ClFragmentListHeadT **list      list to initialize
+**
+**  Return Values:
+**  none
+**
+**  Limitations and Comments:
+**  none
+**
+**
+**  Development History:
+**      who                  when           why
+**      ma_muquit@fccc.edu   Aug-07-1998    first cut
+*/
+void initList(ClFragmentListHeadT **list)
 {
-    struct ClFragmentListHeadT *temp,*right;
-    temp= (struct ClFragmentListHeadT *)malloc(sizeof(ClFragmentListHeadT));
-    temp->fragmentID = num;
-    right=(struct ClFragmentListHeadT*)pHead;
-    while(right->pNext != NULL)
-        right=right->pNext;
-    right->pNext =temp;
-    right=temp;
-    right->pNext=NULL;
+    (*list)=NULL;
 }
 
-void lossListAdd(ClFragmentListHeadT *pHead,ClUint32T num)
+
+/*
+**  allocateNode()
+**  allocate a new node.
+**
+**  Parameters:
+**  void    *fragmentID       a generic pointer to object fragmentID
+**
+**  Return Values:
+**  pointer to ClFragmentListHeadT if succeeds
+**  NULL otherwise
+**
+**  Limitations and Comments:
+**  the caller must pass valid pointer to fragmentID.
+**
+**  Development History:
+**      who                  when           why
+**      ma_muquit@fccc.edu   Aug-07-1998    first cut
+*/
+
+//ClFragmentListHeadT *allocateNode(ClUint32T fragmentID)
+//{
+//    ClFragmentListHeadT  *ClFragmentListHeadT;
+//    ClFragmentListHeadT=(ClFragmentListHeadT *) malloc(sizeof(ClFragmentListHeadT));
+//    if (ClFragmentListHeadT == (ClFragmentListHeadT *) NULL)
+//    {
+//        //(void) fprintf(stderr,"malloc failed at: %s\n",func);
+//        return ((ClFragmentListHeadT *) NULL);
+//    }
+//
+//    ClFragmentListHeadT->fragmentID=fragmentID;
+//    ClFragmentListHeadT->pNext=NULL;
+//
+//    return (ClFragmentListHeadT);
+//}
+
+void appendNode(ClFragmentListHeadT **head,ClFragmentListHeadT **new)
 {
-    struct ClFragmentListHeadT *temp;
-    temp=(struct ClFragmentListHeadT *)malloc(sizeof(ClFragmentListHeadT));
-    temp->fragmentID=num;
-    //temp->messageKey=key;
-    if (pHead==NULL)
+    ClFragmentListHeadT
+        *tmp;
+    if (emptyList(*head) == CL_TRUE)
     {
-        pHead=temp;
-        pHead->pNext=NULL;
+        (*head)=(*new);
     }
     else
     {
-        temp->pNext=pHead;
-        pHead=temp;
+        for (tmp=(*head); tmp->pNext != NULL; tmp=tmp->pNext)
+            ;
+        tmp->pNext=(*new);
     }
-}
-
-void lossListAddAfter(ClFragmentListHeadT *pHead,ClUint32T num, ClUint32T loc)
-{
-    ClUint32T i;
-    struct ClFragmentListHeadT *temp,*right = NULL;
-    struct ClFragmentListHeadT *left = NULL;        
-    right=pHead;
-    for(i=1;i<loc;i++)
-    {
-        left=right;
-        right=right->pNext;
-    }
-    temp=(struct ClFragmentListHeadT *)malloc(sizeof( ClFragmentListHeadT));
-    temp->fragmentID=num;
-    left->pNext=temp;
-    left=temp;
-    left->pNext=right;
-    return;
-}
-
-ClUint32T lossListCount(ClFragmentListHeadT *head)
-{
-    struct ClFragmentListHeadT *n;
-    ClUint32T c=0;
-    n=head;
-    while(n!=NULL)
-    {
-        n=n->pNext;
-        c++;
-    }
-    return c;
-}
-
-ClUint32T lossListGetFirst(ClFragmentListHeadT *head)
-{
-    return head->fragmentID;
 }
 
 /*
- *Functionality : Insert a  loss elements into the loss  list.
- */
-void lossListInsert(ClFragmentListHeadT *pHead,ClUint32T num)
+**  appendNodeSorted()
+**  appends a node to the end of a list sorting by a user defined function
+**
+**  Parameters:
+**  ClFragmentListHeadT **head      - append at the ends of this node
+**  ClFragmentListHeadT **new       - appends this node
+**
+**  Return Values:
+**  None
+**
+**  Limitations and Comments:
+**  new node must be allocated and initialized before passing it here
+**  the function takes two arguments, void * each
+**
+**  Development History:
+**      who                  when           why
+**      ma_muquit@fccc.edu   Aug-07-1998    first cut
+*/
+
+void appendNodeSorted(ClFragmentListHeadT **head,ClFragmentListHeadT **new)
 {
-    ClUint32T c=0;
-    struct ClFragmentListHeadT *temp;
-    temp=pHead;
-    if(temp==NULL)
+    ClFragmentListHeadT *tmp;
+
+    if (emptyList(*head) == CL_TRUE)
     {
-        lossListAdd(pHead,num);
+        (*head)=(*new);
     }
     else
     {
-        while(temp!=NULL)
+        if ((*head)->fragmentID > (*new)->fragmentID)
         {
-            if(temp->fragmentID<=num)
-            {      
-                c++;
-                if(temp->fragmentID==num)// && temp->messageKey==key)
-                {
-                    return;
-                }
-            }
-            temp=temp->pNext;            
+            (*new)->pNext=(*head);
+            (*head)=(*new);
         }
-        if(c==0)
-            lossListAdd(pHead,num);
-        else if(c < lossListCount(pHead))
-            lossListAddAfter(pHead,num,++c);
         else
-            lossListAppend(pHead,num);
+        {
+            for(tmp=(*head); tmp->pNext; tmp=tmp->pNext)
+            {
+                if (tmp->pNext->fragmentID > (*new)->fragmentID)
+                    break;
+            }
+            (*new)->pNext=tmp->pNext;
+            tmp->pNext=(*new);
+        }
     }
 }
 
-ClUint32T lossListDelete(ClFragmentListHeadT *pHead,ClUint32T num)
+/*
+**  insertNode()
+**  insert a node at the beginning of a list
+**
+**  Parameters:
+**  ClFragmentListHeadT **head      - modify this list
+**  ClFragmentListHeadT **new       - appends this node
+**
+**  Return Values:
+**  None
+**
+**  Limitations and Comments:
+**  new node must be allocated and initialized before passing it here
+**
+**  Development History:
+**      who                  when           why
+**      ma_muquit@fccc.edu   Aug-07-1998    first cut
+*/
+
+void insertNode(ClFragmentListHeadT **head,ClFragmentListHeadT **new)
 {
-    struct ClFragmentListHeadT *temp, *prev = NULL;
-    temp=pHead;
-    while(temp!=NULL)
-    {
-        if(temp->fragmentID==num)
-        {
-            if(temp==pHead)
-            {
-                pHead=temp->pNext;
-                free(temp);
-                return 1;
-            }
-            else
-            {
-                prev->pNext=temp->pNext;
-                free(temp);
-                return 1;
-            }
-        }
-        else
-        {
-            prev=temp;
-            temp= temp->pNext;
-        }
-    }
-    return 0;
+
+    (*new)->pNext=(*head);
+    (*head)=(*new);
 }
 
-void lossListInsertRange(ClFragmentListHeadT *lossList, ClUint32T seqno1, ClUint32T seqno2)
+/*
+**  emptyList()
+**  check if a list variable is NULL
+**
+**  Parameters:
+**  ClFragmentListHeadT *list      list
+**
+**  Return Values:
+**  TRUE    if empty
+**  FALSE   if not empty
+**
+**  Limitations and Comments:
+**  list must be allocated/initialized or initialized before calling
+**
+**  Development History:
+**      who                  when           why
+**      ma_muquit@fccc.edu   Aug-07-1998    first cut
+*/
+
+ClBoolT emptyList(ClFragmentListHeadT *list)
+{
+    return ((list == NULL) ? CL_TRUE : CL_FALSE);
+}
+
+/*
+**  delNode()
+**  remove a node from a list
+**
+**  Parameters:
+**  ClFragmentListHeadT **head      - list to modify
+**  ClFragmentListHeadT *node       - node to remove
+**
+**  Return Values:
+**  none
+**
+**  Limitations and Comments:
+**  list is modified
+**
+**  Development History:
+**      who                  when           why
+**      ma_muquit@fccc.edu   Aug-07-1998    first cut
+*/
+void delNode(ClFragmentListHeadT **head,ClFragmentListHeadT *node)
+{
+    if (emptyList(*head) == CL_TRUE)
+        return;
+
+    if ((*head) == node)
+        (*head)=(*head)->pNext;
+    else
+    {
+        ClFragmentListHeadT  *l;
+        for (l=(*head); l != NULL && l->pNext != node; l=l->pNext);
+        if (l == NULL)
+            return;
+        else
+            l->pNext=node->pNext;
+    }
+    //freeNode(&node);
+}
+
+/*
+**  freeNode()
+**  frees a node
+**
+**  Parameters:
+**  ClFragmentListHeadT **list  node to free
+**
+**  Return Values:
+**  none
+**
+**  Limitations and Comments:
+**  if list is not null, it wil be freed. so list better point to a valid
+**  location
+**
+**  Development History:
+**      who                  when           why
+**      ma_muquit@fccc.edu   Aug-07-1998    first cut
+*/
+
+void freeNode(ClFragmentListHeadT **list)
+{
+    if (*list)
+    {
+        (void) free ((char *) (*list));
+        (*list)=NULL;
+    }
+}
+
+
+/*
+**  getNthNode()
+**  get nth node in a list
+**
+**  Parameters:
+**  ClFragmentListHeadT *list       - the head list
+**  int n           - return the node
+**  Return Values:
+**  a pointer to the list at position n
+**  NULL if there's no such node at posion n
+**
+**  Limitations and Comments:
+**  position starts at 1
+**
+**  Development History:
+**      who                  when           why
+**      ma_muquit@fccc.edu   Aug-08-1998    frist cut
+*/
+
+ClFragmentListHeadT *getNthNode(ClFragmentListHeadT *list,int n)
+{
+    ClFragmentListHeadT
+        *lp=NULL;
+    int
+        j=0;
+
+    for (lp=list; lp; lp=lp->pNext)
+    {
+        j++;
+        if (j == n)
+        {
+            return (lp);
+        }
+    }
+
+    return ((ClFragmentListHeadT *) NULL);
+}
+
+ClFragmentListHeadT *getNodebyValue(ClFragmentListHeadT *list,ClUint32T n)
+{
+    ClFragmentListHeadT
+        *lp=NULL;
+
+    for (lp=list; lp; lp=lp->pNext)
+    {
+        ClUint32T j= lp->fragmentID;
+        if (j == n)
+        {
+            return (lp);
+        }
+    }
+    return ((ClFragmentListHeadT *) NULL);
+}
+
+void destroyNode(ClFragmentListHeadT **list,ClFragmentListHeadT *node)
+{
+    clLogDebug("IOC", "Rel", "destroy node");
+    if (emptyList(node) == CL_FALSE)
+    {
+        /*
+        ** destroy the fragmentID
+        */
+        delNode(list,node);
+    }
+}
+
+/*
+**  destroyNodes()
+**  destroy the entire linked list and the fragmentID
+**
+**  Parameters:
+**  ClFragmentListHeadT **head      - head node of the list
+**  freeFunc        - function to free fragmentID
+**
+**  Return Values:
+**  none
+**
+**  Limitations and Comments:
+**  whole list and the fragmentID associated are freed
+**
+**
+**  Development History:
+**      who                  when           why
+**      ma_muquit@fccc.edu   Aug-08-1998    first cut
+*/
+
+/*
+void destroyNodes(ClFragmentListHeadT **head,void (*freeFunc)(void **))
+*/
+void destroyNodes(ClFragmentListHeadT **head)
+{
+    ClFragmentListHeadT *lp;
+    while (*head)
+    {
+        lp=(*head);
+        (*head)=(*head)->pNext;
+        (void) free((char *) lp);
+    }
+}
+
+/*
+**  numNodes()
+**  returns number of nodes in the list
+**
+**  Parameters:
+**  ClFragmentListHeadT **head      - the head node of the list
+**
+**  Return Values:
+**  number of node/s
+**
+**  Limitations and Comments:
+**  traverse the whole list, so not efficient
+**
+**  Development History:
+**      who                  when           why
+**      ma_muquit@fccc.edu   Aug-09-1998    first cut
+*/
+
+int numNodes(ClFragmentListHeadT **head)
+{
+    int n=0;
+
+    ClFragmentListHeadT *lp;
+
+    for (lp=(*head); lp; lp=lp->pNext)
+    {
+        n++;
+    }
+
+    return (n);
+}
+
+void lossListInsertRange(ClFragmentListHeadT **lossList, ClUint32T seqno1, ClUint32T seqno2)
 {
     ClUint32T i;
     if(seqno1==seqno2)
     {
-        lossListInsert(lossList,seqno1);
+        clLogDebug("FRAG", "RECV", "lossListInsertRange insert one");
+        struct ClFragmentListHeadT *temp;
+        temp=(struct ClFragmentListHeadT *)malloc(sizeof(ClFragmentListHeadT));
+        temp->fragmentID=seqno2;
+        temp->pNext=NULL;
+        appendNodeSorted(lossList,&temp);
         return;
     }
     for(i = seqno1; i< seqno2; i++)
     {
-        lossListInsert(lossList,i);
+        struct ClFragmentListHeadT *temp;
+        temp=(struct ClFragmentListHeadT *)malloc(sizeof(ClFragmentListHeadT));
+        temp->fragmentID=i;
+        temp->pNext=NULL;
+        appendNodeSorted(lossList,&temp);
     }
 }
 
-void sendLossListRemoveRange(ClFragmentListHeadT *lossList,ClUint32T seqno1, ClUint32T seqno2)
+ClUint32T lossListDelete(ClFragmentListHeadT **pHead,ClUint32T num)
 {
-    if(seqno1==seqno2)
+    clLogDebug("IOC", "Rel", "Get node with fragId [%d]",num);
+    ClFragmentListHeadT *node=getNodebyValue(*pHead,num);
+    if (node != NULL)
     {
-        lossListDelete(lossList,seqno1);
-        return;
+        clLogDebug("IOC", "Rel", "node found with fragmentId [%d]", node->fragmentID);
+        destroyNode(pHead,node);
     }
-    ClUint32T i;
-    for(i = seqno1; i< seqno2; i++)
-    {
-        lossListDelete(lossList,i);
-    }
+    clLogDebug("IOC", "Rel", "No node found");
+    return CL_OK;
 }
 
+ClUint32T lossListGetFirst(ClFragmentListHeadT *pHead)
+{
+    if(pHead)
+    {
+        return pHead->fragmentID;
+    }
+    else
+    {
+        return 0;
+    }
+
+}
+
+ClUint32T lossListCount(ClFragmentListHeadT **head)
+{
+    return numNodes(head);
+}
