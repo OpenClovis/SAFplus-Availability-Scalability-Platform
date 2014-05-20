@@ -27,12 +27,13 @@
  *  \addtogroup mgt
  *  \{
  */
-
+#pragma once
 #ifndef CLMGTPROVLIST_HXX_
 #define CLMGTPROVLIST_HXX_
 
 #include "clMgtObject.hxx"
 
+#include <boost/container/set.hpp>
 #include <typeinfo>
 #include <iostream>
 #include <iterator>
@@ -55,7 +56,7 @@ public:
     /**
      *  value of the "ClMgtProv" object
      */
-    std::vector<T> value;
+    boost::container::set<T> value;
     ProvListOperation<T> *mOpt;
 
 public:

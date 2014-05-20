@@ -2,6 +2,7 @@
 #include <clHandleApi.hxx>
 #include <clNameApi.hxx>
 #include <clOsalApi.hxx>
+#include <clAmfPolicyPlugin.hxx>
 
 #include <SAFplusAmf/Component.hxx>
 using namespace SAFplusAmf;
@@ -10,6 +11,11 @@ using namespace SAFplus;
 extern Handle           nodeHandle; //? The handle associated with this node
 namespace SAFplus
   {
+  bool ClAmfPolicyPlugin_1::initialize(SAFplus::AmfOperations* amfOperations)
+    {
+    amfOps = amfOperations;
+    return true;
+    }
 
   CompStatus AmfOperations::getCompState(SAFplusAmf::Component* comp)
     {
@@ -23,7 +29,7 @@ namespace SAFplus
       return CompStatus::Uninstantiated; 
       }
 
-    Handle nodeHdl = name.getHandle(comp->serviceUnit.value->node.name);
+    Handle nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
 
     if (nodeHdl == nodeHandle)  // Handle this request locally
       {

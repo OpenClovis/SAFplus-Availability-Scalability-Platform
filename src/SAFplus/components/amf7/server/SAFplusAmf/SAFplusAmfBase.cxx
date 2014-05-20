@@ -114,7 +114,7 @@ namespace SAFplusAmf
     //SAFplusAmf::AdministrativeState as;
     //as.value = 2;
     Node* node[2];
-    node[0]  = createNode("ctrl0",SAFplusAmf::AdministrativeState::on,true,false,false);
+    node[0]  = createNode("sc0",SAFplusAmf::AdministrativeState::on,true,false,false);
     ServiceGroup* sg = createServiceGroup("sg0",SAFplusAmf::AdministrativeState::on,true,false,st,1,1,1,1,1);
     Component* comp[2];
     comp[0] = createComponent("c0",SAFplusAmf::CapabilityModel::x_active_or_y_standby,1,1,"B.01.01",1,"testBundle.tgz","TEST_ENV=1\nTEST_ENV2=2",2,2,2000,SAFplusAmf::Recovery::Restart,true,"","");
@@ -136,15 +136,16 @@ namespace SAFplusAmf
     self->componentServiceInstanceList.addChildObject(csi);
 
     // Connect the elements
-    node[0]->serviceUnits.addChildObject(su[0]);
-    sg->serviceUnits.addChildObject(su[0]);
-    su[0]->components.addChildObject(comp[0]);
-    
-    sg->serviceInstances.addChildObject(si);
+    node[0]->serviceUnits.value.push_back(su[0]);
+    sg->serviceUnits.value.push_back(su[0]);
+    su[0]->components.value.push_back(comp[0]);
+    sg->serviceInstances.value.push_back(si);
     si->serviceGroup.value = sg;
-   
+    comp[0]->serviceUnit.value = su[0];
+    su[0]->node.value = node[0];
+    //su[1]->node.value = node[1];
     csi->serviceInstance.value = si;
-    si->componentServiceInstances.addChildObject(csi);    
+    si->componentServiceInstances.value.push_back(csi);    
     }
 
   void deXMLize(const std::string& obj,MgtObject* context, ComponentServiceInstance*& result)
