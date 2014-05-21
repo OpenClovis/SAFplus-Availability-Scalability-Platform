@@ -5,12 +5,93 @@
 #include <clAmfPolicyPlugin.hxx>
 
 #include <SAFplusAmf/Component.hxx>
+#include <SAFplusAmf/ServiceUnit.hxx>
+#include <SAFplusAmf/ServiceGroup.hxx>
 using namespace SAFplusAmf;
 using namespace SAFplus;
 
 extern Handle           nodeHandle; //? The handle associated with this node
 namespace SAFplus
   {
+
+  // Move this service group and all contained elements to the specified state.
+  void setAdminState(SAFplusAmf::ServiceGroup* sg,SAFplusAmf::AdministrativeState tgt)
+    {
+    SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator itsu;
+    SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
+    for (itsu = sg->serviceUnits.value.begin(); itsu != endsu; itsu++)
+      {
+      //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
+      ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+      const std::string& suName = su->name;
+      if (su->adminState.value != tgt)
+        {
+        logInfo("N+M","AUDIT","Setting service unit [%s] to admin state [%d]",suName.c_str(),tgt);
+        su->adminState.value = tgt;
+        // TODO: transactional and event
+        }
+      }
+      if (sg->adminState.value != tgt)
+        {
+        logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%d]",sg->name.c_str(),tgt);
+        sg->adminState.value = tgt;
+        }
+    }
+
+  // The effective administrative state is calculated by looking at the admin state of the containers: SU, SG, node, and application.  If any contain a "more restrictive" state, then this component inherits the more restrictive state.  The states from most to least restrictive is off, idle, on.  The Application object is optional.
+  SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::Component* comp)
+    {
+    assert(comp);
+    if ((!comp->serviceUnit.value)||(!comp->serviceUnit.value->node.value)||(!comp->serviceUnit.value->serviceGroup.value))  // This component is not properly hooked up to other entities; is must be off
+      {
+      logInfo("N+M","AUDIT","Component [%s] entity group is not properly configured",comp->name.c_str());
+      return SAFplusAmf::AdministrativeState::off;
+      }
+    ServiceUnit* su = comp->serviceUnit.value;
+    return effectiveAdminState(su);
+    }
+
+  SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::ServiceUnit* su)
+    {
+    assert(su);
+    if ((!su->node.value)||(!su->serviceGroup.value))  // This component is not properly hooked up to other entities; is must be off
+      {
+      return SAFplusAmf::AdministrativeState::off;
+      }
+    Node* node = su->node.value;
+    ServiceGroup* sg = su->serviceGroup.value;
+    Application* app = sg->application;
+
+    if ((su->adminState.value == SAFplusAmf::AdministrativeState::off) || (sg->adminState.value == SAFplusAmf::AdministrativeState::off)
+      || (node->adminState.value == SAFplusAmf::AdministrativeState::off) || (app && app->adminState.value == SAFplusAmf::AdministrativeState::off))
+      return SAFplusAmf::AdministrativeState::off;
+
+    if ((su->adminState.value == SAFplusAmf::AdministrativeState::idle) || (sg->adminState.value == SAFplusAmf::AdministrativeState::idle)
+      || (node->adminState.value == SAFplusAmf::AdministrativeState::off) || (app && app->adminState.value == SAFplusAmf::AdministrativeState::idle))
+      return SAFplusAmf::AdministrativeState::idle;
+
+    if ((su->adminState.value == SAFplusAmf::AdministrativeState::on) || (sg->adminState.value == SAFplusAmf::AdministrativeState::on)
+      || (node->adminState.value == SAFplusAmf::AdministrativeState::off) || (app && app->adminState.value == SAFplusAmf::AdministrativeState::on))
+      return SAFplusAmf::AdministrativeState::on;
+    }
+
+  SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::ServiceGroup* sg)
+    {
+    assert(sg);
+    Application* app = sg->application;
+
+    if ((sg->adminState.value == SAFplusAmf::AdministrativeState::off) || (app && app->adminState.value == SAFplusAmf::AdministrativeState::off))
+      return SAFplusAmf::AdministrativeState::off;
+
+    if ( (sg->adminState.value == SAFplusAmf::AdministrativeState::idle) || (app && app->adminState.value == SAFplusAmf::AdministrativeState::idle))
+      return SAFplusAmf::AdministrativeState::idle;
+
+    if ((sg->adminState.value == SAFplusAmf::AdministrativeState::on) || (app && app->adminState.value == SAFplusAmf::AdministrativeState::on))
+      return SAFplusAmf::AdministrativeState::on;
+    }
+
+
+
   bool ClAmfPolicyPlugin_1::initialize(SAFplus::AmfOperations* amfOperations)
     {
     amfOps = amfOperations;
@@ -49,7 +130,6 @@ namespace SAFplus
         {
         return CompStatus::Uninstantiated;
         }
-
 
       // TODO: Talk to the process to discover its state...
       return CompStatus::Instantiated;

@@ -83,7 +83,7 @@ namespace SAFplus
  
     MgtObject::Iterator begin(void);
 
-
+    MgtObject* operator [](const char* name);
     /**
      * \brief	Function called from netconf server to get data of the list
      */

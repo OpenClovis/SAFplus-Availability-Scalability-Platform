@@ -309,6 +309,7 @@ int main(int argc, char* argv[])
   db->initializeDB("SAFplusAmf");
   //cfg.read(db);
   createTestDataSet(&cfg);
+  setAdminState((SAFplusAmf::ServiceGroup*) cfg.serviceGroupList["sg0"],AdministrativeState::on);
 
   logServer = boost::thread(LogServer());
 

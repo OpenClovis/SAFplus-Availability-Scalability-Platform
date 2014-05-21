@@ -44,6 +44,13 @@ namespace SAFplus
     {
     }
 
+  MgtObject* MgtList::operator [](const char* name)
+    {
+    Map::iterator it = children.find(name);
+    if (it == children.end()) return nullptr;
+    return it->second;
+    }
+
   void MgtList::removeAllChildren()
     {
     children.clear();

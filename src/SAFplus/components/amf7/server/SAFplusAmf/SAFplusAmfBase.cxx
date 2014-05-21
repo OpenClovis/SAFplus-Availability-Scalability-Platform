@@ -143,6 +143,7 @@ namespace SAFplusAmf
     si->serviceGroup.value = sg;
     comp[0]->serviceUnit.value = su[0];
     su[0]->node.value = node[0];
+    su[0]->serviceGroup.value = sg;
     //su[1]->node.value = node[1];
     csi->serviceInstance.value = si;
     si->componentServiceInstances.value.push_back(csi);    

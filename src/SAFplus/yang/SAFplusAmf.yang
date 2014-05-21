@@ -104,7 +104,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       type enumeration
       {
 	enum readyForAssignment;
-        enum readyForActiveDegrated;
+        enum readyForActiveDegraded;
         enum notReadyForActive;
         enum notReadyForAssignment;
       }
