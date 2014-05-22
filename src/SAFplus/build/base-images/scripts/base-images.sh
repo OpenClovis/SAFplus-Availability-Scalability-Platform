@@ -116,7 +116,7 @@ populate_image() {
 
     export MODEL_BIN=${SOURCE_MODEL_ROOT}/target/${ARCH}/${SYS}/bin
 
-    echo "  Creating directory $targetmodeldir/images..."
+    echo "  Creating directory ${imagedir}..."
     mkdir -p $imagedir
     mkdir $imagedir/bin
     mkdir $imagedir/lib
@@ -410,7 +410,7 @@ fi
 # Those subdirectories are the "system" directories.  Invoke the
 # populate_image function for each architecture/system directory
 echo ""
-
+echo "${MODEL_TARGET_ROOT}"
 for arch in ${MODEL_TARGET_ROOT}/*
 do
     if [ -d "${arch}" ]

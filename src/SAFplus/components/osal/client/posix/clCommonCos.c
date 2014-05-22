@@ -1734,7 +1734,8 @@ cosPosixTaskDataGet(ClUint32T key, ClOsalTaskDataT* pThreadData)
     {
       int retCode  = CL_OSAL_RC(CL_OSAL_ERR_OS_ERROR);
       *pThreadData = 0; /* Clear it out in case the app is misbehaved */
-      clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Access of non-existent task-specific data key [0x%x]", key);
+      //clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Access of non-existent task-specific data key [0x%x]", key);
+      clDbgCodeError(retCode, ("Access of non-existent task-specific data key [0x%x]", key));
       CL_FUNC_EXIT();
       return(retCode);
     }
