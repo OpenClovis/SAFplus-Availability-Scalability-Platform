@@ -135,6 +135,7 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
             ClAmsSISURefT *siSURef = NULL;
             ClAmsSIT *si = (ClAmsSIT*)entityRef->ptr;
             ClAmsSGT *sg = NULL;
+            ClAmsSUT *foundSu = NULL;
             ClAmsCustomAssignmentIterT iter = {0};
             if(!si) 
                 continue;
@@ -146,13 +147,15 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
             {
                 continue;
             }
+
+            ClBoolT preferred = CL_FALSE;
+
             clAmsCustomAssignmentIterInit(&iter, si);
             while( (siSURef = clAmsCustomAssignmentIterNext(&iter)) )
             {
-                ClAmsSUT *su;
                 if ((siSURef->haState == CL_AMS_HA_STATE_ACTIVE)||(siSURef->haState == CL_AMS_HA_STATE_STANDBY))
                 {
-                    su = (ClAmsSUT*)siSURef->entityRef.ptr;
+                    ClAmsSUT *su = (ClAmsSUT*)siSURef->entityRef.ptr;
                     if(clAmsPeSUIsAssignable(su) != CL_OK)
                         continue;
                     if(su->status.readinessState != CL_AMS_READINESS_STATE_INSERVICE)
@@ -162,14 +165,39 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
                     //    continue;
                     if(su->status.numActiveSIs >= sg->config.maxActiveSIsPerSU)
                         continue;
+
+                    // Ok it passed all checks, this SI/SU pair is a candidate for Active.
+                    
                     *targetSI = si;
-                    if(targetSU)
-                        *targetSU = su;
-                    break;
+                    foundSu = su;
+                    if (targetSU) *targetSU = su;
+                    if (siSURef->haState == CL_AMS_HA_STATE_ACTIVE)  // Its the preferred active so take it.  If its standby we'll keep looking
+                    {
+                        preferred = CL_TRUE;
+                        break;
+                    }
                 }                
             }
             clAmsCustomAssignmentIterEnd(&iter);
-            if(*targetSI) return CL_OK;
+
+            if ((!preferred)&&(foundSu)&&(foundSu->status.numDelayAssignments < 4 ))
+            {
+                ++foundSu->status.numDelayAssignments;
+                clLogDebug("CUST", "ASSIGN", "Delaying preferred standby SI [%s] active assignment to SU [%s] by [%d] ms. Delay [%d] of [4]",
+                           si->config.entity.name.value, 
+                           foundSu->config.entity.name.value, CL_AMS_SU_ASSIGNMENT_DELAY, foundSu->status.numDelayAssignments );
+
+                AMS_CALL ( clAmsEntityTimerStart((ClAmsEntityT*)foundSu, CL_AMS_SU_TIMER_ASSIGNMENT) );
+                *targetSI = NULL;
+                foundSu = NULL;
+            }
+            else
+            {
+                if (foundSu) foundSu->status.numDelayAssignments = 0;            
+                if(*targetSI) return CL_OK;
+            }
+            
+
         }
     }
     *targetSI = NULL;
@@ -1059,10 +1087,14 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
     };
 
     sg = (ClAmsSGT*)si->config.parentSG.ptr;
+    if(!sg)
+      {
+         clLogError("CUSTOM", "SI-ASSIGN-SU", "Misconfiguration: SI [%.*s] is not connected to a SG.", si->config.entity.name.length-1,si->config.entity.name.value);
+         goto out;
+      }    
     if(sg->config.redundancyModel != CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM)
     {
-        clLogError("CUSTOM", "SI-ASSIGN-SU", "SG redundancy mode is invalid [%d]",
-                   sg->config.redundancyModel);
+        clLogError("CUSTOM", "SI-ASSIGN-SU", "SG redundancy mode is invalid [%d]", sg->config.redundancyModel);
         goto out;
     }
 
@@ -1076,8 +1108,7 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
             if(rc != CL_OK)
             {
                 rc = CL_OK;
-                clLogWarning("CUSTOM", "SI-ASSIGN-SU", "No active SU found for SI [%s]. "
-                             "Skipping active SU remove", si->config.entity.name.value);
+                clLogWarning("CUSTOM", "SI-ASSIGN-SU", "No active SU found for SI [%s]. Skipping active SU remove", si->config.entity.name.value);
             }
             else
             {

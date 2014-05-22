@@ -301,9 +301,21 @@ SPLINTCMD	= splint
 SPLINTFLAGS	+= +posixlib -preproc -badflag -warnsysfiles \
                    -nof -weak -line-len 360 -unrecog
 
-CXXFLAGS := $(filter-out -std=c99,$(LOCAL_CFLAGS)) -Wno-variadic-macros -std=gnu++11
+CXXFLAGS := $(filter-out -std=c99,$(LOCAL_CFLAGS)) -Wno-variadic-macros
 # even though variadic macros are not technically supported in c++, g++ and other compilers support them
 # -Werror -- Note compiler complains when c++ is compiled with -std=c99, but precompiler complains when it is NOT defined so warnings can't be errors.
+
+GCC_VERSION_GE_47 := $(shell $(CXX) -dumpversion | gawk '{print $$1>=4.7?"1":"0"}')
+GCC_VERSION_GE_43 := $(shell $(CXX) -dumpversion | gawk '{print $$1>=4.3?"1":"0"}')
+
+ifeq ($(GCC_VERSION_GE_47),1)
+CXXFLAGS += -std=gnu++11
+else
+ifeq ($(GCC_VERSION_GE_43),1)
+CXXFLAGS += -std=gnu++0x
+endif
+endif
+
 LOCAL_CFLAGS += -Werror  # force all warnings to be errors for extra clean compilation
 
 # The compilation/link flags are passed to lower directories as well

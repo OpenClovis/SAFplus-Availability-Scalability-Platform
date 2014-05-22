@@ -2638,7 +2638,8 @@ static ClCpmCallbackQueueDataT * getRequest(ClCpmInstanceT *cpmInstance, ClBoolT
     /* if blocking read the pipe and block if there is nothing to get */
     if (blocking)
         while ( ((size = read(cpmInstance->readFd, (void *) &chr1, 1) ) < 0) && (errno == EINTR) );
-    
+    if (cpmInstance->finalize) return NULL;  // We are quitting so get out of here
+
     rc = clOsalMutexLock(cpmInstance->cbMutex);
     CL_ASSERT(rc==CL_OK);
 

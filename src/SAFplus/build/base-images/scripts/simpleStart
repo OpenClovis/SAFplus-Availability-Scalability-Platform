@@ -1,0 +1,59 @@
+#!/bin/bash
+# Simple SAFplus start script. This can be used as a replacement to the python
+# "safplus start".  However, it lacks the full functionality of "safplus start".
+
+# *** It is meant to be as simple as possible ***
+
+# This script expects that TIPC is either already loaded and configured or
+# that tipc.ko exists in $ASP_DIR/modules and tipc-config exists in your path.
+# 
+
+export DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#export ASP_DIR=$(realpath $(pwd)/..)
+export ASP_DIR=$(readlink -f $DIR/..)
+source $ASP_DIR/etc/asp.conf
+
+export ASP_BINDIR=$ASP_DIR/bin
+export ASP_CPM_CWD=$ASP_DIR/var/run
+export ASP_CONFIG=$ASP_DIR/etc
+export ASP_MULTINODE=0
+export ASP_SIMULATION=0
+export BUILD_TIPC=1
+
+export ASP_APP_BINDIR=$ASP_DIR/bin
+export ASP_RUNDIR=$ASP_DIR/var/run
+export ASP_DBDIR=$ASP_DIR/var/lib
+export ASP_LOGDIR=$ASP_DIR/var/log
+export ASP_NODENAME=$NODENAME
+export ASP_NODEADDR=$DEFAULT_NODEADDR
+
+mkdir -p $ASP_RUNDIR
+mkdir -p $ASP_DBDIR
+mkdir -p $ASP_LOGDIR
+
+export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${ASP_DIR}/lib:${ASP_DIR}/lib/openhpi:/usr/lib:/usr/local/lib
+export PYTHONPATH=$PYTHONPATH:${ASP_DIR}/lib
+
+# User can set his own log severity: export CL_LOG_SEVERITY=ERROR
+#type $ASP_DIR/modules/tipc.ko >/dev/null 2>&1
+if [ -a ${ASP_DIR}/modules/tipc.ko ]; then
+  insmod $ASP_DIR/modules/tipc.ko
+else
+  echo "TIPC kernel module not found in $ASP_DIR/modules.  Expecting that it is already loaded."
+fi
+
+type tipc-config >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "tipc-config not found in your path.  Expecting the TIPC is already properly configured."
+else
+  tipc-config -netid=$TIPC_NETID -addr=1.1.$DEFAULT_NODEADDR -be=eth:eth0
+fi
+
+#shift will consume more args
+echo SAFPLUS dir: $ASP_DIR
+echo $ASP_BINDIR/safplus_amf -c 0 -n $NODENAME -l $DEFAULT_NODEADDR $@
+#exec gdb $ASP_BINDIR/safplus_amf
+cd $ASP_RUNDIR
+exec $ASP_BINDIR/safplus_amf -c 0 -n $NODENAME -l $DEFAULT_NODEADDR $@
+
+

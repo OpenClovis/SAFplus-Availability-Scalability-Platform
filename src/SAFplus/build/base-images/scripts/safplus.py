@@ -36,7 +36,7 @@ SAFPLUS_STOP_FILE    = 'safplus_stop'     # File in created while SAF is gracefu
 SAFPLUS_STATUS_FILE  = 'safplus_state'    # File to contain the status of SAFplus in form of int in location sandbox_dir/var/run
                                           # 0 -> running, 1 -> not running, 2 -> booting/shutting down.
 SystemErrorNoSuchFileOrDir = 127
-SAFPLUS_SHUTDOWN_WAIT_TIMEOUT  = 10
+SAFPLUS_SHUTDOWN_WAIT_TIMEOUT  = 60
 
 SAF_AMF_START_CMD_CHASSIS    = '-c'        # tag for Chassi number in start command
 SAF_AMF_START_CMD_LOCAL_SLOT = '-l'        # tag for Slot number in start command
@@ -642,6 +642,7 @@ def get_amf_pid():
         valid = commands.getstatusoutput("/bin/pidof %s" % AmfName);
         if valid[0] == 0:
             if len(valid[1].split())==1:          
+                #log.info("AMF PID is %d" % int(valid[1]))
                 return int(valid[1])
         else:
             break
@@ -660,6 +661,9 @@ def stop_amf():
             if amf_pid == 0:
                 break
             time.sleep(6)
+            print ".",
+            sys.stdout.flush()
+        print ""
 
     amf_pid = get_amf_pid()
     if amf_pid == 0:
@@ -693,7 +697,6 @@ def cleanup_safplus():
       raise
 
 def kill_amf():
-    log.info('Killing SAFplus...')
     b = SAFPLUS_BIN_DIR
 
     if is_valgrind_build():
@@ -720,17 +723,19 @@ def kill_amf():
         apps.remove(AmfName)
         apps.insert(0, AmfName)
     except: pass
-
+    # log.info("Killing %s" % str(apps))
     for f in apps:
         f = os.path.abspath(b + '/' + f)
         if is_executable_file(f):
             cmd = os_platform.get_kill_amf_cmd(f)
             os.system(cmd)
+            log.info("Killed [%s] with command [%s]" % (f,cmd))
         if is_valgrind_build():
             for pid, exe in pid_cwd_list:
                 if exe == f:
                     try:
                         os.kill(pid, signal.SIGKILL)
+                        log.info('Killed [%d] with SIGKILL.' % pid)
                     except OSError, e:
                         if e.errno == errno.ESRCH:
                             pass

@@ -658,7 +658,7 @@ clHandleDestroy (
         return CL_HANDLE_RC(CL_ERR_INVALID_HANDLE);
     }
 
-    ec = pthread_mutex_lock (&hdbp->mutex);
+    ec = pthread_mutex_lock (&hdbp->mutex); // Do not log inside here because log uses handles
     CL_ASSERT(ec == 0);
     if (ec != 0)
     {
@@ -676,7 +676,6 @@ clHandleDestroy (
                 (ClPtrT) hdbp, handle);
         return CL_HANDLE_RC(CL_ERR_INVALID_HANDLE);
     }
-    clDbgResourceNotify(clDbgHandleResource, clDbgRelease, hdbp, handle+1, ("Handle [%p:%#llX] (state: %d, ref: %d) released", (ClPtrT)hdbp, handle+1,hdbp->handles[handle].state,hdbp->handles[handle].ref_count));
 
     if (HANDLE_STATE_USED == hdbp->handles[handle].state)
     {
@@ -691,6 +690,7 @@ clHandleDestroy (
          * Adding 1 to handle to ensure the non-zero handle interface.
          */
         ec = clHandleCheckin (databaseHandle, handle+1);
+        clDbgResourceNotify(clDbgHandleResource, clDbgRelease, hdbp, handle+1, ("Handle [%p:%#llX] (state: %d, ref: %d) released", (ClPtrT)hdbp, handle+1,hdbp->handles[handle].state,hdbp->handles[handle].ref_count));
         return ec;
     }
     else if (HANDLE_STATE_EMPTY == hdbp->handles[handle].state)
@@ -704,17 +704,12 @@ clHandleDestroy (
         {
             return CL_HANDLE_RC(CL_ERR_MUTEX_ERROR); /* This can be devastating */
         }
-        clLogWarning(CL_HDL_AREA, CL_HDL_CTX_DESTROY,  
-                     "Destroy has been called for this handle [%p:%#llX]" 
-                     "returning CL_OK", (ClPtrT) hdbp,
-                     (handle + 1));
+        clLogWarning(CL_HDL_AREA, CL_HDL_CTX_DESTROY,  "Destroy has been called for this handle [%p:%#llX] returning CL_OK", (ClPtrT) hdbp, (handle + 1));
         return CL_OK;
     }
     else
     {
-        clDbgCodeError(CL_ERR_INVALID_HANDLE, 
-                       ("Passed handle [%p:%#llX] doesn't have any proper state,"
-                       "corrupted code", (ClPtrT) hdbp, (handle + 1)));
+        clDbgCodeError(CL_ERR_INVALID_HANDLE, ("Passed handle [%p:%#llX] doesn't have any proper state, corrupted code", (ClPtrT) hdbp, (handle + 1)));
         /*
          * Invalid state - this musn't happen!
          */

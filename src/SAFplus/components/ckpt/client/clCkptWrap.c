@@ -5260,6 +5260,11 @@ void ckptEventCallback(ClEventSubscriptionIdT    subscriptionId,
      * Get all the handles associated with the checkpoint for which the
      * event is received.
      */
+    if (payLoad.name.length > payLoadLen)
+      {
+        clLogError(CL_CKPT_AREA_CLIENT, CL_LOG_CONTEXT_UNSPECIFIED,"Event data is corrupted.  Name length [%d] > message length [%lu]",payLoad.name.length, (long unsigned int) payLoadLen);
+	return;
+      }
     clCksm32bitCompute ((ClUint8T *)payLoad.name.value,
                         payLoad.name.length, &cksum);
 

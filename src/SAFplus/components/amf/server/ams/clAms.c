@@ -392,6 +392,7 @@ static void *clAmsClusterStateVerifier(void *cookie)
             if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP) || !gpClCpm->polling)
             {
                 clEoRefDec(cpmEoObj);
+		return NULL;
             }
         }
         

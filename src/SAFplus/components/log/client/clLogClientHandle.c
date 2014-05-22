@@ -321,8 +321,6 @@ void clLogHandleCleanupCb(void  *pData)
 {
     ClLogInitHandleDataT *pInit = (ClLogInitHandleDataT *)pData;
 
-    CL_LOG_DEBUG_TRACE(("Enter"));
-
     if( CL_LOG_INIT_HANDLE == pInit->type )
     {
         CL_LOG_CLEANUP(clBitmapDestroy(pInit->hStreamBitmap), CL_OK);
@@ -332,8 +330,6 @@ void clLogHandleCleanupCb(void  *pData)
             pInit->pCallbacks = NULL;
         }
     }
-
-    CL_LOG_DEBUG_TRACE(("Exit"));
 }
 
 ClRcT
