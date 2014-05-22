@@ -188,11 +188,11 @@ clAmsPeSGFindSIForActiveAssignmentCustom(
                 ++foundSu->status.numDelayAssignments;
                 clLogDebug("CUST", "ASSIGN", "Delaying preferred standby SI [%s] active assignment to SU [%s] by [%d] ms. Delay [%d] of [4]",
                            si->config.entity.name.value, 
-                           foundSu->config.entity.name.value, foundSu->status.numDelayAssignments,
-                           CL_AMS_SU_ASSIGNMENT_DELAY);
+                           foundSu->config.entity.name.value, CL_AMS_SU_ASSIGNMENT_DELAY, foundSu->status.numDelayAssignments );
 
                 AMS_CALL ( clAmsEntityTimerStart((ClAmsEntityT*)foundSu, CL_AMS_SU_TIMER_ASSIGNMENT) );
-                                    
+                *targetSI = NULL;
+                foundSu = NULL;
             }
             else
             {
@@ -1101,10 +1101,14 @@ ClRcT clAmsPeSIAssignSUCustom(ClAmsSIT *si, ClAmsSUT *activeSU, ClAmsSUT *standb
     };
 
     sg = (ClAmsSGT*)si->config.parentSG.ptr;
+    if(!sg)
+    {
+        clLogError("CUSTOM", "SI-ASSIGN-SU", "Misconfiguration: SI [%.*s] is not connected to a SG.", si->config.entity.name.length-1,si->config.entity.name.value);
+        goto out;
+    }
     if(sg->config.redundancyModel != CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM)
     {
-        clLogError("CUSTOM", "SI-ASSIGN-SU", "SG redundancy mode is invalid [%d]",
-                   sg->config.redundancyModel);
+        clLogError("CUSTOM", "SI-ASSIGN-SU", "SG redundancy mode is invalid [%d]", sg->config.redundancyModel);
         goto out;
     }
 

@@ -16,7 +16,7 @@ shm_dir = os.getenv('ASP_SHM_DIR') or '/dev/shm'
 core_file_dir = ''
 core_file_regex = 'core.*'
 
-asp_shutdown_wait_timeout = 30
+asp_shutdown_wait_timeout = 60  # Should be > than the default 30 second CSI removal time.
 
 def system(cmd):
     """Similar to the os.system call, except that both the output and
