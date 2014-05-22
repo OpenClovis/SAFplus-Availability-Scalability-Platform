@@ -1319,7 +1319,9 @@ def kill_asp(lock_remove = True):
     for f in apps:
         f = os.path.abspath(b + '/' + f)
         if is_executable_file(f):
-            os.system(sys_asp['get_kill_asp_cmd'](f))
+            cmd = sys_asp['get_kill_asp_cmd'](f)
+            ret = os.system(cmd)
+            log.info("Killed [%s] with command [%s] -> %d" % (f,cmd, ret))
         if is_valgrind_build():
             for pid, exe in pid_cwd_list:
                 if exe == f:

@@ -131,9 +131,7 @@ clBitmapDestroy(ClBitmapHandleT  hBitmap)
 {
     ClRcT          rc           = CL_OK;
     ClBitmapInfoT  *pBitmapInfo = hBitmap;
-
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Enter"));
-
+    
     if( CL_BM_INVALID_BITMAP_HANDLE == hBitmap )
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Invalid Handle"));
@@ -148,7 +146,6 @@ clBitmapDestroy(ClBitmapHandleT  hBitmap)
     clHeapFree(pBitmapInfo->pBitmap);
     clHeapFree(pBitmapInfo);
 
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Exit"));
     return rc;
 }
 

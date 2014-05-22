@@ -4442,15 +4442,16 @@ ClRcT clEventDataGet(ClEventHandleT eventHandle, void *pEventData,
 
     rc = clBufferLengthGet(pEventHandle->msgHandle, &msgLen);
 
-    rc = clBufferReadOffsetSet(pEventHandle->msgHandle, 0,
-            CL_BUFFER_SEEK_SET);
+    rc = clBufferReadOffsetSet(pEventHandle->msgHandle, 0, CL_BUFFER_SEEK_SET);
 
     /*
      * read primary event header 
      */
-    rc = clBufferNBytesRead(pEventHandle->msgHandle,
-            (ClUint8T *) &evtPrimaryHeader,
-            (ClUint32T *) &noOfBytesToRead);
+    rc = clBufferNBytesRead(pEventHandle->msgHandle, (ClUint8T *) &evtPrimaryHeader, (ClUint32T *) &noOfBytesToRead);
+    if(CL_OK != rc)  // This can happen if buffer is finalized...
+	  {
+	    goto failure;
+	  }    
 
     /*
      * Move the offset to get the event pay load data lenght 
@@ -4510,21 +4511,17 @@ ClRcT clEventDataGet(ClEventHandleT eventHandle, void *pEventData,
     /*
      * Reset the read offset to old postion 
      */
-    rc = clBufferReadOffsetSet(pEventHandle->msgHandle, readOffset,
-            CL_BUFFER_SEEK_SET);
+    rc = clBufferReadOffsetSet(pEventHandle->msgHandle, readOffset, CL_BUFFER_SEEK_SET);
 
     rc = clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, eventHandle);
     if(CL_OK != rc)
     {
-        clLogError("EVT", "EDG", 
-                CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
+        clLogError("EVT", "EDG", CL_LOG_MESSAGE_1_HANDLE_CHECKIN_FAILED, rc);
         goto failure;
     }
 
 // success:
-    clLogTrace("EVT", "EDG", 
-            "Event Data Get succeeded for eventHandle[%#llX]",
-            eventHandle);
+    // clLogTrace("EVT", "EDG", "Event Data Get succeeded for eventHandle[%#llX]", eventHandle);
 
     CL_FUNC_EXIT();
     return CL_OK;
@@ -4533,10 +4530,9 @@ eventHdlCheckedOut:
     clHandleCheckin(pEvtClientHead->evtClientHandleDatabase, eventHandle);
 
 failure:
+    *pEventDataSize = 0; // Just to be clear that there's an error, set the length of the received event to 0
     rc = CL_EVENTS_RC(rc);
-    clLogError("EVT", "EDG", 
-            "Event Data Get failed for eventHandle[%#llX]"
-            "with rc[%#X]", eventHandle, rc);
+    clLogError("EVT", "EDG", "Event Data Get failed for eventHandle [%#llX] with rc [%#X]", eventHandle, rc);
     CL_FUNC_EXIT();
     return rc;
 }
