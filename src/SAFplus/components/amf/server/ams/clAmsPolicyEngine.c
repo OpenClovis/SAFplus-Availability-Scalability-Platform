@@ -217,6 +217,7 @@ ClRcT
 clAmsPeRemoteProxiedSUsForNode(ClAmsNodeT *node,
                                ClListHeadT *proxiedSUList);
 
+static ClRcT clAmsPeSUSwitchoverPrologue(ClAmsSUT *su, ClUint32T error, ClUint32T switchoverMode);
 
 /******************************************************************************
  * Cluster Functions
@@ -7081,6 +7082,11 @@ clAmsPeSUSwitchoverWorkByComponent(
         }
     }
 
+    /* Call SGEvaluateWork for this SG */
+    if (su->status.numActiveSIs == 0 && su->status.numStandbySIs == 0 && su->status.numQuiescedSIs == 0)
+    {
+        return clAmsPeSUSwitchoverPrologue(su, CL_OK, switchoverMode);
+    }
     return CL_OK;
 }
 
