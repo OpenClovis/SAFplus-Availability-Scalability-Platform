@@ -105,6 +105,9 @@
  */
 #define CL_IOC_REASSEMBLY_TIMEOUT        (5000)  /* milliseconds */
 
+#define CL_IOC_RELIABLE_SEND_TIMEOUT        (3000)  /* milliseconds */
+
+
 
 #endif
 

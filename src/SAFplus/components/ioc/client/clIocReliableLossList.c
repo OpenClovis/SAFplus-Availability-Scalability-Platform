@@ -238,7 +238,7 @@ void freeNode(ClFragmentListHeadT **list)
 {
     if (*list)
     {
-        (void) free ((char *) (*list));
+        clHeapFree((char *) (*list));
         (*list)=NULL;
     }
 }
@@ -389,7 +389,7 @@ void lossListInsertRange(ClFragmentListHeadT **lossList, ClUint32T seqno1, ClUin
         appendNodeSorted(lossList,&temp);
         return;
     }
-    for(i = seqno1; i< seqno2; i++)
+    for(i = seqno1; i<= seqno2; i++)
     {
         struct ClFragmentListHeadT *temp;
         temp=(struct ClFragmentListHeadT *)malloc(sizeof(ClFragmentListHeadT));
