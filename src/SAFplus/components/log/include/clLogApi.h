@@ -1738,12 +1738,23 @@ extern ClRcT
 clLogMsgWrite(ClHandleT       streamHdl,
               ClLogSeverityT  severity,
               ClUint16T       serviceId,
-              const ClCharT         *pArea,
-              const ClCharT         *pContext,
-              const ClCharT         *pFileName,
+              const ClCharT   *pArea,
+              const ClCharT   *pContext,
+              const ClCharT   *pFileName,
               ClUint32T       lineNum,
               const ClCharT   *pFmtStr,
               ...) CL_PRINTF_FORMAT(8, 9);
+
+extern ClRcT
+clLogVMsgWrite(ClHandleT       streamHdl,
+               ClLogSeverityT  severity,
+               ClUint16T       serviceId,
+               const ClCharT   *pArea,
+               const ClCharT   *pContext,
+               const ClCharT   *pFileName,
+               ClUint32T       lineNum,
+               const ClCharT   *pFmtStr,
+               va_list         vaargs) CL_PRINTF_FORMAT(8, 0);
 
 extern ClRcT
 clLogMsgWriteDeferred(ClHandleT       streamHdl,

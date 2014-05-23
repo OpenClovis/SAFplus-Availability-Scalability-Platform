@@ -1010,17 +1010,34 @@ ClRcT
 clLogMsgWrite(ClLogStreamHandleT streamHdl,
               ClLogSeverityT  severity,
               ClUint16T       serviceId,
-              const ClCharT         *pArea,
-              const ClCharT         *pContext,
-              const ClCharT         *pFileName,
+              const ClCharT   *pArea,
+              const ClCharT   *pContext,
+              const ClCharT   *pFileName,
               ClUint32T       lineNum,
               const ClCharT   *pFmtStr,
-              ...)
-              
+              ...)      
 {
     ClRcT rc = CL_OK;
     va_list vaargs;
     va_start(vaargs, pFmtStr);
+    rc = clLogVMsgWrite(streamHdl, severity, serviceId, pArea, pContext, pFileName, lineNum, pFmtStr, vaargs);
+    va_end(vaargs);
+    return rc;
+}
+
+ClRcT
+clLogVMsgWrite(ClLogHandleT    streamHdl,
+               ClLogSeverityT  severity,
+               ClUint16T       serviceId,
+               const ClCharT   *pArea,
+               const ClCharT   *pContext,
+               const ClCharT   *pFileName,
+               ClUint32T       lineNum,
+               const ClCharT   *pFmtStr,
+               va_list         vaargs)
+{ 
+  ClRcT rc = CL_OK;
+
 #if ((defined NO_SAF) || (defined  __arm__))  // ARM is temporary; logging not working right now in arm
   ClCharT           msg[CL_LOG_MAX_MSG_LEN]; // note this should be able to be removed and directly copied to shared mem.
   unsigned int       msgStrLen;
@@ -1035,10 +1052,9 @@ clLogMsgWrite(ClLogStreamHandleT streamHdl,
       printf(msg); printf("\n"); fflush(stdout);
   }
   
-#else    
+#else   
     rc = logVMsgWriteDeferred(streamHdl, severity, serviceId, pArea, pContext, pFileName, lineNum, CL_FALSE, CL_TRUE, pFmtStr, vaargs);
 #endif    
-    va_end(vaargs);
     return rc;
 }
 
