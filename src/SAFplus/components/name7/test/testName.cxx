@@ -338,18 +338,18 @@ int main(int argc, char* argv[])
 
    clTestGroupInitialize(("Set/get name service simultaneously by threads"));
    const char* name5 = "_name5";   
-   threadNameSetGet(name5, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc1);
+   clTestCase(("Set/get name service simultaneously; name [%s]", name5), threadNameSetGet(name5, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc1));   
    uint32_t idx = 0xaabbc2;
    int i;
    for(i=0;i<30;i++) {
-     threadNameAppendGet(name5, NameRegistrar::MODE_PREFER_LOCAL, idx);
+     clTestCase(("Append/get name service simultaneously; name [%s]", name5), threadNameAppendGet(name5, NameRegistrar::MODE_PREFER_LOCAL, idx));     
      idx+=2;
    }    
    const char* name6 = "_name6";   
-   threadNameSetGet(name6, NameRegistrar::MODE_REDUNDANCY, 0xaabbe1);  
+   clTestCase(("Set/get name service simultaneously; name [%s]", name6), threadNameSetGet(name6, NameRegistrar::MODE_REDUNDANCY, 0xaabbe1));    
    idx=0xaabbe2;
    for(i=0;i<30;i++) {
-     threadNameAppendGet(name6, NameRegistrar::MODE_ROUND_ROBIN, idx);     
+     clTestCase(("Append/get name service simultaneously; name [%s]", name6), threadNameAppendGet(name6, NameRegistrar::MODE_ROUND_ROBIN, idx));     
      idx+=2;
    }  
    clTestGroupFinalize();  
