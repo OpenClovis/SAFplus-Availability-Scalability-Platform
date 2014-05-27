@@ -169,15 +169,8 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf command
       {
 	type string;
-	description "Specify both name of the binary here";
+	description "Specify both name of the binary here and any args -- as if you were executing on the bash shell";
 	safplus:ui-prompt "Command: ";
-	default "";
-      }
-      leaf args
-      {
-	type string;
-	description "Specify the arguments as if you are writing them on the command line";
-	safplus:ui-prompt "Arguments: ";
 	default "";
       }
       leaf timeout

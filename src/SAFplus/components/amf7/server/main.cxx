@@ -5,6 +5,9 @@
 #include <boost/foreach.hpp>
 #include <boost/unordered_map.hpp>
 
+#include <sys/types.h>
+#include <sys/wait.h>
+
 #include <clHandleApi.hxx>
 #include <clLogApi.hxx>
 #include <clCkptApi.hxx>
@@ -376,6 +379,23 @@ int main(int argc, char* argv[])
     if (!firstTime && (somethingChanged.timed_wait(m,2000)==0))
       {  // Timeout
       logDebug("IDL","---","...waiting for something to happen...");
+      int pid;
+      do
+        {
+        int status = 0;
+        pid = waitpid(-1, &status, WNOHANG);
+        if (pid>0)
+          {
+          logWarning("PRC","MON","Child process [%d] has failed", pid);
+          }
+        if (pid<0)
+          {
+          // ECHILD means no child processes forked yet.
+          if (errno != ECHILD) logWarning("PRC","MON","waitpid errno [%s (%d)]", strerror(errno), errno);
+          }
+
+        // TODO: find this pid in the component database and fail it.  This will be faster.  For now, do nothing because the periodic pid checker should catch it.
+        } while(pid > 0);
       if (myRole == Group::IS_ACTIVE) activeAudit();    // Check to make sure DB and the system state are in sync
       if (myRole == Group::IS_STANDBY) standbyAudit();  // Check to make sure DB and the system state are in sync
 

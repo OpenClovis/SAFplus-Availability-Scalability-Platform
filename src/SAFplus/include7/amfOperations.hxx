@@ -22,12 +22,13 @@ namespace SAFplus
   SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::ServiceGroup* sg);
   void setAdminState(SAFplusAmf::ServiceGroup* sg,SAFplusAmf::AdministrativeState tgt);
 
-  void start(SAFplusAmf::ServiceGroup* sg);
 
   class AmfOperations
     {
     public:
       //? Get the current component state from the node on which it is running
     CompStatus getCompState(SAFplusAmf::Component* comp);
+    void start(SAFplusAmf::ServiceGroup* sg);
+    void start(SAFplusAmf::Component* comp);
     };
   };

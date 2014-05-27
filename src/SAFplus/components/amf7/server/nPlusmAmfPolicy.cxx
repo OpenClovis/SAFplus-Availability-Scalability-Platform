@@ -1,5 +1,6 @@
 #include <clAmfPolicyPlugin.hxx>
 #include <clLogApi.hxx>
+#include <clProcessApi.hxx>
 #include <clAmfApi.hxx>
 #include <vector>
 
@@ -85,6 +86,7 @@ namespace SAFplus
   // Second step in the audit is to do something to heal any discrepencies.
   void NplusMPolicy::auditOperation(SAFplusAmf::SAFplusAmfRoot* root)
     {
+    bool startSg;
     logInfo("POL","N+M","Active audit");
     assert(root);
     SAFplusAmfRoot* cfg = (SAFplusAmfRoot*) root;
@@ -92,6 +94,7 @@ namespace SAFplus
     MgtObject::Iterator it;
     for (it = cfg->serviceGroupList.begin();it != cfg->serviceGroupList.end(); it++)
       {
+      startSg=false;
       ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
       const std::string& name = sg->name;
 
@@ -117,17 +120,16 @@ namespace SAFplus
             if ((comp->operState == false)&&(eas != SAFplusAmf::AdministrativeState::off))
               {
               logError("N+M","AUDIT","Component %s should be on but is not instantiated", comp->name.c_str());
-              
+              amfOps->start(comp); // TODO, remove this and call policy specific SG start so the comp can be started based on the policy
               }
             if ((comp->operState)&&(eas == SAFplusAmf::AdministrativeState::off))
               {
               logError("N+M","AUDIT","Component %s should be off but is instantiated", comp->name.c_str());
               }
-
             }
           }
         }
-
+      //if (startSg) amfOps->start(sg);
       }
 
     }

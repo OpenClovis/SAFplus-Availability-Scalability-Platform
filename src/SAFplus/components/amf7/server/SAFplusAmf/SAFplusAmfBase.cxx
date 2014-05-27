@@ -118,6 +118,10 @@ namespace SAFplusAmf
     ServiceGroup* sg = createServiceGroup("sg0",SAFplusAmf::AdministrativeState::on,true,false,st,1,1,1,1,1);
     Component* comp[2];
     comp[0] = createComponent("c0",SAFplusAmf::CapabilityModel::x_active_or_y_standby,1,1,"B.01.01",1,"testBundle.tgz","TEST_ENV=1\nTEST_ENV2=2",2,2,2000,SAFplusAmf::Recovery::Restart,true,"","");
+    Instantiate* inst = new Instantiate();
+    inst->command.value = "./test arg1 arg2";
+    inst->timeout.value = 30000;
+    comp[0]->addChildObject(inst);
     //comp[1] = createComponent("c1",SAFplusAmf::CapabilityModel::x_active_or_y_standby,1,1,"B.01.01",1,"testBundle.tgz","TEST_ENV=1\nTEST_ENV2=2",2,2,2000,SAFplusAmf::Recovery::Restart,true,"","");
     ServiceUnit* su[2];
     su[0] = createServiceUnit("su0", SAFplusAmf::AdministrativeState::on,0,true);
