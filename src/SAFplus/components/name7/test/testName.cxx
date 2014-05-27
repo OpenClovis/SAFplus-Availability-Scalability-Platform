@@ -5,8 +5,7 @@
 #include <stdio.h>
 #include <clTestApi.hxx>
 
-#define __THREAD
-#undef __THREAD
+#define INVALID_ID 0xFFFF
 
 using namespace SAFplus;
 
@@ -182,13 +181,105 @@ void threadNameAppendGet(const char* n, NameRegistrar::MappingMode m, uint32_t i
 }
 
 
+void nodeFailure(const char* n, uint32_t idx, unsigned short nodeAddr)
+{
+   testNameSetGet(n, NameRegistrar::MODE_PREFER_LOCAL, idx);
+   Handle h(PointerHandle, idx);   
+   Handle h2(PointerHandle, idx+1, 0xffffffff, nodeAddr);   
+   name.append(n,h2,NameRegistrar::MODE_PREFER_LOCAL);
+   //name.dump();
+   SAFplus::ASP_NODEADDR = nodeAddr;
+   try {
+     SAFplus::Handle& oh = name.getHandle(n);
+     printf("nodeFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);    
+     clTest(("Handle got "), oh == h2, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
+   }catch (NameException &ne) {
+      clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
+   }
+   name.nodeFailed(nodeAddr, 0);
+   //name.dump();
+   try {
+     SAFplus::Handle& oh = name.getHandle(n);
+     printf("nodeFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     clTest(("Handle got "), oh == h, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
+   }catch (NameException &ne) {
+      clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
+   }
+   // case there is only one handle of a key
+   Handle h3(PointerHandle, idx+3, 0xffffffff, nodeAddr);
+   testNameSetGet(n, NameRegistrar::MODE_PREFER_LOCAL, idx+3, NULL, 0xffffffff, nodeAddr);   
+   // Invalid node id
+   name.nodeFailed(INVALID_ID, 0);
+   try {
+     SAFplus::Handle& oh = name.getHandle(n);
+     printf("nodeFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     clTest(("Handle got "), oh==h3, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
+   }catch (NameException &ne) {
+      clTest(("Handle get unexpected exception"),0, ("exception [%s]", ne.what()));
+   }
+   // valid node id
+   name.nodeFailed(nodeAddr, 0);
+   try {
+     SAFplus::Handle& oh = name.getHandle(n);
+     printf("nodeFailure(): unexpected handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     clTest(("Unexpected Handle got "), 0, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
+   }catch (NameException &ne) {
+      clTest(("Handle get expected exception because of non-existence"), 1, ("exception [%s]", ne.what()));
+   }
+}
+
+void processFailure(const char* n, uint32_t idx, uint32_t process)
+{
+   testNameSetGet(n, NameRegistrar::MODE_PREFER_LOCAL, idx, NULL, process);
+   Handle h(PointerHandle, idx, process);
+   Handle h2(PointerHandle, idx+1);   
+   name.append(n,h2,NameRegistrar::MODE_PREFER_LOCAL);
+   //name.dump();   
+   try {
+     SAFplus::Handle& oh = name.getHandle(n); 
+     printf("processFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);   
+     clTest(("Handle got "), oh == h, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
+   }catch (NameException &ne) {
+      clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
+   }   
+   name.processFailed(process, 0);
+   //name.dump();
+   try {
+     SAFplus::Handle& oh = name.getHandle(n);
+     printf("processFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     clTest(("Handle got "), oh == h2, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
+   }catch (NameException &ne) {
+      clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
+   }
+
+   // case there is only one handle of a key
+   Handle h3(PointerHandle, idx+3, process);
+   testNameSetGet(n, NameRegistrar::MODE_PREFER_LOCAL, idx+3, NULL, process);
+   //invalid process id
+   name.processFailed(INVALID_ID, 0);
+   try {
+     SAFplus::Handle& oh = name.getHandle(n);
+     printf("processFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     clTest(("Handle got "), oh==h3, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
+   }catch (NameException &ne) {
+      clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
+   }
+   //valid process id
+   name.processFailed(process, 0);
+   try {
+     SAFplus::Handle& oh = name.getHandle(n);
+     printf("processFailure(): unexpected handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     clTest(("Unexpected Handle got "), 0, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
+   }catch (NameException &ne) {
+      clTest(("Handle get expected exception because of non-existence"), 1, ("exception [%s]", ne.what()));
+   }
+}
+
 int main(int argc, char* argv[])
 {
-#ifndef __THREAD
-#if 1
    logInitialize();
    logEchoToFd = 1;  // echo logs to stdout for debugging
-   utilsInitialize();
+   utilsInitialize();   
    clTestGroupInitialize(("Test name set, append, get"));
    ObjTest* jim = new ObjTest("Jim");   
    //obj->greet();
@@ -200,7 +291,7 @@ int main(int argc, char* argv[])
    clTestCase(("Test name 2 set, get"), testNameSetGet(name2, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbce, jane));
    clTestGroupFinalize();
 
-   name.dumpObj();
+   //name.dumpObj();
    clTestGroupInitialize(("Test object set, get"));   
    clTestCase(("Test setting object of name1"), objectGet(name1, "Jim"));   
    clTestCase(("Test setting object of name2"), objectGet(name2, "Jane"));   
@@ -226,7 +317,6 @@ int main(int argc, char* argv[])
    arbitraryDataSet(name1, pbuf, false);
    clTestCase(("Test getting of arbitrary data of name1"), arbitraryDataGet(name1, modbuf, false));   
    
-#endif
    //char data[120];
    strcpy(data, "This is arbitrary data example. Don't care its content");
    clTestCase(("Test setting of arbitrary data of an invalid name"), arbitraryDataSet("aaa", data, strlen(data)+1, true));
@@ -236,66 +326,36 @@ int main(int argc, char* argv[])
    delete jim;
    delete jane;
    delete []modbuf;
-   clTestGroupFinalize();
-// Test the case process or node failure
-#if 0
-   pid_t thispid = getpid();   
-   const char* name3 = "_name3";
-   testNameSetGet(name3, NameRegistrar::MODE_REDUNDANCY, 0xaabbe4, NULL);
-   testNameAppend(name3, NameRegistrar::MODE_NO_CHANGE, 0xaabbe5, NULL);
-   testNameAppend(name3, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbe7, NULL, (uint32_t)thispid);
-   printf("----Dumpping the name service database---\n");
-   name.dump();   
-   //printf("---------process failed------------\n");
-   //name.processFailed(thispid, 0);
+ 
+   clTestGroupInitialize(("Process/node failure test. They should be deleted from name service"));
    //name.dump();
-   //const char* name3 = "_001000111";
-   testNameAppend(name3, NameRegistrar::MODE_NO_CHANGE, 0xaabbe9, NULL, 0xffffffff, 2);
-   name.dump();
-   //printf("---------node failed------------\n");
-   //name.nodeFailed(2, 0);
-   
+   const char* name3 = "_name3";   
+   clTestCase(("Test failure of node id [1]; name [%s]", name3), nodeFailure(name3, 0x54321, 1));
    const char* name4 = "_name4";
-   testNameSetGet(name4, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbf6, NULL, (uint32_t)thispid);
-   name.dump();
-   //printf("---------process failed------------\n");
-   //name.processFailed(thispid, 0);
+   uint32_t thispid = getpid();
+   clTestCase(("Test failure of process [%u]; name [%s]", thispid, name4), processFailure(name4, 0x98765, thispid));
+   clTestGroupFinalize();
 
-   const char* name5 = "_name5";
-   testNameSetGet(name5, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbf2, NULL, 0xffffffff, 2);
-   name.dump();   
-#endif   
-   //printf("---------node failed------------\n");
-   //name.nodeFailed(2, 0);
-#else
-   const char* name1 = "_name1";   
-   threadNameSetGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc1);
+   clTestGroupInitialize(("Set/get name service simultaneously by threads"));
+   const char* name5 = "_name5";   
+   threadNameSetGet(name5, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc1);
    uint32_t idx = 0xaabbc2;
    int i;
    for(i=0;i<30;i++) {
-     threadNameAppendGet(name1, NameRegistrar::MODE_PREFER_LOCAL, idx);
+     threadNameAppendGet(name5, NameRegistrar::MODE_PREFER_LOCAL, idx);
      idx+=2;
-   } 
-   /*threadNameAppendGet(name1, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbc2);
-   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc4);
-   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc6);      
-   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc8);
-   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbca);
-   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbcc);
-   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbce);
-   threadNameAppendGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbc6);*/
-   const char* name2 = "_name2";   
-   threadNameSetGet(name2, NameRegistrar::MODE_REDUNDANCY, 0xaabbe1);  
+   }    
+   const char* name6 = "_name6";   
+   threadNameSetGet(name6, NameRegistrar::MODE_REDUNDANCY, 0xaabbe1);  
    idx=0xaabbe2;
    for(i=0;i<30;i++) {
-     threadNameAppendGet(name2, NameRegistrar::MODE_ROUND_ROBIN, idx);     
+     threadNameAppendGet(name6, NameRegistrar::MODE_ROUND_ROBIN, idx);     
      idx+=2;
-   }   
-   //threadNameAppendGet(name2, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbec);
-   //threadNameAppendGet(name2, NameRegistrar::MODE_REDUNDANCY, 0xaabbee);
-#endif
+   }  
+   clTestGroupFinalize();  
+
    //printf("----Dumpping the name service database---\n");
    //name.dump(); 
-   //while (1) { sleep(1);}  
+
    return 0;
 }
