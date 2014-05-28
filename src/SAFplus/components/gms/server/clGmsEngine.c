@@ -762,6 +762,15 @@ _clGmsEngineLeaderElect(
         else
         {
             leadershipChanged = CL_FALSE;
+            if (currentNode->nodeId == *leaderNodeId)
+            {
+                /* Set the flag for this node to sync with gmsGlobalInfo.db */
+                rc = _clGmsViewFindNodePrivate(thisViewDb, currentNode->nodeId, CL_GMS_CURRENT_VIEW, &viewNode);
+                if (rc == CL_OK)
+                {
+                    viewNode->viewMember.clusterMember.isCurrentLeader = CL_TRUE;
+                }
+            }
         }
 
         /* If I am the leader then I need to update my global data structure */
