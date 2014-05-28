@@ -82,8 +82,9 @@ clLogUtilLibInitialize(void)
         return rc;
     }
     pEOName = CL_EO_NAME;
-    if(pEOName && !strncasecmp(pEOName, "LOG", 3))
-    {
+    /* Check whether EO Name is SAFPlus Log Component EO Name or not"*/
+    if(pEOName && !strcmp(pEOName, "LOG"))
+    { /* If Component EO Name is SAFPlus Log Component EO Name then deffer Log statements */
         gClLogServer = CL_TRUE;
     }
 
