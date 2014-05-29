@@ -29,7 +29,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Instantiate::getChildNames()
     {
-        std::string childNames[] = { "command", "args", "timeout" };
+        std::string childNames[] = { "command", "timeout" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

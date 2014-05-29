@@ -32,7 +32,7 @@ namespace SAFplusAmf
         SAFplus::MgtProv<SAFplusAmf::AdministrativeState> adminState;
 
         /*
-         * When the cluster is first started, no work will be assigned until either ALL configured service units are instantiated or this time duration elapses.  By giving every node a chance to come up fully, this ensures that initial work assignments are as close as possible to preferred work assignments.
+         * When the cluster is first started, no work will be assigned until either ALL configured service units are instantiated or this time duration elapses.  By giving every node a chance to come up fully, this ensures that initial work assignments are as close as possible to preferredwork assignments.
          */
         SAFplus::MgtProv<SaTimeT> startupAssignmentDelay;
 

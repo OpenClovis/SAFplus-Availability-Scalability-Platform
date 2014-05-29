@@ -17,7 +17,7 @@ namespace SAFplusAmf
 
     enum class HighAvailabilityReadinessState
   {
-        readyForAssignment, readyForActiveDegrated, notReadyForActive, notReadyForAssignment
+        readyForAssignment, readyForActiveDegraded, notReadyForActive, notReadyForAssignment
       };
     std::ostream& operator<<(std::ostream& os, const HighAvailabilityReadinessState& e);
     std::istream& operator>>(std::istream& is, HighAvailabilityReadinessState& e);

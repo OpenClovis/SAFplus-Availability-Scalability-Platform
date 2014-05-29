@@ -5,10 +5,11 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
-#include "clMgtProv.hxx"
 #include "Timeouts.hxx"
 
 
@@ -47,9 +48,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
      */
-    void Timeouts::setQuiescingComplete(SaTimeT quiescingCompleteValue)
+    void Timeouts::setQuiescingComplete(SaTimeT quiescingCompleteValue, SAFplus::Transaction &txn)
     {
-        this->quiescingComplete.value = quiescingCompleteValue;
+        this->quiescingComplete.set(quiescingCompleteValue,txn);
     };
 
     /*
@@ -63,9 +64,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
      */
-    void Timeouts::setWorkRemoval(SaTimeT workRemovalValue)
+    void Timeouts::setWorkRemoval(SaTimeT workRemovalValue, SAFplus::Transaction &txn)
     {
-        this->workRemoval.value = workRemovalValue;
+        this->workRemoval.set(workRemovalValue,txn);
     };
 
     /*
@@ -79,9 +80,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
      */
-    void Timeouts::setWorkAssignment(SaTimeT workAssignmentValue)
+    void Timeouts::setWorkAssignment(SaTimeT workAssignmentValue, SAFplus::Transaction &txn)
     {
-        this->workAssignment.value = workAssignmentValue;
+        this->workAssignment.set(workAssignmentValue,txn);
     };
 
     Timeouts::~Timeouts()

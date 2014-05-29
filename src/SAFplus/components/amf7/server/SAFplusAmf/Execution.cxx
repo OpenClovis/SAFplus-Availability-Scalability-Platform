@@ -5,20 +5,20 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include <vector>
 #include <string>
-#include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
+#include <vector>
+#include "clMgtContainer.hxx"
 #include "Execution.hxx"
 
 
 namespace SAFplusAmf
   {
 
-    Execution::Execution(): SAFplus::MgtContainer("execution"), command("command"), args("args"), timeout("timeout")
+    Execution::Execution(): SAFplus::MgtContainer("execution"), command("command"), timeout("timeout")
     {
         this->addChildObject(&command, "command");
-        this->addChildObject(&args, "args");
         this->addChildObject(&timeout, "timeout");
     };
 
@@ -29,7 +29,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Execution::getChildNames()
     {
-        std::string childNames[] = { "command", "args", "timeout" };
+        std::string childNames[] = { "command", "timeout" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -44,25 +44,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/execution/command
      */
-    void Execution::setCommand(std::string commandValue)
+    void Execution::setCommand(std::string commandValue, SAFplus::Transaction &txn)
     {
-        this->command.value = commandValue;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/execution/args
-     */
-    std::string Execution::getArgs()
-    {
-        return this->args.value;
-    };
-
-    /*
-     * XPATH: /SAFplusAmf/execution/args
-     */
-    void Execution::setArgs(std::string argsValue)
-    {
-        this->args.value = argsValue;
+        this->command.set(commandValue,txn);
     };
 
     /*
@@ -76,9 +60,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/execution/timeout
      */
-    void Execution::setTimeout(unsigned long int timeoutValue)
+    void Execution::setTimeout(unsigned long int timeoutValue, SAFplus::Transaction &txn)
     {
-        this->timeout.value = timeoutValue;
+        this->timeout.set(timeoutValue,txn);
     };
 
     Execution::~Execution()

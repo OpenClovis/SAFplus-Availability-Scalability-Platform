@@ -74,6 +74,17 @@ namespace SAFplus
       virtual void abort() = 0;
   };
 
+  template <class T> class SimpleTxnOperation: public TransactionOperation
+    {
+  public:
+    SimpleTxnOperation(T* destination, const T& val):dest(destination),value(val) {}
+    T value;
+    T* dest;
+    virtual bool validate(Transaction& t) { return true; }
+    virtual void commit() { *dest = value; }
+    virtual void abort() {};
+    };
+
   extern Transaction NO_TXN;
 };
 

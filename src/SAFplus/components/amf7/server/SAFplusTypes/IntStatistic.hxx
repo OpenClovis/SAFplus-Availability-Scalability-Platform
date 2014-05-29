@@ -9,9 +9,10 @@
 #define INTSTATISTIC_HXX_
 #include "SAFplusTypesCommon.hxx"
 
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 #include <vector>
 #include "clMgtContainer.hxx"
-#include "clMgtProv.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusTypes
@@ -42,7 +43,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/intStatistic/current
          */
-        void setCurrent(unsigned long int currentValue);
+        void setCurrent(unsigned long int currentValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history10sec
@@ -52,7 +53,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/intStatistic/history10sec
          */
-        void setHistory10sec(unsigned long int history10secValue);
+        void setHistory10sec(unsigned long int history10secValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1min
@@ -62,7 +63,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1min
          */
-        void setHistory1min(unsigned long int history1minValue);
+        void setHistory1min(unsigned long int history1minValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history10min
@@ -72,7 +73,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/intStatistic/history10min
          */
-        void setHistory10min(unsigned long int history10minValue);
+        void setHistory10min(unsigned long int history10minValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1hour
@@ -82,7 +83,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1hour
          */
-        void setHistory1hour(unsigned long int history1hourValue);
+        void setHistory1hour(unsigned long int history1hourValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history12hour
@@ -92,7 +93,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/intStatistic/history12hour
          */
-        void setHistory12hour(unsigned long int history12hourValue);
+        void setHistory12hour(unsigned long int history12hourValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1day
@@ -102,7 +103,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1day
          */
-        void setHistory1day(unsigned long int history1dayValue);
+        void setHistory1day(unsigned long int history1dayValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1week
@@ -112,7 +113,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1week
          */
-        void setHistory1week(unsigned long int history1weekValue);
+        void setHistory1week(unsigned long int history1weekValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1month
@@ -122,7 +123,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/intStatistic/history1month
          */
-        void setHistory1month(unsigned long int history1monthValue);
+        void setHistory1month(unsigned long int history1monthValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~IntStatistic();
 
     };

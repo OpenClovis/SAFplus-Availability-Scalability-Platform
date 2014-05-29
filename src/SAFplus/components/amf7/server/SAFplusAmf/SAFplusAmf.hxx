@@ -9,11 +9,12 @@
 #define SAFPLUSAMFROOT_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtProv.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 
 namespace SAFplusAmf
   {
@@ -94,7 +95,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/healthCheckPeriod
          */
-        void setHealthCheckPeriod(SaTimeT healthCheckPeriodValue);
+        void setHealthCheckPeriod(SaTimeT healthCheckPeriodValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/healthCheckMaxSilence
@@ -104,7 +105,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/healthCheckMaxSilence
          */
-        void setHealthCheckMaxSilence(SaTimeT healthCheckMaxSilenceValue);
+        void setHealthCheckMaxSilence(SaTimeT healthCheckMaxSilenceValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~SAFplusAmfRoot();
 
     };

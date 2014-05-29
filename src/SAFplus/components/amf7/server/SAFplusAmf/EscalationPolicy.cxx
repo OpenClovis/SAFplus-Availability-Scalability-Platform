@@ -6,6 +6,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
+#include "clTransaction.hxx"
 #include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 #include "EscalationPolicy.hxx"
@@ -42,9 +43,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EscalationPolicy/maximum
      */
-    void EscalationPolicy::setMaximum(unsigned long int maximumValue)
+    void EscalationPolicy::setMaximum(unsigned long int maximumValue, SAFplus::Transaction &txn)
     {
-        this->maximum.value = maximumValue;
+        this->maximum.set(maximumValue,txn);
     };
 
     /*
@@ -58,9 +59,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EscalationPolicy/duration
      */
-    void EscalationPolicy::setDuration(SaTimeT durationValue)
+    void EscalationPolicy::setDuration(SaTimeT durationValue, SAFplus::Transaction &txn)
     {
-        this->duration.value = durationValue;
+        this->duration.set(durationValue,txn);
     };
 
     EscalationPolicy::~EscalationPolicy()

@@ -12,6 +12,7 @@
 
 namespace SAFplusAmf
   {
+
     /*
      * Provide an implementation of the en2str_vec lookup table.
      */

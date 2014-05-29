@@ -10,6 +10,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <vector>
+#include "clTransaction.hxx"
 #include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 
@@ -42,7 +43,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/EscalationPolicy/maximum
          */
-        void setMaximum(unsigned long int maximumValue);
+        void setMaximum(unsigned long int maximumValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/EscalationPolicy/duration
@@ -52,7 +53,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/EscalationPolicy/duration
          */
-        void setDuration(SaTimeT durationValue);
+        void setDuration(SaTimeT durationValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~EscalationPolicy();
 
     };

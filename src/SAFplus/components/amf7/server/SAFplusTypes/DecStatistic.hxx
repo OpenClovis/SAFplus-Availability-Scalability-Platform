@@ -9,9 +9,10 @@
 #define DECSTATISTIC_HXX_
 #include "SAFplusTypesCommon.hxx"
 
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 #include <vector>
 #include "clMgtContainer.hxx"
-#include "clMgtProv.hxx"
 #include "clMgtProvList.hxx"
 
 namespace SAFplusTypes
@@ -42,7 +43,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/current
          */
-        void setCurrent(long currentValue);
+        void setCurrent(long currentValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history10sec
@@ -52,7 +53,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history10sec
          */
-        void setHistory10sec(long history10secValue);
+        void setHistory10sec(long history10secValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1min
@@ -62,7 +63,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1min
          */
-        void setHistory1min(long history1minValue);
+        void setHistory1min(long history1minValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history10min
@@ -72,7 +73,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history10min
          */
-        void setHistory10min(long history10minValue);
+        void setHistory10min(long history10minValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1hour
@@ -82,7 +83,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1hour
          */
-        void setHistory1hour(long history1hourValue);
+        void setHistory1hour(long history1hourValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history12hour
@@ -92,7 +93,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history12hour
          */
-        void setHistory12hour(long history12hourValue);
+        void setHistory12hour(long history12hourValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1day
@@ -102,7 +103,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1day
          */
-        void setHistory1day(long history1dayValue);
+        void setHistory1day(long history1dayValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1week
@@ -112,7 +113,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1week
          */
-        void setHistory1week(long history1weekValue);
+        void setHistory1week(long history1weekValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1month
@@ -122,7 +123,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/decStatistic/history1month
          */
-        void setHistory1month(long history1monthValue);
+        void setHistory1month(long history1monthValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~DecStatistic();
 
     };

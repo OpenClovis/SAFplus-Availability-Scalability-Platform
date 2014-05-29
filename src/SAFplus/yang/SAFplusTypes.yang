@@ -11,6 +11,7 @@ module SAFplusTypes
     description "Initial type definitions";
   }
 
+
     extension c-decl
     {
       argument "declaration";
@@ -45,6 +46,7 @@ module SAFplusTypes
     }
 
     extension atomic;
+    extension extensible;  // Generates 2 classes: xxxGenerated and an empty class xxx:public xxxGenerated {}.  You can put your changes in class xxx...
 
     extension ui-dialog
     {

@@ -9,10 +9,11 @@
 #define EXECUTION_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include <vector>
 #include <string>
-#include "clMgtContainer.hxx"
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
+#include <vector>
+#include "clMgtContainer.hxx"
 
 namespace SAFplusAmf
   {
@@ -21,14 +22,9 @@ namespace SAFplusAmf
     public:
 
         /*
-         * Specify both name of the binary here
+         * Specify both name of the binary here and any args -- as if you were executing on the bash shell
          */
         SAFplus::MgtProv<std::string> command;
-
-        /*
-         * Specify the arguments as if you are writing them on the command line
-         */
-        SAFplus::MgtProv<std::string> args;
 
         /*
          * The maximum time this operation should take before the AMF receives a response or the command completes.  Specified in milliseconds.
@@ -48,17 +44,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/execution/command
          */
-        void setCommand(std::string commandValue);
-
-        /*
-         * XPATH: /SAFplusAmf/execution/args
-         */
-        std::string getArgs();
-
-        /*
-         * XPATH: /SAFplusAmf/execution/args
-         */
-        void setArgs(std::string argsValue);
+        void setCommand(std::string commandValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/execution/timeout
@@ -68,7 +54,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/execution/timeout
          */
-        void setTimeout(unsigned long int timeoutValue);
+        void setTimeout(unsigned long int timeoutValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~Execution();
 
     };

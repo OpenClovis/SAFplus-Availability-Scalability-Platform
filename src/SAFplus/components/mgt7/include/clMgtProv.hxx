@@ -100,6 +100,8 @@ public:
      */
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
     virtual void xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+ 
+    virtual bool set(const T& value, SAFplus::Transaction& t=SAFplus::NO_TXN);
 
     /**
      * \brief   Define formal access operation
@@ -240,6 +242,16 @@ template <class T> void MgtProv<T>::xset(const void *pBuffer, ClUint64T buffLen,
 {
   if (!set(pBuffer,buffLen,t)) throw SAFplus::TransactionException(t);
 }
+
+template <class T> bool MgtProv<T>::set(const T& val, SAFplus::Transaction& t)
+  {
+  if (&t == &SAFplus::NO_TXN) value = val;
+  else
+    {
+    SimpleTxnOperation<T> *opt = new SimpleTxnOperation<T>(&value,val);
+    t.addOperation(opt);
+    }
+  }
 
 template <class T>
 ClBoolT MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)

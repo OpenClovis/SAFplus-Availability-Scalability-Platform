@@ -11,6 +11,7 @@
 #include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 #include "Val.hxx"
+#include "clTransaction.hxx"
 #include "Sensor.hxx"
 
 
@@ -44,7 +45,7 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/sensor/name
      */
-    void Sensor::setName(std::string nameValue)
+    void Sensor::setName(std::string nameValue, SAFplus::Transaction &txn)
     {
         this->name = nameValue;
     };
@@ -60,9 +61,9 @@ namespace SAFplusTypes
     /*
      * XPATH: /SAFplusTypes/sensor/desc
      */
-    void Sensor::setDesc(std::string descValue)
+    void Sensor::setDesc(std::string descValue, SAFplus::Transaction &txn)
     {
-        this->desc.value = descValue;
+        this->desc.set(descValue,txn);
     };
 
     /*

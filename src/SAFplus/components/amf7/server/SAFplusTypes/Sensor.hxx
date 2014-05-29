@@ -15,6 +15,7 @@
 #include "clMgtContainer.hxx"
 #include "clMgtProv.hxx"
 #include "Val.hxx"
+#include "clTransaction.hxx"
 
 namespace SAFplusTypes
   {
@@ -36,7 +37,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/sensor/name
          */
-        void setName(std::string nameValue);
+        void setName(std::string nameValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/sensor/desc
@@ -46,7 +47,7 @@ namespace SAFplusTypes
         /*
          * XPATH: /SAFplusTypes/sensor/desc
          */
-        void setDesc(std::string descValue);
+        void setDesc(std::string descValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusTypes/sensor/val

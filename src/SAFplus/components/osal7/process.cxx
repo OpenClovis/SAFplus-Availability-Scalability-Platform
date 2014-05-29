@@ -96,7 +96,12 @@ namespace SAFplus
         /* Set the process group id to its own pid */
         setpgid (pid, 0);
         }
-      execvpe(charstrs[0], &charstrs[0],NULL);  // should never return
+      execvpe(charstrs[0], &charstrs[0],NULL);  // if works will not return
+      int err = errno;
+      logAlert("OS","PRO","Program [%s] execution failed with error [%s (%d)]",charstrs[0], strerror(err),err);
+      // If the error is understood, exit.  Otherwise assert
+      if (err == ENOENT) exit(0); // Expected error; user did not give a valid executable
+      if (err == EACCES) exit(0); // Expected error; permissions are not correct
       assert(0);
       }
 

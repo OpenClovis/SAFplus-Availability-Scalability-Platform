@@ -9,10 +9,11 @@
 #define TIMEOUTS_HXX_
 #include "SAFplusAmfCommon.hxx"
 
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
-#include "clMgtProv.hxx"
 
 namespace SAFplusAmf
   {
@@ -52,7 +53,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/quiescingComplete
          */
-        void setQuiescingComplete(SaTimeT quiescingCompleteValue);
+        void setQuiescingComplete(SaTimeT quiescingCompleteValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
@@ -62,7 +63,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/workRemoval
          */
-        void setWorkRemoval(SaTimeT workRemovalValue);
+        void setWorkRemoval(SaTimeT workRemovalValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
@@ -72,7 +73,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/timeouts/workAssignment
          */
-        void setWorkAssignment(SaTimeT workAssignmentValue);
+        void setWorkAssignment(SaTimeT workAssignmentValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~Timeouts();
 
     };
