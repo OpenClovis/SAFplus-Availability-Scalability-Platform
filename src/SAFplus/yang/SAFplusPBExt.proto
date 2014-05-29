@@ -1,0 +1,11 @@
+/* 
+ * Copyright (C) 2002-2014 OpenClovis Solutions Inc.  All Rights Reserved.
+ */
+
+import "google/protobuf/descriptor.proto";
+
+extend google.protobuf.FieldOptions {
+  optional string c_type = 1002;
+  optional string c_existing = 1003;
+}
+
