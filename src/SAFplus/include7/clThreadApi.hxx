@@ -7,14 +7,11 @@
 #include <boost/thread/locks.hpp> 
 #include <boost/thread/condition_variable.hpp>
 
+#include <clCommon.hxx>
+
 namespace SAFplus
 {
 
-  class Wakeable
-  {
-  public:
-    virtual void wake(int amt,void* cookie=NULL) = 0;
-  };
 
   class SemI:public Wakeable
   {

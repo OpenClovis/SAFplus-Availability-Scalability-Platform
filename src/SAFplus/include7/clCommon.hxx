@@ -51,6 +51,20 @@ namespace SAFplus
   ClCharT *clParseEnvStr(const char* envvar);
   inline char* parseEnvStr(const char* envvar) { clParseEnvStr(envvar); }
 
+  /** \brief Generic callback function object
+      \par Synopsis:
+      This class is used throughout the SAFplus APIs whenever SAFplus
+      functions need to call out to application code.
+      Since thread mutexes and semaphores are Wakeable, APIs can
+      implement either blocking or callback semantics by simply
+      calling Wakeable::wake()
+   */
+  class Wakeable
+  {
+  public:
+    virtual void wake(int amt,void* cookie=NULL) = 0;
+  };
+
   
   /** \brief  Load the SaNameT structure.
       \param  name The structure you want to load

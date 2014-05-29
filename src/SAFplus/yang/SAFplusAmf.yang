@@ -199,7 +199,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	safplus:alias saAmfClusterStartupTimeout; 
 	type safplus:SaTimeT;
-	description "When the cluster is first started, no work will be assigned until either ALL configured service units are instantiated or this time duration elapses.  By giving every node a chance to come up fully, this ensures that initial work assignments are as close as possible to preferred work assignments.";
+	description "When the cluster is first started, no work will be assigned until either ALL configured service units are instantiated or this time duration elapses.  By giving every node a chance to come up fully, this ensures that initial work assignments are as close as possible to preferredwork assignments.";
       }
     }
 

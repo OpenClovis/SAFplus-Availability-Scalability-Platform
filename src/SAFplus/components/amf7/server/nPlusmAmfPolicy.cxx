@@ -3,6 +3,7 @@
 #include <clProcessApi.hxx>
 #include <clAmfApi.hxx>
 #include <vector>
+#include <boost/range/algorithm.hpp>
 
 #include <SAFplusAmf.hxx>
 #include <ServiceGroup.hxx>
@@ -13,7 +14,6 @@ using namespace SAFplusAmf;
 
 namespace SAFplus
   {
-  
   class NplusMPolicy:public ClAmfPolicyPlugin_1
     {
   public:
@@ -27,12 +27,101 @@ namespace SAFplus
     void auditDiscovery(SAFplusAmf::SAFplusAmfRoot* root);
     };
 
+  class Poolable: public Wakeable
+    {
+    public:
+    uint_t   executionTimeLimit;
+    };
+
+  class ServiceGroupPolicyExecution: public Poolable
+    {
+    public:
+    ServiceGroupPolicyExecution(ServiceGroup* svcgrp,AmfOperations* ops):sg(svcgrp),amfOps(ops) {} 
+
+    ServiceGroup* sg;
+    AmfOperations* amfOps;
+
+    virtual void wake(int amt,void* cookie=NULL);
+
+    void start();
+    void stop();
+
+    // helper functions
+    void start(ServiceUnit* s);
+    };
+
   NplusMPolicy::NplusMPolicy()
     {
     }
 
   NplusMPolicy::~NplusMPolicy()
     {
+    }
+
+  void ServiceGroupPolicyExecution::wake(int amt,void* cookie)
+    {
+    start();
+    }
+
+  bool suEarliestRanking(ServiceUnit* a, ServiceUnit* b)
+  {
+  assert(a);
+  assert(b);
+  if (b->rank.value == 0) return true;
+  if (a->rank.value == 0) return false;
+  return (a->rank.value < b->rank.value);
+  }
+
+  void ServiceGroupPolicyExecution::start(ServiceUnit* su)
+    {
+    SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+    SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+    for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+      {
+      Component* comp = dynamic_cast<Component*>(*itcomp);
+      logInfo("N+M","STRT","starting component %s", comp->name.c_str());
+      CompStatus status = amfOps->getCompState(comp);
+
+      SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
+      assert(eas != SAFplusAmf::AdministrativeState::off); // Do not call this API if the component is administratively OFF!
+      amfOps->start(comp);
+      }
+
+    }
+
+  void ServiceGroupPolicyExecution::start()
+    {
+      const std::string& name = sg->name;
+
+      logInfo("N+M","STRT","Starting service group %s", name.c_str());
+      if (1) // TODO: figure out if this Policy should control this Service group
+        {
+        std::vector<SAFplusAmf::ServiceUnit*> sus(sg->serviceUnits.value.begin(),sg->serviceUnits.value.end());
+
+        boost::sort(sus,suEarliestRanking);
+
+        int numActive = 0;  // TODO: figure this out, so start can be called from a half-started situation.
+        int numStandby = 0; // TODO: figure this out, so start can be called from a half-started situation.
+        int numIdle = 0;    // TODO: figure this out, so start can be called from a half-started situation.
+
+        int totalStarted = numActive + numStandby + numIdle;
+        int preferredTotal = sg->preferredNumActiveServiceUnits.value + sg->preferredNumStandbyServiceUnits.value + sg->preferredNumIdleServiceUnits.value;
+
+        std::vector<SAFplusAmf::ServiceUnit*>::iterator itsu;
+
+        for (itsu = sus.begin(); itsu != sus.end(); itsu++)
+          {
+          if (totalStarted >= preferredTotal) break;  // we have started enough
+          ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+          const std::string& suName = su->name;
+          if (su->adminState != AdministrativeState::off)
+            {
+            logInfo("N+M","STRT","Starting su %s", suName.c_str());
+            start(su);
+            totalStarted++;
+            }
+          }
+        }
     }
 
 #if 0 
@@ -120,7 +209,8 @@ namespace SAFplus
             if ((comp->operState == false)&&(eas != SAFplusAmf::AdministrativeState::off))
               {
               logError("N+M","AUDIT","Component %s should be on but is not instantiated", comp->name.c_str());
-              amfOps->start(comp); // TODO, remove this and call policy specific SG start so the comp can be started based on the policy
+              //amfOps->start(comp); // TODO, remove this and call policy specific SG start so the comp can be started based on the policy
+              startSg=true;
               }
             if ((comp->operState)&&(eas == SAFplusAmf::AdministrativeState::off))
               {
@@ -129,7 +219,12 @@ namespace SAFplus
             }
           }
         }
-      //if (startSg) amfOps->start(sg);
+      if (startSg)
+        {
+        //amfOps->start(sg);
+        ServiceGroupPolicyExecution go(sg,amfOps);
+        go.start(); // TODO: this will be put in a thread pool...
+        }
       }
 
     }
