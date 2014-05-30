@@ -1,0 +1,50 @@
+module rpcTest 
+{
+
+  namespace "http://www.openclovis.org/ns/rpcTest";
+  prefix "rpc";
+
+  organization
+    "OpenClovis Solutions, Inc";
+
+  contact
+    "Andrew Stone <stone@openclovis.com>";
+
+  description
+    "Test the SAFplus code generation with different yang file definitions.";
+
+  revision 2014-05-30 
+  {
+    description "Initial description";
+    reference "";
+  }
+
+  rpc testGetRpcMethod
+  {
+    input 
+    {
+      leaf name
+      {
+        type string;
+      }
+    }
+    
+    output
+    {
+      container dataResult
+      {
+        leaf name
+        {
+          type string;
+        }
+        leaf status
+        {
+          type int32;
+        }
+      }
+    }
+  }
+  
+  
+
+}

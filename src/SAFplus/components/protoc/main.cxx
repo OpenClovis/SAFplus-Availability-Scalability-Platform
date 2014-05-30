@@ -17,29 +17,15 @@
  * material.
  */
 
-#ifndef MSGHANDLERPROTOCOLS_HXX_
-#define MSGHANDLERPROTOCOLS_HXX_
+#include <google/protobuf/compiler/command_line_interface.h>
+#include "clRpcGenerator.hxx"
 
-#include "rpcTest.pb.h"
-#include "clMsgHandler.hxx"
-
-namespace SAFplus
+int
+main(int argc, char *argv[])
 {
+  google::protobuf::compiler::CommandLineInterface cli;
+  SAFplus::RpcGenerator rpc_generator;
+  cli.RegisterGenerator("--rpc_out", &rpc_generator, "Generate C++ Service file.");
+  return cli.Run(argc, argv);
+}
 
-    /*
-     *
-     */
-    class MsgHandlerProtocols : public SAFplus::MsgHandler
-    {
-        public:
-            MsgHandlerProtocols();
-            virtual
-            ~MsgHandlerProtocols();
-
-        public:
-            virtual void
-            msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-    };
-
-} /* namespace SAFplus */
-#endif /* MSGHANDLERPROTOCOLS_HXX_ */

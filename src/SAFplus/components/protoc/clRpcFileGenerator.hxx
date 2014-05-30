@@ -17,29 +17,29 @@
  * material.
  */
 
-#ifndef MSGHANDLERPROTOCOLS_HXX_
-#define MSGHANDLERPROTOCOLS_HXX_
+#ifndef CLRPCFILEGENERATOR_HXX_
+#define CLRPCFILEGENERATOR_HXX_
 
-#include "rpcTest.pb.h"
-#include "clMsgHandler.hxx"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/io/printer.h>
+#include <string>
+#include <vector>
 
 namespace SAFplus
 {
 
-    /*
-     *
-     */
-    class MsgHandlerProtocols : public SAFplus::MsgHandler
-    {
-        public:
-            MsgHandlerProtocols();
-            virtual
-            ~MsgHandlerProtocols();
+  /*
+   *
+   */
+  class RpcFileGenerator
+  {
+    public:
+      RpcFileGenerator(const google::protobuf::FileDescriptor *file,
+                    const std::string &output_name);
+      virtual
+      ~RpcFileGenerator();
 
-        public:
-            virtual void
-            msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-    };
+  };
 
 } /* namespace SAFplus */
-#endif /* MSGHANDLERPROTOCOLS_HXX_ */
+#endif /* CLRPCFILEGENERATOR_HXX_ */

@@ -17,11 +17,11 @@
  * material.
  */
 
-#ifndef MSGHANDLERPROTOCOLS_HXX_
-#define MSGHANDLERPROTOCOLS_HXX_
+#ifndef CLRPCGENERATOR_HXX_
+#define CLRPCGENERATOR_HXX_
 
-#include "rpcTest.pb.h"
-#include "clMsgHandler.hxx"
+#include <google/protobuf/compiler/code_generator.h>
+#include <iostream>
 
 namespace SAFplus
 {
@@ -29,17 +29,15 @@ namespace SAFplus
     /*
      *
      */
-    class MsgHandlerProtocols : public SAFplus::MsgHandler
+    class RpcGenerator : public google::protobuf::compiler::CodeGenerator
     {
         public:
-            MsgHandlerProtocols();
+            RpcGenerator();
             virtual
-            ~MsgHandlerProtocols();
-
-        public:
-            virtual void
-            msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+            ~RpcGenerator();
+            virtual bool
+            Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter, google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const;
     };
 
 } /* namespace SAFplus */
-#endif /* MSGHANDLERPROTOCOLS_HXX_ */
+#endif /* CLRPCGENERATOR_HXX_ */

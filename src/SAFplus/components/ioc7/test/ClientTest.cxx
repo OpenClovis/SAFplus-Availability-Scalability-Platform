@@ -22,7 +22,7 @@
 #include <clGlobals.hxx>
 #include <clIocApi.h>
 #include "clSafplusMsgServer.hxx"
-#include "test.pb.h"
+#include "rpcTest.pb.h"
 
 using namespace std;
 using namespace SAFplus;
@@ -56,6 +56,11 @@ main(void)
     iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
     char helloMsg[] = "Hello world ";
+
+    SAFplusService::rpcTest::TestGetRpcMethodRequest request;
+
+    request.set_name("testRpc_request");
+
     /*
      * ??? msgClient or safplusMsgServer
      */
@@ -65,24 +70,15 @@ main(void)
 
     msgClient.Start();
     int i = 0;
-//    while(1)
-//    {
-//        // Port communication
-//        // TODO: Process ONE or ALL or FOREVER
-//        stringstream strHello;
-//        strHello << helloMsg << i++;
-//        std::cout<<"Process:"<<getpid()<<", SENDING:"<<strHello.str()<<std::endl;
-//        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *)strHello.str().c_str(), strHello.str().length(), CL_IOC_PROTO_CTL);
-//        std::cout<<"Process:"<<getpid()<<", GOT REPLY:"<<msgReply->buffer<<std::endl;
-//    }
     while (1)
     {
         string data;
-        testprotobuf::Person person;
-        person.set_name("OpenClovis marshal/demarshal");
-        person.set_id(10);
-        person.SerializeToString(&data);
-        msgClient.SendMsg(iocDest, (void *) data.c_str(), person.ByteSize(), CL_IOC_PROTO_CTL);
+        request.SerializeToString(&data);
+        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) data.c_str(), request.ByteSize(), CL_IOC_PROTO_CTL);
+
+        SAFplusService::rpcTest::TestGetRpcMethodResponse res;
+        res.ParseFromString(msgReply->buffer);
+        std::cout<<"Process:"<<getpid()<<", GOT REPLY:"<<std::endl<<res.DebugString()<<std::endl;
         sleep(3);
     }
 }

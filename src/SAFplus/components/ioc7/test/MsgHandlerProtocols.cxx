@@ -22,8 +22,10 @@
 
 using namespace std;
 
+
 namespace SAFplus
 {
+
 
     MsgHandlerProtocols::MsgHandlerProtocols()
     {
@@ -39,28 +41,32 @@ namespace SAFplus
     void
     MsgHandlerProtocols::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
-        char helloMsg[] = "Hello world reply";
+        //char helloMsg[] = "Hello world reply";
 
         string recMsg((const char*) msg, msglen);
 
-        testprotobuf::Person *person = new testprotobuf::Person;
+        SAFplusService::rpcTest::TestGetRpcMethodRequest req;
 
-        person->ParseFromString(recMsg);
+        req.ParseFromString(recMsg);
 
-        std::cout<<person->name()<<" - "<<person->id()<<std::endl;
-
-        cout << "==> Handle for message: " << person->DebugString() << " from [" << std::hex << "0x" << from.iocPhyAddress.nodeAddress << ":"
+        cout << "==> Handle for message: "<<endl<< req.DebugString() <<" from [" << std::hex << "0x" << from.iocPhyAddress.nodeAddress << ":"
                 << std::hex << "0x" << from.iocPhyAddress.portId << "]" << endl;
+
+        SAFplusService::rpcTest::TestGetRpcMethodResponse res;
+
+        /* Initialize data response */
+        SAFplusService::rpcTest::DataResult *data = res.mutable_dataresult();
+        data->set_name("testRpc_response");
+        data->set_status(1);
 
         /**
          * TODO:
          * Reply, need to check message type to reply
          * Maybe sync queue, Async callback etc
          */
-        recMsg.append(":").append(helloMsg);
         try
         {
-            svr->SendMsg(from, (void *)recMsg.c_str(), recMsg.length(), CL_IOC_SAF_MSG_REPLY_PROTO);
+            svr->SendMsg(from, (void *)res.SerializeAsString().c_str(), res.ByteSize(), CL_IOC_SAF_MSG_REPLY_PROTO);
         }
         catch (...)
         {
