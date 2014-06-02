@@ -100,16 +100,21 @@ void appendNode(ClFragmentListHeadT **head,ClFragmentListHeadT **new)
 **      ma_muquit@fccc.edu   Aug-07-1998    first cut
 */
 
-void appendNodeSorted(ClFragmentListHeadT **head,ClFragmentListHeadT **new)
+ClBoolT appendNodeSorted(ClFragmentListHeadT **head,ClFragmentListHeadT **new)
 {
     ClFragmentListHeadT *tmp;
 
     if (emptyList(*head) == CL_TRUE)
     {
         (*head)=(*new);
+        return CL_TRUE;
     }
     else
     {
+        if ((*head)->fragmentID == (*new)->fragmentID)
+        {
+            return CL_FALSE;
+        }
         if ((*head)->fragmentID > (*new)->fragmentID)
         {
             (*new)->pNext=(*head);
@@ -120,11 +125,17 @@ void appendNodeSorted(ClFragmentListHeadT **head,ClFragmentListHeadT **new)
             for(tmp=(*head); tmp->pNext; tmp=tmp->pNext)
             {
                 if (tmp->pNext->fragmentID > (*new)->fragmentID)
+                {
+                    return CL_FALSE;
+                }
+                if (tmp->pNext->fragmentID > (*new)->fragmentID)
                     break;
             }
             (*new)->pNext=tmp->pNext;
             tmp->pNext=(*new);
         }
+        return CL_TRUE;
+
     }
 }
 
@@ -286,7 +297,10 @@ ClFragmentListHeadT *getNodebyValue(ClFragmentListHeadT *list,ClUint32T n)
 {
     ClFragmentListHeadT
         *lp=NULL;
-
+    if(list->fragmentID==n)
+    {
+        return list;
+    }
     for (lp=list; lp; lp=lp->pNext)
     {
         ClUint32T j= lp->fragmentID;
@@ -300,7 +314,6 @@ ClFragmentListHeadT *getNodebyValue(ClFragmentListHeadT *list,ClUint32T n)
 
 void destroyNode(ClFragmentListHeadT **list,ClFragmentListHeadT *node)
 {
-    clLogDebug("IOC", "Rel", "destroy node");
     if (emptyList(node) == CL_FALSE)
     {
         /*
@@ -376,40 +389,51 @@ int numNodes(ClFragmentListHeadT **head)
     return (n);
 }
 
-void lossListInsertRange(ClFragmentListHeadT **lossList, ClUint32T seqno1, ClUint32T seqno2)
+ClUint32T lossListInsertRange(ClFragmentListHeadT **lossList, ClUint32T seqno1, ClUint32T seqno2)
 {
     ClUint32T i;
     if(seqno1==seqno2)
     {
-        clLogDebug("FRAG", "RECV", "lossListInsertRange insert one");
         struct ClFragmentListHeadT *temp;
         temp=(struct ClFragmentListHeadT *)malloc(sizeof(ClFragmentListHeadT));
         temp->fragmentID=seqno2;
         temp->pNext=NULL;
-        appendNodeSorted(lossList,&temp);
-        return;
+        ClBoolT ret;
+        ret = appendNodeSorted(lossList,&temp);
+        if (ret==CL_TRUE)
+            return 1;
+        return 0;
     }
+    ClUint32T count=0;
     for(i = seqno1; i<= seqno2; i++)
     {
+
         struct ClFragmentListHeadT *temp;
         temp=(struct ClFragmentListHeadT *)malloc(sizeof(ClFragmentListHeadT));
         temp->fragmentID=i;
         temp->pNext=NULL;
-        appendNodeSorted(lossList,&temp);
+        ClBoolT ret;
+        ret = appendNodeSorted(lossList,&temp);
+        if (ret==CL_TRUE)
+            count++;
     }
+    return count;
 }
 
-ClUint32T lossListDelete(ClFragmentListHeadT **pHead,ClUint32T num)
+ClBoolT lossListDelete(ClFragmentListHeadT **pHead,ClUint32T num)
 {
-    clLogDebug("IOC", "Rel", "Get node with fragId [%d]",num);
+    if (*pHead == NULL)
+    {
+        return CL_FALSE;
+    }
     ClFragmentListHeadT *node=getNodebyValue(*pHead,num);
     if (node != NULL)
     {
-        clLogDebug("IOC", "Rel", "node found with fragmentId [%d]", node->fragmentID);
         destroyNode(pHead,node);
+        return CL_TRUE;
     }
-    clLogDebug("IOC", "Rel", "No node found");
-    return CL_OK;
+    return CL_FALSE;
+
 }
 
 ClUint32T lossListGetFirst(ClFragmentListHeadT *pHead)

@@ -62,7 +62,7 @@ typedef struct ClFragmentListHeadT
 }ClFragmentListHeadT;
 
 ClFragmentListHeadT         *allocateNode       (void *data);
-void        appendNodeSorted    (ClFragmentListHeadT **head,ClFragmentListHeadT **new);
+ClBoolT        appendNodeSorted    (ClFragmentListHeadT **head,ClFragmentListHeadT **new);
 void        appendNode          (ClFragmentListHeadT **list,ClFragmentListHeadT **new);
 void        delNode             (ClFragmentListHeadT **list,ClFragmentListHeadT *node);
 void        destroyNode         (ClFragmentListHeadT **list,ClFragmentListHeadT *node);
@@ -79,8 +79,8 @@ int         numNodes            (ClFragmentListHeadT **head);
 //void lossListAddAfter(ClFragmentListHeadT **pHead,ClUint32T num, ClUint32T loc);
 ClUint32T lossListCount(ClFragmentListHeadT **head);
 //void lossListInsert(ClFragmentListHeadT **pHead,ClUint32T num);
-ClUint32T lossListDelete(ClFragmentListHeadT **pHead,ClUint32T num);
-void lossListInsertRange(ClFragmentListHeadT **lossList, ClUint32T seqno1, ClUint32T seqno2);
+ClBoolT lossListDelete(ClFragmentListHeadT **pHead,ClUint32T num);
+ClUint32T lossListInsertRange(ClFragmentListHeadT **lossList, ClUint32T seqno1, ClUint32T seqno2);
 //void sendLossListRemoveRange(ClFragmentListHeadT *lossList,ClUint32T seqno1, ClUint32T seqno2);
 //ClUint32T senderBufferLossListGetFirst(ClIocAddressT *destAddress,ClUint32T messageId,ClIocPortT portId);
 ClUint32T lossListGetFirst(ClFragmentListHeadT *pHead);
