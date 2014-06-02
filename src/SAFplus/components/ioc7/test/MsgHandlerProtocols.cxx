@@ -19,6 +19,7 @@
 #include <iostream>
 #include "MsgHandlerProtocols.hxx"
 #include "clMsgServer.hxx"
+#include "rpcTest.pb.h"
 
 using namespace std;
 
@@ -45,17 +46,17 @@ namespace SAFplus
 
         string recMsg((const char*) msg, msglen);
 
-        SAFplusService::rpcTest::TestGetRpcMethodRequest req;
+        SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest req;
 
         req.ParseFromString(recMsg);
 
         cout << "==> Handle for message: "<<endl<< req.DebugString() <<" from [" << std::hex << "0x" << from.iocPhyAddress.nodeAddress << ":"
                 << std::hex << "0x" << from.iocPhyAddress.portId << "]" << endl;
 
-        SAFplusService::rpcTest::TestGetRpcMethodResponse res;
+        SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res;
 
         /* Initialize data response */
-        SAFplusService::rpcTest::DataResult *data = res.mutable_dataresult();
+        SAFplus::Rpc::rpcTest::DataResult *data = res.mutable_dataresult();
         data->set_name("testRpc_response");
         data->set_status(1);
 

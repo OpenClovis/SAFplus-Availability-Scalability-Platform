@@ -26,11 +26,8 @@ PROTOBUF_PLUGIN_OBJ = $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(PROTOBUF_PLUGIN_
 
 all: $(SAFPLUS_TARGET)/bin/protoc-gen-rpc $(LIB_DIR)/libSAFplusPBExt.so
 
-$(LIB_DIR)/libSAFplusPBExt.so: $(OBJ_DIR)/SAFplusPBExt.pb.o
-	$(LINK_SO) $@ $(OBJ_DIR)/SAFplusPBExt.pb.o
-
-%.pb.cc:
-	protoc -I../../3rdparty -I. --cpp_out=. SAFplusPBExt.proto
+$(LIB_DIR)/libSAFplusPBExt.so: $(OBJ_DIR)/SAFplusPBExt.pb.o $(OBJ_DIR)/SAFplusRpc.pb.o
+	$(LINK_SO) $@ $(OBJ_DIR)/SAFplusPBExt.pb.o $(OBJ_DIR)/SAFplusRpc.pb.o
 
 $(OBJ_DIR)/%.pb.o: %.pb.cc
 	$(COMPILE_CPP) $@ $<
@@ -41,7 +38,14 @@ $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 $(SAFPLUS_TARGET)/bin/protoc-gen-rpc: $(PROTOBUF_PLUGIN_OBJ) 
 	$(LINK_EXE) $@ $(PROTOBUF_PLUGIN_OBJ) -lprotobuf -lprotoc 
 
+gen:
+	protoc -I../../3rdparty -I. --cpp_out=. SAFplusPBExt.proto
+	protoc -I../../3rdparty -I. --cpp_out=. SAFplusRpc.proto
+
+cleangen:
+	rm -rf *.pb.h *.pb.cc
+
 clean:
-	rm -rf $(PROTOBUF_PLUGIN_OBJ) $(SAFPLUS_TARGET)/bin/protoc-gen-rpc $(OBJ_DIR)/SAFplusPBExt.pb.o
+	rm -rf $(PROTOBUF_PLUGIN_OBJ) $(SAFPLUS_TARGET)/bin/protoc-gen-rpc $(OBJ_DIR)/SAFplusPBExt.pb.o $(OBJ_DIR)/SAFplusRpc.pb.o
 
 include ../../mk/safplus_targets.mk

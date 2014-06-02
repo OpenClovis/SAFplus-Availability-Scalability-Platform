@@ -18,28 +18,32 @@
  */
 #pragma once
 
-#ifndef MSGHANDLERPROTOCOLS_HXX_
-#define MSGHANDLERPROTOCOLS_HXX_
+#ifndef RPCHANDLER_HXX_
+#define RPCHANDLER_HXX_
 
 #include "clMsgHandler.hxx"
 
 namespace SAFplus
 {
-
-    /*
-     *
-     */
-    class MsgHandlerProtocols : public SAFplus::MsgHandler
+  namespace Rpc
+  {
+    namespace rpcTest
     {
-        public:
-            MsgHandlerProtocols();
-            virtual
-            ~MsgHandlerProtocols();
 
+      /*
+       *
+       */
+      class RpcHandler : public SAFplus::MsgHandler
+      {
         public:
-            virtual void
-            msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-    };
+          RpcHandler();
+          virtual
+          ~RpcHandler();
+          void
+          msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+      };
 
+    } /* namespace rpcTest */
+  } /* namespace Rpc */
 } /* namespace SAFplus */
-#endif /* MSGHANDLERPROTOCOLS_HXX_ */
+#endif /* RPCHANDLER_HXX_ */
