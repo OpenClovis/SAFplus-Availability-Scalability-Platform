@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_CKPT_LIB:=1  # Identify what is being built, so safplus_targets does not override
 include ../../mk/preface.mk
 
 CKPT_CLIENT_H := $(wildcard *.hpp) $(wildcard ../../include7/*.hpp) $(wildcard ../../include7/*.hxx) 

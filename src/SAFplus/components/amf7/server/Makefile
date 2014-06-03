@@ -4,6 +4,7 @@ include ../../../mk/preface.mk
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
+# TODO REMOVE -lmw requirement
 SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 

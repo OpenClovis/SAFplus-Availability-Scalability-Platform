@@ -38,24 +38,6 @@ namespace SAFplus
     bool timed_lock(uint64_t mSec,int amt=1);
   };
 
-#if 0
-  /* thread semaphore */
-  class ThreadSem:public SemI
-  {
-  protected:
-    int count;
-  public:
-    ThreadSem(unsigned int key,int initialValue=0);
-    ThreadSem(const char* key,int initialValue=0);
-    void init(unsigned int key,int initialValue);
-    void wake(int amt,void* cookie=NULL);
-    void lock(int amt=1);
-    void unlock(int amt=1);
-    bool try_lock(int amt=1);
-    bool timed_lock(uint64_t mSec,int amt=1);
-  };
-#endif
-
   
   template<class bstMutT> class tMutex: public Wakeable
   {
@@ -115,5 +97,24 @@ namespace SAFplus
   };
 
 };
+
+  /* thread semaphore */
+  class ThreadSem:public SemI
+  {
+  protected:
+    ThreadCondition cond;
+    Thread
+    int count;
+  public:
+    ThreadSem(unsigned int key,int initialValue=0);
+    ThreadSem(const char* key,int initialValue=0);
+    void init(unsigned int key,int initialValue);
+    void wake(int amt,void* cookie=NULL);
+    void lock(int amt=1);
+    void unlock(int amt=1);
+    bool try_lock(int amt=1);
+    bool timed_lock(uint64_t mSec,int amt=1);
+  };
+
 
 #endif //CLTHREADAPI_HXX_

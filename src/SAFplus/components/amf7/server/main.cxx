@@ -34,7 +34,7 @@ typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPo
 RedPolicyMap redPolicies;
 
 // IOC related globals
-ClUint32T clAspLocalId = 0x2;
+ClUint32T clAspLocalId = 0x1;
 ClUint32T chassisId = 0x0;
 ClBoolT   gIsNodeRepresentative = CL_TRUE;
 

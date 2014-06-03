@@ -43,6 +43,8 @@ namespace SAFplus
 /** Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.  */
   ClBoolT ASP_SC_PROMOTE = CL_FALSE;
 
+  SaVersionT safVersion = { 'B',4,1 };
+
   pid_t pid = 0;
   /** True if this component is not under AMF control (will not receive CSI callbacks) */
   bool clWithoutAmf;
@@ -252,8 +254,23 @@ namespace SAFplus
       }
     return LOG_SEV_NOTICE;
     }
-  
 
+
+  /** \brief  Load the str from a SaNameT structure.
+      \param  name The string you want to read.
+      \param  str  The destination char* array
+      \param  maxLen The length of the available memory buffer.  String will be a max length of maxLen-1 to account for the null terminator.
+      If str is too long, then this function will ASSERT in debug mode, and crop in production mode 
+  */
+void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
+  {
+  int len = name->length;
+  CL_ASSERT(len < maxLen-1);
+  if (len > maxLen-1) len = maxLen-1;
+  memcpy(str,name->value,len);
+  // Add the null terminator if it does not exist in name
+  if (str[len-1] != '0') str[len] = 0;
+  }
   
 /** \brief  Load the SaNameT structure.
     \param  name The structure you want to load

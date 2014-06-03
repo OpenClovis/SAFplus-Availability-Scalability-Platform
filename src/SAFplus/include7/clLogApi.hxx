@@ -96,25 +96,25 @@ typedef enum
  * Macros to log messages at different levels of severity
    streamHandle, severity, serviceId, area, context, ...) \
  */
-#define logWrite(severity, area, context, ...) appLog(APP_LOG, severity, 0, area, context, __VA_ARGS__)
+#define logWrite(severity, area, context, ...) appLog(SAFplus::APP_LOG, severity, 0, area, context, __VA_ARGS__)
 
-#define logEmergency(area, context, ...) appLog(APP_LOG, SAFplus::LOG_SEV_EMERGENCY, 0, area, context, __VA_ARGS__)
+#define logEmergency(area, context, ...) appLog(SAFplus::APP_LOG, SAFplus::LOG_SEV_EMERGENCY, 0, area, context, __VA_ARGS__)
 
-#define logAlert(area, context, ...) appLog(APP_LOG,SAFplus::LOG_SEV_ALERT, 0,area, context, __VA_ARGS__)
+#define logAlert(area, context, ...) appLog(SAFplus::APP_LOG,SAFplus::LOG_SEV_ALERT, 0,area, context, __VA_ARGS__)
 
-#define logCritical(area, context, ...) appLog(APP_LOG,SAFplus::LOG_SEV_CRITICAL,0, area, context, __VA_ARGS__)
+#define logCritical(area, context, ...) appLog(SAFplus::APP_LOG,SAFplus::LOG_SEV_CRITICAL,0, area, context, __VA_ARGS__)
 
-#define logError(area, context, ...) appLog(APP_LOG,SAFplus::LOG_SEV_ERROR, 0,area, context, __VA_ARGS__)
-        
-#define logWarning(area, context, ...) appLog(APP_LOG,SAFplus::LOG_SEV_WARNING, 0,area, context, __VA_ARGS__)
+#define logError(area, context, ...) appLog(SAFplus::APP_LOG,SAFplus::LOG_SEV_ERROR, 0,area, context, __VA_ARGS__)
 
-#define logNotice(area, context, ...) appLog(APP_LOG,LOG_SEV_NOTICE, 0,area, context, __VA_ARGS__)
+#define logWarning(area, context, ...) appLog(SAFplus::APP_LOG,SAFplus::LOG_SEV_WARNING, 0,area, context, __VA_ARGS__)
 
-#define logInfo(area, context, ...) appLog(APP_LOG,LOG_SEV_INFO, 0,area, context, __VA_ARGS__)
+#define logNotice(area, context, ...) appLog(SAFplus::APP_LOG,SAFplus::LOG_SEV_NOTICE, 0,area, context, __VA_ARGS__)
 
-#define logDebug(area, context, ...) appLog(APP_LOG,LOG_SEV_DEBUG,0, area, context, __VA_ARGS__)
+#define logInfo(area, context, ...) appLog(SAFplus::APP_LOG,SAFplus::LOG_SEV_INFO, 0,area, context, __VA_ARGS__)
 
-#define logTrace(area, context, ...) appLog(APP_LOG,LOG_SEV_TRACE,0, area, context, __VA_ARGS__)
+#define logDebug(area, context, ...) appLog(SAFplus::APP_LOG,SAFplus::LOG_SEV_DEBUG,0, area, context, __VA_ARGS__)
+
+#define logTrace(area, context, ...) appLog(SAFplus::APP_LOG,SAFplus::LOG_SEV_TRACE,0, area, context, __VA_ARGS__)
 #endif
 
 /**

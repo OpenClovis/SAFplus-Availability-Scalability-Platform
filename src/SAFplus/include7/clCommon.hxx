@@ -1,7 +1,7 @@
 #pragma once
 #include <clGlobals.hxx>
 #include <clDbg.hxx>
-
+#include <saAis.h>
 
 namespace SAFplus
 {
@@ -74,6 +74,16 @@ namespace SAFplus
   */
   void saNameSet(SaNameT* name, const char* str);
 
+  /** \brief  Load the str from a SaNameT structure.
+      \param  name The string you want to read.
+      \param  str  The destination char* array
+      \param  maxLen The length of the available memory buffer. String
+      will be a max length of maxLen-1 to account for the null terminator.
+
+      If str is too long, then this function will ASSERT in debug mode, and crop in production mode 
+  */
+  void saNameGet(char* str,const SaNameT* name, uint_t maxLen);
+
   /** \brief  Load the SaNameT structure.
       \param  name The structure you want to load
       \param  name The structure to be put into the SaNameT structure
@@ -130,4 +140,5 @@ namespace SAFplus
     }
   };
   
+  extern SaVersionT safVersion;
 };  
