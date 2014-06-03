@@ -248,7 +248,7 @@ void SAFplus::Checkpoint::remove(const Buffer& key,Transaction& t)
 {
   CkptHashMap::iterator contents = map->find(SAFplusI::BufferPtr((Buffer*)&key));
 
-  while (contents != map->end())
+  if (contents != map->end())
     {
       SAFplusI::BufferPtr value = contents->second;  // remove the value
       SAFplusI::BufferPtr curkey   = contents->first;  // remove the key
@@ -259,16 +259,14 @@ void SAFplus::Checkpoint::remove(const Buffer& key,Transaction& t)
       if (val->ref()==1) 
         msm.deallocate(val);  // if I'm the last owner, let this go.
       else 
-        val->decRef();	
-     
+        val->decRef();	     
+
       val = curkey.get();
       if (val->ref()==1) 
         msm.deallocate(val);  // if I'm the last owner, let this go.
       else 
         val->decRef();
-
       
-      contents++;
     }
 }
 
