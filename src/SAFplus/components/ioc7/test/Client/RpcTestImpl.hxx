@@ -16,17 +16,11 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-#pragma once
 
-#ifndef MYRPCCHANNEL_HXX_
-#define MYRPCCHANNEL_HXX_
+#ifndef RPCTESTIMPL_HXX_
+#define RPCTESTIMPL_HXX_
 
-#include <google/protobuf/service.h>
 #include "rpcTest.pb.h"
-#include "SAFplusRpc.pb.h"
-#include "clSafplusMsgServer.hxx"
-
-using namespace google::protobuf;
 
 namespace SAFplus
 {
@@ -38,26 +32,19 @@ namespace SAFplus
       /*
        *
        */
-      class MyRpcChannel : public google::protobuf::RpcChannel, public SAFplus::MsgHandler
+      class rpcTestImpl : public SAFplus::Rpc::rpcTest::rpcTest
       {
         public:
-          MyRpcChannel(SAFplus::MsgServer *svr, ClIocAddressT *iocDest);
+          rpcTestImpl();
           virtual
-          ~MyRpcChannel();
-          void CallMethod(const MethodDescriptor* method,
-                                    RpcController* controller,
-                                    const Message* request,
-                                    Message* response,
-                                    Closure* done);
-          void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-        public:
-          SAFplus::MsgServer *svr;
-          ClIocAddressT *dest;
-          //Msg index
-          int msgId;
+          ~rpcTestImpl();
+          void testGetRpcMethod(::google::protobuf::RpcController* controller,
+                               const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
+                               ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
+                               ::google::protobuf::Closure* done);
       };
 
     } /* namespace rpcTest */
   } /* namespace Rpc */
 } /* namespace SAFplus */
-#endif /* MYRPCCHANNEL_HXX_ */
+#endif /* RPCTESTIMPL_HXX_ */

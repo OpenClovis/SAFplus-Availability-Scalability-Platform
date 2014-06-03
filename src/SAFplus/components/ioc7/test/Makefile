@@ -14,10 +14,10 @@ CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../protoc -I./Common
 # Management includes and libraries
 CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ `pkg-config --cflags protobuf`
 
-SENDER_SRC := ClientTest.cxx $(wildcard Common/*.pb.cc) $(wildcard Common/*.cxx) 
+SENDER_SRC := ClientTest.cxx $(wildcard Common/*.pb.cc) $(wildcard Common/*.cxx) $(wildcard Client/*.cxx)
 SENDER_OBJ := $(addprefix $(OBJ_DIR)/, $(subst .cxx,.o,$(subst .cc,.o,$(SENDER_SRC))))
 
-RECEIVER_SRC := MsgHandlerProtocols.cxx ServerTest.cxx $(wildcard Common/*.pb.cc) $(wildcard Common/*.cxx)
+RECEIVER_SRC := MsgHandlerProtocols.cxx ServerTest.cxx $(wildcard Common/*.pb.cc) $(wildcard Common/*.cxx) $(wildcard Server/*.cxx)
 RECEIVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(subst .cc,.o,$(RECEIVER_SRC))))
 
 # Specify the required libraries
@@ -45,6 +45,10 @@ $(OBJ_DIR)/Common/%.pb.o: Common/%.pb.cc
 
 $(OBJ_DIR)/Client/%.o: Client/%.cxx
 	-mkdir -p $(OBJ_DIR)/Client
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/Server/%.o: Server/%.cxx
+	-mkdir -p $(OBJ_DIR)/Server
 	$(COMPILE_CPP) $@ $<
 
 $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)

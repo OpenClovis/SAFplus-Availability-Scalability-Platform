@@ -18,6 +18,7 @@
  */
 #pragma once
 #include "MyRpcChannel.hxx"
+#include "Server/RpcTestImpl.hxx"
 
 namespace SAFplus
 {
@@ -63,8 +64,6 @@ namespace SAFplus
       {
         SAFplus::Rpc::RpcMessage rpcMsg;
         SAFplus::Rpc::RpcMessage response;
-        SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse testMethodRes;
-        SAFplus::Rpc::rpcTest::DataResult *data = testMethodRes.mutable_dataresult();
 
         std::string recMsg((const char*) msg, msglen);
         rpcMsg.ParseFromString(recMsg);
@@ -78,14 +77,17 @@ namespace SAFplus
             response.set_id(rpcMsg.id());
             response.set_name(rpcMsg.name());
 
-            //Data preparing
-            //TODO: implementation RPC method
-            // => Calling serviceImpl->rpcName
-            data->set_name("Get status reply callback");
-            data->set_status(1);
-            //Done preparing data
+            SAFplus::Rpc::rpcTest::rpcTestImpl *service = new SAFplus::Rpc::rpcTest::rpcTestImpl();
 
-            response.set_buffer(testMethodRes.SerializePartialAsString());
+            const MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(rpcMsg.name());
+            Message* request = service->GetRequestPrototype(method).New();
+            Message* testMethodRes = service->GetResponsePrototype(method).New();
+            request->ParseFromString(rpcMsg.buffer());
+            service->CallMethod(method, NULL, request, testMethodRes, NULL);
+
+            //Done preparing data
+            response.set_buffer(testMethodRes->SerializePartialAsString());
+
             try
             {
                 svr->SendMsg(from, (void *)response.SerializeAsString().c_str(), response.ByteSize(), CL_IOC_RMD_SYNC_REPLY_PROTO);
@@ -103,12 +105,16 @@ namespace SAFplus
             response.set_id(rpcMsg.id());
             response.set_name(rpcMsg.name());
 
-            //Data preparing
-            //TODO: implementation RPC method
-            // => Calling serviceImpl->rpcName
-            data->set_name("Get status reply callback");
-            data->set_status(1);
+            SAFplus::Rpc::rpcTest::rpcTestImpl *service = new SAFplus::Rpc::rpcTest::rpcTestImpl();
+
+            const MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(rpcMsg.name());
+            Message* request = service->GetRequestPrototype(method).New();
+            Message* testMethodRes = service->GetResponsePrototype(method).New();
+            request->ParseFromString(rpcMsg.buffer());
+            service->CallMethod(method, NULL, request, testMethodRes, NULL);
+
             //Done preparing data
+            response.set_buffer(testMethodRes->SerializePartialAsString());
 
             try
             {
@@ -125,7 +131,14 @@ namespace SAFplus
           {
             //TODO: Handle response data
             // => Calling responeHandler->rpcName => codegen
-            std::cout<<"Got reply CL_IOC_RMD_SYNC_REPLY_PROTO:"<< rpcMsg.DebugString()<<std::endl;
+//            std::cout<<"Got reply CL_IOC_RMD_SYNC_REPLY_PROTO:"<< rpcMsg.DebugString()<<std::endl;
+            SAFplus::Rpc::rpcTest::rpcTestImpl *service = new SAFplus::Rpc::rpcTest::rpcTestImpl();
+
+            const MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(rpcMsg.name());
+            Message* request = service->GetRequestPrototype(method).New();
+            Message* testMethodRes = service->GetResponsePrototype(method).New();
+            testMethodRes->ParseFromString(rpcMsg.buffer());
+            service->CallMethod(method, NULL, request, testMethodRes, NULL);
             break;
           }
 
@@ -134,7 +147,14 @@ namespace SAFplus
           {
             //TODO: Handle response data
             // => Calling responeHandler->rpcName => codegen
-            std::cout<<"Got reply CL_IOC_RMD_ASYNC_REPLY_PROTO:"<< rpcMsg.DebugString()<<std::endl;
+//            std::cout<<"Got reply CL_IOC_RMD_ASYNC_REPLY_PROTO:"<< rpcMsg.DebugString()<<std::endl;
+            SAFplus::Rpc::rpcTest::rpcTestImpl *service = new SAFplus::Rpc::rpcTest::rpcTestImpl();
+
+            const MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(rpcMsg.name());
+            Message* request = service->GetRequestPrototype(method).New();
+            Message* testMethodRes = service->GetResponsePrototype(method).New();
+            testMethodRes->ParseFromString(rpcMsg.buffer());
+            service->CallMethod(method, NULL, request, testMethodRes, NULL);
             break;
           }
         }

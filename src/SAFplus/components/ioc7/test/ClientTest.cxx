@@ -65,7 +65,7 @@ main(void)
     SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request;
     SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res;
 
-    request.set_name("nameValue");
+    request.set_name("myNameRequest");
 
     /*
      * ??? msgClient or safplusMsgServer
