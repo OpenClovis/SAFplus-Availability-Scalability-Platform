@@ -35,16 +35,17 @@ void  protobuf_AddDesc_SAFplusRpc_2eproto();
 void protobuf_AssignDesc_SAFplusRpc_2eproto();
 void protobuf_ShutdownFile_SAFplusRpc_2eproto();
 
-class RpcRequest;
-class RpcResponse;
+class RpcMessage;
 
 enum RequestType {
-  SYNC = 1,
-  ASYNC = 2
+  CL_IOC_RMD_SYNC_REQUEST_PROTO = 16,
+  CL_IOC_RMD_SYNC_REPLY_PROTO = 17,
+  CL_IOC_RMD_ASYNC_REQUEST_PROTO = 18,
+  CL_IOC_RMD_ASYNC_REPLY_PROTO = 19
 };
 bool RequestType_IsValid(int value);
-const RequestType RequestType_MIN = SYNC;
-const RequestType RequestType_MAX = ASYNC;
+const RequestType RequestType_MIN = CL_IOC_RMD_SYNC_REQUEST_PROTO;
+const RequestType RequestType_MAX = CL_IOC_RMD_ASYNC_REPLY_PROTO;
 const int RequestType_ARRAYSIZE = RequestType_MAX + 1;
 
 const ::google::protobuf::EnumDescriptor* RequestType_descriptor();
@@ -59,14 +60,14 @@ inline bool RequestType_Parse(
 }
 // ===================================================================
 
-class RpcRequest : public ::google::protobuf::Message {
+class RpcMessage : public ::google::protobuf::Message {
  public:
-  RpcRequest();
-  virtual ~RpcRequest();
+  RpcMessage();
+  virtual ~RpcMessage();
 
-  RpcRequest(const RpcRequest& from);
+  RpcMessage(const RpcMessage& from);
 
-  inline RpcRequest& operator=(const RpcRequest& from) {
+  inline RpcMessage& operator=(const RpcMessage& from) {
     CopyFrom(from);
     return *this;
   }
@@ -80,17 +81,17 @@ class RpcRequest : public ::google::protobuf::Message {
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const RpcRequest& default_instance();
+  static const RpcMessage& default_instance();
 
-  void Swap(RpcRequest* other);
+  void Swap(RpcMessage* other);
 
   // implements Message ----------------------------------------------
 
-  RpcRequest* New() const;
+  RpcMessage* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const RpcRequest& from);
-  void MergeFrom(const RpcRequest& from);
+  void CopyFrom(const RpcMessage& from);
+  void MergeFrom(const RpcMessage& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -151,7 +152,7 @@ class RpcRequest : public ::google::protobuf::Message {
   inline ::std::string* release_buffer();
   inline void set_allocated_buffer(::std::string* buffer);
 
-  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.RpcRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.RpcMessage)
  private:
   inline void set_has_type();
   inline void clear_has_type();
@@ -177,205 +178,108 @@ class RpcRequest : public ::google::protobuf::Message {
   friend void protobuf_ShutdownFile_SAFplusRpc_2eproto();
 
   void InitAsDefaultInstance();
-  static RpcRequest* default_instance_;
-};
-// -------------------------------------------------------------------
-
-class RpcResponse : public ::google::protobuf::Message {
- public:
-  RpcResponse();
-  virtual ~RpcResponse();
-
-  RpcResponse(const RpcResponse& from);
-
-  inline RpcResponse& operator=(const RpcResponse& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const RpcResponse& default_instance();
-
-  void Swap(RpcResponse* other);
-
-  // implements Message ----------------------------------------------
-
-  RpcResponse* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const RpcResponse& from);
-  void MergeFrom(const RpcResponse& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional uint32 id = 2;
-  inline bool has_id() const;
-  inline void clear_id();
-  static const int kIdFieldNumber = 2;
-  inline ::google::protobuf::uint32 id() const;
-  inline void set_id(::google::protobuf::uint32 value);
-
-  // optional bytes buffer = 4;
-  inline bool has_buffer() const;
-  inline void clear_buffer();
-  static const int kBufferFieldNumber = 4;
-  inline const ::std::string& buffer() const;
-  inline void set_buffer(const ::std::string& value);
-  inline void set_buffer(const char* value);
-  inline void set_buffer(const void* value, size_t size);
-  inline ::std::string* mutable_buffer();
-  inline ::std::string* release_buffer();
-  inline void set_allocated_buffer(::std::string* buffer);
-
-  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.RpcResponse)
- private:
-  inline void set_has_id();
-  inline void clear_has_id();
-  inline void set_has_buffer();
-  inline void clear_has_buffer();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::std::string* buffer_;
-  ::google::protobuf::uint32 id_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
-
-  friend void  protobuf_AddDesc_SAFplusRpc_2eproto();
-  friend void protobuf_AssignDesc_SAFplusRpc_2eproto();
-  friend void protobuf_ShutdownFile_SAFplusRpc_2eproto();
-
-  void InitAsDefaultInstance();
-  static RpcResponse* default_instance_;
+  static RpcMessage* default_instance_;
 };
 // ===================================================================
 
 
 // ===================================================================
 
-// RpcRequest
+// RpcMessage
 
 // required .SAFplus.Rpc.RequestType type = 1;
-inline bool RpcRequest::has_type() const {
+inline bool RpcMessage::has_type() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void RpcRequest::set_has_type() {
+inline void RpcMessage::set_has_type() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void RpcRequest::clear_has_type() {
+inline void RpcMessage::clear_has_type() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void RpcRequest::clear_type() {
-  type_ = 1;
+inline void RpcMessage::clear_type() {
+  type_ = 16;
   clear_has_type();
 }
-inline ::SAFplus::Rpc::RequestType RpcRequest::type() const {
+inline ::SAFplus::Rpc::RequestType RpcMessage::type() const {
   return static_cast< ::SAFplus::Rpc::RequestType >(type_);
 }
-inline void RpcRequest::set_type(::SAFplus::Rpc::RequestType value) {
+inline void RpcMessage::set_type(::SAFplus::Rpc::RequestType value) {
   assert(::SAFplus::Rpc::RequestType_IsValid(value));
   set_has_type();
   type_ = value;
 }
 
 // optional uint32 id = 2;
-inline bool RpcRequest::has_id() const {
+inline bool RpcMessage::has_id() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void RpcRequest::set_has_id() {
+inline void RpcMessage::set_has_id() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void RpcRequest::clear_has_id() {
+inline void RpcMessage::clear_has_id() {
   _has_bits_[0] &= ~0x00000002u;
 }
-inline void RpcRequest::clear_id() {
+inline void RpcMessage::clear_id() {
   id_ = 0u;
   clear_has_id();
 }
-inline ::google::protobuf::uint32 RpcRequest::id() const {
+inline ::google::protobuf::uint32 RpcMessage::id() const {
   return id_;
 }
-inline void RpcRequest::set_id(::google::protobuf::uint32 value) {
+inline void RpcMessage::set_id(::google::protobuf::uint32 value) {
   set_has_id();
   id_ = value;
 }
 
 // optional string name = 3;
-inline bool RpcRequest::has_name() const {
+inline bool RpcMessage::has_name() const {
   return (_has_bits_[0] & 0x00000004u) != 0;
 }
-inline void RpcRequest::set_has_name() {
+inline void RpcMessage::set_has_name() {
   _has_bits_[0] |= 0x00000004u;
 }
-inline void RpcRequest::clear_has_name() {
+inline void RpcMessage::clear_has_name() {
   _has_bits_[0] &= ~0x00000004u;
 }
-inline void RpcRequest::clear_name() {
+inline void RpcMessage::clear_name() {
   if (name_ != &::google::protobuf::internal::kEmptyString) {
     name_->clear();
   }
   clear_has_name();
 }
-inline const ::std::string& RpcRequest::name() const {
+inline const ::std::string& RpcMessage::name() const {
   return *name_;
 }
-inline void RpcRequest::set_name(const ::std::string& value) {
+inline void RpcMessage::set_name(const ::std::string& value) {
   set_has_name();
   if (name_ == &::google::protobuf::internal::kEmptyString) {
     name_ = new ::std::string;
   }
   name_->assign(value);
 }
-inline void RpcRequest::set_name(const char* value) {
+inline void RpcMessage::set_name(const char* value) {
   set_has_name();
   if (name_ == &::google::protobuf::internal::kEmptyString) {
     name_ = new ::std::string;
   }
   name_->assign(value);
 }
-inline void RpcRequest::set_name(const char* value, size_t size) {
+inline void RpcMessage::set_name(const char* value, size_t size) {
   set_has_name();
   if (name_ == &::google::protobuf::internal::kEmptyString) {
     name_ = new ::std::string;
   }
   name_->assign(reinterpret_cast<const char*>(value), size);
 }
-inline ::std::string* RpcRequest::mutable_name() {
+inline ::std::string* RpcMessage::mutable_name() {
   set_has_name();
   if (name_ == &::google::protobuf::internal::kEmptyString) {
     name_ = new ::std::string;
   }
   return name_;
 }
-inline ::std::string* RpcRequest::release_name() {
+inline ::std::string* RpcMessage::release_name() {
   clear_has_name();
   if (name_ == &::google::protobuf::internal::kEmptyString) {
     return NULL;
@@ -385,7 +289,7 @@ inline ::std::string* RpcRequest::release_name() {
     return temp;
   }
 }
-inline void RpcRequest::set_allocated_name(::std::string* name) {
+inline void RpcMessage::set_allocated_name(::std::string* name) {
   if (name_ != &::google::protobuf::internal::kEmptyString) {
     delete name_;
   }
@@ -399,53 +303,53 @@ inline void RpcRequest::set_allocated_name(::std::string* name) {
 }
 
 // optional bytes buffer = 4;
-inline bool RpcRequest::has_buffer() const {
+inline bool RpcMessage::has_buffer() const {
   return (_has_bits_[0] & 0x00000008u) != 0;
 }
-inline void RpcRequest::set_has_buffer() {
+inline void RpcMessage::set_has_buffer() {
   _has_bits_[0] |= 0x00000008u;
 }
-inline void RpcRequest::clear_has_buffer() {
+inline void RpcMessage::clear_has_buffer() {
   _has_bits_[0] &= ~0x00000008u;
 }
-inline void RpcRequest::clear_buffer() {
+inline void RpcMessage::clear_buffer() {
   if (buffer_ != &::google::protobuf::internal::kEmptyString) {
     buffer_->clear();
   }
   clear_has_buffer();
 }
-inline const ::std::string& RpcRequest::buffer() const {
+inline const ::std::string& RpcMessage::buffer() const {
   return *buffer_;
 }
-inline void RpcRequest::set_buffer(const ::std::string& value) {
+inline void RpcMessage::set_buffer(const ::std::string& value) {
   set_has_buffer();
   if (buffer_ == &::google::protobuf::internal::kEmptyString) {
     buffer_ = new ::std::string;
   }
   buffer_->assign(value);
 }
-inline void RpcRequest::set_buffer(const char* value) {
+inline void RpcMessage::set_buffer(const char* value) {
   set_has_buffer();
   if (buffer_ == &::google::protobuf::internal::kEmptyString) {
     buffer_ = new ::std::string;
   }
   buffer_->assign(value);
 }
-inline void RpcRequest::set_buffer(const void* value, size_t size) {
+inline void RpcMessage::set_buffer(const void* value, size_t size) {
   set_has_buffer();
   if (buffer_ == &::google::protobuf::internal::kEmptyString) {
     buffer_ = new ::std::string;
   }
   buffer_->assign(reinterpret_cast<const char*>(value), size);
 }
-inline ::std::string* RpcRequest::mutable_buffer() {
+inline ::std::string* RpcMessage::mutable_buffer() {
   set_has_buffer();
   if (buffer_ == &::google::protobuf::internal::kEmptyString) {
     buffer_ = new ::std::string;
   }
   return buffer_;
 }
-inline ::std::string* RpcRequest::release_buffer() {
+inline ::std::string* RpcMessage::release_buffer() {
   clear_has_buffer();
   if (buffer_ == &::google::protobuf::internal::kEmptyString) {
     return NULL;
@@ -455,103 +359,7 @@ inline ::std::string* RpcRequest::release_buffer() {
     return temp;
   }
 }
-inline void RpcRequest::set_allocated_buffer(::std::string* buffer) {
-  if (buffer_ != &::google::protobuf::internal::kEmptyString) {
-    delete buffer_;
-  }
-  if (buffer) {
-    set_has_buffer();
-    buffer_ = buffer;
-  } else {
-    clear_has_buffer();
-    buffer_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  }
-}
-
-// -------------------------------------------------------------------
-
-// RpcResponse
-
-// optional uint32 id = 2;
-inline bool RpcResponse::has_id() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void RpcResponse::set_has_id() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void RpcResponse::clear_has_id() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void RpcResponse::clear_id() {
-  id_ = 0u;
-  clear_has_id();
-}
-inline ::google::protobuf::uint32 RpcResponse::id() const {
-  return id_;
-}
-inline void RpcResponse::set_id(::google::protobuf::uint32 value) {
-  set_has_id();
-  id_ = value;
-}
-
-// optional bytes buffer = 4;
-inline bool RpcResponse::has_buffer() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void RpcResponse::set_has_buffer() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void RpcResponse::clear_has_buffer() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void RpcResponse::clear_buffer() {
-  if (buffer_ != &::google::protobuf::internal::kEmptyString) {
-    buffer_->clear();
-  }
-  clear_has_buffer();
-}
-inline const ::std::string& RpcResponse::buffer() const {
-  return *buffer_;
-}
-inline void RpcResponse::set_buffer(const ::std::string& value) {
-  set_has_buffer();
-  if (buffer_ == &::google::protobuf::internal::kEmptyString) {
-    buffer_ = new ::std::string;
-  }
-  buffer_->assign(value);
-}
-inline void RpcResponse::set_buffer(const char* value) {
-  set_has_buffer();
-  if (buffer_ == &::google::protobuf::internal::kEmptyString) {
-    buffer_ = new ::std::string;
-  }
-  buffer_->assign(value);
-}
-inline void RpcResponse::set_buffer(const void* value, size_t size) {
-  set_has_buffer();
-  if (buffer_ == &::google::protobuf::internal::kEmptyString) {
-    buffer_ = new ::std::string;
-  }
-  buffer_->assign(reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* RpcResponse::mutable_buffer() {
-  set_has_buffer();
-  if (buffer_ == &::google::protobuf::internal::kEmptyString) {
-    buffer_ = new ::std::string;
-  }
-  return buffer_;
-}
-inline ::std::string* RpcResponse::release_buffer() {
-  clear_has_buffer();
-  if (buffer_ == &::google::protobuf::internal::kEmptyString) {
-    return NULL;
-  } else {
-    ::std::string* temp = buffer_;
-    buffer_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-    return temp;
-  }
-}
-inline void RpcResponse::set_allocated_buffer(::std::string* buffer) {
+inline void RpcMessage::set_allocated_buffer(::std::string* buffer) {
   if (buffer_ != &::google::protobuf::internal::kEmptyString) {
     delete buffer_;
   }

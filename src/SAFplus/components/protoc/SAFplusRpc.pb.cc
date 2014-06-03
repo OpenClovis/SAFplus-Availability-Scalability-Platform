@@ -21,12 +21,9 @@ namespace Rpc {
 
 namespace {
 
-const ::google::protobuf::Descriptor* RpcRequest_descriptor_ = NULL;
+const ::google::protobuf::Descriptor* RpcMessage_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
-  RpcRequest_reflection_ = NULL;
-const ::google::protobuf::Descriptor* RpcResponse_descriptor_ = NULL;
-const ::google::protobuf::internal::GeneratedMessageReflection*
-  RpcResponse_reflection_ = NULL;
+  RpcMessage_reflection_ = NULL;
 const ::google::protobuf::EnumDescriptor* RequestType_descriptor_ = NULL;
 
 }  // namespace
@@ -38,40 +35,24 @@ void protobuf_AssignDesc_SAFplusRpc_2eproto() {
     ::google::protobuf::DescriptorPool::generated_pool()->FindFileByName(
       "SAFplusRpc.proto");
   GOOGLE_CHECK(file != NULL);
-  RpcRequest_descriptor_ = file->message_type(0);
-  static const int RpcRequest_offsets_[4] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcRequest, type_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcRequest, id_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcRequest, name_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcRequest, buffer_),
+  RpcMessage_descriptor_ = file->message_type(0);
+  static const int RpcMessage_offsets_[4] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcMessage, type_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcMessage, id_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcMessage, name_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcMessage, buffer_),
   };
-  RpcRequest_reflection_ =
+  RpcMessage_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
-      RpcRequest_descriptor_,
-      RpcRequest::default_instance_,
-      RpcRequest_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcRequest, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcRequest, _unknown_fields_),
+      RpcMessage_descriptor_,
+      RpcMessage::default_instance_,
+      RpcMessage_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcMessage, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcMessage, _unknown_fields_),
       -1,
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
-      sizeof(RpcRequest));
-  RpcResponse_descriptor_ = file->message_type(1);
-  static const int RpcResponse_offsets_[2] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcResponse, id_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcResponse, buffer_),
-  };
-  RpcResponse_reflection_ =
-    new ::google::protobuf::internal::GeneratedMessageReflection(
-      RpcResponse_descriptor_,
-      RpcResponse::default_instance_,
-      RpcResponse_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcResponse, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(RpcResponse, _unknown_fields_),
-      -1,
-      ::google::protobuf::DescriptorPool::generated_pool(),
-      ::google::protobuf::MessageFactory::generated_factory(),
-      sizeof(RpcResponse));
+      sizeof(RpcMessage));
   RequestType_descriptor_ = file->enum_type(0);
 }
 
@@ -86,18 +67,14 @@ inline void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-    RpcRequest_descriptor_, &RpcRequest::default_instance());
-  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-    RpcResponse_descriptor_, &RpcResponse::default_instance());
+    RpcMessage_descriptor_, &RpcMessage::default_instance());
 }
 
 }  // namespace
 
 void protobuf_ShutdownFile_SAFplusRpc_2eproto() {
-  delete RpcRequest::default_instance_;
-  delete RpcRequest_reflection_;
-  delete RpcResponse::default_instance_;
-  delete RpcResponse_reflection_;
+  delete RpcMessage::default_instance_;
+  delete RpcMessage_reflection_;
 }
 
 void protobuf_AddDesc_SAFplusRpc_2eproto() {
@@ -107,18 +84,18 @@ void protobuf_AddDesc_SAFplusRpc_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\020SAFplusRpc.proto\022\013SAFplus.Rpc\"^\n\nRpcRe"
-    "quest\022&\n\004type\030\001 \002(\0162\030.SAFplus.Rpc.Reques"
+    "\n\020SAFplusRpc.proto\022\013SAFplus.Rpc\"^\n\nRpcMe"
+    "ssage\022&\n\004type\030\001 \002(\0162\030.SAFplus.Rpc.Reques"
     "tType\022\n\n\002id\030\002 \001(\r\022\014\n\004name\030\003 \001(\t\022\016\n\006buffe"
-    "r\030\004 \001(\014\")\n\013RpcResponse\022\n\n\002id\030\002 \001(\r\022\016\n\006bu"
-    "ffer\030\004 \001(\014*\"\n\013RequestType\022\010\n\004SYNC\020\001\022\t\n\005A"
-    "SYNC\020\002", 206);
+    "r\030\004 \001(\014*\227\001\n\013RequestType\022!\n\035CL_IOC_RMD_SY"
+    "NC_REQUEST_PROTO\020\020\022\037\n\033CL_IOC_RMD_SYNC_RE"
+    "PLY_PROTO\020\021\022\"\n\036CL_IOC_RMD_ASYNC_REQUEST_"
+    "PROTO\020\022\022 \n\034CL_IOC_RMD_ASYNC_REPLY_PROTO\020"
+    "\023", 281);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "SAFplusRpc.proto", &protobuf_RegisterTypes);
-  RpcRequest::default_instance_ = new RpcRequest();
-  RpcResponse::default_instance_ = new RpcResponse();
-  RpcRequest::default_instance_->InitAsDefaultInstance();
-  RpcResponse::default_instance_->InitAsDefaultInstance();
+  RpcMessage::default_instance_ = new RpcMessage();
+  RpcMessage::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_SAFplusRpc_2eproto);
 }
 
@@ -134,8 +111,10 @@ const ::google::protobuf::EnumDescriptor* RequestType_descriptor() {
 }
 bool RequestType_IsValid(int value) {
   switch(value) {
-    case 1:
-    case 2:
+    case 16:
+    case 17:
+    case 18:
+    case 19:
       return true;
     default:
       return false;
@@ -146,40 +125,40 @@ bool RequestType_IsValid(int value) {
 // ===================================================================
 
 #ifndef _MSC_VER
-const int RpcRequest::kTypeFieldNumber;
-const int RpcRequest::kIdFieldNumber;
-const int RpcRequest::kNameFieldNumber;
-const int RpcRequest::kBufferFieldNumber;
+const int RpcMessage::kTypeFieldNumber;
+const int RpcMessage::kIdFieldNumber;
+const int RpcMessage::kNameFieldNumber;
+const int RpcMessage::kBufferFieldNumber;
 #endif  // !_MSC_VER
 
-RpcRequest::RpcRequest()
+RpcMessage::RpcMessage()
   : ::google::protobuf::Message() {
   SharedCtor();
 }
 
-void RpcRequest::InitAsDefaultInstance() {
+void RpcMessage::InitAsDefaultInstance() {
 }
 
-RpcRequest::RpcRequest(const RpcRequest& from)
+RpcMessage::RpcMessage(const RpcMessage& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
 }
 
-void RpcRequest::SharedCtor() {
+void RpcMessage::SharedCtor() {
   _cached_size_ = 0;
-  type_ = 1;
+  type_ = 16;
   id_ = 0u;
   name_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   buffer_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
-RpcRequest::~RpcRequest() {
+RpcMessage::~RpcMessage() {
   SharedDtor();
 }
 
-void RpcRequest::SharedDtor() {
+void RpcMessage::SharedDtor() {
   if (name_ != &::google::protobuf::internal::kEmptyString) {
     delete name_;
   }
@@ -190,30 +169,30 @@ void RpcRequest::SharedDtor() {
   }
 }
 
-void RpcRequest::SetCachedSize(int size) const {
+void RpcMessage::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
 }
-const ::google::protobuf::Descriptor* RpcRequest::descriptor() {
+const ::google::protobuf::Descriptor* RpcMessage::descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return RpcRequest_descriptor_;
+  return RpcMessage_descriptor_;
 }
 
-const RpcRequest& RpcRequest::default_instance() {
+const RpcMessage& RpcMessage::default_instance() {
   if (default_instance_ == NULL) protobuf_AddDesc_SAFplusRpc_2eproto();
   return *default_instance_;
 }
 
-RpcRequest* RpcRequest::default_instance_ = NULL;
+RpcMessage* RpcMessage::default_instance_ = NULL;
 
-RpcRequest* RpcRequest::New() const {
-  return new RpcRequest;
+RpcMessage* RpcMessage::New() const {
+  return new RpcMessage;
 }
 
-void RpcRequest::Clear() {
+void RpcMessage::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    type_ = 1;
+    type_ = 16;
     id_ = 0u;
     if (has_name()) {
       if (name_ != &::google::protobuf::internal::kEmptyString) {
@@ -230,7 +209,7 @@ void RpcRequest::Clear() {
   mutable_unknown_fields()->Clear();
 }
 
-bool RpcRequest::MergePartialFromCodedStream(
+bool RpcMessage::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
@@ -319,7 +298,7 @@ bool RpcRequest::MergePartialFromCodedStream(
 #undef DO_
 }
 
-void RpcRequest::SerializeWithCachedSizes(
+void RpcMessage::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // required .SAFplus.Rpc.RequestType type = 1;
   if (has_type()) {
@@ -353,7 +332,7 @@ void RpcRequest::SerializeWithCachedSizes(
   }
 }
 
-::google::protobuf::uint8* RpcRequest::SerializeWithCachedSizesToArray(
+::google::protobuf::uint8* RpcMessage::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // required .SAFplus.Rpc.RequestType type = 1;
   if (has_type()) {
@@ -390,7 +369,7 @@ void RpcRequest::SerializeWithCachedSizes(
   return target;
 }
 
-int RpcRequest::ByteSize() const {
+int RpcMessage::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
@@ -433,10 +412,10 @@ int RpcRequest::ByteSize() const {
   return total_size;
 }
 
-void RpcRequest::MergeFrom(const ::google::protobuf::Message& from) {
+void RpcMessage::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
-  const RpcRequest* source =
-    ::google::protobuf::internal::dynamic_cast_if_available<const RpcRequest*>(
+  const RpcMessage* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const RpcMessage*>(
       &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -445,7 +424,7 @@ void RpcRequest::MergeFrom(const ::google::protobuf::Message& from) {
   }
 }
 
-void RpcRequest::MergeFrom(const RpcRequest& from) {
+void RpcMessage::MergeFrom(const RpcMessage& from) {
   GOOGLE_CHECK_NE(&from, this);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_type()) {
@@ -464,25 +443,25 @@ void RpcRequest::MergeFrom(const RpcRequest& from) {
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
-void RpcRequest::CopyFrom(const ::google::protobuf::Message& from) {
+void RpcMessage::CopyFrom(const ::google::protobuf::Message& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void RpcRequest::CopyFrom(const RpcRequest& from) {
+void RpcMessage::CopyFrom(const RpcMessage& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool RpcRequest::IsInitialized() const {
+bool RpcMessage::IsInitialized() const {
   if ((_has_bits_[0] & 0x00000001) != 0x00000001) return false;
 
   return true;
 }
 
-void RpcRequest::Swap(RpcRequest* other) {
+void RpcMessage::Swap(RpcMessage* other) {
   if (other != this) {
     std::swap(type_, other->type_);
     std::swap(id_, other->id_);
@@ -494,267 +473,11 @@ void RpcRequest::Swap(RpcRequest* other) {
   }
 }
 
-::google::protobuf::Metadata RpcRequest::GetMetadata() const {
+::google::protobuf::Metadata RpcMessage::GetMetadata() const {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::Metadata metadata;
-  metadata.descriptor = RpcRequest_descriptor_;
-  metadata.reflection = RpcRequest_reflection_;
-  return metadata;
-}
-
-
-// ===================================================================
-
-#ifndef _MSC_VER
-const int RpcResponse::kIdFieldNumber;
-const int RpcResponse::kBufferFieldNumber;
-#endif  // !_MSC_VER
-
-RpcResponse::RpcResponse()
-  : ::google::protobuf::Message() {
-  SharedCtor();
-}
-
-void RpcResponse::InitAsDefaultInstance() {
-}
-
-RpcResponse::RpcResponse(const RpcResponse& from)
-  : ::google::protobuf::Message() {
-  SharedCtor();
-  MergeFrom(from);
-}
-
-void RpcResponse::SharedCtor() {
-  _cached_size_ = 0;
-  id_ = 0u;
-  buffer_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-  ::memset(_has_bits_, 0, sizeof(_has_bits_));
-}
-
-RpcResponse::~RpcResponse() {
-  SharedDtor();
-}
-
-void RpcResponse::SharedDtor() {
-  if (buffer_ != &::google::protobuf::internal::kEmptyString) {
-    delete buffer_;
-  }
-  if (this != default_instance_) {
-  }
-}
-
-void RpcResponse::SetCachedSize(int size) const {
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-}
-const ::google::protobuf::Descriptor* RpcResponse::descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return RpcResponse_descriptor_;
-}
-
-const RpcResponse& RpcResponse::default_instance() {
-  if (default_instance_ == NULL) protobuf_AddDesc_SAFplusRpc_2eproto();
-  return *default_instance_;
-}
-
-RpcResponse* RpcResponse::default_instance_ = NULL;
-
-RpcResponse* RpcResponse::New() const {
-  return new RpcResponse;
-}
-
-void RpcResponse::Clear() {
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    id_ = 0u;
-    if (has_buffer()) {
-      if (buffer_ != &::google::protobuf::internal::kEmptyString) {
-        buffer_->clear();
-      }
-    }
-  }
-  ::memset(_has_bits_, 0, sizeof(_has_bits_));
-  mutable_unknown_fields()->Clear();
-}
-
-bool RpcResponse::MergePartialFromCodedStream(
-    ::google::protobuf::io::CodedInputStream* input) {
-#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
-  ::google::protobuf::uint32 tag;
-  while ((tag = input->ReadTag()) != 0) {
-    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // optional uint32 id = 2;
-      case 2: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
-                 input, &id_)));
-          set_has_id();
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectTag(34)) goto parse_buffer;
-        break;
-      }
-
-      // optional bytes buffer = 4;
-      case 4: {
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
-         parse_buffer:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
-                input, this->mutable_buffer()));
-        } else {
-          goto handle_uninterpreted;
-        }
-        if (input->ExpectAtEnd()) return true;
-        break;
-      }
-
-      default: {
-      handle_uninterpreted:
-        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
-            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
-          return true;
-        }
-        DO_(::google::protobuf::internal::WireFormat::SkipField(
-              input, tag, mutable_unknown_fields()));
-        break;
-      }
-    }
-  }
-  return true;
-#undef DO_
-}
-
-void RpcResponse::SerializeWithCachedSizes(
-    ::google::protobuf::io::CodedOutputStream* output) const {
-  // optional uint32 id = 2;
-  if (has_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->id(), output);
-  }
-
-  // optional bytes buffer = 4;
-  if (has_buffer()) {
-    ::google::protobuf::internal::WireFormatLite::WriteBytes(
-      4, this->buffer(), output);
-  }
-
-  if (!unknown_fields().empty()) {
-    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
-        unknown_fields(), output);
-  }
-}
-
-::google::protobuf::uint8* RpcResponse::SerializeWithCachedSizesToArray(
-    ::google::protobuf::uint8* target) const {
-  // optional uint32 id = 2;
-  if (has_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->id(), target);
-  }
-
-  // optional bytes buffer = 4;
-  if (has_buffer()) {
-    target =
-      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
-        4, this->buffer(), target);
-  }
-
-  if (!unknown_fields().empty()) {
-    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
-        unknown_fields(), target);
-  }
-  return target;
-}
-
-int RpcResponse::ByteSize() const {
-  int total_size = 0;
-
-  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // optional uint32 id = 2;
-    if (has_id()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
-          this->id());
-    }
-
-    // optional bytes buffer = 4;
-    if (has_buffer()) {
-      total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::BytesSize(
-          this->buffer());
-    }
-
-  }
-  if (!unknown_fields().empty()) {
-    total_size +=
-      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
-        unknown_fields());
-  }
-  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
-  _cached_size_ = total_size;
-  GOOGLE_SAFE_CONCURRENT_WRITES_END();
-  return total_size;
-}
-
-void RpcResponse::MergeFrom(const ::google::protobuf::Message& from) {
-  GOOGLE_CHECK_NE(&from, this);
-  const RpcResponse* source =
-    ::google::protobuf::internal::dynamic_cast_if_available<const RpcResponse*>(
-      &from);
-  if (source == NULL) {
-    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
-  } else {
-    MergeFrom(*source);
-  }
-}
-
-void RpcResponse::MergeFrom(const RpcResponse& from) {
-  GOOGLE_CHECK_NE(&from, this);
-  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    if (from.has_id()) {
-      set_id(from.id());
-    }
-    if (from.has_buffer()) {
-      set_buffer(from.buffer());
-    }
-  }
-  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
-}
-
-void RpcResponse::CopyFrom(const ::google::protobuf::Message& from) {
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void RpcResponse::CopyFrom(const RpcResponse& from) {
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool RpcResponse::IsInitialized() const {
-
-  return true;
-}
-
-void RpcResponse::Swap(RpcResponse* other) {
-  if (other != this) {
-    std::swap(id_, other->id_);
-    std::swap(buffer_, other->buffer_);
-    std::swap(_has_bits_[0], other->_has_bits_[0]);
-    _unknown_fields_.Swap(&other->_unknown_fields_);
-    std::swap(_cached_size_, other->_cached_size_);
-  }
-}
-
-::google::protobuf::Metadata RpcResponse::GetMetadata() const {
-  protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::Metadata metadata;
-  metadata.descriptor = RpcResponse_descriptor_;
-  metadata.reflection = RpcResponse_reflection_;
+  metadata.descriptor = RpcMessage_descriptor_;
+  metadata.reflection = RpcMessage_reflection_;
   return metadata;
 }
 

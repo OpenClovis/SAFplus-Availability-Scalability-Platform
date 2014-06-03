@@ -16,6 +16,7 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
+#pragma once
 
 #ifndef CLSAFPLUSMSGSERVER_HXX_
 #define CLSAFPLUSMSGSERVER_HXX_

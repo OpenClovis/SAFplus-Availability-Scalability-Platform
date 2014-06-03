@@ -21,7 +21,7 @@
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include <clIocApi.h>
-#include "Client/MyRpcChannel.hxx"
+#include "Common/MyRpcChannel.hxx"
 #include "clSafplusMsgServer.hxx"
 #include "google/protobuf/service.h"
 #include "ClientTest.hxx"
@@ -88,8 +88,6 @@ main(void)
     SAFplus::Rpc::rpcTest::MyRpcChannel * channel = new SAFplus::Rpc::rpcTest::MyRpcChannel(&msgClient, &iocDest);
     SAFplus::Rpc::rpcTest::rpcTest *service = new SAFplus::Rpc::rpcTest::rpcTest::Stub(channel);
 
-    // Handle RPC
-    msgClient.RegisterHandler(111, channel, NULL);
     msgClient.Start();
 
     //Test RPC

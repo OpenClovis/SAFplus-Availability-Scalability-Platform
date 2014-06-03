@@ -50,6 +50,7 @@ namespace SAFplus
                                     Message* response,
                                     Closure* done);
           void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+          static void FooDone(google::protobuf::Message* response);
         public:
           SAFplus::MsgServer *svr;
           ClIocAddressT *dest;
