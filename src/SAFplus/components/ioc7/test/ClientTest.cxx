@@ -21,11 +21,16 @@
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include <clIocApi.h>
+#include "Client/MyRpcChannel.hxx"
 #include "clSafplusMsgServer.hxx"
+#include "google/protobuf/service.h"
+#include "ClientTest.hxx"
 #include "rpcTest.pb.h"
+
 
 using namespace std;
 using namespace SAFplus;
+using namespace google::protobuf;
 
 //Auto scanning
 #define IOC_PORT 0
@@ -57,9 +62,10 @@ main(void)
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
     char helloMsg[] = "Hello world ";
 
-    SAFplusService::rpcTest::TestGetRpcMethodRequest request;
+    SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request;
+    SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res;
 
-    request.set_name("testRpc_request");
+    request.set_name("nameValue");
 
     /*
      * ??? msgClient or safplusMsgServer
@@ -68,18 +74,33 @@ main(void)
 
     /* Loop receive on loop */
 
-    msgClient.Start();
-    int i = 0;
-    while (1)
-    {
-        string data;
-        request.SerializeToString(&data);
-        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) data.c_str(), request.ByteSize(), CL_IOC_PROTO_CTL);
+//    int i = 0;
+//    while (i++<3)
+//    {
+//        string data;
+//        request.SerializeToString(&data);
+//        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) data.c_str(), request.ByteSize(), CL_IOC_PROTO_CTL);
+//        res.ParseFromString(msgReply->buffer);
+//        std::cout<<"Process:"<<getpid()<<", GOT REPLY:"<<std::endl<<res.DebugString()<<std::endl;
+//        sleep(3);
+//    }
 
-        SAFplusService::rpcTest::TestGetRpcMethodResponse res;
-        res.ParseFromString(msgReply->buffer);
-        std::cout<<"Process:"<<getpid()<<", GOT REPLY:"<<std::endl<<res.DebugString()<<std::endl;
-        sleep(3);
+    SAFplus::Rpc::rpcTest::MyRpcChannel * channel = new SAFplus::Rpc::rpcTest::MyRpcChannel(&msgClient, &iocDest);
+    SAFplus::Rpc::rpcTest::rpcTest *service = new SAFplus::Rpc::rpcTest::rpcTest::Stub(channel);
+
+    // Handle RPC
+    msgClient.RegisterHandler(111, channel, NULL);
+    msgClient.Start();
+
+    //Test RPC
+    //Loop forever
+    while(1)
+    {
+      service->testGetRpcMethod(NULL, &request, &res, NULL);
+      sleep(3);
     }
+
+
+
 }
 
