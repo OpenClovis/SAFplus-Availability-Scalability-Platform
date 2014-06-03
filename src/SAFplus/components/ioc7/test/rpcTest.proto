@@ -1,0 +1,29 @@
+/* 
+ * Copyright (C) 2002-2014 OpenClovis Solutions Inc.  All Rights Reserved.
+ */
+package SAFplus.Rpc.rpcTest;
+import "SAFplusPBExt.proto";
+
+option cc_generic_services = true;
+option py_generic_services = true;
+option java_generic_services = false;
+
+message TestGetRpcMethodRequest {
+  optional string name = 1;
+  extensions 1000 to max;
+}
+
+message DataResult {
+  optional string name = 1;
+  optional int32 status = 2;
+  extensions 1000 to max;
+}
+
+message TestGetRpcMethodResponse {
+  optional DataResult dataResult = 1;
+  extensions 1000 to max;
+}
+
+service rpcTest {
+  rpc testGetRpcMethod(TestGetRpcMethodRequest) returns(TestGetRpcMethodResponse);
+}

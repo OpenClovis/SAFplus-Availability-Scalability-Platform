@@ -16,30 +16,35 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-#pragma once
 
-#ifndef MSGHANDLERPROTOCOLS_HXX_
-#define MSGHANDLERPROTOCOLS_HXX_
+#ifndef RPCTESTIMPL_HXX_
+#define RPCTESTIMPL_HXX_
 
-#include "clMsgHandler.hxx"
+#include "rpcTest.pb.h"
 
 namespace SAFplus
 {
-
-    /*
-     *
-     */
-    class MsgHandlerProtocols : public SAFplus::MsgHandler
+  namespace Rpc
+  {
+    namespace rpcTest
     {
-        public:
-            MsgHandlerProtocols();
-            virtual
-            ~MsgHandlerProtocols();
 
+      /*
+       *
+       */
+      class rpcTestImpl : public SAFplus::Rpc::rpcTest::rpcTest
+      {
         public:
-            virtual void
-            msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-    };
+          rpcTestImpl();
+          virtual
+          ~rpcTestImpl();
+          void testGetRpcMethod(::google::protobuf::RpcController* controller,
+                               const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
+                               ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
+                               ::google::protobuf::Closure* done);
+      };
 
+    } /* namespace rpcTest */
+  } /* namespace Rpc */
 } /* namespace SAFplus */
-#endif /* MSGHANDLERPROTOCOLS_HXX_ */
+#endif /* RPCTESTIMPL_HXX_ */

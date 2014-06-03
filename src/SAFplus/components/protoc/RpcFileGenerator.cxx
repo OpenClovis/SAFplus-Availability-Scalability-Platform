@@ -16,30 +16,25 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-#pragma once
 
-#ifndef MSGHANDLERPROTOCOLS_HXX_
-#define MSGHANDLERPROTOCOLS_HXX_
-
-#include "clMsgHandler.hxx"
+#include "clRpcFileGenerator.hxx"
+#include <iostream>
 
 namespace SAFplus
 {
 
-    /*
-     *
-     */
-    class MsgHandlerProtocols : public SAFplus::MsgHandler
-    {
-        public:
-            MsgHandlerProtocols();
-            virtual
-            ~MsgHandlerProtocols();
+  RpcFileGenerator::RpcFileGenerator(const google::protobuf::FileDescriptor* file, const std::string& output_name)
+  {
+    //TODO: handle gen RPC client/server stub
+    for (int i = 0; i < file->service_count(); i++) {
+      std::cout<<file->service(i)->name()<<std::endl;
+    }
 
-        public:
-            virtual void
-            msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-    };
+  }
+
+  RpcFileGenerator::~RpcFileGenerator()
+  {
+    // TODO Auto-generated destructor stub
+  }
 
 } /* namespace SAFplus */
-#endif /* MSGHANDLERPROTOCOLS_HXX_ */

@@ -21,11 +21,16 @@
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include <clIocApi.h>
+#include "Common/MyRpcChannel.hxx"
 #include "clSafplusMsgServer.hxx"
-#include "test.pb.h"
+#include "google/protobuf/service.h"
+#include "ClientTest.hxx"
+#include "rpcTest.pb.h"
+
 
 using namespace std;
 using namespace SAFplus;
+using namespace google::protobuf;
 
 //Auto scanning
 #define IOC_PORT 0
@@ -56,6 +61,12 @@ main(void)
     iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
     char helloMsg[] = "Hello world ";
+
+    SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request;
+    SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res;
+
+    request.set_name("myNameRequest");
+
     /*
      * ??? msgClient or safplusMsgServer
      */
@@ -63,27 +74,31 @@ main(void)
 
     /* Loop receive on loop */
 
-    msgClient.Start();
-    int i = 0;
-//    while(1)
+//    int i = 0;
+//    while (i++<3)
 //    {
-//        // Port communication
-//        // TODO: Process ONE or ALL or FOREVER
-//        stringstream strHello;
-//        strHello << helloMsg << i++;
-//        std::cout<<"Process:"<<getpid()<<", SENDING:"<<strHello.str()<<std::endl;
-//        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *)strHello.str().c_str(), strHello.str().length(), CL_IOC_PROTO_CTL);
-//        std::cout<<"Process:"<<getpid()<<", GOT REPLY:"<<msgReply->buffer<<std::endl;
+//        string data;
+//        request.SerializeToString(&data);
+//        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) data.c_str(), request.ByteSize(), CL_IOC_PROTO_CTL);
+//        res.ParseFromString(msgReply->buffer);
+//        std::cout<<"Process:"<<getpid()<<", GOT REPLY:"<<std::endl<<res.DebugString()<<std::endl;
+//        sleep(3);
 //    }
-    while (1)
+
+    SAFplus::Rpc::rpcTest::MyRpcChannel * channel = new SAFplus::Rpc::rpcTest::MyRpcChannel(&msgClient, &iocDest);
+    SAFplus::Rpc::rpcTest::rpcTest *service = new SAFplus::Rpc::rpcTest::rpcTest::Stub(channel);
+
+    msgClient.Start();
+
+    //Test RPC
+    //Loop forever
+    while(1)
     {
-        string data;
-        testprotobuf::Person person;
-        person.set_name("OpenClovis marshal/demarshal");
-        person.set_id(10);
-        person.SerializeToString(&data);
-        msgClient.SendMsg(iocDest, (void *) data.c_str(), person.ByteSize(), CL_IOC_PROTO_CTL);
-        sleep(3);
+      service->testGetRpcMethod(NULL, &request, &res, NULL);
+      sleep(3);
     }
+
+
+
 }
 

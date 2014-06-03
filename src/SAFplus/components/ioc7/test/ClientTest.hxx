@@ -16,11 +16,10 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
+#pragma once
 
 #ifndef CLIENTTEST_HXX_
 #define CLIENTTEST_HXX_
-
-#include "clMsgHandler.hxx"
 
 namespace SAFplus
 {

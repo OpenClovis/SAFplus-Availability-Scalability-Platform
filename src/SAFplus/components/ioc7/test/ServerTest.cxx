@@ -22,6 +22,7 @@
 #include <clIocProtocols.h>
 #include "clSafplusMsgServer.hxx"
 #include "MsgHandlerProtocols.hxx"
+#include "Common/MyRpcChannel.hxx"
 
 using namespace SAFplus;
 
@@ -34,6 +35,7 @@ int
 main(void)
 {
     MsgHandlerProtocols handler;
+
     ClRcT rc = CL_OK;
 
     /*
@@ -55,6 +57,9 @@ main(void)
 
     // Handle IOC Control Protocol
     safplusMsgServer.RegisterHandler(CL_IOC_PROTO_CTL, &handler, NULL);
+
+    // Handle RPC
+    SAFplus::Rpc::rpcTest::MyRpcChannel * channel = new SAFplus::Rpc::rpcTest::MyRpcChannel(&safplusMsgServer, NULL);
 
     safplusMsgServer.Start();
 

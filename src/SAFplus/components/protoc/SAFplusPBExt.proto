@@ -1,6 +1,11 @@
 /* 
  * Copyright (C) 2002-2014 OpenClovis Solutions Inc.  All Rights Reserved.
  */
+package SAFplus.Rpc;
+
+option cc_generic_services = true;
+option py_generic_services = true;
+option java_generic_services = false;
 
 import "google/protobuf/descriptor.proto";
 

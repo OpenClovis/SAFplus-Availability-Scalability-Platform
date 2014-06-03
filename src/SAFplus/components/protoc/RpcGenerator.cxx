@@ -16,30 +16,30 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-#pragma once
 
-#ifndef MSGHANDLERPROTOCOLS_HXX_
-#define MSGHANDLERPROTOCOLS_HXX_
-
-#include "clMsgHandler.hxx"
+#include "clRpcGenerator.hxx"
+#include "clRpcFileGenerator.hxx"
 
 namespace SAFplus
 {
 
-    /*
-     *
-     */
-    class MsgHandlerProtocols : public SAFplus::MsgHandler
-    {
-        public:
-            MsgHandlerProtocols();
-            virtual
-            ~MsgHandlerProtocols();
+  RpcGenerator::RpcGenerator()
+  {
+    // TODO Auto-generated constructor stub
 
-        public:
-            virtual void
-            msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-    };
+  }
+
+  RpcGenerator::~RpcGenerator()
+  {
+    // TODO Auto-generated destructor stub
+  }
+
+  bool
+  RpcGenerator::Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter,
+      google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const
+  {
+    RpcFileGenerator file_generator(file, file->name());
+    return true;
+  }
 
 } /* namespace SAFplus */
-#endif /* MSGHANDLERPROTOCOLS_HXX_ */
