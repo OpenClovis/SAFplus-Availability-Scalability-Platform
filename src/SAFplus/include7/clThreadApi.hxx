@@ -96,14 +96,13 @@ namespace SAFplus
     boost::condition_variable_any waitCondition;
   };
 
-};
 
   /* thread semaphore */
   class ThreadSem:public SemI
   {
   protected:
     ThreadCondition cond;
-    Thread
+    Mutex           mutex;
     int count;
   public:
     ThreadSem(unsigned int key,int initialValue=0);
@@ -115,6 +114,7 @@ namespace SAFplus
     bool try_lock(int amt=1);
     bool timed_lock(uint64_t mSec,int amt=1);
   };
+};
 
 
 #endif //CLTHREADAPI_HXX_
