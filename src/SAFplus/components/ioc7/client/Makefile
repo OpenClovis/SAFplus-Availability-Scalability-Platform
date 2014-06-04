@@ -2,7 +2,7 @@ S7 := 1
 SAFPLUS_IOC_LIB := 1
 include ../../../mk/preface.mk
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../protoc
 
 # Management includes and libraries
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt

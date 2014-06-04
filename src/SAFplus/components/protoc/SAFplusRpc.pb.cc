@@ -86,7 +86,7 @@ void protobuf_AddDesc_SAFplusRpc_2eproto() {
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
     "\n\020SAFplusRpc.proto\022\013SAFplus.Rpc\"^\n\nRpcMe"
     "ssage\022&\n\004type\030\001 \002(\0162\030.SAFplus.Rpc.Reques"
-    "tType\022\n\n\002id\030\002 \001(\r\022\014\n\004name\030\003 \001(\t\022\016\n\006buffe"
+    "tType\022\n\n\002id\030\002 \001(\004\022\014\n\004name\030\003 \001(\t\022\016\n\006buffe"
     "r\030\004 \001(\014*\227\001\n\013RequestType\022!\n\035CL_IOC_RMD_SY"
     "NC_REQUEST_PROTO\020\020\022\037\n\033CL_IOC_RMD_SYNC_RE"
     "PLY_PROTO\020\021\022\"\n\036CL_IOC_RMD_ASYNC_REQUEST_"
@@ -148,7 +148,7 @@ RpcMessage::RpcMessage(const RpcMessage& from)
 void RpcMessage::SharedCtor() {
   _cached_size_ = 0;
   type_ = 16;
-  id_ = 0u;
+  id_ = GOOGLE_ULONGLONG(0);
   name_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   buffer_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
@@ -193,7 +193,7 @@ RpcMessage* RpcMessage::New() const {
 void RpcMessage::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     type_ = 16;
-    id_ = 0u;
+    id_ = GOOGLE_ULONGLONG(0);
     if (has_name()) {
       if (name_ != &::google::protobuf::internal::kEmptyString) {
         name_->clear();
@@ -235,13 +235,13 @@ bool RpcMessage::MergePartialFromCodedStream(
         break;
       }
 
-      // optional uint32 id = 2;
+      // optional uint64 id = 2;
       case 2: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
          parse_id:
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   ::google::protobuf::uint32, ::google::protobuf::internal::WireFormatLite::TYPE_UINT32>(
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
                  input, &id_)));
           set_has_id();
         } else {
@@ -306,9 +306,9 @@ void RpcMessage::SerializeWithCachedSizes(
       1, this->type(), output);
   }
 
-  // optional uint32 id = 2;
+  // optional uint64 id = 2;
   if (has_id()) {
-    ::google::protobuf::internal::WireFormatLite::WriteUInt32(2, this->id(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(2, this->id(), output);
   }
 
   // optional string name = 3;
@@ -340,9 +340,9 @@ void RpcMessage::SerializeWithCachedSizes(
       1, this->type(), target);
   }
 
-  // optional uint32 id = 2;
+  // optional uint64 id = 2;
   if (has_id()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(2, this->id(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(2, this->id(), target);
   }
 
   // optional string name = 3;
@@ -379,10 +379,10 @@ int RpcMessage::ByteSize() const {
         ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
     }
 
-    // optional uint32 id = 2;
+    // optional uint64 id = 2;
     if (has_id()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::UInt32Size(
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
           this->id());
     }
 

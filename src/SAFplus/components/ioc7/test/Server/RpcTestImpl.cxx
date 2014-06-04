@@ -55,6 +55,7 @@ namespace SAFplus
         SAFplus::Rpc::rpcTest::DataResult *data = response->mutable_dataresult();
         data->set_name("MyNameReturn!!!");
         data->set_status(1);
+        done->Run();
       }
 
     } /* namespace rpcTest */

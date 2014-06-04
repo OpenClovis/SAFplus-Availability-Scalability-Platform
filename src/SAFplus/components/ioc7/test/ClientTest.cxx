@@ -21,12 +21,11 @@
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include <clIocApi.h>
-#include "Common/MyRpcChannel.hxx"
+#include "clRpcChannel.hxx"
 #include "clSafplusMsgServer.hxx"
 #include "google/protobuf/service.h"
 #include "ClientTest.hxx"
 #include "rpcTest.pb.h"
-
 
 using namespace std;
 using namespace SAFplus;
@@ -39,40 +38,44 @@ using namespace google::protobuf;
 ClUint32T clAspLocalId = 0x1;
 ClBoolT gIsNodeRepresentative = CL_FALSE;
 
-int
-main(void)
+void FooDone(SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response)
+  {
+    std::cout << "DONE" << std::endl;
+  }
+
+int main(void)
 {
-    ClIocAddressT iocDest;
+ClIocAddressT iocDest;
 
-    ClRcT rc = CL_OK;
+ClRcT rc = CL_OK;
 
-    /*
-     * initialize SAFplus libraries 
-     */
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
-                    clBufferInitialize(NULL)) != CL_OK)
-    {
+/*
+ * initialize SAFplus libraries
+ */
+if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
+    clBufferInitialize(NULL)) != CL_OK)
+  {
 
-    }
+  }
 
-    rc = clIocLibInitialize(NULL);
-    assert(rc==CL_OK);
+rc = clIocLibInitialize(NULL);
+assert(rc==CL_OK);
 
-    iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-    iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
-    char helloMsg[] = "Hello world ";
+iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
+char helloMsg[] = "Hello world ";
 
-    SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request;
-    SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res;
+SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request;
+SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res;
 
-    request.set_name("myNameRequest");
+request.set_name("myNameRequest");
 
-    /*
-     * ??? msgClient or safplusMsgServer
-     */
-    SafplusMsgServer msgClient(IOC_PORT);
+/*
+ * ??? msgClient or safplusMsgServer
+ */
+SafplusMsgServer msgClient(IOC_PORT);
 
-    /* Loop receive on loop */
+/* Loop receive on loop */
 
 //    int i = 0;
 //    while (i++<3)
@@ -84,21 +87,19 @@ main(void)
 //        std::cout<<"Process:"<<getpid()<<", GOT REPLY:"<<std::endl<<res.DebugString()<<std::endl;
 //        sleep(3);
 //    }
+SAFplus::Rpc::RpcChannel * channel = new SAFplus::Rpc::RpcChannel(&msgClient, &iocDest);
+SAFplus::Rpc::rpcTest::rpcTest *service = new SAFplus::Rpc::rpcTest::rpcTest::Stub(channel);
 
-    SAFplus::Rpc::rpcTest::MyRpcChannel * channel = new SAFplus::Rpc::rpcTest::MyRpcChannel(&msgClient, &iocDest);
-    SAFplus::Rpc::rpcTest::rpcTest *service = new SAFplus::Rpc::rpcTest::rpcTest::Stub(channel);
+msgClient.Start();
 
-    msgClient.Start();
-
-    //Test RPC
-    //Loop forever
-    while(1)
-    {
-      service->testGetRpcMethod(NULL, &request, &res, NULL);
-      sleep(3);
-    }
-
-
+//Test RPC
+//Loop forever
+google::protobuf::Closure *callback = NewCallback(&FooDone, &res);
+while (1)
+  {
+    service->testGetRpcMethod(NULL, &request, &res, callback);
+    sleep(3);
+  }
 
 }
 

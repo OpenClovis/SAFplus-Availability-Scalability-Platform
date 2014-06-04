@@ -121,12 +121,12 @@ class RpcMessage : public ::google::protobuf::Message {
   inline ::SAFplus::Rpc::RequestType type() const;
   inline void set_type(::SAFplus::Rpc::RequestType value);
 
-  // optional uint32 id = 2;
+  // optional uint64 id = 2;
   inline bool has_id() const;
   inline void clear_id();
   static const int kIdFieldNumber = 2;
-  inline ::google::protobuf::uint32 id() const;
-  inline void set_id(::google::protobuf::uint32 value);
+  inline ::google::protobuf::uint64 id() const;
+  inline void set_id(::google::protobuf::uint64 value);
 
   // optional string name = 3;
   inline bool has_name() const;
@@ -165,10 +165,10 @@ class RpcMessage : public ::google::protobuf::Message {
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  int type_;
-  ::google::protobuf::uint32 id_;
+  ::google::protobuf::uint64 id_;
   ::std::string* name_;
   ::std::string* buffer_;
+  int type_;
 
   mutable int _cached_size_;
   ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
@@ -210,7 +210,7 @@ inline void RpcMessage::set_type(::SAFplus::Rpc::RequestType value) {
   type_ = value;
 }
 
-// optional uint32 id = 2;
+// optional uint64 id = 2;
 inline bool RpcMessage::has_id() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
@@ -221,13 +221,13 @@ inline void RpcMessage::clear_has_id() {
   _has_bits_[0] &= ~0x00000002u;
 }
 inline void RpcMessage::clear_id() {
-  id_ = 0u;
+  id_ = GOOGLE_ULONGLONG(0);
   clear_has_id();
 }
-inline ::google::protobuf::uint32 RpcMessage::id() const {
+inline ::google::protobuf::uint64 RpcMessage::id() const {
   return id_;
 }
-inline void RpcMessage::set_id(::google::protobuf::uint32 value) {
+inline void RpcMessage::set_id(::google::protobuf::uint64 value) {
   set_has_id();
   id_ = value;
 }
