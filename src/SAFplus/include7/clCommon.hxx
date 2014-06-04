@@ -46,10 +46,10 @@ namespace SAFplus
 
  
   ClBoolT clParseEnvBoolean(const char* envvar);
-  inline bool parseEnvBoolean(const char* envvar) { clParseEnvBoolean(envvar); }
+  inline bool parseEnvBoolean(const char* envvar) { return clParseEnvBoolean(envvar); }
 
   ClCharT *clParseEnvStr(const char* envvar);
-  inline char* parseEnvStr(const char* envvar) { clParseEnvStr(envvar); }
+  inline char* parseEnvStr(const char* envvar) { return clParseEnvStr(envvar); }
 
   /** \brief Generic callback function object
       \par Synopsis:

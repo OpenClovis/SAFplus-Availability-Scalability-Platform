@@ -43,12 +43,13 @@ namespace SAFplus
       uint64_t credentials;
       uint capabilities;
       uint dataLen;
-      GroupIdentity& operator=(GroupIdentity const& c)
+      GroupIdentity& operator=(const GroupIdentity & c)
       {
         id            = c.id;
         credentials   = c.credentials;
         capabilities  = c.capabilities;
         dataLen       = c.dataLen;
+        return *this;
       }
       GroupIdentity()
       {
