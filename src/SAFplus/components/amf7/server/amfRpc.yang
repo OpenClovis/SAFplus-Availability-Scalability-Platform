@@ -1,0 +1,76 @@
+module amfRpc
+{
+
+  namespace "http://www.openclovis.org/ns/amfRpc";
+  prefix "amfRpc";
+
+  organization
+    "OpenClovis Solutions, Inc";
+
+  contact
+    "Andrew Stone <stone@openclovis.com>";
+
+  description
+    "AMF internal communications and external API";
+
+  revision 2014-06-03 
+  {
+    description "Initial description";
+    reference "";
+  }
+
+  rpc startComponent
+  {
+    input 
+    {
+      leaf name
+      {
+	//description "AMF Component name";
+        type string;
+      }
+      leaf command
+      {
+	//description "Command line including parameters";
+        type string;
+      }
+    }
+    
+    output
+    {
+      leaf err
+      {
+	//description "0 on success, or the errno if the component could not be started.";
+	type int32;
+      }
+      leaf pid
+      {
+	//description "The process id of the started component";
+	type int32;
+      }
+    }
+  }
+
+  rpc stopComponent
+  {
+    input
+    {
+      leaf pid
+      {
+	//description "The process id of the component";
+	type int32;
+      }
+    }
+    output
+    {
+      leaf err
+      {
+	//description "0 on success, or the errno if the component could not be started.";
+	type int32;
+      }	
+    }
+      
+  }
+  
+  
+
+}

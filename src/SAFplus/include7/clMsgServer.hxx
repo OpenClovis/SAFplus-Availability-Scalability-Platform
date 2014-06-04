@@ -68,7 +68,7 @@ namespace SAFplus
 
         Raises the "Error" Exception if something goes wrong, or if the destination queue does not
         exist.
-    */   
+    */
     void SendMsg(ClIocAddressT destination, void* buffer, ClWordT length,ClWordT msgtype=0);
 
     /** Start the server */

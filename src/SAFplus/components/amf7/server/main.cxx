@@ -19,15 +19,21 @@
 #include <clCommon.hxx>
 #include <clMgtApi.hxx>
 #include <clNameApi.hxx>
+#include <clIocPortList.hxx>
 
 #include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmf.hxx>
 #include <clSafplusMsgServer.hxx>
 
+#include "amfRpcChannel.hxx"
+#include "amfRpc/amfRpc.pb.h"
+
 #define GRP
 
 using namespace SAFplus;
+using namespace SAFplusI;
 using namespace SAFplusAmf;
+using namespace SAFplus::Rpc::amfRpc;
 
 typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPolicyMap;
 
@@ -59,7 +65,6 @@ public:
   boost::asio::ip::address backplaneIp; // TODO: verify that this is FLAT!!!  V4 or V6 intracluster IP address of this node.
   };
 
-
 volatile bool    quitting=false;  // Set to true to tell all threads to quit
 Group            clusterGroup(SAFplus::Group::DATA_IN_CHECKPOINT);
 ClusterGroupData clusterGroupData;  // The info we tell other nodes about this node.
@@ -68,6 +73,10 @@ Handle           nodeHandle; //? The handle associated with this node
 unsigned int     myRole = 0;
 unsigned int     capabilities=0;
 unsigned int     credential=0;
+
+
+static unsigned int MAX_MSGS=25;
+static unsigned int MAX_HANDLER_THREADS=10;
 
 // Threads
 boost::thread    logServer;
@@ -298,6 +307,20 @@ int main(int argc, char* argv[])
   clAspLocalId  = SAFplus::ASP_NODEADDR;  // remove clAspLocalId
   rc = clIocLibInitialize(NULL);
   assert(rc==CL_OK);
+
+  SAFplus::SafplusMsgServer safplusMsgServer(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
+  // Handle RPC
+  AmfRpcChannel * channel = new AmfRpcChannel(&safplusMsgServer);
+  safplusMsgServer.Start();
+
+  // client side
+  amfRpc_Stub service(channel);
+  StartComponentRequest req;
+  req.set_name("c0");
+  req.set_command("./c0 test1 test2");
+  StartComponentResponse resp;
+  service.startComponent(NULL,&req, &resp,NULL);
+
 
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
