@@ -27,6 +27,8 @@
 
 #include "clRpcChannel.hxx"
 #include "amfRpc/amfRpc.pb.h"
+#include <google/protobuf/service.h>
+#include "AmfRpcServiceImpl.hxx"
 
 #define GRP
 
@@ -283,6 +285,12 @@ int parseArgs(int argc, char* argv[])
 
 namespace SAFplusAmf { void createTestDataSet(SAFplusAmfRoot* self); };
 
+// Callback RPC client
+void FooDone(StartComponentResponse* response)
+  {
+    std::cout << "DONE" << std::endl;
+  }
+
 int main(int argc, char* argv[])
   {
   Mutex m;
@@ -313,7 +321,7 @@ int main(int argc, char* argv[])
   //AmfRpcChannel * channel = new AmfRpcChannel(&safplusMsgServer);
   /*
    * Should implementation amfRpc derived from SAFplus::Rpc::amfRpc::amfRpc()
-   * i.e
+   * i.e (AmfRpcServiceImpl.hxx)
    * class AMFRpcService : public Should implementation amfRpc derived from SAFplus::Rpc::amfRpc::amfRpc
    * {
    *     virtual void startComponent(::google::protobuf::RpcController* controller,
@@ -335,7 +343,10 @@ int main(int argc, char* argv[])
    *
    * }
    */
-  SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, new SAFplus::Rpc::amfRpc::AMFRpcService());
+  //Start Sever RPC
+  SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, new SAFplus::Rpc::AMFRpcServiceImpl());
+  //End server TPC
+
   safplusMsgServer.Start();
 
   // client side
@@ -344,8 +355,10 @@ int main(int argc, char* argv[])
   req.set_name("c0");
   req.set_command("./c0 test1 test2");
   StartComponentResponse resp;
-  service.startComponent(NULL,&req, &resp,NULL);
 
+  //client side should using callback
+  google::protobuf::Closure *callback = google::protobuf::NewCallback(&FooDone, &resp);
+  service.startComponent(NULL,&req, &resp, callback);
 
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
