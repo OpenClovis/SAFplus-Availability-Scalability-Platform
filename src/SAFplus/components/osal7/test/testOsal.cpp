@@ -12,18 +12,16 @@ void TestProcSem_oneProcess(void)
 {
 }
 
-void TestProcSem_basic(void)
+void TestSem_basic(SemI& s1)
 {
   clTestCaseStart(("Basic ProcSem"));
   if (1)
     {
-    ProcSem s1(1,1);
     s1.lock();  /* Should NOT hang here */
     }
 
   if (1)
     {
-    ProcSem s1(1,0);
     clTest(("try_lock returns False when sem is 0"), s1.try_lock()==0, (" "));
     s1.unlock();                 // test "giving"
     clTest(("make sure try_lock correctly takes the sem."), s1.try_lock()==1, (" "));
@@ -34,7 +32,7 @@ void TestProcSem_basic(void)
     clTest(("take too many"), s1.try_lock(5)==0, (" "));  // taking too many!
     clTest(("take just enough"), s1.try_lock(4)==1, (" ")); // taking just enough!
 
-    /* s1.lock();  // should hang here */
+    // s1.lock();  // should hang here
     }
   
   clTestCaseEnd((" "));
@@ -84,7 +82,15 @@ void testCondition(void)
 
 void testProcSem(void)
 {
-  TestProcSem_basic();
+  ProcSem s1(1,1);
+  TestSem_basic(s1);
+  TestProcSem_oneProcess();
+}
+
+void testThreadSem(void)
+{
+  ThreadSem s1(1);
+  TestSem_basic(s1);
   TestProcSem_oneProcess();
 }
 
@@ -109,10 +115,11 @@ int main(int argc, char* argv[])
   utilsInitialize();
 
   clTestGroupInitialize(("Osal"));
-  testProcSem();
+  //testProcSem();
   testCondition();
+  testThreadSem();
   testProcess();
-  clTestGroupFinalize(); 
+  clTestGroupFinalize();
 }
 
 

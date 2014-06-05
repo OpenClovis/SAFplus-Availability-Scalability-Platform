@@ -19,7 +19,7 @@ namespace SAFplus
     virtual void lock(int amt=1) = 0;
     virtual void unlock(int amt=1) = 0;
     virtual bool try_lock(int amt=1) = 0;
-    virtual bool timed_lock(uint64_t mSec,int amt) = 0;
+    virtual bool timed_lock(uint64_t mSec,int amt=1) = 0;
   };
 
   /* Interprocess semaphore must use SYS-V semaphores because they can be automatically released on process death.  Api signatures are very similar to c++ boost library. */
@@ -105,9 +105,10 @@ namespace SAFplus
     Mutex           mutex;
     int count;
   public:
-    ThreadSem(unsigned int key,int initialValue=0);
-    ThreadSem(const char* key,int initialValue=0);
-    void init(unsigned int key,int initialValue);
+    ThreadSem():count(0) {}
+    ThreadSem(int initialValue);
+    ~ThreadSem();
+    void init(int initialValue);
     void wake(int amt,void* cookie=NULL);
     void lock(int amt=1);
     void unlock(int amt=1);

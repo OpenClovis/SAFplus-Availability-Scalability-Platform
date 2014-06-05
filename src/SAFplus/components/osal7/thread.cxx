@@ -208,10 +208,11 @@ typedef union CosSemCtl_u
   bool ProcSem::timed_lock(uint64_t mSec,int amt)
     {
       struct sembuf sembuf = {0,(short int)(-1*amt),SEM_UNDO};
-      struct timespec timeout = {mSec/1000,((long)mSec%1000)*1000L*1000L};  // tv_sec, tv_nsec
+      long int temp = (((long)mSec)%1000L)*1000L*1000L;
+      struct timespec timeout = {(time_t) (mSec/1000), temp};  // tv_sec, tv_nsec
       int err;
       do
-        {        
+        {
           err = semtimedop(semId,&sembuf,1,&timeout);
         } while ((err<0)&&(errno==EINTR));
       if (err<0)
@@ -267,4 +268,73 @@ typedef union CosSemCtl_u
        return waitCondition.timed_wait(mutex, timeout);
    }
 
+  ThreadSem::ThreadSem(int initialValue)
+  {
+  count = initialValue;
+  }
+
+#if 0
+  ThreadSem::ThreadSem()
+  {
+  count = 0;
+  }
+#endif
+
+  void ThreadSem::init(int initialValue)
+  {
+  count = initialValue;
+  }
+
+  void ThreadSem::lock(int amt)
+  {
+  mutex.lock();
+  while (count<amt)
+    {
+    cond.wait(mutex);
+    }
+  count -= amt;
+  mutex.unlock();
+  }
+
+  void ThreadSem::wake(int amt,void* cookie) { unlock(amt); }  
+
+  void ThreadSem::unlock(int amt)
+  {
+  mutex.lock();
+  count += amt;
+  mutex.unlock();
+  }
+
+bool ThreadSem::try_lock(int amt)
+  {
+  mutex.lock();
+  if (count<amt)
+    {
+    mutex.unlock();
+    return false;
+    }
+  count -= amt;
+  mutex.unlock();
+  return true;
+  }
+
+bool ThreadSem::timed_lock(uint64_t mSec,int amt)
+  {
+  mutex.lock();
+  while (count<amt)
+    {
+    // TODO: take into account elapsed time going around the while loop more than once
+    if (!cond.timed_wait(mutex,mSec)) return false;
+    }
+  count -= amt;
+  mutex.unlock();
+  return true;
+  }
+
+  ThreadSem::~ThreadSem()
+  {
+  count = -1;  // Indicate that this object was deleted by putting an impossible value in count
+  }
+
 };
+
