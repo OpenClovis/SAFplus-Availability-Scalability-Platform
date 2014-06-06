@@ -1006,24 +1006,6 @@ logVMsgWriteDeferred(ClLogStreamHandleT streamHdl,
     return CL_OK;
 }
 
-ClRcT
-clLogMsgWrite(ClLogStreamHandleT streamHdl,
-              ClLogSeverityT  severity,
-              ClUint16T       serviceId,
-              const ClCharT   *pArea,
-              const ClCharT   *pContext,
-              const ClCharT   *pFileName,
-              ClUint32T       lineNum,
-              const ClCharT   *pFmtStr,
-              ...)      
-{
-    ClRcT rc = CL_OK;
-    va_list vaargs;
-    va_start(vaargs, pFmtStr);
-    rc = clLogVMsgWrite(streamHdl, severity, serviceId, pArea, pContext, pFileName, lineNum, pFmtStr, vaargs);
-    va_end(vaargs);
-    return rc;
-}
 
 ClRcT
 clLogVMsgWrite(ClLogHandleT    streamHdl,
@@ -1055,6 +1037,25 @@ clLogVMsgWrite(ClLogHandleT    streamHdl,
 #else   
     rc = logVMsgWriteDeferred(streamHdl, severity, serviceId, pArea, pContext, pFileName, lineNum, CL_FALSE, CL_TRUE, pFmtStr, vaargs);
 #endif    
+    return rc;
+}
+
+ClRcT
+clLogMsgWrite(ClLogStreamHandleT streamHdl,
+              ClLogSeverityT  severity,
+              ClUint16T       serviceId,
+              const ClCharT   *pArea,
+              const ClCharT   *pContext,
+              const ClCharT   *pFileName,
+              ClUint32T       lineNum,
+              const ClCharT   *pFmtStr,
+              ...)      
+{
+    ClRcT rc = CL_OK;
+    va_list vaargs;
+    va_start(vaargs, pFmtStr);
+    rc = clLogVMsgWrite(streamHdl, severity, serviceId, pArea, pContext, pFileName, lineNum, pFmtStr, vaargs);
+    va_end(vaargs);
     return rc;
 }
 

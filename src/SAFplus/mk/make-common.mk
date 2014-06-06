@@ -246,7 +246,7 @@ TOP_C99FLAGS := -pedantic
 endif
 
 # Override all "C" compiling to use the C++ compiler if BUILD_PLUS is 1
-ifeq ($(BUILD_PLUS),1)
+ifeq ($(C_WITH_C_PLUS_PLUS),1)
 TOP_CFLAGS      += -Wno-deprecated
 CC              := $(CXX)
 endif
@@ -424,8 +424,14 @@ quiet_cmd_cxx_o_c = CC      $(call quiet-strip,$@)
 # Link an executable from .o and lib files
 # To be called as $(call cmd,link,<object-files>)
 # So that $2 represents here all the <object-files>.
+ifeq ($(BUILD_PLUS),1)  # build .c code with c++ compiler
+quiet_cmd_link = LINK    $(call quiet-strip,$@)
+      cmd_link = $(CXX) $(LDFLAGS) $(TARGET_ARCH) $2 $(LOADLIBES) $(LDLIBS) -o $@
+else
 quiet_cmd_link = LINK    $(call quiet-strip,$@)
       cmd_link = $(CC) $(LDFLAGS) $(TARGET_ARCH) $2 $(LOADLIBES) $(LDLIBS) -o $@
+
+endif
 
 #-------------------------------------------------------------------------------
 # Create an archive (lib) from .o files
@@ -439,6 +445,15 @@ quiet_cmd_all_ar = AR      $(call quiet-strip,$@)
 
 #-------------------------------------------------------------------------------
 # Create a shared library from .o files
+ifdef BUILD_CPLUSPLUS
+quiet_cmd_link_shared = LINK-SO $(call quiet-strip,$@)
+      cmd_link_shared = $(CXX) $(LDFLAGS) $(TARGET_ARCH) $(EXTRA_LDLIBS) $^ -o $@ $(SHARED_LDFLAGS) 
+
+quiet_cmd_all_link_shared = LINK-SO $(call quiet-strip,$@)
+      cmd_all_link_shared = cd $(ALL_OBJ_DIR); \
+	$(CXX) $(LDFLAGS) $(TARGET_ARCH) $(EXTRA_LDLIBS) $(subst $(ALL_OBJ_DIR),.,$(strip $^)) -o $@ $(SHARED_LDFLAGS);\
+	cd -
+else
 quiet_cmd_link_shared = LINK-SO $(call quiet-strip,$@)
       cmd_link_shared = $(CC) $(LDFLAGS) $(TARGET_ARCH) $(EXTRA_LDLIBS) $^ -o $@ $(SHARED_LDFLAGS) 
 
@@ -446,6 +461,7 @@ quiet_cmd_all_link_shared = LINK-SO $(call quiet-strip,$@)
       cmd_all_link_shared = cd $(ALL_OBJ_DIR); \
 	$(CC) $(LDFLAGS) $(TARGET_ARCH) $(EXTRA_LDLIBS) $(subst $(ALL_OBJ_DIR),.,$(strip $^)) -o $@ $(SHARED_LDFLAGS);\
 	cd -
+endif
 
 #-------------------------------------------------------------------------------
 # Run ln -sf 
