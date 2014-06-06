@@ -26,9 +26,10 @@
 #include <clSafplusMsgServer.hxx>
 
 #include "clRpcChannel.hxx"
-#include "amfRpc/amfRpc.pb.h"
 #include <google/protobuf/service.h>
-#include "AmfRpcServiceImpl.hxx"
+
+#include "stubs/amfRpc.pb.h"
+#include "stubs/server/amfRpcImpl.hxx"
 
 #define GRP
 
@@ -318,33 +319,8 @@ int main(int argc, char* argv[])
 
   SAFplus::SafplusMsgServer safplusMsgServer(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
   // Handle RPC
-  //AmfRpcChannel * channel = new AmfRpcChannel(&safplusMsgServer);
-  /*
-   * Should implementation amfRpc derived from SAFplus::Rpc::amfRpc::amfRpc()
-   * i.e (AmfRpcServiceImpl.hxx)
-   * class AMFRpcService : public Should implementation amfRpc derived from SAFplus::Rpc::amfRpc::amfRpc
-   * {
-   *     virtual void startComponent(::google::protobuf::RpcController* controller,
-                       const ::SAFplus::Rpc::amfRpc::StartComponentRequest* request,
-                       ::SAFplus::Rpc::amfRpc::StartComponentResponse* response,
-                       ::google::protobuf::Closure* done)
-                       {
-                          ---> your implementation here
-                          done->Run();
-                       }
-          virtual void stopComponent(::google::protobuf::RpcController* controller,
-                       const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
-                       ::SAFplus::Rpc::amfRpc::StopComponentResponse* response,
-                       ::google::protobuf::Closure* done)
-                       {
-                          ---> your implementation here
-                          done->Run();
-                       }
-   *
-   * }
-   */
   //Start Sever RPC
-  SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, new SAFplus::Rpc::AMFRpcServiceImpl());
+  SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, new SAFplus::Rpc::amfRpc::amfRpcImpl());
   //End server TPC
 
   safplusMsgServer.Start();

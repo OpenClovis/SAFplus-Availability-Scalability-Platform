@@ -24,20 +24,21 @@
 #include <iostream>
 
 namespace SAFplus
-{
+  {
 
-    /*
-     *
-     */
-    class RpcGenerator : public google::protobuf::compiler::CodeGenerator
-    {
-        public:
+    namespace Rpc
+      {
+        /*
+         *
+         */
+        class RpcGenerator : public google::protobuf::compiler::CodeGenerator
+          {
+          public:
             RpcGenerator();
-            virtual
-            ~RpcGenerator();
-            virtual bool
-            Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter, google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const;
-    };
-
-} /* namespace SAFplus */
+            virtual ~RpcGenerator();
+            virtual bool Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter,
+                google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const;
+          };
+      } /* namespace Rpc */
+  } /* namespace SAFplus */
 #endif /* CLRPCGENERATOR_HXX_ */

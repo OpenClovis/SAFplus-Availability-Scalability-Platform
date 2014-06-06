@@ -24,7 +24,7 @@ int
 main(int argc, char *argv[])
 {
   google::protobuf::compiler::CommandLineInterface cli;
-  SAFplus::RpcGenerator rpc_generator;
+  SAFplus::Rpc::RpcGenerator rpc_generator;
   cli.RegisterGenerator("--rpc_out", &rpc_generator, "Generate C++ Service file.");
   return cli.Run(argc, argv);
 }

@@ -9,15 +9,15 @@ SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PL
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../protoc -I./Common
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../protoc -I./stubs
 
 # Management includes and libraries
 CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ `pkg-config --cflags protobuf`
 
-SENDER_SRC := ClientTest.cxx $(wildcard Common/*.pb.cc) $(wildcard Common/*.cxx) $(wildcard Client/*.cxx)
+SENDER_SRC := ClientTest.cxx $(wildcard stubs/*.pb.cc)
 SENDER_OBJ := $(addprefix $(OBJ_DIR)/, $(subst .cxx,.o,$(subst .cc,.o,$(SENDER_SRC))))
 
-RECEIVER_SRC := MsgHandlerProtocols.cxx ServerTest.cxx $(wildcard Common/*.pb.cc) $(wildcard Common/*.cxx) $(wildcard Server/*.cxx)
+RECEIVER_SRC := MsgHandlerProtocols.cxx ServerTest.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/server/*.cxx)
 RECEIVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(subst .cc,.o,$(RECEIVER_SRC))))
 
 # Specify the required libraries
@@ -39,16 +39,12 @@ $(TEST_DIR)/ClientTest: $(SENDER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 $(TEST_DIR)/ServerTest: $(RECEIVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 	$(LINK_EXE) $@ $(RECEIVER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) -lprotobuf -lprotoc
 
-$(OBJ_DIR)/Common/%.pb.o: Common/%.pb.cc
-	-mkdir -p $(OBJ_DIR)/Common
+$(OBJ_DIR)/stubs/%.pb.o: stubs/%.pb.cc
+	-mkdir -p $(OBJ_DIR)/stubs
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/Client/%.o: Client/%.cxx
-	-mkdir -p $(OBJ_DIR)/Client
-	$(COMPILE_CPP) $@ $<
-
-$(OBJ_DIR)/Server/%.o: Server/%.cxx
-	-mkdir -p $(OBJ_DIR)/Server
+$(OBJ_DIR)/stubs/server/%.o: stubs/server/%.cxx
+	-mkdir -p $(OBJ_DIR)/stubs/server
 	$(COMPILE_CPP) $@ $<
 
 $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
@@ -58,16 +54,17 @@ $(SAFplusRpcGen):
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/protoc
 
 gen: $(SAFplusRpcGen)
-	-mkdir -p ./Common
+	-mkdir -p ./stubs/server
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/rpcTest.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
-	protoc -I../../../3rdparty -I../../protoc -I. --cpp_out=./Common rpcTest.proto
-#$(SAFplusRpcGen) -I../../../3rdparty -I../../protoc -I. --rpc_out=. rpcTest.proto
+	protoc -I../../../3rdparty -I../../protoc -I. --cpp_out=./stubs rpcTest.proto
+	$(SAFplusRpcGen) -I../../../3rdparty -I../../protoc -I. --rpc_out=./stubs/server rpcTest.proto
 
 cleangen:
-	(find rpcTest/ -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
+	rm -rf stubs
+	rm -rf $(SAFplusRpcGen)
 
 clean:
-	rm -rf $(OBJ_DIR)/*.o $(TEST_DIR)/* $(SAFplusRpcGen) $(OBJ_DIR)/Client/* $(OBJ_DIR)/Server/* $(OBJ_DIR)/Common/*
+	rm -rf $(OBJ_DIR)/*.o $(TEST_DIR)/* $(SAFplusRpcGen) $(OBJ_DIR)/Client/* $(OBJ_DIR)/Server/* $(OBJ_DIR)/stubs/*
 	
 
 include ../../../mk/safplus_targets.mk
