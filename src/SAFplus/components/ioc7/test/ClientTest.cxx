@@ -40,6 +40,11 @@ ClBoolT gIsNodeRepresentative = CL_FALSE;
 
 void FooDone(SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response)
   {
+    if (response->has_dataresult())
+      {
+      const SAFplus::Rpc::rpcTest::DataResult& dr = response->dataresult();
+      printf("Response is name='%s': status='%d'\n", dr.name().c_str(), dr.status());
+      }
     std::cout << "DONE" << std::endl;
   }
 
@@ -87,7 +92,7 @@ SafplusMsgServer msgClient(IOC_PORT);
 //        std::cout<<"Process:"<<getpid()<<", GOT REPLY:"<<std::endl<<res.DebugString()<<std::endl;
 //        sleep(3);
 //    }
-SAFplus::Rpc::RpcChannel * channel = new SAFplus::Rpc::RpcChannel(&msgClient, &iocDest);
+SAFplus::Rpc::RpcChannel * channel = new SAFplus::Rpc::RpcChannel(&msgClient, iocDest);
 SAFplus::Rpc::rpcTest::rpcTest *service = new SAFplus::Rpc::rpcTest::rpcTest::Stub(channel);
 
 msgClient.Start();
@@ -98,6 +103,7 @@ while (1)
   {
     google::protobuf::Closure *callback = NewCallback(&FooDone, &res);
     service->testGetRpcMethod(NULL, &request, &res, callback);
+    //printf("Response is name=%s: status=%d", res.
     sleep(3);
   }
 
