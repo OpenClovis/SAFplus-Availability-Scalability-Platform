@@ -142,7 +142,7 @@ namespace SAFplus
       }
     }
 
-  void AmfOperations::start(SAFplusAmf::Component* comp)
+  void AmfOperations::start(SAFplusAmf::Component* comp,Wakeable& w)
     {
     assert(comp);
     if (!comp->serviceUnit)
@@ -168,10 +168,14 @@ namespace SAFplus
       {
       logInfo("OP","CMP","Request component start on node %s", comp->serviceUnit.value->node.name.c_str());
       }
+    if (&w) w.wake(1,(void*)comp);
     }
 
-  void AmfOperations::start(SAFplusAmf::ServiceGroup* sg)
+  void AmfOperations::start(SAFplusAmf::ServiceGroup* sg,Wakeable& w)
     {
+    clDbgNotImplemented();
+    // TODO: Service Group startup needs to be done in a manner consistent with the Redundancy Policy.
+#if 0
     SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator itsu;
     SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
     for (itsu = sg->serviceUnits.value.begin(); itsu != endsu; itsu++)
@@ -198,6 +202,7 @@ namespace SAFplus
           }
         }
       }
+#endif
     }
 
   };

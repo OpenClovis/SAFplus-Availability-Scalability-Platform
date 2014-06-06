@@ -1,6 +1,7 @@
 #include <clAmfPolicyPlugin.hxx>
 #include <clLogApi.hxx>
 #include <clProcessApi.hxx>
+#include <clThreadApi.hxx>
 #include <clAmfApi.hxx>
 #include <vector>
 #include <boost/range/algorithm.hpp>
@@ -47,7 +48,7 @@ namespace SAFplus
     void stop();
 
     // helper functions
-    void start(ServiceUnit* s);
+    int start(ServiceUnit* s,Wakeable& w);
     };
 
   NplusMPolicy::NplusMPolicy()
@@ -72,8 +73,9 @@ namespace SAFplus
   return (a->rank.value < b->rank.value);
   }
 
-  void ServiceGroupPolicyExecution::start(ServiceUnit* su)
+  int ServiceGroupPolicyExecution::start(ServiceUnit* su,Wakeable& w)
     {
+    int ret=0;
     SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
     SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
     for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
@@ -84,9 +86,10 @@ namespace SAFplus
 
       SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
       assert(eas != SAFplusAmf::AdministrativeState::off); // Do not call this API if the component is administratively OFF!
-      amfOps->start(comp);
+      amfOps->start(comp,w);
+      ret++;
       }
-
+    return ret;
     }
 
   void ServiceGroupPolicyExecution::start()
@@ -98,6 +101,7 @@ namespace SAFplus
         {
         std::vector<SAFplusAmf::ServiceUnit*> sus(sg->serviceUnits.value.begin(),sg->serviceUnits.value.end());
 
+        // Sort the SUs by rank so we start them up in the proper order.
         boost::sort(sus,suEarliestRanking);
 
         int numActive = 0;  // TODO: figure this out, so start can be called from a half-started situation.
@@ -108,16 +112,25 @@ namespace SAFplus
         int preferredTotal = sg->preferredNumActiveServiceUnits.value + sg->preferredNumStandbyServiceUnits.value + sg->preferredNumIdleServiceUnits.value;
 
         std::vector<SAFplusAmf::ServiceUnit*>::iterator itsu;
-
+        int waits=0;
+        int curRank = -1;
+        ThreadSem waitSem;
         for (itsu = sus.begin(); itsu != sus.end(); itsu++)
           {
           if (totalStarted >= preferredTotal) break;  // we have started enough
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+          // If we moved up to a new rank, we must first wait for the old rank to come up.  This is part of the definition of SU ranks
+          if (su->rank.value != curRank)  
+            {
+            waitSem.lock(waits);  // This code works in the initial case because waits is 0, so no locking happens
+            waits = 0;
+            curRank = su->rank.value;
+            }
           const std::string& suName = su->name;
           if (su->adminState != AdministrativeState::off)
             {
             logInfo("N+M","STRT","Starting su %s", suName.c_str());
-            start(su);
+            waits += start(su,waitSem);  // When started, "wake" will be called on the waitSem
             totalStarted++;
             }
           }

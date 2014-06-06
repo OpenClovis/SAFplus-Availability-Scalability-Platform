@@ -94,9 +94,9 @@ msgClient.Start();
 
 //Test RPC
 //Loop forever
-google::protobuf::Closure *callback = NewCallback(&FooDone, &res);
 while (1)
   {
+    google::protobuf::Closure *callback = NewCallback(&FooDone, &res);
     service->testGetRpcMethod(NULL, &request, &res, callback);
     sleep(3);
   }

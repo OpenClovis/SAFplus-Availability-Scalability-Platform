@@ -18,28 +18,44 @@
  */
 
 #include "clRpcGenerator.hxx"
-#include "clRpcFileGenerator.hxx"
+#include "clRpcImplGenerator.hxx"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/io/zero_copy_stream.h>
 
 namespace SAFplus
-{
-
-  RpcGenerator::RpcGenerator()
   {
-    // TODO Auto-generated constructor stub
 
-  }
+    namespace Rpc
+      {
+        RpcGenerator::RpcGenerator()
+          {
+          }
 
-  RpcGenerator::~RpcGenerator()
-  {
-    // TODO Auto-generated destructor stub
-  }
+        RpcGenerator::~RpcGenerator()
+          {
+          }
 
-  bool
-  RpcGenerator::Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter,
-      google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const
-  {
-    RpcFileGenerator file_generator(file, file->name());
-    return true;
-  }
+        bool RpcGenerator::Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter,
+            google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const
+          {
+            std::string basename = google::protobuf::StripSuffixString(file->name(), ".proto") + "Impl";
 
-} /* namespace SAFplus */
+            SAFplus::Rpc::RpcImplGenerator file_generator(file, basename);
+
+            std::string header_name = basename + ".hxx";
+            std::string code_name = basename + ".cxx";
+
+            google::protobuf::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> header_output(generator_context->Open(header_name));
+            google::protobuf::io::Printer header_printer(header_output.get(), '$');
+            file_generator.GenerateHeader(&header_printer);
+
+            google::protobuf::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> code_output(generator_context->Open(code_name));
+            google::protobuf::io::Printer code_printer(code_output.get(), '$');
+            file_generator.GenerateImplementation(&code_printer);
+
+            return true;
+          }
+      } /* namespace Rpc */
+  } /* namespace SAFplus */

@@ -194,7 +194,7 @@ typedef union CosSemCtl_u
     struct sembuf sembuf = {0, (short int)(-1*amt),SEM_UNDO | IPC_NOWAIT};
     int err;
     do
-      {        
+      {
         err = semop(semId,&sembuf,1);
       } while ((err<0)&&(errno==EINTR));
     if (err<0)

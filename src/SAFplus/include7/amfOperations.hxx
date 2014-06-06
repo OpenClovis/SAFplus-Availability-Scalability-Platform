@@ -25,10 +25,10 @@ namespace SAFplus
 
   class AmfOperations
     {
-    public:
-      //? Get the current component state from the node on which it is running
+  public:
+    //? Get the current component state from the node on which it is running
     CompStatus getCompState(SAFplusAmf::Component* comp);
-    void start(SAFplusAmf::ServiceGroup* sg);
-    void start(SAFplusAmf::Component* comp);
+    void start(SAFplusAmf::ServiceGroup* sg,Wakeable& w = *((Wakeable*)nullptr));
+    void start(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));
     };
   };

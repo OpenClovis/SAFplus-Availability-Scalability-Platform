@@ -57,7 +57,7 @@ namespace SAFplus
             int64_t idx = msgId++;
 
             //Lock sending and record a RPC
-//            ScopedLock<Mutex> lock(mutex);
+            ScopedLock<Mutex> lock(mutex);
 
             rpcMsg.set_type(RequestType::CL_IOC_RMD_ASYNC_REQUEST_PROTO);
             rpcMsg.set_id(idx);
@@ -83,10 +83,6 @@ namespace SAFplus
           {
             RpcMessage rpcMsg;
 
-            std::cout<<"DONE3"<<std::endl;
-            //Lock handle request complete
-//            ScopedLock<Mutex> lock(mutex);
-
             rpcMsg.set_type(RequestType::CL_IOC_RMD_ASYNC_REPLY_PROTO);
             rpcMsg.set_id(rpcRequestEntry->msgId);
             rpcMsg.set_buffer(rpcRequestEntry->response->SerializePartialAsString());
@@ -103,10 +99,11 @@ namespace SAFplus
 
             //Remove a RPC request entry
             msgRPCs.erase(rpcRequestEntry->msgId);
+            if (msgId > 0)
+              msgId--;
+
             delete rpcRequestEntry->response;
             delete rpcRequestEntry;
-
-            std::cout<<"DONE4"<<std::endl;
           }
 
         void RpcChannel::HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT *iocReq)
@@ -117,7 +114,7 @@ namespace SAFplus
             request_pb->ParseFromString(msg->buffer());
 
             //Lock handle request
-//            ScopedLock<Mutex> lock(mutex);
+            ScopedLock<Mutex> lock(mutex);
 
             MsgRpcEntry *rpcReqEntry = new MsgRpcEntry();
             rpcReqEntry->msgId = msg->id();
@@ -131,21 +128,21 @@ namespace SAFplus
 
         void RpcChannel::HandleResponse(SAFplus::Rpc::RpcMessage *msg)
           {
-            std::cout<<"DONE5"<<std::endl;
             //Lock handle request
-//            ScopedLock<Mutex> lock(mutex);
+            ScopedLock<Mutex> lock(mutex);
 
             std::map<uint64_t,MsgRpcEntry*>::iterator it = msgRPCs.find(msg->id());
             if (it != msgRPCs.end())
               {
-                std::cout<<"DONE2"<<std::endl;
                 MsgRpcEntry* rpcReqEntry = (MsgRpcEntry*) it->second;
                 rpcReqEntry->response->ParseFromString(msg->buffer());
-                rpcReqEntry->callback->Run();
-
-//                msgRPCs.erase(rpcReqEntry->msgId);
-                //delete rpcReqEntry->response;
-//                delete rpcReqEntry;
+                if (rpcReqEntry->callback != NULL)
+                  {
+                    rpcReqEntry->callback->Run();
+                  }
+                msgRPCs.erase(rpcReqEntry->msgId);
+                if (msgId > 0)
+                  msgId--;
               }
 
           }

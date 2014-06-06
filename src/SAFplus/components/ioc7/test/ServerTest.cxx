@@ -23,7 +23,7 @@
 #include "clSafplusMsgServer.hxx"
 #include "MsgHandlerProtocols.hxx"
 #include "clRpcChannel.hxx"
-#include "Server/RpcTestImpl.hxx"
+#include "stubs/server/rpcTestImpl.hxx"
 
 using namespace SAFplus;
 

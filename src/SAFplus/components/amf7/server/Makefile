@@ -8,7 +8,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
-CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -I../../protoc
+CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -I../../protoc -I./stubs
 
 # Specify the required libraries
 SAFPLUS_LIBS := SAFplusPBExt clMgt7 clGroup clName clCkpt clIoc7 clUtils7 clLog clDbal7 clOsal7 
@@ -24,7 +24,7 @@ CPP_FLAGS += -I../../mgt7/include -I$(SAFPLUS_SRC_DIR)/SAFplus/components/gms7 -
 
 #SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard SAFplusTypes/*.hxx) $(wildcard ietfYangTypes/*.hxx) $(wildcard ENTITYSTATETCMIB/*.hxx)
 SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard SAFplusTypes/*.hxx)
-SERVER_SRC := main.cxx amfRpcChannel.cxx amfRpc/amfRpc.pb.cc amfcommon.cxx
+SERVER_SRC := main.cxx amfcommon.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/server/*.cxx)
 
 #POLICY_ENV_SRC := $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx) $(wildcard ietfYangTypes/*.cxx) $(wildcard ENTITYSTATETCMIB/*.cxx)
 POLICY_ENV_SRC := amfOperations.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx)
@@ -78,13 +78,26 @@ $(OBJ_DIR)/amfsvr/%.o: ENTITYSTATETCMIB/%.cxx Makefile $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
+$(OBJ_DIR)/amfsvr/%.o: stubs/server/%.cxx
+	-mkdir -p $(OBJ_DIR)/amfsvr/
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/amfsvr/%.o: stubs/%.cc
+	-mkdir -p $(OBJ_DIR)/amfsvr/
+	$(COMPILE_CPP) $@ $<
+
+SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
+$(SAFplusRpcGen):
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/protoc
+
 gen:	
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusAmf.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
 
-genrpc:
-	#-mkdir -p rpc
+genrpc: $(SAFplusRpcGen)
+	-mkdir -p stubs/server
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp amfRpc.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../../3rdparty -I../../protoc -I. --cpp_out=./amfRpc amfRpc.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../../3rdparty -I../../protoc -I. --cpp_out=./stubs amfRpc.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../../3rdparty -I../../protoc -I. --rpc_out=./stubs/server amfRpc.proto
 
 
 cleangen:
