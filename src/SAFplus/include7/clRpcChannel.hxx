@@ -46,7 +46,7 @@ namespace SAFplus
           {
           public:
             //Client
-            explicit RpcChannel(SAFplus::MsgServer *, ClIocAddressT *iocDest);
+            explicit RpcChannel(SAFplus::MsgServer *, ClIocAddressT iocDest);
 
             //Server
             explicit RpcChannel(SAFplus::MsgServer *, google::protobuf::Service *svr);
@@ -74,7 +74,7 @@ namespace SAFplus
             std::map<uint64_t,MsgRpcEntry*> msgRPCs;
 
             SAFplus::MsgServer *svr;
-            ClIocAddressT *dest;
+            ClIocAddressT dest;
             Mutex mutex;
             google::protobuf::Service *service;  // service to dispatch requests to
 

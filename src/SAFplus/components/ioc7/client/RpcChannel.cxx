@@ -29,14 +29,15 @@ namespace SAFplus
         RpcChannel::RpcChannel(SAFplus::MsgServer *svr, google::protobuf::Service *service) :
             svr(svr), service(service)
           {
-            dest = NULL;
+            dest.iocPhyAddress.nodeAddress = 0;
+            dest.iocPhyAddress.portId = 0;
             msgId = 0;
             svr->RegisterHandler(CL_IOC_RMD_SYNC_REQUEST_PROTO, this, NULL);
             svr->RegisterHandler(CL_IOC_RMD_ASYNC_REQUEST_PROTO, this, NULL);
           }
 
         //Client
-        RpcChannel::RpcChannel(SAFplus::MsgServer *svr, ClIocAddressT *iocDest) :
+        RpcChannel::RpcChannel(SAFplus::MsgServer *svr, ClIocAddressT iocDest) :
             svr(svr), dest(iocDest)
           {
             msgId = 0;
@@ -66,7 +67,7 @@ namespace SAFplus
 
             try
               {
-                svr->SendMsg(*dest, (void *) rpcMsg.SerializeAsString().c_str(), rpcMsg.ByteSize(), CL_IOC_RMD_ASYNC_REQUEST_PROTO);
+                svr->SendMsg(dest, (void *) rpcMsg.SerializeAsString().c_str(), rpcMsg.ByteSize(), CL_IOC_RMD_ASYNC_REQUEST_PROTO);
               }
             catch (...)
               {

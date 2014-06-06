@@ -26,10 +26,8 @@
 #include <clSafplusMsgServer.hxx>
 
 #include "clRpcChannel.hxx"
-#include <google/protobuf/service.h>
+#include "amfRpc/amfRpc.pb.h"
 
-#include "stubs/amfRpc.pb.h"
-#include "stubs/server/amfRpcImpl.hxx"
 
 #define GRP
 
@@ -317,10 +315,13 @@ int main(int argc, char* argv[])
   rc = clIocLibInitialize(NULL);
   assert(rc==CL_OK);
 
+#if 0
   SAFplus::SafplusMsgServer safplusMsgServer(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
   // Handle RPC
   //Start Sever RPC
-  SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, new SAFplus::Rpc::amfRpc::amfRpcImpl());
+  ClIocAddressT dest;
+  *((uint64_t*) &dest) = CL_IOC_ADDRESS_FORM(CL_IOC_PHYSICAL_ADDRESS_TYPE,SAFplus::ASP_NODEADDR,SAFplusI::AMF_IOC_PORT);
+  SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, dest);
   //End server TPC
 
   safplusMsgServer.Start();
@@ -333,8 +334,10 @@ int main(int argc, char* argv[])
   StartComponentResponse resp;
 
   //client side should using callback
-  google::protobuf::Closure *callback = google::protobuf::NewCallback(&FooDone, &resp);
-  service.startComponent(NULL,&req, &resp, callback);
+  //google::protobuf::Closure *callback = google::protobuf::NewCallback(&FooDone, &resp);
+  //service.startComponent(NULL,&req, &resp, callback);
+  service.startComponent(NULL,&req, &resp, NULL);
+#endif
 
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
