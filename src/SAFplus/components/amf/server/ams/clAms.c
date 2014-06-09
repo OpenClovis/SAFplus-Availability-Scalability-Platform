@@ -310,20 +310,16 @@ static void *clAmsClusterStateVerifier(void *cookie)
     ClIocNodeAddressT masterAddress;
 
     /* Quit verifier task when node is going down */
-    while (!gCpmShuttingDown)
+    while (1)
     {
         ClUint32T i;
         masterAddress=CL_IOC_MAX_NODES;
         clCpmMasterAddressGet(&masterAddress);
         if (localAddress == masterAddress)
         {
-            for(i=1; i< CL_IOC_MAX_NODES; i++)
+            for(i=1; ((i< CL_IOC_MAX_NODES) && (!gCpmShuttingDown)); i++)
             {
                 if (i == localAddress) continue;
-                /*
-                 * If node is going to terminal, exit this thread ASAP
-                 */
-                if (gCpmShuttingDown) goto nodeShutdown;
 
                 ClNodeCacheMemberT ncInfo;
                 rc = clNodeCacheMemberGet(i, &ncInfo);
@@ -363,11 +359,11 @@ static void *clAmsClusterStateVerifier(void *cookie)
             }
         }
 
+        // testing the shutting down variable and waiting for the cond need to happen atomically.
         clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
-        clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
+        if (!gCpmShuttingDown) clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
         clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
-
-        nodeShutdown:
+       
         if (!gpClCpm)  /* Process is down! (should never happen b/c we are holding a reference) */
         {
             return NULL;
@@ -375,7 +371,7 @@ static void *clAmsClusterStateVerifier(void *cookie)
         else       
         {   
             ClEoExecutionObjT *cpmEoObj = gpClCpm->cpmEoObj;
-            if (!cpmEoObj) return NULL;
+            if (!cpmEoObj) return NULL; // should never happen... but if it does do not assert b/c we are shutting down just quit thread.
         
             if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP) || !gpClCpm->polling)
             {
@@ -385,7 +381,7 @@ static void *clAmsClusterStateVerifier(void *cookie)
         }
         
     }
-
+    
     return NULL;
 }
 
@@ -602,9 +598,14 @@ clAmsFinalize(
         return CL_OK;
     }
 
+    // Setting the flags and sending the broadcast must happen atomically so that it either happens when
+    // the cluster state verifier is waiting for the cond, or outside of the test + wait entirely.
+    clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
     gCpmShuttingDown = CL_TRUE;
     gpClCpm->polling = CL_FALSE;                       // kick the verifier out of its loop
     clOsalCondBroadcast(&gpClCpm->cpmEoObj->eoCond);  // Wake up the cluster state verifier (and anybody else that needs to be quitting)
+    clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
+     
     clOsalTaskJoin(gClusterStateVerifierTask);        // wait until the thread is done before shutting down the rest & removing variables
     
     clAmsEntityTriggerFinalize();
