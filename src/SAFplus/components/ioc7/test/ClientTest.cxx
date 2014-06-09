@@ -45,9 +45,25 @@ void FooDone(SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response)
       const SAFplus::Rpc::rpcTest::DataResult& dr = response->dataresult();
       printf("Response is name='%s': status='%d'\n", dr.name().c_str(), dr.status());
       }
-    std::cout << "DONE" << std::endl;
   }
 
+void FooDone2(SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response)
+  {
+    if (response->has_dataresult())
+      {
+      const SAFplus::Rpc::rpcTest::DataResult& dr = response->dataresult();
+      printf("Response is name='%s': status='%d'\n", dr.name().c_str(), dr.status());
+      }
+  }
+
+void FooDone3(SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response)
+  {
+    if (response->has_dataresult())
+      {
+      const SAFplus::Rpc::rpcTest::DataResult& dr = response->dataresult();
+      printf("Response is name='%s': status='%d'\n", dr.name().c_str(), dr.status());
+      }
+  }
 int main(void)
 {
 ClIocAddressT iocDest;
@@ -73,8 +89,17 @@ char helloMsg[] = "Hello world ";
 SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request;
 SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res;
 
-request.set_name("myNameRequest");
+request.set_name("myNameRequest1");
 
+SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request request2;
+SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response res2;
+
+request.set_name("myNameRequest2");
+
+SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request request3;
+SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response res3;
+
+request.set_name("myNameRequest3");
 /*
  * ??? msgClient or safplusMsgServer
  */
@@ -102,7 +127,13 @@ msgClient.Start();
 while (1)
   {
     google::protobuf::Closure *callback = NewCallback(&FooDone, &res);
+    google::protobuf::Closure *callback2 = NewCallback(&FooDone2, &res2);
+    google::protobuf::Closure *callback3 = NewCallback(&FooDone3, &res3);
+
     service->testGetRpcMethod(NULL, &request, &res, callback);
+    service->testGetRpcMethod2(NULL, &request2, &res2, callback2);
+    service->testGetRpcMethod3(NULL, &request3, &res3, callback3);
+
     //printf("Response is name=%s: status=%d", res.
     sleep(3);
   }

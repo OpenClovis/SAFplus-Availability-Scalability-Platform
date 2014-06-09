@@ -25,11 +25,41 @@ namespace rpcTest {
 
     // Add your implementation of the RPC method by hand
     SAFplus::Rpc::rpcTest::DataResult* dr = response->mutable_dataresult();
-    dr->set_name("serverName");
+    dr->set_name("serverName1");
     dr->set_status(count);
     //response->set_has_dataresult();
     count++;
 
+    done->Run(); // DO NOT removed this line!!! 
+
+  }
+
+  void rpcTestImpl::testGetRpcMethod2(::google::protobuf::RpcController* controller,
+                                const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request* request,
+                                ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response,
+                                ::google::protobuf::Closure* done)
+  {
+    // Add your implementation of the RPC method by hand
+    SAFplus::Rpc::rpcTest::DataResult* dr = response->mutable_dataresult();
+    dr->set_name("serverName2");
+    dr->set_status(count);
+    //response->set_has_dataresult();
+    count++;
+
+    done->Run(); // DO NOT removed this line!!! 
+  }
+
+  void rpcTestImpl::testGetRpcMethod3(::google::protobuf::RpcController* controller,
+                                const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
+                                ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
+                                ::google::protobuf::Closure* done)
+  {
+    // Add your implementation of the RPC method by hand
+    SAFplus::Rpc::rpcTest::DataResult* dr = response->mutable_dataresult();
+    dr->set_name("serverName3");
+    dr->set_status(count);
+    //response->set_has_dataresult();
+    count++;
 
     done->Run(); // DO NOT removed this line!!! 
   }

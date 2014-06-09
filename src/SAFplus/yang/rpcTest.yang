@@ -45,6 +45,56 @@ module rpcTest
     }
   }
   
-  
+    rpc testGetRpcMethod2
+  {
+    input 
+    {
+      leaf name
+      {
+        type string;
+      }
+    }
+    
+    output
+    {
+      container dataResult
+      {
+        leaf name
+        {
+          type string;
+        }
+        leaf status
+        {
+          type int32;
+        }
+      }
+    }
+  }
 
+
+  rpc testGetRpcMethod3
+  {
+    input 
+    {
+      leaf name
+      {
+        type string;
+      }
+    }
+    
+    output
+    {
+      container dataResult
+      {
+        leaf name
+        {
+          type string;
+        }
+        leaf status
+        {
+          type int32;
+        }
+      }
+    }
+  }
 }

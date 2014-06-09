@@ -9,7 +9,7 @@ SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PL
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../protoc -I./stubs
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../rpc -I./stubs
 
 # Management includes and libraries
 CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ `pkg-config --cflags protobuf`
@@ -26,7 +26,7 @@ SAFPLUS_LIBS := clOsal7 clUtils7 clLog clIoc7 clMgt7
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -lSAFplusPBExt
+LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -lclRpc
 
 SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
 
@@ -56,8 +56,8 @@ $(SAFplusRpcGen):
 gen: $(SAFplusRpcGen)
 	-mkdir -p ./stubs/server
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/rpcTest.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
-	protoc -I../../../3rdparty -I../../protoc -I. --cpp_out=./stubs rpcTest.proto
-	$(SAFplusRpcGen) -I../../../3rdparty -I../../protoc -I. --rpc_out=./stubs/server rpcTest.proto
+	protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./stubs rpcTest.proto
+	$(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./stubs/server rpcTest.proto
 
 cleangen:
 	rm -rf stubs

@@ -24,6 +24,28 @@ message TestGetRpcMethodResponse {
   extensions 1000 to max;
 }
 
+message TestGetRpcMethod2Request {
+  optional string name = 1;
+  extensions 1000 to max;
+}
+
+message TestGetRpcMethod2Response {
+  optional DataResult dataResult = 1;
+  extensions 1000 to max;
+}
+
+message TestGetRpcMethod3Request {
+  optional string name = 1;
+  extensions 1000 to max;
+}
+
+message TestGetRpcMethod3Response {
+  optional DataResult dataResult = 1;
+  extensions 1000 to max;
+}
+
 service rpcTest {
   rpc testGetRpcMethod(TestGetRpcMethodRequest) returns(TestGetRpcMethodResponse);
+  rpc testGetRpcMethod2(TestGetRpcMethod2Request) returns(TestGetRpcMethod2Response);
+  rpc testGetRpcMethod3(TestGetRpcMethod3Request) returns(TestGetRpcMethod3Response);
 }

@@ -18,6 +18,14 @@ class rpcTestImpl : public rpcTest {
                        const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
                        ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
                        ::google::protobuf::Closure* done);
+  void testGetRpcMethod2(::google::protobuf::RpcController* controller,
+                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request* request,
+                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response,
+                       ::google::protobuf::Closure* done);
+  void testGetRpcMethod3(::google::protobuf::RpcController* controller,
+                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
+                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
+                       ::google::protobuf::Closure* done);
 };
 
 }  // namespace rpcTest

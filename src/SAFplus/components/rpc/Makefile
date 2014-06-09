@@ -11,7 +11,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../3rdparty
 
 # Management includes and libraries
-CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ `pkg-config --cflags protobuf`
+CPP_FLAGS += `pkg-config --cflags protobuf`
 
 # Specify the required libraries
 #SAFPLUS_LIBS := clOsal7 clUtils7 clLog clIoc7 clMgt7
@@ -19,20 +19,27 @@ CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ `pkg-config --cfl
 #SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 #SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml
+#LINK_STD_LIBS +=
+#-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml
 
-PROTOBUF_PLUGIN_SRC = $(wildcard *.cxx)
-PROTOBUF_PLUGIN_OBJ = $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(PROTOBUF_PLUGIN_SRC)))
+RPC_SRC = $(wildcard *.cxx) $(wildcard *.cc)
+RPC_OBJ = $(addprefix $(MWOBJ_DIR)/,$(subst .cc,.o,$(subst .cxx,.o,$(RPC_SRC))))
 
-all: $(SAFPLUS_TARGET)/bin/protoc-gen-rpc $(LIB_DIR)/libSAFplusPBExt.so
+PROTOBUF_PLUGIN_SRC = $(wildcard protoc/*.cxx)
+PROTOBUF_PLUGIN_OBJ = $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o, $(notdir $(PROTOBUF_PLUGIN_SRC))))
 
-$(LIB_DIR)/libSAFplusPBExt.so: $(OBJ_DIR)/SAFplusPBExt.pb.o $(OBJ_DIR)/SAFplusRpc.pb.o
-	$(LINK_SO) $@ $(OBJ_DIR)/SAFplusPBExt.pb.o $(OBJ_DIR)/SAFplusRpc.pb.o
+all: $(SAFPLUS_TARGET)/bin/protoc-gen-rpc $(LIB_DIR)/libclRpc.so
 
-$(OBJ_DIR)/%.pb.o: %.pb.cc
+$(LIB_DIR)/libclRpc.so: $(RPC_OBJ)
+	$(LINK_SO) $@ $(RPC_OBJ)
+
+$(MWOBJ_DIR)/%.pb.o: %.pb.cc
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
+$(MWOBJ_DIR)/%.o: %.cxx
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/%.o: protoc/%.cxx $(wildcard protoc/*.hxx) 
 	$(COMPILE_CPP) $@ $<
 
 $(SAFPLUS_TARGET)/bin/protoc-gen-rpc: $(PROTOBUF_PLUGIN_OBJ) 
@@ -46,6 +53,6 @@ cleangen:
 	rm -rf *.pb.h *.pb.cc
 
 clean:
-	rm -rf $(PROTOBUF_PLUGIN_OBJ) $(SAFPLUS_TARGET)/bin/protoc-gen-rpc $(OBJ_DIR)/SAFplusPBExt.pb.o $(OBJ_DIR)/SAFplusRpc.pb.o
+	rm -rf $(LIB_DIR)/libclRpc.so $(RPC_OBJ) $(PROTOBUF_PLUGIN_OBJ) $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
 
 include ../../mk/safplus_targets.mk
