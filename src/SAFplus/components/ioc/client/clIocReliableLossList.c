@@ -1,5 +1,7 @@
 #include "clIocReliableLossList.h"
 
+
+
 /*
 ** private protos
 static void freeList(ClFragmentListHeadT **list);
@@ -119,12 +121,13 @@ ClBoolT appendNodeSorted(ClFragmentListHeadT **head,ClFragmentListHeadT **new)
         {
             (*new)->pNext=(*head);
             (*head)=(*new);
+            return CL_TRUE;
         }
         else
         {
             for(tmp=(*head); tmp->pNext; tmp=tmp->pNext)
             {
-                if (tmp->pNext->fragmentID > (*new)->fragmentID)
+                if (tmp->pNext->fragmentID == (*new)->fragmentID)
                 {
                     return CL_FALSE;
                 }
@@ -223,8 +226,7 @@ void delNode(ClFragmentListHeadT **head,ClFragmentListHeadT *node)
         else
             l->pNext=node->pNext;
     }
-    //freeNode(&node);
-}
+    freeNode(&node);}
 
 /*
 **  freeNode()
@@ -249,7 +251,7 @@ void freeNode(ClFragmentListHeadT **list)
 {
     if (*list)
     {
-        clHeapFree((char *) (*list));
+        (void) free ((char *) (*list));
         (*list)=NULL;
     }
 }
