@@ -20,12 +20,24 @@
 #include <google/protobuf/compiler/command_line_interface.h>
 #include "clRpcGenerator.hxx"
 
-int
-main(int argc, char *argv[])
-{
-  google::protobuf::compiler::CommandLineInterface cli;
-  SAFplus::Rpc::RpcGenerator rpc_generator;
-  cli.RegisterGenerator("--rpc_out", &rpc_generator, "Generate C++ Service file.");
-  return cli.Run(argc, argv);
-}
+using namespace std;
 
+int main(int argc, char *argv[])
+  {
+    google::protobuf::compiler::CommandLineInterface cli;
+    string path;
+    for (int i = 0; i < argc; i++)
+      {
+        if (!strncmp(argv[i], "--rpc_out", 9))
+          {
+            char* dir;
+            dir = strrchr(argv[i], '=');
+            if (dir)
+              path.assign(dir + 1);
+            break;
+          }
+      }
+    SAFplus::Rpc::RpcGenerator rpc_generator(path);
+    cli.RegisterGenerator("--rpc_out", &rpc_generator, "Generate C++ Service file.");
+    return cli.Run(argc, argv);
+  }

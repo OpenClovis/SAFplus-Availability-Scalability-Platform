@@ -16,59 +16,49 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
-#include <iostream>
-#include <sstream>
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
-#include <clIocApi.h>
-#include "clSafplusMsgServer.hxx"
-#include "ClientTest.hxx"
 
-using namespace std;
+#include <clIocProtocols.h>
+#include "clSafplusMsgServer.hxx"
+#include "rpcTest.pb.h"
+#include "clRpcChannel.hxx"
+#include "rpcTestImpl.hxx"
+
 using namespace SAFplus;
 
-//Auto scanning
-#define IOC_PORT 0
 #define IOC_PORT_SERVER 65
 
 ClUint32T clAspLocalId = 0x1;
-ClBoolT gIsNodeRepresentative = CL_FALSE;
+ClBoolT gIsNodeRepresentative = CL_TRUE;
 
-int main(void)
-  {
-    ClIocAddressT iocDest;
-
+int
+main(void)
+{
     ClRcT rc = CL_OK;
 
     /*
      * initialize SAFplus libraries
      */
     if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
-        clBufferInitialize(NULL)) != CL_OK)
-      {
+                    clBufferInitialize(NULL)) != CL_OK)
+    {
 
-      }
+    }
 
-    rc = clIocLibInitialize(NULL);
-    assert(rc==CL_OK);
+    clIocLibInitialize(NULL);
 
-    iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-    iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
-    char helloMsg[] = "Hello world ";
+    //Msg server listening
+    SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);
 
-    /*
-     * ??? msgClient or safplusMsgServer
-     */
-    SafplusMsgServer msgClient(IOC_PORT);
+    // Handle RPC
+    SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, new SAFplus::Rpc::rpcTest::rpcTestImpl());
+    channel->setMsgType(100, 101);
 
-    /* Loop receive on loop */
-    msgClient.Start();
-    int i = 0;
-    while (i++ < 3)
-      {
-        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) helloMsg, strlen(helloMsg), CL_IOC_PROTO_CTL);
-        sleep(3);
-      }
+    safplusMsgServer.Start();
 
-  }
+    // Loop forever
+    while(1);
+
+}
 

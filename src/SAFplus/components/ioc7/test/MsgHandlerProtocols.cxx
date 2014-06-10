@@ -19,7 +19,6 @@
 #include <iostream>
 #include "MsgHandlerProtocols.hxx"
 #include "clMsgServer.hxx"
-#include "rpcTest.pb.h"
 
 using namespace std;
 
@@ -42,23 +41,9 @@ namespace SAFplus
     void
     MsgHandlerProtocols::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
-        //char helloMsg[] = "Hello world reply";
+        char helloMsg[] = "Hello world reply";
 
         string recMsg((const char*) msg, msglen);
-
-        SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest req;
-
-        req.ParseFromString(recMsg);
-
-        cout << "==> Handle for message: "<<endl<< req.DebugString() <<" from [" << std::hex << "0x" << from.iocPhyAddress.nodeAddress << ":"
-                << std::hex << "0x" << from.iocPhyAddress.portId << "]" << endl;
-
-        SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res;
-
-        /* Initialize data response */
-        SAFplus::Rpc::rpcTest::DataResult *data = res.mutable_dataresult();
-        data->set_name("testRpc_response");
-        data->set_status(1);
 
         /**
          * TODO:
@@ -67,7 +52,7 @@ namespace SAFplus
          */
         try
         {
-            svr->SendMsg(from, (void *)res.SerializeAsString().c_str(), res.ByteSize(), CL_IOC_SAF_MSG_REPLY_PROTO);
+            svr->SendMsg(from, (void *)helloMsg, strlen(helloMsg), CL_IOC_SAF_MSG_REPLY_PROTO);
         }
         catch (...)
         {

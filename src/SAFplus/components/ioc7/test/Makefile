@@ -9,15 +9,15 @@ SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PL
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../rpc -I./stubs
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
 
 # Management includes and libraries
-CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ `pkg-config --cflags protobuf`
+CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
-SENDER_SRC := ClientTest.cxx $(wildcard stubs/*.pb.cc)
+SENDER_SRC := ClientTest.cxx
 SENDER_OBJ := $(addprefix $(OBJ_DIR)/, $(subst .cxx,.o,$(subst .cc,.o,$(SENDER_SRC))))
 
-RECEIVER_SRC := MsgHandlerProtocols.cxx ServerTest.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/server/*.cxx)
+RECEIVER_SRC := MsgHandlerProtocols.cxx ServerTest.cxx
 RECEIVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(subst .cc,.o,$(RECEIVER_SRC))))
 
 # Specify the required libraries
@@ -26,45 +26,22 @@ SAFPLUS_LIBS := clOsal7 clUtils7 clLog clIoc7 clMgt7
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -lclRpc
-
-SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
+LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml
 
 all: $(TEST_DIR)/ClientTest $(TEST_DIR)/ServerTest
 
 $(TEST_DIR)/ClientTest: $(SENDER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
-	$(LINK_EXE) $@ $(SENDER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) -lprotobuf -lprotoc 
-# `pkg-config --libs protobuf`
+	$(LINK_EXE) $@ $(SENDER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
 $(TEST_DIR)/ServerTest: $(RECEIVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
-	$(LINK_EXE) $@ $(RECEIVER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) -lprotobuf -lprotoc
+	$(LINK_EXE) $@ $(RECEIVER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
-$(OBJ_DIR)/stubs/%.pb.o: stubs/%.pb.cc
-	-mkdir -p $(OBJ_DIR)/stubs
-	$(COMPILE_CPP) $@ $<
-
-$(OBJ_DIR)/stubs/server/%.o: stubs/server/%.cxx
-	-mkdir -p $(OBJ_DIR)/stubs/server
-	$(COMPILE_CPP) $@ $<
 
 $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
-$(SAFplusRpcGen):
-	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/protoc
-
-gen: $(SAFplusRpcGen)
-	-mkdir -p ./stubs/server
-	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/rpcTest.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
-	protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./stubs rpcTest.proto
-	$(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./stubs/server rpcTest.proto
-
-cleangen:
-	rm -rf stubs
-	rm -rf $(SAFplusRpcGen)
-
 clean:
-	rm -rf $(OBJ_DIR)/*.o $(TEST_DIR)/* $(SAFplusRpcGen) $(OBJ_DIR)/Client/* $(OBJ_DIR)/Server/* $(OBJ_DIR)/stubs/*
+	rm -rf $(OBJ_DIR)/*.o $(TEST_DIR)/* $(OBJ_DIR)/Client/* $(OBJ_DIR)/Server/*
 	
 
 include ../../../mk/safplus_targets.mk

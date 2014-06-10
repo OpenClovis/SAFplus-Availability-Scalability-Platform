@@ -23,7 +23,6 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
-#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 
@@ -37,27 +36,6 @@ void protobuf_ShutdownFile_SAFplusRpc_2eproto();
 
 class RpcMessage;
 
-enum RequestType {
-  CL_IOC_RMD_SYNC_REQUEST_PROTO = 16,
-  CL_IOC_RMD_SYNC_REPLY_PROTO = 17,
-  CL_IOC_RMD_ASYNC_REQUEST_PROTO = 18,
-  CL_IOC_RMD_ASYNC_REPLY_PROTO = 19
-};
-bool RequestType_IsValid(int value);
-const RequestType RequestType_MIN = CL_IOC_RMD_SYNC_REQUEST_PROTO;
-const RequestType RequestType_MAX = CL_IOC_RMD_ASYNC_REPLY_PROTO;
-const int RequestType_ARRAYSIZE = RequestType_MAX + 1;
-
-const ::google::protobuf::EnumDescriptor* RequestType_descriptor();
-inline const ::std::string& RequestType_Name(RequestType value) {
-  return ::google::protobuf::internal::NameOfEnum(
-    RequestType_descriptor(), value);
-}
-inline bool RequestType_Parse(
-    const ::std::string& name, RequestType* value) {
-  return ::google::protobuf::internal::ParseNamedEnum<RequestType>(
-    RequestType_descriptor(), name, value);
-}
 // ===================================================================
 
 class RpcMessage : public ::google::protobuf::Message {
@@ -114,12 +92,12 @@ class RpcMessage : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required .SAFplus.Rpc.RequestType type = 1;
+  // required uint64 type = 1;
   inline bool has_type() const;
   inline void clear_type();
   static const int kTypeFieldNumber = 1;
-  inline ::SAFplus::Rpc::RequestType type() const;
-  inline void set_type(::SAFplus::Rpc::RequestType value);
+  inline ::google::protobuf::uint64 type() const;
+  inline void set_type(::google::protobuf::uint64 value);
 
   // optional uint64 id = 2;
   inline bool has_id() const;
@@ -165,10 +143,10 @@ class RpcMessage : public ::google::protobuf::Message {
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
+  ::google::protobuf::uint64 type_;
   ::google::protobuf::uint64 id_;
   ::std::string* name_;
   ::std::string* buffer_;
-  int type_;
 
   mutable int _cached_size_;
   ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
@@ -187,7 +165,7 @@ class RpcMessage : public ::google::protobuf::Message {
 
 // RpcMessage
 
-// required .SAFplus.Rpc.RequestType type = 1;
+// required uint64 type = 1;
 inline bool RpcMessage::has_type() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -198,14 +176,13 @@ inline void RpcMessage::clear_has_type() {
   _has_bits_[0] &= ~0x00000001u;
 }
 inline void RpcMessage::clear_type() {
-  type_ = 16;
+  type_ = GOOGLE_ULONGLONG(0);
   clear_has_type();
 }
-inline ::SAFplus::Rpc::RequestType RpcMessage::type() const {
-  return static_cast< ::SAFplus::Rpc::RequestType >(type_);
+inline ::google::protobuf::uint64 RpcMessage::type() const {
+  return type_;
 }
-inline void RpcMessage::set_type(::SAFplus::Rpc::RequestType value) {
-  assert(::SAFplus::Rpc::RequestType_IsValid(value));
+inline void RpcMessage::set_type(::google::protobuf::uint64 value) {
   set_has_type();
   type_ = value;
 }
@@ -382,10 +359,6 @@ inline void RpcMessage::set_allocated_buffer(::std::string* buffer) {
 namespace google {
 namespace protobuf {
 
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::SAFplus::Rpc::RequestType>() {
-  return ::SAFplus::Rpc::RequestType_descriptor();
-}
 
 }  // namespace google
 }  // namespace protobuf

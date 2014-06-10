@@ -17,6 +17,9 @@
  * material.
  */
 
+#include <fstream>
+#include <stdlib.h>
+#include <unistd.h>
 #include "clRpcGenerator.hxx"
 #include "clRpcImplGenerator.hxx"
 #include <google/protobuf/descriptor.h>
@@ -24,13 +27,28 @@
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/zero_copy_stream.h>
 
+using namespace std;
+using namespace google::protobuf::compiler;
+
 namespace SAFplus
   {
 
     namespace Rpc
       {
-        RpcGenerator::RpcGenerator()
+        RpcGenerator::RpcGenerator(const std::string &dir)
           {
+            if( dir.c_str()[0] != '/' )
+              {
+                char cwd[1024] = {0};
+                if (getcwd(cwd, 1024) != NULL)
+                  {
+                    this->dir.assign(cwd).append("/").append(dir);
+                  }
+              }
+            else
+              {
+                this->dir.assign(dir);
+              }
           }
 
         RpcGenerator::~RpcGenerator()
@@ -44,16 +62,67 @@ namespace SAFplus
 
             SAFplus::Rpc::RpcImplGenerator file_generator(file, basename);
 
-            std::string header_name = basename + ".hxx";
-            std::string code_name = basename + ".cxx";
+            std::string headerFileName = basename + ".hxx";
+            std::string headerFileNameFull = dir + "/" + basename + ".hxx";
+            std::string backUpHeaderName = dir + "/" + basename + ".hxx.obs";
 
-            google::protobuf::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> header_output(generator_context->Open(header_name));
+            std::string codeFileName = basename + ".cxx";
+            std::string codeFileNameFull = dir + "/" + basename + ".cxx";
+            std::string backUpCodeFileName = dir + "/" + basename + ".cxx.obs";
+
+            bool mergeHeader = false;
+            bool mergeImpl = false;
+
+            std::ifstream ifs(headerFileNameFull.c_str(), std::ios::binary);
+            if (ifs)
+              {
+                mergeHeader = true;
+
+                std::ofstream ofs(backUpHeaderName.c_str(), std::ios::binary);
+
+                if (ofs)
+                  {
+                    ofs << ifs.rdbuf();
+                    ofs.close();
+                  }
+                ifs.close();
+              }
+
+            //Check to backup implementation file
+            ifs.open(codeFileNameFull.c_str(), std::ios::binary);
+            if (ifs)
+              {
+                mergeImpl = true;
+
+                std::ofstream ofs(backUpCodeFileName.c_str(), std::ios::binary);
+
+                if (ofs)
+                  {
+                    ofs << ifs.rdbuf();
+                    ofs.close();
+                  }
+                ifs.close();
+              }
+
+            google::protobuf::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> header_output(generator_context->Open(headerFileName));
+
             google::protobuf::io::Printer header_printer(header_output.get(), '$');
             file_generator.GenerateHeader(&header_printer);
 
-            google::protobuf::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> code_output(generator_context->Open(code_name));
+            google::protobuf::scoped_ptr<google::protobuf::io::ZeroCopyOutputStream> code_output(generator_context->Open(codeFileName));
             google::protobuf::io::Printer code_printer(code_output.get(), '$');
             file_generator.GenerateImplementation(&code_printer);
+
+            //Calling diff and patch
+            if (mergeHeader)
+              {
+                //Do merge header
+              }
+
+            if (mergeImpl)
+              {
+                //Do merge implementation
+              }
 
             return true;
           }

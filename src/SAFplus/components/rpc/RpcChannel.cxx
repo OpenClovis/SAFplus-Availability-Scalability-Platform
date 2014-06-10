@@ -20,6 +20,8 @@
 #include "clRpcChannel.hxx"
 #include "clMsgServer.hxx"
 
+using namespace std;
+
 namespace SAFplus
   {
     namespace Rpc
@@ -69,7 +71,7 @@ namespace SAFplus
             //Lock sending and record a RPC
             ScopedLock<Mutex> lock(mutex);
 
-            rpcMsg.set_type((SAFplus::Rpc::RequestType)msgSendType);
+            rpcMsg.set_type(msgSendType);
             rpcMsg.set_id(idx);
             rpcMsg.set_name(method->name());
             rpcMsg.set_buffer(request->SerializeAsString());
@@ -95,7 +97,7 @@ namespace SAFplus
           {
             RpcMessage rpcMsg;
 
-            rpcMsg.set_type((SAFplus::Rpc::RequestType) msgReplyType);
+            rpcMsg.set_type(msgReplyType);
             rpcMsg.set_id(rpcRequestEntry->msgId);
             rpcMsg.set_buffer(rpcRequestEntry->response->SerializePartialAsString());
 

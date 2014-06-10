@@ -24,7 +24,6 @@ namespace {
 const ::google::protobuf::Descriptor* RpcMessage_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   RpcMessage_reflection_ = NULL;
-const ::google::protobuf::EnumDescriptor* RequestType_descriptor_ = NULL;
 
 }  // namespace
 
@@ -53,7 +52,6 @@ void protobuf_AssignDesc_SAFplusRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(RpcMessage));
-  RequestType_descriptor_ = file->enum_type(0);
 }
 
 namespace {
@@ -84,14 +82,9 @@ void protobuf_AddDesc_SAFplusRpc_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-    "\n\020SAFplusRpc.proto\022\013SAFplus.Rpc\"^\n\nRpcMe"
-    "ssage\022&\n\004type\030\001 \002(\0162\030.SAFplus.Rpc.Reques"
-    "tType\022\n\n\002id\030\002 \001(\004\022\014\n\004name\030\003 \001(\t\022\016\n\006buffe"
-    "r\030\004 \001(\014*\227\001\n\013RequestType\022!\n\035CL_IOC_RMD_SY"
-    "NC_REQUEST_PROTO\020\020\022\037\n\033CL_IOC_RMD_SYNC_RE"
-    "PLY_PROTO\020\021\022\"\n\036CL_IOC_RMD_ASYNC_REQUEST_"
-    "PROTO\020\022\022 \n\034CL_IOC_RMD_ASYNC_REPLY_PROTO\020"
-    "\023", 281);
+    "\n\020SAFplusRpc.proto\022\013SAFplus.Rpc\"D\n\nRpcMe"
+    "ssage\022\014\n\004type\030\001 \002(\004\022\n\n\002id\030\002 \001(\004\022\014\n\004name\030"
+    "\003 \001(\t\022\016\n\006buffer\030\004 \001(\014", 101);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "SAFplusRpc.proto", &protobuf_RegisterTypes);
   RpcMessage::default_instance_ = new RpcMessage();
@@ -105,22 +98,6 @@ struct StaticDescriptorInitializer_SAFplusRpc_2eproto {
     protobuf_AddDesc_SAFplusRpc_2eproto();
   }
 } static_descriptor_initializer_SAFplusRpc_2eproto_;
-const ::google::protobuf::EnumDescriptor* RequestType_descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return RequestType_descriptor_;
-}
-bool RequestType_IsValid(int value) {
-  switch(value) {
-    case 16:
-    case 17:
-    case 18:
-    case 19:
-      return true;
-    default:
-      return false;
-  }
-}
-
 
 // ===================================================================
 
@@ -147,7 +124,7 @@ RpcMessage::RpcMessage(const RpcMessage& from)
 
 void RpcMessage::SharedCtor() {
   _cached_size_ = 0;
-  type_ = 16;
+  type_ = GOOGLE_ULONGLONG(0);
   id_ = GOOGLE_ULONGLONG(0);
   name_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   buffer_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
@@ -192,7 +169,7 @@ RpcMessage* RpcMessage::New() const {
 
 void RpcMessage::Clear() {
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    type_ = 16;
+    type_ = GOOGLE_ULONGLONG(0);
     id_ = GOOGLE_ULONGLONG(0);
     if (has_name()) {
       if (name_ != &::google::protobuf::internal::kEmptyString) {
@@ -215,19 +192,14 @@ bool RpcMessage::MergePartialFromCodedStream(
   ::google::protobuf::uint32 tag;
   while ((tag = input->ReadTag()) != 0) {
     switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
-      // required .SAFplus.Rpc.RequestType type = 1;
+      // required uint64 type = 1;
       case 1: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_VARINT) {
-          int value;
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
-                 input, &value)));
-          if (::SAFplus::Rpc::RequestType_IsValid(value)) {
-            set_type(static_cast< ::SAFplus::Rpc::RequestType >(value));
-          } else {
-            mutable_unknown_fields()->AddVarint(1, value);
-          }
+                   ::google::protobuf::uint64, ::google::protobuf::internal::WireFormatLite::TYPE_UINT64>(
+                 input, &type_)));
+          set_has_type();
         } else {
           goto handle_uninterpreted;
         }
@@ -300,10 +272,9 @@ bool RpcMessage::MergePartialFromCodedStream(
 
 void RpcMessage::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // required .SAFplus.Rpc.RequestType type = 1;
+  // required uint64 type = 1;
   if (has_type()) {
-    ::google::protobuf::internal::WireFormatLite::WriteEnum(
-      1, this->type(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteUInt64(1, this->type(), output);
   }
 
   // optional uint64 id = 2;
@@ -334,10 +305,9 @@ void RpcMessage::SerializeWithCachedSizes(
 
 ::google::protobuf::uint8* RpcMessage::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
-  // required .SAFplus.Rpc.RequestType type = 1;
+  // required uint64 type = 1;
   if (has_type()) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
-      1, this->type(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteUInt64ToArray(1, this->type(), target);
   }
 
   // optional uint64 id = 2;
@@ -373,10 +343,11 @@ int RpcMessage::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
-    // required .SAFplus.Rpc.RequestType type = 1;
+    // required uint64 type = 1;
     if (has_type()) {
       total_size += 1 +
-        ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
+        ::google::protobuf::internal::WireFormatLite::UInt64Size(
+          this->type());
     }
 
     // optional uint64 id = 2;

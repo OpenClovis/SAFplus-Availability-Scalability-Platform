@@ -3,33 +3,11 @@
  */
 package SAFplus.Rpc;
 
-enum RequestType {
-/**
- * RMD synchronous request.
- */
-    CL_IOC_RMD_SYNC_REQUEST_PROTO   =   0x10;
-
-/**
- * RMD synchronous reply.
- */
-    CL_IOC_RMD_SYNC_REPLY_PROTO    =    0x11;
-
-/**
- * RMD asynchronous request.
- */
-    CL_IOC_RMD_ASYNC_REQUEST_PROTO  =   0x12;
-
-/**
- * RMD asynchronous reply.
- */
-    CL_IOC_RMD_ASYNC_REPLY_PROTO    =   0x13;
-};
-
 /**
  * Using one message for RPC
  */
 message RpcMessage {
-  required RequestType type = 1;
+  required uint64 type = 1;
   optional uint64 id = 2;
   optional string name = 3;
   optional bytes buffer = 4;
