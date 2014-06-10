@@ -62,8 +62,10 @@ namespace SAFplus
             void HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT *iocReq);
             void HandleResponse(SAFplus::Rpc::RpcMessage *msg);
             void RequestComplete(MsgRpcEntry *rpcRequestEntry);
-
+            void setMsgType(ClWordT send,ClWordT reply); // Set the protocol type for underlying transports that require one.
           public:
+            ClWordT msgSendType;
+            ClWordT msgReplyType;
             /*
              * Id of the next sending message
              */

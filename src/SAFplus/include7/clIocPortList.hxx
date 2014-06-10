@@ -10,7 +10,7 @@ namespace SAFplusI
 
   enum
   {
-  AMF_REQ_HANDLER_TYPE = 1,
-  //AMF_REPLY_HANDLER_TYPE = 2,
+  AMF_REQ_HANDLER_TYPE = 17,
+  AMF_REPLY_HANDLER_TYPE = 18,
   };
   }

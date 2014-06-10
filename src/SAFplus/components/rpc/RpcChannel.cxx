@@ -32,8 +32,8 @@ namespace SAFplus
             dest.iocPhyAddress.nodeAddress = 0;
             dest.iocPhyAddress.portId = 0;
             msgId = 0;
-            svr->RegisterHandler(CL_IOC_RMD_SYNC_REQUEST_PROTO, this, NULL);
-            svr->RegisterHandler(CL_IOC_RMD_ASYNC_REQUEST_PROTO, this, NULL);
+//            svr->RegisterHandler(CL_IOC_RMD_SYNC_REQUEST_PROTO, this, NULL);
+//            svr->RegisterHandler(CL_IOC_RMD_ASYNC_REQUEST_PROTO, this, NULL);
           }
 
         //Client
@@ -42,9 +42,18 @@ namespace SAFplus
           {
             msgId = 0;
             service = NULL;
-            svr->RegisterHandler(CL_IOC_RMD_SYNC_REPLY_PROTO, this, NULL);
-            svr->RegisterHandler(CL_IOC_RMD_ASYNC_REPLY_PROTO, this, NULL);
+//            svr->RegisterHandler(CL_IOC_RMD_SYNC_REPLY_PROTO, this, NULL);
+//            svr->RegisterHandler(CL_IOC_RMD_ASYNC_REPLY_PROTO, this, NULL);
           }
+
+
+      void RpcChannel::setMsgType(ClWordT send,ClWordT reply) 
+              { 
+              msgSendType = send; msgReplyType = reply; 
+              if(msgSendType)  svr->RegisterHandler(msgSendType, this, NULL);
+              if(msgReplyType) svr->RegisterHandler(msgReplyType, this, NULL);
+
+              }  // Set the protocol type for underlying transports that require one.
 
         RpcChannel::~RpcChannel()
           {
@@ -60,14 +69,16 @@ namespace SAFplus
             //Lock sending and record a RPC
             ScopedLock<Mutex> lock(mutex);
 
-            rpcMsg.set_type(RequestType::CL_IOC_RMD_ASYNC_REQUEST_PROTO);
+            rpcMsg.set_type((SAFplus::Rpc::RequestType)msgSendType);
             rpcMsg.set_id(idx);
             rpcMsg.set_name(method->name());
             rpcMsg.set_buffer(request->SerializeAsString());
 
             try
               {
-                svr->SendMsg(dest, (void *) rpcMsg.SerializeAsString().c_str(), rpcMsg.ByteSize(), CL_IOC_RMD_ASYNC_REQUEST_PROTO);
+                const char* data = rpcMsg.SerializeAsString().c_str();
+                int size = rpcMsg.ByteSize();
+                svr->SendMsg(dest, (void *) data, size, msgSendType);
               }
             catch (...)
               {
@@ -84,15 +95,14 @@ namespace SAFplus
           {
             RpcMessage rpcMsg;
 
-            rpcMsg.set_type(RequestType::CL_IOC_RMD_ASYNC_REPLY_PROTO);
+            rpcMsg.set_type((SAFplus::Rpc::RequestType) msgReplyType);
             rpcMsg.set_id(rpcRequestEntry->msgId);
             rpcMsg.set_buffer(rpcRequestEntry->response->SerializePartialAsString());
 
             //Sending reply
             try
               {
-                svr->SendMsg(rpcRequestEntry->srcAddr, (void *) rpcMsg.SerializeAsString().c_str(), rpcMsg.ByteSize(),
-                    CL_IOC_RMD_ASYNC_REPLY_PROTO);
+                svr->SendMsg(rpcRequestEntry->srcAddr, (void *) rpcMsg.SerializeAsString().c_str(), rpcMsg.ByteSize(), msgReplyType);
               }
             catch (...)
               {
@@ -155,24 +165,21 @@ namespace SAFplus
             std::string recMsg((const char*) msg, msglen);
             rpcMsg.ParseFromString(recMsg);
 
-            switch (rpcMsg.type())
-              {
-              // Handler request sync/async
-              case RequestType::CL_IOC_RMD_SYNC_REQUEST_PROTO:
-              case RequestType::CL_IOC_RMD_ASYNC_REQUEST_PROTO:
-                {
-                  HandleRequest(&rpcMsg, &srcAddr);
-                  break;
-                }
+            ClWordT msgType = rpcMsg.type();
 
-                // Handle response sync/async
-              case RequestType::CL_IOC_RMD_SYNC_REPLY_PROTO:
-              case RequestType::CL_IOC_RMD_ASYNC_REPLY_PROTO:
-                {
-                  HandleResponse(&rpcMsg);
-                  break;
-                }
+            if (msgType == msgSendType)
+              {
+                 HandleRequest(&rpcMsg, &srcAddr);
               }
+            else if (msgType == msgReplyType)
+              {
+                 HandleResponse(&rpcMsg);
+              }
+            else
+              {
+              logError("RPC","HDL", "Received invalid message type [%u] from [%d.%d]", msgType, srcAddr.iocPhyAddress.nodeAddress,srcAddr.iocPhyAddress.portId);
+              }
+              
           }
 
       } /* namespace Rpc */
