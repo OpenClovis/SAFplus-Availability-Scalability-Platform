@@ -20,7 +20,8 @@
 #ifndef CLRPCCHANNEL_HXX_
 #define CLRPCCHANNEL_HXX_
 
-//#include <google/protobuf/service.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/message.h>
 #include "clMsgHandler.hxx"
 #include <clThreadApi.hxx>
 
@@ -64,9 +65,6 @@ namespace SAFplus
 
             void HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT *iocReq);
             void HandleResponse(SAFplus::Rpc::RpcMessage *msg);
-
-            //Move this to RpcWakeable class
-            void RequestComplete(MsgRpcEntry *rpcRequestEntry);
 
             void setMsgType(ClWordT send, ClWordT reply); // Set the protocol type for underlying transports that require one.
           public:

@@ -17,7 +17,11 @@
  * material.
  */
 
+#include "clMsgServer.hxx"
+#include "clRpcChannel.hxx"
 #include "RpcWakeable.hxx"
+#include "SAFplusRpc.pb.h"
+#include "SAFplusPBExt.pb.h"
 
 namespace SAFplus
   {
@@ -26,13 +30,49 @@ namespace SAFplus
 
         RpcWakeable::RpcWakeable()
           {
-            // TODO Auto-generated constructor stub
-
+            channel = NULL;
+            rpcRequestEntry = NULL;
           }
 
         RpcWakeable::~RpcWakeable()
           {
-            // TODO Auto-generated destructor stub
+          }
+
+        void RpcWakeable::wake(int amt, void* cookie)
+          {
+            if (channel != NULL && rpcRequestEntry)
+              {
+                std::cout<<"Wakeable to send msg!"<<std::endl;
+                RequestComplete(rpcRequestEntry);
+              }
+          }
+
+        void RpcWakeable::RequestComplete(MsgRpcEntry* rpcRequestEntry)
+          {
+            RpcMessage rpcMsg;
+
+            rpcMsg.set_type(channel->msgReplyType);
+            rpcMsg.set_id(rpcRequestEntry->msgId);
+            rpcMsg.set_buffer(rpcRequestEntry->response->SerializePartialAsString());
+
+            std::cout<<"DEBUG:"<<rpcMsg.DebugString()<<std::endl;
+
+            //Sending reply
+            try
+              {
+                channel->svr->SendMsg(rpcRequestEntry->srcAddr, (void *) rpcMsg.SerializeAsString().c_str(), rpcMsg.ByteSize(), channel->msgReplyType);
+              }
+            catch (...)
+              {
+              }
+
+            //Remove a RPC request entry
+            channel->msgRPCs.erase(rpcRequestEntry->msgId);
+            if (channel->msgId > 0)
+              channel->msgId--;
+
+            delete rpcRequestEntry->response;
+            delete rpcRequestEntry;
           }
 
       } /* namespace Rpc */

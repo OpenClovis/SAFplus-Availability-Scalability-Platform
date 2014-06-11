@@ -98,34 +98,6 @@ namespace SAFplus
             msgRPCs[idx] = rpcReqEntry;
           }
 
-        void RpcChannel::RequestComplete(MsgRpcEntry *rpcRequestEntry)
-          {
-            /* Move this to RpcWakeable class
-            RpcMessage rpcMsg;
-
-            rpcMsg.set_type(msgReplyType);
-            rpcMsg.set_id(rpcRequestEntry->msgId);
-            rpcMsg.set_buffer(rpcRequestEntry->response->SerializePartialAsString());
-
-            //Sending reply
-            try
-              {
-                svr->SendMsg(rpcRequestEntry->srcAddr, (void *) rpcMsg.SerializeAsString().c_str(), rpcMsg.ByteSize(), msgReplyType);
-              }
-            catch (...)
-              {
-              }
-
-            //Remove a RPC request entry
-            msgRPCs.erase(rpcRequestEntry->msgId);
-            if (msgId > 0)
-              msgId--;
-
-            delete rpcRequestEntry->response;
-            delete rpcRequestEntry;
-            */
-          }
-
         void RpcChannel::HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT *iocReq)
           {
             const google::protobuf::MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(msg->name());
@@ -143,7 +115,7 @@ namespace SAFplus
             msgRPCs[msg->id()] = rpcReqEntry;
 
             //TODO:
-            RpcWakeable wakeable;
+            RpcWakeable wakeable(this, rpcReqEntry);
             SAFplus::Handle hdl = SAFplus::Handle::create();
             service->CallMethod(method, hdl, request_pb, response_pb, wakeable);
           }

@@ -29,6 +29,9 @@ namespace SAFplus
     namespace Rpc
       {
 
+      class RpcChannel;
+      class MsgRpcEntry;
+
         /*
          *
          */
@@ -36,39 +39,14 @@ namespace SAFplus
           {
           public:
             RpcWakeable();
+            RpcWakeable(RpcChannel *ch, MsgRpcEntry *rpcRequestEntry): channel(ch), rpcRequestEntry(rpcRequestEntry) {};
             virtual ~RpcWakeable();
+            void RequestComplete(MsgRpcEntry *rpcRequestEntry);
+            void wake(int amt, void* cookie = NULL);
 
-            void wake(int amt, void* cookie = NULL)
-              {
-                //TODO:
-                //1. Send cookie to source
-                //2. Remove an entry in RPCs list
-
-//                 RpcMessage rpcMsg;
-//
-//                 rpcMsg.set_type(msgReplyType);
-//                 rpcMsg.set_id(rpcRequestEntry->msgId);
-//                 rpcMsg.set_buffer(rpcRequestEntry->response->SerializePartialAsString());
-//
-//                 //Sending reply
-//                 try
-//                 {
-//                 svr->SendMsg(rpcRequestEntry->srcAddr, (void *) rpcMsg.SerializeAsString().c_str(), rpcMsg.ByteSize(), msgReplyType);
-//                 }
-//                 catch (...)
-//                 {
-//                 }
-//
-//                 //Remove a RPC request entry
-//                 msgRPCs.erase(rpcRequestEntry->msgId);
-//                 if (msgId > 0)
-//                 msgId--;
-//
-//                 delete rpcRequestEntry->response;
-//                 delete rpcRequestEntry;
-
-                std::cout << "RPC Wakeable test!" << std::endl;
-              }
+          public:
+            RpcChannel *channel;
+            MsgRpcEntry *rpcRequestEntry;
           };
 
       } /* namespace Rpc */
