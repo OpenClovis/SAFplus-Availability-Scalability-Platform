@@ -43,7 +43,6 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* TestGetRpcMethod3Response_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   TestGetRpcMethod3Response_reflection_ = NULL;
-const ::google::protobuf::ServiceDescriptor* rpcTest_descriptor_ = NULL;
 
 }  // namespace
 
@@ -160,7 +159,6 @@ void protobuf_AssignDesc_rpcTest_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(TestGetRpcMethod3Response));
-  rpcTest_descriptor_ = file->service(0);
 }
 
 namespace {
@@ -238,7 +236,7 @@ void protobuf_AddDesc_rpcTest_2eproto() {
     "st.TestGetRpcMethod2Response\022r\n\021testGetR"
     "pcMethod3\022-.SAFplus.Rpc.rpcTest.TestGetR"
     "pcMethod3Request\032..SAFplus.Rpc.rpcTest.T"
-    "estGetRpcMethod3ResponseB\t\200\001\001\210\001\000\220\001\001", 915);
+    "estGetRpcMethod3ResponseB\t\200\001\000\210\001\000\220\001\001", 915);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "rpcTest.proto", &protobuf_RegisterTypes);
   TestGetRpcMethodRequest::default_instance_ = new TestGetRpcMethodRequest();
@@ -1985,140 +1983,6 @@ void TestGetRpcMethod3Response::Swap(TestGetRpcMethod3Response* other) {
   return metadata;
 }
 
-
-// ===================================================================
-
-rpcTest::~rpcTest() {}
-
-const ::google::protobuf::ServiceDescriptor* rpcTest::descriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return rpcTest_descriptor_;
-}
-
-const ::google::protobuf::ServiceDescriptor* rpcTest::GetDescriptor() {
-  protobuf_AssignDescriptorsOnce();
-  return rpcTest_descriptor_;
-}
-
-void rpcTest::testGetRpcMethod(::google::protobuf::RpcController* controller,
-                         const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest*,
-                         ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse*,
-                         ::google::protobuf::Closure* done) {
-  controller->SetFailed("Method testGetRpcMethod() not implemented.");
-  done->Run();
-}
-
-void rpcTest::testGetRpcMethod2(::google::protobuf::RpcController* controller,
-                         const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request*,
-                         ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response*,
-                         ::google::protobuf::Closure* done) {
-  controller->SetFailed("Method testGetRpcMethod2() not implemented.");
-  done->Run();
-}
-
-void rpcTest::testGetRpcMethod3(::google::protobuf::RpcController* controller,
-                         const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request*,
-                         ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response*,
-                         ::google::protobuf::Closure* done) {
-  controller->SetFailed("Method testGetRpcMethod3() not implemented.");
-  done->Run();
-}
-
-void rpcTest::CallMethod(const ::google::protobuf::MethodDescriptor* method,
-                             ::google::protobuf::RpcController* controller,
-                             const ::google::protobuf::Message* request,
-                             ::google::protobuf::Message* response,
-                             ::google::protobuf::Closure* done) {
-  GOOGLE_DCHECK_EQ(method->service(), rpcTest_descriptor_);
-  switch(method->index()) {
-    case 0:
-      testGetRpcMethod(controller,
-             ::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest*>(request),
-             ::google::protobuf::down_cast< ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse*>(response),
-             done);
-      break;
-    case 1:
-      testGetRpcMethod2(controller,
-             ::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request*>(request),
-             ::google::protobuf::down_cast< ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response*>(response),
-             done);
-      break;
-    case 2:
-      testGetRpcMethod3(controller,
-             ::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request*>(request),
-             ::google::protobuf::down_cast< ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response*>(response),
-             done);
-      break;
-    default:
-      GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
-      break;
-  }
-}
-
-const ::google::protobuf::Message& rpcTest::GetRequestPrototype(
-    const ::google::protobuf::MethodDescriptor* method) const {
-  GOOGLE_DCHECK_EQ(method->service(), descriptor());
-  switch(method->index()) {
-    case 0:
-      return ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest::default_instance();
-    case 1:
-      return ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request::default_instance();
-    case 2:
-      return ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request::default_instance();
-    default:
-      GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
-      return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
-  }
-}
-
-const ::google::protobuf::Message& rpcTest::GetResponsePrototype(
-    const ::google::protobuf::MethodDescriptor* method) const {
-  GOOGLE_DCHECK_EQ(method->service(), descriptor());
-  switch(method->index()) {
-    case 0:
-      return ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse::default_instance();
-    case 1:
-      return ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response::default_instance();
-    case 2:
-      return ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response::default_instance();
-    default:
-      GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
-      return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
-  }
-}
-
-rpcTest_Stub::rpcTest_Stub(::google::protobuf::RpcChannel* channel)
-  : channel_(channel), owns_channel_(false) {}
-rpcTest_Stub::rpcTest_Stub(
-    ::google::protobuf::RpcChannel* channel,
-    ::google::protobuf::Service::ChannelOwnership ownership)
-  : channel_(channel),
-    owns_channel_(ownership == ::google::protobuf::Service::STUB_OWNS_CHANNEL) {}
-rpcTest_Stub::~rpcTest_Stub() {
-  if (owns_channel_) delete channel_;
-}
-
-void rpcTest_Stub::testGetRpcMethod(::google::protobuf::RpcController* controller,
-                              const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
-                              ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
-                              ::google::protobuf::Closure* done) {
-  channel_->CallMethod(descriptor()->method(0),
-                       controller, request, response, done);
-}
-void rpcTest_Stub::testGetRpcMethod2(::google::protobuf::RpcController* controller,
-                              const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request* request,
-                              ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response,
-                              ::google::protobuf::Closure* done) {
-  channel_->CallMethod(descriptor()->method(1),
-                       controller, request, response, done);
-}
-void rpcTest_Stub::testGetRpcMethod3(::google::protobuf::RpcController* controller,
-                              const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
-                              ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
-                              ::google::protobuf::Closure* done) {
-  channel_->CallMethod(descriptor()->method(2),
-                       controller, request, response, done);
-}
 
 // @@protoc_insertion_point(namespace_scope)
 

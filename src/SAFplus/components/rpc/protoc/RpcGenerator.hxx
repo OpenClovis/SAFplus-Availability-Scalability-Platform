@@ -16,6 +16,7 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
+#pragma once
 
 #ifndef CLRPCGENERATOR_HXX_
 #define CLRPCGENERATOR_HXX_

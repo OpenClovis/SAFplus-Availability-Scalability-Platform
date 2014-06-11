@@ -23,7 +23,6 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
-#include <google/protobuf/service.h>
 #include <google/protobuf/unknown_field_set.h>
 #include "SAFplusPBExt.pb.h"
 // @@protoc_insertion_point(includes)
@@ -676,81 +675,6 @@ class TestGetRpcMethod3Response : public ::google::protobuf::Message {
   void InitAsDefaultInstance();
   static TestGetRpcMethod3Response* default_instance_;
 };
-// ===================================================================
-
-class rpcTest_Stub;
-
-class rpcTest : public ::google::protobuf::Service {
- protected:
-  // This class should be treated as an abstract interface.
-  inline rpcTest() {};
- public:
-  virtual ~rpcTest();
-
-  typedef rpcTest_Stub Stub;
-
-  static const ::google::protobuf::ServiceDescriptor* descriptor();
-
-  virtual void testGetRpcMethod(::google::protobuf::RpcController* controller,
-                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
-                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
-                       ::google::protobuf::Closure* done);
-  virtual void testGetRpcMethod2(::google::protobuf::RpcController* controller,
-                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request* request,
-                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response,
-                       ::google::protobuf::Closure* done);
-  virtual void testGetRpcMethod3(::google::protobuf::RpcController* controller,
-                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
-                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
-                       ::google::protobuf::Closure* done);
-
-  // implements Service ----------------------------------------------
-
-  const ::google::protobuf::ServiceDescriptor* GetDescriptor();
-  void CallMethod(const ::google::protobuf::MethodDescriptor* method,
-                  ::google::protobuf::RpcController* controller,
-                  const ::google::protobuf::Message* request,
-                  ::google::protobuf::Message* response,
-                  ::google::protobuf::Closure* done);
-  const ::google::protobuf::Message& GetRequestPrototype(
-    const ::google::protobuf::MethodDescriptor* method) const;
-  const ::google::protobuf::Message& GetResponsePrototype(
-    const ::google::protobuf::MethodDescriptor* method) const;
-
- private:
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(rpcTest);
-};
-
-class rpcTest_Stub : public rpcTest {
- public:
-  rpcTest_Stub(::google::protobuf::RpcChannel* channel);
-  rpcTest_Stub(::google::protobuf::RpcChannel* channel,
-                   ::google::protobuf::Service::ChannelOwnership ownership);
-  ~rpcTest_Stub();
-
-  inline ::google::protobuf::RpcChannel* channel() { return channel_; }
-
-  // implements rpcTest ------------------------------------------
-
-  void testGetRpcMethod(::google::protobuf::RpcController* controller,
-                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
-                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
-                       ::google::protobuf::Closure* done);
-  void testGetRpcMethod2(::google::protobuf::RpcController* controller,
-                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request* request,
-                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response,
-                       ::google::protobuf::Closure* done);
-  void testGetRpcMethod3(::google::protobuf::RpcController* controller,
-                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
-                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
-                       ::google::protobuf::Closure* done);
- private:
-  ::google::protobuf::RpcChannel* channel_;
-  bool owns_channel_;
-  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS(rpcTest_Stub);
-};
-
-
 // ===================================================================
 
 

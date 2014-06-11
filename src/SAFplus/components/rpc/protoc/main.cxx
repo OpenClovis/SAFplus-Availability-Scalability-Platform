@@ -18,7 +18,7 @@
  */
 
 #include <google/protobuf/compiler/command_line_interface.h>
-#include "clRpcGenerator.hxx"
+#include "RpcGenerator.hxx"
 
 using namespace std;
 

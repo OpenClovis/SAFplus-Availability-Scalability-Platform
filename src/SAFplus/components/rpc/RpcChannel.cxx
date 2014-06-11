@@ -17,8 +17,13 @@
  * material.
  */
 
+#include "SAFplusPBExt.pb.h"
+#include "SAFplusRpc.pb.h"
+#include "RpcWakeable.hxx"
+#include "clRpcService.hxx"
 #include "clRpcChannel.hxx"
 #include "clMsgServer.hxx"
+
 
 using namespace std;
 
@@ -28,8 +33,8 @@ namespace SAFplus
       {
 
         //Server
-        RpcChannel::RpcChannel(SAFplus::MsgServer *svr, google::protobuf::Service *service) :
-            svr(svr), service(service)
+        RpcChannel::RpcChannel(SAFplus::MsgServer *svr, SAFplus::Rpc::RpcService *rpcService) :
+            svr(svr), service(rpcService)
           {
             dest.iocPhyAddress.nodeAddress = 0;
             dest.iocPhyAddress.portId = 0;
@@ -62,8 +67,8 @@ namespace SAFplus
             // TODO Auto-generated destructor stub
           }
 
-        void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor* method, google::protobuf::RpcController* controller,
-            const google::protobuf::Message* request, google::protobuf::Message* response, google::protobuf::Closure* done)
+        void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor* method, SAFplus::Handle destination,
+            const google::protobuf::Message* request, google::protobuf::Message* response, SAFplus::Wakeable &wakeable)
           {
             SAFplus::Rpc::RpcMessage rpcMsg;
             int64_t idx = msgId++;
@@ -89,34 +94,8 @@ namespace SAFplus
             MsgRpcEntry *rpcReqEntry = new MsgRpcEntry();
             rpcReqEntry->msgId = idx;
             rpcReqEntry->response = response;
-            rpcReqEntry->callback = done;
+            rpcReqEntry->callback = (Wakeable*)&wakeable;
             msgRPCs[idx] = rpcReqEntry;
-          }
-
-        void RpcChannel::RequestComplete(MsgRpcEntry *rpcRequestEntry)
-          {
-            RpcMessage rpcMsg;
-
-            rpcMsg.set_type(msgReplyType);
-            rpcMsg.set_id(rpcRequestEntry->msgId);
-            rpcMsg.set_buffer(rpcRequestEntry->response->SerializePartialAsString());
-
-            //Sending reply
-            try
-              {
-                svr->SendMsg(rpcRequestEntry->srcAddr, (void *) rpcMsg.SerializeAsString().c_str(), rpcMsg.ByteSize(), msgReplyType);
-              }
-            catch (...)
-              {
-              }
-
-            //Remove a RPC request entry
-            msgRPCs.erase(rpcRequestEntry->msgId);
-            if (msgId > 0)
-              msgId--;
-
-            delete rpcRequestEntry->response;
-            delete rpcRequestEntry;
           }
 
         void RpcChannel::HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT *iocReq)
@@ -135,8 +114,10 @@ namespace SAFplus
             rpcReqEntry->srcAddr = *iocReq;
             msgRPCs[msg->id()] = rpcReqEntry;
 
-            google::protobuf::Closure *callback = google::protobuf::NewCallback(this, &RpcChannel::RequestComplete, rpcReqEntry);
-            service->CallMethod(method, NULL, request_pb, response_pb, callback);
+            //TODO:
+            RpcWakeable wakeable(this, rpcReqEntry);
+            SAFplus::Handle hdl = SAFplus::Handle::create();
+            service->CallMethod(method, hdl, request_pb, response_pb, wakeable);
           }
 
         void RpcChannel::HandleResponse(SAFplus::Rpc::RpcMessage *msg)
@@ -151,7 +132,7 @@ namespace SAFplus
                 rpcReqEntry->response->ParseFromString(msg->buffer());
                 if (rpcReqEntry->callback != NULL)
                   {
-                    rpcReqEntry->callback->Run();
+                    rpcReqEntry->callback->wake(1, (void*) rpcReqEntry->response);
                   }
                 msgRPCs.erase(rpcReqEntry->msgId);
                 if (msgId > 0)

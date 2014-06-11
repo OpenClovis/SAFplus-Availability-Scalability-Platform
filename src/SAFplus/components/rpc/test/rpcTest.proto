@@ -4,7 +4,7 @@
 package SAFplus.Rpc.rpcTest;
 import "SAFplusPBExt.proto";
 
-option cc_generic_services = true;
+option cc_generic_services = false;
 option py_generic_services = true;
 option java_generic_services = false;
 
