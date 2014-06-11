@@ -14,13 +14,16 @@ namespace rpcTest {
     //TODO: Auto-generated destructor stub
   }
 
+  static int count = 0;
+
   void rpcTestImpl::testGetRpcMethod(SAFplus::Handle destination,
                                 const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
                                 ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
                                 SAFplus::Wakeable& wakeable)
   {
     //TODO: put your code here 
-    std::cout << "testGetRpcMethod!" << std::endl;
+    response->mutable_dataresult()->set_status(count++);
+    response->mutable_dataresult()->set_name("testGetRpcMethod");
 
     wakeable.wake(1, (void*) response); // DO NOT removed this line!!! 
   }
@@ -31,7 +34,8 @@ namespace rpcTest {
                                 SAFplus::Wakeable& wakeable)
   {
     //TODO: put your code here 
-    std::cout << "testGetRpcMethod2!" << std::endl;
+    response->mutable_dataresult()->set_status(count++);
+    response->mutable_dataresult()->set_name("testGetRpcMethod2");
 
     wakeable.wake(1, (void*) response); // DO NOT removed this line!!! 
   }
@@ -42,7 +46,8 @@ namespace rpcTest {
                                 SAFplus::Wakeable& wakeable)
   {
     //TODO: put your code here 
-    std::cout << "testGetRpcMethod3!" << std::endl;
+    response->mutable_dataresult()->set_status(count++);
+    response->mutable_dataresult()->set_name("testGetRpcMethod3");
 
     wakeable.wake(1, (void*) response); // DO NOT removed this line!!! 
   }

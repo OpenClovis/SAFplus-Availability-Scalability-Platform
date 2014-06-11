@@ -39,6 +39,7 @@ namespace SAFplus
           public:
             uint64_t msgId;
             ClIocAddressT srcAddr;
+            SAFplus::Handle handle;
             SAFplus::Wakeable *callback;
             google::protobuf::Message *response;
           };

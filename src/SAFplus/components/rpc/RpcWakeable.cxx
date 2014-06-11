@@ -42,7 +42,6 @@ namespace SAFplus
           {
             if (channel != NULL && rpcRequestEntry)
               {
-                std::cout<<"Wakeable to send msg!"<<std::endl;
                 RequestComplete(rpcRequestEntry);
               }
           }
@@ -55,7 +54,9 @@ namespace SAFplus
             rpcMsg.set_id(rpcRequestEntry->msgId);
             rpcMsg.set_buffer(rpcRequestEntry->response->SerializePartialAsString());
 
-            std::cout<<"DEBUG:"<<rpcMsg.DebugString()<<std::endl;
+            //Marshall handle
+            rpcMsg.mutable_handle()->set_id0(rpcRequestEntry->handle.id[0]);
+            rpcMsg.mutable_handle()->set_idx(rpcRequestEntry->handle.id[1]);
 
             //Sending reply
             try

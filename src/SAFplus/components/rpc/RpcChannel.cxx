@@ -81,6 +81,10 @@ namespace SAFplus
             rpcMsg.set_name(method->name());
             rpcMsg.set_buffer(request->SerializeAsString());
 
+            //Marshall handle
+            rpcMsg.mutable_handle()->set_id0(destination.id[0]);
+            rpcMsg.mutable_handle()->set_idx(destination.id[1]);
+
             try
               {
                 const char* data = rpcMsg.SerializeAsString().c_str();
@@ -95,6 +99,8 @@ namespace SAFplus
             rpcReqEntry->msgId = idx;
             rpcReqEntry->response = response;
             rpcReqEntry->callback = (Wakeable*)&wakeable;
+            rpcReqEntry->handle = destination;
+
             msgRPCs[idx] = rpcReqEntry;
           }
 
@@ -112,12 +118,16 @@ namespace SAFplus
             rpcReqEntry->msgId = msg->id();
             rpcReqEntry->response = response_pb;
             rpcReqEntry->srcAddr = *iocReq;
+
+            //Demarshall handle => simple assignment
+            rpcReqEntry->handle.id[0] = msg->handle().id0();
+            rpcReqEntry->handle.id[1] = msg->handle().idx();
+
             msgRPCs[msg->id()] = rpcReqEntry;
 
             //TODO:
             RpcWakeable wakeable(this, rpcReqEntry);
-            SAFplus::Handle hdl = SAFplus::Handle::create();
-            service->CallMethod(method, hdl, request_pb, response_pb, wakeable);
+            service->CallMethod(method, rpcReqEntry->handle, request_pb, response_pb, wakeable);
           }
 
         void RpcChannel::HandleResponse(SAFplus::Rpc::RpcMessage *msg)
@@ -153,10 +163,12 @@ namespace SAFplus
             if (msgType == msgSendType)
               {
                  HandleRequest(&rpcMsg, &srcAddr);
+                 std::cout<<"DEBUG SENT:"<<rpcMsg.DebugString()<<std::endl;
               }
             else if (msgType == msgReplyType)
               {
                  HandleResponse(&rpcMsg);
+                 std::cout<<"DEBUG RECEIVED:"<<rpcMsg.DebugString()<<std::endl;
               }
             else
               {
