@@ -79,9 +79,9 @@ void ThreadPool::enqueue(Wakeable* p, void* arg)
   TaskData* td = new TaskData(p, arg);
   printf("ThreadPool::enqueue(): lock the mutex\n");
   mutex.lock();
-  printf("=======================================\n");
-  td->p->wake(0, arg);
-  printf("=======================================\n");
+  //printf("=======================================\n");
+  //td->p->wake(0, arg);
+  //printf("=======================================\n");
   taskQueue->push_back(td);
   printf("ThreadPool::enqueue(): notify\n");
   cond.notify_one();
