@@ -3692,7 +3692,8 @@ static ClRcT __iocReassembleTimer(void *key)
     {
         if (clTimerCheckAndDelete(&timerKey->TimerACKHdl) == CL_OK)
         {
-            clHeapFree(node->timerKey);
+            clHeapFree(node->timerKey->TimerACKHdl);
+            node->timerKey->TimerACKHdl=NULL;
         }
         destroyNodes(&node->receiverLossList);
     }
@@ -3756,31 +3757,46 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
         clHeapFree(fragNode);
     }
     hashDel(&node->hash);
-#ifdef RELIABLE_IOC
-    if(*(&node->isReliable)==CL_TRUE)
-    {
-        //send last fragment ack to sender
-        clOsalMutexLock(&iocAcklock);
-        ClIocCommPortT *commPort = clIocGetPort(node->commPort);
-        ClInt32T ack = node->ackSync;
-        receiverAckSend(commPort, &node->srcAddress, node->messageId, ack);
-        //remove ack timer
-        if (clTimerCheckAndDelete(&node->timerKey->TimerACKHdl) == CL_OK)
-        {
-            clLogDebug("IOC", "Rel", "remove Ack timer successful");
-        }
-        destroyNodes(&node->receiverLossList);
-        clOsalMutexUnlock(&iocAcklock);
-    }
 
-#endif
+
     /*
      * Atomically check and delete timer if not running.
      */
     if(clTimerCheckAndDelete(&node->timerKey->reassembleTimer) == CL_OK)
     {
-        clHeapFree(node->timerKey);
-        node->timerKey = NULL;
+        if(*(&node->isReliable)==CL_TRUE)
+        {
+            //send last fragment ack to sender
+            clOsalMutexLock(&iocAcklock);
+            ClIocCommPortT *commPort = clIocGetPort(node->commPort);
+            ClInt32T ack = node->ackSync;
+            receiverAckSend(commPort, &node->srcAddress, node->messageId, ack);
+            //remove ack timer
+            if (clTimerCheckAndDelete(&node->timerKey->TimerACKHdl) == CL_OK)
+            {
+                clLogDebug("IOC", "Rel", "remove Ack timer successful");
+                clHeapFree(node->timerKey->TimerACKHdl);
+                node->timerKey->TimerACKHdl = NULL;
+            }
+            else
+            {
+                if (clTimerDelete(&node->timerKey->TimerACKHdl) == CL_OK)
+                {
+                    clLogDebug("IOC", "Rel", "remove Ack timer successful");
+                    clHeapFree(node->timerKey->TimerACKHdl);
+                    node->timerKey->TimerACKHdl = NULL;
+                }
+            }
+            clHeapFree(node->timerKey);
+            node->timerKey = NULL;
+            destroyNodes(&node->receiverLossList);
+            clOsalMutexUnlock(&iocAcklock);
+        }
+        else
+        {
+            clHeapFree(node->timerKey);
+            node->timerKey = NULL;
+        }
     }
     clBufferLengthGet(msg, &len);
     if(!len)
@@ -3908,6 +3924,7 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
         retCode = CL_OK; 
     }
     clHeapFree(node);
+    clLogDebug("IOC", "Rel", "reassemble message successful");
     return retCode;
 }
 
