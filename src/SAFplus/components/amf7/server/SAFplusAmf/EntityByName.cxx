@@ -19,10 +19,12 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(EntityByName, /SAFplusAmf/EntityByName)
 
-    EntityByName::EntityByName(): SAFplus::MgtList("EntityByName"), myName("myName"), entity("entity")
+    EntityByName::EntityByName(): SAFplus::MgtList<std::string>("EntityByName"), myName("myName"), entity("entity")
     {
-        this->addChildObject(&myName, "myName");
-        this->addChildObject(&entity, "entity");
+        std::string myNameName("myName");
+        std::string entityName("entity");
+        this->addChildObject(&myName, myNameName);
+        this->addChildObject(&entity, entityName);
     };
 
     void EntityByName::toString(std::stringstream &xmlString)

@@ -39,48 +39,48 @@ namespace SAFplusAmf
         /*
          * 
          */
-        SAFplus::MgtList clusterList;
-        SAFplus::MgtList nodeList;
+        SAFplus::MgtList<std::string> clusterList;
+        SAFplus::MgtList<std::string> nodeList;
 
         /*
          * A Service Group is a Service Availability Forum defined concept that corresponds to a group of redundant processes that should fail over as a unit.
          */
-        SAFplus::MgtList serviceGroupList;
+        SAFplus::MgtList<std::string> serviceGroupList;
 
         /*
          * 
          */
-        SAFplus::MgtList componentList;
+        SAFplus::MgtList<std::string> componentList;
 
         /*
          * 
          */
-        SAFplus::MgtList componentServiceInstanceList;
+        SAFplus::MgtList<std::string> componentServiceInstanceList;
 
         /*
          * 
          */
-        SAFplus::MgtList serviceInstanceList;
+        SAFplus::MgtList<std::string> serviceInstanceList;
 
         /*
          * A Service Unit is a group of processes that all fail over together.  All service unit members must be run on the same node.
          */
-        SAFplus::MgtList serviceUnitList;
+        SAFplus::MgtList<std::string> serviceUnitList;
 
         /*
          * 
          */
-        SAFplus::MgtList applicationList;
+        SAFplus::MgtList<std::string> applicationList;
 
         /*
          * Look up any entity by its string name
          */
-        SAFplus::MgtList entityByNameList;
+        SAFplus::MgtList<std::string> entityByNameList;
 
         /*
          * Look up any entity by its identifier
          */
-        SAFplus::MgtList entityByIdList;
+        SAFplus::MgtList<std::string> entityByIdList;
 
     public:
         SAFplusAmfRoot();

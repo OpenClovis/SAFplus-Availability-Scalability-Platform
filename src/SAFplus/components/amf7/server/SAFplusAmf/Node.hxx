@@ -64,7 +64,7 @@ namespace SAFplusAmf
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
          */
-        SAFplus::MgtList capacityList;
+        SAFplus::MgtList<std::string> capacityList;
 
     public:
         Node();

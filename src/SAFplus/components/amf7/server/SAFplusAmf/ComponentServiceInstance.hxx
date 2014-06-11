@@ -44,7 +44,7 @@ namespace SAFplusAmf
         /*
          * Arbitrary data that defines the work needed to be done.
          */
-        SAFplus::MgtList dataList;
+        SAFplus::MgtList<std::string> dataList;
 
     public:
         ComponentServiceInstance();

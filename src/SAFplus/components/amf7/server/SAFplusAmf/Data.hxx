@@ -18,7 +18,7 @@
 namespace SAFplusAmf
   {
 
-    class Data : public SAFplus::MgtList {
+    class Data : public SAFplus::MgtList<std::string> {
 
         /* Apply MGT object factory */
         MGT_REGISTER(Data);
