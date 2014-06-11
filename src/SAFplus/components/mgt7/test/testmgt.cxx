@@ -1,11 +1,70 @@
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtProvList.hxx"
-
+#include "clMgtList.hxx"
 #include <stdio.h>
-
+#include "boost/functional/hash.hpp"
 using namespace SAFplus;
 
+
+class multipleKey
+{
+    public:
+      int key1;
+      int key2;
+      std::string key3;
+      multipleKey(int k1, int k2, std::string k3):key1(k1),key2(k2),key3(k3)
+      {
+      }
+      multipleKey()
+      {
+      }
+      bool operator<(const multipleKey k2) const
+      {
+        if(key3 < k2.key3)
+          return true;
+        else
+          return false;
+      }
+      void build(std::map<std::string,std::string> keyList)
+      {
+        std::map<std::string,std::string>::iterator iter;
+        iter = keyList.find("key1");
+        if(iter != keyList.end())
+        {
+          key1 = atoi(iter->second.c_str());
+        }
+        iter = keyList.find("key2");
+        if(iter != keyList.end())
+        {
+          key2 = atoi(iter->second.c_str());
+        }
+        iter = keyList.find("key3");
+        if(iter != keyList.end())
+        {
+          key3 = iter->second;
+        }
+        printf("HERE \n");
+      }
+};
+
+namespace SAFplus
+{
+
+  template class  MgtList<multipleKey>;
+  // This is to serialize pair to string
+  std::ostream& operator<<(std::ostream& out,const std::pair<std::string,int>& value)
+  {
+      out << value.first << value.second;
+      return out;            // return the original stream for chaining
+  }
+  // This is to serialize class to string
+  std::ostream& operator<<(std::ostream& out,const multipleKey& value)
+  {
+      out << value.key1 << value.key2 << value.key3;
+      return out;            // return the original stream for chaining
+  }
+};
 /*
  * This test case make sure a ClMgtProv object work with the Transaction
  */
@@ -274,7 +333,108 @@ void testGarbage()
     
 }
 
+void testMgtStringList()
+{
+  const char* xmlTest = "<root><name>hello</name></root>";
+  printf("Start test case string list\n");
+  MgtList<std::string> stringList("mylist");
+  stringList.setListKey("name");
+  MgtProv<std::string> testObject1("testobj1");
+  MgtProv<std::string> testObject2("testobj2");
+  MgtProv<std::string> testObject3("testobj3");
+  std::string objKey1("hello");
+  std::string objKey2("world");
+  std::string objKey3("python");
+  std::string objKey4("hello");
+  stringList.addChildObject(&testObject1,objKey1);
+  stringList.addChildObject(&testObject2,objKey2);
+  stringList.addChildObject(&testObject3,objKey3);
+  if(stringList.getEntrySize() == 3)
+  {
+    printf("PASS: Entry size %d \n", stringList.getEntrySize());
+  }
+  else
+  {
+    printf("FAIL: Entry size %d \n", stringList.getEntrySize());
+  }
 
+  printf("PASS: X-PATH %s \n",stringList.getFullXpath().c_str());
+
+  printf("PASS: DUMPING \n");
+  stringList.dbgDumpChildren();
+
+  MgtObject::Iterator iter = stringList.begin();
+  while(iter != stringList.end())
+  {
+    printf("PASS: %s \n",iter->second->name.c_str());
+    iter++;
+  }
+
+  MgtProv<std::string> *getObj = (MgtProv<std::string> *)stringList[objKey4];
+  if(testObject1.name == getObj->name)
+    printf("PASS: operator[]: %s \n",getObj->name.c_str());
+  else
+    printf("FAIL: operator [] \n");
+
+  SAFplus::Transaction t;
+  stringList.set((void *)xmlTest,strlen(xmlTest),t);
+  printf("%s \n",getObj->name.c_str());
+  printf("\n\n\n");
+}
+void testMgtClassList()
+{
+  const char* xmlTest = "<root><multi><name>hello</name><key1>2</key1><key2>5</key2><key3>ASPX</key3></multi></root>";
+  printf("Start test case multiple key list\n");
+  MgtList<multipleKey> stringList("mylist");
+  stringList.setListKey("key1");
+  stringList.setListKey("key2");
+  stringList.setListKey("key3");
+  MgtProv<std::string> testObject1("testobj1");
+  MgtProv<std::string> testObject2("testobj2");
+  MgtProv<std::string> testObject3("testobj3");
+  multipleKey objKey1(2,2,"Java");
+  multipleKey objKey2(2,4,"ASPX");
+  multipleKey objKey3(2,6,"C++");
+  multipleKey objKey4(2,4,"ASPX");
+  stringList.addChildObject(&testObject1,objKey1);
+  stringList.addChildObject(&testObject2,objKey2);
+  stringList.addChildObject(&testObject3,objKey3);
+  if(stringList.getEntrySize() == 3)
+  {
+    printf("PASS: Entry size %d \n", stringList.getEntrySize());
+  }
+  else
+  {
+    printf("FAIL: Entry size %d \n", stringList.getEntrySize());
+  }
+
+  printf("PASS: X-PATH %s \n",stringList.getFullXpath().c_str());
+
+  printf("PASS: DUMPING \n");
+  stringList.dbgDumpChildren();
+
+  MgtObject::Iterator iter = stringList.begin();
+  while(iter != stringList.end())
+  {
+    printf("PASS: %s \n",iter->second->name.c_str());
+    iter++;
+  }
+
+  MgtProv<std::string> *getObj = (MgtProv<std::string> *)stringList[objKey4];
+  if(getObj == NULL)
+  {
+    printf("FAIL: operator[] Can't find object \n");
+    return;
+  }
+  if(testObject2.name.compare(getObj->name) == 0)
+    printf("PASS: operator[]: %s \n",getObj->name.c_str());
+  else
+    printf("FAIL: operator[] %s \n",getObj->name.c_str());
+  SAFplus::Transaction t;
+  stringList.set((void *)xmlTest,strlen(xmlTest),t);
+  printf("%s \n",getObj->name.c_str());
+  printf("\n\n\n");
+}
 int main(int argc, char* argv[])
 {
     testTransaction01();
@@ -284,6 +444,10 @@ int main(int argc, char* argv[])
     testTransactionExceptions();
 
     testGarbage();
-    
+
+    testMgtStringList();
+
+    testMgtClassList();
+
     return 0;
 }
