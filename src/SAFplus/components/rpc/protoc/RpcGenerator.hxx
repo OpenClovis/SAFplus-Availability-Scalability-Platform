@@ -16,28 +16,32 @@
  * For more  information, see  the file  COPYING provided with this
  * material.
  */
+#pragma once
 
-#include <google/protobuf/compiler/command_line_interface.h>
-#include "RpcGenerator.hxx"
+#ifndef CLRPCGENERATOR_HXX_
+#define CLRPCGENERATOR_HXX_
 
-using namespace std;
+#include <google/protobuf/compiler/code_generator.h>
+#include <iostream>
 
-int main(int argc, char *argv[])
+namespace SAFplus
   {
-    google::protobuf::compiler::CommandLineInterface cli;
-    string path;
-    for (int i = 0; i < argc; i++)
+
+    namespace Rpc
       {
-        if (!strncmp(argv[i], "--rpc_out", 9))
+        /*
+         *
+         */
+        class RpcGenerator : public google::protobuf::compiler::CodeGenerator
           {
-            char* dir;
-            dir = strrchr(argv[i], '=');
-            if (dir)
-              path.assign(dir + 1);
-            break;
-          }
-      }
-    SAFplus::Rpc::RpcGenerator rpc_generator(path);
-    cli.RegisterGenerator("--rpc_out", &rpc_generator, "Generate C++ Service file.");
-    return cli.Run(argc, argv);
-  }
+          public:
+            RpcGenerator(const std::string &dir);
+            ~RpcGenerator();
+            bool Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter,
+                google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const;
+          private:
+           std::string dir;
+          };
+      } /* namespace Rpc */
+  } /* namespace SAFplus */
+#endif /* CLRPCGENERATOR_HXX_ */

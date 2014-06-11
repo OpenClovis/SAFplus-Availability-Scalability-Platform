@@ -17,30 +17,23 @@
  * material.
  */
 
-#ifndef CLRPCGENERATOR_HXX_
-#define CLRPCGENERATOR_HXX_
-
-#include <google/protobuf/compiler/code_generator.h>
-#include <iostream>
+#include "RpcWakeable.hxx"
 
 namespace SAFplus
   {
-
     namespace Rpc
       {
-        /*
-         *
-         */
-        class RpcGenerator : public google::protobuf::compiler::CodeGenerator
+
+        RpcWakeable::RpcWakeable()
           {
-          public:
-            RpcGenerator(const std::string &dir);
-            ~RpcGenerator();
-            bool Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter,
-                google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const;
-          private:
-           std::string dir;
-          };
+            // TODO Auto-generated constructor stub
+
+          }
+
+        RpcWakeable::~RpcWakeable()
+          {
+            // TODO Auto-generated destructor stub
+          }
+
       } /* namespace Rpc */
   } /* namespace SAFplus */
-#endif /* CLRPCGENERATOR_HXX_ */

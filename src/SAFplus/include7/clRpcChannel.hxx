@@ -20,8 +20,7 @@
 #ifndef CLRPCCHANNEL_HXX_
 #define CLRPCCHANNEL_HXX_
 
-#include <google/protobuf/service.h>
-#include "SAFplusRpc.pb.h"
+//#include <google/protobuf/service.h>
 #include "clMsgHandler.hxx"
 #include <clThreadApi.hxx>
 
@@ -30,39 +29,46 @@ namespace SAFplus
     class MsgServer;
     namespace Rpc
       {
+
+        class RpcService;
+        class RpcMessage;
+
         class MsgRpcEntry
           {
           public:
             uint64_t msgId;
             ClIocAddressT srcAddr;
-            google::protobuf::Closure *callback;
+            SAFplus::Wakeable *callback;
             google::protobuf::Message *response;
           };
 
         /*
          *
          */
-        class RpcChannel : public google::protobuf::RpcChannel, public SAFplus::MsgHandler
+        class RpcChannel : public SAFplus::MsgHandler
           {
           public:
             //Client
             explicit RpcChannel(SAFplus::MsgServer *, ClIocAddressT iocDest);
 
             //Server
-            explicit RpcChannel(SAFplus::MsgServer *, google::protobuf::Service *svr);
+            explicit RpcChannel(SAFplus::MsgServer *, SAFplus::Rpc::RpcService *rpcService);
 
             virtual ~RpcChannel();
 
-            void CallMethod(const google::protobuf::MethodDescriptor* method, google::protobuf::RpcController* controller,
-                const google::protobuf::Message* request, google::protobuf::Message* response, google::protobuf::Closure* done);
+            void CallMethod(const google::protobuf::MethodDescriptor* method, SAFplus::Handle destination,
+                const google::protobuf::Message* request, google::protobuf::Message* response, SAFplus::Wakeable &wakeable);
 
             //Register with msg server to handle RPC protocol
             void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 
             void HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT *iocReq);
             void HandleResponse(SAFplus::Rpc::RpcMessage *msg);
+
+            //Move this to RpcWakeable class
             void RequestComplete(MsgRpcEntry *rpcRequestEntry);
-            void setMsgType(ClWordT send,ClWordT reply); // Set the protocol type for underlying transports that require one.
+
+            void setMsgType(ClWordT send, ClWordT reply); // Set the protocol type for underlying transports that require one.
           public:
             ClWordT msgSendType;
             ClWordT msgReplyType;
@@ -78,7 +84,7 @@ namespace SAFplus
             SAFplus::MsgServer *svr;
             ClIocAddressT dest;
             Mutex mutex;
-            google::protobuf::Service *service;  // service to dispatch requests to
+            SAFplus::Rpc::RpcService *service; // service to dispatch requests to
 
           };
 

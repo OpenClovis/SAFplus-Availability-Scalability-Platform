@@ -25,7 +25,8 @@
 #include <google/protobuf/service.h>
 #include "clRpcChannel.hxx"
 #include "clSafplusMsgServer.hxx"
-#include "rpcTest.pb.h"
+#include "rpcTest.hxx"
+#include "../RpcWakeable.hxx"
 
 using namespace std;
 using namespace SAFplus;
@@ -116,13 +117,12 @@ int main(void)
     //Loop forever
     while (1)
       {
-        google::protobuf::Closure *callback = NewCallback(&FooDone, &res);
-        google::protobuf::Closure *callback2 = NewCallback(&FooDone2, &res2);
-        google::protobuf::Closure *callback3 = NewCallback(&FooDone3, &res3);
+        Rpc::RpcWakeable wakeable;
+        SAFplus::Handle hdl = SAFplus::Handle::create();
 
-        service->testGetRpcMethod(NULL, &request, &res, callback);
-        service->testGetRpcMethod2(NULL, &request2, &res2, callback2);
-        service->testGetRpcMethod3(NULL, &request3, &res3, callback3);
+        service->testGetRpcMethod(hdl, &request, &res, wakeable);
+        service->testGetRpcMethod2(hdl, &request2, &res2, wakeable);
+        service->testGetRpcMethod3(hdl, &request3, &res3, wakeable);
 
         sleep(3);
       }
