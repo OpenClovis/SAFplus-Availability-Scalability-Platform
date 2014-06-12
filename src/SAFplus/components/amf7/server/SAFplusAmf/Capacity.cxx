@@ -7,9 +7,9 @@
 
 #include <string>
 #include "clMgtProv.hxx"
-#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "clMgtContainer.hxx"
 #include "Capacity.hxx"
 
 
@@ -19,21 +19,17 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Capacity, /SAFplusAmf/Node/capacity)
 
-    Capacity::Capacity(): SAFplus::MgtList<std::string>("capacity"), resource("resource"), value("value")
+    Capacity::Capacity(): SAFplus::MgtContainer("capacity"), resource("resource"), value("value")
     {
-        std::string resourceName("resource");
-        std::string valueName("value");
-        this->addChildObject(&resource, resourceName);
-        this->addChildObject(&value, valueName);
+        this->addChildObject(&resource, "resource");
+        this->addChildObject(&value, "value");
     };
 
-    Capacity::Capacity(std::string resourceValue): SAFplus::MgtList<std::string>("capacity"), resource("resource"), value("value")
+    Capacity::Capacity(std::string resourceValue): SAFplus::MgtContainer("capacity"), resource("resource"), value("value")
     {
         this->resource.value =  resourceValue;
-        std::string resourceName("resource");
-        std::string valueName("value");
-        this->addChildObject(&resource, resourceName);
-        this->addChildObject(&value, valueName);
+        this->addChildObject(&resource, "resource");
+        this->addChildObject(&value, "value");
     };
 
     void Capacity::toString(std::stringstream &xmlString)

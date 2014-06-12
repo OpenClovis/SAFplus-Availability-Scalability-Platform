@@ -100,7 +100,8 @@ endif
 
 SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt $(TEST_DIR)/ClientTest $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
 
-SAFplusServices := $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
+SAFplusServices := $(SAFPLUS_TARGET)/bin/safplus_amf
+# $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
 
 cleanall:
 	rm -rf $(SAFplusTests) $(SAFplusSOs) $(SAFplusServices) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*

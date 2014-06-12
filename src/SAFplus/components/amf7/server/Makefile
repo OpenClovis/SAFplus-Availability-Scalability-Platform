@@ -4,6 +4,9 @@ include ../../../mk/preface.mk
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
+#MakefileDepend := Makefile
+MakefileDepend :=
+
 # TODO REMOVE -lmw requirement
 SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
@@ -24,13 +27,14 @@ CPP_FLAGS += -I../../mgt7/include -I$(SAFPLUS_SRC_DIR)/SAFplus/components/gms7 -
 
 #SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard SAFplusTypes/*.hxx) $(wildcard ietfYangTypes/*.hxx) $(wildcard ENTITYSTATETCMIB/*.hxx)
 SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard SAFplusTypes/*.hxx)
-SERVER_SRC := main.cxx amfcommon.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/server/*.cxx)
+SERVER_SRC := main.cxx amfcommon.cxx $(wildcard amfRpc/*.cc) $(wildcard amfRpc/*.cxx)
 
 #POLICY_ENV_SRC := $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx) $(wildcard ietfYangTypes/*.cxx) $(wildcard ENTITYSTATETCMIB/*.cxx)
 POLICY_ENV_SRC := amfOperations.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx)
 
 SERVER_OBJ := $(subst .cc,.o,$(subst .cxx,.o,$(notdir $(SERVER_SRC))))
 SERVER_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(SERVER_OBJ))
+$(warning $(SERVER_SRC) $(SERVER_OBJ))
 
 POLICY_ENV_OBJ := $(subst .cxx,.o,$(notdir $(POLICY_ENV_SRC)))
 POLICY_ENV_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(POLICY_ENV_OBJ))
@@ -54,27 +58,31 @@ $(SAFPLUS_TARGET)/bin/safplus_amf: $(SERVER_OBJ) $(POLICY_ENV_LIB) $(SAFPLUS_DEP
 	$(LINK_EXE) $@ $(SERVER_OBJ) -lAmfPolicyEnv $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lboost_filesystem -lprotobuf -lprotoc $(LINK_SO_LIBS)
 
 # C code
-$(OBJ_DIR)/amfsvr/%.o: %.cxx Makefile $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: %.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/amfsvr/%.o: SAFplusAmf/%.cxx Makefile $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: SAFplusAmf/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/amfsvr/%.o: amfRpc/%.cc Makefile $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: amfRpc/%.cc $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/amfsvr/%.o: SAFplusTypes/%.cxx Makefile $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: amfRpc/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/amfsvr/%.o: ietfYangTypes/%.cxx Makefile $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: SAFplusTypes/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/amfsvr/%.o: ENTITYSTATETCMIB/%.cxx Makefile $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: ietfYangTypes/%.cxx $(MakefileDepend) $(SERVER_H)
+	-mkdir -p $(OBJ_DIR)/amfsvr/
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/amfsvr/%.o: ENTITYSTATETCMIB/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 

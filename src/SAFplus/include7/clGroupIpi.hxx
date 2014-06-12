@@ -1,7 +1,7 @@
 #ifndef clGroupIpi_hxx
 #define clGroupIpi_hxx
 
-#include <clSafplusMsgServer.hxx>
+#include <clMsgApi.hxx>
 #include <clGroup.hxx>
 #include <clGlobals.hxx>
 #include <clLogApi.hxx>

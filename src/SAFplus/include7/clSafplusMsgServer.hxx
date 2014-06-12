@@ -25,8 +25,8 @@
 #include <boost/interprocess/sync/interprocess_condition.hpp>
 #include <boost/interprocess/sync/scoped_lock.hpp>
 #include <boost/thread/condition_variable.hpp>
-#include "clThreadApi.hxx"
-#include "clMsgServer.hxx"
+#include <clThreadApi.hxx>
+#include <clMsgServer.hxx>
 
 namespace SAFplus
 {

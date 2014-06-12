@@ -43,6 +43,11 @@
 
 #ifndef _CL_COMMON_H_
 #define _CL_COMMON_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <clArchHeaders.h>
 #include <saAis.h>
 
@@ -215,6 +220,7 @@ void saNameConcat(SaNameT* nameOut, const SaNameT *prefix, const char* separator
   /** \brief  Duplicate a string
       \param  str The string to be duplicated
       \retval Storage pointed to a duplicated string or NULL
+     
       \par Description:
       This API is used to duplicate a string. The storage pointed by the returned string
       should be freed using ASP heap API: clHeapFree.
@@ -548,6 +554,9 @@ do                                    \
 #define CL_PRINTF_FORMAT(fmtPos, argPos)
 #endif
 
+#ifdef __cplusplus
+}
+#endif
 
 /**
  * \}

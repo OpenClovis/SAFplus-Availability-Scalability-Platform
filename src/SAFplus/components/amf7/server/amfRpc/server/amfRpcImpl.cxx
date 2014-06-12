@@ -20,8 +20,6 @@ namespace amfRpc {
                                 SAFplus::Wakeable& wakeable)
   {
     //TODO: put your code here 
-    response->set_err(1);
-    response->set_pid(1);
 
     wakeable.wake(1, (void*) response); // DO NOT removed this line!!! 
   }
@@ -32,7 +30,6 @@ namespace amfRpc {
                                 SAFplus::Wakeable& wakeable)
   {
     //TODO: put your code here 
-    response->set_err(0);
 
     wakeable.wake(1, (void*) response); // DO NOT removed this line!!! 
   }

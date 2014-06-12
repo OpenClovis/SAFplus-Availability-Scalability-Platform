@@ -275,7 +275,7 @@ namespace SAFplus
                if(depth == 0) /* Closing of an fully entry */
                {
                  /* Build the entryKey from name/val of set keys */
-                 entryKey.build(keyList);
+                 // FIXME: entryKey.build(keyList);
                  MgtObject *entry = children[entryKey];
                  if(entry != NULL)
                  {
@@ -399,11 +399,20 @@ namespace SAFplus
         std::string *key = &objectKey;
         if(key == NULL)
         {
-          *key = mgtObject->name;
+          key = &mgtObject->name;
         }
         children[*key] = mgtObject;
         return CL_OK;
       }
+
+      virtual ClRcT addChildObject(MgtObject *mgtObject, const char* key)
+      {
+        ClRcT rc = CL_OK;
+        assert(mgtObject);
+        children[key] = mgtObject;
+        return CL_OK;
+      }
+
       /**
        * API to remove an entry from the list
        */

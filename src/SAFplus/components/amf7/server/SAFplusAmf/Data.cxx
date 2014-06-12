@@ -7,9 +7,9 @@
 
 #include <string>
 #include "clMgtProv.hxx"
-#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "clMgtContainer.hxx"
 #include "Data.hxx"
 
 
@@ -19,21 +19,17 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Data, /SAFplusAmf/ComponentServiceInstance/data)
 
-    Data::Data(): SAFplus::MgtList<std::string>("data"), myName("myName"), val("val")
+    Data::Data(): SAFplus::MgtContainer("data"), myName("myName"), val("val")
     {
-        std::string myNameName("myName");
-        std::string valname("val");
-        this->addChildObject(&myName, myNameName);
-        this->addChildObject(&val, valname);
+        this->addChildObject(&myName, "myName");
+        this->addChildObject(&val, "val");
     };
 
-    Data::Data(std::string myNameValue): SAFplus::MgtList<std::string>("data"), myName("myName"), val("val")
+    Data::Data(std::string myNameValue): SAFplus::MgtContainer("data"), myName("myName"), val("val")
     {
         this->myName.value =  myNameValue;
-        std::string myNameName("myName");
-        std::string valname("val");
-        this->addChildObject(&myName, myNameName);
-        this->addChildObject(&val, valname);
+        this->addChildObject(&myName, "myName");
+        this->addChildObject(&val, "val");
     };
 
     void Data::toString(std::stringstream &xmlString)

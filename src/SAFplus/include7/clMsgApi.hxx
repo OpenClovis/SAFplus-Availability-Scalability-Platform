@@ -8,7 +8,7 @@ namespace SAFplus
   {
 
     /** Resolve a handle to a messaging address */
-    ClIocAddressT getAddress(SAFplus::Handle h)
+    inline ClIocAddressT getAddress(SAFplus::Handle h)
       {
         ClIocAddressT ret;
         if (h.getType() == SAFplus::TransientHandle)

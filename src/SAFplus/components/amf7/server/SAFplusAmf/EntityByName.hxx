@@ -11,14 +11,14 @@
 
 #include <string>
 #include "clMgtProv.hxx"
-#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "clMgtContainer.hxx"
 
 namespace SAFplusAmf
   {
 
-    class EntityByName : public SAFplus::MgtList<std::string> {
+    class EntityByName : public SAFplus::MgtContainer {
 
         /* Apply MGT object factory */
         MGT_REGISTER(EntityByName);

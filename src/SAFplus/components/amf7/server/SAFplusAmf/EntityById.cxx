@@ -7,9 +7,9 @@
 
 #include <string>
 #include "clMgtProv.hxx"
-#include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "clMgtContainer.hxx"
 #include "EntityById.hxx"
 
 
@@ -19,12 +19,10 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(EntityById, /SAFplusAmf/EntityById)
 
-    EntityById::EntityById(): SAFplus::MgtList<std::string>("EntityById"), id("id"), entity("entity")
+    EntityById::EntityById(): SAFplus::MgtContainer("EntityById"), id("id"), entity("entity")
     {
-        std::string idName("id");
-        std::string entityName("entity");
-        this->addChildObject(&id, idName);
-        this->addChildObject(&entity, entityName);
+        this->addChildObject(&id, "id");
+        this->addChildObject(&entity, "entity");
     };
 
     void EntityById::toString(std::stringstream &xmlString)

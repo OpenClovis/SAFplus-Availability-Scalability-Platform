@@ -80,7 +80,7 @@ namespace SAFplusAmf
         /*
          * Look up any entity by its identifier
          */
-        SAFplus::MgtList<std::string> entityByIdList;
+        SAFplus::MgtList<unsigned short int> entityByIdList;
 
     public:
         SAFplusAmfRoot();

@@ -203,13 +203,14 @@ namespace SAFplus
     else  // RPC call
       {
       logInfo("OP","CMP","Request component start on node %s", comp->serviceUnit.value->node.name.c_str());
+#if 0
       SAFplus::Rpc::RpcChannel channel(&safplusMsgServer, nodeHdl);
       channel->setMsgType(AMF_REQ_HANDLER_TYPE, AMF_REPLY_HANDLER_TYPE);
       amfRpc_Stub service(channel);
       StartComponentRequest req;
       StartCompResp respData(w,comp);
       service.startComponent(INVALID_HDL, &req, &respData.response, respData);  // TODO: what happens in a RPC call timeout?
-
+#endif
       //service.startComponent(&RpcDestination(iocAddress),&req, &respData.response, &respData);  // TODO: what happens in a RPC call timeout?
       }
     }
