@@ -17,6 +17,7 @@
  * material.
  */
 
+#include "clThreadApi.hxx"
 #include "clMsgServer.hxx"
 #include "clRpcChannel.hxx"
 #include "RpcWakeable.hxx"
@@ -53,10 +54,6 @@ namespace SAFplus
             rpcMsg.set_type(channel->msgReplyType);
             rpcMsg.set_id(rpcRequestEntry->msgId);
             rpcMsg.set_buffer(rpcRequestEntry->response->SerializePartialAsString());
-
-            //Marshall handle
-            rpcMsg.mutable_handle()->set_id0(rpcRequestEntry->handle.id[0]);
-            rpcMsg.mutable_handle()->set_idx(rpcRequestEntry->handle.id[1]);
 
             //Sending reply
             try

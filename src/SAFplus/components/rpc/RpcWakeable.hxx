@@ -21,9 +21,6 @@
 #ifndef RPCWAKEABLE_HXX_
 #define RPCWAKEABLE_HXX_
 
-#include <iostream>
-#include "clCommon.hxx"
-
 namespace SAFplus
   {
     namespace Rpc

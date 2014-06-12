@@ -20,8 +20,9 @@
 #include <clGlobals.hxx>
 
 #include <clIocProtocols.h>
+#include <clIocApiExt.h>
+#include <clOsalApi.h>
 #include "clSafplusMsgServer.hxx"
-#include "rpcTest.pb.h"
 #include "clRpcChannel.hxx"
 #include "rpcTest.hxx"
 #include "../RpcWakeable.hxx"

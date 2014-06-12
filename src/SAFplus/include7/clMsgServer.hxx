@@ -1,8 +1,8 @@
-#include <clIocApi.h>
+#pragma once
 
+#include <clIocApi.h>
 #include <clJobQueue.h>
 #include <clAppEvent.hxx>
-#include <clMsgHandler.hxx>
 
 namespace SAFplus
 {

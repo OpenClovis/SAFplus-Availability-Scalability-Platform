@@ -20,12 +20,9 @@
 #include <iostream>
 #include "MsgReplyHandler.hxx"
 #include "clSafplusMsgServer.hxx"
-#include "clLogApi.hxx"
 
 namespace SAFplus
 {
-    class SafplusMsgServer;
-
     MsgReplyHandler::MsgReplyHandler()
     {
         // TODO Auto-generated constructor stub

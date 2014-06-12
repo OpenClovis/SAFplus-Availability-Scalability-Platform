@@ -34,102 +34,9 @@ void  protobuf_AddDesc_SAFplusRpc_2eproto();
 void protobuf_AssignDesc_SAFplusRpc_2eproto();
 void protobuf_ShutdownFile_SAFplusRpc_2eproto();
 
-class Handle;
 class RpcMessage;
 
 // ===================================================================
-
-class Handle : public ::google::protobuf::Message {
- public:
-  Handle();
-  virtual ~Handle();
-
-  Handle(const Handle& from);
-
-  inline Handle& operator=(const Handle& from) {
-    CopyFrom(from);
-    return *this;
-  }
-
-  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
-    return _unknown_fields_;
-  }
-
-  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
-    return &_unknown_fields_;
-  }
-
-  static const ::google::protobuf::Descriptor* descriptor();
-  static const Handle& default_instance();
-
-  void Swap(Handle* other);
-
-  // implements Message ----------------------------------------------
-
-  Handle* New() const;
-  void CopyFrom(const ::google::protobuf::Message& from);
-  void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const Handle& from);
-  void MergeFrom(const Handle& from);
-  void Clear();
-  bool IsInitialized() const;
-
-  int ByteSize() const;
-  bool MergePartialFromCodedStream(
-      ::google::protobuf::io::CodedInputStream* input);
-  void SerializeWithCachedSizes(
-      ::google::protobuf::io::CodedOutputStream* output) const;
-  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
-  int GetCachedSize() const { return _cached_size_; }
-  private:
-  void SharedCtor();
-  void SharedDtor();
-  void SetCachedSize(int size) const;
-  public:
-
-  ::google::protobuf::Metadata GetMetadata() const;
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // optional uint64 id0 = 1;
-  inline bool has_id0() const;
-  inline void clear_id0();
-  static const int kId0FieldNumber = 1;
-  inline ::google::protobuf::uint64 id0() const;
-  inline void set_id0(::google::protobuf::uint64 value);
-
-  // optional uint64 idx = 2;
-  inline bool has_idx() const;
-  inline void clear_idx();
-  static const int kIdxFieldNumber = 2;
-  inline ::google::protobuf::uint64 idx() const;
-  inline void set_idx(::google::protobuf::uint64 value);
-
-  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.Handle)
- private:
-  inline void set_has_id0();
-  inline void clear_has_id0();
-  inline void set_has_idx();
-  inline void clear_has_idx();
-
-  ::google::protobuf::UnknownFieldSet _unknown_fields_;
-
-  ::google::protobuf::uint64 id0_;
-  ::google::protobuf::uint64 idx_;
-
-  mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
-
-  friend void  protobuf_AddDesc_SAFplusRpc_2eproto();
-  friend void protobuf_AssignDesc_SAFplusRpc_2eproto();
-  friend void protobuf_ShutdownFile_SAFplusRpc_2eproto();
-
-  void InitAsDefaultInstance();
-  static Handle* default_instance_;
-};
-// -------------------------------------------------------------------
 
 class RpcMessage : public ::google::protobuf::Message {
  public:
@@ -192,26 +99,17 @@ class RpcMessage : public ::google::protobuf::Message {
   inline ::google::protobuf::uint64 type() const;
   inline void set_type(::google::protobuf::uint64 value);
 
-  // optional .SAFplus.Rpc.Handle handle = 2;
-  inline bool has_handle() const;
-  inline void clear_handle();
-  static const int kHandleFieldNumber = 2;
-  inline const ::SAFplus::Rpc::Handle& handle() const;
-  inline ::SAFplus::Rpc::Handle* mutable_handle();
-  inline ::SAFplus::Rpc::Handle* release_handle();
-  inline void set_allocated_handle(::SAFplus::Rpc::Handle* handle);
-
-  // optional uint64 id = 3;
+  // optional uint64 id = 2;
   inline bool has_id() const;
   inline void clear_id();
-  static const int kIdFieldNumber = 3;
+  static const int kIdFieldNumber = 2;
   inline ::google::protobuf::uint64 id() const;
   inline void set_id(::google::protobuf::uint64 value);
 
-  // optional string name = 4;
+  // optional string name = 3;
   inline bool has_name() const;
   inline void clear_name();
-  static const int kNameFieldNumber = 4;
+  static const int kNameFieldNumber = 3;
   inline const ::std::string& name() const;
   inline void set_name(const ::std::string& value);
   inline void set_name(const char* value);
@@ -220,10 +118,10 @@ class RpcMessage : public ::google::protobuf::Message {
   inline ::std::string* release_name();
   inline void set_allocated_name(::std::string* name);
 
-  // optional bytes buffer = 5;
+  // optional bytes buffer = 4;
   inline bool has_buffer() const;
   inline void clear_buffer();
-  static const int kBufferFieldNumber = 5;
+  static const int kBufferFieldNumber = 4;
   inline const ::std::string& buffer() const;
   inline void set_buffer(const ::std::string& value);
   inline void set_buffer(const char* value);
@@ -236,8 +134,6 @@ class RpcMessage : public ::google::protobuf::Message {
  private:
   inline void set_has_type();
   inline void clear_has_type();
-  inline void set_has_handle();
-  inline void clear_has_handle();
   inline void set_has_id();
   inline void clear_has_id();
   inline void set_has_name();
@@ -248,13 +144,12 @@ class RpcMessage : public ::google::protobuf::Message {
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::google::protobuf::uint64 type_;
-  ::SAFplus::Rpc::Handle* handle_;
   ::google::protobuf::uint64 id_;
   ::std::string* name_;
   ::std::string* buffer_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
 
   friend void  protobuf_AddDesc_SAFplusRpc_2eproto();
   friend void protobuf_AssignDesc_SAFplusRpc_2eproto();
@@ -267,54 +162,6 @@ class RpcMessage : public ::google::protobuf::Message {
 
 
 // ===================================================================
-
-// Handle
-
-// optional uint64 id0 = 1;
-inline bool Handle::has_id0() const {
-  return (_has_bits_[0] & 0x00000001u) != 0;
-}
-inline void Handle::set_has_id0() {
-  _has_bits_[0] |= 0x00000001u;
-}
-inline void Handle::clear_has_id0() {
-  _has_bits_[0] &= ~0x00000001u;
-}
-inline void Handle::clear_id0() {
-  id0_ = GOOGLE_ULONGLONG(0);
-  clear_has_id0();
-}
-inline ::google::protobuf::uint64 Handle::id0() const {
-  return id0_;
-}
-inline void Handle::set_id0(::google::protobuf::uint64 value) {
-  set_has_id0();
-  id0_ = value;
-}
-
-// optional uint64 idx = 2;
-inline bool Handle::has_idx() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
-}
-inline void Handle::set_has_idx() {
-  _has_bits_[0] |= 0x00000002u;
-}
-inline void Handle::clear_has_idx() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void Handle::clear_idx() {
-  idx_ = GOOGLE_ULONGLONG(0);
-  clear_has_idx();
-}
-inline ::google::protobuf::uint64 Handle::idx() const {
-  return idx_;
-}
-inline void Handle::set_idx(::google::protobuf::uint64 value) {
-  set_has_idx();
-  idx_ = value;
-}
-
-// -------------------------------------------------------------------
 
 // RpcMessage
 
@@ -340,53 +187,15 @@ inline void RpcMessage::set_type(::google::protobuf::uint64 value) {
   type_ = value;
 }
 
-// optional .SAFplus.Rpc.Handle handle = 2;
-inline bool RpcMessage::has_handle() const {
+// optional uint64 id = 2;
+inline bool RpcMessage::has_id() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void RpcMessage::set_has_handle() {
+inline void RpcMessage::set_has_id() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void RpcMessage::clear_has_handle() {
-  _has_bits_[0] &= ~0x00000002u;
-}
-inline void RpcMessage::clear_handle() {
-  if (handle_ != NULL) handle_->::SAFplus::Rpc::Handle::Clear();
-  clear_has_handle();
-}
-inline const ::SAFplus::Rpc::Handle& RpcMessage::handle() const {
-  return handle_ != NULL ? *handle_ : *default_instance_->handle_;
-}
-inline ::SAFplus::Rpc::Handle* RpcMessage::mutable_handle() {
-  set_has_handle();
-  if (handle_ == NULL) handle_ = new ::SAFplus::Rpc::Handle;
-  return handle_;
-}
-inline ::SAFplus::Rpc::Handle* RpcMessage::release_handle() {
-  clear_has_handle();
-  ::SAFplus::Rpc::Handle* temp = handle_;
-  handle_ = NULL;
-  return temp;
-}
-inline void RpcMessage::set_allocated_handle(::SAFplus::Rpc::Handle* handle) {
-  delete handle_;
-  handle_ = handle;
-  if (handle) {
-    set_has_handle();
-  } else {
-    clear_has_handle();
-  }
-}
-
-// optional uint64 id = 3;
-inline bool RpcMessage::has_id() const {
-  return (_has_bits_[0] & 0x00000004u) != 0;
-}
-inline void RpcMessage::set_has_id() {
-  _has_bits_[0] |= 0x00000004u;
-}
 inline void RpcMessage::clear_has_id() {
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline void RpcMessage::clear_id() {
   id_ = GOOGLE_ULONGLONG(0);
@@ -400,15 +209,15 @@ inline void RpcMessage::set_id(::google::protobuf::uint64 value) {
   id_ = value;
 }
 
-// optional string name = 4;
+// optional string name = 3;
 inline bool RpcMessage::has_name() const {
-  return (_has_bits_[0] & 0x00000008u) != 0;
+  return (_has_bits_[0] & 0x00000004u) != 0;
 }
 inline void RpcMessage::set_has_name() {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000004u;
 }
 inline void RpcMessage::clear_has_name() {
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline void RpcMessage::clear_name() {
   if (name_ != &::google::protobuf::internal::kEmptyString) {
@@ -470,15 +279,15 @@ inline void RpcMessage::set_allocated_name(::std::string* name) {
   }
 }
 
-// optional bytes buffer = 5;
+// optional bytes buffer = 4;
 inline bool RpcMessage::has_buffer() const {
-  return (_has_bits_[0] & 0x00000010u) != 0;
+  return (_has_bits_[0] & 0x00000008u) != 0;
 }
 inline void RpcMessage::set_has_buffer() {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000008u;
 }
 inline void RpcMessage::clear_has_buffer() {
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline void RpcMessage::clear_buffer() {
   if (buffer_ != &::google::protobuf::internal::kEmptyString) {

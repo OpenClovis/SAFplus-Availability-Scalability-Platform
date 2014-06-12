@@ -5,11 +5,14 @@
 #include <google/protobuf/service.h>
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/once.h>
-#include <clCommon.hxx>
-#include <clHandleApi.hxx>
 #include <clRpcService.hxx>
-#include <clRpcChannel.hxx>
 #include "rpcTest.pb.h"
+
+namespace SAFplus {
+  namespace Rpc {
+    class RpcChannel;
+  }
+}
 
 namespace SAFplus {
 namespace Rpc {

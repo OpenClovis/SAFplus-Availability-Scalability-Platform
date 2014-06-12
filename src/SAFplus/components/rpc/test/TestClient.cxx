@@ -21,10 +21,10 @@
 #include <sstream>
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
-#include <clIocApi.h>
-#include <google/protobuf/service.h>
-#include "clRpcChannel.hxx"
+#include <clIocApiExt.h>
+#include <clOsalApi.h>
 #include "clMsgApi.hxx"
+#include "clRpcChannel.hxx"
 #include "rpcTest.hxx"
 #include "../RpcWakeable.hxx"
 

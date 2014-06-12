@@ -1,7 +1,7 @@
 #include <google/protobuf/stubs/common.h>
 
 #include "amfRpc/amfRpc.pb.h"
-#include "amfRpc/amfRpcImpl.hxx"
+#include "amfRpc/amfRpc.hxx"
 #include <clRpcChannel.hxx>
 
 #include <amfOperations.hxx>
@@ -151,14 +151,16 @@ namespace SAFplus
       }
     }
 
-  class StartCompResp:public google::protobuf::Closure
+  class StartCompResp:public SAFplus::Wakeable
     {
+      StartCompResp(SAFplus::Wakeable* w, SAFplusAmf::Component* comp): w(w), comp(comp) {};
+      virtual ~StartCompResp(){};
     public:
     SAFplus::Rpc::amfRpc::StartComponentResponse response;
     SAFplusAmf::Component* comp;
     SAFplus::Wakeable* w;
 
-    virtual void Run()
+    void wake(int amt,void* cookie=NULL)
       {
       if (response.err() != 0)
         {
@@ -205,8 +207,8 @@ namespace SAFplus
       channel->setMsgType(AMF_REQ_HANDLER_TYPE, AMF_REPLY_HANDLER_TYPE);
       amfRpc_Stub service(channel);
       StartComponentRequest req;
-      StartCompResp* respData = new respData(w,comp);     
-      service.startComponent(NULL,&req, &respData.response, &respData);  // TODO: what happens in a RPC call timeout?
+      StartCompResp respData(w,comp);
+      service.startComponent(INVALID_HDL, &req, &respData.response, respData);  // TODO: what happens in a RPC call timeout?
 
       //service.startComponent(&RpcDestination(iocAddress),&req, &respData.response, &respData);  // TODO: what happens in a RPC call timeout?
       }

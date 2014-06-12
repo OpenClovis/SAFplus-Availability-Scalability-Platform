@@ -17,12 +17,14 @@
  * material.
  */
 
+#include "clThreadApi.hxx"
 #include "SAFplusPBExt.pb.h"
 #include "SAFplusRpc.pb.h"
 #include "RpcWakeable.hxx"
 #include "clRpcService.hxx"
 #include "clRpcChannel.hxx"
 #include "clMsgServer.hxx"
+#include "clMsgApi.hxx"
 
 
 using namespace std;
@@ -71,6 +73,8 @@ namespace SAFplus
             const google::protobuf::Message* request, google::protobuf::Message* response, SAFplus::Wakeable &wakeable)
           {
             SAFplus::Rpc::RpcMessage rpcMsg;
+            ClIocAddressT overDest;
+
             int64_t idx = msgId++;
 
             //Lock sending and record a RPC
@@ -81,15 +85,20 @@ namespace SAFplus
             rpcMsg.set_name(method->name());
             rpcMsg.set_buffer(request->SerializeAsString());
 
-            //Marshall handle
-            rpcMsg.mutable_handle()->set_id0(destination.id[0]);
-            rpcMsg.mutable_handle()->set_idx(destination.id[1]);
+            if (destination != INVALID_HDL)
+              {
+                overDest = getAddress(destination);
+              }
+            else
+              {
+                overDest = dest;
+              }
 
             try
               {
                 const char* data = rpcMsg.SerializeAsString().c_str();
                 int size = rpcMsg.ByteSize();
-                svr->SendMsg(dest, (void *) data, size, msgSendType);
+                svr->SendMsg(overDest, (void *) data, size, msgSendType);
               }
             catch (...)
               {
@@ -99,7 +108,6 @@ namespace SAFplus
             rpcReqEntry->msgId = idx;
             rpcReqEntry->response = response;
             rpcReqEntry->callback = (Wakeable*)&wakeable;
-            rpcReqEntry->handle = destination;
 
             msgRPCs[idx] = rpcReqEntry;
           }
@@ -119,15 +127,11 @@ namespace SAFplus
             rpcReqEntry->response = response_pb;
             rpcReqEntry->srcAddr = *iocReq;
 
-            //Demarshall handle => simple assignment
-            rpcReqEntry->handle.id[0] = msg->handle().id0();
-            rpcReqEntry->handle.id[1] = msg->handle().idx();
-
             msgRPCs[msg->id()] = rpcReqEntry;
 
             //TODO:
             RpcWakeable wakeable(this, rpcReqEntry);
-            service->CallMethod(method, rpcReqEntry->handle, request_pb, response_pb, wakeable);
+            service->CallMethod(method, INVALID_HDL, request_pb, response_pb, wakeable);
           }
 
         void RpcChannel::HandleResponse(SAFplus::Rpc::RpcMessage *msg)

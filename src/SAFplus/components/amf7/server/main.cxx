@@ -27,7 +27,7 @@
 
 #include "clRpcChannel.hxx"
 #include "amfRpc/amfRpc.pb.h"
-#include "stubs/server/amfRpcImpl.hxx"
+#include "amfRpc/amfRpc.hxx"
 
 #define GRP
 

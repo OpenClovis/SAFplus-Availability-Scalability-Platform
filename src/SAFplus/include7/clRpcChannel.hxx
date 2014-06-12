@@ -20,14 +20,26 @@
 #ifndef CLRPCCHANNEL_HXX_
 #define CLRPCCHANNEL_HXX_
 
-#include <google/protobuf/descriptor.h>
-#include <google/protobuf/message.h>
+#include <map>
+#include "clThreadApi.hxx"
 #include "clMsgHandler.hxx"
-#include <clThreadApi.hxx>
+
+namespace google {
+  namespace protobuf
+    {
+      class MethodDescriptor;
+      class Message;
+    }
+
+}
 
 namespace SAFplus
   {
     class MsgServer;
+    class Wakeable;
+    class MsgHandler;
+    class Handle;
+
     namespace Rpc
       {
 
@@ -39,7 +51,6 @@ namespace SAFplus
           public:
             uint64_t msgId;
             ClIocAddressT srcAddr;
-            SAFplus::Handle handle;
             SAFplus::Wakeable *callback;
             google::protobuf::Message *response;
           };

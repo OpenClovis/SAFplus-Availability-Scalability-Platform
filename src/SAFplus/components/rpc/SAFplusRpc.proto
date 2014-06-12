@@ -3,18 +3,12 @@
  */
 package SAFplus.Rpc;
 
-message Handle {
-  optional uint64 id0 = 1;
-  optional uint64 idx = 2;
-}
-
 /**
  * Using one message for RPC
  */
 message RpcMessage {
   required uint64 type = 1;
-  optional Handle handle = 2;
-  optional uint64 id = 3;
-  optional string name = 4;
-  optional bytes buffer = 5;
+  optional uint64 id = 2;
+  optional string name = 3;
+  optional bytes buffer = 4;
 }
