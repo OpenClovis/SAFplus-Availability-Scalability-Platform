@@ -33,6 +33,7 @@
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
 // Modified by OpenClovis
+#pragma once
 
 #ifndef CLRPCSERVICE_HXX_
 #define CLRPCSERVICE_HXX_
@@ -42,7 +43,6 @@
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/io/printer.h>
-#include "RpcService.hxx"
 
 namespace SAFplus
   {
@@ -55,12 +55,19 @@ namespace SAFplus
             explicit ServiceGenerator(const google::protobuf::ServiceDescriptor* descriptor);
             ~ServiceGenerator();
 
+            // Generate code that initializes the global variable storing the service's
+            // descriptor.
+            void GenerateDescriptorInitializer(google::protobuf::io::Printer* printer, int index);
+
             // Header stuff.
             // Generate the class definitions for the service's interface
             void GenerateDeclarations(google::protobuf::io::Printer* printer);
 
             // Generate implementations of everything declared by GenerateDeclarations().
             void GenerateImplementation(google::protobuf::io::Printer* printer);
+
+            // Generate implementations of RPC service.
+            void GenerateServerImplementation(google::protobuf::io::Printer* printer);
 
           private:
             enum RequestOrResponse
@@ -76,6 +83,25 @@ namespace SAFplus
 
             // Prints signatures for all methods in the
             void GenerateMethodSignatures(VirtualOrNon virtual_or_non, google::protobuf::io::Printer* printer);
+
+            // Generate the service abstract interface.
+            void GenerateInterface(google::protobuf::io::Printer* printer);
+
+            // Generate the stub class definition.
+            void GenerateStubDefinition(google::protobuf::io::Printer* printer);
+
+            // Generate the default implementations of the service methods, which
+            // produce a "not implemented" error.
+            void GenerateNotImplementedMethods(google::protobuf::io::Printer* printer);
+
+            // Generate the CallMethod() method of the service.
+            void GenerateCallMethod(google::protobuf::io::Printer* printer);
+
+            // Generate the Get{Request,Response}Prototype() methods.
+            void GenerateGetPrototype(RequestOrResponse which, google::protobuf::io::Printer* printer);
+
+            // Generate the stub's implementations of the service methods.
+            void GenerateStubMethods(google::protobuf::io::Printer* printer);
 
             const google::protobuf::ServiceDescriptor* descriptor_;
             std::map<std::string,std::string> vars_;

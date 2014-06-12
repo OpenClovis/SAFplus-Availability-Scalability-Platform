@@ -34,11 +34,12 @@
 
 // Modified by OpenClovis
 
-#include "RpcService.hxx"
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/stubs/strutil.h>
+#include "RpcService.hxx"
 
 using namespace std;
+using namespace google::protobuf;
 
 namespace SAFplus
   {
@@ -75,30 +76,45 @@ namespace SAFplus
                 return outer->name() + DotsToUnderscores(inner_name);
               }
           }
-
         ServiceGenerator::ServiceGenerator(const google::protobuf::ServiceDescriptor* descriptor) :
             descriptor_(descriptor)
           {
-            vars_["classname"] = descriptor_->name() + "Impl";
-            vars_["full_name"] = descriptor_->full_name() + "Impl";
-            vars_["superclass"] = descriptor_->name();
+            vars_["classname"] = descriptor_->name();
+            vars_["full_name"] = descriptor_->full_name();
           }
 
         ServiceGenerator::~ServiceGenerator()
           {
           }
 
+        void ServiceGenerator::GenerateDescriptorInitializer(google::protobuf::io::Printer* printer, int index)
+          {
+            map<string,string> vars;
+            vars["classname"] = descriptor_->name();
+            vars["index"] = google::protobuf::SimpleItoa(index);
+
+            printer->Print(vars, "$classname$_descriptor_ = file->service($index$);\n");
+          }
+
         void ServiceGenerator::GenerateDeclarations(google::protobuf::io::Printer* printer)
           {
-            printer->Print(vars_, "class $classname$ : public $superclass$ {\n"
+            // Forward-declare the stub type.
+            printer->Print(vars_, "class $classname$_Stub;\n"
+                "\n");
+
+            GenerateInterface(printer);
+            GenerateStubDefinition(printer);
+
+            //Generator server implementation class
+            printer->Print(vars_, "class $classname$Impl : public $classname$ {\n"
                 " public:\n");
 
             printer->Indent();
 
-            printer->Print(vars_, "$classname$();\n"
-                "~$classname$();\n"
+            printer->Print(vars_, "$classname$Impl();\n"
+                "~$classname$Impl();\n"
                 "\n"
-                "// implements $classname$ \n");
+                "// implements $classname$Impl \n");
 
             GenerateMethodSignatures(NON_VIRTUAL, printer);
 
@@ -117,24 +133,129 @@ namespace SAFplus
                 sub_vars["output_type"] = ClassName(method->output_type(), true);
                 sub_vars["virtual"] = virtual_or_non == VIRTUAL ? "virtual " : "";
 
-                printer->Print(sub_vars, "$virtual$void $name$(::google::protobuf::RpcController* controller,\n"
+                printer->Print(sub_vars, "$virtual$void $name$(SAFplus::Handle destination,\n"
                     "                     const $input_type$* request,\n"
                     "                     $output_type$* response,\n"
-                    "                     ::google::protobuf::Closure* done);\n");
+                    "                     SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));\n");
               }
+          }
+
+        void ServiceGenerator::GenerateInterface(google::protobuf::io::Printer* printer)
+          {
+            printer->Print(vars_, "class $classname$ : public SAFplus::Rpc::RpcService {\n"
+                " protected:\n"
+                "  // This class should be treated as an abstract interface.\n"
+                "  inline $classname$() {};\n"
+                " public:\n"
+                "  virtual ~$classname$();\n");
+            printer->Indent();
+
+            printer->Print(vars_, "\n"
+                "typedef $classname$_Stub Stub;\n"
+                "\n"
+                "static const ::google::protobuf::ServiceDescriptor* descriptor();\n"
+                "\n");
+
+            GenerateMethodSignatures(VIRTUAL, printer);
+
+            printer->Print("\n"
+                "// implements Service ----------------------------------------------\n"
+                "\n"
+                "const ::google::protobuf::ServiceDescriptor* GetDescriptor();\n"
+                "void CallMethod(const ::google::protobuf::MethodDescriptor* method,\n"
+                "                SAFplus::Handle destination,\n"
+                "                const ::google::protobuf::Message* request,\n"
+                "                ::google::protobuf::Message* response,\n"
+                "                SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));\n"
+                "const ::google::protobuf::Message& GetRequestPrototype(\n"
+                "  const ::google::protobuf::MethodDescriptor* method) const;\n"
+                "const ::google::protobuf::Message& GetResponsePrototype(\n"
+                "  const ::google::protobuf::MethodDescriptor* method) const;\n");
+
+            printer->Outdent();
+            printer->Print(vars_, "\n"
+                " private:\n"
+                "  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS($classname$);\n"
+                "};\n"
+                "\n");
           }
 
         void ServiceGenerator::GenerateImplementation(google::protobuf::io::Printer* printer)
           {
+            printer->Print(vars_, "$classname$::~$classname$() {}\n"
+                "\n"
+                "const ::google::protobuf::ServiceDescriptor* $classname$::descriptor() {\n"
+                "  protobuf_AssignDescriptorsOnce();\n"
+                "  return $classname$_descriptor_;\n"
+                "}\n"
+                "\n"
+                "const ::google::protobuf::ServiceDescriptor* $classname$::GetDescriptor() {\n"
+                "  protobuf_AssignDescriptorsOnce();\n"
+                "  return $classname$_descriptor_;\n"
+                "}\n"
+                "\n");
+
+            // Generate methods of the interface.
+            GenerateNotImplementedMethods(printer);
+            GenerateCallMethod(printer);
+            GenerateGetPrototype(REQUEST, printer);
+            GenerateGetPrototype(RESPONSE, printer);
+
+            // Generate stub implementation.
+            printer->Print(vars_, "$classname$_Stub::$classname$_Stub(SAFplus::Rpc::RpcChannel* channel)\n"
+                "  : channel_(channel), owns_channel_(false) {}\n"
+                "$classname$_Stub::$classname$_Stub(\n"
+                "    SAFplus::Rpc::RpcChannel* channel,\n"
+                "    ::google::protobuf::Service::ChannelOwnership ownership)\n"
+                "  : channel_(channel),\n"
+                "    owns_channel_(ownership == ::google::protobuf::Service::STUB_OWNS_CHANNEL) {}\n"
+                "$classname$_Stub::~$classname$_Stub() {\n"
+                "  if (owns_channel_) delete channel_;\n"
+                "}\n"
+                "\n");
+
+            GenerateStubMethods(printer);
+          }
+
+        void ServiceGenerator::GenerateStubDefinition(google::protobuf::io::Printer* printer)
+          {
+            printer->Print(vars_, "class $classname$_Stub : public $classname$ {\n"
+                " public:\n");
+
+            printer->Indent();
+
+            printer->Print(vars_, "$classname$_Stub(SAFplus::Rpc::RpcChannel* channel);\n"
+                "$classname$_Stub(SAFplus::Rpc::RpcChannel* channel,\n"
+                "                 ::google::protobuf::Service::ChannelOwnership ownership);\n"
+                "~$classname$_Stub();\n"
+                "\n"
+                "inline SAFplus::Rpc::RpcChannel* channel() { return channel_; }\n"
+                "\n"
+                "// implements $classname$ ------------------------------------------\n"
+                "\n");
+
+            GenerateMethodSignatures(NON_VIRTUAL, printer);
+
+            printer->Outdent();
+            printer->Print(vars_, " private:\n"
+                "  SAFplus::Rpc::RpcChannel* channel_;\n"
+                "  bool owns_channel_;\n"
+                "  GOOGLE_DISALLOW_EVIL_CONSTRUCTORS($classname$_Stub);\n"
+                "};\n"
+                "\n");
+          }
+
+        void ServiceGenerator::GenerateServerImplementation(google::protobuf::io::Printer* printer)
+          {
             printer->Indent();
             // Constructor, Destructor
             printer->Print(vars_, "\n"
-                "$classname$::$classname$()\n"
+                "$classname$Impl::$classname$Impl()\n"
                 "{\n"
                 "  //TODO: Auto-generated constructor stub\n"
                 "}\n"
                 "\n"
-                "$classname$::~$classname$()\n"
+                "$classname$Impl::~$classname$Impl()\n"
                 "{\n"
                 "  //TODO: Auto-generated destructor stub\n"
                 "}\n");
@@ -152,19 +273,135 @@ namespace SAFplus
                 sub_vars["output_type"] = ClassName(method->output_type(), true);
 
                 printer->Indent();
-                printer->Print(sub_vars, "\nvoid $classname$::$name$(::google::protobuf::RpcController* controller,\n"
+                printer->Print(sub_vars, "\nvoid $classname$Impl::$name$(SAFplus::Handle destination,\n"
                     "                              const $input_type$* request,\n"
                     "                              $output_type$* response,\n"
-                    "                              ::google::protobuf::Closure* done)\n");
+                    "                              SAFplus::Wakeable& wakeable)\n");
 
                 printer->Print("{\n"
                     "  //TODO: put your code here \n"
                     "\n"
-                    "  done->Run(); // DO NOT removed this line!!! \n"
+                    "  wakeable.wake(1, (void*) response); // DO NOT removed this line!!! \n"
                     "}\n");
                 printer->Outdent();
               }
           }
 
+        void ServiceGenerator::GenerateNotImplementedMethods(google::protobuf::io::Printer* printer) {
+          for (int i = 0; i < descriptor_->method_count(); i++) {
+            const MethodDescriptor* method = descriptor_->method(i);
+            map<string, string> sub_vars;
+            sub_vars["classname"] = descriptor_->name();
+            sub_vars["name"] = method->name();
+            sub_vars["index"] = SimpleItoa(i);
+            sub_vars["input_type"] = ClassName(method->input_type(), true);
+            sub_vars["output_type"] = ClassName(method->output_type(), true);
+
+            printer->Print(sub_vars,
+              "void $classname$::$name$(SAFplus::Handle destination,\n"
+              "                         const $input_type$*,\n"
+              "                         $output_type$*,\n"
+              "                         SAFplus::Wakeable& wakeable) {\n"
+              "  logError(\"RPC\",\"SVR\",\"Method $name$() not implemented.\");\n"
+              "  wakeable.wake(1, (void*)nullptr); // DO NOT removed this line!!! \n"
+              "}\n"
+              "\n");
+          }
+        }
+
+        void ServiceGenerator::GenerateCallMethod(google::protobuf::io::Printer* printer)
+          {
+            printer->Print(vars_, "void $classname$::CallMethod(const ::google::protobuf::MethodDescriptor* method,\n"
+                "                             SAFplus::Handle destination,\n"
+                "                             const ::google::protobuf::Message* request,\n"
+                "                             ::google::protobuf::Message* response,\n"
+                "                             SAFplus::Wakeable& wakeable) {\n"
+                "  GOOGLE_DCHECK_EQ(method->service(), $classname$_descriptor_);\n"
+                "  switch(method->index()) {\n");
+
+            for (int i = 0; i < descriptor_->method_count(); i++)
+              {
+                const google::protobuf::MethodDescriptor* method = descriptor_->method(i);
+                map<string,string> sub_vars;
+                sub_vars["name"] = method->name();
+                sub_vars["index"] = google::protobuf::SimpleItoa(i);
+                sub_vars["input_type"] = ClassName(method->input_type(), true);
+                sub_vars["output_type"] = ClassName(method->output_type(), true);
+
+                // Note:  down_cast does not work here because it only works on pointers,
+                //   not references.
+                printer->Print(sub_vars, "    case $index$:\n"
+                    "      $name$(destination,\n"
+                    "             ::google::protobuf::down_cast<const $input_type$*>(request),\n"
+                    "             ::google::protobuf::down_cast< $output_type$*>(response),\n"
+                    "             wakeable);\n"
+                    "      break;\n");
+              }
+
+            printer->Print(vars_, "    default:\n"
+                "      GOOGLE_LOG(FATAL) << \"Bad method index; this should never happen.\";\n"
+                "      break;\n"
+                "  }\n"
+                "}\n"
+                "\n");
+          }
+
+        void ServiceGenerator::GenerateGetPrototype(RequestOrResponse which, google::protobuf::io::Printer* printer)
+          {
+            if (which == REQUEST)
+              {
+                printer->Print(vars_, "const ::google::protobuf::Message& $classname$::GetRequestPrototype(\n");
+              }
+            else
+              {
+                printer->Print(vars_, "const ::google::protobuf::Message& $classname$::GetResponsePrototype(\n");
+              }
+
+            printer->Print(vars_, "    const ::google::protobuf::MethodDescriptor* method) const {\n"
+                "  GOOGLE_DCHECK_EQ(method->service(), descriptor());\n"
+                "  switch(method->index()) {\n");
+
+            for (int i = 0; i < descriptor_->method_count(); i++)
+              {
+                const google::protobuf::MethodDescriptor* method = descriptor_->method(i);
+                const google::protobuf::Descriptor* type = (which == REQUEST) ? method->input_type() : method->output_type();
+
+                map<string,string> sub_vars;
+                sub_vars["index"] = google::protobuf::SimpleItoa(i);
+                sub_vars["type"] = ClassName(type, true);
+
+                printer->Print(sub_vars, "    case $index$:\n"
+                    "      return $type$::default_instance();\n");
+              }
+
+            printer->Print(vars_, "    default:\n"
+                "      GOOGLE_LOG(FATAL) << \"Bad method index; this should never happen.\";\n"
+                "      return *reinterpret_cast< ::google::protobuf::Message*>(NULL);\n"
+                "  }\n"
+                "}\n"
+                "\n");
+          }
+
+        void ServiceGenerator::GenerateStubMethods(google::protobuf::io::Printer* printer)
+          {
+            for (int i = 0; i < descriptor_->method_count(); i++)
+              {
+                const google::protobuf::MethodDescriptor* method = descriptor_->method(i);
+                map<string,string> sub_vars;
+                sub_vars["classname"] = descriptor_->name();
+                sub_vars["name"] = method->name();
+                sub_vars["index"] = google::protobuf::SimpleItoa(i);
+                sub_vars["input_type"] = ClassName(method->input_type(), true);
+                sub_vars["output_type"] = ClassName(method->output_type(), true);
+
+                printer->Print(sub_vars, "void $classname$_Stub::$name$(SAFplus::Handle destination,\n"
+                    "                              const $input_type$* request,\n"
+                    "                              $output_type$* response,\n"
+                    "                              SAFplus::Wakeable& wakeable) {\n"
+                    "  channel_->CallMethod(descriptor()->method($index$),\n"
+                    "                       destination, request, response, wakeable);\n"
+                    "}\n");
+              }
+          }
       } // namespace Rpc
   } // namespace SAFplus

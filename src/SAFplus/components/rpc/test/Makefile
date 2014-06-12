@@ -14,13 +14,13 @@ CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../rpc -I./stubs -I./stub
 # Management includes and libraries
 CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ `pkg-config --cflags protobuf`
 
-CLIENT_SRC := TestClient.cxx $(wildcard stubs/*.pb.cc)
+CLIENT_SRC := TestClient.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/*.cxx)
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/, $(subst .cxx,.o,$(subst .cc,.o,$(CLIENT_SRC))))
 
-SERVER_SRC := TestServer.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/server/*.cxx)
+SERVER_SRC := TestServer.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/*.cxx) $(wildcard stubs/server/*.cxx)
 SERVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(subst .cc,.o,$(SERVER_SRC))))
 
-COMBINE_SRC := TestCombine.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/server/*.cxx)
+COMBINE_SRC := TestCombine.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/*.cxx) $(wildcard stubs/server/*.cxx)
 COMBINE_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(subst .cc,.o,$(COMBINE_SRC))))
 
 # Specify the required libraries
@@ -60,7 +60,7 @@ gen: $(SAFplusRpcGen)
 	-mkdir -p ./stubs/server
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/rpcTest.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
 	protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./stubs rpcTest.proto
-	$(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./stubs/server rpcTest.proto
+	$(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./stubs rpcTest.proto
 
 cleangen:
 	rm -rf stubs

@@ -19,17 +19,21 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Capacity, /SAFplusAmf/Node/capacity)
 
-    Capacity::Capacity(): SAFplus::MgtList("capacity"), resource("resource"), value("value")
+    Capacity::Capacity(): SAFplus::MgtList<std::string>("capacity"), resource("resource"), value("value")
     {
-        this->addChildObject(&resource, "resource");
-        this->addChildObject(&value, "value");
+        std::string resourceName("resource");
+        std::string valueName("value");
+        this->addChildObject(&resource, resourceName);
+        this->addChildObject(&value, valueName);
     };
 
-    Capacity::Capacity(std::string resourceValue): SAFplus::MgtList("capacity"), resource("resource"), value("value")
+    Capacity::Capacity(std::string resourceValue): SAFplus::MgtList<std::string>("capacity"), resource("resource"), value("value")
     {
         this->resource.value =  resourceValue;
-        this->addChildObject(&resource, "resource");
-        this->addChildObject(&value, "value");
+        std::string resourceName("resource");
+        std::string valueName("value");
+        this->addChildObject(&resource, resourceName);
+        this->addChildObject(&value, valueName);
     };
 
     void Capacity::toString(std::stringstream &xmlString)

@@ -1,10 +1,14 @@
 #pragma once
+#include <string>
 #include <clGlobals.hxx>
 #include <clDbg.hxx>
 #include <saAis.h>
 
 namespace SAFplus
 {
+/** printf but for std::string */
+std::string strprintf(const std::string fmt_str, ...);
+
   /**
    *  Version array entry stored by a client library that describes what
    *  versions are supported by the client library implementation.

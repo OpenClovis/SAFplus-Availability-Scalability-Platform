@@ -1,7 +1,7 @@
 #include <google/protobuf/stubs/common.h>
 
 #include "amfRpc/amfRpc.pb.h"
-#include "stubs/server/amfRpcImpl.hxx"
+#include "amfRpc/amfRpcImpl.hxx"
 #include <clRpcChannel.hxx>
 
 #include <amfOperations.hxx>

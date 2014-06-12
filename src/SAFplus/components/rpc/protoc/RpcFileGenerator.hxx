@@ -33,15 +33,17 @@
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
 // Modified by OpenClovis
+#pragma once
 
-#ifndef CLRPCIMPLGENERATOR_HXX_
-#define CLRPCIMPLGENERATOR_HXX_
+#ifndef CLRPCFILEGENERATOR_HXX_
+#define CLRPCFILEGENERATOR_HXX_
 
+#include <vector>
+#include <string>
+#include <google/protobuf/descriptor.pb.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/io/printer.h>
 #include <google/protobuf/stubs/common.h>
-#include <vector>
-#include <string>
 #include "RpcService.hxx"
 
 namespace SAFplus
@@ -52,14 +54,15 @@ namespace SAFplus
         /*
          *
          */
-        class RpcImplGenerator
+        class RpcFileGenerator
           {
           public:
-            RpcImplGenerator(const google::protobuf::FileDescriptor *fileDesc, const std::string &fileName);
-            virtual ~RpcImplGenerator();
+            RpcFileGenerator(const google::protobuf::FileDescriptor *fileDesc, const std::string &fileName);
+            virtual ~RpcFileGenerator();
 
             void GenerateHeader(google::protobuf::io::Printer *printer);
             void GenerateImplementation(google::protobuf::io::Printer *printer);
+            void GenerateServerImplementation(google::protobuf::io::Printer *printer);
             void GenerateNamespaceOpeners(google::protobuf::io::Printer* printer);
             void GenerateNamespaceClosers(google::protobuf::io::Printer* printer);
 
@@ -69,8 +72,13 @@ namespace SAFplus
             // E.g. if the package is foo.bar, package_parts_ is {"foo", "bar"}.
             std::vector<std::string> package_parts_;
             std::vector<ServiceGenerator*> service_generators;
+
+          private:
+            // Generate the BuildDescriptors() procedure, which builds all descriptors
+            // for types defined in the file.
+            void GenerateBuildDescriptors(google::protobuf::io::Printer* printer);
           };
 
       } /* namespace Rpc */
   } /* namespace SAFplus */
-#endif /* CLRPCIMPLGENERATOR_HXX_ */
+#endif /* CLRPCFILEGENERATOR_HXX_ */

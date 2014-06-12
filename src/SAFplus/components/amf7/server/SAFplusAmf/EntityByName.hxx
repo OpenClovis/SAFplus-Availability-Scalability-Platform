@@ -18,7 +18,7 @@
 namespace SAFplusAmf
   {
 
-    class EntityByName : public SAFplus::MgtList {
+    class EntityByName : public SAFplus::MgtList<std::string> {
 
         /* Apply MGT object factory */
         MGT_REGISTER(EntityByName);

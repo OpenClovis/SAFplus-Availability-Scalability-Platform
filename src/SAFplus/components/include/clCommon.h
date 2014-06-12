@@ -43,7 +43,6 @@
 
 #ifndef _CL_COMMON_H_
 #define _CL_COMMON_H_
-#include <string>
 #include <clArchHeaders.h>
 #include <saAis.h>
 
@@ -528,9 +527,6 @@ typedef struct
 }ClStringT;
 
 extern ClStringT *clStringDup(const ClStringT *);
-
-/** printf but for std::string */
-std::string strprintf(const std::string fmt_str, ...);
 
 /* Macro to print into the name */
   /** \brief  Load the SaNameT structure.
