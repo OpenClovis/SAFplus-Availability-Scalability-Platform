@@ -14,6 +14,11 @@ $(LIB_DIR)/libclIoc7.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/ioc7/client
 endif
 
+ifndef SAFPLUS_RPC_LIB
+$(LIB_DIR)/libclRpc.so:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/rpc
+endif
+
 ifndef SAFPLUS_OSAL_LIB
 $(LIB_DIR)/libclOsal7.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/osal7
@@ -45,8 +50,7 @@ $(LIB_DIR)/libclName.so:
 endif
 
 # ordered by dependency
-SAFplusSOs :=   $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so
-
+SAFplusSOs :=   $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so
 
 
 ifndef SAFPLUS_LOG_TEST
@@ -67,6 +71,11 @@ endif
 ifndef SAFPLUS_IOC_TEST
 $(TEST_DIR)/ClientTest:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/ioc7/test
+endif
+
+ifndef SAFPLUS_RPC_TEST
+$(TEST_DIR)/TestClient $(TEST_DIR)/TestServer:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/rpc/test
 endif
 
 ifndef SAFPLUS_MGT_TEST

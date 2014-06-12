@@ -495,8 +495,8 @@ do { \
     char __tempstr[2048]; \
     snprintf(__tempstr,2048, \
              this_error_indicates_missing_parens_around_string x); \
-    SAFplusI::clTestPrintImpl(__file, __line, __function,__tempstr);	\
-    appLog(TEST_LOG,testLogLevel,0,"TST","___",__tempstr); \
+    SAFplusI::clTestPrintImpl(__file, __line, __function,__tempstr); \
+    logStrWrite(TEST_LOG,testLogLevel,0,"TST","___",__file, __line,__tempstr); \
 } while(0)
 #endif
 #else

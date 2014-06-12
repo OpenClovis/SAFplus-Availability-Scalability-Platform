@@ -43,11 +43,7 @@
 
 #ifndef _CL_COMMON_H_
 #define _CL_COMMON_H_
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include <string>
 #include <clArchHeaders.h>
 #include <saAis.h>
 
@@ -220,7 +216,6 @@ void saNameConcat(SaNameT* nameOut, const SaNameT *prefix, const char* separator
   /** \brief  Duplicate a string
       \param  str The string to be duplicated
       \retval Storage pointed to a duplicated string or NULL
-     
       \par Description:
       This API is used to duplicate a string. The storage pointed by the returned string
       should be freed using ASP heap API: clHeapFree.
@@ -534,6 +529,9 @@ typedef struct
 
 extern ClStringT *clStringDup(const ClStringT *);
 
+/** printf but for std::string */
+std::string strprintf(const std::string fmt_str, ...);
+
 /* Macro to print into the name */
   /** \brief  Load the SaNameT structure.
       \param  name The structure you want to load
@@ -554,9 +552,6 @@ do                                    \
 #define CL_PRINTF_FORMAT(fmtPos, argPos)
 #endif
 
-#ifdef __cplusplus
-}
-#endif
 
 /**
  * \}

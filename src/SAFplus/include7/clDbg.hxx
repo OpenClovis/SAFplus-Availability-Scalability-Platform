@@ -9,7 +9,7 @@ extern int clDbgPauseOn;
 extern int clDbgPauseOnCodeError;
 extern int clDbgNoKillComponents;
 extern int clDbgCompTimeoutOverride;
-extern int clDbgLogLevel;             
+extern int clDbgLogLevel;
 extern int clDbgResourceLogLevel;
 extern int clDbgReverseTiming;
 
@@ -73,13 +73,21 @@ void clDbgPauseFn(const char* file, int line);
  */
 #define CL_DEBUG_CODE_ERROR clDbgCodeError
 
+#undef clDbgRootCodeError
 #define clDbgCodeError(clErr, ...) do { (void)clErr;  logCritical("---","---", __VA_ARGS__); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
   /* A clDbgCodeError is also a root cause error, so you don't have to call both functions */
+#undef clDbgRootCauseError
 #define clDbgRootCauseError(clErr, ...) do { (void)clErr;  logCritical("---","---", __VA_ARGS__); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
+#ifdef clDbgNotImplemented
+#undef clDbgNotImplemented
+#endif
 #define clDbgNotImplemented(...) do { logCritical("---","---", "Not Implemented:" __VA_ARGS__); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
+#ifdef clDbgCheck  // resolve warning with including SAFplus6 clDbg.h
+#undef clDbgCheck
+#endif
 #define clDbgCheck(predicate, todo, ...) do { int result = predicate; if (!result) { logCritical("---","---", __VA_ARGS__); if (clDbgPauseOnCodeError) clDbgPause(); } if (!result) { todo; } } while(0)
     
 /**

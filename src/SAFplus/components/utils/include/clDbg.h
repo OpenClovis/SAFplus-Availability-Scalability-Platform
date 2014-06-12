@@ -33,6 +33,8 @@
 #include <clLogUtilApi.h>
 #include <clLogApi.h>
 
+#warning SAFplus6 clDbg.h is being included
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -147,6 +149,8 @@ void clDbgMsg(int pid, const char* file, int line, const char* fn, int level, co
  *  \par Related Function(s):
  *
  */
+#ifndef clDbgCodeError
+
 #define CL_DEBUG_CODE_ERROR clDbgCodeError
 
 #define clDbgCodeError(clErr, printfParams) do { (void)clErr; CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
@@ -157,7 +161,7 @@ void clDbgMsg(int pid, const char* file, int line, const char* fn, int level, co
 #define clDbgNotImplemented(printfParams) do { CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
 #define clDbgCheck(predicate, todo, printfParams) do { int result = predicate; if (!result) { CL_DEBUG_PRINT_CONSOLE(CL_LOG_SEV_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } if (!result) { todo; } } while(0)
-    
+
 /**
  ************************************
  *  \page clDbgResourceNotify
@@ -220,7 +224,7 @@ do { \
      clLog(clDbgResourceLogLevel,CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED, __str); \
      clDbgRootCauseError(CL_ERR_NO_RESOURCE,printfParams); \
 } while(0)
-
+#endif
 
 #ifdef __cplusplus
 }

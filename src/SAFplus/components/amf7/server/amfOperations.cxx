@@ -1,3 +1,9 @@
+#include <google/protobuf/stubs/common.h>
+
+#include "amfRpc/amfRpc.pb.h"
+#include "stubs/server/amfRpcImpl.hxx"
+#include <clRpcChannel.hxx>
+
 #include <amfOperations.hxx>
 #include <clHandleApi.hxx>
 #include <clNameApi.hxx>
@@ -7,8 +13,11 @@
 #include <SAFplusAmf/Component.hxx>
 #include <SAFplusAmf/ServiceUnit.hxx>
 #include <SAFplusAmf/ServiceGroup.hxx>
-using namespace SAFplusAmf;
+
 using namespace SAFplus;
+using namespace SAFplusI;
+using namespace SAFplusAmf;
+using namespace SAFplus::Rpc::amfRpc;
 
 extern Handle           nodeHandle; //? The handle associated with this node
 namespace SAFplus
@@ -142,6 +151,30 @@ namespace SAFplus
       }
     }
 
+  class StartCompResp:public google::protobuf::Closure
+    {
+    public:
+    SAFplus::Rpc::amfRpc::StartComponentResponse response;
+    SAFplusAmf::Component* comp;
+    SAFplus::Wakeable* w;
+
+    virtual void Run()
+      {
+      if (response.err() != 0)
+        {
+        comp->processId.value = 0;
+        comp->lastError.value = strprintf("Process spawn failure [%s:%d]", strerror(response.err()));
+        comp->presence.value  = PresenceState::instantiationFailed;
+        }
+      else if (comp)
+        {
+        comp->processId.value = response.pid();
+        }
+      if (w) w->wake(1,comp);
+      delete this;
+      }
+    };
+
   void AmfOperations::start(SAFplusAmf::Component* comp,Wakeable& w)
     {
     assert(comp);
@@ -163,12 +196,20 @@ namespace SAFplus
       Process p = executeProgram(inst->command.value, comp->commandEnvironment.value);
       comp->processId.value = p.pid;
       logInfo("OPS","SRT","Launching Component [%s] as [%s] with process id [%d]", comp->name.c_str(),inst->command.value.c_str(),p.pid);
+      if (&w) w.wake(1,(void*)comp);
       }
     else  // RPC call
       {
       logInfo("OP","CMP","Request component start on node %s", comp->serviceUnit.value->node.name.c_str());
+      SAFplus::Rpc::RpcChannel channel(&safplusMsgServer, nodeHdl);
+      channel->setMsgType(AMF_REQ_HANDLER_TYPE, AMF_REPLY_HANDLER_TYPE);
+      amfRpc_Stub service(channel);
+      StartComponentRequest req;
+      StartCompResp* respData = new respData(w,comp);     
+      service.startComponent(NULL,&req, &respData.response, &respData);  // TODO: what happens in a RPC call timeout?
+
+      //service.startComponent(&RpcDestination(iocAddress),&req, &respData.response, &respData);  // TODO: what happens in a RPC call timeout?
       }
-    if (&w) w.wake(1,(void*)comp);
     }
 
   void AmfOperations::start(SAFplusAmf::ServiceGroup* sg,Wakeable& w)

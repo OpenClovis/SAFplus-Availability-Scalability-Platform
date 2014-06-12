@@ -1,5 +1,5 @@
 S7 := 1
-SAFPLUS_IOC_TEST := 1
+SAFPLUS_RPC_TEST := 1
 include ../../../mk/preface.mk
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx) 
@@ -24,7 +24,7 @@ COMBINE_SRC := TestCombine.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/server
 COMBINE_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(subst .cc,.o,$(COMBINE_SRC))))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clOsal7 clUtils7 clLog clIoc7 clMgt7
+SAFPLUS_LIBS := clOsal7 clUtils7 clLog clIoc7 clRpc clMgt7
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
@@ -68,6 +68,6 @@ cleangen:
 
 clean:
 	rm -rf $(OBJ_DIR)/*.o $(TEST_DIR)/* $(SAFplusRpcGen) $(OBJ_DIR)/stubs/*
-	
+
 
 include ../../../mk/safplus_targets.mk

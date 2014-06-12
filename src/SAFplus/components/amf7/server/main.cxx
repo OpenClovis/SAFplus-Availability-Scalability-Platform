@@ -322,7 +322,7 @@ int main(int argc, char* argv[])
   ClIocAddressT dest;
   //*((uint64_t*) &dest) = CL_IOC_ADDRESS_FORM(CL_IOC_PHYSICAL_ADDRESS_TYPE,SAFplus::ASP_NODEADDR,SAFplusI::AMF_IOC_PORT);
 
-  dest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+  dest.iocPhyAddress.nodeAddress = SAFplus::ASP_NODEADDR;  //CL_IOC_BROADCAST_ADDRESS;
   dest.iocPhyAddress.portId = SAFplusI::AMF_IOC_PORT;
 
   SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, dest);
@@ -342,10 +342,11 @@ int main(int argc, char* argv[])
   //client side should using callback
   //google::protobuf::Closure *callback = google::protobuf::NewCallback(&FooDone, &resp);
   //service.startComponent(NULL,&req, &resp, callback);
-  service.startComponent(NULL,&req, &resp, NULL);
+
+  //service.startComponent(NULL,&req, &resp, NULL);
 
 
-  sleep(10000);  // test RPC first
+  
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
 

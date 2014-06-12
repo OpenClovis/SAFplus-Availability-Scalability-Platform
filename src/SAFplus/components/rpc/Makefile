@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_RPC_LIB := 1
 include ../../mk/preface.mk
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
