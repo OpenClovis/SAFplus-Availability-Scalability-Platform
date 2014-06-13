@@ -118,14 +118,14 @@ void activeAudit()  // Check to make sure DB and the system state are in sync
       logInfo("AUD","NOD","Node handle [%lx.%lx]",hdl.id[0],hdl.id[1]);
       }
     }
-#if 0
+
   logDebug("AUD","ACT","Active Audit -- Applications");
   for (it = redPolicies.begin(); it != redPolicies.end();it++)
     {
     ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*>(it->second->pluginApi);
     pp->activeAudit(&cfg);
     }
-#endif
+
   }
 
 void standbyAudit(void) // Check to make sure DB and the system state are in sync
