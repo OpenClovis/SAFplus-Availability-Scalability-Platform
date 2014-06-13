@@ -134,6 +134,7 @@ namespace SAFplus
             totalStarted++;
             }
           }
+        waitSem.lock(waits);  // if waits is 0, lock is no-op
         }
     }
 

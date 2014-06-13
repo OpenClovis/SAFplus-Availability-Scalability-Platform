@@ -44,20 +44,32 @@ const ::google::protobuf::ServiceDescriptor* amfRpc::GetDescriptor() {
   return amfRpc_descriptor_;
 }
 
-void amfRpc::startComponent(SAFplus::Handle destination,
-                         const ::SAFplus::Rpc::amfRpc::StartComponentRequest*,
-                         ::SAFplus::Rpc::amfRpc::StartComponentResponse*,
-                         SAFplus::Wakeable& wakeable) {
+void amfRpc::startComponent(const ::SAFplus::Rpc::amfRpc::StartComponentRequest*,
+                         ::SAFplus::Rpc::amfRpc::StartComponentResponse*)
+{
   logError("RPC","SVR","Method startComponent() not implemented.");
-  wakeable.wake(1, (void*)nullptr); // DO NOT removed this line!!! 
+}
+
+void amfRpc::stopComponent(const ::SAFplus::Rpc::amfRpc::StopComponentRequest*,
+                         ::SAFplus::Rpc::amfRpc::StopComponentResponse*)
+{
+  logError("RPC","SVR","Method stopComponent() not implemented.");
+}
+
+void amfRpc::startComponent(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfRpc::StartComponentRequest* request,
+                     ::SAFplus::Rpc::amfRpc::StartComponentResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method startComponent() not implemented.");
 }
 
 void amfRpc::stopComponent(SAFplus::Handle destination,
-                         const ::SAFplus::Rpc::amfRpc::StopComponentRequest*,
-                         ::SAFplus::Rpc::amfRpc::StopComponentResponse*,
-                         SAFplus::Wakeable& wakeable) {
+                     const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
+                     ::SAFplus::Rpc::amfRpc::StopComponentResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
   logError("RPC","SVR","Method stopComponent() not implemented.");
-  wakeable.wake(1, (void*)nullptr); // DO NOT removed this line!!! 
 }
 
 void amfRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
@@ -68,16 +80,12 @@ void amfRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
   GOOGLE_DCHECK_EQ(method->service(), amfRpc_descriptor_);
   switch(method->index()) {
     case 0:
-      startComponent(destination,
-             ::google::protobuf::down_cast<const ::SAFplus::Rpc::amfRpc::StartComponentRequest*>(request),
-             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfRpc::StartComponentResponse*>(response),
-             wakeable);
+      startComponent(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfRpc::StartComponentRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfRpc::StartComponentResponse*>(response));
       break;
     case 1:
-      stopComponent(destination,
-             ::google::protobuf::down_cast<const ::SAFplus::Rpc::amfRpc::StopComponentRequest*>(request),
-             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfRpc::StopComponentResponse*>(response),
-             wakeable);
+      stopComponent(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfRpc::StopComponentRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfRpc::StopComponentResponse*>(response));
       break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
@@ -124,19 +132,17 @@ amfRpc_Stub::~amfRpc_Stub() {
   if (owns_channel_) delete channel_;
 }
 
-void amfRpc_Stub::startComponent(SAFplus::Handle destination,
+void amfRpc_Stub::startComponent(SAFplus::Handle dest,
                               const ::SAFplus::Rpc::amfRpc::StartComponentRequest* request,
                               ::SAFplus::Rpc::amfRpc::StartComponentResponse* response,
                               SAFplus::Wakeable& wakeable) {
-  channel_->CallMethod(descriptor()->method(0),
-                       destination, request, response, wakeable);
+  channel_->CallMethod(descriptor()->method(0), dest, request, response, wakeable);
 }
-void amfRpc_Stub::stopComponent(SAFplus::Handle destination,
+void amfRpc_Stub::stopComponent(SAFplus::Handle dest,
                               const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                               ::SAFplus::Rpc::amfRpc::StopComponentResponse* response,
                               SAFplus::Wakeable& wakeable) {
-  channel_->CallMethod(descriptor()->method(1),
-                       destination, request, response, wakeable);
+  channel_->CallMethod(descriptor()->method(1), dest, request, response, wakeable);
 }
 
 }  // namespace amfRpc

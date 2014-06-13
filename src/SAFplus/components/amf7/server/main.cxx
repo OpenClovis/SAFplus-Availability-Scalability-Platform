@@ -61,7 +61,7 @@ class ClusterGroupData
 public:
   unsigned int       structId;       // = 0x67839345
   unsigned int       nodeAddr;       // Same as slot id and TIPC address if these attributes exist 
-  Handle             nodeMgtHandle;  // Identifier into the management db to identify this node's role.  INVALID_HDL means that this node does not have a role (AMF can assign it one).
+  Handle             nodeMgtHandle;  // Identifier into the management db to identify this node's role (based on its name).  INVALID_HDL means that this node does not have a role (AMF can assign it one).
   char               nodeName[NODENAME_LEN];  // Identifier into the management db to identify this node's role. Name and MgtHandle must resolve to the same entity (this field is probably unnecessary, prefer Handle)
   boost::asio::ip::address backplaneIp; // TODO: verify that this is FLAT!!!  V4 or V6 intracluster IP address of this node.
   };
@@ -101,16 +101,54 @@ void activeAudit()  // Check to make sure DB and the system state are in sync
   logDebug("AUD","ACT","Active Audit");
   RedPolicyMap::iterator it;
 
+  logDebug("AUD","ACT","Active Audit -- Nodes");
+  
+  Group::Iterator end = clusterGroup.end();
+  for (Group::Iterator it = clusterGroup.begin();it != end; it++)
+    {
+    Handle hdl = it->first;
+    ClusterGroupData* data = (ClusterGroupData*) it->second;
+    if (data)
+      {
+      assert(data->structId == 0x67839345);  // TODO endian xform
+      logInfo("AUD","NOD","Node [%s], handle [%lx.%lx] address [%d]",data->nodeName, hdl.id[0],hdl.id[1], data->nodeAddr);
+      }
+    else
+      {
+      logInfo("AUD","NOD","Node handle [%lx.%lx]",hdl.id[0],hdl.id[1]);
+      }
+    }
+#if 0
+  logDebug("AUD","ACT","Active Audit -- Applications");
   for (it = redPolicies.begin(); it != redPolicies.end();it++)
     {
     ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*>(it->second->pluginApi);
     pp->activeAudit(&cfg);
     }
+#endif
   }
 
 void standbyAudit(void) // Check to make sure DB and the system state are in sync
   {
   logDebug("AUD","SBY","Standby Audit");
+
+  logDebug("AUD","SBY","Standby Audit -- Nodes");
+  
+  Group::Iterator end = clusterGroup.end();
+  for (Group::Iterator it = clusterGroup.begin();it != end; it++)
+    {
+    Handle hdl = it->first;
+    ClusterGroupData* data = (ClusterGroupData*) it->second;
+    if (data)
+      {
+      assert(data->structId == 0x67839345);  // TODO endian xform
+      logInfo("AUD","NOD","Node [%s], handle [%lx.%lx] address [%d]",data->nodeName, hdl.id[0],hdl.id[1], data->nodeAddr);
+      }
+    else
+      {
+      logInfo("AUD","NOD","Node handle [%lx.%lx]",hdl.id[0],hdl.id[1]);
+      }
+    }
   }
 
 void becomeActive(void)
@@ -333,7 +371,7 @@ int main(int argc, char* argv[])
   safplusMsgServer.Start();
 
   // client side
-  amfRpc_Stub service(channel);
+  amfRpc_Stub amfInternalRpc(channel);
   StartComponentRequest req;
   req.set_name("c0");
   req.set_command("./c0 test1 test2");
@@ -341,16 +379,16 @@ int main(int argc, char* argv[])
 
   //client side should using callback
   //google::protobuf::Closure *callback = google::protobuf::NewCallback(&FooDone, &resp);
-  //service.startComponent(NULL,&req, &resp, callback);
+  SAFplus::Handle hdl(TransientHandle,1,SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
+  //service.startComponent(hdl,&req, &resp);
 
-  //service.startComponent(NULL,&req, &resp, NULL);
-
+  //sleep(10000);
 
   
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
 
-  myHandle = Handle::create();  // TODO: Actually, in the AMF's case I probably want to create a well-known component handle (i.e. the AMF on node X), not handle that means "pid-Y-on-node-X".  But it does not matter. It would just be so a helper function could be created.
+  myHandle = SAFplus::Handle(TransientHandle,1,SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
   // Register a mapping between this node's name and its handle.
   nodeHandle = myHandle; // TODO: No should be different
   name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
@@ -365,6 +403,7 @@ int main(int argc, char* argv[])
   logServer = boost::thread(LogServer());
 
   AmfOperations amfOps;
+  amfOps.amfInternalRpc = &amfInternalRpc;
 
   loadAmfPlugins(amfOps);
 
@@ -395,6 +434,11 @@ int main(int argc, char* argv[])
     }
 
 #ifdef GRP
+  clusterGroupData.structId = 0x67839345;
+  clusterGroupData.nodeAddr = SAFplus::ASP_NODEADDR;
+  clusterGroupData.nodeMgtHandle = INVALID_HDL;
+  strncpy(clusterGroupData.nodeName,SAFplus::ASP_NODENAME,NODENAME_LEN);
+  // TODO: clusterGroupData.backplaneIp = 
   clusterGroup.registerEntity(myHandle, credential, (void*) &clusterGroupData, sizeof(ClusterGroupData),capabilities);
 #endif
   logInfo("AMF","HDL", "I AM [%lx:%lx]", myHandle.id[0],myHandle.id[1]);

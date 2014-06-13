@@ -124,16 +124,19 @@ std::string strprintf(const std::string fmt_str, ...);
   {
   public:
   const char* errStr;
+  unsigned int saError;  // SAF error code (if applicable)
+  unsigned int clError;  // OpenClovis error code (if applicable)
+  unsigned int osError;  // Operating system error code (i.e errno), if applicable
 
-  enum
+  enum  // OpenClovis Error codes defined here
     {
     UNKNOWN=0,
     NOT_IMPLEMENTED=1,
-    
+
     // For simplicity put derived class error categories here
     PROCESS_ERRORS = 1000
     };
-    
+
     Error(const char* str): errStr(str) 
     {
     }

@@ -302,6 +302,7 @@ typedef union CosSemCtl_u
   {
   mutex.lock();
   count += amt;
+  cond.notify_all();
   mutex.unlock();
   }
 

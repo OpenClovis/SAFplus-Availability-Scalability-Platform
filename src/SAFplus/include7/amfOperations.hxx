@@ -6,11 +6,19 @@ namespace SAFplusAmf
   class Component;
   class ServiceUnit;
   class ServiceGroup;
-
   }
 
 namespace SAFplus
   {
+  namespace Rpc
+    {
+  namespace amfRpc
+      {
+      class amfRpc_Stub;
+      };
+    };
+
+
   enum class CompStatus
     {
     Uninstantiated = 0,
@@ -25,7 +33,10 @@ namespace SAFplus
 
   class AmfOperations
     {
-  public:
+  public: // Don't use directly
+    Rpc::amfRpc::amfRpc_Stub* amfInternalRpc;
+
+  public:  // Public API
     //? Get the current component state from the node on which it is running
     CompStatus getCompState(SAFplusAmf::Component* comp);
     void start(SAFplusAmf::ServiceGroup* sg,Wakeable& w = *((Wakeable*)nullptr));

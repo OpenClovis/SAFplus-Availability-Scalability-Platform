@@ -30,6 +30,14 @@ class amfRpc : public SAFplus::Rpc::RpcService {
 
   static const ::google::protobuf::ServiceDescriptor* descriptor();
 
+
+  // implements amfRpcImpl ----------------------------------------------
+  virtual void startComponent(const ::SAFplus::Rpc::amfRpc::StartComponentRequest* request,
+                       ::SAFplus::Rpc::amfRpc::StartComponentResponse* response);
+  virtual void stopComponent(const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
+                       ::SAFplus::Rpc::amfRpc::StopComponentResponse* response);
+
+  // implements amfRpc ------------------------------------------
   virtual void startComponent(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfRpc::StartComponentRequest* request,
                        ::SAFplus::Rpc::amfRpc::StartComponentResponse* response,
@@ -39,7 +47,6 @@ class amfRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfRpc::StopComponentResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
 
-  // implements Service ----------------------------------------------
 
   const ::google::protobuf::ServiceDescriptor* GetDescriptor();
   void CallMethod(const ::google::protobuf::MethodDescriptor* method,
@@ -65,8 +72,8 @@ class amfRpc_Stub : public amfRpc {
 
   inline SAFplus::Rpc::RpcChannel* channel() { return channel_; }
 
-  // implements amfRpc ------------------------------------------
 
+  // implements amfRpc ------------------------------------------
   void startComponent(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfRpc::StartComponentRequest* request,
                        ::SAFplus::Rpc::amfRpc::StartComponentResponse* response,
@@ -86,15 +93,12 @@ class amfRpcImpl : public amfRpc {
   amfRpcImpl();
   ~amfRpcImpl();
 
-  // implements amfRpcImpl 
-  void startComponent(SAFplus::Handle destination,
-                       const ::SAFplus::Rpc::amfRpc::StartComponentRequest* request,
-                       ::SAFplus::Rpc::amfRpc::StartComponentResponse* response,
-                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
-  void stopComponent(SAFplus::Handle destination,
-                       const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
-                       ::SAFplus::Rpc::amfRpc::StopComponentResponse* response,
-                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+
+  // implements amfRpcImpl ----------------------------------------------
+  void startComponent(const ::SAFplus::Rpc::amfRpc::StartComponentRequest* request,
+                       ::SAFplus::Rpc::amfRpc::StartComponentResponse* response);
+  void stopComponent(const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
+                       ::SAFplus::Rpc::amfRpc::StopComponentResponse* response);
 };
 
 }  // namespace amfRpc

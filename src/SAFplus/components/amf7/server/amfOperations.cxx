@@ -22,7 +22,6 @@ using namespace SAFplus::Rpc::amfRpc;
 extern Handle           nodeHandle; //? The handle associated with this node
 namespace SAFplus
   {
-
   // Move this service group and all contained elements to the specified state.
   void setAdminState(SAFplusAmf::ServiceGroup* sg,SAFplusAmf::AdministrativeState tgt)
     {
@@ -119,43 +118,49 @@ namespace SAFplus
       return CompStatus::Uninstantiated; 
       }
 
-    Handle nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
-
-    if (nodeHdl == nodeHandle)  // Handle this request locally
+    try
       {
-      int pid = comp->processId;
-      if (pid == 0)
+      Handle nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
+
+      if (nodeHdl == nodeHandle)  // Handle this request locally
         {
+        int pid = comp->processId;
+        if (pid == 0)
+          {
+          return CompStatus::Uninstantiated;
+          }
+        Process p(pid);
+        try
+          {
+          std::string cmdline = p.getCmdline();
+          // Some other process took that PID
+          // TODO: if (cmdline != comp->commandLine)  return CompStatus::Uninstantiated;
+          }
+        catch (ProcessError& pe)
+          {
+          return CompStatus::Uninstantiated;
+          }
+
+        // TODO: Talk to the process to discover its state...
+        return CompStatus::Instantiated;
+        }
+      else  // RPC call
+        {
+        logInfo("OP","CMP","Request component state from node %s", comp->serviceUnit.value->node.name.c_str());
         return CompStatus::Uninstantiated;
         }
-      Process p(pid);
-      try
-        {
-        std::string cmdline = p.getCmdline();
-        // Some other process took that PID
-        // TODO: if (cmdline != comp->commandLine)  return CompStatus::Uninstantiated;
-        }
-      catch (ProcessError& pe)
-        {
-        return CompStatus::Uninstantiated;
-        }
-
-      // TODO: Talk to the process to discover its state...
-      return CompStatus::Instantiated;
-
       }
-    else  // RPC call
+    catch (NameException& e)
       {
-      logInfo("OP","CMP","Request component state from node %s", comp->serviceUnit.value->node.name.c_str());
       return CompStatus::Uninstantiated;
       }
     }
 
   class StartCompResp:public SAFplus::Wakeable
     {
+    public:
       StartCompResp(SAFplus::Wakeable* w, SAFplusAmf::Component* comp): w(w), comp(comp) {};
       virtual ~StartCompResp(){};
-    public:
     SAFplus::Rpc::amfRpc::StartComponentResponse response;
     SAFplusAmf::Component* comp;
     SAFplus::Wakeable* w;
@@ -190,10 +195,10 @@ namespace SAFplus
       }
 
     Handle nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
+    SAFplusAmf::Instantiate* inst = comp->getInstantiate();
 
-    if (nodeHdl == nodeHandle)  // Handle this request locally
+    if (0) // (nodeHdl == nodeHandle)  // Handle this request locally
       {
-      SAFplusAmf::Instantiate* inst = comp->getInstantiate();
       assert(inst);
       Process p = executeProgram(inst->command.value, comp->commandEnvironment.value);
       comp->processId.value = p.pid;
@@ -202,7 +207,8 @@ namespace SAFplus
       }
     else  // RPC call
       {
-      logInfo("OP","CMP","Request component start on node %s", comp->serviceUnit.value->node.name.c_str());
+      logInfo("OP","CMP","Request launch component [%s] as [%s] on node [%s]", comp->name.c_str(),inst->command.value.c_str(),comp->serviceUnit.value->node.name.c_str());
+
 #if 0
       SAFplus::Rpc::RpcChannel channel(&safplusMsgServer, nodeHdl);
       channel->setMsgType(AMF_REQ_HANDLER_TYPE, AMF_REPLY_HANDLER_TYPE);
@@ -211,7 +217,11 @@ namespace SAFplus
       StartCompResp respData(w,comp);
       service.startComponent(INVALID_HDL, &req, &respData.response, respData);  // TODO: what happens in a RPC call timeout?
 #endif
-      //service.startComponent(&RpcDestination(iocAddress),&req, &respData.response, &respData);  // TODO: what happens in a RPC call timeout?
+      StartComponentRequest req;
+      req.set_name(comp->name.c_str());
+      req.set_command(inst->command.value.c_str());
+      StartCompResp* resp = new StartCompResp(&w,comp);
+      amfInternalRpc->startComponent(nodeHdl,&req, &resp->response,*resp);
       }
     }
 

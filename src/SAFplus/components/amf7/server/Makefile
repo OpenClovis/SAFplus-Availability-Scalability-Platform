@@ -30,7 +30,7 @@ SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../..
 SERVER_SRC := main.cxx amfcommon.cxx $(wildcard amfRpc/*.cc) $(wildcard amfRpc/*.cxx)
 
 #POLICY_ENV_SRC := $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx) $(wildcard ietfYangTypes/*.cxx) $(wildcard ENTITYSTATETCMIB/*.cxx)
-POLICY_ENV_SRC := amfOperations.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx)
+POLICY_ENV_SRC := amfOperations.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx) $(wildcard amfRpc/server/*.cxx)
 
 SERVER_OBJ := $(subst .cc,.o,$(subst .cxx,.o,$(notdir $(SERVER_SRC))))
 SERVER_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(SERVER_OBJ))
@@ -71,6 +71,10 @@ $(OBJ_DIR)/amfsvr/%.o: amfRpc/%.cc $(MakefileDepend) $(SERVER_H)
 	$(COMPILE_CPP) $@ $<
 
 $(OBJ_DIR)/amfsvr/%.o: amfRpc/%.cxx $(MakefileDepend) $(SERVER_H)
+	-mkdir -p $(OBJ_DIR)/amfsvr/
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/amfsvr/%.o: amfRpc/server/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
