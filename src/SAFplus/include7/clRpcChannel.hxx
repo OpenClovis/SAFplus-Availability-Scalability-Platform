@@ -30,7 +30,6 @@ namespace google {
       class MethodDescriptor;
       class Message;
     }
-
 }
 
 namespace SAFplus
@@ -75,7 +74,7 @@ namespace SAFplus
             //Register with msg server to handle RPC protocol
             void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 
-            void HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT *iocReq);
+            void HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT iocReq);
             void HandleResponse(SAFplus::Rpc::RpcMessage *msg);
 
             void setMsgType(ClWordT send, ClWordT reply); // Set the protocol type for underlying transports that require one.
