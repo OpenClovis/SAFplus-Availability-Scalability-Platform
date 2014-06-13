@@ -17,4 +17,23 @@ module unitTest
       type int64;
     }
   }
+  
+  list TestMultiKey
+  {
+    key "studentName studentCode";
+    description "Students' profile";
+
+    leaf studentName
+    {
+      type string;
+    }
+    leaf studentCode
+    {
+      type uint32;
+    }
+    leaf data
+    {
+      type int64;
+    }
+  }
 }
