@@ -236,7 +236,7 @@ void protobuf_AddDesc_rpcTest_2eproto() {
     "st.TestGetRpcMethod2Response\022r\n\021testGetR"
     "pcMethod3\022-.SAFplus.Rpc.rpcTest.TestGetR"
     "pcMethod3Request\032..SAFplus.Rpc.rpcTest.T"
-    "estGetRpcMethod3ResponseB\t\200\001\000\210\001\000\220\001\001", 915);
+    "estGetRpcMethod3ResponseB\t\200\001\000\210\001\000\220\001\000", 915);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "rpcTest.proto", &protobuf_RegisterTypes);
   TestGetRpcMethodRequest::default_instance_ = new TestGetRpcMethodRequest();

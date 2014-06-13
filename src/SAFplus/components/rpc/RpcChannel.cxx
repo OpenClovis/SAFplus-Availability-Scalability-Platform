@@ -20,12 +20,10 @@
 #include "clThreadApi.hxx"
 #include "SAFplusPBExt.pb.h"
 #include "SAFplusRpc.pb.h"
-#include "RpcWakeable.hxx"
 #include "clRpcService.hxx"
 #include "clRpcChannel.hxx"
 #include "clMsgServer.hxx"
 #include "clMsgApi.hxx"
-
 
 using namespace std;
 
@@ -112,8 +110,10 @@ namespace SAFplus
             msgRPCs[idx] = rpcReqEntry;
           }
 
-        void RpcChannel::HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT *iocReq)
+        void RpcChannel::HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT iocReq)
           {
+            RpcMessage rpcMsg;
+
             const google::protobuf::MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(msg->name());
             google::protobuf::Message* request_pb = service->GetRequestPrototype(method).New();
             google::protobuf::Message* response_pb = service->GetResponsePrototype(method).New();
@@ -122,16 +122,28 @@ namespace SAFplus
             //Lock handle request
             ScopedLock<Mutex> lock(mutex);
 
-            MsgRpcEntry *rpcReqEntry = new MsgRpcEntry();
-            rpcReqEntry->msgId = msg->id();
-            rpcReqEntry->response = response_pb;
-            rpcReqEntry->srcAddr = *iocReq;
+            service->CallMethod(method, INVALID_HDL, request_pb, response_pb, *((SAFplus::Wakeable*) nullptr));
 
-            msgRPCs[msg->id()] = rpcReqEntry;
+            rpcMsg.set_type(msgReplyType);
+            rpcMsg.set_id(msg->id());
+            rpcMsg.set_buffer(response_pb->SerializeAsString());
+
+            //TODO: Check remote to send or field member???
+
+            //Sending reply
+            try
+              {
+                const char* data = rpcMsg.SerializeAsString().c_str();
+                int size = rpcMsg.ByteSize();
+                svr->SendMsg(iocReq, (void *) data, size, msgReplyType);
+              }
+            catch (...)
+              {
+              }
 
             //TODO:
-            RpcWakeable wakeable(this, rpcReqEntry);
-            service->CallMethod(method, INVALID_HDL, request_pb, response_pb, wakeable);
+            //call wakeable->wake(1, (void *)response_pb);
+
           }
 
         void RpcChannel::HandleResponse(SAFplus::Rpc::RpcMessage *msg)
@@ -166,19 +178,18 @@ namespace SAFplus
 
             if (msgType == msgSendType)
               {
-                 HandleRequest(&rpcMsg, &srcAddr);
-                 std::cout<<"DEBUG SENT:"<<rpcMsg.DebugString()<<std::endl;
+                HandleRequest(&rpcMsg, srcAddr);
               }
             else if (msgType == msgReplyType)
               {
-                 HandleResponse(&rpcMsg);
-                 std::cout<<"DEBUG RECEIVED:"<<rpcMsg.DebugString()<<std::endl;
+                HandleResponse(&rpcMsg);
               }
             else
               {
-              logError("RPC","HDL", "Received invalid message type [%u] from [%d.%d]", msgType, srcAddr.iocPhyAddress.nodeAddress,srcAddr.iocPhyAddress.portId);
+                logError("RPC", "HDL", "Received invalid message type [%u] from [%d.%d]", msgType, srcAddr.iocPhyAddress.nodeAddress,
+                    srcAddr.iocPhyAddress.portId);
               }
-              
+
           }
 
       } /* namespace Rpc */

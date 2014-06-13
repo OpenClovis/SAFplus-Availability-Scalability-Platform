@@ -82,7 +82,7 @@ namespace SAFplus
             // Header stuff.
 
             // Prints signatures for all methods in the
-            void GenerateMethodSignatures(VirtualOrNon virtual_or_non, google::protobuf::io::Printer* printer);
+            void GenerateMethodSignatures(VirtualOrNon virtual_or_non, google::protobuf::io::Printer* printer, bool client = true, bool impl = true);
 
             // Generate the service abstract interface.
             void GenerateInterface(google::protobuf::io::Printer* printer);

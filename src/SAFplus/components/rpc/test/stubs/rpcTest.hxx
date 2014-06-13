@@ -30,6 +30,16 @@ class rpcTest : public SAFplus::Rpc::RpcService {
 
   static const ::google::protobuf::ServiceDescriptor* descriptor();
 
+
+  // implements rpcTestImpl ----------------------------------------------
+  virtual void testGetRpcMethod(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
+                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response);
+  virtual void testGetRpcMethod2(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request* request,
+                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response);
+  virtual void testGetRpcMethod3(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
+                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response);
+
+  // implements rpcTest ------------------------------------------
   virtual void testGetRpcMethod(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
                        ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
@@ -43,7 +53,6 @@ class rpcTest : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
 
-  // implements Service ----------------------------------------------
 
   const ::google::protobuf::ServiceDescriptor* GetDescriptor();
   void CallMethod(const ::google::protobuf::MethodDescriptor* method,
@@ -69,8 +78,8 @@ class rpcTest_Stub : public rpcTest {
 
   inline SAFplus::Rpc::RpcChannel* channel() { return channel_; }
 
-  // implements rpcTest ------------------------------------------
 
+  // implements rpcTest ------------------------------------------
   void testGetRpcMethod(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
                        ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
@@ -94,19 +103,14 @@ class rpcTestImpl : public rpcTest {
   rpcTestImpl();
   ~rpcTestImpl();
 
-  // implements rpcTestImpl 
-  void testGetRpcMethod(SAFplus::Handle destination,
-                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
-                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
-                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
-  void testGetRpcMethod2(SAFplus::Handle destination,
-                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request* request,
-                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response,
-                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
-  void testGetRpcMethod3(SAFplus::Handle destination,
-                       const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
-                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
-                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+
+  // implements rpcTestImpl ----------------------------------------------
+  void testGetRpcMethod(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
+                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response);
+  void testGetRpcMethod2(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request* request,
+                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response);
+  void testGetRpcMethod3(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
+                       ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response);
 };
 
 }  // namespace rpcTest

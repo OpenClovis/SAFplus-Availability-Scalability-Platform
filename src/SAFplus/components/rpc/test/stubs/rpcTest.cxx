@@ -44,28 +44,46 @@ const ::google::protobuf::ServiceDescriptor* rpcTest::GetDescriptor() {
   return rpcTest_descriptor_;
 }
 
-void rpcTest::testGetRpcMethod(SAFplus::Handle destination,
-                         const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest*,
-                         ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse*,
-                         SAFplus::Wakeable& wakeable) {
+void rpcTest::testGetRpcMethod(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest*,
+                         ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse*)
+{
   logError("RPC","SVR","Method testGetRpcMethod() not implemented.");
-  wakeable.wake(1, (void*)nullptr); // DO NOT removed this line!!! 
+}
+
+void rpcTest::testGetRpcMethod2(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request*,
+                         ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response*)
+{
+  logError("RPC","SVR","Method testGetRpcMethod2() not implemented.");
+}
+
+void rpcTest::testGetRpcMethod3(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request*,
+                         ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response*)
+{
+  logError("RPC","SVR","Method testGetRpcMethod3() not implemented.");
+}
+
+void rpcTest::testGetRpcMethod(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
+                     ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
+                     SAFplus::Wakeable& wakeable)
+{
+  logError("RPC","SVR","Method testGetRpcMethod() not implemented.");
 }
 
 void rpcTest::testGetRpcMethod2(SAFplus::Handle destination,
-                         const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request*,
-                         ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response*,
-                         SAFplus::Wakeable& wakeable) {
+                     const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request* request,
+                     ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response,
+                     SAFplus::Wakeable& wakeable)
+{
   logError("RPC","SVR","Method testGetRpcMethod2() not implemented.");
-  wakeable.wake(1, (void*)nullptr); // DO NOT removed this line!!! 
 }
 
 void rpcTest::testGetRpcMethod3(SAFplus::Handle destination,
-                         const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request*,
-                         ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response*,
-                         SAFplus::Wakeable& wakeable) {
+                     const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
+                     ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
+                     SAFplus::Wakeable& wakeable)
+{
   logError("RPC","SVR","Method testGetRpcMethod3() not implemented.");
-  wakeable.wake(1, (void*)nullptr); // DO NOT removed this line!!! 
 }
 
 void rpcTest::CallMethod(const ::google::protobuf::MethodDescriptor* method,
@@ -76,22 +94,16 @@ void rpcTest::CallMethod(const ::google::protobuf::MethodDescriptor* method,
   GOOGLE_DCHECK_EQ(method->service(), rpcTest_descriptor_);
   switch(method->index()) {
     case 0:
-      testGetRpcMethod(destination,
-             ::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest*>(request),
-             ::google::protobuf::down_cast< ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse*>(response),
-             wakeable);
+      testGetRpcMethod(::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse*>(response));
       break;
     case 1:
-      testGetRpcMethod2(destination,
-             ::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request*>(request),
-             ::google::protobuf::down_cast< ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response*>(response),
-             wakeable);
+      testGetRpcMethod2(::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response*>(response));
       break;
     case 2:
-      testGetRpcMethod3(destination,
-             ::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request*>(request),
-             ::google::protobuf::down_cast< ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response*>(response),
-             wakeable);
+      testGetRpcMethod3(::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request*>(request),
+             ::google::protobuf::down_cast< ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response*>(response));
       break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
@@ -142,26 +154,23 @@ rpcTest_Stub::~rpcTest_Stub() {
   if (owns_channel_) delete channel_;
 }
 
-void rpcTest_Stub::testGetRpcMethod(SAFplus::Handle destination,
+void rpcTest_Stub::testGetRpcMethod(SAFplus::Handle dest,
                               const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
                               ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
                               SAFplus::Wakeable& wakeable) {
-  channel_->CallMethod(descriptor()->method(0),
-                       destination, request, response, wakeable);
+  channel_->CallMethod(descriptor()->method(0), dest, request, response, wakeable);
 }
-void rpcTest_Stub::testGetRpcMethod2(SAFplus::Handle destination,
+void rpcTest_Stub::testGetRpcMethod2(SAFplus::Handle dest,
                               const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request* request,
                               ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response,
                               SAFplus::Wakeable& wakeable) {
-  channel_->CallMethod(descriptor()->method(1),
-                       destination, request, response, wakeable);
+  channel_->CallMethod(descriptor()->method(1), dest, request, response, wakeable);
 }
-void rpcTest_Stub::testGetRpcMethod3(SAFplus::Handle destination,
+void rpcTest_Stub::testGetRpcMethod3(SAFplus::Handle dest,
                               const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
                               ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
                               SAFplus::Wakeable& wakeable) {
-  channel_->CallMethod(descriptor()->method(2),
-                       destination, request, response, wakeable);
+  channel_->CallMethod(descriptor()->method(2), dest, request, response, wakeable);
 }
 
 }  // namespace rpcTest
