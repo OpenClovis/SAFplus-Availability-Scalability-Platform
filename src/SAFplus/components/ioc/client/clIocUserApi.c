@@ -167,7 +167,6 @@ static ClRcT clIocReplicastGet(ClIocPortT portId, ClIocAddressT **pAddressList, 
 
 static ClOsalMutexT iocReassembleLock;
 //ReliableIoc :receiver ack lock
-static ClOsalMutexT iocAcklock;
 static ClJobQueueT iocFragmentJobQueue;
 static struct hashStruct *iocReassembleHashTable[IOC_REASSEMBLE_HASH_SIZE];
 static ClUint64T iocReassembleCurrentTimerId;
@@ -179,8 +178,6 @@ typedef struct ClIocReassembleTimerKey
     ClIocReassembleKeyT key;
     ClUint64T timerId;
     ClTimerHandleT reassembleTimer;
-    //ReliableIoc : receiver ack timer
-    ClTimerHandleT TimerACKHdl;
 }ClIocReassembleTimerKeyT;
 
 typedef struct ClIocReassembleNode
@@ -202,9 +199,11 @@ typedef struct ClIocReassembleNode
     ClUint32T messageId;
     ClUint32T lastAckSync;
     ClBoolT isReliable;
+    ClTimerHandleT TimerACKHdl;
     ClFragmentListHeadT *receiverLossList;
     ClIocPortT commPort;
     ClIocAddressT srcAddress;
+    ClUint32T receiverStatus;
 }ClIocReassembleNodeT;
 
 typedef struct ClIocFragmentNode
@@ -284,6 +283,10 @@ static ClIocNeighborListT gClIocNeighborList = {
  *  RELIABLE IOC
  ****************/
 #ifdef RELIABLE_IOC
+#define CL_RELIABLE_IOC_ACK 2
+#define CL_RELIABLE_IOC_REASSEMBLE 1
+#define CL_RELIABLE_IOC_RECEIVE 0
+
 static ClOsalMutexT iocSenderLock;
 #define CL_RETRANMISSION_PRIORITY CL_IOC_HIGH_PRIORITY
 #define CL_RETRANMISSION_TIMEOUT 200
@@ -1557,7 +1560,7 @@ ClRcT clIocSendWithXportRelayReliable(ClIocCommPortHandleT commPortHandle,
 
 #define COUNT_TO_TRIGGER_RESEND 10
 #define RESEND_COUNT 3
-#define WAIT_LAST_ACK_INTERVAL 4000 // 4 ms
+#define WAIT_LAST_ACK_INTERVAL 50000 // 5 ms
         //ReliableIoc : waiting for last fragment ack , resend all unack fragment to receiver
         if (isReliable == CL_TRUE)
         {
@@ -3437,7 +3440,7 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     userResendTimerExpiry.tsMilliSec = 0;
     userResendTimerExpiry.tsSec = 1;
     ackTimerExpiry.tsSec = 0;
-    ackTimerExpiry.tsMilliSec = 6;
+    ackTimerExpiry.tsMilliSec = 8;
 
     retCode = clIocNeighCompsInitialize(gIsNodeRepresentative);
     if(retCode != CL_OK)
@@ -3535,8 +3538,6 @@ ClRcT clIocLibInitialize(ClPtrT pConfig)
     rc = clOsalMutexInit(&gClIocMcastMutex);
     CL_ASSERT(rc == CL_OK);
     rc = clOsalMutexInit(&iocReassembleLock);
-    CL_ASSERT(rc == CL_OK);
-    rc = clOsalMutexInit(&iocAcklock);
     CL_ASSERT(rc == CL_OK);
     rc = clOsalMutexInit(&iocSenderLock);
         CL_ASSERT(rc == CL_OK);
@@ -3690,11 +3691,32 @@ static ClRcT __iocReassembleTimer(void *key)
     //remove ack timer
     if(*(&node->isReliable)==CL_TRUE)
     {
-        if (clTimerCheckAndDelete(&timerKey->TimerACKHdl) == CL_OK)
+        ClRcT rc;
+        int count = 0;
+        do
         {
-            clHeapFree(node->timerKey->TimerACKHdl);
-            node->timerKey->TimerACKHdl=NULL;
-        }
+            count++;
+            usleep(4000);
+            rc = clTimerCheckAndDelete(&node->TimerACKHdl);
+            if( rc == CL_OK)
+            {
+                clHeapFree(&node->TimerACKHdl);
+                node->TimerACKHdl=NULL;
+               clLogDebug("IOC", "Rel", "remove Ack timer successful");
+            }
+            else
+            {
+                if(count%100 ==0)
+                {
+                    clLogDebug("IOC", "Rel", "remove Ack error rc = %#x",rc);
+                }
+                if(count==100)
+                {
+                    clLogDebug("IOC", "Rel", "remove Ack totally error rc = %#x",rc);
+                    break;
+                }
+            }
+        }while(rc!=CL_OK);
         destroyNodes(&node->receiverLossList);
     }
     node->timerKey = NULL; /* reset even if freeing parent memory for GOD's debugging :) */
@@ -3724,6 +3746,7 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
     ClRcT retCode = CL_IOC_RC(IOC_MSG_QUEUED);
     ClRbTreeT *iter = NULL;
     ClUint32T len = 0;
+
     lastMessageId=node->messageId;
     lastMessageNode=node->srcAddress.iocPhyAddress.nodeAddress;
     if(message)
@@ -3735,68 +3758,61 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
         rc = clBufferCreate(&msg);
         CL_ASSERT(rc == CL_OK);
     }
-    while( (iter = clRbTreeMin(&node->reassembleTree)) )
-    {
-        ClIocFragmentNodeT *fragNode = CL_RBTREE_ENTRY(iter, ClIocFragmentNodeT, tree);
-        if(clBufferAppendHeap(msg, fragNode->fragBuffer, fragNode->fragLength) != CL_OK)
-        {
-            rc = clBufferNBytesWrite(msg, fragNode->fragBuffer, fragNode->fragLength);
+    while ((iter = clRbTreeMin(&node->reassembleTree))) {
+        ClIocFragmentNodeT *fragNode =
+                CL_RBTREE_ENTRY(iter, ClIocFragmentNodeT, tree);
+        if (clBufferAppendHeap(msg, fragNode->fragBuffer,
+                fragNode->fragLength) != CL_OK) {
+            rc = clBufferNBytesWrite(msg, fragNode->fragBuffer,
+                    fragNode->fragLength);
             __iocFragmentPoolPut(fragNode->fragBuffer, fragNode->fragLength);
-        }
-        else
-        {
+        } else {
             /*
              * Drop reference instead of recyling the stitched heap.
              */
             clHeapFree(fragNode->fragBuffer);
-        }
-        CL_ASSERT(rc == CL_OK);
-        clLogTrace("IOC", "REASSEMBLE", "Reassembled fragment offset [%d], len [%d]",
-                   fragNode->fragOffset, fragNode->fragLength);
+        }CL_ASSERT(rc == CL_OK);
+        clLogTrace(
+                "IOC",
+                "REASSEMBLE",
+                "Reassembled fragment offset [%d], len [%d]", fragNode->fragOffset, fragNode->fragLength);
         clRbTreeDelete(&node->reassembleTree, iter);
         clHeapFree(fragNode);
     }
-    hashDel(&node->hash);
-
-
+    if(*(&node->isReliable)==CL_TRUE)
+    {
+        int count = 0;
+        do
+        {
+            count++;
+            usleep(100);
+            rc = clTimerCheckAndDelete(&node->TimerACKHdl);
+            if( rc == CL_OK)
+            {
+                clLogDebug("IOC", "Rel", "remove Ack timer successful");
+                node->TimerACKHdl=NULL;
+            }
+            else
+            {
+                if(count%100 ==0)
+                {
+                    clLogDebug("IOC", "Rel", "remove Ack error rc = %#x with status [%d]",rc,node->receiverStatus);
+                }
+                if(count==2000)
+                {
+                    clLogDebug("IOC", "Rel", "remove Ack totally error rc = %#x",rc);
+                    break;
+                }
+            }
+       }while(rc!=CL_OK);
+    }
     /*
      * Atomically check and delete timer if not running.
      */
     if(clTimerCheckAndDelete(&node->timerKey->reassembleTimer) == CL_OK)
     {
-        if(*(&node->isReliable)==CL_TRUE)
-        {
-            //send last fragment ack to sender
-            clOsalMutexLock(&iocAcklock);
-            ClIocCommPortT *commPort = clIocGetPort(node->commPort);
-            ClInt32T ack = node->ackSync;
-            receiverAckSend(commPort, &node->srcAddress, node->messageId, ack);
-            //remove ack timer
-            if (clTimerCheckAndDelete(&node->timerKey->TimerACKHdl) == CL_OK)
-            {
-                clLogDebug("IOC", "Rel", "remove Ack timer successful");
-                clHeapFree(node->timerKey->TimerACKHdl);
-                node->timerKey->TimerACKHdl = NULL;
-            }
-            else
-            {
-                if (clTimerDelete(&node->timerKey->TimerACKHdl) == CL_OK)
-                {
-                    clLogDebug("IOC", "Rel", "remove Ack timer successful");
-                    clHeapFree(node->timerKey->TimerACKHdl);
-                    node->timerKey->TimerACKHdl = NULL;
-                }
-            }
-            clHeapFree(node->timerKey);
-            node->timerKey = NULL;
-            destroyNodes(&node->receiverLossList);
-            clOsalMutexUnlock(&iocAcklock);
-        }
-        else
-        {
-            clHeapFree(node->timerKey);
-            node->timerKey = NULL;
-        }
+        clHeapFree(node->timerKey);
+        node->timerKey = NULL;
     }
     clBufferLengthGet(msg, &len);
     if(!len)
@@ -3923,8 +3939,8 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
         /* sync. reassemble success */
         retCode = CL_OK; 
     }
+    hashDel(&node->hash);
     clHeapFree(node);
-    clLogDebug("IOC", "Rel", "reassemble message successful");
     return retCode;
 }
 
@@ -4001,15 +4017,16 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
             //create ack timer
             rc = clTimerCreate(ackTimerExpiry, CL_TIMER_REPETITIVE,
                     CL_TIMER_SEPARATE_CONTEXT, receiverACKTrigger,
-                    (void *) timerKey, &timerKey->TimerACKHdl);
+                    (void *) timerKey, &node->TimerACKHdl);
             if(rc==CL_OK)
             {
                 clLogDebug("IOC", "Rel", "created ack timer successful");
             }
             node->srcAddress.iocPhyAddress.nodeAddress=fragmentJob->fragHeader.header.srcAddress.iocPhyAddress.nodeAddress;
             node->srcAddress.iocPhyAddress.portId=fragmentJob->fragHeader.header.srcAddress.iocPhyAddress.portId;
-            clTimerStart(timerKey->TimerACKHdl);
+            clTimerStart(node->TimerACKHdl);
         }
+        node->receiverStatus=CL_RELIABLE_IOC_RECEIVE;
         hashAdd(iocReassembleHashTable, hashKey, &node->hash);
         clTimerStart(node->timerKey->reassembleTimer);
     }
@@ -4030,8 +4047,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
             clLogDebug("FRAG", "RECV", "loss fragment detected with [%d] fragment from [%d] to [%d]",loss,begin,end);
             ClUint32T count;
             count=lossListInsertRange(&node->receiverLossList,begin,end);
-            clLogDebug("FRAG", "RECV", "debug count [%d] loss total [%d] ",count,node->lossTotal);
-            node->lossTotal += count;
+            node->lossTotal =lossListCount(&node->receiverLossList);
             node->ackSync = fragmentJob->fragHeader.fragId;
             //send NAK to Sender
             ClIocAddressT srcAddress = {{0}};
@@ -4040,15 +4056,15 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
             receiverNAKTriggerDirect(node->messageId,begin,end,&srcAddress,node->commPort);
         } else if (loss < 0)
         {
-            clLogDebug("IOC", "Rel", "receive loss fragment [%d]. Remove fragment out of receiver loss list",fragmentJob->fragHeader.fragId);
             ClBoolT ret= lossListDelete(&node->receiverLossList, fragmentJob->fragHeader.fragId);
             if (ret == CL_TRUE)
             {
-                (node->lossTotal)-=1;
+                node->lossTotal =lossListCount(&node->receiverLossList);
+                clLogDebug("IOC", "Rel", "receive loss fragment [%d]. Remove fragment out of receiver loss list.",fragmentJob->fragHeader.fragId);
+
             }
             else
             {
-                clLogDebug("IOC", "Rel", "receive duplicate fragment [%d] . Ignore this fragment ",fragmentJob->fragHeader.fragId);
                 return CL_IOC_RC(IOC_MSG_QUEUED);
             }
         }else
@@ -4072,8 +4088,23 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
             //trigger to send last fragment  ack and stop ack timer 
             if (node->isReliable == CL_TRUE)
             {
-                receiverLastACKTrigger(node);
-                clTimerStop(node->timerKey->TimerACKHdl);
+                ClUint32T count =0 ;
+                do
+                {
+                    count++;
+                    if(count == 10)
+                    {
+                        clLogDebug("IOC", "Rel", "waiting ack trigger done");
+                    }
+                    usleep(1000);
+                    if(count==500)
+                    {
+                        break;
+                        clLogDebug("IOC", "Rel", "waiting ack trigger faile");
+                    }
+                }
+                while(node->receiverStatus==CL_RELIABLE_IOC_ACK);
+                node->receiverStatus=CL_RELIABLE_IOC_REASSEMBLE;
             }
             retCode = __iocReassembleDispatch(fragmentJob->xportType[0] ? 
                                               fragmentJob->xportType : NULL,
@@ -4095,8 +4126,23 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
         //trigger to send last fragment  ack and stop ack timer 
         if (node->isReliable == CL_TRUE)
         {
-            receiverLastACKTrigger(node);
-            clTimerStop(node->timerKey->TimerACKHdl);
+            ClUint32T count =0 ;
+            do
+            {
+                count++;
+                if(count == 10)
+                {
+                    clLogDebug("IOC", "Rel", "waiting ack trigger done");
+                }
+                usleep(1000);
+                if(count==500)
+                {
+                    break;
+                    clLogDebug("IOC", "Rel", "waiting ack trigger faile");
+                }
+            }
+            while(node->receiverStatus==CL_RELIABLE_IOC_ACK);
+            node->receiverStatus=CL_RELIABLE_IOC_REASSEMBLE;
         }
         retCode = __iocReassembleDispatch(fragmentJob->xportType[0] ? 
                                           fragmentJob->xportType : NULL,
@@ -5501,7 +5547,11 @@ ClRcT receiverAckSend(ClIocCommPortT *commPort, ClIocAddressT *dstAddress,
         ClUint32T messageId, ClUint32T fragmentId)
 {
     ClRcT rc;
-    clLogDebug("IOC", "Rel", "sending ack fragment [%d] to sender address [%d] port [%d]" ,fragmentId,dstAddress->iocPhyAddress.nodeAddress,dstAddress->iocPhyAddress.portId);
+    clLogDebug("IOC", "Rel", "sending ack fragment [%d] to sender address [%d] messageid [%d]" ,fragmentId,dstAddress->iocPhyAddress.nodeAddress,messageId);
+    if(fragmentId<0)
+    {
+        return CL_OK;
+    }
     ClBufferHandleT message = 0;
     clBufferCreate(&message);
     ClUint32T msgId = htonl(messageId);
@@ -5509,15 +5559,13 @@ ClRcT receiverAckSend(ClIocCommPortT *commPort, ClIocAddressT *dstAddress,
     rc = clBufferNBytesWrite(message, (ClUint8T *) &msgId, sizeof(ClUint32T));
     if (rc != CL_OK)
     {
-        clLogError("IOC", "Rel",
-                "clBufferNBytesWrite failed with rc = %#x", rc);
+        clLogError("IOC", "Rel","clBufferNBytesWrite failed with rc = %#x", rc);
         goto out_delete;
     }
     rc = clBufferNBytesWrite(message, (ClUint8T *) &frgId, sizeof(ClUint32T));
     if (rc != CL_OK)
     {
-        clLogError("IOC", "Rel",
-                "clBufferNBytesWrite failed with rc = %#x", rc);
+        clLogError("IOC", "Rel","clBufferNBytesWrite failed with rc = %#x", rc);
         goto out_delete;
     }
     ClIocSendOptionT sendOption;
@@ -5552,103 +5600,85 @@ ClRcT receiverNakSend(ClIocCommPortT *commPort, ClIocAddressT *dstAddress,
 
 ClRcT receiverACKTrigger(void* key)
 {
-    clOsalMutexLock(&iocAcklock);
+
     ClUint32T ack = 0;
     ClIocReassembleNodeT *node = NULL;
     ClIocReassembleTimerKeyT *timerKey = key;
-    ClTimerHandleT timer = NULL;
     if(key==NULL)
     {
         clLogDebug("IOC", "Rel", "receiverACKTrigger : timer is deleted.");
-        clOsalMutexUnlock(&iocReassembleLock);
         return CL_OK;
     }
     node = __iocReassembleNodeFind(&timerKey->key, timerKey->timerId);
     if (!node)
     {
-        clLogDebug("IOC", "Rel", "receiverACKTrigger : no node found");
-        if( (timer = timerKey->TimerACKHdl))
-        {
-            timerKey->TimerACKHdl = 0;
-        }
-        if(timer)
-        {
-            clTimerDelete(&timer);
-        }
-        clHeapFree(timerKey);
+        clLogDebug("IOC", "Rel", "receiverACKTrigger : no node found.");
         goto error;
     }
-    else if (node->lossTotal > 0)
+    clLogDebug("IOC", "Rel","ack triger debug of message id [%d] status [%d]",node->messageId,node->receiverStatus);
+    if(node->receiverStatus==CL_RELIABLE_IOC_REASSEMBLE)
     {
-        ack = lossListGetFirst(node->receiverLossList)-1;
-        if(ack<= (node->ackSync) - 3 && node->lastAckSync==ack)
+        clLogDebug("IOC", "Rel","ack triger : reassembling message. break ");
+        return CL_OK;
+    }
+    node->receiverStatus=CL_RELIABLE_IOC_ACK;
+    if (node->lossTotal > 0)
+    {
+        ack = lossListGetFirst(node->receiverLossList);
+        if(ack==0)
+        {
+            clLogDebug("IOC", "Rel","get loss fragment false. return ");
+            return CL_OK;
+        }
+        ack=ack-1;
+        if(ack<=(node->ackSync) - 3 && node->lastAckSync==ack)
         {
             //trigger send NAK to sender
             ClBufferHandleT message = 0;
             clBufferCreate(&message);
             ClRcT rc;
-            clLogDebug("IOC", "Rel", "check loss list to send loss fragment. ack [%d] las ack [%d] ackSync [%d]", ack, node->lastAckSync, node->ackSync);
-            ClFragmentListHeadT* r = node->receiverLossList;
-            if (!r)
-            {
-                clLogDebug("IOC", "Rel","receiver loss list NULL");
-                rc = clBufferDelete(&message);
-                clOsalMutexUnlock(&iocAcklock);
-                return CL_OK;
-            }
+            //clLogDebug("IOC", "Rel", "check loss list to send loss fragment. ack [%d] las ack [%d] ackSync [%d]", ack, node->lastAckSync, node->ackSync);
             ClUint32T msgId = htonl(node->messageId);
             rc = clBufferNBytesWrite(message, (ClUint8T*) &msgId,sizeof(ClUint32T));
-            if (rc != CL_OK)
-            {
-                clLogDebug("IOC", "Rel","clBufferNBytesWrite messageId [%d] failed with rc = %#x",msgId,rc);
-                rc = clBufferDelete(&message);
-                clOsalMutexUnlock(&iocAcklock);
-                return CL_OK;
-            }
-            while (r != NULL)
-            {
-                ClUint32T fragment = htonl(r->fragmentID);
-                rc = clBufferNBytesWrite(message, (ClUint8T *) &fragment,sizeof(ClUint32T));
-                if (rc != CL_OK)
-                {
-                    clLogDebug("IOC", "Rel", "clBufferNBytesWrite failed with rc = %#x", rc);
-                    clOsalMutexUnlock(&iocAcklock);
-                    rc = clBufferDelete(&message);
-                    return CL_OK;
-                }
-                break;
-                r = r->pNext;
-            }
+            ClUint32T fragment = htonl(ack+1);
+            rc = clBufferNBytesWrite(message, (ClUint8T *) &fragment,sizeof(ClUint32T));
             ClIocCommPortT *commPort = clIocGetPort(node->commPort);
-            clLogDebug("IOC", "Rel","There are [%d] fragment loss to send",lossListCount(&node->receiverLossList));
             ClIocAddressT srcAddress = {{0}};
             srcAddress.iocPhyAddress.nodeAddress = node->srcAddress.iocPhyAddress.nodeAddress;
             srcAddress.iocPhyAddress.portId = node->srcAddress.iocPhyAddress.portId;
             receiverNakSend(commPort, &srcAddress, message);
-            node->lastAckSync=0;
-            clOsalMutexUnlock(&iocAcklock);
             rc = clBufferDelete(&message);
+            node->receiverStatus=CL_RELIABLE_IOC_RECEIVE;
             return CL_OK;
         }
+        else //if (node->lastAckSync==ack)
+        {
+            ClIocCommPortT *commPort = clIocGetPort(node->commPort);
+            ClIocAddressT srcAddress = {{0}};
+            srcAddress.iocPhyAddress.nodeAddress = node->srcAddress.iocPhyAddress.nodeAddress;
+            srcAddress.iocPhyAddress.portId = node->srcAddress.iocPhyAddress.portId;
+            node->lastAckSync=ack;
+            receiverAckSend(commPort, &srcAddress, node->messageId, ack);
+            node->receiverStatus=CL_RELIABLE_IOC_RECEIVE;
+            return CL_OK;
 
+        }
     }
     else
     {
             ack = node->ackSync;
-            if(ack==node->lastAckSync)
-            {
-                clOsalMutexUnlock(&iocAcklock);
-                return CL_OK;
-            }
+            node->lastAckSync=ack;
+            ClIocCommPortT *commPort = clIocGetPort(node->commPort);
+            ClIocAddressT srcAddress = {{0}};
+            srcAddress.iocPhyAddress.nodeAddress = node->srcAddress.iocPhyAddress.nodeAddress;
+            srcAddress.iocPhyAddress.portId = node->srcAddress.iocPhyAddress.portId;
+            receiverAckSend(commPort, &srcAddress, node->messageId, ack);
+            node->receiverStatus=CL_RELIABLE_IOC_RECEIVE;
+            return CL_OK;
+
     }
-    node->lastAckSync=ack;
-    ClIocCommPortT *commPort = clIocGetPort(node->commPort);
-    ClIocAddressT srcAddress = {{0}};
-    srcAddress.iocPhyAddress.nodeAddress = node->srcAddress.iocPhyAddress.nodeAddress;
-    srcAddress.iocPhyAddress.portId = node->srcAddress.iocPhyAddress.portId;
-    receiverAckSend(commPort, &srcAddress, node->messageId, ack);
     error:
-    clOsalMutexUnlock(&iocAcklock);
+    node->receiverStatus=CL_RELIABLE_IOC_RECEIVE;
     return CL_OK;
 }
 
