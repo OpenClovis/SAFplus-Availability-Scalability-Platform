@@ -39,11 +39,13 @@ namespace SAFplusI
     public:
       GroupMessageTypeT     messageType;
       GroupRoleNotifyTypeT  roleType;
+      bool                  force; //When role type change, force receiver to apply new roles without checking
       char                  data[1]; //Not really 1, it will be place on larger memory
       GroupMessageProtocol()
       {
         messageType = GroupMessageTypeT::MSG_UNDEFINED;
         roleType = GroupRoleNotifyTypeT::ROLE_UNDEFINED;
+        force  = false;
       }
   };
 

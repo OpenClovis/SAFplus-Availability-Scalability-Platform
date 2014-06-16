@@ -201,8 +201,8 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
     if(activeElected == instance->myInformation.id)
     {
       assert(activeElected != standbyElected);
-      instance->setActive(activeElected);
-      instance->setStandby(standbyElected);
+      instance->activeEntity = activeElected;
+      instance->standbyEntity = standbyElected;
       if(instance->stickyMode)
       {
         uint capabilities = 0;
@@ -245,8 +245,8 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
        if(instance->getActive() != activeElected || instance->getStandby() != standbyElected)
        {
          assert(activeElected != standbyElected);
-         instance->setActive(activeElected);
-         instance->setStandby(standbyElected);
+         instance->activeEntity = activeElected;
+         instance->standbyEntity = standbyElected;
          if(instance->stickyMode)
          {
            uint capabilities = 0;
@@ -353,6 +353,28 @@ void SAFplus::Group::roleNotificationHandle(SAFplusI::GroupMessageProtocol *rxMs
     case GroupRoleNotifyTypeT::ROLE_ACTIVE:
     {
       EntityIdentifier other = *(EntityIdentifier *)rxMsg->data;
+      if(rxMsg->force)
+      {
+        logInfo("GMS","ROLENOTI","Role change forcing...");
+        isElectionFinished = true;
+        activeEntity = other;
+        if(stickyMode)
+        {
+          uint capabilities = 0;
+          if(activeEntity != INVALID_HDL)
+          {
+            capabilities = getCapabilities(activeEntity);
+            capabilities |= SAFplus::Group::CRED_ACTIVE_BIT;
+            setCapabilities(capabilities,activeEntity);
+          }
+        }
+        /* If some one are waiting the election, waking up now */
+        if(isElectionRunning && wakeable)
+        {
+          isElectionRunning = false;
+          wakeable->wake(ELECTION_FINISH_SIG);
+        }
+      }
       if(other != getActive())
       {
         logError("GMS","ROLENOTI","Mismatching active role [%d,%d]",getActive().getNode(),other.getNode());
@@ -426,7 +448,7 @@ void SAFplus::Group::electionRequestHandle(SAFplusI::GroupMessageProtocol *rxMsg
 /**
  * Fill information and call message server to send
  */
-void SAFplus::Group::fillSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType)
+void SAFplus::Group::fillSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType,bool forcing)
 {
   int msgLen = 0;
   int msgDataLen = 0;
@@ -450,6 +472,7 @@ void SAFplus::Group::fillSendMessage(void* data, SAFplusI::GroupMessageTypeT msg
   GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)buff;
   sndMessage->messageType = msgType;
   sndMessage->roleType = roleType;
+  sndMessage->force = forcing;
   memcpy(sndMessage->data,data,msgDataLen);
   sendNotification((void *)sndMessage,msgLen,msgSendMode);
 }
@@ -855,7 +878,23 @@ EntityIdentifier SAFplus::Group::getActive(void) const
  */
 void SAFplus::Group::setActive(EntityIdentifier id)
 {
+  /* Stop all running election */
+  isElectionRunning = false;
+  isElectionFinished = true;
+  /* Set the active entity as user expectation */
   activeEntity = id;
+  if(stickyMode)
+  {
+    uint capabilities = 0;
+    if(activeEntity != INVALID_HDL)
+    {
+      capabilities = getCapabilities(activeEntity);
+      capabilities |= SAFplus::Group::CRED_ACTIVE_BIT;
+      setCapabilities(capabilities,activeEntity);
+    }
+  }
+  /* Announce role change */
+  fillSendMessage(&activeEntity,GroupMessageTypeT::MSG_ROLE_NOTIFY,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_ACTIVE, true);
 }
 /**
  * API to set group standby entity
