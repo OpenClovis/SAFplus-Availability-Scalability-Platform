@@ -69,38 +69,39 @@ int main(void)
   {
     ClIocAddressT iocDest;
 
-    ClRcT rc = CL_OK;
+    logInitialize();
+    logEchoToFd = 1;  // echo logs to stdout for debugging
+    logSeverity = LOG_SEV_MAX;
 
-    /*
-     * initialize SAFplus libraries
-     */
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
-        clBufferInitialize(NULL)) != CL_OK)
+    utilsInitialize();
+
+    ClRcT rc;
+    // initialize SAFplus6 libraries
+    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
       {
-
+      assert(0);
       }
 
     rc = clIocLibInitialize(NULL);
-    assert(rc==CL_OK);
 
     iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
     char helloMsg[] = "Hello world ";
 
-    SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request;
-    SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res;
+    SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request1;
+    SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res1;
 
-    request.set_name("myNameRequest1");
+    request1.set_name("myNameRequest1");
 
     SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request request2;
     SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response res2;
 
-    request.set_name("myNameRequest2");
+    request2.set_name("myNameRequest2");
 
     SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request request3;
     SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response res3;
 
-    request.set_name("myNameRequest3");
+    request3.set_name("myNameRequest3");
     /*
      * ??? msgClient or safplusMsgServer
      */
@@ -122,11 +123,11 @@ int main(void)
         SAFplus::Handle hdl(TransientHandle,1,IOC_PORT_SERVER,CL_IOC_BROADCAST_ADDRESS);
         ClIocAddressT addr = getAddress(hdl);
 
-        service->testGetRpcMethod(hdl, &request, &res, wakeable);
+        service->testGetRpcMethod(hdl, &request1, &res1, wakeable);
         service->testGetRpcMethod2(hdl, &request2, &res2, wakeable);
         service->testGetRpcMethod3(hdl, &request3, &res3, wakeable);
 
-        sleep(3);
+        sleep(1);
       }
 
   }

@@ -35,18 +35,20 @@ ClBoolT gIsNodeRepresentative = CL_TRUE;
 int
 main(void)
 {
-    ClRcT rc = CL_OK;
+    logInitialize();
+    logEchoToFd = 1;  // echo logs to stdout for debugging
+    logSeverity = LOG_SEV_MAX;
 
-    /*
-     * initialize SAFplus libraries
-     */
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
-                    clBufferInitialize(NULL)) != CL_OK)
-    {
+    utilsInitialize();
 
-    }
+    ClRcT rc;
+    // initialize SAFplus6 libraries
+    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+      {
+      assert(0);
+      }
 
-    clIocLibInitialize(NULL);
+    rc = clIocLibInitialize(NULL);
 
     //Msg server listening
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);

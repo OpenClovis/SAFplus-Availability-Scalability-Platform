@@ -62,7 +62,7 @@ void protobuf_AddDesc_SAFplusPBExt_2eproto() {
     "e/protobuf/descriptor.proto:.\n\006c_type\022\035."
     "google.protobuf.FieldOptions\030\352\007 \001(\t:2\n\nc"
     "_existing\022\035.google.protobuf.FieldOptions"
-    "\030\353\007 \001(\tB\t\200\001\001\210\001\000\220\001\001", 178);
+    "\030\353\007 \001(\tB\t\200\001\000\210\001\000\220\001\001", 178);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "SAFplusPBExt.proto", &protobuf_RegisterTypes);
   ::google::protobuf::internal::ExtensionSet::RegisterExtension(

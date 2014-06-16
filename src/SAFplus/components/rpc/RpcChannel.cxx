@@ -39,8 +39,6 @@ namespace SAFplus
             dest.iocPhyAddress.nodeAddress = 0;
             dest.iocPhyAddress.portId = 0;
             msgId = 0;
-//            svr->RegisterHandler(CL_IOC_RMD_SYNC_REQUEST_PROTO, this, NULL);
-//            svr->RegisterHandler(CL_IOC_RMD_ASYNC_REQUEST_PROTO, this, NULL);
           }
 
         //Client
@@ -49,8 +47,6 @@ namespace SAFplus
           {
             msgId = 0;
             service = NULL;
-//            svr->RegisterHandler(CL_IOC_RMD_SYNC_REPLY_PROTO, this, NULL);
-//            svr->RegisterHandler(CL_IOC_RMD_ASYNC_REPLY_PROTO, this, NULL);
           }
 
 
@@ -67,21 +63,28 @@ namespace SAFplus
             // TODO Auto-generated destructor stub
           }
 
+        /*
+         * Packed request message and send to server side
+         */
         void RpcChannel::CallMethod(const google::protobuf::MethodDescriptor* method, SAFplus::Handle destination,
             const google::protobuf::Message* request, google::protobuf::Message* response, SAFplus::Wakeable &wakeable)
           {
-            SAFplus::Rpc::RpcMessage rpcMsg;
+            string strMsgReq;
+            SAFplus::Rpc::RpcMessage rpcMsgReq;
             ClIocAddressT overDest;
-
-            int64_t idx = msgId++;
 
             //Lock sending and record a RPC
             ScopedLock<Mutex> lock(mutex);
+            int64_t idx = msgId++;
+            //Unlock
+            mutex.unlock();
 
-            rpcMsg.set_type(msgSendType);
-            rpcMsg.set_id(idx);
-            rpcMsg.set_name(method->name());
-            rpcMsg.set_buffer(request->SerializeAsString());
+            rpcMsgReq.set_type(msgSendType);
+            rpcMsgReq.set_id(idx);
+            rpcMsgReq.set_name(method->name());
+
+            request->SerializeToString(&strMsgReq);
+            rpcMsgReq.set_buffer(strMsgReq);
 
             if (destination != INVALID_HDL)
               {
@@ -94,9 +97,10 @@ namespace SAFplus
 
             try
               {
-                const char* data = rpcMsg.SerializeAsString().c_str();
-                int size = rpcMsg.ByteSize();
-                svr->SendMsg(overDest, (void *) data, size, msgSendType);
+                string output;
+                rpcMsgReq.SerializeToString(&output);
+                int size = output.size();
+                svr->SendMsg(overDest, (void *) output.c_str(), size, msgSendType);
               }
             catch (...)
               {
@@ -110,32 +114,35 @@ namespace SAFplus
             msgRPCs[idx] = rpcReqEntry;
           }
 
-        void RpcChannel::HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT iocReq)
+        /*
+         * Server side: handle request message and reply to client side
+         */
+        void RpcChannel::HandleRequest(SAFplus::Rpc::RpcMessage *rpcMsgReq, ClIocAddressT iocReq)
           {
-            RpcMessage rpcMsg;
+            string strMsgRes;
+            RpcMessage rpcMsgRes;
 
-            const google::protobuf::MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(msg->name());
+            const google::protobuf::MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(rpcMsgReq->name());
             google::protobuf::Message* request_pb = service->GetRequestPrototype(method).New();
             google::protobuf::Message* response_pb = service->GetResponsePrototype(method).New();
-            request_pb->ParseFromString(msg->buffer());
-
-            //Lock handle request
-            ScopedLock<Mutex> lock(mutex);
+            request_pb->ParseFromString(rpcMsgReq->buffer());
 
             service->CallMethod(method, INVALID_HDL, request_pb, response_pb, *((SAFplus::Wakeable*) nullptr));
 
-            rpcMsg.set_type(msgReplyType);
-            rpcMsg.set_id(msg->id());
-            rpcMsg.set_buffer(response_pb->SerializeAsString());
+            rpcMsgRes.set_type(msgReplyType);
+            rpcMsgRes.set_id(rpcMsgReq->id());
+
+            response_pb->SerializeToString(&strMsgRes);
+            rpcMsgRes.set_buffer(strMsgRes);
 
             //TODO: Check remote to send or field member???
-
             //Sending reply
             try
               {
-                const char* data = rpcMsg.SerializeAsString().c_str();
-                int size = rpcMsg.ByteSize();
-                svr->SendMsg(iocReq, (void *) data, size, msgReplyType);
+                string output;
+                rpcMsgRes.SerializeToString(&output);
+                int size = output.size();
+                svr->SendMsg(iocReq, (void *) output.c_str(), size, msgReplyType);
               }
             catch (...)
               {
@@ -146,16 +153,16 @@ namespace SAFplus
 
           }
 
-        void RpcChannel::HandleResponse(SAFplus::Rpc::RpcMessage *msg)
+        /*
+         * Client side: handle response message
+         */
+        void RpcChannel::HandleResponse(SAFplus::Rpc::RpcMessage *rpcMsgRes)
           {
-            //Lock handle request
-            ScopedLock<Mutex> lock(mutex);
-
-            std::map<uint64_t,MsgRpcEntry*>::iterator it = msgRPCs.find(msg->id());
+            std::map<uint64_t,MsgRpcEntry*>::iterator it = msgRPCs.find(rpcMsgRes->id());
             if (it != msgRPCs.end())
               {
                 MsgRpcEntry* rpcReqEntry = (MsgRpcEntry*) it->second;
-                rpcReqEntry->response->ParseFromString(msg->buffer());
+                rpcReqEntry->response->ParseFromString(rpcMsgRes->buffer());
                 if (rpcReqEntry->callback != NULL)
                   {
                     rpcReqEntry->callback->wake(1, (void*) rpcReqEntry->response);
@@ -167,26 +174,27 @@ namespace SAFplus
 
           }
 
+        /*
+         * Message handle for communication
+         */
         void RpcChannel::msgHandler(ClIocAddressT srcAddr, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
           {
-            SAFplus::Rpc::RpcMessage rpcMsg;
+            SAFplus::Rpc::RpcMessage rpcMsgReqRes;
+            rpcMsgReqRes.ParseFromArray(msg, msglen);
 
-            std::string recMsg((const char*) msg, msglen);
-            rpcMsg.ParseFromString(recMsg);
-
-            ClWordT msgType = rpcMsg.type();
+            ClWordT msgType = rpcMsgReqRes.type();
 
             if (msgType == msgSendType)
               {
-                HandleRequest(&rpcMsg, srcAddr);
+                HandleRequest(&rpcMsgReqRes, srcAddr);
               }
             else if (msgType == msgReplyType)
               {
-                HandleResponse(&rpcMsg);
+                HandleResponse(&rpcMsgReqRes);
               }
             else
               {
-                logError("RPC", "HDL", "Received invalid message type [%u] from [%d.%d]", msgType, srcAddr.iocPhyAddress.nodeAddress,
+                logError("RPC", "HDL", "Received invalid message type [%lu] from [%d.%d]", msgType, srcAddr.iocPhyAddress.nodeAddress,
                     srcAddr.iocPhyAddress.portId);
               }
 
