@@ -222,7 +222,7 @@ namespace SAFplus
 
       // Message server
       void startMessageServer();
-      void fillSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType);
+      void fillSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType, bool forcing=false);
       void sendNotification(void* data, int dataLength, SAFplusI::GroupMessageSendModeT messageMode);
       SAFplus::SafplusMsgServer   *groupMsgServer;
 
