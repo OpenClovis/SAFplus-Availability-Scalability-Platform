@@ -26,7 +26,7 @@
 #include "clMsgApi.hxx"
 #include "clRpcChannel.hxx"
 #include "rpcTest.hxx"
-#include "../RpcWakeable.hxx"
+#include "RpcWakeable.hxx"
 
 using namespace std;
 using namespace SAFplus;
@@ -39,32 +39,6 @@ using namespace google::protobuf;
 ClUint32T clAspLocalId = 0x1;
 ClBoolT gIsNodeRepresentative = CL_FALSE;
 
-void FooDone(SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response)
-  {
-    if (response->has_dataresult())
-      {
-        const SAFplus::Rpc::rpcTest::DataResult& dr = response->dataresult();
-        printf("Response is name='%s': status='%d'\n", dr.name().c_str(), dr.status());
-      }
-  }
-
-void FooDone2(SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response)
-  {
-    if (response->has_dataresult())
-      {
-        const SAFplus::Rpc::rpcTest::DataResult& dr = response->dataresult();
-        printf("Response is name='%s': status='%d'\n", dr.name().c_str(), dr.status());
-      }
-  }
-
-void FooDone3(SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response)
-  {
-    if (response->has_dataresult())
-      {
-        const SAFplus::Rpc::rpcTest::DataResult& dr = response->dataresult();
-        printf("Response is name='%s': status='%d'\n", dr.name().c_str(), dr.status());
-      }
-  }
 int main(void)
   {
     ClIocAddressT iocDest;
@@ -84,7 +58,7 @@ int main(void)
 
     rc = clIocLibInitialize(NULL);
 
-    iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    iocDest.iocPhyAddress.nodeAddress = 1;
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
     char helloMsg[] = "Hello world ";
 
@@ -118,14 +92,16 @@ int main(void)
     //Loop forever
     while (1)
       {
-        Rpc::RpcWakeable wakeable;
-//        SAFplus::Handle hdl = SAFplus::Handle::create();
-        SAFplus::Handle hdl(TransientHandle,1,IOC_PORT_SERVER,CL_IOC_BROADCAST_ADDRESS);
+        Rpc::RpcWakeable wakeable1(1);
+        Rpc::RpcWakeable wakeable2(2);
+        Rpc::RpcWakeable wakeable3(3);
+
+        SAFplus::Handle hdl(TransientHandle,1,IOC_PORT_SERVER,1);
         ClIocAddressT addr = getAddress(hdl);
 
-        service->testGetRpcMethod(hdl, &request1, &res1, wakeable);
-        service->testGetRpcMethod2(hdl, &request2, &res2, wakeable);
-        service->testGetRpcMethod3(hdl, &request3, &res3, wakeable);
+        service->testGetRpcMethod(hdl, &request1, &res1, wakeable1);
+        service->testGetRpcMethod2(hdl, &request2, &res2, wakeable2);
+        service->testGetRpcMethod3(hdl, &request3, &res3, wakeable3);
 
         sleep(1);
       }
