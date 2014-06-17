@@ -77,6 +77,16 @@ namespace SAFplus
       }
     charstrs.push_back(0);  // need terminating null pointer
 
+    /*
+     * Setting variable environment for process
+     */
+    std::vector<char*> envpchars;
+    for (int i=0;i<env.size(); i++)
+      {
+        envpchars.push_back(const_cast<char*>(env[i].c_str()));
+      }
+    envpchars.push_back(0);
+
     pid = fork();
 
     if(pid < 0)
@@ -96,7 +106,7 @@ namespace SAFplus
         /* Set the process group id to its own pid */
         setpgid (pid, 0);
         }
-      execvpe(charstrs[0], &charstrs[0],NULL);  // if works will not return
+      execvpe(charstrs[0], &charstrs[0], &envpchars[0]);  // if works will not return
       int err = errno;
       logAlert("OS","PRO","Program [%s] execution failed with error [%s (%d)]",charstrs[0], strerror(err),err);
       // If the error is understood, exit.  Otherwise assert
