@@ -502,7 +502,7 @@ def stop_amf_watchdog():
 
 def start_amf_watchdog(stop_watchdog=True):
     if stop_watchdog == True:
-	stop_amf_watchdog()
+        stop_amf_watchdog()
     log.info('Starting AMF watchdog...')
     cmd = sys_asp['get_start_amf_watchdog_cmd'](get_asp_etc_dir())
     os.system(cmd)
@@ -1193,7 +1193,6 @@ def get_openhpid_pid():
         if l:
             # pid found
             pid = int(l[0].split()[1])
-            log.debug('found openhpid pid(%d)' % pid)
             return pid
 
     except:

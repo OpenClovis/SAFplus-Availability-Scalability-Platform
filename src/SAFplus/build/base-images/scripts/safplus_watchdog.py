@@ -67,6 +67,7 @@ def amf_watchdog_loop():
     safe_remove(reboot_file)
     safe_remove(restart_disable_file)
     seen_openhpid = False
+    seen_openhpid_id = 0
 
     while True:
         try:
@@ -78,7 +79,7 @@ def amf_watchdog_loop():
                 if is_restart or is_forced_restart:
                     safe_remove(restart_file) 
                     safe_remove(watchdog_restart_file)
-                    logging.debug('AMF watchdog stopping SAFplus for %d sec' % SAFPLUS_RESTART_DELAY)
+                    logging.debug('SAFplus watchdog stopping SAFplus for %d sec' % SAFPLUS_RESTART_DELAY)
                     asp.zap_asp(False)
                     ## give time for pending ops to complete
                     ## we unload the TIPC module and let ASP start reload it, 
@@ -87,7 +88,7 @@ def amf_watchdog_loop():
                     ## retransmit failures due to pending ACK thereby resulting
                     ## in all the TIPC links being reset.
                     time.sleep(SAFPLUS_RESTART_DELAY)
-                    logging.debug('AMF watchdog restarting SAFplus...')
+                    logging.debug('SAFplus watchdog restarting SAFplus...')
                     asp.force_restart_safplus()
                     asp.create_asp_cmd_marker('start')
                 elif os.access(reboot_file, os.F_OK):
@@ -103,7 +104,7 @@ def amf_watchdog_loop():
                         os.system('reboot')
                 elif os.access(restart_disable_file, os.F_OK):
                     safe_remove(restart_disable_file)
-                    logging.debug('AMF watchdog ignoring failure of %s '
+                    logging.debug('SAFplus watchdog ignoring failure of %s '
                                   'as node failfast/failover recovery action '
                                   'was called on it and ASP_NODE_REBOOT_DISABLE '
                                   'environment variable is set for it.'
@@ -111,21 +112,21 @@ def amf_watchdog_loop():
                     asp.zap_asp()
                     sys.exit(1)
                 else:
-                    logging.debug('AMF watchdog invocation default case')
+                    logging.debug('SAFplus watchdog invocation default case')
 
                     if not asp_admin_stop():
                         asp.zap_asp(False)
                         if asp.should_restart_asp():
-                            logging.debug('AMF watchdog stopping SAFplus for %d sec' % SAFPLUS_RESTART_DELAY)
+                            logging.debug('SAFplus watchdog stopping SAFplus for %d sec' % SAFPLUS_RESTART_DELAY)
                             time.sleep(SAFPLUS_RESTART_DELAY)
-                            logging.debug('AMF watchdog restarting SAFplus...')
+                            logging.debug('SAFplus watchdog restarting SAFplus...')
                             asp.force_restart_safplus()
                             asp.create_asp_cmd_marker('start')
                         else:
                             asp.proc_lock_file('remove')
                             sys.exit(1)
                     else:
-                        logging.debug('AMF watchdog ignoring node faulure, as it might be due to shutdown request from logd')
+                        logging.debug('SAFplus watchdog ignoring node failure, as it might be due to shutdown request from logd')
                         asp.proc_lock_file('remove')
                         sys.exit(1)
 
@@ -139,18 +140,21 @@ def amf_watchdog_loop():
                     if openhpid_pid == 0:
                         # openhpid is DOWN and we have seen it before
                         # we should bring it back
-                        logging.debug('AMF watchdog expected openhpid but did not find it. Restarting openhpid...')
+                        logging.debug('SAFplus watchdog expected openhpid but did not find it. Restarting openhpid...')
 
                         # zap it to make sure its DEAD
                         os.popen('killall openhpid 2>/dev/null')
                         #time.sleep(1)
                         asp.start_openhpid()
                     else:
-                        logging.debug('AMF watchdog openhpid pid(%d) found as expected, nothing to do.' % openhpid_pid)
+                        if openhpid_pid != seen_openhpid_id:
+                            logging.debug('SAFplus watchdog openhpid pid(%d) found as expected, nothing to do.' % openhpid_pid)
+                            seen_openhpid_id = openhpid_pid
 
                 else:
                     if openhpid_pid != 0:
                         seen_openhpid = True
+                        seen_openhpid_id = openhpid_pid
 
 
 
@@ -194,7 +198,7 @@ def redirect_file():
 def main():    
     asp.check_py_version()
     redirect_file()
-    logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(message)s', level=logging.INFO)    
+    logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(message)s', level=logging.DEBUG)
     amf_pid = asp.wait_until_amf_up()
     if not amf_pid:
         logging.critical('ASP did not come up successfully...')
