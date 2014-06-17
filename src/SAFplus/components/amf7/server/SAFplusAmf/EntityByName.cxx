@@ -25,9 +25,22 @@ namespace SAFplusAmf
         this->addChildObject(&entity, "entity");
     };
 
+    EntityByName::EntityByName(std::string myNameValue): SAFplus::MgtContainer("EntityByName"), myName("myName"), entity("entity")
+    {
+        this->myName.value =  myNameValue;
+        this->addChildObject(&myName, "myName");
+        this->addChildObject(&entity, "entity");
+    };
+
     void EntityByName::toString(std::stringstream &xmlString)
     {
         /* TODO:  */
+    };
+
+    std::vector<std::string> EntityByName::getKeys()
+    {
+        std::string keyNames[] = { "myName" };
+        return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* EntityByName::getChildNames()

@@ -5,12 +5,22 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtList.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
-#include "clMgtContainer.hxx"
+#include "ServiceGroupKey.hxx"
 #include "clTransaction.hxx"
+#include "ApplicationKey.hxx"
+#include "EntityByNameKey.hxx"
+#include "ServiceUnitKey.hxx"
+#include "clMgtList.hxx"
+#include "MgtFactory.hxx"
+#include "NodeKey.hxx"
+#include "EntityByIdKey.hxx"
 #include "clMgtProv.hxx"
+#include "ClusterKey.hxx"
+#include "ComponentKey.hxx"
+#include <vector>
+#include "clMgtContainer.hxx"
+#include "ServiceInstanceKey.hxx"
+#include "ComponentServiceInstanceKey.hxx"
 #include "SAFplusAmf.hxx"
 
 

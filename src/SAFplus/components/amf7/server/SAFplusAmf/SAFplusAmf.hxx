@@ -9,12 +9,22 @@
 #define SAFPLUSAMFROOT_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtList.hxx"
-#include <vector>
-#include "MgtFactory.hxx"
-#include "clMgtContainer.hxx"
+#include "ServiceGroupKey.hxx"
 #include "clTransaction.hxx"
+#include "ApplicationKey.hxx"
+#include "EntityByNameKey.hxx"
+#include "ServiceUnitKey.hxx"
+#include "clMgtList.hxx"
+#include "MgtFactory.hxx"
+#include "NodeKey.hxx"
+#include "EntityByIdKey.hxx"
 #include "clMgtProv.hxx"
+#include "ClusterKey.hxx"
+#include "ComponentKey.hxx"
+#include <vector>
+#include "clMgtContainer.hxx"
+#include "ServiceInstanceKey.hxx"
+#include "ComponentServiceInstanceKey.hxx"
 
 namespace SAFplusAmf
   {
@@ -39,48 +49,48 @@ namespace SAFplusAmf
         /*
          * 
          */
-        SAFplus::MgtList<std::string> clusterList;
-        SAFplus::MgtList<std::string> nodeList;
+        SAFplus::MgtList<SAFplus::ClusterKey> clusterList;
+        SAFplus::MgtList<SAFplus::NodeKey> nodeList;
 
         /*
          * A Service Group is a Service Availability Forum defined concept that corresponds to a group of redundant processes that should fail over as a unit.
          */
-        SAFplus::MgtList<std::string> serviceGroupList;
+        SAFplus::MgtList<SAFplus::ServiceGroupKey> serviceGroupList;
 
         /*
          * 
          */
-        SAFplus::MgtList<std::string> componentList;
+        SAFplus::MgtList<SAFplus::ComponentKey> componentList;
 
         /*
          * 
          */
-        SAFplus::MgtList<std::string> componentServiceInstanceList;
+        SAFplus::MgtList<SAFplus::ComponentServiceInstanceKey> componentServiceInstanceList;
 
         /*
          * 
          */
-        SAFplus::MgtList<std::string> serviceInstanceList;
+        SAFplus::MgtList<SAFplus::ServiceInstanceKey> serviceInstanceList;
 
         /*
          * A Service Unit is a group of processes that all fail over together.  All service unit members must be run on the same node.
          */
-        SAFplus::MgtList<std::string> serviceUnitList;
+        SAFplus::MgtList<SAFplus::ServiceUnitKey> serviceUnitList;
 
         /*
          * 
          */
-        SAFplus::MgtList<std::string> applicationList;
+        SAFplus::MgtList<SAFplus::ApplicationKey> applicationList;
 
         /*
          * Look up any entity by its string name
          */
-        SAFplus::MgtList<std::string> entityByNameList;
+        SAFplus::MgtList<SAFplus::EntityByNameKey> entityByNameList;
 
         /*
          * Look up any entity by its identifier
          */
-        SAFplus::MgtList<unsigned short int> entityByIdList;
+        SAFplus::MgtList<SAFplus::EntityByIdKey> entityByIdList;
 
     public:
         SAFplusAmfRoot();

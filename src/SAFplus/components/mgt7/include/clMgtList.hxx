@@ -275,7 +275,7 @@ namespace SAFplus
                if(depth == 0) /* Closing of an fully entry */
                {
                  /* Build the entryKey from name/val of set keys */
-                 // FIXME: entryKey.build(keyList);
+                 entryKey.build(keyList);
                  MgtObject *entry = children[entryKey];
                  if(entry != NULL)
                  {
@@ -309,9 +309,7 @@ namespace SAFplus
        */
       static std::string keyTypeToString(KEYTYPE key)
       {
-        std::stringstream stream;
-        stream << key;
-        return stream.str();
+        return key.str();
       }
   };
   /**

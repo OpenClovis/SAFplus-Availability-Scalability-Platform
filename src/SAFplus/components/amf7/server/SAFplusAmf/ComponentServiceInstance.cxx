@@ -12,6 +12,7 @@
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
+#include "DataKey.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
 #include "ComponentServiceInstance.hxx"

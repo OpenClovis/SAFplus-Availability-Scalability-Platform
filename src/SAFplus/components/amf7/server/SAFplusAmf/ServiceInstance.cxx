@@ -7,17 +7,19 @@
 
 #include "AssignmentState.hxx"
 #include <string>
-#include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
-#include "StandbyAssignments.hxx"
-#include "ServiceGroup.hxx"
+#include "ActiveWeightKey.hxx"
 #include "ComponentServiceInstance.hxx"
 #include "clMgtList.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
-#include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
+#include "clMgtProv.hxx"
+#include "StandbyAssignments.hxx"
+#include "ServiceGroup.hxx"
+#include <vector>
+#include "ActiveAssignments.hxx"
+#include "StandbyWeightKey.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
 #include "ServiceInstance.hxx"

@@ -46,24 +46,12 @@ class multipleKey
         }
         printf("HERE \n");
       }
-};
-
-namespace SAFplus
-{
-
-  template class  MgtList<multipleKey>;
-  // This is to serialize pair to string
-  std::ostream& operator<<(std::ostream& out,const std::pair<std::string,int>& value)
-  {
-      out << value.first << value.second;
-      return out;            // return the original stream for chaining
-  }
-  // This is to serialize class to string
-  std::ostream& operator<<(std::ostream& out,const multipleKey& value)
-  {
-      out << value.key1 << value.key2 << value.key3;
-      return out;            // return the original stream for chaining
-  }
+      std::string str()
+      {
+        std::stringstream ss;
+        ss << key1 << key2 << key3 ;
+        return ss.str();
+      }
 };
 /*
  * This test case make sure a ClMgtProv object work with the Transaction
