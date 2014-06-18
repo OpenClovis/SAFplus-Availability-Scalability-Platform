@@ -11,19 +11,17 @@
 
 #include "AssignmentState.hxx"
 #include <string>
-#include "StandbyAssignments.hxx"
-#include "ActiveWeightKey.hxx"
-#include "ComponentServiceInstance.hxx"
-#include "clMgtList.hxx"
-#include "MgtFactory.hxx"
-#include "ActiveAssignments.hxx"
-#include "AdministrativeState.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
+#include "StandbyAssignments.hxx"
 #include "ServiceGroup.hxx"
+#include "ComponentServiceInstance.hxx"
+#include "clMgtList.hxx"
 #include <vector>
+#include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
-#include "StandbyWeightKey.hxx"
+#include "ActiveAssignments.hxx"
+#include "AdministrativeState.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
 
@@ -61,12 +59,12 @@ namespace SAFplusAmf
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
          */
-        SAFplus::MgtList<SAFplus::ActiveWeightKey> activeWeightList;
+        SAFplus::MgtList<std::string> activeWeightList;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.
          */
-        SAFplus::MgtList<SAFplus::StandbyWeightKey> standbyWeightList;
+        SAFplus::MgtList<std::string> standbyWeightList;
 
     public:
         ServiceInstance();

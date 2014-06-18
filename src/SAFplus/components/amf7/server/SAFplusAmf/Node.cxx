@@ -8,7 +8,6 @@
 #include <vector>
 #include <string>
 #include "clMgtProv.hxx"
-#include "CapacityKey.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"

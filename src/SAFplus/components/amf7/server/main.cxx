@@ -398,8 +398,7 @@ int main(int argc, char* argv[])
   db->initializeDB("SAFplusAmf");
   //cfg.read(db);
   createTestDataSet(&cfg);
-  ServiceGroupKey sgkey("sg0");
-  setAdminState((SAFplusAmf::ServiceGroup*) cfg.serviceGroupList[sgkey],AdministrativeState::on);
+  setAdminState((SAFplusAmf::ServiceGroup*) cfg.serviceGroupList["sg0"],AdministrativeState::on);
 
   logServer = boost::thread(LogServer());
 
