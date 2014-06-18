@@ -22,7 +22,7 @@ $(TEST_DIR)/example:  $(OBJ_DIR)/example.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lboost_filesystem $(LINK_SO_LIBS) -lprotobuf -lprotoc
 
 $(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)
-	$(COMPILE_CPP) $@ -std=c++11 $<
+	$(COMPILE_CPP) $@ $<
 
 clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/example

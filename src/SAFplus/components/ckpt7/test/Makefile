@@ -23,7 +23,7 @@ $(TEST_DIR)/try: $(CLIENT_OBJ) $(DEP_LIBS)
 	cp $(TEST_DIR)/try .
 
 $(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)
-	$(COMPILE_CPP) $@ -std=c++11 $<
+	$(COMPILE_CPP) $@ $<
 
 clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/testCkpt
