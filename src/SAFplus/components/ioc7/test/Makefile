@@ -28,12 +28,12 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml
 
-all: $(TEST_DIR)/ClientTest $(TEST_DIR)/ServerTest
+all: $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg
 
-$(TEST_DIR)/ClientTest: $(SENDER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
+$(TEST_DIR)/TestSendMsg: $(SENDER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 	$(LINK_EXE) $@ $(SENDER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
-$(TEST_DIR)/ServerTest: $(RECEIVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
+$(TEST_DIR)/TestReceiveMsg: $(RECEIVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 	$(LINK_EXE) $@ $(RECEIVER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 

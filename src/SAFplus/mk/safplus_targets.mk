@@ -69,12 +69,12 @@ $(TEST_DIR)/testCkpt:
 endif
 
 ifndef SAFPLUS_IOC_TEST
-$(TEST_DIR)/ClientTest:
+$(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/ioc7/test
 endif
 
 ifndef SAFPLUS_RPC_TEST
-$(TEST_DIR)/TestClient $(TEST_DIR)/TestServer:
+$(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/rpc/test
 endif
 
@@ -98,7 +98,7 @@ $(SAFPLUS_TARGET)/bin/safplus_amf:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/amf7/server
 endif
 
-SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt $(TEST_DIR)/ClientTest $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
+SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine
 
 SAFplusServices := $(SAFPLUS_TARGET)/bin/safplus_amf
 # $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
