@@ -14,13 +14,13 @@ CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../rpc -I./stubs -I./stub
 # Management includes and libraries
 CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ `pkg-config --cflags protobuf`
 
-CLIENT_SRC := TestClient.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/*.cxx)
+CLIENT_SRC := TestClient.cxx RpcWakeable.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/*.cxx)
 CLIENT_OBJ := $(addprefix $(OBJ_DIR)/, $(subst .cxx,.o,$(subst .cc,.o,$(CLIENT_SRC))))
 
 SERVER_SRC := TestServer.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/*.cxx) $(wildcard stubs/server/*.cxx)
 SERVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(subst .cc,.o,$(SERVER_SRC))))
 
-COMBINE_SRC := TestCombine.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/*.cxx) $(wildcard stubs/server/*.cxx)
+COMBINE_SRC := TestCombine.cxx RpcWakeable.cxx $(wildcard stubs/*.pb.cc) $(wildcard stubs/*.cxx) $(wildcard stubs/server/*.cxx)
 COMBINE_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(subst .cc,.o,$(COMBINE_SRC))))
 
 # Specify the required libraries

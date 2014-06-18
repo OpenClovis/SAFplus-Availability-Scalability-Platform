@@ -76,6 +76,11 @@ namespace SAFplus
             //Lock sending and record a RPC
             ScopedLock<Mutex> lock(mutex);
             int64_t idx = msgId++;
+            MsgRpcEntry *rpcReqEntry = new MsgRpcEntry();
+            rpcReqEntry->msgId = idx;
+            rpcReqEntry->response = response;
+            rpcReqEntry->callback = (Wakeable*)&wakeable;
+            msgRPCs.insert(std::pair<uint64_t,MsgRpcEntry*>(idx, rpcReqEntry));
             //Unlock
             mutex.unlock();
 
@@ -102,16 +107,10 @@ namespace SAFplus
                 int size = output.size();
                 svr->SendMsg(overDest, (void *) output.c_str(), size, msgSendType);
               }
-            catch (...)
+            catch (Error &e)
               {
+                logError("RPC", "REQ", "%s", e.what());
               }
-
-            MsgRpcEntry *rpcReqEntry = new MsgRpcEntry();
-            rpcReqEntry->msgId = idx;
-            rpcReqEntry->response = response;
-            rpcReqEntry->callback = (Wakeable*)&wakeable;
-
-            msgRPCs[idx] = rpcReqEntry;
           }
 
         /*
@@ -135,22 +134,29 @@ namespace SAFplus
             response_pb->SerializeToString(&strMsgRes);
             rpcMsgRes.set_buffer(strMsgRes);
 
-            //TODO: Check remote to send or field member???
-            //Sending reply
-            try
+            //Check local service
+            if (iocReq.iocPhyAddress.nodeAddress == dest.iocPhyAddress.nodeAddress
+                && iocReq.iocPhyAddress.portId == dest.iocPhyAddress.portId)
               {
-                string output;
-                rpcMsgRes.SerializeToString(&output);
-                int size = output.size();
-                svr->SendMsg(iocReq, (void *) output.c_str(), size, msgReplyType);
+                HandleResponse(&rpcMsgRes);
               }
-            catch (...)
+            else //remote
               {
+                //Sending reply to remote
+                try
+                  {
+                    string output;
+                    rpcMsgRes.SerializeToString(&output);
+                    int size = output.size();
+                    svr->SendMsg(iocReq, (void *) output.c_str(), size, msgReplyType);
+                  }
+                catch (Error &e)
+                  {
+                    logError("RPC", "REQ", "%s", e.what());
+                  }
               }
-
-            //TODO:
-            //call wakeable->wake(1, (void *)response_pb);
-
+            delete request_pb;
+            delete response_pb;
           }
 
         /*
@@ -161,15 +167,18 @@ namespace SAFplus
             std::map<uint64_t,MsgRpcEntry*>::iterator it = msgRPCs.find(rpcMsgRes->id());
             if (it != msgRPCs.end())
               {
-                MsgRpcEntry* rpcReqEntry = (MsgRpcEntry*) it->second;
+                MsgRpcEntry *rpcReqEntry = it->second;
                 rpcReqEntry->response->ParseFromString(rpcMsgRes->buffer());
+
                 if (rpcReqEntry->callback != NULL)
                   {
                     rpcReqEntry->callback->wake(1, (void*) rpcReqEntry->response);
                   }
-                msgRPCs.erase(rpcReqEntry->msgId);
-                if (msgId > 0)
-                  msgId--;
+                //Lock
+                ScopedLock<Mutex> lock(mutex);
+                msgRPCs.erase(rpcMsgRes->id());
+                //Unlock
+                mutex.unlock();
               }
 
           }

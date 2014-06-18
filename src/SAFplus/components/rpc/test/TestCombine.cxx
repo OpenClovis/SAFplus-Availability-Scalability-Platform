@@ -27,6 +27,7 @@
 #include "rpcTest.hxx"
 #include "../RpcWakeable.hxx"
 
+using namespace std;
 using namespace SAFplus;
 
 #define IOC_PORT_SERVER 65
@@ -65,6 +66,12 @@ int main(void)
   {
     ClRcT rc = CL_OK;
 
+    logInitialize();
+    logEchoToFd = 1;  // echo logs to stdout for debugging
+    logSeverity = LOG_SEV_MAX;
+
+    utilsInitialize();
+
     /*
      * initialize SAFplus libraries
      */
@@ -78,48 +85,51 @@ int main(void)
 
     //Msg server listening
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);
-
-    // Handle RPC
-    SAFplus::Rpc::RpcChannel *channelServer = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, new SAFplus::Rpc::rpcTest::rpcTestImpl());
-    channelServer->setMsgType(100, 101);
+    SAFplus::Rpc::rpcTest::rpcTestImpl rpcTestMsgHandler;
 
     ClIocAddressT iocDest;
-    iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    iocDest.iocPhyAddress.nodeAddress = 1;
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
 
-    SAFplus::Rpc::RpcChannel *channelClient = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, iocDest);
-    channelClient->setMsgType(100, 101);
-    SAFplus::Rpc::rpcTest::rpcTest *service = new SAFplus::Rpc::rpcTest::rpcTest::Stub(channelClient);
+    SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, iocDest);
+    channel->setMsgType(100, 101);
+    channel->service = &rpcTestMsgHandler;
+
+    // client side
+    SAFplus::Rpc::rpcTest::rpcTest_Stub rpcTestService(channel);
 
     safplusMsgServer.Start();
-
-    //DATA request
-    SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request;
-    SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res;
-    request.set_name("myNameRequest1");
-
-    SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request request2;
-    SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response res2;
-
-    request.set_name("myNameRequest2");
-
-    SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request request3;
-    SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response res3;
-
-    request.set_name("myNameRequest3");
 
     //Test RPC
     //Loop forever
     while (1)
       {
-        SAFplus::Rpc::RpcWakeable wakeable;
-        SAFplus::Handle hdl = SAFplus::Handle::create();
+        Rpc::RpcWakeable wakeable1(1);
+        Rpc::RpcWakeable wakeable2(2);
+        Rpc::RpcWakeable wakeable3(3);
 
-        service->testGetRpcMethod(hdl, &request, &res, wakeable);
-        service->testGetRpcMethod2(hdl, &request2, &res2, wakeable);
-        service->testGetRpcMethod3(hdl, &request3, &res3, wakeable);
+        //DATA request
+        SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request1;
+        SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse res1;
+        request1.set_name("myNameRequest1");
 
-        sleep(3);
+        SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request request2;
+        SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response res2;
+
+        request2.set_name("myNameRequest2");
+
+        SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request request3;
+        SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response res3;
+
+        request3.set_name("myNameRequest3");
+
+        SAFplus::Handle hdl(TransientHandle,1,IOC_PORT_SERVER,1);
+
+        rpcTestService.testGetRpcMethod(hdl, &request1, &res1, wakeable1);
+        rpcTestService.testGetRpcMethod2(hdl, &request2, &res2, wakeable2);
+        rpcTestService.testGetRpcMethod3(hdl, &request3, &res3, wakeable3);
+
+        sleep(1);
       }
 
   }

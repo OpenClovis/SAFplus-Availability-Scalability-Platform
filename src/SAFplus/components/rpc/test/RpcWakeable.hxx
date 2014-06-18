@@ -18,6 +18,9 @@
  */
 #pragma once
 
+#include <clHandleApi.hxx>
+#include <clCommon.hxx>
+
 #ifndef RPCWAKEABLE_HXX_
 #define RPCWAKEABLE_HXX_
 
@@ -26,24 +29,19 @@ namespace SAFplus
     namespace Rpc
       {
 
-      class RpcChannel;
-      class MsgRpcEntry;
-
         /*
          *
          */
         class RpcWakeable : public SAFplus::Wakeable
           {
           public:
-            RpcWakeable();
-            RpcWakeable(RpcChannel *ch, MsgRpcEntry *rpcRequestEntry): channel(ch), rpcRequestEntry(rpcRequestEntry) {};
+            RpcWakeable() : method(0) {};
+            RpcWakeable(int method);
             virtual ~RpcWakeable();
-            void RequestComplete(MsgRpcEntry *rpcRequestEntry);
             void wake(int amt, void* cookie = NULL);
 
           public:
-            RpcChannel *channel;
-            MsgRpcEntry *rpcRequestEntry;
+            int method;
           };
 
       } /* namespace Rpc */
