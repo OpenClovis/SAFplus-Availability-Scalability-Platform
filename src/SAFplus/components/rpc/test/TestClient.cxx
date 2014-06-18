@@ -97,7 +97,6 @@ int main(void)
         Rpc::RpcWakeable wakeable3(3);
 
         SAFplus::Handle hdl(TransientHandle,1,IOC_PORT_SERVER,1);
-        ClIocAddressT addr = getAddress(hdl);
 
         service->testGetRpcMethod(hdl, &request1, &res1, wakeable1);
         service->testGetRpcMethod2(hdl, &request2, &res2, wakeable2);
