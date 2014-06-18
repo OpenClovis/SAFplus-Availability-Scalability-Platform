@@ -44,6 +44,16 @@ namespace SAFplusAmf
         this->addChildObject(&applicationList, "Application");
         this->addChildObject(&entityByNameList, "EntityByName");
         this->addChildObject(&entityByIdList, "EntityById");
+        clusterList.setListKey("myName");
+        nodeList.setListKey("myName");
+        serviceGroupList.setListKey("myName");
+        componentList.setListKey("myName");
+        componentServiceInstanceList.setListKey("myName");
+        serviceInstanceList.setListKey("myName");
+        serviceUnitList.setListKey("myName");
+        applicationList.setListKey("myName");
+        entityByNameList.setListKey("myName");
+        entityByIdList.setListKey("id");
     };
 
     void SAFplusAmfRoot::toString(std::stringstream &xmlString)
