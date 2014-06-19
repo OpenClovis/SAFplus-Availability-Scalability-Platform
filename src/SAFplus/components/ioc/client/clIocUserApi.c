@@ -150,8 +150,13 @@ static ClIocUserObjectT userObj;
 static ClTimerTimeOutT userReassemblyTimerExpiry = { 0 };
 ClBoolT gClIocTrafficShaper;
 static ClBoolT gClIocReplicast;
+#define ReliableIocTest
+#ifdef ReliableIocTest
 //ReliableIoc : simulate loss fragment
 static ClUint32T test = 0;
+//random drop 100/dropPercent % fragment.
+#define DROP_PERCENT 6
+#endif
 
 typedef struct
 {
@@ -166,7 +171,6 @@ static ClRcT clIocReplicastGet(ClIocPortT portId, ClIocAddressT **pAddressList, 
 #define IOC_REASSEMBLE_HASH_MASK (IOC_REASSEMBLE_HASH_SIZE - 1)
 
 static ClOsalMutexT iocReassembleLock;
-//ReliableIoc :receiver ack lock
 static ClJobQueueT iocFragmentJobQueue;
 static struct hashStruct *iocReassembleHashTable[IOC_REASSEMBLE_HASH_SIZE];
 static ClUint64T iocReassembleCurrentTimerId;
@@ -189,9 +193,11 @@ typedef struct ClIocReassembleNode
     ClUint32T numFragments; /* number of fragments received*/
     ClIocReassembleTimerKeyT *timerKey;
     /*ReliableIoc : 
-        ackSync : last receive fragment number
+        ackSync : A variable to record the largest received data fragment
+        sequence number. ackSync is initialized to the initial sequence
+        number minus 1
         lossTotal : number of loss fragments
-        lastAckSync : previous ack fragment
+        lastAckSync : fragment id of previous ack message
         srcAddress  : source address of sender
     */
     ClUint32T ackSync;
@@ -200,6 +206,12 @@ typedef struct ClIocReassembleNode
     ClUint32T lastAckSync;
     ClBoolT isReliable;
     ClTimerHandleT TimerACKHdl;
+    /*Receiver's Loss List: It is a list of tuples whose values include:
+      the sequence numbers of detected lost data packets, the latest
+      feedback time of each tuple, and a parameter k that is the number
+      of times each one has been fed back in NAK. Values are stored in
+      the increasing order of packet sequence numbers
+    */
     ClFragmentListHeadT *receiverLossList;
     ClIocPortT commPort;
     ClIocAddressT srcAddress;
@@ -286,7 +298,19 @@ static ClIocNeighborListT gClIocNeighborList = {
 #define CL_RELIABLE_IOC_ACK 2
 #define CL_RELIABLE_IOC_REASSEMBLE 1
 #define CL_RELIABLE_IOC_RECEIVE 0
+#define CL_CUSTOM_RELIABLE_IOC_FILECONFIG "customReliableConfig.xml"
 
+typedef struct ClReliableIocConfig
+{
+    ClUint32T ClResendInterval;
+    ClUint32T ClMaxResend;
+    ClUint32T ClLastAckCheckInterval;
+    ClUint32T ClAckTimeOut;
+    ClUint32T ClMaxMessageResend;
+    ClUint32T ClMessageResendInterval;
+}ClReliableIocConfigT;
+
+static ClReliableIocConfigT reliableDefaultConfig;
 static ClOsalMutexT iocSenderLock;
 #define CL_RETRANMISSION_PRIORITY CL_IOC_HIGH_PRIORITY
 #define CL_RETRANMISSION_TIMEOUT 200
@@ -317,9 +341,14 @@ typedef struct ClIocReliableFragmentSenderNode {
 typedef struct ClIocReliableSenderNode {
     ClRbTreeRootT senderBufferTree; /*reassembly tree*/
     struct hashStruct hash; /*hash linkage*/
+    /*Sender's Loss List: The sender's loss list is used to store the
+      sequence numbers of the lost fragments fed back by the receiver
+      through NAK message or inserted in a timeout event. The numbers
+      are stored in increasing order
+    */
     struct ClFragmentListHeadT *sendLossList;
     ClUint32T numFragments; /* total fragments to send */
-    ClUint32T ackSync;
+    ClUint32T ackSync; /*largest acknowledged sequence number*/
     ClUint32T lossTotal;
     ClUint32T currentFragment;
     ClIocTTLTimerKeyT *ttlTimerKey;
@@ -350,10 +379,11 @@ static void senderBufferAddMessage(ClIocCommPortHandleT commPortHandle,
         ClUint32T messageId, ClBufferHandleT pBuffer, ClUint32T length,
         ClIocAddressT *destAddress, ClUint32T totalFragment);
 ClRcT receiverAckSend(ClIocCommPortT *commPort, ClIocAddressT *dstAddress,
-        ClUint32T messageId, ClUint32T fragmentId);
+        ClUint32T messageId, ClUint32T fragmentId, ClBoolT isLastAck);
 static ClRcT receiverACKTrigger(void* key);
 ClRcT receiverLastACKTrigger(ClIocReassembleNodeT *node);
 ClRcT receiverNAKTriggerDirect(ClUint32T messageId,ClUint32T fragmentBegin,ClUint32T fragmentEnd,ClIocAddressT* srcAddress,ClIocPortT commPort);
+static void reliableIocConfigParser();
 
 
 #endif
@@ -1366,9 +1396,7 @@ ClRcT clIocSendWithXportRelayReliable(ClIocCommPortHandleT commPortHandle,
     }
 #endif
     fragId = currFragId;
-    if (protoType == CL_IOC_SEND_ACK_MESSAGE_PROTO
-            || protoType == CL_IOC_SEND_ACK_PROTO
-            || protoType == CL_IOC_SEND_NAK_PROTO)
+    if (protoType == CL_IOC_SEND_ACK_MESSAGE_PROTO || protoType == CL_IOC_SEND_NAK_PROTO)
     {
         // ReliableIoc : set control message to unreliable (receiver will automatic resend when loss)
         isReliable = CL_FALSE;
@@ -1428,7 +1456,7 @@ ClRcT clIocSendWithXportRelayReliable(ClIocCommPortHandleT commPortHandle,
         {
             if (isReliable == CL_TRUE)
             {
-                //ReliableIoc : check loss list to send loss fragment
+                /*If the sender's loss list is not empty, retransmit the first fragment in loss list*/
                 clOsalMutexLock(&iocSenderLock);
                 nodeCurrent = getSenderBufferNode(fragId,&interimDestAddress, pIocCommPort->portId);
                 if (!nodeCurrent)
@@ -1556,11 +1584,6 @@ ClRcT clIocSendWithXportRelayReliable(ClIocCommPortHandleT commPortHandle,
                                    &interimDestAddress, &timeout, 
                                    xportType, proxy);
         }
-
-
-#define COUNT_TO_TRIGGER_RESEND 10
-#define RESEND_COUNT 3
-#define WAIT_LAST_ACK_INTERVAL 50000 // 5 ms
         //ReliableIoc : waiting for last fragment ack , resend all unack fragment to receiver
         if (isReliable == CL_TRUE)
         {
@@ -1602,9 +1625,9 @@ ClRcT clIocSendWithXportRelayReliable(ClIocCommPortHandleT commPortHandle,
                      {
 
                         count++;
-                        if(count==COUNT_TO_TRIGGER_RESEND)
+                        if(count==reliableDefaultConfig.ClResendInterval)
                         {
-                            if(resend==RESEND_COUNT)
+                            if(resend==reliableDefaultConfig.ClMaxResend)
                             {
                                 clLogDebug("IOC", "Rel", "message send error. remove message ");
                                 //remove node
@@ -1625,8 +1648,8 @@ ClRcT clIocSendWithXportRelayReliable(ClIocCommPortHandleT commPortHandle,
                                             lossListDelete(&nodeCurrent->sendLossList, fragNode->fragmentId);
                                         }
                                         clRbTreeDelete(&nodeCurrent->senderBufferTree, iter);
+                                        retCode=CL_FALSE;
                                         clHeapFree(fragNode);
-
                                     }
                                 }
                                 hashDel(&nodeCurrent->hash);
@@ -1665,7 +1688,7 @@ ClRcT clIocSendWithXportRelayReliable(ClIocCommPortHandleT commPortHandle,
                             }
                         }
                         clOsalMutexUnlock(&iocSenderLock);                        
-                        usleep(WAIT_LAST_ACK_INTERVAL);
+                        usleep(reliableDefaultConfig.ClLastAckCheckInterval*1000);
                         clLogDebug("IOC", "Rel", "waitting for the last ack ...");
                      }
                 }
@@ -2056,8 +2079,6 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
                                ("Failed to send the message. error code = 0x%x\n", retCode));
                 goto frag_error;
             }
-
-            bytesRead = bytesRead + maxPayload;
             userFragHeader.fragOffset = htonl(bytesRead);   /* updating for the
                                                              * next packet */
             retCode = clBufferClear(tempMsg);
@@ -2577,17 +2598,19 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
         goto out;
     }
     // ReliableIoc : simulate drop fragment
+#ifdef ReliableIocTest
     if (userHeader.isReliable == CL_TRUE)
     {
         userHeader.messageId = ntohl(userHeader.messageId);
         //only for testing drop message
         test++;
-        if ((test % 6)==0 )
+        if ((test % DROP_PERCENT)==0 )
         {
             clLogDebug("IOC","Rel","Dropping a received packet number [%d] for testing reliable", test);
             return CL_IOC_RC(IOC_MSG_QUEUED);
         }
     }
+#endif
 
     userHeader.srcAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
     userHeader.srcAddress.iocPhyAddress.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
@@ -2966,7 +2989,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
         destAddress.iocPhyAddress.portId =
                 userHeader.srcAddress.iocPhyAddress.portId;
         clLogDebug("IOC","Rel","Receiver IOC message sync  with message ID [%d]", userHeader.messageId);
-        receiverAckSend(pIocCommPort, &destAddress, userHeader.messageId, 0);
+        receiverAckSend(pIocCommPort, &destAddress, userHeader.messageId, 0 , CL_FALSE);
     }
     clLogTrace("XPORT", "RECV",
                "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", 
@@ -3431,14 +3454,21 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
 
     memset(&userObj, 0, sizeof(ClIocUserObjectT));
 
+    reliableDefaultConfig.ClAckTimeOut = 7;
+    reliableDefaultConfig.ClMaxResend = 3;
+    reliableDefaultConfig.ClLastAckCheckInterval=5;
+    reliableDefaultConfig.ClResendInterval=10;
+    reliableDefaultConfig.ClMaxMessageResend=5;
+    reliableDefaultConfig.ClMessageResendInterval=3;
+    reliableIocConfigParser();
     userReassemblyTimerExpiry.tsMilliSec = CL_IOC_REASSEMBLY_TIMEOUT % 1000;
     userReassemblyTimerExpiry.tsSec = CL_IOC_REASSEMBLY_TIMEOUT / 1000;
     userTTLTimerExpiry.tsMilliSec = CL_IOC_REASSEMBLY_TIMEOUT % 1000;
     userTTLTimerExpiry.tsSec = CL_IOC_REASSEMBLY_TIMEOUT / 1000;
     userResendTimerExpiry.tsMilliSec = 0;
-    userResendTimerExpiry.tsSec = 1;
+    userResendTimerExpiry.tsSec = reliableDefaultConfig.ClMessageResendInterval;
     ackTimerExpiry.tsSec = 0;
-    ackTimerExpiry.tsMilliSec = 8;
+    ackTimerExpiry.tsMilliSec = reliableDefaultConfig.ClAckTimeOut;
 
     retCode = clIocNeighCompsInitialize(gIsNodeRepresentative);
     if(retCode != CL_OK)
@@ -3495,8 +3525,9 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
         goto error_3;
     }
 
-    clIocHeartBeatInitialize(gIsNodeRepresentative);
 
+
+    clIocHeartBeatInitialize(gIsNodeRepresentative);
     gIocInit = CL_TRUE;
     return CL_OK;
 
@@ -3745,8 +3776,11 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
     ClRbTreeT *iter = NULL;
     ClUint32T len = 0;
 
-    lastMessageId=node->messageId;
-    lastMessageNode=node->srcAddress.iocPhyAddress.nodeAddress;
+    if(*(&node->isReliable)==CL_TRUE)
+    {
+        lastMessageId=node->messageId;
+        lastMessageNode=node->srcAddress.iocPhyAddress.nodeAddress;
+    }
     if(message)
     {
         msg = message;
@@ -3954,7 +3988,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
         // check and ignore duplicate fragment
         if (fragmentJob->fragHeader.header.isReliable == CL_TRUE)
         {
-            if(fragmentJob->fragHeader.msgId == lastMessageId && fragmentJob->fragHeader.header.srcAddress.iocPhyAddress.nodeAddress == lastMessageNode)
+            if(fragmentJob->fragHeader.msgId <= lastMessageId && fragmentJob->fragHeader.header.srcAddress.iocPhyAddress.nodeAddress == lastMessageNode)
             {
                 clLogDebug("IOC", "Rel", "receive duplicate fragment [%d] of last message received. Ignore this fragment ",fragmentJob->fragHeader.fragId);
                 return CL_IOC_RC(CL_ERR_TRY_AGAIN);
@@ -4011,9 +4045,10 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
     {
         /*
         check for loss fragment : If the sequence number of the current data fragment is greater than 
-        LRSN + 1, put all the sequence numbers between (but excluding) these two values into the 
+        ackSync + 1, put all the sequence numbers between (but excluding) these two values into the
         receiver's loss list
-        If the sequence number is less than LRSN, remove it from the receiver's loss list
+        If the sequence number is less than ackSync, remove it from the receiver's loss list
+        Update ackSync
         */
         clLogDebug("IOC", "Rel", "receive fragment [%d] with acksync [%d] of message id [%d] last message id [%d] source node [%d] last message source node [%d]",fragmentJob->fragHeader.fragId,node->ackSync,node->messageId,lastMessageId,fragmentJob->fragHeader.header.srcAddress.iocPhyAddress.nodeAddress,lastMessageNode);
         ClInt32T loss = iocFragmentIdCmp(fragmentJob->fragHeader.fragId,(node->ackSync + 1));
@@ -4022,8 +4057,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
             ClUint32T begin=node->ackSync + 1;
             ClUint32T end=fragmentJob->fragHeader.fragId - 1;
             clLogDebug("FRAG", "RECV", "loss fragment detected with [%d] fragment from [%d] to [%d]",loss,begin,end);
-            ClUint32T count;
-            count=lossListInsertRange(&node->receiverLossList,begin,end);
+            lossListInsertRange(&node->receiverLossList,begin,end);
             node->lossTotal =lossListCount(&node->receiverLossList);
             node->ackSync = fragmentJob->fragHeader.fragId;
             //send NAK to Sender
@@ -5284,11 +5318,32 @@ ClRcT senderBufferACKCallBack(ClUint32T messageId, ClIocAddressT *destAddress,
                 clLogDebug("IOC", "Rel", "remove timeToLive Timer");
                 node->ttlTimerKey = NULL;
             }
-            if (clTimerCheckAndDelete(&node->resendTimer) == CL_OK) {
-                clHeapFree(node->resendTimer);
-                clLogDebug("IOC", "Rel", "remove resend Timer");
-                node->resendTimer=NULL;
-            }
+
+            ClUint32T count = 0;
+            ClRcT rc;
+            do
+            {
+                count++;
+                usleep(100);
+                rc = clTimerCheckAndDelete(&node->resendTimer);
+                if( rc == CL_OK)
+                {
+                    clLogDebug("IOC", "Rel", "remove Ack timer successful");
+                    //node->resendTimer=NULL;
+                }
+                else
+                {
+                    if(count%10 ==0)
+                    {
+                        clLogDebug("IOC", "Rel", "remove resendTimer error rc = %#x ",rc);
+                    }
+                    if(count==20)
+                    {
+                        clLogDebug("IOC", "Rel", "remove resendTimer totally error rc = %#x",rc);
+                        break;
+                    }
+                }
+           }while(rc!=CL_OK);
             destroyNodes(&node->sendLossList);
             clHeapFree(node);
             node=NULL;
@@ -5532,7 +5587,7 @@ ClRcT receiverDropMsgCallback(ClIocAddressT *srcAddress, ClUint32T messageId,
 }
 
 ClRcT receiverAckSend(ClIocCommPortT *commPort, ClIocAddressT *dstAddress,
-        ClUint32T messageId, ClUint32T fragmentId)
+        ClUint32T messageId, ClUint32T fragmentId, ClBoolT isLastAck)
 {
     ClRcT rc;
     clLogDebug("IOC", "Rel", "sending ack fragment [%d] to sender address [%d] messageid [%d]" ,fragmentId,dstAddress->iocPhyAddress.nodeAddress,messageId);
@@ -5561,8 +5616,16 @@ ClRcT receiverAckSend(ClIocCommPortT *commPort, ClIocAddressT *dstAddress,
     sendOption.timeout = 200;
     if (fragmentId != 0)
     {
-        rc = clIocSend((ClIocCommPortHandleT) commPort, message,
+        if (isLastAck==CL_TRUE)
+        {
+            rc = clIocSendReliable((ClIocCommPortHandleT) commPort, message,
+                            CL_IOC_SEND_ACK_PROTO, dstAddress, &sendOption);
+        }
+        else
+        {
+            rc = clIocSend((ClIocCommPortHandleT) commPort, message,
                 CL_IOC_SEND_ACK_PROTO, dstAddress, &sendOption);
+        }
     }
     else
     {
@@ -5624,8 +5687,8 @@ ClRcT receiverACKTrigger(void* key)
             //trigger send NAK to sender
             ClBufferHandleT message = 0;
             clBufferCreate(&message);
-            ClRcT rc;
             ClUint32T msgId = htonl(node->messageId);
+            ClRcT rc;
             rc = clBufferNBytesWrite(message, (ClUint8T*) &msgId,sizeof(ClUint32T));
             ClUint32T fragment = htonl(ack+1);
             rc = clBufferNBytesWrite(message, (ClUint8T *) &fragment,sizeof(ClUint32T));
@@ -5645,7 +5708,7 @@ ClRcT receiverACKTrigger(void* key)
             srcAddress.iocPhyAddress.nodeAddress = node->srcAddress.iocPhyAddress.nodeAddress;
             srcAddress.iocPhyAddress.portId = node->srcAddress.iocPhyAddress.portId;
             node->lastAckSync=ack;
-            receiverAckSend(commPort, &srcAddress, node->messageId, ack);
+            receiverAckSend(commPort, &srcAddress, node->messageId, ack,CL_FALSE);
             node->receiverStatus=CL_RELIABLE_IOC_RECEIVE;
             return CL_OK;
 
@@ -5659,7 +5722,7 @@ ClRcT receiverACKTrigger(void* key)
             ClIocAddressT srcAddress = {{0}};
             srcAddress.iocPhyAddress.nodeAddress = node->srcAddress.iocPhyAddress.nodeAddress;
             srcAddress.iocPhyAddress.portId = node->srcAddress.iocPhyAddress.portId;
-            receiverAckSend(commPort, &srcAddress, node->messageId, ack);
+            receiverAckSend(commPort, &srcAddress, node->messageId, ack,CL_FALSE);
             node->receiverStatus=CL_RELIABLE_IOC_RECEIVE;
             return CL_OK;
 
@@ -5683,7 +5746,7 @@ ClRcT receiverLastACKTrigger(ClIocReassembleNodeT *node)
     ClIocAddressT srcAddress = {{0}};
     srcAddress.iocPhyAddress.nodeAddress = node->srcAddress.iocPhyAddress.nodeAddress;
     srcAddress.iocPhyAddress.portId = node->srcAddress.iocPhyAddress.portId;
-    receiverAckSend(commPort, &srcAddress, node->messageId, ack);
+    receiverAckSend(commPort, &srcAddress, node->messageId, ack , CL_FALSE);
     node->lastAckSync=ack;
     error:
     return CL_OK;
@@ -5722,3 +5785,107 @@ ClRcT receiverNAKTriggerDirect(ClUint32T messageId,ClUint32T fragmentBegin,ClUin
 }
 
 
+void reliableIocConfigParser()
+{
+    ClParserPtrT  head      = NULL;
+    ClCharT       *aspPath  = NULL;
+    ClParserPtrT  fd        = NULL;
+    ClParserPtrT  ClAckTimeOut     = NULL;
+    ClParserPtrT  ClMaxResend     = NULL;
+    ClParserPtrT  ClLastAckCheckInterval     = NULL;
+    ClParserPtrT  ClResendInterval     = NULL;
+    ClParserPtrT  ClMaxMessageResend     = NULL;
+    ClParserPtrT  ClMessageResendInterval     = NULL;
+
+    clLogDebug("IOC", "Rel","Get reliable Ioc configuration");
+    aspPath = getenv("ASP_CONFIG");
+    if( aspPath != NULL )
+    {
+        head = clParserOpenFile(aspPath, CL_CUSTOM_RELIABLE_IOC_FILECONFIG);
+        if( head == NULL )
+        {
+         clLogDebug("IOC", "Rel", "Config file clLogDebug.xml is missing,Using default configuration");
+            goto ParseError;
+
+        }
+    }
+    else
+    {
+     clLogDebug("IOC", "Rel", "ASP_CONFIG path is not set in the environment");
+        goto ParseError;
+    }
+
+    //parse ClAckTimeOut
+    ClAckTimeOut = clParserChild(fd, "ClAckTimeOut");
+    if (ClAckTimeOut == NULL)
+    {
+     clLogDebug("IOC", "Rel","Improper config file detected. \'ClAckTimeOut\' "
+                  "entry is not found");
+        goto ParseError;
+    }
+    reliableDefaultConfig.ClAckTimeOut =atoi(ClAckTimeOut->txt);
+
+    //parse ClMaxResend
+    ClMaxResend = clParserChild(fd, "ClMaxResend");
+    if (ClMaxResend == NULL)
+    {
+     clLogDebug("IOC", "Rel","Improper config file detected. \'memThreshold\' "
+                  "entry is not found");
+        goto ParseError;
+    }
+    reliableDefaultConfig.ClMaxResend =atoi(ClMaxResend->txt);
+
+    //parse ClLastAckCheckInterval
+    ClLastAckCheckInterval = clParserChild(fd, "ClLastAckCheckInterval");
+    if (ClLastAckCheckInterval == NULL)
+    {
+     clLogDebug("IOC", "Rel","Improper config file detected. \'ClLastAckCheckInterval\' "
+                  "entry is not found");
+        goto ParseError;
+    }
+    reliableDefaultConfig.ClLastAckCheckInterval =atoi(ClLastAckCheckInterval->txt);
+
+    //parse ClResendInterval
+    ClResendInterval = clParserChild(fd,"ClResendInterval");
+    if (ClResendInterval == NULL)
+    {
+     clLogDebug("IOC", "Rel","Improper config file detected. \'ClResendInterval\' "
+                  "entry is not found");
+        goto ParseError;
+    }
+    reliableDefaultConfig.ClResendInterval =atoi(ClResendInterval->txt);
+
+
+
+    //parse ClMaxMessageResend
+    ClMaxMessageResend = clParserChild(fd, "ClMaxMessageResend");
+    if (ClLastAckCheckInterval == NULL)
+    {
+     clLogDebug("IOC", "Rel","Improper config file detected. \'ClMaxMessageResend\' "
+                  "entry is not found");
+        goto ParseError;
+    }
+    reliableDefaultConfig.ClMaxMessageResend =atoi(ClMaxMessageResend->txt);
+
+    //parse ClMessageResendInterval
+    ClMessageResendInterval = clParserChild(fd,"ClMessageResendInterval");
+    if (ClResendInterval == NULL)
+    {
+     clLogDebug("IOC", "Rel","Improper config file detected. \'ClMessageResendInterval\' "
+                  "entry is not found");
+        goto ParseError;
+    }
+    reliableDefaultConfig.ClMessageResendInterval =atoi(ClMessageResendInterval->txt);
+
+    return;
+
+    ParseError:
+    clLogDebug("IOC", "Rel","Using default reliable ioc configuration");
+    reliableDefaultConfig.ClAckTimeOut = 7;
+    reliableDefaultConfig.ClMaxResend = 3;
+    reliableDefaultConfig.ClLastAckCheckInterval=5;
+    reliableDefaultConfig.ClResendInterval=10;
+    reliableDefaultConfig.ClMaxMessageResend=5;
+    reliableDefaultConfig.ClMessageResendInterval=3;
+
+}
