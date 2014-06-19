@@ -29,14 +29,15 @@ $(LIB_DIR)/libclMgt7.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/client
 endif
 
+ifndef SAFPLUS_DBAL_LIB
+$(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/dbal7
+endif
+
 ifndef SAFPLUS_CKPT_LIB
 $(LIB_DIR)/libclCkpt.so: $(wildcard $(SAFPLUS_SRC_DIR)/SAFplus/components/ckpt7/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/SAFplus/include7/*.hxx) 
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/ckpt7
 endif
-
-#$(LIB_DIR)/libclMgt.so: 
-#	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7
-#endif
 
 ifndef SAFPLUS_GROUP_LIB
 $(LIB_DIR)/libclGroup.so: 
@@ -50,7 +51,7 @@ $(LIB_DIR)/libclName.so:
 endif
 
 # ordered by dependency
-SAFplusSOs :=   $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so
+SAFplusSOs :=   $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py
 
 
 ifndef SAFPLUS_LOG_TEST

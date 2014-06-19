@@ -12,15 +12,16 @@ using namespace std;
 /*
  * Basic ASP Includes.
  */
-#include <clCommon.h>
+#include <clLogApi.hxx>
+#include <clGlobals.hxx>
+#include <clCommon.hxx>
 #include <clOsalApi.h>
 #include <clIocApi.h>
-#include <clEoConfigApi.h>
-#include <clLogApi.h>
 #include <clDbalApi.h>
-#include <clDbalCfg.h>
 #include <clDbalErrors.h>
 #include <clCksmApi.h>
+
+using namespace SAFplus;
 
 static ClDBHandleT dbHdl = 0x0;
 static ClDBHandleT dbIterHdl = 0x0;
@@ -233,16 +234,20 @@ PyMODINIT_FUNC
 initpyDbal(void)
 {
     ClRcT rc = CL_OK;
+    logInitialize();
+    logEchoToFd = 1;  // echo logs to stdout for debugging
+    logSeverity = LOG_SEV_MAX;
 
-    if ((rc=clOsalInitialize(NULL)) != CL_OK || (rc=clHeapInit()) != CL_OK)
-    {
-        printf("Core initialize failed rc: [0x%x]\n", rc);
-    }
+    // initialize SAFplus6 libraries
+    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+      {
+        assert(0);
+      }
 
     rc = clDbalLibInitialize();
     if (rc != CL_OK)
     {
-        printf("DBAL client initialize failed rc: [0x%x]\n", rc);
+        logError("PY","DBAL", "DBAL client initialize failed rc: [0x%x]\n", rc);
     }
     (void) Py_InitModule("pyDbal", DbalPyMethods);
 }

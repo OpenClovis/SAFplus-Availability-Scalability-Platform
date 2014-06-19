@@ -211,7 +211,7 @@ class MicroDom:
 
     if self.data_: datastr = str(self.data_)
     else: datastr = ""
-    if self.children_:
+    if self.children_ and isInstanceOf(self.children_,MicroDom):
       if not recurse: chstr = "<%d children>" % len(self.children_)
       else:
         chlst = []

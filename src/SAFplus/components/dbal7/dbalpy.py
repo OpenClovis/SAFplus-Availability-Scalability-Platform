@@ -60,7 +60,7 @@ class PyDBAL():
         Decode cfg file and set doc root tree
     """
     def __init__(self, fileName, maxKeySize = 4, maxRecordSize = 8, docRoot=None):
-        self.cfgfile = cfgpath + os.sep + "%s.xml" % fileName
+        self.cfgfile = "%s" % fileName
         self.suppliedData = None
         try:
             self.suppliedData = microdom.LoadFile(self.cfgfile)
@@ -71,7 +71,8 @@ class PyDBAL():
             print "Supplied data file %s does not exist.  You may need to export SAFPLUS_CONFIG enviroment variable" % self.cfgfile
             raise
 
-        pyDbal.initializeDbal(fileName, maxKeySize, maxRecordSize)
+        self.dbName = fileName.split('.')[0]
+        pyDbal.initializeDbal(self.dbName, maxKeySize, maxRecordSize)
         self.Load(self.suppliedData)
 
     """ Load cfg xml and save to binary database """
@@ -121,11 +122,11 @@ class PyDBAL():
                 for elchild in element.children():
                     self._load(elchild, xpath)
             else:
-                self.xpathDB[xpath] = str()
+                self.xpathDB[xpath] = element.dump()
 
-        elif len(str(element).strip()) > 0:
-            self.xpathDB[xpath] = str(element).strip()
-
+        elif len(str(element.dump()).strip()) > 0:
+            self.xpathDB[xpath] = str(element.dump()).strip()
+        
     """ Build element attribute """
     def _transformAttr(self, next, token):
         predicate = []
@@ -227,7 +228,7 @@ class PyDBAL():
     
             #Write to xml or stdout
             if filename is None:
-                filename = self.cfgfile
+                filename = "%s.xml" %self.dbName
     
             elmtree = ET.ElementTree(root)
             elmtree.write(filename)

@@ -42,6 +42,9 @@
 #include "clovisDbalInternal.h"
 #include <clDbalCfg.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define CL_DB_SYNC_OVERRIDE 2
 
@@ -1442,3 +1445,7 @@ ClRcT clDbalInterface(ClDbalFunctionPtrsT  *funcDbPtr)
 
     return rc; 
 }
+
+#ifdef __cplusplus
+ }
+#endif

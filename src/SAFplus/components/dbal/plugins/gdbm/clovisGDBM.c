@@ -35,6 +35,11 @@
 #include <clLogUtilApi.h>
 #include <clHeapApi.h>
 #include "clovisDbalInternal.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /*****************************************************************************/
 #define CL_GDBM_BLOCK_SIZE   4096     /* Black size for GDBM configuration */
 #define CL_GDBM_FILE_MODE    0644     /* Permissions for the database */
@@ -656,4 +661,7 @@ ClRcT clDbalInterface(ClDbalFunctionPtrsT  *funcDbPtr)
   return rc;
 }
 
+#ifdef __cplusplus
+}
+#endif
 

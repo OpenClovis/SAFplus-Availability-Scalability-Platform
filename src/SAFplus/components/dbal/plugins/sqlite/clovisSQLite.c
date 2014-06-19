@@ -30,6 +30,10 @@
 #include "clDbalInterface.h"
 #include <clDbalCfg.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern ClDbalFunctionPtrsT *gDbalFunctionPtrs;
 
 typedef struct SQLiteDBHandle_t {
@@ -1174,4 +1178,8 @@ ClRcT clDbalInterface(ClDbalFunctionPtrsT  *funcDbPtr)
 
     return rc; 
 }
+
+#ifdef __cplusplus
+ }
+#endif
 

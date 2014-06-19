@@ -33,7 +33,7 @@
 
 SUBDIRS          = client  
 ifeq ($(BUILD_SHARED), 1)
- SUBDIRS += plugins
+ SUBDIRS += #plugins -> move to dbal7
 endif
 #
 # If you have any ordering dependence among subdirectories, list them as
