@@ -1,10 +1,11 @@
 #include <clThreadPool.hxx>
+#include <signal.h>
 
 using namespace SAFplus;
 
-TaskQueue* ThreadPool::taskQueue = new TaskQueue();
+Poolable::PoolableList Poolable::poolableList; 
 
-Poolable::Poolable(UserCallbackT _fn, uint32_t timeLimit, bool _deleteWhenComplete): fn(_fn), executionTimeLimit(timeLimit), deleteWhenComplete(_deleteWhenComplete)
+Poolable::Poolable(UserCallbackT _fn, void* _arg, uint32_t timeLimit, bool _deleteWhenComplete): fn(_fn), arg(_arg), executionTimeLimit(timeLimit), deleteWhenComplete(_deleteWhenComplete)
 {
 }
 
@@ -20,7 +21,7 @@ void Poolable::calculateEndTime()
   printf("errno [%d]\n", errno);
   assert(ret==0);
 }
-void Poolable::calculateExeTime()
+void Poolable::calculateExecTime()
 {
   // calculate execution time and convert it to milisecond
   unsigned long long int executionTime = (endTime.tv_sec - startTime.tv_sec)*1000 + (endTime.tv_nsec - startTime.tv_nsec)/1000000L;
@@ -28,16 +29,18 @@ void Poolable::calculateExeTime()
   assert(executionTime <= executionTimeLimit); //assert if execution time is longer than the configured limit one  
   printf("The task executed on time\n");  
 }
-
+bool Poolable::isDeleteWhenComplete()
+{
+  return deleteWhenComplete;
+}
 Poolable::~Poolable()
 {
   printf("~Poolable() called\n");
 }
 
-ThreadPool::ThreadPool(short _minThreads, short _maxThreads): minThreads(_minThreads), maxThreads(_maxThreads)
+ThreadPool::ThreadPool(short _minThreads, short _maxThreads): minThreads(_minThreads), maxThreads(_maxThreads), numCurrentThreads(0), numIdleThreads(0), isStopped(false)
 {
-  printf("ThreadPool::ThreadPool()\n");
-  isStopped = false;
+  printf("ThreadPool::ThreadPool()\n");  
   start();
 }
 
@@ -54,97 +57,141 @@ void ThreadPool::stop()
 void ThreadPool::start()
 {
   printf("ThreadPool::start()\n");
-  for(int i=0;i<maxThreads;i++)
+  for(int i=0;i<minThreads;i++)
   {
     startThread();
-  }  
+  }
+  pthread_t thid;
+  pthread_create(&thid, NULL, timerThreadFunc, this);
+  pthread_detach(thid);
 }
 
-/*void ThreadPool::run(Poolable* p, void* arg)
+void ThreadPool::run(Poolable* p)
 {
   printf("ThreadPool::run()\n");
-  enqueue(p, arg);
-}*/
-
-void ThreadPool::run(Wakeable* p, void* arg)
-{
-  printf("ThreadPool::run()\n");
-  enqueue(p, arg);
+  enqueue(p);
 }
 
-void ThreadPool::enqueue(Wakeable* p, void* arg)
+void ThreadPool::run(Wakeable* wk, void* arg)
+{
+  printf("ThreadPool::runw()\n");
+  WakeableHelper* pwh = getUnusedWHElement();
+  if (pwh)
+  {
+    printf("Reuse helper object in list\n");
+    pwh->wk=wk;
+    pwh->arg=arg;
+  }
+  else
+  {
+    printf("No unused helper obj. Create a new one and add it to list\n");
+    pwh = new WakeableHelper(wk, arg);
+    whList.push_back(pwh);
+  }
+  enqueue(pwh);
+}
+
+void ThreadPool::enqueue(Poolable* p)
 {  
-  pthread_t thid = pthread_self();
   printf("ThreadPool::enqueue()\n");
-  TaskData* td = new TaskData(p, arg);
+  if (numIdleThreads == 0 && numCurrentThreads <= maxThreads)
+  {
+    printf("Creating a new thread to execute job because all current threads are busy\n");
+    startThread();
+  }
   printf("ThreadPool::enqueue(): lock the mutex\n");
-  mutex.lock();
-  //printf("=======================================\n");
-  //td->p->wake(0, arg);
-  //printf("=======================================\n");
-  taskQueue->push_back(td);
+  mutex.lock();  
+  Poolable::poolableList.push_back(*p);
   printf("ThreadPool::enqueue(): notify\n");
   cond.notify_one();
   printf("ThreadPool::enqueue(): unlock the mutex\n");
   mutex.unlock();  
 }
 
-TaskData* ThreadPool::dequeue()
+Poolable* ThreadPool::dequeue()
 {  
-  pthread_t thid = pthread_self();
   printf("ThreadPool::dequeue()\n");  
   printf("ThreadPool::dequeue(): lock the mutex\n");
   mutex.lock();
   printf("ThreadPool::dequeue(): if wait???\n");
-  if (taskQueue->size() == 0)
+  if (Poolable::poolableList.size() == 0)
   {    
     printf("ThreadPool::dequeue(): wait\n");
     cond.wait(mutex);
   }
-  if (taskQueue->size() == 0) // in case of stopping the threadpool, the queue might not contain any item
+  if (Poolable::poolableList.size() == 0) // in case of stopping the threadpool, the queue might not contain any item
   {
     mutex.unlock();
     return NULL;  
   }
   printf("ThreadPool::dequeue(): dequeue item 0\n");
-  TaskData* td = taskQueue->at(0);
-  taskQueue->erase(taskQueue->begin());
+  Poolable* p = &Poolable::poolableList.front();
+  Poolable::poolableList.pop_front();
   printf("ThreadPool::dequeue(): unlock the mutex\n");
   mutex.unlock();
-  return td;
+  return p;
 }
 
 void ThreadPool::runTask(void* arg)
 {
-  //pthread_t thid = pthread_self();
-  printf("ThreadPool::runTask()\n");
+  printf("ThreadPool::runTask()\n");  
   ThreadPool* tp = (ThreadPool*)arg;
+  pthread_t thid = pthread_self();
+  printf("runTask(): threadid [%lu]\n", thid);
+  tp->mutex.lock();
+  tp->cond.wait(tp->mutex);
+  ThreadHashMap::iterator contents = tp->threadMap.find(thid);
+  assert(contents != tp->threadMap.end());  
+  tp->mutex.unlock();
+  ThreadState& ts = contents->second;
+  printf("runTask(): enter loop\n");
   while (!tp->isStopped)
-  {    
-    TaskData* td = tp->dequeue();
-    printf("ThreadPool::runTask(): execute user-defined func\n");
-    if (td)
+  { 
+    if (ts.quitAllowed)
     {
-      Poolable* p = dynamic_cast<Poolable*>(td->p);
-      if (p!=NULL)
-      {      
-        p->calculateStartTime();
-      } 
-      td->p->wake(0,td->arg);
-      if (p!=NULL)
-      {
-        p->calculateEndTime();
-        p->calculateExeTime();
-      }
-      // Delete the object?      
-      if (p!=NULL && p->deleteWhenComplete)
+      printf("runTask(): I have to quit immediately\n");      
+      break;
+    }    
+    Poolable* p = tp->dequeue();    
+    if (!p)    
+      continue;    
+    ts.working = true;
+    tp->mutex.lock();
+    tp->numIdleThreads--;
+    tp->mutex.unlock();    
+    WakeableHelper* wh = dynamic_cast<WakeableHelper*>(p);    
+    if (!wh) // it's Poolable object
+    {
+      printf("ThreadPool::runTask(): execute user-defined func of Poolable object\n");      
+      p->wake(0, p->arg);      
+      p->calculateStartTime();
+      p->calculateEndTime();
+      p->calculateExecTime();
+      if (p->isDeleteWhenComplete())
       {
         printf("Delete the poolable object\n");
         delete p;        
-      }
-      delete td;
+      }          
     }
+    else // Wakeable object
+    {
+      printf("ThreadPool::runTask(): execute user-defined func of WakeableHelper object[%p]\n", wh);
+      ts.working = true;
+      wh->wk->wake(0, wh->arg);      
+      wh->wk=NULL;
+      //delete wh;      
+    }
+    ts.working = false;
+    int ret = clock_gettime(CLOCK_MONOTONIC, &ts.idleTimestamp);
+    assert(ret==0);
+    tp->mutex.lock();
+    tp->numIdleThreads++;
+    tp->mutex.unlock();
   }
+  tp->mutex.lock();
+  tp->threadMap.erase(contents); // Remove this thread element from the map and exit
+  tp->numCurrentThreads--;
+  tp->mutex.unlock();
   printf("ThreadPool::runTask(): exit runTask\n");
   return;
 }
@@ -152,13 +199,96 @@ void ThreadPool::runTask(void* arg)
 void ThreadPool::startThread()
 {
   printf("ThreadPool::startThread()\n");
+  numIdleThreads++;
   pthread_t thid;
   pthread_create(&thid, NULL, (void* (*) (void*)) runTask, this);
+  pthread_detach(thid);
+  numCurrentThreads++;  
+  mutex.lock();
+  ThreadState ts(false,false);
+  int ret = clock_gettime(CLOCK_MONOTONIC, &ts.idleTimestamp);
+  assert(ret==0);
+  ThreadMapPair mp(thid, ts);
+  printf("startThread(): insert to map\n");  
+  threadMap.insert(mp);
+  cond.notify_one();
+  mutex.unlock();
+}
+
+WakeableHelper* ThreadPool::getUnusedWHElement()
+{
+  for (WHList::iterator it=whList.begin(); it != whList.end(); ++it)
+  {
+    printf("getUnusedWHElement(): [%p]\n", (Wakeable*)(*it));
+    if ((*it)->wk==NULL)
+    { 
+      return *it;
+    }
+  }
+  return NULL;
+}
+
+void* ThreadPool::timerThreadFunc(void* arg)
+{
+  printf("Enter timerThreadFunc()\n");
+  ThreadPool* tp = (ThreadPool*) arg;
+  while(!tp->isStopped)
+  {
+    printf("checkAndReleaseThread(): invoking checkAndReleaseThread\n");
+    tp->checkAndReleaseThread();
+    sleep(TIMER_INTERVAL);
+  }
+  return NULL;
+}
+
+void ThreadPool::checkAndReleaseThread()
+{  
+  printf("Enter checkAndReleaseThread(): numCurrentThreads [%d]\n", numCurrentThreads);
+  int nRunningThreads = numCurrentThreads;
+  bool quitNotify = false;
+  for(ThreadHashMap::iterator iter=threadMap.begin(); iter!=threadMap.end()&&nRunningThreads>minThreads; iter++)
+  {        
+    pthread_t threadId = iter->first;
+    printf("checkAndReleaseThread(): threadId [%lu]\n", threadId);              
+    ThreadState& ts = iter->second;    
+    if (!ts.working)
+    {
+      struct timespec now;
+      int ret = clock_gettime(CLOCK_MONOTONIC, &now);
+      printf("errno [%d]\n", errno);
+      assert(ret==0);
+      unsigned long long int idleTime = now.tv_sec - ts.idleTimestamp.tv_sec + (now.tv_nsec - ts.idleTimestamp.tv_nsec)/1000000000L; // calculating idle time in second
+      printf("checkAndReleaseThread(): idle time from not working [%llu]\n", idleTime);
+      if (idleTime >= THREAD_IDLE_TIME_LIMIT)
+      {
+        printf("checkAndReleaseThread(): allow thread [%lu] to quit\n", threadId);
+        #if 0
+        ret = pthread_kill(threadId, SIGKILL);
+        if (ret==0)
+        {
+          numCurrentThreads--;
+        }
+        else
+        {
+          printf("WARNING. terminating thread\n");
+        }
+        #endif
+        ts.quitAllowed = true;
+        quitNotify = true;
+        nRunningThreads--;      
+      }
+    }
+  }
+  if (quitNotify) 
+    cond.notify_all();
+  printf("Leave checkAndReleaseThread()\n");
 }
 
 ThreadPool::~ThreadPool()
 {
-  printf("~ThreadPool() called\n");  
-  delete taskQueue;
+  printf("~ThreadPool() called. Deallocate mem for helper object list [%d]\n", (int)whList.size());  
+  for (WHList::iterator it=whList.begin(); it != whList.end(); ++it)
+  {
+    delete (*it);
+  }
 }
-

@@ -6,17 +6,19 @@ using namespace SAFplus;
 class MyPoolable: public Poolable 
 {
 public:
-  MyPoolable(UserCallbackT fn=NULL, uint32_t timeLimit=30000, bool deleteWhenComplete=false): Poolable(fn, timeLimit, deleteWhenComplete) {}
+  MyPoolable(UserCallbackT fn=NULL, void* arg=NULL, uint32_t timeLimit=30000, bool deleteWhenComplete=false): Poolable(fn, arg, timeLimit, deleteWhenComplete) {}
   virtual void wake(int amt, void* cookie)
   {
     printf("MyPoolable wake()\n");
     if (fn)
     {
-      fn(cookie);
+      fn(arg);
+      sleep(5);
     }
     else
     {
       printf("Put your own code here\n");
+      sleep(5);
     }
   }
   ~MyPoolable()
@@ -63,21 +65,25 @@ uint32_t foo4(void* invocation)
 int main()
 {
   printf("Main started\n");
+  MyWakeable mywk2;  
   MyPoolable p(&foo);
   MyPoolable p2(&foo2);
   MyPoolable p3(&foo3);
   MyPoolable p4;
   MyWakeable mywk;
-  ThreadPool pool(0, 4);
+  ThreadPool pool(2, 10);
   printf("Calling pool.run\n");
-  pool.run(&p, NULL);
-  pool.run(&p2, NULL);
-  pool.run(&p3, NULL);  
+  pool.run(&mywk2, NULL);
+  pool.run(&p);
+  pool.run(&p2);
+  pool.run(&p3);  
   pool.run(&mywk, NULL);
-  pool.run(&p4, NULL);
-  MyPoolable* pl = new MyPoolable(NULL,3,true);
-  pool.run(pl, NULL);
-  sleep(2);
+  pool.run(&p4);
+  MyPoolable* pl = new MyPoolable(NULL,NULL,6000,true);  
+  pool.run(pl);  
+  MyWakeable mywk3;
+  pool.run(&mywk3, NULL);
+  sleep(120);
   pool.stop();
   sleep(5);
 
