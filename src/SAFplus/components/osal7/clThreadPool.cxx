@@ -245,7 +245,6 @@ void ThreadPool::checkAndReleaseThread()
 {  
   printf("Enter checkAndReleaseThread(): numCurrentThreads [%d]\n", numCurrentThreads);
   int nRunningThreads = numCurrentThreads;
-  bool quitNotify = false;
   for(ThreadHashMap::iterator iter=threadMap.begin(); iter!=threadMap.end()&&nRunningThreads>minThreads; iter++)
   {        
     pthread_t threadId = iter->first;
@@ -274,12 +273,11 @@ void ThreadPool::checkAndReleaseThread()
         }
         #endif
         ts.quitAllowed = true;
-        quitNotify = true;
         nRunningThreads--;      
       }
     }
   }
-  if (quitNotify) 
+  if (nRunningThreads<numCurrentThreads) 
     cond.notify_all();
   printf("Leave checkAndReleaseThread()\n");
 }
