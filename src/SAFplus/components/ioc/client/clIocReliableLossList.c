@@ -226,7 +226,8 @@ void delNode(ClFragmentListHeadT **head,ClFragmentListHeadT *node)
         else
             l->pNext=node->pNext;
     }
-    freeNode(&node);}
+    freeNode(&node);
+}
 
 /*
 **  freeNode()
@@ -356,6 +357,7 @@ void destroyNodes(ClFragmentListHeadT **head)
         lp=(*head);
         (*head)=(*head)->pNext;
         (void) free((char *) lp);
+        lp=NULL;
     }
 }
 
