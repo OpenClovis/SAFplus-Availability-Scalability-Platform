@@ -234,9 +234,9 @@ void* ThreadPool::timerThreadFunc(void* arg)
   ThreadPool* tp = (ThreadPool*) arg;
   while(!tp->isStopped)
   {
-    printf("checkAndReleaseThread(): invoking checkAndReleaseThread\n");
-    tp->checkAndReleaseThread();
+    printf("checkAndReleaseThread(): invoking checkAndReleaseThread\n");    
     sleep(TIMER_INTERVAL);
+    tp->checkAndReleaseThread();
   }
   return NULL;
 }
