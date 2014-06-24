@@ -415,15 +415,6 @@ namespace SAFplus
         logDebug("MGT", "LIST", "Adding child object was successfully");
         return CL_OK;
       }
-
-      /* virtual ClRcT addChildObject(MgtObject *mgtObject, const char* key)
-      {
-        ClRcT rc = CL_OK;
-        assert(mgtObject);
-        children[key] = mgtObject;
-        return CL_OK;
-      }*/
-
       /**
        * API to remove an entry from the list
        */
