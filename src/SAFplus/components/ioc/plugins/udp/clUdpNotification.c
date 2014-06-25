@@ -32,7 +32,7 @@
 #include <clCommon.h>
 #include <clOsalApi.h>
 #include <clBufferApi.h>
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 #include <clHeapApi.h>
 #include <clIocErrors.h>
 #include <clIocIpi.h>
@@ -84,7 +84,7 @@ static void udpSyncCallback(ClIocPhysicalAddressT *srcAddr, ClPtrT arg)
     if(srcAddr->nodeAddress != gIocLocalBladeAddress)
     {
         ClCharT addStr[INET_ADDRSTRLEN] = {0};
-        clLogNotice("SYNC", "CALLBACK", 
+        logNotice("SYNC", "CALLBACK", 
                     "UDP cluster sync for node [%d], port [%#x], ip [%s]",
                     srcAddr->nodeAddress, srcAddr->portId,
                     inet_ntoa( ((struct sockaddr_in*)arg)->sin_addr) );
@@ -110,7 +110,7 @@ ClRcT clUdpNodeNotification(ClIocNodeAddressT node, ClIocNotificationIdT event)
     if(id == CL_IOC_COMP_DEATH_NOTIFICATION || id == CL_IOC_NODE_LINK_DOWN_NOTIFICATION)
         id = CL_IOC_NODE_LEAVE_NOTIFICATION;
 
-    clLogInfo("UDP", "NOTIF", "Got node [%s] notification for node [0x%x]",
+    logInfo("UDP", "NOTIF", "Got node [%s] notification for node [0x%x]",
               id == CL_IOC_NODE_ARRIVAL_NOTIFICATION ? "arrival" : "death", node);
 
     rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
@@ -211,12 +211,12 @@ ClRcT clUdpNotifyPeer(ClIocUdpMapT *map, void *args)
 
         if (sendmsg(gFd, &msg, 0) < 0)
         {
-            clLogError("UDP", "PEER", "sendmsg failed with error [%s] for destination [%s]", strerror(errno), map->addrstr);
+            logError("UDP", "PEER", "sendmsg failed with error [%s] for destination [%s]", strerror(errno), map->addrstr);
             rc = CL_ERR_NO_RESOURCE;
         }
         else
         {
-            clLogDebug("UDP", "PEER", "Notification [%d] sent to node [%s], port [%d]", htonl(pNotification->id), map->addrstr, mcastNotifPort);
+            logDebug("UDP", "PEER", "Notification [%d] sent to node [%s], port [%d]", htonl(pNotification->id), map->addrstr, mcastNotifPort);
         }
     }
     return rc;
@@ -260,16 +260,16 @@ ClRcT clIocPeerList(ClIocUdpMapT *map, void *args)
                 &sendOption, gClUdpXportType, CL_FALSE);
         if (rc != CL_OK)
         {
-            clLogTrace("IOC", "PEER", "Sending UDP address cache [%d:%s] failed, rc = %#x", map->slot, map->addrstr, rc);
+            logTrace("IOC", "PEER", "Sending UDP address cache [%d:%s] failed, rc = %#x", map->slot, map->addrstr, rc);
         }
         else
         {
-            clLogTrace("IOC", "PEER", "Sending UDP address cache [%d:%s]", map->slot, map->addrstr);
+            logTrace("IOC", "PEER", "Sending UDP address cache [%d:%s]", map->slot, map->addrstr);
         }
     }
     else
     {
-        clLogTrace("IOC", "PEER", "clBufferNBytesWrite failed with rc = %#x", rc);
+        logTrace("IOC", "PEER", "clBufferNBytesWrite failed with rc = %#x", rc);
     }
     clBufferDelete(&message);
     return rc;
@@ -318,7 +318,7 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
 
                 notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
                 notification.nodeAddress.iocPhyAddress.portId = htonl(CL_IOC_XPORT_PORT);
-                clLogDebug("UDP", "DISCOVER", "Sending udp discover packet to node [%d], port [%#x]", compAddr.nodeAddress, compAddr.portId);
+                logDebug("UDP", "DISCOVER", "Sending udp discover packet to node [%d], port [%#x]", compAddr.nodeAddress, compAddr.portId);
                 rc = clIocNotificationPacketSend((ClIocCommPortHandleT)&dummyCommPort,
                                                    &notification, (ClIocAddressT*)&destAddress, 
                                                    CL_FALSE, gClUdpXportType);
@@ -349,7 +349,7 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
             else
             {
                 /* This is for LOCAL COMPONENT ARRIVAL/DEPARTURE */
-                clLogInfo("UDP", "NOTIF", "Got component [%s] notification for node [0x%x] port [0x%x]",
+                logInfo("UDP", "NOTIF", "Got component [%s] notification for node [0x%x] port [0x%x]",
                           id == CL_IOC_COMP_ARRIVAL_NOTIFICATION ? "arrival" : "death", compAddr.nodeAddress, compAddr.portId);
                 ClUint8T status = (id == CL_IOC_COMP_ARRIVAL_NOTIFICATION) ? CL_IOC_NODE_UP : CL_IOC_NODE_DOWN;
 
@@ -395,7 +395,7 @@ static ClRcT clUdpReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr) {
                     if (CL_OK == rc)
                     {
                         clUdpAddrSet(udpAddr.slot, addStr);
-                        clLogTrace("UDP", "PEER", "UDP address node from peer [%d:%s]", udpAddr.slot, udpAddr.addrstr);
+                        logTrace("UDP", "PEER", "UDP address node from peer [%d:%s]", udpAddr.slot, udpAddr.addrstr);
                     }
                 }
                 return rc;
@@ -477,14 +477,14 @@ static void clUdpEventHandler(ClPtrT pArg)
                     {
                         if (!(recvErrors++ & 255))  /* just slow down the logging */
                         {
-                            clLogError(UDP_LOG_AREA,UDP_LOG_CTX_UDP_EVENT,"Recvmsg failed with [%s]\n", strerror(errno));
+                            logError(UDP_LOG_AREA,UDP_LOG_CTX_UDP_EVENT,"Recvmsg failed with [%s]\n", strerror(errno));
                             sleep(1);  /* Is this going to cause keep-alive failure after 255 receive errors? */
                         }
                         if (errno == ENOTCONN) 
                         {
                             if (udpEventSubscribe(CL_FALSE) != CL_OK)  /* This call creates a thread that runs this routine, potentially leading to infinite loop */
                             {
-                                clLogCritical(UDP_LOG_AREA,
+                                logCritical(UDP_LOG_AREA,
                                               UDP_LOG_CTX_UDP_EVENT,
                                               "UDP topology subsciption retry failed. "
                                               "Shutting down the notification thread and process\n");
@@ -500,7 +500,7 @@ static void clUdpEventHandler(ClPtrT pArg)
                 } 
                 else if ((pollfds[i].revents & (POLLHUP | POLLERR | POLLNVAL))) 
                 {
-                    clLogError(UDP_LOG_AREA,UDP_LOG_CTX_UDP_EVENT,
+                    logError(UDP_LOG_AREA,UDP_LOG_CTX_UDP_EVENT,
                                "Error : Handler \"poll\" hangup.\n");
                 }
             }
@@ -508,7 +508,7 @@ static void clUdpEventHandler(ClPtrT pArg)
         else if (pollStatus < 0)
         {
             if (errno != EINTR) /* If the system call is interrupted just loop, its not an error */
-                clLogError(UDP_LOG_AREA,UDP_LOG_CTX_UDP_EVENT,"Error : poll failed. errno=%d\n",errno);
+                logError(UDP_LOG_AREA,UDP_LOG_CTX_UDP_EVENT,"Error : poll failed. errno=%d\n",errno);
         }
     }
     close(handlerFd[0]);
@@ -581,7 +581,7 @@ static ClRcT udpMcastSetup(void)
         rc = clTransportMcastPeerListGet(gClMcastPeers, &gClNumMcastPeers);
         if(rc != CL_OK)
         {
-            clLogError("UDP", "NOTIFY", "Mcast peer list get failed with [%#x]", rc);
+            logError("UDP", "NOTIFY", "Mcast peer list get failed with [%#x]", rc);
             clHeapFree(gClMcastPeers);
             gClMcastPeers = NULL;
             gClNumMcastPeers = 0;
@@ -622,7 +622,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
 
     if (sd < 0) 
     {
-        clLogError( "UDP", "NOTIF", "open socket failed with error [%s]", strerror(errno));
+        logError( "UDP", "NOTIF", "open socket failed with error [%s]", strerror(errno));
         return -1;
     }
 
@@ -635,7 +635,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
 
     if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char *) &reuse, sizeof(reuse)) < 0) 
     {
-        clLogError( "UDP", "NOTIF", "setsockopt SO_REUSEADDR failed with error [%s]", strerror(errno));
+        logError( "UDP", "NOTIF", "setsockopt SO_REUSEADDR failed with error [%s]", strerror(errno));
         goto out_close;
     }
 
@@ -647,7 +647,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
 
     if (bind(sd, (struct sockaddr*) &localSock, sizeof(localSock))) 
     {
-        clLogError( "UDP", "NOTIF", "setsockopt for SO_REUSEADDR failed with error [%s]", strerror(errno));
+        logError( "UDP", "NOTIF", "setsockopt for SO_REUSEADDR failed with error [%s]", strerror(errno));
         goto out_close;
     }
 
@@ -662,7 +662,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
         if (setsockopt(sd, IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *) &group,
                        sizeof(group)) < 0) 
         {
-            clLogError( "UDP", "NOTIF", "setsockopt IP_ADD_MEMBERSHIP failed with error [%s]", strerror(errno));
+            logError( "UDP", "NOTIF", "setsockopt IP_ADD_MEMBERSHIP failed with error [%s]", strerror(errno));
             goto out_close;
         }
 
@@ -672,7 +672,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
         struct in_addr iaddr;
         iaddr.s_addr = INADDR_ANY;
         if (setsockopt(sd, IPPROTO_IP, IP_MULTICAST_IF, &iaddr, sizeof(iaddr)) < 0) {
-            clLogError( "UDP", "NOTIF", "setsockopt IP_MULTICAST_IF failed with error [%s]", strerror(errno));
+            logError( "UDP", "NOTIF", "setsockopt IP_MULTICAST_IF failed with error [%s]", strerror(errno));
             goto out_close;
         }
     }
@@ -680,7 +680,7 @@ static ClInt32T clUdpSubscriptionSocketCreate(void)
     {
         if(listen(sd, CL_IOC_MAX_NODES) < 0)
         {
-            clLogError("UDP", "NOTIF", "Socket listen failed with error [%s]",
+            logError("UDP", "NOTIF", "Socket listen failed with error [%s]",
                        strerror(errno));
             goto out_close;
         }
@@ -707,7 +707,7 @@ static ClRcT udpEventSubscribe(ClBoolT pollThread)
         retCode = clOsalTaskCreateDetached(pTaskName, CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, (void* (*)(void*)) &clUdpEventHandler, NULL);
         if (retCode != CL_OK)
         {
-            clLogError( "UDP", "NOTIF", "Error : Event Handle thread did not start. error code 0x%x",retCode);
+            logError( "UDP", "NOTIF", "Error : Event Handle thread did not start. error code 0x%x",retCode);
             goto out;
         }
     }
@@ -793,7 +793,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
 
         if (sendmsg(gFd, &msg, 0) < 0)
         {
-            clLogError(
+            logError(
                        "UDP",
                        "NOTIF",
                        "sendmsg failed with error [%s] for destination [%s]", 
@@ -803,7 +803,7 @@ ClRcT clUdpNotify(ClIocNodeAddressT nodeAddress, ClUint32T portId, ClIocNotifica
         }
         else
         {
-            clLogDebug("UDP", "NOTIF", "Notification [%d] sent to node [%s], port [%d]", notifyId, gClMcastPeers[i].addrstr, mcastNotifPort);
+            logDebug("UDP", "NOTIF", "Notification [%d] sent to node [%s], port [%d]", notifyId, gClMcastPeers[i].addrstr, mcastNotifPort);
         }
     }
 
@@ -830,7 +830,7 @@ static ClRcT udpDiscoverPeers(void)
     if (rc == CL_OK)
     {
         sleep(UDP_CLUSTER_SYNC_WAIT_TIME);
-        clLogInfo("UDP", "DISCOVER", "Cluster view sync complete. Discovered [%d] peers", gNumDiscoveredPeers);
+        logInfo("UDP", "DISCOVER", "Cluster view sync complete. Discovered [%d] peers", gNumDiscoveredPeers);
     }    
     return rc;
 }
@@ -857,7 +857,7 @@ ClRcT clUdpEventHandlerInitialize(void)
     rc = clIocCommPortCreateStatic(CL_IOC_XPORT_PORT, CL_IOC_RELIABLE_MESSAGING, &dummyCommPort, gClUdpXportType);
     if (rc != CL_OK)
     {
-        clLogError("UDP","NOTIF", "Comm port create for notification port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
+        logError("UDP","NOTIF", "Comm port create for notification port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
         goto out;
     }
 
@@ -868,7 +868,7 @@ ClRcT clUdpEventHandlerInitialize(void)
     rc = clUdpFdGet(CL_IOC_XPORT_PORT, &handlerFd[1]);
     if (rc != CL_OK)
     {
-        clLogError("UDP","NOTIF","UDP notification fd for port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
+        logError("UDP","NOTIF","UDP notification fd for port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
         goto out;
     }
 

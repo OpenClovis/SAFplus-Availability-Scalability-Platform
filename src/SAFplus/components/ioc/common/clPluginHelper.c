@@ -16,7 +16,7 @@
 #include <clCpmApi.h>
 #include <clEoApi.h>
 #include <clPluginHelper.h>
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 
 #define CL_LOG_PLUGIN_HELPER_AREA "PLUGIN_HELPER"
 #define CL_PLUGIN_HELPER_ARP_REQUEST (1)
@@ -119,11 +119,11 @@ static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf)
             linkName = getenv("LINK_NAME");
             if (linkName == NULL)
             {
-                clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s and LINK_NAME environment variable is not exported. Using 'eth0:10' interface as default", envlinkNameType);
+                logNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s and LINK_NAME environment variable is not exported. Using 'eth0:10' interface as default", envlinkNameType);
             }
             else
             {
-                clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "LINK_NAME env is exported. Value is %s", linkName);
+                logNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "LINK_NAME env is exported. Value is %s", linkName);
                 net_addr[0] = 0;
                 strncat(net_addr, linkName, sizeof(net_addr)-1);
                 ClCharT *token = NULL;
@@ -137,7 +137,7 @@ static ClRcT _clPluginHelperGetLinkName(const ClCharT *xportType, ClCharT *inf)
         }
         else
         {
-            clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s env is exported. Value is %s", envlinkNameType, linkName);
+            logInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s env is exported. Value is %s", envlinkNameType, linkName);
             snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", linkName);
         }
     }
@@ -178,7 +178,7 @@ static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, const ClC
         }
         if(! (CIDR = atoi(subnetPrefix) ) )
         {
-            clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s", subnetMask);
+            logInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "%s", subnetMask);
             return CL_ERR_INVALID_PARAMETER;
         }
         xportSubnetPrefix[0] = 0;
@@ -197,8 +197,8 @@ static ClRcT _clPluginHelperGetIpNodeAddress(const ClCharT *xportType, const ClC
         if (clParseEnvBoolean("ASP_UDP_USE_EXISTING_IP"))
         {
             rc = _clPluginHelperDevToIpAddress(devIf, hostAddress);
-            if (rc == CL_OK) clLogInfo("IOC",CL_LOG_PLUGIN_HELPER_AREA,"Use existing IP address [%s] as this nodes transport address.", hostAddress);
-            else clLogError("IOC",CL_LOG_PLUGIN_HELPER_AREA,"Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
+            if (rc == CL_OK) logInfo("IOC",CL_LOG_PLUGIN_HELPER_AREA,"Use existing IP address [%s] as this nodes transport address.", hostAddress);
+            else logError("IOC",CL_LOG_PLUGIN_HELPER_AREA,"Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
         }
         
         if (rc != CL_OK)
@@ -225,7 +225,7 @@ static ClRcT _clPluginHelperDevToMac(const ClCharT* dev, char mac[CL_MAC_ADDRESS
     req.ifr_addr.sa_family = AF_UNSPEC;
     if (ioctl(sd, SIOCGIFHWADDR, &req) == -1) {
         int err = errno;
-        clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "No device %s, hwaddr errno: %d", dev, err);
+        logNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "No device %s, hwaddr errno: %d", dev, err);
         return CL_ERR_LIBRARY;
     }
     memcpy(mac, &(req.ifr_addr.sa_data), CL_MAC_ADDRESS_LENGTH);
@@ -244,7 +244,7 @@ static ClRcT _clPluginHelperDevToIfIndex(const ClCharT *dev, int *ifindex) {
     req.ifr_addr.sa_family = AF_UNSPEC;
     if (ioctl(sd, SIOCGIFINDEX, &req) == -1) {
         int err = errno;
-        clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "No device %s, ifindex errno: %d", dev, err);
+        logNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "No device %s, ifindex errno: %d", dev, err);
         *ifindex = 0;
         return CL_ERR_LIBRARY;
     }
@@ -262,7 +262,7 @@ static ClRcT _clPluginHelperHostToIp(const ClCharT *myHost, ClUint32T *ip) {
     int errnum = 0;
 
     if (gethostbyname_r(myHost, &hostdata, buf, 128, &host, &errnum) || !host) {
-        clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Cannot resolve host string %s", myHost);
+        logNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Cannot resolve host string %s", myHost);
         return CL_ERR_LIBRARY;
     }
 
@@ -318,14 +318,14 @@ static ClRcT _clPluginHelperSendArp(const ClCharT *host, const ClCharT *dev) {
 
             if ((sd = socket(AF_PACKET, SOCK_RAW, htons(ETH_P_ARP))) < 0) {
                 int err = errno;
-                clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Cannot create a socket, arp not sent; error %d: %s", err, "");
+                logNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Cannot create a socket, arp not sent; error %d: %s", err, "");
             } else {
                 if (sendto(sd, &pkt, sizeof(pkt), 0, (struct sockaddr *) &sal, sizeof(sal)) < 0) {
                     int err = errno;
-                    clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Cannot send the arp packet; error %d: %s", err, "");
+                    logNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Cannot send the arp packet; error %d: %s", err, "");
                     rc = CL_ERR_LIBRARY;
                 }
-                clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Gratuitous arp sent: IP %s device %s mac %02x:%02x:%02x:%02x:%02x:%02x", host, dev, myMac[0],
+                logNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Gratuitous arp sent: IP %s device %s mac %02x:%02x:%02x:%02x:%02x:%02x", host, dev, myMac[0],
                         myMac[1], myMac[2], myMac[3], myMac[4], myMac[5]);
                 shutdown(sd, SHUT_RDWR);
                 close(sd);
@@ -366,7 +366,7 @@ ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr)
     sd = socket(PF_INET, SOCK_DGRAM, 0);
     if (sd < 0)
     {
-        clLogError("IOC", CL_LOG_PLUGIN_HELPER_AREA, "open socket failed with error [%s]", strerror(errno));
+        logError("IOC", CL_LOG_PLUGIN_HELPER_AREA, "open socket failed with error [%s]", strerror(errno));
         return rc;
     }
 
@@ -376,7 +376,7 @@ ClRcT clPluginHelperDevToIpAddress(const ClCharT *dev, ClCharT *addrStr)
 
     if (ioctl(sd, SIOCGIFADDR, &req) == -1)
     {
-        clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Operation command failed: [%s]", strerror(errno));
+        logNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Operation command failed: [%s]", strerror(errno));
         close(sd);
         return rc;
     }
@@ -415,7 +415,7 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
     /* Get a socket handle. */
     sd = socket(PF_INET, SOCK_DGRAM, 0);
     if (sd < 0) {
-        clLogError(
+        logError(
                 "IOC",
                 CL_LOG_PLUGIN_HELPER_AREA,
                 "open socket failed with error [%s]", strerror(errno));
@@ -432,7 +432,7 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
         ifc.ifc_buf = (char*) realloc(ifc.ifc_buf, sizeof(*ifr) * reqs);
         CL_ASSERT(ifc.ifc_buf != NULL);
         if (ioctl(sd, SIOCGIFCONF, &ifc) < 0) {
-            clLogNotice("IOC",
+            logNotice("IOC",
                     CL_LOG_PLUGIN_HELPER_AREA,
                     "Operation command failed: [%s]", strerror(errno));
             goto out;
@@ -444,7 +444,7 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
     ifr = ifc.ifc_req;
     for(i = 0; i < ifc.ifc_len; i += sizeof(*ifr))
     {
-//        clLogTrace("IOC",
+//        logTrace("IOC",
 //                        CL_LOG_PLUGIN_HELPER_AREA,
 //                        "Checking interface name [%s]",
 //                        ifr->ifr_name);
@@ -458,7 +458,7 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
              * This may seem silly but it seems to be needed on some systems
              */
             if (ioctl(sd, SIOCGIFADDR, ifr) < 0) {
-                clLogNotice("IOC",
+                logNotice("IOC",
                         CL_LOG_PLUGIN_HELPER_AREA,
                         "Operation command failed: [%s]", strerror(errno));
                 break;
@@ -475,7 +475,7 @@ static ClRcT _clCheckExistingDevIf(const ClCharT *ip, const ClCharT *dev)
                 }
             }
 
-//            clLogTrace("IOC",
+//            logTrace("IOC",
 //                            CL_LOG_PLUGIN_HELPER_AREA,
 //                            "Checking IP address [%s]",
 //                            addrStr);
@@ -514,7 +514,7 @@ void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelper
      */
     if (_clCheckExistingDevIf(vipCopy->ip, vipCopy->dev))
     {
-        clLogInfo("IOC",
+        logInfo("IOC",
                 CL_LOG_PLUGIN_HELPER_AREA,
                 "Ignored assignment IP address: %s, for device: %s",
                 vipCopy->ip,
@@ -526,12 +526,12 @@ void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelper
     {
         char execLine[301];
         snprintf(execLine, 300, "%s/virtualIp %s %s %s %s %s ", ASP_BINDIR, cmd, vipCopy->ip, vipCopy->netmask, vipCopy->dev, vipCopy->subnetPrefix);
-        clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
+        logInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
         __attribute__((unused)) ClRcT result = system(execLine);
 
         if (up) /* If we are coming up, do a gratuitous arp */
         {
-            clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Sending gratuitous arps: IP address: %s, device: %s", vipCopy->ip, vipCopy->dev);
+            logInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Sending gratuitous arps: IP address: %s, device: %s", vipCopy->ip, vipCopy->dev);
             _clPluginHelperSendArp(vipCopy->ip, vipCopy->dev);
             clOsalTaskCreateDetached("arpTask", CL_OSAL_SCHED_OTHER, 0, 0, _clPluginHelperPummelArps, vipCopy);
             vipCopy = NULL; /* freed by the arp thread*/
@@ -541,13 +541,13 @@ void clPluginHelperAddRemVirtualAddress(const ClCharT *cmd, const ClPluginHelper
             /* If we are going down, delay a bit so that the machine that takes over will not do so too soon.
              (the assumption being that the machine taking over will not do so until this remove returns)
              */
-            clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Removing IP; not sending gratuitous arps");
+            logInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Removing IP; not sending gratuitous arps");
             /* sleep(1); */
         }
     } 
     else 
     {
-        clLogNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Virtual IP work assignment values incorrect: got IP address: %s, device: %s, mask: %s, net prefix: %s", 
+        logNotice("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Virtual IP work assignment values incorrect: got IP address: %s, device: %s, mask: %s, net prefix: %s", 
                     vipCopy->ip, vipCopy->dev, vipCopy->netmask, vipCopy->subnetPrefix);
     }
 
@@ -589,7 +589,7 @@ void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDe
     {
         char execLine[301];
         snprintf(execLine, 300, "/sbin/ip route add %s dev %s", ipAddress, ifDevName);
-        clLogInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
+        logInfo("IOC", CL_LOG_PLUGIN_HELPER_AREA, "Executing %s", execLine);
         result = system(execLine);
     }
 }
@@ -609,7 +609,7 @@ ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType, ClPluginHelp
     rc = clPluginHelperGetLinkName(xportType, dev);
     if (rc != CL_OK)
     {
-        clLogError("IOC", CL_LOG_PLUGIN_HELPER_AREA,
+        logError("IOC", CL_LOG_PLUGIN_HELPER_AREA,
                 "Get link name failed with [%#x]", rc);
         return rc;
     }
@@ -618,7 +618,7 @@ ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType, ClPluginHelp
                                          &ipAddressMask, subnetPrefix);
     if (rc != CL_OK)
     {
-        clLogError("IOC", CL_LOG_PLUGIN_HELPER_AREA,
+        logError("IOC", CL_LOG_PLUGIN_HELPER_AREA,
                 "Get link name failed with [%#x]", rc);
         return rc;
     }

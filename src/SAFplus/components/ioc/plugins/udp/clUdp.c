@@ -15,7 +15,7 @@
 #include <clParserApi.h>
 #include <clList.h>
 #include <clHash.h>
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 #include <clPluginHelper.h>
 #include <clIocNeighComps.h>
 #include "clUdpSetup.h"
@@ -117,14 +117,14 @@ static ClRcT clUdpAddrCacheCreate(void)
     rc = clOsalShmOpen(gClUdpAddrCacheSegment, O_RDWR | O_CREAT | O_EXCL, 0666, &fd);
     if (rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "UDP addresses cache shm open of segment [%s] returned [%#x]", gClUdpAddrCacheSegment, rc);
+        logError("NODE", "CACHE", "UDP addresses cache shm open of segment [%s] returned [%#x]", gClUdpAddrCacheSegment, rc);
         return rc;
     }
 
     rc = clOsalFtruncate(fd, CL_UDP_ADDR_CACHE_SEGMENT_SIZE);
     if (rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "UDP addresses cache truncate of size [%d] returned [%#x]", (ClUint32T) CL_UDP_ADDR_CACHE_SEGMENT_SIZE,
+        logError("NODE", "CACHE", "UDP addresses cache truncate of size [%d] returned [%#x]", (ClUint32T) CL_UDP_ADDR_CACHE_SEGMENT_SIZE,
                 rc);
         clOsalShmUnlink(gClUdpAddrCacheSegment);
         close((ClInt32T) fd);
@@ -134,7 +134,7 @@ static ClRcT clUdpAddrCacheCreate(void)
     rc = clOsalMmap(0, CL_UDP_ADDR_CACHE_SEGMENT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0, (ClPtrT*) &gpClUdpAddrCache);
     if (rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "UDP addresses cache segment mmap returned [%#x]", rc);
+        logError("NODE", "CACHE", "UDP addresses cache segment mmap returned [%#x]", rc);
         clOsalShmUnlink(gClUdpAddrCacheSegment);
         close((ClInt32T) fd);
         return rc;
@@ -149,7 +149,7 @@ static ClRcT clUdpAddrCacheCreate(void)
 
         if (clOsalSemIdGet((ClUint8T*) gClUdpAddrCacheSegment, &semId) != CL_OK)
         {
-            clLogError("NODE", "CACHE", "UDP addresses cache segment sem creation error while fetching sem id");
+            logError("NODE", "CACHE", "UDP addresses cache segment sem creation error while fetching sem id");
             clOsalShmUnlink(gClUdpAddrCacheSegment);
             close((ClInt32T) fd);
             return rc;
@@ -157,7 +157,7 @@ static ClRcT clUdpAddrCacheCreate(void)
 
         if (clOsalSemDelete(semId) != CL_OK)
         {
-            clLogError("NODE", "CACHE", "UDP addresses cache segment sem creation error while deleting old sem id");
+            logError("NODE", "CACHE", "UDP addresses cache segment sem creation error while deleting old sem id");
             clOsalShmUnlink(gClUdpAddrCacheSegment);
             close((ClInt32T) fd);
             return rc;
@@ -177,7 +177,7 @@ static ClRcT clUdpAddrCacheOpen(void)
     rc = clOsalShmOpen(gClUdpAddrCacheSegment, O_RDWR, 0666, &fd);
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "UDP addresses cache [%s] segment open returned [%#x]",
+        logError("NODE", "CACHE", "UDP addresses cache [%s] segment open returned [%#x]",
                 gClUdpAddrCacheSegment, rc);
         return rc;
     }
@@ -187,7 +187,7 @@ static ClRcT clUdpAddrCacheOpen(void)
 
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "UDP addresses cache segment mmap returned [%#x]", rc);
+        logError("NODE", "CACHE", "UDP addresses cache segment mmap returned [%#x]", rc);
         close((ClInt32T)fd);
         return rc;
     }
@@ -196,7 +196,7 @@ static ClRcT clUdpAddrCacheOpen(void)
 
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "UDP addresses cache semid get returned [%#x]", rc);
+        logError("NODE", "CACHE", "UDP addresses cache semid get returned [%#x]", rc);
         close((ClInt32T)fd);
     }
 
@@ -224,7 +224,7 @@ static ClRcT clUdpAddrCacheInitialize(ClBoolT createFlag)
 
     if (rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "Segment initialize returned [%#x]", rc);
+        logError("NODE", "CACHE", "Segment initialize returned [%#x]", rc);
     }
 
     CL_ASSERT(gpClUdpAddrCache != NULL);
@@ -234,7 +234,7 @@ static ClRcT clUdpAddrCacheInitialize(ClBoolT createFlag)
         rc = clOsalMsync(gpClUdpAddrCache, CL_UDP_ADDR_CACHE_SEGMENT_SIZE, MS_ASYNC);
         if (rc != CL_OK)
         {
-            clLogError("NODE", "CACHE", "UDP addresses cache segment msync returned [%#x]", rc);
+            logError("NODE", "CACHE", "UDP addresses cache segment msync returned [%#x]", rc);
         }
     }
 
@@ -376,7 +376,7 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
              */
             if(strcmp(gClUdpXportType, xportType))
             {
-                clLogInfo("UDP", "MAP", "Skipping map update as "
+                logInfo("UDP", "MAP", "Skipping map update as "
                           "node [%d] is through bridge [%d] and xport [%s]. "
                           "Native xport [%s]",
                           slot, dstBridge.iocPhyAddress.nodeAddress, 
@@ -386,7 +386,7 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
             nodeBridge = dstBridge.iocPhyAddress.nodeAddress;
         }
         clPluginHelperConvertHostToInternetAddress(gVirtualIp.ipAddressMask + nodeBridge, addr);
-        clLogTrace("UDP", "MAP", "Node [%d] at [%s] uses bridge [%d] through xport [%s]", slot, addr, nodeBridge, xportType);
+        logTrace("UDP", "MAP", "Node [%d] at [%s] uses bridge [%d] through xport [%s]", slot, addr, nodeBridge, xportType);
     }
     map->slot = slot;
     map->bridge = nodeBridge != slot ? CL_TRUE : CL_FALSE;
@@ -400,14 +400,14 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
         map->__ipv6_addr.sin6_family = PF_INET6;
         if(inet_pton(PF_INET6, addr, (void*)&map->__ipv6_addr.sin6_addr) != 1)
         {
-            clLogError("UDP", "MAP", "Error interpreting address [%s] for node [%d]", addr, slot);
+            logError("UDP", "MAP", "Error interpreting address [%s] for node [%d]", addr, slot);
             goto out_free;
         }
     }
     map->sendFd = socket(map->family, gClSockType, gClProtocol);
     if(map->sendFd < 0)
     {
-        clLogError("UDP", "MAP", "Socket syscall returned with error [%s] for UDP socket", strerror(errno));
+        logError("UDP", "MAP", "Socket syscall returned with error [%s] for UDP socket", strerror(errno));
         goto out_free;
     }
 
@@ -425,15 +425,15 @@ static ClIocUdpMapT *iocUdpMapAdd(ClCharT *addr, ClIocNodeAddressT slot)
             if (err == ENOPROTOOPT)
             {
                 udpPriorityChangePossible = CL_FALSE;
-                clLogWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_MAP,"Message priority not available in this version of UDP.");
+                logWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_MAP,"Message priority not available in this version of UDP.");
             }
-            else clLogWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_MAP,"Error in setting UDP message priority. errno [%d]",err);
+            else logWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_MAP,"Error in setting UDP message priority. errno [%d]",err);
             goto out_free;
         }
     }
 
     udpMapAdd(map);
-    clLogTrace("UDP", "MAP", "Loaded address [%s] with slot mapped at [%d]", addr, slot);
+    logTrace("UDP", "MAP", "Loaded address [%s] with slot mapped at [%d]", addr, slot);
     goto out;
 
     out_free:
@@ -461,7 +461,7 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *ret
     map = iocUdpMapFind(slot);
     if(!map)
     {
-        clLogNotice("MAP", "ADD", "Adding address [%s] for slot [%d]", addrStr, slot);
+        logNotice("MAP", "ADD", "Adding address [%s] for slot [%d]", addrStr, slot);
         map = iocUdpMapAdd(addrStr, slot);
         rc = CL_OK;
     }
@@ -473,7 +473,7 @@ ClRcT clIocUdpMapAdd(struct sockaddr *addr, ClIocNodeAddressT slot, ClCharT *ret
         udpMapDel(map);
         close(map->sendFd);
         free(map);
-        clLogNotice("MAP", "ADD", "Updating address [%s] for SLOT [%d]", addrStr, slot);
+        logNotice("MAP", "ADD", "Updating address [%s] for SLOT [%d]", addrStr, slot);
         map = iocUdpMapAdd(addrStr, slot);
         rc = CL_OK;
     }
@@ -571,11 +571,11 @@ static ClRcT clUdpGetBackplaneInterface(const ClCharT *xportType, ClCharT *inf)
             linkName = getenv("LINK_NAME");
             if (linkName == NULL)
             {
-                clLogNotice("UDP", "INI", "%s and LINK_NAME environment variable is not exported. Using 'eth0' interface as default", envlinkNameType);
+                logNotice("UDP", "INI", "%s and LINK_NAME environment variable is not exported. Using 'eth0' interface as default", envlinkNameType);
             }
             else
             {
-                clLogNotice("UDP", "INI", "LINK_NAME env is exported. Value is %s", linkName);
+                logNotice("UDP", "INI", "LINK_NAME env is exported. Value is %s", linkName);
                 net_addr[0] = 0;
                 strncat(net_addr, linkName, sizeof(net_addr)-1);
                 ClCharT *token = NULL;
@@ -589,7 +589,7 @@ static ClRcT clUdpGetBackplaneInterface(const ClCharT *xportType, ClCharT *inf)
         }
         else
         {
-            clLogInfo("UDP", "INI", "%s env is exported. Value is %s", envlinkNameType, linkName);
+            logInfo("UDP", "INI", "%s env is exported. Value is %s", envlinkNameType, linkName);
             snprintf(inf, CL_MAX_FIELD_LENGTH, "%s", linkName);
         }
     }
@@ -628,7 +628,7 @@ static ClRcT clUdpGetNodeIpAddress(const ClCharT *xportType, const ClCharT *devI
         }
         if(! (CIDR = atoi(subnetPrefix) ) )
         {
-            clLogInfo("UDP", "INI", "Subnet mask configuration setting (ASP_[transport]_SUBNET) cannot be parsed [%s]", subnetMask);
+            logInfo("UDP", "INI", "Subnet mask configuration setting (ASP_[transport]_SUBNET) cannot be parsed [%s]", subnetMask);
             return CL_ERR_INVALID_PARAMETER;
         }
         xportSubnetPrefix[0] = 0;
@@ -647,8 +647,8 @@ static ClRcT clUdpGetNodeIpAddress(const ClCharT *xportType, const ClCharT *devI
         if (ASP_UDP_USE_EXISTING_IP)
         {
             rc = clPluginHelperDevToIpAddress(devIf, hostAddress);
-            if (rc == CL_OK) clLogInfo("UDP","INI","Use existing IP address [%s] as this nodes transport address.", hostAddress);
-            else clLogError("UDP","INI","Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
+            if (rc == CL_OK) logInfo("UDP","INI","Use existing IP address [%s] as this nodes transport address.", hostAddress);
+            else logError("UDP","INI","Configured to use an existing IP address for message transport.  But address lookup failed on device [%s] error [0x%x]", devIf, rc);
         }
         
         if (rc != CL_OK)
@@ -682,7 +682,7 @@ void initSctpCtrlSpace(void)
 
 static void initSctp(void)
 {
-    clLogNotice("INIT", "SCTP", "SCTP mode enabled for UDP transport");
+    logNotice("INIT", "SCTP", "SCTP mode enabled for UDP transport");
     gClSockType = SOCK_SEQPACKET;
     gClProtocol = IPPROTO_SCTP;
     initSctpCtrlSpace();
@@ -692,8 +692,8 @@ static void initSctp(void)
 
 static void initSctp(void)
 {
-    clLogNotice("INIT", "SCTP", "Not using SCTP mode for UDP as sctp support isn't available");
-    clLogNotice("INIT", "SCTP", "Try installing libsctp-dev to enable sctp");
+    logNotice("INIT", "SCTP", "Not using SCTP mode for UDP as sctp support isn't available");
+    logNotice("INIT", "SCTP", "Try installing libsctp-dev to enable sctp");
     gClSockType = SOCK_DGRAM;
     gClProtocol = IPPROTO_UDP;
 }
@@ -713,7 +713,7 @@ static ClRcT checkInitSctp(void)
     parent = clParserOpenFile(config, CL_TRANSPORT_CONFIG_FILE);
     if(!parent)
     {
-        clLogWarning("INIT", "SCTP", "Unable to check for sctp mode as config file [%s] is absent at [%s]",
+        logWarning("INIT", "SCTP", "Unable to check for sctp mode as config file [%s] is absent at [%s]",
                      CL_TRANSPORT_CONFIG_FILE, config);
         rc = CL_ERR_NOT_EXIST;
         goto out;
@@ -757,7 +757,7 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     gClSimulationMode = clParseEnvBoolean("ASP_MULTINODE");
     if(gClSimulationMode)
     {
-        clLogNotice("XPORT", "INIT", "Simulation mode is enabled for the runtime");
+        logNotice("XPORT", "INIT", "Simulation mode is enabled for the runtime");
         gClBindOffset <<= 10;
     }
 
@@ -768,18 +768,18 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     rc = clUdpGetBackplaneInterface(xportType, gVirtualIp.dev);
     if (rc != CL_OK)
     {
-        clLogError("UDP", "INI", "Unable to determine the backplane link: error [%#x]", rc);
+        logError("UDP", "INI", "Unable to determine the backplane link: error [%#x]", rc);
         return rc;
     }
 
     rc = clUdpGetNodeIpAddress(xportType, gVirtualIp.dev,gVirtualIp.ip,gVirtualIp.netmask,gVirtualIp.broadcast,&gVirtualIp.ipAddressMask,gVirtualIp.subnetPrefix);
     if (rc != CL_OK)
     {
-        clLogError("UDP", "INI", "Unable to determine the backplane IP Address: error [%#x]", rc);
+        logError("UDP", "INI", "Unable to determine the backplane IP Address: error [%#x]", rc);
         return rc;
     }
     
-    clLogInfo("UDP", "INI", "Backplane: Link Name: %s, IP Node Address: %s, Network Address: %s, Broadcast: %s, Subnet Prefix: %s, Address Mask: 0x%x", gVirtualIp.dev, gVirtualIp.ip, gVirtualIp.netmask, gVirtualIp.broadcast,gVirtualIp.subnetPrefix,gVirtualIp.ipAddressMask);
+    logInfo("UDP", "INI", "Backplane: Link Name: %s, IP Node Address: %s, Network Address: %s, Broadcast: %s, Subnet Prefix: %s, Address Mask: 0x%x", gVirtualIp.dev, gVirtualIp.ip, gVirtualIp.netmask, gVirtualIp.broadcast,gVirtualIp.subnetPrefix,gVirtualIp.ipAddressMask);
 
     /*
      * To do a fast pass early update node entry table
@@ -806,21 +806,21 @@ ClRcT xportInit(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
     rc = clIocTotalNeighborEntryGet(&numNodes);
     if(rc != CL_OK)
     {
-        clLogWarning("UDP", "INI", "Failed to get the number of neighbors in ASP system. error code [0x%x].", rc);
+        logWarning("UDP", "INI", "Failed to get the number of neighbors in ASP system. error code [0x%x].", rc);
         goto out;
     }
 
     pNodes = (ClIocNodeAddressT *)clHeapAllocate(sizeof(ClIocNodeAddressT) * numNodes);
     if(pNodes == NULL)
     {
-        clLogWarning("UDP", "INI", "Failed to allocate [%zd] bytes of memory. error code [0x%x].", sizeof(ClIocNodeAddressT) * numNodes, rc);
+        logWarning("UDP", "INI", "Failed to allocate [%zd] bytes of memory. error code [0x%x].", sizeof(ClIocNodeAddressT) * numNodes, rc);
         goto out;
     }
 
     rc = clIocNeighborListGet(&numNodes, pNodes);
     if (rc != CL_OK)
     {
-        clLogWarning("UDP", "INI", "Failed to get the neighbor node addresses. error code [0x%x].", rc);
+        logWarning("UDP", "INI", "Failed to get the neighbor node addresses. error code [0x%x].", rc);
         goto out;
     }
 
@@ -862,7 +862,7 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
 
     if(!xportPrivate)
     {
-        clLogError(UDP_LOG_AREA_UDP,CL_LOG_CONTEXT_UNSPECIFIED,"No private data\n");
+        logError(UDP_LOG_AREA_UDP,"EVT","No private data\n");
         rc = CL_IOC_RC(CL_ERR_INVALID_HANDLE);
         goto out;
     }
@@ -887,7 +887,7 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
         if(errno == EINTR)
             goto recv;
         perror("Receive : ");
-        clLogError(UDP_LOG_AREA_UDP,CL_LOG_CONTEXT_UNSPECIFIED,"recv error. errno = %d\n",errno);
+        logError(UDP_LOG_AREA_UDP,"EVT","recv error. errno = %d\n",errno);
         rc = CL_ERR_LIBRARY;
         goto out;
     }
@@ -928,20 +928,20 @@ static ClRcT __xportBind(ClIocPortT port, ClInt32T *pFd)
         goto out;
     if(setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag)) < 0)
     {
-        clLogError("UDP", "BIND", "setsockopt for SO_REUSEADDR failed with error [%s]", strerror(errno));
+        logError("UDP", "BIND", "setsockopt for SO_REUSEADDR failed with error [%s]", strerror(errno));
         goto out_close;
     }
 
     if(bind(fd, addr, sizeof(*addr)) < 0)
     {
-        clLogError("UDP", "BIND", "Bind failed with error [%s]", strerror(errno));
+        logError("UDP", "BIND", "Bind failed with error [%s]", strerror(errno));
         goto out_close;
     }
     if(gClCmsgHdr)
     {
         if(listen(fd, CL_IOC_MAX_NODES) < 0)
         {
-            clLogError("UDP", "LISTEN", "Listen failed on socket with error [%s]",
+            logError("UDP", "LISTEN", "Listen failed on socket with error [%s]",
                        strerror(errno));
             goto out_close;
         }
@@ -978,7 +978,7 @@ ClRcT xportBind(ClIocPortT port)
     rc = __xportBind(port, &fd);
     if(rc != CL_OK)
     {
-        clLogError("UDP", "BIND", "Bind failed for port [%#x] with error [%#x]", port, rc);
+        logError("UDP", "BIND", "Bind failed for port [%#x] with error [%#x]", port, rc);
         goto out;
     }
 
@@ -1021,7 +1021,7 @@ ClRcT xportListen(ClIocPortT port)
         rc = __xportBind(port, &fd);
         if(rc != CL_OK)
         {
-            clLogError("UDP", "LISTENER", "Bind failed for port [%#x] with error [%#x]", port, rc);
+            logError("UDP", "LISTENER", "Bind failed for port [%#x] with error [%#x]", port, rc);
             goto out;
         }
         xportPrivate = (ClIocUdpPrivateT*) clHeapCalloc(1, sizeof(*xportPrivate));
@@ -1036,7 +1036,7 @@ ClRcT xportListen(ClIocPortT port)
     rc = clTransportListenerRegister(xportPrivate->fd, udpDispatchCallback, (void*)xportPrivate);
     if(rc != CL_OK)
     {
-        clLogError("UDP", "LISTENER", "Register failed for port [%#x] with error [%#x]", port, rc);
+        logError("UDP", "LISTENER", "Register failed for port [%#x] with error [%#x]", port, rc);
         goto out_free;
     }
     if(!xportPrivateLast)
@@ -1140,13 +1140,13 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
                     if(errno == EINTR)
                         goto recv;
                     perror("Receive : ");
-                    clLogError(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"recv error. errno = %d\n",errno);
+                    logError(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"recv error. errno = %d\n",errno);
                     goto out;
                 }
             } 
             else 
             {
-                clLogError(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"poll error. errno = %d\n", errno);
+                logError(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"poll error. errno = %d\n", errno);
                 goto out;
             }
         } 
@@ -1154,7 +1154,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         {
             if(errno == EINTR)
                 continue;
-            clLogError(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"Error in poll. errno = %d\n",errno);
+            logError(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"Error in poll. errno = %d\n",errno);
             goto out;
         } 
         else 
@@ -1184,7 +1184,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         else
         {
             rc = CL_ERR_TIMEOUT;
-            clLogCritical(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"Dropping a received fragmented-packet. "
+            logCritical(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_RECV,"Dropping a received fragmented-packet. "
                                               "Could not receive the complete packet within "
                                               "the specified timeout. Packet size is %d", bytes);
 
@@ -1220,9 +1220,9 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
             if (err == ENOPROTOOPT)
             {
                 udpPriorityChangePossible = CL_FALSE;
-                clLogWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_SEND,"Message priority not available in this version of UDP.");
+                logWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_SEND,"Message priority not available in this version of UDP.");
             }
-            else clLogWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_SEND,"Error in setting UDP message priority. errno [%d]",err);
+            else logWarning(UDP_LOG_AREA_UDP,UDP_LOG_CTX_UDP_SEND,"Error in setting UDP message priority. errno [%d]",err);
         }
     }
 
@@ -1251,14 +1251,14 @@ static ClRcT iocUdpSend(ClIocUdpMapT *map, void *args)
     msghdr.msg_iovlen = sendArgs->iovlen;
     if(sendmsg(map->sendFd, &msghdr, sendArgs->flags) < 0)
     {
-        clLogError("UDP", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
+        logError("UDP", "SEND", "UDP send failed with error [%s] for addr [%s], port [0x%x:%d]",
                    strerror(errno), map->addrstr, sendArgs->port, 
                    CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
         rc = CL_ERR_LIBRARY;
     }
     else
     {
-        clLogTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
+        logTrace("UDP", "SEND", "UDP send successful for [%d] iovs, addr [%s], port [0x%x:%d]",
                    sendArgs->iovlen, map->addrstr, sendArgs->port, 
                     CL_TRANSPORT_BASE_PORT + sendArgs->port + portOffset);
     }
@@ -1300,7 +1300,7 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
             if(!map)
             {
                 clOsalMutexUnlock(&gXportCtrl.mutex);
-                clLogError(
+                logError(
                         "UDP",
                         "SEND",
                         "Unable to add mapping for ioc slot [%d]. ", address->iocPhyAddress.nodeAddress);
@@ -1323,10 +1323,10 @@ ClRcT xportSend(ClIocPortT port, ClUint32T priority, ClIocAddressT *address,
          * Unhandled till now.
          */
     case CL_IOC_LOGICAL_ADDRESS_TYPE:
-        clLogWarning("UDP", "SEND", "Ignoring send for logical address type");
+        logWarning("UDP", "SEND", "Ignoring send for logical address type");
         break;
     case CL_IOC_MULTICAST_ADDRESS_TYPE:
-        clLogWarning("UDP", "SEND", "Ignoring send for multicast address type");
+        logWarning("UDP", "SEND", "Ignoring send for multicast address type");
         break;
 
     case CL_IOC_INTRANODE_ADDRESS_TYPE:
@@ -1461,7 +1461,7 @@ ClRcT clUdpAddrSet(ClIocNodeAddressT nodeAddress, const ClCharT *addrStr)
 
     clOsalSemUnlock(gClUdpAddrCacheSem);
 
-    clLogTrace("UDP", "CACHE", "Setting address cache entry for node [%d: %s]", nodeAddress, addrStr);
+    logTrace("UDP", "CACHE", "Setting address cache entry for node [%d: %s]", nodeAddress, addrStr);
 
     return rc;
 }
@@ -1483,7 +1483,7 @@ ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr)
     memcpy(addrStr, gpClUdpAddrCache + (sizeof(ClUdpAddrCacheEntryT) * nodeAddress), INET_ADDRSTRLEN);
     clOsalSemUnlock(gClUdpAddrCacheSem);
 
-    clLogTrace("UDP", "CACHE", "Getting address cache entry for node [%d: %s]", nodeAddress, addrStr);
+    logTrace("UDP", "CACHE", "Getting address cache entry for node [%d: %s]", nodeAddress, addrStr);
 
     return rc;
 }

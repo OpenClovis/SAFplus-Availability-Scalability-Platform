@@ -25,7 +25,7 @@
 #include <clParserApi.h>
 #include <clCommon.h>
 #include <clCommonErrors.h>
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 #include <clOsalApi.h>
 #include <clHash.h>
 #include <clList.h>
@@ -131,7 +131,7 @@ static ClRcT _clIocHeartBeatEntryMapAdd(ClIocHeartBeatStatusT *entry)
         if(xportType && 
            dstSlot.iocPhyAddress.nodeAddress != entry->linkIndex)
         {
-            clLogNotice("IOC", "HBT", "Skipping healthcheck for node [%d] "
+            logNotice("IOC", "HBT", "Skipping healthcheck for node [%d] "
                         "as it would be proxied by the bridge at slot [%d]",
                         entry->linkIndex, dstSlot.iocPhyAddress.nodeAddress);
             return CL_ERR_NO_OP;
@@ -140,7 +140,7 @@ static ClRcT _clIocHeartBeatEntryMapAdd(ClIocHeartBeatStatusT *entry)
     hash = entry->linkIndex & CL_IOC_MAX_NODE_ADDRESS;
     hashAdd(gIocHeartBeatMap, hash, &entry->hash);
     clListAddTail(&entry->list, &gIocHeartBeatList);
-    clLogDebug("IOC", "HBT", "Added heartbeat entry for node [%d]", entry->linkIndex);
+    logDebug("IOC", "HBT", "Added heartbeat entry for node [%d]", entry->linkIndex);
     return CL_OK;
 }
 
@@ -168,7 +168,7 @@ static __inline__ void _clIocHeartBeatLocalEntryMapAdd(ClIocHeartBeatStatusT *en
     ClUint32T hash = entry->linkIndex & CL_IOC_MAX_COMP_PORT;
     hashAdd(gIocHeartBeatLocalMap, hash, &entry->hash);
     clListAddTail(&entry->list, &gIocHeartBeatLocalList);
-    clLogTrace("IOC", "HBT", "Added heartbeat entry for comp [%d]", entry->linkIndex);
+    logTrace("IOC", "HBT", "Added heartbeat entry for comp [%d]", entry->linkIndex);
 }
 
 /*
@@ -287,7 +287,7 @@ static ClRcT _clIocHeartBeatSend(void)
 
     if(!eoObj)
     {
-        clLogWarning("IOC", "HBT", "EO still uninitialized during heartbeat phase. Will retry again");
+        logWarning("IOC", "HBT", "EO still uninitialized during heartbeat phase. Will retry again");
         return CL_ERR_NOT_INITIALIZED;
     }
 
@@ -342,7 +342,7 @@ static ClRcT _clIocHeartBeatSend(void)
                 {
                     if (entry->retryCount > gClHeartBeatRetries)
                     {
-                        clLogNotice("IOC", "HBT", "No heartbeats from node [0x%x] for %d retries.  Marking node failed.", entry->linkIndex, entry->retryCount);
+                        logNotice("IOC", "HBT", "No heartbeats from node [0x%x] for %d retries.  Marking node failed.", entry->linkIndex, entry->retryCount);
                         entry->status = CL_IOC_NODE_DOWN;
                         /*
                          * Notify node leave close and release the entry to avoid false heartbeat
@@ -451,7 +451,7 @@ static ClRcT _clIocHeartBeatSend(void)
             break;
 
         case CL_IOC_NODE_LINK_UP_NOTIFICATION:
-            clLogNotice("SPLIT", "CLUSTER", "Sending node arrival for slot [%d]", 
+            logNotice("SPLIT", "CLUSTER", "Sending node arrival for slot [%d]", 
                         hbNotifications[i].addr.nodeAddress);
             if((rc = clTransportNotificationOpen(NULL, hbNotifications[i].addr.nodeAddress,
                                                  hbNotifications[i].addr.portId,
@@ -462,7 +462,7 @@ static ClRcT _clIocHeartBeatSend(void)
                 entry = _clIocHeartBeatMapFind(hbNotifications[i].addr.nodeAddress);
                 if(entry)
                 {
-                    clLogNotice("SPLIT", "CLUSTER", 
+                    logNotice("SPLIT", "CLUSTER", 
                                 "Setting node [%d] status back to link down "
                                 "as notification open failed with [%#x]",
                                 entry->linkIndex, rc);
@@ -473,7 +473,7 @@ static ClRcT _clIocHeartBeatSend(void)
             break;
 
         case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
-            clLogNotice("SPLIT", "CLUSTER",
+            logNotice("SPLIT", "CLUSTER",
                         "HeartBeat node [%#x]'s status death as link appears to be down", 
                         hbNotifications[i].addr.nodeAddress);
             clTransportNotificationClose(NULL, hbNotifications[i].addr.nodeAddress,
@@ -508,7 +508,7 @@ static ClRcT _clIocHeartBeatCompsSend(void)
     clEoMyEoObjectGet(&eoObj);
     if(!eoObj)
     {
-        clLogWarning("IOC", "HBT", "EO still uninitialized during heartbeat comp. Will retry again");
+        logWarning("IOC", "HBT", "EO still uninitialized during heartbeat comp. Will retry again");
         return CL_ERR_NOT_INITIALIZED;
     }
     /*
@@ -545,7 +545,7 @@ static ClRcT _clIocHeartBeatCompsSend(void)
             {
                 if (entry->retryCount > gClHeartBeatRetries) 
                 {
-                    clLogNotice(
+                    logNotice(
                             "IOC",
                             "HBT",
                             "HeartBeat component [0x%x]'s status death", entry->linkIndex);
@@ -727,7 +727,7 @@ ClRcT clIocHeartBeatStart()
     };
 
     if (gHeartBeatTimer != CL_HANDLE_INVALID_VALUE) {
-        clLogError("IOC", "HBT", "Timer already initialized!");
+        logError("IOC", "HBT", "Timer already initialized!");
         return rc;
     }
 
@@ -737,21 +737,21 @@ ClRcT clIocHeartBeatStart()
     rc = clIocTotalNeighborEntryGet(&numNodes);
     if(rc != CL_OK)
     {
-        clLogError("IOC", "HBT", "Failed to get the number of neighbors in ASP system. error code [0x%x].", rc);
+        logError("IOC", "HBT", "Failed to get the number of neighbors in ASP system. error code [0x%x].", rc);
         goto out;
     }
 
     pNodes = (ClIocNodeAddressT *)clHeapAllocate(sizeof(ClIocNodeAddressT) * numNodes);
     if(pNodes == NULL)
     {
-        clLogError("IOC", "HBT", "Failed to allocate [%zd] bytes of memory. error code [0x%x].", sizeof(ClIocNodeAddressT) * numNodes, rc);
+        logError("IOC", "HBT", "Failed to allocate [%zd] bytes of memory. error code [0x%x].", sizeof(ClIocNodeAddressT) * numNodes, rc);
         goto out;
     }
 
     rc = clIocNeighborListGet(&numNodes, pNodes);
     if(rc != CL_OK)
     {
-        clLogError("IOC", "HBT", "Failed to get the neighbor node addresses. error code [0x%x].", rc);
+        logError("IOC", "HBT", "Failed to get the neighbor node addresses. error code [0x%x].", rc);
         goto out;
     }
 
@@ -776,7 +776,7 @@ ClRcT clIocHeartBeatStart()
 
     clOsalMutexUnlock(&gIocHeartBeatTableLock);
 
-    clLogDebug("IOC", "HBT", "Starting heartbeat on node [%d] with [%d] peers",
+    logDebug("IOC", "HBT", "Starting heartbeat on node [%d] with [%d] peers",
                gIocLocalBladeAddress, numNodes > 1 ? numNodes - 1 : 0);
 
     rc = clTimerCreateAndStart(timeOut, CL_TIMER_REPETITIVE,
@@ -800,7 +800,7 @@ void clHeartBeatTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffe
                               ClRcT                           rc)
 {
 
-    clLogDebug("IOC", "HBT", "Received trackcallback with leader [%d]",
+    logDebug("IOC", "HBT", "Received trackcallback with leader [%d]",
                notificationBuffer->leader);
 
     if ((ClInt32T) notificationBuffer->leader == -1)
@@ -810,7 +810,7 @@ void clHeartBeatTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffe
          */
         if (CL_IOC_HB_STATUS_ACTIVE())
         {
-            clLogDebug("IOC", "HBT", "Shutting down heartbeat for node [%d]", 
+            logDebug("IOC", "HBT", "Shutting down heartbeat for node [%d]", 
                        gIocLocalBladeAddress);
             CL_IOC_HB_CLEAR_STATUS_ACTIVE();
             if(gHeartBeatTimer != CL_HANDLE_INVALID_VALUE)
@@ -910,7 +910,7 @@ static ClRcT _clHeartBeatGmsTimerInitCallback() {
                     pData, &gHandleGmsTimer);
             if (CL_OK != rc) 
             {
-                clLogError("IOC", "HBT",
+                logError("IOC", "HBT",
                            "Failed to do GMS initialization, error [%#x]", rc);
             }
             return CL_OK;
@@ -925,7 +925,7 @@ static ClRcT _clHeartBeatGmsTimerInitCallback() {
                                &notBuffer);
         if (CL_OK != rc)
         {
-            clLogError("IOC", "HBT",
+            logError("IOC", "HBT",
                        "The GMS cluster track function failed, error [%#x]",
                        rc);
         }
@@ -966,7 +966,7 @@ static ClRcT HeartBeatPluginDefault(ClUint32T interval, ClUint32T retires) {
         }
         else
         {
-            clLogNotice("IOC", "HBT", 
+            logNotice("IOC", "HBT", 
                         "Heartbeat set to fast failure detection for local components");
             goto out;
         }
@@ -977,7 +977,7 @@ static ClRcT HeartBeatPluginDefault(ClUint32T interval, ClUint32T retires) {
     rc = CL_ERR_INVALID_PARAMETER;
 
     if (gHeartBeatLocalTimer != CL_HANDLE_INVALID_VALUE) {
-        clLogError("IOC", "HBT", "Timer already initialized!");
+        logError("IOC", "HBT", "Timer already initialized!");
         return rc;
     }
     /*
@@ -1006,14 +1006,14 @@ ClRcT _clIocSetHeartBeatConfig()
         parent = clParserOpenFile(configPath, CL_TRANSPORT_CONFIG_FILE);
         if (parent == NULL)
         {
-            clLogWarning("IOC", "HBT", "Transport configuration file does not exist. Should default to tipc");
+            logWarning("IOC", "HBT", "Transport configuration file does not exist. Should default to tipc");
             return CL_ERR_NULL_POINTER;
         }
     }
     else
     {
         rc = CL_ERR_NULL_POINTER;
-        clLogError("IOC", "HBT", "ASP_CONFIG path is not set in the environment rc[%#x]", rc);
+        logError("IOC", "HBT", "ASP_CONFIG path is not set in the environment rc[%#x]", rc);
     }
 
     ClParserPtrT heartbeatPtr = clParserChild(parent, "heartbeat");
@@ -1070,13 +1070,13 @@ ClRcT _clIocSetHeartBeatConfig()
     {
         gClPluginHandle = dlopen(hearbeatPluginPtr->txt, RTLD_GLOBAL | RTLD_NOW);
         if (!gClPluginHandle) {
-            clLogWarning("IOC","HBT", "HeartBeat is not running for local component");
+            logWarning("IOC","HBT", "HeartBeat is not running for local component");
             gClHeartBeatPlugin = HeartBeatPluginDefault;
         } else {
             *(void**) &gClHeartBeatPlugin = dlsym(gClPluginHandle, CL_IOC_HB_METHOD);
             if (!gClHeartBeatPlugin)
             {
-                clLogWarning( "IOC", "HBT", "Unable to find the heartbeat method in plugin : %s", dlerror());
+                logWarning( "IOC", "HBT", "Unable to find the heartbeat method in plugin : %s", dlerror());
                 gClHeartBeatPlugin = HeartBeatPluginDefault;
                 dlclose(gClPluginHandle);
                 gClPluginHandle = NULL;
@@ -1232,7 +1232,7 @@ ClRcT clIocHeartBeatMessageReqRep(ClIocCommPortHandleT commPort,
 
     if (rc != CL_OK) 
     {
-        clLogError("IOC", "HBT", "clBufferNBytesWrite failed with rc = %#x", rc);
+        logError("IOC", "HBT", "clBufferNBytesWrite failed with rc = %#x", rc);
         goto out_delete;
     }
     {

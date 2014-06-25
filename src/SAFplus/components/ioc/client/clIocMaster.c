@@ -23,7 +23,7 @@
 
 #include <clCommonErrors.h>
 #include <clOsalApi.h>
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 #include <clIocApi.h>
 #include <clIocErrors.h>
 #include <clIocMaster.h>
@@ -135,10 +135,10 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
                 clOsalSemLock(gClIocMasterSem);
                 *pIocNodeAddress = gpClIocMasterSeg[portId] = node;
                 clOsalSemUnlock(gClIocMasterSem);
-                clLogInfo("IOC", "MASTER", "Setting node [%d] as master for comp [%d].", node, portId);
+                logInfo("IOC", "MASTER", "Setting node [%d] as master for comp [%d].", node, portId);
                 break;
             }
-            clLogWarning("IOC","MASTER","Cannot get IOC master, return code [0x%x]",rc);
+            logWarning("IOC","MASTER","Cannot get IOC master, return code [0x%x]",rc);
 
             clOsalTaskDelay(delay);
         } while(--retryCnt > 0);
@@ -187,11 +187,11 @@ void clIocMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT mas
             resetAll = CL_TRUE;
             if (!master)
             {
-                clLogInfo("IOC", "MASTER", "Resetting node info of master for all components");
+                logInfo("IOC", "MASTER", "Resetting node info of master for all components");
             }
             else
             {
-                clLogInfo("IOC", "MASTER", "Resetting node master for all components to node [%d]", master);
+                logInfo("IOC", "MASTER", "Resetting node master for all components to node [%d]", master);
             }
         }
         for(i = CL_IOC_MIN_COMP_PORT ; i < CL_IOC_MAX_COMPONENTS_PER_NODE ; i++)
@@ -211,11 +211,11 @@ void clIocMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT mas
         gpClIocMasterSeg[compAddr.portId] = master;
         if(!master)
         {
-            clLogInfo("IOC", "MASTER", "Resetting segment info of master for comp [%d].", compAddr.portId);
+            logInfo("IOC", "MASTER", "Resetting segment info of master for comp [%d].", compAddr.portId);
         }
         else
         {
-            clLogInfo("IOC", "MASTER", "Resetting segment master for comp [%d] to node [%d]",
+            logInfo("IOC", "MASTER", "Resetting segment master for comp [%d] to node [%d]",
                       compAddr.portId, master);
         }
     }

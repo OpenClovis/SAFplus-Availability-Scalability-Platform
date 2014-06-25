@@ -65,7 +65,7 @@
 #include <sys/poll.h>
 #include <errno.h>
 
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 #include <clOsalApi.h>
 #include <clEoIpi.h>
 #include <clHash.h>
@@ -407,7 +407,7 @@ static ClUint8T *__iocFragmentPoolGet(ClUint8T *pBuffer, ClUint32T len)
     pool = CL_LIST_ENTRY(head, ClIocFragmentPoolT, list);
     clListDel(head);
     --iocFragmentPoolEntries;
-    clLogTrace("IOC", "FRAG-POOL", "Got fragment of len [%d] from pool", len);
+    logTrace("IOC", "FRAG-POOL", "Got fragment of len [%d] from pool", len);
     clOsalMutexUnlock(&iocFragmentPoolLock);
     buffer = pool->buffer;
     clHeapFree(pool);
@@ -571,7 +571,7 @@ ClRcT clIocPortNotification(ClIocPortT port, ClIocNotificationActionT action)
     pIocCommPort = clIocGetPort(port);
     if(pIocCommPort == NULL)
     {
-        clLogError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_NOTIF,"Invalid port [0x%x] passed.\n", port);
+        logError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_NOTIF,"Invalid port [0x%x] passed.\n", port);
         rc = CL_IOC_RC(CL_ERR_DOESNT_EXIST);
         goto error_out;
     }
@@ -619,7 +619,7 @@ static ClRcT iocCommPortCreate(ClUint32T portId, ClIocCommPortFlagsT portType,
 
     if(rc != CL_OK)
     {
-        clLogError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_CREATE,"Port hash add error.rc=0x%x\n",rc);
+        logError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_CREATE,"Port hash add error.rc=0x%x\n",rc);
         goto out_put;
     }
 
@@ -793,13 +793,13 @@ ClRcT clIocCommPortFdGet(ClIocCommPortHandleT portHandle, const ClCharT *xportTy
     
     if(pPortHandle == NULL)
     {
-        clLogError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_GET,"Error : Invalid CommPort handle passed.\n");
+        logError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_GET,"Error : Invalid CommPort handle passed.\n");
         return CL_IOC_RC(CL_ERR_INVALID_HANDLE);
     }
 
     if(pFd == NULL)
     {
-        clLogError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_GET,"Error : NULL parameter passed for getting the file descriptor.\n");
+        logError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_GET,"Error : NULL parameter passed for getting the file descriptor.\n");
         return CL_IOC_RC(CL_ERR_NULL_POINTER);
     }
 
@@ -826,7 +826,7 @@ static ClRcT doDecompress(ClUint8T *compressedStream, ClUint32T compressedStream
     err = inflateInit(&stream);
     if(err != Z_OK)
     {
-        clLogError("IOC", "DECOMPRESS", "Inflate init returned with [%d]", err);
+        logError("IOC", "DECOMPRESS", "Inflate init returned with [%d]", err);
         goto out_free;
     }
     do 
@@ -848,7 +848,7 @@ static ClRcT doDecompress(ClUint8T *compressedStream, ClUint32T compressedStream
         }
         else
         {
-            clLogError("IOC", "DECOMPRESS", "Inflate returned [%d]", err);
+            logError("IOC", "DECOMPRESS", "Inflate returned [%d]", err);
             goto out_free;
         }
     } while(1);
@@ -856,13 +856,13 @@ static ClRcT doDecompress(ClUint8T *compressedStream, ClUint32T compressedStream
     err = inflateEnd(&stream);
     if(err != Z_OK)
     {
-        clLogError("IOC", "DECOMPRESS", "Inflate end returned [%d]", err);
+        logError("IOC", "DECOMPRESS", "Inflate end returned [%d]", err);
         goto out_free;
     }
     ZLIB_TIME(t2);
     *ppDecompressedStream = decompressedStream;
     *pDecompressedStreamLen = stream.total_out;
-    clLogNotice("IOC", "DECOMPRESS", "Inflated [%ld] bytes from [%d] bytes, [%d] decompressed streams, " \
+    logNotice("IOC", "DECOMPRESS", "Inflated [%ld] bytes from [%d] bytes, [%d] decompressed streams, " \
             "Decompression time [%lld] usecs", 
             stream.total_out, compressedStreamLen, decompressedStreams, t2-t1);
 #if 0
@@ -904,7 +904,7 @@ static ClRcT doCompress(ClUint8T *uncompressedStream, ClUint32T uncompressedStre
     err = deflateInit(&stream, Z_BEST_SPEED);
     if(err != Z_OK)
     {
-        clLogError("IOC", "COMPRESS", "Deflate init returned [%d]", err);
+        logError("IOC", "COMPRESS", "Deflate init returned [%d]", err);
         goto out_free;
     }
     stream.next_in = (Byte*)uncompressedStream;
@@ -914,32 +914,32 @@ static ClRcT doCompress(ClUint8T *uncompressedStream, ClUint32T uncompressedStre
     err = deflate(&stream, Z_NO_FLUSH);
     if(err != Z_OK)
     {
-        clLogError("IOC", "COMPRESS", "Deflate returned [%d]", err);
+        logError("IOC", "COMPRESS", "Deflate returned [%d]", err);
         goto out_free;
     }
     if(stream.avail_in || !stream.avail_out)
     {
-        clLogError("IOC", "COMPRESS", "Deflate didn't work on stream len [%d] to the expected length [%d]", 
+        logError("IOC", "COMPRESS", "Deflate didn't work on stream len [%d] to the expected length [%d]", 
                    uncompressedStreamLen, compressedStreamLen);
         goto out_free;
     }
     err = deflate(&stream, Z_FINISH);
     if(err != Z_STREAM_END)
     {
-        clLogError("IOC", "COMPRESS", "Deflate finish needs more output buffer. Returned [%d]", err);
+        logError("IOC", "COMPRESS", "Deflate finish needs more output buffer. Returned [%d]", err);
         goto out_free;
     }
     err = deflateEnd(&stream);
     if(err != Z_OK)
     {
-        clLogError("IOC", "COMPRESS", "Deflate end returned [%d]", err);
+        logError("IOC", "COMPRESS", "Deflate end returned [%d]", err);
         goto out_free;
     }
     ZLIB_TIME(t2);
 
     *ppCompressedStream = compressedStream;
     *pCompressedStreamLen =  stream.total_out;
-    clLogNotice("IOC", "COMPRESS", "Pending avail bytes in the output stream [%d], uncompress len [%d], "\
+    logNotice("IOC", "COMPRESS", "Pending avail bytes in the output stream [%d], uncompress len [%d], "\
                 "compressed len [%ld], " \
                 "Compression time [%lld] usecs", 
                 stream.avail_out, uncompressedStreamLen, stream.total_out, t2-t1);
@@ -1137,7 +1137,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
          */
         if(proxy) 
         {
-            clLogWarning("PROXY", "SEND", "Disabling proxy sends for unicast traffic");
+            logWarning("PROXY", "SEND", "Disabling proxy sends for unicast traffic");
             proxy = CL_FALSE;
         }
         node = ((ClIocPhysicalAddressT *)destAddress)->nodeAddress;
@@ -1153,7 +1153,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
         retCode = clIocCompStatusGet(*(ClIocPhysicalAddressT *)destAddress, &status);
         if (retCode !=  CL_OK) 
         {
-            clLogError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_SEND,"Error : Failed to get the status of the component. error code 0x%x", retCode);
+            logError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_SEND,"Error : Failed to get the status of the component. error code 0x%x", retCode);
             return retCode;
         }
         retCode = clFindTransport(((ClIocPhysicalAddressT*)destAddress)->nodeAddress, 
@@ -1178,20 +1178,20 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
             {
                 interimDestAddress.iocPhyAddress.portId = destAddress->iocPhyAddress.portId;
             }
-            clLogTrace("PROXY", "SEND", "Destination through the bridge at node [%d], port [%d]",
+            logTrace("PROXY", "SEND", "Destination through the bridge at node [%d], port [%d]",
                        interimDestAddress.iocPhyAddress.nodeAddress,
                        interimDestAddress.iocPhyAddress.portId);
             retCode = clIocCompStatusGet(interimDestAddress.iocPhyAddress, &status);
             if (retCode !=  CL_OK) 
             {
-                clLogError(IOC_LOG_AREA_PORT,
+                logError(IOC_LOG_AREA_PORT,
                            IOC_LOG_CTX_SEND,
                            "Error : Failed to get the status of the component. error code 0x%x", retCode);
                 return retCode;
             }
             if (status == CL_IOC_NODE_DOWN)
             {
-                clLogError(IOC_LOG_AREA_PORT,
+                logError(IOC_LOG_AREA_PORT,
                            IOC_LOG_CTX_SEND,
                            "Port [0x%x] is trying to reach component [0x%x:0x%x] with [xport: %s]"
                            "but the component is not reachable.", 
@@ -1208,7 +1208,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
              */
             if(status == CL_IOC_NODE_DOWN)
             {
-                clLogError(IOC_LOG_AREA_IOC,
+                logError(IOC_LOG_AREA_IOC,
                            IOC_LOG_CTX_SEND,
                            "Port [0x%x] is trying to reach component [0x%x:0x%x] "
                            "but the component is not reachable.", 
@@ -1236,7 +1236,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
     retCode = clBufferLengthGet(message, &msgLength);
     if (retCode != CL_OK || msgLength == 0)
     {
-        clLogError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_SEND, 
+        logError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_SEND, 
                    "Failed to get the length of the message. error code 0x%x",retCode);
         retCode = CL_IOC_RC(CL_ERR_INVALID_BUFFER);
         goto out_free;
@@ -1337,13 +1337,13 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
             retCode = iovecIteratorNext(&iovecIterator, &payload, &target, &targetVectors);
             CL_ASSERT(retCode == CL_OK);
             CL_ASSERT(payload == maxPayload);
-            clLogTrace(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
+            logTrace(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
                        "Sending id %d flag 0x%x length %d offset %d\n",
                             ntohl(userFragHeader.msgId), userFragHeader.header.flag,
                             ntohl(userFragHeader.fragLength),
                             ntohl(userFragHeader.fragOffset));
             /*
-             *clLogNotice("FRAG", "SEND", "Sending [%d] bytes with [%d] vectors representing [%d] bytes", 
+             *logNotice("FRAG", "SEND", "Sending [%d] bytes with [%d] vectors representing [%d] bytes", 
              msgLength, targetVectors, maxPayload);
             */                                                          
             if(replicastList)
@@ -1356,7 +1356,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
             }
             else
             {
-                /*clLogTrace(
+                /*logTrace(
                            "IOC",
                            "SEND",
                            "Sending to destination [%#x: %#x] with [xport: %s]",
@@ -1369,7 +1369,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
             }
             if (retCode != CL_OK || retCode == CL_IOC_RC(CL_ERR_TIMEOUT))
             {
-                clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
+                logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
                            "Failed to send the message. error code = 0x%x\n", retCode);
                 goto frag_error;
             }
@@ -1400,7 +1400,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
         retCode = iovecIteratorNext(&iovecIterator, &fraction, &target, &targetVectors);
         CL_ASSERT(retCode == CL_OK);
         CL_ASSERT(fraction == maxPayload);
-        clLogTrace("FRAG", "SEND", "Sending last frag at offset [%d], length [%d]",
+        logTrace("FRAG", "SEND", "Sending last frag at offset [%d], length [%d]",
                    ntohl(userFragHeader.fragOffset), fraction);
         if(replicastList)
         {
@@ -1411,7 +1411,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
         }
         else
         {
-            /*clLogTrace(
+            /*logTrace(
                   "IOC",
                   "SEND",
                   "Sending to destination [%#x: %#x] with [xport: %s]",
@@ -1460,7 +1460,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
                                 sizeof(ClIocHeaderT));
         if(retCode != CL_OK)	
         {
-            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
+            logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
                        "\nERROR: Prepend buffer data failed = 0x%x\n", retCode);
             goto out_free;
         }
@@ -1473,7 +1473,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
         }
         else
         {
-            /*clLogTrace(
+            /*logTrace(
                   "IOC",
                   "SEND",
                   "Sending to destination [%#x: %#x] with [xport: %s]",
@@ -1487,7 +1487,7 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
 
         rc = clBufferHeaderTrim(message, sizeof(ClIocHeaderT));
         if(rc != CL_OK)
-            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
+            logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
                        "\nERROR: Buffer header trim failed RC = 0x%x\n", rc);
 
 #ifdef CL_IOC_COMPRESSION
@@ -1577,7 +1577,7 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
     
         retCode = clIocCompStatusGet(*(ClIocPhysicalAddressT *)destAddress, &status);
         if (retCode !=  CL_OK) {
-            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,"Error : Failed to get the status of the component. error code 0x%x", retCode);
+            logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,"Error : Failed to get the status of the component. error code 0x%x", retCode);
             return retCode;
         }
         retCode = clFindTransport(((ClIocPhysicalAddressT*)destAddress)->nodeAddress, 
@@ -1597,12 +1597,12 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
             retCode = clIocCompStatusGet(interimDestAddress.iocPhyAddress, &status);
             if (retCode !=  CL_OK) 
             {
-                clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,"Error : Failed to get the status of the component. error code 0x%x", retCode);
+                logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,"Error : Failed to get the status of the component. error code 0x%x", retCode);
                 return retCode;
             }
             if (status == CL_IOC_NODE_DOWN)
             {
-                clLogError(IOC_LOG_AREA_PORT,
+                logError(IOC_LOG_AREA_PORT,
                            CL_LOG_CONTEXT_UNSPECIFIED,
                            "XportType=[%s]: Port [0x%x] is trying to reach component [0x%x:0x%x] "
                            "but the component is not reachable.", xportType, pIocCommPort->portId,
@@ -1614,7 +1614,7 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
         {
             if(status == CL_IOC_NODE_DOWN)
             {
-                clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,
+                logError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,
                                 "Port [0x%x] is trying to reach component [0x%x:0x%x] "
                                 "but the component is not reachable.",
                                 pIocCommPort->portId,
@@ -1641,7 +1641,7 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
     retCode = clBufferLengthGet(message, &msgLength);
     if (retCode != CL_OK || msgLength == 0)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
                    "Failed to get the lenght of the messege. error code 0x%x",retCode);
         return CL_IOC_RC(CL_ERR_INVALID_BUFFER);
     }
@@ -1698,7 +1698,7 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
         retCode = clBufferCreate(&tempMsg);
         if (retCode != CL_OK)
         {
-            clLogError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
+            logError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
                        "\nERROR : Message creation failed. errorCode = 0x%x\n", retCode);
             return retCode;
         }
@@ -1738,12 +1738,12 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
                                      maxPayload);
             if (retCode != CL_OK)
             {
-                clLogError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
+                logError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
                            "\nERROR: message to message copy failed. errorCode = 0x%x\n", retCode);
                 goto frag_error;
             }
 
-            clLogTrace(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
+            logTrace(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
                       "Sending id %d flag 0x%x length %d offset %d\n",
                        ntohl(userFragHeader.msgId), userFragHeader.header.flag,
                        ntohl(userFragHeader.fragLength),
@@ -1754,13 +1754,13 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
                                     sizeof(ClIocFragHeaderT));
             if(retCode != CL_OK)	
             {
-                clLogError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
+                logError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
                            "\nERROR : Prepend buffer data failed. errorCode = 0x%x\n", retCode);
                 goto frag_error;
             }
             if (isPhysicalANotBroadcast)
             {
-                /*clLogTrace(
+                /*logTrace(
                   "IOC",
                   "SEND",
                   "Sending to destination [%#x: %#x] with [xport: %s]",
@@ -1777,7 +1777,7 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
             }
             if (retCode != CL_OK || retCode == CL_IOC_RC(CL_ERR_TIMEOUT))
             {
-                clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
+                logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
                            "Failed to send the message. error code = 0x%x\n", retCode);
                 goto frag_error;
             }
@@ -1787,7 +1787,7 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
                                                              * next packet */
             retCode = clBufferClear(tempMsg);
             if(retCode != CL_OK)
-                clLogError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,"\nERROR : Failed clear the buffer. errorCode = 0x%x\n",retCode);
+                logError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,"\nERROR : Failed clear the buffer. errorCode = 0x%x\n",retCode);
 
             totalFragRequired--;
 #ifdef CL_IOC_COMPRESSION            
@@ -1814,7 +1814,7 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
                                  maxPayload);
         if (retCode != CL_OK)
         {
-            clLogError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
+            logError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
                        "Error : message to message copy failed. rc = 0x%x\n", retCode);
             goto frag_error;
         }
@@ -1823,15 +1823,15 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
                                 sizeof(ClIocFragHeaderT));
         if(retCode != CL_OK)	
         {
-            clLogError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
+            logError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_SEND,
                        "\nERROR: Prepend buffer data failed = 0x%x\n", retCode);
             goto frag_error;
         }
-        clLogTrace("FRAG", "SEND2", "Sending last frag at offset [%d], length [%d]",
+        logTrace("FRAG", "SEND2", "Sending last frag at offset [%d], length [%d]",
                    ntohl(userFragHeader.fragOffset), maxPayload);
         if (isPhysicalANotBroadcast)
         {
-            /*clLogTrace(
+            /*logTrace(
               "IOC",
               "SEND",
               "Sending to destination [%#x: %#x] with [xport: %s]",
@@ -1879,14 +1879,14 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
                                 sizeof(ClIocHeaderT));
         if(retCode != CL_OK)	
         {
-            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
+            logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
                        "\nERROR: Prepend buffer data failed = 0x%x\n", retCode);
             return retCode;
         }
 
         if (isPhysicalANotBroadcast)
         {
-            /*clLogTrace(
+            /*logTrace(
               "IOC",
               "SEND",
               "Sending to destination [%#x: %#x] with [xport: %s]",
@@ -1904,7 +1904,7 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
 
         rc = clBufferHeaderTrim(message, sizeof(ClIocHeaderT));
         if(rc != CL_OK)
-            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
+            logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,
                        "\nERROR: Buffer header trim failed RC = 0x%x\n", rc);
 
 #ifdef CL_IOC_COMPRESSION
@@ -1938,7 +1938,7 @@ static ClRcT internalSend(ClIocCommPortT *pIocCommPort,
 
     if(pIocCommPort == NULL)
     {
-        clLogError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_SEND,"Invalid port id\n");
+        logError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_SEND,"Invalid port id\n");
         goto out;
     }
 
@@ -1994,7 +1994,7 @@ static ClRcT internalSendReplicast(ClIocCommPortT *pIocCommPort,
     rc = CL_IOC_RC(CL_ERR_NULL_POINTER);
     if(pIocCommPort == NULL)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST,"Invalid port id\n");
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST,"Invalid port id\n");
         goto out;
     }
 
@@ -2006,7 +2006,7 @@ static ClRcT internalSendReplicast(ClIocCommPortT *pIocCommPort,
                              &interimDestAddress, &xportType);
 
         if (rc != CL_OK || !interimDestAddress.iocPhyAddress.nodeAddress || !xportType) {
-            clLogError("IOC", "REPLICAST", "Replicast to destination [%#x: %#x] failed with [%#x]",
+            logError("IOC", "REPLICAST", "Replicast to destination [%#x: %#x] failed with [%#x]",
                        replicastList[i].iocPhyAddress.nodeAddress,
                        replicastList[i].iocPhyAddress.portId, rc);
             continue;
@@ -2034,7 +2034,7 @@ static ClRcT internalSendReplicast(ClIocCommPortT *pIocCommPort,
             interimDestAddress.iocPhyAddress.portId = replicastList[i].iocPhyAddress.portId;
         }
 
-        /*clLogTrace(
+        /*logTrace(
                 "IOC",
                 "REPLICAST",
                 "Sending to destination [%#x: %#x] with [xport: %s]",
@@ -2046,7 +2046,7 @@ static ClRcT internalSendReplicast(ClIocCommPortT *pIocCommPort,
 
         if(rc != CL_OK)
         {
-            clLogError("IOC", "REPLICAST", "Replicast to destination [%#x: %#x] failed with [%#x]",
+            logError("IOC", "REPLICAST", "Replicast to destination [%#x: %#x] failed with [%#x]",
                        replicastList[i].iocPhyAddress.nodeAddress,
                        replicastList[i].iocPhyAddress.portId, rc);
         }
@@ -2079,14 +2079,14 @@ static ClRcT internalSendSlow(ClIocCommPortT *pIocCommPort,
 
     if(pIocCommPort == NULL)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,"Invalid port id\n");
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,"Invalid port id\n");
         goto out;
     }
 
     rc = clBufferVectorize(message,&pIOVector,&ioVectorLen);
     if(rc != CL_OK)
     {
-        clLogError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_SEND,"Error in buffer vectorize.rc=0x%x\n",rc);
+        logError(IOC_LOG_AREA_PORT,IOC_LOG_CTX_SEND,"Error in buffer vectorize.rc=0x%x\n",rc);
         goto out;
     }
     priority = CL_IOC_DEFAULT_PRIORITY;
@@ -2143,14 +2143,14 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
     rc = clBufferLengthGet(message, &msgLength);
     if (rc != CL_OK || msgLength == 0)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST, "Failed to get the length of the message. error code 0x%x", rc);
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST, "Failed to get the length of the message. error code 0x%x", rc);
         rc = CL_IOC_RC(CL_ERR_INVALID_BUFFER);
         goto out;
     }
 
     if(!pIocCommPort)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST,"Invalid port\n");
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST,"Invalid port\n");
         goto out;
     }
     for(i = 0; i < numReplicasts; ++i)
@@ -2160,7 +2160,7 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
         rc = clFindTransport(((ClIocPhysicalAddressT*)&replicastList[i])->nodeAddress, &interimDestAddress, &xportType);
 
         if (rc != CL_OK || !interimDestAddress.iocPhyAddress.nodeAddress || !xportType) {
-            clLogError("IOC", "REPLICAST", "Replicast to destination [%#x: %#x] failed with [%#x]",
+            logError("IOC", "REPLICAST", "Replicast to destination [%#x: %#x] failed with [%#x]",
                        replicastList[i].iocPhyAddress.nodeAddress,
                        replicastList[i].iocPhyAddress.portId, rc);
             continue;
@@ -2168,7 +2168,7 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
 
         rc = clBufferHeaderTrim(message, sizeof(ClIocHeaderT));
         if(rc != CL_OK) {
-            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST, "\nERROR: Buffer header trim failed RC = 0x%x\n", rc);
+            logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST, "\nERROR: Buffer header trim failed RC = 0x%x\n", rc);
             continue;
         }
 
@@ -2180,7 +2180,7 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
         rc = clBufferDataPrepend(message, (ClUint8T *) userHeader, sizeof(ClIocHeaderT));
         if(rc != CL_OK)
         {
-            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST, "\nERROR: Prepend buffer data failed = 0x%x\n", rc);
+            logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_REPLICAST, "\nERROR: Prepend buffer data failed = 0x%x\n", rc);
             continue;
         }
 
@@ -2204,7 +2204,7 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
             interimDestAddress.iocPhyAddress.portId = replicastList[i].iocPhyAddress.portId;
         }
 
-        /*clLogTrace(
+        /*logTrace(
                 "IOC",
                 "REPLICAST",
                 "Sending to destination [%#x: %#x] with [xport: %s]",
@@ -2215,7 +2215,7 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
 
         if(rc != CL_OK)
         {
-            clLogError("IOC", "REPLICAST", "Slow send to destination [%#x: %#x] failed with [%#x]",
+            logError("IOC", "REPLICAST", "Slow send to destination [%#x: %#x] failed with [%#x]",
                        replicastList[i].iocPhyAddress.nodeAddress,
                        replicastList[i].iocPhyAddress.portId, rc);
         }
@@ -2252,7 +2252,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
 
     if(pIocCommPort == NULL)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Invalid ioc commport\n");
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Invalid ioc commport\n");
         rc = CL_IOC_RC(CL_ERR_INVALID_HANDLE);
         goto out;
     }
@@ -2268,7 +2268,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
         if(bytes == sizeof(CL_IOC_PORT_EXIT_MESSAGE) && !strncmp((ClCharT*)buffer,CL_IOC_PORT_EXIT_MESSAGE,sizeof(CL_IOC_PORT_EXIT_MESSAGE)))
         {
             ClTimerTimeOutT waitTime = { 0, 200};
-            clLogInfo(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV, "PORT EXIT MESSAGE received for portid:0x%x,EO [%s]\n",pIocCommPort->portId,CL_EO_NAME);
+            logInfo(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV, "PORT EXIT MESSAGE received for portid:0x%x,EO [%s]\n",pIocCommPort->portId,CL_EO_NAME);
             rc = CL_IOC_RC(CL_IOC_ERR_RECV_UNBLOCKED);
             clOsalMutexLock(&pIocCommPort->unblockMutex);
             if(!pIocCommPort->blocked)
@@ -2290,7 +2290,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
 
     if(userHeader.version != CL_IOC_HEADER_VERSION)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping received packet of version [%d]. Supported version [%d]\n",
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping received packet of version [%d]. Supported version [%d]\n",
                                         userHeader.version, CL_IOC_HEADER_VERSION);
         rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
         goto out;
@@ -2400,7 +2400,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
 #endif
         if(rc != CL_OK) 
         {
-            clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet. "
+            logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet. "
                                                "Failed to write to a buffer message. "
                                                "Packet Size is %d. error code 0x%x", bytes, rc);
             goto out;
@@ -2414,7 +2414,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
             clTimeServerGet(NULL, &tv);
             pktRecvTime = tv.tvSec*1000000LL + tv.tvUsec;
             if(pktRecvTime)
-                clLogDebug("IOC", "RECV", "Packet round trip time [%lld] usecs for bytes [%d]",
+                logDebug("IOC", "RECV", "Packet round trip time [%lld] usecs for bytes [%d]",
                            pktRecvTime - pktSendTime, sentBytes);
         }
 #endif
@@ -2455,7 +2455,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
         userFragHeader.header.dstAddress.iocPhyAddress.portId =
             ntohl(userFragHeader.header.dstAddress.iocPhyAddress.portId);
 
-        clLogError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_RECV,
+        logError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_RECV,
                         "Got these values fragid %d, frag offset %d, fraglength %d, "
                         "flag %x from 0x%x:0x%x at 0x%x:0x%x\n",
                         (userFragHeader.msgId), (userFragHeader.fragOffset),
@@ -2468,7 +2468,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
          * Will be used once fully tested as its faster than earlier method
          */
         if(userFragHeader.header.flag == IOC_LAST_FRAG)
-            clLogTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
+            logTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
                        userFragHeader.fragOffset, userFragHeader.fragLength, bytes);
 
         rc = __iocUserFragmentReceive(xportType, pBuffer, &userFragHeader, 
@@ -2501,7 +2501,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
                     /*
                      * Broadcast proxy and continue with message processing
                      */
-                    clLogDebug("PROXY", "RELAY", "Broadcast message from node [%d], port [%d] "
+                    logDebug("PROXY", "RELAY", "Broadcast message from node [%d], port [%d] "
                                "to node [%d], port [%d]",
                                userHeader.srcAddress.iocPhyAddress.nodeAddress,
                                userHeader.srcAddress.iocPhyAddress.portId,
@@ -2518,7 +2518,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
         }
         else
         {
-            clLogDebug("PROXY", "RELAY", "Forward message from node [%d], port [%d] "
+            logDebug("PROXY", "RELAY", "Forward message from node [%d], port [%d] "
                        "to node [%d], port [%d]",
                        userHeader.srcAddress.iocPhyAddress.nodeAddress,
                        userHeader.srcAddress.iocPhyAddress.portId,
@@ -2576,7 +2576,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
     pRecvParam->protoType = userHeader.protocolType;
     memcpy(&pRecvParam->srcAddr, &userHeader.srcAddress, sizeof(pRecvParam->srcAddr));
 
-    clLogTrace("XPORT", "RECV",
+    logTrace("XPORT", "RECV",
                "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", 
                bytes, userHeader.protocolType, userHeader.srcAddress.iocPhyAddress.nodeAddress, 
                userHeader.srcAddress.iocPhyAddress.portId);
@@ -2615,7 +2615,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
 
     if(userHeader.version != CL_IOC_HEADER_VERSION)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping received packet of version [%d]. Supported version [%d]\n",
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping received packet of version [%d]. Supported version [%d]\n",
                                         userHeader.version, CL_IOC_HEADER_VERSION);
         goto out;
     }
@@ -2715,7 +2715,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
             clTimeServerGet(NULL, &tv);
             pktRecvTime = tv.tvSec*1000000LL + tv.tvUsec;
             if(pktRecvTime)
-                clLogDebug("IOC", "RECV", "Packet round trip time [%lld] usecs for bytes [%d]",
+                logDebug("IOC", "RECV", "Packet round trip time [%lld] usecs for bytes [%d]",
                            pktRecvTime - pktSendTime, sentBytes);
         }
 #endif
@@ -2743,7 +2743,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
         userFragHeader.header.dstAddress.iocPhyAddress.portId =
             ntohl(userFragHeader.header.dstAddress.iocPhyAddress.portId);
 
-        clLogTrace(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_RECV,
+        logTrace(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_RECV,
                    "Got these values fragid %d, frag offset %d, fraglength %d, "
                    "flag %x from 0x%x:0x%x at 0x%x:0x%x\n",
                    (userFragHeader.msgId), (userFragHeader.fragOffset),
@@ -2756,7 +2756,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
          * Will be used once fully tested as its faster than earlier method
          */
         if(userFragHeader.header.flag == IOC_LAST_FRAG)
-            clLogTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
+            logTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
                        userFragHeader.fragOffset, userFragHeader.fragLength, bytes);
 
         rc = __iocUserFragmentReceive(xportType, pBuffer, &userFragHeader, 
@@ -2805,7 +2805,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
                         /*
                          * Broadcast proxy and continue with message processing
                          */
-                        clLogDebug("PROXY", "RELAY", "Broadcast message from node [%d], port [%d] "
+                        logDebug("PROXY", "RELAY", "Broadcast message from node [%d], port [%d] "
                                    "to node [%d], port [%d], xport [%s]",
                                    userHeader.srcAddress.iocPhyAddress.nodeAddress,
                                    userHeader.srcAddress.iocPhyAddress.portId,
@@ -2823,7 +2823,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
             }
             else
             {
-                clLogDebug("PROXY", "RELAY", "Forward message from node [%d], port [%d] "
+                logDebug("PROXY", "RELAY", "Forward message from node [%d], port [%d] "
                            "to node [%d], port [%d]",
                            userHeader.srcAddress.iocPhyAddress.nodeAddress,
                            userHeader.srcAddress.iocPhyAddress.portId,
@@ -2835,7 +2835,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
         }
         else
         {
-            clLogError("PROXY", "RELAY", 
+            logError("PROXY", "RELAY", 
                        "Unable to forward message as comm port [%d] look up failed", port);
         }
         rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
@@ -2881,7 +2881,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     recvParam.priority = userHeader.priority;
     recvParam.protoType = userHeader.protocolType;
     memcpy(&recvParam.srcAddr, &userHeader.srcAddress, sizeof(recvParam.srcAddr));
-    clLogTrace( "XPORT", "RECV",
+    logTrace( "XPORT", "RECV",
                "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", bytes, userHeader.protocolType, recvParam.srcAddr.iocPhyAddress.nodeAddress, recvParam.srcAddr.iocPhyAddress.portId);
     clEoEnqueueReassembleJob(message, &recvParam);
     message = 0;
@@ -2980,7 +2980,7 @@ static ClRcT clIocLeakyBucketInitialize(void)
     leakyBucketInterval.tsSec = 0;
     leakyBucketInterval.tsMilliSec = temp ? (ClInt64T)atoi(temp) : CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL;
         
-        clLogInfo("LKB", "INI", "Creating a leaky bucket with vol [%lld], leak size [%lld], interval [%d ms]",leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval.tsMilliSec);
+        logInfo("LKB", "INI", "Creating a leaky bucket with vol [%lld], leak size [%lld], interval [%d ms]",leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval.tsMilliSec);
         
         rc = clLeakyBucketCreate(leakyBucketVol, leakyBucketLeakSize, leakyBucketInterval, &gClLeakyBucket);
     }
@@ -3025,14 +3025,14 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     retCode = clIocNeighCompsInitialize(gIsNodeRepresentative);
     if(retCode != CL_OK)
     {   
-        clLogError(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,"Error : Failed at neighbor initialize. rc=0x%x\n",retCode);
+        logError(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,"Error : Failed at neighbor initialize. rc=0x%x\n",retCode);
         goto error_1;
     }
 
     retCode = clNodeCacheInitialize(gIsNodeRepresentative);
     if(retCode != CL_OK)
     {
-        clLogError(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,"Node cache initialize returned [%#x]", retCode);
+        logError(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,"Node cache initialize returned [%#x]", retCode);
         goto error_2;
     }
 
@@ -3154,7 +3154,7 @@ ClRcT clIocCommPortReceiverUnblock(ClIocCommPortHandleT portHandle)
     ++pIocCommPort->blocked;
     if( (rc = clTransportSend(NULL, pIocCommPort->portId, CL_IOC_HIGH_PRIORITY, &destAddress, &exitVector, 1, 0) ) != CL_OK)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,"Error sending port exit message to port:0x%x.errno=%d\n",portId,errno);
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_SEND,"Error sending port exit message to port:0x%x.errno=%d\n",portId,errno);
         rc = CL_IOC_RC(CL_ERR_UNSPECIFIED);
         clOsalMutexUnlock(&pIocCommPort->unblockMutex);
         goto out;
@@ -3252,7 +3252,7 @@ static ClRcT __iocReassembleTimer(void *key)
         goto out_unlock;
     }
 
-    clLogTrace("FRAG", "RECV", "Running the reassembly timer for sender node [%#x:%#x] with length [%d] bytes", 
+    logTrace("FRAG", "RECV", "Running the reassembly timer for sender node [%#x:%#x] with length [%d] bytes", 
                node->timerKey->key.sendAddr.nodeAddress, 
                node->timerKey->key.sendAddr.portId, node->currentLength);
     while( (fragHead = clRbTreeMin(&node->reassembleTree) ) )
@@ -3316,7 +3316,7 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
             clHeapFree(fragNode->fragBuffer);
         }
         CL_ASSERT(rc == CL_OK);
-        clLogTrace("IOC", "REASSEMBLE", "Reassembled fragment offset [%d], len [%d]",
+        logTrace("IOC", "REASSEMBLE", "Reassembled fragment offset [%d], len [%d]",
                    fragNode->fragOffset, fragNode->fragLength);
         clRbTreeDelete(&node->reassembleTree, iter);
         clHeapFree(fragNode);
@@ -3385,7 +3385,7 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
                         ClUint32T i;
                         for(i = 0; i < numBcasts; ++i)
                         {
-                            clLogDebug("PROXY", "RELAY", 
+                            logDebug("PROXY", "RELAY", 
                                        "Broadcast reassembled message from node [%d], port [%d] "
                                        "to node [%d], port [%d]",
                                        fragHeader->header.srcAddress.iocPhyAddress.nodeAddress,
@@ -3407,7 +3407,7 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
                 }
                 else
                 {
-                    clLogDebug("PROXY", "RELAY", 
+                    logDebug("PROXY", "RELAY", 
                                "Forward reassembled message from [%d:%d] to node [%d:%d]", 
                                fragHeader->header.srcAddress.iocPhyAddress.nodeAddress,
                                fragHeader->header.srcAddress.iocPhyAddress.portId,
@@ -3421,7 +3421,7 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
             }
             else
             {
-                clLogError("PROXY", "RELAY", 
+                logError("PROXY", "RELAY", 
                            "Unable to forward the message from [%d:%d] to node [%d:%d] "
                            "using src port [%d]", 
                            fragHeader->header.srcAddress.iocPhyAddress.nodeAddress,
@@ -3533,7 +3533,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
             /*
              * we update the expected length.
              */
-            clLogTrace("FRAG", "RECV", "Out of order last fragment received for offset [%d], len [%d] bytes, "
+            logTrace("FRAG", "RECV", "Out of order last fragment received for offset [%d], len [%d] bytes, "
                        "current length [%d] bytes",
                        fragmentNode->fragOffset, fragmentNode->fragLength, node->currentLength);
             node->expectedLength = fragmentNode->fragOffset + fragmentNode->fragLength;
@@ -3553,7 +3553,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
          */
         if( !( node->numFragments & CL_IOC_REASSEMBLY_FRAGMENTS_MASK ) )
         {
-            clLogDebug("FRAG", "RECV", "Updating the reassembly timer to refire after [%d] secs for node length [%d], "
+            logDebug("FRAG", "RECV", "Updating the reassembly timer to refire after [%d] secs for node length [%d], "
                        "num fragments [%d]",
                        userReassemblyTimerExpiry.tsSec, node->currentLength, node->numFragments);
             clTimerUpdate(node->timerKey->reassembleTimer, userReassemblyTimerExpiry);
@@ -3709,7 +3709,7 @@ ClRcT clIocTransparencyRegister(ClIocTLInfoT *pTLInfo)
 
     if(CL_IOC_ADDRESS_TYPE_GET(&pTLInfo->logicalAddr) != CL_IOC_LOGICAL_ADDRESS_TYPE)
     {
-        clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,
+        logError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,
                    "\n TL: Invalid logical address:0x%llx \n",
                    pTLInfo->logicalAddr);
         goto out;
@@ -3722,7 +3722,7 @@ ClRcT clIocTransparencyRegister(ClIocTLInfoT *pTLInfo)
     if(pIocCommPort == NULL)
     {
         clOsalMutexUnlock(&gClIocPortMutex);
-        clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid physical address portid:0x%x.\n",portId);
+        logError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Invalid physical address portid:0x%x.\n",portId);
         goto out;
     }
 
@@ -3730,7 +3730,7 @@ ClRcT clIocTransparencyRegister(ClIocTLInfoT *pTLInfo)
     if(pIocCommPort->pComp && pIocCommPort->pComp->compId != pTLInfo->compId)
     {
         clOsalMutexUnlock(&gClIocPortMutex);
-        clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"More than 2 components cannot bind to the same port.Comp id 0x%x already bound to the port 0x%x\n",pIocCommPort->pComp->compId,pIocCommPort->portId);
+        logError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"More than 2 components cannot bind to the same port.Comp id 0x%x already bound to the port 0x%x\n",pIocCommPort->pComp->compId,pIocCommPort->portId);
         goto out;
     }
 
@@ -3744,7 +3744,7 @@ ClRcT clIocTransparencyRegister(ClIocTLInfoT *pTLInfo)
         pComp = (ClIocCompT*) clHeapCalloc(1,sizeof(*pComp));
         if(pComp == NULL)
         {
-            clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
+            logError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
             rc = CL_IOC_RC(CL_ERR_NO_MEMORY);
             goto out;
         }       
@@ -3775,7 +3775,7 @@ ClRcT clIocTransparencyRegister(ClIocTLInfoT *pTLInfo)
                         {
                             clOsalMutexUnlock(&gClIocCompMutex);
                             clOsalMutexUnlock(&gClIocPortMutex);
-                            clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"CompId:0x%x has already registered with LA:0x%llx,portId:0x%x\n",pTLInfo->compId,pTLInfo->logicalAddr,pTLInfo->physicalAddr.portId);
+                            logError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"CompId:0x%x has already registered with LA:0x%llx,portId:0x%x\n",pTLInfo->compId,pTLInfo->logicalAddr,pTLInfo->physicalAddr.portId);
                             rc = CL_IOC_RC(CL_ERR_ALREADY_EXIST);
                             goto out;
                         }
@@ -3792,7 +3792,7 @@ ClRcT clIocTransparencyRegister(ClIocTLInfoT *pTLInfo)
     {
         clOsalMutexUnlock(&gClIocCompMutex);
         clOsalMutexUnlock(&gClIocPortMutex);
-        clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
+        logError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,"Error allocating memory\n");
         goto out_free;
     }
     /*
@@ -3900,7 +3900,7 @@ ClRcT clIocTransparencyDeregister(ClUint32T compId)
             rc = clTransportTransparencyDeregister(NULL, pCommPort->portId, pIocLogicalAddress->logicalAddress);
             if(rc != CL_OK)
             {
-                clLogError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,
+                logError(IOC_LOG_AREA_IOC,CL_LOG_CONTEXT_UNSPECIFIED,
                            "Logical address deregister for [0x%llx] returned with [%#x]\n",
                            pIocLogicalAddress->logicalAddress, rc);
                 
@@ -3940,7 +3940,7 @@ ClRcT clIocMcastIsRegistered(ClIocMcastUserInfoT *pMcastInfo)
 
     if(!CL_IOC_MCAST_VALID(&pMcastInfo->mcastAddr))
     {
-        clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"\nERROR : Invalid multicast address:0x%llx\n",pMcastInfo->mcastAddr);
+        logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"\nERROR : Invalid multicast address:0x%llx\n",pMcastInfo->mcastAddr);
         goto out;
     }
 
@@ -3949,7 +3949,7 @@ ClRcT clIocMcastIsRegistered(ClIocMcastUserInfoT *pMcastInfo)
     if(pIocCommPort == NULL)
     {
         clOsalMutexUnlock(&gClIocPortMutex);
-        clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"Error : Invalid portid: 0x%x\n",pMcastInfo->physicalAddr.portId);
+        logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"Error : Invalid portid: 0x%x\n",pMcastInfo->physicalAddr.portId);
         goto out;
     }
     clOsalMutexLock(&gClIocMcastMutex);
@@ -3967,7 +3967,7 @@ ClRcT clIocMcastIsRegistered(ClIocMcastUserInfoT *pMcastInfo)
             pMcastPort = CL_LIST_ENTRY(pTemp,ClIocMcastPortT,listMcast);
             if(pMcastPort->pIocCommPort->portId == pMcastInfo->physicalAddr.portId)
             {
-                clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,
+                logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,
                            "Error : Port 0x%x is already registered for the multicast address 0x%llx\n",
                            pMcastInfo->physicalAddr.portId, pMcastInfo->mcastAddr);
                 rc = CL_IOC_RC(CL_ERR_ALREADY_EXIST);
@@ -3999,7 +3999,7 @@ ClRcT clIocMulticastRegister(ClIocMcastUserInfoT *pMcastUserInfo)
 
     if(!CL_IOC_MCAST_VALID(&pMcastUserInfo->mcastAddr))
     {
-        clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"\nERROR: Invalid multicast address:0x%llx\n",pMcastUserInfo->mcastAddr);
+        logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"\nERROR: Invalid multicast address:0x%llx\n",pMcastUserInfo->mcastAddr);
         goto out;
     }
     clOsalMutexLock(&gClIocPortMutex);
@@ -4008,7 +4008,7 @@ ClRcT clIocMulticastRegister(ClIocMcastUserInfoT *pMcastUserInfo)
     {
         clOsalMutexUnlock(&gClIocPortMutex);
         rc = CL_IOC_RC(CL_ERR_NOT_EXIST);
-        clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"Invalid portid: 0x%x\n",pMcastUserInfo->physicalAddr.portId);
+        logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"Invalid portid: 0x%x\n",pMcastUserInfo->physicalAddr.portId);
         goto out;
     }
     clOsalMutexLock(&gClIocMcastMutex);
@@ -4021,7 +4021,7 @@ ClRcT clIocMulticastRegister(ClIocMcastUserInfoT *pMcastUserInfo)
         if(pMcast==NULL)
         {
             rc = CL_IOC_RC(CL_ERR_NO_MEMORY);
-            clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"Error allocating memory\n");
+            logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"Error allocating memory\n");
             goto out;
         }
         pMcast->mcastAddress = pMcastUserInfo->mcastAddr;
@@ -4041,7 +4041,7 @@ ClRcT clIocMulticastRegister(ClIocMcastUserInfoT *pMcastUserInfo)
                     clOsalMutexUnlock(&gClIocMcastMutex);
                     clOsalMutexUnlock(&gClIocPortMutex);
                     rc = CL_IOC_RC(CL_ERR_ALREADY_EXIST);
-                    clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"Port 0x%x already exist\n",pMcastUserInfo->physicalAddr.portId);
+                    logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"Port 0x%x already exist\n",pMcastUserInfo->physicalAddr.portId);
                     goto out;
                 }
             }
@@ -4052,7 +4052,7 @@ ClRcT clIocMulticastRegister(ClIocMcastUserInfoT *pMcastUserInfo)
         clOsalMutexUnlock(&gClIocMcastMutex);
         clOsalMutexUnlock(&gClIocPortMutex);
         rc = CL_IOC_RC(CL_ERR_NO_MEMORY);
-        clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"Error allocating memory\n");
+        logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG,"Error allocating memory\n");
         goto out_free;
     }
     pMcastPort->pMcast = pMcast;
@@ -4073,7 +4073,7 @@ ClRcT clIocMulticastRegister(ClIocMcastUserInfoT *pMcastUserInfo)
     rc = clTransportMulticastRegister(NULL, pIocCommPort->portId, pMcast->mcastAddress);
     if(rc != CL_OK)
     {
-        clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG, 
+        logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_REG, 
                    " Multicast register for port [%#x] returned [%#x]\n",
                    pIocCommPort->portId, rc);
         rc = CL_IOC_RC(CL_ERR_UNSPECIFIED);
@@ -4116,7 +4116,7 @@ ClRcT clIocMulticastDeregister(ClIocMcastUserInfoT *pMcastUserInfo)
     rc = CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     if(!CL_IOC_MCAST_VALID(&pMcastUserInfo->mcastAddr))
     {
-        clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"\nERROR: Invalid multicast address:0x%llx\n",pMcastUserInfo->mcastAddr);
+        logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"\nERROR: Invalid multicast address:0x%llx\n",pMcastUserInfo->mcastAddr);
         goto out;
     }
     clOsalMutexLock(&gClIocPortMutex);
@@ -4127,7 +4127,7 @@ ClRcT clIocMulticastDeregister(ClIocMcastUserInfoT *pMcastUserInfo)
     {
         clOsalMutexUnlock(&gClIocPortMutex);
         rc = CL_IOC_RC(CL_ERR_NOT_EXIST);
-        clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Error in getting port: 0x%x\n",pMcastUserInfo->physicalAddr.portId);
+        logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Error in getting port: 0x%x\n",pMcastUserInfo->physicalAddr.portId);
         goto out;
     }
     clOsalMutexLock(&gClIocMcastMutex);
@@ -4136,7 +4136,7 @@ ClRcT clIocMulticastDeregister(ClIocMcastUserInfoT *pMcastUserInfo)
     {
         clOsalMutexUnlock(&gClIocMcastMutex);
         clOsalMutexUnlock(&gClIocPortMutex);
-        clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Error in getting mcast address:0x%llx\n",pMcastUserInfo->mcastAddr);
+        logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Error in getting mcast address:0x%llx\n",pMcastUserInfo->mcastAddr);
         goto out;
     }
     pHead = &pMcast->portList;
@@ -4150,7 +4150,7 @@ ClRcT clIocMulticastDeregister(ClIocMcastUserInfoT *pMcastUserInfo)
             rc = clTransportMulticastDeregister(NULL, pIocCommPort->portId, pMcast->mcastAddress);
             if(rc != CL_OK)
             {
-                clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Multicast deregister for port [%#x] returned with [%#x]\n",
+                logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Multicast deregister for port [%#x] returned with [%#x]\n",
                                                pIocCommPort->portId, rc);
                 clOsalMutexUnlock(&gClIocMcastMutex);
                 clOsalMutexUnlock(&gClIocPortMutex);
@@ -4166,7 +4166,7 @@ ClRcT clIocMulticastDeregister(ClIocMcastUserInfoT *pMcastUserInfo)
     clOsalMutexUnlock(&gClIocMcastMutex);
     clOsalMutexUnlock(&gClIocPortMutex);
     rc = CL_IOC_RC(CL_ERR_NOT_EXIST);
-    clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Unable to find port:0x%x in mcast list\n",pIocCommPort->portId);
+    logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Unable to find port:0x%x in mcast list\n",pIocCommPort->portId);
     goto out;
 
     found:
@@ -4199,7 +4199,7 @@ ClRcT clIocMulticastDeregisterAll(ClIocMulticastAddressT *pMcastAddress)
     rc = CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     if(!CL_IOC_MCAST_VALID(pMcastAddress))
     {
-        clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"\nERROR: Invalid multicast address:0x%llx\n",*pMcastAddress);
+        logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"\nERROR: Invalid multicast address:0x%llx\n",*pMcastAddress);
         goto out;
     }
     mcastAddress = *pMcastAddress;
@@ -4212,7 +4212,7 @@ ClRcT clIocMulticastDeregisterAll(ClIocMulticastAddressT *pMcastAddress)
         clOsalMutexUnlock(&gClIocPortMutex);
         rc = CL_OK;
         /*could have been ripped off from a multicast deregister*/
-        clLogWarning(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Error in mcast get for address:0x%llx\n",mcastAddress);
+        logWarning(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Error in mcast get for address:0x%llx\n",mcastAddress);
         goto out;
     }
     pHead = &pMcast->portList;
@@ -4225,7 +4225,7 @@ ClRcT clIocMulticastDeregisterAll(ClIocMulticastAddressT *pMcastAddress)
                                                  pIocCommPort->portId,
                                                  pMcast->mcastAddress) ) != CL_OK)
         {
-            clLogError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Multicast deregister for port [%#x] returned [%#x]\n",
+            logError(IOC_LOG_AREA_MULTICAST,IOC_LOG_CTX_DEREG,"Multicast deregister for port [%#x] returned [%#x]\n",
                                            pIocCommPort->portId, rc);
         }
         clListDel(&pMcastPort->listMcast);
@@ -4260,18 +4260,18 @@ ClRcT clIocVersionCheck(ClVersionT *pVersion)
     if (pVersion == NULL)
         return CL_IOC_RC(CL_ERR_NULL_POINTER);
 
-    clLogTrace(IOC_LOG_AREA_IOC,IOC_LOG_CTX_VERSION,
+    logTrace(IOC_LOG_AREA_IOC,IOC_LOG_CTX_VERSION,
                "Passed Version : Release = %c ; Major = 0x%x ; Minor = 0x%x\n",
                pVersion->releaseCode, pVersion->majorVersion,
                pVersion->minorVersion);
     rc = clVersionVerify(&versionDatabase, pVersion);
     if (rc != CL_OK)
     {
-        clLogTrace(IOC_LOG_AREA_IOC,IOC_LOG_CTX_VERSION,
+        logTrace(IOC_LOG_AREA_IOC,IOC_LOG_CTX_VERSION,
                    "Supported Version : Release = %c ; Major = 0x%x ; Minor = 0x%x\n",
                    pVersion->releaseCode, pVersion->majorVersion,
                    pVersion->minorVersion);
-        clLogTrace(IOC_LOG_AREA_IOC,IOC_LOG_CTX_VERSION,
+        logTrace(IOC_LOG_AREA_IOC,IOC_LOG_CTX_VERSION,
                    "Error : Invalid version of application. rc 0x%x\n",
                    rc);
         return rc;
@@ -4311,14 +4311,14 @@ ClRcT clIocNeighborAdd(ClIocNodeAddressT address,ClUint32T status)
 
     if(pNeigh)
     {
-        clLogWarning(IOC_LOG_AREA_IOC,IOC_LOG_CTX_ADD,"Neighbor node:0x%x already exist\n",address);
+        logWarning(IOC_LOG_AREA_IOC,IOC_LOG_CTX_ADD,"Neighbor node:0x%x already exist\n",address);
         rc = CL_IOC_RC(CL_ERR_ALREADY_EXIST);
         goto out;
     }
     pNeigh = (ClIocNeighborT*) clHeapCalloc(1,sizeof(*pNeigh));
     if(pNeigh == NULL)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_ADD,"Error in neigh add\n");
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_ADD,"Error in neigh add\n");
         goto out;
     }
     pNeigh->address = address;
@@ -4368,7 +4368,7 @@ static __inline__ ClRcT clIocRangeNodeAddressGet(ClIocNodeAddressT *pNodeAddress
     do
     {
         ClUint8T status = CL_IOC_NODE_DOWN;
-        clLogInfo(IOC_LOG_AREA_IOC,IOC_LOG_CTX_GET,"Node address: %u \n",start);
+        logInfo(IOC_LOG_AREA_IOC,IOC_LOG_CTX_GET,"Node address: %u \n",start);
         ClRcT rc = clIocRemoteNodeStatusGet((ClIocNodeAddressT)start,
                                             &status);
         if(rc == CL_OK && status == CL_IOC_NODE_UP) 
