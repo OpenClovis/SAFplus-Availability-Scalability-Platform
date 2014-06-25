@@ -98,7 +98,12 @@ ClRcT cosSysvProcessSharedSemInit(ClOsalMutexT *pMutex, ClUint8T *pKey, ClUint32
             goto retry;
         if(errno == ENOENT)
         {
-            flags |= IPC_CREAT;
+            flags |= (IPC_CREAT | IPC_EXCL);
+            goto retry;
+        }
+        if(errno == EEXIST)
+        {
+            flags ^= (IPC_CREAT | IPC_EXCL);
             goto retry;
         }
         pthread_mutex_unlock(&gClSemAccessLock);
@@ -106,7 +111,7 @@ ClRcT cosSysvProcessSharedSemInit(ClOsalMutexT *pMutex, ClUint8T *pKey, ClUint32
         goto out;
     }
     pthread_mutex_unlock(&gClSemAccessLock);
-    if( (flags & IPC_CREAT) )
+    if( (flags & (IPC_CREAT | IPC_EXCL)) )
     {
         CosSemCtl_t arg = {0};
         arg.val = value;
@@ -318,7 +323,11 @@ cosSysvSemCreate (ClUint8T* pName, ClUint32T count, ClOsalSemIdT* pSemId)
     CL_ASSERT(retCode == CL_OK); /* There is no possible error except for pName == NULL, which I've already checked, so don't check the retCode */
 
 
-    sysErrnoChkRet(semId = semget ((key_t)key, (int)count, IPC_CREAT|0666));
+    semId = semget ((key_t)key, (int)count, IPC_EXCL | IPC_CREAT|0666);
+    if((semId == -1) && (errno == EEXIST))
+    {
+        sysErrnoChkRet(semId = semget ((key_t)key, (int)count, 0666));
+    }
       
     semArg.val = (int)count;
 
@@ -365,7 +374,11 @@ cosSysvSemIdGet(ClUint8T* pName, ClOsalSemIdT* pSemId)
       if (err == ENOENT) 
         {
           CL_DEBUG_PRINT (CL_DEBUG_INFO,("Semaphore [%s], id [%u] accessed but not created.  Creating it now",pName,key));
-          semId = semget ((key_t)key, (int)count, IPC_CREAT|0666);
+          semId = semget ((key_t)key, (int)count, IPC_EXCL | IPC_CREAT|0666);
+          if((semId == -1) && (errno == EEXIST))
+          {
+              semId = semget ((key_t)key, (int)count, 0666);
+          }
         }
     }
 
@@ -513,8 +526,12 @@ cosSysvShmCreate(ClUint8T* pName, ClUint32T size, ClOsalShmIdT* pShmId)
         return(retCode);
     }
 
-    shmId = shmget ((key_t)key, size, (0666 | IPC_CREAT));
+    shmId = shmget ((key_t)key, size, (0666 | IPC_CREAT | IPC_EXCL));
 
+    if((shmId == -1)  && (errno == EEXIST))
+    {
+        shmId = shmget ((key_t)key, size, (0666));
+    }
     if(shmId < 0)
     {
         CL_DEBUG_PRINT (CL_DEBUG_INFO,("\nShared Memory Create: FAILED"));
@@ -607,7 +624,11 @@ cosSysvShmIdGet(ClUint8T* pName, ClOsalShmIdT* pShmId)
         return(retCode);
     }
 
-    shmId = shmget ((key_t)key, size, (0666 | IPC_CREAT));
+    shmId = shmget ((key_t)key, size, (0666));
+    if((shmId < 0) && (errno == ENOENT))
+    {
+        shmId = shmget ((key_t)key, size, (0666 | IPC_CREAT | IPC_EXCL));
+    }
 
     if(shmId < 0)
     {
