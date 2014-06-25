@@ -48,6 +48,7 @@
 #include <clCpmExtApi.h>
 #include <clList.h>
 #include <clNodeCache.h>
+#include <custom.h>
 
 /******************************************************************************
  * Global data structures
@@ -7906,7 +7907,13 @@ clAmsEntityDeleteRefs(ClAmsEntityRefT *entityRef)
                     {
                         ClAmsSIT *si = (ClAmsSIT*)ref->ptr;
                         ClAmsEntityRefT *suRef = NULL;
-    
+
+                        if (sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM)
+                        {
+                            /* Dequeuing custom assignment SU from SI if available */
+                            clAmsPeDequeueAssignmentCustom(si, su);
+                        }
+
                         if(clAmsEntityListFindEntityRef(&si->config.suList,
                                                         entityRef, key,
                                                         &suRef) == CL_OK)
