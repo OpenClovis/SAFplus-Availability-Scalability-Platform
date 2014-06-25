@@ -2560,6 +2560,7 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
 
                 if (comp->hbFailureDetected)
                 {
+                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGABRT to component [%s] due to heatbeat failure", comp->compConfig->compName);
                     rc = kill(comp->processId, SIGABRT);
                     comp->hbFailureDetected = CL_FALSE;
                 }
@@ -2926,11 +2927,13 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
      */
     if (comp->hbFailureDetected)
     {
+        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGABRT signal to component [%s]with process id[%d]", comp->compConfig->compName, comp->processId);
         kill(comp->processId, SIGABRT);
         comp->hbFailureDetected = CL_FALSE;
     }
     else
     {
+        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGKILL signal to component [%s]with process id[%d]", comp->compConfig->compName, comp->processId);
         kill(comp->processId, SIGKILL);
     }
 
@@ -3051,6 +3054,11 @@ ClRcT cpmCompCleanup(ClCharT *compName)
                     {
                         compCleanupInvoke(comp);
                     }
+                    else
+                    {
+                        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Skipped cleanup for component [%s]",
+                            comp->compConfig->compName);
+                    }
                     comp->processId = 0;
                     comp->compPresenceState =
                         CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
@@ -3109,13 +3117,21 @@ ClRcT cpmCompCleanup(ClCharT *compName)
             {
                 if (comp->hbFailureDetected)
                 {
+                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGABRT signal to component [%s]with process id[%d]",
+                              comp->compConfig->compName, comp->processId);
                     kill(comp->processId, SIGABRT);
                     comp->hbFailureDetected = CL_FALSE;
                 }
                 else
                 {
+                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGABRT signal to component [%s]with process id[%d]",
+                              comp->compConfig->compName, comp->processId);
                     kill(comp->processId, SIGKILL);
                }
+            }
+            else
+            {
+                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Ignored cleanup for component [%s]", comp->compConfig->compName);
             }
 
         }
@@ -3207,6 +3223,11 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
                     if (comp->processId != 0)
                     {
                         compCleanupInvoke(comp);
+                    }
+                    else
+                    {
+                        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Skipped cleanup for component [%s]",
+                            comp->compConfig->compName);
                     }
                     comp->processId = 0;
                     comp->compPresenceState =
@@ -3360,6 +3381,10 @@ ClRcT _cpmLocalComponentCleanup(ClCpmComponentT *comp,
                     goto failure;
                 }
             }
+            else
+            {
+                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Ignored Local Component Cleanup for component [%s]", comp->compConfig->compName);
+            }
         }
     }
 
@@ -3503,6 +3528,11 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                         if (comp->processId != 0)
                         {
                             compCleanupInvoke(comp);
+                        }
+                        else
+                        {
+                            clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Skipped cleanup for component [%s]",
+                               comp->compConfig->compName);
                         }
                         comp->processId = 0;
                         comp->compPresenceState =
@@ -3651,6 +3681,10 @@ ClRcT _cpmComponentCleanup(ClCharT *compName,
                     {
                         goto failure;
                     }
+                }
+                else
+                {
+                        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Ignored cleanup for component [%s]", comp->compConfig->compName);
                 }
             }
         }
