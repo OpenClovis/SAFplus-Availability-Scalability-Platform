@@ -26,6 +26,10 @@
 #define IOC_UDP_MAP_MASK (IOC_UDP_MAP_SIZE-1)
 #define __STOP_WALK_ON_ERROR (0x1)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 ClInt32T gClUdpXportId;
 ClCharT  gClUdpXportType[CL_MAX_NAME_LENGTH];
 static ClBoolT udpPriorityChangePossible = CL_TRUE;  /* Don't attempt to change priority if UDP does not support, so we don't get tons of error msgs */
@@ -1484,3 +1488,6 @@ ClRcT clUdpAddrGet(ClIocNodeAddressT nodeAddress, ClCharT *addrStr)
     return rc;
 }
 
+#ifdef __cplusplus
+ }
+#endif

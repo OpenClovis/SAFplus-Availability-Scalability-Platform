@@ -105,8 +105,10 @@
 #define TIPC_LOG_CTX_TIPC_RECV		"RECV"
 #define TIPC_LOG_CTX_TIPC_READY		"RDY"
 
-extern ClUint32T clEoWithOutCpm;
-extern ClUint32T clAspLocalId;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern ClIocNodeAddressT gIocLocalBladeAddress;
 
 ClInt32T gClTipcXportId;
@@ -1069,3 +1071,7 @@ ClRcT clTipcFdGet(ClIocPortT port, ClInt32T *fd)
     *fd = xportPrivate->fd;
     return CL_OK;
 }
+
+#ifdef __cplusplus
+ }
+#endif

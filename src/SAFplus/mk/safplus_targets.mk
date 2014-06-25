@@ -10,7 +10,7 @@ $(LIB_DIR)/libclUtils7.so:
 endif
 
 ifndef SAFPLUS_IOC_LIB
-$(LIB_DIR)/libclIoc7.so:
+$(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclTIPC.so  $(LIB_DIR)/libclUDP.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/ioc7/client
 endif
 
@@ -30,7 +30,7 @@ $(LIB_DIR)/libclMgt7.so:
 endif
 
 ifndef SAFPLUS_DBAL_LIB
-$(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py:
+$(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py $(LIB_DIR)/libclBerkeleyDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclSQLiteDB.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/dbal7
 endif
 

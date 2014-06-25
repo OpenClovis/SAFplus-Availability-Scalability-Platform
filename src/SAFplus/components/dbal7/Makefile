@@ -18,7 +18,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 .PHONY: all
 
-all: $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py
+all: $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py $(LIB_DIR)/libclBerkeleyDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclSQLiteDB.so
 
 $(BIN_DIR)/dbalpy.py: dbalpy.py $(LIB_DIR)/common.py $(LIB_DIR)/microdom.py $(LIB_DIR)/pyDbal.py
 	$(CP) $< $@
