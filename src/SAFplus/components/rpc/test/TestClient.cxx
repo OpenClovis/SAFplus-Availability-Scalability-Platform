@@ -36,12 +36,12 @@ using namespace google::protobuf;
 #define IOC_PORT 0
 #define IOC_PORT_SERVER 65
 
-ClUint32T clAspLocalId = 0x1;
 ClBoolT gIsNodeRepresentative = CL_FALSE;
 
 int main(void)
   {
     ClIocAddressT iocDest;
+    SAFplus::ASP_NODEADDR = 0x1;
 
     logInitialize();
     logEchoToFd = 1;  // echo logs to stdout for debugging

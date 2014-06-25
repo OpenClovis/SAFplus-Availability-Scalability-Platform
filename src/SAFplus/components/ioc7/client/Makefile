@@ -30,6 +30,16 @@ UDP_PLUGIN_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .c,.o,$(notdir $(UDP_PLUGIN_
 
 CPP_FLAGS += -I../../ioc/plugins/tipc -I../../ioc/plugins/udp
 
+CHECK_INOTIFY := $(shell ./check_inotify.sh $(COMPILE_CPP))
+ifeq ($(strip $(CHECK_INOTIFY)), )
+	CPP_FLAGS += -DHAVE_INOTIFY
+endif
+
+CHECK_SCTP := $(shell ./check_sctp.sh $(COMPILE_CPP))
+ifeq ($(strip $(CHECK_SCTP)), )
+	CPP_FLAGS += -DHAVE_SCTP
+endif
+
 # Specify the required libraries
 SAFPLUS_LIBS := clOsal7 clLog clMgt7
 # Then use these in the make rule

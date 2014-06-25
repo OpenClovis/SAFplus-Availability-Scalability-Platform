@@ -66,6 +66,7 @@
 #include <errno.h>
 
 #include <clLogApi.hxx>
+#include <clGlobals.hxx>
 #include <clOsalApi.h>
 #include <clEoIpi.h>
 #include <clHash.h>
@@ -134,8 +135,6 @@ ClLeakyBucketHandleT gClLeakyBucket;
 #define CL_LEAKY_BUCKET_DEFAULT_VOL (50 << 20)
 #define CL_LEAKY_BUCKET_DEFAULT_LEAK_SIZE (25 << 20)
 #define CL_LEAKY_BUCKET_DEFAULT_LEAK_INTERVAL (500)
-
-extern ClUint32T clAspLocalId;
 
 ClIocNodeAddressT gIocLocalBladeAddress;
 
@@ -3013,8 +3012,6 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     }
     gIocLocalBladeAddress = ((ClIocLibConfigT *) pConf)->nodeAddress;
 
-    ASP_NODEADDR = gIocLocalBladeAddress;
-
     clOsalMutexCreate(&gClIocFragMutex);
 
     memset(&userObj, 0, sizeof(ClIocUserObjectT));
@@ -3101,7 +3098,7 @@ ClRcT clIocLibInitialize(ClPtrT pConfig)
     clTaskPoolInitialize();
     
     iocConfig.version = CL_IOC_HEADER_VERSION;
-    iocConfig.nodeAddress = clAspLocalId;
+    iocConfig.nodeAddress = SAFplus::ASP_NODEADDR;
 
     retCode = clIocConfigInitialize(&iocConfig);
     if (retCode != CL_OK)
