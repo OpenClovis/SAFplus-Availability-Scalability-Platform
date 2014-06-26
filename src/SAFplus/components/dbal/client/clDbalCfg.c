@@ -36,8 +36,7 @@
 #include <string.h>
 #include <clCommon.h>
 #include <clCommonErrors.h>
-#include <clDebugApi.h>
-#include <clLogUtilApi.h>
+#include <clLogApi.hxx>
 #include <clDbalCfg.h>
 #include <clOsalApi.h>
 #include <clDbalApi.h>
@@ -85,7 +84,7 @@ ClRcT clDbalLibInitialize(void)
     rc = clDbalInterface(gDbalFunctionPtrs);  
     if (rc != CL_OK)
     {
-        clLogError("DBA", "INI", "Failed to initialize the Dbal library. rc [0x%x]", rc);
+        logError("DBA", "INI", "Failed to initialize the Dbal library. rc [0x%x]", rc);
         return rc;    
     }
     gDlHandle = NULL;
@@ -99,7 +98,7 @@ ClRcT clDbalLibInitialize(void)
         rc  = dbalGetLibName(libName);   
         if( rc != CL_OK)
         {
-            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error getting the DBAL plugin filename. rc [0x %x]\n",rc);
+            logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Error getting the DBAL plugin filename. rc [0x%x]\n",rc);
         } 
         /*open the dynamic loaded library*/
         rc = CL_DBAL_RC(CL_ERR_UNSPECIFIED);
@@ -112,12 +111,12 @@ ClRcT clDbalLibInitialize(void)
                 const char* err = dlerror();
                 if (!err) err = "unknown";
 
-                clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+                logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                                "Error in finding the symbol 'clDbalInterface' in shared library '%s': [%s]", libName, err);
 
                 if(0 != dlclose(gDlHandle))
                 {
-                    clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Error while unloading DBAL shared library!");
+                    logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Error while unloading DBAL shared library!");
                 }
                 goto out;
             }
@@ -125,7 +124,7 @@ ClRcT clDbalLibInitialize(void)
             rc = dbalGenericInterface(gDbalFunctionPtrs);
             if (rc != CL_OK)
             {
-                clLogError("DBA", "INI", "Failed to initialize the Dbal library. rc [0x%x]", rc);
+                logError("DBA", "INI", "Failed to initialize the Dbal library. rc [0x%x]", rc);
                 dlclose(gDlHandle);
                 goto out;
             }
@@ -134,7 +133,7 @@ ClRcT clDbalLibInitialize(void)
         {
             const char* err = dlerror();
             if (!err) err = "unknown";          
-            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Error finding opening shared library '%s': [%s]", libName,err);
+            logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Error finding opening shared library '%s': [%s]", libName,err);
             goto out;
         }
         rc = CL_OK;
@@ -163,7 +162,7 @@ ClRcT clDbalLibFinalize(void)
     {
         if(0 != dlclose(gDlHandle))
         {
-            clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+            logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                     "Error while unloading DBAL shared library!");
         }
     }

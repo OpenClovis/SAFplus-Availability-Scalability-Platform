@@ -30,7 +30,7 @@ $(LIB_DIR)/libclMgt7.so:
 endif
 
 ifndef SAFPLUS_DBAL_LIB
-$(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py $(LIB_DIR)/libclBerkeleyDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclSQLiteDB.so:
+$(LIB_DIR)/libclDbal7.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py $(LIB_DIR)/libclBerkeleyDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclSQLiteDB.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/dbal7
 endif
 
@@ -51,7 +51,7 @@ $(LIB_DIR)/libclName.so:
 endif
 
 # ordered by dependency
-SAFplusSOs :=   $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py
+SAFplusSOs := $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclDbal7.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py
 
 
 ifndef SAFPLUS_LOG_TEST

@@ -8,8 +8,7 @@ SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
 # Management includes and libraries
-MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
-CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
+CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard ../../include7/*.hxx) $(wildcard ../../ioc/client/*.h) $(wildcard ../../ioc/common/*.h)
 CLIENT_SRC := $(wildcard *.cxx)
@@ -51,7 +50,7 @@ LINK_SO_LIBS += -lboost_thread
 all: $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclTIPC.so $(LIB_DIR)/libclUDP.so
 
 $(LIB_DIR)/libclIoc7.so: $(CLIENT_OBJ) $(CLIENT_IOC_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_SO) $@ $(CLIENT_OBJ) $(CLIENT_IOC_OBJ) $(SAFPLUS_LINK_LIBS) -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS)
+	$(LINK_SO) $@ $(CLIENT_OBJ) $(CLIENT_IOC_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
 $(LIB_DIR)/libclTIPC.so: $(TIPC_PLUGIN_OBJ)
 	$(LINK_SO) $@ $(TIPC_PLUGIN_OBJ)
@@ -73,12 +72,6 @@ $(MWOBJ_DIR)/%.o: ../../ioc/plugins/tipc/%.c
 
 $(MWOBJ_DIR)/%.o: ../../ioc/plugins/udp/%.c
 	$(COMPILE_CPP) $@ $<
-
-gen:
-	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusMsgServer.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
-
-cleangen:
-	(cd SAFplusMsgServer; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
 
 clean:
 	rm -f $(LIB_DIR)/*.so $(MWOBJ_DIR)/*.o
