@@ -32,6 +32,9 @@
 #include <clCommonErrors.h>
 #include <clLogApi.hxx>
 
+#define CL_ENGINE_DEFAULT_TYPE "SQLite"
+#define CL_ENGINE_DEFAULT_PLUGIN "libclSQLiteDB.so"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,35 +49,29 @@ ClRcT dbalGetLibName(ClCharT  *pLibName)
     ClCharT       *configPath = NULL;
 
     configPath = getenv("ASP_CONFIG");
-    if (configPath != NULL)
+    if(!configPath) configPath = (ClCharT *)".";
+    parent = clParserOpenFile(configPath, "clDbalConfig.xml");
+    if (parent == NULL)
     {
-        parent    = clParserOpenFile(configPath, "clDbalConfig.xml");
-        if (parent == NULL)
-        {
-          logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Xml file for config is not proper");
-          return rc;
-        }
+      logWarning("DBA", "INIT", "Xml file for config is not proper. Would be loading default engine [%s] with plugin [%s]",
+          CL_ENGINE_DEFAULT_TYPE, CL_ENGINE_DEFAULT_PLUGIN);
+      strncat(pLibName, (char *)CL_ENGINE_DEFAULT_PLUGIN, strlen(CL_ENGINE_DEFAULT_PLUGIN));
+      return rc;
     }
-    else
-    {
-        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"ASP_CONFIG path is not set in the environment");
-    }
-    if(parent != NULL)
-    {
-       engineType = clParserChild(parent,"Dbal");
-       libName    = clParserChild(engineType,"Engine");
-       fileName   = clParserChild(libName,"FileName");
-    }
+    engineType = clParserChild(parent,"Dbal");
+    libName    = clParserChild(engineType,"Engine");
+    fileName   = clParserChild(libName,"FileName");
+
     if(fileName != NULL && pLibName != NULL)
       strcpy(pLibName, fileName->txt);
 
-    if (parent != NULL) clParserFree(parent);
-
-    //Default plugin
     if (fileName == NULL && pLibName != NULL )
       {
-        strncat(pLibName, "libclSQLiteDB.so", strlen("libclSQLiteDB.so"));
+        logWarning("DBA", "INIT", "Xml file for config is not proper. Would be loading default engine [%s] with plugin [%s]",
+            CL_ENGINE_DEFAULT_TYPE, CL_ENGINE_DEFAULT_PLUGIN);
+        strncat(pLibName, (char *)CL_ENGINE_DEFAULT_PLUGIN, strlen(CL_ENGINE_DEFAULT_PLUGIN));
       }
+    if (parent != NULL) clParserFree(parent);
     return rc;
 }
 
