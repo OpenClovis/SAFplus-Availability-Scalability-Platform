@@ -7,6 +7,7 @@ import pdb
 import os, sys
 import pyDbal
 import microdom
+from common import *
 
 from xml.etree import ElementPath
 from xml.etree import ElementTree as ET
@@ -62,21 +63,22 @@ class PyDBAL():
     def __init__(self, fileName, maxKeySize = 4, maxRecordSize = 8, docRoot=None):
         self.cfgfile = "%s" % fileName
         self.suppliedData = None
-        try:
-            self.suppliedData = microdom.LoadFile(self.cfgfile)
-            if docRoot:
-                self.suppliedData = self.suppliedData.get(docRoot)
-
-        except IOError, e: # If the supplied data file does not exist just print a warning
-            print "Supplied data file %s does not exist.  You may need to export SAFPLUS_CONFIG enviroment variable" % self.cfgfile
-            raise
-
         self.dbName = fileName.split('.')[0]
+        self.docRoot = docRoot
         pyDbal.initializeDbal(self.dbName, maxKeySize, maxRecordSize)
-        self.Load(self.suppliedData)
 
     """ Load cfg xml and save to binary database """
-    def Load(self, element, xpath = ''):
+    def StoreDB(self):
+        try:
+            self.suppliedData = microdom.LoadFile(self.cfgfile)
+            if self.docRoot:
+                self.suppliedData = self.suppliedData.get(self.docRoot)
+
+        except IOError, e: # If the supplied data file does not exist just print a warning
+            raise Exception("Supplied data file %s does not exist.  You may need to export SAFPLUS_CONFIG enviroment variable" % self.cfgfile)
+
+        except Exception, e: # If the supplied data file does not exist just print a warning
+            raise Exception("Invalid format XML file!")
 
         self.xpathDB = {}
         self.xpathParentDB = {}
@@ -104,7 +106,7 @@ class PyDBAL():
 
     """ Load cfg xml and save to binary database """
     def _load(self, element, xpath = ''):
-        if isinstance(element, microdom.MicroDom):
+        if isInstanceOf(element, microdom.MicroDom):
             xpath = "%s/%s" %(xpath, microdom.keyify(element.tag_))
             if len(element.attributes_) > 1:
                 # Format attribute string
@@ -122,11 +124,11 @@ class PyDBAL():
                 for elchild in element.children():
                     self._load(elchild, xpath)
             else:
-                self.xpathDB[xpath] = element.dump()
+                self.xpathDB[xpath] = element.data_
 
-        elif len(str(element.dump()).strip()) > 0:
-            self.xpathDB[xpath] = str(element.dump()).strip()
-        
+        elif len(str(element).strip()) > 0:
+            self.xpathDB[xpath] = str(element).strip()
+
     """ Build element attribute """
     def _transformAttr(self, next, token):
         predicate = []
@@ -147,7 +149,7 @@ class PyDBAL():
         return attributes
 
     """ Export to cfg xml from binary database """
-    def Save(self, filename = None):
+    def ExportXML(self, filename = None):
         """ Build element tree from xpaths """
 
         # Tree root node
@@ -268,18 +270,29 @@ def main(argv):
     print "Usage:\n '%s -x <xml file>': Encode xml file to database file\n" % argv[0]
     print " '%s -d <database file>': Read database file into xml file\n" % argv[0]
     return -1
-  
-  if argv[1] == '-x':
-    print "Reading file %s" % argv[2]    
-    data = PyDBAL(argv[2]) # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
-    data.Finalize()
 
-  if argv[1] == '-d':
-    print "NOT implemented"
-  
+  try:
+    data = PyDBAL(argv[2])
+  except Exception, e:
+    print etErrorString(e)
+
+  try:
+    #Store into binary database
+    if argv[1] == '-x':
+      data.StoreDB();
+
+    #Export to XML from binary database
+    if argv[1] == '-d':
+      data.ExportXML();
+
+  except Exception, e:
+    print getErrorString(e)
+
+  data.Finalize()
 
 def Test():
-    test = PyDBAL("SAFplusLog") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
+    test = PyDBAL("SAFplusLog.xml") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
+    data.StoreDB();
 
     # Iterators
     for key in test.Iterators():
@@ -303,7 +316,7 @@ def Test():
         print getErrorString(e)
 
     #Export to XML
-    test.Save("SAFplusLog.xml")
+    test.ExportXML("SAFplusLog_New.xml")
 
     test.Finalize()
 

@@ -30,8 +30,7 @@
 #include <clParserApi.h>
 #include <clCommon.h>
 #include <clCommonErrors.h>
-#include <clDebugApi.h>
-#include <clLogUtilApi.h>
+#include <clLogApi.hxx>
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,14 +51,13 @@ ClRcT dbalGetLibName(ClCharT  *pLibName)
         parent    = clParserOpenFile(configPath, "clDbalConfig.xml");
         if (parent == NULL)
         {
-          clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Xml file for config is not proper rc [0x %x]\n",rc);
-          return CL_ERR_NULL_POINTER;
+          logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Xml file for config is not proper");
+          return rc;
         }
     }
     else
     {
-        rc = CL_ERR_NULL_POINTER;
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"ASP_CONFIG path is not set in the environment irc[0x %x] \n",rc);
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"ASP_CONFIG path is not set in the environment");
     }
     if(parent != NULL)
     {
@@ -68,8 +66,15 @@ ClRcT dbalGetLibName(ClCharT  *pLibName)
        fileName   = clParserChild(libName,"FileName");
     }
     if(fileName != NULL && pLibName != NULL)
-      strcpy(pLibName, fileName->txt); 
+      strcpy(pLibName, fileName->txt);
+
     if (parent != NULL) clParserFree(parent);
+
+    //Default plugin
+    if (fileName == NULL && pLibName != NULL )
+      {
+        strncat(pLibName, "libclSQLiteDB.so", strlen("libclSQLiteDB.so"));
+      }
     return rc;
 }
 

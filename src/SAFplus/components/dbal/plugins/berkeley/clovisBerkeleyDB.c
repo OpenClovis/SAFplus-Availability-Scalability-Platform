@@ -36,11 +36,12 @@
 #include <clOsalApi.h>
 #include <clHeapApi.h>
 #include <clDbalApi.h>
-#include <clDebugApi.h>
-#include <clLogUtilApi.h>
 #include <clClistApi.h>
 #include "clovisDbalInternal.h"
+#include <clLogApi.hxx>
+#include <clDbg.hxx>
 #include <clDbalCfg.h>
+#include <clDebugApi.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -190,7 +191,7 @@ cdbBerkeleyDBInitialize(ClDBFileT    dbEnvFile,
 
     CL_FUNC_ENTER();
     if(gDBEnvironment.isInitialized == 1) {
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DBAL already initialized");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DBAL already initialized");
         CL_FUNC_EXIT();
         return (CL_OK);
     }
@@ -245,7 +246,7 @@ B_DSYNC_DB
           }
         else
           {
-            clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid value [%s] for environment variable [ASP_DB_SYNC].  Expecting 'TRUE' or 'FALSE'.",syncEnvVar);
+            logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid value [%s] for environment variable [ASP_DB_SYNC].  Expecting 'TRUE' or 'FALSE'.",syncEnvVar);
           }
       }
 #endif
@@ -254,14 +255,14 @@ B_DSYNC_DB
     gDBEnvironment.isInitialized = 1;
 
     *pEngineHandle = (ClDBEngineT)&gDBEnvironment;
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DBAL initialize : DONE ");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DBAL initialize : DONE ");
     CL_FUNC_EXIT();
     return (CL_OK);
 
 error_out:
     (gDBEnvironment.pDBEnv)->err(gDBEnvironment.pDBEnv, rc, "environment open");
     (gDBEnvironment.pDBEnv)->close(gDBEnvironment.pDBEnv, 0);
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DBAL initialize : NOT DONE");
+    logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DBAL initialize : NOT DONE");
     CL_FUNC_EXIT();
     return(errorCode);
 }
@@ -276,7 +277,7 @@ cdbBerkeleyDBShutdown(ClDBEngineT engineHandle)
     if(gDBEnvironment.isInitialized == 0) 
     {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB not initialized");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB not initialized");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -285,7 +286,7 @@ cdbBerkeleyDBShutdown(ClDBEngineT engineHandle)
     if(0 != rc) 
     {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley Shutdown failed.");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley Shutdown failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -311,7 +312,7 @@ clDbalConfigInitialize(void* pDbalConfiguration)
     errorCode = cdbBerkeleyDBInitialize((ClDBFileT)pConfig->Database.berkeleyConfig.engineEnvironmentPath, &gDBEngineInfo.engineHandle);
     if(CL_OK != errorCode) 
     {
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley Initialize failed.");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley Initialize failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -330,7 +331,7 @@ clDbalEngineFinalize()
     errorCode = cdbBerkeleyDBShutdown(gDBEngineInfo.engineHandle);
     if(CL_OK != errorCode) 
     {
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB Engine Shutdown failed.");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB Engine Shutdown failed.");
         CL_FUNC_EXIT();
         return(errorCode);                    
     }
@@ -353,7 +354,7 @@ cdbBerkeleyLsnReset(DB_ENV *env,
         goto failure;
     else if (ret == -1)
     {
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
                        "Accessing [%s] failed, error [%s]",
                         dbFile,
                         strerror(errno));
@@ -389,7 +390,7 @@ cdbBerkeleyDBOpen(ClDBFileT    dbFile,
     if(gDBEnvironment.isInitialized == 0) 
     {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB NOT initialized.");
+        logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB NOT initialized.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -399,7 +400,7 @@ cdbBerkeleyDBOpen(ClDBFileT    dbFile,
     if(dbFlag >= CL_DB_MAX_FLAG) 
     {
         errorCode = CL_DBAL_RC(CL_ERR_INVALID_PARAMETER);
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB Open failed: Invalid flag.");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB Open failed: Invalid flag.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -408,7 +409,7 @@ cdbBerkeleyDBOpen(ClDBFileT    dbFile,
     if(NULL == pBerkeleyHandle) 
     {
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB Open failed: No Memory.");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB Open failed: No Memory.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -523,7 +524,7 @@ cdbBerkeleyDBOpen(ClDBFileT    dbFile,
     }
     else
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid DB flag [0x%x].  Cannot open database [%s].",dbFlag,(ClCharT*)dbFile);
+        logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid DB flag [0x%x].  Cannot open database [%s].",dbFlag,(ClCharT*)dbFile);
         goto err_cleanup;
     }
 
@@ -546,7 +547,7 @@ err_open_failed:
 err_cleanup:
     clHeapFree(pBerkeleyHandle);
     errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB open failed.");
+    logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB open failed.");
     CL_FUNC_EXIT();
     return(errorCode);
 }
@@ -584,7 +585,7 @@ cdbBerkeleyDBClose(ClDBHandleT dbHandle)
 
 err_out:    
     errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB close failed.");
+    logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB close failed.");
     CL_FUNC_EXIT();
     return(errorCode);
 }
@@ -602,12 +603,12 @@ berkeleyDBSync(BerkeleyDBHandle_t *pBerkeleyHandle, ClUint32T flags)
         if(EINVAL == rc)
         {
             errorCode = CL_DBAL_RC(CL_ERR_INVALID_PARAMETER);
-            clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DB sync failed : Passed invalid flag.");
+            logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DB sync failed : Passed invalid flag.");
             CL_FUNC_EXIT();
             return(errorCode);
         }
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB sync failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB sync failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }  
@@ -615,7 +616,7 @@ berkeleyDBSync(BerkeleyDBHandle_t *pBerkeleyHandle, ClUint32T flags)
     rc = (gDBEnvironment.pDBEnv)->log_flush(gDBEnvironment.pDBEnv, NULL);
     if (rc == EINVAL) /* dont return a sync error because the database was synced... */
     {
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DB log sync failed");    
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DB log sync failed");    
     }
 
     CL_FUNC_EXIT();
@@ -657,14 +658,14 @@ cdbBerkeleyDBRecordAdd(ClDBHandleT      dbHandle,
     {
         /* Berkeley returned duplicate error, so return CL_ERR_DUPLICATE */
         errorCode = CL_DBAL_RC(CL_ERR_DUPLICATE);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Duplicate key");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Duplicate key");
         CL_FUNC_EXIT();
         return(errorCode);
     }
 
     if(0 != rc) {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record add failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record add failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -724,7 +725,7 @@ cdbBerkeleyDBRecordReplace(ClDBHandleT      dbHandle,
     rc = pBerkeleyHandle->pDatabase->put(pBerkeleyHandle->pDatabase, pBerkeleyHandle->pCurrentTxn, &key, &record, 0);
     if(0 != rc) {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record replace failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record replace failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }  
@@ -764,7 +765,7 @@ cdbBerkeleyDBRecordGet(ClDBHandleT      dbHandle,
     rc = pBerkeleyHandle->pDatabase->get(pBerkeleyHandle->pDatabase, pBerkeleyHandle->pCurrentTxn, &key, &record,0);
     if(0 != rc) {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record get failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record get failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -773,7 +774,7 @@ cdbBerkeleyDBRecordGet(ClDBHandleT      dbHandle,
     if(NULL == *pDBRec) {
         free(record.data);
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record get failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record get failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -809,12 +810,12 @@ cdbBerkeleyDBRecordDelete(ClDBHandleT      dbHandle,
     if(0 != rc) {
         if(DB_NOTFOUND == rc) {
             errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-            clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record delete failed:Record not found.");
+            logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record delete failed:Record not found.");
             CL_FUNC_EXIT();
             return(errorCode);
         }
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record delete failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB record delete failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -855,12 +856,12 @@ cdbBerkeleyDBFirstRecordGet(ClDBHandleT      dbHandle,
     if(0 != rc) {
         if(DB_NOTFOUND == rc) {
             errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-            clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB first record get failed.");
+            logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB first record get failed.");
             CL_FUNC_EXIT();
             return(errorCode);
         }
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB first record get failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB first record get failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -870,7 +871,7 @@ cdbBerkeleyDBFirstRecordGet(ClDBHandleT      dbHandle,
         free(key.data);
         free(record.data);
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB first record get failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB first record get failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -883,7 +884,7 @@ cdbBerkeleyDBFirstRecordGet(ClDBHandleT      dbHandle,
         free(key.data);
         free(record.data);
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB first record get failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB first record get failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -933,12 +934,12 @@ cdbBerkeleyDBNextRecordGet(ClDBHandleT      dbHandle,
     if(0 != rc) {
         if(DB_NOTFOUND == rc) {
             errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-            clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB next record get failed.");
+            logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB next record get failed.");
             CL_FUNC_EXIT();
             return(errorCode);
         }
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB next record get failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB next record get failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -948,7 +949,7 @@ cdbBerkeleyDBNextRecordGet(ClDBHandleT      dbHandle,
         free(key.data);
         free(record.data);
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB next record get failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB next record get failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -961,7 +962,7 @@ cdbBerkeleyDBNextRecordGet(ClDBHandleT      dbHandle,
         free(key.data);
         free(record.data);
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB next record get failed.");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB next record get failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -991,7 +992,7 @@ cdbBerkeleyDBTxnOpen(ClDBFileT    dbFile,
     CL_FUNC_ENTER();
     if(gDBEnvironment.isInitialized == 0) {
         errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB NOT initialized.");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB NOT initialized.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -1000,7 +1001,7 @@ cdbBerkeleyDBTxnOpen(ClDBFileT    dbFile,
 
     if(dbFlag >= CL_DB_MAX_FLAG) {
         errorCode = CL_DBAL_RC(CL_ERR_INVALID_PARAMETER);
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB Open failed: Invalid flag.");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB Open failed: Invalid flag.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -1008,7 +1009,7 @@ cdbBerkeleyDBTxnOpen(ClDBFileT    dbFile,
     pBerkeleyHandle = (BerkeleyDBHandle_t *)clHeapAllocate(sizeof(BerkeleyDBHandle_t));
     if(NULL == pBerkeleyHandle) {
         errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB Open failed: No Memory.");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB Open failed: No Memory.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -1132,7 +1133,7 @@ cdbBerkeleyDBTxnOpen(ClDBFileT    dbFile,
     }
     else
     {
-        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid DB flag [0x%x].  Cannot open database [%s].",dbFlag,(ClCharT*)dbFile);
+        logError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid DB flag [0x%x].  Cannot open database [%s].",dbFlag,(ClCharT*)dbFile);
         goto err_cleaup;
     }
 
@@ -1154,7 +1155,7 @@ err_open_failed:
 err_cleaup:    
     clHeapFree(pBerkeleyHandle);
     errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB open failed.");
+    logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB open failed.");
     CL_FUNC_EXIT();
     return(errorCode);
 }
@@ -1208,7 +1209,7 @@ cdbBerkeleyDBTransactionBegin(ClDBHandleT  dbHandle)
 
 err_out:
     errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB transaction begin failed.");
+    logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB transaction begin failed.");
     CL_FUNC_EXIT();
     return(errorCode);
 }
@@ -1272,7 +1273,7 @@ cdbBerkeleyDBTransactionCommit(ClDBHandleT  dbHandle)
 
 err_out:
     errorCode = CL_DBAL_RC(CL_DBAL_ERR_COMMIT_FAILED);
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB transaction commit failed.");
+    logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB transaction commit failed.");
     CL_FUNC_EXIT();
     return(errorCode);
 }
@@ -1332,7 +1333,7 @@ cdbBerkeleyDBTransactionAbort(ClDBHandleT  dbHandle)
 
 err_out:
     errorCode = CL_DBAL_RC(CL_DBAL_ERR_ABORT_FAILED);
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB transaction abort failed.");
+    logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Berkeley DB transaction abort failed.");
     CL_FUNC_EXIT();
     return(errorCode);
 }
@@ -1404,7 +1405,7 @@ ClRcT clDbalInterface(ClDbalFunctionPtrsT  *funcDbPtr)
     pDbalConfiguration = (ClDbalConfigT*)clHeapAllocate(sizeof(ClDbalConfigT));
     if ( NULL == pDbalConfiguration )
     {
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DBAL init Failed\n");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DBAL init Failed\n");
         return CL_DBAL_RC(CL_ERR_NO_MEMORY);
     }
 
@@ -1412,7 +1413,7 @@ ClRcT clDbalInterface(ClDbalFunctionPtrsT  *funcDbPtr)
     strcpy((ClCharT*)pDbalConfiguration->Database.berkeleyConfig.engineEnvironmentPath, CL_DBAL_BERKELEY_ENV_PATH);
     if ((rc = clDbalConfigInitialize((void *)pDbalConfiguration)) != CL_OK )
     {
-        clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DBAL init Failed\n");
+        logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"DBAL init Failed\n");
         return rc;
     }
 

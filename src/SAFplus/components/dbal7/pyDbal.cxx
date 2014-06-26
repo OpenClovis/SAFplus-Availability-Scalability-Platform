@@ -247,7 +247,7 @@ initpyDbal(void)
     rc = clDbalLibInitialize();
     if (rc != CL_OK)
     {
-        logError("PY","DBAL", "DBAL client initialize failed rc: [0x%x]\n", rc);
+      logError("PY","DBAL", "DBAL client initialize failed rc: [0x%x]", rc);
     }
     (void) Py_InitModule("pyDbal", DbalPyMethods);
 }

@@ -56,7 +56,7 @@
 
 #include <clOsalApi.h>
 #include <clBufferApi.h>
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 #include <clHeapApi.h>
 #include <clIocErrors.h>
 #include <clIocIpi.h>
@@ -126,7 +126,7 @@ static ClRcT tipcSubscribe(ClInt32T fd, ClUint32T portId, ClUint32T lowerInstanc
     struct tipc_subscr subscr = {{0}};
     ClInt32T rc;
 
-    clLogTrace(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Trace : port 0x%x, lower 0x%x, upper 0x%x, timeout %d, fd=%d",
+    logTrace(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Trace : port 0x%x, lower 0x%x, upper 0x%x, timeout %d, fd=%d",
                 portId, lowerInstance, upperInstance, timeout, fd);
 
     subscr.seq.type  = portId;
@@ -138,7 +138,7 @@ static ClRcT tipcSubscribe(ClInt32T fd, ClUint32T portId, ClUint32T lowerInstanc
     rc = send(fd, (const char *)&subscr, sizeof(subscr), 0);
     if(rc < 0)
     {
-        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"send to tipc topology socket failed with [%s]\n", 
+        logError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"send to tipc topology socket failed with [%s]\n", 
                                         strerror(errno));
         return CL_IOC_RC(CL_ERR_LIBRARY);
     }
@@ -168,13 +168,13 @@ static ClInt32T clTipcSubscriptionSocketCreate(void)
     sd = socket (AF_TIPC, SOCK_SEQPACKET, 0);
     if(sd < 0)
     {
-        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Error : socket() failed. system error [%s].\n", strerror(errno));
+        logError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Error : socket() failed. system error [%s].\n", strerror(errno));
         return -1;
     }
 
     if(fcntl(sd, F_SETFD, FD_CLOEXEC))
     {
-        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Error: fcntl on tipc topology socket failed with [%s]\n", 
+        logError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Error: fcntl on tipc topology socket failed with [%s]\n", 
                                         strerror(errno));
         close(sd);
         return -1;
@@ -188,7 +188,7 @@ static ClInt32T clTipcSubscriptionSocketCreate(void)
     /* Connect to topology server: */
     if(connect(sd,(struct sockaddr*)&topsrv,sizeof(topsrv)))
     {
-        clLogError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Socket connect for tipc topology socket failed with [%s]\n",
+        logError(TIPC_LOG_AREA_TIPC,TIPC_LOG_CTX_TIPC_SUBSCRIBE,"Socket connect for tipc topology socket failed with [%s]\n",
                                         strerror(errno));
         close(sd);
         return -1;
@@ -225,21 +225,21 @@ static ClRcT tipcEventRegister(ClBoolT deregister)
     rc = clIocCommPortCreateStatic(CL_IOC_DM_PORT, CL_IOC_RELIABLE_MESSAGING, &discoveryCommPort, gClTipcXportType);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "Comm port create for notification port [%#x] returned with [%#x]", CL_IOC_DM_PORT, rc);
+        logError("NOTIF", "INIT", "Comm port create for notification port [%#x] returned with [%#x]", CL_IOC_DM_PORT, rc);
         goto out;
     }
 
     rc = clTipcFdGet(CL_IOC_DM_PORT, &handlerFd[1]);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "TIPC notification fd for port [%#x] returned with [%#x]", CL_IOC_DM_PORT, rc);
+        logError("NOTIF", "INIT", "TIPC notification fd for port [%#x] returned with [%#x]", CL_IOC_DM_PORT, rc);
         goto out;
     }
 
     rc = clIocCommPortCreateStatic(CL_IOC_XPORT_PORT, CL_IOC_RELIABLE_MESSAGING, &dummyCommPort, gClTipcXportType);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "Comm port create for notification port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
+        logError("NOTIF", "INIT", "Comm port create for notification port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
         goto out;
     }
 
@@ -250,28 +250,28 @@ static ClRcT tipcEventRegister(ClBoolT deregister)
     rc = clTipcFdGet(CL_IOC_XPORT_PORT, &handlerFd[2]);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "TIPC notification fd for port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
+        logError("NOTIF", "INIT", "TIPC notification fd for port [%#x] returned with [%#x]", CL_IOC_XPORT_PORT, rc);
         goto out;
     }
 
     rc = clTransportListenerAdd(gNotificationListener, handlerFd[0], tipcEventHandler, (void*)&handlerFd[0]);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "Listener register for topology socket returned with [%#x]", rc);
+        logError("NOTIF", "INIT", "Listener register for topology socket returned with [%#x]", rc);
         goto out;
     }
 
     rc = clTransportListenerAdd(gNotificationListener, handlerFd[1], tipcEventHandler, (void*)&handlerFd[1]);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "Listener register for discovery port returned with [%#x]", rc);
+        logError("NOTIF", "INIT", "Listener register for discovery port returned with [%#x]", rc);
         goto out;
     }
     
     rc = clTransportListenerAdd(gNotificationListener, handlerFd[2], tipcEventHandler, (void*)&handlerFd[2]);
     if(rc != CL_OK)
     {
-        clLogError("NOTIF", "INIT", "Listener register for notification port returned with [%#x]", rc);
+        logError("NOTIF", "INIT", "Listener register for notification port returned with [%#x]", rc);
         goto out;
     }
     out:
@@ -350,7 +350,7 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                     }
                 }
 
-                clLogInfo("TIPC", "NOTIF", "Got node [%s] notification (%d) for node [%d]", event.event == TIPC_PUBLISHED ? "arrival" : "death", event.event, compAddr.nodeAddress);
+                logInfo("TIPC", "NOTIF", "Got node [%s] notification (%d) for node [%d]", event.event == TIPC_PUBLISHED ? "arrival" : "death", event.event, compAddr.nodeAddress);
 
                 /*
                  * Wait a configurable # of seconds to see if the link is "healed"
@@ -417,7 +417,7 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                 compAddr.nodeAddress = gIocLocalBladeAddress;
                 compAddr.portId = event.found_lower - CL_TIPC_BASE_TYPE;
 
-                clLogInfo("TIPC", "NOTIF", "Got component [%s] notification for node [0x%x] commport [0x%x]",
+                logInfo("TIPC", "NOTIF", "Got component [%s] notification for node [0x%x] commport [0x%x]",
                           event.event == TIPC_WITHDRAWN ? "death" : "arrival", compAddr.nodeAddress, compAddr.portId); 
 
                 rc = clIocNotificationCompStatusSend((ClIocCommPortHandleT)&dummyCommPort,
@@ -495,7 +495,7 @@ static ClRcT tipcEventHandler(ClInt32T fd, ClInt32T events, void *handlerIndex)
 
         if( !(recvErrors++ & 255) )
         {
-            clLogError(TIPC_LOG_AREA_TIPC,CL_LOG_CONTEXT_UNSPECIFIED,"Recvmsg failed with [%s]\n", strerror(errno));
+            logError(TIPC_LOG_AREA_TIPC,"EVT","Recvmsg failed with [%s]\n", strerror(errno));
             sleep(1);
         }
 
@@ -503,7 +503,7 @@ static ClRcT tipcEventHandler(ClInt32T fd, ClInt32T events, void *handlerIndex)
         {
             if(tipcEventRegister(CL_TRUE) != CL_OK)
             {
-                clLogCritical(TIPC_LOG_AREA_TIPC,CL_LOG_CONTEXT_UNSPECIFIED, 
+                logCritical(TIPC_LOG_AREA_TIPC,"EVT",
                               "TIPC topology subsciption retry failed. "
                               "Shutting down the notification thread and process");
                 exit(0); 

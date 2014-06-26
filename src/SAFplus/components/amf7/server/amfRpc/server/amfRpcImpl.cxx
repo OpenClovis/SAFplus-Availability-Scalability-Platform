@@ -1,6 +1,8 @@
 #include "amfRpc.hxx"
 #include <clLogApi.hxx>
 #include <clOsalApi.hxx>
+#include <string>
+#include <sstream>
 
 namespace SAFplus {
 namespace Rpc {
@@ -21,6 +23,21 @@ namespace amfRpc {
   {
   //logInfo("RPC","SRT", "Starting component [%s] with command [%s]", request->name().c_str(),request->command().c_str());
   std::vector<std::string> env;
+
+  std::stringstream ssNodeAddr;
+  std::string strCompName("ASP_COMPNAME=");
+  std::string strNodeName("ASP_NODENAME=");
+  std::string strNodeAddr("ASP_NODEADDR=");
+
+  strCompName.append(SAFplus::ASP_COMPNAME);
+  env.push_back(strCompName);
+
+  strNodeName.append(SAFplus::ASP_NODENAME);
+  env.push_back(strNodeName);
+
+  ssNodeAddr<<SAFplus::ASP_NODEADDR;
+  env.push_back(strNodeAddr.append(ssNodeAddr.str()));
+
   try
     {
     Process p = executeProgram(request->name(), env);

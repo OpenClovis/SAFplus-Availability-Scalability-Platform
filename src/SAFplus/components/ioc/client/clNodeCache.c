@@ -32,6 +32,7 @@
 #include <clNodeCache.h>
 #include <clCpmExtApi.h>
 #include <clIocIpi.h>
+#include <clLogApi.hxx>
 
 #define CL_NODE_CACHE_SEGMENT "/CL_NODE_CACHE"
 
@@ -92,20 +93,20 @@ static ClRcT clNodeCacheCreate(void)
     ClRcT rc = CL_OK;
     ClFdT fd;
 
-    clLogDebug("NODE", "CACHE", "Creating/initializing node cache segment [%s]", gClNodeCacheSegment);
+    logDebug("NODE", "CACHE", "Creating/initializing node cache segment [%s]", gClNodeCacheSegment);
 
     clOsalShmUnlink(gClNodeCacheSegment);
     rc = clOsalShmOpen(gClNodeCacheSegment, O_RDWR | O_CREAT | O_EXCL, 0666, &fd);
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "Node cache shm open of segment [%s] returned [%#x]", gClNodeCacheSegment, rc);
+        logError("NODE", "CACHE", "Node cache shm open of segment [%s] returned [%#x]", gClNodeCacheSegment, rc);
         goto out;
     }
 
     rc = clOsalFtruncate(fd, CL_NODE_CACHE_SEGMENT_SIZE);
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "Node cache segment truncate of size [%d] returned [%#x]",
+        logError("NODE", "CACHE", "Node cache segment truncate of size [%d] returned [%#x]",
                    (ClUint32T) CL_NODE_CACHE_SEGMENT_SIZE, rc);
         goto out_unlink;
     }
@@ -113,7 +114,7 @@ static ClRcT clNodeCacheCreate(void)
     rc = clOsalMmap(0, CL_NODE_CACHE_SEGMENT_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0, (ClPtrT*)&gpClNodeCache);
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "Node cache segment mmap returned [%#x]", rc);
+        logError("NODE", "CACHE", "Node cache segment mmap returned [%#x]", rc);
         goto out_unlink;
     }
 
@@ -127,13 +128,13 @@ static ClRcT clNodeCacheCreate(void)
 
         if(clOsalSemIdGet((ClUint8T*)gClNodeCacheSegment, &semId) != CL_OK)
         {
-            clLogError("NODE", "CACHE", "Node cache segment sem creation error while fetching sem id");
+            logError("NODE", "CACHE", "Node cache segment sem creation error while fetching sem id");
             goto out_unlink;
         }
 
         if(clOsalSemDelete(semId) != CL_OK)
         {
-            clLogError("NODE", "CACHE", "Node cache segment sem creation error while deleting old sem id");
+            logError("NODE", "CACHE", "Node cache segment sem creation error while deleting old sem id");
             goto out_unlink;
         }
 
@@ -155,12 +156,12 @@ static ClRcT clNodeCacheOpen(void)
     ClRcT rc = CL_OK;
     ClFdT fd;
 
-    clLogDebug("NODE", "CACHE", "Opening existing node cache segment [%s]", gClNodeCacheSegment);
+    logDebug("NODE", "CACHE", "Opening existing node cache segment [%s]", gClNodeCacheSegment);
     
     rc = clOsalShmOpen(gClNodeCacheSegment, O_RDWR, 0666, &fd);
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "Node cache [%s] segment open returned [%#x]",
+        logError("NODE", "CACHE", "Node cache [%s] segment open returned [%#x]",
                    gClNodeCacheSegment, rc);
         goto out;
     }
@@ -170,7 +171,7 @@ static ClRcT clNodeCacheOpen(void)
 
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "Node cache segment mmap returned [%#x]", rc);
+        logError("NODE", "CACHE", "Node cache segment mmap returned [%#x]", rc);
         close((ClInt32T)fd);
         goto out;
     }
@@ -181,7 +182,7 @@ static ClRcT clNodeCacheOpen(void)
 
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "Node cache semid get returned [%#x]", rc);
+        logError("NODE", "CACHE", "Node cache semid get returned [%#x]", rc);
         close((ClInt32T)fd);
     }
 
@@ -214,7 +215,7 @@ ClRcT clNodeCacheInitialize(ClBoolT createFlag)
     
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "Segment initialize returned [%#x]", rc);
+        logError("NODE", "CACHE", "Segment initialize returned [%#x]", rc);
         goto out;
     }
 
@@ -252,7 +253,7 @@ ClRcT clNodeCacheInitialize(ClBoolT createFlag)
     rc = clOsalMsync(gpClNodeCache, CL_NODE_CACHE_SEGMENT_SIZE, MS_ASYNC);
     if(rc != CL_OK)
     {
-        clLogError("NODE", "CACHE", "Node cache segment msync returned [%#x]", rc);
+        logError("NODE", "CACHE", "Node cache segment msync returned [%#x]", rc);
         goto out;
     }
 
@@ -578,7 +579,7 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint
     rc = clOsalSemLock(gClNodeCacheSem);
     if (rc != CL_OK)
     {
-        clLogError("CACHE", "SET", "Cannot update node cache; error taking lock");        
+        logError("CACHE", "SET", "Cannot update node cache; error taking lock");        
         return rc;
     }
     
@@ -586,7 +587,7 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint
     if(!gpClNodeCache)
     {
         clOsalSemUnlock(gClNodeCacheSem);
-        clLogError("CACHE", "SET", "Cannot update node cache; not initialized");        
+        logError("CACHE", "SET", "Cannot update node cache; not initialized");        
         return CL_ERR_NOT_INITIALIZED;
     }
 
@@ -627,7 +628,7 @@ ClRcT clNodeCacheUpdate(ClIocNodeAddressT nodeAddress, ClUint32T version, ClUint
         
         clOsalSemUnlock(gClNodeCacheSem);
         /* I do not want to log inside the node cache sem lock because logging can block, esp if its going to stdout */
-        clLogInfo("CACHE", "SET", "Updating node cache entry for node [%d: %s] with version [%#x], capability [%#x] (%s,%s,%s)",
+        logInfo("CACHE", "SET", "Updating node cache entry for node [%d: %s] with version [%#x], capability [%#x] (%s,%s,%s)",
                 nodeAddress, temp.nodeName, temp.version, temp.capability, CL_NODE_CACHE_LEADER_CAPABILITY(temp.capability) ? "LEADER":"_", CL_NODE_CACHE_SC_CAPABILITY(temp.capability) ? "Controller" : "_", CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(temp.capability) ? "Controller-promotable" : "_" );
     }
     
@@ -718,7 +719,7 @@ ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capabili
 
     capability = CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[nodeAddress].capability;
     clOsalSemUnlock(gClNodeCacheSem);
-    clLogInfo("CAP", "SET", "Node cache capability set to [%#x] for node [%d]", capability, nodeAddress);
+    logInfo("CAP", "SET", "Node cache capability set to [%#x] for node [%d]", capability, nodeAddress);
     return CL_OK;
 }
 
@@ -749,7 +750,7 @@ ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
 
     if(!eoObj)
     {
-        clLogWarning("CAP", "ARP", "Could not send current leader update since EO still uninitialized.");
+        logWarning("CAP", "ARP", "Could not send current leader update since EO still uninitialized.");
         return CL_ERR_NOT_INITIALIZED;
     }
 
@@ -760,7 +761,7 @@ ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
     rc |= clBufferNBytesWrite(message, (ClUint8T*)&currentLeader, sizeof(currentLeader));
     if (rc != CL_OK)
     {
-        clLogError("CAP", "ARP", "clBufferNBytesWrite failed with rc = %#x", rc);
+        logError("CAP", "ARP", "clBufferNBytesWrite failed with rc = %#x", rc);
         clBufferDelete(&message);
         return rc;
     }
@@ -834,7 +835,7 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader)
     {
         CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability &= ~__LEADER_CAPABILITY_MASK;
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = 0;
-        clLogNotice("CAP", "SET", "Node cache capability for last leader [%d] is [%#x]",
+        logNotice("CAP", "SET", "Node cache capability for last leader [%d] is [%#x]",
                     lastLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[lastLeader].capability);
     }
 #endif
@@ -844,7 +845,7 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader)
         CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability |= __LEADER_CAPABILITY_MASK;
         CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader = currentLeader;
         /* I do not want to log inside the sem take since that could slow all down
-          clLogInfo("CAP", "SET", "Node cache capability for current leader [%d] is [%#x]",
+          logInfo("CAP", "SET", "Node cache capability for current leader [%d] is [%#x]",
                     currentLeader, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[currentLeader].capability);
         */
     }
