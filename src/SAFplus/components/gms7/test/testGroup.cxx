@@ -34,10 +34,15 @@ class testWakeble:public SAFplus::Wakeable
     }
 };
 
+static unsigned int MAX_MSGS=25;
+static unsigned int MAX_HANDLER_THREADS=10;
+
+
 int main(int argc, char* argv[])
 {
   int tc = -1;
   int mode = SAFplus::Group::DATA_IN_CHECKPOINT;
+
   if(argc >= 2)
   {
     if(argc > 2)
@@ -46,6 +51,28 @@ int main(int argc, char* argv[])
     }
     tc = atoi(argv[1]);
   }
+
+
+  logInitialize();
+  logEchoToFd = 1;  // echo logs to stdout for debugging
+  logSeverity = LOG_SEV_MAX;
+
+  utilsInitialize();
+
+  ClRcT rc;
+  // initialize SAFplus6 libraries 
+  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+    {
+    assert(0);
+    }
+  
+  SAFplus::ASP_NODEADDR = 1;
+  rc = clIocLibInitialize(NULL);
+  assert(rc==CL_OK);
+
+  safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
+  safplusMsgServer.Start();
+
   switch(tc)
   {
     case 0:

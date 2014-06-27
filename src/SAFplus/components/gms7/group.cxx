@@ -80,7 +80,7 @@ SAFplus::Group::Group(int dataStoreMode,int comPort)
  */
 void SAFplus::Group::init(SAFplus::Handle groupHandle)
 {
-  if (!groupCkptInited) 
+  if ((dataStoringMode == SAFplus::Group::DATA_IN_CHECKPOINT)&&(!groupCkptInited))
     {
     groupCkptInited=1;
     Group::mGroupCkpt.init(GRP_CKPT, Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
@@ -96,7 +96,7 @@ void SAFplus::Group::init(SAFplus::Handle groupHandle)
     name.setLocalObject(hdlName, (void*) this);
   }
   /* Initialize neccessary library */
-  initializeLibraries();
+  //initializeLibraries();
   clIocNotificationRegister(iocNotificationCallback,&handle);
   /* Start the message communication between groups */
   startMessageServer();
