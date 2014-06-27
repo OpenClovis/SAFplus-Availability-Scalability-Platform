@@ -13,12 +13,12 @@ public:
     if (fn)
     {
       fn(arg);
-      sleep(5);
+      sleep(1);
     }
     else
     {
       printf("Put your own code here\n");
-      sleep(5);
+      sleep(1);
     }
   }
   ~MyPoolable()
@@ -65,6 +65,8 @@ uint32_t foo4(void* invocation)
 int main()
 {
   printf("Main started\n");
+  
+#if 0
   MyWakeable mywk2;  
   MyPoolable p(&foo);
   MyPoolable p2(&foo2);
@@ -84,8 +86,19 @@ int main()
   MyWakeable mywk3;
   pool.run(&mywk3, NULL);
   sleep(120);
+#endif
+#if 1
+  ThreadPool pool(1000, 1500);
+  MyPoolable p[10000];
+  for(int i=0;i<10000;i++)
+  {
+    p[i] = MyPoolable(&foo);
+    pool.run(&p[i]);
+  }
+  sleep(180);
+#endif  
   pool.stop();
-  sleep(5);
+  sleep(10);
 
   return 0;
 }
