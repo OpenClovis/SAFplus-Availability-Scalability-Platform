@@ -39,6 +39,8 @@ main(void)
     logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
 
+    SAFplus::ASP_NODEADDR = 0x1;
+
     utilsInitialize();
 
     ClRcT rc;

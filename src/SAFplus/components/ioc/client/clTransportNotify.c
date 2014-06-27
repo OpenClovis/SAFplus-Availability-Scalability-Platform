@@ -10,7 +10,7 @@
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clHash.h>
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 #include <clHeapApi.h>
 #include <clIocApi.h>
 #include <clTransport.h>
@@ -116,7 +116,7 @@ ClRcT clTransportNotifyInitialize(void)
     ClCharT *pathname = transportNotifyLocGet();
     if(mkdir(pathname, 0777) < 0 && errno != EEXIST)
     {
-        clLogError("XPORT", "NOTIFY", "Notify create directory [%s] failed with error [%s]",
+        logError("XPORT", "NOTIFY", "Notify create directory [%s] failed with error [%s]",
                    pathname, strerror(errno));
         return CL_ERR_LIBRARY;
     }
@@ -167,7 +167,7 @@ static void __compNotify(ClInt32T wd, const ClCharT *compName, ClIocNotification
              * Invoke all registrants with the event.
              */
             transportNotifyRegistrants(&compAddr, CL_IOC_NODE_UP);
-            clLogDebug("XPORT", "NOTIFY", "Comp arrival marked for port [%#x], id [%s]", port, compName);
+            logDebug("XPORT", "NOTIFY", "Comp arrival marked for port [%#x], id [%s]", port, compName);
         }
     }
     else
@@ -185,7 +185,7 @@ static void __compNotify(ClInt32T wd, const ClCharT *compName, ClIocNotification
              * Invoke all registrants with the event.
              */
             transportNotifyRegistrants(&compAddr, CL_IOC_NODE_DOWN);
-            clLogDebug("XPORT", "NOTIFY", "Comp death marked for port [%#x], id [%s]", port, compName);
+            logDebug("XPORT", "NOTIFY", "Comp death marked for port [%#x], id [%s]", port, compName);
         }
     }
 }
@@ -243,12 +243,12 @@ ClRcT clTransportNotifyOpen(ClIocPortT port)
     fd = open(pathname, O_CREAT | O_RDONLY, 0777);
     if(fd < 0)
     {
-        clLogError("XPORT", "NOTIFY", "Xport notify open for path [%s] failed with [%s]",
+        logError("XPORT", "NOTIFY", "Xport notify open for path [%s] failed with [%s]",
                    pathname, strerror(errno));
         return CL_ERR_LIBRARY;
     }
     else
-        clLogDebug("XPORT", "NOTIFY", "Xport notify opened for path [%s]", pathname);
+        logDebug("XPORT", "NOTIFY", "Xport notify opened for path [%s]", pathname);
     return CL_OK;
 }
 

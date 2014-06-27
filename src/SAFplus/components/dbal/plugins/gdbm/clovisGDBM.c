@@ -31,8 +31,9 @@
 #include <clCommonErrors.h>
 #include <gdbm.h>
 #include <clDbalApi.h>
+#include <clLogApi.hxx>
+#include <clDbg.hxx>
 #include <clDebugApi.h>
-#include <clLogUtilApi.h>
 #include <clHeapApi.h>
 #include "clovisDbalInternal.h"
 
@@ -160,7 +161,7 @@ cdbGDBMOpen(ClDBFileT    dbFile,
   /* Validate the flag */
   if(dbFlag >= CL_DB_MAX_FLAG) {
     errorCode = CL_DBAL_RC(CL_ERR_INVALID_PARAMETER);
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid Flag");
+    logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid Flag");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -168,7 +169,7 @@ cdbGDBMOpen(ClDBFileT    dbFile,
   /* Validate database type */
   if(dbType >= CL_DB_MAX_TYPE) {
     errorCode = CL_DBAL_RC(CL_ERR_INVALID_PARAMETER);
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid DB Type");
+    logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Invalid DB Type");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -177,7 +178,7 @@ cdbGDBMOpen(ClDBFileT    dbFile,
 
   if(NULL == pGDBMHandle) {
     errorCode = CL_DBAL_RC(CL_ERR_NO_MEMORY);
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Memory allocation failed.");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Memory allocation failed.");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -211,7 +212,7 @@ cdbGDBMOpen(ClDBFileT    dbFile,
     if ((NULL == pGDBMHandle->gdbmInstance) && (CL_DB_APPEND != dbFlag)) {
         clHeapFree(pGDBMHandle);
         errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Open failed.");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Open failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -224,7 +225,7 @@ cdbGDBMOpen(ClDBFileT    dbFile,
     {
         clHeapFree(pGDBMHandle);
         errorCode = CL_DBAL_RC(CL_ERR_BAD_FLAG);
-        clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nInvalid DB flag. GDBM open failed.");
+        logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nInvalid DB flag. GDBM open failed.");
         CL_FUNC_EXIT();
         return(errorCode);
     }
@@ -242,7 +243,7 @@ cdbGDBMOpen(ClDBFileT    dbFile,
     /* if the creation failed, return error */
     clHeapFree(pGDBMHandle);
     errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Open failed.");
+    logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Open failed.");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -267,7 +268,7 @@ cdbGDBMClose(ClDBHandleT dbHandle)  /* Handle to the database */
   /* make the GDBM handle invalid */
   clHeapFree(pGDBMHandle);
 
-  clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM closed.");
+  logInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM closed.");
   CL_FUNC_EXIT();
   return(CL_OK);
 }
@@ -298,7 +299,7 @@ cdbGDBMRecordAdd(ClDBHandleT      dbHandle, /* Handle to the database */
   if(1 == returnCode) {
     /* GDBM returned duplicate error, so return CL_ERR_DUPLICATE */
     errorCode = CL_DBAL_RC(CL_ERR_DUPLICATE);
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nDuplicate key");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nDuplicate key");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -306,7 +307,7 @@ cdbGDBMRecordAdd(ClDBHandleT      dbHandle, /* Handle to the database */
   if(0 != returnCode) {
     /* If not, some other GDBM error occured. return DB error */
     errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM ERROR");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM ERROR");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -340,7 +341,7 @@ cdbGDBMRecordReplace(ClDBHandleT      dbHandle, /* Handle to the database */
   if(0 != returnCode) {
     /* Some GDBM error occured. return DB error */
     errorCode = CL_DBAL_RC(CL_DBAL_ERR_DB_ERROR);
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM replace failed");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM replace failed");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -374,7 +375,7 @@ cdbGDBMRecordGet(ClDBHandleT      dbHandle, /* Handle to the database */
 
   if(NULL == data.dptr) {
     errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM fetch failed");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM fetch failed");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -404,7 +405,7 @@ cdbGDBMRecordDelete(ClDBHandleT      dbHandle,  /* Handle to the database */
 
   if(0 != returnCode) {
     errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM delete failed");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM delete failed");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -415,7 +416,7 @@ cdbGDBMRecordDelete(ClDBHandleT      dbHandle,  /* Handle to the database */
       returnCode = gdbm_reorganize(pGDBMHandle->gdbmInstance);
       if(0 != returnCode) {
           errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-          clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM reorganize failed");
+          logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM reorganize failed");
           CL_FUNC_EXIT();
           return(errorCode);
       }
@@ -450,7 +451,7 @@ cdbGDBMFirstRecordGet(ClDBHandleT      dbHandle,    /* Handle to the database */
   if(NULL == key.dptr) {
     /* The first key does exist. So return error */
     errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM record get failed");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM record get failed");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -463,7 +464,7 @@ cdbGDBMFirstRecordGet(ClDBHandleT      dbHandle,    /* Handle to the database */
 
   if(NULL == data.dptr) {
     errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM record fetch failed");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM record fetch failed");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -507,7 +508,7 @@ cdbGDBMNextRecordGet(ClDBHandleT      dbHandle,         /* Handle to the databas
   if(NULL == nextKey.dptr) {
     /* The next key does not exist. So return error */
     errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM get next key failed");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM get next key failed");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -520,7 +521,7 @@ cdbGDBMNextRecordGet(ClDBHandleT      dbHandle,         /* Handle to the databas
 
   if(NULL == data.dptr) {
     errorCode = CL_DBAL_RC(CL_ERR_NOT_EXIST);
-    clLogTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM fetch record failed");
+    logTrace(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM fetch record failed");
     CL_FUNC_EXIT();
     return(errorCode);
   }
@@ -569,7 +570,7 @@ cdbGDBMTxnOpen(ClDBFileT    dbFile,
   CL_FUNC_ENTER();
   /* Transactions are not supported in GDBM. So return CL_ERR_NOT_SUPPORTED */
   errorCode = CL_DBAL_RC(CL_ERR_NOT_SUPPORTED);
-  clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Transaction not supported");
+  logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Transaction not supported");
   CL_FUNC_EXIT();
   return(errorCode);
 }
@@ -581,7 +582,7 @@ cdbGDBMTransactionBegin(ClDBHandleT  dbHandle)
   CL_FUNC_ENTER();
   /* Transactions are not supported in GDBM. So return CL_ERR_NOT_SUPPORTED */
   errorCode = CL_DBAL_RC(CL_ERR_NOT_SUPPORTED);
-  clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Transaction not supported");
+  logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Transaction not supported");
   CL_FUNC_EXIT();
   return(errorCode);
 }
@@ -593,7 +594,7 @@ cdbGDBMTransactionCommit(ClDBHandleT  dbHandle)
   CL_FUNC_ENTER();
   /* Transactions are not supported in GDBM. So return CL_ERR_NOT_SUPPORTED */
   errorCode = CL_DBAL_RC(CL_ERR_NOT_SUPPORTED);
-  clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Transaction not supported");
+  logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Transaction not supported");
   CL_FUNC_EXIT();
   return(errorCode);
 }
@@ -605,7 +606,7 @@ cdbGDBMTransactionAbort(ClDBHandleT  dbHandle)
   CL_FUNC_ENTER();
   /* Transactions are not supported in GDBM. So return CL_ERR_NOT_SUPPORTED */
   errorCode = CL_DBAL_RC(CL_ERR_NOT_SUPPORTED);
-  clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Transaction not supported");
+  logWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"\nGDBM Transaction not supported");
   CL_FUNC_EXIT();
   return(errorCode);
 }

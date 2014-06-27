@@ -10,11 +10,10 @@
 #include <clTransport.h>
 #include <clLogApi.h>
 #include <clParserApi.h>
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 #include <clList.h>
 #include <clParserApi.h>
 #include <clHash.h>
-#include <clDebugApi.h>
 #include <clTaskPool.h>
 #include "clIocUserApi.h"
 #include "clIocGeneral.h"
@@ -201,43 +200,43 @@ static ClBoolT gXportNodeRep;
 
 static ClRcT xportAddressAssignFake(void)
 {
-    clLogNotice("XPORT", "ASSIGN", "Inside fake transport initialize");
+    logNotice("XPORT", "ASSIGN", "Inside fake transport initialize");
     return CL_OK;
 }
 
 static ClRcT xportInitFake(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep)
 { 
-    clLogNotice("XPORT", "INIT", "Inside fake transport initialize");
+    logNotice("XPORT", "INIT", "Inside fake transport initialize");
     return CL_OK; 
 }
 
 static ClRcT xportFinalizeFake(ClInt32T xportId, ClBoolT nodeRep)
 { 
-    clLogDebug("XPORT", "FIN", "Inside fake transport finalize");
+    logDebug("XPORT", "FIN", "Inside fake transport finalize");
     return CL_OK; 
 }
 
 static ClRcT xportBindFake(ClIocPortT port)
 {
-    clLogNotice("XPORT", "BIND", "Inside fake transport bind for port [%d]", port);
+    logNotice("XPORT", "BIND", "Inside fake transport bind for port [%d]", port);
     return CL_OK;
 }
 
 static ClRcT xportBindCloseFake(ClIocPortT port)
 {
-    clLogNotice("XPORT", "BIND", "Inside fake transport bind close for port [%d]", port);
+    logNotice("XPORT", "BIND", "Inside fake transport bind close for port [%d]", port);
     return CL_OK;
 }
 
 static ClRcT xportListenFake(ClIocPortT port)
 {
-    clLogNotice("XPORT", "LISTEN", "Inside fake transport listen for port [%d]", port);
+    logNotice("XPORT", "LISTEN", "Inside fake transport listen for port [%d]", port);
     return CL_OK; 
 }
 
 static ClRcT xportListenStopFake(ClIocPortT port)
 {
-    clLogNotice("XPORT", "LISTEN-STOP", "Inside fake transport listen stop");
+    logNotice("XPORT", "LISTEN-STOP", "Inside fake transport listen stop");
     return CL_OK;
 }
 
@@ -270,15 +269,15 @@ static ClRcT xportSendFake(ClIocPortT port, ClUint32T priority, ClIocAddressT *a
     switch(CL_IOC_ADDRESS_TYPE_GET(addr))
     {
     case CL_IOC_PHYSICAL_ADDRESS_TYPE:
-        clLogNotice("XPORT", "SEND", "Inside fake transport send for node [%d], port [%#x]",
+        logNotice("XPORT", "SEND", "Inside fake transport send for node [%d], port [%#x]",
                     addr->iocPhyAddress.nodeAddress, addr->iocPhyAddress.portId);
         break;
     case CL_IOC_LOGICAL_ADDRESS_TYPE:
-        clLogNotice("XPORT", "SEND", "Inside fake transport send for logical address [%#llx]",
+        logNotice("XPORT", "SEND", "Inside fake transport send for logical address [%#llx]",
                     addr->iocLogicalAddress);
         break;
     case CL_IOC_MULTICAST_ADDRESS_TYPE:
-        clLogNotice("XPORT", "SEND", "Inside fake transport send for multicast address [%#llx]",
+        logNotice("XPORT", "SEND", "Inside fake transport send for multicast address [%#llx]",
                     addr->iocMulticastAddress);
         break;
     default:
@@ -291,25 +290,25 @@ static ClRcT xportRecvFake(ClIocCommPortHandleT port, ClIocDispatchOptionT *pRec
                            ClUint8T *buffer, ClUint32T bufSize,
                            ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 { 
-    clLogNotice("XPORT", "RECV", "Inside fake transport recv");
+    logNotice("XPORT", "RECV", "Inside fake transport recv");
     return CL_OK; 
 }
 
 static ClRcT xportServerReadyFake(ClIocAddressT *pAddress)
 { 
-    clLogNotice("XPORT", "READY", "Inside fake xport servery ready");
+    logNotice("XPORT", "READY", "Inside fake xport servery ready");
     return CL_OK; 
 }
 
 static ClRcT xportMasterAddressGetFake(ClIocLogicalAddressT la, ClIocPortT port, ClIocNodeAddressT *masterAddress)
 { 
-    clLogInfo("XPORT", "MASTER", "Inside fake master address get");
+    logInfo("XPORT", "MASTER", "Inside fake master address get");
     return CL_ERR_NOT_SUPPORTED;
 }
 
 static ClRcT xportTransparencyRegisterFake(ClIocPortT port, ClIocLogicalAddressT logicalAddr, ClUint32T haState)
 { 
-    clLogNotice("XPORT", "TL", "Inside fake transport transparency register for LA [%#llx], "
+    logNotice("XPORT", "TL", "Inside fake transport transparency register for LA [%#llx], "
                 "haState [%s]",
                 logicalAddr, haState == CL_IOC_TL_ACTIVE ? "active" : "standby");
     return CL_OK; 
@@ -317,21 +316,21 @@ static ClRcT xportTransparencyRegisterFake(ClIocPortT port, ClIocLogicalAddressT
 
 static ClRcT xportTransparencyDeregisterFake(ClIocPortT port, ClIocLogicalAddressT logicalAddr)
 { 
-    clLogNotice("XPORT", "TL", "Inside fake transport transparency deregister for LA [%#llx]", 
+    logNotice("XPORT", "TL", "Inside fake transport transparency deregister for LA [%#llx]", 
                 logicalAddr);
     return CL_OK; 
 }
 
 static ClRcT xportMulticastRegisterFake(ClIocPortT port, ClIocMulticastAddressT mcastAddr)
 { 
-    clLogNotice("XPORT", "MCAST", "Inside fake transport multicast register for multicast [%#llx]",
+    logNotice("XPORT", "MCAST", "Inside fake transport multicast register for multicast [%#llx]",
                 mcastAddr);
     return CL_OK; 
 }
 
 static ClRcT xportMulticastDeregisterFake(ClIocPortT port, ClIocMulticastAddressT mcastAddr)
 { 
-    clLogNotice("XPORT", "MCAST", "Inside fake transport multicast deregister for multicast [%#llx]",
+    logNotice("XPORT", "MCAST", "Inside fake transport multicast deregister for multicast [%#llx]",
                 mcastAddr);
     return CL_OK; 
 }
@@ -408,7 +407,7 @@ static void _clXportNodeAddrMapFree()
  */
 static __inline__ void _clXportDestNodeLUTMapAdd(ClXportDestNodeLUTDataT *entry)
 {
-    clLogInfo("IOC", "LUT",
+    logInfo("IOC", "LUT",
               "Add new entry for LUT, dest node [%#x] bridge [%#x] protocol [%s]", 
               entry->destIocNodeAddress, entry->bridgeIocNodeAddress, entry->xportType);
     ClUint32T hash = CL_XPORT_NODEADDR_TABLE_HASH(entry->destIocNodeAddress);
@@ -477,7 +476,7 @@ static ClXportNodeAddrDataT *_clXportUpdateNodeConfig(ClIocNodeAddressT iocAddre
     {
         nodeAddrConfig->xports[i] = clStrdup(gClXportDefaultNodeName.xports[i]);
     }
-    clLogDebug("IOC", "LUT", "Add configuration for node address [%#x] and node name [%s]", iocAddress, nodeName);
+    logDebug("IOC", "LUT", "Add configuration for node address [%#x] and node name [%s]", iocAddress, nodeName);
     _clXportNodeAddrMapAdd(nodeAddrConfig);
     nodeAddrConfig = NULL;
 
@@ -513,7 +512,7 @@ static ClRcT _clTransportGmsTimerInitCallback() {
                     CL_TIMER_SEPARATE_CONTEXT,(ClTimerCallBackT)  _clTransportGmsTimerInitCallback,
                     pData, &gHandleGmsTimer);
             if (CL_OK != rc) {
-                clLogError("IOC", "INIT",
+                logError("IOC", "INIT",
                         "Failed to do GMS initialization, error [%#x]", rc);
             }
             return CL_OK;
@@ -544,12 +543,12 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
                 if (!(nodeConfigAddrData = _clXportUpdateNodeConfig(nodeAddr,
                                                                      (const ClCharT *)member.name)))
                 {
-                    clLogDebug("IOC", "LUT", "Triggering node join for node [0x%x]", nodeAddr);
+                    logDebug("IOC", "LUT", "Triggering node join for node [0x%x]", nodeAddr);
                     _clSetupDestNodeLUTData();
                 }
                 else if (!nodeConfigAddrData->iocAddress)
                 {
-                    clLogDebug("IOC", "LUT", 
+                    logDebug("IOC", "LUT", 
                                "Update node address for node join for node [0x%x] name [%s]",
                                nodeAddr, member.name);
                     nodeConfigAddrData->iocAddress = nodeAddr;
@@ -557,7 +556,7 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
                 }
                 else
                 {
-                    clLogDebug("IOC", "LUT", "Nothing updated for node [%#x] name [%s]", 
+                    logDebug("IOC", "LUT", "Nothing updated for node [%#x] name [%s]", 
                                nodeAddr, member.name);
                 }
             }
@@ -566,11 +565,11 @@ static ClRcT clTransportDestNodeLUTUpdate(ClIocNotificationIdT notificationId, C
         case CL_IOC_NODE_LEAVE_NOTIFICATION:
         case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
         {
-            clLogNotice("IOC", "LUT", "Triggering node leave for node [0x%x]", nodeAddr);
+            logNotice("IOC", "LUT", "Triggering node leave for node [0x%x]", nodeAddr);
             CL_LIST_FOR_EACH(iter, &gClXportDestNodeLUTList) {
                 ClXportDestNodeLUTDataT *map = CL_LIST_ENTRY(iter, ClXportDestNodeLUTDataT, list);
                 if (map->destIocNodeAddress == nodeAddr || map->bridgeIocNodeAddress == nodeAddr) {
-                    clLogDebug("IOC", "LUT", "Remove entry out of DestNodeLUT for node [%#x]", nodeAddr);
+                    logDebug("IOC", "LUT", "Remove entry out of DestNodeLUT for node [%#x]", nodeAddr);
                     _clXportDestNodeLUTMapDel(map);
                     break;
                 }
@@ -628,7 +627,7 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
     if(!xport->xportPluginHandle)
     {
         char* error = dlerror();
-        clLogError("XPORT", "LOAD", "Unable to load plugin [%s]. Error [%s]", plugin, error ? error : "unknown");
+        logError("XPORT", "LOAD", "Unable to load plugin [%s]. Error [%s]", plugin, error ? error : "unknown");
         goto out_free;
     }
     *(void**)&xport->xportAddressAssign = dlsym(xport->xportPluginHandle, "xportAddressAssign");
@@ -678,7 +677,7 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
     if(!xport->xportFdGet) xport->xportFdGet = xportFdGetFake;
     xport->xportId = clTransportIdGet();
     clListAddTail(&xport->xportList, &gClTransportList);
-    clLogNotice("XPORT", "LOAD", "Loaded transport [%s] with plugin [%s]", type, plugin);
+    logNotice("XPORT", "LOAD", "Loaded transport [%s] with plugin [%s]", type, plugin);
 
     goto out;
 
@@ -726,7 +725,7 @@ static __inline__ void transportBreakerWakeup(ClXportCtrlT *xportCtrl)
         int c = 'c';
         if(write(xportCtrl->breaker[1], &c, 1) != 1)
         {
-            clLogError("XPORT", "BREAKER", "Xport breaker wakeup returned with [%s]", strerror(errno));
+            logError("XPORT", "BREAKER", "Xport breaker wakeup returned with [%s]", strerror(errno));
         }
     }
 }
@@ -744,7 +743,7 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
     ClRcT rc = CL_ERR_ALREADY_EXIST;
     if(listenerEventFind(xportCtrl, listener->fd, -1) >= 0)
     {
-        clLogError("EVENT", "REGISTER", "Listener at fd [%d] already exists", listener->fd);
+        logError("EVENT", "REGISTER", "Listener at fd [%d] already exists", listener->fd);
         goto out;
     }
     if(!events)
@@ -758,7 +757,7 @@ static ClRcT listenerEventRegister(ClXportCtrlT *xportCtrl,
     err = epoll_ctl(xportCtrl->eventFd, EPOLL_CTL_ADD, listener->fd, &epoll_event);
     if(err < 0)
     {
-        clLogError("EVENT", "REGISTER", "epoll_ctl add returned with error [%s] for fd [%d]",
+        logError("EVENT", "REGISTER", "epoll_ctl add returned with error [%s] for fd [%d]",
                    strerror(errno), listener->fd);
         goto out_unlock;
     }
@@ -790,7 +789,7 @@ static ClRcT listenerEventDeregister(ClXportCtrlT *xportCtrl, ClXportListenerT *
     err = epoll_ctl(xportCtrl->eventFd, EPOLL_CTL_DEL, listener->fd, &epoll_event);
     if(err < 0)
     {
-        clLogError("EVENT", "DEREGISTER", "epoll delete failed for fd [%d] with error [%s]", 
+        logError("EVENT", "DEREGISTER", "epoll delete failed for fd [%d] with error [%s]", 
                    listener->fd, strerror(errno));
         goto out;
     }
@@ -902,7 +901,7 @@ static ClRcT transportListener(ClPtrT ctxt)
             index = listenerEventFind(xportCtrl, data->fd, data->index);
             if(index < 0)
             {
-                clLogWarning("XPORT", "LISTENER", "Listener not found for fd [%d] registered at index [%d]", 
+                logWarning("XPORT", "LISTENER", "Listener not found for fd [%d] registered at index [%d]", 
                              data->fd, data->index);
                 continue;
             }
@@ -1004,7 +1003,7 @@ static ClRcT clTransportListenerRegisterWithContext(ClXportCtrlT *xportCtrl,
     rc = listenerEventRegister(xportCtrl, listener, EPOLLIN | EPOLLPRI, dispatchCallback, cookie);
     if(rc != CL_OK)
     {
-        clLogError("XPORT", "LISTENER", "Xport listener register for fd [%d] returned with [%#x]", fd, rc);
+        logError("XPORT", "LISTENER", "Xport listener register for fd [%d] returned with [%#x]", fd, rc);
         free(listener);
         return rc;
     }
@@ -1059,7 +1058,7 @@ static ClRcT transportListenerInitialize(ClXportCtrlT *xportCtrl)
     xportCtrl->breaker[0] = xportCtrl->breaker[1] = -1;
     if(pipe(breaker) < 0)
     {
-        clLogError("XPORT", "LISTENER", "Breaker pipe creation failed with error [%s]",
+        logError("XPORT", "LISTENER", "Breaker pipe creation failed with error [%s]",
                    strerror(errno));
         return CL_ERR_LIBRARY;
     }
@@ -1081,13 +1080,13 @@ static ClRcT transportListenerInitialize(ClXportCtrlT *xportCtrl)
         rc = clTaskPoolCreate(&xportCtrl->pool, 1, NULL, NULL);
         if(rc != CL_OK)
         {
-            clLogError("UDP", "LISTENER", "Task pool create failed with error [%#x]", rc);
+            logError("UDP", "LISTENER", "Task pool create failed with error [%#x]", rc);
             goto out_deregister;
         }
         rc = clTaskPoolRun(xportCtrl->pool, transportListener, (ClPtrT)xportCtrl);
         if(rc != CL_OK)
         {
-            clLogError("UDP", "LISTENER", "Task pool run failed with error [%#x]", rc);
+            logError("UDP", "LISTENER", "Task pool run failed with error [%#x]", rc);
             goto out_delete;
         }
     }
@@ -1123,7 +1122,7 @@ static ClRcT transportInitListener(ClXportCtrlT *xportCtrl)
 
     if( (xportCtrl->eventFd = epoll_create(16) ) < 0 )
     {
-        clLogError("UDP", "INI", "epoll create returned with error [%s]", strerror(errno));
+        logError("UDP", "INI", "epoll create returned with error [%s]", strerror(errno));
         goto out;
     }
     
@@ -1170,7 +1169,7 @@ ClRcT clTransportListenerDestroy(ClTransportListenerHandleT *handle)
     rc = transportListenerFinalize(xportCtrl);
     if(rc != CL_OK)
     {
-        clLogError("XPORT", "LISTENER", "Listener delete returned with [%#x]", rc);
+        logError("XPORT", "LISTENER", "Listener delete returned with [%#x]", rc);
         goto out_free;
     }
     return rc;
@@ -1294,7 +1293,7 @@ static ClRcT setDefaultXport(ClParserPtrT parent)
 
     if(gClXportDefault)
     {
-        clLogNotice("XPORT", "INIT", "Default transport set to [%s]", gClXportDefault->xportType);
+        logNotice("XPORT", "INIT", "Default transport set to [%s]", gClXportDefault->xportType);
     }
     else
     {
@@ -1452,7 +1451,7 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
         if(preferredXport)
         {
             *typeXport = preferredXport;
-            clLogNotice("XPORT", "SEL", 
+            logNotice("XPORT", "SEL", 
                         "Falling back to using preferred transport [%s] for destination [%d]",
                         preferredXport, dstIocAddress);
             return CL_OK;
@@ -1493,7 +1492,7 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
 
             if(!nodeAddrConfig)
             {
-                clLogWarning("LUT", "FIND", "Node entry for this node not found");
+                logWarning("LUT", "FIND", "Node entry for this node not found");
             }
             else
             {
@@ -1516,7 +1515,7 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
 #if 0 /* debug */
     if(dstIocAddress != gIocLocalBladeAddress)
     {
-        clLogNotice("LUT", "FIND", "Using transport [%s] for destination node [%d]",
+        logNotice("LUT", "FIND", "Using transport [%s] for destination node [%d]",
                     *typeXport, dstIocAddress);
     }
     else
@@ -1524,7 +1523,7 @@ ClRcT clFindTransport(ClIocNodeAddressT dstIocAddress, ClIocAddressT *rdstIocAdd
         static int c;
         if(!c)
         {
-            clLogNotice("LUT", "FIND", "Using transport [%s] for self", *typeXport);
+            logNotice("LUT", "FIND", "Using transport [%s] for self", *typeXport);
             c=1;
         }
     }
@@ -1548,7 +1547,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
 
     if (!protocol)
     {
-        clLogNotice("XPORT", "INIT", "Protocol for node is not set!");
+        logNotice("XPORT", "INIT", "Protocol for node is not set!");
         goto default_xport;
     }
     {
@@ -1572,7 +1571,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
                goto next;
         }
         {
-        clLogDebug("LUT", "MAP", "Adding entry for node [%s]", name);
+        logDebug("LUT", "MAP", "Adding entry for node [%s]", name);
         // Split the protocol into xports
         xportType[0] = 0;
         strncat(xportType, protocols, sizeof(xportType)-1);
@@ -1683,7 +1682,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
         {
             nodeAddrConfig->bridge = CL_TRUE;
         }
-        clLogDebug("IOC", "LUT", "Add Ioc local node address config [%#x]", gIocLocalBladeAddress);
+        logDebug("IOC", "LUT", "Add Ioc local node address config [%#x]", gIocLocalBladeAddress);
         _clXportNodeAddrMapAdd(nodeAddrConfig);
     }
     nodeAddrConfig->iocAddress = gIocLocalBladeAddress;
@@ -1691,7 +1690,7 @@ static void _setDefaultXportForNode(ClParserPtrT parent)
     gLocalNodeBridge = nodeAddrConfig->bridge;
     if(gLocalNodeBridge)
     {
-        clLogNotice("IOC", "LUT", "Local node bridge enabled with multiple transports");
+        logNotice("IOC", "LUT", "Local node bridge enabled with multiple transports");
     }
     return;
 
@@ -1717,7 +1716,7 @@ static ClRcT _iocSetMulticastPeers(ClParserPtrT peers)
         if(!gClTransportMcastPort)
             gClTransportMcastPort = MULTICAST_PORT_DEFAULT;
     }
-    clLogNotice("MCAST", "MAP", "Set to use port [%d] for peer discovery", 
+    logNotice("MCAST", "MAP", "Set to use port [%d] for peer discovery", 
                 gClTransportMcastPort);
 
     while(peer)
@@ -1739,7 +1738,7 @@ static ClRcT _iocSetMulticastPeers(ClParserPtrT peers)
             map->_addr.sin6_addr.sin6_family = PF_INET6;
             if(inet_pton(PF_INET6, addr, (void*)&map->_addr.sin6_addr.sin6_addr) != 1)
             {
-                clLogError("MCAST", "MAP", "Error interpreting address [%s]", addr);
+                logError("MCAST", "MAP", "Error interpreting address [%s]", addr);
                 clHeapFree(map);
                 goto out_free;
             }
@@ -1748,7 +1747,7 @@ static ClRcT _iocSetMulticastPeers(ClParserPtrT peers)
         strncat(map->addrstr, addr, sizeof(map->addrstr)-1);
         clListAddTail(&map->list, &gClMcastPeerList);
         ++numPeers;
-        clLogNotice("MCAST", "MAP", "Added addr [%s] to mcast peer map", 
+        logNotice("MCAST", "MAP", "Added addr [%s] to mcast peer map", 
                     map->addrstr);
         next:
         peer = peer->next;
@@ -1791,7 +1790,7 @@ ClRcT _clIocSetMulticastConfig(ClParserPtrT parent)
             if(rc == CL_OK)
             {
                 gClMcastSupported = CL_FALSE;
-                clLogNotice("XPORT", "INIT", "Multicast support disabled");
+                logNotice("XPORT", "INIT", "Multicast support disabled");
                 goto out;
             }
         }
@@ -1838,7 +1837,7 @@ ClRcT clTransportLayerInitialize(void)
     parent = clParserOpenFile(configPath, CL_TRANSPORT_CONFIG_FILE);
     if(!parent)
     {
-        clLogWarning("XPORT", "INIT", 
+        logWarning("XPORT", "INIT", 
                      "Unable to open transport config [%s] from path [%s]." 
                      "Would be loading default transport [%s] with plugin [%s]", 
                      CL_TRANSPORT_CONFIG_FILE, configPath, CL_XPORT_DEFAULT_TYPE, CL_XPORT_DEFAULT_PLUGIN);
@@ -1847,13 +1846,13 @@ ClRcT clTransportLayerInitialize(void)
     xports = clParserChild(parent, "xports");
     if(!xports)
     {
-        clLogError("XPORT", "INIT", "No xports tag found for transport initialize in [%s]", CL_TRANSPORT_CONFIG_FILE);
+        logError("XPORT", "INIT", "No xports tag found for transport initialize in [%s]", CL_TRANSPORT_CONFIG_FILE);
         goto out_free;
     }
     xport = clParserChild(xports, "xport");
     if(!xport)
     {
-        clLogError("XPORT", "INIT", "No xport tag found for transport initialize in [%s]", CL_TRANSPORT_CONFIG_FILE);
+        logError("XPORT", "INIT", "No xport tag found for transport initialize in [%s]", CL_TRANSPORT_CONFIG_FILE);
         goto out_free;
     }
     while(xport)
@@ -1931,7 +1930,7 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "INI", "Unable to initialize transport [%s]. Transport not registered", type);
+            logError("XPORT", "INI", "Unable to initialize transport [%s]. Transport not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
@@ -1939,7 +1938,7 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
             rc = xport->xportInit(type, xport->xportId, nodeRep);
             if(rc != CL_OK)
             {
-                clLogError("XPORT", "INIT", "Transport [%s] initialize failed with [%#x]", type, rc);
+                logError("XPORT", "INIT", "Transport [%s] initialize failed with [%#x]", type, rc);
             }
             else
             { 
@@ -1957,7 +1956,7 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
            &&
            (err = xport->xportInit(xport->xportType, xport->xportId, nodeRep)) != CL_OK)
         {
-            clLogError("XPORT", "INI", "Unable to initialize transport [%s]. Error [%#x]", 
+            logError("XPORT", "INI", "Unable to initialize transport [%s]. Error [%#x]", 
                        xport->xportType, err);
             rc = err;
             goto out;
@@ -2002,7 +2001,7 @@ ClRcT clTransportFinalize(const ClCharT *type, ClBoolT nodeRep)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "CLOSE", "Transport [%s] not registered", type);
+            logError("XPORT", "CLOSE", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if((xport->xportState & XPORT_STATE_INITIALIZED))
@@ -2020,7 +2019,7 @@ ClRcT clTransportFinalize(const ClCharT *type, ClBoolT nodeRep)
            &&
            (err = xport->xportFinalize(xport->xportId, nodeRep)) != CL_OK)
         {
-            clLogError("XPORT", "CLOSE", "Transport [%s] close failed with [%#x]", xport->xportType, err);
+            logError("XPORT", "CLOSE", "Transport [%s] close failed with [%#x]", xport->xportType, err);
             rc |= err;
         }
         xport->xportState &= ~XPORT_STATE_INITIALIZED;
@@ -2039,12 +2038,12 @@ ClRcT clTransportServerReady(const ClCharT *type, ClIocAddressT *pAddress)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "READY", "Transport [%s] not registered", type);
+            logError("XPORT", "READY", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "READY", "Transport [%s] not initialized", type);
+            logError("XPORT", "READY", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportServerReady(pAddress);
@@ -2058,7 +2057,7 @@ ClRcT clTransportServerReady(const ClCharT *type, ClIocAddressT *pAddress)
            &&
            (err = xport->xportServerReady(pAddress)) != CL_OK)
         {
-            clLogError("XPORT", "READY", "Transport [%s] server ready returned with [%#x]", xport->xportType, err);
+            logError("XPORT", "READY", "Transport [%s] server ready returned with [%#x]", xport->xportType, err);
             rc |= err;
         }
     }
@@ -2076,7 +2075,7 @@ static ClRcT transportMasterAddressGet(ClTransportLayerT *xport, ClIocLogicalAdd
     {
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "MASTER", "Transport [%s] not initialized", xport->xportType);
+            logError("XPORT", "MASTER", "Transport [%s] not initialized", xport->xportType);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportMasterAddressGet(la, port, masterAddress);
@@ -2096,7 +2095,7 @@ static ClRcT transportMasterAddressGet(ClTransportLayerT *xport, ClIocLogicalAdd
                 }
                 else
                 {
-                    clLogError("XPORT", "MASTER",
+                    logError("XPORT", "MASTER",
                                "Transport [%s] master address returned with [%#x]", 
                                xport->xportType, rc);
                     goto out;
@@ -2174,12 +2173,12 @@ ClRcT clTransportNotificationInitialize(const ClCharT *type)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] not registered", type);
+            logError("XPORT", "NOTIFY", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
+            logError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportNotifyInit();
@@ -2189,7 +2188,7 @@ ClRcT clTransportNotificationInitialize(const ClCharT *type)
         }
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] notify initialize failed with [%#x]", type, rc);
+            logError("XPORT", "NOTIFY", "Transport [%s] notify initialize failed with [%#x]", type, rc);
         }
         return rc;
     }
@@ -2211,7 +2210,7 @@ ClRcT clTransportNotificationInitialize(const ClCharT *type)
     {
         if( (rc = clTransportNotifyInitialize()) != CL_OK)
         {
-            clLogError("XPORT", "NOTIFY", "Transport notify initialize failed with [%#x]", rc);
+            logError("XPORT", "NOTIFY", "Transport notify initialize failed with [%#x]", rc);
         }
     }
     return rc;
@@ -2230,13 +2229,13 @@ ClRcT clTransportAddressAssign(const ClCharT *type)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "ASSIGN", "Transport [%s] not registered", type);
+            logError("XPORT", "ASSIGN", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         rc = xport->xportAddressAssign();
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "ASSIGN", "Transport [%s] address assign failed with [%#x]",
+            logError("XPORT", "ASSIGN", "Transport [%s] address assign failed with [%#x]",
                        type, rc);
         }
         return rc;
@@ -2248,7 +2247,7 @@ ClRcT clTransportAddressAssign(const ClCharT *type)
         rc = xport->xportAddressAssign();
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "ASSIGN", "Transport [%s] address assign failed with [%#x]",
+            logError("XPORT", "ASSIGN", "Transport [%s] address assign failed with [%#x]",
                        type, rc);
         }
     }
@@ -2266,12 +2265,12 @@ ClRcT clTransportNotificationFinalize(const ClCharT *type)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] not registered", type);
+            logError("XPORT", "NOTIFY", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
+            logError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportNotifyFinalize();
@@ -2281,7 +2280,7 @@ ClRcT clTransportNotificationFinalize(const ClCharT *type)
         }
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] notify finalize failed with [%#x]", 
+            logError("XPORT", "NOTIFY", "Transport [%s] notify finalize failed with [%#x]", 
                        type, rc);
         }
         return rc;
@@ -2301,7 +2300,7 @@ ClRcT clTransportNotificationFinalize(const ClCharT *type)
     {
         if( (rc = clTransportNotifyFinalize()) != CL_OK)
         {
-            clLogError("XPORT", "NOTIFY", "Transport notify finalize failed with [%#x]", rc);
+            logError("XPORT", "NOTIFY", "Transport notify finalize failed with [%#x]", rc);
         }
 
     }
@@ -2319,12 +2318,12 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node,
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] not registered", type);
+            logError("XPORT", "NOTIFY", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
+            logError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportNotifyOpen(node, port, event);
@@ -2334,7 +2333,7 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node,
         }
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] notify open failed with [%#x]", 
+            logError("XPORT", "NOTIFY", "Transport [%s] notify open failed with [%#x]", 
                        type, rc);
         }
         return rc;
@@ -2353,7 +2352,7 @@ ClRcT clTransportNotificationOpen(const ClCharT *type, ClIocNodeAddressT node,
     {
         if( (rc = clTransportNotifyOpen(port)) != CL_OK)
         {
-            clLogError("XPORT", "NOTIFY", "Transport notify open failed with [%#x]", rc);
+            logError("XPORT", "NOTIFY", "Transport notify open failed with [%#x]", rc);
         }
     }
     return rc;
@@ -2370,12 +2369,12 @@ ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAd
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] not registered", type);
+            logError("XPORT", "NOTIFY", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
+            logError("XPORT", "NOTIFY", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportNotifyClose(nodeAddress, port, event);
@@ -2385,7 +2384,7 @@ ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAd
         }
         if(rc != CL_OK)
         {
-            clLogError("XPORT", "NOTIFY", "Transport [%s] notify close failed with [%#x]", 
+            logError("XPORT", "NOTIFY", "Transport [%s] notify close failed with [%#x]", 
                        type, rc);
         }
         return rc;
@@ -2406,7 +2405,7 @@ ClRcT clTransportNotificationClose(const ClCharT *type, ClIocNodeAddressT nodeAd
     }
     if(rc != CL_OK)
     {
-        clLogError("XPORT", "NOTIFY", "Transport notify close failed with [%#x]", rc);
+        logError("XPORT", "NOTIFY", "Transport notify close failed with [%#x]", rc);
     }
     return rc;
 }
@@ -2426,12 +2425,12 @@ ClRcT clTransportBind(const ClCharT *type, ClIocPortT port)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "BIND", "Transport [%s] not registered", type);
+            logError("XPORT", "BIND", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "BIND", "Transport [%s] not initialized", type);
+            logError("XPORT", "BIND", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         return xport->xportBind(port);
@@ -2445,7 +2444,7 @@ ClRcT clTransportBind(const ClCharT *type, ClIocPortT port)
            &&
            (err = xport->xportBind(port)) != CL_OK)
         {
-            clLogError("XPORT", "BIND", "Transport [%s] bind failed with [%#x]", xport->xportType, err);
+            logError("XPORT", "BIND", "Transport [%s] bind failed with [%#x]", xport->xportType, err);
             rc |= err;
         }
     }
@@ -2463,12 +2462,12 @@ ClRcT clTransportBindClose(const ClCharT *type, ClIocPortT port)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "BIND", "Transport [%s] not registered", type);
+            logError("XPORT", "BIND", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "BIND", "Transport [%s] not initialized", type);
+            logError("XPORT", "BIND", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportBindClose(port);
@@ -2484,7 +2483,7 @@ ClRcT clTransportBindClose(const ClCharT *type, ClIocPortT port)
            &&
            (err = xport->xportBindClose(port)) != CL_OK)
         {
-            clLogError("XPORT", "BIND", 
+            logError("XPORT", "BIND", 
                        "Transport [%s] bind close failed with [%#x]", xport->xportType, err);
             rc |= err;
         }
@@ -2514,12 +2513,12 @@ ClRcT clTransportListen(const ClCharT *type, ClIocPortT port)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "LISTEN", "Transport [%s] not registered", type);
+            logError("XPORT", "LISTEN", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "LISTEN", "Transport [%s] not initialized", type);
+            logError("XPORT", "LISTEN", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportListen(port);
@@ -2534,7 +2533,7 @@ ClRcT clTransportListen(const ClCharT *type, ClIocPortT port)
            &&
            (err = xport->xportListen(port)) != CL_OK)
         {
-            clLogError("XPORT", "LISTEN", "Transport [%s] listen failed with [%#x]", xport->xportType, err);
+            logError("XPORT", "LISTEN", "Transport [%s] listen failed with [%#x]", xport->xportType, err);
             rc |= err;
         }
     }
@@ -2552,12 +2551,12 @@ ClRcT clTransportListenStop(const ClCharT *type, ClIocPortT port)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "LISTEN", "Transport [%s] not registered", type);
+            logError("XPORT", "LISTEN", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "LISTEN", "Transport [%s] not initialized", type);
+            logError("XPORT", "LISTEN", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportListenStop(port);
@@ -2574,7 +2573,7 @@ ClRcT clTransportListenStop(const ClCharT *type, ClIocPortT port)
            &&
            (err = xport->xportListenStop(port)) != CL_OK)
         {
-            clLogError("XPORT", "LISTEN", "Transport [%s] listenstop failed with [%#x]", xport->xportType, err);
+            logError("XPORT", "LISTEN", "Transport [%s] listenstop failed with [%#x]", xport->xportType, err);
             rc |= err;
         }
     }
@@ -2600,12 +2599,12 @@ ClRcT clTransportTransparencyRegister(const ClCharT *type, ClIocPortT port,
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "TL", "Transport [%s] not registered", type);
+            logError("XPORT", "TL", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "TL", "Transport [%s] not initialized", type);
+            logError("XPORT", "TL", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportTransparencyRegister(port, logicalAddr, haState);
@@ -2620,7 +2619,7 @@ ClRcT clTransportTransparencyRegister(const ClCharT *type, ClIocPortT port,
            &&
            (err = xport->xportTransparencyRegister(port, logicalAddr, haState)) != CL_OK)
         {
-            clLogError("XPORT", "TL", "Transport [%s] tl register failed with [%#x]", xport->xportType, err);
+            logError("XPORT", "TL", "Transport [%s] tl register failed with [%#x]", xport->xportType, err);
             rc |= err;
         }
     }
@@ -2639,12 +2638,12 @@ ClRcT clTransportTransparencyDeregister(const ClCharT *type, ClIocPortT port, Cl
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "TL", "Transport [%s] not registered", type);
+            logError("XPORT", "TL", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "TL", "Transport [%s] not initialized", type);
+            logError("XPORT", "TL", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportTransparencyDeregister(port, logicalAddr);
@@ -2659,7 +2658,7 @@ ClRcT clTransportTransparencyDeregister(const ClCharT *type, ClIocPortT port, Cl
            &&
            (err = xport->xportTransparencyDeregister(port, logicalAddr)) != CL_OK)
         {
-            clLogError("XPORT", "TL", "Transport [%s] TL deregister failed with [%#x]", xport->xportType, err);
+            logError("XPORT", "TL", "Transport [%s] TL deregister failed with [%#x]", xport->xportType, err);
             rc |= err;
         }
     }
@@ -2678,12 +2677,12 @@ ClRcT clTransportMulticastRegister(const ClCharT *type, ClIocPortT port, ClIocMu
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "MCAST", "Transport [%s] not registered", type);
+            logError("XPORT", "MCAST", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "MCAST", "Transport [%s] not initialized", type);
+            logError("XPORT", "MCAST", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportMulticastRegister(port, mcastAddr);
@@ -2698,7 +2697,7 @@ ClRcT clTransportMulticastRegister(const ClCharT *type, ClIocPortT port, ClIocMu
            &&
            (err = xport->xportMulticastRegister(port, mcastAddr)) != CL_OK)
         {
-            clLogError("XPORT", "MCAST", "Transport [%s] mcast register failed with [%#x]", xport->xportType, err);
+            logError("XPORT", "MCAST", "Transport [%s] mcast register failed with [%#x]", xport->xportType, err);
             rc |= err;
         }
     }
@@ -2717,12 +2716,12 @@ ClRcT clTransportMulticastDeregister(const ClCharT *type, ClIocPortT port, ClIoc
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "MCAST", "Transport [%s] not registered", type);
+            logError("XPORT", "MCAST", "Transport [%s] not registered", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "MCAST", "Transport [%s] not initialized", type);
+            logError("XPORT", "MCAST", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportMulticastDeregister(port, mcastAddr);
@@ -2737,7 +2736,7 @@ ClRcT clTransportMulticastDeregister(const ClCharT *type, ClIocPortT port, ClIoc
            &&
            (err = xport->xportMulticastDeregister(port, mcastAddr)) != CL_OK)
         {
-            clLogError("XPORT", "MCAST", "Transport [%s] mcast deregister failed with [%#x]", xport->xportType, err);
+            logError("XPORT", "MCAST", "Transport [%s] mcast deregister failed with [%#x]", xport->xportType, err);
             rc |= err;
         }
     }
@@ -2756,12 +2755,12 @@ ClRcT clTransportSend(const ClCharT *type, ClIocPortT port, ClUint32T priority, 
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "SEND", "Transport [%s] not registered.", type);
+            logError("XPORT", "SEND", "Transport [%s] not registered.", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "SEND", "Transport [%s] not initialized", type);
+            logError("XPORT", "SEND", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         return xport->xportSend(port, priority, address, iov, iovlen, flags);
@@ -2774,7 +2773,7 @@ ClRcT clTransportSend(const ClCharT *type, ClIocPortT port, ClUint32T priority, 
            &&
            (err = xport->xportSend(port, priority, address, iov, iovlen, flags)) != CL_OK)
         {
-            clLogError("XPORT", "SEND", "Transport [%s] send failed with [%#x]", xport->xportType, err);
+            logError("XPORT", "SEND", "Transport [%s] send failed with [%#x]", xport->xportType, err);
             rc |= err;
         }
     }
@@ -2805,12 +2804,12 @@ ClRcT clTransportSendProxy(const ClCharT *type, ClIocPortT port, ClUint32T prior
                     if(CL_GET_ERROR_CODE(err) == CL_ERR_NOT_EXIST)
                     {
                         err = CL_OK;
-                        clLogNotice("XPORT", "SEND", "Port [%d] for transport [%s] "
+                        logNotice("XPORT", "SEND", "Port [%d] for transport [%s] "
                                     "not yet initialized", port, xport->xportType);
                     }
                     else
                     {
-                        clLogError("XPORT", "SEND", 
+                        logError("XPORT", "SEND", 
                                    "Transport [%s] send failed with [%#x]", xport->xportType, err);
                     }
                     rc |= err;
@@ -2833,7 +2832,7 @@ static ClRcT transportRecv(ClTransportLayerT *xport, ClIocCommPortHandleT commPo
     {
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "RECV", "Transport [%s] not initialized", xport->xportType);
+            logError("XPORT", "RECV", "Transport [%s] not initialized", xport->xportType);
             return CL_ERR_NOT_INITIALIZED;
         }
         rc = xport->xportRecv(commPort, pRecvOption, buffer, bufSize, message, pRecvParam);
@@ -2849,9 +2848,9 @@ static ClRcT transportRecv(ClTransportLayerT *xport, ClIocCommPortHandleT commPo
             if((err = xport->xportRecv(commPort, pRecvOption, 
                                        buffer, bufSize, message, pRecvParam)) != CL_OK)
             {
-                if(CL_GET_ERROR_CODE(err) != CL_IOC_ERR_RECV_UNBLOCKED)
+                if (CL_GET_ERROR_CODE(err) != CL_IOC_ERR_RECV_UNBLOCKED && CL_GET_ERROR_CODE(err) != CL_ERR_TIMEOUT)
                 {
-                    clLogError("XPORT", "RECV", "Transport [%s] recv. failed with [%#x]", xport->xportType, err);
+                    logError("XPORT", "RECV", "Transport [%s] recv. failed with [%#x]", xport->xportType, err);
                 }
                 rc |= err;
             }
@@ -2901,12 +2900,12 @@ ClRcT clTransportMaxPayloadSizeGet(const ClCharT *type, ClUint32T *pSize)
         xport = findTransport(type);
         if(!xport)
         {
-            clLogError("XPORT", "PAYLOAD", "Transport [%s] not registered.", type);
+            logError("XPORT", "PAYLOAD", "Transport [%s] not registered.", type);
             return CL_ERR_NOT_EXIST;
         }
         if(!(xport->xportState & XPORT_STATE_INITIALIZED))
         {
-            clLogError("XPORT", "PAYLOAD", "Transport [%s] not initialized", type);
+            logError("XPORT", "PAYLOAD", "Transport [%s] not initialized", type);
             return CL_ERR_NOT_INITIALIZED;
         }
         return xport->xportMaxPayloadSizeGet(pSize);
@@ -3054,7 +3053,7 @@ ClRcT clTransportFdGet(ClIocCommPortHandleT portHandle, const ClCharT *xportType
     ClTransportLayerT *xport = findTransport(xportType);
     if(!xport)
     {
-        clLogDebug("XPORT", "FIND", "Transport [%s] not registered", xportType);
+        logDebug("XPORT", "FIND", "Transport [%s] not registered", xportType);
         return CL_ERR_NOT_EXIST;
     }
     return xport->xportFdGet(portHandle, pFd);

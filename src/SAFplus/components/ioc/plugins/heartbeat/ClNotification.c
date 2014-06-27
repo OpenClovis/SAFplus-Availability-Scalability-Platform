@@ -37,11 +37,11 @@
 #include <errno.h>
 
 #include <clCommon.h>
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 
 ClRcT HeartBeatPlugin(ClUint32T interval, ClUint32T retires) {
     ClRcT rc = CL_OK;
-    clLogInfo("IOC", "HEARTBEAT", "Example Heartbeat running local");
+    logInfo("IOC", "HEARTBEAT", "Example Heartbeat running local");
     return rc;
 }
 

@@ -94,7 +94,7 @@ void ThreadPool::run(Wakeable* wk, void* arg)
 void ThreadPool::enqueue(Poolable* p)
 {  
   printf("ThreadPool::enqueue()\n");
-  if (numIdleThreads == 0 && numCurrentThreads <= maxThreads)
+  if (numIdleThreads == 0 && numCurrentThreads < maxThreads)
   {
     printf("Creating a new thread to execute job because all current threads are busy\n");
     startThread();
@@ -175,8 +175,7 @@ void ThreadPool::runTask(void* arg)
     }
     else // Wakeable object
     {
-      printf("ThreadPool::runTask(): execute user-defined func of WakeableHelper object[%p]\n", wh);
-      ts.working = true;
+      printf("ThreadPool::runTask(): execute user-defined func of WakeableHelper object[%p]\n", wh);      
       wh->wk->wake(0, wh->arg);      
       wh->wk=NULL;
       //delete wh;      

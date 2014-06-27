@@ -7,6 +7,7 @@ import pdb
 import os, sys
 import pyDbal
 import microdom
+from common import *
 
 from xml.etree import ElementPath
 from xml.etree import ElementTree as ET
@@ -62,71 +63,107 @@ class PyDBAL():
     def __init__(self, fileName, maxKeySize = 4, maxRecordSize = 8, docRoot=None):
         self.cfgfile = "%s" % fileName
         self.suppliedData = None
-        try:
-            self.suppliedData = microdom.LoadFile(self.cfgfile)
-            if docRoot:
-                self.suppliedData = self.suppliedData.get(docRoot)
-
-        except IOError, e: # If the supplied data file does not exist just print a warning
-            print "Supplied data file %s does not exist.  You may need to export SAFPLUS_CONFIG enviroment variable" % self.cfgfile
-            raise
-
         self.dbName = fileName.split('.')[0]
+        self.docRoot = docRoot
         pyDbal.initializeDbal(self.dbName, maxKeySize, maxRecordSize)
-        self.Load(self.suppliedData)
 
     """ Load cfg xml and save to binary database """
-    def Load(self, element, xpath = ''):
+    def StoreDB(self):
+        try:
+            self.suppliedData = microdom.LoadFile(self.cfgfile)
+            if self.docRoot:
+                self.suppliedData = self.suppliedData.get(self.docRoot)
+
+        except IOError, e: # If the supplied data file does not exist just print a warning
+            raise Exception("Supplied data file %s does not exist.  You may need to export SAFPLUS_CONFIG enviroment variable" % self.cfgfile)
+
+        except Exception, e: # If the supplied data file does not exist just print a warning
+            raise Exception("Invalid format XML file!")
 
         self.xpathDB = {}
         self.xpathParentDB = {}
+        
+        #Mapping to store container has attribute(s)
+        self.xpath2phrase = {}
+
+        #Process first phrase to retrieve xpath
         self._load(self.suppliedData)
 
         #Convert list container or list-leaf to array list
-        for (k, v) in self.xpathParentDB.items():
-            if v > 1:
-                try:
-                    self.xpathDB[k + "[1]"] = self.xpathDB.pop(k)
-                    del self.xpathParentDB[k]
-                except:
-                    # Lookup on xpathDB and replace with extra index
-                    for key in filter(lambda key: key.rfind(k + "/") != -1, self.xpathDB.keys()):
-                        key_prefix = k + "[1]"
-                        key_new = key.replace(k, key_prefix)
-                        self.xpathDB[key_new] = self.xpathDB.pop(key)
+        map_change_xpath = {}
 
+        for k in self.xpathParentDB.keys():
+            if self.xpathParentDB[k] == 1:
+                #Search through attributes and build new index
+                try:
+                    tmp_key = map_change_xpath[k]
+                except:
+                    tmp_key = k
+    
+                if tmp_key in self.xpath2phrase.keys():
+                    #Add index by append attributes [name="value" ...]
+                    key_prefix = tmp_key + "[%s]" %self.xpath2phrase.get(tmp_key)
+    
+                    #Modify key from first phrase
+                    for key in self.xpathDB.keys():
+                        if key.rfind(tmp_key) != -1:
+                            key_new = key.replace(tmp_key, key_prefix)
+                            self.xpathDB[key_new] = self.xpathDB.pop(key)
+                            map_change_xpath[key] = key_new
+    
+                    #Also modify key if exiting on phrase 2 considering
+                    for key in filter(lambda key: key.rfind(tmp_key) != -1, self.xpath2phrase.keys()):
+                        key_new = key.replace(tmp_key, key_prefix)
+                        self.xpath2phrase[key_new] = self.xpath2phrase.pop(key)
+
+        #Done customize xpath
+        #Unit test http://xmltoolbox.appspot.com/xpath_generator.html
         for (key, value) in sorted(self.xpathDB.items()):
             try:
                 self.Write(key, value)
-            except:
+            except Exception, e:
                 #Duplicate key
                 pass
 
     """ Load cfg xml and save to binary database """
     def _load(self, element, xpath = ''):
-        if isinstance(element, microdom.MicroDom):
+        if isInstanceOf(element, microdom.MicroDom):
             xpath = "%s/%s" %(xpath, microdom.keyify(element.tag_))
-            if len(element.attributes_) > 1:
-                # Format attribute string
-                attrs = ["@%s='%s'" % (microdom.keyify(k),v) for (k,v) in filter(lambda i: i[0] != 'tag_', element.attributes_.items())]
 
-                attrs = PREDICATE_KEY_START + ",".join(attrs) + PREDICATE_KEY_END
-                xpath += attrs
+            #Add index key into list container, also modify old one with index [1]
             if self.xpathParentDB.has_key(xpath):
+                if self.xpathParentDB[xpath] == 1:
+                    # Lookup on xpathDB and replace with extra index [1]
+                    for key in filter(lambda key: key.rfind(xpath) != -1, self.xpathDB.keys()):
+                        key_prefix = xpath + "[1]"
+                        key_new = key.replace(xpath, key_prefix)
+                        self.xpathDB[key_new] = self.xpathDB.pop(key)
+
+                #Now, all having [index], just increase
                 self.xpathParentDB[xpath] +=1
                 xpath = xpath + "[%d]" %self.xpathParentDB[xpath]
             else:
                 self.xpathParentDB[xpath] = 1
 
+            if len(element.attributes_) > 1:
+                # Format attribute string
+                attrs = [(microdom.keyify(k),v) for (k,v) in filter(lambda i: i[0] != 'tag_', element.attributes_.items())]
+                for el in attrs:
+                    self.xpathDB["%s@%s" %(xpath, el[0])] = el[1]
+                    self.xpathParentDB["%s@%s" %(xpath, el[0])] = 1
+
+                #Put this xpath into second phrase considering
+                self.xpath2phrase[xpath] = " ".join(["@%s=\"%s\"" %(k,v) for (k,v) in attrs])
+
             if len(element.children()) > 0:
                 for elchild in element.children():
                     self._load(elchild, xpath)
             else:
-                self.xpathDB[xpath] = element.dump()
+                self.xpathDB[xpath] = str(element.data_)
 
-        elif len(str(element.dump()).strip()) > 0:
-            self.xpathDB[xpath] = str(element.dump()).strip()
-        
+        elif len(str(element).strip()) > 0:
+            self.xpathDB[xpath] = str(element).strip()
+
     """ Build element attribute """
     def _transformAttr(self, next, token):
         predicate = []
@@ -147,7 +184,7 @@ class PyDBAL():
         return attributes
 
     """ Export to cfg xml from binary database """
-    def Save(self, filename = None):
+    def ExportXML(self, filename = None):
         """ Build element tree from xpaths """
 
         # Tree root node
@@ -268,18 +305,26 @@ def main(argv):
     print "Usage:\n '%s -x <xml file>': Encode xml file to database file\n" % argv[0]
     print " '%s -d <database file>': Read database file into xml file\n" % argv[0]
     return -1
-  
-  if argv[1] == '-x':
-    print "Reading file %s" % argv[2]    
-    data = PyDBAL(argv[2]) # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
-    data.Finalize()
 
+  try:
+    data = PyDBAL(argv[2])
+  except Exception, e:
+    print etErrorString(e)
+
+  #Store into binary database
+  if argv[1] == '-x':
+    data.StoreDB();
+
+  #Export to XML from binary database
   if argv[1] == '-d':
-    print "NOT implemented"
-  
+    data.ExportXML();
+
+
+  data.Finalize()
 
 def Test():
-    test = PyDBAL("SAFplusLog") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
+    test = PyDBAL("SAFplusLog.xml") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
+    data.StoreDB();
 
     # Iterators
     for key in test.Iterators():
@@ -303,7 +348,7 @@ def Test():
         print getErrorString(e)
 
     #Export to XML
-    test.Save("SAFplusLog.xml")
+    test.ExportXML("SAFplusLog_New.xml")
 
     test.Finalize()
 

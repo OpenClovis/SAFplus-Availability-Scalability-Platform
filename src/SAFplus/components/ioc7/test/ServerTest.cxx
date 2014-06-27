@@ -27,7 +27,6 @@ using namespace SAFplus;
 
 #define IOC_PORT_SERVER 65
 
-ClUint32T clAspLocalId = 0x1;
 ClBoolT gIsNodeRepresentative = CL_TRUE;
 
 int
@@ -37,16 +36,22 @@ main(void)
 
     ClRcT rc = CL_OK;
 
-    /*
-     * initialize SAFplus libraries
-     */
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
-                    clBufferInitialize(NULL)) != CL_OK)
-    {
+    SAFplus::ASP_NODEADDR = 0x1;
 
-    }
+    logInitialize();
+    logEchoToFd = 1;  // echo logs to stdout for debugging
+    logSeverity = LOG_SEV_MAX;
 
-    clIocLibInitialize(NULL);
+    utilsInitialize();
+
+    // initialize SAFplus6 libraries
+    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+      {
+      assert(0);
+      }
+
+    rc = clIocLibInitialize(NULL);
+    assert(rc==CL_OK);
 
     //Msg server listening
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);

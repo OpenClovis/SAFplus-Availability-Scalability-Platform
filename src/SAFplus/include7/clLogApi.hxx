@@ -10,6 +10,17 @@
 #define CL_PRINTF_FORMAT(fmtPos, argPos)
 #endif
 
+
+/**
+ * Area string for unspecified component area
+ */
+#define CL_LOG_AREA_UNSPECIFIED "---"
+
+/**
+ * Context string for unspecified component context
+ */
+#define CL_LOG_CONTEXT_UNSPECIFIED "---"
+
 #define CL_LOG_CLIENT_VERSION    {'B', 0x01, 0x01}
 
 namespace SAFplus

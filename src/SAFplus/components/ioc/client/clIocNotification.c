@@ -1,4 +1,4 @@
-#include <clDebugApi.h>
+#include <clLogApi.hxx>
 #include <clHeapApi.h>
 #include <clList.h>
 #include <clIocApi.h>
@@ -118,26 +118,26 @@ ClRcT clIocNotificationProxySend(ClIocCommPortHandleT commPort,
     retCode = clBufferCreate(&message);
     if(retCode != CL_OK)
     {   
-        clLogError(IOC_LOG_AREA_PROXY,IOC_LOG_CTX_SEND,"Error : Buffer creation failed. rc=0x%x\n",retCode);
+        logError(IOC_LOG_AREA_PROXY,IOC_LOG_CTX_SEND,"Error : Buffer creation failed. rc=0x%x\n",retCode);
         goto out;
     }   
 
     retCode = clBufferNBytesWrite(message,(ClUint8T *)&notification, sizeof(notification));
     if (CL_OK != retCode)
     {   
-        clLogError(IOC_LOG_AREA_PROXY,IOC_LOG_CTX_SEND,
+        logError(IOC_LOG_AREA_PROXY,IOC_LOG_CTX_SEND,
                    "\nERROR: clBufferNBytesWrite failed with rc = %x\n",
                    retCode);
         goto err_out;
     }   
 
-    clLogTrace("PROXY", "SEND", "Proxying [%d] notification to the peer node reps "
+    logTrace("PROXY", "SEND", "Proxying [%d] notification to the peer node reps "
                "for node [%d:%d]", notification->id, srcAddr->nodeAddress, srcAddr->portId);
 
     retCode = clIocSendWithXport(commPort, message, CL_IOC_PROTO_ARP,
                                  destAddr, &sendOption, xportType, CL_TRUE);
     if(retCode != CL_OK)
-        clLogError(IOC_LOG_AREA_PROXY,IOC_LOG_CTX_SEND,"Error : Failed to send proxy notification. "
+        logError(IOC_LOG_AREA_PROXY,IOC_LOG_CTX_SEND,"Error : Failed to send proxy notification. "
                                        "Error [%#x]", retCode);
 
     err_out:
@@ -162,7 +162,7 @@ static ClRcT clIocNotificationNodeNamePack(ClBufferHandleT message)
     retCode |= clBufferNBytesWrite(message, (ClUint8T*)nodeName.value, (ClUint32T)nodeName.length);
     if(retCode != CL_OK)
     {
-        clLogError("NOTIF", "PACK", 
+        logError("NOTIF", "PACK", 
                    "Nodename marshall for notification version send failed with [%#x]", 
                    retCode);
         goto out;
@@ -190,7 +190,7 @@ ClRcT clIocNotificationDiscoveryPack(ClBufferHandleT message,
     retCode = clBufferNBytesWrite(message,(ClUint8T *)pNotification, sizeof(*pNotification));
     if (CL_OK != retCode)
     {   
-        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_PACK,
+        logError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_PACK,
                    "\nERROR: clBufferNBytesWrite failed with rc = %x\n",
                    retCode);
         goto out;
@@ -222,14 +222,14 @@ ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort,
     retCode = clBufferCreate(&message);
     if(retCode != CL_OK)
     {   
-        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,"Error : Buffer creation failed. rc=0x%x\n",retCode);
+        logError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,"Error : Buffer creation failed. rc=0x%x\n",retCode);
         goto out;
     }   
 
     retCode = clBufferNBytesWrite(message,(ClUint8T *)pNotificationInfo, sizeof(*pNotificationInfo));
     if (CL_OK != retCode)
     {   
-        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,
+        logError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,
                    "\nERROR: clBufferNBytesWrite failed with rc = %x\n",
                    retCode);
         goto err_out;
@@ -249,7 +249,7 @@ ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort,
     retCode = clIocSendWithXport(commPort, message, CL_IOC_PORT_NOTIFICATION_PROTO, 
                                  destAddress, &sendOption, xportType, CL_FALSE);
     if(retCode != CL_OK)
-        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,"Error : Failed to send notification. error code 0x%x", retCode);
+        logError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,"Error : Failed to send notification. error code 0x%x", retCode);
 
     err_out:
     clBufferDelete(&message);
@@ -295,7 +295,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
         nodeInfoLen = recvLen - sizeof(*notification);
         if(nodeInfoLen < sizeof(nodeName.length))
         {
-            clLogError("NOTIF", "GET", "Invalid discovery data received with available "
+            logError("NOTIF", "GET", "Invalid discovery data received with available "
                        "data length of [%d] bytes", nodeInfoLen);
             rc = CL_IOC_RC(CL_ERR_NO_SPACE);
             goto out;
@@ -306,7 +306,7 @@ static ClRcT clIocNotificationDiscoveryUnpack(ClUint8T *recvBuff,
         nodeInfo += sizeof(nodeName.length);
         if(nodeInfoLen < nodeName.length)
         {
-            clLogError("NOTIF", "GET", "Invalid discovery data received for node version notification."
+            logError("NOTIF", "GET", "Invalid discovery data received for node version notification."
                        "Node length received [%d] with only [%d] bytes of available input data",
                        nodeName.length, nodeInfoLen);
             rc = CL_IOC_RC(CL_ERR_NO_SPACE);
@@ -357,7 +357,7 @@ static ClRcT clIocNotificationNodeMapSend(ClIocCommPortHandleT commPort,
     rc = clBufferNBytesWrite(message, buff, sizeof(buff));
     if(rc != CL_OK) 
     {
-        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,
+        logError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,
                    "\nERROR: clBufferNBytesWrite failed with rc = %x\n", rc);
         goto out_delete;
     }
@@ -367,7 +367,7 @@ static ClRcT clIocNotificationNodeMapSend(ClIocCommPortHandleT commPort,
 
     if(rc != CL_OK)
     {
-        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,"Error : Failed to send notification node map. error code 0x%x", rc);
+        logError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_SEND,"Error : Failed to send notification node map. error code 0x%x", rc);
     }
 
     out_delete:
@@ -404,7 +404,7 @@ static ClRcT clIocNodeVersionSend(ClIocCommPortHandleT commPort,
     notification.nodeVersion = htonl(nodeVersion);
     notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
     notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
-    clLogNotice("NODE", "VERSION", "Sending node version [%#x], capability [%#x] "
+    logNotice("NODE", "VERSION", "Sending node version [%#x], capability [%#x] "
                 "to node [%#x], port [%#x]", nodeVersion, myCapability, 
                 destAddress->iocPhyAddress.nodeAddress, destAddress->iocPhyAddress.portId);
     return clIocNotificationPacketSend(commPort, &notification, destAddress, 
@@ -429,11 +429,11 @@ static ClRcT clIocNotificationProxyRecv(ClIocCommPortHandleT commPort, ClUint8T 
         ntohl(notificationBuffer.nodeAddress.iocPhyAddress.portId);
     if(notification.protoVersion != CL_IOC_NOTIFICATION_VERSION)
     {
-        clLogError("PROXY", "RECV", "Invalid proxy notification packet received "
+        logError("PROXY", "RECV", "Invalid proxy notification packet received "
                    "with version [%d]", notification.protoVersion);
         return CL_ERR_VERSION_MISMATCH;
     }
-    clLogTrace("PROXY", "RECV", "Received proxy notification [%d] for node [%d:%d]",
+    logTrace("PROXY", "RECV", "Received proxy notification [%d] for node [%d:%d]",
                notification.id, notification.nodeAddress.iocPhyAddress.nodeAddress,
                notification.nodeAddress.iocPhyAddress.portId);
     if(notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION
@@ -681,7 +681,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
 
     if(userHeader.version != CL_IOC_HEADER_VERSION)
     {
-        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_RECV,"Got version [%d] tipc packet. Supported [%d] version\n",
+        logError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_RECV,"Got version [%d] tipc packet. Supported [%d] version\n",
                                         userHeader.version, CL_IOC_HEADER_VERSION);
         return CL_IOC_RC(CL_ERR_VERSION_MISMATCH);
     }
@@ -701,7 +701,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         recvLen -= sizeof(userHeader);
         if(recvLen < sizeof(ClIocNotificationT))
         {
-            clLogError("PROXY", "RECV", "Invalid proxy notification packet received "
+            logError("PROXY", "RECV", "Invalid proxy notification packet received "
                        "of size [%d]. Expected [%d] bytes", 
                        recvLen, (ClUint32T)sizeof(ClIocNotificationT));
             return CL_ERR_NO_SPACE;
@@ -758,7 +758,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
     memcpy(&notification, pRecvBase + sizeof(userHeader), sizeof(notification));
     if(ntohl(notification.protoVersion) != CL_IOC_NOTIFICATION_VERSION)
     {
-        clLogError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_RECV, 
+        logError(IOC_LOG_AREA_NOTIF,IOC_LOG_CTX_RECV, 
                    "Got version [%d] notification packet. Supported [%d] version\n",
                     ntohl(notification.protoVersion), 
                     CL_IOC_NOTIFICATION_VERSION);
@@ -810,7 +810,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
             
     clIocCompStatusSet(compAddr, event);
 
-    clLogInfo ("IOC", "NOTIF", "Got [%s] notification [0x%x] for node [0x%x] commport [0x%x]",
+    logInfo ("IOC", "NOTIF", "Got [%s] notification [0x%x] for node [0x%x] commport [0x%x]",
                event == CL_IOC_NODE_UP ? "arrival": "death", id, compAddr.nodeAddress, compAddr.portId);
 
 #ifdef CL_IOC_COMP_ARRIVAL_NOTIFICATION_DISABLE
