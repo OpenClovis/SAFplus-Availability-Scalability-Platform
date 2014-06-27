@@ -42,14 +42,14 @@ static ClInt32T gClSyslogFacility;
       \param  maxLen The length of the available memory buffer.  String will be a max length of maxLen-1 to account for the null terminator.
       If str is too long, then this function will ASSERT in debug mode, and crop in production mode 
   */
-void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
+void saNameGet(char* str,const SaNameT* name, unsigned int maxLen)
   {
   int len = name->length;
   CL_ASSERT(len < maxLen-1);
   if (len >= maxLen-1) len = maxLen-2;
   memcpy(str,name->value,len);
   // Add the null terminator if it does not exist in name
-  if (name[len-1] != '0') str[len] = 0;
+  if (name->value[len-1] != '0') str[len] = 0;
   }
 
 /** \brief  Load the SaNameT structure.

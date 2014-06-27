@@ -1,6 +1,7 @@
 #include <clCommon.hxx>
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
+#include <clSafplusMsgServer.hxx>
 
 #include <clCkptApi.hxx>
 
@@ -9,11 +10,10 @@
 using namespace SAFplus;
 
 
-SAFplus::Handle test_readwrite()
+SAFplus::Handle test_readwrite(Checkpoint& c1,Checkpoint& c2)
 {
   SAFplus::Handle ret = INVALID_HDL;
   int LoopCount=10;
-  Checkpoint c1(Checkpoint::SHARED | Checkpoint::LOCAL);
   c1.stats();
 
   printf("Dump of current checkpoint\n");
@@ -42,7 +42,7 @@ SAFplus::Handle test_readwrite()
         {
           SAFplus::Checkpoint::KeyValuePair& item = *i;
           int tmp = *((int*) (*item.first).data);
-          printf("key: %d, value: %d\n",tmp,*((int*) (*item.second).data));
+          printf("key: %d, value: %d change: %d\n",tmp,*((int*) (*item.second).data), item.second->changeNum());
         }
       
       printf("READ: \n");
@@ -89,7 +89,7 @@ SAFplus::Handle test_readwrite()
         {
           SAFplus::Checkpoint::KeyValuePair& item = *i;
           int tmp = *((int*) (*item.first).data);
-          printf("key: %d, value: %d\n",tmp,*((int*) (*item.second).data));
+          printf("key: %d, value: %d change: %d\n",tmp,*((int*) (*item.second).data), item.second->changeNum());
           count++;
         }
       clTest(("All items deleted"),count==0,("count %d",count));
@@ -101,7 +101,6 @@ SAFplus::Handle test_readwrite()
     {
       clTestCaseStart(("String key"));
 
-      Checkpoint c2(Checkpoint::SHARED | Checkpoint::LOCAL);
       ret = c2.handle();
       char vdata[sizeof(Buffer)-1+sizeof(int)*10];
       Buffer* val = new(vdata) Buffer(sizeof(int)*10);
@@ -160,7 +159,7 @@ SAFplus::Handle test_readwrite()
         {
           SAFplus::Checkpoint::KeyValuePair& item = *i;
           char* key = (char*) (*item.first).data;
-          printf("key: %s, value: %d\n",key,*((int*) (*item.second).data));
+          printf("key: %s, value: %d change: %d\n",key,*((int*) (*item.second).data), item.second->changeNum());
         }
       clTestCaseEnd((""));
     }
@@ -217,19 +216,54 @@ void test_reopen(SAFplus::Handle handle)
     }
 }
 
+// IOC related globals
+ClUint32T clAspLocalId = 0x1;
+ClUint32T chassisId = 0x0;
+ClBoolT   gIsNodeRepresentative = CL_TRUE;
 
 
   
 int main(int argc, char* argv[])
 {
+  ClRcT rc;
+  SAFplus::ASP_NODEADDR = 1;
+
+
   SAFplus::Handle hdl;
   logInitialize();
   logEchoToFd = 1;  // echo logs to stdout for debugging
   utilsInitialize();
+
+  // initialize SAFplus6 libraries 
+  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+    {
+    assert(0);
+    }
+
+  clAspLocalId  = SAFplus::ASP_NODEADDR;  // remove clAspLocalId
+  rc = clIocLibInitialize(NULL);
+  assert(rc==CL_OK);
+
   clTestGroupInitialize(("Test Checkpoint"));
-  clTestCase(("Basic Read/Write"), hdl = test_readwrite());
+  if (1)
+    {
+    Checkpoint c1(Checkpoint::SHARED | Checkpoint::LOCAL);
+    Checkpoint c2(Checkpoint::SHARED | Checkpoint::LOCAL);
+    clTestCase(("Basic Read/Write"), hdl = test_readwrite(c1,c2));
+    }
 
   clTestCase(("Reopen"), test_reopen(hdl));
+
+  if (1)
+    {
+    Handle h1 = Handle::create();
+    Handle h2 = Handle::create();
+
+    Checkpoint c1(h1,Checkpoint::SHARED | Checkpoint::REPLICATED);
+    Checkpoint c2(h2,Checkpoint::SHARED | Checkpoint::REPLICATED);
+    clTestCase(("Basic Read/Write"), hdl = test_readwrite(c1,c2));
+    }
+
 
   clTestGroupFinalize();
 }

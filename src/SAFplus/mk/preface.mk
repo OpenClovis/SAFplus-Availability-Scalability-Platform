@@ -19,7 +19,7 @@
 # It discovers the environment and sets standard variables.
 
 ifdef S7  # SAFplus v7
-
+$(info SAFplus7)
 SAFPLUS_TOOLCHAIN_DIR := /opt/clovis/6.1/buildtools/local
 
 MAKE_DIR := $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
@@ -71,6 +71,7 @@ include $(SAFPLUS_MODEL_DIR)/build/$(SAFPLUS_MAKE_VARIANT)/mk/define.mk
 else # If no model is defined, attempt to find the prebuild area
 thisdir := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 prebuildCandidate := $(abspath $(thisdir)/../../../prebuild/asp/build/local/mk)
+$(info prebuildCandidate $(prebuildCandidate))
 defineMk := $(wildcard $(prebuildCandidate)/define.mk)
 ifeq ($(defineMk),) # Nope (we must be running from source control source), so check the standard install location
 defineMk := $(wildcard /opt/clovis/*/sdk/prebuild/asp/build/local/mk/define.mk)

@@ -51,7 +51,7 @@ namespace SAFplus
   /** True if this component is not under AMF control (will not receive CSI callbacks) */
   bool clWithoutAmf;
 
-  uint64_t curHandleIdx = 1;
+  uint64_t curHandleIdx = (1<<SUB_HDL_SHIFT);
 
   int utilsInitCount=0;
 
@@ -463,7 +463,8 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
   Handle Handle::create(void)
     {
     // TODO: mutex lock around this
-    Handle hdl(PersistentHandle,curHandleIdx++,pid,ASP_NODEADDR); // TODO node and clusterId
+    Handle hdl(PersistentHandle,curHandleIdx,pid,ASP_NODEADDR); // TODO node and clusterId
+    curHandleIdx += (1<<SUB_HDL_SHIFT);
     return hdl;
     }
 

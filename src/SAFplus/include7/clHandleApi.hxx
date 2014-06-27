@@ -23,6 +23,8 @@ namespace SAFplus
   #define HDL_CLUSTER_ID_SHIFT         48
   #define HDL_NODE_ID_SHIFT            32
 
+  #define SUB_HDL_SHIFT                8  // Non-pointer handles can have "well-known" subhandle offsets.  For example, if a checkpoint handle is 0x56, its associated group can always be handle 0x5601 (offset 1 from the base handle).  To accomplish this, "base" handles are incremented by 256 when issued
+
   typedef  enum 
     {
       PersistentHandle=0, // this handle uses AMF entity ids so persists.
@@ -62,6 +64,20 @@ namespace SAFplus
       id[0]=id0;
       id[1]=idx;
     }
+
+    /** Normal handles are handed out with gaps (currently
+     * 256). Subhandles simply a handle within the gap.  An
+     * application can designate an arbitrary offset to refer to a
+     * related handle.  For example, if Checkpoint table is handle X,
+     * the "Group" of checkpoint replicas is identified by handle X+1
+    */
+    Handle getSubHandle(unsigned int offset)
+      {
+      assert((id[1]&((1<<SUB_HDL_SHIFT)-1))==0);  // Ensure that this is not already a subhandle (or pointer handle)
+      assert(offset <  (1<<SUB_HDL_SHIFT));  // Ensure that the subhandle index is valid
+      Handle subHdl = *this;
+      subHdl.id[1] += offset;
+      }
 
     HandleType getType()
     {
@@ -112,15 +128,15 @@ namespace SAFplus
   // Well Known IDs
 
   const WellKnownHandle INVALID_HDL(0,0,0,0);
-  const WellKnownHandle SYS_LOG(1,0);
-  const WellKnownHandle APP_LOG(2,0);
-  const WellKnownHandle TEST_LOG(3,0);
-  const WellKnownHandle LOG_STREAM_CKPT(4,0,0);  // The checkpoint that matches log stream names to data
-  const WellKnownHandle GRP_CKPT(5,0,0);         // The checkpoint that matches group names to groups
-  const WellKnownHandle CKPT_CKPT(6,0,0);        // The checkpoint that matches names to checkpoints
-  const WellKnownHandle NAME_CKPT(7,0,0);        // The checkpoint that matches names to arbitrary data
+  const WellKnownHandle SYS_LOG(1<<SUB_HDL_SHIFT,0);
+  const WellKnownHandle APP_LOG(2<<SUB_HDL_SHIFT,0);
+  const WellKnownHandle TEST_LOG(3<<SUB_HDL_SHIFT,0);
+  const WellKnownHandle LOG_STREAM_CKPT(4<<SUB_HDL_SHIFT,0,0);  // The checkpoint that matches log stream names to data
+  const WellKnownHandle GRP_CKPT(5<<SUB_HDL_SHIFT,0,0);         // The checkpoint that matches group names to groups
+  const WellKnownHandle CKPT_CKPT(6<<SUB_HDL_SHIFT,0,0);        // The checkpoint that matches names to checkpoints
+  const WellKnownHandle NAME_CKPT(7<<SUB_HDL_SHIFT,0,0);        // The checkpoint that matches names to arbitrary data
 
-  const WellKnownHandle CLUSTER_GROUP(8,0,0);    // This group represents nodes (AMF instances) running in the cluster
+  const WellKnownHandle CLUSTER_GROUP(8<<SUB_HDL_SHIFT,0,0);    // This group represents nodes (AMF instances) running in the cluster
 
   // Return a handle that refers to the node.  If no argument, use this node.
   Handle getNodeHandle(int nodeNum=0);

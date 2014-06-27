@@ -7,7 +7,8 @@
 using namespace SAFplus;
 using namespace SAFplusI;
 
-Checkpoint NameRegistrar::m_checkpoint(Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
+// Checkpoint::REPLICATED|
+Checkpoint NameRegistrar::m_checkpoint(NAME_CKPT,Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
 
 NameRegistrar SAFplus::name;
 
@@ -273,10 +274,10 @@ RefObjMapPair NameRegistrar::get(const std::string& name) throw(NameException&)
 
 void* NameRegistrar::get(const Handle& handle) throw (NameException&)
 {
-   ObjHashMap::iterator contents = m_mapObject.find(handle);  
+   ObjHashMap::iterator contents = m_mapObject.find(handle);
    if (contents != m_mapObject.end()) // record already exists; return its value
-   {   
-      return contents->second;      
+   {
+      return contents->second;
    }
    throw NameException("Handle provided does not exist");
 }
@@ -285,7 +286,7 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
 {
    const Buffer& buf = m_checkpoint.read(name);
    if (&buf != NULL)
-   {      
+   {
       HandleData* data = (HandleData*) buf.data;
       if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
       {

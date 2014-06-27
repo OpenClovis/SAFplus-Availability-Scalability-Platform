@@ -70,6 +70,7 @@ namespace SAFplus
         clDbgPause();
         throw Error(ClError,rc,MsgServerFailure,"Cannot create communications port");
       }
+    logInfo("IOC", "MSG","Created message port [%d] for MsgServer object",port);
 
     uniqueAddr.iocPhyAddress.nodeAddress   = clIocLocalAddressGet();
     uniqueAddr.iocPhyAddress.portId        = port;

@@ -4,6 +4,7 @@
 #include <clCommon.hxx>
 #include <clGroup.hxx>
 #include <clNameApi.hxx>
+#include <clIocPortList.hxx>
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -17,11 +18,13 @@ bool  Group::isElectionFinished = false;
 bool  Group::isBootTimeElectionDone = false;
 ClTimerHandleT  Group::electionRequestTHandle = NULL;
 ClTimerHandleT  Group::roleWaitingTHandle = NULL;
-SAFplus::Checkpoint Group::mGroupCkpt(Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
+SAFplus::Checkpoint Group::mGroupCkpt;
+bool groupCkptInited = false;
+
 /**
  * API to create a group membership
  */
-SAFplus::Group::Group(std::string handleName,int dataStoreMode, int comPort)
+SAFplus::Group::Group(const std::string& handleName,int dataStoreMode, int comPort)
 {
   handle  = INVALID_HDL;
   activeEntity = INVALID_HDL;
@@ -45,11 +48,12 @@ SAFplus::Group::Group(std::string handleName,int dataStoreMode, int comPort)
   {
     logDebug("GMS", "HDL","Can't get handler from give name %s",handleName.c_str());
     /* If handle did not exist, Create it */
-    handle = SAFplus::Handle(PersistentHandle,0,getpid(),clIocLocalAddressGet());
+    handle = SAFplus::Handle::create();
+    /* Store to name service. inside the "catch" because the name
+     * already exists if the try succeeded. */
+    name.set(handleName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY);
   }
 
-  /* Store to name service */
-  name.set(handleName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY);
   name.setLocalObject(handleName,(void*)this);
   init(handle);
 }
@@ -76,6 +80,12 @@ SAFplus::Group::Group(int dataStoreMode,int comPort)
  */
 void SAFplus::Group::init(SAFplus::Handle groupHandle)
 {
+  if (!groupCkptInited) 
+    {
+    groupCkptInited=1;
+    Group::mGroupCkpt.init(GRP_CKPT, Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
+    }
+
   /* Store current handle to name service */
   if(handle == INVALID_HDL)
   {
@@ -157,13 +167,21 @@ ClRcT SAFplus::Group::initializeLibraries()
  */
 void SAFplus::Group::startMessageServer()
 {
+ if(!groupMsgServer)
+  {
+  groupMsgServer = &safplusMsgServer;
+  }
+
+#if 0  // See Notes on SAFMsgServer and MsgServer...
   if (!groupMsgServer)
   {
-    groupMsgServer = new SAFplus::SafplusMsgServer(groupCommunicationPort);
+    groupMsgServer = new SAFplus::MsgServer(groupCommunicationPort);
     groupMsgServer->Start();
   }
-  GroupMessageHandler *groupMessageHandler = new GroupMessageHandler(this);
-  groupMsgServer->RegisterHandler(CL_IOC_PROTO_MSG, groupMessageHandler, NULL);
+#endif
+
+  GroupMessageHandler *groupMessageHandler = new GroupMessageHandler(this);  // GAS: I would like to see the GroupMessageHandler object be a member of Group to save a "new"
+  groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, groupMessageHandler, NULL);
 }
 /**
  * Do the real election after timer had expired

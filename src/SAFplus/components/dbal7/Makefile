@@ -9,7 +9,7 @@ PyInc := -I/usr/include/python2.7
 SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
-CPP_FLAGS = -I$(SAFPLUS_SRC_DIR)/SAFplus/components/utils/include -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR) -I$(SAFPLUS_SRC_DIR)/SAFplus/components/dbal/common -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable $(PyInc) #-DWITH_STATIC  
+CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/utils/include -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR) -I$(SAFPLUS_SRC_DIR)/SAFplus/components/dbal/common -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable $(PyInc) #-DWITH_STATIC  
 # Specify the required libraries
 SAFPLUS_LIBS := clOsal7 clUtils7 clLog
 # Then use these in the make rule

@@ -24,7 +24,9 @@ namespace SAFplus
 
   class Buffer
   {
+    // TODO: This is very inefficient for small buffers. The first 2 bits need to select the buffer data format and different formats removes features like the ChangeId, and provides greater or lesser numbers of length bits.
     uint32_t refAndLen; // 8 bits (highest) reference count, 2 bits to indicate whether the key and value are null terminated (strings), and 22 bits length combined into one.
+    uint32_t change; 
   public:
     enum 
       {
@@ -43,7 +45,8 @@ namespace SAFplus
     uint_t ref() const { return refAndLen >> RefShift; }
     void addRef(uint_t amt = 1) { refAndLen += (amt<<RefShift); }
     void decRef(uint_t amt = 1) { if (ref() < amt) refAndLen &= ~RefMask; else refAndLen -= (amt<<RefShift); }
-
+    uint32_t changeNum() { return change; }
+    void setChangeNum(uint32_t num) { change = num; } 
     /** The buffer */
     char data[1];  // Not really length 1, this structure will be malloced and placed on a much larger buffer so data is actually len() long
 
@@ -112,16 +115,24 @@ namespace SAFplus
 	RETAINED = 0x20, // If all instances are closed, this checkpoint is not automatically removed
 	LOCAL =    0x40, // This checkpoint exists only on this blade.
         VARIABLE_SIZE = 0x80,  // Pass this into maxSize to dynamically re-allocate when needed
+        CHANGE_ANNOTATION = 0x100,  // DEFAULT: Change ids are incorporated into each record.
+        CHANGE_LOG        = 0x200,  // Changes are tracked in a separate log
         EXISTING = 0x1000, // This checkpoint must be already in existence.  In this case, no other flags need to be passed since the existing checkpoint's flags will be used. 
       };
 
     Checkpoint(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0)  // Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created and a new handle assigned
-    { init(handle,flags,size,rows);}
+    { 
+    init(handle,flags,size,rows);
+    }
     
     Checkpoint(uint_t flags,uint_t size=0, uint_t rows=0)  // Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.
-    { init(SAFplus::Handle::create(),flags,size,rows);}
+    { 
+    Handle hdl = SAFplus::Handle::create();
+    init(hdl,flags,size,rows);
+    }
 
-    Checkpoint():hdr(NULL),flags(0) {}  // 2 step initialization
+    Checkpoint():hdr(NULL),flags(0),sync(NULL) {}  // 2 step initialization
+    ~Checkpoint();
     void init(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0);
 
     // TBD when name service is ready; just resolve name to a handle, or create a name->new handle->new checkpoint object mapping if the name does not exist.
@@ -208,12 +219,16 @@ namespace SAFplus
     static void dbgRemove(char* name);
     void stats();
   protected:
+    friend class SAFplusI::CkptSynchronization;
     //boost::interprocess::shared_memory_object* sharedMemHandle;
     //boost::interprocess::mapped_region       mr;
     boost::interprocess::managed_shared_memory msm;
     SAFplusI::CkptBufferHeader*     hdr;
     SAFplusI::CkptHashMap*          map;
     uint_t                        flags;
+    bool isSyncReplica;
+    SAFplusI::CkptSynchronization* sync;  // This is a separate object (and pointer) to break the synchronization requirements (messaging and groups) from the core checkpoint
+    bool electSynchronizationReplica();  // Returns true if this process is the synchronization replica.
   };
 }
 

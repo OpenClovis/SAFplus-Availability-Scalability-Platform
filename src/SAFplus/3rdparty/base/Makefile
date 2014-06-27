@@ -75,7 +75,7 @@ GLIB_VER=2.28.5
 GLIB_PKG=$(GLIB)-$(GLIB_VER).tar.gz
 
 ZLIB=zlib
-ZLIB_VER=1.2.7
+ZLIB_VER=1.2.8
 ZLIB_PKG=$(ZLIB)-$(ZLIB_VER).tar.gz
 
 DBUS=dbus
@@ -155,7 +155,13 @@ else
 XconfNETSNMP_PKG:=
 endif
 
-all: $(InstDir) $(NETSNMP) $(OPENHPI) $(OPENHPISUBAGENT) $(LIBXML2) $(BOOST)
+libs: $(InstDir) $(NETSNMP) $(LIBXML2) $(BOOST)
+	echo building libs
+
+# $(OPENHPI) $(OPENHPISUBAGENT)
+all: $(InstDir) $(NETSNMP)  $(LIBXML2) $(BOOST)
+
+
 
 $(InstDir):
 	mkdir -p $@

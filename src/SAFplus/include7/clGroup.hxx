@@ -107,9 +107,13 @@ namespace SAFplus
       void init(SAFplus::Handle groupHandle);
 
       // Named group uses the name service to resolve the name to a handle
-      Group(std::string name,int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT);
+      Group(const std::string& name,int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT);
 
       // register a member of the group.  This is separate from the constructor so someone can iterate through members of the group without being a member.  Caller owns data when register returns.
+      // @param: credentials: a number that must be unique across all members of the group.  Highest credential wins the election.
+      // @param: data, dataLength:  a group member can provide some arbitrary data that other group members can see
+      // @param: capabilities: whether this entity can become active/standby and IS this entity currently active/standby (latter should always be 0, Group will elect)
+      // @param: needNotify: Callback whenever group membership changes?
       void registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify = true);
 
       void registerEntity(GroupIdentity grpIdentity,bool needNotify = true);

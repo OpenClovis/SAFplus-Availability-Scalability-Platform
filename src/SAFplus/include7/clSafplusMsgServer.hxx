@@ -42,7 +42,8 @@ namespace SAFplus
     {
         public:
             SafplusMsgServer() {};
-            SafplusMsgServer(ClWordT port, ClWordT maxPendingMsgs = 0, ClWordT maxHandlerThreads = 1, Options flags = DEFAULT_OPTIONS);
+            SafplusMsgServer(ClWordT port, ClWordT maxPendingMsgs = 0, ClWordT maxHandlerThreads = 1, Options flags = DEFAULT_OPTIONS) { init(port, maxPendingMsgs, maxHandlerThreads, flags); }
+            void init(ClWordT port, ClWordT maxPendingMsgs = 0, ClWordT maxHandlerThreads = 1, Options flags = DEFAULT_OPTIONS);
             ~SafplusMsgServer() {
                 msgSendConditionMutex.notify_all();
             };
@@ -84,8 +85,8 @@ namespace SAFplus
             Mutex      msgSendReplyMutex;
             ThreadCondition msgSendConditionMutex;
     };
-}
 
-extern SAFplus::SafplusMsgServer safplusMsgServer;
+extern SAFplus::SafplusMsgServer safplusMsgServer;  // Application needs to initialize this with the proper port, etc before use
+}
 
 #endif /* CLSAFPLUSMSGSERVER_HXX_ */

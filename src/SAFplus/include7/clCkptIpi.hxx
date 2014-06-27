@@ -1,7 +1,7 @@
 #ifndef clCkptIpi_hxx
 #define clCkptIpi_hxx
 // Standard includes
-
+#include <boost/thread.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/interprocess/allocators/allocator.hpp>
 #include <boost/interprocess/errors.hpp>
@@ -18,6 +18,9 @@
 namespace SAFplus
 {
   class Buffer;
+  class Checkpoint;
+  class Group;
+  class MsgServer;
 }
 
 namespace SAFplusI
@@ -35,7 +38,17 @@ namespace SAFplusI
   typedef boost::interprocess::allocator<CkptMapValue, boost::interprocess::managed_shared_memory::segment_manager> CkptAllocator;
   //typedef boost::unordered_map < CkptMapKey, CkptMapValue, boost::hash<CkptMapKey>, std::equal_to<CkptMapValue>, CkptAllocator> CkptHashMap;
   typedef boost::unordered_map < CkptMapKey, CkptMapValue, boost::hash<CkptMapKey>, BufferPtrContentsEqual, CkptAllocator> CkptHashMap;
- 
+
+  class CkptSynchronization
+    {
+    public:
+    SAFplus::Checkpoint* ckpt;
+    SAFplus::Group* group;  // Needs to be a pointer to break circular includes
+    boost::thread syncThread;
+    void init(SAFplus::Checkpoint* c,SAFplus::MsgServer* msgSvr=NULL);
+
+    void operator()();  // Thread thunk
+    };
   
     enum
     {
@@ -46,8 +59,11 @@ namespace SAFplusI
     {
     public:
         uint64_t structId;
-        pid_t    serverPid;  // This is used to ensure that 2 servers don't fight for the logs...
-        SAFplus::Handle handle;
+        pid_t    serverPid;     // This is used to ensure that 2 servers don't fight for the logs...
+        uint32_t generation;    // If this replica's generation does not match the master, this replica's data is too old to do anything.
+        uint32_t changeNum;     // This monotonically increasing value indicates when changes were made for delta synchronization.
+        SAFplus::Handle handle; // The Checkpoint table handle -- identifies this checkpoint
+        SAFplus::Handle replicaHandle;  // Identifies this instance of the checkpoint
     };
 
   class BufferPtr:public boost::interprocess::offset_ptr<SAFplus::Buffer>

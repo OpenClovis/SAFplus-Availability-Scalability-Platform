@@ -17,6 +17,7 @@
 
 namespace SAFplus
 {
+  class Buffer;
 
   typedef uint64_t U64;
   #define ENDIAN_SWAP_U64(val) ((U64) ( \

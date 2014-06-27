@@ -9,8 +9,10 @@ namespace SAFplusI
     };
 
   enum
-  {
-  AMF_REQ_HANDLER_TYPE = 17,
-  AMF_REPLY_HANDLER_TYPE = 18,
-  };
+    {
+    AMF_REQ_HANDLER_TYPE = 17,
+    AMF_REPLY_HANDLER_TYPE = 18,
+    CKPT_SYNC_MSG_TYPE = 3,
+    GRP_MSG_TYPE = 4,
+    };
   }

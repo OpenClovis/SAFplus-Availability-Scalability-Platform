@@ -99,10 +99,19 @@ $(SAFPLUS_TARGET)/bin/safplus_amf:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/amf7/server
 endif
 
+ifndef SAFPLUS_RPC_LIB
+$(SAFPLUS_TARGET)/bin/protoc-gen-rpc:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/rpc
+endif
+
 SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testCkpt $(TEST_DIR)/testmgt $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine
 
 SAFplusServices := $(SAFPLUS_TARGET)/bin/safplus_amf
 # $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
+
+SAFplusTools := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
+
+
 
 cleanall:
 	rm -rf $(SAFplusTests) $(SAFplusSOs) $(SAFplusServices) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*

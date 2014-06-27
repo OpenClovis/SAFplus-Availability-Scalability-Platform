@@ -22,23 +22,31 @@ std::size_t SAFplusI::hash_value(BufferPtr const& b)  // Actually hashes the buf
     {
       if (!b) return 0; // Hash NULL to 0
       return hash_value(*b);
-    }    
+    }
 
 
 bool SAFplusI::BufferPtrContentsEqual::operator() (const BufferPtr& x, const BufferPtr& y) const
 {
-    
   bool result = (*x==*y);
   SAFplus::Buffer* xb = x.get();
   SAFplus::Buffer* yb = y.get();
   //printf("buffer ptr compare: %p (%d:%d) and %p (%d.%d) -> %d\n", xb, xb->len(), *((uint_t*)xb->data),yb,yb->len(), *((uint_t*)yb->data),result);
   return result;
-      
+}
+
+SAFplus::Checkpoint::~Checkpoint()
+{
+  if (isSyncReplica) { assert(sync); delete sync; }
 }
 
 void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uint_t rows)
 {
+  // All constructors funnel through this init routine.
+
   flags = _flags;
+  if (flags & REPLICATED)
+    if (!(flags & CHANGE_LOG)) flags |= CHANGE_ANNOTATION; // Change annotation is the default delta replication mechanism
+
   char tempStr[81];
   if (hdl==INVALID_HDL)
     {
@@ -53,42 +61,76 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
   hdl.toStr(tempStr);
   //strcpy(tempStr,"test");  // DEBUGGING always uses one segment
 
-  if (flags & EXISTING)  // Try to create it first if the flags don't require that it exists.
+  if (flags & SHARED)
     {
-        msm = managed_shared_memory(open_only, tempStr);  // will raise something if it does not exist
-    }
-  else
-    {
-      msm = managed_shared_memory(open_or_create, tempStr, size);
-    }
 
-  try
-    {
+    if (flags & EXISTING)  // Try to create it first if the flags don't require that it exists.
+      {
+      msm = managed_shared_memory(open_only, tempStr);  // will raise something if it does not exist
+      }
+    else
+      {
+      msm = managed_shared_memory(open_or_create, tempStr, size);
+      }
+
+    try
+      {
       hdr = msm.construct<SAFplusI::CkptBufferHeader>("header") ();                                 // Ok it created one so initialize
-      hdr->handle = hdl;
-      hdr->serverPid = getpid();
+      hdr->handle     = hdl;
+      hdr->replicaHandle = Handle::create();
+      hdr->serverPid  = getpid();
+      hdr->generation = 0;
+      hdr->changeNum  = 0;
       hdr->structId=SAFplusI::CL_CKPT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
-    }
-  catch (interprocess_exception &e)
-    {
+      }
+    catch (interprocess_exception &e)
+      {
       if (e.get_error_code() == already_exists_error)
 	{
-	  hdr = msm.find_or_construct<SAFplusI::CkptBufferHeader>("header") ();                         //allocator instance
-          int retries=0;
-	  while ((hdr->structId != CL_CKPT_BUFFER_HEADER_STRUCT_ID_7)&&(retries<2)) { retries++; sleep(1); }  // If another process just barely beat me to the creation, I better wait.
-	  if (retries>=2)
-	    {
-	      hdr->handle = hdl;
-	      hdr->serverPid = getpid();
-	      hdr->structId=SAFplusI::CL_CKPT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
-	    }
+        hdr = msm.find_or_construct<SAFplusI::CkptBufferHeader>("header") ();                         //allocator instance
+        int retries=0;
+        while ((hdr->structId != CL_CKPT_BUFFER_HEADER_STRUCT_ID_7)&&(retries<2)) { retries++; sleep(1); }  // If another process just barely beat me to the creation, I better wait.
+        if (retries>=2)
+          {
+          hdr->handle     = hdl;
+          hdr->replicaHandle = Handle::create();
+          hdr->serverPid  = getpid();
+          hdr->generation = 0;
+          hdr->changeNum  = 0;
+          hdr->structId   = SAFplusI::CL_CKPT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
+          }
           
 	}
       else throw;
+      }
+    
+    map = msm.find_or_construct<CkptHashMap>("table")  ( rows, boost::hash<CkptMapKey>(), BufferPtrContentsEqual(), msm.get_allocator<CkptMapPair>());
+    }
+  else
+    {
+    hdr = new SAFplusI::CkptBufferHeader();
+    assert(0);
+    //map = new SAFplusI::CkptHashMap(rows, boost::hash<CkptMapKey>(), BufferPtrContentsEqual());
+    }
+  
+  if (flags & REPLICATED)
+    {
+    isSyncReplica = electSynchronizationReplica();
+    }
+  else  // LOCAL-only checkpoints do not synchronize with other nodes.
+    {
+    isSyncReplica = false;
     }
 
-  //map = msm.find_or_construct<CkptHashMap>("table")  ( rows, boost::hash<CkptMapKey>(), std::equal_to<CkptMapValue>(), msm.get_allocator<CkptMapPair>());
-  map = msm.find_or_construct<CkptHashMap>("table")  ( rows, boost::hash<CkptMapKey>(), BufferPtrContentsEqual(), msm.get_allocator<CkptMapPair>());
+#if 0
+  if (isSyncReplica) 
+    { 
+    sync = new CkptSynchronization(); 
+    sync->init(this); 
+    }
+#else
+  sync= NULL;
+#endif
 
   //assert(sharedMemHandle);
   assert(hdr);
@@ -100,7 +142,7 @@ const Buffer& SAFplus::Checkpoint::read (const Buffer& key) const
   //SAFplusI::BufferPtr& v = (*map)[SAFplusI::BufferPtr((Buffer*)&key)];  // Key is not change, but I have to cast it b/c consts are not carried thru
 
   CkptHashMap::iterator contents = map->find(SAFplusI::BufferPtr((Buffer*)&key));
-  
+
   if (contents != map->end()) // if (curval)  // record already exists; overwrite
     {
       SAFplusI::BufferPtr& curval = contents->second;
@@ -193,8 +235,11 @@ bool SAFplus::Buffer::isNullT() const { return (refAndLen&NullTMask)>0; }
 
 void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transaction& t)
 {
+  // All write operations are funneled through this function.
+
   //Buffer* existing = read(key);
   uint_t newlen = value.len();
+  uint32_t change = hdr->changeNum++;   // TODO transactional write could all have the same changenum...
 
   //SAFplusI::BufferPtr& curval = (*map)[SAFplusI::BufferPtr((Buffer*)&key)];  // curval is a REFERENCE to the value in the hash table so we can overwrite it to change the value...
   CkptHashMap::iterator contents = map->find(SAFplusI::BufferPtr((Buffer*)&key));
@@ -208,7 +253,8 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
             {
               if (curval->len() == newlen) {// lengths are the same, most efficient is to just copy the new data onto the old.
                 //memcpy (curval->data,value.data,newlen);
-		*curval = value;
+                *curval = value;
+                if (flags & CHANGE_ANNOTATION) curval->setChangeNum(change);
                 return;
               }
             }
@@ -216,7 +262,8 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
           SAFplus::Buffer* v = new (msm.allocate(newlen+sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (newlen);  // Place a new buffer object into the segment, -1 b/c data is a 1 byte char already
           SAFplus::Buffer* old = curval.get();
           *v = value;
-          curval = v;
+          if (flags & CHANGE_ANNOTATION) v->setChangeNum(change);
+          curval = v;          
           if (old->ref()==1) 
             msm.deallocate(old);  // if I'm the last owner, let this go.
           else 
@@ -226,10 +273,13 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
     }
 
   // No record exists, add a new one.
-  SAFplus::Buffer* k = new (msm.allocate(key.len()+sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (key.len());  // Place a new buffer object into the segment
+  int klen =key.len()+sizeof(SAFplus::Buffer)-1; 
+  SAFplus::Buffer* k = new (msm.allocate(klen)) SAFplus::Buffer (key.len());  // Place a new buffer object into the segment
   *k = key;
+  if (flags & CHANGE_ANNOTATION) k->setChangeNum(change);
   SAFplus::Buffer* v = new (msm.allocate(newlen+sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (newlen);  // Place a new buffer object into the segment
   *v = value;
+  if (flags & CHANGE_ANNOTATION) v->setChangeNum(change);  // TODO: putting the change number in both the key is unnecessary
   SAFplusI::BufferPtr kb(k),kv(v);
   SAFplusI::CkptMapPair vt(kb,kv);
   map->insert(vt);
@@ -307,7 +357,7 @@ void SAFplus::Checkpoint::dump()
   for(CkptHashMap::const_iterator iter = map->cbegin(); iter != map->cend(); iter++)
      {
        CkptHashMap::value_type t = *iter;
-       if (t.first) printf("%d:%u ->", t.first->len(),*((uint_t*) t.first->data));
+       if (t.first) printf("%d:%s ->", t.first->len(),((char*) t.first->data));
        if (t.second)
 	 printf(" %d:%s\n", t.second->len(),t.second->data);
        else printf(" nada\n");

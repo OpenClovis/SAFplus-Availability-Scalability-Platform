@@ -33,7 +33,7 @@
 #include <clLogUtilApi.h>
 #include <clLogApi.h>
 
-#warning SAFplus6 clDbg.h is being included
+//#warning SAFplus6 clDbg.h is being included
 
 #ifdef __cplusplus
 extern "C" {

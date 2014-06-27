@@ -407,7 +407,7 @@ int main(int argc, char* argv[])
 
   loadAmfPlugins(amfOps);
 
-#ifdef GRP  
+#ifdef GRP
   clusterGroup.init(CLUSTER_GROUP);
   clusterGroup.setNotification(somethingChanged);
 #endif

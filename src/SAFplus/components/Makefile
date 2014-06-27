@@ -56,7 +56,7 @@ ifeq ($(SAFPLUS_BUILD_JAVA), 1)
 	SUBDIRS += java
 endif
 ifeq ($(SAFPLUS_BUILD_CPP), 1)
-        SUBDIRS += cpp
+#        SUBDIRS += cpp
 endif
 
 #

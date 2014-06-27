@@ -201,7 +201,8 @@ int testGroupElect(int mode)
 int testRegisterAndDeregister(int mode)
 {
   cout << "TC: GROUP REGISTER AND DEREGISTER START \n";
-  Group gms(__FUNCTION__,mode);
+  const std::string s = __FUNCTION__;
+  Group gms(s,mode);
 
   cout << "TC: Register entity \n";
   EntityIdentifier entityId1 = SAFplus::Handle::create();

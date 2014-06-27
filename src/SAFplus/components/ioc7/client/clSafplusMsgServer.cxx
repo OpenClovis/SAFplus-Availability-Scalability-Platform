@@ -24,9 +24,12 @@
 
 namespace SAFplus
 {
-    SAFplus::SafplusMsgServer::SafplusMsgServer(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads, Options flags) :
-                    MsgServer(port, maxPendingMsgs, maxHandlerThreads, flags)
-    {
+    SafplusMsgServer safplusMsgServer;
+
+    void SAFplus::SafplusMsgServer::init(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads, Options flags)
+      {
+        MsgServer::Init(port, maxPendingMsgs, maxHandlerThreads, flags);
+    
         MsgHandler *replyHandler = new MsgReplyHandler();
         this->RegisterHandler(CL_IOC_SAF_MSG_REPLY_PROTO, replyHandler, &msgReply);
     }
