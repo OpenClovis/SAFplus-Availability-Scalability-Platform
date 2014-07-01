@@ -5,6 +5,7 @@ This module provides interfaces to access the DBAL provided by SAFplus library.
 """
 import pdb
 import os, sys
+import re
 import pyDbal
 import microdom
 from common import *
@@ -36,6 +37,9 @@ PREDICATE_KEY_END = ']'
 
 def key_to_xml(s):
   s = s.replace("_",":")
+  #tag without array index
+  #/c[1] => /c
+  s = s.split("[")[0]
   return s
 
 def getErrorString(errCode):
@@ -168,20 +172,56 @@ class PyDBAL():
     def _transformAttr(self, next, token):
         predicate = []
         attributes = {}
-        while 1:
+
+        #This is attribute value of a node element
+        #Ex: /a/b/c[1]@name => attribute 'name'
+        if token[0] == "@":
             token = next()
-            if token[0] == "]":
-                break
-            if token[0] and token[0][:1] in "'\"":
-                token = "'", token[0][1:-1]
-            predicate.append(token[1])
-        while len(predicate)>3:
-            key = predicate[1]
-            value = predicate[3]
-            # shift left
-            predicate = predicate[5:]
-            attributes[key_to_xml(key)] = value
+            return token[1]
+
+        #This is [list] attribute value of a node element
+        #Ex: /a/b/c[@name="foo" @id="bar"] => attributes {name=foo, id=bar}
+        if token[0] == "[":
+            while 1:
+                token = next()
+                if token[0] == "]":
+                    break
+                if token[0] and token[0][:1] in "'\"":
+                    token = "'", token[0][1:-1]
+                predicate.append(token[1])
+
+            #This is array index [1] ... [2] ...(already combine with @attributes)
+            if not re.match("\d+$", predicate[0]):
+                while len(predicate)>3:
+                    key = predicate[1]
+                    value = predicate[3]
+                    # shift left
+                    predicate = predicate[5:]
+                    attributes[key_to_xml(key)] = value
+
         return attributes
+
+    def _buildNode(self, current_xpath):
+        current_elemment = None
+        p_parent_xpath = None
+        try:
+            current_elemment = self.mapparentelem[current_xpath]
+        except:
+            try:
+                p_parent_xpath = current_xpath[:current_xpath.rfind("/")]
+                token = current_xpath[current_xpath.rfind("/") + 1:]
+
+                #Get current element with xpath:current_xpath if exists
+                parent_elemment = self.mapparentelem[p_parent_xpath]
+
+                current_elemment = ET.Element(key_to_xml(token))
+                self.mapparentelem[current_xpath] = current_elemment
+                parent_elemment.append(current_elemment)
+
+            except:
+                """ Backward up level of parent xpath """
+                current_elemment = self._buildNode(p_parent_xpath)
+        return current_elemment
 
     """ Export to cfg xml from binary database """
     def ExportXML(self, filename = None):
@@ -189,88 +229,75 @@ class PyDBAL():
 
         # Tree root node
         root = None
-        mapparentelem = {}
-        try:
-            for xpath in self.Iterators():
-                next = iter(ElementPath.xpath_tokenizer(xpath)).next
 
-                # For each leaf node on xpath
-                current_elemment = root
+        #Map to store xpath and ElementXpath
+        self.mapparentelem = {}
+        for xpath in self.Iterators():
+            #Is attribute xpath? /a/b/c@name => attr name
+            attr_xpath = False 
 
-                #parent xpath
-                pelem_xpath = None
+            value = str(self.Read(xpath))
+            next = iter(ElementPath.xpath_tokenizer(xpath)).next
 
-                #current xpath token
-                celem_xpath = None
+            #For each leaf node on xpath
+            current_elemment = root
 
-                while 1:
-                    try:
+            #parent xpath
+            parent_xpath = None
+
+            #current xpath token
+            current_xpath = None
+
+            while 1:
+                try:
+                    token = next()
+                    if token[0] == "/":
                         token = next()
-                        if token[0] == "/":
-                            token = next()
-                            index = xpath.find(token[1])
-                            if index>1:
-                                pelem_xpath = "%s" %(xpath[:index-1])
+                        index = xpath.rfind(token[1])
+                        if index > 0:
+                            parent_xpath = "%s" %(xpath[:index-1])
 
-                                index_cur = xpath.find("/", len(pelem_xpath) + 1)
+                            #Get xpath assume suffix is leaf
+                            index_cur = xpath.rfind("/", len(parent_xpath) + 1)
+                            if index_cur>0:
+                                current_xpath = xpath[0:index_cur]
+                            else:
+                                #Get xpath until match '@', assume suffix is attr name  
+                                index_cur = xpath.rfind("@", len(parent_xpath) + 1)
                                 if index_cur>0:
-                                    celem_xpath = xpath[0:index_cur]
+                                    current_xpath = xpath[0:index_cur]
                                 else:
-                                    celem_xpath = xpath
+                                    current_xpath = xpath
 
                             if root is None:
                                 root = ET.Element(key_to_xml(token[1]))
                                 current_elemment = root
-                                mapparentelem["/%s" %token[1]] = current_elemment
+                                self.mapparentelem["/%s" %token[1]] = current_elemment
                             else:
-                                try:
-                                    #Get current element with xpath:celem_xpath if exists
-                                    current_elemment = mapparentelem[celem_xpath]
-                                except Exception, e:
-                                    try:
-                                        #Build current element with xpath: celem_xpath
-                                        current_elemment = ET.Element(key_to_xml(token[1]))
-                                        mapparentelem[celem_xpath] = current_elemment
-
-                                        #Try to find parent element with xpath:pelem_xpath
-                                        pelem = mapparentelem[pelem_xpath]
-                                        pelem.append(current_elemment)
-                                    except Exception, e:
-                                        """ Backward up level of parent xpath """
-
-                                        #xpath of parent's parent
-                                        parent_pelem_xpath = pelem_xpath[:pelem_xpath.rfind("/")]
-
-                                        #element tag of parent
-                                        parent_token = pelem_xpath[pelem_xpath.rfind("/") + 1 :]
-                                        try:
-                                            #Build parent element
-                                            pelem = ET.Element(key_to_xml(parent_token))
-                                            pelem.append(current_elemment)
-                                            mapparentelem[pelem_xpath] = pelem
-
-                                            #Try to find parent element with xpath:parent_pelem_xpath (up to only one level)
-                                            parent_elem = mapparentelem[parent_pelem_xpath]
-                                            parent_elem.append(pelem)
-                                        except Exception, e:
-                                            pass
-                        else:
-                            attributes = self._transformAttr(next, token)
+                                current_elemment = self._buildNode(current_xpath)
+                    else:
+                        attributes = self._transformAttr(next, token)
+                        #attributes type: /a/b/c[1]@name => /a/b/c[name="value"]
+                        if type(attributes) == str:
+                            attr_xpath = True
+                            current_elemment.attrib[attributes] = value
+                        #attributes type: /a/b/c[name="foo" id="bar"]/name => /a/b/c[name="foo" id="bar"]
+                        elif len(attributes) > 0:
                             current_elemment.attrib = attributes
 
-                    except Exception, e:
-                        break
-            
-                current_elemment.text = str(self.Read(xpath))
-    
-            #Write to xml or stdout
-            if filename is None:
-                filename = "%s.xml" %self.dbName
-    
-            elmtree = ET.ElementTree(root)
-            elmtree.write(filename)
-        except:
-            pass
+                except StopIteration:
+                    break
+
+            if attr_xpath == False:
+                current_elemment.text = value
+
+        #Write to xml or stdout
+        if filename is None:
+            filename = "%s.xml" %self.dbName
+
+        elmtree = ET.ElementTree(root)
+        elmtree.write(filename)
+
 
     def Finalize(self):
         pyDbal.finalizeDbal()
