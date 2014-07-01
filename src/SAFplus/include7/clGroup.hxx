@@ -29,12 +29,16 @@ namespace SAFplusI
 
 namespace SAFplus
 {
+  class GroupIdentity;
   typedef SAFplus::Handle EntityIdentifier;
   typedef EntityIdentifier  GroupMapKey;
-  typedef void*             GroupMapValue;
+  typedef GroupIdentity     GroupMapValue;
+  typedef void*             DataMapValue;
 
   typedef std::pair<const GroupMapKey,GroupMapValue> GroupMapPair;
+  typedef std::pair<const GroupMapKey,DataMapValue> DataMapPair;
   typedef boost::unordered_map < GroupMapKey, GroupMapValue> GroupHashMap;
+  typedef boost::unordered_map < GroupMapKey, DataMapValue> DataHashMap;
 
   class GroupIdentity
   {
@@ -64,6 +68,14 @@ namespace SAFplus
         this->credentials = credentials;
         this->capabilities = capabilities;
         this->dataLen = datalen;
+      }
+      void dumpInfo()
+      {
+        logInfo("GMS", "---","Dumping GroupIdentity at %x",this);
+        logInfo("GMS", "---","ID: 0x%x 0x%x",id.id[0],id.id[1]);
+        logInfo("GMS", "---","CREDENTIALS: 0x%x ",credentials);
+        logInfo("GMS", "---","CAPABILITY: 0x%x ",capabilities);
+        logInfo("GMS", "---","DATA LENGTH: 0x%x ",dataLen);
       }
   };
 
@@ -162,7 +174,7 @@ namespace SAFplus
       // Allow active/standby to be active/standby again
       bool                              stickyMode;
 
-      typedef SAFplus::GroupMapPair KeyValuePair;
+      typedef SAFplus::DataMapPair KeyValuePair;
       // std template like iterator
       class Iterator
       {
@@ -185,9 +197,9 @@ namespace SAFplus
         const KeyValuePair* operator->() const { return curval; }
 
         Group* group;
-        SAFplus::GroupMapPair* curval;
+        SAFplus::DataMapPair* curval;
 
-        SAFplus::GroupHashMap::iterator iter;
+        SAFplus::DataHashMap::iterator iter;
       };
       // Group iterator
       Iterator begin();
@@ -255,7 +267,7 @@ namespace SAFplus
     protected:
       static SAFplus::Checkpoint        mGroupCkpt;             // The checkpoint where storing entity information if mode is CHECKPOINT
       SAFplus::GroupHashMap             mGroupMap;              // The map where store entity information if mode is MEMORY
-      SAFplus::GroupHashMap             groupDataMap;           // The map where store entity associated data
+      SAFplus::DataHashMap              groupDataMap;           // The map where store entity associated data
       SAFplus::Handle                   handle;                 // The handle of this group, store/retrieve from name
       SAFplus::Wakeable*                wakeable;               // Wakeable object for async communication
       EntityIdentifier                  activeEntity;           // Current active entity

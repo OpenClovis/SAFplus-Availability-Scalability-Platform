@@ -121,7 +121,7 @@ ClRcT SAFplus::Group::iocNotificationCallback(ClIocNotificationT *notification, 
       {
         SAFplus::Handle groupHdl = *(SAFplus::Handle *)cookie;
         Group *instance = (Group *)name.get(groupHdl);
-        for (SAFplus::GroupHashMap::iterator i = instance->groupDataMap.begin();i != instance->groupDataMap.end();i++)
+        for (SAFplus::DataHashMap::iterator i = instance->groupDataMap.begin();i != instance->groupDataMap.end();i++)
         {
           EntityIdentifier curIter = i->first;
           if(curIter.getNode() == nodeAddress)
@@ -555,7 +555,7 @@ void  SAFplus::Group::sendNotification(void* data, int dataLength, GroupMessageS
 void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify)
 {
   /* Find existence of the entity */
-  GroupHashMap::iterator contents = groupDataMap.find(me);
+  DataHashMap::iterator contents = groupDataMap.find(me);
 
   /* The entity was not exits, insert  */
   if (contents == groupDataMap.end())
@@ -567,22 +567,20 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
     char vkey[sizeof(EntityIdentifier) + sizeof(SAFplus::Buffer)-1];
     SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
     memcpy(key->data,&me,sizeof(EntityIdentifier));
-
-    GroupIdentity *groupIdentity = new GroupIdentity();
-    groupIdentity->id = me;
-    groupIdentity->credentials = credentials;
-    groupIdentity->capabilities = capabilities;
-    groupIdentity->dataLen = dataLength;
-    writeToDatabase(key,(void *)groupIdentity);
-
+    GroupIdentity groupIdentity;
+    groupIdentity.id = me;
+    groupIdentity.credentials = credentials;
+    groupIdentity.capabilities = capabilities;
+    groupIdentity.dataLen = dataLength;
+    writeToDatabase(key,(void *)&groupIdentity);
     /* Store associated data */
-    SAFplus::GroupMapPair vt(me,const_cast < void * > (data));
+    SAFplus::DataMapPair vt(me,const_cast < void * > (data));
     groupDataMap.insert(vt);
 
     /* Store my node information */
     if(me.getNode() == clIocLocalAddressGet())
     {
-      myInformation = *groupIdentity;
+      myInformation = groupIdentity;
     }
     logDebug("GMS", "REG","Entity registration successful");
     /* Notify other entities about new entity*/
@@ -611,8 +609,11 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
     GroupIdentity *groupIdentity = (GroupIdentity *)readFromDatabase(key);
     if(!groupIdentity)
     {
-      groupIdentity = new GroupIdentity();
+      /* Found entity but can't read its information. Memory corruption occured */
+      logError("GMS","REG","Invalid entity information");
+      assert(0);
     }
+    /* Update entity information */
     groupIdentity->credentials = credentials;
     groupIdentity->capabilities = capabilities;
     groupIdentity->dataLen = dataLength;
@@ -627,7 +628,7 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
     /* Update data associate with the entity */
     /* User should take responsibile for freeing un-used buffer here */
     groupDataMap.erase(contents);
-    SAFplus::GroupMapPair vt(me,const_cast < void * > (data));
+    SAFplus::DataMapPair vt(me,const_cast < void * > (data));
     groupDataMap.insert(vt);
     logDebug("GMS", "REG","Entity exits. Updated its information");
   }
@@ -650,7 +651,7 @@ void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
     me = lastRegisteredEntity;
   }
   /* Find existence of the entity */
-  GroupHashMap::iterator contents = groupDataMap.find(me);
+  DataHashMap::iterator contents = groupDataMap.find(me);
 
   if(contents == groupDataMap.end())
   {
@@ -717,7 +718,7 @@ void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
     me = lastRegisteredEntity;
   }
   /* Find existence of the entity */
-  GroupHashMap::iterator contents = groupDataMap.find(me);
+  DataHashMap::iterator contents = groupDataMap.find(me);
 
   if(contents == groupDataMap.end())
   {
@@ -730,6 +731,12 @@ void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
   memcpy(key->data,&me,sizeof(EntityIdentifier));
 
   GroupIdentity *grp = (GroupIdentity *)readFromDatabase(key);
+  if(grp == NULL)
+  {
+    /* Found entity but can't read its information. Memory corruption occured */
+    logError("GMS","CAP","Invalid entity information");
+    assert(0);
+  }
   grp->capabilities = capabilities;
 
   /* Update my node information */
@@ -745,7 +752,7 @@ void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
 uint SAFplus::Group::getCapabilities(EntityIdentifier id)
 {
   /*Check in share memory if entity exists*/
-  GroupHashMap::iterator contents = groupDataMap.find(id);
+  DataHashMap::iterator contents = groupDataMap.find(id);
 
   if(contents == groupDataMap.end())
   {
@@ -758,6 +765,12 @@ uint SAFplus::Group::getCapabilities(EntityIdentifier id)
   memcpy(key->data,&id,sizeof(EntityIdentifier));
 
   GroupIdentity *grp = (GroupIdentity *)readFromDatabase(key);
+  if(grp == NULL)
+  {
+    /* Found entity but can't read its information. Memory corruption occured */
+    logError("GMS","CAP","Invalid entity information");
+    assert(0);
+  }
   return grp->capabilities;
 }
 /**
@@ -766,7 +779,7 @@ uint SAFplus::Group::getCapabilities(EntityIdentifier id)
 void* SAFplus::Group::getData(EntityIdentifier id)
 {
   /*Check in share memory if entity exists*/
-  GroupHashMap::iterator contents = groupDataMap.find(id);
+  DataHashMap::iterator contents = groupDataMap.find(id);
 
   if(contents == groupDataMap.end())
   {
@@ -792,7 +805,7 @@ EntityIdentifier SAFplus::Group::electARole(EntityIdentifier ignoreMe)
   {
     requiredCapabilities = SAFplus::Group::ACCEPT_STANDBY;
   }
-  for (GroupHashMap::iterator i = groupDataMap.begin();i != groupDataMap.end();i++)
+  for (DataHashMap::iterator i = groupDataMap.begin();i != groupDataMap.end();i++)
   {
     char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
     SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
@@ -865,7 +878,7 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::elect()
  */
 bool SAFplus::Group::isMember(EntityIdentifier id)
 {
-  GroupHashMap::iterator contents = groupDataMap.find(id);
+  DataHashMap::iterator contents = groupDataMap.find(id);
   if(contents == groupDataMap.end())
   {
     return false;
@@ -944,7 +957,7 @@ void* SAFplus::Group::readFromDatabase(Buffer *key)
     {
       EntityIdentifier eiKey = *((EntityIdentifier *)key->data);
       GroupHashMap::iterator curItem = mGroupMap.find(eiKey);
-      return curItem->second;
+      return (void *)&(curItem->second);
     }
     default:
     {
@@ -976,7 +989,8 @@ void SAFplus::Group::writeToDatabase(Buffer *key, void *val)
       {
         mGroupMap.erase(curItem);
       }
-      SAFplus::GroupMapPair vt(eiKey,val);
+      GroupIdentity *grp = (GroupIdentity *)val;
+      SAFplus::GroupMapPair vt(eiKey,*grp);
       mGroupMap.insert(vt);
       break;
     }
@@ -1006,12 +1020,6 @@ void SAFplus::Group::removeFromDatabase(Buffer* key)
       GroupHashMap::iterator curItem = mGroupMap.find(eiKey);
       if(curItem != mGroupMap.end())
       {
-        GroupIdentity *old = (GroupIdentity *)curItem->second;
-        if(old)
-        {
-          delete old;
-          old = 0;
-        }
         mGroupMap.erase(curItem);
       }
       break;
