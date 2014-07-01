@@ -52,7 +52,7 @@ SRC_FILES	:=  clTxnApi.c                                      \
 
 DEP_COMP_LIST	:= osal timer buffer rmd eo ioc cnt utils debug sm  amf ckpt log
 
-EXTRA_CFLAGS := -I$(TXN_PATH)/common -I$(TXN_PATH)/common/idl/xdr -I$(TXN_PATH)/server
+CFLAGS += -I$(TXN_PATH)/common -I$(TXN_PATH)/common/idl/xdr -I$(TXN_PATH)/server
 
 # Library name:
 

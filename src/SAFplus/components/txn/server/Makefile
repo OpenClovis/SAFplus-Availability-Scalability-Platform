@@ -55,10 +55,10 @@ SRC_FILES	:= clTxnAppMain.c                                   \
 
 DEP_COMP_LIST	:= osal timer buffer rmd eo ioc cnt utils debug sm  amf ckpt log
 
-EXTRA_CFLAGS := -I../common/idl/xdr
+CFLAGS += -I../common/idl/xdr
 
 # List ASP libraries needed to get this server built (or None):
-                                                                                                               
+
 ASP_LIBS       := libClTxnAgent.a      \
                    libClTxnClient.a     \
                    libClCkpt.a          \

@@ -53,8 +53,8 @@ alarm fault om amf name log txn idl
 # added by hand for now:
 DEP_COMP_LIST	+= cnt  
 
-EXTRA_CFLAGS	:= -I$(FAULT_PATH)/idl/xdr -I$(FAULT_PATH)/client
- 	
+CFLAGS	+= -I$(FAULT_PATH)/idl/xdr -I$(FAULT_PATH)/client
+
 CPPFLAGS += -I./ 
 
 # List ASP libraries needed to get this server built (or None):

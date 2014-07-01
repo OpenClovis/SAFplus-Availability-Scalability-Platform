@@ -44,7 +44,7 @@ SRC_FILES	:= clFaultClient.c $(FAULT_PATH)/common/clFaultClientServerCommons.c \
 DEP_COMP_LIST	:= utils osal timer buffer ioc eo rmd cor om alarm cnt debug \
 event idl amf name log
 
-EXTRA_CFLAGS := -I$(FAULT_PATH)/server -I$(FAULT_PATH)/idl/xdr
+CFLAGS += -I$(FAULT_PATH)/server -I$(FAULT_PATH)/idl/xdr
 
 # Library name:
 
