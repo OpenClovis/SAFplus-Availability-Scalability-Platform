@@ -134,7 +134,7 @@ def checkTipc():
     log.debug("checkTipc: %s" % str(res))
     return res
 
-def is_tipc_build(): return  safplus.safplus_getenv('BUILD_TIPC', default='1')
+def is_tipc_build(): return bool(int(safplus.safplus_getenv('BUILD_TIPC', default='1')))
 
 def config_tipc_module():
     if not is_tipc_build():
