@@ -81,10 +81,10 @@ SAFplus::Group::Group(int dataStoreMode,int comPort)
 void SAFplus::Group::init(SAFplus::Handle groupHandle)
 {
   if ((dataStoringMode == SAFplus::Group::DATA_IN_CHECKPOINT)&&(!groupCkptInited))
-    {
+  {
     groupCkptInited=1;
     Group::mGroupCkpt.init(GRP_CKPT, Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
-    }
+  }
 
   /* Store current handle to name service */
   if(handle == INVALID_HDL)
@@ -167,9 +167,9 @@ ClRcT SAFplus::Group::initializeLibraries()
  */
 void SAFplus::Group::startMessageServer()
 {
- if(!groupMsgServer)
+  if(!groupMsgServer)
   {
-  groupMsgServer = &safplusMsgServer;
+    groupMsgServer = &safplusMsgServer;
   }
 
 #if 0  // See Notes on SAFMsgServer and MsgServer...
@@ -180,8 +180,8 @@ void SAFplus::Group::startMessageServer()
   }
 #endif
 
-  GroupMessageHandler *groupMessageHandler = new GroupMessageHandler(this);  // GAS: I would like to see the GroupMessageHandler object be a member of Group to save a "new"
-  groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, groupMessageHandler, NULL);
+  SAFplus::Group::GroupMessageHandler groupMessageHandler(this);
+  groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, &groupMessageHandler, NULL);
 }
 /**
  * Do the real election after timer had expired
@@ -486,8 +486,7 @@ void SAFplus::Group::fillSendMessage(void* data, SAFplusI::GroupMessageTypeT msg
       return;
   }
   char msgPayload[sizeof(Buffer)-1+msgLen];
-  Buffer* buff = new(msgPayload) Buffer(msgLen);
-  GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)buff;
+  GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
   sndMessage->messageType = msgType;
   sndMessage->roleType = roleType;
   sndMessage->force = forcing;
@@ -1079,4 +1078,52 @@ bool SAFplus::Group::Iterator::operator !=(const SAFplus::Group::Iterator& other
   if (group != otherValue.group) return true;
   if (iter != otherValue.iter) return true;
   return false;
+}
+
+SAFplus::Group::GroupMessageHandler::GroupMessageHandler(SAFplus::Group* _group):mGroup(_group)
+{
+
+}
+void SAFplus::Group::GroupMessageHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+{
+  /* If no communication needed, just ignore */
+  if(mGroup == NULL)
+  {
+    return;
+  }
+  /* If message from me, just ignore */
+  if(from.iocPhyAddress.nodeAddress == clIocLocalAddressGet())
+  {
+    logInfo("GMS","MSG","Local message. Ignored");
+    return;
+  }
+  /* Parse the message and process if it is valid */
+  SAFplusI::GroupMessageProtocol *rxMsg = (SAFplusI::GroupMessageProtocol *)msg;
+  if(rxMsg == NULL)
+  {
+    logError("GMS","MSG","Received NULL message. Ignored");
+    return;
+  }
+  switch(rxMsg->messageType)
+  {
+    case SAFplusI::GroupMessageTypeT::MSG_NODE_JOIN:
+      logDebug("GMS","MSG","Node JOIN message");
+      mGroup->nodeJoinHandle(rxMsg);
+      break;
+    case SAFplusI::GroupMessageTypeT::MSG_NODE_LEAVE:
+      logDebug("GMS","MSG","Node LEAVE message");
+      mGroup->nodeLeaveHandle(rxMsg);
+      break;
+    case SAFplusI::GroupMessageTypeT::MSG_ROLE_NOTIFY:
+      logDebug("GMS","MSG","Role CHANGE message");
+      mGroup->roleNotificationHandle(rxMsg);
+      break;
+    case SAFplusI::GroupMessageTypeT::MSG_ELECT_REQUEST:
+      logDebug("GMS","MSG","Election REQUEST message");
+      mGroup->electionRequestHandle(rxMsg);
+      break;
+    default:
+      logDebug("GMS","MSG","Unknown message type [%d] from %d",rxMsg->messageType,from.iocPhyAddress.nodeAddress);
+      break;
+  }
 }

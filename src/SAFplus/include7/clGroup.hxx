@@ -21,7 +21,6 @@
 namespace SAFplusI
 {
   class GroupMessageProtocol;
-  class GroupMessageHandler;
   enum class GroupMessageTypeT;
   enum class GroupRoleNotifyTypeT;
   enum class GroupMessageSendModeT;
@@ -82,7 +81,6 @@ namespace SAFplus
   class Group
   {
     public:
-      friend class SAFplusI::GroupMessageHandler;
       enum
       {
         ACCEPT_STANDBY = 1,  // Can this entity become standby?
@@ -263,6 +261,15 @@ namespace SAFplus
 
       // IOC notification callback
       static ClRcT iocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie);
+
+      // Class to handle peer to peer messages between group services
+      class GroupMessageHandler:public SAFplus::MsgHandler
+      {
+        public:
+          Group* mGroup;
+          GroupMessageHandler(SAFplus::Group *grp=nullptr);
+          void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+      };
 
     protected:
       static SAFplus::Checkpoint        mGroupCkpt;             // The checkpoint where storing entity information if mode is CHECKPOINT
