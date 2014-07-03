@@ -1788,9 +1788,8 @@ def create_tree_for_stubs(t, d):
         port_name = p.attributes['name'].value
         d[port_name] = {}
         use_native_table = p.attributes.get('useNativeTable', None)
-        if use_native_table:
-            if use_native_table.value.lower() == 'true':
-                d[port_name]['use_native_table'] = True
+        if use_native_table and use_native_table.value.lower() == 'true':
+            d[port_name]['use_native_table'] = True
         else:
             d[port_name]['use_native_table'] = False
 
