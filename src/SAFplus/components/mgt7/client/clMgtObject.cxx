@@ -495,14 +495,16 @@ namespace SAFplus
 
   void MgtObject::dbgDumpChildren()
     {
-    MgtObject::Iterator iter;
-    MgtObject::Iterator endd = end();
-    for (iter = begin(); iter != endd; iter++)
-      {
-      const std::string& name = iter->first;
-      MgtObject* obj = iter->second;
-      printf("%s location: %p\n", obj->name.c_str(), obj);
-      }
+      std::stringstream dumpStrStream;
+      MgtObject::Iterator iter;
+      MgtObject::Iterator endd = end();
+      for (iter = begin(); iter != endd; iter++)
+        {
+          const std::string& name = iter->first;
+          MgtObject* obj = iter->second;
+          obj->toString(dumpStrStream);
+        }
+      logDebug("MGT","DUMP", "%s", dumpStrStream.str().c_str());
     }
 
   void deXMLize(const std::string& obj,MgtObject* context, bool& result)

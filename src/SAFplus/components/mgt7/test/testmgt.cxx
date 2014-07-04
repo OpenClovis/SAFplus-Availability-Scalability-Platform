@@ -3,7 +3,10 @@
 #include "clMgtProvList.hxx"
 #include "clMgtList.hxx"
 #include <stdio.h>
+#include <string>
+#include <clLogApi.hxx>
 #include "boost/functional/hash.hpp"
+using namespace std;
 using namespace SAFplus;
 
 
@@ -44,7 +47,7 @@ class multipleKey
         {
           key3 = iter->second;
         }
-        printf("HERE \n");
+        logDebug("MGT","TEST","Building key for object...");
       }
       std::string str()
       {
@@ -77,7 +80,7 @@ void testTransaction01()
 
     if (testVal.value.compare("Init") != 0 )
     {
-        printf("FAIL: testTransaction01 - abort.\n");
+        logDebug("MGT","TEST","FAIL: testTransaction01 - abort.");
         return;
     }
 
@@ -92,11 +95,11 @@ void testTransaction01()
 
     if (testVal.value.compare("Value") != 0 )
     {
-        printf("FAIL: testTransaction01 - set value.\n");
+        logDebug("MGT","TEST","FAIL: testTransaction01 - set value.");
         return;
     }
 
-    printf("PASS: testTransaction01 - ClMgtProv & Transaction.\n");
+    logDebug("MGT","TEST","PASS: testTransaction01 - ClMgtProv & Transaction.");
 }
 
 /*
@@ -124,7 +127,7 @@ void testTransaction02()
 
     if ((testVal.value.size() != 1) || (testVal.value[0].compare("Init") != 0 ))
     {
-        printf("FAIL: testTransaction02 - abort.\n");
+        logDebug("MGT","TEST","FAIL: testTransaction02 - abort.");
         return;
     }
 
@@ -147,7 +150,7 @@ void testTransaction02()
 
     if ((testVal.value.size() != 2) || (testVal.value[0].compare("Value1") != 0 ) || (testVal.value[1].compare("Value2") != 0 ))
     {
-        printf("FAIL: testTransaction02 - set value.\n");
+        logDebug("MGT","TEST","FAIL: testTransaction02 - set value.");
         return;
     }
 
@@ -169,11 +172,11 @@ void testTransaction02()
 
     if ((testVal.value.size() != 2) || (testVal.value[0].compare("Value1") != 0 ) || (testVal.value[1].compare("Value2") != 0 ))
     {
-        printf("FAIL: testTransaction02 - set value again.\n");
+        logDebug("MGT","TEST","FAIL: testTransaction02 - set value again.");
         return;
     }
 
-    printf("PASS: testTransaction02 - ClMgtProvList & Transaction.\n");
+    logDebug("MGT","TEST","PASS: testTransaction02 - ClMgtProvList & Transaction.");
 }
 
 
@@ -197,22 +200,22 @@ void testTransactionExceptions()
       }
     catch(TransactionException& e)
       {
-        printf("FAIL: This case should have passed\n");
+        logDebug("MGT","TEST","FAIL: This case should have passed");
       }
     if ((testVal.value.size() != 1) || (testVal.value[0].compare("Value1") != 0 ))
     {
-        printf("FAIL: transaction did not commit\n");
+        logDebug("MGT","TEST","FAIL: transaction did not commit");
     }    
  
     try
       {     
         testVal.xset(failVal, strlen(failVal), t);
-        printf("FAIL: This should have thrown an exception\n");
+        logDebug("MGT","TEST","FAIL: This should have thrown an exception");
         t.commit();        
       }
     catch(TransactionException& e)
       {
-        printf("TEST: throw ok\n");
+        logDebug("MGT","TEST","TEST: throw ok");
       }
 
     try
@@ -223,15 +226,15 @@ void testTransactionExceptions()
       }
     catch(TransactionException& e)
       {
-        printf("FAIL: This case should have passed\n");
+        logDebug("MGT","TEST","FAIL: This case should have passed");
       }
     if ((testVal.value.size() != 1) || (testVal.value[0].compare("Value2") != 0 ))
     {
-        printf("FAIL: transaction did not commit\n");
+        logDebug("MGT","TEST","FAIL: transaction did not commit");
     }    
     if ((testVal1.value.size() != 1) || (testVal1.value[0].compare("Value1") != 0 ))
     {
-        printf("FAIL: transaction did not commit\n");
+        logDebug("MGT","TEST","FAIL: transaction did not commit");
     }    
 
     
@@ -243,11 +246,11 @@ void testTransactionExceptions()
       }
     catch(TransactionException& e)
       {
-        printf("PASS: This case should have raised an exception\n");
+        logDebug("MGT","TEST","PASS: This case should have raised an exception");
       }
     if ((testVal.value.size() != 1) && (testVal.value[0].compare("Value1") == 0 ))
     {
-        printf("FAIL: transaction should not have committed but value is set!\n");
+        logDebug("MGT","TEST","FAIL: transaction should not have committed but value is set!");
     }    
 }
 
@@ -266,56 +269,56 @@ void testGarbage()
 
     if (testVal.set(strAndLen("<badtag>VALUE</badtag>"), t))
     {
-      printf("FAIL: badtag garbage accepted\n");
+      logDebug("MGT","TEST","FAIL: badtag garbage accepted");
     }
     else
     {
-       printf("PASS: badtag garbage rejected\n"); 
+       logDebug("MGT","TEST","PASS: badtag garbage rejected");
     }
 
     if (testVal.set(strAndLen("<test/>"), t))
     {
-      printf("FAIL: html empty garbage accepted\n");
+      logDebug("MGT","TEST","FAIL: html empty garbage accepted");
     }
     else
     {
-       printf("PASS: html empty garbage rejected\n"); 
+       logDebug("MGT","TEST","PASS: html empty garbage rejected");
     }
     
     if (testVal.set(strAndLen("<tes"), t))
     {
-      printf("FAIL: incomplete opener tag garbage accepted\n");
+      logDebug("MGT","TEST","FAIL: incomplete opener tag garbage accepted");
     }
     else
     {
-       printf("PASS: incomplete opener tag  garbage rejected\n"); 
+       logDebug("MGT","TEST","PASS: incomplete opener tag  garbage rejected");
     }
     
     if (testVal.set(strAndLen("<test>value</tes>"), t))
     {
-      printf("FAIL: bad open/close pair garbage accepted\n");
+      logDebug("MGT","TEST","FAIL: bad open/close pair garbage accepted");
     }
     else
     {
-       printf("PASS: bad open/close pair  garbage rejected\n"); 
+       logDebug("MGT","TEST","PASS: bad open/close pair  garbage rejected");
     }
 
     if (testVal.set(strAndLen("<test>value</te"), t))
     {
-      printf("FAIL: chopped string garbage accepted\n");
+      logDebug("MGT","TEST","FAIL: chopped string garbage accepted");
     }
     else
     {
-       printf("PASS: chopped string  garbage rejected\n"); 
+       logDebug("MGT","TEST","PASS: chopped string  garbage rejected");
     }
 
     if (testVal.set(strAndLen("value"), t))
     {
-      printf("FAIL: no tags  accepted\n");
+      logDebug("MGT","TEST","FAIL: no tags  accepted");
     }
     else
     {
-       printf("PASS: no tags rejected\n"); 
+       logDebug("MGT","TEST","PASS: no tags rejected");
     }
     
     
@@ -323,8 +326,8 @@ void testGarbage()
 
 void testMgtStringList()
 {
-  const char* xmlTest = "<root><name>hello</name></root>";
-  printf("Start test case string list\n");
+  const char* xmlTest = "<mylist><testobj1 name=\"hello\" dummy=\"testval\"><name>testobj1_newname</name></testobj1></mylist>";
+  logDebug("MGT","TEST","Start test case string list");
   MgtList<std::string> stringList("mylist");
   stringList.setListKey("name");
   MgtProv<std::string> testObject1("testobj1");
@@ -339,40 +342,40 @@ void testMgtStringList()
   stringList.addChildObject(&testObject3,objKey3);
   if(stringList.getEntrySize() == 3)
   {
-    printf("PASS: Entry size %d \n", stringList.getEntrySize());
+    logDebug("MGT","TEST","PASS: Entry size %d ", stringList.getEntrySize());
   }
   else
   {
-    printf("FAIL: Entry size %d \n", stringList.getEntrySize());
+    logDebug("MGT","TEST","FAIL: Entry size %d ", stringList.getEntrySize());
   }
 
-  printf("PASS: X-PATH %s \n",stringList.getFullXpath().c_str());
+  logDebug("MGT","TEST","PASS: X-PATH %s ",stringList.getFullXpath(objKey2).c_str());
 
-  printf("PASS: DUMPING \n");
+  logDebug("MGT","TEST","PASS: DUMPING ");
   stringList.dbgDumpChildren();
 
   MgtObject::Iterator iter = stringList.begin();
   while(iter != stringList.end())
   {
-    printf("PASS: %s \n",iter->second->name.c_str());
+    logDebug("MGT","TEST","PASS: %s ",iter->second->name.c_str());
     iter++;
   }
 
   MgtProv<std::string> *getObj = (MgtProv<std::string> *)stringList[objKey4];
   if(testObject1.name == getObj->name)
-    printf("PASS: operator[]: %s \n",getObj->name.c_str());
+    logDebug("MGT","TEST","PASS: operator[]: %s ",getObj->name.c_str());
   else
-    printf("FAIL: operator [] \n");
+    logDebug("MGT","TEST","FAIL: operator [] ");
 
   SAFplus::Transaction t;
   stringList.set((void *)xmlTest,strlen(xmlTest),t);
-  printf("%s \n",getObj->name.c_str());
-  printf("\n\n\n");
+  logDebug("MGT","TEST","%s ",getObj->name.c_str());
+  logDebug("MGT","TEST","");
 }
 void testMgtClassList()
 {
-  const char* xmlTest = "<root><multi><name>hello</name><key1>2</key1><key2>5</key2><key3>ASPX</key3></multi></root>";
-  printf("Start test case multiple key list\n");
+  const char* xmlTest = "<mylist><testobj1 key1=\"2\" key2=\"2\" key3=\"Java\"><name>testobj1_newname</name></testobj1></mylist>";
+  logDebug("MGT","TEST","Start test case multiple key list");
   MgtList<multipleKey> stringList("mylist");
   stringList.setListKey("key1");
   stringList.setListKey("key2");
@@ -387,44 +390,66 @@ void testMgtClassList()
   stringList.addChildObject(&testObject1,objKey1);
   stringList.addChildObject(&testObject2,objKey2);
   stringList.addChildObject(&testObject3,objKey3);
+
+  string xml="<root><interface key1=\"value1\" key2=\"value\"><name>eth0</name></interface><interface key1=\"value2\" key2=\"value\"><name>eth1</name></interface></root>";
+
   if(stringList.getEntrySize() == 3)
   {
-    printf("PASS: Entry size %d \n", stringList.getEntrySize());
+    logDebug("MGT","TEST","PASS: Entry size %d ", stringList.getEntrySize());
   }
   else
   {
-    printf("FAIL: Entry size %d \n", stringList.getEntrySize());
+    logDebug("MGT","TEST","FAIL: Entry size %d ", stringList.getEntrySize());
   }
 
-  printf("PASS: X-PATH %s \n",stringList.getFullXpath().c_str());
+  logDebug("MGT","TEST","PASS: X-PATH %s ",stringList.getFullXpath(objKey1).c_str());
 
-  printf("PASS: DUMPING \n");
+  logDebug("MGT","TEST","PASS: DUMPING ");
   stringList.dbgDumpChildren();
 
   MgtObject::Iterator iter = stringList.begin();
   while(iter != stringList.end())
   {
-    printf("PASS: %s \n",iter->second->name.c_str());
+    logDebug("MGT","TEST","PASS: %s ",iter->second->name.c_str());
     iter++;
   }
 
   MgtProv<std::string> *getObj = (MgtProv<std::string> *)stringList[objKey4];
   if(getObj == NULL)
   {
-    printf("FAIL: operator[] Can't find object \n");
+    logDebug("MGT","TEST","FAIL: operator[] Can't find object ");
     return;
   }
   if(testObject2.name.compare(getObj->name) == 0)
-    printf("PASS: operator[]: %s \n",getObj->name.c_str());
+    logDebug("MGT","TEST","PASS: operator[]: %s ",getObj->name.c_str());
   else
-    printf("FAIL: operator[] %s \n",getObj->name.c_str());
+    logDebug("MGT","TEST","FAIL: operator[] %s ",getObj->name.c_str());
   SAFplus::Transaction t;
   stringList.set((void *)xmlTest,strlen(xmlTest),t);
-  printf("%s \n",getObj->name.c_str());
-  printf("\n\n\n");
+  logDebug("MGT","TEST","%s",getObj->name.c_str());
 }
+
 int main(int argc, char* argv[])
 {
+    //GAS: initialize expose by a explicit method
+    SAFplus::ASP_NODEADDR = 0x1;
+
+    logInitialize();
+    logEchoToFd = 1; // echo logs to stdout for debugging
+    logSeverity = LOG_SEV_MAX;
+
+    utilsInitialize();
+
+    ClRcT rc;
+    // initialize SAFplus6 libraries
+    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
+        clBufferInitialize(NULL)) != CL_OK)
+      {
+        assert(0);
+      }
+
+    //-- Done initialize
+
     testTransaction01();
 
     testTransaction02();
