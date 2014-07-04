@@ -47,7 +47,7 @@ class multipleKey
         {
           key3 = iter->second;
         }
-        logDebug("MGT","TEST","HERE ");
+        logDebug("MGT","TEST","Building key for object...");
       }
       std::string str()
       {
@@ -326,7 +326,7 @@ void testGarbage()
 
 void testMgtStringList()
 {
-  const char* xmlTest = "<root><name>hello</name></root>";
+  const char* xmlTest = "<mylist><testobj1 name=\"hello\" dummy=\"testval\"><name>testobj1_newname</name></testobj1></mylist>";
   logDebug("MGT","TEST","Start test case string list");
   MgtList<std::string> stringList("mylist");
   stringList.setListKey("name");
@@ -349,7 +349,7 @@ void testMgtStringList()
     logDebug("MGT","TEST","FAIL: Entry size %d ", stringList.getEntrySize());
   }
 
-  logDebug("MGT","TEST","PASS: X-PATH %s ",stringList.getFullXpath().c_str());
+  logDebug("MGT","TEST","PASS: X-PATH %s ",stringList.getFullXpath(objKey2).c_str());
 
   logDebug("MGT","TEST","PASS: DUMPING ");
   stringList.dbgDumpChildren();
@@ -374,7 +374,7 @@ void testMgtStringList()
 }
 void testMgtClassList()
 {
-  const char* xmlTest = "<root><multi><name>hello</name><key1>2</key1><key2>5</key2><key3>ASPX</key3></multi></root>";
+  const char* xmlTest = "<mylist><testobj1 key1=\"2\" key2=\"2\" key3=\"Java\"><name>testobj1_newname</name></testobj1></mylist>";
   logDebug("MGT","TEST","Start test case multiple key list");
   MgtList<multipleKey> stringList("mylist");
   stringList.setListKey("key1");
@@ -402,7 +402,7 @@ void testMgtClassList()
     logDebug("MGT","TEST","FAIL: Entry size %d ", stringList.getEntrySize());
   }
 
-  logDebug("MGT","TEST","PASS: X-PATH %s ",stringList.getFullXpath().c_str());
+  logDebug("MGT","TEST","PASS: X-PATH %s ",stringList.getFullXpath(objKey1).c_str());
 
   logDebug("MGT","TEST","PASS: DUMPING ");
   stringList.dbgDumpChildren();
