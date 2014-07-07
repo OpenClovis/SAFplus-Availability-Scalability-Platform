@@ -52,12 +52,12 @@ static ClHandleT gTimerDebugReg;
 }while(0)
 
 
-SAFplus::ClTimerBase gTimerBase;
+SAFplus::TimerBase gTimerBase;
 
-static ClInt32T SAFplus::clTimerCompare(ClRbTreeT *refTimer, ClRbTreeT *timer)
+static ClInt32T SAFplus::timerCompare(ClRbTreeT *refTimer, ClRbTreeT *timer)
 {
-    clTimer *timer1  = CL_RBTREE_ENTRY(refTimer, clTimer, timerList);
-    clTimer *timer2 =  CL_RBTREE_ENTRY(timer, clTimer, timerList);
+    Timer *timer1  = CL_RBTREE_ENTRY(refTimer, Timer, timerList);
+    Timer *timer2 =  CL_RBTREE_ENTRY(timer, Timer, timerList);
     if(timer1->timerExpiry > timer2->timerExpiry)
         return 1;
     else if(timer1->timerExpiry < timer2->timerExpiry)
@@ -65,13 +65,13 @@ static ClInt32T SAFplus::clTimerCompare(ClRbTreeT *refTimer, ClRbTreeT *timer)
     return 0;
 }
 
-SAFplus::ClTimerBase::ClTimerBase(): pool(CL_TIMER_MIN_PARALLEL_THREAD,CL_TIMER_MAX_PARALLEL_THREAD)
+SAFplus::TimerBase::TimerBase(): pool(CL_TIMER_MIN_PARALLEL_THREAD,CL_TIMER_MAX_PARALLEL_THREAD)
 {
     timerTree.root = NULL;
     timerTree.nodes = 0;
-    timerTree.compare = clTimerCompare;
+    timerTree.compare = SAFplus::timerCompare;
 }
-ClRcT SAFplus::ClTimerBase::clTimerBaseInitialize()
+ClRcT SAFplus::TimerBase::TimerBaseInitialize()
 {
     ClRcT rc = CL_OK;
     this->frequency = CL_TIMER_FREQUENCY;
@@ -82,7 +82,7 @@ ClRcT SAFplus::ClTimerBase::clTimerBaseInitialize()
  * Run the sorted timer list expiring timers.
  * Called with the timer list lock held.
  */
-ClRcT SAFplus::ClTimerBase::clTimerRun(void)
+ClRcT SAFplus::TimerBase::timerRun(void)
 {
     ClInt32T recalcInterval = 15; /*recalculate time after expiring this much*/
     ClInt64T timers = 0;
@@ -99,7 +99,7 @@ ClRcT SAFplus::ClTimerBase::clTimerRun(void)
 
     while ( (iter = clRbTreeMin(root)) )
     {
-        clTimer *pTimer = NULL;
+        Timer *pTimer = NULL;
         ClTimerCallBackT timerCallback;
         ClPtrT timerData;
         ClTimerTypeT timerType;
@@ -108,10 +108,10 @@ ClRcT SAFplus::ClTimerBase::clTimerRun(void)
 
         if( !(++timers & recalcInterval) )
         {
-            this->clTimeUpdate();
+            this->timeUpdate();
             now = this->now;
         }
-        pTimer = CL_RBTREE_ENTRY(iter, clTimer, timerList);
+        pTimer = CL_RBTREE_ENTRY(iter, Timer, timerList);
         if(pTimer->timerExpiry > now) break;
 
         timerCallback = pTimer->timerCallback;
@@ -153,7 +153,7 @@ ClRcT SAFplus::ClTimerBase::clTimerRun(void)
         {
         case CL_TIMER_SEPARATE_CONTEXT:
             {
-                this->clTimerSpawn(pTimer);
+                this->timerSpawn(pTimer);
             }
             break;
         case CL_TIMER_TASK_CONTEXT:
@@ -218,9 +218,9 @@ ClRcT SAFplus::ClTimerBase::clTimerRun(void)
 }
 
 
-ClRcT clTimerCallbackTask(ClPtrT invocation)
+ClRcT timerCallbackTask(ClPtrT invocation)
 {
-    SAFplus::clTimer *pTimer = (SAFplus::clTimer*)invocation;
+    SAFplus::Timer *pTimer = (SAFplus::Timer*)invocation;
     ClTimerTypeT type = pTimer->timerType;
     ClBoolT canFree = CL_FALSE;
     ClInt16T callbackTaskIndex = -1;
@@ -270,7 +270,7 @@ ClRcT clTimerCallbackTask(ClPtrT invocation)
      */
     if(type == CL_TIMER_REPETITIVE)
     {
-        gTimerBase.clTimeUpdate();
+        gTimerBase.timeUpdate();
         CL_REPETITIVE_TIMER_SET_EXPIRY(pTimer);
         clRbTreeInsert(&gTimerBase.timerTree, &pTimer->timerList);
     }
@@ -314,7 +314,7 @@ ClRcT clTimerCallbackTask(ClPtrT invocation)
     return CL_OK;
 }
 
-void SAFplus::ClTimerBase::clTimerSpawn(clTimer *pTimer)
+void SAFplus::TimerBase::timerSpawn(Timer *pTimer)
 {
     /*
      * Invoke the callback in the task pool context
@@ -323,7 +323,7 @@ void SAFplus::ClTimerBase::clTimerSpawn(clTimer *pTimer)
 }
 
 
-void SAFplus::ClTimerBase::clTimeUpdate(void)
+void SAFplus::TimerBase::timeUpdate(void)
 {
     this->now = clOsalStopWatchTimeGet();
 }
@@ -334,20 +334,20 @@ void SAFplus::ClTimerBase::clTimeUpdate(void)
  * The actual timer.
  */
 
-void *clTimerTask(void *pArg)
+void *timerTask(void *pArg)
 {
     ClTimerTimeOutT timeOut = {.tsSec = 0, .tsMilliSec = gTimerBase.frequency };
     clOsalMutexLock(&gTimerBase.timerListLock);
 
-    gTimerBase.clTimeUpdate();
+    gTimerBase.timeUpdate();
 
     while(gTimerBase.timerRunning == CL_TRUE)
     {
         clOsalMutexUnlock(&gTimerBase.timerListLock);
         clOsalTaskDelay(timeOut);
         clOsalMutexLock(&gTimerBase.timerListLock);
-        gTimerBase.clTimeUpdate();
-        gTimerBase.clTimerRun();
+        gTimerBase.timeUpdate();
+        gTimerBase.timerRun();
     }
 
     /*Unreached actually*/
@@ -355,7 +355,7 @@ void *clTimerTask(void *pArg)
     return NULL;
 }
 
-void SAFplus::clTimer::timerDelCallbackTask(ClInt16T freeIndex)
+void SAFplus::Timer::timerDelCallbackTask(ClInt16T freeIndex)
 {
     if(freeIndex >= 0)
     {
@@ -365,7 +365,7 @@ void SAFplus::clTimer::timerDelCallbackTask(ClInt16T freeIndex)
     }
 }
 
-ClInt16T SAFplus::clTimer::timerAddCallbackTask()
+ClInt16T SAFplus::Timer::timerAddCallbackTask()
 {
     ClInt16T nextFreeIndex = 0;
     ClInt16T curFreeIndex = 0;
@@ -383,10 +383,10 @@ ClInt16T SAFplus::clTimer::timerAddCallbackTask()
     this->freeCallbackTaskIndex = nextFreeIndex;
     return curFreeIndex;
 }
-SAFplus::clTimer::~clTimer()
+SAFplus::Timer::~Timer()
 {
 }
-void SAFplus::clTimer::timerInitCallbackTask()
+void SAFplus::Timer::timerInitCallbackTask()
 {
     ClInt32T i;
     for(i = 0; i < CL_TIMER_MAX_PARALLEL_TASKS-1; ++i)
@@ -395,7 +395,7 @@ void SAFplus::clTimer::timerInitCallbackTask()
     this->freeCallbackTaskIndex = 0;
 }
 
-ClRcT SAFplus::clTimer::clTimerCreate(ClTimerTimeOutT timeOut,
+ClRcT SAFplus::Timer::timerCreate(ClTimerTimeOutT timeOut,
                          ClTimerTypeT timerType,
                          ClTimerContextT timerContext,
                          ClTimerCallBackT timerCallback,
@@ -420,7 +420,7 @@ ClRcT SAFplus::clTimer::clTimerCreate(ClTimerTimeOutT timeOut,
 
         goto out;
     }
-    this->timerPool = new SAFplus::Timer7Poolable(clTimerCallbackTask, (void*)this);
+    this->timerPool = new SAFplus::TimerPoolable(timerCallbackTask, (void*)this);
     if(timerContext >= CL_TIMER_MAX_CONTEXT)
     {
         rc = CL_TIMER_RC(CL_TIMER_ERR_INVALID_TIMER_CONTEXT_TYPE);
@@ -444,7 +444,7 @@ ClRcT SAFplus::clTimer::clTimerCreate(ClTimerTimeOutT timeOut,
     return rc;
 }
 
-ClBoolT SAFplus::clTimer::timerMatchCallbackTask(ClOsalTaskIdT *pSelfId)
+ClBoolT SAFplus::Timer::timerMatchCallbackTask(ClOsalTaskIdT *pSelfId)
 {
     ClInt32T i;
     ClOsalTaskIdT selfId = 0;
@@ -461,7 +461,7 @@ ClBoolT SAFplus::clTimer::timerMatchCallbackTask(ClOsalTaskIdT *pSelfId)
     return CL_FALSE;
 }
 
-ClRcT SAFplus::clTimer::timerStart(ClTimeT expiry,ClBoolT locked)
+ClRcT SAFplus::Timer::timerStartInternal(ClTimeT expiry,ClBoolT locked)
 {
     ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
 
@@ -479,7 +479,7 @@ ClRcT SAFplus::clTimer::timerStart(ClTimeT expiry,ClBoolT locked)
     }
     else
     {
-        gTimerBase.clTimeUpdate();
+        gTimerBase.timeUpdate();
         CL_TIMER_SET_EXPIRY(this);
     }
 
@@ -504,7 +504,7 @@ ClRcT SAFplus::clTimer::timerStart(ClTimeT expiry,ClBoolT locked)
     return rc;
 }
 
-ClRcT SAFplus::clTimer::timerStop()
+ClRcT SAFplus::Timer::timerStop()
 {
     ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
     CL_TIMER_INITIALIZED_CHECK(rc,out);
@@ -519,7 +519,7 @@ ClRcT SAFplus::clTimer::timerStop()
     return rc;
 }
 
-ClRcT SAFplus::clTimer::timerDeleteLocked(ClBoolT asyncFlag, ClBoolT *pFreeTimer)
+ClRcT SAFplus::Timer::timerDeleteLocked(ClBoolT asyncFlag, ClBoolT *pFreeTimer)
 {
     ClRcT rc = CL_OK;
     ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 50 };
@@ -586,7 +586,7 @@ ClRcT SAFplus::clTimer::timerDeleteLocked(ClBoolT asyncFlag, ClBoolT *pFreeTimer
 /*
  * CANNOT BE INVOKED FROM THE timer callback thats RUNNING.
  */
-ClRcT SAFplus::clTimer::timerDelete(ClBoolT asyncFlag)
+ClRcT SAFplus::Timer::timerDeleteInternal(ClBoolT asyncFlag)
 {
     ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
     ClBoolT freeTimer = CL_FALSE;
@@ -607,19 +607,11 @@ ClRcT SAFplus::clTimer::timerDelete(ClBoolT asyncFlag)
     return rc;
 }
 
-ClRcT SAFplus::clTimer::clTimerStart()
+ClRcT SAFplus::Timer::timerStart()
 {
-    return this->timerStart(0,CL_FALSE);
+    return this->timerStartInternal(0,CL_FALSE);
 }
-
-
-
-ClRcT SAFplus::clTimer::clTimerStop()
-{
-    return this->timerStop();
-}
-
-ClRcT SAFplus::clTimer::clTimerUpdate(ClTimerTimeOutT newTimeOut)
+ClRcT SAFplus::Timer::timerUpdate(ClTimerTimeOutT newTimeOut)
 {
     ClRcT rc = CL_OK;
 
@@ -638,7 +630,7 @@ ClRcT SAFplus::clTimer::clTimerUpdate(ClTimerTimeOutT newTimeOut)
 
     this->timerFlags &= ~CL_TIMER_STOPPED;
     this->timerTimeOut = (ClTimeT)((ClTimeT)newTimeOut.tsSec * 1000000 + newTimeOut.tsMilliSec * 1000);
-    gTimerBase.clTimeUpdate();
+    gTimerBase.timeUpdate();
     CL_TIMER_SET_EXPIRY(this);
 
     clRbTreeInsert(&gTimerBase.timerTree, &this->timerList);
@@ -652,7 +644,7 @@ ClRcT SAFplus::clTimer::clTimerUpdate(ClTimerTimeOutT newTimeOut)
     return rc;
 }
 
-ClRcT SAFplus::clTimer::clTimerRestart (ClTimerHandleT  timerHandle)
+ClRcT SAFplus::Timer::timerRestart (ClTimerHandleT  timerHandle)
 {
     ClRcT rc = 0;
 
@@ -666,7 +658,7 @@ ClRcT SAFplus::clTimer::clTimerRestart (ClTimerHandleT  timerHandle)
         return (rc);
     }
 
-    rc = this->clTimerStart();
+    rc = this->timerStart();
 
     if (rc != CL_OK)
     {
@@ -678,7 +670,7 @@ ClRcT SAFplus::clTimer::clTimerRestart (ClTimerHandleT  timerHandle)
     return (CL_OK);
 }
 
-ClRcT SAFplus::clTimer::timerState(ClBoolT flags, ClBoolT *pState)
+ClRcT SAFplus::Timer::timerState(ClBoolT flags, ClBoolT *pState)
 {
     if(!pState)
         return CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
@@ -692,7 +684,7 @@ ClRcT SAFplus::clTimer::timerState(ClBoolT flags, ClBoolT *pState)
 /*
  * Assumed that the caller has also synchronized his call with his timer start/stop/delete
  */
-ClRcT SAFplus::clTimer::clTimerIsStopped(ClBoolT *pState)
+ClRcT SAFplus::Timer::timerIsStopped(ClBoolT *pState)
 {
     ClRcT rc = CL_OK;
     clOsalMutexLock(&gTimerBase.timerListLock);
@@ -704,7 +696,7 @@ ClRcT SAFplus::clTimer::clTimerIsStopped(ClBoolT *pState)
 /*
  * Assumed that the caller has also synchronized his call with his timer start/stop/delete.
  */
-ClRcT SAFplus::clTimer::clTimerIsRunning(ClTimerHandleT timerHandle, ClBoolT *pState)
+ClRcT SAFplus::Timer::timerIsRunning(ClTimerHandleT timerHandle, ClBoolT *pState)
 {
     ClRcT rc = CL_OK;
     clOsalMutexLock(&gTimerBase.timerListLock);
@@ -713,7 +705,7 @@ ClRcT SAFplus::clTimer::clTimerIsRunning(ClTimerHandleT timerHandle, ClBoolT *pS
     return rc;
 }
 
-ClRcT SAFplus::clTimer::clTimerCheckAndDelete()
+ClRcT SAFplus::Timer::timerCheckAndDelete()
 {
     ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
     ClBoolT freeTimer = CL_FALSE;
@@ -734,7 +726,7 @@ ClRcT SAFplus::clTimer::clTimerCheckAndDelete()
     return rc;
 }
 
-ClRcT SAFplus::clTimer::clTimerCreateAndStart(ClTimerTimeOutT timeOut,
+ClRcT SAFplus::Timer::timerCreateAndStart(ClTimerTimeOutT timeOut,
                             ClTimerTypeT timerType,
                             ClTimerContextT timerContext,
                             ClTimerCallBackT timerCallback,
@@ -742,12 +734,12 @@ ClRcT SAFplus::clTimer::clTimerCreateAndStart(ClTimerTimeOutT timeOut,
 {
     ClRcT rc = CL_OK;
 
-    rc = this->clTimerCreate(timeOut, timerType, timerContext, timerCallback, timerData);
+    rc = this->timerCreate(timeOut, timerType, timerContext, timerCallback, timerData);
 
     if(rc != CL_OK)
         goto out;
 
-    rc = this->clTimerStart();
+    rc = this->timerStart();
 
     out:
     return rc;
@@ -757,16 +749,16 @@ ClRcT SAFplus::clTimer::clTimerCreateAndStart(ClTimerTimeOutT timeOut,
 /*
  * Dont call it under a callback.
  */
-ClRcT SAFplus::clTimer::clTimerDelete()
+ClRcT SAFplus::Timer::timerDelete()
 {
-    return this->timerDelete(CL_FALSE);
+    return this->timerDeleteInternal(CL_FALSE);
 }
 
-ClRcT SAFplus::clTimer::clTimerDeleteAsync()
+ClRcT SAFplus::Timer::timerDeleteAsync()
 {
-    return this->timerDelete(CL_TRUE);
+    return this->timerDeleteInternal(CL_TRUE);
 }
-ClRcT SAFplus::clTimer7Initialize(ClPtrT config)
+ClRcT SAFplus::timerInitialize(ClPtrT config)
 {
     ClRcT rc = CL_TIMER_RC(CL_ERR_INITIALIZED);
     if(gTimerBase.initialized == CL_TRUE)
@@ -781,15 +773,15 @@ ClRcT SAFplus::clTimer7Initialize(ClPtrT config)
         clOsalMutexInit(&gClTimerDebugLock);
     }
 
-    rc = gTimerBase.clTimerBaseInitialize();
+    rc = gTimerBase.TimerBaseInitialize();
     if(rc != CL_OK)
     {
         goto out;
     }
 
     gTimerBase.timerRunning = CL_TRUE;
-    gTimerBase.clTimeUpdate();
-    rc = clOsalTaskCreateAttached("TIMER-TASK", CL_OSAL_SCHED_OTHER, 0, 0, clTimerTask, NULL,
+    gTimerBase.timeUpdate();
+    rc = clOsalTaskCreateAttached("TIMER-TASK", CL_OSAL_SCHED_OTHER, 0, 0, timerTask, NULL,
                                   &gTimerBase.timerId);
     if(rc != CL_OK)
     {
@@ -814,7 +806,7 @@ ClRcT SAFplus::clTimer7Initialize(ClPtrT config)
     return rc;
 }
 
-ClRcT SAFplus::clTimer7Finalize(void)
+ClRcT SAFplus::timerFinalize(void)
 {
     ClRcT rc = CL_TIMER_RC(CL_ERR_NOT_INITIALIZED);
 

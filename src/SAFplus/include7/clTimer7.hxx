@@ -48,12 +48,12 @@
 namespace SAFplus
 {
 
-    ClRcT clTimer7Initialize(ClPtrT config);
-    ClRcT clTimer7Finalize(void);
-    class Timer7Poolable: public Poolable
+    ClRcT timerInitialize(ClPtrT config);
+    ClRcT timerFinalize(void);
+    class TimerPoolable: public Poolable
     {
       public:
-        Timer7Poolable(UserCallbackT fn=NULL, void* arg=NULL, uint32_t timeLimit=30000, bool deleteWhenComplete=false): Poolable(fn, arg, timeLimit, deleteWhenComplete) {}
+        TimerPoolable(UserCallbackT fn=NULL, void* arg=NULL, uint32_t timeLimit=300000, bool deleteWhenComplete=false): Poolable(fn, arg, timeLimit, deleteWhenComplete) {}
         virtual void wake(int amt, void* cookie)
         {
             if (fn)
@@ -61,12 +61,12 @@ namespace SAFplus
                 fn(arg);
             }
         }
-        ~Timer7Poolable()
+        ~TimerPoolable()
          {
 
          }
     };
-    class clTimer
+    class Timer
     {
       public:
         ClRbTreeT timerList;
@@ -84,54 +84,53 @@ namespace SAFplus
         ClOsalTaskIdT callbackTaskIds[CL_TIMER_MAX_PARALLEL_TASKS];
         ClInt16T freeCallbackTaskIndex;
         ClInt16T freeCallbackTaskIndexPool[CL_TIMER_MAX_PARALLEL_TASKS];
-        Timer7Poolable *timerPool;
+        TimerPoolable *timerPool;
         void timerDelCallbackTask(ClInt16T freeIndex);
         ClInt16T timerAddCallbackTask();
         void timerInitCallbackTask();
         ClBoolT timerMatchCallbackTask(ClOsalTaskIdT *pSelfId);
-        ClRcT timerStart(ClTimeT expiry,ClBoolT locked);
+        ClRcT timerStartInternal(ClTimeT expiry,ClBoolT locked);
         ClRcT timerStop();
         ClRcT timerDeleteLocked(ClBoolT asyncFlag, ClBoolT *pFreeTimer);
-        ClRcT timerDelete(ClBoolT asyncFlag);
+        ClRcT timerDeleteInternal(ClBoolT asyncFlag);
         ClRcT timerState(ClBoolT flags, ClBoolT *pState);
-        ClRcT clTimerStart();
-        ClRcT clTimerStop();
-        ClRcT clTimerUpdate(ClTimerTimeOutT newTimeOut);
-        ClRcT clTimerRestart (ClTimerHandleT  timerHandle);
-        ClRcT clTimerIsStopped(ClBoolT *pState);
-        ClRcT clTimerIsRunning(ClTimerHandleT timerHandle, ClBoolT *pState);
-        ClRcT clTimerCheckAndDelete();
-        ClRcT clTimerCreate(ClTimerTimeOutT timeOut,
+        ClRcT timerStart();
+        ClRcT timerUpdate(ClTimerTimeOutT newTimeOut);
+        ClRcT timerRestart (ClTimerHandleT  timerHandle);
+        ClRcT timerIsStopped(ClBoolT *pState);
+        ClRcT timerIsRunning(ClTimerHandleT timerHandle, ClBoolT *pState);
+        ClRcT timerCheckAndDelete();
+        ClRcT timerCreate(ClTimerTimeOutT timeOut,
                             ClTimerTypeT timerType,
                             ClTimerContextT timerContext,
                             ClTimerCallBackT timerCallback,
                             void *timerData);
-        ClRcT clTimerCreateAndStart(ClTimerTimeOutT timeOut,
+        ClRcT timerCreateAndStart(ClTimerTimeOutT timeOut,
                                     ClTimerTypeT timerType,
                                     ClTimerContextT timerContext,
                                     ClTimerCallBackT timerCallback,
                                     void *timerData);
-        ClRcT clTimerDelete();
-        ClRcT clTimerDeleteAsync();
-        clTimer()
+        ClRcT timerDelete();
+        ClRcT timerDeleteAsync();
+        Timer()
         {
-            timerPool=new Timer7Poolable();
+
         }
-        clTimer(ClTimerTimeOutT timeOut,
+        Timer(ClTimerTimeOutT timeOut,
                         ClTimerTypeT timerType,
                         ClTimerContextT timerContext,
                         ClTimerCallBackT timerCallback,
                         void *timerData)
         {
-            clTimerCreate(timeOut,timerType,timerContext,timerCallback,timerData);
+            timerCreate(timeOut,timerType,timerContext,timerCallback,timerData);
         }
-        ~clTimer();
+        ~Timer();
 
 
 
     };
 
-    class ClTimerBase
+    class TimerBase
     {
       public:
         ClBoolT initialized;
@@ -146,17 +145,17 @@ namespace SAFplus
         /*
          * Cluster timer replicate method registered
          */
-        ClTimerBase();
-        ClRcT clTimerBaseInitialize();
-        ClRcT clTimerRun(void);
-        void clTimerSpawn(clTimer *pTimer);
-        void clTimeUpdate(void);
-        ~ClTimerBase()
+        TimerBase();
+        ClRcT TimerBaseInitialize();
+        ClRcT timerRun(void);
+        void timerSpawn(Timer *pTimer);
+        void timeUpdate(void);
+        ~TimerBase()
         {
 
         }
     };
-    static ClInt32T clTimerCompare(ClRbTreeT *refTimer, ClRbTreeT *timer);
+    static ClInt32T timerCompare(ClRbTreeT *refTimer, ClRbTreeT *timer);
 }
 
 #endif
