@@ -7,6 +7,7 @@
 
 #include "RestartCount.hxx"
 #include <string>
+#include "clTransaction.hxx"
 #include "HighAvailabilityReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
@@ -126,9 +127,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/presence
      */
-    void Component::setPresence(SAFplusAmf::PresenceState presenceValue)
+    void Component::setPresence(SAFplusAmf::PresenceState presenceValue, SAFplus::Transaction &t)
     {
-        this->presence.value = presenceValue;
+        if(&t == &SAFplus::NO_TXN) this->presence.value = presenceValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::PresenceState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::PresenceState>(&(presence.value),presenceValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -142,9 +148,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/capabilityModel
      */
-    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue)
+    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue, SAFplus::Transaction &t)
     {
-        this->capabilityModel.value = capabilityModelValue;
+        if(&t == &SAFplus::NO_TXN) this->capabilityModel.value = capabilityModelValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::CapabilityModel> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::CapabilityModel>(&(capabilityModel.value),capabilityModelValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -158,9 +169,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxActiveAssignments
      */
-    void Component::setMaxActiveAssignments(unsigned int maxActiveAssignmentsValue)
+    void Component::setMaxActiveAssignments(unsigned int maxActiveAssignmentsValue, SAFplus::Transaction &t)
     {
-        this->maxActiveAssignments.value = maxActiveAssignmentsValue;
+        if(&t == &SAFplus::NO_TXN) this->maxActiveAssignments.value = maxActiveAssignmentsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(maxActiveAssignments.value),maxActiveAssignmentsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -174,9 +190,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxStandbyAssignments
      */
-    void Component::setMaxStandbyAssignments(unsigned int maxStandbyAssignmentsValue)
+    void Component::setMaxStandbyAssignments(unsigned int maxStandbyAssignmentsValue, SAFplus::Transaction &t)
     {
-        this->maxStandbyAssignments.value = maxStandbyAssignmentsValue;
+        if(&t == &SAFplus::NO_TXN) this->maxStandbyAssignments.value = maxStandbyAssignmentsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(maxStandbyAssignments.value),maxStandbyAssignmentsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -206,9 +227,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/operState
      */
-    void Component::setOperState(bool operStateValue)
+    void Component::setOperState(bool operStateValue, SAFplus::Transaction &t)
     {
-        this->operState.value = operStateValue;
+        if(&t == &SAFplus::NO_TXN) this->operState.value = operStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(operState.value),operStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -222,9 +248,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/readinessState
      */
-    void Component::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue)
+    void Component::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t)
     {
-        this->readinessState.value = readinessStateValue;
+        if(&t == &SAFplus::NO_TXN) this->readinessState.value = readinessStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::ReadinessState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ReadinessState>(&(readinessState.value),readinessStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -238,9 +269,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/haReadinessState
      */
-    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue)
+    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t)
     {
-        this->haReadinessState.value = haReadinessStateValue;
+        if(&t == &SAFplus::NO_TXN) this->haReadinessState.value = haReadinessStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityReadinessState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityReadinessState>(&(haReadinessState.value),haReadinessStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -254,9 +290,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/haState
      */
-    void Component::setHaState(SAFplusAmf::HighAvailabilityState haStateValue)
+    void Component::setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t)
     {
-        this->haState.value = haStateValue;
+        if(&t == &SAFplus::NO_TXN) this->haState.value = haStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityState>(&(haState.value),haStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -270,9 +311,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/safVersion
      */
-    void Component::setSafVersion(std::string safVersionValue)
+    void Component::setSafVersion(std::string safVersionValue, SAFplus::Transaction &t)
     {
-        this->safVersion.value = safVersionValue;
+        if(&t == &SAFplus::NO_TXN) this->safVersion.value = safVersionValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(safVersion.value),safVersionValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -286,9 +332,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/compCategory
      */
-    void Component::setCompCategory(unsigned int compCategoryValue)
+    void Component::setCompCategory(unsigned int compCategoryValue, SAFplus::Transaction &t)
     {
-        this->compCategory.value = compCategoryValue;
+        if(&t == &SAFplus::NO_TXN) this->compCategory.value = compCategoryValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(compCategory.value),compCategoryValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -302,9 +353,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/swBundle
      */
-    void Component::setSwBundle(std::string swBundleValue)
+    void Component::setSwBundle(std::string swBundleValue, SAFplus::Transaction &t)
     {
-        this->swBundle.value = swBundleValue;
+        if(&t == &SAFplus::NO_TXN) this->swBundle.value = swBundleValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(swBundle.value),swBundleValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -334,9 +390,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxInstantInstantiations
      */
-    void Component::setMaxInstantInstantiations(unsigned int maxInstantInstantiationsValue)
+    void Component::setMaxInstantInstantiations(unsigned int maxInstantInstantiationsValue, SAFplus::Transaction &t)
     {
-        this->maxInstantInstantiations.value = maxInstantInstantiationsValue;
+        if(&t == &SAFplus::NO_TXN) this->maxInstantInstantiations.value = maxInstantInstantiationsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(maxInstantInstantiations.value),maxInstantInstantiationsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -350,9 +411,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxDelayedInstantiations
      */
-    void Component::setMaxDelayedInstantiations(unsigned int maxDelayedInstantiationsValue)
+    void Component::setMaxDelayedInstantiations(unsigned int maxDelayedInstantiationsValue, SAFplus::Transaction &t)
     {
-        this->maxDelayedInstantiations.value = maxDelayedInstantiationsValue;
+        if(&t == &SAFplus::NO_TXN) this->maxDelayedInstantiations.value = maxDelayedInstantiationsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(maxDelayedInstantiations.value),maxDelayedInstantiationsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -366,9 +432,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/delayBetweenInstantiation
      */
-    void Component::setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue)
+    void Component::setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue, SAFplus::Transaction &t)
     {
-        this->delayBetweenInstantiation.value = delayBetweenInstantiationValue;
+        if(&t == &SAFplus::NO_TXN) this->delayBetweenInstantiation.value = delayBetweenInstantiationValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(delayBetweenInstantiation.value),delayBetweenInstantiationValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -382,9 +453,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/serviceUnit
      */
-    void Component::setServiceUnit(SAFplusAmf::ServiceUnit* serviceUnitValue)
+    void Component::setServiceUnit(SAFplusAmf::ServiceUnit* serviceUnitValue, SAFplus::Transaction &t)
     {
-        this->serviceUnit.value = serviceUnitValue;
+        if(&t == &SAFplus::NO_TXN) this->serviceUnit.value = serviceUnitValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceUnit*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceUnit*>(&(serviceUnit.value),serviceUnitValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -398,9 +474,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/recovery
      */
-    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue)
+    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue, SAFplus::Transaction &t)
     {
-        this->recovery.value = recoveryValue;
+        if(&t == &SAFplus::NO_TXN) this->recovery.value = recoveryValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::Recovery> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::Recovery>(&(recovery.value),recoveryValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -414,9 +495,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/restartable
      */
-    void Component::setRestartable(bool restartableValue)
+    void Component::setRestartable(bool restartableValue, SAFplus::Transaction &t)
     {
-        this->restartable.value = restartableValue;
+        if(&t == &SAFplus::NO_TXN) this->restartable.value = restartableValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(restartable.value),restartableValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -430,9 +516,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/proxy
      */
-    void Component::setProxy(std::string proxyValue)
+    void Component::setProxy(std::string proxyValue, SAFplus::Transaction &t)
     {
-        this->proxy.value = proxyValue;
+        if(&t == &SAFplus::NO_TXN) this->proxy.value = proxyValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(proxy.value),proxyValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -462,9 +553,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/processId
      */
-    void Component::setProcessId(int processIdValue)
+    void Component::setProcessId(int processIdValue, SAFplus::Transaction &t)
     {
-        this->processId.value = processIdValue;
+        if(&t == &SAFplus::NO_TXN) this->processId.value = processIdValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<int> *opt = new SAFplus::SimpleTxnOperation<int>(&(processId.value),processIdValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -478,9 +574,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/lastError
      */
-    void Component::setLastError(std::string lastErrorValue)
+    void Component::setLastError(std::string lastErrorValue, SAFplus::Transaction &t)
     {
-        this->lastError.value = lastErrorValue;
+        if(&t == &SAFplus::NO_TXN) this->lastError.value = lastErrorValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(lastError.value),lastErrorValue);
+            t.addOperation(opt);
+        }
     };
 
     /*

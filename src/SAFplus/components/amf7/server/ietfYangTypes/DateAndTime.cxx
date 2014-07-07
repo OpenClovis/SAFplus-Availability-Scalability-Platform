@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <string>
+#include "clTransaction.hxx"
 #include "DateAndTime.hxx"
 
 
@@ -22,9 +23,14 @@ namespace ietfYangTypes
         return this->Value;
     };
 
-    void DateAndTime::setValue(std::string value)
+    void DateAndTime::setValue(std::string value, SAFplus::Transaction &t)
     {
-        this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&Value,value);
+            t.addOperation(opt);
+        }
     };
 
     ietfYangTypes::DateAndTime& DateAndTime::operator=(const ietfYangTypes::DateAndTime &dateAndTime)

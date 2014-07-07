@@ -7,6 +7,7 @@
 
 #include "NumServiceGroups.hxx"
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
@@ -69,9 +70,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Application/adminState
      */
-    void Application::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
+    void Application::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.value = adminStateValue;
+        if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -101,9 +107,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Application/keepTogether
      */
-    void Application::setKeepTogether(bool keepTogetherValue)
+    void Application::setKeepTogether(bool keepTogetherValue, SAFplus::Transaction &t)
     {
-        this->keepTogether.value = keepTogetherValue;
+        if(&t == &SAFplus::NO_TXN) this->keepTogether.value = keepTogetherValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(keepTogether.value),keepTogetherValue);
+            t.addOperation(opt);
+        }
     };
 
     /*

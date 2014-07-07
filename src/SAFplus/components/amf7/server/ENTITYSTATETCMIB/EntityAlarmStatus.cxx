@@ -6,6 +6,7 @@
 #include "ENTITYSTATETCMIBCommon.hxx"
 
 #include <iostream>
+#include "clTransaction.hxx"
 #include <bitset>
 #include "EntityAlarmStatus.hxx"
 
@@ -22,9 +23,14 @@ namespace ENTITYSTATETCMIB
         return this->Value;
     };
 
-    void EntityAlarmStatus::setValue(std::bitset<7> value)
+    void EntityAlarmStatus::setValue(std::bitset<7> value, SAFplus::Transaction &t)
     {
-        this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::bitset> *opt = new SAFplus::SimpleTxnOperation<std::bitset>(&Value,value);
+            t.addOperation(opt);
+        }
     };
 
     ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus::operator=(const ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus)

@@ -6,6 +6,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
@@ -63,9 +64,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Cluster/adminState
      */
-    void Cluster::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
+    void Cluster::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.value = adminStateValue;
+        if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -79,9 +85,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
      */
-    void Cluster::setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue)
+    void Cluster::setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue, SAFplus::Transaction &t)
     {
-        this->startupAssignmentDelay.value = startupAssignmentDelayValue;
+        if(&t == &SAFplus::NO_TXN) this->startupAssignmentDelay.value = startupAssignmentDelayValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SaTimeT> *opt = new SAFplus::SimpleTxnOperation<SaTimeT>(&(startupAssignmentDelay.value),startupAssignmentDelayValue);
+            t.addOperation(opt);
+        }
     };
 
     Cluster::~Cluster()

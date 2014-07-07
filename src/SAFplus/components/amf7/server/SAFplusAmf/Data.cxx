@@ -6,6 +6,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
@@ -60,9 +61,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/data/myName
      */
-    void Data::setMyName(std::string myNameValue)
+    void Data::setMyName(std::string myNameValue, SAFplus::Transaction &t)
     {
-        this->myName.value = myNameValue;
+        if(&t == &SAFplus::NO_TXN) this->myName.value = myNameValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(myName.value),myNameValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -76,9 +82,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/data/val
      */
-    void Data::setVal(std::string valValue)
+    void Data::setVal(std::string valValue, SAFplus::Transaction &t)
     {
-        this->val.value = valValue;
+        if(&t == &SAFplus::NO_TXN) this->val.value = valValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(val.value),valValue);
+            t.addOperation(opt);
+        }
     };
 
     Data::~Data()

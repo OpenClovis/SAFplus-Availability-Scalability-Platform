@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
@@ -81,7 +82,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Node/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Node/operState
@@ -91,7 +92,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Node/operState
          */
-        void setOperState(bool operStateValue);
+        void setOperState(bool operStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Node/autoRepair
@@ -101,7 +102,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Node/autoRepair
          */
-        void setAutoRepair(bool autoRepairValue);
+        void setAutoRepair(bool autoRepairValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Node/failFastOnInstantiationFailure
@@ -111,7 +112,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Node/failFastOnInstantiationFailure
          */
-        void setFailFastOnInstantiationFailure(bool failFastOnInstantiationFailureValue);
+        void setFailFastOnInstantiationFailure(bool failFastOnInstantiationFailureValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Node/failFastOnCleanupFailure
@@ -121,7 +122,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Node/failFastOnCleanupFailure
          */
-        void setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue);
+        void setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Node/serviceUnits

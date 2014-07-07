@@ -11,17 +11,18 @@
 
 #include "AssignmentState.hxx"
 #include <string>
-#include "clMgtProv.hxx"
+#include "clTransaction.hxx"
 #include "StandbyAssignments.hxx"
-#include "StandbyAssignments.hxx"
-#include "ServiceGroup.hxx"
 #include "ComponentServiceInstance.hxx"
 #include "clMgtList.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
-#include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
+#include "clMgtProv.hxx"
+#include "StandbyAssignments.hxx"
+#include "ServiceGroup.hxx"
+#include <vector>
+#include "ActiveAssignments.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
 
@@ -81,7 +82,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
@@ -91,7 +92,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
          */
-        void setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue);
+        void setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/rank
@@ -101,7 +102,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/rank
          */
-        void setRank(unsigned int rankValue);
+        void setRank(unsigned int rankValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/componentServiceInstances
@@ -121,7 +122,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
          */
-        void setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue);
+        void setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/activeAssignments

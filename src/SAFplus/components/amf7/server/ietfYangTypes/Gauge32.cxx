@@ -6,6 +6,7 @@
 #include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
+#include "clTransaction.hxx"
 #include "Gauge32.hxx"
 
 
@@ -21,9 +22,14 @@ namespace ietfYangTypes
         return this->Value;
     };
 
-    void Gauge32::setValue(unsigned int value)
+    void Gauge32::setValue(unsigned int value, SAFplus::Transaction &t)
     {
-        this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&Value,value);
+            t.addOperation(opt);
+        }
     };
 
     ietfYangTypes::Gauge32& Gauge32::operator=(const ietfYangTypes::Gauge32 &gauge32)
