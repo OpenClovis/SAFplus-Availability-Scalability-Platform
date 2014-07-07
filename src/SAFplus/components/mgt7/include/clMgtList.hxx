@@ -209,17 +209,22 @@ namespace SAFplus
        */
       virtual void toString(std::stringstream& xmlString)
       {
-        typename Map::iterator i;
-        typename Map::iterator end = children.end();
-        for (i = children.begin(); i != end; i++)
+        typename Map::iterator iter;
+        /* Name of this list */
+        xmlString << "<" << this->name << ">";
+        for (iter = children.begin(); iter != children.end(); iter++)
         {
-          MgtObject *entry = i->second;
-          assert(entry);  // should be no NULL entries... erase don't nullptr them
+          const KEYTYPE *k = &(iter->first);
+          MgtObject *entry = iter->second;
           if (entry)
           {
+            xmlString << "<" << this->name << "_item ";
+            xmlString << k->toXmlString() << ">";
             entry->toString(xmlString);
+            xmlString << "</" << this->name << "_item>";
           }
         }
+        xmlString << "</" << this->name << ">";
       }
       /**
        * API to get number of entries in the list
@@ -564,17 +569,23 @@ namespace SAFplus
        */
       virtual void toString(std::stringstream& xmlString)
       {
-        typename Map::iterator i;
-        typename Map::iterator end = children.end();
-        for (i = children.begin(); i != end; i++)
+        typename Map::iterator iter;
+        /* Name of this list */
+        xmlString << "<" << this->name << ">";
+        for (iter = children.begin(); iter != children.end(); iter++)
         {
-          MgtObject *entry = i->second;
-          assert(entry);  // should be no NULL entries... erase don't nullptr them
+          std::string k = iter->first;
+          MgtObject *entry = iter->second;
           if (entry)
           {
+            xmlString << "<" << this->name << "_item ";
+            /* keyList is the name of key */
+            xmlString << keyList << "=\"" << k << "\">";
             entry->toString(xmlString);
+            xmlString << "</" << this->name << "_item>";
           }
         }
+        xmlString << "</" << this->name << ">";
       }
       /**
        * API to get number of entries in the list

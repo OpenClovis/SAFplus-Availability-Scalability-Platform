@@ -10,6 +10,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
@@ -51,7 +52,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Cluster/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
@@ -61,7 +62,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Cluster/startupAssignmentDelay
          */
-        void setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue);
+        void setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ~Cluster();
 
     };

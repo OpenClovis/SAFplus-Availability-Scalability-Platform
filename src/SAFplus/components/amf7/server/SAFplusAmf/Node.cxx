@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
@@ -78,9 +79,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/adminState
      */
-    void Node::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
+    void Node::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.value = adminStateValue;
+        if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -94,9 +100,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/operState
      */
-    void Node::setOperState(bool operStateValue)
+    void Node::setOperState(bool operStateValue, SAFplus::Transaction &t)
     {
-        this->operState.value = operStateValue;
+        if(&t == &SAFplus::NO_TXN) this->operState.value = operStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(operState.value),operStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -110,9 +121,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/autoRepair
      */
-    void Node::setAutoRepair(bool autoRepairValue)
+    void Node::setAutoRepair(bool autoRepairValue, SAFplus::Transaction &t)
     {
-        this->autoRepair.value = autoRepairValue;
+        if(&t == &SAFplus::NO_TXN) this->autoRepair.value = autoRepairValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(autoRepair.value),autoRepairValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -126,9 +142,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/failFastOnInstantiationFailure
      */
-    void Node::setFailFastOnInstantiationFailure(bool failFastOnInstantiationFailureValue)
+    void Node::setFailFastOnInstantiationFailure(bool failFastOnInstantiationFailureValue, SAFplus::Transaction &t)
     {
-        this->failFastOnInstantiationFailure.value = failFastOnInstantiationFailureValue;
+        if(&t == &SAFplus::NO_TXN) this->failFastOnInstantiationFailure.value = failFastOnInstantiationFailureValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(failFastOnInstantiationFailure.value),failFastOnInstantiationFailureValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -142,9 +163,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/failFastOnCleanupFailure
      */
-    void Node::setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue)
+    void Node::setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue, SAFplus::Transaction &t)
     {
-        this->failFastOnCleanupFailure.value = failFastOnCleanupFailureValue;
+        if(&t == &SAFplus::NO_TXN) this->failFastOnCleanupFailure.value = failFastOnCleanupFailureValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(failFastOnCleanupFailure.value),failFastOnCleanupFailureValue);
+            t.addOperation(opt);
+        }
     };
 
     /*

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <string>
+#include "clTransaction.hxx"
 #include "Xpath10.hxx"
 
 
@@ -22,9 +23,14 @@ namespace ietfYangTypes
         return this->Value;
     };
 
-    void Xpath10::setValue(std::string value)
+    void Xpath10::setValue(std::string value, SAFplus::Transaction &t)
     {
-        this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&Value,value);
+            t.addOperation(opt);
+        }
     };
 
     ietfYangTypes::Xpath10& Xpath10::operator=(const ietfYangTypes::Xpath10 &xpath10)

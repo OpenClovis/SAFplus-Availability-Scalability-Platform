@@ -49,6 +49,12 @@ class multipleKey
         }
         logDebug("MGT","TEST","Building key for object...");
       }
+      std::string toXmlString() const
+      {
+        std::stringstream ss;
+        ss << "key1=\"" << key1 << "\" " << "key2=\"" << key2 << "\" " << "key3=\"" << key3 << "\" ";
+        return ss.str();
+      }
       std::string str()
       {
         std::stringstream ss;
@@ -330,9 +336,13 @@ void testMgtStringList()
   logDebug("MGT","TEST","Start test case string list");
   MgtList<std::string> stringList("mylist");
   stringList.setListKey("name");
+  std::stringstream teststream;
   MgtProv<std::string> testObject1("testobj1");
+  testObject1.value = "testobj1val";
   MgtProv<std::string> testObject2("testobj2");
+  testObject2.value = "testobj2val";
   MgtProv<std::string> testObject3("testobj3");
+  testObject3.value = "testobj3val";
   std::string objKey1("hello");
   std::string objKey2("world");
   std::string objKey3("python");
@@ -352,7 +362,8 @@ void testMgtStringList()
   logDebug("MGT","TEST","PASS: X-PATH %s ",stringList.getFullXpath(objKey2).c_str());
 
   logDebug("MGT","TEST","PASS: DUMPING ");
-  stringList.dbgDumpChildren();
+  stringList.toString(teststream);
+  logDebug("MGT","TEST"," %s",teststream.str().c_str());
 
   MgtObject::Iterator iter = stringList.begin();
   while(iter != stringList.end())
@@ -376,13 +387,17 @@ void testMgtClassList()
 {
   const char* xmlTest = "<mylist><testobj1 key1=\"2\" key2=\"2\" key3=\"Java\"><name>testobj1_newname</name></testobj1></mylist>";
   logDebug("MGT","TEST","Start test case multiple key list");
+  std::stringstream teststream;
   MgtList<multipleKey> stringList("mylist");
   stringList.setListKey("key1");
   stringList.setListKey("key2");
   stringList.setListKey("key3");
   MgtProv<std::string> testObject1("testobj1");
+  testObject1.value = "testobj1val";
   MgtProv<std::string> testObject2("testobj2");
+  testObject2.value = "testobj2val";
   MgtProv<std::string> testObject3("testobj3");
+  testObject3.value = "testobj3val";
   multipleKey objKey1(2,2,"Java");
   multipleKey objKey2(2,4,"ASPX");
   multipleKey objKey3(2,6,"C++");
@@ -405,8 +420,8 @@ void testMgtClassList()
   logDebug("MGT","TEST","PASS: X-PATH %s ",stringList.getFullXpath(objKey1).c_str());
 
   logDebug("MGT","TEST","PASS: DUMPING ");
-  stringList.dbgDumpChildren();
-
+  stringList.toString(teststream);
+  logDebug("MGT","TEST"," %s",teststream.str().c_str());
   MgtObject::Iterator iter = stringList.begin();
   while(iter != stringList.end())
   {

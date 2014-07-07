@@ -10,6 +10,7 @@
 #include "ENTITYSTATETCMIBCommon.hxx"
 
 #include <iostream>
+#include "clTransaction.hxx"
 #include <bitset>
 
 namespace ENTITYSTATETCMIB
@@ -22,7 +23,7 @@ namespace ENTITYSTATETCMIB
     public:
         EntityAlarmStatus();
         std::bitset<7> getValue();
-        void setValue(std::bitset<7> value);
+        void setValue(std::bitset<7> value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ENTITYSTATETCMIB::EntityAlarmStatus& operator=(const ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus);
         friend std::ostream& operator<<(std::ostream &os, const ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus);
         friend std::istream& operator>>(std::istream &is, ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus);

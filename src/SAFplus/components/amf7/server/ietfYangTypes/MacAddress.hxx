@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <string>
+#include "clTransaction.hxx"
 
 namespace ietfYangTypes
   {
@@ -22,7 +23,7 @@ namespace ietfYangTypes
     public:
         MacAddress();
         std::string getValue();
-        void setValue(std::string value);
+        void setValue(std::string value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ietfYangTypes::MacAddress& operator=(const ietfYangTypes::MacAddress &macAddress);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::MacAddress &macAddress);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::MacAddress &macAddress);
