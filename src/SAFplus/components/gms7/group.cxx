@@ -509,7 +509,7 @@ void  SAFplus::Group::sendNotification(void* data, int dataLength, GroupMessageS
       logInfo("GMS","MSG","Sending broadcast message");
       try
       {
-        groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+        groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, SAFplusI::GRP_MSG_TYPE);
       }
       catch (...)
       {
@@ -528,7 +528,7 @@ void  SAFplus::Group::sendNotification(void* data, int dataLength, GroupMessageS
       logInfo("GMS","MSG","Sending message to Master");
       try
       {
-        groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, CL_IOC_PROTO_MSG);
+        groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, SAFplusI::GRP_MSG_TYPE);
       }
       catch (...)
       {
