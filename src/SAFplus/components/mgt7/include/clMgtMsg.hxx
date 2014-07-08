@@ -125,23 +125,6 @@ extern "C"
             CL_IN ClRcT rc,
             CL_IN void* pCookie);
 
-    void clMgtMsgBindHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-            ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize);
-    void clMgtMsgBindRpcHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-            ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize);
-    void clMgtMsgEditHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-            ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize);
-    void clMgtMsgGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-            ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize);
-    void clMgtMsgNotifyHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-            ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize);
-    void clMgtMsgRpcHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-            ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize);
-    void clMgtMsgOidSetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-            ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize);
-    void clMgtMsgOidGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-            ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize);
-
 #endif
 
 

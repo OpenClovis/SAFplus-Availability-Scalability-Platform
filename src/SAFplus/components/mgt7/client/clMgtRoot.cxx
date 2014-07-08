@@ -19,7 +19,9 @@
 
 #include "clMgtRoot.hxx"
 #ifdef MGT_ACCESS
-#include "clMgtIoc.hxx"
+#include <clIocPortList.hxx>
+#include <clSafplusMsgServer.hxx>
+#include <clCommon.hxx>
 #endif
 
 #ifdef __cplusplus
@@ -33,66 +35,44 @@ extern "C"
 
 using namespace std;
 
-#ifdef MGT_ACCESS
-#define CL_IOC_MGT_NETCONF_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 1)
-#define CL_IOC_MGT_SNMP_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 2)
-#endif
-
 namespace SAFplus
 {
   MgtRoot *MgtRoot::singletonInstance = 0;
 
   MgtRoot *MgtRoot::getInstance()
   {
-    return (singletonInstance ? singletonInstance : (singletonInstance =
-                                                     new MgtRoot()));
+    return (singletonInstance ? singletonInstance : (singletonInstance = new MgtRoot()));
   }
 
   MgtRoot::~MgtRoot()
   {
-#ifdef MGT_ACCESS
-
-    /*
-     * Do the application specific finalization here.
-     */
-    ClMgtIoc* mgtIocInstance = ClMgtIoc::getInstance();
-    delete mgtIocInstance;
-#endif    
   }
 
   MgtRoot::MgtRoot()
   {
 #ifdef MGT_ACCESS
     /*
-     * Register ioc protocol
+     * Message server to communicate with snmp/netconf
      */
-    ClMgtIoc* mgtIocInstance = ClMgtIoc::getInstance();
-    mgtIocInstance->initializeIoc(CL_IOC_USER_PROTO_START + 2,
-                                  CL_IOC_USER_PROTO_START + 1);
-    mgtIocInstance->registerMsgHandler(CL_MGT_MSG_EDIT, clMgtMsgEditHandle);
-    mgtIocInstance->registerMsgHandler(CL_MGT_MSG_GET, clMgtMsgGetHandle);
-    mgtIocInstance->registerMsgHandler(CL_MGT_MSG_RPC, clMgtMsgRpcHandle);
-
-    mgtIocInstance->registerMsgHandler(CL_MGT_MSG_OID_SET,
-                                       clMgtMsgOidSetHandle);
-    mgtIocInstance->registerMsgHandler(CL_MGT_MSG_OID_GET,
-                                       clMgtMsgOidGetHandle);
-#endif    
+    SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
+    SAFplus::MgtRoot::MgtMessageHandler mgtMessageHandler(this);
+    mgtIocInstance->RegisterHandler(SAFplusI::CL_MGT_MSG_TYPE, &mgtMessageHandler, NULL);
+#endif
   }
 
   ClRcT MgtRoot::loadMgtModule(MgtModule *module, std::string moduleName)
   {
     if (module == NULL)
-      {
-        return CL_ERR_NULL_POINTER;
-      }
+    {
+      return CL_ERR_NULL_POINTER;
+    }
 
     /* Check if MGT module already exists in the database */
     if (mMgtModules.find(moduleName) != mMgtModules.end())
-      {
-        logDebug("MGT", "LOAD", "Module [%s] already exists!", moduleName.c_str());
-        return CL_ERR_ALREADY_EXIST;
-      }
+    {
+      logDebug("MGT", "LOAD", "Module [%s] already exists!", moduleName.c_str());
+      return CL_ERR_ALREADY_EXIST;
+    }
 
     /* Insert MGT module into the database */
     mMgtModules.insert(pair<string, MgtModule *>(moduleName.c_str(), module));
@@ -105,16 +85,14 @@ namespace SAFplus
   {
     /* Check if MGT module already exists in the database */
     if (mMgtModules.find(moduleName) == mMgtModules.end())
-      {
-        logDebug("MGT", "LOAD", "Module [%s] is not existing!",
-                   moduleName.c_str());
-        return CL_ERR_NOT_EXIST;
-      }
+    {
+      logDebug("MGT", "LOAD", "Module [%s] is not existing!", moduleName.c_str());
+      return CL_ERR_NOT_EXIST;
+    }
 
     /* Remove MGT module out off the database */
     mMgtModules.erase(moduleName);
-    logDebug("MGT", "LOAD", "Module [%s] removed successful!",
-               moduleName.c_str());
+    logDebug("MGT", "LOAD", "Module [%s] removed successful!",moduleName.c_str());
 
     return CL_OK;
   }
@@ -123,81 +101,89 @@ namespace SAFplus
   {
     map<string, MgtModule*>::iterator mapIndex = mMgtModules.find(moduleName);
     if (mapIndex != mMgtModules.end())
-      {
-        return static_cast<MgtModule *>((*mapIndex).second);
-      }
+    {
+      return static_cast<MgtModule *>((*mapIndex).second);
+    }
     return NULL;
   }
 
-  ClRcT MgtRoot::bindMgtObject(ClUint8T bindType, MgtObject *object,
-                                 const std::string module, const std::string route)
+  ClRcT MgtRoot::bindMgtObject(ClUint8T bindType, MgtObject *object,const std::string module, const std::string route)
   {
     ClRcT rc = CL_OK;
 
     if (object == NULL)
-      {
-        return CL_ERR_NULL_POINTER;
-      }
+    {
+      return CL_ERR_NULL_POINTER;
+    }
 
     /* Check if MGT module already exists in the database */
     MgtModule *mgtModule = getMgtModule(module);
     if (mgtModule == NULL)
-      {
-        logDebug("MGT", "BIND", "Module [%s] does not exist!",
-                   module.c_str());
-        return CL_ERR_NOT_EXIST;
-      }
+    {
+      logDebug("MGT", "BIND", "Module [%s] does not exist!",module.c_str());
+      return CL_ERR_NOT_EXIST;
+    }
 
     rc = mgtModule->addMgtObject(object, route);
     if ((rc != CL_OK) && (rc != CL_ERR_ALREADY_EXIST))
-      {
-        logDebug("MGT", "BIND",
-                   "Binding module [%s], route [%s], returning rc[0x%x].",
-                   module.c_str(), route.c_str(), rc);
-        return rc;
-      }
+    {
+      logDebug("MGT", "BIND", "Binding module [%s], route [%s], returning rc[0x%x].", module.c_str(), route.c_str(), rc);
+      return rc;
+    }
 #ifdef MGT_ACCESS
-    ClMgtIoc* mgtIocInstance = ClMgtIoc::getInstance();
-
     /* Send bind data to the server */
     ClIocAddressT allNodeReps;
-    allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     if (bindType == CL_NETCONF_BIND_TYPE)
-      {
-        ClMgtMessageBindTypeT bindData =
-          {
-            { 0 } };
-        strncat(bindData.module, module.c_str(), CL_MAX_NAME_LENGTH - 1);
-        strncat(bindData.route, route.c_str(), MGT_MAX_ATTR_STR_LEN - 1);
-        allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_NETCONF_PORT;
-        rc = mgtIocInstance->sendIocMsgAsync(&allNodeReps, CL_MGT_MSG_BIND,
-                                             &bindData, sizeof(bindData), NULL, NULL);
-      }
+    {
+      ClMgtMessageBindTypeT bindData = { { 0 } };
+      strncat(bindData.module, module.c_str(), CL_MAX_NAME_LENGTH - 1);
+      strncat(bindData.route, route.c_str(), MGT_MAX_ATTR_STR_LEN - 1);
+
+      allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+      allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_NETCONF_PORT;
+      rc = MgtRoot::sendMsg(allNodeReps,(void *)&bindData,sizeof(bindData),MgtMsgType::CL_MGT_MSG_BIND);
+    }
     else
-      {
-        ClMgtMsgOidBindTypeT bindData =
-          {
-            { 0 } };
-        strncat(bindData.module, module.c_str(), CL_MAX_NAME_LENGTH - 1);
-        strncat(bindData.oid, route.c_str(), CL_MAX_NAME_LENGTH - 1);
-        allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_SNMP_PORT;
-        rc = mgtIocInstance->sendIocMsgAsync(&allNodeReps, CL_MGT_MSG_OID_BIND,
-                                             &bindData, sizeof(bindData), NULL, NULL);
-      }
-#endif    
+    {
+      ClMgtMsgOidBindTypeT bindData = { { 0 } };
+      strncat(bindData.module, module.c_str(), CL_MAX_NAME_LENGTH - 1);
+      strncat(bindData.oid, route.c_str(), CL_MAX_NAME_LENGTH - 1);
+
+      allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+      allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_SNMP_PORT;
+      rc = MgtRoot::sendMsg(allNodeReps,(void *)&bindData,sizeof(bindData),MgtMsgType::CL_MGT_MSG_OID_BIND);
+    }
+#endif
     return rc;
   }
+#ifdef MGT_ACCESS
+  ClRcT MgtRoot::sendMsg(ClIocAddressT dest, void* payload, uint payloadlen, MgtMsgType msgtype)
+  {
+    ClRcT rc = CL_OK;
+    uint msgLen = payloadlen + sizeof(MgtMsgProto) - 1;
+    char msg[msgLen];
+    MgtMsgProto *msgSending = (MgtMsgProto *)msg;
+    msgSending->messageType = msgtype;
+    memcpy(msgSending->data,payload,payloadlen);
+    try
+    {
+      SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
+      mgtIocInstance->SendMsg(dest, (void *)msgSending, msgLen, SAFplusI::CL_MGT_MSG_TYPE);
+    }
+    catch (SAFplus::Error &ex)
+    {
+      rc = ex.clError;
+      logDebug("GMS","MSG","Failed to send");
+    }
+    return rc;
+  }
+#endif
 
-  ClRcT MgtRoot::registerRpc(const std::string module,
-                               const std::string rpcName)
+  ClRcT MgtRoot::registerRpc(const std::string module,const std::string rpcName)
   {
     ClRcT rc = CL_OK;
 #ifdef MGT_ACCESS
-
-    ClMgtIoc* mgtIocInstance = ClMgtIoc::getInstance();
-    ClMgtMessageBindTypeT bindData =
-      {
-        { 0 } };
+    ClMgtMessageBindTypeT bindData = { { 0 } };
     strncat(bindData.module, module.c_str(), CL_MAX_NAME_LENGTH - 1);
     strncat(bindData.route, rpcName.c_str(), MGT_MAX_ATTR_STR_LEN - 1);
 
@@ -205,15 +191,13 @@ namespace SAFplus
     ClIocAddressT allNodeReps;
     allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_NETCONF_PORT;
-    rc = mgtIocInstance->sendIocMsgAsync(&allNodeReps, CL_MGT_MSG_BIND_RPC,
-                                         &bindData, sizeof(bindData), NULL, NULL);
+    rc = MgtRoot::sendMsg(allNodeReps,(void *)&bindData,sizeof(bindData),MgtMsgType::CL_MGT_MSG_BIND_RPC);
 #endif
     return rc;
   }
 
 #ifdef MGT_ACCESS
-  void clMgtMsgEditHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-                          ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize)
+  void MgtRoot::clMgtMsgEditHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg)
   {
     ClRcT rc = CL_OK;
 
@@ -223,8 +207,7 @@ namespace SAFplus
     ClCharT *data = editData->data;
     ClUint32T dataSize = strlen(data);
 
-    MgtModule * module = MgtRoot::getInstance()->getMgtModule(
-                                                                  editData->module);
+    MgtModule * module = MgtRoot::getInstance()->getMgtModule(editData->module);
     if (!module)
       return;
 
@@ -235,22 +218,23 @@ namespace SAFplus
     SAFplus::Transaction t;
 
     if (object->set(data, dataSize, t) == CL_TRUE)
-      {
-        t.commit();
-      }
+    {
+      t.commit();
+    }
     else
-      {
-        t.abort();
-        rc = CL_ERR_INVALID_PARAMETER;
-      }
-
+    {
+      t.abort();
+      rc = CL_ERR_INVALID_PARAMETER;
+    }
+#if 0
+    // Send response
     *outMsgSize = sizeof(ClRcT);
     *ppOutMsg = malloc(*outMsgSize);
     memcpy(*ppOutMsg, &rc, *outMsgSize);
+#endif
   }
 
-  void clMgtMsgGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-                         ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize)
+  void MgtRoot::clMgtMsgGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg)
   {
     ClMgtMessageBindTypeT *bindData = (ClMgtMessageBindTypeT *) pInMsg;
     logDebug("NETCONF", "COMP",
@@ -258,132 +242,142 @@ namespace SAFplus
                bindData->iocAddress.nodeAddress, bindData->iocAddress.portId,
                bindData->module, bindData->route);
 
-    MgtModule * module = MgtRoot::getInstance()->getMgtModule(
-                                                                  bindData->module);
+    MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData->module);
     if (!module)
-      {
-        logError(
-                   "NETCONF",
-                   "COMP",
-                   "Received Get request from [%d.%x] for Non-existent module [%s] route [%s]",
-                   bindData->iocAddress.nodeAddress, bindData->iocAddress.portId,
-                   bindData->module, bindData->route);
-        return;
-      }
+    {
+      logError("NETCONF", "COMP",
+                 "Received Get request from [%d.%x] for Non-existent module [%s] route [%s]",
+                 bindData->iocAddress.nodeAddress, bindData->iocAddress.portId,
+                 bindData->module, bindData->route);
+      return;
+    }
 
     MgtObject * object = module->getMgtObject(bindData->route);
     if (!object)
-      {
-        logError(
-                   "NETCONF",
-                   "COMP",
-                   "Received Get request from [%d.%x] for Non-existent route [%s] module [%s]",
-                   bindData->iocAddress.nodeAddress, bindData->iocAddress.portId,
-                   bindData->route, bindData->module);
-        return;
-      }
-
+    {
+      logError("NETCONF", "COMP",
+                 "Received Get request from [%d.%x] for Non-existent route [%s] module [%s]",
+                 bindData->iocAddress.nodeAddress, bindData->iocAddress.portId,
+                 bindData->route, bindData->module);
+      return;
+    }
+#if 0
+    //send response
     object->get(ppOutMsg, outMsgSize);
+#endif
   }
 
-  void clMgtMsgRpcHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-                         ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize)
+  void MgtRoot::clMgtMsgRpcHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg)
   {
     logDebug("NETCONF", "COMP", "Receive Rpc MSG");
+
     ClMgtMessageRpcTypeT *rpcData = (ClMgtMessageRpcTypeT *) pInMsg;
     ClCharT *data = rpcData->data;
     ClUint32T dataSize = strlen(data);
-
+#if 0
     if (*ppOutMsg == NULL)
-      {
-        *ppOutMsg = (void *) calloc(MGT_MAX_DATA_LEN, sizeof(char));
-      }
-
-    MgtModule * module = MgtRoot::getInstance()->getMgtModule(
-                                                                  rpcData->module);
+    {
+      *ppOutMsg = (void *) calloc(MGT_MAX_DATA_LEN, sizeof(char));
+    }
+#endif
+    MgtModule * module = MgtRoot::getInstance()->getMgtModule(rpcData->module);
     if (!module)
-      {
-        snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
-                 "<error>Invalid parameter</error>");
-        *outMsgSize = strlen((char*) *ppOutMsg) + 1;
-        return;
-      }
+    {
+#if 0
+      snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,"<error>Invalid parameter</error>");
+      *outMsgSize = strlen((char*) *ppOutMsg) + 1;
+#endif
+      return;
+    }
 
-    ClMgtRpc * rpc = module->getMgtRpc(rpcData->rpc);
+    MgtRpc * rpc = module->getMgtRpc(rpcData->rpc);
     if (!rpc)
-      {
-        snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
-                 "<error>Invalid parameter</error>");
-        goto out;
-      }
+    {
+#if 0
+      snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,"<error>Invalid parameter</error>");
+#endif
+      goto out;
+    }
 
     if (rpc->setInParams(data, dataSize) == CL_FALSE)
-      {
-        snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
-                 "<error>Invalid parameter</error>");
-        goto out;
-      }
+    {
+#if 0
+      snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,"<error>Invalid parameter</error>");
+#endif
+      goto out;
+    }
 
     switch (rpcData->rpcType)
-      {
+    {
       case CL_MGT_RPC_VALIDATE:
+      {
+#if 0
         if (rpc->validate())
-          {
-            strcpy((char*) *ppOutMsg, "<ok/>");
-          }
+        {
+          strcpy((char*) *ppOutMsg, "<ok/>");
+        }
         else
-          {
-            logDebug("MGT", "INI", "Validation error : %s",
-                       rpc->ErrorMsg.c_str());
-            if (rpc->ErrorMsg.length() == 0)
-              snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
-                       "<error>Unknown error</error>");
-            else
-              snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
-                       "<error>%s</error>", rpc->ErrorMsg.c_str());
-          }
-        break;
-      case CL_MGT_RPC_INVOKE:
-        if (rpc->invoke())
-          {
-            rpc->getOutParams(ppOutMsg, outMsgSize);
-          }
-        else
-          {
-            if (rpc->ErrorMsg.length() == 0)
-              snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
-                       "<error>Unknown error</error>");
-            else
-              snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
-                       "<error>%s</error>", rpc->ErrorMsg.c_str());
-          }
-        break;
-      case CL_MGT_RPC_POSTREPLY:
-        if (rpc->postReply())
-          {
-            strcpy((char*) *ppOutMsg, "<ok/>");
-          }
-        else
-          {
-            if (rpc->ErrorMsg.length() == 0)
-              snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
-                       "<error>Unknown error</error>");
-            else
-              snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
-                       "<error>%s</error>", rpc->ErrorMsg.c_str());
-          }
-        break;
-      default:
-        snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,
-                 "<error>Invalid operation</error>");
+        {
+          logDebug("MGT", "INI", "Validation error : %s",rpc->ErrorMsg.c_str());
+          if (rpc->ErrorMsg.length() == 0)
+            snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,"<error>Unknown error</error>");
+          else
+            snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,"<error>%s</error>", rpc->ErrorMsg.c_str());
+        }
+#endif
         break;
       }
+      case CL_MGT_RPC_INVOKE:
+      {
+#if 0
+        if (rpc->invoke())
+        {
+          rpc->getOutParams(ppOutMsg, outMsgSize);
+        }
+        else
+        {
+          if (rpc->ErrorMsg.length() == 0)
+            snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,"<error>Unknown error</error>");
+          else
+            snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,"<error>%s</error>", rpc->ErrorMsg.c_str());
+        }
+#endif
+        break;
+      }
+      case CL_MGT_RPC_POSTREPLY:
+      {
+#if 0
+        if (rpc->postReply())
+        {
+          strcpy((char*) *ppOutMsg, "<ok/>");
+        }
+        else
+        {
+          if (rpc->ErrorMsg.length() == 0)
+            snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,"<error>Unknown error</error>");
+          else
+            snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,"<error>%s</error>", rpc->ErrorMsg.c_str());
+        }
+#endif
+        break;
+      }
+      default:
+      {
+#if 0
+        snprintf((char*) *ppOutMsg, MGT_MAX_DATA_LEN,"<error>Invalid operation</error>");
+#endif
+        break;
+      }
+    }
+out:
+  return;
+#if 0
+    *outMsgSize = strlen((char*) *ppOutMsg) + 1;
+#endif
 
-  out: *outMsgSize = strlen((char*) *ppOutMsg) + 1;
   }
 
-  void clMgtMsgOidSetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-                            ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize)
+  void clMgtMsgOidSetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg)
   {
     ClRcT rc = CL_OK;
 
@@ -392,8 +386,7 @@ namespace SAFplus
     logDebug("SNM", "COMP", "Receive 'edit' opcode, data [%s]",
                (ClCharT *)editData->data);
 
-    MgtModule * module = MgtRoot::getInstance()->getMgtModule(
-                                                                  editData->module);
+    MgtModule * module = MgtRoot::getInstance()->getMgtModule(editData->module);
 
     if (!module)
       return;
@@ -406,44 +399,79 @@ namespace SAFplus
 
     string strInMsg((ClCharT *)editData->data);
 
-    if (strInMsg.compare(1, object->Name.length(), object->Name))
-      {
-        strInMsg = "<" + object->Name + ">" + strInMsg + "</" + object->Name
-          + ">";
-      }
+    if (strInMsg.compare(1, object->name.length(), object->name))
+    {
+      strInMsg = "<" + object->name + ">" + strInMsg + "</" + object->name
+        + ">";
+    }
 
     if (object->set((void *) strInMsg.c_str(), strInMsg.length(), t))
-      {
-        t.commit();
-      }
+    {
+      t.commit();
+    }
     else
-      {
-        t.abort();
-        rc = CL_ERR_INVALID_PARAMETER;
-      }
-
+    {
+      t.abort();
+      rc = CL_ERR_INVALID_PARAMETER;
+    }
+#if 0
+    //Send response
     *outMsgSize = sizeof(ClRcT);
     *ppOutMsg = malloc(*outMsgSize);
     memcpy(*ppOutMsg, &rc, *outMsgSize);
+#endif
   }
 
-  void clMgtMsgOidGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg,
-                            ClUint64T inMsgSize, void **ppOutMsg, ClUint64T *outMsgSize)
+  void clMgtMsgOidGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg)
   {
     logDebug("SNM", "COMP", "Receive 'get' opcode");
 
     ClMgtMsgOidBindTypeT *bindData = (ClMgtMsgOidBindTypeT *) pInMsg;
 
-    MgtModule * module = MgtRoot::getInstance()->getMgtModule(
-                                                                  bindData->module);
+    MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData->module);
     if (!module)
       return;
 
     MgtObject * object = module->getMgtObject(bindData->oid);
     if (!object)
       return;
-
+#if 0
     object->get(ppOutMsg, outMsgSize);
+#endif
+  }
+
+  MgtRoot::MgtMessageHandler::MgtMessageHandler(MgtRoot *mroot):mRoot(mroot)
+  {
+
+  }
+  void MgtRoot::MgtMessageHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+  {
+    MgtMsgProto *rxMsg = (MgtMsgProto *)msg;
+    if(rxMsg == NULL)
+    {
+      logError("MGT","MSG","Received NULL message. Ignored");
+      return;
+    }
+    switch(rxMsg->messageType)
+    {
+      case MgtMsgType::CL_MGT_MSG_EDIT:
+        mRoot->clMgtMsgEditHandle(from.iocPhyAddress,rxMsg->data);
+        break;
+      case MgtMsgType::CL_MGT_MSG_GET:
+        mRoot->clMgtMsgGetHandle(from.iocPhyAddress,rxMsg->data);
+        break;
+      case MgtMsgType::CL_MGT_MSG_OID_GET:
+        mRoot->clMgtMsgOidGetHandle(from.iocPhyAddress,rxMsg->data);
+        break;
+      case MgtMsgType::CL_MGT_MSG_OID_SET:
+        mRoot->clMgtMsgOidSetHandle(from.iocPhyAddress,rxMsg->data);
+        break;
+      case MgtMsgType::CL_MGT_MSG_RPC:
+        mRoot->clMgtMsgRpcHandle(from.iocPhyAddress,rxMsg->data);
+        break;
+      default:
+        break;
+    }
   }
 #endif
 };
