@@ -794,14 +794,11 @@ ClRcT clIocHeartBeatStart()
 /*
  * Callback method to register TRACK_CHANGE
  */
-static
-void clHeartBeatTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
-                              ClUint32T                       numberOfMembers,
-                              ClRcT                           rc)
+static void clHeartBeatTrackCallback(ClGmsHandleT handle, const ClGmsClusterNotificationBufferT *notificationBuffer,
+    ClUint32T numberOfMembers, ClRcT rc)
 {
 
-    clLogDebug("IOC", "HBT", "Received trackcallback with leader [%d]",
-               notificationBuffer->leader);
+    clLogDebug("IOC", "HBT", "Received trackcallback with leader [%d]", notificationBuffer->leader);
 
     if ((ClInt32T) notificationBuffer->leader == -1)
     {

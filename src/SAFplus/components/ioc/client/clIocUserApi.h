@@ -33,7 +33,6 @@ extern "C" {
 #define BCAST_SOCKET_NEEDED
 
 
-//#define RELIABLE_IOC
 typedef struct
 {
     ClUint8T version;
@@ -43,12 +42,6 @@ typedef struct
     ClUint32T reserved;
     ClIocAddressT srcAddress;
     ClIocAddressT dstAddress;
-#ifdef RELIABLE_IOC
-    ClUint32T messageId;
-    ClBoolT isReliable;
-    ClUint32T piggyBackACK;
-    ClUint32T piggyBackACKMessageId;
-#endif
 #ifdef CL_IOC_COMPRESSION
     ClTimeT       pktTime;
 #endif
@@ -61,7 +54,6 @@ typedef struct
     ClUint32T fragOffset;
     ClUint32T fragLength;
     ClUint32T reserved;
-    ClUint32T fragId;
 } ClIocFragHeaderT;
     
 
@@ -97,6 +89,9 @@ typedef struct
     ClInt32T blocked;
     ClUint32T priority;
 }ClIocCommPortT;
+
+
+
 
 extern ClIocConfigT pAllConfig;
 extern ClIocNodeAddressT gIocLocalBladeAddress;

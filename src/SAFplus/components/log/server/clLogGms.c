@@ -33,7 +33,7 @@
 
 static ClHandleT gIocCallbackHandle = CL_HANDLE_INVALID_VALUE;
 static void 
-clLogTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
+clLogTrackCallback(ClGmsHandleT handle, const ClGmsClusterNotificationBufferT *notificationBuffer,
                    ClUint32T                       numberOfMembers,
                    ClRcT                           rc);
 extern ClRcT
@@ -256,7 +256,7 @@ clLogAddrUpdate(ClIocNodeAddressT  leader,
 }
 
 static 
-void clLogTrackCallback(ClGmsClusterNotificationBufferT *notificationBuffer,
+void clLogTrackCallback(ClGmsHandleT handle, const ClGmsClusterNotificationBufferT *notificationBuffer,
                         ClUint32T                       numberOfMembers,
                         ClRcT                           rc)
 {
