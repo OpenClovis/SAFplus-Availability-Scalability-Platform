@@ -769,7 +769,13 @@ clBMChainReset(ClBufferCtrlHeaderT *pCtrlHeader,
                 pNext->pPreviousBufferHeader = pTemp->pPreviousBufferHeader;
             }
             clHeapFree(pTemp->pCookie);
+            /* May prevent double free */
+            pTemp->pCookie = NULL;
+
             clHeapFree(pTemp);
+            /* May prevent double free */
+            pTemp = NULL;
+
             pTemp = pNext;
             continue;
         }
@@ -932,7 +938,12 @@ clBMBufferChainFree(ClBufferCtrlHeaderT *pCtrlHeader,
         if(pTemp->pool == CL_BUFFER_HEAP_MARKER)
         {
             clHeapFree(pTemp->pCookie);
+            /* May prevent double free */
+            pTemp->pCookie = NULL;
+
             clHeapFree(pTemp);
+            /* May prevent double free */
+            pTemp = NULL;
         }
         else
         {
