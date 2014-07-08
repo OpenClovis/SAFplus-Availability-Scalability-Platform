@@ -1,4 +1,4 @@
-#include <clIocApi.h>
+#include <clLogApi.h>
 #include <clCommon.hxx>
 #include <clNameApi.hxx>
 #include <clCustomization.hxx>
@@ -106,6 +106,7 @@ void NameRegistrar::append(const std::string& name, Handle handle, MappingMode m
       append(name.c_str(), handle, m);
    }
    catch (NameException ne) {
+      logError("NAME","APD","Exception cautch [%s]", ne.what());      
       throw ne;
    }
 }
@@ -119,6 +120,7 @@ void NameRegistrar::setLocalObject(const char* name, void* object)
    }
    catch(NameException ne) 
    {
+      logError("NAME","SETOBJ","Exception caught [%s]", ne.what());
       return;
    }
    //Find to see if the key exists?
@@ -219,13 +221,14 @@ RefObjMapPair NameRegistrar::get(const char* name) throw(NameException&)
       }                
       catch (NameException &ne)
       { // Not throwing, continue to search below
+         logWarning("NAME","GET","Exception caught [%s]", ne.what());
       }
       Checkpoint::Iterator ibegin = m_checkpoint.begin();
       Checkpoint::Iterator iend = m_checkpoint.end();  
       for(Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
       {
          BufferPtr curkey = iter->first;
-         printf("Get object: key [%s]\n", curkey.get()->data);            
+         logDebug("NAME","GET","Get object: key [%s]", curkey.get()->data);            
 
          BufferPtr& curval = iter->second;
          if (curval)
@@ -246,6 +249,7 @@ RefObjMapPair NameRegistrar::get(const char* name) throw(NameException&)
                }                
                catch (NameException &ne)
                { // Not throwing, continue to search
+                  logWarning("NAME","GET","Exception caught [%s]", ne.what());
                }           
             }                  
          }
@@ -322,7 +326,7 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
          if (idx == -1)
          {
             ClIocNodeAddressT thisNode = SAFplus::ASP_NODEADDR;
-            printf("getHandle of name [%s]: thisNode [%d]\n", name, thisNode);
+            logDebug("NAME","GETHDL","getHandle of name [%s]: thisNode [%d]", name, thisNode);
             for(i=0;i<sz;i++)
 	    {		                
 		if ((uint32_t)data->handles[i].getNode() == thisNode)
@@ -401,7 +405,7 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
    for(Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
    {
       BufferPtr curkey = iter->first;
-      printf("handleFailure(): key [%s]\n", curkey.get()->data);            
+      logDebug("NAME","HDLFAIL","key [%s]", curkey.get()->data);            
 
       BufferPtr& curval = iter->second;
       if (curval)
@@ -423,7 +427,7 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
             {            
                if (sz == 1) // There is only one handle registered, then remove the name and its value
                {
-                  printf("Removing element with key [%s]\n", curkey.get()->data);
+                  logDebug("NAME","HDLFAIL","Removing element with key [%s]", curkey.get()->data);
 #if 0                  
                   m_checkpoint.remove(curval);                   
                   m_checkpoint.remove(curkey, true);
@@ -461,7 +465,7 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
       }
       else
       {
-         printf("handleFailure(): name data is empty");
+         logWarning("NAME","HDLFAIL","name data is empty");
       }
    }
 }
@@ -478,15 +482,15 @@ void NameRegistrar::nodeFailed(const uint16_t slotNum, const uint32_t amfId)
 
 void NameRegistrar::dump()
 {  
+   logInfo("NAME","DUMP","---------------------------------");      
    SAFplus::Checkpoint::Iterator ibegin = m_checkpoint.begin();
    SAFplus::Checkpoint::Iterator iend = m_checkpoint.end(); 
    for(SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
    {
-       BufferPtr curkey = iter->first;
-       printf("---------------------------------\n");      
+       BufferPtr curkey = iter->first;       
        if (curkey)
        {
-          printf("key [%s]\n", curkey->data);
+          logInfo("NAME","DUMP","key [%s]", curkey->data);
        }       
        BufferPtr& curval = iter->second;
        if (curval)
@@ -494,38 +498,40 @@ void NameRegistrar::dump()
           HandleData* data = (HandleData*) curval->data;
           if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
           { 
-             printf("Arbitrary data [%s]\n", curval->data);
+             logInfo("NAME","DUMP","Arbitrary data [%s]", curval->data);
           }
           else
           { 
              size_t sz = data->numHandles;
              for(int i=0;i<sz;i++)
              {
-                printf("val [0x%lx.0x%lx]\n", (long unsigned int) data->handles[i].id[0],(long unsigned int) data->handles[i].id[1]);
+                logInfo("NAME","DUMP","val [0x%lx.0x%lx]", (long unsigned int) data->handles[i].id[0],(long unsigned int) data->handles[i].id[1]);
              }
           }
        }
     }
+   logInfo("NAME","DUMP","---------------------------------"); 
 }
 
 void NameRegistrar::dumpObj()
 {
+   logInfo("NAME","OBJDUMP","---------------------------------");
    for(ObjHashMap::iterator iter = m_mapObject.begin(); iter != m_mapObject.end(); iter++)
    {
        ObjHashMap::value_type vt = *iter;
-       Handle curkey = vt.first;
-       printf("---------------------------------\n");      
-       printf("key [0x%lx.0x%lx]\n", curkey.id[0], curkey.id[1]);              
+       Handle curkey = vt.first;       
+       logInfo("NAME","OBJDUMP","key [0x%lx.0x%lx]", curkey.id[0], curkey.id[1]);              
        void* obj = vt.second;
        if (obj)
        {
-          printf("Obj associated Not NULL\n");
+          logInfo("NAME","OBJDUMP","Obj associated Not NULL");
        }
        else       
        {
-          printf("Obj associated IS NULL\n");
+          logInfo("NAME","OBJDUMP","Obj associated IS NULL");
        }
-    }
+   }
+   logInfo("NAME","OBJDUMP","---------------------------------");      
 }
 
 NameRegistrar::~NameRegistrar()
