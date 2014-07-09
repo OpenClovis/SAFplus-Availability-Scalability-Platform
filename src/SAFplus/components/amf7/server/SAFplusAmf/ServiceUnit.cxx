@@ -8,6 +8,7 @@
 #include "RestartCount.hxx"
 #include "Node.hxx"
 #include <string>
+#include "clTransaction.hxx"
 #include "NumActiveServiceInstances.hxx"
 #include "RestartCount.hxx"
 #include "Component.hxx"
@@ -102,9 +103,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/adminState
      */
-    void ServiceUnit::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
+    void ServiceUnit::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.value = adminStateValue;
+        if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -118,9 +124,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/rank
      */
-    void ServiceUnit::setRank(unsigned int rankValue)
+    void ServiceUnit::setRank(unsigned int rankValue, SAFplus::Transaction &t)
     {
-        this->rank.value = rankValue;
+        if(&t == &SAFplus::NO_TXN) this->rank.value = rankValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(rank.value),rankValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -134,9 +145,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/failover
      */
-    void ServiceUnit::setFailover(bool failoverValue)
+    void ServiceUnit::setFailover(bool failoverValue, SAFplus::Transaction &t)
     {
-        this->failover.value = failoverValue;
+        if(&t == &SAFplus::NO_TXN) this->failover.value = failoverValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(failover.value),failoverValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -150,9 +166,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/preinstantiable
      */
-    void ServiceUnit::setPreinstantiable(bool preinstantiableValue)
+    void ServiceUnit::setPreinstantiable(bool preinstantiableValue, SAFplus::Transaction &t)
     {
-        this->preinstantiable.value = preinstantiableValue;
+        if(&t == &SAFplus::NO_TXN) this->preinstantiable.value = preinstantiableValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(preinstantiable.value),preinstantiableValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -166,9 +187,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/saAmfSUHostNodeOrNodeGroup
      */
-    void ServiceUnit::setSaAmfSUHostNodeOrNodeGroup(std::string saAmfSUHostNodeOrNodeGroupValue)
+    void ServiceUnit::setSaAmfSUHostNodeOrNodeGroup(std::string saAmfSUHostNodeOrNodeGroupValue, SAFplus::Transaction &t)
     {
-        this->saAmfSUHostNodeOrNodeGroup.value = saAmfSUHostNodeOrNodeGroupValue;
+        if(&t == &SAFplus::NO_TXN) this->saAmfSUHostNodeOrNodeGroup.value = saAmfSUHostNodeOrNodeGroupValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(saAmfSUHostNodeOrNodeGroup.value),saAmfSUHostNodeOrNodeGroupValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -182,9 +208,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/presenceState
      */
-    void ServiceUnit::setPresenceState(SAFplusAmf::PresenceState presenceStateValue)
+    void ServiceUnit::setPresenceState(SAFplusAmf::PresenceState presenceStateValue, SAFplus::Transaction &t)
     {
-        this->presenceState.value = presenceStateValue;
+        if(&t == &SAFplus::NO_TXN) this->presenceState.value = presenceStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::PresenceState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::PresenceState>(&(presenceState.value),presenceStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -198,9 +229,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/readinessState
      */
-    void ServiceUnit::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue)
+    void ServiceUnit::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t)
     {
-        this->readinessState.value = readinessStateValue;
+        if(&t == &SAFplus::NO_TXN) this->readinessState.value = readinessStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::ReadinessState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ReadinessState>(&(readinessState.value),readinessStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -214,9 +250,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/haReadinessState
      */
-    void ServiceUnit::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue)
+    void ServiceUnit::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t)
     {
-        this->haReadinessState.value = haReadinessStateValue;
+        if(&t == &SAFplus::NO_TXN) this->haReadinessState.value = haReadinessStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityReadinessState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityReadinessState>(&(haReadinessState.value),haReadinessStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -230,9 +271,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/haState
      */
-    void ServiceUnit::setHaState(SAFplusAmf::HighAvailabilityState haStateValue)
+    void ServiceUnit::setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t)
     {
-        this->haState.value = haStateValue;
+        if(&t == &SAFplus::NO_TXN) this->haState.value = haStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityState>(&(haState.value),haStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -246,9 +292,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/operState
      */
-    void ServiceUnit::setOperState(bool operStateValue)
+    void ServiceUnit::setOperState(bool operStateValue, SAFplus::Transaction &t)
     {
-        this->operState.value = operStateValue;
+        if(&t == &SAFplus::NO_TXN) this->operState.value = operStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(operState.value),operStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -294,9 +345,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/node
      */
-    void ServiceUnit::setNode(SAFplusAmf::Node* nodeValue)
+    void ServiceUnit::setNode(SAFplusAmf::Node* nodeValue, SAFplus::Transaction &t)
     {
-        this->node.value = nodeValue;
+        if(&t == &SAFplus::NO_TXN) this->node.value = nodeValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::Node*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::Node*>(&(node.value),nodeValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -310,9 +366,14 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/serviceGroup
      */
-    void ServiceUnit::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue)
+    void ServiceUnit::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue, SAFplus::Transaction &t)
     {
-        this->serviceGroup.value = serviceGroupValue;
+        if(&t == &SAFplus::NO_TXN) this->serviceGroup.value = serviceGroupValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceGroup*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceGroup*>(&(serviceGroup.value),serviceGroupValue);
+            t.addOperation(opt);
+        }
     };
 
     /*

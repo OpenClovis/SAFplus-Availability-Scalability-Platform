@@ -36,7 +36,8 @@
 
 #include "clMgtModule.hxx"
 #ifdef MGT_ACCESS
-#include "clMgtIoc.hxx"
+#include <clSafplusMsgServer.hxx>
+#include <clMsgApi.hxx>
 #endif
 
 #include "clCommon.hxx"
@@ -44,8 +45,37 @@
 #define CL_NETCONF_BIND_TYPE 0
 #define CL_SNMP_BIND_TYPE 1
 
+#define CL_IOC_MGT_NETCONF_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 1)
+#define CL_IOC_MGT_SNMP_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 2)
+
 namespace SAFplus
 {
+/**
+ * These message type are used from external,so it should be in SAFplus namespace
+ */
+  enum class MgtMsgType
+  {
+      CL_MGT_MSG_UNUSED,
+      CL_MGT_MSG_EDIT,
+      CL_MGT_MSG_GET,
+      CL_MGT_MSG_RPC,
+      CL_MGT_MSG_OID_SET,
+      CL_MGT_MSG_OID_GET,
+      CL_MGT_MSG_BIND, //netconf
+      CL_MGT_MSG_OID_BIND, //snmp
+      CL_MGT_MSG_BIND_RPC,
+      CL_MGT_MSG_NOTIF
+  };
+  class MgtMsgProto
+  {
+    public:
+      MgtMsgType     messageType;
+      char                  data[1]; //Not really 1, it will be place on larger memory
+      MgtMsgProto()
+      {
+        messageType = MgtMsgType::CL_MGT_MSG_UNUSED;
+      }
+  };
 /**
  * MgtRoot class provides APIs to setup the MGT database
  */
@@ -61,10 +91,6 @@ protected:
      * Store the list of MGT module
      */
     std::map<std::string, MgtModule*> mMgtModules;
-#ifdef MGT_ACCESS
-    ClMgtIoc mIocSnmp;
-    ClMgtIoc mIocNetconf;
-#endif  
 public:
     virtual ~MgtRoot();
 
@@ -120,6 +146,25 @@ public:
      * \return  CL_ERR_ALREADY_EXIST    RPC already exists
      */
     ClRcT registerRpc(const std::string module, const std::string rpcName);
+#ifdef MGT_ACCESS
+    /**
+     * Mgt message handlers
+     */
+    void clMgtMsgEditHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg);
+    void clMgtMsgGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg);
+    void clMgtMsgRpcHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg);
+    void clMgtMsgOidSetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg);
+    void clMgtMsgOidGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg);
+
+    class MgtMessageHandler:public MsgHandler
+    {
+      public:
+        MgtRoot* mRoot;
+        MgtMessageHandler(SAFplus::MgtRoot *mroot=nullptr);
+        void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+    };
+    static ClRcT sendMsg(ClIocAddressT dest, void* payload, uint payloadlen, MgtMsgType msgtype);
+#endif
 };
 };
 #endif /* CLMGTROOT_H_ */

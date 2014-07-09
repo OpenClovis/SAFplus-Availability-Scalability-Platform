@@ -10,6 +10,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
+#include "clTransaction.hxx"
 #include "MgtFactory.hxx"
 #include "NumSpareServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
@@ -27,8 +28,8 @@
 #include "NumSpareServiceUnits.hxx"
 #include "NumAssignedServiceUnits.hxx"
 #include "EntityId.hxx"
-#include "clMgtProvList.hxx"
 #include "ServiceUnit.hxx"
+#include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
   {
@@ -111,7 +112,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoRepair
@@ -121,7 +122,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoRepair
          */
-        void setAutoRepair(bool autoRepairValue);
+        void setAutoRepair(bool autoRepairValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoAdjust
@@ -131,7 +132,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoAdjust
          */
-        void setAutoAdjust(bool autoAdjustValue);
+        void setAutoAdjust(bool autoAdjustValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
@@ -141,7 +142,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/autoAdjustInterval
          */
-        void setAutoAdjustInterval(SaTimeT autoAdjustIntervalValue);
+        void setAutoAdjustInterval(SaTimeT autoAdjustIntervalValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumActiveServiceUnits
@@ -151,7 +152,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumActiveServiceUnits
          */
-        void setPreferredNumActiveServiceUnits(unsigned int preferredNumActiveServiceUnitsValue);
+        void setPreferredNumActiveServiceUnits(unsigned int preferredNumActiveServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
@@ -161,7 +162,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumStandbyServiceUnits
          */
-        void setPreferredNumStandbyServiceUnits(unsigned int preferredNumStandbyServiceUnitsValue);
+        void setPreferredNumStandbyServiceUnits(unsigned int preferredNumStandbyServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumIdleServiceUnits
@@ -171,7 +172,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/preferredNumIdleServiceUnits
          */
-        void setPreferredNumIdleServiceUnits(unsigned int preferredNumIdleServiceUnitsValue);
+        void setPreferredNumIdleServiceUnits(unsigned int preferredNumIdleServiceUnitsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/maxActiveWorkAssignments
@@ -181,7 +182,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/maxActiveWorkAssignments
          */
-        void setMaxActiveWorkAssignments(unsigned int maxActiveWorkAssignmentsValue);
+        void setMaxActiveWorkAssignments(unsigned int maxActiveWorkAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/maxStandbyWorkAssignments
@@ -191,7 +192,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/maxStandbyWorkAssignments
          */
-        void setMaxStandbyWorkAssignments(unsigned int maxStandbyWorkAssignmentsValue);
+        void setMaxStandbyWorkAssignments(unsigned int maxStandbyWorkAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/serviceUnits
@@ -221,7 +222,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/application
          */
-        void setApplication(SAFplusAmf::Application* applicationValue);
+        void setApplication(SAFplusAmf::Application* applicationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ServiceGroup/componentRestart

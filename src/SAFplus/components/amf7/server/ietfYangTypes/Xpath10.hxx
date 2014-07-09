@@ -11,6 +11,7 @@
 
 #include <iostream>
 #include <string>
+#include "clTransaction.hxx"
 
 namespace ietfYangTypes
   {
@@ -22,7 +23,7 @@ namespace ietfYangTypes
     public:
         Xpath10();
         std::string getValue();
-        void setValue(std::string value);
+        void setValue(std::string value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ietfYangTypes::Xpath10& operator=(const ietfYangTypes::Xpath10 &xpath10);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Xpath10 &xpath10);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::Xpath10 &xpath10);

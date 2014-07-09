@@ -11,6 +11,7 @@
 
 #include "NumServiceGroups.hxx"
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
@@ -60,7 +61,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Application/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Application/serviceGroups
@@ -80,7 +81,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Application/keepTogether
          */
-        void setKeepTogether(bool keepTogetherValue);
+        void setKeepTogether(bool keepTogetherValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Application/numServiceGroups

@@ -53,6 +53,14 @@ namespace SAFplus
       return ((id[0] != other.id[0])||(id[1]!=other.id[1]));
     }
 
+    Handle& operator = (const Handle& other)
+    {
+      id[0] = other.id[0];
+      id[1] = other.id[1];
+      //std::cout << "AAAAAAAA " ;
+      return *this;
+    }
+
     Handle() { id[0] = 0; id[1] = 0; }
     Handle(HandleType t,uint64_t idx, uint32_t process=0xffffffff,uint16_t node=0xffff,uint_t clusterId=0xfff)
     {

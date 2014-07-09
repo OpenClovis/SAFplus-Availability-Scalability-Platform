@@ -209,17 +209,22 @@ namespace SAFplus
        */
       virtual void toString(std::stringstream& xmlString)
       {
-        typename Map::iterator i;
-        typename Map::iterator end = children.end();
-        for (i = children.begin(); i != end; i++)
+        typename Map::iterator iter;
+        /* Name of this list */
+        xmlString << "<" << this->name << ">";
+        for (iter = children.begin(); iter != children.end(); iter++)
         {
-          MgtObject *entry = i->second;
-          assert(entry);  // should be no NULL entries... erase don't nullptr them
+          const KEYTYPE *k = &(iter->first);
+          MgtObject *entry = iter->second;
           if (entry)
           {
+            xmlString << "<" << this->name << "_item ";
+            xmlString << k->toXmlString() << ">";
             entry->toString(xmlString);
+            xmlString << "</" << this->name << "_item>";
           }
         }
+        xmlString << "</" << this->name << ">";
       }
       /**
        * API to get number of entries in the list
@@ -235,9 +240,12 @@ namespace SAFplus
       {
         keyMap::iterator iter;
         KEYTYPE entryKey;
-        xmlChar *valstr, *namestr;
         int ret, nodetyp, depth;
-        ClBoolT isKey = CL_FALSE;
+
+        xmlChar *valstr, *namestr, *attrval;
+        xmlNodePtr node;
+        xmlAttr* attr;
+
         char strTemp[CL_MAX_NAME_LENGTH] = { 0 };
         char *strChildData = (char *) malloc(MGT_MAX_DATA_LEN); /* Store the XML for child */
         if (!strChildData)
@@ -245,6 +253,7 @@ namespace SAFplus
           logError("MGT", "LIST", "Can't allocate buffer for child data");
           return CL_FALSE;
         }
+
         /* Read XML from the buffer */
         xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
         if (!reader)
@@ -253,66 +262,160 @@ namespace SAFplus
           free(strChildData);
           return CL_FALSE;
         }
+
         /* Parse XM: */
         do
         {
-           depth = xmlTextReaderDepth(reader);
+           depth   = xmlTextReaderDepth(reader);
            nodetyp = xmlTextReaderNodeType(reader);
            namestr = (xmlChar *) xmlTextReaderConstName(reader);
-           valstr = (xmlChar *) xmlTextReaderValue(reader);
+           valstr  = (xmlChar *) xmlTextReaderValue(reader);
+           node    = xmlTextReaderCurrentNode(reader);
            switch (nodetyp)
            {
-             case XML_ELEMENT_NODE: /* Node name */
-               snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", namestr);
-               if (depth == 0) /* Highest level node name */
+             /* Opening tag of a node */
+             case XML_ELEMENT_NODE:
+             {
+               switch(depth)
                {
-                 strcpy(strChildData, strTemp);
-               }
-               else /* Lower level node name */
-               {
-                 strcat(strChildData, strTemp);
-                 iter = keyList.find(std::string((const char *)namestr));
-                 if(iter != keyList.end())
+                 case 0: /* Open of list container */
                  {
-                   isKey = CL_TRUE;
-                 }
-               }
-               break;
-             case XML_ELEMENT_DECL: /* Closing tag of node name */
-               snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", namestr);
-               strcat(strChildData, strTemp);
-               if(depth == 0) /* Closing of an fully entry */
-               {
-                 /* Build the entryKey from name/val of set keys */
-                 entryKey.build(keyList);
-                 MgtObject *entry = children[entryKey];
-                 if(entry != NULL)
-                 {
-                   if(entry->set(strChildData,strlen(strChildData),t) == CL_FALSE)
+                   /* Verify if configuration is belong to this list by list name */
+                   if(strcmp((const char *)namestr,this->name.c_str()) != 0)
                    {
-                     logError("MGT", "LIST", "Setting for child failed");
-                     xmlFreeTextReader(reader);
+                     logError("The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
                      free(strChildData);
                      return CL_FALSE;
                    }
+                   break;
+                 }
+                 case 1: /* Open of list item */
+                 {
+                   snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s", namestr);
+                   strcat(strChildData, strTemp);
+                   attr = node->properties;
+                   while(attr && attr->name && attr->children)
+                   {
+                     attrval = xmlNodeListGetString(node->doc, attr->children, 1);
+                     iter = keyList.find(std::string((const char *)attr->name));
+                     if(iter != keyList.end())
+                     {
+                       iter->second.assign(std::string((const char *)attrval));
+                     }
+                     snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, " %s=\"%s\"", attr->name,attrval);
+                     strcat(strChildData, strTemp);
+                     xmlFree(attrval);
+                     attr = attr->next;
+                    }
+                    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, ">", namestr);
+                    strcat(strChildData, strTemp);
+                    break;
+                 }
+                 default: /* Open of other nodes, just copy data */
+                 {
+                   snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", namestr);
+                   strcpy(strChildData, strTemp);
+                   break;
                  }
                }
                break;
-             case XML_TEXT_NODE:
-               strcat(strChildData, (char *) valstr);
-               if(isKey)
+             }
+             /* Closing tag of a node*/
+             case XML_ELEMENT_DECL:
+             {
+               switch(depth)
                {
-                 isKey = CL_FALSE;
-                 iter->second.assign(std::string((const char *)valstr));
+                 case 0: /* Close of list container */
+                 {
+                   break;
+                 }
+                 case 1: /* Close of list item, should forward configurations to object */
+                 {
+                   snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", namestr);
+                   strcat(strChildData, strTemp);
+                   /* Build the entryKey from name/val of set keys */
+                   entryKey.build(keyList);
+                   MgtObject *entry = children[entryKey];
+                   if(entry != NULL)
+                   {
+                     if(entry->set(strChildData,strlen(strChildData),t) == CL_FALSE)
+                     {
+                       logError("MGT", "LIST", "Setting for child failed");
+                       xmlFreeTextReader(reader);
+                       free(strChildData);
+                       return CL_FALSE;
+                     }
+                   }
+                   /* Prepare strChildData for the new entry */
+                   memset(strChildData,0,MGT_MAX_DATA_LEN);
+                   break;
+                 }
+                 default:
+                 {
+                   break;
+                 }
                }
                break;
-             default:
+             }
+             /* Text value of node */
+             case XML_TEXT_NODE:
+             {
+               strcat(strChildData, (char *) valstr);
                break;
+             }
+             /* Other type: don't care */
+             default:
+             {
+               break;
+             }
            }
            ret = xmlTextReaderRead(reader);
         } while(ret);
 
+        /* Safely free the allocated memory */
+        if(strChildData)
+        {
+          free(strChildData);
+        }
         return CL_TRUE;
+      }
+      /**
+       * Provide full X-Path of this list *
+       */
+      std::string getFullXpath(KEYTYPE key)
+      {
+        typename Map::iterator iter = children.find(key);
+        std::string xpath = "",parentXpath,childXpath;
+        /* Check if expected entry is found */
+        if(iter == children.end())
+        {
+          logError("MGT","XPT","Can't find object which belong to key");
+          return xpath;
+        }
+        /* Parent X-Path will be add into the full xpath */
+        if (parent != NULL) // this is the list parent
+        {
+          parentXpath = parent->getFullXpath();
+          if (parentXpath.length() > 0)
+          {
+            xpath = parentXpath.append("/").append(this->name);
+          }
+          else
+          {
+            xpath.append("/").append(this->name);
+          }
+        }
+        else
+        {
+          xpath.append("/").append(this->name);
+        }
+        /* Append entry X-Path */
+        childXpath = iter->second->getFullXpath();
+        if(childXpath.length() > 0)
+        {
+          xpath.append(childXpath);
+        }
+        return xpath;
       }
       /**
        * Function to convert KEYTYPE to string
@@ -466,17 +569,23 @@ namespace SAFplus
        */
       virtual void toString(std::stringstream& xmlString)
       {
-        typename Map::iterator i;
-        typename Map::iterator end = children.end();
-        for (i = children.begin(); i != end; i++)
+        typename Map::iterator iter;
+        /* Name of this list */
+        xmlString << "<" << this->name << ">";
+        for (iter = children.begin(); iter != children.end(); iter++)
         {
-          MgtObject *entry = i->second;
-          assert(entry);  // should be no NULL entries... erase don't nullptr them
+          std::string k = iter->first;
+          MgtObject *entry = iter->second;
           if (entry)
           {
+            xmlString << "<" << this->name << "_item ";
+            /* keyList is the name of key */
+            xmlString << keyList << "=\"" << k << "\">";
             entry->toString(xmlString);
+            xmlString << "</" << this->name << "_item>";
           }
         }
+        xmlString << "</" << this->name << ">";
       }
       /**
        * API to get number of entries in the list
@@ -490,79 +599,181 @@ namespace SAFplus
        */
       virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
       {
-        Map::iterator iter;
-        std::string entryKey;
-
-        xmlChar *valstr, *namestr;
         int ret, nodetyp, depth;
-        ClBoolT isKey = CL_FALSE;
+
+        xmlChar *valstr, *namestr, *attrval;
+        xmlNodePtr node;
+        xmlAttr* attr;
+
         char strTemp[CL_MAX_NAME_LENGTH] = { 0 };
-        char *strChildData = (char *) malloc(MGT_MAX_DATA_LEN);
+        char *strChildData = (char *) malloc(MGT_MAX_DATA_LEN); /* Store the XML for child */
         if (!strChildData)
         {
+          logError("MGT", "LIST", "Can't allocate buffer for child data");
           return CL_FALSE;
         }
+
+        /* Read XML from the buffer */
         xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
         if (!reader)
         {
+          logError("MGT", "LIST", "Reader return null");
           free(strChildData);
           return CL_FALSE;
         }
+
+        /* Parse XM: */
         do
         {
-           depth = xmlTextReaderDepth(reader);
+           depth   = xmlTextReaderDepth(reader);
            nodetyp = xmlTextReaderNodeType(reader);
            namestr = (xmlChar *) xmlTextReaderConstName(reader);
-           valstr = (xmlChar *) xmlTextReaderValue(reader);
+           valstr  = (xmlChar *) xmlTextReaderValue(reader);
+           node    = xmlTextReaderCurrentNode(reader);
            switch (nodetyp)
            {
+             /* Opening tag of a node */
              case XML_ELEMENT_NODE:
-               snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", namestr);
-               if (depth == 0)
+             {
+               switch(depth)
                {
-                 strcpy(strChildData, strTemp);
-               }
-               else
-               {
-                 strcat(strChildData, strTemp);
-                 if(keyList.compare(std::string((const char *)namestr)) == 0)
+                 case 0: /* Open of list container */
                  {
-                   isKey = CL_TRUE;
-                 }
-               }
-               break;
-             case XML_ELEMENT_DECL:
-               snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", namestr);
-               strcat(strChildData, strTemp);
-               if(depth == 0)
-               {
-                 MgtObject *entry = children[entryKey];
-                 if(entry != NULL)
-                 {
-                   if(entry->set(strChildData,strlen(strChildData),t) == CL_FALSE)
+                   /* Verify if configuration is belong to this list by list name */
+                   if(strcmp((const char *)namestr,this->name.c_str()) != 0)
                    {
-                     xmlFreeTextReader(reader);
+                     logError("The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
                      free(strChildData);
                      return CL_FALSE;
                    }
+                   break;
+                 }
+                 case 1: /* Open of list item */
+                 {
+                   snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s", namestr);
+                   strcat(strChildData, strTemp);
+                   attr = node->properties;
+                   while(attr && attr->name && attr->children)
+                   {
+                     attrval = xmlNodeListGetString(node->doc, attr->children, 1);
+                     if(strcmp(keyList.c_str(),(const char *)attr->name) == 0)
+                     {
+                       keyList.assign(std::string((const char *)attrval));
+                     }
+                     snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, " %s=\"%s\"", attr->name,attrval);
+                     strcat(strChildData, strTemp);
+                     xmlFree(attrval);
+                     attr = attr->next;
+                    }
+                    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, ">", namestr);
+                    strcat(strChildData, strTemp);
+                    break;
+                 }
+                 default: /* Open of other nodes, just copy data */
+                 {
+                   snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", namestr);
+                   strcpy(strChildData, strTemp);
+                   break;
                  }
                }
                break;
-             case XML_TEXT_NODE:
-               strcat(strChildData, (char *) valstr);
-               if(isKey == CL_TRUE)
+             }
+             /* Closing tag of a node*/
+             case XML_ELEMENT_DECL:
+             {
+               switch(depth)
                {
-                 isKey = CL_FALSE;
-                 entryKey.assign(std::string((const char *)valstr));
+                 case 0: /* Close of list container */
+                 {
+                   break;
+                 }
+                 case 1: /* Close of list item, should forward configurations to object */
+                 {
+                   snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", namestr);
+                   strcat(strChildData, strTemp);
+                   /* Get the list item based on key */
+                   MgtObject *entry = children[keyList];
+                   if(entry != NULL)
+                   {
+                     if(entry->set(strChildData,strlen(strChildData),t) == CL_FALSE)
+                     {
+                       logError("MGT", "LIST", "Setting for child failed");
+                       xmlFreeTextReader(reader);
+                       free(strChildData);
+                       return CL_FALSE;
+                     }
+                   }
+                   /* Prepare strChildData for the new entry */
+                   memset(strChildData,0,MGT_MAX_DATA_LEN);
+                   keyList.assign("");
+                   break;
+                 }
+                 default:
+                 {
+                   break;
+                 }
                }
                break;
-             default:
+             }
+             /* Text value of node */
+             case XML_TEXT_NODE:
+             {
+               strcat(strChildData, (char *) valstr);
                break;
+             }
+             /* Other type: don't care */
+             default:
+             {
+               break;
+             }
            }
            ret = xmlTextReaderRead(reader);
         } while(ret);
 
+        /* Safely free the allocated memory */
+        if(strChildData)
+        {
+          free(strChildData);
+        }
         return CL_TRUE;
+      }
+      /**
+       * Provide full X-Path of this list *
+       */
+      std::string getFullXpath(std::string key)
+      {
+        typename Map::iterator iter = children.find(key);
+        std::string xpath = "",parentXpath,childXpath;
+        /* Check if expected entry is found */
+        if(iter == children.end())
+        {
+          logError("MGT","XPT","Can't find object which belong to key");
+          return xpath;
+        }
+        /* Parent X-Path will be add into the full xpath */
+        if (parent != NULL) // this is the list parent
+        {
+          parentXpath = parent->getFullXpath();
+          if (parentXpath.length() > 0)
+          {
+            xpath = parentXpath.append("/").append(this->name);
+          }
+          else
+          {
+            xpath.append("/").append(this->name);
+          }
+        }
+        else
+        {
+          xpath.append("/").append(this->name);
+        }
+        /* Append entry X-Path */
+        childXpath = iter->second->getFullXpath();
+        if(childXpath.length() > 0)
+        {
+          xpath.append(childXpath);
+        }
+        return xpath;
       }
   };
 

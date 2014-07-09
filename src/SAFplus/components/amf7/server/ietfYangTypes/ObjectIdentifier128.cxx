@@ -6,6 +6,7 @@
 #include "ietfYangTypesCommon.hxx"
 
 #include <string>
+#include "clTransaction.hxx"
 #include <iostream>
 #include "ObjectIdentifier128.hxx"
 
@@ -22,9 +23,14 @@ namespace ietfYangTypes
         return this->Value;
     };
 
-    void ObjectIdentifier128::setValue(std::string value)
+    void ObjectIdentifier128::setValue(std::string value, SAFplus::Transaction &t)
     {
-        this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&Value,value);
+            t.addOperation(opt);
+        }
     };
 
     ietfYangTypes::ObjectIdentifier128& ObjectIdentifier128::operator=(const ietfYangTypes::ObjectIdentifier128 &objectIdentifier128)

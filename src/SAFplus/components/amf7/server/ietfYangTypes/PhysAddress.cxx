@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <string>
+#include "clTransaction.hxx"
 #include "PhysAddress.hxx"
 
 
@@ -22,9 +23,14 @@ namespace ietfYangTypes
         return this->Value;
     };
 
-    void PhysAddress::setValue(std::string value)
+    void PhysAddress::setValue(std::string value, SAFplus::Transaction &t)
     {
-        this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&Value,value);
+            t.addOperation(opt);
+        }
     };
 
     ietfYangTypes::PhysAddress& PhysAddress::operator=(const ietfYangTypes::PhysAddress &physAddress)

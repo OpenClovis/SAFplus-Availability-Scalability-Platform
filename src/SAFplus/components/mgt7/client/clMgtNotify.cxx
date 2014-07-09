@@ -20,7 +20,10 @@
 #include "clMgtNotify.hxx"
 
 #ifdef MGT_ACCESS
-#include "clMgtIoc.hxx"
+#include <clSafplusMsgServer.hxx>
+#include <clIocPortList.hxx>
+#include "clMgtMsg.hxx"
+#include "clMgtRoot.hxx"
 #endif
 
 extern "C"
@@ -65,18 +68,16 @@ namespace SAFplus
   void MgtNotify::sendNotification()
   {
     if (!strcmp(Module.c_str(), ""))
-      {
-        logError("MGT", "RPC", "Cannot send Notification [%s]", name.c_str());
-        return;
-      }
+    {
+      logError("MGT", "RPC", "Cannot send Notification [%s]", name.c_str());
+      return;
+    }
 #ifdef MGT_ACCESS
-    ClMgtIoc* mgtIocInstance = ClMgtIoc::getInstance();
-
     char *buffer = (char *) malloc(MGT_MAX_DATA_LEN);
     if (!buffer)
-      {
-        return;
-      }
+    {
+      return;
+    }
 
     ClMgtMessageNotifyTypeT *notifyData = (ClMgtMessageNotifyTypeT *)buffer;
     ClCharT *data = notifyData->data;
@@ -91,45 +92,33 @@ namespace SAFplus
 
     map<std::string, std::string>::iterator mapIndex;
     for (mapIndex = mLeafList.begin(); mapIndex != mLeafList.end(); ++mapIndex)
-      {
-        std::string leafName = (*mapIndex).first;
-        std::string leafVal = mLeafList[leafName];
+    {
+      std::string leafName = (*mapIndex).first;
+      std::string leafVal = mLeafList[leafName];
 
-        snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>",
-                 leafName.c_str());
-        strcat(data, strTemp);
-        snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "%s", leafVal.c_str());
-        strcat(data, strTemp);
-        snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>",
-                 leafName.c_str());
-        strcat(data, strTemp);
-
-      }
+      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>",
+               leafName.c_str());
+      strcat(data, strTemp);
+      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "%s", leafVal.c_str());
+      strcat(data, strTemp);
+      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>",
+               leafName.c_str());
+      strcat(data, strTemp);
+    }
 
     snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", this->name.c_str());
     strcat(data, strTemp);
     dataSize = strlen(data) + 1;
 
     /*
-     * TODO: switch to Async
-     *
      * Send notification message to the NETCONF server
      */
     ClIocAddressT allNodeReps;
     allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
     allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_NETCONF_PORT;
-    mgtIocInstance->sendIocMsgAsync(&allNodeReps, CL_MGT_MSG_NOTIF, notifyData,
-                                    sizeof(ClMgtMessageNotifyTypeT) + dataSize, NULL, NULL);
-
-    /*
-     * TODO: switch to Async
-     *
-     * Send notification message to the SNMP master
-     */
+    MgtRoot::sendMsg(allNodeReps,notifyData,sizeof(ClMgtMessageNotifyTypeT) + dataSize,MgtMsgType::CL_MGT_MSG_NOTIF);
     allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_SNMP_PORT;
-
-    mgtIocInstance->sendIocMsgAsync(&allNodeReps, CL_MGT_MSG_NOTIF, notifyData,
-                                    sizeof(ClMgtMessageNotifyTypeT) + dataSize, NULL, NULL);
+    MgtRoot::sendMsg(allNodeReps,notifyData,sizeof(ClMgtMessageNotifyTypeT) + dataSize,MgtMsgType::CL_MGT_MSG_NOTIF);
 
     free(buffer);
 #endif

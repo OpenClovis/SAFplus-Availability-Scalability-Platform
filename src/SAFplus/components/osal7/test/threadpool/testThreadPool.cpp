@@ -1,5 +1,5 @@
 #include <clThreadPool.hxx>
-#include <typeinfo>
+#include <clCommon.hxx>
 
 using namespace SAFplus;
 
@@ -9,7 +9,7 @@ public:
   MyPoolable(UserCallbackT fn=NULL, void* arg=NULL, uint32_t timeLimit=30000, bool deleteWhenComplete=false): Poolable(fn, arg, timeLimit, deleteWhenComplete) {}
   virtual void wake(int amt, void* cookie)
   {
-    printf("MyPoolable wake()\n");
+    logInfo("THRPOOL", "TEST", "MyPoolable wake()");
     if (fn)
     {
       fn(arg);
@@ -17,13 +17,13 @@ public:
     }
     else
     {
-      printf("Put your own code here\n");
+      //printf("Put your own code here\n");
       sleep(1);
     }
   }
   ~MyPoolable()
    {
-     printf("~MyPoolable() called\n");
+     //printf("~MyPoolable() called\n");
    }
 };
 
@@ -32,7 +32,7 @@ class MyWakeable: public Wakeable
 public:
   virtual void wake(int amt, void* cookie)
   {
-    printf("MyWakeable wake()\n");
+    logInfo("THRPOOL", "TEST", "MyWakeable wake()");
   }
 };
 
@@ -40,31 +40,34 @@ public:
 
 uint32_t foo(void* invocation)
 {
-  printf("My task running\n");
+  logInfo("THRPOOL", "TEST", "My task running");
   return 0;
 }
 
 uint32_t foo2(void* invocation)
 {
-  printf("My task 2 running\n");
+  logInfo("THRPOOL", "TEST", "My task 2 running");
   return 0;
 }
 
 uint32_t foo3(void* invocation)
 {
-  printf("My task 3 running\n");
+  logInfo("THRPOOL", "TEST", "My task 3 running");
   return 0;
 }
 
 uint32_t foo4(void* invocation)
 {
-  printf("My task 4 running\n");
+  logInfo("THRPOOL", "TEST", "My task 4 running");
   return 0;
 }
 
 int main()
 {
-  printf("Main started\n");
+  logInitialize();
+  logEchoToFd = 1;  // echo logs to stdout for debugging
+  logSeverity = LOG_SEV_TRACE;
+  logDebug("THRPOOL", "TEST", "Main started");
   
 #if 0
   MyWakeable mywk2;  
@@ -74,7 +77,6 @@ int main()
   MyPoolable p4;
   MyWakeable mywk;
   ThreadPool pool(2, 10);
-  printf("Calling pool.run\n");
   pool.run(&mywk2, NULL);
   pool.run(&p);
   pool.run(&p2);
