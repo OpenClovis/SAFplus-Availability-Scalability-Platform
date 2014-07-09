@@ -77,6 +77,7 @@ namespace SAFplus
       assert(offset <  (1<<SUB_HDL_SHIFT));  // Ensure that the subhandle index is valid
       Handle subHdl = *this;
       subHdl.id[1] += offset;
+      return subHdl;
       }
 
     HandleType getType()
@@ -95,6 +96,11 @@ namespace SAFplus
       uint32_t process = (uint32_t)(id[0] & HDL_PROCESS_ID_MASK);
       return process;
     }
+    uint32_t getPort()  // Process ID and port have the same function... unique # per node
+    {
+      uint32_t process = (uint32_t)(id[0] & HDL_PROCESS_ID_MASK);
+      return process;
+    }
 
     uint16_t getNode()
     {
@@ -108,7 +114,8 @@ namespace SAFplus
       return clusterId;
     }
 
-    static Handle create(void);  // Get a new handle.
+    static Handle create(int msgingPort=0);  // Get a new handle. msgingPort should be the IOC port number if you want to receive messages on this handle, otherwise a unique # (pid)
+    static uint64_t uniqueId(void);  // Get a unique for making your own handle
   };
   
   inline std::size_t hash_value(Handle const& h)

@@ -101,10 +101,10 @@ namespace SAFplus
         CRED_STANDBY_BIT = 1 << 10  // Extra credentials for standby entity
       };
 
-      Group(SAFplus::Handle groupHandle) { init(groupHandle); }
+      Group(SAFplus::Handle groupHandle) { automaticElection=true; init(groupHandle); }
       Group(int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT); // Deferred initialization
 
-      void init(SAFplus::Handle groupHandle);
+      void init(SAFplus::Handle groupHandle,int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT);
 
       // Named group uses the name service to resolve the name to a handle
       Group(const std::string& name,int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT);
@@ -131,7 +131,7 @@ namespace SAFplus
       void* getData(EntityIdentifier id);
 
       // Calls for an election with specified role
-      std::pair<EntityIdentifier,EntityIdentifier>  elect();
+      std::pair<EntityIdentifier,EntityIdentifier>  elect(SAFplus::Wakeable& wake = SAFplus::Wakeable::Synchronous);
 
       // Get the current active entity
       EntityIdentifier getActive(void) const;

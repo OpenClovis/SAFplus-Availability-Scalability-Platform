@@ -67,9 +67,12 @@ std::string strprintf(const std::string fmt_str, ...);
   {
   public:
     virtual void wake(int amt,void* cookie=NULL) = 0;
+
+    static Wakeable& Synchronous;  // This const is a reference to NULL and simply indicates that the function should be synchronous instead of async.
   };
 
   
+
   /** \brief  Load the SaNameT structure.
       \param  name The structure you want to load
       \param  str  The value to be put into the SaNameT structure

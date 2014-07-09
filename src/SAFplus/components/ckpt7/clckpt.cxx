@@ -41,7 +41,10 @@ SAFplus::Checkpoint::~Checkpoint()
 
 void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uint_t rows)
 {
+  logInfo("CKP","INI","Opening checkpoint [%lx:%lx]",hdl.id[0],hdl.id[1]);
   // All constructors funnel through this init routine.
+  gate.init(hdl.id[1]);  
+  gate.close(); // start the gate closed so this process can't access the checkpoint.  But I can't init the gate closed, in case the init open and existing gate, instead of creating one
 
   flags = _flags;
   if (flags & REPLICATED)
@@ -77,7 +80,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
       {
       hdr = msm.construct<SAFplusI::CkptBufferHeader>("header") ();                                 // Ok it created one so initialize
       hdr->handle     = hdl;
-      hdr->replicaHandle = Handle::create();
+      hdr->replicaHandle = INVALID_HDL;
       hdr->serverPid  = getpid();
       hdr->generation = 0;
       hdr->changeNum  = 0;
@@ -93,7 +96,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
         if (retries>=2)
           {
           hdr->handle     = hdl;
-          hdr->replicaHandle = Handle::create();
+          hdr->replicaHandle = INVALID_HDL;
           hdr->serverPid  = getpid();
           hdr->generation = 0;
           hdr->changeNum  = 0;
@@ -122,22 +125,26 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
     isSyncReplica = false;
     }
 
-#if 0
   if (isSyncReplica) 
     { 
     sync = new CkptSynchronization(); 
     sync->init(this); 
+    // the sync object will open the gate when synchronization is complete
     }
-#else
-  sync= NULL;
-#endif
+  else
+    {
+    gate.open(); // Its the synchronization replica's job to keep the gate closed until sync occurs.
+    sync = NULL;
+    }
+
 
   //assert(sharedMemHandle);
   assert(hdr);
 }
 
-const Buffer& SAFplus::Checkpoint::read (const Buffer& key) const
+const Buffer& SAFplus::Checkpoint::read (const Buffer& key) //const
 {
+  gate.lock();
   // Will create object if it doesn't exist
   //SAFplusI::BufferPtr& v = (*map)[SAFplusI::BufferPtr((Buffer*)&key)];  // Key is not change, but I have to cast it b/c consts are not carried thru
 
@@ -148,13 +155,16 @@ const Buffer& SAFplus::Checkpoint::read (const Buffer& key) const
       SAFplusI::BufferPtr& curval = contents->second;
       if (curval)
         {
-          return *(curval.get());
+          Buffer& ret = *(curval.get());
+          gate.unlock();
+          return ret;
         }
     }
+  gate.unlock();
   return *((Buffer*) NULL);
 }
 
-const Buffer& SAFplus::Checkpoint::read (const uintcw_t key) const
+const Buffer& SAFplus::Checkpoint::read (const uintcw_t key) //const
 {
   char data[sizeof(Buffer)-1+sizeof(uintcw_t)];
   Buffer* b = new(data) Buffer(sizeof(uintcw_t));
@@ -162,7 +172,7 @@ const Buffer& SAFplus::Checkpoint::read (const uintcw_t key) const
   return read(*b);
 }
 
-const Buffer& SAFplus::Checkpoint::read (const char* key) const
+const Buffer& SAFplus::Checkpoint::read (const char* key) //const
 {
   size_t len = strlen(key)+1;  // +1 b/c I'm going to take the /0 so Buffers can be manipulated as strings
   char data[sizeof(Buffer)-1+len]; // -1 because inside Buffer the data field is already length one.
@@ -171,7 +181,7 @@ const Buffer& SAFplus::Checkpoint::read (const char* key) const
   return read(*b);
 }
 
-const Buffer& SAFplus::Checkpoint::read (const std::string& key) const
+const Buffer& SAFplus::Checkpoint::read (const std::string& key) //const
 {
   size_t len = key.length()+1;  // I'm going to take the /0 so Buffers can be manipulated as strings
   char data[sizeof(Buffer)-1+len];
@@ -235,6 +245,7 @@ bool SAFplus::Buffer::isNullT() const { return (refAndLen&NullTMask)>0; }
 
 void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transaction& t)
 {
+  gate.lock();
   // All write operations are funneled through this function.
 
   //Buffer* existing = read(key);
@@ -255,6 +266,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
                 //memcpy (curval->data,value.data,newlen);
                 *curval = value;
                 if (flags & CHANGE_ANNOTATION) curval->setChangeNum(change);
+                gate.unlock();
                 return;
               }
             }
@@ -267,7 +279,8 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
           if (old->ref()==1) 
             msm.deallocate(old);  // if I'm the last owner, let this go.
           else 
-            old->decRef();	
+            old->decRef();
+          gate.unlock();
           return;
         }
     }
@@ -283,8 +296,62 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
   SAFplusI::BufferPtr kb(k),kv(v);
   SAFplusI::CkptMapPair vt(kb,kv);
   map->insert(vt);
+  gate.unlock();
+}
+
+void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Transaction& t)
+{
+  //Buffer* existing = read(key);
+  uint_t newlen = value.len();
+
+  //SAFplusI::BufferPtr& curval = (*map)[SAFplusI::BufferPtr((Buffer*)&key)];  // curval is a REFERENCE to the value in the hash table so we can overwrite it to change the value...
+  CkptHashMap::iterator contents = map->find(SAFplusI::BufferPtr((Buffer*)&key));
+  
+  if (contents != map->end()) // if (curval)  // record already exists; overwrite
+    {
+      SAFplusI::BufferPtr& curkey =  (SAFplusI::BufferPtr&) contents->first; // I need to discard the "const" here to modify the changenum.  Since the change num is not part of the key's hash calculation this should be ok within the context of the map data structure.
+
+      // If this change or a later one has already been applied, skip it.
+      if (curkey->changeNum() >= key.changeNum())
+        return;
+
+      if (flags & CHANGE_ANNOTATION) curkey->setChangeNum(key.changeNum());  // Apply the proper change number to this buffer
+      SAFplusI::BufferPtr& curval = contents->second;
+      if (curval)
+        {
+          if (curval->ref() == 1)  // This hash table is the only thing using this value right now
+            {
+              if (curval->len() == newlen) {// lengths are the same, most efficient is to just copy the new data onto the old.
+                *curval = value;  // change num is copied over as part of the assignment
+                return;
+              }
+            }
+          // Replace the Buffer with a new one
+          SAFplus::Buffer* v = new (msm.allocate(newlen+sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (newlen);  // Place a new buffer object into the segment, -1 b/c data is a 1 byte char already
+          SAFplus::Buffer* old = curval.get();
+          *v = value;
+          curval = v;
+          if (old->ref()==1)
+            msm.deallocate(old);  // if I'm the last owner, let this go.
+          else 
+            old->decRef();
+          return;
+        }
+    }
+
+  // No record exists, add a new one.
+  int klen =key.len()+sizeof(SAFplus::Buffer)-1; 
+  SAFplus::Buffer* k = new (msm.allocate(klen)) SAFplus::Buffer (key.len());  // Place a new buffer object into the segment
+  *k = key;
+  SAFplus::Buffer* v = new (msm.allocate(newlen+sizeof(SAFplus::Buffer)-1)) SAFplus::Buffer (newlen);  // Place a new buffer object into the segment
+  *v = value;
+  SAFplusI::BufferPtr kb(k),kv(v);
+  SAFplusI::CkptMapPair vt(kb,kv);
+  map->insert(vt);
   
 }
+
+
 
 void SAFplus::Checkpoint::remove (const uintcw_t key,Transaction& t)
 {
@@ -296,6 +363,7 @@ void SAFplus::Checkpoint::remove (const uintcw_t key,Transaction& t)
 
 void SAFplus::Checkpoint::remove(const Buffer& key,Transaction& t)
 {
+  gate.lock();
   CkptHashMap::iterator contents = map->find(SAFplusI::BufferPtr((Buffer*)&key));
 
   if (contents != map->end())
@@ -316,8 +384,8 @@ void SAFplus::Checkpoint::remove(const Buffer& key,Transaction& t)
         msm.deallocate(val);  // if I'm the last owner, let this go.
       else 
         val->decRef();
-      
     }
+  gate.unlock();
 }
 
 #if 0
@@ -373,10 +441,12 @@ void SAFplus::Checkpoint::stats()
 
 SAFplus::Checkpoint::Iterator SAFplus::Checkpoint::begin()
 {
+  gate.lock();
   SAFplus::Checkpoint::Iterator i(this);
   assert(this->map);
   i.iter = this->map->begin();
   i.curval = &(*i.iter);
+  gate.unlock();
   return i;
 }
 

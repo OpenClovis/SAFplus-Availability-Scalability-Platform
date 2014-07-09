@@ -17,9 +17,9 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 
-all: $(TEST_DIR)/testCkpt
+all: $(TEST_DIR)/testCkpt $(TEST_DIR)/testCkptSync
 
-$(TEST_DIR)/testCkpt:  $(OBJ_DIR)/testCkpt.o $(SAFPLUS_DEP_LIBS)
+$(TEST_DIR)/%:  $(OBJ_DIR)/%.o $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml $(LINK_STD_LIBS)
 
 $(TEST_DIR)/try: $(CLIENT_OBJ) $(DEP_LIBS)

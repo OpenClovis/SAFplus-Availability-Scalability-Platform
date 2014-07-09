@@ -3,6 +3,7 @@
 #include <clIocApi.h>
 #include <clJobQueue.h>
 #include <clAppEvent.hxx>
+#include <clHandleApi.hxx>
 
 namespace SAFplus
 {
@@ -90,6 +91,8 @@ namespace SAFplus
      */
     void MakeMePrimary();
 
+    /** this handle references this message server */
+    SAFplus::Handle handle;
   protected:
     void Shutdown();
 

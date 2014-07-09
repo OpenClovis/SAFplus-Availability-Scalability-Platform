@@ -72,8 +72,11 @@ namespace SAFplus
       }
     logInfo("IOC", "MSG","Created message port [%d] for MsgServer object",port);
 
-    uniqueAddr.iocPhyAddress.nodeAddress   = clIocLocalAddressGet();
+    int node = clIocLocalAddressGet();
+    uniqueAddr.iocPhyAddress.nodeAddress   = node;
     uniqueAddr.iocPhyAddress.portId        = port;
+
+    handle = Handle(TransientHandle,Handle::uniqueId(),port,node);
 
     /* Create 1 extra thread since it will be used to listen to the IOC port */
     clJobQueueInit(&jq, maxPending, maxThreads+1);

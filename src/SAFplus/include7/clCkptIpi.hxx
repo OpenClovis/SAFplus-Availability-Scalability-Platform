@@ -12,6 +12,7 @@
 
 
 // SAFplus includes
+#include <clCommon.hxx>
 #include <clHandleApi.hxx>
 #include <clTransaction.hxx>
 
@@ -39,15 +40,31 @@ namespace SAFplusI
   //typedef boost::unordered_map < CkptMapKey, CkptMapValue, boost::hash<CkptMapKey>, std::equal_to<CkptMapValue>, CkptAllocator> CkptHashMap;
   typedef boost::unordered_map < CkptMapKey, CkptMapValue, boost::hash<CkptMapKey>, BufferPtrContentsEqual, CkptAllocator> CkptHashMap;
 
-  class CkptSynchronization
+  class CkptSynchronization:public SAFplus::Wakeable
     {
     public:
     SAFplus::Checkpoint* ckpt;
     SAFplus::Group* group;  // Needs to be a pointer to break circular includes
+    SAFplus::MsgServer* msgSvr;
+    int syncMsgSize; // What's the preferred synchronization message size.  Messages will be < this amount OR contain only 1 key/value pair.
+    int syncCount;
+    volatile int syncRecvCount;
+    unsigned int syncCookie;
     boost::thread syncThread;
-    void init(SAFplus::Checkpoint* c,SAFplus::MsgServer* msgSvr=NULL);
+    void init(SAFplus::Checkpoint* c,SAFplus::MsgServer* pmsgSvr=NULL);
 
     void operator()();  // Thread thunk
+
+    void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+
+    virtual void wake(int amt,void* cookie=NULL);
+
+    // Send synchronization delta data to the handle
+    void synchronize(unsigned int generation, unsigned int lastChange, unsigned int cookie, SAFplus::Handle response);
+
+    // Apply a particular received synchronization message to the checkpoint
+    void applySyncMsg(ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+
     };
   
     enum
@@ -59,11 +76,11 @@ namespace SAFplusI
     {
     public:
         uint64_t structId;
-        pid_t    serverPid;     // This is used to ensure that 2 servers don't fight for the logs...
+        pid_t    serverPid;     // This is the synchronization replica...
         uint32_t generation;    // If this replica's generation does not match the master, this replica's data is too old to do anything.
         uint32_t changeNum;     // This monotonically increasing value indicates when changes were made for delta synchronization.
         SAFplus::Handle handle; // The Checkpoint table handle -- identifies this checkpoint
-        SAFplus::Handle replicaHandle;  // Identifies this instance of the checkpoint
+        SAFplus::Handle replicaHandle;  // Identifies this instance of the checkpoint -- only needed if this is the synchronization replica.  Otherwise will be INVALID_HDL
     };
 
   class BufferPtr:public boost::interprocess::offset_ptr<SAFplus::Buffer>

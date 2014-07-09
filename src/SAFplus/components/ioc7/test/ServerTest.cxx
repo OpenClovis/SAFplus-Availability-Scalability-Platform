@@ -36,7 +36,7 @@ main(void)
 
     ClRcT rc = CL_OK;
 
-    SAFplus::ASP_NODEADDR = 0x1;
+    SAFplus::ASP_NODEADDR = 0x2;
 
     logInitialize();
     logEchoToFd = 1;  // echo logs to stdout for debugging

@@ -31,7 +31,7 @@ using namespace SAFplus;
 #define IOC_PORT 0
 #define IOC_PORT_SERVER 65
 
-ClBoolT gIsNodeRepresentative = CL_FALSE;
+ClBoolT gIsNodeRepresentative = CL_TRUE;
 
 int main(void)
   {
@@ -56,7 +56,7 @@ int main(void)
     rc = clIocLibInitialize(NULL);
     assert(rc==CL_OK);
 
-    iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;  // 2
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
     char helloMsg[] = "Hello world ";
 
@@ -68,10 +68,12 @@ int main(void)
     /* Loop receive on loop */
     msgClient.Start();
     int i = 0;
-    while (i++ < 3)
+    while (i++ < 50)
       {
+        logInfo("CLT","TST","Send msg # %d", i);
         MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) helloMsg, strlen(helloMsg), CL_IOC_PROTO_CTL);
-        sleep(3);
+        logInfo("CLT","TST","Received [%s]", (char*) msgReply->buffer);
+        sleep(1);
       }
 
   }

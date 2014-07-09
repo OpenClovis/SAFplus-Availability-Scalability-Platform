@@ -14,6 +14,7 @@
 // SAFplus includes
 #include <clHandleApi.hxx>
 #include <clTransaction.hxx>
+#include <clThreadApi.hxx>
 
 #include <clCkptIpi.hxx>
 
@@ -39,13 +40,15 @@ namespace SAFplus
     Buffer() { refAndLen=0;}
     Buffer(uint_t _len) { refAndLen = (1UL<<RefShift) | (_len&LenMask); }
     uint_t len() const { return refAndLen&LenMask; }
+    uint_t objectSize() const { return len() + sizeof(Buffer) - 1; }
+
     void setNullT(uint_t val) { refAndLen = refAndLen & (~NullTMask) | (val<<NullTShift); }
     bool isNullT() const; // { printf("isnullt %lx %lx\n",refAndLen, refAndLen&NullTMask); return (refAndLen&NullTMask)>0; } // (((refAndLen >> NullTShift)&1) == 1);
     void setLen(uint_t len) { refAndLen = (refAndLen&0xff000000) | len&LenMask; }
     uint_t ref() const { return refAndLen >> RefShift; }
     void addRef(uint_t amt = 1) { refAndLen += (amt<<RefShift); }
     void decRef(uint_t amt = 1) { if (ref() < amt) refAndLen &= ~RefMask; else refAndLen -= (amt<<RefShift); }
-    uint32_t changeNum() { return change; }
+    uint32_t changeNum() const { return change; }
     void setChangeNum(uint32_t num) { change = num; } 
     /** The buffer */
     char data[1];  // Not really length 1, this structure will be malloced and placed on a much larger buffer so data is actually len() long
@@ -84,6 +87,7 @@ namespace SAFplus
       setNullT(c.isNullT());
       //printf("nullt? %d %d\n", c.isNullT(),isNullT());
       memcpy(data,c.data,len());
+      change = c.change;
     }
 
   private:
@@ -125,7 +129,7 @@ namespace SAFplus
     init(handle,flags,size,rows);
     }
     
-    Checkpoint(uint_t flags,uint_t size=0, uint_t rows=0)  // Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.
+    Checkpoint(uint_t flags,uint_t size=0, uint_t rows=0)   // Create a new checkpoint or open an existing one.  If no handle is passed, a new checkpoint will be created.
     { 
     Handle hdl = SAFplus::Handle::create();
     init(hdl,flags,size,rows);
@@ -146,11 +150,19 @@ namespace SAFplus
    \par Exceptions
       clAsp::Error is raised if there is an underlying SAF read error
       that cannot be automatically handled
+      It is best not to hold onto Buffer references for very long; if
+   the record is written and you are holding the Buffer reference, a new
+   buffer will be allocated.  But if you are not holding it, it will
+   be overwritten.
    */
-    const Buffer&  read (const Buffer& key) const;
-    const Buffer&  read (const uint64_t key) const;
-    const Buffer&  read (const char* key) const;
-    const Buffer&  read (const std::string& key) const;
+    const Buffer&  read (const Buffer& key); //const;
+    const Buffer&  read (const uint64_t key); //const;
+    const Buffer&  read (const char* key); //const;
+    const Buffer&  read (const std::string& key); // const;
+
+    /* temporarily disallow/allow synchronization */
+    void syncLock() { gate.lock(); }
+    void syncUnlock() { gate.unlock(); }
 
   /**
    \brief Write a section of the checkpoint table 
@@ -172,6 +184,11 @@ namespace SAFplus
     void remove(const SAFplusI::BufferPtr& bufPtr, bool isKey=false, Transaction& t=SAFplus::NO_TXN);
     void remove(Buffer* buf, bool isKey=false, Transaction& t=SAFplus::NO_TXN);
 #endif    
+
+    /** During replication, changes are received from the remote
+    checkpoint.  This API applies these changes */
+    void applySync(const Buffer& key, const Buffer& value,Transaction& t=SAFplus::NO_TXN);
+
 
     typedef SAFplusI::CkptMapPair KeyValuePair;
 
@@ -198,7 +215,7 @@ namespace SAFplus
       const KeyValuePair& operator*() const { return *curval; }
       KeyValuePair* operator->() { return curval; }
       const KeyValuePair* operator->() const { return curval; }
-      
+
       //void getCkptData(void);
       Checkpoint* ckpt;
       SAFplusI::CkptMapPair* curval;
@@ -226,9 +243,11 @@ namespace SAFplus
     SAFplusI::CkptBufferHeader*     hdr;
     SAFplusI::CkptHashMap*          map;
     uint_t                        flags;
+    SAFplus::ProcGate              gate;
     bool isSyncReplica;
     SAFplusI::CkptSynchronization* sync;  // This is a separate object (and pointer) to break the synchronization requirements (messaging and groups) from the core checkpoint
     bool electSynchronizationReplica();  // Returns true if this process is the synchronization replica.
+
   };
 }
 

@@ -9,6 +9,8 @@
 namespace SAFplus
 {
 
+Wakeable& Wakeable::Synchronous = *((Wakeable*) NULL);
+
 static const ClUint32T crctab[] = {
 	0x0,
 	0x04c11db7, 0x09823b6e, 0x0d4326d9, 0x130476dc, 0x17c56b6b,
@@ -122,12 +124,16 @@ typedef union CosSemCtl_u
     uint_t flags = 0666;
     do  // open the semaphore, creating it if it does not exist.
       {
-        retry = 0;
+      retry = 0;
       semId = semget(key, 1, flags);
       if(semId < 0 )
         {
-        if(errno == EINTR) retry = 1;
-        else if(errno == ENOENT) { flags |= IPC_CREAT; retry = 1; }
+        int err = errno;
+        if(err == EINTR) retry = 1;
+        // The IPC_EXCL is used because I need to KNOW whether I created this sem or not so that 
+        // the creator is the only entity that initializes it
+        else if (err == ENOENT) { flags |= IPC_CREAT | IPC_EXCL; retry = 1; }
+        else if (err == EEXIST) { flags ^= IPC_CREAT | IPC_EXCL; retry = 1; }
         else
           {
             assert(0);  // Later raise exception
@@ -337,5 +343,169 @@ bool ThreadSem::timed_lock(uint64_t mSec,int amt)
   count = -1;  // Indicate that this object was deleted by putting an impossible value in count
   }
 
-};
+
+    ProcGate::ProcGate(unsigned int key,int initialValue)
+      {
+      init(key,initialValue);
+      }
+
+ProcGate::ProcGate(const char* key,int initialValue)
+  {
+  ClUint32T realKey;
+  int keyLen = strlen(key);
+  realKey = computeCrc32((ClUint8T*) key, keyLen);
+  init(realKey,initialValue);
+  }
+
+  void ProcGate::init(unsigned int key, int initialValue)
+    {
+    if (initialValue != 0) initialValue = 1;  // Make it boolean
+    uint_t retry;
+    uint_t flags = 0666;
+    do  // open the semaphore, creating it if it does not exist.
+      {
+      retry = 0;
+      semId = semget(key, 2, flags);
+      if(semId < 0 )
+        {
+        int err = errno;
+        if(err == EINTR) retry = 1;
+        // The IPC_EXCL is used because I need to KNOW whether I created this sem or not so that 
+        // the creator is the only entity that initializes it
+        else if (err == ENOENT) { flags |= IPC_CREAT | IPC_EXCL; retry = 1; }
+        else if (err == EEXIST) { flags ^= IPC_CREAT | IPC_EXCL; retry = 1; }
+        else
+          {
+          assert(0);  // Later raise exception
+          }
+        }
+      } while(retry);
+
+    if( (flags & IPC_CREAT) )
+      {
+      int err;
+      CosSemCtl_t arg = {0};
+      arg.val = 0; // initialValue;
+      retry = 0;
+      do
+        {
+        err = semctl(semId,0,SETVAL,0);
+        if(err < 0 )
+          {
+          if(errno == EINTR) retry = 1;
+          else
+            {
+            assert(0);
+            }
+          }
+        arg.val = initialValue;  // The gate starts open or closed?
+        err = semctl(semId,1,SETVAL,arg);
+        if(err < 0 )
+          {
+          if(errno == EINTR) retry = 1;
+          else
+            {
+            assert(0);
+            }
+        
+          }
+        } while(retry);
+      }    
+    }
+  
+
+    void ProcGate::wake(int amt,void* cookie) { open(); }
+    void ProcGate::lock(int amt)   // This is not exclusive -- multiple entities can hold the lock at the same time.
+      {
+      // Block until the gate is open (= zero), then this lock will increment the semaphore
+      struct sembuf sembuf[] = {{1, 0,SEM_UNDO},{0, (short int)(amt),SEM_UNDO }};
+      int err;
+      do
+        {
+          err = semop(semId,sembuf,2);
+        } while ((err<0)&&(errno==EINTR));
+      if (err<0)
+        {
+          int err = errno;
+          assert(err<0);
+        }
+
+      }
+    void ProcGate::unlock(int amt)
+      {
+      struct sembuf sembuf = {0, (short int)(-1*amt),SEM_UNDO };
+      int err;
+      do
+        {
+          err = semop(semId,&sembuf,1);
+        } while ((err<0)&&(errno==EINTR));
+      if (err<0)
+        {
+          int err = errno;
+          assert(err<0);
+        }
+
+      }
+
+    bool ProcGate::try_lock(int amt)
+    {
+    assert(0);
+    }
+
+    bool ProcGate::timed_lock(uint64_t mSec,int amt)
+      {
+      assert(0);
+      }
+
+    void ProcGate::close()  // close the gate so all lockers block on lock, returns when no entity has a lock.
+      {
+      if (1)  // First, close the gate
+        {
+        struct sembuf sembuf[] = { {1, (short int)1,SEM_UNDO }  };
+        int err;
+        do
+          {
+          err = semop(semId,sembuf,1);
+          } while ((err<0)&&(errno==EINTR));
+        if (err<0)
+          {
+          int err = errno;
+          assert(err<0);
+          }
+        }
+
+      if (1)  // now wait for all racers to leave or be blocked by the gate (wait for zero)
+        {
+        struct sembuf sembuf =  {0, 0,SEM_UNDO };
+        int err;
+        do
+          {
+          err = semop(semId,&sembuf,1);
+          } while ((err<0)&&(errno==EINTR));
+        if (err<0)
+          {
+          int err = errno;
+          assert(err<0);
+          }
+        }
+      }
+
+void ProcGate::open()   // open the gate to allow lockers to proceed.
+  {
+  // open the gate
+        
+  struct sembuf sembuf[] = { {1, (short int) -1,SEM_UNDO }  };
+  int err;
+  do
+    {
+    err = semop(semId,sembuf,1);
+    } while ((err<0)&&(errno==EINTR));
+  if (err<0)
+    {
+    int err = errno;
+    assert(err<0);
+    }
+  }
+
+  };
 

@@ -9,11 +9,14 @@
 
 using namespace SAFplus;
 
+static unsigned int MAX_MSGS=25;
+static unsigned int MAX_HANDLER_THREADS=10;
+
+int LoopCount=10;  // how many checkpoint records should be written during each iteration of the test.
 
 SAFplus::Handle test_readwrite(Checkpoint& c1,Checkpoint& c2)
 {
   SAFplus::Handle ret = INVALID_HDL;
-  int LoopCount=10;
   c1.stats();
 
   printf("Dump of current checkpoint\n");
@@ -243,6 +246,9 @@ int main(int argc, char* argv[])
   clAspLocalId  = SAFplus::ASP_NODEADDR;  // remove clAspLocalId
   rc = clIocLibInitialize(NULL);
   assert(rc==CL_OK);
+
+  safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
+  safplusMsgServer.Start();
 
   clTestGroupInitialize(("Test Checkpoint"));
   if (1)

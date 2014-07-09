@@ -5,7 +5,10 @@
 /* Configuration parameters that are part of the API */
 namespace SAFplus
   {
-    
+    enum
+    {
+    Log2MaxNodes = 10  // 2^10 = 1024 total nodes.
+    };
   };
 
 
@@ -29,6 +32,7 @@ namespace SAFplusI
     CkptMinRows = 2,
     CkptDefaultRows = 256,
 
+    CkptSyncMsgStride = 128,   // Checkpoint sync messages will be either < this length OR have only one record.  That is, if a record is > this amount the message can be bigger.
 
     };
 

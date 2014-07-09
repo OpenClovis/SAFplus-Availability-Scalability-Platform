@@ -12,7 +12,8 @@ namespace SAFplusI
     {
     AMF_REQ_HANDLER_TYPE = 17,
     AMF_REPLY_HANDLER_TYPE = 18,
-    CKPT_SYNC_MSG_TYPE = 3,
+    HEARTBEAT_MSG_TYPE = 3, // must be == CL_IOC_PROTO_HB
     GRP_MSG_TYPE = 4,
+    CKPT_SYNC_MSG_TYPE = 5,
     };
   }

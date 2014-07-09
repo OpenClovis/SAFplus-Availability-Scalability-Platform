@@ -55,7 +55,7 @@ SAFplus::Group::Group(const std::string& handleName,int dataStoreMode, int comPo
   }
 
   name.setLocalObject(handleName,(void*)this);
-  init(handle);
+  init(handle,dataStoringMode, groupCommunicationPort);
 }
 /**
  * API to create a group membership (defer initialization)
@@ -78,8 +78,13 @@ SAFplus::Group::Group(int dataStoreMode,int comPort)
 /**
  * API to initialize group service
  */
-void SAFplus::Group::init(SAFplus::Handle groupHandle)
+void SAFplus::Group::init(SAFplus::Handle groupHandle,int dataStoreMode, int comPort)
 {
+  logInfo("GRP","INI","Opening group [%lx:%lx]",groupHandle.id[0],groupHandle.id[1]);
+
+  dataStoringMode      = dataStoreMode;
+  groupCommunicationPort = comPort;
+
   if ((dataStoringMode == SAFplus::Group::DATA_IN_CHECKPOINT)&&(!groupCkptInited))
     {
     groupCkptInited=1;
@@ -244,7 +249,7 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
       isElectionFinished = true;
       if(instance->wakeable)
       {
-        instance->wakeable->wake(ELECTION_FINISH_SIG);
+        instance->wakeable->wake(1,(void*)ELECTION_FINISH_SIG);
       }
       isElectionRunning = false;
     }
@@ -299,7 +304,7 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
          isElectionFinished = true;
          if(instance->wakeable)
          {
-           instance->wakeable->wake(ELECTION_FINISH_SIG);
+           instance->wakeable->wake(1,(void*)ELECTION_FINISH_SIG);
          }
        }
     }
@@ -390,7 +395,7 @@ void SAFplus::Group::roleNotificationHandle(SAFplusI::GroupMessageProtocol *rxMs
         if(isElectionRunning && wakeable)
         {
           isElectionRunning = false;
-          wakeable->wake(ELECTION_FINISH_SIG);
+          wakeable->wake(1,(void*)ELECTION_FINISH_SIG);
         }
       }
       if(other != getActive())
@@ -420,7 +425,7 @@ void SAFplus::Group::roleNotificationHandle(SAFplusI::GroupMessageProtocol *rxMs
       isElectionFinished = true;
       if(wakeable)
       {
-        wakeable->wake(ELECTION_FINISH_SIG);
+        wakeable->wake(1,(void*)ELECTION_FINISH_SIG);
       }
       break;
     }
@@ -588,7 +593,7 @@ void SAFplus::Group::registerEntity(EntityIdentifier me, uint64_t credentials, c
     /* Notify other entities about new entity*/
     if(wakeable)
     {
-      wakeable->wake(NODE_JOIN_SIG);
+      wakeable->wake(1,(void*)NODE_JOIN_SIG);
     }
 
     if(needNotify == true)
@@ -678,8 +683,8 @@ void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
   /* Update if leaving entity is standby/active */
   if(activeEntity == me && (myInformation.id == standbyEntity || standbyEntity == INVALID_HDL))
   {
-    if (standbyEntity == INVALID_HDL) logDebug("GMS","DER","Leaving node had active role.");
-    else logDebug("GMS","DER","Leaving node had active role. Standby is now Active.");
+    if (standbyEntity == INVALID_HDL) logInfo("GMS","DER","Leaving entity had active role.");
+    else logInfo("GMS","DER","Leaving entity had active role. Standby is now Active.");
 
     // Promote the standby to active in a manner which NEVER allows other threads to see both the standby and active as the same node
     Handle tmp = standbyEntity;
@@ -688,7 +693,7 @@ void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
   }
   else if(standbyEntity == me && myInformation.id == activeEntity)
   {
-    logDebug("GMS","DER","Leaving node had standby role.");
+    logInfo("GMS","DER","Leaving entity had standby role.");
     standbyEntity = INVALID_HDL;
     /* Now, elect for the new standby */
   }
@@ -702,7 +707,7 @@ void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
     * we have handled it. */
   if(wakeable)
   {
-    wakeable->wake(NODE_LEAVE_SIG);
+    wakeable->wake(1,(void*)NODE_LEAVE_SIG);
   }
 
 }
@@ -775,6 +780,8 @@ void* SAFplus::Group::getData(EntityIdentifier id)
   }
   return contents->second;
 }
+
+#if 0
 /**
  * Election for leader/deputy
  */
@@ -813,6 +820,7 @@ EntityIdentifier SAFplus::Group::electARole(EntityIdentifier ignoreMe)
   }
   return electedEntity;
 }
+
 /**
  * Do election to find the required roles pairs <active,standby>
  */
@@ -828,31 +836,80 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
   standbyCandidate = electARole(activeCandidate);
   return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
 }
+#endif
+
+std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
+{
+  uint activeCapabilities = 0,curCapabilities = 0;
+  uint highestCredentials = 0, curCredentials = 0;
+  EntityIdentifier curEntity = INVALID_HDL;
+
+  EntityIdentifier activeCandidate=INVALID_HDL, standbyCandidate=INVALID_HDL;
+  uint             activeCredentials=0, standbyCredentials=0;
+
+  for (GroupHashMap::iterator i = groupDataMap.begin();i != groupDataMap.end();i++)
+  {
+    char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
+    SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
+    *((EntityIdentifier *) key->data) = i->first;
+
+    GroupIdentity *grp = (GroupIdentity *)readFromDatabase(key);
+    curCredentials  = grp->credentials;
+    curCapabilities = grp->capabilities;
+    curEntity       = grp->id;
+    logInfo("GRP","ELC", "Member [%lx:%lx], capabilities: 0x%x, credentials: %d",curEntity.id[0],curEntity.id[1],curCapabilities, curCredentials);
+    // Obviously the anything that can accept the standby role must be able to be active too.
+    // But it is possible to not be able to accept the standby role (transition directly to active).
+    if ((curCapabilities & (SAFplus::Group::ACCEPT_ACTIVE |  SAFplus::Group::ACCEPT_STANDBY)) != 0)  
+    {
+      if(activeCredentials < curCredentials)
+      {
+        // If the active candidate is changing, see if the current candidate is a better match for standby
+        if ((standbyCredentials < activeCredentials)&&(activeCapabilities&SAFplus::Group::ACCEPT_STANDBY))
+          {
+          standbyCredentials = activeCredentials;
+          standbyCandidate   = activeCandidate;
+          }
+        activeCredentials = curCredentials;
+        activeCandidate = curEntity;
+        activeCapabilities = curCapabilities;  
+      }
+    }
+    else if ((curCapabilities & SAFplus::Group::ACCEPT_STANDBY) != 0)
+      {
+        clDbgCodeError(1, ("This entity's credentials are incorrect.  It cannot have standby capability but be unable to become active.") );
+      }
+  }
+
+  return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
+}
+
+
 /**
  * API allow member call for election based on group database
  */
-std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::elect()
+std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::elect(SAFplus::Wakeable& wake)
 {
   std::pair<EntityIdentifier,EntityIdentifier> res;
   res.first = INVALID_HDL;
   res.second = INVALID_HDL;
-  if(isElectionRunning == true)
-  {
-    logDebug("GMS","ELE","There is an current election running");
-    return res;
-  }
-  isElectionFinished = false;
-  electionRequestHandle(NULL);
+  if(!isElectionRunning)
+    {
+    isElectionFinished = false;
+    electionRequestHandle(NULL);
+    }
+
   // Asynchronous call
-  if(wakeable)
+  if(&wake != NULL)
   {
+    clDbgNotImplemented("");  // TODO, I need to put the wake object into a list so I can call it when the election is complete
     return res;
   }
   else
   {
-    while(!isElectionFinished)
+    while(!isElectionFinished)  // TODO: should be a thread condition
     {
-      ;
+      boost::this_thread::sleep(boost::posix_time::milliseconds(50));
     }
     res.first = getActive();
     res.second = getStandby();

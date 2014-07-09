@@ -38,6 +38,30 @@ namespace SAFplus
     bool timed_lock(uint64_t mSec,int amt=1);
   };
 
+
+  /* Interprocess gate must use SYS-V semaphores because they can be automatically released on process death.  Api signatures are very similar to c++ boost library. */
+  /* A gate is an abstraction that allows multiple threads/processes
+   * access until the gate is "shut".  Once all processes are out of
+   * the critical region, the entity that shut the gate is allowed to run */
+  class ProcGate:public SemI
+  {
+  protected:
+    int semId;
+  public:
+    ProcGate() { semId = -1; }
+    ProcGate(unsigned int key,int initialValue=0);
+    ProcGate(const char* key,int initialValue=0);
+    void init(unsigned int key,int initialValue=0);
+    void wake(int amt,void* cookie=NULL);
+    void lock(int amt=1);   // This is not exclusive -- multiple entities can hold the lock at the same time.
+    void unlock(int amt=1);
+    bool try_lock(int amt=1);
+    bool timed_lock(uint64_t mSec,int amt=1);
+
+    void close();  // close the gate so all lockers block on lock, returns when no entity has a lock.
+    void open();   // open the gate to allow lockers to proceed.
+  };
+
   
   template<class bstMutT> class tMutex: public Wakeable
   {
