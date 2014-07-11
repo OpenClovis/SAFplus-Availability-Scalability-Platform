@@ -2049,7 +2049,8 @@ clAmsPeNodeLockAssignment(
 
     if ( adminState == CL_AMS_ADMIN_STATE_LOCKED_I )
     {
-        AMS_CALL ( clAmsPeNodeInstantiate(node) );
+        AMS_CALL(clAmsPeNodeReset(node));
+        AMS_CALL(clAmsPeNodeInstantiate(node));
     }
     else if ( adminState == CL_AMS_ADMIN_STATE_UNLOCKED )
     {
@@ -4509,6 +4510,7 @@ clAmsPeSULockAssignment(
 
     if ( adminState == CL_AMS_ADMIN_STATE_LOCKED_I )
     {
+        AMS_CALL ( clAmsPeSUReset(su) );
         AMS_CALL ( clAmsPeSUMarkInstantiable(su) );
         AMS_CALL ( clAmsPeSUEvaluateWork(su) );
     }
@@ -4761,6 +4763,7 @@ clAmsPeSULockInstantiation(
         {
             AMS_CALL ( clAmsPeSUTerminate(su) );
         }
+        CL_AMS_SET_P_STATE(su, CL_AMS_PRESENCE_STATE_UNINSTANTIATED);
     }
 
     return CL_OK;
