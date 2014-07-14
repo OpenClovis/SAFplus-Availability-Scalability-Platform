@@ -70,9 +70,9 @@ namespace SAFplus
       }
       void dumpInfo()
       {
-        logInfo("GMS", "---","Dumping GroupIdentity at %x",this);
-        logInfo("GMS", "---","ID: 0x%x 0x%x",id.id[0],id.id[1]);
-        logInfo("GMS", "---","CREDENTIALS: 0x%x ",credentials);
+        logInfo("GMS", "---","Dumping GroupIdentity at [%p]",this);
+        logInfo("GMS", "---","ID: 0x%lx 0x%lx",id.id[0],id.id[1]);
+        logInfo("GMS", "---","CREDENTIALS: 0x%lx ",credentials);
         logInfo("GMS", "---","CAPABILITY: 0x%x ",capabilities);
         logInfo("GMS", "---","DATA LENGTH: 0x%x ",dataLen);
       }
