@@ -449,6 +449,14 @@ class ASPInstaller:
                     if ret_code != 0:
                         # install tipc_config
                         
+                        cmd = '/sbin/modinfo tipc > /dev/null 2>&1;'
+                        self.debug('calling cmd: ' + cmd)
+                        ret_code = cli_cmd(cmd)
+                        if ret_code != 0: # no tipc module installed
+                            dep.installedver = 'None'
+                            self.installQueue.append(dep)                            
+                            continue
+
                         TIPC_MODULE_VERSION = syscall('/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2')
                         TIPC_MAJOR_VERSION = int(TIPC_MODULE_VERSION.split('.')[0])
                         TIPC_MINOR_VERSION = int(TIPC_MODULE_VERSION.split('.')[1])
@@ -1067,9 +1075,11 @@ class ASPInstaller:
 
                 if strin :
                     KERNEL_SOURCE_DIR = self.expand_path(strin)                                    
-                os.chdir('%s' %KERNEL_SOURCE_DIR)                                
-                syscall('cp -rf %s/workspace/tipc-1.7.7/net .'%self.WORKING_DIR)
-                syscall('cp -rf %s/workspace/tipc-1.7.7/include .'%self.WORKING_DIR)
+                os.chdir('%s' %KERNEL_SOURCE_DIR)         
+                tipcPkgName = dep.pkg_name                
+                tipcModName = tipcPkgName.replace('.tar.gz', '').replace('.tgz', '')                       
+                syscall('cp -rf %s/workspace/%s/net .'%(self.WORKING_DIR,tipcModName))
+                syscall('cp -rf %s/workspace/%s/include .'%(self.WORKING_DIR,tipcModName))
                 syscall('make oldconfig')
                 #with open(".config","a") as myfile:
                     #myfile.write("CONFIG_TIPC=m\nCONFIG_TIPC_ADVANCED=y\nCONFIG_TIPC_NETID=4711\nCONFIG_TIPC_REMOTE_MNG=y\nCONFIG_TIPC_PORTS=8191\nCONFIG_TIPC_NODES=255\nCONFIG_TIPC_CLUSTERS=8\nCONFIG_TIPC_ZONES=4\nCONFIG_TIPC_REMOTES=8\nCONFIG_TIPC_PUBL=10000\nCONFIG_TIPC_SUBSCR=2000\nCONFIG_TIPC_LOG=0\nCONFIG_TIPC_UNICLUSTER_FRIENDLY=y\nCONFIG_TIPC_MULTIPLE_LINKS=y\nCONFIG_TIPC_CONFIG_SERVICE=y\nCONFIG_TIPC_SOCKET_API=y\n")
@@ -1079,7 +1089,8 @@ class ASPInstaller:
                 #syscall('make prepare')
                 syscall('make modules_prepare 2>&1')
                 syscall('make init 2>&1')
-                logfile= ' >> %s 2>&1' % os.path.join(os.path.join(self.pwd, 'log'), 'tipc' + '.log')
+                logfile= ' >> %s 2>&1' % os.path.join(os.path.join(syscall('pwd'), 'log'), 'tipc' + '.log')
+                syscall('mkdir '+ os.path.join(syscall('pwd'), 'log'))
                 self.feedback('make tipc module')
                 syscall('make M=net/tipc modules ' + logfile)
                 syscall('make M=net/tipc modules_install ' + logfile)
@@ -1101,21 +1112,13 @@ class ASPInstaller:
                 else :
                    self.feedback('Install tipc successfully.')
                 #syscall('rm -f /usr/include/linux/tipc*.h')
-                syscall('cp -f %s/workspace/tipc-1.7.7/include/linux/tipc.h /usr/include/linux/' %(self.WORKING_DIR))
-                syscall('cp -f %s/workspace/tipc-1.7.7/include/linux/tipc_config.h /usr/include/linux/' %(self.WORKING_DIR))
+                syscall('cp -f %s/workspace/%s/include/linux/tipc.h /usr/include/linux/' %(self.WORKING_DIR,tipcModName))
+                syscall('cp -f %s/workspace/%s/include/linux/tipc_config.h /usr/include/linux/' %(self.WORKING_DIR,tipcModName))
             else :
                 # For some reason these build commands had to be deferred (they may rely on previously build stuff, or preinstall)
                 if type(dep.build_cmds) == types.FunctionType:
                     dep.build_cmds = dep.build_cmds()
-                if dep.name == 'tipc-config':
-                    tipcPkgName = dep.pkg_name
-                    syscall('tar xfm "%s" %s' % (self.THIRDPARTYPKG_PATH,tipcPkgName))    # pull out of pkg
-                    syscall('tar zxf %s' % tipcPkgName)
-                    exdir = tipcPkgName.replace('.tar.gz', '').replace('.tgz', '')
-                    self.feedback('cp -f %s/include/linux/tipc.h /usr/include/linux/' %(exdir))
-                    syscall('cp -f %s/include/linux/tipc.h /usr/include/linux/' %(exdir))
-                    syscall('cp -f %s/include/linux/tipc_config.h /usr/include/linux/' %(exdir))
-                # execute commands to build package
+                
                 for cmd in dep.build_cmds:
                 
                     cmd = self.parse_unix_vars(cmd)               
