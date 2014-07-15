@@ -67,7 +67,9 @@ ClRcT clNameCompCfg(void)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Name Service Init Failed"));
     }
-                                                                                                                             
+
+    CL_ASSERT(rc == CL_OK);
+
     return (rc);
 }
 
