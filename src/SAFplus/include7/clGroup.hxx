@@ -268,8 +268,10 @@ namespace SAFplus
         public:
           Group* mGroup;
           GroupMessageHandler(SAFplus::Group *grp=nullptr);
+          void init(SAFplus::Group *grp=nullptr);
           void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
       };
+      SAFplus::Group::GroupMessageHandler groupMessageHandler;
 
     protected:
       static SAFplus::Checkpoint        mGroupCkpt;             // The checkpoint where storing entity information if mode is CHECKPOINT

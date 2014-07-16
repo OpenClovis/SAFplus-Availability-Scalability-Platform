@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
   int mode = SAFplus::Group::DATA_IN_MEMORY;
   SAFplus::ASP_NODEADDR = 1;
   parseArgs(argc,argv);
-
+  printf("ENV PARSED: gIsNodeRepresentative=[%s] ASP_NODEADDR=[%d] Port=[%d]",gIsNodeRepresentative?"TRUE":"FALSE",SAFplus::ASP_NODEADDR , port);
   logInitialize();
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
@@ -103,6 +103,7 @@ int main(int argc, char* argv[])
   assert(rc==CL_OK);
 
   safplusMsgServer.init(port, MAX_MSGS, MAX_HANDLER_THREADS);
+  /* Library should start it */
   safplusMsgServer.Start();
 
   //Handle replicaHandle = Handle::create(safplusMsgServer.handle.getPort());
@@ -116,10 +117,10 @@ int main(int argc, char* argv[])
   printf ("GROUP IS: [%lx:%lx]  I AM: [%lx:%lx]\n",grphandle.id[0],grphandle.id[1],me.id[0],me.id[1]);
   Group* group = new SAFplus::Group();
   assert(group);
-  group->init(grphandle,mode);
+  group->init(grphandle,mode,port);
   group->setNotification(somethingChanged);
   // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
-  group->registerEntity(me, (port<<4) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE, false);
+  group->registerEntity(me, (port<<4) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE, true);
 
   while(1)
     {
@@ -127,13 +128,13 @@ int main(int argc, char* argv[])
 
     printf("Running Election\n");
     std::pair<EntityIdentifier,EntityIdentifier> as = group->elect();
-    printf("Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as.first.id[0], as.first.id[1], (as.first == me) ? "me": "not me", as.second.id[1],as.second.id[1],(as.second == me) ? "me": "not me"); 
+    printf("Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as.first.id[0], as.first.id[1], (as.first == me) ? "me": "not me", as.second.id[0],as.second.id[1],(as.second == me) ? "me": "not me");
     int result = somethingChanged.timed_wait(m,10000);
     if (result != 0)
       {
       as.first = group->getActive();
       as.second = group->getStandby();
-      printf("Group Event! Active: [%lx:%lx]  Standby: [%lx:%lx]\n", as.first.id[0], as.first.id[1], as.second.id[1],as.second.id[1]);
+      printf("Group Event! Active: [%lx:%lx]  Standby: [%lx:%lx]\n", as.first.id[0], as.first.id[1], as.second.id[0],as.second.id[1]);
       }
     }
 

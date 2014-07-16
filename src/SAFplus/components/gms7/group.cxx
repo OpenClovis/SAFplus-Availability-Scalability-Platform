@@ -24,7 +24,7 @@ bool groupCkptInited = false;
 /**
  * API to create a group membership
  */
-SAFplus::Group::Group(const std::string& handleName,int dataStoreMode, int comPort)
+SAFplus::Group::Group(const std::string& handleName,int dataStoreMode, int comPort):groupMessageHandler()
 {
   handle  = INVALID_HDL;
   activeEntity = INVALID_HDL;
@@ -60,7 +60,7 @@ SAFplus::Group::Group(const std::string& handleName,int dataStoreMode, int comPo
 /**
  * API to create a group membership (defer initialization)
  */
-SAFplus::Group::Group(int dataStoreMode,int comPort)
+SAFplus::Group::Group(int dataStoreMode,int comPort):groupMessageHandler()
 {
   handle = INVALID_HDL;
   activeEntity = INVALID_HDL;
@@ -177,15 +177,8 @@ void SAFplus::Group::startMessageServer()
     groupMsgServer = &safplusMsgServer;
   }
 
-#if 0  // See Notes on SAFMsgServer and MsgServer...
-  if (!groupMsgServer)
-  {
-    groupMsgServer = new SAFplus::MsgServer(groupCommunicationPort);
-    groupMsgServer->Start();
-  }
-#endif
-
-  SAFplus::Group::GroupMessageHandler groupMessageHandler(this);
+  groupMessageHandler.init(this);
+  //SAFplus::Group::GroupMessageHandler groupMessageHandler(this);
   groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, &groupMessageHandler, NULL);
 }
 /**
@@ -848,7 +841,7 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
   standbyCandidate = electARole(activeCandidate);
   return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
 }
-#endif
+#else
 
 std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
 {
@@ -874,28 +867,41 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
     // But it is possible to not be able to accept the standby role (transition directly to active).
     if ((curCapabilities & (SAFplus::Group::ACCEPT_ACTIVE |  SAFplus::Group::ACCEPT_STANDBY)) != 0)  
     {
-      if(activeCredentials < curCredentials)
+      if(activeCredentials < curCredentials || standbyCredentials < curCredentials )
       {
-        // If the active candidate is changing, see if the current candidate is a better match for standby
-        if ((standbyCredentials < activeCredentials)&&(activeCapabilities&SAFplus::Group::ACCEPT_STANDBY))
+        if(activeCandidate == INVALID_HDL || activeCredentials <  curCredentials)
+        {
+          // Active candidate found before need to having ACCEPT_STANDBY and current entity (which has largest credentials) must ACCEPT_ACTIVE
+          // This is changing from active to standby
+          if(activeCandidate != INVALID_HDL && (activeCapabilities & SAFplus::Group::ACCEPT_STANDBY) && (curCapabilities & SAFplus::Group::ACCEPT_ACTIVE))
           {
-          standbyCredentials = activeCredentials;
-          standbyCandidate   = activeCandidate;
+            standbyCredentials = activeCredentials;
+            standbyCandidate = activeCandidate;
           }
-        activeCredentials = curCredentials;
-        activeCandidate = curEntity;
-        activeCapabilities = curCapabilities;  
+          // Ensure that the candidate can be active
+          if(curCapabilities & SAFplus::Group::ACCEPT_ACTIVE)
+          {
+            activeCredentials = curCredentials;
+            activeCandidate = curEntity;
+            activeCapabilities = curCapabilities;
+          }
+        }
+        else if((standbyCandidate == INVALID_HDL || standbyCredentials <  curCredentials ) && (curCapabilities & SAFplus::Group::ACCEPT_STANDBY))
+        {
+          standbyCredentials = curCredentials;
+          standbyCandidate = curEntity;
+        }
       }
     }
     else if ((curCapabilities & SAFplus::Group::ACCEPT_STANDBY) != 0)
-      {
-        clDbgCodeError(1, ("This entity's credentials are incorrect.  It cannot have standby capability but be unable to become active.") );
-      }
+    {
+      clDbgCodeError(1, ("This entity's credentials are incorrect.  It cannot have standby capability but be unable to become active.") );
+    }
   }
 
   return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
 }
-
+#endif
 
 /**
  * API allow member call for election based on group database
@@ -1141,6 +1147,10 @@ SAFplus::Group::GroupMessageHandler::GroupMessageHandler(SAFplus::Group* _group)
 {
 
 }
+void SAFplus::Group::GroupMessageHandler::init(SAFplus::Group* _group)
+{
+  mGroup = _group;
+}
 void SAFplus::Group::GroupMessageHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
 {
   /* If no communication needed, just ignore */
@@ -1148,6 +1158,7 @@ void SAFplus::Group::GroupMessageHandler::msgHandler(ClIocAddressT from, SAFplus
   {
     return;
   }
+  logError("GMS","MSG","Received message from node %d",from.iocPhyAddress.nodeAddress);
   /* If message from me, just ignore */
   if(from.iocPhyAddress.nodeAddress == clIocLocalAddressGet())
   {
