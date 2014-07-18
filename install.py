@@ -1090,7 +1090,7 @@ class ASPInstaller:
                 syscall('make modules_prepare 2>&1')
                 syscall('make init 2>&1')
                 logfile= ' >> %s 2>&1' % os.path.join(os.path.join(syscall('pwd'), 'log'), 'tipc' + '.log')
-                syscall('mkdir '+ os.path.join(syscall('pwd'), 'log'))
+                syscall('mkdir -p '+ os.path.join(syscall('pwd'), 'log'))
                 self.feedback('make tipc module')
                 syscall('make M=net/tipc modules ' + logfile)
                 syscall('make M=net/tipc modules_install ' + logfile)
