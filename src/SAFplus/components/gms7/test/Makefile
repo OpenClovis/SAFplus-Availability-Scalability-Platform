@@ -32,10 +32,10 @@ $(TEST_DIR)/testGroupServer: $(OBJ_DIR)/testGroupServer.o $(SAFPLUS_DEP_LIBS) Ma
 	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
 $(TEST_DIR)/testGroup: $(OBJ_DIR)/testGroup.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
+	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
 $(TEST_DIR)/testMultiGroup: $(OBJ_DIR)/testMultiGroup.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
+	$(LINK_EXE) $@ $< $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) 
 
 $(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<

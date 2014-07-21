@@ -84,11 +84,12 @@ int main(int argc, char* argv[])
   int tc = -1;
   int mode = SAFplus::Group::DATA_IN_MEMORY;
   SAFplus::ASP_NODEADDR = 1;
-  parseArgs(argc,argv);
-  printf("ENV PARSED: gIsNodeRepresentative=[%s] ASP_NODEADDR=[%d] Port=[%d]",gIsNodeRepresentative?"TRUE":"FALSE",SAFplus::ASP_NODEADDR , port);
   logInitialize();
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
+
+  parseArgs(argc,argv);
+  printf("ENV PARSED: gIsNodeRepresentative=[%s] ASP_NODEADDR=[%ld] Port=[%d]",gIsNodeRepresentative?"TRUE":"FALSE",SAFplus::ASP_NODEADDR , port);
 
   utilsInitialize();
 
@@ -120,21 +121,42 @@ int main(int argc, char* argv[])
   group->init(grphandle,mode,port);
   group->setNotification(somethingChanged);
   // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
-  group->registerEntity(me, (port<<4) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE, true);
+  group->registerEntity(me, (port<<4) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY, true);
+
+
+  Group failback;
+  Handle fbhandle = WellKnownHandle(65<<SUB_HDL_SHIFT,0,0);
+  failback.init(fbhandle,mode,port);
+  failback.setNotification(somethingChanged);
+  // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
+  failback.registerEntity(me, (port<<4) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE, true);
+
+  Group noStandby;
+  Handle noshandle = WellKnownHandle(66<<SUB_HDL_SHIFT,0,0);
+  noStandby.init(noshandle,mode,port);
+  noStandby.setNotification(somethingChanged);
+  // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
+  noStandby.registerEntity(me, (port<<4) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_ACTIVE, true);
 
   while(1)
     {
     ScopedLock<> lock(m);
 
     printf("Running Election\n");
-    std::pair<EntityIdentifier,EntityIdentifier> as = group->elect();
-    printf("Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as.first.id[0], as.first.id[1], (as.first == me) ? "me": "not me", as.second.id[0],as.second.id[1],(as.second == me) ? "me": "not me");
+    std::pair<EntityIdentifier,EntityIdentifier> as1 = group->elect();
+    std::pair<EntityIdentifier,EntityIdentifier> as2 = failback.elect();
+    std::pair<EntityIdentifier,EntityIdentifier> as3 = noStandby.elect();
+
+    printf("Sticky: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as1.first.id[0], as1.first.id[1], (as1.first == me) ? "me": "not me", as1.second.id[0],as1.second.id[1],(as1.second == me) ? "me": "not me");
+    printf("Failback: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as2.first.id[0], as2.first.id[1], (as2.first == me) ? "me": "not me", as2.second.id[0],as2.second.id[1],(as2.second == me) ? "me": "not me");
+    printf("No Standby: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as3.first.id[0], as3.first.id[1], (as3.first == me) ? "me": "not me", as3.second.id[0],as3.second.id[1],(as3.second == me) ? "me": "not me");
+
     int result = somethingChanged.timed_wait(m,10000);
     if (result != 0)
       {
-      as.first = group->getActive();
-      as.second = group->getStandby();
-      printf("Group Event! Active: [%lx:%lx]  Standby: [%lx:%lx]\n", as.first.id[0], as.first.id[1], as.second.id[0],as.second.id[1]);
+      as1.first = group->getActive();
+      as1.second = group->getStandby();
+      printf("Group Event! Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as1.first.id[0], as1.first.id[1], (as1.first == me) ? "me": "not me", as1.second.id[0],as1.second.id[1],(as1.second == me) ? "me": "not me");
       }
     }
 

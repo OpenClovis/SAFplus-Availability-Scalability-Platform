@@ -83,10 +83,11 @@ namespace SAFplus
     public:
       enum
       {
-        ACCEPT_STANDBY = 1,  // Can this entity become standby?
-        ACCEPT_ACTIVE  = 2,  // Can this entity become active?
-        IS_ACTIVE      = 4,
-        IS_STANDBY     = 8
+        ACCEPT_STANDBY = 1,    // Can this entity become standby?
+        ACCEPT_ACTIVE  = 2,    // Can this entity become active?
+        IS_ACTIVE      = 4,    // Is this Group currently active?
+        IS_STANDBY     = 8,    // Is this Group currently standby?
+        STICKY         = 0x10, // Active/standby assignments will stay with this entity even if an entity joins with higher credential, unless that entity is also Active/Standby (split).
       };
       enum
       {
@@ -105,12 +106,13 @@ namespace SAFplus
         DATA_IN_CHECKPOINT = 1,   // Group database is in checkpoint
         DATA_IN_MEMORY     = 2    // Group database is in memory
       };
-      enum
+#if 0      
+enum
       {
         CRED_ACTIVE_BIT  = 1<<11,   // Extra credentials for active entity
         CRED_STANDBY_BIT = 1 << 10  // Extra credentials for standby entity
       };
-
+#endif
       Group(SAFplus::Handle groupHandle) { automaticElection=true; init(groupHandle); }
       Group(int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT); // Deferred initialization
 
@@ -151,6 +153,7 @@ namespace SAFplus
 
       // Utility functions
       bool isMember(EntityIdentifier id);
+      static char* capStr(uint cap, char* buf);  // returns a string describing the capabilities, provide the string
 
       void setNotification(SAFplus::Wakeable& w);  // call w.wake when someone enters/leaves the group or an active or standby assignment or transition occurs.  Pass what happened into the wakeable.
 

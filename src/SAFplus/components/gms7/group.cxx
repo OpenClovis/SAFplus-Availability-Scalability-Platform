@@ -181,6 +181,7 @@ void SAFplus::Group::startMessageServer()
   //SAFplus::Group::GroupMessageHandler groupMessageHandler(this);
   groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, &groupMessageHandler, NULL);
 }
+
 /**
  * Do the real election after timer had expired
  */
@@ -225,14 +226,16 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
         if(activeElected != INVALID_HDL)
         {
           capabilities = instance->getCapabilities(activeElected);
-          capabilities |= SAFplus::Group::CRED_ACTIVE_BIT;
+          capabilities |= SAFplus::Group::IS_ACTIVE;
+          capabilities &= (~SAFplus::Group::IS_STANDBY);
           instance->setCapabilities(capabilities,activeElected);
           instance->myInformation.capabilities = capabilities;
         }
         if(standbyElected != INVALID_HDL)
         {
           capabilities = instance->getCapabilities(standbyElected);
-          capabilities |= SAFplus::Group::CRED_STANDBY_BIT;
+          capabilities |= SAFplus::Group::IS_STANDBY;
+          capabilities &= (~SAFplus::Group::IS_ACTIVE);  // necessary in dual active case
           instance->setCapabilities(capabilities,standbyElected);
         }
       }
@@ -269,13 +272,15 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
            if(activeElected != INVALID_HDL)
            {
              capabilities = instance->getCapabilities(activeElected);
-             capabilities |= SAFplus::Group::CRED_ACTIVE_BIT;
+             capabilities |= SAFplus::Group::IS_ACTIVE;
+             capabilities &= (~SAFplus::Group::IS_STANDBY);
              instance->setCapabilities(capabilities,activeElected);
            }
            if(standbyElected != INVALID_HDL)
            {
              capabilities = instance->getCapabilities(standbyElected);
-             capabilities |= SAFplus::Group::CRED_STANDBY_BIT;
+             capabilities |= SAFplus::Group::IS_STANDBY;
+             capabilities &= (~SAFplus::Group::IS_ACTIVE);
              instance->setCapabilities(capabilities,standbyElected);
              if(standbyElected == instance->myInformation.id)
              {
@@ -380,7 +385,8 @@ void SAFplus::Group::roleNotificationHandle(SAFplusI::GroupMessageProtocol *rxMs
           if(activeEntity != INVALID_HDL)
           {
             capabilities = getCapabilities(activeEntity);
-            capabilities |= SAFplus::Group::CRED_ACTIVE_BIT;
+            capabilities |= SAFplus::Group::IS_ACTIVE;
+            capabilities &= (~SAFplus::Group::IS_STANDBY);
             setCapabilities(capabilities,activeEntity);
           }
         }
@@ -843,10 +849,13 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
 }
 #else
 
+#define ACTIVE_ELECTION_MODIFIER 0x8000000ULL
+#define STANDBY_ELECTION_MODIFIER 0x4000000ULL
+
 std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
 {
   uint activeCapabilities = 0,curCapabilities = 0;
-  uint highestCredentials = 0, curCredentials = 0;
+  uint64_t highestCredentials = 0, curCredentials = 0;
   EntityIdentifier curEntity = INVALID_HDL;
 
   EntityIdentifier activeCandidate=INVALID_HDL, standbyCandidate=INVALID_HDL;
@@ -854,54 +863,66 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
 
   for (DataHashMap::iterator i = groupDataMap.begin();i != groupDataMap.end();i++)
   {
+    char tempStr[100];
     char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
     SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
     *((EntityIdentifier *) key->data) = i->first;
-
+    tempStr[0] = 0;
     GroupIdentity *grp = (GroupIdentity *)readFromDatabase(key);
     curCredentials  = grp->credentials;
     curCapabilities = grp->capabilities;
     curEntity       = grp->id;
-    logInfo("GRP","ELC", "Member [%lx:%lx], capabilities: 0x%x, credentials: %d",curEntity.id[0],curEntity.id[1],curCapabilities, curCredentials);
+
+    // Prefer existing active/standby for the role rather than other nodes -- stops "failback"
+    if ((curCapabilities & SAFplus::Group::IS_ACTIVE)&&(curCapabilities & SAFplus::Group::STICKY)) curCredentials |= ACTIVE_ELECTION_MODIFIER;
+    if ((curCapabilities & SAFplus::Group::IS_STANDBY)&&(curCapabilities & SAFplus::Group::STICKY)) curCredentials |= STANDBY_ELECTION_MODIFIER;
+    logInfo("GRP","ELC", "Member [%lx:%lx], capabilities: (%s) 0x%x, credentials: %lx",curEntity.id[0],curEntity.id[1],capStr(curCapabilities,tempStr), curCapabilities, curCredentials);
+
+
     // Obviously the anything that can accept the standby role must be able to be active too.
     // But it is possible to not be able to accept the standby role (transition directly to active).
     if ((curCapabilities & (SAFplus::Group::ACCEPT_ACTIVE |  SAFplus::Group::ACCEPT_STANDBY)) != 0)  
     {
-      if(activeCredentials < curCredentials || standbyCredentials < curCredentials )
+      if(activeCredentials < curCredentials)
       {
-        if(activeCandidate == INVALID_HDL || activeCredentials <  curCredentials)
-        {
-          // Active candidate found before need to having ACCEPT_STANDBY and current entity (which has largest credentials) must ACCEPT_ACTIVE
-          // This is changing from active to standby
-          if(activeCandidate != INVALID_HDL && (activeCapabilities & SAFplus::Group::ACCEPT_STANDBY) && (curCapabilities & SAFplus::Group::ACCEPT_ACTIVE))
+        // If the active candidate is changing, see if the current candidate is a better match for standby
+        if ((standbyCredentials < activeCredentials)&&(activeCapabilities&SAFplus::Group::ACCEPT_STANDBY))
           {
-            standbyCredentials = activeCredentials;
-            standbyCandidate = activeCandidate;
+          standbyCredentials = activeCredentials;
+          standbyCandidate   = activeCandidate;
           }
-          // Ensure that the candidate can be active
-          if(curCapabilities & SAFplus::Group::ACCEPT_ACTIVE)
-          {
-            activeCredentials = curCredentials;
-            activeCandidate = curEntity;
-            activeCapabilities = curCapabilities;
-          }
-        }
-        else if((standbyCandidate == INVALID_HDL || standbyCredentials <  curCredentials ) && (curCapabilities & SAFplus::Group::ACCEPT_STANDBY))
-        {
-          standbyCredentials = curCredentials;
-          standbyCandidate = curEntity;
-        }
+        activeCredentials = curCredentials;
+        activeCandidate = curEntity;
+        activeCapabilities = curCapabilities;  
       }
+      else if ((standbyCredentials < curCredentials)&&(curCapabilities&SAFplus::Group::ACCEPT_STANDBY))
+        {
+        standbyCredentials = curCredentials;
+        standbyCandidate = curEntity;
+        }
     }
     else if ((curCapabilities & SAFplus::Group::ACCEPT_STANDBY) != 0)
-    {
-      clDbgCodeError(1, ("This entity's credentials are incorrect.  It cannot have standby capability but be unable to become active.") );
-    }
+      {
+        clDbgCodeError(1, ("This entity's credentials are incorrect.  It cannot have standby capability but be unable to become active.") );
+      }
   }
 
   return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
 }
+
 #endif
+
+char* SAFplus::Group::capStr(uint cap, char* buf)
+  {
+  if (cap & IS_ACTIVE) strcat(buf,"Active/");
+  if (cap & IS_STANDBY) strcat(buf,"Standby/");
+  if (cap & ACCEPT_ACTIVE) strcat(buf,"Accepts Active/");
+  if (cap & ACCEPT_STANDBY) strcat(buf,"Accepts Standby/");
+  if (cap & STICKY) strcat(buf,"Sticky/");
+  int tmp = strlen(buf);
+  if (tmp) buf[tmp-1] = 0;  // knock off the last / if it exists
+  return buf;
+  }
 
 /**
  * API allow member call for election based on group database
@@ -982,7 +1003,8 @@ void SAFplus::Group::setActive(EntityIdentifier id)
     if(activeEntity != INVALID_HDL)
     {
       capabilities = getCapabilities(activeEntity);
-      capabilities |= SAFplus::Group::CRED_ACTIVE_BIT;
+      capabilities |= SAFplus::Group::IS_ACTIVE;
+      capabilities &= (~SAFplus::Group::IS_STANDBY);
       setCapabilities(capabilities,activeEntity);
     }
   }
