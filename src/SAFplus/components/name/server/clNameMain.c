@@ -4769,6 +4769,7 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     ClUint32T           count        = 0;
     ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
     ClInt32T tries = 0;
+    ClInt32T maxRetries = 60;
 
     CL_FUNC_ENTER();
                                                                                                                              
@@ -4939,8 +4940,8 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     {
         rc = clNameSvcCkptInit();
         tries++;
-        clLogNotice("SVR", "INI", "Try [%d] of [5] to initialize name checkpoint service, result [0x%x]", tries, rc);
-    } while(rc != CL_OK && tries < 5 && clOsalTaskDelay(delay) == CL_OK);
+        clLogNotice("SVR", "INI", "Try [%d] of [%d] to initialize name checkpoint service, result [0x%x]", tries, maxRetries, rc);
+    } while(rc != CL_OK && tries < maxRetries && clOsalTaskDelay(delay) == CL_OK);
 
     if (rc != CL_OK)
     {
