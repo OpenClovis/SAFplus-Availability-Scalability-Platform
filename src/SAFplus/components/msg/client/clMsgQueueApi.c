@@ -901,8 +901,8 @@ ClRcT VDECL_VER(clMsgQueueUnlink, 4, 0, 0)(ClNameT *pQName)
 
     qHandle = pQEntry->qHandle;
 
-    CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
+    CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
 
     rc = clHandleCheckout(gClMsgQDatabase, qHandle, (void **)&pQInfo);
     if(rc != CL_OK)

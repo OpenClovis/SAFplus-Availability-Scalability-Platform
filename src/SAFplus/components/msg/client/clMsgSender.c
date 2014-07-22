@@ -165,8 +165,8 @@ static ClRcT clMsgMessageSend(ClIocAddressT * pDestAddr,
 
         SaMsgQueueHandleT qHandle = pQueue->qHandle;
 
-        CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
         CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
+        CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
 
         /* Allocate memory to queue message on the same machine */
         rc = clMsgIovecToIovecCopy(&pTempMessage, pMessage);
