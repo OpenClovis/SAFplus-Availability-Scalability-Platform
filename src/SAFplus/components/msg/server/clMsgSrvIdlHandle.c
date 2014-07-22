@@ -230,8 +230,8 @@ ClRcT VDECL_VER(clMsgQueueRetentionClose, 4, 0, 0)(const SaNameT *pQName)
 
     qHandle = pQEntry->qHandle;
 
-    CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
+    CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
 
     rc = clHandleCheckout(gClMsgQDatabase, qHandle, (void **)&pQInfo);
     if(rc != CL_OK)
@@ -471,8 +471,8 @@ ClRcT VDECL_VER(clMsgMessageGet, 4, 0, 0)(const SaNameT *pQName, SaTimeT timeout
 
     queueHandle = pQEntry->qHandle;
 
-    CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
     CL_OSAL_MUTEX_UNLOCK(&gClQueueDbLock);
+    CL_OSAL_MUTEX_LOCK(&gClLocalQsLock);
 
     rc = clHandleCheckout(gClMsgQDatabase, queueHandle, (void**)&pQInfo);
     if(rc != CL_OK)
