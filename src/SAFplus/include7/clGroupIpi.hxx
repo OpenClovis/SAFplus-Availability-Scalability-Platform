@@ -33,6 +33,7 @@ namespace SAFplusI
   class GroupMessageProtocol
   {
     public:
+      SAFplus::Handle       group;
       GroupMessageTypeT     messageType;
       GroupRoleNotifyTypeT  roleType;
       bool                  force; //When role type change, force receiver to apply new roles without checking

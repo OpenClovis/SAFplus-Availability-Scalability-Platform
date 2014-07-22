@@ -115,6 +115,7 @@ enum
 #endif
       Group(SAFplus::Handle groupHandle) { automaticElection=true; init(groupHandle); }
       Group(int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT); // Deferred initialization
+      ~Group();
 
       void init(SAFplus::Handle groupHandle,int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT);
 

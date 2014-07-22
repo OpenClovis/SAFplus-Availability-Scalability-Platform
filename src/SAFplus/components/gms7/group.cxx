@@ -21,6 +21,17 @@ ClTimerHandleT  Group::roleWaitingTHandle = NULL;
 SAFplus::Checkpoint Group::mGroupCkpt;
 bool groupCkptInited = false;
 
+typedef boost::unordered_map<SAFplus::Handle, SAFplus::Group::GroupMessageHandler*> GroupHandleMap;
+class GroupSyncMsgHandler: public MsgHandler
+{
+  public:
+  // checkpoint handle to pointer lookup...
+  GroupHandleMap handleMap;
+
+  virtual void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+};
+static GroupSyncMsgHandler allGrpMsgHdlr;
+
 /**
  * API to create a group membership
  */
@@ -75,6 +86,12 @@ SAFplus::Group::Group(int dataStoreMode,int comPort):groupMessageHandler()
   needReElect          = false;
   stickyMode           = true;
 }
+
+SAFplus::Group::~Group()
+{
+  allGrpMsgHdlr.handleMap[handle] = NULL;
+}
+
 /**
  * API to initialize group service
  */
@@ -167,6 +184,23 @@ ClRcT SAFplus::Group::initializeLibraries()
   clIocLibInitialize(NULL);
   return rc;
 }
+
+
+// Demultiplex incoming message to the appropriate Checkpoint object
+void GroupSyncMsgHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+  {
+  logInfo("SYNC","MSG","Received group message from %d", from.iocPhyAddress.nodeAddress);
+  GroupMessageProtocol* hdr = (GroupMessageProtocol*) msg;
+  //assert((hdr->msgType>>16) == SAFplusI::GRP_MSG_TYPE);  // TODO: endian swap & should never assert on bad incoming message data
+  SAFplus::Group::GroupMessageHandler* cs =  allGrpMsgHdlr.handleMap[hdr->group];
+  if (cs) cs->msgHandler(from, svr, msg, msglen, cookie);
+  else
+    {
+    logInfo("SYNC","MSG","Unable to resolve handle [%lx:%lx] to a communications endpoint", hdr->group.id[0], hdr->group.id[1]);
+    }
+  }
+
+
 /**
  * Start the group message server, the main communication method for groups
  */
@@ -177,9 +211,9 @@ void SAFplus::Group::startMessageServer()
     groupMsgServer = &safplusMsgServer;
   }
 
-  groupMessageHandler.init(this);
-  //SAFplus::Group::GroupMessageHandler groupMessageHandler(this);
-  groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, &groupMessageHandler, NULL);
+  groupMessageHandler.init(this);  //  Initialize this object's message handler.
+  allGrpMsgHdlr.handleMap[handle] = &groupMessageHandler;  //  Register this object's message handler into the global lookup.
+  groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, &allGrpMsgHdlr, NULL);  //  Register the main message handler (no-op if already registered)
 }
 
 /**
@@ -491,6 +525,7 @@ void SAFplus::Group::fillSendMessage(void* data, SAFplusI::GroupMessageTypeT msg
   }
   char msgPayload[sizeof(Buffer)-1+msgLen];
   GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
+  sndMessage->group = handle;
   sndMessage->messageType = msgType;
   sndMessage->roleType = roleType;
   sndMessage->force = forcing;
@@ -1169,10 +1204,12 @@ SAFplus::Group::GroupMessageHandler::GroupMessageHandler(SAFplus::Group* _group)
 {
 
 }
+
 void SAFplus::Group::GroupMessageHandler::init(SAFplus::Group* _group)
 {
   mGroup = _group;
 }
+
 void SAFplus::Group::GroupMessageHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
 {
   /* If no communication needed, just ignore */
