@@ -20,6 +20,41 @@
 #ifndef CL_MGT_MSG_H_
 #define CL_MGT_MSG_H_
 
+namespace SAFplus
+{
+  /**
+   * These message type are used from external,so it should be in SAFplus namespace
+   */
+    enum class MgtMsgType
+    {
+        CL_MGT_MSG_UNUSED,
+        CL_MGT_MSG_EDIT,
+        CL_MGT_MSG_GET,
+        CL_MGT_MSG_RPC,
+        CL_MGT_MSG_OID_SET,
+        CL_MGT_MSG_OID_GET,
+        CL_MGT_MSG_BIND, //netconf
+        CL_MGT_MSG_OID_BIND, //snmp
+        CL_MGT_MSG_BIND_RPC,
+        CL_MGT_MSG_NOTIF
+    };
+    enum class MgtRpcMsgType
+    {
+        CL_MGT_RPC_VALIDATE,
+        CL_MGT_RPC_INVOKE,
+        CL_MGT_RPC_POSTREPLY
+    };
+    class MgtMsgProto
+    {
+      public:
+        MgtMsgType     messageType;
+        char                  data[1]; //Not really 1, it will be place on larger memory
+        MgtMsgProto()
+        {
+          messageType = MgtMsgType::CL_MGT_MSG_UNUSED;
+        }
+    };
+};
 extern "C"
 {
 
@@ -33,25 +68,6 @@ extern "C"
 #define MGT_MAX_DATA_LEN (5*1024*1024)
 
 #ifdef MGT_ACCESS
-    typedef enum
-    {
-        CL_MGT_MSG_NONE = 0,
-        CL_MGT_MSG_BIND,
-        CL_MGT_MSG_BIND_RPC,
-        CL_MGT_MSG_EDIT,
-        CL_MGT_MSG_GET,
-        CL_MGT_MSG_NOTIF,
-        CL_MGT_MSG_RPC,
-        CL_MGT_MSG_OID_BIND,
-        CL_MGT_MSG_OID_GET,
-        CL_MGT_MSG_OID_SET
-    } ClMgtMsgT;
-
-    typedef enum
-    {
-        CL_MGT_RPC_VALIDATE = 0, CL_MGT_RPC_INVOKE, CL_MGT_RPC_POSTREPLY
-    } ClMgtRpcT;
-
 
     typedef struct ClMgtMessageBindType
     {
@@ -89,7 +105,7 @@ extern "C"
     {
         ClCharT module[CL_MAX_NAME_LENGTH];
         ClCharT rpc[CL_MAX_NAME_LENGTH];
-        ClInt8T rpcType;
+        SAFplus::MgtRpcMsgType rpcType;
         ClCharT data[1];
     } ClMgtMessageRpcTypeT;
 
@@ -129,6 +145,8 @@ extern "C"
 
 
   } /* end extern 'C' */
+
+
 
 
 #endif /* CL_MGT_MGT_H_ */

@@ -35,13 +35,9 @@ extern "C"
 
 using namespace std;
 
-
-#define CL_IOC_MGT_NETCONF_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 1)
-#define CL_IOC_MGT_SNMP_PORT (CL_IOC_USER_APP_WELLKNOWN_PORTS_START + 2)
-
 namespace SAFplus
 {
-  MgtNotify::MgtNotify(const char* nam)
+  MgtNotify::MgtNotify(const char* nam):MgtObject(nam)
   {
     name.assign(nam);
     Module.assign("");
@@ -115,9 +111,9 @@ namespace SAFplus
      */
     ClIocAddressT allNodeReps;
     allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-    allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_NETCONF_PORT;
+    allNodeReps.iocPhyAddress.portId = SAFplusI::NETCONF_IOC_PORT;
     MgtRoot::sendMsg(allNodeReps,notifyData,sizeof(ClMgtMessageNotifyTypeT) + dataSize,MgtMsgType::CL_MGT_MSG_NOTIF);
-    allNodeReps.iocPhyAddress.portId = CL_IOC_MGT_SNMP_PORT;
+    allNodeReps.iocPhyAddress.portId = SAFplusI::SNMP_IOC_PORT;
     MgtRoot::sendMsg(allNodeReps,notifyData,sizeof(ClMgtMessageNotifyTypeT) + dataSize,MgtMsgType::CL_MGT_MSG_NOTIF);
 
     free(buffer);

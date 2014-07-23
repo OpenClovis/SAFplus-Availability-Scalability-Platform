@@ -30,7 +30,7 @@ extern "C" {
 
 namespace SAFplus
 {
-  MgtRpc::MgtRpc(const char* nam) : mInParams(""), mOutParams("")
+  MgtRpc::MgtRpc(const char* nam) : MgtObject(nam), mInParams(""), mOutParams("")
   {
     name.assign(nam);
     Module.assign("");

@@ -30,10 +30,9 @@
 namespace SAFplus
 {
 
-  class MgtRpc
+  class MgtRpc : public MgtObject
   {
   public:
-    std::string name;
     std::string Module;
     std::string ErrorMsg;
 
@@ -50,7 +49,10 @@ namespace SAFplus
   public:
     MgtRpc(const char* name);
     virtual ~MgtRpc();
+    virtual void toString(std::stringstream& xmlString)
+    {
 
+    }
     /**
      * Function to add input parameter
      */
