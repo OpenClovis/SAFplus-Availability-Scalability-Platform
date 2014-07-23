@@ -52,7 +52,7 @@ namespace SAFplus
  *  MgtHistoryStat class provides APIs to manage MGT historical data
  */
 template <class T>
-class ClMgtHistoryStat : public ClMgtObject
+class ClMgtHistoryStat : public MgtObject
 {
 private:
     ClTimerHandleT   mTimerHandle;
@@ -120,7 +120,7 @@ ClRcT clTstTimerCallback(void *pCookie)
 }
 
 template <class T>
-ClMgtHistoryStat<T>::ClMgtHistoryStat(const char* name) : ClMgtObject(name)
+ClMgtHistoryStat<T>::ClMgtHistoryStat(const char* name) : MgtObject(name)
 {
     m10SecTrack = 0;
     m1MinTrack = 0;
@@ -187,7 +187,7 @@ void ClMgtHistoryStat<T>::toString(std::stringstream& xmlString)
 {
     ClUint32T i;
 
-    xmlString << "<" << Name << ">";
+    xmlString << "<" << name << ">";
 
     xmlString << "<current>" << mCurrent << "</current>";
 
@@ -231,7 +231,7 @@ void ClMgtHistoryStat<T>::toString(std::stringstream& xmlString)
         xmlString << "<history1month>" << mHistory1Month[i] << "</history1month>";
     }
 
-    xmlString << "</" << Name << ">";
+    xmlString << "</" << name << ">";
 }
 
 template <class T>

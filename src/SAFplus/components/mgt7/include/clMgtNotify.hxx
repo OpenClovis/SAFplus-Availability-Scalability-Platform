@@ -33,6 +33,7 @@
 
 #include <map>
 #include <string>
+#include "clMgtObject.hxx"
 
 extern "C"
 {
@@ -44,7 +45,7 @@ namespace SAFplus
 /**
  *  MgtNotify class provides APIs to manage Yang notifications
  */
-class MgtNotify
+class MgtNotify : public MgtObject
 {
 private:
     /*
@@ -59,7 +60,10 @@ public:
 public:
     MgtNotify(const char* name);
     virtual ~MgtNotify();
+    virtual void toString(std::stringstream& xmlString)
+    {
 
+    }
     /**
      * Function add a leaf to the notification
      */
