@@ -9,8 +9,9 @@ namespace SAFplusI
 {
   enum class GroupMessageTypeT
   {
-    MSG_NODE_JOIN,
+    MSG_NODE_JOIN,     // Happens first time the entity joins the group
     MSG_NODE_LEAVE,
+    MSG_HELLO,         // Just like the NODE_JOIN but happens at any time -- whenever an election request happens for example.
     MSG_ROLE_NOTIFY,
     MSG_ELECT_REQUEST,
     MSG_UNDEFINED

@@ -146,11 +146,14 @@ enum
       // Calls for an election with specified role
       std::pair<EntityIdentifier,EntityIdentifier>  elect(SAFplus::Wakeable& wake = SAFplus::Wakeable::Synchronous);
 
-      // Get the current active entity
-      EntityIdentifier getActive(void) const;
+      // Get the current active entity.  If an active entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with active capability
+      EntityIdentifier getActive(void);
 
-      // Get the current standby entity
-      EntityIdentifier getStandby(void) const;
+      // Get the current standby entity.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
+      EntityIdentifier getStandby(void);
+
+      // Get the current active/standby.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
+      std::pair<EntityIdentifier,EntityIdentifier> getRoles();
 
       // Utility functions
       bool isMember(EntityIdentifier id);
@@ -165,7 +168,7 @@ enum
       bool                              needReElect;
 
       // Time (second) to delay from boot until auto election
-      int                               minimumElectionTime;
+      // not needed int                               minimumElectionTime;
 
       // My information
       GroupIdentity                     myInformation;
@@ -240,7 +243,7 @@ enum
 
       // Message server
       void startMessageServer();
-      void fillSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType, bool forcing=false);
+      void fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType, bool forcing=false);
       void sendNotification(void* data, int dataLength, SAFplusI::GroupMessageSendModeT messageMode);
       SAFplus::SafplusMsgServer   *groupMsgServer;
 
@@ -287,6 +290,7 @@ enum
       EntityIdentifier                  standbyEntity;          // Current standby entity
       EntityIdentifier                  lastRegisteredEntity;   // Last entity come to registerEntity
       int                               dataStoringMode;        // Where entity information is stored
+      unsigned int                      electionTimeMs;         // How long should elections take
   };
   // Boost require hash_value to be implemented
   std::size_t hash_value(SAFplus::Handle const& h);

@@ -143,9 +143,9 @@ int main(int argc, char* argv[])
     ScopedLock<> lock(m);
 
     printf("Running Election\n");
-    std::pair<EntityIdentifier,EntityIdentifier> as1 = group->elect();
-    std::pair<EntityIdentifier,EntityIdentifier> as2 = failback.elect();
-    std::pair<EntityIdentifier,EntityIdentifier> as3 = noStandby.elect();
+    std::pair<EntityIdentifier,EntityIdentifier> as1 = group->getRoles(); // elect();
+    std::pair<EntityIdentifier,EntityIdentifier> as2 = failback.getRoles(); // elect();
+    std::pair<EntityIdentifier,EntityIdentifier> as3 = noStandby.getRoles(); // elect();
 
     printf("Sticky: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as1.first.id[0], as1.first.id[1], (as1.first == me) ? "me": "not me", as1.second.id[0],as1.second.id[1],(as1.second == me) ? "me": "not me");
     printf("Failback: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as2.first.id[0], as2.first.id[1], (as2.first == me) ? "me": "not me", as2.second.id[0],as2.second.id[1],(as2.second == me) ? "me": "not me");
