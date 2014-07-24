@@ -46,6 +46,7 @@
 /**         Utility Routines                                **/
 /**=========================================================**/
 
+ClUint32T gClCkptRmdDefaultTimeout = CKPT_RMD_DFLT_TIMEOUT;
 
 /* 
  * Routine to Log a checkpoint error
@@ -199,7 +200,7 @@ ClRcT ckptIdlHandleUpdate(ClIocNodeAddressT nodeId,
     ClIdlHandleObjT  idlObj  = CL_IDL_HANDLE_INVALID_VALUE;
     ClIdlAddressT    address = {0};
     ClRcT            rc      = CL_OK;
-    ClUint32T timeout  = CKPT_RMD_DFLT_TIMEOUT;
+    ClUint32T timeout  = gClCkptRmdDefaultTimeout;
     /*
      * If running with traffic shaper, bump up the timeout since the payload is
      * expected to be large and CKPT is one of the key reasons. So respect!
@@ -231,7 +232,7 @@ ClRcT clCkptClientIdlHandleInit(ClIdlHandleT  *pHdl)
     ClIdlHandleObjT  idlObj  = CL_IDL_HANDLE_INVALID_VALUE;
     ClIdlAddressT    address = {0};
     ClRcT            rc      = CL_OK;
-    ClUint32T timeout = CKPT_RMD_DFLT_TIMEOUT;
+    ClUint32T timeout = gClCkptRmdDefaultTimeout;
     if(gClIocTrafficShaper)
     {
         timeout = CL_MIN(timeout*5, 60000);
@@ -262,7 +263,7 @@ ClRcT clCkptClientIdlHandleUpdate(ClIdlHandleT       idlHdl,
     ClIdlHandleObjT  idlObj  = CL_IDL_HANDLE_INVALID_VALUE;
     ClIdlAddressT    address = {0};
     ClRcT            rc      = CL_OK;
-    ClUint32T timeout = CKPT_RMD_DFLT_TIMEOUT;
+    ClUint32T timeout = gClCkptRmdDefaultTimeout;
     if(gClIocTrafficShaper)
     {
         timeout = CL_MIN(60000, timeout*5);
@@ -331,5 +332,22 @@ ClRcT clCkptLeakyBucketInitialize(void)
 {
     return CL_OK;
 }
+
+ClRcT clCkptRmdOptionsSet(ClUint32T timeout)
+  {
+    if (timeout)
+      {
+        gClCkptRmdDefaultTimeout = timeout;
+      }
+    return CL_OK;
+  }
+
+void clCkptRmdOptionsGet(ClUint32T *pTimeout)
+  {
+    if (pTimeout)
+      {
+        *pTimeout = gClCkptRmdDefaultTimeout;
+      }
+  }
 
 #endif
