@@ -4,6 +4,7 @@
 // Standard includes
 #include <string>
 #include <boost/unordered_map.hpp>
+#include <boost/intrusive/list.hpp>
 #include <functional>
 // SAFplus includes
 #include <clHandleApi.hxx>
@@ -38,6 +39,9 @@ namespace SAFplus
   typedef std::pair<const GroupMapKey,DataMapValue> DataMapPair;
   typedef boost::unordered_map < GroupMapKey, GroupMapValue> GroupHashMap;
   typedef boost::unordered_map < GroupMapKey, DataMapValue> DataHashMap;
+
+  // Call once before creating any Group objects
+  void groupInitialize(void);
 
   class GroupIdentity
   {
@@ -81,6 +85,12 @@ namespace SAFplus
   class Group
   {
     public:
+    boost::intrusive::list_member_hook<> member_hook_;
+    bool operator == (const Group& other) const
+    {
+    return &other == this;
+    }
+
       enum
       {
         ACCEPT_STANDBY = 1,    // Can this entity become standby?
@@ -139,6 +149,10 @@ enum
 
       // This also returns the current active/standby state of the entity since that is part of the capabilities bitmap.
       uint getCapabilities(EntityIdentifier id);
+
+      // add or remove the specified capabilities without changing the other bits
+      void addCapabilities(EntityIdentifier id,uint capabilities);
+      void removeCapabilities(EntityIdentifier id,uint capabilities);
 
       // This also returns the current active/standby state of the entity since that is part of the capabilities bitmap.
       void* getData(EntityIdentifier id);
@@ -243,28 +257,29 @@ enum
 
       // Message server
       void startMessageServer();
+      void sendRoleMessage(EntityIdentifier active,EntityIdentifier standby,bool forcing);
       void fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType, bool forcing=false);
       void sendNotification(void* data, int dataLength, SAFplusI::GroupMessageSendModeT messageMode);
       SAFplus::SafplusMsgServer   *groupMsgServer;
 
       // Whether there is an running election
-      static  bool isElectionRunning;
+      bool isElectionRunning;
 
       // Whether current election was done
-      static  bool isElectionFinished;
+      bool isElectionFinished;
 
       // Whether boot time election had done
       static  bool isBootTimeElectionDone;
 
       // Timers handle
-      static  ClTimerHandleT electionRequestTHandle;
-      static  ClTimerHandleT roleWaitingTHandle;
+      ClTimerHandleT electionRequestTHandle;
+      ClTimerHandleT roleWaitingTHandle;
 
       // Election timer callback
-      static ClRcT electionRequest(void *arg);
+      ClRcT electionRequest();
 
       // Role change timer callback
-      static ClRcT roleChangeRequest(void *arg);
+      ClRcT roleChangeRequest();
 
       // IOC notification callback
       static ClRcT iocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie);

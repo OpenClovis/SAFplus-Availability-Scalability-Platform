@@ -8,6 +8,9 @@
 #include <clGroup.hxx>
 #include <clGlobals.hxx>
 
+void singleElect();
+void tripleElect();
+
 using namespace SAFplus;
 
 ClBoolT   gIsNodeRepresentative = CL_FALSE;
@@ -82,7 +85,6 @@ int parseArgs(int argc, char* argv[])
 int main(int argc, char* argv[])
 {
   int tc = -1;
-  int mode = SAFplus::Group::DATA_IN_MEMORY;
   SAFplus::ASP_NODEADDR = 1;
   logInitialize();
   logEchoToFd = 1;  // echo logs to stdout for debugging
@@ -102,15 +104,68 @@ int main(int argc, char* argv[])
 
   rc = clIocLibInitialize(NULL);
   assert(rc==CL_OK);
+  
+  groupInitialize();
 
   safplusMsgServer.init(port, MAX_MSGS, MAX_HANDLER_THREADS);
   /* Library should start it */
   safplusMsgServer.Start();
 
   //Handle replicaHandle = Handle::create(safplusMsgServer.handle.getPort());
+  sleep(10);
+  printf("\nstartup sleep finished\n");
 
+  singleElect();
+  //tripleElect();
+
+  return 0;
+  }
+
+
+void singleElect()
+  {
   Handle grphandle = WellKnownHandle(64<<SUB_HDL_SHIFT,0,0);
   Handle me = Handle::create();
+  int mode = SAFplus::Group::DATA_IN_MEMORY;
+
+  Mutex m;
+  ThreadCondition somethingChanged;
+
+  printf ("GROUP IS: [%lx:%lx]  I AM: [%lx:%lx]\n",grphandle.id[0],grphandle.id[1],me.id[0],me.id[1]);
+  Group* group = new SAFplus::Group();
+  assert(group);
+  group->init(grphandle,mode,port);
+  group->setNotification(somethingChanged);
+  // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
+  group->registerEntity(me, (port<<4) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY, true);
+  //group->registerEntity(me, (port<<4) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE, true);
+  //group->registerEntity(me, (port<<4) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_ACTIVE, true);
+
+  while(1)
+    {
+    ScopedLock<> lock(m);
+
+    printf("\n------------LOOP----------------\n");
+    std::pair<EntityIdentifier,EntityIdentifier> as1 = group->getRoles(); // elect();
+
+    printf("Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as1.first.id[0], as1.first.id[1], (as1.first == me) ? "me": "not me", as1.second.id[0],as1.second.id[1],(as1.second == me) ? "me": "not me");
+
+    int result = somethingChanged.timed_wait(m,10000);
+    if (result != 0)
+      {
+      as1.first = group->getActive();
+      as1.second = group->getStandby();
+      printf("Group Event! Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as1.first.id[0], as1.first.id[1], (as1.first == me) ? "me": "not me", as1.second.id[0],as1.second.id[1],(as1.second == me) ? "me": "not me");
+      }
+    }
+}
+
+
+void tripleElect()
+  {
+  Handle grphandle = WellKnownHandle(64<<SUB_HDL_SHIFT,0,0);
+  Handle me = Handle::create();
+  int mode = SAFplus::Group::DATA_IN_MEMORY;
 
   Mutex m;
   ThreadCondition somethingChanged;
@@ -160,5 +215,4 @@ int main(int argc, char* argv[])
       }
     }
 
-  return 0;
 }

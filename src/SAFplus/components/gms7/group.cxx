@@ -5,21 +5,27 @@
 #include <clGroup.hxx>
 #include <clNameApi.hxx>
 #include <clIocPortList.hxx>
+#include <clGroup.hxx>
 
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace std;
+using namespace boost::intrusive;
+//Define a list that will store MyClass using the public member hook
+typedef boost::intrusive::list< Group, member_hook< Group, list_member_hook<>, &Group::member_hook_> > GroupList;
 
+GroupList allGroups;
 /**
  * Static member
  */
-bool  Group::isElectionRunning = false;
-bool  Group::isElectionFinished = false;
+//bool  Group::isElectionRunning = false;
+//bool  Group::isElectionFinished = false;
 bool  Group::isBootTimeElectionDone = false;
-ClTimerHandleT  Group::electionRequestTHandle = NULL;
-ClTimerHandleT  Group::roleWaitingTHandle = NULL;
+//ClTimerHandleT  Group::electionRequestTHandle = NULL;
+//ClTimerHandleT  Group::roleWaitingTHandle = NULL;
 SAFplus::Checkpoint Group::mGroupCkpt;
 bool groupCkptInited = false;
+
 
 typedef boost::unordered_map<SAFplus::Handle, SAFplus::Group::GroupMessageHandler*> GroupHandleMap;
 class GroupSyncMsgHandler: public MsgHandler
@@ -37,6 +43,11 @@ static GroupSyncMsgHandler allGrpMsgHdlr;
  */
 SAFplus::Group::Group(const std::string& handleName,int dataStoreMode, int comPort):groupMessageHandler()
 {
+  roleWaitingTHandle = NULL;
+  electionRequestTHandle = NULL;
+  isElectionRunning = false;
+  isElectionFinished = false;
+
   handle  = INVALID_HDL;
   activeEntity = INVALID_HDL;
   standbyEntity = INVALID_HDL;
@@ -74,6 +85,11 @@ SAFplus::Group::Group(const std::string& handleName,int dataStoreMode, int comPo
  */
 SAFplus::Group::Group(int dataStoreMode,int comPort):groupMessageHandler()
 {
+  roleWaitingTHandle = NULL;
+  electionRequestTHandle = NULL;
+  isElectionRunning = false;
+  isElectionFinished = false;
+
   handle = INVALID_HDL;
   activeEntity = INVALID_HDL;
   standbyEntity = INVALID_HDL;
@@ -91,6 +107,7 @@ SAFplus::Group::Group(int dataStoreMode,int comPort):groupMessageHandler()
 
 SAFplus::Group::~Group()
 {
+  allGroups.remove(*this);
   allGrpMsgHdlr.handleMap[handle] = NULL;
 }
 
@@ -121,9 +138,9 @@ void SAFplus::Group::init(SAFplus::Handle groupHandle,int dataStoreMode, int com
   }
   /* Initialize neccessary library */
   //initializeLibraries();
-  clIocNotificationRegister(iocNotificationCallback,&handle);
   /* Start the message communication between groups */
   startMessageServer();
+  allGroups.push_back(*this);
 }
 /**
  * IOC notification to detect node leave
@@ -140,24 +157,29 @@ ClRcT SAFplus::Group::iocNotificationCallback(ClIocNotificationT *notification, 
     case CL_IOC_NODE_LEAVE_NOTIFICATION:
     case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
     {
-      logDebug("GMS","IOC","Received node leave notification");
-      try
-      {
-        SAFplus::Handle groupHdl = *(SAFplus::Handle *)cookie;
-        Group *instance = (Group *)name.get(groupHdl);
-        for (SAFplus::DataHashMap::iterator i = instance->groupDataMap.begin();i != instance->groupDataMap.end();i++)
+      logDebug("GMS","IOC","Received node leave notification for node [%d]", nodeAddress);
+      GroupList::iterator git;
+      for (git=allGroups.begin(); git!=allGroups.end(); git++)
         {
-          EntityIdentifier curIter = i->first;
-          if(curIter.getNode() == nodeAddress)
+        logDebug("GMS","IOC","  Checking group [%lx:%lx]", (*git).myInformation.id.id[0],(*git).myInformation.id.id[1]);
+        try
           {
-            instance->deregister(curIter,false);
+          Group *instance = &(*git);
+          for (SAFplus::DataHashMap::iterator i = instance->groupDataMap.begin();i != instance->groupDataMap.end();i++)
+            {
+            EntityIdentifier curIter = i->first;
+            if(curIter.getNode() == nodeAddress)
+              {
+              logDebug("GMS","IOC","    Removing Entity [%lx:%lx]", curIter.id[0],curIter.id[1]);
+              instance->deregister(curIter,false);
+              }
+            }
+          }
+        catch(std::exception &ex)
+          {
+          logError("GMS","---","Exception: %s",ex.what());
           }
         }
-      }
-      catch(std::exception &ex)
-      {
-        logError("GMS","---","Exception: %s",ex.what());
-      }
       break;
     }
     default:
@@ -168,6 +190,13 @@ ClRcT SAFplus::Group::iocNotificationCallback(ClIocNotificationT *notification, 
   }
   return rc;
 }
+
+void SAFplus::groupInitialize()
+  {
+  clIocNotificationRegister(Group::iocNotificationCallback,NULL);
+  }
+
+
 /**
  * Initialize necessary libraries
  */
@@ -218,20 +247,33 @@ void SAFplus::Group::startMessageServer()
   groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, &allGrpMsgHdlr, NULL);  //  Register the main message handler (no-op if already registered)
 }
 
+
+ClRcT electionRequestDispatch(void *arg)
+{
+  Group* g = (Group*) arg;
+  return g->electionRequest();
+}
+
+/**
+ * Role change from master timeout
+ */
+ClRcT roleChangeRequestDispatch(void *arg)
+{
+  Group *instance = (Group *)arg;
+  return instance->roleChangeRequest();
+}
+
 /**
  * Do the real election after timer had expired
  */
-ClRcT SAFplus::Group::electionRequest(void *arg)
+ClRcT SAFplus::Group::electionRequest()
 {
   /* Clear timer and handle */
-  clTimerStop(Group::electionRequestTHandle);
-  clTimerDeleteAsync(&Group::electionRequestTHandle);
+  clTimerStop(electionRequestTHandle);
+  clTimerDeleteAsync(&electionRequestTHandle);
   try
   {
-    /* Get current group handle from name service */
-    SAFplus::Handle hdl = *(SAFplus::Handle *)arg;
-    Group *instance = (Group *)name.get(hdl);
-    std::pair<EntityIdentifier,EntityIdentifier> res = instance->electForRoles();
+    std::pair<EntityIdentifier,EntityIdentifier> res = electForRoles();
     EntityIdentifier activeElected = res.first;
     EntityIdentifier standbyElected = res.second;
     /* Below should never happen, we can't elect a standby with no active */
@@ -247,101 +289,27 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
     else
     {
     /* Elected at least standby or active role */
-    logInfo("GMS","ELE","Success with active[%d] and standby[%d]",activeElected.getNode(),standbyElected.getNode());
+    logInfo("GMS","ELE","Success with active [%d] and standby [%d]",activeElected.getNode(),standbyElected.getNode());
     }
 
-    /* If I am active member, send notification */
-    if(activeElected == instance->myInformation.id)
+    /* If I want to make myself active member, send notification */
+    if(activeElected == myInformation.id)
     {
       assert(activeElected != standbyElected);
-      instance->activeEntity = activeElected;
-      instance->standbyEntity = standbyElected;
-      if(instance->stickyMode)
-      {
-        uint capabilities = 0;
-        if(activeElected != INVALID_HDL)
-        {
-          capabilities = instance->getCapabilities(activeElected);
-          capabilities |= SAFplus::Group::IS_ACTIVE;
-          capabilities &= (~SAFplus::Group::IS_STANDBY);
-          instance->setCapabilities(capabilities,activeElected);
-          instance->myInformation.capabilities = capabilities;
-        }
-        if(standbyElected != INVALID_HDL)
-        {
-          capabilities = instance->getCapabilities(standbyElected);
-          capabilities |= SAFplus::Group::IS_STANDBY;
-          capabilities &= (~SAFplus::Group::IS_ACTIVE);  // necessary in dual active case
-          instance->setCapabilities(capabilities,standbyElected);
-        }
-      }
-      instance->fillAndSendMessage(&activeElected,GroupMessageTypeT::MSG_ROLE_NOTIFY,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_ACTIVE);
-      instance->fillAndSendMessage(&standbyElected,GroupMessageTypeT::MSG_ROLE_NOTIFY,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_STANDBY);
-      logInfo("GMS","ELE","I, Node [%d] took active roles",instance->myInformation.id.getNode());
-      isElectionFinished = true;
-      if(instance->wakeable)
-      {
-        instance->wakeable->wake(1,(void*)ELECTION_FINISH_SIG);
-      }
-      isElectionRunning = false;
+      sendRoleMessage(activeElected,standbyElected,false);
+      logInfo("GMS","ELE","I, Node [%d] am claiming active",myInformation.id.getNode());
     }
-    else /*other, wait for notification */
-    {
-       if(standbyElected == instance->myInformation.id)
-       {
-         logInfo("GMS","ELE","I took standby roles");
-       }
-       else
-       {
-         logInfo("GMS","ELE","I am normal member");
-       }
-       /* If role change message come before I am finished election,
-        * accept it. */
-       if(instance->activeEntity != activeElected || instance->standbyEntity != standbyElected)
-       {
-         assert(activeElected != standbyElected);
-         instance->activeEntity = activeElected;
-         instance->standbyEntity = standbyElected;
-         if(instance->stickyMode)
-         {
-           uint capabilities = 0;
-           if(activeElected != INVALID_HDL)
-           {
-             capabilities = instance->getCapabilities(activeElected);
-             capabilities |= SAFplus::Group::IS_ACTIVE;
-             capabilities &= (~SAFplus::Group::IS_STANDBY);
-             instance->setCapabilities(capabilities,activeElected);
-           }
-           if(standbyElected != INVALID_HDL)
-           {
-             capabilities = instance->getCapabilities(standbyElected);
-             capabilities |= SAFplus::Group::IS_STANDBY;
-             capabilities &= (~SAFplus::Group::IS_ACTIVE);
-             instance->setCapabilities(capabilities,standbyElected);
-             if(standbyElected == instance->myInformation.id)
-             {
-               instance->myInformation.capabilities = capabilities;
-             }
-           }
-         }
-#if 0
-         /* Wait 10 seconds to received role changed from active member. */
-         /* TODO: document: why wait? */
-         ClTimerTimeOutT timeOut = { 10, 0 };
-         clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, Group::roleChangeRequest, (void* )arg, &Group::roleWaitingTHandle);
-#endif
-       }
-       
-       if (1) // else
-       {
-         isElectionRunning = false;
-         isElectionFinished = true;
-         if(instance->wakeable)
-         {
-           instance->wakeable->wake(1,(void*)ELECTION_FINISH_SIG);
-         }
-       }
-    }
+    /* Note that I don't set myself to active here even though I elected
+     * myself.  The reason is that I want to hear my own message to:
+     * 1. make sure that the message was sent across the cluster, and
+     * 2. synchronize (as much as possible) my becoming active clusterwide in one atomic packet.
+     */
+
+    /* If we don't receive the ROLE announcement withing this time,
+     * restart the election. */
+    ClTimerTimeOutT timeOut = { 0, electionTimeMs/2 };
+    clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, roleChangeRequestDispatch, (void*) this, &roleWaitingTHandle);
+
     return CL_OK;
   }
   catch(std::exception &ex)
@@ -351,29 +319,29 @@ ClRcT SAFplus::Group::electionRequest(void *arg)
   }
 
 }
-/**
- * Role change from master timeout
- */
-ClRcT SAFplus::Group::roleChangeRequest(void *arg)
+
+
+ClRcT SAFplus::Group::roleChangeRequest()
 {
+  if (roleWaitingTHandle)
+    {
+  clTimerStop(roleWaitingTHandle);
+  clTimerDeleteAsync(&roleWaitingTHandle);
+  roleWaitingTHandle = 0;
+    };
+
   if(isElectionFinished)
   {
-    clTimerStop(Group::roleWaitingTHandle);
-    clTimerDeleteAsync(&Group::roleWaitingTHandle);
     isElectionRunning = false;
     return CL_OK;
   }
   logError("GMS","ROL","No role changed message from master. Re-elect");
   /* No role change message from active, need to reelect */
-  clTimerStop(Group::roleWaitingTHandle);
-  clTimerDeleteAsync(&Group::roleWaitingTHandle);
   isElectionRunning = false;
   /* TODO: report fault */
   try
   {
-    SAFplus::Handle hdl = *(SAFplus::Handle *)arg;
-    Group *instance = (Group *)name.get(hdl);
-    instance->elect();
+    elect();
   }
   catch (SAFplus::NameException& ex)
   {
@@ -409,47 +377,88 @@ void SAFplus::Group::roleNotificationHandle(SAFplusI::GroupMessageProtocol *rxMs
   {
     case GroupRoleNotifyTypeT::ROLE_ACTIVE:
     {
-      EntityIdentifier other = *(EntityIdentifier *)rxMsg->data;
-      if(rxMsg->force)
+      EntityIdentifier *announce = (EntityIdentifier *)rxMsg->data;
+
+      if(!rxMsg->force)  // If we do not want to force, then check if our calculations match the claimant.  If they do not match, we need to re-elect.
       {
-        logInfo("GMS","ROL","Role change forcing...");
-        isElectionFinished = true;
-        activeEntity = other;
-        if(stickyMode)
-        {
-          uint capabilities = 0;
-          if(activeEntity != INVALID_HDL)
+        std::pair<EntityIdentifier,EntityIdentifier> roles = electForRoles();
+        if (announce[0] != roles.first)
           {
-            capabilities = getCapabilities(activeEntity);
-            capabilities |= SAFplus::Group::IS_ACTIVE;
-            capabilities &= (~SAFplus::Group::IS_STANDBY);
-            setCapabilities(capabilities,activeEntity);
+          logError("GMS","ROL","Mismatched active role.  I calculated [%lx:%lx] but received [%lx:%lx]",roles.first.id[0],roles.first.id[1],announce[0].id[0],announce[0].id[1]);
+          needReElect          = true;
           }
-        }
-        /* If some one are waiting the election, waking up now */
-        if(isElectionRunning && wakeable)
-        {
+      }
+
+      // But accept the announcement regardless of my election results because the cluster must remain consistent
+      if(1) //(rxMsg->force)
+      {
+        isElectionFinished = true;
+        if (activeEntity != announce[0])  // active entity has changed
+          {
+          if (activeEntity != INVALID_HDL)
+            removeCapabilities(activeEntity,SAFplus::Group::IS_ACTIVE);
+          activeEntity = announce[0];
+          if (announce[0] != INVALID_HDL)
+            {
+            removeCapabilities(activeEntity,SAFplus::Group::IS_STANDBY);
+            addCapabilities(announce[0],SAFplus::Group::IS_ACTIVE);
+            }
+          }
+
+        if (standbyEntity != announce[1])  // active entity has changed
+          {
+          if (standbyEntity != INVALID_HDL)
+            removeCapabilities(standbyEntity,SAFplus::Group::IS_STANDBY);
+          standbyEntity = announce[1];
+          if (announce[1] != INVALID_HDL)
+            {
+            removeCapabilities(announce[1],SAFplus::Group::IS_ACTIVE);  // could be the case in a double active situation...
+            addCapabilities(announce[1],SAFplus::Group::IS_STANDBY);
+            }
+          }
+
+        logInfo("GMS","ROL","Role change announcement active [%lx:%lx] standby [%lx:%lx]", activeEntity.id[0],activeEntity.id[1],standbyEntity.id[0],standbyEntity.id[1]);
+
           isElectionRunning = false;
+        /* If some one are waiting the election, waking up now */
+        if(wakeable)
+        {
           wakeable->wake(1,(void*)ELECTION_FINISH_SIG);
         }
       }
-      if(other != activeEntity)
+
+      if (roleWaitingTHandle)
+        {
+      clTimerStop(roleWaitingTHandle);
+      clTimerDeleteAsync(&roleWaitingTHandle);
+      roleWaitingTHandle = 0;
+        }
+
+      if(needReElect)
       {
-        logError("GMS","ROL","Mismatching active role [%d,%d]",getActive().getNode(),other.getNode());
-        needReElect          = true;
+        assert(0);
+        needReElect          = false;
+        elect();
       }
       break;
     }
+
+
     case GroupRoleNotifyTypeT::ROLE_STANDBY:
     {
+      assert(0);
       EntityIdentifier other = *(EntityIdentifier *)rxMsg->data;
       if(other != standbyEntity)
       {
         logError("GMS","ROL","Mismatching standby role [%d,%d]",standbyEntity.getNode(),other.getNode());
         needReElect          = true;
       }
-      clTimerStop(Group::roleWaitingTHandle);
-      clTimerDeleteAsync(&Group::roleWaitingTHandle);
+  if (roleWaitingTHandle)
+    {
+      clTimerStop(roleWaitingTHandle);
+      clTimerDeleteAsync(&roleWaitingTHandle);
+      roleWaitingTHandle = 0;
+    }
       isElectionRunning = false;
       if(needReElect)
       {
@@ -484,13 +493,32 @@ void SAFplus::Group::electionRequestHandle(SAFplusI::GroupMessageProtocol *rxMsg
   {
     isElectionRunning = true;
     ClTimerTimeOutT timeOut = { 0, electionTimeMs };
-    clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, Group::electionRequest, (void* )&handle, &electionRequestTHandle);
+    clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, electionRequestDispatch, (void* ) this, &electionRequestTHandle);
   }
   if(rxMsg != NULL) // Register the information provided by the node that requested election
   {
     GroupIdentity *grp = (GroupIdentity *)rxMsg->data;
     registerEntity(*grp,false);
   }
+}
+
+void SAFplus::Group::sendRoleMessage(EntityIdentifier active,EntityIdentifier standby,bool forcing)
+{
+  EntityIdentifier data[2] = { active, standby };
+  int msgLen = 0;
+  int msgDataLen = 0;
+
+  msgDataLen = sizeof(EntityIdentifier)*2;
+  msgLen = sizeof(GroupMessageProtocol) + msgDataLen;
+
+  char msgPayload[sizeof(Buffer)-1+msgLen];
+  GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
+  sndMessage->group = handle;
+  sndMessage->messageType = GroupMessageTypeT::MSG_ROLE_NOTIFY;
+  sndMessage->roleType    = GroupRoleNotifyTypeT::ROLE_ACTIVE;
+  sndMessage->force = forcing;
+  memcpy(sndMessage->data,data,msgDataLen);
+  sendNotification((void *)sndMessage,msgLen,GroupMessageSendModeT::SEND_BROADCAST);
 }
 
 /**
@@ -509,8 +537,11 @@ void SAFplus::Group::fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT 
       msgDataLen = sizeof(GroupIdentity);
       break;
     case GroupMessageTypeT::MSG_NODE_LEAVE:
-    case GroupMessageTypeT::MSG_ROLE_NOTIFY:
       msgLen = sizeof(GroupMessageProtocol) + sizeof(EntityIdentifier);
+      msgDataLen = sizeof(EntityIdentifier);
+      break;
+    case GroupMessageTypeT::MSG_ROLE_NOTIFY:
+      msgLen = sizeof(GroupMessageProtocol) + sizeof(EntityIdentifier)*2;
       msgDataLen = sizeof(EntityIdentifier);
       break;
     default:
@@ -539,7 +570,7 @@ void  SAFplus::Group::sendNotification(void* data, int dataLength, GroupMessageS
       ClIocAddressT iocDest;
       iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
       iocDest.iocPhyAddress.portId      = groupCommunicationPort;
-      logInfo("GMS","MSG","Sending broadcast message");
+      //logInfo("GMS","MSG","Sending broadcast message");
       try
       {
         groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, SAFplusI::GRP_MSG_TYPE);
@@ -558,7 +589,7 @@ void  SAFplus::Group::sendNotification(void* data, int dataLength, GroupMessageS
       clCpmMasterAddressGet(&masterAddress);
       iocDest.iocPhyAddress.nodeAddress = masterAddress;
       iocDest.iocPhyAddress.portId      = groupCommunicationPort;
-      logInfo("GMS","MSG","Sending message to Master");
+      //logInfo("GMS","MSG","Sending message to Master");
       try
       {
         groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, SAFplusI::GRP_MSG_TYPE);
@@ -718,6 +749,8 @@ void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
     Handle tmp = standbyEntity;
     standbyEntity = INVALID_HDL;
     activeEntity = tmp;
+    addCapabilities(activeEntity,SAFplus::Group::IS_ACTIVE);
+    removeCapabilities(activeEntity,SAFplus::Group::IS_STANDBY);
   }
   else if(standbyEntity == me && myInformation.id == activeEntity)
   {
@@ -739,6 +772,22 @@ void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
   }
 
 }
+
+void SAFplus::Group::addCapabilities(EntityIdentifier id,uint capabilities)
+  {
+  uint cap = getCapabilities(id);
+  cap |= capabilities;
+  setCapabilities(cap,id);
+  }
+
+void SAFplus::Group::removeCapabilities(EntityIdentifier id,uint capabilities)
+  {
+  uint cap = getCapabilities(id);
+  cap &= ~capabilities;
+  setCapabilities(cap,id);
+  }
+
+
 /**
  * API to set entity 's capabilities
  */
@@ -964,6 +1013,7 @@ std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::elect(SAFplus::Wake
   if(!isElectionRunning)
     {
     isElectionFinished = false;
+    fillAndSendMessage(&myInformation,GroupMessageTypeT::MSG_ELECT_REQUEST,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
     electionRequestHandle(NULL);
     }
 
@@ -1221,13 +1271,7 @@ void SAFplus::Group::GroupMessageHandler::msgHandler(ClIocAddressT from, SAFplus
   {
     return;
   }
-  logInfo("GMS","MSG","Received message from node %d",from.iocPhyAddress.nodeAddress);
-  /* If message from me, just ignore */
-  if(from.iocPhyAddress.nodeAddress == clIocLocalAddressGet())
-  {
-    //logInfo("GMS","MSG","Local message. Ignored");
-    return;
-  }
+
   /* Parse the message and process if it is valid */
   SAFplusI::GroupMessageProtocol *rxMsg = (SAFplusI::GroupMessageProtocol *)msg;
   if(rxMsg == NULL)
@@ -1235,16 +1279,22 @@ void SAFplus::Group::GroupMessageHandler::msgHandler(ClIocAddressT from, SAFplus
     logError("GMS","MSG","Received NULL message. Ignored");
     return;
   }
+  logInfo("GMS","MSG","Received message [%x] from node %d",rxMsg->messageType,from.iocPhyAddress.nodeAddress);
+
   switch(rxMsg->messageType)
   {
     case SAFplusI::GroupMessageTypeT::MSG_NODE_JOIN:
+      if(from.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
+        {
       logDebug("GMS","MSG","Node JOIN message");
       mGroup->nodeJoinHandle(rxMsg);
-      break;
+        } break;
     case SAFplusI::GroupMessageTypeT::MSG_HELLO:
+      if(from.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
+        {
       logDebug("GMS","MSG","Node HELLO message");
       mGroup->nodeJoinHandle(rxMsg);
-      break;
+        } break;
     case SAFplusI::GroupMessageTypeT::MSG_NODE_LEAVE:
       logDebug("GMS","MSG","Node LEAVE message");
       mGroup->nodeLeaveHandle(rxMsg);
@@ -1254,9 +1304,11 @@ void SAFplus::Group::GroupMessageHandler::msgHandler(ClIocAddressT from, SAFplus
       mGroup->roleNotificationHandle(rxMsg);
       break;
     case SAFplusI::GroupMessageTypeT::MSG_ELECT_REQUEST:
-      logDebug("GMS","MSG","Election REQUEST message");
-      mGroup->electionRequestHandle(rxMsg);
-      break;
+      if(from.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
+        {
+        logDebug("GMS","MSG","Election REQUEST message");
+        mGroup->electionRequestHandle(rxMsg);
+        } break;
     default:
       logDebug("GMS","MSG","Unknown message type [%d] from %d",rxMsg->messageType,from.iocPhyAddress.nodeAddress);
       break;
