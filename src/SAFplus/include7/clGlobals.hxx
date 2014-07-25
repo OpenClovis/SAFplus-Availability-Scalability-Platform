@@ -50,4 +50,100 @@ namespace SAFplus
 /** AMF did not start this component. ASP_WITHOUT_CPM environment variable.  */
   extern bool clWithoutAmf;
 
+/* SAFplus initialization */
+
+   /* Library sets */
+  enum class LibSet
+  {
+    RPC=1, /* defferred */
+    CKPT=2,
+    IOC=4,
+    UTILS=8,
+    OSAL=0x10,
+    LOG=0x20,
+    GRP=0x40,
+    HEAP=0x80,
+    BUFFER=0x100,
+    TIMER=0x200
+  };
+  /* LibSet operators overload */
+  constexpr uint32_t operator*(LibSet ls)
+  {
+    return static_cast<uint32_t>(ls);
+  }
+
+  constexpr LibSet operator|(LibSet lls, LibSet rls)
+  {
+    return static_cast<LibSet>((*lls) | (*rls));
+  }
+
+  bool operator&(LibSet lls, LibSet rls)
+  {
+    return ((*lls) & (*rls)) != 0;
+  }
+  /* Library dependencies */
+  enum class LibDep
+  {
+    LOG = LibSet::LOG | LibSet::OSAL | LibSet::UTILS,
+    OSAL = LibSet::OSAL | LibSet::LOG | LibSet::UTILS,
+    UTILS = LibSet::UTILS | LibSet::OSAL,
+    IOC = LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
+    #if 0
+    CKPT = LibSet::CKPT | LibSet::IOC | LibSet::UTILS | LibSet::GRP,
+    GRP = LibSet::GRP | LibSet::CKPT | LibSet::IOC,
+    #endif
+    // CKPT and GRP itself initialized when its instance is created    
+    CKPT = LibSet::IOC | LibSet::UTILS,
+    GRP = LibSet::IOC,
+    HEAP = LibSet::HEAP,
+    BUFFER = LibSet::BUFFER,
+    TIMER = LibSet::TIMER
+  };
+  /* LibDep operators overload */
+  uint32_t operator*(LibDep ld)
+  { 
+    return static_cast<uint32_t>(ld);
+  }
+
+  LibDep operator|(LibDep lld, LibDep rld)
+  {
+    return static_cast<LibDep>((*lld) | (*rld));
+  }
+
+  bool operator&(LibDep lld, LibDep rld)
+  {
+    return ((*lld) & (*rld)) != 0;
+  }
+
+  bool operator&(LibDep ld, LibSet ls)
+  {
+    return ((*ld) & (*ls)) != 0;
+  }  
+
+  extern void utilsInitialize() __attribute__((weak));
+  extern Logger* logInitialize(void) __attribute__((weak));
+  extern ClRcT clOsalInitialize(const ClPtrT pConfig) __attribute__((weak));
+  extern ClRcT clIocLibInitialize(ClPtrT pConfig) __attribute__((weak));
+  extern ClRcT clHeapInit(void) __attribute__((weak));
+  extern ClRcT clBufferInitialize(const ClBufferPoolConfigT *pConfig) __attribute__((weak));
+  extern ClRcT clTimerInitialize (ClPtrT pConfig) __attribute__((weak));
+
+  inline void safplusInitialize(LibDep svc)
+  {
+    if(svc&LibSet::LOG)
+      if(logInitialize) logInitialize();
+    if(svc&LibSet::UTILS)
+      if(utilsInitialize) utilsInitialize();
+    if(svc&LibSet::OSAL)
+      if(clOsalInitialize) clOsalInitialize(NULL);
+    if(svc&LibSet::HEAP)
+      if(clHeapInit) clHeapInit();
+    if(svc&LibSet::BUFFER)
+      if(clBufferInitialize) clBufferInitialize(NULL);
+    if(svc&LibSet::TIMER)
+      if(clTimerInitialize) clTimerInitialize(NULL);
+    if(svc&LibSet::IOC)
+      if(clIocLibInitialize) clIocLibInitialize(NULL);    
+  }
+
   };

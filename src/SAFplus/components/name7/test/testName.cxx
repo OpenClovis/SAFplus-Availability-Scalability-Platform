@@ -191,7 +191,7 @@ void nodeFailure(const char* n, uint32_t idx, unsigned short nodeAddr)
    SAFplus::ASP_NODEADDR = nodeAddr;
    try {
      SAFplus::Handle& oh = name.getHandle(n);
-     printf("nodeFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);    
+     printf("nodeFailure(): handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);    
      clTest(("Handle got "), oh == h2, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
    }catch (NameException &ne) {
       clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
@@ -200,7 +200,7 @@ void nodeFailure(const char* n, uint32_t idx, unsigned short nodeAddr)
    //name.dump();
    try {
      SAFplus::Handle& oh = name.getHandle(n);
-     printf("nodeFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     printf("nodeFailure(): handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);
      clTest(("Handle got "), oh == h, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
    }catch (NameException &ne) {
       clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
@@ -212,7 +212,7 @@ void nodeFailure(const char* n, uint32_t idx, unsigned short nodeAddr)
    name.nodeFailed(INVALID_ID, 0);
    try {
      SAFplus::Handle& oh = name.getHandle(n);
-     printf("nodeFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     printf("nodeFailure(): handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);
      clTest(("Handle got "), oh==h3, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
    }catch (NameException &ne) {
       clTest(("Handle get unexpected exception"),0, ("exception [%s]", ne.what()));
@@ -221,7 +221,7 @@ void nodeFailure(const char* n, uint32_t idx, unsigned short nodeAddr)
    name.nodeFailed(nodeAddr, 0);
    try {
      SAFplus::Handle& oh = name.getHandle(n);
-     printf("nodeFailure(): unexpected handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     printf("nodeFailure(): unexpected handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);
      clTest(("Unexpected Handle got "), 0, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
    }catch (NameException &ne) {
       clTest(("Handle get expected exception because of non-existence"), 1, ("exception [%s]", ne.what()));
@@ -237,7 +237,7 @@ void processFailure(const char* n, uint32_t idx, uint32_t process)
    //name.dump();   
    try {
      SAFplus::Handle& oh = name.getHandle(n); 
-     printf("processFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);   
+     printf("processFailure(): handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);   
      clTest(("Handle got "), oh == h, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
    }catch (NameException &ne) {
       clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
@@ -246,7 +246,7 @@ void processFailure(const char* n, uint32_t idx, uint32_t process)
    //name.dump();
    try {
      SAFplus::Handle& oh = name.getHandle(n);
-     printf("processFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     printf("processFailure(): handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);
      clTest(("Handle got "), oh == h2, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
    }catch (NameException &ne) {
       clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
@@ -259,7 +259,7 @@ void processFailure(const char* n, uint32_t idx, uint32_t process)
    name.processFailed(INVALID_ID, 0);
    try {
      SAFplus::Handle& oh = name.getHandle(n);
-     printf("processFailure(): handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     printf("processFailure(): handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);
      clTest(("Handle got "), oh==h3, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
    }catch (NameException &ne) {
       clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
@@ -268,7 +268,7 @@ void processFailure(const char* n, uint32_t idx, uint32_t process)
    name.processFailed(process, 0);
    try {
      SAFplus::Handle& oh = name.getHandle(n);
-     printf("processFailure(): unexpected handle got [0x%x.0x%x]\n", oh.id[0],oh.id[1]);
+     printf("processFailure(): unexpected handle got [0x%lx.0x%lx]\n", oh.id[0],oh.id[1]);
      clTest(("Unexpected Handle got "), 0, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));     
    }catch (NameException &ne) {
       clTest(("Handle get expected exception because of non-existence"), 1, ("exception [%s]", ne.what()));
@@ -277,9 +277,13 @@ void processFailure(const char* n, uint32_t idx, uint32_t process)
 
 int main(int argc, char* argv[])
 {
+#if 0
    logInitialize();
    logEchoToFd = 1;  // echo logs to stdout for debugging
    utilsInitialize();   
+#endif
+   safplusInitialize(SAFplus::LibDep::LOG);
+   logEchoToFd = 1;
    clTestGroupInitialize(("Test name set, append, get"));
    ObjTest* jim = new ObjTest("Jim");   
    //obj->greet();
