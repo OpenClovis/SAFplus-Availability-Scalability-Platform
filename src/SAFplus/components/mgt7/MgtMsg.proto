@@ -7,9 +7,15 @@ package Mgt.Msg;
 /**
  * Using MGT bind
  */
+message Handle
+{
+  required fixed64 id0 = 1;
+  required fixed64 id1 = 2;
+}
+
 message MsgBind 
 {
-  required string handle = 1;
+  required Handle handle = 1;
   required string module = 2;
   required string route = 3;
 }

@@ -49,7 +49,7 @@ namespace SAFplus
           {
             Mgt::Msg::MsgBind bindData;
             bindData.ParseFromString(mgtMsgReq.bind());
-            logDebug("MGT", "BIND", "Handle: %s, Module: %s, Route: %s, ", bindData.handle().c_str(), bindData.module().c_str(),
+            logDebug("MGT", "BIND", "Handle: 0x%lx.0x%lx, , Module: %s, Route: %s, ", bindData.handle().id0(), bindData.handle().id1(), bindData.module().c_str(),
                 bindData.route().c_str());
           }
       }

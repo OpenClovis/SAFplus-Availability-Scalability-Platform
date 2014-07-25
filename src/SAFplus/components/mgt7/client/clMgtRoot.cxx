@@ -142,11 +142,11 @@ namespace SAFplus
     string strBind;
     MsgBind bindData;
     MsgMgt mgtMsgReq;
+    Mgt::Msg::Handle *hdl = bindData.mutable_handle();
 
-    char strHandle[81];
-    handle.toStr(strHandle);
+    hdl->set_id0(handle.id[0]);
+    hdl->set_id1(handle.id[1]);
 
-    bindData.set_handle(strHandle);
     bindData.set_module(module);
     bindData.set_route(route);
 

@@ -35,6 +35,7 @@ void  protobuf_AddDesc_MgtMsg_2eproto();
 void protobuf_AssignDesc_MgtMsg_2eproto();
 void protobuf_ShutdownFile_MgtMsg_2eproto();
 
+class Handle;
 class MsgBind;
 class MsgData;
 class MsgMgt;
@@ -64,6 +65,98 @@ inline bool MsgMgt_MgtMsgType_Parse(
     MsgMgt_MgtMsgType_descriptor(), name, value);
 }
 // ===================================================================
+
+class Handle : public ::google::protobuf::Message {
+ public:
+  Handle();
+  virtual ~Handle();
+
+  Handle(const Handle& from);
+
+  inline Handle& operator=(const Handle& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const Handle& default_instance();
+
+  void Swap(Handle* other);
+
+  // implements Message ----------------------------------------------
+
+  Handle* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const Handle& from);
+  void MergeFrom(const Handle& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // required fixed64 id0 = 1;
+  inline bool has_id0() const;
+  inline void clear_id0();
+  static const int kId0FieldNumber = 1;
+  inline ::google::protobuf::uint64 id0() const;
+  inline void set_id0(::google::protobuf::uint64 value);
+
+  // required fixed64 id1 = 2;
+  inline bool has_id1() const;
+  inline void clear_id1();
+  static const int kId1FieldNumber = 2;
+  inline ::google::protobuf::uint64 id1() const;
+  inline void set_id1(::google::protobuf::uint64 value);
+
+  // @@protoc_insertion_point(class_scope:Mgt.Msg.Handle)
+ private:
+  inline void set_has_id0();
+  inline void clear_has_id0();
+  inline void set_has_id1();
+  inline void clear_has_id1();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::uint64 id0_;
+  ::google::protobuf::uint64 id1_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+
+  friend void  protobuf_AddDesc_MgtMsg_2eproto();
+  friend void protobuf_AssignDesc_MgtMsg_2eproto();
+  friend void protobuf_ShutdownFile_MgtMsg_2eproto();
+
+  void InitAsDefaultInstance();
+  static Handle* default_instance_;
+};
+// -------------------------------------------------------------------
 
 class MsgBind : public ::google::protobuf::Message {
  public:
@@ -119,17 +212,14 @@ class MsgBind : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required string handle = 1;
+  // required .Mgt.Msg.Handle handle = 1;
   inline bool has_handle() const;
   inline void clear_handle();
   static const int kHandleFieldNumber = 1;
-  inline const ::std::string& handle() const;
-  inline void set_handle(const ::std::string& value);
-  inline void set_handle(const char* value);
-  inline void set_handle(const char* value, size_t size);
-  inline ::std::string* mutable_handle();
-  inline ::std::string* release_handle();
-  inline void set_allocated_handle(::std::string* handle);
+  inline const ::Mgt::Msg::Handle& handle() const;
+  inline ::Mgt::Msg::Handle* mutable_handle();
+  inline ::Mgt::Msg::Handle* release_handle();
+  inline void set_allocated_handle(::Mgt::Msg::Handle* handle);
 
   // required string module = 2;
   inline bool has_module() const;
@@ -166,7 +256,7 @@ class MsgBind : public ::google::protobuf::Message {
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::std::string* handle_;
+  ::Mgt::Msg::Handle* handle_;
   ::std::string* module_;
   ::std::string* route_;
 
@@ -430,9 +520,57 @@ class MsgMgt : public ::google::protobuf::Message {
 
 // ===================================================================
 
+// Handle
+
+// required fixed64 id0 = 1;
+inline bool Handle::has_id0() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void Handle::set_has_id0() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void Handle::clear_has_id0() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void Handle::clear_id0() {
+  id0_ = GOOGLE_ULONGLONG(0);
+  clear_has_id0();
+}
+inline ::google::protobuf::uint64 Handle::id0() const {
+  return id0_;
+}
+inline void Handle::set_id0(::google::protobuf::uint64 value) {
+  set_has_id0();
+  id0_ = value;
+}
+
+// required fixed64 id1 = 2;
+inline bool Handle::has_id1() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void Handle::set_has_id1() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void Handle::clear_has_id1() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void Handle::clear_id1() {
+  id1_ = GOOGLE_ULONGLONG(0);
+  clear_has_id1();
+}
+inline ::google::protobuf::uint64 Handle::id1() const {
+  return id1_;
+}
+inline void Handle::set_id1(::google::protobuf::uint64 value) {
+  set_has_id1();
+  id1_ = value;
+}
+
+// -------------------------------------------------------------------
+
 // MsgBind
 
-// required string handle = 1;
+// required .Mgt.Msg.Handle handle = 1;
 inline bool MsgBind::has_handle() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -443,62 +581,30 @@ inline void MsgBind::clear_has_handle() {
   _has_bits_[0] &= ~0x00000001u;
 }
 inline void MsgBind::clear_handle() {
-  if (handle_ != &::google::protobuf::internal::kEmptyString) {
-    handle_->clear();
-  }
+  if (handle_ != NULL) handle_->::Mgt::Msg::Handle::Clear();
   clear_has_handle();
 }
-inline const ::std::string& MsgBind::handle() const {
-  return *handle_;
+inline const ::Mgt::Msg::Handle& MsgBind::handle() const {
+  return handle_ != NULL ? *handle_ : *default_instance_->handle_;
 }
-inline void MsgBind::set_handle(const ::std::string& value) {
+inline ::Mgt::Msg::Handle* MsgBind::mutable_handle() {
   set_has_handle();
-  if (handle_ == &::google::protobuf::internal::kEmptyString) {
-    handle_ = new ::std::string;
-  }
-  handle_->assign(value);
-}
-inline void MsgBind::set_handle(const char* value) {
-  set_has_handle();
-  if (handle_ == &::google::protobuf::internal::kEmptyString) {
-    handle_ = new ::std::string;
-  }
-  handle_->assign(value);
-}
-inline void MsgBind::set_handle(const char* value, size_t size) {
-  set_has_handle();
-  if (handle_ == &::google::protobuf::internal::kEmptyString) {
-    handle_ = new ::std::string;
-  }
-  handle_->assign(reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* MsgBind::mutable_handle() {
-  set_has_handle();
-  if (handle_ == &::google::protobuf::internal::kEmptyString) {
-    handle_ = new ::std::string;
-  }
+  if (handle_ == NULL) handle_ = new ::Mgt::Msg::Handle;
   return handle_;
 }
-inline ::std::string* MsgBind::release_handle() {
+inline ::Mgt::Msg::Handle* MsgBind::release_handle() {
   clear_has_handle();
-  if (handle_ == &::google::protobuf::internal::kEmptyString) {
-    return NULL;
-  } else {
-    ::std::string* temp = handle_;
-    handle_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
-    return temp;
-  }
+  ::Mgt::Msg::Handle* temp = handle_;
+  handle_ = NULL;
+  return temp;
 }
-inline void MsgBind::set_allocated_handle(::std::string* handle) {
-  if (handle_ != &::google::protobuf::internal::kEmptyString) {
-    delete handle_;
-  }
+inline void MsgBind::set_allocated_handle(::Mgt::Msg::Handle* handle) {
+  delete handle_;
+  handle_ = handle;
   if (handle) {
     set_has_handle();
-    handle_ = handle;
   } else {
     clear_has_handle();
-    handle_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   }
 }
 
