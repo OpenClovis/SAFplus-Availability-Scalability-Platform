@@ -67,17 +67,17 @@ namespace SAFplus
     TIMER=0x200
   };
   /* LibSet operators overload */
-  constexpr uint32_t operator*(LibSet ls)
+  inline constexpr uint32_t operator*(LibSet ls)
   {
     return static_cast<uint32_t>(ls);
   }
 
-  constexpr LibSet operator|(LibSet lls, LibSet rls)
+  inline constexpr LibSet operator|(LibSet lls, LibSet rls)
   {
     return static_cast<LibSet>((*lls) | (*rls));
   }
 
-  bool operator&(LibSet lls, LibSet rls)
+  inline bool operator&(LibSet lls, LibSet rls)
   {
     return ((*lls) & (*rls)) != 0;
   }
@@ -100,22 +100,22 @@ namespace SAFplus
     TIMER = LibSet::TIMER
   };
   /* LibDep operators overload */
-  uint32_t operator*(LibDep ld)
+  inline uint32_t operator*(LibDep ld)
   { 
     return static_cast<uint32_t>(ld);
   }
 
-  LibDep operator|(LibDep lld, LibDep rld)
+  inline LibDep operator|(LibDep lld, LibDep rld)
   {
     return static_cast<LibDep>((*lld) | (*rld));
   }
 
-  bool operator&(LibDep lld, LibDep rld)
+  inline bool operator&(LibDep lld, LibDep rld)
   {
     return ((*lld) & (*rld)) != 0;
   }
 
-  bool operator&(LibDep ld, LibSet ls)
+  inline bool operator&(LibDep ld, LibSet ls)
   {
     return ((*ld) & (*ls)) != 0;
   }  
@@ -135,15 +135,15 @@ namespace SAFplus
     if(svc&LibSet::UTILS)
       if(utilsInitialize) utilsInitialize();
     if(svc&LibSet::OSAL)
-      if(clOsalInitialize) clOsalInitialize(NULL);
+      if(clOsalInitialize) assert(clOsalInitialize(NULL) == CL_OK);
     if(svc&LibSet::HEAP)
-      if(clHeapInit) clHeapInit();
+      if(clHeapInit) assert(clHeapInit() == CL_OK);
     if(svc&LibSet::BUFFER)
-      if(clBufferInitialize) clBufferInitialize(NULL);
+      if(clBufferInitialize) assert(clBufferInitialize(NULL) == CL_OK);
     if(svc&LibSet::TIMER)
-      if(clTimerInitialize) clTimerInitialize(NULL);
+      if(clTimerInitialize) assert(clTimerInitialize(NULL) == CL_OK);
     if(svc&LibSet::IOC)
-      if(clIocLibInitialize) clIocLibInitialize(NULL);    
+      if(clIocLibInitialize) assert(clIocLibInitialize(NULL) == CL_OK);    
   }
 
   };
