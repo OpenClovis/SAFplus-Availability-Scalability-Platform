@@ -1,0 +1,37 @@
+/* 
+ * Copyright (C) 2002-2014 OpenClovis Solutions Inc.  All Rights Reserved.
+ */
+package Mgt.Msg;
+
+
+/**
+ * Using MGT bind
+ */
+message MsgBind 
+{
+  required string handle = 1;
+  required string module = 2;
+  required string route = 3;
+}
+
+message MsgData
+{
+  required string route = 1;
+  optional string value = 2;
+}
+
+message MsgMgt
+{
+  enum MgtMsgType {
+    CL_MGT_MSG_UNUSED = 0; 
+    CL_MGT_MSG_BIND = 1;
+    CL_MGT_MSG_GET = 2;
+    CL_MGT_MSG_SET = 3;
+    CL_MGT_MSG_RPC = 4; 
+    CL_MGT_MSG_BIND_RPC = 5;
+    CL_MGT_MSG_NOTIF = 6;
+  }
+  required MgtMsgType type = 1; //internal using
+  required bytes bind = 2;
+  repeated bytes data = 3;
+}

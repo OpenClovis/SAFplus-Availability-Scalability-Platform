@@ -56,14 +56,9 @@ namespace SAFplus
 
 
 
-  ClRcT MgtObject::bindNetconf(const std::string module, const std::string route)
+  ClRcT MgtObject::bind(Handle handle, const std::string module, const std::string route)
     {
-    return MgtRoot::getInstance()->bindMgtObject(CL_NETCONF_BIND_TYPE, this, module, route);
-    }
-
-  ClRcT MgtObject::bindSnmp(const std::string module, const std::string route)
-    {
-    return MgtRoot::getInstance()->bindMgtObject(CL_SNMP_BIND_TYPE, this, module, route);
+    return MgtRoot::getInstance()->bindMgtObject(handle, this, module, route);
     }
 
   bool MgtObject::match( const std::string &name, const std::string &spec)

@@ -36,16 +36,12 @@
 
 #include "clMgtModule.hxx"
 #include "clMgtObject.hxx"
-#ifdef MGT_ACCESS
 #include <clSafplusMsgServer.hxx>
 #include <clMsgApi.hxx>
 #include <clMgtMsg.hxx>
-#endif
-
 #include "clCommon.hxx"
 
-#define CL_NETCONF_BIND_TYPE 0
-#define CL_SNMP_BIND_TYPE 1
+
 
 namespace SAFplus
 {
@@ -109,7 +105,7 @@ public:
      * \return	CL_ERR_ALREADY_EXIST	MGT object already exists
      * \return	CL_ERR_NULL_POINTER		Input parameter is a NULL pointer
      */
-    ClRcT bindMgtObject(ClUint8T bindType, SAFplus::MgtObject *object, const std::string module, const std::string route);
+    ClRcT bindMgtObject(Handle handle, SAFplus::MgtObject *object, const std::string module, const std::string route);
 
     /**
      * \brief   Function to bind a MGT object to a specific manageability subtree within a particular module
@@ -139,8 +135,11 @@ public:
         void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
     };
     MgtMessageHandler mgtMessageHandler;
-    static ClRcT sendMsg(ClIocAddressT dest, void* payload, uint payloadlen, MgtMsgType msgtype,void* reply = NULL);
+
+//TODO:
+//    static ClRcT sendMsg(ClIocAddressT dest, void* payload, uint payloadlen, MgtMsgType msgtype,void* reply = NULL);
     static ClRcT sendReplyMsg(ClIocAddressT dest, void* payload, uint payloadlen);
+
 #endif
 };
 };

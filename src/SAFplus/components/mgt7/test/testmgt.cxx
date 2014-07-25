@@ -5,10 +5,13 @@
 #include <stdio.h>
 #include <string>
 #include <clLogApi.hxx>
+#include "../client/MgtMsg.pb.h"
 #include "boost/functional/hash.hpp"
+#include <clMgtModule.hxx>
+#include <clSafplusMsgServer.hxx>
+
 using namespace std;
 using namespace SAFplus;
-
 
 class multipleKey
 {
@@ -62,6 +65,20 @@ class multipleKey
         return ss.str();
       }
 };
+
+class TestObject : public MgtObject
+  {
+  public:
+    TestObject(const char* objName) : MgtObject(objName)
+      {
+      }
+    ~TestObject()
+      {
+
+      }
+    void toString(std::stringstream& xmlString) {};
+  };
+
 /*
  * This test case make sure a ClMgtProv object work with the Transaction
  */
@@ -444,8 +461,21 @@ void testMgtClassList()
   logDebug("MGT","TEST","%s",getObj->name.c_str());
 }
 
+void testMgtBind()
+  {
+    MgtModule         mockModule("network");
+    TestObject testobject("testObject");
+
+    mockModule.loadModule();
+    SAFplus::Handle handle=SAFplus::Handle::create();
+    testobject.bind(handle, "network", "/ethernet/interfaces[name='eth0']");
+    //testobject.bind(handle, "network", "1.3.6.1.4.1.99840.2.1.1");
+  }
+
 int main(int argc, char* argv[])
 {
+    ClRcT rc = CL_OK;
+
     //GAS: initialize expose by a explicit method
     SAFplus::ASP_NODEADDR = 0x1;
 
@@ -455,13 +485,17 @@ int main(int argc, char* argv[])
 
     utilsInitialize();
 
-    ClRcT rc;
     // initialize SAFplus6 libraries
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
-        clBufferInitialize(NULL)) != CL_OK)
+    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
       {
-        assert(0);
+      assert(0);
       }
+
+    rc = clIocLibInitialize(NULL);
+    assert(rc==CL_OK);
+
+    safplusMsgServer.init(0, 25, 10);
+    safplusMsgServer.Start();
 
     //-- Done initialize
 
@@ -476,6 +510,8 @@ int main(int argc, char* argv[])
     testMgtStringList();
 
     testMgtClassList();
+
+    testMgtBind();
 
     return 0;
 }

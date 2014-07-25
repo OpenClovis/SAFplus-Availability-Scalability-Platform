@@ -284,8 +284,8 @@ extern MgtIteratorBase mgtIterEnd;
      * \return	CL_ERR_NOT_EXIST		MGT module does not exist
      * \return	CL_ERR_ALREADY_EXIST	MGT object already exists
      */
-    ClRcT bindNetconf(const std::string module, const std::string route);
-    ClRcT bindSnmp(const std::string module, const std::string route);
+    ClRcT bind(Handle handle, const std::string module, const std::string route);
+    //ClRcT bindSnmp(const std::string module, const std::string route);
 
         // key vector is not necessary
     //ClBoolT isKeysMatch(std::map<std::string, std::string> *keys);
