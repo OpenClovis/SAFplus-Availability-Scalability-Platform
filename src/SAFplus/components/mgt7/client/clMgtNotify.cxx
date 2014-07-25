@@ -75,46 +75,44 @@ namespace SAFplus
       return;
     }
 
-    ClMgtMessageNotifyTypeT *notifyData = (ClMgtMessageNotifyTypeT *)buffer;
-    ClCharT *data = notifyData->data;
-    ClUint32T dataSize;
-
-    strcpy(notifyData->module, this->Module.c_str());
-    strcpy(notifyData->notify, this->name.c_str());
-
-    char strTemp[CL_MAX_NAME_LENGTH];
-    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", this->name.c_str());
-    strcpy(data, strTemp);
-
-    map<std::string, std::string>::iterator mapIndex;
-    for (mapIndex = mLeafList.begin(); mapIndex != mLeafList.end(); ++mapIndex)
-    {
-      std::string leafName = (*mapIndex).first;
-      std::string leafVal = mLeafList[leafName];
-
-      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>",
-               leafName.c_str());
-      strcat(data, strTemp);
-      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "%s", leafVal.c_str());
-      strcat(data, strTemp);
-      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>",
-               leafName.c_str());
-      strcat(data, strTemp);
-    }
-
-    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", this->name.c_str());
-    strcat(data, strTemp);
-    dataSize = strlen(data) + 1;
-
-    /*
-     * Send notification message to the NETCONF server
-     */
-    ClIocAddressT allNodeReps;
-    allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-    allNodeReps.iocPhyAddress.portId = SAFplusI::NETCONF_IOC_PORT;
-    MgtRoot::sendMsg(allNodeReps,notifyData,sizeof(ClMgtMessageNotifyTypeT) + dataSize,MgtMsgType::CL_MGT_MSG_NOTIF);
-    allNodeReps.iocPhyAddress.portId = SAFplusI::SNMP_IOC_PORT;
-    MgtRoot::sendMsg(allNodeReps,notifyData,sizeof(ClMgtMessageNotifyTypeT) + dataSize,MgtMsgType::CL_MGT_MSG_NOTIF);
+//    ClMgtMessageNotifyTypeT *notifyData = (ClMgtMessageNotifyTypeT *)buffer;
+//    ClCharT *data = notifyData->data;
+//    ClUint32T dataSize;
+//
+//    strcpy(notifyData->module, this->Module.c_str());
+//    strcpy(notifyData->notify, this->name.c_str());
+//
+//    char strTemp[CL_MAX_NAME_LENGTH];
+//    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", this->name.c_str());
+//    strcpy(data, strTemp);
+//
+//    map<std::string, std::string>::iterator mapIndex;
+//    for (mapIndex = mLeafList.begin(); mapIndex != mLeafList.end(); ++mapIndex)
+//    {
+//      std::string leafName = (*mapIndex).first;
+//      std::string leafVal = mLeafList[leafName];
+//
+//      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>",
+//               leafName.c_str());
+//      strcat(data, strTemp);
+//      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "%s", leafVal.c_str());
+//      strcat(data, strTemp);
+//      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>",
+//               leafName.c_str());
+//      strcat(data, strTemp);
+//    }
+//
+//    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", this->name.c_str());
+//    strcat(data, strTemp);
+//    dataSize = strlen(data) + 1;
+//
+//    /*
+//     * Send notification message to the NETCONF server
+//     */
+//    ClIocAddressT allNodeReps;
+//    allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+//    allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
+//    MgtRoot::sendMsg(allNodeReps,notifyData,sizeof(ClMgtMessageNotifyTypeT) + dataSize,MgtMsgType::CL_MGT_MSG_NOTIF);
 
     free(buffer);
 #endif
