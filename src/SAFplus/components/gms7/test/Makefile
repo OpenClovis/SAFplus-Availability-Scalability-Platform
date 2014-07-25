@@ -26,7 +26,8 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 LINK_STD_LIBS := -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lstdc++ -lm $(LINK_STD_LIBS)
 #-L$(SAFPLUS_TOOLCHAIN_DIR)/lib -L$(SAFPLUS_SDK_TARGET)/lib
 
-all: $(TEST_DIR)/testGroupServer $(TEST_DIR)/testGroup $(TEST_DIR)/testMultiGroup
+# $(TEST_DIR)/testGroupServer $(TEST_DIR)/testGroup
+all:  $(TEST_DIR)/testMultiGroup
 
 $(TEST_DIR)/testGroupServer: $(OBJ_DIR)/testGroupServer.o $(SAFPLUS_DEP_LIBS) Makefile
 	$(LINK_EXE) $@ $<  $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)

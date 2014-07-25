@@ -32,7 +32,7 @@ void wait(int seconds)
 }
 int main(int argc, char* argv[])
 {
-  Group            clusterGroup(SAFplus::Group::DATA_IN_CHECKPOINT);
+  Group            clusterGroup();
   ConditionWake    wakeable;
   EntityIdentifier *me;
   unsigned int credential = 0;
@@ -49,12 +49,12 @@ int main(int argc, char* argv[])
   logEchoToFd = 1;
 
   /* Initialize necessary libraries */
-  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK)
+  if ((rc = SAFplus::clOsalInitialize(NULL)) != CL_OK || (rc = SAFplus::clHeapInit()) != CL_OK || (rc = SAFplus::clBufferInitialize(NULL)) != CL_OK || (rc = SAFplus::clTimerInitialize(NULL)) != CL_OK)
   {
     return rc;
   }
   /* IOC communication */
-  clIocLibInitialize(NULL);
+  SAFplus::clIocLibInitialize(NULL);
 
   if(getenv("SCNODE") || clAspLocalId == 1)
   {
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
     capabilities = Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE;
   }
   me = new SAFplus::Handle(PersistentHandle,0,0,clAspLocalId,0);
-  clusterGroup.init(CLUSTER_GROUP);
+  clusterGroup.init(CLUSTER_GROUP,SAFplus::Group::DATA_IN_CHECKPOINT);
   clusterGroup.setNotification(wakeable);
   // Wait for other nodes finished booting
   wait(5);

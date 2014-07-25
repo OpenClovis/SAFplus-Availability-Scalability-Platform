@@ -97,12 +97,13 @@ int main(int argc, char* argv[])
 
   ClRcT rc;
   // initialize SAFplus6 libraries 
-  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+  //if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+  if ((rc = ::clOsalInitialize(NULL)) != CL_OK || (rc = ::clHeapInit()) != CL_OK || (rc = ::clBufferInitialize(NULL)) != CL_OK || (rc = ::clTimerInitialize(NULL)) != CL_OK)
     {
     assert(0);
     }
 
-  rc = clIocLibInitialize(NULL);
+  rc = ::clIocLibInitialize(NULL);
   assert(rc==CL_OK);
   
   groupInitialize();
@@ -115,8 +116,8 @@ int main(int argc, char* argv[])
   sleep(10);
   printf("\nstartup sleep finished\n");
 
-  singleElect();
-  //tripleElect();
+  //singleElect();
+  tripleElect();
 
   return 0;
   }
@@ -197,14 +198,14 @@ void tripleElect()
     {
     ScopedLock<> lock(m);
 
-    printf("Running Election\n");
+    printf("----------- LOOP ----------\n");
     std::pair<EntityIdentifier,EntityIdentifier> as1 = group->getRoles(); // elect();
     std::pair<EntityIdentifier,EntityIdentifier> as2 = failback.getRoles(); // elect();
     std::pair<EntityIdentifier,EntityIdentifier> as3 = noStandby.getRoles(); // elect();
 
-    printf("Sticky: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as1.first.id[0], as1.first.id[1], (as1.first == me) ? "me": "not me", as1.second.id[0],as1.second.id[1],(as1.second == me) ? "me": "not me");
-    printf("Failback: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as2.first.id[0], as2.first.id[1], (as2.first == me) ? "me": "not me", as2.second.id[0],as2.second.id[1],(as2.second == me) ? "me": "not me");
-    printf("No Standby: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", as3.first.id[0], as3.first.id[1], (as3.first == me) ? "me": "not me", as3.second.id[0],as3.second.id[1],(as3.second == me) ? "me": "not me");
+    printf("Sticky [%lx:%lx]: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", group->handle.id[0], group->handle.id[1],as1.first.id[0], as1.first.id[1], (as1.first == me) ? "me": "not me", as1.second.id[0],as1.second.id[1],(as1.second == me) ? "me": "not me");
+    printf("Failback [%lx:%lx]: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", failback.handle.id[0], failback.handle.id[1],as2.first.id[0], as2.first.id[1], (as2.first == me) ? "me": "not me", as2.second.id[0],as2.second.id[1],(as2.second == me) ? "me": "not me");
+    printf("No Standby [%lx:%lx]: Active: [%lx:%lx] (%s)  Standby: [%lx:%lx] (%s)\n", noStandby.handle.id[0], noStandby.handle.id[1],as3.first.id[0], as3.first.id[1], (as3.first == me) ? "me": "not me", as3.second.id[0],as3.second.id[1],(as3.second == me) ? "me": "not me");
 
     int result = somethingChanged.timed_wait(m,10000);
     if (result != 0)

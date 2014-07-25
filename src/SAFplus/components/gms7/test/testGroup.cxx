@@ -61,13 +61,14 @@ int main(int argc, char* argv[])
 
   ClRcT rc;
   // initialize SAFplus6 libraries 
-  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+  //if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
+  if ((rc = SAFplus::clOsalInitialize(NULL)) != CL_OK || (rc = SAFplus::clHeapInit()) != CL_OK || (rc = SAFplus::clBufferInitialize(NULL)) != CL_OK || (rc = SAFplus::clTimerInitialize(NULL)) != CL_OK)
     {
     assert(0);
     }
   
   SAFplus::ASP_NODEADDR = 1;
-  rc = clIocLibInitialize(NULL);
+  rc = SAFplus::clIocLibInitialize(NULL);
   assert(rc==CL_OK);
 
   safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);

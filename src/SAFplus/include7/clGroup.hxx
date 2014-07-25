@@ -123,8 +123,8 @@ enum
         CRED_STANDBY_BIT = 1 << 10  // Extra credentials for standby entity
       };
 #endif
-      Group(SAFplus::Handle groupHandle) { automaticElection=true; init(groupHandle); }
-      Group(int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT); // Deferred initialization
+      Group(); // Deferred initialization
+      Group(SAFplus::Handle groupHandle, int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT);
       ~Group();
 
       void init(SAFplus::Handle groupHandle,int dataStoreMode = DATA_IN_CHECKPOINT, int comPort = CL_IOC_GMS_PORT);
@@ -137,8 +137,14 @@ enum
       // @param: data, dataLength:  a group member can provide some arbitrary data that other group members can see
       // @param: capabilities: whether this entity can become active/standby and IS this entity currently active/standby (latter should always be 0, Group will elect)
       // @param: needNotify: Callback whenever group membership changes?
-      void registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify = true);
-
+      void registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify = true) 
+        { 
+        lastRegisteredEntity = me;  // keep track of the last registered entity as a convenience for apps that register a single entity (themselves) and deregister when they quit.
+        _registerEntity(me, credentials, data, dataLength, capabilities,needNotify);
+        }
+      // common internal registration function that handles both application registrations and remote announcements.
+      void _registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify = true);
+ 
       void registerEntity(GroupIdentity grpIdentity,bool needNotify = true);
 
       // If me=0 (default), use the group identifier the last call to "register" was called with.
@@ -159,6 +165,8 @@ enum
 
       // Calls for an election with specified role
       std::pair<EntityIdentifier,EntityIdentifier>  elect(SAFplus::Wakeable& wake = SAFplus::Wakeable::Synchronous);
+      // triggers an election if not already running and returns (mostly for internal use)
+      void startElection(void);
 
       // Get the current active entity.  If an active entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with active capability
       EntityIdentifier getActive(void);
@@ -179,7 +187,9 @@ enum
       bool                              automaticElection;
 
       // Whether election should be run again
-      bool                              needReElect;
+      bool needReElect;
+      // Something has changed so an election might produce different results
+      bool                              dirty;
 
       // Time (second) to delay from boot until auto election
       // not needed int                               minimumElectionTime;
@@ -265,9 +275,6 @@ enum
       // Whether there is an running election
       bool isElectionRunning;
 
-      // Whether current election was done
-      bool isElectionFinished;
-
       // Whether boot time election had done
       static  bool isBootTimeElectionDone;
 
@@ -295,20 +302,25 @@ enum
       };
       SAFplus::Group::GroupMessageHandler groupMessageHandler;
 
+      SAFplus::Handle                   handle;                 // The handle of this group, store/retrieve from name
     protected:
       static SAFplus::Checkpoint        mGroupCkpt;             // The checkpoint where storing entity information if mode is CHECKPOINT
       SAFplus::GroupHashMap             mGroupMap;              // The map where store entity information if mode is MEMORY
       SAFplus::DataHashMap              groupDataMap;           // The map where store entity associated data
-      SAFplus::Handle                   handle;                 // The handle of this group, store/retrieve from name
       SAFplus::Wakeable*                wakeable;               // Wakeable object for async communication
       EntityIdentifier                  activeEntity;           // Current active entity
       EntityIdentifier                  standbyEntity;          // Current standby entity
       EntityIdentifier                  lastRegisteredEntity;   // Last entity come to registerEntity
       int                               dataStoringMode;        // Where entity information is stored
       unsigned int                      electionTimeMs;         // How long should elections take
+
+      SAFplus::RecursiveMutex           lock;
+      friend void dbgDumpAllGroups();
   };
   // Boost require hash_value to be implemented
   std::size_t hash_value(SAFplus::Handle const& h);
+
+  void dbgDumpAllGroups();
 }
 
 #endif
