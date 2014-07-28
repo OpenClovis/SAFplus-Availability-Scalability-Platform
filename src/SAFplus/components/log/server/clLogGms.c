@@ -270,6 +270,7 @@ clLogGmsInit(void)
     ClGmsClusterNotificationBufferT  notBuffer  = {0};
     ClVersionT                       version    = {'B', 0x1, 0x1};
     ClUint32T                        numRetries = 0;
+    ClInt32T                         maxRetries = 60;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
@@ -279,12 +280,12 @@ clLogGmsInit(void)
                              &version);
         if( CL_OK != rc )
         {
-            usleep(100);
+            usleep(1000);
         }
         numRetries++;
     }while((rc != CL_OK) && 
            (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && 
-           (numRetries < CL_LOG_MAX_RETRIES));
+           (numRetries < maxRetries));
 
     if( rc != CL_OK )
     {

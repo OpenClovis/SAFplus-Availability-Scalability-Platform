@@ -113,6 +113,9 @@ ClRcT clTxnServiceInitialize(
         CL_OUT ClTxnServiceHandleT *pTxnSrvcHandle)
 {
     ClRcT rc = CL_OK;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
+    ClInt32T tries = 0;
+    ClInt32T maxRetries = 60;
 
     CL_FUNC_ENTER();
 
@@ -162,7 +165,12 @@ ClRcT clTxnServiceInitialize(
     /* Initialize transaction service ckpt impl */
     if (CL_OK == rc)
     {
-        rc = clTxnServiceCkptInitialize(); 
+        do
+        {
+            rc = clTxnServiceCkptInitialize();
+            tries++;
+            clLogNotice("SVR", "INI", "Try [%d] of [%d] to initialize txn checkpoint service, result [0x%x]", tries, maxRetries, rc);
+        } while(rc != CL_OK && tries < maxRetries && clOsalTaskDelay(delay) == CL_OK);
     }
 
     if (CL_OK == rc)

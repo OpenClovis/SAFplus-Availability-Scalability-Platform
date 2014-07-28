@@ -115,6 +115,9 @@ ClRcT clEvtCpmInit()
 ClRcT clEvtInitialize(ClUint32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
+    ClInt32T tries = 0;
+    ClInt32T maxRetries = 60;
 
     CL_FUNC_ENTER();
 
@@ -175,10 +178,16 @@ ClRcT clEvtInitialize(ClUint32T argc, ClCharT *argv[])
     }
 
 #ifdef CKPT_ENABLED
-    /*
-     ** Initialize the Check Pointing Library.
-     */
-    rc = clEvtCkptInit();
+    do
+    {
+        /*
+         ** Initialize the Check Pointing Library.
+         */
+        rc = clEvtCkptInit();
+        tries++;
+        clLogNotice("SVR", "INI", "Try [%d] of [%d] to initialize event checkpoint service, result [0x%x]", tries, maxRetries, rc);
+    } while(rc != CL_OK && tries < maxRetries && clOsalTaskDelay(delay) == CL_OK);
+
     if (rc != CL_OK)
     {
         CL_DEBUG_PRINT(CL_DEBUG_CRITICAL,

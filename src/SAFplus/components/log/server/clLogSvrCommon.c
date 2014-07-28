@@ -41,7 +41,11 @@ clLogSvrCommonDataInit(void)
     ClRcT                  rc                 = CL_OK;
     ClLogSvrCommonEoDataT  *pSvrCommonEoEntry = NULL;
     ClEoExecutionObjT      *pEoObj            = NULL;
-    
+
+    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
+    ClInt32T tries = 0;
+    ClInt32T maxRetries = 60;
+
     CL_LOG_DEBUG_TRACE(("Enter"));
     
     rc = clEoMyEoObjectGet(&pEoObj);
@@ -73,7 +77,13 @@ clLogSvrCommonDataInit(void)
     }
     pSvrCommonEoEntry->maxMsgs       = CL_LOG_MAX_MSGS;
 
-    rc = clCkptLibraryInitialize(&pSvrCommonEoEntry->hLibCkpt);
+    do
+    {
+        rc = clCkptLibraryInitialize(&pSvrCommonEoEntry->hLibCkpt);
+        tries++;
+        clLogNotice("SVR", "INI", "Try [%d] of [%d] to initialize log checkpoint service, result [0x%x]", tries, maxRetries, rc);
+    } while(rc != CL_OK && tries < maxRetries && clOsalTaskDelay(delay) == CL_OK);
+
     if( CL_OK != rc )
     {
         CL_LOG_DEBUG_ERROR(("clCkptLibraryInitialize(): rc[0x %x]", rc));
