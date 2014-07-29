@@ -446,11 +446,6 @@ class ASPInstaller:
                         elif TIPC_MINOR_VERSION == 7:
                             self.TIPC_CONFIG_VERSION = 'tipcutils-1.1.9.tar.gz'
                             dep.pkg_name =  self.TIPC_CONFIG_VERSION
-                            self.feedback('Update new tipc library')
-                            if self.INTERNET == False :
-                                syscall('cp -f %s/%s/tipc_config.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
-                                syscall('cp -f %s/%s/tipc.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
-                                syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
                             self.installQueue.append(dep)
                         continue
 
