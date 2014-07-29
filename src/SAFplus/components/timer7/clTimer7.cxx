@@ -17,6 +17,9 @@ extern ClBoolT gIsNodeRepresentative;
 static ClBoolT gClTimerDebug = CL_FALSE;
 static ClOsalMutexT gClTimerDebugLock;
 static ClHandleT gTimerDebugReg;
+ClInt32T CL_TIMER_MIN_PARALLEL_THREAD=3000;
+ClInt32T CL_TIMER_MAX_PARALLEL_THREAD=20000;
+
 
 
 
@@ -462,7 +465,7 @@ ClRcT SAFplus::Timer::timerStartInternal(ClTimeT expiry,ClBoolT locked)
      * add to the rb tree.
      */
     //clRbTreeInsert(&gTimerBase.timerTree, &this->timerList);
-    logDebug("TIMER", "DEL", "INSERT TO RBTREE with time expire [%ld]",this->timerExpiry);
+    logDebug("TIMER", "START", "INSERT TIMER INTO RBTREE with time expire [%ld]",this->timerExpiry);
     gTimerBase.timerTree.insert_unique(*this);
     if(gClTimerDebug)
         this->startTime = clOsalStopWatchTimeGet();
@@ -617,8 +620,10 @@ ClRcT SAFplus::Timer::timerCreateAndStart(ClTimerTimeOutT timeOut,
  * Dont call it under a callback.
  */
 
-ClRcT SAFplus::timerInitialize(ClPtrT config)
+ClRcT SAFplus::timerInitialize(ClPtrT config, ClInt32T maxTimer)
 {
+    CL_TIMER_MIN_PARALLEL_THREAD=maxTimer;
+    logDebug("TIMER", "START", "Init timer with [%ld] thread pools",maxTimer);
     ClRcT rc = CL_TIMER_RC(CL_ERR_INITIALIZED);
     if(gTimerBase.initialized == CL_TRUE)
     {

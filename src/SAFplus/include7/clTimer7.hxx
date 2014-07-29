@@ -36,8 +36,6 @@
 #define CL_TIMER_STOPPED  (0x2)
 #define CL_TIMER_DELETED  (0x4)
 #define CL_TIMER_CLUSTER  (0x8)
-#define CL_TIMER_MIN_PARALLEL_THREAD 5000
-#define CL_TIMER_MAX_PARALLEL_THREAD 20000
 #define CL_TIMER_FREQUENCY (10)  /*10 millisecs*/
 #define CL_TIMER_CLUSTER_FREQUENCY_USEC (10000000L)
 #define CL_TIMER_CLUSTER_VERSION (0x1)
@@ -50,8 +48,7 @@
 
 namespace SAFplus
 {
-
-    ClRcT timerInitialize(ClPtrT config);
+    ClRcT timerInitialize(ClPtrT config, ClInt32T maxTimer=3000);
     ClRcT timerFinalize(void);
     class TimerPoolable: public Poolable
     {
