@@ -1064,14 +1064,6 @@ class ASPInstaller:
                 # For some reason these build commands had to be deferred (they may rely on previously build stuff, or preinstall)
                 if type(dep.build_cmds) == types.FunctionType:
                     dep.build_cmds = dep.build_cmds()
-                if dep.name == 'tipc-config':
-                    tipcPkgName = dep.pkg_name
-                    syscall('tar xfm "%s" %s' % (self.THIRDPARTYPKG_PATH,tipcPkgName))    # pull out of pkg
-                    syscall('tar zxf %s' % tipcPkgName)
-                    exdir = tipcPkgName.replace('.tar.gz', '').replace('.tgz', '')
-                    self.feedback('cp -f %s/include/linux/tipc.h /usr/include/linux/' %(exdir))
-                    syscall('cp -f %s/include/linux/tipc.h /usr/include/linux/' %(exdir))
-                    syscall('cp -f %s/include/linux/tipc_config.h /usr/include/linux/' %(exdir))
                 # execute commands to build package
                 for cmd in dep.build_cmds:
                 
