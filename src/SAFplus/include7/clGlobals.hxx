@@ -87,7 +87,7 @@ namespace SAFplus
     LOG = LibSet::LOG | LibSet::OSAL | LibSet::UTILS,
     OSAL = LibSet::OSAL | LibSet::LOG | LibSet::UTILS,
     UTILS = LibSet::UTILS | LibSet::OSAL,
-    IOC = LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
+    IOC = LibSet::IOC | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
     #if 0
     CKPT = LibSet::CKPT | LibSet::IOC | LibSet::UTILS | LibSet::GRP,
     GRP = LibSet::GRP | LibSet::CKPT | LibSet::IOC,
@@ -121,12 +121,18 @@ namespace SAFplus
   }  
 
   extern void utilsInitialize() __attribute__((weak));
-  extern Logger* logInitialize(void) __attribute__((weak));
-  extern ClRcT clOsalInitialize(const ClPtrT pConfig) __attribute__((weak));
-  extern ClRcT clIocLibInitialize(ClPtrT pConfig) __attribute__((weak));
+  extern Logger* logInitialize(void) __attribute__((weak));    
+#ifdef __cplusplus
+extern "C" {
+#endif 
+  extern ClRcT clIocLibInitialize(ClPtrT pConfig) __attribute__((weak)); 
+  extern ClRcT clOsalInitialize(const ClPtrT pConfig) __attribute__((weak));  
   extern ClRcT clHeapInit(void) __attribute__((weak));
   extern ClRcT clBufferInitialize(const ClBufferPoolConfigT *pConfig) __attribute__((weak));
   extern ClRcT clTimerInitialize (ClPtrT pConfig) __attribute__((weak));
+#ifdef __cplusplus
+}
+#endif
 
   inline void safplusInitialize(LibDep svc)
   {
@@ -143,7 +149,7 @@ namespace SAFplus
     if(svc&LibSet::TIMER)
       if(clTimerInitialize) assert(clTimerInitialize(NULL) == CL_OK);
     if(svc&LibSet::IOC)
-      if(clIocLibInitialize) assert(clIocLibInitialize(NULL) == CL_OK);    
+      if(clIocLibInitialize) assert(clIocLibInitialize(NULL) == CL_OK);         
   }
 
   };
