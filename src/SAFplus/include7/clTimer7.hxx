@@ -12,6 +12,8 @@
 // Standard includes
 #include <string>
 #include <boost/unordered_map.hpp>
+#include <boost/intrusive/rbtree.hpp>
+#include <boost/noncopyable.hpp>
 #include <functional>
 // SAFplus includes
 #include <stdio.h>
@@ -29,12 +31,13 @@
 
 
 
+
 #define CL_TIMER_RUNNING  (0x1)
 #define CL_TIMER_STOPPED  (0x2)
 #define CL_TIMER_DELETED  (0x4)
 #define CL_TIMER_CLUSTER  (0x8)
-#define CL_TIMER_MIN_PARALLEL_THREAD 1
-#define CL_TIMER_MAX_PARALLEL_THREAD 20
+#define CL_TIMER_MIN_PARALLEL_THREAD 5000
+#define CL_TIMER_MAX_PARALLEL_THREAD 20000
 #define CL_TIMER_FREQUENCY (10)  /*10 millisecs*/
 #define CL_TIMER_CLUSTER_FREQUENCY_USEC (10000000L)
 #define CL_TIMER_CLUSTER_VERSION (0x1)
@@ -66,10 +69,10 @@ namespace SAFplus
 
          }
     };
-    class Timer
+    class Timer : public boost::intrusive::set_base_hook<boost::intrusive::optimize_size<true>>
     {
       public:
-        ClRbTreeT timerList;
+        //ClRbTreeT timerList;
         ClTimerTypeT timerType;
         ClTimerContextT timerContext;
         ClTimeT timerTimeOut;
@@ -88,18 +91,14 @@ namespace SAFplus
         void timerDelCallbackTask(ClInt16T freeIndex);
         ClInt16T timerAddCallbackTask();
         void timerInitCallbackTask();
-        ClBoolT timerMatchCallbackTask(ClOsalTaskIdT *pSelfId);
         ClRcT timerStartInternal(ClTimeT expiry,ClBoolT locked);
         ClRcT timerStop();
-        ClRcT timerDeleteLocked(ClBoolT asyncFlag, ClBoolT *pFreeTimer);
-        ClRcT timerDeleteInternal(ClBoolT asyncFlag);
         ClRcT timerState(ClBoolT flags, ClBoolT *pState);
         ClRcT timerStart();
         ClRcT timerUpdate(ClTimerTimeOutT newTimeOut);
         ClRcT timerRestart (ClTimerHandleT  timerHandle);
         ClRcT timerIsStopped(ClBoolT *pState);
         ClRcT timerIsRunning(ClTimerHandleT timerHandle, ClBoolT *pState);
-        ClRcT timerCheckAndDelete();
         ClRcT timerCreate(ClTimerTimeOutT timeOut,
                             ClTimerTypeT timerType,
                             ClTimerContextT timerContext,
@@ -110,8 +109,6 @@ namespace SAFplus
                                     ClTimerContextT timerContext,
                                     ClTimerCallBackT timerCallback,
                                     void *timerData);
-        ClRcT timerDelete();
-        ClRcT timerDeleteAsync();
         Timer()
         {
 
@@ -125,6 +122,14 @@ namespace SAFplus
             timerCreate(timeOut,timerType,timerContext,timerCallback,timerData);
         }
         ~Timer();
+        friend bool operator< (const Timer &a, const Timer &b)
+           {  return a.timerExpiry < b.timerExpiry;  }
+        friend bool operator> (const Timer &a, const Timer &b)
+           {  return a.timerExpiry >= b.timerExpiry;  }
+//        friend bool operator== (const Timer &a, const Timer &b)
+//           {  return a.timerExpiry == b.timerExpiry;  }
+
+
 
 
 
@@ -137,7 +142,8 @@ namespace SAFplus
         ClBoolT timerRunning;
         ClOsalMutexT timerListLock;
         ClTimeT now;
-        ClRbTreeRootT timerTree;
+        //ClRbTreeRootT timerTree;
+        boost::intrusive::rbtree<Timer> timerTree;
         ClOsalTaskIdT timerId;
         ClUint32T runningTimers;
         ClTimeT frequency;
@@ -153,6 +159,12 @@ namespace SAFplus
         ~TimerBase()
         {
 
+        }
+        Timer *get_rbtree_min()
+        {
+           boost::intrusive::rbtree<Timer>::iterator it = timerTree.begin();
+//           if( it == timerTree.end())  return 0;
+           return &*it;
         }
     };
     static ClInt32T timerCompare(ClRbTreeT *refTimer, ClRbTreeT *timer);

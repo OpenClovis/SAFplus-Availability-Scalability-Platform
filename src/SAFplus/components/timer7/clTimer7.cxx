@@ -54,22 +54,10 @@ static ClHandleT gTimerDebugReg;
 
 SAFplus::TimerBase gTimerBase;
 
-static ClInt32T SAFplus::timerCompare(ClRbTreeT *refTimer, ClRbTreeT *timer)
-{
-    Timer *timer1  = CL_RBTREE_ENTRY(refTimer, Timer, timerList);
-    Timer *timer2 =  CL_RBTREE_ENTRY(timer, Timer, timerList);
-    if(timer1->timerExpiry > timer2->timerExpiry)
-        return 1;
-    else if(timer1->timerExpiry < timer2->timerExpiry)
-        return -1;
-    return 0;
-}
 
 SAFplus::TimerBase::TimerBase(): pool(CL_TIMER_MIN_PARALLEL_THREAD,CL_TIMER_MAX_PARALLEL_THREAD)
 {
-    timerTree.root = NULL;
-    timerTree.nodes = 0;
-    timerTree.compare = SAFplus::timerCompare;
+
 }
 ClRcT SAFplus::TimerBase::TimerBaseInitialize()
 {
@@ -82,12 +70,14 @@ ClRcT SAFplus::TimerBase::TimerBaseInitialize()
  * Run the sorted timer list expiring timers.
  * Called with the timer list lock held.
  */
+
 ClRcT SAFplus::TimerBase::timerRun(void)
 {
     ClInt32T recalcInterval = 15; /*recalculate time after expiring this much*/
     ClInt64T timers = 0;
-    ClRbTreeT *iter = NULL;
-    ClRbTreeRootT *root = &this->timerTree;
+    //ClRbTreeT *iter = NULL;
+    //ClRbTreeRootT *root = &this->timerTree;
+    //boost::intrusive::rbtree<Timer>::iterator iter();
     ClTimeT now = this->now;
     /*
      * We take the minimum treenode at each iteration since we will drop the lock
@@ -97,33 +87,37 @@ ClRcT SAFplus::TimerBase::timerRun(void)
      * from the tree node.
      */
 
-    while ( (iter = clRbTreeMin(root)) )
+    while (1)
     {
-        Timer *pTimer = NULL;
+        Timer *pTimer = this->get_rbtree_min();
+        if(!pTimer)
+        {
+            break;
+        }
         ClTimerCallBackT timerCallback;
         ClPtrT timerData;
         ClTimerTypeT timerType;
         ClTimerContextT timerContext;
         ClInt16T callbackTaskIndex = -1;
-
         if( !(++timers & recalcInterval) )
         {
             this->timeUpdate();
             now = this->now;
         }
-        pTimer = CL_RBTREE_ENTRY(iter, Timer, timerList);
-        if(pTimer->timerExpiry > now) break;
-
+        if(pTimer->timerExpiry > now)
+        {
+            break;
+        }
         timerCallback = pTimer->timerCallback;
         timerData = pTimer->timerData;
         timerType = pTimer->timerType;
         timerContext = pTimer->timerContext;
         /*Knock off from this list*/
-        clRbTreeDelete(root, iter);
+        this->timerTree.erase(*pTimer);
         if(timerType == CL_TIMER_REPETITIVE && timerContext == CL_TIMER_TASK_CONTEXT)
         {
             CL_REPETITIVE_TIMER_SET_EXPIRY(pTimer);
-            clRbTreeInsert(root, iter);
+            this->timerTree.insert_unique(*pTimer);
         }
 
         /*
@@ -217,14 +211,12 @@ ClRcT SAFplus::TimerBase::timerRun(void)
     return CL_OK;
 }
 
-
 ClRcT timerCallbackTask(ClPtrT invocation)
 {
     SAFplus::Timer *pTimer = (SAFplus::Timer*)invocation;
     ClTimerTypeT type = pTimer->timerType;
     ClBoolT canFree = CL_FALSE;
     ClInt16T callbackTaskIndex = -1;
-    //clOsalMutexLock(&gTimerBase.clusterListLock);
     clOsalMutexLock(&gTimerBase.timerListLock);
 
     if(gClTimerDebug)
@@ -272,7 +264,7 @@ ClRcT timerCallbackTask(ClPtrT invocation)
     {
         gTimerBase.timeUpdate();
         CL_REPETITIVE_TIMER_SET_EXPIRY(pTimer);
-        clRbTreeInsert(&gTimerBase.timerTree, &pTimer->timerList);
+        gTimerBase.timerTree.insert_unique(*pTimer);
     }
     clOsalMutexUnlock(&gTimerBase.timerListLock);
     pTimer->timerCallback(pTimer->timerData);
@@ -405,7 +397,6 @@ ClRcT SAFplus::Timer::timerCreate(ClTimerTimeOutT timeOut,
     ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
 
     CL_TIMER_INITIALIZED_CHECK(rc,out);
-    logInfo("TIMER7","CREATE", "Timer7 create timer");
     if(!timerCallback)
     {
         rc = CL_TIMER_RC(CL_TIMER_ERR_NULL_TIMER_CALLBACK);
@@ -444,23 +435,6 @@ ClRcT SAFplus::Timer::timerCreate(ClTimerTimeOutT timeOut,
     return rc;
 }
 
-ClBoolT SAFplus::Timer::timerMatchCallbackTask(ClOsalTaskIdT *pSelfId)
-{
-    ClInt32T i;
-    ClOsalTaskIdT selfId = 0;
-    if(!pSelfId)
-        pSelfId = &selfId;
-    if(!*pSelfId && clOsalSelfTaskIdGet(pSelfId) != CL_OK)
-        return CL_FALSE;
-    selfId = *pSelfId;
-    for(i = 0; i < CL_TIMER_MAX_PARALLEL_TASKS; ++i)
-    {
-        if(selfId == this->callbackTaskIds[i])
-            return CL_TRUE;
-    }
-    return CL_FALSE;
-}
-
 ClRcT SAFplus::Timer::timerStartInternal(ClTimeT expiry,ClBoolT locked)
 {
     ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
@@ -487,8 +461,9 @@ ClRcT SAFplus::Timer::timerStartInternal(ClTimeT expiry,ClBoolT locked)
     /*
      * add to the rb tree.
      */
-    clRbTreeInsert(&gTimerBase.timerTree, &this->timerList);
-
+    //clRbTreeInsert(&gTimerBase.timerTree, &this->timerList);
+    logDebug("TIMER", "DEL", "INSERT TO RBTREE with time expire [%ld]",this->timerExpiry);
+    gTimerBase.timerTree.insert_unique(*this);
     if(gClTimerDebug)
         this->startTime = clOsalStopWatchTimeGet();
 
@@ -513,95 +488,7 @@ ClRcT SAFplus::Timer::timerStop()
     /*Reset timer expiry. and rip this guy off from the list.*/
     this->timerExpiry = 0;
     this->timerFlags |= CL_TIMER_STOPPED;
-    clRbTreeDelete(&gTimerBase.timerTree, &this->timerList);
-    clOsalMutexUnlock(&gTimerBase.timerListLock);
-    out:
-    return rc;
-}
-
-ClRcT SAFplus::Timer::timerDeleteLocked(ClBoolT asyncFlag, ClBoolT *pFreeTimer)
-{
-    ClRcT rc = CL_OK;
-    ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 50 };
-    ClInt32T runCounter = 0;
-    ClOsalTaskIdT selfId = 0;
-
-    rc = CL_TIMER_RC(CL_ERR_OP_NOT_PERMITTED);
-
-    if(this->timerType == CL_TIMER_VOLATILE)
-    {
-        logError("TIMER7","DEL", "Timer delete failed: Volatile auto-delete timer tried to be deleted");
-        goto out;
-    }
-
-    clRbTreeDelete(&gTimerBase.timerTree, &this->timerList);
-
-    clOsalSelfTaskIdGet(&selfId);
-
-    if((this->timerFlags & CL_TIMER_RUNNING)
-       &&
-       this->timerRefCnt > 0)
-    {
-        if(asyncFlag || this->timerMatchCallbackTask( &selfId))
-        {
-            rc = CL_OK;
-            this->timerFlags |= CL_TIMER_DELETED;
-            goto out;
-        }
-        /*
-         * If we get a DELETE request for a running timer outside callback thread context,
-         * we would block till the timer is not running.
-         */
-        while((this->timerFlags & CL_TIMER_RUNNING)
-              &&
-              this->timerRefCnt > 0)
-        {
-            clOsalMutexUnlock(&gTimerBase.timerListLock);
-            //clOsalMutexUnlock(&gTimerBase.clusterListLock);
-            if(runCounter
-               &&
-               !(runCounter & 255))
-            {
-                logInfo("TIMER", "DEL", "Task [%#llx] waiting for timer callback task to exit",
-                             selfId);
-            }
-            clOsalTaskDelay(delay);
-            ++runCounter;
-            runCounter &= 32767;
-            clOsalMutexLock(&gTimerBase.timerListLock);
-        }
-    }
-
-    if(pFreeTimer)
-    {
-        *pFreeTimer = CL_TRUE;
-    }
-
-    rc = CL_OK;
-
-    out:
-    return rc;
-}
-
-/*
- * CANNOT BE INVOKED FROM THE timer callback thats RUNNING.
- */
-ClRcT SAFplus::Timer::timerDeleteInternal(ClBoolT asyncFlag)
-{
-    ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
-    ClBoolT freeTimer = CL_FALSE;
-
-    CL_TIMER_INITIALIZED_CHECK(rc,out);
-
-    if(this == NULL)
-    {
-        clDbgCodeError(rc, ("Timer delete failed: Bad timer handle storage"));
-        goto out;
-    }
-
-
-    clOsalMutexLock(&gTimerBase.timerListLock);
-    this->timerDeleteLocked(asyncFlag, &freeTimer);
+    gTimerBase.timerTree.erase(boost::intrusive::rbtree<Timer>::s_iterator_to(*this));
     clOsalMutexUnlock(&gTimerBase.timerListLock);
     out:
     return rc;
@@ -632,8 +519,9 @@ ClRcT SAFplus::Timer::timerUpdate(ClTimerTimeOutT newTimeOut)
     this->timerTimeOut = (ClTimeT)((ClTimeT)newTimeOut.tsSec * 1000000 + newTimeOut.tsMilliSec * 1000);
     gTimerBase.timeUpdate();
     CL_TIMER_SET_EXPIRY(this);
+    gTimerBase.timerTree.insert_unique(*this);
 
-    clRbTreeInsert(&gTimerBase.timerTree, &this->timerList);
+
 
     if(gClTimerDebug)
         this->startTime = clOsalStopWatchTimeGet();
@@ -705,27 +593,6 @@ ClRcT SAFplus::Timer::timerIsRunning(ClTimerHandleT timerHandle, ClBoolT *pState
     return rc;
 }
 
-ClRcT SAFplus::Timer::timerCheckAndDelete()
-{
-    ClRcT rc = CL_TIMER_RC(CL_ERR_INVALID_PARAMETER);
-    ClBoolT freeTimer = CL_FALSE;
-
-    clOsalMutexLock(&gTimerBase.timerListLock);
-    if(!(this->timerFlags & CL_TIMER_RUNNING))
-    {
-        rc = this->timerDeleteLocked(CL_TRUE, &freeTimer);
-    }
-    else
-    {
-        rc = CL_TIMER_RC(CL_ERR_BAD_OPERATION);
-    }
-
-    clOsalMutexUnlock(&gTimerBase.timerListLock);
-
-    out:
-    return rc;
-}
-
 ClRcT SAFplus::Timer::timerCreateAndStart(ClTimerTimeOutT timeOut,
                             ClTimerTypeT timerType,
                             ClTimerContextT timerContext,
@@ -749,15 +616,7 @@ ClRcT SAFplus::Timer::timerCreateAndStart(ClTimerTimeOutT timeOut,
 /*
  * Dont call it under a callback.
  */
-ClRcT SAFplus::Timer::timerDelete()
-{
-    return this->timerDeleteInternal(CL_FALSE);
-}
 
-ClRcT SAFplus::Timer::timerDeleteAsync()
-{
-    return this->timerDeleteInternal(CL_TRUE);
-}
 ClRcT SAFplus::timerInitialize(ClPtrT config)
 {
     ClRcT rc = CL_TIMER_RC(CL_ERR_INITIALIZED);
