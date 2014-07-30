@@ -122,9 +122,9 @@ namespace SAFplus
         friend bool operator< (const Timer &a, const Timer &b)
            {  return a.timerExpiry < b.timerExpiry;  }
         friend bool operator> (const Timer &a, const Timer &b)
-           {  return a.timerExpiry >= b.timerExpiry;  }
-//        friend bool operator== (const Timer &a, const Timer &b)
-//           {  return a.timerExpiry == b.timerExpiry;  }
+           {  return a.timerExpiry > b.timerExpiry;  }
+        friend bool operator== (const Timer &a, const Timer &b)
+           {  return a.timerExpiry == b.timerExpiry;  }
 
 
 

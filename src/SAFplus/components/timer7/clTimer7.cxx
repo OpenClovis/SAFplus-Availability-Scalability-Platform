@@ -17,11 +17,8 @@ extern ClBoolT gIsNodeRepresentative;
 static ClBoolT gClTimerDebug = CL_FALSE;
 static ClOsalMutexT gClTimerDebugLock;
 static ClHandleT gTimerDebugReg;
-ClInt32T CL_TIMER_MIN_PARALLEL_THREAD=3000;
-ClInt32T CL_TIMER_MAX_PARALLEL_THREAD=20000;
-
-
-
+ClInt32T timerMinParallelThread=3000;
+ClInt32T timerMaxParallelThread=20000;
 
 #define CL_TIMER_INITIALIZED_CHECK(rc,label) do {   \
     if(gTimerBase.initialized == CL_FALSE)          \
@@ -58,7 +55,7 @@ ClInt32T CL_TIMER_MAX_PARALLEL_THREAD=20000;
 SAFplus::TimerBase gTimerBase;
 
 
-SAFplus::TimerBase::TimerBase(): pool(CL_TIMER_MIN_PARALLEL_THREAD,CL_TIMER_MAX_PARALLEL_THREAD)
+SAFplus::TimerBase::TimerBase(): pool(timerMinParallelThread,timerMaxParallelThread)
 {
 
 }
@@ -622,7 +619,7 @@ ClRcT SAFplus::Timer::timerCreateAndStart(ClTimerTimeOutT timeOut,
 
 ClRcT SAFplus::timerInitialize(ClPtrT config, ClInt32T maxTimer)
 {
-    CL_TIMER_MIN_PARALLEL_THREAD=maxTimer;
+    timerMinParallelThread=maxTimer;
     logDebug("TIMER", "START", "Init timer with [%ld] thread pools",maxTimer);
     ClRcT rc = CL_TIMER_RC(CL_ERR_INITIALIZED);
     if(gTimerBase.initialized == CL_TRUE)
