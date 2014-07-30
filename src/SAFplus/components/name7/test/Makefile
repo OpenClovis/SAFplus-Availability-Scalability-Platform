@@ -13,7 +13,8 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LIBS := clName clIoc7 clGroup clUtils7 clOsal7 clCkpt clLog
 # Then use these in the make rule
 #SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
-SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS)) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 #-L/home/hung/DATA/a31/3rdparty/build/lib -lxml2
+#SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS)) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L/home/hung/DATA/a31/3rdparty/build/lib -lxml2 #-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS)) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2
 
 all: $(TEST_DIR)/testName
 
