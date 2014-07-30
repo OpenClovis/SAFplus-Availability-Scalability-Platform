@@ -205,8 +205,8 @@ fi
 # If we've installed Java, use that instead of a potentially incompatible
 # local copy
 
-if [ -d $CL_BUILDTOOLS/local/jre1.5.0_03 ]; then
-	export PATH=$CL_BUILDTOOLS/local/jre1.5.0_03/bin:$PATH
+if [ -d $CL_BUILDTOOLS/local/jre1.7.0_65 ]; then
+	export PATH=$CL_BUILDTOOLS/local/jre1.7.0_65/bin:$PATH
 fi
 
 if [ -z "$WORKSPACE_NAME" -o -z "$PROJECT_NAME" -o -z "$PROJECT_AREA_LOCATION" -o -z "$PYTHON_LOCATION" ]; then

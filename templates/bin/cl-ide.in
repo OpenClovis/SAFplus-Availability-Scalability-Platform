@@ -143,8 +143,8 @@ fi
 # If we've installed Java, use that instead of a potentially incompatible
 # local copy
 
-if [ -d $CL_BUILDTOOLS/local/jre1.6.0_21 ]; then
-	export PATH=$CL_BUILDTOOLS/local/jre1.6.0_21/bin:$PATH
+if [ -d $CL_BUILDTOOLS/local/jre1.7.0_65 ]; then
+	export PATH=$CL_BUILDTOOLS/local/jre1.7.0_65/bin:$PATH
 fi
 
 export PATH=$CL_BUILDTOOLS/local/bin:$PATH
