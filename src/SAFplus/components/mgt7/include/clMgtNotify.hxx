@@ -82,7 +82,7 @@ public:
     /**
      * Function to send notification to the netconf server
      */
-    void sendNotification();
+    void sendNotification(SAFplus::Handle hdl);
 };
 };
 

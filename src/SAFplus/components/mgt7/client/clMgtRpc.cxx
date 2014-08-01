@@ -74,12 +74,12 @@ namespace SAFplus
   }
 
 
-  void MgtRpc::getOutParams(void **ppBuffer, ClUint64T *pBuffLen)
+  void MgtRpc::getOutParams(std::string *ppBuffer, ClUint64T *pBuffLen)
   {
     mOutParams.get(ppBuffer,pBuffLen);
   }
 
-  ClRcT MgtRpc::registerRpc()
+  ClRcT MgtRpc::registerRpc(SAFplus::Handle handle)
   {
     if (!strcmp(Module.c_str(), ""))
       {
@@ -87,7 +87,7 @@ namespace SAFplus
         return CL_ERR_NOT_EXIST;
       }
 
-    return MgtRoot::getInstance()->registerRpc(Module, name);
+    return MgtRoot::getInstance()->registerRpc(handle,Module, name);
   }
 
 }

@@ -67,7 +67,7 @@ public:
   };
 
 volatile bool    quitting=false;  // Set to true to tell all threads to quit
-Group            clusterGroup(SAFplus::Group::DATA_IN_CHECKPOINT);
+Group            clusterGroup("SAFAMF",SAFplus::Group::DATA_IN_CHECKPOINT);
 ClusterGroupData clusterGroupData;  // The info we tell other nodes about this node.
 Handle           myHandle;  // This handle resolves to THIS process.
 Handle           nodeHandle; //? The handle associated with this node

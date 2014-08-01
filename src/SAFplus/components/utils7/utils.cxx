@@ -469,6 +469,14 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
     return hdl;
     }
 
+  Handle Handle::create(uint64_t id0,uint64_t id1)
+  {
+    Handle hdl = create(0);
+    hdl.id[0] = id0;
+    hdl.id[1] = id1;
+    return hdl;
+  }
+
   uint64_t Handle::uniqueId(void)
     {
     uint64_t tmp = curHandleIdx;

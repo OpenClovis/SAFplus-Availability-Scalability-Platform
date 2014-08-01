@@ -69,7 +69,7 @@ namespace SAFplus
     ClBoolT setInParams(void *pBuffer, ClUint64T buffLen);
 
 
-    void getOutParams(void **ppBuffer, ClUint64T *pBuffLen);
+    void getOutParams(std::string *pBuff, ClUint64T *pBuffLen);
 
 
     virtual ClBoolT validate() = 0;
@@ -82,7 +82,7 @@ namespace SAFplus
      * \return  CL_ERR_NOT_EXIST        MGT module does not exist
      * \return  CL_ERR_ALREADY_EXIST    Rpc already exists
      */
-    ClRcT registerRpc();
+    ClRcT registerRpc(SAFplus::Handle handle);
   };
 };
 

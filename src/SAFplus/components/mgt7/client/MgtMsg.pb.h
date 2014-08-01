@@ -37,9 +37,30 @@ void protobuf_ShutdownFile_MgtMsg_2eproto();
 
 class Handle;
 class MsgBind;
-class MsgData;
+class MsgRpc;
+class MsgSetGet;
 class MsgMgt;
 
+enum MsgRpc_MgtRpcType {
+  MsgRpc_MgtRpcType_CL_MGT_RPC_VALIDATE = 1,
+  MsgRpc_MgtRpcType_CL_MGT_RPC_INVOKE = 2,
+  MsgRpc_MgtRpcType_CL_MGT_RPC_POSTREPLY = 3
+};
+bool MsgRpc_MgtRpcType_IsValid(int value);
+const MsgRpc_MgtRpcType MsgRpc_MgtRpcType_MgtRpcType_MIN = MsgRpc_MgtRpcType_CL_MGT_RPC_VALIDATE;
+const MsgRpc_MgtRpcType MsgRpc_MgtRpcType_MgtRpcType_MAX = MsgRpc_MgtRpcType_CL_MGT_RPC_POSTREPLY;
+const int MsgRpc_MgtRpcType_MgtRpcType_ARRAYSIZE = MsgRpc_MgtRpcType_MgtRpcType_MAX + 1;
+
+const ::google::protobuf::EnumDescriptor* MsgRpc_MgtRpcType_descriptor();
+inline const ::std::string& MsgRpc_MgtRpcType_Name(MsgRpc_MgtRpcType value) {
+  return ::google::protobuf::internal::NameOfEnum(
+    MsgRpc_MgtRpcType_descriptor(), value);
+}
+inline bool MsgRpc_MgtRpcType_Parse(
+    const ::std::string& name, MsgRpc_MgtRpcType* value) {
+  return ::google::protobuf::internal::ParseNamedEnum<MsgRpc_MgtRpcType>(
+    MsgRpc_MgtRpcType_descriptor(), name, value);
+}
 enum MsgMgt_MgtMsgType {
   MsgMgt_MgtMsgType_CL_MGT_MSG_UNUSED = 0,
   MsgMgt_MgtMsgType_CL_MGT_MSG_BIND = 1,
@@ -272,14 +293,14 @@ class MsgBind : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
-class MsgData : public ::google::protobuf::Message {
+class MsgRpc : public ::google::protobuf::Message {
  public:
-  MsgData();
-  virtual ~MsgData();
+  MsgRpc();
+  virtual ~MsgRpc();
 
-  MsgData(const MsgData& from);
+  MsgRpc(const MsgRpc& from);
 
-  inline MsgData& operator=(const MsgData& from) {
+  inline MsgRpc& operator=(const MsgRpc& from) {
     CopyFrom(from);
     return *this;
   }
@@ -293,17 +314,139 @@ class MsgData : public ::google::protobuf::Message {
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const MsgData& default_instance();
+  static const MsgRpc& default_instance();
 
-  void Swap(MsgData* other);
+  void Swap(MsgRpc* other);
 
   // implements Message ----------------------------------------------
 
-  MsgData* New() const;
+  MsgRpc* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const MsgData& from);
-  void MergeFrom(const MsgData& from);
+  void CopyFrom(const MsgRpc& from);
+  void MergeFrom(const MsgRpc& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  typedef MsgRpc_MgtRpcType MgtRpcType;
+  static const MgtRpcType CL_MGT_RPC_VALIDATE = MsgRpc_MgtRpcType_CL_MGT_RPC_VALIDATE;
+  static const MgtRpcType CL_MGT_RPC_INVOKE = MsgRpc_MgtRpcType_CL_MGT_RPC_INVOKE;
+  static const MgtRpcType CL_MGT_RPC_POSTREPLY = MsgRpc_MgtRpcType_CL_MGT_RPC_POSTREPLY;
+  static inline bool MgtRpcType_IsValid(int value) {
+    return MsgRpc_MgtRpcType_IsValid(value);
+  }
+  static const MgtRpcType MgtRpcType_MIN =
+    MsgRpc_MgtRpcType_MgtRpcType_MIN;
+  static const MgtRpcType MgtRpcType_MAX =
+    MsgRpc_MgtRpcType_MgtRpcType_MAX;
+  static const int MgtRpcType_ARRAYSIZE =
+    MsgRpc_MgtRpcType_MgtRpcType_ARRAYSIZE;
+  static inline const ::google::protobuf::EnumDescriptor*
+  MgtRpcType_descriptor() {
+    return MsgRpc_MgtRpcType_descriptor();
+  }
+  static inline const ::std::string& MgtRpcType_Name(MgtRpcType value) {
+    return MsgRpc_MgtRpcType_Name(value);
+  }
+  static inline bool MgtRpcType_Parse(const ::std::string& name,
+      MgtRpcType* value) {
+    return MsgRpc_MgtRpcType_Parse(name, value);
+  }
+
+  // accessors -------------------------------------------------------
+
+  // required int32 rpctype = 1;
+  inline bool has_rpctype() const;
+  inline void clear_rpctype();
+  static const int kRpctypeFieldNumber = 1;
+  inline ::google::protobuf::int32 rpctype() const;
+  inline void set_rpctype(::google::protobuf::int32 value);
+
+  // optional string data = 2;
+  inline bool has_data() const;
+  inline void clear_data();
+  static const int kDataFieldNumber = 2;
+  inline const ::std::string& data() const;
+  inline void set_data(const ::std::string& value);
+  inline void set_data(const char* value);
+  inline void set_data(const char* value, size_t size);
+  inline ::std::string* mutable_data();
+  inline ::std::string* release_data();
+  inline void set_allocated_data(::std::string* data);
+
+  // @@protoc_insertion_point(class_scope:Mgt.Msg.MsgRpc)
+ private:
+  inline void set_has_rpctype();
+  inline void clear_has_rpctype();
+  inline void set_has_data();
+  inline void clear_has_data();
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::std::string* data_;
+  ::google::protobuf::int32 rpctype_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+
+  friend void  protobuf_AddDesc_MgtMsg_2eproto();
+  friend void protobuf_AssignDesc_MgtMsg_2eproto();
+  friend void protobuf_ShutdownFile_MgtMsg_2eproto();
+
+  void InitAsDefaultInstance();
+  static MsgRpc* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class MsgSetGet : public ::google::protobuf::Message {
+ public:
+  MsgSetGet();
+  virtual ~MsgSetGet();
+
+  MsgSetGet(const MsgSetGet& from);
+
+  inline MsgSetGet& operator=(const MsgSetGet& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const MsgSetGet& default_instance();
+
+  void Swap(MsgSetGet* other);
+
+  // implements Message ----------------------------------------------
+
+  MsgSetGet* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const MsgSetGet& from);
+  void MergeFrom(const MsgSetGet& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -326,51 +469,36 @@ class MsgData : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required string route = 1;
-  inline bool has_route() const;
-  inline void clear_route();
-  static const int kRouteFieldNumber = 1;
-  inline const ::std::string& route() const;
-  inline void set_route(const ::std::string& value);
-  inline void set_route(const char* value);
-  inline void set_route(const char* value, size_t size);
-  inline ::std::string* mutable_route();
-  inline ::std::string* release_route();
-  inline void set_allocated_route(::std::string* route);
+  // optional string data = 2;
+  inline bool has_data() const;
+  inline void clear_data();
+  static const int kDataFieldNumber = 2;
+  inline const ::std::string& data() const;
+  inline void set_data(const ::std::string& value);
+  inline void set_data(const char* value);
+  inline void set_data(const char* value, size_t size);
+  inline ::std::string* mutable_data();
+  inline ::std::string* release_data();
+  inline void set_allocated_data(::std::string* data);
 
-  // optional string value = 2;
-  inline bool has_value() const;
-  inline void clear_value();
-  static const int kValueFieldNumber = 2;
-  inline const ::std::string& value() const;
-  inline void set_value(const ::std::string& value);
-  inline void set_value(const char* value);
-  inline void set_value(const char* value, size_t size);
-  inline ::std::string* mutable_value();
-  inline ::std::string* release_value();
-  inline void set_allocated_value(::std::string* value);
-
-  // @@protoc_insertion_point(class_scope:Mgt.Msg.MsgData)
+  // @@protoc_insertion_point(class_scope:Mgt.Msg.MsgSetGet)
  private:
-  inline void set_has_route();
-  inline void clear_has_route();
-  inline void set_has_value();
-  inline void clear_has_value();
+  inline void set_has_data();
+  inline void clear_has_data();
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
-  ::std::string* route_;
-  ::std::string* value_;
+  ::std::string* data_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
 
   friend void  protobuf_AddDesc_MgtMsg_2eproto();
   friend void protobuf_AssignDesc_MgtMsg_2eproto();
   friend void protobuf_ShutdownFile_MgtMsg_2eproto();
 
   void InitAsDefaultInstance();
-  static MsgData* default_instance_;
+  static MsgSetGet* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -750,145 +878,171 @@ inline void MsgBind::set_allocated_route(::std::string* route) {
 
 // -------------------------------------------------------------------
 
-// MsgData
+// MsgRpc
 
-// required string route = 1;
-inline bool MsgData::has_route() const {
+// required int32 rpctype = 1;
+inline bool MsgRpc::has_rpctype() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void MsgData::set_has_route() {
+inline void MsgRpc::set_has_rpctype() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void MsgData::clear_has_route() {
+inline void MsgRpc::clear_has_rpctype() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void MsgData::clear_route() {
-  if (route_ != &::google::protobuf::internal::kEmptyString) {
-    route_->clear();
+inline void MsgRpc::clear_rpctype() {
+  rpctype_ = 0;
+  clear_has_rpctype();
+}
+inline ::google::protobuf::int32 MsgRpc::rpctype() const {
+  return rpctype_;
+}
+inline void MsgRpc::set_rpctype(::google::protobuf::int32 value) {
+  set_has_rpctype();
+  rpctype_ = value;
+}
+
+// optional string data = 2;
+inline bool MsgRpc::has_data() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void MsgRpc::set_has_data() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void MsgRpc::clear_has_data() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void MsgRpc::clear_data() {
+  if (data_ != &::google::protobuf::internal::kEmptyString) {
+    data_->clear();
   }
-  clear_has_route();
+  clear_has_data();
 }
-inline const ::std::string& MsgData::route() const {
-  return *route_;
+inline const ::std::string& MsgRpc::data() const {
+  return *data_;
 }
-inline void MsgData::set_route(const ::std::string& value) {
-  set_has_route();
-  if (route_ == &::google::protobuf::internal::kEmptyString) {
-    route_ = new ::std::string;
+inline void MsgRpc::set_data(const ::std::string& value) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
   }
-  route_->assign(value);
+  data_->assign(value);
 }
-inline void MsgData::set_route(const char* value) {
-  set_has_route();
-  if (route_ == &::google::protobuf::internal::kEmptyString) {
-    route_ = new ::std::string;
+inline void MsgRpc::set_data(const char* value) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
   }
-  route_->assign(value);
+  data_->assign(value);
 }
-inline void MsgData::set_route(const char* value, size_t size) {
-  set_has_route();
-  if (route_ == &::google::protobuf::internal::kEmptyString) {
-    route_ = new ::std::string;
+inline void MsgRpc::set_data(const char* value, size_t size) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
   }
-  route_->assign(reinterpret_cast<const char*>(value), size);
+  data_->assign(reinterpret_cast<const char*>(value), size);
 }
-inline ::std::string* MsgData::mutable_route() {
-  set_has_route();
-  if (route_ == &::google::protobuf::internal::kEmptyString) {
-    route_ = new ::std::string;
+inline ::std::string* MsgRpc::mutable_data() {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
   }
-  return route_;
+  return data_;
 }
-inline ::std::string* MsgData::release_route() {
-  clear_has_route();
-  if (route_ == &::google::protobuf::internal::kEmptyString) {
+inline ::std::string* MsgRpc::release_data() {
+  clear_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
     return NULL;
   } else {
-    ::std::string* temp = route_;
-    route_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    ::std::string* temp = data_;
+    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
     return temp;
   }
 }
-inline void MsgData::set_allocated_route(::std::string* route) {
-  if (route_ != &::google::protobuf::internal::kEmptyString) {
-    delete route_;
+inline void MsgRpc::set_allocated_data(::std::string* data) {
+  if (data_ != &::google::protobuf::internal::kEmptyString) {
+    delete data_;
   }
-  if (route) {
-    set_has_route();
-    route_ = route;
+  if (data) {
+    set_has_data();
+    data_ = data;
   } else {
-    clear_has_route();
-    route_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    clear_has_data();
+    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   }
 }
 
-// optional string value = 2;
-inline bool MsgData::has_value() const {
-  return (_has_bits_[0] & 0x00000002u) != 0;
+// -------------------------------------------------------------------
+
+// MsgSetGet
+
+// optional string data = 2;
+inline bool MsgSetGet::has_data() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void MsgData::set_has_value() {
-  _has_bits_[0] |= 0x00000002u;
+inline void MsgSetGet::set_has_data() {
+  _has_bits_[0] |= 0x00000001u;
 }
-inline void MsgData::clear_has_value() {
-  _has_bits_[0] &= ~0x00000002u;
+inline void MsgSetGet::clear_has_data() {
+  _has_bits_[0] &= ~0x00000001u;
 }
-inline void MsgData::clear_value() {
-  if (value_ != &::google::protobuf::internal::kEmptyString) {
-    value_->clear();
+inline void MsgSetGet::clear_data() {
+  if (data_ != &::google::protobuf::internal::kEmptyString) {
+    data_->clear();
   }
-  clear_has_value();
+  clear_has_data();
 }
-inline const ::std::string& MsgData::value() const {
-  return *value_;
+inline const ::std::string& MsgSetGet::data() const {
+  return *data_;
 }
-inline void MsgData::set_value(const ::std::string& value) {
-  set_has_value();
-  if (value_ == &::google::protobuf::internal::kEmptyString) {
-    value_ = new ::std::string;
+inline void MsgSetGet::set_data(const ::std::string& value) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
   }
-  value_->assign(value);
+  data_->assign(value);
 }
-inline void MsgData::set_value(const char* value) {
-  set_has_value();
-  if (value_ == &::google::protobuf::internal::kEmptyString) {
-    value_ = new ::std::string;
+inline void MsgSetGet::set_data(const char* value) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
   }
-  value_->assign(value);
+  data_->assign(value);
 }
-inline void MsgData::set_value(const char* value, size_t size) {
-  set_has_value();
-  if (value_ == &::google::protobuf::internal::kEmptyString) {
-    value_ = new ::std::string;
+inline void MsgSetGet::set_data(const char* value, size_t size) {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
   }
-  value_->assign(reinterpret_cast<const char*>(value), size);
+  data_->assign(reinterpret_cast<const char*>(value), size);
 }
-inline ::std::string* MsgData::mutable_value() {
-  set_has_value();
-  if (value_ == &::google::protobuf::internal::kEmptyString) {
-    value_ = new ::std::string;
+inline ::std::string* MsgSetGet::mutable_data() {
+  set_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
+    data_ = new ::std::string;
   }
-  return value_;
+  return data_;
 }
-inline ::std::string* MsgData::release_value() {
-  clear_has_value();
-  if (value_ == &::google::protobuf::internal::kEmptyString) {
+inline ::std::string* MsgSetGet::release_data() {
+  clear_has_data();
+  if (data_ == &::google::protobuf::internal::kEmptyString) {
     return NULL;
   } else {
-    ::std::string* temp = value_;
-    value_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    ::std::string* temp = data_;
+    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
     return temp;
   }
 }
-inline void MsgData::set_allocated_value(::std::string* value) {
-  if (value_ != &::google::protobuf::internal::kEmptyString) {
-    delete value_;
+inline void MsgSetGet::set_allocated_data(::std::string* data) {
+  if (data_ != &::google::protobuf::internal::kEmptyString) {
+    delete data_;
   }
-  if (value) {
-    set_has_value();
-    value_ = value;
+  if (data) {
+    set_has_data();
+    data_ = data;
   } else {
-    clear_has_value();
-    value_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    clear_has_data();
+    data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   }
 }
 
@@ -1043,6 +1197,10 @@ MsgMgt::mutable_data() {
 namespace google {
 namespace protobuf {
 
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::Mgt::Msg::MsgRpc_MgtRpcType>() {
+  return ::Mgt::Msg::MsgRpc_MgtRpcType_descriptor();
+}
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::Mgt::Msg::MsgMgt_MgtMsgType>() {
   return ::Mgt::Msg::MsgMgt_MgtMsgType_descriptor();

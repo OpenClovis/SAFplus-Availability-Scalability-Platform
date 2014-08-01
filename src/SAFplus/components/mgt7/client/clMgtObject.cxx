@@ -369,21 +369,31 @@ namespace SAFplus
     }
 
 
-  void MgtObject::get(void **ppBuffer, ClUint64T *pBuffLen)
-    {
+//  void MgtObject::get(void **ppBuffer, ClUint64T *pBuffLen)
+//    {
+//    std::stringstream xmlString;
+//
+//    toString(xmlString);
+//
+//    *pBuffLen =  xmlString.str().length() + 1;
+//
+//    if (*ppBuffer == NULL)
+//      {
+//      *ppBuffer = (void *) calloc(*pBuffLen, sizeof(char));
+//      }
+//
+//    strncat((char *)*ppBuffer, xmlString.str().c_str(), *pBuffLen - 1 );
+//    }
+  void MgtObject::get(std::string *data, ClUint64T *datalen)
+  {
     std::stringstream xmlString;
-
+    if(data == NULL)
+      return;
     toString(xmlString);
-
-    *pBuffLen =  xmlString.str().length() + 1;
-
-    if (*ppBuffer == NULL)
-      {
-      *ppBuffer = (void *) calloc(*pBuffLen, sizeof(char));
-      }
-
-    strncat((char *)*ppBuffer, xmlString.str().c_str(), *pBuffLen - 1 );
-    }
+    logDebug("---","---","String: %s",xmlString.str().c_str());
+    *datalen =  xmlString.str().length() + 1;
+    data->assign(xmlString.str().c_str());
+  }
 
 #if 0
   ClBoolT MgtObject::isKeysMatch(std::map<std::string, std::string> *keys)
