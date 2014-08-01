@@ -1026,7 +1026,6 @@ class ASPInstaller:
                 #install TIPC online - asume that kernel source was installed
                 self.feedback('***Build and install tipc module***')
                 KERNEL_VERSION = syscall('uname -r')
-                syscall('pwd')
                 KERNEL_SOURCE_DIR = '/usr/src/kernels/%s' % KERNEL_VERSION
                 strin = self.get_user_feedback('Enter the kernel source directory [default: %s]: ' % KERNEL_SOURCE_DIR)
                 if strin :
@@ -1045,8 +1044,7 @@ class ASPInstaller:
                 #syscall('make prepare')
                 syscall('make modules_prepare 2>&1')
                 syscall('make init 2>&1')
-                logfile= ' >> %s 2>&1' % os.path.join(os.path.join(syscall('pwd'), 'log'), 'tipc' + '.log')
-                syscall('mkdir -p '+ os.path.join(syscall('pwd'), 'log'))
+                logfile= ' >> %s 2>&1' % os.path.join(os.path.join(self.WORKING_DIR, 'log'), 'tipc' + '.log')
                 self.feedback('make tipc module')
                 syscall('make M=net/tipc modules ' + logfile)
                 syscall('make M=net/tipc modules_install ' + logfile)

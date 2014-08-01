@@ -576,6 +576,41 @@ class RedHat5(OS):
             D = objects.RepoDep(name)
             self.pre_dep_list.append(D)
 
+# ------------------------------------------------------------------------------
+class RedHat6(OS):
+    
+    def pre_init(self):
+        self.name = 'Red Hat 6'
+        self.yum = True
+    
+    def load_preinstall_deps(self):
+        deps =  ['pkgconfig', 
+                 'libtool',
+                 'libtool-libs',
+                 'gcc',
+                 'gcc-c++',
+                 'gettext',
+                 'kernel-devel',
+                 'kernel-headers',
+                 'perl-devel',
+                 'db4',
+                 'db4-devel',
+                 'db4-utils',
+                 'e2fsprogs',
+                 'e2fsprogs-devel',
+                 'gdbm',
+                 'gdbm-devel',
+                 'sqlite', 
+                 'sqlite-devel',
+                 'zlib',
+                 'zlib-devel',
+                 'libuuid',
+                 'libuuid-devel']
+            
+            
+        for name in deps:
+            D = objects.RepoDep(name)
+            self.pre_dep_list.append(D)
 
 # ------------------------------------------------------------------------------
 class CentOS4(OS):
@@ -825,6 +860,7 @@ def determine_os():
                 # must be redhat
                 if 'release 4' in fdata: return RedHat4()
                 if 'release 5' in fdata: return RedHat5()
+                if 'release 6' in fdata: return RedHat6()
         
         # SUSE
         if os.path.isfile('/etc/SuSE-release'):
