@@ -42,6 +42,8 @@ ClInt32T gClSockType = SOCK_DGRAM;
 ClInt32T gClCmsgHdrLen;
 struct cmsghdr *gClCmsgHdr;
 static ClUint32T gClBindOffset;
+#define MAX_MESSAGE_LENGTH 65000
+
 
 typedef struct ClUdpAddrCacheEntry
 {
@@ -850,7 +852,7 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
 {
     ClRcT rc = CL_OK;
     ClIocUdpPrivateT *xportPrivate = (ClIocUdpPrivateT*) cookie;
-    ClUint8T buffer[0xffff+1];
+    ClUint8T* buffer = __iocMessagePoolGet();
     struct msghdr msgHdr;
     struct sockaddr peerAddress;
     struct iovec ioVector[1];
@@ -870,7 +872,7 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
     msgHdr.msg_control = (ClUint8T*)gClCmsgHdr;
     msgHdr.msg_controllen = gClCmsgHdrLen;
     ioVector[0].iov_base = (ClPtrT)buffer;
-    ioVector[0].iov_len = sizeof(buffer);
+    ioVector[0].iov_len = MAX_MESSAGE_LENGTH;
     msgHdr.msg_iov = ioVector;
     msgHdr.msg_iovlen = sizeof(ioVector)/sizeof(ioVector[0]);
     /*
@@ -891,6 +893,10 @@ static ClRcT udpDispatchCallback(ClInt32T fd, ClInt32T events, void *cookie)
     rc = clIocDispatchAsync(gClUdpXportType, xportPrivate->port, buffer, bytes);
 
     out:
+    if(((ClIocHeaderT*)buffer)->flag == 0)
+    {
+        __iocMessagePoolPut(buffer);
+    }
     return rc;
 }
 
@@ -1075,7 +1081,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
                 ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
     ClRcT rc = CL_OK;
-    ClUint8T buffer[0xffff+1];
+    ClUint8T *poolBuffer =NULL;
     ClIocCommPortT *pCommPort = (ClIocCommPortT*)commPort;
     ClIocUdpPrivateT *pCommPortPrivate = NULL;
     struct msghdr msgHdr;
@@ -1098,15 +1104,14 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         rc = CL_ERR_NOT_EXIST;
         goto out;
     }
-
+    poolBuffer= __iocMessagePoolGet();
+    bufSize = MAX_MESSAGE_LENGTH;
     if(!pBuffer)
     {
-        pBuffer = buffer;
-        bufSize = (ClUint32T)sizeof(buffer);
+        pBuffer= poolBuffer;
     }
     
     memset(&pollfd, 0, sizeof(pollfd));
-
     memset(&msgHdr, 0, sizeof(msgHdr));
     memset(&ioVector, 0, sizeof(ioVector));
     msgHdr.msg_name = &peerAddress;
@@ -1161,7 +1166,7 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
         break;
     }
 
-    rc = clIocDispatch(gClUdpXportType, commPort, pRecvOption, pBuffer, bytes, message, pRecvParam);
+    rc = clIocDispatch(gClUdpXportType, commPort, pRecvOption, poolBuffer, bytes, message, pRecvParam);
 
     if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN)
         goto retry;
@@ -1170,11 +1175,19 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
     {
         ClUint32T elapsedTm;
         if(timeout == CL_IOC_TIMEOUT_FOREVER)
+        {
+            poolBuffer= __iocMessagePoolGet();
+            ioVector.iov_base = (ClPtrT)poolBuffer;
+            msgHdr.msg_iov = &ioVector;
             goto retry;
+        }
         elapsedTm = (clOsalStopWatchTimeGet() - tm)/1000;
         if(elapsedTm < timeout)
         {
             timeout -= elapsedTm;
+            poolBuffer= __iocMessagePoolGet();
+            ioVector.iov_base = (ClPtrT)poolBuffer;
+            msgHdr.msg_iov = &ioVector;
             goto retry;
         }
         else
@@ -1185,9 +1198,14 @@ ClRcT xportRecv(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption
                                               "the specified timeout. Packet size is %d", bytes);
 
         }
+
     }
 
     out:
+    if(((ClIocHeaderT*)poolBuffer)->flag == 0)
+    {
+        __iocMessagePoolPut(poolBuffer);
+    }
     return rc;
 
 }

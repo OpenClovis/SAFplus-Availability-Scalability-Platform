@@ -150,6 +150,8 @@ static ClIocUserObjectT userObj;
 static ClTimerTimeOutT userReassemblyTimerExpiry = { 0 };
 ClBoolT gClIocTrafficShaper;
 static ClBoolT gClIocReplicast;
+static ClRcT __iocMessagePoolInitialize(void);
+static void __iocMessagePoolFinalize(void);
 
 typedef struct
 {
@@ -200,21 +202,8 @@ typedef struct ClIocFragmentJob
     ClUint8T *buffer;
     ClUint32T length;
     ClIocPortT portId;
-    ClIocFragHeaderT fragHeader;
+    ClIocFragHeaderT *fragHeader;
 }ClIocFragmentJobT;
-
-typedef struct ClIocFragmentPool
-{
-    ClListHeadT list;
-    ClUint8T *buffer;
-}ClIocFragmentPoolT;
-
-static CL_LIST_HEAD_DECLARE(iocFragmentPool);
-static ClOsalMutexT iocFragmentPoolLock;
-static ClUint32T iocFragmentPoolLen;
-static ClUint32T iocFragmentPoolSize = 1024*1024;
-static ClUint32T iocFragmentPoolEntries;
-static ClUint32T iocFragmentPoolLimit;
 
 typedef struct ClIocLogicalAddressCtrl
 {
@@ -361,100 +350,8 @@ static ClRcT internalSendReplicast(ClIocCommPortT *pIocCommPort,
                           ClUint32T numReplicasts,
                           ClIocFragHeaderT *userFragHeader, ClBoolT proxy);
 
-static void __iocFragmentPoolPut(ClUint8T *pBuffer, ClUint32T len)
-{
-    if(len != iocFragmentPoolLen)
-    {
-        clHeapFree(pBuffer);
-        return;
-    }
-    if(!iocFragmentPoolLimit)
-    {
-        iocFragmentPoolLen = gClMaxPayloadSize;
-        CL_ASSERT(iocFragmentPoolLen != 0);
-        iocFragmentPoolLimit = iocFragmentPoolSize/iocFragmentPoolLen;
-    }
-    if(iocFragmentPoolEntries >= iocFragmentPoolLimit)
-    {
-        clHeapFree(pBuffer);
-    }
-    else
-    {
-        ClIocFragmentPoolT *pool = (ClIocFragmentPoolT*) clHeapCalloc(1, sizeof(*pool));
-        CL_ASSERT(pool != NULL);
-        pool->buffer = pBuffer;
-        clOsalMutexLock(&iocFragmentPoolLock);
-        clListAddTail(&pool->list, &iocFragmentPool);
-        ++iocFragmentPoolEntries;
-        clOsalMutexUnlock(&iocFragmentPoolLock);
-    }
-}
 
-static ClUint8T *__iocFragmentPoolGet(ClUint8T *pBuffer, ClUint32T len)
-{
-    ClIocFragmentPoolT *pool = NULL;
-    ClListHeadT *head = NULL;
-    ClUint8T *buffer = NULL;
-    clOsalMutexLock(&iocFragmentPoolLock);
-    if(len != iocFragmentPoolLen
-       ||
-       CL_LIST_HEAD_EMPTY(&iocFragmentPool))
-    {
-        clOsalMutexUnlock(&iocFragmentPoolLock);
-        goto alloc;
-    }
-    head = iocFragmentPool.pNext;
-    pool = CL_LIST_ENTRY(head, ClIocFragmentPoolT, list);
-    clListDel(head);
-    --iocFragmentPoolEntries;
-    clLogTrace("IOC", "FRAG-POOL", "Got fragment of len [%d] from pool", len);
-    clOsalMutexUnlock(&iocFragmentPoolLock);
-    buffer = pool->buffer;
-    clHeapFree(pool);
-    return buffer;
 
-    alloc:
-    return (ClUint8T*)clHeapAllocate(len);
-}
-
-static ClRcT __iocFragmentPoolInitialize(void)
-{
-    ClUint32T currentSize = 0;
-    iocFragmentPoolLen = gClMaxPayloadSize;
-    CL_ASSERT(iocFragmentPoolLen != 0);
-    clOsalMutexInit(&iocFragmentPoolLock);
-    while(currentSize + iocFragmentPoolLen < iocFragmentPoolSize)
-    {
-        ClIocFragmentPoolT *pool = (ClIocFragmentPoolT*) clHeapCalloc(1, sizeof(*pool));
-        ClUint8T *buffer = (ClUint8T*) clHeapAllocate(iocFragmentPoolLen);
-        CL_ASSERT(pool !=  NULL);
-        CL_ASSERT(buffer != NULL);
-        currentSize += iocFragmentPoolLen;
-        pool->buffer = buffer;
-        clListAddTail(&pool->list, &iocFragmentPool);
-        ++iocFragmentPoolEntries;
-        ++iocFragmentPoolLimit;
-    }
-    return CL_OK;
-}
-
-static void __iocFragmentPoolFinalize(void)
-{
-    ClIocFragmentPoolT *pool = NULL;
-    ClListHeadT *iter = NULL;
-    while(!CL_LIST_HEAD_EMPTY(&iocFragmentPool))
-    {
-        iter = iocFragmentPool.pNext;
-        pool = CL_LIST_ENTRY(iter, ClIocFragmentPoolT, list);
-        clListDel(iter);
-        if(pool->buffer)
-            clHeapFree(pool->buffer);
-        clHeapFree(pool);
-    }
-    iocFragmentPoolEntries = 0;
-    iocFragmentPoolLimit = 0;
-    clOsalMutexDestroy(&iocFragmentPoolLock);
-}
 
 static __inline__ ClUint32T clIocMcastHash(ClIocMulticastAddressT mcastAddress)
 {
@@ -1070,6 +967,8 @@ static ClRcT iovecIteratorExit(IOVecIteratorT *iter)
     memset(iter, 0, sizeof(*iter)); /* reset all*/
     return CL_OK;
 }
+
+
 
 /*
  * Function : clIocSend Description : This function will take the message and
@@ -2236,7 +2135,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
                     ClUint32T bufSize, ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
     ClRcT rc = CL_OK;
-    ClIocHeaderT userHeader = { 0 };
+    //ClIocHeaderT userHeader = { 0 };
     ClIocCommPortT *pIocCommPort = (ClIocCommPortT*)commPort;
     ClUint32T size = sizeof(ClIocHeaderT);
     ClUint8T *pBuffer = buffer;
@@ -2286,33 +2185,33 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
         goto out;
     }
 
-    memcpy((ClPtrT)&userHeader,(ClPtrT)buffer,sizeof(ClIocHeaderT));
+    //memcpy((ClPtrT)&userHeader,(ClPtrT)buffer,sizeof(ClIocHeaderT));
 
-    if(userHeader.version != CL_IOC_HEADER_VERSION)
+    if(((ClIocHeaderT*)buffer)->version != CL_IOC_HEADER_VERSION)
     {
         clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping received packet of version [%d]. Supported version [%d]\n",
-                                        userHeader.version, CL_IOC_HEADER_VERSION);
+                                        ((ClIocHeaderT*)buffer)->version, CL_IOC_HEADER_VERSION);
         rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
         goto out;
     }
 
-    userHeader.srcAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
-    userHeader.srcAddress.iocPhyAddress.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
-    userHeader.dstAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.dstAddress.iocPhyAddress.nodeAddress);
-    userHeader.dstAddress.iocPhyAddress.portId = ntohl(userHeader.dstAddress.iocPhyAddress.portId);
+    ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress = ntohl(((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress);
+    ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId = ntohl(((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId);
+    ((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress = ntohl(((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress);
+    ((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.portId = ntohl(((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.portId);
 
     /*
      * Check to forward this message. Switch to synchronous recvs or reassembly of fragments
      */
-    if(CL_IOC_ADDRESS_TYPE_GET(&userHeader.dstAddress) == CL_IOC_PHYSICAL_ADDRESS_TYPE)
+    if(CL_IOC_ADDRESS_TYPE_GET(&((ClIocHeaderT*)buffer)->dstAddress) == CL_IOC_PHYSICAL_ADDRESS_TYPE)
     {
-        if(userHeader.dstAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress
+        if(((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress
            &&
-           userHeader.dstAddress.iocPhyAddress.nodeAddress != CL_IOC_RESERVED_ADDRESS)
+           ((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress != CL_IOC_RESERVED_ADDRESS)
         {
             
             relay = CL_TRUE;
-            if(userHeader.dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
+            if(((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
             {
                 if(!clTransportBridgeEnabled(gIocLocalBladeAddress))
                 {
@@ -2333,32 +2232,32 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
 
     if(clEoWithOutCpm
        ||
-       userHeader.srcAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress)
+       ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress)
     {
-        if( (rc = clIocCompStatusSet(userHeader.srcAddress.iocPhyAddress, 
+        if( (rc = clIocCompStatusSet(((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress,
                                      CL_IOC_NODE_UP)) != CL_OK)
 
         {
             ClUint32T packetSize;
 
-            packetSize = bytes - ((userHeader.flag == 0)? sizeof(ClIocHeaderT): sizeof(ClIocFragHeaderT));
+            packetSize = bytes - ((((ClIocHeaderT*)buffer)->flag == 0)? sizeof(ClIocHeaderT): sizeof(ClIocFragHeaderT));
 
             clLogCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet."
                                                "Failed to SET the staus of the packet-sender-component "
                                                "[node 0x%x : port 0x%x]. Packet size is %d. error code 0x%x ",
-                                               userHeader.srcAddress.iocPhyAddress.nodeAddress,
-                                               userHeader.srcAddress.iocPhyAddress.portId, 
+                                               ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress,
+                                               ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId,
                                                packetSize, rc);
             rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
             goto out;
         }
     }
 
-    if(userHeader.flag == 0)
+    if(((ClIocHeaderT*)buffer)->flag == 0)
     {
 #ifdef CL_IOC_COMPRESSION
         ClTimeT pktRecvTime = 0;
-        ClUint32T compressionFlag = ntohl(userHeader.reserved);
+        ClUint32T compressionFlag = ntohl(((ClIocHeaderT*)buffer)->reserved);
         ClUint8T *decompressedStream = NULL;
         ClUint32T decompressedStreamLen = 0;
         ClUint32T sentBytes = 0;
@@ -2407,7 +2306,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
         }
 
 #ifdef CL_IOC_COMPRESSION
-        pktSendTime = clNtohl64(userHeader.pktTime);
+        pktSendTime = clNtohl64(((ClIocHeaderT*)buffer)->pktTime);
         if(pktSendTime)
         {
             ClTimeValT tv = {0};
@@ -2423,9 +2322,9 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
          * Hoping that the notification packet will not exceed 64K packet size :-). 
          */
         if(pIocCommPort->notify == CL_IOC_NOTIFICATION_DISABLE &&
-           (userHeader.protocolType == CL_IOC_PORT_NOTIFICATION_PROTO
+           (((ClIocHeaderT*)buffer)->protocolType == CL_IOC_PORT_NOTIFICATION_PROTO
             ||
-            userHeader.protocolType == CL_IOC_PROTO_ARP))
+            ((ClIocHeaderT*)buffer)->protocolType == CL_IOC_PROTO_ARP))
         {
             clBufferClear(message);
             rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
@@ -2434,44 +2333,26 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
     } 
     else 
     {
-        ClIocFragHeaderT userFragHeader;
+        //ClIocFragHeaderT userFragHeader;
         
-        memcpy((ClPtrT)&userFragHeader,(ClPtrT)buffer, sizeof(ClIocFragHeaderT));
+        //memcpy((ClPtrT)&userFragHeader,(ClPtrT)buffer, sizeof(ClIocFragHeaderT));
 
-        pBuffer = buffer + sizeof(ClIocFragHeaderT);
+//        /pBuffer = buffer + sizeof(ClIocFragHeaderT);
         bytes -= sizeof(ClIocFragHeaderT);
 
-        userFragHeader.msgId = ntohl(userFragHeader.msgId);
-        userFragHeader.fragOffset = ntohl(userFragHeader.fragOffset);
-        userFragHeader.fragLength = ntohl(userFragHeader.fragLength);
+        ((ClIocFragHeaderT*)buffer)->msgId = ntohl(((ClIocFragHeaderT*)buffer)->msgId);
+        ((ClIocFragHeaderT*)buffer)->fragOffset = ntohl(((ClIocFragHeaderT*)buffer)->fragOffset);
+        ((ClIocFragHeaderT*)buffer)->fragLength = ntohl(((ClIocFragHeaderT*)buffer)->fragLength);
         
-        userFragHeader.header.srcAddress.iocPhyAddress.nodeAddress = 
-            ntohl(userFragHeader.header.srcAddress.iocPhyAddress.nodeAddress);
-        userFragHeader.header.srcAddress.iocPhyAddress.portId = 
-            ntohl(userFragHeader.header.srcAddress.iocPhyAddress.portId);
-
-        userFragHeader.header.dstAddress.iocPhyAddress.nodeAddress =
-            ntohl(userFragHeader.header.dstAddress.iocPhyAddress.nodeAddress);
-        userFragHeader.header.dstAddress.iocPhyAddress.portId =
-            ntohl(userFragHeader.header.dstAddress.iocPhyAddress.portId);
-
-        clLogError(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_RECV,
-                        "Got these values fragid %d, frag offset %d, fraglength %d, "
-                        "flag %x from 0x%x:0x%x at 0x%x:0x%x\n",
-                        (userFragHeader.msgId), (userFragHeader.fragOffset),
-                        (userFragHeader.fragLength), userFragHeader.header.flag,
-                        userFragHeader.header.srcAddress.iocPhyAddress.nodeAddress,
-                        userFragHeader.header.srcAddress.iocPhyAddress.portId,
-                        gIocLocalBladeAddress, pIocCommPort->portId);
 
         /*
          * Will be used once fully tested as its faster than earlier method
          */
-        if(userFragHeader.header.flag == IOC_LAST_FRAG)
+        if(((ClIocFragHeaderT*)buffer)->header.flag == IOC_LAST_FRAG)
             clLogTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
-                       userFragHeader.fragOffset, userFragHeader.fragLength, bytes);
+                       ((ClIocFragHeaderT*)buffer)->fragOffset, ((ClIocFragHeaderT*)buffer)->fragLength, bytes);
 
-        rc = __iocUserFragmentReceive(xportType, pBuffer, &userFragHeader, 
+        rc = __iocUserFragmentReceive(xportType, buffer, ((ClIocFragHeaderT*)buffer),
                                       pIocCommPort->portId, bytes, message, syncReassembly);
         if(rc != CL_OK)
             goto out;
@@ -2485,14 +2366,14 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
         ClIocSendOptionT sendOption;
         sendOption.priority = CL_IOC_HIGH_PRIORITY;
         sendOption.timeout = 0;
-        if(userHeader.dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
+        if(((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
         {
             ClIocAddressT *bcastList = NULL;
             ClUint32T numBcasts = 0;
             /*
              * Check if we have a proxy broadcast list 
              */
-            if(clTransportBroadcastListGet(xportType, &userHeader.srcAddress.iocPhyAddress,
+            if(clTransportBroadcastListGet(xportType, &((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress,
                                            &numBcasts, &bcastList) == CL_OK)
             {
                 ClUint32T i;
@@ -2503,12 +2384,12 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
                      */
                     clLogDebug("PROXY", "RELAY", "Broadcast message from node [%d], port [%d] "
                                "to node [%d], port [%d]",
-                               userHeader.srcAddress.iocPhyAddress.nodeAddress,
-                               userHeader.srcAddress.iocPhyAddress.portId,
+                               ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress,
+                               ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId,
                                bcastList[i].iocPhyAddress.nodeAddress,
                                bcastList[i].iocPhyAddress.portId);
-                    clIocSendWithXportRelay(commPort, message, userHeader.protocolType,
-                                            &userHeader.srcAddress, &bcastList[i],
+                    clIocSendWithXportRelay(commPort, message, ((ClIocHeaderT*)buffer)->protocolType,
+                                            &((ClIocHeaderT*)buffer)->srcAddress, &bcastList[i],
                                             &sendOption, (ClCharT*)xportType, CL_FALSE);
                     clBufferReadOffsetSet(message, 0, CL_BUFFER_SEEK_SET);
                 }
@@ -2520,13 +2401,13 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
         {
             clLogDebug("PROXY", "RELAY", "Forward message from node [%d], port [%d] "
                        "to node [%d], port [%d]",
-                       userHeader.srcAddress.iocPhyAddress.nodeAddress,
-                       userHeader.srcAddress.iocPhyAddress.portId,
-                       userHeader.dstAddress.iocPhyAddress.nodeAddress,
-                       userHeader.dstAddress.iocPhyAddress.portId);
+                       ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress,
+                       ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId,
+                       ((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress,
+                       ((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.portId);
 
-            clIocSendWithRelay(commPort, message, userHeader.protocolType, 
-                               &userHeader.srcAddress, &userHeader.dstAddress, &sendOption);
+            clIocSendWithRelay(commPort, message, ((ClIocHeaderT*)buffer)->protocolType,
+                               &((ClIocHeaderT*)buffer)->srcAddress, &((ClIocHeaderT*)buffer)->dstAddress, &sendOption);
             /*
              * Clear the message buffer for re-use.
              */
@@ -2539,9 +2420,9 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
     /*
      * Got heartbeat reply from other local components
      */
-    if (userHeader.protocolType == CL_IOC_PROTO_ICMP)
+    if (((ClIocHeaderT*)buffer)->protocolType == CL_IOC_PROTO_ICMP)
     {
-        clIocHearBeatHealthCheckUpdate(userHeader.srcAddress.iocPhyAddress.nodeAddress, userHeader.srcAddress.iocPhyAddress.portId, NULL);
+        clIocHearBeatHealthCheckUpdate(((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress, ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId, NULL);
         clBufferClear(message);
         return CL_IOC_RC(CL_ERR_TRY_AGAIN);
     }
@@ -2549,14 +2430,14 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
     /*
      * Got heartbeat request from a amf component
      */
-    if (userHeader.protocolType == CL_IOC_PROTO_HB)
+    if (((ClIocHeaderT*)buffer)->protocolType == CL_IOC_PROTO_HB)
     {
         /*
          * Reply HeartBeat message
          */
         ClIocAddressT destAddress = { { 0 } };
         destAddress.iocPhyAddress.nodeAddress =
-            userHeader.srcAddress.iocPhyAddress.nodeAddress;
+            ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress;
         destAddress.iocPhyAddress.portId = CL_IOC_CPM_PORT;
 
         ClIocSendOptionT sendOption;
@@ -2572,14 +2453,14 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
     }
 
     pRecvParam->length = bytes;
-    pRecvParam->priority = userHeader.priority;
-    pRecvParam->protoType = userHeader.protocolType;
-    memcpy(&pRecvParam->srcAddr, &userHeader.srcAddress, sizeof(pRecvParam->srcAddr));
+    pRecvParam->priority = ((ClIocHeaderT*)buffer)->priority;
+    pRecvParam->protoType = ((ClIocHeaderT*)buffer)->protocolType;
+    memcpy(&pRecvParam->srcAddr, &((ClIocHeaderT*)buffer)->srcAddress, sizeof(pRecvParam->srcAddr));
 
     clLogTrace("XPORT", "RECV",
                "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", 
-               bytes, userHeader.protocolType, userHeader.srcAddress.iocPhyAddress.nodeAddress, 
-               userHeader.srcAddress.iocPhyAddress.portId);
+               bytes, ((ClIocHeaderT*)buffer)->protocolType, ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress,
+               ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId);
 
     out:
     return rc;
@@ -2588,7 +2469,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
 ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *buffer, ClUint32T bufSize)
 {
     ClRcT rc = CL_OK;
-    ClIocHeaderT userHeader = { 0 };
+    //ClIocHeaderT userHeader = { 0 };
     ClUint32T size = sizeof(ClIocHeaderT);
     ClUint8T *pBuffer = buffer;
     ClUint32T bytes = bufSize;
@@ -2611,31 +2492,31 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
         goto out;
     }
 
-    memcpy((ClPtrT)&userHeader,(ClPtrT)buffer,sizeof(ClIocHeaderT));
+    //memcpy((ClPtrT)&userHeader,(ClPtrT)buffer,sizeof(ClIocHeaderT));
 
-    if(userHeader.version != CL_IOC_HEADER_VERSION)
+    if(((ClIocHeaderT*)buffer)->version != CL_IOC_HEADER_VERSION)
     {
         clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping received packet of version [%d]. Supported version [%d]\n",
-                                        userHeader.version, CL_IOC_HEADER_VERSION);
+                                        ((ClIocHeaderT*)buffer)->version, CL_IOC_HEADER_VERSION);
         goto out;
     }
 
-    userHeader.srcAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
-    userHeader.srcAddress.iocPhyAddress.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
-    userHeader.dstAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.dstAddress.iocPhyAddress.nodeAddress);
-    userHeader.dstAddress.iocPhyAddress.portId = ntohl(userHeader.dstAddress.iocPhyAddress.portId);
+    ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress = ntohl(((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress);
+    ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId = ntohl(((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId);
+    ((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress = ntohl(((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress);
+    ((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.portId = ntohl(((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.portId);
 
     /*
      * Check to forward this message. Switch to synchronous recvs or reassembly of fragments
      */
-    if(CL_IOC_ADDRESS_TYPE_GET(&userHeader.dstAddress) == CL_IOC_PHYSICAL_ADDRESS_TYPE)
+    if(CL_IOC_ADDRESS_TYPE_GET(&((ClIocHeaderT*)buffer)->dstAddress) == CL_IOC_PHYSICAL_ADDRESS_TYPE)
     {
-        if (userHeader.dstAddress.iocPhyAddress.nodeAddress != CL_IOC_RESERVED_ADDRESS 
+        if (((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress != CL_IOC_RESERVED_ADDRESS
             &&
-            userHeader.dstAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress)
+            ((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress)
         {
             relay = CL_TRUE;
-            if(userHeader.dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS
+            if(((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS
                &&
                !clTransportBridgeEnabled(gIocLocalBladeAddress))
             {
@@ -2646,31 +2527,31 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
 
     if(clEoWithOutCpm
        ||
-       userHeader.srcAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress)
+       ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress)
     {
-        if( (rc = clIocCompStatusSet(userHeader.srcAddress.iocPhyAddress, 
+        if( (rc = clIocCompStatusSet(((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress,
                                      CL_IOC_NODE_UP)) != CL_OK)
 
         {
             ClUint32T packetSize;
 
-            packetSize = bytes - ((userHeader.flag == 0)? sizeof(ClIocHeaderT): sizeof(ClIocFragHeaderT));
+            packetSize = bytes - ((((ClIocHeaderT*)buffer)->flag == 0)? sizeof(ClIocHeaderT): sizeof(ClIocFragHeaderT));
 
             clLogCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet."
                                                "Failed to SET the staus of the packet-sender-component "
                                                "[node 0x%x : port 0x%x]. Packet size is %d. error code 0x%x ",
-                                               userHeader.srcAddress.iocPhyAddress.nodeAddress,
-                                               userHeader.srcAddress.iocPhyAddress.portId, 
+                                               ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress,
+                                               ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId,
                                                packetSize, rc);
             goto out;
         }
     }
 
-    if(userHeader.flag == 0)
+    if(((ClIocHeaderT*)buffer)->flag == 0)
     {
 #ifdef CL_IOC_COMPRESSION
         ClTimeT pktRecvTime = 0;
-        ClUint32T compressionFlag = ntohl(userHeader.reserved);
+        ClUint32T compressionFlag = ntohl(((ClIocHeaderT*)buffer)->reserved);
         ClUint8T *decompressedStream = NULL;
         ClUint32T decompressedStreamLen = 0;
         ClUint32T sentBytes = 0;
@@ -2708,7 +2589,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
         }
 
 #ifdef CL_IOC_COMPRESSION
-        pktSendTime = clNtohl64(userHeader.pktTime);
+        pktSendTime = clNtohl64(((ClIocHeaderT*)buffer)->pktTime);
         if(pktSendTime)
         {
             ClTimeValT tv = {0};
@@ -2722,44 +2603,44 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     } 
     else 
     {
-        ClIocFragHeaderT userFragHeader;
+        //ClIocFragHeaderT userFragHeader;
         
-        memcpy((ClPtrT)&userFragHeader,(ClPtrT)buffer, sizeof(ClIocFragHeaderT));
+        //memcpy((ClPtrT)&userFragHeader,(ClPtrT)buffer, sizeof(ClIocFragHeaderT));
 
-        pBuffer = buffer + sizeof(ClIocFragHeaderT);
+        //pBuffer = buffer + sizeof(ClIocFragHeaderT);
         bytes -= sizeof(ClIocFragHeaderT);
 
-        userFragHeader.msgId = ntohl(userFragHeader.msgId);
-        userFragHeader.fragOffset = ntohl(userFragHeader.fragOffset);
-        userFragHeader.fragLength = ntohl(userFragHeader.fragLength);
+        ((ClIocFragHeaderT*)buffer)->msgId = ntohl(((ClIocFragHeaderT*)buffer)->msgId);
+        ((ClIocFragHeaderT*)buffer)->fragOffset = ntohl(((ClIocFragHeaderT*)buffer)->fragOffset);
+        ((ClIocFragHeaderT*)buffer)->fragLength = ntohl(((ClIocFragHeaderT*)buffer)->fragLength);
         
-        userFragHeader.header.srcAddress.iocPhyAddress.nodeAddress = 
-            ntohl(userFragHeader.header.srcAddress.iocPhyAddress.nodeAddress);
-        userFragHeader.header.srcAddress.iocPhyAddress.portId = 
-            ntohl(userFragHeader.header.srcAddress.iocPhyAddress.portId);
+        ((ClIocFragHeaderT*)buffer)->header.srcAddress.iocPhyAddress.nodeAddress =
+            ntohl(((ClIocFragHeaderT*)buffer)->header.srcAddress.iocPhyAddress.nodeAddress);
+        ((ClIocFragHeaderT*)buffer)->header.srcAddress.iocPhyAddress.portId =
+            ntohl(((ClIocFragHeaderT*)buffer)->header.srcAddress.iocPhyAddress.portId);
 
-        userFragHeader.header.dstAddress.iocPhyAddress.nodeAddress =
-            ntohl(userFragHeader.header.dstAddress.iocPhyAddress.nodeAddress);
-        userFragHeader.header.dstAddress.iocPhyAddress.portId =
-            ntohl(userFragHeader.header.dstAddress.iocPhyAddress.portId);
+        ((ClIocFragHeaderT*)buffer)->header.dstAddress.iocPhyAddress.nodeAddress =
+            ntohl(((ClIocFragHeaderT*)buffer)->header.dstAddress.iocPhyAddress.nodeAddress);
+        ((ClIocFragHeaderT*)buffer)->header.dstAddress.iocPhyAddress.portId =
+            ntohl(((ClIocFragHeaderT*)buffer)->header.dstAddress.iocPhyAddress.portId);
 
         clLogTrace(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_RECV,
                    "Got these values fragid %d, frag offset %d, fraglength %d, "
                    "flag %x from 0x%x:0x%x at 0x%x:0x%x\n",
-                   (userFragHeader.msgId), (userFragHeader.fragOffset),
-                   (userFragHeader.fragLength), userFragHeader.header.flag,
-                   userFragHeader.header.srcAddress.iocPhyAddress.nodeAddress,
-                   userFragHeader.header.srcAddress.iocPhyAddress.portId,
+                   (((ClIocFragHeaderT*)buffer)->msgId), (((ClIocFragHeaderT*)buffer)->fragOffset),
+                   (((ClIocFragHeaderT*)buffer)->fragLength), ((ClIocFragHeaderT*)buffer)->header.flag,
+                   ((ClIocFragHeaderT*)buffer)->header.srcAddress.iocPhyAddress.nodeAddress,
+                   ((ClIocFragHeaderT*)buffer)->header.srcAddress.iocPhyAddress.portId,
                    gIocLocalBladeAddress, port);
 
         /*
          * Will be used once fully tested as its faster than earlier method
          */
-        if(userFragHeader.header.flag == IOC_LAST_FRAG)
+        if(((ClIocFragHeaderT*)buffer)->header.flag == IOC_LAST_FRAG)
             clLogTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
-                       userFragHeader.fragOffset, userFragHeader.fragLength, bytes);
+                       ((ClIocFragHeaderT*)buffer)->fragOffset, ((ClIocFragHeaderT*)buffer)->fragLength, bytes);
 
-        rc = __iocUserFragmentReceive(xportType, pBuffer, &userFragHeader, 
+        rc = __iocUserFragmentReceive(xportType, buffer, (ClIocFragHeaderT*)buffer,
                                       port, bytes, message, CL_FALSE);
         /*
          * recalculate timeouts
@@ -2789,14 +2670,14 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
         ClIocCommPortT *commPort = clIocGetPort(port);
         if (commPort) 
         {
-            if(userHeader.dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
+            if(((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
             {
                 ClIocAddressT *bcastList = NULL;
                 ClUint32T numBcasts = 0;
                 /*
                  * Check if we have a proxy broadcast list 
                  */
-                if(clTransportBroadcastListGet(xportType, &userHeader.srcAddress.iocPhyAddress,
+                if(clTransportBroadcastListGet(xportType, &((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress,
                                                &numBcasts, &bcastList) == CL_OK)
                 {
                     ClUint32T i;
@@ -2807,12 +2688,12 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
                          */
                         clLogDebug("PROXY", "RELAY", "Broadcast message from node [%d], port [%d] "
                                    "to node [%d], port [%d], xport [%s]",
-                                   userHeader.srcAddress.iocPhyAddress.nodeAddress,
-                                   userHeader.srcAddress.iocPhyAddress.portId,
+                                   ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress,
+                                   ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId,
                                    bcastList[i].iocPhyAddress.nodeAddress,
                                    bcastList[i].iocPhyAddress.portId, xportType);
-                        clIocSendWithXportRelay((ClIocCommPortHandleT)commPort, message, userHeader.protocolType,
-                                                &userHeader.srcAddress, &bcastList[i],
+                        clIocSendWithXportRelay((ClIocCommPortHandleT)commPort, message, ((ClIocHeaderT*)buffer)->protocolType,
+                                                &((ClIocHeaderT*)buffer)->srcAddress, &bcastList[i],
                                                 &sendOption, (ClCharT*)xportType, CL_FALSE);
                         clBufferReadOffsetSet(message, 0, CL_BUFFER_SEEK_SET);
                     }
@@ -2825,12 +2706,12 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
             {
                 clLogDebug("PROXY", "RELAY", "Forward message from node [%d], port [%d] "
                            "to node [%d], port [%d]",
-                           userHeader.srcAddress.iocPhyAddress.nodeAddress,
-                           userHeader.srcAddress.iocPhyAddress.portId,
-                           userHeader.dstAddress.iocPhyAddress.nodeAddress,
-                           userHeader.dstAddress.iocPhyAddress.portId);
-                clIocSendWithRelay((ClIocCommPortHandleT)commPort, message, userHeader.protocolType, 
-                                   &userHeader.srcAddress, &userHeader.dstAddress, &sendOption);
+                           ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress,
+                           ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId,
+                           ((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.nodeAddress,
+                           ((ClIocHeaderT*)buffer)->dstAddress.iocPhyAddress.portId);
+                clIocSendWithRelay((ClIocCommPortHandleT)commPort, message, ((ClIocHeaderT*)buffer)->protocolType,
+                                   &((ClIocHeaderT*)buffer)->srcAddress, &((ClIocHeaderT*)buffer)->dstAddress, &sendOption);
             }
         }
         else
@@ -2846,9 +2727,9 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     /*
      * Got heartbeat reply from other local components
      */
-    if (userHeader.protocolType == CL_IOC_PROTO_ICMP)
+    if (((ClIocHeaderT*)buffer)->protocolType == CL_IOC_PROTO_ICMP)
     {
-        clIocHearBeatHealthCheckUpdate(userHeader.srcAddress.iocPhyAddress.nodeAddress, userHeader.srcAddress.iocPhyAddress.portId, NULL);
+        clIocHearBeatHealthCheckUpdate(((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress, ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId, NULL);
         rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
         goto out;
     }
@@ -2856,14 +2737,14 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     /*
      * Got heartbeat request from a amf component
      */
-    if (userHeader.protocolType == CL_IOC_PROTO_HB)
+    if (((ClIocHeaderT*)buffer)->protocolType == CL_IOC_PROTO_HB)
     {
         /*
          * Reply HeartBeat message
          */
         ClIocAddressT destAddress = { { 0 } };
         destAddress.iocPhyAddress.nodeAddress =
-            userHeader.srcAddress.iocPhyAddress.nodeAddress;
+            ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress;
         destAddress.iocPhyAddress.portId = CL_IOC_CPM_PORT;
 
         ClIocSendOptionT sendOption = {  CL_IOC_HIGH_PRIORITY,0,0,CL_IOC_PERSISTENT_MSG,200 };
@@ -2878,11 +2759,11 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     }
 
     recvParam.length = bytes;
-    recvParam.priority = userHeader.priority;
-    recvParam.protoType = userHeader.protocolType;
-    memcpy(&recvParam.srcAddr, &userHeader.srcAddress, sizeof(recvParam.srcAddr));
+    recvParam.priority = ((ClIocHeaderT*)buffer)->priority;
+    recvParam.protoType = ((ClIocHeaderT*)buffer)->protocolType;
+    memcpy(&recvParam.srcAddr, &((ClIocHeaderT*)buffer)->srcAddress, sizeof(recvParam.srcAddr));
     clLogTrace( "XPORT", "RECV",
-               "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", bytes, userHeader.protocolType, recvParam.srcAddr.iocPhyAddress.nodeAddress, recvParam.srcAddr.iocPhyAddress.portId);
+               "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", bytes, ((ClIocHeaderT*)buffer)->protocolType, recvParam.srcAddr.iocPhyAddress.nodeAddress, recvParam.srcAddr.iocPhyAddress.portId);
     clEoEnqueueReassembleJob(message, &recvParam);
     message = 0;
 
@@ -2956,7 +2837,7 @@ ClRcT clIocLibFinalize()
     clTransportFinalize(NULL, gIsNodeRepresentative);
     clNodeCacheFinalize();
     clIocNeighCompsFinalize();
-    __iocFragmentPoolFinalize();
+    __iocMessagePoolFinalize();
     clTransportLayerFinalize();
     clOsalMutexDelete(gClIocFragMutex);
     return CL_OK;
@@ -3121,7 +3002,7 @@ ClRcT clIocLibInitialize(ClPtrT pConfig)
     CL_ASSERT(rc == CL_OK);
     rc = clJobQueueInit(&iocFragmentJobQueue, 0, 1);
     CL_ASSERT(rc == CL_OK);
-    rc = __iocFragmentPoolInitialize();
+    rc = __iocMessagePoolInitialize();
     CL_ASSERT(rc == CL_OK);
     /*Add ourselves into the neighbor table*/
     gClIocNeighborList.numEntries = 0;
@@ -3259,7 +3140,8 @@ static ClRcT __iocReassembleTimer(void *key)
     {
         ClIocFragmentNodeT *fragNode = CL_RBTREE_ENTRY(fragHead, ClIocFragmentNodeT, tree);
         clRbTreeDelete(&node->reassembleTree, fragHead);
-        __iocFragmentPoolPut(fragNode->fragBuffer, fragNode->fragLength);
+        //__iocFragmentPoolPut(fragNode->fragBuffer, fragNode->fragLength);
+        __iocMessagePoolPut(fragNode->fragBuffer);
         clHeapFree(fragNode);
     }
     hashDel(&node->hash);
@@ -3302,11 +3184,13 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
     }
     while( (iter = clRbTreeMin(&node->reassembleTree)) )
     {
+
         ClIocFragmentNodeT *fragNode = CL_RBTREE_ENTRY(iter, ClIocFragmentNodeT, tree);
-        if(clBufferAppendHeap(msg, fragNode->fragBuffer, fragNode->fragLength) != CL_OK)
+        ClUint8T *pFragBuffer = fragNode->fragBuffer + sizeof(ClIocHeaderT);;
+        if(clBufferAppendHeap(msg, pFragBuffer, fragNode->fragLength) != CL_OK)
         {
-            rc = clBufferNBytesWrite(msg, fragNode->fragBuffer, fragNode->fragLength);
-            __iocFragmentPoolPut(fragNode->fragBuffer, fragNode->fragLength);
+            rc = clBufferNBytesWrite(msg, pFragBuffer , fragNode->fragLength);
+            __iocMessagePoolPut(fragNode->fragBuffer);
         }
         else
         {
@@ -3468,23 +3352,23 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
     ClRcT rc = CL_OK;
     ClRcT retCode = CL_IOC_RC(IOC_MSG_QUEUED);
 
-    flag = fragmentJob->fragHeader.header.flag;
-    key.fragId = fragmentJob->fragHeader.msgId;
+    flag = fragmentJob->fragHeader->header.flag;
+    key.fragId = fragmentJob->fragHeader->msgId;
     key.destAddr.nodeAddress = gIocLocalBladeAddress;
     key.destAddr.portId = fragmentJob->portId;
     /*
      * Could be a relay packet.
      */
-    if(CL_IOC_ADDRESS_TYPE_GET(&fragmentJob->fragHeader.header.dstAddress) == CL_IOC_PHYSICAL_ADDRESS_TYPE
+    if(CL_IOC_ADDRESS_TYPE_GET(&fragmentJob->fragHeader->header.dstAddress) == CL_IOC_PHYSICAL_ADDRESS_TYPE
        &&
-       fragmentJob->fragHeader.header.dstAddress.iocPhyAddress.nodeAddress != CL_IOC_RESERVED_ADDRESS
+       fragmentJob->fragHeader->header.dstAddress.iocPhyAddress.nodeAddress != CL_IOC_RESERVED_ADDRESS
        &&
-       fragmentJob->fragHeader.header.dstAddress.iocPhyAddress.nodeAddress != CL_IOC_BROADCAST_ADDRESS)
+       fragmentJob->fragHeader->header.dstAddress.iocPhyAddress.nodeAddress != CL_IOC_BROADCAST_ADDRESS)
     {
-        key.destAddr.nodeAddress = fragmentJob->fragHeader.header.dstAddress.iocPhyAddress.nodeAddress;
-        key.destAddr.portId = fragmentJob->fragHeader.header.dstAddress.iocPhyAddress.portId;
+        key.destAddr.nodeAddress = fragmentJob->fragHeader->header.dstAddress.iocPhyAddress.nodeAddress;
+        key.destAddr.portId = fragmentJob->fragHeader->header.dstAddress.iocPhyAddress.portId;
     }
-    key.sendAddr = fragmentJob->fragHeader.header.srcAddress.iocPhyAddress;
+    key.sendAddr = fragmentJob->fragHeader->header.srcAddress.iocPhyAddress;
     node = __iocReassembleNodeFind(&key, 0);
     if(!node)
     {
@@ -3514,8 +3398,9 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
     }
     fragmentNode = (ClIocFragmentNodeT*) clHeapCalloc(1, sizeof(*fragmentNode));
     CL_ASSERT(fragmentNode != NULL);
-    fragmentNode->fragOffset = fragmentJob->fragHeader.fragOffset;
-    fragmentNode->fragLength = fragmentJob->fragHeader.fragLength;
+    fragmentNode->fragOffset = fragmentJob->fragHeader->fragOffset;
+    fragmentNode->fragLength = fragmentJob->fragHeader->fragLength;
+
     fragmentNode->fragBuffer = fragmentJob->buffer;
     node->currentLength += fragmentNode->fragLength;
     ++node->numFragments;
@@ -3526,7 +3411,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
         {
             retCode = __iocReassembleDispatch(fragmentJob->xportType[0] ? 
                                               fragmentJob->xportType : NULL,
-                                              node, &fragmentJob->fragHeader, message, sync);
+                                              node,fragmentJob->fragHeader, message, sync);
         }
         else
         {
@@ -3543,7 +3428,7 @@ static ClRcT __iocFragmentCallback(ClPtrT job, ClBufferHandleT message, ClBoolT 
     {
         retCode = __iocReassembleDispatch(fragmentJob->xportType[0] ? 
                                           fragmentJob->xportType : NULL,
-                                          node, &fragmentJob->fragHeader, message, sync);
+                                          node, fragmentJob->fragHeader, message, sync);
     }
     else
     {
@@ -3585,10 +3470,8 @@ ClRcT __iocUserFragmentReceive(const ClCharT *xportType,
     ClRcT rc = CL_OK;
     CL_ASSERT(job != NULL);
     CL_ASSERT(length == userHdr->fragLength);
-    buffer = __iocFragmentPoolGet(pBuffer, length);
-    memcpy(buffer, pBuffer, length);
-    job->buffer = buffer;
-    memcpy(&job->fragHeader, userHdr, sizeof(job->fragHeader));
+    job->buffer = pBuffer;
+    job->fragHeader = userHdr;
     job->portId = portId;
     job->length = length;
     job->xportType[0] = 0;
@@ -4392,4 +4275,106 @@ ClRcT clIocLowestNodeAddressGet(ClIocNodeAddressT *pNodeAddress)
 {
     NULL_CHECK(pNodeAddress);
     return clIocRangeNodeAddressGet(pNodeAddress,  0, CL_IOC_MAX_NODE_ADDRESS);
+}
+
+typedef struct ClIocMessagePool
+{
+    ClListHeadT list;
+    ClUint8T *buffer;
+}ClIocMessagePoolT;
+
+
+static ClUint32T gClMaxMessageSize = 65000;
+static CL_LIST_HEAD_DECLARE(iocMessagePool);
+static ClOsalMutexT iocMessagePoolLock;
+static ClUint32T iocMessagePoolLen;
+static ClInt64T iocMessagePoolSize = 50*65000;
+static ClUint32T iocMessagePoolEntries;
+static ClInt64T iocMessagePoolLimit;
+
+
+void __iocMessagePoolPut(ClUint8T *pBuffer)
+{
+    if(!iocMessagePoolLimit)
+   {
+        iocMessagePoolLen = gClMaxMessageSize;
+        CL_ASSERT(iocMessagePoolLen != 0);
+        iocMessagePoolLimit = iocMessagePoolSize/iocMessagePoolLen;
+    }
+    if(iocMessagePoolEntries >= iocMessagePoolLimit)
+    {
+        clHeapFree(pBuffer);
+    }
+    else
+    {
+        ClIocMessagePoolT *pool = (ClIocMessagePoolT*) clHeapCalloc(1, sizeof(*pool));
+        CL_ASSERT(pool != NULL);
+        pool->buffer = pBuffer;
+        clOsalMutexLock(&iocMessagePoolLock);
+        clListAddTail(&pool->list, &iocMessagePool);
+        ++iocMessagePoolEntries;
+        clOsalMutexUnlock(&iocMessagePoolLock);
+    }
+}
+
+ ClUint8T *__iocMessagePoolGet()
+{
+    ClIocMessagePoolT *pool = NULL;
+    ClListHeadT *head = NULL;
+    ClUint8T *buffer = NULL;
+    clOsalMutexLock(&iocMessagePoolLock);
+    if(CL_LIST_HEAD_EMPTY(&iocMessagePool))
+    {
+        clOsalMutexUnlock(&iocMessagePoolLock);
+        goto alloc;
+    }
+    head = iocMessagePool.pNext;
+    pool = CL_LIST_ENTRY(head, ClIocMessagePoolT, list);
+    clListDel(head);
+    --iocMessagePoolEntries;
+    clOsalMutexUnlock(&iocMessagePoolLock);
+    buffer = pool->buffer;
+    clHeapFree(pool);
+    return buffer;
+
+    alloc:
+    return (ClUint8T*)clHeapAllocate(65000);
+}
+
+static ClRcT __iocMessagePoolInitialize(void)
+{
+    ClUint32T currentSize = 0;
+    iocMessagePoolLen = gClMaxMessageSize;
+    CL_ASSERT(iocMessagePoolLen != 0);
+    clOsalMutexInit(&iocMessagePoolLock);
+    while(currentSize + iocMessagePoolLen < iocMessagePoolSize)
+    {
+        ClIocMessagePoolT *pool = (ClIocMessagePoolT*) clHeapCalloc(1, sizeof(*pool));
+        ClUint8T *buffer = (ClUint8T*) clHeapAllocate(iocMessagePoolLen);
+        CL_ASSERT(pool !=  NULL);
+        CL_ASSERT(buffer != NULL);
+        currentSize += iocMessagePoolLen;
+        pool->buffer = buffer;
+        clListAddTail(&pool->list, &iocMessagePool);
+        ++iocMessagePoolEntries;
+        ++iocMessagePoolLimit;
+    }
+    return CL_OK;
+}
+static void __iocMessagePoolFinalize(void)
+{
+    ClIocMessagePoolT *pool = NULL;
+    ClListHeadT *iter = NULL;
+    while(!CL_LIST_HEAD_EMPTY(&iocMessagePool))
+    {
+        iter = iocMessagePool.pNext;
+        pool = CL_LIST_ENTRY(iter, ClIocMessagePoolT, list);
+        clListDel(iter);
+        if(pool->buffer)
+            clHeapFree(pool->buffer);
+        clHeapFree(pool);
+    }
+    iocMessagePoolEntries = 0;
+    iocMessagePoolLimit = 0;
+    clOsalMutexDestroy(&iocMessagePoolLock);
 }
