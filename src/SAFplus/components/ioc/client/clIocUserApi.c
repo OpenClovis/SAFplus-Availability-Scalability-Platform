@@ -2135,7 +2135,6 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
                     ClUint32T bufSize, ClBufferHandleT message, ClIocRecvParamT *pRecvParam)
 {
     ClRcT rc = CL_OK;
-    //ClIocHeaderT userHeader = { 0 };
     ClIocCommPortT *pIocCommPort = (ClIocCommPortT*)commPort;
     ClUint32T size = sizeof(ClIocHeaderT);
     ClUint8T *pBuffer = buffer;
@@ -2185,7 +2184,6 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
         goto out;
     }
 
-    //memcpy((ClPtrT)&userHeader,(ClPtrT)buffer,sizeof(ClIocHeaderT));
 
     if(((ClIocHeaderT*)buffer)->version != CL_IOC_HEADER_VERSION)
     {
@@ -2333,13 +2331,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
     } 
     else 
     {
-        //ClIocFragHeaderT userFragHeader;
-        
-        //memcpy((ClPtrT)&userFragHeader,(ClPtrT)buffer, sizeof(ClIocFragHeaderT));
-
-//        /pBuffer = buffer + sizeof(ClIocFragHeaderT);
         bytes -= sizeof(ClIocFragHeaderT);
-
         ((ClIocFragHeaderT*)buffer)->msgId = ntohl(((ClIocFragHeaderT*)buffer)->msgId);
         ((ClIocFragHeaderT*)buffer)->fragOffset = ntohl(((ClIocFragHeaderT*)buffer)->fragOffset);
         ((ClIocFragHeaderT*)buffer)->fragLength = ntohl(((ClIocFragHeaderT*)buffer)->fragLength);
@@ -2469,7 +2461,6 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
 ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *buffer, ClUint32T bufSize)
 {
     ClRcT rc = CL_OK;
-    //ClIocHeaderT userHeader = { 0 };
     ClUint32T size = sizeof(ClIocHeaderT);
     ClUint8T *pBuffer = buffer;
     ClUint32T bytes = bufSize;
@@ -2492,7 +2483,6 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
         goto out;
     }
 
-    //memcpy((ClPtrT)&userHeader,(ClPtrT)buffer,sizeof(ClIocHeaderT));
 
     if(((ClIocHeaderT*)buffer)->version != CL_IOC_HEADER_VERSION)
     {
@@ -2603,11 +2593,6 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     } 
     else 
     {
-        //ClIocFragHeaderT userFragHeader;
-        
-        //memcpy((ClPtrT)&userFragHeader,(ClPtrT)buffer, sizeof(ClIocFragHeaderT));
-
-        //pBuffer = buffer + sizeof(ClIocFragHeaderT);
         bytes -= sizeof(ClIocFragHeaderT);
 
         ((ClIocFragHeaderT*)buffer)->msgId = ntohl(((ClIocFragHeaderT*)buffer)->msgId);
@@ -3140,7 +3125,6 @@ static ClRcT __iocReassembleTimer(void *key)
     {
         ClIocFragmentNodeT *fragNode = CL_RBTREE_ENTRY(fragHead, ClIocFragmentNodeT, tree);
         clRbTreeDelete(&node->reassembleTree, fragHead);
-        //__iocFragmentPoolPut(fragNode->fragBuffer, fragNode->fragLength);
         __iocMessagePoolPut(fragNode->fragBuffer);
         clHeapFree(fragNode);
     }
