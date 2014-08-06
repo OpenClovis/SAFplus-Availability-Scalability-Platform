@@ -2599,16 +2599,6 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
         ((ClIocFragHeaderT*)buffer)->fragOffset = ntohl(((ClIocFragHeaderT*)buffer)->fragOffset);
         ((ClIocFragHeaderT*)buffer)->fragLength = ntohl(((ClIocFragHeaderT*)buffer)->fragLength);
         
-        ((ClIocFragHeaderT*)buffer)->header.srcAddress.iocPhyAddress.nodeAddress =
-            ntohl(((ClIocFragHeaderT*)buffer)->header.srcAddress.iocPhyAddress.nodeAddress);
-        ((ClIocFragHeaderT*)buffer)->header.srcAddress.iocPhyAddress.portId =
-            ntohl(((ClIocFragHeaderT*)buffer)->header.srcAddress.iocPhyAddress.portId);
-
-        ((ClIocFragHeaderT*)buffer)->header.dstAddress.iocPhyAddress.nodeAddress =
-            ntohl(((ClIocFragHeaderT*)buffer)->header.dstAddress.iocPhyAddress.nodeAddress);
-        ((ClIocFragHeaderT*)buffer)->header.dstAddress.iocPhyAddress.portId =
-            ntohl(((ClIocFragHeaderT*)buffer)->header.dstAddress.iocPhyAddress.portId);
-
         clLogTrace(IOC_LOG_AREA_FRAG,IOC_LOG_CTX_RECV,
                    "Got these values fragid %d, frag offset %d, fraglength %d, "
                    "flag %x from 0x%x:0x%x at 0x%x:0x%x\n",
@@ -2942,7 +2932,6 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     {
         goto error_3;
     }
-
     clIocHeartBeatInitialize(gIsNodeRepresentative);
 
     gIocInit = CL_TRUE;
@@ -4268,12 +4257,12 @@ typedef struct ClIocMessagePool
 }ClIocMessagePoolT;
 
 
-static ClUint32T gClMaxMessageSize = 65000;
+static ClUint64T gClMaxMessageSize = 65535;
 static CL_LIST_HEAD_DECLARE(iocMessagePool);
 static ClOsalMutexT iocMessagePoolLock;
-static ClUint32T iocMessagePoolLen;
-static ClInt64T iocMessagePoolSize = 50*65000;
-static ClUint32T iocMessagePoolEntries;
+static ClUint64T iocMessagePoolLen;
+static ClInt64T iocMessagePoolSize = 50*65535;
+static ClUint64T iocMessagePoolEntries;
 static ClInt64T iocMessagePoolLimit;
 
 
@@ -4322,7 +4311,7 @@ void __iocMessagePoolPut(ClUint8T *pBuffer)
     return buffer;
 
     alloc:
-    return (ClUint8T*)clHeapAllocate(65000);
+    return (ClUint8T*)clHeapAllocate(65535);
 }
 
 static ClRcT __iocMessagePoolInitialize(void)
