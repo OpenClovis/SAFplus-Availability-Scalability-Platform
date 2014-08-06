@@ -8,9 +8,9 @@
 #include <sys/time.h>
 
 #include <clTimerApi.h>
+#include <clOsalApi.h>
 #include <clTimerErrors.h>
 #include <clList.h>
-#include <clRbTree.h>
 #include "clTimer7.hxx"
 
 extern ClBoolT gIsNodeRepresentative;
@@ -535,14 +535,9 @@ ClRcT SAFplus::Timer::timerUpdate(ClTimerTimeOutT newTimeOut)
 ClRcT SAFplus::Timer::timerRestart (ClTimerHandleT  timerHandle)
 {
     ClRcT rc = 0;
-
-    CL_FUNC_ENTER();
-
     rc = this->timerStop();
-
     if (rc != CL_OK)
     {
-        CL_FUNC_EXIT();
         return (rc);
     }
 
@@ -550,11 +545,8 @@ ClRcT SAFplus::Timer::timerRestart (ClTimerHandleT  timerHandle)
 
     if (rc != CL_OK)
     {
-        CL_FUNC_EXIT();
         return (rc);
     }
-
-    CL_FUNC_EXIT();
     return (CL_OK);
 }
 
