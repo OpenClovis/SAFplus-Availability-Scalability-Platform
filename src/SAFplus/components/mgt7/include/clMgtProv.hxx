@@ -240,7 +240,7 @@ std::string MgtProv<T>::strValue()
 
 template <class T> void MgtProv<T>::xset(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
-  if (!set(pBuffer,buffLen,t)) throw SAFplus::TransactionException(t);
+  if (!set((void *)pBuffer,buffLen,t)) throw SAFplus::TransactionException(t);
 }
 
 template <class T> bool MgtProv<T>::set(const T& val, SAFplus::Transaction& t)

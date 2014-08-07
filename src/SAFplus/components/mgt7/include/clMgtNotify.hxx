@@ -34,6 +34,7 @@
 #include <map>
 #include <string>
 #include "clMgtObject.hxx"
+#include "clDbg.hxx"
 
 extern "C"
 {
@@ -83,6 +84,11 @@ public:
      * Function to send notification to the netconf server
      */
     void sendNotification(SAFplus::Handle hdl);
+
+    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+    {
+      clDbgNotImplemented("MgtNotify::set");
+    }
 };
 };
 

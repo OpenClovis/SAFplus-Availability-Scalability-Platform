@@ -178,33 +178,6 @@ namespace SAFplus
   }
 
 #ifdef MGT_ACCESS
-//  ClRcT MgtRoot::sendMsg(ClIocAddressT dest, void* payload, uint payloadlen, MgtMsgType msgtype,void* reply)
-//  {
-//    ClRcT rc = CL_OK;
-//    uint msgLen = payloadlen + sizeof(MgtMsgProto) - 1;
-//    char msg[msgLen];
-//    MgtMsgProto *msgSending = (MgtMsgProto *)msg;
-//    msgSending->messageType = msgtype;
-//    memcpy(msgSending->data,payload,payloadlen);
-//    try
-//    {
-//      SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
-//      if(reply == NULL)
-//        mgtIocInstance->SendMsg(dest, (void *)msgSending, msgLen, SAFplusI::CL_MGT_MSG_TYPE);
-//      else
-//      {
-//        MsgReply *msgReply = mgtIocInstance->sendReply(dest, (void *)msgSending, msgLen, SAFplusI::CL_MGT_MSG_TYPE);
-//        memcpy(reply,msgReply->buffer,sizeof(reply));
-//      }
-//    }
-//    catch (SAFplus::Error &ex)
-//    {
-//      rc = ex.clError;
-//      logDebug("GMS","MSG","Failed to send");
-//    }
-//    return rc;
-//  }
-
   ClRcT MgtRoot::sendReplyMsg(ClIocAddressT dest, void* payload, uint payloadlen)
   {
     ClRcT rc = CL_OK;

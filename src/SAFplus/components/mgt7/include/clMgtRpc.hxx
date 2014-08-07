@@ -83,6 +83,11 @@ namespace SAFplus
      * \return  CL_ERR_ALREADY_EXIST    Rpc already exists
      */
     ClRcT registerRpc(SAFplus::Handle handle);
+
+    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+    {
+      clDbgNotImplemented("MgtRpc::set");
+    }
   };
 };
 
