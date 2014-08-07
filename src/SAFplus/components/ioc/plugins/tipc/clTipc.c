@@ -108,7 +108,7 @@
 extern ClUint32T clEoWithOutCpm;
 extern ClUint32T clAspLocalId;
 extern ClIocNodeAddressT gIocLocalBladeAddress;
-#define MAX_MESSAGE_LENGTH 65535
+#define MAX_MESSAGE_LENGTH 0xffff
 ClInt32T gClTipcXportId;
 ClCharT gClTipcXportType[CL_MAX_NAME_LENGTH];
 static ClBoolT tipcPriorityChangePossible = CL_TRUE;  /* Don't attempt to change priority if TIPC does not support, so we don't get tons of error msgs */

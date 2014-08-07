@@ -4257,7 +4257,7 @@ typedef struct ClIocMessagePool
 }ClIocMessagePoolT;
 
 
-static ClUint64T gClMaxMessageSize = 65535;
+static const ClUint64T gClMaxMessageSize = 0xffff;
 static CL_LIST_HEAD_DECLARE(iocMessagePool);
 static ClOsalMutexT iocMessagePoolLock;
 static ClUint64T iocMessagePoolLen;
@@ -4311,7 +4311,7 @@ void __iocMessagePoolPut(ClUint8T *pBuffer)
     return buffer;
 
     alloc:
-    return (ClUint8T*)clHeapAllocate(65535);
+    return (ClUint8T*)clHeapAllocate(gClMaxMessageSize);
 }
 
 static ClRcT __iocMessagePoolInitialize(void)
