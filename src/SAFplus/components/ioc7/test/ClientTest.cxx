@@ -74,7 +74,20 @@ int main(void)
         MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) helloMsg, strlen(helloMsg), CL_IOC_PROTO_CTL);
         logInfo("CLT","TST","Received [%s]", (char*) msgReply->buffer);
         sleep(1);
-      }
+      }    
+    char helloMsg1[3000000];
+    for(long i =0;i<3000000;i++)
+    {
+	helloMsg1[i]='a';
+    }	
+    logInfo("CLT","TST","Send msg with size # %ld", strlen(helloMsg1));
+    while (i++ < 100)
+    {
+        logInfo("CLT","TST","Send msg # %d", i);
+        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) helloMsg, strlen(helloMsg1), CL_IOC_PROTO_CTL);
+        logInfo("CLT","TST","Received [%s]", (char*) msgReply->buffer);
+        sleep(1);
+    }  
 
   }
 

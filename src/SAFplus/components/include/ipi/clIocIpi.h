@@ -817,6 +817,10 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
     ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, 
                              ClUint8T *buffer, ClUint32T bufSize);
 
+
+    void __iocMessagePoolPut(ClUint8T *pBuffer);
+    ClUint8T *__iocMessagePoolGet();
+
 # ifndef __KERNEL__
 
 #  ifdef __cplusplus
