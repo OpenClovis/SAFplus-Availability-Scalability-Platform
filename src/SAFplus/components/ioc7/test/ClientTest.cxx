@@ -83,7 +83,7 @@ int main(void)
 	helloMsg1[i]='a';
     }	
     logInfo("CLT","TST","Send msg with size # %ld", strlen(helloMsg1));
-    while (i++ < 10)
+    while (i++ < 100)
     {
         logInfo("CLT","TST","Send msg # %d", i);
         MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) helloMsg1, strlen(helloMsg1), CL_IOC_PROTO_CTL);
