@@ -234,20 +234,11 @@ PyMODINIT_FUNC
 initpyDbal(void)
 {
     ClRcT rc = CL_OK;
-    logInitialize();
+
     logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
 
-    // initialize SAFplus6 libraries
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
-      {
-        assert(0);
-      }
+    safplusInitialize(SAFplus::LibDep::DBAL | SAFplus::LibDep::LOG | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER);
 
-    rc = clDbalLibInitialize();
-    if (rc != CL_OK)
-    {
-      logError("PY","DBAL", "DBAL client initialize failed rc: [0x%x]", rc);
-    }
     (void) Py_InitModule("pyDbal", DbalPyMethods);
 }

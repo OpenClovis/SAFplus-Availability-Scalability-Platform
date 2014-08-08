@@ -38,20 +38,10 @@ main(void)
 
     SAFplus::ASP_NODEADDR = 0x2;
 
-    logInitialize();
     logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
 
-    utilsInitialize();
-
-    // initialize SAFplus6 libraries
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
-      {
-      assert(0);
-      }
-
-    rc = clIocLibInitialize(NULL);
-    assert(rc==CL_OK);
+    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
 
     //Msg server listening
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);
