@@ -68,7 +68,7 @@ int main(void)
     /* Loop receive on loop */
     msgClient.Start();
     int i = 0;
-    while (i++ < 50)
+    while (i++ < 10)
       {
         logInfo("CLT","TST","Send msg # %d", i);
         MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) helloMsg, strlen(helloMsg), CL_IOC_PROTO_CTL);
@@ -77,19 +77,18 @@ int main(void)
       }
 
     msgClient.Start();
-    char helloMsg1[3000000];
-    for(long i =0;i<3000000;i++)
+    char helloMsg1[1500000];
+    for(long i =0;i<1500000;i++)
     {
 	helloMsg1[i]='a';
     }	
     logInfo("CLT","TST","Send msg with size # %ld", strlen(helloMsg1));
-    while (i++ < 100)
+    while (i++ < 20)
     {
         logInfo("CLT","TST","Send msg # %d", i);
         MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) helloMsg1, strlen(helloMsg1), CL_IOC_PROTO_CTL);
         logInfo("CLT","TST","Received [%s]", (char*) msgReply->buffer);
-        sleep(1);
-      }  
+    }  
 
   }
 
