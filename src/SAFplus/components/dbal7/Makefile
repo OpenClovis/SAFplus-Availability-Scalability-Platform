@@ -30,7 +30,7 @@ $(BIN_DIR)/dbalpy.py: dbalpy.py $(LIB_DIR)/common.py $(LIB_DIR)/microdom.py $(LI
 	$(CP) $< $@
 
 $(MWOBJ_DIR)/%.o: ../dbal/client/%.c Makefile $(CLIENT_H)
-	$(COMPILE_CPP) $@ $<
+	cd ../dbal/client && $(COMPILE_CPP) $@ $(<F)
 
 $(LIB_DIR)/%.py: %.py
 	$(CP) $< $@
@@ -54,13 +54,13 @@ $(SAFPLUS_TARGET)/obj/pyDbal.o: pyDbal.cxx
 	$(COMPILE_CPP) $@ $<
 
 $(SAFPLUS_TARGET)/obj/clovisSQLite.o: ../dbal/plugins/sqlite/clovisSQLite.c
-	$(COMPILE_CPP) $@ $<
+	cd ../dbal/plugins/sqlite && $(COMPILE_CPP) $@ $(<F)
 
 $(SAFPLUS_TARGET)/obj/clovisGDBM.o: ../dbal/plugins/gdbm/clovisGDBM.c
-	$(COMPILE_CPP) $@ $<
+	cd ../dbal/plugins/gdbm && $(COMPILE_CPP) $@ $(<F)
 
 $(SAFPLUS_TARGET)/obj/clovisBerkeleyDB.o: ../dbal/plugins/berkeley/clovisBerkeleyDB.c
-	$(COMPILE_CPP) $@ $<
+	cd ../dbal/plugins/berkeley && $(COMPILE_CPP) $@ $(<F)
 
 clean:
 	rm -f $(SAFPLUS_TARGET)/obj/*.o $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py $(LIB_DIR)/common.py $(LIB_DIR)/microdom.py $(LIB_DIR)/libclSQLiteDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclBerkeleyDB.so $(CLIENT_DBAL_OBJ)

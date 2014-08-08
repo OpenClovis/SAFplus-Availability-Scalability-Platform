@@ -336,7 +336,8 @@ def main(argv):
   try:
     data = PyDBAL(argv[2])
   except Exception, e:
-    print etErrorString(e)
+    print getErrorString(e)
+    return
 
   #Store into binary database
   if argv[1] == '-x':
