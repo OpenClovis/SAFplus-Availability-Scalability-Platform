@@ -77,7 +77,6 @@ int main(void)
       }
 
     msgClient.Start();
-    int i = 0;
     char helloMsg1[3000000];
     for(long i =0;i<3000000;i++)
     {
