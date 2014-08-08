@@ -3160,7 +3160,7 @@ static ClRcT __iocReassembleDispatch(const ClCharT *xportType, ClIocReassembleNo
     while( (iter = clRbTreeMin(&node->reassembleTree)) )
     {
         ClIocFragmentNodeT *fragNode = CL_RBTREE_ENTRY(iter, ClIocFragmentNodeT, tree);
-        ClUint8T *pFragBuffer = fragNode->fragBuffer + sizeof(ClIocHeaderT);;
+        ClUint8T *pFragBuffer = fragNode->fragBuffer + sizeof(ClIocFragHeaderT);
         if(clBufferAppendHeap(msg, pFragBuffer, fragNode->fragLength) != CL_OK)
         {
             rc = clBufferNBytesWrite(msg, pFragBuffer , fragNode->fragLength);
