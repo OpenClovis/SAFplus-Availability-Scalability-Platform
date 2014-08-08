@@ -15,7 +15,7 @@ namespace SAFplus
   //typedef void (*MsgHandler) (ClIocAddressT from, MsgServer* q, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 
   const ClWordT NUM_MSG_TYPES=256;
-  
+
   class MsgServer:public AppEvent
   {
   public:
@@ -93,6 +93,8 @@ namespace SAFplus
 
     /** this handle references this message server */
     SAFplus::Handle handle;
+    ClWordT port;
+
   protected:
     void Shutdown();
 
@@ -108,7 +110,6 @@ namespace SAFplus
     
     ClJobQueueT jq;
     ClUint32T compId;
-    ClWordT port;
     ClWordT reliability;
     ClIocCommPortHandleT commPort;
 

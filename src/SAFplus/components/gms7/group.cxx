@@ -1,583 +1,365 @@
 /* Standard headers */
 #include <string>
 /* SAFplus headers */
+#include <clGroup.hxx>
 #include <clCommon.hxx>
 #include <clGroup.hxx>
 #include <clNameApi.hxx>
 #include <clIocPortList.hxx>
-#include <clGroup.hxx>
+#include <clGroupIpi.hxx>
+#include <clHandleApi.hxx>
 
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace std;
-using namespace boost::intrusive;
-//Define a list that will store MyClass using the public member hook
-typedef boost::intrusive::list< Group, member_hook< Group, list_member_hook<>, &Group::member_hook_> > GroupList;
 
-GroupList allGroups;
-/**
- * Static member
- */
-//bool  Group::isElectionRunning = false;
-//bool  Group::isElectionFinished = false;
-bool  Group::isBootTimeElectionDone = false;
-//ClTimerHandleT  Group::electionRequestTHandle = NULL;
-//ClTimerHandleT  Group::roleWaitingTHandle = NULL;
-SAFplus::Checkpoint Group::mGroupCkpt;
-bool groupCkptInited = false;
-
-void SAFplus::dbgDumpAllGroups()
+namespace SAFplusI
   {
-  GroupList::iterator git;
+  GroupSharedMem gsm;
+  };
 
-  logDebug("GMS","IOC","There are [%ld] groups:", allGroups.size());
-  for (git=allGroups.begin(); git!=allGroups.end(); git++)
+namespace SAFplus
+  {
+  Group::Iterator Group::Iterator::END;
+
+char* Group::capStr(uint cap, char* buf)
+  {
+  buf[0] = 0;
+  if (cap & Group::IS_ACTIVE) strcat(buf,"Active/");
+  if (cap & Group::IS_STANDBY) strcat(buf,"Standby/");
+  if (cap & Group::ACCEPT_ACTIVE) strcat(buf,"Accepts Active/");
+  if (cap & Group::ACCEPT_STANDBY) strcat(buf,"Accepts Standby/");
+  if (cap & Group::STICKY) strcat(buf,"Sticky/");
+  int tmp = strlen(buf);
+  if (tmp) buf[tmp-1] = 0;  // knock off the last / if it exists
+  return buf;
+  }
+
+//GroupList allGroups;
+
+  Group::Group()
     {
-    logDebug("GMS","IOC","  Group [%lx:%lx]", (*git).handle.id[0],(*git).handle.id[1]);
-    Group *instance = &(*git);
-    ScopedLock<RecursiveMutex> sl(instance->lock);
-    for (SAFplus::DataHashMap::iterator i = instance->groupDataMap.begin();i != instance->groupDataMap.end();i++)
+    groupMsgServer = NULL;
+    }
+
+  Group::~Group()
+    {
+    if (myInformation.id != INVALID_HDL)
       {
-      EntityIdentifier curIter = i->first;
-      logDebug("GMS","IOC","    Entity [%lx:%lx] on node [%d]", curIter.id[0],curIter.id[1],curIter.getNode());
+      deregister();
       }
     }
-  }
 
-typedef boost::unordered_map<SAFplus::Handle, SAFplus::Group::GroupMessageHandler*> GroupHandleMap;
-class GroupSyncMsgHandler: public MsgHandler
-{
-  public:
-  // checkpoint handle to pointer lookup...
-  GroupHandleMap handleMap;
+  Group::Group(Handle groupHandle, int comPort)
+    {
+    groupMsgServer = NULL;
+    init(groupHandle, comPort);
+    }
 
-  virtual void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
-};
-static GroupSyncMsgHandler allGrpMsgHdlr;
-
-/**
- * API to create a group membership
- */
-SAFplus::Group::Group(const std::string& handleName,int dataStoreMode, int comPort):groupMessageHandler()
-{
-  // Only initialize configuration parameters that the user might initialize before calling init()
-  automaticElection    = true;
-  electionTimeMs       = 5000;
-  groupMsgServer      = NULL;
-  stickyMode           = true;
-  wakeable             = (SAFplus::Wakeable *)0;
-
-  /* Register with name service so that other APIs can use this group */
-  try
-  {
-    /* Get handle from name service */
-    handle = name.getHandle(handleName);
-  }
-  catch (SAFplus::NameException& ex)
-  {
-    /* If handle did not exist, choose an arbitrary handle for this
-     * group (create it). */
-    handle = SAFplus::Handle::create();
-    /* Store to name service. inside the "catch" because the name
-     * already exists if the try succeeded. */
-    name.set(handleName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY);
-  }
-
-  name.setLocalObject(handleName,(void*)this);
-  init(handle,dataStoreMode, comPort);
-}
-/**
- * API to create a group membership (defer initialization)
- */
-SAFplus::Group::Group(SAFplus::Handle groupHandle, int dataStoreMode,int comPort):groupMessageHandler()
-{
-  handle = INVALID_HDL;  // Indicates this class is not yet inited
-  // Only initialize configuration parameters that the user might later overwrite (before calling init())
-  automaticElection    = true;
-  electionTimeMs       = 5000;
-  groupMsgServer      = NULL;
-  stickyMode           = true;
-  wakeable             = (SAFplus::Wakeable *)0;
-
-  init(handle,dataStoreMode, comPort);
-}
-
-
-
-SAFplus::Group::Group():groupMessageHandler()
-{
-  handle = INVALID_HDL;  // Indicates this class is not yet inited
-  // Only initialize configuration parameters that the user might initialize before calling init()
-  automaticElection    = true;
-  electionTimeMs       = 5000;
-  groupMsgServer      = NULL;
-  stickyMode           = true;
-  wakeable             = (SAFplus::Wakeable *)0;
-}
-
-
-SAFplus::Group::~Group()
-{
-  allGroups.remove(*this);
-  allGrpMsgHdlr.handleMap[handle] = NULL;
-  handle = INVALID_HDL;
-}
-
-/**
- * API to initialize group service
- */
-void SAFplus::Group::init(SAFplus::Handle groupHandle,int dataStoreMode, int comPort)
-{
-  // Initialize variables
-  needReElect            = false;
-  roleWaitingTHandle     = NULL;
-  electionRequestTHandle = NULL;
-  isElectionRunning      = false;
-  dirty                  = true;  // I know nothing right now so an election will make a change
-  activeEntity = INVALID_HDL;
-  standbyEntity = INVALID_HDL;
-  lastRegisteredEntity = INVALID_HDL;
-  groupMsgServer       = NULL;
-
-  logInfo("GRP","INI","Opening group [%lx:%lx]",groupHandle.id[0],groupHandle.id[1]);
-
-  dataStoringMode      = dataStoreMode;
-  groupCommunicationPort = comPort;
-
-  if ((dataStoringMode == SAFplus::Group::DATA_IN_CHECKPOINT)&&(!groupCkptInited))
-  {
-    groupCkptInited=1;
-    Group::mGroupCkpt.init(GRP_CKPT, Checkpoint::REPLICATED|Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
-  }
-
-  /* Store current handle to name service */
-  if(handle == INVALID_HDL)
-  {
+  void Group::init(Handle groupHandle, int comPort)
+    {
     handle = groupHandle;
-    char hdlName[80];
-    handle.toStr(hdlName);
-    name.set(hdlName,handle,SAFplus::NameRegistrar::MODE_REDUNDANCY);
-    name.setLocalObject(hdlName, (void*) this);
-  }
-  /* Initialize neccessary library */
-  //initializeLibraries();
-  /* Start the message communication between groups */
-  startMessageServer();
-  allGroups.push_back(*this);
-}
-/**
- * IOC notification to detect node leave
- */
-ClRcT SAFplus::Group::iocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie)
-{
-  ClRcT rc = CL_OK;
-  ClIocAddressT address;
-  ClIocNotificationIdT eventId = (ClIocNotificationIdT) ntohl(notification->id);
-  ClIocNodeAddressT nodeAddress = ntohl(notification->nodeAddress.iocPhyAddress.nodeAddress);
-  ClIocPortT portId = ntohl(notification->nodeAddress.iocPhyAddress.portId);
-  switch(eventId)
-  {
-    case CL_IOC_NODE_LEAVE_NOTIFICATION:
-    case CL_IOC_NODE_LINK_DOWN_NOTIFICATION:
-    {
-      logDebug("GMS","IOC","Received node leave notification for node [%d]", nodeAddress);
-      GroupList::iterator git;
-      for (git=allGroups.begin(); git!=allGroups.end(); git++)
-        {
-        logDebug("GMS","IOC","  Checking group [%lx:%lx]", (*git).handle.id[0],(*git).handle.id[1]);
-        try
-          {
-          Group *instance = &(*git);
-          ScopedLock<RecursiveMutex> sl(instance->lock);
-          for (SAFplus::DataHashMap::iterator i = instance->groupDataMap.begin();i != instance->groupDataMap.end();i++)
-            {
-            EntityIdentifier curIter = i->first;
-            if(curIter.getNode() == nodeAddress)
-              {
-              logDebug("GMS","IOC","    Removing Entity [%lx:%lx]", curIter.id[0],curIter.id[1]);
-              instance->deregister(curIter,false);
-              }
-            }
-          }
-        catch(std::exception &ex)
-          {
-          logError("GMS","---","Exception: %s",ex.what());
-          }
-        }
-      break;
-    }
-    default:
-    {
-      logInfo("GMS","IOC","Received event [%d] from IOC notification",eventId);
-      break;
-    }
-  }
-  return rc;
-}
+    groupCommunicationPort = comPort;
 
-void SAFplus::groupInitialize()
-  {
-  clIocNotificationRegister(Group::iocNotificationCallback,NULL);
-  }
-
-
-/**
- * Initialize necessary libraries
- */
-/* FIXME: it should be users' responsible */
-ClRcT SAFplus::Group::initializeLibraries()
-{
-  ClRcT   rc            = CL_OK;
-  /* Initialize log service */
-  logInitialize();
-
-  /* Initialize necessary libraries */
-  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK)
-  {
-    return rc;
-  }
-  clIocLibInitialize(NULL);
-  return rc;
-}
-
-
-// Demultiplex incoming message to the appropriate Checkpoint object
-void GroupSyncMsgHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
-  {
-  //logInfo("SYNC","MSG","Received group message from %d", from.iocPhyAddress.nodeAddress);
-  GroupMessageProtocol* hdr = (GroupMessageProtocol*) msg;
-  //assert((hdr->msgType>>16) == SAFplusI::GRP_MSG_TYPE);  // TODO: endian swap & should never assert on bad incoming message data
-  SAFplus::Group::GroupMessageHandler* cs =  allGrpMsgHdlr.handleMap[hdr->group];
-  if (cs) cs->msgHandler(from, svr, msg, msglen, cookie);
-  else
-    {
-    logInfo("SYNC","MSG","Unable to resolve handle [%lx:%lx] to a communications endpoint", hdr->group.id[0], hdr->group.id[1]);
-    }
-  }
-
-
-/**
- * Start the group message server, the main communication method for groups
- */
-void SAFplus::Group::startMessageServer()
-{
-  if(!groupMsgServer)
-  {
-    groupMsgServer = &safplusMsgServer;
-  }
-
-  groupMessageHandler.init(this);  //  Initialize this object's message handler.
-  allGrpMsgHdlr.handleMap[handle] = &groupMessageHandler;  //  Register this object's message handler into the global lookup.
-  groupMsgServer->RegisterHandler(SAFplusI::GRP_MSG_TYPE, &allGrpMsgHdlr, NULL);  //  Register the main message handler (no-op if already registered)
-}
-
-
-ClRcT electionRequestDispatch(void *arg)
-{
-  Group* g = (Group*) arg;
-  return g->electionRequest();
-}
-
-/**
- * Role change from master timeout
- */
-ClRcT roleChangeRequestDispatch(void *arg)
-{
-  Group *instance = (Group *)arg;
-  return instance->roleChangeRequest();
-}
-
-/**
- * Do the real election after timer had expired
- */
-ClRcT SAFplus::Group::electionRequest()
-{
-  /* Clear timer and handle */
-  clTimerStop(electionRequestTHandle);
-  clTimerDeleteAsync(&electionRequestTHandle);
-  try
-  {
-    std::pair<EntityIdentifier,EntityIdentifier> res = electForRoles();
-    EntityIdentifier activeElected = res.first;
-    EntityIdentifier standbyElected = res.second;
-    /* Below should never happen, we can't elect a standby with no active */
-    if (standbyElected != INVALID_HDL)
-    {
-      assert(activeElected != INVALID_HDL);
-    }
-    /* Below can happen if no entity is electable in the group (only watchers) */
-    if(activeElected == INVALID_HDL && standbyElected == INVALID_HDL)
-    {
-      logWarning("GMS","ELE","Election did not succeed -- no entity can assume a role");
-    }
-    else
-    {
-    /* Elected at least standby or active role */
-    logInfo("GMS","ELE","Success with active [%d] and standby [%d]",activeElected.getNode(),standbyElected.getNode());
-    }
-
-    /* If I want to make myself active member, send notification */
-    if(activeElected == myInformation.id)
-    {
-      assert(activeElected != standbyElected);
-      sendRoleMessage(activeElected,standbyElected,false);
-      logInfo("GMS","ELE","I, Node [%d] am claiming active",myInformation.id.getNode());
-    }
-    /* Note that I don't set myself to active here even though I elected
-     * myself.  The reason is that I want to hear my own message to:
-     * 1. make sure that the message was sent across the cluster, and
-     * 2. synchronize (as much as possible) my becoming active clusterwide in one atomic packet.
-     */
-
-    /* If we don't receive the ROLE announcement withing this time,
-     * restart the election. */
-    ClTimerTimeOutT timeOut = { 0, electionTimeMs/2 };
-    clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, roleChangeRequestDispatch, (void*) this, &roleWaitingTHandle);
-
-    return CL_OK;
-  }
-  catch(std::exception &ex)
-  {
-    logError("GMS","---","Exception: %s",ex.what());
-    return CL_ERR_INVALID_HANDLE;
-  }
-
-}
-
-
-ClRcT SAFplus::Group::roleChangeRequest()
-{
-  if (roleWaitingTHandle)
-    {
-    clTimerStop(roleWaitingTHandle);
-    clTimerDeleteAsync(&roleWaitingTHandle);
-    roleWaitingTHandle = 0;
-    };
-
-  // OK the election finished before we were able to delete the timer
-  if(!isElectionRunning) return CL_OK;
-
-  logError("GMS","ROL","No role changed message from master. Re-elect");
-  /* No role change message from active, need to reelect.  The
-   * expectation is that the active will have failed so will
-   * disappear and the election will then succeed. */
-  isElectionRunning = false;
-  /* TODO: report fault */
-  //ageRemoteRegistrations();
-  startElection();
-  return CL_OK;
-}
-/**
- * Node join message from message server
- */
-void SAFplus::Group::nodeJoinHandle(SAFplusI::GroupMessageProtocol *rxMsg)
-{
-  GroupIdentity *rxGrp = (GroupIdentity *)rxMsg->data;
-  registerEntity(*rxGrp,false);
-}
-/**
- * Node leave message from message server
- */
-void SAFplus::Group::nodeLeaveHandle(SAFplusI::GroupMessageProtocol *rxMsg)
-{
-  EntityIdentifier *eId = (EntityIdentifier *)rxMsg->data;
-  deregister(*eId,false);
-}
-/**
- * Role notification message from message server
- */
-void SAFplus::Group::roleNotificationHandle(SAFplusI::GroupMessageProtocol *rxMsg)
-{
-  bool reelect=false;
-  ScopedLock<RecursiveMutex> sl(lock);
-
-  /* We actually having roles from local election, now...check whether it is consistent */
-  switch(rxMsg->roleType)
-  {
-    case GroupRoleNotifyTypeT::ROLE_ACTIVE:
-    {
-      EntityIdentifier *announce = (EntityIdentifier *)rxMsg->data;
-
-      if(!rxMsg->force)  // If we do not want to force, then check if our calculations match the claimant.  If they do not match, we need to re-elect.
+    if(!groupMsgServer)
       {
-        std::pair<EntityIdentifier,EntityIdentifier> roles = electForRoles();
-        if (announce[0] != roles.first)
-          {
-          logError("GMS","ROL","Mismatched active role.  I calculated [%lx:%lx] but received [%lx:%lx]",roles.first.id[0],roles.first.id[1],announce[0].id[0],announce[0].id[1]);
-          reelect=true;
-          }
+      groupMsgServer = &safplusMsgServer;
       }
 
-      // But accept the announcement regardless of my election results because the cluster must remain consistent
-      if(1) //(rxMsg->force)
+    GroupShmHashMap::iterator entryPtr;
+    do
       {
-        if (activeEntity != announce[0])  // active entity has changed
-          {
-          if (activeEntity != INVALID_HDL)
-            removeCapabilities(activeEntity,SAFplus::Group::IS_ACTIVE);
-          activeEntity = announce[0];
-          if (announce[0] != INVALID_HDL)
-            {
-            removeCapabilities(activeEntity,SAFplus::Group::IS_STANDBY);
-            addCapabilities(announce[0],SAFplus::Group::IS_ACTIVE);
-            }
-          }
-
-        if (standbyEntity != announce[1])  // active entity has changed
-          {
-          if (standbyEntity != INVALID_HDL)
-            removeCapabilities(standbyEntity,SAFplus::Group::IS_STANDBY);
-          standbyEntity = announce[1];
-          if (announce[1] != INVALID_HDL)
-            {
-            removeCapabilities(announce[1],SAFplus::Group::IS_ACTIVE);  // could be the case in a double active situation...
-            addCapabilities(announce[1],SAFplus::Group::IS_STANDBY);
-            }
-          }
-
-        logInfo("GMS","ROL","Role change announcement active [%lx:%lx] standby [%lx:%lx]", activeEntity.id[0],activeEntity.id[1],standbyEntity.id[0],standbyEntity.id[1]);
-
-        isElectionRunning = false;
-        dirty = false; 
-        /* If some one are waiting the election, waking up now */
-        if(wakeable)
+      entryPtr = gsm.groupMap->find(handle);
+      if (entryPtr == gsm.groupMap->end())
         {
-          wakeable->wake(1,(void*)ELECTION_FINISH_SIG);
+        sendGroupAnnounceMessage();  // This will be sent to all nodes, including my own node representative which will then update the shared memory so the group will appear.
+        boost::this_thread::sleep(boost::posix_time::milliseconds(100));  // TODO use thread change condition
+        // TODO after too many loops, notify fault manager
         }
+      } while (entryPtr == gsm.groupMap->end());
+    }
+
+  // Get the current active entity.  If an active entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with active capability
+  EntityIdentifier Group::getActive(void)
+    {
+    clDbgNotImplemented();
+    return INVALID_HDL;
+    }
+
+  // Get the current standby entity.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
+  EntityIdentifier Group::getStandby(void)
+    {
+    clDbgNotImplemented();
+    return INVALID_HDL;
+    }
+
+  // Get the current active/standby.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
+  std::pair<EntityIdentifier,EntityIdentifier> Group::getRoles()
+    {
+    std::pair<EntityIdentifier,EntityIdentifier> ret(INVALID_HDL,INVALID_HDL);
+    clDbgNotImplemented();
+    return ret;
+
+    }
+
+  // Utility functions
+  bool Group::isMember(EntityIdentifier id)
+    {
+    clDbgNotImplemented();
+    return false;
+    }
+
+  // Calls for an election with specified role
+  std::pair<EntityIdentifier,EntityIdentifier>  Group::elect(SAFplus::Wakeable& wake)
+    {
+    std::pair<EntityIdentifier,EntityIdentifier> ret(INVALID_HDL,INVALID_HDL);
+    clDbgNotImplemented();
+    return ret;
+    }
+
+  // triggers an election if not already running and returns (mostly for internal use)
+  void Group::startElection(void)
+    {
+    //if(!isElectionRunning)  // GAS TODO optimize
+      {
+      fillAndSendMessage(&myInformation,GroupMessageTypeT::MSG_ELECT_REQUEST,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
       }
-
-      if (roleWaitingTHandle)
-        {
-        clTimerStop(roleWaitingTHandle);
-        clTimerDeleteAsync(&roleWaitingTHandle);
-        roleWaitingTHandle = 0;
-        }
-      break;
     }
 
 
-    case GroupRoleNotifyTypeT::ROLE_STANDBY:
-      assert(0);
-      break;
 
-    default:
-      break;
-
-  }
-
-  if (reelect) startElection();  // I didn't like the result for some reason so am calling for another round.
-}
-
+#if 0
 /**
  * Election request message
  */
-void SAFplus::Group::electionRequestHandle(SAFplusI::GroupMessageProtocol *rxMsg)
-  { 
-  if (1)
+  void SAFplus::Group::electionRequestHandle(SAFplusI::GroupMessageProtocol *rxMsg)
     {
-    ScopedLock<RecursiveMutex> sl(lock);
-
-    if(myInformation.id != INVALID_HDL)
+    if (1)
       {
-      fillAndSendMessage(&myInformation,GroupMessageTypeT::MSG_HELLO,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
+      ScopedLock<RecursiveMutex> sl(lock);
+
+      if(myInformation.id != INVALID_HDL)
+        {
+        fillAndSendMessage(&myInformation,GroupMessageTypeT::MSG_HELLO,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
+        }
+
+      if(isElectionRunning == false)
+        {
+        isElectionRunning = true;
+        ClTimerTimeOutT timeOut = { 0, electionTimeMs };
+        clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, electionRequestDispatch, (void* ) this, &electionRequestTHandle);
+        }
       }
 
-    if(isElectionRunning == false)
+    if(rxMsg != NULL) // Register the information provided by the node that requested election
       {
-      isElectionRunning = true;
-      ClTimerTimeOutT timeOut = { 0, electionTimeMs };
-      clTimerCreateAndStart( timeOut, CL_TIMER_ONE_SHOT, CL_TIMER_TASK_CONTEXT, electionRequestDispatch, (void* ) this, &electionRequestTHandle);
+      GroupIdentity *grp = (GroupIdentity *)rxMsg->data;
+      registerEntity(*grp,false);
+      }
+    }
+#endif
+
+/**
+ * API to register an entity to the group
+ */
+  void SAFplus::Group::_registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities)
+    {
+    bool notify = false;
+    if (1)
+      {
+      //ScopedLock<RecursiveMutex> sl(lock);
+
+      GroupShmHashMap::iterator entryPtr = gsm.groupMap->find(handle);
+      if (entryPtr == gsm.groupMap->end())  // Group does not exist
+        {
+        notify = true;
+        }
+      else
+        {
+        GroupShmEntry *gse = &entryPtr->second;
+        if (!gse) notify = true;
+        else
+          {
+          const GroupData& gdr = gse->read();
+          const GroupIdentity* gi = gdr.find(me);
+          if (!gi) notify = true;
+          else
+            {
+            if (gi->credentials != credentials) notify = true;
+            if (gi->capabilities&(~(Group::IS_ACTIVE | Group::IS_STANDBY)) != capabilities) notify = true; 
+            // TODO if data changed, notify = true
+            }
+          }
+        }
+      if (notify)
+        {
+        GroupIdentity gi;
+        gi.id = me;
+        gi.credentials = credentials;
+        gi.capabilities = capabilities;
+        gi.dataLen = 0;   //  TODO: data 
+        fillAndSendMessage((void *)&gi,GroupMessageTypeT::MSG_ENTITY_JOIN,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
+        }
+      }
+
+    // TODO:  Should I wait here until the registration is successful?
+    }
+
+#if 0
+/**
+ * API to register an entity to the group
+ */
+  void SAFplus::Group::registerEntity(GroupIdentity grpIdentity)
+    {
+    registerEntity(grpIdentity.id,grpIdentity.credentials, NULL, grpIdentity.dataLen, grpIdentity.capabilities);
+    }
+#endif
+
+/**
+ * API to deregister an entity from the group
+ */
+  void SAFplus::Group::deregister(EntityIdentifier me)
+    {
+    if (1)
+      {
+      //ScopedLock<RecursiveMutex> sl(lock);
+      /* Use last registered entity if me is 0 */
+      if(me == INVALID_HDL)
+        {
+        me = myInformation.id;
+        myInformation.id = INVALID_HDL; // I deregistered myself so this group object no longer also represents an entity.
+        }
+
+      /* Find existence of the entity */
+      GroupShmHashMap::iterator entryPtr = gsm.groupMap->find(handle);
+      if (entryPtr == gsm.groupMap->end())  // Group does not exist
+        {
+        logWarning("GMS", "DER","Deregister entity from nonexistant group!");
+        return;
+        }
+      else
+        {
+        GroupShmEntry *gse = &entryPtr->second;
+        if (!gse) 
+          {
+          assert(0);  // group should never have no data.
+          logWarning("GMS", "DER","Deregister entity from group with no data.");
+          return;
+          }
+        else
+          {
+          const GroupData& gdr = gse->read();
+          const GroupIdentity* gi = gdr.find(me);
+          if (!gi) 
+            {
+            logWarning("GMS", "DER","Attempt to deregister entity that is not registered.");
+            return;
+            }
+          }
+        }
+
+      // ok passed all existence checks, so send the deregister message.
+
+      fillAndSendMessage((void *)&me,GroupMessageTypeT::MSG_ENTITY_LEAVE,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
+
+      // TODO wait until the node representative actually receives the message and changes shared memory?
       }
     }
 
-  if(rxMsg != NULL) // Register the information provided by the node that requested election
+  void SAFplus::Group::sendRoleMessage(EntityIdentifier active,EntityIdentifier standby,bool forcing)
     {
-    GroupIdentity *grp = (GroupIdentity *)rxMsg->data;
-    registerEntity(*grp,false);
+    EntityIdentifier data[2] = { active, standby };
+    int msgLen = 0;
+    int msgDataLen = 0;
+
+    msgDataLen = sizeof(EntityIdentifier)*2;
+    msgLen = sizeof(GroupMessageProtocol) + msgDataLen;
+
+    char msgPayload[sizeof(Buffer)-1+msgLen];
+    GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
+    sndMessage->group = handle;
+    sndMessage->messageType = GroupMessageTypeT::MSG_ROLE_NOTIFY;
+    sndMessage->roleType    = GroupRoleNotifyTypeT::ROLE_ACTIVE;
+    sndMessage->force = forcing;
+    memcpy(sndMessage->data,data,msgDataLen);
+    sendNotification((void *)sndMessage,msgLen,GroupMessageSendModeT::SEND_BROADCAST);
     }
-  }
 
-void SAFplus::Group::sendRoleMessage(EntityIdentifier active,EntityIdentifier standby,bool forcing)
-  {
-  EntityIdentifier data[2] = { active, standby };
-  int msgLen = 0;
-  int msgDataLen = 0;
+  void SAFplus::Group::sendGroupAnnounceMessage()
+    {
+    GroupMessageProtocol sndMessage;
+    sndMessage.group = handle;
+    sndMessage.messageType = GroupMessageTypeT::MSG_GROUP_ANNOUNCE;
+    sndMessage.roleType    = GroupRoleNotifyTypeT::ROLE_UNDEFINED;
+    sndMessage.force = 0;
+    sndMessage.data[0] = 0;
+    sendNotification((void *)&sndMessage,sizeof(GroupMessageProtocol),GroupMessageSendModeT::SEND_BROADCAST);
+    }
 
-  msgDataLen = sizeof(EntityIdentifier)*2;
-  msgLen = sizeof(GroupMessageProtocol) + msgDataLen;
 
-  char msgPayload[sizeof(Buffer)-1+msgLen];
-  GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
-  sndMessage->group = handle;
-  sndMessage->messageType = GroupMessageTypeT::MSG_ROLE_NOTIFY;
-  sndMessage->roleType    = GroupRoleNotifyTypeT::ROLE_ACTIVE;
-  sndMessage->force = forcing;
-  memcpy(sndMessage->data,data,msgDataLen);
-  sendNotification((void *)sndMessage,msgLen,GroupMessageSendModeT::SEND_BROADCAST);
-  }
 
 /**
  * Fill information and call message server to send
  */
-void SAFplus::Group::fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType,bool forcing)
-{
-  int msgLen = 0;
-  int msgDataLen = 0;
-  switch(msgType)
-  {
-    case GroupMessageTypeT::MSG_NODE_JOIN:
-    case GroupMessageTypeT::MSG_ELECT_REQUEST:
-    case GroupMessageTypeT::MSG_HELLO:
-      msgLen = sizeof(GroupMessageProtocol) + sizeof(GroupIdentity);
-      msgDataLen = sizeof(GroupIdentity);
-      break;
-    case GroupMessageTypeT::MSG_NODE_LEAVE:
-      msgLen = sizeof(GroupMessageProtocol) + sizeof(EntityIdentifier);
-      msgDataLen = sizeof(EntityIdentifier);
-      break;
-    case GroupMessageTypeT::MSG_ROLE_NOTIFY:
-      msgLen = sizeof(GroupMessageProtocol) + sizeof(EntityIdentifier)*2;
-      msgDataLen = sizeof(EntityIdentifier);
-      break;
-    default:
-      return;
-  }
-  char msgPayload[sizeof(Buffer)-1+msgLen];
-  GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
-  sndMessage->group = handle;
-  sndMessage->messageType = msgType;
-  sndMessage->roleType = roleType;
-  sndMessage->force = forcing;
-  memcpy(sndMessage->data,data,msgDataLen);
-  sendNotification((void *)sndMessage,msgLen,msgSendMode);
-}
+  void SAFplus::Group::fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType,bool forcing)
+    {
+    int msgLen = 0;
+    int msgDataLen = 0;
+    switch(msgType)
+      {
+      case GroupMessageTypeT::MSG_ENTITY_JOIN:
+      case GroupMessageTypeT::MSG_ELECT_REQUEST:
+      case GroupMessageTypeT::MSG_HELLO:
+        msgLen = sizeof(GroupMessageProtocol) + sizeof(GroupIdentity);
+        msgDataLen = sizeof(GroupIdentity);
+        break;
+      case GroupMessageTypeT::MSG_ENTITY_LEAVE:
+        msgLen = sizeof(GroupMessageProtocol) + sizeof(EntityIdentifier);
+        msgDataLen = sizeof(EntityIdentifier);
+        break;
+      case GroupMessageTypeT::MSG_ROLE_NOTIFY:
+        msgLen = sizeof(GroupMessageProtocol) + sizeof(EntityIdentifier)*2;
+        msgDataLen = sizeof(EntityIdentifier);
+        break;
+      default:
+        return;
+      }
+    char msgPayload[sizeof(Buffer)-1+msgLen];
+    GroupMessageProtocol *sndMessage = (GroupMessageProtocol *)&msgPayload;
+    sndMessage->group = handle;
+    sndMessage->messageType = msgType;
+    sndMessage->roleType = roleType;
+    sndMessage->force = forcing;
+    memcpy(sndMessage->data,data,msgDataLen);
+    sendNotification((void *)sndMessage,msgLen,msgSendMode);
+    }
 
 /**
  * Actually send message
  */
-void  SAFplus::Group::sendNotification(void* data, int dataLength, GroupMessageSendModeT messageMode)
-{
-  switch(messageMode)
-  {
-    case GroupMessageSendModeT::SEND_BROADCAST:
+  void  SAFplus::Group::sendNotification(void* data, int dataLength, GroupMessageSendModeT messageMode)
     {
+    switch(messageMode)
+      {
+      case GroupMessageSendModeT::SEND_BROADCAST:
+      {
       /* Destination is broadcast address */
       ClIocAddressT iocDest;
       iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
       iocDest.iocPhyAddress.portId      = groupCommunicationPort;
       //logInfo("GMS","MSG","Sending broadcast message");
       try
-      {
+        {
         groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, SAFplusI::GRP_MSG_TYPE);
-      }
+        }
       catch (...)
-      {
+        {
         logDebug("GMS","MSG","Failed to send");
-      }
+        }
       break;
-    }
-    case GroupMessageSendModeT::SEND_TO_MASTER:
-    {
+      }
+      case GroupMessageSendModeT::SEND_TO_MASTER:
+      {
       /* Destination is Master node address */
       ClIocAddressT iocDest;
       ClIocNodeAddressT masterAddress = 0;
@@ -586,761 +368,100 @@ void  SAFplus::Group::sendNotification(void* data, int dataLength, GroupMessageS
       iocDest.iocPhyAddress.portId      = groupCommunicationPort;
       //logInfo("GMS","MSG","Sending message to Master");
       try
-      {
+        {
         groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, SAFplusI::GRP_MSG_TYPE);
-      }
+        }
       catch (...)
-      {
+        {
         logDebug("GMS","MSG","Failed to send");
-      }
+        }
       break;
-    }
-    case GroupMessageSendModeT::SEND_LOCAL_RR:
-    {
+      }
+      case GroupMessageSendModeT::SEND_LOCAL_RR:
+      {
       logInfo("GMS","MSG","Sending message round robin");
       break;
-    }
-    default:
-    {
+      }
+      default:
+      {
       logError("GMS","MSG","Unknown message sending mode");
       break;
-    }
-  }
-}
-
-
-
-/**
- * API to register an entity to the group
- */
-void SAFplus::Group::_registerEntity(EntityIdentifier me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify)
-{
-
-if (1)
-  {
-  ScopedLock<RecursiveMutex> sl(lock);
-
-  /* Find existence of the entity */
-  DataHashMap::iterator contents = groupDataMap.find(me);
-
-  /* The entity was not existing, insert  */
-  if (contents == groupDataMap.end())
-    {
-    dirty = true;  // New entity means that it could win a reelection...
-
-    /* Create key and val to store in database*/
-    char vkey[sizeof(EntityIdentifier) + sizeof(SAFplus::Buffer)-1];
-    SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
-    memcpy(key->data,&me,sizeof(EntityIdentifier));
-    GroupIdentity groupIdentity;
-    groupIdentity.id = me;
-    groupIdentity.credentials = credentials;
-    groupIdentity.capabilities = capabilities;
-    groupIdentity.dataLen = dataLength;
-    writeToDatabase(key,(void *)&groupIdentity);
-    /* Store associated data */
-    SAFplus::DataMapPair vt(me,const_cast < void * > (data));
-    groupDataMap.insert(vt);
-
-    /* Store my node information */
-    if(me.getNode() == clIocLocalAddressGet())
-      {
-      myInformation = groupIdentity;
       }
-    logDebug("GMS", "REG","Entity registration successful");
-    /* Notify other entities about new entity*/
-    if(wakeable)
-      {
-      wakeable->wake(1,(void*)NODE_JOIN_SIG);
-      }
-
-    if(needNotify == true)
-      {
-      fillAndSendMessage((void *)&groupIdentity,GroupMessageTypeT::MSG_NODE_JOIN,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
       }
     }
-  else
+
+
+  Group::Iterator::Iterator(Group* _group,bool lock):group(_group),locked(lock)
     {
-    /* Entity exist. Update its information */
-    char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-    SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
-    memcpy(key->data,&me,sizeof(EntityIdentifier));
-
-    GroupIdentity *groupIdentity = (GroupIdentity *)readFromDatabase(key);
-    if(!groupIdentity)
+    if (group==NULL) curIdx=0xffff;
+    else
       {
-      /* Found entity but can't read its information. Memory corruption occured */
-      logError("GMS","REG","Invalid entity information");
-      assert(0);
-      }
-
-    // If something changed that affects the election, mark the group as changed (a reelection could have a different result).
-    if ((groupIdentity->credentials != credentials) || (groupIdentity->capabilities != capabilities))
-      {
-      dirty = true;
-      }
-
-    /* Update entity information */
-    groupIdentity->credentials = credentials;
-    groupIdentity->capabilities = capabilities;
-    groupIdentity->dataLen = dataLength;
-    writeToDatabase(key,(void *)groupIdentity);
-
-    /* Update my node information */
-    if(myInformation.id == me)
-      {
-      myInformation = *groupIdentity;
-      }
-
-    /* Update data associate with the entity */
-    /* User should take responsibile for freeing un-used buffer here */
-    groupDataMap.erase(contents);
-    SAFplus::DataMapPair vt(me,const_cast < void * > (data));
-    groupDataMap.insert(vt);
-    logDebug("GMS", "REG","Entity exists. Updated its information");
-    }
-  }
-
-if(automaticElection)
-  {
-  logInfo("GMS","REG","Run election based on configuration");
-  startElection();
-  }
-
-}
-/**
- * API to register an entity to the group
- */
-void SAFplus::Group::registerEntity(GroupIdentity grpIdentity, bool needNotify)
-{
-  registerEntity(grpIdentity.id,grpIdentity.credentials, NULL, grpIdentity.dataLen, grpIdentity.capabilities,needNotify);
-}
-/**
- * API to deregister an entity from the group
- */
-void SAFplus::Group::deregister(EntityIdentifier me,bool needNotify)
-  {
-  SAFplus::Wakeable* w;
-  if (1)
-    {
-    ScopedLock<RecursiveMutex> sl(lock);
-    w = wakeable;
-    /* Use last registered entity if me is 0 */
-    if(me == INVALID_HDL)
-      {
-      me = lastRegisteredEntity;
-      }
-    /* Find existence of the entity */
-    DataHashMap::iterator contents = groupDataMap.find(me);
-
-    if(contents == groupDataMap.end())
-      {
-      logDebug("GMS", "DER","Entity does not exist");
-      return;
-      }
-
-    char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-    SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
-    memcpy(key->data,&me,sizeof(EntityIdentifier));
-
-    removeFromDatabase(key);
-    /* Delete associated data of entity */
-    groupDataMap.erase(contents);
-    /* User should remove unused associated data */
-
-    if(needNotify == true)
-      {
-      fillAndSendMessage((void *)&me,GroupMessageTypeT::MSG_NODE_LEAVE,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
-      }
-    if(myInformation.id == me) // I am leaving the cluster
-      {
-      return;
-      }
-    /* Update if leaving entity is standby/active */
-    if(activeEntity == me && (myInformation.id == standbyEntity || standbyEntity == INVALID_HDL))
-      {
-      if (standbyEntity == INVALID_HDL) logInfo("GMS","DER","Leaving entity had active role.");
-      else logInfo("GMS","DER","Leaving entity had active role. Standby is now Active.");
-
-      // Promote the standby to active in a manner which NEVER allows other threads to see both the standby and active as the same node
-      Handle tmp = standbyEntity;
-      standbyEntity = INVALID_HDL;
-      activeEntity = tmp;
-      addCapabilities(activeEntity,SAFplus::Group::IS_ACTIVE);
-      removeCapabilities(activeEntity,SAFplus::Group::IS_STANDBY);
-      }
-    else if(standbyEntity == me && myInformation.id == activeEntity)
-      {
-      logInfo("GMS","DER","Leaving entity had standby role.");
-      standbyEntity = INVALID_HDL;
-      /* Now, elect for the new standby */
-      }
-    if(automaticElection)  // since something failed, run a re-election automatically if that is the configured behavior
-      {
-      logInfo("GMS","DER","Run election based on configuration");
-      startElection();
-      }
-    }
-  /* We need to other entities about the left node, but only AFTER
-   * we have handled it. */
-  if(w)
-    {
-    w->wake(1,(void*)NODE_LEAVE_SIG);
-    }
-  }
-
-void SAFplus::Group::addCapabilities(EntityIdentifier id,uint capabilities)
-  {
-  uint cap = getCapabilities(id);
-  cap |= capabilities;
-  setCapabilities(cap,id);
-  }
-
-void SAFplus::Group::removeCapabilities(EntityIdentifier id,uint capabilities)
-  {
-  uint cap = getCapabilities(id);
-  cap &= ~capabilities;
-  setCapabilities(cap,id);
-  }
-
-
-/**
- * API to set entity 's capabilities
- */
-void SAFplus::Group::setCapabilities(uint capabilities, EntityIdentifier me)
-{
-      ScopedLock<RecursiveMutex> sl(lock);
-
-  /* Use last registered entity if me is 0 */
-  if(me == INVALID_HDL)
-  {
-    me = lastRegisteredEntity;
-  }
-  /* Find existence of the entity */
-  DataHashMap::iterator contents = groupDataMap.find(me);
-
-  if(contents == groupDataMap.end())
-  {
-    logDebug("GMS", "CAP","Entity did not exist");
-    return;
-  }
-
-  char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-  SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
-  memcpy(key->data,&me,sizeof(EntityIdentifier));
-
-  GroupIdentity *grp = (GroupIdentity *)readFromDatabase(key);
-  if(grp == NULL)
-  {
-    /* Found entity but can't read its information. Memory corruption occured */
-    logError("GMS","CAP","Invalid entity information");
-    assert(0);
-  }
-  grp->capabilities = capabilities;
-
-  /* Update my node information */
-  if(myInformation.id == me)
-  {
-    myInformation = *grp;
-  }
-  writeToDatabase(key,(void *)grp);
-}
-/**
- * API to get entity 's capabilities
- */
-uint SAFplus::Group::getCapabilities(EntityIdentifier id)
-{
-      ScopedLock<RecursiveMutex> sl(lock);
-
-  /*Check in share memory if entity exists*/
-  DataHashMap::iterator contents = groupDataMap.find(id);
-
-  if(contents == groupDataMap.end())
-  {
-    logDebug("GMS", "CAP","Entity did not exist");
-    return 0;
-  }
-
-  char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-  SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
-  memcpy(key->data,&id,sizeof(EntityIdentifier));
-
-  GroupIdentity *grp = (GroupIdentity *)readFromDatabase(key);
-  if(grp == NULL)
-  {
-    /* Found entity but can't read its information. Memory corruption occured */
-    logError("GMS","CAP","Invalid entity information");
-    assert(0);
-  }
-  return grp->capabilities;
-}
-/**
- * API to get entity associated data
- */
-void* SAFplus::Group::getData(EntityIdentifier id)
-{
-      ScopedLock<RecursiveMutex> sl(lock);
-
-  /*Check in share memory if entity exists*/
-  DataHashMap::iterator contents = groupDataMap.find(id);
-
-  if(contents == groupDataMap.end())
-  {
-    logDebug("GMS", "DAT","Entity did not exist");
-    return NULL;
-  }
-  return contents->second;
-}
-
-#if 0
-/**
- * Election for leader/deputy
- */
-EntityIdentifier SAFplus::Group::electARole(EntityIdentifier ignoreMe)
-{
-  uint requiredCapabilities = 0,curCapabilities = 0;
-  uint highestCredentials = 0, curCredentials = 0;
-  EntityIdentifier curEntity = INVALID_HDL, electedEntity = INVALID_HDL;
-
-  if(ignoreMe == INVALID_HDL) // Required capabilities to become an active
-  {
-    requiredCapabilities = SAFplus::Group::ACCEPT_ACTIVE;
-  }
-  else // // Required capabilities to become a standby
-  {
-    requiredCapabilities = SAFplus::Group::ACCEPT_STANDBY;
-  }
-  for (DataHashMap::iterator i = groupDataMap.begin();i != groupDataMap.end();i++)
-  {
-    char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-    SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
-    *((EntityIdentifier *) key->data) = i->first;
-
-    GroupIdentity *grp = (GroupIdentity *)readFromDatabase(key);
-    curCredentials  = grp->credentials;
-    curCapabilities = grp->capabilities;
-    curEntity       = grp->id;
-    if(((curCapabilities & requiredCapabilities) != 0) && (curEntity !=  ignoreMe))
-    {
-      if(highestCredentials < curCredentials)
-      {
-        highestCredentials = curCredentials;
-        electedEntity = curEntity;
-      }
-    }
-  }
-  return electedEntity;
-}
-
-/**
- * Do election to find the required roles pairs <active,standby>
- */
-std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
-{
-  EntityIdentifier activeCandidate = INVALID_HDL, standbyCandidate = INVALID_HDL;
-
-  activeCandidate = electARole();
-  if(activeCandidate == INVALID_HDL)
-  {
-    return std::pair<EntityIdentifier,EntityIdentifier>(INVALID_HDL,INVALID_HDL);
-  }
-  standbyCandidate = electARole(activeCandidate);
-  return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
-}
-#else
-
-#define ACTIVE_ELECTION_MODIFIER 0x8000000ULL
-#define STANDBY_ELECTION_MODIFIER 0x4000000ULL
-
-std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::electForRoles()
-{
-  uint activeCapabilities = 0,curCapabilities = 0;
-  uint64_t highestCredentials = 0, curCredentials = 0;
-  EntityIdentifier curEntity = INVALID_HDL;
-
-  EntityIdentifier activeCandidate=INVALID_HDL, standbyCandidate=INVALID_HDL;
-  uint             activeCredentials=0, standbyCredentials=0;
-
-  for (DataHashMap::iterator i = groupDataMap.begin();i != groupDataMap.end();i++)
-  {
-    char tempStr[100];
-    char vkey[sizeof(SAFplus::Buffer)-1+sizeof(EntityIdentifier)];
-    SAFplus::Buffer* key = new(vkey) Buffer(sizeof(EntityIdentifier));
-    *((EntityIdentifier *) key->data) = i->first;
-    tempStr[0] = 0;
-    GroupIdentity *grp = (GroupIdentity *)readFromDatabase(key);
-    curCredentials  = grp->credentials;
-    curCapabilities = grp->capabilities;
-    curEntity       = grp->id;
-
-    // Prefer existing active/standby for the role rather than other nodes -- stops "failback"
-    if ((curCapabilities & SAFplus::Group::IS_ACTIVE)&&(curCapabilities & SAFplus::Group::STICKY)) curCredentials |= ACTIVE_ELECTION_MODIFIER;
-    if ((curCapabilities & SAFplus::Group::IS_STANDBY)&&(curCapabilities & SAFplus::Group::STICKY)) curCredentials |= STANDBY_ELECTION_MODIFIER;
-    logInfo("GRP","ELC", "Member [%lx:%lx], capabilities: (%s) 0x%x, credentials: %lx",curEntity.id[0],curEntity.id[1],capStr(curCapabilities,tempStr), curCapabilities, curCredentials);
-
-
-    // Obviously the anything that can accept the standby role must be able to be active too.
-    // But it is possible to not be able to accept the standby role (transition directly to active).
-    if ((curCapabilities & (SAFplus::Group::ACCEPT_ACTIVE |  SAFplus::Group::ACCEPT_STANDBY)) != 0)  
-    {
-      if(activeCredentials < curCredentials)
-      {
-        // If the active candidate is changing, see if the current candidate is a better match for standby
-        if ((standbyCredentials < activeCredentials)&&(activeCapabilities&SAFplus::Group::ACCEPT_STANDBY))
-          {
-          standbyCredentials = activeCredentials;
-          standbyCandidate   = activeCandidate;
-          }
-        activeCredentials = curCredentials;
-        activeCandidate = curEntity;
-        activeCapabilities = curCapabilities;  
-      }
-      else if ((standbyCredentials < curCredentials)&&(curCapabilities&SAFplus::Group::ACCEPT_STANDBY))
+      curIdx = 0;
+      if (locked)
         {
-        standbyCredentials = curCredentials;
-        standbyCandidate = curEntity;
+        gsm.mutex.lock();  // Currently use a gross lock across all groups
         }
-    }
-    else if ((curCapabilities & SAFplus::Group::ACCEPT_STANDBY) != 0)
-      {
-        clDbgCodeError(1, ("This entity's credentials are incorrect.  It cannot have standby capability but be unable to become active.") );
+      load();
       }
-  }
-
-  return std::pair<EntityIdentifier,EntityIdentifier>(activeCandidate,standbyCandidate);
-}
-
-#endif
-
-char* SAFplus::Group::capStr(uint cap, char* buf)
-  {
-  if (cap & IS_ACTIVE) strcat(buf,"Active/");
-  if (cap & IS_STANDBY) strcat(buf,"Standby/");
-  if (cap & ACCEPT_ACTIVE) strcat(buf,"Accepts Active/");
-  if (cap & ACCEPT_STANDBY) strcat(buf,"Accepts Standby/");
-  if (cap & STICKY) strcat(buf,"Sticky/");
-  int tmp = strlen(buf);
-  if (tmp) buf[tmp-1] = 0;  // knock off the last / if it exists
-  return buf;
-  }
-
-void SAFplus::Group::startElection(void)
-  {
-  if(!isElectionRunning)
-    {
-    fillAndSendMessage(&myInformation,GroupMessageTypeT::MSG_ELECT_REQUEST,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
-    electionRequestHandle(NULL);
-    }
-  }
-
-
-/**
- * API allow member call for election based on group database
- */
-std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::elect(SAFplus::Wakeable& wake)
-{
-  std::pair<EntityIdentifier,EntityIdentifier> res;
-  res.first = INVALID_HDL;
-  res.second = INVALID_HDL;
-  if(!isElectionRunning)
-    {
-    fillAndSendMessage(&myInformation,GroupMessageTypeT::MSG_ELECT_REQUEST,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
-    electionRequestHandle(NULL);
     }
 
-  // Asynchronous call
-  if(&wake != NULL)
-  {
-    clDbgNotImplemented("");  // TODO, I need to put the wake object into a list so I can call it when the election is complete
-    return res;
-  }
-  else
-  {
-    while(isElectionRunning)  // TODO: should be a thread condition
+  Group::Iterator::~Iterator()
     {
-      boost::this_thread::sleep(boost::posix_time::milliseconds(50));
-    }
-    res.first = activeEntity;
-    res.second = standbyEntity;
-    return res;
-  }
-
-}
-/**
- * API to check whether an entity is a group member
- */
-bool SAFplus::Group::isMember(EntityIdentifier id)
-{
-  DataHashMap::iterator contents = groupDataMap.find(id);
-  if(contents == groupDataMap.end())
-  {
-    return false;
-  }
-  else
-  {
-    return true;
-  }
-}
-/**
- * API to set notification mechanism
- */
-/* FIXME: not complete */
-void SAFplus::Group::setNotification(SAFplus::Wakeable& w)
-{
-  wakeable = (Wakeable *)&w;
-  logInfo("GMS", "---","Notification had been set");
-}
-/**
- * API to get current active entity
- */
-EntityIdentifier SAFplus::Group::getActive(void)
-{
-  if ((activeEntity == INVALID_HDL)&&(dirty)) elect();  // TODO: We don't want to keep re-electing if there is no capable candidate, so this should really re-elect only if something changed.
-  return activeEntity;
-}
-/**
- * API to set group active entity
- */
-void SAFplus::Group::setActive(EntityIdentifier id)
-{
-  /* Stop all running election */
-  isElectionRunning = false;
-  /* Set the active entity as user expectation */
-  activeEntity = id;
-  if(stickyMode)
-  {
-    uint capabilities = 0;
-    if(activeEntity != INVALID_HDL)
-    {
-      capabilities = getCapabilities(activeEntity);
-      capabilities |= SAFplus::Group::IS_ACTIVE;
-      capabilities &= (~SAFplus::Group::IS_STANDBY);
-      setCapabilities(capabilities,activeEntity);
-    }
-  }
-  /* Announce role change */
-  fillAndSendMessage(&activeEntity,GroupMessageTypeT::MSG_ROLE_NOTIFY,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_ACTIVE, true);
-}
-/**
- * API to set group standby entity
- */
-void SAFplus::Group::setStandby(EntityIdentifier id)
-{
-  standbyEntity = id;
-}
-/**
- * API to get current standby entity
- */
-EntityIdentifier SAFplus::Group::getStandby(void)
-{
-  if ((standbyEntity == INVALID_HDL)&&dirty) elect(); // TODO: We don't want to keep re-electing if there is no capable candidate, so this should really re-elect only if something changed.
-  return standbyEntity;
-}
-
-std::pair<EntityIdentifier,EntityIdentifier> SAFplus::Group::getRoles(void)
-{
-  if (((standbyEntity == INVALID_HDL)||(activeEntity == INVALID_HDL))&&dirty) elect(); // TODO: We don't want to keep re-electing if there is no capable candidate, so this should really re-elect only if something changed.
-  std::pair<EntityIdentifier,EntityIdentifier> ret(activeEntity,standbyEntity);
-  return ret;
-}
-
-/**
- * Internal group function to read entity information from group database
- */
-void* SAFplus::Group::readFromDatabase(Buffer *key)
-{
-  switch(dataStoringMode)
-  {
-    case SAFplus::Group::DATA_IN_CHECKPOINT:
-    {
-      const Buffer& tmp = mGroupCkpt.read(*key);
-      return (void *)tmp.data;
-    }
-    case SAFplus::Group::DATA_IN_MEMORY:
-    {
-      EntityIdentifier eiKey = *((EntityIdentifier *)key->data);
-      GroupHashMap::iterator curItem = mGroupMap.find(eiKey);
-      return (void *)&(curItem->second);
-    }
-    default:
-    {
-      return NULL;
-    }
-  }
-}
-/**
- * Internal group function to write entity information to group database
- */
-void SAFplus::Group::writeToDatabase(Buffer *key, void *val)
-{
-  switch(dataStoringMode)
-  {
-    case SAFplus::Group::DATA_IN_CHECKPOINT:
-    {
-      Transaction t;
-      char vbuf[sizeof(SAFplus::Buffer) - 1 + sizeof(GroupIdentity)];
-      Buffer *buf = new(vbuf) Buffer(sizeof(GroupIdentity));
-      memcpy(buf->data,val,sizeof(GroupIdentity));
-      mGroupCkpt.write(*key,*buf,t);
-      break;
-    }
-    case SAFplus::Group::DATA_IN_MEMORY:
-    {
-      EntityIdentifier eiKey = *((EntityIdentifier *)key->data);
-      GroupHashMap::iterator curItem = mGroupMap.find(eiKey);
-      if(curItem != mGroupMap.end())
+    if (locked)
       {
-        mGroupMap.erase(curItem);
+      gsm.mutex.unlock();  // Currently use a gross lock across all groups
+      locked = false;
       }
-      GroupIdentity *grp = (GroupIdentity *)val;
-      SAFplus::GroupMapPair vt(eiKey,*grp);
-      mGroupMap.insert(vt);
-      break;
     }
-    default:
-    {
-      logError("GMS","---","Unknown storing mode");
-      break;
-    }
-  }
-}
-/**
- * Internal group function to remove entity from group database
- */
-void SAFplus::Group::removeFromDatabase(Buffer* key)
-{
-  switch(dataStoringMode)
+
+  Group::Iterator& Group::Iterator::operator++()
   {
-    case SAFplus::Group::DATA_IN_CHECKPOINT:
+  if (curIdx != 0xffff) 
     {
-      Transaction t;
-      mGroupCkpt.remove(*key,t);
-      break;
+    curIdx++;
+    load();
     }
-    case SAFplus::Group::DATA_IN_MEMORY:
-    {
-      EntityIdentifier eiKey = *((EntityIdentifier *)key->data);
-      GroupHashMap::iterator curItem = mGroupMap.find(eiKey);
-      if(curItem != mGroupMap.end())
-      {
-        mGroupMap.erase(curItem);
-      }
-      break;
-    }
-    default:
-    {
-      break;
-    }
-  }
-}
-/**
- * Group iterator
- */
-SAFplus::Group::Iterator SAFplus::Group::begin()
-{
-  SAFplus::Group::Iterator i(this);
-  i.iter = this->groupDataMap.begin();
-  i.curval = &(*i.iter);
-  return i;
-}
-
-SAFplus::Group::Iterator SAFplus::Group::end()
-{
-  SAFplus::Group::Iterator i(this);
-  i.iter = this->groupDataMap.end();
-  i.curval = &(*i.iter);
-  return i;
-}
-
-SAFplus::Group::Iterator::Iterator(SAFplus::Group* _group):group(_group)
-{
-  curval = NULL;
-}
-
-SAFplus::Group::Iterator::~Iterator()
-{
-  group = NULL;
-  curval = NULL;
-}
-
-SAFplus::Group::Iterator& SAFplus::Group::Iterator::operator++()
-{
-  iter++;
-  curval = &(*iter);
   return *this;
-}
+  }
 
-SAFplus::Group::Iterator& SAFplus::Group::Iterator::operator++(int)
-{
-  iter++;
-  curval = &(*iter);
+  Group::Iterator& Group::Iterator::operator++(int)
+  {
+  if (curIdx != 0xffff) 
+    {
+    curIdx++;
+    load();
+    }
   return *this;
-}
-
-bool SAFplus::Group::Iterator::operator !=(const SAFplus::Group::Iterator& otherValue) const
-{
-  if (group != otherValue.group) return true;
-  if (iter != otherValue.iter) return true;
-  return false;
-}
-
-SAFplus::Group::GroupMessageHandler::GroupMessageHandler(SAFplus::Group* _group):mGroup(_group)
-{
-
-}
-
-void SAFplus::Group::GroupMessageHandler::init(SAFplus::Group* _group)
-{
-  mGroup = _group;
-}
-
-void SAFplus::Group::GroupMessageHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
-{
-  /* If no communication needed, just ignore */
-  if(mGroup == NULL)
-  {
-    return;
   }
 
-  /* Parse the message and process if it is valid */
-  SAFplusI::GroupMessageProtocol *rxMsg = (SAFplusI::GroupMessageProtocol *)msg;
-  if(rxMsg == NULL)
+  void Group::Iterator::load(void)
   {
-    logError("GMS","MSG","Received NULL message. Ignored");
-    return;
-  }
-  logInfo("GMS","MSG","Received message [%x] from node %d",rxMsg->messageType,from.iocPhyAddress.nodeAddress);
+  GroupShmHashMap::iterator entryPtr;
+  entryPtr = gsm.groupMap->find(group->handle);
+  if (entryPtr != gsm.groupMap->end())  // Group disappeared!
+    {
+    GroupShmEntry *gse = &entryPtr->second;
+    if (gse)
+      {
+      const GroupData& gdr = gse->read();
+      if (curIdx < gdr.numMembers) 
+        {
+        curval.first = gdr.members[curIdx].id;
+        curval.second = gdr.members[curIdx];
+        return;
+        }
+      }
+    }
 
-  switch(rxMsg->messageType)
-  {
-    case SAFplusI::GroupMessageTypeT::MSG_NODE_JOIN:
-      if(from.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
-        {
-      logDebug("GMS","MSG","Node JOIN message");
-      mGroup->nodeJoinHandle(rxMsg);
-        } break;
-    case SAFplusI::GroupMessageTypeT::MSG_HELLO:
-      if(from.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
-        {
-      logDebug("GMS","MSG","Node HELLO message");
-      mGroup->nodeJoinHandle(rxMsg);
-        } break;
-    case SAFplusI::GroupMessageTypeT::MSG_NODE_LEAVE:
-      logDebug("GMS","MSG","Node LEAVE message");
-      mGroup->nodeLeaveHandle(rxMsg);
-      break;
-    case SAFplusI::GroupMessageTypeT::MSG_ROLE_NOTIFY:
-      logDebug("GMS","MSG","Role CHANGE message");
-      mGroup->roleNotificationHandle(rxMsg);
-      break;
-    case SAFplusI::GroupMessageTypeT::MSG_ELECT_REQUEST:
-      if(from.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
-        {
-        logDebug("GMS","MSG","Election REQUEST message");
-        mGroup->electionRequestHandle(rxMsg);
-        } break;
-    default:
-      logDebug("GMS","MSG","Unknown message type [%d] from %d",rxMsg->messageType,from.iocPhyAddress.nodeAddress);
-      break;
+    // If any of the if conditions fail, we are at the end of the list
+    curIdx=0xffff; 
+    curval.first = INVALID_HDL;
   }
-}
+
+  void groupInitialize(void)
+    {
+    gsm.init();
+    }
+
+
+  };

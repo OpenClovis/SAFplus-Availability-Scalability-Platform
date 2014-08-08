@@ -29,19 +29,17 @@ namespace SAFplus
     void SAFplus::SafplusMsgServer::init(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads, Options flags)
       {
         MsgServer::Init(port, maxPendingMsgs, maxHandlerThreads, flags);
-    
         MsgHandler *replyHandler = new MsgReplyHandler();
         this->RegisterHandler(CL_IOC_SAF_MSG_REPLY_PROTO, replyHandler, &msgReply);
-    }
+        iocPort = port; // Set this global to be used as a unique identifier for this component across the node
+      }
 
-    void
-    SAFplus::SafplusMsgServer::registerHandler(ClWordT type, MsgHandler *handler, ClPtrT cookie)
+    void SAFplus::SafplusMsgServer::registerHandler(ClWordT type, MsgHandler *handler, ClPtrT cookie)
     {
         SAFplus::MsgServer::RegisterHandler(type, handler, cookie);
     }
 
-    void
-    SAFplus::SafplusMsgServer::removeHandler(ClWordT type)
+    void SAFplus::SafplusMsgServer::removeHandler(ClWordT type)
     {
         SAFplus::MsgServer::RemoveHandler(type);
     }

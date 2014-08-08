@@ -47,9 +47,10 @@ namespace SAFplus
 
   SaVersionT safVersion = { 'B',4,1 };
 
-  pid_t pid = 0;
+  pid_t      pid = 0;
+  ClIocPortT iocPort = 0;
   /** True if this component is not under AMF control (will not receive CSI callbacks) */
-  bool clWithoutAmf;
+  bool clWithoutAmf = false;
 
   uint64_t curHandleIdx = (1<<SUB_HDL_SHIFT);
 
@@ -463,7 +464,7 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
   Handle Handle::create(int msgingPort)
     {
     // TODO: mutex lock around this, put in shared memory to make unique across the node.  The reason this is needed is for entities like checkpoint that create a sem based on the handle's id
-    if (msgingPort==0) msgingPort = pid;
+    if (msgingPort==0) msgingPort = (iocPort != 0 ) ? iocPort : pid;
     Handle hdl(TransientHandle,curHandleIdx,msgingPort,ASP_NODEADDR); // TODO node and clusterId
     curHandleIdx += (1<<SUB_HDL_SHIFT);
     return hdl;

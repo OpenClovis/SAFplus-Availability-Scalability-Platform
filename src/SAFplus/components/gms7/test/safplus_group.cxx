@@ -1,0 +1,30 @@
+#include <clGroupIpi.hxx>
+#include <clGlobals.hxx>
+#include <clIocPortList.hxx>
+#include <clSafplusMsgServer.hxx>
+
+static unsigned int MAX_MSGS=25;
+static unsigned int MAX_HANDLER_THREADS=2;
+
+ClBoolT   gIsNodeRepresentative = CL_TRUE;
+ClUint32T clAspLocalId = 0x1;
+
+int main(int argc,char *argv[])
+  {
+  clAspLocalId = SAFplus::ASP_NODEADDR = 1;
+
+  SAFplus::logEchoToFd = 1;  // echo logs to stdout for debugging
+  SAFplus::logSeverity = SAFplus::LOG_SEV_MAX;
+
+  safplusInitialize(SAFplus::LibDep::IOC);
+
+  SAFplus::safplusMsgServer.init(SAFplusI::GMS_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
+
+  SAFplusI::GroupServer gs;
+  gs.init();
+
+  /* Library should start it */
+  SAFplus::safplusMsgServer.Start();
+  while(1) { sleep(10000); }
+  return 0;
+  }

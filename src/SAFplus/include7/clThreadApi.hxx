@@ -28,9 +28,11 @@ namespace SAFplus
   protected:
     int semId;
   public:
+    ProcSem() { semId = -1; }  // deferred initialization
     ProcSem(unsigned int key,int initialValue=0);
-    ProcSem(const char* key,int initialValue=0);
+    ProcSem(const char* key,int initialValue=0);  // the actual key will be the CRC32 of this string
     void init(unsigned int key,int initialValue);
+    void init(const char* key,int initialValue); // the actual key will be the CRC32 of this string
     void wake(int amt,void* cookie=NULL);
     void lock(int amt=1);
     void unlock(int amt=1);

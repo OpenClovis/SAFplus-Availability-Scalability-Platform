@@ -232,13 +232,14 @@ void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr)
   if (pmsgSvr == NULL) msgSvr = &safplusMsgServer;
   else msgSvr = pmsgSvr;
   ckpt->hdr->replicaHandle = Handle::create(msgSvr->handle.getPort());
+#if 0
   group = new SAFplus::Group();
   assert(group);
   group->init(ckpt->hdr->handle.getSubHandle(CKPT_GROUP_SUBHANDLE),Group::DATA_IN_MEMORY);
   group->setNotification(*this);
   // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
   group->registerEntity(ckpt->hdr->replicaHandle,(ckpt->hdr->changeNum<<SAFplus::Log2MaxNodes) | SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE, false);
-
+#endif
   logInfo("SYNC","TRD","Checkpoint is registered on [%d:%d] type [%d]", msgSvr->handle.getNode(),msgSvr->handle.getPort(),CKPT_SYNC_MSG_TYPE);
 
   msgHdlr.handleMap[ckpt->hdr->replicaHandle] = this;

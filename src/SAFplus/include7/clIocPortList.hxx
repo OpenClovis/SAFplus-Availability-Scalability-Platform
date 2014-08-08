@@ -7,6 +7,7 @@ namespace SAFplusI
     AMF_IOC_PORT = 1,
     LOG_IOC_PORT = 2,
     MGT_IOC_PORT = 3,
+    GMS_IOC_PORT = 4,
     };
 
   enum

@@ -5,7 +5,7 @@
 
 namespace SAFplus
   {
-  extern pid_t pid;  // This process's ID 
+  extern pid_t pid;  // This process's ID
   extern const char* logCompName;  // Override this component name for display in the logs.  If this variable is not changed the name will be the SAF component name.
   extern bool  logCodeLocationEnable;
   /** Set this to a file descriptor to echo all logs that pass the severity limit to it this fd on the client side.  For example, use 1 to send to stdout.  -1 to turn off (default) */
@@ -87,14 +87,14 @@ namespace SAFplus
     LOG = LibSet::LOG | LibSet::OSAL | LibSet::UTILS,
     OSAL = LibSet::OSAL | LibSet::LOG | LibSet::UTILS,
     UTILS = LibSet::UTILS | LibSet::OSAL,
-    IOC = LibSet::IOC | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
+    IOC = LibSet::IOC | LibSet::LOG |  LibSet::UTILS | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
     #if 0
     CKPT = LibSet::CKPT | LibSet::IOC | LibSet::UTILS | LibSet::GRP,
     GRP = LibSet::GRP | LibSet::CKPT | LibSet::IOC,
     #endif
     // CKPT and GRP itself initialized when its instance is created    
-    CKPT = LibSet::IOC | LibSet::UTILS,
-    GRP = LibSet::IOC,
+    CKPT = LibDep::IOC | LibDep::UTILS,
+    GRP = LibSet::GRP | LibDep::IOC,
     HEAP = LibSet::HEAP,
     BUFFER = LibSet::BUFFER,
     TIMER = LibSet::TIMER
@@ -134,8 +134,11 @@ extern "C" {
 }
 #endif
 
+  extern void groupInitialize(void) __attribute__((weak));
+
   inline void safplusInitialize(LibDep svc)
   {
+    ClRcT rc;
     if(svc&LibSet::LOG)
       if(logInitialize) logInitialize();
     if(svc&LibSet::UTILS)
@@ -148,8 +151,19 @@ extern "C" {
       if(clBufferInitialize) assert(clBufferInitialize(NULL) == CL_OK);
     if(svc&LibSet::TIMER)
       if(clTimerInitialize) assert(clTimerInitialize(NULL) == CL_OK);
-    if(svc&LibSet::IOC)
-      if(clIocLibInitialize) assert(clIocLibInitialize(NULL) == CL_OK);         
+
+    if((svc&LibSet::IOC)&&clIocLibInitialize) 
+      { 
+      rc = clIocLibInitialize(NULL); 
+      assert(rc == CL_OK); 
+      }
+
+    if((svc&LibSet::GRP)&&SAFplus::groupInitialize) 
+      { 
+      SAFplus::groupInitialize(); 
+      //assert(rc == CL_OK); 
+      }
+
   }
 
   };

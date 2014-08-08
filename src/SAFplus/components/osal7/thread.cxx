@@ -118,6 +118,14 @@ typedef union CosSemCtl_u
     init(realKey,initialValue);
   }
   
+  void ProcSem::init(const char* key,int initialValue)
+    {
+    ClUint32T realKey;
+    int keyLen = strlen(key);
+    realKey = computeCrc32((ClUint8T*) key, keyLen);
+    init(realKey,initialValue);
+    }
+
   void ProcSem::init(unsigned int key,int initialValue)
   {
     uint_t retry;

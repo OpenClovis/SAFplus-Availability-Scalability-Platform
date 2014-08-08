@@ -652,7 +652,7 @@ ClRcT clIocNotificationCompStatusSend(ClIocCommPortHandleT commPort, ClUint32T s
 
     /* Need to send a notification packet to all the Amfs's event handlers. */
     return clIocNotificationPacketSend(commPort, &notification, allNodeReps, CL_FALSE, xportType);
-}         
+}
 
 /* 
  * Packet is received from the other node amfs/NODE-REPS
@@ -807,9 +807,13 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         event = CL_IOC_NODE_DOWN;
         clIocMasterSegmentUpdate(compAddr);
     }
-            
+
     clIocCompStatusSet(compAddr, event);
 
+    /*
+     * Notify the registrants for this notification for faster processing
+     */
+    clIocNotificationRegistrants(&notification);  // Stone:  Added this so that registants get callbacks for off-node component failures.
     logInfo ("IOC", "NOTIF", "Got [%s] notification [0x%x] for node [0x%x] commport [0x%x]",
                event == CL_IOC_NODE_UP ? "arrival": "death", id, compAddr.nodeAddress, compAddr.portId);
 

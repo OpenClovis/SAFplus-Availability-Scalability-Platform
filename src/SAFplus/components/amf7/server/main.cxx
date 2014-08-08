@@ -29,7 +29,7 @@
 #include "amfRpc/amfRpc.pb.h"
 #include "amfRpc/amfRpc.hxx"
 
-#define GRP
+//#define GRP
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -67,7 +67,9 @@ public:
   };
 
 volatile bool    quitting=false;  // Set to true to tell all threads to quit
+#ifdef GRP
 Group            clusterGroup(SAFplus::Group::DATA_IN_CHECKPOINT);
+#endif
 ClusterGroupData clusterGroupData;  // The info we tell other nodes about this node.
 Handle           myHandle;  // This handle resolves to THIS process.
 Handle           nodeHandle; //? The handle associated with this node

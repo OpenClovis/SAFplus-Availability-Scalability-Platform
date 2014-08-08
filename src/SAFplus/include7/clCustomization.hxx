@@ -7,7 +7,8 @@ namespace SAFplus
   {
     enum
     {
-    Log2MaxNodes = 10  // 2^10 = 1024 total nodes.
+    Log2MaxNodes = 10,  // 2^10 = 1024 total nodes.
+    MaxNodes = (1<<Log2MaxNodes)
     };
   };
 
@@ -21,6 +22,15 @@ namespace SAFplusI
     {
     LogDefaultFileBufferSize = 16*1024,
     LogDefaultMessageBufferSize = 16*1024,
+    };
+
+  /* GROUP */
+  enum
+    {
+    GroupSharedMemSize = 4 * 1024*1024,
+    GroupMax           = 1024,  // Maximum number of groups
+    GroupMaxMembers    = 1024,   // Maximum number of members in a group
+    GroupElectionTimeMs = 5000  // Default Group election time in milliseconds
     };
 
   /* CHECKPOINT */

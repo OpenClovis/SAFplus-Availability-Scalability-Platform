@@ -46,7 +46,7 @@ namespace SAFplus
     bool operator == (const Handle& other) const
     {
       return ((id[0] == other.id[0])&&(id[1]==other.id[1]));
-    }    
+    }
 
     bool operator != (const Handle& other) const
     {
@@ -88,35 +88,35 @@ namespace SAFplus
       return subHdl;
       }
 
-    HandleType getType()
+    HandleType getType() const
     {
       HandleType t = (HandleType)((id[0] & HDL_TYPE_ID_MASK) >> HDL_TYPE_ID_SHIFT);
       return t;
     }
 
-    uint64_t getIndex()
+    uint64_t getIndex() const
     {
       return id[1];
     }
 
-    uint32_t getProcess()
+    uint32_t getProcess() const
     {
       uint32_t process = (uint32_t)(id[0] & HDL_PROCESS_ID_MASK);
       return process;
     }
-    uint32_t getPort()  // Process ID and port have the same function... unique # per node
+    uint32_t getPort() const  // Process ID and port have the same function... unique # per node
     {
       uint32_t process = (uint32_t)(id[0] & HDL_PROCESS_ID_MASK);
       return process;
     }
 
-    uint16_t getNode()
+    uint16_t getNode() const
     {
       uint16_t node = (uint16_t)((id[0] & HDL_NODE_ID_MASK) >> HDL_NODE_ID_SHIFT);
       return node;
     }
 
-    uint_t getCluster()
+    uint_t getCluster() const
     {
       uint_t clusterId = (uint_t)((id[0] & HDL_CLUSTER_ID_MASK) >> HDL_CLUSTER_ID_SHIFT);
       return clusterId;
