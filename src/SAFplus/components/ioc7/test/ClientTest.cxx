@@ -41,20 +41,9 @@ int main(void)
 
     SAFplus::ASP_NODEADDR = 0x1;
 
-    logInitialize();
+    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
     logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
-
-    utilsInitialize();
-
-    // initialize SAFplus6 libraries
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
-      {
-      assert(0);
-      }
-
-    rc = clIocLibInitialize(NULL);
-    assert(rc==CL_OK);
 
     iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;  // 2
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
@@ -74,17 +63,16 @@ int main(void)
         MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) helloMsg, strlen(helloMsg), CL_IOC_PROTO_CTL);
         logInfo("CLT","TST","Received [%s]", (char*) msgReply->buffer);
         sleep(1);
-      }    
-    char helloMsg1[3000000];
-    for(long i =0;i<3000000;i++)
-    {
-	helloMsg1[i]='a';
-    }	
+      }
+    //TODO: crashed if memory is not enough
+    char helloMsg1[2000000] = {0};
+    memset(helloMsg1, 'a', sizeof(helloMsg1) - 1);
+
     logInfo("CLT","TST","Send msg with size # %ld", strlen(helloMsg1));
     while (i++ < 100)
     {
         logInfo("CLT","TST","Send msg # %d", i);
-        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) helloMsg, strlen(helloMsg1), CL_IOC_PROTO_CTL);
+        MsgReply *msgReply = msgClient.sendReply(iocDest, (void *) helloMsg1, strlen(helloMsg1), CL_IOC_PROTO_CTL);
         logInfo("CLT","TST","Received [%s]", (char*) msgReply->buffer);
         sleep(1);
     }  

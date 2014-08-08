@@ -2187,7 +2187,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
             clOsalMutexUnlock(&pIocCommPort->unblockMutex);
             goto out;
         }
-        clLogCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet. " "The packet is an invalid or a corrupted one. "
+        logCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet. " "The packet is an invalid or a corrupted one. "
                                            "Packet size if %d, rc = %x\n", bytes, rc);
         goto out;
     }
@@ -2195,7 +2195,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
 
     if(((ClIocHeaderT*)buffer)->version != CL_IOC_HEADER_VERSION)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping received packet of version [%d]. Supported version [%d]\n",
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping received packet of version [%d]. Supported version [%d]\n",
                                         ((ClIocHeaderT*)buffer)->version, CL_IOC_HEADER_VERSION);
         rc = CL_IOC_RC(CL_ERR_TRY_AGAIN);
         goto out;
@@ -2350,7 +2350,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
          * Will be used once fully tested as its faster than earlier method
          */
         if(((ClIocFragHeaderT*)buffer)->header.flag == IOC_LAST_FRAG)
-            clLogTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
+            logTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
                        ((ClIocFragHeaderT*)buffer)->fragOffset, ((ClIocFragHeaderT*)buffer)->fragLength, bytes);
 
 
@@ -2459,7 +2459,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
     pRecvParam->protoType = ((ClIocHeaderT*)buffer)->protocolType;
     memcpy(&pRecvParam->srcAddr, &((ClIocHeaderT*)buffer)->srcAddress, sizeof(pRecvParam->srcAddr));
 
-    clLogTrace("XPORT", "RECV",
+    logTrace("XPORT", "RECV",
                "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", 
                bytes, ((ClIocHeaderT*)buffer)->protocolType, ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress,
                ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId);
@@ -2487,17 +2487,15 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
 
     if(bytes <= size)
     {
-        clLogCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet. "
+        logCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet. "
                                            "The packet is an invalid or a corrupted one. "
                                            "Packet size received [%d]", bytes);
         goto out;
     }
 
-
-
     if(((ClIocHeaderT*)buffer)->version != CL_IOC_HEADER_VERSION)
     {
-        clLogError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping received packet of version [%d]. Supported version [%d]\n",
+        logError(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping received packet of version [%d]. Supported version [%d]\n",
                                         ((ClIocHeaderT*)buffer)->version, CL_IOC_HEADER_VERSION);
         goto out;
     }
@@ -2583,7 +2581,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
 #endif
 
         if(rc != CL_OK) {
-            clLogCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet. "
+            logCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received packet. "
                                                "Failed to write to a buffer message. "
                                                "Packet Size is %d. error code 0x%x", bytes, rc);
             goto out;
@@ -2615,7 +2613,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
          * Will be used once fully tested as its faster than earlier method
          */
         if(((ClIocFragHeaderT*)buffer)->header.flag == IOC_LAST_FRAG)
-            clLogTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
+            logTrace("FRAG", "RECV", "Got Last frag at offset [%d], size [%d], received [%d]",
                        ((ClIocFragHeaderT*)buffer)->fragOffset, ((ClIocFragHeaderT*)buffer)->fragLength, bytes);
 
         rc = __iocUserFragmentReceive(xportType, buffer, (ClIocFragHeaderT*)buffer,
@@ -2629,7 +2627,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
                 rc = CL_OK;
             else
             {
-                clLogCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received fragmented-packet. "
+                logCritical(IOC_LOG_AREA_IOC,IOC_LOG_CTX_RECV,"Dropping a received fragmented-packet. "
                                                   "Failed to reassemble the packet. Packet size is %d. "
                                                   "error code 0x%x", bytes, rc);
             }
@@ -2740,7 +2738,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     recvParam.priority = ((ClIocHeaderT*)buffer)->priority;
     recvParam.protoType = ((ClIocHeaderT*)buffer)->protocolType;
     memcpy(&recvParam.srcAddr, &((ClIocHeaderT*)buffer)->srcAddress, sizeof(recvParam.srcAddr));
-    clLogTrace( "XPORT", "RECV",
+    logTrace( "XPORT", "RECV",
                "Received message of size [%d] and protocolType [0x%x] from node [0x%x:0x%x]", bytes, ((ClIocHeaderT*)buffer)->protocolType, recvParam.srcAddr.iocPhyAddress.nodeAddress, recvParam.srcAddr.iocPhyAddress.portId);
     clEoEnqueueReassembleJob(message, &recvParam);
     message = 0;
@@ -2860,13 +2858,13 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
 
     if (CL_IOC_PHYSICAL_ADDRESS_TYPE != CL_IOC_ADDRESS_TYPE_FROM_NODE_ADDRESS((pConf->nodeAddress)))
     {
-        clLogCritical(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,
+        logCritical(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,
                       "\nCritical : Invalid IOC address: Node Address [0x%x] is an invalid physical address.\n",pConf->nodeAddress);
         return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     }
     if ((CL_IOC_RESERVED_ADDRESS == pConf->nodeAddress) || (CL_IOC_BROADCAST_ADDRESS == pConf->nodeAddress))
     {
-        clLogCritical(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,
+        logCritical(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,
                       "\nCritical : Invalid IOC address: Node Address [0x%x] is one of the reserved IOC addresses.\n ",pConf->nodeAddress);
         return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     }

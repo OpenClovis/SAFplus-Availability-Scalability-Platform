@@ -809,7 +809,7 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader)
             if (CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability & __LEADER_CAPABILITY_MASK)
             {
                 /* We are changing leader, when our own cache says someone else is leader???!!!  Probably VERY BAD */
-                clLogAlert("CAP", "SET", "Updating leader when [%d] is already leader with capability [%#x]", i, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability);
+                logAlert("CAP", "SET", "Updating leader when [%d] is already leader with capability [%#x]", i, CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability);
             }        
             CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[i].capability &= ~__LEADER_CAPABILITY_MASK;
         }

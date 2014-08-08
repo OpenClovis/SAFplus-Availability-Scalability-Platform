@@ -837,7 +837,7 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
         // it to kick the node out of the cluster.  So do not quit yourself if you are external...
 #else        
         ClTimerTimeOutT delay = { 1, 0 };
-        clLogCritical ("IOC", "NOT", "Controller has kicked this node out of the cluster -- quitting in 1 second.");
+        logCritical ("IOC", "NOT", "Controller has kicked this node out of the cluster -- quitting in 1 second.");
         clOsalTaskDelay(delay);
         exit(0);
 #endif        
