@@ -38,10 +38,10 @@ main(void)
 
     SAFplus::ASP_NODEADDR = 0x2;
 
+    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
+
     logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
-
-    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
 
     //Msg server listening
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);
@@ -55,7 +55,10 @@ main(void)
     safplusMsgServer.Start();
 
     // Loop forever
-    while(1);
+    while(1)
+      {
+        sleep(10);
+      }
 
 }
 

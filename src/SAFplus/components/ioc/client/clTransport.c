@@ -1297,7 +1297,7 @@ static ClRcT setDefaultXport(ClParserPtrT parent)
     }
     else
     {
-        clLogCritical("XPORT", "INIT", "Not found any transport!");
+        logCritical("XPORT", "INIT", "Not found any transport!");
         rc = CL_ERR_NOT_EXIST;
     }
     return rc;
