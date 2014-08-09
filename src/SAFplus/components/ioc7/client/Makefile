@@ -62,16 +62,16 @@ $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 $(MWOBJ_DIR)/%.o: ../../ioc/client/%.c Makefile $(CLIENT_H)
-	$(COMPILE_CPP) $@ $<
+	cd ../../ioc/client && $(COMPILE_CPP) $@ $(<F)
 
 $(MWOBJ_DIR)/%.o: ../../ioc/common/%.c Makefile $(CLIENT_H)
-	$(COMPILE_CPP) $@ $<
+	cd ../../ioc/common && $(COMPILE_CPP) $@ $(<F)
 
 $(MWOBJ_DIR)/%.o: ../../ioc/plugins/tipc/%.c
-	$(COMPILE_CPP) $@ $<
+	cd ../../ioc/plugins/tipc && $(COMPILE_CPP) $@ $(<F)
 
 $(MWOBJ_DIR)/%.o: ../../ioc/plugins/udp/%.c
-	$(COMPILE_CPP) $@ $<
+	cd ../../ioc/plugins/udp && $(COMPILE_CPP) $@ $(<F)
 
 clean:
 	rm -f $(LIB_DIR)/*.so $(MWOBJ_DIR)/*.o

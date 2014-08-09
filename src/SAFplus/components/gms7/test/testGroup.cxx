@@ -55,7 +55,7 @@ int testRegisterAndDeregister(int mode)
   SAFplusI::gsm.dbgDump();  // should be just the one group.
 
   Handle e1 = Handle::create();
-  grpa1.registerEntity(e1,0,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
+  grpa1.registerEntity(e1,1,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
   sleep(1);
   SAFplusI::gsm.dbgDump();  // should be just the one group + one entity.
 
@@ -64,17 +64,17 @@ int testRegisterAndDeregister(int mode)
   SAFplusI::gsm.dbgDump();  // should be just the one group
 
   Handle e2 = Handle::create();
-  grpa1.registerEntity(e1,0,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
+  grpa1.registerEntity(e1,1,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
   Group grpa2(gh1);
-  grpa2.registerEntity(e2,0,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
+  grpa2.registerEntity(e2,2,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
   sleep(1);
   SAFplusI::gsm.dbgDump();  // should be just the one group + 2 entities.
 
   Handle gh2 = Handle::create();
   Group grpb1(gh2);
   Group grpb2(gh2);
-  grpb1.registerEntity(e1,0,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
-  grpb2.registerEntity(e2,0,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
+  grpb1.registerEntity(e1,3,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
+  grpb2.registerEntity(e2,4,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
   sleep(1);
 
   logInfo("TEST","GRP", "Iterator Test");

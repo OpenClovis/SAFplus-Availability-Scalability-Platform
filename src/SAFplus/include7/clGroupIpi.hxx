@@ -182,7 +182,7 @@ namespace SAFplusI
     public:
     uint32_t  which;   // which data is the valid (reading) copy
     GroupData data[2];
-    const GroupData& read() { return data[which&1]; }
+    const GroupData& read() const { return data[which&1]; }
     GroupData& write() { return data[!(which&1)]; }
     void flip() { which = !which; }
 
@@ -191,6 +191,11 @@ namespace SAFplusI
       data[0].flags &= ~GroupData::ELECTION_IN_PROGRESS;
       data[1].flags &= ~GroupData::ELECTION_IN_PROGRESS;
       }
+    void setElectionFlag()
+      {
+      data[0].flags |= GroupData::ELECTION_IN_PROGRESS;
+      data[1].flags |= GroupData::ELECTION_IN_PROGRESS;
+      }
 
     void init(SAFplus::Handle grp)
       {
@@ -198,7 +203,7 @@ namespace SAFplusI
         data[0].init(grp);
         memcpy(&data[1],&data[0],sizeof(GroupData));
       }
-    std::pair<SAFplus::EntityIdentifier,SAFplus::EntityIdentifier> getRoles()
+    std::pair<SAFplus::EntityIdentifier,SAFplus::EntityIdentifier> getRoles() const
       {
       std::pair<SAFplus::EntityIdentifier,SAFplus::EntityIdentifier> ret;
       const GroupData& gd = read();

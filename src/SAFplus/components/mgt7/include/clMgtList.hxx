@@ -571,6 +571,7 @@ namespace SAFplus
       {
         typename Map::iterator iter;
         /* Name of this list */
+        logDebug("MGT","LIST","Get call");
         xmlString << "<" << this->name << ">";
         for (iter = children.begin(); iter != children.end(); iter++)
         {

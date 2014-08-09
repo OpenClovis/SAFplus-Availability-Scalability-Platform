@@ -82,24 +82,26 @@ char* Group::capStr(uint cap, char* buf)
   // Get the current active entity.  If an active entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with active capability
   EntityIdentifier Group::getActive(void)
     {
-    clDbgNotImplemented();
-    return INVALID_HDL;
+    return getRoles().first;
     }
 
   // Get the current standby entity.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
   EntityIdentifier Group::getStandby(void)
     {
-    clDbgNotImplemented();
-    return INVALID_HDL;
+    return getRoles().second;
     }
 
   // Get the current active/standby.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
   std::pair<EntityIdentifier,EntityIdentifier> Group::getRoles()
     {
     std::pair<EntityIdentifier,EntityIdentifier> ret(INVALID_HDL,INVALID_HDL);
-    clDbgNotImplemented();
+    GroupShmHashMap::iterator entryPtr;
+    entryPtr = gsm.groupMap->find(handle);
+    if (entryPtr == gsm.groupMap->end()) return ret;
+    GroupShmEntry *gse = &entryPtr->second;
+    if (!gse) return ret;
+    ret = gse->getRoles();
     return ret;
-
     }
 
   // Utility functions

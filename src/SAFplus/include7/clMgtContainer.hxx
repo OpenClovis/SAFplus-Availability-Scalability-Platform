@@ -88,7 +88,10 @@ class MgtContainer:public MgtObject
     virtual std::string strValue() {return "";}
 
     // not implemented yet
-    //virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+    {
+      clDbgNotImplemented("MgtContainer::set");
+    }
     //virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
     //virtual ClRcT write(ClMgtDatabase *db=NULL);
     //virtual ClRcT read(ClMgtDatabase *db=NULL);

@@ -200,12 +200,17 @@ void GroupServer::handleElectionRequest(SAFplus::Handle grpHandle)
       }
 
     ge = &entryPtr->second; // &(gsm.groupMap->find(grpHandle)->second);
-    const GroupData& gd = ge->read(); 
-
-    if (gd.flags & GroupData::ELECTION_IN_PROGRESS) // If we are already in an election ignore this call
+    if (1)
       {
-      return;
+      const GroupData& gd = ge->read(); 
+
+      if (gd.flags & GroupData::ELECTION_IN_PROGRESS) // If we are already in an election ignore this call
+        {
+        return;
+        }
+      ge->setElectionFlag();  // clear the election flag a bit early so I can react to other nodes' calls for re-elect
       }
+    const GroupData& gd = ge->read(); 
 
     // Now tell other group servers about all members on this node...
     for (int i=0;i<gd.numMembers; i++)
@@ -380,31 +385,11 @@ void GroupServer::handleRoleNotification(GroupShmEntry* ge, SAFplusI::GroupMessa
         if (as.first != announce[0])  // active entity has changed
           {
           data->setActive(announce[0]);
-#if 0
-          if (activeEntity != INVALID_HDL)
-            removeCapabilities(activeEntity,SAFplus::Group::IS_ACTIVE);
-          activeEntity = announce[0];
-          if (announce[0] != INVALID_HDL)
-            {
-            removeCapabilities(activeEntity,SAFplus::Group::IS_STANDBY);
-            addCapabilities(announce[0],SAFplus::Group::IS_ACTIVE);
-            }
-#endif
           }
 
         if (as.second != announce[1])  // standby entity has changed
           {
-          data->setStandby(announce[0]);
-#if 0
-          if (standbyEntity != INVALID_HDL)
-            removeCapabilities(standbyEntity,SAFplus::Group::IS_STANDBY);
-          standbyEntity = announce[1];
-          if (announce[1] != INVALID_HDL)
-            {
-            removeCapabilities(announce[1],SAFplus::Group::IS_ACTIVE);  // could be the case in a double active situation...
-            addCapabilities(announce[1],SAFplus::Group::IS_STANDBY);
-            }
-#endif
+          data->setStandby(announce[1]);
           }
         data->lastChanged = (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count();
         ge->flip();

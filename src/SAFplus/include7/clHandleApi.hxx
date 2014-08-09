@@ -123,6 +123,7 @@ namespace SAFplus
     }
 
     static Handle create(int msgingPort=0);  // Get a new handle. msgingPort should be the IOC port number if you want to receive messages on this handle, otherwise a unique # (pid)
+    static Handle create(uint64_t id0,uint64_t id1); // Translate 2 number to a valid handle
     static uint64_t uniqueId(void);  // Get a unique for making your own handle
   };
   

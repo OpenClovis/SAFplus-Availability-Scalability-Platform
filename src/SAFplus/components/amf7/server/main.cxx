@@ -68,7 +68,7 @@ public:
 
 volatile bool    quitting=false;  // Set to true to tell all threads to quit
 #ifdef GRP
-Group            clusterGroup(SAFplus::Group::DATA_IN_CHECKPOINT);
+Group            clusterGroup("SAFAMF",SAFplus::Group::DATA_IN_CHECKPOINT);
 #endif
 ClusterGroupData clusterGroupData;  // The info we tell other nodes about this node.
 Handle           myHandle;  // This handle resolves to THIS process.
@@ -105,6 +105,7 @@ void activeAudit()  // Check to make sure DB and the system state are in sync
 
   logDebug("AUD","ACT","Active Audit -- Nodes");
   
+#if 0
   Group::Iterator end = clusterGroup.end();
   for (Group::Iterator it = clusterGroup.begin();it != end; it++)
     {
@@ -120,6 +121,7 @@ void activeAudit()  // Check to make sure DB and the system state are in sync
       logInfo("AUD","NOD","Node handle [%lx.%lx]",hdl.id[0],hdl.id[1]);
       }
     }
+#endif
 
   logDebug("AUD","ACT","Active Audit -- Applications");
   for (it = redPolicies.begin(); it != redPolicies.end();it++)
@@ -136,6 +138,7 @@ void standbyAudit(void) // Check to make sure DB and the system state are in syn
 
   logDebug("AUD","SBY","Standby Audit -- Nodes");
   
+#if 0
   Group::Iterator end = clusterGroup.end();
   for (Group::Iterator it = clusterGroup.begin();it != end; it++)
     {
@@ -151,6 +154,7 @@ void standbyAudit(void) // Check to make sure DB and the system state are in syn
       logInfo("AUD","NOD","Node handle [%lx.%lx]",hdl.id[0],hdl.id[1]);
       }
     }
+#endif
   }
 
 void becomeActive(void)

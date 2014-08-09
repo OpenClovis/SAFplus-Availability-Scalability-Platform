@@ -24,6 +24,7 @@
 #include <clIocPortList.hxx>
 #include "clMgtMsg.hxx"
 #include "clMgtRoot.hxx"
+#include "MgtMsg.pb.h"
 #endif
 
 extern "C"
@@ -61,60 +62,70 @@ namespace SAFplus
     *value = mLeafList[leaf];
   }
 
-  void MgtNotify::sendNotification()
+  void MgtNotify::sendNotification(SAFplus::Handle myHandle)
   {
     if (!strcmp(Module.c_str(), ""))
     {
-      logError("MGT", "RPC", "Cannot send Notification [%s]", name.c_str());
+      logError("MGT", "NOTI", "Cannot send Notification [%s]", name.c_str());
       return;
     }
 #ifdef MGT_ACCESS
-    char *buffer = (char *) malloc(MGT_MAX_DATA_LEN);
-    if (!buffer)
+    string bindStr, notiStr, msgRequestStr;
+    Mgt::Msg::MsgBind   bindData;
+    Mgt::Msg::MsgSetGet notiData;
+    Mgt::Msg::MsgMgt    msgRequest;
+    string data;
+    bindData.set_module(this->Module);
+    bindData.set_route(this->name);
+    Mgt::Msg::Handle *hdl = bindData.mutable_handle();
+    hdl->set_id0(myHandle.id[0]);
+    hdl->set_id1(myHandle.id[1]);
+
+    char strTemp[CL_MAX_NAME_LENGTH];
+    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", this->name.c_str());
+    data.append(strTemp);
+
+    map<std::string, std::string>::iterator mapIndex;
+    for (mapIndex = mLeafList.begin(); mapIndex != mLeafList.end(); ++mapIndex)
     {
-      return;
+      std::string leafName = (*mapIndex).first;
+      std::string leafVal = mLeafList[leafName];
+
+      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>",
+               leafName.c_str());
+      data.append(strTemp);
+      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "%s", leafVal.c_str());
+      data.append(strTemp);
+      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>",
+               leafName.c_str());
+      data.append(strTemp);
     }
 
-//    ClMgtMessageNotifyTypeT *notifyData = (ClMgtMessageNotifyTypeT *)buffer;
-//    ClCharT *data = notifyData->data;
-//    ClUint32T dataSize;
-//
-//    strcpy(notifyData->module, this->Module.c_str());
-//    strcpy(notifyData->notify, this->name.c_str());
-//
-//    char strTemp[CL_MAX_NAME_LENGTH];
-//    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", this->name.c_str());
-//    strcpy(data, strTemp);
-//
-//    map<std::string, std::string>::iterator mapIndex;
-//    for (mapIndex = mLeafList.begin(); mapIndex != mLeafList.end(); ++mapIndex)
-//    {
-//      std::string leafName = (*mapIndex).first;
-//      std::string leafVal = mLeafList[leafName];
-//
-//      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>",
-//               leafName.c_str());
-//      strcat(data, strTemp);
-//      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "%s", leafVal.c_str());
-//      strcat(data, strTemp);
-//      snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>",
-//               leafName.c_str());
-//      strcat(data, strTemp);
-//    }
-//
-//    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", this->name.c_str());
-//    strcat(data, strTemp);
-//    dataSize = strlen(data) + 1;
-//
-//    /*
-//     * Send notification message to the NETCONF server
-//     */
-//    ClIocAddressT allNodeReps;
-//    allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-//    allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
-//    MgtRoot::sendMsg(allNodeReps,notifyData,sizeof(ClMgtMessageNotifyTypeT) + dataSize,MgtMsgType::CL_MGT_MSG_NOTIF);
+    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", this->name.c_str());
+    data.append(strTemp);
 
-    free(buffer);
+    /* Pack the request message */
+    bindData.SerializeToString(&bindStr);
+    notiData.set_data(data);
+    notiData.SerializeToString(&notiStr);
+    msgRequest.set_bind(bindStr);
+    msgRequest.add_data(notiStr);
+    msgRequest.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_NOTIF);
+    msgRequest.SerializeToString(&msgRequestStr);
+
+    /* Send notification */
+    ClIocAddressT allNodeReps;
+    allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
+    SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
+    try
+    {
+      mgtIocInstance->SendMsg(allNodeReps,(void *) msgRequestStr.c_str(), msgRequestStr.size(), SAFplusI::CL_MGT_MSG_TYPE);
+    }
+    catch(SAFplus::Error &ex)
+    {
+      logDebug("MGT","NOTI","Send notification failed!");
+    }
 #endif
   }
 }

@@ -41,7 +41,7 @@
 #include <clMgtMsg.hxx>
 #include "clCommon.hxx"
 
-
+#include "MgtMsg.pb.h"
 
 namespace SAFplus
 {
@@ -115,16 +115,16 @@ public:
      * \return  CL_ERR_NOT_EXIST        MGT module does not exist
      * \return  CL_ERR_ALREADY_EXIST    RPC already exists
      */
-    ClRcT registerRpc(const std::string module, const std::string rpcName);
+    ClRcT registerRpc(SAFplus::Handle handle,const std::string module, const std::string rpcName);
 #ifdef MGT_ACCESS
     /**
      * Mgt message handlers
      */
-    void clMgtMsgEditHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg);
-    void clMgtMsgGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg);
-    void clMgtMsgRpcHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg);
-    void clMgtMsgOidSetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg);
-    void clMgtMsgOidGetHandle(ClIocPhysicalAddressT srcAddr, void *pInMsg);
+    void clMgtMsgEditHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgGetHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgRpcHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgOidSetHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgOidGetHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
 
     class MgtMessageHandler:public SAFplus::MsgHandler
     {

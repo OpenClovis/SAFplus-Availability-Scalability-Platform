@@ -193,7 +193,7 @@ namespace SAFplus
         ClRcT                   rc = CL_OK; 
         ClIocRecvOptionT        recvOptions = {0};
         ClBufferHandleT         recv_msg = 0;
-        recvOptions.recvTimeout = 1000;  /* Wake up every second to see if we should still be receiving */
+        recvOptions.recvTimeout = 5000;  /* Wake up every second to see if we should still be receiving */
         if (!recv_msg) clBufferCreate(&recv_msg);
         //Log(CL_LOG_SEV_INFO,"Calling IocReceive.");
         rc = clIocReceive(q->commPort, &recvOptions, recv_msg, &recvParam);

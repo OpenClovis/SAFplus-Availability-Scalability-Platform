@@ -20,10 +20,21 @@ message MsgBind
   required string route = 3;
 }
 
-message MsgData
+message MsgRpc
 {
-  required string route = 1;
-  optional string value = 2;
+  enum MgtRpcType
+  {
+    CL_MGT_RPC_VALIDATE = 1;
+    CL_MGT_RPC_INVOKE = 2;
+    CL_MGT_RPC_POSTREPLY = 3;
+  }
+  required MgtRpcType rpctype = 1;
+  optional string data = 2;
+}
+
+message MsgSetGet 
+{
+  optional string data = 2;
 }
 
 message MsgMgt

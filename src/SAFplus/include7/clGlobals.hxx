@@ -64,7 +64,8 @@ namespace SAFplus
     GRP=0x40,
     HEAP=0x80,
     BUFFER=0x100,
-    TIMER=0x200
+    TIMER=0x200,
+    DBAL=0x400
   };
   /* LibSet operators overload */
   inline constexpr uint32_t operator*(LibSet ls)
@@ -97,7 +98,8 @@ namespace SAFplus
     GRP = LibSet::GRP | LibDep::IOC,
     HEAP = LibSet::HEAP,
     BUFFER = LibSet::BUFFER,
-    TIMER = LibSet::TIMER
+    TIMER = LibSet::TIMER,
+    DBAL = LibSet::DBAL | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER
   };
   /* LibDep operators overload */
   inline uint32_t operator*(LibDep ld)
@@ -130,6 +132,7 @@ extern "C" {
   extern ClRcT clHeapInit(void) __attribute__((weak));
   extern ClRcT clBufferInitialize(const ClBufferPoolConfigT *pConfig) __attribute__((weak));
   extern ClRcT clTimerInitialize (ClPtrT pConfig) __attribute__((weak));
+  extern ClRcT clDbalLibInitialize (void) __attribute__((weak));
 #ifdef __cplusplus
 }
 #endif
@@ -143,14 +146,26 @@ extern "C" {
       if(logInitialize) logInitialize();
     if(svc&LibSet::UTILS)
       if(utilsInitialize) utilsInitialize();
-    if(svc&LibSet::OSAL)
-      if(clOsalInitialize) assert(clOsalInitialize(NULL) == CL_OK);
-    if(svc&LibSet::HEAP)
-      if(clHeapInit) assert(clHeapInit() == CL_OK);
-    if(svc&LibSet::BUFFER)
-      if(clBufferInitialize) assert(clBufferInitialize(NULL) == CL_OK);
-    if(svc&LibSet::TIMER)
-      if(clTimerInitialize) assert(clTimerInitialize(NULL) == CL_OK);
+    if((svc&LibSet::OSAL)&&clOsalInitialize)
+      {
+      rc = clOsalInitialize(NULL);
+      assert(rc == CL_OK);
+      }
+    if((svc&LibSet::HEAP)&&clHeapInit)
+      {
+      rc = clHeapInit();
+      assert(rc == CL_OK);
+      }
+    if((svc&LibSet::BUFFER)&&clBufferInitialize) 
+      {
+      rc = clBufferInitialize(NULL);
+      assert(rc == CL_OK);
+      }
+    if((svc&LibSet::TIMER)&&clTimerInitialize)
+      {
+      rc = clTimerInitialize(NULL);
+      assert(rc == CL_OK);
+      }
 
     if((svc&LibSet::IOC)&&clIocLibInitialize) 
       { 
@@ -158,12 +173,17 @@ extern "C" {
       assert(rc == CL_OK); 
       }
 
+    if((svc&LibSet::DBAL)&&clDbalLibInitialize)
+      {
+      rc = clDbalLibInitialize();
+      assert(rc == CL_OK);
+      }
+
     if((svc&LibSet::GRP)&&SAFplus::groupInitialize) 
       { 
       SAFplus::groupInitialize(); 
-      //assert(rc == CL_OK); 
+      
       }
-
   }
 
   };

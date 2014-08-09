@@ -258,12 +258,13 @@ extern MgtIteratorBase mgtIterEnd;
     /**
      * \brief   Virtual function to validate object data
      */
-    virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t){}
 
     /**
      * \brief	Virtual function called from netconf server to get object data
      */
-    virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
+    //virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
+    virtual void get(std::string *data,ClUint64T *datalen);
     virtual void toString(std::stringstream& xmlString)=0;
     virtual std::string strValue() {return "";}
 
@@ -277,7 +278,7 @@ extern MgtIteratorBase mgtIterEnd;
     void set(void *pBuffer, ClUint64T buffLen);
 
     /**
-     * \brief	Function to bind this MGT object to a specific manageability subtree within a particular module
+     * \brief	Function to bind this MGT object to a specific managability subtree within a particular module
      * \param	module					MGT module name
      * \param	route					XPath of the MGT object
      * \return	CL_OK					Everything is OK
@@ -285,14 +286,6 @@ extern MgtIteratorBase mgtIterEnd;
      * \return	CL_ERR_ALREADY_EXIST	MGT object already exists
      */
     ClRcT bind(Handle handle, const std::string module, const std::string route);
-    //ClRcT bindSnmp(const std::string module, const std::string route);
-
-        // key vector is not necessary
-    //ClBoolT isKeysMatch(std::map<std::string, std::string> *keys);
-
-    // Should be unnecessary, we have an iterator
-    //virtual std::vector<std::string> *getChildNames();
-
 
     /** \brief persist to database. 
      *  \param db The database to access. by default it uses the

@@ -21,11 +21,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/time.h>
-
 #include <clTimerApi.h>
 #include <clTimerErrors.h>
 #include <clList.h>
-#include <clRbTree.h>
 #include <clCommon.hxx>
 #include <clThreadPool.hxx>
 
@@ -160,11 +158,10 @@ namespace SAFplus
         Timer *get_rbtree_min()
         {
            boost::intrusive::rbtree<Timer>::iterator it = timerTree.begin();
-//           if( it == timerTree.end())  return 0;
            return &*it;
         }
     };
-    static ClInt32T timerCompare(ClRbTreeT *refTimer, ClRbTreeT *timer);
+
 }
 
 #endif

@@ -27,7 +27,7 @@
 #define CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT_HEADROOM (100)
 #define CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT (64000 - CL_XPORT_MAX_PAYLOAD_SIZE_DEFAULT_HEADROOM)
 #define CL_XPORT_DEFAULT_TYPE "tipc"
-#define CL_XPORT_DEFAULT_PLUGIN "libClTIPC.so"
+#define CL_XPORT_DEFAULT_PLUGIN "libclTIPC.so"
 typedef struct ClTransportLayer
 {
 #define XPORT_STATE_INITIALIZED  (0x1)
@@ -1297,7 +1297,7 @@ static ClRcT setDefaultXport(ClParserPtrT parent)
     }
     else
     {
-        clLogCritical("XPORT", "INIT", "Not found any transport!");
+        logCritical("XPORT", "INIT", "Not found any transport!");
         rc = CL_ERR_NOT_EXIST;
     }
     return rc;

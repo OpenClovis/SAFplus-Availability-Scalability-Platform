@@ -21,7 +21,7 @@
 #include <clCommon.hxx>
 #include <clMgtRoot.hxx>
 #include <clMgtObject.hxx>
-
+#include <clMgtDatabase.hxx>
 
 extern "C"
 {
@@ -208,14 +208,14 @@ namespace SAFplus
     return rc;
     }
 #endif
-
+#if 0
   /*
    * Virtual function called from netconf server to validate object data
    */
   ClBoolT MgtObject::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
     {
     clDbgNotImplemented("MgtObject::set");
-#if 0
+
     xmlChar                             *valstr, *namestr;
     int                                 ret, nodetyp, depth;
 
@@ -363,27 +363,19 @@ namespace SAFplus
 
     xmlFreeTextReader(reader);
     free(strChildData);
-#endif
     return CL_TRUE;
-
     }
-
-
-  void MgtObject::get(void **ppBuffer, ClUint64T *pBuffLen)
-    {
+#endif
+  void MgtObject::get(std::string *data, ClUint64T *datalen)
+  {
     std::stringstream xmlString;
-
+    if(data == NULL)
+      return;
     toString(xmlString);
-
-    *pBuffLen =  xmlString.str().length() + 1;
-
-    if (*ppBuffer == NULL)
-      {
-      *ppBuffer = (void *) calloc(*pBuffLen, sizeof(char));
-      }
-
-    strncat((char *)*ppBuffer, xmlString.str().c_str(), *pBuffLen - 1 );
-    }
+    logDebug("---","---","String: %s",xmlString.str().c_str());
+    *datalen =  xmlString.str().length() + 1;
+    data->assign(xmlString.str().c_str());
+  }
 
 #if 0
   ClBoolT MgtObject::isKeysMatch(std::map<std::string, std::string> *keys)
@@ -423,10 +415,24 @@ namespace SAFplus
 
   /* persistent db to database */
   ClRcT MgtObject::write(ClMgtDatabase* db)
-    {
+  {
+    if(db == NULL)
+      db = ClMgtDatabase::getInstance();
 
-    return CL_OK;
+    if(!db->isInitialized())
+    {
+      logError("MGT","WRT","Database had not been initialized");
+      return CL_ERR_NOT_INITIALIZED;
     }
+    std::vector<std::string> v = db->iterate(this->getFullXpath());
+    if(v.size() > 0)
+    {
+      logError("MGT","WRT","Object already exists");
+      return CL_OK;
+    }
+    db->insertRecord(name,this->getFullXpath());
+    return CL_OK;
+  }
 
   /* unmashall db to object */
   ClRcT MgtObject::read(ClMgtDatabase* db)
