@@ -82,6 +82,17 @@ namespace SAFplus
   {
     return ((*lls) & (*rls)) != 0;
   }
+
+  inline constexpr LibSet operator|(uint32_t ld, LibSet ls)
+  {
+   return static_cast<LibSet>(ld | (*ls));
+  }
+
+  inline constexpr LibSet operator|(LibSet ls, uint32_t ld)
+  {
+   return static_cast<LibSet>(ld | (*ls));
+  }
+
   /* Library dependencies */
   enum class LibDep
   {
