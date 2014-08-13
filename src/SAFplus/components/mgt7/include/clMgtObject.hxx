@@ -38,7 +38,7 @@
 
 #include "clTransaction.hxx"
 #include "clMgtMsg.hxx"
-
+#include "clMgtDatabase.hxx"
 
 #include <clCommon.hxx>
 
@@ -258,7 +258,10 @@ extern MgtIteratorBase mgtIterEnd;
     /**
      * \brief   Virtual function to validate object data
      */
-    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t){}
+    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+    {
+      logDebug("MGT","SET","This shouldn't be called");
+    }
 
     /**
      * \brief	Virtual function called from netconf server to get object data

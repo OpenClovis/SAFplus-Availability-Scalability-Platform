@@ -103,7 +103,20 @@ public:
      * \brief   Function to get data from database
      */
     ClRcT getDb();
-
+    /**
+     *
+     */
+    virtual ClRcT write(ClMgtDatabase *db=NULL)
+    {
+      return setDb();
+    }
+    /**
+     *
+     */
+    virtual ClRcT read(ClMgtDatabase *db=NULL)
+    {
+      return getDb();
+    }
     void pushBackValue(const std::string& strVal);
 };
 

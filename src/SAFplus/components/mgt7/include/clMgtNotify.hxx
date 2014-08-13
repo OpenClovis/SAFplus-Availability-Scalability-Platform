@@ -89,6 +89,7 @@ public:
     {
       clDbgNotImplemented("MgtNotify::set");
     }
+
 };
 };
 

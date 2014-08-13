@@ -225,6 +225,130 @@ delete this;
     xmlString << "</" << name << '>';
     }
 
+  ClRcT MgtContainer::write(ClMgtDatabase *db)
+  {
+    ClRcT rc = CL_OK;
+    MgtObjectMap::iterator it;
+    for (it = children.begin(); it != children.end(); ++it)
+    {
+      MgtObject* child = it->second;
+      rc = child->write();
+      if(CL_OK != rc)
+        return rc;
+    }
+    return rc;
+  }
+
+  ClRcT MgtContainer::read(ClMgtDatabase *db)
+  {
+    ClRcT rc = CL_OK;
+    MgtObjectMap::iterator it;
+    for (it = children.begin(); it != children.end(); ++it)
+    {
+      MgtObject* child = it->second;
+      rc = child->read();
+      if(CL_OK != rc)
+        return rc;
+    }
+    return rc;
+  }
+
+  ClBoolT MgtContainer::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+  {
+    logDebug("MGT","SET","Set data for Container");
+    SAFplus::MgtObjectMap::iterator iter;
+    int ret, nodetyp, depth;
+    xmlChar *valstr, *namestr, *attrval;
+    xmlNodePtr node;
+    xmlAttr* attr;
+
+    char strTemp[CL_MAX_NAME_LENGTH] = { 0 };
+    string strChildData;
+
+    xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
+    if (!reader)
+    {
+      logError("MGT", "CONT", "Reader return null");
+      return CL_FALSE;
+    }
+
+    /* Parse XM: */
+    do
+    {
+       depth   = xmlTextReaderDepth(reader);
+       nodetyp = xmlTextReaderNodeType(reader);
+       namestr = (xmlChar *) xmlTextReaderConstName(reader);
+       valstr  = (xmlChar *) xmlTextReaderValue(reader);
+       node    = xmlTextReaderCurrentNode(reader);
+       switch (nodetyp)
+       {
+         /* Opening tag of a node */
+         case XML_ELEMENT_NODE:
+         {
+           if(depth == 0)
+           {
+             if(strcmp((const char *)namestr,this->name.c_str()) != 0)
+             {
+               logError("MGT","SET","The configuration [%s] isn't for this container [%s]",(const char *)namestr,this->name.c_str());
+               return CL_FALSE;
+             }
+           }
+           else
+           {
+             snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", namestr);
+             strChildData.append(strTemp);
+           }
+           break;
+         }
+         /* Closing tag of a node*/
+         case XML_ELEMENT_DECL:
+         {
+           if(depth == 1)
+           {
+             snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", namestr);
+             strChildData.append(strTemp);
+             for(iter = children.begin();iter != children.end(); iter++)
+             {
+               MgtObject *child = iter->second;
+               if(strcmp(child->name.c_str(),(char *)namestr) == 0)
+               {
+                 if(child->set(strChildData.c_str(),strChildData.size(),t))
+                 {
+                   // Set success, reset childData for next child
+                   strChildData.assign("");
+                 }
+                 else
+                 {
+                   // Set failed for a child, should abort the transaction
+                   return CL_FALSE;
+                 }
+               }
+             }
+           }
+           else if(depth > 1)
+           {
+             snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", namestr);
+             strChildData.append(strTemp);
+           }
+           break;
+         }
+         /* Text value of node */
+         case XML_TEXT_NODE:
+         {
+           strChildData.append((char *)valstr);
+           break;
+         }
+         /* Other type: don't care */
+         default:
+         {
+           break;
+         }
+       }
+       ret = xmlTextReaderRead(reader);
+    } while(ret);
+
+    return true;
+  }
 
 
   }

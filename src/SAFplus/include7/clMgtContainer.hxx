@@ -87,14 +87,12 @@ class MgtContainer:public MgtObject
     virtual void toString(std::stringstream& xmlString);
     virtual std::string strValue() {return "";}
 
-    // not implemented yet
-    virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
-    {
-      clDbgNotImplemented("MgtContainer::set");
-    }
+    // Settings objects
+    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
+
     //virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
-    //virtual ClRcT write(ClMgtDatabase *db=NULL);
-    //virtual ClRcT read(ClMgtDatabase *db=NULL);
+    virtual ClRcT write(ClMgtDatabase *db=NULL);
+    virtual ClRcT read(ClMgtDatabase *db=NULL);
   
   };
 

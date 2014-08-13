@@ -134,6 +134,22 @@ public:
      */
     ClRcT getDb();
 
+    /**
+     *
+     */
+    virtual ClRcT write(ClMgtDatabase *db=NULL)
+    {
+      return setDb();
+    }
+    /**
+     *
+     */
+    virtual ClRcT read(ClMgtDatabase *db=NULL)
+    {
+      return getDb();
+    }
+
+
 };
 
 template <class T>
@@ -279,6 +295,7 @@ ClBoolT MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transac
 
     if (strcmp((char *)namestr, name.c_str()))
     {
+        logDebug("MGT","PROV","Name [%s], XML [%s]",name.c_str(),(char *)namestr);
         xmlFreeTextReader(reader);
         return CL_FALSE;
     }

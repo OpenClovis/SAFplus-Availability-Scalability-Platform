@@ -416,30 +416,16 @@ namespace SAFplus
   /* persistent db to database */
   ClRcT MgtObject::write(ClMgtDatabase* db)
   {
-    if(db == NULL)
-      db = ClMgtDatabase::getInstance();
-
-    if(!db->isInitialized())
-    {
-      logError("MGT","WRT","Database had not been initialized");
-      return CL_ERR_NOT_INITIALIZED;
-    }
-    std::vector<std::string> v = db->iterate(this->getFullXpath());
-    if(v.size() > 0)
-    {
-      logError("MGT","WRT","Object already exists");
-      return CL_OK;
-    }
-    db->insertRecord(name,this->getFullXpath());
-    return CL_OK;
+    clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
+    return CL_ERR_NOT_EXIST;
   }
 
   /* unmashall db to object */
   ClRcT MgtObject::read(ClMgtDatabase* db)
-    {
-
+  {
+    clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
     return CL_OK;
-    }
+  }
 
 
   /*

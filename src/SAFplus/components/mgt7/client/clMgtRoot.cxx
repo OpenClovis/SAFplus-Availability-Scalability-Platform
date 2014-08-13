@@ -238,22 +238,46 @@ namespace SAFplus
   void MgtRoot::clMgtMsgEditHandle(ClIocAddress srcAddr, Mgt::Msg::MsgMgt reqMsg)
   {
     ClRcT rc = CL_OK;
+    SAFplus::Transaction t;
 
     Mgt::Msg::MsgBind bindData;
     bindData.ParseFromString(reqMsg.bind());
+    if(reqMsg.data_size() <= 0)
+    {
+      logError("NETCONF","COMP","Received empty set data");
+      rc = CL_ERR_INVALID_PARAMETER;
+      MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
+      return;
+    }
     Mgt::Msg::MsgSetGet setData;
     setData.ParseFromString(reqMsg.data(0));
 
+    logDebug("NETCONF","COMP","Received setData [%s]",setData.data().c_str());
     MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
     if (!module)
+    {
+      logDebug("NETCONF","COMP","Can't found module %s",bindData.module().c_str());
+      rc = CL_ERR_INVALID_PARAMETER;
+      MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
       return;
+    }
 
     MgtObject * object = module->getMgtObject(bindData.route().c_str());
     if (!object)
+    {
+      logDebug("NETCONF","COMP","Can't found object %s",bindData.route().c_str());
+      rc = CL_ERR_INVALID_PARAMETER;
+      MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
       return;
-
-    SAFplus::Transaction t;
-
+    }
+    string strInMsg((ClCharT *)setData.data().c_str());
+    // Add root element, it should be similar to netconf message
+    // OID: <adminStatus>true</adminStatus>
+    // NETCONF: <interfaces><adminStatus>true</adminStatus><ename>eth0</ename></interface>
+    if (setData.data().compare(1, object->name.length(), object->name))
+    {
+      setData.set_data("<" + object->name + ">" + strInMsg + "</" + object->name  + ">");
+    }
     if (object->set((void *)setData.data().c_str(),setData.data().size(), t) == CL_TRUE)
     {
       t.commit();
@@ -263,7 +287,7 @@ namespace SAFplus
       t.abort();
       rc = CL_ERR_INVALID_PARAMETER;
     }
-    // Send edit action response
+
     MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
   }
 
@@ -409,28 +433,44 @@ out:
     ClRcT rc = CL_OK;
     Mgt::Msg::MsgBind bindData;
     bindData.ParseFromString(reqMsg.bind());
+    if(reqMsg.data_size() <= 0)
+    {
+      logError("SNM","COMP","Data is empty");
+      return;
+    }
     Mgt::Msg::MsgSetGet setData;
     setData.ParseFromString(reqMsg.data(0));
 
-    logDebug("SNM", "COMP", "Receive 'edit' opcode, data [%s]", setData.data().c_str());
+    logDebug("SNM", "COMP", "Receive 'edit' opcode for oid [%s] data [%s]",bindData.route().c_str(), setData.data().c_str());
 
     MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
 
     if (!module)
+    {
+      logDebug("SNM","COMP","Module %s not found",bindData.module().c_str());
       return;
+    }
 
     MgtObject * object = module->getMgtObject(bindData.route());
     if (!object)
+    {
+      logDebug("SNM","COMP","Object %s not found",bindData.route().c_str());
       return;
+    }
+
 
     SAFplus::Transaction t;
 
     string strInMsg((ClCharT *)setData.data().c_str());
 
+    // Add root element, it should be similar to netconf message
+    // OID: <adminStatus>true</adminStatus>
+    // NETCONF: <interfaces><adminStatus>true</adminStatus><ename>eth0</ename></interface>
     if (setData.data().compare(1, object->name.length(), object->name))
     {
       setData.set_data("<" + object->name + ">" + strInMsg + "</" + object->name  + ">");
     }
+    logDebug("SNM","COMP","New data: %s",setData.data().c_str());
 
     if (object->set((void *) setData.data().c_str(), setData.data().size(), t))
     {
