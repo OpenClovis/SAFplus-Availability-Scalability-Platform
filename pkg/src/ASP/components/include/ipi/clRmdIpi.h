@@ -67,8 +67,6 @@ extern "C"
  * Number of times requests had to be resent.
  */
         ClUint32T nResendRequests;
-        ClUint32T nFailedResendRequests;
-
 /**
  * Number of replies.
  */
@@ -97,34 +95,19 @@ extern "C"
  * Number of calls made with atmost once semantics.
  */
         ClUint32T nAtmostOnceCalls;
-        ClUint32T nFailedAtmostOnceCalls;
 /**
  * Number of replies sent.
  */
         ClUint32T nReplySend;
-        ClUint32T nFailedReplySend;
 /**
  * Number of replies resent.
  */
         ClUint32T nResendReplies;
-        ClUint32T nFailedResendReplies;
 /**
  * Number of calls optimized.
  */
         ClUint32T nRmdCallOptimized;
 
-/**
- * Number of atmost once acks sent.
- */
-        ClUint32T nAtmostOnceAcksSent;
-        ClUint32T nFailedAtmostOnceAcksSent;
-
-/**
- * Number of atmost once acks received.
- */
-        ClUint32T nAtmostOnceAcksRecvd;
-        ClUint32T nFailedAtmostOnceAcksRecvd;
-        
     } ClRmdStatsT;
 
 
@@ -302,13 +285,13 @@ extern ClRcT clRmdObjClose(ClRmdObjHandleT p);
  *  
  *  \par Syntax:
  *  \code 	ClRcT clRmdStatsGet(
- * 				ClRmdStatsT *pStats);
+ * 				ClBufferHandleT outMsgHdl);
  *  \endcode
  *
- *  \param pStats: (out) Stats filled on return from function.
+ *  \param outMsgHdl: (out) Created and freed by the caller.
  *
  *  \retval CL_OK: The API executed successfully
- *  \retval CL_RMD_RC(CL_ERR_INVALID_PARAMETER): On passing an invalid argument.
+ *  \retval CL_RMD_RC(CL_ERR_INVALID_BUFFER): On passing an invalid message.
  *
  *  \par Description:
  *  This API is used to retrieve the current statistics of the RMD library.
@@ -319,7 +302,7 @@ extern ClRcT clRmdObjClose(ClRmdObjHandleT p);
  *
  */
 
-    ClRcT clRmdStatsGet(CL_OUT ClRmdStatsT *pStats);
+    ClRcT clRmdStatsGet(CL_OUT ClBufferHandleT outMsgHdl);
 
 
 /**

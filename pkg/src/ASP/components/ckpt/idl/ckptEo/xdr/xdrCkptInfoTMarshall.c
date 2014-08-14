@@ -79,3 +79,48 @@ ClRcT clXdrMarshallCkptInfoT_4_0_0(void* pGenVar, ClBufferHandleT msg, ClUint32T
 }
 
 
+ClRcT clXdrMarshallCkptInfoT_5_0_0(void* pGenVar, ClBufferHandleT msg, ClUint32T isDelete)
+{
+    CkptInfoT_5_0_0* pVar = (CkptInfoT_5_0_0*)pGenVar;
+    ClRcT rc         = CL_OK;
+    ClUint32T length = 0;    
+
+    if ((void*)0 == pVar)
+    {
+        clXdrMarshallClUint32T(&length, msg, 0);
+    }
+    else
+    {
+        length = 1;
+        clXdrMarshallClUint32T(&length, msg, 0);
+
+    rc = clXdrMarshallClHandleT(&(pVar->ckptHdl),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallPtrClNameT(pVar->pName, 1,msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallPtrCkptCPInfoT_5_0_0(pVar->pCpInfo, 1,msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallPtrCkptDPInfoT_4_0_0(pVar->pDpInfo, 1,msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    }
+
+    return rc;
+}
+
+

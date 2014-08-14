@@ -1668,18 +1668,17 @@ clLogClntStdStreamOpen(ClLogHandleT hLog)
 
         if( CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST )
         {
-            rc = clLogStreamShmSegInit(&stdStreamList[i].streamName, 
-                                       shmName.pValue,
-                                       shmFd,
-                                       shmSize,
-                                       i + 1, 
-                                       &mcastAddr,
-                                       streamAttr[i].recordSize,
-                                       streamAttr[i].flushFreq,
-                                       streamAttr[i].flushInterval,
-                                       CL_LOG_MAX_MSGS,
-                                       maxComp,
-                                       &pHdr);
+            rc = clLogStreamShmSegInit(shmName.pValue,
+                     shmFd,
+                     shmSize,
+                     i + 1, 
+                     &mcastAddr,
+                     streamAttr[i].recordSize,
+                     streamAttr[i].flushFreq,
+                     streamAttr[i].flushInterval,
+                     CL_LOG_MAX_MSGS,
+                     maxComp,
+                     &pHdr);
             if( CL_OK != rc )
             {
                 CL_LOG_CLEANUP(clOsalShmClose_L(shmFd), CL_OK);

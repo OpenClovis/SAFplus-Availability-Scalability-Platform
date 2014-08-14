@@ -20,27 +20,28 @@ extern "C" {
 #include <clIdlApi.h>
 #include <ipi/clRmdIpi.h>
 #include "../clientIDDefinitions.h"
-#include "xdrClCkptIOVectorElementT.h"
-#include "xdrCkptMasterDBClientInfoT.h"
-#include "xdrCkptDynamicSyncupT.h"
-#include "xdrCkptXlationDBEntryT.h"
-#include "xdrCkptSectionInfoT.h"
 #include "xdrCkptPeerListInfoT.h"
-#include "xdrCkptCreateInfoT.h"
 #include "xdrCkptCPInfoT.h"
-#include "xdrClCkptCheckpointCreationAttributesT.h"
+#include "xdrClCkptIOVectorElementT.h"
 #include "xdrClCkptSectionIdT.h"
-#include "xdrCkptHdlDbT.h"
-#include "xdrCkptDPInfoT.h"
-#include "xdrClCkptSectionDescriptorT.h"
-#include "xdrCkptInfoT.h"
 #include "xdrCkptMasterDBEntryIDLT.h"
+#include "xdrCkptDPInfoT.h"
+#include "xdrCkptCreateInfoT.h"
+#include "xdrClCkptSectionDescriptorT.h"
 #include "xdrCkptMasterDBInfoIDLT.h"
+#include "xdrCkptXlationDBEntryT.h"
+#include "xdrCkptHdlDbT.h"
+#include "xdrClCkptDifferenceIOVectorElementT.h"
+#include "xdrCkptInfoT.h"
 #include "xdrCkptOpenInfoT.h"
-#include "xdrClCkptSectionCreationAttributesT.h"
 #include "xdrClCkptCheckpointDescriptorT.h"
 #include "xdrCkptUpdateFlagT.h"
 #include "xdrCkptDynamicInfoT.h"
+#include "xdrCkptMasterDBClientInfoT.h"
+#include "xdrCkptDynamicSyncupT.h"
+#include "xdrCkptSectionInfoT.h"
+#include "xdrClCkptCheckpointCreationAttributesT.h"
+#include "xdrClCkptSectionCreationAttributesT.h"
 
 
 
@@ -73,6 +74,7 @@ extern ClRcT clCkptLeaderAddrUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandle
 extern ClRcT clCkptDeputyCkptCreateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptDeputyCkptOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptDeputyCkptInfoUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT clCkptDeputyCkptInfoUpdateServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptCreateInfoDeputyUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptActiveCkptOpenServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptReplicaNotifyServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
@@ -88,7 +90,9 @@ extern ClRcT clCkptRemSvrByeServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSg
 extern ClRcT clCkptNackReceiveServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptMasterStatusInfoGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptRemSvrCkptInfoSyncServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT clCkptRemSvrCkptInfoSyncServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptRemSvrCkptInfoGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT clCkptRemSvrCkptInfoGetServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptRemSvrSectionInfoUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptRemSvrCkptDeleteServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptRemSvrCkptWriteServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
@@ -96,8 +100,9 @@ extern ClRcT clCkptRemSvrSectionExpTimeSetServer_4_0_0(ClEoDataT eoData, ClBuffe
 extern ClRcT clCkptCheckpointReplicaRemoveServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptReplicaAppInfoNotifyServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 extern ClRcT clCkptActiveCallbackNotifyServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
-extern ClRcT _ckptSectionCheckServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
-extern ClRcT clCkptRemSvrWelcomeServer_5_1_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT _ckptCheckpointWriteVectorServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT _ckptSectionOverwriteVectorServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
+extern ClRcT clCkptRemSvrCkptWriteVectorServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inmSgHdl , ClBufferHandleT outMsgHdl);
 
 
 #ifdef __cplusplus

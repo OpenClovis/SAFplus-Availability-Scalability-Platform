@@ -43,7 +43,7 @@ File        : clCkptDeputy.c
 
 #include "clCkptSvr.h"
 #include <clCkptLog.h>
-#include "clCkptSvrIpi.h"
+#include "clCkptIpi.h"
 #include "clCkptUtils.h"
 #include "clCkptMasterUtils.h"
 #include "clCkptMaster.h"
@@ -413,16 +413,7 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
                 gCkptSvr->masterInfo.masterDBHdl,
                 sizeof(CkptMasterDBEntryT),
                 pMasterDBInfo->ckptMasterHdl);
-        if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) 
-        {
-            clLogNotice("INFO", "SYNCUP", 
-                        "Master db handle [%#llx] already exists and in sync."
-                        "Skipping masterdb info syncup",
-                        pMasterDBInfo->ckptMasterHdl);
-            ++pMasterDBInfo;
-            rc = CL_OK;     
-            continue;
-        }
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) rc = CL_OK;     
         CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                 ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
                 
@@ -567,15 +558,7 @@ ClRcT ckptClientDBInfoUnpack(ClUint32T               clientHdlCount,
                 gCkptSvr->masterInfo.clientDBHdl,
                 sizeof(CkptMasterDBClientInfoT),
                 pClientDBInfo->clientHdl);
-        if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) 
-        {
-            clLogNotice("INFO", "SYNCUP", "Client handle [%#llx] already exists."
-                        "Skipping unpack for master handle [%#llx]", 
-                        pClientDBInfo->clientHdl, pClientDBInfo->masterHdl);
-            pClientDBInfo++;
-            rc = CL_OK;
-            continue;
-        }
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) rc = CL_OK;     
         CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                 ("ckptMasterDatabaseUnpack failed rc[0x %x]\n",rc),rc);
         rc = clHandleCheckout( gCkptSvr->masterInfo.clientDBHdl,

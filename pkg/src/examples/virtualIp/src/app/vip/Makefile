@@ -100,7 +100,7 @@ include $(CLOVIS_ROOT)/ASP/mk/make-server.mk
 # Define additional targets BELOW, so that they are not used as the default 
 # target.
 
-LDLIBS := $(filter-out -lezxml,$(LDLIBS))
+#LDLIBS := $(filter-out -lezxml,$(LDLIBS))
 
 # Call out to another makefile (but only if I need to)
 $(LIB_DIR)/libcommon.a: ../common/net.c

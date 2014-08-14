@@ -53,14 +53,22 @@ static ClUint16T gEvtCkptFinalizeCount;
 static ClUint16T gEvtCkptChannelCloseCount[2];  /* For Local/Global */
 static ClUint16T gEvtCkptUnsubscribeCount[2];   /* For Local/Global */
 
+
 /*
  ** Extern Declarations
  */
 
-extern ClRcT clEvtInitializeViaRequest(ClEvtInitRequestT *pEvtInitReq, ClUint32T type);
-extern ClRcT clEvtChannelOpenViaRequest(ClEvtChannelOpenRequestT *pEvtChannelOpenRequest, ClUint32T type);
-extern ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT *pEvtSubsReq, ClUint32T type);
-extern ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT *pEvtUnsubsReq, ClUint32T type);
+extern ClRcT clEvtInitializeViaRequest(ClEvtInitRequestT *pEvtInitReq,
+                                       ClUint32T type);
+extern ClRcT clEvtChannelOpenViaRequest(ClEvtChannelOpenRequestT
+                                        *pEvtChannelOpenRequest,
+                                        ClUint32T type);
+extern ClRcT clEvtEventSubscribeViaRequest(ClEvtSubscribeEventRequestT
+                                           *pEvtSubsReq, ClUint32T type);
+extern ClRcT clEvtEventCleanupViaRequest(ClEvtUnsubscribeEventRequestT
+                                         *pEvtUnsubsReq, ClUint32T type);
+
+
 
 /*
  ** Local Functions

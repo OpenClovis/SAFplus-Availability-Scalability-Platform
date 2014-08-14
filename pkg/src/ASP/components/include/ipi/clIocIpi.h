@@ -74,6 +74,12 @@ extern "C"
         CL_IOC_INVALID_MODE
     } ClIocCommPortModeT;
 
+    typedef struct ClIocDispatchOption
+    {
+        ClUint32T timeout;
+        ClBoolT sync;
+    } ClIocDispatchOptionT;
+
     typedef ClRcT (*ClIocNotificationRegisterCallbackT)(ClIocNotificationT *notification, ClPtrT cookie);
     extern ClBoolT gClIocTrafficShaper;
 
@@ -748,11 +754,36 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
 
     ClRcT clIocNotificationRegistrantsDelete(void);
 
+    ClRcT clIocNotificationPacketSend(ClIocCommPortHandleT commPort, 
+                                      ClIocNotificationT *pNotificationInfo, 
+                                      ClIocAddressT *destAddress, ClBoolT compat);
+
+    ClRcT clIocNotificationNodeStatusSend(ClIocCommPortHandleT commPort, ClUint32T status,
+                                          ClIocNodeAddressT notificationNodeAddr,
+                                          ClIocAddressT *allLocalComps, ClIocAddressT *allNodeReps);
+
+    ClRcT clIocNotificationCompStatusSend(ClIocCommPortHandleT commPort, ClUint32T status,
+                                          ClIocPortT portId,
+                                          ClIocAddressT *allLocalComps, ClIocAddressT *allNodeReps);
+
+    ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvBuff, ClUint32T recvLen,
+                                      ClIocAddressT *allLocalComps, ClIocAddressT *allNodeReps);
+
+    ClRcT clIocNotificationInitialize(void);
+    
+    ClRcT clIocNotificationFinalize(void);
+
     void clIocMasterCacheReset(void);
 
     void clIocMasterCacheSet(ClIocNodeAddressT master);    
 
     ClBoolT clAspNativeLeaderElection(void);
+
+    ClRcT clIocDispatch(ClIocCommPortHandleT commPort, ClIocDispatchOptionT *pRecvOption,
+                        ClUint8T *buffer, ClUint32T bufSize, ClBufferHandleT message,
+                        ClIocRecvParamT *pRecvParam);
+    
+    ClRcT clIocDispatchAsync(ClIocPortT port, ClUint8T *buffer, ClUint32T bufSize);
 
 # ifndef __KERNEL__
 

@@ -65,6 +65,8 @@ extern "C" {
 #include <clXdrErrors.h>
 #include <clIocApi.h>
 #include <clEoApi.h>
+#include <clMD5Api.h>
+#include <clDifferenceVector.h>
 
 #define CL_XDR_ENTER(x)
 #define CL_XDR_EXIT(x)
@@ -2939,6 +2941,70 @@ clXdrMarshallPtr((pointer), sizeof(ClWordT), \
 clXdrUnmarshallPtr((msg), \
                    (pointer), sizeof(ClWordT), \
                    multiplicity, clXdrUnmarshallClWordT)
+
+ClRcT clXdrMarshallClMD5T(void* pGenVar, ClBufferHandleT msg, ClUint32T isDelete);
+
+ClRcT clXdrUnmarshallClMD5T(ClBufferHandleT msg , void* pGenVar);
+
+#define clXdrMarshallPtrClMD5T(pointer, multiplicity, msg, isDelete)    \
+clXdrMarshallPtr((pointer), sizeof(ClMD5T), \
+                 (multiplicity), clXdrMarshallClMD5T, \
+                 (msg), (isDelete))
+
+#define clXdrUnmarshallPtrClMD5T(msg, pointer, multiplicity)  \
+clXdrUnmarshallPtr((msg), \
+                   (pointer), sizeof(ClMD5T), \
+                   multiplicity, clXdrUnmarshallClMD5T)
+
+#define clXdrMarshallArrayClMD5T(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallArray((pointer), sizeof(ClMD5T), (multiplicity), clXdrMarshallClMD5T, (msg), (isDelete))
+
+#define clXdrUnmarshallArrayClMD5T(msg,pointer, multiplicity) \
+clXdrUnmarshallArray((msg),(pointer), sizeof(ClMD5T), (multiplicity), clXdrUnmarshallClMD5T)
+
+ClRcT  clXdrMarshallClDifferenceVectorT(void *,ClBufferHandleT , ClUint32T);
+
+ClRcT  clXdrUnmarshallClDifferenceVectorT(ClBufferHandleT, void *);
+
+#define clXdrMarshallArrayClDifferenceVectorT(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallArray((pointer), sizeof(ClDifferenceVectorT), (multiplicity), clXdrMarshallClDifferenceVectorT, (msg), (isDelete))
+
+#define clXdrUnmarshallArrayClDifferenceVectorT(msg,pointer, multiplicity) \
+clXdrUnmarshallArray((msg),(pointer), sizeof(ClDifferenceVectorT), (multiplicity), clXdrUnmarshallClDifferenceVectorT)
+
+#define clXdrMarshallPointerClDifferenceVectorT(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPointer((pointer), sizeof(ClDifferenceVectorT), (multiplicity), clXdrMarshallClDifferenceVectorT, (msg), (isDelete))
+
+#define clXdrUnmarshallPointerClDifferenceVectorT(msg,pointer) \
+clXdrUnmarshallPointer((msg),(pointer), sizeof(ClDifferenceVectorT), clXdrUnmarshallClDifferenceVectorT)
+
+#define clXdrMarshallPtrClDifferenceVectorT(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPtr((pointer), sizeof(ClDifferenceVectorT), (multiplicity), clXdrMarshallClDifferenceVectorT, (msg), (isDelete))
+
+#define clXdrUnmarshallPtrClDifferenceVectorT(msg,pointer,multiplicity) \
+clXdrUnmarshallPtr((msg),(pointer), sizeof(ClDifferenceVectorT),multiplicity, clXdrUnmarshallClDifferenceVectorT)
+
+ClRcT  clXdrMarshallClDataVectorT(void *,ClBufferHandleT , ClUint32T);
+
+ClRcT  clXdrUnmarshallClDataVectorT(ClBufferHandleT, void *);
+
+#define clXdrMarshallArrayClDataVectorT(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallArray((pointer), sizeof(ClDataVectorT), (multiplicity), clXdrMarshallClDataVectorT, (msg), (isDelete))
+
+#define clXdrUnmarshallArrayClDataVectorT(msg,pointer, multiplicity) \
+clXdrUnmarshallArray((msg),(pointer), sizeof(ClDataVectorT), (multiplicity), clXdrUnmarshallClDataVectorT)
+
+#define clXdrMarshallPointerClDataVectorT(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPointer((pointer), sizeof(ClDataVectorT), (multiplicity), clXdrMarshallClDataVectorT, (msg), (isDelete))
+
+#define clXdrUnmarshallPointerClDataVectorT(msg,pointer) \
+clXdrUnmarshallPointer((msg),(pointer), sizeof(ClDataVectorT), clXdrUnmarshallClDataVectorT)
+
+#define clXdrMarshallPtrClDataVectorT(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPtr((pointer), sizeof(ClDataVectorT), (multiplicity), clXdrMarshallClDataVectorT, (msg), (isDelete))
+
+#define clXdrUnmarshallPtrClDataVectorT(msg,pointer,multiplicity) \
+clXdrUnmarshallPtr((msg),(pointer), sizeof(ClDataVectorT),multiplicity, clXdrUnmarshallClDataVectorT)
 
 ClRcT clXdrError(void* pPyld, ...);
 

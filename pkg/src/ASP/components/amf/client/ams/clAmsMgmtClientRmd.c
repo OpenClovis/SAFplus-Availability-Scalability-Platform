@@ -82,6 +82,50 @@ static __inline__ ClUint32T cl_ams_get_fn_id(ClUint32T client_id)
     return CL_EO_GET_FULL_FN_NUM(serviceIdTable[index], client_id & CL_EO_FN_MASK);
 }
 
+ClRcT cl_ams_ccb_batch_rmd(
+                           CL_IN ClUint32T  fn_id,  /* RMD function identifier */
+                           CL_IN ClBufferHandleT buffer,
+                           CL_IN ClUint32T versionCode) 
+{
+
+    ClRcT  rc = CL_OK;
+    ClIocAddressT  dest_addr;
+    ClUint32T  rmd_flags;
+    ClRmdOptionsT  rmd_options = CL_RMD_DEFAULT_OPTIONS;
+    ClInt32T tries = 0;
+    ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0 };
+    ClVersionT version = {0};
+
+    /* Argument (sanity) checking */
+
+    AMS_CHECKPTR_SILENT( !buffer);
+
+    if(!(fn_id = cl_ams_get_fn_id(fn_id) ))
+        return CL_AMS_RC(CL_ERR_OUT_OF_RANGE);
+
+    version.releaseCode =  CL_VERSION_RELEASE(versionCode);
+    version.majorVersion = CL_VERSION_MAJOR(versionCode);
+    version.minorVersion = CL_VERSION_MINOR(versionCode);
+
+    do
+    {
+        rc = clCpmMasterAddressGetExtended( &dest_addr.iocPhyAddress.nodeAddress, 5, NULL);
+    } while(rc != CL_OK && ++tries < 2 && clOsalTaskDelay(delay) == CL_OK);
+
+    if(rc != CL_OK) return rc;
+
+    dest_addr.iocPhyAddress.portId = CL_IOC_CPM_PORT;
+    rmd_options.timeout = CL_AMS_RMD_DEFAULT_TIMEOUT;
+    rmd_options.retries = CL_AMS_RMD_DEFAULT_RETRIES;
+    rmd_flags = CL_RMD_CALL_ATMOST_ONCE;
+
+    AMS_CHECK_RC_ERROR( clRmdWithMsgVer( dest_addr, &version,
+                                         fn_id, buffer, 0, rmd_flags, &rmd_options, NULL) );
+
+exitfn:
+    return rc;
+}
+
 static ClRcT
 cl_ams_call_rmd_ver(
         CL_IN  ClUint32T  fn_id,  /* RMD function identifier */
@@ -145,7 +189,7 @@ cl_ams_call_rmd_ver(
     dest_addr.iocPhyAddress.portId = CL_IOC_CPM_PORT;
     rmd_options.timeout = CL_AMS_RMD_DEFAULT_TIMEOUT;
     rmd_options.retries = CL_AMS_RMD_DEFAULT_RETRIES;
-    rmd_flags = CL_RMD_CALL_NEED_REPLY;
+    rmd_flags = CL_RMD_CALL_ATMOST_ONCE | CL_RMD_CALL_NEED_REPLY;
 
     AMS_CHECK_RC_ERROR( clRmdWithMsgVer( dest_addr, &version,
                 fn_id, in_buffer, out_buffer, rmd_flags, &rmd_options, NULL) );
@@ -919,6 +963,17 @@ cl_ams_mgmt_entity_shutdown(
             (ClPtrT*)res, &unmarshalClAmsMgmtEntityShutdown);
 }
 
+ClRcT
+cl_ams_mgmt_entity_shutdown_with_restart(
+        CL_IN  clAmsMgmtEntityShutdownRequestT  *req,
+        CL_OUT  clAmsMgmtEntityShutdownResponseT  **res)
+{
+    return cl_ams_call_rmd_ver(( ClUint32T)CL_AMS_MGMT_ENTITY_SHUTDOWN_WITH_RESTART,
+                               (ClPtrT)req, &marshalClAmsMgmtEntityShutdown,
+                               (ClPtrT*)res, &unmarshalClAmsMgmtEntityShutdown,
+                               CL_VERSION_CODE(5, 1, 0));
+}
+
 /******************************************************************************/
 
 ClRcT
@@ -1158,7 +1213,7 @@ cl_ams_mgmt_ccb_finalize(
 
 /******************************************************************************/
 
-static ClRcT
+ClRcT
 __marshalClAmsMgmtCCBEntitySetConfig(
                                      CL_IN  ClPtrT  ptr,
                                      CL_INOUT  ClBufferHandleT  buf,
@@ -3042,6 +3097,12 @@ emulate_rmd_call(
         case CL_AMS_MGMT_ENTITY_SHUTDOWN:
             {
                 rc = VDECL(_clAmsMgmtEntityShutdown)(data,in_buffer, out_buffer);
+                break;
+            }
+
+        case CL_AMS_MGMT_ENTITY_SHUTDOWN_WITH_RESTART:
+            {
+                rc = VDECL_VER(_clAmsMgmtEntityShutdownWithRestart, 5, 1, 0)(data,in_buffer, out_buffer);
                 break;
             }
 

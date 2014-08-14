@@ -604,8 +604,6 @@ clAmsPeSGUnlock(
 
     if ( adminState == CL_AMS_ADMIN_STATE_UNLOCKED )
     {
-        
-
         AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
     }
 
@@ -925,7 +923,8 @@ clAmsPeSGInstantiate(
 
     AMS_CALL ( clAmsEntityListWalkGetEntity(
                     &sg->config.suList,
-                    (ClAmsEntityCallbackT)clAmsPeSUMarkInstantiable) );    
+                    (ClAmsEntityCallbackT)clAmsPeSUMarkInstantiable) );
+
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
 
@@ -972,6 +971,7 @@ clAmsPeSGInstantiateTimeout(
         sg->status.isStarted = CL_TRUE;
         
         CL_AMS_SET_EPOCH(sg);
+
         AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
     }
 
@@ -1214,7 +1214,7 @@ clAmsPeSGInstantiateSUs(
         ClAmsEntityRefT *entityRef;
 
         entityRef = clAmsEntityListGetFirst(&sg->status.instantiableSUList);
-        ClUint32T numEntities=  sg->status.instantiableSUList.numEntities;
+
         while ( (entityRef != (ClAmsEntityRefT *) NULL) && (canInstantiate > 0) )
         {
             ClAmsSUT *su = (ClAmsSUT *)entityRef->ptr;
@@ -1268,16 +1268,6 @@ clAmsPeSGInstantiateSUs(
              */
 
             AMS_CALL ( clAmsPeSUInstantiate(su) );
-
-            /*
-             * Check number of instantiableSUList. If more than one entity is removed,
-             * we force to intantiable from the begin to avoid dangling pointer crash the system.
-             */ 
-            if(sg->status.instantiableSUList.numEntities < numEntities -1)
-            {   
-                entityRef = clAmsEntityListGetFirst(&sg->status.instantiableSUList);
-            }
-            numEntities = sg->status.instantiableSUList.numEntities;
 
             canInstantiate--;
             instantiating++;
@@ -2142,47 +2132,6 @@ clAmsPeNodeLockInstantiation(
     return CL_OK;
 }
 
-#if 1 // LGER mod for test
-ClRcT
-clAmsPeNodeForceLockInstantiationOperation(
-        CL_IN       ClAmsNodeT        *node)
-{
-    ClAmsAdminStateT adminState;
-
-    AMS_CHECK_NODE ( node );
-
-    AMS_FUNC_ENTER ( ("Node [%s]\n",node->config.entity.name.value) );
-
-    if ( !node->config.isASPAware )
-    {
-        AMS_ENTITY_LOG (node, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
-                 ("Node [%s] is not ASP aware. Nothing to do.\n",
-                  node->config.entity.name.value));
-
-        return CL_AMS_RC(CL_ERR_NO_OP);
-    }
-
-    clLogNotice("NODE", "LOCK-FORCE", "Admin Operation [Forced lock instantiation trigger] on Node [%s]",
-                node->config.entity.name.value);
-
-    AMS_CALL ( clAmsPeNodeComputeAdminState(node, &adminState) );
-
-    if(adminState == CL_AMS_ADMIN_STATE_LOCKED_I)
-    {
-        return CL_AMS_RC(CL_ERR_NO_OP);
-    }
-    ClUint32T switchoverMode = CL_AMS_ENTITY_SWITCHOVER_FAST|CL_AMS_ENTITY_SWITCHOVER_FORCE;
-    clLogNotice("NODE", "LOCK-FORCE", "switch over on Node [%s] with mode = [CL_AMS_ENTITY_SWITCHOVER_FAST | CL_AMS_ENTITY_SWITCHOVER_FORCE] ",
-                node->config.entity.name.value);
-    AMS_CALL ( clAmsPeNodeSwitchoverWork(node,switchoverMode));
-    clLogNotice("NODE", "LOCK-FORCE", "terminate Node [%s]",node->config.entity.name.value);
-    CL_AMS_SET_A_STATE(node, CL_AMS_ADMIN_STATE_LOCKED_I);    
-    AMS_CALL ( clAmsPeNodeTerminate(node) );
-
-    return CL_OK;
-}
-#endif
-
 /*
  * clAmsPeNodeLockInstantiationCallback
  * ------------------------------------
@@ -2376,7 +2325,8 @@ clAmsPeSUStartProbation(ClAmsEntityT *entity)
     if(!su) return CL_OK;
     sg = (ClAmsSGT*)su->config.parentSG.ptr;
     if(!sg) return CL_OK;
-    if(sg->config.autoAdjust && su->config.rank)
+    if(sg->config.autoAdjust && 
+       (su->config.rank || sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM))
     {
         clLogInfo("SG", "ADJUST", "Starting SU [%s] adjustment probation timer after node repair",
                   su->config.entity.name.value);
@@ -3434,12 +3384,6 @@ clAmsPeNodeTerminate(
     {
         return CL_OK;
     }
-    
-    if ( node->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_I )
-    {
-    	AMS_LOG (CL_DEBUG_TRACE,("do cleanup for amsForceLockInstantiation node.\n"));
-        docleanup = CL_TRUE;
-    }
 
     /*
      * Set presence state of node. The oper state is left unchanged, if there
@@ -3879,7 +3823,6 @@ clAmsPeNodeSwitchoverWork(
         }
     }
     else
-    
     {
         AMS_CHECK_RC_ERROR ( clAmsPeNodeSwitchoverCallback(node, CL_OK, switchoverMode) );
     }
@@ -4736,7 +4679,6 @@ clAmsPeSULockInstantiation(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
-#if 0
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "LOCKI", 
@@ -4744,7 +4686,6 @@ clAmsPeSULockInstantiation(
                   sg->config.entity.name.value, su->config.entity.name.value);
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
-#endif
 
     AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
 
@@ -4792,12 +4733,19 @@ clAmsPeSULockInstantiationCallback(
  */
 
 ClRcT
-clAmsPeSUShutdown(
-        CL_IN       ClAmsSUT        *su)
+clAmsPeSUShutdownWithRestart(
+                             CL_IN       ClAmsSUT        *su,
+                             CL_IN       ClBoolT restart)
 {
     ClAmsAdminStateT oldAdminState;
+    ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN;
     ClAmsReadinessStateT readinessState;
     ClAmsSGT *sg = NULL;
+
+    if(restart)
+    {
+        adminState = CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART;
+    }
 
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT*)su->config.parentSG.ptr);
@@ -4805,32 +4753,32 @@ clAmsPeSUShutdown(
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
     AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
-            ("Admin Operation [Shutdown] on SU [%s]\n",
-             su->config.entity.name.value));
+            ("Admin Operation [%s] on SU [%s]\n",
+             restart ? "Shutdown With Restart" : "Shutdown", su->config.entity.name.value));
 
     if(clAmsInvocationsPendingForSU(su))
     {
         clLogInfo("SU", "SHUTDOWN", 
-                  "SU [%s] has invocations pending. Deferring shutdown",
-                  su->config.entity.name.value);
+                  "SU [%s] has invocations pending. Deferring [%s]",
+                  su->config.entity.name.value,
+                  restart ? "shutdown and restart" : "shutdown");
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
     
-#if 0
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "SHUTDOWN", 
-                  "SG [%s] containing SU [%s] has invocations pending. Deferring shutdown",
-                  sg->config.entity.name.value, su->config.entity.name.value);
+                  "SG [%s] containing SU [%s] has invocations pending. Deferring [%s]",
+                  sg->config.entity.name.value, su->config.entity.name.value,
+                  restart ? "shutdown and restart" : "shutdown");
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
-#endif
 
     readinessState = su->status.readinessState;
 
     AMS_CALL ( clAmsPeSUComputeAdminState(su, &oldAdminState) );
 
-    CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_SHUTTINGDOWN);
+    CL_AMS_SET_A_STATE(su, adminState);
 
     if ( oldAdminState == CL_AMS_ADMIN_STATE_UNLOCKED )
     {
@@ -4840,11 +4788,18 @@ clAmsPeSUShutdown(
         }
         else
         {
-            AMS_CALL ( clAmsPeSUShutdownCallback(su, CL_OK) );
+            AMS_CALL ( clAmsPeSUShutdownCallback(su, CL_OK, CL_AMS_ENTITY_SWITCHOVER_GRACEFUL) );
         }
     }
 
     return CL_OK;
+}
+
+ClRcT
+clAmsPeSUShutdown(
+        CL_IN       ClAmsSUT        *su)
+{
+    return clAmsPeSUShutdownWithRestart(su, CL_FALSE);
 }
 
 /*
@@ -4855,8 +4810,9 @@ clAmsPeSUShutdown(
 
 ClRcT
 clAmsPeSUShutdownCallback(
-        CL_IN       ClAmsSUT        *su,
-        CL_IN       ClUint32T       error)
+                          CL_IN       ClAmsSUT        *su,
+                          CL_IN       ClUint32T       error,
+                          CL_IN       ClUint32T       switchoverMode)
 {
     ClAmsSGT *sg;
     ClAmsNodeT *node;
@@ -4878,6 +4834,24 @@ clAmsPeSUShutdownCallback(
     if ( su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
     {
         CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_LOCKED_A);
+    }
+
+    else if ( su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART )
+    {
+        ClAmsSGT *sg = NULL;
+        AMS_CHECK_SG(sg = (ClAmsSGT*)su->config.parentSG.ptr);
+        if(error == CL_OK 
+           && 
+           !(switchoverMode & CL_AMS_ENTITY_SWITCHOVER_FAST))
+        {
+            CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_UNLOCKED);
+            clAmsPeSUCleanup(su);
+            clAmsPeSGEvaluateWork(sg);
+        }
+        else
+        {
+            CL_AMS_SET_A_STATE(su, CL_AMS_ADMIN_STATE_LOCKED_A);
+        }
     }
 
     return CL_OK;
@@ -4918,7 +4892,6 @@ clAmsPeSUAdminRestart(
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
 
-#if 0
     if(clAmsInvocationsPendingForSG(sg))
     {
         clLogInfo("SU", "RESTART", 
@@ -4926,7 +4899,6 @@ clAmsPeSUAdminRestart(
                   sg->config.entity.name.value, su->config.entity.name.value);
         return CL_AMS_RC(CL_ERR_TRY_AGAIN);
     }
-#endif
 
     if ( (su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED) ||
          (clAmsPeSUIsInstantiable(su) != CL_OK) )
@@ -5379,6 +5351,7 @@ clAmsPeSUFaultCallback_Step1(
     // will be executed before step2. So autorepair could happen before or after 
     // this evaluate and that will dictate which su is brought into service if
     // there is also a spare SU.
+
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
     return CL_OK;
@@ -5499,7 +5472,8 @@ clAmsPeSUFaultCallback_Step2(
                  */
                 if(sg->config.autoAdjust 
                    && 
-                   su->config.rank)
+                   (su->config.rank ||
+                    sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM))
                 {
                     clLogInfo("SG", "ADJUST", "Starting SU [%s] adjustment probation timer after SU fault repair",
                               su->config.entity.name.value);
@@ -5783,7 +5757,8 @@ clAmsPeSURepaired(
     /*
      * Start the auto adjust probation for this SU after the repair.
      */
-    if(sg->config.autoAdjust && su->config.rank)
+    if(sg->config.autoAdjust && 
+       (su->config.rank || sg->config.redundancyModel == CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM))
     {
         clLogInfo("SG", "ADJUST", "Starting SU [%s] adjustment probation timer after SU repair",
                   su->config.entity.name.value);
@@ -6478,6 +6453,7 @@ clAmsPeSUTerminateCallback(
      * Make a gratuitous call to SGEvaluateWork to ensure that the SG rules
      * are satisfied.
      */
+ 
     AMS_CALL ( clAmsPeSGEvaluateWork((ClAmsSGT *)su->config.parentSG.ptr) );
 
     return CL_OK;
@@ -6749,6 +6725,7 @@ clAmsPeSUCleanupCallback(
      * Make a gratuitous call to SGEvaluateWork to ensure that the SG rules
      * are satisfied.
      */
+ 
     AMS_CALL ( clAmsPeSGEvaluateWork((ClAmsSGT *)su->config.parentSG.ptr) );
 
     return CL_OK;
@@ -6890,6 +6867,7 @@ clAmsPeSUEvaluateWork(
     AMS_ENTITY_LOG (su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE, 
             ("Evaluating work for SU [%s]\n",
              su->config.entity.name.value));
+
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
     return CL_OK;
@@ -7230,6 +7208,7 @@ clAmsPeSUSwitchoverWork(
         CL_IN ClUint32T switchoverMode)
 {
     AMS_CHECK_SU ( su );
+
     su->status.compRestartCount = 0;
     AMS_CALL ( clAmsEntityTimerStop((ClAmsEntityT *) su, CL_AMS_SU_TIMER_COMPRESTART) );
     su->status.suRestartCount = 0;
@@ -7280,9 +7259,11 @@ static ClRcT clAmsPeSUSwitchoverPrologue(ClAmsSUT *su, ClUint32T error, ClUint32
             AMS_CALL ( clAmsPeSULockAssignmentCallback(su, error) );
         }
 
-        if ( su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
+        if ( su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN 
+             ||
+             su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART)
         {
-            AMS_CALL ( clAmsPeSUShutdownCallback(su, error) );
+            AMS_CALL ( clAmsPeSUShutdownCallback(su, error, switchoverMode) );
         }
 
         if ( su->status.recovery == CL_AMS_RECOVERY_COMP_FAILOVER 
@@ -7319,14 +7300,8 @@ static ClRcT clAmsPeSUSwitchoverPrologue(ClAmsSUT *su, ClUint32T error, ClUint32
      * Make a gratuitous call to SGEvaluateWork to ensure that the SG rules
      * are satisfied.
      */
-	if(!(switchoverMode & (CL_AMS_ENTITY_SWITCHOVER_FORCE)))
-	{		
-		AMS_CALL ( clAmsPeSGEvaluateWork((ClAmsSGT *)su->config.parentSG.ptr) );
-	}
-	else
-	{
-        clLogNotice("CSI", "Prologue", "Switchover with CL_AMS_ENTITY_SWITCHOVER_FORCE mode. Ignore clAmsPeSGEvaluateWork  ");
-	}    
+ 
+    AMS_CALL ( clAmsPeSGEvaluateWork((ClAmsSGT *)su->config.parentSG.ptr) );
     return CL_OK;
 }
 
@@ -7791,6 +7766,7 @@ clAmsPeSUSwitchoverCallback(
     ClAmsNodeT *node;
     ClAmsAdminStateT sgAdminState;
     ClRcT rc = CL_OK;
+
     AMS_CHECK_SU ( su );
     AMS_CHECK_SG ( sg = (ClAmsSGT *) su->config.parentSG.ptr );
     AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
@@ -10571,6 +10547,7 @@ clAmsPeSILockAssignmentCallback(
      * Make a gratuitous call to SG evaluate work. This is to ensure that other
      * SIs that may be currently unassigned now get the chance to be assigned.
      */
+
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
     return CL_OK;
@@ -10666,6 +10643,7 @@ clAmsPeSIShutdownCallback(
      * Make a gratuitous call to SG evaluate work. This is to ensure that other
      * SIs that may be currently unassigned now get the chance to be assigned.
      */
+
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
     return CL_OK;
@@ -10810,6 +10788,7 @@ clAmsPeSIEvaluateWork(
     {
         return CL_OK;
     }
+
     AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
 
     return CL_OK;
@@ -11527,12 +11506,20 @@ clAmsPeCompFaultReport(
         }
     }
 
+    /*
+     * Stop all possible timers that could be running for the component
+     * and clear the invocation list.
+     */
+
+    AMS_CALL ( clAmsEntityClearOps((ClAmsEntityT *)comp) );
+    
+    clAmsEntityOpsClear((ClAmsEntityT*)comp, &comp->status.entity);
+
+    CL_AMS_SET_O_STATE(comp, CL_AMS_OPER_STATE_DISABLED);
 
     /*
      * Compute recovery action and escalation
      */
-
-    CL_AMS_SET_O_STATE(comp, CL_AMS_OPER_STATE_DISABLED);
 
     recommendedRecovery = *recovery;
 
@@ -11550,15 +11537,6 @@ clAmsPeCompFaultReport(
 
         return CL_OK;
     }
-
-    /*
-     * Stop all possible timers that could be running for the component
-     * and clear the invocation list.
-     */
-
-    AMS_CALL ( clAmsEntityClearOps((ClAmsEntityT *)comp) );
-    
-    clAmsEntityOpsClear((ClAmsEntityT*)comp, &comp->status.entity);
 
     clLogDebug(CL_LOG_AREA_AMS, CL_LOG_CONTEXT_AMS_FAULT_COMP, 
                "Fault on Component [%s]: Recommended recovery = [%s], "\
@@ -11818,7 +11796,9 @@ clAmsPeCompComputeRecoveryAction(
     AMS_CALL ( clAmsPeSUComputeAdminState(su, &adminState) );
 
     if ( (adminState == CL_AMS_ADMIN_STATE_LOCKED_A) ||
-         (adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) )
+         (adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN)
+         ||
+         (adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART) )
     {
         if ( (computedRecovery == CL_AMS_RECOVERY_NO_RECOMMENDATION) ||
              (computedRecovery == CL_AMS_RECOVERY_COMP_RESTART)      ||
@@ -11988,7 +11968,8 @@ clAmsPeCompComputeSwitchoverMode(
 {
     ClAmsSUT *su;
     ClAmsNodeT *node;
-    ClUint32T computedSwitchoverMode;    
+    ClUint32T computedSwitchoverMode;
+
     AMS_CHECKPTR ( !switchoverMode);
     AMS_CHECK_COMP ( comp );
     AMS_CHECK_SU ( su = (ClAmsSUT *) comp->config.parentSU.ptr );
@@ -12045,7 +12026,8 @@ clAmsPeCompComputeSwitchoverMode(
     if( (computedSwitchoverMode & CL_AMS_ENTITY_SWITCHOVER_FAST) )
         computedSwitchoverMode &= ~(CL_AMS_ENTITY_SWITCHOVER_GRACEFUL | CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE);
 
-    *switchoverMode = computedSwitchoverMode;    
+    *switchoverMode = computedSwitchoverMode;
+
     return CL_OK;
 }
         
@@ -14274,7 +14256,9 @@ clAmsPeCompRemoveWork(
     AMS_CHECK_COMP ( comp );
     AMS_CHECK_SU ( su = (ClAmsSUT *) comp->config.parentSU.ptr );
     AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
+
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
+
     /*
      * If the component is on a node that is not present (due to a critical
      * fault), then the switchoverMode is forced to be fast and the net result 
@@ -14282,14 +14266,13 @@ clAmsPeCompRemoveWork(
      * This path is typically followed when a fault is reported on a component 
      * and the recovery is a SU/comp failover.
      */
-    if(!(switchoverMode & CL_AMS_ENTITY_SWITCHOVER_FORCE))
-    {
-    	switchoverMode &= ~CL_AMS_ENTITY_SWITCHOVER_FAST;
-    }
+
+    switchoverMode &= ~CL_AMS_ENTITY_SWITCHOVER_FAST;
+
     clAmsPeCompComputeSwitchoverMode(comp, &switchoverMode);
 
     AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
-                    ("Component [%s] Remove Work Request with switchover mode [%d]",
+                    ("Component [%s] Remove Work Request with switchover mode %d",
                      comp->config.entity.name.value, switchoverMode));
 
     entityRef = clAmsEntityListGetFirst(&comp->status.csiList);
@@ -15104,14 +15087,7 @@ clAmsPeCompAssignCSIExtended(
                                  csi->config.entity.name.value,
                                  comp->config.entity.name.value));
 
-                if (standbyComp)
-                {
-                    activeComp = standbyComp;
-                }
-                else
-                {
-                    activeComp = comp;
-                }
+                activeComp = standbyComp;
             }
         }
         else
@@ -17662,7 +17638,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
                  !invocationsPendingForSI)
             {
                 AMS_CALL ( clAmsPeSUQuiesceSIGracefullyCallback(
-                                                su, si, CL_OK, switchoverMode) );
+                                                su, si, error, switchoverMode) );
             }
         }
         else
@@ -17692,7 +17668,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
              !si->status.numStandbyAssignments &&
              !invocationsPendingForSI )
         {
-            AMS_CALL ( clAmsPeSISwitchoverCallback(si, CL_OK, switchoverMode) );
+            AMS_CALL ( clAmsPeSISwitchoverCallback(si, error, switchoverMode) );
         }
     }
 
@@ -17706,7 +17682,7 @@ clAmsPeCompProcessPendingQuiescingCSIs(
          !comp->status.numActiveCSIs  &&
          !invocationsPendingForComp )
     {
-        AMS_CALL ( clAmsPeCompSwitchoverCallback(comp, CL_OK, switchoverMode) );
+        AMS_CALL ( clAmsPeCompSwitchoverCallback(comp, error, switchoverMode) );
     }
 
     /* Not necessary - restart does not include quiescing as action
@@ -17907,7 +17883,8 @@ clAmsPeCompRemoveCSI(
     switch ( comp->config.property )
     {
         case CL_AMS_COMP_PROPERTY_SA_AWARE:
-        {            
+        {
+
             ClAmsCSIDescriptorT *csiDescriptor;
             ClNameT activeCompName = {0};
 
@@ -17941,14 +17918,13 @@ clAmsPeCompRemoveCSI(
                             &comp->config.entity.name,
                             &comp->config.entity.name,
                             invocation,
-                            *csiDescriptor);                
-
+                            *csiDescriptor);
             }
 #endif
 
             clAmsFreeMemory(csiDescriptor->csiAttributeList.attribute);
-            clAmsFreeMemory(csiDescriptor);            
-
+            clAmsFreeMemory(csiDescriptor);
+            
             if ( error )
                 return clAmsPeCompRemoveCSIError(comp, error);
 
@@ -18291,17 +18267,6 @@ amsPeCompRemoveCSICallback(
                                             currentHaState,
                                             event,
                                             switchoverMode);
-                /*
-                 * Published SG UNASSIGNED if there is no assignment on SG
-                 */
-                if (event == CL_AMS_NOTIFICATION_SI_UNASSIGNED && !clAmsPeSGHasAssignments(sg) )
-                {
-                    CL_AMS_NOTIFICATION_PUBLISH(sg,
-                                                (ClAmsEntityRefT *)&tSiRef,
-                                                currentHaState,
-                                                CL_AMS_NOTIFICATION_SG_UNASSIGNED,
-                                                switchoverMode);
-                }
                 clLogDebug("SU_SI", "REMOVE", "SU remove SI callback for SU [%s], SI [%s]",
                            su->config.entity.name.value, si->config.entity.name.value);
                 AMS_CALL ( clAmsPeSURemoveSICallback(su, si, error, switchoverMode) );
@@ -18404,14 +18369,7 @@ amsPeCompRemoveCSICallback(
          * This delayed standby remove could have had impact on a spare trying to take over as 
          * standby.
          */
-    	if(!(switchoverMode & (CL_AMS_ENTITY_SWITCHOVER_FORCE)))
-    	{		
-            AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
-    	}
-    	else
-    	{
-            clLogNotice("CSI", "REMOVE", "Switchover with CL_AMS_ENTITY_SWITCHOVER_FORCE mode. Ignore clAmsPeSGEvaluateWork  ");
-    	}    
+        AMS_CALL ( clAmsPeSGEvaluateWork(sg) );
     }
     return CL_OK;
 }
@@ -20329,8 +20287,12 @@ clAmsPeEntityLockInstantiate(
         {
             rc = CL_AMS_RC(CL_ERR_NO_OP);
         }
-        else if ( (adminState == CL_AMS_ADMIN_STATE_UNLOCKED) ||
-                  (adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN) )
+        else if ( adminState == CL_AMS_ADMIN_STATE_UNLOCKED 
+                  ||
+                  adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN
+                  ||
+                  adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART
+                  )
         {
             rc = CL_AMS_RC(CL_ERR_BAD_OPERATION);
         }
@@ -20451,7 +20413,9 @@ clAmsPeEntityLockAssignment(
         {
             rc = CL_AMS_RC(CL_ERR_NO_OP);
         }
-        else if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
+        else if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN
+                  ||
+                  adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART)
         {
             rc = CL_AMS_RC(CL_ERR_BAD_OPERATION);
         }
@@ -20575,7 +20539,9 @@ clAmsPeEntityShutdown(
 
     if ( (rc = clAmsPeEntityGetAdminState(entity, &adminState)) == CL_OK )
     {
-        if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN )
+        if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN 
+             ||
+             adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART)
         {
             rc = CL_AMS_RC(CL_ERR_NO_OP);
         }
@@ -20634,6 +20600,85 @@ clAmsPeEntityShutdown(
                     rc = CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
                 }
             }
+        }
+    }
+
+    if ( rc == CL_OK )
+    {
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Admin Operation [Shutdown] on [%s] in Admin State [%s] returned Okay\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState)));
+    }
+    else if ( CL_GET_ERROR_CODE(rc) == CL_AMS_ERR_INVALID_ENTITY )
+    {
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Admin Operation [Shutdown] on [%s] is invalid. Continuing..\n",
+             entity->name.value));
+    }
+    else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_NO_OP )
+    {
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Admin Operation [Shutdown] on [%s] in Admin State [%s] is a NoOp. Continuing..\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState)));
+    }
+    else if ( CL_GET_ERROR_CODE(rc) == CL_ERR_BAD_OPERATION )
+    {
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Admin Operation [Shutdown] on [%s] in Admin State [%s] is not possible. Continuing..\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState)));
+    }
+    else
+    {
+        AMS_ENTITY_LOG (entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
+            ("Admin Operation [Shutdown] on [%s] in Admin State [%s] returned Error [0x%x]\n",
+             entity->name.value,
+             CL_AMS_STRING_A_STATE(adminState),
+             rc));
+    }
+
+    return rc;
+}
+
+ClRcT
+clAmsPeEntityShutdownWithRestart(
+                                 CL_IN ClAmsEntityT        *entity)
+{
+    ClRcT rc = CL_OK;
+    ClAmsAdminStateT adminState = CL_AMS_ADMIN_STATE_NONE;
+
+    AMS_OP_INCR(&gAms.ops);
+
+    AMS_CHECKPTR ( !entity );
+
+    AMS_FUNC_ENTER ( ("Entity [%s]\n",entity->name.value) );
+
+    if(entity->type != CL_AMS_ENTITY_TYPE_SU)
+    {
+        return CL_AMS_RC(CL_ERR_NOT_SUPPORTED);
+    }
+
+    AMS_CALL ( clAmsEntityValidate(
+                    (ClAmsEntityT *) entity,
+                    CL_AMS_ENTITY_VALIDATE_CONFIG) );
+
+    if ( (rc = clAmsPeEntityGetAdminState(entity, &adminState)) == CL_OK )
+    {
+        if ( adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN 
+             ||
+             adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART)
+        {
+            rc = CL_AMS_RC(CL_ERR_NO_OP);
+        }
+        else if ( adminState != CL_AMS_ADMIN_STATE_UNLOCKED )
+        {
+            rc = CL_AMS_RC(CL_ERR_BAD_OPERATION);
+        }
+        else
+        {
+            rc = clAmsPeSUShutdownWithRestart((ClAmsSUT*)entity, CL_TRUE);
         }
     }
 
@@ -21312,6 +21357,8 @@ ClRcT clAmsPeSGAutoAdjust(ClAmsSGT *sg)
     case CL_AMS_SG_REDUNDANCY_MODEL_TWO_N:
     case CL_AMS_SG_REDUNDANCY_MODEL_M_PLUS_N:
         return clAmsPeSGAutoAdjustMPlusN(sg);
+    case CL_AMS_SG_REDUNDANCY_MODEL_CUSTOM:
+        return clAmsPeSGAutoAdjustCustom(sg);
     default:
         break;
     }
@@ -21599,26 +21646,27 @@ clAmsPeEntityOpReplay(ClAmsEntityT *entity, ClAmsEntityStatusT *status, ClUint32
 
     rc = clAmsEntityOpGet(entity, status, op, &data, &dataSize);
 
-    if(rc != CL_OK) return CL_OK;    
+    if(rc != CL_OK) return CL_OK;
+
     switch(op)
     {
-    case CL_AMS_ENTITY_OP_REMOVE_MPLUSN:    	
+    case CL_AMS_ENTITY_OP_REMOVE_MPLUSN:
         rc = clAmsPeEntityOpRemove(entity, data, dataSize, recovery);
         break;
 
-    case CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN:    	
+    case CL_AMS_ENTITY_OP_ACTIVE_REMOVE_MPLUSN:
         rc = clAmsPeEntityOpActiveRemove(entity, data, dataSize, recovery);
         break;
 
-    case CL_AMS_ENTITY_OP_SWAP_REMOVE_MPLUSN:    	
+    case CL_AMS_ENTITY_OP_SWAP_REMOVE_MPLUSN:
         rc = clAmsPeEntityOpSwapRemove(entity, data, dataSize, recovery);
         break;
 
-    case CL_AMS_ENTITY_OP_SWAP_ACTIVE_MPLUSN:    	
+    case CL_AMS_ENTITY_OP_SWAP_ACTIVE_MPLUSN:
         rc = clAmsPeEntityOpSwapActive(entity, data, dataSize, recovery);
         break;
 
-    case CL_AMS_ENTITY_OP_REDUCE_REMOVE_MPLUSN:    	
+    case CL_AMS_ENTITY_OP_REDUCE_REMOVE_MPLUSN:
         rc = clAmsPeEntityOpReduceRemove(entity, data, dataSize, recovery);
         break;
 

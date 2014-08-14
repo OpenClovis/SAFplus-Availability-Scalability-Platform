@@ -29,6 +29,11 @@ static ClEventChannelHandleT gClCpmEventChannelHandle;
 static ClEventChannelHandleT gClCpmNodeEventChannelHandle;
 static ClAmsClientNotificationCallbackT gClAmsEventNotificationCallback;
 
+static ClEventSubscriptionIdT amsSub  = 1;
+static ClEventSubscriptionIdT compSub = 2;
+static ClEventSubscriptionIdT nodeSub = 3;
+extern ClUint32T clEoWithOutCpm;
+
 ClRcT clAmsNotificationEventPayloadExtract(ClEventHandleT eventHandle,
                                            ClSizeT eventDataSize,
                                            void *payLoad)
@@ -93,61 +98,54 @@ static void clAmsClientNotificationCallback(
         goto out_free;
     }
 
-    switch(subscriptionId)
+    if (subscriptionId==amsSub)
     {
-
-    case 1:
+        ClRcT rc = CL_OK;
+        rc = clAmsNotificationEventPayloadExtract(eventHandle, eventDataSize, 
+                                                  (ClPtrT)&amsNotificationInfo.amsStateNotification);
+        if(rc != CL_OK)
         {
-            ClRcT rc = CL_OK;
-            rc = clAmsNotificationEventPayloadExtract(eventHandle, eventDataSize, 
-                                                      (ClPtrT)&amsNotificationInfo.amsStateNotification);
-            if(rc != CL_OK)
-            {
-                clLogError("AMS", "NTF", "Notification event payload extract returned [%#x]", rc);
-                goto out_free2;
-            }
-            amsNotificationInfo.type = amsNotificationInfo.amsStateNotification.type;
+            clLogError("AMS", "NTF", "Notification event payload extract returned [%#x]", rc);
+            goto out_free2;
         }
-        break;
-
-    case 2: 
-        {
-            rc = clCpmEventPayLoadExtract(eventHandle, 
-                                          eventDataSize, 
-                                          CL_CPM_COMP_EVENT, 
-                                          (void *)&amsNotificationInfo.amsCompNotification);
-            if (rc != CL_OK)
-            {
-                clLogError("AMS", "NTF", "Event payload extract failed, rc=[%#x]", rc);
-                goto  out_free2;
-            }
-            if(amsNotificationInfo.amsCompNotification.operation == CL_CPM_COMP_ARRIVAL)
-                amsNotificationInfo.type = CL_AMS_NOTIFICATION_COMP_ARRIVAL;
-            else
-                amsNotificationInfo.type = CL_AMS_NOTIFICATION_COMP_DEPARTURE;
-            break;
-        }
-
-    case 3: 
-        {
-            rc = clCpmEventPayLoadExtract(eventHandle, 
-                                          eventDataSize, 
-                                          CL_CPM_NODE_EVENT, 
-                                          (void *)&amsNotificationInfo.amsNodeNotification);
-            if (rc != CL_OK)
-            {
-                goto out_free2;
-            }
-            if(amsNotificationInfo.amsNodeNotification.operation == CL_CPM_NODE_ARRIVAL)
-                amsNotificationInfo.type = CL_AMS_NOTIFICATION_NODE_ARRIVAL;
-            else
-                amsNotificationInfo.type = CL_AMS_NOTIFICATION_NODE_DEPARTURE;
-            break;
-        }
-
-    default: break;
+        amsNotificationInfo.type = amsNotificationInfo.amsStateNotification.type;
     }
-        
+    else if (subscriptionId==compSub)
+    {
+        rc = clCpmEventPayLoadExtract(eventHandle, 
+                                      eventDataSize, 
+                                      CL_CPM_COMP_EVENT, 
+                                      (void *)&amsNotificationInfo.amsCompNotification);
+        if (rc != CL_OK)
+        {
+            clLogError("AMS", "NTF", "Event payload extract failed, rc=[%#x]", rc);
+            goto  out_free2;
+        }
+        if(amsNotificationInfo.amsCompNotification.operation == CL_CPM_COMP_ARRIVAL)
+            amsNotificationInfo.type = CL_AMS_NOTIFICATION_COMP_ARRIVAL;
+        else
+            amsNotificationInfo.type = CL_AMS_NOTIFICATION_COMP_DEPARTURE;
+    }
+    else if (subscriptionId==nodeSub)
+    {
+        rc = clCpmEventPayLoadExtract(eventHandle, 
+                                      eventDataSize, 
+                                      CL_CPM_NODE_EVENT, 
+                                      (void *)&amsNotificationInfo.amsNodeNotification);
+        if (rc != CL_OK)
+        {
+            goto out_free2;
+        }
+        if(amsNotificationInfo.amsNodeNotification.operation == CL_CPM_NODE_ARRIVAL)
+            amsNotificationInfo.type = CL_AMS_NOTIFICATION_NODE_ARRIVAL;
+        else
+            amsNotificationInfo.type = CL_AMS_NOTIFICATION_NODE_DEPARTURE;
+    }
+    else /* Only call the callback if I understood the event */
+    {
+        goto out_free2;
+    }
+    
     if(gClAmsEventNotificationCallback)
     {
         gClAmsEventNotificationCallback(&amsNotificationInfo);
@@ -168,10 +166,10 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
 {
     ClRcT rc = CL_OK;
     const ClEventCallbacksT evtCallbacks = 
-        {
-            NULL,
-            .clEvtEventDeliverCallback=clAmsClientNotificationCallback,
-        };
+    {
+        NULL,
+        .clEvtEventDeliverCallback=clAmsClientNotificationCallback,
+    };
     ClNameT evtChannelName = { sizeof(CL_AMS_EVENT_CHANNEL_NAME)-1, CL_AMS_EVENT_CHANNEL_NAME };
     ClVersionT version = {'B', 0x1, 0x1};
     ClEventFilterT stateFilters[] = 
@@ -179,10 +177,10 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
             {CL_EVENT_EXACT_FILTER, {0, sizeof(CL_AMS_EVENT_PATTERN)-1, (ClUint8T *)CL_AMS_EVENT_PATTERN}}
         };
     ClEventFilterArrayT subscribeFilters = 
-        {
-            sizeof(stateFilters)/sizeof(ClEventFilterT),
-            stateFilters
-        };
+    {
+        sizeof(stateFilters)/sizeof(ClEventFilterT),
+        stateFilters
+    };
 
     if(gClAmsEventNotificationHandle)
     {
@@ -218,7 +216,14 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
 
     gClAmsEventNotificationCallback = callback;
 
-    rc = clEventSubscribe(gClAmsEventChannelHandle, &subscribeFilters, 1, NULL);
+    /*
+     * Fix for Bug 3 - Event subscription IDs are retained across outside AMF process restarts.
+     * (so clean them up before init) 
+     */
+    if(clEoWithOutCpm)
+        clEventUnsubscribe(gClAmsEventChannelHandle, amsSub); 
+
+    rc = clEventSubscribe(gClAmsEventChannelHandle, &subscribeFilters, amsSub, NULL);
     if(CL_OK != rc)
     {
         clLogError("AMS", "NTF", "Unable to subscribe for the event,"
@@ -240,13 +245,20 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
                    evtChannelName.length, 
                    evtChannelName.value,
                    rc);
-        clEventUnsubscribe(gClAmsEventChannelHandle, 1);
+        clEventUnsubscribe(gClAmsEventChannelHandle, amsSub);
         goto out_free;
     }
 
+    /*
+     * Fix for Bug 3 - Event subscription IDs are retained across outside AMF process restarts.
+     * (so clean them up before init) 
+     */
+    if(clEoWithOutCpm)
+        clEventUnsubscribe(gClCpmEventChannelHandle, compSub); 
+
     rc = clEventSubscribe(gClCpmEventChannelHandle,
                           NULL,
-                          2, 
+                          compSub, 
                           NULL);
     if (rc != CL_OK)
     {
@@ -255,7 +267,7 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
                    evtChannelName.length, 
                    evtChannelName.value,
                    rc);
-        clEventUnsubscribe(gClAmsEventChannelHandle, 1);
+        clEventUnsubscribe(gClAmsEventChannelHandle, amsSub);
         goto out_free;
     }
 
@@ -273,14 +285,21 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
                    evtChannelName.length, 
                    evtChannelName.value,
                    rc);
-        clEventUnsubscribe(gClAmsEventChannelHandle, 1);
-        clEventUnsubscribe(gClCpmEventChannelHandle, 2);
+        clEventUnsubscribe(gClAmsEventChannelHandle, amsSub);
+        clEventUnsubscribe(gClCpmEventChannelHandle, compSub);
         goto out_free;
     }
 
+    /*
+     * Fix for Bug 3 - Event subscription IDs are retained across outside AMF process restarts.
+     * (so clean them up before init) 
+     */
+    if(clEoWithOutCpm)
+        clEventUnsubscribe(gClCpmNodeEventChannelHandle, nodeSub); 
+
     rc = clEventSubscribe(gClCpmNodeEventChannelHandle,
                           NULL,
-                          3, 
+                          nodeSub, 
                           NULL);
     if (rc != CL_OK)
     {
@@ -289,8 +308,8 @@ ClRcT clAmsClientNotificationInitialize(ClAmsClientNotificationCallbackT callbac
                    evtChannelName.length, 
                    evtChannelName.value,
                    rc);
-        clEventUnsubscribe(gClAmsEventChannelHandle, 1);
-        clEventUnsubscribe(gClCpmEventChannelHandle, 2);
+        clEventUnsubscribe(gClAmsEventChannelHandle, amsSub);
+        clEventUnsubscribe(gClCpmEventChannelHandle, compSub);
         goto out_free;
     }
 

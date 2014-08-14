@@ -1076,6 +1076,23 @@ typedef enum {
     CL_OUT ClIocRecvParamT * pRecvParam
     );
 
+    ClRcT clIocReceiveWithBuffer(
+                                 CL_IN ClIocCommPortHandleT commPortHdl,
+                                 CL_IN ClIocRecvOptionT * pRecvOption,
+                                 CL_IN ClUint8T *buffer,
+                                 CL_IN ClUint32T bufSize,
+                                 CL_OUT ClBufferHandleT userMsg,
+                                 CL_OUT ClIocRecvParamT * pRecvParam
+                                 );
+
+    ClRcT clIocReceiveWithBufferAsync(
+                                      CL_IN ClIocCommPortHandleT commPortHdl,
+                                      CL_IN ClIocRecvOptionT * pRecvOption,
+                                      CL_IN ClUint8T *buffer,
+                                      CL_IN ClUint32T bufSize,
+                                      CL_OUT ClBufferHandleT userMsg,
+                                      CL_OUT ClIocRecvParamT * pRecvParam
+                                      );
 
 
 /** 

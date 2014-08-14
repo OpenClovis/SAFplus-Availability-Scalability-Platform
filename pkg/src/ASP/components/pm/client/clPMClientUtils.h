@@ -126,7 +126,7 @@ clPMTxnUpdate ( CL_IN ClTxnTransactionHandleT txnHandle,
 
 void clPMMoIdListDeleteCB(ClClistDataT userData);
 ClRcT clPMObjectDataFree(ClPMObjectDataPtrT pmObjData);
-void _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg);
+ClRcT _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg);
 ClRcT clPMMoIdListNodeDel(ClClistT moIdList, ClCorMOIdPtrT pMoId);
 ClRcT clPMTxnJobUpdate(ClCorTxnIdT txnId, ClCorTxnJobIdT jobId, void* arg);
 ClUint32T _clPMAttrSizeGet(ClCorTypeT attrDataType);

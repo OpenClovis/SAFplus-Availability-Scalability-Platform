@@ -86,7 +86,7 @@ ASP_LIBS	:= libClUtils.a \
 # List any third party libs needed to get this server built (or None):
 THIRD_PARTY_EZXML_PATH = $(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
 
-THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml
+THIRDPARTY_LIBS	:= -L$(THIRD_PARTY_EZXML_PATH) -lezxml 
 
 CPPFLAGS += -I$(THIRD_PARTY_EZXML_PATH)
 CPPFLAGS += -I ../idl/ckptEo/common -I ../idl/ckptEo/client -I ../idl/ckptEo/xdr -I ../idl/ckptEo/server 

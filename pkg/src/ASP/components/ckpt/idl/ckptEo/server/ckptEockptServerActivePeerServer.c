@@ -183,6 +183,166 @@ Label0:
     return rc;
 }
 
+ClRcT clCkptRemSvrCkptInfoSyncServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl)
+{
+    ClIdlContextInfoT *pIdlCtxInfo = NULL;
+    ClRcT rc = CL_OK;
+    ClVersionT  pVersion;
+    ClHandleT  ckptActHdl;
+    ClNameT  pCkptName;
+    CkptCPInfoT_5_0_0  pCpInfo;
+    CkptDPInfoT_4_0_0  pDpInfo;
+
+    memset(&(pVersion), 0, sizeof(ClVersionT));
+    memset(&(ckptActHdl), 0, sizeof(ClHandleT));
+    memset(&(pCkptName), 0, sizeof(ClNameT));
+    memset(&(pCpInfo), 0, sizeof(CkptCPInfoT_5_0_0));
+    memset(&(pDpInfo), 0, sizeof(CkptDPInfoT_4_0_0));
+
+
+    rc = clXdrUnmarshallClHandleT( inMsgHdl,&(ckptActHdl));
+    if (CL_OK != rc)
+    {
+        goto LL0;
+    }
+
+    rc = clXdrUnmarshallClNameT( inMsgHdl,&(pCkptName));
+    if (CL_OK != rc)
+    {
+        goto LL1;
+    }
+
+    rc = clXdrUnmarshallCkptCPInfoT_5_0_0( inMsgHdl,&(pCpInfo));
+    if (CL_OK != rc)
+    {
+        goto LL2;
+    }
+
+    rc = clXdrUnmarshallCkptDPInfoT_4_0_0( inMsgHdl,&(pDpInfo));
+    if (CL_OK != rc)
+    {
+        goto LL3;
+    }
+
+    rc = clXdrUnmarshallClVersionT( inMsgHdl,&(pVersion));
+    if (CL_OK != rc)
+    {
+        goto LL4;
+    }
+
+    pIdlCtxInfo = (ClIdlContextInfoT *)clHeapAllocate(sizeof(ClIdlContextInfoT));
+    if(pIdlCtxInfo == NULL)
+    {
+       return CL_IDL_RC(CL_ERR_NO_MEMORY);
+    }
+    memset(pIdlCtxInfo, 0, sizeof(ClIdlContextInfoT));
+    pIdlCtxInfo->idlDeferMsg = outMsgHdl; 
+    pIdlCtxInfo->inProgress  = CL_FALSE;
+    rc = clIdlSyncPrivateInfoSet(ckptEoidlSyncKey, (void *)pIdlCtxInfo);
+    if (CL_OK != rc)
+    {
+        clHeapFree(pIdlCtxInfo);
+        goto L0;
+    }
+    rc = clCkptRemSvrCkptInfoSync_5_0_0(&(pVersion), ckptActHdl, &(pCkptName), &(pCpInfo), &(pDpInfo));
+    if(pIdlCtxInfo->inProgress == CL_FALSE)
+    {
+      clHeapFree(pIdlCtxInfo);
+      pIdlCtxInfo = NULL;
+    }
+    if (CL_OK != rc)
+    {
+       goto L0;
+    }
+    
+    rc = clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L1;
+    }
+
+    rc = clXdrMarshallClNameT(&(pCkptName), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L2;
+    }
+
+    rc = clXdrMarshallCkptCPInfoT_5_0_0(&(pCpInfo), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L3;
+    }
+
+    rc = clXdrMarshallCkptDPInfoT_4_0_0(&(pDpInfo), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L4;
+    }
+
+    if(pIdlCtxInfo != NULL)
+    {
+      clHeapFree(pIdlCtxInfo);
+      return rc;
+    }
+    
+    rc = clXdrMarshallClVersionT(&(pVersion), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L5;
+    }
+
+L5:    return rc;
+
+LL4:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
+LL3:  clXdrMarshallCkptDPInfoT_4_0_0(&(pDpInfo), 0, 1);
+LL2:  clXdrMarshallCkptCPInfoT_5_0_0(&(pCpInfo), 0, 1);
+LL1:  clXdrMarshallClNameT(&(pCkptName), 0, 1);
+LL0:  clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
+
+    return rc;
+
+L0:  clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
+L1:  clXdrMarshallClNameT(&(pCkptName), 0, 1);
+L2:  clXdrMarshallCkptCPInfoT_5_0_0(&(pCpInfo), 0, 1);
+L3:  clXdrMarshallCkptDPInfoT_4_0_0(&(pDpInfo), 0, 1);
+
+L4:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
+
+    return rc;
+}
+
+ClRcT clCkptRemSvrCkptInfoSyncResponseSend_5_0_0(ClIdlHandleT idlHdl,ClRcT retCode,CL_INOUT  ClVersionT  pVersion)
+{
+    ClIdlSyncInfoT    *pIdlSyncDeferInfo = NULL;
+    ClRcT              rc                = CL_OK;
+    ClBufferHandleT outMsgHdl     = 0;
+    
+    rc = clHandleCheckout(ckptEoidlDatabaseHdl,idlHdl,(void **)&pIdlSyncDeferInfo);
+    if( rc != CL_OK)
+    {
+      goto Label0; 
+    }
+    outMsgHdl = pIdlSyncDeferInfo->idlRmdDeferMsg;
+    
+    rc = clXdrMarshallClVersionT(&(pVersion), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L5;
+    }
+
+    rc = clIdlSyncResponseSend(pIdlSyncDeferInfo->idlRmdDeferHdl,outMsgHdl,
+                                retCode);
+    
+L5:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
+
+    
+
+    clHandleCheckin(ckptEoidlDatabaseHdl, idlHdl);
+    clHandleDestroy(ckptEoidlDatabaseHdl, idlHdl);
+Label0:
+    return rc;
+}
+
 ClRcT clCkptRemSvrCkptInfoGetServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl)
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;
@@ -318,6 +478,152 @@ ClRcT clCkptRemSvrCkptInfoGetResponseSend_4_0_0(ClIdlHandleT idlHdl,ClRcT retCod
     goto Label1; 
 L3:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
 L4:  clXdrMarshallCkptInfoT_4_0_0(&(pCkptInfo), 0, 1);
+
+    clHandleCheckin(ckptEoidlDatabaseHdl, idlHdl);
+    clHandleDestroy(ckptEoidlDatabaseHdl, idlHdl);
+    return rc;
+Label1:
+    clHandleCheckin(ckptEoidlDatabaseHdl, idlHdl);
+    clHandleDestroy(ckptEoidlDatabaseHdl, idlHdl);
+Label0:
+    return rc;
+}
+
+ClRcT clCkptRemSvrCkptInfoGetServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl)
+{
+    ClIdlContextInfoT *pIdlCtxInfo = NULL;
+    ClRcT rc = CL_OK;
+    ClVersionT  pVersion;
+    ClHandleT  ckptActHdl;
+    ClUint32T  peerAddr;
+    CkptInfoT_5_0_0  pCkptInfo;
+
+    memset(&(pVersion), 0, sizeof(ClVersionT));
+    memset(&(ckptActHdl), 0, sizeof(ClHandleT));
+    memset(&(peerAddr), 0, sizeof(ClUint32T));
+    memset(&(pCkptInfo), 0, sizeof(CkptInfoT_5_0_0));
+
+
+    rc = clXdrUnmarshallClHandleT( inMsgHdl,&(ckptActHdl));
+    if (CL_OK != rc)
+    {
+        goto LL0;
+    }
+
+    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(peerAddr));
+    if (CL_OK != rc)
+    {
+        goto LL1;
+    }
+
+    rc = clXdrUnmarshallClVersionT( inMsgHdl,&(pVersion));
+    if (CL_OK != rc)
+    {
+        goto LL2;
+    }
+
+    pIdlCtxInfo = (ClIdlContextInfoT *)clHeapAllocate(sizeof(ClIdlContextInfoT));
+    if(pIdlCtxInfo == NULL)
+    {
+       return CL_IDL_RC(CL_ERR_NO_MEMORY);
+    }
+    memset(pIdlCtxInfo, 0, sizeof(ClIdlContextInfoT));
+    pIdlCtxInfo->idlDeferMsg = outMsgHdl; 
+    pIdlCtxInfo->inProgress  = CL_FALSE;
+    rc = clIdlSyncPrivateInfoSet(ckptEoidlSyncKey, (void *)pIdlCtxInfo);
+    if (CL_OK != rc)
+    {
+        clHeapFree(pIdlCtxInfo);
+        goto L0;
+    }
+    rc = clCkptRemSvrCkptInfoGet_5_0_0(&(pVersion), ckptActHdl, peerAddr, &(pCkptInfo));
+    if(pIdlCtxInfo->inProgress == CL_FALSE)
+    {
+      clHeapFree(pIdlCtxInfo);
+      pIdlCtxInfo = NULL;
+    }
+    if (CL_OK != rc)
+    {
+       goto L0;
+    }
+    
+    rc = clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L1;
+    }
+
+    rc = clXdrMarshallClUint32T(&(peerAddr), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L2;
+    }
+
+    if(pIdlCtxInfo != NULL)
+    {
+      clHeapFree(pIdlCtxInfo);
+      return rc;
+    }
+    
+    rc = clXdrMarshallClVersionT(&(pVersion), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L3;
+    }
+
+    rc = clXdrMarshallCkptInfoT_5_0_0(&(pCkptInfo), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L4;
+    }
+
+L4:    return rc;
+
+LL2:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
+LL1:  clXdrMarshallClUint32T(&(peerAddr), 0, 1);
+LL0:  clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
+
+    return rc;
+
+L0:  clXdrMarshallClHandleT(&(ckptActHdl), 0, 1);
+L1:  clXdrMarshallClUint32T(&(peerAddr), 0, 1);
+
+L2:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
+L3:  clXdrMarshallCkptInfoT_5_0_0(&(pCkptInfo), 0, 1);
+
+    return rc;
+}
+
+ClRcT clCkptRemSvrCkptInfoGetResponseSend_5_0_0(ClIdlHandleT idlHdl,ClRcT retCode,CL_INOUT  ClVersionT  pVersion,CL_OUT  CkptInfoT_5_0_0  pCkptInfo)
+{
+    ClIdlSyncInfoT    *pIdlSyncDeferInfo = NULL;
+    ClRcT              rc                = CL_OK;
+    ClBufferHandleT outMsgHdl     = 0;
+    
+    rc = clHandleCheckout(ckptEoidlDatabaseHdl,idlHdl,(void **)&pIdlSyncDeferInfo);
+    if( rc != CL_OK)
+    {
+      goto Label0; 
+    }
+    outMsgHdl = pIdlSyncDeferInfo->idlRmdDeferMsg;
+    
+    rc = clXdrMarshallClVersionT(&(pVersion), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L3;
+    }
+
+    rc = clXdrMarshallCkptInfoT_5_0_0(&(pCkptInfo), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L4;
+    }
+
+    rc = clIdlSyncResponseSend(pIdlSyncDeferInfo->idlRmdDeferHdl,outMsgHdl,
+                                retCode);
+    goto Label1; 
+L3:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
+L4:  clXdrMarshallCkptInfoT_5_0_0(&(pCkptInfo), 0, 1);
 
     clHandleCheckin(ckptEoidlDatabaseHdl, idlHdl);
     clHandleDestroy(ckptEoidlDatabaseHdl, idlHdl);

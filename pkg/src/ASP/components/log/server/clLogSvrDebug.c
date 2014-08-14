@@ -98,9 +98,6 @@ clLogReturnStringFmt(ClCharT** ppRet,
                      ClCharT*  pErrMsg,
                      ...);
 
-static ClRcT
-clLogStreamListDump(ClUint32T argc, ClCharT **argv, ClCharT **ppRet);
-
 static ClDebugFuncEntryT logDebugFuncList[] =
 {
     {
@@ -148,11 +145,7 @@ static ClDebugFuncEntryT logDebugFuncList[] =
         "severityGet", 
         "Gets the curent severity for the streamname"
     },
-    {
-        (ClDebugCallbackT)clLogStreamListDump,
-        "streamListGet", 
-        "Gets the streams in the cluster"
-    },
+
 #if 0
     {
         (ClDebugCallbackT)clLogDebugInitDataDisplay,
@@ -814,73 +807,10 @@ clLogDebugStreamDataDisplay(ClUint32T  argc,
 
 #endif
 
-static int logStreamSortCmp(const void *a, const void *b)
-{
-    const ClLogStreamInfoT *stream1 = (const ClLogStreamInfoT*)a;
-    const ClLogStreamInfoT *stream2 = (const ClLogStreamInfoT*)b;
-    int cmp = stream1->streamScopeNode.length - stream2->streamScopeNode.length;
-    if(cmp == 0)
-        cmp = strncmp((const char*)stream1->streamScopeNode.value,
-                      (const char*)stream2->streamScopeNode.value, 
-                      stream1->streamScopeNode.length);
-    return cmp;
-}
-
-static ClRcT 
-logStreamListDump(ClCharT **ppRet)
-{
-    ClLogHandleT logHandle = 0;
-    ClVersionT version = { 'B', 0x1, 0x1 };
-    ClRcT rc = clLogInitialize(&logHandle, NULL, &version);
-    ClDebugPrintHandleT msgHandle = 0;
-    ClUint32T numStreams = 0;
-    ClLogStreamInfoT *logStreams = NULL;
-    *ppRet = NULL;
-    if(rc != CL_OK)
-        goto out;
-    rc = clDebugPrintInitialize(&msgHandle);
-    if(rc != CL_OK)
-        goto out_log_finalize;
-    rc = clLogStreamListGet(logHandle, &numStreams, &logStreams);
-    if(rc != CL_OK)
-        goto out_print_finalize;
-
-    qsort(logStreams, numStreams, sizeof(*logStreams), logStreamSortCmp);
-    clDebugPrint(msgHandle, "Displaying [%d] streams\n", numStreams);
-    for(ClUint32T i = 0; i < numStreams; ++i)
-    {
-        clDebugPrint(msgHandle, "Stream name [%.*s], node [%.*s]\n", 
-                     logStreams[i].streamName.length, logStreams[i].streamName.value,
-                     logStreams[i].streamScopeNode.length, logStreams[i].streamScopeNode.value);
-    }
-    if(logStreams)
-        clHeapFree(logStreams);
-
-    out_print_finalize:
-    clDebugPrintFinalize(&msgHandle, ppRet);
-    if(rc != CL_OK && *ppRet)
-    {
-        clHeapFree(*ppRet);
-        *ppRet = NULL;
-    }
-    out_log_finalize:
-    clLogFinalize(logHandle);
-    out:
-    return rc;
-}
-
-static ClRcT
-clLogStreamListDump(ClUint32T  argc,
-                    ClCharT    **argv,
-                    ClCharT    **ppRet)
-{
-    return logStreamListDump(ppRet);
-}
-
 ClRcT
-clLogStreamOwnerDump(ClUint32T argc,
-                     ClCharT **argv,
-                     ClCharT **ppRet)
+clLogStreamOwnerDump(ClUint32T  argc,
+                     ClCharT    **argv,
+                     ClCharT    **ppRet)
 {
     clLogStreamOwnerDataDump(ppRet);
     return CL_OK;

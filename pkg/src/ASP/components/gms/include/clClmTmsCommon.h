@@ -94,7 +94,6 @@ extern "C" {
 # endif
 
 #include <clCommon.h>
-#include <clVersion.h>
 #include <clIocApi.h>
 
 /*******************************************************************************
@@ -419,46 +418,6 @@ typedef struct ClGmsGroupParamsT {
 /**
  * Structure containing attributes of a group member
  */
-
-typedef struct VDECL_VER(ClGmsGroupMemberT, 4, 0 ,0) {
-    /**
-     * Group-unique ID of the member.
-     */
-    ClGmsMemberIdT              memberId        __attribute__((__aligned__(8)));
-
-    /**
-     * IOC Address of the group member application
-     */
-    ClIocAddressT               memberAddress        __attribute__((__aligned__(8)));
-
-    /**
-     * Textual name of the member.
-     */
-    ClGmsMemberNameT            memberName        __attribute__((__aligned__(8)));
-
-    /**
-     * True if the node is a member of group.
-     */
-    ClBoolT         	        memberActive        __attribute__((__aligned__(8)));
-
-    /**
-     * The instant at which the member joined the group.
-     */
-    ClTimeT                     joinTimestamp        __attribute__((__aligned__(8)));
-
-    /**
-     * The view number of the group at the time the member joined.
-     */
-    ClUint64T                   initialViewNumber        __attribute__((__aligned__(8)));
-
-    /**
-     * Credentials for being the leader. The higher the credential, 
-     * larger is the possibility of the node being elected as leader.
-     */
-    ClGmsLeadershipCredentialsT credential        __attribute__((__aligned__(8)));
-
-} VDECL_VER(ClGmsGroupMemberT, 4, 0, 0)        __attribute__((__aligned__(8)));
-
 typedef struct ClGmsGroupMemberT {
     /**
      * SVC handle of this group member

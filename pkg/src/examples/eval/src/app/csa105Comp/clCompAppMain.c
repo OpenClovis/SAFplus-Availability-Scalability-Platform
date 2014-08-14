@@ -1059,7 +1059,7 @@ raise_alarm_on_counter (ClCorMOIdT moId , ClNameT compName, ClUint32T counter)
 {
     ClRcT           rc = CL_OK;
     static ClUint32T       iterator = 0, lastCounter = 0;
-    ClCharT str [80] = {0};
+    ClCharT str [0xff+1] = {0};
     ClAlarmInfoT *pAlarmInfo = {0};
     ClAlarmHandleT alarmHandle = {0};
     ClUint8T * pBuf = NULL;
@@ -1101,8 +1101,8 @@ raise_alarm_on_counter (ClCorMOIdT moId , ClNameT compName, ClUint32T counter)
         return CL_ERR_NO_MEMORY;
     }
 
-    sprintf(str, "[%s]: The Alarm has been raised as the counter became [%d] for [%d] time", 
-            appname, counter, ++iterator);
+    snprintf(str, sizeof(str), "[%s]: The Alarm has been raised as the counter became [%d] for [%d] time", 
+             appname, counter, ++iterator);
 
     pPayloadList->pPayload[0].pTlv[0].type = CL_COR_UINT8;
     pPayloadList->pPayload[0].pTlv[0].value = clHeapAllocate(strlen(str) + 1);

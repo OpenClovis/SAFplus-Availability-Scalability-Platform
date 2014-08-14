@@ -793,12 +793,9 @@ static ClRcT rmdAckSend(ClEoExecutionObjT *pThis,ClRmdAckSendContextT *pSendCont
     ClUint8T hdrBuffer[sizeof(ClRmdHdrT)*2] = {0};
     ClUint32T hdrLen = 0;
 
-    RMD_STAT_INC(pRmdObject->rmdStats.nAtmostOnceAcksSent);
-
     rc = clBufferCreate(&replyMsg);
 
     if(rc != CL_OK) {
-        RMD_STAT_INC(pRmdObject->rmdStats.nFailedAtmostOnceAcksSent);
         CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Error in message create\n"));
         return rc;
     }
@@ -808,7 +805,6 @@ static ClRcT rmdAckSend(ClEoExecutionObjT *pThis,ClRmdAckSendContextT *pSendCont
     rc = clBufferNBytesWrite(replyMsg, hdrBuffer, hdrLen);
 
     if(rc != CL_OK) {
-        RMD_STAT_INC(pRmdObject->rmdStats.nFailedAtmostOnceAcksSent);
         CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Error in header data prepend\n"));
         return rc;
     }
@@ -821,13 +817,12 @@ static ClRcT rmdAckSend(ClEoExecutionObjT *pThis,ClRmdAckSendContextT *pSendCont
     srcAddr.iocPhyAddress = pSendContext->srcAddr;
 
     clRmdDumpPkt("Sending ACK", replyMsg);
-
     rc = clIocSend(pThis->commObj, replyMsg,
                    CL_IOC_RMD_ACK_PROTO, &srcAddr, &sndOption);
     if (rc != CL_OK)
     {
-        RMD_STAT_INC(pRmdObject->rmdStats.nFailedAtmostOnceAcksSent);
         RMD_DBG1(("RMD IOC Failed to send, rc: 0x%x", rc));
+        RMD_STAT_INC(pRmdObject->rmdStats.nBadRequests);
     }
     rc = clBufferDelete(&replyMsg);
     return rc;
@@ -859,6 +854,7 @@ ClRcT rmdResponseSend(ClEoExecutionObjT *pThis,
      * Set Return Code 
      */
 
+    RMD_STAT_INC(pRmdObject->rmdStats.nReplySend);
     sndOption.linkHandle = 0;
     sndOption.msgOption = CL_IOC_PERSISTENT_MSG;
     sndOption.timeout = pSendContext->ClRmdHdr.callTimeout;
@@ -871,14 +867,12 @@ ClRcT rmdResponseSend(ClEoExecutionObjT *pThis,
 
     clOsalMutexLock(pRmdObject->semaForRecvHashTable);
 
-    RMD_STAT_INC(pRmdObject->rmdStats.nReplySend);
-
     rc = clIocSend(pThis->commObj, replyMsg,
                    replyType, &srcAddr, &sndOption);
     if (rc != CL_OK)
     {
-        RMD_STAT_INC(pRmdObject->rmdStats.nFailedReplySend);
         RMD_DBG1((" RMD IOC Failed to sent RC: 0x%x", (rc)));
+        RMD_STAT_INC(pRmdObject->rmdStats.nBadRequests);
     }
 
     /*
@@ -939,14 +933,9 @@ static ClRcT rmdHandleAckReply(ClEoExecutionObjT *pThis, ClRmdPktT *pRepl,
     ClRcT rc = CL_OK;
     ClRmdObjT *pRmdObject = (ClRmdObjT *) pThis->rmdObj;
 
-    RMD_STAT_INC(pRmdObject->rmdStats.nRmdReplies);
-    RMD_STAT_INC(pRmdObject->rmdStats.nAtmostOnceAcksRecvd);
-
     if(! (pRepl->ClRmdHdr.flags & CL_RMD_CALL_ATMOST_ONCE)) {
       /*Ignore acks for normal packets as of now*/
-        RMD_STAT_INC(pRmdObject->rmdStats.nBadReplies);
-        RMD_STAT_INC(pRmdObject->rmdStats.nFailedAtmostOnceAcksRecvd);
-        return rc;
+      return rc;
     }
      
     recvRecord.recvKey.fnNumber = pRepl->ClRmdHdr.fnID;
@@ -963,11 +952,8 @@ static ClRcT rmdHandleAckReply(ClEoExecutionObjT *pThis, ClRmdPktT *pRepl,
         clCntNodeDelete(pRmdObject->rcvRecContainerHandle, nodeHandle); 
         pRmdObject->numAtmostOnceEntry--;
     } 
-    else 
-    {
-        RMD_STAT_INC(pRmdObject->rmdStats.nBadReplies);
-        RMD_STAT_INC(pRmdObject->rmdStats.nFailedAtmostOnceAcksRecvd);
-        CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("%s: container node not found for atmost once key (fn:%d,id:%lld,node:%d,port:%d)\n",__FUNCTION__,recvRecord.recvKey.fnNumber,recvRecord.recvKey.msgId,recvRecord.recvKey.srcAddr.nodeAddress,recvRecord.recvKey.srcAddr.portId));
+    else {
+      CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("%s: container node not found for atmost once key (fn:%d,id:%lld,node:%d,port:%d)\n",__FUNCTION__,recvRecord.recvKey.fnNumber,recvRecord.recvKey.msgId,recvRecord.recvKey.srcAddr.nodeAddress,recvRecord.recvKey.srcAddr.portId));
     }
     clOsalMutexUnlock(pRmdObject->semaForRecvHashTable);
     return rc;
@@ -1382,7 +1368,6 @@ static ClRcT atmostOnceProcessing(ClEoExecutionObjT *pThis, ClRmdPktT *pReq,
             rc = clOsalMutexUnlock(pRmdObject->semaForRecvHashTable);
             clHeapFree(recvRecord);
             RMD_STAT_INC(pRmdObject->rmdStats.nBadRequests);
-            RMD_STAT_INC(pRmdObject->rmdStats.nFailedAtmostOnceCalls);
             return rc1;
         }
         *recvRecord2 = recvRecord;
@@ -1414,7 +1399,6 @@ static void resendReply(ClEoExecutionObjT *pThis, ClRmdRecordRecvT *rec,
     rc = clRmdUnmarshallRmdHdr(rec->msg, &ClRmdHdr, &size);
     if(rc != CL_OK)
     {
-        RMD_STAT_INC(pRmdObject->rmdStats.nFailedCalls);
         return;
     }
     clBufferReadOffsetSet(rec->msg, 0, CL_BUFFER_SEEK_SET);
@@ -1431,6 +1415,7 @@ static void resendReply(ClEoExecutionObjT *pThis, ClRmdRecordRecvT *rec,
     else
     {
         ClIocAddressT _srcAddr = {{0}}; 
+
         _srcAddr.iocPhyAddress = rec->recvKey.srcAddr;
         clRmdDumpPkt("sending sync reply", rec->msg);
         rc = clIocSend( pThis->commObj, rec->msg,
@@ -1439,7 +1424,6 @@ static void resendReply(ClEoExecutionObjT *pThis, ClRmdRecordRecvT *rec,
 
     if (rc != CL_OK)
     {
-        RMD_STAT_INC(pRmdObject->rmdStats.nFailedCalls);
         RMD_DBG2(("RMD: Resend Reply Failed\n"));
     }
 

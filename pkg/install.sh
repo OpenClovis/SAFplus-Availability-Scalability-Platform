@@ -251,11 +251,11 @@ done
 INSTALL_DIR=local
 WORKING_DIR=$(pwd)
 
-if [ -f "BUILD" ]; then
-    ASP_VERSION=$(cat BUILD | head -1 | cut -d "=" -f2 | cut -d "-" -f3)
-    ASP_REVISION=$(cat BUILD | head -1 | cut -d "=" -f2 | cut -d "-" -f4)
+if [ -f "VERSION" ]; then
+    ASP_REVISION=$(cat VERSION | head -4 | tail -1 | cut -d "=" -f2)
+    ASP_VERSION=$(cat VERSION | head -2 | tail -1 | cut -d "=" -f2)
 else
-    echo "[ERROR] No $WORKING_DIR/BUILD file found, cannot continue installation." >&2
+    echo "[ERROR] No $WORKING_DIR/VERSION file found, cannot continue installation." >&2
     cleanup
     exit 1
 fi
@@ -476,7 +476,7 @@ export PKG_CONFIG_PATH=$PREFIX_LIB/pkgconfig:$PKG_CONFIG_PATH
 
 # ASP Dependencies
 INSTALL_SUBAGENT=0
-INSTALL_OPENHPI=0
+INSTALL_OPENHPI=1
 INSTALL_NETSNMP=0
 INSTALL_BEECRYPT=0
 INSTALL_GCC=0
@@ -507,6 +507,7 @@ NET_SNMP_VERSION=net-snmp-5.4.2
 BEECRYPT_VERSION=beecrypt-4.1.2
 GDBM_VERSION=gdbm-1.8.0
 GLIB_VERSION=glib-2.12.6
+GLIB_VER_STRING="2.28.4"
 GLIBC_VERSION=glibc-2.3.5
 OPENHPI_VERSION=openhpi-2.16.0.oc
 OPENHPI_PKG=openhpi-2.16.0.oc.tar.gz
@@ -645,11 +646,11 @@ GLIB_VERSIONOK=`pkg-config --modversion glib-2.0 2>/dev/null | sed 's/\./ /g' | 
                 print "OK";\
         }\
         if ( $1 == 2 ) {\
-                if ( $2 > 6 ) {\
+                if ( $2 > 12 ) {\
                         print "OK";\
                 }\
-                if ( $2 == 6 ) {\
-                        if ( $3 >= 0 ) {\
+                if ( $2 == 12 ) {\
+                        if ( $3 >= 6 ) {\
                                 print "OK";
                         }\
                 }\
@@ -828,11 +829,11 @@ OPENHPI_VERSIONOK=`pkg-config --modversion openhpi 2>/dev/null| sed 's/\./ /g' |
                 print "OK";\
         }\
         if ( $1 == 2 ) {\
-                if ( $2 > 8 ) {\
+                if ( $2 > 16 ) {\
                         print "OK";\
                 }\
-                if ( $2 == 8 ) {\
-                        if ( $3 >= 1 ) {\
+                if ( $2 == 16 ) {\
+                        if ( $3 >= 0 ) {\
                                 print "OK";
                         }\
                 }\
@@ -1235,7 +1236,7 @@ if test $DEPENDENCY -eq 1; then
 		printf "%17s  %-9s  %-16s\n" "gcc" "3.2.3" "$GCC_COMMENT"
 	fi
 	if test $INSTALL_GLIB -eq 0; then
-		printf "%17s  %-9s  %-16s\n" "glib-2.0" "2.12.6" "$GLIB_COMMENT"
+		printf "%17s  %-9s  %-16s\n" "glib-2.0" $GLIB_VER_STRING "$GLIB_COMMENT"
 	fi
 	if test $INSTALL_GDBM -eq 0; then
 		printf "%17s  %-9s  %-16s\n" "gdbm" "1.8.0" "$GDBM_COMMENT"
@@ -1247,7 +1248,7 @@ if test $DEPENDENCY -eq 1; then
 		printf "%17s  %-9s  %-16s\n" "net-snmp" "5.4.2" "$NETSNMP_COMMENT"
 	fi
 	if test $INSTALL_OPENHPI -eq 0; then
-		printf "%17s  %-9s  %-16s\n" "openhpi" "2.8.1" "$OPENHPI_COMMENT"
+		printf "%17s  %-9s  %-16s\n" "openhpi" "2.16.0" "$OPENHPI_COMMENT"
 	fi
 	if test $INSTALL_SUBAGENT -eq 0; then
 		printf "%17s  %-9s  %-16s\n" "openhpi-subagent" "2.3.4" "$SUBAGENT_COMMENT"
@@ -1291,7 +1292,7 @@ if test $DEPENDENCY -eq 1; then
 		printf "%17s  %-9s  %-16s\n" "gcc" "3.2.3" "$GCC_COMMENT"
 	fi
 	if test $INSTALL_GLIB -eq 1; then
-		printf "%17s  %-9s  %-16s\n" "glib-2.0" "2.12.6" "$GLIB_COMMENT"
+		printf "%17s  %-9s  %-16s\n" "glib-2.0" $GLIB_VER_STRING "$GLIB_COMMENT"
 	fi
 	if test $INSTALL_GDBM -eq 1; then
 		printf "%17s  %-9s  %-16s\n" "gdbm" "1.8.0" "$GDBM_COMMENT"
@@ -2379,6 +2380,7 @@ if [ $overwrite_openclovis_sdk == 'y' ] || [ $overwrite_openclovis_sdk == 'Y' ];
 	#cd $ASP_ROOT
 	cd $WORKING_DIR
 	tar cf - src/$ASP src/examples |( cd $PACKAGE_ROOT; tar xfm -) &
+    cp VERSION $PACKAGE_ROOT
 	PS=$!
 	roll $PS
 	printf "\b"
@@ -2436,16 +2438,19 @@ if [ $overwrite_openclovis_sdk == 'y' ] || [ $overwrite_openclovis_sdk == 'Y' ];
 
 		# Delete help cache if the build we are installing is newer than
 		# the build we last installed
-		if [ -f $CACHE_DIR/eclipse/BUILD ]; then
-    			source $CACHE_DIR/eclipse/BUILD
+		if [ -f $CACHE_DIR/eclipse/VERSION ]; then
+    			source $CACHE_DIR/eclipse/VERSION
     			export LASTBUILD=$BUILD_NUMBER
-    			source $PACKAGE_ROOT/src/ASP/BUILD
+    			source $PACKAGE_ROOT/src/ASP/VERSION
     			export CURBUILD=$BUILD_NUMBER
     			if [ "$CURBUILD" == "$LASTBUILD" ]; then
         			echo "do nothing" > /dev/null
     			else
-        			cp $PACKAGE_ROOT/src/ASP/BUILD $CACHE_DIR/eclipse/.
-        			rm -rf $CACHE_DIR/eclipse/org.eclipse.help.base
+    			    # delete old help cache as this is a different version
+    			    rm -rf $CACHE_DIR/eclipse
+    			    mkdir -p $CACHE_DIR/eclipse
+        			cp $PACKAGE_ROOT/src/ASP/VERSION $CACHE_DIR/eclipse/.
+        			#rm -rf $CACHE_DIR/eclipse/org.eclipse.help.base
     			fi
 		else
 			if [ ! -f $CACHE_DIR/eclipse ]; then
@@ -2456,7 +2461,7 @@ if [ $overwrite_openclovis_sdk == 'y' ] || [ $overwrite_openclovis_sdk == 'Y' ];
     				echo "Created $CACHE_DIR/eclipse directory" >&2
 			fi
 
-    			cp $PACKAGE_ROOT/src/ASP/BUILD $CACHE_DIR/eclipse/.
+    			cp $PACKAGE_ROOT/src/ASP/VERSION $CACHE_DIR/eclipse/.
     			rm -rf $CACHE_DIR/eclipse/org.eclipse.help.base
 		fi
 		echo "done"

@@ -78,7 +78,7 @@ extern "C" {
 #define  CL_CHASSIS_MANAGER_FRU_STATE_GET CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 0x01)
 #define  CL_CHASSIS_MANAGER_OPERATION_REQUEST CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 0x02)
 #define  CL_CHASSIS_MANAGER_CPM_RESPONSE_HANDLE CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 0x03)
-
+#define  CL_CHASSIS_MANAGER_THRESHOLD_STATE_GET CL_EO_GET_FULL_FN_NUM(CL_EO_NATIVE_COMPONENT_TABLE_ID, 0x04)
 
 /* Chassis manager operation request structures */ 
 typedef struct
@@ -108,6 +108,12 @@ typedef struct cpmResponse
                          insertion of the Card */
 }cpmResponseT;
 
+typedef struct ClCmThresholdStateReq
+{
+    ClVersionT version;
+    ClUint32T slot;
+    SaHpiSensorNumT sensorNum;
+}ClCmThresholdStateReqT;
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /* Event interface Information                                               */
@@ -168,6 +174,9 @@ ClRcT VDECL(clCmServerCpmResponseHandle)(ClEoDataT,
                                          ClBufferHandleT,
                                          ClBufferHandleT);
 
+ClRcT VDECL(clCmServerApiThresholdStateGet)(ClEoDataT,
+                                            ClBufferHandleT,
+                                            ClBufferHandleT);
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 /*    information of waiting FRUs for CPMG's response                       */
@@ -222,9 +231,7 @@ ClRcT WalkThroughResource (SaHpiRptEntryT* ,
 typedef enum 
 {
     CM_FRU_STATE_TRANSITION_EVENT =0,
-    CM_ALARM_EVENT,
-    CM_WATCHDOG_EVENT,
-    CM_MAX_EVENTS,
+    CM_ALARM_EVENT 
 }CmEventIdT;
 
 

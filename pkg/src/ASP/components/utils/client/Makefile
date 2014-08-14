@@ -50,6 +50,7 @@ SRC_FILES	:= clPool.c \
 		   bit.c \
 		   rule.c \
 		   cksm.c \
+           crcbsd.c \
 		   queue.c \
 		   clist.c \
 		   parser.c \
@@ -74,6 +75,12 @@ SRC_FILES	:= clPool.c \
                xdrClNameTUnMarshall.c \
                xdrClVersionTMarshall.c \
                xdrClVersionTUnMarshall.c \
+               xdrClMD5TMarshall.c \
+               xdrClMD5TUnMarshall.c \
+               xdrClDataVectorTMarshall.c \
+               xdrClDataVectorTUnMarshall.c \
+               xdrClDifferenceVectorTMarshall.c \
+               xdrClDifferenceVectorTUnMarshall.c \
                clBitmap.c			\
                clDbg.c                         \
                clTest.c                        \
@@ -94,7 +101,10 @@ SRC_FILES	:= clPool.c \
                clTimeServer.c\
                clLeakyBucket.c \
                clMemGroup.c \
-				clErrorTable.c \
+               clPlugin.c \
+	       clErrorTable.c \
+	       md5.c\
+	       clDifferenceVector.c
 
 ifeq ($(TARGET_VXWORKS), 1)
 SRC_FILES += clMemTrackerVxWorks.c clMemPart.c

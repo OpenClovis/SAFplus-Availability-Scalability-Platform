@@ -124,13 +124,14 @@ ClRcT   marshallMCastMessage(struct mcastMessage *mcastMsg, ClPtrT  data, ClBuff
     return CL_OK;
 }
 
+
 ClRcT   marshallSyncMessage(struct VDECL(req_exec_gms_nodejoin) *req_exec_gms_nodejoin, ClBufferHandleT bufferHandle)
 {
     ClGmsGroupSyncNotificationT *sync = (ClGmsGroupSyncNotificationT *)(req_exec_gms_nodejoin->dataPtr);
     ClUint32T                    index = 0;
     ClGmsGroupInfoT             *groupInfo = NULL;
     ClGmsGroupMemberT           *groupMember = NULL;
-    // marshall also group id
+    // marshall also group id in group data for sync msg
     ClGmsGroupInfoT     	*groupData = NULL;
 
     /* Marshall noOfGroups field */

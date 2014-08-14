@@ -48,7 +48,7 @@
 /* Ckpt specific includes */
 #include "clCkptSvr.h"
 #include "clCkptUtils.h"
-#include "clCkptSvrIpi.h"
+#include "clCkptIpi.h"
 #include "clCkptApi.h"
 #include "clCkptPeer.h"
 #include "clCkptMaster.h"
@@ -1241,29 +1241,11 @@ ClRcT  ckptCPlaneInfoShow( CkptCPlaneInfoT    *pCpInfo,
     clDebugPrint(msg,"\n\n\t Control plane information.....");
     if (pCpInfo->updateOption & CL_CKPT_WR_ALL_REPLICAS)
     {
-        const ClCharT *type = "Sync";
-        if(pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
-        {
-            type = "Sync [hot-standby]";
-        }
-        clDebugPrint(msg,"\n\t\t Update Option: %s", type);
+       clDebugPrint(msg,"\n\t\t Update Option: Sync");
     }
     else if (pCpInfo->updateOption & CL_CKPT_WR_ACTIVE_REPLICA)
     {
-        const ClCharT *type = "Async";
-        if(pCpInfo->updateOption & CL_CKPT_CHECKPOINT_COLLOCATED)
-        {
-            type = "Async collocated";
-            if(pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
-            {
-                type = "Async collocated [hot-standby]";
-            }
-        }
-        else if(pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
-        {
-            type = "Async [hot-standby]";
-        }
-        clDebugPrint(msg,"\n\t\t Update Option: %s", type);
+        clDebugPrint(msg,"\n\t\t Update Option: Async");
     }
     else if (pCpInfo->updateOption & CL_CKPT_WR_ACTIVE_REPLICA_WEAK)
     {
@@ -1277,9 +1259,9 @@ ClRcT  ckptCPlaneInfoShow( CkptCPlaneInfoT    *pCpInfo,
     {
         clDebugPrint(msg,"\n\t\t Update Option: Safe Sync");   
     }
-    else if(pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
+    else if (pCpInfo->updateOption & CL_CKPT_COLLOCATED_SAFE)
     {
-        clDebugPrint(msg,"\n\t\t Update Option: Async hot-standby");
+        clDebugPrint(msg,"\n\t\t Update Option: Safe Collocated");   
     }
     else 
     {
@@ -1287,7 +1269,7 @@ ClRcT  ckptCPlaneInfoShow( CkptCPlaneInfoT    *pCpInfo,
     }
     clDebugPrint(msg,"\n\t\t Retention Duration (in millisec) :%lld\n",
                  time/(CL_CKPT_NANO_TO_MICRO * CL_CKPT_NANO_TO_MICRO));
-    
+    clDebugPrint(msg, "\n\t\t Checkpoint ID: %#llx\n", pCpInfo->id);
 
     /* Display the list of nodes which have this ckpt */
     if (pCpInfo->presenceList != 0)

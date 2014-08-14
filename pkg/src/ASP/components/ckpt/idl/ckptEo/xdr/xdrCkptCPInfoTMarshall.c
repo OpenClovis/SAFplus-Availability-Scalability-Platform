@@ -85,3 +85,60 @@ ClRcT clXdrMarshallCkptCPInfoT_4_0_0(void* pGenVar, ClBufferHandleT msg, ClUint3
 }
 
 
+ClRcT clXdrMarshallCkptCPInfoT_5_0_0(void* pGenVar, ClBufferHandleT msg, ClUint32T isDelete)
+{
+    CkptCPInfoT_5_0_0* pVar = (CkptCPInfoT_5_0_0*)pGenVar;
+    ClRcT rc         = CL_OK;
+    ClUint32T length = 0;    
+
+    if ((void*)0 == pVar)
+    {
+        clXdrMarshallClUint32T(&length, msg, 0);
+    }
+    else
+    {
+        length = 1;
+        clXdrMarshallClUint32T(&length, msg, 0);
+
+    rc = clXdrMarshallClUint32T(&(pVar->updateOption),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->size),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint32T(&(pVar->numApps),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallClUint64T(&(pVar->id),msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallPtrClUint32T(pVar->presenceList, pVar->size,msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrMarshallPtrClCkptAppInfoT_4_0_0(pVar->pAppInfo, pVar->numApps,msg,isDelete);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    }
+
+    return rc;
+}
+
+

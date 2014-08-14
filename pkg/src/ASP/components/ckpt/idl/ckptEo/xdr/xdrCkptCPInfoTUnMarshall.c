@@ -88,3 +88,64 @@ ClRcT clXdrUnmarshallCkptCPInfoT_4_0_0(ClBufferHandleT msg , void* pGenVar)
 }
 
 
+ClRcT clXdrUnmarshallCkptCPInfoT_5_0_0(ClBufferHandleT msg , void* pGenVar)
+{
+    CkptCPInfoT_5_0_0* pVar = (CkptCPInfoT_5_0_0*)pGenVar;
+    ClRcT     rc     = CL_OK;
+    ClUint32T length = 0;
+
+    if ((void*)0 == pVar)
+    {
+        return CL_XDR_RC(CL_ERR_NULL_POINTER);
+    }
+
+    clXdrUnmarshallClUint32T(msg, &length);
+    if( 0 == length)
+    {
+        pGenVar = NULL;
+    }
+    else
+    {
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->updateOption));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->size));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint32T(msg,&(pVar->numApps));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallClUint64T(msg,&(pVar->id));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallPtrClUint32T(msg,(void**)&(pVar->presenceList),pVar->size);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallPtrClCkptAppInfoT_4_0_0(msg,(void**)&(pVar->pAppInfo),pVar->numApps);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    }
+
+    return rc;
+}
+
+

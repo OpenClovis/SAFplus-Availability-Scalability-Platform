@@ -106,8 +106,8 @@ typedef ClPtrT ClQueueDataT;
  *  \sa clQueueCreate(), clQueueDelete() 
  *     
  */
-typedef void   (*ClQueueWalkCallbackT)(CL_IN ClQueueDataT userData,
-                                       CL_IN void         *userArg);
+typedef ClRcT   (*ClQueueWalkCallbackT)(CL_IN ClQueueDataT userData,
+                                        CL_IN void         *userArg);
 /**
  ************************************
  *  \brief Dequeue callback gets called, whenever a Node is getting deleted. 

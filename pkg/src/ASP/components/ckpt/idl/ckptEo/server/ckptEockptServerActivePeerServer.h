@@ -49,9 +49,17 @@ ClRcT clCkptRemSvrCkptInfoSync_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHan
 
 ClRcT clCkptRemSvrCkptInfoSyncResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
 
+ClRcT clCkptRemSvrCkptInfoSync_5_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClNameT*  pCkptName, CL_IN CkptCPInfoT_5_0_0*  pCpInfo, CL_IN CkptDPInfoT_4_0_0*  pDpInfo);
+
+ClRcT clCkptRemSvrCkptInfoSyncResponseSend_5_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
+
 ClRcT clCkptRemSvrCkptInfoGet_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClUint32T  peerAddr, CL_OUT CkptInfoT_4_0_0*  pCkptInfo);
 
 ClRcT clCkptRemSvrCkptInfoGetResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion,CL_OUT  CkptInfoT_4_0_0  pCkptInfo);
+
+ClRcT clCkptRemSvrCkptInfoGet_5_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClUint32T  peerAddr, CL_OUT CkptInfoT_5_0_0*  pCkptInfo);
+
+ClRcT clCkptRemSvrCkptInfoGetResponseSend_5_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion,CL_OUT  CkptInfoT_5_0_0  pCkptInfo);
 
 ClRcT clCkptRemSvrSectionInfoUpdate_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN CkptUpdateFlagT_4_0_0  updateFlag, CL_IN CkptSectionInfoT_4_0_0*  pSecInfo);
 

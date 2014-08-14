@@ -31,9 +31,6 @@
 #include <clIocApi.h>
 #include <clIocParseConfig.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #define BCAST_SOCKET_NEEDED
 
@@ -101,11 +98,14 @@ typedef struct
 
 extern ClIocConfigT pAllConfig;
 extern ClIocNodeAddressT gIocLocalBladeAddress;
-
-ClUint32T clTipcSetType(ClUint32T portId, ClBoolT setFlag);
-
-#ifdef __cplusplus
-}
-#endif
+extern ClUint32T
+clTipcSetType(ClUint32T portId, ClBoolT setFlag);
+extern ClRcT 
+__iocUserFragmentReceive(ClUint8T *pBuffer,
+                         ClTipcFragHeaderT *userHdr,
+                         ClIocPortT portId,
+                         ClUint32T length,
+                         ClBufferHandleT msg,
+                         ClBoolT sync);
 
 #endif

@@ -149,7 +149,7 @@ ClUint32T _clPMAttrSizeGet(ClCorTypeT attrDataType)
     return size;
 }
 
-void _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg)
+ClRcT _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg)
 {
     ClRcT rc = CL_OK;
     ClCorMOIdPtrT pMoId = NULL;
@@ -170,7 +170,7 @@ void _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg)
     if (!userData || !userArg)
     {
         clLogError("PM", "PMLISTWALK", "NULL pointer passed.");
-        return;
+        return CL_OK; 
     }
 
     pMoId = (ClCorMOIdPtrT) userData;
@@ -186,14 +186,14 @@ void _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg)
     if (rc != CL_OK)
     {
         clLogError("PM", "PMLISTWALK", "Failed to get mso classId from MoId. rc [0x%x]", rc);
-        return;
+        return CL_OK;
     }
 
     rc = clCorClassNameGet(classId, className, &classNameSize);
     if (rc != CL_OK)
     {
         clLogError("PM", "PMLISTWALK", "Failed to get class name from class id. rc [0x%x]", rc);
-        return;
+        return CL_OK;
     }
 
     /* Get all the PM attributes */
@@ -203,7 +203,7 @@ void _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg)
     if (rc != CL_OK)
     {
         clLogError("PM", "PMLISTWALK", "Failed to get attribute list from COR. rc [0x%x]", rc);
-        return;
+        return CL_OK;
     }
 
     /* Get the cached PM attributes to update the value back into cor. 
@@ -216,7 +216,7 @@ void _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg)
     {
         clLogError("PM", "PMLISTWALK", "Failed to get attribute list from COR. rc [0x%x]", rc);
         clHeapFree(pAttrDef);
-        return;
+        return CL_OK;
     }
 
     pmObjData.pMoId = pMoId;
@@ -227,7 +227,7 @@ void _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg)
         clLogError("PM", "PMLISTWALK", "Failed to allocate memory.");
         clHeapFree(pAttrDef);
         clHeapFree(pAttrCachedDef);
-        return;
+        return CL_OK;
     }
 
     for (i=0; i<attrCount; i++)
@@ -268,7 +268,7 @@ void _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg)
             clLogError("PM", "PMLISTWALK", "Failed to allocate memory.");
             clHeapFree(pAttrDef);
             clHeapFree(pAttrCachedDef);
-            return; 
+            return CL_OK; 
         }
 
         pmAttr->pAlarmData = NULL;
@@ -370,7 +370,7 @@ void _clPMMoIdListWalkCB(ClClistDataT userData, void* userArg)
     clHeapFree(pAttrCachedDef);
     clPMObjectDataFree(&pmObjData);
 
-    return; 
+    return CL_OK; 
 }
 
 ClRcT clPMAttrAlarmProcess(ClCorMOIdPtrT pMoId, ClCorClassTypeT classId, ClPMAttrDataPtrT pmAttr)

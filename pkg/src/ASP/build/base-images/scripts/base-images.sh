@@ -53,6 +53,7 @@ populate_image() {
     SYS=$4
 
     echo "Populating image directory ${TARGET_MODEL} with binaries from model ${SOURCE_MODEL}"
+    echo "Project root is ${PROJECT_ROOT}, ASP installation: ${ASP_INSTALLDIR}, Not prebuilt? ${ASP_BUILD}"
 
     if [ "${SOLARIS_BUILD}" = "1" ]
     then
@@ -118,8 +119,11 @@ populate_image() {
     # architectures and systems.
     # bleh.
     export ASP_KMOD=${SOURCE_MODEL_ROOT}/target/${ARCH}/${SYS}/kmod
-    export ASP_LIB=${SOURCE_MODEL_ROOT}/target/${ARCH}/${SYS}/lib
+    # where the built-with-the-model ASP libraries reside
+    export ASP_LIB=${PROJECT_ROOT}/target/${ARCH}/${SYS}/lib
+    # where the model specific libs reside
     export MODEL_LIB=${SOURCE_MODEL_ROOT}/target/${ARCH}/${SYS}/lib
+
     export MODEL_BIN=${SOURCE_MODEL_ROOT}/target/${ARCH}/${SYS}/bin
 
     echo "  Creating directory $targetmodeldir/images..."
@@ -132,9 +136,9 @@ populate_image() {
     mkdir $imagedir/modules
 
     # fail quietly if file not found
-    if [ -f $CLOVIS_ROOT/ASP/BUILD ]
+    if [ -f $CLOVIS_ROOT/ASP/VERSION ]
     then
-        cp $CLOVIS_ROOT/ASP/BUILD $imagedir/etc 2> /dev/null
+        cp $CLOVIS_ROOT/ASP/VERSION $imagedir/etc 2> /dev/null
     fi
 
     #
@@ -163,19 +167,33 @@ populate_image() {
     fi
 
     # Copying libraries
-    echo "  Copying libraries..."
-    ${INSTALL} $installflags $ASP_LIB/*.so $imagedir/lib
-    ${INSTALL} $installflags $PROJECT_ROOT/target/$ARCH/$SYS/lib/*.so $imagedir/lib
-    if [ -d $ASP_LIB/pym ]; then
-        cp -r $ASP_LIB/pym $imagedir/lib
-    fi
+    echo "  Copying shared libraries..."
 
+   # Install ASP shared libraries
     if [ $ASP_BUILD = 0 ]; then
-        echo "  Copying ASP libraries..."
+        echo "    Prebuilt ASP libraries from $ASP_INSTALLDIR/target/$ARCH/$SYS/lib"
         ${INSTALL} $installflags $ASP_INSTALLDIR/target/$ARCH/$SYS/lib/*.so $imagedir/lib
     fi
 
-    ${INSTALL} $installflags $MODEL_LIB/*.so $imagedir/lib
+
+    export tmp=`/bin/ls  $MODEL_LIB/*.so 2> /dev/null`
+    if [ ! -z "$tmp" ]; then  # Install MODEL specific libraries
+        echo "    Model specific libraries from $MODEL_LIB"
+        echo "    ${INSTALL} $installflags $MODEL_LIB/*.so $imagedir/lib"
+        ${INSTALL} $installflags $MODEL_LIB/*.so $imagedir/lib
+    fi
+
+        echo "    ASP libraries built with the model located at $ASP_LIB"
+
+    export tmp=`/bin/ls  $ASP_LIB/*.so 2> /dev/null`    
+    if [ ! -z "$tmp" ]; then  # Install MODEL specific libraries
+        ${INSTALL} $installflags $ASP_LIB/*.so $imagedir/lib
+    fi
+
+    # GAS, what is this???
+    if [ -d $ASP_LIB/pym ]; then
+        cp -r $ASP_LIB/pym $imagedir/lib
+    fi
 
     # Copying binaries and scripts
     echo "  Copying binaries and scripts..."
@@ -204,7 +222,7 @@ populate_image() {
     ${INSTALL} $exe_flags $CLOVIS_ROOT/ASP/tools/logTools/clLogViewer/asp_binlogviewer $imagedir/bin
 
     # Copying config files
-    echo "  Copying config files..."
+    echo "  Copying config files... All .xml, .txt, and .conf files in $MODEL_CONFIG will be put into <ASP_install_dir>/etc"
     ${INSTALL} $installflags $MODEL_CONFIG/*.xml $imagedir/etc
     if [ $(ls -1 $MODEL_CONFIG/*.txt 2>/dev/null| wc -l) -gt 0 ]; then
         ${INSTALL} $installflags $MODEL_CONFIG/*.txt $imagedir/etc
@@ -216,9 +234,11 @@ populate_image() {
     # Copy customer specific scripts, config files...anything ;-)
     # The `/' after the extras is needed.
     # For the meaning of the options please see rsync(1)
-    echo "  Copying extras..."
+    echo "  Copying extras... Place any files you want to be part of the final model into directories or subdirectories of $MODEL_PATH/extras."
     if [ -d $MODEL_PATH/extras ]; then
         rsync -avpDHL --ignore-existing --exclude='.svn' $MODEL_PATH/extras/ $imagedir/
+    else
+        echo "    No extras directory exists."
     fi
 
     # Touching up snmpd.conf if necessary, and copying over
@@ -346,7 +366,10 @@ fi
 
 # Source our project area config file and target.conf
 
-source $PROJECT_ROOT/.openclovis.conf
+if [ -f  $PROJECT_ROOT/.openclovis.conf ]; then
+  echo "Sourcing $PROJECT_ROOT/.openclovis.conf"
+  source $PROJECT_ROOT/.openclovis.conf
+fi
 source $MODEL_PATH/target.conf
 
 # Setting up and deriving required variables 

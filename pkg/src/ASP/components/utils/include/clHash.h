@@ -27,10 +27,6 @@
 #include <clCommon.h>
 #include <clCommonErrors.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 struct hashStruct
 {
     struct hashStruct *pNext;
@@ -69,9 +65,5 @@ static __inline__ ClRcT hashDel(struct hashStruct *pEntry)
 
 #define hashEntry(element,cast,field) \
 (cast *) ( (ClUint8T*)(element) - (ClWordT) (&((cast*)0)->field) )
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

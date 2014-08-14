@@ -1173,17 +1173,15 @@ exitfn:
 }
 
 ClRcT
-clAmsCCBValidateOperation(
-                          CL_IN  ClPtrT  req,
-                          CL_IN  ClAmsMgmtCCBOperationsT  opId )
+clAmsCCBValidateOperationLocked(
+                                CL_IN  ClPtrT  req,
+                                CL_IN  ClAmsMgmtCCBOperationsT  opId )
 {
     ClRcT  rc = CL_OK;
     ClAmsEntityRefT  entityRef = {{0},0};
 
     AMS_CHECKPTR (!req); 
     
-    AMS_CALL ( clOsalMutexLock(gAms.mutex) );
-
     switch (opId)
     {
 
@@ -1699,14 +1697,24 @@ clAmsCCBValidateOperation(
     
     exitfn:
 
-    AMS_CALL ( clOsalMutexUnlock(gAms.mutex) );
-
     if(rc != CL_OK)
     {
         clLogError("CCB", "VALIDATE", "AMF validate operation returned [%#x] for operation [%d]",
                    rc, opId);
     }
 
+    return rc;
+}
+
+ClRcT
+clAmsCCBValidateOperation(
+                          CL_IN  ClPtrT  req,
+                          CL_IN  ClAmsMgmtCCBOperationsT  opId )
+{
+    ClRcT  rc = CL_OK;
+    clOsalMutexLock(gAms.mutex);
+    rc = clAmsCCBValidateOperationLocked(req, opId);
+    clOsalMutexUnlock(gAms.mutex);
     return rc;
 }
 
@@ -2241,17 +2249,14 @@ clAmsCSIGetNVP(
     ClCntNodeHandleT  nodeHandle = 0;
     ClUint32T  numNodes = 0;
     ClUint32T i = 0;
-    ClRcT rc;
-    
 
     AMS_CHECKPTR ( !entity || !nvpList );
 
     memcpy ( &entityRef.entity, entity, sizeof(ClAmsEntityT) );
 
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI], &entityRef);
-    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
-    AMS_CALL (rc); /* Check for critical errors */
-    
+    AMS_CALL ( clAmsEntityDbFindEntity(
+                &gAms.db.entityDb[CL_AMS_ENTITY_TYPE_CSI],
+                &entityRef) );
 
     csi = (ClAmsCSIT *)entityRef.ptr;
     AMS_CHECKPTR (!csi);
@@ -2446,9 +2451,9 @@ clAmsGetEntityList(
     {
         memcpy ( &entityRef.entity, entity, sizeof(ClAmsEntityT) );
 
-        rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type],&entityRef);
-        if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
-        AMS_CALL (rc); /* Check for critical errors */
+        AMS_CALL ( clAmsEntityDbFindEntity(
+                                           &gAms.db.entityDb[entity->type],
+                                           &entityRef) );
 
         AMS_CHECKPTR (!entityRef.ptr);
     }
@@ -2738,16 +2743,14 @@ clAmsGetOLEntityList(
     ClAmsEntityRefT *eRef = NULL;
     ClUint32T  size = 0;
     ClUint32T  i=0;
-    ClRcT rc;
 
     AMS_CHECKPTR ( !entity || !entityListBuffer );
 
     memcpy ( &entityRef.entity, entity, sizeof(ClAmsEntityT) );
 
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entity->type],&entityRef);
-    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
-    AMS_CALL (rc); /* Check for critical errors */
-    
+    AMS_CALL ( clAmsEntityDbFindEntity(
+                                       &gAms.db.entityDb[entity->type],
+                                       &entityRef) );
 
     AMS_CHECKPTR (!entityRef.ptr);
 
@@ -4618,10 +4621,9 @@ clAmsGetEntityListContents(
      * 6. Update the response with number of total nodes
      */ 
     
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityRef.entity.type],&entityRef);
-    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;  /* Not a critical error, so just return */
-    AMS_CALL (rc); /* Check for critical errors */
-    
+    AMS_CALL ( clAmsEntityDbFindEntity(
+                &gAms.db.entityDb[entityRef.entity.type],
+                &entityRef) ); 
     
     AMS_CHECKPTR ( !entityRef.ptr );
 
@@ -4949,7 +4951,7 @@ clAmsEntitySetRefPtr(
         ClAmsEntityRefT  targetEntityRef )
 
 {
-    ClRcT rc;
+
     ClAmsEntityTypeT  sourceEntityType = {0};
     ClAmsEntityTypeT  targetEntityType = {0};
 
@@ -4958,22 +4960,13 @@ clAmsEntitySetRefPtr(
     sourceEntityType = sourceEntityRef.entity.type;
     targetEntityType = targetEntityRef.entity.type;
 
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[sourceEntityType],&sourceEntityRef);
-    if (rc != CL_OK) /* ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST ) */
-    {
-        AMS_LOG(CL_DEBUG_CRITICAL, ("Error finding source entity [%s %.*s]\n", CL_AMS_STRING_ENTITY_TYPE(sourceEntityType),sourceEntityRef.entity.name.length, sourceEntityRef.entity.name.value));
-        return rc;
-    }
-    AMS_CALL(rc);
-    
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[targetEntityType],&targetEntityRef);
-    if (rc != CL_OK) /* ( CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST ) */
-    {
-        AMS_LOG(CL_DEBUG_CRITICAL, ("Error finding target entity [%s %.*s]\n", CL_AMS_STRING_ENTITY_TYPE(targetEntityType), targetEntityRef.entity.name.length, targetEntityRef.entity.name.value));
-        return rc;
-    }
-    AMS_CALL(rc);
-    
+    AMS_CALL( clAmsEntityDbFindEntity(
+                &gAms.db.entityDb[sourceEntityType],
+                &sourceEntityRef) );
+
+    AMS_CALL( clAmsEntityDbFindEntity(
+                &gAms.db.entityDb[targetEntityType],
+                &targetEntityRef) );
 
     AMS_CHECKPTR ( !sourceEntityRef.ptr || !targetEntityRef.ptr );
 
@@ -4983,7 +4976,8 @@ clAmsEntitySetRefPtr(
 
         ClAmsSGT      *sg = (ClAmsSGT *)sourceEntityRef.ptr;
         sg->config.parentApp.ptr = targetEntityRef.ptr;
-        memcpy ( &sg->config.parentApp.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
+        memcpy ( &sg->config.parentApp.entity, &targetEntityRef.entity, 
+                sizeof (ClAmsEntityT));
 
     }
 
@@ -4995,7 +4989,8 @@ clAmsEntitySetRefPtr(
 
             ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
             su->config.parentSG.ptr = targetEntityRef.ptr;
-            memcpy ( &su->config.parentSG.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
+            memcpy ( &su->config.parentSG.entity, &targetEntityRef.entity, 
+                    sizeof (ClAmsEntityT));
 
         }
 
@@ -5004,7 +4999,8 @@ clAmsEntitySetRefPtr(
 
             ClAmsSUT      *su = (ClAmsSUT *)sourceEntityRef.ptr;
             su->config.parentNode.ptr = targetEntityRef.ptr;
-            memcpy ( &su->config.parentNode.entity, &targetEntityRef.entity, sizeof (ClAmsEntityT));
+            memcpy ( &su->config.parentNode.entity, &targetEntityRef.entity,
+                    sizeof (ClAmsEntityT));
 
          }
 
@@ -7325,13 +7321,11 @@ clAmsCCBDeleteCallback(
 
     opData = (clAmsMgmtCCBOperationDataT *)data;
 
-    if( (opData== NULL) || (opData->payload == NULL) ) 
-    {
-        AMS_LOG(CL_DEBUG_ERROR,
-                ("ALERT [%s:%d] : Expression (opData) is True. Null Pointer\n",
-                 __FUNCTION__, __LINE__));                              
+    if(!opData)
         return;
-    }
+
+    if(!opData->payload)
+        goto out;
 
     switch (opData->opId)
     {
@@ -7348,16 +7342,6 @@ clAmsCCBDeleteCallback(
         case CL_AMS_MGMT_CCB_OPERATION_CSI_SET_NVP :
         case CL_AMS_MGMT_CCB_OPERATION_CSI_DELETE_NVP :
         case CL_AMS_MGMT_CCB_OPERATION_SET_NODE_DEPENDENCY:
-        case CL_AMS_MGMT_CCB_OPERATION_SET_CSI_CSI_DEPENDENCY_LIST:
-        case CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_DEPENDENCY:
-        case CL_AMS_MGMT_CCB_OPERATION_DELETE_NODE_SU_LIST:
-        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SU_LIST:
-        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SG_SI_LIST:
-        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SU_COMP_LIST:
-        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SU_RANK_LIST:
-        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_SI_DEPENDENCY_LIST:
-        case CL_AMS_MGMT_CCB_OPERATION_DELETE_CSI_CSI_DEPENDENCY_LIST:
-        case CL_AMS_MGMT_CCB_OPERATION_DELETE_SI_CSI_LIST:
             {
                 break;
             }
@@ -7375,14 +7359,15 @@ clAmsCCBDeleteCallback(
 
       default: 
             { 
-                AMS_LOG(CL_DEBUG_ERROR, ("invalid ccb operation id [%d]\n", opData->opId));
+                AMS_LOG(CL_DEBUG_ERROR, ("invalid ccb operation\n"));
                 break;
             }
     }
 
     clAmsFreeMemory (opData->payload);
-    clAmsFreeMemory (opData);
 
+    out:
+    clAmsFreeMemory (opData);
 }
 
 
@@ -7414,20 +7399,13 @@ clAmsCCBAddOperation(
 {
 
     ClRcT  rc = CL_OK;
-
     AMS_CHECK_RC_ERROR ( clCntNodeAdd(
                 listHandle,
                 key, 
                 (ClCntDataHandleT)element,
                 NULL) );
-
-    return CL_OK;
-
-exitfn:
-
-    clAmsFreeMemory(element);
+    exitfn:
     return rc;
-
 }
 
 
@@ -7484,7 +7462,7 @@ clAmsCCBDeleteOperation(
 
 ClPtrT
 clAmsCCBGetFirstElement(
-        CL_IN  ClCntHandleT  *listHandle,
+        CL_IN  ClCntHandleT  listHandle,
         CL_OUT  ClCntNodeHandleT  *nodeHandle )
 
 {
@@ -7500,12 +7478,12 @@ clAmsCCBGetFirstElement(
             return NULL;
     }
 
-    rc = clCntFirstNodeGet( *listHandle, nodeHandle);
+    rc = clCntFirstNodeGet( listHandle, nodeHandle);
 
     if ( rc == CL_OK )
     {
          rc2 = clCntNodeUserDataGet(
-                 *listHandle,
+                 listHandle,
                  *nodeHandle,
                  (ClCntDataHandleT *)&element);
 
@@ -7555,9 +7533,9 @@ clAmsCCBGetFirstElement(
 
 ClPtrT
 clAmsCCBGetNextElement(
-        CL_IN  ClCntHandleT  *listHandle,
-        CL_IN  ClCntNodeHandleT  *nodeHandle, 
-        CL_OUT  ClCntNodeHandleT  *nextNodeHandle )
+        CL_IN  ClCntHandleT  listHandle,
+        CL_IN  ClCntNodeHandleT  nodeHandle, 
+        CL_OUT  ClCntNodeHandleT *nextNodeHandle )
 
 {
 
@@ -7572,12 +7550,12 @@ clAmsCCBGetNextElement(
             return NULL;
     }
 
-    rc = clCntNextNodeGet( *listHandle, *nodeHandle, nextNodeHandle);
+    rc = clCntNextNodeGet(listHandle, nodeHandle, nextNodeHandle);
 
     if ( rc == CL_OK )
     {
          rc2 = clCntNodeUserDataGet(
-                 *listHandle,
+                 listHandle,
                  *nextNodeHandle,
                  (ClCntDataHandleT *)&element);
 

@@ -101,7 +101,6 @@
 #include "xdrClCpmEventNodePayLoadT.h"
 #include "xdrClCpmClientInfoIDLT.h"
 #include "xdrClEoExecutionObjIDLT.h"
-#include "xdrClCpmStatQueryResponseT.h"
 
 #ifdef CL_CPM_AMS
 #include <clAms.h>
@@ -152,7 +151,7 @@ ClTaskPoolHandleT gCpmFaultPool;
 static ClCharT gAspNodeIp[CL_MAX_NAME_LENGTH];
 static ClCharT gAspVersion[80];
 ClCharT gAspInstallInfo[128]; /*install key info. for ARD*/
-
+ClBoolT gClAmsSwitchoverInline;
 /**
  * Static variables.
  */
@@ -188,28 +187,8 @@ static ClJobQueueT cpmNotificationQueue;
 
 static ClInt32T cpmValgrindTimeout;
 
-static ClBoolT gClSigTermPending;
-
-static ClBoolT gClSigTermRestart;
-
 static ClRcT clCpmIocNotificationEnqueue(ClIocNotificationT *notification, ClPtrT cookie);
-
-typedef struct _ClCustomHeartbeatData{
-    ClBoolT    enable;
-    ClUint32T    cpuThreshold;
-    ClUint32T    memThreshold;
-    ClUint32T    interval;
-    ClUint32T    maxExceedOccurences;
-    ClUint32T    maxRmdExceedOccurences;
-}ClCustomHeartbeatData;
-
-ClCustomHeartbeatData customConfig = {0};
-static void *cpmCustomHeartbeat(void *threadArg);
-void cpmCustomStaticticFeedBack(ClRcT retCode,
-                            void *pThiscpmL,
-                            ClBufferHandleT sendMsg,
-                            ClBufferHandleT recvMsg);
-static void cpmCustomHeartbeatConfigParser();
+static ClBoolT __cpmIsInfrastructureComponent(const ClCharT *compName);
 
 #undef __CLIENT__
 #include "clCpmServerFuncTable.h"
@@ -222,9 +201,6 @@ static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
                                   ClUint8T protoType,
                                   ClUint32T length,
                                   ClIocPhysicalAddressT srcAddr);
-
-ClRcT cpmCustomHeartbeatInitialize();
-
 
 /*
  * FIXME: added to get around unresolved symbol errors for clEoConfig and
@@ -548,29 +524,6 @@ static ClRcT cpmAllocate(void)
     clOsalMutexLock(&gpClCpm->heartbeatMutex);
     gpClCpm->enableHeartbeat = CL_FALSE;
     clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
-    
-    
-
-//*********** custom heartbeat******************   
-    rc = clOsalMutexInit(&gpClCpm->customHeartbeatMutex);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
-
-    rc = clOsalCondInit(&gpClCpm->customHeartbeatCond);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_COND_CREATE_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
-
-    /*
-     * Disable heartbeating by default.
-     */
-    cpmCustomHeartbeatConfigParser();
-    clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
-    gpClCpm->enableCustomHeartbeat = customConfig.enable;
-    clOsalMutexUnlock(&gpClCpm->customHeartbeatMutex);
-    
-//*********** custom heartbeat******************   
-
-    
 
     rc = clOsalMutexInit(&gpClCpm->cpmGmsMutex);
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_MUTEX_CREATE_ERR, rc, rc,
@@ -658,7 +611,6 @@ static void cpmSigintHandler(ClInt32T signum)
 {
     clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
                   "Caught SIGINT or SIGTERM signal, shutting down the node...");
-    gClSigTermPending = (signum == SIGTERM);
     clCpmNodeShutDown(clIocLocalAddressGet());
 }
 
@@ -802,10 +754,31 @@ void cpmClearOps(void)
     }
 }
 
-ClRcT cpmKillComponent(ClCntNodeHandleT key,
-                       ClCntDataHandleT data,
-                       ClCntArgHandleT arg,
-                       ClUint32T size)
+static ClRcT cpmKillUserComponent(ClCntNodeHandleT key,
+                                  ClCntDataHandleT data,
+                                  ClCntArgHandleT arg,
+                                  ClUint32T size)
+{
+    ClCpmComponentT *comp = (ClCpmComponentT *)data;
+    
+    if (comp->processId && !__cpmIsInfrastructureComponent(comp->compConfig->compName)
+        &&
+        cpmCompIsChildAlive(comp))
+    {
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
+                   "Cleaning up user component [%s] with process id [%d] ",
+                   comp->compConfig->compName,
+                   comp->processId);
+        cpmCompCleanup(comp->compConfig->compName);
+    }
+    
+    return CL_OK;
+}
+
+static ClRcT cpmKillComponent(ClCntNodeHandleT key,
+                              ClCntDataHandleT data,
+                              ClCntArgHandleT arg,
+                              ClUint32T size)
 {
     ClCpmComponentT *comp = (ClCpmComponentT *)data;
     
@@ -837,6 +810,11 @@ ClRcT cpmKillComponent(ClCntNodeHandleT key,
 void cpmKillAllComponents(void)
 {
     clCntWalk(gpClCpm->compTable, cpmKillComponent, NULL, 0);
+}
+
+void cpmKillAllUserComponents(void)
+{
+    clCntWalk(gpClCpm->compTable, cpmKillUserComponent, NULL, 0);
 }
 
 /*
@@ -1065,7 +1043,6 @@ static ClRcT clCpmFinalize(void)
         clOsalMutexUnlock(&gpClCpm->cpmShutdownMutex);
     }
 
-    if(!gClSigTermPending || !gClSigTermRestart)
     {
         FILE *fptr = fopen(CL_CPM_RESTART_DISABLE_FILE, "w");
         if(fptr) fclose(fptr);
@@ -1275,19 +1252,16 @@ static ClRcT cpmCreateLoggerTask(const ClCharT *cpmLoggerFile)
 
 }
 
-
-static ClRcT cpmLoggerInitialize(void)
+static void cpmLoggerSetFileName(void)
 {
-    ClRcT rc = CL_OK;
-    ClCharT *aspLogDir = getenv("ASP_LOGDIR");
-    ClCharT aspLogPath[CL_MAX_NAME_LENGTH];
-    ClCharT *cpmLogFileSizeStr = getenv("CPM_LOG_FILE_SIZE");
-    ClCharT *cpmLogFileRotStr = getenv("CPM_LOG_FILE_ROTATIONS");
-    rc = clOsalMutexInit(&cpmLoggerMutex);
-    CL_ASSERT(rc == CL_OK);
+    const ClCharT *cpmLogFileName = NULL;
+    ClCharT *aspLogDir = NULL;
+    ClCharT aspLogPath[CL_MAX_NAME_LENGTH] = {0};
 
+    aspLogDir = getenv("ASP_LOGDIR");
     if (aspLogDir)
     {
+        clLogTrace(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,"ASP_LOGDIR value is %s", aspLogDir);
         strncpy(aspLogPath, aspLogDir, CL_MAX_NAME_LENGTH-1);
     }
     else
@@ -1295,12 +1269,48 @@ static ClRcT cpmLoggerInitialize(void)
         strncpy(aspLogPath, cpmCwd, CL_MAX_NAME_LENGTH-1);
     }
 
-    snprintf(cpmLoggerFile,
-             CL_MAX_NAME_LENGTH-1,
-             "%s/%s%s",
-             aspLogPath,
-             clCpmNodeName,
-             ".log");
+    /* ASP_CPM_LOGFILE deprecated in favor of ASP_STDOUT_LOGFILE */
+    if (NULL == (cpmLogFileName = getenv("ASP_CPM_LOGFILE"))) cpmLogFileName = getenv("ASP_STDOUT_LOGFILE");
+    
+    if (NULL != cpmLogFileName)
+    {
+        /*
+         * If the file name is console, just put everything on console.
+         */
+        if (!strcasecmp(cpmLogFileName, "console"))
+        {
+            cpmIsConsoleStart = CL_TRUE;
+            cpmLoggerFile[0] = 0;            
+        }
+        else
+        {            
+            /* If it looks like a full path, then just copy it in unmodified */
+            if ((cpmLogFileName[0] == '/') || (cpmLogFileName[0] == '\\'))
+                strncpy(cpmLoggerFile,cpmLogFileName,CL_MAX_NAME_LENGTH-1);
+
+            /* Otherwise copy */
+            else snprintf(cpmLoggerFile,CL_MAX_NAME_LENGTH-1,"%s/%s", aspLogPath,cpmLogFileName);
+        }        
+    }
+    else
+    {        
+        snprintf(cpmLoggerFile,CL_MAX_NAME_LENGTH-1,"%s/%s.log", aspLogPath,clCpmNodeName);
+    }
+    
+}
+
+
+
+static ClRcT cpmLoggerInitialize(void)
+{
+    ClRcT rc = CL_OK;
+    ClCharT *cpmLogFileSizeStr = getenv("CPM_LOG_FILE_SIZE");
+    ClCharT *cpmLogFileRotStr = getenv("CPM_LOG_FILE_ROTATIONS");
+
+    rc = clOsalMutexInit(&cpmLoggerMutex);
+    CL_ASSERT(rc == CL_OK);
+    
+    cpmLoggerSetFileName();
 
     if (cpmLogFileSizeStr)
     {
@@ -1368,46 +1378,15 @@ static ClRcT cpmLoggerInitialize(void)
 
 void cpmRedirectOutput(void)
 {
-    const ClCharT *cpmLogFileName = NULL;
-    ClCharT logFileName[CL_MAX_NAME_LENGTH] = {0};
-    ClCharT *aspLogDir = NULL;
-    ClCharT aspLogPath[CL_MAX_NAME_LENGTH] = {0};
+    cpmLoggerSetFileName();
+    if (cpmIsConsoleStart) return;
     
-    if (NULL != (cpmLogFileName = getenv("ASP_CPM_LOGFILE")))
-    {
-        /*
-         * If the file name is console, just put everything on console.
-         */
-        if (!strcasecmp(cpmLogFileName, "console"))
-        {
-            cpmIsConsoleStart = CL_TRUE;
-            return;
-        }
-    }
-    
-    aspLogDir = getenv("ASP_LOGDIR");
-    if (aspLogDir)
-    {
-        clLogTrace(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
-                   "ASP_LOGDIR value is %s", aspLogDir);
-        strncpy(aspLogPath, aspLogDir, CL_MAX_NAME_LENGTH-1);
-    }
-    else
-    {
-        strncpy(aspLogPath, cpmCwd, CL_MAX_NAME_LENGTH-1);
-    }
-        
-    sprintf(logFileName, "%s/%s%s",
-            aspLogPath,
-            clCpmNodeName,
-            ".log");
-
-    cpmLoggerFd = open(logFileName, O_RDWR | O_CREAT | O_APPEND, 0755);
+    cpmLoggerFd = open(cpmLoggerFile, O_RDWR | O_CREAT | O_APPEND, 0755);
     if (-1 == cpmLoggerFd)
     {
         clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_BOOT,
                    "Unable to open file [%s] for writing : [%s]",
-                   logFileName,
+                   cpmLoggerFile,
                    strerror(errno));
         return;
     }
@@ -1520,9 +1499,10 @@ static ClRcT clCpmLeakyBucketInitialize(void)
 
 #endif
 
-
-
-
+ClBoolT clCpmSwitchoverInline(void)
+{
+    return gClAmsSwitchoverInline;
+}
 
 static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
 {
@@ -1553,6 +1533,8 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     rc = cpmGetConfig();
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_SERVER_CPM_CONFIG_GET_ERR, rc,
                    rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
+
+    gClAmsSwitchoverInline = clParseEnvBoolean("CL_AMF_SWITCHOVER_INLINE");
 
     if (!cpmIsForeground)
     {
@@ -1747,7 +1729,7 @@ static ClRcT clCpmInitialize(ClUint32T argc, ClCharT *argv[])
     
     clLog(CL_LOG_NOTICE, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
         "AMF server fully up");
-    
+        
     compMgrPollThread();
 
   failure:
@@ -2518,10 +2500,6 @@ void cpmCpmLHBFailure(ClCpmLocalInfoT *cpmL)
     cpmFailoverNode(cpmL->nodeId, CL_FALSE);
 }
 
-
-
-
-
 void cpmLocalHealthFeedBack(ClRcT retCode,
                             void *pThiscpmL,
                             ClBufferHandleT sendMsg,
@@ -2577,40 +2555,46 @@ failure:
  * Changed to non-static function so that it is
  * available outside now.
  */
-ClBoolT cpmIsInfrastructureComponent(ClNameT *compName)
+
+static ClBoolT __cpmIsInfrastructureComponent(const ClCharT *compName)
 {
     if(!compName || 
-       !strstr(compName->value, "Server"))
+       !strstr(compName, "Server"))
         return CL_FALSE;
 
-    if(strstr(compName->value, "cmServer"))
+    if(strstr(compName, "cmServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "snmpServer"))
+    else if(strstr(compName, "snmpServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "corServer"))
+    else if(strstr(compName, "corServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "txnServer"))
+    else if(strstr(compName, "txnServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "logServer"))
+    else if(strstr(compName, "logServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "eventServer"))
+    else if(strstr(compName, "eventServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "msgServer"))
+    else if(strstr(compName, "msgServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "nameServer"))
+    else if(strstr(compName, "nameServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "ckptServer"))
+    else if(strstr(compName, "ckptServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "gmsServer"))
+    else if(strstr(compName, "gmsServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "faultServer"))
+    else if(strstr(compName, "faultServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "alarmServer"))
+    else if(strstr(compName, "alarmServer"))
         return CL_TRUE;
-    else if(strstr(compName->value, "cpmServer"))
+    else if(strstr(compName, "cpmServer"))
         return CL_TRUE;
     else
         return CL_FALSE;
+}
+
+ClBoolT cpmIsInfrastructureComponent(ClNameT *compName)
+{
+    return __cpmIsInfrastructureComponent(compName->value);
 }
 
 static ClBoolT cpmIsCriticalComponent(const ClNameT *compName)
@@ -3690,6 +3674,7 @@ ClRcT compMgrPollThread(void)
     ClCpmLT *cpmInfo = NULL;
 
     CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside compMgrPollThread \n"));
+
     rc = clEoMyEoIocPortSet(gpClCpm->cpmEoObj->eoPort);
     CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_IOC_MY_EO_IOC_PORT_GET_ERR, rc,
                    rc, CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
@@ -3701,8 +3686,7 @@ ClRcT compMgrPollThread(void)
      * Get the local OMAddress 
      */
     myOMAddress = clIocLocalAddressGet();
-   
-    rc=cpmCustomHeartbeatInitialize();
+
     clOsalMutexLock(&gpClCpm->heartbeatMutex);
     restart_heartbeat:
     while (gpClCpm->polling && gpClCpm->enableHeartbeat == CL_TRUE)
@@ -3936,433 +3920,6 @@ failure:
     return rc;
 }
 
-
-//************************************Custom HeartBeat*******************************************************
-/*
- *  Custom HeartBeat 
- */
-
-#define CL_CUSTOM_CPU_THRESHOLD 90
-#define CL_CUSTOM_MEM_THRESHOLD 90
-#define CL_CUSTOM_INTERVAL 5000
-#define CL_MAX_NODE 1024
-#define CL_CUSTOM_HEARTBEAT_DEFAULT_FILECONFIG "customHeartbeat.xml"
-ClUint32T cpuThresholdExceedCount[CL_MAX_NODE];
-ClUint32T memThresholdExceedCount[CL_MAX_NODE];
-ClUint32T rmdThresholdExceedCount[CL_MAX_NODE];
-
-
-
-static void cpmCustomHeartbeatConfigParser()
-{
-    ClParserPtrT  head      = NULL;
-    ClCharT       *aspPath  = NULL;
-    ClParserPtrT  fd        = NULL;    
-    ClParserPtrT  enable     = NULL;
-    ClParserPtrT  cpuThreshold     = NULL;
-    ClParserPtrT  memThreshold     = NULL;
-    ClParserPtrT  interval     = NULL;
-    ClParserPtrT  exceedCount     = NULL;
-    ClParserPtrT  rmdExceedCount     = NULL;
-
-    clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Get heartbeat configuration");
-    aspPath = getenv("ASP_CONFIG");
-    if( aspPath != NULL ) 
-    {
-        head = clParserOpenFile(aspPath, CL_CUSTOM_HEARTBEAT_DEFAULT_FILECONFIG);	
-        if( head == NULL )
-        {
-        	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB", "Config file clLog.xml is missing,Using default configuration");
-            goto ParseError;
-
-        }
-    }
-    else
-    {        
-    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB", "ASP_CONFIG path is not set in the environment");
-        goto ParseError;
-    }
-
-    if(NULL == (fd = clParserChild(head, "customHeartBeat")))
-    {
-    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB", "log tag is not proper, file %s/%s",  aspPath, CL_CUSTOM_HEARTBEAT_DEFAULT_FILECONFIG);
-        goto ParseError;
-    }
-    customConfig.enable = CL_FALSE;
-    enable = clParserChild(fd, "enable");
-    if (enable == NULL)
-    {
-    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'enable\' "
-                  "entry is not found");
-        goto ParseError;        
-    }
-    clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Disable custom heartbeat ?  [%s] ", enable->txt);
-    if(!strncasecmp(enable->txt, "true", 4))
-    {
-    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Enable custom heartbeat %s",enable->txt);
-    	customConfig.enable = CL_TRUE;
-    }
-    if(!strncasecmp(enable->txt, "false", 5))
-    {
-    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Disable custom heartbeat %s", enable->txt);
-    	customConfig.enable = CL_FALSE;
-    }
-    
-    //parse cpuThreshold
-    cpuThreshold = clParserChild(fd, "cpuThreshold");
-    if (cpuThreshold == NULL)
-    {
-    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'cpuThreshold\' "
-                  "entry is not found");
-        goto ParseError;        
-    }
-    customConfig.cpuThreshold =atoi(cpuThreshold->txt);
-    
-    //parse memThreshold
-    memThreshold = clParserChild(fd, "memThreshold");
-    if (memThreshold == NULL)
-    {
-    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'memThreshold\' "
-                  "entry is not found");
-        goto ParseError;        
-    }
-    customConfig.memThreshold =atoi(memThreshold->txt);
-    
-    //parse interval
-    interval = clParserChild(fd, "interval");
-    if (interval == NULL)
-    {
-    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'interval\' "
-                  "entry is not found");
-        goto ParseError;        
-    }
-    customConfig.interval =atoi(interval->txt);
-    
-    //parse exceed threshold count
-    exceedCount = clParserChild(fd,"maxExceedOccurences");
-    if (exceedCount == NULL)
-    {
-    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'maxExceedOccurences\' "
-                  "entry is not found");
-        goto ParseError;        
-    }
-    customConfig.maxExceedOccurences =atoi(exceedCount->txt);
-    //parse exceed threshold count
-    rmdExceedCount = clParserChild(fd,"maxRmdExceedOccurences");
-    if (rmdExceedCount == NULL)
-    {
-    	clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Improper config file detected. \'maxRmdExceedOccurences\' "
-                  "entry is not found");
-        goto ParseError;        
-    }
-    customConfig.maxRmdExceedOccurences =atoi(rmdExceedCount->txt);    
-    clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Parser custom heartbeat Configuration memThreshold [%d]  cpuThreshold [%d]  interval [%d]",customConfig.memThreshold,customConfig.cpuThreshold,customConfig.interval);
-    return;
-    
-    ParseError:
-    clLog(CL_LOG_DEBUG,CPM_LOG_AREA_CPM, "CHB","Using default custom heartbeat configuration");
-    customConfig.enable =CL_FALSE;
-    customConfig.memThreshold =CL_CUSTOM_CPU_THRESHOLD;
-    customConfig.cpuThreshold =CL_CUSTOM_MEM_THRESHOLD;
-    customConfig.interval =CL_CUSTOM_INTERVAL;
-    for (ClUint32T i=1 ;i<CL_MAX_NODE;i++)
-    {
-        cpuThresholdExceedCount[i]=0;
-        memThresholdExceedCount[i]=0;
-        rmdThresholdExceedCount[i]=0;
-    }
-}
-
-/*
- * Creates and starts the custom heartbeat thread. 
- */
-ClRcT cpmCustomHeartbeatInitialize()
-{
-    ClRcT rc = CL_OK;
-
-    ClUint32T priority  = CL_OSAL_THREAD_PRI_NOT_APPLICABLE;
-    ClUint32T stackSize = CL_OSAL_MIN_STACK_SIZE;
-    ClOsalTaskIdT         taskId        = 0;
-    rc = clOsalTaskCreateAttached("cpmCustomHeartbeat",
-                                  CL_OSAL_SCHED_OTHER,
-                                  priority,
-                                  stackSize,
-                                  cpmCustomHeartbeat,
-                                  NULL,
-                                  &taskId);
-    CL_CPM_CHECK_1(CL_DEBUG_ERROR, CL_CPM_LOG_1_OSAL_TASK_CREATE_ERR, rc, rc,
-                   CL_LOG_DEBUG, CL_LOG_HANDLE_APP);
-
-  failure:
-    return rc;
-}
-
-void cpmCustomStatisticFeedBack(ClRcT retCode,
-                            void *pThiscpmL,
-                            ClBufferHandleT sendMsg,
-                            ClBufferHandleT recvMsg)
-{
-	ClInt32T nodeId;
-	ClCpmStatQueryResponseT outBuffer ={0};
-	outBuffer.cpuUsed=1;
-	outBuffer.physMemUsed=1;
-    ClRcT rc = CL_OK;
-    ClCpmLT *pCpmLocal = (ClCpmLT *)pThiscpmL;
-    ClCpmLocalInfoT *pCpmL = NULL; 
-
-    CL_ASSERT(pCpmLocal != NULL);
-    
-    pCpmL = pCpmLocal->pCpmLocalInfo;
-    if (!pCpmL)
-    {
-        clLogWarning(CPM_LOG_AREA_CPM, "CHB",
-                     "Node [%s] has already been unregistered, "
-                     "ignoring the statistic information feedback...",
-                     pCpmLocal->nodeName);
-        goto failure;
-    }
-    nodeId=pCpmLocal->pCpmLocalInfo->nodeId;
-    if (CL_RMD_TIMEOUT_UNREACHABLE_CHECK(retCode))
-    {
-        if (pCpmL->status != CL_CPM_EO_DEAD)
-        {
-            clLogError(CPM_LOG_AREA_CPM, "CHB",
-                       "statistic information feedback returned "
-                       "timeout for node [%s], ",
-                       pCpmLocal->nodeName);
-            
-            if(rmdThresholdExceedCount[nodeId]>=customConfig.maxRmdExceedOccurences)
-            {
-            	clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : rmd threshold exceeded %d times .\n "
-            	        			                                                            "             Failover this node \n",pCpmLocal->nodeName,rmdThresholdExceedCount[nodeId]);
-                memThresholdExceedCount[nodeId]=0;
-        	    cpuThresholdExceedCount[nodeId]=0;
-        	    rmdThresholdExceedCount[nodeId]=0;  
-                cpmFailoverNode(nodeId, CL_FALSE);
-
-            }
-            else
-            {
-                rmdThresholdExceedCount[nodeId]++;
-            }
-        }
-    }
-    else
-    {
-        rc = VDECL_VER(clXdrUnmarshallClCpmStatQueryResponseT, 4, 0, 0)(recvMsg, (void *)&outBuffer);
-        if (rc != CL_OK)
-        {
-            clLogError(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB,
-                       "Unmarshalling of statistic information feedback failed, "
-                       "error [%#x]",
-                       rc);
-            goto failure;
-        }
-        //print Node Information statistic
-        clLogMultiline(CL_LOG_DEBUG,
-                       CPM_LOG_AREA_CPM,
-                       "CHB",
-                       "CPM/L [%s] Statistic Information \n"
-                       "    1. Node CPU Used : [%f]  . \n"
-                       "    2. Node Physical Memory Used : [%lld]. \n"
-                       "    3. Node Physical Memory Total : [%lld]. \n"
-                       "    4. Node Memory Used : [%f]  . \n"
-                       "    5. Node Disk Total : [%lld]. \n"
-                       "    6. Node Disk Available : [%lld]. \n"
-                       "    7. Node Disk Free : [%lld]. \n"
-                       "    8. Node Disk Used : [%lld]. \n",
-                       pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100, outBuffer.physMemUsed,outBuffer.physMemTotal,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal,outBuffer.physDiskTotal, outBuffer.physDiskAvailable, outBuffer.physDiskFree, outBuffer.physDiskUsed);
-        
-        if(outBuffer.cpuUsed/100 >= customConfig.cpuThreshold)
-        {
-            if(cpuThresholdExceedCount[nodeId]>=customConfig.maxExceedOccurences)
-            {
-        	    clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : CPU threshold exceeded [%f] %d times .\n "
-        			                                                            "             Failover this node \n",pCpmLocal->nodeName,(double)outBuffer.cpuUsed/100,cpuThresholdExceedCount[nodeId]);
-                memThresholdExceedCount[nodeId]=0;
-                cpuThresholdExceedCount[nodeId]=0;
-                rmdThresholdExceedCount[nodeId]=0;        		
-        	    cpmFailoverNode(nodeId, CL_FALSE);
-
-        	}
-        	else
-        	{
-                cpuThresholdExceedCount[nodeId]++;
-        	}
-        }
-        else
-        {
-            cpuThresholdExceedCount[pCpmLocal->pCpmLocalInfo->nodeId]=0;
-        }
-        if((outBuffer.physMemUsed*100)/outBuffer.physMemTotal >= customConfig.memThreshold)
-        {
-            if(memThresholdExceedCount[nodeId]>=customConfig.maxExceedOccurences)
-            {        	
-        	    clLogMultiline(CL_LOG_CRITICAL,CPM_LOG_AREA_CPM,"CHB","CPM/L [%s] : Memory threshold exceeded [%f] %d times .\n "
-        	        			                                                "              Failover this node \n" , pCpmLocal->nodeName,(double)outBuffer.physMemUsed*100/outBuffer.physMemTotal,memThresholdExceedCount[nodeId]);
-        	    memThresholdExceedCount[nodeId]=0;
-                cpuThresholdExceedCount[nodeId]=0;
-                rmdThresholdExceedCount[nodeId]=0;        		
-                cpmFailoverNode(nodeId, CL_FALSE);
-            }
-            else
-            {
-                memThresholdExceedCount[nodeId]++;
-            }
-        }
-        else
-        {
-            memThresholdExceedCount[nodeId]=0;
-        }
-    }
-
-failure:
-    clBufferDelete(&recvMsg);
-    return;
-}
-
-static void *cpmCustomHeartbeat(void *threadArg)
-{
-    ClUint32T outLen = (ClUint32T) sizeof(ClCpmStatQueryResponseT);
-    ClRcT rc = CL_OK;
-    ClTimerTimeOutT timeOut;
-    ClTimerTimeOutT heartbeatWait = {.tsSec=0,.tsMilliSec=0};
-    ClUint32T freq = customConfig.interval, cpmCount;
-    ClCpmStatQueryResponseT    outBuffer;
-    ClCntNodeHandleT hNode = 0;
-    ClCpmLT *cpmInfo = NULL;
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE, ("Inside cpmCustomHeartbeat \n"));
-    clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
-    restart_heartbeat:
-    while (gpClCpm->enableCustomHeartbeat == CL_TRUE)
-    {
-        clOsalMutexUnlock(&gpClCpm->customHeartbeatMutex);
-        /*
-         * Do CustomHealthCheck of CPM 
-         */
-        if ( CL_CPM_IS_ACTIVE() && gpClCpm->noOfCpm)
-        {
-            CL_DEBUG_PRINT(CL_DEBUG_TRACE,
-                           ("Inside Polling while loop for CPMs %d\n",
-                            gpClCpm->noOfCpm));
-            cpmCount = gpClCpm->noOfCpm;
-            rc = clCntFirstNodeGet(gpClCpm->cpmTable, &hNode);
-            if (rc != CL_OK)
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                               ("Unable to Get First CPM %x\n", rc));
-            while (cpmCount)
-            {
-                rc = clCntNodeUserDataGet(gpClCpm->cpmTable, hNode,
-                                          (ClCntDataHandleT *) &cpmInfo);
-                CL_CPM_CHECK_1(CL_DEBUG_ERROR,
-                               CL_CPM_LOG_1_CNT_NODE_USR_DATA_GET_ERR, rc, rc,
-                               CL_LOG_ERROR, CL_LOG_HANDLE_APP);
-                if ((cpmInfo->pCpmLocalInfo) &&
-                    (cpmInfo->pCpmLocalInfo->cpmAddress.nodeAddress !=
-                     gpClCpm->pCpmLocalInfo->cpmAddress.nodeAddress) &&
-                    (cpmInfo->pCpmLocalInfo->status != CL_CPM_EO_DEAD))
-                {
-                  
-                    memset(&outBuffer, 0, (size_t) sizeof(ClCpmStatQueryResponseT));  
-                    rc = CL_CPM_CALL_RMD_ASYNC_NEW(cpmInfo->pCpmLocalInfo->
-                                                   cpmAddress.nodeAddress,
-                                                   cpmInfo->pCpmLocalInfo->
-                                                   cpmAddress.portId,
-                                                   CL_NODE_STATISTIC_GET_FN_ID,
-                                                   NULL,
-                                                   0,
-                                                   (ClUint8T *) &outBuffer,
-                                                   &outLen,
-                                                   CL_RMD_CALL_NEED_REPLY,
-                                                   0,
-                                                   0,
-                                                   1,
-                                                   (void *) (cpmInfo), 
-                                                   cpmCustomStatisticFeedBack,
-                                                   MARSHALL_FN(ClCpmStatQueryResponseT, 4, 0, 0));
-                    if ((CL_GET_ERROR_CODE(rc) ==
-                         CL_IOC_ERR_COMP_UNREACHABLE ||
-                         CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_HOST_UNREACHABLE ||
-                         CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
-                        && CL_GET_CID(rc) == CL_CID_IOC)
-                    {
-                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                       ("HOST is unreachable so handle it as a failure \n"));
-                        cpmCpmLHBFailure(cpmInfo->pCpmLocalInfo);
-                    }
-                    else if (rc != CL_OK)
-                    {
-                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                       ("Error occured while sending statistic information request to other CPM %x\n",
-                                        rc));
-                    }
-
-                }
-                cpmCount--;
-                if (cpmCount)
-                {
-                    rc = clCntNextNodeGet(gpClCpm->cpmTable, hNode, &hNode);
-                    if (rc != CL_OK)
-                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                       ("Unable to Get Node  Data %x\n", rc));
-                        clLog(CL_LOG_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,
-                        		"Unable to Get Node  Data %x\n", rc);
-                }
-            }
-        }
-        timeOut.tsSec = 0;
-        timeOut.tsMilliSec = freq;
-        clOsalTaskDelay(timeOut);
-        clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
-    }
-    /* 
-     * We come out with lock held     */
-
-    clOsalCondWait(&gpClCpm->customHeartbeatCond, &gpClCpm->customHeartbeatMutex,heartbeatWait);
-    goto restart_heartbeat;
-
-    CL_DEBUG_PRINT(CL_DEBUG_TRACE,("Out of custom loop"));
-
-    /*
-     * clOsalPrintf("Polling Thread Exited ....... \n");
-     */
-
-    return NULL;
-
-failure:
-    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_INFORMATIONAL, NULL,
-               CL_CPM_LOG_0_SERVER_POLL_THREAD_EXIT_INFO);
-    return NULL;
-}
-
-
-
-void cpmShutdownCustomHeartbeat(void)
-{
-    clOsalMutexLock(&gpClCpm->customHeartbeatMutex);    
-    clOsalCondSignal(&gpClCpm->customHeartbeatCond);
-    clOsalMutexUnlock(&gpClCpm->heartbeatMutex);
-}
-
-void cpmEnableCustomHeartbeat(void)
-{
-    clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
-    if(gpClCpm->enableCustomHeartbeat == CL_FALSE)
-    {
-        gpClCpm->enableCustomHeartbeat = CL_TRUE;
-        clOsalCondSignal(&gpClCpm->customHeartbeatCond);
-    }
-    clOsalMutexUnlock(&gpClCpm->customHeartbeatMutex);
-}
-void cpmDisableCustomHeartbeat(void)
-{
-    clOsalMutexLock(&gpClCpm->customHeartbeatMutex);
-    gpClCpm->enableCustomHeartbeat = CL_FALSE;
-    clOsalMutexUnlock(&gpClCpm->customHeartbeatMutex);
-}
-
-//************************************************************************
-
 void cpmShutdownHeartbeat(void)
 {
     clOsalMutexLock(&gpClCpm->heartbeatMutex);
@@ -4409,7 +3966,7 @@ static void printUsage(char *progname)
                  " --nodename=<nodeName>\n", progname);
     clOsalPrintf("Options:\n");
     clOsalPrintf("-c, --chassis=ID       Chassis ID\n");
-    clOsalPrintf("-l, --localslot=ID     Local slotvariable ID\n");
+    clOsalPrintf("-l, --localslot=ID     Local slot ID\n");
     clOsalPrintf("-n, --nodename=name    Node name\n");
     clOsalPrintf("-f, --foreground       Run AMF as foreground process\n");
     clOsalPrintf("-h, --help             Display this help and exit\n");
@@ -4760,8 +4317,6 @@ ClRcT cpmValidateEnv(void)
 {
     ClRcT rc = CL_CPM_RC(CL_ERR_OP_NOT_PERMITTED);
 
-    gClSigTermRestart = clParseEnvBoolean("ASP_RESTART_SIGTERM");
-
     if (clParseEnvBoolean("ASP_WITHOUT_CPM") == CL_TRUE)
     {
         /* Note, Multiline logging is not available at this point since heap
@@ -4926,9 +4481,6 @@ ClInt32T main(ClInt32T argc, ClCharT *argv[], ClCharT *envp[])
 
     return rc;
 }
-
-
-
 
 
 #endif

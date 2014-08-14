@@ -116,7 +116,7 @@ extern ClTaskPoolHandleT gCpmFaultPool;
 #define CL_CPM_RESTART_NODE 0x2
 #define CL_CPM_HALT_ASP     0x3
 
-#define CL_CPM_SET_RESTART_OVERRIDE(flag) ( ((flag) & 0xffff) << 16 )
+#define CL_CPM_SET_RESTART_OVERRIDE(flag) ( (flag) << 16 )
 #define CL_CPM_GET_RESTART_OVERRIDE(flag) ( ( (flag) >> 16) & 0xffff )
 
 #define CL_CPM_RESTART_FLAG_STR(flag)   ( (flag) == CL_CPM_RESTART_ASP ? "ASP_RESTART" : \
@@ -343,6 +343,8 @@ typedef struct {
     ClNameT     nodeName;
 }ClCpmCmQueuedataT;
 
+extern ClBoolT gClAmsSwitchoverInline;
+
 /**
  * CM.
  */
@@ -519,10 +521,9 @@ extern ClRcT cpmEnqueueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest);
 
 extern ClRcT cpmDequeueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest);
 
-extern ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, 
-                                  ClUint32T nodeRequest);
+extern ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClBoolT nodeReset);
 
-extern ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClUint32T *nodeRequest);
+extern ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClBoolT *nodeReset);
 
 extern void  cpmResetDeleteRequest(const ClNameT *pNodeName);
 
@@ -714,6 +715,14 @@ extern ClRcT cpmProxiedHealthcheckStop(ClNameT *compName);
 extern ClRcT cpmCompHealthcheckStop(ClNameT *compName);
 
 extern void cpmResetNodeElseCommitSuicide(ClUint32T restartFlag);
+
+extern ClRcT cpmCompCleanup(ClCharT *compName);
+
+extern void cpmKillAllUserComponents(void);
+
+extern void cpmSwitchoverActive(void);
+
+extern ClBoolT clCpmSwitchoverInline(void);
 
 extern ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp);
 

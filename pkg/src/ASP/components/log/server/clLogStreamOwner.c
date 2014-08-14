@@ -653,8 +653,6 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
     ClCntHandleT           hStreamTable      = CL_HANDLE_INVALID_VALUE;
     ClCkptSectionIdT       secId             = {0};
     ClUint32T              dsId              = 0;
-    ClUint32T              tries             = 0;
-    static ClTimerTimeOutT delay = {.tsSec = 1, .tsMilliSec = 0};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -694,34 +692,27 @@ clLogStreamOwnerEntryChkNDelete(ClLogSOEoDataT     *pSoEoEntry,
     pStreamOwnerData->nodeStatus = CL_LOG_NODE_STATUS_UN_INIT;
     /*
      * None of componentEntries exist in the entry, so remove
-     * Try to delete the condition variable and retry just in case someone is
-     * waiting on the variable
-     * 
+     * Try to delete the condition varible, if it gives error,
+     * so somebody is waiting on this varibale. so just return CL_OK
      */
-    while( (rc = clOsalCondDestroy_L(&pStreamOwnerData->nodeCond) ) != CL_OK 
-           && 
-           ++tries < 2)
+    rc = clOsalCondDestroy_L(&pStreamOwnerData->nodeCond);
+    if( CL_OSAL_ERR_CONDITION_DELETE == rc )
     {
-        pStreamOwnerData->condDelete = CL_TRUE;
-        CL_LOG_CLEANUP(clOsalCondBroadcast(&pStreamOwnerData->nodeCond), CL_OK);
-        clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
-        clOsalTaskDelay(delay);
-        clOsalMutexLock_L(&pStreamOwnerData->nodeLock);
-    }
-
-    if( CL_OK != rc )
-    {
-        CL_LOG_DEBUG_TRACE(("clOsalCondDestroy_L(): rc[0x %x]", rc));
+        CL_LOG_DEBUG_TRACE(("clOsalCondDelete(): rc[0x %x]", rc));
+        CL_LOG_CLEANUP(clOsalCondSignal_L(&pStreamOwnerData->nodeCond), CL_OK);
         clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
         clLogSOUnlock(pSoEoEntry, streamScope);
         return rc;
     }
-
-    if(!pStreamOwnerData->condDelete)
+    else if( CL_OK != rc )
     {
-        /* resetting the value */
-        pStreamOwnerData->condDelete = CL_TRUE;
+        CL_LOG_DEBUG_ERROR(("clOsalCondDestroy_L(): rc[0x %x]", rc));
+        clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
+        clLogSOUnlock(pSoEoEntry, streamScope);
+        return rc;
     }
+    /* resetting the value */
+    pStreamOwnerData->condDelete = CL_TRUE;
     clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
     /*
      *  I am the last one, so peacefully remove this Entry
@@ -962,13 +953,13 @@ clLogStreamOwnerFilterFinalize(ClLogFilterInfoT  *pFilter)
 }
 
 ClRcT
-clLogStreamOwnerFilterInit(ClNameT *pStreamName, ClLogFilterInfoT  *pFilter)
+clLogStreamOwnerFilterInit(ClLogFilterInfoT  *pFilter)
 {
     ClRcT  rc = CL_OK;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
-    pFilter->severityFilter = clLogDefaultStreamSeverityGet(pStreamName);
+    pFilter->severityFilter = clLogDefaultStreamSeverityGet();
     rc = clBitmapCreate(&pFilter->hMsgIdMap, 0);
     if( CL_OK != rc )
     {
@@ -1042,7 +1033,7 @@ clLogStreamOwnerEntryUpdate(ClLogSOEoDataT          *pSoEoEntry,
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     pStreamOwnerData->streamMcastAddr             = multiCastAddr;
-    pStreamOwnerData->streamFilter.severityFilter = clLogDefaultStreamSeverityGet(pStreamName);
+    pStreamOwnerData->streamFilter.severityFilter = clLogDefaultStreamSeverityGet();
     pStreamOwnerData->streamId                    = streamId;
     pStreamOwnerData->nodeStatus                  = CL_LOG_NODE_STATUS_INIT;
     rc = clLogFilterFormatConvert(&pStreamOwnerData->streamFilter, pFilter);
@@ -1229,7 +1220,9 @@ clLogStreamOwnerMAVGResponse(ClIdlHandleT            hLogIdl,
     if( CL_OK == retCode )
     {
         VDECL_VER(clLogStreamOwnerStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, retCode,
-                                               pCookie->compId, *pStreamAttr, *pStreamMcastAddr,
+                                               *pStreamName, *pStreamScope, 
+                                               *pStreamScopeNode, pCookie->compId,
+                                               *pStreamAttr, *pStreamMcastAddr,
                                                filter, ackerCnt, nonAckerCnt,
                                                *pStreamId);
     }   
@@ -1242,7 +1235,9 @@ clLogStreamOwnerMAVGResponse(ClIdlHandleT            hLogIdl,
         filter.pMsgIdSet = NULL;
         filter.pCompIdSet= NULL;
         VDECL_VER(clLogStreamOwnerStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, retCode,
-                                               pCookie->compId, *pStreamAttr, *pStreamMcastAddr,
+                                               *pStreamName, *pStreamScope, 
+                                               *pStreamScopeNode, pCookie->compId,
+                                               *pStreamAttr, *pStreamMcastAddr,
                                                filter, ackerCnt, nonAckerCnt,
                                                *pStreamId);
     }
@@ -1379,7 +1374,9 @@ clLogStreamOwnerMasterOpen(ClLogSOEoDataT         *pSoEoEntry,
     {
         CL_LOG_DEBUG_ERROR(("clLogStreamOwnerMAVGResponse(): rc[0x %x]", rc));
         VDECL_VER(clLogStreamOwnerStreamOpenResponseSend, 4, 0, 0)(pCookie->hDeferIdl, rc,
-                                               *pCompId, *pStreamAttr, multiCastAddr,
+                                               *pStreamName, streamScope,
+                                               *pStreamScopeNode, *pCompId,  
+                                               *pStreamAttr, multiCastAddr, 
                                                filter, 0, 0, streamId);
         clHeapFree(pCookie);
         CL_LOG_CLEANUP(clIdlHandleFinalize(hLogIdl), CL_OK);
@@ -1492,23 +1489,16 @@ clLogStreamOwnerEntryProcess(ClLogSOEoDataT          *pSoEoEntry,
     {
         /*
          * The same stream is already being in the creation process,
+         * wait for 100 ms and check the status and go out.
          */
         rc = clOsalCondWait_L(&pStreamOwnerData->nodeCond, 
                               &pStreamOwnerData->nodeLock, 
                               timeout);
-        /*
-         * Return ok in case we were woken up by the stream owner delete context
-         */
         if( (CL_GET_ERROR_CODE(rc) != CL_ERR_TIMEOUT) && (CL_OK != rc) )
         {
            CL_LOG_DEBUG_ERROR(("clOsalCondWait(); rc[0x %x]", rc));
-           if(pStreamOwnerData->condDelete)
-               rc = CL_OK;
-
            return rc;
         }    
-        if(pStreamOwnerData->condDelete)
-            return CL_OK;
     }    
     
     rc = clLogStreamOwnerCompRefCountGet(pSoEoEntry, streamScope,
@@ -1522,12 +1512,10 @@ clLogStreamOwnerEntryProcess(ClLogSOEoDataT          *pSoEoEntry,
         *  (use case compDown, after it has
         *  sent open request to Master)
         */
-        return CL_LOG_RC(CL_ERR_NOT_EXIST);
+       return CL_LOG_RC(CL_ERR_NOT_EXIST);
     }    
 
-    if( pStreamOwnerData->nodeStatus == CL_LOG_NODE_STATUS_UN_INIT
-        ||
-        pStreamOwnerData->nodeStatus == CL_LOG_NODE_STATUS_REINIT)
+    if( CL_LOG_NODE_STATUS_UN_INIT == pStreamOwnerData->nodeStatus )
     {
         if( openFlags != CL_LOG_STREAM_CREATE )
         {
@@ -1668,8 +1656,7 @@ clLogStreamOwnerStreamHdlrEntryAdd(ClLogStreamOwnerDataT     *pStreamOwnerData,
 ClRcT
 clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
                              ClIocNodeAddressT      nodeAddr,
-                             ClUint32T              compId,
-                             ClLogStreamOpenFlagsT  openFlags)
+                             ClUint32T              compId)
 {
     ClRcT                  rc              = CL_OK;
     ClLogCompKeyT          compKey         = {0};
@@ -1730,17 +1717,6 @@ clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
     /* Exist, Just increment the refCount */
     ++pData->refCount;
     ++pStreamOwnerData->openCnt;
-    if(pData->refCount > 1)
-    {
-        --pData->refCount;
-        --pStreamOwnerData->openCnt;
-        if(openFlags == CL_LOG_STREAM_CREATE 
-           && 
-           pStreamOwnerData->nodeStatus == CL_LOG_NODE_STATUS_INIT)
-        {
-            pStreamOwnerData->nodeStatus = CL_LOG_NODE_STATUS_REINIT;
-        }
-    }
 
     CL_LOG_DEBUG_TRACE(( "Exit: rc[0x%x]", rc));
     return rc;
@@ -1812,7 +1788,7 @@ clLogStreamOwnerEntryAdd(ClCntHandleT       hStreamTable,
         clHeapFree(pStreamOwnerData);
         return rc;
     }    
-    rc = clLogStreamOwnerFilterInit(&pStreamKey->streamName, &pStreamOwnerData->streamFilter);
+    rc = clLogStreamOwnerFilterInit(&pStreamOwnerData->streamFilter);
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clOsalMutexDestroy_L(&pStreamOwnerData->nodeLock), CL_OK);
@@ -2130,7 +2106,7 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
         return rc;
     }    
 
-    rc = clLogStreamOwnerCompEntryAdd(pStreamOwnerData, nodeAddr, *pCompId, openFlags);
+    rc = clLogStreamOwnerCompEntryAdd(pStreamOwnerData, nodeAddr, *pCompId);
     if( CL_OK != rc )
     {
         clOsalMutexUnlock_L(&pStreamOwnerData->nodeLock);
@@ -2160,10 +2136,6 @@ VDECL_VER(clLogStreamOwnerStreamOpen, 4, 0, 0)(
          * Should not be any error check, coz on success it may return 
          * this CL_LOG_ERR_STREAM_DELETE
          */
-        if(pStreamOwnerData->nodeStatus == CL_LOG_NODE_STATUS_REINIT)
-        {
-            pStreamOwnerData->nodeStatus = CL_LOG_NODE_STATUS_INIT;
-        }
         CL_LOG_CLEANUP(
                 clLogStreamOwnerCompEntryDelete(pStreamOwnerData, nodeAddr,  
                                                 *pCompId, &tableSize), 

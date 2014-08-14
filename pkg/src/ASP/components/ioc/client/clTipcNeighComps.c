@@ -285,10 +285,13 @@ ClRcT clIocCompStatusSet(ClIocPhysicalAddressT compAddr, ClUint32T status)
     }
 
     clOsalSemLock(gClTipcNeighborSem);
-    if(status == TIPC_PUBLISHED) {
+    if(status == CL_IOC_NODE_UP) 
+    {
         /*printf("Setting bit fiels for node %x and comp %x\n", compAddr.nodeAddress, compAddr.portId);*/
         CL_IOC_NEIGH_COMPS_STATUS_SET(compAddr.nodeAddress, compAddr.portId);
-    } else if(status == TIPC_WITHDRAWN) {
+    } 
+    else if(status == CL_IOC_NODE_DOWN)
+    {
         /*printf("Resetting bit fiels for node %x and comp %x\n", compAddr.nodeAddress, compAddr.portId); */
         CL_IOC_NEIGH_COMPS_STATUS_RESET(compAddr.nodeAddress, compAddr.portId);
     } 

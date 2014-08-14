@@ -18,7 +18,7 @@
 #include <clEoApi.h>
 #include <ipi/clRmdIpi.h>
 #include <string.h>
-#include "ckptEockptServerPeerPeerExtFuncServer.h"
+#include "ckptEockptServerExtCliServerFuncServer.h"
 #include "ckptEoServer.h"
 #include "ckptEoFuncTable.h"
 

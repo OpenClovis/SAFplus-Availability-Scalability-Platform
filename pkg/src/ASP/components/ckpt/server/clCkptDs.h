@@ -44,7 +44,7 @@ extern "C" {
 #include <clCntApi.h>
 #include <clTimerApi.h>
 #include <clCkptApi.h>
-
+#include <clCkptExtApi.h>
 #include <xdrCkptPeerT.h>
 #include <xdrCkptPrimInfoT.h>
 #include <xdrCkptSyncStateT.h>
@@ -135,6 +135,7 @@ typedef struct ckptSection
     ClSizeT             size;        /* Size of the section */
     ClTimeT             lastUpdated; /* When was the last update */
     ClTimerHandleT      timerHdl;    /* Expiration timer handle */
+    ClDifferenceVectorKeyT *differenceVectorKey;
 } CkptSectionT;
 
 
@@ -162,6 +163,7 @@ typedef struct ckptCtrlInfo
     ClCntHandleT    presenceList; /* List of replica Nodes in the system */
     ClCntHandleT    appInfoList; /* Maintaining application info for Immediate
                                     consumption */
+    ClUint64T       id;          /*unique checkpoint id*/
 }CkptCPlaneInfoT;
 
 

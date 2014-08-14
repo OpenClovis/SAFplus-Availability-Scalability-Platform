@@ -81,10 +81,8 @@ ClRcT  _clGmsTrackNotify(
     rc = _clGmsViewGetTrackAsync(thisViewDb, &changeList, &changeOnlyList); 
 
     if (rc != CL_OK) goto TRACK_NOTIFY_ERROR;
-
     rc = _clGmsDbGetFirst(thisViewDb, CL_GMS_TRACK, &gmsOpaque, 
                                                 (void **)&trackNode);
-
 
     if (rc != CL_OK) goto TRACK_NOTIFY_ERROR;
 

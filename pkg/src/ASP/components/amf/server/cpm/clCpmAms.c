@@ -1102,18 +1102,21 @@ static ClRcT _cpmNodeFailFastRestart(ClNameT *nodeName, ClUint32T restartFlag)
         
     if (CL_CPM_IS_ACTIVE())
     {
-        ClUint32T nodeRequest = 0;
+        ClBoolT nodeReset = CL_FALSE;
 
         clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_AMS,
                       "Node failfast/failover called for node [%*s]...",
                       nodeName->length, nodeName->value);
         
-        if(cpmDequeueAspRequest(nodeName, &nodeRequest) == CL_OK)
+        if(cpmDequeueAspRequest(nodeName, &nodeReset) == CL_OK)
         {
             /*
              * Save an env. override hint in the top 16 bits of the restart flag
              */
-            restartFlag |= CL_CPM_SET_RESTART_OVERRIDE(nodeRequest);
+            if(nodeReset) 
+                restartFlag |= CL_CPM_SET_RESTART_OVERRIDE(CL_CPM_RESTART_NODE);
+            else
+                restartFlag |= CL_CPM_SET_RESTART_OVERRIDE(CL_CPM_RESTART_ASP);
         }
 
         if (!strcmp(nodeName->value,
@@ -1495,7 +1498,7 @@ ClRcT VDECL(cpmCBResponse)(ClEoDataT data,
             {
                 ClInt32T tries = 0;
                 ClTimerTimeOutT delay = {.tsMilliSec = 100, .tsSec = 0 };
-
+                ClUint8T priority = CL_IOC_CPM_PRIORITY(cbType);
                 /*
                  * This is the critical path to forward responses to AMS master.
                  * We try hard to ensure that the response is forwarded to
@@ -1519,7 +1522,7 @@ ClRcT VDECL(cpmCBResponse)(ClEoDataT data,
                                                        0,
                                                        0,
                                                        0,
-                                                       0,
+                                                       priority,
                                                        NULL,
                                                        NULL,
                                                        MARSHALL_FN(ClCpmResponseT, 4, 0, 0));

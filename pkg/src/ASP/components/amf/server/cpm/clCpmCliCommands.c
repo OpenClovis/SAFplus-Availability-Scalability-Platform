@@ -589,6 +589,8 @@ ClRcT clCpmCompGet(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
     return rc;
 }
 
+#define STR_AND_SIZE(_x) (ClUint8T *) _x,sizeof(_x)-1
+
 ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
 {
     ClCntNodeHandleT hNode = 0;
@@ -607,9 +609,7 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
 
     if (argc != ONE_ARGUMENT)
     {
-        sprintf(tempStr, "Usage: compList");
-        rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
-                                 strlen(tempStr));
+        rc = clBufferNBytesWrite(message, (ClUint8T *) STR_AND_SIZE("Usage: compList"));
         CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to write message %x\n", rc), rc);
         rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
         goto done;
@@ -625,118 +625,77 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
     rc = clCntFirstNodeGet(gpClCpm->compTable, &hNode);
     CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to Get First component \n"), rc);
 
-    sprintf(tempStr, "%s",
-            "################### List Of Components ########################\n");
-    rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
-                             strlen(tempStr));
+    rc = clBufferNBytesWrite(message, (ClUint8T *) STR_AND_SIZE("################### List Of Components ########################\n"));
     CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
 
-    rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
-                              (ClCntDataHandleT *) &comp);
+    rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,(ClCntDataHandleT *) &comp);
     CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to Get Node  Data \n"), rc);
 
-    sprintf(tempStr, "%s",
-            "        CompName              | compId  |  eoPort  |   PID   | RestartCount  | PresenceState\n");
-    rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
-                             strlen(tempStr));
+    rc = clBufferNBytesWrite(message, STR_AND_SIZE("        CompName              | compId  |  eoPort  |   PID   | RestartCount  | PresenceState\n"));
     CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
 
-    sprintf(tempStr, "%s",
-            "\t\t     ID |     Port |     Name  |    Health |Recv Threads \n");
-    rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
-                             strlen(tempStr));
+    rc = clBufferNBytesWrite(message, STR_AND_SIZE("\t\t     ID |     Port |     Name  |    Health |Recv Threads \n"));   
     CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
 
-    sprintf(tempStr, "%s",
-            "========================================================================================\n");
-    rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
-                             strlen(tempStr));
+    rc = clBufferNBytesWrite(message, STR_AND_SIZE("========================================================================================\n"));    
     CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
 
     while (count)
     {
-        if (!strcmp(comp->compConfig->compName, cpmCompName))
+        
+        if (strcmp(comp->compConfig->compName, cpmCompName)!=0)  /* Skip if it is the CPM component */
         {
-            --count;
-            if(count > 0)
-            {
-                rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
-                CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to Get Node  Data %x\n", rc),
-                             rc);
-
-                rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
-                                          (ClCntDataHandleT *) &comp);
-                CL_CPM_CHECK(CL_DEBUG_ERROR,
-                             ("Unable to Get Node user Data %x\n", rc), rc);
-            }
-            continue;
-        }
-
-        eoList = comp->eoHandle;
             
-        if (comp->compConfig->compProperty != CL_AMS_COMP_PROPERTY_SA_AWARE)
-        {
-            sprintf(tempStr, "%30s| 0x%x | 0x%x |%8d |%14d |%15s\n",
-                    comp->compConfig->compName, comp->compId,
-                    comp->eoPort, comp->processId, comp->compRestartCount,
-                    _cpmPresenceStateNameGet(comp->compPresenceState));
+            eoList = comp->eoHandle;
 
-            if(!eoList || !eoList->eoptr)
+            int len = sprintf(tempStr, "%30s| 0x%x | 0x%x |%8d |%14d |%15s\n",
+                              comp->compConfig->compName, comp->compId,
+                              comp->eoPort, comp->processId, comp->compRestartCount,
+                              _cpmPresenceStateNameGet(comp->compPresenceState));
+            
+            if (comp->compConfig->compProperty != CL_AMS_COMP_PROPERTY_SA_AWARE)
             {
-                snprintf(tempStr + strlen(tempStr), 
-                         sizeof(tempStr) - strlen(tempStr), 
-                         "\t\t   0x%x  |  0x%x   |%10s |%10s |%04d \n",
-                         0, 0, "-", "-", 0);
+
+                if(!eoList || !eoList->eoptr)
+                {
+                    len += snprintf(tempStr + len, sizeof(tempStr) - len, 
+                                    "\t\t   0x%x  |  0x%x   |%10s |%10s |%04d \n",
+                                    0, 0, "-", "-", 0);
+                }
             }
-        }
-        else
-        {
-            sprintf(tempStr, "%30s| 0x%x | 0x%x |%8d |%14d |%15s\n",
-                    comp->compConfig->compName, comp->compId,
-                    comp->eoPort, comp->processId, comp->compRestartCount,
-                    _cpmPresenceStateNameGet(comp->compPresenceState));
-        }
-        rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
-                                 strlen(tempStr));
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
 
-        while (eoList != NULL && eoList->eoptr != NULL)
-        {
-            compMgrStateStatusGet(eoList->status, eoList->eoptr->state, status, sizeof(status),
-                                  state, sizeof(state));
-            if (eoList->eoptr->appType == CL_EO_USE_THREAD_FOR_RECV)
-                sprintf(tempStr, "\t\t   0x%llx  |  0x%x   |%10s |%10s |%04d \n",
-                        eoList->eoptr->eoID, eoList->eoptr->eoPort,
-                        eoList->eoptr->name, status,
-                        eoList->eoptr->noOfThreads + 1);
-            else
-                sprintf(tempStr, "\t\t   0x%llx  |  0x%x   |%10s |%10s |%04d \n",
-                        eoList->eoptr->eoID, eoList->eoptr->eoPort,
-                        eoList->eoptr->name, status,
-                        eoList->eoptr->noOfThreads);
-            rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
-                                     strlen(tempStr));
+            rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,len);
             CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
-            eoList = eoList->pNext;
-        }
 
+            while (eoList != NULL && eoList->eoptr != NULL)
+            {
+                compMgrStateStatusGet(eoList->status, eoList->eoptr->state, status, sizeof(status),
+                                      state, sizeof(state));
+                int noOfThreads = (eoList->eoptr->appType == CL_EO_USE_THREAD_FOR_RECV) ? eoList->eoptr->noOfThreads + 1: eoList->eoptr->noOfThreads;
+
+                int len = sprintf(tempStr, "\t\t   0x%llx  |  0x%x   |%10s |%10s |%04d \n",
+                                  eoList->eoptr->eoID, eoList->eoptr->eoPort,
+                                  eoList->eoptr->name, status,
+                                  noOfThreads);
+                rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr, len);
+                CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+                eoList = eoList->pNext;
+            }
+        
+            rc = clBufferNBytesWrite(message, STR_AND_SIZE("-----------------------------------------------------------------------------------------\n"));
+            CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
+        
+        }
+        
         count--;
         if (count)
         {
             rc = clCntNextNodeGet(gpClCpm->compTable, hNode, &hNode);
-            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to Get Node  Data %x\n", rc),
-                         rc);
+            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to Get Node  Data %x\n", rc), rc);
 
-            rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode,
-                                      (ClCntDataHandleT *) &comp);
-            CL_CPM_CHECK(CL_DEBUG_ERROR,
-                         ("Unable to Get Node user Data %x\n", rc), rc);
+            rc = clCntNodeUserDataGet(gpClCpm->compTable, hNode, (ClCntDataHandleT *) &comp);
+            CL_CPM_CHECK(CL_DEBUG_ERROR, ("Unable to Get Node user Data %x\n", rc), rc);
         }
-        sprintf(tempStr, "%s",
-                "-----------------------------------------------------------------------------------------\n");
-        rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr,
-                                 strlen(tempStr));
-        CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
 
     }
 
@@ -746,12 +705,11 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
      * below the done: label, so that the usage string
      * written to the buffer is also NULL terminated.
      */
-    done:
+done:
     /*
      * NULL terminate the string 
      */
-    sprintf(tempStr, "%s", "\0");
-    rc = clBufferNBytesWrite(message, (ClUint8T *) tempStr, 1);
+    rc = clBufferNBytesWrite(message, (ClUint8T *) "\0", 1);
     CL_CPM_CHECK(CL_DEBUG_ERROR, ("\n Unable to write message \n"), rc);
 
     rc = clBufferFlatten(message, (ClUint8T **) &tmpStr);
@@ -762,7 +720,7 @@ ClRcT _clCpmComponentListAll(ClInt32T argc, ClCharT **retStr)
     clBufferDelete(&message);
     return rc;
 
-    failure:
+failure:
     clBufferDelete(&message);
     return rc;
 }
@@ -771,7 +729,11 @@ ClRcT clCpmComponentListAll(ClUint32T argc, ClCharT *argv[], ClCharT **retStr)
 {
     ClRcT rc = CL_OK;
 
+    clOsalMutexLock(gpClCpm->compTableMutex);
+
     rc = _clCpmComponentListAll(argc, retStr);
+
+    clOsalMutexUnlock(gpClCpm->compTableMutex);
 
     return rc;
 }

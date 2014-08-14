@@ -91,6 +91,8 @@ installRequired e2fsprogs
 installRequired libperl-dev
 installRequired libltdl3-dev
 installRequired e2fslibs-dev
+install psmisc
+install unzip
 
 if [ $(uname -m) ==  "x86_64" ]; then
     installRequired ia32-libs

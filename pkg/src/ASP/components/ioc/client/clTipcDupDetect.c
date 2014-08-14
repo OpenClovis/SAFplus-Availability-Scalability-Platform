@@ -80,7 +80,7 @@ static ClUint32T clTipcOwnAddrGet(void)
     CL_ASSERT(rc >= 0);
     
     close(sd);
-    return addr.addr.id.node;
+    return tipc_node(addr.addr.id.node);
 }
 
 
@@ -97,7 +97,6 @@ static ClRcT clTipcAcquireAddr(ClUint32T type, ClUint32T instance)
     ClInt32T bytes;
     ClUint32T i;
 #endif
-
     bzero((char*)&hostAddress,sizeof(hostAddress));
     if(getsockname(gSd,(struct sockaddr*)&hostAddress,&addrLen) < 0 )
     {
@@ -181,6 +180,7 @@ wait_on_recv:
     }
     if(event.event == TIPC_PUBLISHED)
     {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("TIPC duplicate. Lower: %u, Upper: %u, Port: (ref:%u.node:%u) Subscription: (name: (%u.%u.%u), timeout %u, filter: %x)", event.found_lower, event.found_upper, event.port.ref, event.port.node, event.s.seq.type,event.s.seq.lower,event.s.seq.upper, event.s.timeout, event.s.filter));
         rc = CL_IOC_RC(CL_IOC_ERR_NODE_EXISTS);
         goto dup_detected;
     }
@@ -243,9 +243,10 @@ out:
  */
 ClRcT clIocDoesNodeAlreadyExist(ClInt32T *pSd)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClInt32T ret;
-    
+    ClUint32T tipcAddress = 0;
+
     gSd = socket(AF_TIPC, SOCK_DGRAM, 0);
     if(gSd < 0)
     {
@@ -258,21 +259,26 @@ ClRcT clIocDoesNodeAlreadyExist(ClInt32T *pSd)
     if(getenv("ASP_MULTINODE") == NULL)
     {
         /* Check whether another TIPC node with same tipc address <z.c.n>,
-           as of this node exists */
-        rc = clTipcIsAddressInUse(CL_TIPC_SET_TYPE(CL_IOC_TIPC_PORT), clTipcOwnAddrGet());
+         * as of this node exists 
+         */
+        tipcAddress = clTipcOwnAddrGet();
+        rc = clTipcIsAddressInUse(CL_TIPC_SET_TYPE(CL_IOC_TIPC_PORT), tipcAddress);
         if(rc != CL_OK) 
             goto error_detected;
     }
 
     *pSd = gSd;
-
-    /* Check whether another ASP-node is using same IOC address as of this ASP */
-    rc = clTipcIsAddressInUse(CL_TIPC_SET_TYPE(CL_IOC_TIPC_PORT),
-            gIocLocalBladeAddress);
+    
+    if(tipcAddress != gIocLocalBladeAddress)
+    {
+        /* Check whether another ASP-node is using same IOC address as of this ASP */
+        rc = clTipcIsAddressInUse(CL_TIPC_SET_TYPE(CL_IOC_TIPC_PORT),
+                                  gIocLocalBladeAddress);
+    }
     if(rc == CL_OK)
-         return rc;
+        return rc;
 
-error_detected:
+    error_detected:
     close(gSd);
     return rc;
 }

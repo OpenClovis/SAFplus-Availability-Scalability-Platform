@@ -48,7 +48,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <clXdrApi.h>
-// added for job queue
+// added for using job queue for call backs
 #include "clJobQueue.h"
 
 /******************************************************************************
@@ -2067,13 +2067,13 @@ VDECL (cl_gms_cluster_track_callback_rmd) (
      *  the callback from the application thread 
      */
 
-    // added cluster calllback to job queue
     #if 1
-    // instead of directly invking the call back handler invoke through job queue
+    // Instead of directly invoking the call back handler invoke through job queue
+    // TODO Have to migrate the functionality to IPI rather than calling API
     #define CL_NUM_JOB_QUEUES CL_IOC_MAX_PRIORITIES
     extern ClJobQueueT gEoJobQueues[CL_NUM_JOB_QUEUES];
 
-    // response contents are already heap allocated by unmarhall func
+    // response contents are already heap allocated by unmarhall function
 
     rc = clJobQueuePush (&gEoJobQueues[CL_IOC_LOW_PRIORITY], (ClCallbackT) clGmsClusterTrackCallbackHandler, res);
     CL_DEBUG_PRINT(CL_DEBUG_INFO, ("clJobQueuePush rc [0x%x]\n",rc));
@@ -2256,7 +2256,7 @@ VDECL (cl_gms_group_track_callback_rmd) (
     ClRcT rc = CL_OK;
     ClGmsGroupTrackCallbackDataT *res = NULL;
 
-    // added code for cluster simialr calling
+    // added code for cluster callback handle in queue
     ClGmsLibInstanceT *gmsInstance = NULL;
     ClGmsHandleT gmsHandle = CL_HANDLE_INVALID_VALUE;
 

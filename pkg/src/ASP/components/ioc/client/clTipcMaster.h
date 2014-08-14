@@ -24,10 +24,6 @@
 
 #include <clIocConfig.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #define CL_TIPC_MASTER_SEGMENT_SIZE       CL_TIPC_ALIGN((CL_IOC_MAX_COMPONENTS_PER_NODE * sizeof(ClIocNodeAddressT)), 8)
 
 #define CL_IOC_TIPC_MASTER_TYPE(port)   ((CL_IOC_MASTER_ADDRESS_TYPE << CL_IOC_ADDRESS_TYPE_SHIFT_WORD) | ((port) & CL_IOC_COMM_PORT_MASK))
@@ -37,9 +33,5 @@ void clTipcMasterSegmentInitialize(void *pMasgerSegment, ClOsalSemIdT masterSem)
 void clTipcMasterSegmentFinalize(void);
 void clTipcMasterSegmentUpdate(ClIocPhysicalAddressT compAddr);
 void clTipcMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT master);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

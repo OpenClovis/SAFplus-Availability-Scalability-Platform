@@ -38,6 +38,7 @@
 #include <clCmApi.h>
 #include <include/clCmDefs.h>
 #include <clIocApi.h>
+#include <clIocIpi.h>
 #include <clIocServices.h>
 #include <clCorApi.h>
 #include <clCorUtilityApi.h>
@@ -47,7 +48,7 @@
 #include <clCpmApi.h>
 #include <clCpmExtApi.h>
 #include <clCmServerFuncTable.h>
-
+#include <clXdrApi.h>
 
 static ClRcT 
 clCmServerAddressGet(ClIocNodeAddressT *pIocAddress);
@@ -119,7 +120,8 @@ ClRcT clCmRmdWithMsg(ClUint32T funcId,
 	ClRcT rc = CL_OK;
 	ClIocAddressT cmServerAddress ;
 	ClRmdOptionsT rmdOptions = CL_RMD_DEFAULT_OPTIONS; 
-    
+    ClUint8T status = 0;
+
 	rc=clCmServerAddressGet(&cmServerAddress.iocPhyAddress.nodeAddress); 
 	if(rc != CL_OK )
 	{
@@ -130,6 +132,11 @@ ClRcT clCmRmdWithMsg(ClUint32T funcId,
     cmServerAddress.iocPhyAddress.nodeAddress));
 
 	cmServerAddress.iocPhyAddress.portId= CL_IOC_CM_PORT;
+    clIocCompStatusGet(cmServerAddress.iocPhyAddress, &status);
+    if(status == CL_IOC_NODE_DOWN)
+    {
+        return CL_IOC_RC(CL_IOC_ERR_COMP_UNREACHABLE);
+    }
 
 	memset((void*)&rmdOptions, 0 ,sizeof(rmdOptions));
     
@@ -390,7 +397,6 @@ static ClRcT clCmServerAddressGet(ClIocNodeAddressT *pIocAddress)
 
 ClRcT clCmCpmResponseHandle(ClCpmCmMsgT * pClCpmCmMsg)
 {
-    return CL_OK; /* currently CM doesn't do anything on receiving AMF response */
     ClRcT rc = CL_OK;
 	ClBufferHandleT inputMsg;
     ClRmdAsyncOptionsT  rmdAsyncOptions;
@@ -469,3 +475,79 @@ clCmVersionVerify(ClVersionT *version)
     return rc;
 }
 
+ClRcT
+clCmThresholdStateGet(ClUint32T slot, ClCmThresholdLevelT *pLevel, ClBoolT *pAsserted)
+{
+	ClRcT rc = CL_OK;
+    ClCmThresholdStateReqT stateReq = {{0}};
+    SaHpiEventStateT eventState = 0;
+    ClBufferHandleT inMsg = 0;
+    ClBufferHandleT outMsg = 0;
+
+    if(!slot || (!pLevel && !pAsserted))
+    {
+        return CL_CM_ERROR(CL_ERR_INVALID_PARAMETER);
+    }
+
+	CL_CM_VERSION_SET(stateReq.version);
+    stateReq.slot = slot;
+    stateReq.sensorNum = 0;
+
+    rc = clBufferCreate(&inMsg);
+    rc |= clBufferCreate(&outMsg);
+
+    if(rc != CL_OK)
+    {
+		CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nMessage Creation failed rc:0x%x",rc));
+        goto out_delete;
+    }
+    
+    rc =  clXdrMarshallClVersionT((void*)&stateReq.version, inMsg, 0);
+    rc |= clXdrMarshallClUint32T((void*)&stateReq.slot, inMsg, 0);
+    rc |= clXdrMarshallClUint32T((void*)&stateReq.sensorNum, inMsg, 0);
+    
+    if(rc != CL_OK )
+    {
+		CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Xdr marshall of threshold request failed with [%#x]", rc));
+        goto out_delete;
+	}
+
+	if((rc = clCmRmdWithMsg( 
+                    CL_CHASSIS_MANAGER_THRESHOLD_STATE_GET,
+					inMsg,
+					outMsg,
+                    CL_RMD_CALL_ATMOST_ONCE | CL_RMD_CALL_NEED_REPLY,
+					NULL
+					))!= CL_OK )
+   {
+       if(CL_GET_ERROR_CODE(rc) != CL_IOC_ERR_COMP_UNREACHABLE)
+       {
+           CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\nclCmRmdWithMsg Call in to CM failed with rc:0x%x",rc));
+       }
+       goto out_delete;
+	}
+
+    rc = clXdrUnmarshallClUint16T(outMsg, (void*)&eventState);
+    if(rc != CL_OK)
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Umarshall of event state failed with [%#x]", rc));
+        goto out_delete;
+    }
+
+    if(pLevel)
+        *pLevel = (ClCmThresholdLevelT)eventState;
+    
+    if(pAsserted)
+    {
+        *pAsserted = CL_FALSE;
+        if((eventState & (CL_CM_THRESHOLD_LOWER_MAJOR | CL_CM_THRESHOLD_LOWER_CRIT | \
+                          CL_CM_THRESHOLD_UPPER_MAJOR | CL_CM_THRESHOLD_UPPER_CRIT)))
+           *pAsserted = CL_TRUE;
+    }
+
+    out_delete:
+    if(inMsg) clBufferDelete(&inMsg);
+    if(outMsg) clBufferDelete(&outMsg);
+
+	return rc;
+}

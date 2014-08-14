@@ -49,6 +49,10 @@ typedef CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_4_0_0 CkptEoClCkptRemSvrCkp
 
 ClRcT clCkptRemSvrCkptInfoSyncClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClNameT* pCkptName, CL_IN CkptCPInfoT_4_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo,CL_IN CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
+typedef void (*CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_5_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClNameT* pCkptName, CL_IN CkptCPInfoT_5_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
+
+ClRcT clCkptRemSvrCkptInfoSyncClientAsync_5_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClNameT* pCkptName, CL_IN CkptCPInfoT_5_0_0* pCpInfo, CL_IN CkptDPInfoT_4_0_0* pDpInfo,CL_IN CkptEoClCkptRemSvrCkptInfoSyncAsyncCallbackT_5_0_0 fpAsyncCallback, CL_IN void *cookie);
+
 ClRcT clCkptRemSvrCkptInfoGetClientSync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT ckptActHdl, CL_IN ClUint32T peerAddr, CL_OUT CkptInfoT_4_0_0* pCkptInfo);
 
 typedef void (*CkptEoClCkptRemSvrCkptInfoGetAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClUint32T  peerAddr, CL_OUT CkptInfoT_4_0_0* pCkptInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
@@ -56,6 +60,12 @@ typedef void (*CkptEoClCkptRemSvrCkptInfoGetAsyncCallbackT_4_0_0) (CL_IN ClIdlHa
 typedef CkptEoClCkptRemSvrCkptInfoGetAsyncCallbackT_4_0_0 CkptEoClCkptRemSvrCkptInfoGetAsyncCallbackT;
 
 ClRcT clCkptRemSvrCkptInfoGetClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClUint32T  peerAddr, CL_OUT CkptInfoT_4_0_0* pCkptInfo,CL_IN CkptEoClCkptRemSvrCkptInfoGetAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+
+ClRcT clCkptRemSvrCkptInfoGetClientSync_5_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT ckptActHdl, CL_IN ClUint32T peerAddr, CL_OUT CkptInfoT_5_0_0* pCkptInfo);
+
+typedef void (*CkptEoClCkptRemSvrCkptInfoGetAsyncCallbackT_5_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClUint32T  peerAddr, CL_OUT CkptInfoT_5_0_0* pCkptInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
+
+ClRcT clCkptRemSvrCkptInfoGetClientAsync_5_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN ClUint32T  peerAddr, CL_OUT CkptInfoT_5_0_0* pCkptInfo,CL_IN CkptEoClCkptRemSvrCkptInfoGetAsyncCallbackT_5_0_0 fpAsyncCallback, CL_IN void *cookie);
 
 typedef void (*CkptEoClCkptRemSvrSectionInfoUpdateAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClHandleT  ckptActHdl, CL_IN CkptUpdateFlagT_4_0_0  updateFlag, CL_IN CkptSectionInfoT_4_0_0* pSecInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
 

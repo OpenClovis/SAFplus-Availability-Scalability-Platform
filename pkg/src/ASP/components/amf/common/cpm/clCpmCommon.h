@@ -69,6 +69,7 @@ struct _ClCpmLocalInfoT_4_0_0;
 #define CL_CPM_PROXIED_INSTANTIATE_CALLBACK __CPM_CALLBACK(0x6)
 #define CL_CPM_PROXIED_CLEANUP_CALLBACK     __CPM_CALLBACK(0x7)
 #define CL_CPM_CSI_QUIESCING_CALLBACK       __CPM_CALLBACK(0x8)
+#define CL_CPM_INSTANTIATE_REGISTER_CALLBACK __CPM_CALLBACK(0x9)
 #define CL_CPM_MAX_CALLBACK                 __CPM_CALLBACK(0x10)
 
 /*
@@ -78,6 +79,16 @@ struct _ClCpmLocalInfoT_4_0_0;
 #define CL_CPM_INVOCATION_AMS               0x2
 #define CL_CPM_INVOCATION_DATA_SHARED       0x4
 #define CL_CPM_INVOCATION_DATA_COPIED       0x8
+
+/*
+ * AMF priorities
+ */
+#define CL_IOC_CPM_PRIORITY(pri) (CL_IOC_MAX_PRIORITIES + (pri))
+#define CL_IOC_CPM_INSTANTIATE_PRIORITY CL_IOC_CPM_PRIORITY(CL_CPM_INSTANTIATE_REGISTER_CALLBACK)
+#define CL_IOC_CPM_TERMINATE_PRIORITY CL_IOC_CPM_PRIORITY(CL_CPM_TERMINATE_CALLBACK)
+#define CL_IOC_CPM_CSISET_PRIORITY CL_IOC_CPM_PRIORITY(CL_CPM_CSI_SET_CALLBACK)
+#define CL_IOC_CPM_CSIRMV_PRIORITY CL_IOC_CPM_PRIORITY(CL_CPM_CSI_RMV_CALLBACK)
+#define CL_IOC_CPM_CSIQUIESCING_PRIORITY CL_IOC_CPM_PRIORITY(CL_CPM_CSI_QUIESCING_CALLBACK)
 
 /* 
  * Macro for error checking and logging. Should be refined someday if
@@ -296,7 +307,6 @@ typedef struct clCpm
      * enable it.
      */
     ClBoolT enableHeartbeat;
-    
 
     /**
      * Flag to indicate wether the event server is up. If the flag is
@@ -329,10 +339,6 @@ typedef struct clCpm
 
     ClOsalMutexT heartbeatMutex;
     ClOsalCondT  heartbeatCond;
-    
-    ClBoolT enableCustomHeartbeat;    
-    ClOsalMutexT customHeartbeatMutex;
-    ClOsalCondT  customHeartbeatCond;
 
     /**
      * Mutex to have exclusive access to the eo list.

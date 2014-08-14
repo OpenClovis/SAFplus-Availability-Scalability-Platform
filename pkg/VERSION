@@ -1,0 +1,14 @@
+BUILD_NUMBER=devel
+PACKAGE_VERSION=5.1
+PACKAGE_NAME=asp
+REVISION=devel
+
+#################################################################################
+# What: OpenClovis VERSION file
+# Who: Matt Schettler
+# Why: Provide a parseable file to get the current build's REVISION and VERSION
+#      Used by aspinfo to enable the 'version' command and used by installer
+#      for choosing the proper directory to install SDK
+# This file is updated with the proper REVISION when C3PO builds the package.
+# A revision of 'devel' means this has not passed through C3PO yet
+#################################################################################

@@ -82,3 +82,52 @@ ClRcT clXdrUnmarshallCkptInfoT_4_0_0(ClBufferHandleT msg , void* pGenVar)
 }
 
 
+ClRcT clXdrUnmarshallCkptInfoT_5_0_0(ClBufferHandleT msg , void* pGenVar)
+{
+    CkptInfoT_5_0_0* pVar = (CkptInfoT_5_0_0*)pGenVar;
+    ClRcT     rc     = CL_OK;
+    ClUint32T length = 0;
+
+    if ((void*)0 == pVar)
+    {
+        return CL_XDR_RC(CL_ERR_NULL_POINTER);
+    }
+
+    clXdrUnmarshallClUint32T(msg, &length);
+    if( 0 == length)
+    {
+        pGenVar = NULL;
+    }
+    else
+    {
+
+    rc = clXdrUnmarshallClHandleT(msg,&(pVar->ckptHdl));
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallPtrClNameT(msg,(void**)&(pVar->pName),1);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallPtrCkptCPInfoT_5_0_0(msg,(void**)&(pVar->pCpInfo),1);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    rc = clXdrUnmarshallPtrCkptDPInfoT_4_0_0(msg,(void**)&(pVar->pDpInfo),1);
+    if (CL_OK != rc)
+    {
+        return rc;
+    }
+
+    }
+
+    return rc;
+}
+
+

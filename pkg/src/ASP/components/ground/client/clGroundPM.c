@@ -57,3 +57,4 @@ ClRcT clPMLibFinalize(void)
     assert(CL_FALSE);
     return CL_OK;
 }
+

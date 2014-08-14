@@ -53,6 +53,10 @@ ClRcT clCkptDeputyCkptInfoUpdate_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClU
 
 ClRcT clCkptDeputyCkptInfoUpdateResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
 
+ClRcT clCkptDeputyCkptInfoUpdate_5_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN ClUint32T  numOfCkpts, CL_IN CkptInfoT_5_0_0*  pCkptInfo);
+
+ClRcT clCkptDeputyCkptInfoUpdateResponseSend_5_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);
+
 ClRcT clCkptCreateInfoDeputyUpdate_4_0_0(CL_INOUT ClVersionT*  pVersion, CL_IN CkptOpenInfoT_4_0_0*  openInfo, CL_IN CkptCreateInfoT_4_0_0*  pCreateInfo);
 
 ClRcT clCkptCreateInfoDeputyUpdateResponseSend_4_0_0(CL_IN ClIdlHandleT idlHdl,CL_IN ClRcT retCode,CL_INOUT  ClVersionT  pVersion);

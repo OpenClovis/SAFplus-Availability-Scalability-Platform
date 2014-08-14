@@ -51,6 +51,7 @@
 #include <clAmsEntityUserData.h>
 #include <clAmsNotifications.h>
 #include <clCpmInternal.h>
+#include <clEoIpi.h>
 
 /******************************************************************************
  * Global data structures
@@ -170,6 +171,8 @@ ClAmsEntityParamsT  gClAmsEntityParams[] =
         sizeof(ClAmsCSIT),
     }
 };
+
+static ClUint32T gClAmsTimerToPriMap[CL_AMS_COMP_TIMER_MAX];
 
 /******************************************************************************
  * AMS Entity Methods
@@ -291,6 +294,11 @@ amsEntityReset(
                     clAmsAdminStateNotificationPublish(&su->config.entity,
                                                        CL_AMS_ADMIN_STATE_SHUTTINGDOWN,
                                                        CL_AMS_ADMIN_STATE_LOCKED_A);
+            }
+
+            if(su->config.adminState == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART )
+            {
+                su->config.adminState = CL_AMS_ADMIN_STATE_UNLOCKED;
             }
 
             su->status.presenceState       = CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
@@ -4479,9 +4487,85 @@ clAmsEntityTimerIsRunning(
 
 }
 
+static ClRcT
+amsEntityTimerRestart(
+                      CL_IN  ClAmsEntityT  *entity, 
+                      CL_IN  ClAmsEntityTimerT *entityTimer)
+{
+
+    ClAmsEntityStatusT  *status = NULL;
+    ClAmsT *ams = &gAms;
+    ClRcT rc = CL_OK;
+
+    AMS_CHECKPTR ( !entity );
+
+    if ( !entityTimer->count )
+    {
+        clLogNotice("ENTITY", "TIMEOUT", "Restart entity failed as count is 0");
+        return CL_OK;
+    }
+
+    status = clAmsEntityGetStatusStruct(entity);
+    if ( entityTimer->handle )
+    {
+        AMS_CHECK_RC_ERROR( clTimerRestart(entityTimer->handle) );
+        AMS_ENTITY_LOG(entity,CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+                ("Timer Restart: Entity [%s] Type [%s]\n",
+                 entity->name.value,
+                 CL_AMS_STRING_TIMER(entityTimer->type)));
+    }
+
+    return CL_OK;
+
+    exitfn:
+    entityTimer->count = 0;
+    if(status)
+    {
+        status->timerCount--;
+    }
+    ams->timerCount--;
+    return rc;
+}
+
+/*
+ * Initialize the timer to prio. map for the entities to check messages
+ * pending in the response queue for amf.
+ */
+void clAmsEntityInitialize(void)
+{
+    ClUint32T i;
+    ClUint32T prio = 0;
+    for(i = 0; i < sizeof(gClAmsTimerToPriMap)/sizeof(gClAmsTimerToPriMap[0]); ++i)
+    {
+        switch((ClAmsEntityTimerTypeT)i)
+        {
+        case CL_AMS_COMP_TIMER_INSTANTIATE:
+        case CL_AMS_COMP_TIMER_INSTANTIATEDELAY:
+            prio = CL_IOC_CPM_INSTANTIATE_PRIORITY;
+            break;
+        case CL_AMS_COMP_TIMER_TERMINATE:
+            prio = CL_IOC_CPM_TERMINATE_PRIORITY;
+            break;
+        case CL_AMS_COMP_TIMER_CSISET:
+            prio = CL_IOC_CPM_CSISET_PRIORITY;
+            break;
+        case CL_AMS_COMP_TIMER_CSIREMOVE:
+            prio = CL_IOC_CPM_CSIRMV_PRIORITY;
+            break;
+        case CL_AMS_COMP_TIMER_QUIESCINGCOMPLETE:
+            prio = CL_IOC_CPM_CSIQUIESCING_PRIORITY;
+            break;
+        default:
+            prio = 0;
+            break;
+        }
+        gClAmsTimerToPriMap[i] = prio;
+    }
+}
+
 ClRcT
 clAmsEntityTimeout(
-        CL_IN  ClAmsEntityTimerT  *timer ) 
+                   CL_IN  ClAmsEntityTimerT  *timer ) 
 {
 
     ClRcT  rc = CL_OK;
@@ -4505,17 +4589,17 @@ clAmsEntityTimeout(
      */
 
     AMS_CALL ( clAmsEntityTimerGetValues(
-                timer->entity,
-                timer->type,
-                &duration,
-                &entityTimer,
-                &fn) );
+                                         timer->entity,
+                                         timer->type,
+                                         &duration,
+                                         &entityTimer,
+                                         &fn) );
 
     if ( !fn || (fn == (ClTimerCallBackT) clAmsEntityTimeout) )
     {
         AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_ERROR,
-            ("ERROR: Timeout fn for timer[%d] is not configured for entity[%s]\n",
-             timer->type, timer->entity->name.value));
+                       ("ERROR: Timeout fn for timer[%d] is not configured for entity[%s]\n",
+                        timer->type, timer->entity->name.value));
 
         return CL_AMS_RC(CL_ERR_TIMEOUT);
     }
@@ -4532,25 +4616,40 @@ clAmsEntityTimeout(
     if ( !timer->count )
     {
         AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
-                ("Timer Pop/Ignored: Entity [%s] Type [%s] : Ignoring timer as it was cleared while waiting for mutex\n", 
-                 timer->entity->name.value,
-                 CL_AMS_STRING_TIMER(timer->type)));
+                       ("Timer Pop/Ignored: Entity [%s] Type [%s] : Ignoring timer as it was cleared while waiting for mutex\n", 
+                        timer->entity->name.value,
+                        CL_AMS_STRING_TIMER(timer->type)));
     }
     else
     {
+        ClUint32T pri = 0;
         AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
-                ("Timer Pop/Enter: Entity [%s] Type [%s]\n", 
-                 timer->entity->name.value,
-                 CL_AMS_STRING_TIMER(timer->type)));
-
+                       ("Timer Pop/Enter: Entity [%s] Type [%s]\n", 
+                        timer->entity->name.value,
+                        CL_AMS_STRING_TIMER(timer->type)));
+        /*
+         * Check if we have pending operations possible against the timer that popped
+         */
         ams->ops.currentOp = timer->currentOp;
+        pri = gClAmsTimerToPriMap[(ClInt32T)timer->type];
+        if(pri && clEoQueueAmfResponseFind(pri))
+        {
+            clLogNotice("ENTITY", "TIMEOUT", "Deferring entity timeout processing "
+                        "for [%s] %s as timer [%s] has unprocessed messages",
+                        CL_AMS_STRING_ENTITY_TYPE(timer->entity->type),
+                        timer->entity->name.value,
+                        CL_AMS_STRING_TIMER(timer->type));
+            amsEntityTimerRestart(timer->entity, entityTimer);
+        }
+        else
+        {
+            rc = fn(timer);
 
-        rc = fn(timer);
-
-        AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
-                ("Timer Pop/Exit: Entity [%s] Type [%s]\n", 
-                 timer->entity->name.value,
-                 CL_AMS_STRING_TIMER(timer->type)));
+            AMS_ENTITY_LOG(timer->entity, CL_AMS_MGMT_SUB_AREA_TIMER, CL_DEBUG_TRACE,
+                           ("Timer Pop/Exit: Entity [%s] Type [%s]\n", 
+                            timer->entity->name.value,
+                            CL_AMS_STRING_TIMER(timer->type)));
+        }
     }
 
     AMS_CALL ( clOsalMutexUnlock(ams->mutex) );
@@ -4559,7 +4658,7 @@ clAmsEntityTimeout(
     if ( !ams->timerCount && (ams->serviceState == CL_AMS_SERVICE_STATE_STOPPED) )
     {
         AMS_LOG (CL_DEBUG_TRACE,
-             ("Terminating Cluster: Pending timers have popped. AMF Stopped\n"));
+                 ("Terminating Cluster: Pending timers have popped. AMF Stopped\n"));
 
         AMS_CALL ( clOsalMutexLock(ams->terminateMutex) );
         AMS_CALL ( clOsalCondSignal(ams->terminateCond) );
@@ -4654,7 +4753,7 @@ clAmsCSIMarshalCSIDescriptorExtended(
          * Send TARGET_ONE in case of CSI reassignment after component restart
          */
         if(reassignCSI) 
-            csiDescriptor->csiFlags = CL_AMS_CSI_FLAG_TARGET_ONE; 
+            csiDescriptor->csiFlags = CL_AMS_CSI_FLAG_ADD_ONE; 
 
         /*
          * Get the number of NVP's in the NVP list

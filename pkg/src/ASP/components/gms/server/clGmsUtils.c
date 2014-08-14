@@ -80,6 +80,7 @@ _clGmsCliPrint (char  **retstr, char *format , ... )
    in the clGmsEngine.c File. 
  */
 void *pluginHandle;
+
 #ifndef VXWORKS_BUILD 
 void 
 _clGmsLoadUserAlgorithm(const ClUint32T groupid , 
@@ -345,7 +346,7 @@ int OpenAisConfFileCreate(char* ipAddr,
             "\t    to_syslog: %s\n"
             "\t    syslog_facility: local5\n"
             "\t    logfile: %s\n"
-            "\t    debug: off\n"
+            "\t    debug: on\n"
             "\t    timestamp: on\n"
             "}\n\n"
 

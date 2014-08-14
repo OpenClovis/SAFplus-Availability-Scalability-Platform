@@ -25,11 +25,11 @@ extern "C" {
 
 
 
-typedef void (*LogClLogStreamOwnerStreamOpenAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClUint8T  logOpenFlags, CL_IN ClUint32T  nodeAddr, CL_IN ClNameT* pStreamName, CL_IN ClUint32T* pStreamScope, CL_IN ClNameT* pStreamScopeNode, CL_INOUT ClUint32T* compId, CL_INOUT ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_OUT ClUint64T* pStreamMastAddr, CL_OUT ClLogFilterT_4_0_0* pStreamFilter, CL_OUT ClUint32T* pAckerCnt, CL_OUT ClUint32T* pNonAckerCnt, CL_INOUT ClUint16T* pStreamId, CL_IN ClRcT rc, CL_IN void* pCookie);
+typedef void (*LogClLogStreamOwnerStreamOpenAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClUint8T  logOpenFlags, CL_IN ClUint32T  nodeAddr, CL_INOUT ClNameT* pStreamName, CL_INOUT ClUint32T* pStreamScope, CL_INOUT ClNameT* pStreamScopeNode, CL_INOUT ClUint32T* compId, CL_INOUT ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_OUT ClUint64T* pStreamMastAddr, CL_OUT ClLogFilterT_4_0_0* pStreamFilter, CL_OUT ClUint32T* pAckerCnt, CL_OUT ClUint32T* pNonAckerCnt, CL_INOUT ClUint16T* pStreamId, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef LogClLogStreamOwnerStreamOpenAsyncCallbackT_4_0_0 LogClLogStreamOwnerStreamOpenAsyncCallbackT;
 
-ClRcT clLogStreamOwnerStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint8T  logOpenFlags, CL_IN ClUint32T  nodeAddr, CL_IN ClNameT* pStreamName, CL_IN ClUint32T* pStreamScope, CL_IN ClNameT* pStreamScopeNode, CL_INOUT ClUint32T* compId, CL_INOUT ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_OUT ClUint64T* pStreamMastAddr, CL_OUT ClLogFilterT_4_0_0* pStreamFilter, CL_OUT ClUint32T* pAckerCnt, CL_OUT ClUint32T* pNonAckerCnt, CL_INOUT ClUint16T* pStreamId,CL_IN LogClLogStreamOwnerStreamOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
+ClRcT clLogStreamOwnerStreamOpenClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_IN ClUint8T  logOpenFlags, CL_IN ClUint32T  nodeAddr, CL_INOUT ClNameT* pStreamName, CL_INOUT ClUint32T* pStreamScope, CL_INOUT ClNameT* pStreamScopeNode, CL_INOUT ClUint32T* compId, CL_INOUT ClLogStreamAttrIDLT_4_0_0* pStreamAttr, CL_OUT ClUint64T* pStreamMastAddr, CL_OUT ClLogFilterT_4_0_0* pStreamFilter, CL_OUT ClUint32T* pAckerCnt, CL_OUT ClUint32T* pNonAckerCnt, CL_INOUT ClUint16T* pStreamId,CL_IN LogClLogStreamOwnerStreamOpenAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
 typedef void (*LogClLogStreamOwnerStreamCloseAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_IN ClNameT* pStreamName, CL_IN ClUint32T  pStreamScope, CL_IN ClNameT* pStreamScopeNode, CL_IN ClUint32T  nodeAddress, CL_IN ClUint32T  compId, CL_IN ClRcT rc, CL_IN void* pCookie);
 

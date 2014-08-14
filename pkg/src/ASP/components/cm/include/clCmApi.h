@@ -63,10 +63,11 @@ extern "C" {
 #define CL_CM_VERSION {(ClUint8T)'B', 0x1, 0x1}
 
 
-/* Please note that the event publishing service by CM is currently
- * disabled, hence they are not doxygen-visible comments
+/* Return this error code from the plugin if you want the event to be
+   published.  
  */
- 
+#define CL_CM_PUBLISH  CL_ERR_COMMON_MAX + 1
+    
 /*  
  *  Chassis Manager Event Channel on which events will be published.
  */
@@ -117,17 +118,6 @@ typedef struct ClCmSensorEventInfo {
 } ClCmSensorEventInfoT;
 
 
-#define CL_CM_WATCHDOG_EVENT_STR "cmWatchdogEvent"
-
-/*
- * Contents of watchdog event payload buffer
- */
-typedef struct ClCmWatchdogEventInfo {
-    SaHpiRptEntryT      rptEntry;
-    SaHpiRdrT           rdr;
-    SaHpiWatchdogEventT watchdogEvent;
-} ClCmWatchdogEventInfoT;
-
 typedef struct {
     SaHpiEntityPathT eventReporter;
     SaHpiEntityPathT *pImpactedEntities;
@@ -142,6 +132,15 @@ typedef struct {
     ClCmEventCallBackT userEventHandler;
 } ClCmUserPolicyT;
 
+typedef enum ClCmThresholdLevel
+{
+    CL_CM_THRESHOLD_LOWER_MINOR = SAHPI_ES_LOWER_MINOR,
+    CL_CM_THRESHOLD_LOWER_MAJOR = SAHPI_ES_LOWER_MAJOR,
+    CL_CM_THRESHOLD_LOWER_CRIT  = SAHPI_ES_LOWER_CRIT,
+    CL_CM_THRESHOLD_UPPER_MINOR = SAHPI_ES_UPPER_MINOR,
+    CL_CM_THRESHOLD_UPPER_MAJOR = SAHPI_ES_UPPER_MAJOR,
+    CL_CM_THRESHOLD_UPPER_CRIT =  SAHPI_ES_UPPER_CRIT,
+}ClCmThresholdLevelT;
 
 /*
  * Event payload is \e ClAlarmInfoT defined in <em> clAlarmDefinitions.h </em>, the contents
@@ -209,6 +208,8 @@ typedef enum {
 
 } ClCmFruOperationT;
 
+#ifdef CL_USE_CHASSIS_MANAGER
+
 /**
  ************************************
  *  \brief Returns the state of an FRU.
@@ -233,12 +234,10 @@ typedef enum {
  *  On any HPI Error, refer to \c DBG_PRINTS on the Chassis Manager console or Log file.
  *
  */
-/* If the flag is not defined this will define no-ops for all APIs that is enough to satisfy the compiler */
-#ifndef CL_USE_CHASSIS_MANAGER
-#define clCmFruStateGet(hMoId,pState) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
-#else
-extern ClRcT clCmFruStateGet (CL_IN  ClCorMOIdPtrT hMoId,CL_OUT SaHpiHsStateT *pState);
-#endif
+extern ClRcT 
+clCmFruStateGet (CL_IN  ClCorMOIdPtrT hMoId,
+                 CL_OUT SaHpiHsStateT *pState);
+
 
 /**
  ************************************
@@ -267,11 +266,9 @@ extern ClRcT clCmFruStateGet (CL_IN  ClCorMOIdPtrT hMoId,CL_OUT SaHpiHsStateT *p
  *  On any HPI Error, refer to \c DBG_PRINTS on the Chassis Manager console or Log file.
  *
  */
-#ifndef CL_USE_CHASSIS_MANAGER
-#define clCmFruOperationRequest(hMoId,request) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
-#else
-extern ClRcT clCmFruOperationRequest (CL_IN  ClCorMOIdPtrT     hMoId, CL_OUT ClCmFruOperationT request);
-#endif
+extern ClRcT 
+clCmFruOperationRequest (CL_IN  ClCorMOIdPtrT     hMoId,
+                         CL_OUT ClCmFruOperationT request);
 
 /**
  ************************************************
@@ -292,11 +289,8 @@ extern ClRcT clCmFruOperationRequest (CL_IN  ClCorMOIdPtrT     hMoId, CL_OUT ClC
  *  library (in case shared libraries are used).
  *
  */
-#ifndef CL_USE_CHASSIS_MANAGER
-#define clCmVersionVerify(version) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
-#else
-extern ClRcT clCmVersionVerify(CL_INOUT ClVersionT *version);
-#endif
+extern ClRcT	
+clCmVersionVerify(CL_INOUT ClVersionT *version);
 
 /**
  ************************************
@@ -329,12 +323,28 @@ extern ClRcT clCmVersionVerify(CL_INOUT ClVersionT *version);
  *  This function can only be used for \e main cards and cannot be used on \e nested
  *  FRUs such as AMCs.
  */
-#ifndef CL_USE_CHASSIS_MANAGER
-#define clCmBladeOperationRequest(chassisId,physSlot,request)  CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
-#else
-extern ClRcT clCmBladeOperationRequest (CL_IN ClUint32T         chassisId,
+extern ClRcT 
+clCmBladeOperationRequest (CL_IN ClUint32T         chassisId,
                            CL_IN ClUint32T         physSlot,
                            CL_IN ClCmFruOperationT request);
+
+extern ClRcT 
+clCmThresholdStateGet (CL_IN ClUint32T slot, 
+                       CL_OUT ClCmThresholdLevelT *pLevel,
+                       CL_OUT ClBoolT *pStateAsserted);
+
+#else
+
+#define clCmFruStateGet(hMoId,pState) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
+
+#define clCmFruOperationRequest(hMoId,request) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
+
+#define clCmVersionVerify(version) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
+
+#define clCmBladeOperationRequest(chassisId,physSlot,request)  CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
+
+#define clCmThresholdStateGet(slot, pLevel,pStateAsserted) CL_RC(CL_CID_CM,CL_ERR_NOT_SUPPORTED)
+
 #endif
 
 #ifdef __cplusplus

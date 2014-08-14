@@ -44,6 +44,7 @@ export BUILD_WITHOUT_C99=1
 
 # List local source files needed for the component server:
 TRANSPORT_OBJS := $(wildcard clTipcUserApi*.c)
+#TRANSPORT_OBJS += clTransport.c
 SRC_FILES := $(filter-out $(TRANSPORT_OBJS), $(wildcard *.c))
 
 ifeq ($(BUILD_UDP), 1)
@@ -57,8 +58,10 @@ else
 endif
 # List any third party libs needed to get this server built (or None):
 CPPFLAGS       += -I$(COMP_ROOT)/include/ipi -I$(COMP_ROOT)/ioc/server
-
-
+CHECK_INOTIFY := $(shell ./check_inotify.sh $(TOOLCHAIN_DIR)/bin/$(TARGET)-gcc)
+ifeq ($(strip $(CHECK_INOTIFY)), )
+	EXTRA_CPPFLAGS += -DHAVE_INOTIFY
+endif
 #CPPFLAGS	   += -I$(TIPC_INCLUDE)
 EXTRA_CPPFLAGS += -D__EXPORTED_HEADERS__ -I$(TIPC_INCLUDE)
 EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable 
@@ -67,8 +70,6 @@ EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/ASP/3rdparty/ezxml/stable
 ifdef SOLARIS_BUILD
 EXTRA_CPPFLAGS += -I/opt/SUNWtipc/include/net/tipc
 endif
-
-
 
 # List other ASP components of which client libraries your component
 # depends on:

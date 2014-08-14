@@ -65,6 +65,7 @@ extern "C" {
 #include <clCpmAms.h>
 #include <clCkptApi.h>
 #include <clEventApi.h>
+#include <clDifferenceVector.h>
 
 /******************************************************************************
  * AMS Operations
@@ -136,6 +137,7 @@ typedef struct
     ClNameT                 ckptName;
     ClNameT                 ckptDBSections[CL_AMS_DB_INVOCATION_PAIRS];
     ClNameT                 ckptInvocationSections[CL_AMS_DB_INVOCATION_PAIRS];
+    ClDifferenceVectorKeyT  ckptDifferenceVectorKeys[CL_AMS_DB_INVOCATION_PAIRS];
     ClNameT                 ckptCurrentSection;
     ClNameT                 ckptVersionSection;
     ClBoolT                 ckptServerReady;
@@ -206,6 +208,8 @@ extern ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName);
 extern void clAmsSetInstantiateCommand(ClInt32T argc, ClCharT **argv);
 
 extern const ClCharT *clAmsGetInstantiateCommand(void);
+
+extern void clAmsEntityInitialize(void);
 
 #ifdef __cplusplus
 }

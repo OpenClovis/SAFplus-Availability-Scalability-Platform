@@ -1666,17 +1666,7 @@ clAmsPeSURemoveStandbyMPlusN(ClAmsSGT *sg, ClAmsSUT *su, ClUint32T switchoverMod
     for(i = 0; i < numOtherSIs; ++i)
     {
         ClAmsSIT *si = otherSIs[i];
-        if((switchoverMode & CL_AMS_ENTITY_SWITCHOVER_FORCE))
-        {
-        	clLogNotice("SI", "REPLAY", "Remove si with force mode");
-        	clAmsPeSURemoveSI(maxStandbySU, si, switchoverMode);
-        }
-        else
-        {
-            clAmsPeSURemoveSI(maxStandbySU, si, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE);
-        }
-        
-        
+        clAmsPeSURemoveSI(maxStandbySU, si, CL_AMS_ENTITY_SWITCHOVER_IMMEDIATE);
     }
 
     out_free:

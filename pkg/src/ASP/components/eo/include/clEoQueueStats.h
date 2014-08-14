@@ -24,10 +24,6 @@
 
 #include <clEoQueue.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef struct ClEoQueueStats
 {
     ClBoolT  used;
@@ -79,9 +75,5 @@ extern void clEoQueueStatsStop(ClUint32T queueSize, ClEoJobT *pJob, ClEoQueueSta
 #endif
 
 extern ClRcT clEoQueueStatsGet(ClEoQueueDetailsT *pEoQueueDetails);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -43,7 +43,8 @@ extern "C" {
 #include "clXdrApi.h"
 
 #include "clCkptApi.h"
-#include "clCkptCommon.h"
+#include "clCkptExtApi.h"
+#include "../common/clCkptCommon.h"
 #include "xdrClCkptAppInfoT.h"
 
 struct _CkptCPInfoT_4_0_0;
@@ -82,6 +83,42 @@ clXdrUnmarshallPtr((msg),(pointer), sizeof(CkptCPInfoT_4_0_0),multiplicity, clXd
 
 
 typedef CkptCPInfoT_4_0_0 CkptCPInfoT;
+
+
+struct _CkptCPInfoT_5_0_0;
+
+typedef struct _CkptCPInfoT_5_0_0 {
+    ClUint32T    updateOption;
+    ClUint32T    size;
+    ClUint32T    numApps;
+    ClUint64T    id;
+    ClUint32T*    presenceList;
+    ClCkptAppInfoT_4_0_0*    pAppInfo;
+
+}CkptCPInfoT_5_0_0;
+
+
+ClRcT  clXdrMarshallCkptCPInfoT_5_0_0(void *,ClBufferHandleT , ClUint32T);
+
+ClRcT  clXdrUnmarshallCkptCPInfoT_5_0_0(ClBufferHandleT, void *);
+
+#define clXdrMarshallArrayCkptCPInfoT_5_0_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallArray((pointer), sizeof(CkptCPInfoT_5_0_0), (multiplicity), clXdrMarshallCkptCPInfoT_5_0_0, (msg), (isDelete))
+
+#define clXdrUnmarshallArrayCkptCPInfoT_5_0_0(msg,pointer, multiplicity) \
+clXdrUnmarshallArray((msg),(pointer), sizeof(CkptCPInfoT_5_0_0), (multiplicity), clXdrUnmarshallCkptCPInfoT_5_0_0)
+
+#define clXdrMarshallPointerCkptCPInfoT_5_0_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPointer((pointer), sizeof(CkptCPInfoT_5_0_0), (multiplicity), clXdrMarshallCkptCPInfoT_5_0_0, (msg), (isDelete))
+
+#define clXdrUnmarshallPointerCkptCPInfoT_5_0_0(msg,pointer) \
+clXdrUnmarshallPointer((msg),(pointer), sizeof(CkptCPInfoT_5_0_0), clXdrUnmarshallCkptCPInfoT_5_0_0)
+
+#define clXdrMarshallPtrCkptCPInfoT_5_0_0(pointer, multiplicity, msg, isDelete) \
+clXdrMarshallPtr((pointer), sizeof(CkptCPInfoT_5_0_0), (multiplicity), clXdrMarshallCkptCPInfoT_5_0_0, (msg), (isDelete))
+
+#define clXdrUnmarshallPtrCkptCPInfoT_5_0_0(msg,pointer,multiplicity) \
+clXdrUnmarshallPtr((msg),(pointer), sizeof(CkptCPInfoT_5_0_0),multiplicity, clXdrUnmarshallCkptCPInfoT_5_0_0)
 
 
 

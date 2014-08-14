@@ -117,6 +117,7 @@ typedef struct ClTimerBase
     ClJobQueueT clusterJobQueue;
 }ClTimerBaseT;
 
+extern ClBoolT gIsNodeRepresentative;
 static ClBoolT gClTimerDebug = CL_FALSE;
 static ClOsalMutexT gClTimerDebugLock;
 static ClHandleT gTimerDebugReg;
@@ -1455,6 +1456,7 @@ ClRcT clTimerDebugDeregister()
 ClRcT clTimerInitialize(ClPtrT config)
 {
     ClRcT rc = CL_TIMER_RC(CL_ERR_INITIALIZED);
+    ClUint32T callbackTasks = CL_TIMER_MAX_CALLBACK_TASKS;
 
     if(gTimerBase.initialized == CL_TRUE)
     {
@@ -1473,7 +1475,14 @@ ClRcT clTimerInitialize(ClPtrT config)
     {
         goto out;
     }
-    rc = clJobQueueInit(&gTimerBase.timerCallbackQueue, 0, CL_TIMER_MAX_CALLBACK_TASKS);
+    if(!gIsNodeRepresentative)
+    {
+        callbackTasks = CL_IOC_RESERVED_PRIORITY+1;
+        if(callbackTasks > CL_TIMER_MAX_CALLBACK_TASKS)
+            callbackTasks = CL_TIMER_MAX_CALLBACK_TASKS;
+        clLogNotice("CALLBACK", "TASKS", "Setting timer callback pool to [%d] tasks", callbackTasks);
+    }
+    rc = clJobQueueInit(&gTimerBase.timerCallbackQueue, 0, callbackTasks);
     if(rc != CL_OK)
     {
         clLogError("TIMER", "INI", "Timer callback jobqueue create returned [%#x]", rc);

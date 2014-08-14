@@ -42,7 +42,7 @@
 #include <clCkptSvr.h>
 #include <clCkptExtApi.h>
 #include <clCkptUtils.h>
-#include "clCkptSvrIpi.h"
+#include "clCkptIpi.h"
 #include <clEventExtApi.h>
 #include <clCpmExtApi.h>
 #include <clCkptPeer.h>
@@ -371,8 +371,7 @@ void ckptEvtSubscribeCallBack( ClEventSubscriptionIdT    subscriptionId,
                     pPeerInfo->addr        = nodePayload.nodeIocAddress;
                     pPeerInfo->credential  = CL_CKPT_CREDENTIAL_POSITIVE;
                     pPeerInfo->available   = CL_CKPT_NODE_UNAVAIL;
-                    clLogNotice("PEER", "EVT", "Marking peer [%d] on receiving node arrival",
-                                nodePayload.nodeIocAddress);
+                        
                     rc = clCntLlistCreate(ckptCkptListKeyComp,
                                           ckptCkptListDeleteCallback,
                                           ckptCkptListDeleteCallback,

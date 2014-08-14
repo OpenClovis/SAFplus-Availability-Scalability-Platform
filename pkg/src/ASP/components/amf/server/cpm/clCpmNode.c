@@ -69,7 +69,7 @@
 typedef struct ClCpmAspResetMsg
 {
     ClIocNodeAddressT nodeAddress;
-    ClUint32T nodeRequest; /* node reset hint */
+    ClBoolT nodeReset; /* if false, then restart middleware*/
 }ClCpmAspResetMsgT;
 
 typedef struct ClCpmResetMsg
@@ -1190,6 +1190,30 @@ ClRcT VDECL(cpmNodeCpmLResponse)(ClEoDataT data,
     
     if(cpmBmResponse.retCode == CL_OK)
     {
+        clOsalMutexLock(gpClCpm->cpmTableMutex);
+        if( (rc = cpmNodeFind(cpmBmResponse.nodeName.value, &tempNode) ) == CL_OK
+            &&
+            tempNode && tempNode->pCpmLocalInfo )
+        {
+            ClUint32T slot = tempNode->pCpmLocalInfo->cpmAddress.nodeAddress;
+            ClBoolT asserted = CL_FALSE;
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+            if(clCmThresholdStateGet(slot, NULL, &asserted) == CL_OK
+               &&
+               asserted == CL_TRUE)
+            {
+                clLogNotice("NODE", "JOIN", "Node [%s] at slot [%d] has threshold in asserted state."
+                            "Deferring node join till the assert is cleared for the slot",
+                            cpmBmResponse.nodeName.value, slot);
+                cpmWriteNodeStatToFile("AMS", CL_YES);
+                goto failure;
+            } 
+        }
+        else
+        {
+            clOsalMutexUnlock(gpClCpm->cpmTableMutex);
+        }
+        rc = CL_OK;
         cpmBmResponse.nodeName.length = cpmBmResponse.nodeName.length+1;
 
         if(gpClCpm->cpmToAmsCallback != NULL && 
@@ -1382,7 +1406,7 @@ ClRcT cpmEnqueueCmRequest(ClNameT *pNodeName, ClCmCpmMsgT *pRequest)
     return rc;
 }
 
-ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClUint32T *nodeRequest)
+ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClBoolT *nodeReset)
 {
     ClCpmResetMsgT *msg;
     clOsalMutexLock(gpClCpm->cmRequestMutex);
@@ -1393,13 +1417,13 @@ ClRcT cpmDequeueAspRequest(ClNameT *pNodeName, ClUint32T *nodeRequest)
     }
     hashDel(&msg->hash);
     clOsalMutexUnlock(gpClCpm->cmRequestMutex);
-    if(nodeRequest) 
-        *nodeRequest = msg->aspResetMsg.nodeRequest;
+    if(nodeReset) 
+        *nodeReset = msg->aspResetMsg.nodeReset;
     clHeapFree(msg);
     return CL_OK;
 }
 
-ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClUint32T nodeRequest)
+ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, ClBoolT nodeReset)
 {
     ClRcT rc = CL_OK;
     ClCpmResetMsgT *resetMsg = clHeapCalloc(1, sizeof(*resetMsg));
@@ -1407,7 +1431,7 @@ ClRcT cpmEnqueueAspRequest(ClNameT *pNodeName, ClIocNodeAddressT nodeAddress, Cl
     resetMsg->msgType = _ASP_RESET_MSG;
     memcpy(&resetMsg->nodeName, pNodeName, sizeof(resetMsg->nodeName));
     resetMsg->aspResetMsg.nodeAddress = nodeAddress;
-    resetMsg->aspResetMsg.nodeRequest = nodeRequest;
+    resetMsg->aspResetMsg.nodeReset = nodeReset;
     clOsalMutexLock(gpClCpm->cmRequestMutex);
     rc = cpmEnqueueResetRequest(resetMsg);
     clOsalMutexUnlock(gpClCpm->cmRequestMutex);
@@ -1965,7 +1989,7 @@ static void cpmInstallNodeInfo(void)
 }
 #endif
 
-void cpmRegisterWithActive(void)
+static void __cpmRegisterWithActive(ClBoolT reregister)
 {
     ClRcT rc = CL_OK;
     ClCharT tipcConfigErrMsg[] = "IOC/TIPC is configured properly. \n";
@@ -1974,7 +1998,6 @@ void cpmRegisterWithActive(void)
         "using the same GMS port as yours. \n";
     ClInt32T tries = 0;
     ClGmsNodeIdT leaderNode = CL_GMS_INVALID_NODE_ID;
-    static ClTimerTimeOutT delay = { .tsSec = 3, .tsMilliSec = 0 };
 
     cpmBmRespTimerStop();
 
@@ -2108,10 +2131,9 @@ void cpmRegisterWithActive(void)
                         goto invalid_state;
 
                     clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
-                                  "CPM/G Standby/Worker blade registration "
+                                  "CPM/G standby/Worker blade registration "
                                   "with the CPM/G active failed, error [%#x]",
                                   rc1);
-                    rc = rc1;
                     goto failure;
                 }
                 else
@@ -2128,6 +2150,7 @@ void cpmRegisterWithActive(void)
     {
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_STATE)
         {
+            static ClTimerTimeOutT delay = { .tsSec = 3, .tsMilliSec = 0 };
             invalid_state:
             clLogCritical(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_CPM,
                           "This node failed to register with master because of invalid state. "
@@ -2154,30 +2177,33 @@ void cpmRegisterWithActive(void)
      * dependent on the master after the registration which confirms
      * that the master is up.
      */
-    if(CL_CPM_IS_STANDBY())
+    if(!reregister && CL_CPM_IS_STANDBY())
     {
         clAmsInitializeMgmtInterface();
     }
 
     cpmBmRespTimerStart();
+
     cpmInstallNodeInfo();
 
     return;
     
     failure:
-    /*
-     * If the registration hit the standby instead of master,
-     * then its likely that standby hadn't installed the tables for 
-     * getting node config. Try a restart
-     */
-    if(CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
-    {
-        cpmRestart(&delay, "registration");
-        /*
-         * Unreached
-         */
-    }
     cpmSelfShutDown();
+}
+
+void cpmRegisterWithActive(void)
+{
+    __cpmRegisterWithActive(CL_FALSE);
+}
+
+void cpmSwitchoverActive(void)
+{
+    if(CL_CPM_IS_STANDBY())
+    {
+        cpmKillAllUserComponents(); /* FIXME: this could maybe exchange checkpoints with new active */
+    }
+    __cpmRegisterWithActive(CL_TRUE);
 }
 
 ClRcT VDECL(cpmGoBackToRegisterCallback)(ClEoDataT data,
@@ -2467,8 +2493,7 @@ ClRcT VDECL(cpmMiddlewareRestart)(ClEoDataT data,
         clLogError("NODE", "RESTART", "RMD response send returned [%#x]", rc);
     }
 
-    cpmEnqueueAspRequest(&nodeName, iocNodeAddress, 
-                         nodeReset ? CL_CPM_RESTART_NODE : CL_CPM_RESTART_ASP);
+    cpmEnqueueAspRequest(&nodeName, iocNodeAddress, nodeReset);
 
     clLogNotice("NODE", "RESTART", "Processing middleware restart request for node [%d]", iocNodeAddress);
 

@@ -60,8 +60,7 @@
 #undef __CLIENT__
 #include <clGmsServerFuncTable.h>
 
-ClHandleT  gGmsDebugReg = CL_HANDLE_INVALID_VALUE;
-
+static ClHandleT  gGmsDebugReg = CL_HANDLE_INVALID_VALUE;
 /*
    clGmsServerTerminate
    --------------------

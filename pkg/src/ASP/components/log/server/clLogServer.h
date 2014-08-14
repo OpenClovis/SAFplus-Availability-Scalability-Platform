@@ -163,8 +163,7 @@ extern  ClRcT
 clLogSvrIdlHandleInitialize(CL_IN  ClLogStreamScopeT  streamScope,
                             CL_OUT ClIdlHandleT       *phLogIdl);
 extern ClRcT
-clLogShmCreateAndFill(ClNameT                 *pStreamName,
-                      ClStringT               *pShmName, 
+clLogShmCreateAndFill(ClStringT               *pShmName, 
                       ClUint32T               shmSize, 
                       ClUint16T               streamId,
                       ClUint32T               componentId,

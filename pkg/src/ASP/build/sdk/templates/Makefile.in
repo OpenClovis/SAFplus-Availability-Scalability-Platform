@@ -66,17 +66,20 @@ export OPENAIS_TIPC=@OPENAIS_TIPC@
 #SUBDIRS          = $(MODEL_PATH)/config $(MODEL_PATH)/app $(CLOVIS_ROOT)/ASP/3rdparty $(CLOVIS_ROOT)/ASP/components $(CLOVIS_ROOT)/ASP/tools
 #endif
 
+# Make in the plugin directory only if it exists
+pluginDir = $(wildcard $(MODEL_PATH)/plugins)
+
 ifeq ($(ASP_BUILD),1)
 	ifeq ($(MODEL_BUILD),0)
 		SUBDIRS          = $(CLOVIS_ROOT)/ASP/3rdparty $(CLOVIS_ROOT)/ASP/components $(CLOVIS_ROOT)/ASP/tools
 	else
-		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(CLOVIS_ROOT)/ASP/3rdparty $(CLOVIS_ROOT)/ASP/components $(CLOVIS_ROOT)/ASP/tools
+		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(pluginDir) $(CLOVIS_ROOT)/ASP/3rdparty $(CLOVIS_ROOT)/ASP/components $(CLOVIS_ROOT)/ASP/tools
 	endif
 else
 	ifdef ModelOnly
-		SUBDIRS		 = $(MODEL_PATH)/app servers $(CLOVIS_ROOT)/ASP/tools
+		SUBDIRS		 = $(MODEL_PATH)/app $(pluginDir) servers $(CLOVIS_ROOT)/ASP/tools
     else
-		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app servers $(CLOVIS_ROOT)/ASP/tools
+		SUBDIRS		 = $(MODEL_PATH)/config $(MODEL_PATH)/app $(pluginDir) servers $(CLOVIS_ROOT)/ASP/tools
 	endif
 endif
 

@@ -225,6 +225,9 @@ extern "C" {
     extern ClRcT clAmsTestEntityShutdown(ClAmsMgmtHandleT,
                                          ClAmsEntityT*);
 
+    extern ClRcT clAmsTestEntityShutdownWithRestart(ClAmsMgmtHandleT,
+                                                    ClAmsEntityT*);
+
     extern ClRcT clAmsTestEntityRepaired(ClAmsMgmtHandleT,
                                          ClAmsEntityT*);
 

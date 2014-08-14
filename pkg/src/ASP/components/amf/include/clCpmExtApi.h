@@ -347,6 +347,10 @@ extern ClRcT clCpmNodeConfigSet(ClCpmNodeConfigT *nodeConfig);
 
 extern ClRcT clCpmNodeConfigGet(const ClCharT *nodeName, ClCpmNodeConfigT *nodeConfig);
 
+extern ClRcT clCpmCompConfigSet(ClIocNodeAddressT node, 
+                                ClCharT *name, ClCharT *instantiateCommand,
+                                ClAmsCompPropertyT property, ClUint64T mask);
+
 extern ClRcT
 clCpmComponentFailureReportWithCookie(CL_IN ClCpmHandleT cpmHandle,
                                       CL_IN const ClNameT *pCompName,

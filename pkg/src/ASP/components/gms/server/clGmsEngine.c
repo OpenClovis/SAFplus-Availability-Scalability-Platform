@@ -173,15 +173,16 @@ timerCallback( void *arg ){
 
     bootTimeElectionDone = CL_TRUE;
 
-    // comemnted to ensure during synch only the value is set
+    // ready to Serve only to be set when there is Synch done 
     //readyToServeGroups = CL_TRUE;
+
     // if there is no leader in the group or there is only 1 node in the cluster group, set to true 
     clLog(INFO,LEA,NA, "leader [%d] & noOfViewMemebers [%d] is found!", view->leader, view->noOfViewMembers);
     if (view->leader || view->noOfViewMembers == 1)
     {
     	clLog(INFO,LEA,NA,
-            "There is no leader in the default group; hence setting in current node readyToServeGroups as True");
-	readyToServeGroups = CL_TRUE;
+              "There is only leader in the default group; hence setting readyToServeGroups as True");
+        readyToServeGroups = CL_TRUE;
     }
 
     if(!timerRestarted)
@@ -679,7 +680,7 @@ _clGmsEngineLeaderElect(
     if ((rc != CL_OK) || (*leaderNodeId == CL_GMS_INVALID_NODE_ID))
     {
         reElect = CL_TRUE; /* trigger reelection*/
-        clLog(ERROR, CLM,NA,"Leader election failed. rc = 0x%x", rc);
+        clLog(ERROR, CLM,NA,"Leader election failed for group [%d]. rc = 0x%x",groupId,rc);
         goto done_return;
     }
 
@@ -840,6 +841,7 @@ _clGmsEnginePreferredLeaderElect(
     oldLeaderNode = thisViewDb->view.leader;
     leaderNode = preferredLeaderNode.nodeId;
 
+    // currently been done for default group only
     rc = _clGmsEngineLeaderElect(
             0,
             NULL,
@@ -910,6 +912,7 @@ error:
 /* Called from totem protocol when it receives a cluster join
  * message. Even this node join to cluster is called from 
  * totem protocol  */
+
 static ClRcT _clGmsEngineClusterJoinWrapper(
                                       CL_IN   const ClGmsGroupIdT   groupId,
                                       CL_IN   const ClGmsNodeIdT    nodeId,
@@ -1093,6 +1096,8 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
 
     clLog (INFO,CLM,NA,
            "Node [%d] joined the cluster successfully",nodeId);
+
+    // Moved out synch send by leader or deputy; as Sync has to be done prior to leader election.
 
     ENG_ADD_ERROR:
     if (_clGmsViewUnlock(groupId) != CL_OK)
@@ -1609,7 +1614,7 @@ error_return:
         if (_rc != CL_OK)
         {
             clLog(ERROR,GEN,NA,
-                    "Context handle checkin failed with rc=0x%x",rc);
+                    "Context handle checkin failed with rc=0x%x",_rc);
         }
 
         clGmsCsLeave(&contextCondVar);
@@ -1838,131 +1843,6 @@ done_return:
     return rc;
 }
 
-static void
-_viewMemberUpgradeCopy(ClGmsViewMemberT *dst, 
-                       VDECL_VER(ClGmsViewMemberT, 4, 0, 0) *src)
-{
-    memcpy(&dst->clusterMember, &src->clusterMember, sizeof(dst->clusterMember));
-    dst->contextHandle = src->contextHandle;
-    memcpy(&dst->groupData, &src->groupData, sizeof(dst->groupData));
-    dst->groupMember.handle = 0;
-    dst->groupMember.memberId = src->groupMember.memberId;
-    dst->groupMember.memberAddress = src->groupMember.memberAddress;
-    memcpy(&dst->groupMember.memberName, &src->groupMember.memberName,
-           sizeof(dst->groupMember.memberName));
-    dst->groupMember.memberActive = src->groupMember.memberActive;
-    dst->groupMember.joinTimestamp = src->groupMember.joinTimestamp;
-    dst->groupMember.initialViewNumber = src->groupMember.initialViewNumber;
-    dst->groupMember.credential = src->groupMember.credential;
-}
-
-ClRcT  
-_clGmsEngineGroupInfoSyncBase(VDECL_VER(ClGmsGroupSyncNotificationT, 4, 0, 0) *syncNotification)
-{
-    ClRcT       rc = CL_OK;
-    ClUint32T   i = 0;
-    ClGmsGroupInfoT *thisGroupInfo = NULL;
-    ClGmsDbT   *thisViewDb = NULL;
-    ClUint32T   groupId = 0;
-    time_t      t= 0x0;
-    VDECL_VER(ClGmsViewNodeT, 4, 0, 0)  *thisNode = NULL;
-    ClGmsViewNodeT *migrateNode = NULL;
-
-    if (readyToServeGroups == CL_TRUE)
-    {
-        clLog(INFO,GEN,NA,
-                "This sync message is not intended for this node\n");
-        return rc;
-    }
-
-    clGmsMutexLock(gmsGlobalInfo.dbMutex);
-    clGmsMutexLock(gmsGlobalInfo.nameIdMutex);
-    clLog(DBG,GEN,NA,
-            "Processing the sync message.");
-    /* Create the groups as per the number of groups */
-    for (i = 0; i < syncNotification->noOfGroups; i++)
-    {
-        thisGroupInfo = &syncNotification->groupInfoList[i];
-        CL_ASSERT(thisGroupInfo != NULL);
-
-        groupId = thisGroupInfo->groupId;
-        CL_ASSERT(groupId != 0);
-
-        rc = _clGmsDbCreateOnIndex(groupId,gmsGlobalInfo.db,&thisViewDb);
-        CL_ASSERT(rc == CL_OK);
-
-        thisViewDb->view.bootTime = (ClTimeT)(t*CL_GMS_NANO_SEC);
-        thisViewDb->view.lastModifiedTime = (ClTimeT)(t*CL_GMS_NANO_SEC);
-        thisViewDb->view.isActive   = CL_TRUE;
-        thisViewDb->viewType        = CL_GMS_GROUP;
-        thisViewDb->view.id         = groupId;
-        strncpy(thisViewDb->view.name.value,thisGroupInfo->groupName.value,
-                thisGroupInfo->groupName.length);
-        thisViewDb->view.name.length = thisGroupInfo->groupName.length;
-
-        /* copy the group Info into thisViewDb */
-        memcpy(&thisViewDb->groupInfo,thisGroupInfo,sizeof(ClGmsGroupInfoT));
-        clLogNotice("GROUP", "INFO", "Copying group [%.*s]",
-                    thisViewDb->view.name.length, thisViewDb->view.name.value);
-
-        /* Create an entry into name-id pair db */
-        rc = _clGmsNameIdDbAdd(&gmsGlobalInfo.groupNameIdDb,
-                               &thisGroupInfo->groupName,groupId);
-        CL_ASSERT(rc == CL_OK);
-    }
-    clGmsMutexUnlock(gmsGlobalInfo.nameIdMutex);
-
-    /* Add the group members */
-    for (i = 0; i < syncNotification->noOfMembers; i++)
-    {
-        thisNode = clHeapCalloc(1, sizeof(*thisNode));
-        migrateNode = clHeapCalloc(1, sizeof(*migrateNode));
-        CL_ASSERT(thisNode != NULL);
-        CL_ASSERT(migrateNode != NULL);
-        clLogNotice("CLUSTER", "INFO", "Copying cluster info...");
-        memcpy(thisNode, &syncNotification->groupMemberList[i], sizeof(*thisNode));
-        clLogNotice("CLUSTER", "INFO", "Copied cluster info [%d]",
-                    thisNode->viewMember.groupData.groupId);
-
-        groupId = thisNode->viewMember.groupData.groupId;
-
-        rc = _clGmsViewDbFind(groupId, &thisViewDb);
-
-        CL_ASSERT((rc == CL_OK) && (thisViewDb != NULL));
-
-        thisNode->viewMember.groupMember.joinTimestamp = (ClTimeT)(t*CL_GMS_NANO_SEC);
-        migrateNode->trackFlags = thisNode->trackFlags;
-        migrateNode->flags = thisNode->flags;
-        _viewMemberUpgradeCopy(&migrateNode->viewMember, &thisNode->viewMember);
-        clHeapFree(thisNode);
-        rc = _clGmsViewAddNode(groupId, migrateNode->viewMember.groupMember.memberId, migrateNode);
-        CL_ASSERT((rc == CL_OK) || (rc == CL_ERR_ALREADY_EXIST));
-    }
-
-    /* Do a track notify to make sure that JOIN_LEFT_VIEW is emptied */
-    for (i = 0; i < syncNotification->noOfGroups; i++)
-    {
-        thisGroupInfo = &syncNotification->groupInfoList[i];
-        CL_ASSERT(thisGroupInfo != NULL);
-
-        groupId = thisGroupInfo->groupId;
-        CL_ASSERT(groupId != 0);
-
-        rc =  _clGmsTrackNotify(groupId);
-        if (rc != CL_OK)
-        {
-            clLog(ERROR,GEN,NA,
-                    "Track notification for groupId = %d failed with rc = 0x%x\n",
-                     groupId, rc);
-        }
-    }
-    clLog(DBG,GEN,NA,
-            "Sync message processing is done.");
-       
-    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-    return rc;
-}
-
 ClRcT  
 _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
 {
@@ -1971,7 +1851,9 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
     ClGmsGroupInfoT *thisGroupInfo = NULL;
     ClGmsDbT   *thisViewDb = NULL;
     ClUint32T   groupId = 0;
+    #if 1
     ClUint32T   tempgroupId = 0;
+    #endif
     time_t      t= 0x0;
     ClGmsViewNodeT  *thisNode = NULL;
 
@@ -1992,11 +1874,14 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
         thisGroupInfo = &syncNotification->groupInfoList[i];
         CL_ASSERT(thisGroupInfo != NULL);
 
+         #if 1
+	// added conditional check to ensure the groupId 0 is not set for synch after node-id synch update is called
 	if (thisGroupInfo->groupId == 0)
 	{
 	    clLog(DBG,GEN,NA, "Found group Id 0 being called for _clGmsEngineGroupInfoSync for create group; skipping and continuing.");
 	    continue;
 	}
+        #endif
 
         groupId = thisGroupInfo->groupId;
         CL_ASSERT(groupId != 0);
@@ -2016,13 +1901,7 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
         /* copy the group Info into thisViewDb */
         memcpy(&thisViewDb->groupInfo,thisGroupInfo,sizeof(ClGmsGroupInfoT));
 
-	#if 0
-        /* Create an entry into name-id pair db */
-        rc = _clGmsNameIdDbAdd(&gmsGlobalInfo.groupNameIdDb,
-                               &thisGroupInfo->groupName,groupId);
-	#endif
-	
-	#if 1
+        #if 1
 	// added check so that duplicate information is not added
 	rc = _clGmsNameIdDbFind(&gmsGlobalInfo.groupNameIdDb, &thisGroupInfo->groupName, &tempgroupId);
         if ( CL_GET_ERROR_CODE( rc ) == CL_ERR_NOT_EXIST )
@@ -2036,22 +1915,30 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
 	{
     	    clLog(DBG,GEN,NA, "Name-Id entry is present for group [%s] Id [%d]; return [0x%x] skipping!", (char *) &thisGroupInfo->groupName.value, groupId, rc);
 	    rc = CL_OK;
-	}	
+	}
 	#endif
-
-        CL_ASSERT(rc == CL_OK);
     }
     clGmsMutexUnlock(gmsGlobalInfo.nameIdMutex);
 
     /* Add the group members */
     for (i = 0; i < syncNotification->noOfMembers; i++)
     {
+	#if 0
+        // added conditional check to ensure the groupId 0 is not set for synch after node-id synch update is called
+        if (thisGroupInfo->groupId == 0)
+        {
+            clLog(DBG,GEN,NA, "Found group Id 0 being called for _clGmsEngineGroupInfoSync for tracking; skipping and continuing.");
+            continue;
+        }
+	#endif
+
         thisNode = (ClGmsViewNodeT*)clHeapAllocate(sizeof(ClGmsViewNodeT));
         CL_ASSERT(rc == CL_OK);
         memcpy(thisNode,&syncNotification->groupMemberList[i], sizeof(ClGmsViewNodeT));
         CL_ASSERT(thisNode != NULL);
 
         groupId = thisNode->viewMember.groupData.groupId;
+        clLog(DBG,GEN,NA, "Sync update for group Id [%d]", groupId);
 
         rc = _clGmsViewDbFind(groupId, &thisViewDb);
 
@@ -2059,9 +1946,7 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
 
         thisNode->viewMember.groupMember.joinTimestamp = (ClTimeT)(t*CL_GMS_NANO_SEC);
         rc = _clGmsViewAddNode(groupId, thisNode->viewMember.groupMember.memberId, thisNode);
-	
-	clLog(DBG,GEN,NA, "added member ID [%d] to group [%d]", thisNode->viewMember.groupMember.memberId, groupId);
-
+    	clLog(DBG,GEN,NA, "added member ID [%d] to group [%d]", thisNode->viewMember.groupMember.memberId, groupId);
         CL_ASSERT((rc == CL_OK) || (rc == CL_ERR_ALREADY_EXIST));
     }
 
@@ -2070,6 +1955,15 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
     {
         thisGroupInfo = &syncNotification->groupInfoList[i];
         CL_ASSERT(thisGroupInfo != NULL);
+
+	#if 0
+        // added conditional check to ensure the groupId 0 is not set for synch after node-id synch update is called
+        if (thisGroupInfo->groupId == 0)
+        {
+            clLog(DBG,GEN,NA, "Found group Id 0 being called for _clGmsEngineGroupInfoSync for tracking; skipping and continuing.");
+            continue;
+        }
+	#endif
 
         groupId = thisGroupInfo->groupId;
         CL_ASSERT(groupId != 0);
@@ -2084,10 +1978,10 @@ _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification)
     }
     clLog(DBG,GEN,NA,
             "Sync message processing is done.");
-      
-    // VV on 26 Oct 2010; condition added to ensure sync will be executed
-    readyToServeGroups = CL_TRUE;
- 
+
+    // Once synch in new node is compalted it will set for GMS service
+    readyToServeGroups = CL_TRUE;    
+   
     clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
     return rc;
 }

@@ -56,6 +56,8 @@
 #include <clAmsDBPackUnpack.h>
 #include <clAmsSAServerApi.h>
 #include <clVersionApi.h>
+#include <clDifferenceVector.h>
+#include <clCkptIpi.h>
 #include <clNodeCache.h>
 
 #define CL_AMS_INVOCATION_CKPT  0x10 
@@ -89,6 +91,7 @@
 #define AMS_CKPT_WRITE_THRESHOLD_SLOW (10)
 
 static ClUint32T gClAmsCkptFrequency;
+static ClBoolT gClAmsCkptDifferential;
 static ClCharT gClAmsCkptVersionBuf[CL_MAX_NAME_LENGTH];
 static ClJobQueueT gClAmsCkptJobQueue;
 static ClCkptSvcHdlT gClAmsCkptDBHdl;
@@ -104,7 +107,6 @@ static ClNameT gClAmsCkptDBSectionCache[CL_AMS_DB_INVOCATION_PAIRS];
 static ClNameT gClAmsCkptInvocationSectionCache[CL_AMS_DB_INVOCATION_PAIRS];
 static ClNameT gClAmsCkptCurrentSectionCache;
 static ClInt32T gClAmsPersistentDBDisabled = -1;
-static ClBoolT rollingOver = CL_FALSE;
 
 static ClRcT
 clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
@@ -154,6 +156,20 @@ static ClRcT clAmsCkptCheckpointRead(
     return rc;
 }
 
+static void amsCkptDifferenceVectorKeyGet(ClDifferenceVectorKeyT *key, ClNameT *pSection)
+{
+    key->groupKey = clHeapCalloc(1, sizeof(*key->groupKey));
+    CL_ASSERT(key->groupKey != NULL);
+    key->sectionKey = clHeapCalloc(1, sizeof(*key->sectionKey));
+    CL_ASSERT(key->sectionKey != NULL);
+    key->groupKey->pValue = clStrdup("AMS_CKPT");
+    CL_ASSERT(key->groupKey->pValue != NULL);
+    key->groupKey->length = strlen(key->groupKey->pValue);
+    key->sectionKey->pValue = clStrdup((const ClCharT*)pSection->value);
+    CL_ASSERT(key->sectionKey->pValue != NULL);
+    key->sectionKey->length = strlen(key->sectionKey->pValue);
+}
+
 static ClRcT clAmsCkptSectionOverwriteNoLock(ClCkptHdlT ckptHandle,
                                              ClNameT *pSection,
                                              ClUint8T *pData,
@@ -183,11 +199,11 @@ static ClRcT clAmsCkptSectionOverwriteNoLock(ClCkptHdlT ckptHandle,
     }
     memcpy(sectionAttribs.sectionId->id,(ClUint8T*)pSection->value,sectionAttribs.sectionId->idLen);
 
-    rc = clCkptSectionOverwrite(
-                                ckptHandle,
-                                sectionAttribs.sectionId,
-                                pData,
-                                dataLen);
+    rc = clCkptSectionOverwriteLinear(
+                                      ckptHandle,
+                                      sectionAttribs.sectionId,
+                                      pData,
+                                      dataLen);
 
     if(rc != CL_OK )
     { 
@@ -206,8 +222,10 @@ static ClRcT clAmsCkptSectionOverwriteNoLock(ClCkptHdlT ckptHandle,
 
 static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
                                        ClNameT *pSection,
+                                       ClDifferenceVectorKeyT *key,
                                        ClUint8T *pData,
-                                       ClUint32T dataLen
+                                       ClUint32T dataLen,
+                                       ClUint32T mode
                                        )
 {
     ClCkptSectionCreationAttributesT sectionAttribs;
@@ -233,18 +251,67 @@ static ClRcT clAmsCkptSectionOverwrite(ClAmsT *ams,
     }
     memcpy(sectionAttribs.sectionId->id,(ClUint8T*)pSection->value,sectionAttribs.sectionId->idLen);
 
-    if ( ( rc = clCkptSectionOverwrite(
-                                       ams->ckptOpenHandle,
-                                       sectionAttribs.sectionId,
-                                       pData,
-                                       dataLen))
-         != CL_OK )
-    { 
-        AMS_LOG(CL_DEBUG_ERROR,("AMS Ckpt section overwrite failed for Section [%s] with error [0x%x]\n",pSection->value,rc));
-        clAmsFreeMemory(sectionAttribs.sectionId->id);
-        clAmsFreeMemory(sectionAttribs.sectionId);
-        goto error;
+    if(mode == CL_AMS_CKPT_WRITE_DB && gClAmsCkptDifferential && key)
+    {
+        static ClBoolT differenceVectorKeyDeleted = CL_TRUE;
+        ClUint32T versionCode = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
+        clNodeCacheMinVersionGet(NULL, &versionCode);
+        switch(versionCode)
+        {
+        case CL_VERSION_CODE(5, 0, 0):
+            {
+                ClDifferenceVectorT differenceVector = {0};
+                clDifferenceVectorGetWithReset(key, pData, 0, dataLen, CL_FALSE, &differenceVector);
+                if(differenceVectorKeyDeleted) 
+                    differenceVectorKeyDeleted = CL_FALSE;
+                /*
+                 *Send incase there is any difference to checkpoint.
+                 */
+                rc = CL_OK;
+                if(differenceVector.numDataVectors > 0)
+                {
+                    rc = clCkptSectionOverwriteVector(
+                                                      ams->ckptOpenHandle,
+                                                      sectionAttribs.sectionId,
+                                                      dataLen,
+                                                      &differenceVector);
+                }
+                clDifferenceVectorFree(&differenceVector, CL_FALSE);
+            }
+            break;
+        default:
+            /*
+             * Fallback to full section overwrite.
+             */
+            if(!differenceVectorKeyDeleted)
+            {
+                clDifferenceVectorDelete(key);
+                differenceVectorKeyDeleted = CL_TRUE;
+            }
+            rc = clCkptSectionOverwriteLinear(ams->ckptOpenHandle,
+                                              sectionAttribs.sectionId,
+                                              pData,
+                                              dataLen);
+            break;
+        }
     }
+    else
+    {
+        rc = clCkptSectionOverwriteLinear(
+                                          ams->ckptOpenHandle,
+                                          sectionAttribs.sectionId,
+                                          pData,
+                                          dataLen);
+    }
+
+    if(rc != CL_OK )
+    { 
+        AMS_LOG(CL_DEBUG_ERROR,("AMS Ckpt section overwrite failed for Section [%s] with error [0x%x]\n",
+                                pSection->value, rc));
+        goto out_free;
+    }
+
+    out_free:
     clAmsFreeMemory(sectionAttribs.sectionId->id);
     clAmsFreeMemory(sectionAttribs.sectionId);
 
@@ -654,6 +721,8 @@ clAmsCkptInitialize(
         };
     ClInt32T i;
     ClCharT *freq;
+
+    gClAmsCkptDifferential = clCkptDifferentialCheckpointStatusGet();
     if( (freq = getenv("CL_AMF_CKPT_FREQUENCY") ) )
     {
         gClAmsCkptFrequency = atoi(freq);
@@ -696,6 +765,8 @@ clAmsCkptInitialize(
                sizeof(gClAmsCkptDBSectionCache[i]));
         memcpy(&gClAmsCkptInvocationSectionCache[i], &ams->ckptInvocationSections[i],
                sizeof(gClAmsCkptInvocationSectionCache[i]));
+        amsCkptDifferenceVectorKeyGet(&ams->ckptDifferenceVectorKeys[i],
+                                      &ams->ckptDBSections[i]);
     }
 
     /*Make the current section as the first DB INVOCATION PAIR*/
@@ -892,7 +963,6 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
          */
         if(!strncmp(gClAmsCkptVersionBuf, "B.01.01", 7))
         {
-            rollingOver = CL_TRUE;
             rc = clAmsWriteXMLFile(pSectionName,
                                    (ClCharT*)pIOVector->dataBuffer,
                                    pIOVector->dataSize);
@@ -943,6 +1013,16 @@ clAmsCkptNotifyCallback(ClCkptHdlT              ckptHdl,
     clHeapFree(pSectionName);
 
     return rc;
+}
+
+ClRcT
+clAmsHotStandbyRegister(ClAmsT *ams)
+{
+    if(ams->serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE)
+    {
+        clCkptImmediateConsumptionRegister(ams->ckptOpenHandle, clAmsCkptNotifyCallback, NULL);
+    }
+    return CL_OK;
 }
 
 ClRcT
@@ -1136,8 +1216,10 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
         if ( ( rc = clAmsCkptSectionOverwrite(
                                               ams,
                                               &ams->ckptDBSections[dbInvocationPair],
+                                              &ams->ckptDifferenceVectorKeys[dbInvocationPair],
                                               (ClUint8T *)readData,
-                                              dataLen))
+                                              dataLen,
+                                              CL_AMS_CKPT_WRITE_DB))
              != CL_OK )
         { 
             clHeapFree (readData);
@@ -1150,73 +1232,61 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
 
     if ( (mode == CL_AMS_CKPT_WRITE_INVOCATION) || (mode == CL_AMS_CKPT_WRITE_ALL) )
     {
-        ClBoolT invocationMarshall = CL_TRUE;
-
-        if(rollingOver)
+#if 0
+        AMS_CHECK_RC_ERROR(clAmsXMLizeInvocation(ams,
+                                                 ams->ckptInvocationSections[dbInvocationPair].value,
+                                                 &readData));
+        if ( ( rc = clAmsCkptSectionOverwrite(
+                                              ams,
+                                              &ams->ckptInvocationSections[dbInvocationPair],
+                                              (ClUint8T *)readData,
+                                              strlen(readData),
+                                              CL_AMS_CKPT_WRITE_INVOCATION))
+             != CL_OK )
         {
-            ClUint32T versionCode = CL_VERSION_CURRENT;
-            clNodeCacheMinVersionGet(NULL, &versionCode);
-            if(versionCode < CL_VERSION_CODE(5, 0, 0))
-            {
-                invocationMarshall = CL_FALSE;
-            }
-        }
-
-        if(!invocationMarshall)
-        {
-            AMS_CHECK_RC_ERROR(clAmsXMLizeInvocation(ams,
-                                                     ams->ckptInvocationSections[dbInvocationPair].value,
-                                                     &readData));
-            if ( ( rc = clAmsCkptSectionOverwrite(
-                                                  ams,
-                                                  &ams->ckptInvocationSections[dbInvocationPair],
-                                                  (ClUint8T *)readData,
-                                                  strlen(readData)))
-                 != CL_OK )
-            {
-                free (readData);
-                goto exitfn;
-            }
             free (readData);
+            goto exitfn;
         }
-        else
+        free (readData);
+#else
+        ClBufferHandleT invocationBuf = 0;
+        ClUint32T invocationLen = 0;
+
+        AMS_CHECK_RC_ERROR(clBufferCreate(&invocationBuf));
+        rc = clAmsInvocationMarshall(ams, ams->ckptInvocationSections[dbInvocationPair].value, 
+                                     invocationBuf);
+        if(rc != CL_OK)
         {
-            ClBufferHandleT invocationBuf = 0;
-            ClUint32T invocationLen = 0;
-
-            AMS_CHECK_RC_ERROR(clBufferCreate(&invocationBuf));
-            rc = clAmsInvocationMarshall(ams, ams->ckptInvocationSections[dbInvocationPair].value, 
-                                         invocationBuf);
-            if(rc != CL_OK)
-            {
-                clBufferDelete(&invocationBuf);
-                goto exitfn;
-            }
-
-            clBufferLengthGet(invocationBuf, &invocationLen);
-            AMS_LOG(CL_DEBUG_INFO, ("Invocation DB marshall done for [%d] bytes\n", invocationLen));
-            rc = clBufferFlatten(invocationBuf, (ClUint8T**)&readData);
-            if(rc != CL_OK)
-            {
-                AMS_LOG(CL_DEBUG_ERROR, ("Invocation buffer flatten returned [%#x]\n", rc));
-                clBufferDelete(&invocationBuf);
-                goto exitfn;
-            }
             clBufferDelete(&invocationBuf);
-            if ( ( rc = clAmsCkptSectionOverwrite(
-                                                  ams,
-                                                  &ams->ckptInvocationSections[dbInvocationPair],
-                                                  (ClUint8T *)readData,
-                                                  invocationLen))
-                 != CL_OK )
-            { 
-                clHeapFree (readData);
-                goto exitfn;
-            }
-        
-            clHeapFree (readData);
+            goto exitfn;
         }
+
+        clBufferLengthGet(invocationBuf, &invocationLen);
+        AMS_LOG(CL_DEBUG_INFO, ("Invocation DB marshall done for [%d] bytes\n", invocationLen));
+        rc = clBufferFlatten(invocationBuf, (ClUint8T**)&readData);
+        if(rc != CL_OK)
+        {
+            AMS_LOG(CL_DEBUG_ERROR, ("Invocation buffer flatten returned [%#x]\n", rc));
+            clBufferDelete(&invocationBuf);
+            goto exitfn;
+        }
+        clBufferDelete(&invocationBuf);
+        if ( ( rc = clAmsCkptSectionOverwrite(
+                                              ams,
+                                              &ams->ckptInvocationSections[dbInvocationPair],
+                                              NULL,
+                                              (ClUint8T *)readData,
+                                              invocationLen,
+                                              CL_AMS_CKPT_WRITE_INVOCATION))
+             != CL_OK )
+        { 
+            clHeapFree (readData);
+            goto exitfn;
+        }
+        
+        clHeapFree (readData);
         readData = NULL;
+#endif
     }
 
     /*
@@ -1231,8 +1301,10 @@ amsCkptWrite(ClAmsT *ams, ClUint32T mode )
         AMS_CHECK_RC_ERROR(clAmsCkptSectionOverwrite(
                                                      ams,
                                                      &ams->ckptCurrentSection,
+                                                     NULL,
                                                      (ClUint8T*)&dbInvocationPair,
-                                                     sizeof(dbInvocationPair)));
+                                                     sizeof(dbInvocationPair),
+                                                     CL_AMS_CKPT_WRITE_INVOCATION));
     }
 
     return CL_OK;
@@ -1651,6 +1723,8 @@ clAmsCkptFree( ClAmsT  *ams )
 
         AMS_CHECK_RC_ERROR(clAmsCkptSectionDelete(ams,
                                                   &ams->ckptInvocationSections[i]));
+        clDifferenceVectorDelete(&ams->ckptDifferenceVectorKeys[i]);
+        clDifferenceVectorKeyFree(&ams->ckptDifferenceVectorKeys[i]);
     }
     /*
      * Free the AMS current active section

@@ -59,7 +59,7 @@ extern "C" {
 #include <clCntApi.h>
 #include <clOsalApi.h>
 #include <clEoApi.h>
-
+#include <clDifferenceVector.h>
 
 /**
  * Serialize Signature.
@@ -118,6 +118,17 @@ typedef struct ClCkptDataSetCallback
     ClCkptSerializeT serialiser;
     ClCkptDeserializeT deSerialiser;
 }ClCkptDataSetCallbackT;
+
+typedef struct ClCkptDifferenceIOVectorElement
+{
+/**
+ *  Identifier of the section.
+ */
+    ClCkptSectionIdT      sectionId;
+    ClSizeT dataSize;
+    ClOffsetT dataOffset;
+    ClDifferenceVectorT *differenceVector;  /* the dataBuffer difference vector representation*/
+}ClCkptDifferenceIOVectorElementT;
 
 /**
  ************************************
@@ -595,6 +606,11 @@ extern ClRcT clCkptReplicaChangeRegister(ClRcT (*pCkptRelicaChangeCallback)
                                          (const ClNameT *pCkptName, ClIocNodeAddressT replicaAddr));
 
 extern ClRcT clCkptReplicaChangeDeregister(void);
+
+ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
+                                   const ClCkptSectionIdT   *pSectionId,
+                                   ClSizeT                  dataSize,
+                                   ClDifferenceVectorT         *differenceVector);
 
 #ifdef __cplusplus
 }

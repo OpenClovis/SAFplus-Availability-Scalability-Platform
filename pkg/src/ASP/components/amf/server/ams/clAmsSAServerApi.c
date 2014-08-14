@@ -1856,7 +1856,7 @@ _clAmsSAAmsStateChange(
 
 ClRcT
 _clAmsSAStateChangeActive2Standby(
-        ClUint32T  mode)
+                                  ClUint32T  mode)
 {
 
     AMS_FUNC_ENTER (("\n"));
@@ -1876,7 +1876,14 @@ _clAmsSAStateChangeActive2Standby(
     clAmsDbTerminate(&gAms.db);
 
     gAms.serviceState = CL_AMS_SERVICE_STATE_UNAVAILABLE;
-    
+
+    if(clCpmSwitchoverInline())
+    {
+        clAmsDbInstantiate(&gAms.db);
+
+        clAmsHotStandbyRegister(&gAms);
+    }
+
     clOsalMutexUnlock(gAms.mutex);
 
     return CL_OK;

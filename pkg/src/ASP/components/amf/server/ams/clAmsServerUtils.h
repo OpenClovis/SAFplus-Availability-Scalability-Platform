@@ -62,7 +62,7 @@ extern "C" {
  * Debug Defines
  *****************************************************************************/
 
-extern char *clAmsFormatMsg (char *fmt, ...);
+extern char *clAmsFormatMsg (char *fmt, ...);    
 extern void clAmsLogMsgServer( const ClUint32T level, char *buffer, const ClCharT* file, ClUint32T line );
 extern ClAmsT   gAms;
 
@@ -84,13 +84,14 @@ do {                                                                    \
     ClRcT returnCode = CL_OK;                                           \
                                                                         \
     returnCode = (fn);                                                  \
+    if (returnCode != CL_OK) clDbgCodeError(CL_DEBUG_ERROR, ("Fn [%s] returned [0x%x]\n", #fn, returnCode) ); \
                                                                         \
     if (CL_GET_ERROR_CODE(returnCode) == CL_ERR_NO_OP)                  \
     {                                                                   \
-        AMS_SERVER_LOG(CL_DEBUG_TRACE, ("Function [%s] returned NoOp\n", #fn)); \
+        AMS_SERVER_LOG(CL_DEBUG_TRACE,                                  \
+            ("Function [%s] returned NoOp\n", #fn));                    \
         return returnCode;                                              \
-    } \
-    if (returnCode != CL_OK) clDbgCodeError(CL_DEBUG_ERROR, ("Fn [%s] returned [0x%x]\n", #fn, returnCode) ); \
+    }                                                                   \
                                                                         \
     if (returnCode != CL_OK)                                            \
     {                                                                   \
@@ -167,16 +168,14 @@ do {                                                                    \
 {                                                                       \
     if ( LEVEL == CL_DEBUG_ERROR )                                      \
     {                                                                   \
-        clAmsLogMsgServer( LEVEL, AMS_LOG_COUNT_STRING,__FILE__,__LINE__ );                \
-        clAmsLogMsgServer( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__  );                 \
+        clAmsLogMsgServer( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__ );                 \
     }                                                                   \
     else                                                                \
     {                                                                   \
         if ( ( gAms.debugFlags & (DEBUGFLAG) ) ||                       \
              ( ((ClAmsEntityT *) ENTITY)->debugFlags & (DEBUGFLAG) ) )  \
         {                                                               \
-            clAmsLogMsgServer ( LEVEL, AMS_LOG_COUNT_STRING,__FILE__,__LINE__ );           \
-            clAmsLogMsgServer ( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__  );            \
+            clAmsLogMsgServer ( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__);            \
         }                                                               \
     }                                                                   \
 }
@@ -186,15 +185,13 @@ do {                                                                    \
 {                                                                       \
     if ( LEVEL == CL_DEBUG_ERROR )                                      \
     {                                                                   \
-        clAmsLogMsgServer ( CL_DEBUG_TRACE, AMS_LOG_COUNT_STRING,__FILE__,__LINE__ );               \
-        clAmsLogMsgServer ( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__  );                \
+        clAmsLogMsgServer ( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__);                \
     }                                                                   \
     else                                                                \
     {                                                                   \
         if ( ( gAms.debugFlags&CL_AMS_MGMT_SUB_AREA_MSG ) != CL_FALSE ) \
         {                                                               \
-            clAmsLogMsgServer ( CL_DEBUG_TRACE, AMS_LOG_COUNT_STRING,__FILE__,__LINE__ );           \
-            clAmsLogMsgServer ( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__  );            \
+            clAmsLogMsgServer ( LEVEL, clAmsFormatMsg MSG,__FILE__,__LINE__);            \
         }                                                               \
     }                                                                   \
 }                                                           
@@ -225,10 +222,10 @@ do {                                                                    \
 {                                                                       \
     if ( ( gAms.debugFlags&CL_AMS_MGMT_SUB_AREA_FN_CALL ) != CL_FALSE ) \
     {                                                                   \
-        clAmsLogMsgServer ( CL_DEBUG_TRACE, AMS_LOG_COUNT_STRING,__FILE__,__LINE__ );      \
+        clAmsLogMsgServer ( CL_DEBUG_TRACE, AMS_LOG_COUNT_STRING,__FILE__,__LINE__);      \
         clAmsLogMsgServer ( CL_DEBUG_TRACE,                             \
-            clAmsFormatMsg ("Fn [%s:%d] : ", __FUNCTION__, __LINE__),__FILE__,__LINE__ );  \
-        clAmsLogMsgServer ( CL_DEBUG_TRACE, clAmsFormatMsg arg,__FILE__,__LINE__  );       \
+            clAmsFormatMsg ("Fn [%s:%d] : ", __FUNCTION__, __LINE__),__FILE__,__LINE__);  \
+        clAmsLogMsgServer ( CL_DEBUG_TRACE, clAmsFormatMsg arg,__FILE__,__LINE__);       \
     }                                                                   \
 }
 

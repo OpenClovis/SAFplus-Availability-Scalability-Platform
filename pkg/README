@@ -1,8 +1,6 @@
-
-
-
-                        Welcome to OpenClovis SDK
-                        =========================
+==================================================
+Welcome to OpenClovis SDK
+==================================================
 
 1. Content
 ----------
@@ -22,3 +20,4 @@
    to install OpenClovis SDK, refer to the installation guide accompanying this
    package at doc/pdf/openclovis_installguide_3.0.pdf or 
    doc/html/installguide/index.html.
+

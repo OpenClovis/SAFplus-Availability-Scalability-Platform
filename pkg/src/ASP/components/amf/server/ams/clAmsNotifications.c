@@ -548,19 +548,6 @@ static ClRcT clAmsSINotificationEventPayloadSet(const ClAmsEntityT *entity,
     return CL_OK;
 }
 
-static ClRcT clAmsSGNotificationEventPayloadSet(const ClAmsEntityT *entity,
-                                                const ClAmsNotificationTypeT ntfType,
-                                                ClAmsNotificationDescriptorT *notification)
-{
-    ClAmsSGT *sg = (ClAmsSGT *)entity;
-
-    notification->type = ntfType;
-    notification->entityType = CL_AMS_ENTITY_TYPE_SG;
-    memcpy(&notification->entityName, &sg->config.entity.name, sizeof(ClNameT));
-    notification->entityName.length = strlen(sg->config.entity.name.value);
-    return CL_OK;
-}
-
 static ClRcT clAmsSUNotificationEventPayloadSet(const ClAmsEntityT *entity,
                                                 const ClAmsEntityRefT *entityRef,
                                                 const ClAmsHAStateT lastHAState,
@@ -643,14 +630,6 @@ ClRcT clAmsNotificationEventPayloadSet(const ClAmsEntityT *entity,
                                                  entityRef,
                                                  lastHAState,
                                                  notification);
-            break;
-        }
-
-    case CL_AMS_ENTITY_TYPE_SG:
-        {
-            clAmsSGNotificationEventPayloadSet(entity,
-                                               ntfType,
-                                               notification);
             break;
         }
         default:

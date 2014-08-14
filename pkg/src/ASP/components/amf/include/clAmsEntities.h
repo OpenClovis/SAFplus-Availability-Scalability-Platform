@@ -229,6 +229,7 @@ typedef enum
     CL_AMS_COMP_TIMER_PROXIEDCOMPINSTANTIATE            = 48,
     CL_AMS_COMP_TIMER_PROXIEDCOMPCLEANUP                = 49,
     CL_AMS_COMP_TIMER_INSTANTIATEDELAY                  = 50,
+    CL_AMS_COMP_TIMER_MAX,
 } ClAmsEntityTimerTypeT;
 
 typedef struct
@@ -475,7 +476,7 @@ typedef struct
     ClAmsSGLoadingStrategyT loadingStrategy;        /**< SU loading scheme     */
     ClBoolT                 failbackOption;         /**< revert SUs ?          */
     ClBoolT                 autoRepair;             /**< auto repair failed SU */
-    ClTimeT                 instantiateDuration;    /**< SG start timeout      */
+    ClTimeT                 instantiateDuration;    /**< Delay between SG instantation and comp start */
     ClUint32T               numPrefActiveSUs;       /**< 2N, M+N               */
     ClUint32T               numPrefStandbySUs;      /**< 2N, M+N               */
     ClUint32T               numPrefInserviceSUs;    /**< >Active|Assigned+Stdby*/

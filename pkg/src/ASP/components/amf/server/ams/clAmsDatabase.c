@@ -744,7 +744,7 @@ clAmsEntityDbDeleteEntity(
         CL_IN  ClAmsEntityDbT  *entityDb,
         CL_IN  ClAmsEntityRefT  *entityRef )
 {
-    ClRcT rc;
+
     /*
      * Verify the entity db and reference are valid and referring to the
      * same type of entities. Then verify the entity exits in the db.
@@ -759,9 +759,7 @@ clAmsEntityDbDeleteEntity(
         return CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
     }
 
-    rc = clAmsEntityDbFindEntity(entityDb,entityRef);
-    if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) return rc;
-    else AMS_CALL(rc);
+    AMS_CALL ( clAmsEntityDbFindEntity(entityDb,entityRef) );
 
     /*
      * Delete the entity node from the hash table and update

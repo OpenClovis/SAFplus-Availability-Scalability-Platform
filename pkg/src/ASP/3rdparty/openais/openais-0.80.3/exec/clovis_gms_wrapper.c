@@ -122,11 +122,6 @@ static void gms_exec_message_handler (
 static void gms_exec_message_endian_convert (void* message);
 
 
-/* This is a modified service to send synch before leader 
- * election takes place; so that all nodes are synched. */
-static void synch_init(void);
-
-
 /* ------------------------------------------------------------------------
  * Openais specific data structure definitions below:
  * These are used for implementing GMS functionality
@@ -237,9 +232,6 @@ __attribute__ ((constructor)) static void gms_comp_register (void)
  * do anything for below functions.
  *------------------------------------------------------------------------*/
 
-/*
- * This is a noop for this service
- */
 static void gms_exec_dump_fn (void) 
 {
     /* Finalizing execution: As of now its noop */
@@ -249,13 +241,137 @@ static void gms_exec_dump_fn (void)
 
 
 /*
- * This is a noop for this service
+ * This is a modified service to send synch before leader election takes place
  */
 static void gms_sync_init (void)
 {
     /* As of now it is noop */
     clLog(TRACE,OPN,AIS, "sync_init function is called for ClovisGMS service");
-	return;
+
+    // invoking sync so that node joined will always have latest info on GMS
+    ClRcT              rc = CL_OK;
+    ClGmsGroupSyncNotificationT     syncNotification = {0};
+    ClUint32T          noOfItems = 0;
+    void*              buf = NULL;
+    ClGmsDbT*          thisViewDb = NULL;
+    ClUint32T          i = 0;
+    ClInt32T           result = 0;
+
+    // Only leader should be sending out, synch Info (group => default cluster)
+    if (gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader)
+    {
+        clLog(INFO,GROUPS,NA, "I am leader of the cluster. So sending Groups Sync message for the new node.");
+
+        /* Send SYNC message with entire group database */
+        syncNotification.noOfGroups = 0;
+        syncNotification.noOfMembers = 0;
+
+        clGmsMutexLock(gmsGlobalInfo.dbMutex);
+        clLog(TRACE,CLM,NA, "Acquired mutex. Now gathering groups info");
+
+        // Sending updates only for other groups; default cluster group nodes update each other
+        for (i=1; i < gmsGlobalInfo.config.noOfGroups; i++)
+        {
+            if ((gmsGlobalInfo.db[i].view.isActive == CL_TRUE) &&
+                (gmsGlobalInfo.db[i].viewType == CL_GMS_GROUP || (gmsGlobalInfo.db[i].viewType == CL_GMS_CLUSTER)) )
+            {
+                ClInt32T j = 0;
+                /* These 2 conditions should indicate that the group exists and is active.
+                 */
+                thisViewDb = &gmsGlobalInfo.db[i];
+
+                /* Get the group Info for thisViewDb */
+                syncNotification.groupInfoList = (ClGmsGroupInfoT*)realloc(syncNotification.groupInfoList,
+                                                                           sizeof(ClGmsGroupInfoT)*(syncNotification.noOfGroups+1));
+                if (syncNotification.groupInfoList == NULL)
+                {
+                    clLog(ERROR,CLM,NA, "Could not allocate memory while gathering group information, synch failed!");
+                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
+                    rc = CL_ERR_NO_MEMORY;
+                    return;
+                }
+
+                memcpy(&syncNotification.groupInfoList[syncNotification.noOfGroups], &(thisViewDb->groupInfo),sizeof(ClGmsGroupInfoT));
+                syncNotification.noOfGroups++;
+
+                /* Get the list of members of this group */
+                rc = _clGmsViewGetCurrentViewNotification(thisViewDb, &buf, &noOfItems);
+                if (rc != CL_OK)
+                {
+                    clLog(ERROR,CLM,NA, "_clGmsViewGetCurrentViewNotification failed while sending SYNC message. rc = 0x%x\n",rc);
+                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
+                    return;
+                }
+
+                clLog(TRACE,CLM,NA, "group info for group [%d]; with members [%d]", thisViewDb->groupInfo.groupId, noOfItems);
+
+                if ((noOfItems == 0) || (buf == NULL))
+                {
+                    buf = NULL;
+                    noOfItems = 0;
+                    continue;
+                }
+
+                syncNotification.groupMemberList = (ClGmsViewNodeT*)realloc(syncNotification.groupMemberList, 
+                                                                            sizeof(ClGmsViewNodeT)*(noOfItems+syncNotification.noOfMembers));
+                if (syncNotification.groupMemberList == NULL)
+                {
+                    clLog(ERROR,CLM,NA, "Could not allocate memory while gathering group information");
+                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
+                    rc = CL_ERR_NO_MEMORY;
+                    return;
+                }
+
+                memset(&syncNotification.groupMemberList[syncNotification.noOfMembers], 0, sizeof(ClGmsViewNodeT)*noOfItems);
+                for (j = 0; j < noOfItems; j++)
+                {
+                    memcpy(&syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupMember,
+                           &( ( (ClGmsGroupNotificationT*)buf )[j].groupMember ),
+                           sizeof(ClGmsGroupMemberT) );
+                    syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupData.groupId =
+                        thisViewDb->groupInfo.groupId;
+                    clLog(DBG,GEN,NA, "Sync group Id [%d]", thisViewDb->groupInfo.groupId);
+                    syncNotification.noOfMembers++;
+                }
+
+                clHeapFree(buf);
+                buf = NULL;
+                noOfItems = 0;
+            }
+        }
+
+        clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
+        clLog(DEBUG,CLM,NA, "Gathered group information for [%d] groups with [%d] members. Now sending it over multicast", 
+              syncNotification.noOfGroups, syncNotification.noOfMembers);
+
+        /* Send the multicast message */
+        if(syncNotification.noOfGroups > 0)
+        {
+            result = clGmsSendMsg(NULL, 0x0, CL_GMS_SYNC_MESSAGE, 0, 0, (void *)&syncNotification);
+            if (result < 0)
+            {
+                clLog(ERROR,GROUPS,NA, "Openais Sync Message Send failed");
+            }
+
+            clLog(TRACE,CLM,NA, "Group information is sent over multicast");
+
+            /* Free the pointer used to gather the group member info.
+             * since the memory is allocated using realloc, free it 
+             * using normal free
+             */
+            free(syncNotification.groupInfoList);
+            if (syncNotification.noOfMembers > 0)
+            {
+                free(syncNotification.groupMemberList);
+            }
+        }
+    }
+    else
+    {
+        clLog(CRITICAL,CLM,NA, "Node is not a leader; so expecting the Synch message from Leader!");
+    }
+
+    return;
 }
 
 
@@ -264,15 +380,7 @@ static void gms_sync_init (void)
  */
 static void gms_sync_activate (void)
 {
-    ClUint32T clusterVersion = CL_VERSION_CURRENT;
     clLog(TRACE,OPN,AIS, "sync_activate function is called for ClovisGMS service");
-    clNodeCacheMinVersionGet(NULL, &clusterVersion);
-    if(clusterVersion >= CL_VERSION_CODE(5, 0, 0))
-    {
-        // modifed to make call for synch
-        clLog(TRACE,OPN,AIS, "synch_init function is called!");
-        synch_init();
-    }
 	return;
 }
 
@@ -324,140 +432,6 @@ static int gms_exec_init_fn (struct objdb_iface_ver0 *objdb)
     return (0);
 }
 
-
-/* This is a modified service to send synch before leader 
- * election takes place; so that all nodes are synched. */
-static void synch_init(void)
-{
-
-    ClRcT              		rc 		 = CL_OK;
-    ClGmsGroupSyncNotificationT syncNotification = {0};
-    ClUint32T          		noOfItems 	 = 0;
-    void*              		buf 		 = NULL;
-    ClGmsDbT*          		thisViewDb 	 = NULL;
-    ClUint32T          		i 		 = 0;
-    ClInt32T           		result 		 = 0;
-
-    // Only leader should be sending out, synch Info (group => default cluster)
-    if (gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader)
-    {
-        clLog(INFO,GROUPS,NA, "I am leader of the cluster. So sending Groups Sync message for the new node.");
-
-        /* Send SYNC message with entire group database */
-        syncNotification.noOfGroups = 0;
-        syncNotification.noOfMembers = 0;
-
-        clGmsMutexLock(gmsGlobalInfo.dbMutex);
-        clLog(TRACE,CLM,NA, "Acquired mutex. Now gathering groups info");
-
-        // Sending updates only for other groups; default cluster group nodes update each other
-        for (i=1; i < gmsGlobalInfo.config.noOfGroups; i++)
-        {
-            if ((gmsGlobalInfo.db[i].view.isActive == CL_TRUE) &&
-                (gmsGlobalInfo.db[i].viewType == CL_GMS_GROUP || (gmsGlobalInfo.db[i].viewType == CL_GMS_CLUSTER)) )
-            {
-                ClInt32T j = 0;
-                /* These 2 conditions should indicate that the group exists and is active.
-                */
-                thisViewDb = &gmsGlobalInfo.db[i];
-
-                /* Get the group Info for thisViewDb */
-                syncNotification.groupInfoList = (ClGmsGroupInfoT*)realloc(syncNotification.groupInfoList,
-                                                  sizeof(ClGmsGroupInfoT)*(syncNotification.noOfGroups+1));
-                if (syncNotification.groupInfoList == NULL)
-                {
-                    clLog(ERROR,CLM,NA, "Could not allocate memory while gathering group information, synch failed!");
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    rc = CL_ERR_NO_MEMORY;
-                    return;
-                }
-
-                memcpy(&syncNotification.groupInfoList[syncNotification.noOfGroups], &(thisViewDb->groupInfo),sizeof(ClGmsGroupInfoT));
-                syncNotification.noOfGroups++;
-
-                /* Get the list of members of this group */
-                rc = _clGmsViewGetCurrentViewNotification(thisViewDb, &buf, &noOfItems);
-                if (rc != CL_OK)
-                {
-                   clLog(ERROR,CLM,NA, "_clGmsViewGetCurrentViewNotification failed while sending SYNC message. rc = 0x%x\n",rc);
-                   clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    return;
-                }
-
-                clLog(TRACE,CLM,NA, "group info for group [%d]; with members [%d]", thisViewDb->groupInfo.groupId, noOfItems);
-
-               if ((noOfItems == 0) || (buf == NULL))
-               {
-                   buf = NULL;
-                   noOfItems = 0;
-                   continue;
-               }
-
-               syncNotification.groupMemberList = (ClGmsViewNodeT*)realloc(syncNotification.groupMemberList,
-                                                    sizeof(ClGmsViewNodeT)*(noOfItems+syncNotification.noOfMembers));
-               if (syncNotification.groupMemberList == NULL)
-               {
-                    clLog(ERROR,CLM,NA, "Could not allocate memory while gathering group information");
-                    clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-                    rc = CL_ERR_NO_MEMORY;
-                    return;
-               }
-
-                memset(&syncNotification.groupMemberList[syncNotification.noOfMembers], 0, sizeof(ClGmsViewNodeT)*noOfItems);
-                for (j = 0; j < noOfItems; j++)
-                {
-                    memcpy(&syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupMember,
-                           &( ( (ClGmsGroupNotificationT*)buf )[j].groupMember ),
-                            sizeof(ClGmsGroupMemberT) );
-                    syncNotification.groupMemberList[syncNotification.noOfMembers].viewMember.groupData.groupId =
-                        thisViewDb->groupInfo.groupId;
-                    clLog(DBG,GEN,NA, "Sync group Id [%d]", thisViewDb->groupInfo.groupId);
-                    syncNotification.noOfMembers++;
-                }
-
-                clHeapFree(buf);
-                buf = NULL;
-                noOfItems = 0;
-            }
-        }
-
-        clGmsMutexUnlock(gmsGlobalInfo.dbMutex);
-        clLog(TRACE,CLM,NA, "Gathered group information for [%d] groups with [%d] members. Now sending it over multicast",
-                        syncNotification.noOfGroups, syncNotification.noOfMembers);
-
-        if (syncNotification.noOfGroups > 0)
-        {
-            /* Send the multicast message */
-            result = clGmsSendMsg(NULL, 0x0, CL_GMS_SYNC_MESSAGE, 0, 0, (void *)&syncNotification);
-            if (result < 0)
-            {
-                clLog(ERROR,GROUPS,NA, "Openais Sync Message Send failed");
-            }
-
-            clLog(TRACE,CLM,NA, "Group information is sent over multicast");
-        }
-
-        /* Free the pointer used to gather the group member info.
-         * since the memory is allocated using realloc, free it 
-         * using normal free
-         */
-        if (syncNotification.noOfGroups > 0)
-        {
-            free(syncNotification.groupInfoList);
-            if (syncNotification.noOfMembers > 0)
-            {
-                free(syncNotification.groupMemberList);
-            }
-        }
-    }
-    else
-    {
-        clLog(CRITICAL,CLM,NA, "Node is not a leader; so expecting the Synch message from Leader!");
-    }
-
-    return;
-}
-
 /*
  * If a processor joined in the configuration change and gms_sync_activate hasn't
  * yet been called, issue a node join to share CLM specific data about the processor
@@ -472,41 +446,6 @@ static int gms_sync_process (void)
 	return (gms_nodejoin_send ());
 }
 
-static int gms_nodejoin_send_base(void)
-{
-    /* For now this function sends only latest version. It needs to be 
-     * modified in future when version changes */
-    /* Send the join message with given version */
-	struct req_exec_gms_nodejoin req_exec_gms_nodejoin;
-	struct iovec                 req_exec_gms_iovec;
-    ClGmsClusterMemberT          thisGmsClusterNode;
-	int                          result;
-	req_exec_gms_nodejoin.header.size = sizeof (struct req_exec_gms_nodejoin);
-	req_exec_gms_nodejoin.header.id = 
-	             SERVICE_ID_MAKE (GMS_SERVICE, MESSAGE_REQ_EXEC_GMS_NODEJOIN);
-    
-    clLog(DBG,OPN,AIS,
-            "This node is sending join message for version %d, %d, %d",
-          CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
-
-    req_exec_gms_nodejoin.version.releaseCode = CL_RELEASE_VERSION_BASE;
-    req_exec_gms_nodejoin.version.majorVersion = CL_MAJOR_VERSION_BASE;
-    req_exec_gms_nodejoin.version.minorVersion = CL_MINOR_VERSION_BASE;
-
-    _clGmsGetThisNodeInfo(&thisGmsClusterNode);
-
-    memcpy (&req_exec_gms_nodejoin.gmsClusterNode, &thisGmsClusterNode,
-            sizeof (ClGmsClusterMemberT));
-    req_exec_gms_nodejoin.gmsMessageType = CL_GMS_CLUSTER_JOIN_MSG; 
-
-	req_exec_gms_iovec.iov_base = (char *)&req_exec_gms_nodejoin;
-	req_exec_gms_iovec.iov_len = sizeof (req_exec_gms_nodejoin);
-    clLog(DBG,OPN,AIS,
-            "Sending node join from this node in sync_process");
-    result = totempg_groups_mcast_joined (openais_group_handle, &req_exec_gms_iovec, 1, TOTEMPG_AGREED);
-
-	return (result);
-}
 
 static int gms_nodejoin_send (void)
 {
@@ -530,19 +469,15 @@ static int gms_nodejoin_send (void)
     {
         clLog(ERROR,OPN,AIS,
                 "Error while getting version from the version cache. rc 0x%x",rc);
+
         curVer.releaseCode = CL_RELEASE_VERSION;
         curVer.majorVersion = CL_MAJOR_VERSION;
         curVer.minorVersion = CL_MINOR_VERSION;
-    } 
-    else 
-    {
+    } else {
         curVer.releaseCode = CL_VERSION_RELEASE(clusterVersion);
         curVer.majorVersion = CL_VERSION_MAJOR(clusterVersion);
         curVer.minorVersion = CL_VERSION_MINOR(clusterVersion);
     }
-
-    if(clusterVersion < CL_VERSION_CODE(5, 0, 0))
-        return gms_nodejoin_send_base();
 
     clLog(DBG,OPN,AIS,
             "This node is sending join message for version %d, %d, %d",
@@ -554,15 +489,12 @@ static int gms_nodejoin_send (void)
 
     _clGmsGetThisNodeInfo(&thisGmsClusterNode);
 
-    memcpy (&req_exec_gms_nodejoin.specificMessage.gmsClusterNode, &thisGmsClusterNode,
-                                          sizeof (ClGmsClusterMemberT));
-
     // node join is send for default cluster group - 0
     req_exec_gms_nodejoin.gmsGroupId     = 0;
     memcpy (&req_exec_gms_nodejoin.specificMessage.gmsClusterNode, &thisGmsClusterNode, sizeof (ClGmsClusterMemberT));
     req_exec_gms_nodejoin.gmsMessageType = CL_GMS_CLUSTER_JOIN_MSG; 
 
-    /* Create a buffer handle and marshall the eliments */
+    /* Create a buffer handle and marshall the elements */
     rc = clBufferCreate(&bufferHandle);
     if (rc != CL_OK)
     {
@@ -660,6 +592,7 @@ char *get_node_ip (unsigned int nodeid)
     return (iface_string);
 }
 
+
 static void gms_confchg_fn (
 	enum totem_configuration_type configuration_type,
 	unsigned int *member_list, int member_list_entries,
@@ -686,7 +619,7 @@ static void gms_confchg_fn (
 	for (i = 0; i < joined_list_entries; i++) {
 		clLog (NOTICE,OPN,AIS, "\t%s", totempg_ifaces_print (joined_list[i]));
 	}
-
+   
     clNodeCacheMinVersionGet(NULL, &minVersion);
     if(minVersion >= CL_VERSION_CODE(5, 0, 0) && gAspNativeLeaderElection)
     {
@@ -711,121 +644,9 @@ static void gms_confchg_fn (
     return;
 }
 
-static void gms_exec_message_endian_convert_base (void *msg)
-{
-    struct req_exec_gms_nodejoin *node_join = msg;
-
-    clLog(NOTICE,OPN,AIS, "Converting endianness for this message");
-
-    /* For now we really dont care about the version here
-     * as both structure fileds are same. This should be 
-     * changed in future whenever the structure changes */
-
-    /* Convert the header first */
-    swab_mar_req_header_t (&node_join->header);
-
-    /* Covert gmsMessageType */
-    node_join->gmsMessageType = swab32(node_join->gmsMessageType);
-
-    /* Covert gmsGroupId */
-    node_join->gmsGroupId = swab32(node_join->gmsGroupId);
-
-    /* Covert values inside gmsClusterNode parameter */
-    node_join->gmsClusterNode.nodeId = swab32(node_join->gmsClusterNode.nodeId);
-
-    node_join->gmsClusterNode.nodeAddress.iocPhyAddress.portId = 
-        swab32(node_join->gmsClusterNode.nodeAddress.iocPhyAddress.portId);
-
-    node_join->gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress = 
-        swab32(node_join->gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress);
-
-    node_join->gmsClusterNode.nodeIpAddress.family = 
-        swab32(node_join->gmsClusterNode.nodeIpAddress.family);
-
-    node_join->gmsClusterNode.nodeIpAddress.length = 
-        swab16(node_join->gmsClusterNode.nodeIpAddress.length);
-
-    node_join->gmsClusterNode.nodeName.length = 
-        swab16(node_join->gmsClusterNode.nodeName.length);
-
-    node_join->gmsClusterNode.memberActive = 
-        swab16(node_join->gmsClusterNode.memberActive);
-
-    node_join->gmsClusterNode.bootTimestamp = 
-        swab64(node_join->gmsClusterNode.bootTimestamp);
-
-    node_join->gmsClusterNode.initialViewNumber = 
-        swab64(node_join->gmsClusterNode.initialViewNumber);
-
-    node_join->gmsClusterNode.credential = 
-        swab32(node_join->gmsClusterNode.credential);
-
-    node_join->gmsClusterNode.isCurrentLeader = 
-        swab16(node_join->gmsClusterNode.isCurrentLeader);
-
-    /* Convert gmsGroupNode parameters */
-    node_join->gmsGroupNode.memberId = swab32(node_join->gmsGroupNode.memberId);
-
-    node_join->gmsGroupNode.memberAddress.iocPhyAddress.portId = 
-        swab32(node_join->gmsGroupNode.memberAddress.iocPhyAddress.portId);
-
-    node_join->gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress = 
-        swab32(node_join->gmsGroupNode.memberAddress.iocPhyAddress.nodeAddress);
-
-    node_join->gmsGroupNode.memberActive = 
-        swab16(node_join->gmsGroupNode.memberActive);
-
-    node_join->gmsGroupNode.joinTimestamp = 
-        swab64(node_join->gmsGroupNode.joinTimestamp);
-
-    node_join->gmsGroupNode.initialViewNumber = 
-        swab64(node_join->gmsGroupNode.initialViewNumber);
-
-    node_join->gmsGroupNode.credential = 
-        swab32(node_join->gmsGroupNode.credential);
-
-    /* Convert groupData parameters */
-    node_join->groupData.groupId = swab32(node_join->groupData.groupId);
-
-    node_join->groupData.groupParams.isIocGroup = 
-        swab16(node_join->groupData.groupParams.isIocGroup);
-
-    node_join->groupData.noOfMembers = swab32(node_join->groupData.noOfMembers);
-
-    node_join->groupData.setForDelete = 
-        swab16(node_join->groupData.setForDelete);
-
-    node_join->groupData.iocMulticastAddr =
-        swab64(node_join->groupData.iocMulticastAddr);
-
-    node_join->groupData.creationTimestamp =
-        swab64(node_join->groupData.creationTimestamp);
-
-    node_join->groupData.lastChangeTimestamp =
-        swab64(node_join->groupData.lastChangeTimestamp);
-
-    /* Covert the eject reason */
-    node_join->ejectReason = swab32(node_join->ejectReason);
-
-    /* Convert contextHandle */
-    node_join->contextHandle = swab64(node_join->contextHandle);
-
-    /* Convert syncNoOfGroups */
-    node_join->syncNoOfGroups = swab32(node_join->syncNoOfGroups);
-
-    /* Convert syncNoOfMembers */
-    node_join->syncNoOfMembers = swab32(node_join->syncNoOfMembers);
-}
 
 static void gms_exec_message_endian_convert (void *msg)
 {
-    ClUint32T clusterVersion = CL_VERSION_CURRENT;
-    clNodeCacheMinVersionGet(NULL, &clusterVersion);
-    if(clusterVersion < CL_VERSION_CODE(5, 0, 0))
-    {
-        gms_exec_message_endian_convert_base(msg);
-        return;
-    }
     /* We only need to convert the header as all the other
      * elements are being marshalled/unmarshalled using xdr
      */
@@ -834,213 +655,6 @@ static void gms_exec_message_endian_convert (void *msg)
     clLog(DBG,OPN,AIS, "Converting endianness for this message");
 
     swab_mar_req_header_t (header);
-}
-
-static void gms_exec_message_handler_base (
-	void *message,
-	unsigned int nodeid)
-{
-    struct req_exec_gms_nodejoin *req_exec_gms_nodejoin = 
-        (struct req_exec_gms_nodejoin *)message;
-    ClGmsViewNodeT               *node = NULL;
-    ClRcT                         rc = CL_OK;
-    ClGmsClusterMemberT           thisGmsClusterNode = {0};
-    VDECL_VER(ClGmsGroupSyncNotificationT, 4, 0, 0)   syncNotification = {0};
-    char                          nodeIp[256 * INTERFACE_MAX] = "";
-    int                           isLocalMsg = 0;
-    int                           verCode = 0;
-
-    /* Get the ip address string for the given nodeId */
-    strncpy(nodeIp, get_node_ip(nodeid), (256 * INTERFACE_MAX)-1);
-    if (strcmp(nodeIp, totemip_print(this_ip)) == 0)
-    {
-        isLocalMsg = 1;
-    }
-
-    verCode = CL_VERSION_CODE(req_exec_gms_nodejoin->version.releaseCode, 
-            req_exec_gms_nodejoin->version.majorVersion,
-            req_exec_gms_nodejoin->version.minorVersion);
-    clLog(DBG,OPN,AIS,
-            "Received a message from version [%d.%d.%d].",
-            req_exec_gms_nodejoin->version.releaseCode, req_exec_gms_nodejoin->version.majorVersion, 
-            req_exec_gms_nodejoin->version.minorVersion);
-    /* Verify version */
-    if (verCode > CL_VERSION_CODE(4, 0, 0))
-    {
-        /* I received a message from higher version and it dont know
-         * how to decode it. So it discarding it. */
-        clLog(NOTICE,OPN,AIS,
-                "Version mismatch detected. Discarding the message ");
-        return;
-    }
-
-    /* This message is from same version. So processing it */
-
-    switch (req_exec_gms_nodejoin->gmsMessageType)
-    {
-        case CL_GMS_CLUSTER_JOIN_MSG:
-
-            clLog(DBG,OPN,AIS,
-                    "Received multicast message for cluster join");
-
-            node = (ClGmsViewNodeT *) clHeapAllocate(sizeof(ClGmsViewNodeT));
-            if (node == NULL)
-            {
-                clLog (ERROR,OPN,AIS, "clHeapAllocate failed");
-                return;
-            }
-            else {
-                rc = clVersionVerify(
-                        &(gmsGlobalInfo.config.versionsSupported),
-                        &(req_exec_gms_nodejoin->gmsClusterNode.gmsVersion)
-                        );
-                ringVersion.releaseCode =
-                    req_exec_gms_nodejoin->gmsClusterNode.gmsVersion.releaseCode;
-                ringVersion.majorVersion=
-                    req_exec_gms_nodejoin->gmsClusterNode.gmsVersion.majorVersion;
-                ringVersion.minorVersion=
-                    req_exec_gms_nodejoin->gmsClusterNode.gmsVersion.minorVersion;
-                if(rc != CL_OK)
-                {
-                    ringVersionCheckPassed = CL_FALSE;
-                    /* copy the ring version */
-                    clGmsCsLeave( &joinCs );
-                    clLog (ERROR,OPN,AIS,
-                            "Server Version Mismatch detected for this join message");
-                    break;
-                }
-
-                _clGmsGetThisNodeInfo(&thisGmsClusterNode);
-                if( thisGmsClusterNode.nodeId !=
-                        req_exec_gms_nodejoin->gmsClusterNode.nodeId)
-                {
-                    /* TODO This will never happen... */
-                    clGmsCsLeave( &joinCs );
-                }
-
-                node->viewMember.clusterMember =
-                    req_exec_gms_nodejoin->gmsClusterNode;
-                /* If this is local join, then update the IP address */
-                if (thisGmsClusterNode.nodeId ==
-                        req_exec_gms_nodejoin->gmsClusterNode.nodeId)
-                {
-                    memcpy(&node->viewMember.clusterMember.nodeIpAddress,
-                            &myAddress, sizeof(ClGmsNodeAddressT));
-                }
-
-                rc = _clGmsEngineClusterJoin(CL_GMS_CLUSTER_ID,
-                        req_exec_gms_nodejoin->gmsClusterNode.nodeId,
-                        node);
-            }
-            break;
-        case CL_GMS_CLUSTER_EJECT_MSG:
-            clLog (DBG,OPN,AIS,
-                    "Received cluster eject multicast message");
-            /* inform the member about the eject by invoking the ejection
-             *  callback registered with the reason UKNOWN */
-            /* The below logic is same for the leave as well so we just
-             *  fall through the case */
-            _clGmsGetThisNodeInfo(&thisGmsClusterNode);
-            if( req_exec_gms_nodejoin->gmsClusterNode.nodeId ==
-                    thisGmsClusterNode.nodeId)
-            {
-                rc = _clGmsCallClusterMemberEjectCallBack(
-                        req_exec_gms_nodejoin ->ejectReason);
-                if( rc != CL_OK )
-                {
-                    clLog(ERROR,OPN,AIS,"_clGmsCallEjectCallBack failed with"
-                            "rc:0x%x",rc);
-                }
-            }
-        case CL_GMS_CLUSTER_LEAVE_MSG:
-            clLog(DBG,OPN,AIS,
-                    "Received cluster leave multicast message");
-            rc = _clGmsEngineClusterLeave(CL_GMS_CLUSTER_ID,
-                    req_exec_gms_nodejoin->gmsClusterNode.nodeId);
-            break;
-        case CL_GMS_GROUP_CREATE_MSG:
-            clLog(DBG,OPN,AIS,
-                    "Received group create multicast message");
-            rc = _clGmsEngineGroupCreate(req_exec_gms_nodejoin->groupData.groupName,
-                    req_exec_gms_nodejoin->groupData.groupParams,
-                    req_exec_gms_nodejoin->contextHandle, isLocalMsg);
-            break;
-        case CL_GMS_GROUP_DESTROY_MSG:
-            clLog(DBG,OPN,AIS,
-                    "Received group destroy multicast message");
-            rc = _clGmsEngineGroupDestroy(req_exec_gms_nodejoin->groupData.groupId,
-                    req_exec_gms_nodejoin->groupData.groupName,
-                    req_exec_gms_nodejoin->contextHandle, isLocalMsg);
-            break;
-        case CL_GMS_GROUP_JOIN_MSG:
-            clLog(DBG,OPN,AIS,
-                    "Received group join multicast message");
-
-            node = (ClGmsViewNodeT *) clHeapAllocate(sizeof(ClGmsViewNodeT));
-            if (!node)
-            {
-                log_printf (LOG_LEVEL_NOTICE, "clHeapAllocate failed");
-                return;
-            }
-            else {
-                /* FIXME: Need to verify version */
-                memcpy(&node->viewMember.groupMember,&req_exec_gms_nodejoin->gmsGroupNode,
-                        sizeof(ClGmsGroupMemberT));
-                memcpy(&node->viewMember.groupData, &req_exec_gms_nodejoin->groupData,
-                        sizeof(ClGmsGroupInfoT));
-                rc = _clGmsEngineGroupJoin(req_exec_gms_nodejoin->groupData.groupId,
-                        node, req_exec_gms_nodejoin->contextHandle, isLocalMsg);
-            }
-            break;
-        case CL_GMS_GROUP_LEAVE_MSG:
-            clLog(DBG,OPN,AIS,
-                    "Received group leave multicast message");
-            rc = _clGmsEngineGroupLeave(req_exec_gms_nodejoin->groupData.groupId,
-                    req_exec_gms_nodejoin->gmsGroupNode.memberId,
-                    req_exec_gms_nodejoin->contextHandle, isLocalMsg);
-            break;
-        case CL_GMS_COMP_DEATH:
-            clLog(DBG,OPN,AIS,
-                    "Received comp death multicast message");
-            rc = _clGmsRemoveMemberOnCompDeath(req_exec_gms_nodejoin->gmsGroupNode.memberId);
-            break;
-        case CL_GMS_LEADER_ELECT_MSG:
-            clLog(DBG,OPN,AIS,
-                    "Received leader elect multicast message");
-            rc = _clGmsEnginePreferredLeaderElect(req_exec_gms_nodejoin->gmsClusterNode, 
-                    req_exec_gms_nodejoin->contextHandle,
-                    isLocalMsg);
-            break;
-        case CL_GMS_SYNC_MESSAGE:
-            clLog(DBG,OPN,AIS,
-                    "Received sync multicast message");
-            /* Need to decipher the other part of the message also */
-            syncNotification.noOfGroups = req_exec_gms_nodejoin->syncNoOfGroups;
-            syncNotification.noOfMembers = req_exec_gms_nodejoin->syncNoOfMembers;
-            if (syncNotification.noOfGroups > 0)
-            {
-                syncNotification.groupInfoList =
-                    message+sizeof(struct req_exec_gms_nodejoin);
-                if (syncNotification.noOfMembers > 0)
-                {
-                    syncNotification.groupMemberList =
-                        message+sizeof(struct req_exec_gms_nodejoin) +
-                        (sizeof(ClGmsGroupInfoT) * syncNotification.noOfGroups);
-                }
-            }
-
-            rc = _clGmsEngineGroupInfoSyncBase(&syncNotification);
-            break;
-
-        default:
-            clLogMultiline(ERROR,OPN,AIS,
-                    "Openais GMS wrapper received Message wih invalid [MsgType=%x]. \n"
-                    "This could be because of multicast port clashes.",
-                    req_exec_gms_nodejoin->gmsMessageType);
-            return;
-    }
-    clLog(TRACE,OPN,AIS,
-            "Processed the received message. Returning");
 }
 
 static void gms_exec_message_handler (
@@ -1056,13 +670,6 @@ static void gms_exec_message_handler (
     int                           isLocalMsg = 0;
     int                           verCode = 0;
     ClBufferHandleT               bufferHandle = NULL;
-    ClUint32T clusterVersion = CL_VERSION_CURRENT;
-
-    clNodeCacheMinVersionGet(NULL, &clusterVersion);
-    if(clusterVersion < CL_VERSION_CODE(5, 0, 0))
-    {
-        return gms_exec_message_handler_base(message, nodeid);
-    }
 
     /* Get the ip address string for the given nodeId */
     strncpy(nodeIp, get_node_ip(nodeid), (256 * INTERFACE_MAX)-1);
@@ -1210,7 +817,7 @@ static void gms_exec_message_handler (
               "Received cluster leave multicast message from ioc node [%#x:%#x]",
               req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.nodeAddress,
               req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeAddress.iocPhyAddress.portId);
-        rc = _clGmsEngineClusterLeave(CL_GMS_CLUSTER_ID,
+        rc = _clGmsEngineClusterLeave(req_exec_gms_nodejoin.gmsGroupId,
                                       req_exec_gms_nodejoin.specificMessage.gmsClusterNode.nodeId);
         break;
     case CL_GMS_GROUP_CREATE_MSG:
@@ -1313,89 +920,6 @@ static void gms_exec_message_handler (
  * Clovis specific wrapper functions.
  *------------------------------------------------------------------------*/
 /* Called from Clovis GMS files to send and receive cluster and group messages */
-int clGmsSendMsgBase(ClGmsViewMemberT       *memberNodeInfo,
-                     ClGmsGroupIdT           groupId, 
-                     ClGmsMessageTypeT       msgType,
-                     ClGmsMemberEjectReasonT ejectReason )
-{
-    struct req_exec_gms_nodejoin req_exec_gms_nodejoin = {{0}};
-    struct iovec req_exec_gms_iovec = {0};
-    int result = -1;
-
-    req_exec_gms_nodejoin.header.size = sizeof (struct req_exec_gms_nodejoin);
-    req_exec_gms_nodejoin.header.id =
-                 SERVICE_ID_MAKE (GMS_SERVICE, MESSAGE_REQ_EXEC_GMS_NODEJOIN);
-    
-    clLog(DBG,OPN,AIS,
-          "This node is sending join message for version %d, %d, %d",
-          CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
-    /* Get the version and send it */
-    req_exec_gms_nodejoin.version.releaseCode = CL_RELEASE_VERSION_BASE;
-    req_exec_gms_nodejoin.version.majorVersion = CL_MAJOR_VERSION_BASE;
-    req_exec_gms_nodejoin.version.minorVersion = CL_MINOR_VERSION_BASE;
-
-    /* For now we send message without caring about version. Later on
-     * we need to change it accordingly */
-    
-    switch(msgType)
-    {
-        case CL_GMS_CLUSTER_JOIN_MSG:
-        case CL_GMS_CLUSTER_LEAVE_MSG:
-        case CL_GMS_CLUSTER_EJECT_MSG:
-            clLog(DBG,OPN,AIS,
-                    "Sending cluster %s multicast message",
-                    msgType == CL_GMS_CLUSTER_JOIN_MSG ? "join":
-                    msgType == CL_GMS_CLUSTER_LEAVE_MSG ? "leave" : "eject");
-            req_exec_gms_nodejoin.ejectReason = ejectReason;
-            memcpy (&req_exec_gms_nodejoin.gmsClusterNode, &memberNodeInfo->clusterMember,
-                    sizeof (ClGmsClusterMemberT));
-            break;
-        case CL_GMS_GROUP_CREATE_MSG:
-        case CL_GMS_GROUP_DESTROY_MSG:
-        case CL_GMS_GROUP_JOIN_MSG:
-        case CL_GMS_GROUP_LEAVE_MSG:
-            clLog(DBG,OPN,AIS,
-                    "Sending group %s multicast message",
-                    msgType == CL_GMS_GROUP_CREATE_MSG ? "create" : 
-                    msgType == CL_GMS_GROUP_DESTROY_MSG ? "destroy" :
-                    msgType == CL_GMS_GROUP_JOIN_MSG ? "join" : "leave");
-            memcpy (&req_exec_gms_nodejoin.gmsGroupNode, &memberNodeInfo->groupMember,
-                    sizeof (ClGmsGroupMemberT));
-            memcpy (&req_exec_gms_nodejoin.groupData, &memberNodeInfo->groupData,
-                    sizeof(ClGmsGroupInfoT));
-            req_exec_gms_nodejoin.contextHandle = memberNodeInfo->contextHandle;
-            break;
-        case CL_GMS_COMP_DEATH:
-            clLog(DBG,OPN,AIS,
-                    "Sending comp death multicast message");
-            memcpy (&req_exec_gms_nodejoin.gmsGroupNode, &memberNodeInfo->groupMember,
-                    sizeof (ClGmsGroupMemberT));
-            break;
-        case CL_GMS_LEADER_ELECT_MSG:
-            clLog(DBG,OPN,AIS,
-                    "Sending leader elect multicast message");
-            memcpy (&req_exec_gms_nodejoin.gmsClusterNode, &memberNodeInfo->clusterMember,
-                    sizeof (ClGmsClusterMemberT));
-            req_exec_gms_nodejoin.contextHandle = memberNodeInfo->contextHandle;
-            break;
-        default:
-            clLog(DBG,OPN,AIS,
-                    "Requested wrong message to be multicasted. Message type %d",
-                    msgType);
-            return CL_GMS_RC(CL_ERR_INVALID_PARAMETER);
-    }
-
-    req_exec_gms_nodejoin.gmsMessageType = msgType;
-
-    req_exec_gms_iovec.iov_base = (char *)&req_exec_gms_nodejoin;
-    req_exec_gms_iovec.iov_len = sizeof (req_exec_gms_nodejoin);
-
-    result = totempg_groups_mcast_joined (openais_group_handle, &req_exec_gms_iovec, 1, TOTEMPG_AGREED);
-
-    clLog(DBG,OPN,AIS,
-            "Done with sending multicast message of type %d",msgType);
-    return result;
-}
 
 int clGmsSendMsg(ClGmsViewMemberT       *memberNodeInfo,
                  ClGmsGroupIdT           groupId, 
@@ -1441,9 +965,6 @@ int clGmsSendMsg(ClGmsViewMemberT       *memberNodeInfo,
         curVer.majorVersion = CL_VERSION_MAJOR(clusterVersion);
         curVer.minorVersion = CL_VERSION_MINOR(clusterVersion);
     }
-
-    if(clusterVersion < CL_VERSION_CODE(5, 0, 0))
-        return clGmsSendMsgBase(memberNodeInfo, groupId, msgType, ejectReason);
 
     /* Get the version and send it */
     req_exec_gms_nodejoin.version.releaseCode = curVer.releaseCode;
@@ -1622,4 +1143,3 @@ void clGmsWrapperUpdateMyIP()
        
     clLog(DBG,OPN,AIS, "My Local IP address = %s",myAddress.value);
 }
-

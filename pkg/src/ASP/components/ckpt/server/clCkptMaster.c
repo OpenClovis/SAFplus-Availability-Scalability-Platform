@@ -51,15 +51,13 @@ File        : clCkptMaster.c
 #include "clCkptPeer.h"
 #include "clCkptSvr.h"
 #include <clCkptLog.h>
-#include "clCkptSvrIpi.h"
+#include "clCkptIpi.h"
 #include "clCkptUtils.h"
 #include "clCkptMasterUtils.h"
 
 #include <ckptEockptServerMasterActiveClient.h>
 #include <ckptEockptServerMasterDeputyServer.h>
 #include <ckptEockptServerActivePeerClient.h>
-#include <ckptEockptServerPeerPeerServer.h>
-#include <ckptEockptServerPeerPeerExtFuncServer.h>
 #include "xdrCkptMasterDBInfoIDLT.h"
 #include "xdrCkptMasterDBEntryIDLT.h"
 #include "xdrCkptMasterDBClientInfoT.h"
@@ -144,44 +142,6 @@ clCkptNextReplicaGet(ClCntHandleT  replicaList,
         return rc;
     }
     *pNodeAddr = (ClIocNodeAddressT)(ClWordT) key;
-    return rc;
-}
-
-static ClRcT ckptCloseOpenFailure(ClHandleT         clientHdl, 
-                                  ClIocNodeAddressT localAddr)
-{
-    ClRcT                   rc              = CL_OK;
-    CkptPeerInfoT           *pPeerInfo      = NULL;
-
-    /* 
-     * Delete the entry from clientDB database 
-     */
-    rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-                         clientHdl); 
-    CKPT_ERR_CHECK(CL_CKPT_SVR, CL_DEBUG_ERROR,
-                   ("MasterOpen ckpt close failed rc[0x %x]\n",rc),
-                   rc);
-
-    /*
-     * Decrement the client handle count.
-     */
-    gCkptSvr->masterInfo.clientHdlCount--;        
-
-    /*
-     * Delete the client handle from the node's ckptHdl list.
-     */
-    rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList, (ClPtrT)(ClWordT)localAddr,
-                            (ClCntDataHandleT *)&pPeerInfo); 
-    CKPT_ERR_CHECK(CL_CKPT_SVR, CL_DEBUG_ERROR,
-                   ("MasterOpen ckpt close: Failed to get info of addr %d in peerList rc[0x %x]\n",
-                    localAddr, rc), rc);
-    if ( CL_OK != (rc = clCntAllNodesForKeyDelete(pPeerInfo->ckptList,
-                                                  (ClPtrT)(ClWordT)clientHdl)))
-    {
-        CKPT_DEBUG_E(("Master open ckpt close: ClientHdl %#llX Delete from list failed", clientHdl));
-    }
-                    
-    exitOnError:
     return rc;
 }
 
@@ -302,22 +262,6 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
              */
             if(pPeerInfo->available == CL_CKPT_NODE_UNAVAIL)
             {
-                /*
-                 * Ckpt welcome has to be received and peer instantiated
-                 * by the master for collocated or hot-standby checkpoints
-                 */
-                if(CL_CKPT_IS_COLLOCATED(pCreateAttr->creationFlags)
-                   ||
-                   (pCreateAttr->creationFlags & CL_CKPT_DISTRIBUTED))
-                {
-                    rc = CL_CKPT_ERR_TRY_AGAIN;
-                    clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
-                               "Ckpt peer [%d] hasn't been welcomed by master."
-                               "Forcing a try again in case remote welcome messages are delayed",
-                               localAddr);
-                    goto exitOnError;
-                }
-
                 /*
                  * Choose a node from the cluster which has 
                  * checkpoint server running 
@@ -611,10 +555,9 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
                         CL_CKPT_OPEN, 0)))
         {
             clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-                            clientHdl);
-            --gCkptSvr->masterInfo.clientHdlCount;
+                    clientHdl);
             clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
-                            storedDBHdl);
+                    storedDBHdl);
             CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
             return rc;                
         }
@@ -670,48 +613,30 @@ ClRcT VDECL_VER(clCkptMasterCkptOpen, 4, 0, 0)(ClVersionT       *pVersion,
              (CL_CKPT_IS_COLLOCATED(pStoredData->attrib.creationFlags)) )
              
         {
+            /* 
+             * Choose a node for storing the checkpoint replica.
+             */
             if(localAddr != CL_CKPT_UNINIT_ADDR)
             {
-                ClCntNodeHandleT node = 0;
-                ClCntKeyHandleT key = (ClCntKeyHandleT)(ClWordT)localAddr;
-                /*
-                 * First check if the ckpt is already replicated in localAddr
+                rc = clCkptFirstReplicaGet(pStoredData->replicaList,
+                        &nodeAddr);
+                if( CL_OK != rc )
+                {
+                    clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
+                          "No replicas available for this checkpoint rc[0x %x]", rc);
+                    goto exitOnError;
+                }
+                /* 
+                 * Ask the chosen node to pull the ckptInfo 
+                 * from active replica.No need of error checking,
+                 * even it fails,checkpoint server can proceed this 
+                 * operation.
                  */
-                rc = clCntNodeFind(pStoredData->replicaList, key, &node);
-                if(rc != CL_OK)
-                {
-                    rc = clCkptFirstReplicaGet(pStoredData->replicaList,
-                                               &nodeAddr);
-                    if( CL_OK != rc )
-                    {
-                        clLogError(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
-                                   "No replicas available for this checkpoint rc[0x %x]", rc);
-                        ckptCloseOpenFailure(clientHdl, localAddr);
-                        --pStoredData->refCount;
-                        clLogNotice("CKP","MGT","Checkpoint [%s] reference count decremented. Now [%d].", 
-                                    pStoredData->name.value, pStoredData->refCount);
-                        rc = CL_CKPT_ERR_NO_RESOURCE;
-                        goto exitOnError;
-                    }
-                    /* 
-                     * Ask the chosen node to pull the ckptInfo 
-                     * from active replica.No need of error checking,
-                     * even it fails,checkpoint server can proceed this 
-                     * operation.
-                     */
-                    clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
-                               "Notifying address [%d] to pull info from [%d] for handle [%#llX]", 
-                               localAddr, nodeAddr, storedDBHdl);
-                    clCkptReplicaCopy(localAddr, nodeAddr, storedDBHdl, 
-                                      clientHdl, activeAddr, pHdlInfo);
-                }
-                else
-                {
-                    clLogNotice(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN,
-                                "Checkpoint [%.*s] is already replicated on opening node [%d]",
-                                pStoredData->name.length, pStoredData->name.value,
-                                localAddr);
-                }
+                clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_CKPT_OPEN, 
+                        "Notifying address [%d] to pull info from [%d] for handle [%#llX]", 
+                        localAddr, nodeAddr, storedDBHdl);
+                clCkptReplicaCopy(localAddr, nodeAddr, storedDBHdl, 
+                                  clientHdl, activeAddr, pHdlInfo);
             }
         }
     }
@@ -3527,16 +3452,14 @@ exitOnError:
  */
  
 ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
-                                                 ClIocNodeAddressT  peerAddr,
-                                                 ClUint8T           credential)
+                             ClIocNodeAddressT  peerAddr,
+                             ClUint8T           credential)
 {
     ClRcT           rc         = CL_OK;
     CkptPeerInfoT   *pPeerInfo = NULL;
     ClVersionT      version    = {0};
     ClTimerTimeOutT timeOut    = {0}; 
     ClCkptReplicateTimerArgsT *pTimerArgs = NULL;
-    ClIocNodeAddressT masterAddr = gCkptSvr->masterInfo.masterAddr;
-    ClIocNodeAddressT deputyAddr = gCkptSvr->masterInfo.deputyAddr;
 
     /*
      * Version verification.
@@ -3553,42 +3476,34 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
     /* 
      * Ensure that this function is only executed by master only.
      */
-    if(masterAddr == gCkptSvr->localAddr)
+    if( gCkptSvr->masterInfo.masterAddr == gCkptSvr->localAddr)
     {
-        clLogNotice(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME, 
-                    "Welcoming ckpt server [%d] ...", peerAddr);
+	clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME, 
+		   "Welcoming ckpt server [%d] ...", peerAddr);
         /*
          * Update the master's peerlist. Mark the entry as
          * AVAILABLE.
          */
         rc = clCkptMasterPeerUpdate(0, CL_CKPT_SERVER_UP,
-                                    peerAddr,
-                                    credential); 
-
-        if(rc != CL_OK)
-        {
-            clLogError("PEER", "UPD", "Updating peer [%d] during welcome failed with [%#x]",
-                       peerAddr, rc);
-            return rc;
-        }
-   
+                peerAddr,
+                credential); 
         /*
          * Update the deputy about the new peer node that has come up.
          */
-        if((deputyAddr != CL_CKPT_UNINIT_ADDR) &&
-           (deputyAddr != -1) && 
-           (deputyAddr != peerAddr))
+        if((gCkptSvr->masterInfo.deputyAddr != CL_CKPT_UNINIT_ADDR) &&
+           (gCkptSvr->masterInfo.deputyAddr != -1) && 
+           (gCkptSvr->masterInfo.deputyAddr != peerAddr))
 	    {
-            clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME,
-                       "Updating the deputy's [%d] peer list", deputyAddr);
-            rc = ckptIdlHandleUpdate(deputyAddr,
+		clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME,
+		           "Updating the deputy's [%d] peer list", gCkptSvr->masterInfo.deputyAddr);
+            rc = ckptIdlHandleUpdate(gCkptSvr->masterInfo.deputyAddr,
                                      gCkptSvr->ckptIdlHdl, 0);
  
-            memcpy(&version, gCkptSvr->versionDatabase.versionsSupported,
+	    memcpy(&version, gCkptSvr->versionDatabase.versionsSupported,
                    sizeof(ClVersionT));
-            rc = VDECL_VER(clCkptDeputyPeerListUpdateClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl, 
-                                                                           version, peerAddr, credential,
-                                                                           NULL, NULL);
+	    rc = VDECL_VER(clCkptDeputyPeerListUpdateClientAsync, 4, 0, 0)(gCkptSvr->ckptIdlHdl, 
+				version, peerAddr, credential,
+				NULL, NULL);
 	    }
   
         /* 
@@ -3598,18 +3513,21 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
          * from replica nodes.
          */
         CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+        CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                ("Ckpt: Unmarshall error in welcome rc[0x %x]\n", rc), rc);
                 
         rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList,
                                 (ClPtrT)(ClWordT)peerAddr, (ClCntDataHandleT *)&pPeerInfo);    
         CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
-                       ("Ckpt: peerAddr %d is not exists PeerList rc[0x %x]\n",
+                ("Ckpt: peerAddr %d is not exists PeerList rc[0x %x]\n",
                         peerAddr, rc), rc);
       
+        
         if(pPeerInfo->mastHdlList != 0)
         {
     	    clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME, 
-                       "Going through the master handle list for address [%d]", 
-                       peerAddr);
+		       "Going through the master handle list for address [%d]", 
+    			peerAddr);
             clCntWalk(pPeerInfo->mastHdlList, _ckptMastHdlListWalk, 
                       (ClPtrT)(ClWordT)peerAddr, sizeof(peerAddr));  
         }            
@@ -3632,8 +3550,8 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
                        rc);
         pTimerArgs->nodeAddress = peerAddr;
     	clLogDebug(CL_CKPT_AREA_MASTER, CL_CKPT_CTX_PEER_WELCOME, 
-                   "Starting the timer to balance the checkpoints for address [%d]", 
-                   peerAddr);
+		   "Starting the timer to balance the checkpoints for address [%d]", 
+		    peerAddr);
     	memset(&timeOut, 0, sizeof(ClTimerTimeOutT));
 	    timeOut.tsSec = 2;
     	rc = clTimerCreateAndStart(timeOut,
@@ -3644,25 +3562,20 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
                                    &gClPeerReplicateTimer);
         gClPeerReplicateTimer = 0;
     }       
-    else
-    {
-        /*TODO : throw ckptError,so that sender has to handle resend to correct guy */
-    }
-    exitOnError:
+   else
+   {
+    /*TODO : throw ckptError,so that sender has to handle resend to correct guy */
+   }
+exitOnError:
     /*
      * Unlock the master DB.
      */
-    if(masterAddr == gCkptSvr->localAddr)
+    if(gCkptSvr->masterInfo.masterAddr == gCkptSvr->localAddr)
         CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
     return rc;
 }                              
 
-ClRcT VDECL_VER(clCkptRemSvrWelcome, 5, 1, 0)(ClVersionT         *pVersion,
-                                              ClIocNodeAddressT  peerAddr,
-                                              ClUint8T           credential)
-{
-    return VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(pVersion, peerAddr, credential);
-}
+
 
 /*
  * Function checks whether replication is needed for the checkpoint or not.
@@ -3692,23 +3605,6 @@ ClRcT _ckptMasterCkptsReplicate(ClHandleDatabaseHandleT databaseHandle,
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
                 ("Failed to sync up the info  rc[0x %x]\n", rc), rc);
                 
-
-    /*
-     * Skip replicating collocated and distributed checkpoints since they are
-     * replicated explicitly on open. For collocated, we use the global replicate on open
-     * indicator before we decide to skip.
-     */
-    if( (pStoredData->attrib.creationFlags & CL_CKPT_DISTRIBUTED)
-        ||
-        (gCkptSvr->collocateReplicaOnOpen && 
-         CL_CKPT_IS_COLLOCATED(pStoredData->attrib.creationFlags)))
-    {
-        clLogNotice("REP", "BALANCE", "Skipping balancing of checkpoint [%.*s]. "
-                    "Deferring replica allocation to ckpt open", 
-                    pStoredData->name.length, pStoredData->name.value);
-        goto exitOnError;
-    }
-
     /*
      * Replicate the checkpoints that are not replicated. This is determined 
      * by looking at the no. of elements in the replica list of the ckpt.
@@ -3826,30 +3722,13 @@ ClRcT _ckptMasterCkptsLoadBalance(ClHandleDatabaseHandleT databaseHandle,
             (void **)&pStoredData);
     CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Failed to sync up the info  rc[0x %x]\n", rc), rc);
-
-    /*
-     * Skip load balancing collocated and distributed checkpoints since they are
-     * replicated explicitly on open. For collocated, we use the global replicate on open
-     * indicator before we decide to skip.
-     */
-    if( (pStoredData->attrib.creationFlags & CL_CKPT_DISTRIBUTED)
-        ||
-        (gCkptSvr->collocateReplicaOnOpen && 
-         CL_CKPT_IS_COLLOCATED(pStoredData->attrib.creationFlags)))
-    {
-        clLogNotice("LOAD", "BALANCE", "Skipping balancing of checkpoint [%.*s]. "
-                    "Deferring replica allocation to ckpt open", 
-                    pStoredData->name.length, pStoredData->name.value);
-        goto exitOnError;
-    }
-
+            
     /*
      * Check if the checkpoint needs to be replicated.
      */
     rc = clCntSizeGet(pStoredData->replicaList, &replicaCount);
     CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
             ("Replica list in not yet created  rc[0x %x]\n", rc), rc);
-
     if(replicaCount && replicaCount < 2)
     {
         rc = clCntFirstNodeGet(pStoredData->replicaList, &nodeHdl);

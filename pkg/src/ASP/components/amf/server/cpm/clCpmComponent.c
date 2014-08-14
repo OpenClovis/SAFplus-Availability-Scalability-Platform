@@ -75,7 +75,6 @@
 #include "xdrClCpmEventPayLoadT.h"
 #include "xdrClCpmCompHealthcheckT.h"
 #include "xdrClCpmCompSpecInfoRecvT.h"
-
 #ifdef VXWORKS_BUILD
 #define CL_RTP_STACK_SIZE (1<<20)
 #endif
@@ -798,12 +797,22 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
     }
     else if (comp->requestSrcAddress.portId == 0x0)
     {
-        ;                   /* No Reply required in this case */
+        ;
     }
     else
     {
+        ClUint8T priority = 0;
         ClNameT compName = {0};
         clNameSet(&compName, comp->compConfig->compName);
+        if(requestType == CL_CPM_INSTANTIATE)
+        {
+            priority = CL_IOC_CPM_INSTANTIATE_PRIORITY;
+        }
+        else if(requestType == CL_CPM_TERMINATE)
+        {
+            priority = CL_IOC_CPM_TERMINATE_PRIORITY;
+        }
+
         rc = CL_CPM_CALL_RMD_ASYNC_NEW(comp->requestSrcAddress.nodeAddress,
                                        comp->requestSrcAddress.portId,
                                        comp->requestRmdNumber,
@@ -814,7 +823,7 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
                                        CL_RMD_CALL_ATMOST_ONCE,
                                        0,
                                        0,
-                                       0,
+                                       priority,
                                        NULL,
                                        NULL,
                                        MARSHALL_FN(ClCpmLcmResponseT, 4, 0, 0));
@@ -848,7 +857,7 @@ static ClRcT cpmCompRespondToCaller(ClCpmComponentT *comp,
                                                CL_RMD_CALL_ATMOST_ONCE,
                                                0,
                                                0,
-                                               0,
+                                               priority,
                                                NULL,
                                                NULL,
                                                MARSHALL_FN(ClCpmLcmResponseT, 4, 0, 0));
@@ -1748,7 +1757,7 @@ void cpmSetEnvs(ClCpmComponentT *comp)
     for (i = 0; comp->compConfig->env[i]; ++i)
     {
         setenv(comp->compConfig->env[i]->envName,
-               comp->compConfig->env[i]->envValue, 1);
+               comp->compConfig->env[i]->envValue, 0);
     }
 }
 
@@ -2921,6 +2930,143 @@ ClRcT cpmProxiedHealthcheckStop(ClNameT *pCompName)
     return CL_OK;
 }
 
+
+ClRcT cpmCompCleanup(ClCharT *compName)
+{
+
+    ClCpmComponentT *comp = NULL;
+    ClNameT compInstance = {0};
+    ClCpmEOListNodeT *ptr = NULL;
+    ClCpmEOListNodeT *pTemp = NULL;
+    ClRcT rc;
+    rc = cpmCompFind(compName, gpClCpm->compTable, &comp);
+    if (rc != CL_OK)
+    {
+        return rc;
+    }
+    if (strcmp(comp->compConfig->compName, gpClCpm->corServerName) == 0)
+        gpClCpm->corUp = 0;
+    if (strcmp(comp->compConfig->compName, gpClCpm->eventServerName) == 0)
+        gpClCpm->emUp = 0;
+
+    clNameSet(&compInstance, comp->compConfig->compName);
+    cpmInvocationClearCompInvocation(&compInstance);
+    switch (comp->compPresenceState)
+    {
+    case CL_AMS_PRESENCE_STATE_UNINSTANTIATED:
+        {
+            rc = CL_OK;
+            /*
+             * Its success, so inform caller about successful execution 
+             */
+            break;
+        }
+    case CL_AMS_PRESENCE_STATE_INSTANTIATING:
+    case CL_AMS_PRESENCE_STATE_INSTANTIATED:
+    case CL_AMS_PRESENCE_STATE_TERMINATING:
+    case CL_AMS_PRESENCE_STATE_RESTARTING:
+    case CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED:
+    case CL_AMS_PRESENCE_STATE_TERMINATION_FAILED:
+    default:
+        {
+            if (comp->compConfig->compProperty ==
+                CL_AMS_COMP_PROPERTY_SA_AWARE)
+            {
+                clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM,
+                           "Cleaning up SA aware component [%s]...",
+                           comp->compConfig->compName);
+
+                /*
+                 * Cleanup the EOs of that Component 
+                 */
+                clOsalMutexLock(gpClCpm->eoListMutex);
+                ptr = comp->eoHandle;
+                while (ptr != NULL && ptr->eoptr != NULL)
+                {
+                    if (ptr->eoptr->eoPort == CL_IOC_EVENT_PORT)
+                    {
+                        gpClCpm->emUp = 0;
+                    }
+                    pTemp = ptr;
+                    ptr = ptr->pNext;
+                    clHeapFree(pTemp->eoptr);
+                    pTemp->eoptr = NULL;
+                    clHeapFree(pTemp);
+                    pTemp = NULL;
+                }
+                comp->eoHandle = NULL;
+                comp->eoCount = 0;
+                clOsalMutexUnlock(gpClCpm->eoListMutex);
+                if (comp->compConfig->compProcessRel ==
+                    CL_CPM_COMP_SINGLE_PROCESS)
+                {
+                    /*
+                     * Send SIGKILL
+                     */
+                    if (comp->processId != 0)
+                    {
+                        compCleanupInvoke(comp);
+                    }
+                    comp->processId = 0;
+                    comp->compPresenceState =
+                        CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
+
+                    clOsalMutexLock(comp->compMutex);
+                    comp->compOperState = CL_AMS_OPER_STATE_DISABLED;
+                    comp->compReadinessState =
+                        CL_AMS_READINESS_STATE_OUTOFSERVICE;
+                    if (CL_HANDLE_INVALID_VALUE != comp->cpmHealthcheckTimerHandle)
+                    {
+                        clTimerStop(comp->cpmHealthcheckTimerHandle);
+                        clTimerDeleteAsync(&comp->cpmHealthcheckTimerHandle);
+                        comp->cpmHealthcheckTimerHandle = CL_HANDLE_INVALID_VALUE;
+                    }
+                    if (CL_HANDLE_INVALID_VALUE != comp->hbTimerHandle)
+                    {
+                        clTimerStop(comp->hbTimerHandle);
+                        clTimerDeleteAsync(&comp->hbTimerHandle);
+                        comp->hbTimerHandle = CL_HANDLE_INVALID_VALUE;
+                    }
+                        
+                    comp->hbInvocationPending = CL_NO;
+                    comp->hcConfirmed = CL_NO;
+                    clOsalMutexUnlock(comp->compMutex);
+                }
+                else if (comp->compConfig->compProcessRel ==
+                         CL_CPM_COMP_MULTI_PROCESS)
+                {
+                    /*
+                     * All the process must have done the cpmClientInit,
+                     * then we know the pid, send SIGKILL to all the
+                     * process 
+                     */
+                    rc = CL_ERR_NOT_IMPLEMENTED;
+                }
+                else if (comp->compConfig->compProcessRel ==
+                         CL_CPM_COMP_THREADED)
+                {
+                    rc = CL_ERR_NOT_IMPLEMENTED;
+                }
+                else if (comp->compConfig->compProcessRel ==
+                         CL_CPM_COMP_NONE)
+                {
+                    rc = CL_ERR_NOT_IMPLEMENTED;
+                }
+            }
+            else if (comp->compConfig->compProperty ==
+                     CL_AMS_COMP_PROPERTY_NON_PROXIED_NON_PREINSTANTIABLE)
+            {
+                if( (rc = cpmNonProxiedNonPreinstantiableCompTerminate(comp, CL_TRUE)) == CL_OK)
+                {
+                    comp->compPresenceState = CL_AMS_PRESENCE_STATE_UNINSTANTIATED;
+                }
+            }
+            else if(comp->processId) kill(comp->processId, SIGKILL);
+        }
+    }
+
+    return rc;
+}
 
 ClRcT _cpmComponentCleanup(ClCharT *compName,
                            ClCharT *proxyCompName,

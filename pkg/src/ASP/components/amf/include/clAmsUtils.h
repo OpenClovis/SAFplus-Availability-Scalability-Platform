@@ -119,6 +119,14 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
     }                                           \
 }
 
+#define AMS_CHECK_RC_UNLOCK(fn)                  do {   \
+    rc = (fn);                                          \
+    if ( (rc) != CL_OK )                                \
+    {                                                   \
+        goto out_unlock;                                \
+    }                                                   \
+}while(0)
+
 #define AMS_CHECKPTR_SILENT(x)                  \
 {                                               \
     if ( (x) != CL_FALSE )                      \
@@ -293,6 +301,7 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
     ((S) == CL_AMS_ADMIN_STATE_LOCKED_A)        ? "Locked Assignment" : \
     ((S) == CL_AMS_ADMIN_STATE_LOCKED_I)        ? "Locked Instantiation" : \
     ((S) == CL_AMS_ADMIN_STATE_SHUTTINGDOWN)    ? "Shutting Down" :     \
+    ((S) == CL_AMS_ADMIN_STATE_SHUTTINGDOWN_RESTART)    ? "Shutting Down with Restart" :     \
     ((S) == CL_AMS_ADMIN_STATE_NONE)            ? "None" :              \
                                                   "Unknown" )
 

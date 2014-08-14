@@ -607,7 +607,7 @@ ClRcT clDebugLibInitialize(void)
         return rc;
     }
     
-    clEoDebugRegister();
+    clTimerDebugRegister();
 
     return rc;
 }
@@ -631,7 +631,7 @@ ClRcT clDebugLibFinalize(void)
         return rc;
     }
 
-    clEoDebugDeregister();
+    clTimerDebugDeregister();
 
     if( CL_OK != (rc = clHandleDatabaseDestroy(pDebugObj->hDebugFnDB))) 
     {

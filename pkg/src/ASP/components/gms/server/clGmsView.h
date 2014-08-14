@@ -47,31 +47,17 @@ extern "C" {
 typedef struct {
     ClGmsClusterMemberT clusterMember;
     ClUint64T           contextHandle;   
-    VDECL_VER(ClGmsGroupMemberT, 4, 0, 0)   groupMember;
-    ClGmsGroupInfoT     groupData;  /* Used for group create and destroy */
-} VDECL_VER(ClGmsViewMemberT, 4, 0, 0);
-
-typedef struct {
-    ClGmsClusterMemberT clusterMember;
-    ClUint64T           contextHandle;   
     ClGmsGroupMemberT   groupMember;
     ClGmsGroupInfoT     groupData;  /* Used for group create and destroy */
 } ClGmsViewMemberT;
 
 /* View Node Info. */
 
-typedef struct {
-    VDECL_VER(ClGmsViewMemberT, 4, 0, 0)    viewMember; 
-    ClUint32T           trackFlags;
-    ClUint32T           flags;
-} VDECL_VER(ClGmsViewNodeT, 4, 0, 0);
-
 typedef struct clGmsViewNode {
     ClGmsViewMemberT    viewMember; 
     ClUint32T           trackFlags;
     ClUint32T           flags;
 } ClGmsViewNodeT;
-
 
 
 /* View Structure */
@@ -126,26 +112,6 @@ typedef struct {
 /* structure to hold the values of all the group nodes
  * during SYNC operation
  */
-typedef struct VDECL_VER(clGmsGroupSyncNotification, 4, 0, 0) {
-    /*
-     * Total number of groups in the system
-     */
-    ClUint32T           noOfGroups;
-    /*
-     * Groups Metadata list
-     */
-    ClGmsGroupInfoT     *groupInfoList;
-    /*
-     * Total number of group members in the system
-     */
-    ClUint32T           noOfMembers;
-    /*
-     * Group Members list
-     */
-    VDECL_VER(ClGmsViewNodeT, 4, 0, 0)     *groupMemberList;
-
-} VDECL_VER(ClGmsGroupSyncNotificationT, 4, 0, 0);
-
 typedef struct clGmsGroupSyncNotification {
     /*
      * Total number of groups in the system
@@ -187,10 +153,7 @@ typedef enum {
 } ClGmsViewCompareT;
 
 
- 
-// created to check for matching group name
 ClRcT _clGmsViewClusterGroupFind( CL_IN const char *name);
-
 
 /* View Db Handlers. */
 

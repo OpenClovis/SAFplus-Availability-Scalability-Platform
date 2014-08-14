@@ -52,7 +52,7 @@
 #include "clCkptSvr.h"
 #include "clCkptUtils.h"
 #include "clCkptErrors.h"
-#include "clCkptSvrIpi.h"
+#include "clCkptIpi.h"
 #include "clCkptLog.h"
 #include "clCkptMaster.h"
 #include "xdrCkptXlationDBEntryT.h"
@@ -901,8 +901,21 @@ clCkptSectionDeleteCb(ClCntDataHandleT  key,
         pSec->timerHdl = 0;
     }
     pSec->exprTime = 0;
-    clHeapFree(pSec->pData);
-    pSec->pData = NULL;
+    if(pSec->pData)
+    {
+        clHeapFree(pSec->pData);
+        pSec->pData = NULL;
+    }
+    if(pSec->differenceVectorKey)
+    {
+        /*
+         * Delete the difference vector entry and free the key
+         */
+        clDifferenceVectorDelete(pSec->differenceVectorKey);
+        clDifferenceVectorKeyFree(pSec->differenceVectorKey);
+        clHeapFree(pSec->differenceVectorKey);
+        pSec->differenceVectorKey = NULL;
+    }
     clHeapFree(pSec);
     /* free the key */
     clHeapFree(pSecKey->scnId.id);
@@ -1227,15 +1240,255 @@ exitOnError:
   return rc;
 }
 
-
-
 /*
  * Funtion to write to the checkpoint locally. This function is called with
  * ckptMutex is held. If error is occuring before the we are unlocking the
  * mutex and returing from here, so the caller of the function should just
  * exit, no need to unlock again. This is because race condition between
  * checkpoint delete & this call. 
+ * This function returns the replica Difference vector or the difference between the current write and the saved write.
  */
+
+ClRcT _ckptCheckpointLocalWriteVector(ClCkptHdlT             ckptHdl,
+                                      ClUint32T              numberOfElements,
+                                      ClCkptDifferenceIOVectorElementT *pDifferenceIoVector,
+                                      ClUint32T              *pError,
+                                      ClIocNodeAddressT      nodeAddr,
+                                      ClIocPortT             portId,
+                                      ClCkptDifferenceIOVectorElementT *pDifferenceReplicaVector,
+                                      ClBoolT *pReplicate,
+                                      ClPtrT *pStaleSectionsData)
+{
+    ClRcT        rc          = CL_OK;
+    ClUint32T    count       = 0;
+    CkptT        *pCkpt      = NULL;
+    CkptSectionT *pSec       = NULL;
+    ClCkptDifferenceIOVectorElementT *pVec = pDifferenceReplicaVector;
+    ClBoolT sectionLockTaken = CL_TRUE;
+    ClBoolT replicate = CL_FALSE;
+    typedef struct CkptHotStandbyVector
+    {
+        ClCkptSectionIdT *sectionId;
+        CkptSectionT *section;
+    } CkptHotStandbyVectorT;
+    CkptHotStandbyVectorT *hotStandbyList = NULL;
+
+    if(!pDifferenceIoVector) return CL_CKPT_RC(CL_ERR_INVALID_PARAMETER);
+
+    /*
+     * Retrieve the data associated with the active handle.
+     */
+    rc = clHandleCheckout(gCkptSvr->ckptHdl,ckptHdl,(void **)&pCkpt);
+    if( CL_OK != rc )
+    {
+        /* this should never occur */
+        clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_OVERWRITE,
+                   "Handle [%#llX] checkout failed rc [0x %x]", ckptHdl, rc);
+        CL_ASSERT(CL_FALSE);
+        return CL_CKPT_ERR_INVALID_STATE;
+    }
+    /*
+     * TODO: Move the hot standby notification to differential IO vector.
+     */
+    if(pCkpt->pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
+    {
+        hotStandbyList = clHeapCalloc(numberOfElements, sizeof(*hotStandbyList));
+        CL_ASSERT(hotStandbyList != NULL);
+    }
+    /*
+     * Read from iovector and copy to the corresponding sections one by one.
+     */
+    for (count = 0; count < numberOfElements; count ++)
+    {
+        ClUint8T *mergeSpace = NULL;
+        /*
+         * Validate the iovector data.
+         */
+        if ((pCkpt->pDpInfo->maxScnSize != 0) && 
+            ((pDifferenceIoVector->dataSize + pDifferenceIoVector->dataOffset) > 
+             pCkpt->pDpInfo->maxScnSize) )
+        {
+            /*
+             * Return ERROR as data size + offset exceeds the max section
+             * size.
+             */
+            rc = CL_CKPT_ERR_INVALID_PARAMETER;
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                           ("Trying to write vector beyond the section's"
+                            " maximum size %.*s rc[0x %x]\n",
+                            pCkpt->ckptName.length,
+                            pCkpt->ckptName.value,rc), rc);
+        }   
+        if((pCkpt->pDpInfo->maxScnSize != 0) && (pDifferenceIoVector->dataOffset > pCkpt->pDpInfo->maxScnSize))
+        {
+            /*
+             * Return ERROR as offset exceeds the max section size. 
+             */
+            rc = CL_CKPT_ERR_INVALID_PARAMETER;
+            CKPT_ERR_CHECK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+                           ("Invalid vector offset for ckpt %.*s rc[0x %x]\n",
+                            pCkpt->ckptName.length, 
+                            pCkpt->ckptName.value,rc), rc);
+        }         
+        /* Acquire the section level mutex, release the ckpt mutex */
+        rc = clCkptSectionLevelLock(pCkpt, &pDifferenceIoVector->sectionId, 
+                                    &sectionLockTaken);
+        if( CL_OK != rc )
+        {
+            goto exitOnError;
+        }
+
+        if(pDifferenceIoVector->sectionId.id == NULL)
+        {
+            if(pCkpt->pDpInfo->maxScns > 1)
+            {
+                /*
+                 * Return ERROR as id == NULL and max sec > 1
+                 */
+                clCkptSectionLevelUnlock(pCkpt, &pDifferenceIoVector->sectionId, 
+                                         sectionLockTaken);
+                sectionLockTaken = CL_FALSE;
+                rc = CL_CKPT_ERR_INVALID_PARAMETER;
+                clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_SEC_OVERWRITE, 
+                           "Passed section id is NULL");
+                /* release the section mutex, acquire ckpt mutex */
+                goto exitOnError;
+            }
+            rc = clCkptDefaultSectionInfoGet(pCkpt, &pSec);
+        }
+        else
+        {
+            /*
+             * Find the section and return ERROR if the section doesnt exist.
+             */
+            rc = clCkptSectionInfoGet(pCkpt, &pDifferenceIoVector->sectionId, &pSec);
+        }   
+        if( CL_OK != rc )
+        {
+            clCkptSectionLevelUnlock(pCkpt, &pDifferenceIoVector->sectionId, 
+                                     sectionLockTaken);
+            sectionLockTaken = CL_FALSE;
+            clLogError(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
+                       "Failed to find section [%.*s] in ckpt [%.*s] for vectored write", 
+                       pDifferenceIoVector->sectionId.idLen, pDifferenceIoVector->sectionId.id,
+                       pCkpt->ckptName.length, pCkpt->ckptName.value);
+            /* release the section mutex, acquire ckpt mutex */
+            goto exitOnError;
+        }
+
+        if(sectionLockTaken == CL_TRUE)
+        {
+            CKPT_UNLOCK(pCkpt->ckptMutex);
+        }
+
+        if(hotStandbyList)
+        {
+            hotStandbyList[count].sectionId = &pDifferenceIoVector->sectionId;
+            hotStandbyList[count].section = pSec;
+        }
+        mergeSpace = ckptDifferenceVectorMerge(pCkpt, &pDifferenceIoVector->sectionId, pSec, 
+                                               pDifferenceIoVector->differenceVector, 
+                                               pDifferenceIoVector->dataOffset, pDifferenceIoVector->dataSize);
+        CL_ASSERT(mergeSpace != NULL);
+        if(pSec->pData != mergeSpace)
+        {
+            /*
+             * We can't free the stale section data yet since the prior difference vectors
+             * could have data vectors pointing to them in case there were multiple sections    
+             * with the same section id but different offsets for each vector.
+             */
+            if(pSec->pData)
+            {
+                if(pStaleSectionsData)
+                {
+                    pStaleSectionsData[count] = (ClPtrT)pSec->pData;
+                }
+                else
+                {
+                    clHeapFree(pSec->pData);
+                }
+            }
+            pSec->pData = mergeSpace;
+        }
+        else if(pStaleSectionsData)
+        {
+            pStaleSectionsData[count] = NULL;
+        }
+        if(pSec->size < pDifferenceIoVector->dataOffset + pDifferenceIoVector->dataSize)
+            pSec->size = pDifferenceIoVector->dataOffset + pDifferenceIoVector->dataSize;
+
+        ckptDifferenceVectorGet(pCkpt, &pDifferenceIoVector->sectionId, pSec, 
+                                mergeSpace, pDifferenceIoVector->dataOffset, pDifferenceIoVector->dataSize,
+                                pDifferenceReplicaVector ? pDifferenceReplicaVector->differenceVector : NULL,
+                                CL_FALSE);
+        
+        if(pDifferenceReplicaVector && pDifferenceReplicaVector->differenceVector && 
+           pDifferenceReplicaVector->differenceVector->numDataVectors)
+            replicate = CL_TRUE;
+        else if(pDifferenceIoVector->differenceVector && pDifferenceIoVector->differenceVector->numDataVectors)
+            replicate = CL_TRUE;
+
+        /*
+         * Update lastUpdate field of section, not checking error as this is not as important for
+         * Section creation.
+         */
+        clCkptSectionTimeUpdate(&pSec->lastUpdated);
+        /* release the section mutex, acquire ckpt mutex */
+        clCkptSectionLevelUnlock(pCkpt, &pDifferenceIoVector->sectionId, 
+                                 sectionLockTaken);
+        if(sectionLockTaken == CL_TRUE)
+        {
+            CKPT_LOCK(pCkpt->ckptMutex);
+        }
+        ++pDifferenceIoVector;
+        if(pDifferenceReplicaVector)
+            ++pDifferenceReplicaVector;
+    }
+
+    if(pReplicate)
+        *pReplicate = replicate;
+
+    /*
+     * Everything is success. so pError is 0.
+     */
+    count = 0;
+    if((pCkpt->pCpInfo->updateOption & CL_CKPT_DISTRIBUTED)
+       &&
+       replicate
+       && 
+       hotStandbyList)
+    {
+        (void)pVec;
+        // TODO: Change hot standby notifications to difference vector
+        //        clCkptClntWriteVectorNotify(pCkpt, pVec, numberOfElements, nodeAddr, portId);
+        for(count = 0; count < numberOfElements; ++count)
+            clCkptClntSecOverwriteNotify(pCkpt, hotStandbyList[count].sectionId, hotStandbyList[count].section,
+                                         nodeAddr, portId);
+        count = 0;
+    }
+
+    clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
+    /* Success, Note we are returning with LOCK held as CL_OK, 
+     * NOTE, it should be returned with LOCK held..Please chk the caller 
+     * function before modifying*/
+    rc = CL_OK;
+    goto out_free;
+
+    exitOnError:
+    /*
+     * pError carries back the section whose updation failed.
+     * so returning error without being held ckpt mutex 
+     */
+    CKPT_UNLOCK(pCkpt->ckptMutex);
+    *pError = count;
+    clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
+
+    out_free:
+    if(hotStandbyList)
+        clHeapFree(hotStandbyList);
+    return rc;
+}
+
 ClRcT _ckptCheckpointLocalWrite(ClCkptHdlT             ckptHdl,
                                 ClUint32T              numberOfElements,
                                 ClCkptIOVectorElementT *pIoVector,
@@ -1342,6 +1595,18 @@ ClRcT _ckptCheckpointLocalWrite(ClCkptHdlT             ckptHdl,
             /* release the section mutex, acquire ckpt mutex */
             goto sectionUnlockNExit;
         }
+        /*
+         * Rip off the difference vector for the section if any to avoid stale merges
+         * when asp version changes in the cluster.
+         */
+        if(pSec->differenceVectorKey)
+        {
+            clDifferenceVectorDelete(pSec->differenceVectorKey);
+            clDifferenceVectorKeyFree(pSec->differenceVectorKey);
+            clHeapFree(pSec->differenceVectorKey);
+            pSec->differenceVectorKey = NULL;
+        }
+
         if(pSec->size < (pIoVector->dataOffset + pIoVector->dataSize))
         {
             /* 
@@ -1373,21 +1638,13 @@ ClRcT _ckptCheckpointLocalWrite(ClCkptHdlT             ckptHdl,
          * Update lastUpdate field of section, not checking error as this is not as important for
          * Section creation.
          */
-         clCkptSectionTimeUpdate(&pSec->lastUpdated);
+        clCkptSectionTimeUpdate(&pSec->lastUpdated);
         /* release the section mutex, acquire ckpt mutex */
         clCkptSectionLevelUnlock(pCkpt, &pIoVector->sectionId, 
                                  sectionLockTaken);
         if(sectionLockTaken == CL_TRUE)
         {
             CKPT_LOCK(pCkpt->ckptMutex);
-            if(pCkpt->ckptMutex == CL_HANDLE_INVALID_VALUE)
-            {
-                /*
-                 * Bail out as ckpt is deleted.
-                 */
-                rc = CL_CKPT_RC(CL_ERR_NOT_EXIST);
-                goto exitOnErrorWithoutUnlock;
-            }
         }
         pIoVector++;
     }
@@ -1421,7 +1678,6 @@ sectionUnlockNExit:
         CKPT_UNLOCK(pCkpt->ckptMutex);
     }
     /* Already released CKPT_LOCK, error occured so release section lock */
-exitOnErrorWithoutUnlock:
     *pError = count;
     clHandleCheckin(gCkptSvr->ckptHdl,ckptHdl);
     return rc;
@@ -1466,7 +1722,7 @@ ClRcT ckptSvrHdlCheckout( ClHandleDatabaseHandleT ckptDbHdl,
  * Fucntion to free packed info about a checkpoint.
  */
  
-ClRcT  ckptPackInfoFree( CkptInfoT  *pCkptInfo)
+ClRcT  ckptPackInfoFree( VDECL_VER(CkptInfoT, 5, 0, 0)  *pCkptInfo)
 {
     CkptSectionInfoT     *pSec     = NULL;
     ClUint32T             count    = 0;
@@ -1789,7 +2045,7 @@ ClRcT VDECL_VER(clCkptServerFinalize, 4, 0, 0)(ClVersionT        *pVersion,
 exitOnError:    
     return rc;
 }
-                           
+
 ClInt32T ckptHdlNonUniqueKeyCompare(ClCntDataHandleT givenData, ClCntDataHandleT data)
 {
     ClNameT *pName = (ClNameT*)givenData;
@@ -1814,4 +2070,203 @@ ClInt32T ckptHdlNonUniqueKeyCompare(ClCntDataHandleT givenData, ClCntDataHandleT
     out:
     clHandleCheckin(gCkptSvr->ckptHdl, ckptHdl);
     return ret;
+}
+
+ClDifferenceVectorKeyT *ckptDifferenceVectorKeyGet(const ClNameT *pCkptName, const ClCkptSectionIdT *pSectionId)
+{
+    ClDifferenceVectorKeyT *key = clHeapCalloc(1, sizeof(*key));
+    static ClCkptSectionIdT defaultSectionId = { .idLen = sizeof("defaultSection")-1, 
+                                                 .id = (ClUint8T*)"defaultSection", 
+    };
+    CL_ASSERT(key != NULL);
+    key->groupKey = clHeapCalloc(1, sizeof(*key->groupKey));
+    CL_ASSERT(key->groupKey != NULL);
+    key->groupKey->pValue = clHeapCalloc(pCkptName->length, sizeof(*key->groupKey->pValue));
+    CL_ASSERT(key->groupKey->pValue != NULL);
+    memcpy(key->groupKey->pValue, pCkptName->value, pCkptName->length);
+    key->groupKey->length = pCkptName->length;
+    
+    key->sectionKey = clHeapCalloc(1, sizeof(*key->sectionKey));
+    CL_ASSERT(key->sectionKey != NULL);
+    if(!pSectionId->id || !pSectionId->idLen)
+    {
+        pSectionId = (const ClCkptSectionIdT*)&defaultSectionId;
+    }
+    key->sectionKey->pValue = clHeapCalloc(pSectionId->idLen, sizeof(*key->sectionKey->pValue));
+    CL_ASSERT(key->sectionKey->pValue != NULL);
+    memcpy(key->sectionKey->pValue, pSectionId->id, pSectionId->idLen);
+    key->sectionKey->length = pSectionId->idLen;
+    return key;
+}
+                           
+void ckptDifferenceVectorGet(CkptT *pCkpt, ClCkptSectionIdT *pSectionId, CkptSectionT *pSec, ClUint8T *pData,
+                             ClOffsetT offset, ClSizeT dataSize, ClDifferenceVectorT *differenceVector,
+                             ClBoolT reset)
+{
+    ClRcT rc = CL_OK;
+    if(!pSec->differenceVectorKey)
+    {
+        pSec->differenceVectorKey = ckptDifferenceVectorKeyGet(&pCkpt->ckptName, pSectionId);
+        CL_ASSERT(pSec->differenceVectorKey != NULL);
+    }
+    if(reset)
+    {
+        rc = clDifferenceVectorGetWithReset(pSec->differenceVectorKey, pData, offset, dataSize, CL_FALSE,
+                                            differenceVector);
+    }
+    else
+    {
+        rc = clDifferenceVectorGet(pSec->differenceVectorKey, pData, offset, dataSize, CL_FALSE, differenceVector);
+    }
+    CL_ASSERT(rc == CL_OK);
+}
+
+ClUint8T *ckptDifferenceVectorMerge(CkptT *pCkpt, ClCkptSectionIdT *pSectionId, CkptSectionT *pSec, 
+                                    ClDifferenceVectorT *differenceVector, ClOffsetT offset, ClSizeT dataSize)
+{
+    return clDifferenceVectorMergeWithData(pSec->pData, pSec->size, differenceVector, offset, dataSize);
+}
+
+/*
+ * Unused: Apply the difference vector received to the incoming section data
+ */
+ClUint8T *__applyDifferenceVector(CkptSectionT *pSec, ClDifferenceVectorT *differenceVector, 
+                                  ClOffsetT offset, ClSizeT dataSize)
+{
+    ClUint8T *mergeSpace = NULL;
+    ClUint8T *pCurData = pSec->pData;
+    ClDataVectorT *pDataVector = differenceVector->dataVectors;
+    ClUint32T i;
+    ClUint32T dataBlocks;
+    ClSizeT c;
+
+    dataBlocks = ( (dataSize + CL_DIFFERENCE_VECTOR_BLOCK_MASK) & ~CL_DIFFERENCE_VECTOR_BLOCK_MASK ) >> 
+        CL_DIFFERENCE_VECTOR_BLOCK_SHIFT;
+    mergeSpace = clHeapCalloc(1, dataSize);
+    CL_ASSERT(mergeSpace != NULL);
+
+    for(i = 0; i < dataBlocks && pDataVector < &differenceVector->dataVectors[differenceVector->numDataVectors]; ++i)
+    {
+        c = CL_MIN(CL_DIFFERENCE_VECTOR_BLOCK_SIZE, dataSize);
+        if(i != pDataVector->dataBlock)
+        {
+            /*
+             * Copy from cur block.
+             */
+            CL_ASSERT( (i << CL_DIFFERENCE_VECTOR_BLOCK_SHIFT) < pSec->size ); 
+            clLogNotice("CKP", "Difference-MERGE", "Merge from old block [%d], size [%lld]",  i, c);
+            memcpy(mergeSpace + (i << CL_DIFFERENCE_VECTOR_BLOCK_SHIFT), pCurData + (i << CL_DIFFERENCE_VECTOR_BLOCK_SHIFT), c);
+        }
+        else
+        {
+            clLogNotice("CKP", "Difference-MERGE", "Copy from new block [%d], size [%lld]",  i, pDataVector->dataSize);
+            memcpy(mergeSpace + (i << CL_DIFFERENCE_VECTOR_BLOCK_SHIFT), pDataVector->dataBase, pDataVector->dataSize);
+            c = pDataVector->dataSize;
+            ++pDataVector;
+        }
+        dataSize -= c;
+    }
+    
+    if(dataSize > 0)
+    {
+        CL_ASSERT(i < dataBlocks);
+        clLogNotice("CKP", "Difference-MERGE", "Merge from old block [%d], size [%lld]", i, dataSize);
+        memcpy(mergeSpace + (i << CL_DIFFERENCE_VECTOR_BLOCK_SHIFT), pCurData + (i << CL_DIFFERENCE_VECTOR_BLOCK_SHIFT), dataSize);
+    }
+
+    return mergeSpace;
+}
+
+void clCkptDifferenceIOVectorFree(ClCkptDifferenceIOVectorElementT *pDifferenceIoVector, ClUint32T numElements)
+{
+    ClUint32T count;
+    if(!pDifferenceIoVector || !numElements)
+        return;
+    for(count = 0; count < numElements; ++count)
+    {
+        if(pDifferenceIoVector[count].differenceVector)
+        {
+            clDifferenceVectorFree(pDifferenceIoVector[count].differenceVector, CL_TRUE);
+            clHeapFree(pDifferenceIoVector[count].differenceVector);
+        }
+        if(pDifferenceIoVector[count].sectionId.id)
+            clHeapFree(pDifferenceIoVector[count].sectionId.id);
+    }
+}
+
+void ckptInfoVersionConvertForward(VDECL_VER(CkptInfoT, 5, 0, 0) *pDstCkptInfo,
+                                   CkptInfoT *pCkptInfo)
+{
+    pDstCkptInfo->ckptHdl = pCkptInfo->ckptHdl;
+    pDstCkptInfo->pName = pCkptInfo->pName;
+    if(pCkptInfo->pCpInfo)
+    {
+        if(!pDstCkptInfo->pCpInfo)
+        {
+            pDstCkptInfo->pCpInfo = clHeapCalloc(1, sizeof(*pDstCkptInfo->pCpInfo));
+            CL_ASSERT(pDstCkptInfo->pCpInfo != NULL);
+        }
+        pDstCkptInfo->pCpInfo->updateOption = pCkptInfo->pCpInfo->updateOption;
+        pDstCkptInfo->pCpInfo->size = pCkptInfo->pCpInfo->size;
+        pDstCkptInfo->pCpInfo->numApps = pCkptInfo->pCpInfo->numApps;
+        pDstCkptInfo->pCpInfo->id = 0;
+        pDstCkptInfo->pCpInfo->presenceList = pCkptInfo->pCpInfo->presenceList;
+        pDstCkptInfo->pCpInfo->pAppInfo = pCkptInfo->pCpInfo->pAppInfo;
+    }
+    if(pCkptInfo->pDpInfo && pCkptInfo->pDpInfo != pDstCkptInfo->pDpInfo)
+    {
+        if(!pDstCkptInfo->pDpInfo)
+        {
+            pDstCkptInfo->pDpInfo = clHeapCalloc(1, sizeof(*pDstCkptInfo->pDpInfo));
+            CL_ASSERT(pDstCkptInfo->pDpInfo != NULL);
+        }
+        memcpy(pDstCkptInfo->pDpInfo, pCkptInfo->pDpInfo, sizeof(*pDstCkptInfo->pDpInfo));
+    }
+}
+
+void ckptInfoVersionConvertBackward(CkptInfoT *pDstCkptInfo, VDECL_VER(CkptInfoT, 5, 0, 0) *pCkptInfo)
+{
+    pDstCkptInfo->ckptHdl = pCkptInfo->ckptHdl;
+    pDstCkptInfo->pName = pCkptInfo->pName;
+    if(pCkptInfo->pCpInfo)
+    {
+        if(!pDstCkptInfo->pCpInfo)
+        {
+            pDstCkptInfo->pCpInfo = clHeapCalloc(1, sizeof(*pDstCkptInfo->pCpInfo));
+            CL_ASSERT(pDstCkptInfo->pCpInfo != NULL);
+        }
+        pDstCkptInfo->pCpInfo->updateOption = pCkptInfo->pCpInfo->updateOption;
+        pDstCkptInfo->pCpInfo->size = pCkptInfo->pCpInfo->size;
+        pDstCkptInfo->pCpInfo->numApps = pCkptInfo->pCpInfo->numApps;
+        pDstCkptInfo->pCpInfo->presenceList = pCkptInfo->pCpInfo->presenceList;
+        pDstCkptInfo->pCpInfo->pAppInfo = pCkptInfo->pCpInfo->pAppInfo;
+    }
+    if(pCkptInfo->pDpInfo && pCkptInfo->pDpInfo != pDstCkptInfo->pDpInfo)
+    {
+        if(!pDstCkptInfo->pDpInfo)
+        {
+            pDstCkptInfo->pDpInfo = clHeapCalloc(1, sizeof(*pDstCkptInfo->pDpInfo));
+            CL_ASSERT(pDstCkptInfo->pDpInfo != NULL);
+        }
+        memcpy(pDstCkptInfo->pDpInfo, pCkptInfo->pDpInfo, sizeof(*pDstCkptInfo->pDpInfo));
+    }
+}
+                            
+void ckptIDSet(CkptT *pCkpt)
+{
+#define CKPT_ID_BITS (48)
+#define CKPT_NODE_BITS (16)
+#define CKPT_ID_MASK ( (1LL<<CKPT_ID_BITS) - 1)
+#define CKPT_NODE_MASK ( (1<<CKPT_NODE_BITS) - 1)
+#define CKPT_ID_MAKE(node, id) (ClUint64T)( ( ( ((ClUint64T)(node)) & CKPT_NODE_MASK) << 48 ) | \
+                                            ( ((ClUint64T)(id)) ) )
+    static ClUint64T currentID;
+    static ClIocNodeAddressT nodeAddress;
+    ClUint64T id;
+    if(!nodeAddress) 
+        nodeAddress = clIocLocalAddressGet();
+    id = CKPT_ID_MAKE(nodeAddress, currentID);
+    ++currentID;
+    currentID &= CKPT_ID_MASK;
+    pCkpt->pCpInfo->id = id;
 }

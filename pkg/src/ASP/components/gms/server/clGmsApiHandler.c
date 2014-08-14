@@ -1564,7 +1564,7 @@ clGmsGroupJoinHandler(
 
     /* Aquire the cond mutex before doing mcast */
     clGmsMutexLock ( contextCondVar.mutex );
-    rc= clGmsSendMsg(&viewMember, req->groupId, 
+    rc= clGmsSendMsg(&viewMember, req->groupId,
                         CL_GMS_GROUP_JOIN_MSG , 0x0, 0, NULL );
     if (rc != CL_OK)
     {
@@ -1676,7 +1676,7 @@ clGmsGroupLeaveHandler(
     /* Aquire the cond mutex before doing mcast */
     clGmsMutexLock ( contextCondVar.mutex );
 
-    rc= clGmsSendMsg(&viewMember, req->groupId, 
+    rc= clGmsSendMsg(&viewMember, req->groupId,
             CL_GMS_GROUP_LEAVE_MSG , 0x0, 0, NULL );
     if (rc != CL_OK)
     {

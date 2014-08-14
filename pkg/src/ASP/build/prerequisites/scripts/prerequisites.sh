@@ -105,7 +105,7 @@ populate_prereqs() {
         # If this is a cross build, use prerequisite files from the toolchain
         echo "Cross build detected, using prerequisites from $BUILDTOOL_DIR toolchain"
 
-        toolchaindir=$CL_BUILDTOOLS/$BUILDTOOL_DIR
+        toolchaindir=$TOOLCHAIN_DIR
         if [ ! \( "$toolchaindir" != "/" -a -d $toolchaindir \) ]; then
             echo "Tool chain directory: $toolchaindir is not a proper directory"
             exit 1
@@ -363,7 +363,7 @@ populate_prereqs() {
         echo "Installing prerequisites from local system:"
         echo -n "  "
 
-        toolchaindir=$CL_BUILDTOOLS/local
+        toolchaindir=$TOOLCHAIN_DIR
         
         touch $imagedir/local_build
 
@@ -607,7 +607,6 @@ populate_prereqs() {
             fi
           fi
         fi
-
         GLIB_DIR=${GLIB_LIB_DIR}
         if [ -z "${GLIB_LIB_DIR}" -o -z "${GLIB_DIR}"  -o ! -d ${GLIB_DIR} ]
         then
@@ -707,7 +706,6 @@ fi
 
 # Source our project area config file and target.conf
 
-source $PROJECT_ROOT/.openclovis.conf
 source $MODEL_PATH/target.conf
 
 # don't continue if we don't need to

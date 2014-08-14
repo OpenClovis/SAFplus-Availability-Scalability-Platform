@@ -88,7 +88,9 @@ extern "C"
     extern ClVersionT gRmdVersionsSupported[];
     extern ClVersionDatabaseT gRmdVersionDb;
 
-# define RMD_STAT_INC(value) do { (value)++; } while(0)
+# define RMD_STAT_INC(value) (value++ )
+
+
 
 # if RMD_DEBUG
 #  define RMD_DBG(args)    CL_DEBUG_PRINT(CL_DEBUG_ERROR, args)

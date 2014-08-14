@@ -259,7 +259,6 @@ do{                                                                     \
 #define CL_AMS_ENTITY_SWITCHOVER_SWAP       0x10
 #define CL_AMS_ENTITY_SWITCHOVER_REPLAY     0x20
 #define CL_AMS_ENTITY_SWITCHOVER_CONTROLLER 0x40
-#define CL_AMS_ENTITY_SWITCHOVER_FORCE 0x80
 
 typedef struct ClAmsSUAdjustList
 {
@@ -609,7 +608,8 @@ extern ClRcT clAmsPeSUShutdown(
 
 extern ClRcT clAmsPeSUShutdownCallback(
         CL_IN   ClAmsSUT *su,
-        CL_IN   ClUint32T error);
+        CL_IN   ClUint32T error,
+        CL_IN   ClUint32T switchoverMode);
 
 extern ClRcT clAmsPeSURestart(
         CL_IN   ClAmsSUT *su,
@@ -1283,8 +1283,6 @@ extern ClRcT clAmsPeSUForceLockOperation(
 
 extern ClRcT clAmsPeSUForceLockInstantiationOperation(
                                                       CL_IN       ClAmsSUT        *entity);
-extern ClRcT clAmsPeNodeForceLockInstantiationOperation(
-                                                      CL_IN       ClAmsNodeT        *entity);
 
 /*
  * clAmsPeEntityShutdown
@@ -1294,6 +1292,9 @@ extern ClRcT clAmsPeNodeForceLockInstantiationOperation(
  */
 
 extern ClRcT clAmsPeEntityShutdown(
+        CL_IN       ClAmsEntityT        *entity);
+
+extern ClRcT clAmsPeEntityShutdownWithRestart(
         CL_IN       ClAmsEntityT        *entity);
 
 /*

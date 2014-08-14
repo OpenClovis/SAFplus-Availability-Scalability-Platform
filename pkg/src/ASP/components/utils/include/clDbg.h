@@ -156,7 +156,8 @@ void clDbgMsg(int pid, const char* file, int line, const char* fn, int level, co
 #define clDbgNotImplemented(printfParams) do { CL_DEBUG_PRINT_CONSOLE(CL_DEBUG_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
 #define clDbgCheck(predicate, todo, printfParams) do { int result = predicate; if (!result) { CL_DEBUG_PRINT_CONSOLE(CL_DEBUG_CRITICAL, printfParams); if (clDbgPauseOnCodeError) clDbgPause(); } if (!result) { todo; } } while(0)
-    
+
+
 /**
  ************************************
  *  \page clDbgResourceNotify

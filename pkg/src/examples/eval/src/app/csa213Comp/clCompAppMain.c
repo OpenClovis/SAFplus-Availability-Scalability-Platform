@@ -449,7 +449,7 @@ int main(int argc, char *argv[])
     /* Main loop: Keep printing and publishing unless we are suspended */
     while (!gTestInfo.exiting)
     {
-        if (gTestInfo.running && gTestInfo.haState == SA_AMF_HA_ACTIVE)
+        if (gTestInfo.running && gTestInfo.haState == CL_AMS_HA_STATE_ACTIVE)
         {
             csa113Comp_PublishEvent();
         }

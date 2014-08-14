@@ -640,63 +640,74 @@ clCircularListLimitedWalk(ClClistT      listHead,
                           ClClistWalkCallbackT         fpUserWalkCallBack,
                           void*               userArg)
 {
-  ClRcT errorCode = CL_ERR_NULL_POINTER;
-  CircularLinkedListHead_t* pCListHead = (CircularLinkedListHead_t*)listHead;
-  CircularLinkedListNode_t* pCListStartNode = (CircularLinkedListNode_t*)startListNode;
-  CircularLinkedListNode_t* pCListEndNode = (CircularLinkedListNode_t*)endListNode;
-  ClClistNodeT cListTraverseNode = 0;
-  ClClistDataT userData = 0;
+    ClRcT errorCode = CL_ERR_NULL_POINTER;
+    CircularLinkedListHead_t* pCListHead = (CircularLinkedListHead_t*)listHead;
+    CircularLinkedListNode_t* pCListStartNode = (CircularLinkedListNode_t*)startListNode;
+    CircularLinkedListNode_t* pCListEndNode = (CircularLinkedListNode_t*)endListNode;
+    ClClistNodeT cListTraverseNode = 0, nextNode = 0;
+    ClClistDataT userData = 0;
   
-  /* check if the list handle is valid */
-  CLIST_VALIDITY_CHECK(pCListHead);
+    /* check if the list handle is valid */
+    CLIST_VALIDITY_CHECK(pCListHead);
 
-  /* check if it is a valid node and if it belongs to the specified list */
-  CLNODE_VALIDITY_CHECK(pCListStartNode);
+    /* check if it is a valid node and if it belongs to the specified list */
+    CLNODE_VALIDITY_CHECK(pCListStartNode);
 
-  /* check if it is a valid node and if it belongs to the specified list */
-  CLNODE_VALIDITY_CHECK(pCListEndNode);
+    /* check if it is a valid node and if it belongs to the specified list */
+    CLNODE_VALIDITY_CHECK(pCListEndNode);
 
-  /* check if the user walk function pointer is NULL */
-  NULL_POINTER_CHECK(fpUserWalkCallBack);
-  
-  /* if everything is ok, traverse the list and for each data element, call the user walk function */
-  cListTraverseNode = startListNode;
+    /* check if the user walk function pointer is NULL */
+    NULL_POINTER_CHECK(fpUserWalkCallBack);
 
-  while(cListTraverseNode != endListNode) /* repeat until you get to the end node */
-  {
-    /* get the data in the current node */
+    errorCode = CL_OK;
+
+    /* if everything is ok, traverse the list and for each data element, call the user walk function */
+    cListTraverseNode = startListNode;
+
+    while(cListTraverseNode != endListNode) /* repeat until you get to the end node */
+    {
+        /* get the data in the current node */
+        errorCode = clClistDataGet(listHead, cListTraverseNode, &userData);
+        if(CL_OK != errorCode) 
+        {
+            return(errorCode);
+        }
+        /*
+         * Prefetch the next node
+         */
+        errorCode = clClistNextNodeGet(listHead, cListTraverseNode, &nextNode);
+        if(CL_OK != errorCode) 
+        {
+            return(errorCode);
+        }
+        /* Call the user function */
+        errorCode = fpUserWalkCallBack(userData, userArg);
+        if(errorCode != CL_OK)
+        {
+            goto out;
+        }
+        cListTraverseNode = nextNode;
+    }
+
+    /* get the data in the end node */
     errorCode = clClistDataGet(listHead, cListTraverseNode, &userData);
-    if(CL_OK != errorCode) {
-       return(errorCode);
+    if(CL_OK != errorCode) 
+    {
+        return(errorCode);
     }
  
     /* Call the user function */
-    fpUserWalkCallBack(userData, userArg);
-    /* get the next node */
-    errorCode = clClistNextNodeGet(listHead, cListTraverseNode, &cListTraverseNode);
-    if(CL_OK != errorCode) {
-       return(errorCode);
-    }
+    errorCode = fpUserWalkCallBack(userData, userArg);
 
- }
-
- /* get the data in the end node */
- errorCode = clClistDataGet(listHead, cListTraverseNode, &userData);
- if(CL_OK != errorCode) {
-    return(errorCode);
- }
- 
- /* Call the user function */
- fpUserWalkCallBack(userData, userArg);
-
- return(CL_OK);
-
+    out:
+    return errorCode;
 }
+
 /*****************************************************************************/
 ClRcT
 clClistWalk(ClClistT  listHead,
-                   ClClistWalkCallbackT     fpUserWalkCallBack,
-                   void*           userArg)
+            ClClistWalkCallbackT     fpUserWalkCallBack,
+            void*           userArg)
 {
   ClRcT errorCode = CL_ERR_NULL_POINTER;
   CircularLinkedListHead_t* pCListHead = (CircularLinkedListHead_t*)listHead;
@@ -738,6 +749,7 @@ clClistWalk(ClClistT  listHead,
   return (errorCode);
 
 }
+
 /*****************************************************************************/
 ClRcT
 clClistDataGet(ClClistT      listHead,

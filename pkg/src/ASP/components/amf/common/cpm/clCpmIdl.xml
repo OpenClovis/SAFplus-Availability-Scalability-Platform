@@ -224,15 +224,6 @@
             <DataMember name="returnCode" type="ClUint32T"/>
             <DataMember name="requestType" type="ClCpmCompRequestTypeT"/>
         </Struct>
-        
-        <Struct name="ClCpmStatQueryResponseT" defNeed="Yes">
-            <DataMember name="cpuUsed" type="ClUint64T"/>
-            <DataMember name="physMemUsed" type="ClUint64T"/>
-            <DataMember name="physDiskTotal" type="ClUint64T"/>
-            <DataMember name="physDiskAvailable" type="ClUint64T"/>
-            <DataMember name="physDiskFree" type="ClUint64T"/>
-            <DataMember name="physDiskUsed" type="ClUint64T"/>            
-        </Struct>
 
         <!-- Structures related to the CPM-AMS interaction -->
 
@@ -529,6 +520,13 @@
             <DataMember name="iocNodeAddress" type="ClUint32T"/>
             <DataMember name="graceful" type="ClUint16T"/>
             <DataMember name="nodeReset" type="ClUint16T"/>
+        </Struct>
+
+        <Struct name="ClCpmCompConfigSetT" version="5.1.0" defNeed="Yes">
+            <DataMember name="name" type="ClCharT" multiplicity="256" />
+            <DataMember name="instantiateCommand" type="ClCharT" multiplicity="256" />
+            <DataMember name="property" type="ClInt32T"/>
+            <DataMember name="bitmask" type="ClUint64T"/>
         </Struct>
 
         <Struct name="ClCpmCompSpecInfoRecvT" defNeed="Yes">

@@ -129,6 +129,12 @@ VDECL_VER(_clAmsMgmtEntityForceLockInstantiation, 5, 0, 0)(
         CL_OUT ClBufferHandleT  out_buffer);
 
 extern ClRcT
+VDECL_VER(_clAmsMgmtCCBBatchCommit, 5, 1, 0)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in_buffer,
+        CL_OUT ClBufferHandleT  out_buffer);
+
+extern ClRcT
 VDECL(_clAmsMgmtEntityLockInstantiation)( 
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in_buffer,
@@ -142,6 +148,12 @@ VDECL(_clAmsMgmtEntityUnlock)(
 
 extern ClRcT 
 VDECL(_clAmsMgmtEntityShutdown)(
+        CL_IN  ClEoDataT  data,
+        CL_IN  ClBufferHandleT  in,
+        CL_OUT  ClBufferHandleT  out);
+
+extern ClRcT 
+VDECL_VER(_clAmsMgmtEntityShutdownWithRestart, 5, 1, 0)(
         CL_IN  ClEoDataT  data,
         CL_IN  ClBufferHandleT  in,
         CL_OUT  ClBufferHandleT  out);
@@ -401,7 +413,7 @@ VDECL(_clAmsMgmtCCBCommit)(
         CL_OUT  ClBufferHandleT  out );
 
 extern ClRcT clAmsMgmtCommitCCBOperations(
-        CL_IN  ClCntHandleT  *opListHandle );
+        CL_IN  ClCntHandleT opListHandle );
 
 extern ClRcT 
 VDECL_VER(_clAmsMgmtEntityGet, 4, 0, 0)(

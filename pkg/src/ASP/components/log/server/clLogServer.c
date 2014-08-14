@@ -50,7 +50,6 @@
 #include <AppclientPortclientClient.h>
 #include <xdrClLogCompDataT.h>
 #include <clLogOsal.h>
-#include <clNodeCache.h>
 
 static ClRcT
 clLogSvrCompEntryAdd(CL_IN  ClLogSvrEoDataT        *pSvrEoEntry,
@@ -74,8 +73,7 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
                            ClLogFilterT            *pStreamFilter,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClStringT               *pShmName,
-                           ClUint32T               *pShmSize,
-                           ClNameT                 *pStreamName);
+                           ClUint32T               *pShmSize);
 
 static ClRcT
 clLogSvrShmAndFlusherClose(ClLogSvrStreamDataT    *pSvrStreamData);
@@ -103,8 +101,7 @@ clLogSvrFilterSetClientInformCb(ClCntKeyHandleT   key,
                                ClUint32T         size);
 
 static ClRcT
-clLogSvrStdStreamShmCreate(ClNameT                 *pStreamName,
-                           ClStringT               *pShmName,
+clLogSvrStdStreamShmCreate(ClStringT               *pShmName,
                            ClUint32T               shmSize,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClUint16T               streamId,
@@ -147,8 +144,6 @@ clLogLocalFlusherSetup(ClNameT              *pStreamName,
 
 ClRcT
 clLogSvrPrecreatedStreamsOpen(void);
-
-static ClTimerHandleT gLogUpgradeTimer;
 
 /******************************** Log Svr *************************************/
 
@@ -713,8 +708,7 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
                            ClLogFilterT            *pStreamFilter,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClStringT               *pShmName,
-                           ClUint32T               *pShmSize,
-                           ClNameT                 *pStreamName)
+                           ClUint32T               *pShmSize)
 {
     ClRcT                  rc                 = CL_OK;
     ClLogSvrStreamDataT    *pSvrStreamData    = NULL;
@@ -742,9 +736,9 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
     {
         if( CL_LOG_DEFAULT_COMPID != componentId )
         {
-            rc = clLogShmCreateAndFill(pStreamName, pShmName, *pShmSize, *pStreamId,
-                                       componentId, pStreamMcastAddr, pStreamFilter,
-                                       pStreamAttr, &pSvrStreamData->pStreamHeader);
+             rc = clLogShmCreateAndFill(pShmName, *pShmSize, *pStreamId,
+                                        componentId, pStreamMcastAddr, pStreamFilter,
+                                        pStreamAttr, &pSvrStreamData->pStreamHeader);
            if( CL_OK != rc )
            {   
                return rc;
@@ -752,7 +746,7 @@ clLogSvrFlusherCheckNStart(ClLogSvrEoDataT         *pSvrEoEntry,
         }
         else
         {
-            rc = clLogSvrStdStreamShmCreate(pStreamName, pShmName, *pShmSize, pStreamAttr,
+            rc = clLogSvrStdStreamShmCreate(pShmName, *pShmSize, pStreamAttr,
                                             *pStreamId, pStreamMcastAddr,
                                             pStreamFilter, &pSvrStreamData->pStreamHeader);
             if( CL_OK != rc )
@@ -929,6 +923,26 @@ VDECL_VER(clLogSvrStreamClose, 4, 0, 0)(
                               compId, localAddress);
         /*Log the error FIXME*/
         return rc;
+    }
+
+    if( 0 == pSvrStreamData->ackersCount + pSvrStreamData->nonAckersCount )
+    {
+        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pSvrEoEntry->svrStreamTableLock),
+                       CL_OK);
+        clLogInfo("LOG", "STM", "Stream didn't get register");
+        sleep(2);/* 
+                  * This is to avoid loosing records when streamopen, logwrite,
+                  * streamclose happens immediately without delay
+                  */
+        rc = clOsalMutexLock_L(&pSvrEoEntry->svrStreamTableLock);
+        if( CL_OK != rc )
+        {
+            CL_LOG_DEBUG_ERROR(("clOsalMutexLock_L(&): rc[0x %x]", rc));
+            clLogStreamKeyDestroy(pStreamKey);
+            clLogSvrSOStreamClose(pStreamName, streamScope, pStreamScopeNode,
+                                  compId, localAddress);
+            return rc;
+        }
     }
 
     rc = clCntNodeFind(pSvrEoEntry->hSvrStreamTable, 
@@ -1118,8 +1132,6 @@ clLogSvrCompRefCountIncrement(ClLogSvrEoDataT        *pSvrEoEntry,
     }
     else if( CL_OK == rc )
     {
-        if(pCompData->refCount > 1) 
-            pCompData->refCount = 0;
         pCompData->refCount++;
     }
 
@@ -2036,8 +2048,7 @@ clLogSvrClientIdlHandleInitialize(ClIocPortT    portId,
 }
 
 ClRcT
-clLogShmCreateAndFill(ClNameT                 *pStreamName,
-                      ClStringT               *pShmName, 
+clLogShmCreateAndFill(ClStringT               *pShmName, 
                       ClUint32T               shmSize, 
                       ClUint16T               streamId,
                       ClUint32T               componentId,
@@ -2071,8 +2082,7 @@ clLogShmCreateAndFill(ClNameT                 *pStreamName,
         return rc;
     }
 
-    rc = clLogStreamShmSegInit(pStreamName,
-                               pShmName->pValue, shmFd, shmSize, streamId,
+    rc = clLogStreamShmSegInit(pShmName->pValue, shmFd, shmSize, streamId,
                                pStreamMcastAddr, pStreamAttr->recordSize, 
                                pStreamAttr->flushFreq,
                                pStreamAttr->flushInterval, 
@@ -2168,7 +2178,7 @@ clLogSvrTimerDeleteNStart(ClLogSvrEoDataT  *pSvrEoEntry,
                           void             *pData)
 {
     ClRcT            rc      = CL_OK;
-    ClTimerTimeOutT  timeout = {.tsSec = 1, .tsMilliSec = 0};
+    ClTimerTimeOutT  timeout = {0, 1000};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
@@ -2189,110 +2199,6 @@ clLogSvrTimerDeleteNStart(ClLogSvrEoDataT  *pSvrEoEntry,
     if(gClLogSvrExiting)
         return rc;
 
-    rc = clTimerCreateAndStart(timeout, CL_TIMER_ONE_SHOT,
-                               CL_TIMER_SEPARATE_CONTEXT,
-                               clLogTimerCallback, 
-                               pData, &pSvrEoEntry->hTimer);
-    if( CL_OK != rc )
-    {
-        CL_LOG_DEBUG_ERROR(("clTimerCreateAndStart(): rc[0x %x]", rc));
-        return rc;
-    }
-    clLogDebug(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, 
-      "Timer has been started...");
-
-    CL_LOG_DEBUG_TRACE(("Exit"));
-    return rc;
-}
-
-static ClRcT clLogUpgradeTimerCallback(void *data)
-{
-    ClRcT rc = CL_OK;
-    ClUint32T version = 0;
-    ClTimerTimeOutT upgradeTimeout = {.tsSec = 3, .tsMilliSec = 0};
-    static ClBoolT upgradeDone = CL_FALSE;
-
-    if(gLogUpgradeTimer != CL_HANDLE_INVALID_VALUE)
-        clTimerDelete(&gLogUpgradeTimer);
-
-    if(gClLogSvrExiting)
-        return CL_OK;
-
-    clNodeCacheMinVersionGet(NULL, &version);
-    if(version >= CL_VERSION_CODE(5, 0, 0))
-    {
-        ClLogSvrEoDataT *pSvrEoData = NULL;
-        ClLogSvrCommonEoDataT *pSvrCommonEoData = NULL;
-        if(!upgradeDone)
-        {
-            upgradeDone = CL_TRUE;
-            goto timer_restart;
-        }
-        /*
-         * Delete the affected or upgraded checkpoints first
-         */
-        clLogStreamOwnerGlobalCkptDelete();
-        clLogMasterCkptDelete();
-        /*
-         * Set the retry timeout only after ckpt retention time which was 60 seconds
-         * for old checkpoints.
-         */
-        rc = clLogSvrEoEntryGet(&pSvrEoData, &pSvrCommonEoData);
-        if(rc != CL_OK)
-            return rc;
-        clLogNotice("ROL", "UPGRADE", "Log server now continuing with the bootup "
-                    "as cluster has been upgraded");
-        return clLogSvrTimerDeleteNStart(pSvrEoData, data);
-    }
-
-    timer_restart:
-    return clTimerCreateAndStart(upgradeTimeout, CL_TIMER_ONE_SHOT, CL_TIMER_SEPARATE_CONTEXT,
-                                 clLogUpgradeTimerCallback, data, &gLogUpgradeTimer);
-}
-
-static ClRcT
-clLogSvrRollingUpgradeCheck(ClLogSvrCommonEoDataT *pSvrCommonEoEntry,
-                            ClLogSvrEoDataT  *pSvrEoEntry,
-                            void             *pData)
-{
-    ClRcT            rc      = CL_OK;
-    ClIocNodeAddressT node = 0;
-    ClUint32T version = 0;
-    ClTimerTimeOutT timeout = {.tsSec = 3, .tsMilliSec = 0 };
-
-    if( CL_HANDLE_INVALID_VALUE != pSvrEoEntry->hTimer )
-    {
-        clTimerDelete(&pSvrEoEntry->hTimer);
-        pSvrEoEntry->hTimer = CL_HANDLE_INVALID_VALUE;
-    }
-
-    /*
-     * Before restarting the timer, check for log server exit status.
-     */
-    if(gClLogSvrExiting)
-        return rc;
-
-    clNodeCacheMinVersionGet(&node, &version);
-    if(version < CL_VERSION_CODE(5, 0, 0) 
-       &&
-       node == pSvrCommonEoEntry->masterAddr)
-    {
-        ClTimerTimeOutT upgradeTimeout = {.tsSec= 5, .tsMilliSec = 0};
-        if(gLogUpgradeTimer != CL_HANDLE_INVALID_VALUE)
-        {
-            clTimerDelete(&gLogUpgradeTimer);
-        }
-        clLogNotice("ROL", "UPGRADE", "Log server waiting for the cluster to be upgraded "
-                    "as master node is at version [%d.%d.%d]",
-                    CL_VERSION_RELEASE(version), CL_VERSION_MAJOR(version),
-                    CL_VERSION_MINOR(version));
-        rc = clTimerCreateAndStart(upgradeTimeout, CL_TIMER_ONE_SHOT,
-                                   CL_TIMER_SEPARATE_CONTEXT, clLogUpgradeTimerCallback,
-                                   pData, &gLogUpgradeTimer);
-        if(rc == CL_OK)
-            return rc;
-    }
-    
     rc = clTimerCreateAndStart(timeout, CL_TIMER_ONE_SHOT,
                                CL_TIMER_SEPARATE_CONTEXT,
                                clLogTimerCallback, 
@@ -2391,10 +2297,6 @@ clLogTimerCallback(void *pData)
             (pSvrCommonEoEntry->deputyAddr == localAddress) )
         {
             rc = clLogGlobalCkptGet();
-            if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST)
-            {
-                return clLogSvrRollingUpgradeCheck(pSvrCommonEoEntry, pSvrEoEntry, pData);
-            }
             if( CL_OK != rc )
             {
                 CL_LOG_DEBUG_ERROR(("clLogGlobalCkptGet(): rc[0x %x]", rc));
@@ -2424,9 +2326,6 @@ clLogTimerCallback(void *pData)
             rc = clLogGlobalCkptGet();
             if( CL_OK != rc )
             {
-                if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST)
-                    return clLogSvrRollingUpgradeCheck(pSvrCommonEoEntry,
-                                                       pSvrEoEntry, pData);
                 CL_LOG_DEBUG_ERROR(("clLogGlobalCkptGet(): rc[0x %x]", rc));
                 rc = clLogSvrTimerDeleteNStart(pSvrEoEntry, pData);
                 return rc;
@@ -2740,8 +2639,7 @@ clLogSvrStdStreamClose(ClUint32T  tblSize)
 }
 
 static ClRcT
-clLogSvrStdStreamShmCreate(ClNameT                 *pStreamName,
-                           ClStringT               *pShmName,
+clLogSvrStdStreamShmCreate(ClStringT               *pShmName,
                            ClUint32T               shmSize,
                            ClLogStreamAttrIDLT     *pStreamAttr,
                            ClUint16T               streamId,
@@ -2801,8 +2699,7 @@ clLogSvrStdStreamShmCreate(ClNameT                 *pStreamName,
     }
     else
     {
-        rc = clLogStreamShmSegInit(pStreamName, 
-                                   pShmName->pValue, shmFd, shmSize, streamId, pStreamMcastAddr,
+        rc = clLogStreamShmSegInit(pShmName->pValue, shmFd, shmSize, streamId, pStreamMcastAddr,
                                    pStreamAttr->recordSize, 
                                    pStreamAttr->flushFreq,
                                    pStreamAttr->flushInterval, 
@@ -3174,7 +3071,7 @@ clLogSvrStreamEntryUpdate(ClLogSvrEoDataT         *pSvrEoEntry,
     rc = clLogSvrFlusherCheckNStart(pSvrEoEntry, hSvrStreamNode, 
                                     &streamId, compId, &streamMcastAddr,
                                     pStreamFilter, pStreamAttr, pShmName,
-                                    pShmSize, pStreamName);
+                                    pShmSize);
     if( CL_OK != rc )
     {
         CL_LOG_CLEANUP(clLogSvrShmNameDelete(pShmName), CL_OK);

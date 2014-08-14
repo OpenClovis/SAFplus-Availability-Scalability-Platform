@@ -118,7 +118,8 @@ ClRcT cpmUpdateTL(ClAmsHAStateT haState)
      * Update the TL with the CPM's logical address 
      */
     rc = clIocTransparencyRegister(&tlInfo);
-    if(haState == CL_AMS_HA_STATE_ACTIVE)
+    if(gClAmsSwitchoverInline ||
+       haState == CL_AMS_HA_STATE_ACTIVE)
     {
         /*
          * Reset the master segment cache for all components
@@ -166,7 +167,7 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
     ClUint32T rc = CL_OK;
     ClGmsNodeIdT prevMasterNodeId = gpClCpm->activeMasterNodeId;
     ClBoolT leadershipChanged = notificationBuffer->leadershipChanged; 
-    
+
     /*  
      * Check for initial leadership state incase the cluster track from AMF was issued
      * after GMS leader election was done and GMS responded back with a track with a leadership changed
@@ -255,40 +256,43 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
                 }
 
                 cpmWriteNodeStatToFile("AMS", CL_NO);
-                   
-                if (((notificationBuffer->numberOfItems == 0) &&
-                     (notificationBuffer->notification == NULL)) &&
-                    gpClCpm->polling &&
-                    (gpClCpm->nodeLeaving == CL_FALSE))
+
+                if(!gClAmsSwitchoverInline)
                 {
-                    /*
-                     * This indicates that leader election API of
-                     * GMS was called.  Since this involves
-                     * interaction among only system controllers,
-                     * we don't need to restart the worker nodes
-                     * like in the case of split brain handling.
-                     */
+                    if (((notificationBuffer->numberOfItems == 0) &&
+                         (notificationBuffer->notification == NULL)) &&
+                        gpClCpm->polling &&
+                        (gpClCpm->nodeLeaving == CL_FALSE))
+                    {
+                        /*
+                         * This indicates that leader election API of
+                         * GMS was called.  Since this involves
+                         * interaction among only system controllers,
+                         * we don't need to restart the worker nodes
+                         * like in the case of split brain handling.
+                         */
                         
-                    cpmActive2Standby(CL_NO);
-                }
-                else if ((notificationBuffer->deputy == pCpmLocalInfo->nodeId)
-                         && 
-                         gpClCpm->polling 
-                         &&
-                         (gpClCpm->nodeLeaving == CL_FALSE))
-                {
-                    /*
-                     * We try and handle a possible split brain
-                     * since presently GMS shouldnt be reelecting.
-                     * And even if it does, its pretty much
-                     * invalid with respect to AMS where you could
-                     * land up with 2 actives.
-                     */
+                        cpmActive2Standby(CL_NO);
+                    }
+                    else if ((notificationBuffer->deputy == pCpmLocalInfo->nodeId)
+                             && 
+                             gpClCpm->polling 
+                             &&
+                             (gpClCpm->nodeLeaving == CL_FALSE))
+                    {
+                        /*
+                         * We try and handle a possible split brain
+                         * since presently GMS shouldnt be reelecting.
+                         * And even if it does, its pretty much
+                         * invalid with respect to AMS where you could
+                         * land up with 2 actives.
+                         */
                      
-                    /*
-                     * We arent expected to return back.
-                     */
-                    cpmActive2Standby(CL_YES);
+                        /*
+                         * We arent expected to return back.
+                         */
+                        cpmActive2Standby(CL_YES);
+                    }
                 }
             }
 
@@ -300,6 +304,15 @@ static void cpmMakeSCActiveOrDeputy(const ClGmsClusterNotificationBufferT *notif
             gpClCpm->haState = CL_AMS_HA_STATE_STANDBY;
             gpClCpm->activeMasterNodeId = notificationBuffer->leader;
             gpClCpm->deputyNodeId = notificationBuffer->deputy;
+            if(gClAmsSwitchoverInline)
+            {
+                /*
+                 *Re-register with active.
+                 */
+                clOsalMutexUnlock(&gpClCpm->clusterMutex);
+                cpmSwitchoverActive();
+                clOsalMutexLock(&gpClCpm->clusterMutex);
+            }
         }
         else if ((gpClCpm->haState == CL_AMS_HA_STATE_STANDBY) && 
                  (notificationBuffer->leader == pCpmLocalInfo->nodeId))

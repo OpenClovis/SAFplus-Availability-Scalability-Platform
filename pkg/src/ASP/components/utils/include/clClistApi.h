@@ -165,8 +165,9 @@ typedef enum
  *  \sa clQueueCreate(), clQueueDelete() 
  *     
  */
-typedef void  (*ClClistWalkCallbackT)(CL_IN ClClistDataT userData,
-                                      CL_IN void* userArg);
+typedef ClRcT  (*ClClistWalkCallbackT)(CL_IN ClClistDataT userData,
+                                       CL_IN void* userArg);
+
 
 /************************************/
 /**

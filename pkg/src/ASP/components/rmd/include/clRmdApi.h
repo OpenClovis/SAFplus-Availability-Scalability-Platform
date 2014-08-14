@@ -164,6 +164,9 @@ extern "C"
 #define CL_RMD_TIMEOUT_UNREACHABLE_CHECK(ret)                           \
     ( CL_GET_ERROR_CODE((ret))== CL_ERR_TIMEOUT || CL_RMD_UNREACHABLE_CHECK(ret) ) 
 
+#define CL_RMD_VERSION_ERROR(rc)  ( (rc) == CL_RC(CL_CID_EO, CL_ERR_DOESNT_EXIST) \
+                                    || (rc) == CL_RC(CL_CID_EO, CL_ERR_VERSION_MISMATCH) )
+        
 /*
  * Type definitions
  */

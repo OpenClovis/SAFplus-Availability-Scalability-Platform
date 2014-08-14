@@ -61,19 +61,11 @@
 #include <clBufferApi.h>
 #include <clDebugApi.h>
 #include <clHeapApi.h>
-#include <clList.h>
-#include <clIocApi.h>
-#include <clIocApiExt.h>
 #include <clIocErrors.h>
-#include <clIocServices.h>
 #include <clIocIpi.h>
-#include <clTipcNeighComps.h>
 #include <clTipcNotification.h>
 #include <clTipcUserApi.h>
 #include <clTipcSetup.h>
-#include <clTipcMaster.h>
-#include <clNodeCache.h>
-#include <clCpmApi.h>
 
 #define CL_TIPC_HANDLER_MAX_SOCKETS            2
 
@@ -82,14 +74,6 @@ static struct {
     ClOsalCondT condVar;
 } gIocEventHandlerClose;
 
-typedef struct ClIocNotificationRegister
-{
-    ClListHeadT list;
-    ClIocNotificationRegisterCallbackT callback;
-    ClPtrT cookie;
-}ClIocNotificationRegisterT;
-
-static CL_LIST_HEAD_DECLARE(gIocNotificationRegisterList);
 
 typedef ClIocLogicalAddressT ClIocLocalCompsAddressT;
 
@@ -101,175 +85,18 @@ static ClOsalMutexT gIocEventHandlerSendLock;
 static ClTipcCommPortT dummyCommPort;
 static ClIocLocalCompsAddressT allLocalComps;
 static ClIocAddressT allNodeReps = { .iocPhyAddress = {CL_IOC_BROADCAST_ADDRESS, CL_IOC_TIPC_PORT}};
-static ClIocSendOptionT sendOption = { .priority = CL_IOC_HIGH_PRIORITY, .timeout = 2000 };
 static ClUint32T threadContFlag = 1;
 
 static ClCharT eventHandlerInited = 0;
-static ClOsalMutexT gIocNotificationRegisterLock;
 
 static ClRcT tipcEventSubscribe(ClBoolT pollThread);
 
 ClRcT clIocDoesNodeAlreadyExist(ClInt32T *pSd);
 
-static ClIocNotificationRegisterT* clIocNotificationRegisterFind(ClIocNotificationRegisterCallbackT callback)
-{
-    ClListHeadT *iter = NULL;
-    ClListHeadT *list = &gIocNotificationRegisterList;
-    CL_LIST_FOR_EACH(iter, list)
-    {
-        ClIocNotificationRegisterT *entry = CL_LIST_ENTRY(iter, ClIocNotificationRegisterT, list);
-        if(entry->callback == callback)
-            return entry;
-    }
-    return NULL;
-}
-
-ClRcT clIocNotificationRegister(ClIocNotificationRegisterCallbackT callback, ClPtrT cookie)
-{
-    ClIocNotificationRegisterT *registrant = NULL;
-    if(!callback) return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
-    registrant = clHeapCalloc(1, sizeof(*registrant));
-    CL_ASSERT(registrant != NULL);
-    registrant->callback = callback;
-    registrant->cookie = cookie;
-
-    clOsalMutexLock(&gIocNotificationRegisterLock);
-    clListAddTail(&registrant->list, &gIocNotificationRegisterList);
-    clOsalMutexUnlock(&gIocNotificationRegisterLock);
-    return CL_OK;
-}
-
-ClRcT clIocNotificationDeregister(ClIocNotificationRegisterCallbackT callback)
-{
-    ClIocNotificationRegisterT *entry = NULL;
-    clOsalMutexLock(&gIocNotificationRegisterLock);
-    entry = clIocNotificationRegisterFind(callback);
-    if(entry)
-    {
-        clListDel(&entry->list);
-    }
-    clOsalMutexUnlock(&gIocNotificationRegisterLock);
-    if(entry) clHeapFree(entry);
-    return CL_OK;
-}
-
-static ClRcT clIocNotificationRegistrants(ClIocNotificationT *notification)
-{
-    ClListHeadT *iter = NULL;
-    ClListHeadT *list = &gIocNotificationRegisterList;
-
-    clOsalMutexLock(&gIocNotificationRegisterLock);
-    CL_LIST_FOR_EACH(iter, list)
-    {
-        ClIocNotificationRegisterT *entry = CL_LIST_ENTRY(iter, ClIocNotificationRegisterT, list);
-        if(entry->callback)
-        {
-            entry->callback(notification, entry->cookie);
-        }
-    }
-    clOsalMutexUnlock(&gIocNotificationRegisterLock);
-    return CL_OK;
-}
-
-ClRcT clIocNotificationRegistrantsDelete(void)
-{
-    clOsalMutexLock(&gIocNotificationRegisterLock);
-    while(!CL_LIST_HEAD_EMPTY(&gIocNotificationRegisterList))
-    {
-        ClListHeadT *head = gIocNotificationRegisterList.pNext;
-        ClIocNotificationRegisterT *entry = CL_LIST_ENTRY(head, ClIocNotificationRegisterT, list);
-        clListDel(&entry->list);
-        clHeapFree(entry);
-    }
-    clOsalMutexUnlock(&gIocNotificationRegisterLock);
-    return CL_OK;
-}
-
-static ClRcT clTipcNotificationPacketSend(ClIocNotificationT *pNotificationInfo, 
-                                          ClIocAddressT *destAddress, ClBoolT compat)
-{
-    ClRcT retCode = CL_OK;
-    ClBufferHandleT message = 0;
-    ClIocNotificationIdT id = ntohl(pNotificationInfo->id);
-    
-    retCode = clBufferCreate(&message);
-    if(retCode != CL_OK)
-    {   
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Buffer creation failed. rc=0x%x\n",retCode));
-        goto out;
-    }   
-
-    retCode = clBufferNBytesWrite(message,(ClUint8T *)pNotificationInfo, sizeof(*pNotificationInfo));
-    if (CL_OK != retCode)
-    {   
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                       ("\nERROR: clBufferNBytesWrite failed with rc = %x\n",
-                        retCode));
-        goto err_out;
-    }   
-    if(id == CL_IOC_NODE_VERSION_NOTIFICATION
-       ||
-       id == CL_IOC_NODE_VERSION_REPLY_NOTIFICATION)
-    {
-        if(!compat)
-        {
-            static ClNameT nodeName = {0};
-            static ClUint16T len;
-            if(!len)
-            {
-                clCpmLocalNodeNameGet(&nodeName);
-                len = htons(nodeName.length);
-            }
-            retCode = clBufferNBytesWrite(message, (ClUint8T*)&len, sizeof(len));
-            retCode |= clBufferNBytesWrite(message, (ClUint8T*)nodeName.value, (ClUint32T)nodeName.length);
-            if(retCode != CL_OK)
-            {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Nodename marshall for notification version send failed with [%#x]\n", 
-                                                retCode));
-                goto err_out;
-            }
-        }
-    }
-
-    clOsalMutexLock(&gIocEventHandlerSendLock);
-    if(handlerFd[1] != -1)
-        retCode = clIocSend((ClIocCommPortHandleT)&dummyCommPort, message, CL_IOC_PORT_NOTIFICATION_PROTO, destAddress, &sendOption);
-    clOsalMutexUnlock(&gIocEventHandlerSendLock);
-    if(retCode != CL_OK)
-        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to send notification. error code 0x%x", retCode));
-
-    err_out:
-    clBufferDelete(&message);
-
-    out:
-    return retCode;
-}
-
-static ClRcT clTipcNodeVersionSend(ClIocAddressT *destAddress, 
-                                   ClUint32T nodeVersion, ClUint32T myCapability)
-{
-    ClIocNotificationT notification = {0};
-    notification.id = htonl(CL_IOC_NODE_VERSION_NOTIFICATION);
-    notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
-    notification.nodeVersion = htonl(nodeVersion);
-    notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
-    notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
-    clLogNotice("NODE", "VERSION", "Sending node version [%#x], capability [%#x] "
-                "to node [%#x], port [%#x]", nodeVersion, myCapability, 
-                destAddress->iocPhyAddress.nodeAddress, destAddress->iocPhyAddress.portId);
-    return clTipcNotificationPacketSend(&notification, destAddress, CL_FALSE);
-}
-
 static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
 {
     ClRcT rc = CL_OK;
-    ClIocNotificationT notification = {0};
     ClIocPhysicalAddressT compAddr={0};
-    ClUint8T buff[CL_TIPC_BYTES_FOR_COMPS_PER_NODE];
-    ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
-    ClUint32T myCapability = 0;
-
-    clNodeCacheVersionAndCapabilityGet(gIocLocalBladeAddress, &nodeVersion, &myCapability);
 
     switch(socketType)
     {
@@ -278,13 +105,10 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
             /* Packet is got from the topology service */
             struct tipc_event event;
 
-#ifdef SOLARIS_BUILD
-            bcopy(pMsgHdr->msg_iov->iov_base,(ClPtrT)&event, sizeof(event));
-#else
-            memcpy((ClPtrT)&event, pMsgHdr->msg_iov->iov_base, sizeof(event));
-#endif
+            memcpy(&event, pMsgHdr->msg_iov->iov_base, sizeof(event));
 
-            if(event.s.seq.type - CL_TIPC_BASE_TYPE == CL_IOC_TIPC_PORT) {
+            if(event.s.seq.type - CL_TIPC_BASE_TYPE == CL_IOC_TIPC_PORT) 
+            {
                 /* This is for NODE ARRIVAL/DEPARTURE */
 
                 compAddr.nodeAddress = event.found_lower;
@@ -293,80 +117,23 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                 clLogInfo("TIPC", "NOTIF", "Got node [%s] notification for node [0x%x]", 
                           event.event == TIPC_PUBLISHED ? "arrival" : "death", compAddr.nodeAddress);
 
+                rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
+                                                     event.event == TIPC_PUBLISHED ? 
+                                                     CL_IOC_NODE_UP : CL_IOC_NODE_DOWN,
+                                                     compAddr.nodeAddress, 
+                                                     (ClIocAddressT*)&allLocalComps, 
+                                                     (ClIocAddressT*)&allNodeReps);
+                
                 if(compAddr.nodeAddress == gIocLocalBladeAddress)
                 {
-                    if(event.event == TIPC_WITHDRAWN) {
-                        clNodeCacheReset(gIocLocalBladeAddress);
+                    if(event.event == TIPC_WITHDRAWN) 
+                    {
                         threadContFlag = 0;
-                    } else {
-                        /*
-                         * Send the node version to all node reps.
-                         */
-                        clIocCompStatusSet(compAddr, event.event);
-                        clTipcNodeVersionSend(&allNodeReps, nodeVersion, myCapability);
                     }
-                    return CL_OK;
                 }
-
-                clIocCompStatusSet(compAddr, event.event);
-
-                if(event.event == TIPC_PUBLISHED) {
-                    /* 
-                     * Received NODE ARRIVAL notification.
-                     * Send back node version again for consistency or link syncup point
-                     * and comp bitmap for this node
-                     */
-                    clTipcNodeVersionSend((ClIocAddressT*)&compAddr,
-                                          nodeVersion, myCapability);
-
-                    /* Received NODE ARRIVAL notification. */
-                    ClBufferHandleT message;
-                    ClRcT retCode = clBufferCreate(&message);
-                    CL_ASSERT(retCode == CL_OK);
-                    clIocNodeCompsGet(gIocLocalBladeAddress, buff);
-                    rc = clBufferNBytesWrite(message, buff, sizeof(buff));
-                    if(rc != CL_OK) {
-                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                                       ("\nERROR: clBufferNBytesWrite failed with rc = %x\n", rc));
-                        goto err_out;
-                    }
-
-                    clOsalMutexLock(&gIocEventHandlerSendLock);
-                    if(handlerFd[1] != -1)
-                        rc = clIocSend((ClIocCommPortHandleT)&dummyCommPort, message, CL_IOC_PROTO_CTL, (ClIocAddressT*)&compAddr, &sendOption);
-                    clOsalMutexUnlock(&gIocEventHandlerSendLock);
-
-                    if(rc != CL_OK)
-                        CL_DEBUG_PRINT(CL_DEBUG_ERROR,("Error : Failed to send notification. error code 0x%x", rc));
-
-                    retCode = clBufferDelete(&message);
-                    CL_ASSERT(retCode == CL_OK);
-                    err_out:
-#ifdef CL_IOC_COMP_ARRIVAL_NOTIFICATION_DISABLE 
-                    return CL_OK;
-#else
-                    notification.id = htonl(CL_IOC_NODE_ARRIVAL_NOTIFICATION);
-#endif
-                } else {
-                    /* Recieved Node LEAVE notification. */
-                    clTipcMasterSegmentUpdate(compAddr);
-                    clIocNodeCompsReset(compAddr.nodeAddress);
-                    clNodeCacheSoftReset(compAddr.nodeAddress);
-                    notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
-                }
-                notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
-                notification.nodeAddress.iocPhyAddress.portId = 0;
-                notification.nodeAddress.iocPhyAddress.nodeAddress =  htonl(compAddr.nodeAddress);
-
-                /*
-                 * Notify the registrants for this notification who might want to do a fast
-                 * pass early than relying on the slightly slower notification proto callback.
-                 */
-                clIocNotificationRegistrants(&notification);
-                /* Need to send a notification packet to all the components on this node */
-                clTipcNotificationPacketSend(&notification, (ClIocAddressT *)&allLocalComps, CL_FALSE);
-
-            } else {
+            } 
+            else 
+            {
                 /* This is for LOCAL COMPONENT ARRIVAL/DEPARTURE */
 
                 compAddr.nodeAddress = gIocLocalBladeAddress;
@@ -375,7 +142,10 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                 clLogInfo("TIPC", "NOTIF", "Got component [%s] notification for node [0x%x] commport [0x%x]",
                           event.event == TIPC_WITHDRAWN ? "death" : "arrival", compAddr.nodeAddress, compAddr.portId); 
 
-                clIocCompStatusSet(compAddr, event.event);
+                rc = clIocNotificationCompStatusSend((ClIocCommPortHandleT)&dummyCommPort,
+                                                     event.event == TIPC_PUBLISHED ? CL_IOC_NODE_UP : CL_IOC_NODE_DOWN,
+                                                     compAddr.portId, (ClIocAddressT*)&allLocalComps,
+                                                     (ClIocAddressT*)&allNodeReps);
 
                 if(event.event == TIPC_WITHDRAWN)
                 {
@@ -385,173 +155,28 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                          * self shutdown.
                          */
                         threadContFlag = 0;
-                        return CL_OK;
                     }
-                    clTipcMasterSegmentUpdate(compAddr);
-                    notification.id = htonl(CL_IOC_COMP_DEATH_NOTIFICATION);
                 }
-                else
-                {
-                    notification.id = htonl(CL_IOC_COMP_ARRIVAL_NOTIFICATION);
-                }
-                notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
-                notification.nodeAddress.iocPhyAddress.portId = htonl(compAddr.portId);
-                notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(compAddr.nodeAddress);
-
-
-                /*
-                 * Notify the registrants for this notification for faster processing
-                 */
-                clIocNotificationRegistrants(&notification);
-                /* Need to send a notification packet to all the asp_amfs's event handlers. */
-                clTipcNotificationPacketSend(&notification, (ClIocAddressT *)&allNodeReps, CL_FALSE);
             }         
         }
         break;
     case 1:
         {
             /* Packet is received from the other node asp_amfs/NODE-REPS*/
-            ClTipcHeaderT userHeader = {0};
-            ClUint32T event = 0;
-            ClIocPhysicalAddressT srcAddr = {0};
-
-#ifdef SOLARIS_BUILD
-            bcopy(pMsgHdr->msg_iov->iov_base,(ClPtrT)&userHeader,sizeof(userHeader));
-#else
-            memcpy((ClPtrT)&userHeader,pMsgHdr->msg_iov->iov_base,sizeof(userHeader));
-#endif
-            
-            if(userHeader.version != CL_IOC_HEADER_VERSION)
-            {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Got version [%d] tipc packet. Supported [%d] version\n",
-                                                userHeader.version, CL_IOC_HEADER_VERSION));
-                return CL_IOC_RC(CL_ERR_VERSION_MISMATCH);
-            }
-
-            srcAddr.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
-            srcAddr.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
-            
-            clIocCompStatusSet(srcAddr, TIPC_PUBLISHED);
-
-            if(userHeader.protocolType == CL_IOC_PROTO_CTL) {
-                clIocNodeCompsSet(srcAddr.nodeAddress, pMsgHdr->msg_iov->iov_base + sizeof(userHeader));
-                break;
-            }
-
-            memcpy((ClPtrT)&notification, pMsgHdr->msg_iov->iov_base + sizeof(userHeader), sizeof(notification));
-            if(ntohl(notification.protoVersion) != CL_IOC_NOTIFICATION_VERSION)
-            {
-                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("Got version [%d] notification packet. Supported [%d] version\n",
-                                                ntohl(notification.protoVersion), 
-                                                CL_IOC_NOTIFICATION_VERSION));
-                return CL_IOC_RC(CL_ERR_VERSION_MISMATCH);
-            }
-                
-            /*
-             * Get the version of the peer node and update the shared memory.
-             */
-            if(ntohl(notification.id) == CL_IOC_NODE_VERSION_NOTIFICATION ||
-               ntohl(notification.id) == CL_IOC_NODE_VERSION_REPLY_NOTIFICATION)
-            {
-                ClIocAddressT destAddress = {{0}};
-                ClUint32T version = ntohl(notification.nodeVersion);
-                ClIocNodeAddressT nodeId = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
-                ClUint32T theirCapability = ntohl(notification.nodeAddress.iocPhyAddress.portId);
-                ClNameT nodeName = {0};
-                ClUint8T *nodeInfo = NULL;
-                ClUint32T nodeInfoLen = 0;
-                ClBoolT compat = CL_FALSE;
-                destAddress.iocPhyAddress.nodeAddress = srcAddr.nodeAddress;
-                destAddress.iocPhyAddress.portId = srcAddr.portId;
-                
-                if(destAddress.iocPhyAddress.nodeAddress == gIocLocalBladeAddress)
-                {
-                    /*
-                     * Skip self updates.
-                     */
-                    break;
-                }
-                /*
-                 * Check for backward compatibility
-                 */
-                if(version >= CL_VERSION_CODE(5, 0, 0))
-                {
-                
-                    nodeInfo = (ClUint8T*)pMsgHdr->msg_iov->iov_base + sizeof(userHeader) + sizeof(notification);
-                    nodeInfoLen = pMsgHdr->msg_iov->iov_len - sizeof(userHeader) - sizeof(notification);
-                    if(nodeInfoLen < sizeof(nodeName.length))
-                    {
-                        clLogError("NOTIF", "GET", "Invalid notification data received with available "
-                                   "data length of [%d] bytes", nodeInfoLen);
-                        break;
-                    }
-                    nodeInfoLen -= sizeof(nodeName.length);
-                    memcpy(&nodeName.length, nodeInfo, sizeof(nodeName.length));
-                    nodeName.length = ntohs(nodeName.length);
-                    nodeInfo += sizeof(nodeName.length);
-                    if(nodeInfoLen < nodeName.length)
-                    {
-                        clLogError("NOTIF", "GET", "Invalid notification data received for node version notification. "
-                                   "Node length received [%d] with only [%d] bytes of available input data",
-                                   nodeName.length, nodeInfoLen);
-                        break;
-                    }
-                    memcpy(nodeName.value, nodeInfo, CL_MIN(sizeof(nodeName.value)-1, nodeName.length));
-                    nodeName.value[CL_MIN(sizeof(nodeName.value)-1, nodeName.length)] = 0;
-                }
-                else
-                {
-                    compat = CL_TRUE;
-                }
-
-                clNodeCacheUpdate(nodeId, version, theirCapability, &nodeName);
-                
-                /*
-                 * Send back node reply to peer for version notifications. with our info.
-                 */
-                if(ntohl(notification.id) == CL_IOC_NODE_VERSION_NOTIFICATION)
-                {
-                    notification.id = htonl(CL_IOC_NODE_VERSION_REPLY_NOTIFICATION);
-                    notification.nodeVersion = htonl(nodeVersion);
-                    notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
-                    notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
-                    clTipcNotificationPacketSend(&notification, &destAddress, compat);
-                }
-                break;
-            }
-
-            compAddr.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
-            compAddr.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
-
-            if(ntohl(notification.id) == CL_IOC_COMP_ARRIVAL_NOTIFICATION)
-                event = TIPC_PUBLISHED;
-            else
-            {
-                event = TIPC_WITHDRAWN;
-                clTipcMasterSegmentUpdate(compAddr);
-            }
-            
-            clIocCompStatusSet(compAddr, event);
-
-            clLogInfo ("TIPC", "NOTIF", "Got [%s] notification for node [0x%x] commport [0x%x]",
-                       event == TIPC_PUBLISHED ? "arrival":"death",compAddr.nodeAddress, compAddr.portId); 
-
-#ifdef CL_IOC_COMP_ARRIVAL_NOTIFICATION_DISABLE
-            if(event == TIPC_PUBLISHED)
-                break;
-#endif
-                
-            /* Need to send the above notification to all the components on this node */
-            clTipcNotificationPacketSend(&notification, (ClIocAddressT *)&allLocalComps, CL_FALSE);
+            rc = clIocNotificationPacketRecv((ClIocCommPortHandleT)&dummyCommPort,
+                                             (ClUint8T*)pMsgHdr->msg_iov->iov_base, 
+                                             (ClUint32T)pMsgHdr->msg_iov->iov_len,
+                                             (ClIocAddressT*)&allLocalComps,
+                                             (ClIocAddressT*)&allNodeReps);
         }
         break;
+
     default :
         break;
     }
-    return CL_OK;
+
+    return rc;
 }
-
-
 
 static ClUint8T buffer[0xffff+1];
 static void clTipcEventHandler(ClPtrT pArg)
@@ -674,8 +299,8 @@ static ClInt32T clTipcSubscriptionSocketCreate(void)
     return sd;
 }
 
-static ClRcT clIocSubscribe(ClInt32T fd, ClUint32T portId, 
-                            ClUint32T lowerInstance, ClUint32T upperInstance, ClUint32T timeout)
+static ClRcT tipcSubscribe(ClInt32T fd, ClUint32T portId, 
+                           ClUint32T lowerInstance, ClUint32T upperInstance, ClUint32T timeout)
 {
     struct tipc_subscr subscr = {{0}};
     ClInt32T rc;
@@ -719,18 +344,18 @@ static ClRcT tipcEventSubscribe(ClBoolT pollThread)
     }
 
     /* SUBSCRIPTION : For getting the node arrival or departure events. */
-    clIocSubscribe( handlerFd[0],
-                    CL_TIPC_SET_TYPE(CL_IOC_TIPC_PORT),
-                    CL_IOC_MIN_NODE_ADDRESS,
-                    CL_IOC_MAX_NODE_ADDRESS,
-                    CL_IOC_TIMEOUT_FOREVER);
+    tipcSubscribe( handlerFd[0],
+                   CL_TIPC_SET_TYPE(CL_IOC_TIPC_PORT),
+                   CL_IOC_MIN_NODE_ADDRESS,
+                   CL_IOC_MAX_NODE_ADDRESS,
+                   CL_IOC_TIMEOUT_FOREVER);
 
     /* SUBSCRIPTION : For getting the intranode component arrival or departure events. */
-    clIocSubscribe( handlerFd[0],
-                    CL_IOC_TIPC_ADDRESS_TYPE_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress),
-                    CL_TIPC_SET_TYPE(CL_IOC_MIN_COMP_PORT),
-                    CL_TIPC_SET_TYPE(CL_IOC_MAX_COMP_PORT),
-                    CL_IOC_TIMEOUT_FOREVER);
+    tipcSubscribe( handlerFd[0],
+                   CL_IOC_TIPC_ADDRESS_TYPE_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress),
+                   CL_TIPC_SET_TYPE(CL_IOC_MIN_COMP_PORT),
+                   CL_TIPC_SET_TYPE(CL_IOC_MAX_COMP_PORT),
+                   CL_IOC_TIMEOUT_FOREVER);
 
     out:
     return retCode;
@@ -743,13 +368,14 @@ ClRcT clTipcEventHandlerInitialize(void)
 
     allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gIocLocalBladeAddress, CL_IOC_BROADCAST_ADDRESS);
 
-    rc = clOsalMutexInit(&gIocNotificationRegisterLock);
-    CL_ASSERT(rc == CL_OK);
     rc = clOsalMutexInit(&gIocEventHandlerSendLock);
     CL_ASSERT(rc == CL_OK);
     rc = clOsalMutexInit(&gIocEventHandlerClose.lock);
     CL_ASSERT(rc == CL_OK);
     rc = clOsalCondInit(&gIocEventHandlerClose.condVar);
+    CL_ASSERT(rc == CL_OK);
+
+    clIocNotificationInitialize();
     CL_ASSERT(rc == CL_OK);
 
     /* Creating a socket for handling the data packets sent by other node CPM/asp_amf. */
@@ -789,7 +415,9 @@ ClRcT clTipcEventHandlerFinalize(void)
     /* If service was never initialized, don't finalize */
     if(!eventHandlerInited)
       return CL_OK;
+
     eventHandlerInited = 0;
+    clIocNotificationFinalize();
 
     /* Closing only the data socket so the the event socket can get the event of this and it will comeout of the recview thread */
     

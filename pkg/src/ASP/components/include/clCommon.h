@@ -544,6 +544,8 @@ typedef struct
     ClCharT    *pValue;
 }ClStringT;
 
+extern ClStringT *clStringDup(const ClStringT *);
+
 /* Macro to print into the name */
   /** \brief  Load the ClNameT structure.
       \param  name The structure you want to load

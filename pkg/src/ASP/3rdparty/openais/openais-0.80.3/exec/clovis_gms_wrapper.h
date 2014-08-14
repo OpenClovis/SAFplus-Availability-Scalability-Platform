@@ -58,7 +58,7 @@
 #include "../../../../components/include/ipi/clNodeCache.h"
 #include "../../../../components/buffer/include/clBufferApi.h"
 #include "../../../../components/utils/include/clXdrApi.h"
-#include "../../../../components/include/ipi/clIocIpi.h"
+
 /* ------------------------------------------------------------------------
  * Clovis data structures as extern declarations
  *------------------------------------------------------------------------*/
@@ -98,23 +98,6 @@ struct VDECL(req_exec_gms_nodejoin) {
         struct mcastMessage     mcastMessage;
     } specificMessage;
     ClPtrT                  *dataPtr;
-};
-
-/*
- * For 4.0
- */
-struct req_exec_gms_nodejoin {
-    mar_req_header_t        header              __attribute__((aligned(8)));
-    ClVersionT              version             __attribute__((aligned(8)));
-    ClGmsMessageTypeT       gmsMessageType      __attribute__((aligned(8)));
-    ClGmsGroupIdT           gmsGroupId          __attribute__((aligned(8)));
-    ClGmsClusterMemberT     gmsClusterNode      __attribute__((aligned(8)));
-    VDECL_VER(ClGmsGroupMemberT, 4, 0, 0)       gmsGroupNode        __attribute__((aligned(8)));
-    ClGmsGroupInfoT         groupData           __attribute__((aligned(8)));
-    ClGmsMemberEjectReasonT ejectReason         __attribute__((aligned(8)));
-    ClUint64T               contextHandle       __attribute__((aligned(8)));
-    ClUint32T               syncNoOfGroups      __attribute__((aligned(8)));
-    ClUint32T               syncNoOfMembers     __attribute__((aligned(8)));
 };
 
 extern ClRcT   marshallClVersionT(ClVersionT *version, ClBufferHandleT bufferHandle);

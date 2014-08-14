@@ -51,6 +51,12 @@ typedef CkptEoClCkptDeputyCkptInfoUpdateAsyncCallbackT_4_0_0 CkptEoClCkptDeputyC
 
 ClRcT clCkptDeputyCkptInfoUpdateClientAsync_4_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClUint32T  numOfCkpts, CL_IN CkptInfoT_4_0_0* pCkptInfo,CL_IN CkptEoClCkptDeputyCkptInfoUpdateAsyncCallbackT_4_0_0 fpAsyncCallback, CL_IN void *cookie);
 
+ClRcT clCkptDeputyCkptInfoUpdateClientSync_5_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClUint32T numOfCkpts, CL_IN CkptInfoT_5_0_0* pCkptInfo);
+
+typedef void (*CkptEoClCkptDeputyCkptInfoUpdateAsyncCallbackT_5_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClUint32T  numOfCkpts, CL_IN CkptInfoT_5_0_0* pCkptInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
+
+ClRcT clCkptDeputyCkptInfoUpdateClientAsync_5_0_0(CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN ClUint32T  numOfCkpts, CL_IN CkptInfoT_5_0_0* pCkptInfo,CL_IN CkptEoClCkptDeputyCkptInfoUpdateAsyncCallbackT_5_0_0 fpAsyncCallback, CL_IN void *cookie);
+
 typedef void (*CkptEoClCkptCreateInfoDeputyUpdateAsyncCallbackT_4_0_0) (CL_IN ClIdlHandleT handle, CL_INOUT ClVersionT* pVersion, CL_IN CkptOpenInfoT_4_0_0* openInfo, CL_IN CkptCreateInfoT_4_0_0* pCreateInfo, CL_IN ClRcT rc, CL_IN void* pCookie);
 
 typedef CkptEoClCkptCreateInfoDeputyUpdateAsyncCallbackT_4_0_0 CkptEoClCkptCreateInfoDeputyUpdateAsyncCallbackT;

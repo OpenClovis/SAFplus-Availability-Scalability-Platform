@@ -503,6 +503,134 @@ Label0:
     return rc;
 }
 
+ClRcT clCkptDeputyCkptInfoUpdateServer_5_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl)
+{
+    ClIdlContextInfoT *pIdlCtxInfo = NULL;
+    ClRcT rc = CL_OK;
+    ClVersionT  pVersion;
+    ClUint32T  numOfCkpts;
+    CkptInfoT_5_0_0*  pCkptInfo;
+
+    memset(&(pVersion), 0, sizeof(ClVersionT));
+    memset(&(numOfCkpts), 0, sizeof(ClUint32T));
+    memset(&(pCkptInfo), 0, sizeof(CkptInfoT_5_0_0*));
+
+
+    rc = clXdrUnmarshallClUint32T( inMsgHdl,&(numOfCkpts));
+    if (CL_OK != rc)
+    {
+        goto LL0;
+    }
+
+    rc = clXdrUnmarshallPtrCkptInfoT_5_0_0( inMsgHdl,(void**)&(pCkptInfo), numOfCkpts);
+    if (CL_OK != rc)
+    {
+        goto LL1;
+    }
+
+    rc = clXdrUnmarshallClVersionT( inMsgHdl,&(pVersion));
+    if (CL_OK != rc)
+    {
+        goto LL2;
+    }
+
+    pIdlCtxInfo = (ClIdlContextInfoT *)clHeapAllocate(sizeof(ClIdlContextInfoT));
+    if(pIdlCtxInfo == NULL)
+    {
+       return CL_IDL_RC(CL_ERR_NO_MEMORY);
+    }
+    memset(pIdlCtxInfo, 0, sizeof(ClIdlContextInfoT));
+    pIdlCtxInfo->idlDeferMsg = outMsgHdl; 
+    pIdlCtxInfo->inProgress  = CL_FALSE;
+    rc = clIdlSyncPrivateInfoSet(ckptEoidlSyncKey, (void *)pIdlCtxInfo);
+    if (CL_OK != rc)
+    {
+        clHeapFree(pIdlCtxInfo);
+        goto L0;
+    }
+    rc = clCkptDeputyCkptInfoUpdate_5_0_0(&(pVersion), numOfCkpts, pCkptInfo);
+    if(pIdlCtxInfo->inProgress == CL_FALSE)
+    {
+      clHeapFree(pIdlCtxInfo);
+      pIdlCtxInfo = NULL;
+    }
+    if (CL_OK != rc)
+    {
+       goto L0;
+    }
+    
+    rc = clXdrMarshallClUint32T(&(numOfCkpts), 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L1;
+    }
+
+    rc = clXdrMarshallPtrCkptInfoT_5_0_0(pCkptInfo, numOfCkpts, 0, 1);
+    if (CL_OK != rc)
+    {
+        goto L2;
+    }
+
+    if(pIdlCtxInfo != NULL)
+    {
+      clHeapFree(pIdlCtxInfo);
+      return rc;
+    }
+    
+    rc = clXdrMarshallClVersionT(&(pVersion), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L3;
+    }
+
+L3:    return rc;
+
+LL2:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
+LL1:  clXdrMarshallPtrCkptInfoT_5_0_0(pCkptInfo, numOfCkpts, 0, 1);
+LL0:  clXdrMarshallClUint32T(&(numOfCkpts), 0, 1);
+
+    return rc;
+
+L0:  clXdrMarshallClUint32T(&(numOfCkpts), 0, 1);
+L1:  clXdrMarshallPtrCkptInfoT_5_0_0(pCkptInfo, numOfCkpts, 0, 1);
+
+L2:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
+
+    return rc;
+}
+
+ClRcT clCkptDeputyCkptInfoUpdateResponseSend_5_0_0(ClIdlHandleT idlHdl,ClRcT retCode,CL_INOUT  ClVersionT  pVersion)
+{
+    ClIdlSyncInfoT    *pIdlSyncDeferInfo = NULL;
+    ClRcT              rc                = CL_OK;
+    ClBufferHandleT outMsgHdl     = 0;
+    
+    rc = clHandleCheckout(ckptEoidlDatabaseHdl,idlHdl,(void **)&pIdlSyncDeferInfo);
+    if( rc != CL_OK)
+    {
+      goto Label0; 
+    }
+    outMsgHdl = pIdlSyncDeferInfo->idlRmdDeferMsg;
+    
+    rc = clXdrMarshallClVersionT(&(pVersion), outMsgHdl, 1);
+    if (CL_OK != rc)
+    {
+        goto L3;
+    }
+
+    rc = clIdlSyncResponseSend(pIdlSyncDeferInfo->idlRmdDeferHdl,outMsgHdl,
+                                retCode);
+    
+L3:  clXdrMarshallClVersionT(&(pVersion), 0, 1);
+
+    
+
+    clHandleCheckin(ckptEoidlDatabaseHdl, idlHdl);
+    clHandleDestroy(ckptEoidlDatabaseHdl, idlHdl);
+Label0:
+    return rc;
+}
+
 ClRcT clCkptCreateInfoDeputyUpdateServer_4_0_0(ClEoDataT eoData, ClBufferHandleT inMsgHdl, ClBufferHandleT outMsgHdl)
 {
     ClIdlContextInfoT *pIdlCtxInfo = NULL;

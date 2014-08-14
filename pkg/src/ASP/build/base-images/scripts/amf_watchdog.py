@@ -26,11 +26,22 @@ import asp
 import os
 import sys
 import time
-
+import select
 ASP_RESTART_FILE = 'asp_restart'
 ASP_WATCHDOG_RESTART_FILE='asp_restart_watchdog'
 ASP_REBOOT_FILE = 'asp_reboot'
 ASP_RESTART_DISABLE_FILE = 'asp_restart_disable'
+
+def getenv(varName, default):
+    env_value = os.getenv(varName)
+    if env_value == None:
+        return default
+    elif env_value == '1' or env_value.lower() == 'yes' or env_value.lower() == 'true':
+        return 1
+    elif env_value == '0' or env_value.lower() == 'no' or env_value.lower() == 'false':
+        return 0
+    else:
+        return env_value
 
 def safe_remove(f):
     try:
@@ -45,6 +56,22 @@ def asp_admin_stop():
 
     return last_asp_cmd in ['stop', 'zap']
 
+
+def wdSleep(amt):
+    """Sleep and refuse to let anything kick me awake"""
+    start = time.time()
+    while (time.time() - start) < amt:
+      leftover = amt - (time.time() - start)
+      try:
+        time.sleep(leftover)
+      except:
+        try:
+          select.select([],[],[],leftover)
+        except:
+          pass
+
+
+# now includes openhpid as well
 def amf_watchdog_loop():
     monitor_interval = 5
     run_dir = asp.get_asp_run_dir()
@@ -55,6 +82,7 @@ def amf_watchdog_loop():
     safe_remove(restart_file)
     safe_remove(reboot_file)
     safe_remove(restart_disable_file)
+    seen_openhpid = False
 
     while True:
         pid = asp.get_amf_pid()
@@ -80,11 +108,15 @@ def amf_watchdog_loop():
                 sys.exit(1)
             elif os.access(reboot_file, os.F_OK):
                 safe_remove(reboot_file)
-                asp.log.debug('AMF watchdog rebooting %s...'
-                              % asp.get_asp_node_name())
-                asp.run_custom_scripts('reboot')
-                asp.proc_lock_file('remove')
-                os.system('reboot')
+                if getenv("ASP_NODE_REBOOT_DISABLE", 0) != 0:
+                    asp.zap_asp()
+                    sys.exit(1)
+                else:
+                    asp.log.debug('AMF watchdog rebooting %s...'
+                                  % asp.get_asp_node_name())
+                    asp.run_custom_scripts('reboot')
+                    asp.proc_lock_file('remove')
+                    os.system('reboot')
             elif os.access(restart_disable_file, os.F_OK):
                 safe_remove(restart_disable_file)
                 asp.log.debug('AMF watchdog ignoring failure of %s '
@@ -95,6 +127,7 @@ def amf_watchdog_loop():
                 asp.zap_asp()
                 sys.exit(1)
             else:
+                asp.log.debug('AMF watchdog invocation default case')
 
                 if not asp_admin_stop():
                     asp.zap_asp(False)
@@ -104,13 +137,36 @@ def amf_watchdog_loop():
                     else:
                         asp.proc_lock_file('remove')
                 sys.exit(1)
+        else:
+            # pid is nonzero => amf is up
+            # handle openhpid here
+            openhpid_pid = asp.get_openhpid_pid()
 
-        time.sleep(monitor_interval)
+            if seen_openhpid:
+
+                if openhpid_pid == 0:
+                    # openhpid is DOWN and we have seen it before
+                    # we should bring it back
+                    asp.log.debug('AMF watchdog expected openhpid but did not find it. Restarting openhpid...')
+
+                    # zap it to make sure its DEAD
+                    os.popen('killall openhpid 2>/dev/null')
+                    #time.sleep(1)
+                    asp.start_openhpid()
+                else:
+                    asp.log.debug('AMF watchdog openhpid pid(%d) found as expected, nothing to do.' % openhpid_pid)
+
+            else:
+                if openhpid_pid != 0:
+                    seen_openhpid = True
+
+
+        wdSleep(monitor_interval)
+
+          
 
 def redirect_file():
 
-    #Save current directory
-    CURDIR = os.getcwd()
     UMASK = 0
     WORKDIR = asp.get_asp_run_dir()
     MAXFD = 1024
@@ -134,9 +190,6 @@ def redirect_file():
     os.open(redirect_to, os.O_RDWR | os.O_CREAT)
     os.dup2(0, 1)
     os.dup2(0, 2)
-
-    #Revert to current directory
-    os.chdir(CURDIR)
 
 def main():
     asp.check_py_version()

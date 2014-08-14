@@ -104,7 +104,9 @@ _member_map = {
 _state_map = {
     'Locked Assignment':    'LA',
     'Unlocked':             'UL',
-    'Locked Instantiation': 'LI'
+    'Locked Instantiation': 'LI',
+    'Shutting Down': 'Quiescing',
+    'Shutting Down with Restart': 'Quiescing Restart',
 }
 _classtype_map = {
     'Class A':          'A',
@@ -439,8 +441,9 @@ def load_amf_db():
        it as a (nested) Dot object. The information is cached for up to
        AMF_DB_CACHE_TIMEOUT [sec]
     """
-    
+
     global _amf_db, _amf_db_timestamp, _interactive_shell
+
     if _amf_db and not _interactive_shell: # and time.time() <= _amf_db_timestamp + AMF_DB_CACHE_TIMEOUT:
         dbmsg(1, 'working from cached AMF DB')
         return _amf_db
@@ -1823,9 +1826,10 @@ class Cli(cmd.Cmd):
     ##
     def do_forest(self, msg):
         """print the HA hierarchy for each SG in the cluster (call 'tree' for each SG)"""
+        
         for sgname in get_sg_names():
             self.onecmd('tree %s' % sgname)
-        
+
     ##  
     ## unlock command
     ##
@@ -1911,10 +1915,10 @@ class Cli(cmd.Cmd):
 		# if asp is running, this will work
 		try:
 			asp_run_env = load_asp_run_env()
-			version_loc = asp_run_env['ASP_CONFIG'] + "/BUILD"
+			version_loc = asp_run_env['ASP_CONFIG'] + "/VERSION"
 		except:
 			# otherwise, look for BASE_PATH/etc/BUILD
-			version_loc = _asp_dir + "/etc/BUILD"
+			version_loc = _asp_dir + "/etc/VERSION"
 
 		if not os.path.isfile(version_loc):
 			print "Version unknown" 
@@ -1922,7 +1926,7 @@ class Cli(cmd.Cmd):
 			fh = open(version_loc, "r")
 			line = fh.readline()
 			if len(line) > 1:
-				print line.split("=")[1]
+				print line.split("=")[1].strip()
 			fh.close()
         
     def do_shell(self, msg):

@@ -1636,6 +1636,9 @@ elem_types =\
     'ClVersionT',
     'ClWordT',
     'ClStringT',
+    'ClMD5T',
+    'ClDataVectorT',
+    'ClDifferenceVectorT'
 ]
 
 
@@ -1706,6 +1709,10 @@ def find_typedef(s):
     'ClUint64T',
     'ClVersionT',
     'ClWordT',
+    'ClStringT',
+    'ClMD5T',
+    'ClDataVectorT',
+    'ClDifferenceVectorT'
     ]
 
     l = []

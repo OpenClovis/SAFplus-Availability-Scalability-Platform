@@ -78,7 +78,6 @@ typedef enum ClAmsCkptOperation
     CL_AMS_CKPT_OPERATION_SERVER_DATA,
     CL_AMS_CKPT_OPERATION_USER_DATA,
     CL_AMS_CKPT_OPERATION_SET_FAILOVER_HISTORY,
-#define CL_AMS_CKPT_OPERATION_END_4_0 12
     CL_AMS_CKPT_OPERATION_END,
     CL_AMS_CKPT_OPERATION_MAX,
 }ClAmsCkptOperationT;
@@ -140,6 +139,9 @@ clAmsWriteXMLFile(
 extern ClRcT 
 clAmsCkptFree(
         CL_IN  ClAmsT  *ams );
+
+extern ClRcT
+clAmsHotStandbyRegister(ClAmsT *ams);
 
 #ifdef __cplusplus
 }

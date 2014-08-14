@@ -889,9 +889,6 @@ clLogStreamOwnerCheckpointCreate(ClLogSOEoDataT  *pSoEoEntry,
     ClCkptOpenFlagsT                     openFlags      = 0;
     ClLogSvrCommonEoDataT                *pCommonEoData = NULL;
     ClUint32T                            sectionSize    = 0;
-    ClInt32T                             tries = 0;
-    ClIocNodeAddressT                    localAddr = clIocLocalAddressGet();
-    static ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 100};
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
@@ -907,36 +904,17 @@ clLogStreamOwnerCheckpointCreate(ClLogSOEoDataT  *pSoEoEntry,
     creationAtt.retentionDuration = CL_STREAMOWNER_CKPT_RETENTION_DURATION;
     creationAtt.maxSections       = pCommonEoData->maxStreams;
     sectionSize                   = pCommonEoData->maxComponents * 
-        sizeof(ClLogCompKeyT); 
+                                    sizeof(ClLogCompKeyT); 
     creationAtt.maxSectionSize    = CL_LOG_SO_SEC_SIZE + sectionSize;
     creationAtt.maxSectionIdSize  = CL_LOG_SO_SEC_ID_SIZE;
 
     openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE |
-        CL_CKPT_CHECKPOINT_READ;
-
-    reopen:
+                CL_CKPT_CHECKPOINT_READ;
     rc = clCkptCheckpointOpen(pCommonEoData->hSvrCkpt, 
                               pCkptName, &creationAtt, openFlags, 5000L,
                               &pSoEoEntry->hCkpt);
     if( rc != CL_OK )
     {
-        /*
-         * No replica found and we are the only master.
-         * Delete and try re-opening the checkpoint
-         */
-        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE &&
-           pCommonEoData->masterAddr == localAddr)
-        {
-            if(tries++ < 1)
-            {
-                clLogNotice("CKP", "GET", "No replica for log checkpoint."
-                            "Deleting ckpt [%.*s] and retrying the ckpt open",
-                            pCkptName->length, pCkptName->value);
-                clCkptCheckpointDelete(pCommonEoData->hSvrCkpt, pCkptName);
-                clOsalTaskDelay(delay);
-                goto reopen;
-            }
-        }
         CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x %x]", rc));
     }    
 
@@ -1448,51 +1426,44 @@ clLogStreamOwnerGlobalCkptGet(ClLogSOEoDataT         *pSoEoEntry,
                               ClBoolT                *pCreateCkpt)
 {
     ClRcT             rc        = CL_OK;
+   // ClCkptOpenFlagsT  openFlags = CL_CKPT_CHECKPOINT_WRITE |
+     //                             CL_CKPT_CHECKPOINT_READ;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     *pCreateCkpt = CL_FALSE;
-    rc = clLogStreamOwnerCheckpointCreate(pSoEoEntry, 
-                                          (ClNameT *) &gSOSvrCkptName, 
-                                          &pSoEoEntry->hCkpt);
-    if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != CL_GET_ERROR_CODE(rc)) )
+#if 0
+    rc = clCkptCheckpointOpen(pCommonEoData->hSvrCkpt, &gSOSvrCkptName, 
+                              NULL, openFlags, 0,  &pSoEoEntry->hCkpt);
+    if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
     {
-        CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x %x]", rc));
-        return rc;
-    }
-    if( CL_OK == rc )
-    {
-        *pCreateCkpt = CL_TRUE;
-    }
+#endif
+        rc = clLogStreamOwnerCheckpointCreate(pSoEoEntry, 
+                                              (ClNameT *) &gSOSvrCkptName, 
+                                               &pSoEoEntry->hCkpt);
+        if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != CL_GET_ERROR_CODE(rc)) )
+        {
+            CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x %x]", rc));
+            return rc;
+        }
+        if( CL_OK == rc )
+        {
+            *pCreateCkpt = CL_TRUE;
+//            return rc;
+        }
+  //  }
     if( pCommonEoData->masterAddr == clIocLocalAddressGet() )
     {
         rc = clLogStreamOwnerGlobalStateRecover(pCommonEoData->masterAddr, CL_FALSE);
-        if( CL_OK != rc )
-        {
+    if( CL_OK != rc )
+    {
             CL_LOG_CLEANUP(clCkptCheckpointClose(pSoEoEntry->hCkpt), CL_OK);
         }
     }
 
     CL_LOG_DEBUG_TRACE(("Exit"));
-    return rc;
-}    
-
-ClRcT
-clLogStreamOwnerGlobalCkptDelete(void)
-{
-    ClRcT                  rc             = CL_OK;
-    ClLogSvrCommonEoDataT  *pCommonEoData = NULL;
-
-    rc = clLogStreamOwnerEoEntryGet(NULL, &pCommonEoData);
-    if( CL_OK != rc )
-    {
         return rc;
-    }
-
-    CL_LOG_CLEANUP(clCkptCheckpointDelete(pCommonEoData->hSvrCkpt, &gSOSvrCkptName), CL_OK);
-
-    return rc;
-}
+    }    
 
 ClRcT
 clLogStreamOwnerLocalCkptDelete(void)

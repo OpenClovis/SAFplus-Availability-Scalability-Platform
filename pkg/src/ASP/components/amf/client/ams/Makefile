@@ -55,6 +55,7 @@ EXTRA_CPPFLAGS  += -I$(AMF_PATH)/server/ams -I$(AMF_PATH)/common/ams/idl/xdr -I$
 
 SRC_FILES	:= clAmsMgmtClientApi.c		\
 		   clAmsMgmtClientRmd.c		\
+           ClAmsMgmtCCBBatch.c \
 		   clAmsTriggerClient.c         \
 		   clAmsClientNotification.c          \
 		   ${AMF_PATH}/common/ams/clAmsUtils.c \
@@ -72,6 +73,7 @@ LIB_NAMES	=  libClAmsMgmt
 
 SRC_FILES_libClAmsMgmt	= clAmsMgmtClientApi.c		\
                           clAmsMgmtClientRmd.c		\
+						  clAmsMgmtCCBBatch.c \
 			  clAmsClientNotification.c           \
 			  clAmsTriggerClient.c          \
 			  ${AMF_PATH}/common/ams/clAmsUtils.c \

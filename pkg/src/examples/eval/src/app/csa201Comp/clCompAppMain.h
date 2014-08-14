@@ -39,10 +39,11 @@ extern "C" {
  *****************************************************************************/
 
 #define STRING_HA_STATE(S)                                                  \
-(   ((S) == SA_AMF_HA_ACTIVE)             ? "Active" :                \
-    ((S) == SA_AMF_HA_STANDBY)            ? "Standby" :               \
-    ((S) == SA_AMF_HA_QUIESCED)           ? "Quiesced" :              \
-    ((S) == SA_AMF_HA_QUIESCING)          ? "Quiescing" :             \
+(   ((S) == CL_AMS_HA_STATE_ACTIVE)             ? "Active" :                \
+    ((S) == CL_AMS_HA_STATE_STANDBY)            ? "Standby" :               \
+    ((S) == CL_AMS_HA_STATE_QUIESCED)           ? "Quiesced" :              \
+    ((S) == CL_AMS_HA_STATE_QUIESCING)          ? "Quiescing" :             \
+    ((S) == CL_AMS_HA_STATE_NONE)               ? "None" :                  \
                                                   "Unknown" )
 
 /******************************************************************************

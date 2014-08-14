@@ -25,8 +25,9 @@
 <IDLSpecs name="CkptIDL">
     <Service name="ckptEo">
         <Include name="clCkptApi.h"/>
+        <Include name="clCkptExtApi.h"/>
         <Comp name="ckpt"/>
-        <Include name="clCkptCommon.h"/>
+        <Include name="../common/clCkptCommon.h"/>
         <Enum name="CkptUpdateFlagT" defNeed="true">
             <EnumMember name="CKPT_SECTION_CREAT" value ="1"/>
             <EnumMember name="CKPT_SECTION_OVERWRITE"/>
@@ -128,6 +129,16 @@
             <DataMember name="pAppInfo" type="ClCkptAppInfoT" pointer="Single"
             lengthVar="numApps"/>
         </Struct> 
+        <Struct name="CkptCPInfoT" defNeed="true" version="5.0.0">
+            <DataMember name="updateOption" type="ClUint32T"/>
+            <DataMember name="size" type="ClUint32T"/>
+            <DataMember name="presenceList" type="ClUint32T" pointer="Single"
+            lengthVar="size"/>
+            <DataMember name="numApps" type="ClUint32T"/>
+            <DataMember name="pAppInfo" type="ClCkptAppInfoT" pointer="Single"
+            lengthVar="numApps"/>
+            <DataMember name="id" type="ClUint64T"/>
+        </Struct> 
         <Struct name="ClCkptSectionIdT">
             <DataMember name="idLen" type="ClUint16T"/>
             <DataMember name="id" type="ClUint8T" pointer = "Single" lengthVar ="idLen"/>
@@ -159,6 +170,12 @@
             <DataMember name="ckptHdl" type="ClHandleT"/>
             <DataMember name="pName" type="ClNameT" pointer="Single"/>
             <DataMember name="pCpInfo" type="CkptCPInfoT" pointer="Single"/>
+            <DataMember name="pDpInfo" type="CkptDPInfoT" pointer="Single"/>
+        </Struct> 
+        <Struct name="CkptInfoT" defNeed="true" version="5.0.0">
+            <DataMember name="ckptHdl" type="ClHandleT"/>
+            <DataMember name="pName" type="ClNameT" pointer="Single"/>
+            <DataMember name="pCpInfo" type="CkptCPInfoT" pointer="Single" version="5.0.0"/>
             <DataMember name="pDpInfo" type="CkptDPInfoT" pointer="Single"/>
         </Struct> 
         <Struct name="CkptXlationDBEntryT" defNeed="true">
@@ -229,6 +246,13 @@
             <DataMember name="activeAddr" type="ClUint32T"/>
             <DataMember name="appPortNum" type="ClUint32T"/>
         </Struct> 
+        <Struct name="ClCkptDifferenceIOVectorElementT">
+            <DataMember name="sectionId" type="ClCkptSectionIdT"/>
+            <DataMember name="dataSize" type="ClUint64T"/>
+            <DataMember name="dataOffset" type="ClUint64T"/>
+            <DataMember name="differenceVector" type="ClDifferenceVectorT" pointer = "Single"/>
+        </Struct>
+
         <Port name="ckptServer" ID="CL_EO_NATIVE_COMPONENT_TABLE_ID">
             <Group name="CliServerFunc">
             <!-- 1) -->
@@ -481,6 +505,7 @@
                     <Argument ParameterType="CL_INOUT" name="pVersion"
                      type="ClVersionT" pointer="Single"/>
                 </Operation>	
+
                 <Operation name="clCkptDeputyCkptInfoUpdate">
                     <Argument ParameterType="CL_INOUT"  name="pVersion" 
                     type="ClVersionT" pointer="Single"/>
@@ -489,6 +514,16 @@
                     <Argument ParameterType="CL_IN" name="pCkptInfo"
                     type="CkptInfoT" pointer="Single" lengthVar="numOfCkpts"/>
                 </Operation>	
+
+                <Operation name="clCkptDeputyCkptInfoUpdate" version="5.0.0">
+                    <Argument ParameterType="CL_INOUT"  name="pVersion" 
+                    type="ClVersionT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="numOfCkpts"
+                    type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="pCkptInfo"
+                    type="CkptInfoT" version="5.0.0" pointer="Single" lengthVar="numOfCkpts"/>
+                </Operation>	
+
             <!-- 22) -->
                 <Operation name="clCkptCreateInfoDeputyUpdate" type="async">
                     <Argument ParameterType="CL_INOUT"  name="pVersion" 
@@ -642,6 +677,19 @@
                     <Argument ParameterType="CL_IN" name="pDpInfo"
                     type="CkptDPInfoT" pointer="Single"/>
                 </Operation>	
+                <Operation name="clCkptRemSvrCkptInfoSync" type="async" version="5.0.0">
+                    <Argument ParameterType="CL_INOUT"  name="pVersion" 
+                    type="ClVersionT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="ckptActHdl"
+                    type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="pCkptName"
+                    type="ClNameT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="pCpInfo"
+                    type="CkptCPInfoT" pointer="Single" version="5.0.0"/>
+                    <Argument ParameterType="CL_IN" name="pDpInfo"
+                    type="CkptDPInfoT" pointer="Single"/>
+                </Operation>	
+
             <!-- 33) -->
                 <Operation name="clCkptRemSvrCkptInfoGet">
                     <Argument ParameterType="CL_INOUT"  name="pVersion" 
@@ -653,6 +701,18 @@
                     <Argument ParameterType="CL_OUT" name="pCkptInfo"
                     type="CkptInfoT" pointer="Single"/>
                 </Operation>	
+
+                <Operation name="clCkptRemSvrCkptInfoGet" version="5.0.0">
+                    <Argument ParameterType="CL_INOUT"  name="pVersion" 
+                    type="ClVersionT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="ckptActHdl"
+                    type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="peerAddr"
+                    type="ClUint32T"/>
+                    <Argument ParameterType="CL_OUT" name="pCkptInfo"
+                    type="CkptInfoT" version="5.0.0" pointer="Single"/>
+                </Operation>	
+
             <!-- 34) -->
                 <Operation name="clCkptRemSvrSectionInfoUpdate" type="async">
                     <Argument ParameterType="CL_INOUT"  name="pVersion" 
@@ -720,26 +780,65 @@
                     <Argument ParameterType="CL_IN"  name="portId" 
                     type="ClUint32T"/>
                 </Operation>	
-            </Group>
-            <Group name="ExtServerFunc">
-                <Operation name="_ckptSectionCheck" version="5.0.0">
-                    <Argument ParameterType="CL_IN" name="ckptHandle" type="ClHandleT"/>
-                    <Argument ParameterType="CL_IN"  name="pSecId" type="ClCkptSectionIdT" pointer="Single"/>
-                </Operation>	
+             </Group>
+             <Group name="ExtCliServerFunc">
 
-            </Group>
-
-            <Group name="PeerPeerExtFunc">
-                <Operation name="clCkptRemSvrWelcome" type="sync" version="5.1.0">
-                    <Argument ParameterType="CL_INOUT"  name="pVersion" 
-                    type="ClVersionT" pointer="Single"/>
-                    <Argument ParameterType="CL_IN" name="peerAddr"
+                <Operation name="_ckptCheckpointWriteVector">
+                    <Argument ParameterType="CL_IN" name="ckptHandle"
+                    type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="nodeAddr" 
                     type="ClUint32T"/>
-                    <Argument ParameterType="CL_IN" name="credential"
-                    type="ClUint8T"/>
+                    <Argument ParameterType="CL_IN" name="portId" 
+                    type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="numberOfElements" 
+                    type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="pDifferenceIoVector" 
+                    type="ClCkptDifferenceIOVectorElementT" pointer="Single" 
+                    lengthVar="numberOfElements"/>
+                    <Argument ParameterType="CL_OUT" name="pError" 
+                    type="ClUint32T" pointer = "Single"/>
+                    <Argument ParameterType="CL_INOUT" name="pVersion"
+                    type="ClVersionT" pointer="Single"/>
                 </Operation>	
-            </Group>
 
+                <Operation name="_ckptSectionOverwriteVector">
+                    <Argument ParameterType="CL_IN" name="ckptHandle" 
+                    type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="nodeAddr" 
+                    type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="portId" 
+                    type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="srcClient" 
+                    type="ClUint16T"/>
+                    <Argument ParameterType="CL_IN" name="pSecId" 
+                    type="ClCkptSectionIdT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN"  name="expryTime"
+                    type="ClInt64T"/>
+                    <Argument ParameterType="CL_IN"  name="dataSize"
+                    type="ClUint64T"/>
+                    <Argument ParameterType="CL_IN" name="pDifferenceVector" 
+                    type="ClDifferenceVectorT" pointer="Single"/>
+                    <Argument ParameterType="CL_INOUT" name="pVersion" 
+                    type="ClVersionT" pointer="Single"/>
+                </Operation>	
+
+                <Operation name="clCkptRemSvrCkptWriteVector" type="async">
+                    <Argument ParameterType="CL_INOUT"  name="pVersion"
+                       type="ClVersionT" pointer="Single"/>
+                    <Argument ParameterType="CL_IN" name="ckptHandle"
+                    type="ClHandleT"/>
+                    <Argument ParameterType="CL_IN" name="nodeAddr"
+                    type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="portId"
+                    type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="numberOfElements"
+                    type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="pDifferenceIoVector"
+                    type="ClCkptDifferenceIOVectorElementT" pointer="Single" 
+                    lengthVar="numberOfElements"/>
+                </Operation>	
+
+            </Group>
         </Port>            
     </Service>
     <Service name="ckptClntEo">

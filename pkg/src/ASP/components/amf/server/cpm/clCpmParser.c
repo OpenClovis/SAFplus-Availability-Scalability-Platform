@@ -315,27 +315,24 @@ ClBoolT cpmIsValgrindBuild(ClCharT *instantiationCMD)
 
 void cpmModifyCompArgs(ClCpmCompConfigT *newConfig, ClUint32T *pArgIndex)
 {
-    ClCharT valgrindCmd[CL_MAX_NAME_LENGTH*2] = {0};
-    ClCharT logFileCmd[CL_MAX_NAME_LENGTH] = {0};
+    ClCharT valgrindCmd[CL_MAX_NAME_LENGTH] = {0};
     ClCharT *valgrindCmdStr = clParseEnvStr("ASP_VALGRIND_CMD");
     ClCharT *delim = " ";
     ClCharT *valCmd = NULL;
     ClUint32T argIndex = *pArgIndex;
     ClCharT *aspLogDir = getenv("ASP_LOGDIR");
+    ClCharT logFileCmd[CL_MAX_NAME_LENGTH] = {0};
 
     CL_ASSERT(valgrindCmdStr != NULL);
-
-    valgrindCmd[0] = 0;
-    strncat(valgrindCmd, valgrindCmdStr, sizeof(valgrindCmd)-1);
+    
+    strncpy(valgrindCmd, valgrindCmdStr, CL_MAX_NAME_LENGTH-1);
     
     snprintf(logFileCmd, CL_MAX_NAME_LENGTH-1, 
              " --log-file=%s/%s.%lld", 
              aspLogDir,
              newConfig->instantiationCMD,
              clOsalStopWatchTimeGet());
-    
-    strncat(valgrindCmd, logFileCmd, 
-            CL_MIN(sizeof(valgrindCmd)-strlen(valgrindCmd)-1,sizeof(logFileCmd)-1));
+    strcat(valgrindCmd, logFileCmd);
     valCmd = strtok(valgrindCmd, delim);
     while (NULL != valCmd && (argIndex < CPM_MAX_ARGS - 1))
     {

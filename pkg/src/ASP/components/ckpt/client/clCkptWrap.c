@@ -47,7 +47,7 @@
 #include <clCkptIpi.h>
 #include  <clCpmApi.h>
 #include  "ckptEockptServerCliServerFuncClient.h"
-#include  "ckptEockptServerExtServerFuncClient.h"
+#include  "ckptEockptServerExtCliServerFuncClient.h"
 #include "ckptEockptServerActivePeerClient.h"
 #include  "ckptClntEoServer.h"
 #include  "ckptClntEoClient.h"
@@ -55,8 +55,10 @@
 #include <clDebugApi.h>
 #include <clIocErrors.h>
 #include <clCkptErrors.h>
+#include <clNodeCache.h>
 
 ClCkptClntInfoT  gClntInfo = {0};
+static ClInt32T gClDifferentialCkpt = -1;
 
 /*
  * Supporetd version.
@@ -2527,30 +2529,43 @@ exitOnError:
     }
 }
 
-ClRcT clCkptSectionCheck(ClCkptHdlT             ckptHdl,
-                         ClCkptSectionIdT       *pSectionId)
+
+
+/*
+ * Writes multiple sections on to a given checkpoint.
+ */
+
+ClRcT clCkptCheckpointWriteVector(ClCkptHdlT                     ckptHdl,
+                                  const ClCkptDifferenceIOVectorElementT   *pDifferenceIoVector,
+                                  ClUint32T                      numberOfElements,
+                                  ClUint32T                      *pError)
 {
-    ClRcT                  rc                 = CL_OK;
-    CkptInitInfoT          *pInitInfo         = NULL;
-    ClCkptHdlT             actHdl             = CL_CKPT_INVALID_HDL;
-    ClIocNodeAddressT      nodeAddr           = 0;
-    ClCkptSvcHdlT          ckptSvcHdl         = CL_CKPT_INVALID_HDL;
-    ClBoolT                tryAgain           = CL_FALSE;
-    ClUint32T              maxRetry           = 0;
-    ClUint8T               status = CL_IOC_NODE_DOWN;
-    ClTimerTimeOutT        delay = {.tsSec = 0, .tsMilliSec = 50};
-        
+    ClRcT               rc         = CL_OK;
+    CkptInitInfoT       *pInitInfo = NULL;
+    ClIocNodeAddressT   nodeAddr   = 0;
+    ClCkptHdlT          actHdl     = CL_CKPT_INVALID_HDL;
+    ClVersionT          version    = {0};
+    CkptHdlDbT          *pHdlInfo  = 0;
+    ClIdlHandleT        ckptIdlHdl = CL_CKPT_INVALID_HDL; 
+    ClCkptSvcHdlT       ckptSvcHdl = CL_CKPT_INVALID_HDL;
+    ClUint32T           tempError  = 0;
+    ClBoolT             tryAgain   = CL_FALSE;
+    ClUint32T           maxRetry   = 0;
+    ClIocPortT          iocPort    = 0;
+    ClUint8T            status = CL_IOC_NODE_DOWN;
+    ClTimerTimeOutT     delay =  {.tsSec = 0, .tsMilliSec = 500 };
+
     /*
-     * Verify the input parameters.
+     * Input parameter verification.
      */
-    if(!pSectionId) return CL_CKPT_ERR_INVALID_PARAMETER;
+    if (NULL == pDifferenceIoVector) return CL_CKPT_ERR_NULL_POINTER;
+    if (0 == numberOfElements) return CL_CKPT_ERR_INVALID_PARAMETER;
 
     retry:
-    if(maxRetry++ >= 3)
-    {
+
+    if(maxRetry++ >= 5)
         return rc;
-    }
-    
+
     if( gClntInfo.ckptDbHdl == 0 || gClntInfo.ckptSvcHdlCount == 0)
     {
         CKPT_DEBUG_E(("CKPT Client is not yet initialized"));
@@ -2570,7 +2585,7 @@ ClRcT clCkptSectionCheck(ClCkptHdlT             ckptHdl,
         clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
         return CL_CKPT_ERR_NOT_INITIALIZED;
     }
-
+    
     if ((rc = ckptVerifyAndCheckout(ckptHdl, &ckptSvcHdl, &pInitInfo)) != CL_OK)
     {
         clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
@@ -2582,6 +2597,33 @@ ClRcT clCkptSectionCheck(ClCkptHdlT             ckptHdl,
      */
     clOsalMutexLock(pInitInfo->ckptSvcMutex);
     
+    /* 
+     * Checkout the data associated with the checkpoint handle. 
+     */
+    rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
+                            (void **)&pHdlInfo);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
+              
+    /*
+     * Return ERROR in case the checkpoint was neither opened in write nor
+     * create mode.
+     */
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+         (pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_WRITE)))
+    {
+        rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
+        clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
+    }
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+                   ("Ckpt: Improper permissions as ckpt was not opened in write"
+                    " or create mode, rc[0x %x]\n",rc), rc);
+              
+    /* 
+     * Checkin the data associated with the checkpoint handle. 
+     */
+    clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
+    
     /*
      * Get the active handle and the active replica address associated
      * with that local ckptHdl.
@@ -2592,54 +2634,96 @@ ClRcT clCkptSectionCheck(ClCkptHdlT             ckptHdl,
     rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
     CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
                    ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
-
-    clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
-    clHandleCheckin(gClntInfo.ckptDbHdl, ckptSvcHdl);
-    clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
-
+ 
     rc = clIocRemoteNodeStatusGet(nodeAddr, &status);
     if(status == CL_IOC_NODE_DOWN)
     {
+        clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
+        clHandleCheckin(gClntInfo.ckptDbHdl, ckptSvcHdl);
+        clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
         rc = CL_CKPT_ERR_NOT_EXIST;
         goto retry;
     }
-    
+
+    /* 
+     * Fill the supported version information 
+     */ 
+    memcpy(&version,&clVersionSupported[0],sizeof(ClVersionT));
+
     /*
      * Send the call to the checkpoint active server.
      * Retry if the server is not not reachable.
      */
-    rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl, 1);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
-                                  ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
-    rc = VDECL_VER(_ckptSectionCheckClientSync, 5, 0, 0)( pInitInfo->ckptIdlHdl,
-                                                          actHdl,
-                                                          pSectionId);
-    tryAgain = clCkptHandleTypicalErrors(rc, ckptHdl, &nodeAddr);
+    rc = ckptIdlHandleUpdate(nodeAddr,pInitInfo->ckptIdlHdl, 
+                             CL_CKPT_MAX_RETRY);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
+    ckptIdlHdl = pInitInfo->ckptIdlHdl;
+    clEoMyEoIocPortGet(&iocPort);
+
+    rc = VDECL_VER(_ckptCheckpointWriteVectorClientSync, 4, 0, 0)( ckptIdlHdl,  actHdl,
+                                                                   clIocLocalAddressGet(), iocPort,
+                                                                   numberOfElements, 
+                                                                   (ClCkptDifferenceIOVectorElementT*)pDifferenceIoVector,
+                                                                   &tempError, &version);
+
+    if(rc != CL_OK)
+    {
+        if(!CL_RMD_VERSION_ERROR(rc))
+        {        
+            tryAgain = clCkptHandleTypicalErrors(rc, ckptHdl,&nodeAddr);
+        }
+    }
 
     if(tryAgain)
     {
+        clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
+        clHandleCheckin(gClntInfo.ckptDbHdl, ckptSvcHdl);
+        clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
         goto retry;
     }
-    
-    return rc;
-    
-    exitOnError:
-    clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
-    clHandleCheckin(gClntInfo.ckptDbHdl, ckptSvcHdl);
-    clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
 
-    exitOnErrorBeforeHdlCheckout:
-    return rc;
+    /*
+     * Copy the value of error returned by the server.
+     */
+    if( pError != NULL )
+    {
+        *pError = tempError;
+    }
+    
+    /* 
+     * Check for the version mismatch. 
+     */
+    if((version.releaseCode != '\0') && (rc == CL_OK))
+    {
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+                   CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Close call failed",
+                   version.releaseCode,version.majorVersion,
+                   version.minorVersion);
+        rc = CL_CKPT_ERR_VERSION_MISMATCH;             
+    }
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Checkpoint write failed, rc[0x %x]\n",rc), rc);
+    exitOnError:
+    {
+        /*
+         * Unlock the mutex.
+         */
+        clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
+
+        /* 
+         * Checkin the data associated with the service handle 
+         */
+        clHandleCheckin(gClntInfo.ckptDbHdl,ckptSvcHdl);
+        clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+        return rc;
+    }
 }
 
-/*
- * Writes multiple sections on to a given checkpoint.
- */
- 
-ClRcT clCkptCheckpointWrite(ClCkptHdlT                     ckptHdl,
-                            const ClCkptIOVectorElementT   *pIoVector,
-                            ClUint32T                      numberOfElements,
-                            ClUint32T                      *pError)
+ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
+                                  const ClCkptIOVectorElementT   *pIoVector,
+                                  ClUint32T                      numberOfElements,
+                                  ClUint32T                      *pError)
 {
     ClRcT               rc         = CL_OK;
     CkptInitInfoT       *pInitInfo = NULL;
@@ -2814,16 +2898,281 @@ ClRcT clCkptCheckpointWrite(ClCkptHdlT                     ckptHdl,
     }
 }
 
+ClRcT clCkptCheckpointWrite(ClCkptHdlT                     ckptHdl,
+                            const ClCkptIOVectorElementT   *pIoVector,
+                            ClUint32T                      numberOfElements,
+                            ClUint32T                      *pError)
+{
+    ClRcT rc = CL_OK;
+    ClUint32T versionCode;
+    
+    if(!numberOfElements || !pIoVector || !ckptHdl)
+        return CL_CKPT_ERR_INVALID_PARAMETER;
 
+    versionCode = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
+    clNodeCacheMinVersionGet(NULL, &versionCode);
+
+    switch(versionCode)
+    {
+    case CL_VERSION_CODE(5, 0, 0):
+        if(gClDifferentialCkpt)
+        {
+            ClCkptDifferenceIOVectorElementT *pDifferenceIoVector = NULL;
+            ClUint32T i;
+            pDifferenceIoVector = clHeapCalloc(numberOfElements, sizeof(*pDifferenceIoVector));
+            CL_ASSERT(pDifferenceIoVector != NULL);
+            for(i = 0; i < numberOfElements; ++i)
+            {
+                pDifferenceIoVector[i].differenceVector = clHeapCalloc(1, sizeof(*pDifferenceIoVector[i].differenceVector));
+                CL_ASSERT(pDifferenceIoVector[i].differenceVector != NULL);
+                pDifferenceIoVector[i].dataOffset = pIoVector[i].dataOffset;
+                pDifferenceIoVector[i].dataSize = pIoVector[i].dataSize;
+                memcpy(&pDifferenceIoVector[i].sectionId, &pIoVector[i].sectionId, sizeof(pDifferenceIoVector[i].sectionId));
+                pDifferenceIoVector[i].differenceVector->dataVectors = clHeapCalloc(1, sizeof(*pDifferenceIoVector[i].differenceVector->dataVectors));
+                pDifferenceIoVector[i].differenceVector->numDataVectors = 1;
+                pDifferenceIoVector[i].differenceVector->dataVectors[0].dataBase = pIoVector[i].dataBuffer;
+                pDifferenceIoVector[i].differenceVector->dataVectors[0].dataBlock = 
+                    pIoVector[i].dataOffset >> CL_DIFFERENCE_VECTOR_BLOCK_SHIFT;
+                pDifferenceIoVector[i].differenceVector->dataVectors[0].dataSize = pIoVector[i].dataSize;
+                pDifferenceIoVector[i].differenceVector->md5Blocks = 0;
+                pDifferenceIoVector[i].differenceVector->md5List = NULL;
+            }
+            rc = clCkptCheckpointWriteVector(ckptHdl, pDifferenceIoVector, numberOfElements, pError);
+            for(i = 0; i < numberOfElements; ++i)
+            {
+                clHeapFree(pDifferenceIoVector[i].differenceVector->dataVectors);
+                clHeapFree(pDifferenceIoVector[i].differenceVector);
+            }
+            clHeapFree(pDifferenceIoVector);
+            break;
+        }
+        /*
+         * Fall through for the else.
+         */
+    default:
+        rc = clCkptCheckpointWriteLinear(ckptHdl, pIoVector, numberOfElements, pError);
+        break;
+    }
+
+    return rc;
+}
 
 /* 
  * Writes a single section in a given checkpoint
  */
- 
-ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
-                             const ClCkptSectionIdT   *pSectionId,
-                             const void               *pData,
-                             ClSizeT                  dataSize)
+
+ClRcT clCkptSectionOverwriteVector(ClCkptHdlT               ckptHdl,
+                                   const ClCkptSectionIdT   *pSectionId,
+                                   ClSizeT                  dataSize,
+                                   ClDifferenceVectorT         *differenceVector)
+{
+    ClCkptSectionIdT   tempSecId  = {0};
+    ClRcT              rc         = CL_OK;
+    CkptInitInfoT      *pInitInfo = NULL;
+    ClIocNodeAddressT  nodeAddr   = 0;
+    ClCkptHdlT         actHdl     = 0;
+    ClVersionT         version    = {0};
+    ClIdlHandleT       ckptIdlHdl = 0;
+    CkptHdlDbT         *pHdlInfo  = NULL;
+    ClCkptSvcHdlT      ckptSvcHdl = CL_CKPT_INVALID_HDL;
+    ClBoolT            tryAgain   = CL_FALSE;
+    ClUint32T          maxRetry   = 0;
+    ClIocPortT         iocPort    = 0;
+    ClUint8T           status = CL_IOC_NODE_DOWN;
+    ClTimerTimeOutT    delay = {.tsSec = 0, .tsMilliSec = 500};
+    /*
+     * Input parameter verification.
+     */
+    if (NULL == pSectionId) return CL_CKPT_ERR_NULL_POINTER;
+    if (dataSize == 0) return CL_CKPT_ERR_INVALID_PARAMETER;
+    if(!differenceVector || !differenceVector->numDataVectors) return CL_CKPT_ERR_INVALID_PARAMETER;
+
+    /*
+     * Check whether the client library is initialized or not.
+     */
+    retry:
+    if(maxRetry++ >= 5)
+    {
+        if(tempSecId.id) clHeapFree(tempSecId.id);
+        return rc;
+    }
+
+    if( gClntInfo.ckptDbHdl == 0 || gClntInfo.ckptSvcHdlCount == 0)
+    {
+        if(tempSecId.id) clHeapFree(tempSecId.id);
+        CKPT_DEBUG_E(("CKPT Client is not yet initialized"));
+        return CL_CKPT_ERR_NOT_INITIALIZED;
+    }
+
+    if(maxRetry > 1)
+        clOsalTaskDelay(delay);
+
+    /*
+     * Safe to grab incase svc handle count is non zero or ckpt is initialized.
+     */
+    clOsalMutexLock(&gClntInfo.ckptClntMutex);
+
+    if(!gClntInfo.ckptSvcHdlCount)
+    {
+        clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+        if(tempSecId.id) clHeapFree(tempSecId.id);
+        return CL_CKPT_ERR_NOT_INITIALIZED;
+    }
+
+    if ((rc = ckptVerifyAndCheckout(ckptHdl, &ckptSvcHdl, &pInitInfo)) != CL_OK)
+    {
+        clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+        if(tempSecId.id) clHeapFree(tempSecId.id);
+        return rc;
+    }
+
+    /*
+     * Lock the mutex.
+     */
+    clOsalMutexLock(pInitInfo->ckptSvcMutex);
+    rc = ckptHandleCheckout(ckptHdl, CL_CKPT_CHECKPOINT_HDL, 
+                            (void **)&pHdlInfo);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Handle create error rc[0x %x]\n",rc), rc);
+              
+    clEoMyEoIocPortGet(&iocPort);
+    /*
+     * Return ERROR in case the checkpoint was neither opened in write nor
+     * create mode.
+     */
+    if(!((pHdlInfo->openFlag & CL_CKPT_CHECKPOINT_CREATE) ||
+         (pHdlInfo->openFlag &  CL_CKPT_CHECKPOINT_WRITE)))
+    {
+        rc = CL_CKPT_ERR_OP_NOT_PERMITTED;
+        clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
+    }
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR,
+                   ("Ckpt: Improper permissions as ckpt was not opened in write"
+                    " or create mode, rc[0x %x]\n",rc), rc);
+
+    /* 
+     * Checkin the data associated with the checkpoint handle. 
+     */
+    rc = clHandleCheckin(gClntInfo.ckptDbHdl,ckptHdl);
+    
+    /*
+     * Get the active handle and the active replica address associated
+     * with that local ckptHdl.
+     */
+    rc = ckptActiveHandleGet(ckptHdl,&actHdl);   
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Handle get error rc[0x %x]\n",rc), rc);
+    rc = ckptActiveAddressGet(ckptHdl,&nodeAddr); 
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Active server not exist rc[0x %x]\n",rc), rc);
+
+    rc = clIocRemoteNodeStatusGet(nodeAddr, &status);
+    if(status == CL_IOC_NODE_DOWN)
+    {
+        clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
+        clHandleCheckin(gClntInfo.ckptDbHdl, ckptSvcHdl);
+        clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+        rc = CL_CKPT_ERR_NOT_EXIST;
+        goto retry;
+    }
+
+    if(!tempSecId.id)
+    {
+        tempSecId.idLen = pSectionId->idLen;
+        tempSecId.id    = (ClUint8T *)clHeapCalloc(1,tempSecId.idLen);
+        if(tempSecId.id == NULL)
+        {
+            CL_DEBUG_PRINT (CL_DEBUG_CRITICAL,
+                            ("Ckpt:memory allocation is failed rc[0x %x]\n",rc));
+            clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_CRITICAL,CL_LOG_CKPT_LIB_NAME,
+                       CL_LOG_MESSAGE_0_MEMORY_ALLOCATION_FAILED);
+            rc = CL_CKPT_ERR_NO_MEMORY;
+        
+            /*
+             * Unlock the mutex.
+             */
+            clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
+            /* 
+             * Checkin the data associated with the service handle 
+             */
+            clHandleCheckin(gClntInfo.ckptDbHdl,ckptSvcHdl);
+            clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+            return rc;
+        }
+        if(pSectionId->id)
+            memcpy(tempSecId.id,pSectionId->id,tempSecId.idLen);
+        /* 
+         * Fill the supported version information 
+         */ 
+        memcpy(&version,&clVersionSupported[0],sizeof(ClVersionT));
+    }
+    /*
+     * Send the call to the checkpoint active server.
+     * Retry if the server is not not reachable.
+     */
+    rc = ckptIdlHandleUpdate(nodeAddr, pInitInfo->ckptIdlHdl,
+                             CL_CKPT_MAX_RETRY);
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Idl Handle update error rc[0x %x]\n",rc), rc);
+    ckptIdlHdl = pInitInfo->ckptIdlHdl;
+
+    rc = VDECL_VER(_ckptSectionOverwriteVectorClientSync, 4, 0, 0)( ckptIdlHdl, actHdl,
+                                                                    clIocLocalAddressGet(), iocPort,  
+                                                                    CL_TRUE, &tempSecId, 0, dataSize, 
+                                                                    differenceVector,
+                                                                    &version);
+    
+    if(rc != CL_OK)
+    {
+        if(!CL_RMD_VERSION_ERROR(rc))
+        {        
+            tryAgain = clCkptHandleTypicalErrors(rc, ckptHdl,&nodeAddr);
+        }
+    }
+
+    if(tryAgain)
+    {
+        clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
+        clHandleCheckin(gClntInfo.ckptDbHdl, ckptSvcHdl);
+        clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+        goto retry;
+    }
+    
+
+    /* 
+     * Check for the version mismatch. 
+     */
+    if((version.releaseCode != '\0') && (rc == CL_OK))
+    {
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, NULL,
+                   CL_CKPT_LOG_4_CLNT_VERSION_NACK, "Overwrite call failed",
+                   version.releaseCode,version.majorVersion, 
+                   version.minorVersion);
+        rc = CL_CKPT_ERR_VERSION_MISMATCH;             
+    }
+    CKPT_ERR_CHECK(CL_CKPT_LIB,CL_DEBUG_ERROR, 
+                   ("Ckpt: Section Overwrite failed rc[0x %x]\n",rc), rc);
+    exitOnError:
+    {
+        if(tempSecId.id != NULL)  clHeapFree(tempSecId.id);
+        /*
+         * Unlock the mutex.
+         */
+        clOsalMutexUnlock(pInitInfo->ckptSvcMutex);
+
+        /* 
+         * Checkin the data associated with the service handle 
+         */
+        clHandleCheckin(gClntInfo.ckptDbHdl,ckptSvcHdl);
+        clOsalMutexUnlock(&gClntInfo.ckptClntMutex);
+        return rc;
+    }
+}
+
+ClRcT clCkptSectionOverwriteLinear(ClCkptHdlT               ckptHdl,
+                                   const ClCkptSectionIdT   *pSectionId,
+                                   const void               *pData,
+                                   ClSizeT                  dataSize)
 {
     ClCkptSectionIdT   tempSecId  = {0};
     ClRcT              rc         = CL_OK;
@@ -3026,6 +3375,40 @@ ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
     }
 }
 
+ClRcT clCkptSectionOverwrite(ClCkptHdlT               ckptHdl,
+                             const ClCkptSectionIdT   *pSectionId,
+                             const void               *pData,
+                             ClSizeT                  dataSize)
+{
+    ClUint32T version = CL_VERSION_CODE(CL_RELEASE_VERSION_BASE, CL_MAJOR_VERSION_BASE, CL_MINOR_VERSION_BASE);
+    ClRcT rc  = CL_OK;
+    clNodeCacheMinVersionGet(NULL, &version);
+    switch(version)
+    {
+    case CL_VERSION_CODE(5, 0, 0):
+        if(gClDifferentialCkpt)
+        {
+            ClDifferenceVectorT differenceVector = {0};
+            differenceVector.numDataVectors = 1;
+            differenceVector.dataVectors = clHeapCalloc(1, sizeof(*differenceVector.dataVectors));
+            CL_ASSERT(differenceVector.dataVectors != NULL);
+            differenceVector.dataVectors[0].dataBlock = 0;
+            differenceVector.dataVectors[0].dataSize = dataSize;
+            differenceVector.dataVectors[0].dataBase = (ClUint8T*)pData;
+            rc = clCkptSectionOverwriteVector(ckptHdl, pSectionId, dataSize, &differenceVector);
+            clHeapFree(differenceVector.dataVectors);
+            break;
+        }
+        /*
+         * fall through for the else.
+         */
+    default:
+        rc = clCkptSectionOverwriteLinear(ckptHdl, pSectionId, pData, dataSize);
+        break;
+    }
+
+    return rc;
+}
 
 /*
  * Reads multiple sections at a time. Can be used to read a single section
@@ -3679,6 +4062,11 @@ ClRcT clCkptInitialize(ClCkptSvcHdlT            *pCkptSvcHandle,
                    (void *)pCkptSvcHandle, (void *)pCallbacks, 
                    (void *) pVersion));
 
+    if(gClDifferentialCkpt == -1)
+    {
+        gClDifferentialCkpt = clParseEnvBoolean("CL_ASP_DIFFERENTIAL_CKPT") ? 1 : 0;
+    }
+        
     /*
      * Validate the input parameters.
      */
@@ -5055,4 +5443,13 @@ ClRcT clCkptReplicaChangeDeregister(void)
 {
     gClCkptReplicaChangeCallback = NULL;
     return CL_OK;
+}
+
+ClBoolT clCkptDifferentialCheckpointStatusGet(void)
+{
+    if(gClDifferentialCkpt == -1)
+    {
+        gClDifferentialCkpt = clParseEnvBoolean("CL_ASP_DIFFERENTIAL_CKPT") ? 1 : 0;
+    }
+    return gClDifferentialCkpt > 0 ? CL_TRUE : CL_FALSE;
 }

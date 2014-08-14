@@ -43,7 +43,8 @@ extern "C" {
 #include "clXdrApi.h"
 
 #include "clCkptApi.h"
-#include "clCkptCommon.h"
+#include "clCkptExtApi.h"
+#include "../common/clCkptCommon.h"
 
 struct _CkptMasterDBInfoIDLT_4_0_0;
 

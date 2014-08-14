@@ -48,7 +48,7 @@ ClOmClassControlBlockT *pAppOmClassTbl CL_WEAK;
 
 ClUint32T appOmClassCnt CL_WEAK;
 
-CL_WEAK ClPMCallbacksT gClPMCallbacks =
+CL_WEAK ClPMCallbacksT gClPMCallbacks = 
 {
     NULL,
     NULL

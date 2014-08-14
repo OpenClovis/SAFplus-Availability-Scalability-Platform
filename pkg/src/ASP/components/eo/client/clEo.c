@@ -796,22 +796,6 @@ ClRcT clASPFinalize(void)
     return CL_OK;
 }
 
-ClRcT clEoDebugRegister(void)
-{
-    ClRcT rc = CL_OK;
-    rc |= clTimerDebugRegister();
-    rc |= clRmdDebugRegister();
-    return rc;
-}
-
-ClRcT clEoDebugDeregister(void)
-{
-    ClRcT rc = CL_OK;
-    rc |= clTimerDebugDeregister();
-    rc |= clRmdDebugDeregister();
-    return rc;
-}
-
 /*
  * To all the application we need to pass 1. Component Name 2. Ioc Address So
  * as of now we have decided that these will be passed as environment variable 

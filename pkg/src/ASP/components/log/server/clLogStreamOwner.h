@@ -55,7 +55,6 @@ typedef enum
     CL_LOG_NODE_STATUS_UN_INIT = 1,
     CL_LOG_NODE_STATUS_WIP     = 2,
     CL_LOG_NODE_STATUS_INIT    = 3,
-    CL_LOG_NODE_STATUS_REINIT  = 4,
 }ClLogNodeStatusT;    
     
 typedef struct
@@ -258,8 +257,7 @@ clLogIdlHandleInitialize(ClIocAddressT mastAddr, ClHandleT *phdl);
 extern ClRcT
 clLogStreamOwnerCompEntryAdd(ClLogStreamOwnerDataT  *pStreamOwnerData,
                              ClIocNodeAddressT      nodeAddr,
-                             ClUint32T              compId,
-                             ClLogStreamOpenFlagsT  openFlags);
+                             ClUint32T              compId);
 extern ClRcT
 clLogStreamOwnerOpenCleanup(ClNameT *pStreamName, ClNameT *pStreamScopeNode, ClLogSOCookieT  *pCookie);
 
@@ -267,7 +265,7 @@ extern void
 clLogStreamOwnerFilterFinalize(ClLogFilterInfoT  *pFilter);
 
 extern ClRcT
-clLogStreamOwnerFilterInit(ClNameT *pStreamName, ClLogFilterInfoT  *pFilter);
+clLogStreamOwnerFilterInit(ClLogFilterInfoT  *pFilter);
 
 extern ClRcT
 clLogStreamOwnerDataUpdate(ClLogSOEoDataT         *pSoEoEntry,

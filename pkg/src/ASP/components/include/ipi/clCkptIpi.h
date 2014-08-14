@@ -79,7 +79,17 @@ extern "C" {
 extern ClRcT clCkptActiveReplicaSetSwitchOver(
     CL_IN ClCkptHdlT checkpointHandle);
 
-extern ClRcT clCkptSectionCheck(ClCkptHdlT ckptHdl, ClCkptSectionIdT *pSectionId);
+extern ClRcT clCkptSectionOverwriteLinear(CL_IN  ClCkptHdlT        checkpointHandle,
+                                          CL_IN const ClCkptSectionIdT    *sectionId,
+                                          CL_IN const void             *dataBuffer,
+                                          CL_IN ClSizeT                 dataSize);
+
+extern ClRcT clCkptCheckpointWriteLinear(ClCkptHdlT                     ckptHdl,
+                                         const ClCkptIOVectorElementT   *pIoVector,
+                                         ClUint32T                      numberOfElements,
+                                         ClUint32T                      *pError);
+
+extern ClBoolT clCkptDifferentialCheckpointStatusGet(void);
 
 #ifdef  __cplusplus
 }

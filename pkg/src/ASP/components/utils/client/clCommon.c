@@ -169,6 +169,24 @@ ClCharT *clStrdup(const ClCharT *str)
     return dest;
 }
 
+ClStringT *clStringDup(const ClStringT *str)
+{
+    ClStringT *dest;
+    if(!str) return NULL;
+    dest = clHeapCalloc(1, sizeof(*dest));
+    if(!dest) return NULL;
+    dest->pValue = clHeapCalloc(str->length, sizeof(*dest->pValue));
+    if(!dest->pValue)
+    {
+        clHeapFree(dest);
+        return NULL;
+    }
+    if(str->pValue)
+        memcpy(dest->pValue, str->pValue, str->length);
+    dest->length = str->length;
+    return dest;
+}
+
 /*
  * Get the power of 2 of an integer.
  * First align the input to a power of 2

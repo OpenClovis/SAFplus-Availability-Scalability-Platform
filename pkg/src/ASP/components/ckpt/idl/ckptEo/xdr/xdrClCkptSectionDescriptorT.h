@@ -42,10 +42,11 @@ extern "C" {
 
 #include "clXdrApi.h"
 
+#include "clCkptExtApi.h"
 #include "clCkptApi.h"
-#include "clCkptCommon.h"
-#include "xdrClCkptSectionIdT.h"
 #include "xdrClCkptSectionStateT.h"
+#include "xdrClCkptSectionIdT.h"
+#include "../common/clCkptCommon.h"
 
 struct _ClCkptSectionDescriptorT_4_0_0;
 

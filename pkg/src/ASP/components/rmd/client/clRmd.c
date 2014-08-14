@@ -937,6 +937,8 @@ ClRcT clRmdLibInitialize(ClPtrT config)
 
 ClRcT clRmdStatsReset(void)
 {
+
+
     ClRcT retVal;
     ClEoExecutionObjT *pThis = NULL;
     ClRmdObjT *pRmdObject = NULL;
@@ -956,33 +958,48 @@ ClRcT clRmdStatsReset(void)
     {
         RMD_DBG1(("clRmdStatsReset: Unable to get RMD Object\n"));
         CL_FUNC_EXIT();
-        return CL_RMD_RC(CL_ERR_NULL_POINTER);
+        return (CL_RMD_RC(CL_ERR_NULL_POINTER));
     }
-    
-    memset(&pRmdObject->rmdStats, 0, sizeof(pRmdObject->rmdStats));
+    /*
+     * should we lock it
+     */
+    pRmdObject->rmdStats.nRmdCalls = 0;
+    pRmdObject->rmdStats.nFailedCalls = 0;
+    pRmdObject->rmdStats.nResendRequests = 0;
+    pRmdObject->rmdStats.nRmdReplies = 0;
+    pRmdObject->rmdStats.nBadReplies = 0;
+    pRmdObject->rmdStats.nRmdRequests = 0;
+    pRmdObject->rmdStats.nBadRequests = 0;
+    pRmdObject->rmdStats.nCallTimeouts = 0;
+    pRmdObject->rmdStats.nDupRequests = 0;
+    pRmdObject->rmdStats.nAtmostOnceCalls = 0;
+    pRmdObject->rmdStats.nResendReplies = 0;
+    pRmdObject->rmdStats.nReplySend = 0;
+    pRmdObject->rmdStats.nRmdCallOptimized = 0;
     return CL_OK;
 }
 
 
-ClRcT clRmdStatsGet(ClRmdStatsT *pStats)
+ClRcT clRmdStatsGet(ClBufferHandleT outMsgHdl)
 {
-    ClRcT rc;
+    ClRcT retVal;
     ClEoExecutionObjT *pThis = NULL;
     ClRmdObjT *pRmdObject = NULL;
+    ClRmdStatsT buff;
 
-    if (!pStats)
+    if (outMsgHdl == 0)
     {
-        return CL_RMD_RC(CL_ERR_INVALID_PARAMETER);
+        return (CL_RMD_RC(CL_ERR_INVALID_BUFFER));
     }
 
-    rc = clEoMyEoObjectGet(&pThis);
-    if (rc != CL_OK)
+    retVal = clEoMyEoObjectGet(&pThis);
+    if (retVal != CL_OK)
     {
         /*
          * either obj is not set or set to NULL
          */
         RMD_DBG1(("EO_OBJ is not proper\n"));
-        return rc;
+        return retVal;
     }
 
     pRmdObject = (ClRmdObjT *) pThis->rmdObj;
@@ -990,9 +1007,28 @@ ClRcT clRmdStatsGet(ClRmdStatsT *pStats)
     {
         RMD_DBG1(("clRmdStatsGet: Unable to get RMD Object\n"));
         CL_FUNC_EXIT();
-        return CL_RMD_RC(CL_ERR_NULL_POINTER);
+        return (CL_RMD_RC(CL_ERR_NULL_POINTER));
     }
-    memcpy(pStats, &pRmdObject->rmdStats, sizeof(*pStats));
+    /*
+     * should we lock it
+     */
+    buff.nRmdCalls = pRmdObject->rmdStats.nRmdCalls;
+    buff.nFailedCalls = pRmdObject->rmdStats.nFailedCalls;
+    buff.nResendRequests = pRmdObject->rmdStats.nResendRequests;
+    buff.nCallTimeouts = pRmdObject->rmdStats.nCallTimeouts;
+    buff.nRmdReplies = pRmdObject->rmdStats.nRmdReplies;
+    buff.nBadReplies = pRmdObject->rmdStats.nBadReplies;
+    buff.nRmdRequests = pRmdObject->rmdStats.nRmdRequests;
+    buff.nBadRequests = pRmdObject->rmdStats.nBadRequests;
+    buff.nDupRequests = pRmdObject->rmdStats.nDupRequests;
+    buff.nAtmostOnceCalls = pRmdObject->rmdStats.nAtmostOnceCalls;
+    buff.nReplySend = pRmdObject->rmdStats.nReplySend;
+    buff.nResendReplies = pRmdObject->rmdStats.nResendReplies;
+    buff.nRmdCallOptimized = pRmdObject->rmdStats.nRmdCallOptimized;
+
+    clBufferNBytesWrite(outMsgHdl, (ClUint8T *) &buff,
+                               sizeof(ClRmdStatsT));
+
     return CL_OK;
 }
 
@@ -1105,7 +1141,6 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
     if (retVal != CL_OK)
     {
         clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
-        RMD_STAT_INC(pRmdObject->rmdStats.nFailedCalls);
         RMD_DBG3(("RMD: unable to add the record 0x%x\n", retVal));
         return retVal;
     }
@@ -1177,10 +1212,6 @@ static ClRcT clRmdSyncSendAndReplyReceive(ClEoExecutionObjT *pThis,
             clCntAllNodesForKeyDelete(pRmdObject->sndRecContainerHandle,
                                       (ClPtrT)(ClWordT)nwMsgId);
             RMD_STAT_INC(pRmdObject->rmdStats.nFailedCalls);            
-            if(i > 0)
-            {
-                RMD_STAT_INC(pRmdObject->rmdStats.nFailedResendRequests);
-            }
             retCode = clOsalMutexUnlock(pRmdObject->semaForSendHashTable);
             CL_ASSERT(retCode == CL_OK);
             return retVal;
@@ -1262,18 +1293,20 @@ void clRmdDumpPkt(char *name, ClBufferHandleT msg)
         rc = clRmdUnmarshallRmdHdr(msg, &inHdr, &hdrLen);
         if(rc != CL_OK) return;
         clBufferLengthGet(msg, &size);
-        clLogDebug("RMD", "DUMP", ":::::::::::::::::::: RMD Pkt at %s ::::::::::::::::::::", name);
-        clLogDebug("RMD", "DUMP", "-------------Header-------------");
-        clLogDebug("RMD", "DUMP", "Protocol version %d", inHdr.protoVersion);
-        clLogDebug("RMD", "DUMP", "Version: {'%c', 0x%x, 0x%x}",
-                   inHdr.clientVersion.releaseCode, 
-                   inHdr.clientVersion.majorVersion,
-                   inHdr.clientVersion.minorVersion);
+        clOsalPrintf
+            (":::::::::::::::::::: RMD Pkt at %s ::::::::::::::::::::\n", name);
+        clOsalPrintf("-------------Header-------------\n");
+        clOsalPrintf("Protocol version %d\n", inHdr.protoVersion);
+        clOsalPrintf("Version: {'%c', 0x%x, 0x%x}\n",
+                     inHdr.clientVersion.releaseCode, 
+                     inHdr.clientVersion.majorVersion,
+                     inHdr.clientVersion.minorVersion);
 
-        clLogDebug("RMD", "DUMP", "Flags: %#x, MsgId: %#llx", inHdr.flags, inHdr.msgId);
-        clLogDebug("RMD", "DUMP", "FnID: %#x, rc: %#x, msgLen: %#x", 
-                   inHdr.fnID, inHdr.rmdReqRepl.rc, size - hdrLen);
-        clLogDebug("RMD", "DUMP", "-------------END-------------");
+        clOsalPrintf("flags: %x\t", inHdr.flags);
+        clOsalPrintf("msgId: %llx\n",  inHdr.msgId);
+        clOsalPrintf("FNID/RC: %x\t", inHdr.rmdReqRepl.rc);
+        clOsalPrintf("msgLen: %x\n", size - hdrLen);
+        clOsalPrintf("\n-------------END-------------\n");
         clBufferReadOffsetSet(msg, 0, CL_BUFFER_SEEK_SET);
     }
 
@@ -1811,79 +1844,4 @@ ClRcT rmdMetricFinalize(void)
     clTimerDelete(&rmdMetricTimer);
     rmdMetricStatus = 0;
     return CL_OK;
-}
-
-static ClRcT cliRmdStatsShow(int argc, char **argv, char **ret)
-{
-    ClDebugPrintHandleT msgHandle = 0;
-    ClRmdStatsT stats = {0};
-    ClRcT rc = CL_OK;
-
-    if(argc != 1 || !ret) return CL_RMD_RC(CL_ERR_INVALID_PARAMETER);
-    *ret = NULL;
-    
-    if( (rc = clDebugPrintInitialize(&msgHandle)) != CL_OK)
-        goto out;
-
-    if( (rc = clRmdStatsGet(&stats) ) != CL_OK)
-    {
-        clDebugPrint(msgHandle, "RMD stats get returned with [%#x]\n", rc);
-        goto out_free;
-    }
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num calls", stats.nRmdCalls);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num failed calls", stats.nFailedCalls);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num resend requests:", stats.nResendRequests);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num failed resend requests:", stats.nFailedResendRequests);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num timeouts", stats.nCallTimeouts);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num replies received", stats.nRmdReplies);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num bad replies received", stats.nBadReplies);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num requests received", stats.nRmdRequests);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num bad requests received", stats.nBadRequests);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num dup atmost once requests", stats.nDupRequests);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num atmost once calls", stats.nAtmostOnceCalls);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num failed atmost once calls", stats.nFailedAtmostOnceCalls);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num atmost once acks sent", stats.nAtmostOnceAcksSent);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num atmost once acks send failed", stats.nFailedAtmostOnceAcksSent);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num atmost once acks received", stats.nAtmostOnceAcksRecvd);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num atmost once acks recv failed", stats.nFailedAtmostOnceAcksRecvd);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num reply sent", stats.nReplySend);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num reply send failed", stats.nFailedReplySend);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num reply resent", stats.nResendReplies);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num reply resend failed", stats.nFailedResendReplies);
-    clDebugPrint(msgHandle, "%-30s:%-8d\n", "Num calls optimized", stats.nRmdCallOptimized);
-    
-    out_free:
-    clDebugPrintFinalize(&msgHandle, ret);
-
-    out:
-    return rc;
-}
-
-static ClHandleT gRmdDebugReg;
-
-static ClDebugFuncEntryT gClRmdCliTab[] = {
-    {(ClDebugCallbackT) cliRmdStatsShow, "rmdStatsShow", "Show RMD stats"} ,
-};
-
-ClRcT clRmdDebugRegister(void)
-{
-    ClRcT rc = CL_OK;
-    if(!gRmdDebugReg)
-    {
-        rc = clDebugRegister(gClRmdCliTab,
-                             sizeof(gClRmdCliTab) / sizeof(gClRmdCliTab[0]), 
-                             &gRmdDebugReg);
-    }
-    return rc;
-}
-
-ClRcT clRmdDebugDeregister()
-{
-    ClRcT rc = CL_OK;
-    if(gRmdDebugReg)
-    {
-        rc = clDebugDeregister(gRmdDebugReg);
-        gRmdDebugReg = CL_HANDLE_INVALID_VALUE;
-    }
-    return rc;
 }

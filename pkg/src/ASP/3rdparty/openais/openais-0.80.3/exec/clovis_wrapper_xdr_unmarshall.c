@@ -167,7 +167,7 @@ ClRcT   unmarshallSyncMessage(ClBufferHandleT bufferHandle, struct VDECL(req_exe
         for (index = 0; index < sync->noOfMembers; index++)
         {
             CHECK_RETURN(unmarshallClGmsGroupMemberT(bufferHandle, &(sync->groupMemberList[index].viewMember.groupMember)), CL_OK);
-	    // marshall also group id
+	    // marshall also group id in group data for sync
             CHECK_RETURN(unmarshallClGmsGroupInfoT(bufferHandle, &(sync->groupMemberList[index].viewMember.groupData)), CL_OK);
         }
     }

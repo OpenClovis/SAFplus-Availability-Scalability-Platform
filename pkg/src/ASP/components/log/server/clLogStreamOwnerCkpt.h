@@ -107,9 +107,6 @@ clLogStreamOwnerGlobalCheckpoint(CL_IN ClLogSOEoDataT         *pSoEoEntry,
                                  CL_IN ClLogStreamOwnerDataT  *pStreamOwnerData);
 
 extern ClRcT
-clLogStreamOwnerGlobalCkptDelete(void);
-
-extern ClRcT
 clLogStreamOwnerCkptUnpack(CL_IN ClLogSvrCommonEoDataT  *pCommonEoData, 
                            CL_IN ClBufferHandleT        msg);
 

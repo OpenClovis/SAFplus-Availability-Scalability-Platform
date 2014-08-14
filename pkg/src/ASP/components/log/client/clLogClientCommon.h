@@ -32,7 +32,7 @@ extern "C" {
 #include <clIdlApi.h>
 
 #define CL_LOG_CLIENT_DEFULT_TIMEOUT    10000
-#define CL_LOG_CLIENT_DEFAULT_RETRIES   2
+#define CL_LOG_CLIENT_DEFAULT_RETRIES   0
 
 typedef struct
 {

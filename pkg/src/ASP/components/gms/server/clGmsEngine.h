@@ -110,9 +110,6 @@ _clGmsEnginePreferredLeaderElect(
 ClRcT
     _clGmsEngineGroupInfoSync(ClGmsGroupSyncNotificationT *syncNotification);
 
-ClRcT
-_clGmsEngineGroupInfoSyncBase(VDECL_VER(ClGmsGroupSyncNotificationT, 4, 0, 0) *syncNotification);
-
 extern int clGmsSendSyncMsg (ClGmsGroupSyncNotificationT *syncNotification);
 
 extern ClUint32T   gmsOpenAisEnable;
