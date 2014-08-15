@@ -83,7 +83,7 @@ public:
     /**
      * Function to send notification to the netconf server
      */
-    void sendNotification(SAFplus::Handle hdl);
+    void sendNotification(SAFplus::Handle hdl,std::string route);
 
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
     {

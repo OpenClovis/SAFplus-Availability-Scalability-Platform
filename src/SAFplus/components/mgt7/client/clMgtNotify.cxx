@@ -62,7 +62,7 @@ namespace SAFplus
     *value = mLeafList[leaf];
   }
 
-  void MgtNotify::sendNotification(SAFplus::Handle myHandle)
+  void MgtNotify::sendNotification(SAFplus::Handle myHandle,std::string route)
   {
     if (!strcmp(Module.c_str(), ""))
     {
@@ -76,7 +76,7 @@ namespace SAFplus
     Mgt::Msg::MsgMgt    msgRequest;
     string data;
     bindData.set_module(this->Module);
-    bindData.set_route(this->name);
+    bindData.set_route(route);
     Mgt::Msg::Handle *hdl = bindData.mutable_handle();
     hdl->set_id0(myHandle.id[0]);
     hdl->set_id1(myHandle.id[1]);
