@@ -15364,7 +15364,8 @@ clAmsPeCompAssignCSIExtended(
         {
             return CL_AMS_RC(CL_ERR_INVALID_STATE);
         }
-
+        if(activeSwap)
+          haState = CL_AMS_HA_STATE_ACTIVE;
         AMS_CALL ( clAmsPeCSITransitionHAState(
                                                csi,
                                                comp,
