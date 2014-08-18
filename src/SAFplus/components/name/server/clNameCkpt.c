@@ -474,6 +474,64 @@ clNameSvcBindingDetailsWrite(ClUint32T                 contexId,
     return rc;
 }    
 
+ClRcT clNameSvcCompInfoOverwrite(ClUint32T contextId, ClUint32T dsId, ClNameSvcBindingT *pBindData, ClNameSvcBindingDetailsT *pBindDetail)
+{
+
+    ClRcT rc = CL_OK;
+    ClNameT nsCkptName = {0};
+    ClNsEntryPackT *pNsEntryInfo = NULL;
+
+    CL_NAME_DEBUG_TRACE(("Enter"));
+    clNamePrintf(nsCkptName, "clNSCkpt%d", contextId);
+
+    pNsEntryInfo = (ClNsEntryPackT *)clHeapCalloc(1, sizeof(ClNsEntryPackT));
+    if( NULL == pNsEntryInfo )
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHeapCalloc()"));
+        return CL_NS_RC(CL_ERR_NO_MEMORY);
+    }
+    pNsEntryInfo->type    = CL_NAME_SVC_COMP_INFO;
+    clNameCopy(&pNsEntryInfo->nsInfo.name, &pBindData->name);
+    pNsEntryInfo->nsInfo.objReference = pBindDetail->objReference;
+    pNsEntryInfo->nsInfo.compId       = pBindDetail->compId.compId;
+    pNsEntryInfo->nsInfo.eoID       = pBindDetail->compId.eoID;
+    pNsEntryInfo->nsInfo.nodeAddress       = pBindDetail->compId.nodeAddress;
+    pNsEntryInfo->nsInfo.clientIocPort       = pBindDetail->compId.clientIocPort;
+    pNsEntryInfo->nsInfo.priority     = pBindDetail->compId.priority;
+    pNsEntryInfo->nsInfo.attrCount    = pBindDetail->attrCount;
+    pNsEntryInfo->nsInfo.attrLen      = pBindDetail->attrLen;
+    pNsEntryInfo->nsInfo.dsId         = dsId;
+    if(pBindDetail->attrCount > 0 )
+    {
+        pNsEntryInfo->nsInfo.attr = clHeapCalloc(1, pBindDetail->attrLen);
+        if( NULL == pNsEntryInfo->nsInfo.attr )
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clHeapCalloc"));
+            clHeapFree(pNsEntryInfo);
+            return CL_NS_RC(CL_ERR_NO_MEMORY);
+        }
+        memcpy(pNsEntryInfo->nsInfo.attr, pBindDetail->attr, pBindDetail->attrLen);
+    }
+    pBindDetail->compId.dsId         = dsId;
+    rc = clCkptLibraryCkptDataSetWrite(gNsCkptSvcHdl, &nsCkptName, dsId, pNsEntryInfo);
+    if( CL_OK != rc )
+    {
+        clCkptLibraryCkptDataSetDelete(gNsCkptSvcHdl, &nsCkptName, dsId);
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clCkptLibraryCkptDataSetWrite(): rc[0x %x]", rc));
+        return rc;
+    }
+    if( pBindDetail->attrCount > 0 )
+    {
+        clHeapFree(pNsEntryInfo->nsInfo.attr);
+    }
+    clHeapFree(pNsEntryInfo);
+    CL_NAME_DEBUG_TRACE(("Exit"));
+    return rc;
+}
+
+                                   
+
+
 ClRcT
 clNameSvcCompInfoWrite(ClUint32T                  contexId,
                        ClNameSvcContextInfoT     *pCtxData,

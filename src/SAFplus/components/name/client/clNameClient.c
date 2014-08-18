@@ -403,6 +403,145 @@ ClRcT clNameComponentDeregister(ClUint32T compId)
     return CL_NS_RC(rc);
 }
 
+/**
+ *  NAME: clNameRegisterAndOverWrite
+ *
+ *  This API is for registering a name to obj reference mapping with NS if the given entry doesn't exists in that context
+ *  otherwise it will overwrites the existed obj reference with the given obj reference
+ *  In clovis HA scenario, whenever a component is assigned ACTIVE HA state
+ *  for a given service it registers the same with NS.
+ *  For registering to user defined context, first the context has to be
+ *  created using clNameContextCreate API.
+ *
+ *  @param   contextId[I/P] - Context in which the service will be provided.
+ *              For registering to default global context,
+ *                         contextId=CL_NS_DEFT_GLOBAL_CONTEXT
+ *              For registering to default node local context.
+ *                         contextId=CL_NS_DEFT_NODELOCAL_CONTEXT
+ *              For user defined contexts, contextId=Id returned by
+ *                         clNameContextCreate API
+ *           pNSRegisInfo[I/P] - registration related information
+ *
+ *  @returns CL_OK
+ *           CL_ERR_NULL_POINTER
+ *           CL_NS_ERR_CONTEXT_NOT_CREATED
+ *           CL_NS_ERR_LIMIT_EXCEEDED
+ *           CL_NS_ERR_DUPLICATE_ENTRY
+ *           CL_NS_ERR_ATTRIBUTE_MISMATCH
+ *           CL_ERR_NO_MEMORY
+ */
+
+ClRcT clNameRegisterAndOverwrite(ClUint32T contextId, ClNameSvcRegisterT* pNSRegisInfo, ClUint64T *pObjReference)
+{
+    ClRcT                  rc      = CL_OK;
+    ClNameSvcInfoIDLT*     pNSInfo = NULL;
+    ClBufferHandleT        inMsgHandle;
+    ClBufferHandleT        outMsgHandle;
+    ClUint32T              size    = sizeof(ClNameSvcInfoIDLT);
+    ClIocNodeAddressT      sAddr   = 0;
+    ClNameVersionT         version = {0};
+    ClEoExecutionObjT      *eoObj = NULL;
+
+    CL_FUNC_ENTER();
+    clLog(CL_LOG_SEV_TRACE, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, " NS: Inside clNameRegisterAndOverWrite ");
+
+    if(sNSLibInitDone == 0)
+    {
+        rc = CL_NS_RC(CL_ERR_NOT_INITIALIZED);
+        clLog(CL_LOG_SEV_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "NS: Lib not initialized");
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB, CL_NS_LOG_1_NS_REGISTER_OVERWRITE_FAILED, rc);
+        CL_FUNC_EXIT();
+        return rc;
+    }
+
+    if((pNSRegisInfo == NULL) || (pObjReference == NULL))
+    {
+        rc = CL_NS_RC(CL_ERR_NULL_POINTER);
+        clLog(CL_LOG_SEV_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "NS: NULL input parameter ");
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB, CL_NS_LOG_1_NS_REGISTER_OVERWRITE_FAILED, rc);
+        CL_FUNC_EXIT();
+        return rc;
+    }
+
+    rc = clBufferCreate (&inMsgHandle);
+    rc = clBufferCreate (&outMsgHandle);
+
+    pNSInfo = (ClNameSvcInfoIDLT*) clHeapAllocate(size);
+
+    if(pNSInfo == NULL)
+    {
+        rc = CL_NS_RC(CL_ERR_NO_MEMORY);
+        clLog(CL_LOG_SEV_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, " NS: MALLOC FAILED ");
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, CL_NAME_SERVER_LIB, CL_NS_LOG_1_NS_REGISTER_OVERWRITE_FAILED, rc);
+        clBufferDelete(&inMsgHandle);
+        CL_FUNC_EXIT();
+        return rc;
+    }
+
+    version.releaseCode  ='B';
+    version.majorVersion = 0x01;
+    version.minorVersion = 0x01;
+    version.reserved     = 0x00;
+
+    memset(pNSInfo, 0, sizeof(ClNameSvcInfoIDLT));
+    pNSInfo->version      = CL_NS_VERSION_NO;
+    pNSInfo->source       = CL_NS_CLIENT;
+    pNSInfo->objReference = *pObjReference;
+    /* Copy the name, make it null terminated also */
+    clNameCopy(&pNSInfo->name, &pNSRegisInfo->name);
+    pNSInfo->compId       = pNSRegisInfo->compId;
+    pNSInfo->priority     = pNSRegisInfo->priority;
+    pNSInfo->contextId    = contextId;
+    pNSInfo->attrCount    = pNSRegisInfo->attrCount;
+
+    sAddr = clIocLocalAddressGet();
+
+    /* Get Eo object to retrieve eoID and eoPort */
+    rc = clEoMyEoObjectGet(&eoObj);
+    if (rc != CL_OK)
+    {
+        clLog(CL_LOG_SEV_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "clEoMyEoObjectGet  Failed rc =%x",rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_NAME_SERVER_LIB, "clEoMyEoObjectGet failed with rc 0x%x", rc);
+        return CL_NS_RC(rc);
+    }
+
+    pNSInfo->eoID          = eoObj->eoID;
+    pNSInfo->nodeAddress   = sAddr;
+    pNSInfo->clientIocPort = eoObj->eoPort;
+
+    if(pNSRegisInfo->attrCount>0)
+    {
+        pNSInfo->attrLen = (pNSRegisInfo->attrCount)* sizeof(ClNameSvcAttrEntryIDLT);
+        pNSInfo->attr = (ClNameSvcAttrEntryIDLT *) clHeapAllocate(pNSInfo->attrLen);
+        memcpy(pNSInfo->attr, pNSRegisInfo->attr, pNSInfo->attrLen);
+        size = size + pNSInfo->attrLen;
+    }
+
+    VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version, inMsgHandle,0);
+    clXdrMarshallClUint32T((void *)&size, inMsgHandle, 0);
+    VDECL_VER(clXdrMarshallClNameSvcInfoIDLT, 4, 0, 0)((void *)pNSInfo, inMsgHandle, 0);
+    CL_NS_CALL_RMD(sAddr, CL_NS_REG_OVERWRITE, inMsgHandle, outMsgHandle, rc);
+    if(rc != CL_OK)
+    {
+        clLog(CL_LOG_SEV_ERROR, CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "clNameRegisterAndOverwrite  Failed rc =%x",rc);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_ERROR, CL_NAME_SERVER_LIB, CL_NS_LOG_1_NS_REGISTER_OVERWRITE_FAILED, rc);
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_VERSION_MISMATCH)
+        {
+            /* FUTURE */
+        }
+    }
+    else
+    {
+        clXdrUnmarshallClUint64T(outMsgHandle, (void*)pObjReference);
+    }
+
+    clHeapFree(pNSInfo->attr);
+    clHeapFree(pNSInfo);
+    clBufferDelete(&inMsgHandle);
+    clBufferDelete(&outMsgHandle);
+    CL_FUNC_EXIT();
+    return CL_NS_RC(rc);
+}
 
 /**
  *  NAME: clNameServiceDeregister

@@ -252,7 +252,8 @@ typedef enum
     CL_NS_NACK_COMPONENT_DEREGISTER, /* Component deregistration failure */
     CL_NS_NACK_SERVICE_DEREGISTER,   /* Service deregistration failure */
     CL_NS_NACK_CONTEXT_CREATE,       /* Context creation failure */
-    CL_NS_NACK_CONTEXT_DELETE        /* Contect deletion failure */
+    CL_NS_NACK_CONTEXT_DELETE,        /* Contect deletion failure */
+    CL_NS_NACK_REG_OVERWRITE
 }ClNameSvcNackT;
 
  
@@ -263,6 +264,7 @@ typedef enum
 
 ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
                       ClBufferHandleT  outMsgHandle);
+ClRcT VDECL(nameSvcRegisterAndOverwrite)(ClEoDataT data,  ClBufferHandleT  inMsgHandle, ClBufferHandleT  outMsgHandle);
 ClRcT VDECL(nameSvcServiceDeregister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
                                ClBufferHandleT  outMsgHandle);
 ClRcT VDECL(nameSvcComponentDeregister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,

@@ -1403,6 +1403,496 @@ ClRcT VDECL(nameSvcRegister)(ClEoDataT data,  ClBufferHandleT  inMsgHandle,
     return CL_OK;
 }
 
+ClRcT VDECL(nameSvcRegisterAndOverwrite)(ClEoDataT data,  ClBufferHandleT  inMsgHandle, ClBufferHandleT  outMsgHandle)
+{
+    ClRcT                    ret               = CL_OK;
+    ClNameSvcBindingDetailsT *pNSEntry         = NULL;
+    ClNameSvcBindingT        *pNSBinding       = NULL;
+    ClUint32T                cksum             = 0;
+    ClCntNodeHandleT         pNodeHandle       = 0;
+    ClCntHandleT             pStoredInfo       = 0;
+    ClNameSvcCompListT       *pTemp            = NULL;
+    ClNameSvcBindingT        *pStoredNSBinding = NULL;
+    ClNameSvcBindingDetailsT *pStoredNSEntry   = NULL;
+    ClIocNodeAddressT        sdAddr            = 0;
+    ClNameSvcCompListPtrT    pCompList         = NULL;
+    ClNameSvcContextInfoPtrT pStatInfo         = NULL;
+    ClUint32T                noEntries         = 0, iCnt = 0;
+    ClIocNodeAddressT        *pAddrList        = NULL;
+    ClNameSvcInfoIDLT        *nsInfo           = NULL;
+    ClUint32T                inLen             = 0;
+    ClBufferHandleT          inMsgHdl          = 0;
+    ClNameSvcNameLookupT     lookupData        = {0};
+    ClUint64T                generatedObjRef   = 0;
+    ClNameVersionT           version           = {0};
+
+    CL_FUNC_ENTER();
+    /* Extract version information */
+    VDECL_VER(clXdrUnmarshallClNameVersionT, 4, 0, 0)(inMsgHandle, (void *)&version);
+
+    clXdrUnmarshallClUint32T(inMsgHandle, (void *)&inLen);
+
+    nsInfo = (ClNameSvcInfoIDLT *)clHeapAllocate(inLen);
+
+    if(nsInfo == NULL)
+    {
+        ret = CL_NS_RC(CL_ERR_NO_MEMORY);
+        clLogError("SVR", "MOD", "Service register and overwrite failed due to memory allocation rc [0x %x]", ret);
+        CL_FUNC_EXIT();
+        return ret;
+    }
+    clBufferCreate (&inMsgHdl);
+    VDECL_VER(clXdrUnmarshallClNameSvcInfoIDLT, 4, 0, 0)(inMsgHandle, (void *)nsInfo);
+
+    /* Version Verification */
+    if(nsInfo->source != CL_NS_MASTER)
+    {
+        ret = clVersionVerify(&gNSClientToServerVersionInfo,(ClVersionT *)&version);
+    }
+    else
+    {
+        ret = clVersionVerify(&gNSServerToServerVersionInfo,(ClVersionT *)&version);
+    }
+    if(ret != CL_OK)
+    {
+        clBufferClear(inMsgHdl);
+        clLogError("SVR", "MOD", "Service register and overwrite failed due to invalid version rc[0x %x]", ret);
+
+        if(nsInfo->source == CL_NS_MASTER)
+        {
+            ClNameSvcNackT           nackType = CL_NS_NACK_REG_OVERWRITE;
+                  VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version, inMsgHdl, 0);
+            clXdrMarshallClUint32T(&nackType, inMsgHdl, 0);
+            ret = clCpmMasterAddressGet(&gMasterAddress);
+            if (ret != CL_OK)
+            {
+                clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"clCpmMasterAddressGet failed with rc 0x%x",ret);
+                return ret;
+            }
+            CL_NS_CALL_RMD_ASYNC(gMasterAddress, CL_NS_NACK, inMsgHdl, outMsgHandle, ret);
+        }
+        else
+            VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version, outMsgHandle, 0);
+
+        if(nsInfo->attr) clHeapFree(nsInfo->attr);
+        clHeapFree(nsInfo);
+        clBufferDelete(&inMsgHdl);
+        CL_FUNC_EXIT();
+        return ret;
+    }
+    /* Find the context to add to */
+    if(nsInfo->contextId == CL_NS_DEFT_GLOBAL_CONTEXT)
+        nsInfo->contextId = CL_NS_DEFAULT_GLOBAL_CONTEXT;
+    else if(nsInfo->contextId == CL_NS_DEFT_LOCAL_CONTEXT)
+        nsInfo->contextId = CL_NS_DEFAULT_NODELOCAL_CONTEXT;
+
+    clLogDebug("SVR", "MOD", "Service Name [%.*s]  contextId [%d]", nsInfo->name.length, nsInfo->name.value, nsInfo->contextId);
+    sdAddr = clIocLocalAddressGet();
+    ret = clCpmMasterAddressGet(&gMasterAddress);
+    if (ret != CL_OK)
+    {
+        clLog(CL_LOG_SEV_ERROR, "SVR", "MOD", "clCpmMasterAddressGet failed with rc 0x%x",ret);
+        return ret;
+    }
+    if((sdAddr != gMasterAddress) && (nsInfo->contextId < CL_NS_BASE_NODELOCAL_CONTEXT) && (nsInfo->source != CL_NS_MASTER))
+    {
+        clLogDebug("SVR", "MOD", "Service name [%.*s] forwarding to master [%d] ", nsInfo->name.length, nsInfo->name.value, gMasterAddress);
+        nsInfo->source = CL_NS_LOCAL;
+
+        /* Fill the message to be sent to the peers */
+        VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version,inMsgHdl, 0);
+        clXdrMarshallClUint32T((void *)&inLen, inMsgHdl, 0);
+        VDECL_VER(clXdrMarshallClNameSvcInfoIDLT, 4, 0, 0)((void *)nsInfo, inMsgHdl, 0);
+
+        CL_NS_CALL_RMD(gMasterAddress, CL_NS_REG_OVERWRITE, inMsgHdl, outMsgHandle, ret);
+        if(ret != CL_OK)
+        {
+            clLog(CL_LOG_SEV_ERROR, "SVR", "MOD", " NS: Registration failed ");
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, CL_NS_LOG_1_NS_REGISTER_OVERWRITE_FAILED, ret);
+        }
+
+        /* delete the message created for updating NS/M */
+        clBufferDelete(&inMsgHdl);
+        if(nsInfo->attr != NULL)
+            clHeapFree(nsInfo->attr);
+        clHeapFree(nsInfo);
+        CL_FUNC_EXIT();
+        return ret;
+    }
+    /* take the semaphore */
+    if(clOsalMutexLock(gSem)  != CL_OK)
+    {
+        clLog(CL_LOG_SEV_ERROR, "SVC", "MOD", "NS: Could not get Lock successfully------");
+    }
+
+    /* Check whether the context is created or not */
+    ret = clCntNodeFind(gNSHashTable, (ClPtrT)(ClWordT)nsInfo->contextId, &pNodeHandle);
+    if(ret != CL_OK)
+    {
+        ret = CL_NS_RC(CL_NS_ERR_CONTEXT_NOT_CREATED);
+        clLog(CL_LOG_SEV_ERROR, "SVR", "MOD", " NS: Context %d not found  in NS ",  nsInfo->contextId);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, CL_NS_LOG_1_NS_REGISTER_OVERWRITE_FAILED, ret);
+        /* delete the message created for updating peers */
+        clBufferDelete(&inMsgHdl);
+        if(nsInfo->attr != NULL)
+            clHeapFree(nsInfo->attr);
+        clHeapFree(nsInfo);
+        /* Release the semaphore */
+        clOsalMutexUnlock(gSem);
+        CL_FUNC_EXIT();
+        return ret;
+    }
+
+    ret = clCntNodeUserDataGet(gNSHashTable,pNodeHandle, (ClCntDataHandleT*)&pStatInfo);
+    pStoredInfo = pStatInfo->hashId;
+
+    if(pStatInfo->entryCount >= gpConfig.nsMaxNoEntries)
+    {
+        ret = CL_NS_RC(CL_NS_ERR_LIMIT_EXCEEDED);
+        clLog(CL_LOG_SEV_ERROR, "SVR", "MOD", " NS: Max no. of entries per context limit reached ");
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, CL_NS_LOG_1_NS_REGISTER_OVERWRITE_FAILED, ret);
+        /* delete the message created for updating peers */
+        clBufferDelete(&inMsgHdl);
+        if(nsInfo->attr != NULL)
+            clHeapFree(nsInfo->attr);
+        clHeapFree(nsInfo);
+        /* Release the semaphore */
+        clOsalMutexUnlock(gSem);
+        CL_FUNC_EXIT();
+        return ret;
+    }
+    clLogDebug("SVR", "MOD", "Service [%.*s] register, 2nd level hashId [%p]", nsInfo->name.length, nsInfo->name.value, (void *)pStoredInfo);
+
+    /* Check whether the entry for the service already exists or not */
+    clNSLookupKeyForm(&nsInfo->name, &lookupData);
+    /* Copy the name & end with NULL character */
+    clLogDebug("SVR", "MOD", "Service [%.*s] register, cksum [%u]", lookupData.name.length, lookupData.name.value, lookupData.cksum);
+
+    ret = clCntNodeFind((ClCntHandleT)pStoredInfo, (ClCntKeyHandleT)&lookupData, &pNodeHandle);
+    if(ret != CL_OK)
+    {
+        pNSBinding = (ClNameSvcBindingT *) clHeapAllocate (sizeof(ClNameSvcBindingT));
+        if(pNSBinding == NULL)
+        {
+            ret = CL_NS_RC(CL_ERR_NO_MEMORY);
+            clLog(CL_LOG_SEV_ERROR, "SVR", "MOD", " NS: MALLOC FAILED ");
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, CL_NS_LOG_1_NS_REGISTER_OVERWRITE_FAILED, ret);
+            /* delete the message created for updating peers */
+            clBufferDelete(&inMsgHdl);
+            if(nsInfo->attr != NULL)
+                clHeapFree(nsInfo->attr);
+            clHeapFree(nsInfo);
+            /* Release the semaphore */
+            clOsalMutexUnlock(gSem);
+            CL_FUNC_EXIT();
+            return ret;
+        }
+        /* Copy the name and append null character */
+        clNameCopy(&pNSBinding->name, &nsInfo->name);
+        pNSBinding->refCount = 0;
+        pNSBinding->cksum    = lookupData.cksum;
+        /* Create the entry details hash table. Remember there can be multiple obj references associated with a service */
+        ret = clCntHashtblCreate(CL_NS_MAX_NO_OBJECT_REFERENCES, nameSvcEntryDetailsHashKeyCmp, nameSvcEntryDetailsHashFunction,
+                          nameSvcHashEntryDetailsDeleteCallback, nameSvcHashEntryDetailsDeleteCallback, CL_CNT_UNIQUE_KEY, &pNSBinding->hashId);
+        pStoredNSBinding     = pNSBinding;
+        pNSBinding->priority = CL_NS_TEMPORARY_PRIORITY;
+        /* Add the entry */
+        ret = clCntNodeAdd((ClCntHandleT)pStoredInfo, (ClCntKeyHandleT)pNSBinding, (ClCntDataHandleT)pNSBinding, NULL);
+        /* Create the dataSet and Write into it.*/
+        if( (nsInfo->contextId >= CL_NS_DEFAULT_NODELOCAL_CONTEXT) || ( sdAddr == gMasterAddress ) )
+        {
+            ret = clNameSvcBindingDataWrite(nsInfo->contextId, pStatInfo, pNSBinding);
+            if( CL_OK != ret )
+            {
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clLogNameSvcBindingDataCheckpoint(): rc[0x %x]", ret));
+            }
+            ret = clNameSvcPerCtxInfoWrite(nsInfo->contextId, pStatInfo);
+            if( CL_OK != ret )
+            {
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("clNameSvcPerCtxInfoWrite(): rc[0x %x]", ret));
+            }
+        }
+        clLogDebug("SVR", "MOD", "Added service entry [%.*s] to the table", pStoredNSBinding->name.length, pStoredNSBinding->name.value);
+    }
+    else
+    {
+        /* Found the entry */
+        ret = clCntNodeUserDataGet(pStoredInfo,pNodeHandle, (ClCntDataHandleT*)&pStoredNSBinding);
+    }
+    /* Allocate and fill entry details */
+    pNSEntry = (ClNameSvcBindingDetailsT *) clHeapAllocate(sizeof(ClNameSvcBindingDetailsT)+ nsInfo->attrCount * sizeof(ClNameSvcAttrEntryT));
+    if(pNSEntry == NULL)
+    {
+        ret = CL_NS_RC(CL_ERR_NO_MEMORY);
+        clLog(CL_LOG_SEV_ERROR, "SVR", "MOD", "NS: MALLOC FAILED ");
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, CL_NS_LOG_1_NS_REGISTER_OVERWRITE_FAILED, ret);
+        /* delete the message created for updating peers */
+        clBufferDelete(&inMsgHdl);
+        if(nsInfo->attr != NULL)
+            clHeapFree(nsInfo->attr);
+        clHeapFree(nsInfo);
+        clHeapFree(pNSBinding);
+        /* Release the semaphore */
+        clOsalMutexUnlock(gSem);
+        CL_FUNC_EXIT();
+        return ret;
+    }
+
+    if(nsInfo->objReference == CL_NS_GET_OBJ_REF)
+    {
+        _nameSvcObjRefGenerate(&generatedObjRef);
+        pNSEntry->objReference = generatedObjRef;
+    }
+    else
+    {
+        sObjCount++;
+        pNSEntry->objReference    = nsInfo->objReference;
+        generatedObjRef           = nsInfo->objReference;
+    }
+
+    pNSEntry->refCount               = 0;
+    pNSEntry->compId.priority        = nsInfo->priority;
+    pNSEntry->compId.compId          = nsInfo->compId;
+    pNSEntry->compId.eoID            = nsInfo->eoID;
+    pNSEntry->compId.nodeAddress     = nsInfo->nodeAddress;
+    pNSEntry->compId.clientIocPort   = nsInfo->clientIocPort;
+    pNSEntry->compId.pNext           = NULL;
+    pNSEntry->attrCount              = nsInfo->attrCount;
+    pNSEntry->attrLen                = nsInfo->attrCount * sizeof(ClNameSvcAttrEntryT);
+
+    if(nsInfo->attrCount > 0)
+    {
+        memcpy(pNSEntry->attr, nsInfo->attr, nsInfo->attrCount * sizeof(ClNameSvcAttrEntryT));
+        clCksm32bitCompute ((ClUint8T *)nsInfo->attr, nsInfo->attrCount * sizeof(ClNameSvcAttrEntryT), &cksum);
+        pNSEntry->cksum =  cksum;
+    }
+    else
+         pNSEntry->cksum = 0;
+
+    /* Add entry details to the entry details hash table */
+    ret=clCntNodeAdd((ClCntHandleT)pStoredNSBinding->hashId, (ClCntKeyHandleT ) pNSEntry, (ClCntDataHandleT ) pNSEntry, NULL);
+    if(ret != CL_OK)
+    {
+        if(ret == CL_RC(CL_CID_CNT, CL_ERR_DUPLICATE))
+        {
+            /* Details already present in the entry details hash table */
+            ret = clCntNodeFind((ClCntHandleT)pStoredNSBinding->hashId, (ClCntKeyHandleT )pNSEntry, &pNodeHandle);
+            ret = clCntNodeUserDataGet(pStoredNSBinding->hashId,pNodeHandle, (ClCntDataHandleT*)&pStoredNSEntry);
+            /*  No need to check return types as we are sure that  node does exist */
+            if(pStoredNSEntry->objReference == nsInfo->objReference)
+            {
+                pTemp = &(pStoredNSEntry->compId);
+                while(pTemp != NULL)
+                {
+                    if(pTemp->compId == pNSEntry->compId.compId)
+                    {
+                        /* Duplicate entry case. Silently ignore the message */
+                        clHeapFree(pNSEntry);
+                        if(nsInfo->attr != NULL)
+                            clHeapFree(nsInfo->attr);
+                        clHeapFree(nsInfo);
+                        /* delete the message created for updating peers */
+                        clBufferDelete(&inMsgHdl);
+                        clXdrMarshallClUint64T((void *)&pStoredNSEntry->objReference, outMsgHandle, 0);
+                        /* Release the semaphore */
+                        clOsalMutexUnlock(gSem);
+                        CL_FUNC_EXIT();
+                        return CL_OK;
+                    }
+                    pTemp = pTemp->pNext;
+                }
+
+                /* This is a reference to already existing entry */
+                pStoredNSEntry->refCount++;
+                pCompList = (ClNameSvcCompListPtrT) clHeapAllocate(sizeof(ClNameSvcCompListT));
+                if(pCompList == NULL)
+                {
+                    ret = CL_NS_RC(CL_ERR_NO_MEMORY);
+                    CL_DEBUG_PRINT(CL_DEBUG_ERROR,(" NS: MALLOC FAILED "));
+                    clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
+                    /* delete the message created for updating peers */
+                    clBufferDelete(&inMsgHdl);
+                    if(nsInfo->attr != NULL)
+                        clHeapFree(nsInfo->attr);
+                    clHeapFree(nsInfo);
+                    /* Release the semaphore */
+                    clOsalMutexUnlock(gSem);
+                    clHeapFree(pNSEntry);
+                    clHeapFree(pNSBinding);
+                    CL_FUNC_EXIT();
+                    return ret;
+                }
+
+                pCompList->pNext    = pStoredNSEntry->compId.pNext;
+                pCompList->priority = nsInfo->priority;
+                if(pCompList->priority > pStoredNSBinding->priority)
+                    pStoredNSBinding->priority = pCompList->priority;
+                pStoredNSEntry->compId.pNext = pCompList;
+                pCompList->compId = pNSEntry->compId.compId;
+                pCompList->eoID = pNSEntry->compId.eoID;
+                pCompList->nodeAddress = pNSEntry->compId.nodeAddress;
+                pCompList->clientIocPort = pNSEntry->compId.clientIocPort;
+                generatedObjRef = pStoredNSEntry-> objReference;
+                /* Create the dataset for compInfo.  dsIdInfo = compInfo */
+                if((nsInfo->contextId >= CL_NS_DEFAULT_NODELOCAL_CONTEXT) || ( sdAddr == gMasterAddress))
+                {
+                    ret = clNameSvcCompInfoWrite(nsInfo->contextId, pStatInfo, pStoredNSBinding, pNSEntry);
+                    if( CL_OK != ret )
+                    {
+                        clLog(CL_LOG_SEV_ERROR, "SVR", "MOD", "clNameSvcCompInfoCheckpoint(): rc[0x %x]", ret);
+                    }
+                    pCompList->dsId = pNSEntry->compId.dsId;
+                    ret = clNameSvcPerCtxInfoWrite(nsInfo->contextId, pStatInfo);
+                    if( CL_OK != ret )
+                    {
+                        clLog(CL_LOG_SEV_ERROR, "SVR", "MOD","clNameSvcPerCtxInfoWrite(): rc[0x %x]", ret);
+                    }
+                }
+                clHeapFree(pNSEntry);
+            }
+            else
+            {
+                /* Received ObjRef is different than stored ObjRef, Delete the previous binding Details associated with given Service Name*/
+                pTemp = &(pStoredNSEntry->compId);
+                pTemp = pTemp->pNext;
+                while(pTemp != NULL)
+                {
+                    ClNameSvcDeregisInfoT    walkData          = {0};
+                    gNameEntryDelete   = 0;
+                    gDelete            = 0;
+                    walkData.compId    = pTemp->compId;
+                    walkData.eoID      = pTemp->eoID;
+                    walkData.operation = CL_NS_EO_DEREGISTER_OP;
+                    walkData.contextId = nsInfo->contextId;
+
+                    pTemp = pTemp->pNext;
+                    ret = clCntWalk(gNSHashTable, _nameSvcContextLevelWalkForDelete, (ClCntArgHandleT) &walkData, sizeof(ClUint32T));
+                }
+                memcpy(pStoredNSEntry->attr, nsInfo->attr, nsInfo->attrCount * sizeof(ClNameSvcAttrEntryT)); 
+                pStoredNSEntry->cksum = pNSEntry->cksum;
+                pStoredNSEntry->objReference = nsInfo->objReference;
+                pStoredNSEntry->refCount = pNSEntry->refCount;
+                pStoredNSEntry->compId.priority = nsInfo->priority;
+                pStoredNSEntry->compId.compId = nsInfo->compId;
+                pStoredNSEntry->compId.eoID            = nsInfo->eoID;
+                pStoredNSEntry->compId.nodeAddress     = nsInfo->nodeAddress;
+                pStoredNSEntry->compId.clientIocPort   = nsInfo->clientIocPort;
+                pStoredNSEntry->compId.pNext           = NULL;
+                pStoredNSEntry->attrCount              = nsInfo->attrCount;
+                pStoredNSEntry->attrLen                = nsInfo->attrCount * sizeof(ClNameSvcAttrEntryT);
+                
+                if((nsInfo->contextId >= CL_NS_DEFAULT_NODELOCAL_CONTEXT) || ( sdAddr == gMasterAddress))
+                {
+                    ret = clNameSvcCompInfoOverwrite(nsInfo->contextId, pStoredNSEntry->dsId, pStoredNSBinding, pNSEntry);
+                    if( CL_OK != ret )
+                    {
+                        clLog(CL_LOG_SEV_ERROR,"SVR", "MOD", "clNameSvcCompInfoModifyCheckpoint(): rc[0x %x]", ret);
+                    }
+                    ret = clNameSvcPerCtxInfoWrite(nsInfo->contextId, pStatInfo);
+                    if( CL_OK != ret )
+                    {
+                        clLog(CL_LOG_SEV_ERROR, "SVR", "MOD", "clNameSvcPerCtxInfoWrite(): rc[0x %x]", ret);
+                    }
+                }
+                clHeapFree(pNSEntry);
+            }
+        }
+        else
+        {
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Registration request failed \n"));
+            clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_DEBUG, NULL, CL_NS_LOG_1_NS_REGISTRATION_FAILED, ret);
+            /* delete the message created for updating peers */
+            clBufferDelete(&inMsgHdl);
+            if(nsInfo->attr != NULL)
+                clHeapFree(nsInfo->attr);
+            clHeapFree(nsInfo);
+            /* Release the semaphore */
+            clOsalMutexUnlock(gSem);
+            clHeapFree(pNSEntry);
+            clHeapFree(pNSBinding);
+            CL_FUNC_EXIT();
+            return ret;
+        }
+    }
+    else
+    {
+        /* Cache the details of component with highest priority for the given service. This will be useful when query for component 
+           with highest priority foe a given service is made */
+        if((pNSEntry->compId.priority > pStoredNSBinding->priority) || (pStoredNSBinding->priority == CL_NS_TEMPORARY_PRIORITY))
+        {
+            (void)clCntNodeFind((ClCntHandleT)pStoredNSBinding->hashId, (ClCntKeyHandleT )pNSEntry, &pStoredNSBinding->nodeHdl);
+            pStoredNSBinding->priority = pNSEntry->compId.priority;
+        }
+        pStatInfo->entryCount++;
+        pStoredNSBinding->refCount++;
+
+        clLogDebug("SVR", "REG", "Adding attr entry [%.*s] to the table, entryCount [%d] refCount [%d]",
+                 pStoredNSBinding->name.length, pStoredNSBinding->name.value,
+                 pStatInfo->entryCount, pStoredNSBinding->refCount);
+        /*
+         * checkpoint the bindingDetails info here.
+         * dsIdInfo - bindingDetailsInfo. ramesh.
+         */
+        if( (nsInfo->contextId >= CL_NS_DEFAULT_NODELOCAL_CONTEXT) || (sdAddr == gMasterAddress) )
+        {
+            ret = clNameSvcBindingDetailsWrite(nsInfo->contextId, pStatInfo, pStoredNSBinding, pNSEntry);
+            if( CL_OK != ret )
+            {
+                clLog(CL_LOG_SEV_ERROR, "SVR", "MOD", "clNameSvcBindingDetaCheckpoint(): rc[0x %x]", ret);
+            }
+            ret = clNameSvcPerCtxInfoWrite(nsInfo->contextId, pStatInfo);
+            if( CL_OK != ret )
+            {
+                clLog(CL_LOG_SEV_ERROR, "SVR", "MOD", "clNameSvcPerCtxInfoWrite(): rc[0x %x]", ret);
+            }
+        }
+    }
+    /* Update slaves */
+    if((nsInfo->source != CL_NS_MASTER) && (nsInfo->contextId < CL_NS_BASE_NODELOCAL_CONTEXT))
+    {
+        nsInfo->source = CL_NS_MASTER;
+        ret = clIocTotalNeighborEntryGet(&noEntries);
+        if(ret == CL_OK)
+        {
+            pAddrList = (ClIocNodeAddressT *) clHeapAllocate(sizeof(ClIocNodeAddressT)*noEntries);
+            clIocNeighborListGet(&noEntries,pAddrList);
+            for(iCnt=0; iCnt<noEntries; iCnt++)
+            {
+                ClIocNodeAddressT addr = *(pAddrList+iCnt);
+                if(addr == clIocLocalAddressGet())
+                {
+                    continue;
+                }
+                nsInfo->objReference = generatedObjRef;
+                CL_NS_SERVER_SERVER_VERSION_SET(&version);
+                VDECL_VER(clXdrMarshallClNameVersionT, 4, 0, 0)(&version,inMsgHdl, 0);
+                clXdrMarshallClUint32T((void *)&inLen, inMsgHdl, 0);
+                VDECL_VER(clXdrMarshallClNameSvcInfoIDLT, 4, 0, 0)((void *)nsInfo, inMsgHdl, 0);
+                clBufferNBytesWrite(inMsgHdl, (ClUint8T*)nsInfo, inLen);
+                CL_NS_CALL_RMD_ASYNC(addr, CL_NS_REG_OVERWRITE, inMsgHdl, NULL, ret);
+            }
+            clHeapFree(pAddrList);
+        }
+        else
+            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("\n NS: Couldnt update the peers \n"));
+
+        clXdrMarshallClUint64T((void *)&generatedObjRef, outMsgHandle, 0);
+    }
+    else
+        clXdrMarshallClUint64T((void *)&nsInfo->objReference, outMsgHandle, 0);
+    clLogInfo("SVR", "MOD", "Name service [%.*s] has been registered object reference [%#llX]",
+               nsInfo->name.length, nsInfo->name.value, generatedObjRef);
+
+    /* delete the message created for updating peers */
+    clBufferDelete(&inMsgHdl);
+    if(nsInfo->attr != NULL)
+        clHeapFree(nsInfo->attr);
+    clHeapFree(nsInfo);
+    /* Release the semaphore */
+    clOsalMutexUnlock(gSem);
+    CL_FUNC_EXIT();
+    return CL_OK;
+}
 
 /**
  *  Name: _nameSvcNextTopPriorityGetCallback 
@@ -1551,13 +2041,19 @@ ClRcT _nameSvcMatchedEntryDeleteCallback(ClCntKeyHandleT    userKey,
                        ||
                        clCpmIsMaster())
                     {
-                        clNameSvcDataSetDelete(userArg->contextId, pTemp->dsId);
+                        clNameSvcDataSetDelete(userArg->contextId, pTemp1->dsId);
                     }
-                    clNameSvcPerCtxDataSetIdPut(userArg->contextId, pTemp->dsId);
+                    clNameSvcPerCtxDataSetIdPut(userArg->contextId, pTemp1->dsId);
+                    pTemp1->dsId = pTemp->dsId;
+                    pTemp1->eoID = pTemp->eoID;
+                    pTemp1->nodeAddress = pTemp->nodeAddress;
+                    pTemp1->clientIocPort = pTemp->clientIocPort;
+                    pTemp1->priority = pTemp->priority;
                     clHeapFree(pTemp);
                     return ret;
                 }
                 pTemp->pNext = pTemp1->pNext;
+                
                 /*
                  * Component deregister. delete the dsId from ckpt/
                  */

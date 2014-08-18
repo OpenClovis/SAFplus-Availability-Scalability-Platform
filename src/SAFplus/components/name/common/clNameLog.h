@@ -90,7 +90,12 @@ extern "C" {
 /**
  * "NS Entry Cleanup failed, rc=0x%x"
  */
-#define CL_NS_LOG_1_NS_ENTRY_CLEANUP_FAILED   clNameLogMsg[10]  
+#define CL_NS_LOG_1_NS_ENTRY_CLEANUP_FAILED   clNameLogMsg[10] 
+
+#define CL_NS_LOG_1_NS_DUPLICATE_ENTRY        clNameLogMsg[11]
+
+#define CL_NS_LOG_1_NS_REGISTER_OVERWRITE_FAILED  clNameLogMsg[12] 
+ 
                                                                                                                              
 #ifdef __cplusplus
 }

@@ -21,6 +21,7 @@ CL_EO_CALLBACK_TABLE_DECL(nameNativeFuncList)[] =
     VSYM(nameSvcQuery, CL_NS_QUERY),                                /* 6 */
     VSYM(nameSvcNack, CL_NS_NACK),                                  /* 7 */
     VSYM(nameSvcDBEntriesPack, CL_NS_DB_ENTRIES_PACK),              /* 8 */
+    VSYM(nameSvcRegisterAndOverwrite, CL_NS_REG_OVERWRITE),         /* 9 */
     VSYM_NULL,
 };
 

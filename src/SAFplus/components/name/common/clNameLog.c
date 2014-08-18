@@ -40,5 +40,7 @@ ClCharT  *clNameLogMsg[] =
     "NS syncup failed, rc=0x%x",
     "NS Initialization  failed, rc=0x%x",
     "NS Entry Cleanup failed, rc=0x%x",
+    "NS Given Service name already binded in the context, rc=0x%x",
+    "NS Register and Overwrite failed, rc=0x%x",
 };
 

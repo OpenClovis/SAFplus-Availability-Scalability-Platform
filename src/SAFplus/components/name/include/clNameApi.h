@@ -489,7 +489,7 @@ ClRcT clNameRegister(CL_IN ClUint32T contextId,
                      CL_IN ClNameSvcRegisterT* pNSRegisInfo,
                      CL_INOUT ClUint64T *pObjReference);
 
-
+ClRcT clNameRegisterAndOverwrite(CL_IN ClUint32T contextId, CL_IN ClNameSvcRegisterT* pNSRegisInfo, CL_INOUT ClUint64T *pObjReference);
 
 /**
  ************************************

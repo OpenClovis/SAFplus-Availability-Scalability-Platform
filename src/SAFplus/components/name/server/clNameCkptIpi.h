@@ -127,6 +127,8 @@ clNameSvcCompInfoWrite(ClUint32T                 contexId,
                        ClNameSvcBindingT         *pBindData,
                        ClNameSvcBindingDetailsT  *pBindDetail);
 
+extern ClRcT clNameSvcCompInfoOverwrite(ClUint32T contextId, ClUint32T dsId, ClNameSvcBindingT *pBindData, ClNameSvcBindingDetailsT *pBindDetail);
+
 extern ClRcT
 clNameSvcEntrySerializer(ClUint32T  dsId,
                          ClAddrT    *pBuffer,
