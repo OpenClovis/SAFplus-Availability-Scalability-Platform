@@ -1221,7 +1221,7 @@ def get_pid_for_this_sandbox(pid):
     
 def get_amf_pid(watchdog_pid = False):
     while True:
-        valid = commands.getstatusoutput("/bin/pidof %s" % AmfName);
+        valid = commands.getstatusoutput("pidof %s" % AmfName);
         if valid[0] == 0:
             if len(valid[1].split())==1:          
                 return int(valid[1])
@@ -1230,7 +1230,7 @@ def get_amf_pid(watchdog_pid = False):
         log.warning('There is more than one AMF pid. Try again...')
         time.sleep(0.25)
     if watchdog_pid:
-         valid = commands.getstatusoutput("/bin/pidof safplus_watchdog.py");
+         valid = commands.getstatusoutput("pidof safplus_watchdog.py");
          if valid[0] == 0:
             return int(valid[1])
     return 0;
