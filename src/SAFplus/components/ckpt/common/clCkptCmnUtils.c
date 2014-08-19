@@ -333,6 +333,8 @@ ClRcT clCkptLeakyBucketInitialize(void)
     return CL_OK;
 }
 
+#endif
+
 ClRcT clCkptRmdOptionsSet(ClUint32T timeout)
   {
     if (timeout)
@@ -349,5 +351,3 @@ void clCkptRmdOptionsGet(ClUint32T *pTimeout)
         *pTimeout = gClCkptRmdDefaultTimeout;
       }
   }
-
-#endif
