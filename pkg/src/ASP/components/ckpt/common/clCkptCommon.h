@@ -225,6 +225,8 @@ typedef struct hdlDb
 /**          E X T E R N S             **/
 /**====================================**/
 
+extern ClUint32T gClCkptRmdDefaultTimeout;
+
 /* Routine to pack a vector */
 ClRcT ckptIdlHandleUpdate(ClIocNodeAddressT nodeId,ClIdlHandleT handle,ClUint32T numRetries);
 
@@ -239,6 +241,9 @@ void    ckptHdlDeleteCallback(ClCntKeyHandleT userKey,
                               ClCntDataHandleT userData);
 
 ClRcT clCkptLeakyBucketInitialize(void);
+
+ClRcT clCkptRmdOptionsSet(ClUint32T timeout);
+void clCkptRmdOptionsGet(ClUint32T *pTimeout);
 
 #ifdef __cplusplus
 }
