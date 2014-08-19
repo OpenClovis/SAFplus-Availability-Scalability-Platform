@@ -260,7 +260,7 @@ extern MgtIteratorBase mgtIterEnd;
      */
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
     {
-      logDebug("MGT","SET","This shouldn't be called");
+
     }
 
     /**

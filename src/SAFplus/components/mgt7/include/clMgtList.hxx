@@ -83,7 +83,7 @@ namespace SAFplus
               {
                 current.first = "";
                 current.second = nullptr;
-                logDebug("MGT", "LIST", "Reached end of the list");
+                //logDebug("MGT", "LIST", "Reached end of the list");
                 return false;
               }
               else
@@ -134,7 +134,7 @@ namespace SAFplus
             return CL_TRUE;
           }
         }
-        logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
+        //logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
         return CL_FALSE;
       }
       /**
@@ -147,11 +147,11 @@ namespace SAFplus
         KEYTYPE *key = &objectKey;
         if(key == NULL)
         {
-          logError("MGT", "LIST", "Key for child object is not defined");
+          //logError("MGT", "LIST", "Key for child object is not defined");
           return CL_ERR_NULL_POINTER;
         }
         children[*key] = mgtObject;
-        logDebug("MGT", "LIST", "Adding child object was successfully");
+        //logDebug("MGT", "LIST", "Adding child object was successfully");
         return CL_OK;
       }
       /**
@@ -199,7 +199,7 @@ namespace SAFplus
         typename Map::iterator it = children.find(objectKey);
         if (it == children.end())
         {
-          logError("MGT", "LIST", "Can't find the object with given key");
+          //logError("MGT", "LIST", "Can't find the object with given key");
           return nullptr;
         }
         return it->second;
@@ -249,7 +249,7 @@ namespace SAFplus
         xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
         if (!reader)
         {
-          logError("MGT", "LIST", "Reader return null");
+          //logError("MGT", "LIST", "Reader return null");
           return CL_FALSE;
         }
 
@@ -270,7 +270,7 @@ namespace SAFplus
                 {
                    if(strcmp((const char *)namestr,this->name.c_str()) != 0)
                    {
-                     logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
+                     //logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
                      return CL_FALSE;
                    }
                 }
@@ -296,7 +296,7 @@ namespace SAFplus
                 {
                   if(entry->set(strChildData.c_str(),strChildData.size(),t) == CL_FALSE)
                   {
-                    logError("MGT", "LIST", "Setting for child failed");
+                    //logError("MGT", "LIST", "Setting for child failed");
                     xmlFreeTextReader(reader);
                     return CL_FALSE;
                   }
@@ -338,7 +338,7 @@ namespace SAFplus
         /* Check if expected entry is found */
         if(iter == children.end())
         {
-          logError("MGT","XPT","Can't find object which belong to key");
+          //logError("MGT","XPT","Can't find object which belong to key");
           return xpath;
         }
         /* Parent X-Path will be add into the full xpath */
@@ -431,7 +431,7 @@ namespace SAFplus
             {
               current.first = "";
               current.second = nullptr;
-              logDebug("MGT", "LIST", "Reached end of the list");
+              //logDebug("MGT", "LIST", "Reached end of the list");
               return false;
             }
             else
@@ -477,7 +477,7 @@ namespace SAFplus
           MgtObject* curEntry = iter->second;
           if(curEntry->name.compare(entry->name) == 0)
           {
-            logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
+            //logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
             return CL_TRUE;
           }
         }
@@ -496,7 +496,7 @@ namespace SAFplus
           key = &mgtObject->name;
         }
         children[*key] = mgtObject;
-        logDebug("MGT", "LIST", "Adding child object was successfully");
+        //logDebug("MGT", "LIST", "Adding child object was successfully");
         return CL_OK;
       }
       /**
@@ -552,7 +552,7 @@ namespace SAFplus
       {
         typename Map::iterator iter;
         /* Name of this list */
-        logDebug("MGT","LIST","Get call");
+        //logDebug("MGT","LIST","Get call");
         for (iter = children.begin(); iter != children.end(); iter++)
         {
           std::string k = iter->first;
@@ -562,7 +562,7 @@ namespace SAFplus
             entry->toString(xmlString);
           }
         }
-        logDebug("MGT","LIST","XML: %s",xmlString.str().c_str());
+        //logDebug("MGT","LIST","XML: %s",xmlString.str().c_str());
       }
       /**
        * API to get number of entries in the list
@@ -587,13 +587,13 @@ namespace SAFplus
         std::string lastnamestr;
         std::string keyValue;
 
-        logDebug("MGT","LIST","Data for list [%s]",(char *)pBuffer);
+        //logDebug("MGT","LIST","Data for list [%s]",(char *)pBuffer);
 
         /* Read XML from the buffer */
         xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
         if (!reader)
         {
-          logError("MGT", "LIST", "Reader return null");
+          //logError("MGT", "LIST", "Reader return null");
           return CL_FALSE;
         }
 
@@ -614,7 +614,7 @@ namespace SAFplus
                {
                   if(strcmp((const char *)namestr,this->name.c_str()) != 0)
                   {
-                    logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
+                    //logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
                     return CL_FALSE;
                   }
                }
@@ -636,7 +636,7 @@ namespace SAFplus
                /* keyList should be assign when key was found */
                if(keyValue.size() == 0)
                {
-                 logError("MGT","LIST","The configuration had error, no key found");
+                 //logError("MGT","LIST","The configuration had error, no key found");
                  return CL_FALSE;
                }
                MgtObject *entry = children[keyValue];
@@ -644,7 +644,7 @@ namespace SAFplus
                {
                  if(entry->set(strChildData.c_str(),strChildData.size(),t) == CL_FALSE)
                  {
-                   logError("MGT", "LIST", "Setting for child failed");
+                   //logError("MGT", "LIST", "Setting for child failed");
                    xmlFreeTextReader(reader);
                    return CL_FALSE;
                  }
@@ -687,7 +687,7 @@ namespace SAFplus
         /* Check if expected entry is found */
         if(iter == children.end())
         {
-          logError("MGT","XPT","Can't find object which belong to key");
+          //logError("MGT","XPT","Can't find object which belong to key");
           return xpath;
         }
         /* Parent X-Path will be add into the full xpath */

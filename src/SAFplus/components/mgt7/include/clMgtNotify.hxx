@@ -87,7 +87,7 @@ public:
 
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
     {
-      clDbgNotImplemented("MgtNotify::set");
+
     }
 
 };

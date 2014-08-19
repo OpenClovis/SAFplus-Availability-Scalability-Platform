@@ -5,10 +5,11 @@
  */ 
 #include "SAFplusLogCommon.hxx"
 
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
-#include "clMgtProv.hxx"
 #include "ServerConfig.hxx"
 
 
@@ -49,9 +50,9 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumStreams
      */
-    void ServerConfig::setMaximumStreams(unsigned int maximumStreamsValue)
+    void ServerConfig::setMaximumStreams(unsigned int maximumStreamsValue, SAFplus::Transaction &txn)
     {
-        this->maximumStreams.value = maximumStreamsValue;
+        this->maximumStreams.set(maximumStreamsValue,txn);
     };
 
     /*
@@ -65,9 +66,9 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumComponents
      */
-    void ServerConfig::setMaximumComponents(unsigned int maximumComponentsValue)
+    void ServerConfig::setMaximumComponents(unsigned int maximumComponentsValue, SAFplus::Transaction &txn)
     {
-        this->maximumComponents.value = maximumComponentsValue;
+        this->maximumComponents.set(maximumComponentsValue,txn);
     };
 
     /*
@@ -81,9 +82,9 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
      */
-    void ServerConfig::setMaximumSharedMemoryPages(unsigned int maximumSharedMemoryPagesValue)
+    void ServerConfig::setMaximumSharedMemoryPages(unsigned int maximumSharedMemoryPagesValue, SAFplus::Transaction &txn)
     {
-        this->maximumSharedMemoryPages.value = maximumSharedMemoryPagesValue;
+        this->maximumSharedMemoryPages.set(maximumSharedMemoryPagesValue,txn);
     };
 
     /*
@@ -97,9 +98,9 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
      */
-    void ServerConfig::setMaximumRecordsInPacket(unsigned int maximumRecordsInPacketValue)
+    void ServerConfig::setMaximumRecordsInPacket(unsigned int maximumRecordsInPacketValue, SAFplus::Transaction &txn)
     {
-        this->maximumRecordsInPacket.value = maximumRecordsInPacketValue;
+        this->maximumRecordsInPacket.set(maximumRecordsInPacketValue,txn);
     };
 
     /*
@@ -113,9 +114,9 @@ namespace SAFplusLog
     /*
      * XPATH: /SAFplusLog/ServerConfig/processingInterval
      */
-    void ServerConfig::setProcessingInterval(unsigned long int processingIntervalValue)
+    void ServerConfig::setProcessingInterval(unsigned long int processingIntervalValue, SAFplus::Transaction &txn)
     {
-        this->processingInterval.value = processingIntervalValue;
+        this->processingInterval.set(processingIntervalValue,txn);
     };
 
     ServerConfig::~ServerConfig()

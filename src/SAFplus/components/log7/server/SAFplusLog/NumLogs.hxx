@@ -16,7 +16,7 @@
 namespace SAFplusLog
   {
 
-    class NumLogs : public virtual SAFplusTypes::IntStatistic {
+    class NumLogs : public SAFplusTypes::IntStatistic {
 
         /* Apply MGT object factory */
         MGT_REGISTER(NumLogs);

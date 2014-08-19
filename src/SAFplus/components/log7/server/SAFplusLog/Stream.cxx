@@ -5,6 +5,7 @@
  */ 
 #include "SAFplusLogCommon.hxx"
 
+#include "StreamStatistics.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include <string>
@@ -45,8 +46,24 @@ namespace SAFplusLog
 
     std::vector<std::string>* Stream::getChildNames()
     {
-        std::string childNames[] = { "myName", "fileName", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope", "numLogs" };
+        std::string childNames[] = { "myName", "fileName", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope", "StreamStatistics" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
+    };
+
+    /*
+     * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics
+     */
+    SAFplusLog::StreamStatistics* Stream::getStreamStatistics()
+    {
+        return dynamic_cast<StreamStatistics*>(this->getChildObject("StreamStatistics"));
+    };
+
+    /*
+     * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics
+     */
+    void Stream::addStreamStatistics(SAFplusLog::StreamStatistics *StreamStatisticsValue)
+    {
+        this->addChildObject(StreamStatisticsValue, "StreamStatistics");
     };
 
     Stream::~Stream()

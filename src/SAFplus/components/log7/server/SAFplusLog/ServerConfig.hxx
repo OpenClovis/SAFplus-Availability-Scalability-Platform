@@ -9,15 +9,16 @@
 #define SERVERCONFIG_HXX_
 #include "SAFplusLogCommon.hxx"
 
+#include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "clMgtContainer.hxx"
-#include "clMgtProv.hxx"
 
 namespace SAFplusLog
   {
 
-    class ServerConfig : public virtual SAFplus::MgtContainer {
+    class ServerConfig : public SAFplus::MgtContainer {
 
         /* Apply MGT object factory */
         MGT_REGISTER(ServerConfig);
@@ -62,7 +63,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumStreams
          */
-        void setMaximumStreams(unsigned int maximumStreamsValue);
+        void setMaximumStreams(unsigned int maximumStreamsValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumComponents
@@ -72,7 +73,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumComponents
          */
-        void setMaximumComponents(unsigned int maximumComponentsValue);
+        void setMaximumComponents(unsigned int maximumComponentsValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
@@ -82,7 +83,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumSharedMemoryPages
          */
-        void setMaximumSharedMemoryPages(unsigned int maximumSharedMemoryPagesValue);
+        void setMaximumSharedMemoryPages(unsigned int maximumSharedMemoryPagesValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
@@ -92,7 +93,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/ServerConfig/maximumRecordsInPacket
          */
-        void setMaximumRecordsInPacket(unsigned int maximumRecordsInPacketValue);
+        void setMaximumRecordsInPacket(unsigned int maximumRecordsInPacketValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/ServerConfig/processingInterval
@@ -102,7 +103,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/ServerConfig/processingInterval
          */
-        void setProcessingInterval(unsigned long int processingIntervalValue);
+        void setProcessingInterval(unsigned long int processingIntervalValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~ServerConfig();
 
     };

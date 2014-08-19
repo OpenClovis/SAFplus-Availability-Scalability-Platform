@@ -17,7 +17,7 @@
 namespace SAFplusLog
   {
 
-    class SAFplusLogRoot : public virtual SAFplus::MgtContainer {
+    class SAFplusLogRoot : public SAFplus::MgtContainer {
 
         /* Apply MGT object factory */
         MGT_REGISTER(SAFplusLogRoot);

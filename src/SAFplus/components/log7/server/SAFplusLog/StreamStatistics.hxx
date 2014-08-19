@@ -11,25 +11,30 @@
 
 #include "NumLogs.hxx"
 #include <vector>
-#include "clMgtContainer.hxx"
+#include "MgtFactory.hxx"
 #include "NumLogs.hxx"
+#include "clMgtContainer.hxx"
 
 namespace SAFplusLog
   {
 
-    class StreamStatistics : public virtual SAFplus::MgtContainer {
+    class StreamStatistics : public SAFplus::MgtContainer {
+
+        /* Apply MGT object factory */
+        MGT_REGISTER(StreamStatistics);
+
     public:
         StreamStatistics();
         void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusLog/StreamStatistics/numLogs
+         * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics/numLogs
          */
         SAFplusLog::NumLogs* getNumLogs();
 
         /*
-         * XPATH: /SAFplusLog/StreamStatistics/numLogs
+         * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics/numLogs
          */
         void addNumLogs(SAFplusLog::NumLogs *numLogsValue);
         ~StreamStatistics();

@@ -40,14 +40,16 @@ LogCfg* loadLogCfg()
   if (!s)  // The sys log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
       s = createStreamCfg("sys","sys",".:var/log",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::GLOBAL);
-      logcfg.streamConfig.streamList.addChildObject(s,"sys");
+      std::string cfgName("sys");
+      logcfg.streamConfig.streamList.addChildObject(s,cfgName);
     }
 
   s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("app"));
   if (!s)  // The all log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
       s = createStreamCfg("app","app",".:var/log",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::GLOBAL);
-      logcfg.streamConfig.streamList.addChildObject(s,"app");
+      std::string cfgName("app");
+      logcfg.streamConfig.streamList.addChildObject(s,cfgName);
     }
 
   return &logcfg;

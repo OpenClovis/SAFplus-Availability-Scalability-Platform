@@ -17,7 +17,7 @@
 namespace SAFplusLog
   {
 
-    class StreamConfig : public virtual SAFplus::MgtContainer {
+    class StreamConfig : public SAFplus::MgtContainer {
 
         /* Apply MGT object factory */
         MGT_REGISTER(StreamConfig);
@@ -27,7 +27,7 @@ namespace SAFplusLog
         /*
          * Configuration and statistics for a particular log stream
          */
-        SAFplus::MgtList streamList;
+        SAFplus::MgtList<std::string> streamList;
 
     public:
         StreamConfig();

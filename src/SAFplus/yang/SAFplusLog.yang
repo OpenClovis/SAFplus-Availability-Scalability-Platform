@@ -19,14 +19,6 @@ module SAFplusLog {
     }
 
 
-    grouping StreamStatistics {
-        description "Statistics relating to the log stream";
-
-        container numLogs {
-          uses safplus:intStatistic;
-          description "Number of logs issued to this stream per unit time";
-        }
-    }
     
     
     grouping StreamAttributes {
@@ -141,7 +133,14 @@ module SAFplusLog {
         list stream {
             key "myName";
             uses StreamAttributes;
-            uses StreamStatistics;
+            container StreamStatistics {
+                description "Statistics relating to the log stream";
+        
+                container numLogs {
+                  uses safplus:intStatistic;
+                  description "Number of logs issued to this stream per unit time";
+                }
+            }
             description "Configuration and statistics for a particular log stream";
         }
         description "All log streams defined in the system";

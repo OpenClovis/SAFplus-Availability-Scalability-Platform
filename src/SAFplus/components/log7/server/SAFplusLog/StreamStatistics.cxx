@@ -7,13 +7,17 @@
 
 #include "NumLogs.hxx"
 #include <vector>
-#include "clMgtContainer.hxx"
+#include "MgtFactory.hxx"
 #include "NumLogs.hxx"
+#include "clMgtContainer.hxx"
 #include "StreamStatistics.hxx"
 
 
 namespace SAFplusLog
   {
+
+    /* Apply MGT object factory */
+    MGT_REGISTER_IMPL(StreamStatistics, /SAFplusLog/StreamConfig/stream/StreamStatistics)
 
     StreamStatistics::StreamStatistics(): SAFplus::MgtContainer("StreamStatistics")
     {
@@ -31,7 +35,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/StreamStatistics/numLogs
+     * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics/numLogs
      */
     SAFplusLog::NumLogs* StreamStatistics::getNumLogs()
     {
@@ -39,7 +43,7 @@ namespace SAFplusLog
     };
 
     /*
-     * XPATH: /SAFplusLog/StreamStatistics/numLogs
+     * XPATH: /SAFplusLog/StreamConfig/stream/StreamStatistics/numLogs
      */
     void StreamStatistics::addNumLogs(SAFplusLog::NumLogs *numLogsValue)
     {

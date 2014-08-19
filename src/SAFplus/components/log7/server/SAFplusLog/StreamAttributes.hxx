@@ -10,6 +10,7 @@
 #include "SAFplusLogCommon.hxx"
 
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "FileFullAction.hxx"
 #include <vector>
@@ -19,7 +20,7 @@
 namespace SAFplusLog
   {
 
-    class StreamAttributes : public virtual SAFplus::MgtContainer {
+    class StreamAttributes : public SAFplus::MgtContainer {
     public:
 
         /*
@@ -90,7 +91,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/myName
          */
-        void setMyName(std::string myNameValue);
+        void setMyName(std::string myNameValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileName
@@ -100,7 +101,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileName
          */
-        void setFileName(std::string fileNameValue);
+        void setFileName(std::string fileNameValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileLocation
@@ -110,7 +111,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileLocation
          */
-        void setFileLocation(std::string fileLocationValue);
+        void setFileLocation(std::string fileLocationValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileUnitSize
@@ -120,7 +121,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileUnitSize
          */
-        void setFileUnitSize(unsigned long int fileUnitSizeValue);
+        void setFileUnitSize(unsigned long int fileUnitSizeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/recordSize
@@ -130,7 +131,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/recordSize
          */
-        void setRecordSize(unsigned long int recordSizeValue);
+        void setRecordSize(unsigned long int recordSizeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileFullAction
@@ -140,7 +141,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileFullAction
          */
-        void setFileFullAction(SAFplusLog::FileFullAction fileFullActionValue);
+        void setFileFullAction(SAFplusLog::FileFullAction fileFullActionValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/maximumFilesRotated
@@ -150,7 +151,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/maximumFilesRotated
          */
-        void setMaximumFilesRotated(unsigned int maximumFilesRotatedValue);
+        void setMaximumFilesRotated(unsigned int maximumFilesRotatedValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/flushFreq
@@ -160,7 +161,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/flushFreq
          */
-        void setFlushFreq(unsigned int flushFreqValue);
+        void setFlushFreq(unsigned int flushFreqValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/flushInterval
@@ -170,7 +171,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/flushInterval
          */
-        void setFlushInterval(unsigned long int flushIntervalValue);
+        void setFlushInterval(unsigned long int flushIntervalValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/syslog
@@ -180,7 +181,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/syslog
          */
-        void setSyslog(bool syslogValue);
+        void setSyslog(bool syslogValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/streamScope
@@ -190,7 +191,7 @@ namespace SAFplusLog
         /*
          * XPATH: /SAFplusLog/StreamAttributes/streamScope
          */
-        void setStreamScope(SAFplusLog::StreamScope streamScopeValue);
+        void setStreamScope(SAFplusLog::StreamScope streamScopeValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
         ~StreamAttributes();
 
     };
