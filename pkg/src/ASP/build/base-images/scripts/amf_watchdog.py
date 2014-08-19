@@ -31,6 +31,7 @@ ASP_RESTART_FILE = 'asp_restart'
 ASP_WATCHDOG_RESTART_FILE='asp_restart_watchdog'
 ASP_REBOOT_FILE = 'asp_reboot'
 ASP_RESTART_DISABLE_FILE = 'asp_restart_disable'
+SP_RESTART_DELAY = 30  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
 
 def safe_remove(f):
     try:
@@ -75,6 +76,7 @@ def amf_watchdog_loop():
                 ## retransmit failures due to pending ACK thereby resulting
                 ## in all the TIPC links being reset.
 
+                time.sleep(ASP_RESTART_DELAY)
                 asp.start_asp(stop_watchdog=False, force_start=True)
                 asp.create_asp_cmd_marker('start')
                 sys.exit(1)
@@ -99,6 +101,7 @@ def amf_watchdog_loop():
                 if not asp_admin_stop():
                     asp.zap_asp(False)
                     if asp.should_restart_asp():
+                        time.sleep(ASP_RESTART_DELAY)
                         asp.start_asp(stop_watchdog=False, force_start = True)
                         asp.create_asp_cmd_marker('start')
                     else:
