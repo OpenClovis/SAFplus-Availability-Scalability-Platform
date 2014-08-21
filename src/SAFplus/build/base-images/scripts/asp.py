@@ -1549,7 +1549,7 @@ def parse_command_line():
                  'critical']
             if a.lower() in l:
                 log_level = a.upper()
-                os.putenv('CL_LOG_SEVERITY', log_level)
+                os.putenv('CL_LOG_STREAM_SEVERITY', log_level)
             else:
                 log.critical('Invalid SAFplus log level [%s]' % a)
                 usage()
