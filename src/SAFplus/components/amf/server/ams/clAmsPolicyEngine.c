@@ -9516,7 +9516,6 @@ clAmsPeSUFindCompAndCSIWithCSIAssignment(
 {
     ClAmsEntityRefT *entityRef;
     ClAmsEntityRefT *csiRef;
-    ClCntKeyHandleT entityKeyHandle;
     ClAmsCompCSIRefT *foundCSIRef;
     ClUint32T i;
     ClRcT rc = CL_OK;
@@ -9530,12 +9529,6 @@ clAmsPeSUFindCompAndCSIWithCSIAssignment(
                       csi->config.entity.name.value) );
 
     *foundComp = NULL;
-    
-    AMS_CALL ( clAmsEntityRefGetKey(
-                                    &csi->config.entity,
-                                    csi->config.rank,
-                                    &entityKeyHandle,
-                                    CL_FALSE) ); /* isRankedList : comp->status.csiList */
 
     if  ( ! (csiRef = (ClAmsEntityRefT*) clHeapAllocate(sizeof(ClAmsEntityRefT))) )
         return CL_AMS_RC(CL_ERR_NO_MEMORY);
@@ -9568,7 +9561,7 @@ clAmsPeSUFindCompAndCSIWithCSIAssignment(
         rc = clAmsEntityListFindEntityRef(
                                           &comp->status.csiList,
                                           csiRef,
-                                          entityKeyHandle,
+                                          0,
                                           (ClAmsEntityRefT **)&foundCSIRef); 
 
         if ( rc == CL_OK )
