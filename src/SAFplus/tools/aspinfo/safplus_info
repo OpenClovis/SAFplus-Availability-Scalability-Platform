@@ -55,6 +55,7 @@ import cmd
 import pdb
 import re
 import xml.dom.minidom as minidom
+import commands
 
 def on_platform(p):
   return p in sys.platform
@@ -71,7 +72,7 @@ GMSCONFIGFILE           = '/etc/clGmsConfig.xml'
 HISTORY_FILE            = '.asp-info.hist'
 AMF_DB_CACHE_TIMEOUT    = 5.0  # cache aging for amf database [sec]
 WELCOME_MSG             = 'SAFplus info utility -- OpenClovis, Inc., 2008'
-
+AMF_NAME                = "safplus_amf"
 ##
 ## Internal variables and constants
 ##
@@ -546,7 +547,61 @@ def check_install():
         return 'OK'
     else:
         return 'incomplete/corrupt'
-    
+
+def get_amf_pid(watchdog_pid = False):
+    while True:
+        valid = commands.getstatusoutput("pidof %s" % AMF_NAME);
+        if valid[0] == 0:
+            if len(valid[1].split())==1:
+                return int(valid[1])
+        else:
+            break
+        log.warning('There is more than one AMF pid. Try again...')
+        time.sleep(0.25)
+    if watchdog_pid:
+         valid = commands.getstatusoutput("pidof safplus_watchdog.py");
+         if valid[0] == 0:
+            return int(valid[1])
+    return 0;
+
+def is_asp_running(watchdog_pid = False):
+    '''
+    Return value meaning :
+    0 -> running
+    1 -> not running,
+    2 -> booting/shutting down
+    3 -> running without status file, this is a bug.
+    '''
+
+    amf_pid = get_amf_pid(watchdog_pid)
+
+    if amf_pid == 0:
+        return 1
+
+    asp_status_file = asp_run_env['ASP_RUNDIR'] + '/aspstate-%s' % asp_run_env['ASP_NODEADDR']
+
+    if os.path.exists(asp_status_file):
+        (ec, t, signal, core) = system('cat %s' % asp_status_file)
+        asp_up = bool(int(t[0]))
+        if asp_up:
+            return 0
+        else:
+            return 2
+    else:
+        return 3
+
+def get_asp_status():
+    v = is_asp_running(watchdog_pid = True)
+
+    if v == 0:
+        return ('SAFplus is running on node [%s], pid [%s]' % (asp_run_env['ASP_NODEADDR'], get_amf_pid(True)))
+    elif v == 1:
+        return ('SAFplus is not running on node [%s]' % asp_run_env['ASP_NODEADDR'])
+    elif v == 2:
+        return ('SAFplus is booting up/shutting down')
+    elif v == 3:
+        return ('SAFplus is running with pid [%s], but it was not started from this sandbox [%s].' % (get_amf_pid(True), asp_run_env['ASP_DIR']))
+    return ""
 
 def get_status_info():
     """Returns with SAFplus running status, as a dict with following entries:
@@ -558,19 +613,11 @@ def get_status_info():
     """
 
     d = Dot({})
-    cmd = _asp_dir + '/etc/init.d/safplus status'
-    (ec, output, signal, core) = system(cmd)
-    if ec == NO_SUCH_FILE_OR_DIR:
-        error('Could not run cmd [%s]:' % cmd)
-        error('no such file or directory')
-        error('Please check your SAFplus installation')
-        raise NotFoundError(output)
-    
     # need to parse 3 forms:
     #   INFO ASP is not running on node [1]
     #   INFO ASP is booting up/shutting down
     #   INFO ASP is running on node [1], pid [21548]
-    res = ' '.join(output).strip()
+    res = get_asp_status().strip()
     if res.find('not running') >= 0:
         d.status = 'down'
         d.pid    = d.nodeaddr = 'N/A'
@@ -584,7 +631,6 @@ def get_status_info():
         raise CommandError('Unexpected output from asp status: [%s]' % res)
     
     if d.status in ['up', 'booting or shutting down']:
-        asp_run_env = load_asp_run_env()
         d.nodeaddr = asp_run_env['ASP_NODEADDR']
         d.nodename = asp_run_env['ASP_NODENAME']
         amf_cmd_line = '%s/bin/safplus_amf' % (_asp_dir)
@@ -2130,7 +2176,8 @@ def main(argv):
         except KeyboardInterrupt:
             print 'Exiting on Ctrl-C'
     sys.exit(0)
-    
+
+asp_run_env = load_asp_run_env()
 sys_asp = init_sys_asp()
 if __name__ == '__main__':
     main(sys.argv)
