@@ -104,7 +104,7 @@ extern MgtIteratorBase mgtIterEnd;
   public:
     std::string name;
     MgtObject *parent;
-
+    ClUint32T headRev; //Revision to check before sending
   public:
     MgtObject(const char* name);
     virtual ~MgtObject();

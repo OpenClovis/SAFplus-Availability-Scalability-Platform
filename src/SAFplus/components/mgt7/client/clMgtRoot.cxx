@@ -252,7 +252,7 @@ namespace SAFplus
     Mgt::Msg::MsgSetGet setData;
     setData.ParseFromString(reqMsg.data(0));
 
-    logDebug("NETCONF","COMP","Received setData [%s]",setData.data().c_str());
+    //logDebug("NETCONF","COMP","Received setData [%s]",setData.data().c_str());
     MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
     if (!module)
     {
@@ -319,12 +319,12 @@ namespace SAFplus
                  bindData.route().c_str(), bindData.module().c_str());
       return;
     }
-    logDebug("NETCONF","COMP","Found object %s",object->name.c_str());
+    //logDebug("NETCONF","COMP","Revision of the route %s is %x",bindData.route().c_str(),object->headRev);
     string outBuff;
     ClUint64T outMsgSize = 0;
     object->get(&outBuff, &outMsgSize);
     // Send response
-    logDebug("NETCONF","COMP","Send reply [data=%s; size=%d] for get request",(char *)outBuff.c_str(),outMsgSize);
+    //logDebug("NETCONF","COMP","Send reply [data=%s; size=%d] for get request",(char *)outBuff.c_str(),outMsgSize);
     MgtRoot::sendReplyMsg(srcAddr,(void *)outBuff.c_str(),outMsgSize);
   }
 

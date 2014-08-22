@@ -372,7 +372,7 @@ namespace SAFplus
     if(data == NULL)
       return;
     toString(xmlString);
-    logDebug("---","---","String: %s",xmlString.str().c_str());
+    //logDebug("---","---","String: %s",xmlString.str().c_str());
     *datalen =  xmlString.str().length() + 1;
     data->assign(xmlString.str().c_str());
   }
