@@ -451,11 +451,13 @@ int main(int argc, char* argv[])
 
   std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs;
 #ifdef GRP
-  activeStandbyPairs.first = clusterGroup.getActive();
-  activeStandbyPairs.second = clusterGroup.getStandby();
-#endif
+  activeStandbyPairs = clusterGroup.getRoles();
   logInfo("AMF","BOOT", "Active [%lx:%lx] Standby: [%lx:%lx]", activeStandbyPairs.first.id[0],activeStandbyPairs.first.id[1],activeStandbyPairs.second.id[0],activeStandbyPairs.second.id[1]);
+  //activeStandbyPairs.first = clusterGroup.getActive();
+  //activeStandbyPairs.second = clusterGroup.getStandby();
+#endif
   
+#if 0  // No need to call for election, elections occur automatically
   if (activeStandbyPairs.first == INVALID_HDL)  // If nobody is active, I need to call for an election
     {
     // By waiting, other nodes that are booting can come up.  This makes the system more consistently elect a particular node as ACTIVE when the cluster is started.  Note that this is just convenient for users, it does not matter to the system which node is elected active.
@@ -469,6 +471,7 @@ int main(int argc, char* argv[])
     firstTime = false;
 #endif
     }
+#endif
 
   while(!quitting)  // Active/Standby transition loop
     {
@@ -504,10 +507,10 @@ int main(int argc, char* argv[])
       {  // Something changed in the group.
       firstTime=false;
 #ifdef GRP
-      activeStandbyPairs.first = clusterGroup.getActive();
-      activeStandbyPairs.second = clusterGroup.getStandby();
+      activeStandbyPairs = clusterGroup.getRoles();
       assert((activeStandbyPairs.first != activeStandbyPairs.second) || ((activeStandbyPairs.first == INVALID_HDL)&&(activeStandbyPairs.second == INVALID_HDL)) );
-      if ((activeStandbyPairs.first == INVALID_HDL)||(activeStandbyPairs.second == INVALID_HDL)) clusterGroup.elect();
+      // now election occurs automatically, so just need to wait for it.
+      // if ((activeStandbyPairs.first == INVALID_HDL)||(activeStandbyPairs.second == INVALID_HDL)) clusterGroup.elect();
 #endif
       if (myRole == Group::IS_ACTIVE) 
         {

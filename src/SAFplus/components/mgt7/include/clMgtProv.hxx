@@ -261,11 +261,20 @@ template <class T> void MgtProv<T>::xset(const void *pBuffer, ClUint64T buffLen,
 
 template <class T> bool MgtProv<T>::set(const T& val, SAFplus::Transaction& t)
   {
-  if (&t == &SAFplus::NO_TXN) value = val;
+  if (&t == &SAFplus::NO_TXN)
+  {
+    value = val;
+    MgtObject *r = root();
+    r->headRev = r->headRev + 1;
+  }
   else
     {
+    MgtObject *r = root();
     SimpleTxnOperation<T> *opt = new SimpleTxnOperation<T>(&value,val);
+    ClUint32T newHeadRev = r->headRev + 1;
+    SimpleTxnOperation<ClUint32T> *opt2 = new SimpleTxnOperation<ClUint32T>(&(r->headRev),newHeadRev);
     t.addOperation(opt);
+    t.addOperation(opt2);
     }
   }
 
@@ -319,7 +328,11 @@ ClBoolT MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transac
 
     ProvOperation<T> *opt = new ProvOperation<T>;
     opt->setData(this, (void *)valstr, strlen((char *)valstr) + 1);
+    MgtObject *r = root();
+    ClUint32T newHeadRev = r->headRev + 1;
+    SimpleTxnOperation<ClUint32T> *opt2 = new SimpleTxnOperation<ClUint32T>(&(r->headRev),newHeadRev);
     t.addOperation(opt);
+    t.addOperation(opt2);
 
     xmlFree(valstr);
     xmlFreeTextReader(reader);
