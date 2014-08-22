@@ -273,14 +273,15 @@ void SAFplusI::CkptSynchronization::operator()()
     logInfo("SYNC","TRD","checkpoint synchronization thread");
 
     // Step one: initial synchronization
-    Handle active = group->getActive();
-
-    while (active == INVALID_HDL)
+    Handle active;
+    do
       {
-      // TODO what here?  maybe call for election?
-      std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs = group->elect();
-      active = activeStandbyPairs.first;
-      }
+      active = group->getActive();
+      if (active == INVALID_HDL) // TODO should be a group wake API
+        {
+        boost::this_thread::sleep(boost::posix_time::milliseconds(250));
+        }
+      } while (active == INVALID_HDL);
 
     if (1)
       {

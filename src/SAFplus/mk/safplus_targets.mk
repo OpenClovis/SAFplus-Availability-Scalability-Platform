@@ -104,13 +104,11 @@ $(SAFPLUS_TARGET)/bin/protoc-gen-rpc:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/rpc
 endif
 
-SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg  $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine
+SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg  $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt
 
-# $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
+#  $(SAFPLUS_TARGET)/bin/splogd $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
 
-SAFplusServices := 
-# $(SAFPLUS_TARGET)/bin/safplus_amf
-# $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
+SAFplusServices :=  $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
 
 SAFplusTools := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
 

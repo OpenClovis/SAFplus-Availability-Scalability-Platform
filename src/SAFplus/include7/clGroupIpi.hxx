@@ -32,6 +32,7 @@ namespace SAFplusI
     MSG_ELECT_REQUEST,
     MSG_UNDEFINED
   };
+
   enum class GroupRoleNotifyTypeT
   {
     ROLE_ACTIVE,
@@ -67,7 +68,7 @@ namespace SAFplusI
     {
     public:
     uint64_t       structId;
-    pid_t          rep;     // This is the node representative
+    pid_t          rep;        // This is the node representative
     uint8_t        activeCopy; // set to 0 or 1 to indicate the "readable" copy.
     };
 
@@ -228,16 +229,27 @@ namespace SAFplusI
   typedef boost::interprocess::allocator<GroupShmEntry, boost::interprocess::managed_shared_memory::segment_manager> GroupEntryAllocator;
   typedef boost::unordered_map < SAFplus::Handle, GroupShmEntry, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle>,GroupEntryAllocator> GroupShmHashMap;
 
+  // Some local data about the groups -- what the last shared memory change is that we handled, and the list of group objects per shared memory group.
+  typedef std::pair<uint64_t,std::list<SAFplus::Group*> > GroupChangeMapValue;
+  typedef std::pair<const SAFplus::Handle,GroupChangeMapValue > GroupChangeMapPair;
+  typedef boost::unordered_map < SAFplus::Handle, GroupChangeMapValue, boost::hash<SAFplus::Handle>, std::equal_to<SAFplus::Handle> > GroupChangeMap;
+
   class GroupSharedMem
     {
     public:
     SAFplus::ProcSem mutex;  // protects the shared memory region from simultaneous access
+    SAFplus::Mutex  localMutex;
+    GroupChangeMap lastChange;
     boost::interprocess::managed_shared_memory groupMsm;
     SAFplusI::GroupShmHashMap* groupMap;
     SAFplusI::GroupShmHeader* groupHdr;
     void init();
     void dbgDump(void);
+    void dispatcher(void);
     GroupShmEntry* createGroup(SAFplus::Handle grp);
+
+    void registerGroupObject(SAFplus::Group* grp);
+    void deregisterGroupObject(SAFplus::Group* grp);
     };
 
 class GroupServer:public SAFplus::MsgHandler

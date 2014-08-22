@@ -37,24 +37,35 @@ char* Group::capStr(uint cap, char* buf)
 
 //GroupList allGroups;
 
+
   Group::Group()
     {
     groupMsgServer = NULL;
+    wakeable = NULL;
+    }
+ 
+  Group::Group(Handle groupHandle, int comPort)
+    {
+    wakeable = NULL;
+    groupMsgServer = NULL;
+    init(groupHandle, comPort);
     }
 
   Group::~Group()
     {
+    if (wakeable)
+      {
+      wakeable = NULL;
+      gsm.deregisterGroupObject(this);
+      }
+
     if (myInformation.id != INVALID_HDL)
       {
       deregister();
       }
     }
 
-  Group::Group(Handle groupHandle, int comPort)
-    {
-    groupMsgServer = NULL;
-    init(groupHandle, comPort);
-    }
+
 
   void Group::init(Handle groupHandle, int comPort)
     {
@@ -85,11 +96,13 @@ char* Group::capStr(uint cap, char* buf)
     return getRoles().first;
     }
 
+
   // Get the current standby entity.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
   EntityIdentifier Group::getStandby(void)
     {
     return getRoles().second;
     }
+
 
   // Get the current active/standby.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
   std::pair<EntityIdentifier,EntityIdentifier> Group::getRoles()
@@ -111,6 +124,7 @@ char* Group::capStr(uint cap, char* buf)
     return false;
     }
 
+#if 0
   // Calls for an election with specified role
   std::pair<EntityIdentifier,EntityIdentifier>  Group::elect(SAFplus::Wakeable& wake)
     {
@@ -118,6 +132,7 @@ char* Group::capStr(uint cap, char* buf)
     clDbgNotImplemented();
     return ret;
     }
+#endif
 
   // triggers an election if not already running and returns (mostly for internal use)
   void Group::startElection(void)
@@ -128,7 +143,30 @@ char* Group::capStr(uint cap, char* buf)
       }
     }
 
+void Group::setNotification(SAFplus::Wakeable& w)
+  {
+  if (!wakeable) gsm.registerGroupObject(this);
+  wakeable = &w;
+  }
 
+  uint64_t Group::lastChange()
+    {
+      GroupShmHashMap::iterator entryPtr = gsm.groupMap->find(handle);
+      if (entryPtr == gsm.groupMap->end())  // Group does not exist
+        {
+        return 0;  // new group; not even in shared memory yet.
+        }
+      else
+        {
+        GroupShmEntry *gse = &entryPtr->second;
+        if (!gse) return 0;  // should never happen
+        else
+          {
+          const GroupData& gdr = gse->read();
+          return(gdr.lastChanged);
+          }
+        }
+    }
 
 #if 0
 /**
@@ -254,8 +292,7 @@ char* Group::capStr(uint cap, char* buf)
           const GroupIdentity* gi = gdr.find(me);
           if (!gi) 
             {
-            logWarning("GMS", "DER","Attempt to deregister entity that is not registered.");
-            return;
+            logWarning("GMS", "DER","Attempting to deregister entity that is not registered.  This may legitimately occur if an entity is deregistered right after registration");
             }
           }
         }

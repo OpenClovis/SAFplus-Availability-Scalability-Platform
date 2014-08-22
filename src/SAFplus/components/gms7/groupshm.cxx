@@ -19,10 +19,76 @@ namespace SAFplusI
 ClRcT groupIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie);
 
 GroupServer::GroupServer()
- { groupCommunicationPort=GMS_IOC_PORT; }
+ { 
+ groupCommunicationPort=GMS_IOC_PORT; 
+ groupMsgServer = NULL;
+ }
 
+void GroupSharedMem::registerGroupObject(Group* grp)
+  {
+  ScopedLock<Mutex> lock2(localMutex);
+  GroupChangeMap::iterator val = lastChange.find(grp->handle);
 
+  // If the group does not exist in the local hash table, we need to look up the lastChange in shared memory
+  if (val == lastChange.end())
+    {
+    lastChange[grp->handle].first = grp->lastChange();
+    }
 
+  lastChange[grp->handle].second.push_back(grp);
+  }
+
+void GroupSharedMem::deregisterGroupObject(Group* grp)
+  {
+  //GroupChangeMap::iterator val = lastChange.find(grp->handle);
+  ScopedLock<Mutex> lock2(localMutex);
+  lastChange[grp->handle].second.remove(grp);
+  }
+
+static void runDispatcher(void * gsm)
+  {
+  ((GroupSharedMem*) gsm)->dispatcher();
+  }
+
+// This thread wakes whenever any group changes and then wakes the interested groups
+void GroupSharedMem::dispatcher()
+  {
+  while(1)
+    {
+    boost::this_thread::sleep(boost::posix_time::milliseconds(250));  // TODO: should be woken via a global sem...
+    if (1)
+      {
+      ScopedLock<Mutex> lock2(localMutex);
+      ScopedLock<ProcSem> lock(mutex);
+      SAFplusI::GroupShmHashMap::iterator i;
+      for (i=groupMap->begin(); i!=groupMap->end();i++)
+        {
+        SAFplus::Handle grpHdl = i->first;
+        GroupShmEntry& ge = i->second;
+        const GroupData& gd = ge.read();
+      
+        GroupChangeMap::iterator val = lastChange.find(grpHdl);  // Get our local last change
+        if (val != lastChange.end()) // I am interested in changes in this group
+          {
+          if (gd.lastChanged != val->second.first)
+            {
+            val->second.first = gd.lastChanged;  // Ok will process all the callbacks for this change so set my local change count to the current one
+            std::list<Group*>::iterator git = val->second.second.begin();
+            for (; git != val->second.second.end(); git++)
+              {
+              if ((*git)->wakeable) 
+                {
+                mutex.unlock();
+                (*git)->wakeable->wake(1,(void*) *git);
+                mutex.lock();
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 
 void GroupSharedMem::dbgDump(void)
   {
@@ -78,7 +144,12 @@ void GroupSharedMem::init()
   //groupMap = new GroupShmHashMap();
   groupMap = groupMsm.find_or_construct<GroupShmHashMap>("groups")  (groupMsm.get_allocator<GroupMapPair>());
   // TODO assocData = groupMsm.find_or_construct<CkptHashMap>("data") ...
+
+  //start dispatcher thread
+
+    boost::thread(runDispatcher, this);
   }
+
 
 void GroupServer::init()
   {
@@ -391,7 +462,13 @@ void GroupServer::handleRoleNotification(GroupShmEntry* ge, SAFplusI::GroupMessa
           {
           data->setStandby(announce[1]);
           }
-        data->lastChanged = (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count();
+
+        // Make data->lastChanged a monotonically increasing clock by generally using the time, but adding 1 in case the time is 
+        // the same as the prior change time
+        uint64_t temp = (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count();
+        if (temp <= data->lastChanged) data->lastChanged = temp+1;
+        else data->lastChanged = temp;
+
         ge->flip();
         logInfo("GMS","ROL","Role change announcement active [%lx:%lx] standby [%lx:%lx]", announce[0].id[0],announce[0].id[1],announce[1].id[0],announce[1].id[1]);
 

@@ -14,7 +14,7 @@ SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PL
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -I../../rpc -I./amfRpc
 
 # Specify the required libraries
-SAFPLUS_LIBS := clRpc clMgt7 clGroup clName clCkpt clIoc7 clUtils7 clLog clOsal7 
+SAFPLUS_LIBS := clRpc clMgt7 clName clCkpt clGroup clIoc7 clUtils7 clLog clOsal7 
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))

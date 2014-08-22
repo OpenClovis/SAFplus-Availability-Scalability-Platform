@@ -21,11 +21,12 @@ int testRegisterAndDeregister(int mode);
 static unsigned int MAX_MSGS=25;
 static unsigned int MAX_HANDLER_THREADS=2;
 ClBoolT   gIsNodeRepresentative = CL_FALSE;
+void testChanges(void);
 
 namespace SAFplusI
-{
-extern GroupSharedMem gsm;
-};
+  {
+  extern GroupSharedMem gsm;
+  };
 
 int main(int argc, char* argv[])
 {
@@ -39,10 +40,65 @@ int main(int argc, char* argv[])
   safplusMsgServer.Start();
 
   testRegisterAndDeregister(0);
+  testChanges();
 
   return 0;
 }
 
+class GroupChangeHandler:public Wakeable
+  {
+  public:
+  int changeCount;
+  GroupChangeHandler():changeCount(0) {}
+  void wake(int amt,void* cookie=NULL);
+  };
+
+void GroupChangeHandler::wake(int amt,void* cookie)
+  {
+  changeCount++;
+  Group* g = (Group*) cookie;
+  logInfo("TEST","GRP", "Group [%lx:%lx] changed", g->handle.id[0],g->handle.id[1]);
+
+  Group::Iterator i;
+  char buf[100];
+  for (i=g->begin(); i != g->end(); i++)
+    {
+    const GroupIdentity& gid = i->second;
+    logInfo("TEST","GRP", "  Entity [%lx:%lx] on node [%d] credentials [%ld] capabilities [%d] %s", gid.id.id[0],gid.id.id[1],gid.id.getNode(),gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
+    }
+  }
+
+void testChanges()
+  {
+  Handle gh1 = Handle::create();
+
+  GroupChangeHandler gch;
+  Group notifier(gh1);  // just for monitoring the other group's joining and leaving
+  notifier.setNotification(gch);
+  sleep(1);
+  // test same group object register/deregister
+  Handle e1 = Handle::create();
+  notifier.registerEntity(e1,1,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
+  sleep(1);
+  notifier.deregister();
+  sleep(1);
+  assert(gch.changeCount == 2 || gch.changeCount == 3); // register, maybe elect (races with deregister), deregister = 2/3 changes
+
+  gch.changeCount = 0;  // reset for next test
+
+  if (1)
+    {
+    Group grpa1(gh1);
+    grpa1.registerEntity(e1,1,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
+    Group grpa2(gh1);
+    Handle e2 = Handle::create();
+    grpa2.registerEntity(e2,2,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
+    sleep(10);
+
+    assert(gch.changeCount == 2); // register, register will happen within one change, then elect
+    }
+
+  }
 
 int testRegisterAndDeregister(int mode)
 {
@@ -51,6 +107,10 @@ int testRegisterAndDeregister(int mode)
   Handle gh1 = Handle::create();
 
   Group grpa1(gh1);
+  //GroupChangeHandler gch;
+  //Group notifier(gh1);  // just for monitoring the other group's joining and leaving
+  //notifier.setNotification(gch);
+
   sleep(1);
   SAFplusI::gsm.dbgDump();  // should be just the one group.
 
@@ -88,7 +148,7 @@ int testRegisterAndDeregister(int mode)
 
   SAFplusI::gsm.dbgDump();  // should be 2 groups + 2 entities.  The same handles can join multiple groups...
 
-  assert(0); // force failure without running deregister
+  //assert(0); // force failure without running deregister
 
   return 0;
 }
