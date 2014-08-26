@@ -244,6 +244,7 @@ namespace SAFplusI
     SAFplusI::GroupShmHashMap* groupMap;
     SAFplusI::GroupShmHeader* groupHdr;
     void init();
+    void clear();
     void dbgDump(void);
     void dispatcher(void);
     GroupShmEntry* createGroup(SAFplus::Handle grp);

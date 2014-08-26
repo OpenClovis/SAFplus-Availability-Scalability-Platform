@@ -111,6 +111,25 @@ void GroupSharedMem::dbgDump(void)
     }
   }
 
+void GroupSharedMem::clear()
+  {
+  ScopedLock<Mutex> lock2(localMutex);
+  ScopedLock<ProcSem> lock(mutex);
+  SAFplusI::GroupShmHashMap::iterator i;
+  for (i=groupMap->begin(); i!=groupMap->end();i++)
+    {
+    SAFplus::Handle grpHdl = i->first;
+    GroupShmEntry& ge = i->second;
+    GroupData& gw = ge.write();
+    gw.activeIdx = 0xffff;
+    gw.standbyIdx = 0xffff;
+    gw.numMembers = 0;
+    ge.clearElectionFlag();
+    ge.flip();
+    }
+  
+  }
+
 void GroupSharedMem::init()
   {
   mutex.init("GroupSharedMem",1);
@@ -154,6 +173,7 @@ void GroupSharedMem::init()
 void GroupServer::init()
   {
   gsm.init();
+  gsm.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
   clIocNotificationRegister(groupIocNotificationCallback,this);
 
   if(!groupMsgServer)

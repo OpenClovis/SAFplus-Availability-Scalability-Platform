@@ -230,22 +230,11 @@ int main(int argc, char* argv[])
 {
   ClRcT rc;
   SAFplus::ASP_NODEADDR = 1;
-
-
   SAFplus::Handle hdl;
-  logInitialize();
-  logEchoToFd = 1;  // echo logs to stdout for debugging
-  utilsInitialize();
-
-  // initialize SAFplus6 libraries 
-  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
-    {
-    assert(0);
-    }
-
   clAspLocalId  = SAFplus::ASP_NODEADDR;  // remove clAspLocalId
-  rc = clIocLibInitialize(NULL);
-  assert(rc==CL_OK);
+
+  safplusInitialize(SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG);
+  logEchoToFd = 1;  // echo logs to stdout for debugging
 
   safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
   safplusMsgServer.Start();

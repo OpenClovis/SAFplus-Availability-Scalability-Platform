@@ -96,19 +96,21 @@ namespace SAFplus
 
     if(0 == pid) // In the new process
       {
+      SAFplus::pid = pid = getpid();  // Set the global pid variable briefly in case there are logs before spawning
+
       if(flags & Process::CreateNewSession)
         {
         sid = setsid ();
         }
       if(flags & Process::CreateNewGroup)
         {
-        pid = getpid();
         /* Set the process group id to its own pid */
         setpgid (pid, 0);
         }
       execvpe(charstrs[0], &charstrs[0], &envpchars[0]);  // if works will not return
       int err = errno;
-      logAlert("OS","PRO","Program [%s] execution failed with error [%s (%d)]",charstrs[0], strerror(err),err);
+      char temp[200];
+      logAlert("OS","PRO","Program [%s] execution failed with error [%s (%d)].  Working directory [%s]",charstrs[0], strerror(err),err, getcwd(temp,200));
       // If the error is understood, exit.  Otherwise assert
       if (err == ENOENT) exit(0); // Expected error; user did not give a valid executable
       if (err == EACCES) exit(0); // Expected error; permissions are not correct

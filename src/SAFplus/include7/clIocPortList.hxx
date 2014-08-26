@@ -7,7 +7,11 @@ namespace SAFplusI
     AMF_IOC_PORT = 1,
     LOG_IOC_PORT = 2,
     MGT_IOC_PORT = 3,
+#ifdef AMF_GRP_NODE_REPRESENTATIVE  // If the AMF is handling the group server functionality, then the GMS port will be the same as the AMF port
+    GMS_IOC_PORT = AMF_IOC_PORT,
+#else  // otherwise give it a unique port
     GMS_IOC_PORT = 4,
+#endif
     };
 
   enum

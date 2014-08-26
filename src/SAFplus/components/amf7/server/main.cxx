@@ -29,7 +29,11 @@
 #include "amfRpc/amfRpc.pb.h"
 #include "amfRpc/amfRpc.hxx"
 
-#define GRP
+#define USE_GRP
+
+#ifdef AMF_GRP_NODE_REPRESENTATIVE
+#include <clGroupIpi.hxx>
+#endif
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -67,7 +71,7 @@ public:
   };
 
 volatile bool    quitting=false;  // Set to true to tell all threads to quit
-#ifdef GRP
+#ifdef USE_GRP
 Group            clusterGroup;
 #endif
 ClusterGroupData clusterGroupData;  // The info we tell other nodes about this node.
@@ -104,12 +108,14 @@ void activeAudit()  // Check to make sure DB and the system state are in sync
   RedPolicyMap::iterator it;
 
   logDebug("AUD","ACT","Active Audit -- Nodes");
-  
-#if 0
+
   Group::Iterator end = clusterGroup.end();
   for (Group::Iterator it = clusterGroup.begin();it != end; it++)
     {
-    Handle hdl = it->first;
+    Handle hdl = it->first;  // same as gi->id
+    const GroupIdentity* gi = &it->second;
+    logInfo("AUD","NOD","Node handle [%lx.%lx], [%lx.%lx], ",hdl.id[0],hdl.id[1],gi->id.id[0],gi->id.id[1]);
+#if 0
     ClusterGroupData* data = (ClusterGroupData*) it->second;
     if (data)
       {
@@ -120,9 +126,8 @@ void activeAudit()  // Check to make sure DB and the system state are in sync
       {
       logInfo("AUD","NOD","Node handle [%lx.%lx]",hdl.id[0],hdl.id[1]);
       }
-    }
 #endif
-
+    }
   logDebug("AUD","ACT","Active Audit -- Applications");
   for (it = redPolicies.begin(); it != redPolicies.end();it++)
     {
@@ -250,6 +255,7 @@ static ClRcT cpmStrToInt(const ClCharT *str, ClUint32T *pNumber)
 
 int parseArgs(int argc, char* argv[])
   {
+  // NOTE: logs must use printf because this function is called before logs are initialized
   ClInt32T option = 0;
   ClInt32T nargs = 0;
   ClRcT rc = CL_OK;
@@ -283,7 +289,7 @@ int parseArgs(int argc, char* argv[])
           rc = cpmStrToInt(optarg, &chassisId);
           if (CL_OK != rc) 
             {
-            clLogError("AMF","BOOT","[%s] is not a valid chassis id.", optarg);
+            printf("[%s] is not a valid chassis id.", optarg);
             return -1;
             }
           break;
@@ -294,7 +300,7 @@ int parseArgs(int argc, char* argv[])
         SAFplus::ASP_NODEADDR = temp;
         if (CL_OK != rc)
           {
-          logError("AMF","BOOT", "[%s] is not a valid slot id, ", optarg);
+          printf("[%s] is not a valid slot id, ", optarg);
           return -1;
           }
         ++nargs;
@@ -313,11 +319,11 @@ int parseArgs(int argc, char* argv[])
         break;
 #endif            
         case '?':
-          logError("AMF","BOOT", "Unknown option [%c]", optopt);
+          printf("Unknown option [%c]", optopt);
           return -1;
           break;
         default :   
-          logError("AMF","BOOT", "Unknown error");
+          printf("Unknown error");
           return -1;
           break;
         }
@@ -340,31 +346,20 @@ int main(int argc, char* argv[])
   ThreadCondition somethingChanged;
   bool firstTime=true;
 
-  logInitialize();
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
 
   if (parseArgs(argc,argv)<=0) return -1;
 
-  utilsInitialize();
+  clAspLocalId  = SAFplus::ASP_NODEADDR;  // TODO: remove clAspLocalId
 
-  ClRcT rc;
-  // initialize SAFplus6 libraries 
-  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
-    {
-    assert(0);
-    }
+  safplusInitialize(SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG);
 
-  clAspLocalId  = SAFplus::ASP_NODEADDR;  // remove clAspLocalId
-  rc = clIocLibInitialize(NULL);
-  assert(rc==CL_OK);
-
-  SAFplus::SafplusMsgServer safplusMsgServer(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
+  SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
   SAFplus::Rpc::amfRpc::amfRpcImpl amfRpcMsgHandler;
   // Handle RPC
   //Start Sever RPC
   ClIocAddressT dest;
-  //*((uint64_t*) &dest) = CL_IOC_ADDRESS_FORM(CL_IOC_PHYSICAL_ADDRESS_TYPE,SAFplus::ASP_NODEADDR,SAFplusI::AMF_IOC_PORT);
 
   dest.iocPhyAddress.nodeAddress = SAFplus::ASP_NODEADDR;  //CL_IOC_BROADCAST_ADDRESS;
   dest.iocPhyAddress.portId = SAFplusI::AMF_IOC_PORT;
@@ -373,6 +368,11 @@ int main(int argc, char* argv[])
   channel->setMsgType(AMF_REQ_HANDLER_TYPE, AMF_REPLY_HANDLER_TYPE);
   channel->service = &amfRpcMsgHandler;
   //End server TPC
+
+#ifdef AMF_GRP_NODE_REPRESENTATIVE
+  SAFplusI::GroupServer gs;
+  gs.init();
+#endif
 
   safplusMsgServer.Start();
 
@@ -393,6 +393,8 @@ int main(int argc, char* argv[])
   
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
+  if (SAFplus::ASP_NODENAME[0] == 0) strcpy(SAFplus::ASP_NODENAME,"sc0");  // TEMPORARY initialization
+  assert(SAFplus::ASP_NODENAME);
 
   myHandle = SAFplus::Handle(TransientHandle,1,SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
   // Register a mapping between this node's name and its handle.
@@ -403,6 +405,8 @@ int main(int argc, char* argv[])
   ClMgtDatabase *db = ClMgtDatabase::getInstance();
   db->initializeDB("SAFplusAmf");
   //cfg.read(db);
+
+  // TEMPORARY testing initialization
   createTestDataSet(&cfg);
   setAdminState((SAFplusAmf::ServiceGroup*) cfg.serviceGroupList["sg0"],AdministrativeState::on);
 
@@ -413,7 +417,7 @@ int main(int argc, char* argv[])
 
   loadAmfPlugins(amfOps);
 
-#ifdef GRP
+#ifdef USE_GRP
   clusterGroup.init(CLUSTER_GROUP);
   clusterGroup.setNotification(somethingChanged);
 #endif
@@ -439,7 +443,7 @@ int main(int argc, char* argv[])
     capabilities = 0;
     }
 
-#ifdef GRP
+#ifdef USE_GRP
   clusterGroupData.structId = 0x67839345;
   clusterGroupData.nodeAddr = SAFplus::ASP_NODEADDR;
   clusterGroupData.nodeMgtHandle = INVALID_HDL;
@@ -450,7 +454,7 @@ int main(int argc, char* argv[])
   logInfo("AMF","HDL", "I AM [%lx:%lx]", myHandle.id[0],myHandle.id[1]);
 
   std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs;
-#ifdef GRP
+#ifdef USE_GRP
   activeStandbyPairs = clusterGroup.getRoles();
   logInfo("AMF","BOOT", "Active [%lx:%lx] Standby: [%lx:%lx]", activeStandbyPairs.first.id[0],activeStandbyPairs.first.id[1],activeStandbyPairs.second.id[0],activeStandbyPairs.second.id[1]);
   //activeStandbyPairs.first = clusterGroup.getActive();
@@ -463,7 +467,7 @@ int main(int argc, char* argv[])
     // By waiting, other nodes that are booting can come up.  This makes the system more consistently elect a particular node as ACTIVE when the cluster is started.  Note that this is just convenient for users, it does not matter to the system which node is elected active.
     // Commented out because the election has a 10 second delay
     // boost::this_thread::sleep(boost::posix_time::milliseconds(STARTUP_ELECTION_DELAY_MS));
-#ifdef GRP
+#ifdef USE_GRP
     activeStandbyPairs = clusterGroup.elect();
     // GAS TODO:  What errors can be returned?
 #else
@@ -506,7 +510,7 @@ int main(int argc, char* argv[])
     else
       {  // Something changed in the group.
       firstTime=false;
-#ifdef GRP
+#ifdef USE_GRP
       activeStandbyPairs = clusterGroup.getRoles();
       assert((activeStandbyPairs.first != activeStandbyPairs.second) || ((activeStandbyPairs.first == INVALID_HDL)&&(activeStandbyPairs.second == INVALID_HDL)) );
       // now election occurs automatically, so just need to wait for it.

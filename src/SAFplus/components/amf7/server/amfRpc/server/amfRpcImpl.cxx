@@ -40,8 +40,9 @@ namespace amfRpc {
 
   try
     {
-    Process p = executeProgram(request->name(), env);
-    logInfo("OPS","SRT","Launched Component [%s] as [%s] with process id [%d]", request->name().c_str(),request->command().c_str(),p.pid);
+    char temp[200];
+    Process p = executeProgram(request->command().c_str(), env);
+    logInfo("OPS","SRT","Launched Component [%s] as [%s] with process id [%d], working directory [%s]", request->name().c_str(),request->command().c_str(),p.pid,getcwd(temp,200));
     response->set_pid(p.pid);
     response->set_err(0);
     }

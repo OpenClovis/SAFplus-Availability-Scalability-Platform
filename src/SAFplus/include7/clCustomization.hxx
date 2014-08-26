@@ -3,6 +3,9 @@
 #ifndef CL_CUSTOMIZATION_HXX
 #define CL_CUSTOMIZATION_HXX
 /* Configuration parameters that are part of the API */
+
+#define AMF_GRP_NODE_REPRESENTATIVE // Indicates that the AMF will act as the one-per-node GRP membership shared memory maintainer, rather than a standalone safplus_group process
+
 namespace SAFplus
   {
     enum

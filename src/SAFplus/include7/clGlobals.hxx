@@ -52,10 +52,13 @@ namespace SAFplus
 
 /* SAFplus initialization */
 
-   /* Library sets */
-  enum class LibSet
+class LibSet
   {
-    RPC=1, /* defferred */
+  public:
+   /* Library sets */
+  enum
+  {
+    RPC=1, /* deferred */
     CKPT=2,
     IOC=4,
     UTILS=8,
@@ -67,6 +70,9 @@ namespace SAFplus
     TIMER=0x200,
     DBAL=0x400
   };
+  };
+
+#if 0
   /* LibSet operators overload */
   inline constexpr uint32_t operator*(LibSet ls)
   {
@@ -92,26 +98,28 @@ namespace SAFplus
   {
    return static_cast<LibSet>(ld | (*ls));
   }
+#endif
 
+  class LibDep
+  {
+  public:
   /* Library dependencies */
-  enum class LibDep
+  enum Bits
   {
     LOG = LibSet::LOG | LibSet::OSAL | LibSet::UTILS,
     OSAL = LibSet::OSAL | LibSet::LOG | LibSet::UTILS,
     UTILS = LibSet::UTILS | LibSet::OSAL,
     IOC = LibSet::IOC | LibSet::LOG |  LibSet::UTILS | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
-    #if 0
-    CKPT = LibSet::CKPT | LibSet::IOC | LibSet::UTILS | LibSet::GRP,
-    GRP = LibSet::GRP | LibSet::CKPT | LibSet::IOC,
-    #endif
-    // CKPT and GRP itself initialized when its instance is created    
-    CKPT = LibDep::IOC | LibDep::UTILS,
     GRP = LibSet::GRP | LibDep::IOC,
+    CKPT = LibSet::CKPT | LibDep::GRP | LibDep::IOC | LibDep::UTILS,
     HEAP = LibSet::HEAP,
     BUFFER = LibSet::BUFFER,
     TIMER = LibSet::TIMER,
     DBAL = LibSet::DBAL | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER
   };
+  };
+
+#if 0
   /* LibDep operators overload */
   inline uint32_t operator*(LibDep ld)
   { 
@@ -120,7 +128,7 @@ namespace SAFplus
 
   inline LibDep operator|(LibDep lld, LibDep rld)
   {
-    return static_cast<LibDep>((*lld) | (*rld));
+    return static_cast<LibDep>(((unsigned int) lld) | ((unsigned int) rld));
   }
 
   inline bool operator&(LibDep lld, LibDep rld)
@@ -131,7 +139,9 @@ namespace SAFplus
   inline bool operator&(LibDep ld, LibSet ls)
   {
     return ((*ld) & (*ls)) != 0;
-  }  
+  }
+
+#endif
 
   extern void utilsInitialize() __attribute__((weak));
   extern Logger* logInitialize(void) __attribute__((weak));    
@@ -150,7 +160,7 @@ extern "C" {
 
   extern void groupInitialize(void) __attribute__((weak));
 
-  inline void safplusInitialize(LibDep svc)
+  inline void safplusInitialize(unsigned int svc)
   {
     ClRcT rc;
     if(svc&LibSet::LOG)
@@ -192,8 +202,7 @@ extern "C" {
 
     if((svc&LibSet::GRP)&&SAFplus::groupInitialize) 
       { 
-      SAFplus::groupInitialize(); 
-      
+      SAFplus::groupInitialize();
       }
   }
 

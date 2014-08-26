@@ -16,7 +16,7 @@ int main(int argc,char *argv[])
   SAFplus::logEchoToFd = 1;  // echo logs to stdout for debugging
   SAFplus::logSeverity = SAFplus::LOG_SEV_MAX;
 
-  safplusInitialize(SAFplus::LibDep::IOC);
+  SAFplus::safplusInitialize(SAFplus::LibDep::GRP | SAFplus::LibDep::IOC | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG);
 
   SAFplus::safplusMsgServer.init(SAFplusI::GMS_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
 
