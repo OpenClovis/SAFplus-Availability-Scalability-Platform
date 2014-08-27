@@ -285,7 +285,7 @@ ClBoolT MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transac
     int             ret, nodetyp, depth;
     std::stringstream ss;
 #ifndef SAFplus7
-    clLogDebug("MGT", "OBJ", "Validate [%.*s] ", (int) buffLen, (const char*)pBuffer);
+    logDebug("MGT", "OBJ", "Validate [%.*s] ", (int) buffLen, (const char*)pBuffer);
 #endif
     xmlTextReaderPtr reader = xmlReaderForMemory((const char*)pBuffer, buffLen, NULL,NULL, 0);
     if(!reader)
@@ -304,7 +304,9 @@ ClBoolT MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transac
 
     if (strcmp((char *)namestr, name.c_str()))
     {
-        //logDebug("MGT","PROV","Name [%s], XML [%s]",name.c_str(),(char *)namestr);
+#ifdef MGT_DEBUG
+        logDebug("MGT","PROV","Name [%s], XML [%s]",name.c_str(),(char *)namestr);
+#endif
         xmlFreeTextReader(reader);
         return CL_FALSE;
     }

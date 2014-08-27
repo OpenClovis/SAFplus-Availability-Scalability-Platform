@@ -1,6 +1,7 @@
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtProvList.hxx"
+#include "MgtFactory.hxx"
 #include "clMgtList.hxx"
 #include <stdio.h>
 #include <string>
@@ -27,10 +28,9 @@ class multipleKey
       }
       bool operator<(const multipleKey k2) const
       {
-        if(key3 < k2.key3)
-          return true;
-        else
-          return false;
+        string mine = this->str();
+        string other = k2.str();
+        return other < mine;
       }
       void build(std::map<std::string,std::string> keyList)
       {
@@ -55,10 +55,12 @@ class multipleKey
       std::string toXmlString() const
       {
         std::stringstream ss;
-        ss << "key1=\"" << key1 << "\" " << "key2=\"" << key2 << "\" " << "key3=\"" << key3 << "\" ";
+        ss << "[";
+        ss << "key1=" << key1 << "," << "key2=" << key2 << "," << "key3=" << key3;
+        ss << "]";
         return ss.str();
       }
-      std::string str()
+      std::string str() const
       {
         std::stringstream ss;
         ss << key1 << key2 << key3 ;
@@ -78,6 +80,41 @@ class TestObject : public MgtObject
       }
     void toString(std::stringstream& xmlString) {};
   };
+
+class TestListObject: public MgtContainer
+{
+    MGT_REGISTER(TestListObject);
+  public:
+    MgtProv<std::string> obj_name;
+    MgtProv<std::string>  obj_value;
+    TestListObject(const char* objName): MgtContainer("mylist"),obj_name("obj_name"),obj_value("obj_value")
+    {
+      this->addChildObject(&obj_name,"obj_name");
+      this->addChildObject(&obj_value,"obj_value");
+    }
+    ~TestListObject()
+    {
+    }
+};
+class TestListMultikeyObject: public MgtContainer
+{
+    MGT_REGISTER(TestListMultikeyObject);
+  public:
+    MgtProv<int> key1;
+    MgtProv<int>  key2;
+    MgtProv<std::string> key3;
+    MgtProv<std::string> data;
+    TestListMultikeyObject(const char* objName): MgtContainer("mylist"),key1("key1"),key2("key2"),key3("key3"),data("data")
+    {
+      this->addChildObject(&key1,"key1");
+      this->addChildObject(&key2,"key2");
+      this->addChildObject(&key3,"key3");
+      this->addChildObject(&data,"data");
+    }
+    ~TestListMultikeyObject()
+    {
+    }
+};
 
 /*
  * This test case make sure a ClMgtProv object work with the Transaction
@@ -349,24 +386,28 @@ void testGarbage()
 
 void testMgtStringList()
 {
-  const char* xmlTest = "<mylist><testobj1 name=\"hello\" dummy=\"testval\"><name>testobj1_newname</name></testobj1></mylist>";
+
   logDebug("MGT","TEST","Start test case string list");
+  /**
+   * Initialize
+   */
   MgtList<std::string> stringList("mylist");
-  stringList.setListKey("name");
-  std::stringstream teststream;
-  MgtProv<std::string> testObject1("testobj1");
-  testObject1.value = "testobj1val";
-  MgtProv<std::string> testObject2("testobj2");
-  testObject2.value = "testobj2val";
-  MgtProv<std::string> testObject3("testobj3");
-  testObject3.value = "testobj3val";
-  std::string objKey1("hello");
-  std::string objKey2("world");
-  std::string objKey3("python");
-  std::string objKey4("hello");
-  stringList.addChildObject(&testObject1,objKey1);
-  stringList.addChildObject(&testObject2,objKey2);
-  stringList.addChildObject(&testObject3,objKey3);
+  stringList.setListKey("obj_name");
+  std::string objKey[3] = {"hello","world","!!"};
+  TestListObject testObject1("testobj1");
+  testObject1.obj_value.value = "AAA";
+  stringList.addChildObject(&testObject1,objKey[0]);
+
+  TestListObject testObject2("testobj2");
+  testObject2.obj_value.value = "BBB";
+  stringList.addChildObject(&testObject2,objKey[1]);
+
+  TestListObject testObject3("testobj3");
+  testObject3.obj_value.value = "CCC";
+  stringList.addChildObject(&testObject3,objKey[2]);
+  /**
+   * Checking size
+   */
   if(stringList.getEntrySize() == 3)
   {
     logDebug("MGT","TEST","PASS: Entry size %d ", stringList.getEntrySize());
@@ -375,46 +416,56 @@ void testMgtStringList()
   {
     logDebug("MGT","TEST","FAIL: Entry size %d ", stringList.getEntrySize());
   }
-
-  logDebug("MGT","TEST","PASS: X-PATH %s ",stringList.getFullXpath(objKey2).c_str());
-
-  logDebug("MGT","TEST","PASS: DUMPING ");
-  stringList.toString(teststream);
-  logDebug("MGT","TEST"," %s",teststream.str().c_str());
-
-  MgtObject::Iterator iter = stringList.begin();
-  while(iter != stringList.end())
-  {
-    logDebug("MGT","TEST","PASS: %s ",iter->second->name.c_str());
-    iter++;
-  }
-
-  MgtProv<std::string> *getObj = (MgtProv<std::string> *)stringList[objKey4];
-  if(testObject1.name == getObj->name)
-    logDebug("MGT","TEST","PASS: operator[]: %s ",getObj->name.c_str());
+  /**
+   * Checking xpath
+   */
+  for(int i=0; i< 3; i++)
+    logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey[i].c_str() ,stringList.getFullXpath(objKey[i]).c_str());
+  /**
+   * Check operator[]
+   */
+  TestListObject *getObj = (TestListObject *)stringList[objKey[0]];
+  if(testObject1.obj_name == getObj->obj_name)
+    logDebug("MGT","TEST","PASS: operator[]: %s ",getObj->obj_name.value.c_str());
   else
     logDebug("MGT","TEST","FAIL: operator [] ");
-
+  /**
+   * Check set function
+   */
+  const char* xmlTest = "<mylist><obj_name>hello</obj_name><obj_value>111</obj_value></mylist>";
   SAFplus::Transaction t;
-  stringList.set((void *)xmlTest,strlen(xmlTest),t);
-  logDebug("MGT","TEST","%s ",getObj->name.c_str());
+  if(stringList.set((void *)xmlTest,strlen(xmlTest),t))
+  {
+    logDebug("MGT","TEST","PASS: set operation OK. Now commit");
+    t.commit();
+    TestListObject *getObj = (TestListObject *)stringList[objKey[0]];
+    logDebug("MGT","TEST","PASS: New value: %s ",getObj->obj_value.value.c_str());
+  }
+  else
+  {
+    logDebug("MGT","TEST","FAIL: set operation failed");
+    t.abort();
+  }
   logDebug("MGT","TEST","");
 }
 void testMgtClassList()
 {
-  const char* xmlTest = "<mylist><testobj1 key1=\"2\" key2=\"2\" key3=\"Java\"><name>testobj1_newname</name></testobj1></mylist>";
+  //const char* xmlTest = "<mylist><testobj1><key1>2</key1><key2>2</key2><key3>Java</key3><name>testobj1_newname</name></testobj1></mylist>";
   logDebug("MGT","TEST","Start test case multiple key list");
-  std::stringstream teststream;
   MgtList<multipleKey> stringList("mylist");
   stringList.setListKey("key1");
   stringList.setListKey("key2");
   stringList.setListKey("key3");
-  MgtProv<std::string> testObject1("testobj1");
-  testObject1.value = "testobj1val";
-  MgtProv<std::string> testObject2("testobj2");
-  testObject2.value = "testobj2val";
-  MgtProv<std::string> testObject3("testobj3");
-  testObject3.value = "testobj3val";
+
+  TestListMultikeyObject testObject1("testobj1");
+  testObject1.data.value = "testobj1val";
+
+  TestListMultikeyObject testObject2("testobj2");
+  testObject2.data.value = "testobj2val";
+
+  TestListMultikeyObject testObject3("testobj3");
+  testObject3.data.value = "testobj3val";
+
   multipleKey objKey1(2,2,"Java");
   multipleKey objKey2(2,4,"ASPX");
   multipleKey objKey3(2,6,"C++");
@@ -422,9 +473,9 @@ void testMgtClassList()
   stringList.addChildObject(&testObject1,objKey1);
   stringList.addChildObject(&testObject2,objKey2);
   stringList.addChildObject(&testObject3,objKey3);
-
-  string xml="<root><interface key1=\"value1\" key2=\"value\"><name>eth0</name></interface><interface key1=\"value2\" key2=\"value\"><name>eth1</name></interface></root>";
-
+  /**
+   * Checking size
+   */
   if(stringList.getEntrySize() == 3)
   {
     logDebug("MGT","TEST","PASS: Entry size %d ", stringList.getEntrySize());
@@ -433,32 +484,38 @@ void testMgtClassList()
   {
     logDebug("MGT","TEST","FAIL: Entry size %d ", stringList.getEntrySize());
   }
-
-  logDebug("MGT","TEST","PASS: X-PATH %s ",stringList.getFullXpath(objKey1).c_str());
-
-  logDebug("MGT","TEST","PASS: DUMPING ");
-  stringList.toString(teststream);
-  logDebug("MGT","TEST"," %s",teststream.str().c_str());
-  MgtObject::Iterator iter = stringList.begin();
-  while(iter != stringList.end())
-  {
-    logDebug("MGT","TEST","PASS: %s ",iter->second->name.c_str());
-    iter++;
-  }
-
-  MgtProv<std::string> *getObj = (MgtProv<std::string> *)stringList[objKey4];
-  if(getObj == NULL)
-  {
-    logDebug("MGT","TEST","FAIL: operator[] Can't find object ");
-    return;
-  }
-  if(testObject2.name.compare(getObj->name) == 0)
-    logDebug("MGT","TEST","PASS: operator[]: %s ",getObj->name.c_str());
+  /**
+   * Checking xpath
+   */
+  logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey1.str().c_str() ,stringList.getFullXpath(objKey1).c_str());
+  logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey2.str().c_str() ,stringList.getFullXpath(objKey2).c_str());
+  logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey3.str().c_str() ,stringList.getFullXpath(objKey3).c_str());
+  /**
+   * Check operator[]
+   */
+  TestListMultikeyObject *getObj = (TestListMultikeyObject *)stringList[objKey1];
+  if(testObject1.key3.value == getObj->key3.value)
+    logDebug("MGT","TEST","PASS: operator[]");
   else
-    logDebug("MGT","TEST","FAIL: operator[] %s ",getObj->name.c_str());
+    logDebug("MGT","TEST","FAIL: operator []");
+  /**
+   * Check set function
+   */
+  const char* xmlTest = "<mylist><key1>2</key1><key2>4</key2><key3>ASPXX</key3><data>1111</data></mylist>";
   SAFplus::Transaction t;
-  stringList.set((void *)xmlTest,strlen(xmlTest),t);
-  logDebug("MGT","TEST","%s",getObj->name.c_str());
+  if(stringList.set((void *)xmlTest,strlen(xmlTest),t))
+  {
+    logDebug("MGT","TEST","PASS: set operation OK. Now commit");
+    t.commit();
+    TestListMultikeyObject *getObj = (TestListMultikeyObject *)stringList[objKey2];
+    logDebug("MGT","TEST","PASS: New value: %s ",getObj->data.value.c_str());
+  }
+  else
+  {
+    logDebug("MGT","TEST","FAIL: set operation failed");
+    t.abort();
+  }
+  logDebug("MGT","TEST","");
 }
 
 void testMgtBind()
@@ -471,13 +528,13 @@ void testMgtBind()
     testobject.bind(handle, "network", "/ethernet/interfaces[name='eth0']");
     //testobject.bind(handle, "network", "1.3.6.1.4.1.99840.2.1.1");
   }
-
+ClBoolT gIsNodeRepresentative = CL_TRUE;
 int main(int argc, char* argv[])
 {
     ClRcT rc = CL_OK;
 
     //GAS: initialize expose by a explicit method
-    SAFplus::ASP_NODEADDR = 0x1;
+    SAFplus::ASP_NODEADDR = 0x2;
 
     logInitialize();
     logEchoToFd = 1; // echo logs to stdout for debugging
