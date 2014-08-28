@@ -18,9 +18,13 @@ unsigned int role = 0;
 // IOC related globals
 ClUint32T clAspLocalId = 0x1;
 ClUint32T chassisId = 0x0;
-ClBoolT   gIsNodeRepresentative = CL_TRUE;
+ClBoolT   gIsNodeRepresentative = CL_FALSE; // CL_TRUE;
 
 int LoopCount=10;  // how many checkpoint records should be written during each iteration of the test.
+
+uint32_t writeCount = 0;
+
+#define TEMP_CKPT_SYNC_PORT 27
 
 SAFplus::Handle test_readwrite(Checkpoint& c1)
 {
@@ -41,9 +45,11 @@ SAFplus::Handle test_readwrite(Checkpoint& c1)
       // Write some data
       for (int i=0;i<LoopCount;i++)
         {
-          for (int j=0;j<10;j++)  // Set the data to something verifiable
+          writeCount++;
+          ((int*)val->data)[0] = writeCount;
+          for (int j=1;j<10;j++)  // Set the data to something verifiable
             {
-              ((int*)val->data)[j] = i+j;
+              ((int*)val->data)[j] = i+j+writeCount;
             }
           c1.write(i,*val);
         }
@@ -66,10 +72,11 @@ SAFplus::Handle test_readwrite(Checkpoint& c1)
           clTest(("Record exists"), &output != NULL, (""));
           if (&output)
             {
-	      for (int j=0;j<10;j++)
+            int start = ((int*)output.data)[0];
+	      for (int j=1;j<10;j++)
 		{
 		  int tmp = ((int*)output.data)[j];
-		  if (tmp != i+j)
+		  if (tmp != start+i+j)
 		    {
 		      clTestFailed(("Stored data MISCOMPARE i:%d, j:%d, expected:%d, got:%d\n", i,j,i+j,tmp));
 		      j=10; // break out of the loop
@@ -150,7 +157,7 @@ int parseArgs(int argc, char* argv[])
         SAFplus::ASP_NODEADDR = temp;
         if (CL_OK != rc)
           {
-          logError("AMF","BOOT", "[%s] is not a valid slot id, ", optarg);
+          printf("[%s] is not a valid slot id.\n", optarg);
           return -1;
           }
         ++nargs;
@@ -162,11 +169,11 @@ int parseArgs(int argc, char* argv[])
           break;
 
         case '?':
-          logError("AMF","BOOT", "Unknown option [%c]", optopt);
+          printf("Unknown option [%c]\n", optopt);
           return -1;
           break;
-        default :   
-          logError("AMF","BOOT", "Unknown error");
+        default :
+          printf("Unknown error\n");
           return -1;
           break;
         }
@@ -174,30 +181,16 @@ int parseArgs(int argc, char* argv[])
   return 1;
   }
 
-  
 int main(int argc, char* argv[])
 {
   ClRcT rc;
-  SAFplus::ASP_NODEADDR = 1;
-
-  SAFplus::Handle hdl;
-  logInitialize();
-  logEchoToFd = 1;  // echo logs to stdout for debugging
-  utilsInitialize();
-
+  clAspLocalId  = SAFplus::ASP_NODEADDR = 1;
   parseArgs(argc, argv);
+  safplusInitialize(SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG);
+  SAFplus::Handle hdl;
+  logEchoToFd = 1;  // echo logs to stdout for debugging
 
-  // initialize SAFplus6 libraries 
-  if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
-    {
-    assert(0);
-    }
-
-  clAspLocalId  = SAFplus::ASP_NODEADDR;  // remove clAspLocalId
-  rc = clIocLibInitialize(NULL);
-  assert(rc==CL_OK);
-
-  safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
+  safplusMsgServer.init(TEMP_CKPT_SYNC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
   safplusMsgServer.Start();
 
   clTestGroupInitialize(("Test Checkpoint"));
@@ -207,16 +200,33 @@ int main(int argc, char* argv[])
   if (role == 0)
     {
 
-    clTestCase(("Basic Read/Write"), test_readwrite(c1));
+    //clTestCase(("Basic Read/Write"), test_readwrite(c1));
 
     printf("start another instance of this test on another node.\n");
+    while(1)
+      {
+      char vdata[sizeof(Buffer)-1+sizeof(int)*10];
+      Buffer* val = new(vdata) Buffer(sizeof(int)*10);
+      for (int i=0;i<LoopCount;i++)
+        {
+          writeCount++;
+          ((int*)val->data)[0] = writeCount;
+          for (int j=1;j<10;j++)  // Set the data to something verifiable
+            {
+              ((int*)val->data)[j] = i+j+writeCount;
+            }
+          printf("Writing entry [%d] with [%d]\n", i, *((int*)val->data));
+          c1.write(i,*val);
+          sleep(10);
+        }
+      }
+
     sleep(10000);
     }
   else
     {
     while(1)
       {
-          // Dump and delete it
       printf("integer ITERATOR: \n");
       for (Checkpoint::Iterator i=c1.begin();i!=c1.end();i++)
         {
@@ -225,7 +235,7 @@ int main(int argc, char* argv[])
           printf("key: %d, value: %d change: %d\n",tmp,*((int*) (*item.second).data), item.second->changeNum());
         }
 
-      printf("READ: \n");
+      printf("Checking for miscompares...\n");
 
       // Read it
       for (int i=0;i<LoopCount;i++)
@@ -234,17 +244,21 @@ int main(int argc, char* argv[])
           clTest(("Record exists"), &output != NULL, (""));
           if (&output)
             {
-	      for (int j=0;j<10;j++)
+            int start = ((int*)output.data)[0];
+	      for (int j=1;j<10;j++)
 		{
 		  int tmp = ((int*)output.data)[j];
-		  if (tmp != i+j)
+		  if (tmp != start+i+j)
 		    {
-		      clTestFailed(("Stored data MISCOMPARE i:%d, j:%d, expected:%d, got:%d\n", i,j,i+j,tmp));
+		      clTestFailed(("Stored data MISCOMPARE i:%d, j:%d, expected:%d, got:%d\n", i,j,start+i+j,tmp));
 		      j=10; // break out of the loop
 		    }
 		}
             }
         }
+
+
+      printf("Delaying 10 seconds...");
       sleep(10);
       }
     }

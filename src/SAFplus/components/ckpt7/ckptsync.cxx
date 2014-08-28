@@ -24,6 +24,8 @@ using namespace SAFplusI;
 
 #define CKPT_GROUP_SUBHANDLE 1
 
+#define TEMP_CKPT_SYNC_PORT 27 // TODO: this needs to be replaced with a more sophisticated system
+
 enum 
 {
   GROUP_EVENT = 0x123
@@ -45,7 +47,7 @@ static CkptSyncMsgHandler msgHdlr;
 // Demultiplex incoming message to the appropriate Checkpoint object
 void CkptSyncMsgHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
-  logInfo("SYNC","MSG","Received checkpoint sync message from %d", from.iocPhyAddress.nodeAddress);
+  //logInfo("SYNC","MSG","Received checkpoint sync message from %d", from.iocPhyAddress.nodeAddress);
   CkptMsgHdr* hdr = (CkptMsgHdr*) msg;
   assert((hdr->msgType>>16) == CKPT_MSG_TYPE);  // TODO: endian swap & should never assert on bad incoming message data
   CkptSynchronization* cs =  msgHdlr.handleMap[hdr->checkpoint];
@@ -59,7 +61,7 @@ void CkptSyncMsgHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr,
 
 void SAFplusI::CkptSynchronization::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
-  logInfo("SYNC","MSG","Resolved checkpoint sync message to checkpoint");
+  //logInfo("SYNC","MSG","Resolved checkpoint sync message to checkpoint");
 
   CkptMsgHdr* hdr = (CkptMsgHdr*) msg;
   assert((hdr->msgType>>16) == CKPT_MSG_TYPE);  // TODO: endian swap & should never assert on bad incoming message data
@@ -71,29 +73,57 @@ void SAFplusI::CkptSynchronization::msgHandler(ClIocAddressT from, SAFplus::MsgS
     case CKPT_MSG_TYPE_SYNC_REQUEST_1:
       {
       logInfo("SYNC","MSG","Checkpoint sync request message");
-       CkptSyncRequest_1* req = (CkptSyncRequest_1*) msg;
-       synchronize(req->generation, req->changeNum, req->cookie, req->response);
-
+      CkptSyncRequest_1* req = (CkptSyncRequest_1*) msg;
+      synchronize(req->generation, req->changeNum, req->cookie, req->response);
       } break;
 
     case CKPT_MSG_TYPE_SYNC_MSG_1:
+      {
       logInfo("SYNC","MSG","Received checkpoint sync update message");
-      applySyncMsg(msg,msglen, cookie);
-      break;
+      CkptSyncMsg* hdr = (CkptSyncMsg*) msg;
+      assert((hdr->msgType>>16) == CKPT_MSG_TYPE);  // TODO: endian swap & should never assert on bad incoming message data
+      // The sync cookie verifies that this synchronization message is part of THIS sync operation.  
+      // Theoretically, an old sync message might be delayed and then appear from an old sync request.  The sync cookie allows us to detect and ignore those old
+      // messages.  I suppose that applying them would not mess anything up, b/c they should be valid data... (except perhaps the sync message count).
+      if (hdr->cookie != syncCookie)
+        {
+        logError("SYNC","MSG","Sync cookie mismatch.  Expected [0x%x]. Received [0x%x]", syncCookie, hdr->cookie);
+        }
+      else 
+        {
+        applySyncMsg(msg,msglen, cookie);
+        // At this point I do not want to apply the change number to the checkpoint header because the initial synchronization
+        // sends the records in any order.  So I might be applying change 100 (say) but have not yet received changes 10-99.
+        // Therefore if this process fails, I need to resynchronize starting at the original change number.  So I can't update the change # in shared memory
+        // until the entire synchronization process is completed.
+        if (syncRecvCount < hdr->count) syncRecvCount = hdr->count;  // TODO... should I be assigning this or just adding one... assignment would cause a dropped packet to be not detected.
+        }
+
+      } break;
+
+    case CKPT_MSG_TYPE_UPDATE_MSG_1:
+      if (from.iocPhyAddress.nodeAddress != SAFplus::ASP_NODEADDR) // No need to handle update messages coming from myself.
+        {
+        logInfo("SYNC","MSG","Received checkpoint update message");
+        unsigned int change = applySyncMsg(msg,msglen, cookie);
+        if (ckpt->hdr->changeNum < change) ckpt->hdr->changeNum = change;
+        } break;
 
     case CKPT_MSG_TYPE_SYNC_COMPLETE_1:
       {
       CkptSyncCompleteMsg* sc = (CkptSyncCompleteMsg*) msg;
       if (endianSwap) {} // TODO
-      while (syncRecvCount < sc->finalCount) // wait for other threads to finish processing
+      // Presumably sync complete is sent last.  However other threads could still be processing the incoming messages, or the order
+      // could have been mixed up in transit.  So wait for all the synchronization messages to arrive and be processed.
+      while (syncRecvCount < sc->finalCount)
         {
-        logInfo("SYNC","MSG","sync complete waiting for msg processing [%d] [%d]...", syncRecvCount, sc->finalCount);
+        logInfo("SYNC","MSG","sync complete waiting for msg processing received [%d] expected [%d]...", syncRecvCount, sc->finalCount);
         boost::this_thread::sleep(boost::posix_time::microseconds(100000));
         }
       ckpt->hdr->generation = sc->finalGeneration;
       ckpt->hdr->changeNum = sc->finalChangeNum;
-      logInfo("SYNC","MSG","Checkpoint sync complete.  Msg count [%d].", sc->finalCount);
-
+      logInfo("SYNC","MSG","Checkpoint sync complete.  Msg count [%d]. change [%d.%d]", sc->finalCount, ckpt->hdr->generation,ckpt->hdr->changeNum);
+      synchronizing = false;
       ckpt->gate.open(); // TODO: I need to open this gate during all kinds of checkpoint failure conditions, sender process death, node death, message lost.
       } break;
 
@@ -108,18 +138,13 @@ void SAFplusI::CkptSynchronization::msgHandler(ClIocAddressT from, SAFplus::MsgS
     }
   }
 
-void SAFplusI::CkptSynchronization::applySyncMsg(ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+// Apply a synchronization message received either during the initial sync operation OR during a normal sync update (happens when the checkpoint is written)
+unsigned int SAFplusI::CkptSynchronization::applySyncMsg(ClPtrT msg, ClWordT msglen, ClPtrT cookie)
 {
   CkptSyncMsg* hdr = (CkptSyncMsg*) msg;
   assert((hdr->msgType>>16) == CKPT_MSG_TYPE);  // TODO: endian swap & should never assert on bad incoming message data
   int curpos = sizeof(CkptSyncMsg);
-
-  if (hdr->cookie != syncCookie)
-    {
-    logError("SYNC","MSG","Sync cookie mismatch.  Expected [0x%x]. Received [0x%x]", syncCookie, hdr->cookie);
-    return;
-    }
-
+  unsigned int lastChange = 0;
   int count = 0;
   while (curpos < msglen)
     {
@@ -128,31 +153,65 @@ void SAFplusI::CkptSynchronization::applySyncMsg(ClPtrT msg, ClWordT msglen, ClP
     curpos += sizeof(Buffer) + key->len() - 1;
     Buffer* val = (Buffer*) (((char*)msg)+curpos);
     curpos += sizeof(Buffer) + val->len() - 1;
-  
+    if (lastChange < val->changeNum()) lastChange = val->changeNum();
     logInfo("SYNC","APLY","part %d: key(len:%d) %x  val(len:%d) %x", count, key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
     ckpt->applySync(*key,*val);
     }
 
-  if (syncRecvCount < hdr->count) syncRecvCount = hdr->count;
+  return lastChange;
 }
 
+void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* val,Transaction& t)
+  {
+  // TODO transactions
+  //int dataSize = key->objectSize() + val->objectSize();
+  int bufSize = sizeof(CkptSyncMsg) + key->objectSize() + val->objectSize();  
+  char* buf = new char[bufSize];
+
+  CkptSyncMsg* hdr = (CkptSyncMsg*) buf;
+  hdr->msgType     = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_UPDATE_MSG_1;
+  hdr->checkpoint  = ckpt->handle();
+  hdr->cookie      = syncCookie;
+  int offset   = sizeof(CkptSyncMsg);
+  ClIocAddressT to;
+  to.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+  to.iocPhyAddress.portId      = TEMP_CKPT_SYNC_PORT;  // This is a problem b/c the syncPort is not known.  TODO: actually use a group API to send to every registered entity in the group.  Inside group, message is sent directly to each "handle" using the object message API (TBD)
+
+  memcpy(&buf[offset],(void*) key, key->objectSize());
+  offset += key->objectSize();
+
+  assert(offset + val->objectSize() <= bufSize);
+  memcpy(&buf[offset],(void*) val, val->objectSize());
+  offset += val->objectSize();
+  assert(offset <= bufSize);
+  msgSvr->SendMsg(to,buf,offset,CKPT_SYNC_MSG_TYPE);
+  }
+
+
+// Bring some other replica into sync with this one.
 void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigned int lastChange, unsigned int cookie, Handle response)
 {
   int count = 0;
-  lastChange = 0; // DEBUG to force full sync
+  //lastChange = 0; // DEBUG to force full sync
 
-  if (generation != ckpt->hdr->generation) lastChange = 0;  // if the generation is wrong, we need ALL changes.
+  ClIocAddressT to = getAddress(response);
+
+  logInfo("SYNC","MSG","Handling synchronization request from [%d.%d], generation [%d] change [%d] ",to.iocPhyAddress.nodeAddress,to.iocPhyAddress.portId, generation, lastChange);
+  if (generation != ckpt->hdr->generation) 
+    {
+    lastChange = 0;  // if the generation is wrong, we need ALL changes.
+    logInfo("SYNC","MSG","Generation mismatch theirs is [%d] vs mine [%d].  Sending the entire checkpoint.",generation, ckpt->hdr->generation);
+    }
   int bufSize = 200 + SAFplusI::CkptSyncMsgStride;
   char* buf = new char[bufSize];
 
   CkptSyncMsg* hdr = (CkptSyncMsg*) buf;
   hdr->msgType = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_SYNC_MSG_1;
   hdr->checkpoint = response;
-  hdr->cookie = syncCookie;
+  hdr->cookie = cookie;
   int headerEnds = sizeof(CkptSyncMsg);
   int offset = headerEnds;
 
-  ClIocAddressT to = getAddress(response);
 
   // TODO: lock writes
   for (Checkpoint::Iterator i=ckpt->begin();i!=ckpt->end();i++)
@@ -161,7 +220,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
     Buffer* key = &(*(item.first));
     Buffer* val = &(*(item.second));
 
-    if (key->changeNum() >= lastChange)
+    if (val->changeNum() > lastChange)
       {
       int dataSize = key->objectSize() + val->objectSize();
 
@@ -190,7 +249,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
         hdr->checkpoint = response;
         offset = headerEnds;
         }
-    
+
       assert(offset + key->objectSize() < bufSize);
       memcpy(&buf[offset],(void*) key, key->objectSize());
       offset += key->objectSize();
@@ -228,6 +287,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
 void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr)
   {
   ckpt = c;
+  synchronizing = true;  // Checkpoint always starts out in the synchronizing state (access not allowed).  It kicks out of this state when it becomes the active replica or it is synced with the active replica.
 
   if (pmsgSvr == NULL) msgSvr = &safplusMsgServer;
   else msgSvr = pmsgSvr;
@@ -238,7 +298,7 @@ void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr)
   group->init(ckpt->hdr->handle.getSubHandle(CKPT_GROUP_SUBHANDLE));
   group->setNotification(*this);
   // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
-  group->registerEntity(ckpt->hdr->replicaHandle,(ckpt->hdr->changeNum<<SAFplus::Log2MaxNodes) | SAFplus::ASP_NODEADDR,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
+  group->registerEntity(ckpt->hdr->replicaHandle,(ckpt->hdr->changeNum<<SAFplus::Log2MaxNodes) | SAFplus::ASP_NODEADDR,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
 
   logInfo("SYNC","TRD","Checkpoint is registered on [%d:%d] type [%d]", msgSvr->handle.getNode(),msgSvr->handle.getPort(),CKPT_SYNC_MSG_TYPE);
 
@@ -255,9 +315,19 @@ void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr)
 void SAFplusI::CkptSynchronization::wake(int amt,void* cookie)
   {
   unsigned int reason = (unsigned long int) cookie;
-  if (1) // reason == GROUP_EVENT)
+  if (cookie == group)
     {
     logInfo("SYNC","GRP","Checkpoint group membership event");
+    std::pair<EntityIdentifier,EntityIdentifier> roles = group->getRoles();
+    if (roles.first == ckpt->hdr->replicaHandle)
+      {
+      logInfo("SYNC","GRP","Checkpoint is master replica");
+      if (synchronizing)
+        { 
+        synchronizing = false;
+        ckpt->gate.open(); // If this checkpoint becomes the master replica, it is by definition the authorative copy so allow reading/writing
+        }
+      }
     }
   else
     {
@@ -284,7 +354,7 @@ void SAFplusI::CkptSynchronization::operator()()
         }
       } while (active == INVALID_HDL);
 
-    if (1)
+    if (active != ckpt->hdr->replicaHandle) // Only request synchronization if I am not active
       {
       CkptSyncRequest msg;
       msg.msgType    = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_SYNC_REQUEST_1;
@@ -299,8 +369,7 @@ void SAFplusI::CkptSynchronization::operator()()
 
       ClIocAddressT to = getAddress(active);
       msgSvr->SendMsg(to,&msg,sizeof(msg),CKPT_SYNC_MSG_TYPE);
-      logInfo("SYNC","TRD","Sent synchronization request message to [%d:%d] type [%d]", active.getNode(), active.getPort(),CKPT_SYNC_MSG_TYPE);
-
+      logInfo("SYNC","TRD","Sent synchronization request message to [%d:%d] type [%d] generation [%d] change [%d] sync cookie [%x]", active.getNode(), active.getPort(),CKPT_SYNC_MSG_TYPE,msg.generation, msg.changeNum, syncCookie);
       }
 
     boost::this_thread::sleep(boost::posix_time::milliseconds(150000));

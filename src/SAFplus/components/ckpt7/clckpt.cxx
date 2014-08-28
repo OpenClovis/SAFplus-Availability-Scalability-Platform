@@ -44,7 +44,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
   logInfo("CKP","INI","Opening checkpoint [%lx:%lx]",hdl.id[0],hdl.id[1]);
   // All constructors funnel through this init routine.
   gate.init(hdl.id[1]);  
-  gate.close(); // start the gate closed so this process can't access the checkpoint.  But I can't init the gate closed, in case the init open and existing gate, instead of creating one
+  gate.close(); // start the gate closed so this process can't access the checkpoint.  But I can't init the gate closed, in case the init opens an existing gate, instead of creating one
 
   flags = _flags;
   if (flags & REPLICATED)
@@ -266,6 +266,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
                 //memcpy (curval->data,value.data,newlen);
                 *curval = value;
                 if (flags & CHANGE_ANNOTATION) curval->setChangeNum(change);
+                if (sync) sync->sendUpdate(&key,curval.get(), t);
                 gate.unlock();
                 return;
               }
@@ -280,6 +281,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
             msm.deallocate(old);  // if I'm the last owner, let this go.
           else 
             old->decRef();
+          if (sync) sync->sendUpdate(&key,v, t);  // Pass curval not the parameter because curval has the proper change number
           gate.unlock();
           return;
         }
@@ -296,6 +298,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
   SAFplusI::BufferPtr kb(k),kv(v);
   SAFplusI::CkptMapPair vt(kb,kv);
   map->insert(vt);
+  if (sync) sync->sendUpdate(&key,v, t);
   gate.unlock();
 }
 
@@ -310,13 +313,16 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
   if (contents != map->end()) // if (curval)  // record already exists; overwrite
     {
       SAFplusI::BufferPtr& curkey =  (SAFplusI::BufferPtr&) contents->first; // I need to discard the "const" here to modify the changenum.  Since the change num is not part of the key's hash calculation this should be ok within the context of the map data structure.
+      SAFplusI::BufferPtr& curval = contents->second;
 
       // If this change or a later one has already been applied, skip it.
-      if (curkey->changeNum() >= key.changeNum())
+      if (curval->changeNum() >= value.changeNum())
+        {
+        logInfo("TEST","GRP", "Checkpoint has more recent change [%d] vs [%d], not applying...",curval->changeNum(),value.changeNum());
         return;
+        }
 
-      if (flags & CHANGE_ANNOTATION) curkey->setChangeNum(key.changeNum());  // Apply the proper change number to this buffer
-      SAFplusI::BufferPtr& curval = contents->second;
+      if (flags & CHANGE_ANNOTATION) curkey->setChangeNum(key.changeNum());  // Apply the proper change number to this buffer -- note, but not using the changenum in the key so should not matter.
       if (curval)
         {
           if (curval->ref() == 1)  // This hash table is the only thing using this value right now
@@ -435,7 +441,7 @@ void SAFplus::Checkpoint::dump()
 void SAFplus::Checkpoint::stats()
 {
   char tempStr[81];
-  printf("Handle: %s size: %lu, max_size: %lu\n",hdr->handle.toStr(tempStr), map->size(),map->max_size());
+  printf("Handle: %s size: %lu, max_size: %lu generation: %d change: %d\n",hdr->handle.toStr(tempStr), map->size(),map->max_size(),hdr->generation, hdr->changeNum);
 }
 
 

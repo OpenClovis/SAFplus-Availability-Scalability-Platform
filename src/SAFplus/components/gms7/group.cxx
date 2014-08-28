@@ -78,7 +78,7 @@ char* Group::capStr(uint cap, char* buf)
       }
 
     GroupShmHashMap::iterator entryPtr;
-    do
+    do  // waiting for group to be registered into shared memory by the group's node representative.  If this loop never exits, the group node rep is dead.
       {
       entryPtr = gsm.groupMap->find(handle);
       if (entryPtr == gsm.groupMap->end())

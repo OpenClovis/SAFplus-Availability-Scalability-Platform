@@ -43,14 +43,16 @@ namespace SAFplusI
   class CkptSynchronization:public SAFplus::Wakeable
     {
     public:
+    bool                 synchronizing;
     SAFplus::Checkpoint* ckpt;
-    SAFplus::Group* group;  // Needs to be a pointer to break circular includes
-    SAFplus::MsgServer* msgSvr;
-    int syncMsgSize; // What's the preferred synchronization message size.  Messages will be < this amount OR contain only 1 key/value pair.
-    int syncCount;
-    volatile int syncRecvCount;
-    unsigned int syncCookie;
+    SAFplus::Group*      group;  // Needs to be a pointer to break circular includes
+    SAFplus::MsgServer*  msgSvr;
+    int           syncMsgSize;   // What's the preferred synchronization message size.  Messages will be < this amount OR contain only 1 key/value pair.
+    int           syncCount;
+    volatile int  syncRecvCount;
+    unsigned int  syncCookie;
     boost::thread syncThread;
+
     void init(SAFplus::Checkpoint* c,SAFplus::MsgServer* pmsgSvr=NULL);
 
     void operator()();  // Thread thunk
@@ -62,11 +64,13 @@ namespace SAFplusI
     // Send synchronization delta data to the handle
     void synchronize(unsigned int generation, unsigned int lastChange, unsigned int cookie, SAFplus::Handle response);
 
-    // Apply a particular received synchronization message to the checkpoint
-    void applySyncMsg(ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+    // Send an update to all replicas to keep them in sync
+    void sendUpdate(const SAFplus::Buffer* key,const SAFplus::Buffer* value, SAFplus::Transaction& t);
 
+    // Apply a particular received synchronization message to the checkpoint.  Returns the largest change number referenced in the message.
+    unsigned int applySyncMsg(ClPtrT msg, ClWordT msglen, ClPtrT cookie);
     };
-  
+
     enum
     {
         CL_CKPT_BUFFER_HEADER_STRUCT_ID_7 = 0x59400070,

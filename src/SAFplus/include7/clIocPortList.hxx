@@ -1,4 +1,5 @@
 #pragma once
+#include "clCustomization.hxx"
 
 namespace SAFplusI
   {

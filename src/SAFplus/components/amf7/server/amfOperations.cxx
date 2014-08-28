@@ -194,7 +194,17 @@ namespace SAFplus
       clDbgCodeError(1,("Can't start disconnected comp"));
       }
 
-    Handle nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
+    Handle nodeHdl;
+    try
+      {
+      nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
+      }
+    catch (SAFplus::NameException& n)
+      {
+      logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.  Cannot start processes on it.", comp->serviceUnit.value->node.value->name.c_str());
+      return; // TODO: should I call w.wake first?
+      }
+
     SAFplusAmf::Instantiate* inst = comp->getInstantiate();
 
     if (0) // (nodeHdl == nodeHandle)  // Handle this request locally

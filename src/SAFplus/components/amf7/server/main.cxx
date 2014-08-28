@@ -430,12 +430,12 @@ int main(int argc, char* argv[])
   if (SAFplus::SYSTEM_CONTROLLER) 
     {
     credential = SAFplus::ASP_NODEADDR | SC_ELECTION_BIT;
-    capabilities = Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE;
+    capabilities = Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY;
     }
   else if (SAFplus::ASP_SC_PROMOTE) // A promotable payload can only become standby at first.
     {
     credential =  SAFplus::ASP_NODEADDR;
-    capabilities = Group::ACCEPT_STANDBY;
+    capabilities = Group::ACCEPT_STANDBY | Group::STICKY;
     }
   else  // Don't elect me!!!!
     {
