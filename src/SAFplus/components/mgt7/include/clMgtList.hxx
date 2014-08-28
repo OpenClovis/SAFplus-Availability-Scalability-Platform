@@ -83,7 +83,9 @@ namespace SAFplus
               {
                 current.first = "";
                 current.second = nullptr;
-                //logDebug("MGT", "LIST", "Reached end of the list");
+#ifdef MGT_DEBUG
+                logDebug("MGT", "LIST", "Reached end of the list");
+#endif
                 return false;
               }
               else
@@ -134,7 +136,9 @@ namespace SAFplus
             return CL_TRUE;
           }
         }
-        //logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
+#ifdef MGT_DEBUG
+        logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
+#endif
         return CL_FALSE;
       }
       /**
@@ -147,11 +151,15 @@ namespace SAFplus
         KEYTYPE *key = &objectKey;
         if(key == NULL)
         {
-          //logError("MGT", "LIST", "Key for child object is not defined");
+#ifdef MGT_DEBUG
+          logError("MGT", "LIST", "Key for child object is not defined");
+#endif
           return CL_ERR_NULL_POINTER;
         }
         children[*key] = mgtObject;
-        //logDebug("MGT", "LIST", "Adding child object was successfully");
+#ifdef MGT_DEBUG
+        logDebug("MGT", "LIST", "Adding child object was successfully");
+#endif
         return CL_OK;
       }
       /**
@@ -199,7 +207,9 @@ namespace SAFplus
         typename Map::iterator it = children.find(objectKey);
         if (it == children.end())
         {
-          //logError("MGT", "LIST", "Can't find the object with given key");
+#ifdef MGT_DEBUG
+          logError("MGT", "LIST", "Can't find the object with given key");
+#endif
           return nullptr;
         }
         return it->second;
@@ -249,7 +259,9 @@ namespace SAFplus
         xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
         if (!reader)
         {
-          //logError("MGT", "LIST", "Reader return null");
+#ifdef MGT_DEBUG
+          logError("MGT", "LIST", "Reader return null");
+#endif
           return CL_FALSE;
         }
 
@@ -270,7 +282,9 @@ namespace SAFplus
                 {
                    if(strcmp((const char *)namestr,this->name.c_str()) != 0)
                    {
-                     //logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
+#ifdef MGT_DEBUG
+                     logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
+#endif
                      return CL_FALSE;
                    }
                 }
@@ -296,10 +310,18 @@ namespace SAFplus
                 {
                   if(entry->set(strChildData.c_str(),strChildData.size(),t) == CL_FALSE)
                   {
-                    //logError("MGT", "LIST", "Setting for child failed");
+#ifdef MGT_DEBUG
+                    logError("MGT", "LIST", "Setting for child failed");
+#endif
                     xmlFreeTextReader(reader);
                     return CL_FALSE;
                   }
+                }
+                else
+                {
+#ifdef MGT_DEBUG
+                  logError("MGT", "LIST", "Can't find entry for key %s",entryKey.str().c_str());
+#endif
                 }
                 /* Reset old data for new list entry */
                 lastnamestr.assign("");
@@ -338,9 +360,14 @@ namespace SAFplus
         /* Check if expected entry is found */
         if(iter == children.end())
         {
-          //logError("MGT","XPT","Can't find object which belong to key");
+#ifdef MGT_DEBUG
+          logError("MGT","XPT","Can't find object which belong to key");
+#endif
           return xpath;
         }
+        /* Build key */
+        std::string keypart = key.toXmlString();
+
         /* Parent X-Path will be add into the full xpath */
         if (parent != NULL) // this is the list parent
         {
@@ -358,6 +385,9 @@ namespace SAFplus
         {
           xpath.append("/").append(this->name);
         }
+        /* Add key into xpath */
+        /* ex: /ethernet/interfaces[name=eth0,ipAddress=123] */
+        xpath.append(keypart);
         /* Append entry X-Path */
         childXpath = iter->second->getFullXpath();
         if(childXpath.length() > 0)
@@ -431,7 +461,9 @@ namespace SAFplus
             {
               current.first = "";
               current.second = nullptr;
-              //logDebug("MGT", "LIST", "Reached end of the list");
+#ifdef MGT_DEBUG
+              logDebug("MGT", "LIST", "Reached end of the list");
+#endif
               return false;
             }
             else
@@ -477,7 +509,9 @@ namespace SAFplus
           MgtObject* curEntry = iter->second;
           if(curEntry->name.compare(entry->name) == 0)
           {
-            //logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
+#ifdef MGT_DEBUG
+            logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
+#endif
             return CL_TRUE;
           }
         }
@@ -496,7 +530,9 @@ namespace SAFplus
           key = &mgtObject->name;
         }
         children[*key] = mgtObject;
-        //logDebug("MGT", "LIST", "Adding child object was successfully");
+#ifdef MGT_DEBUG
+        logDebug("MGT", "LIST", "Adding child object was successfully");
+#endif
         return CL_OK;
       }
       /**
@@ -552,7 +588,6 @@ namespace SAFplus
       {
         typename Map::iterator iter;
         /* Name of this list */
-        //logDebug("MGT","LIST","Get call");
         for (iter = children.begin(); iter != children.end(); iter++)
         {
           std::string k = iter->first;
@@ -562,7 +597,6 @@ namespace SAFplus
             entry->toString(xmlString);
           }
         }
-        //logDebug("MGT","LIST","XML: %s",xmlString.str().c_str());
       }
       /**
        * API to get number of entries in the list
@@ -586,14 +620,16 @@ namespace SAFplus
         std::string strChildData;
         std::string lastnamestr;
         std::string keyValue;
-
-        //logDebug("MGT","LIST","Data for list [%s]",(char *)pBuffer);
-
+#ifdef MGT_DEBUG
+        logDebug("MGT","LIST","Set data for list [%s]",(char *)pBuffer);
+#endif
         /* Read XML from the buffer */
         xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
         if (!reader)
         {
-          //logError("MGT", "LIST", "Reader return null");
+#ifdef MGT_DEBUG
+          logError("MGT", "LIST", "Reader return null");
+#endif
           return CL_FALSE;
         }
 
@@ -614,7 +650,9 @@ namespace SAFplus
                {
                   if(strcmp((const char *)namestr,this->name.c_str()) != 0)
                   {
-                    //logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
+#ifdef MGT_DEBUG
+                    logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
+#endif
                     return CL_FALSE;
                   }
                }
@@ -636,7 +674,9 @@ namespace SAFplus
                /* keyList should be assign when key was found */
                if(keyValue.size() == 0)
                {
-                 //logError("MGT","LIST","The configuration had error, no key found");
+#ifdef MGT_DEBUG
+                 logError("MGT","LIST","The configuration had error, no key found");
+#endif
                  return CL_FALSE;
                }
                MgtObject *entry = children[keyValue];
@@ -644,7 +684,9 @@ namespace SAFplus
                {
                  if(entry->set(strChildData.c_str(),strChildData.size(),t) == CL_FALSE)
                  {
-                   //logError("MGT", "LIST", "Setting for child failed");
+#ifdef MGT_DEBUG
+                   logError("MGT", "LIST", "Setting for child failed");
+#endif
                    xmlFreeTextReader(reader);
                    return CL_FALSE;
                  }
@@ -687,9 +729,13 @@ namespace SAFplus
         /* Check if expected entry is found */
         if(iter == children.end())
         {
-          //logError("MGT","XPT","Can't find object which belong to key");
+#ifdef MGT_DEBUG
+          logError("MGT","XPT","Can't find object which belong to key");
+#endif
           return xpath;
         }
+        std::stringstream keypart;
+        keypart << "[" << keyList << "=" << key << "]";
         /* Parent X-Path will be add into the full xpath */
         if (parent != NULL) // this is the list parent
         {
@@ -707,6 +753,7 @@ namespace SAFplus
         {
           xpath.append("/").append(this->name);
         }
+        xpath.append(keypart.str());
         /* Append entry X-Path */
         childXpath = iter->second->getFullXpath();
         if(childXpath.length() > 0)
