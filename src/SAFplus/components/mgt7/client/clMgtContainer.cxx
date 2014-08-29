@@ -252,6 +252,53 @@ delete this;
     }
     return rc;
   }
+  ClRcT MgtContainer::read(std::string parentXPath,ClMgtDatabase *db)
+  {
+    logDebug("MGT","SET","Read data, xpath %s",parentXPath.c_str());
+    ClRcT rc = CL_OK;
+    MgtObjectMap::iterator it;
+    std::string xp = getFullXpath();
+    if(parentXPath.size() > 0)
+    {
+      xp = getFullXpath(false);
+      parentXPath.append(xp);
+      xp = parentXPath;
+    }
+    for (it = children.begin(); it != children.end(); ++it)
+    {
+      MgtObject* child = it->second;
+      rc = child->read(xp,db);
+      if(CL_OK != rc)
+      {
+        logDebug("MGT","SET","Read data failed [%x] for child %s. Ignored",rc,child->name.c_str());
+        return rc;
+      }
+    }
+    return rc;
+  }
+  ClRcT MgtContainer::write(std::string parentXPath,ClMgtDatabase *db)
+  {
+    ClRcT rc = CL_OK;
+    MgtObjectMap::iterator it;
+    std::string xp = getFullXpath();
+    if(parentXPath.size() > 0)
+    {
+      xp = getFullXpath(false);
+      parentXPath.append(xp);
+      xp = parentXPath;
+    }
+    for (it = children.begin(); it != children.end(); ++it)
+    {
+      MgtObject* child = it->second;
+      rc = child->write(xp,db);
+      if(CL_OK != rc)
+      {
+        logDebug("MGT","SET","Write data failed [%x] for child %s. Ignored",rc,child->name.c_str());
+        return rc;
+      }
+    }
+    return rc;
+  }
 
   ClBoolT MgtContainer::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
   {

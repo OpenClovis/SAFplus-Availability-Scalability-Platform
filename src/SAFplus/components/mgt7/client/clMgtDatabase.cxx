@@ -18,7 +18,7 @@
  */
 
 #include "clMgtDatabase.hxx"
-
+#include "clLogApi.hxx"
 #ifdef __cplusplus
 extern "C"
 {
@@ -68,17 +68,11 @@ ClRcT ClMgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySiz
     std::string dbNameData = "";
     std::string dbNameIdx = "";
 
-    if( (rc=clOsalInitialize(NULL)) != CL_OK ||
-        (rc=clHeapInit()) != CL_OK ||
-        (rc=clBufferInitialize(NULL)) != CL_OK)
-    {
-        return rc;
-    }
-
     /*Initialize dbal if not initialized*/
     rc = clDbalLibInitialize();
     if (CL_OK != rc)
     {
+        logDebug("MGT","DBAL","Dbal lib initialized failed [%x]",rc);
         return rc;
     }
 

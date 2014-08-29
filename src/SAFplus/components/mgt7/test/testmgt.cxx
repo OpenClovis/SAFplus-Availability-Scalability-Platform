@@ -10,6 +10,7 @@
 #include "boost/functional/hash.hpp"
 #include <clMgtModule.hxx>
 #include <clSafplusMsgServer.hxx>
+#include <clMgtDatabase.hxx>
 
 using namespace std;
 using namespace SAFplus;
@@ -419,8 +420,9 @@ void testMgtStringList()
   /**
    * Checking xpath
    */
-  for(int i=0; i< 3; i++)
-    logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey[i].c_str() ,stringList.getFullXpath(objKey[i]).c_str());
+    logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey[0].c_str() ,testObject1.obj_name.getFullXpath().c_str());
+    logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey[1].c_str() ,testObject2.obj_name.getFullXpath().c_str());
+    logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey[2].c_str() ,testObject3.obj_name.getFullXpath().c_str());
   /**
    * Check operator[]
    */
@@ -450,7 +452,6 @@ void testMgtStringList()
 }
 void testMgtClassList()
 {
-  //const char* xmlTest = "<mylist><testobj1><key1>2</key1><key2>2</key2><key3>Java</key3><name>testobj1_newname</name></testobj1></mylist>";
   logDebug("MGT","TEST","Start test case multiple key list");
   MgtList<multipleKey> stringList("mylist");
   stringList.setListKey("key1");
@@ -519,15 +520,74 @@ void testMgtClassList()
 }
 
 void testMgtBind()
-  {
-    MgtModule         mockModule("network");
-    TestObject testobject("testObject");
+{
+  MgtModule         mockModule("network");
+  TestObject testobject("testObject");
 
-    mockModule.loadModule();
-    SAFplus::Handle handle=SAFplus::Handle::create();
-    testobject.bind(handle, "network", "/ethernet/interfaces[name='eth0']");
-    //testobject.bind(handle, "network", "1.3.6.1.4.1.99840.2.1.1");
+  mockModule.loadModule();
+  SAFplus::Handle handle=SAFplus::Handle::create();
+  testobject.bind(handle, "network", "/ethernet/interfaces[name='eth0']");
+  //testobject.bind(handle, "network", "1.3.6.1.4.1.99840.2.1.1");
+}
+
+void testDatabase()
+{
+  ClMgtDatabase *db = ClMgtDatabase::getInstance();
+  ClRcT rc = db->initializeDB("test",99999,99999);
+  if(CL_OK != rc)
+  {
+    logDebug("MGT","TEST","FAIL: Initialize db failed %x",rc);
+    //return;
   }
+  logDebug("MGT","TEST","%s: Database initialized? %s",db->isInitialized()?"PASS":"FAIL",db->isInitialized()?"YES":"NO");
+  MgtList<multipleKey> stringList("mylist");
+  TestListMultikeyObject testObject1("testobj1");
+  TestListMultikeyObject testObject2("testobj2");
+  TestListMultikeyObject testObject3("testobj3");
+  testObject1.data.value = "testobj1val";
+  testObject1.key1.value = 123;
+  testObject1.key2.value = 123;
+  testObject1.key3.value = "key3_obj1";
+  testObject2.data.value = "testobj2val";
+  testObject2.key1.value = 456;
+  testObject2.key2.value = 456;
+  testObject2.key3.value = "key3_obj2";
+  multipleKey objKey1(2,2,"Java");
+  multipleKey objKey2(2,3,"444");
+  stringList.addChildObject(&testObject1,objKey1);
+  stringList.addChildObject(&testObject2,objKey2);
+  stringList.write(objKey1,db);
+  stringList.write(objKey2,db);
+  stringList.removeChildObject(objKey1);
+  stringList.addChildObject(&testObject3,objKey1);
+  stringList.read(objKey1,db);
+  logDebug("MGT","TEST","----Check data-----");
+  ClBoolT isPass = CL_TRUE;
+  if(testObject1.key1.value != testObject3.key1.value)
+  {
+    logDebug("MGT","TEST","FAIL: key1 not consistent [%x : %x]",testObject1.key1.value,testObject3.key1.value);
+    isPass = CL_FALSE;
+  }
+  if(testObject1.key2.value != testObject3.key2.value)
+  {
+    logDebug("MGT","TEST","FAIL: key2 not consistent [%x : %x]",testObject1.key2.value,testObject3.key2.value);
+    isPass = CL_FALSE;
+  }
+  if(testObject1.key3.value != testObject3.key3.value)
+  {
+    logDebug("MGT","TEST","FAIL: key3 not consistent [%s : %s]",testObject1.key3.value.c_str(),testObject3.key3.value.c_str());
+    isPass = CL_FALSE;
+  }
+  if(testObject1.data.value != testObject3.data.value)
+  {
+    logDebug("MGT","TEST","FAIL: data not consistent [%s : %s]",testObject1.data.value.c_str(),testObject3.data.value.c_str());
+    isPass = CL_FALSE;
+  }
+  if(isPass)
+    logDebug("MGT","TEST","PASS: Read/Write database successfully");
+
+  db->finalizeDB();
+}
 ClBoolT gIsNodeRepresentative = CL_TRUE;
 int main(int argc, char* argv[])
 {
@@ -569,6 +629,8 @@ int main(int argc, char* argv[])
     testMgtClassList();
 
     testMgtBind();
+
+    testDatabase();
 
     return 0;
 }

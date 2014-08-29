@@ -127,12 +127,12 @@ public:
     /**
      * \brief   Function to set data to database
      */
-    ClRcT setDb();
+    ClRcT setDb(std::string pxp = "",ClMgtDatabase *db=NULL);
 
     /**
      * \brief   Function to get data from database
      */
-    ClRcT getDb();
+    ClRcT getDb(std::string pxp = "",ClMgtDatabase *db=NULL);
 
     /**
      *
@@ -141,6 +141,10 @@ public:
     {
       return setDb();
     }
+    virtual ClRcT write(std::string xpath,ClMgtDatabase *db=NULL)
+    {
+      return setDb(xpath,db);
+    }
     /**
      *
      */
@@ -148,7 +152,10 @@ public:
     {
       return getDb();
     }
-
+    virtual ClRcT read(std::string xpath,ClMgtDatabase *db=NULL)
+    {
+      return setDb(xpath,db);
+    }
 
 };
 
@@ -304,7 +311,7 @@ ClBoolT MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transac
 
     if (strcmp((char *)namestr, name.c_str()))
     {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
         logDebug("MGT","PROV","Name [%s], XML [%s]",name.c_str(),(char *)namestr);
 #endif
         xmlFreeTextReader(reader);
@@ -351,36 +358,52 @@ std::vector<std::string> *MgtProv<T>::getChildNames()
 }
 
 template <class T>
-ClRcT MgtProv<T>::setDb()
+ClRcT MgtProv<T>::setDb(std::string pxp,ClMgtDatabase *db)
 {
     std::string key = getFullXpath();
-
+    if(pxp.size() > 0)
+    {
+      key = getFullXpath(false);
+      pxp.append(key);
+      key = pxp;
+    }
     std::stringstream ss;
     ss << value;
-
-    ClMgtDatabase *db = ClMgtDatabase::getInstance();
-
-    return db->setRecord(key, ss.str());
+    if(db == NULL)
+    {
+      db = ClMgtDatabase::getInstance();
+    }
+    std::vector<std::string> record = db->iterate(key);
+    if(record.size() == 0)
+      return db->insertRecord(key, ss.str());
+    else
+      return db->setRecord(key,ss.str());
 }
 
 template <class T>
-ClRcT MgtProv<T>::getDb()
+ClRcT MgtProv<T>::getDb(std::string pxp,ClMgtDatabase *db)
 {
-    ClRcT rc = CL_OK;
     std::string key = getFullXpath();
-    std::string value;
-
-    ClMgtDatabase *db = ClMgtDatabase::getInstance();
-
-    rc = db->getRecord(key, value);
+    if(pxp.size() > 0)
+    {
+      key = getFullXpath(false);
+      pxp.append(key);
+      key = pxp;
+    }
+    if(db == NULL)
+    {
+      db = ClMgtDatabase::getInstance();
+    }
+    std::string val;
+    ClRcT rc = db->getRecord(key, val);
     if (CL_OK != rc)
     {
         return rc;
     }
-
-    deXMLize(value,this,value);
+    deXMLize(val,this,value);
     return rc;
 }
+
 
 };
 #endif /* CLMGTPROV_HPP_ */
