@@ -154,7 +154,7 @@ public:
     }
     virtual ClRcT read(std::string xpath,ClMgtDatabase *db=NULL)
     {
-      return setDb(xpath,db);
+      return getDb(xpath,db);
     }
 
 };

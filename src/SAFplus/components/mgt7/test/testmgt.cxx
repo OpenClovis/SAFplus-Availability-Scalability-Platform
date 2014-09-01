@@ -537,7 +537,7 @@ void testDatabase()
   if(CL_OK != rc)
   {
     logDebug("MGT","TEST","FAIL: Initialize db failed %x",rc);
-    //return;
+    return;
   }
   logDebug("MGT","TEST","%s: Database initialized? %s",db->isInitialized()?"PASS":"FAIL",db->isInitialized()?"YES":"NO");
   MgtList<multipleKey> stringList("mylist");
