@@ -236,7 +236,7 @@ int main(int argc, char* argv[])
   safplusInitialize(SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG);
   logEchoToFd = 1;  // echo logs to stdout for debugging
 
-  safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
+  //safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
   safplusMsgServer.Start();
 
   clTestGroupInitialize(("Test Checkpoint"));

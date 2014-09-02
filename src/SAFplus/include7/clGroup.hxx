@@ -102,6 +102,14 @@ namespace SAFplus
       }
   };
 
+  enum class GroupMessageSendMode
+  {
+    SEND_BROADCAST,
+    SEND_TO_ACTIVE,
+    SEND_TO_STANDBY,
+    SEND_LOCAL_ROUND_ROBIN, //Round Robin
+  };
+
   class Group
     {
     public:
@@ -135,9 +143,13 @@ namespace SAFplus
       Group(SAFplus::Handle groupHandle, int comPort = SAFplusI::GMS_IOC_PORT);
       // Named group uses the name service to resolve the name to a handle
       //Group(const std::string& name, int comPort = SAFplusI::GMS_IOC_PORT);
+
+      // Named group associates the string name with the handle in the Name service and in the Group shared memory.  Handle is the authorative identifier, name is overwritten and not replicated
+      Group(SAFplus::Handle groupHandle,const char* name, int comPort = SAFplusI::GMS_IOC_PORT);
       ~Group();
 
       void init(SAFplus::Handle groupHandle, int comPort = SAFplusI::GMS_IOC_PORT);
+      void init(SAFplus::Handle groupHandle, const char* name, int comPort = SAFplusI::GMS_IOC_PORT);
       //void init(const std::string& name, int comPort = SAFplusI::GMS_IOC_PORT);
 
       // register a member of the group.  This is separate from the constructor so someone can iterate through members of the group without being a member.  Caller owns data when register returns.
@@ -170,12 +182,14 @@ namespace SAFplus
       // If me=0 (default), use the group identifier the last call to "register" was called with.
       void deregister(EntityIdentifier me = INVALID_HDL);
 
+      // Sets the name that is stored in shared memory.  TBD: And adds this name to the Name server.
+      void setName(const char* name);
 
       // Get the current active entity.  If an active entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with active capability
-      EntityIdentifier getActive(void);
+      EntityIdentifier getActive(SAFplus::Wakeable& execSemantics = BLOCK);
 
       // Get the current standby entity.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
-      EntityIdentifier getStandby(void);
+      EntityIdentifier getStandby(SAFplus::Wakeable& execSemantics = BLOCK);
 
       // Get the current active/standby.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
       std::pair<EntityIdentifier,EntityIdentifier> getRoles();
@@ -212,6 +226,7 @@ namespace SAFplus
 
         // comparison
         bool operator !=(const Iterator& otherValue) { return curIdx != otherValue.curIdx; }
+        bool operator ==(const Iterator& otherValue) { return curIdx == otherValue.curIdx; }
 
         // increment the pointer to the next value
         Iterator& operator++();
@@ -235,18 +250,22 @@ namespace SAFplus
       //?  Returns a string describing the passed capabilities, pass in a 100 byte string as the fill buffer
       static char* capStr(uint cap, char* buf);
 
+      //? Send a message to the registered entities in this group
+      void send(void* data, int dataLength, SAFplus::GroupMessageSendMode messageMode);
+
     protected:
       // Functions that send various announcement messages
       void sendGroupAnnounceMessage();
       void sendRoleMessage(EntityIdentifier active,EntityIdentifier standby,bool forcing);
-      void fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType, bool forcing=false);
-      void sendNotification(void* data, int dataLength, SAFplusI::GroupMessageSendModeT messageMode);
+      void fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplus::GroupMessageSendMode msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType, bool forcing=false);
+      void sendNotification(void* data, int dataLength, SAFplus::GroupMessageSendMode messageMode);
  
      // Communication port
       int                               groupCommunicationPort;
       SAFplus::SafplusMsgServer*        groupMsgServer;
       SAFplus::Wakeable*                wakeable;               // Wakeable object for change notification
       friend class SAFplusI::GroupSharedMem;
+      Iterator roundRobin;
     };
 
 }

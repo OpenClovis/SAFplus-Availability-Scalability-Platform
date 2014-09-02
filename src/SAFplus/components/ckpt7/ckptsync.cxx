@@ -6,7 +6,6 @@
 
 #include <boost/unordered_map.hpp>
 
-
 #include <clCommon.hxx>
 #include <clIocPortList.hxx>
 
@@ -14,6 +13,7 @@
 #include <clCkptApi.hxx>
 #include <clMsgApi.hxx>
 #include <clGroup.hxx>
+#include <clObjectMessager.hxx>
 
 #include <clCustomization.hxx>
 
@@ -173,9 +173,6 @@ void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* v
   hdr->checkpoint  = ckpt->handle();
   hdr->cookie      = syncCookie;
   int offset   = sizeof(CkptSyncMsg);
-  ClIocAddressT to;
-  to.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-  to.iocPhyAddress.portId      = TEMP_CKPT_SYNC_PORT;  // This is a problem b/c the syncPort is not known.  TODO: actually use a group API to send to every registered entity in the group.  Inside group, message is sent directly to each "handle" using the object message API (TBD)
 
   memcpy(&buf[offset],(void*) key, key->objectSize());
   offset += key->objectSize();
@@ -184,7 +181,14 @@ void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* v
   memcpy(&buf[offset],(void*) val, val->objectSize());
   offset += val->objectSize();
   assert(offset <= bufSize);
+
+  group->send(buf,offset,GroupMessageSendMode::SEND_BROADCAST);
+#if 0
+  ClIocAddressT to;
+  to.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+  to.iocPhyAddress.portId      = TEMP_CKPT_SYNC_PORT;  // This is a problem b/c the syncPort is not known.  TODO: actually use a group API to send to every registered entity in the group.  Inside group, message is sent directly to each "handle" using the object message API (TBD)
   msgSvr->SendMsg(to,buf,offset,CKPT_SYNC_MSG_TYPE);
+#endif
   }
 
 
@@ -293,6 +297,10 @@ void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr)
   else msgSvr = pmsgSvr;
   ckpt->hdr->replicaHandle = Handle::create(msgSvr->handle.getPort());
 
+  // Install this object as the object message handler so we can handle incoming update messages sent to all members of the group.
+  SAFplus::objectMessager.insert(ckpt->hdr->replicaHandle,this);
+
+  // Now join this checkpoint's dedicated group.
   group = new SAFplus::Group();
   assert(group);
   group->init(ckpt->hdr->handle.getSubHandle(CKPT_GROUP_SUBHANDLE));

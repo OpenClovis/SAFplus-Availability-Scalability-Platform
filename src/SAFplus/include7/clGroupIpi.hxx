@@ -40,13 +40,6 @@ namespace SAFplusI
     ROLE_UNDEFINED
   };
 
-  enum class GroupMessageSendModeT
-  {
-    SEND_BROADCAST,
-    SEND_TO_MASTER,
-    SEND_LOCAL_RR, //Round Robin
-    SEND_UNDEFINED
-  };
 
   class GroupMessageProtocol
   {
@@ -69,7 +62,6 @@ namespace SAFplusI
     public:
     uint64_t       structId;
     pid_t          rep;        // This is the node representative
-    uint8_t        activeCopy; // set to 0 or 1 to indicate the "readable" copy.
     };
 
   class GroupData
@@ -81,7 +73,7 @@ namespace SAFplusI
       ELECTION_IN_PROGRESS = 2,
       };
 
-    SAFplus::Handle hdl;
+    SAFplus::Handle hdl;  // Should be part of the GroupSharedMemEntry not GroupData because it is not changed
     uint32_t flags;
     uint32_t electionTimeMs; //? Election time in milliseconds
     uint16_t activeIdx;  // Index into the members array to find the active member
@@ -181,6 +173,11 @@ namespace SAFplusI
   class GroupShmEntry
     {
     public:
+    enum
+    {
+      GROUP_NAME_LEN = 256
+    };
+    char     name[GROUP_NAME_LEN];  // This name is just for display purposes, use the Name service for lookup
     uint32_t  which;   // which data is the valid (reading) copy
     GroupData data[2];
     const GroupData& read() const { return data[which&1]; }
@@ -201,6 +198,7 @@ namespace SAFplusI
     void init(SAFplus::Handle grp)
       {
         which = 0;
+        name[0] = 0;
         data[0].init(grp);
         memcpy(&data[1],&data[0],sizeof(GroupData));
       }

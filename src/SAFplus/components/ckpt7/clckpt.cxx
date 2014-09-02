@@ -50,7 +50,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
   if (flags & REPLICATED)
     if (!(flags & CHANGE_LOG)) flags |= CHANGE_ANNOTATION; // Change annotation is the default delta replication mechanism
 
-  char tempStr[81];
+  char tempStr[256];
   if (hdl==INVALID_HDL)
     {
       // Allocate a new hdl
@@ -61,7 +61,8 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
   if (rows < CkptMinRows) rows = CkptDefaultRows;
 
   //sharedMemHandle = NULL;
-  hdl.toStr(tempStr);
+  strcpy(tempStr,"ckpt_");
+  hdl.toStr(&tempStr[5]);
   //strcpy(tempStr,"test");  // DEBUGGING always uses one segment
 
   if (flags & SHARED)
@@ -276,8 +277,8 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
           SAFplus::Buffer* old = curval.get();
           *v = value;
           if (flags & CHANGE_ANNOTATION) v->setChangeNum(change);
-          curval = v;          
-          if (old->ref()==1) 
+          curval = v;
+          if (old->ref()==1)
             msm.deallocate(old);  // if I'm the last owner, let this go.
           else 
             old->decRef();

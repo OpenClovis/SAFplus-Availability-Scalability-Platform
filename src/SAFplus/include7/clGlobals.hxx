@@ -2,6 +2,7 @@
 #include <clIocApi.h>
 #include <clLogApi.hxx>
 #include <clHandleApi.hxx>
+#include <clCustomization.hxx>
 
 namespace SAFplus
   {
@@ -52,6 +53,22 @@ namespace SAFplus
 
 /* SAFplus initialization */
 
+//? This class defines initialization parameters for the SAFplus services.  It can be passed to safplusInitialize to customize service creation.
+class SafplusInitializationConfiguration
+  {
+  public:
+  uint_t iocPort;      //? What messaging port should this component's SAFplus service layer (safplusMsgServer object) listen to?
+  uint_t msgQueueLen;  //? How many messages can be queued up in the SAFplus service layer?
+  uint_t msgThreads;   //? What's the maximum number of message processing threads that can be created?
+
+  SafplusInitializationConfiguration()
+    {
+    iocPort = 0;  // means allocate a random unique-to-the-node one
+    msgQueueLen = SAFplus::MsgAppQueueLen;
+    msgThreads  = SAFplus::MsgAppMaxThreads;
+    }
+  };
+
 class LibSet
   {
   public:
@@ -68,7 +85,9 @@ class LibSet
     HEAP=0x80,
     BUFFER=0x100,
     TIMER=0x200,
-    DBAL=0x400
+    DBAL=0x400,
+    MSG=0x800,
+    OBJMSG=0x1000
   };
   };
 
@@ -110,8 +129,10 @@ class LibSet
     OSAL = LibSet::OSAL | LibSet::LOG | LibSet::UTILS,
     UTILS = LibSet::UTILS | LibSet::OSAL,
     IOC = LibSet::IOC | LibSet::LOG |  LibSet::UTILS | LibSet::OSAL | LibSet::HEAP | LibSet::TIMER | LibSet::BUFFER,
-    GRP = LibSet::GRP | LibDep::IOC,
-    CKPT = LibSet::CKPT | LibDep::GRP | LibDep::IOC | LibDep::UTILS,
+    MSG = LibSet::MSG | LibDep::IOC,
+    OBJMSG = LibSet::OBJMSG | LibDep::MSG,
+    GRP = LibSet::GRP | LibDep::OBJMSG | LibDep::MSG,
+    CKPT = LibSet::CKPT | LibDep::GRP | LibDep::MSG | LibDep::UTILS,
     HEAP = LibSet::HEAP,
     BUFFER = LibSet::BUFFER,
     TIMER = LibSet::TIMER,
@@ -144,7 +165,10 @@ class LibSet
 #endif
 
   extern void utilsInitialize() __attribute__((weak));
-  extern Logger* logInitialize(void) __attribute__((weak));    
+  extern Logger* logInitialize(void) __attribute__((weak));
+  extern void objectMessagerInitialize() __attribute__((weak));
+  extern void msgServerInitialize(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads)  __attribute__((weak));
+
 #ifdef __cplusplus
 extern "C" {
 #endif 
@@ -160,14 +184,16 @@ extern "C" {
 
   extern void groupInitialize(void) __attribute__((weak));
 
-  inline void safplusInitialize(unsigned int svc)
+  inline void safplusInitialize(unsigned int svc,const SafplusInitializationConfiguration& cfg=*((SafplusInitializationConfiguration*)NULL))
   {
+    SafplusInitializationConfiguration defaults;
+    const SafplusInitializationConfiguration* sic;
+    if (&cfg) sic = &cfg;
+    else sic = &defaults;
     ClRcT rc;
-    if(svc&LibSet::LOG)
-      if(logInitialize) logInitialize();
-    if(svc&LibSet::UTILS)
-      if(utilsInitialize) utilsInitialize();
-    if((svc&LibSet::OSAL)&&clOsalInitialize)
+    if ((svc&LibSet::LOG)&& logInitialize) logInitialize();
+    if ((svc&LibSet::UTILS)&& utilsInitialize) utilsInitialize();
+    if ((svc&LibSet::OSAL)&& clOsalInitialize)
       {
       rc = clOsalInitialize(NULL);
       assert(rc == CL_OK);
@@ -203,6 +229,16 @@ extern "C" {
     if((svc&LibSet::GRP)&&SAFplus::groupInitialize) 
       { 
       SAFplus::groupInitialize();
+      }
+
+    if (svc&LibSet::MSG&& msgServerInitialize)
+      {
+      msgServerInitialize(sic->iocPort,sic->msgQueueLen,sic->msgThreads);
+      }
+
+    if ((svc&LibSet::OBJMSG)&&SAFplus::objectMessagerInitialize)
+      {
+      objectMessagerInitialize();
       }
   }
 

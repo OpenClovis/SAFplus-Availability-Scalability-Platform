@@ -353,9 +353,13 @@ int main(int argc, char* argv[])
 
   clAspLocalId  = SAFplus::ASP_NODEADDR;  // TODO: remove clAspLocalId
 
-  safplusInitialize(SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG);
+  SafplusInitializationConfiguration sic;
+  sic.iocPort     = SAFplusI::AMF_IOC_PORT;
+  sic.msgQueueLen = MAX_MSGS;
+  sic.msgThreads  = MAX_HANDLER_THREADS;
+  safplusInitialize(SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
 
-  SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
+  //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
   SAFplus::Rpc::amfRpc::amfRpcImpl amfRpcMsgHandler;
   // Handle RPC
   //Start Sever RPC
@@ -418,7 +422,7 @@ int main(int argc, char* argv[])
   loadAmfPlugins(amfOps);
 
 #ifdef USE_GRP
-  clusterGroup.init(CLUSTER_GROUP);
+  clusterGroup.init(CLUSTER_GROUP,"safplusCluster");
   clusterGroup.setNotification(somethingChanged);
 #endif
 

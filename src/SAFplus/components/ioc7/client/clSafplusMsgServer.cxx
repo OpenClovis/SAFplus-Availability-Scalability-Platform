@@ -26,12 +26,17 @@ namespace SAFplus
 {
     SafplusMsgServer safplusMsgServer;
 
+    void msgServerInitialize(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads)
+      {
+      safplusMsgServer.init(port,maxPendingMsgs, maxHandlerThreads);
+      }
+
     void SAFplus::SafplusMsgServer::init(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads, Options flags)
       {
         MsgServer::Init(port, maxPendingMsgs, maxHandlerThreads, flags);
         MsgHandler *replyHandler = new MsgReplyHandler();
         this->RegisterHandler(CL_IOC_SAF_MSG_REPLY_PROTO, replyHandler, &msgReply);
-        iocPort = port; // Set this global to be used as a unique identifier for this component across the node
+        iocPort = port; // Set this global to be used as a unique identifier for this component across the node.  There can be many MsgServers per component but only one SafplusMsgServer.
       }
 
     void SAFplus::SafplusMsgServer::registerHandler(ClWordT type, MsgHandler *handler, ClPtrT cookie)

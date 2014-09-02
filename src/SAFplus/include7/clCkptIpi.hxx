@@ -15,6 +15,7 @@
 #include <clCommon.hxx>
 #include <clHandleApi.hxx>
 #include <clTransaction.hxx>
+#include <clMsgHandler.hxx>
 
 namespace SAFplus
 {
@@ -40,7 +41,7 @@ namespace SAFplusI
   //typedef boost::unordered_map < CkptMapKey, CkptMapValue, boost::hash<CkptMapKey>, std::equal_to<CkptMapValue>, CkptAllocator> CkptHashMap;
   typedef boost::unordered_map < CkptMapKey, CkptMapValue, boost::hash<CkptMapKey>, BufferPtrContentsEqual, CkptAllocator> CkptHashMap;
 
-  class CkptSynchronization:public SAFplus::Wakeable
+  class CkptSynchronization:public SAFplus::MsgHandler, public SAFplus::Wakeable
     {
     public:
     bool                 synchronizing;

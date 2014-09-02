@@ -154,7 +154,7 @@ int parseArgs(int argc, char* argv[])
         {
         ClUint32T temp=0;
         rc = cpmStrToInt(optarg, &temp);
-        SAFplus::ASP_NODEADDR = temp;
+        clAspLocalId = SAFplus::ASP_NODEADDR = temp;
         if (CL_OK != rc)
           {
           printf("[%s] is not a valid slot id.\n", optarg);
@@ -186,11 +186,16 @@ int main(int argc, char* argv[])
   ClRcT rc;
   clAspLocalId  = SAFplus::ASP_NODEADDR = 1;
   parseArgs(argc, argv);
-  safplusInitialize(SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG);
+  printf("Node: %d Port: %d\n", SAFplus::ASP_NODEADDR, TEMP_CKPT_SYNC_PORT);
+  SafplusInitializationConfiguration sic;
+  sic.iocPort     = TEMP_CKPT_SYNC_PORT;
+  sic.msgQueueLen = MAX_MSGS;
+  sic.msgThreads  = MAX_HANDLER_THREADS;
+  safplusInitialize(SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG,sic);
   SAFplus::Handle hdl;
   logEchoToFd = 1;  // echo logs to stdout for debugging
 
-  safplusMsgServer.init(TEMP_CKPT_SYNC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
+  //safplusMsgServer.init(TEMP_CKPT_SYNC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
   safplusMsgServer.Start();
 
   clTestGroupInitialize(("Test Checkpoint"));

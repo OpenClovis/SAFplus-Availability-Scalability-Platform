@@ -9,6 +9,7 @@
 #include <clGlobals.hxx>
 #include <clNameApi.hxx>
 #include <clGroupIpi.hxx>  // only for debug -- dumping the group shared memory
+#include <clObjectMessager.hxx>
 
 using namespace SAFplus;
 using namespace std;
@@ -17,11 +18,12 @@ using namespace std;
 //int testGetData(int mode);
 //int testGroupIterator(int mode);
 int testRegisterAndDeregister(int mode);
+void testSendMessages();
+void testChanges(void);
 
 static unsigned int MAX_MSGS=25;
 static unsigned int MAX_HANDLER_THREADS=2;
 ClBoolT   gIsNodeRepresentative = CL_FALSE;
-void testChanges(void);
 
 namespace SAFplusI
   {
@@ -34,14 +36,17 @@ int main(int argc, char* argv[])
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
 
-  safplusInitialize(SAFplus::LibDep::GRP);
+  SafplusInitializationConfiguration sic;
+  sic.iocPort     = 50;
+  
+  safplusInitialize(SAFplus::LibDep::GRP,sic);
 
-  safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
+  //safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
   safplusMsgServer.Start();
 
-  testRegisterAndDeregister(0);
-  testChanges();
-
+  //testRegisterAndDeregister(0);
+  //testChanges();
+  testSendMessages();
   return 0;
 }
 
@@ -66,6 +71,60 @@ void GroupChangeHandler::wake(int amt,void* cookie)
     const GroupIdentity& gid = i->second;
     logInfo("TEST","GRP", "  Entity [%lx:%lx] on node [%d] credentials [%ld] capabilities [%d] %s", gid.id.id[0],gid.id.id[1],gid.id.getNode(),gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
     }
+  }
+
+class MyMsgHandler:public SAFplus::MsgHandler
+  {
+  public:
+  int id;
+  int msgsRcvd;
+  MyMsgHandler(int identity):id(identity),msgsRcvd(0) {}
+  virtual void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+  };
+
+void MyMsgHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+  {
+  msgsRcvd++;
+  printf("%d: Received msg '%s'\n",id, (char*) msg);
+  }
+
+void testSendMessages()
+  {
+  Handle gh1 = Handle::create();
+  Group grp(gh1);  // just for monitoring the other group's joining and leaving
+
+  MyMsgHandler obj(1);
+  Handle objHandle = Handle::create();
+  SAFplus::objectMessager.insert(objHandle,&obj);
+
+  grp.registerEntity(objHandle,1,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
+
+  if (1)
+    {
+    char buf[] = "test message";
+    grp.send(buf,sizeof(buf),GroupMessageSendMode::SEND_TO_ACTIVE);
+    sleep(2);
+    assert(obj.msgsRcvd == 1);
+    }
+
+  if (1)
+    {
+    char buf[] = "test message 2";
+    grp.send(buf,sizeof(buf),GroupMessageSendMode::SEND_BROADCAST);
+    sleep(2);
+    assert(obj.msgsRcvd == 2);
+    }
+
+  if (1)
+    {
+    char buf[] = "test message 3";
+    grp.send(buf,sizeof(buf),GroupMessageSendMode::SEND_LOCAL_ROUND_ROBIN);
+    grp.send(buf,sizeof(buf),GroupMessageSendMode::SEND_LOCAL_ROUND_ROBIN);
+    sleep(2);
+    assert(obj.msgsRcvd == 4);  // Only one entity right now so RR should go to me twice
+    }
+
+  SAFplus::objectMessager.remove(objHandle);
   }
 
 void testChanges()

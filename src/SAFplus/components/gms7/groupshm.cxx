@@ -102,7 +102,7 @@ void GroupSharedMem::dbgDump(void)
     SAFplus::Handle grpHdl = i->first;
     GroupShmEntry& ge = i->second;
     const GroupData& gd = ge.read();
-    printf("Group [%lx:%lx]:\n", grpHdl.id[0], grpHdl.id[1]);
+    printf("Group %s [%lx:%lx]:\n", ge.name,grpHdl.id[0], grpHdl.id[1]);
     for (int j = 0 ; j<gd.numMembers; j++)
       {
       const GroupIdentity& gid = gd.members[j];
@@ -140,7 +140,6 @@ void GroupSharedMem::init()
     {
     groupHdr = (SAFplusI::GroupShmHeader*) groupMsm.construct<SAFplusI::GroupShmHeader>("header") ();                                 // Ok it created one so initialize
     groupHdr->rep  = getpid();
-    groupHdr->activeCopy = 0;
     groupHdr->structId=SAFplusI::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
     }
   catch (interprocess_exception &e)
@@ -153,7 +152,6 @@ void GroupSharedMem::init()
       if (retries>=2)  // Another process is supposedly initializing the header but it did not do so.  Something unknown is wrong.  We will try initializing it.
         {
         groupHdr->rep  = getpid();
-        groupHdr->activeCopy = 0;
         groupHdr->structId=SAFplusI::CL_GROUP_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
         }
       }

@@ -68,8 +68,11 @@ std::string strprintf(const std::string fmt_str, ...);
   public:
     virtual void wake(int amt,void* cookie=NULL) = 0;
 
-    static Wakeable& Synchronous;  // This const is a reference to NULL and simply indicates that the function should be synchronous instead of async.
+    //static Wakeable& Synchronous;  // This const is a reference to NULL and simply indicates that the function should be synchronous instead of async.
   };
+
+  extern Wakeable& BLOCK;  // This const is a reference to NULL and simply indicates that the function should be synchronous instead of async.
+  extern Wakeable& ABORT;  // This const is a reference to NULL and indicates that the function should throw/return an error rather than block.
 
   
 

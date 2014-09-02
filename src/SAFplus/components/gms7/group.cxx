@@ -51,6 +51,19 @@ char* Group::capStr(uint cap, char* buf)
     init(groupHandle, comPort);
     }
 
+  Group::Group(SAFplus::Handle groupHandle,const char* name, int comPort)
+    {
+    wakeable = NULL;
+    groupMsgServer = NULL;
+    init(groupHandle, comPort);
+    
+    if (name && name[0] != 0)
+      {
+      setName(name);
+      }
+    }
+
+
   Group::~Group()
     {
     if (wakeable)
@@ -66,6 +79,15 @@ char* Group::capStr(uint cap, char* buf)
     }
 
 
+  void Group::init(Handle groupHandle, const char* name, int comPort)
+    {
+    init(groupHandle,comPort);
+
+    if (name && name[0] != 0)
+      {
+      setName(name);
+      }
+    }
 
   void Group::init(Handle groupHandle, int comPort)
     {
@@ -91,18 +113,39 @@ char* Group::capStr(uint cap, char* buf)
     }
 
   // Get the current active entity.  If an active entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with active capability
-  EntityIdentifier Group::getActive(void)
+  EntityIdentifier Group::getActive(SAFplus::Wakeable& execSemantics)
     {
-    return getRoles().first;
+    EntityIdentifier ret;
+    do
+      {
+      ret = getRoles().first;
+      if (ret == INVALID_HDL)
+        {
+        if (&execSemantics == &BLOCK) boost::this_thread::sleep(boost::posix_time::milliseconds(100));  // TODO use thread change condition
+        else if (&execSemantics != &ABORT)
+          { clDbgCodeError(1,("Async call not supported")); }
+        }
+      } while ((&execSemantics == &BLOCK) && (ret == INVALID_HDL));
+    return ret;
     }
 
 
   // Get the current standby entity.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
-  EntityIdentifier Group::getStandby(void)
+  EntityIdentifier Group::getStandby(SAFplus::Wakeable& execSemantics)
     {
-    return getRoles().second;
+    EntityIdentifier ret;
+    do
+      {
+      ret = getRoles().second;
+      if (ret == INVALID_HDL)
+        {
+        if (&execSemantics == &BLOCK) boost::this_thread::sleep(boost::posix_time::milliseconds(100));  // TODO use thread change condition
+        else if (&execSemantics != &ABORT)
+          { clDbgCodeError(1,("Async call not supported")); }
+        }
+      } while ((&execSemantics == &BLOCK) && (ret == INVALID_HDL));
+    return ret;
     }
-
 
   // Get the current active/standby.  If a standby entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with standby capability
   std::pair<EntityIdentifier,EntityIdentifier> Group::getRoles()
@@ -115,6 +158,22 @@ char* Group::capStr(uint cap, char* buf)
     if (!gse) return ret;
     ret = gse->getRoles();
     return ret;
+    }
+
+  void Group::setName(const char* name)
+    {
+    GroupShmHashMap::iterator entryPtr;
+    entryPtr = gsm.groupMap->find(handle);
+    if (entryPtr == gsm.groupMap->end()) return; // TODO: raise exception
+    GroupShmEntry *gse = &entryPtr->second;
+    assert(gse);  // If this fails, something very wrong with the group data structure in shared memory.  TODO, should probably delete it and fail the node
+    if (gse) // Name is not meant to change, and not used except for display purposes.  So just change both of them
+      {
+      strncpy(gse->name,name,SAFplusI::GroupShmEntry::GROUP_NAME_LEN);
+      }
+    else
+      {
+      }
     }
 
   // Utility functions
@@ -139,7 +198,7 @@ char* Group::capStr(uint cap, char* buf)
     {
     //if(!isElectionRunning)  // GAS TODO optimize
       {
-      fillAndSendMessage(&myInformation,GroupMessageTypeT::MSG_ELECT_REQUEST,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
+      fillAndSendMessage(&myInformation,GroupMessageTypeT::MSG_ELECT_REQUEST,GroupMessageSendMode::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
       }
     }
 
@@ -238,7 +297,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
         gi.credentials = credentials;
         gi.capabilities = capabilities;
         gi.dataLen = 0;   //  TODO: data 
-        fillAndSendMessage((void *)&gi,GroupMessageTypeT::MSG_ENTITY_JOIN,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
+        fillAndSendMessage((void *)&gi,GroupMessageTypeT::MSG_ENTITY_JOIN,GroupMessageSendMode::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
         }
       }
 
@@ -299,7 +358,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
 
       // ok passed all existence checks, so send the deregister message.
 
-      fillAndSendMessage((void *)&me,GroupMessageTypeT::MSG_ENTITY_LEAVE,GroupMessageSendModeT::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
+      fillAndSendMessage((void *)&me,GroupMessageTypeT::MSG_ENTITY_LEAVE,GroupMessageSendMode::SEND_BROADCAST,GroupRoleNotifyTypeT::ROLE_UNDEFINED);
 
       // TODO wait until the node representative actually receives the message and changes shared memory?
       }
@@ -321,7 +380,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
     sndMessage->roleType    = GroupRoleNotifyTypeT::ROLE_ACTIVE;
     sndMessage->force = forcing;
     memcpy(sndMessage->data,data,msgDataLen);
-    sendNotification((void *)sndMessage,msgLen,GroupMessageSendModeT::SEND_BROADCAST);
+    sendNotification((void *)sndMessage,msgLen,GroupMessageSendMode::SEND_BROADCAST);
     }
 
   void SAFplus::Group::sendGroupAnnounceMessage()
@@ -332,7 +391,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
     sndMessage.roleType    = GroupRoleNotifyTypeT::ROLE_UNDEFINED;
     sndMessage.force = 0;
     sndMessage.data[0] = 0;
-    sendNotification((void *)&sndMessage,sizeof(GroupMessageProtocol),GroupMessageSendModeT::SEND_BROADCAST);
+    sendNotification((void *)&sndMessage,sizeof(GroupMessageProtocol),GroupMessageSendMode::SEND_BROADCAST);
     }
 
 
@@ -340,7 +399,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
 /**
  * Fill information and call message server to send
  */
-  void SAFplus::Group::fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplusI::GroupMessageSendModeT msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType,bool forcing)
+  void SAFplus::Group::fillAndSendMessage(void* data, SAFplusI::GroupMessageTypeT msgType,SAFplus::GroupMessageSendMode msgSendMode, SAFplusI::GroupRoleNotifyTypeT roleType,bool forcing)
     {
     int msgLen = 0;
     int msgDataLen = 0;
@@ -373,14 +432,79 @@ void Group::setNotification(SAFplus::Wakeable& w)
     sendNotification((void *)sndMessage,msgLen,msgSendMode);
     }
 
+  
+void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendMode messageMode)
+  {
+  // TODO Use an advanced Buffer data structure to avoid copies and malloc
+  int len = dataLength+sizeof(Handle);
+  char* buf = (char*) malloc(len);
+  assert(buf);
+  memcpy(buf+sizeof(Handle),data,dataLength);
+
+  SAFplus::Handle dest = INVALID_HDL;
+
+  switch(messageMode)
+    {
+    case GroupMessageSendMode::SEND_BROADCAST:
+      {
+      for (Iterator i = begin(); i != end(); i++)
+        {
+        SAFplus::Handle hdl = i->first;
+        ClIocAddress to = getAddress(hdl);
+        memcpy(buf,&hdl,sizeof(Handle));
+        groupMsgServer->SendMsg(to, (void *)buf, len, SAFplusI::OBJECT_MSG_TYPE);
+        }
+      }
+      break;
+    case GroupMessageSendMode::SEND_TO_ACTIVE:
+      {
+      dest = getActive();
+      if (dest == INVALID_HDL)
+        {
+        assert(0); // TODO throw exception or block
+        // throw
+        }
+      } break;
+    case GroupMessageSendMode::SEND_TO_STANDBY:
+      {
+      dest = getStandby();
+      if (dest == INVALID_HDL)
+        {
+        assert(0); // TODO throw exception or block
+        // throw
+        }
+      } break;
+    case GroupMessageSendMode::SEND_LOCAL_ROUND_ROBIN:
+      {
+      roundRobin++;
+      if (roundRobin == end()) 
+        roundRobin = begin();
+      if (roundRobin == end())
+        {
+        assert(0);  // No members of the group, TODO throw exception or block
+        }
+      dest = roundRobin->first;
+      } break;
+    }
+
+  if (dest != INVALID_HDL)
+    {
+      ClIocAddress to = getAddress(dest);
+      memcpy(buf,&dest,sizeof(Handle));
+      //to.iocPhyAddress.nodeAddress = to; // CL_IOC_BROADCAST_ADDRESS;
+      groupMsgServer->SendMsg(to, (void *)buf, len, SAFplusI::OBJECT_MSG_TYPE);
+    }
+
+  }
+
 /**
  * Actually send message
  */
-  void  SAFplus::Group::sendNotification(void* data, int dataLength, GroupMessageSendModeT messageMode)
+  void  SAFplus::Group::sendNotification(void* data, int dataLength, GroupMessageSendMode messageMode)
     {
     switch(messageMode)
       {
-      case GroupMessageSendModeT::SEND_BROADCAST:
+      case GroupMessageSendMode::SEND_BROADCAST:
       {
       /* Destination is broadcast address */
       ClIocAddressT iocDest;
@@ -397,7 +521,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
         }
       break;
       }
-      case GroupMessageSendModeT::SEND_TO_MASTER:
+      case GroupMessageSendMode::SEND_TO_ACTIVE:
       {
       /* Destination is Master node address */
       ClIocAddressT iocDest;
@@ -416,7 +540,7 @@ void Group::setNotification(SAFplus::Wakeable& w)
         }
       break;
       }
-      case GroupMessageSendModeT::SEND_LOCAL_RR:
+      case GroupMessageSendMode::SEND_LOCAL_ROUND_ROBIN:
       {
       logInfo("GMS","MSG","Sending message round robin");
       break;
