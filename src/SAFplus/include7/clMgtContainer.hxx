@@ -92,7 +92,9 @@ class MgtContainer:public MgtObject
 
     //virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
     virtual ClRcT write(ClMgtDatabase *db=NULL);
+    virtual ClRcT write(std::string parentXPath,ClMgtDatabase *db=NULL);
     virtual ClRcT read(ClMgtDatabase *db=NULL);
+    virtual ClRcT read(std::string parentXPath,ClMgtDatabase *db=NULL);
   
   };
 

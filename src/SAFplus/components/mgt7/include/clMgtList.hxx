@@ -83,7 +83,7 @@ namespace SAFplus
               {
                 current.first = "";
                 current.second = nullptr;
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
                 logDebug("MGT", "LIST", "Reached end of the list");
 #endif
                 return false;
@@ -136,7 +136,7 @@ namespace SAFplus
             return CL_TRUE;
           }
         }
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
         logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
 #endif
         return CL_FALSE;
@@ -151,15 +151,17 @@ namespace SAFplus
         KEYTYPE *key = &objectKey;
         if(key == NULL)
         {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
           logError("MGT", "LIST", "Key for child object is not defined");
 #endif
           return CL_ERR_NULL_POINTER;
         }
         children[*key] = mgtObject;
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
         logDebug("MGT", "LIST", "Adding child object was successfully");
 #endif
+        if(mgtObject->parent == NULL)
+          mgtObject->parent = this;
         return CL_OK;
       }
       /**
@@ -167,6 +169,11 @@ namespace SAFplus
        */
       virtual ClRcT removeChildObject(const KEYTYPE objectKey)
       {
+        MgtObject *mgtObject = children[objectKey];
+        if(mgtObject && mgtObject->parent == this)
+        {
+          mgtObject->parent = NULL;
+        }
         children.erase(objectKey);
       }
       /**
@@ -207,7 +214,7 @@ namespace SAFplus
         typename Map::iterator it = children.find(objectKey);
         if (it == children.end())
         {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
           logError("MGT", "LIST", "Can't find the object with given key");
 #endif
           return nullptr;
@@ -259,7 +266,7 @@ namespace SAFplus
         xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
         if (!reader)
         {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
           logError("MGT", "LIST", "Reader return null");
 #endif
           return CL_FALSE;
@@ -282,7 +289,7 @@ namespace SAFplus
                 {
                    if(strcmp((const char *)namestr,this->name.c_str()) != 0)
                    {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
                      logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
 #endif
                      return CL_FALSE;
@@ -310,7 +317,7 @@ namespace SAFplus
                 {
                   if(entry->set(strChildData.c_str(),strChildData.size(),t) == CL_FALSE)
                   {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
                     logError("MGT", "LIST", "Setting for child failed");
 #endif
                     xmlFreeTextReader(reader);
@@ -319,7 +326,7 @@ namespace SAFplus
                 }
                 else
                 {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
                   logError("MGT", "LIST", "Can't find entry for key %s",entryKey.str().c_str());
 #endif
                 }
@@ -353,14 +360,14 @@ namespace SAFplus
       /**
        * Provide full X-Path of this list *
        */
-      std::string getFullXpath(KEYTYPE key)
+      std::string getFullXpath(KEYTYPE key,bool includeParent = true)
       {
         typename Map::iterator iter = children.find(key);
-        std::string xpath = "",parentXpath,childXpath;
+        std::string xpath = "",parentXpath;
         /* Check if expected entry is found */
         if(iter == children.end())
         {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
           logError("MGT","XPT","Can't find object which belong to key");
 #endif
           return xpath;
@@ -369,31 +376,18 @@ namespace SAFplus
         std::string keypart = key.toXmlString();
 
         /* Parent X-Path will be add into the full xpath */
-        if (parent != NULL) // this is the list parent
+        if (parent != NULL && includeParent) // this is the list parent
         {
           parentXpath = parent->getFullXpath();
           if (parentXpath.length() > 0)
           {
-            xpath = parentXpath.append("/").append(this->name);
-          }
-          else
-          {
-            xpath.append("/").append(this->name);
+            xpath.append(parentXpath);
           }
         }
-        else
-        {
-          xpath.append("/").append(this->name);
-        }
+        xpath.append("/").append(this->name);
         /* Add key into xpath */
         /* ex: /ethernet/interfaces[name=eth0,ipAddress=123] */
         xpath.append(keypart);
-        /* Append entry X-Path */
-        childXpath = iter->second->getFullXpath();
-        if(childXpath.length() > 0)
-        {
-          xpath.append(childXpath);
-        }
         return xpath;
       }
       /**
@@ -419,6 +413,21 @@ namespace SAFplus
         }
         return rc;
       }
+      ClRcT read(KEYTYPE key,ClMgtDatabase *db=NULL)
+      {
+        ClRcT rc = CL_OK;
+        MgtObject *obj = children[key];
+        if(obj == NULL)
+        {
+#ifndef SAFplus7
+          logDebug("MGT","READ","Can't find children");
+#endif
+          return CL_ERR_INVALID_PARAMETER;
+        }
+        rc = obj->read(getFullXpath(key));
+
+        return rc;
+      }
       /**
        * Function to write to database
        */
@@ -433,6 +442,21 @@ namespace SAFplus
           if(CL_OK != rc)
             return rc;
         }
+        return rc;
+      }
+      ClRcT write(KEYTYPE key,ClMgtDatabase *db=NULL)
+      {
+        ClRcT rc = CL_OK;
+        MgtObject *obj = children[key];
+        if(obj == NULL)
+        {
+#ifndef SAFplus7
+          logDebug("MGT","READ","Can't find children");
+#endif
+          return CL_ERR_INVALID_PARAMETER;
+        }
+        rc = obj->write(getFullXpath(key,false),db);
+
         return rc;
       }
   };
@@ -461,7 +485,7 @@ namespace SAFplus
             {
               current.first = "";
               current.second = nullptr;
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
               logDebug("MGT", "LIST", "Reached end of the list");
 #endif
               return false;
@@ -509,7 +533,7 @@ namespace SAFplus
           MgtObject* curEntry = iter->second;
           if(curEntry->name.compare(entry->name) == 0)
           {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
             logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
 #endif
             return CL_TRUE;
@@ -530,17 +554,12 @@ namespace SAFplus
           key = &mgtObject->name;
         }
         children[*key] = mgtObject;
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
         logDebug("MGT", "LIST", "Adding child object was successfully");
 #endif
+        if(mgtObject->parent == NULL)
+          mgtObject->parent = this;
         return CL_OK;
-      }
-      /**
-       * API to remove an entry from the list
-       */
-      virtual ClRcT removeChildObject(const std::string objectKey)
-      {
-        children.erase(objectKey);
       }
       /**
        * API to remove all entries from the list
@@ -620,14 +639,14 @@ namespace SAFplus
         std::string strChildData;
         std::string lastnamestr;
         std::string keyValue;
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
         logDebug("MGT","LIST","Set data for list [%s]",(char *)pBuffer);
 #endif
         /* Read XML from the buffer */
         xmlTextReaderPtr reader = xmlReaderForMemory((const char*) pBuffer, buffLen, NULL, NULL, 0);
         if (!reader)
         {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
           logError("MGT", "LIST", "Reader return null");
 #endif
           return CL_FALSE;
@@ -650,7 +669,7 @@ namespace SAFplus
                {
                   if(strcmp((const char *)namestr,this->name.c_str()) != 0)
                   {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
                     logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
 #endif
                     return CL_FALSE;
@@ -674,7 +693,7 @@ namespace SAFplus
                /* keyList should be assign when key was found */
                if(keyValue.size() == 0)
                {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
                  logError("MGT","LIST","The configuration had error, no key found");
 #endif
                  return CL_FALSE;
@@ -684,7 +703,7 @@ namespace SAFplus
                {
                  if(entry->set(strChildData.c_str(),strChildData.size(),t) == CL_FALSE)
                  {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
                    logError("MGT", "LIST", "Setting for child failed");
 #endif
                    xmlFreeTextReader(reader);
@@ -722,14 +741,14 @@ namespace SAFplus
       /**
        * Provide full X-Path of this list *
        */
-      std::string getFullXpath(std::string key)
+      std::string getFullXpath(std::string key,bool includeParent = true)
       {
         typename Map::iterator iter = children.find(key);
-        std::string xpath = "",parentXpath,childXpath;
+        std::string xpath = "",parentXpath;
         /* Check if expected entry is found */
         if(iter == children.end())
         {
-#ifdef MGT_DEBUG
+#ifndef SAFplus7
           logError("MGT","XPT","Can't find object which belong to key");
 #endif
           return xpath;
@@ -737,29 +756,16 @@ namespace SAFplus
         std::stringstream keypart;
         keypart << "[" << keyList << "=" << key << "]";
         /* Parent X-Path will be add into the full xpath */
-        if (parent != NULL) // this is the list parent
+        if (parent != NULL && includeParent) // this is the list parent
         {
           parentXpath = parent->getFullXpath();
           if (parentXpath.length() > 0)
           {
-            xpath = parentXpath.append("/").append(this->name);
-          }
-          else
-          {
-            xpath.append("/").append(this->name);
+            xpath.append(parentXpath);
           }
         }
-        else
-        {
-          xpath.append("/").append(this->name);
-        }
+        xpath.append("/").append(this->name);
         xpath.append(keypart.str());
-        /* Append entry X-Path */
-        childXpath = iter->second->getFullXpath();
-        if(childXpath.length() > 0)
-        {
-          xpath.append(childXpath);
-        }
         return xpath;
       }
   };

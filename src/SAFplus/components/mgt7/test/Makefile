@@ -11,7 +11,7 @@ CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..
 DEP_LIBS += $(LIB_DIR)/libclMgt7.so  $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so 
 
 # Specify the required libraries
-SAFPLUS_LIBS := clMgt7 clUtils7 clLog clOsal7 clIoc7
+SAFPLUS_LIBS := clMgt7 clUtils7 clLog clOsal7 clIoc7 clDbal7
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))

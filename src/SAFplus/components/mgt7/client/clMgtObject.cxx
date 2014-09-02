@@ -419,6 +419,11 @@ namespace SAFplus
     clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
     return CL_ERR_NOT_EXIST;
   }
+  ClRcT MgtObject::write(std::string xpt,ClMgtDatabase* db)
+    {
+      clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
+      return CL_ERR_NOT_EXIST;
+    }
 
   /* unmashall db to object */
   ClRcT MgtObject::read(ClMgtDatabase* db)
@@ -426,7 +431,11 @@ namespace SAFplus
     clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
     return CL_OK;
   }
-
+  ClRcT MgtObject::read(std::string xpt,ClMgtDatabase *db)
+  {
+    clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
+    return CL_OK;
+  }
 
   /*
    * Dump Xpath structure
@@ -436,48 +445,20 @@ namespace SAFplus
 
     }
 
-  std::string MgtObject::getFullXpath()
-    {
+  std::string MgtObject::getFullXpath(bool includeParent)
+  {
     std::string xpath = "";
-    if (parent != NULL)
-      {
+    if (parent != NULL && includeParent)
+    {
       std::string parentXpath = parent->getFullXpath();
       if (parentXpath.length() > 0)
-        {
-        xpath = parentXpath.append("/").append(this->name);
-        }
-      }
-    else
       {
-      xpath.append("/").append(this->name);
+        xpath.append(parentXpath);
       }
-
-#if 0
-    if (Keys.size() > 0)
-      {
-      MgtObject *itemKey = getChildObject(Keys[0]);
-      xpath.append("[@").append(Keys[0]).append("='");
-      if (itemKey)
-        {
-        xpath.append(itemKey->strValue()).append("'");
-        }
-
-      for(int i = 1; i< Keys.size(); i++)
-        {
-        itemKey = getChildObject(Keys[i]);
-        xpath.append(",@").append(Keys[i]).append("=");
-        if (itemKey)
-          {
-          xpath.append(itemKey->strValue()).append("'");
-          }
-        }
-      xpath.append("]");
-      }
-#endif
-
-    return xpath;
-
     }
+    xpath.append("/").append(this->name);
+    return xpath;
+  }
 
 
   void MgtObject::dbgDumpChildren()

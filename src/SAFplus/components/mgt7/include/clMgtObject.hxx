@@ -295,19 +295,20 @@ extern MgtIteratorBase mgtIterEnd;
      *  globally defined database. 
      */
     virtual ClRcT write(ClMgtDatabase *db=NULL);
-
+    virtual ClRcT write(std::string parentXPath,ClMgtDatabase *db=NULL);
     /** \brief Load object from database. 
      *  \param db The database to access. by default it uses the
      *  globally defined database. 
      */
     virtual ClRcT read(ClMgtDatabase *db=NULL);
+    virtual ClRcT read(std::string parentXPath,ClMgtDatabase *db=NULL);
 
     /* iterator db key and bind to object */
     // not implemented virtual ClRcT iterator();
 
     void dumpXpath();
 
-    std::string getFullXpath();
+    std::string getFullXpath(bool includeParent = true);
 
 
     // Debugging API only:
@@ -321,7 +322,7 @@ extern MgtIteratorBase mgtIterEnd;
   void deXMLize(const std::string& obj,MgtObject* context, ClBoolT& result); // throw(SerializationError);
 
   inline void deXMLize(const char* obj,MgtObject* context, std::string& result) { result=obj; }
-
+  inline void deXMLize(const char* obj,MgtObject* context, int& result) { result=atoi(obj); }
   template<typename T> inline void deXMLize(const std::string& strVal,MgtObject* context, T& result) // throw(SerializationError)
     {
     std::stringstream ss;
