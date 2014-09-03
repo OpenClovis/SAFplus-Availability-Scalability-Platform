@@ -1223,8 +1223,13 @@ def get_amf_pid(watchdog_pid = False):
     while True:
         valid = commands.getstatusoutput("pidof %s" % AmfName);
         if valid[0] == 0:
-            if len(valid[1].split())==1:          
-                return int(valid[1])
+            l = valid[1].split()
+            if is_simulation():
+	        l = filter(get_pid_for_this_sandbox, l)
+            if len(l) == 1 :          
+                return int(l[0])            
+            if len(l) == 0 :          
+                return 0            
         else:
             break
         log.warning('There is more than one AMF pid. Try again...')
@@ -1232,8 +1237,14 @@ def get_amf_pid(watchdog_pid = False):
     if watchdog_pid:
          valid = commands.getstatusoutput("pidof safplus_watchdog.py");
          if valid[0] == 0:
-            return int(valid[1])
-    return 0;
+            l = valid[1].split()
+            if is_simulation():
+	        l = filter(get_pid_for_this_sandbox, l)
+            if len(l) == 1: 
+                return int(l[0])
+            if len(l) == 0 :          
+                return 0            
+    return 0
     
 def wait_until_amf_up():
     amf_pid = 0
