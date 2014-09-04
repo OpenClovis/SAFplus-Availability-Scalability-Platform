@@ -2426,9 +2426,15 @@ static ClUint32T debugCliShell(ClDebugCliT* pDebugObj)
                                    clHeapFree(retStr);
                                    retStr = NULL;
                                }
+                               tries ++;
+                               /**
+                                * Increase the delay time to 0.5 for each retry time.
+                                * The timeout for this operation is now 60 seconds
+                                */
+                               delay.tsSec = tries/2;
                            }
                            else break;
-                       } while(++tries < 10 && clOsalTaskDelay(delay) == CL_OK);
+                       } while(tries < 15 && clOsalTaskDelay(delay) == CL_OK);
 
                         if (NULL != retStr)
                         {
