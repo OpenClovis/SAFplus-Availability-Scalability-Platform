@@ -106,8 +106,8 @@ class ASPInstaller:
         self.DO_SYMLINKS         = True
         self.HOME                = self.expand_path('~')
         self.OFFLINE             = False
-        self.INTERNET		 = True	
-        self.WITH_CM_BUILD                 = False
+        self.INTERNET            = True
+        self.WITH_CM_BUILD       = False
         # ------------------------------------------------------------------------------
         self.NEED_TIPC_CONFIG    = False
         self.TIPC_CONFIG_VERSION = ''
@@ -125,7 +125,7 @@ class ASPInstaller:
         
         
         if (sys.argv[0].count('/') >= 2 or len(sys.argv[0]) > len('./install.py')):
-            self.feedback('Error: Please invoke this sript from its own directory as "./install.py"', True)
+            self.feedback('Error: Please invoke this script from its own directory as "./install.py"', True)
         
         # look in our VERSION file to get ASP_VERSION and ASP_REVISION
         try:
@@ -382,13 +382,6 @@ class ASPInstaller:
                         # do we need reinstallation?
                         for qdep in self.installQueue:
                             if qdep.name in ('net-snmp', 'openhpi'):
-                            
-#                                if not os.path.isfile('/usr/lib/libelf.so'):
-#                                     cmd = 'ln -fs /usr/lib/libelf.so.1 /usr/lib/libelf.so'
-#                                     self.debug('calling cmd: ' + cmd)
-#                                     ret_code = cli_cmd(cmd)
-                   
-                            
                                 self.installQueue.append(dep)
                                 continue
                     else:
@@ -406,15 +399,12 @@ class ASPInstaller:
                     
                     if ret_code == 1:
                         # self.feedback('retcode = %s' %ret_code)
-                        
-                        #wrong cmd
-                        #if int(syscall('uname -r').split('.')[2]) < 15:
-                        if int((syscall('uname -r').split('.')[2]).split('-')[0]) < 15:
+                        if self.version_compare("2.7", syscall('uname -r')): # kernel version < 2.7
                             # do install
                             dep.installedver = 'None'
                             self.installQueue.append(dep)
-                        else :
-                            if(self.INTERNET == False) : 
+                        else:
+                            if(self.INTERNET == False):
                                 os.chdir(self.PRE_INSTALL_PKG)
                                 syscall('cp -f tipc.ko /lib/modules/`uname -r`/extra/')
                                 syscall('cp -f tipc.conf /etc/modprobe.d/')
@@ -426,35 +416,31 @@ class ASPInstaller:
                                 if test_tipc == 1 :
                                     self.feedback('Error: cannot install tipc. Please install tipc manually.', True)
                                 else :
-                                    self.feedback('Install tipc successfully.')                         
+                                    self.feedback('Install tipc successfully.')
                                 syscall('cp -f %s/%s/tipc_config.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
                                 syscall('cp -f %s/%s/tipc.h /usr/include/linux/' %((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
                                 syscall('rm -rf %s/%s'%((os.path.dirname(self.WORKING_DIR)),PRE_INSTALL_PKG_NAME))
-                            else :
+                            else:
                                 dep.installedver = 'None'
                                 self.installQueue.append(dep) 
-                                self.NEED_TIPC_CONFIG = True                       
-                    else: #ret_code == 0
-                        #assert ret_code == 0
-                        # self.feedback('retcode = %s' %ret_code)
-                        self.NEED_TIPC_CONFIG = True                     
+                                self.NEED_TIPC_CONFIG = True
+                    else:
+                        self.NEED_TIPC_CONFIG = True
                         dep.installedver = syscall('/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2') # fixme, does this work
 
-                    
                 elif dep.name == 'tipc-config' and self.NEED_TIPC_CONFIG:
                     cmd = 'which tipc-config 2>/dev/null'
                     self.debug('calling cmd: ' + cmd)
                     ret_code = cli_cmd(cmd)
-                    
+
                     if ret_code != 0:
                         # install tipc_config
-                        
                         cmd = '/sbin/modinfo tipc > /dev/null 2>&1;'
                         self.debug('calling cmd: ' + cmd)
                         ret_code = cli_cmd(cmd)
                         if ret_code != 0: # no tipc module installed
                             dep.installedver = 'None'
-                            self.installQueue.append(dep)                            
+                            self.installQueue.append(dep)
                             continue
 
                         TIPC_MODULE_VERSION = syscall('/sbin/modinfo tipc | grep \'^version\' | tr -s " " | cut -d\  -f 2')
@@ -467,13 +453,13 @@ class ASPInstaller:
                             self.TIPC_CONFIG_VERSION = dep.pkg_name
                             self.installQueue.append(dep)
                             continue
-                        
+
                         if TIPC_MINOR_VERSION == 5:
                             dep.installedver = 'Installed'
                             continue
                             
                         elif TIPC_MINOR_VERSION == 6:
-                            self.TIPC_CONFIG_VERSION = 'tipcutils-1.0.4.tar.gz'                            
+                            self.TIPC_CONFIG_VERSION = 'tipcutils-1.0.4.tar.gz'
                             dep.pkg_name =  self.TIPC_CONFIG_VERSION
                         elif TIPC_MINOR_VERSION == 7:
                             self.TIPC_CONFIG_VERSION = 'tipcutils-1.1.9.tar.gz'
@@ -486,7 +472,6 @@ class ASPInstaller:
                             self.installQueue.append(dep)
                         continue
 
-                    
                     else: #ret_code non zero
                         # tipc config installed
                         dep.installedver = 'Installed'
@@ -1085,7 +1070,7 @@ class ASPInstaller:
                     #myfile.write("CONFIG_TIPC=m\nCONFIG_TIPC_ADVANCED=y\nCONFIG_TIPC_NETID=4711\nCONFIG_TIPC_REMOTE_MNG=y\nCONFIG_TIPC_PORTS=8191\nCONFIG_TIPC_NODES=255\nCONFIG_TIPC_CLUSTERS=8\nCONFIG_TIPC_ZONES=4\nCONFIG_TIPC_REMOTES=8\nCONFIG_TIPC_PUBL=10000\nCONFIG_TIPC_SUBSCR=2000\nCONFIG_TIPC_LOG=0\nCONFIG_TIPC_UNICLUSTER_FRIENDLY=y\nCONFIG_TIPC_MULTIPLE_LINKS=y\nCONFIG_TIPC_CONFIG_SERVICE=y\nCONFIG_TIPC_SOCKET_API=y\n")
                 #myfile.close()
                 syscall('echo "CONFIG_TIPC=m\nCONFIG_TIPC_ADVANCED=y\nCONFIG_TIPC_NETID=4711\nCONFIG_TIPC_REMOTE_MNG=y\nCONFIG_TIPC_PORTS=8191\nCONFIG_TIPC_NODES=255\nCONFIG_TIPC_CLUSTERS=8\nCONFIG_TIPC_ZONES=4\nCONFIG_TIPC_REMOTES=8\nCONFIG_TIPC_PUBL=10000\nCONFIG_TIPC_SUBSCR=2000\nCONFIG_TIPC_LOG=0\nCONFIG_TIPC_UNICLUSTER_FRIENDLY=y\nCONFIG_TIPC_MULTIPLE_LINKS=y\nCONFIG_TIPC_CONFIG_SERVICE=y\nCONFIG_TIPC_SOCKET_API=y\nCONFIG_TIPC_SYSTEM_MSGS=y\nCONFIG_TIPC_DEBUG=y" >> .config')
-                self.feedback('make prepare and init module(might fail which is ok)')
+                self.feedback('make prepare and init module (might fail which is ok)')
                 #syscall('make prepare')
                 syscall('make modules_prepare 2>&1')
                 syscall('make init 2>&1')

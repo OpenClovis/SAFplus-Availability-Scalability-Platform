@@ -2,7 +2,9 @@ import pdb
 import os
 import objects
 from common import *
+from distutils.version import *
 
+cmp_version = lambda x, y: LooseVersion(x).__cmp__(y) #Equal 0, greater 1, lesser -1
 
 # ------------------------------------------------------------------------------
 
@@ -21,15 +23,11 @@ class OS:
 
 
         try:
-          self.gccVer                 = [int(x) for x in syscall('gcc --version')[0].split()[3].split(".")]
+          self.gccVer                 = syscall('gcc --version')[0].split()[3]
         except IndexError:  # Most likely no gcc installed
           self.gccVer = None
 
         self.kernelVerString = syscall('uname -r')
-        self.kernelVer       = self.kernelVerString.split(".")
-        self.kernelVer[0] = int(self.kernelVer[0])
-        self.kernelVer[1] = int(self.kernelVer[1])
-        self.kernelVer[2] = int((self.kernelVer[2].split("-"))[0])
 
 
         self.bit = determine_bit()
@@ -81,11 +79,10 @@ class OS:
 
     def openHpiSubagentBuildCmds(self,EXPORT,log):
         squelchWarn = ""
-        if not self.gccVer:
+        if self.gccVer:
           try:
-            self.gccVer                 = [int(x) for x in syscall('gcc --version')[0].split()[3].split(".")]
-            if self.gccVer[0] > 4 or (self.gccVer[0] == 4 and self.gccVer[1] > 5):
-              squelchWarn = "-Wno-error=unused-but-set-variable"            
+            if cmp_version(self.gccVer, "4.5") > 0: 
+              squelchWarn = "-Wno-error=unused-but-set-variable"
           except Exception, e:
             #assert e, "Cannot determine C compiler version"
             pass
@@ -263,28 +260,29 @@ class OS:
 
         TIPC = objects.BuildDep()
         TIPC.name           = 'tipc'
-        if self.kernelVer[0] == 2 and self.kernelVer[1] == 6:
-          if self.kernelVer[2] >= 39:
-              TIPC.version        = '2.0'
-              TIPC.pkg_name       = None
-              TIPC_CONFIG.version        = '2.0.2'
-              TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.2.tar.gz' #default name, can change
-          elif self.kernelVer[2] >= 34:
-              TIPC.version        = '2.0'
-              TIPC.pkg_name       = None
-              TIPC_CONFIG.version        = '2.0.0'
-              TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.0.tar.gz' #default name, can change
-          elif self.kernelVer[2] >= 16:
-              TIPC.version        = '1.7.7'
-              TIPC.pkg_name       = 'tipc-1.7.7.tar.gz'
-              TIPC_CONFIG.version        = '1.1.9'
-              TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
-          elif self.kernelVer[2] >= 9:
-              TIPC.version        = '1.5.12'
-              TIPC.pkg_name       = 'tipc-1.5.12.tar.gz'
-          
+
+        if cmp_version(self.kernelVerString, "2.7") < 0:
+            if cmp_version(self.kernelVerString, "2.6.39") > 0:
+                TIPC.version        = '2.0'
+                TIPC.pkg_name       = None
+                TIPC_CONFIG.version        = '2.0.2'
+                TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.2.tar.gz' #default name, can change
+            elif cmp_version(self.kernelVerString, "2.6.34") > 0:
+                TIPC.version        = '2.0'
+                TIPC.pkg_name       = None
+                TIPC_CONFIG.version        = '2.0.0'
+                TIPC_CONFIG.pkg_name       = 'tipcutils-2.0.0.tar.gz' #default name, can change
+            elif cmp_version(self.kernelVerString, "2.6.16") > 0:
+                TIPC.version        = '1.7.7'
+                TIPC.pkg_name       = 'tipc-1.7.7.tar.gz'
+                TIPC_CONFIG.version        = '1.1.9'
+                TIPC_CONFIG.pkg_name       = 'tipcutils-1.1.9.tar.gz' #default name, can change
+            elif cmp_version(self.kernelVerString, "2.6.9") > 0:
+                TIPC.version        = '1.5.12'
+                TIPC.pkg_name       = 'tipc-1.5.12.tar.gz'
+
         log = self.log_string_for_dep(TIPC.name)
-        
+
         # tipc has a special case in install.py marked:                 # SPECIAL CASE, TIPC
         #TIPC.ver_test_cmd   = ':'
         
@@ -293,13 +291,10 @@ class OS:
                                 'cp net/tipc/tipc.ko $PREFIX/modules',
                                 'cp tools/tipc-config $PREFIX/bin',
                                 'cp include/net/tipc/*.h $PREFIX/include']
-                       
-        if int(self.kernelVer[2]) < 16:
-            pass
-        else:
+
+        if cmp_version(self.kernelVerString, "2.6.16") > 0:
             TIPC.build_cmds.append('mkdir -p $PREFIX/include/linux >/dev/null 2>&1')
             TIPC.build_cmds.append('cp include/net/tipc/*.h $PREFIX/include/linux')
-        
 
         # ------------------------------------------------------------------------------
         # TIPC_CONFIG
