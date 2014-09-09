@@ -7,7 +7,6 @@
 
 #include "RestartCount.hxx"
 #include <string>
-#include "clTransaction.hxx"
 #include "HighAvailabilityReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
@@ -30,11 +29,13 @@
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
+#include "Date.hxx"
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
 #include "clMgtProvList.hxx"
 #include "Component.hxx"
 
+using namespace SAFplusTypes;
 
 namespace SAFplusAmf
   {
@@ -42,7 +43,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Component, /SAFplusAmf/Component)
 
-    Component::Component(): presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied"), processId("processId"), lastError("lastError")
+    Component::Component(): presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), numInstantiationAttempts("numInstantiationAttempts"), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation"), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied"), processId("processId"), lastError("lastError")
     {
         this->addChildObject(&presence, "presence");
         this->addChildObject(&capabilityModel, "capabilityModel");
@@ -59,6 +60,8 @@ namespace SAFplusAmf
         this->addChildObject(&commandEnvironment, "commandEnvironment");
         this->addChildObject(&maxInstantInstantiations, "maxInstantInstantiations");
         this->addChildObject(&maxDelayedInstantiations, "maxDelayedInstantiations");
+        this->addChildObject(&numInstantiationAttempts, "numInstantiationAttempts");
+        this->addChildObject(&lastInstantiation, "lastInstantiation");
         this->addChildObject(&delayBetweenInstantiation, "delayBetweenInstantiation");
         this->addChildObject(&serviceUnit, "serviceUnit");
         this->addChildObject(&recovery, "recovery");
@@ -70,7 +73,7 @@ namespace SAFplusAmf
         this->name.assign("Component");
     };
 
-    Component::Component(std::string myNameValue): presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), delayBetweenInstantiation("delayBetweenInstantiation"), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied"), processId("processId"), lastError("lastError")
+    Component::Component(std::string myNameValue): presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), numInstantiationAttempts("numInstantiationAttempts"), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation"), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied"), processId("processId"), lastError("lastError")
     {
         this->myName.value =  myNameValue;
         this->addChildObject(&presence, "presence");
@@ -88,6 +91,8 @@ namespace SAFplusAmf
         this->addChildObject(&commandEnvironment, "commandEnvironment");
         this->addChildObject(&maxInstantInstantiations, "maxInstantInstantiations");
         this->addChildObject(&maxDelayedInstantiations, "maxDelayedInstantiations");
+        this->addChildObject(&numInstantiationAttempts, "numInstantiationAttempts");
+        this->addChildObject(&lastInstantiation, "lastInstantiation");
         this->addChildObject(&delayBetweenInstantiation, "delayBetweenInstantiation");
         this->addChildObject(&serviceUnit, "serviceUnit");
         this->addChildObject(&recovery, "recovery");
@@ -112,7 +117,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* Component::getChildNames()
     {
-        std::string childNames[] = { "myName", "id", "presence", "capabilityModel", "maxActiveAssignments", "maxStandbyAssignments", "activeAssignments", "standbyAssignments", "assignedWork", "operState", "readinessState", "haReadinessState", "haState", "safVersion", "compCategory", "swBundle", "commandEnvironment", "instantiate", "terminate", "cleanup", "maxInstantInstantiations", "maxDelayedInstantiations", "delayBetweenInstantiation", "timeouts", "serviceUnit", "recovery", "restartable", "restartCount", "proxy", "proxied", "processId", "lastError" };
+        std::string childNames[] = { "myName", "id", "presence", "capabilityModel", "maxActiveAssignments", "maxStandbyAssignments", "activeAssignments", "standbyAssignments", "assignedWork", "operState", "readinessState", "haReadinessState", "haState", "safVersion", "compCategory", "swBundle", "commandEnvironment", "instantiate", "terminate", "cleanup", "maxInstantInstantiations", "maxDelayedInstantiations", "numInstantiationAttempts", "lastInstantiation", "delayBetweenInstantiation", "timeouts", "serviceUnit", "recovery", "restartable", "restartCount", "proxy", "proxied", "processId", "lastError" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -127,14 +132,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/presence
      */
-    void Component::setPresence(SAFplusAmf::PresenceState presenceValue, SAFplus::Transaction &t)
+    void Component::setPresence(SAFplusAmf::PresenceState presenceValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->presence.value = presenceValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::PresenceState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::PresenceState>(&(presence.value),presenceValue);
-            t.addOperation(opt);
-        }
+        this->presence.value = presenceValue;
     };
 
     /*
@@ -148,14 +148,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/capabilityModel
      */
-    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue, SAFplus::Transaction &t)
+    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->capabilityModel.value = capabilityModelValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::CapabilityModel> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::CapabilityModel>(&(capabilityModel.value),capabilityModelValue);
-            t.addOperation(opt);
-        }
+        this->capabilityModel.value = capabilityModelValue;
     };
 
     /*
@@ -169,14 +164,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxActiveAssignments
      */
-    void Component::setMaxActiveAssignments(unsigned int maxActiveAssignmentsValue, SAFplus::Transaction &t)
+    void Component::setMaxActiveAssignments(unsigned int maxActiveAssignmentsValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->maxActiveAssignments.value = maxActiveAssignmentsValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(maxActiveAssignments.value),maxActiveAssignmentsValue);
-            t.addOperation(opt);
-        }
+        this->maxActiveAssignments.value = maxActiveAssignmentsValue;
     };
 
     /*
@@ -190,14 +180,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxStandbyAssignments
      */
-    void Component::setMaxStandbyAssignments(unsigned int maxStandbyAssignmentsValue, SAFplus::Transaction &t)
+    void Component::setMaxStandbyAssignments(unsigned int maxStandbyAssignmentsValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->maxStandbyAssignments.value = maxStandbyAssignmentsValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(maxStandbyAssignments.value),maxStandbyAssignmentsValue);
-            t.addOperation(opt);
-        }
+        this->maxStandbyAssignments.value = maxStandbyAssignmentsValue;
     };
 
     /*
@@ -227,14 +212,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/operState
      */
-    void Component::setOperState(bool operStateValue, SAFplus::Transaction &t)
+    void Component::setOperState(bool operStateValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->operState.value = operStateValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(operState.value),operStateValue);
-            t.addOperation(opt);
-        }
+        this->operState.value = operStateValue;
     };
 
     /*
@@ -248,14 +228,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/readinessState
      */
-    void Component::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t)
+    void Component::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->readinessState.value = readinessStateValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::ReadinessState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ReadinessState>(&(readinessState.value),readinessStateValue);
-            t.addOperation(opt);
-        }
+        this->readinessState.value = readinessStateValue;
     };
 
     /*
@@ -269,14 +244,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/haReadinessState
      */
-    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t)
+    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->haReadinessState.value = haReadinessStateValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityReadinessState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityReadinessState>(&(haReadinessState.value),haReadinessStateValue);
-            t.addOperation(opt);
-        }
+        this->haReadinessState.value = haReadinessStateValue;
     };
 
     /*
@@ -290,14 +260,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/haState
      */
-    void Component::setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t)
+    void Component::setHaState(SAFplusAmf::HighAvailabilityState haStateValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->haState.value = haStateValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::HighAvailabilityState>(&(haState.value),haStateValue);
-            t.addOperation(opt);
-        }
+        this->haState.value = haStateValue;
     };
 
     /*
@@ -311,14 +276,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/safVersion
      */
-    void Component::setSafVersion(std::string safVersionValue, SAFplus::Transaction &t)
+    void Component::setSafVersion(std::string safVersionValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->safVersion.value = safVersionValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(safVersion.value),safVersionValue);
-            t.addOperation(opt);
-        }
+        this->safVersion.value = safVersionValue;
     };
 
     /*
@@ -332,14 +292,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/compCategory
      */
-    void Component::setCompCategory(unsigned int compCategoryValue, SAFplus::Transaction &t)
+    void Component::setCompCategory(unsigned int compCategoryValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->compCategory.value = compCategoryValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(compCategory.value),compCategoryValue);
-            t.addOperation(opt);
-        }
+        this->compCategory.value = compCategoryValue;
     };
 
     /*
@@ -353,14 +308,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/swBundle
      */
-    void Component::setSwBundle(std::string swBundleValue, SAFplus::Transaction &t)
+    void Component::setSwBundle(std::string swBundleValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->swBundle.value = swBundleValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(swBundle.value),swBundleValue);
-            t.addOperation(opt);
-        }
+        this->swBundle.value = swBundleValue;
     };
 
     /*
@@ -390,14 +340,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxInstantInstantiations
      */
-    void Component::setMaxInstantInstantiations(unsigned int maxInstantInstantiationsValue, SAFplus::Transaction &t)
+    void Component::setMaxInstantInstantiations(unsigned int maxInstantInstantiationsValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->maxInstantInstantiations.value = maxInstantInstantiationsValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(maxInstantInstantiations.value),maxInstantInstantiationsValue);
-            t.addOperation(opt);
-        }
+        this->maxInstantInstantiations.value = maxInstantInstantiationsValue;
     };
 
     /*
@@ -411,14 +356,41 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxDelayedInstantiations
      */
-    void Component::setMaxDelayedInstantiations(unsigned int maxDelayedInstantiationsValue, SAFplus::Transaction &t)
+    void Component::setMaxDelayedInstantiations(unsigned int maxDelayedInstantiationsValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->maxDelayedInstantiations.value = maxDelayedInstantiationsValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(maxDelayedInstantiations.value),maxDelayedInstantiationsValue);
-            t.addOperation(opt);
-        }
+        this->maxDelayedInstantiations.value = maxDelayedInstantiationsValue;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Component/numInstantiationAttempts
+     */
+    unsigned int Component::getNumInstantiationAttempts()
+    {
+        return this->numInstantiationAttempts.value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Component/numInstantiationAttempts
+     */
+    void Component::setNumInstantiationAttempts(unsigned int numInstantiationAttemptsValue)
+    {
+        this->numInstantiationAttempts.value = numInstantiationAttemptsValue;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Component/lastInstantiation
+     */
+    SAFplusTypes::Date Component::getLastInstantiation()
+    {
+        return this->lastInstantiation.value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/Component/lastInstantiation
+     */
+    void Component::setLastInstantiation(SAFplusTypes::Date lastInstantiationValue)
+    {
+        this->lastInstantiation.value = lastInstantiationValue;
     };
 
     /*
@@ -432,14 +404,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/delayBetweenInstantiation
      */
-    void Component::setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue, SAFplus::Transaction &t)
+    void Component::setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->delayBetweenInstantiation.value = delayBetweenInstantiationValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(delayBetweenInstantiation.value),delayBetweenInstantiationValue);
-            t.addOperation(opt);
-        }
+        this->delayBetweenInstantiation.value = delayBetweenInstantiationValue;
     };
 
     /*
@@ -453,14 +420,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/serviceUnit
      */
-    void Component::setServiceUnit(SAFplusAmf::ServiceUnit* serviceUnitValue, SAFplus::Transaction &t)
+    void Component::setServiceUnit(SAFplusAmf::ServiceUnit* serviceUnitValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->serviceUnit.value = serviceUnitValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceUnit*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceUnit*>(&(serviceUnit.value),serviceUnitValue);
-            t.addOperation(opt);
-        }
+        this->serviceUnit.value = serviceUnitValue;
     };
 
     /*
@@ -474,14 +436,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/recovery
      */
-    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue, SAFplus::Transaction &t)
+    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->recovery.value = recoveryValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::Recovery> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::Recovery>(&(recovery.value),recoveryValue);
-            t.addOperation(opt);
-        }
+        this->recovery.value = recoveryValue;
     };
 
     /*
@@ -495,14 +452,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/restartable
      */
-    void Component::setRestartable(bool restartableValue, SAFplus::Transaction &t)
+    void Component::setRestartable(bool restartableValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->restartable.value = restartableValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(restartable.value),restartableValue);
-            t.addOperation(opt);
-        }
+        this->restartable.value = restartableValue;
     };
 
     /*
@@ -516,14 +468,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/proxy
      */
-    void Component::setProxy(std::string proxyValue, SAFplus::Transaction &t)
+    void Component::setProxy(std::string proxyValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->proxy.value = proxyValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(proxy.value),proxyValue);
-            t.addOperation(opt);
-        }
+        this->proxy.value = proxyValue;
     };
 
     /*
@@ -553,14 +500,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/processId
      */
-    void Component::setProcessId(int processIdValue, SAFplus::Transaction &t)
+    void Component::setProcessId(int processIdValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->processId.value = processIdValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<int> *opt = new SAFplus::SimpleTxnOperation<int>(&(processId.value),processIdValue);
-            t.addOperation(opt);
-        }
+        this->processId.value = processIdValue;
     };
 
     /*
@@ -574,14 +516,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/lastError
      */
-    void Component::setLastError(std::string lastErrorValue, SAFplus::Transaction &t)
+    void Component::setLastError(std::string lastErrorValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->lastError.value = lastErrorValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(lastError.value),lastErrorValue);
-            t.addOperation(opt);
-        }
+        this->lastError.value = lastErrorValue;
     };
 
     /*

@@ -60,6 +60,12 @@ module SAFplusTypes
       c-existing "SaTimeT";
       description "A representation of a time interval, specified in milliseconds";
     }
+  
+    typedef date
+      {
+	type uint64;
+	description "A representation of a date.";
+      }
 
   grouping intStatistic
     {

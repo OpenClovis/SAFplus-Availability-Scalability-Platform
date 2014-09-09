@@ -590,6 +590,19 @@ point.  The operational, administrative, and presence states of a service unit, 
 	safplus:ui-prompt "Max delayed instantiations: ";
       }
 
+      leaf numInstantiationAttempts
+      {
+        type uint32;
+        config false; // Application can change this, but not management interface
+	description "The number of times this application has been attempted to be instantiated";
+      }
+      leaf lastInstantiation
+	{
+	  type safplus:date;
+	  config false;
+	  description "The last time an instantiation attempt occurred";
+	}
+
       leaf delayBetweenInstantiation
       {
 	safplus:alias saAmfCompDelayBetweenInstantiationAttempts;

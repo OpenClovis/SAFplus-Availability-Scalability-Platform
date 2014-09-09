@@ -33,13 +33,6 @@ class EntityByIdKey {
     {
         /*This list can not be configured*/;
     }
-
-    std::string toXmlString() const
-    {
-        std::stringstream ss;
-        ss << "id=\"" << id << "\" " ;
-        return ss.str(); 
-    }
 }; //end class
 } //end namespace
 #endif //ENTITYBYID_HXX

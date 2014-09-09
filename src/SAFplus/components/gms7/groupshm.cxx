@@ -620,7 +620,7 @@ void GroupServer::registerEntity(GroupShmEntry* grp, EntityIdentifier me, uint64
       data->changeCount++;
       data->lastChanged = (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count();
       grp->flip();
-      logDebug("GMS", "REG","Entity [%ld:%ld] registration successful",me.id[0],me.id[1]);
+      logDebug("GMS", "REG","Entity [%lx:%lx] registration successful",me.id[0],me.id[1]);
       /* Notify other entities about new entity*/
 #if 0 // TODO
       if(wakeable)
@@ -699,6 +699,7 @@ void GroupServer::_deregister(GroupShmEntry* grp, unsigned int node, unsigned in
   {
   SAFplus::Wakeable* w=NULL;
   bool dirty = false;
+  bool reelect = false;
 
   if (1)
     {
@@ -716,13 +717,14 @@ void GroupServer::_deregister(GroupShmEntry* grp, unsigned int node, unsigned in
     for (int i=0;i<data->numMembers; i++)  // If changing, have a care about the edge condition where there is just 1 member...
       {
       gi = &data->members[i];
-      if ((gi->id.getNode() == node)&&((port==0)||(port == gi->id.getPort())))
+      if ((gi->id.getNode() == node)&&((port==0)||(port == gi->id.getPort())))  // Ok we are deregistering this entity.  It matches the node or the node & port.
         {
         logInfo("GMS","DER","Deregistering [%lx:%lx].", gi->id.id[0],gi->id.id[1]);
         dirty=true;
         // removing the active/standby
-        if (data->activeIdx == i) { logInfo("GMS","DER","Leaving entity has standby role."); data->activeIdx=0xffff; }
-        if (data->standbyIdx == i) { logInfo("GMS","DER","Leaving entity has active role."); data->standbyIdx=0xffff; } 
+        if (data->activeIdx == i) { logInfo("GMS","DER","Leaving entity had active role."); data->activeIdx=0xffff; reelect = true; }
+        if (data->standbyIdx == i) { logInfo("GMS","DER","Leaving entity had standby role."); data->standbyIdx=0xffff; reelect = true; } 
+        // TODO: if active fails should I promote the standby to active right here for rapid standby to active handling... what about notification of the change?
 
         if (data->numMembers > 1)  // If there is more than one member, then copy the last member into this one's slot to keep the array compact.
           {
@@ -744,7 +746,12 @@ void GroupServer::_deregister(GroupShmEntry* grp, unsigned int node, unsigned in
       }
     }
 
-
+  const GroupData& gd = grp->read();
+  // TODO: If the election is in progress, is it possible that the deregistered entity will be elected?  Check this...
+  if (reelect&&(gd.flags&GroupData::AUTOMATIC_ELECTION)&&(!(gd.flags&GroupData::ELECTION_IN_PROGRESS)))
+    {
+    startElection(gd.hdl);
+    }
   /* We need to other entities about the left node, but only AFTER
    * we have handled it. */
   if(w)

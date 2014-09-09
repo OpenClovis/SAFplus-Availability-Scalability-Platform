@@ -10,7 +10,6 @@
 #include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
-#include "clTransaction.hxx"
 
 namespace ietfYangTypes
   {
@@ -22,7 +21,7 @@ namespace ietfYangTypes
     public:
         Timeticks();
         unsigned int getValue();
-        void setValue(unsigned int value, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setValue(unsigned int value);
         ietfYangTypes::Timeticks& operator=(const ietfYangTypes::Timeticks &timeticks);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Timeticks &timeticks);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::Timeticks &timeticks);

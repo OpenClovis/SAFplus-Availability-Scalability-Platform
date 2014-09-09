@@ -1,6 +1,7 @@
 #pragma once
 #ifndef CLTHREADAPI_HXX_
 #define CLTHREADAPI_HXX_
+#include <sys/syscall.h>
 
 #include <boost/thread/mutex.hpp> 
 #include <boost/thread/recursive_mutex.hpp> 
@@ -12,6 +13,10 @@
 namespace SAFplus
 {
 
+  inline long gettid()
+    {
+    return syscall(SYS_gettid);
+    }
 
   class SemI:public Wakeable
   {

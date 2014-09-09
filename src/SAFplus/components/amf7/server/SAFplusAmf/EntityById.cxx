@@ -6,7 +6,6 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
-#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
@@ -61,14 +60,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EntityById/id
      */
-    void EntityById::setId(unsigned short int idValue, SAFplus::Transaction &t)
+    void EntityById::setId(unsigned short int idValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->id.value = idValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned short int> *opt = new SAFplus::SimpleTxnOperation<unsigned short int>(&(id.value),idValue);
-            t.addOperation(opt);
-        }
+        this->id.value = idValue;
     };
 
     /*
@@ -82,14 +76,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EntityById/entity
      */
-    void EntityById::setEntity(std::string entityValue, SAFplus::Transaction &t)
+    void EntityById::setEntity(std::string entityValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->entity.value = entityValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(entity.value),entityValue);
-            t.addOperation(opt);
-        }
+        this->entity.value = entityValue;
     };
 
     EntityById::~EntityById()

@@ -11,7 +11,6 @@
 
 #include "RestartCount.hxx"
 #include <string>
-#include "clTransaction.hxx"
 #include "HighAvailabilityReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
@@ -34,6 +33,7 @@
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
 #include "PresenceState.hxx"
+#include "Date.hxx"
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
 #include "clMgtProvList.hxx"
@@ -110,6 +110,16 @@ namespace SAFplusAmf
         SAFplus::MgtProv<unsigned int> maxDelayedInstantiations;
 
         /*
+         * The number of times this application has been attempted to be instantiated
+         */
+        SAFplus::MgtProv<unsigned int> numInstantiationAttempts;
+
+        /*
+         * The last time an instantiation attempt occurred
+         */
+        SAFplus::MgtProv<SAFplusTypes::Date> lastInstantiation;
+
+        /*
          * How long to delay between instantiation attempts
          */
         SAFplus::MgtProv<unsigned int> delayBetweenInstantiation;
@@ -156,7 +166,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/presence
          */
-        void setPresence(SAFplusAmf::PresenceState presenceValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPresence(SAFplusAmf::PresenceState presenceValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/capabilityModel
@@ -166,7 +176,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/capabilityModel
          */
-        void setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/maxActiveAssignments
@@ -176,7 +186,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/maxActiveAssignments
          */
-        void setMaxActiveAssignments(unsigned int maxActiveAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setMaxActiveAssignments(unsigned int maxActiveAssignmentsValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/maxStandbyAssignments
@@ -186,7 +196,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/maxStandbyAssignments
          */
-        void setMaxStandbyAssignments(unsigned int maxStandbyAssignmentsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setMaxStandbyAssignments(unsigned int maxStandbyAssignmentsValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/assignedWork
@@ -206,7 +216,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/operState
          */
-        void setOperState(bool operStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setOperState(bool operStateValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/readinessState
@@ -216,7 +226,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/readinessState
          */
-        void setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setReadinessState(SAFplusAmf::ReadinessState readinessStateValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/haReadinessState
@@ -226,7 +236,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/haReadinessState
          */
-        void setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/haState
@@ -236,7 +246,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/haState
          */
-        void setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setHaState(SAFplusAmf::HighAvailabilityState haStateValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/safVersion
@@ -246,7 +256,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/safVersion
          */
-        void setSafVersion(std::string safVersionValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setSafVersion(std::string safVersionValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/compCategory
@@ -256,7 +266,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/compCategory
          */
-        void setCompCategory(unsigned int compCategoryValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setCompCategory(unsigned int compCategoryValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/swBundle
@@ -266,7 +276,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/swBundle
          */
-        void setSwBundle(std::string swBundleValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setSwBundle(std::string swBundleValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/commandEnvironment
@@ -286,7 +296,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/maxInstantInstantiations
          */
-        void setMaxInstantInstantiations(unsigned int maxInstantInstantiationsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setMaxInstantInstantiations(unsigned int maxInstantInstantiationsValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/maxDelayedInstantiations
@@ -296,7 +306,27 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/maxDelayedInstantiations
          */
-        void setMaxDelayedInstantiations(unsigned int maxDelayedInstantiationsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setMaxDelayedInstantiations(unsigned int maxDelayedInstantiationsValue);
+
+        /*
+         * XPATH: /SAFplusAmf/Component/numInstantiationAttempts
+         */
+        unsigned int getNumInstantiationAttempts();
+
+        /*
+         * XPATH: /SAFplusAmf/Component/numInstantiationAttempts
+         */
+        void setNumInstantiationAttempts(unsigned int numInstantiationAttemptsValue);
+
+        /*
+         * XPATH: /SAFplusAmf/Component/lastInstantiation
+         */
+        SAFplusTypes::Date getLastInstantiation();
+
+        /*
+         * XPATH: /SAFplusAmf/Component/lastInstantiation
+         */
+        void setLastInstantiation(SAFplusTypes::Date lastInstantiationValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/delayBetweenInstantiation
@@ -306,7 +336,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/delayBetweenInstantiation
          */
-        void setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/serviceUnit
@@ -316,7 +346,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/serviceUnit
          */
-        void setServiceUnit(SAFplusAmf::ServiceUnit* serviceUnitValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setServiceUnit(SAFplusAmf::ServiceUnit* serviceUnitValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/recovery
@@ -326,7 +356,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/recovery
          */
-        void setRecovery(SAFplusAmf::Recovery recoveryValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setRecovery(SAFplusAmf::Recovery recoveryValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/restartable
@@ -336,7 +366,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/restartable
          */
-        void setRestartable(bool restartableValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setRestartable(bool restartableValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/proxy
@@ -346,7 +376,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/proxy
          */
-        void setProxy(std::string proxyValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setProxy(std::string proxyValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/proxied
@@ -366,7 +396,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/processId
          */
-        void setProcessId(int processIdValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setProcessId(int processIdValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/lastError
@@ -376,7 +406,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/Component/lastError
          */
-        void setLastError(std::string lastErrorValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setLastError(std::string lastErrorValue);
 
         /*
          * XPATH: /SAFplusAmf/Component/activeAssignments

@@ -145,7 +145,7 @@ std::string strprintf(const std::string fmt_str, ...);
   } ErrorFamily;
 
   const char* errStr;
-  const char*        file;
+  const char* file;
   int          line;  
   unsigned int saError;  // SAF error code (if applicable)
   unsigned int clError;  // OpenClovis error code (if applicable)

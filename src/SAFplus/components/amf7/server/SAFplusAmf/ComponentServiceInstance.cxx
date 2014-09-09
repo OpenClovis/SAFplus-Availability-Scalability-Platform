@@ -6,7 +6,6 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
-#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
 #include "Component.hxx"
@@ -105,14 +104,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/serviceInstance
      */
-    void ComponentServiceInstance::setServiceInstance(SAFplusAmf::ServiceInstance* serviceInstanceValue, SAFplus::Transaction &t)
+    void ComponentServiceInstance::setServiceInstance(SAFplusAmf::ServiceInstance* serviceInstanceValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->serviceInstance.value = serviceInstanceValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceInstance*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceInstance*>(&(serviceInstance.value),serviceInstanceValue);
-            t.addOperation(opt);
-        }
+        this->serviceInstance.value = serviceInstanceValue;
     };
 
     /*
@@ -126,14 +120,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/component
      */
-    void ComponentServiceInstance::setComponent(SAFplusAmf::Component* componentValue, SAFplus::Transaction &t)
+    void ComponentServiceInstance::setComponent(SAFplusAmf::Component* componentValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->component.value = componentValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::Component*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::Component*>(&(component.value),componentValue);
-            t.addOperation(opt);
-        }
+        this->component.value = componentValue;
     };
 
     ComponentServiceInstance::~ComponentServiceInstance()

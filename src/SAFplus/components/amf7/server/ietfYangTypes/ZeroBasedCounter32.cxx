@@ -5,7 +5,6 @@
  */ 
 #include "ietfYangTypesCommon.hxx"
 
-#include "clTransaction.hxx"
 #include <iostream>
 #include "ZeroBasedCounter32.hxx"
 
@@ -22,14 +21,9 @@ namespace ietfYangTypes
         return this->Value;
     };
 
-    void ZeroBasedCounter32::setValue(unsigned int value, SAFplus::Transaction &t)
+    void ZeroBasedCounter32::setValue(unsigned int value)
     {
-        if(&t == &SAFplus::NO_TXN) this->Value = value;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&Value,value);
-            t.addOperation(opt);
-        }
+        this->Value = value;
     };
 
     ietfYangTypes::ZeroBasedCounter32& ZeroBasedCounter32::operator=(const ietfYangTypes::ZeroBasedCounter32 &zeroBasedCounter32)

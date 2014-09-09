@@ -71,6 +71,25 @@ module amfRpc
       
   }
   
+  rpc processFailed
+  {
+    input
+    {
+      leaf pid
+      {
+	//description "The process id of the component";
+	type int32;
+      }
+    }
+    output
+    {
+      leaf err
+      {
+	//description unused
+	type int32;
+      }
+    }
+  }
   
 
 }

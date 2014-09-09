@@ -31,7 +31,8 @@ namespace SAFplus
   {
     namespace Rpc
       {
-
+        // TODO: the entities in msgRPCs need to be stored with their destination address.  If that entity fails, all msgRPCs going to it need to be removed and the Wakeable called with an error
+        // TODO: new MsgRpcEntry(); should be replaced with an allocator that gets (and returns) objects from a list to minimize calls to "new" and "delete"
         //Server
         RpcChannel::RpcChannel(SAFplus::MsgServer *svr, SAFplus::Rpc::RpcService *rpcService) :
             svr(svr), service(rpcService)
@@ -109,7 +110,7 @@ namespace SAFplus
               }
             catch (Error &e)
               {
-                logError("RPC", "REQ", "%s", e.what());
+                logError("RPC", "REQ", "Serialization Error: %s", e.what());
               }
           }
 
@@ -174,11 +175,11 @@ namespace SAFplus
                   {
                     rpcReqEntry->callback->wake(1, (void*) rpcReqEntry->response);
                   }
-                //Lock
+                // Lock
                 ScopedLock<Mutex> lock(mutex);
                 msgRPCs.erase(rpcMsgRes->id());
-                //Unlock
-                mutex.unlock();
+                // Unlock is done automatically when lock drops out of scope.
+                
               }
 
           }

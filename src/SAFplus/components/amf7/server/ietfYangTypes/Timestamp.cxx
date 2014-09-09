@@ -6,7 +6,6 @@
 #include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
-#include "clTransaction.hxx"
 #include "Timestamp.hxx"
 
 
@@ -22,14 +21,9 @@ namespace ietfYangTypes
         return this->Value;
     };
 
-    void Timestamp::setValue(unsigned int value, SAFplus::Transaction &t)
+    void Timestamp::setValue(unsigned int value)
     {
-        if(&t == &SAFplus::NO_TXN) this->Value = value;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&Value,value);
-            t.addOperation(opt);
-        }
+        this->Value = value;
     };
 
     ietfYangTypes::Timestamp& Timestamp::operator=(const ietfYangTypes::Timestamp &timestamp)

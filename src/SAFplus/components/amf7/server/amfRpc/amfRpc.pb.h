@@ -40,6 +40,8 @@ class StartComponentRequest;
 class StartComponentResponse;
 class StopComponentRequest;
 class StopComponentResponse;
+class ProcessFailedRequest;
+class ProcessFailedResponse;
 
 // ===================================================================
 
@@ -411,6 +413,176 @@ class StopComponentResponse : public ::google::protobuf::Message {
   void InitAsDefaultInstance();
   static StopComponentResponse* default_instance_;
 };
+// -------------------------------------------------------------------
+
+class ProcessFailedRequest : public ::google::protobuf::Message {
+ public:
+  ProcessFailedRequest();
+  virtual ~ProcessFailedRequest();
+
+  ProcessFailedRequest(const ProcessFailedRequest& from);
+
+  inline ProcessFailedRequest& operator=(const ProcessFailedRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ProcessFailedRequest& default_instance();
+
+  void Swap(ProcessFailedRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  ProcessFailedRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ProcessFailedRequest& from);
+  void MergeFrom(const ProcessFailedRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional int32 pid = 1;
+  inline bool has_pid() const;
+  inline void clear_pid();
+  static const int kPidFieldNumber = 1;
+  inline ::google::protobuf::int32 pid() const;
+  inline void set_pid(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ProcessFailedRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.ProcessFailedRequest)
+ private:
+  inline void set_has_pid();
+  inline void clear_has_pid();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::int32 pid_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
+
+  friend void  protobuf_AddDesc_amfRpc_2eproto();
+  friend void protobuf_AssignDesc_amfRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ProcessFailedRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ProcessFailedResponse : public ::google::protobuf::Message {
+ public:
+  ProcessFailedResponse();
+  virtual ~ProcessFailedResponse();
+
+  ProcessFailedResponse(const ProcessFailedResponse& from);
+
+  inline ProcessFailedResponse& operator=(const ProcessFailedResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ProcessFailedResponse& default_instance();
+
+  void Swap(ProcessFailedResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  ProcessFailedResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ProcessFailedResponse& from);
+  void MergeFrom(const ProcessFailedResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional int32 err = 1;
+  inline bool has_err() const;
+  inline void clear_err();
+  static const int kErrFieldNumber = 1;
+  inline ::google::protobuf::int32 err() const;
+  inline void set_err(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ProcessFailedResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.ProcessFailedResponse)
+ private:
+  inline void set_has_err();
+  inline void clear_has_err();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::int32 err_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
+
+  friend void  protobuf_AddDesc_amfRpc_2eproto();
+  friend void protobuf_AssignDesc_amfRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ProcessFailedResponse* default_instance_;
+};
 // ===================================================================
 
 
@@ -654,6 +826,58 @@ inline ::google::protobuf::int32 StopComponentResponse::err() const {
   return err_;
 }
 inline void StopComponentResponse::set_err(::google::protobuf::int32 value) {
+  set_has_err();
+  err_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// ProcessFailedRequest
+
+// optional int32 pid = 1;
+inline bool ProcessFailedRequest::has_pid() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ProcessFailedRequest::set_has_pid() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ProcessFailedRequest::clear_has_pid() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ProcessFailedRequest::clear_pid() {
+  pid_ = 0;
+  clear_has_pid();
+}
+inline ::google::protobuf::int32 ProcessFailedRequest::pid() const {
+  return pid_;
+}
+inline void ProcessFailedRequest::set_pid(::google::protobuf::int32 value) {
+  set_has_pid();
+  pid_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// ProcessFailedResponse
+
+// optional int32 err = 1;
+inline bool ProcessFailedResponse::has_err() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ProcessFailedResponse::set_has_err() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ProcessFailedResponse::clear_has_err() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ProcessFailedResponse::clear_err() {
+  err_ = 0;
+  clear_has_err();
+}
+inline ::google::protobuf::int32 ProcessFailedResponse::err() const {
+  return err_;
+}
+inline void ProcessFailedResponse::set_err(::google::protobuf::int32 value) {
   set_has_err();
   err_ = value;
 }

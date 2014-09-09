@@ -9,9 +9,8 @@
 #define OBJECTIDENTIFIER_HXX_
 #include "ietfYangTypesCommon.hxx"
 
-#include <iostream>
 #include <string>
-#include "clTransaction.hxx"
+#include <iostream>
 
 namespace ietfYangTypes
   {
@@ -23,7 +22,7 @@ namespace ietfYangTypes
     public:
         ObjectIdentifier();
         std::string getValue();
-        void setValue(std::string value, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setValue(std::string value);
         ietfYangTypes::ObjectIdentifier& operator=(const ietfYangTypes::ObjectIdentifier &objectIdentifier);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::ObjectIdentifier &objectIdentifier);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::ObjectIdentifier &objectIdentifier);

@@ -10,7 +10,6 @@
 #include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
-#include "clTransaction.hxx"
 
 namespace ietfYangTypes
   {
@@ -22,7 +21,7 @@ namespace ietfYangTypes
     public:
         Timestamp();
         unsigned int getValue();
-        void setValue(unsigned int value, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setValue(unsigned int value);
         ietfYangTypes::Timestamp& operator=(const ietfYangTypes::Timestamp &timestamp);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Timestamp &timestamp);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::Timestamp &timestamp);

@@ -11,8 +11,8 @@ using namespace boost::interprocess;
 #include <clLogApi.hxx>
 
 
-static const char* CL_LOG_PRINT_FMT_STR     =         "%-26s [%s:%d] (%s.%d : %s.%3s.%3s:%05d : %s) ";
-static const char* CL_LOG_PRINT_FMT_STR_WO_FILE    =   "%-26s (%s.%d : %s.%3s.%3s:%05d : %s) ";
+static const char* CL_LOG_PRINT_FMT_STR     =         "%-26s [%s:%d] (%s.%d.%d : %s.%3s.%3s:%05d : %s) ";
+static const char* CL_LOG_PRINT_FMT_STR_WO_FILE    =   "%-26s (%s.%d.%d : %s.%3s.%3s:%05d : %s) ";
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -58,13 +58,13 @@ uint_t SAFplusI::formatMsgPrefix(char* msg, LogSeverity  severity, uint_t servic
 
   SAFplusI::logTimeGet(timeStr, (ClUint32T)sizeof(timeStr));
   // Create the log header
-  if(SAFplus::logCodeLocationEnable)        
+  if(SAFplus::logCodeLocationEnable)
     {
-      msgStrLen = snprintf(msg, SAFplus::LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR, timeStr, pFileName, lineNum, SAFplus::ASP_NODENAME, SAFplus::pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);              
+      msgStrLen = snprintf(msg, SAFplus::LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR, timeStr, pFileName, lineNum, SAFplus::ASP_NODENAME, SAFplus::pid, SAFplus::gettid(), ((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
     }
   else
     {
-      msgStrLen = snprintf(msg, SAFplus::LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR_WO_FILE,timeStr, SAFplus::ASP_NODENAME, SAFplus::pid,((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
+      msgStrLen = snprintf(msg, SAFplus::LOG_MAX_MSG_LEN - 1, CL_LOG_PRINT_FMT_STR_WO_FILE,timeStr, SAFplus::ASP_NODENAME, SAFplus::pid, SAFplus::gettid(),((logCompName!=NULL) ? logCompName:SAFplus::ASP_COMPNAME), pArea, pContext, msgIdCnt, pSevName);
     }
   
   return msgStrLen;
@@ -72,7 +72,7 @@ uint_t SAFplusI::formatMsgPrefix(char* msg, LogSeverity  severity, uint_t servic
 
 void SAFplusI::writeToSharedMem(Handle streamHdl,LogSeverity severity, char* msg, int msgStrLen)
 {
-  char *base    = (char*) clLogBuffer->get_address();  
+  char *base    = (char*) clLogBuffer->get_address();
 
   clientMutex.lock();
   LogBufferEntry* rec = static_cast<LogBufferEntry*>((void*)(((char*)base)+clLogBufferSize-sizeof(LogBufferEntry)));  

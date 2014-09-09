@@ -7,18 +7,17 @@
 
 #include "AssignmentState.hxx"
 #include <string>
-#include "clTransaction.hxx"
-#include "StandbyAssignments.hxx"
-#include "ComponentServiceInstance.hxx"
-#include "clMgtList.hxx"
-#include "MgtFactory.hxx"
-#include "ActiveAssignments.hxx"
-#include "AdministrativeState.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
+#include "StandbyAssignments.hxx"
 #include "ServiceGroup.hxx"
+#include "ComponentServiceInstance.hxx"
+#include "clMgtList.hxx"
 #include <vector>
+#include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
+#include "ActiveAssignments.hxx"
+#include "AdministrativeState.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
 #include "ServiceInstance.hxx"
@@ -83,14 +82,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/adminState
      */
-    void ServiceInstance::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
+    void ServiceInstance::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
-            t.addOperation(opt);
-        }
+        this->adminState.value = adminStateValue;
     };
 
     /*
@@ -104,14 +98,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
      */
-    void ServiceInstance::setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue, SAFplus::Transaction &t)
+    void ServiceInstance::setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->assignmentState.value = assignmentStateValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::AssignmentState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AssignmentState>(&(assignmentState.value),assignmentStateValue);
-            t.addOperation(opt);
-        }
+        this->assignmentState.value = assignmentStateValue;
     };
 
     /*
@@ -125,14 +114,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/rank
      */
-    void ServiceInstance::setRank(unsigned int rankValue, SAFplus::Transaction &t)
+    void ServiceInstance::setRank(unsigned int rankValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->rank.value = rankValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(rank.value),rankValue);
-            t.addOperation(opt);
-        }
+        this->rank.value = rankValue;
     };
 
     /*
@@ -162,14 +146,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
      */
-    void ServiceInstance::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue, SAFplus::Transaction &t)
+    void ServiceInstance::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->serviceGroup.value = serviceGroupValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceGroup*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceGroup*>(&(serviceGroup.value),serviceGroupValue);
-            t.addOperation(opt);
-        }
+        this->serviceGroup.value = serviceGroupValue;
     };
 
     /*

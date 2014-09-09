@@ -10,7 +10,6 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
-#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
@@ -43,7 +42,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ComponentServiceInstance/data/myName
          */
-        void setMyName(std::string myNameValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setMyName(std::string myNameValue);
 
         /*
          * XPATH: /SAFplusAmf/ComponentServiceInstance/data/val
@@ -53,7 +52,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ComponentServiceInstance/data/val
          */
-        void setVal(std::string valValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setVal(std::string valValue);
         ~Data();
 
     };

@@ -1,3 +1,4 @@
+#include <chrono>
 #include <clAmfPolicyPlugin.hxx>
 #include <clLogApi.hxx>
 #include <clProcessApi.hxx>
@@ -81,7 +82,32 @@ namespace SAFplus
     for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
       {
       Component* comp = dynamic_cast<Component*>(*itcomp);
-      logInfo("N+M","STRT","starting component %s", comp->name.c_str());
+      if (comp->processId)
+        {
+        logDebug("N+M","STRT","Not starting [%s]. Its already started as pid [%d].",comp->name.c_str(),comp->processId.value);
+        continue;
+        }
+      if (comp->operState == false)
+        {
+        logDebug("N+M","STRT","Not starting [%s]. It must be repaired.",comp->name.c_str(),comp->processId.value);
+        continue;
+        }
+      if (comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations + comp->maxDelayedInstantiations)
+        {
+        logInfo("N+M","STRT","Faulting [%s]. It has exceeded its startup attempts [%d].",comp->name.c_str(),comp->maxInstantInstantiations + comp->maxDelayedInstantiations);
+        comp->operState = false;
+        comp->numInstantiationAttempts = 0;
+        continue;
+        }
+      uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+// (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count()/std::chrono::milliseconds(1);
+      if ((comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations)&&(curTime < comp->delayBetweenInstantiation.value + comp->lastInstantiation.value.value))
+        {
+        logDebug("N+M","STRT","Not starting [%s]. Must wait [%d] more milliseconds.",comp->name.c_str(),comp->delayBetweenInstantiation + comp->lastInstantiation.value.value - curTime);
+        continue;
+        }
+
+      logInfo("N+M","STRT","Starting component [%s]", comp->name.c_str());
       CompStatus status = amfOps->getCompState(comp);
 
       SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);

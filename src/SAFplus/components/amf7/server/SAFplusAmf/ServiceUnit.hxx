@@ -12,7 +12,6 @@
 #include "RestartCount.hxx"
 #include "Node.hxx"
 #include <string>
-#include "clTransaction.hxx"
 #include "NumActiveServiceInstances.hxx"
 #include "RestartCount.hxx"
 #include "Component.hxx"
@@ -99,7 +98,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/adminState
          */
-        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setAdminState(SAFplusAmf::AdministrativeState adminStateValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/rank
@@ -109,7 +108,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/rank
          */
-        void setRank(unsigned int rankValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setRank(unsigned int rankValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/failover
@@ -119,7 +118,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/failover
          */
-        void setFailover(bool failoverValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setFailover(bool failoverValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/preinstantiable
@@ -129,7 +128,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/preinstantiable
          */
-        void setPreinstantiable(bool preinstantiableValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPreinstantiable(bool preinstantiableValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/saAmfSUHostNodeOrNodeGroup
@@ -139,7 +138,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/saAmfSUHostNodeOrNodeGroup
          */
-        void setSaAmfSUHostNodeOrNodeGroup(std::string saAmfSUHostNodeOrNodeGroupValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setSaAmfSUHostNodeOrNodeGroup(std::string saAmfSUHostNodeOrNodeGroupValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/presenceState
@@ -149,7 +148,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/presenceState
          */
-        void setPresenceState(SAFplusAmf::PresenceState presenceStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setPresenceState(SAFplusAmf::PresenceState presenceStateValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/readinessState
@@ -159,7 +158,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/readinessState
          */
-        void setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setReadinessState(SAFplusAmf::ReadinessState readinessStateValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/haReadinessState
@@ -169,7 +168,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/haReadinessState
          */
-        void setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/haState
@@ -179,7 +178,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/haState
          */
-        void setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setHaState(SAFplusAmf::HighAvailabilityState haStateValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/operState
@@ -189,7 +188,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/operState
          */
-        void setOperState(bool operStateValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setOperState(bool operStateValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/assignedServiceInstances
@@ -219,7 +218,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/node
          */
-        void setNode(SAFplusAmf::Node* nodeValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setNode(SAFplusAmf::Node* nodeValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/serviceGroup
@@ -229,7 +228,7 @@ namespace SAFplusAmf
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/serviceGroup
          */
-        void setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/numActiveServiceInstances

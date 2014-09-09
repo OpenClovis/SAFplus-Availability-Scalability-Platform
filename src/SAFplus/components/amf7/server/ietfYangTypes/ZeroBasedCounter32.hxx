@@ -9,7 +9,6 @@
 #define ZEROBASEDCOUNTER32_HXX_
 #include "ietfYangTypesCommon.hxx"
 
-#include "clTransaction.hxx"
 #include <iostream>
 
 namespace ietfYangTypes
@@ -22,7 +21,7 @@ namespace ietfYangTypes
     public:
         ZeroBasedCounter32();
         unsigned int getValue();
-        void setValue(unsigned int value, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setValue(unsigned int value);
         ietfYangTypes::ZeroBasedCounter32& operator=(const ietfYangTypes::ZeroBasedCounter32 &zeroBasedCounter32);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::ZeroBasedCounter32 &zeroBasedCounter32);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::ZeroBasedCounter32 &zeroBasedCounter32);

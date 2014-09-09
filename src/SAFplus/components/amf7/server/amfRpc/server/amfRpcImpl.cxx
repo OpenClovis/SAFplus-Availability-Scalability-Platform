@@ -21,7 +21,6 @@ namespace amfRpc {
   void amfRpcImpl::startComponent(const ::SAFplus::Rpc::amfRpc::StartComponentRequest* request,
                                 ::SAFplus::Rpc::amfRpc::StartComponentResponse* response)
   {
-  //logInfo("RPC","SRT", "Starting component [%s] with command [%s]", request->name().c_str(),request->command().c_str());
   std::vector<std::string> env;
 
   std::stringstream ssNodeAddr;
@@ -52,12 +51,21 @@ namespace amfRpc {
     response->set_pid(0);
     response->set_err(e.osError);
     }
+
   }
 
   void amfRpcImpl::stopComponent(const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                                 ::SAFplus::Rpc::amfRpc::StopComponentResponse* response)
   {
     //TODO: put your code here 
+  }
+
+  void amfRpcImpl::processFailed(const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
+                                ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response)
+  {
+    //TODO: put your code here 
+  logInfo("OPS","SRT","Process failed notification");
+  response->set_err(0);
   }
 
 }  // namespace amfRpc

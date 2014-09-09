@@ -36,6 +36,8 @@ class amfRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfRpc::StartComponentResponse* response);
   virtual void stopComponent(const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                        ::SAFplus::Rpc::amfRpc::StopComponentResponse* response);
+  virtual void processFailed(const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response);
 
   // implements amfRpc ------------------------------------------
   virtual void startComponent(SAFplus::Handle destination,
@@ -45,6 +47,10 @@ class amfRpc : public SAFplus::Rpc::RpcService {
   virtual void stopComponent(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                        ::SAFplus::Rpc::amfRpc::StopComponentResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void processFailed(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
 
 
@@ -82,6 +88,10 @@ class amfRpc_Stub : public amfRpc {
                        const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                        ::SAFplus::Rpc::amfRpc::StopComponentResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void processFailed(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -99,6 +109,8 @@ class amfRpcImpl : public amfRpc {
                        ::SAFplus::Rpc::amfRpc::StartComponentResponse* response);
   void stopComponent(const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                        ::SAFplus::Rpc::amfRpc::StopComponentResponse* response);
+  void processFailed(const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response);
 };
 
 }  // namespace amfRpc

@@ -6,7 +6,6 @@
 #include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
-#include "clTransaction.hxx"
 #include "Gauge64.hxx"
 
 
@@ -22,14 +21,9 @@ namespace ietfYangTypes
         return this->Value;
     };
 
-    void Gauge64::setValue(unsigned long int value, SAFplus::Transaction &t)
+    void Gauge64::setValue(unsigned long int value)
     {
-        if(&t == &SAFplus::NO_TXN) this->Value = value;
-        else
-        {
-            SAFplus::SimpleTxnOperation<unsigned long int> *opt = new SAFplus::SimpleTxnOperation<unsigned long int>(&Value,value);
-            t.addOperation(opt);
-        }
+        this->Value = value;
     };
 
     ietfYangTypes::Gauge64& Gauge64::operator=(const ietfYangTypes::Gauge64 &gauge64)

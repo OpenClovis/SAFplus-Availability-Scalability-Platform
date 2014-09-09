@@ -11,7 +11,6 @@
 
 #include <iostream>
 #include <string>
-#include "clTransaction.hxx"
 
 namespace ietfYangTypes
   {
@@ -23,7 +22,7 @@ namespace ietfYangTypes
     public:
         DateAndTime();
         std::string getValue();
-        void setValue(std::string value, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setValue(std::string value);
         ietfYangTypes::DateAndTime& operator=(const ietfYangTypes::DateAndTime &dateAndTime);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::DateAndTime &dateAndTime);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::DateAndTime &dateAndTime);

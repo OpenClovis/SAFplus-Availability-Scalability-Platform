@@ -1,3 +1,4 @@
+#include <chrono>
 #include <google/protobuf/stubs/common.h>
 
 #include "amfRpc/amfRpc.pb.h"
@@ -185,13 +186,24 @@ namespace SAFplus
   void AmfOperations::start(SAFplusAmf::Component* comp,Wakeable& w)
     {
     assert(comp);
+    comp->numInstantiationAttempts.value++;
+    comp->lastInstantiation.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+// (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count()/std::chrono::milliseconds(1);
     if (!comp->serviceUnit)
       {
-      clDbgCodeError(1,("Can't start disconnected comp"));
+      clDbgCodeError(1,("Can't start disconnected comp"));  // Because we don't know what node to start it on...
+      comp->lastError.value = "Can't start disconnected component.";
+      comp->operState = false;  // A configuration error isn't going to heal itself -- component needs manual intervention then repair
+      if (&w) w.wake(1,(void*)comp);
+      return;
       }
     if (!comp->serviceUnit.value->node)
       {
       clDbgCodeError(1,("Can't start disconnected comp"));
+      comp->lastError.value = "Can't start disconnected component.";
+      comp->operState = false;  // A configuration error isn't going to heal itself -- component needs manual intervention then repair
+      if (&w) w.wake(1,(void*)comp);
+      return;
       }
 
     Handle nodeHdl;
@@ -202,12 +214,14 @@ namespace SAFplus
     catch (SAFplus::NameException& n)
       {
       logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.  Cannot start processes on it.", comp->serviceUnit.value->node.value->name.c_str());
-      return; // TODO: should I call w.wake first?
+      comp->lastError.value = "Component's node is not registered in the name service so address cannot be determined.";
+      if (&w) w.wake(1,(void*)comp);
+      return;
       }
 
     SAFplusAmf::Instantiate* inst = comp->getInstantiate();
 
-    if (0) // (nodeHdl == nodeHandle)  // Handle this request locally
+    if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
       {
       assert(inst);
       Process p = executeProgram(inst->command.value, comp->commandEnvironment.value);
@@ -217,7 +231,7 @@ namespace SAFplus
       }
     else  // RPC call
       {
-      logInfo("OP","CMP","Request launch component [%s] as [%s] on node [%s]", comp->name.c_str(),inst->command.value.c_str(),comp->serviceUnit.value->node.name.c_str());
+      logInfo("OP","CMP","Request launch component [%s] as [%s] on node [%s]", comp->name.c_str(),inst->command.value.c_str(),comp->serviceUnit.value->node.value->name.c_str());
 
 #if 0
       SAFplus::Rpc::RpcChannel channel(&safplusMsgServer, nodeHdl);
