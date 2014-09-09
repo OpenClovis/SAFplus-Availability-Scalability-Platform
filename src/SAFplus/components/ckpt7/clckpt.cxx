@@ -39,7 +39,7 @@ SAFplus::Checkpoint::~Checkpoint()
   if (isSyncReplica) { assert(sync); delete sync; }
 }
 
-void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uint_t rows)
+void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uint_t rows,SAFplus::Wakeable& execSemantics)
 {
   logInfo("CKP","INI","Opening checkpoint [%lx:%lx]",hdl.id[0],hdl.id[1]);
   // All constructors funnel through this init routine.
@@ -129,7 +129,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
   if (isSyncReplica) 
     { 
     sync = new CkptSynchronization(); 
-    sync->init(this); 
+    sync->init(this,NULL,execSemantics); 
     // the sync object will open the gate when synchronization is complete
     }
   else

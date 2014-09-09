@@ -29,6 +29,7 @@ namespace SAFplus
     void msgServerInitialize(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads)
       {
       safplusMsgServer.init(port,maxPendingMsgs, maxHandlerThreads);
+      safplusMsgServer.Start();
       }
 
     void SAFplus::SafplusMsgServer::init(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads, Options flags)

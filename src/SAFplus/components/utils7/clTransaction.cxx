@@ -76,6 +76,5 @@ ClRcT Transaction::addOperation(TransactionOperation *operation)
 }
 
 Transaction NO_TXN;
-Transaction BLOCK;
-Transaction RAISE;
+
 };

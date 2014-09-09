@@ -137,7 +137,7 @@ namespace SAFplus
 
     Checkpoint():hdr(NULL),flags(0),sync(NULL) {}  // 2 step initialization
     ~Checkpoint();
-    void init(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0);
+    void init(const Handle& handle, uint_t flags,uint_t size=0, uint_t rows=0,SAFplus::Wakeable& execSemantics = BLOCK);
 
     // TBD when name service is ready; just resolve name to a handle, or create a name->new handle->new checkpoint object mapping if the name does not exist.
     //Checkpoint(const char* name,uint_t flags);
@@ -230,6 +230,7 @@ namespace SAFplus
     Iterator end();
 
     const SAFplus::Handle& handle() { return hdr->handle; } // its read only
+    std::string                    name;
 
     // debugging
     void dump();
@@ -247,7 +248,6 @@ namespace SAFplus
     bool isSyncReplica;
     SAFplusI::CkptSynchronization* sync;  // This is a separate object (and pointer) to break the synchronization requirements (messaging and groups) from the core checkpoint
     bool electSynchronizationReplica();  // Returns true if this process is the synchronization replica.
-
   };
 }
 

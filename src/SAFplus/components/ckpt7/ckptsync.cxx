@@ -288,7 +288,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
   delete buf;
 }
 
-void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr)
+void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr, SAFplus::Wakeable& execSemantics)
   {
   ckpt = c;
   synchronizing = true;  // Checkpoint always starts out in the synchronizing state (access not allowed).  It kicks out of this state when it becomes the active replica or it is synced with the active replica.
@@ -303,7 +303,8 @@ void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr)
   // Now join this checkpoint's dedicated group.
   group = new SAFplus::Group();
   assert(group);
-  group->init(ckpt->hdr->handle.getSubHandle(CKPT_GROUP_SUBHANDLE));
+  group->init(ckpt->hdr->handle.getSubHandle(CKPT_GROUP_SUBHANDLE),SAFplusI::GMS_IOC_PORT,execSemantics);
+  if (ckpt->name.size()) group->setName(ckpt->name.c_str());
   group->setNotification(*this);
   // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
   group->registerEntity(ckpt->hdr->replicaHandle,(ckpt->hdr->changeNum<<SAFplus::Log2MaxNodes) | SAFplus::ASP_NODEADDR,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);

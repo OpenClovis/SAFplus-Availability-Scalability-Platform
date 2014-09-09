@@ -148,7 +148,7 @@ namespace SAFplus
       Group(SAFplus::Handle groupHandle,const char* name, int comPort = SAFplusI::GMS_IOC_PORT);
       ~Group();
 
-      void init(SAFplus::Handle groupHandle, int comPort = SAFplusI::GMS_IOC_PORT);
+      void init(SAFplus::Handle groupHandle, int comPort = SAFplusI::GMS_IOC_PORT,SAFplus::Wakeable& execSemantics = BLOCK);
       void init(SAFplus::Handle groupHandle, const char* name, int comPort = SAFplusI::GMS_IOC_PORT);
       //void init(const std::string& name, int comPort = SAFplusI::GMS_IOC_PORT);
 

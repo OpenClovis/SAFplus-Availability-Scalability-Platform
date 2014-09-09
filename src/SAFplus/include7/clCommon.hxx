@@ -71,8 +71,15 @@ std::string strprintf(const std::string fmt_str, ...);
     //static Wakeable& Synchronous;  // This const is a reference to NULL and simply indicates that the function should be synchronous instead of async.
   };
 
+  class WakeableNoop:public Wakeable
+  {
+  public:
+   virtual void wake(int amt,void* cookie=NULL) {};
+  };
+
+  extern WakeableNoop IGNORE;
   extern Wakeable& BLOCK;  // This const is a reference to NULL and simply indicates that the function should be synchronous instead of async.
-  extern Wakeable& ABORT;  // This const is a reference to NULL and indicates that the function should throw/return an error rather than block.
+  extern Wakeable& ABORT;  // This const is a reference to 1 and indicates that the function should throw/return an error rather than block.
 
   
 
@@ -129,7 +136,17 @@ std::string strprintf(const std::string fmt_str, ...);
   class Error: public std::exception
   {
   public:
+
+  typedef enum
+  {
+    SAF_ERROR        = 0,
+    SAFPLUS_ERROR         = 1,
+    SYSTEM_ERROR     = 2
+  } ErrorFamily;
+
   const char* errStr;
+  const char*        file;
+  int          line;  
   unsigned int saError;  // SAF error code (if applicable)
   unsigned int clError;  // OpenClovis error code (if applicable)
   unsigned int osError;  // Operating system error code (i.e errno), if applicable
@@ -145,6 +162,18 @@ std::string strprintf(const std::string fmt_str, ...);
 
     Error(const char* str): errStr(str) 
     {
+    }
+
+    Error(ErrorFamily family, unsigned int returnCode,const char* str = NULL,const char* filep = __FILE__, int linep = __LINE__): errStr(str) 
+    {
+    clError = 0;
+    saError = 0;
+    osError = 0;
+    file     = filep;
+    line     = linep;
+    if (family == SAF_ERROR) saError = returnCode;
+    if (family == SAFPLUS_ERROR) clError = returnCode;
+    if (family == SYSTEM_ERROR) osError = returnCode;
     }
 
     virtual const char* what() const throw()

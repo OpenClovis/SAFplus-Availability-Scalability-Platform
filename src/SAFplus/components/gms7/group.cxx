@@ -89,7 +89,7 @@ char* Group::capStr(uint cap, char* buf)
       }
     }
 
-  void Group::init(Handle groupHandle, int comPort)
+  void Group::init(Handle groupHandle, int comPort,SAFplus::Wakeable& execSemantics)
     {
     handle = groupHandle;
     groupCommunicationPort = comPort;
@@ -109,7 +109,7 @@ char* Group::capStr(uint cap, char* buf)
         boost::this_thread::sleep(boost::posix_time::milliseconds(100));  // TODO use thread change condition
         // TODO after too many loops, notify fault manager
         }
-      } while (entryPtr == gsm.groupMap->end());
+      } while ((&execSemantics == &BLOCK)&&(entryPtr == gsm.groupMap->end()));
     }
 
   // Get the current active entity.  If an active entity is not determined this call will block until the election is complete.  Therefore it will only return INVALID_HDL if there is no entity with active capability
@@ -515,9 +515,10 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
         {
         groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, SAFplusI::GRP_MSG_TYPE);
         }
-      catch (...)
+      catch (...) // SAFplus::Error &e)
         {
-        logDebug("GMS","MSG","Failed to send");
+        //logDebug("GMS","MSG","Failed to send. Error %x",e.rc);
+        logDebug("GMS","MSG","Failed to send.");
         }
       break;
       }

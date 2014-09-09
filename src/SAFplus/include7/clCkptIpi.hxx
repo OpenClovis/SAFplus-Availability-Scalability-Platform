@@ -54,7 +54,7 @@ namespace SAFplusI
     unsigned int  syncCookie;
     boost::thread syncThread;
 
-    void init(SAFplus::Checkpoint* c,SAFplus::MsgServer* pmsgSvr=NULL);
+    void init(SAFplus::Checkpoint* c,SAFplus::MsgServer* pmsgSvr=NULL,SAFplus::Wakeable& execSemantics = SAFplus::BLOCK);
 
     void operator()();  // Thread thunk
 

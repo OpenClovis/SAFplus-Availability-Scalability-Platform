@@ -7,10 +7,20 @@
 using namespace SAFplus;
 using namespace SAFplusI;
 
-// Checkpoint::REPLICATED|
-Checkpoint NameRegistrar::m_checkpoint(NAME_CKPT,Checkpoint::SHARED, CkptDefaultSize, CkptDefaultRows);
+
 
 NameRegistrar SAFplus::name;
+
+void SAFplus::nameInitialize()
+  {
+  name.init(NAME_CKPT);
+  }
+
+void NameRegistrar::init(Handle hdl)
+  {
+  m_checkpoint.name = "safplusName";
+  m_checkpoint.init(hdl,Checkpoint::SHARED | Checkpoint::REPLICATED, CkptDefaultSize, CkptDefaultRows,IGNORE);
+  }
 
 void NameRegistrar::set(const char* name, Handle handle, MappingMode m)
 {  

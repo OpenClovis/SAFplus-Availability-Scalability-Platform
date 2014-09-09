@@ -357,7 +357,7 @@ int main(int argc, char* argv[])
   sic.iocPort     = SAFplusI::AMF_IOC_PORT;
   sic.msgQueueLen = MAX_MSGS;
   sic.msgThreads  = MAX_HANDLER_THREADS;
-  safplusInitialize(SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
+  safplusInitialize( SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
 
   //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
   SAFplus::Rpc::amfRpc::amfRpcImpl amfRpcMsgHandler;
@@ -377,24 +377,24 @@ int main(int argc, char* argv[])
   SAFplusI::GroupServer gs;
   gs.init();
 #endif
-
-  safplusMsgServer.Start();
+  
+  nameInitialize();  // Name must be initialized after the group server 
 
   // client side
   amfRpc_Stub amfInternalRpc(channel);
+
+#if 0
   StartComponentRequest req;
   req.set_name("c0");
   req.set_command("./c0 test1 test2");
   StartComponentResponse resp;
-
   //client side should using callback
   //google::protobuf::Closure *callback = google::protobuf::NewCallback(&FooDone, &resp);
   SAFplus::Handle hdl(TransientHandle,1,SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
   //service.startComponent(hdl,&req, &resp);
-
+#endif
   //sleep(10000);
 
-  
   // GAS DEBUG:
   SAFplus::SYSTEM_CONTROLLER = 1;  // Normally we would get this from the environment
   if (SAFplus::ASP_NODENAME[0] == 0) strcpy(SAFplus::ASP_NODENAME,"sc0");  // TEMPORARY initialization

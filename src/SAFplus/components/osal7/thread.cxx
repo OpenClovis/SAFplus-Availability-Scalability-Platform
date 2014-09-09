@@ -11,6 +11,7 @@ namespace SAFplus
 
 Wakeable& BLOCK = *((Wakeable*) NULL);
 Wakeable& ABORT = *((Wakeable*) 1);
+WakeableNoop IGNORE;
 
 static const ClUint32T crctab[] = {
 	0x0,

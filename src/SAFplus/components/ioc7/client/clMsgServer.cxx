@@ -6,7 +6,7 @@
 #include "clLogApi.hxx"
 #include "clMsgHandler.hxx"
 #include "clMsgServer.hxx"
-#include "clException.hxx"
+#include "clCommon.hxx"
 
 namespace SAFplus
 {
@@ -68,7 +68,7 @@ namespace SAFplus
     if (rc != CL_OK)
       {
         clDbgPause();
-        throw Error(ClError,rc,MsgServerFailure,"Cannot create communications port");
+        throw Error(Error::SAFPLUS_ERROR,rc,"Cannot create communications port");
       }
     logInfo("IOC", "MSG","Created message port [%d] for MsgServer object",port);
 
@@ -105,7 +105,7 @@ namespace SAFplus
     if (rc != CL_OK)
       {
         clDbgPause();
-        throw Error(ClError,rc,MsgServerFailure,"Failed to create shared address");
+        throw Error(Error::SAFPLUS_ERROR,rc,"Failed to create shared address");
       }
   }
   
@@ -144,7 +144,7 @@ namespace SAFplus
     if (rc != CL_OK)
       {
         clDbgPause();
-        throw Error(ClError,rc,MsgServerFailure,"Failed to create send buffer");
+        throw Error(Error::SAFPLUS_ERROR,rc,"Failed to create send buffer");
       }
     clBufferNBytesWrite(send_msg, (ClUint8T*)buffer, length);
 
@@ -155,10 +155,10 @@ namespace SAFplus
         rc = clIocSend(commPort, send_msg, msgtype, &destination, &sendOptions );
         if (rc != CL_OK)
           {
-            if (CL_GET_ERROR_CODE(rc) != CL_IOC_ERR_HOST_UNREACHABLE)
+            if ((CL_GET_ERROR_CODE(rc) != CL_IOC_ERR_HOST_UNREACHABLE)&&(CL_GET_ERROR_CODE(rc) != CL_ERR_NOT_EXIST))
               {
                 clDbgPause(); /* unreachable is an "expected" error during a board failure */
-                throw Error(ClError,rc,MsgServerFailure,"Failed to send");
+                throw Error(Error::SAFPLUS_ERROR,rc,"Failed to send");
               }
             else /* Give a moment for the failover to occur and retry the send */
               {
@@ -178,7 +178,7 @@ namespace SAFplus
       {
         /* Well, maybe no one is able to take over for this IOC address, so I've got to pass the
         error up...*/
-        throw Error(ClError,rc,NonExistentDestination,"Failed to send");
+        throw Error(Error::SAFPLUS_ERROR,rc,"Failed to send");
       }
   }
 
@@ -278,7 +278,7 @@ namespace SAFplus
     if ((msgtype >= NUM_MSG_TYPES)||(msgtype <0))
       {
         logDebug("IOC", "MSG", "message type [%d] out of range [0-255]", (int )msgtype);
-        throw Error(ClError, CL_ERR_INVALID_PARAMETER,MsgServerFailure,"message type out of range");
+        throw Error(Error::SAFPLUS_ERROR, CL_ERR_INVALID_PARAMETER,"message type out of range");
       }
     handlers[msgtype] = handler;
     cookies[msgtype] = cookie;
@@ -289,10 +289,8 @@ namespace SAFplus
     if ((msgtype >= NUM_MSG_TYPES)||(msgtype <0))
       {
         logDebug("IOC", "MSG", "message type [%d] out of range [0-255]",(int)msgtype);
-        throw Error(ClError, CL_ERR_INVALID_PARAMETER,MsgServerFailure,"message type out of range");
+        throw Error(Error::SAFPLUS_ERROR, CL_ERR_INVALID_PARAMETER,"message type out of range");
       }
     handlers[msgtype] = NULL;
   }
-
-  
 };

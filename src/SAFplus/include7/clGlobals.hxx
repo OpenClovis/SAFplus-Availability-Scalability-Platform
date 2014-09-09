@@ -87,7 +87,8 @@ class LibSet
     TIMER=0x200,
     DBAL=0x400,
     MSG=0x800,
-    OBJMSG=0x1000
+    OBJMSG=0x1000,
+    NAME=0x2000
   };
   };
 
@@ -133,6 +134,7 @@ class LibSet
     OBJMSG = LibSet::OBJMSG | LibDep::MSG,
     GRP = LibSet::GRP | LibDep::OBJMSG | LibDep::MSG,
     CKPT = LibSet::CKPT | LibDep::GRP | LibDep::MSG | LibDep::UTILS,
+    NAME = LibSet::NAME | LibDep::CKPT,
     HEAP = LibSet::HEAP,
     BUFFER = LibSet::BUFFER,
     TIMER = LibSet::TIMER,
@@ -167,6 +169,7 @@ class LibSet
   extern void utilsInitialize() __attribute__((weak));
   extern Logger* logInitialize(void) __attribute__((weak));
   extern void objectMessagerInitialize() __attribute__((weak));
+  extern void nameInitialize() __attribute__((weak));
   extern void msgServerInitialize(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads)  __attribute__((weak));
 
 #ifdef __cplusplus
@@ -240,6 +243,12 @@ extern "C" {
       {
       objectMessagerInitialize();
       }
+
+    if((svc&LibSet::NAME)&&SAFplus::nameInitialize) 
+      { 
+      SAFplus::nameInitialize();
+      }
+
   }
 
   };

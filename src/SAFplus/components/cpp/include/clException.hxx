@@ -26,7 +26,7 @@ typedef enum
   } ErrorFamily;
   
   
-class Error
+class ErrorOld
 {
   public:
   Error(ErrorFamily family, unsigned int returnCode, ExtendedErrorNumber extErrp=NoExtendedError, const char* notep = NULL, const char* filep = __FILE__, int linep = __LINE__)

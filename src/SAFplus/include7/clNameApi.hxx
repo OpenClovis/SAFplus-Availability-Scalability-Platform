@@ -60,7 +60,7 @@ namespace SAFplus
   class NameRegistrar
   {
   protected:
-     static SAFplus::Checkpoint m_checkpoint;
+     SAFplus::Checkpoint m_checkpoint;
      //HashMap m_mapData; // keep association between handle and its arbitrary data
      ObjHashMap m_mapObject; // keep association between handle and an object
   private:
@@ -149,6 +149,7 @@ namespace SAFplus
      //***********************************************************************
      
      virtual ~NameRegistrar();
+     void init(SAFplus::Handle hdl);
   };
 
   typedef struct
