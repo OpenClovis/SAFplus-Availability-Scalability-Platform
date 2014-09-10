@@ -73,17 +73,23 @@ namespace SAFplus
             string strMsgReq;
             SAFplus::Rpc::RpcMessage rpcMsgReq;
             ClIocAddressT overDest;
+            ThreadSem blocker(0);
 
             //Lock sending and record a RPC
-            ScopedLock<Mutex> lock(mutex);
-            int64_t idx = msgId++;
+            int64_t idx;
             MsgRpcEntry *rpcReqEntry = new MsgRpcEntry();
-            rpcReqEntry->msgId = idx;
-            rpcReqEntry->response = response;
-            rpcReqEntry->callback = (Wakeable*)&wakeable;
-            msgRPCs.insert(std::pair<uint64_t,MsgRpcEntry*>(idx, rpcReqEntry));
-            //Unlock
-            mutex.unlock();
+            if (1)
+              {
+              ScopedLock<Mutex> lock(mutex);
+              idx = msgId++;
+              rpcReqEntry->msgId = idx;
+              rpcReqEntry->response = response;
+              if (&wakeable == &SAFplus::BLOCK)
+                rpcReqEntry->callback = &blocker;
+              else
+                rpcReqEntry->callback = (Wakeable*)&wakeable;
+              msgRPCs.insert(std::pair<uint64_t,MsgRpcEntry*>(idx, rpcReqEntry));
+              }
 
             rpcMsgReq.set_type(msgSendType);
             rpcMsgReq.set_id(idx);
@@ -111,6 +117,12 @@ namespace SAFplus
             catch (Error &e)
               {
                 logError("RPC", "REQ", "Serialization Error: %s", e.what());
+              }
+            
+
+            if (&wakeable == &SAFplus::BLOCK)
+              {
+              blocker.lock(1);  // TODO: Handle dropped packets: use timed_lock with either a message retry or by raising exception? 
               }
           }
 

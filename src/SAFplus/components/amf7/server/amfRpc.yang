@@ -71,6 +71,30 @@ module amfRpc
       
   }
   
+
+  rpc processInfo
+    {
+      input
+	{
+	  leaf pid
+	    {
+	      type int32;
+	    }
+	}
+      output
+	{
+	  leaf running
+	    {
+	      type boolean;
+	    }
+	  leaf command
+	    {
+	      type string;
+	    }
+	  // TBD, add all the info from /proc/<pid>/stat and /proc/<pid>/statm here
+	}
+    }
+
   rpc processFailed
   {
     input

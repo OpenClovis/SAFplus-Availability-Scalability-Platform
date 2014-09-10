@@ -49,7 +49,7 @@ namespace SAFplusAmf
     ret->preferredNumIdleServiceUnits    = preferredNumIdleServiceUnits;
     ret->maxActiveWorkAssignments        = maxActiveWorkAssignments;
     ret->maxStandbyWorkAssignments       = maxStandbyWorkAssignments;
-  
+
     return ret;
     }
 
@@ -105,6 +105,13 @@ namespace SAFplusAmf
     ret->proxy = proxy;
     // GAS TODO: ClMgtProvList needs code accessors: ret->proxied =
     // proxied;
+
+    // Initial condition values
+    ret->operState.value = true;  // created ready to run...
+    ret->numInstantiationAttempts.value = 0;
+    ret->lastInstantiation.value.value = 0;
+    ret->presence.value = PresenceState::uninstantiated;
+
     return ret;
     }
 
@@ -115,16 +122,25 @@ namespace SAFplusAmf
     //as.value = 2;
     Node* node[2];
     node[0]  = createNode("sc0",SAFplusAmf::AdministrativeState::on,true,false,false);
+    node[1]  = createNode("sc1",SAFplusAmf::AdministrativeState::on,true,false,false);
     ServiceGroup* sg = createServiceGroup("sg0",SAFplusAmf::AdministrativeState::on,true,false,st,1,1,1,1,1);
     Component* comp[2];
-    comp[0] = createComponent("c0",SAFplusAmf::CapabilityModel::x_active_or_y_standby,1,1,"B.01.01",1,"testBundle.tgz","TEST_ENV=1\nTEST_ENV2=2",2,2,2000,SAFplusAmf::Recovery::Restart,true,"","");
+    comp[0] = createComponent("c0",SAFplusAmf::CapabilityModel::x_active_or_y_standby,1,1,"B.01.01",1,"testBundle.tgz","TEST_ENV=1\nTEST_ENV2=2",1,1,10000,SAFplusAmf::Recovery::Restart,true,"","");
     Instantiate* inst = new Instantiate();
-    inst->command.value = "bash ./test arg1 arg2";
+    inst->command.value = "bash ./test0 arg1 arg2";
     inst->timeout.value = 30000;
     comp[0]->addChildObject(inst);
-    //comp[1] = createComponent("c1",SAFplusAmf::CapabilityModel::x_active_or_y_standby,1,1,"B.01.01",1,"testBundle.tgz","TEST_ENV=1\nTEST_ENV2=2",2,2,2000,SAFplusAmf::Recovery::Restart,true,"","");
+
+    comp[1] = createComponent("c1",SAFplusAmf::CapabilityModel::x_active_or_y_standby,1,1,"B.01.01",1,"testBundle.tgz","TEST_ENV=1\nTEST_ENV2=2",0,2,20000,SAFplusAmf::Recovery::Restart,true,"","");
+    Instantiate* inst1 = new Instantiate();
+    inst1->command.value = "bash ./test1 arg1 arg2";
+    inst1->timeout.value = 30000;
+    comp[1]->addChildObject(inst);
+
+
     ServiceUnit* su[2];
     su[0] = createServiceUnit("su0", SAFplusAmf::AdministrativeState::on,0,true);
+    su[1] = createServiceUnit("su1", SAFplusAmf::AdministrativeState::on,0,true);
     //su[1] = createServiceUnit(const char* name, const SAFplusAmf::AdministrativeState& adminState, int rank, bool failover);
     ServiceInstance* si;
     si = createServiceInstance("si", SAFplusAmf::AdministrativeState::on,0);
@@ -151,6 +167,21 @@ namespace SAFplusAmf
     //su[1]->node.value = node[1];
     csi->serviceInstance.value = si;
     si->componentServiceInstances.value.push_back(csi);    
+
+#if 1
+    // Handle the secondary elements
+    self->nodeList.addChildObject(node[1]);
+    self->componentList.addChildObject(comp[1]);
+    //self->componentServiceInstanceList.addChildObject(csi);
+    // connect the secondary elements
+    node[1]->serviceUnits.value.push_back(su[1]);
+    sg->serviceUnits.value.push_back(su[1]);
+    su[1]->components.value.push_back(comp[1]);
+
+    comp[1]->serviceUnit.value = su[1];
+    su[1]->node.value = node[1];
+    su[1]->serviceGroup.value = sg;
+#endif
     }
 
   void deXMLize(const std::string& obj,MgtObject* context, ComponentServiceInstance*& result)

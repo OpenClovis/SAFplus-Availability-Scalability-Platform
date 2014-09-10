@@ -36,6 +36,8 @@ class amfRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfRpc::StartComponentResponse* response);
   virtual void stopComponent(const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                        ::SAFplus::Rpc::amfRpc::StopComponentResponse* response);
+  virtual void processInfo(const ::SAFplus::Rpc::amfRpc::ProcessInfoRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ProcessInfoResponse* response);
   virtual void processFailed(const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
                        ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response);
 
@@ -47,6 +49,10 @@ class amfRpc : public SAFplus::Rpc::RpcService {
   virtual void stopComponent(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                        ::SAFplus::Rpc::amfRpc::StopComponentResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void processInfo(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfRpc::ProcessInfoRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ProcessInfoResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
   virtual void processFailed(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
@@ -88,6 +94,10 @@ class amfRpc_Stub : public amfRpc {
                        const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                        ::SAFplus::Rpc::amfRpc::StopComponentResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void processInfo(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfRpc::ProcessInfoRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ProcessInfoResponse* response,
+                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
   void processFailed(SAFplus::Handle destination,
                        const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
                        ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response,
@@ -109,6 +119,8 @@ class amfRpcImpl : public amfRpc {
                        ::SAFplus::Rpc::amfRpc::StartComponentResponse* response);
   void stopComponent(const ::SAFplus::Rpc::amfRpc::StopComponentRequest* request,
                        ::SAFplus::Rpc::amfRpc::StopComponentResponse* response);
+  void processInfo(const ::SAFplus::Rpc::amfRpc::ProcessInfoRequest* request,
+                       ::SAFplus::Rpc::amfRpc::ProcessInfoResponse* response);
   void processFailed(const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
                        ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response);
 };

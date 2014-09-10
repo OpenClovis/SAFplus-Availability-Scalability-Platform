@@ -60,6 +60,24 @@ namespace amfRpc {
     //TODO: put your code here 
   }
 
+  void amfRpcImpl::processInfo(const ::SAFplus::Rpc::amfRpc::ProcessInfoRequest* request,
+                                ::SAFplus::Rpc::amfRpc::ProcessInfoResponse* response)
+  {
+  assert(request->has_pid());
+  Process p(request->pid());
+  try
+    {
+    std::string cmdline = p.getCmdline();
+    response->set_command(cmdline);
+    response->set_running(1);
+    }
+  catch(ProcessError& e)
+    {
+    response->set_command("");
+    response->set_running(0);
+    }
+  }
+
   void amfRpcImpl::processFailed(const ::SAFplus::Rpc::amfRpc::ProcessFailedRequest* request,
                                 ::SAFplus::Rpc::amfRpc::ProcessFailedResponse* response)
   {

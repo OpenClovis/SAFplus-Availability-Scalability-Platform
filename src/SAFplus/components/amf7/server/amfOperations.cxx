@@ -123,9 +123,9 @@ namespace SAFplus
       {
       Handle nodeHdl = name.getHandle(comp->serviceUnit.value->node.value->name);
 
-      if (nodeHdl == nodeHandle)  // Handle this request locally
+      int pid = comp->processId;
+      if (0) // nodeHdl == nodeHandle)  // Handle this request locally
         {
-        int pid = comp->processId;
         if (pid == 0)
           {
           return CompStatus::Uninstantiated;
@@ -148,7 +148,17 @@ namespace SAFplus
       else  // RPC call
         {
         logInfo("OP","CMP","Request component state from node %s", comp->serviceUnit.value->node.name.c_str());
-        return CompStatus::Uninstantiated;
+
+        ProcessInfoRequest req;
+        req.set_pid(pid);
+        ProcessInfoResponse resp;
+        amfInternalRpc->processInfo(nodeHdl,&req, &resp);
+        if (resp.running()) 
+          {
+          // TODO: I need to compare the process command line with my command line to make sure that my proc didn't die and another reuse the pid
+          return CompStatus::Instantiated;
+          }
+        else return CompStatus::Uninstantiated;
         }
       }
     catch (NameException& e)
@@ -177,6 +187,7 @@ namespace SAFplus
       else if (comp)
         {
         comp->processId.value = response.pid();
+        comp->presence.value  = PresenceState::instantiating;
         }
       if (w) w->wake(1,comp);
       delete this;
@@ -188,7 +199,7 @@ namespace SAFplus
     assert(comp);
     comp->numInstantiationAttempts.value++;
     comp->lastInstantiation.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-// (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count()/std::chrono::milliseconds(1);
+
     if (!comp->serviceUnit)
       {
       clDbgCodeError(1,("Can't start disconnected comp"));  // Because we don't know what node to start it on...
@@ -220,13 +231,23 @@ namespace SAFplus
       }
 
     SAFplusAmf::Instantiate* inst = comp->getInstantiate();
-
-    if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
+    //assert(inst);
+    if (!inst)  // Bad configuration
       {
-      assert(inst);
+      logWarning("OPS","SRT","Component [%s] has improper configuration (no instantiation information). Cannot start", comp->name.c_str());
+      comp->operState = false;  // A configuration error isn't going to heal itself -- component needs manual intervention then repair
+      comp->lastError.value = "No instantiation information";
+      if (&w) w.wake(1,(void*)comp);
+      return;
+      }
+    else if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
+      {
+      
+      comp->presence.value  = PresenceState::instantiating;
       Process p = executeProgram(inst->command.value, comp->commandEnvironment.value);
       comp->processId.value = p.pid;
-      logInfo("OPS","SRT","Launching Component [%s] as [%s] with process id [%d]", comp->name.c_str(),inst->command.value.c_str(),p.pid);
+
+      logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d]", comp->name.c_str(),inst->command.value.c_str(),p.pid);
       if (&w) w.wake(1,(void*)comp);
       }
     else  // RPC call

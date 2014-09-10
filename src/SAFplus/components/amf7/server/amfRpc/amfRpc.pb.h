@@ -40,6 +40,8 @@ class StartComponentRequest;
 class StartComponentResponse;
 class StopComponentRequest;
 class StopComponentResponse;
+class ProcessInfoRequest;
+class ProcessInfoResponse;
 class ProcessFailedRequest;
 class ProcessFailedResponse;
 
@@ -412,6 +414,191 @@ class StopComponentResponse : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static StopComponentResponse* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ProcessInfoRequest : public ::google::protobuf::Message {
+ public:
+  ProcessInfoRequest();
+  virtual ~ProcessInfoRequest();
+
+  ProcessInfoRequest(const ProcessInfoRequest& from);
+
+  inline ProcessInfoRequest& operator=(const ProcessInfoRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ProcessInfoRequest& default_instance();
+
+  void Swap(ProcessInfoRequest* other);
+
+  // implements Message ----------------------------------------------
+
+  ProcessInfoRequest* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ProcessInfoRequest& from);
+  void MergeFrom(const ProcessInfoRequest& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional int32 pid = 1;
+  inline bool has_pid() const;
+  inline void clear_pid();
+  static const int kPidFieldNumber = 1;
+  inline ::google::protobuf::int32 pid() const;
+  inline void set_pid(::google::protobuf::int32 value);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ProcessInfoRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.ProcessInfoRequest)
+ private:
+  inline void set_has_pid();
+  inline void clear_has_pid();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::int32 pid_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
+
+  friend void  protobuf_AddDesc_amfRpc_2eproto();
+  friend void protobuf_AssignDesc_amfRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ProcessInfoRequest* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class ProcessInfoResponse : public ::google::protobuf::Message {
+ public:
+  ProcessInfoResponse();
+  virtual ~ProcessInfoResponse();
+
+  ProcessInfoResponse(const ProcessInfoResponse& from);
+
+  inline ProcessInfoResponse& operator=(const ProcessInfoResponse& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const ProcessInfoResponse& default_instance();
+
+  void Swap(ProcessInfoResponse* other);
+
+  // implements Message ----------------------------------------------
+
+  ProcessInfoResponse* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const ProcessInfoResponse& from);
+  void MergeFrom(const ProcessInfoResponse& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional bool running = 1;
+  inline bool has_running() const;
+  inline void clear_running();
+  static const int kRunningFieldNumber = 1;
+  inline bool running() const;
+  inline void set_running(bool value);
+
+  // optional string command = 2;
+  inline bool has_command() const;
+  inline void clear_command();
+  static const int kCommandFieldNumber = 2;
+  inline const ::std::string& command() const;
+  inline void set_command(const ::std::string& value);
+  inline void set_command(const char* value);
+  inline void set_command(const char* value, size_t size);
+  inline ::std::string* mutable_command();
+  inline ::std::string* release_command();
+  inline void set_allocated_command(::std::string* command);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(ProcessInfoResponse)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfRpc.ProcessInfoResponse)
+ private:
+  inline void set_has_running();
+  inline void clear_has_running();
+  inline void set_has_command();
+  inline void clear_has_command();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::std::string* command_;
+  bool running_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+
+  friend void  protobuf_AddDesc_amfRpc_2eproto();
+  friend void protobuf_AssignDesc_amfRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static ProcessInfoResponse* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -828,6 +1015,128 @@ inline ::google::protobuf::int32 StopComponentResponse::err() const {
 inline void StopComponentResponse::set_err(::google::protobuf::int32 value) {
   set_has_err();
   err_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// ProcessInfoRequest
+
+// optional int32 pid = 1;
+inline bool ProcessInfoRequest::has_pid() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ProcessInfoRequest::set_has_pid() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ProcessInfoRequest::clear_has_pid() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ProcessInfoRequest::clear_pid() {
+  pid_ = 0;
+  clear_has_pid();
+}
+inline ::google::protobuf::int32 ProcessInfoRequest::pid() const {
+  return pid_;
+}
+inline void ProcessInfoRequest::set_pid(::google::protobuf::int32 value) {
+  set_has_pid();
+  pid_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// ProcessInfoResponse
+
+// optional bool running = 1;
+inline bool ProcessInfoResponse::has_running() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void ProcessInfoResponse::set_has_running() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void ProcessInfoResponse::clear_has_running() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void ProcessInfoResponse::clear_running() {
+  running_ = false;
+  clear_has_running();
+}
+inline bool ProcessInfoResponse::running() const {
+  return running_;
+}
+inline void ProcessInfoResponse::set_running(bool value) {
+  set_has_running();
+  running_ = value;
+}
+
+// optional string command = 2;
+inline bool ProcessInfoResponse::has_command() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void ProcessInfoResponse::set_has_command() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void ProcessInfoResponse::clear_has_command() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void ProcessInfoResponse::clear_command() {
+  if (command_ != &::google::protobuf::internal::kEmptyString) {
+    command_->clear();
+  }
+  clear_has_command();
+}
+inline const ::std::string& ProcessInfoResponse::command() const {
+  return *command_;
+}
+inline void ProcessInfoResponse::set_command(const ::std::string& value) {
+  set_has_command();
+  if (command_ == &::google::protobuf::internal::kEmptyString) {
+    command_ = new ::std::string;
+  }
+  command_->assign(value);
+}
+inline void ProcessInfoResponse::set_command(const char* value) {
+  set_has_command();
+  if (command_ == &::google::protobuf::internal::kEmptyString) {
+    command_ = new ::std::string;
+  }
+  command_->assign(value);
+}
+inline void ProcessInfoResponse::set_command(const char* value, size_t size) {
+  set_has_command();
+  if (command_ == &::google::protobuf::internal::kEmptyString) {
+    command_ = new ::std::string;
+  }
+  command_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* ProcessInfoResponse::mutable_command() {
+  set_has_command();
+  if (command_ == &::google::protobuf::internal::kEmptyString) {
+    command_ = new ::std::string;
+  }
+  return command_;
+}
+inline ::std::string* ProcessInfoResponse::release_command() {
+  clear_has_command();
+  if (command_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = command_;
+    command_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void ProcessInfoResponse::set_allocated_command(::std::string* command) {
+  if (command_ != &::google::protobuf::internal::kEmptyString) {
+    delete command_;
+  }
+  if (command) {
+    set_has_command();
+    command_ = command;
+  } else {
+    clear_has_command();
+    command_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
 }
 
 // -------------------------------------------------------------------

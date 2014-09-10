@@ -23,6 +23,7 @@
 
 #include <clAmfPolicyPlugin.hxx>
 #include <SAFplusAmf.hxx>
+#include <Component.hxx>
 #include <clSafplusMsgServer.hxx>
 
 #include "clRpcChannel.hxx"
@@ -338,6 +339,33 @@ namespace SAFplusAmf { void createTestDataSet(SAFplusAmfRoot* self); };
 void FooDone(StartComponentResponse* response)
   {
     std::cout << "DONE" << std::endl;
+  }
+
+// call in gdb to repair an entity
+bool dbgRepair(const char* entity=NULL)
+  {
+//  MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+//  MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = cfg.componentList.end();
+  MgtObject::Iterator it;
+  for (it = cfg.componentList.begin();it != cfg.componentList.end(); it++)
+    {
+    Component* comp = dynamic_cast<Component*> (it->second);
+    const std::string& name = comp->name;
+
+    //if (strcmp(entity, comp->name.c_str())==0)
+    if ((entity==NULL) || (name == entity))
+      {
+      if (comp->operState == false) 
+        {
+        comp->operState = true;
+        printf("Component [%s] repaired.\n",name.c_str());
+        }
+      else
+        {
+        if (entity != NULL) printf("Component [%s] does not need repair.\n",name.c_str());
+        }
+      }
+    }
   }
 
 int main(int argc, char* argv[])

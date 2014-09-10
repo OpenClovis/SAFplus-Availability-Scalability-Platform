@@ -16,7 +16,7 @@ namespace SAFplusAmf
   {
 
     enum class PresenceState
-  {
+      {
         uninstantiated, instantiating, instantiated, terminating, restarting, instantiationFailed, terminationFailed
       };
     std::ostream& operator<<(std::ostream& os, const PresenceState& e);
