@@ -374,7 +374,7 @@ q
 EOF
 if [ $? -ne 0 ]
 then
-    echo "Failed to updte target.conf (in ${MODEL_PATH}) with"
+    echo "Failed to update target.conf (in ${MODEL_PATH}) with"
     echo "new ARCH information: ${NEW_ARCH}"
     exit 1
 fi
