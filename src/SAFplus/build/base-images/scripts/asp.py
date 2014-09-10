@@ -28,6 +28,8 @@ import commands
 
 AmfName = "safplus_amf"
 
+reconfigWdLog=False
+
 try:
     set
 except NameError:
@@ -1082,6 +1084,9 @@ def save_asp_runtime_files():
 
                 try:
                     os.mkdir(src)
+                    if d =='log':
+                        global reconfigWdLog
+                        reconfigWdLog = True                       
                 except OSError, e:
                     if e.errno == errno.EEXIST:
                         pass

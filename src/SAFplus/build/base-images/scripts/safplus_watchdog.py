@@ -29,6 +29,8 @@ ASP_RESTART_DISABLE_FILE = 'safplus_restart_disable'
 
 SAFPLUS_RESTART_DELAY = 30  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
 
+fileLogger=None
+
 def getenv(varName, default):
     env_value = os.getenv(varName)
     if env_value == None:
@@ -68,7 +70,7 @@ def amf_watchdog_loop():
     safe_remove(restart_disable_file)
     seen_openhpid = False
     seen_openhpid_id = 0
-
+    global fileLogger
     while True:
         try:
             pid = asp.get_amf_pid()
@@ -91,6 +93,10 @@ def amf_watchdog_loop():
                     logging.debug('SAFplus watchdog restarting SAFplus...')
                     asp.force_restart_safplus()
                     asp.create_asp_cmd_marker('start')
+                    if asp.reconfigWdLog:
+                        fileLogger.handlers = []
+                        configWatchdogLog()
+                        asp.reconfigWdLog = False
                 elif os.access(reboot_file, os.F_OK):
                     safe_remove(reboot_file)
                     if getenv("ASP_NODE_REBOOT_DISABLE", 0) != 0:
@@ -122,6 +128,10 @@ def amf_watchdog_loop():
                             logging.debug('SAFplus watchdog restarting SAFplus...')
                             asp.force_restart_safplus()
                             asp.create_asp_cmd_marker('start')
+                            if asp.reconfigWdLog:
+                                fileLogger.handlers = []
+                                configWatchdogLog()
+                                asp.reconfigWdLog = False
                         else:
                             asp.proc_lock_file('remove')
                             sys.exit(1)
@@ -195,10 +205,15 @@ def redirect_file():
     #Revert to current directory
     os.chdir(CURDIR)
 
+def configWatchdogLog():
+    logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(message)s', level=logging.DEBUG)
+    global fileLogger
+    fileLogger = logging.getLogger()
+
 def main():    
     asp.check_py_version()
     redirect_file()
-    logging.basicConfig(filename='%s/amf_watchdog.log' % asp.get_asp_log_dir(), format='%(levelname)s %(message)s', level=logging.DEBUG)
+    configWatchdogLog()
     amf_pid = asp.wait_until_amf_up()
     if not amf_pid:
         logging.critical('ASP did not come up successfully...')
