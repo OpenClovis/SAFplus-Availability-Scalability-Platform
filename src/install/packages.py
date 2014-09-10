@@ -2,7 +2,9 @@ import pdb
 import os
 import objects
 from common import *
+from distutils.version import *
 
+cmp_version = lambda x, y: LooseVersion(x).__cmp__(y) #Equal 0, greater 1, lesser -1
 
 # ------------------------------------------------------------------------------
 
