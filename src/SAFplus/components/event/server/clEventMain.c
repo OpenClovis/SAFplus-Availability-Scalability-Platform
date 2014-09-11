@@ -117,7 +117,7 @@ ClRcT clEvtInitialize(ClUint32T argc, ClCharT *argv[])
     ClRcT rc = CL_OK;
     ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 1000};
     ClInt32T tries = 0;
-    ClInt32T maxRetries = 60;
+    ClInt32T maxRetries = 30;
 
     CL_FUNC_ENTER();
 

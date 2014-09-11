@@ -270,7 +270,7 @@ clLogGmsInit(void)
     ClGmsClusterNotificationBufferT  notBuffer  = {0};
     ClVersionT                       version    = {'B', 0x1, 0x1};
     ClUint32T                        numRetries = 0;
-    ClInt32T                         maxRetries = 60;
+    ClInt32T                         maxRetries = 30;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
