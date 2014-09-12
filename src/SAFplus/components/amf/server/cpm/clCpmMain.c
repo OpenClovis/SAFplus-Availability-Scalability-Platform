@@ -132,6 +132,7 @@ pthread_cond_t condMain = PTHREAD_COND_INITIALIZER;
  * Global variables.
  */
 ClUint32T clEoWithOutCpm;
+int gCompHealthCheckFailSendSignal = SIGKILL;
 /**
  * IOC address of the node.
  */
@@ -4414,6 +4415,7 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
 {
     ClRcT rc = CL_OK;
     ClCharT cpmName[CL_MAX_NAME_LENGTH] = {0};
+    ClCharT *compHealthCheckFailSendSignal= NULL;
 
     loadAspInstallInfo();
 
@@ -4429,6 +4431,20 @@ ClRcT cpmMain(ClInt32T argc, ClCharT *argv[])
 
     sprintf(cpmName, "%s_%s", CL_CPM_COMPONENT_NAME, clCpmNodeName);
     setenv("ASP_COMPNAME", cpmName, 1);
+
+    /* 
+     * Check for Singal to be sent when component health check is failed 
+     */
+    compHealthCheckFailSendSignal = getenv("SAFPLUS_HEALTH_CHECK_FAIL_SIGNAL");
+    if (compHealthCheckFailSendSignal)
+    {
+        gCompHealthCheckFailSendSignal = atoi(compHealthCheckFailSendSignal);
+	/* Validate Signal value */
+        if ((gCompHealthCheckFailSendSignal < 1) || (gCompHealthCheckFailSendSignal >= _NSIG))
+        {
+            gCompHealthCheckFailSendSignal =  SIGKILL;
+        }
+    }
 
     /*
      * Set the IOC address for this node.

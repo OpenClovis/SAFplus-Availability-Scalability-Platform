@@ -603,6 +603,7 @@ static ClBoolT osalShmExistsForComp(const ClCharT *compName)
 }
 #endif
 
+#ifdef CL_OSAL_SIGNAL_HANDLER
 static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
 {
     char sigName[16];
@@ -755,9 +756,11 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
 
     raise(signum);
 }
+#endif
 
 void clOsalSigHandlerInitialize()
 {
+#ifdef CL_OSAL_SIGNAL_HANDLER
     struct sigaction act;
     
     act.sa_sigaction = &clOsalSigHandler;
@@ -777,6 +780,7 @@ void clOsalSigHandlerInitialize()
     {
         CL_DEBUG_PRINT (CL_DEBUG_ERROR,("\nSIGACTION FUNCTION FAILED. Signal handling will not be available."));
     }
+#endif
 }
 
 /**************************************************************************/

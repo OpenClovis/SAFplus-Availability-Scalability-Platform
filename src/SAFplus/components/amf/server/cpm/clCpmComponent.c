@@ -85,6 +85,7 @@
     clOsalTaskDelay(_delay);                                        \
 }while(0)
 
+extern int gCompHealthCheckFailSendSignal;
 /*
  * Versions supported
  */
@@ -2560,8 +2561,8 @@ static ClRcT cpmNonProxiedNonPreinstantiableCompTerminate(ClCpmComponentT *comp,
 
                 if (comp->hbFailureDetected)
                 {
-                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGABRT to component [%s] due to heatbeat failure", comp->compConfig->compName);
-                    rc = kill(comp->processId, SIGABRT);
+                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending Signal[%d]to component [%s] due to health check failure", gCompHealthCheckFailSendSignal, comp->compConfig->compName);
+                    rc = kill(comp->processId, gCompHealthCheckFailSendSignal);
                     comp->hbFailureDetected = CL_FALSE;
                 }
                 else
@@ -2927,8 +2928,8 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
      */
     if (comp->hbFailureDetected)
     {
-        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGABRT signal to component [%s]with process id[%d]", comp->compConfig->compName, comp->processId);
-        kill(comp->processId, SIGABRT);
+        clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending Signal[%d] to component [%s]with process id[%d]", gCompHealthCheckFailSendSignal, comp->compConfig->compName, comp->processId);
+        kill(comp->processId, gCompHealthCheckFailSendSignal);
         comp->hbFailureDetected = CL_FALSE;
     }
     else
@@ -3117,14 +3118,13 @@ ClRcT cpmCompCleanup(ClCharT *compName)
             {
                 if (comp->hbFailureDetected)
                 {
-                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGABRT signal to component [%s]with process id[%d]",
-                              comp->compConfig->compName, comp->processId);
-                    kill(comp->processId, SIGABRT);
+                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending Signal[%d] to component [%s]with process id[%d]", gCompHealthCheckFailSendSignal, comp->compConfig->compName, comp->processId);
+                    kill(comp->processId, gCompHealthCheckFailSendSignal);
                     comp->hbFailureDetected = CL_FALSE;
                 }
                 else
                 {
-                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGABRT signal to component [%s]with process id[%d]",
+                    clLogInfo(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, "Sending SIGKILL signal to component [%s]with process id[%d]",
                               comp->compConfig->compName, comp->processId);
                     kill(comp->processId, SIGKILL);
                }

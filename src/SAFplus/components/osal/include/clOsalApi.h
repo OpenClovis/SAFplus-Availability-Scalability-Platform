@@ -126,7 +126,8 @@ extern "C" {
  * The maximum length of thread/task names
  */
 #define CL_OSAL_NAME_MAX 32
-
+/* Uncomment following line to enable signal handler feature */
+/*#define CL_OSAL_SIGNAL_HANDLER 1 */
 
 #ifdef __KERNEL__
 #define clOsalPrintf    printk

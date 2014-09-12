@@ -80,7 +80,9 @@
 #include "backtrace_arch.h"
 
 char logBuffer[LOG_BUFFER_SIZE];
+#ifdef CL_OSAL_SIGNAL_HANDLER
 struct sigaction oldact[_NSIG];
+#endif
 osalFunction_t gOsalFunction = {0};
 CosTaskControl_t gTaskControl;
 cosCompCfgInit_t sCosConfig={CL_OSAL_MIN_STACK_SIZE};
@@ -717,6 +719,7 @@ static ClBoolT osalShmExistsForComp(const ClCharT *compName)
 }
 #endif
 
+#ifdef CL_OSAL_SIGNAL_HANDLER
 #ifdef __i386__
 static const char *registerMap[NGREG] = { "gs", "fs", "es", "ds", "edi", "esi", "ebp", "esp",
                                           "ebx", "edx", "ecx", "eax", "trap", "err", "eip", "cs",
@@ -748,7 +751,9 @@ static const char *registerMap[3+NGREG] = {"trap_no", "error_code", "oldmask",
 static const char *registerMap[NGREG] = { NULL, };
 
 #endif
+#endif
 
+#ifdef CL_OSAL_SIGNAL_HANDLER
 static void registerDump(ucontext_t *ucontext, ClCharT *exceptionSegment, ClUint32T maxBytes)
 {
     register int i;
@@ -765,7 +770,9 @@ static void registerDump(ucontext_t *ucontext, ClCharT *exceptionSegment, ClUint
     }
     bytes += snprintf(exceptionSegment + bytes, maxBytes - bytes, "\n");
 }
+#endif
 
+#ifdef CL_OSAL_SIGNAL_HANDLER
 static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
 {
     char sigName[16];
@@ -912,9 +919,12 @@ static void clOsalSigHandler(int signum, siginfo_t *info, void *param)
     if(fd >= 0) close(fd);
     raise(signum);
 }
+#endif
 
 void clOsalSigHandlerInitialize()
 {
+/* To eanble signal handler feature uncomment the definition of CL_OSAL_SIGNAL_HANDLER in clOsalApi.h */
+#ifdef CL_OSAL_SIGNAL_HANDLER
     struct sigaction act;
     
     act.sa_sigaction = &clOsalSigHandler;
@@ -942,6 +952,7 @@ void clOsalSigHandlerInitialize()
     {
         CL_DEBUG_PRINT (CL_DEBUG_ERROR,("\nSIGACTION FUNCTION FAILED. Signal handling will not be available."));
     }
+#endif
 }
 
 /**************************************************************************/
