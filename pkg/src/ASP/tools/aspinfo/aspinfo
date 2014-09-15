@@ -54,7 +54,7 @@ import signal
 import cmd
 import pdb
 import re
-import xml.dom.minidom as minidom
+from lxml import etree as et
 
 def on_platform(p):
   return p in sys.platform
@@ -252,46 +252,50 @@ def load_xml_file(filename, strip_root=None):
 
 def load_xml_string(string, strip_root=None):
     """Parse given xml string and turn it into a nested dot object"""
+    tree = et.fromstring(string)
 
-    dom = minidom.parseString(string)
-    
-    def decode_dom(dom):
+    def decode_tree(node):
         d = {}
-        str = ""
-        if len(dom.childNodes) > 0:
-            for n in dom.childNodes:
-                if n.nodeType == minidom.Comment.nodeType: # Skip all comments
+        if len(node):
+            for n in list(node):
+                tag = n.tag
+                text = n.text
+                if tag is et.Comment:
                     pass
-                elif n.__dict__.has_key('nodeValue'):
-                    str += n.nodeValue.strip()
                 else:
-                    if not d.has_key(n.tagName):
-                        d[n.tagName] = []
-                    d[n.tagName].append({})
-                    
-                    if len(n.childNodes) > 0:
-                        d[n.tagName][-1] = decode_dom(n)
-                        
-                    if n._attrs.has_key('value'):
-                        if d[n.tagName][-1]:
-                            d[n.tagName][-1]['value'] = n._attrs['value'].nodeValue
-                        else:
-                            d[n.tagName][-1] = n._attrs['value'].nodeValue
-                        
-                    elif len(n._attrs.items())>0:
-                        d2 = d[n.tagName][-1]
-                        for (k, v) in n._attrs.items():
-                            d2[k] = v.nodeValue
-                        d[n.tagName][-1] = d2
-        else:
-            return dom.nodeValue.strip()
+                    if not d.has_key(tag):
+                        d[tag] = []
+                    d[tag].append({})
 
-        if len(d)==0: return str
-        elif len(str):
-            d['value'] = str
+                    if len(n):
+                        d[tag][-1] = decode_tree(n)
+
+                    if n.attrib.has_key('value'):
+                        if d[tag][-1]:
+                            d[tag][-1]['value'] = n.attrib.get('value').strip()
+                        else:
+                            d[tag][-1] = n.attrib.get('value').strip()
+                    else:
+                        if list(n):
+                            d2 = d[tag][-1]
+                            for n2 in list(n):
+                                    if n2.attrib.has_key('value'):
+                                        pass
+                                    else:
+                                        d2[n2.tag][-1] =  decode_tree(n2)
+                            d[tag][-1] = d2
+                        else:
+                            d[tag][-1] = text
+
+        else:
+            if node.attrib.has_key('value'):
+                return node.attrib.get('value').strip()
+            else:
+                return node.text
+
         return Dot(d)
-    
-    d = decode_dom(dom)
+
+    d = decode_tree(tree)
     if strip_root:
         for t in strip_root:
             for tag in t:
