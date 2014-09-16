@@ -340,6 +340,13 @@ extern MgtIteratorBase mgtIterEnd;
     // get  this inscrutiable error: cannot bind std::basic_istream<char> lvalue to std::basic_istream<char>&& 
     ss >> result;  
     }
+  template<typename T> inline void deXMLize(const char* strVal,MgtObject* context, bool& result) // throw(SerializationError)
+  {
+    std::stringstream ss;
+    ss << strVal;
+    deXMLize(ss.str(),context,result);
+
+  }
   };
 
 #endif /* CLMGTOBJECT_H_ */

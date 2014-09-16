@@ -37,6 +37,11 @@ message MsgSetGet
   optional string data = 2;
 }
 
+message MsgGeneral
+{
+  repeated bytes data = 1;
+}
+
 message MsgMgt
 {
   enum MgtMsgType {

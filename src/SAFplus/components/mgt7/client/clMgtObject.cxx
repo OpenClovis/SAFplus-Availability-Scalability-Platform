@@ -42,6 +42,7 @@ namespace SAFplus
     assert(nam);
     name.assign(nam);
     parent = NULL;
+    headRev = 1;
     }
 
   MgtObject::~MgtObject()

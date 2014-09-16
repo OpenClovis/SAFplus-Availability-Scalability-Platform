@@ -122,10 +122,6 @@ public:
      */
     void clMgtMsgEditHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
     void clMgtMsgGetHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
-    void clMgtMsgRpcHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
-    void clMgtMsgOidSetHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
-    void clMgtMsgOidGetHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
-
     class MgtMessageHandler:public SAFplus::MsgHandler
     {
       public:

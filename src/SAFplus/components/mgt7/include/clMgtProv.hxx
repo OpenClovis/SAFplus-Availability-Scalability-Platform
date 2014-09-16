@@ -345,7 +345,7 @@ ClBoolT MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transac
 
     xmlFree(valstr);
     xmlFreeTextReader(reader);
-    return opt->validate(t);
+    return (opt->validate(t) && opt2->validate(t));
 }
 
 /*
