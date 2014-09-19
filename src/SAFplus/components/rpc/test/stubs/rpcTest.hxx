@@ -6,7 +6,7 @@
 #include <google/protobuf/stubs/common.h>
 #include <google/protobuf/stubs/once.h>
 #include <clRpcService.hxx>
-#include "rpcTest.pb.h"
+#include "rpcTest.pb.hxx"
 
 namespace SAFplus {
   namespace Rpc {

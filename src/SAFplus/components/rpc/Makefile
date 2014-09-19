@@ -46,9 +46,15 @@ $(OBJ_DIR)/%.o: protoc/%.cxx $(wildcard protoc/*.hxx)
 $(SAFPLUS_TARGET)/bin/protoc-gen-rpc: $(PROTOBUF_PLUGIN_OBJ) 
 	$(LINK_EXE) $@ $(PROTOBUF_PLUGIN_OBJ) -lprotobuf -lprotoc 
 
-gen:
+SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
+
+gen: $(SAFplusRpcGen)
 	protoc -I../../3rdparty -I. --cpp_out=. SAFplusPBExt.proto
+#Rename pb.h => pb.hxx, pb.cc => pb.cxx
+	$(SAFplusRpcGen) -I../../3rdparty -I. --rpc_out=. --rename=true SAFplusPBExt.proto
 	protoc -I../../3rdparty -I. --cpp_out=. SAFplusRpc.proto
+#Rename pb.h => pb.hxx, pb.cc => pb.cxx
+	$(SAFplusRpcGen) -I../../3rdparty -I. --rpc_out=. --rename=true SAFplusRpc.proto
 
 cleangen:
 	rm -rf *.pb.h *.pb.cc
