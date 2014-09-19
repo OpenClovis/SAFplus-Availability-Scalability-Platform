@@ -11534,7 +11534,7 @@ clAmsPeCompFaultReport(
      * such cases.
      */
 
-    if ( *escalation == CL_FALSE && *recovery < CL_AMS_RECOVERY_NO_RECOMMENDATION )
+    if ( *escalation == CL_FALSE && *recovery <= CL_AMS_RECOVERY_NO_RECOMMENDATION )
     {
         if ( clAmsEntityTimerIsRunning(
                                        (ClAmsEntityT *) comp,

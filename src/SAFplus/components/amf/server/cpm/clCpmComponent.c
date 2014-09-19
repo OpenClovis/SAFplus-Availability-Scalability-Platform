@@ -4857,6 +4857,16 @@ static ClRcT compHealthCheckAmfInvokedCB(ClPtrT arg)
             eoPort = comp->eoPort;
         }
 
+        if (!eoPort)
+          {
+            clLogWarning(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_HB, "Disable heartheat for component [%s]", comp->compConfig->compName);
+            comp->hbInvocationPending = CL_NO;
+            clTimerStop(comp->hbTimerHandle);
+            clTimerDeleteAsync(&comp->hbTimerHandle);
+            comp->hbTimerHandle = CL_HANDLE_INVALID_VALUE;
+            goto unlock;
+          }
+
         rc = cpmInvocationAdd(CL_CPM_HB_CALLBACK,
                               (void *) comp,
                               &compHealthcheck.invocation,
