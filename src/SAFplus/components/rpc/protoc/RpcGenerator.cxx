@@ -26,6 +26,7 @@
 #include <google/protobuf/io/zero_copy_stream.h>
 #include "RpcGenerator.hxx"
 #include "RpcFileGenerator.hxx"
+#include "RenamePbFile.hxx"
 
 using namespace std;
 using namespace google::protobuf::compiler;
@@ -35,7 +36,7 @@ namespace SAFplus
 
     namespace Rpc
       {
-        RpcGenerator::RpcGenerator(const std::string &dir)
+        RpcGenerator::RpcGenerator(const std::string &dir, bool renameFile)
           {
             if( dir.c_str()[0] != '/' )
               {
@@ -49,6 +50,7 @@ namespace SAFplus
               {
                 this->dir.assign(dir);
               }
+            this->renameFile = renameFile;
           }
 
         RpcGenerator::~RpcGenerator()
@@ -59,6 +61,15 @@ namespace SAFplus
             google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const
           {
             std::string basename = google::protobuf::StripSuffixString(file->name(), ".proto");
+
+            /* Rename pb.cc => pb.cxx, pb.h => pb.hxx */
+            RenamePbFile renamePbFile(dir, basename);
+
+            if (renameFile)
+              {
+                //Only rename file
+                return true;
+              }
 
             SAFplus::Rpc::RpcFileGenerator file_generator(file, basename);
 

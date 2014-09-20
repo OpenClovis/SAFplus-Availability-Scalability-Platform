@@ -2,7 +2,7 @@
 // source: SAFplusRpc.proto
 
 #define INTERNAL_SUPPRESS_PROTOBUF_FIELD_DEPRECATION
-#include "SAFplusRpc.pb.h"
+#include "SAFplusRpc.pb.hxx"
 
 #include <algorithm>
 

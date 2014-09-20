@@ -117,7 +117,7 @@ namespace SAFplus
                 "#include <google/protobuf/stubs/common.h>\n"
                 "#include <google/protobuf/stubs/once.h>\n"
                 "#include <clRpcService.hxx>\n"
-                "#include \"$stubs$\"\n", "stubs", google::protobuf::StripSuffixString(fileDesc->name(), ".proto") + ".pb.h");
+                "#include \"$stubs$\"\n", "stubs", google::protobuf::StripSuffixString(fileDesc->name(), ".proto") + ".pb.hxx");
 
             //Forward declare
             printer->Print("\nnamespace SAFplus {\n"

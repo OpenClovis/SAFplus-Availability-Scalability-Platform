@@ -18,8 +18,8 @@
  */
 
 #include "RpcWakeable.hxx"
-#include "SAFplusRpc.pb.h"
-#include "SAFplusPBExt.pb.h"
+#include "SAFplusRpc.pb.hxx"
+#include "SAFplusPBExt.pb.hxx"
 #include "rpcTest.hxx"
 #include <iostream>
 

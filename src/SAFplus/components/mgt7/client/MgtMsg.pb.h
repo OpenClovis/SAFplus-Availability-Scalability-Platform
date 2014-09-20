@@ -39,6 +39,7 @@ class Handle;
 class MsgBind;
 class MsgRpc;
 class MsgSetGet;
+class MsgGeneral;
 class MsgMgt;
 
 enum MsgRpc_MgtRpcType {
@@ -372,12 +373,12 @@ class MsgRpc : public ::google::protobuf::Message {
 
   // accessors -------------------------------------------------------
 
-  // required int32 rpctype = 1;
+  // required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 1;
   inline bool has_rpctype() const;
   inline void clear_rpctype();
   static const int kRpctypeFieldNumber = 1;
-  inline ::google::protobuf::int32 rpctype() const;
-  inline void set_rpctype(::google::protobuf::int32 value);
+  inline ::Mgt::Msg::MsgRpc_MgtRpcType rpctype() const;
+  inline void set_rpctype(::Mgt::Msg::MsgRpc_MgtRpcType value);
 
   // optional string data = 2;
   inline bool has_data() const;
@@ -401,7 +402,7 @@ class MsgRpc : public ::google::protobuf::Message {
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::std::string* data_;
-  ::google::protobuf::int32 rpctype_;
+  int rpctype_;
 
   mutable int _cached_size_;
   ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
@@ -499,6 +500,95 @@ class MsgSetGet : public ::google::protobuf::Message {
 
   void InitAsDefaultInstance();
   static MsgSetGet* default_instance_;
+};
+// -------------------------------------------------------------------
+
+class MsgGeneral : public ::google::protobuf::Message {
+ public:
+  MsgGeneral();
+  virtual ~MsgGeneral();
+
+  MsgGeneral(const MsgGeneral& from);
+
+  inline MsgGeneral& operator=(const MsgGeneral& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const MsgGeneral& default_instance();
+
+  void Swap(MsgGeneral* other);
+
+  // implements Message ----------------------------------------------
+
+  MsgGeneral* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const MsgGeneral& from);
+  void MergeFrom(const MsgGeneral& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes data = 1;
+  inline int data_size() const;
+  inline void clear_data();
+  static const int kDataFieldNumber = 1;
+  inline const ::std::string& data(int index) const;
+  inline ::std::string* mutable_data(int index);
+  inline void set_data(int index, const ::std::string& value);
+  inline void set_data(int index, const char* value);
+  inline void set_data(int index, const void* value, size_t size);
+  inline ::std::string* add_data();
+  inline void add_data(const ::std::string& value);
+  inline void add_data(const char* value);
+  inline void add_data(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& data() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_data();
+
+  // @@protoc_insertion_point(class_scope:Mgt.Msg.MsgGeneral)
+ private:
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::RepeatedPtrField< ::std::string> data_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
+
+  friend void  protobuf_AddDesc_MgtMsg_2eproto();
+  friend void protobuf_AssignDesc_MgtMsg_2eproto();
+  friend void protobuf_ShutdownFile_MgtMsg_2eproto();
+
+  void InitAsDefaultInstance();
+  static MsgGeneral* default_instance_;
 };
 // -------------------------------------------------------------------
 
@@ -880,7 +970,7 @@ inline void MsgBind::set_allocated_route(::std::string* route) {
 
 // MsgRpc
 
-// required int32 rpctype = 1;
+// required .Mgt.Msg.MsgRpc.MgtRpcType rpctype = 1;
 inline bool MsgRpc::has_rpctype() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
@@ -891,13 +981,14 @@ inline void MsgRpc::clear_has_rpctype() {
   _has_bits_[0] &= ~0x00000001u;
 }
 inline void MsgRpc::clear_rpctype() {
-  rpctype_ = 0;
+  rpctype_ = 1;
   clear_has_rpctype();
 }
-inline ::google::protobuf::int32 MsgRpc::rpctype() const {
-  return rpctype_;
+inline ::Mgt::Msg::MsgRpc_MgtRpcType MsgRpc::rpctype() const {
+  return static_cast< ::Mgt::Msg::MsgRpc_MgtRpcType >(rpctype_);
 }
-inline void MsgRpc::set_rpctype(::google::protobuf::int32 value) {
+inline void MsgRpc::set_rpctype(::Mgt::Msg::MsgRpc_MgtRpcType value) {
+  assert(::Mgt::Msg::MsgRpc_MgtRpcType_IsValid(value));
   set_has_rpctype();
   rpctype_ = value;
 }
@@ -1044,6 +1135,54 @@ inline void MsgSetGet::set_allocated_data(::std::string* data) {
     clear_has_data();
     data_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   }
+}
+
+// -------------------------------------------------------------------
+
+// MsgGeneral
+
+// repeated bytes data = 1;
+inline int MsgGeneral::data_size() const {
+  return data_.size();
+}
+inline void MsgGeneral::clear_data() {
+  data_.Clear();
+}
+inline const ::std::string& MsgGeneral::data(int index) const {
+  return data_.Get(index);
+}
+inline ::std::string* MsgGeneral::mutable_data(int index) {
+  return data_.Mutable(index);
+}
+inline void MsgGeneral::set_data(int index, const ::std::string& value) {
+  data_.Mutable(index)->assign(value);
+}
+inline void MsgGeneral::set_data(int index, const char* value) {
+  data_.Mutable(index)->assign(value);
+}
+inline void MsgGeneral::set_data(int index, const void* value, size_t size) {
+  data_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* MsgGeneral::add_data() {
+  return data_.Add();
+}
+inline void MsgGeneral::add_data(const ::std::string& value) {
+  data_.Add()->assign(value);
+}
+inline void MsgGeneral::add_data(const char* value) {
+  data_.Add()->assign(value);
+}
+inline void MsgGeneral::add_data(const void* value, size_t size) {
+  data_.Add()->assign(reinterpret_cast<const char*>(value), size);
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+MsgGeneral::data() const {
+  return data_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+MsgGeneral::mutable_data() {
+  return &data_;
 }
 
 // -------------------------------------------------------------------

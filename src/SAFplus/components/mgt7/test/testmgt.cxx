@@ -585,7 +585,12 @@ void testDatabase()
   }
   if(isPass)
     logDebug("MGT","TEST","PASS: Read/Write database successfully");
-
+  testObject3.key3.write(db);
+  testObject2.key3.read(db);
+  if(testObject3.key3.value == testObject2.key3.value)
+    logDebug("MGT","TEST","PASS: Read/Write database successfully for prov");
+  else
+    logDebug("MGT","TEST","FAIL: Read/Write database FAILED for prov");
   db->finalizeDB();
 }
 ClBoolT gIsNodeRepresentative = CL_TRUE;
@@ -631,6 +636,9 @@ int main(int argc, char* argv[])
     testMgtBind();
 
     testDatabase();
+
+    safplusMsgServer.Stop();
+
 
     return 0;
 }

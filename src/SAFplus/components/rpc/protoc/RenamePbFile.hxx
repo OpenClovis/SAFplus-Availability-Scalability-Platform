@@ -18,31 +18,27 @@
  */
 #pragma once
 
-#ifndef CLRPCGENERATOR_HXX_
-#define CLRPCGENERATOR_HXX_
+#include <string>
 
-#include <google/protobuf/compiler/code_generator.h>
-#include <iostream>
+#ifndef RENAMEPBFILE_HXX_
+#define RENAMEPBFILE_HXX_
 
 namespace SAFplus
   {
-
     namespace Rpc
       {
+
         /*
          *
          */
-        class RpcGenerator : public google::protobuf::compiler::CodeGenerator
+        class RenamePbFile
           {
           public:
-            RpcGenerator(const std::string &dir, bool renameFile);
-            ~RpcGenerator();
-            bool Generate(const google::protobuf::FileDescriptor* file, const std::string& parameter,
-                google::protobuf::compiler::GeneratorContext* generator_context, std::string* error) const;
-          private:
-           std::string dir;
-           bool renameFile;
+            RenamePbFile(const std::string &, const std::string &);
+            virtual ~RenamePbFile();
+            void Replace(const std::string &infile, const std::string &outfile);
           };
+
       } /* namespace Rpc */
   } /* namespace SAFplus */
-#endif /* CLRPCGENERATOR_HXX_ */
+#endif /* RENAMEPBFILE_HXX_ */

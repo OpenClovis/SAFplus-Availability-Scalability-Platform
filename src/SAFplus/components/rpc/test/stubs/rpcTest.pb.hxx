@@ -24,7 +24,7 @@
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/extension_set.h>
 #include <google/protobuf/unknown_field_set.h>
-#include "SAFplusPBExt.pb.h"
+#include "SAFplusPBExt.pb.hxx"
 // @@protoc_insertion_point(includes)
 
 namespace SAFplus {
@@ -37,6 +37,7 @@ void protobuf_AssignDesc_rpcTest_2eproto();
 void protobuf_ShutdownFile_rpcTest_2eproto();
 
 class TestGetRpcMethodRequest;
+class DataResult2;
 class DataResult;
 class TestGetRpcMethodResponse;
 class TestGetRpcMethod2Request;
@@ -136,6 +137,98 @@ class TestGetRpcMethodRequest : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
+class DataResult2 : public ::google::protobuf::Message {
+ public:
+  DataResult2();
+  virtual ~DataResult2();
+
+  DataResult2(const DataResult2& from);
+
+  inline DataResult2& operator=(const DataResult2& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const DataResult2& default_instance();
+
+  void Swap(DataResult2* other);
+
+  // implements Message ----------------------------------------------
+
+  DataResult2* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const DataResult2& from);
+  void MergeFrom(const DataResult2& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // repeated bytes option2 = 1;
+  inline int option2_size() const;
+  inline void clear_option2();
+  static const int kOption2FieldNumber = 1;
+  inline const ::std::string& option2(int index) const;
+  inline ::std::string* mutable_option2(int index);
+  inline void set_option2(int index, const ::std::string& value);
+  inline void set_option2(int index, const char* value);
+  inline void set_option2(int index, const void* value, size_t size);
+  inline ::std::string* add_option2();
+  inline void add_option2(const ::std::string& value);
+  inline void add_option2(const char* value);
+  inline void add_option2(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& option2() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_option2();
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(DataResult2)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.rpcTest.DataResult2)
+ private:
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::google::protobuf::RepeatedPtrField< ::std::string> option2_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(1 + 31) / 32];
+
+  friend void  protobuf_AddDesc_rpcTest_2eproto();
+  friend void protobuf_AssignDesc_rpcTest_2eproto();
+  friend void protobuf_ShutdownFile_rpcTest_2eproto();
+
+  void InitAsDefaultInstance();
+  static DataResult2* default_instance_;
+};
+// -------------------------------------------------------------------
+
 class DataResult : public ::google::protobuf::Message {
  public:
   DataResult();
@@ -209,6 +302,31 @@ class DataResult : public ::google::protobuf::Message {
   inline ::google::protobuf::int32 status() const;
   inline void set_status(::google::protobuf::int32 value);
 
+  // repeated bytes testbinary = 3;
+  inline int testbinary_size() const;
+  inline void clear_testbinary();
+  static const int kTestbinaryFieldNumber = 3;
+  inline const ::std::string& testbinary(int index) const;
+  inline ::std::string* mutable_testbinary(int index);
+  inline void set_testbinary(int index, const ::std::string& value);
+  inline void set_testbinary(int index, const char* value);
+  inline void set_testbinary(int index, const void* value, size_t size);
+  inline ::std::string* add_testbinary();
+  inline void add_testbinary(const ::std::string& value);
+  inline void add_testbinary(const char* value);
+  inline void add_testbinary(const void* value, size_t size);
+  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& testbinary() const;
+  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_testbinary();
+
+  // optional .SAFplus.Rpc.rpcTest.DataResult2 dataResult2 = 4;
+  inline bool has_dataresult2() const;
+  inline void clear_dataresult2();
+  static const int kDataResult2FieldNumber = 4;
+  inline const ::SAFplus::Rpc::rpcTest::DataResult2& dataresult2() const;
+  inline ::SAFplus::Rpc::rpcTest::DataResult2* mutable_dataresult2();
+  inline ::SAFplus::Rpc::rpcTest::DataResult2* release_dataresult2();
+  inline void set_allocated_dataresult2(::SAFplus::Rpc::rpcTest::DataResult2* dataresult2);
+
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(DataResult)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.rpcTest.DataResult)
  private:
@@ -216,16 +334,20 @@ class DataResult : public ::google::protobuf::Message {
   inline void clear_has_name();
   inline void set_has_status();
   inline void clear_has_status();
+  inline void set_has_dataresult2();
+  inline void clear_has_dataresult2();
 
   ::google::protobuf::internal::ExtensionSet _extensions_;
 
   ::google::protobuf::UnknownFieldSet _unknown_fields_;
 
   ::std::string* name_;
+  ::google::protobuf::RepeatedPtrField< ::std::string> testbinary_;
+  ::SAFplus::Rpc::rpcTest::DataResult2* dataresult2_;
   ::google::protobuf::int32 status_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(4 + 31) / 32];
 
   friend void  protobuf_AddDesc_rpcTest_2eproto();
   friend void protobuf_AssignDesc_rpcTest_2eproto();
@@ -754,6 +876,54 @@ inline void TestGetRpcMethodRequest::set_allocated_name(::std::string* name) {
 
 // -------------------------------------------------------------------
 
+// DataResult2
+
+// repeated bytes option2 = 1;
+inline int DataResult2::option2_size() const {
+  return option2_.size();
+}
+inline void DataResult2::clear_option2() {
+  option2_.Clear();
+}
+inline const ::std::string& DataResult2::option2(int index) const {
+  return option2_.Get(index);
+}
+inline ::std::string* DataResult2::mutable_option2(int index) {
+  return option2_.Mutable(index);
+}
+inline void DataResult2::set_option2(int index, const ::std::string& value) {
+  option2_.Mutable(index)->assign(value);
+}
+inline void DataResult2::set_option2(int index, const char* value) {
+  option2_.Mutable(index)->assign(value);
+}
+inline void DataResult2::set_option2(int index, const void* value, size_t size) {
+  option2_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* DataResult2::add_option2() {
+  return option2_.Add();
+}
+inline void DataResult2::add_option2(const ::std::string& value) {
+  option2_.Add()->assign(value);
+}
+inline void DataResult2::add_option2(const char* value) {
+  option2_.Add()->assign(value);
+}
+inline void DataResult2::add_option2(const void* value, size_t size) {
+  option2_.Add()->assign(reinterpret_cast<const char*>(value), size);
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+DataResult2::option2() const {
+  return option2_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+DataResult2::mutable_option2() {
+  return &option2_;
+}
+
+// -------------------------------------------------------------------
+
 // DataResult
 
 // optional string name = 1;
@@ -846,6 +1016,88 @@ inline ::google::protobuf::int32 DataResult::status() const {
 inline void DataResult::set_status(::google::protobuf::int32 value) {
   set_has_status();
   status_ = value;
+}
+
+// repeated bytes testbinary = 3;
+inline int DataResult::testbinary_size() const {
+  return testbinary_.size();
+}
+inline void DataResult::clear_testbinary() {
+  testbinary_.Clear();
+}
+inline const ::std::string& DataResult::testbinary(int index) const {
+  return testbinary_.Get(index);
+}
+inline ::std::string* DataResult::mutable_testbinary(int index) {
+  return testbinary_.Mutable(index);
+}
+inline void DataResult::set_testbinary(int index, const ::std::string& value) {
+  testbinary_.Mutable(index)->assign(value);
+}
+inline void DataResult::set_testbinary(int index, const char* value) {
+  testbinary_.Mutable(index)->assign(value);
+}
+inline void DataResult::set_testbinary(int index, const void* value, size_t size) {
+  testbinary_.Mutable(index)->assign(
+    reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* DataResult::add_testbinary() {
+  return testbinary_.Add();
+}
+inline void DataResult::add_testbinary(const ::std::string& value) {
+  testbinary_.Add()->assign(value);
+}
+inline void DataResult::add_testbinary(const char* value) {
+  testbinary_.Add()->assign(value);
+}
+inline void DataResult::add_testbinary(const void* value, size_t size) {
+  testbinary_.Add()->assign(reinterpret_cast<const char*>(value), size);
+}
+inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
+DataResult::testbinary() const {
+  return testbinary_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::std::string>*
+DataResult::mutable_testbinary() {
+  return &testbinary_;
+}
+
+// optional .SAFplus.Rpc.rpcTest.DataResult2 dataResult2 = 4;
+inline bool DataResult::has_dataresult2() const {
+  return (_has_bits_[0] & 0x00000008u) != 0;
+}
+inline void DataResult::set_has_dataresult2() {
+  _has_bits_[0] |= 0x00000008u;
+}
+inline void DataResult::clear_has_dataresult2() {
+  _has_bits_[0] &= ~0x00000008u;
+}
+inline void DataResult::clear_dataresult2() {
+  if (dataresult2_ != NULL) dataresult2_->::SAFplus::Rpc::rpcTest::DataResult2::Clear();
+  clear_has_dataresult2();
+}
+inline const ::SAFplus::Rpc::rpcTest::DataResult2& DataResult::dataresult2() const {
+  return dataresult2_ != NULL ? *dataresult2_ : *default_instance_->dataresult2_;
+}
+inline ::SAFplus::Rpc::rpcTest::DataResult2* DataResult::mutable_dataresult2() {
+  set_has_dataresult2();
+  if (dataresult2_ == NULL) dataresult2_ = new ::SAFplus::Rpc::rpcTest::DataResult2;
+  return dataresult2_;
+}
+inline ::SAFplus::Rpc::rpcTest::DataResult2* DataResult::release_dataresult2() {
+  clear_has_dataresult2();
+  ::SAFplus::Rpc::rpcTest::DataResult2* temp = dataresult2_;
+  dataresult2_ = NULL;
+  return temp;
+}
+inline void DataResult::set_allocated_dataresult2(::SAFplus::Rpc::rpcTest::DataResult2* dataresult2) {
+  delete dataresult2_;
+  dataresult2_ = dataresult2;
+  if (dataresult2) {
+    set_has_dataresult2();
+  } else {
+    clear_has_dataresult2();
+  }
 }
 
 // -------------------------------------------------------------------

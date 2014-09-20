@@ -2,7 +2,7 @@
 // source: SAFplusPBExt.proto
 
 #define INTERNAL_SUPPRESS_PROTOBUF_FIELD_DEPRECATION
-#include "SAFplusPBExt.pb.h"
+#include "SAFplusPBExt.pb.hxx"
 
 #include <algorithm>
 

@@ -238,25 +238,26 @@ namespace SAFplus
   void MgtRoot::clMgtMsgEditHandle(ClIocAddress srcAddr, Mgt::Msg::MsgMgt reqMsg)
   {
     ClRcT rc = CL_OK;
+    ClBoolT rc1 = CL_FALSE;
     SAFplus::Transaction t;
 
     Mgt::Msg::MsgBind bindData;
+    Mgt::Msg::MsgSetGet setData;
     bindData.ParseFromString(reqMsg.bind());
+
+    logDebug("MGT","SET","Received setting message for module %s and route %s",bindData.module().c_str(),bindData.route().c_str());
     if(reqMsg.data_size() <= 0)
     {
-      logError("NETCONF","COMP","Received empty set data");
+      logError("MGT","SET","Received empty set data");
       rc = CL_ERR_INVALID_PARAMETER;
       MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
       return;
     }
-    Mgt::Msg::MsgSetGet setData;
     setData.ParseFromString(reqMsg.data(0));
-
-    //logDebug("NETCONF","COMP","Received setData [%s]",setData.data().c_str());
     MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
     if (!module)
     {
-      logDebug("NETCONF","COMP","Can't found module %s",bindData.module().c_str());
+      logDebug("MGT","SET","Can't found module %s",bindData.module().c_str());
       rc = CL_ERR_INVALID_PARAMETER;
       MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
       return;
@@ -265,7 +266,7 @@ namespace SAFplus
     MgtObject * object = module->getMgtObject(bindData.route().c_str());
     if (!object)
     {
-      logDebug("NETCONF","COMP","Can't found object %s",bindData.route().c_str());
+      logDebug("MGT","SET","Can't found object %s",bindData.route().c_str());
       rc = CL_ERR_INVALID_PARAMETER;
       MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
       return;
@@ -278,7 +279,8 @@ namespace SAFplus
     {
       setData.set_data("<" + object->name + ">" + strInMsg + "</" + object->name  + ">");
     }
-    if (object->set((void *)setData.data().c_str(),setData.data().size(), t) == CL_TRUE)
+    rc1 = object->set((void *)setData.data().c_str(),setData.data().size(), t);
+    if (rc1 == CL_TRUE)
     {
       t.commit();
     }
@@ -293,18 +295,18 @@ namespace SAFplus
 
   void MgtRoot::clMgtMsgGetHandle(ClIocAddress srcAddr, Mgt::Msg::MsgMgt reqMsg)
   {
+    MsgGeneral rplMesg;
+    string outBuff,strRplMesg;
+    ClUint64T outMsgSize = 0;
     Mgt::Msg::MsgBind bindData;
-    bindData.ParseFromString(reqMsg.bind());
 
-    logDebug("NETCONF", "COMP",
-               "Received Get request from [%d.%x] for module [%s] route [%s]",
-               srcAddr.iocPhyAddress.nodeAddress, srcAddr.iocPhyAddress.portId,
-               bindData.module().c_str(), bindData.route().c_str());
+    bindData.ParseFromString(reqMsg.bind());
+    logDebug("MGT","GET","Received getting message for module %s and route %s",bindData.module().c_str(),bindData.route().c_str());
     MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
     if (!module)
     {
-      logError("NETCONF", "COMP",
-                 "Received Get request from [%d.%x] for Non-existent module [%s] route [%s]",
+      logError("MGT", "GET",
+                 "Received getting request from [%d.%x] for Non-existent module [%s] route [%s]",
                  srcAddr.iocPhyAddress.nodeAddress, srcAddr.iocPhyAddress.portId,
                  bindData.module().c_str(), bindData.route().c_str());
       return;
@@ -313,197 +315,33 @@ namespace SAFplus
     MgtObject * object = module->getMgtObject(bindData.route());
     if (!object)
     {
-      logError("NETCONF", "COMP",
-                 "Received Get request from [%d.%x] for Non-existent route [%s] module [%s]",
+      logError("MGT", "GET",
+                 "Received getting request from [%d.%x] for Non-existent route [%s] module [%s]",
                  srcAddr.iocPhyAddress.nodeAddress, srcAddr.iocPhyAddress.portId,
                  bindData.route().c_str(), bindData.module().c_str());
       return;
     }
-    //logDebug("NETCONF","COMP","Revision of the route %s is %x",bindData.route().c_str(),object->headRev);
-    string outBuff;
-    ClUint64T outMsgSize = 0;
+    /* Improvement: Compare revision to limit data sending */
+    if(reqMsg.data_size() > 0)
+    {
+      std::string strRev = reqMsg.data(0);
+      ClUint32T rxrev = std::stoi(strRev);
+      logDebug("MGT","GET","Checking if data has updated [%x-%x]",rxrev,object->root()->headRev);
+      if(rxrev >= object->root()->headRev && object->root()->headRev !=0 )
+      {
+        rplMesg.add_data(strRev);
+        rplMesg.SerializeToString(&strRplMesg);
+        MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
+        return;
+      }
+      // If revision of that route on mgt server is out of date, also send lastest data
+    }
+    std::string strRev = std::to_string(object->root()->headRev);
     object->get(&outBuff, &outMsgSize);
-    // Send response
-    //logDebug("NETCONF","COMP","Send reply [data=%s; size=%d] for get request",(char *)outBuff.c_str(),outMsgSize);
-    MgtRoot::sendReplyMsg(srcAddr,(void *)outBuff.c_str(),outMsgSize);
-  }
-
-  void MgtRoot::clMgtMsgRpcHandle(ClIocAddress srcAddr, Mgt::Msg::MsgMgt reqMsg)
-  {
-#if 0
-    Mgt::Msg::MsgBind bindData;
-    bindData.ParseFromString(reqMsg.bind());
-    Mgt::Msg::MsgRpc rpcData;
-    rpcData.ParseFromString(reqMsg.data(0));
-
-    void *ppOutMsg = (void *) rpcData.mutable_data()->c_str();
-    ClUint64T outMsgSize = 0;
-
-    MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
-    if (!module)
-    {
-      snprintf((char*) ppOutMsg, MGT_MAX_DATA_LEN,"<error>Invalid parameter</error>");
-      outMsgSize = strlen((char*) ppOutMsg) + 1; //add 1 for null byte
-      MgtRoot::sendReplyMsg(srcAddr,(void *)ppOutMsg,outMsgSize);
-      free(ppOutMsg);
-      return;
-    }
-
-    MgtRpc * rpc = module->getMgtRpc(bindData.route());
-    if (!rpc)
-    {
-      snprintf((char*) ppOutMsg, MGT_MAX_DATA_LEN,"<error>Invalid parameter</error>");
-      outMsgSize = strlen((char*) ppOutMsg) + 1; //add 1 for null byte
-      MgtRoot::sendReplyMsg(srcAddr,(void *)ppOutMsg,outMsgSize);
-      free(ppOutMsg);
-      return;
-    }
-
-    if (rpc->setInParams((void *)rpcData.data().c_str(), rpcData.data().size()) == CL_FALSE)
-    {
-      snprintf((char*) ppOutMsg, MGT_MAX_DATA_LEN,"<error>Invalid parameter</error>");
-      outMsgSize = strlen((char*) ppOutMsg) + 1; //add 1 for null byte
-      MgtRoot::sendReplyMsg(srcAddr,(void *)ppOutMsg,outMsgSize);
-      free(ppOutMsg);
-      return;
-    }
-
-    switch (rpcData.rpctype())
-    {
-      case Mgt::Msg::MsgRpc::CL_MGT_RPC_VALIDATE:
-      {
-        if (rpc->validate())
-        {
-          strcpy((char*) ppOutMsg, "<ok/>");
-        }
-        else
-        {
-          logDebug("MGT", "INI", "Validation error : %s",rpc->ErrorMsg.c_str());
-          if (rpc->ErrorMsg.length() == 0)
-            snprintf((char*) ppOutMsg, MGT_MAX_DATA_LEN,"<error>Unknown error</error>");
-          else
-            snprintf((char*) ppOutMsg, MGT_MAX_DATA_LEN,"<error>%s</error>", rpc->ErrorMsg.c_str());
-        }
-        break;
-      }
-      case Mgt::Msg::MsgRpc::CL_MGT_RPC_INVOKE:
-      {
-        if (rpc->invoke())
-        {
-          rpc->getOutParams((void **)&ppOutMsg, &outMsgSize);
-        }
-        else
-        {
-          if (rpc->ErrorMsg.length() == 0)
-            snprintf((char*) ppOutMsg, MGT_MAX_DATA_LEN,"<error>Unknown error</error>");
-          else
-            snprintf((char*) ppOutMsg, MGT_MAX_DATA_LEN,"<error>%s</error>", rpc->ErrorMsg.c_str());
-        }
-        break;
-      }
-      case Mgt::Msg::MsgRpc::CL_MGT_RPC_POSTREPLY:
-      {
-        if (rpc->postReply())
-        {
-          strcpy((char*) ppOutMsg, "<ok/>");
-        }
-        else
-        {
-          if (rpc->ErrorMsg.length() == 0)
-            snprintf((char*) ppOutMsg, MGT_MAX_DATA_LEN,"<error>Unknown error</error>");
-          else
-            snprintf((char*) ppOutMsg, MGT_MAX_DATA_LEN,"<error>%s</error>", rpc->ErrorMsg.c_str());
-        }
-        break;
-      }
-      default:
-      {
-        snprintf((char*) ppOutMsg, MGT_MAX_DATA_LEN,"<error>Invalid operation</error>");
-        break;
-      }
-    }
-out:
-    outMsgSize = strlen((char*) ppOutMsg) + 1; //add 1 for null byte
-    MgtRoot::sendReplyMsg(srcAddr,(void *)ppOutMsg,outMsgSize);
-#endif
-  }
-
-  void MgtRoot::clMgtMsgOidSetHandle(ClIocAddress srcAddr, Mgt::Msg::MsgMgt reqMsg)
-  {
-    ClRcT rc = CL_OK;
-    Mgt::Msg::MsgBind bindData;
-    bindData.ParseFromString(reqMsg.bind());
-    if(reqMsg.data_size() <= 0)
-    {
-      logError("SNM","COMP","Data is empty");
-      return;
-    }
-    Mgt::Msg::MsgSetGet setData;
-    setData.ParseFromString(reqMsg.data(0));
-
-    logDebug("SNM", "COMP", "Receive 'edit' opcode for oid [%s] data [%s]",bindData.route().c_str(), setData.data().c_str());
-
-    MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
-
-    if (!module)
-    {
-      logDebug("SNM","COMP","Module %s not found",bindData.module().c_str());
-      return;
-    }
-
-    MgtObject * object = module->getMgtObject(bindData.route());
-    if (!object)
-    {
-      logDebug("SNM","COMP","Object %s not found",bindData.route().c_str());
-      return;
-    }
-
-
-    SAFplus::Transaction t;
-
-    string strInMsg((ClCharT *)setData.data().c_str());
-
-    // Add root element, it should be similar to netconf message
-    // OID: <adminStatus>true</adminStatus>
-    // NETCONF: <interfaces><adminStatus>true</adminStatus><ename>eth0</ename></interface>
-    if (setData.data().compare(1, object->name.length(), object->name))
-    {
-      setData.set_data("<" + object->name + ">" + strInMsg + "</" + object->name  + ">");
-    }
-    logDebug("SNM","COMP","New data: %s",setData.data().c_str());
-
-    if (object->set((void *) setData.data().c_str(), setData.data().size(), t))
-    {
-      t.commit();
-    }
-    else
-    {
-      t.abort();
-      rc = CL_ERR_INVALID_PARAMETER;
-    }
-    MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
-  }
-
-  void MgtRoot::clMgtMsgOidGetHandle(ClIocAddress srcAddr, Mgt::Msg::MsgMgt reqMsg)
-  {
-     logDebug("SNM", "COMP", "Receive 'get' opcode");
-     Mgt::Msg::MsgBind bindData;
-     bindData.ParseFromString(reqMsg.bind());
-
-    MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
-    if (!module)
-      return;
-
-    MgtObject * object = module->getMgtObject(bindData.route());
-    if (!object)
-      return;
-    logDebug("SNM","COMP","Found object %s ",object->name.c_str());
-    string ppOutMsg;
-    ClUint64T outMsgSize = 0;
-    object->get(&ppOutMsg, &outMsgSize);
-    logDebug("SNM","COMP","Send data %s size: %d",ppOutMsg.c_str(),outMsgSize);
-    // Send action response
-    MgtRoot::sendReplyMsg(srcAddr,(void *)ppOutMsg.c_str(),outMsgSize);
+    rplMesg.add_data(strRev);
+    rplMesg.add_data(outBuff.c_str(),outMsgSize);
+    rplMesg.SerializeToString(&strRplMesg);
+    MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
   }
 
   MgtRoot::MgtMessageHandler::MgtMessageHandler()
@@ -518,38 +356,13 @@ out:
   {
     Mgt::Msg::MsgMgt mgtMsgReq;
     mgtMsgReq.ParseFromArray(msg, msglen);
-    Mgt::Msg::MsgBind bindData;
-    bindData.ParseFromString(mgtMsgReq.bind());
-    const char *route = bindData.route().c_str();
     switch(mgtMsgReq.type())
     {
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_SET:
-        if(route[0] == '/') //netconf
-        {
-          logDebug("MGT","MSG","Received NETCONF setting request");
-          mRoot->clMgtMsgEditHandle(from,mgtMsgReq);
-        }
-        else //snmp
-        {
-          logDebug("MGT","MSG","Received SNMP setting request");
-          mRoot->clMgtMsgOidSetHandle(from,mgtMsgReq);
-        }
+        mRoot->clMgtMsgEditHandle(from,mgtMsgReq);
         break;
       case Mgt::Msg::MsgMgt::CL_MGT_MSG_GET:
-        if(route[0] == '/')
-        {
-          logDebug("MGT","MSG","Received NETCONF getting request");
-          mRoot->clMgtMsgGetHandle(from,mgtMsgReq);
-        }
-        else
-        {
-          logDebug("MGT","MSG","Received SNMP getting request");
-          mRoot->clMgtMsgOidGetHandle(from,mgtMsgReq);
-        }
-        break;
-      case Mgt::Msg::MsgMgt::CL_MGT_MSG_RPC:
-        logDebug("MGT","MSG","Received NETCONF rpc request");
-        mRoot->clMgtMsgRpcHandle(from,mgtMsgReq);
+        mRoot->clMgtMsgGetHandle(from,mgtMsgReq);
         break;
       default:
         break;

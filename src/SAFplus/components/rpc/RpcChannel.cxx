@@ -18,8 +18,8 @@
  */
 
 #include "clThreadApi.hxx"
-#include "SAFplusPBExt.pb.h"
-#include "SAFplusRpc.pb.h"
+#include "SAFplusPBExt.pb.hxx"
+#include "SAFplusRpc.pb.hxx"
 #include "clRpcService.hxx"
 #include "clRpcChannel.hxx"
 #include "clMsgServer.hxx"
