@@ -54,13 +54,17 @@ namespace SAFplusAmf
     }
 
 
-  ServiceInstance* createServiceInstance(const char* nam, const SAFplusAmf::AdministrativeState& adminState, int rank)
+  ServiceInstance* createServiceInstance(const char* nam, const SAFplusAmf::AdministrativeState& adminState, int rank,int actives=1, int standbys=1)
     {
     ServiceInstance* ret = new ServiceInstance(nam);
     ret->name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
     ret->adminState.value                = adminState;
     ret->rank                            = rank;
+    ret->addStandbyAssignments(new StandbyAssignments());
+    ret->addActiveAssignments(new ActiveAssignments());
+    ret->preferredActiveAssignments      = actives;
+    ret->preferredStandbyAssignments      = standbys;
     return ret;
     }
 
@@ -81,6 +85,14 @@ namespace SAFplusAmf
     ret->adminState.value                = adminState;
     ret->rank                            = rank;
     ret->failover                        = failover;
+    ret->preinstantiable                 = true;
+
+    // Initial condition values
+    ret->haReadinessState                = HighAvailabilityReadinessState::notReadyForAssignment;
+    ret->haState                         = HighAvailabilityState::idle;
+    ret->presenceState                   = PresenceState::uninstantiated;
+    ret->readinessState                  = ReadinessState::outOfService;
+    ret->operState                       = true; // created ready to run...
     return ret;
     }
 

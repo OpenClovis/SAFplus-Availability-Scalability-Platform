@@ -1,0 +1,123 @@
+module amfAppRpc
+{
+
+  namespace "http://www.openclovis.org/ns/amfAppRpc";
+  prefix "amfAppRpc";
+
+  organization
+    "OpenClovis Solutions, Inc";
+
+  contact
+    "Andrew Stone <stone@openclovis.com>";
+
+  description
+    "AMF to application communication";
+
+  revision 2014-09-15 
+  {
+    description "Initial description";
+    reference "SAI-AIS-AMF-B.04.01.pdf";
+  }
+
+  rpc heartbeat
+  {
+    input
+    {
+      leaf count
+      {
+        type uint64;
+      }
+    }
+    
+    output
+    {
+      leaf nextInterval
+      {
+	//description "how long to until issuing another heartbeat query (in milliseconds).";
+	type uint32;
+      }
+      // TODO: Add other statistics reporting here.
+    }
+  }
+
+  rpc terminate
+  {
+    input
+    {
+      leaf invocation
+        {
+	//description "The process id of the component";
+	type uint64;
+        }
+      leaf componentName  // Or should I use the component handle?
+	{
+	  type string;
+	}
+      leaf-list componentHandle
+	{
+	  type string
+	    {
+            length 16;  // 2 64-bit words 
+	    }
+	}
+    }
+    output
+    {
+      leaf invocation
+	{
+	  type uint64;
+	}
+      leaf result
+      {
+	//description "0 on success, or the errno if the component could not be started.";
+	type uint32;
+      }	
+    }
+      
+  }
+  
+
+  rpc workOperation
+    {
+      input
+      {
+	leaf invocation
+	{
+	  type uint64;
+	}
+	leaf componentName  // Or should I use the component handle?
+	{
+	  type string;
+	}
+	leaf-list componentHandle
+	{
+	  type string
+            { 
+	    length 16;  // 2 64-bit words 
+	    }
+	}
+	
+	leaf operation  // SaAmfHAStateT extended by remove
+	{
+	  type uint32;
+	}
+	leaf target  // SA_AMF_CSI_ADD_ONE, SA_AMF_CSI_TARGET_ONE, SA_AMF_CSI_TARGET_ALL
+	{
+	  type uint32;
+	}
+      }
+
+      output
+	{
+	  leaf invocation
+	    {
+	      type uint64;
+	    }
+	  leaf result
+	    {
+	      type uint32;
+	    }
+	}
+    }
+
+}

@@ -15,6 +15,12 @@
 
 #include <clHandleApi.hxx>
 
+// IOC related globals
+ClUint32T chassisId = 0x0;
+// Obsolete: USE SAFplus::ASP_NODEADDR
+ClUint32T clAspLocalId = ~((ClWordT) 0);
+ClBoolT   gIsNodeRepresentative = CL_FALSE;
+
 namespace SAFplus
   {
 
@@ -184,8 +190,10 @@ namespace SAFplus
     strcpy(CL_APP_BINDIR,ASP_APP_BINDIR);
     
     temp = getenv("ASP_NODEADDR");
-    if (temp) ASP_NODEADDR = atoi(temp);
+    if (temp) { ASP_NODEADDR = atoi(temp); }
     else strcat(missing,"ASP_NODEADDR ");
+
+    clAspLocalId = ASP_NODEADDR;  // set clAspLocalId to ASP_NODEADDR regardless of the existence of the env var because the app could have set ASP_NODEADDR explicitly
 
     SYSTEM_CONTROLLER = clParseEnvBoolean("SYSTEM_CONTROLLER");
     ASP_SC_PROMOTE = clParseEnvBoolean("ASP_SC_PROMOTE");

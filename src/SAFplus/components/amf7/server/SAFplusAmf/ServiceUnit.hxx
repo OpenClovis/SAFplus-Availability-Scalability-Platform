@@ -83,6 +83,11 @@ namespace SAFplusAmf
         SAFplus::MgtProv<SAFplusAmf::Node*> node;
         SAFplus::MgtProv<SAFplusAmf::ServiceGroup*> serviceGroup;
 
+        /*
+         * Once this Service Unit is instantiated, how long should I wait before assigning it?
+         */
+        SAFplus::MgtProv<unsigned int> probationTime;
+
     public:
         ServiceUnit();
         ServiceUnit(std::string myNameValue);
@@ -229,6 +234,16 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/ServiceUnit/serviceGroup
          */
         void setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceUnit/probationTime
+         */
+        unsigned int getProbationTime();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceUnit/probationTime
+         */
+        void setProbationTime(unsigned int probationTimeValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceUnit/numActiveServiceInstances

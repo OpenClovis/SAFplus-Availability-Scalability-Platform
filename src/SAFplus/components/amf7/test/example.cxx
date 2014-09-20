@@ -1,11 +1,12 @@
 #include <saAmf.h>
 #include <safplus.hxx>
+#include <boost/thread/thread.hpp> 
 
 //#define clprintf(sev,...) appLog(SAFplus::APP_LOG, sev, 0, "APP", "MAIN", __VA_ARGS__)
 #define clprintf(sev,...) SAFplus::logMsgWrite(SAFplus::APP_LOG, sev, 0, "APP", "MAIN", __FILE__, __LINE__, __VA_ARGS__)
 
 // This is the application name to use if the AMF did not start up this component
-#define DEFAULT_APP_NAME "example"
+#define DEFAULT_APP_NAME "c0"
 
 /* Access to the SAF AMF framework occurs through this handle */
 SaAmfHandleT amfHandle;
@@ -15,6 +16,8 @@ SaNameT      appName = {0};
 
 /* set when SAFplus tells this process to quit */
 bool quitting = false;
+/* set when SAFplus assigns active work */
+bool running = false;
 
 /* The application should fill these functions */
 void safTerminate(SaInvocationT invocation, const SaNameT *compName);
@@ -37,7 +40,7 @@ int  errorExit(SaAisErrorT rc);
 /* This simple helper function just prints an error and quits */
 int errorExit(SaAisErrorT rc)
 {
-    logError("APP","INI", "Component [%.*s] : PID [%d]. Initialization error [0x%x]\n", appName.length, appName.value, SAFplus::pid, rc);
+    logCritical("APP","INI", "Component [%.*s] : PID [%d]. Initialization error [0x%x]\n", appName.length, appName.value, SAFplus::pid, rc);
     exit(-1);
     return -1;
 }
@@ -45,6 +48,9 @@ int errorExit(SaAisErrorT rc)
 int main(int argc, char *argv[])
 {
     SaAisErrorT rc = SA_AIS_OK;
+ 
+    SAFplus::logEchoToFd = 1;  // echo logs to stdout (fd 1) for debugging
+    SAFplus::logSeverity = SAFplus::LOG_SEV_MAX;
 
     /* Connect to the SAF cluster */
     initializeAmf();
@@ -57,6 +63,8 @@ int main(int argc, char *argv[])
     
     /* Do the application specific finalization here. */
 
+
+    while (!quitting) boost::this_thread::sleep(boost::posix_time::milliseconds(250));
     /* Now finalize my connection with the SAF cluster */
     if((rc = saAmfFinalize(amfHandle)) != SA_AIS_OK)
       logError("APP","FIN", "AMF finalization error[0x%X]", rc);
@@ -133,7 +141,7 @@ void safAssignWork(SaInvocationT       invocation,
                processing of the work. */
             pthread_t thr;
             clprintf(SAFplus::LOG_SEV_INFO,"csa101: ACTIVE state requested; activating service");
-            //running = 1;
+            running = 1;
             //pthread_create(&thr,NULL,activeLoop,NULL);
 
 
@@ -153,7 +161,7 @@ void safAssignWork(SaInvocationT       invocation,
                here to do it. */
 
             clprintf(SAFplus::LOG_SEV_INFO,"csa101: Standby state requested");
-            //running = 0;
+            running = 0;
 
             /* The AMF times the interval between the assignment and acceptance
                of the work (the time interval is configurable).
@@ -171,7 +179,7 @@ void safAssignWork(SaInvocationT       invocation,
              * must stop work associated with the CSI immediately.
              */
             clprintf(SAFplus::LOG_SEV_INFO, "csa101: Acknowledging new state quiesced");
-            //running = 0;
+            running = 0;
 
             saAmfResponse(amfHandle, invocation, SA_AIS_OK);
             break;
@@ -192,7 +200,7 @@ void safAssignWork(SaInvocationT       invocation,
               {
               /* App code here: Now finish your work and cleanly stop the work*/
               clprintf(SAFplus::LOG_SEV_INFO, "csa101: Signaling completion of QUIESCING");
-              //running = 0;
+              running = 0;
             
               /* Call saAmfCSIQuiescingComplete when stopping the work is done */
               saAmfCSIQuiescingComplete(amfHandle, invocation, SA_AIS_OK);
@@ -253,6 +261,12 @@ void initializeAmf(void)
   SaAmfCallbacksT     callbacks;
   SaAisErrorT         rc = SA_AIS_OK;
 
+  // TEMPORARY DEBUG to run outside of AMF
+  if (1) // (!startedByAmf())
+    {
+    SAFplus::ASP_NODEADDR = 1;
+    }
+
   callbacks.saAmfHealthcheckCallback          = NULL; /* rarely necessary because SAFplus monitors the process */
   callbacks.saAmfComponentTerminateCallback   = safTerminate;
   callbacks.saAmfCSISetCallback               = safAssignWork;
@@ -263,6 +277,7 @@ void initializeAmf(void)
   if ( (rc = saAmfInitialize(&amfHandle, &callbacks, &SAFplus::safVersion)) != SA_AIS_OK)
     errorExit(rc);
 
+#if 1
   if ( (rc = saAmfComponentNameGet(amfHandle, &appName)) != SA_AIS_OK)
     {
     if (rc == SA_AIS_ERR_UNAVAILABLE)  // This component was not run by the AMF.  You must tell us what the component name is.
@@ -273,6 +288,12 @@ void initializeAmf(void)
 
   if ( (rc = saAmfComponentRegister(amfHandle, &appName, NULL)) != SA_AIS_OK) 
     errorExit(rc);
+#else
+
+  // If spawned by the AMF, you can just pass NULL as the component name since the AMF has told this app its name (SAFplus::COMP_NAME variable)
+  if ( (rc = saAmfComponentRegister(amfHandle, NULL, NULL)) != SA_AIS_OK)
+    errorExit(rc);
+#endif
 
   logInfo("APP","MAIN","Component [%s] registered successfully", appName.value);
   }
@@ -280,7 +301,6 @@ void initializeAmf(void)
 
 void dispatchLoop(void)
 {
-#if 0
   SaAisErrorT         rc = SA_AIS_OK;
   SaSelectionObjectT amf_dispatch_fd;
   int maxFd;
@@ -316,16 +336,15 @@ void dispatchLoop(void)
 
           errorStr[0] = 0; /* just in case strerror does not fill it in */
           strerror_r(err, errorStr, 79);
-          clprintf (CL_LOG_SEV_ERROR, "Error [%d] during dispatch loop select() call: [%s]",err,errorStr);
+          clprintf (SAFplus::LOG_SEV_ERROR, "Error [%d] during dispatch loop select() call: [%s]",err,errorStr);
           break;
         }
       if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
       /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
  
-      if (running) clprintf(CL_LOG_SEV_INFO,"csa101: Unthreaded Hello World! %s", show_progress());
-      else clprintf(CL_LOG_SEV_INFO,"csa101: idle");
+      if (running) clprintf(SAFplus::LOG_SEV_INFO,"csa101: Unthreaded Hello World!"); // show_progress());
+      else clprintf(SAFplus::LOG_SEV_INFO,"csa101: idle");
     }while(!quitting);
-#endif
 }
 
 

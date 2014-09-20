@@ -20,6 +20,8 @@ namespace SAFplusI
     // DO NOT USE MSG TYPES 1 and 2, 7, 10 these are IOC internal...
     AMF_REQ_HANDLER_TYPE = 17,
     AMF_REPLY_HANDLER_TYPE = 18,
+    AMF_APP_REQ_HANDLER_TYPE = 20,
+    AMF_APP_REPLY_HANDLER_TYPE = 21,
     HEARTBEAT_MSG_TYPE = 3, // must be == CL_IOC_PROTO_HB
     GRP_MSG_TYPE = 4,
     CL_MGT_MSG_TYPE = 5,

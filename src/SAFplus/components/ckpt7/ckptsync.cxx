@@ -13,6 +13,7 @@
 #include <clCkptApi.hxx>
 #include <clMsgApi.hxx>
 #include <clGroup.hxx>
+#include <clProcessApi.hxx>
 #include <clObjectMessager.hxx>
 
 #include <clCustomization.hxx>
@@ -387,5 +388,20 @@ void SAFplusI::CkptSynchronization::operator()()
 
 bool SAFplus::Checkpoint::electSynchronizationReplica()
 {
-  return true;
+  while (1)
+    {
+    Process p(hdr->serverPid);
+    try
+      {
+      std::string cmd = p.getCmdline();
+      return false;  // If the process is alive we assume it is acting as sync replica... TODO: this method suffers from a chance of a process respawn
+      }
+    catch (ProcessError& e)
+      {
+      hdr->serverPid = SAFplus::pid;
+      boost::this_thread::sleep(boost::posix_time::milliseconds(100));
+      if (hdr->serverPid == SAFplus::pid) return true;
+      // Otherwise I will wrap around, reload the PID and make sure that it is valid.  This will presumably solve theoretical write collisions which corrupt data due to different writes succeeding in different bytes in the number.
+      }
+    }
 }

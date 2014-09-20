@@ -60,7 +60,7 @@ namespace SAFplus
         class RpcChannel : public SAFplus::MsgHandler
           {
           public:
-            //Client
+            //Client or for combined client/server construct like this then manually set .service to the SAFplus::Rpc::RpcService object
             explicit RpcChannel(SAFplus::MsgServer *, ClIocAddressT iocDest);
 
             //Server

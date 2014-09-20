@@ -35,7 +35,7 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ServiceUnit, /SAFplusAmf/ServiceUnit)
 
-    ServiceUnit::ServiceUnit(): adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup")
+    ServiceUnit::ServiceUnit(): adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime")
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&rank, "rank");
@@ -51,10 +51,11 @@ namespace SAFplusAmf
         this->addChildObject(&components, "components");
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
+        this->addChildObject(&probationTime, "probationTime");
         this->name.assign("ServiceUnit");
     };
 
-    ServiceUnit::ServiceUnit(std::string myNameValue): adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup")
+    ServiceUnit::ServiceUnit(std::string myNameValue): adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime")
     {
         this->myName.value =  myNameValue;
         this->addChildObject(&adminState, "adminState");
@@ -71,6 +72,7 @@ namespace SAFplusAmf
         this->addChildObject(&components, "components");
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
+        this->addChildObject(&probationTime, "probationTime");
         this->name.assign("ServiceUnit");
     };
 
@@ -87,7 +89,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* ServiceUnit::getChildNames()
     {
-        std::string childNames[] = { "myName", "id", "adminState", "rank", "failover", "preinstantiable", "saAmfSUHostNodeOrNodeGroup", "presenceState", "readinessState", "haReadinessState", "haState", "operState", "assignedServiceInstances", "numActiveServiceInstances", "numStandbyServiceInstances", "restartCount", "components", "node", "serviceGroup" };
+        std::string childNames[] = { "myName", "id", "adminState", "rank", "failover", "preinstantiable", "saAmfSUHostNodeOrNodeGroup", "presenceState", "readinessState", "haReadinessState", "haState", "operState", "assignedServiceInstances", "numActiveServiceInstances", "numStandbyServiceInstances", "restartCount", "components", "node", "serviceGroup", "probationTime" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -313,6 +315,22 @@ namespace SAFplusAmf
     void ServiceUnit::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue)
     {
         this->serviceGroup.value = serviceGroupValue;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ServiceUnit/probationTime
+     */
+    unsigned int ServiceUnit::getProbationTime()
+    {
+        return this->probationTime.value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ServiceUnit/probationTime
+     */
+    void ServiceUnit::setProbationTime(unsigned int probationTimeValue)
+    {
+        this->probationTime.value = probationTimeValue;
     };
 
     /*

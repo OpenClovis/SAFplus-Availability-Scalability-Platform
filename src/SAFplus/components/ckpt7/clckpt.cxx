@@ -43,7 +43,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
 {
   logInfo("CKP","INI","Opening checkpoint [%lx:%lx]",hdl.id[0],hdl.id[1]);
   // All constructors funnel through this init routine.
-  gate.init(hdl.id[1]);  
+  gate.init(hdl.id[1]);  // 2nd word of the handle should be unique on this node
   gate.close(); // start the gate closed so this process can't access the checkpoint.  But I can't init the gate closed, in case the init opens an existing gate, instead of creating one
 
   flags = _flags;

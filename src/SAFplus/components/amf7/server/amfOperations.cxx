@@ -1,8 +1,11 @@
 #include <chrono>
 #include <google/protobuf/stubs/common.h>
+#include <saAmf.h>
 
 #include "amfRpc/amfRpc.pb.h"
 #include "amfRpc/amfRpc.hxx"
+//#include "amfRpc/amfRpc.pb.h"
+#include "amfAppRpc/amfAppRpc.hxx"
 #include <clRpcChannel.hxx>
 
 #include <amfOperations.hxx>
@@ -99,7 +102,24 @@ namespace SAFplus
       return SAFplusAmf::AdministrativeState::on;
     }
 
+  SAFplusAmf::AdministrativeState effectiveAdminState(SAFplusAmf::ServiceInstance* si)
+    {
+    // If either SG or SI is off, admin state is off
+    if (si->adminState.value == SAFplusAmf::AdministrativeState::off) return SAFplusAmf::AdministrativeState::off;
 
+    ServiceGroup* sg = si->serviceGroup.value;
+
+    SAFplusAmf::AdministrativeState ret;
+    ret = effectiveAdminState(sg);
+
+    if (ret == SAFplusAmf::AdministrativeState::off) return ret;
+ 
+    // If either SG or SI is idle, admin state is idle
+    if ((ret == SAFplusAmf::AdministrativeState::idle) || (si->adminState.value == SAFplusAmf::AdministrativeState::idle)) return SAFplusAmf::AdministrativeState::idle;
+        
+    // If its not off or idle, it must be on
+    return SAFplusAmf::AdministrativeState::on;
+    }
 
   bool ClAmfPolicyPlugin_1::initialize(SAFplus::AmfOperations* amfOperations)
     {
@@ -193,6 +213,77 @@ namespace SAFplus
       delete this;
       }
     };
+
+
+  class WorkOperationResponseHandler:public SAFplus::Wakeable
+    {
+    public:
+    WorkOperationResponseHandler(SAFplus::Wakeable* w, SAFplusAmf::Component* comp): w(w), comp(comp) {};
+    virtual ~WorkOperationResponseHandler(){};
+    SAFplus::Rpc::amfAppRpc::WorkOperationResponse response;
+    SAFplusAmf::Component* comp;
+    SAFplus::Wakeable* w;
+
+    void wake(int amt,void* cookie=NULL)
+      {
+#if 0
+      if (response.err() != 0)
+        {
+        comp->processId.value = 0;
+        comp->lastError.value = strprintf("Process spawn failure [%s:%d]", strerror(response.err()));
+        comp->presence.value  = PresenceState::instantiationFailed;
+        }
+      else if (comp)
+        {
+        comp->processId.value = response.pid();
+        comp->presence.value  = PresenceState::instantiating;
+        }
+#endif
+      if (w) w->wake(1,comp);
+      delete this;
+      }
+    };
+
+
+  void AmfOperations::assignWork(ServiceUnit* su, ServiceInstance* si, HighAvailabilityState state,Wakeable& w)
+    {
+    SAFplus::Rpc::amfAppRpc::WorkOperationRequest request;
+    // TODO fill request
+    Component* comp = nullptr; // TODO: su down to comp
+
+    SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+    SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+    for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+      {
+      Component* comp = dynamic_cast<Component*>(*itcomp);
+      assert(comp);
+
+      Handle hdl;
+      try
+        {
+        hdl = name.getHandle(comp->name);
+        }
+      catch (SAFplus::NameException& n)
+        {
+        logCritical("OPS","SRT","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.c_str());
+        comp->lastError.value = "Component's name is not registered in the name service so address cannot be determined.";
+        break; // TODO: right now go to the next component, however assignment should not occur on ANY components if all components are not accessible. 
+        }
+
+      request.set_componentname(comp->name.c_str());
+      request.set_componenthandle(0, (const char*) &hdl, sizeof(Handle));
+      request.set_operation((uint32_t)state);
+      request.set_target(SA_AMF_CSI_ADD_ONE);
+      request.set_invocation(invocation++);
+
+      WorkOperationResponseHandler* respHdlr = new WorkOperationResponseHandler(&w,comp);
+
+
+      amfAppRpc->workOperation(hdl, &request, &respHdlr->response, *respHdlr);
+
+      }
+
+    }
 
   void AmfOperations::start(SAFplusAmf::Component* comp,Wakeable& w)
     {

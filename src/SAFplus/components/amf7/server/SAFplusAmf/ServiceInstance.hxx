@@ -46,6 +46,16 @@ namespace SAFplusAmf
         SAFplus::MgtProv<SAFplusAmf::AssignmentState> assignmentState;
 
         /*
+         * What is the optimal number of Service Units that should be given an active assignment for this work?
+         */
+        SAFplus::MgtProv<unsigned int> preferredActiveAssignments;
+
+        /*
+         * What is the optimal number of Service Units that should be given a standby assignment for this work?
+         */
+        SAFplus::MgtProv<unsigned int> preferredStandbyAssignments;
+
+        /*
          * Lower rank is instantiated before higher; but rank 0 means 'don't care'.
          */
         SAFplus::MgtProv<unsigned int> rank;
@@ -92,6 +102,26 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
          */
         void setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
+         */
+        unsigned int getPreferredActiveAssignments();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
+         */
+        void setPreferredActiveAssignments(unsigned int preferredActiveAssignmentsValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
+         */
+        unsigned int getPreferredStandbyAssignments();
+
+        /*
+         * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
+         */
+        void setPreferredStandbyAssignments(unsigned int preferredStandbyAssignmentsValue);
 
         /*
          * XPATH: /SAFplusAmf/ServiceInstance/rank

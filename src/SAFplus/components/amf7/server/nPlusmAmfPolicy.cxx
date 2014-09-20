@@ -3,6 +3,7 @@
 #include <clLogApi.hxx>
 #include <clProcessApi.hxx>
 #include <clThreadApi.hxx>
+#include <clNameApi.hxx>
 #include <clAmfApi.hxx>
 #include <vector>
 #include <boost/range/algorithm.hpp>
@@ -66,6 +67,15 @@ namespace SAFplus
     }
 
   bool suEarliestRanking(ServiceUnit* a, ServiceUnit* b)
+  {
+  assert(a);
+  assert(b);
+  if (b->rank.value == 0) return true;
+  if (a->rank.value == 0) return false;
+  return (a->rank.value < b->rank.value);
+  }
+
+  bool siEarliestRanking(ServiceInstance* a, ServiceInstance* b)
   {
   assert(a);
   assert(b);
@@ -222,6 +232,38 @@ namespace SAFplus
     auditOperation(root);
     }
 
+  ServiceUnit* findAssignableServiceUnit(std::vector<SAFplusAmf::ServiceUnit*>& candidates,MgtList<std::string>& weights, HighAvailabilityState tgtState)
+    {
+    std::vector<SAFplusAmf::ServiceUnit*>::iterator i;
+    for (i = candidates.begin(); i != candidates.end(); i++)
+      {
+      bool assignable = true;
+      ServiceUnit* su = *i;
+      assert(su);
+      if (su->operState == true)
+        {
+        SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
+        SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
+        for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
+          {
+          Component* comp = dynamic_cast<Component*>(*itcomp);
+          assert(comp);
+          if ((comp->operState == true) && (comp->readinessState == ReadinessState::inService) && (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment) && (comp->haState != HighAvailabilityState::quiescing))
+            {
+            // candidate
+            }
+          else 
+            {
+            assignable = false;
+            break;
+            }
+          }
+        if (assignable) return su;
+        }
+      }
+    return nullptr;
+    }
+
   // Second step in the audit is to do something to heal any discrepencies.
   void NplusMPolicy::auditOperation(SAFplusAmf::SAFplusAmfRoot* root)
     {
@@ -236,9 +278,13 @@ namespace SAFplus
       startSg=false;
       ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
       const std::string& name = sg->name;
+ 
+       // TODO: figure out if this Policy should control this Service group
 
       logInfo("N+M","AUDIT","Auditing service group %s", name.c_str());
-      if (1) // TODO: figure out if this Policy should control this Service group
+
+      // Look for Service Units that need to be started up
+      if (1)
         {
         SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator itsu;
         SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
@@ -280,6 +326,78 @@ namespace SAFplus
             }
           }
         }
+
+
+      // Look for Service Instances that need assignment
+      if (1) 
+        {
+        // TODO: pick the SU sort algorithm based on SG policy
+        bool (*suOrder)(ServiceUnit* a, ServiceUnit* b) = suEarliestRanking;
+
+        // Sort the SUs by rank so we assign them in proper order.
+        // TODO: I don't like this constant resorting... we should have a sorted list in the SG.
+        std::vector<SAFplusAmf::ServiceUnit*> sus(sg->serviceUnits.value.begin(),sg->serviceUnits.value.end());
+        boost::sort(sus,suOrder);
+
+        // Go through in rank order so that the most important SIs are assigned first
+        std::vector<SAFplusAmf::ServiceInstance*> sis(sg->serviceInstances.value.begin(),sg->serviceInstances.value.end());
+        boost::sort(sis,siEarliestRanking);
+
+        std::vector<SAFplusAmf::ServiceInstance*>::iterator itsi;
+        for (itsi = sis.begin(); itsi != sis.end(); itsi++)
+          {
+          ServiceInstance* si = dynamic_cast<ServiceInstance*>(*itsi);
+          SAFplusAmf::AdministrativeState eas = effectiveAdminState(si);
+
+          // We want to assign but for some reason it is not.
+          if ((eas == AdministrativeState::on) && (si->assignmentState != AssignmentState::fullyAssigned))
+            {
+            logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s].", si->name.c_str(),(si->assignmentState == AssignmentState::partiallyAssigned) ? "partially assigned":"unassigned");
+
+            if (1)
+              {
+              for (int cnt = si->getActiveAssignments()->current.value; cnt < si->preferredActiveAssignments; cnt++)
+                {
+                ServiceUnit* su = findAssignableServiceUnit(sus,si->activeWeightList,HighAvailabilityState::active);
+                if (su)
+                  {
+                  amfOps->assignWork(su,si,HighAvailabilityState::active);
+                  boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
+                  }
+                else
+                  {
+                  logInfo("N+M","AUDIT","Service Instance [%s] cannot be assigned %dth active.  No available service units.", si->name.c_str(),cnt);
+                  break;
+                  }
+                }
+              }
+            if (si->getActiveAssignments()->current.value > 0)  // If there is at least 1 active, try to assign the standbys
+              {
+              for (int cnt = si->getStandbyAssignments()->current.value; cnt < si->preferredStandbyAssignments; cnt++)
+                {
+                ServiceUnit* su = findAssignableServiceUnit(sus,si->standbyWeightList,HighAvailabilityState::standby);
+                if (su)
+                  {
+                  amfOps->assignWork(su,si,HighAvailabilityState::standby);
+                  boost::sort(sus,suOrder);  // Sort order may have changed based on the assignment.
+                  }
+                else
+                  {
+                  logInfo("N+M","AUDIT","Service Instance [%s] cannot be assigned %dth standby.  No available service units.", si->name.c_str(),cnt);
+                  break;
+                  }
+                }
+              }
+            }
+
+          else if ((eas == AdministrativeState::off) && (si->assignmentState != AssignmentState::unassigned))
+            {
+            logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.c_str(),(si->assignmentState == AssignmentState::partiallyAssigned) ? "partially assigned":"fully assigned");
+            }
+
+          }
+        }
+
       if (startSg)
         {
         ServiceGroupPolicyExecution go(sg,amfOps);
@@ -310,15 +428,61 @@ namespace SAFplus
         SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator endsu = sg->serviceUnits.value.end();
         for (itsu = sg->serviceUnits.value.begin(); itsu != endsu; itsu++)
           {
+          
           //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
+          Node* suNode = su->node.value;
           const std::string& suName = su->name;
           logInfo("N+M","AUDIT","Auditing su %s", suName.c_str());
+
+          // Calculate readiness state SAI-AIS-AMF-B.04.01.pdf sec 3.2.1.4
+          ReadinessState rs = su->readinessState.value;
+          // out of service if needs repair
+          if ((suNode == nullptr) || (su->operState == false)||(suNode->operState == false)
+          // or any related entity is adminstratively off
+            || (su->adminState != AdministrativeState::on) || (suNode->adminState != AdministrativeState::on) || (sg->adminState != AdministrativeState::on) 
+            || (sg->application.value && (sg->application.value->adminState != AdministrativeState::on))
+            // or its presence state is neither instantiated nor restarting,
+            || ((su->presenceState != PresenceState::instantiated) && (su->presenceState != PresenceState::restarting))
+            // TODO: or the service unit contains contained components, and their configured container CSI is not assigned active or quiescing to any container component on the node that contains the service unit.
+            )
+            {
+            rs = ReadinessState::outOfService;
+            }
+          
+          // in service if does not need repair
+          else if ( (su->operState == true)&&(suNode->operState == true) 
+            // and administratively on
+            && (su->adminState == AdministrativeState::on) && (suNode->adminState == AdministrativeState::on) && (sg->adminState == AdministrativeState::on) 
+            && (!sg->application.value || (sg->application.value->adminState == AdministrativeState::on))
+            // and its presence state is either instantiated or restarting,
+            && ((su->presenceState == PresenceState::instantiated) || (su->presenceState == PresenceState::restarting)))
+            {
+            rs = ReadinessState::inService;
+            }
+          else
+            {
+            // TODO: stopping
+            }
+
+          if (rs != su->readinessState.value)
+            {
+            logInfo("N+M","AUDIT","Readiness state of Service Unit [%s] changed from [%d] to [%d]", su->name.c_str(),(int) su->readinessState.value, (int) rs);
+            su->readinessState.value = rs;
+            // TODO event?
+            }
+
+
+          int numComps = 0;
+          // count up the presence state of each component so I can infer the presence state of the SU
+          int presenceCounts[((int)PresenceState::terminationFailed)+1];
+          for (int j = 0; j<((int)PresenceState::terminationFailed)+1;j++) presenceCounts[j] = 0;
 
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
           for (itcomp = su->components.value.begin(); itcomp != endcomp; itcomp++)
             {
+            numComps++;
             Component* comp = dynamic_cast<Component*>(*itcomp);
             logInfo("N+M","AUDIT","Component [%s]: operState [%s]", comp->name.c_str(), comp->operState.value ? "enabled" : "faulted");
             if (running(comp->presence))  // If I think its running, let's check it out.
@@ -328,6 +492,41 @@ namespace SAFplus
                 {
                 comp->presence = PresenceState::uninstantiated;
                 comp->processId = 0;
+                SAFplus::name.set(comp->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
+                }
+              else if (comp->presence == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF
+                {
+                bool registered=false;
+                try
+                  {
+                  RefObjMapPair p = SAFplus::name.get(comp->name);  // If its in the name service then it is registered.
+                  if (p.first != INVALID_HDL)
+                    {
+                    registered = true;
+                    }
+                  }
+                catch(NameException& n)
+                  {
+                  registered = false;
+                  }
+                
+                if (registered) // TODO: what other things do we need to do for registration?
+                  {
+                  comp->presence = PresenceState::instantiated;
+                  }
+                else
+                  {
+                  uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                  if (curTime - comp->lastInstantiation.value.value >= comp->getInstantiate()->timeout.value)
+                    {
+                    // TODO: process is not responding after instantiation.  Kill it.
+                    logError("N+M","AUDIT","Component [%s] never registered with AMF after instantiation.", comp->name.c_str());
+                    }
+                  else
+                    {
+                    logInfo("N+M","AUDIT","Component [%s] waiting [%lu] more milliseconds for instantiation.", comp->name.c_str(),comp->getInstantiate()->timeout.value - (curTime - comp->lastInstantiation.value.value));
+                    }
+                  }
                 }
               }
 
@@ -345,23 +544,50 @@ namespace SAFplus
               comp->readinessState = SAFplusAmf::ReadinessState::stopping;
               }
 
-#if 0  // This was a guess
-            if ((status == CompStatus::Uninstantiated)&&(comp->operState))
-              {
-              // TODO: Should be changed transactionally
-              comp->readinessState = SAFplusAmf::ReadinessState::outOfService;
-              // 3.2.2.5 if comp sets this, AMF must remove assignment or change to standby comp->haReadinessState = SAFplusAmf::HighAvailabilityReadinessState::notReadyForAssignment;
-              comp->haState = SAFplusAmf::HighAvailabilityState::idle;
-              // Notification?
-              }
-            if ((status == CompStatus::Instantiated)&&(!comp->operState))
-              {
-              // TODO: Should be changed transactionally
-              comp->readinessState = SAFplusAmf::ReadinessState::inService;
-              // Notification?
-              }
-#endif
+            
+            presenceCounts[(int)comp->presence.value]++;
             }
+ 
+           // SAI-AIS-AMF-B.04.01.pdf sec 3.2.1.1, presence state calculation
+          PresenceState ps = su->presenceState.value;
+          if (presenceCounts[(int)PresenceState::uninstantiated] == numComps)  // When all components are uninstantiated, the service unit is uninstantiated.
+            {
+            ps = PresenceState::uninstantiated;
+            }
+          else if (presenceCounts[(int)PresenceState::instantiating] > 0) // When the first component moves to instantiating, the service unit also becomes instantiating.
+            {
+            ps = PresenceState::instantiating;
+            }
+          else if (presenceCounts[(int)PresenceState::instantiated] == numComps) // When all pre-instantiable components of a service unit enter the instantiated state, the service unit becomes instantiated
+            {
+            ps = PresenceState::instantiated;
+            }
+          else if (presenceCounts[(int)PresenceState::instantiationFailed] > 0)  // If, after all possible retries, a component cannot be instantiated, the presence state of the component is set to instantiation-failed, and the presence state of the service unit is also set to instantiation-failed.
+            {
+            ps = PresenceState::instantiationFailed;
+            }
+          else if (presenceCounts[(int)PresenceState::terminating] > 0)  // When the first component of an already instantiated service unit becomes terminating, the service unit becomes terminating.
+            {
+            ps = PresenceState::terminating;
+            }
+          else if (presenceCounts[(int)PresenceState::terminationFailed] > 0)  // If the Availability Management Framework fails to terminate a component, the presence state of the component is set to termination-failed and the presence state of the service unit is also set to termination-failed.
+            {
+            ps = PresenceState::terminationFailed;
+            }
+          else if (presenceCounts[(int)PresenceState::restarting] == numComps) // When all components enter the restarting state, the service unit become restarting.  However, if only some components are restarting, the service unit is still instantiated.
+            {
+            ps = PresenceState::restarting;
+            }
+
+          if (ps != su->presenceState.value)
+            {
+            // Presence state changed.
+            logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%d] to [%d]", su->name.c_str(),su->presenceState.value, ps);
+            su->presenceState.value = ps;
+            // TODO: Event?
+            }
+            
+
           }
         }
 

@@ -46,9 +46,9 @@ typedef boost::unordered_map<SAFplus::AmfRedundancyPolicy,ClPluginHandle*> RedPo
 RedPolicyMap redPolicies;
 
 // IOC related globals
-ClUint32T clAspLocalId = 0x1;
-ClUint32T chassisId = 0x0;
-ClBoolT   gIsNodeRepresentative = CL_TRUE;
+//ClUint32T clAspLocalId = 0x1;
+extern ClUint32T chassisId;
+extern ClBoolT   gIsNodeRepresentative;
 
 SAFplusAmf::SAFplusAmfRoot cfg;
 
@@ -373,13 +373,13 @@ int main(int argc, char* argv[])
   Mutex m;
   ThreadCondition somethingChanged;
   bool firstTime=true;
-
+  gIsNodeRepresentative = CL_TRUE;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
 
   if (parseArgs(argc,argv)<=0) return -1;
 
-  clAspLocalId  = SAFplus::ASP_NODEADDR;  // TODO: remove clAspLocalId
+  //clAspLocalId  = SAFplus::ASP_NODEADDR;  // TODO: remove clAspLocalId
 
   SafplusInitializationConfiguration sic;
   sic.iocPort     = SAFplusI::AMF_IOC_PORT;
@@ -390,7 +390,7 @@ int main(int argc, char* argv[])
   //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
   SAFplus::Rpc::amfRpc::amfRpcImpl amfRpcMsgHandler;
   // Handle RPC
-  //Start Sever RPC
+  //Start Server RPC
   ClIocAddressT dest;
 
   dest.iocPhyAddress.nodeAddress = SAFplus::ASP_NODEADDR;  //CL_IOC_BROADCAST_ADDRESS;
@@ -399,7 +399,7 @@ int main(int argc, char* argv[])
   SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, dest);
   channel->setMsgType(AMF_REQ_HANDLER_TYPE, AMF_REPLY_HANDLER_TYPE);
   channel->service = &amfRpcMsgHandler;
-  //End server TPC
+  //End server RPC
 
 #ifdef AMF_GRP_NODE_REPRESENTATIVE
   SAFplusI::GroupServer gs;

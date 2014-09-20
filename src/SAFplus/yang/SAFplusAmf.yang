@@ -117,21 +117,25 @@ point.  The operational, administrative, and presence states of a service unit, 
     {
       type enumeration
       {
-	enum active
+	enum active  // SA_AMF_HA_ACTIVE = 1,
 	{
+	  value 1;
 	  description "The service unit is currently responsible for providing the service characterized by this service instance.";
 	}
-	enum standby
+	enum standby // SA_AMF_HA_STANDBY = 2
 	{
+	  value 2;
 	  description "The service unit acts as a standby for the service characterized by this service instance.";
 	}
-	enum quiescing
+	enum idle  // SA_AMF_HA_QUIESCED = 3
 	{
-	  description "This entity is in the process of stopping its active or standby activity.  This is a transitional state; when completed it will automatically change to idle.";
-	}
-	enum idle
-	{
+	  value 3;
 	  description "SA-Forum 'quiesced': this entity has no high availability assignments.";
+	}
+	enum quiescing  // SA_AMF_HA_QUIESCING = 4
+	{
+	  value 4;
+	  description "This entity is in the process of stopping its active or standby activity.  This is a transitional state; when completed it will automatically change to idle.";
 	}
       }
     }
@@ -826,6 +830,20 @@ are switched over to other nodes (component service instances are not abruptly r
 
       // ?? AmfSIProtectedbySG
 
+      leaf preferredActiveAssignments
+      {
+        type uint32;
+	safplus:ui-prompt "Preferred Active Assignments: ";
+	description "What is the optimal number of Service Units that should be given an active assignment for this work?";
+      }
+
+      leaf preferredStandbyAssignments
+      {
+        type uint32;
+	safplus:ui-prompt "Preferred Standby Assignments: ";
+	description "What is the optimal number of Service Units that should be given a standby assignment for this work?";
+      }
+      
       leaf rank
       {
 	safplus:alias saAmfSIRank;
@@ -1004,6 +1022,15 @@ are switched over to other nodes (component service instances are not abruptly r
         type instance-identifier;
         safplus:c-type "ServiceGroup*";       
      }
+
+     leaf probationTime
+      {
+	type uint32;
+	default 0;
+	description "Once this Service Unit is instantiated, how long should I wait before assigning it?";
+	safplus:ui-prompt "Startup probation Time: ";
+      }
+
 
       description "A Service Unit is a group of processes that all fail over together.  All service unit members must be run on the same node.";
     }
