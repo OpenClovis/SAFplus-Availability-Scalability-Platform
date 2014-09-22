@@ -5217,6 +5217,35 @@ clAmsPeSUFaultReport(
      * Update the status of recovery for the faulty component.
      */
 
+    /*
+     * Application want to different active
+     */
+    if (*recovery == CL_AMS_RECOVERY_COMP_FAILOVER)
+      {
+        // Check others SUs to failover or restart
+        ClAmsEntityRefT *entityRef;
+        ClBoolT foundOtherSU = CL_FALSE;
+
+        for ( entityRef = clAmsEntityListGetFirst(&sg->config.suList);
+              entityRef != (ClAmsEntityRefT *) NULL;
+              entityRef = clAmsEntityListGetNext(&sg->config.suList,entityRef) )
+        {
+            ClAmsSUT *suRef = (ClAmsSUT *) entityRef->ptr;
+            if ((!suRef) || (suRef == su)) continue;
+
+            if (suRef->status.operState == CL_AMS_OPER_STATE_ENABLED && suRef->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATED)
+              {
+                foundOtherSU = CL_TRUE;
+                break;
+              }
+        }
+        /*
+         * SU failover with restart
+         */
+        if (!foundOtherSU)
+          *recovery = CL_AMS_RECOVERY_SU_RESTART;
+      }
+
     recommendedRecovery = *recovery;
 
     AMS_CALL ( clAmsPeSUComputeRecoveryAction(su, recovery, escalation) );
@@ -21121,8 +21150,7 @@ clAmsPeEntityRecoveryScopeLarger(
         case CL_AMS_RECOVERY_INTERNALLY_RECOVERED:
         {
             if ( (b == CL_AMS_RECOVERY_NONE)            ||
-                 (b == CL_AMS_RECOVERY_COMP_RESTART)    ||
-                 (b == CL_AMS_RECOVERY_SU_RESTART) )
+                 (b == CL_AMS_RECOVERY_COMP_RESTART) )
             {
                 return CL_TRUE;
             }
