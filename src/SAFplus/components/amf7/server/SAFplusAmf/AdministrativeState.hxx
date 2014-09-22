@@ -16,11 +16,12 @@ namespace SAFplusAmf
   {
 
     enum class AdministrativeState
-  {
+      {
         off=0, idle=1, on=2
       };
     std::ostream& operator<<(std::ostream& os, const AdministrativeState& e);
     std::istream& operator>>(std::istream& is, AdministrativeState& e);
+    const char* c_str(const AdministrativeState& e);
 
     /*
      * This is the class that will handle the conversion for us.
@@ -28,7 +29,7 @@ namespace SAFplusAmf
     class AdministrativeStateManager : public SAFplus::MgtEnumType<AdministrativeStateManager, AdministrativeState> {
         AdministrativeStateManager();  // private to prevent instantiation
     public:
-        static const vec_t en2str_vec;  // This is the lookup table.
+        static const map_t en2str_map;  // This is the lookup table.
     };
 }
 /* namespace SAFplusAmf */

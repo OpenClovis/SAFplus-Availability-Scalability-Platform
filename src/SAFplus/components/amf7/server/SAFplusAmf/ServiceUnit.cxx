@@ -8,6 +8,7 @@
 #include "RestartCount.hxx"
 #include "Node.hxx"
 #include <string>
+#include "clTransaction.hxx"
 #include "NumActiveServiceInstances.hxx"
 #include "RestartCount.hxx"
 #include "Component.hxx"
@@ -104,9 +105,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/adminState
      */
-    void ServiceUnit::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
+    void ServiceUnit::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.value = adminStateValue;
+        this->adminState.set(adminStateValue,t);
     };
 
     /*
@@ -120,9 +121,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/rank
      */
-    void ServiceUnit::setRank(unsigned int rankValue)
+    void ServiceUnit::setRank(unsigned int rankValue, SAFplus::Transaction &t)
     {
-        this->rank.value = rankValue;
+        this->rank.set(rankValue,t);
     };
 
     /*
@@ -136,9 +137,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/failover
      */
-    void ServiceUnit::setFailover(bool failoverValue)
+    void ServiceUnit::setFailover(bool failoverValue, SAFplus::Transaction &t)
     {
-        this->failover.value = failoverValue;
+        this->failover.set(failoverValue,t);
     };
 
     /*
@@ -152,9 +153,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/preinstantiable
      */
-    void ServiceUnit::setPreinstantiable(bool preinstantiableValue)
+    void ServiceUnit::setPreinstantiable(bool preinstantiableValue, SAFplus::Transaction &t)
     {
-        this->preinstantiable.value = preinstantiableValue;
+        this->preinstantiable.set(preinstantiableValue,t);
     };
 
     /*
@@ -168,9 +169,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/saAmfSUHostNodeOrNodeGroup
      */
-    void ServiceUnit::setSaAmfSUHostNodeOrNodeGroup(std::string saAmfSUHostNodeOrNodeGroupValue)
+    void ServiceUnit::setSaAmfSUHostNodeOrNodeGroup(std::string saAmfSUHostNodeOrNodeGroupValue, SAFplus::Transaction &t)
     {
-        this->saAmfSUHostNodeOrNodeGroup.value = saAmfSUHostNodeOrNodeGroupValue;
+        this->saAmfSUHostNodeOrNodeGroup.set(saAmfSUHostNodeOrNodeGroupValue,t);
     };
 
     /*
@@ -184,9 +185,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/presenceState
      */
-    void ServiceUnit::setPresenceState(SAFplusAmf::PresenceState presenceStateValue)
+    void ServiceUnit::setPresenceState(SAFplusAmf::PresenceState presenceStateValue, SAFplus::Transaction &t)
     {
-        this->presenceState.value = presenceStateValue;
+        this->presenceState.set(presenceStateValue,t);
     };
 
     /*
@@ -200,9 +201,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/readinessState
      */
-    void ServiceUnit::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue)
+    void ServiceUnit::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t)
     {
-        this->readinessState.value = readinessStateValue;
+        this->readinessState.set(readinessStateValue,t);
     };
 
     /*
@@ -216,9 +217,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/haReadinessState
      */
-    void ServiceUnit::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue)
+    void ServiceUnit::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t)
     {
-        this->haReadinessState.value = haReadinessStateValue;
+        this->haReadinessState.set(haReadinessStateValue,t);
     };
 
     /*
@@ -232,9 +233,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/haState
      */
-    void ServiceUnit::setHaState(SAFplusAmf::HighAvailabilityState haStateValue)
+    void ServiceUnit::setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t)
     {
-        this->haState.value = haStateValue;
+        this->haState.set(haStateValue,t);
     };
 
     /*
@@ -248,9 +249,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/operState
      */
-    void ServiceUnit::setOperState(bool operStateValue)
+    void ServiceUnit::setOperState(bool operStateValue, SAFplus::Transaction &t)
     {
-        this->operState.value = operStateValue;
+        this->operState.set(operStateValue,t);
     };
 
     /*
@@ -296,9 +297,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/node
      */
-    void ServiceUnit::setNode(SAFplusAmf::Node* nodeValue)
+    void ServiceUnit::setNode(SAFplusAmf::Node* nodeValue, SAFplus::Transaction &t)
     {
-        this->node.value = nodeValue;
+        this->node.set(nodeValue,t);
     };
 
     /*
@@ -312,9 +313,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/serviceGroup
      */
-    void ServiceUnit::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue)
+    void ServiceUnit::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue, SAFplus::Transaction &t)
     {
-        this->serviceGroup.value = serviceGroupValue;
+        this->serviceGroup.set(serviceGroupValue,t);
     };
 
     /*
@@ -328,9 +329,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceUnit/probationTime
      */
-    void ServiceUnit::setProbationTime(unsigned int probationTimeValue)
+    void ServiceUnit::setProbationTime(unsigned int probationTimeValue, SAFplus::Transaction &t)
     {
-        this->probationTime.value = probationTimeValue;
+        this->probationTime.set(probationTimeValue,t);
     };
 
     /*

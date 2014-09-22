@@ -90,7 +90,7 @@ std::string strprintf(const std::string fmt_str, ...);
       If str is too long, then this function will ASSERT in debug mode, and crop in production mode 
   */
   void saNameSet(SaNameT* name, const char* str);
-  void saNameSet(SaNameT* name, const std::string& str) { saNameSet(name,str.c_str()); }
+  //void saNameSet(SaNameT* name, const std::string& str) { saNameSet(name,(const char*) str.c_str()); }
 
   /** \brief  Load the str from a SaNameT structure.
       \param  name The string you want to read.

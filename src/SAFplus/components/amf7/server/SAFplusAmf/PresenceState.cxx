@@ -14,9 +14,9 @@ namespace SAFplusAmf
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const PresenceStateManager::vec_t PresenceStateManager::en2str_vec = {
+    const PresenceStateManager::map_t PresenceStateManager::en2str_map = {
             pair_t(PresenceState::uninstantiated, "uninstantiated"),
             pair_t(PresenceState::instantiating, "instantiating"),
             pair_t(PresenceState::instantiated, "instantiated"),
@@ -25,6 +25,11 @@ namespace SAFplusAmf
             pair_t(PresenceState::instantiationFailed, "instantiationFailed"),
             pair_t(PresenceState::terminationFailed, "terminationFailed")
     }; // uses c++11 initializer lists 
+
+    const char* c_str(const SAFplusAmf::PresenceState &presenceState)
+    {
+        return PresenceStateManager::c_str(presenceState);
+    };
 
     std::ostream& operator<<(std::ostream &os, const SAFplusAmf::PresenceState &presenceState)
     {

@@ -22,11 +22,6 @@ namespace SAFplusAmf
         this->name.assign("componentRestart");
     };
 
-    void ComponentRestart::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* ComponentRestart::getChildNames()
     {
         std::string childNames[] = { "maximum", "duration" };

@@ -14,13 +14,18 @@ namespace SAFplusAmf
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const AdministrativeStateManager::vec_t AdministrativeStateManager::en2str_vec = {
+    const AdministrativeStateManager::map_t AdministrativeStateManager::en2str_map = {
             pair_t(AdministrativeState::off, "off"),
             pair_t(AdministrativeState::idle, "idle"),
             pair_t(AdministrativeState::on, "on")
     }; // uses c++11 initializer lists 
+
+    const char* c_str(const SAFplusAmf::AdministrativeState &administrativeState)
+    {
+        return AdministrativeStateManager::c_str(administrativeState);
+    };
 
     std::ostream& operator<<(std::ostream &os, const SAFplusAmf::AdministrativeState &administrativeState)
     {

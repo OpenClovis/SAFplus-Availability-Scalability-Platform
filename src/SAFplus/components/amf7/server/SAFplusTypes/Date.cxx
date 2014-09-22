@@ -6,6 +6,7 @@
 #include "SAFplusTypesCommon.hxx"
 
 #include <iostream>
+#include "clTransaction.hxx"
 #include "Date.hxx"
 
 
@@ -18,17 +19,22 @@ namespace SAFplusTypes
 
     unsigned long int Date::getValue()
     {
-        return this->value;
+        return this->Value;
     };
 
-    void Date::setValue(unsigned long int value)
+    void Date::setValue(unsigned long int value, SAFplus::Transaction &t)
     {
-        this->value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned long int> *opt = new SAFplus::SimpleTxnOperation<unsigned long int>(&Value,value);
+            t.addOperation(opt);
+        }
     };
 
     SAFplusTypes::Date& Date::operator=(const SAFplusTypes::Date &date)
     {
-        value = date.value;
+        Value = date.Value;
         return *this;
     };
 
@@ -38,12 +44,12 @@ namespace SAFplusTypes
 
     std::ostream& operator<<(std::ostream &os, const SAFplusTypes::Date &date)
     {
-        return os << date.value;
+        return os << date.Value;
     };
 
     std::istream& operator>>(std::istream &is, SAFplusTypes::Date &date)
     {
-        return is >> date.value;
+        return is >> date.Value;
     };
 
 }

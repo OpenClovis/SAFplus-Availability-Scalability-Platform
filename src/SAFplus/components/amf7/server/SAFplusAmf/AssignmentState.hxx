@@ -16,11 +16,12 @@ namespace SAFplusAmf
   {
 
     enum class AssignmentState
-  {
+      {
         unassigned, fullyAssigned, partiallyAssigned
       };
     std::ostream& operator<<(std::ostream& os, const AssignmentState& e);
     std::istream& operator>>(std::istream& is, AssignmentState& e);
+    const char* c_str(const AssignmentState& e);
 
     /*
      * This is the class that will handle the conversion for us.
@@ -28,7 +29,7 @@ namespace SAFplusAmf
     class AssignmentStateManager : public SAFplus::MgtEnumType<AssignmentStateManager, AssignmentState> {
         AssignmentStateManager();  // private to prevent instantiation
     public:
-        static const vec_t en2str_vec;  // This is the lookup table.
+        static const map_t en2str_map;  // This is the lookup table.
     };
 }
 /* namespace SAFplusAmf */

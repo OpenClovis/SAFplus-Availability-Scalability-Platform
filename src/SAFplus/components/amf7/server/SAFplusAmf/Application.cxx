@@ -7,6 +7,7 @@
 
 #include "NumServiceGroups.hxx"
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
@@ -69,9 +70,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Application/adminState
      */
-    void Application::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
+    void Application::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.value = adminStateValue;
+        this->adminState.set(adminStateValue,t);
     };
 
     /*
@@ -101,9 +102,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Application/keepTogether
      */
-    void Application::setKeepTogether(bool keepTogetherValue)
+    void Application::setKeepTogether(bool keepTogetherValue, SAFplus::Transaction &t)
     {
-        this->keepTogether.value = keepTogetherValue;
+        this->keepTogether.set(keepTogetherValue,t);
     };
 
     /*

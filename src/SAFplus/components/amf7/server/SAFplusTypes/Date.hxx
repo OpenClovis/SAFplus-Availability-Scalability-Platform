@@ -10,18 +10,19 @@
 #include "SAFplusTypesCommon.hxx"
 
 #include <iostream>
+#include "clTransaction.hxx"
 
 namespace SAFplusTypes
   {
 
     class Date {
     public:
-        unsigned long int value;
+        unsigned long int Value;
 
     public:
         Date();
         unsigned long int getValue();
-        void setValue(unsigned long int value);
+        void setValue(unsigned long int value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         SAFplusTypes::Date& operator=(const SAFplusTypes::Date &date);
         friend std::ostream& operator<<(std::ostream &os, const SAFplusTypes::Date &date);
         friend std::istream& operator>>(std::istream &is, SAFplusTypes::Date &date);

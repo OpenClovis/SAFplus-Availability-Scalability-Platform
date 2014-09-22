@@ -22,11 +22,6 @@ namespace SAFplusAmf
         this->name.assign("instantiate");
     };
 
-    void Instantiate::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* Instantiate::getChildNames()
     {
         std::string childNames[] = { "command", "timeout" };

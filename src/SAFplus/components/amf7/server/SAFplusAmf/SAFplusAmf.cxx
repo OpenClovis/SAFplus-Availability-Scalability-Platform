@@ -47,11 +47,6 @@ namespace SAFplusAmf
         entityByIdList.setListKey("id");
     };
 
-    void SAFplusAmfRoot::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* SAFplusAmfRoot::getChildNames()
     {
         std::string childNames[] = { "Cluster", "Node", "ServiceGroup", "Component", "ComponentServiceInstance", "ServiceInstance", "ServiceUnit", "Application", "EntityByName", "EntityById", "healthCheckPeriod", "healthCheckMaxSilence" };

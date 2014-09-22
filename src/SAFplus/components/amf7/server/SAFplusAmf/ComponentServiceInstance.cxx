@@ -6,6 +6,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
 #include "Component.hxx"
@@ -104,9 +105,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/serviceInstance
      */
-    void ComponentServiceInstance::setServiceInstance(SAFplusAmf::ServiceInstance* serviceInstanceValue)
+    void ComponentServiceInstance::setServiceInstance(SAFplusAmf::ServiceInstance* serviceInstanceValue, SAFplus::Transaction &t)
     {
-        this->serviceInstance.value = serviceInstanceValue;
+        this->serviceInstance.set(serviceInstanceValue,t);
     };
 
     /*
@@ -120,9 +121,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ComponentServiceInstance/component
      */
-    void ComponentServiceInstance::setComponent(SAFplusAmf::Component* componentValue)
+    void ComponentServiceInstance::setComponent(SAFplusAmf::Component* componentValue, SAFplus::Transaction &t)
     {
-        this->component.value = componentValue;
+        this->component.set(componentValue,t);
     };
 
     ComponentServiceInstance::~ComponentServiceInstance()

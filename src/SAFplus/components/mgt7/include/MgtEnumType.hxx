@@ -21,36 +21,40 @@
 #define MGTENUMTYPE_HXX_
 
 #include <string>
-#include <vector>
+#include <map>
 
 namespace SAFplus
 {
     template <typename EnumMgr, typename Enum>
     struct MgtEnumType {
         typedef std::pair<Enum, std::string> pair_t;
-        typedef std::vector<pair_t> vec_t;
-        typedef typename vec_t::const_iterator vec_t_iter;
+        typedef std::map<Enum, std::string> map_t;
+        typedef typename map_t::const_iterator map_t_iter;
         static std::string toString(const Enum en);
         static Enum toEnum(const std::string &en);
+        static const char* c_str(const Enum en);
     };
 
     template <typename EnumMgr, typename Enum>
     std::string MgtEnumType<EnumMgr, Enum>::toString(const Enum en) {
-        for (vec_t_iter it = EnumMgr::en2str_vec.begin(); it < EnumMgr::en2str_vec.end(); it++) {
-            if (en == it->first)
-                return it->second;
-        }
-        return "";
+        return EnumMgr::en2str_map.find(en)->second;
     }
 
     template <typename EnumMgr, typename Enum>
     Enum MgtEnumType<EnumMgr, Enum>::toEnum(const std::string &en) {
-        for (vec_t_iter it = EnumMgr::en2str_vec.begin(); it < EnumMgr::en2str_vec.end(); it++) {
-            if (en == it->second)
+        map_t_iter it = EnumMgr::en2str_map.begin();
+        while (it != EnumMgr::en2str_map.end())
+          {
+            if (!en.compare(it->second))
                 return it->first;
-        }
+            it++;
+          }
         return (Enum)0;
     }
 
+    template <typename EnumMgr, typename Enum>
+    const char* MgtEnumType<EnumMgr, Enum>::c_str(const Enum en) {
+        return static_cast<const char*>(EnumMgr::en2str_map.find(en)->second.c_str());
+    }
 } /* namespace SAFplus */
 #endif /* MGTENUMTYPE_HXX_ */

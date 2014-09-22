@@ -10,6 +10,7 @@
 #include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
+#include "clTransaction.hxx"
 
 namespace ietfYangTypes
   {
@@ -21,7 +22,7 @@ namespace ietfYangTypes
     public:
         Gauge32();
         unsigned int getValue();
-        void setValue(unsigned int value);
+        void setValue(unsigned int value, SAFplus::Transaction &t=SAFplus::NO_TXN);
         ietfYangTypes::Gauge32& operator=(const ietfYangTypes::Gauge32 &gauge32);
         friend std::ostream& operator<<(std::ostream &os, const ietfYangTypes::Gauge32 &gauge32);
         friend std::istream& operator>>(std::istream &is, ietfYangTypes::Gauge32 &gauge32);

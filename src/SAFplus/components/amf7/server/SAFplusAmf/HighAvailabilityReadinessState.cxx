@@ -14,14 +14,19 @@ namespace SAFplusAmf
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const HighAvailabilityReadinessStateManager::vec_t HighAvailabilityReadinessStateManager::en2str_vec = {
+    const HighAvailabilityReadinessStateManager::map_t HighAvailabilityReadinessStateManager::en2str_map = {
             pair_t(HighAvailabilityReadinessState::readyForAssignment, "readyForAssignment"),
             pair_t(HighAvailabilityReadinessState::readyForActiveDegraded, "readyForActiveDegraded"),
             pair_t(HighAvailabilityReadinessState::notReadyForActive, "notReadyForActive"),
             pair_t(HighAvailabilityReadinessState::notReadyForAssignment, "notReadyForAssignment")
     }; // uses c++11 initializer lists 
+
+    const char* c_str(const SAFplusAmf::HighAvailabilityReadinessState &highAvailabilityReadinessState)
+    {
+        return HighAvailabilityReadinessStateManager::c_str(highAvailabilityReadinessState);
+    };
 
     std::ostream& operator<<(std::ostream &os, const SAFplusAmf::HighAvailabilityReadinessState &highAvailabilityReadinessState)
     {

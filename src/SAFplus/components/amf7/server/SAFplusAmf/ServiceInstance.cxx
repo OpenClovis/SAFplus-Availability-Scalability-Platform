@@ -7,17 +7,18 @@
 
 #include "AssignmentState.hxx"
 #include <string>
-#include "clMgtProv.hxx"
+#include "clTransaction.hxx"
 #include "StandbyAssignments.hxx"
-#include "StandbyAssignments.hxx"
-#include "ServiceGroup.hxx"
 #include "ComponentServiceInstance.hxx"
 #include "clMgtList.hxx"
-#include <vector>
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
-#include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
+#include "clMgtProv.hxx"
+#include "StandbyAssignments.hxx"
+#include "ServiceGroup.hxx"
+#include <vector>
+#include "ActiveAssignments.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
 #include "ServiceInstance.hxx"
@@ -86,9 +87,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/adminState
      */
-    void ServiceInstance::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
+    void ServiceInstance::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.value = adminStateValue;
+        this->adminState.set(adminStateValue,t);
     };
 
     /*
@@ -102,9 +103,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/assignmentState
      */
-    void ServiceInstance::setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue)
+    void ServiceInstance::setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue, SAFplus::Transaction &t)
     {
-        this->assignmentState.value = assignmentStateValue;
+        this->assignmentState.set(assignmentStateValue,t);
     };
 
     /*
@@ -118,9 +119,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/preferredActiveAssignments
      */
-    void ServiceInstance::setPreferredActiveAssignments(unsigned int preferredActiveAssignmentsValue)
+    void ServiceInstance::setPreferredActiveAssignments(unsigned int preferredActiveAssignmentsValue, SAFplus::Transaction &t)
     {
-        this->preferredActiveAssignments.value = preferredActiveAssignmentsValue;
+        this->preferredActiveAssignments.set(preferredActiveAssignmentsValue,t);
     };
 
     /*
@@ -134,9 +135,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/preferredStandbyAssignments
      */
-    void ServiceInstance::setPreferredStandbyAssignments(unsigned int preferredStandbyAssignmentsValue)
+    void ServiceInstance::setPreferredStandbyAssignments(unsigned int preferredStandbyAssignmentsValue, SAFplus::Transaction &t)
     {
-        this->preferredStandbyAssignments.value = preferredStandbyAssignmentsValue;
+        this->preferredStandbyAssignments.set(preferredStandbyAssignmentsValue,t);
     };
 
     /*
@@ -150,9 +151,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/rank
      */
-    void ServiceInstance::setRank(unsigned int rankValue)
+    void ServiceInstance::setRank(unsigned int rankValue, SAFplus::Transaction &t)
     {
-        this->rank.value = rankValue;
+        this->rank.set(rankValue,t);
     };
 
     /*
@@ -182,9 +183,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/ServiceInstance/serviceGroup
      */
-    void ServiceInstance::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue)
+    void ServiceInstance::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue, SAFplus::Transaction &t)
     {
-        this->serviceGroup.value = serviceGroupValue;
+        this->serviceGroup.set(serviceGroupValue,t);
     };
 
     /*

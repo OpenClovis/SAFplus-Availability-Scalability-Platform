@@ -21,11 +21,6 @@ namespace SAFplusAmf
         this->addChildObject(&duration, "duration");
     };
 
-    void EscalationPolicy::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* EscalationPolicy::getChildNames()
     {
         std::string childNames[] = { "maximum", "duration" };

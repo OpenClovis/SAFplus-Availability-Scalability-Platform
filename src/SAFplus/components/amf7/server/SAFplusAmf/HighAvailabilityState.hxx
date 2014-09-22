@@ -16,11 +16,12 @@ namespace SAFplusAmf
   {
 
     enum class HighAvailabilityState
-  {
-        active, standby, quiescing, idle
+      {
+        active=1, standby=2, idle=3, quiescing=4
       };
     std::ostream& operator<<(std::ostream& os, const HighAvailabilityState& e);
     std::istream& operator>>(std::istream& is, HighAvailabilityState& e);
+    const char* c_str(const HighAvailabilityState& e);
 
     /*
      * This is the class that will handle the conversion for us.
@@ -28,7 +29,7 @@ namespace SAFplusAmf
     class HighAvailabilityStateManager : public SAFplus::MgtEnumType<HighAvailabilityStateManager, HighAvailabilityState> {
         HighAvailabilityStateManager();  // private to prevent instantiation
     public:
-        static const vec_t en2str_vec;  // This is the lookup table.
+        static const map_t en2str_map;  // This is the lookup table.
     };
 }
 /* namespace SAFplusAmf */

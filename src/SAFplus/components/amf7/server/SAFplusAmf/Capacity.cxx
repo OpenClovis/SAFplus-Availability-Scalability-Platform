@@ -6,6 +6,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
@@ -60,9 +61,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/capacity/resource
      */
-    void Capacity::setResource(std::string resourceValue)
+    void Capacity::setResource(std::string resourceValue, SAFplus::Transaction &t)
     {
-        this->resource.value = resourceValue;
+        this->resource.set(resourceValue,t);
     };
 
     /*
@@ -76,9 +77,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/capacity/value
      */
-    void Capacity::setValue(long int valueValue)
+    void Capacity::setValue(long int valueValue, SAFplus::Transaction &t)
     {
-        this->value.value = valueValue;
+        this->value.set(valueValue,t);
     };
 
     Capacity::~Capacity()

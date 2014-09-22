@@ -7,6 +7,7 @@
 
 #include "RestartCount.hxx"
 #include <string>
+#include "clTransaction.hxx"
 #include "HighAvailabilityReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
@@ -132,9 +133,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/presence
      */
-    void Component::setPresence(SAFplusAmf::PresenceState presenceValue)
+    void Component::setPresence(SAFplusAmf::PresenceState presenceValue, SAFplus::Transaction &t)
     {
-        this->presence.value = presenceValue;
+        this->presence.set(presenceValue,t);
     };
 
     /*
@@ -148,9 +149,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/capabilityModel
      */
-    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue)
+    void Component::setCapabilityModel(SAFplusAmf::CapabilityModel capabilityModelValue, SAFplus::Transaction &t)
     {
-        this->capabilityModel.value = capabilityModelValue;
+        this->capabilityModel.set(capabilityModelValue,t);
     };
 
     /*
@@ -164,9 +165,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxActiveAssignments
      */
-    void Component::setMaxActiveAssignments(unsigned int maxActiveAssignmentsValue)
+    void Component::setMaxActiveAssignments(unsigned int maxActiveAssignmentsValue, SAFplus::Transaction &t)
     {
-        this->maxActiveAssignments.value = maxActiveAssignmentsValue;
+        this->maxActiveAssignments.set(maxActiveAssignmentsValue,t);
     };
 
     /*
@@ -180,9 +181,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxStandbyAssignments
      */
-    void Component::setMaxStandbyAssignments(unsigned int maxStandbyAssignmentsValue)
+    void Component::setMaxStandbyAssignments(unsigned int maxStandbyAssignmentsValue, SAFplus::Transaction &t)
     {
-        this->maxStandbyAssignments.value = maxStandbyAssignmentsValue;
+        this->maxStandbyAssignments.set(maxStandbyAssignmentsValue,t);
     };
 
     /*
@@ -212,9 +213,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/operState
      */
-    void Component::setOperState(bool operStateValue)
+    void Component::setOperState(bool operStateValue, SAFplus::Transaction &t)
     {
-        this->operState.value = operStateValue;
+        this->operState.set(operStateValue,t);
     };
 
     /*
@@ -228,9 +229,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/readinessState
      */
-    void Component::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue)
+    void Component::setReadinessState(SAFplusAmf::ReadinessState readinessStateValue, SAFplus::Transaction &t)
     {
-        this->readinessState.value = readinessStateValue;
+        this->readinessState.set(readinessStateValue,t);
     };
 
     /*
@@ -244,9 +245,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/haReadinessState
      */
-    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue)
+    void Component::setHaReadinessState(SAFplusAmf::HighAvailabilityReadinessState haReadinessStateValue, SAFplus::Transaction &t)
     {
-        this->haReadinessState.value = haReadinessStateValue;
+        this->haReadinessState.set(haReadinessStateValue,t);
     };
 
     /*
@@ -260,9 +261,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/haState
      */
-    void Component::setHaState(SAFplusAmf::HighAvailabilityState haStateValue)
+    void Component::setHaState(SAFplusAmf::HighAvailabilityState haStateValue, SAFplus::Transaction &t)
     {
-        this->haState.value = haStateValue;
+        this->haState.set(haStateValue,t);
     };
 
     /*
@@ -276,9 +277,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/safVersion
      */
-    void Component::setSafVersion(std::string safVersionValue)
+    void Component::setSafVersion(std::string safVersionValue, SAFplus::Transaction &t)
     {
-        this->safVersion.value = safVersionValue;
+        this->safVersion.set(safVersionValue,t);
     };
 
     /*
@@ -292,9 +293,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/compCategory
      */
-    void Component::setCompCategory(unsigned int compCategoryValue)
+    void Component::setCompCategory(unsigned int compCategoryValue, SAFplus::Transaction &t)
     {
-        this->compCategory.value = compCategoryValue;
+        this->compCategory.set(compCategoryValue,t);
     };
 
     /*
@@ -308,9 +309,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/swBundle
      */
-    void Component::setSwBundle(std::string swBundleValue)
+    void Component::setSwBundle(std::string swBundleValue, SAFplus::Transaction &t)
     {
-        this->swBundle.value = swBundleValue;
+        this->swBundle.set(swBundleValue,t);
     };
 
     /*
@@ -340,9 +341,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxInstantInstantiations
      */
-    void Component::setMaxInstantInstantiations(unsigned int maxInstantInstantiationsValue)
+    void Component::setMaxInstantInstantiations(unsigned int maxInstantInstantiationsValue, SAFplus::Transaction &t)
     {
-        this->maxInstantInstantiations.value = maxInstantInstantiationsValue;
+        this->maxInstantInstantiations.set(maxInstantInstantiationsValue,t);
     };
 
     /*
@@ -356,9 +357,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/maxDelayedInstantiations
      */
-    void Component::setMaxDelayedInstantiations(unsigned int maxDelayedInstantiationsValue)
+    void Component::setMaxDelayedInstantiations(unsigned int maxDelayedInstantiationsValue, SAFplus::Transaction &t)
     {
-        this->maxDelayedInstantiations.value = maxDelayedInstantiationsValue;
+        this->maxDelayedInstantiations.set(maxDelayedInstantiationsValue,t);
     };
 
     /*
@@ -372,9 +373,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/numInstantiationAttempts
      */
-    void Component::setNumInstantiationAttempts(unsigned int numInstantiationAttemptsValue)
+    void Component::setNumInstantiationAttempts(unsigned int numInstantiationAttemptsValue, SAFplus::Transaction &t)
     {
-        this->numInstantiationAttempts.value = numInstantiationAttemptsValue;
+        this->numInstantiationAttempts.set(numInstantiationAttemptsValue,t);
     };
 
     /*
@@ -388,9 +389,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/lastInstantiation
      */
-    void Component::setLastInstantiation(SAFplusTypes::Date lastInstantiationValue)
+    void Component::setLastInstantiation(SAFplusTypes::Date lastInstantiationValue, SAFplus::Transaction &t)
     {
-        this->lastInstantiation.value = lastInstantiationValue;
+        this->lastInstantiation.set(lastInstantiationValue,t);
     };
 
     /*
@@ -404,9 +405,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/delayBetweenInstantiation
      */
-    void Component::setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue)
+    void Component::setDelayBetweenInstantiation(unsigned int delayBetweenInstantiationValue, SAFplus::Transaction &t)
     {
-        this->delayBetweenInstantiation.value = delayBetweenInstantiationValue;
+        this->delayBetweenInstantiation.set(delayBetweenInstantiationValue,t);
     };
 
     /*
@@ -420,9 +421,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/serviceUnit
      */
-    void Component::setServiceUnit(SAFplusAmf::ServiceUnit* serviceUnitValue)
+    void Component::setServiceUnit(SAFplusAmf::ServiceUnit* serviceUnitValue, SAFplus::Transaction &t)
     {
-        this->serviceUnit.value = serviceUnitValue;
+        this->serviceUnit.set(serviceUnitValue,t);
     };
 
     /*
@@ -436,9 +437,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/recovery
      */
-    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue)
+    void Component::setRecovery(SAFplusAmf::Recovery recoveryValue, SAFplus::Transaction &t)
     {
-        this->recovery.value = recoveryValue;
+        this->recovery.set(recoveryValue,t);
     };
 
     /*
@@ -452,9 +453,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/restartable
      */
-    void Component::setRestartable(bool restartableValue)
+    void Component::setRestartable(bool restartableValue, SAFplus::Transaction &t)
     {
-        this->restartable.value = restartableValue;
+        this->restartable.set(restartableValue,t);
     };
 
     /*
@@ -468,9 +469,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/proxy
      */
-    void Component::setProxy(std::string proxyValue)
+    void Component::setProxy(std::string proxyValue, SAFplus::Transaction &t)
     {
-        this->proxy.value = proxyValue;
+        this->proxy.set(proxyValue,t);
     };
 
     /*
@@ -500,9 +501,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/processId
      */
-    void Component::setProcessId(int processIdValue)
+    void Component::setProcessId(int processIdValue, SAFplus::Transaction &t)
     {
-        this->processId.value = processIdValue;
+        this->processId.set(processIdValue,t);
     };
 
     /*
@@ -516,9 +517,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Component/lastError
      */
-    void Component::setLastError(std::string lastErrorValue)
+    void Component::setLastError(std::string lastErrorValue, SAFplus::Transaction &t)
     {
-        this->lastError.value = lastErrorValue;
+        this->lastError.set(lastErrorValue,t);
     };
 
     /*

@@ -14,13 +14,18 @@ namespace SAFplusTypes
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const LifecycleStateManager::vec_t LifecycleStateManager::en2str_vec = {
+    const LifecycleStateManager::map_t LifecycleStateManager::en2str_map = {
             pair_t(LifecycleState::start, "start"),
             pair_t(LifecycleState::idle, "idle"),
             pair_t(LifecycleState::stop, "stop")
     }; // uses c++11 initializer lists 
+
+    const char* c_str(const SAFplusTypes::LifecycleState &lifecycleState)
+    {
+        return LifecycleStateManager::c_str(lifecycleState);
+    };
 
     std::ostream& operator<<(std::ostream &os, const SAFplusTypes::LifecycleState &lifecycleState)
     {

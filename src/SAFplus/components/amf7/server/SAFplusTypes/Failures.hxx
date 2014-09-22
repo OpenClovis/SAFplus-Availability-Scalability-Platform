@@ -23,7 +23,6 @@ namespace SAFplusTypes
 
     public:
         Failures();
-        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~Failures();
 

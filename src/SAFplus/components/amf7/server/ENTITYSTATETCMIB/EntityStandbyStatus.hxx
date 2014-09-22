@@ -16,11 +16,12 @@ namespace ENTITYSTATETCMIB
   {
 
     enum class EntityStandbyStatus
-  {
+      {
         unknown=1, hotStandby=2, coldStandby=3, providingService=4
       };
     std::ostream& operator<<(std::ostream& os, const EntityStandbyStatus& e);
     std::istream& operator>>(std::istream& is, EntityStandbyStatus& e);
+    const char* c_str(const EntityStandbyStatus& e);
 
     /*
      * This is the class that will handle the conversion for us.
@@ -28,7 +29,7 @@ namespace ENTITYSTATETCMIB
     class EntityStandbyStatusManager : public SAFplus::MgtEnumType<EntityStandbyStatusManager, EntityStandbyStatus> {
         EntityStandbyStatusManager();  // private to prevent instantiation
     public:
-        static const vec_t en2str_vec;  // This is the lookup table.
+        static const map_t en2str_map;  // This is the lookup table.
     };
 }
 /* namespace ENTITYSTATETCMIB */

@@ -14,9 +14,9 @@ namespace SAFplusAmf
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const AssignmentStateManager::vec_t AssignmentStateManager::en2str_vec = {
+    const AssignmentStateManager::map_t AssignmentStateManager::en2str_map = {
             pair_t(AssignmentState::unassigned, "unassigned"),
             pair_t(AssignmentState::fullyAssigned, "fullyAssigned"),
             pair_t(AssignmentState::partiallyAssigned, "partiallyAssigned")

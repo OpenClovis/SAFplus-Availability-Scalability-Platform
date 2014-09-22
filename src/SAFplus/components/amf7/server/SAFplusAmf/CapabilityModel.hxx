@@ -16,11 +16,12 @@ namespace SAFplusAmf
   {
 
     enum class CapabilityModel
-  {
+      {
         x_active_and_y_standby, x_active_or_y_standby, one_active_or_y_standby, one_active_or_one_standby, x_active, one_active, nonPreInstantiable
       };
     std::ostream& operator<<(std::ostream& os, const CapabilityModel& e);
     std::istream& operator>>(std::istream& is, CapabilityModel& e);
+    const char* c_str(const CapabilityModel& e);
 
     /*
      * This is the class that will handle the conversion for us.
@@ -28,7 +29,7 @@ namespace SAFplusAmf
     class CapabilityModelManager : public SAFplus::MgtEnumType<CapabilityModelManager, CapabilityModel> {
         CapabilityModelManager();  // private to prevent instantiation
     public:
-        static const vec_t en2str_vec;  // This is the lookup table.
+        static const map_t en2str_map;  // This is the lookup table.
     };
 }
 /* namespace SAFplusAmf */

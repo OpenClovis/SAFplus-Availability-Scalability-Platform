@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
@@ -78,9 +79,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/adminState
      */
-    void Node::setAdminState(SAFplusAmf::AdministrativeState adminStateValue)
+    void Node::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.value = adminStateValue;
+        this->adminState.set(adminStateValue,t);
     };
 
     /*
@@ -94,9 +95,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/operState
      */
-    void Node::setOperState(bool operStateValue)
+    void Node::setOperState(bool operStateValue, SAFplus::Transaction &t)
     {
-        this->operState.value = operStateValue;
+        this->operState.set(operStateValue,t);
     };
 
     /*
@@ -110,9 +111,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/autoRepair
      */
-    void Node::setAutoRepair(bool autoRepairValue)
+    void Node::setAutoRepair(bool autoRepairValue, SAFplus::Transaction &t)
     {
-        this->autoRepair.value = autoRepairValue;
+        this->autoRepair.set(autoRepairValue,t);
     };
 
     /*
@@ -126,9 +127,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/failFastOnInstantiationFailure
      */
-    void Node::setFailFastOnInstantiationFailure(bool failFastOnInstantiationFailureValue)
+    void Node::setFailFastOnInstantiationFailure(bool failFastOnInstantiationFailureValue, SAFplus::Transaction &t)
     {
-        this->failFastOnInstantiationFailure.value = failFastOnInstantiationFailureValue;
+        this->failFastOnInstantiationFailure.set(failFastOnInstantiationFailureValue,t);
     };
 
     /*
@@ -142,9 +143,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/Node/failFastOnCleanupFailure
      */
-    void Node::setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue)
+    void Node::setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue, SAFplus::Transaction &t)
     {
-        this->failFastOnCleanupFailure.value = failFastOnCleanupFailureValue;
+        this->failFastOnCleanupFailure.set(failFastOnCleanupFailureValue,t);
     };
 
     /*

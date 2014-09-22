@@ -22,11 +22,6 @@ namespace SAFplusAmf
         this->addChildObject(&timeout, "timeout");
     };
 
-    void Execution::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* Execution::getChildNames()
     {
         std::string childNames[] = { "command", "timeout" };

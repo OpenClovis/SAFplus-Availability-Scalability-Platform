@@ -14,9 +14,9 @@ namespace SAFplusAmf
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const CapabilityModelManager::vec_t CapabilityModelManager::en2str_vec = {
+    const CapabilityModelManager::map_t CapabilityModelManager::en2str_map = {
             pair_t(CapabilityModel::x_active_and_y_standby, "x_active_and_y_standby"),
             pair_t(CapabilityModel::x_active_or_y_standby, "x_active_or_y_standby"),
             pair_t(CapabilityModel::one_active_or_y_standby, "one_active_or_y_standby"),

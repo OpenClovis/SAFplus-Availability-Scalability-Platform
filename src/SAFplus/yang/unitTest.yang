@@ -36,4 +36,29 @@ module unitTest
       type int64;
     }
   }
+  
+  
+
+    typedef AdministrativeState
+    {
+      type enumeration
+      {
+        enum off
+          {
+            description "SA-Forum 'lockedInstantiation': the administrator has prevented the service unit from being instantiated by the Availability Management Framework.";
+        value 0; 
+      }
+        enum idle 
+    { 
+      value 1;
+      description "SA-Forum 'locked': the administrator has prevented the service unit from taking service instance assignments.";
+    }
+        enum on
+    { 
+      value 2;
+      description "SA-Forum 'unlocked': the service unit has not been directly prohibited from taking service instance assignments by the administrator.";
+    }
+      }
+      default "on";  
+    }
 }

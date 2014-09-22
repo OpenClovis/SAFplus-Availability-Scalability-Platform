@@ -16,11 +16,12 @@ namespace SAFplusAmf
   {
 
     enum class ReadinessState
-  {
+      {
         outOfService, inService, stopping
       };
     std::ostream& operator<<(std::ostream& os, const ReadinessState& e);
     std::istream& operator>>(std::istream& is, ReadinessState& e);
+    const char* c_str(const ReadinessState& e);
 
     /*
      * This is the class that will handle the conversion for us.
@@ -28,7 +29,7 @@ namespace SAFplusAmf
     class ReadinessStateManager : public SAFplus::MgtEnumType<ReadinessStateManager, ReadinessState> {
         ReadinessStateManager();  // private to prevent instantiation
     public:
-        static const vec_t en2str_vec;  // This is the lookup table.
+        static const map_t en2str_map;  // This is the lookup table.
     };
 }
 /* namespace SAFplusAmf */

@@ -23,7 +23,6 @@ namespace SAFplusAmf
 
     public:
         ServiceUnitFailureEscalationPolicy();
-        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~ServiceUnitFailureEscalationPolicy();
 

@@ -16,11 +16,12 @@ namespace SAFplusTypes
   {
 
     enum class LifecycleState
-  {
+      {
         start, idle, stop
       };
     std::ostream& operator<<(std::ostream& os, const LifecycleState& e);
     std::istream& operator>>(std::istream& is, LifecycleState& e);
+    const char* c_str(const LifecycleState& e);
 
     /*
      * This is the class that will handle the conversion for us.
@@ -28,7 +29,7 @@ namespace SAFplusTypes
     class LifecycleStateManager : public SAFplus::MgtEnumType<LifecycleStateManager, LifecycleState> {
         LifecycleStateManager();  // private to prevent instantiation
     public:
-        static const vec_t en2str_vec;  // This is the lookup table.
+        static const map_t en2str_map;  // This is the lookup table.
     };
 }
 /* namespace SAFplusTypes */

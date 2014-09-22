@@ -22,11 +22,6 @@ namespace SAFplusAmf
         this->name.assign("activeAssignments");
     };
 
-    void ActiveAssignments::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* ActiveAssignments::getChildNames()
     {
         std::string childNames[] = { "current", "history10sec", "history1min", "history10min", "history1hour", "history12hour", "history1day", "history1week", "history1month" };

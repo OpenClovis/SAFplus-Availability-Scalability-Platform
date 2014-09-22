@@ -14,9 +14,9 @@ namespace SAFplusAmf
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const RecoveryManager::vec_t RecoveryManager::en2str_vec = {
+    const RecoveryManager::map_t RecoveryManager::en2str_map = {
             pair_t(Recovery::NoRecommendation, "NoRecommendation"),
             pair_t(Recovery::Restart, "Restart"),
             pair_t(Recovery::Failover, "Failover"),

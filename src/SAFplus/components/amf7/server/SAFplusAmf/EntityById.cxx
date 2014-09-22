@@ -6,6 +6,7 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include <string>
+#include "clTransaction.hxx"
 #include "clMgtProv.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
@@ -60,9 +61,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EntityById/id
      */
-    void EntityById::setId(unsigned short int idValue)
+    void EntityById::setId(unsigned short int idValue, SAFplus::Transaction &t)
     {
-        this->id.value = idValue;
+        this->id.set(idValue,t);
     };
 
     /*
@@ -76,9 +77,9 @@ namespace SAFplusAmf
     /*
      * XPATH: /SAFplusAmf/EntityById/entity
      */
-    void EntityById::setEntity(std::string entityValue)
+    void EntityById::setEntity(std::string entityValue, SAFplus::Transaction &t)
     {
-        this->entity.value = entityValue;
+        this->entity.set(entityValue,t);
     };
 
     EntityById::~EntityById()

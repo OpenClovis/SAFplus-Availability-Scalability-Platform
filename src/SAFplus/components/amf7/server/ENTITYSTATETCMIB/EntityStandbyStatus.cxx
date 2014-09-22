@@ -14,14 +14,19 @@ namespace ENTITYSTATETCMIB
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const EntityStandbyStatusManager::vec_t EntityStandbyStatusManager::en2str_vec = {
+    const EntityStandbyStatusManager::map_t EntityStandbyStatusManager::en2str_map = {
             pair_t(EntityStandbyStatus::unknown, "unknown"),
             pair_t(EntityStandbyStatus::hotStandby, "hotStandby"),
             pair_t(EntityStandbyStatus::coldStandby, "coldStandby"),
             pair_t(EntityStandbyStatus::providingService, "providingService")
     }; // uses c++11 initializer lists 
+
+    const char* c_str(const ENTITYSTATETCMIB::EntityStandbyStatus &entityStandbyStatus)
+    {
+        return EntityStandbyStatusManager::c_str(entityStandbyStatus);
+    };
 
     std::ostream& operator<<(std::ostream &os, const ENTITYSTATETCMIB::EntityStandbyStatus &entityStandbyStatus)
     {

@@ -16,11 +16,12 @@ namespace ENTITYSTATETCMIB
   {
 
     enum class EntityUsageState
-  {
+      {
         unknown=1, idle=2, active=3, busy=4
       };
     std::ostream& operator<<(std::ostream& os, const EntityUsageState& e);
     std::istream& operator>>(std::istream& is, EntityUsageState& e);
+    const char* c_str(const EntityUsageState& e);
 
     /*
      * This is the class that will handle the conversion for us.
@@ -28,7 +29,7 @@ namespace ENTITYSTATETCMIB
     class EntityUsageStateManager : public SAFplus::MgtEnumType<EntityUsageStateManager, EntityUsageState> {
         EntityUsageStateManager();  // private to prevent instantiation
     public:
-        static const vec_t en2str_vec;  // This is the lookup table.
+        static const map_t en2str_map;  // This is the lookup table.
     };
 }
 /* namespace ENTITYSTATETCMIB */

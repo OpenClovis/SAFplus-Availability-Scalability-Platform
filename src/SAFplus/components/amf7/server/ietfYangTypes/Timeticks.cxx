@@ -6,6 +6,7 @@
 #include "ietfYangTypesCommon.hxx"
 
 #include <iostream>
+#include "clTransaction.hxx"
 #include "Timeticks.hxx"
 
 
@@ -21,9 +22,14 @@ namespace ietfYangTypes
         return this->Value;
     };
 
-    void Timeticks::setValue(unsigned int value)
+    void Timeticks::setValue(unsigned int value, SAFplus::Transaction &t)
     {
-        this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&Value,value);
+            t.addOperation(opt);
+        }
     };
 
     ietfYangTypes::Timeticks& Timeticks::operator=(const ietfYangTypes::Timeticks &timeticks)

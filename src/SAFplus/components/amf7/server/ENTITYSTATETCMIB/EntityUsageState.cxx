@@ -14,14 +14,19 @@ namespace ENTITYSTATETCMIB
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const EntityUsageStateManager::vec_t EntityUsageStateManager::en2str_vec = {
+    const EntityUsageStateManager::map_t EntityUsageStateManager::en2str_map = {
             pair_t(EntityUsageState::unknown, "unknown"),
             pair_t(EntityUsageState::idle, "idle"),
             pair_t(EntityUsageState::active, "active"),
             pair_t(EntityUsageState::busy, "busy")
     }; // uses c++11 initializer lists 
+
+    const char* c_str(const ENTITYSTATETCMIB::EntityUsageState &entityUsageState)
+    {
+        return EntityUsageStateManager::c_str(entityUsageState);
+    };
 
     std::ostream& operator<<(std::ostream &os, const ENTITYSTATETCMIB::EntityUsageState &entityUsageState)
     {
