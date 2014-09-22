@@ -7,44 +7,24 @@
 #include <amfAppRpc/amfAppRpc.hxx>
 #include <clRpcChannel.hxx>
 
+#include <clAmfIpi.hxx>
+
 namespace SAFplus
   {
-  uint_t amfInitCount;
+  uint_t           amfInitCount;
   Group            clusterGroup;
-
   Handle           myHandle;  // This handle resolves to THIS process.
 
-  SafplusInitializationConfiguration serviceConfig;
+  SafplusInitializationConfiguration   serviceConfig;
   SAFplus::LibDep::Bits                requiredServices = (SAFplus::LibDep::Bits) (SAFplus::LibDep::GRP | SAFplus::LibDep::NAME | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG);
 
 
   SAFplus::Rpc::amfAppRpc::amfAppRpcImpl amfAppRpcServer;
   SAFplus::Rpc::RpcChannel *amfRpcChannel;
-
-  class AmfSession
-    {
-    public:
-    enum
-    {
-    STRUCT_ID = 0xA3f5e55
-    };
-    uint32_t structId;  // Make sure we get a valid object from the app layer
-    int readFd;
-    int writeFd;
-    Handle handle;
-    bool finalize;
-    ThreadSem dispatchCount;
-    AmfSession()
-      {
-      finalize = false;
-      dispatchCount.init(0);  // Number of threads dispatching
-      readFd = -1;
-      writeFd = -1;
-      handle = INVALID_HDL;
-      }
-    };
-
   };
+
+
+SAFplusI::AmfSession* SAFplusI::amfSession = NULL;
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -55,25 +35,28 @@ extern "C"
   SaAisErrorT saAmfInitialize(SaAmfHandleT *amfHandle, const SaAmfCallbacksT *amfCallbacks, SaVersionT *version)
     {
     assert(amfHandle);
+    assert(amfCallbacks);
     ClRcT rc;
     uint_t tmp = amfInitCount;
     amfInitCount++;
     AmfSession* ret = new AmfSession;
-
+    ret->callbacks = *amfCallbacks;
     if (tmp==0)
       {
       safplusInitialize(requiredServices, serviceConfig);
       myHandle = Handle::create();
+      amfSession = ret;
       ret->handle = myHandle; // first AmfSession created is going to be the default one
       clusterGroup.init(CLUSTER_GROUP,"safplusCluster");
       // TODO: clusterGroup.setNotification(somethingChanged);
 
       // Connect the AMF RPC server to the messaging port so that this component can start processing incoming AMF requests
       amfRpcChannel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, &amfAppRpcServer);
-      amfRpcChannel->setMsgType(AMF_APP_REQ_HANDLER_TYPE, AMF_APP_REPLY_HANDLER_TYPE);
+      amfRpcChannel->setMsgType(AMF_APP_REQ_HANDLER_TYPE,AMF_APP_REPLY_HANDLER_TYPE);
       }
     else
       {
+      assert(!"Right now, only 1 session is supported per process");  // need to figure out the session in the amfAppRpc call before we can do multiple sessions 
       ret->handle = Handle::create();
       }
     *amfHandle = (SaAmfHandleT) ret;  // Cast the session pointer into the handle to make it opaque as per SAF specs
@@ -97,7 +80,7 @@ SaAisErrorT saAmfFinalize(SaAmfHandleT amfHandle)
     close(sess->writeFd);
     sess->writeFd = -1;
     }
-  sess->dispatchCount.blockUntilZero();
+  sess->dispatchCount.blockUntil(0);
   sess->structId = 0xde1e1ed;
   delete sess;
 
@@ -180,6 +163,8 @@ SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compNam
     // TODO: read the name and log a warning if it is not INVALID_HDL
 
     name.set(SAFplus::ASP_COMPNAME,myHandle,NameRegistrar::MODE_NO_CHANGE);
+    name.setLocalObject(myHandle,(void*) amfHandle);
+    name.setLocalObject(SAFplus::ASP_COMPNAME,(void*) amfHandle);
     }
 
   return SA_AIS_OK;

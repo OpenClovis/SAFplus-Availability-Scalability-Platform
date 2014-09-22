@@ -1,6 +1,7 @@
 #include <clCommon.h>
 #include <clCommonErrors.h>
 #include <clIocApi.h>
+#include <clIocUserApi.h>
 #include <clCpmApi.h>
 
 #include "clLogApi.hxx"
@@ -70,6 +71,11 @@ namespace SAFplus
         clDbgPause();
         throw Error(Error::SAFPLUS_ERROR,rc,"Cannot create communications port");
       }
+    
+    // TODO: when SAFplus6 and 7 are separated, remove this code the peeks inside what is supposed to be an opaque handle
+    ClIocCommPortT* pdata = (ClIocCommPortT*) commPort;
+    port = pdata->portId;
+
     logInfo("IOC", "MSG","Created message port [%d] for MsgServer object",port);
 
     int node = clIocLocalAddressGet();
@@ -186,7 +192,7 @@ namespace SAFplus
   {
     ClIocRecvParamT recvParam;
 
-    logInfo("IOC", "MSG","Message queue receiver function");
+    //logInfo("IOC", "MSG","Message queue receiver function");
 
     while (q->receiving)
       {
@@ -207,12 +213,13 @@ namespace SAFplus
             // I can't throw here because I'm in my own thread and so there's noone to catch
             logError("IOC", "MSG", "Error [0x%x] receiving message, retrying...",rc);
             clOsalTaskDelay (timeOut); // delay to make sure a continuous error doesn't chew up CPU.
-          }        
+          }
         else //(rc == CL_OK)
           {
-            MsgTracker* rm = CreateMsgTracker(recv_msg,recvParam,q);
-            recv_msg = 0;  // wipe it so I know to create another
-            clJobQueuePush(&q->jq, (ClCallbackT) MsgTrackerHandler, rm);
+          logInfo("IOC", "MSG","Rcvd Msg");
+          MsgTracker* rm = CreateMsgTracker(recv_msg,recvParam,q);
+          recv_msg = 0;  // wipe it so I know to create another
+          clJobQueuePush(&q->jq, (ClCallbackT) MsgTrackerHandler, rm);
           }
       }
   }

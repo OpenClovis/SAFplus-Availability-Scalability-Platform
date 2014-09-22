@@ -331,21 +331,33 @@ bool ThreadSem::try_lock(int amt)
     return false;
     }
   count -= amt;
+  cond.notify_all();  // Notifying here because the count was decreased, and some people may be blocking until zero
   mutex.unlock();
   return true;
   }
 
 bool ThreadSem::timed_lock(uint64_t mSec,int amt)
   {
-  mutex.lock();
+  ScopedLock<> lock(mutex);
   while (count<amt)
     {
     // TODO: take into account elapsed time going around the while loop more than once
     if (!cond.timed_wait(mutex,mSec)) return false;
     }
   count -= amt;
-  mutex.unlock();
+  cond.notify_all(); // Notifying here because the count was decreased, and some people may be blocking until zero
   return true;
+  }
+
+bool ThreadSem::blockUntil(uint amt,uint mSec)
+  {
+  ScopedLock<> lock(mutex);
+  while (count > amt)
+    {
+    // TODO: take into account elapsed time going around the while loop more than once
+    if (!cond.timed_wait(mutex,mSec)) return false;
+    }
+  mutex.unlock();
   }
 
   ThreadSem::~ThreadSem()

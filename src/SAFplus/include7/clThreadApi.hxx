@@ -143,7 +143,7 @@ namespace SAFplus
     void wake(int amt,void* cookie=NULL);
     void lock(int amt=1);    // subtracts one from the semaphore, blocks if that would cause the value to become < 0
     void unlock(int amt=1);  // Adds one to the semaphore
-    void blockUntilZero();   // wake me when the count hits zero. 
+    bool blockUntil(uint val = 0, uint mSec=0xffffffff);   // wake me when the count is val or below. 
     bool try_lock(int amt=1);
     bool timed_lock(uint64_t mSec,int amt=1);
   };

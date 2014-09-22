@@ -248,7 +248,7 @@ namespace SAFplus
           {
           Component* comp = dynamic_cast<Component*>(*itcomp);
           assert(comp);
-          if ((comp->operState == true) && (comp->readinessState == ReadinessState::inService) && (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment) && (comp->haState != HighAvailabilityState::quiescing))
+          if ((comp->operState.value == true) && (comp->readinessState.value == ReadinessState::inService) && (comp->haReadinessState == HighAvailabilityReadinessState::readyForAssignment) && (comp->haState != HighAvailabilityState::quiescing))
             {
             // candidate
             }
@@ -438,12 +438,12 @@ namespace SAFplus
           // Calculate readiness state SAI-AIS-AMF-B.04.01.pdf sec 3.2.1.4
           ReadinessState rs = su->readinessState.value;
           // out of service if needs repair
-          if ((suNode == nullptr) || (su->operState == false)||(suNode->operState == false)
+          if ((suNode == nullptr) || (su->operState.value == false)||(suNode->operState.value == false)
           // or any related entity is adminstratively off
-            || (su->adminState != AdministrativeState::on) || (suNode->adminState != AdministrativeState::on) || (sg->adminState != AdministrativeState::on) 
-            || (sg->application.value && (sg->application.value->adminState != AdministrativeState::on))
+            || (su->adminState.value != AdministrativeState::on) || (suNode->adminState.value != AdministrativeState::on) || (sg->adminState.value != AdministrativeState::on) 
+            || ((nullptr!=sg->application.value) && (sg->application.value->adminState != AdministrativeState::on))
             // or its presence state is neither instantiated nor restarting,
-            || ((su->presenceState != PresenceState::instantiated) && (su->presenceState != PresenceState::restarting))
+            || ((su->presenceState.value != PresenceState::instantiated) && (su->presenceState.value != PresenceState::restarting))
             // TODO: or the service unit contains contained components, and their configured container CSI is not assigned active or quiescing to any container component on the node that contains the service unit.
             )
             {

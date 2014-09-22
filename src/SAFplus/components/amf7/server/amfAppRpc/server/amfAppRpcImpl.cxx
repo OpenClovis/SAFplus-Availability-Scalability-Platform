@@ -1,5 +1,8 @@
 #include "amfAppRpc.hxx"
 #include <clLogApi.hxx>
+#include <clNameApi.hxx>
+
+#include <clAmfIpi.hxx>
 
 namespace SAFplus {
 namespace Rpc {
@@ -33,7 +36,33 @@ namespace amfAppRpc {
                                 ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse* response)
   {
   logInfo("AMF","RPC","work Operation");
-    //TODO: put your code here 
+  SaNameT compName;
+  saNameSet(compName,request->componentname());
+  if (SAFplusI::amfSession)
+    {
+    uint tgt = request->target();
+    if (tgt != SAFplusI::AMF_CSI_REMOVE_ONE)
+      {
+      SaAmfCSIDescriptorT csiDescriptor;  // TODO
+      csiDescriptor.csiFlags = 0;
+      csiDescriptor.csiName.length = 0;
+      
+      if (SAFplusI::amfSession->callbacks.saAmfCSISetCallback)
+        {
+        SAFplusI::amfSession->callbacks.saAmfCSISetCallback((SaInvocationT) request->invocation(),&compName,(SaAmfHAStateT) request->operation(), csiDescriptor);
+        }
+      }
+    else if (SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback)
+      {
+      SaNameT csiName;
+      SaAmfCSIFlagsT csiFlags = 0; // TODO
+      csiName.length = 0;
+      SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback((SaInvocationT) request->invocation(),&compName,&csiName,csiFlags);
+      }
+    }
+  
+  response->set_invocation(request->invocation());
+  response->set_result(SA_AIS_OK);
   }
 
 }  // namespace amfAppRpc

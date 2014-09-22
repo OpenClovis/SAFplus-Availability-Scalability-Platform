@@ -31,6 +31,8 @@ namespace SAFplusAmf
     ret->autoRepair = autoRepair;
     ret->failFastOnInstantiationFailure = failFastOnInstantiationFailure;
     ret->failFastOnCleanupFailure = failFastOnCleanupFailure;
+    ret->operState.value = true;  // created ready to run...
+
     return ret;
     }
 

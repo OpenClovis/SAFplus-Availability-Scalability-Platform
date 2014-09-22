@@ -29,6 +29,7 @@
 #include "clRpcChannel.hxx"
 #include "amfRpc/amfRpc.pb.h"
 #include "amfRpc/amfRpc.hxx"
+#include "amfAppRpc/amfAppRpc.hxx"
 
 #define USE_GRP
 
@@ -411,6 +412,11 @@ int main(int argc, char* argv[])
   // client side
   amfRpc_Stub amfInternalRpc(channel);
 
+  // Set up the RPC communication to applications
+  SAFplus::Rpc::RpcChannel appRpcChannel(&safplusMsgServer, dest);
+  appRpcChannel.setMsgType(AMF_APP_REQ_HANDLER_TYPE, AMF_APP_REPLY_HANDLER_TYPE);
+  SAFplus::Rpc::amfAppRpc::amfAppRpc_Stub amfAppRpc(&appRpcChannel);
+
 #if 0
   StartComponentRequest req;
   req.set_name("c0");
@@ -446,6 +452,7 @@ int main(int argc, char* argv[])
 
   AmfOperations amfOps;
   amfOps.amfInternalRpc = &amfInternalRpc;
+  amfOps.amfAppRpc = &amfAppRpc;
 
   loadAmfPlugins(amfOps);
 

@@ -1,4 +1,5 @@
 #include <saAmf.h>
+#include <clNameApi.hxx>
 #include <safplus.hxx>
 #include <boost/thread/thread.hpp> 
 
@@ -44,6 +45,12 @@ int errorExit(SaAisErrorT rc)
     exit(-1);
     return -1;
 }
+
+namespace SAFplus
+  {
+
+  extern Handle           myHandle;  // This handle resolves to THIS process.
+};
 
 int main(int argc, char *argv[])
 {
@@ -343,10 +350,14 @@ void dispatchLoop(void)
       /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
  
       if (running) clprintf(SAFplus::LOG_SEV_INFO,"csa101: Unthreaded Hello World!"); // show_progress());
-      else clprintf(SAFplus::LOG_SEV_INFO,"csa101: idle");
+      else 
+        {
+        clprintf(SAFplus::LOG_SEV_INFO,"csa101: idle");
+        SAFplus::name.set(SAFplus::ASP_COMPNAME,SAFplus::myHandle,SAFplus::NameRegistrar::MODE_NO_CHANGE);
+
+        }
     }while(!quitting);
 }
-
 
 #define STRING_HA_STATE(S)                                                  \
 (   ((S) == SA_AMF_HA_ACTIVE)             ? "Active" :                \

@@ -167,7 +167,7 @@ namespace SAFplus
         }
       else  // RPC call
         {
-        logInfo("OP","CMP","Request component state from node %s", comp->serviceUnit.value->node.name.c_str());
+        logInfo("OP","CMP","Request component [%s] state from node [%s]", comp->name.c_str(), comp->serviceUnit.value->node.name.c_str());
 
         ProcessInfoRequest req;
         req.set_pid(pid);
@@ -271,7 +271,7 @@ namespace SAFplus
         }
 
       request.set_componentname(comp->name.c_str());
-      request.set_componenthandle(0, (const char*) &hdl, sizeof(Handle));
+      //request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
       request.set_operation((uint32_t)state);
       request.set_target(SA_AMF_CSI_ADD_ONE);
       request.set_invocation(invocation++);
