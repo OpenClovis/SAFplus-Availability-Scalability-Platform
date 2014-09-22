@@ -4218,8 +4218,6 @@ ClRcT nameSvcLAQuery(ClNameSvcInfoIDLT *nsInfo,
     ret = clCntNodeFind(pStdInfo, (ClCntKeyHandleT)(ClWordT)&lookupData, &pNodeHandle);
     if(ret != CL_OK)
     {
-        /* Release the semaphore */
-        clOsalMutexUnlock(gSem);
         if((sdAddr == gMasterAddress) ||
            (contextId >= CL_NS_BASE_NODELOCAL_CONTEXT))
         {
@@ -5477,22 +5475,21 @@ ClRcT clNameInitialize(ClNameSvcConfigT* pConfig)
     {
         CL_DEBUG_PRINT(CL_DEBUG_ERROR,
                 ("Context info write failed\n"));
-    }    
-    if( sdAddr == gMasterAddress )
-    {        
-        if( CL_OK != (rc = clNameSvcPerCtxCkptCreate(
-                        CL_NS_BASE_GLOBAL_CONTEXT, 0)))
-        {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("PerCtx Info Create  failed\n"));
-        }    
-        if( CL_OK != (rc = clNameSvcPerCtxInfoWrite(CL_NS_BASE_GLOBAL_CONTEXT,
-                        pgDeftGlobalHashTableStat)))
-        {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                    ("PerCtx Info Write failed\n"));
-        }    
     }
+
+    if( CL_OK != (rc = clNameSvcPerCtxCkptCreate(
+                    CL_NS_BASE_GLOBAL_CONTEXT, 0)))
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                ("PerCtx Info Create  failed\n"));
+    }
+    if( CL_OK != (rc = clNameSvcPerCtxInfoWrite(CL_NS_BASE_GLOBAL_CONTEXT,
+                    pgDeftGlobalHashTableStat)))
+    {
+        CL_DEBUG_PRINT(CL_DEBUG_ERROR,
+                ("PerCtx Info Write failed\n"));
+    }
+
     if( CL_OK != (rc = clNameSvcPerCtxCkptCreate(
                         CL_NS_BASE_NODELOCAL_CONTEXT, 0)))
     {
