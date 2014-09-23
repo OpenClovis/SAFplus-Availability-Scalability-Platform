@@ -768,6 +768,20 @@ namespace SAFplus
         xpath.append(keypart.str());
         return xpath;
       }
+      
+      virtual ClRcT read(ClMgtDatabase *db=NULL)
+      {
+        ClRcT rc = CL_OK;
+        typename Map::iterator iter;
+        for(iter = children.begin(); iter != children.end(); iter++)
+        {
+          MgtObject *obj = iter->second;
+          rc = obj->read();
+          if(CL_OK != rc)
+            return rc;
+        }
+        return rc;
+      }
   };
 
 };

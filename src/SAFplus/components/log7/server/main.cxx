@@ -174,8 +174,8 @@ int main(int argc, char* argv[])
   logInitializeSharedMem();
 
     // Hard code the well known streams
-  appStreamCfg = dynamic_cast<Stream*> (cfg->streamConfig.streamList.getChildObject("app"));
-  sysStreamCfg = dynamic_cast<Stream*> (cfg->streamConfig.streamList.getChildObject("sys"));
+  appStreamCfg = dynamic_cast<Stream*> (cfg->streamConfig.streamList["app"]);
+  sysStreamCfg = dynamic_cast<Stream*> (cfg->streamConfig.streamList["sys"]);
 
   logInitializeStreams(cfg);
   dumpStreams(cfg);  
