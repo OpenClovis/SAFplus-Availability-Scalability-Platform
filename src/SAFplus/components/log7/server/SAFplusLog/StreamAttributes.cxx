@@ -10,6 +10,7 @@
 #include "clMgtProv.hxx"
 #include "FileFullAction.hxx"
 #include <vector>
+#include "Replicate.hxx"
 #include "clMgtContainer.hxx"
 #include "StreamScope.hxx"
 #include "StreamAttributes.hxx"
@@ -18,10 +19,11 @@
 namespace SAFplusLog
   {
 
-    StreamAttributes::StreamAttributes(): SAFplus::MgtContainer("StreamAttributes"), myName("myName"), fileName("fileName"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope")
+    StreamAttributes::StreamAttributes(): SAFplus::MgtContainer("StreamAttributes"), myName("myName"), fileName("fileName"), replicate("replicate"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope")
     {
         this->addChildObject(&myName, "myName");
         this->addChildObject(&fileName, "fileName");
+        this->addChildObject(&replicate, "replicate");
         this->addChildObject(&fileLocation, "fileLocation");
         this->addChildObject(&fileUnitSize, "fileUnitSize");
         this->addChildObject(&recordSize, "recordSize");
@@ -33,14 +35,9 @@ namespace SAFplusLog
         this->addChildObject(&streamScope, "streamScope");
     };
 
-    void StreamAttributes::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* StreamAttributes::getChildNames()
     {
-        std::string childNames[] = { "myName", "fileName", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope" };
+        std::string childNames[] = { "myName", "fileName", "replicate", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -74,6 +71,22 @@ namespace SAFplusLog
     void StreamAttributes::setFileName(std::string fileNameValue, SAFplus::Transaction &txn)
     {
         this->fileName.set(fileNameValue,txn);
+    };
+
+    /*
+     * XPATH: /SAFplusLog/StreamAttributes/replicate
+     */
+    SAFplusLog::Replicate StreamAttributes::getReplicate()
+    {
+        return this->replicate.value;
+    };
+
+    /*
+     * XPATH: /SAFplusLog/StreamAttributes/replicate
+     */
+    void StreamAttributes::setReplicate(SAFplusLog::Replicate replicateValue, SAFplus::Transaction &txn)
+    {
+        this->replicate.set(replicateValue,txn);
     };
 
     /*

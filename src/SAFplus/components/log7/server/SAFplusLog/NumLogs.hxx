@@ -23,7 +23,6 @@ namespace SAFplusLog
 
     public:
         NumLogs();
-        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~NumLogs();
 

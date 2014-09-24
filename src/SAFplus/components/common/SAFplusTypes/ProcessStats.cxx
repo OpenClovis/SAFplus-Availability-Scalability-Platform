@@ -23,11 +23,6 @@ namespace SAFplusTypes
     {
     };
 
-    void ProcessStats::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* ProcessStats::getChildNames()
     {
         std::string childNames[] = { "failures", "cpuUtilization", "memUtilization" };

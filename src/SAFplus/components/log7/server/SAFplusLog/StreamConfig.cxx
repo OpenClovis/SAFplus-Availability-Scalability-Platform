@@ -24,11 +24,6 @@ namespace SAFplusLog
         streamList.setListKey("myName");
     };
 
-    void StreamConfig::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* StreamConfig::getChildNames()
     {
         std::string childNames[] = { "stream" };

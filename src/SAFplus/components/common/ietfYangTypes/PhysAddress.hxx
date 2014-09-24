@@ -18,7 +18,7 @@ namespace ietfYangTypes
 
     class PhysAddress {
     public:
-        std::string value;
+        std::string Value;
 
     public:
         PhysAddress();

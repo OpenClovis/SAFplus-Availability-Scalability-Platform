@@ -19,22 +19,22 @@ namespace ietfYangTypes
 
     unsigned long int Gauge64::getValue()
     {
-        return this->value;
+        return this->Value;
     };
 
     void Gauge64::setValue(unsigned long int value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned long int> *opt = new SAFplus::SimpleTxnOperation<unsigned long int>(&this->value,value);
+            SAFplus::SimpleTxnOperation<unsigned long int> *opt = new SAFplus::SimpleTxnOperation<unsigned long int>(&Value,value);
             t.addOperation(opt);
         }
     };
 
     ietfYangTypes::Gauge64& Gauge64::operator=(const ietfYangTypes::Gauge64 &gauge64)
     {
-        value = gauge64.value;
+        Value = gauge64.value;
         return *this;
     };
 

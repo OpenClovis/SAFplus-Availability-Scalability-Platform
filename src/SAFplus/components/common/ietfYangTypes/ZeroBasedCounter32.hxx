@@ -17,7 +17,7 @@ namespace ietfYangTypes
 
     class ZeroBasedCounter32 {
     public:
-        unsigned int value;
+        unsigned int Value;
 
     public:
         ZeroBasedCounter32();

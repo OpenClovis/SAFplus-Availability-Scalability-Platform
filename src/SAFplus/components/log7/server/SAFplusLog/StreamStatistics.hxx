@@ -25,7 +25,6 @@ namespace SAFplusLog
 
     public:
         StreamStatistics();
-        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*

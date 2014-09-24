@@ -20,22 +20,22 @@ namespace ietfYangTypes
 
     std::string MacAddress::getValue()
     {
-        return this->value;
+        return this->Value;
     };
 
     void MacAddress::setValue(std::string value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&this->value,value);
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&Value,value);
             t.addOperation(opt);
         }
     };
 
     ietfYangTypes::MacAddress& MacAddress::operator=(const ietfYangTypes::MacAddress &macAddress)
     {
-        value = macAddress.value;
+        Value = macAddress.value;
         return *this;
     };
 

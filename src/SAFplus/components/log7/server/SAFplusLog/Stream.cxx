@@ -46,7 +46,7 @@ namespace SAFplusLog
 
     std::vector<std::string>* Stream::getChildNames()
     {
-        std::string childNames[] = { "myName", "fileName", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope", "StreamStatistics" };
+        std::string childNames[] = { "myName", "fileName", "replicate", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope", "StreamStatistics" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

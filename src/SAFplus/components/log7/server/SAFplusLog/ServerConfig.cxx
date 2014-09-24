@@ -28,11 +28,6 @@ namespace SAFplusLog
         this->addChildObject(&processingInterval, "processingInterval");
     };
 
-    void ServerConfig::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* ServerConfig::getChildNames()
     {
         std::string childNames[] = { "maximumStreams", "maximumComponents", "maximumSharedMemoryPages", "maximumRecordsInPacket", "processingInterval" };

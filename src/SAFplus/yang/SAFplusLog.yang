@@ -35,6 +35,16 @@ module SAFplusLog {
             description "Output file name";
         }
         
+	leaf replicate {
+	  type enumeration {
+	    enum NONE { description "No replication of this log stream"; value 0; }
+	    enum SYSTEM_CONTROLLERS { description "Replicate to the system controllers"; value 1;}
+	    enum APPLICATIONS { description "Replicate to interested applications"; value 2; }
+	    enum ANY { description "Replicate to the both system controllers and interested applications"; value 3; }
+	    }
+	
+	  description "Replicate this log to other nodes/processes";
+	  }
 
         leaf fileLocation {
             type string;

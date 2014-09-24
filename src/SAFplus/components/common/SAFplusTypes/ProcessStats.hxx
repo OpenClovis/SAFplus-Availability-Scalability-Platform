@@ -24,7 +24,6 @@ namespace SAFplusTypes
     class ProcessStats : public SAFplus::MgtContainer {
     public:
         ProcessStats();
-        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*

@@ -19,22 +19,22 @@ namespace SAFplusTypes
 
     unsigned long int Date::getValue()
     {
-        return this->value;
+        return this->Value;
     };
 
     void Date::setValue(unsigned long int value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = Value;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned long int> *opt = new SAFplus::SimpleTxnOperation<unsigned long int>(&this->value,value);
+            SAFplus::SimpleTxnOperation<unsigned long int> *opt = new SAFplus::SimpleTxnOperation<unsigned long int>(&Value,Value);
             t.addOperation(opt);
         }
     };
 
     SAFplusTypes::Date& Date::operator=(const SAFplusTypes::Date &date)
     {
-        value = date.value;
+        Value = date.Value;
         return *this;
     };
 
@@ -44,12 +44,12 @@ namespace SAFplusTypes
 
     std::ostream& operator<<(std::ostream &os, const SAFplusTypes::Date &date)
     {
-        return os << date.value;
+        return os << date.Value;
     };
 
     std::istream& operator>>(std::istream &is, SAFplusTypes::Date &date)
     {
-        return is >> date.value;
+        return is >> date.Value;
     };
 
 }

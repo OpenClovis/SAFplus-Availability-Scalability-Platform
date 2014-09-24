@@ -52,7 +52,6 @@ namespace SAFplusLog
 
     public:
         ServerConfig();
-        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*

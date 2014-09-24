@@ -19,22 +19,22 @@ namespace ietfYangTypes
 
     unsigned int ZeroBasedCounter32::getValue()
     {
-        return this->value;
+        return this->Value;
     };
 
     void ZeroBasedCounter32::setValue(unsigned int value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&this->value,value);
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&Value,value);
             t.addOperation(opt);
         }
     };
 
     ietfYangTypes::ZeroBasedCounter32& ZeroBasedCounter32::operator=(const ietfYangTypes::ZeroBasedCounter32 &zeroBasedCounter32)
     {
-        value = zeroBasedCounter32.value;
+        Value = zeroBasedCounter32.value;
         return *this;
     };
 

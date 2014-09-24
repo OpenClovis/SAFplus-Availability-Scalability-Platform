@@ -18,7 +18,7 @@ namespace ietfYangTypes
 
     class ObjectIdentifier {
     public:
-        std::string value;
+        std::string Value;
 
     public:
         ObjectIdentifier();

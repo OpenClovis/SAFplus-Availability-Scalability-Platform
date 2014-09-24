@@ -22,11 +22,6 @@ namespace SAFplusLog
     {
     };
 
-    void SAFplusLogRoot::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* SAFplusLogRoot::getChildNames()
     {
         std::string childNames[] = { "ServerConfig", "StreamConfig" };

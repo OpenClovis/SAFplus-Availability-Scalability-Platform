@@ -24,7 +24,6 @@ namespace SAFplusLog
 
     public:
         SAFplusLogRoot();
-        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~SAFplusLogRoot();
 

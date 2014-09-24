@@ -14,6 +14,7 @@
 #include "clMgtProv.hxx"
 #include "FileFullAction.hxx"
 #include <vector>
+#include "Replicate.hxx"
 #include "clMgtContainer.hxx"
 #include "StreamScope.hxx"
 
@@ -32,6 +33,11 @@ namespace SAFplusLog
          * Output file name
          */
         SAFplus::MgtProv<std::string> fileName;
+
+        /*
+         * Replicate this log to other nodes/processes
+         */
+        SAFplus::MgtProv<SAFplusLog::Replicate> replicate;
 
         /*
          * Node and directory where the file is to be output
@@ -80,7 +86,6 @@ namespace SAFplusLog
 
     public:
         StreamAttributes();
-        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
 
         /*
@@ -102,6 +107,16 @@ namespace SAFplusLog
          * XPATH: /SAFplusLog/StreamAttributes/fileName
          */
         void setFileName(std::string fileNameValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+
+        /*
+         * XPATH: /SAFplusLog/StreamAttributes/replicate
+         */
+        SAFplusLog::Replicate getReplicate();
+
+        /*
+         * XPATH: /SAFplusLog/StreamAttributes/replicate
+         */
+        void setReplicate(SAFplusLog::Replicate replicateValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileLocation

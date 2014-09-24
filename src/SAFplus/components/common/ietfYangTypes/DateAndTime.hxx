@@ -18,7 +18,7 @@ namespace ietfYangTypes
 
     class DateAndTime {
     public:
-        std::string value;
+        std::string Value;
 
     public:
         DateAndTime();

@@ -18,7 +18,7 @@ namespace ietfYangTypes
 
     class Xpath10 {
     public:
-        std::string value;
+        std::string Value;
 
     public:
         Xpath10();

@@ -19,22 +19,22 @@ namespace ietfYangTypes
 
     unsigned int Timestamp::getValue()
     {
-        return this->value;
+        return this->Value;
     };
 
     void Timestamp::setValue(unsigned int value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&this->value,value);
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&Value,value);
             t.addOperation(opt);
         }
     };
 
     ietfYangTypes::Timestamp& Timestamp::operator=(const ietfYangTypes::Timestamp &timestamp)
     {
-        value = timestamp.value;
+        Value = timestamp.value;
         return *this;
     };
 

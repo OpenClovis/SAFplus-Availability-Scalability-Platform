@@ -23,11 +23,6 @@ namespace SAFplusTypes
         this->addChildObject(&desc, "desc");
     };
 
-    void Sensor::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* Sensor::getChildNames()
     {
         std::string childNames[] = { "name", "desc", "val" };

@@ -23,11 +23,6 @@ namespace SAFplusLog
     {
     };
 
-    void StreamStatistics::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* StreamStatistics::getChildNames()
     {
         std::string childNames[] = { "numLogs" };

@@ -20,22 +20,22 @@ namespace ietfYangTypes
 
     std::string Xpath10::getValue()
     {
-        return this->value;
+        return this->Value;
     };
 
     void Xpath10::setValue(std::string value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->value = value;
+        if(&t == &SAFplus::NO_TXN) this->Value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&this->value,value);
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&Value,value);
             t.addOperation(opt);
         }
     };
 
     ietfYangTypes::Xpath10& Xpath10::operator=(const ietfYangTypes::Xpath10 &xpath10)
     {
-        value = xpath10.value;
+        Value = xpath10.value;
         return *this;
     };
 
