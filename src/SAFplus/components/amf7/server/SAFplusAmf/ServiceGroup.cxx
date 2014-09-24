@@ -100,7 +100,12 @@ namespace SAFplusAmf
      */
     void ServiceGroup::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.set(adminStateValue,t);
+        if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -116,7 +121,12 @@ namespace SAFplusAmf
      */
     void ServiceGroup::setAutoRepair(bool autoRepairValue, SAFplus::Transaction &t)
     {
-        this->autoRepair.set(autoRepairValue,t);
+        if(&t == &SAFplus::NO_TXN) this->autoRepair.value = autoRepairValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(autoRepair.value),autoRepairValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -132,7 +142,12 @@ namespace SAFplusAmf
      */
     void ServiceGroup::setAutoAdjust(bool autoAdjustValue, SAFplus::Transaction &t)
     {
-        this->autoAdjust.set(autoAdjustValue,t);
+        if(&t == &SAFplus::NO_TXN) this->autoAdjust.value = autoAdjustValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(autoAdjust.value),autoAdjustValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -148,7 +163,12 @@ namespace SAFplusAmf
      */
     void ServiceGroup::setAutoAdjustInterval(SaTimeT autoAdjustIntervalValue, SAFplus::Transaction &t)
     {
-        this->autoAdjustInterval.set(autoAdjustIntervalValue,t);
+        if(&t == &SAFplus::NO_TXN) this->autoAdjustInterval.value = autoAdjustIntervalValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SaTimeT> *opt = new SAFplus::SimpleTxnOperation<SaTimeT>(&(autoAdjustInterval.value),autoAdjustIntervalValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -164,7 +184,12 @@ namespace SAFplusAmf
      */
     void ServiceGroup::setPreferredNumActiveServiceUnits(unsigned int preferredNumActiveServiceUnitsValue, SAFplus::Transaction &t)
     {
-        this->preferredNumActiveServiceUnits.set(preferredNumActiveServiceUnitsValue,t);
+        if(&t == &SAFplus::NO_TXN) this->preferredNumActiveServiceUnits.value = preferredNumActiveServiceUnitsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(preferredNumActiveServiceUnits.value),preferredNumActiveServiceUnitsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -180,7 +205,12 @@ namespace SAFplusAmf
      */
     void ServiceGroup::setPreferredNumStandbyServiceUnits(unsigned int preferredNumStandbyServiceUnitsValue, SAFplus::Transaction &t)
     {
-        this->preferredNumStandbyServiceUnits.set(preferredNumStandbyServiceUnitsValue,t);
+        if(&t == &SAFplus::NO_TXN) this->preferredNumStandbyServiceUnits.value = preferredNumStandbyServiceUnitsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(preferredNumStandbyServiceUnits.value),preferredNumStandbyServiceUnitsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -196,7 +226,12 @@ namespace SAFplusAmf
      */
     void ServiceGroup::setPreferredNumIdleServiceUnits(unsigned int preferredNumIdleServiceUnitsValue, SAFplus::Transaction &t)
     {
-        this->preferredNumIdleServiceUnits.set(preferredNumIdleServiceUnitsValue,t);
+        if(&t == &SAFplus::NO_TXN) this->preferredNumIdleServiceUnits.value = preferredNumIdleServiceUnitsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(preferredNumIdleServiceUnits.value),preferredNumIdleServiceUnitsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -212,7 +247,12 @@ namespace SAFplusAmf
      */
     void ServiceGroup::setMaxActiveWorkAssignments(unsigned int maxActiveWorkAssignmentsValue, SAFplus::Transaction &t)
     {
-        this->maxActiveWorkAssignments.set(maxActiveWorkAssignmentsValue,t);
+        if(&t == &SAFplus::NO_TXN) this->maxActiveWorkAssignments.value = maxActiveWorkAssignmentsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(maxActiveWorkAssignments.value),maxActiveWorkAssignmentsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -228,7 +268,12 @@ namespace SAFplusAmf
      */
     void ServiceGroup::setMaxStandbyWorkAssignments(unsigned int maxStandbyWorkAssignmentsValue, SAFplus::Transaction &t)
     {
-        this->maxStandbyWorkAssignments.set(maxStandbyWorkAssignmentsValue,t);
+        if(&t == &SAFplus::NO_TXN) this->maxStandbyWorkAssignments.value = maxStandbyWorkAssignmentsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(maxStandbyWorkAssignments.value),maxStandbyWorkAssignmentsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -276,7 +321,12 @@ namespace SAFplusAmf
      */
     void ServiceGroup::setApplication(SAFplusAmf::Application* applicationValue, SAFplus::Transaction &t)
     {
-        this->application.set(applicationValue,t);
+        if(&t == &SAFplus::NO_TXN) this->application.value = applicationValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::Application*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::Application*>(&(application.value),applicationValue);
+            t.addOperation(opt);
+        }
     };
 
     /*

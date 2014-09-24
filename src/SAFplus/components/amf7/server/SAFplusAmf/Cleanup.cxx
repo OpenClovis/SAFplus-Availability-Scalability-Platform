@@ -22,6 +22,11 @@ namespace SAFplusAmf
         this->name.assign("cleanup");
     };
 
+    void Cleanup::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
+    };
+
     std::vector<std::string>* Cleanup::getChildNames()
     {
         std::string childNames[] = { "command", "timeout" };

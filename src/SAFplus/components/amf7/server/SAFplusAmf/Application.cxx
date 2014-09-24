@@ -72,7 +72,12 @@ namespace SAFplusAmf
      */
     void Application::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.set(adminStateValue,t);
+        if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -104,7 +109,12 @@ namespace SAFplusAmf
      */
     void Application::setKeepTogether(bool keepTogetherValue, SAFplus::Transaction &t)
     {
-        this->keepTogether.set(keepTogetherValue,t);
+        if(&t == &SAFplus::NO_TXN) this->keepTogether.value = keepTogetherValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(keepTogether.value),keepTogetherValue);
+            t.addOperation(opt);
+        }
     };
 
     /*

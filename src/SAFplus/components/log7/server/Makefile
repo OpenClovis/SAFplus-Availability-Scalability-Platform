@@ -15,12 +15,13 @@ SAFPLUS_LIBS := clMgt7 clUtils7 clLog clOsal7
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
+COMMON_DIR=$(SAFPLUS_SRC_DIR)/SAFplus/components/common
 
 # Management includes and libraries
-CPP_FLAGS += -I../../mgt7/include -ISAFplusLog -I$(SAFPLUS_SRC_DIR)/SAFplus/components/common/SAFplusTypes -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
+CPP_FLAGS += -I../../mgt7/include -ISAFplusLog -I$(COMMON_DIR)/SAFplusTypes -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
-LOG_SERVER_H := $(wildcard SAFplusLog/*.hxx) $(wildcard $(SAFPLUS_SRC_DIR)/SAFplus/components/common/SAFplusTypes/*.hxx) $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
-LOG_SERVER_SRC := $(wildcard SAFplusLog/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/SAFplus/components/common/SAFplusTypes/*.cxx) $(wildcard *.cxx)
+LOG_SERVER_H := $(wildcard SAFplusLog/*.hxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.hxx) $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
+LOG_SERVER_SRC := $(wildcard SAFplusLog/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.cxx) $(wildcard *.cxx)
 LOG_SERVER_OBJ := $(subst .cxx,.o,$(notdir $(LOG_SERVER_SRC)))
 LOG_SERVER_OBJ := $(addprefix $(OBJ_DIR)/logsvr/,$(LOG_SERVER_OBJ))
 
@@ -37,18 +38,19 @@ $(OBJ_DIR)/logsvr/%.o: SAFplusLog/%.cxx
 	-mkdir -p $(OBJ_DIR)/logsvr/
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/logsvr/%.o: $(SAFPLUS_SRC_DIR)/SAFplus/components/common/SAFplusTypes/%.cxx
+$(OBJ_DIR)/logsvr/%.o: $(COMMON_DIR)/SAFplusTypes/%.cxx
 	-mkdir -p $(OBJ_DIR)/logsvr/
-	(cd $(SAFPLUS_SRC_DIR)/SAFplus/components/common/SAFplusTypes && $(COMPILE_CPP) $@ $(<F))
+	(cd $(COMMON_DIR)/SAFplusTypes && $(COMPILE_CPP) $@ $(<F))
 
 gen:	
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusLog.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
-	(mv -f ietfYangTypes $(SAFPLUS_SRC_DIR)/SAFplus/components/common; mv -f SAFplusTypes $(SAFPLUS_SRC_DIR)/SAFplus/components/common)
+	(rsync -avpDHL ietfYangTypes $(COMMON_DIR)/; rsync -avpDHL SAFplusTypes $(COMMON_DIR)/)
+	(rm -rf ietfYangTypes SAFplusTypes)
 
 cleangen:
 	(cd SAFplusLog; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
-	(cd $(SAFPLUS_SRC_DIR)/SAFplus/components/common/SAFplusTypes; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
-	(cd $(SAFPLUS_SRC_DIR)/SAFplus/components/common/ietfYangTypes; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
+	(cd $(COMMON_DIR)/SAFplusTypes; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
+	(cd $(COMMON_DIR)/ietfYangTypes; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
 
 clean:
 	rm -f $(OBJ_DIR)/logsvr/*.o $(SAFPLUS_TARGET)/bin/splogd

@@ -23,6 +23,7 @@ namespace SAFplusAmf
 
     public:
         NumAssignedServiceUnits();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~NumAssignedServiceUnits();
 

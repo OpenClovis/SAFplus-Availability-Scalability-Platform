@@ -107,7 +107,12 @@ namespace SAFplusAmf
      */
     void ComponentServiceInstance::setServiceInstance(SAFplusAmf::ServiceInstance* serviceInstanceValue, SAFplus::Transaction &t)
     {
-        this->serviceInstance.set(serviceInstanceValue,t);
+        if(&t == &SAFplus::NO_TXN) this->serviceInstance.value = serviceInstanceValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceInstance*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceInstance*>(&(serviceInstance.value),serviceInstanceValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -123,7 +128,12 @@ namespace SAFplusAmf
      */
     void ComponentServiceInstance::setComponent(SAFplusAmf::Component* componentValue, SAFplus::Transaction &t)
     {
-        this->component.set(componentValue,t);
+        if(&t == &SAFplus::NO_TXN) this->component.value = componentValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::Component*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::Component*>(&(component.value),componentValue);
+            t.addOperation(opt);
+        }
     };
 
     ComponentServiceInstance::~ComponentServiceInstance()

@@ -22,6 +22,11 @@ namespace SAFplusAmf
         this->addChildObject(&id, "id");
     };
 
+    void EntityId::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
+    };
+
     std::vector<std::string>* EntityId::getChildNames()
     {
         std::string childNames[] = { "myName", "id" };

@@ -66,7 +66,12 @@ namespace SAFplusAmf
      */
     void Cluster::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.set(adminStateValue,t);
+        if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -82,7 +87,12 @@ namespace SAFplusAmf
      */
     void Cluster::setStartupAssignmentDelay(SaTimeT startupAssignmentDelayValue, SAFplus::Transaction &t)
     {
-        this->startupAssignmentDelay.set(startupAssignmentDelayValue,t);
+        if(&t == &SAFplus::NO_TXN) this->startupAssignmentDelay.value = startupAssignmentDelayValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SaTimeT> *opt = new SAFplus::SimpleTxnOperation<SaTimeT>(&(startupAssignmentDelay.value),startupAssignmentDelayValue);
+            t.addOperation(opt);
+        }
     };
 
     Cluster::~Cluster()

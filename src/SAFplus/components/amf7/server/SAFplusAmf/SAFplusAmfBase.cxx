@@ -123,7 +123,7 @@ namespace SAFplusAmf
     // Initial condition values
     ret->operState.value = true;  // created ready to run...
     ret->numInstantiationAttempts.value = 0;
-    ret->lastInstantiation.value.Value = 0;
+    ret->lastInstantiation.value.value = 0;
     ret->presence.value = PresenceState::uninstantiated;
 
     return ret;

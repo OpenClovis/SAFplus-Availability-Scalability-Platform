@@ -51,9 +51,10 @@ CPPFLAGS += -I$(ASP_INCLUDE) \
             -I/home/hoangle/git/SAFplus_7/src/../../mgt/model/src/app/include \
             -I/home/hoangle/git/SAFplus_7/src/../../mgt/model/src/app/client
 
-CPPFLAGS += -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/log7/server/SAFplusTypes \
-            -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/log7/server/SAFplusLog \
-            -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/log7/server/ietfYangTypes
+CPPFLAGS += -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/amf7/server/SAFplusTypes \
+            -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/amf7/server/SAFplusAmf \
+            -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/amf7/server/ENTITYSTATETCMIB \
+            -I/home/hoangle/git/SAFplus_7/src/SAFplus/components/amf7/server/ietfYangTypes
 
 BUILD_WITHOUT_C99 := 1
 LDFLAGS += -lstdc++

@@ -63,7 +63,12 @@ namespace SAFplusAmf
      */
     void Data::setMyName(std::string myNameValue, SAFplus::Transaction &t)
     {
-        this->myName.set(myNameValue,t);
+        if(&t == &SAFplus::NO_TXN) this->myName.value = myNameValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(myName.value),myNameValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -79,7 +84,12 @@ namespace SAFplusAmf
      */
     void Data::setVal(std::string valValue, SAFplus::Transaction &t)
     {
-        this->val.set(valValue,t);
+        if(&t == &SAFplus::NO_TXN) this->val.value = valValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(val.value),valValue);
+            t.addOperation(opt);
+        }
     };
 
     Data::~Data()

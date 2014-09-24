@@ -289,7 +289,7 @@ namespace SAFplus
     {
     assert(comp);
     comp->numInstantiationAttempts.value++;
-    comp->lastInstantiation.value.Value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    comp->lastInstantiation.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     if (!comp->serviceUnit)
       {

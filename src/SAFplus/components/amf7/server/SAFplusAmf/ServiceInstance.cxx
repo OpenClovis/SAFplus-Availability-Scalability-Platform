@@ -89,7 +89,12 @@ namespace SAFplusAmf
      */
     void ServiceInstance::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.set(adminStateValue,t);
+        if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -105,7 +110,12 @@ namespace SAFplusAmf
      */
     void ServiceInstance::setAssignmentState(SAFplusAmf::AssignmentState assignmentStateValue, SAFplus::Transaction &t)
     {
-        this->assignmentState.set(assignmentStateValue,t);
+        if(&t == &SAFplus::NO_TXN) this->assignmentState.value = assignmentStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::AssignmentState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AssignmentState>(&(assignmentState.value),assignmentStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -121,7 +131,12 @@ namespace SAFplusAmf
      */
     void ServiceInstance::setPreferredActiveAssignments(unsigned int preferredActiveAssignmentsValue, SAFplus::Transaction &t)
     {
-        this->preferredActiveAssignments.set(preferredActiveAssignmentsValue,t);
+        if(&t == &SAFplus::NO_TXN) this->preferredActiveAssignments.value = preferredActiveAssignmentsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(preferredActiveAssignments.value),preferredActiveAssignmentsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -137,7 +152,12 @@ namespace SAFplusAmf
      */
     void ServiceInstance::setPreferredStandbyAssignments(unsigned int preferredStandbyAssignmentsValue, SAFplus::Transaction &t)
     {
-        this->preferredStandbyAssignments.set(preferredStandbyAssignmentsValue,t);
+        if(&t == &SAFplus::NO_TXN) this->preferredStandbyAssignments.value = preferredStandbyAssignmentsValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(preferredStandbyAssignments.value),preferredStandbyAssignmentsValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -153,7 +173,12 @@ namespace SAFplusAmf
      */
     void ServiceInstance::setRank(unsigned int rankValue, SAFplus::Transaction &t)
     {
-        this->rank.set(rankValue,t);
+        if(&t == &SAFplus::NO_TXN) this->rank.value = rankValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&(rank.value),rankValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -185,7 +210,12 @@ namespace SAFplusAmf
      */
     void ServiceInstance::setServiceGroup(SAFplusAmf::ServiceGroup* serviceGroupValue, SAFplus::Transaction &t)
     {
-        this->serviceGroup.set(serviceGroupValue,t);
+        if(&t == &SAFplus::NO_TXN) this->serviceGroup.value = serviceGroupValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceGroup*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::ServiceGroup*>(&(serviceGroup.value),serviceGroupValue);
+            t.addOperation(opt);
+        }
     };
 
     /*

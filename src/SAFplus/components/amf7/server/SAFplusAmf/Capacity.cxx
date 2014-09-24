@@ -63,7 +63,12 @@ namespace SAFplusAmf
      */
     void Capacity::setResource(std::string resourceValue, SAFplus::Transaction &t)
     {
-        this->resource.set(resourceValue,t);
+        if(&t == &SAFplus::NO_TXN) this->resource.value = resourceValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(resource.value),resourceValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -79,7 +84,12 @@ namespace SAFplusAmf
      */
     void Capacity::setValue(long int valueValue, SAFplus::Transaction &t)
     {
-        this->value.set(valueValue,t);
+        if(&t == &SAFplus::NO_TXN) this->value.value = valueValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<long int> *opt = new SAFplus::SimpleTxnOperation<long int>(&(value.value),valueValue);
+            t.addOperation(opt);
+        }
     };
 
     Capacity::~Capacity()

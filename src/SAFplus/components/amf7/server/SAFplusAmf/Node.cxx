@@ -81,7 +81,12 @@ namespace SAFplusAmf
      */
     void Node::setAdminState(SAFplusAmf::AdministrativeState adminStateValue, SAFplus::Transaction &t)
     {
-        this->adminState.set(adminStateValue,t);
+        if(&t == &SAFplus::NO_TXN) this->adminState.value = adminStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::AdministrativeState>(&(adminState.value),adminStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -97,7 +102,12 @@ namespace SAFplusAmf
      */
     void Node::setOperState(bool operStateValue, SAFplus::Transaction &t)
     {
-        this->operState.set(operStateValue,t);
+        if(&t == &SAFplus::NO_TXN) this->operState.value = operStateValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(operState.value),operStateValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -113,7 +123,12 @@ namespace SAFplusAmf
      */
     void Node::setAutoRepair(bool autoRepairValue, SAFplus::Transaction &t)
     {
-        this->autoRepair.set(autoRepairValue,t);
+        if(&t == &SAFplus::NO_TXN) this->autoRepair.value = autoRepairValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(autoRepair.value),autoRepairValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -129,7 +144,12 @@ namespace SAFplusAmf
      */
     void Node::setFailFastOnInstantiationFailure(bool failFastOnInstantiationFailureValue, SAFplus::Transaction &t)
     {
-        this->failFastOnInstantiationFailure.set(failFastOnInstantiationFailureValue,t);
+        if(&t == &SAFplus::NO_TXN) this->failFastOnInstantiationFailure.value = failFastOnInstantiationFailureValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(failFastOnInstantiationFailure.value),failFastOnInstantiationFailureValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -145,7 +165,12 @@ namespace SAFplusAmf
      */
     void Node::setFailFastOnCleanupFailure(bool failFastOnCleanupFailureValue, SAFplus::Transaction &t)
     {
-        this->failFastOnCleanupFailure.set(failFastOnCleanupFailureValue,t);
+        if(&t == &SAFplus::NO_TXN) this->failFastOnCleanupFailure.value = failFastOnCleanupFailureValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<bool> *opt = new SAFplus::SimpleTxnOperation<bool>(&(failFastOnCleanupFailure.value),failFastOnCleanupFailureValue);
+            t.addOperation(opt);
+        }
     };
 
     /*

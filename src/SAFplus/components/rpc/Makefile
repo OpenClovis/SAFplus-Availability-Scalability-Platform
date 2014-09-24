@@ -23,8 +23,8 @@ CPP_FLAGS += `pkg-config --cflags protobuf`
 #LINK_STD_LIBS +=
 #-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml
 
-RPC_SRC = $(wildcard *.cxx) $(wildcard *.cc)
-RPC_OBJ = $(addprefix $(MWOBJ_DIR)/,$(subst .cc,.o,$(subst .cxx,.o,$(RPC_SRC))))
+RPC_SRC = $(wildcard *.cxx)
+RPC_OBJ = $(addprefix $(MWOBJ_DIR)/, $(subst .cxx,.o,$(RPC_SRC)))
 
 PROTOBUF_PLUGIN_SRC = $(wildcard protoc/*.cxx)
 PROTOBUF_PLUGIN_OBJ = $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o, $(notdir $(PROTOBUF_PLUGIN_SRC))))
@@ -33,9 +33,6 @@ all: $(SAFPLUS_TARGET)/bin/protoc-gen-rpc $(LIB_DIR)/libclRpc.so
 
 $(LIB_DIR)/libclRpc.so: $(RPC_OBJ)
 	$(LINK_SO) $@ $(RPC_OBJ)
-
-$(MWOBJ_DIR)/%.pb.o: %.pb.cc
-	$(COMPILE_CPP) $@ $<
 
 $(MWOBJ_DIR)/%.o: %.cxx
 	$(COMPILE_CPP) $@ $<
@@ -57,7 +54,7 @@ gen: $(SAFplusRpcGen)
 	$(SAFplusRpcGen) -I../../3rdparty -I. --rpc_out=. --rename=true SAFplusRpc.proto
 
 cleangen:
-	rm -rf *.pb.h *.pb.cc
+	rm -rf *.pb.hxx *.pb.cxx
 
 clean:
 	rm -rf $(LIB_DIR)/libclRpc.so $(RPC_OBJ) $(PROTOBUF_PLUGIN_OBJ) $(SAFPLUS_TARGET)/bin/protoc-gen-rpc

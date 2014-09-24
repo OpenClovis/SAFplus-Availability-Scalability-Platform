@@ -63,7 +63,12 @@ namespace SAFplusAmf
      */
     void EntityByName::setMyName(std::string myNameValue, SAFplus::Transaction &t)
     {
-        this->myName.set(myNameValue,t);
+        if(&t == &SAFplus::NO_TXN) this->myName.value = myNameValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(myName.value),myNameValue);
+            t.addOperation(opt);
+        }
     };
 
     /*
@@ -79,7 +84,12 @@ namespace SAFplusAmf
      */
     void EntityByName::setEntity(std::string entityValue, SAFplus::Transaction &t)
     {
-        this->entity.set(entityValue,t);
+        if(&t == &SAFplus::NO_TXN) this->entity.value = entityValue;
+        else
+        {
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(entity.value),entityValue);
+            t.addOperation(opt);
+        }
     };
 
     EntityByName::~EntityByName()

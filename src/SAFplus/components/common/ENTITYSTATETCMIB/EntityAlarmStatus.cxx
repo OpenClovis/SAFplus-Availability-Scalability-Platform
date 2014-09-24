@@ -20,22 +20,22 @@ namespace ENTITYSTATETCMIB
 
     std::bitset<7> EntityAlarmStatus::getValue()
     {
-        return this->Value;
+        return this->value;
     };
 
     void EntityAlarmStatus::setValue(std::bitset<7> value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<std::bitset> *opt = new SAFplus::SimpleTxnOperation<std::bitset>(&Value,value);
+            SAFplus::SimpleTxnOperation<std::bitset> *opt = new SAFplus::SimpleTxnOperation<std::bitset>(&this->value,value);
             t.addOperation(opt);
         }
     };
 
     ENTITYSTATETCMIB::EntityAlarmStatus& EntityAlarmStatus::operator=(const ENTITYSTATETCMIB::EntityAlarmStatus &EntityAlarmStatus)
     {
-        Value = EntityAlarmStatus.value;
+        value = EntityAlarmStatus.value;
         return *this;
     };
 

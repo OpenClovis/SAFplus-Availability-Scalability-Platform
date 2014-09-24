@@ -18,7 +18,7 @@ namespace ENTITYSTATETCMIB
 
     class EntityAlarmStatus {
     public:
-        std::bitset<7> Value;
+        std::bitset<7> value;
 
     public:
         EntityAlarmStatus();

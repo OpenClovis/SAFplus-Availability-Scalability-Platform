@@ -26,6 +26,11 @@ namespace SAFplusAmf
         this->addChildObject(&workAssignment, "workAssignment");
     };
 
+    void Timeouts::toString(std::stringstream &xmlString)
+    {
+        /* TODO:  */
+    };
+
     std::vector<std::string>* Timeouts::getChildNames()
     {
         std::string childNames[] = { "quiescingComplete", "workRemoval", "workAssignment" };

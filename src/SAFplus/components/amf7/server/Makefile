@@ -21,16 +21,18 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 POLICY_ENV_LIB := $(LIB_DIR)/libAmfPolicyEnv.so
 
+COMMON_DIR=$(SAFPLUS_SRC_DIR)/SAFplus/components/common
+
 # Management includes and libraries
 # CPP_FLAGS += -I../../mgt7/include -I$(SAFPLUS_SRC_DIR)/SAFplus/components/gms7 -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ -ISAFplusTypes -IietfYangTypes -ISAFplusAmf
-CPP_FLAGS += -I../../mgt7/include -I$(SAFPLUS_SRC_DIR)/SAFplus/components/gms7 -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ -ISAFplusTypes -ISAFplusAmf
+CPP_FLAGS += -I../../mgt7/include -I$(SAFPLUS_SRC_DIR)/SAFplus/components/gms7 -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ -I$(COMMON_DIR)/SAFplusTypes -ISAFplusAmf
 
 #SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard SAFplusTypes/*.hxx) $(wildcard ietfYangTypes/*.hxx) $(wildcard ENTITYSTATETCMIB/*.hxx)
-SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard SAFplusTypes/*.hxx)
+SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.hxx)
 SERVER_SRC := main.cxx amfcommon.cxx $(wildcard amfRpc/*.cc) $(wildcard amfRpc/*.cxx)
 
 #POLICY_ENV_SRC := $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx) $(wildcard ietfYangTypes/*.cxx) $(wildcard ENTITYSTATETCMIB/*.cxx)
-POLICY_ENV_SRC := amfOperations.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx) $(wildcard amfRpc/server/*.cxx) $(wildcard amfAppRpc/*.cxx) $(wildcard amfAppRpc/*.cc)
+POLICY_ENV_SRC := amfOperations.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.cxx) $(wildcard amfRpc/server/*.cxx) $(wildcard amfAppRpc/*.cxx) $(wildcard amfAppRpc/*.cc)
 
 SERVER_OBJ := $(subst .cc,.o,$(subst .cxx,.o,$(notdir $(SERVER_SRC))))
 SERVER_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(SERVER_OBJ))
@@ -83,17 +85,17 @@ $(OBJ_DIR)/amfsvr/%.o: amfRpc/server/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/amfsvr/%.o: SAFplusTypes/%.cxx $(MakefileDepend) $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: $(COMMON_DIR)/SAFplusTypes/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
-	$(COMPILE_CPP) $@ $<
+	(cd $(COMMON_DIR)/SAFplusTypes && $(COMPILE_CPP) $@ $(<F))
 
-$(OBJ_DIR)/amfsvr/%.o: ietfYangTypes/%.cxx $(MakefileDepend) $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: $(COMMON_DIR)/ietfYangTypes/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
-	$(COMPILE_CPP) $@ $<
+	(cd $(COMMON_DIR)/ietfYangTypes && $(COMPILE_CPP) $@ $(<F))
 
-$(OBJ_DIR)/amfsvr/%.o: ENTITYSTATETCMIB/%.cxx $(MakefileDepend) $(SERVER_H)
+$(OBJ_DIR)/amfsvr/%.o: $(COMMON_DIR)/ENTITYSTATETCMIB/%.cxx $(MakefileDepend) $(SERVER_H)
 	-mkdir -p $(OBJ_DIR)/amfsvr/
-	$(COMPILE_CPP) $@ $<
+	(cd $(COMMON_DIR)/ENTITYSTATETCMIB && $(COMPILE_CPP) $@ $(<F))
 
 $(OBJ_DIR)/amfsvr/%.o: stubs/server/%.cxx
 	-mkdir -p $(OBJ_DIR)/amfsvr/
@@ -105,8 +107,10 @@ $(OBJ_DIR)/amfsvr/%.o: stubs/%.cc
 
 SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
 
-gen:	
+gen:
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusAmf.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
+	(rsync -avpDHL ietfYangTypes $(COMMON_DIR)/; rsync -avpDHL SAFplusTypes $(COMMON_DIR)/; rsync -avpDHL ENTITYSTATETCMIB $(COMMON_DIR)/)
+	(rm -rf ietfYangTypes SAFplusTypes ENTITYSTATETCMIB) 
 
 genrpc: $(SAFplusRpcGen)
 	-mkdir -p amfRpc

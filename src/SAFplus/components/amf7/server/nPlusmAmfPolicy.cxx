@@ -111,9 +111,9 @@ namespace SAFplus
         }
       uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 // (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count()/std::chrono::milliseconds(1);
-      if ((comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations)&&(curTime < comp->delayBetweenInstantiation.value + comp->lastInstantiation.value.Value))
+      if ((comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations)&&(curTime < comp->delayBetweenInstantiation.value + comp->lastInstantiation.value.value))
         {
-        logDebug("N+M","STRT","Not starting [%s]. Must wait [%lu] more milliseconds.",comp->name.c_str(),comp->delayBetweenInstantiation + comp->lastInstantiation.value.Value - curTime);
+        logDebug("N+M","STRT","Not starting [%s]. Must wait [%lu] more milliseconds.",comp->name.c_str(),comp->delayBetweenInstantiation + comp->lastInstantiation.value.value - curTime);
         continue;
         }
 
@@ -517,14 +517,14 @@ namespace SAFplus
                 else
                   {
                   uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-                  if (curTime - comp->lastInstantiation.value.Value >= comp->getInstantiate()->timeout.value)
+                  if (curTime - comp->lastInstantiation.value.value >= comp->getInstantiate()->timeout.value)
                     {
                     // TODO: process is not responding after instantiation.  Kill it.
                     logError("N+M","AUDIT","Component [%s] never registered with AMF after instantiation.", comp->name.c_str());
                     }
                   else
                     {
-                    logInfo("N+M","AUDIT","Component [%s] waiting [%lu] more milliseconds for instantiation.", comp->name.c_str(),comp->getInstantiate()->timeout.value - (curTime - comp->lastInstantiation.value.Value));
+                    logInfo("N+M","AUDIT","Component [%s] waiting [%lu] more milliseconds for instantiation.", comp->name.c_str(),comp->getInstantiate()->timeout.value - (curTime - comp->lastInstantiation.value.value));
                     }
                   }
                 }
