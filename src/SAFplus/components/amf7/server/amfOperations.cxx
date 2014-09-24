@@ -2,9 +2,8 @@
 #include <google/protobuf/stubs/common.h>
 #include <saAmf.h>
 
-#include "amfRpc/amfRpc.pb.h"
+#include "amfRpc/amfRpc.pb.hxx"
 #include "amfRpc/amfRpc.hxx"
-//#include "amfRpc/amfRpc.pb.h"
 #include "amfAppRpc/amfAppRpc.hxx"
 #include <clRpcChannel.hxx>
 

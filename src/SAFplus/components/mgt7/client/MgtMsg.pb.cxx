@@ -2,7 +2,7 @@
 // source: MgtMsg.proto
 
 #define INTERNAL_SUPPRESS_PROTOBUF_FIELD_DEPRECATION
-#include "MgtMsg.pb.h"
+#include "MgtMsg.pb.hxx"
 
 #include <algorithm>
 

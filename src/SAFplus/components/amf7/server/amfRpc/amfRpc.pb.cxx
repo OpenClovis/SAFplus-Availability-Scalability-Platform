@@ -2,7 +2,7 @@
 // source: amfRpc.proto
 
 #define INTERNAL_SUPPRESS_PROTOBUF_FIELD_DEPRECATION
-#include "amfRpc.pb.h"
+#include "amfRpc.pb.hxx"
 
 #include <algorithm>
 

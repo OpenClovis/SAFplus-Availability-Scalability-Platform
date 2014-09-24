@@ -27,7 +27,7 @@
 #include <clSafplusMsgServer.hxx>
 
 #include "clRpcChannel.hxx"
-#include "amfRpc/amfRpc.pb.h"
+#include "amfRpc/amfRpc.pb.hxx"
 #include "amfRpc/amfRpc.hxx"
 #include "amfAppRpc/amfAppRpc.hxx"
 
