@@ -14,9 +14,9 @@ namespace SAFplusLog
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const StreamScopeManager::vec_t StreamScopeManager::en2str_vec = {
+    const StreamScopeManager::map_t StreamScopeManager::en2str_map = {
             pair_t(StreamScope::GLOBAL, "GLOBAL"),
             pair_t(StreamScope::LOCAL, "LOCAL")
     }; // uses c++11 initializer lists 

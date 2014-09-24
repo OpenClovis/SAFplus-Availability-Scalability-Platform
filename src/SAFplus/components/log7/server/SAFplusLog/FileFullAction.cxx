@@ -14,9 +14,9 @@ namespace SAFplusLog
   {
 
     /*
-     * Provide an implementation of the en2str_vec lookup table.
+     * Provide an implementation of the en2str_map lookup table.
      */
-    const FileFullActionManager::vec_t FileFullActionManager::en2str_vec = {
+    const FileFullActionManager::map_t FileFullActionManager::en2str_map = {
             pair_t(FileFullAction::ROTATE, "ROTATE"),
             pair_t(FileFullAction::WRAP, "WRAP"),
             pair_t(FileFullAction::HALT, "HALT")

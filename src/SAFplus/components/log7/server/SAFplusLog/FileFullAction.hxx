@@ -16,11 +16,12 @@ namespace SAFplusLog
   {
 
     enum class FileFullAction
-  {
+      {
         ROTATE, WRAP, HALT
       };
     std::ostream& operator<<(std::ostream& os, const FileFullAction& e);
     std::istream& operator>>(std::istream& is, FileFullAction& e);
+    const char* c_str(const FileFullAction& e);
 
     /*
      * This is the class that will handle the conversion for us.
@@ -28,7 +29,7 @@ namespace SAFplusLog
     class FileFullActionManager : public SAFplus::MgtEnumType<FileFullActionManager, FileFullAction> {
         FileFullActionManager();  // private to prevent instantiation
     public:
-        static const vec_t en2str_vec;  // This is the lookup table.
+        static const map_t en2str_map;  // This is the lookup table.
     };
 }
 /* namespace SAFplusLog */
