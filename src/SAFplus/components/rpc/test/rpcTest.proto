@@ -5,7 +5,7 @@ package SAFplus.Rpc.rpcTest;
 import "SAFplusPBExt.proto";
 
 option cc_generic_services = false;
-option py_generic_services = false;
+option py_generic_services = true;
 option java_generic_services = false;
 
 message TestGetRpcMethodRequest {
@@ -44,8 +44,25 @@ message TestGetRpcMethod3Response {
   extensions 1000 to max;
 }
 
+message WorkOperationRequest {
+  optional uint64 invocation = 1;
+  optional string componentName = 2;
+  repeated string componentHandle = 3;
+  optional uint32 operation = 4;
+  optional uint32 target = 5;
+  extensions 1000 to max;
+}
+
+message WorkOperationResponseRequest {
+  optional uint64 invocation = 1;
+  optional uint32 result = 2;
+  extensions 1000 to max;
+}
+
 service rpcTest {
   rpc testGetRpcMethod(TestGetRpcMethodRequest) returns(TestGetRpcMethodResponse);
   rpc testGetRpcMethod2(TestGetRpcMethod2Request) returns(TestGetRpcMethod2Response);
   rpc testGetRpcMethod3(TestGetRpcMethod3Request) returns(TestGetRpcMethod3Response);
+  rpc workOperation(WorkOperationRequest) returns(NO_RESPONSE);
+  rpc workOperationResponse(WorkOperationResponseRequest) returns(NO_RESPONSE);
 }

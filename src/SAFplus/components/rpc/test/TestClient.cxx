@@ -43,20 +43,9 @@ int main(void)
     ClIocAddressT iocDest;
     SAFplus::ASP_NODEADDR = 0x1;
 
-    logInitialize();
+    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
     logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
-
-    utilsInitialize();
-
-    ClRcT rc;
-    // initialize SAFplus6 libraries
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
-      {
-      assert(0);
-      }
-
-    rc = clIocLibInitialize(NULL);
 
     iocDest.iocPhyAddress.nodeAddress = 1;
     iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
@@ -76,6 +65,12 @@ int main(void)
     SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response res3;
 
     request3.set_name("myNameRequest3");
+
+    SAFplus::Rpc::rpcTest::WorkOperationRequest workOperationRequest;
+    workOperationRequest.set_operation(1);
+
+    SAFplus::Rpc::rpcTest::WorkOperationResponseRequest workOperationResponseRequest;
+    workOperationResponseRequest.set_result(1);
     /*
      * ??? msgClient or safplusMsgServer
      */
@@ -101,6 +96,8 @@ int main(void)
         service->testGetRpcMethod(hdl, &request1, &res1, wakeable1);
         service->testGetRpcMethod2(hdl, &request2, &res2, wakeable2);
         service->testGetRpcMethod3(hdl, &request3, &res3, wakeable3);
+        service->workOperation(hdl, &workOperationRequest);
+        service->workOperationResponse(hdl, &workOperationResponseRequest);
 
         sleep(1);
       }

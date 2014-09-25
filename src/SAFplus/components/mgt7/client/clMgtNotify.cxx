@@ -24,7 +24,7 @@
 #include <clIocPortList.hxx>
 #include "clMgtMsg.hxx"
 #include "clMgtRoot.hxx"
-#include "MgtMsg.pb.h"
+#include "MgtMsg.pb.hxx"
 #endif
 
 extern "C"

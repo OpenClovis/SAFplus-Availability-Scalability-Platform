@@ -95,6 +95,7 @@ namespace SAFplus
             Mutex mutex;
             SAFplus::Rpc::RpcService *service; // service to dispatch requests to
 
+            static const std::string NO_RESPONSE;
           };
 
       } /* namespace Rpc */

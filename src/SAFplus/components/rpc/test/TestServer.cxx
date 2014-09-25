@@ -35,22 +35,11 @@ ClBoolT gIsNodeRepresentative = CL_TRUE;
 int
 main(void)
 {
-    logInitialize();
-    logEchoToFd = 1;  // echo logs to stdout for debugging
-    logSeverity = LOG_SEV_MAX;
-
     SAFplus::ASP_NODEADDR = 0x1;
 
-    utilsInitialize();
-
-    ClRcT rc;
-    // initialize SAFplus6 libraries
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
-      {
-      assert(0);
-      }
-
-    rc = clIocLibInitialize(NULL);
+    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
+    logEchoToFd = 1;  // echo logs to stdout for debugging
+    logSeverity = LOG_SEV_MAX;
 
     //Msg server listening
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);
@@ -62,7 +51,10 @@ main(void)
     safplusMsgServer.Start();
 
     // Loop forever
-    while(1);
+    while(1)
+      {
+        sleep(1);
+      }
 
 }
 

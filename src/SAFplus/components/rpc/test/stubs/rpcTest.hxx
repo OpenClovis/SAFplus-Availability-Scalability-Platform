@@ -38,6 +38,8 @@ class rpcTest : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response);
   virtual void testGetRpcMethod3(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
                        ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response);
+  virtual void workOperation(const ::SAFplus::Rpc::rpcTest::WorkOperationRequest* request);
+  virtual void workOperationResponse(const ::SAFplus::Rpc::rpcTest::WorkOperationResponseRequest* request);
 
   // implements rpcTest ------------------------------------------
   virtual void testGetRpcMethod(SAFplus::Handle destination,
@@ -52,6 +54,10 @@ class rpcTest : public SAFplus::Rpc::RpcService {
                        const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
                        ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  virtual void workOperation(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::rpcTest::WorkOperationRequest* request);
+  virtual void workOperationResponse(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::rpcTest::WorkOperationResponseRequest* request);
 
 
   const ::google::protobuf::ServiceDescriptor* GetDescriptor();
@@ -92,6 +98,10 @@ class rpcTest_Stub : public rpcTest {
                        const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
                        ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+  void workOperation(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::rpcTest::WorkOperationRequest* request);
+  void workOperationResponse(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::rpcTest::WorkOperationResponseRequest* request);
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -111,6 +121,8 @@ class rpcTestImpl : public rpcTest {
                        ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response);
   void testGetRpcMethod3(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request* request,
                        ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response);
+  void workOperation(const ::SAFplus::Rpc::rpcTest::WorkOperationRequest* request);
+  void workOperationResponse(const ::SAFplus::Rpc::rpcTest::WorkOperationResponseRequest* request);
 };
 
 }  // namespace rpcTest

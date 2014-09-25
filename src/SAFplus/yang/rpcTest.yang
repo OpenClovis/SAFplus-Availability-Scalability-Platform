@@ -97,4 +97,51 @@ module rpcTest
       }
     }
   }
+  
+   rpc workOperation
+    {
+      input
+      {
+    leaf invocation
+    {
+      type uint64;
+    }
+    leaf componentName  // Or should I use the component handle?
+    {
+      type string;
+    }
+    leaf-list componentHandle
+    {
+      type string
+            { 
+        length 16;  // 2 64-bit words 
+        }
+    }
+    
+    leaf operation  // SaAmfHAStateT extended by remove
+    {
+      type uint32;
+    }
+    leaf target  // SA_AMF_CSI_ADD_ONE, SA_AMF_CSI_TARGET_ONE, SA_AMF_CSI_TARGET_ALL
+    {
+      type uint32;
+    }
+      }
+    }
+
+  rpc workOperationResponse  // Actually going from the app to the AMF
+    {
+      input
+    {
+      leaf invocation
+        {
+          type uint64;
+        }
+      leaf result
+        {
+          type uint32;
+        }
+    }
+    }
+  
 }

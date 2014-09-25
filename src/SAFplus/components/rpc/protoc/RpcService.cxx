@@ -45,6 +45,17 @@ namespace SAFplus
   {
     namespace Rpc
       {
+
+        const std::string NO_RESPONSE = "NO_RESPONSE";
+        bool isNoResponse(const google::protobuf::MethodDescriptor* method)
+          {
+            if (!method->output_type()->name().compare(NO_RESPONSE))
+              {
+                return true;
+              }
+            return false;
+          }
+
         string DotsToUnderscores(const string& name)
           {
             return google::protobuf::StringReplace(name, ".", "_", true);
@@ -138,8 +149,15 @@ namespace SAFplus
                     sub_vars["output_type"] = ClassName(method->output_type(), true);
                     sub_vars["virtual"] = virtual_or_non == VIRTUAL ? "virtual " : "";
 
-                    printer->Print(sub_vars, "$virtual$void $name$(const $input_type$* request,\n"
-                        "                     $output_type$* response);\n");
+                    if (isNoResponse(method))
+                      {
+                        printer->Print(sub_vars, "$virtual$void $name$(const $input_type$* request);\n");
+                      }
+                    else
+                      {
+                        printer->Print(sub_vars, "$virtual$void $name$(const $input_type$* request,\n"
+                            "                     $output_type$* response);\n");
+                      }
                   }
               }
 
@@ -157,10 +175,18 @@ namespace SAFplus
                     sub_vars["output_type"] = ClassName(method->output_type(), true);
                     sub_vars["virtual"] = virtual_or_non == VIRTUAL ? "virtual " : "";
 
-                    printer->Print(sub_vars, "$virtual$void $name$(SAFplus::Handle destination,\n"
-                        "                     const $input_type$* request,\n"
-                        "                     $output_type$* response,\n"
-                        "                     SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));\n");
+                    if (isNoResponse(method))
+                      {
+                        printer->Print(sub_vars, "$virtual$void $name$(SAFplus::Handle destination,\n"
+                            "                     const $input_type$* request);\n");
+                      }
+                    else
+                      {
+                        printer->Print(sub_vars, "$virtual$void $name$(SAFplus::Handle destination,\n"
+                            "                     const $input_type$* request,\n"
+                            "                     $output_type$* response,\n"
+                            "                     SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));\n");
+                      }
                   }
               }
           }
@@ -295,8 +321,15 @@ namespace SAFplus
                 sub_vars["output_type"] = ClassName(method->output_type(), true);
 
                 printer->Indent();
-                printer->Print(sub_vars, "\nvoid $classname$Impl::$name$(const $input_type$* request,\n"
-                    "                              $output_type$* response)\n");
+                if (isNoResponse(method))
+                  {
+                    printer->Print(sub_vars, "\nvoid $classname$Impl::$name$(const $input_type$* request)\n");
+                  }
+                else
+                  {
+                    printer->Print(sub_vars, "\nvoid $classname$Impl::$name$(const $input_type$* request,\n"
+                        "                              $output_type$* response)\n");
+                  }
 
                 printer->Print("{\n"
                     "  //TODO: put your code here \n"
@@ -317,13 +350,20 @@ namespace SAFplus
                 sub_vars["input_type"] = ClassName(method->input_type(), true);
                 sub_vars["output_type"] = ClassName(method->output_type(), true);
 
-                printer->Print(sub_vars, "void $classname$::$name$(const $input_type$*,\n"
-                    "                         $output_type$*)\n"
-                    "{\n"
-                    "  logError(\"RPC\",\"SVR\",\"Method $name$() not implemented.\");\n"
-                    "}\n"
-                    "\n");
-
+                if (isNoResponse(method))
+                  {
+                    printer->Print(sub_vars, "void $classname$::$name$(const $input_type$*)\n");
+                  }
+                else
+                  {
+                    printer->Print(sub_vars, "void $classname$::$name$(const $input_type$*,\n"
+                                            "                         $output_type$*)\n");
+                  }
+                    printer->Print(sub_vars,
+                        "{\n"
+                        "  logError(\"RPC\",\"SVR\",\"Method $name$() not implemented.\");\n"
+                        "}\n"
+                        "\n");
               }
 
               for (int i = 0; i < descriptor_->method_count(); i++)
@@ -336,10 +376,19 @@ namespace SAFplus
                   sub_vars["input_type"] = ClassName(method->input_type(), true);
                   sub_vars["output_type"] = ClassName(method->output_type(), true);
 
-                  printer->Print(sub_vars, "void $classname$::$name$(SAFplus::Handle destination,\n"
-                          "                     const $input_type$* request,\n"
-                          "                     $output_type$* response,\n"
-                          "                     SAFplus::Wakeable& wakeable)\n"
+                  if (isNoResponse(method))
+                    {
+                      printer->Print(sub_vars, "void $classname$::$name$(SAFplus::Handle destination,\n"
+                              "                     const $input_type$* request)\n");
+                    }
+                  else
+                    {
+                      printer->Print(sub_vars, "void $classname$::$name$(SAFplus::Handle destination,\n"
+                              "                     const $input_type$* request,\n"
+                              "                     $output_type$* response,\n"
+                              "                     SAFplus::Wakeable& wakeable)\n");
+                    }
+                  printer->Print(sub_vars,
                       "{\n"
                       "  logError(\"RPC\",\"SVR\",\"Method $name$() not implemented.\");\n"
                       "}\n"
@@ -369,10 +418,19 @@ namespace SAFplus
 
                 // Note:  down_cast does not work here because it only works on pointers,
                 //   not references.
-                printer->Print(sub_vars, "    case $index$:\n"
-                    "      $name$(::google::protobuf::down_cast<const $input_type$*>(request),\n"
-                    "             ::google::protobuf::down_cast< $output_type$*>(response));\n"
-                    "      break;\n");
+                if (isNoResponse(method))
+                  {
+                    printer->Print(sub_vars, "    case $index$:\n"
+                        "      $name$(::google::protobuf::down_cast<const $input_type$*>(request));\n"
+                        "      break;\n");
+                  }
+                else
+                  {
+                    printer->Print(sub_vars, "    case $index$:\n"
+                        "      $name$(::google::protobuf::down_cast<const $input_type$*>(request),\n"
+                        "             ::google::protobuf::down_cast< $output_type$*>(response));\n"
+                        "      break;\n");
+                  }
               }
 
             printer->Print(vars_, "    default:\n"
@@ -431,12 +489,22 @@ namespace SAFplus
                 sub_vars["input_type"] = ClassName(method->input_type(), true);
                 sub_vars["output_type"] = ClassName(method->output_type(), true);
 
-                printer->Print(sub_vars, "void $classname$_Stub::$name$(SAFplus::Handle dest,\n"
-                    "                              const $input_type$* request,\n"
-                    "                              $output_type$* response,\n"
-                    "                              SAFplus::Wakeable& wakeable) {\n"
-                    "  channel_->CallMethod(descriptor()->method($index$), dest, request, response, wakeable);\n"
-                    "}\n");
+                if (isNoResponse(method))
+                  {
+                    printer->Print(sub_vars, "void $classname$_Stub::$name$(SAFplus::Handle dest,\n"
+                        "                              const $input_type$* request) {\n"
+                        "  channel_->CallMethod(descriptor()->method($index$), dest, request, NULL, *((SAFplus::Wakeable*)nullptr));\n"
+                        "}\n");
+                  }
+                else
+                  {
+                    printer->Print(sub_vars, "void $classname$_Stub::$name$(SAFplus::Handle dest,\n"
+                        "                              const $input_type$* request,\n"
+                        "                              $output_type$* response,\n"
+                        "                              SAFplus::Wakeable& wakeable) {\n"
+                        "  channel_->CallMethod(descriptor()->method($index$), dest, request, response, wakeable);\n"
+                        "}\n");
+                  }
               }
           }
       } // namespace Rpc

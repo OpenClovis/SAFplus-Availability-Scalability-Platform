@@ -62,6 +62,16 @@ void rpcTest::testGetRpcMethod3(const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3
   logError("RPC","SVR","Method testGetRpcMethod3() not implemented.");
 }
 
+void rpcTest::workOperation(const ::SAFplus::Rpc::rpcTest::WorkOperationRequest*)
+{
+  logError("RPC","SVR","Method workOperation() not implemented.");
+}
+
+void rpcTest::workOperationResponse(const ::SAFplus::Rpc::rpcTest::WorkOperationResponseRequest*)
+{
+  logError("RPC","SVR","Method workOperationResponse() not implemented.");
+}
+
 void rpcTest::testGetRpcMethod(SAFplus::Handle destination,
                      const ::SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest* request,
                      ::SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response,
@@ -86,6 +96,18 @@ void rpcTest::testGetRpcMethod3(SAFplus::Handle destination,
   logError("RPC","SVR","Method testGetRpcMethod3() not implemented.");
 }
 
+void rpcTest::workOperation(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::rpcTest::WorkOperationRequest* request)
+{
+  logError("RPC","SVR","Method workOperation() not implemented.");
+}
+
+void rpcTest::workOperationResponse(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::rpcTest::WorkOperationResponseRequest* request)
+{
+  logError("RPC","SVR","Method workOperationResponse() not implemented.");
+}
+
 void rpcTest::CallMethod(const ::google::protobuf::MethodDescriptor* method,
                              SAFplus::Handle destination,
                              const ::google::protobuf::Message* request,
@@ -105,6 +127,12 @@ void rpcTest::CallMethod(const ::google::protobuf::MethodDescriptor* method,
       testGetRpcMethod3(::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request*>(request),
              ::google::protobuf::down_cast< ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response*>(response));
       break;
+    case 3:
+      workOperation(::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::WorkOperationRequest*>(request));
+      break;
+    case 4:
+      workOperationResponse(::google::protobuf::down_cast<const ::SAFplus::Rpc::rpcTest::WorkOperationResponseRequest*>(request));
+      break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       break;
@@ -121,6 +149,10 @@ const ::google::protobuf::Message& rpcTest::GetRequestPrototype(
       return ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Request::default_instance();
     case 2:
       return ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Request::default_instance();
+    case 3:
+      return ::SAFplus::Rpc::rpcTest::WorkOperationRequest::default_instance();
+    case 4:
+      return ::SAFplus::Rpc::rpcTest::WorkOperationResponseRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -137,6 +169,10 @@ const ::google::protobuf::Message& rpcTest::GetResponsePrototype(
       return ::SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response::default_instance();
     case 2:
       return ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response::default_instance();
+    case 3:
+      return ::SAFplus::Rpc::NO_RESPONSE::default_instance();
+    case 4:
+      return ::SAFplus::Rpc::NO_RESPONSE::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -171,6 +207,14 @@ void rpcTest_Stub::testGetRpcMethod3(SAFplus::Handle dest,
                               ::SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response,
                               SAFplus::Wakeable& wakeable) {
   channel_->CallMethod(descriptor()->method(2), dest, request, response, wakeable);
+}
+void rpcTest_Stub::workOperation(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::rpcTest::WorkOperationRequest* request) {
+  channel_->CallMethod(descriptor()->method(3), dest, request, NULL, *((SAFplus::Wakeable*)nullptr));
+}
+void rpcTest_Stub::workOperationResponse(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::rpcTest::WorkOperationResponseRequest* request) {
+  channel_->CallMethod(descriptor()->method(4), dest, request, NULL, *((SAFplus::Wakeable*)nullptr));
 }
 
 }  // namespace rpcTest

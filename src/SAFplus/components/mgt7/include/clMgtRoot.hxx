@@ -41,7 +41,7 @@
 #include <clMgtMsg.hxx>
 #include "clCommon.hxx"
 
-#include "MgtMsg.pb.h"
+#include "MgtMsg.pb.hxx"
 
 namespace SAFplus
 {

@@ -32,6 +32,16 @@ namespace rpcTest {
     //TODO: put your code here 
   }
 
+  void rpcTestImpl::workOperation(const ::SAFplus::Rpc::rpcTest::WorkOperationRequest* request)
+  {
+    //TODO: put your code here 
+  }
+
+  void rpcTestImpl::workOperationResponse(const ::SAFplus::Rpc::rpcTest::WorkOperationResponseRequest* request)
+  {
+    //TODO: put your code here 
+  }
+
 }  // namespace rpcTest
 }  // namespace Rpc
 }  // namespace SAFplus
