@@ -68,6 +68,9 @@ int main(void)
 
     SAFplus::Rpc::rpcTest::WorkOperationRequest workOperationRequest;
     workOperationRequest.set_operation(1);
+
+    SAFplus::Rpc::rpcTest::WorkOperationResponseRequest workOperationResponseRequest;
+    workOperationResponseRequest.set_result(1);
     /*
      * ??? msgClient or safplusMsgServer
      */
@@ -93,7 +96,8 @@ int main(void)
         service->testGetRpcMethod(hdl, &request1, &res1, wakeable1);
         service->testGetRpcMethod2(hdl, &request2, &res2, wakeable2);
         service->testGetRpcMethod3(hdl, &request3, &res3, wakeable3);
-        service->workOperation(hdl, &workOperationRequest, NULL, *((SAFplus::Wakeable*) nullptr));
+        service->workOperation(hdl, &workOperationRequest);
+        service->workOperationResponse(hdl, &workOperationResponseRequest);
 
         sleep(1);
       }
