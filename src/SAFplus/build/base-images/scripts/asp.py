@@ -1127,6 +1127,7 @@ def force_restart_safplus():
     if is_tipc_build():
         load_config_tipc_module()
     set_ld_library_paths()
+    system("rm /dev/shm/CL_*")  # Remove shared memory from the last run in case it was a shared memory corruption that caused AMF to die
     if is_system_controller():
         start_snmp_daemon()
     if is_simulation():
