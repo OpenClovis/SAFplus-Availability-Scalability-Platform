@@ -23,7 +23,7 @@
 #include <clSafplusMsgServer.hxx>
 #include <clCommon.hxx>
 
-#include "MgtMsg.pb.h"
+#include "MgtMsg.pb.hxx"
 
 #ifdef __cplusplus
 extern "C"

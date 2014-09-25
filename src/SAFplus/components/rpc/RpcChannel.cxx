@@ -31,6 +31,8 @@ namespace SAFplus
   {
     namespace Rpc
       {
+        const std::string RpcChannel::NO_RESPONSE = "NO_RESPONSE";
+
         // TODO: the entities in msgRPCs need to be stored with their destination address.  If that entity fails, all msgRPCs going to it need to be removed and the Wakeable called with an error
         // TODO: new MsgRpcEntry(); should be replaced with an allocator that gets (and returns) objects from a list to minimize calls to "new" and "delete"
         //Server
@@ -74,21 +76,32 @@ namespace SAFplus
             SAFplus::Rpc::RpcMessage rpcMsgReq;
             ClIocAddressT overDest;
             ThreadSem blocker(0);
-
-            //Lock sending and record a RPC
+            bool isRequestWithNoResponse = false;
             int64_t idx;
-            MsgRpcEntry *rpcReqEntry = new MsgRpcEntry();
-            if (1)
+
+            /*
+             * Request with response
+             */
+            if (!(method->output_type()->name().compare(NO_RESPONSE)))
               {
-              ScopedLock<Mutex> lock(mutex);
-              idx = msgId++;
-              rpcReqEntry->msgId = idx;
-              rpcReqEntry->response = response;
-              if (&wakeable == &SAFplus::BLOCK)
-                rpcReqEntry->callback = &blocker;
-              else
-                rpcReqEntry->callback = (Wakeable*)&wakeable;
-              msgRPCs.insert(std::pair<uint64_t,MsgRpcEntry*>(idx, rpcReqEntry));
+                isRequestWithNoResponse = true;
+              }
+            else
+              {
+                //Lock sending and record a RPC
+                MsgRpcEntry *rpcReqEntry = new MsgRpcEntry();
+                if (1)
+                  {
+                    ScopedLock<Mutex> lock(mutex);
+                    idx = msgId++;
+                    rpcReqEntry->msgId = idx;
+                    rpcReqEntry->response = response;
+                    if (&wakeable == &SAFplus::BLOCK)
+                      rpcReqEntry->callback = &blocker;
+                    else
+                      rpcReqEntry->callback = (Wakeable*) &wakeable;
+                    msgRPCs.insert(std::pair<uint64_t,MsgRpcEntry*>(idx, rpcReqEntry));
+                  }
               }
 
             rpcMsgReq.set_type(msgSendType);
@@ -118,7 +131,12 @@ namespace SAFplus
               {
                 logError("RPC", "REQ", "Serialization Error: %s", e.what());
               }
-            
+
+            /*
+             * Do not handle block on receiving response
+             */
+            if (isRequestWithNoResponse)
+              return;
 
             if (&wakeable == &SAFplus::BLOCK)
               {
@@ -133,14 +151,38 @@ namespace SAFplus
           {
             string strMsgRes;
             RpcMessage rpcMsgRes;
+            google::protobuf::Message* request_pb = NULL;
+            google::protobuf::Message* response_pb = NULL;
+            bool isRequestWithNoResponse = false;
 
             const google::protobuf::MethodDescriptor* method = service->GetDescriptor()->FindMethodByName(rpcMsgReq->name());
-            google::protobuf::Message* request_pb = service->GetRequestPrototype(method).New();
-            google::protobuf::Message* response_pb = service->GetResponsePrototype(method).New();
+            request_pb  = service->GetRequestPrototype(method).New();
+
+            /*
+             * Request with response
+             */
+            if (!(method->output_type()->name().compare(NO_RESPONSE)))
+              {
+                isRequestWithNoResponse = true;
+              }
+            else
+              {
+                response_pb = service->GetResponsePrototype(method).New();
+              }
+
             request_pb->ParseFromString(rpcMsgReq->buffer());
 
             service->CallMethod(method, INVALID_HDL, request_pb, response_pb, *((SAFplus::Wakeable*) nullptr));
 
+            if (isRequestWithNoResponse)
+              {
+                delete request_pb;
+                return;
+              }
+
+            /*
+             * Pack response msg
+             */
             rpcMsgRes.set_type(msgReplyType);
             rpcMsgRes.set_id(rpcMsgReq->id());
 

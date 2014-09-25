@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <string>
 #include <clLogApi.hxx>
-#include "../client/MgtMsg.pb.h"
+#include "../client/MgtMsg.pb.hxx"
 #include "boost/functional/hash.hpp"
 #include <clMgtModule.hxx>
 #include <clSafplusMsgServer.hxx>

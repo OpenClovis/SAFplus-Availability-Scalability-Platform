@@ -65,23 +65,11 @@ void FooDone3(SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response)
 int main(void)
   {
     ClRcT rc = CL_OK;
+    SAFplus::ASP_NODEADDR = 0x1;
 
-    logInitialize();
+    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
     logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
-
-    utilsInitialize();
-
-    /*
-     * initialize SAFplus libraries
-     */
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc =
-        clBufferInitialize(NULL)) != CL_OK)
-      {
-
-      }
-
-    clIocLibInitialize(NULL);
 
     //Msg server listening
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);
