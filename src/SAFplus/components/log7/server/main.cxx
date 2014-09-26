@@ -24,6 +24,8 @@ using namespace SAFplusLog;
 Stream* sysStreamCfg;
 Stream* appStreamCfg;
 
+extern ClBoolT   gIsNodeRepresentative;
+
 typedef boost::container::multimap<std::time_t, fs::path> file_result_set_t;
 
 #if (CL_LOG_SEV_EMERGENCY == LOG_EMERG)
@@ -287,7 +289,19 @@ void dumpStreams(LogCfg* cfg)
 
 int main(int argc, char* argv[])
 {
-  safplusInitialize( SAFplus::LibDep::IOC);
+    gIsNodeRepresentative = CL_TRUE;
+
+    logEchoToFd = 1;  // echo logs to stdout for debugging
+    logSeverity = LOG_SEV_MAX;
+
+    SAFplus::ASP_NODEADDR = 0x1;
+
+    SafplusInitializationConfiguration sic;
+    sic.iocPort     = SAFplusI::LOG_IOC_PORT;
+    sic.msgQueueLen = 25;
+    sic.msgThreads  = 10;
+
+    safplusInitialize(SAFplus::LibDep::IOC, sic);
 
   /* Initialize mgt database  */
   ClMgtDatabase *db = ClMgtDatabase::getInstance();
