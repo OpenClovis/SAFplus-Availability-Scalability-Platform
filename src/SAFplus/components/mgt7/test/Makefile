@@ -35,6 +35,6 @@ $(OBJ_DIR)/test/mgt/%.o: %.cxx
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(OBJ_DIR)/test/mgt $(TEST_DIR)/testmgt
+	rm -rf $(OBJ_DIR)/test/mgt $(TEST_DIR)/testmgt
 
 include ../../../mk/safplus_targets.mk

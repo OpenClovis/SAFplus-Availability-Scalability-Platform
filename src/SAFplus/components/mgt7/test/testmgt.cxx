@@ -593,31 +593,16 @@ void testDatabase()
     logDebug("MGT","TEST","FAIL: Read/Write database FAILED for prov");
   db->finalizeDB();
 }
+
 ClBoolT gIsNodeRepresentative = CL_TRUE;
 int main(int argc, char* argv[])
 {
-    ClRcT rc = CL_OK;
+    SAFplus::ASP_NODEADDR = 0x1;
 
-    //GAS: initialize expose by a explicit method
-    SAFplus::ASP_NODEADDR = 0x2;
+    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
 
-    logInitialize();
-    logEchoToFd = 1; // echo logs to stdout for debugging
+    logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
-
-    utilsInitialize();
-
-    // initialize SAFplus6 libraries
-    if ((rc = clOsalInitialize(NULL)) != CL_OK || (rc = clHeapInit()) != CL_OK || (rc = clTimerInitialize(NULL)) != CL_OK || (rc = clBufferInitialize(NULL)) != CL_OK)
-      {
-      assert(0);
-      }
-
-    rc = clIocLibInitialize(NULL);
-    assert(rc==CL_OK);
-
-    safplusMsgServer.init(0, 25, 10);
-    safplusMsgServer.Start();
 
     //-- Done initialize
 
