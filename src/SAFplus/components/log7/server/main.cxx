@@ -170,6 +170,8 @@ int main(int argc, char* argv[])
 
   // Load logging configuration
   LogCfg* cfg = loadLogCfg();
+  cfg->streamConfig.bind(SYS_LOG, "SAFplusLog", "/StreamConfig");
+  cfg->serverConfig.bind(SYS_LOG, "SAFplusLog", "/ServerConfig");
   // Initialize
   logInitializeSharedMem();
 
