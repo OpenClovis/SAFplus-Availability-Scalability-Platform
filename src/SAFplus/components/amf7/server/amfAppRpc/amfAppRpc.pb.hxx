@@ -41,7 +41,7 @@ class HeartbeatResponse;
 class TerminateRequest;
 class TerminateResponse;
 class WorkOperationRequest;
-class WorkOperationResponse;
+class WorkOperationResponseRequest;
 
 // ===================================================================
 
@@ -564,14 +564,14 @@ class WorkOperationRequest : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
-class WorkOperationResponse : public ::google::protobuf::Message {
+class WorkOperationResponseRequest : public ::google::protobuf::Message {
  public:
-  WorkOperationResponse();
-  virtual ~WorkOperationResponse();
+  WorkOperationResponseRequest();
+  virtual ~WorkOperationResponseRequest();
 
-  WorkOperationResponse(const WorkOperationResponse& from);
+  WorkOperationResponseRequest(const WorkOperationResponseRequest& from);
 
-  inline WorkOperationResponse& operator=(const WorkOperationResponse& from) {
+  inline WorkOperationResponseRequest& operator=(const WorkOperationResponseRequest& from) {
     CopyFrom(from);
     return *this;
   }
@@ -585,17 +585,17 @@ class WorkOperationResponse : public ::google::protobuf::Message {
   }
 
   static const ::google::protobuf::Descriptor* descriptor();
-  static const WorkOperationResponse& default_instance();
+  static const WorkOperationResponseRequest& default_instance();
 
-  void Swap(WorkOperationResponse* other);
+  void Swap(WorkOperationResponseRequest* other);
 
   // implements Message ----------------------------------------------
 
-  WorkOperationResponse* New() const;
+  WorkOperationResponseRequest* New() const;
   void CopyFrom(const ::google::protobuf::Message& from);
   void MergeFrom(const ::google::protobuf::Message& from);
-  void CopyFrom(const WorkOperationResponse& from);
-  void MergeFrom(const WorkOperationResponse& from);
+  void CopyFrom(const WorkOperationResponseRequest& from);
+  void MergeFrom(const WorkOperationResponseRequest& from);
   void Clear();
   bool IsInitialized() const;
 
@@ -632,8 +632,8 @@ class WorkOperationResponse : public ::google::protobuf::Message {
   inline ::google::protobuf::uint32 result() const;
   inline void set_result(::google::protobuf::uint32 value);
 
-  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(WorkOperationResponse)
-  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfAppRpc.WorkOperationResponse)
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(WorkOperationResponseRequest)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfAppRpc.WorkOperationResponseRequest)
  private:
   inline void set_has_invocation();
   inline void clear_has_invocation();
@@ -655,7 +655,7 @@ class WorkOperationResponse : public ::google::protobuf::Message {
   friend void protobuf_ShutdownFile_amfAppRpc_2eproto();
 
   void InitAsDefaultInstance();
-  static WorkOperationResponse* default_instance_;
+  static WorkOperationResponseRequest* default_instance_;
 };
 // ===================================================================
 
@@ -1086,48 +1086,48 @@ inline void WorkOperationRequest::set_target(::google::protobuf::uint32 value) {
 
 // -------------------------------------------------------------------
 
-// WorkOperationResponse
+// WorkOperationResponseRequest
 
 // optional uint64 invocation = 1;
-inline bool WorkOperationResponse::has_invocation() const {
+inline bool WorkOperationResponseRequest::has_invocation() const {
   return (_has_bits_[0] & 0x00000001u) != 0;
 }
-inline void WorkOperationResponse::set_has_invocation() {
+inline void WorkOperationResponseRequest::set_has_invocation() {
   _has_bits_[0] |= 0x00000001u;
 }
-inline void WorkOperationResponse::clear_has_invocation() {
+inline void WorkOperationResponseRequest::clear_has_invocation() {
   _has_bits_[0] &= ~0x00000001u;
 }
-inline void WorkOperationResponse::clear_invocation() {
+inline void WorkOperationResponseRequest::clear_invocation() {
   invocation_ = GOOGLE_ULONGLONG(0);
   clear_has_invocation();
 }
-inline ::google::protobuf::uint64 WorkOperationResponse::invocation() const {
+inline ::google::protobuf::uint64 WorkOperationResponseRequest::invocation() const {
   return invocation_;
 }
-inline void WorkOperationResponse::set_invocation(::google::protobuf::uint64 value) {
+inline void WorkOperationResponseRequest::set_invocation(::google::protobuf::uint64 value) {
   set_has_invocation();
   invocation_ = value;
 }
 
 // optional uint32 result = 2;
-inline bool WorkOperationResponse::has_result() const {
+inline bool WorkOperationResponseRequest::has_result() const {
   return (_has_bits_[0] & 0x00000002u) != 0;
 }
-inline void WorkOperationResponse::set_has_result() {
+inline void WorkOperationResponseRequest::set_has_result() {
   _has_bits_[0] |= 0x00000002u;
 }
-inline void WorkOperationResponse::clear_has_result() {
+inline void WorkOperationResponseRequest::clear_has_result() {
   _has_bits_[0] &= ~0x00000002u;
 }
-inline void WorkOperationResponse::clear_result() {
+inline void WorkOperationResponseRequest::clear_result() {
   result_ = 0u;
   clear_has_result();
 }
-inline ::google::protobuf::uint32 WorkOperationResponse::result() const {
+inline ::google::protobuf::uint32 WorkOperationResponseRequest::result() const {
   return result_;
 }
-inline void WorkOperationResponse::set_result(::google::protobuf::uint32 value) {
+inline void WorkOperationResponseRequest::set_result(::google::protobuf::uint32 value) {
   set_has_result();
   result_ = value;
 }

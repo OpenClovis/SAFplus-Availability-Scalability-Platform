@@ -56,10 +56,14 @@ void amfAppRpc::terminate(const ::SAFplus::Rpc::amfAppRpc::TerminateRequest*,
   logError("RPC","SVR","Method terminate() not implemented.");
 }
 
-void amfAppRpc::workOperation(const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest*,
-                         ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse*)
+void amfAppRpc::workOperation(const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest*)
 {
   logError("RPC","SVR","Method workOperation() not implemented.");
+}
+
+void amfAppRpc::workOperationResponse(const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest*)
+{
+  logError("RPC","SVR","Method workOperationResponse() not implemented.");
 }
 
 void amfAppRpc::heartbeat(SAFplus::Handle destination,
@@ -79,11 +83,15 @@ void amfAppRpc::terminate(SAFplus::Handle destination,
 }
 
 void amfAppRpc::workOperation(SAFplus::Handle destination,
-                     const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request,
-                     ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse* response,
-                     SAFplus::Wakeable& wakeable)
+                     const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request)
 {
   logError("RPC","SVR","Method workOperation() not implemented.");
+}
+
+void amfAppRpc::workOperationResponse(SAFplus::Handle destination,
+                     const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest* request)
+{
+  logError("RPC","SVR","Method workOperationResponse() not implemented.");
 }
 
 void amfAppRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
@@ -102,8 +110,10 @@ void amfAppRpc::CallMethod(const ::google::protobuf::MethodDescriptor* method,
              ::google::protobuf::down_cast< ::SAFplus::Rpc::amfAppRpc::TerminateResponse*>(response));
       break;
     case 2:
-      workOperation(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest*>(request),
-             ::google::protobuf::down_cast< ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse*>(response));
+      workOperation(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest*>(request));
+      break;
+    case 3:
+      workOperationResponse(::google::protobuf::down_cast<const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest*>(request));
       break;
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
@@ -121,6 +131,8 @@ const ::google::protobuf::Message& amfAppRpc::GetRequestPrototype(
       return ::SAFplus::Rpc::amfAppRpc::TerminateRequest::default_instance();
     case 2:
       return ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest::default_instance();
+    case 3:
+      return ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -136,7 +148,9 @@ const ::google::protobuf::Message& amfAppRpc::GetResponsePrototype(
     case 1:
       return ::SAFplus::Rpc::amfAppRpc::TerminateResponse::default_instance();
     case 2:
-      return ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse::default_instance();
+      return ::SAFplus::Rpc::NO_RESPONSE::default_instance();
+    case 3:
+      return ::SAFplus::Rpc::NO_RESPONSE::default_instance();
     default:
       GOOGLE_LOG(FATAL) << "Bad method index; this should never happen.";
       return *reinterpret_cast< ::google::protobuf::Message*>(NULL);
@@ -167,10 +181,12 @@ void amfAppRpc_Stub::terminate(SAFplus::Handle dest,
   channel_->CallMethod(descriptor()->method(1), dest, request, response, wakeable);
 }
 void amfAppRpc_Stub::workOperation(SAFplus::Handle dest,
-                              const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request,
-                              ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse* response,
-                              SAFplus::Wakeable& wakeable) {
-  channel_->CallMethod(descriptor()->method(2), dest, request, response, wakeable);
+                              const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request) {
+  channel_->CallMethod(descriptor()->method(2), dest, request, NULL, *((SAFplus::Wakeable*)nullptr));
+}
+void amfAppRpc_Stub::workOperationResponse(SAFplus::Handle dest,
+                              const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest* request) {
+  channel_->CallMethod(descriptor()->method(3), dest, request, NULL, *((SAFplus::Wakeable*)nullptr));
 }
 
 }  // namespace amfAppRpc

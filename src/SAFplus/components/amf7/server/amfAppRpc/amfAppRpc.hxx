@@ -36,8 +36,8 @@ class amfAppRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfAppRpc::HeartbeatResponse* response);
   virtual void terminate(const ::SAFplus::Rpc::amfAppRpc::TerminateRequest* request,
                        ::SAFplus::Rpc::amfAppRpc::TerminateResponse* response);
-  virtual void workOperation(const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request,
-                       ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse* response);
+  virtual void workOperation(const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request);
+  virtual void workOperationResponse(const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest* request);
 
   // implements amfAppRpc ------------------------------------------
   virtual void heartbeat(SAFplus::Handle destination,
@@ -49,9 +49,9 @@ class amfAppRpc : public SAFplus::Rpc::RpcService {
                        ::SAFplus::Rpc::amfAppRpc::TerminateResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
   virtual void workOperation(SAFplus::Handle destination,
-                       const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request,
-                       ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse* response,
-                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+                       const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request);
+  virtual void workOperationResponse(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest* request);
 
 
   const ::google::protobuf::ServiceDescriptor* GetDescriptor();
@@ -89,9 +89,9 @@ class amfAppRpc_Stub : public amfAppRpc {
                        ::SAFplus::Rpc::amfAppRpc::TerminateResponse* response,
                        SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
   void workOperation(SAFplus::Handle destination,
-                       const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request,
-                       ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse* response,
-                       SAFplus::Wakeable& wakeable = *((SAFplus::Wakeable*)nullptr));
+                       const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request);
+  void workOperationResponse(SAFplus::Handle destination,
+                       const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest* request);
  private:
   SAFplus::Rpc::RpcChannel* channel_;
   bool owns_channel_;
@@ -109,8 +109,8 @@ class amfAppRpcImpl : public amfAppRpc {
                        ::SAFplus::Rpc::amfAppRpc::HeartbeatResponse* response);
   void terminate(const ::SAFplus::Rpc::amfAppRpc::TerminateRequest* request,
                        ::SAFplus::Rpc::amfAppRpc::TerminateResponse* response);
-  void workOperation(const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request,
-                       ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse* response);
+  void workOperation(const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request);
+  void workOperationResponse(const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest* request);
 };
 
 }  // namespace amfAppRpc

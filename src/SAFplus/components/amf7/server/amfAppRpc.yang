@@ -106,8 +106,11 @@ module amfAppRpc
 	  type uint32;
 	}
       }
+    }
 
-      output
+  rpc workOperationResponse  // Actually going from the app to the AMF
+    {
+      input
 	{
 	  leaf invocation
 	    {

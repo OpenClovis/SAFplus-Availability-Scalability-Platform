@@ -219,7 +219,7 @@ namespace SAFplus
     public:
     WorkOperationResponseHandler(SAFplus::Wakeable* w, SAFplusAmf::Component* comp): w(w), comp(comp) {};
     virtual ~WorkOperationResponseHandler(){};
-    SAFplus::Rpc::amfAppRpc::WorkOperationResponse response;
+    //SAFplus::Rpc::amfAppRpc::WorkOperationResponse response;
     SAFplusAmf::Component* comp;
     SAFplus::Wakeable* w;
 
@@ -275,10 +275,10 @@ namespace SAFplus
       request.set_target(SA_AMF_CSI_ADD_ONE);
       request.set_invocation(invocation++);
 
-      WorkOperationResponseHandler* respHdlr = new WorkOperationResponseHandler(&w,comp);
+      //WorkOperationResponseHandler* respHdlr = new WorkOperationResponseHandler(&w,comp);
 
 
-      amfAppRpc->workOperation(hdl, &request, &respHdlr->response, *respHdlr);
+      amfAppRpc->workOperation(hdl, &request);
 
       }
 
@@ -288,7 +288,7 @@ namespace SAFplus
     {
     assert(comp);
     comp->numInstantiationAttempts.value++;
-    comp->lastInstantiation.value.value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    comp->lastInstantiation.value.Value = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
     if (!comp->serviceUnit)
       {

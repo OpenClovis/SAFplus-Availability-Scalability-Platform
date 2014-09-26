@@ -37,9 +37,9 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* WorkOperationRequest_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   WorkOperationRequest_reflection_ = NULL;
-const ::google::protobuf::Descriptor* WorkOperationResponse_descriptor_ = NULL;
+const ::google::protobuf::Descriptor* WorkOperationResponseRequest_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
-  WorkOperationResponse_reflection_ = NULL;
+  WorkOperationResponseRequest_reflection_ = NULL;
 
 }  // namespace
 
@@ -132,22 +132,22 @@ void protobuf_AssignDesc_amfAppRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(WorkOperationRequest));
-  WorkOperationResponse_descriptor_ = file->message_type(5);
-  static const int WorkOperationResponse_offsets_[2] = {
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponse, invocation_),
-    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponse, result_),
+  WorkOperationResponseRequest_descriptor_ = file->message_type(5);
+  static const int WorkOperationResponseRequest_offsets_[2] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponseRequest, invocation_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponseRequest, result_),
   };
-  WorkOperationResponse_reflection_ =
+  WorkOperationResponseRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
-      WorkOperationResponse_descriptor_,
-      WorkOperationResponse::default_instance_,
-      WorkOperationResponse_offsets_,
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponse, _has_bits_[0]),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponse, _unknown_fields_),
-      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponse, _extensions_),
+      WorkOperationResponseRequest_descriptor_,
+      WorkOperationResponseRequest::default_instance_,
+      WorkOperationResponseRequest_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponseRequest, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponseRequest, _unknown_fields_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponseRequest, _extensions_),
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
-      sizeof(WorkOperationResponse));
+      sizeof(WorkOperationResponseRequest));
 }
 
 namespace {
@@ -171,7 +171,7 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     WorkOperationRequest_descriptor_, &WorkOperationRequest::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
-    WorkOperationResponse_descriptor_, &WorkOperationResponse::default_instance());
+    WorkOperationResponseRequest_descriptor_, &WorkOperationResponseRequest::default_instance());
 }
 
 }  // namespace
@@ -187,8 +187,8 @@ void protobuf_ShutdownFile_amfAppRpc_2eproto() {
   delete TerminateResponse_reflection_;
   delete WorkOperationRequest::default_instance_;
   delete WorkOperationRequest_reflection_;
-  delete WorkOperationResponse::default_instance_;
-  delete WorkOperationResponse_reflection_;
+  delete WorkOperationResponseRequest::default_instance_;
+  delete WorkOperationResponseRequest_reflection_;
 }
 
 void protobuf_AddDesc_amfAppRpc_2eproto() {
@@ -210,17 +210,19 @@ void protobuf_AddDesc_amfAppRpc_2eproto() {
     "\007\020\200\200\200\200\002\"\210\001\n\024WorkOperationRequest\022\022\n\ninvo"
     "cation\030\001 \001(\004\022\025\n\rcomponentName\030\002 \001(\t\022\027\n\017c"
     "omponentHandle\030\003 \003(\t\022\021\n\toperation\030\004 \001(\r\022"
-    "\016\n\006target\030\005 \001(\r*\t\010\350\007\020\200\200\200\200\002\"F\n\025WorkOperat"
-    "ionResponse\022\022\n\ninvocation\030\001 \001(\004\022\016\n\006resul"
-    "t\030\002 \001(\r*\t\010\350\007\020\200\200\200\200\0022\267\002\n\tamfAppRpc\022^\n\thear"
-    "tbeat\022\'.SAFplus.Rpc.amfAppRpc.HeartbeatR"
-    "equest\032(.SAFplus.Rpc.amfAppRpc.Heartbeat"
-    "Response\022^\n\tterminate\022\'.SAFplus.Rpc.amfA"
-    "ppRpc.TerminateRequest\032(.SAFplus.Rpc.amf"
-    "AppRpc.TerminateResponse\022j\n\rworkOperatio"
-    "n\022+.SAFplus.Rpc.amfAppRpc.WorkOperationR"
-    "equest\032,.SAFplus.Rpc.amfAppRpc.WorkOpera"
-    "tionResponseB\t\200\001\000\210\001\000\220\001\001", 863);
+    "\016\n\006target\030\005 \001(\r*\t\010\350\007\020\200\200\200\200\002\"M\n\034WorkOperat"
+    "ionResponseRequest\022\022\n\ninvocation\030\001 \001(\004\022\016"
+    "\n\006result\030\002 \001(\r*\t\010\350\007\020\200\200\200\200\0022\213\003\n\tamfAppRpc\022"
+    "^\n\theartbeat\022\'.SAFplus.Rpc.amfAppRpc.Hea"
+    "rtbeatRequest\032(.SAFplus.Rpc.amfAppRpc.He"
+    "artbeatResponse\022^\n\tterminate\022\'.SAFplus.R"
+    "pc.amfAppRpc.TerminateRequest\032(.SAFplus."
+    "Rpc.amfAppRpc.TerminateResponse\022V\n\rworkO"
+    "peration\022+.SAFplus.Rpc.amfAppRpc.WorkOpe"
+    "rationRequest\032\030.SAFplus.Rpc.NO_RESPONSE\022"
+    "f\n\025workOperationResponse\0223.SAFplus.Rpc.a"
+    "mfAppRpc.WorkOperationResponseRequest\032\030."
+    "SAFplus.Rpc.NO_RESPONSEB\t\200\001\000\210\001\000\220\001\001", 954);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "amfAppRpc.proto", &protobuf_RegisterTypes);
   HeartbeatRequest::default_instance_ = new HeartbeatRequest();
@@ -228,13 +230,13 @@ void protobuf_AddDesc_amfAppRpc_2eproto() {
   TerminateRequest::default_instance_ = new TerminateRequest();
   TerminateResponse::default_instance_ = new TerminateResponse();
   WorkOperationRequest::default_instance_ = new WorkOperationRequest();
-  WorkOperationResponse::default_instance_ = new WorkOperationResponse();
+  WorkOperationResponseRequest::default_instance_ = new WorkOperationResponseRequest();
   HeartbeatRequest::default_instance_->InitAsDefaultInstance();
   HeartbeatResponse::default_instance_->InitAsDefaultInstance();
   TerminateRequest::default_instance_->InitAsDefaultInstance();
   TerminateResponse::default_instance_->InitAsDefaultInstance();
   WorkOperationRequest::default_instance_->InitAsDefaultInstance();
-  WorkOperationResponse::default_instance_->InitAsDefaultInstance();
+  WorkOperationResponseRequest::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_amfAppRpc_2eproto);
 }
 
@@ -1713,62 +1715,62 @@ void WorkOperationRequest::Swap(WorkOperationRequest* other) {
 // ===================================================================
 
 #ifndef _MSC_VER
-const int WorkOperationResponse::kInvocationFieldNumber;
-const int WorkOperationResponse::kResultFieldNumber;
+const int WorkOperationResponseRequest::kInvocationFieldNumber;
+const int WorkOperationResponseRequest::kResultFieldNumber;
 #endif  // !_MSC_VER
 
-WorkOperationResponse::WorkOperationResponse()
+WorkOperationResponseRequest::WorkOperationResponseRequest()
   : ::google::protobuf::Message() {
   SharedCtor();
 }
 
-void WorkOperationResponse::InitAsDefaultInstance() {
+void WorkOperationResponseRequest::InitAsDefaultInstance() {
 }
 
-WorkOperationResponse::WorkOperationResponse(const WorkOperationResponse& from)
+WorkOperationResponseRequest::WorkOperationResponseRequest(const WorkOperationResponseRequest& from)
   : ::google::protobuf::Message() {
   SharedCtor();
   MergeFrom(from);
 }
 
-void WorkOperationResponse::SharedCtor() {
+void WorkOperationResponseRequest::SharedCtor() {
   _cached_size_ = 0;
   invocation_ = GOOGLE_ULONGLONG(0);
   result_ = 0u;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
 }
 
-WorkOperationResponse::~WorkOperationResponse() {
+WorkOperationResponseRequest::~WorkOperationResponseRequest() {
   SharedDtor();
 }
 
-void WorkOperationResponse::SharedDtor() {
+void WorkOperationResponseRequest::SharedDtor() {
   if (this != default_instance_) {
   }
 }
 
-void WorkOperationResponse::SetCachedSize(int size) const {
+void WorkOperationResponseRequest::SetCachedSize(int size) const {
   GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
   _cached_size_ = size;
   GOOGLE_SAFE_CONCURRENT_WRITES_END();
 }
-const ::google::protobuf::Descriptor* WorkOperationResponse::descriptor() {
+const ::google::protobuf::Descriptor* WorkOperationResponseRequest::descriptor() {
   protobuf_AssignDescriptorsOnce();
-  return WorkOperationResponse_descriptor_;
+  return WorkOperationResponseRequest_descriptor_;
 }
 
-const WorkOperationResponse& WorkOperationResponse::default_instance() {
+const WorkOperationResponseRequest& WorkOperationResponseRequest::default_instance() {
   if (default_instance_ == NULL) protobuf_AddDesc_amfAppRpc_2eproto();
   return *default_instance_;
 }
 
-WorkOperationResponse* WorkOperationResponse::default_instance_ = NULL;
+WorkOperationResponseRequest* WorkOperationResponseRequest::default_instance_ = NULL;
 
-WorkOperationResponse* WorkOperationResponse::New() const {
-  return new WorkOperationResponse;
+WorkOperationResponseRequest* WorkOperationResponseRequest::New() const {
+  return new WorkOperationResponseRequest;
 }
 
-void WorkOperationResponse::Clear() {
+void WorkOperationResponseRequest::Clear() {
   _extensions_.Clear();
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     invocation_ = GOOGLE_ULONGLONG(0);
@@ -1778,7 +1780,7 @@ void WorkOperationResponse::Clear() {
   mutable_unknown_fields()->Clear();
 }
 
-bool WorkOperationResponse::MergePartialFromCodedStream(
+bool WorkOperationResponseRequest::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!(EXPRESSION)) return false
   ::google::protobuf::uint32 tag;
@@ -1836,7 +1838,7 @@ bool WorkOperationResponse::MergePartialFromCodedStream(
 #undef DO_
 }
 
-void WorkOperationResponse::SerializeWithCachedSizes(
+void WorkOperationResponseRequest::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
   // optional uint64 invocation = 1;
   if (has_invocation()) {
@@ -1858,7 +1860,7 @@ void WorkOperationResponse::SerializeWithCachedSizes(
   }
 }
 
-::google::protobuf::uint8* WorkOperationResponse::SerializeWithCachedSizesToArray(
+::google::protobuf::uint8* WorkOperationResponseRequest::SerializeWithCachedSizesToArray(
     ::google::protobuf::uint8* target) const {
   // optional uint64 invocation = 1;
   if (has_invocation()) {
@@ -1881,7 +1883,7 @@ void WorkOperationResponse::SerializeWithCachedSizes(
   return target;
 }
 
-int WorkOperationResponse::ByteSize() const {
+int WorkOperationResponseRequest::ByteSize() const {
   int total_size = 0;
 
   if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
@@ -1913,10 +1915,10 @@ int WorkOperationResponse::ByteSize() const {
   return total_size;
 }
 
-void WorkOperationResponse::MergeFrom(const ::google::protobuf::Message& from) {
+void WorkOperationResponseRequest::MergeFrom(const ::google::protobuf::Message& from) {
   GOOGLE_CHECK_NE(&from, this);
-  const WorkOperationResponse* source =
-    ::google::protobuf::internal::dynamic_cast_if_available<const WorkOperationResponse*>(
+  const WorkOperationResponseRequest* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const WorkOperationResponseRequest*>(
       &from);
   if (source == NULL) {
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
@@ -1925,7 +1927,7 @@ void WorkOperationResponse::MergeFrom(const ::google::protobuf::Message& from) {
   }
 }
 
-void WorkOperationResponse::MergeFrom(const WorkOperationResponse& from) {
+void WorkOperationResponseRequest::MergeFrom(const WorkOperationResponseRequest& from) {
   GOOGLE_CHECK_NE(&from, this);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_invocation()) {
@@ -1939,25 +1941,25 @@ void WorkOperationResponse::MergeFrom(const WorkOperationResponse& from) {
   mutable_unknown_fields()->MergeFrom(from.unknown_fields());
 }
 
-void WorkOperationResponse::CopyFrom(const ::google::protobuf::Message& from) {
+void WorkOperationResponseRequest::CopyFrom(const ::google::protobuf::Message& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-void WorkOperationResponse::CopyFrom(const WorkOperationResponse& from) {
+void WorkOperationResponseRequest::CopyFrom(const WorkOperationResponseRequest& from) {
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
-bool WorkOperationResponse::IsInitialized() const {
+bool WorkOperationResponseRequest::IsInitialized() const {
 
 
   if (!_extensions_.IsInitialized()) return false;  return true;
 }
 
-void WorkOperationResponse::Swap(WorkOperationResponse* other) {
+void WorkOperationResponseRequest::Swap(WorkOperationResponseRequest* other) {
   if (other != this) {
     std::swap(invocation_, other->invocation_);
     std::swap(result_, other->result_);
@@ -1968,11 +1970,11 @@ void WorkOperationResponse::Swap(WorkOperationResponse* other) {
   }
 }
 
-::google::protobuf::Metadata WorkOperationResponse::GetMetadata() const {
+::google::protobuf::Metadata WorkOperationResponseRequest::GetMetadata() const {
   protobuf_AssignDescriptorsOnce();
   ::google::protobuf::Metadata metadata;
-  metadata.descriptor = WorkOperationResponse_descriptor_;
-  metadata.reflection = WorkOperationResponse_reflection_;
+  metadata.descriptor = WorkOperationResponseRequest_descriptor_;
+  metadata.reflection = WorkOperationResponseRequest_reflection_;
   return metadata;
 }
 

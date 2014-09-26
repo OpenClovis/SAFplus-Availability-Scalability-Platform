@@ -1,7 +1,6 @@
 #include "amfAppRpc.hxx"
 #include <clLogApi.hxx>
 #include <clNameApi.hxx>
-
 #include <clAmfIpi.hxx>
 
 namespace SAFplus {
@@ -21,8 +20,8 @@ namespace amfAppRpc {
   void amfAppRpcImpl::heartbeat(const ::SAFplus::Rpc::amfAppRpc::HeartbeatRequest* request,
                                 ::SAFplus::Rpc::amfAppRpc::HeartbeatResponse* response)
   {
-  logInfo("AMF","RPC", "heartbeat");
-    //TODO: put your code here 
+    logInfo("AMF","RPC", "heartbeat");
+  //TODO: put your code here 
   }
 
   void amfAppRpcImpl::terminate(const ::SAFplus::Rpc::amfAppRpc::TerminateRequest* request,
@@ -32,37 +31,39 @@ namespace amfAppRpc {
     //TODO: put your code here 
   }
 
-  void amfAppRpcImpl::workOperation(const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request,
-                                ::SAFplus::Rpc::amfAppRpc::WorkOperationResponse* response)
-  {
-  logInfo("AMF","RPC","work Operation");
-  SaNameT compName;
-  saNameSet(compName,request->componentname());
-  if (SAFplusI::amfSession)
+  void amfAppRpcImpl::workOperation(const ::SAFplus::Rpc::amfAppRpc::WorkOperationRequest* request)
     {
-    uint tgt = request->target();
-    if (tgt != SAFplusI::AMF_CSI_REMOVE_ONE)
+    logInfo("AMF","RPC","work Operation");
+    SaNameT compName;
+    SAFplus::saNameSet(&compName,request->componentname().c_str());
+    if (SAFplusI::amfSession)
       {
-      SaAmfCSIDescriptorT csiDescriptor;  // TODO
-      csiDescriptor.csiFlags = 0;
-      csiDescriptor.csiName.length = 0;
-      
-      if (SAFplusI::amfSession->callbacks.saAmfCSISetCallback)
+      uint tgt = request->target();
+      if (tgt != SAFplusI::AMF_CSI_REMOVE_ONE)
         {
-        SAFplusI::amfSession->callbacks.saAmfCSISetCallback((SaInvocationT) request->invocation(),&compName,(SaAmfHAStateT) request->operation(), csiDescriptor);
+        SaAmfCSIDescriptorT csiDescriptor;  // TODO
+        csiDescriptor.csiFlags = 0;
+        csiDescriptor.csiName.length = 0;
+      
+        if (SAFplusI::amfSession->callbacks.saAmfCSISetCallback)
+          {
+          SAFplusI::amfSession->callbacks.saAmfCSISetCallback((SaInvocationT) request->invocation(),&compName,(SaAmfHAStateT) request->operation(), csiDescriptor);
+          }
+        }
+      else if (SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback)
+        {
+        SaNameT csiName;
+        SaAmfCSIFlagsT csiFlags = 0; // TODO
+        csiName.length = 0;
+        SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback((SaInvocationT) request->invocation(),&compName,&csiName,csiFlags);
         }
       }
-    else if (SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback)
-      {
-      SaNameT csiName;
-      SaAmfCSIFlagsT csiFlags = 0; // TODO
-      csiName.length = 0;
-      SAFplusI::amfSession->callbacks.saAmfCSIRemoveCallback((SaInvocationT) request->invocation(),&compName,&csiName,csiFlags);
-      }
     }
-  
-  response->set_invocation(request->invocation());
-  response->set_result(SA_AIS_OK);
+
+  void amfAppRpcImpl::workOperationResponse(const ::SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest* request)
+  {
+    //TODO: put your code here 
+  logInfo("AMF","RPC","work Operation response");
   }
 
 }  // namespace amfAppRpc
