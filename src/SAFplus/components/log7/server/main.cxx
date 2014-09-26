@@ -4,6 +4,7 @@
 using namespace std;
 
 #include <clLogIpi.hxx>
+#include <clIocPortList.hxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "boost/filesystem.hpp"
 #include <boost/container/map.hpp>
@@ -286,9 +287,15 @@ void dumpStreams(LogCfg* cfg)
 
 int main(int argc, char* argv[])
 {
+  safplusInitialize( SAFplus::LibDep::IOC);
+
   /* Initialize mgt database  */
   ClMgtDatabase *db = ClMgtDatabase::getInstance();
   db->initializeDB("SAFplusLog");
+
+  MgtModule         dataModule("SAFplusLog");
+  dataModule.loadModule();
+  dataModule.initialize();
 
   // Load logging configuration
   LogCfg* cfg = loadLogCfg();

@@ -7,7 +7,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
-CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. 
+CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -I$(BOOST_DIR)/libs/filesystem/include 
 
 # Specify the required libraries
 SAFPLUS_LIBS := clMgt7 clUtils7 clLog clOsal7 clIoc7
