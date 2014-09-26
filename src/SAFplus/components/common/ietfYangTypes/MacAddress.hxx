@@ -18,7 +18,7 @@ namespace ietfYangTypes
 
     class MacAddress {
     public:
-        std::string Value;
+        std::string value;
 
     public:
         MacAddress();

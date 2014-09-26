@@ -17,7 +17,7 @@ namespace ietfYangTypes
 
     class Gauge32 {
     public:
-        unsigned int Value;
+        unsigned int value;
 
     public:
         Gauge32();

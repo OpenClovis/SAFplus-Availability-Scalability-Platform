@@ -27,7 +27,7 @@ RPC_SRC = $(wildcard *.cxx)
 RPC_OBJ = $(addprefix $(MWOBJ_DIR)/, $(subst .cxx,.o,$(RPC_SRC)))
 
 PROTOBUF_PLUGIN_SRC = $(wildcard protoc/*.cxx)
-PROTOBUF_PLUGIN_OBJ = $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o, $(notdir $(PROTOBUF_PLUGIN_SRC))))
+PROTOBUF_PLUGIN_OBJ = $(addprefix $(OBJ_DIR)/protoc/,$(subst .cxx,.o, $(notdir $(PROTOBUF_PLUGIN_SRC))))
 
 all: $(SAFPLUS_TARGET)/bin/protoc-gen-rpc $(LIB_DIR)/libclRpc.so
 
@@ -37,7 +37,8 @@ $(LIB_DIR)/libclRpc.so: $(RPC_OBJ)
 $(MWOBJ_DIR)/%.o: %.cxx
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/%.o: protoc/%.cxx $(wildcard protoc/*.hxx) 
+$(OBJ_DIR)/protoc/%.o: protoc/%.cxx $(wildcard protoc/*.hxx)
+	-mkdir -p $(OBJ_DIR)/protoc/
 	$(COMPILE_CPP) $@ $<
 
 $(SAFPLUS_TARGET)/bin/protoc-gen-rpc: $(PROTOBUF_PLUGIN_OBJ) 
@@ -57,6 +58,6 @@ cleangen:
 	rm -rf *.pb.hxx *.pb.cxx
 
 clean:
-	rm -rf $(LIB_DIR)/libclRpc.so $(RPC_OBJ) $(PROTOBUF_PLUGIN_OBJ) $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
+	rm -rf $(LIB_DIR)/libclRpc.so $(RPC_OBJ) $(OBJ_DIR)/protoc $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
 
 include ../../mk/safplus_targets.mk

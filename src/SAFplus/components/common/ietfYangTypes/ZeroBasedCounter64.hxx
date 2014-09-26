@@ -17,7 +17,7 @@ namespace ietfYangTypes
 
     class ZeroBasedCounter64 {
     public:
-        unsigned long int Value;
+        unsigned long int value;
 
     public:
         ZeroBasedCounter64();

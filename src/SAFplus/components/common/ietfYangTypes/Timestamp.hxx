@@ -17,7 +17,7 @@ namespace ietfYangTypes
 
     class Timestamp {
     public:
-        unsigned int Value;
+        unsigned int value;
 
     public:
         Timestamp();

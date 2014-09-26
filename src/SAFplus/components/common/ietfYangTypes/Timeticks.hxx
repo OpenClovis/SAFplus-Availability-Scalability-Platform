@@ -17,7 +17,7 @@ namespace ietfYangTypes
 
     class Timeticks {
     public:
-        unsigned int Value;
+        unsigned int value;
 
     public:
         Timeticks();

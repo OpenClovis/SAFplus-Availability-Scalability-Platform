@@ -20,22 +20,22 @@ namespace ietfYangTypes
 
     std::string ObjectIdentifier128::getValue()
     {
-        return this->Value;
+        return this->value;
     };
 
     void ObjectIdentifier128::setValue(std::string value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&Value,value);
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&this->value,value);
             t.addOperation(opt);
         }
     };
 
     ietfYangTypes::ObjectIdentifier128& ObjectIdentifier128::operator=(const ietfYangTypes::ObjectIdentifier128 &objectIdentifier128)
     {
-        Value = objectIdentifier128.value;
+        value = objectIdentifier128.value;
         return *this;
     };
 

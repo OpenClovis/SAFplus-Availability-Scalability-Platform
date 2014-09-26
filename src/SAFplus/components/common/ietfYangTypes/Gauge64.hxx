@@ -17,7 +17,7 @@ namespace ietfYangTypes
 
     class Gauge64 {
     public:
-        unsigned long int Value;
+        unsigned long int value;
 
     public:
         Gauge64();

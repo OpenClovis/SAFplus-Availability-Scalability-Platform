@@ -15,10 +15,10 @@ CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
 CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
 SENDER_SRC := ClientTest.cxx
-SENDER_OBJ := $(addprefix $(OBJ_DIR)/, $(subst .cxx,.o,$(subst .cc,.o,$(SENDER_SRC))))
+SENDER_OBJ := $(addprefix $(OBJ_DIR)/test/ioc/, $(subst .cxx,.o,$(subst .cc,.o,$(SENDER_SRC))))
 
 RECEIVER_SRC := MsgHandlerProtocols.cxx ServerTest.cxx
-RECEIVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(subst .cc,.o,$(RECEIVER_SRC))))
+RECEIVER_OBJ := $(addprefix $(OBJ_DIR)/test/ioc/,$(subst .cxx,.o,$(subst .cc,.o,$(RECEIVER_SRC))))
 
 # Specify the required libraries
 SAFPLUS_LIBS := clOsal7 clUtils7 clLog clIoc7 clMgt7
@@ -36,12 +36,12 @@ $(TEST_DIR)/TestSendMsg: $(SENDER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 $(TEST_DIR)/TestReceiveMsg: $(RECEIVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 	$(LINK_EXE) $@ $(RECEIVER_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS)
 
-
-$(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
+$(OBJ_DIR)/test/ioc/%.o: %.cxx
+	-mkdir -p $(OBJ_DIR)/test/ioc
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -rf $(OBJ_DIR)/*.o $(TEST_DIR)/* $(OBJ_DIR)/Client/* $(OBJ_DIR)/Server/*
-	
+	rm -rf $(OBJ_DIR)/test/ioc $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg
+
 
 include ../../../mk/safplus_targets.mk

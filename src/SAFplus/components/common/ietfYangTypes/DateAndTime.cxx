@@ -20,22 +20,22 @@ namespace ietfYangTypes
 
     std::string DateAndTime::getValue()
     {
-        return this->Value;
+        return this->value;
     };
 
     void DateAndTime::setValue(std::string value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&Value,value);
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&this->value,value);
             t.addOperation(opt);
         }
     };
 
     ietfYangTypes::DateAndTime& DateAndTime::operator=(const ietfYangTypes::DateAndTime &dateAndTime)
     {
-        Value = dateAndTime.value;
+        value = dateAndTime.value;
         return *this;
     };
 

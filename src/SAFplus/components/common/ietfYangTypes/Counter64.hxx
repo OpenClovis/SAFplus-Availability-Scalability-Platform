@@ -17,7 +17,7 @@ namespace ietfYangTypes
 
     class Counter64 {
     public:
-        unsigned long int Value;
+        unsigned long int value;
 
     public:
         Counter64();

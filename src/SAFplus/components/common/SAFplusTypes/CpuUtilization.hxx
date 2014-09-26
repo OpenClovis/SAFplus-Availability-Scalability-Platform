@@ -23,6 +23,7 @@ namespace SAFplusTypes
 
     public:
         CpuUtilization();
+        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~CpuUtilization();
 

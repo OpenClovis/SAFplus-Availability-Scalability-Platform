@@ -19,22 +19,22 @@ namespace ietfYangTypes
 
     unsigned int Timeticks::getValue()
     {
-        return this->Value;
+        return this->value;
     };
 
     void Timeticks::setValue(unsigned int value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&Value,value);
+            SAFplus::SimpleTxnOperation<unsigned int> *opt = new SAFplus::SimpleTxnOperation<unsigned int>(&this->value,value);
             t.addOperation(opt);
         }
     };
 
     ietfYangTypes::Timeticks& Timeticks::operator=(const ietfYangTypes::Timeticks &timeticks)
     {
-        Value = timeticks.value;
+        value = timeticks.value;
         return *this;
     };
 

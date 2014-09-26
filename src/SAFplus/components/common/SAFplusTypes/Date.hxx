@@ -17,7 +17,7 @@ namespace SAFplusTypes
 
     class Date {
     public:
-        unsigned long int Value;
+        unsigned long int value;
 
     public:
         Date();

@@ -14,14 +14,17 @@ CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../rpc -I./stubs -I./stub
 # Management includes and libraries
 CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ `pkg-config --cflags protobuf`
 
-CLIENT_SRC := TestClient.cxx RpcWakeable.cxx $(wildcard stubs/*.cxx)
-CLIENT_OBJ := $(addprefix $(OBJ_DIR)/, $(subst .cxx,.o,$(CLIENT_SRC)))
+STUBS_SRC := $(notdir $(wildcard stubs/*.cxx))
+STUBS_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/, $(subst .cxx,.o,$(STUBS_SRC)))
 
-SERVER_SRC := TestServer.cxx $(wildcard stubs/*.cxx) $(wildcard stubs/server/*.cxx)
-SERVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SERVER_SRC)))
+CLIENT_SRC := TestClient.cxx RpcWakeable.cxx
+CLIENT_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/client/, $(subst .cxx,.o,$(CLIENT_SRC))) $(STUBS_OBJ)
 
-COMBINE_SRC := TestCombine.cxx RpcWakeable.cxx $(wildcard stubs/*.cxx) $(wildcard stubs/server/*.cxx)
-COMBINE_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(COMBINE_SRC)))
+SERVER_SRC := TestServer.cxx $(notdir $(wildcard stubs/server/*.cxx))
+SERVER_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/svr/,$(subst .cxx,.o,$(SERVER_SRC))) $(STUBS_OBJ)
+
+COMBINE_SRC := TestCombine.cxx RpcWakeable.cxx $(notdir $(wildcard stubs/server/*.cxx))
+COMBINE_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/combine/,$(subst .cxx,.o,$(COMBINE_SRC))) $(STUBS_OBJ)
 
 # Specify the required libraries
 SAFPLUS_LIBS := clOsal7 clUtils7 clLog clIoc7 clRpc clMgt7
@@ -45,26 +48,45 @@ $(TEST_DIR)/TestServer: $(SERVER_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 $(TEST_DIR)/TestCombine: $(COMBINE_OBJ) $(SAFPLUS_DEP_LIBS) Makefile
 	$(LINK_EXE) $@ $(COMBINE_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) -lprotobuf -lprotoc
 
-$(OBJ_DIR)/stubs/%.o: stubs/%.cxx
-	-mkdir -p $(OBJ_DIR)/stubs
-	-mkdir -p $(OBJ_DIR)/stubs/server
+%.o: %.cxx
 	$(COMPILE_CPP) $@ $<
 
-$(OBJ_DIR)/%.o: %.cxx $(CLIENT_H)
+$(OBJ_DIR)/test/rpc/%.o: stubs/%.cxx
+	-mkdir -p $(OBJ_DIR)/test/rpc
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/test/rpc/client/%.o: %.cxx
+	-mkdir -p $(OBJ_DIR)/test/rpc/client
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/test/rpc/svr/%.o: %.cxx
+	-mkdir -p $(OBJ_DIR)/test/rpc/svr
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/test/rpc/svr/%.o: stubs/server/%.cxx
+	-mkdir -p $(OBJ_DIR)/test/rpc/svr
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/test/rpc/combine/%.o: %.cxx
+	-mkdir -p $(OBJ_DIR)/test/rpc/combine
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/test/rpc/combine/%.o: stubs/server/%.cxx
+	-mkdir -p $(OBJ_DIR)/test/rpc/combine
 	$(COMPILE_CPP) $@ $<
 
 gen: $(SAFplusRpcGen)
 	-mkdir -p ./stubs/server
-	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/rpcTest.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
-	protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./stubs rpcTest.proto
-	$(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./stubs rpcTest.proto
+	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/test/rpc.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
+	protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./stubs test/rpc.proto
+	$(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./stubs test/rpc.proto
 
 cleangen:
 	rm -rf stubs
 	rm -rf $(SAFplusRpcGen)
 
 clean:
-	rm -rf $(OBJ_DIR)/*.o $(TEST_DIR)/* $(SAFplusRpcGen) $(OBJ_DIR)/stubs/*
+	rm -rf $(OBJ_DIR)/test/rpc $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine
 
 
 include ../../../mk/safplus_targets.mk

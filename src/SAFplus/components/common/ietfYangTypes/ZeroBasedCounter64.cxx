@@ -19,22 +19,22 @@ namespace ietfYangTypes
 
     unsigned long int ZeroBasedCounter64::getValue()
     {
-        return this->Value;
+        return this->value;
     };
 
     void ZeroBasedCounter64::setValue(unsigned long int value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<unsigned long int> *opt = new SAFplus::SimpleTxnOperation<unsigned long int>(&Value,value);
+            SAFplus::SimpleTxnOperation<unsigned long int> *opt = new SAFplus::SimpleTxnOperation<unsigned long int>(&this->value,value);
             t.addOperation(opt);
         }
     };
 
     ietfYangTypes::ZeroBasedCounter64& ZeroBasedCounter64::operator=(const ietfYangTypes::ZeroBasedCounter64 &zeroBasedCounter64)
     {
-        Value = zeroBasedCounter64.value;
+        value = zeroBasedCounter64.value;
         return *this;
     };
 

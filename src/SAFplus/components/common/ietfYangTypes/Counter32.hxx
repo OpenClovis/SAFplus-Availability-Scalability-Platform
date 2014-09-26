@@ -17,7 +17,7 @@ namespace ietfYangTypes
 
     class Counter32 {
     public:
-        unsigned int Value;
+        unsigned int value;
 
     public:
         Counter32();

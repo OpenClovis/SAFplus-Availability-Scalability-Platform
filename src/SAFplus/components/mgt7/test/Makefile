@@ -23,18 +23,18 @@ CPP_FLAGS += -I../../mgt7/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml
 MGT_TEST_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) 
 MGT_TEST_SRC := $(wildcard *.cxx)
 MGT_TEST_OBJ := $(subst .cpp,.o, $(subst .cxx,.o,$(MGT_TEST_SRC)))
-MGT_TEST_OBJ := $(addprefix $(OBJ_DIR)/,$(MGT_TEST_OBJ))
-
+MGT_TEST_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/,$(MGT_TEST_OBJ))
 
 all: $(TEST_DIR)/testmgt
 
 $(TEST_DIR)/testmgt: $(MGT_TEST_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $(MGT_TEST_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_STD_LIBS)
 
-$(OBJ_DIR)/%.o: %.cxx Makefile $(MGT_TEST_H)
+$(OBJ_DIR)/test/mgt/%.o: %.cxx
+	-mkdir -p $(OBJ_DIR)/test/mgt
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(OBJ_DIR)/*.o $(TEST_DIR)/testmgt
+	rm -f $(OBJ_DIR)/test/mgt $(TEST_DIR)/testmgt
 
 include ../../../mk/safplus_targets.mk

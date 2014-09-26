@@ -20,22 +20,22 @@ namespace ietfYangTypes
 
     std::string PhysAddress::getValue()
     {
-        return this->Value;
+        return this->value;
     };
 
     void PhysAddress::setValue(std::string value, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->Value = value;
+        if(&t == &SAFplus::NO_TXN) this->value = value;
         else
         {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&Value,value);
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&this->value,value);
             t.addOperation(opt);
         }
     };
 
     ietfYangTypes::PhysAddress& PhysAddress::operator=(const ietfYangTypes::PhysAddress &physAddress)
     {
-        Value = physAddress.value;
+        value = physAddress.value;
         return *this;
     };
 
