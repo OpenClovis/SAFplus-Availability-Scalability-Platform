@@ -20,7 +20,8 @@ namespace SAFplus
 
 
   SAFplus::Rpc::amfAppRpc::amfAppRpcImpl amfAppRpcServer;
-  SAFplus::Rpc::RpcChannel *amfRpcChannel;
+  SAFplus::Rpc::RpcChannel *amfRpcChannel=NULL;
+  SAFplus::Rpc::amfAppRpc::amfAppRpc_Stub *amfAppRpc=NULL;
   };
 
 
@@ -53,6 +54,7 @@ extern "C"
       // Connect the AMF RPC server to the messaging port so that this component can start processing incoming AMF requests
       amfRpcChannel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, &amfAppRpcServer);
       amfRpcChannel->setMsgType(AMF_APP_REQ_HANDLER_TYPE,AMF_APP_REPLY_HANDLER_TYPE);
+      amfAppRpc = new SAFplus::Rpc::amfAppRpc::amfAppRpc_Stub(amfRpcChannel);
       }
     else
       {
@@ -196,6 +198,17 @@ SaAisErrorT saAmfComponentNameGet(SaAmfHandleT amfHandle,SaNameT *compName)
 
 SaAisErrorT saAmfResponse(SaAmfHandleT amfHandle, SaInvocationT invocation, SaAisErrorT error)
   {
+  SAFplus::Rpc::amfAppRpc::WorkOperationResponseRequest resp;
+  assert(amfAppRpc);
+  resp.set_invocation(invocation);
+  resp.set_result(error);
+
+  // Invocation is coded with the node address and ioc port
+  uint nodeAddress = (invocation >> (32+16));
+  uint portId      = (invocation >> 32) & 0xFFFF;
+  Handle amfHdl(SAFplus::TransientHandle,0,portId,nodeAddress);  // Ok, cheating here a little.  I know that the workOperationResponse function does not really need a handle.  It just needs the port and node from the handle.  So I create a fake handle with the correct fields
+
+  amfAppRpc->workOperationResponse(amfHdl,&resp);
   return SA_AIS_OK;
   }
 

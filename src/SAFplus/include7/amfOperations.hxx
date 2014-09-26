@@ -1,5 +1,5 @@
 #pragma once
-
+#include <boost/unordered_map.hpp>
 #include <SAFplusAmf/AdministrativeState.hxx>
 #include <SAFplusAmf/HighAvailabilityState.hxx>
 namespace SAFplusAmf
@@ -12,13 +12,30 @@ namespace SAFplusAmf
 
 namespace SAFplus
   {
+
+  class WorkOperationTracker
+    {
+    public:
+    SAFplusAmf::Component* comp;
+    SAFplusAmf::ComponentServiceInstance* csi;
+    SAFplusAmf::ServiceInstance* si;
+    uint state;
+    uint target;
+    uint64_t issueTime;
+    WorkOperationTracker(SAFplusAmf::Component* c,SAFplusAmf::ComponentServiceInstance* cwork,SAFplusAmf::ServiceInstance* work,uint statep, uint targetp);
+    WorkOperationTracker() { comp = nullptr; csi = nullptr; issueTime=0; state=0; target=0; }
+    };
+
+  typedef boost::unordered_map<uint64_t,WorkOperationTracker> PendingWorkOperationMap;
+  
+
   namespace Rpc
     {
-  namespace amfRpc
+    namespace amfRpc
       {
       class amfRpc_Stub;
       };
-   namespace amfAppRpc
+    namespace amfAppRpc
       {
       class amfAppRpc_Stub;
       };
@@ -46,12 +63,14 @@ namespace SAFplus
     Rpc::amfAppRpc::amfAppRpc_Stub* amfAppRpc;
     uint64_t invocation;  // keeps track of the particular request being sent to the app (at the SAF level)
 
+    PendingWorkOperationMap pendingWorkOperations;
+
     AmfOperations()
     {
     amfInternalRpc = nullptr;
     amfAppRpc = nullptr;
     // Make the invocation unique per AMF to ensure that failover or restart does not reuse invocation by accident (although, would reuse really matter?)
-    invocation = (SAFplus::ASP_NODEADDR << 16) | SAFplus::pid;
+    invocation = (SAFplus::ASP_NODEADDR << 16) | SAFplus::iocPort;
     invocation <<= 32;  // TODO: should checkpointed value be used?
     }
 
@@ -62,5 +81,7 @@ namespace SAFplus
     void start(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));
 
     void assignWork(SAFplusAmf::ServiceUnit* su, SAFplusAmf::ServiceInstance* si, SAFplusAmf::HighAvailabilityState state,Wakeable& w = *((Wakeable*)nullptr));
+
+    void workOperationResponse(uint64_t invocation, uint32_t result);
     };
   };

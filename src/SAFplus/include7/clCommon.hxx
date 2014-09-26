@@ -9,6 +9,14 @@ namespace SAFplus
 /** printf but for std::string */
 std::string strprintf(const std::string fmt_str, ...);
 
+// All statements that begin with "dbg" are NO OPERATION in production code.
+#ifdef CL_DEBUG
+  inline void dbgAssert(bool x) { assert(x) }
+#else
+  inline void dbgAssert(bool x) {}
+#endif
+
+
   /**
    *  Version array entry stored by a client library that describes what
    *  versions are supported by the client library implementation.
@@ -141,7 +149,7 @@ std::string strprintf(const std::string fmt_str, ...);
   typedef enum
   {
     SAF_ERROR        = 0,
-    SAFPLUS_ERROR         = 1,
+    SAFPLUS_ERROR    = 1,
     SYSTEM_ERROR     = 2
   } ErrorFamily;
 

@@ -30,6 +30,7 @@
 #include "amfRpc/amfRpc.pb.hxx"
 #include "amfRpc/amfRpc.hxx"
 #include "amfAppRpc/amfAppRpc.hxx"
+#include "amfAppRpcImplAmfSide.hxx"
 
 #define USE_GRP
 
@@ -412,10 +413,6 @@ int main(int argc, char* argv[])
   // client side
   amfRpc_Stub amfInternalRpc(channel);
 
-  // Set up the RPC communication to applications
-  SAFplus::Rpc::RpcChannel appRpcChannel(&safplusMsgServer, dest);
-  appRpcChannel.setMsgType(AMF_APP_REQ_HANDLER_TYPE, AMF_APP_REPLY_HANDLER_TYPE);
-  SAFplus::Rpc::amfAppRpc::amfAppRpc_Stub amfAppRpc(&appRpcChannel);
 
 #if 0
   StartComponentRequest req;
@@ -450,8 +447,16 @@ int main(int argc, char* argv[])
 
   logServer = boost::thread(LogServer());
 
-  AmfOperations amfOps;
+  AmfOperations amfOps;  // Must happen after messaging initialization so that we can use the node address and message port in the invocation.
   amfOps.amfInternalRpc = &amfInternalRpc;
+
+  // Set up the RPC communication to applications
+  SAFplus::Rpc::amfAppRpc::amfAppRpcImplAmfSide amfAppRpcMsgHandler(&amfOps);
+  SAFplus::Rpc::RpcChannel appRpcChannel(&safplusMsgServer, dest);
+  appRpcChannel.setMsgType(AMF_APP_REQ_HANDLER_TYPE, AMF_APP_REPLY_HANDLER_TYPE);
+  appRpcChannel.service = &amfAppRpcMsgHandler;  // The AMF needs to receive saAmfResponse calls from the clients so it needs to act as a "server".
+  SAFplus::Rpc::amfAppRpc::amfAppRpc_Stub amfAppRpc(&appRpcChannel);
+
   amfOps.amfAppRpc = &amfAppRpc;
 
   loadAmfPlugins(amfOps);

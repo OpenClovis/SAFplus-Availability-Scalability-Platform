@@ -29,7 +29,7 @@ CPP_FLAGS += -I../../mgt7/include -I$(SAFPLUS_SRC_DIR)/SAFplus/components/gms7 -
 
 #SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard SAFplusTypes/*.hxx) $(wildcard ietfYangTypes/*.hxx) $(wildcard ENTITYSTATETCMIB/*.hxx)
 SERVER_H := $(wildcard *.hpp) $(wildcard *.h) $(wildcard *.hxx) $(wildcard ../../../include7/*.hpp) $(wildcard SAFplusAmf/*.hxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.hxx)
-SERVER_SRC := main.cxx amfcommon.cxx $(wildcard amfRpc/*.cc) $(wildcard amfRpc/*.cxx)
+SERVER_SRC := main.cxx amfcommon.cxx $(wildcard amfRpc/*.cc) $(wildcard amfRpc/*.cxx) amfAppRpcImpl.cxx
 
 #POLICY_ENV_SRC := $(wildcard SAFplusAmf/*.cxx) $(wildcard SAFplusTypes/*.cxx) $(wildcard ietfYangTypes/*.cxx) $(wildcard ENTITYSTATETCMIB/*.cxx)
 POLICY_ENV_SRC := amfOperations.cxx $(wildcard SAFplusAmf/*.cxx) $(wildcard $(COMMON_DIR)/SAFplusTypes/*.cxx) $(wildcard amfRpc/server/*.cxx) $(wildcard amfAppRpc/*.cxx) $(wildcard amfAppRpc/*.cc)

@@ -14,6 +14,7 @@
 #include <clAmfPolicyPlugin.hxx>
 
 #include <SAFplusAmf/Component.hxx>
+#include <SAFplusAmf/ComponentServiceInstance.hxx>
 #include <SAFplusAmf/ServiceUnit.hxx>
 #include <SAFplusAmf/ServiceGroup.hxx>
 
@@ -25,6 +26,14 @@ using namespace SAFplus::Rpc::amfRpc;
 extern Handle           nodeHandle; //? The handle associated with this node
 namespace SAFplus
   {
+
+    WorkOperationTracker::WorkOperationTracker(SAFplusAmf::Component* c,SAFplusAmf::ComponentServiceInstance* cwork,SAFplusAmf::ServiceInstance* work,uint statep, uint targetp)
+    {
+    comp = c; csi = cwork; si=work; state = statep; target = targetp;
+    issueTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    }
+
+
   // Move this service group and all contained elements to the specified state.
   void setAdminState(SAFplusAmf::ServiceGroup* sg,SAFplusAmf::AdministrativeState tgt)
     {
@@ -124,6 +133,30 @@ namespace SAFplus
     {
     amfOps = amfOperations;
     return true;
+    }
+
+  void AmfOperations::workOperationResponse(uint64_t invocation, uint32_t result)
+    {
+    if (1)
+      {
+      WorkOperationTracker& wat = pendingWorkOperations.at(invocation);
+      logInfo("AMF","OPS","Work Operation response on component [%s] invocation [%llx] result [%d]",wat.comp->name.c_str(),invocation, result);
+
+      if ( wat.state <= (int) HighAvailabilityState::quiescing)
+        {
+        if (result == SA_AIS_OK)  // TODO: actually, I think I need to call into the redundancy model plugin to correctly process the result.
+          {
+          wat.comp->haState = (SAFplusAmf::HighAvailabilityState) wat.state; // TODO: won't work with multiple assignments of active and standby, for example
+          wat.si->assignmentState = AssignmentState::fullyAssigned;  // TODO: for now just make the SI happy to see something work
+          }
+        }
+      else // work removal
+        {
+        }
+
+      }
+    // TODO: crashes pendingWorkOperations.erase(invocation);
+    
     }
 
   CompStatus AmfOperations::getCompState(SAFplusAmf::Component* comp)
@@ -249,6 +282,7 @@ namespace SAFplus
     SAFplus::Rpc::amfAppRpc::WorkOperationRequest request;
     // TODO fill request
     Component* comp = nullptr; // TODO: su down to comp
+    ComponentServiceInstance* csi = nullptr;
 
     SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
     SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
@@ -273,10 +307,12 @@ namespace SAFplus
       //request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
       request.set_operation((uint32_t)state);
       request.set_target(SA_AMF_CSI_ADD_ONE);
+      if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
       request.set_invocation(invocation++);
 
       //WorkOperationResponseHandler* respHdlr = new WorkOperationResponseHandler(&w,comp);
 
+      pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,csi,si,(uint32_t)state,SA_AMF_CSI_ADD_ONE);
 
       amfAppRpc->workOperation(hdl, &request);
 
@@ -332,7 +368,6 @@ namespace SAFplus
       }
     else if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
       {
-      
       comp->presence.value  = PresenceState::instantiating;
       Process p = executeProgram(inst->command.value, comp->commandEnvironment.value);
       comp->processId.value = p.pid;
