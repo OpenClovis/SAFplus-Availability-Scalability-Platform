@@ -33,11 +33,6 @@ namespace SAFplusLog
         this->name.assign("stream");
     };
 
-    void Stream::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> Stream::getKeys()
     {
         std::string keyNames[] = { "myName" };
