@@ -1,7 +1,7 @@
 #include "amfAppRpc/amfAppRpc.hxx"
 #include <clLogApi.hxx>
 #include <clNameApi.hxx>
-#include <clAmfIpi.hxx>
+//#include <clAmfIpi.hxx>
 #include <amfOperations.hxx>
 #include "amfAppRpcImplAmfSide.hxx"
 

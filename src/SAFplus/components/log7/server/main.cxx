@@ -289,19 +289,19 @@ void dumpStreams(LogCfg* cfg)
 
 int main(int argc, char* argv[])
 {
-    gIsNodeRepresentative = CL_TRUE;
+  gIsNodeRepresentative = CL_TRUE;
 
-    logEchoToFd = 1;  // echo logs to stdout for debugging
-    logSeverity = LOG_SEV_MAX;
+  logEchoToFd = 1;  // echo logs to stdout for debugging
+  logSeverity = LOG_SEV_MAX;
 
-    SAFplus::ASP_NODEADDR = 0x1;
+  SAFplus::ASP_NODEADDR = 0x1;
 
-    SafplusInitializationConfiguration sic;
-    sic.iocPort     = SAFplusI::LOG_IOC_PORT;
-    sic.msgQueueLen = 25;
-    sic.msgThreads  = 10;
+  SafplusInitializationConfiguration sic;
+  sic.iocPort     = SAFplusI::LOG_IOC_PORT;
+  sic.msgQueueLen = 25;
+  sic.msgThreads  = 10;
 
-    safplusInitialize(SAFplus::LibDep::IOC, sic);
+  safplusInitialize(SAFplus::LibDep::MSG, sic);
 
   /* Initialize mgt database  */
   ClMgtDatabase *db = ClMgtDatabase::getInstance();
@@ -313,8 +313,9 @@ int main(int argc, char* argv[])
 
   // Load logging configuration
   LogCfg* cfg = loadLogCfg();
-  cfg->streamConfig.bind(SYS_LOG, "SAFplusLog", "/StreamConfig");
-  cfg->serverConfig.bind(SYS_LOG, "SAFplusLog", "/ServerConfig");
+  SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::LOG_IOC_PORT);
+  cfg->streamConfig.bind(hdl, "SAFplusLog", "/StreamConfig");
+  cfg->serverConfig.bind(hdl, "SAFplusLog", "/ServerConfig");
   // Initialize
   logInitializeSharedMem();
 

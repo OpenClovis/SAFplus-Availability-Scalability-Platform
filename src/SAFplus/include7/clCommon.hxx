@@ -11,7 +11,7 @@ std::string strprintf(const std::string fmt_str, ...);
 
 // All statements that begin with "dbg" are NO OPERATION in production code.
 #ifdef CL_DEBUG
-  inline void dbgAssert(bool x) { assert(x) }
+  inline void dbgAssert(bool x) { assert(x); }
 #else
   inline void dbgAssert(bool x) {}
 #endif

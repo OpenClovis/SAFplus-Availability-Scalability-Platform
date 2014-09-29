@@ -57,7 +57,7 @@ module SAFplusTypes
     typedef SaTimeT
     {
       type uint64;
-      c-existing "SaTimeT";
+      //c-existing "SaTimeT";
       description "A representation of a time interval, specified in milliseconds";
     }
   
