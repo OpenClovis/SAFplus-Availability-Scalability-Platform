@@ -22,11 +22,6 @@ namespace SAFplusTypes
         this->name.assign("cpuUtilization");
     };
 
-    void CpuUtilization::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* CpuUtilization::getChildNames()
     {
         std::string childNames[] = { "current", "history10sec", "history1min", "history10min", "history1hour", "history12hour", "history1day", "history1week", "history1month" };

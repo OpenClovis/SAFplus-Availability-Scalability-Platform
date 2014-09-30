@@ -22,6 +22,11 @@ namespace SAFplusLog
             pair_t(FileFullAction::HALT, "HALT")
     }; // uses c++11 initializer lists 
 
+    const char* c_str(const SAFplusLog::FileFullAction &fileFullAction)
+    {
+        return FileFullActionManager::c_str(fileFullAction);
+    };
+
     std::ostream& operator<<(std::ostream &os, const SAFplusLog::FileFullAction &fileFullAction)
     {
         return os << FileFullActionManager::toString(fileFullAction);

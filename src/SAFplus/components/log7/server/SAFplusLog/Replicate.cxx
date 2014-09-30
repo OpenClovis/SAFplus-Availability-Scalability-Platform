@@ -23,6 +23,11 @@ namespace SAFplusLog
             pair_t(Replicate::ANY, "ANY")
     }; // uses c++11 initializer lists 
 
+    const char* c_str(const SAFplusLog::Replicate &replicate)
+    {
+        return ReplicateManager::c_str(replicate);
+    };
+
     std::ostream& operator<<(std::ostream &os, const SAFplusLog::Replicate &replicate)
     {
         return os << ReplicateManager::toString(replicate);

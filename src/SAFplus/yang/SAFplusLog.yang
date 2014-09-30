@@ -2,7 +2,7 @@ module SAFplusLog {
 
     namespace "http://www.openclovis.org/ns/log";
     prefix "SAFplusLog";
-    import SAFplusTypes { prefix "safplus"; }
+    import SAFplusTypes { prefix "safplustypes"; }
     organization
         "OpenClovis Solutions, Inc";
 
@@ -147,7 +147,7 @@ module SAFplusLog {
                 description "Statistics relating to the log stream";
         
                 container numLogs {
-                  uses safplus:intStatistic;
+                  uses safplustypes:intStatistic;
                   description "Number of logs issued to this stream per unit time";
                 }
             }

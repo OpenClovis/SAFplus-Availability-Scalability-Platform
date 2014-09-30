@@ -21,6 +21,11 @@ namespace SAFplusLog
             pair_t(StreamScope::LOCAL, "LOCAL")
     }; // uses c++11 initializer lists 
 
+    const char* c_str(const SAFplusLog::StreamScope &streamScope)
+    {
+        return StreamScopeManager::c_str(streamScope);
+    };
+
     std::ostream& operator<<(std::ostream &os, const SAFplusLog::StreamScope &streamScope)
     {
         return os << StreamScopeManager::toString(streamScope);

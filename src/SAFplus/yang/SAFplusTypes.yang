@@ -1,8 +1,7 @@
 module SAFplusTypes
 {
     namespace "http://www.openclovis.org/ns/types";
-    prefix "types";
-    import ietf-yang-types { prefix yt; }
+    prefix "safplustypes";
 
   description "Common types used within the SAFplus management framework.";
 
@@ -57,7 +56,7 @@ module SAFplusTypes
     typedef SaTimeT
     {
       type uint64;
-      types:c-existing "SaTimeT";
+      safplustypes:c-existing "SaTimeT";
       description "A representation of a time interval, specified in milliseconds";
     }
   
