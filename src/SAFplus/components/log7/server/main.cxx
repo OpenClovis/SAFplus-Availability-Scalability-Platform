@@ -289,10 +289,7 @@ void dumpStreams(LogCfg* cfg)
 
 int main(int argc, char* argv[])
 {
-  gIsNodeRepresentative = CL_TRUE;
-
-  logEchoToFd = 1;  // echo logs to stdout for debugging
-  logSeverity = LOG_SEV_MAX;
+  gIsNodeRepresentative = CL_FALSE;
 
   SAFplus::ASP_NODEADDR = 0x1;
 
@@ -302,6 +299,9 @@ int main(int argc, char* argv[])
   sic.msgThreads  = 10;
 
   safplusInitialize(SAFplus::LibDep::MSG, sic);
+
+  logEchoToFd = 1;  // echo logs to stdout for debugging
+  logSeverity = LOG_SEV_MAX;
 
   /* Initialize mgt database  */
   ClMgtDatabase *db = ClMgtDatabase::getInstance();

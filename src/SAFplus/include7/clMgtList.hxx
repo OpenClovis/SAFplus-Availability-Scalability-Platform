@@ -613,7 +613,9 @@ namespace SAFplus
           MgtObject *entry = iter->second;
           if (entry)
           {
+            xmlString << "<" << name << " "<<keyList<<"=\"" <<k<< "\">";
             entry->toString(xmlString);
+            xmlString << "</" << name << '>';
           }
         }
       }

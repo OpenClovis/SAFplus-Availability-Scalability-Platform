@@ -214,15 +214,20 @@ delete this;
     MgtObjectMap::iterator it;
     map<string, vector<MgtObject*>* >::iterator mapIndex;
 
-    xmlString << '<' << name << '>';
-
+    //GAS: TAG already build at MgtList, hardcode to ignore
+    if (!parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList" ))
+      {
+        xmlString << '<' << name << '>';
+      }
     for (it = children.begin(); it != children.end(); ++it)
       {
-      MgtObject* child = it->second;
-      child->toString(xmlString);
+        MgtObject *child = it->second;
+        child->toString(xmlString);
       }
-
-    xmlString << "</" << name << '>';
+      if (!parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList" ))
+        {
+          xmlString << "</" << name << '>';
+        }
     }
 
   ClRcT MgtContainer::write(ClMgtDatabase *db)

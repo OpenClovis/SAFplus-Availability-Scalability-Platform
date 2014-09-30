@@ -44,8 +44,8 @@ $(OBJ_DIR)/logsvr/%.o: $(COMMON_DIR)/SAFplusTypes/%.cxx
 
 gen:	
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusLog.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
-	(rsync -avpDHL ietfYangTypes $(COMMON_DIR)/; rsync -avpDHL SAFplusTypes $(COMMON_DIR)/)
-	(rm -rf ietfYangTypes SAFplusTypes)
+	(rsync -avpDHL SAFplusTypes $(COMMON_DIR)/)
+	(rm -rf  SAFplusTypes)
 
 cleangen:
 	(cd SAFplusLog; find . -type f -not -name "*Common.hxx" -not -name "*Base.cxx" | xargs rm)
