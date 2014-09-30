@@ -15,7 +15,6 @@ LogCfg logcfg;
 Stream* createStreamCfg(const char* nam, const char* filename, const char* location, unsigned long int fileSize, unsigned long int logRecSize, SAFplusLog::FileFullAction fullAction, int numFilesRotate, int flushQSize, int flushInterval,bool syslog,SAFplusLog::StreamScope scope)
 {
   Stream* s = new Stream();
-  s->name.assign(nam);
   s->setMyName(nam);
   s->setFileName(filename);
   s->setFileLocation(location);
