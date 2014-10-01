@@ -29,11 +29,6 @@ namespace SAFplusAmf
         this->name.assign("activeWeight");
     };
 
-    void ActiveWeight::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> ActiveWeight::getKeys()
     {
         std::string keyNames[] = { "resource" };

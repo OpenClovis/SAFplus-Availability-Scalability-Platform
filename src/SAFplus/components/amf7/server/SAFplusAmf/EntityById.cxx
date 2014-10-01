@@ -33,11 +33,6 @@ namespace SAFplusAmf
         this->addChildObject(&entity, "entity");
     };
 
-    void EntityById::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> EntityById::getKeys()
     {
         std::string keyNames[] = { "id" };

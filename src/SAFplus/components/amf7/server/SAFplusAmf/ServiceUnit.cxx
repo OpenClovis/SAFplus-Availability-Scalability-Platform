@@ -77,11 +77,6 @@ namespace SAFplusAmf
         this->name.assign("ServiceUnit");
     };
 
-    void ServiceUnit::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> ServiceUnit::getKeys()
     {
         std::string keyNames[] = { "myName" };

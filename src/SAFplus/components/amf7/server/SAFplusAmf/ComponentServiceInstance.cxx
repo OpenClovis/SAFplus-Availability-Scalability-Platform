@@ -45,11 +45,6 @@ namespace SAFplusAmf
         this->name.assign("ComponentServiceInstance");
     };
 
-    void ComponentServiceInstance::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> ComponentServiceInstance::getKeys()
     {
         std::string keyNames[] = { "myName" };

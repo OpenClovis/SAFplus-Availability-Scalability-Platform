@@ -31,7 +31,6 @@ namespace SAFplusAmf
     public:
         EntityById();
         EntityById(unsigned short int idValue);
-        void toString(std::stringstream &xmlString);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

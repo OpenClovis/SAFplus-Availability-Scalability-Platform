@@ -80,7 +80,6 @@ namespace SAFplusAmf
     public:
         ServiceInstance();
         ServiceInstance(std::string myNameValue);
-        void toString(std::stringstream &xmlString);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

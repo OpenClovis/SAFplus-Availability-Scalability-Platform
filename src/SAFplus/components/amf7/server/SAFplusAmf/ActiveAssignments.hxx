@@ -23,7 +23,6 @@ namespace SAFplusAmf
 
     public:
         ActiveAssignments();
-        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~ActiveAssignments();
 

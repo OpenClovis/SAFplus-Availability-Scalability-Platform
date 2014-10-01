@@ -105,11 +105,6 @@ namespace SAFplusAmf
         this->name.assign("Component");
     };
 
-    void Component::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> Component::getKeys()
     {
         std::string keyNames[] = { "myName" };

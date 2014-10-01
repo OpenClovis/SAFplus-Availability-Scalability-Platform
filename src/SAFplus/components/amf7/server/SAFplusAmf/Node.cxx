@@ -51,11 +51,6 @@ namespace SAFplusAmf
         this->name.assign("Node");
     };
 
-    void Node::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> Node::getKeys()
     {
         std::string keyNames[] = { "myName" };

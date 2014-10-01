@@ -23,7 +23,6 @@ namespace SAFplusAmf
 
     public:
         ComponentRestart();
-        void toString(std::stringstream &xmlString);
         std::vector<std::string>* getChildNames();
         ~ComponentRestart();
 

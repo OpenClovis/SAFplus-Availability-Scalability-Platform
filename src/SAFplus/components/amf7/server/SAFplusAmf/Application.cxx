@@ -42,11 +42,6 @@ namespace SAFplusAmf
         this->name.assign("Application");
     };
 
-    void Application::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> Application::getKeys()
     {
         std::string keyNames[] = { "myName" };

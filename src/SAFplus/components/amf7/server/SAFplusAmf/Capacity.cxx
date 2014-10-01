@@ -33,11 +33,6 @@ namespace SAFplusAmf
         this->addChildObject(&value, "value");
     };
 
-    void Capacity::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> Capacity::getKeys()
     {
         std::string keyNames[] = { "resource" };

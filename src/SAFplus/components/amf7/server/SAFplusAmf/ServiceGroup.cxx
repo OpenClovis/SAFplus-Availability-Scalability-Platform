@@ -70,11 +70,6 @@ namespace SAFplusAmf
         this->name.assign("ServiceGroup");
     };
 
-    void ServiceGroup::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> ServiceGroup::getKeys()
     {
         std::string keyNames[] = { "myName" };

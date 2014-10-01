@@ -59,11 +59,6 @@ namespace SAFplusAmf
         this->name.assign("ServiceInstance");
     };
 
-    void ServiceInstance::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> ServiceInstance::getKeys()
     {
         std::string keyNames[] = { "myName" };

@@ -33,11 +33,6 @@ namespace SAFplusAmf
         this->addChildObject(&val, "val");
     };
 
-    void Data::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> Data::getKeys()
     {
         std::string keyNames[] = { "myName" };

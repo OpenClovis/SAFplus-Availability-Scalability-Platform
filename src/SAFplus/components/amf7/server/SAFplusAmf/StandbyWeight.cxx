@@ -29,11 +29,6 @@ namespace SAFplusAmf
         this->name.assign("standbyWeight");
     };
 
-    void StandbyWeight::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> StandbyWeight::getKeys()
     {
         std::string keyNames[] = { "resource" };

@@ -22,11 +22,6 @@ namespace SAFplusAmf
         this->name.assign("serviceUnitRestart");
     };
 
-    void ServiceUnitRestart::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string>* ServiceUnitRestart::getChildNames()
     {
         std::string childNames[] = { "maximum", "duration" };

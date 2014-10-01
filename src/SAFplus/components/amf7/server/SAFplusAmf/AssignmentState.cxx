@@ -22,6 +22,11 @@ namespace SAFplusAmf
             pair_t(AssignmentState::partiallyAssigned, "partiallyAssigned")
     }; // uses c++11 initializer lists 
 
+    const char* c_str(const SAFplusAmf::AssignmentState &assignmentState)
+    {
+        return AssignmentStateManager::c_str(assignmentState);
+    };
+
     std::ostream& operator<<(std::ostream &os, const SAFplusAmf::AssignmentState &assignmentState)
     {
         return os << AssignmentStateManager::toString(assignmentState);

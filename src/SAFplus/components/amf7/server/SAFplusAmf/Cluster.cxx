@@ -36,11 +36,6 @@ namespace SAFplusAmf
         this->name.assign("Cluster");
     };
 
-    void Cluster::toString(std::stringstream &xmlString)
-    {
-        /* TODO:  */
-    };
-
     std::vector<std::string> Cluster::getKeys()
     {
         std::string keyNames[] = { "myName" };
