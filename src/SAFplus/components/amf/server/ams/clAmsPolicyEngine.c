@@ -6112,6 +6112,13 @@ clAmsPeSUInstantiateCallback(
     {
         AMS_CALL ( clAmsPeSUMarkReady(su) );
 
+        /* Call clAmsPeSUEvaluateWork for this SU because it has never been assigned successful */
+        if (su->status.numActiveSIs == 0 && su->status.numStandbySIs == 0 && su->status.numQuiescedSIs == 0)
+        {
+            AMS_CALL ( clAmsPeSUEvaluateWork(su) );
+            return CL_OK;
+        }
+
         if ( pstate == CL_AMS_PRESENCE_STATE_RESTARTING )
         {
             AMS_CALL ( clAmsPeSURestartCallback_Step2(su, CL_OK) );
