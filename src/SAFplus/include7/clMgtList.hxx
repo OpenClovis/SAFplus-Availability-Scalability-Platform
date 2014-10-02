@@ -234,7 +234,13 @@ namespace SAFplus
           MgtObject *entry = iter->second;
           if (entry)
           {
-            entry->toString(xmlString);
+              /*
+               * Build fully tag with keys attribute
+               * Example: <interface name="eth0" ipAddr="192.168.10.1">...</interface>
+               */
+              xmlString << "<" << name << " "<<k->toString()<< ">";
+              entry->toString(xmlString);
+              xmlString << "</" << name << '>';
           }
         }
       }
@@ -373,7 +379,7 @@ namespace SAFplus
           return xpath;
         }
         /* Build key */
-        std::string keypart = key.toXmlString();
+        std::string keypart = key.toXpath();
 
         /* Parent X-Path will be add into the full xpath */
         if (parent != NULL && includeParent) // this is the list parent
@@ -395,6 +401,9 @@ namespace SAFplus
        */
       static std::string keyTypeToString(KEYTYPE key)
       {
+        /*
+         * GAS: convert to hash string to easy comparing
+         */
         return key.str();
       }
       /**

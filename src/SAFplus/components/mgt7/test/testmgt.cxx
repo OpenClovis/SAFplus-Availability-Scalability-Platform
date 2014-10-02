@@ -39,21 +39,30 @@ class multipleKey
         iter = keyList.find("key1");
         if(iter != keyList.end())
         {
-          key1 = atoi(iter->second.c_str());
+          stringstream key1ss;
+          key1ss << iter->second;
+          key1ss >> key1;
+          //key1 = atoi(iter->second.c_str());
         }
         iter = keyList.find("key2");
         if(iter != keyList.end())
         {
-          key2 = atoi(iter->second.c_str());
+          stringstream key2ss;
+          key2ss << iter->second;
+          key2ss >> key2;
+          //key2 = atoi(iter->second.c_str());
         }
         iter = keyList.find("key3");
         if(iter != keyList.end())
         {
-          key3 = iter->second;
+          stringstream key3ss;
+          key3ss << iter->second;
+          key3ss >> key3;
+          //key3 = iter->second;
         }
         logDebug("MGT","TEST","Building key for object...");
       }
-      std::string toXmlString() const
+      std::string toXpath() const
       {
         std::stringstream ss;
         ss << "[";
@@ -61,6 +70,14 @@ class multipleKey
         ss << "]";
         return ss.str();
       }
+
+      std::string toString() const
+      {
+        std::stringstream ss;
+        ss << "key1=\"" << key1 << "\" " << "key2=\"" << key2 << "\" " << "key3=\"" << key3 << "\"";
+        return ss.str();
+      }
+
       std::string str() const
       {
         std::stringstream ss;
@@ -491,18 +508,24 @@ void testMgtClassList()
   logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey1.str().c_str() ,stringList.getFullXpath(objKey1).c_str());
   logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey2.str().c_str() ,stringList.getFullXpath(objKey2).c_str());
   logDebug("MGT","TEST","XPATH of childs [%s]: %s ",objKey3.str().c_str() ,stringList.getFullXpath(objKey3).c_str());
+
+  std::stringstream xmlString;
+  stringList.toString(xmlString);
+
+  logDebug("MGT","TEST","toString: %s ", xmlString.str().c_str());
+
   /**
    * Check operator[]
    */
   TestListMultikeyObject *getObj = (TestListMultikeyObject *)stringList[objKey1];
-  if(testObject1.key3.value == getObj->key3.value)
+  if(testObject1.data.value == getObj->data.value)
     logDebug("MGT","TEST","PASS: operator[]");
   else
     logDebug("MGT","TEST","FAIL: operator []");
   /**
    * Check set function
    */
-  const char* xmlTest = "<mylist><key1>2</key1><key2>4</key2><key3>ASPXX</key3><data>1111</data></mylist>";
+  const char* xmlTest = "<mylist><key1>2</key1><key2>4</key2><key3>ASPX</key3><data>1111</data></mylist>";
   SAFplus::Transaction t;
   if(stringList.set((void *)xmlTest,strlen(xmlTest),t))
   {
