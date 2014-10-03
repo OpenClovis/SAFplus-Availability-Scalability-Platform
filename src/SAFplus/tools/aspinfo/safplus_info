@@ -268,7 +268,7 @@ def load_xml_string(string, strip_root=None):
                 tag = n.tag
                 text = n.text
                 if tag is et.Comment:
-                    pass
+                    continue
                 else:
                     if not d.has_key(tag):
                         d[tag] = []
@@ -286,10 +286,12 @@ def load_xml_string(string, strip_root=None):
                         if list(n):
                             d2 = d[tag][-1]
                             for n2 in list(n):
-                                    if n2.attrib.has_key('value'):
-                                        pass
-                                    else:
-                                        d2[n2.tag][-1] =  decode_tree(n2)
+                              if n2.tag is et.Comment:
+                                  continue
+                              if n2.attrib.has_key('value'):
+                                  pass
+                              else:
+                                  d2[n2.tag][-1] =  decode_tree(n2)
                             d[tag][-1] = d2
                         else:
                             d[tag][-1] = text
