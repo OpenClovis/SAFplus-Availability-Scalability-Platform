@@ -236,9 +236,12 @@ namespace SAFplus
           {
               /*
                * Build fully tag with keys attribute
+               * GAS: YumaNetconf parse does not support XML attribute
                * Example: <interface name="eth0" ipAddr="192.168.10.1">...</interface>
+               * Just simple return:
+               *     <interface>...</interface>
                */
-              xmlString << "<" << name << " "<<k->toString()<< ">";
+              xmlString << "<" << name << ">";
               entry->toString(xmlString);
               xmlString << "</" << name << '>';
           }
@@ -622,7 +625,13 @@ namespace SAFplus
           MgtObject *entry = iter->second;
           if (entry)
           {
-            xmlString << "<" << name << " "<<keyList<<"=\"" <<k<< "\">";
+             /*
+              * GAS: Yuma parse does not support XML attribute
+              * Example: <interface name="eth0" ipAddr="192.168.10.1">...</interface>
+              * Just simple return:
+              *     <interface>...</interface>
+              */
+            xmlString << "<" << name << ">";
             entry->toString(xmlString);
             xmlString << "</" << name << '>';
           }
