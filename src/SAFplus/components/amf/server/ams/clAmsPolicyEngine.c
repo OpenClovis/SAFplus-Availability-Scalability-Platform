@@ -5243,7 +5243,19 @@ clAmsPeSUFaultReport(
          * SU failover with restart
          */
         if (!foundOtherSU)
-          *recovery = CL_AMS_RECOVERY_SU_RESTART;
+          {
+            *recovery = CL_AMS_RECOVERY_SU_RESTART;
+            if (su->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATING)
+              {
+                /*
+                 * We increment instantiated SU count as it will get decremented
+                 * in the SU terminate callback, but at that time we won't know
+                 * that the SU did a instantiating -> terminating transition and
+                 * wasn't really instantiated.
+                 */
+                node->status.numInstantiatedSUs++;
+              }
+          }
       }
 
     recommendedRecovery = *recovery;
