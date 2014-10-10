@@ -44,7 +44,10 @@ namespace SAFplusLog
   
      FILE* fp;  // If this stream will be output to a file on this node, this is pointer to that file handle.  Otherwise NULL
      int fileIdx;  // If the file is being rotated, this is the current file count.  i.e. file name is ("%s%d.log",fileName,fileIdx)
+     int earliestIdx; // The oldest index of file of this stream
+     int numFiles; // the current number of files created of this stream
      int fileSize; // Current length of the open file
+     std::string filePath; // full path to log file after being adjusted
      //boost::asio::streambuf fileBuffer; //char* fileBuffer; // logs are spooled to this buffer and then written to the file all at once
      //std::ostream fileStream;
      //boost::asio::streambuf msgBuffer; //char* msgBuffer; // logs are spooled to this buffer and then written to the network as one packet

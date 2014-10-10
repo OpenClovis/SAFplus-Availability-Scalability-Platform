@@ -93,6 +93,50 @@ void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg)
     }
 }
 
+void checkAndRotateLog(Stream* s)
+{
+  long fileSize = ftell(s->fp);
+  Dbg("checkAndRotateLog(): fileSize [%ld], conf fileSize [%ld]\n", fileSize, s->fileUnitSize.value);
+  if (fileSize >= s->fileUnitSize.value)
+  {
+    if (s->fileFullAction == FileFullAction::ROTATE)
+    {
+      std::string fname;
+      if (s->numFiles >= s->maximumFilesRotated)
+      {
+        fname.assign(s->filePath +  "/" + s->fileName.value + boost::lexical_cast<std::string>(s->earliestIdx) + ".log");
+        // Delete the oldest file
+        fs::remove(fname);   
+        s->earliestIdx++; // Increasing earliest file index
+        s->numFiles--; // Decreasing number of files because one file has been removed        
+        // close the current file
+        fclose(s->fp);    
+        s->fp = NULL;
+      }
+      // open a new file with the newest index
+      s->fileIdx++; // Increasing new file index
+      fname.assign(s->filePath +  "/" + s->fileName.value + boost::lexical_cast<std::string>(s->fileIdx) + ".log");      
+      s->fp = fopen(fname.c_str(),"w");
+      Dbg("Opening file: %s %s", fname.c_str(), (s->fp) ? "OK":"FAILED");
+      if (s->fp)
+      {
+        // Increasing the number of files
+        s->numFiles++;
+        Dbg("\n");
+      }
+      else
+      {
+        Dbg(".Errno [%d]. Error message [%s]\n", fname.c_str(), errno, strerror(errno));
+      }
+    }  
+    else if (s->fileFullAction == FileFullAction::WRAP)
+    {
+      // Move the file pointer to the beginning of the file
+      fseek(s->fp, 0L, SEEK_SET);         
+    }
+  }
+}
+
 void finishLogProcessing(LogCfg* cfg)
   {
   MgtObject::Iterator iter;
@@ -110,6 +154,7 @@ void finishLogProcessing(LogCfg* cfg)
         //fwrite(boost::asio::buffer_cast<const char*>(bufs),sizeof(char),boost::asio::buffer_size(bufs),s->fp);
         s->fileBuffer.fwrite(s->fp);                    
         fflush(s->fp);
+        checkAndRotateLog(s);
         s->fileBuffer.consume();
         }
       if (s->sendMsg)
@@ -124,74 +169,93 @@ void finishLogProcessing(LogCfg* cfg)
     }  
   }
 
-// Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
-void logInitializeStreams(LogCfg* cfg)
-  {
-  // Open FP if needed
-  // if rotate
-  // determine the current fileIdx by looking at the current files in the directory and adding one.
-  file_result_set_t file_result_set;
-  MgtObject::Iterator iter;
-  MgtObject::Iterator end = cfg->streamConfig.streamList.end();
-  for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
+int getFileIdx(std::string filePath, std::string fileName)
+{
+  int fileIdx = 0;
+  int lastSlashPos,extLogPos,fnIdx;
+  std::string strIdx;  
+  int foundIdx = filePath.rfind(fileName);
+  if (foundIdx>=0 && foundIdx<filePath.length())
+  {                
+    lastSlashPos = filePath.rfind("/");
+    extLogPos = filePath.rfind(".log");
+    fnIdx = filePath.find(fileName, lastSlashPos);
+    if (fnIdx >= 0 && fnIdx < filePath.length())
     {
-    Stream* s = dynamic_cast<Stream*>(iter->second);
-    Dbg("Initializing stream %s file: %s location: %s\n", s->name.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str());
-    std::string& loc = s->fileLocation.value;
+      strIdx = filePath.substr(fnIdx+fileName.length(), extLogPos-(fnIdx+fileName.length()));
+    }
+    fileIdx = atoi(strIdx.c_str());      
+  }
+  return fileIdx;
+}
 
-    if ((loc[0] == '.')&&(loc[1] == ':'))  // . for the location means 'this node'
-      {
-        std::string pathToFile = loc.substr(2,-1);
-        if (pathToFile[0] != '/')
+void initializeLogRotation(LogCfg* cfg)
+{ 
+  MgtObject::Iterator iter; 
+  MgtObject::Iterator end = cfg->streamConfig.streamList.end();
+  file_result_set_t file_result_set;
+  for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
+  {
+    Stream* s = dynamic_cast<Stream*>(iter->second);
+    std::string& loc = s->fileLocation.value;
+    if ((loc[0] != '.')||(loc[1] != ':'))  // . for the location means 'this node'
+    {
+      continue;
+    }
+    s->filePath = loc.substr(2,-1);
+    if (s->filePath[0] != '/')
+    {
+      Dbg("path [%s] is invalid. Try to use ASP_LOGDIR\n", s->filePath.c_str());
+      s->filePath = SAFplus::ASP_LOGDIR;
+    }
+    std::string& pathToFile = s->filePath;
+    if (!fs::exists(pathToFile))
+    {    
+      try {
+        fs::create_directories(pathToFile);     
+      }
+      catch (boost::filesystem::filesystem_error ex) {
+       Dbg("path [%s] is invalid; ASP_LOGDIR may not be set. System error [%s]\n", pathToFile.c_str(), ex.what());
+       continue; // if this filepath is invalid, pass it by and continue handling other stream
+      }
+    }
+    /* The purpose is to find the last modified log file, get its index then calculate the next index for a new file.  First we need to separate out the log files that are associated with this stream (verses other streams or random files).  Logs associated with this stream have a name with the following format <pathname><fileName><Index>.log.  We search the directory for all filenames matching this format.  Next, these files are put in the file_result_set.  This map will sort all elements automatically based on modified time.  We use this set to do things like delete the oldest file and create a new one.
+    */
+    int fileIdx = 0;
+    int lastSlashPos,extLogPos,fnIdx;
+    std::string strIdx;
+    int foundIdx;
+    if (s->fileFullAction == FileFullAction::ROTATE || s->fileFullAction == FileFullAction::WRAP)
+    {      
+        fs::directory_iterator end_iter;
+        for( fs::directory_iterator dir_iter(pathToFile) ; dir_iter != end_iter ; ++dir_iter)
         {
-          Dbg("path [%s] is invalid. Try to use ASP_LOGDIR\n", pathToFile.c_str());
-          pathToFile = SAFplus::ASP_LOGDIR;
-        }
-        if (!fs::exists(pathToFile))
-        {    
-          try {
-            fs::create_directories(pathToFile);     
-          }
-          catch (boost::filesystem::filesystem_error ex) {
-            Dbg("path [%s] is invalid; ASP_LOGDIR may not be set. System error [%s]\n", pathToFile.c_str(), ex.what());
-            return;
-          }
-        }
-        unsigned fileIdx = 0;
-        unsigned lastSlashPos,extLogPos,fnIdx;
-        std::string strIdx;
-        unsigned foundIdx;
-        if (s->fileFullAction == FileFullAction::ROTATE || s->fileFullAction == FileFullAction::WRAP)
-        {
-          if (fs::exists(pathToFile) && fs::is_directory(pathToFile))
+          // Extract just the file name by bracketing it between the preceding / and the file extension
+          std::string filePath = dir_iter->path().string();
+          lastSlashPos = filePath.rfind("/");
+          extLogPos = filePath.rfind(".log");
+          fnIdx = filePath.find(s->fileName, lastSlashPos);
+          if (fnIdx >= 0 && fnIdx < filePath.length())
           {
-            fs::directory_iterator end_iter;
-            for( fs::directory_iterator dir_iter(pathToFile) ; dir_iter != end_iter ; ++dir_iter)
+            strIdx = filePath.substr(fnIdx+s->fileName.value.length(), extLogPos-(fnIdx+s->fileName.value.length()));
+          }
+          if (strIdx.length()>0)
+          {
+            try 
             {
-              lastSlashPos = dir_iter->path().string().rfind("/");
-              extLogPos = dir_iter->path().string().rfind(".log");
-              fnIdx = dir_iter->path().string().find(s->fileName.value, lastSlashPos);
-              if (fnIdx >= 0 && fnIdx < dir_iter->path().string().length())
+              fileIdx = boost::lexical_cast<unsigned>(strIdx);
+              if (fs::is_regular_file(dir_iter->status()))
               {
-                strIdx = dir_iter->path().string().substr(fnIdx+s->fileName.value.length(), extLogPos-(fnIdx+s->fileName.value.length()));
+                file_result_set.insert(file_result_set_t::value_type(fs::last_write_time(dir_iter->path()), dir_iter->path()));
               }
-              if (strIdx.length()>0)
-              {
-                try 
-                {
-                  fileIdx = boost::lexical_cast<unsigned>(strIdx);
-                  if (fs::is_regular_file(dir_iter->status()))
-                  {
-                    file_result_set.insert(file_result_set_t::value_type(fs::last_write_time(dir_iter->path()), dir_iter->path()));
-                  }
-                }
-                catch(...)
-                {
-                  Dbg("[%s] is not safplus log, ignore it\n", dir_iter->path().string().c_str());
-                }
-                strIdx.clear();
-              }              
             }
+            catch(...)
+            {
+              Dbg("[%s] is not safplus log, ignore it\n", filePath.c_str());
+            }
+            strIdx.clear();
+          }              
+        }
 #if 0 // for debugging
             {
              file_result_set_t::iterator it;
@@ -199,74 +263,93 @@ void logInitializeStreams(LogCfg* cfg)
              std::cout << (*it).first << " => " << (*it).second << '\n';
             }
 #endif
-            if (s->fileFullAction == FileFullAction::ROTATE)
-            {         
-              // get the oldest modified file               
-              if (file_result_set.size() >= s->maximumFilesRotated)              
-              {
-                file_result_set_t::iterator it = file_result_set.begin();
-                // Delete this oldest file
-                Dbg("Deleting file [%s]\n", (*it).second.string().c_str());
-                fs::remove((*it).second);                                              
-              }             
-            }
-            // get the last modified file            
-            if (file_result_set.size()>0)
-            {
-              file_result_set_t::reverse_iterator rit = file_result_set.rbegin();
-              std::string temp = (*rit).second.string();
-              foundIdx = temp.rfind(s->fileName.value);
-              if (foundIdx>=0 && foundIdx<temp.length())
-              {                
-                lastSlashPos = temp.rfind("/");
-                extLogPos = temp.rfind(".log");
-                fnIdx = temp.find(s->fileName.value, lastSlashPos);
-                if (fnIdx >= 0 && fnIdx < temp.length())
-                {
-                  strIdx = temp.substr(fnIdx+s->fileName.value.length(), extLogPos-(fnIdx+s->fileName.value.length()));
-                }
-                fileIdx = atoi(strIdx.c_str());  
-                if (s->fileFullAction == FileFullAction::ROTATE)
-                {
-                  fileIdx++;
-                }
-              }
-             }
-            }            
-          }        
-          else if (s->fileFullAction == FileFullAction::HALT)
-          {
-            // HALT means stopping logging to file => do not open fp => Nothing to do
-          }
-          s->fileIdx = fileIdx;
-          std::string fname(pathToFile +  "/" + s->fileName.value + boost::lexical_cast<std::string>(s->fileIdx) + ".log");
+        s->numFiles = file_result_set.size();            
+        if (s->fileFullAction == FileFullAction::ROTATE && s->numFiles >= s->maximumFilesRotated)
+        {
+          file_result_set_t::iterator it = file_result_set.begin();
+          s->earliestIdx = getFileIdx((*it).second.string(), s->fileName);
+          // Delete this oldest file          
+          Dbg("Deleting file [%s]\n", (*it).second.string().c_str());
+          fs::remove((*it).second);
+          s->earliestIdx++;
+          s->numFiles--;
+        } 
+        else if (s->fileFullAction == FileFullAction::HALT)
+        {
+          // HALT means stopping logging to file => do not open fp => Nothing to do
+        }          
+        // get the last modified file            
+        if (s->numFiles>0)
+        {
+          file_result_set_t::reverse_iterator rit = file_result_set.rbegin();
+          std::string temp = (*rit).second.string();
+          s->fileIdx = getFileIdx(temp, s->fileName);
           if (s->fileFullAction == FileFullAction::ROTATE)
           {
-            s->fp = fopen(fname.c_str(),"a+");
+            s->fileIdx++;
           }
-          else if (s->fileFullAction == FileFullAction::WRAP)
-          {
-            if (fs::exists(fname))
-            {
-              s->fp = fopen(fname.c_str(),"r+");
-              fseek(s->fp, 0L, SEEK_SET);
-            }
-            else
-            {
-              s->fp = fopen(fname.c_str(),"w");
-            } 
-          }
-          Dbg("Opening file: %s %s\n", fname.c_str(), (s->fp) ? "OK":"FAILED");
-          if (!s->fp)
-          {
-            Dbg("Opening file: %s FAILED. Errno [%d]. Error message [%s]\n", fname.c_str(), errno, strerror(errno));
-            //exit(1);
-          }   
-      } 
-      // reset the map for processing other log file
-      file_result_set.clear();           
-    }  
+        }
+        else
+        {       
+          s->fileIdx = 0;
+          s->earliestIdx = 0;
+        }     
+    }
+    // reset the map for processing other log file
+    file_result_set.clear();
   }
+}
+
+// Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
+void logInitializeStreams(LogCfg* cfg)
+{
+  // Open FP if needed
+  // if rotate
+  // determine the current fileIdx by looking at the current files in the directory and adding one.
+  initializeLogRotation(cfg);  
+  MgtObject::Iterator iter;
+  MgtObject::Iterator end = cfg->streamConfig.streamList.end();
+  for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
+  {
+    Stream* s = dynamic_cast<Stream*>(iter->second);
+    Dbg("Initializing stream %s file: %s location: %s\n", s->name.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str()); 
+
+    if (s->filePath.length() > 0)
+    {
+      std::string fname(s->filePath +  "/" + s->fileName.value + boost::lexical_cast<std::string>(s->fileIdx) + ".log");
+      if (s->fileFullAction == FileFullAction::ROTATE)
+      {
+        s->fp = fopen(fname.c_str(),"w");
+        if (s->fp)
+        {
+          s->numFiles++;
+        }
+      }
+      else if (s->fileFullAction == FileFullAction::WRAP)
+      {
+        if (fs::exists(fname))
+        {
+          s->fp = fopen(fname.c_str(),"r+");
+          fseek(s->fp, 0L, SEEK_SET);
+        }
+        else
+        {
+          s->fp = fopen(fname.c_str(),"w");
+          if (s->fp)
+          {
+            s->numFiles++;
+          }
+        } 
+      }
+      Dbg("Opening file: %s %s\n", fname.c_str(), (s->fp) ? "OK":"FAILED");
+      if (!s->fp)
+      {
+        Dbg("Opening file: %s FAILED. Errno [%d]. Error message [%s]\n", fname.c_str(), errno, strerror(errno));
+        //exit(1);
+      }   
+    } 
+  }  
+}
 
 // Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
 void dumpStreams(LogCfg* cfg)
