@@ -98,7 +98,7 @@ module rpcTest
     }
   }
   
-   rpc workOperation
+rpc workOperation
     {
       input
       {
@@ -112,7 +112,7 @@ module rpcTest
     }
     leaf-list componentHandle
     {
-      type string
+      type binary
             { 
         length 16;  // 2 64-bit words 
         }
@@ -126,8 +126,21 @@ module rpcTest
     {
       type uint32;
     }
+
+    list keyValuePairs
+      {
+        leaf theKey
+          {
+        type string;
+          }
+        leaf theValue
+          {
+        type string;
+          }
+      }
       }
     }
+    
 
   rpc workOperationResponse  // Actually going from the app to the AMF
     {
@@ -143,5 +156,6 @@ module rpcTest
         }
     }
     }
+  
   
 }

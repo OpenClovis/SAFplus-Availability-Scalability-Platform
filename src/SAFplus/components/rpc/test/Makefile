@@ -77,9 +77,9 @@ $(OBJ_DIR)/test/rpc/combine/%.o: stubs/server/%.cxx
 
 gen: $(SAFplusRpcGen)
 	-mkdir -p ./stubs/server
-	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/test/rpc.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
-	protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./stubs test/rpc.proto
-	$(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./stubs test/rpc.proto
+	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/rpcTest.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
+	protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./stubs rpcTest.proto
+	$(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./stubs rpcTest.proto
 
 cleangen:
 	rm -rf stubs
