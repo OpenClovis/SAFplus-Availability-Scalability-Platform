@@ -303,8 +303,9 @@ namespace SAFplus
         break; // TODO: right now go to the next component, however assignment should not occur on ANY components if all components are not accessible. 
         }
 
+      logInfo("OPS","SRT","Component [%s] handle [%lx.%lx] is being assigned work", comp->name.c_str(),hdl.id[0],hdl.id[1]);
       request.set_componentname(comp->name.c_str());
-      //request.add_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+      request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
       request.set_operation((uint32_t)state);
       request.set_target(SA_AMF_CSI_ADD_ONE);
       if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
