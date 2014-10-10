@@ -57,6 +57,12 @@ namespace SAFplusI
 
     };
 
+  /* AMF */
+  enum
+    {
+    AmfMaxComponentServiceInstanceKeyValuePairs = 1024
+    };
+
 
   };
 

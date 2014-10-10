@@ -395,12 +395,7 @@ void printCSI(SaAmfCSIDescriptorT csiDescriptor, SaAmfHAStateT haState)
     clprintf (SAFplus::LOG_SEV_INFO, "Name value pairs :");
     for (i = 0; i < csiDescriptor.csiAttr.number; i++)
       {
-      clprintf (SAFplus::LOG_SEV_INFO, "Name : [%s]",
-        csiDescriptor.csiAttr.
-        attr[i].attrName);
-      clprintf (SAFplus::LOG_SEV_INFO, "Value : [%s]",
-        csiDescriptor.csiAttr.
-        attr[i].attrValue);
+      clprintf (SAFplus::LOG_SEV_INFO, "Name : [%s] Value : [%s]",csiDescriptor.csiAttr.attr[i].attrName csiDescriptor.csiAttr.attr[i].attrValue);
       }
     }
 

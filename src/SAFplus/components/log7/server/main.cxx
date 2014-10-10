@@ -205,19 +205,21 @@ void initializeLogRotation(LogCfg* cfg)
     s->filePath = loc.substr(2,-1);
     if (s->filePath[0] != '/')
     {
-      Dbg("path [%s] is invalid. Try to use ASP_LOGDIR\n", s->filePath.c_str());
+      Dbg("path [%s] is invalid. Trying to use ASP_LOGDIR\n", s->filePath.c_str());
       s->filePath = SAFplus::ASP_LOGDIR;
     }
     std::string& pathToFile = s->filePath;
     if (!fs::exists(pathToFile))
     {    
-      try {
+      try 
+        {
         fs::create_directories(pathToFile);     
-      }
-      catch (boost::filesystem::filesystem_error ex) {
-       Dbg("path [%s] is invalid; ASP_LOGDIR may not be set. System error [%s]\n", pathToFile.c_str(), ex.what());
-       continue; // if this filepath is invalid, pass it by and continue handling other stream
-      }
+        }
+      catch (boost::filesystem::filesystem_error ex) 
+        {
+        Dbg("path [%s] is invalid; ASP_LOGDIR may not be set. System error [%s]\n", pathToFile.c_str(), ex.what());
+        continue; // if this filepath is invalid, pass it by and continue handling other stream
+        }
     }
     /* The purpose is to find the last modified log file, get its index then calculate the next index for a new file.  First we need to separate out the log files that are associated with this stream (verses other streams or random files).  Logs associated with this stream have a name with the following format <pathname><fileName><Index>.log.  We search the directory for all filenames matching this format.  Next, these files are put in the file_result_set.  This map will sort all elements automatically based on modified time.  We use this set to do things like delete the oldest file and create a new one.
     */

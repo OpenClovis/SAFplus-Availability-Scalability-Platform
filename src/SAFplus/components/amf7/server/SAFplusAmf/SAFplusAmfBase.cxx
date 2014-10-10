@@ -161,6 +161,12 @@ namespace SAFplusAmf
 
     ComponentServiceInstance* csi;
     csi = createComponentServiceInstance("csi");
+    MgtProv<std::string>* nvp = new MgtProv<std::string>("testKey");
+    nvp->value = "testValue";
+    csi->dataList.addChildObject(nvp);
+    nvp = new MgtProv<std::string>("testKey2");
+    nvp->value = "testValue2";
+    csi->dataList.addChildObject(nvp);
 
     // Put the elements in their type-lookup arrays
     self->nodeList.addChildObject(node[0]);

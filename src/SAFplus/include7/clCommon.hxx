@@ -89,7 +89,19 @@ std::string strprintf(const std::string fmt_str, ...);
   extern Wakeable& BLOCK;  // This const is a reference to NULL and simply indicates that the function should be synchronous instead of async.
   extern Wakeable& ABORT;  // This const is a reference to 1 and indicates that the function should throw/return an error rather than block.
 
-  
+  /** This class allows you to allocate something on the heap that is
+   * automatically deleted when this variable goes out of scope
+   */
+  class ScopedAllocation
+    {
+    public:
+    void *memory;
+    void* operator = (void* o) { memory = o; }
+    operator  void* () const { return memory; } 
+    ScopedAllocation(void* o=NULL) {memory = o; }
+    ScopedAllocation(unsigned long int count) { memory = malloc(count); }
+    ~ScopedAllocation() { if (memory) free(memory); memory=NULL; }
+    };
 
   /** \brief  Load the SaNameT structure.
       \param  name The structure you want to load

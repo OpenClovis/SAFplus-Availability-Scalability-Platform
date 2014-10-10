@@ -293,29 +293,64 @@ namespace SAFplus
 
       Handle hdl;
       try
-        {
-        hdl = name.getHandle(comp->name);
-        }
+          {
+          hdl = name.getHandle(comp->name);
+          }
       catch (SAFplus::NameException& n)
+          {
+          logCritical("OPS","SRT","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.c_str());
+          comp->lastError.value = "Component's name is not registered in the name service so address cannot be determined.";
+          break; // TODO: right now go to the next component, however assignment should not occur on ANY components if all components are not accessible. 
+          }
+
+      // TODO: let's add an extension to SAF in the SI which basically just says "ignore CSIs" and/or "assign all components to the same CSI".  This makes the model simpler
+
+      // Let's find a CSI that we can apply to this component
+      SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator itcsi;
+      SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator endcsi = si->componentServiceInstances.value.end();
+
+      SAFplusAmf::ComponentServiceInstance* csi = NULL;
+      for (itcsi = si->componentServiceInstances.value.begin(); itcsi != endcsi; itcsi++)
         {
-        logCritical("OPS","SRT","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.c_str());
-        comp->lastError.value = "Component's name is not registered in the name service so address cannot be determined.";
-        break; // TODO: right now go to the next component, however assignment should not occur on ANY components if all components are not accessible. 
+        csi = *itcsi;
+        if (!csi) continue;
+        if (csi->getComponent()) continue;  // We can't assign a CSI to > 1 component.
+        // TODO validate CSI dependencies are assigned
+        break;  // We found one!
         }
 
-      logInfo("OPS","SRT","Component [%s] handle [%lx.%lx] is being assigned work", comp->name.c_str(),hdl.id[0],hdl.id[1]);
-      request.set_componentname(comp->name.c_str());
-      request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
-      request.set_operation((uint32_t)state);
-      request.set_target(SA_AMF_CSI_ADD_ONE);
-      if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
-      request.set_invocation(invocation++);
+      if (itcsi != endcsi)  // We found an assignable CSI and it is the variable "csi"
+        {
+        logInfo("OPS","SRT","Component [%s] handle [%lx.%lx] is being assigned work", comp->name.c_str(),hdl.id[0],hdl.id[1]);
+        request.set_componentname(comp->name.c_str());
+        request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
+        request.set_operation((uint32_t)state);
+        request.set_target(SA_AMF_CSI_ADD_ONE);
+        if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
+        request.set_invocation(invocation++);
 
-      //WorkOperationResponseHandler* respHdlr = new WorkOperationResponseHandler(&w,comp);
+        csi->setComponent(comp);  // Mark this CSI assigned to this component
 
-      pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,csi,si,(uint32_t)state,SA_AMF_CSI_ADD_ONE);
+        // Now I need to fill up the key/value pairs from the CSI
+        request.clear_keyvaluepairs();
+        SAFplus::MgtList<std::string>::Iterator it;
+        for (it = csi->dataList.begin(); it != csi->dataList.end(); it++)
+          {
+          SAFplus::Rpc::amfAppRpc::KeyValuePairs* kvp = request.add_keyvaluepairs();
+          assert(kvp);
+          MgtProv<std::string>* kv = dynamic_cast<MgtProv<std::string>*>(it->second); 
+          kvp->set_thekey(kv->name.c_str());  // it->first().c_str()
+          kvp->set_thevalue(kv->value.c_str());
+          }
 
-      amfAppRpc->workOperation(hdl, &request);
+        pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,csi,si,(uint32_t)state,SA_AMF_CSI_ADD_ONE);
+
+        amfAppRpc->workOperation(hdl, &request);
+        }
+      else
+        {
+        logInfo("OPS","SRT","Component [%s] handle [%lx.%lx] cannot be assigned work.  No valid Component Service Instance.", comp->name.c_str(),hdl.id[0],hdl.id[1]);
+        }
 
       }
 
