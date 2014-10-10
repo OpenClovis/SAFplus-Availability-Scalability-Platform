@@ -5090,6 +5090,9 @@ clAmsPeSURestartCallback_Step2(
     if ( su->config.isPreinstantiable )
     {
         AMS_CALL ( clAmsPeSUAssignWorkAgain(su) );
+
+        /* Call clAmsPeSUEvaluateWork for this SU because probably it has never been assigned successful */
+        AMS_CALL ( clAmsPeSUEvaluateWork(su) );
     }
 
     return CL_OK;
@@ -5244,17 +5247,7 @@ clAmsPeSUFaultReport(
          */
         if (!foundOtherSU)
           {
-            *recovery = CL_AMS_RECOVERY_SU_RESTART;
-            if (su->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATING)
-              {
-                /*
-                 * We increment instantiated SU count as it will get decremented
-                 * in the SU terminate callback, but at that time we won't know
-                 * that the SU did a instantiating -> terminating transition and
-                 * wasn't really instantiated.
-                 */
-                node->status.numInstantiatedSUs++;
-              }
+            *recovery = CL_AMS_RECOVERY_INTERNALLY_RECOVERED;
           }
       }
 
@@ -6123,13 +6116,6 @@ clAmsPeSUInstantiateCallback(
     if ( su->config.isPreinstantiable )
     {
         AMS_CALL ( clAmsPeSUMarkReady(su) );
-
-        /* Call clAmsPeSUEvaluateWork for this SU because it has never been assigned successful */
-        if (su->status.numActiveSIs == 0 && su->status.numStandbySIs == 0 && su->status.numQuiescedSIs == 0)
-        {
-            AMS_CALL ( clAmsPeSUEvaluateWork(su) );
-            return CL_OK;
-        }
 
         if ( pstate == CL_AMS_PRESENCE_STATE_RESTARTING )
         {
