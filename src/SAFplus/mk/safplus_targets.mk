@@ -44,14 +44,18 @@ $(LIB_DIR)/libclGroup.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/gms7
 endif
 
-
 ifndef SAFPLUS_NAME_LIB
 $(LIB_DIR)/libclName.so: 
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/name7
 endif
 
+ifndef SAFPLUS_AMF_LIB
+$(LIB_DIR)/libclAmf.so:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/amf7
+endif
+
 # ordered by dependency
-SAFplusSOs := $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclDbal7.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py
+SAFplusSOs := $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclDbal7.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py
 
 
 ifndef SAFPLUS_LOG_TEST
@@ -94,6 +98,12 @@ $(TEST_DIR)/testName:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/name7/test
 endif
 
+ifndef SAFPLUS_AMF_TEST
+$(TEST_DIR)/exampleSafApp:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/amf7/test
+endif
+
+
 ifndef SAFPLUS_AMF_SERVER
 $(SAFPLUS_TARGET)/bin/safplus_amf:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/amf7/server
@@ -104,7 +114,7 @@ $(SAFPLUS_TARGET)/bin/protoc-gen-rpc:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/rpc
 endif
 
-SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg  $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup
+SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg  $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp
 
 #  $(SAFPLUS_TARGET)/bin/splogd $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
 

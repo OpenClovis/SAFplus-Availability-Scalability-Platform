@@ -34,6 +34,9 @@ const ::google::protobuf::internal::GeneratedMessageReflection*
 const ::google::protobuf::Descriptor* TerminateResponse_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   TerminateResponse_reflection_ = NULL;
+const ::google::protobuf::Descriptor* KeyValuePairs_descriptor_ = NULL;
+const ::google::protobuf::internal::GeneratedMessageReflection*
+  KeyValuePairs_reflection_ = NULL;
 const ::google::protobuf::Descriptor* WorkOperationRequest_descriptor_ = NULL;
 const ::google::protobuf::internal::GeneratedMessageReflection*
   WorkOperationRequest_reflection_ = NULL;
@@ -113,13 +116,30 @@ void protobuf_AssignDesc_amfAppRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(TerminateResponse));
-  WorkOperationRequest_descriptor_ = file->message_type(4);
-  static const int WorkOperationRequest_offsets_[5] = {
+  KeyValuePairs_descriptor_ = file->message_type(4);
+  static const int KeyValuePairs_offsets_[2] = {
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(KeyValuePairs, thekey_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(KeyValuePairs, thevalue_),
+  };
+  KeyValuePairs_reflection_ =
+    new ::google::protobuf::internal::GeneratedMessageReflection(
+      KeyValuePairs_descriptor_,
+      KeyValuePairs::default_instance_,
+      KeyValuePairs_offsets_,
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(KeyValuePairs, _has_bits_[0]),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(KeyValuePairs, _unknown_fields_),
+      GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(KeyValuePairs, _extensions_),
+      ::google::protobuf::DescriptorPool::generated_pool(),
+      ::google::protobuf::MessageFactory::generated_factory(),
+      sizeof(KeyValuePairs));
+  WorkOperationRequest_descriptor_ = file->message_type(5);
+  static const int WorkOperationRequest_offsets_[6] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, invocation_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, componentname_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, componenthandle_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, operation_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, target_),
+    GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationRequest, keyvaluepairs_),
   };
   WorkOperationRequest_reflection_ =
     new ::google::protobuf::internal::GeneratedMessageReflection(
@@ -132,7 +152,7 @@ void protobuf_AssignDesc_amfAppRpc_2eproto() {
       ::google::protobuf::DescriptorPool::generated_pool(),
       ::google::protobuf::MessageFactory::generated_factory(),
       sizeof(WorkOperationRequest));
-  WorkOperationResponseRequest_descriptor_ = file->message_type(5);
+  WorkOperationResponseRequest_descriptor_ = file->message_type(6);
   static const int WorkOperationResponseRequest_offsets_[2] = {
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponseRequest, invocation_),
     GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(WorkOperationResponseRequest, result_),
@@ -169,6 +189,8 @@ void protobuf_RegisterTypes(const ::std::string&) {
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     TerminateResponse_descriptor_, &TerminateResponse::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
+    KeyValuePairs_descriptor_, &KeyValuePairs::default_instance());
+  ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     WorkOperationRequest_descriptor_, &WorkOperationRequest::default_instance());
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedMessage(
     WorkOperationResponseRequest_descriptor_, &WorkOperationResponseRequest::default_instance());
@@ -185,6 +207,8 @@ void protobuf_ShutdownFile_amfAppRpc_2eproto() {
   delete TerminateRequest_reflection_;
   delete TerminateResponse::default_instance_;
   delete TerminateResponse_reflection_;
+  delete KeyValuePairs::default_instance_;
+  delete KeyValuePairs_reflection_;
   delete WorkOperationRequest::default_instance_;
   delete WorkOperationRequest_reflection_;
   delete WorkOperationResponseRequest::default_instance_;
@@ -205,36 +229,41 @@ void protobuf_AddDesc_amfAppRpc_2eproto() {
     "esponse\022\024\n\014nextInterval\030\001 \001(\r*\t\010\350\007\020\200\200\200\200\002"
     "\"a\n\020TerminateRequest\022\022\n\ninvocation\030\001 \001(\004"
     "\022\025\n\rcomponentName\030\002 \001(\t\022\027\n\017componentHand"
-    "le\030\003 \003(\t*\t\010\350\007\020\200\200\200\200\002\"B\n\021TerminateResponse"
+    "le\030\003 \003(\014*\t\010\350\007\020\200\200\200\200\002\"B\n\021TerminateResponse"
     "\022\022\n\ninvocation\030\001 \001(\004\022\016\n\006result\030\002 \001(\r*\t\010\350"
-    "\007\020\200\200\200\200\002\"\210\001\n\024WorkOperationRequest\022\022\n\ninvo"
-    "cation\030\001 \001(\004\022\025\n\rcomponentName\030\002 \001(\t\022\027\n\017c"
-    "omponentHandle\030\003 \003(\t\022\021\n\toperation\030\004 \001(\r\022"
-    "\016\n\006target\030\005 \001(\r*\t\010\350\007\020\200\200\200\200\002\"M\n\034WorkOperat"
-    "ionResponseRequest\022\022\n\ninvocation\030\001 \001(\004\022\016"
-    "\n\006result\030\002 \001(\r*\t\010\350\007\020\200\200\200\200\0022\213\003\n\tamfAppRpc\022"
-    "^\n\theartbeat\022\'.SAFplus.Rpc.amfAppRpc.Hea"
-    "rtbeatRequest\032(.SAFplus.Rpc.amfAppRpc.He"
-    "artbeatResponse\022^\n\tterminate\022\'.SAFplus.R"
-    "pc.amfAppRpc.TerminateRequest\032(.SAFplus."
-    "Rpc.amfAppRpc.TerminateResponse\022V\n\rworkO"
-    "peration\022+.SAFplus.Rpc.amfAppRpc.WorkOpe"
-    "rationRequest\032\030.SAFplus.Rpc.NO_RESPONSE\022"
-    "f\n\025workOperationResponse\0223.SAFplus.Rpc.a"
-    "mfAppRpc.WorkOperationResponseRequest\032\030."
-    "SAFplus.Rpc.NO_RESPONSEB\t\200\001\000\210\001\000\220\001\001", 954);
+    "\007\020\200\200\200\200\002\"<\n\rKeyValuePairs\022\016\n\006theKey\030\001 \001(\t"
+    "\022\020\n\010theValue\030\002 \001(\t*\t\010\350\007\020\200\200\200\200\002\"\305\001\n\024WorkOp"
+    "erationRequest\022\022\n\ninvocation\030\001 \001(\004\022\025\n\rco"
+    "mponentName\030\002 \001(\t\022\027\n\017componentHandle\030\003 \001"
+    "(\014\022\021\n\toperation\030\004 \001(\r\022\016\n\006target\030\005 \001(\r\022;\n"
+    "\rkeyValuePairs\030\006 \003(\0132$.SAFplus.Rpc.amfAp"
+    "pRpc.KeyValuePairs*\t\010\350\007\020\200\200\200\200\002\"M\n\034WorkOpe"
+    "rationResponseRequest\022\022\n\ninvocation\030\001 \001("
+    "\004\022\016\n\006result\030\002 \001(\r*\t\010\350\007\020\200\200\200\200\0022\213\003\n\tamfAppR"
+    "pc\022^\n\theartbeat\022\'.SAFplus.Rpc.amfAppRpc."
+    "HeartbeatRequest\032(.SAFplus.Rpc.amfAppRpc"
+    ".HeartbeatResponse\022^\n\tterminate\022\'.SAFplu"
+    "s.Rpc.amfAppRpc.TerminateRequest\032(.SAFpl"
+    "us.Rpc.amfAppRpc.TerminateResponse\022V\n\rwo"
+    "rkOperation\022+.SAFplus.Rpc.amfAppRpc.Work"
+    "OperationRequest\032\030.SAFplus.Rpc.NO_RESPON"
+    "SE\022f\n\025workOperationResponse\0223.SAFplus.Rp"
+    "c.amfAppRpc.WorkOperationResponseRequest"
+    "\032\030.SAFplus.Rpc.NO_RESPONSEB\t\200\001\000\210\001\000\220\001\001", 1077);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "amfAppRpc.proto", &protobuf_RegisterTypes);
   HeartbeatRequest::default_instance_ = new HeartbeatRequest();
   HeartbeatResponse::default_instance_ = new HeartbeatResponse();
   TerminateRequest::default_instance_ = new TerminateRequest();
   TerminateResponse::default_instance_ = new TerminateResponse();
+  KeyValuePairs::default_instance_ = new KeyValuePairs();
   WorkOperationRequest::default_instance_ = new WorkOperationRequest();
   WorkOperationResponseRequest::default_instance_ = new WorkOperationResponseRequest();
   HeartbeatRequest::default_instance_->InitAsDefaultInstance();
   HeartbeatResponse::default_instance_->InitAsDefaultInstance();
   TerminateRequest::default_instance_->InitAsDefaultInstance();
   TerminateResponse::default_instance_->InitAsDefaultInstance();
+  KeyValuePairs::default_instance_->InitAsDefaultInstance();
   WorkOperationRequest::default_instance_->InitAsDefaultInstance();
   WorkOperationResponseRequest::default_instance_->InitAsDefaultInstance();
   ::google::protobuf::internal::OnShutdown(&protobuf_ShutdownFile_amfAppRpc_2eproto);
@@ -816,17 +845,13 @@ bool TerminateRequest::MergePartialFromCodedStream(
         break;
       }
 
-      // repeated string componentHandle = 3;
+      // repeated bytes componentHandle = 3;
       case 3: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_componentHandle:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
                 input, this->add_componenthandle()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-            this->componenthandle(this->componenthandle_size() - 1).data(),
-            this->componenthandle(this->componenthandle_size() - 1).length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
         } else {
           goto handle_uninterpreted;
         }
@@ -872,12 +897,9 @@ void TerminateRequest::SerializeWithCachedSizes(
       2, this->componentname(), output);
   }
 
-  // repeated string componentHandle = 3;
+  // repeated bytes componentHandle = 3;
   for (int i = 0; i < this->componenthandle_size(); i++) {
-  ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-    this->componenthandle(i).data(), this->componenthandle(i).length(),
-    ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
+    ::google::protobuf::internal::WireFormatLite::WriteBytes(
       3, this->componenthandle(i), output);
   }
 
@@ -908,13 +930,10 @@ void TerminateRequest::SerializeWithCachedSizes(
         2, this->componentname(), target);
   }
 
-  // repeated string componentHandle = 3;
+  // repeated bytes componentHandle = 3;
   for (int i = 0; i < this->componenthandle_size(); i++) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->componenthandle(i).data(), this->componenthandle(i).length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
     target = ::google::protobuf::internal::WireFormatLite::
-      WriteStringToArray(3, this->componenthandle(i), target);
+      WriteBytesToArray(3, this->componenthandle(i), target);
   }
 
   // Extension range [1000, 536870912)
@@ -947,10 +966,10 @@ int TerminateRequest::ByteSize() const {
     }
 
   }
-  // repeated string componentHandle = 3;
+  // repeated bytes componentHandle = 3;
   total_size += 1 * this->componenthandle_size();
   for (int i = 0; i < this->componenthandle_size(); i++) {
-    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
+    total_size += ::google::protobuf::internal::WireFormatLite::BytesSize(
       this->componenthandle(i));
   }
 
@@ -1303,11 +1322,313 @@ void TerminateResponse::Swap(TerminateResponse* other) {
 // ===================================================================
 
 #ifndef _MSC_VER
+const int KeyValuePairs::kTheKeyFieldNumber;
+const int KeyValuePairs::kTheValueFieldNumber;
+#endif  // !_MSC_VER
+
+KeyValuePairs::KeyValuePairs()
+  : ::google::protobuf::Message() {
+  SharedCtor();
+}
+
+void KeyValuePairs::InitAsDefaultInstance() {
+}
+
+KeyValuePairs::KeyValuePairs(const KeyValuePairs& from)
+  : ::google::protobuf::Message() {
+  SharedCtor();
+  MergeFrom(from);
+}
+
+void KeyValuePairs::SharedCtor() {
+  _cached_size_ = 0;
+  thekey_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  thevalue_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+}
+
+KeyValuePairs::~KeyValuePairs() {
+  SharedDtor();
+}
+
+void KeyValuePairs::SharedDtor() {
+  if (thekey_ != &::google::protobuf::internal::kEmptyString) {
+    delete thekey_;
+  }
+  if (thevalue_ != &::google::protobuf::internal::kEmptyString) {
+    delete thevalue_;
+  }
+  if (this != default_instance_) {
+  }
+}
+
+void KeyValuePairs::SetCachedSize(int size) const {
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+}
+const ::google::protobuf::Descriptor* KeyValuePairs::descriptor() {
+  protobuf_AssignDescriptorsOnce();
+  return KeyValuePairs_descriptor_;
+}
+
+const KeyValuePairs& KeyValuePairs::default_instance() {
+  if (default_instance_ == NULL) protobuf_AddDesc_amfAppRpc_2eproto();
+  return *default_instance_;
+}
+
+KeyValuePairs* KeyValuePairs::default_instance_ = NULL;
+
+KeyValuePairs* KeyValuePairs::New() const {
+  return new KeyValuePairs;
+}
+
+void KeyValuePairs::Clear() {
+  _extensions_.Clear();
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (has_thekey()) {
+      if (thekey_ != &::google::protobuf::internal::kEmptyString) {
+        thekey_->clear();
+      }
+    }
+    if (has_thevalue()) {
+      if (thevalue_ != &::google::protobuf::internal::kEmptyString) {
+        thevalue_->clear();
+      }
+    }
+  }
+  ::memset(_has_bits_, 0, sizeof(_has_bits_));
+  mutable_unknown_fields()->Clear();
+}
+
+bool KeyValuePairs::MergePartialFromCodedStream(
+    ::google::protobuf::io::CodedInputStream* input) {
+#define DO_(EXPRESSION) if (!(EXPRESSION)) return false
+  ::google::protobuf::uint32 tag;
+  while ((tag = input->ReadTag()) != 0) {
+    switch (::google::protobuf::internal::WireFormatLite::GetTagFieldNumber(tag)) {
+      // optional string theKey = 1;
+      case 1: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_thekey()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->thekey().data(), this->thekey().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(18)) goto parse_theValue;
+        break;
+      }
+
+      // optional string theValue = 2;
+      case 2: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_theValue:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
+                input, this->mutable_thevalue()));
+          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+            this->thevalue().data(), this->thevalue().length(),
+            ::google::protobuf::internal::WireFormat::PARSE);
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectAtEnd()) return true;
+        break;
+      }
+
+      default: {
+      handle_uninterpreted:
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_END_GROUP) {
+          return true;
+        }
+        if ((8000u <= tag)) {
+          DO_(_extensions_.ParseField(tag, input, default_instance_,
+                                      mutable_unknown_fields()));
+          continue;
+        }
+        DO_(::google::protobuf::internal::WireFormat::SkipField(
+              input, tag, mutable_unknown_fields()));
+        break;
+      }
+    }
+  }
+  return true;
+#undef DO_
+}
+
+void KeyValuePairs::SerializeWithCachedSizes(
+    ::google::protobuf::io::CodedOutputStream* output) const {
+  // optional string theKey = 1;
+  if (has_thekey()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->thekey().data(), this->thekey().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      1, this->thekey(), output);
+  }
+
+  // optional string theValue = 2;
+  if (has_thevalue()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->thevalue().data(), this->thevalue().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    ::google::protobuf::internal::WireFormatLite::WriteString(
+      2, this->thevalue(), output);
+  }
+
+  // Extension range [1000, 536870912)
+  _extensions_.SerializeWithCachedSizes(
+      1000, 536870912, output);
+
+  if (!unknown_fields().empty()) {
+    ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
+        unknown_fields(), output);
+  }
+}
+
+::google::protobuf::uint8* KeyValuePairs::SerializeWithCachedSizesToArray(
+    ::google::protobuf::uint8* target) const {
+  // optional string theKey = 1;
+  if (has_thekey()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->thekey().data(), this->thekey().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        1, this->thekey(), target);
+  }
+
+  // optional string theValue = 2;
+  if (has_thevalue()) {
+    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
+      this->thevalue().data(), this->thevalue().length(),
+      ::google::protobuf::internal::WireFormat::SERIALIZE);
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteStringToArray(
+        2, this->thevalue(), target);
+  }
+
+  // Extension range [1000, 536870912)
+  target = _extensions_.SerializeWithCachedSizesToArray(
+      1000, 536870912, target);
+
+  if (!unknown_fields().empty()) {
+    target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
+        unknown_fields(), target);
+  }
+  return target;
+}
+
+int KeyValuePairs::ByteSize() const {
+  int total_size = 0;
+
+  if (_has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    // optional string theKey = 1;
+    if (has_thekey()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->thekey());
+    }
+
+    // optional string theValue = 2;
+    if (has_thevalue()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::StringSize(
+          this->thevalue());
+    }
+
+  }
+  total_size += _extensions_.ByteSize();
+
+  if (!unknown_fields().empty()) {
+    total_size +=
+      ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
+        unknown_fields());
+  }
+  GOOGLE_SAFE_CONCURRENT_WRITES_BEGIN();
+  _cached_size_ = total_size;
+  GOOGLE_SAFE_CONCURRENT_WRITES_END();
+  return total_size;
+}
+
+void KeyValuePairs::MergeFrom(const ::google::protobuf::Message& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  const KeyValuePairs* source =
+    ::google::protobuf::internal::dynamic_cast_if_available<const KeyValuePairs*>(
+      &from);
+  if (source == NULL) {
+    ::google::protobuf::internal::ReflectionOps::Merge(from, this);
+  } else {
+    MergeFrom(*source);
+  }
+}
+
+void KeyValuePairs::MergeFrom(const KeyValuePairs& from) {
+  GOOGLE_CHECK_NE(&from, this);
+  if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
+    if (from.has_thekey()) {
+      set_thekey(from.thekey());
+    }
+    if (from.has_thevalue()) {
+      set_thevalue(from.thevalue());
+    }
+  }
+  _extensions_.MergeFrom(from._extensions_);
+  mutable_unknown_fields()->MergeFrom(from.unknown_fields());
+}
+
+void KeyValuePairs::CopyFrom(const ::google::protobuf::Message& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void KeyValuePairs::CopyFrom(const KeyValuePairs& from) {
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool KeyValuePairs::IsInitialized() const {
+
+
+  if (!_extensions_.IsInitialized()) return false;  return true;
+}
+
+void KeyValuePairs::Swap(KeyValuePairs* other) {
+  if (other != this) {
+    std::swap(thekey_, other->thekey_);
+    std::swap(thevalue_, other->thevalue_);
+    std::swap(_has_bits_[0], other->_has_bits_[0]);
+    _unknown_fields_.Swap(&other->_unknown_fields_);
+    std::swap(_cached_size_, other->_cached_size_);
+    _extensions_.Swap(&other->_extensions_);
+  }
+}
+
+::google::protobuf::Metadata KeyValuePairs::GetMetadata() const {
+  protobuf_AssignDescriptorsOnce();
+  ::google::protobuf::Metadata metadata;
+  metadata.descriptor = KeyValuePairs_descriptor_;
+  metadata.reflection = KeyValuePairs_reflection_;
+  return metadata;
+}
+
+
+// ===================================================================
+
+#ifndef _MSC_VER
 const int WorkOperationRequest::kInvocationFieldNumber;
 const int WorkOperationRequest::kComponentNameFieldNumber;
 const int WorkOperationRequest::kComponentHandleFieldNumber;
 const int WorkOperationRequest::kOperationFieldNumber;
 const int WorkOperationRequest::kTargetFieldNumber;
+const int WorkOperationRequest::kKeyValuePairsFieldNumber;
 #endif  // !_MSC_VER
 
 WorkOperationRequest::WorkOperationRequest()
@@ -1328,6 +1649,7 @@ void WorkOperationRequest::SharedCtor() {
   _cached_size_ = 0;
   invocation_ = GOOGLE_ULONGLONG(0);
   componentname_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  componenthandle_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
   operation_ = 0u;
   target_ = 0u;
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
@@ -1340,6 +1662,9 @@ WorkOperationRequest::~WorkOperationRequest() {
 void WorkOperationRequest::SharedDtor() {
   if (componentname_ != &::google::protobuf::internal::kEmptyString) {
     delete componentname_;
+  }
+  if (componenthandle_ != &::google::protobuf::internal::kEmptyString) {
+    delete componenthandle_;
   }
   if (this != default_instance_) {
   }
@@ -1375,10 +1700,15 @@ void WorkOperationRequest::Clear() {
         componentname_->clear();
       }
     }
+    if (has_componenthandle()) {
+      if (componenthandle_ != &::google::protobuf::internal::kEmptyString) {
+        componenthandle_->clear();
+      }
+    }
     operation_ = 0u;
     target_ = 0u;
   }
-  componenthandle_.Clear();
+  keyvaluepairs_.Clear();
   ::memset(_has_bits_, 0, sizeof(_has_bits_));
   mutable_unknown_fields()->Clear();
 }
@@ -1421,21 +1751,16 @@ bool WorkOperationRequest::MergePartialFromCodedStream(
         break;
       }
 
-      // repeated string componentHandle = 3;
+      // optional bytes componentHandle = 3;
       case 3: {
         if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
             ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
          parse_componentHandle:
-          DO_(::google::protobuf::internal::WireFormatLite::ReadString(
-                input, this->add_componenthandle()));
-          ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-            this->componenthandle(this->componenthandle_size() - 1).data(),
-            this->componenthandle(this->componenthandle_size() - 1).length(),
-            ::google::protobuf::internal::WireFormat::PARSE);
+          DO_(::google::protobuf::internal::WireFormatLite::ReadBytes(
+                input, this->mutable_componenthandle()));
         } else {
           goto handle_uninterpreted;
         }
-        if (input->ExpectTag(26)) goto parse_componentHandle;
         if (input->ExpectTag(32)) goto parse_operation;
         break;
       }
@@ -1468,6 +1793,21 @@ bool WorkOperationRequest::MergePartialFromCodedStream(
         } else {
           goto handle_uninterpreted;
         }
+        if (input->ExpectTag(50)) goto parse_keyValuePairs;
+        break;
+      }
+
+      // repeated .SAFplus.Rpc.amfAppRpc.KeyValuePairs keyValuePairs = 6;
+      case 6: {
+        if (::google::protobuf::internal::WireFormatLite::GetTagWireType(tag) ==
+            ::google::protobuf::internal::WireFormatLite::WIRETYPE_LENGTH_DELIMITED) {
+         parse_keyValuePairs:
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+                input, add_keyvaluepairs()));
+        } else {
+          goto handle_uninterpreted;
+        }
+        if (input->ExpectTag(50)) goto parse_keyValuePairs;
         if (input->ExpectAtEnd()) return true;
         break;
       }
@@ -1509,13 +1849,10 @@ void WorkOperationRequest::SerializeWithCachedSizes(
       2, this->componentname(), output);
   }
 
-  // repeated string componentHandle = 3;
-  for (int i = 0; i < this->componenthandle_size(); i++) {
-  ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-    this->componenthandle(i).data(), this->componenthandle(i).length(),
-    ::google::protobuf::internal::WireFormat::SERIALIZE);
-    ::google::protobuf::internal::WireFormatLite::WriteString(
-      3, this->componenthandle(i), output);
+  // optional bytes componentHandle = 3;
+  if (has_componenthandle()) {
+    ::google::protobuf::internal::WireFormatLite::WriteBytes(
+      3, this->componenthandle(), output);
   }
 
   // optional uint32 operation = 4;
@@ -1526,6 +1863,12 @@ void WorkOperationRequest::SerializeWithCachedSizes(
   // optional uint32 target = 5;
   if (has_target()) {
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(5, this->target(), output);
+  }
+
+  // repeated .SAFplus.Rpc.amfAppRpc.KeyValuePairs keyValuePairs = 6;
+  for (int i = 0; i < this->keyvaluepairs_size(); i++) {
+    ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+      6, this->keyvaluepairs(i), output);
   }
 
   // Extension range [1000, 536870912)
@@ -1555,13 +1898,11 @@ void WorkOperationRequest::SerializeWithCachedSizes(
         2, this->componentname(), target);
   }
 
-  // repeated string componentHandle = 3;
-  for (int i = 0; i < this->componenthandle_size(); i++) {
-    ::google::protobuf::internal::WireFormat::VerifyUTF8String(
-      this->componenthandle(i).data(), this->componenthandle(i).length(),
-      ::google::protobuf::internal::WireFormat::SERIALIZE);
-    target = ::google::protobuf::internal::WireFormatLite::
-      WriteStringToArray(3, this->componenthandle(i), target);
+  // optional bytes componentHandle = 3;
+  if (has_componenthandle()) {
+    target =
+      ::google::protobuf::internal::WireFormatLite::WriteBytesToArray(
+        3, this->componenthandle(), target);
   }
 
   // optional uint32 operation = 4;
@@ -1572,6 +1913,13 @@ void WorkOperationRequest::SerializeWithCachedSizes(
   // optional uint32 target = 5;
   if (has_target()) {
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(5, this->target(), target);
+  }
+
+  // repeated .SAFplus.Rpc.amfAppRpc.KeyValuePairs keyValuePairs = 6;
+  for (int i = 0; i < this->keyvaluepairs_size(); i++) {
+    target = ::google::protobuf::internal::WireFormatLite::
+      WriteMessageNoVirtualToArray(
+        6, this->keyvaluepairs(i), target);
   }
 
   // Extension range [1000, 536870912)
@@ -1603,6 +1951,13 @@ int WorkOperationRequest::ByteSize() const {
           this->componentname());
     }
 
+    // optional bytes componentHandle = 3;
+    if (has_componenthandle()) {
+      total_size += 1 +
+        ::google::protobuf::internal::WireFormatLite::BytesSize(
+          this->componenthandle());
+    }
+
     // optional uint32 operation = 4;
     if (has_operation()) {
       total_size += 1 +
@@ -1618,11 +1973,12 @@ int WorkOperationRequest::ByteSize() const {
     }
 
   }
-  // repeated string componentHandle = 3;
-  total_size += 1 * this->componenthandle_size();
-  for (int i = 0; i < this->componenthandle_size(); i++) {
-    total_size += ::google::protobuf::internal::WireFormatLite::StringSize(
-      this->componenthandle(i));
+  // repeated .SAFplus.Rpc.amfAppRpc.KeyValuePairs keyValuePairs = 6;
+  total_size += 1 * this->keyvaluepairs_size();
+  for (int i = 0; i < this->keyvaluepairs_size(); i++) {
+    total_size +=
+      ::google::protobuf::internal::WireFormatLite::MessageSizeNoVirtual(
+        this->keyvaluepairs(i));
   }
 
   total_size += _extensions_.ByteSize();
@@ -1652,13 +2008,16 @@ void WorkOperationRequest::MergeFrom(const ::google::protobuf::Message& from) {
 
 void WorkOperationRequest::MergeFrom(const WorkOperationRequest& from) {
   GOOGLE_CHECK_NE(&from, this);
-  componenthandle_.MergeFrom(from.componenthandle_);
+  keyvaluepairs_.MergeFrom(from.keyvaluepairs_);
   if (from._has_bits_[0 / 32] & (0xffu << (0 % 32))) {
     if (from.has_invocation()) {
       set_invocation(from.invocation());
     }
     if (from.has_componentname()) {
       set_componentname(from.componentname());
+    }
+    if (from.has_componenthandle()) {
+      set_componenthandle(from.componenthandle());
     }
     if (from.has_operation()) {
       set_operation(from.operation());
@@ -1685,6 +2044,9 @@ void WorkOperationRequest::CopyFrom(const WorkOperationRequest& from) {
 
 bool WorkOperationRequest::IsInitialized() const {
 
+  for (int i = 0; i < keyvaluepairs_size(); i++) {
+    if (!this->keyvaluepairs(i).IsInitialized()) return false;
+  }
 
   if (!_extensions_.IsInitialized()) return false;  return true;
 }
@@ -1693,9 +2055,10 @@ void WorkOperationRequest::Swap(WorkOperationRequest* other) {
   if (other != this) {
     std::swap(invocation_, other->invocation_);
     std::swap(componentname_, other->componentname_);
-    componenthandle_.Swap(&other->componenthandle_);
+    std::swap(componenthandle_, other->componenthandle_);
     std::swap(operation_, other->operation_);
     std::swap(target_, other->target_);
+    keyvaluepairs_.Swap(&other->keyvaluepairs_);
     std::swap(_has_bits_[0], other->_has_bits_[0]);
     _unknown_fields_.Swap(&other->_unknown_fields_);
     std::swap(_cached_size_, other->_cached_size_);

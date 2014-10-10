@@ -132,7 +132,7 @@ namespace SAFplus
     {
       const std::string& name = sg->name;
 
-      logInfo("N+M","STRT","Starting service group %s", name.c_str());
+      logInfo("N+M","STRT","Starting service group [%s]", name.c_str());
       if (1) // TODO: figure out if this Policy should control this Service group
         {
         std::vector<SAFplusAmf::ServiceUnit*> sus(sg->serviceUnits.value.begin(),sg->serviceUnits.value.end());
@@ -165,7 +165,7 @@ namespace SAFplus
           const std::string& suName = su->name;
           if (su->adminState != AdministrativeState::off)
             {
-            logInfo("N+M","STRT","Starting su %s", suName.c_str());
+            logInfo("N+M","STRT","Starting service unit [%s]", suName.c_str());
             waits += start(su,waitSem);  // When started, "wake" will be called on the waitSem
             totalStarted++;
             }
@@ -281,7 +281,7 @@ namespace SAFplus
  
        // TODO: figure out if this Policy should control this Service group
 
-      logInfo("N+M","AUDIT","Auditing service group %s", name.c_str());
+      logInfo("N+M","AUDIT","Auditing service group [%s]", name.c_str());
 
       // Look for Service Units that need to be started up
       if (1)
@@ -293,7 +293,7 @@ namespace SAFplus
           //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
           const std::string& suName = su->name;
-          logInfo("N+M","AUDIT","Auditing su %s", suName.c_str());
+          logInfo("N+M","AUDIT","Auditing service unit [%s]", suName.c_str());
 
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
@@ -307,18 +307,18 @@ namespace SAFplus
                 {
                 if (eas == SAFplusAmf::AdministrativeState::off)
                   {
-                  logError("N+M","AUDIT","Component %s should be off but is instantiated", comp->name.c_str());
+                  logError("N+M","AUDIT","Component [%s] should be off but is instantiated", comp->name.c_str());
                   }
                 else
                   {
-                  logDebug("N+M","AUDIT","Component %s process [%s.%d] is [%d]",comp->name.c_str(), su->node.value->name.c_str(), comp->processId.value, (int) comp->presence.value);
+                  logDebug("N+M","AUDIT","Component [%s] process [%s.%d] is [%d]",comp->name.c_str(), su->node.value->name.c_str(), comp->processId.value, (int) comp->presence.value);
                   }
                 }
               else
                 {
                 if (eas != SAFplusAmf::AdministrativeState::off)
                   {
-                  logError("N+M","AUDIT","Component %s could be on but is not instantiated", comp->name.c_str());
+                  logError("N+M","AUDIT","Component [%s] could be on but is not instantiated", comp->name.c_str());
                   startSg=true;
                   }
                 }
@@ -352,7 +352,7 @@ namespace SAFplus
           // We want to assign but for some reason it is not.
           if ((eas == AdministrativeState::on) && (si->assignmentState != AssignmentState::fullyAssigned))
             {
-            logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s].", si->name.c_str(),(si->assignmentState == AssignmentState::partiallyAssigned) ? "partially assigned":"unassigned");
+            logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s].", si->name.c_str(),c_str(si->assignmentState));
 
             if (1)
               {
@@ -392,7 +392,7 @@ namespace SAFplus
 
           else if ((eas == AdministrativeState::off) && (si->assignmentState != AssignmentState::unassigned))
             {
-            logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.c_str(),(si->assignmentState == AssignmentState::partiallyAssigned) ? "partially assigned":"fully assigned");
+            logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.c_str(),c_str(si->assignmentState));
             }
 
           }
@@ -421,7 +421,7 @@ namespace SAFplus
       ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
       const std::string& name = sg->name;
 
-      logInfo("N+M","AUDIT","Auditing service group %s", name.c_str());
+      logInfo("N+M","AUDIT","Auditing service group [%s]", name.c_str());
       if (1) // TODO: figure out if this Policy should control this Service group
         {
         SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*>::ContainerType::iterator itsu;
@@ -433,7 +433,7 @@ namespace SAFplus
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
           Node* suNode = su->node.value;
           const std::string& suName = su->name;
-          logInfo("N+M","AUDIT","Auditing su %s", suName.c_str());
+          logInfo("N+M","AUDIT","Auditing service unit [%s]", suName.c_str());
 
           // Calculate readiness state SAI-AIS-AMF-B.04.01.pdf sec 3.2.1.4
           ReadinessState rs = su->readinessState.value;
@@ -467,7 +467,7 @@ namespace SAFplus
 
           if (rs != su->readinessState.value)
             {
-            logInfo("N+M","AUDIT","Readiness state of Service Unit [%s] changed from [%d] to [%d]", su->name.c_str(),(int) su->readinessState.value, (int) rs);
+            logInfo("N+M","AUDIT","Readiness state of Service Unit [%s] changed from [%s] to [%s]", su->name.c_str(),c_str(su->readinessState),c_str(rs));
             su->readinessState.value = rs;
             // TODO event?
             }
@@ -582,12 +582,10 @@ namespace SAFplus
           if (ps != su->presenceState.value)
             {
             // Presence state changed.
-            logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%d] to [%d]", su->name.c_str(),su->presenceState.value, ps);
+            logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.c_str(),c_str(su->presenceState.value),su->presenceState.value, c_str(ps), ps);
             su->presenceState.value = ps;
             // TODO: Event?
             }
-            
-
           }
         }
 

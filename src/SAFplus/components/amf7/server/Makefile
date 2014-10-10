@@ -132,6 +132,6 @@ cleangen:
 
 
 clean:
-	rm -f $(OBJ_DIR)/amfsvr/*.o $(SAFPLUS_TARGET)/bin/safplus_amf
+	rm -f $(OBJ_DIR)/amfsvr/*.o $(SAFPLUS_TARGET)/bin/safplus_amf $(POLICY_ENV_LIB) $(SAFPLUS_TARGET)/bin/customAmfPolicy.so $(SAFPLUS_TARGET)/bin/nPlusmAmfPolicy.so
 
 # include ../../../mk/safplus_targets.mk

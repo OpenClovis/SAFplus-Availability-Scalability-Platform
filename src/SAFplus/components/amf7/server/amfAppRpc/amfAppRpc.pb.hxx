@@ -40,6 +40,7 @@ class HeartbeatRequest;
 class HeartbeatResponse;
 class TerminateRequest;
 class TerminateResponse;
+class KeyValuePairs;
 class WorkOperationRequest;
 class WorkOperationResponseRequest;
 
@@ -288,7 +289,7 @@ class TerminateRequest : public ::google::protobuf::Message {
   inline ::std::string* release_componentname();
   inline void set_allocated_componentname(::std::string* componentname);
 
-  // repeated string componentHandle = 3;
+  // repeated bytes componentHandle = 3;
   inline int componenthandle_size() const;
   inline void clear_componenthandle();
   static const int kComponentHandleFieldNumber = 3;
@@ -296,11 +297,11 @@ class TerminateRequest : public ::google::protobuf::Message {
   inline ::std::string* mutable_componenthandle(int index);
   inline void set_componenthandle(int index, const ::std::string& value);
   inline void set_componenthandle(int index, const char* value);
-  inline void set_componenthandle(int index, const char* value, size_t size);
+  inline void set_componenthandle(int index, const void* value, size_t size);
   inline ::std::string* add_componenthandle();
   inline void add_componenthandle(const ::std::string& value);
   inline void add_componenthandle(const char* value);
-  inline void add_componenthandle(const char* value, size_t size);
+  inline void add_componenthandle(const void* value, size_t size);
   inline const ::google::protobuf::RepeatedPtrField< ::std::string>& componenthandle() const;
   inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_componenthandle();
 
@@ -427,6 +428,111 @@ class TerminateResponse : public ::google::protobuf::Message {
 };
 // -------------------------------------------------------------------
 
+class KeyValuePairs : public ::google::protobuf::Message {
+ public:
+  KeyValuePairs();
+  virtual ~KeyValuePairs();
+
+  KeyValuePairs(const KeyValuePairs& from);
+
+  inline KeyValuePairs& operator=(const KeyValuePairs& from) {
+    CopyFrom(from);
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const {
+    return _unknown_fields_;
+  }
+
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields() {
+    return &_unknown_fields_;
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor();
+  static const KeyValuePairs& default_instance();
+
+  void Swap(KeyValuePairs* other);
+
+  // implements Message ----------------------------------------------
+
+  KeyValuePairs* New() const;
+  void CopyFrom(const ::google::protobuf::Message& from);
+  void MergeFrom(const ::google::protobuf::Message& from);
+  void CopyFrom(const KeyValuePairs& from);
+  void MergeFrom(const KeyValuePairs& from);
+  void Clear();
+  bool IsInitialized() const;
+
+  int ByteSize() const;
+  bool MergePartialFromCodedStream(
+      ::google::protobuf::io::CodedInputStream* input);
+  void SerializeWithCachedSizes(
+      ::google::protobuf::io::CodedOutputStream* output) const;
+  ::google::protobuf::uint8* SerializeWithCachedSizesToArray(::google::protobuf::uint8* output) const;
+  int GetCachedSize() const { return _cached_size_; }
+  private:
+  void SharedCtor();
+  void SharedDtor();
+  void SetCachedSize(int size) const;
+  public:
+
+  ::google::protobuf::Metadata GetMetadata() const;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  // optional string theKey = 1;
+  inline bool has_thekey() const;
+  inline void clear_thekey();
+  static const int kTheKeyFieldNumber = 1;
+  inline const ::std::string& thekey() const;
+  inline void set_thekey(const ::std::string& value);
+  inline void set_thekey(const char* value);
+  inline void set_thekey(const char* value, size_t size);
+  inline ::std::string* mutable_thekey();
+  inline ::std::string* release_thekey();
+  inline void set_allocated_thekey(::std::string* thekey);
+
+  // optional string theValue = 2;
+  inline bool has_thevalue() const;
+  inline void clear_thevalue();
+  static const int kTheValueFieldNumber = 2;
+  inline const ::std::string& thevalue() const;
+  inline void set_thevalue(const ::std::string& value);
+  inline void set_thevalue(const char* value);
+  inline void set_thevalue(const char* value, size_t size);
+  inline ::std::string* mutable_thevalue();
+  inline ::std::string* release_thevalue();
+  inline void set_allocated_thevalue(::std::string* thevalue);
+
+  GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(KeyValuePairs)
+  // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfAppRpc.KeyValuePairs)
+ private:
+  inline void set_has_thekey();
+  inline void clear_has_thekey();
+  inline void set_has_thevalue();
+  inline void clear_has_thevalue();
+
+  ::google::protobuf::internal::ExtensionSet _extensions_;
+
+  ::google::protobuf::UnknownFieldSet _unknown_fields_;
+
+  ::std::string* thekey_;
+  ::std::string* thevalue_;
+
+  mutable int _cached_size_;
+  ::google::protobuf::uint32 _has_bits_[(2 + 31) / 32];
+
+  friend void  protobuf_AddDesc_amfAppRpc_2eproto();
+  friend void protobuf_AssignDesc_amfAppRpc_2eproto();
+  friend void protobuf_ShutdownFile_amfAppRpc_2eproto();
+
+  void InitAsDefaultInstance();
+  static KeyValuePairs* default_instance_;
+};
+// -------------------------------------------------------------------
+
 class WorkOperationRequest : public ::google::protobuf::Message {
  public:
   WorkOperationRequest();
@@ -500,21 +606,17 @@ class WorkOperationRequest : public ::google::protobuf::Message {
   inline ::std::string* release_componentname();
   inline void set_allocated_componentname(::std::string* componentname);
 
-  // repeated string componentHandle = 3;
-  inline int componenthandle_size() const;
+  // optional bytes componentHandle = 3;
+  inline bool has_componenthandle() const;
   inline void clear_componenthandle();
   static const int kComponentHandleFieldNumber = 3;
-  inline const ::std::string& componenthandle(int index) const;
-  inline ::std::string* mutable_componenthandle(int index);
-  inline void set_componenthandle(int index, const ::std::string& value);
-  inline void set_componenthandle(int index, const char* value);
-  inline void set_componenthandle(int index, const char* value, size_t size);
-  inline ::std::string* add_componenthandle();
-  inline void add_componenthandle(const ::std::string& value);
-  inline void add_componenthandle(const char* value);
-  inline void add_componenthandle(const char* value, size_t size);
-  inline const ::google::protobuf::RepeatedPtrField< ::std::string>& componenthandle() const;
-  inline ::google::protobuf::RepeatedPtrField< ::std::string>* mutable_componenthandle();
+  inline const ::std::string& componenthandle() const;
+  inline void set_componenthandle(const ::std::string& value);
+  inline void set_componenthandle(const char* value);
+  inline void set_componenthandle(const void* value, size_t size);
+  inline ::std::string* mutable_componenthandle();
+  inline ::std::string* release_componenthandle();
+  inline void set_allocated_componenthandle(::std::string* componenthandle);
 
   // optional uint32 operation = 4;
   inline bool has_operation() const;
@@ -530,6 +632,18 @@ class WorkOperationRequest : public ::google::protobuf::Message {
   inline ::google::protobuf::uint32 target() const;
   inline void set_target(::google::protobuf::uint32 value);
 
+  // repeated .SAFplus.Rpc.amfAppRpc.KeyValuePairs keyValuePairs = 6;
+  inline int keyvaluepairs_size() const;
+  inline void clear_keyvaluepairs();
+  static const int kKeyValuePairsFieldNumber = 6;
+  inline const ::SAFplus::Rpc::amfAppRpc::KeyValuePairs& keyvaluepairs(int index) const;
+  inline ::SAFplus::Rpc::amfAppRpc::KeyValuePairs* mutable_keyvaluepairs(int index);
+  inline ::SAFplus::Rpc::amfAppRpc::KeyValuePairs* add_keyvaluepairs();
+  inline const ::google::protobuf::RepeatedPtrField< ::SAFplus::Rpc::amfAppRpc::KeyValuePairs >&
+      keyvaluepairs() const;
+  inline ::google::protobuf::RepeatedPtrField< ::SAFplus::Rpc::amfAppRpc::KeyValuePairs >*
+      mutable_keyvaluepairs();
+
   GOOGLE_PROTOBUF_EXTENSION_ACCESSORS(WorkOperationRequest)
   // @@protoc_insertion_point(class_scope:SAFplus.Rpc.amfAppRpc.WorkOperationRequest)
  private:
@@ -537,6 +651,8 @@ class WorkOperationRequest : public ::google::protobuf::Message {
   inline void clear_has_invocation();
   inline void set_has_componentname();
   inline void clear_has_componentname();
+  inline void set_has_componenthandle();
+  inline void clear_has_componenthandle();
   inline void set_has_operation();
   inline void clear_has_operation();
   inline void set_has_target();
@@ -548,12 +664,13 @@ class WorkOperationRequest : public ::google::protobuf::Message {
 
   ::google::protobuf::uint64 invocation_;
   ::std::string* componentname_;
-  ::google::protobuf::RepeatedPtrField< ::std::string> componenthandle_;
+  ::std::string* componenthandle_;
   ::google::protobuf::uint32 operation_;
   ::google::protobuf::uint32 target_;
+  ::google::protobuf::RepeatedPtrField< ::SAFplus::Rpc::amfAppRpc::KeyValuePairs > keyvaluepairs_;
 
   mutable int _cached_size_;
-  ::google::protobuf::uint32 _has_bits_[(5 + 31) / 32];
+  ::google::protobuf::uint32 _has_bits_[(6 + 31) / 32];
 
   friend void  protobuf_AddDesc_amfAppRpc_2eproto();
   friend void protobuf_AssignDesc_amfAppRpc_2eproto();
@@ -808,7 +925,7 @@ inline void TerminateRequest::set_allocated_componentname(::std::string* compone
   }
 }
 
-// repeated string componentHandle = 3;
+// repeated bytes componentHandle = 3;
 inline int TerminateRequest::componenthandle_size() const {
   return componenthandle_.size();
 }
@@ -827,7 +944,7 @@ inline void TerminateRequest::set_componenthandle(int index, const ::std::string
 inline void TerminateRequest::set_componenthandle(int index, const char* value) {
   componenthandle_.Mutable(index)->assign(value);
 }
-inline void TerminateRequest::set_componenthandle(int index, const char* value, size_t size) {
+inline void TerminateRequest::set_componenthandle(int index, const void* value, size_t size) {
   componenthandle_.Mutable(index)->assign(
     reinterpret_cast<const char*>(value), size);
 }
@@ -840,7 +957,7 @@ inline void TerminateRequest::add_componenthandle(const ::std::string& value) {
 inline void TerminateRequest::add_componenthandle(const char* value) {
   componenthandle_.Add()->assign(value);
 }
-inline void TerminateRequest::add_componenthandle(const char* value, size_t size) {
+inline void TerminateRequest::add_componenthandle(const void* value, size_t size) {
   componenthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
 }
 inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
@@ -898,6 +1015,150 @@ inline ::google::protobuf::uint32 TerminateResponse::result() const {
 inline void TerminateResponse::set_result(::google::protobuf::uint32 value) {
   set_has_result();
   result_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// KeyValuePairs
+
+// optional string theKey = 1;
+inline bool KeyValuePairs::has_thekey() const {
+  return (_has_bits_[0] & 0x00000001u) != 0;
+}
+inline void KeyValuePairs::set_has_thekey() {
+  _has_bits_[0] |= 0x00000001u;
+}
+inline void KeyValuePairs::clear_has_thekey() {
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline void KeyValuePairs::clear_thekey() {
+  if (thekey_ != &::google::protobuf::internal::kEmptyString) {
+    thekey_->clear();
+  }
+  clear_has_thekey();
+}
+inline const ::std::string& KeyValuePairs::thekey() const {
+  return *thekey_;
+}
+inline void KeyValuePairs::set_thekey(const ::std::string& value) {
+  set_has_thekey();
+  if (thekey_ == &::google::protobuf::internal::kEmptyString) {
+    thekey_ = new ::std::string;
+  }
+  thekey_->assign(value);
+}
+inline void KeyValuePairs::set_thekey(const char* value) {
+  set_has_thekey();
+  if (thekey_ == &::google::protobuf::internal::kEmptyString) {
+    thekey_ = new ::std::string;
+  }
+  thekey_->assign(value);
+}
+inline void KeyValuePairs::set_thekey(const char* value, size_t size) {
+  set_has_thekey();
+  if (thekey_ == &::google::protobuf::internal::kEmptyString) {
+    thekey_ = new ::std::string;
+  }
+  thekey_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* KeyValuePairs::mutable_thekey() {
+  set_has_thekey();
+  if (thekey_ == &::google::protobuf::internal::kEmptyString) {
+    thekey_ = new ::std::string;
+  }
+  return thekey_;
+}
+inline ::std::string* KeyValuePairs::release_thekey() {
+  clear_has_thekey();
+  if (thekey_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = thekey_;
+    thekey_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void KeyValuePairs::set_allocated_thekey(::std::string* thekey) {
+  if (thekey_ != &::google::protobuf::internal::kEmptyString) {
+    delete thekey_;
+  }
+  if (thekey) {
+    set_has_thekey();
+    thekey_ = thekey;
+  } else {
+    clear_has_thekey();
+    thekey_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
+}
+
+// optional string theValue = 2;
+inline bool KeyValuePairs::has_thevalue() const {
+  return (_has_bits_[0] & 0x00000002u) != 0;
+}
+inline void KeyValuePairs::set_has_thevalue() {
+  _has_bits_[0] |= 0x00000002u;
+}
+inline void KeyValuePairs::clear_has_thevalue() {
+  _has_bits_[0] &= ~0x00000002u;
+}
+inline void KeyValuePairs::clear_thevalue() {
+  if (thevalue_ != &::google::protobuf::internal::kEmptyString) {
+    thevalue_->clear();
+  }
+  clear_has_thevalue();
+}
+inline const ::std::string& KeyValuePairs::thevalue() const {
+  return *thevalue_;
+}
+inline void KeyValuePairs::set_thevalue(const ::std::string& value) {
+  set_has_thevalue();
+  if (thevalue_ == &::google::protobuf::internal::kEmptyString) {
+    thevalue_ = new ::std::string;
+  }
+  thevalue_->assign(value);
+}
+inline void KeyValuePairs::set_thevalue(const char* value) {
+  set_has_thevalue();
+  if (thevalue_ == &::google::protobuf::internal::kEmptyString) {
+    thevalue_ = new ::std::string;
+  }
+  thevalue_->assign(value);
+}
+inline void KeyValuePairs::set_thevalue(const char* value, size_t size) {
+  set_has_thevalue();
+  if (thevalue_ == &::google::protobuf::internal::kEmptyString) {
+    thevalue_ = new ::std::string;
+  }
+  thevalue_->assign(reinterpret_cast<const char*>(value), size);
+}
+inline ::std::string* KeyValuePairs::mutable_thevalue() {
+  set_has_thevalue();
+  if (thevalue_ == &::google::protobuf::internal::kEmptyString) {
+    thevalue_ = new ::std::string;
+  }
+  return thevalue_;
+}
+inline ::std::string* KeyValuePairs::release_thevalue() {
+  clear_has_thevalue();
+  if (thevalue_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = thevalue_;
+    thevalue_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void KeyValuePairs::set_allocated_thevalue(::std::string* thevalue) {
+  if (thevalue_ != &::google::protobuf::internal::kEmptyString) {
+    delete thevalue_;
+  }
+  if (thevalue) {
+    set_has_thevalue();
+    thevalue_ = thevalue;
+  } else {
+    clear_has_thevalue();
+    thevalue_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
 }
 
 // -------------------------------------------------------------------
@@ -996,48 +1257,74 @@ inline void WorkOperationRequest::set_allocated_componentname(::std::string* com
   }
 }
 
-// repeated string componentHandle = 3;
-inline int WorkOperationRequest::componenthandle_size() const {
-  return componenthandle_.size();
+// optional bytes componentHandle = 3;
+inline bool WorkOperationRequest::has_componenthandle() const {
+  return (_has_bits_[0] & 0x00000004u) != 0;
+}
+inline void WorkOperationRequest::set_has_componenthandle() {
+  _has_bits_[0] |= 0x00000004u;
+}
+inline void WorkOperationRequest::clear_has_componenthandle() {
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline void WorkOperationRequest::clear_componenthandle() {
-  componenthandle_.Clear();
+  if (componenthandle_ != &::google::protobuf::internal::kEmptyString) {
+    componenthandle_->clear();
+  }
+  clear_has_componenthandle();
 }
-inline const ::std::string& WorkOperationRequest::componenthandle(int index) const {
-  return componenthandle_.Get(index);
+inline const ::std::string& WorkOperationRequest::componenthandle() const {
+  return *componenthandle_;
 }
-inline ::std::string* WorkOperationRequest::mutable_componenthandle(int index) {
-  return componenthandle_.Mutable(index);
+inline void WorkOperationRequest::set_componenthandle(const ::std::string& value) {
+  set_has_componenthandle();
+  if (componenthandle_ == &::google::protobuf::internal::kEmptyString) {
+    componenthandle_ = new ::std::string;
+  }
+  componenthandle_->assign(value);
 }
-inline void WorkOperationRequest::set_componenthandle(int index, const ::std::string& value) {
-  componenthandle_.Mutable(index)->assign(value);
+inline void WorkOperationRequest::set_componenthandle(const char* value) {
+  set_has_componenthandle();
+  if (componenthandle_ == &::google::protobuf::internal::kEmptyString) {
+    componenthandle_ = new ::std::string;
+  }
+  componenthandle_->assign(value);
 }
-inline void WorkOperationRequest::set_componenthandle(int index, const char* value) {
-  componenthandle_.Mutable(index)->assign(value);
+inline void WorkOperationRequest::set_componenthandle(const void* value, size_t size) {
+  set_has_componenthandle();
+  if (componenthandle_ == &::google::protobuf::internal::kEmptyString) {
+    componenthandle_ = new ::std::string;
+  }
+  componenthandle_->assign(reinterpret_cast<const char*>(value), size);
 }
-inline void WorkOperationRequest::set_componenthandle(int index, const char* value, size_t size) {
-  componenthandle_.Mutable(index)->assign(
-    reinterpret_cast<const char*>(value), size);
-}
-inline ::std::string* WorkOperationRequest::add_componenthandle() {
-  return componenthandle_.Add();
-}
-inline void WorkOperationRequest::add_componenthandle(const ::std::string& value) {
-  componenthandle_.Add()->assign(value);
-}
-inline void WorkOperationRequest::add_componenthandle(const char* value) {
-  componenthandle_.Add()->assign(value);
-}
-inline void WorkOperationRequest::add_componenthandle(const char* value, size_t size) {
-  componenthandle_.Add()->assign(reinterpret_cast<const char*>(value), size);
-}
-inline const ::google::protobuf::RepeatedPtrField< ::std::string>&
-WorkOperationRequest::componenthandle() const {
+inline ::std::string* WorkOperationRequest::mutable_componenthandle() {
+  set_has_componenthandle();
+  if (componenthandle_ == &::google::protobuf::internal::kEmptyString) {
+    componenthandle_ = new ::std::string;
+  }
   return componenthandle_;
 }
-inline ::google::protobuf::RepeatedPtrField< ::std::string>*
-WorkOperationRequest::mutable_componenthandle() {
-  return &componenthandle_;
+inline ::std::string* WorkOperationRequest::release_componenthandle() {
+  clear_has_componenthandle();
+  if (componenthandle_ == &::google::protobuf::internal::kEmptyString) {
+    return NULL;
+  } else {
+    ::std::string* temp = componenthandle_;
+    componenthandle_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+    return temp;
+  }
+}
+inline void WorkOperationRequest::set_allocated_componenthandle(::std::string* componenthandle) {
+  if (componenthandle_ != &::google::protobuf::internal::kEmptyString) {
+    delete componenthandle_;
+  }
+  if (componenthandle) {
+    set_has_componenthandle();
+    componenthandle_ = componenthandle;
+  } else {
+    clear_has_componenthandle();
+    componenthandle_ = const_cast< ::std::string*>(&::google::protobuf::internal::kEmptyString);
+  }
 }
 
 // optional uint32 operation = 4;
@@ -1082,6 +1369,31 @@ inline ::google::protobuf::uint32 WorkOperationRequest::target() const {
 inline void WorkOperationRequest::set_target(::google::protobuf::uint32 value) {
   set_has_target();
   target_ = value;
+}
+
+// repeated .SAFplus.Rpc.amfAppRpc.KeyValuePairs keyValuePairs = 6;
+inline int WorkOperationRequest::keyvaluepairs_size() const {
+  return keyvaluepairs_.size();
+}
+inline void WorkOperationRequest::clear_keyvaluepairs() {
+  keyvaluepairs_.Clear();
+}
+inline const ::SAFplus::Rpc::amfAppRpc::KeyValuePairs& WorkOperationRequest::keyvaluepairs(int index) const {
+  return keyvaluepairs_.Get(index);
+}
+inline ::SAFplus::Rpc::amfAppRpc::KeyValuePairs* WorkOperationRequest::mutable_keyvaluepairs(int index) {
+  return keyvaluepairs_.Mutable(index);
+}
+inline ::SAFplus::Rpc::amfAppRpc::KeyValuePairs* WorkOperationRequest::add_keyvaluepairs() {
+  return keyvaluepairs_.Add();
+}
+inline const ::google::protobuf::RepeatedPtrField< ::SAFplus::Rpc::amfAppRpc::KeyValuePairs >&
+WorkOperationRequest::keyvaluepairs() const {
+  return keyvaluepairs_;
+}
+inline ::google::protobuf::RepeatedPtrField< ::SAFplus::Rpc::amfAppRpc::KeyValuePairs >*
+WorkOperationRequest::mutable_keyvaluepairs() {
+  return &keyvaluepairs_;
 }
 
 // -------------------------------------------------------------------

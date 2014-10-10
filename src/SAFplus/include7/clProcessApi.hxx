@@ -33,7 +33,8 @@ namespace SAFplus
       {
       NoFlags = 0,
       CreateNewSession = 1,
-      CreateNewGroup = 2
+      CreateNewGroup = 2,
+      InheritEnvironment = 4,
       };
 
     //? Returns the command line that was used to start this process

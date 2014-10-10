@@ -53,9 +53,9 @@ module amfAppRpc
 	{
 	  type string;
 	}
-      leaf-list componentHandle
+      leaf componentHandle
 	{
-	  type string
+	  type binary
 	    {
             length 16;  // 2 64-bit words 
 	    }
@@ -105,6 +105,18 @@ module amfAppRpc
 	{
 	  type uint32;
 	}
+
+	list keyValuePairs
+	  {
+	    leaf theKey
+	      {
+		type string;
+	      }
+	    leaf theValue
+	      {
+		type string;
+	      }
+	  }
       }
     }
 

@@ -140,7 +140,7 @@ namespace SAFplus
     if (1)
       {
       WorkOperationTracker& wat = pendingWorkOperations.at(invocation);
-      logInfo("AMF","OPS","Work Operation response on component [%s] invocation [%llx] result [%d]",wat.comp->name.c_str(),invocation, result);
+      logInfo("AMF","OPS","Work Operation response on component [%s] invocation [%lx] result [%d]",wat.comp->name.c_str(),invocation, result);
 
       if ( wat.state <= (int) HighAvailabilityState::quiescing)
         {
@@ -369,7 +369,7 @@ namespace SAFplus
     else if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
       {
       comp->presence.value  = PresenceState::instantiating;
-      Process p = executeProgram(inst->command.value, comp->commandEnvironment.value);
+      Process p = executeProgram(inst->command.value, comp->commandEnvironment.value,Process::InheritEnvironment);
       comp->processId.value = p.pid;
 
       logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d]", comp->name.c_str(),inst->command.value.c_str(),p.pid);

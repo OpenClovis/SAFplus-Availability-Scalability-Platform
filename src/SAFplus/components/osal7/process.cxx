@@ -1,6 +1,8 @@
 #include <fstream>
 #include <clProcessApi.hxx>
 
+extern char **environ;
+
 using namespace std;
 
 namespace SAFplus
@@ -77,11 +79,21 @@ namespace SAFplus
       }
     charstrs.push_back(0);  // need terminating null pointer
 
+
     /*
      * Setting variable environment for process
      */
     std::vector<char*> envpchars;
-    for (int i=0;i<env.size(); i++)
+    if(flags & Process::InheritEnvironment)
+        {
+        /* Set the process group id to its own pid */
+        for (char** envvar = environ; *envvar != 0; envvar++)
+          {
+          envpchars.push_back(*envvar);
+          }
+          
+        }
+     for (int i=0;i<env.size(); i++)
       {
         envpchars.push_back(const_cast<char*>(env[i].c_str()));
       }

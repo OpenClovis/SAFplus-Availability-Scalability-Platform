@@ -349,7 +349,7 @@ void dispatchLoop(void)
       if (FD_ISSET(amf_dispatch_fd,&read_fds)) saAmfDispatch(amfHandle, SA_DISPATCH_ALL);
       /* if (FD_ISSET(ckpt_dispatch_fd,&read_fds)) saCkptDispatch(ckptLibraryHandle, SA_DISPATCH_ALL); */
  
-      if (running) clprintf(SAFplus::LOG_SEV_INFO,"csa101: Unthreaded Hello World!"); // show_progress());
+      if (running) clprintf(SAFplus::LOG_SEV_INFO,"csa101: Active.  Hello World!"); // show_progress());
       else 
         {
         clprintf(SAFplus::LOG_SEV_INFO,"csa101: idle");

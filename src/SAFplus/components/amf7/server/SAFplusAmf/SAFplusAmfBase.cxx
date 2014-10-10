@@ -141,13 +141,13 @@ namespace SAFplusAmf
     Component* comp[2];
     comp[0] = createComponent("c0",SAFplusAmf::CapabilityModel::x_active_or_y_standby,1,1,"B.01.01",1,"testBundle.tgz","TEST_ENV=1\nTEST_ENV2=2",1,1,10000,SAFplusAmf::Recovery::Restart,true,"","");
     Instantiate* inst = new Instantiate();
-    inst->command.value = "bash ./test0 arg1 arg2";
+    inst->command.value = "./test0 arg1 arg2";
     inst->timeout.value = 30000;
     comp[0]->addChildObject(inst);
 
     comp[1] = createComponent("c1",SAFplusAmf::CapabilityModel::x_active_or_y_standby,1,1,"B.01.01",1,"testBundle.tgz","TEST_ENV=1\nTEST_ENV2=2",0,2,20000,SAFplusAmf::Recovery::Restart,true,"","");
     Instantiate* inst1 = new Instantiate();
-    inst1->command.value = "bash ./test1 arg1 arg2";
+    inst1->command.value = "./test1 arg1 arg2";
     inst1->timeout.value = 30000;
     comp[1]->addChildObject(inst);
 
