@@ -40,7 +40,16 @@ namespace SAFplusAmf
          */
         SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*> dependencies;
         SAFplus::MgtProv<SAFplusAmf::ServiceInstance*> serviceInstance;
-        SAFplus::MgtProv<SAFplusAmf::Component*> component;
+
+        /*
+         * This work is assigned standby to these components
+         */
+        SAFplus::MgtProvList<SAFplusAmf::Component*> standbyComponents;
+
+        /*
+         * This work is assigned active to these components
+         */
+        SAFplus::MgtProvList<SAFplusAmf::Component*> activeComponents;
 
         /*
          * Arbitrary data that defines the work needed to be done.
@@ -84,14 +93,24 @@ namespace SAFplusAmf
         void setServiceInstance(SAFplusAmf::ServiceInstance* serviceInstanceValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/component
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/standbyComponents
          */
-        SAFplusAmf::Component* getComponent();
+        std::vector<SAFplusAmf::Component*> getStandbyComponents();
 
         /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/component
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/standbyComponents
          */
-        void setComponent(SAFplusAmf::Component* componentValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setStandbyComponents(SAFplusAmf::Component* standbyComponentsValue);
+
+        /*
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/activeComponents
+         */
+        std::vector<SAFplusAmf::Component*> getActiveComponents();
+
+        /*
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/activeComponents
+         */
+        void setActiveComponents(SAFplusAmf::Component* activeComponentsValue);
         ~ComponentServiceInstance();
 
     };

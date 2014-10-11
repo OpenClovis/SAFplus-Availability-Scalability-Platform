@@ -24,23 +24,25 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(ComponentServiceInstance, /SAFplusAmf/ComponentServiceInstance)
 
-    ComponentServiceInstance::ComponentServiceInstance(): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
+    ComponentServiceInstance::ComponentServiceInstance(): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data")
     {
         this->addChildObject(&protectionGroup, "protectionGroup");
         this->addChildObject(&dependencies, "dependencies");
         this->addChildObject(&serviceInstance, "serviceInstance");
-        this->addChildObject(&component, "component");
+        this->addChildObject(&standbyComponents, "standbyComponents");
+        this->addChildObject(&activeComponents, "activeComponents");
         this->addChildObject(&dataList, "data");
         this->name.assign("ComponentServiceInstance");
     };
 
-    ComponentServiceInstance::ComponentServiceInstance(std::string myNameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), component("component"), dataList("data")
+    ComponentServiceInstance::ComponentServiceInstance(std::string myNameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data")
     {
         this->myName.value =  myNameValue;
         this->addChildObject(&protectionGroup, "protectionGroup");
         this->addChildObject(&dependencies, "dependencies");
         this->addChildObject(&serviceInstance, "serviceInstance");
-        this->addChildObject(&component, "component");
+        this->addChildObject(&standbyComponents, "standbyComponents");
+        this->addChildObject(&activeComponents, "activeComponents");
         this->addChildObject(&dataList, "data");
         this->name.assign("ComponentServiceInstance");
     };
@@ -53,7 +55,7 @@ namespace SAFplusAmf
 
     std::vector<std::string>* ComponentServiceInstance::getChildNames()
     {
-        std::string childNames[] = { "myName", "id", "protectionGroup", "dependencies", "data", "serviceInstance", "component" };
+        std::string childNames[] = { "myName", "id", "protectionGroup", "dependencies", "data", "serviceInstance", "standbyComponents", "activeComponents" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
@@ -111,24 +113,35 @@ namespace SAFplusAmf
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/component
+     * XPATH: /SAFplusAmf/ComponentServiceInstance/standbyComponents
      */
-    SAFplusAmf::Component* ComponentServiceInstance::getComponent()
+    std::vector<SAFplusAmf::Component*> ComponentServiceInstance::getStandbyComponents()
     {
-        return this->component.value;
+        return this->standbyComponents.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/component
+     * XPATH: /SAFplusAmf/ComponentServiceInstance/standbyComponents
      */
-    void ComponentServiceInstance::setComponent(SAFplusAmf::Component* componentValue, SAFplus::Transaction &t)
+    void ComponentServiceInstance::setStandbyComponents(SAFplusAmf::Component* standbyComponentsValue)
     {
-        if(&t == &SAFplus::NO_TXN) this->component.value = componentValue;
-        else
-        {
-            SAFplus::SimpleTxnOperation<SAFplusAmf::Component*> *opt = new SAFplus::SimpleTxnOperation<SAFplusAmf::Component*>(&(component.value),componentValue);
-            t.addOperation(opt);
-        }
+        this->standbyComponents.value.push_back(standbyComponentsValue);
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ComponentServiceInstance/activeComponents
+     */
+    std::vector<SAFplusAmf::Component*> ComponentServiceInstance::getActiveComponents()
+    {
+        return this->activeComponents.value;
+    };
+
+    /*
+     * XPATH: /SAFplusAmf/ComponentServiceInstance/activeComponents
+     */
+    void ComponentServiceInstance::setActiveComponents(SAFplusAmf::Component* activeComponentsValue)
+    {
+        this->activeComponents.value.push_back(activeComponentsValue);
     };
 
     ComponentServiceInstance::~ComponentServiceInstance()

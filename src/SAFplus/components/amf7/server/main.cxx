@@ -370,6 +370,56 @@ bool dbgRepair(const char* entity=NULL)
     }
   }
 
+bool dbgStart(const char* entity=NULL)
+  {
+  MgtObject::Iterator it;
+  for (it = cfg.serviceGroupList.begin();it != cfg.serviceGroupList.end(); it++)
+    {
+    ServiceGroup* ent = dynamic_cast<ServiceGroup*> (it->second);
+    const std::string& name = ent->name;
+
+    if (name == entity)
+      {
+      ent->adminState.value = AdministrativeState::on;
+      printf("Changed Service Group [%s] to [%s]\n",name.c_str(),c_str(ent->adminState.value));
+      }
+    }
+  }
+
+bool dbgStop(const char* entity=NULL)
+  {
+  MgtObject::Iterator it;
+  for (it = cfg.serviceGroupList.begin();it != cfg.serviceGroupList.end(); it++)
+    {
+    ServiceGroup* ent = dynamic_cast<ServiceGroup*> (it->second);
+    const std::string& name = ent->name;
+
+    if (name == entity)
+      {
+      ent->adminState.value = AdministrativeState::off;
+      printf("Changed Service Group [%s] to [%s]\n",name.c_str(),c_str(ent->adminState.value));
+      }
+    }
+  }
+
+bool dbgIdle(const char* entity=NULL)
+  {
+  MgtObject::Iterator it;
+  for (it = cfg.serviceGroupList.begin();it != cfg.serviceGroupList.end(); it++)
+    {
+    ServiceGroup* ent = dynamic_cast<ServiceGroup*> (it->second);
+    const std::string& name = ent->name;
+
+    if (name == entity)
+      {
+      ent->adminState.value = AdministrativeState::idle;
+      printf("Changed Service Group [%s] to [%s]\n",name.c_str(),c_str(ent->adminState.value));
+      }
+    }
+  }
+
+
+
 int main(int argc, char* argv[])
   {
   Mutex m;

@@ -81,7 +81,7 @@ namespace SAFplusAmf
         /*
          * Look up any entity by its identifier
          */
-        SAFplus::MgtList<SAFplus::EntityByIdKey> entityByIdList;
+        SAFplus::MgtList<SAFplusAmf::EntityByIdKey> entityByIdList;
 
     public:
         SAFplusAmfRoot();

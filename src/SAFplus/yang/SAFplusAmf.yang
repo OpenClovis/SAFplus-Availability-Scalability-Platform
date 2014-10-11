@@ -600,6 +600,14 @@ point.  The operational, administrative, and presence states of a service unit, 
         config false; // Application can change this, but not management interface
 	description "The number of times this application has been attempted to be instantiated";
       }
+
+      leaf instantiationSuccessDuration
+      {
+	type uint32;
+	config true;
+	description "If this component remains instantiated for this length of time (in milliseconds), the component is deemed to be successfully instantiated and the numInstantiationAttempts field is zeroed.";
+      }
+
       leaf lastInstantiation
 	{
 	  type safplus:date;
@@ -794,12 +802,22 @@ are switched over to other nodes (component service instances are not abruptly r
         safplus:c-type "ServiceInstance*";       
      }
 
-     leaf component
+     leaf-list standbyComponents
      {
+        description "This work is assigned standby to these components";
         type instance-identifier;
-        safplus:c-type "Component*";
+        safplus:c-type "SAFplusAmf::Component*";
         config false;  // The component handling this work is assigned at run time by the AMF
      }
+
+     leaf-list activeComponents
+      {
+        description "This work is assigned active to these components";
+        safplus:c-type "SAFplusAmf::Component*";
+        type instance-identifier;
+        config false;  // The component handling this work is assigned at run time by the AMF
+      }
+
     }
 
     // done

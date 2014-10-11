@@ -116,6 +116,11 @@ namespace SAFplusAmf
         SAFplus::MgtProv<unsigned int> numInstantiationAttempts;
 
         /*
+         * If this component remains instantiated for this length of time (in milliseconds), the component is deemed to be successfully instantiated and the numInstantiationAttempts field is zeroed.
+         */
+        SAFplus::MgtProv<unsigned int> instantiationSuccessDuration;
+
+        /*
          * The last time an instantiation attempt occurred
          */
         SAFplus::MgtProv<SAFplusTypes::Date> lastInstantiation;
@@ -317,6 +322,16 @@ namespace SAFplusAmf
          * XPATH: /SAFplusAmf/Component/numInstantiationAttempts
          */
         void setNumInstantiationAttempts(unsigned int numInstantiationAttemptsValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+
+        /*
+         * XPATH: /SAFplusAmf/Component/instantiationSuccessDuration
+         */
+        unsigned int getInstantiationSuccessDuration();
+
+        /*
+         * XPATH: /SAFplusAmf/Component/instantiationSuccessDuration
+         */
+        void setInstantiationSuccessDuration(unsigned int instantiationSuccessDurationValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/Component/lastInstantiation

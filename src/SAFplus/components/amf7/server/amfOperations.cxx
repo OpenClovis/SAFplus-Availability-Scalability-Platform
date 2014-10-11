@@ -276,6 +276,13 @@ namespace SAFplus
       }
     };
 
+  void AmfOperations::removeWork(SAFplusAmf::ServiceInstance* si,Wakeable& w)
+    {
+    SAFplusAmf::StandbyAssignments* standby = si->getStandbyAssignments();
+    SAFplusAmf::ActiveAssignments* active = si->getActiveAssignments();
+    
+    
+    }
 
   void AmfOperations::assignWork(ServiceUnit* su, ServiceInstance* si, HighAvailabilityState state,Wakeable& w)
     {
@@ -314,7 +321,7 @@ namespace SAFplus
         {
         csi = *itcsi;
         if (!csi) continue;
-        if (csi->getComponent()) continue;  // We can't assign a CSI to > 1 component.
+        // TODO: figure out number of assignments allowed if (csi->getComponent()) continue;  // We can't assign a CSI to > 1 component.
         // TODO validate CSI dependencies are assigned
         break;  // We found one!
         }
@@ -329,7 +336,23 @@ namespace SAFplus
         if ((invocation & 0xFFFFFFFF) == 0xFFFFFFFF) invocation &= 0xFFFFFFFF00000000ULL;  // Don't let increasing invocation numbers overwrite the node or port... ofc this'll never happen 4 billion invocations? :-)
         request.set_invocation(invocation++);
 
-        csi->setComponent(comp);  // Mark this CSI assigned to this component
+        if (state == HighAvailabilityState::active)
+          {
+          csi->activeComponents.value.push_back(comp);  // Mark this CSI assigned to this component
+          }
+        else if (state == HighAvailabilityState::standby)
+          {
+          csi->standbyComponents.value.push_back(comp); // Mark this CSI assigned to this component
+          }
+        else if (state == HighAvailabilityState::idle)
+          {
+          assert(0);  // TODO (will this fn call work for work removal?
+          }
+        else if (state == HighAvailabilityState::quiescing)
+          {
+          assert(0);  // TODO (will this fn call work for work removal?
+          }
+          
 
         // Now I need to fill up the key/value pairs from the CSI
         request.clear_keyvaluepairs();

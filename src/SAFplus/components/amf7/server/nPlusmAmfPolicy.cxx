@@ -17,6 +17,9 @@ using namespace SAFplusAmf;
 
 namespace SAFplus
   {
+ 
+  const char* oper_str(bool val) { if (val) return "enabled"; else return "disabled"; }
+
   class NplusMPolicy:public ClAmfPolicyPlugin_1
     {
   public:
@@ -188,7 +191,7 @@ namespace SAFplus
       ServiceGroup* sg = dynamic_cast<ServiceGroup*> (it->second);
       const std::string& name = sg->name;
 
-      logInfo("N+M","AUDIT","Auditing service group %s", name.c_str());
+      logInfo("N+M","AUDIT","Auditing service group [%s]", name.c_str());
       if (1) // TODO: figure out if this Policy should control this Service group
         {
         MgtObject::Iterator itsu;
@@ -293,7 +296,7 @@ namespace SAFplus
           //ServiceUnit* su = dynamic_cast<ServiceUnit*>(itsu->second);
           ServiceUnit* su = dynamic_cast<ServiceUnit*>(*itsu);
           const std::string& suName = su->name;
-          logInfo("N+M","AUDIT","Auditing service unit [%s]", suName.c_str());
+          logInfo("N+M","AUDIT","Auditing service unit [%s]: Operational State [%s] AdminState [%s] PresenceState [%s] ReadinessState [%s] HA State [%s] HA Readiness [%s] ", suName.c_str(),oper_str(su->operState.value), c_str(su->adminState.value), c_str(su->presenceState.value), c_str(su->readinessState.value), c_str(su->haState.value), c_str(su->haReadinessState.value) );
 
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   itcomp;
           SAFplus::MgtProvList<SAFplusAmf::Component*>::ContainerType::iterator   endcomp = su->components.value.end();
@@ -311,7 +314,12 @@ namespace SAFplus
                   }
                 else
                   {
-                  logDebug("N+M","AUDIT","Component [%s] process [%s.%d] is [%d]",comp->name.c_str(), su->node.value->name.c_str(), comp->processId.value, (int) comp->presence.value);
+                  char timeString[80];
+                  //struct tm * timeptr;
+                  time_t rawtime = comp->lastInstantiation.value.value / 1000;  // /1000 converts ms to sec.
+                  //timeinfo = localtime(&rawtime);
+                  strftime(timeString,80,"%c",localtime(&rawtime));
+                  logDebug("N+M","AUDIT","Component [%s] process [%s.%d] is [%s].  Instantiated since [%s].  Instantiation attempts [%d].",comp->name.c_str(), su->node.value->name.c_str(), comp->processId.value, c_str(comp->presence.value),timeString, comp->numInstantiationAttempts.value);
                   }
                 }
               else
@@ -393,6 +401,11 @@ namespace SAFplus
           else if ((eas == AdministrativeState::off) && (si->assignmentState != AssignmentState::unassigned))
             {
             logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.c_str(),c_str(si->assignmentState));
+            amfOps->removeWork(si);
+            }
+          else
+            {
+            logInfo("N+M","AUDIT","Service Instance [%s]: admin state [%s]. assignment state [%s].  Assignments: active [%ld] standby [%ld]. ", si->name.c_str(),c_str(si->adminState.value), c_str(si->assignmentState), si->getActiveAssignments()->current.value,si->getStandbyAssignments()->current.value  );
             }
 
           }
@@ -407,6 +420,57 @@ namespace SAFplus
 
     }
 
+  void updateStateDueToProcessDeath(SAFplusAmf::Component* comp)
+    {
+    comp->presence = PresenceState::uninstantiated;
+    comp->processId = 0;
+    SAFplus::name.set(comp->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
+    
+    SAFplusAmf::ServiceUnit* su = comp->serviceUnit.value;
+    SAFplusAmf::ServiceGroup* sg = su->serviceGroup.value;
+    
+    // I need to remove any CSIs that were assigned to this component.
+    SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator itsi;
+    SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*>::ContainerType::iterator endsi = sg->serviceInstances.value.end();
+    for (itsi = sg->serviceInstances.value.begin();itsi != endsi; itsi++)
+      {
+      ServiceInstance* si = *itsi;
+      const std::string& name = si->name;
+
+      SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator itcsi;
+      SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*>::ContainerType::iterator endcsi = si->componentServiceInstances.value.end();
+
+      SAFplusAmf::ComponentServiceInstance* csi = NULL;
+      bool found = false;
+
+      // Look for which CSI is assigned to the dead component and remove the assignment.
+      for (itcsi = si->componentServiceInstances.value.begin(); itcsi != endcsi; itcsi++)
+        {
+        csi = *itcsi;
+        if (!csi) continue;
+        if (1)
+          {
+          std::vector<SAFplusAmf::Component*>& vec = csi->activeComponents.value;
+          if (std::find(vec.begin(), vec.end(), comp) != vec.end())
+            {
+            found = true;
+            vec.erase(std::remove(vec.begin(),vec.end(), comp), vec.end());
+            }
+          }
+        if (1)
+          {
+          std::vector<SAFplusAmf::Component*>& vec = csi->standbyComponents.value;
+          if (std::find(vec.begin(), vec.end(), comp) != vec.end())
+            {
+            found = true;
+            vec.erase(std::remove(vec.begin(),vec.end(), comp), vec.end());
+            }
+          }
+        }
+      if (found) si->assignmentState = AssignmentState::partiallyAssigned;  // TODO: or it could be unassigned...
+      }
+
+    }
 
   // First step in the audit is to update the current state of every entity to match the reality.
   void NplusMPolicy::auditDiscovery(SAFplusAmf::SAFplusAmfRoot* root)
@@ -490,9 +554,7 @@ namespace SAFplus
               CompStatus status = amfOps->getCompState(comp);
               if (status == CompStatus::Uninstantiated)  // database shows should be running but actually no process is there.  I should update DB.
                 {
-                comp->presence = PresenceState::uninstantiated;
-                comp->processId = 0;
-                SAFplus::name.set(comp->name,INVALID_HDL,NameRegistrar::MODE_NO_CHANGE);  // remove the handle in the name service because the component is dead
+                updateStateDueToProcessDeath(comp);
                 }
               else if (comp->presence == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF
                 {
@@ -526,6 +588,16 @@ namespace SAFplus
                     {
                     logInfo("N+M","AUDIT","Component [%s] waiting [%lu] more milliseconds for instantiation.", comp->name.c_str(),comp->getInstantiate()->timeout.value - (curTime - comp->lastInstantiation.value.value));
                     }
+                  }
+                }
+              else if (comp->presence == PresenceState::instantiated)
+                {
+                // If the component has been instantiated for long enough, reset the instantiation attempts.
+
+                uint64_t curTime = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+                if (curTime - comp->lastInstantiation.value.value >= comp->instantiationSuccessDuration.value)
+                  {
+                  comp->numInstantiationAttempts.value = 0; 
                   }
                 }
               }
@@ -584,6 +656,7 @@ namespace SAFplus
             // Presence state changed.
             logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.c_str(),c_str(su->presenceState.value),su->presenceState.value, c_str(ps), ps);
             su->presenceState.value = ps;
+
             // TODO: Event?
             }
           }

@@ -81,6 +81,7 @@ namespace SAFplus
     void start(SAFplusAmf::Component* comp,Wakeable& w = *((Wakeable*)nullptr));
 
     void assignWork(SAFplusAmf::ServiceUnit* su, SAFplusAmf::ServiceInstance* si, SAFplusAmf::HighAvailabilityState state,Wakeable& w = *((Wakeable*)nullptr));
+    void removeWork(SAFplusAmf::ServiceInstance* si,Wakeable& w = *((Wakeable*)nullptr));
 
     void workOperationResponse(uint64_t invocation, uint32_t result);
     };

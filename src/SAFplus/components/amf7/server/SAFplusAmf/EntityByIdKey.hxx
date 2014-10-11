@@ -1,45 +1,46 @@
 #pragma once 
-#ifndef ENTITYBYID_HXX__ 
-#define ENTITYBYID_HXX__ 
+#ifndef __ENTITYBYIDKEY_HXX__
+#define __ENTITYBYIDKEY_HXX__
 
+#include <iostream>
+#include <sstream>
+#include <map>
 
-namespace SAFplus 
+namespace SAFplusAmf
 {
+  class EntityByIdKey {
 
-class EntityByIdKey {
-  public:
-    unsigned short int id; 
+    public:
+      unsigned short int id;
 
-    EntityByIdKey(){};
+      /* default constructor/destructor */
+      EntityByIdKey();
+      ~EntityByIdKey();
 
-    EntityByIdKey(unsigned short int idVal)
-    {
-        id = idVal;
-    }
+      EntityByIdKey(unsigned short int &idValue);
 
-    bool operator<(const EntityByIdKey &k2) const
-    {
-        return id < k2.id;
-    }
+      /* building an instance from string list */
+      void build(std::map<std::string,std::string> keyList);
 
-    std::string str()
-    {
-        std::stringstream ss;
-        ss << id ;
-        return ss.str(); 
-    }
+      /* key xpath: [key1=value1,key2=value2] */
+      std::string toXpath() const;
 
-    void build(std::map<std::string,std::string> keyList)
-    {
-        /*This list can not be configured*/;
-    }
+      /* xml string: <interface key1="value1" key2="value2"></interface> */
+      std::string toString() const;
 
-    std::string toXmlString() const
-    {
-        std::stringstream ss;
-        ss << "id=\"" << id << "\" " ;
-        return ss.str(); 
-    }
-}; //end class
-} //end namespace
-#endif //ENTITYBYID_HXX
+      /* Serialize keys */
+      std::string str() const;
+
+      friend std::ostream& operator<<(std::ostream& out, const EntityByIdKey &value);
+
+      /* compare hash key */
+      inline bool operator<(const EntityByIdKey &rhs) const
+      {
+        /* TODO: implement by user */
+        return true;
+      }
+
+  };
+}
+/* namespace SAFplusAmf */
+#endif /* ENTITYBYIDKEY_HXX_ */

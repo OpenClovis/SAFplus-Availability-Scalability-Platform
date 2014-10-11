@@ -117,6 +117,9 @@ namespace SAFplusAmf
     ret->recovery = recovery;
     ret->restartable = restartable;
     ret->proxy = proxy;
+
+    ret->instantiationSuccessDuration = 60000;  // Must be up for 1 minute to count as successfully instantiated
+
     // GAS TODO: ClMgtProvList needs code accessors: ret->proxied =
     // proxied;
 
