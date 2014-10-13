@@ -106,13 +106,15 @@ void checkAndRotateLog(Stream* s)
       {
         fname.assign(s->filePath +  "/" + s->fileName.value + boost::lexical_cast<std::string>(s->earliestIdx) + ".log");
         // Delete the oldest file
+        // As a result of test, if the file name doesn't exist, fs::remove doesn't throw any exception or error
+        // So, does not need a try catch here
         fs::remove(fname);   
         s->earliestIdx++; // Increasing earliest file index
-        s->numFiles--; // Decreasing number of files because one file has been removed        
-        // close the current file
-        fclose(s->fp);    
-        s->fp = NULL;
+        s->numFiles--; // Decreasing number of files because one file has been removed            
       }
+      // close the current file to open a new file
+      fclose(s->fp);    
+      s->fp = NULL;
       // open a new file with the newest index
       s->fileIdx++; // Increasing new file index
       fname.assign(s->filePath +  "/" + s->fileName.value + boost::lexical_cast<std::string>(s->fileIdx) + ".log");      
@@ -202,11 +204,16 @@ void initializeLogRotation(LogCfg* cfg)
     {
       continue;
     }
-    s->filePath = loc.substr(2,-1);
-    if (s->filePath[0] != '/')
+    string fpath = loc.substr(2,-1);
+    if (fpath[0] != '/')
     {
-      Dbg("path [%s] is invalid. Trying to use ASP_LOGDIR\n", s->filePath.c_str());
+      Dbg("path [%s] is invalid. Trying to use ASP_LOGDIR\n", fpath.c_str());
       s->filePath = SAFplus::ASP_LOGDIR;
+      s->filePath.append("/" + fpath);
+    }
+    else
+    {
+      s->filePath = fpath;      
     }
     std::string& pathToFile = s->filePath;
     if (!fs::exists(pathToFile))
@@ -218,7 +225,11 @@ void initializeLogRotation(LogCfg* cfg)
       catch (boost::filesystem::filesystem_error ex) 
         {
         Dbg("path [%s] is invalid; ASP_LOGDIR may not be set. System error [%s]\n", pathToFile.c_str(), ex.what());
-        continue; // if this filepath is invalid, pass it by and continue handling other stream
+        s->fp = NULL;
+        s->fileIdx = -1;
+        s->earliestIdx = -1;
+        s->numFiles = -1;        
+        continue; // if this filepath is invalid, pass it by and continue handling other streams
         }
     }
     /* The purpose is to find the last modified log file, get its index then calculate the next index for a new file.  First we need to separate out the log files that are associated with this stream (verses other streams or random files).  Logs associated with this stream have a name with the following format <pathname><fileName><Index>.log.  We search the directory for all filenames matching this format.  Next, these files are put in the file_result_set.  This map will sort all elements automatically based on modified time.  We use this set to do things like delete the oldest file and create a new one.
