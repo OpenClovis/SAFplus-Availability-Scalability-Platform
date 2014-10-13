@@ -38,7 +38,7 @@ LogCfg* loadLogCfg()
   Stream* s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("sys"));
   if (!s)  // The sys log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
-      s = createStreamCfg("sys","sys",".:var/log",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::GLOBAL);
+      s = createStreamCfg("sys","sys","var/log",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::GLOBAL);
       std::string cfgName("sys");
       logcfg.streamConfig.streamList.addChildObject(s,cfgName);
     }
@@ -46,7 +46,7 @@ LogCfg* loadLogCfg()
   s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("app"));
   if (!s)  // The all log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
-      s = createStreamCfg("app","app",".:var/log",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::GLOBAL);
+      s = createStreamCfg("app","app","var/log",1024*1024/4, 2048, FileFullAction::ROTATE, 4, 200, 500, false, StreamScope::GLOBAL);
       std::string cfgName("app");
       logcfg.streamConfig.streamList.addChildObject(s,cfgName);
     }
