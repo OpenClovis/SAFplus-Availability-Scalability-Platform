@@ -189,7 +189,7 @@ def parse_command_line(args):
                                    ])
     except getopt.GetoptError, e:
         print 'Command line parsing failed, error [%s]' % e
-        usage()
+        watchdog_usage()
         sys.exit(1)
 
     for o, a in opts:
@@ -217,7 +217,7 @@ def parse_command_line(args):
                 os.putenv('CL_LOG_SEVERITY', log_level)
             else:
                 logging.critical('Invalid SAFplus log level [%s]' % a)
-                usage()
+                watchdog_usage()
                 sys.exit(1)
     return optdict
 
@@ -234,9 +234,11 @@ def main(argv):
     safplus.import_os_adaption_layer()
 
     logging.basicConfig(format='%(levelname)s %(message)s', level=logging.INFO)
-    if sys.argv[1] == 'help' :
-      watchdog_usage() 
-      return 1
+
+    if len(sys.argv) == 1 or sys.argv[1] == 'help' :
+        watchdog_usage() 
+        return 1
+
     parse_command_line(argv[2:])
     if RemovePersistentDb:
       shutil.rmtree(safplus.SAFPLUS_DB_DIR,ignore_errors=True)
