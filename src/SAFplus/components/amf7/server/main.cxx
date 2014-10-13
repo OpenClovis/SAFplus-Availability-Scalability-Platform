@@ -484,6 +484,8 @@ int main(int argc, char* argv[])
   myHandle = SAFplus::Handle(TransientHandle,1,SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
   // Register a mapping between this node's name and its handle.
   nodeHandle = myHandle; // TODO: No should be different
+
+  logInfo("AMF","NAM", "Registering this node [%s] as handle [%lx:%lx]", SAFplus::ASP_NODENAME, myHandle.id[0],myHandle.id[1]);
   name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
 
   /* Initialize mgt database  */
@@ -585,7 +587,7 @@ int main(int argc, char* argv[])
         pid = waitpid(-1, &status, WNOHANG);
         if (pid>0)
           {
-          logWarning("PRC","MON","Child process [%d] has failed", pid);
+          logWarning("PRC","MON","On this node, child process [%d] has failed", pid);
           }
         if (pid<0)
           {

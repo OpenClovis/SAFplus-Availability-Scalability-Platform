@@ -289,6 +289,7 @@ void initializeAmf(void)
     {
     if (rc == SA_AIS_ERR_UNAVAILABLE)  // This component was not run by the AMF.  You must tell us what the component name is.
       {
+      logInfo("APP","MAIN","Application NOT started by AMF");
       saNameSet(&appName, DEFAULT_APP_NAME);
       }
     }

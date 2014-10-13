@@ -57,6 +57,9 @@ namespace SAFplus
      }
   };
 
+
+  class HandleData;
+
   class NameRegistrar
   {
   protected:
@@ -69,6 +72,27 @@ namespace SAFplus
      //NameRegistrar(){}
      
   public:
+
+     class Iterator
+       {
+       NameRegistrar* nam;
+       SAFplus::Checkpoint::Iterator it;
+       public:
+       Iterator(NameRegistrar& n):it(&n.m_checkpoint) { nam = &n; }
+       friend class NameRegistrar;
+
+       bool operator != (const Iterator& i) const { return (it != i.it); }
+       Iterator& operator++ (int) { it++; return *this; }
+       
+       std::string name();
+       HandleData& handle();
+       };
+       
+     friend class Iterator;
+
+     Iterator begin() { Iterator i(*this); i.it = m_checkpoint.begin(); return i; }
+     Iterator end() { Iterator i(*this); i.it = m_checkpoint.end(); return i; }
+
      typedef enum 
      {
         MODE_REDUNDANCY,
@@ -152,15 +176,16 @@ namespace SAFplus
      void init(SAFplus::Handle hdl);
   };
 
-  typedef struct
-  {
-  public:
+  class HandleData
+    {
+    public:
      short structIdAndEndian;
      short numHandles;
      NameRegistrar::MappingMode mappingMode;     
      short extra;
      SAFplus::Handle handles[1];     
-  }HandleData;  
+    };
+
 
   //? Singleton class that handles all name access
   extern NameRegistrar name;  

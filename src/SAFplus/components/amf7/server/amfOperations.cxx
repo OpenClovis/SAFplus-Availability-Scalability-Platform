@@ -199,7 +199,7 @@ namespace SAFplus
         }
       else  // RPC call
         {
-        logInfo("OP","CMP","Request component [%s] state from node [%s]", comp->name.c_str(), comp->serviceUnit.value->node.name.c_str());
+        logInfo("OP","CMP","Request component [%s] state from node [%s]", comp->name.c_str(), comp->serviceUnit.value->node.value->name.c_str());
 
         ProcessInfoRequest req;
         req.set_pid(pid);

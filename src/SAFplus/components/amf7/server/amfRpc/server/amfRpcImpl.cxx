@@ -28,7 +28,7 @@ namespace amfRpc {
   std::string strNodeName("ASP_NODENAME=");
   std::string strNodeAddr("ASP_NODEADDR=");
 
-  strCompName.append(SAFplus::ASP_COMPNAME);
+  strCompName.append(request->name());
   env.push_back(strCompName);
 
   strNodeName.append(SAFplus::ASP_NODENAME);

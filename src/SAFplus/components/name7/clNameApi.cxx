@@ -296,6 +296,20 @@ void* NameRegistrar::get(const Handle& handle) throw (NameException&)
    throw NameException("Handle provided does not exist");
 }
 
+std::string NameRegistrar::Iterator::name()
+  {
+  const Buffer& buf = *(it->first);
+  std::string ret = (char*) buf.data;
+  return ret; 
+  }
+
+HandleData& NameRegistrar::Iterator::handle()
+  {
+  const Buffer& buf = *(it->second);
+  HandleData* data = (HandleData*) buf.data;
+  return *data;
+  }
+
 Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
 {
    const Buffer& buf = m_checkpoint.read(name);
