@@ -428,7 +428,17 @@ namespace SAFplus
     else if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
       {
       comp->presence.value  = PresenceState::instantiating;
-      Process p = executeProgram(inst->command.value, comp->commandEnvironment.value,Process::InheritEnvironment);
+      std::vector<std::string> newEnv = comp->commandEnvironment.value;
+      std::string strCompName("ASP_COMPNAME=");
+      std::string strNodeName("ASP_NODENAME=");
+      std::string strNodeAddr("ASP_NODEADDR=");
+      strCompName.append(comp->name);
+      strNodeName.append(SAFplus::ASP_NODENAME);
+      strNodeAddr.append(std::to_string(SAFplus::ASP_NODEADDR));
+      newEnv.push_back(strCompName);
+      newEnv.push_back(strNodeName);
+      newEnv.push_back(strNodeAddr);
+      Process p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
       comp->processId.value = p.pid;
 
       logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d]", comp->name.c_str(),inst->command.value.c_str(),p.pid);

@@ -251,7 +251,7 @@ void SAFplus::Checkpoint::write(const Buffer& key, const Buffer& value,Transacti
 
   //Buffer* existing = read(key);
   uint_t newlen = value.len();
-  uint32_t change = hdr->changeNum++;   // TODO transactional write could all have the same changenum...
+  uint32_t change = ++hdr->changeNum;   // TODO transactional write could all have the same changenum...
 
   //SAFplusI::BufferPtr& curval = (*map)[SAFplusI::BufferPtr((Buffer*)&key)];  // curval is a REFERENCE to the value in the hash table so we can overwrite it to change the value...
   CkptHashMap::iterator contents = map->find(SAFplusI::BufferPtr((Buffer*)&key));
@@ -356,6 +356,7 @@ void SAFplus::Checkpoint::applySync(const Buffer& key, const Buffer& value,Trans
   SAFplusI::CkptMapPair vt(kb,kv);
   map->insert(vt);
   
+  // I don't update hdr->changeNum in case the replication fails.  Then I need to restart it from the original sync location, so I need to preserve that.  
 }
 
 

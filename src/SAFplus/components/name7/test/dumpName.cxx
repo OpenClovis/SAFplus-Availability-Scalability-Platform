@@ -5,7 +5,7 @@ using namespace SAFplus;
 
 int main(int argc, char* argv[])
   {
-  SAFplus::ASP_NODEADDR = 1;  // TODO: safplusInitialize should automatically find the node address!
+  SAFplus::ASP_NODEADDR = std::stoi(std::string(argv[1]));  // TODO: safplusInitialize should automatically find the node address!
 
   safplusInitialize( SAFplus::LibDep::NAME);
   for (NameRegistrar::Iterator it = name.begin(); it != name.end(); it++)

@@ -7,7 +7,7 @@
 #define clprintf(sev,...) SAFplus::logMsgWrite(SAFplus::APP_LOG, sev, 0, "APP", "MAIN", __FILE__, __LINE__, __VA_ARGS__)
 
 // This is the application name to use if the AMF did not start up this component
-#define DEFAULT_APP_NAME "c0"
+#define DEFAULT_APP_NAME "DEFAULT_NAME"
 
 /* Access to the SAF AMF framework occurs through this handle */
 SaAmfHandleT amfHandle;

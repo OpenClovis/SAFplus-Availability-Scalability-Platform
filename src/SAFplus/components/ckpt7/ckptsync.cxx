@@ -122,8 +122,8 @@ void SAFplusI::CkptSynchronization::msgHandler(ClIocAddressT from, SAFplus::MsgS
         boost::this_thread::sleep(boost::posix_time::microseconds(100000));
         }
       ckpt->hdr->generation = sc->finalGeneration;
-      ckpt->hdr->changeNum = sc->finalChangeNum;
-      logInfo("SYNC","MSG","Checkpoint sync complete.  Msg count [%d]. change [%d.%d]", sc->finalCount, ckpt->hdr->generation,ckpt->hdr->changeNum);
+      if (ckpt->hdr->changeNum < sc->finalChangeNum) ckpt->hdr->changeNum = sc->finalChangeNum;
+      logInfo("SYNC","MSG","Checkpoint [%lx:%lx] sync complete.  Msg count [%d]. change [%d.%d]", ckpt->hdr->handle.id[0], ckpt->hdr->handle.id[1], sc->finalCount, ckpt->hdr->generation,ckpt->hdr->changeNum);
       synchronizing = false;
       ckpt->gate.open(); // TODO: I need to open this gate during all kinds of checkpoint failure conditions, sender process death, node death, message lost.
       } break;
@@ -155,7 +155,7 @@ unsigned int SAFplusI::CkptSynchronization::applySyncMsg(ClPtrT msg, ClWordT msg
     Buffer* val = (Buffer*) (((char*)msg)+curpos);
     curpos += sizeof(Buffer) + val->len() - 1;
     if (lastChange < val->changeNum()) lastChange = val->changeNum();
-    logInfo("SYNC","APLY","part %d: key(len:%d) %x  val(len:%d) %x", count, key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
+    logInfo("SYNC","APLY","part %d: change %d. key(len:%d) %x  val(len:%d) %x", count, val->changeNum(), key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
     ckpt->applySync(*key,*val);
     }
 
@@ -390,13 +390,15 @@ bool SAFplus::Checkpoint::electSynchronizationReplica()
 {
   while (1)
     {
+
     Process p(hdr->serverPid);
     try
       {
       std::string cmd = p.getCmdline();
-      return false;  // If the process is alive we assume it is acting as sync replica... TODO: this method suffers from a chance of a process respawn
+      return (hdr->serverPid == SAFplus::pid);  // If the process is alive we assume it is acting as sync replica... return true if that process is me otherwise false
+      // TODO: this method suffers from a chance of a process respawn
       }
-    catch (ProcessError& e)
+    catch (ProcessError& e)  // process in hdr->serverPid is dead, so put myself in there.
       {
       hdr->serverPid = SAFplus::pid;
       boost::this_thread::sleep(boost::posix_time::milliseconds(100));
