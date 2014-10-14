@@ -45,6 +45,7 @@ namespace SAFplusI
     {
     public:
     bool                 synchronizing;
+    bool                 syncReplica;
     SAFplus::Checkpoint* ckpt;
     SAFplus::Group*      group;  // Needs to be a pointer to break circular includes
     SAFplus::MsgServer*  msgSvr;
@@ -55,6 +56,8 @@ namespace SAFplusI
     boost::thread syncThread;
 
     void init(SAFplus::Checkpoint* c,SAFplus::MsgServer* pmsgSvr=NULL,SAFplus::Wakeable& execSemantics = SAFplus::BLOCK);
+
+    bool electSynchronizationReplica();  // Returns true if this process is the synchronization replica.
 
     void operator()();  // Thread thunk
 

@@ -45,6 +45,7 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
   // All constructors funnel through this init routine.
   gate.init(hdl.id[1]);  // 2nd word of the handle should be unique on this node
   gate.close(); // start the gate closed so this process can't access the checkpoint.  But I can't init the gate closed, in case the init opens an existing gate, instead of creating one
+  // TODO: gate has to be closed while this process inits but also while replica syncs.  Need 2 gates (thread and interprocess).
 
   flags = _flags;
   if (flags & REPLICATED)
@@ -119,15 +120,6 @@ void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uin
   
   if (flags & REPLICATED)
     {
-    isSyncReplica = electSynchronizationReplica();
-    }
-  else  // LOCAL-only checkpoints do not synchronize with other nodes.
-    {
-    isSyncReplica = false;
-    }
-
-  if (isSyncReplica) 
-    { 
     sync = new CkptSynchronization(); 
     sync->init(this,NULL,execSemantics); 
     // the sync object will open the gate when synchronization is complete

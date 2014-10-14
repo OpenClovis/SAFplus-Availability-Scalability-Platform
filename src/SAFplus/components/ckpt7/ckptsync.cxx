@@ -294,6 +294,8 @@ void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr, SAFpl
   ckpt = c;
   synchronizing = true;  // Checkpoint always starts out in the synchronizing state (access not allowed).  It kicks out of this state when it becomes the active replica or it is synced with the active replica.
 
+  syncReplica = electSynchronizationReplica();
+
   if (pmsgSvr == NULL) msgSvr = &safplusMsgServer;
   else msgSvr = pmsgSvr;
   ckpt->hdr->replicaHandle = Handle::create(msgSvr->handle.getPort());
@@ -305,21 +307,30 @@ void SAFplusI::CkptSynchronization::init(Checkpoint* c,MsgServer* pmsgSvr, SAFpl
   group = new SAFplus::Group();
   assert(group);
   group->init(ckpt->hdr->handle.getSubHandle(CKPT_GROUP_SUBHANDLE),SAFplusI::GMS_IOC_PORT,execSemantics);
-  if (ckpt->name.size()) group->setName(ckpt->name.c_str());
-  group->setNotification(*this);
-  // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
-  group->registerEntity(ckpt->hdr->replicaHandle,(ckpt->hdr->changeNum<<SAFplus::Log2MaxNodes) | SAFplus::ASP_NODEADDR,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
 
-  logInfo("SYNC","TRD","Checkpoint is registered on [%d:%d] type [%d]", msgSvr->handle.getNode(),msgSvr->handle.getPort(),CKPT_SYNC_MSG_TYPE);
+  if (syncReplica)  // Only one process per node is in charge of handling replication messages
+    {
+    if (ckpt->name.size()) group->setName(ckpt->name.c_str());
+    group->setNotification(*this);
+    // The credential is most importantly the change number (so the latest changes becomes the master) and then the node number) 
+    group->registerEntity(ckpt->hdr->replicaHandle,(ckpt->hdr->changeNum<<SAFplus::Log2MaxNodes) | SAFplus::ASP_NODEADDR,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
 
-  msgHdlr.handleMap[ckpt->hdr->replicaHandle] = this;
-  msgHdlr.handleMap[ckpt->hdr->handle] = this;
-  msgSvr->RegisterHandler(CKPT_SYNC_MSG_TYPE,&msgHdlr,NULL);
+    logInfo("SYNC","TRD","Checkpoint is registered on [%d:%d] type [%d]", msgSvr->handle.getNode(),msgSvr->handle.getPort(),CKPT_SYNC_MSG_TYPE);
 
-  syncCount = -1;
-  syncCookie = rand();  // Generate a random number so an ongoing sync to a failed node does not conflict with it restarting.
+    msgHdlr.handleMap[ckpt->hdr->replicaHandle] = this;
+    msgHdlr.handleMap[ckpt->hdr->handle] = this;
+    msgSvr->RegisterHandler(CKPT_SYNC_MSG_TYPE,&msgHdlr,NULL);
 
-  syncThread = boost::thread(boost::ref(*this));
+    syncCount = -1;
+    syncCookie = rand();  // Generate a random number so an ongoing sync to a failed node does not conflict with it restarting.
+
+    syncThread = boost::thread(boost::ref(*this));
+    }
+  else
+    {
+    synchronizing = false;
+    ckpt->gate.open(); // If this checkpoint becomes the master replica, it is by definition the authorative copy so allow reading/writing
+    }
   }
 
 void SAFplusI::CkptSynchronization::wake(int amt,void* cookie)
@@ -386,23 +397,26 @@ void SAFplusI::CkptSynchronization::operator()()
     }
   }
 
-bool SAFplus::Checkpoint::electSynchronizationReplica()
+bool SAFplusI::CkptSynchronization::electSynchronizationReplica()
 {
+  // This code elects a single process within this node to be the entity that handles synchronization messages.
+  // It elects a process by checking a shared memory location for a pid.  If that pid is "alive" then that pid is elected.
+  // Otherwise this process writes its own pid into the location, waits, and then checks to see if its write was not overwritten.
+  // If its write remains valid, it wins the election.
   while (1)
     {
-
-    Process p(hdr->serverPid);
+    Process p(ckpt->hdr->serverPid);
     try
       {
       std::string cmd = p.getCmdline();
-      return (hdr->serverPid == SAFplus::pid);  // If the process is alive we assume it is acting as sync replica... return true if that process is me otherwise false
+      return (ckpt->hdr->serverPid == SAFplus::pid);  // If the process is alive we assume it is acting as sync replica... return true if that process is me otherwise false
       // TODO: this method suffers from a chance of a process respawn
       }
     catch (ProcessError& e)  // process in hdr->serverPid is dead, so put myself in there.
       {
-      hdr->serverPid = SAFplus::pid;
+      ckpt->hdr->serverPid = SAFplus::pid;
       boost::this_thread::sleep(boost::posix_time::milliseconds(100));
-      if (hdr->serverPid == SAFplus::pid) return true;
+      if (ckpt->hdr->serverPid == SAFplus::pid) return true;
       // Otherwise I will wrap around, reload the PID and make sure that it is valid.  This will presumably solve theoretical write collisions which corrupt data due to different writes succeeding in different bytes in the number.
       }
     }

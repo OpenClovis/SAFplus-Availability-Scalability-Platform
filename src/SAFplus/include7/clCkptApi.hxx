@@ -247,7 +247,6 @@ namespace SAFplus
     SAFplus::ProcGate              gate;
     bool isSyncReplica;
     SAFplusI::CkptSynchronization* sync;  // This is a separate object (and pointer) to break the synchronization requirements (messaging and groups) from the core checkpoint
-    bool electSynchronizationReplica();  // Returns true if this process is the synchronization replica.
   };
 }
 
