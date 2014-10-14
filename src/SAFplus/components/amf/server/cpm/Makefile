@@ -30,8 +30,7 @@ AMF_PATH = $(CLOVIS_ROOT)/safplus/components/amf
 
 CPPFLAGS += $(CM_CFLAGS)
 
-SRC_FILES :=        $(wildcard $(AMF_PATH)/common/cpm/*.c)   \
-		    $(wildcard *.c)               
+SRC_FILES := $(wildcard *.c)
 
 # List other ASP components of which client libraries your component
 # depends on:

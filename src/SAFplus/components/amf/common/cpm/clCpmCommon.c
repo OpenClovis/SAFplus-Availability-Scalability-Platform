@@ -11,6 +11,8 @@ ClRcT cpmInvocationDeleteInvocation(ClInvocationT invocationId)
     ClRcT rc = CL_OK;
     ClCntNodeHandleT cntNodeHandle = 0;
     ClCpmInvocationT *invocationData = NULL;
+    ClTimeT createdTime = 0;
+    ClTimeT endTime = clOsalStopWatchTimeGet();
 
     clOsalMutexLock(gpClCpm->invocationMutex);
 
@@ -33,11 +35,12 @@ ClRcT cpmInvocationDeleteInvocation(ClInvocationT invocationId)
         clHeapFree(invocationData->data);
     }
 
+    createdTime = invocationData->createdTime;
     clHeapFree(invocationData);
 
     clOsalMutexUnlock(gpClCpm->invocationMutex);
 
-    clLogDebug("INVOCATION", "DEL", "Deleted invocation [%#llx]", invocationId);
+    clLogDebug("INVOCATION", "DEL", "Deleted invocation [%#llx] took [%lld.%lld] usecs", invocationId, (endTime - createdTime) / 1000, (endTime - createdTime) % 1000);
 
     return rc;
 
@@ -99,8 +102,10 @@ ClRcT cpmInvocationClearCompInvocation(ClNameT *compName)
             
             if(matched)
             {
+                ClTimeT endTime = clOsalStopWatchTimeGet();
                 clLogDebug("INVOCATION", "CLEAR", "Clearing invocation for component [%.*s] "
-                           "invocation [%#llx]", compName->length, compName->value, invocationData->invocation);
+                    "invocation [%#llx] took [%lld.%lld] usecs", compName->length, compName->value, invocationData->invocation,
+                    (endTime - invocationData->createdTime) / 1000, (endTime - invocationData->createdTime) % 1000);
                 if (clCntNodeDelete(gpClCpm->invocationTable, nodeHandle) != CL_OK)
                     goto withLock;
                 if( (invocationData->flags & CL_CPM_INVOCATION_DATA_COPIED) )
@@ -201,6 +206,7 @@ ClRcT cpmInvocationAdd(ClUint32T cbType,
     temp->invocation = *invocationId;
     temp->data = data;
     temp->flags = flags;
+    temp->createdTime = clOsalStopWatchTimeGet();
 
     rc = clCntNodeAdd(gpClCpm->invocationTable, (ClCntKeyHandleT)&temp->invocation,
                       (ClCntDataHandleT) temp, NULL);
@@ -247,7 +253,8 @@ ClRcT cpmInvocationAddKey(ClUint32T cbType,
 
     temp->invocation = invocationId;
     temp->data = data;
-    temp->flags = flags; 
+    temp->flags = flags;
+    temp->createdTime = clOsalStopWatchTimeGet();
 
     CL_CPM_INVOCATION_KEY_GET(invocationId, invocationKey);
 

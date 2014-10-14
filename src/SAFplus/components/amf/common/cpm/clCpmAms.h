@@ -63,6 +63,7 @@ typedef struct
     ClInvocationT invocation;
     void *data;
     ClUint32T flags;
+    ClTimeT createdTime; //Store invocation created timestamp
 }ClCpmInvocationT;
 
 typedef struct ClCpmMgmtComp 
