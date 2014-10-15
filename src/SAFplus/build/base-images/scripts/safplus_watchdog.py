@@ -26,6 +26,7 @@ import subprocess
 #import pdb
 
 SAFPLUS_POLL_INTERVAL = 10  # How long to delay for watchdog to check for the presene of SAFplus_AMF. If SAFplus_AMF is not running and safplus_stop file is not present, watchdog will start SAFplus_AMF
+fileLogger=None
 
 def wdSleep(amt):
     """Sleep and refuse to let anything kick me awake"""
@@ -47,6 +48,7 @@ def watchdog_loop():
     safplus.safe_remove(reboot_file)
     safplus.remove_stop_file()
     amfproc = None
+    global fileLogger
 
     while True:
         try:
@@ -60,6 +62,11 @@ def watchdog_loop():
                     logging.info("Stop file not found: Starting AMF from watchdog")
                     safplus.kill_amf()  # when AMF dies, kill all its children to make sure there are no orphaned processes hanging around.  This only kills binaries in the bin directory, rather than all children...
                     amfproc = safplus.cleanup_and_start_ams()
+                    if safplus.reconfigWdLog:
+                        fileLogger.handlers = []
+                        configWatchdogLog()
+                        safplus.reconfigWdLog = False
+
             # Python 3:
 #            try:
 #              Python 3: amfproc.wait(SAFPLUS_POLL_INTERVAL)
@@ -80,9 +87,14 @@ def watchdog_loop():
             print "Exception: %s" % str(e)
             time.sleep(5)
 
+def configWatchdogLog():
+    logging.basicConfig(filename='%s/amf_watchdog.log' % safplus.SAFPLUS_LOG_DIR, format='%(levelname)s %(message)s', level=logging.DEBUG)
+    global fileLogger
+    fileLogger = logging.getLogger()
+
 def main():
     safplus.import_os_adaption_layer()
-    logging.basicConfig(filename='%s/amf_watchdog.log' % safplus.SAFPLUS_LOG_DIR, format='%(levelname)s %(message)s', level=logging.DEBUG)
+    configWatchdogLog()
     watchdog_loop()
 
 if __name__ == '__main__':

@@ -43,6 +43,7 @@ SAF_AMF_START_CMD_LOCAL_SLOT = '-l'        # tag for Slot number in start comman
 SAF_AMF_START_CMD_NODE_NAME  = '-n'        # tag for Node Name in start command
 
 log = logging
+reconfigWdLog=False
 
 def get_sandbox_dir():
     p = os.path.dirname(os.path.realpath(__file__))
@@ -407,8 +408,8 @@ def save_safplus_runtime_files():
 
     def is_core_present():
         res = False
-        loc = os_platform.core_file_dir()
-        core_regex = os_platform.core_file_regex()
+        loc = os_platform.core_file_dir
+        core_regex = os_platform.core_file_regex
 
         if not loc: loc = SAFPLUS_RUN_DIR
 
@@ -538,6 +539,9 @@ def save_safplus_runtime_files():
 
                 try:
                     os.mkdir(src)
+                    if d == 'log':
+                        global reconfigWdLog
+                        reconfigWdLog = True
                 except OSError, e:
                     if e.errno == errno.EEXIST:
                         pass
@@ -589,7 +593,7 @@ def cleanup_and_start_ams():
         log.warning("Exception when generating crash dump: %s" % str(e))
 
     if is_system_controller():
-            start_snmp_daemon()
+        start_snmp_daemon()
 
     run_custom_scripts('start')
     process = start_amf()
