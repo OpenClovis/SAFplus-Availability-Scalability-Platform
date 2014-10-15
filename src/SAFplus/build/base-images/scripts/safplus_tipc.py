@@ -144,8 +144,9 @@ def config_tipc_module():
     node_addr = safplus.get_safplus_node_addr()
     num,link_name = getMultiLink()
     log.info('num of bearer : %d ...' %(num))
-    cmd = '%s -netid=%s -addr=1.1.%s -be=eth:%s' %\
-          (get_tipc_config_cmd(), tipc_netid, node_addr, link_name[0])
+    tipcCfg = os.getenv('CL_TIPC_CFG_PARAMS')
+    if tipcCfg is None: tipcCfg = ""    
+    cmd = '%s -netid=%s -addr=1.1.%s %s -be=eth:%s' % (get_tipc_config_cmd(), tipc_netid, node_addr, tipcCfg, link_name[0])
     log.debug('TIPC command is [%s]' % cmd)
     ret, output, signal, core = system(cmd)
     if ret:
