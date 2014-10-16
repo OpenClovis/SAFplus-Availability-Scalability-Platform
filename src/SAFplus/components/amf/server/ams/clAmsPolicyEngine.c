@@ -5247,7 +5247,8 @@ clAmsPeSUFaultReport(
          */
         if (!foundOtherSU)
           {
-            *recovery = CL_AMS_RECOVERY_INTERNALLY_RECOVERED;
+            *recovery = CL_AMS_RECOVERY_SU_RESTART;
+            *escalation = CL_TRUE;
           }
       }
 
