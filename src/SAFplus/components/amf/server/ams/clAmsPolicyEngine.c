@@ -4763,7 +4763,9 @@ clAmsPeSULockInstantiation(
         {
             AMS_CALL ( clAmsPeSUTerminate(su) );
         }
-        CL_AMS_SET_P_STATE(su, CL_AMS_PRESENCE_STATE_UNINSTANTIATED);
+        //Bug 189: Marked this SU to UNINSTANTIATED in order to instantiable
+        if (su->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATION_FAILED)
+          CL_AMS_SET_P_STATE(su, CL_AMS_PRESENCE_STATE_UNINSTANTIATED);
     }
 
     return CL_OK;
