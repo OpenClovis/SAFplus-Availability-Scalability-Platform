@@ -584,6 +584,7 @@ def start_amf():
 def cleanup_and_start_ams():
 
     log.debug("Cleanup SAFplus")
+    run_custom_scripts('stop')
     cleanup_safplus()                 # remove shared mem
 
     try:

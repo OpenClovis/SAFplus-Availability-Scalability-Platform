@@ -121,7 +121,7 @@ populate_image() {
     mkdir $imagedir/bin
     mkdir $imagedir/lib
     mkdir $imagedir/etc
-    mkdir $imagedir/etc/asp.d
+    mkdir $imagedir/etc/safplus.d
     mkdir $imagedir/etc/init.d
     mkdir $imagedir/modules
 
@@ -207,7 +207,6 @@ populate_image() {
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_console $imagedir/bin
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus $imagedir/etc/init.d
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus.py $imagedir/etc
-    ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/asp_*.py $imagedir/etc
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_*.py $imagedir/etc
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_watchdog.py $imagedir/etc
     ${INSTALL} $exe_flags $CLOVIS_ROOT/SAFplus/build/base-images/scripts/safplus_watchdog_start.py $imagedir/etc

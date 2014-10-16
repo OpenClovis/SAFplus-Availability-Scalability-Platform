@@ -2820,7 +2820,7 @@ ClRcT clCpmCompPreCleanupInvoke(ClCpmComponentT *comp)
         cachedConfigLoc = getenv("ASP_CONFIG");
         if(!cachedConfigLoc)
             cachedConfigLoc = (ClCharT*) "/root/asp/etc";
-        snprintf(script, sizeof(script), "%s/asp.d/%s", cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
+        snprintf(script, sizeof(script), "%s/safplus.d/%s", cachedConfigLoc, ASP_PRECLEANUP_SCRIPT);
         /*
          * Script exists?
          */

@@ -113,6 +113,7 @@ def start_watchdog():
         safplus.fail_and_exit('SAFplus is already running on node [%s], pid [%s]' % (safplus.get_safplus_node_addr(), watchdog_pid))
 
 def stop_watchdog():
+    kill_watchdog() #Don't let safplus_watchdog monitor and spawn safplus_amf as in race condition
     safplus.stop_amf()
  
 def restart_safplus():
