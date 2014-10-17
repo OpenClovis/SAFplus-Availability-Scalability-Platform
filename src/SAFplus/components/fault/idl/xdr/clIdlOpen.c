@@ -29,7 +29,7 @@
 *********************************************************************/
 #include <clCommonErrors.h>
 #include <clOsalApi.h>
-#include <clLogUtilApi.h>
+#include <clDebugApi.h>
 #include <clXdrApi.h>
 /*********************************************************************
  * Description: This function is used for freeing the server side
@@ -42,9 +42,8 @@
 
 ClRcT clIdlFree(void *pData)
 {
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Warning! clIdlFree in file %s "
-                 "uses clHeapFree for freeing memory allocated by server "
-                 "function.\n", __FILE__);
+    /* This is expected behavior, marshalling allocates using clHeapAllocate, so no need for warning */
+    /* clLogWarning(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Warning! clIdlFree in file %s uses clHeapFree for freeing memory allocated by server function.", __FILE__); */
     clHeapFree(pData);
     return CL_OK;    
 }

@@ -83,6 +83,11 @@ material.
             <EnumMember name="CL_MSG_DATA_DEL" />
             <EnumMember name="CL_MSG_DATA_UPD" />
         </Enum>
+        <Enum name="ClMsgMessageSendTypeT" defNeed="false">
+            <EnumMember name="CL_MSG_SEND" value="1"/>
+            <EnumMember name="CL_MSG_REPLY_SEND" value="2"/>
+            <EnumMember name="CL_MSG_SEND_RECV" value="3"/>
+        </Enum>
         <Struct name="SaMsgQueueGroupNotificationBufferT" defNeed="false">
             <DataMember name="numberOfItems" type="ClUint32T"/>
             <DataMember name="notification" type="SaMsgQueueGroupNotificationT"
@@ -234,7 +239,7 @@ material.
                     <Argument ParameterType="CL_IN" name="qDelete" type="ClUint16T"/>
                 </Operation>
                 <Operation name="clMsgMessageReceived">
-                    <Argument ParameterType="CL_IN" name="sendType" type="ClUint32T"/>
+                    <Argument ParameterType="CL_IN" name="sendType" type="ClMsgMessageSendTypeT"/>
                     <Argument ParameterType="CL_IN" name="pDestination" type="SaNameT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="pMessage" type="ClMsgMessageIovecT" pointer="Single"/>
                     <Argument ParameterType="CL_IN" name="sendTime" type="ClInt64T"/>

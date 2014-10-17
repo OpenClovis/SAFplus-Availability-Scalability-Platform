@@ -42,8 +42,8 @@ material.
         <!-- Structure definitions for clEventSubscribe -->
 
         <Struct name="ClEvtUserIdT" defNeed="No">
-          <DataMember name="eoIocPort" type="ClEoIdT"/>
-          <DataMember name="evtHandle" type="ClEventInitHandleT"/>
+          <DataMember name="eoIocPort" type="ClUint64T"/>
+          <DataMember name="evtHandle" type="ClHandleT"/>
           <DataMember name="clientHandle" type="ClHandleT"/>
         </Struct>
 
@@ -52,10 +52,10 @@ material.
           <DataMember name="majorVersion" type="ClUint8T"/>
           <DataMember name="minorVersion" type="ClUint8T"/>
           <DataMember name="reserved" type="ClUint8T"/>
-          <DataMember name="evtChannelHandle" type="ClEventChannelHandleT"/>
-          <DataMember name="subscriberCommPort" type="ClIocPortT"/>
+          <DataMember name="evtChannelHandle" type="ClHandleT"/>
+          <DataMember name="subscriberCommPort" type="ClUint32T"/>
           <DataMember name="userId" type="ClEvtUserIdT"/>
-          <DataMember name="subscriptionId" type="ClEventSubscriptionIdT"/>
+          <DataMember name="subscriptionId" type="ClUint32T"/>
           <DataMember name="pCookie" type="ClUint64T"/>
           <DataMember name="evtChannelName" type="SaNameT"/>
           <DataMember name="packedRbeLen" type="ClUint32T"/>
@@ -82,7 +82,7 @@ material.
           <DataMember name="majorVersion" type="ClUint8T"/>
           <DataMember name="minorVersion" type="ClUint8T"/>
           <DataMember name="reserved" type="ClUint8T"/>
-          <DataMember name="evtChannelHandle" type="ClEventChannelHandleT"/>
+          <DataMember name="evtChannelHandle" type="ClHandleT"/>
           <DataMember name="userId" type="ClEvtUserIdT"/>
           <DataMember name="evtChannelName" type="SaNameT"/>
           <DataMember name="isExternal" type="ClUint8T"/>
@@ -95,11 +95,12 @@ material.
           <DataMember name="majorVersion" type="ClUint8T"/>
           <DataMember name="minorVersion" type="ClUint8T"/>
           <DataMember name="reserved" type="ClUint8T"/>
-          <DataMember name="evtChannelHandle" type="ClEventChannelHandleT"/>
+          <DataMember name="evtChannelHandle" type="ClHandleT"/>
           <DataMember name="userId" type="ClEvtUserIdT"/>
-          <DataMember name="subscriptionId" type="ClEventSubscriptionIdT"/>
+          <DataMember name="subscriptionId" type="ClUint32T"/>
           <DataMember name="evtChannelName" type="SaNameT"/>
           <DataMember name="reqFlag" type="ClUint8T"/>
+          <DataMember name="isExternal" type="ClUint8T"/>
         </Struct>
 
 </IDLSpecs>

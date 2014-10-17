@@ -43,7 +43,7 @@
 ClRcT clIdlFree(void *pData)
 {
     /* This is expected behavior, marshalling allocates using clHeapAllocate, so no need for warning */
-    /* clLogWarning(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Warning! clIdlFree in file %s uses clHeapFree for freeing memory allocated by server function.\n", __FILE__); */
+    /* clLogWarning(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Warning! clIdlFree in file %s uses clHeapFree for freeing memory allocated by server function.", __FILE__); */
     clHeapFree(pData);
     return CL_OK;    
 }

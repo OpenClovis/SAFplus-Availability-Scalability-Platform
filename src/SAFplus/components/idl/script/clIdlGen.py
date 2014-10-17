@@ -265,9 +265,8 @@ freeFileT = Template('''${license}
 
 ClRcT clIdlFree(void *pData)
 {
-    CL_DEBUG_PRINT(CL_DEBUG_WARN,("Warning! clIdlFree in file %s "
-        "uses clHeapFree for freeing memory allocated by server "
-        "function.\\n", __FILE__));
+    /* This is expected behavior, marshalling allocates using clHeapAllocate, so no need for warning */
+    /* clLogWarning(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Warning! clIdlFree in file %s uses clHeapFree for freeing memory allocated by server function.", __FILE__); */
     clHeapFree(pData);
     return CL_OK;    
 }
@@ -3039,7 +3038,7 @@ def create_async_func(func_attr_map):
         func_attr_map['temp1'] = ''
     func_attr_map['rmd_cookie'] = '''
 
-        pCookie = clHeapAllocate(sizeof(ClIdlCookieT));
+        pCookie = (ClIdlCookieT*) clHeapAllocate(sizeof(ClIdlCookieT));
         if (NULL == pCookie)
         {
             return CL_IDL_RC(CL_ERR_NO_MEMORY);
