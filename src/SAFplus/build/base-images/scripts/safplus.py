@@ -35,6 +35,8 @@ SAFPLUS_REBOOT_FILE  = 'safplus_reboot'   #
 SAFPLUS_STOP_FILE    = 'safplus_stop'     # File in created while SAF is gracefully finalizing and indicate watchdog not to start AMF. location is sandbox_dir/var/run
 SAFPLUS_STATUS_FILE  = 'safplus_state'    # File to contain the status of SAFplus in form of int in location sandbox_dir/var/run
                                           # 0 -> running, 1 -> not running, 2 -> booting/shutting down.
+SAFPLUS_CODEBOOT_FILE  = 'safplus_codeboot' # File to indicate start-up of SAFplus_AMF
+
 SystemErrorNoSuchFileOrDir = 127
 SAFPLUS_SHUTDOWN_WAIT_TIMEOUT  = 60
 
@@ -110,6 +112,10 @@ def safe_remove(f):
 def remove_stop_file():
     stopFile = SAFPLUS_RUN_DIR + '/' + SAFPLUS_STOP_FILE
     safe_remove(stopFile)
+
+def remove_codeboot_file():
+    codeBootFile = SAFPLUS_RUN_DIR + '/' + SAFPLUS_CODEBOOT_FILE
+    safe_remove(codeBootFile)
 
 def get_safplus_log_dir(): return SAFPLUS_LOG_DIR
 
@@ -584,8 +590,13 @@ def start_amf():
 def cleanup_and_start_ams():
 
     log.debug("Cleanup SAFplus")
-    run_custom_scripts('stop')
     cleanup_safplus()                 # remove shared mem
+
+    codeBootFile = SAFPLUS_RUN_DIR + '/' + SAFPLUS_CODEBOOT_FILE
+    if os.path.isfile(codeBootFile):
+        remove_codeboot_file()
+    else:
+        run_custom_scripts('stop')
 
     try:
         log.debug("Save Previous Logs ")

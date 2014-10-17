@@ -106,6 +106,9 @@ def start_watchdog():
           safplus_tipc.load_config_tipc_module()
         set_ld_library_paths()
 
+        codeBootFile = safplus.SAFPLUS_RUN_DIR + '/' + safplus.SAFPLUS_CODEBOOT_FILE 
+        safplus.touch(codeBootFile)    # create 'safplus_codeboot' file to indicate start-up of SAFplus_AMF
+
         # setsid <prog> & daemonizes...
         cmd = 'setsid %s/safplus_watchdog.py &' % safplus.SAFPLUS_ETC_DIR
         os.system(cmd)
