@@ -68,10 +68,6 @@ clLogFlusherCookieHandleCreate(ClUint32T       numRecords,
                                ClTimerHandleT  *phTimer, 
                                ClHandleT       *phFlusher);
 
-ClRcT
-clLogFlusherCondSignal(ClLogStreamHeaderT  *pHeader);
-
-
 void *
 clLogFlushIntervalThread(void *pData)
 {
@@ -116,6 +112,7 @@ clLogFlushIntervalThread(void *pData)
             goto exitThread;
         }
         /* timeout happened, do this job again go & sleep */
+        /* GAS CL_LOG_STREAM_EXIT != pStreamData->pStreamHeader->streamStatus, otherwise the flusher thread is not woken up to be able to quit... */
         if( (CL_LOG_STREAM_ACTIVE == pStreamData->pStreamHeader->streamStatus) && 
             (0 < abs(pStreamData->pStreamHeader->recordIdx -
                      pStreamData->pStreamHeader->startAck)) )
@@ -253,10 +250,10 @@ clLogFlusherStart(void  *pData)
     clLogDebug("LOG", "FLS", "timeout: %u sec %u millisec", timeout.tsSec, timeout.tsMilliSec);
 
     rc = clLogServerStreamMutexLockFlusher(pStreamData);
-    if( CL_OK != rc )
+    if( CL_OK != rc )  // GAS: Should never happen, so don't set streamStatus?
     {
         clLogError("LOG", "FLS", "CL_LOG_LOCK(): rc[0x %x]", rc);
-        pHeader->streamStatus = CL_LOG_STREAM_THREAD_EXIT;
+        //pHeader->streamStatus = CL_LOG_STREAM_THREAD_EXIT;
         return NULL;
     }
     if ((CL_LOG_STREAM_HEADER_STRUCT_ID != pHeader->struct_id) || (CL_LOG_STREAM_HEADER_UPDATE_COMPLETE != pHeader->update_status))
@@ -271,8 +268,7 @@ clLogFlusherStart(void  *pData)
         rc = clLogFlushIntervalThreadCreate(pStreamData, &taskId);
         if( CL_OK != rc )
         {
-            clLogWarning("SVR", "FLU", "Flusher interval thread create failed"
-                    "flushFrequency function will still work..continuing...");
+            clLogWarning("SVR", "FLU", "Flusher interval thread create failed flushFrequency function will still work..continuing...");
             rc = CL_OK;
             taskId = CL_HANDLE_INVALID_VALUE;
         }
@@ -280,8 +276,8 @@ clLogFlusherStart(void  *pData)
 
     while( gClLogSvrExiting == CL_FALSE )
     {
-        CL_LOG_DEBUG_TRACE(("startIdx in server: %d  startAck  %d \n",
-                    pHeader->recordIdx, pHeader->startAck));
+        CL_LOG_DEBUG_TRACE(("startIdx in server: %d  startAck  %d \n",pHeader->recordIdx, pHeader->startAck));
+        ClBoolT flusherError = CL_FALSE;
         do
         {
             CL_LOG_DEBUG_TRACE(("recordIdx: %u startAck: %u  cnt %d",
@@ -289,44 +285,45 @@ clLogFlusherStart(void  *pData)
                         pStreamData->ackersCount +
                         pStreamData->nonAckersCount));
 #ifndef POSIX_BUILD
-            rc = clLogServerStreamCondWait(pStreamData,
-                                           &pHeader->flushCond,
-                                           timeout);
+            rc = clLogServerStreamCondWait(pStreamData,&pHeader->flushCond,timeout);
 #else
-            rc = clLogServerStreamCondWait(pStreamData,
-                                           NULL,
-                                           timeout);
+            rc = clLogServerStreamCondWait(pStreamData,NULL, timeout);
 #endif
-            if( gClLogSvrExiting == CL_TRUE 
-                    || ( (CL_OK != CL_GET_ERROR_CODE(rc)) && 
-                        (CL_ERR_TIMEOUT != CL_GET_ERROR_CODE(rc))) )
-            { /* Log service is exiting or Stream is closed so come out of polling loop */
-                pHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_INPROGRESS;
-                pHeader->streamStatus = CL_LOG_STREAM_CLOSE;
+            if (CL_OK != CL_GET_ERROR_CODE(rc))
+            {
+                if (CL_ERR_TIMEOUT == CL_GET_ERROR_CODE(rc))
+                {
+                    /* Expected */
+                }
+                else    
+                { /* Log service is exiting or Stream is closed so come out of polling loop */
+                    flusherError = CL_TRUE;
+                }
             }
-        }while( (CL_LOG_STREAM_CLOSE != pHeader->streamStatus) &&
-                (0 == abs(pHeader->recordIdx - pHeader->startAck)));
-
-        if( gClLogSvrExiting || CL_LOG_STREAM_CLOSE == pHeader->streamStatus )
+        
+        } while((flusherError == CL_FALSE)&&(gClLogSvrExiting == CL_FALSE) && ((CL_LOG_STREAM_THREAD_EXIT != pHeader->streamStatus) || (CL_LOG_STREAM_CLOSE != pHeader->streamStatus)) && (0 == abs(pHeader->recordIdx - pHeader->startAck)));
+ 
+        if( CL_LOG_STREAM_CLOSE == pHeader->streamStatus )
         {
-            clLogInfo("SVR", "FLU", "Stream status: CLOSE...Exiting flusher [%lu] "
-                    " [%lu]", (unsigned long)pStreamData->flusherId, (long unsigned int)pthread_self());
+            clLogInfo("SVR", "FLU", "Stream status: CLOSE...Exiting flusher [%lu] [%lu]", (unsigned long)pStreamData->flusherId, (long unsigned int)pthread_self());
             pHeader->streamStatus = CL_LOG_STREAM_THREAD_EXIT;
             pHeader->update_status = CL_LOG_STREAM_HEADER_UPDATE_COMPLETE;
-            goto exitFlusher;
+            break;
         }
-        rc = clLogFlusherRecordsFlush(pStreamData);
-        if( CL_OK != rc )
+        else
         {
-            if(pHeader->streamStatus == CL_LOG_STREAM_CLOSE)
+            rc = clLogFlusherRecordsFlush(pStreamData);
+            if( CL_OK != rc )
             {
-                break;
+                if(pHeader->streamStatus == CL_LOG_STREAM_CLOSE)
+                {
+                    break;
+                }
             }
         }    
 
     }
-    pHeader->streamStatus = CL_LOG_STREAM_THREAD_EXIT;
-exitFlusher:
+
 
     if( CL_HANDLE_INVALID_VALUE != taskId )
     {
@@ -336,52 +333,17 @@ exitFlusher:
         clLogFlushIntervalThreadJoin(pStreamData, taskId);
         taskId = CL_HANDLE_INVALID_VALUE;
     }
-    clLogInfo("SVR", "FLU", "Flusher for stream [%.*s] is exiting..Id [%llu]", 
-            pStreamData->shmName.length, pStreamData->shmName.pValue,
-            pStreamData->flusherId);
+    clLogInfo("SVR", "FLU", "Flusher for stream [%.*s] is exiting..Id [%llu]", pStreamData->shmName.length, pStreamData->shmName.pValue, pStreamData->flusherId);
     rc = clLogServerStreamMutexUnlock(pStreamData);
     if( CL_OK != rc )
     {
-        clLogError("SVR", "FLU", "Faild to unlock the stream");
+        clLogError("SVR", "FLU", "Failed to unlock the stream");
     }
 
     CL_LOG_DEBUG_TRACE(("Exit"));
     return NULL;
 }    
 
-ClRcT
-clLogFlusherCondSignal(ClLogStreamHeaderT  *pHeader)
-{
-    ClRcT  rc = CL_OK;
-
-    CL_LOG_DEBUG_TRACE(("Enter"));
-
-    rc = clOsalMutexLock_L(&pHeader->lock_for_join);
-    if( CL_OK != rc )
-    {
-        clLogError("LOG", "FLS", "clOsalMutexLock_L(): rc[0x %x]", rc);
-        return rc;
-    }    
-
-    pHeader->streamStatus = CL_LOG_STREAM_THREAD_EXIT;
-    rc = clOsalCondSignal_L(&pHeader->cond_for_join);
-    if( CL_OK != rc )
-    {
-        clLogError("LOG", "FLS", "clOsalMutexLock_L(): rc[0x %x]", rc);
-        CL_LOG_CLEANUP(clOsalMutexUnlock_L(&pHeader->lock_for_join), CL_OK);
-        return rc;
-    }    
-
-    rc = clOsalMutexUnlock_L(&pHeader->lock_for_join);
-    if( CL_OK != rc )
-    {
-        clLogError("LOG", "FLS", "clOsalMutexUnlock_L(): rc[0x %x]", rc);
-        return rc;
-    }
-
-    CL_LOG_DEBUG_TRACE(("Exit"));
-    return rc;
-}    
 
 /*
  * Called with the log server flusher stream lock. held
