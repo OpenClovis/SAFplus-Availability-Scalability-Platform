@@ -722,7 +722,7 @@ ClRcT clNodeCacheCapabilitySet(ClIocNodeAddressT nodeAddress, ClUint32T capabili
     return CL_OK;
 }
 
-ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
+ClRcT clNodeCacheLeaderIocSend(ClIocNodeAddressT currentLeader, ClIocAddressT *dstAddr)
 {
     ClRcT rc = CL_OK;
     ClIocSendOptionT sendOption = {CL_IOC_HIGH_PRIORITY,0,0,CL_IOC_PERSISTENT_MSG,200 };
@@ -765,10 +765,27 @@ ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
         return rc;
     }
 
-    rc = clIocSend(eoObj->commObj, message, CL_IOC_PORT_NOTIFICATION_PROTO, (ClIocAddressT *) &compAddr, &sendOption);
+    rc = clIocSend(eoObj->commObj, message, CL_IOC_PORT_NOTIFICATION_PROTO, dstAddr, &sendOption);
 
     clBufferDelete(&message);
+
     return rc;
+
+}
+
+ClRcT clNodeCacheLeaderSend(ClIocNodeAddressT currentLeader)
+{
+    ClIocPhysicalAddressT compAddr = { .nodeAddress = CL_IOC_BROADCAST_ADDRESS, .portId = CL_IOC_CPM_PORT };
+    return clNodeCacheLeaderIocSend(currentLeader, (ClIocAddressT *) &compAddr);
+}
+
+/*
+ * Send to local GMS to force do elect
+ */
+ClRcT clNodeCacheLeaderSendLocal(ClIocNodeAddressT currentLeader)
+{
+    ClIocPhysicalAddressT compAddr = { .nodeAddress = clIocLocalAddressGet(), .portId = CL_IOC_GMS_PORT };
+    return clNodeCacheLeaderIocSend(currentLeader, (ClIocAddressT *)  &compAddr);
 }
 
 ClRcT clNodeCacheLeaderSet(ClIocNodeAddressT leader)
@@ -818,8 +835,8 @@ ClRcT clNodeCacheLeaderUpdate(ClIocNodeAddressT currentLeader)
 #else   /* fast */
     
     int cl = CL_NODE_CACHE_HEADER_BASE(gpClNodeCache)->currentLeader;
-    if (cl != (int )currentLeader) /* we are about to set this one as leader so skip clearing it if its already set */
-    {    
+    if (cl != currentLeader) /* we are about to set this one as leader so skip clearing it if its already set */
+    {
         if ((cl > 0)&&(cl<CL_IOC_MAX_NODES))
         {
             CL_NODE_CACHE_ENTRY_BASE(gpClNodeCache)[cl].capability &= ~__LEADER_CAPABILITY_MASK; 

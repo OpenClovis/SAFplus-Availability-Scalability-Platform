@@ -3659,19 +3659,7 @@ static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
         len = length - sizeof(notification);
         if (len == sizeof(ClUint32T))
         {
-#if 0
-            ClUint32T currentLeader = 0;
-            ClRcT rc = clBufferHeaderTrim(eoRecvMsg, sizeof(notification));
-            if (rc == CL_OK)
-            {
-                clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&currentLeader, &len);
-                currentLeader = ntohl(currentLeader);
-                clLogDebug("GMS", "LEA", "Update current leader [%d]", currentLeader);
-                clNodeCacheLeaderUpdate(currentLeader);
-            }
-#endif
             ClUint32T reportedLeader = 0;
-            len = sizeof(ClUint32T);
             ClIocNodeAddressT currentLeader;
             clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&reportedLeader, &len);
             reportedLeader = ntohl(reportedLeader);
@@ -3679,32 +3667,34 @@ static ClRcT clCpmIocNotification(ClEoExecutionObjT *pThis,
             {
                 if (currentLeader == reportedLeader)
                 {
-                    clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].  Consistent with this node.", currentLeader,
+                    clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d]. Consistent with this node.", notification.nodeAddress.iocPhyAddress.nodeAddress,
                                     reportedLeader);
                 }
                 else
                 {
-                    clLogAlert("NTF", "LEA", "Split brain.  Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]",
+                    clLogAlert("NTF", "LEA", "Split brain. Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]",
                                     notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader, currentLeader);
-                    clNodeCacheLeaderUpdate(reportedLeader);
 
                     /* Only update leaderID if msg come from SC's leader */
-                    if (clCpmIsSC() && (reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress))
+                    if (reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress)
                     {
-                        /* Gas: take new leader and try register level 3 */
-                        clNodeCacheLeaderSend(reportedLeader);
-                        ClIocAddressT allNodeReps;
+                        clNodeCacheLeaderUpdate(reportedLeader);
+
+                        // Trigger GMS to do elect on this update
+                        clNodeCacheLeaderSendLocal(reportedLeader);
+                    }
+                    // I am the leader
+                    else if (gpClCpm->activeMasterNodeId == gpClCpm->pCpmLocalInfo->nodeId)
+                    {
+                        /* Notify all nodes that I am the leader. It is necessary to do this so that external apps/nodes (with no AMF or GMS)
+                         * receive the new leader notification
+                         */
+                        clNodeCacheLeaderSend(gpClCpm->pCpmLocalInfo->nodeId);
+
                         allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
                         allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
-                        static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
-                        ClUint32T myCapability = 0;
-                        ClIocNotificationT notification;
-                        notification.id = (ClIocNotificationIdT) htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
-                        notification.nodeVersion = htonl(nodeVersion);
-                        notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
-                        notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
-                        notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);  // htonl(1);
-                        clIocNotificationPacketSend(pThis->commObj, &notification, &allNodeReps, CL_FALSE, NULL );
+                        ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, gpClCpm->pCpmLocalInfo->nodeId, CL_IOC_BROADCAST_ADDRESS);
+                        clIocNotificationNodeStatusSend(pThis->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, gpClCpm->pCpmLocalInfo->nodeId, (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &notification.nodeAddress.iocPhyAddress, NULL );
                     }
                 }
             }

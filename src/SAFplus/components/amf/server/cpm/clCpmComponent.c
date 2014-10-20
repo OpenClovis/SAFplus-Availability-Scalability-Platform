@@ -153,9 +153,6 @@ static ClRcT cpmTimerCallback(void *arg)
         {
             if (comp->compPresenceState == CL_AMS_PRESENCE_STATE_TERMINATING)
             {
-                clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_ERROR, NULL,
-                           CL_CPM_LOG_2_LCM_COMP_OPER_ERR,
-                           comp->compConfig->compName, "terminated");
                 clLogError(CPM_LOG_AREA_CPM,CL_LOG_CONTEXT_UNSPECIFIED,
                            "Component %s did not terminate within the specified limit\n",
                            comp->compConfig->compName);

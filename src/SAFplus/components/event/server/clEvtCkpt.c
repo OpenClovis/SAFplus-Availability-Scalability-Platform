@@ -4365,8 +4365,6 @@ clEventChannelOpenRecover(ClBoolT switchover)
             {
                 rc = CL_OK;
             }
-        	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionIterationNext(): rc[0x %x]",
-                                rc);
             break;
         }
         /* 
@@ -4424,11 +4422,8 @@ clEventChannelSubRecover(ClBoolT switchover)
                 ||
                 CL_CKPT_ERR_NO_SECTIONS == CL_GET_ERROR_CODE(rc))
             {
-            	
                 rc = CL_OK;
             }
-        	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionIterationNext(): rc[0x %x]",
-                                rc);
             break;
         }
         /* 
@@ -4469,11 +4464,8 @@ clEventUserInfoRecover(ClBoolT switchover)
                 ||
                 CL_CKPT_ERR_NO_SECTIONS == CL_GET_ERROR_CODE(rc))
             {
-
                 rc = CL_OK;
             }
-        	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionIterationNext(): rc[0x %x]",
-                                rc);
             break;
         }
         /* 
@@ -4568,10 +4560,8 @@ clEventCleanAllChannel(ClIocNodeAddressT  nodeLeave)
                 ||
                 CL_CKPT_ERR_NO_SECTIONS == CL_GET_ERROR_CODE(rc))
             {
-            	
                 rc = CL_OK;
             }
-            clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionIterationNext(): rc[0x %x]",rc);
             break;
         }
         count++;

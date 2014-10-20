@@ -270,18 +270,20 @@ clLogGmsInit(void)
     ClGmsClusterNotificationBufferT  notBuffer  = {0};
     ClVersionT                       version    = {'B', 0x1, 0x1};
     ClUint32T                        numRetries = 0;
+    ClUint32T                        maxRetries = 30;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
     do
-    {
+      {
         rc = clGmsInitialize(&hGms, &logGmsCallbacks, &version);
-        if( CL_OK != rc )
-        {
-            usleep(10000);
-        }
+        if ( CL_OK != rc)
+          {
+            usleep(100000);
+          }
         numRetries++;
-    }while((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && (numRetries < CL_LOG_MAX_RETRIES));
+      }
+    while ((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && (numRetries < maxRetries));
 
     if( rc != CL_OK )
     {
@@ -295,13 +297,13 @@ clLogGmsInit(void)
         rc = clGmsClusterTrack( hGms, CL_GMS_TRACK_CHANGES | CL_GMS_TRACK_CURRENT, &notBuffer);
         if( CL_OK != rc )
         {
-            usleep(100000);
+            sleep(1);
         }
-        
+
         numRetries++;
-    } while ((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && (numRetries < CL_LOG_MAX_RETRIES*10));    
+    } while ((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && (numRetries < maxRetries));
     CL_ASSERT(rc == CL_OK);
-    
+
     rc = clLogAddrUpdate(notBuffer.leader, notBuffer.deputy);
     if (CL_OK != rc)
     {

@@ -2052,7 +2052,7 @@ ClRcT VDECL (cl_gms_cluster_track_callback_rmd) (
     // response contents are already heap allocated by unmarhall function
 
     rc = clJobQueuePush (&gEoJobQueues[CL_IOC_LOW_PRIORITY], (ClCallbackT) clGmsClusterTrackCallbackHandler, res);
-    clLogInfo(CLM,NA,"clJobQueuePush rc [0x%x]\n",rc);
+    //clLogInfo(CLM,NA,"clJobQueuePush rc [0x%x]\n",rc);
 
     return rc;
     #endif

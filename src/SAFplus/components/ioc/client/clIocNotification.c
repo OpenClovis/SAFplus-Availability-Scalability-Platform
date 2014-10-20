@@ -847,6 +847,25 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
     return rc;
 }
 
+/*
+ * Inform to all nodes about node leaving
+ */
+ClRcT clIocNotificationNodeLeave(ClIocCommPortHandleT commPort, ClIocNodeAddressT nodeAddr)
+{
+    ClIocAddressT allNodeReps;
+    allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+    static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
+    ClUint32T myCapability = 0;
+    ClIocNotificationT notification;
+    notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
+    notification.nodeVersion = htonl(nodeVersion);
+    notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(nodeAddr);
+    notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
+    notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);
+    return clIocNotificationPacketSend(commPort, &notification, &allNodeReps, CL_FALSE, NULL);
+}
+
 ClRcT clIocNotificationInitialize(void)
 {
     ClRcT rc = CL_OK;

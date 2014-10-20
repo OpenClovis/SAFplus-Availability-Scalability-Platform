@@ -55,12 +55,15 @@ def watchdog_loop():
             #pid = safplus.get_amf_pid()
             #if pid == 0:
             if not amfproc:
-                if os.path.isfile(stop_file):   # Kill watchdog if stop file exists        
+                if os.path.isfile(stop_file):   # Kill watchdog if stop file exists
                     logging.info("Stop file exists: SAFplus is stopping")
                     return
                 else:                           # Restart AMF if stop file not found
                     logging.info("Stop file not found: Starting AMF from watchdog")
                     safplus.kill_amf()  # when AMF dies, kill all its children to make sure there are no orphaned processes hanging around.  This only kills binaries in the bin directory, rather than all children...
+                    #This fixes the rapid restart using kill -9 (amf) and UDP keepalives
+                    #Restart delay in the watchdog to make sure we got the keepalive timeout.
+                    wdSleep(SAFPLUS_POLL_INTERVAL/2)
                     amfproc = safplus.cleanup_and_start_ams()
                     if safplus.reconfigWdLog:
                         fileLogger.handlers = []

@@ -109,7 +109,7 @@ static ClVersionDatabaseT clCpmServerToServerVersionDb =
 };
 
 typedef ClRcT (*funcArray[]) (void);
-
+extern ClBoolT gCpmShuttingDown;
 
 ClRcT CL_CPM_CALL_RMD_SYNC(ClIocNodeAddressT destAddr,
                            ClIocPortT eoPort,
@@ -533,7 +533,7 @@ ClRcT VDECL(cpmCpmLocalRegister)(ClEoDataT data,
 
     if(nodeAddress != clIocLocalAddressGet())
     {
-        rc = clAmsCheckNodeJoinState((const ClCharT*)cpmLocalInfo.nodeName, CL_TRUE);
+        rc = clAmsCheckNodeJoinState((const ClCharT*)cpmLocalInfo.nodeName);
         if(rc != CL_OK)
             return rc;
     }
@@ -973,6 +973,7 @@ ClRcT VDECL(cpmProcNodeShutDownReq)(ClEoDataT data,
             }
             return rc;
         }
+        gCpmShuttingDown = CL_TRUE;
         startShutdownTimer(iocAddress);
     }
 

@@ -43,9 +43,6 @@
 
 ClRcT clIdlFree(void *pData)
 {
-    clLogWarning(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Warning! clIdlFree in file %s "
-        "uses clHeapFree for freeing memory allocated by server "
-        "function.\n", __FILE__);
     clHeapFree(pData);
     return CL_OK;    
 }

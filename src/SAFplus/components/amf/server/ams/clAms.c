@@ -73,6 +73,11 @@ ClBoolT gAmsDBRead = CL_FALSE;
 ClOsalTaskIdT gClusterStateVerifierTask;
 ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs = NULL;
 
+/* When system controller node is going down, "gCpmShuttingDown" variable stops payloads coming up and it is added
+ * instead of using already existed variable ("gpClCpm->cpmShutDown") in order to prevent reestablished.
+ */
+ClBoolT gCpmShuttingDown =  CL_FALSE;
+
 /* This function call table is never changes so could be removed and simplified */
 ClCpmCpmToAmsCallT gCpmToAmsCallbackFuncs = {
     _clAmsSACSIHAStateGet,
@@ -323,77 +328,68 @@ static void *clAmsClusterStateVerifier(void *cookie)
         masterAddress=CL_IOC_MAX_NODES;
         clCpmMasterAddressGet(&masterAddress);
         if (localAddress == masterAddress)
-        {            
-            for(i=1; (i< CL_IOC_MAX_NODES) && gpClCpm->polling; i++)
-            {
+          {
+            for (i = 1; ((i < CL_IOC_MAX_NODES) && (!gCpmShuttingDown)); i++)
+              {
+                if (i == localAddress)
+                  continue;
+
                 ClNodeCacheMemberT ncInfo;
-                rc = clNodeCacheMemberGet(i,&ncInfo);
-                if (rc == CL_OK)  /* Node exists in TIPC */
-                {
+                rc = clNodeCacheMemberGet(i, &ncInfo);
+                if (rc == CL_OK) /* Node exists in TIPC */
+                  {
                     /* Check if AMF database match with NodeCache data */
                     if (!clAmsHasNodeJoined(i))
-                    {
+                      {
                         /* It takes some time for a node to come up after TIPC registers, so don't kill the node until it has failed multiple times */
                         if (checkFailed[i] >= 2)
-                        {
-                            clLogAlert("AMS", "INI","Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF. Resetting it",ncInfo.name, i);
-                            /* clCpmNodeRestart((ClIocNodeAddressT) i, CL_TRUE); */ /* Restart payload node */
-                            /* gpClCpm->cpmToAmsCallback->nodeRestart(&nodeName, graceful);
-                               _clAmsSANodeRestart */
-                            // clGmsClusterLeave(gpClCpm->cpmGmsHdl,CL_TIME_FOREVER,i);
-                            //clLogDebug("IOC", "NTF", "Spoofing IOC node leave notification for node [%d] to force it to leave the cluster.", i);
-                            ClIocAddressT allNodeReps;                           
+                          {
+                            clLogAlert("AMS", "INI", "Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF. Resetting it", ncInfo.name, i);
+                            ClIocAddressT allNodeReps;
                             allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
                             allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
-                            //ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, i, CL_IOC_BROADCAST_ADDRESS);
-#if 0                            
-                            ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_BROADCAST_ADDRESS_TYPE, CL_IOC_BROADCAST_ADDRESS, CL_IOC_BROADCAST_ADDRESS);
-                            
-                            clIocNotificationNodeStatusSend(gpClCpm->cpmEoObj->commObj,CL_IOC_NODE_LEAVE_NOTIFICATION,i,(ClIocAddressT*)&allLocalComps,(ClIocAddressT*)&allNodeReps, NULL);
-#endif
                             static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
                             ClUint32T myCapability = 0;
                             ClIocNotificationT notification;
-                            notification.id = (ClIocNotificationIdT) htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
+                            notification.id = htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
                             notification.nodeVersion = htonl(nodeVersion);
                             notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(i);
                             notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
-                            notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);  // htonl(1);
+                            notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION); // htonl(1);
                             rc = clIocNotificationPacketSend(gpClCpm->cpmEoObj->commObj, &notification, &allNodeReps, CL_FALSE, NULL);
-
                             checkFailed[i] = 0;
                             continue;
-                        }
-                    
-                        if (checkFailed[i] == 1) clLogWarning("AMS", "INI","Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF",ncInfo.name, i);
-                        checkFailed[i]++;                    
-                    }
+                          }
+                        if (checkFailed[i] == 1)
+                          clLogWarning("AMS", "INI", "Node [%s] in slot [%d] discovered by messaging layer but has not registered with AMF", ncInfo.name, i);
+                        checkFailed[i]++;
+                      }
                     else
-                    {
+                      {
                         /* Match, continue to check other nodes */
                         checkFailed[i] = 0;
-                    }
-                }
-            }
-        }
-        
+                      }
+                  }
+              }
+          }
+
         // testing the shutting down variable and waiting for the cond need to happen atomically.
         clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
-        if (gpClCpm->polling) clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
+        if (!gCpmShuttingDown) clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
         clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
         if (!gpClCpm)  /* Process is down! (should never happen b/c we are holding a reference) */
         {
             return NULL;
         }
-        else       
-        {   
+        else
+        {
             ClEoExecutionObjT *cpmEoObj = gpClCpm->cpmEoObj;
-            if (!cpmEoObj) return NULL;
-        
+            if (!cpmEoObj) return NULL; // should never happen... but if it does do not assert b/c we are shutting down just quit thread.
+
             if (( cpmEoObj->state == CL_EO_STATE_FAILED) || (cpmEoObj->state == CL_EO_STATE_KILL) || (cpmEoObj->state == CL_EO_STATE_STOP) || !gpClCpm->polling)
             {
                 clEoRefDec(cpmEoObj);
-		        return NULL;
+                return NULL;
             }
         }
         
@@ -611,6 +607,7 @@ clAmsFinalize(
     // Setting the flags and sending the broadcast must happen atomically so that it either happens when
     // the cluster state verifier is waiting for the cond, or outside of the test + wait entirely.
     clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
+    gCpmShuttingDown = CL_TRUE;
     gpClCpm->polling = CL_FALSE;                       // kick the verifier out of its loop
     clOsalCondBroadcast(&gpClCpm->cpmEoObj->eoCond);  // Wake up the cluster state verifier (and anybody else that needs to be quitting)
     clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
@@ -787,7 +784,7 @@ clAmsFaultQueueDestroy(void)
     return CL_OK;
 }
 
-ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
+ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName)
 {
     ClRcT rc = CL_OK;
     ClAmsEntityRefT entityRef;
@@ -795,8 +792,8 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
     memset(&entityRef,0,sizeof(ClAmsEntityRefT));
     if(!pNodeName) return rc;
     clOsalMutexLock(gAms.mutex);
-    
-    if(!gAms.isEnabled || gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE)
+
+    if ((!gAms.isEnabled) || (gAms.serviceState == CL_AMS_SERVICE_STATE_UNAVAILABLE) || (gCpmShuttingDown))
     {
         clLogNotice("NODE", "JOIN", "Returning try again for node join as AMF is not ready");
         rc = CL_AMS_RC(CL_ERR_TRY_AGAIN);
@@ -854,16 +851,16 @@ ClRcT clAmsCheckNodeJoinState(const ClCharT *pNodeName, ClBoolT nodeRegister)
             goto out_unlock;
         }
     }
-    /*
-     * We let the caller: CPM dictate the terms here. as the node
-     * could be a dynamically added one not yet there in ams.
-     */
-    rc = CL_OK;
+    else
+      {
+        /*
+         * We let the caller: CPM dictate the terms here. as the node
+         * could be a dynamically added one not yet there in ams.
+         */
+        rc = CL_OK;
+      }
 
-    if(nodeRegister)
-    {
-        gAms.mode |= CL_AMS_INSTANTIATE_MODE_CKPT_ALL | CL_AMS_INSTANTIATE_MODE_NODE_JOIN;
-    }
+    gAms.mode |= CL_AMS_INSTANTIATE_MODE_CKPT_ALL | CL_AMS_INSTANTIATE_MODE_NODE_JOIN;
 
     out_unlock:
     clOsalMutexUnlock(gAms.mutex);

@@ -121,7 +121,7 @@ pid = fork();
 
 if(pid < 0)
 {
-    clLogInfo(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess Create: FAILED");
+    //clLogInfo(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess Create: FAILED");
     retCode = CL_OSAL_RC(CL_OSAL_ERR_PROCESS_CREATE);
     CL_FUNC_EXIT();
     return(retCode);
@@ -151,7 +151,7 @@ if(0 == pid)
         /* Set the process group id to its own pid */
         setpgid (pid, 0);
     }
-    clLogInfo(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess Create: Function invoked");
+    //clLogInfo(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"\nProcess Create: Function invoked");
     fpFunction(processArg);
     exit(0);
 }

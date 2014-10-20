@@ -795,6 +795,8 @@ ClRcT clIocCompStatusEnable(ClIocPhysicalAddressT compAddr);
                                                            ClPtrT syncArg), ClPtrT syncArg,
                                       ClCharT *xportType);
 
+    ClRcT clIocNotificationNodeLeave(ClIocCommPortHandleT commPort, ClIocNodeAddressT nodeAddr);
+
     ClRcT clIocNotificationInitialize(void);
     
     ClRcT clIocNotificationFinalize(void);

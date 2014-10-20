@@ -247,7 +247,8 @@ cosPosixShmOpen(const ClCharT *name, ClInt32T oflag, ClUint32T mode, ClFdT *fd)
 
         if (EEXIST == err)
         {
-            clLogInfo(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Shared memory object [%s] already exists. system errorcode [%d]", name, err);
+            /* A existent shared memory object is a "normal" error */
+            //clLogWarning(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED,"Shared memory object [%s] already exists. system errorcode [%d]", name, err);
             retCode = CL_ERR_ALREADY_EXIST;
             goto err;
         }

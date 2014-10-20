@@ -128,6 +128,7 @@ static ClRcT timerCallback( void *arg )
 
     reElect = CL_FALSE; /* reset re-election trigger*/
     timerRestarted = CL_FALSE;
+    bootTimeElectionDone = CL_TRUE;
 
     rc = _clGmsEngineLeaderElect (0x0,
                                   NULL , 
@@ -156,24 +157,23 @@ static ClRcT timerCallback( void *arg )
             }
             view->leadershipChanged = leadershipChanged;
             clEoMyEoObjectSet ( gmsGlobalInfo.gmsEoObject );
-            if (_clGmsTrackNotify ( 0x0 ) != CL_OK)
-            {
-                clLog(ERROR,LEA,NA, "_clGmsTrackNotify failed in leader election timer callback");
-            }
         }
     }
 
-    bootTimeElectionDone = CL_TRUE;
-
+    // Always notify if boot timer timed out because we might have missed notifications earlier
+    if ((rc = _clGmsTrackNotify ( 0x0 )) != CL_OK)
+    {
+        clLog(ERROR,LEA,NA, "_clGmsTrackNotify failed in leader election timer callback error [0x%x:%s]", rc, clErrorToString(rc));
+    }
+    
     // ready to Serve only to be set when there is Synch done 
     //readyToServeGroups = CL_TRUE;
 
     // if there is no leader in the group or there is only 1 node in the cluster group, set to true 
-    clLog(INFO,LEA,NA, "leader [%d] & noOfViewMemebers [%d] is found!", view->leader, view->noOfViewMembers);
+    clLog(INFO,LEA,NA, "leader is [%d] & noOfViewMembers [%d] is found!", view->leader, view->noOfViewMembers);
     if (view->leader || view->noOfViewMembers == 1)
     {
-    	clLog(INFO,LEA,NA,
-              "There is only leader in the default group; hence setting readyToServeGroups as True");
+        clLog(INFO,LEA,NA, "There is only leader in the default group; hence setting readyToServeGroups as True");
         readyToServeGroups = CL_TRUE;
     }
 
@@ -222,7 +222,7 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused,
                     pAddress->iocPhyAddress.nodeAddress, pAddress->iocPhyAddress.portId);
         rc = _clGmsEngineClusterLeaveExtended(0, pAddress->iocPhyAddress.nodeAddress, CL_TRUE);
     }
-    else
+    else if (eventId != CL_IOC_COMP_DEATH_NOTIFICATION)
     {
 #if 0
         if(pAddress->iocPhyAddress.portId != CL_IOC_CPM_PORT)
@@ -238,82 +238,48 @@ static void gmsNotificationCallback(ClIocNotificationIdT eventId, ClPtrT unused,
     }
 }
 
-#if 0
-ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,ClUint8T priority,ClUint8T protoType,ClUint32T length,ClIocPhysicalAddressT srcAddr)
+ClRcT clGmsIocNotification(ClEoExecutionObjT *pThis, ClBufferHandleT eoRecvMsg,ClUint8T priority,ClUint8T protoType,ClUint32T length, ClIocPhysicalAddressT srcAddr)
 {
-    ClIocNotificationT notification;
+    ClIocNotificationT notification = { 0 };
     ClUint32T len = sizeof(notification);
 
-    clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&notification, &len);
+    clBufferNBytesRead(eoRecvMsg, (ClUint8T*) &notification, &len);
 
-    notification.id = (ClIocNotificationIdT) ntohl(notification.id);
+    notification.id = ntohl(notification.id);
     notification.nodeAddress.iocPhyAddress.nodeAddress = ntohl(notification.nodeAddress.iocPhyAddress.nodeAddress);
     notification.nodeAddress.iocPhyAddress.portId = ntohl(notification.nodeAddress.iocPhyAddress.portId);
 
     gmsNotificationCallback(notification.id, 0, &notification.nodeAddress);
 
-    if ((notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION) && notification.nodeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
-    {
-        clLogDebug("NTF", "LEA", "Node [%d] arrival msg len [%u] notif len [%lu]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,(unsigned long) sizeof(notification));
+    clLogDebug("NTF", "LEA", "Node [0x%x] arrival msg len [%u] notif len [%lu]", notification.nodeAddress.iocPhyAddress.nodeAddress,length,(unsigned long) sizeof(notification));
 
-        if (length-sizeof(notification) >= sizeof(ClUint32T))  /* leader status is appended onto the end of the message */
+    if (notification.id == CL_IOC_NODE_ARRIVAL_NOTIFICATION)
+    {
+        len = length - sizeof(notification);
+        if (len == sizeof(ClUint32T)) /* leader status is appended onto the end of the message */
         {
             ClUint32T reportedLeader = 0;
             len = sizeof(ClUint32T);
-            if (1) // rc == CL_OK)
-            {
-                ClIocNodeAddressT currentLeader;
-                clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&reportedLeader, &len);
-                reportedLeader = ntohl(reportedLeader);
-                if (clNodeCacheLeaderGet(&currentLeader)==CL_OK)
-                {
-                    if (currentLeader == reportedLeader)
-                    {
-                        clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].  Consistent with this node.", currentLeader, reportedLeader);
-                    }
-                    else
-                    {
-                        clLogAlert("NTF", "LEA", "Split brain.  Node [%d] reports leader as [%d]. Inconsistent with this node's leader [%d]",
-                                        notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader, currentLeader);
+            clBufferNBytesRead(eoRecvMsg, (ClUint8T*)&reportedLeader, &len);
+            reportedLeader = ntohl(reportedLeader);
 
-                        /* Only update leaderID if msg come from SC's leader */
-                        if (reportedLeader == notification.nodeAddress.iocPhyAddress.nodeAddress)
-                        {
-                            clNodeCacheLeaderUpdate(reportedLeader);
-                            if (clCpmIsSC())
-                            {
-                                /* Gas: take new leader and try register level 3 */
-                                clNodeCacheLeaderSend(reportedLeader);
-                                ClIocAddressT allNodeReps;
-                                allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-                                allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
-                                static ClUint32T nodeVersion = CL_VERSION_CODE(5, 0, 0);
-                                ClUint32T myCapability = 0;
-                                ClIocNotificationT notification;
-                                notification.id = (ClIocNotificationIdT) htonl(CL_IOC_NODE_LEAVE_NOTIFICATION);
-                                notification.nodeVersion = htonl(nodeVersion);
-                                notification.nodeAddress.iocPhyAddress.nodeAddress = htonl(clIocLocalAddressGet());
-                                notification.nodeAddress.iocPhyAddress.portId = htonl(myCapability);
-                                notification.protoVersion = htonl(CL_IOC_NOTIFICATION_VERSION);  // htonl(1);
-                                clIocNotificationPacketSend(pThis->commObj, &notification, &allNodeReps, CL_FALSE, NULL );
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    clLogDebug("NTF", "LEA", "Node [%d] reports leader as [%d].", notification.nodeAddress.iocPhyAddress.nodeAddress, reportedLeader);
-                    clNodeCacheLeaderSet(reportedLeader);
-                }
+            ClGmsNodeIdT leaderNodeId = CL_GMS_INVALID_NODE_ID;
+            ClGmsNodeIdT deputyNodeId = CL_GMS_INVALID_NODE_ID;
+
+            _clGmsEngineLeaderElect(0x0, NULL, CL_GMS_MEMBER_JOINED, &leaderNodeId, &deputyNodeId);
+            if (leaderNodeId != CL_GMS_INVALID_NODE_ID && leaderNodeId != reportedLeader)
+            {
+                clLogDebug("NTF", "LEA", "I am going to leave as leader changed from [0x%x] to [0x%x]", leaderNodeId, reportedLeader);
+                clNodeCacheLeaderUpdate(reportedLeader);
+                clIocNotificationNodeLeave(pThis->commObj, clIocLocalAddressGet());
             }
         }
     }
 
-    if(eoRecvMsg)
+    if (eoRecvMsg)
         clBufferDelete(&eoRecvMsg);
     return CL_OK;
 }
-#endif
 
 static void gmsNotificationInitialize(void)
 {
@@ -328,7 +294,6 @@ static void gmsNotificationInitialize(void)
     compAddr.portId = CL_IOC_CPM_PORT;
     clCpmNotificationCallbackInstall(compAddr, gmsNotificationCallback, NULL, &gNotificationCallbackHandle);
 
-#if 0
     if (1)
     {
         
@@ -343,7 +308,6 @@ static void gmsNotificationInitialize(void)
 
         clEoProtoSwitch(&eoProtoDef);
     }
-#endif
 
 }
 
@@ -495,13 +459,13 @@ static __inline__ ClBoolT canElectNodeAsLeader(ClGmsNodeIdT lastLeader, ClGmsClu
    leaders).
  */
 
-static ClRcT
+static ClUint32T
 findNodeWithHigestCredential (ClGmsClusterMemberT **nodes,
                               ClUint32T             noOfNodes,
                               ClGmsNodeIdT         *nodeId)
 {
     ClUint32T   i = 0;
-    ClUint32T   higestCredentialIndex = 0;
+    ClUint32T   highestCredentialIndex = 0;
     ClUint32T   maxCredential = 0;
      
     *nodeId = CL_GMS_INVALID_NODE_ID;
@@ -510,17 +474,17 @@ findNodeWithHigestCredential (ClGmsClusterMemberT **nodes,
     {   
         if (nodes[i] != NULL && nodes[i]->credential > maxCredential)
         {
-            higestCredentialIndex = i;
+            highestCredentialIndex = i;
             maxCredential = nodes[i]->credential;
         }
     }
 
-    if (NULL != nodes[higestCredentialIndex])
+    if (NULL != nodes[highestCredentialIndex])
     {
-        *nodeId = nodes[higestCredentialIndex]->nodeId;
+        *nodeId = nodes[highestCredentialIndex]->nodeId;
     }
     
-    return CL_OK;
+    return highestCredentialIndex;
 }
 
 static ClRcT 
@@ -536,33 +500,40 @@ computeLeaderDeputyWithHighestCredential (
     ClGmsClusterMemberT *eligibleNodes[64] = {0};
     ClUint32T            noOfEligibleNodes = 0;
     
-    ClGmsClusterMemberT *existingLeaders[64] = {0};
-    ClUint32T            noOfExistingLeaders = 0;
+    /* ClGmsClusterMemberT *existingLeaders[64] = {0}; */
     ClUint32T            i = 0;
+
+    ClIocNodeAddressT currentLeader = CL_GMS_INVALID_NODE_ID;
 
     CL_ASSERT( (buffer != (const void*)NULL) && (buffer->numberOfItems != 0x0) && (buffer->notification != NULL));
     CL_ASSERT( (leaderNodeId != NULL) && (deputyNodeId != NULL));
 
     /* From the notification buffer find the list of nodes which
      * have eligible credentials */
-    
+
+    /* Get current leader from NodeCache */
+    clNodeCacheLeaderGet(&currentLeader);
+
     for ( i = 0 ; i < buffer->numberOfItems ; i++ )
     {
         currentNode = &(buffer->notification[i].clusterNode);
-        if( currentNode->credential != CL_GMS_INELIGIBLE_CREDENTIALS )
+        /* To be part of the voting, the node must be active now (not dead) and be eligible to become master */
+        if (currentNode->memberActive && (currentNode->credential != CL_GMS_INELIGIBLE_CREDENTIALS))
         {
             eligibleNodes[noOfEligibleNodes] = currentNode;
-            if (eligibleNodes[noOfEligibleNodes]->isPreferredLeader == CL_TRUE)
+
+            currentNode->credential += CL_IOC_MAX_NODES * currentNode->isPreferredLeader;
+            /* if leader preference set in the CLI, then double-dog prefer it :-) */
+            currentNode->credential += CL_IOC_MAX_NODES * ( currentNode->isPreferredLeader && currentNode->leaderPreferenceSet);
+
+            /* Current leaders are boosted above all others */
+            if (currentNode->isCurrentLeader || currentNode->nodeId == currentLeader)
             {
-                /*
-                 * If the leaderpreference was set from the debug cli, that has a higher affinity
-                 * then preferred ones as it overrides the preferred if any.
-                 */
-                eligibleNodes[noOfEligibleNodes]->credential = 
-                    CL_MAX_CREDENTIALS - (eligibleNodes[noOfEligibleNodes]->isPreferredLeader 
-                                          ^
-                                          eligibleNodes[noOfEligibleNodes]->leaderPreferenceSet);
+                currentNode->credential += 3*CL_IOC_MAX_NODES;
             }
+
+            clLog(CL_LOG_SEV_DEBUG,CLM,NA, "Node [%.*s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu]",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp);
+
             noOfEligibleNodes++;
         }
     }
@@ -575,55 +546,14 @@ computeLeaderDeputyWithHighestCredential (
         return rc;
     }
 
-    /* A preferred leader node is not found. So we fall back to
-     * our old algorithm:
-     * Find a node with highest node id as the leader. If there is
-     * already an existing leader node, then dont elect a new leader.
-     */
-    for (i = 0; i < noOfEligibleNodes; i++)
-    {
-        if (eligibleNodes[i]->isCurrentLeader == CL_TRUE 
-            ||
-            CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(eligibleNodes[i]->isCurrentLeader)
-            ||
-            eligibleNodes[i]->isPreferredLeader)
-        {
-            if(CL_NODE_CACHE_SC_PROMOTE_CAPABILITY(eligibleNodes[i]->isCurrentLeader))
-            {
-                eligibleNodes[i]->credential += __SC_PROMOTE_CREDENTIAL_BIAS;
-            }
-            eligibleNodes[i]->isCurrentLeader &= ~__SC_PROMOTE_CAPABILITY_MASK;
-            existingLeaders[noOfExistingLeaders++] = eligibleNodes[i];
-        }
-    }
-
-    clLog(DBG,CLM,NA,
-            "No of  existing leaders = %d",noOfExistingLeaders);
-    if (noOfExistingLeaders)
-    {
-        /* There are already leader nodes in the cluster.
-         * Elect the one among those leaders with the highest nodeId
-         */
-        findNodeWithHigestCredential(existingLeaders, noOfExistingLeaders, leaderNodeId);
-    } else {
-        /* There was no existing leader. So elect the node with the
-         * highest node id among the nodes with highest credentials
-         */
-        findNodeWithHigestCredential(eligibleNodes, noOfEligibleNodes, leaderNodeId);
-    }
+    i = findNodeWithHigestCredential(eligibleNodes, noOfEligibleNodes, leaderNodeId);
+    
 
     /* Now to elect deputy, among the eligible nodes
      * mark the leader node index as NULL and among the remaining
      * nodes, elect the one with highest node Id
      */
-    for (i = 0; i < noOfEligibleNodes; i++)
-    {
-        if (eligibleNodes[i]->nodeId == *leaderNodeId)
-        {
-            eligibleNodes[i] = NULL;
-            break;
-        }
-    }
+    eligibleNodes[i] = NULL;
 
     findNodeWithHigestCredential(eligibleNodes, noOfEligibleNodes, deputyNodeId);
 
@@ -704,7 +634,11 @@ _clGmsEngineLeaderElect(
     ClGmsClusterMemberT *currentNode = NULL;
     ClGmsNodeIdT lastLeader = 0;
     ClUint32T           i = 0;
+    ClBoolT leadershipChanged = CL_TRUE;
 
+    /* Leader election cannot happen yet... we must wait */
+    if (!bootTimeElectionDone) return CL_ERR_TRY_AGAIN;    
+    
     if ((leaderNodeId == NULL) || (deputyNodeId == NULL))
     {
         return CL_ERR_NULL_POINTER;
@@ -761,6 +695,8 @@ _clGmsEngineLeaderElect(
         clLog(ERROR, CLM,NA,"Leader election failed for group [%d]. rc = 0x%x",groupId,rc);
         goto done_return;
     }
+
+    clLog(CL_LOG_SEV_DEBUG,CLM,NA, "Leader election is done. Now updating the leadership status");
 
     rc  = _clGmsViewDbFind(groupId, &thisViewDb);
 
@@ -825,9 +761,21 @@ _clGmsEngineLeaderElect(
                  * due to the premature switchover again. Also trigger re-election
                  */
                 ClTimerTimeOutT reElectTimeout = { gmsGlobalInfo.config.bootElectionTimeout + gmsGlobalInfo.config.leaderSoakInterval, 0 };
-                viewNode->viewMember.clusterMember.isCurrentLeader = __SC_PROMOTE_CAPABILITY_MASK;
                 *leaderNodeId = CL_GMS_INVALID_NODE_ID;
                 leaderElectionTimerRun(CL_TRUE, &reElectTimeout);
+            }
+        }
+        else
+        {
+            leadershipChanged = CL_FALSE;
+            if (currentNode->nodeId == *leaderNodeId)
+            {
+                /* Set the flag for this node to sync with gmsGlobalInfo.db */
+                rc = _clGmsViewFindNodePrivate(thisViewDb, currentNode->nodeId, CL_GMS_CURRENT_VIEW, &viewNode);
+                if (rc == CL_OK)
+                {
+                    viewNode->viewMember.clusterMember.isCurrentLeader = CL_TRUE;
+                }
             }
         }
 
@@ -840,8 +788,8 @@ _clGmsEngineLeaderElect(
             gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader = CL_TRUE;
             gmsGlobalInfo.config.thisNodeInfo.isPreferredLeader = currentNode->isPreferredLeader;
             gmsGlobalInfo.config.thisNodeInfo.leaderPreferenceSet = currentNode->leaderPreferenceSet;
-
         }
+
     }
 
     /*
@@ -852,20 +800,24 @@ _clGmsEngineLeaderElect(
     {
         /* Update current leader */
         clNodeCacheLeaderUpdate(*leaderNodeId);
-        /*
-         * "gratuitous" sending of our view of the leader to other AMFs to update
-         *  node cache on ALL nodes via a "gratuitous" IOC notification
-         */
-        clNodeCacheLeaderSend(*leaderNodeId);  // GAS, seems to be not working... 
 
-        if (gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader == CL_TRUE)
+        if (leadershipChanged)
         {
-            /* Notify all nodes that I am the leader.  It is necessary to do this so that external apps/nodes (with no AMF or GMS) receive the new leader notification */
-            ClIocAddressT allNodeReps;            
-            allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-            allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
-            ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, currentNode->nodeId, CL_IOC_BROADCAST_ADDRESS);
-            clIocNotificationNodeStatusSend(gmsGlobalInfo.gmsEoObject->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, currentNode->nodeId, (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
+            /*
+             * "gratuitous" sending of our view of the leader to other AMFs to update
+             *  node cache on ALL nodes via a "gratuitous" IOC notification
+             */
+            clNodeCacheLeaderSend(*leaderNodeId);
+
+            if (gmsGlobalInfo.config.thisNodeInfo.isCurrentLeader == CL_TRUE)
+            {
+                /* Notify all nodes that I am the leader.  It is necessary to do this so that external apps/nodes (with no AMF or GMS) receive the new leader notification */
+                ClIocAddressT allNodeReps;
+                allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+                allNodeReps.iocPhyAddress.portId = CL_IOC_XPORT_PORT;
+                ClIocLogicalAddressT allLocalComps = CL_IOC_ADDRESS_FORM(CL_IOC_INTRANODE_ADDRESS_TYPE, currentNode->nodeId, CL_IOC_BROADCAST_ADDRESS);
+                clIocNotificationNodeStatusSend(gmsGlobalInfo.gmsEoObject->commObj, CL_IOC_NODE_ARRIVAL_NOTIFICATION, currentNode->nodeId, (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, NULL );
+            }
         }
     }
 
@@ -961,7 +913,6 @@ _clGmsEnginePreferredLeaderElect(
         /* leader changed */
         thisViewDb->view.leader = leaderNode;
         thisViewDb->view.leadershipChanged = CL_TRUE;
-        clNodeCacheLeaderUpdate(oldLeaderNode);
     }
 
     /* Check condition to update deputy. Prevent leader's == deputy's nodeId within the soak time election */
@@ -1024,7 +975,6 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     ClGmsNodeIdT       currentLeader = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       newLeader = CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT       newDeputy = CL_GMS_INVALID_NODE_ID;
-    //ClGmsNodeIdT       currentDeputy = CL_GMS_INVALID_NODE_ID;
     ClTimerTimeOutT    timeout;
 
     timeout.tsSec = gmsGlobalInfo.config.bootElectionTimeout;
@@ -1049,9 +999,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         rc = clGmsViewCacheCheckAndAdd(thisClusterView->leader, nodeId, &node);
         if(rc != CL_OK || !node)
         {
-            if(CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN
-               &&
-               bootTimeElectionDone)
+            if((CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && (bootTimeElectionDone))
             {
                 if(!reElect)
                 {
@@ -1062,8 +1010,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
             }
             else 
             {
-                if(node)
-                    clHeapFree(node);
+                if(node) ClGmsViewNodeTFree(node);
                 goto ENG_ADD_ERROR;
             }
         }
@@ -1076,6 +1023,7 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         clLog(CL_LOG_SEV_DEBUG,CLM,NA, "Node [%.*s:%d] credential [%d].  Details: is leader [%d] is preferred [%d] set by cli [%d] is member [%d] boot time [%llu] (%p)",currentNode->nodeName.length,currentNode->nodeName.value, currentNode->nodeId, currentNode->credential,currentNode->isCurrentLeader,currentNode->isPreferredLeader,currentNode->leaderPreferenceSet, currentNode->memberActive, currentNode->bootTimestamp,(void*) node);
     }
 
+    /* See this node was the preferred leader. If so then set the tag to TRUE */
     if (0 == strncmp((const ClCharT*)node->viewMember.clusterMember.nodeName.value, gmsGlobalInfo.config.preferredActiveSCNodeName, node->viewMember.clusterMember.nodeName.length))
     {
         /* This node is a preferred Leader. So set ifPreferredLeader flag to TRUE */
@@ -1087,7 +1035,6 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
     }
 
     currentLeader = thisClusterView->leader;
-    // unused currentDeputy = thisClusterView->deputy;
 
     add_rc = _clGmsViewAddNodeExtended(groupId, nodeId, reElection, &node);
 
@@ -1102,8 +1049,8 @@ static ClRcT _clGmsEngineClusterJoinWrapper(
         }
         else
         {
-            clLog(INFO,CLM,NA,
-                  "Node already exists in GMS view. Returning OK");
+            clLog(INFO,CLM,NA, "Node already exists in GMS view. Returning OK");
+            rc = CL_OK;
             add_rc = CL_OK;
             goto ENG_ADD_ERROR;
         }
@@ -1293,8 +1240,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
     ClGmsNodeIdT        new_leader= CL_GMS_INVALID_NODE_ID;
     ClGmsNodeIdT        new_deputy= CL_GMS_INVALID_NODE_ID;
 
-    clLog(INFO,CLM,NA,
-            "Cluster leave is invoked for node ID %d\n",nodeId);
+    clLogInfo(CLM,NA, "Cluster leave is invoked for node [%d]",nodeId);
     rc = _clGmsViewFindAndLock(groupId, &thisClusterView);
 
     if (rc != CL_OK)
@@ -1308,17 +1254,27 @@ ClRcT _clGmsEngineClusterLeaveExtended(
         goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
     }
 
+#if 0
     /* condition should never happen */
-    CL_ASSERT(!((thisClusterView->leader == nodeId) && 
-            (thisClusterView->deputy==nodeId )));
+    CL_ASSERT(!((thisClusterView->leader == nodeId) && (thisClusterView->deputy==nodeId )));
+#endif
+
+    if (!clCpmIsSC() && (thisClusterView->leader == nodeId) && (thisClusterView->deputy == nodeId))
+    {
+        /*
+        * Trigger re-election
+         */
+        ClTimerTimeOutT reElectTimeout = { .tsSec = gmsGlobalInfo.config.bootElectionTimeout, .tsMilliSec = 0 };
+        leaderElectionTimerRun(CL_TRUE, &reElectTimeout);
+        goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
+    }
 
     /*
        Check whether the leaving node is a leader or deputy in the ring then
        invoke the leader election to elect the new deputy and the leader of
        the ring 
      */
-    if ((nodeId == thisClusterView->leader) || 
-            (nodeId == thisClusterView ->deputy))
+    if ((nodeId == thisClusterView->leader) || (nodeId == thisClusterView ->deputy))
     {
         timerRestarted = CL_FALSE;
 
@@ -1340,7 +1296,7 @@ ClRcT _clGmsEngineClusterLeaveExtended(
         {
             goto unlock_and_exit_clGmsEngineClusterLeaveExtended;
         }
-        clNodeCacheLeaderUpdate(thisClusterView->leader);
+        //now called in _clGmsEngineLeaderElect: clNodeCacheLeaderUpdate(thisClusterView->leader, new_leader);
         if( nodeId == thisClusterView->leader )
         {
             thisClusterView->leader = new_leader;
