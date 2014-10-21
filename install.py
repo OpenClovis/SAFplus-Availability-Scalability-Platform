@@ -686,6 +686,10 @@ class ASPInstaller:
             self.CACHE_DIR = self.join_list_as_path([self.HOME, '.clovis', self.PACKAGE_NAME])
             self.CACHE_FILE = "install.cache"
 
+            #Silent remove IDE & CACHE
+            cli_cmd('rm -rf "%s" >/dev/null 2>&1' % self.IDE_ROOT)
+            cli_cmd('rm -rf "%s" >/dev/null 2>&1' % self.CACHE_DIR)
+
             # make all these dirs
             for DIR in (self.INSTALL_DIR, self.BUILDTOOLS, self.PACKAGE_ROOT, self.PREFIX, self.PREFIX_BIN, self.PREFIX_LIB, self.IDE_ROOT, 
                         self.ASP_ROOT, self.DOC_ROOT, self.BIN_ROOT, self.LIB_ROOT, self.BUILD_DIR, self.MODULES, 
