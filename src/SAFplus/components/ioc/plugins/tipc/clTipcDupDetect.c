@@ -50,7 +50,7 @@
 #define	TIPC_LOG_CTX_ADDR_GET	"GET"
 #define TIPC_LOG_CTX_TIPC_ADDR	"ADDR"
 
-static ClUint32T clTipcOwnAddrGet(void)
+ClUint32T clTipcOwnAddrGet(void)
 {
     struct sockaddr_tipc addr;
     socklen_t sz = sizeof(addr);

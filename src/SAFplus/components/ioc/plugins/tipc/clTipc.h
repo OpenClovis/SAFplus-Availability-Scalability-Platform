@@ -32,6 +32,7 @@ ClRcT xportBindClose(ClIocPortT port);
 ClUint32T clTipcMcastType(ClUint32T type);
 ClRcT xportListenStop(ClIocPortT port);
 ClRcT xportNotifyInit(void );
+ClRcT xportNodeAddrGet(void);
 ClRcT xportNotifyOpen(ClIocPortT port);
 #ifdef BCAST_SOCKET_NEEDED
 ClRcT clTipcGetAddress(struct sockaddr_tipc *pAddress, ClIocAddressT *pDestAddress, ClUint32T *pSendFDFlag);

@@ -40,6 +40,7 @@ extern "C" {
 extern ClUint32T clTipcSetType(ClUint32T portId,ClBoolT setFlag);
 extern ClRcT clTipcFdGet(ClIocPortT port, ClInt32T *fd);
 extern ClRcT clTipcDoesNodeAlreadyExist(void);
+extern ClUint32T clTipcOwnAddrGet(void);
 extern ClInt32T gClTipcXportId;
 extern ClCharT  gClTipcXportType[CL_MAX_NAME_LENGTH];
 

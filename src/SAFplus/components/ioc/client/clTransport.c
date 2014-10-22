@@ -40,6 +40,7 @@ typedef struct ClTransportLayer
     ClRcT (*xportInit)(const ClCharT *xportType, ClInt32T xportId, ClBoolT nodeRep);
     ClRcT (*xportFinalize)(ClInt32T xportId, ClBoolT nodeRep);
     ClRcT (*xportNotifyInit)(void);
+    ClInt32T (*xportNodeAddrGet)(void);
     ClRcT (*xportNotifyFinalize)(void);
     ClRcT (*xportNotifyOpen)(ClIocNodeAddressT nodeAddress, ClIocPortT port, 
                              ClIocNotificationIdT event);
@@ -340,6 +341,12 @@ static ClRcT xportFdGetFake(ClIocCommPortHandleT portHandle, ClInt32T *fd)
     return CL_ERR_NOT_SUPPORTED;
 }
 
+static ClInt32T xportNodeAddrGetFake()
+{
+
+   return -1;
+}
+
 static __inline__ void _clXportNodeAddrMapAdd(ClXportNodeAddrDataT *entry)
 {
     ClUint32T hashKey = 0;
@@ -638,13 +645,13 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
     *(void**)&xport->xportNotifyFinalize = dlsym(xport->xportPluginHandle, "xportNotifyFinalize");
     *(void**)&xport->xportNotifyOpen = dlsym(xport->xportPluginHandle, "xportNotifyOpen");
     *(void**)&xport->xportNotifyClose = dlsym(xport->xportPluginHandle, "xportNotifyClose");
-
-    *(void **)&xport->xportBind = dlsym(xport->xportPluginHandle, "xportBind");
-    *(void **)&xport->xportBindClose = dlsym(xport->xportPluginHandle, "xportBindClose");
-    *(void **)&xport->xportListen = dlsym(xport->xportPluginHandle, "xportListen");
-    *(void **)&xport->xportListenStop = dlsym(xport->xportPluginHandle, "xportListenStop");
-    *(void **)&xport->xportServerReady = dlsym(xport->xportPluginHandle, "xportServerReady");
-    *(void **)&xport->xportMasterAddressGet = dlsym(xport->xportPluginHandle, "xportMasterAddressGet");
+    *(void**)&xport->xportNodeAddrGet = dlsym(xport->xportPluginHandle, "xportNodeAddrGet");
+    *(void**)&xport->xportBind = dlsym(xport->xportPluginHandle, "xportBind");
+    *(void**)&xport->xportBindClose = dlsym(xport->xportPluginHandle, "xportBindClose");
+    *(void**)&xport->xportListen = dlsym(xport->xportPluginHandle, "xportListen");
+    *(void**)&xport->xportListenStop = dlsym(xport->xportPluginHandle, "xportListenStop");
+    *(void**)&xport->xportServerReady = dlsym(xport->xportPluginHandle, "xportServerReady");
+    *(void**)&xport->xportMasterAddressGet = dlsym(xport->xportPluginHandle, "xportMasterAddressGet");
     *(void**)&xport->xportSend = dlsym(xport->xportPluginHandle, "xportSend");
     *(void**)&xport->xportRecv = dlsym(xport->xportPluginHandle, "xportRecv");
     *(void**)&xport->xportMaxPayloadSizeGet = dlsym(xport->xportPluginHandle, "xportMaxPayloadSizeGet");
@@ -661,6 +668,7 @@ static void addTransport(const ClCharT *type, const ClCharT *plugin)
     if(!xport->xportNotifyFinalize) xport->xportNotifyFinalize = xportNotifyFinalizeFake;
     if(!xport->xportNotifyOpen) xport->xportNotifyOpen = xportNotifyOpenFake;
     if(!xport->xportNotifyClose) xport->xportNotifyClose = xportNotifyCloseFake;
+    if(!xport->xportNodeAddrGet) xport->xportNodeAddrGet = xportNodeAddrGetFake;
     if(!xport->xportBind) xport->xportBind = xportBindFake;
     if(!xport->xportBindClose) xport->xportBindClose = xportBindCloseFake;
     if(!xport->xportListen) xport->xportListen = xportListenFake;
@@ -1819,6 +1827,31 @@ ClRcT _clIocSetMulticastConfig(ClParserPtrT parent)
     return rc;
 }
 
+ClRcT clTransportNodeAddrGet(void)
+{
+    ClTransportLayerT *xport = NULL;
+    ClRcT rc = CL_OK;
+        
+    xport = findTransport(gClXportDefault->xportType);
+    if(!xport)
+    {
+        logError("XPORT", "INI", "Unable to initialize transport [%s]. Transport not registered", gClXportDefaultType);
+        return CL_ERR_NOT_EXIST;
+    }
+         
+    gIocLocalBladeAddress = xport->xportNodeAddrGet();
+    
+    if(gIocLocalBladeAddress < 0) 
+    {
+        logError("XPORT", "INI", "Node Address is not configured");
+        rc = CL_ERR_NOT_SUPPORTED;
+    }
+    else
+    {
+        logNotice("XPORT", "INI", "Node Address is %d from  [%s]Transport ", gIocLocalBladeAddress,gClXportDefault->xportType);
+    }
+    return rc; 
+}
 ClRcT clTransportLayerInitialize(void)
 {
     ClRcT rc = CL_OK;
@@ -1874,6 +1907,12 @@ ClRcT clTransportLayerInitialize(void)
 
     rc = setDefaultXport(parent);
     if(rc != CL_OK)
+    {
+        goto out_free;
+    }
+
+    rc = clTransportNodeAddrGet();
+    if( rc != CL_OK)
     {
         goto out_free;
     }
