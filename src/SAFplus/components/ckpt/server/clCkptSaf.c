@@ -2214,8 +2214,7 @@ ClRcT VDECL_VER(_ckptCheckpointWriteVector, 4, 0, 0)(ClCkptHdlT             ckpt
             }
         }
     }
-    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,
-               CL_CKPT_LOG_1_CKPT_WRITTEN, pCkpt->ckptName.value);
+    //clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,CL_CKPT_LOG_1_CKPT_WRITTEN, pCkpt->ckptName.value);
 
     /*
      * Inform the clients about immediate consumption.
@@ -2433,8 +2432,7 @@ ClRcT VDECL_VER(_ckptCheckpointWrite, 4, 0, 0)(ClCkptHdlT             ckptHdl,
         }
     }
 
-    clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,
-               CL_CKPT_LOG_1_CKPT_WRITTEN, pCkpt->ckptName.value);
+    //clLogWrite(CL_LOG_HANDLE_APP,CL_LOG_INFORMATIONAL,CL_LOG_CKPT_SVR_NAME,CL_CKPT_LOG_1_CKPT_WRITTEN, pCkpt->ckptName.value);
 
     /*
      * Inform the clients about immediate consumption.

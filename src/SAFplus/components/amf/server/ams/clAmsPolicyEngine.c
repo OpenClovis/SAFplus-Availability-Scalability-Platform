@@ -15182,9 +15182,7 @@ clAmsPeCompAssignCSIExtended(
     AMS_CHECK_CSI ( csi );
 
     AMS_FUNC_ENTER ( ("Component [%s]\n", comp->config.entity.name.value) );
-
-    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("INSIDE clAmsPeCompAssignCSIExtended\n"))
-
+    
     /*
      * Step 1: Verify if this CSI is already assigned to this Component.  If not, 
      * then create an appropriate csiRef. If yes, just reuse the existing csiRef. 
@@ -15220,7 +15218,7 @@ clAmsPeCompAssignCSIExtended(
 
         if ( haState == CL_AMS_HA_STATE_ACTIVE )
         {
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("haState == active.\n"))
+            //AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG, ("haState == active.\n"))
             activeComp = comp;
             standbyRank = 0;
         }
@@ -15229,7 +15227,7 @@ clAmsPeCompAssignCSIExtended(
             ClAmsCompT *standbyComp = NULL;
             activeComp = NULL;
             standbyRank = 1;
-            AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("haState == standby.\n"))
+            //AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG, ("haState == standby.\n"))
 
             for ( entityRef = clAmsEntityListGetFirst(&csi->status.pgList);
                   entityRef != (ClAmsEntityRefT *) NULL;

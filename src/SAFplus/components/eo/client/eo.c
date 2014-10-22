@@ -2404,7 +2404,7 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
             rc = clRadixTreeLookup(client->funTable, index, (ClPtrT*)&fun);
             if (rc == CL_OK) break;
             sleep(1);            
-            clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "Retry RMD function [%d.%d] lookup due to error %x.", clientID, funcID, rc);            
+            clLogInfo(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "Retry RMD function [%d.%d] lookup due to error %x.", clientID, funcID, rc);            
         }
     } 
     
@@ -2414,7 +2414,7 @@ ClRcT clEoWalkWithVersion(ClEoExecutionObjT *pThis, ClUint32T func,
         if(func == CPM_MGMT_NODE_CONFIG_GET)
             return CL_RMD_ERR_CONTINUE;
 
-        clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "Function lookup returned 0x%x", rc);
+        // clLogError(CL_LOG_EO_AREA, CL_LOG_EO_CONTEXT_RECV, "Function lookup returned 0x%x", rc);
         
         /*
          * Try looking up the client table for the max. version of the function supported.
