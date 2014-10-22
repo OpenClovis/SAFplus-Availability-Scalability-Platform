@@ -3,6 +3,9 @@
 #include <vector>
 using namespace std;
 
+#include "client/MgtMsg.pb.hxx"
+#include <clSafplusMsgServer.hxx>
+#include <clMsgHandler.hxx>
 #include <clLogIpi.hxx>
 #include <clIocPortList.hxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -21,8 +24,27 @@ namespace fs = boost::filesystem;
 
 using namespace SAFplusLog;
 
+MgtModule dataModule("SAFplusLog");
+LogCfg* cfg;
 Stream* sysStreamCfg;
 Stream* appStreamCfg;
+
+class MgtMsgHandler : public SAFplus::MsgHandler
+{
+  public:
+    virtual void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    {
+      Mgt::Msg::MsgMgt mgtMsgReq;
+      mgtMsgReq.ParseFromArray(msg, msglen);
+      if (mgtMsgReq.type() == Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND_REQUEST && cfg)
+      {
+        SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::LOG_IOC_PORT);
+        cfg->streamConfig.bind(hdl, "SAFplusLog", "/StreamConfig");
+        cfg->serverConfig.bind(hdl, "SAFplusLog", "/ServerConfig");
+      }
+    }
+
+};
 
 extern ClBoolT   gIsNodeRepresentative;
 
@@ -416,15 +438,19 @@ int main(int argc, char* argv[])
   ClMgtDatabase *db = ClMgtDatabase::getInstance();
   db->initializeDB("SAFplusLog");
 
-  MgtModule         dataModule("SAFplusLog");
   dataModule.loadModule();
   dataModule.initialize();
 
   // Load logging configuration
-  LogCfg* cfg = loadLogCfg();
+  cfg = loadLogCfg();
   SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::LOG_IOC_PORT);
   cfg->streamConfig.bind(hdl, "SAFplusLog", "/StreamConfig");
   cfg->serverConfig.bind(hdl, "SAFplusLog", "/ServerConfig");
+
+  MgtMsgHandler msghandle;
+  SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
+  mgtIocInstance->registerHandler(SAFplusI::CL_MGT_MSG_TYPE,&msghandle,NULL);
+
   // Initialize
   logInitializeSharedMem();
 

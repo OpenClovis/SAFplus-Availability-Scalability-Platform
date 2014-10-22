@@ -8,6 +8,8 @@ SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -I$(BOOST_DIR)/libs/filesystem/include 
+CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7
+CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/include
 
 # Specify the required libraries
 SAFPLUS_LIBS := clMgt7 clUtils7 clLog clOsal7 clIoc7
@@ -28,7 +30,7 @@ LOG_SERVER_OBJ := $(addprefix $(OBJ_DIR)/logsvr/,$(LOG_SERVER_OBJ))
 all: $(SAFPLUS_TARGET)/bin/splogd
 
 $(SAFPLUS_TARGET)/bin/splogd: $(LOG_SERVER_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS)
+	$(LINK_EXE) $@ $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS) `pkg-config --libs protobuf`
 
 $(OBJ_DIR)/logsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	-mkdir -p $(OBJ_DIR)/logsvr/
