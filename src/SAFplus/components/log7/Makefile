@@ -14,7 +14,7 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 
-all: $(LIB_DIR)/libclLog.so
+Release all: $(LIB_DIR)/libclLog.so
 
 $(SAFPLUS_TARGET)/lib/libclLog.so: $(LOG_CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(LOG_CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)

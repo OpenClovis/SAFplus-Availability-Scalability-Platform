@@ -14,7 +14,7 @@ SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PL
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -I../../rpc -I./amfRpc
 
 # Specify the required libraries
-SAFPLUS_LIBS := clRpc clMgt7 clName clCkpt clGroup clIoc7 clUtils7 clLog clOsal7 
+SAFPLUS_LIBS := clRpc clMgt7 clName clCkpt clGroup clIoc7 clUtils7 clLog clOsal7
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
@@ -41,7 +41,7 @@ POLICY_ENV_OBJ := $(subst .cxx,.o,$(notdir $(POLICY_ENV_SRC)))
 POLICY_ENV_OBJ := $(addprefix $(OBJ_DIR)/amfsvr/,$(POLICY_ENV_OBJ))
 
 
-all: $(SAFPLUS_TARGET)/bin/customAmfPolicy.so $(SAFPLUS_TARGET)/bin/nPlusmAmfPolicy.so  $(SAFPLUS_TARGET)/bin/safplus_amf
+Release all: $(SAFPLUS_TARGET)/bin/customAmfPolicy.so $(SAFPLUS_TARGET)/bin/nPlusmAmfPolicy.so  $(SAFPLUS_TARGET)/bin/safplus_amf
 
 # Shared library providing functions needed by the policy library & SAFplus AMF.
 $(POLICY_ENV_LIB): $(POLICY_ENV_OBJ) $(SAFPLUS_DEP_LIBS)
@@ -109,7 +109,7 @@ SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
 gen:
 	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusAmf.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
 	(rsync -avpDHL ietfYangTypes $(COMMON_DIR)/; rsync -avpDHL SAFplusTypes $(COMMON_DIR)/; rsync -avpDHL ENTITYSTATETCMIB $(COMMON_DIR)/)
-	(rm -rf ietfYangTypes SAFplusTypes ENTITYSTATETCMIB) 
+	(rm -rf ietfYangTypes SAFplusTypes ENTITYSTATETCMIB)
 
 genrpc: $(SAFplusRpcGen)
 	-mkdir -p amfRpc

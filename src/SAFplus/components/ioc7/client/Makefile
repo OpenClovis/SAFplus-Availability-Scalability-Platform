@@ -47,7 +47,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 LINK_SO_LIBS += -lboost_thread
 
-all: $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclTIPC.so $(LIB_DIR)/libclUDP.so
+Release all: $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclTIPC.so $(LIB_DIR)/libclUDP.so
 
 $(LIB_DIR)/libclIoc7.so: $(CLIENT_OBJ) $(CLIENT_IOC_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(CLIENT_OBJ) $(CLIENT_IOC_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)

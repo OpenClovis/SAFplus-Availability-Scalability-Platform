@@ -2,15 +2,15 @@
 # This file is available  under  a  commercial  license  from  the
 # copyright  holder or the GNU General Public License Version 2.0.
 #
-# The source code for  this program is not published  or otherwise 
-# divested of  its trade secrets, irrespective  of  what  has been 
+# The source code for  this program is not published  or otherwise
+# divested of  its trade secrets, irrespective  of  what  has been
 # deposited with the U.S. Copyright office.
-# 
+#
 # This program is distributed in the  hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
+# but WITHOUT ANY WARRANTY; without even the implied  warranty  of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # For more  information,  see the  file COPYING provided with this
 # material.
 
@@ -31,7 +31,7 @@ BOOST_DIR ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR)
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -DSAFplus7
 COMPILE_CPP = g++ -std=c++11 -g -O0 -fPIC -c $(CPP_FLAGS) -o
-LINK_SO     = g++ -g -shared -o 
+LINK_SO     = g++ -g -shared -o
 LINK_EXE    = g++ -g -O0 -fPIC $(LINK_FLAGS) -o
 
 LINK_LIBS ?=
@@ -132,7 +132,7 @@ HPI_CFLAGS :=
 CM_DIR :=
 CL_CM  :=
 CM_CFLAGS :=
-$(warning Not using the chassis manager)
+# $(warning Not using the chassis manager)
 endif
 
 endif

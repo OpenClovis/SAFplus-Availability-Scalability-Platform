@@ -1,11 +1,11 @@
 S7 := 1
 include ../../mk/preface.mk
 
-CLIENT_H := $(wildcard *.hxx) $(wildcard ../../include7/*.hxx) 
+CLIENT_H := $(wildcard *.hxx) $(wildcard ../../include7/*.hxx)
 CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
-all: $(LIB_DIR)/libclOsal7.so
+Release all: $(LIB_DIR)/libclOsal7.so
 
 $(LIB_DIR)/libclOsal7.so: $(CLIENT_OBJ)
 	$(LINK_SO) $@ $+ $(LINK_SO_LIBS)

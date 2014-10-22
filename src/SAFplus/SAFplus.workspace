@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="components/log7/log.cbp" />
+		<Project filename="components/osal7/osal7.cbp" />
+		<Project filename="components/utils7/utils.cbp" />
+		<Project filename="components/osal7/test/osaltest.cbp" />
+		<Project filename="components/mgt7/client/mgt.cbp" />
+		<Project filename="components/ioc7/client/ioc.cbp" />
+		<Project filename="components/gms7/group.cbp">
+			<Depends filename="components/log7/log.cbp" />
+			<Depends filename="components/osal7/osal7.cbp" />
+			<Depends filename="components/utils7/utils.cbp" />
+			<Depends filename="components/ioc7/client/ioc.cbp" />
+		</Project>
+		<Project filename="components/ckpt7/checkpoint.cbp">
+			<Depends filename="components/log7/log.cbp" />
+			<Depends filename="components/osal7/osal7.cbp" />
+			<Depends filename="components/utils7/utils.cbp" />
+			<Depends filename="components/ioc7/client/ioc.cbp" />
+			<Depends filename="components/gms7/group.cbp" />
+		</Project>
+		<Project filename="components/name7/name.cbp">
+			<Depends filename="components/log7/log.cbp" />
+			<Depends filename="components/osal7/osal7.cbp" />
+			<Depends filename="components/utils7/utils.cbp" />
+			<Depends filename="components/ioc7/client/ioc.cbp" />
+			<Depends filename="components/gms7/group.cbp" />
+			<Depends filename="components/ckpt7/checkpoint.cbp" />
+		</Project>
+		<Project filename="components/amf7/amf.cbp">
+			<Depends filename="components/log7/log.cbp" />
+			<Depends filename="components/osal7/osal7.cbp" />
+			<Depends filename="components/utils7/utils.cbp" />
+			<Depends filename="components/ioc7/client/ioc.cbp" />
+		</Project>
+		<Project filename="components/amf7/server/safplus_amf.cbp">
+			<Depends filename="components/log7/log.cbp" />
+			<Depends filename="components/osal7/osal7.cbp" />
+			<Depends filename="components/utils7/utils.cbp" />
+			<Depends filename="components/mgt7/client/mgt.cbp" />
+			<Depends filename="components/ioc7/client/ioc.cbp" />
+			<Depends filename="components/gms7/group.cbp" />
+			<Depends filename="components/ckpt7/checkpoint.cbp" />
+			<Depends filename="components/name7/name.cbp" />
+		</Project>
+	</Workspace>
+</CodeBlocks_workspace_file>

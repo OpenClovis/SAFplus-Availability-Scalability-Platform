@@ -9,13 +9,13 @@ CLIENT_SRC := $(wildcard *.cxx)
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clName clIoc7 clUtils7 clLog clOsal7 
+SAFPLUS_LIBS := clName clIoc7 clUtils7 clLog clOsal7
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 
-all: $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclGroup.a
+Release all: $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclGroup.a
 
 $(LIB_DIR)/libclGroup.so: $(CLIENT_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@  $(CLIENT_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)

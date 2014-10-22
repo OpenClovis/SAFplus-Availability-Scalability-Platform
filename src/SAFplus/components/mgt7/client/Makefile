@@ -9,12 +9,12 @@ CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
 CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 C_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR) -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable
 
-CLIENT_H := $(wildcard ../include/*.hxx) 
+CLIENT_H := $(wildcard ../include/*.hxx)
 CLIENT_SRC := $(wildcard *.cxx) $(wildcard *.cc)
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cc,.o, $(subst .cxx,.o,$(CLIENT_SRC))))
 CPP_FLAGS += -DMGT_ACCESS
 
-all: $(LIB_DIR)/libclMgt7.so
+Release all: $(LIB_DIR)/libclMgt7.so
 
 $(LIB_DIR)/libclMgt7.so: $(CLIENT_OBJ)
 	$(LINK_SO) $@ $+ $(LINK_SO_LIBS) `pkg-config --libs protobuf`

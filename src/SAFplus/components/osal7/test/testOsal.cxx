@@ -114,7 +114,7 @@ void testProcSemTaker(void)
     s1.unlock();
   printf("foo\n");
   for (int i=0;i<10;i++)
-    s1.unlock();
+    s1.unlock();  // This should assert because I took the proc sem too many times.
   
 }
 
@@ -126,7 +126,7 @@ int main(int argc, char* argv[])
   logEchoToFd = 1;  // echo logs to stdout for debugging  
   utilsInitialize();
 
-  testProcSemTaker();
+//  testProcSemTaker();
 
   clTestGroupInitialize(("Osal"));
   //testProcSem();

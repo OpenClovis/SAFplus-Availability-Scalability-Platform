@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="safplus_amf" />
+		<Option makefile_is_custom="1" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="bin/Release/safplus_amf" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-fexceptions" />
+		</Compiler>
+		<Unit filename="Makefile" />
+		<Unit filename="amfAppRpc.yang" />
+		<Unit filename="amfAppRpc/amfAppRpc.cxx" />
+		<Unit filename="amfAppRpc/amfAppRpc.hxx" />
+		<Unit filename="amfAppRpc/amfAppRpc.pb.cxx" />
+		<Unit filename="amfAppRpc/amfAppRpc.pb.hxx" />
+		<Unit filename="amfAppRpcImpl.cxx" />
+		<Unit filename="amfAppRpcImplAmfSide.hxx" />
+		<Unit filename="amfOperations.cxx" />
+		<Unit filename="amfRpc.yang" />
+		<Unit filename="amfRpc/amfRpc.cxx" />
+		<Unit filename="amfRpc/amfRpc.hxx" />
+		<Unit filename="amfRpc/amfRpc.pb.cxx" />
+		<Unit filename="amfRpc/amfRpc.pb.hxx" />
+		<Unit filename="amfcommon.cxx" />
+		<Unit filename="customAmfPolicy.cxx" />
+		<Unit filename="main.cxx" />
+		<Unit filename="nPlusmAmfPolicy.cxx" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

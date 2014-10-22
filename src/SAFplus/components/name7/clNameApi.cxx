@@ -1,4 +1,4 @@
-#include <clLogApi.h>
+#include <clLogApi.hxx>
 #include <clCommon.hxx>
 #include <clNameApi.hxx>
 #include <clCustomization.hxx>
@@ -23,24 +23,24 @@ void NameRegistrar::init(Handle hdl)
   }
 
 void NameRegistrar::set(const char* name, Handle handle, MappingMode m)
-{  
+{
 #if 0
    short numHandles = 1;
    size_t valLen = sizeof(HandleData)+numHandles-1;
    char vdata[sizeof(Buffer)-1+valLen];
-   Buffer* val = new(vdata) Buffer(valLen);   
+   Buffer* val = new(vdata) Buffer(valLen);
    HandleData* data = (HandleData*) val->data;
    data->structIdAndEndian = STRID;
-   data->numHandles = numHandles;   
+   data->numHandles = numHandles;
    data->mappingMode = m;
-   data->handles[i] = handle;      
+   data->handles[i] = handle;
    m_checkpoint.write(name,*val);
 #endif
    HandleData data;
    data.structIdAndEndian = NameRegistrar::STRID;
    data.mappingMode = m;
    data.numHandles = 1;
-   data.handles[0] = handle;   
+   data.handles[0] = handle;
    set(name, &data, sizeof(data));
 }
 
@@ -60,23 +60,23 @@ void NameRegistrar::append(const char* name, Handle handle, MappingMode m) throw
    else
    {
       // TODO A name exists, add one more association.
-      HandleData* data = (HandleData*) buf.data;   
+      HandleData* data = (HandleData*) buf.data;
       if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
       {
          throw NameException("Unable to append the handle because only arbitrary data registered for this name");
-      }     
+      }
       short numHandles = data->numHandles+1;
 #if 0
       size_t valLen = sizeof(HandleData)+numHandles-1;
       char vdata[sizeof(Buffer)-1+valLen];
-      Buffer* val = new(vdata) Buffer(valLen);   
+      Buffer* val = new(vdata) Buffer(valLen);
       HandleData* newData = (HandleData*) val->data;
       newData->structIdAndEndian = data->structIdAndEndian;
       newData->numHandles = numHandles;
       if (m == MODE_NO_CHANGE)
       {
-         newData->mappingMode = data->mappingMode;   
-      }   
+         newData->mappingMode = data->mappingMode;
+      }
       else
       {
          newData->mappingMode = m;
@@ -85,7 +85,7 @@ void NameRegistrar::append(const char* name, Handle handle, MappingMode m) throw
       {
          newData->handles[i] = data->handles[i];
       }
-      newData->handle[numHandles-1] = handle;      
+      newData->handle[numHandles-1] = handle;
       m_checkpoint.write(name,*val);
 #endif
       size_t hLen = sizeof(HandleData)+sizeof(Handle)*(numHandles-1);
@@ -95,8 +95,8 @@ void NameRegistrar::append(const char* name, Handle handle, MappingMode m) throw
       newData->numHandles = numHandles;
       if (m == MODE_NO_CHANGE)
       {
-         newData->mappingMode = data->mappingMode;   
-      }   
+         newData->mappingMode = data->mappingMode;
+      }
       else
       {
          newData->mappingMode = m;
@@ -116,7 +116,7 @@ void NameRegistrar::append(const std::string& name, Handle handle, MappingMode m
       append(name.c_str(), handle, m);
    }
    catch (NameException ne) {
-      logError("NAME","APD","Exception cautch [%s]", ne.what());      
+      logError("NAME","APD","Exception cautch [%s]", ne.what());
       throw ne;
    }
 }
@@ -128,22 +128,22 @@ void NameRegistrar::setLocalObject(const char* name, void* object)
    {
       handle = getHandle(name);
    }
-   catch(NameException ne) 
+   catch(NameException ne)
    {
       logError("NAME","SETOBJ","Exception caught [%s]", ne.what());
       return;
    }
    //Find to see if the key exists?
-   ObjHashMap::iterator contents = m_mapObject.find(handle);  
+   ObjHashMap::iterator contents = m_mapObject.find(handle);
    if (contents != m_mapObject.end()) // record already exists; overwrite
-   { 
+   {
       //void* oldObj = contents->second;
       contents->second = object;
       //delete oldObj; Do not delete the object; it must be deleted by owner process
       return;
    }
    ObjMapPair vt(handle,object);
-   m_mapObject.insert(vt);  
+   m_mapObject.insert(vt);
 }
 
 void NameRegistrar::setLocalObject(const std::string& name, void* object)
@@ -152,25 +152,25 @@ void NameRegistrar::setLocalObject(const std::string& name, void* object)
 }
 
 void NameRegistrar::setLocalObject(Handle handle, void* object)
-{   
+{
    //Find to see if the key exists?
-   ObjHashMap::iterator contents = m_mapObject.find(handle);  
+   ObjHashMap::iterator contents = m_mapObject.find(handle);
    if (contents != m_mapObject.end()) // record already exists; overwrite
    {
       //void* oldObj = contents->second;
       contents->second = object;
       //delete oldObj; Do not delete the object; it must be deleted by owner process
       return;
-   }   
+   }
    ObjMapPair vt(handle,object);
    m_mapObject.insert(vt);
 }
 
 void NameRegistrar::set(const char* name, const void* data, int length) throw (NameException&)
-{   
+{
    size_t valLen = length;
    char vdata[sizeof(Buffer)-1+valLen];
-   Buffer* val = new(vdata) Buffer(valLen);   
+   Buffer* val = new(vdata) Buffer(valLen);
    memcpy(val->data, data, valLen);
    m_checkpoint.write(name,*val);
 }
@@ -205,17 +205,17 @@ RefObjMapPair NameRegistrar::get(const char* name) throw(NameException&)
    {
       Handle handle = getHandle(name);
       //Find to see if the key exists?
-      ObjHashMap::iterator contents = m_mapObject.find(handle);  
+      ObjHashMap::iterator contents = m_mapObject.find(handle);
       if (contents != m_mapObject.end()) // record already exists; return its value
       {
          void* curObj = contents->second;
          if (curObj)
-         {                   
-            return ObjMapPair(handle, curObj);                     
+         {
+            return ObjMapPair(handle, curObj);
          }
       }
       return ObjMapPair(handle, NULL);
-   }                
+   }
    catch (NameException &ne)
    {
       throw ne;
@@ -223,22 +223,22 @@ RefObjMapPair NameRegistrar::get(const char* name) throw(NameException&)
 #endif
    try
    {
-      Handle& handle = getHandle(name);   
+      Handle& handle = getHandle(name);
       try
       {
          void* obj = get(handle);
-         return RefObjMapPair(handle, obj); 
-      }                
+         return RefObjMapPair(handle, obj);
+      }
       catch (NameException &ne)
       { // Not throwing, continue to search below
          logWarning("NAME","GET","Exception caught [%s]", ne.what());
       }
       Checkpoint::Iterator ibegin = m_checkpoint.begin();
-      Checkpoint::Iterator iend = m_checkpoint.end();  
+      Checkpoint::Iterator iend = m_checkpoint.end();
       for(Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
       {
          BufferPtr curkey = iter->first;
-         logDebug("NAME","GET","Get object: key [%s]", curkey.get()->data);            
+         logDebug("NAME","GET","Get object: key [%s]", curkey.get()->data);
 
          BufferPtr& curval = iter->second;
          if (curval)
@@ -246,22 +246,22 @@ RefObjMapPair NameRegistrar::get(const char* name) throw(NameException&)
             HandleData* data = (HandleData*) curval->data;
             if ((data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) || // Arbitrary data in this case
                 (strcmp(curkey.get()->data, name)))
-            { 
+            {
                continue;
-            }                           
-            short sz = data->numHandles;   
+            }
+            short sz = data->numHandles;
             for(int i=0;i<sz;i++)
-            {  
+            {
                try
                {
                   void* obj = get(data->handles[i]);
-                  return RefObjMapPair(handle, obj); 
-               }                
+                  return RefObjMapPair(handle, obj);
+               }
                catch (NameException &ne)
                { // Not throwing, continue to search
                   logWarning("NAME","GET","Exception caught [%s]", ne.what());
-               }           
-            }                  
+               }
+            }
          }
       }
       return RefObjMapPair(handle, NULL);
@@ -300,7 +300,7 @@ std::string NameRegistrar::Iterator::name()
   {
   const Buffer& buf = *(it->first);
   std::string ret = (char*) buf.data;
-  return ret; 
+  return ret;
   }
 
 HandleData& NameRegistrar::Iterator::handle()
@@ -319,20 +319,20 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
       if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
       {
          throw NameException("Unable to get handle because only arbitrary data registered for this name");
-      } 
+      }
       size_t sz = data->numHandles;
       MappingMode m = data->mappingMode;
       int idx = -1;
       if (m == MODE_REDUNDANCY)
       {
          // first association must be returned
-         assert(sz > 0);    
+         assert(sz > 0);
          idx = 0;
       }
       else if (m == MODE_ROUND_ROBIN)
       {
          srand (time(NULL));
-         idx = rand() % sz;         
+         idx = rand() % sz;
       }
       else if (m == MODE_PREFER_LOCAL)
       {
@@ -346,15 +346,15 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
                break;
             }
          }
-         //No process match, get handle of THIS NODE        
+         //No process match, get handle of THIS NODE
          if (idx == -1)
          {
             ClIocNodeAddressT thisNode = SAFplus::ASP_NODEADDR;
             logDebug("NAME","GETHDL","getHandle of name [%s]: thisNode [%d]", name, thisNode);
             for(i=0;i<sz;i++)
-	    {		                
+	    {
 		if ((uint32_t)data->handles[i].getNode() == thisNode)
-		{		
+		{
                    idx = i;
                    break;
 		}
@@ -375,7 +375,7 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
       if (data->structIdAndEndian == STRIDEN) // Need to swap the endian
       {
          data->handles[idx].id[0] = ENDIAN_SWAP_U64(data->handles[idx].id[0]);
-         data->handles[idx].id[1] = ENDIAN_SWAP_U64(data->handles[idx].id[1]);         
+         data->handles[idx].id[1] = ENDIAN_SWAP_U64(data->handles[idx].id[1]);
       }
       return data->handles[idx];
    }
@@ -388,31 +388,31 @@ Handle& NameRegistrar::getHandle(const std::string& name) throw(NameException&)
    {
       Handle& handle = getHandle(name.c_str());
       return handle;
-   }                
+   }
    catch (NameException &ne)
    {
       throw ne;
-   }   
+   }
 }
 
 const Buffer& NameRegistrar::getData(const char* name) throw(NameException&)
 {
    const Buffer& buf = m_checkpoint.read(name);
    if (&buf != NULL)
-   {      
+   {
       HandleData* data = (HandleData*) buf.data;
       if (data->structIdAndEndian == STRID || data->structIdAndEndian == STRIDEN) // Handles in this case
       {
          throw NameException("Unable to get arbitrary data because only handle registered for this name");
       }
-      return buf; 
+      return buf;
    }
-   throw NameException("Name provided does not exist"); 
+   throw NameException("Name provided does not exist");
 }
 
 const Buffer& NameRegistrar::getData(const std::string& name) throw(NameException&)
 {
-   try 
+   try
    {
       return getData(name.c_str());
    }
@@ -425,11 +425,11 @@ const Buffer& NameRegistrar::getData(const std::string& name) throw(NameExceptio
 void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t id, const uint32_t amfId)
 {
    Checkpoint::Iterator ibegin = m_checkpoint.begin();
-   Checkpoint::Iterator iend = m_checkpoint.end();  
+   Checkpoint::Iterator iend = m_checkpoint.end();
    for(Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
    {
       BufferPtr curkey = iter->first;
-      logDebug("NAME","HDLFAIL","key [%s]", curkey.get()->data);            
+      logDebug("NAME","HDLFAIL","key [%s]", curkey.get()->data);
 
       BufferPtr& curval = iter->second;
       if (curval)
@@ -437,9 +437,9 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
          HandleData* data = (HandleData*) curval->data;
          if ((data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) || // Arbitrary data in this case
              (data->mappingMode != NameRegistrar::MODE_PREFER_LOCAL))
-         { 
+         {
             continue;
-         }                           
+         }
          short sz = data->numHandles;
          short numHandles = sz;
          unsigned char markedRemoval[sz];
@@ -448,21 +448,21 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
          {
             if ((failureType == NameRegistrar::FAILURE_PROCESS && data->handles[i].getProcess() == id) ||
                 (failureType == NameRegistrar::FAILURE_NODE && data->handles[i].getNode() == (uint16_t)id))
-            {            
+            {
                if (sz == 1) // There is only one handle registered, then remove the name and its value
                {
                   logDebug("NAME","HDLFAIL","Removing element with key [%s]", curkey.get()->data);
-#if 0                  
-                  m_checkpoint.remove(curval);                   
+#if 0
+                  m_checkpoint.remove(curval);
                   m_checkpoint.remove(curkey, true);
 #endif
                   m_checkpoint.remove(*curkey);
                }
                else  //Remove this element and push remaining handles back to checkpoint
-               {                 
+               {
                   markedRemoval[i] = 1;
-                  numHandles--;                 
-               }                
+                  numHandles--;
+               }
                //return;
             }
          }
@@ -474,7 +474,7 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
          char hdata[hLen];
          HandleData* newData = new(hdata) HandleData;
          newData->structIdAndEndian = data->structIdAndEndian;
-         newData->numHandles = numHandles;         
+         newData->numHandles = numHandles;
          newData->mappingMode = data->mappingMode;
          int j=0;
          for (int i=0;i<sz;i++)
@@ -484,8 +484,8 @@ void NameRegistrar::handleFailure(const FailureType failureType, const uint32_t 
                newData->handles[j] = data->handles[i];
                j++;
             }
-         }      
-         set(curkey.get()->data, newData, hLen);                   
+         }
+         set(curkey.get()->data, newData, hLen);
       }
       else
       {
@@ -501,31 +501,31 @@ void NameRegistrar::processFailed(const uint32_t pid, const uint32_t amfId)
 
 void NameRegistrar::nodeFailed(const uint16_t slotNum, const uint32_t amfId)
 {
-   handleFailure(NameRegistrar::FAILURE_NODE, (uint32_t)slotNum, amfId);  
+   handleFailure(NameRegistrar::FAILURE_NODE, (uint32_t)slotNum, amfId);
 }
 
 void NameRegistrar::dump()
-{  
-   logInfo("NAME","DUMP","---------------------------------");      
+{
+   logInfo("NAME","DUMP","---------------------------------");
    SAFplus::Checkpoint::Iterator ibegin = m_checkpoint.begin();
-   SAFplus::Checkpoint::Iterator iend = m_checkpoint.end(); 
+   SAFplus::Checkpoint::Iterator iend = m_checkpoint.end();
    for(SAFplus::Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
    {
-       BufferPtr curkey = iter->first;       
+       BufferPtr curkey = iter->first;
        if (curkey)
        {
           logInfo("NAME","DUMP","key [%s]", curkey->data);
-       }       
+       }
        BufferPtr& curval = iter->second;
        if (curval)
        {
           HandleData* data = (HandleData*) curval->data;
           if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
-          { 
+          {
              logInfo("NAME","DUMP","Arbitrary data [%s]", curval->data);
           }
           else
-          { 
+          {
              size_t sz = data->numHandles;
              for(int i=0;i<sz;i++)
              {
@@ -534,7 +534,7 @@ void NameRegistrar::dump()
           }
        }
     }
-   logInfo("NAME","DUMP","---------------------------------"); 
+   logInfo("NAME","DUMP","---------------------------------");
 }
 
 void NameRegistrar::dumpObj()
@@ -543,21 +543,21 @@ void NameRegistrar::dumpObj()
    for(ObjHashMap::iterator iter = m_mapObject.begin(); iter != m_mapObject.end(); iter++)
    {
        ObjHashMap::value_type vt = *iter;
-       Handle curkey = vt.first;       
-       logInfo("NAME","OBJDUMP","key [0x%lx.0x%lx]", curkey.id[0], curkey.id[1]);              
+       Handle curkey = vt.first;
+       logInfo("NAME","OBJDUMP","key [0x%lx.0x%lx]", curkey.id[0], curkey.id[1]);
        void* obj = vt.second;
        if (obj)
        {
           logInfo("NAME","OBJDUMP","Obj associated Not NULL");
        }
-       else       
+       else
        {
           logInfo("NAME","OBJDUMP","Obj associated IS NULL");
        }
    }
-   logInfo("NAME","OBJDUMP","---------------------------------");      
+   logInfo("NAME","OBJDUMP","---------------------------------");
 }
 
 NameRegistrar::~NameRegistrar()
-{  
+{
 }
