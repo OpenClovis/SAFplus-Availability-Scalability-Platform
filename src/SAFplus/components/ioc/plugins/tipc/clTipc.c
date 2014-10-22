@@ -742,6 +742,10 @@ ClRcT xportNotifyFinalize(void)
     return clTipcEventHandlerFinalize();
 }
 
+ClRcT xportNodeAddrGet(void)
+{
+    return clTipcOwnAddrGet();
+}
 /*
  * Already handled by the tipc notification interface.
  */

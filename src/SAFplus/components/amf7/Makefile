@@ -12,10 +12,10 @@ $(SAFPLUS_TARGET)/lib/libclAmf.so: $(CKPT_CLIENT_OBJ)
 	$(LINK_SO) $@ $+  -lpthread -lrt
 
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CKPT_SERVER_H)
-	$(COMPILE_CPP) $@ $< -I amfAppRpc
+	$(COMPILE_CPP) $@ $< -I amfAppRpc -I../rpc
 
 $(MWOBJ_DIR)/%.o: amfAppRpc/%.cxx Makefile $(CKPT_SERVER_H)
-	$(COMPILE_CPP) $@ $<
+	$(COMPILE_CPP) $@ $< -I../rpc
 
 $(MWOBJ_DIR)/%.o: amfAppRpc/%.cc Makefile $(CKPT_SERVER_H)
 	$(COMPILE_CPP) $@ $<
