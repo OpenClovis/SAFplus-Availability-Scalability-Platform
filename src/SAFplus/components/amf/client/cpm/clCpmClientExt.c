@@ -319,7 +319,7 @@ ClRcT clCpmClientRMDSyncNew(ClIocNodeAddressT destAddr,
                        CL_CPM_LOG_1_BUF_DELETE_ERR, rc);
         }
     }
-    else if (retCode != CL_OK && (CL_GET_ERROR_CODE(retCode) == CL_ERR_TRY_AGAIN))
+    else if (retCode != CL_OK && (CL_GET_ERROR_CODE(retCode) != CL_ERR_TRY_AGAIN))
     {
         clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_RMD_CALL_ERR, retCode);
         clLogError(CPM_LOG_AREA_RMD, CPM_LOG_CTX_RMD_SYNC, "RMD failed with an error [0x%x]", retCode);
