@@ -319,12 +319,10 @@ ClRcT clCpmClientRMDSyncNew(ClIocNodeAddressT destAddr,
                        CL_CPM_LOG_1_BUF_DELETE_ERR, rc);
         }
     }
-    else if (retCode != CL_OK)
+    else if (retCode != CL_OK && (CL_GET_ERROR_CODE(retCode) == CL_ERR_TRY_AGAIN))
     {
-        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB,
-                   CL_CPM_LOG_1_RMD_CALL_ERR, retCode);
-        clLogError(CPM_LOG_AREA_RMD,CPM_LOG_CTX_RMD_SYNC,
-                   "RMD Failed with an error %x\n ", retCode);
+        clLogWrite(CL_LOG_HANDLE_APP, CL_LOG_SEV_DEBUG, CL_CPM_CLIENT_LIB, CL_CPM_LOG_1_RMD_CALL_ERR, retCode);
+        clLogError(CPM_LOG_AREA_RMD, CPM_LOG_CTX_RMD_SYNC, "RMD failed with an error [0x%x]", retCode);
     }
   failure:
     return retCode;
@@ -2284,58 +2282,51 @@ ClRcT clCpmTargetInfoInitialize(void)
     if(!file)
     {
         clLogInfo("TARGET", "INFO", "Unable to read file [%s] at path [%s]. "
-                  "ASP static target info cannot be fetched by the user", 
+                  "ASP static target info cannot be fetched by the user",
                   CL_TARGET_INFO_FILE, path);
         goto out;
     }
-    rc = CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
-    child = clParserChild(file, "target_conf");
-    if(!child)
-    {
-        clLogError("TARGET", "INFO", "Unable to find tag [target_conf]");
-        goto out_free;
-    }
-    
+
     /*
      * Get the current version of sdk
      */
     clCpmTargetVersionGet(gClTargetClusterInfo.targetInfo.version, sizeof(gClTargetClusterInfo.targetInfo.version)-1);
 
-    if( ( val = clParserChild(child, "TRAP_IP") ) )
+    if( ( val = clParserChild(file, "TRAP_IP") ) )
     {
         gClTargetClusterInfo.targetInfo.trapIp[0] = 0;
         strncat(gClTargetClusterInfo.targetInfo.trapIp, val->txt, sizeof(gClTargetClusterInfo.targetInfo.trapIp)-1);
     }
 
     gClTargetClusterInfo.targetInfo.installPrerequisites = CL_FALSE;
-    if( ( val = clParserChild(child, "INSTALL_PREREQUISITES") ) )
+    if( ( val = clParserChild(file, "INSTALL_PREREQUISITES") ) )
     {
         if(!strncasecmp(val->txt, "yes", 3))
             gClTargetClusterInfo.targetInfo.installPrerequisites = CL_TRUE;
     }
 
     gClTargetClusterInfo.targetInfo.instantiateImages = CL_FALSE;
-    if( ( val = clParserChild(child, "INSTANTIATE_IMAGES") ) )
+    if( ( val = clParserChild(file, "INSTANTIATE_IMAGES") ) )
     {
         if(!strncasecmp(val->txt, "yes", 3))
             gClTargetClusterInfo.targetInfo.instantiateImages = CL_TRUE;
     }
 
     gClTargetClusterInfo.targetInfo.createTarballs = CL_FALSE;
-    if( (val = clParserChild(child, "CREATE_TARBALLS") ) )
+    if( (val = clParserChild(file, "CREATE_TARBALLS") ) )
     {
         if(!strncasecmp(val->txt, "yes", 3))
             gClTargetClusterInfo.targetInfo.createTarballs = CL_TRUE;
     }
 
-    if( (val = clParserChild(child, "TIPC_NETID") ) )
+    if( (val = clParserChild(file, "TIPC_NETID") ) )
         gClTargetClusterInfo.targetInfo.tipcNetid = atoi(val->txt);
 
-    if( (val = clParserChild(child, "GMS_MCAST_PORT") ) )
+    if( (val = clParserChild(file, "GMS_MCAST_PORT") ) )
         gClTargetClusterInfo.targetInfo.gmsMcastPort = atoi(val->txt);
 
     rc = CL_OK;
-    child = clParserChild(child, "slots");
+    child = clParserChild(file, "slots");
     if(!child)
     {
         clLogWarning("TARGET", "INFO", "No slots tag found in [%s]", CL_TARGET_INFO_FILE);

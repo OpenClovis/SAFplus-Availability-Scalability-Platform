@@ -95,6 +95,9 @@ def main():
 
     depth = 0
     iprint('<?xml version="1.0" encoding="UTF-8"?>', depth)
+    iprint('<openClovisAsp>', depth)
+
+    depth += 1
     iprint('<version v0="5.0.0">', depth)
 
     depth += 1    
@@ -200,7 +203,8 @@ def main():
 
     depth -= 1
     iprint('</version>', depth)
-
+    depth -= 1
+    iprint('</openClovisAsp>', depth)
 
 # start program
 if __name__ == '__main__':

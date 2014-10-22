@@ -670,9 +670,6 @@ ClRcT clEoGetConfig(ClCharT* compCfgFile)
         /*
          * Try using the defaults incase the EO config is missing.
          */
-        clLogWarning(CL_LOG_AREA, CL_LOG_CTXT,
-                      "No configuration found for EO [%s]. Using defaults",
-                      CL_EO_NAME);
         strncpy(parseConfigs.heapConfigName, "Default", sizeof(parseConfigs.heapConfigName)-1);
         strncpy(parseConfigs.buffConfigName, "Default", sizeof(parseConfigs.buffConfigName)-1);
         strncpy(parseConfigs.memConfigName, "Default", sizeof(parseConfigs.memConfigName)-1);

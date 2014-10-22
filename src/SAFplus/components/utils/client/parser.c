@@ -97,8 +97,6 @@
         }                                                           \
         if(( (rc) & CL_TAG_SKIP_CHILD_MASK))                        \
         {                                                           \
-            clLogInfo(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,"Skipping child "         \
-                                           ":%s\n",(tag)->pTag);   \
             goto label;                                             \
         }                                                           \
 }while(0)
@@ -635,7 +633,6 @@ static ClRcT clParseInstance(ClParserPtrT node,
                 goto out;
             }
             /*safely skip*/
-            clLogWarning(PARSER_LOG_AREA_PARSER,PARSER_LOG_CTX_CHILD,"Skipping child tag:%s\n",pChild->pTag);
             continue;
         }
         rc = clParseChild(node,child,pChild,pCurrentBase);

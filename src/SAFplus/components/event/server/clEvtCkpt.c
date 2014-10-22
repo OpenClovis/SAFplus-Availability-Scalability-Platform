@@ -192,7 +192,7 @@ void clEventTrackCallback(ClGmsHandleT handle, ClGmsClusterNotificationBufferT *
         ClRcT ret = (fn);                                   \
         if( ret != (expect) )                               \
         {                                                   \
-        	 clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI," rc[0x %x]", ret); \
+            clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_CTX_INI," rc[0x %x]", ret); \
         }                                                   \
     }while( 0 )
 
@@ -3350,64 +3350,62 @@ ClCkptHdlT     ckpt_user_info_handle;  // handle for our checkpoint
 
 ClVersionT           ckpt_version = {'B', 1, 1};
 
-
 ClRcT clEventGlobalCkptInitial()
-{
-        ClRcT           rc  = CL_OK;
-	    rc = clCkptInitialize(&ckpt_svc_handle, /* Checkpoint service handle */
-	                                NULL,           /* Optional callbacks table */
-	                                &ckpt_version); /* Required verison number */
-    	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptInitialize begin");
-	    if (rc != CL_OK)
-	    {
-	    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptInitialize failed");
-	        return rc;
-	    }
-	    sleep(2);
-	    rc=clEventUserInfoCheckpointCreate((SaNameT *) &gUserInfoCkptName);
-	    if (rc != CL_OK)
-	    {
-	    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"create userInfo global checkpoint failed");
-	    	return rc;
-	    }
-	    if(clCpmIsMaster())
-	    {
-	    	rc = clCkptActiveReplicaSet(ckpt_user_info_handle);	
-	    }
-	    
-	    rc=clEventChannelOpenCheckpointCreate((SaNameT *) &gChannelOpenCkptName);
-	    if (rc != CL_OK)
-	    {
-	    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"create User channelOpen global checkpoint failed()");
-	      	return rc;
-	    }
-	    if(clCpmIsMaster())
-	    {
-	    	rc = clCkptActiveReplicaSet(ckpt_channel_open_handle);	
-	    }
-	    
-	    rc=clEventChannelSubCheckpointCreate((SaNameT *) &gChannelSubCkptName);
-	    if (rc != CL_OK)
-	    {
-	    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"create channelSub global checkpoint failed()");
-	      	return rc;
-	    }
-	    if(clCpmIsMaster())
-	    {
-	    	rc = clCkptActiveReplicaSet(ckpt_channel_sub_handle);	
-	    }
-	    clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptInitialize end");
-	    return rc;
-	    
-}
+  {
+    ClRcT rc = CL_OK;
+    rc = clCkptInitialize(&ckpt_svc_handle, /* Checkpoint service handle */
+                          NULL, /* Optional callbacks table */
+                          &ckpt_version); /* Required verison number */
+
+    if (rc != CL_OK)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clCkptInitialize failed");
+        return rc;
+      }
+    sleep(2);
+    rc = clEventUserInfoCheckpointCreate((SaNameT *) &gUserInfoCkptName);
+    if (rc != CL_OK)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "create userInfo global checkpoint failed");
+        return rc;
+      }
+    if (clCpmIsMaster())
+      {
+        rc = clCkptActiveReplicaSet(ckpt_user_info_handle);
+      }
+
+    rc = clEventChannelOpenCheckpointCreate((SaNameT *) &gChannelOpenCkptName);
+    if (rc != CL_OK)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "create User channelOpen global checkpoint failed()");
+        return rc;
+      }
+    if (clCpmIsMaster())
+      {
+        rc = clCkptActiveReplicaSet(ckpt_channel_open_handle);
+      }
+
+    rc = clEventChannelSubCheckpointCreate((SaNameT *) &gChannelSubCkptName);
+    if (rc != CL_OK)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "create channelSub global checkpoint failed()");
+        return rc;
+      }
+    if (clCpmIsMaster())
+      {
+        rc = clCkptActiveReplicaSet(ckpt_channel_sub_handle);
+      }
+    return rc;
+
+  }
 
 ClRcT clEventGlobalCkptFinalize()
-{
-	clCkptCheckpointDelete(ckpt_svc_handle, &gChannelOpenCkptName);
-	clCkptCheckpointDelete(ckpt_svc_handle, &gUserInfoCkptName);
-	clCkptCheckpointDelete(ckpt_svc_handle, &gChannelSubCkptName);
-	return CL_OK;
-}
+  {
+    clCkptCheckpointDelete(ckpt_svc_handle, &gChannelOpenCkptName);
+    clCkptCheckpointDelete(ckpt_svc_handle, &gUserInfoCkptName);
+    clCkptCheckpointDelete(ckpt_svc_handle, &gChannelSubCkptName);
+    return CL_OK;
+  }
 
 ClRcT clEventSerialiser(ClUint32T  dsId,
                       ClAddrT    *pBuffer,
@@ -3420,19 +3418,19 @@ ClRcT clEventSerialiser(ClUint32T  dsId,
     rc = clBufferLengthGet(msg, pSize);
     if( CL_OK != rc )
     {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEventSerialiser:  clBufferLengthGet(): rc[0x %x]", rc);        
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEventSerialiser:  clBufferLengthGet(): rc[0x %x]", rc);
         return rc;
     }
     *pBuffer = (ClAddrT) clHeapCalloc(*pSize, sizeof(ClUint8T));
     if( NULL == *pBuffer )
     {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEventSerialiser: clHeapCalloc()");
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEventSerialiser: clHeapCalloc()");
         return rc;
     }
     rc = clBufferNBytesRead(msg, (ClUint8T *)*pBuffer, pSize);
     if( CL_OK != rc )
     {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEventSerialiser : clBufferNBytesRead(): rc[0x %x]", rc);
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEventSerialiser : clBufferNBytesRead(): rc[0x %x]", rc);
         clHeapFree(*pBuffer);
         return rc;
     }
@@ -3614,7 +3612,7 @@ ClRcT clEvtCkptGlobalCheckPointUserInfo(ClEvtInitRequestT *pEvtInitReq)
         }
         else
         {
-        	clHeapFree(secId.id);
+            clHeapFree(secId.id);
             return rc;
         }
     }
@@ -3708,7 +3706,7 @@ ClRcT clEvtCkptGlobalCheckPointChannelOpen(ClEvtChannelOpenRequestT
         }
         else
         {
-        	clHeapFree(secId.id);
+            clHeapFree(secId.id);
             return rc;
         }
     }
@@ -3803,7 +3801,7 @@ ClRcT clEvtCkptGlobalCheckPointChannelSub(ClEvtSubscribeEventRequestT *pEvtSubsR
         }
         else
         {
-        	clHeapFree(secId.id);
+            clHeapFree(secId.id);
             return rc;
         }
     }
@@ -3864,157 +3862,146 @@ ClRcT clEvtCkptGlobalCheckPointChannelSub(ClEvtSubscribeEventRequestT *pEvtSubsR
     CL_FUNC_EXIT();
     return CL_OK;
 }
+
 //***************************** UnMarshall channel open checkpoint msg*********************************
-ClRcT
-clEventUserInfoEntryUnpackNAdd(ClBufferHandleT        msg)
-{
-    ClRcT             rc         = CL_OK;
+ClRcT clEventUserInfoEntryUnpackNAdd(ClBufferHandleT msg )
+  {
+    ClRcT rc = CL_OK;
     ClEvtInitRequestT *pEvtInitReq = NULL;
-    pEvtInitReq = (ClEvtInitRequestT*)clHeapCalloc(1, sizeof(ClEvtInitRequestT));
-    if( NULL == pEvtInitReq )
-    {
-    	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clHeapCalloc()");
+    pEvtInitReq = (ClEvtInitRequestT*) clHeapCalloc(1, sizeof(ClEvtInitRequestT));
+    if ( NULL == pEvtInitReq)
+      {
+        clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clHeapCalloc()");
         return CL_EVENTS_RC(CL_ERR_NO_MEMORY);
-    }    
+      }
 
-    rc = VDECL_VER(clXdrUnmarshallClEvtInitRequestT, 4, 0, 0)(msg,pEvtInitReq);
-    if( CL_OK != rc )
-    {        
-        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clXdrUnMarshallSaNameT(): rc[0x %x]", rc);
+    rc = VDECL_VER(clXdrUnmarshallClEvtInitRequestT, 4, 0, 0)(msg, pEvtInitReq);
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clXdrUnMarshallSaNameT(): rc[0x %x]", rc);
         return rc;
-    }   
+      }
     ClUint64T section_index = pEvtInitReq->userId.evtHandle; /*our section name apparently*/
-    clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"Simulator Initial via Request for Channel[%#llX]", section_index);  
-    rc = clEvtInitializeViaRequest(pEvtInitReq,CL_EVT_CKPT_REQUEST);
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "Simulator Initial via Request for Channel[%#llX]", section_index);
+    rc = clEvtInitializeViaRequest(pEvtInitReq, CL_EVT_CKPT_REQUEST);
     if (CL_OK != rc)
-    {
-        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,
-                   "\nInitialize via Request Failed [%x]\n", rc);
-                    CL_FUNC_EXIT();
-                    return rc;
-                }
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "Initialize via Request Failed [%x]", rc); CL_FUNC_EXIT();
+        return rc;
+      }
     return rc;
-}    
+  }
 
 
 //***************************** UnMarshall channel open checkpoint msg*********************************
-ClRcT
-clEventChannelOpenEntryUnpackNAdd(ClBufferHandleT        msg)
-{
-    ClRcT             rc         = CL_OK;
+ClRcT clEventChannelOpenEntryUnpackNAdd(ClBufferHandleT msg )
+  {
+    ClRcT rc = CL_OK;
     ClEvtChannelOpenRequestT *pEvtChannelOpenRequest = NULL;
-    pEvtChannelOpenRequest = (ClEvtChannelOpenRequestT*)clHeapCalloc(1, sizeof(ClEvtChannelOpenRequestT));
-    if( NULL == pEvtChannelOpenRequest )
-    {
-    	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clHeapCalloc()");
+    pEvtChannelOpenRequest = (ClEvtChannelOpenRequestT*) clHeapCalloc(1, sizeof(ClEvtChannelOpenRequestT));
+    if ( NULL == pEvtChannelOpenRequest)
+      {
+        clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clHeapCalloc()");
         return CL_EVENTS_RC(CL_ERR_NO_MEMORY);
-    }    
+      }
 
-    rc = VDECL_VER(clXdrUnmarshallClEvtChannelOpenRequestT, 4, 0, 0)(msg,pEvtChannelOpenRequest);
-    if( CL_OK != rc )
-    {        
-        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"ChannelOpenRequestT(): rc[0x %x]", rc);
+    rc = VDECL_VER(clXdrUnmarshallClEvtChannelOpenRequestT, 4, 0, 0)(msg, pEvtChannelOpenRequest);
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "ChannelOpenRequestT(): rc[0x %x]", rc);
         return rc;
-    }   
-    clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"\n Simulator Open via Request for Channel[%*s] \n",pEvtChannelOpenRequest->evtChannelName.length,pEvtChannelOpenRequest->evtChannelName.value);
-    rc = clEvtChannelOpenViaRequest(pEvtChannelOpenRequest,CL_EVT_CKPT_REQUEST);
+      }
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "Simulator Open via Request for Channel [%*s]",
+        pEvtChannelOpenRequest->evtChannelName.length, pEvtChannelOpenRequest->evtChannelName.value);
+    rc = clEvtChannelOpenViaRequest(pEvtChannelOpenRequest, CL_EVT_CKPT_REQUEST);
     if (CL_OK != rc)
-    {
-         clLogError(CL_LOG_AREA_UNSPECIFIED,CL_LOG_CONTEXT_UNSPECIFIED,
-                    "\nChannel Open via Request Failed [%x]\n",
-                     rc);
-         CL_FUNC_EXIT();
-         return rc;
-    }
+      {
+        clLogError(CL_LOG_AREA_UNSPECIFIED, CL_LOG_CONTEXT_UNSPECIFIED, "Channel Open via Request Failed [%x]", rc); CL_FUNC_EXIT();
+        return rc;
+      }
     return rc;
-}    
+  }
 
 //***************************** UnMarshall channel sub checkpoint msg*********************************
-ClRcT
-clEventChannelSubEntryUnpackNAdd(ClBufferHandleT        msg)
-{
-    ClRcT             rc         = CL_OK;
+ClRcT clEventChannelSubEntryUnpackNAdd(ClBufferHandleT msg )
+  {
+    ClRcT rc = CL_OK;
     ClEvtSubscribeEventRequestT *pEvtSubsReq = NULL;
-    pEvtSubsReq = (ClEvtSubscribeEventRequestT*)clHeapCalloc(1, sizeof(ClEvtSubscribeEventRequestT));
-    if( NULL == pEvtSubsReq )
-    {
-    	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clHeapCalloc()");
+    pEvtSubsReq = (ClEvtSubscribeEventRequestT*) clHeapCalloc(1, sizeof(ClEvtSubscribeEventRequestT));
+    if ( NULL == pEvtSubsReq)
+      {
+        clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clHeapCalloc()");
         return CL_EVENTS_RC(CL_ERR_NO_MEMORY);
-    }    
+      }
 
-    rc = VDECL_VER(clXdrUnmarshallClEvtSubscribeEventRequestT, 4, 0, 0)(msg,pEvtSubsReq);
-    if( CL_OK != rc )
-    {        
-        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"SubscribeEventRequestT: rc[0x %x]", rc);
+    rc = VDECL_VER(clXdrUnmarshallClEvtSubscribeEventRequestT, 4, 0, 0)(msg, pEvtSubsReq);
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "SubscribeEventRequestT: rc[0x %x]", rc);
         return rc;
-    }   
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"\n Simulator Subscribe via Request for Channel[%*s] \n",
-			pEvtSubsReq->evtChannelName.length,pEvtSubsReq->evtChannelName.value);
+      }
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "Simulator Subscribe via Request for Channel [%*s]",
+        pEvtSubsReq->evtChannelName.length, pEvtSubsReq->evtChannelName.value);
     rc = clEvtEventSubscribeViaRequest(pEvtSubsReq, CL_EVT_CKPT_REQUEST);
     if (CL_OK != rc)
-    {
-        clLogError(EVENT_LOG_AREA_EVENT,EVENT_LOG_CTX_SUBSCRIBE,
-                   "\nSubscribe via Request for Channel Failed [%x]\n",rc);
-        CL_FUNC_EXIT();
+      {
+        clLogError(EVENT_LOG_AREA_EVENT, EVENT_LOG_CTX_SUBSCRIBE, "Subscribe via Request for Channel Failed [%x]", rc); CL_FUNC_EXIT();
         return rc;
-    }
-    
+      }
+
     return rc;
-}    
+  }
 
 ClRcT
-clEventChannelSubEntryClean(ClBufferHandleT        msg,ClIocNodeAddressT  nodeLeave)
-{
-    ClRcT             rc         = CL_OK;
+clEventChannelSubEntryClean(ClBufferHandleT msg, ClIocNodeAddressT nodeLeave )
+  {
+    ClRcT rc = CL_OK;
     ClEvtSubscribeEventRequestT *pEvtSubsReq = NULL;
-    pEvtSubsReq = (ClEvtSubscribeEventRequestT*)clHeapCalloc(1, sizeof(ClEvtSubscribeEventRequestT));
-    if( NULL == pEvtSubsReq )
-    {
-        clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clHeapCalloc()");
+    pEvtSubsReq = (ClEvtSubscribeEventRequestT*) clHeapCalloc(1, sizeof(ClEvtSubscribeEventRequestT));
+    if ( NULL == pEvtSubsReq)
+      {
+        clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clHeapCalloc()");
         return CL_EVENTS_RC(CL_ERR_NO_MEMORY);
-    }    
-    rc = VDECL_VER(clXdrUnmarshallClEvtSubscribeEventRequestT, 4, 0, 0)(msg,pEvtSubsReq);
-    if( CL_OK != rc )
-    {        
-        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"SubscribeEventRequestT: rc[0x %x]", rc);
+      }
+    rc = VDECL_VER(clXdrUnmarshallClEvtSubscribeEventRequestT, 4, 0, 0)(msg, pEvtSubsReq);
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "SubscribeEventRequestT: rc[0x %x]", rc);
         return rc;
-    }   
-    clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"\n Simulator UnSubscribe via Request for Channel[%*s] \n",
-			pEvtSubsReq->evtChannelName.length,pEvtSubsReq->evtChannelName.value);
-    if(pEvtSubsReq->externalAddress==nodeLeave)
-    {
-        clLogDebug("CKPT", "CLEAN", "unsubscriber all channel of node [%d]",pEvtSubsReq->externalAddress);
+      }
+
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "Simulator UnSubscribe via Request for Channel [%*s]",
+        pEvtSubsReq->evtChannelName.length, pEvtSubsReq->evtChannelName.value);
+
+    if (pEvtSubsReq->externalAddress == nodeLeave)
+      {
+        clLogDebug("CKPT", "CLEAN", "Unsubscriber all channel of node [%d]", pEvtSubsReq->externalAddress);
         ClEvtUnsubscribeEventRequestT unsubsReq;
         memset(&unsubsReq, 0, sizeof(ClEvtUnsubscribeEventRequestT));
         unsubsReq.evtChannelHandle = pEvtSubsReq->evtChannelHandle;
         unsubsReq.userId = pEvtSubsReq->userId;
         unsubsReq.subscriptionId = pEvtSubsReq->subscriptionId;
         unsubsReq.reqFlag = CL_EVT_UNSUBSCRIBE;
-        clEvtUtilsNameCpy(&unsubsReq.evtChannelName,
-                      &pEvtSubsReq->evtChannelName);
+        clEvtUtilsNameCpy(&unsubsReq.evtChannelName, &pEvtSubsReq->evtChannelName);
 
         rc = clEvtEventCleanupViaRequest(&unsubsReq, CL_EVT_NORMAL_REQUEST);
         if (CL_OK != rc)
-        {
-            clLogError(EVENT_LOG_AREA_EVENT,CL_LOG_CONTEXT_UNSPECIFIED,
-                   "\nUnsubscribe via Request for Channel[%*s]"
-                   "Failed [%x]\n",
-                   unsubsReq.evtChannelName.length,
-                   unsubsReq.evtChannelName.value, rc);
-            CL_FUNC_EXIT();
+          {
+            clLogError(EVENT_LOG_AREA_EVENT, CL_LOG_CONTEXT_UNSPECIFIED, "Unsubscribe via Request for Channel[%*s] failed [%x]",
+                unsubsReq.evtChannelName.length, unsubsReq.evtChannelName.value, rc);
             return rc;
-        }
-    }
-    
+          }
+      }
+
     return rc;
-}    
+  }
 
 //***************************** Delete channel open checkpoint *********************************
 // Remove channel open checpoint section when channel close
 //**********************************************************************************************
 ClRcT clEvtChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 {
-	ClRcT  rc = CL_OK;
+    ClRcT  rc = CL_OK;
     ClCkptSectionIdT                  secId                   = {0};
     secId.idLen = pEvtUnsubsReq->evtChannelName.length;
     secId.id    = (ClUint8T*)clHeapCalloc(secId.idLen, sizeof(ClCharT));
@@ -4024,8 +4011,8 @@ ClRcT clEvtChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
         return CL_EVENTS_RC(CL_ERR_NO_MEMORY);
     }    
     memcpy(secId.id , pEvtUnsubsReq->evtChannelName.value,pEvtUnsubsReq->evtChannelName.length);
-    
-    if( (0 != (&secId)->idLen) && (NULL != (&secId)->id) )
+
+    if ((&secId)->idLen && (&secId)->id)
     {
         rc = clCkptSectionDelete(ckpt_channel_open_handle,&secId); 
         if( CL_OK != rc )
@@ -4037,7 +4024,7 @@ ClRcT clEvtChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
             }
             else
             {
-            	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);  
+                clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);
                 return rc;
             }
     
@@ -4051,7 +4038,7 @@ ClRcT clEvtChannelOpenCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 //**********************************************************************************************
 ClRcT clEvtChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 {
-	ClRcT  rc = CL_OK;
+    ClRcT  rc = CL_OK;
     ClCkptSectionIdT                  secId                   = {0};
     secId.idLen = pEvtUnsubsReq->evtChannelName.length;
     secId.id    = (ClUint8T*)clHeapCalloc(secId.idLen, sizeof(ClCharT));
@@ -4061,24 +4048,24 @@ ClRcT clEvtChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
         return CL_EVENTS_RC(CL_ERR_NO_MEMORY);
     }    
     memcpy(secId.id , pEvtUnsubsReq->evtChannelName.value,pEvtUnsubsReq->evtChannelName.length);
-    
-    if( (0 != (&secId)->idLen) && (NULL != (&secId)->id) )
-    {
-       rc = clCkptSectionDelete(ckpt_channel_sub_handle,&secId); 
-       if( CL_OK != rc )
-       {
-           if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST) 
-           {
-               clLogDebug("INFO", "SYNCUP","Section already deleted.");
-               rc = CL_OK;     
-           }
-           else
-           {
-        	   clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);
-               return rc;
-           }
-       }
-    }
+
+    if ((&secId)->idLen && (&secId)->id)
+      {
+        rc = clCkptSectionDelete(ckpt_channel_sub_handle, &secId);
+        if ( CL_OK != rc)
+          {
+            if (CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST)
+              {
+                clLogDebug("INFO", "SYNCUP", "Section already deleted.");
+                rc = CL_OK;
+              }
+            else
+              {
+                clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clCkptSectionDelete(): rc[0x %x]", rc);
+                return rc;
+              }
+          }
+      }
     return rc;
 }
 
@@ -4087,7 +4074,7 @@ ClRcT clEvtChannelSubCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 //**********************************************************************************************
 ClRcT clEvtUserInfoCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 {
-	ClRcT  rc = CL_OK;
+    ClRcT  rc = CL_OK;
     ClCkptSectionIdT                  secId                   = {0};    
     secId.idLen = 16;
     secId.id    = (ClUint8T*)clHeapCalloc(secId.idLen, sizeof(ClCharT));
@@ -4101,7 +4088,7 @@ ClRcT clEvtUserInfoCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
     sprintf(buff, "%llu", section_index);
     memcpy(secId.id,buff,16);  
     clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEvtCkptGlobalCheckPointUserInfo : userId.evtHandle: [%s]", buff);    
-    if( (0 != (&secId)->idLen) && (NULL != (&secId)->id) )
+    if ((&secId)->idLen && (&secId)->id)
     {
        rc = clCkptSectionDelete(ckpt_user_info_handle,&secId); 
        if( CL_OK != rc )
@@ -4113,7 +4100,7 @@ ClRcT clEvtUserInfoCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
            }
            else
            {
-        	   clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);
+               clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionDelete(): rc[0x %x]", rc);
                return rc;
            }
        }
@@ -4123,105 +4110,102 @@ ClRcT clEvtUserInfoCkptDelete(ClEvtUnsubscribeEventRequestT  *pEvtUnsubsReq)
 
 //***************************** Recovery channel open Entry *********************************
 
-ClRcT
-clChannelOpenEntryRecover(ClCkptSectionDescriptorT  *pSecDescriptor)
-{
-    ClRcT                   rc     = CL_OK;
-    ClCkptIOVectorElementT  ioVector       = {{0}};
-    ClUint32T               errIndex       = 0;
-    ClBufferHandleT        msg            = CL_HANDLE_INVALID_VALUE;
-    
-    ioVector.sectionId  = pSecDescriptor->sectionId; 
-    ioVector.dataBuffer = NULL;
-    ioVector.dataSize   = 0;
-    ioVector.readSize   = 0;
-    ioVector.dataOffset = 0;
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clChannelOpenEntryRecover(): Enter");
-    rc = clCkptCheckpointRead(ckpt_channel_open_handle, &ioVector, 1, &errIndex);
-    if( CL_OK != rc )
-    {
-    	 clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptCheckpointRead(): rc[0x %x]", rc);
-        return rc;
-    }
+ClRcT clChannelOpenEntryRecover(ClCkptSectionDescriptorT *pSecDescriptor )
+  {
+    ClRcT rc = CL_OK;
+    ClCkptIOVectorElementT ioVector = { { 0 } };
+    ClUint32T errIndex = 0;
+    ClBufferHandleT msg = CL_HANDLE_INVALID_VALUE;
 
-    if(ioVector.readSize <= 0)
-    {
-    	 clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"Global stream  ChannelOpen recovery failed because of inconsistent ckpt "
-                            "data of size [%lld]",
-                            ioVector.readSize);
+    ioVector.sectionId = pSecDescriptor->sectionId;
+    ioVector.dataBuffer = NULL;
+    ioVector.dataSize = 0;
+    ioVector.readSize = 0;
+    ioVector.dataOffset = 0;
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clChannelOpenEntryRecover(): Enter");
+    rc = clCkptCheckpointRead(ckpt_channel_open_handle, &ioVector, 1, &errIndex);
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clCkptCheckpointRead(): rc[0x %x]", rc);
+        return rc;
+      }
+
+    if (ioVector.readSize <= 0)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "Global stream  ChannelOpen recovery failed because of inconsistent ckpt "
+            "data of size [%lld]", ioVector.readSize);
         clHeapFree(ioVector.dataBuffer);
         return CL_EVENTS_RC(CL_ERR_INVALID_STATE);
-    }
+      }
     rc = clBufferCreate(&msg);
-    if( CL_OK != rc )
-    {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clBufferCreate()");
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clBufferCreate()");
         return rc;
-    }    
-    rc = clBufferNBytesWrite(msg, (ClUint8T *)ioVector.dataBuffer, ioVector.readSize);
-    if( CL_OK != rc )
-    {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clBufferNBytesWrite(): rc[0x %x]", rc);
+      }
+    rc = clBufferNBytesWrite(msg, (ClUint8T *) ioVector.dataBuffer, ioVector.readSize);
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clBufferNBytesWrite(): rc[0x %x]", rc);
         clBufferDelete(&msg);
         return rc;
-    }    
+      }
     //simulate re initital
     clEventChannelOpenEntryUnpackNAdd(msg);
     clHeapFree(ioVector.dataBuffer);
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clChannelOpenEntryRecover(): End");
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clChannelOpenEntryRecover(): End");
     return rc;
-} 
+  }
 
 //***************************** Recovery channel sub Entry *********************************
-ClRcT
-clChannelSubEntryRecover(ClCkptSectionDescriptorT  *pSecDescriptor)
-{
-    ClRcT                   rc     = CL_OK;
-    ClCkptIOVectorElementT  ioVector       = {{0}};
-    ClUint32T               errIndex       = 0;
-    ClBufferHandleT        msg            = CL_HANDLE_INVALID_VALUE;
-    
-    ioVector.sectionId  = pSecDescriptor->sectionId; 
+ClRcT clChannelSubEntryRecover(ClCkptSectionDescriptorT *pSecDescriptor )
+  {
+    ClRcT rc = CL_OK;
+    ClCkptIOVectorElementT ioVector = { { 0 } };
+    ClUint32T errIndex = 0;
+    ClBufferHandleT msg = CL_HANDLE_INVALID_VALUE;
+
+    ioVector.sectionId = pSecDescriptor->sectionId;
     ioVector.dataBuffer = NULL;
-    ioVector.dataSize   = 0;
-    ioVector.readSize   = 0;
+    ioVector.dataSize = 0;
+    ioVector.readSize = 0;
     ioVector.dataOffset = 0;
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clChannelSubEntryRecover(): Enter");
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clChannelSubEntryRecover(): Enter");
 
     rc = clCkptCheckpointRead(ckpt_channel_sub_handle, &ioVector, 1, &errIndex);
-    if( CL_OK != rc )
-    {
-    	 clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptCheckpointRead(): rc[0x %x]", rc);
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clCkptCheckpointRead(): rc[0x %x]", rc);
         return rc;
-    }
-    if(ioVector.readSize <= 0)
-    {
-    	 clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"Global stream ChannelSub recovery failed because of inconsistent ckpt "
-                            "data of size [%lld]",
-                            ioVector.readSize);
+      }
+    if (ioVector.readSize <= 0)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "Global stream ChannelSub recovery failed because of inconsistent ckpt "
+            "data of size [%lld]", ioVector.readSize);
         clHeapFree(ioVector.dataBuffer);
         return CL_EVENTS_RC(CL_ERR_INVALID_STATE);
-    }
+      }
     rc = clBufferCreate(&msg);
-    if( CL_OK != rc )
-    {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clBufferCreate()");
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clBufferCreate()");
         return rc;
-    }    
-    rc = clBufferNBytesWrite(msg, (ClUint8T *)ioVector.dataBuffer, ioVector.readSize);
-    if( CL_OK != rc )
-    {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clBufferNBytesWrite(): rc[0x %x]", rc);
+      }
+    rc = clBufferNBytesWrite(msg, (ClUint8T *) ioVector.dataBuffer, ioVector.readSize);
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clBufferNBytesWrite(): rc[0x %x]", rc);
         clBufferDelete(&msg);
         return rc;
-    }  
+      }
     //simulate re sub
     clEventChannelSubEntryUnpackNAdd(msg);
     clHeapFree(ioVector.dataBuffer);
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clChannelSubEntryRecover(): End");
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clChannelSubEntryRecover(): End");
 
     return rc;
-} 
+  }
+
 ClRcT
 clChannelSubEntryClean(ClCkptSectionDescriptorT  *pSecDescriptor,ClIocNodeAddressT  nodeLeave)
 {
@@ -4269,54 +4253,51 @@ clChannelSubEntryClean(ClCkptSectionDescriptorT  *pSecDescriptor,ClIocNodeAddres
 } 
 
 //***************************** Recovery User Info Entry *********************************
-ClRcT
-clUserInfoEntryRecover(ClCkptSectionDescriptorT  *pSecDescriptor)
-{
-    ClRcT                   rc     = CL_OK;
-    ClCkptIOVectorElementT  ioVector       = {{0}};
-    ClUint32T               errIndex       = 0;
-    ClBufferHandleT        msg            = CL_HANDLE_INVALID_VALUE;
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clUserInfoEntryRecover(): Enter for [%s] ",pSecDescriptor->sectionId.id);
-    ioVector.sectionId  = pSecDescriptor->sectionId; 
+ClRcT clUserInfoEntryRecover(ClCkptSectionDescriptorT *pSecDescriptor )
+  {
+    ClRcT rc = CL_OK;
+    ClCkptIOVectorElementT ioVector = { { 0 } };
+    ClUint32T errIndex = 0;
+    ClBufferHandleT msg = CL_HANDLE_INVALID_VALUE;
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clUserInfoEntryRecover(): Enter for [%s] ", pSecDescriptor->sectionId.id);
+    ioVector.sectionId = pSecDescriptor->sectionId;
     ioVector.dataBuffer = NULL;
-    ioVector.dataSize   = 0;
-    ioVector.readSize   = 0;
+    ioVector.dataSize = 0;
+    ioVector.readSize = 0;
     ioVector.dataOffset = 0;
     rc = clCkptCheckpointRead(ckpt_user_info_handle, &ioVector, 1, &errIndex);
-    if( CL_OK != rc )
-    {
-    	 clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptCheckpointRead(): rc[0x %x]", rc);
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clCkptCheckpointRead(): rc[0x %x]", rc);
         return rc;
-    }
+      }
 
-    if(ioVector.readSize <= 0)
-    {
-    	 clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"Global stream User Info recovery failed because of inconsistent ckpt "
-                            "data of size [%lld]",
-                            ioVector.readSize);
+    if (ioVector.readSize <= 0)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "Global stream User Info recovery failed because of inconsistent ckpt "
+            "data of size [%lld]", ioVector.readSize);
         clHeapFree(ioVector.dataBuffer);
         return CL_EVENTS_RC(CL_ERR_INVALID_STATE);
-    }
+      }
     rc = clBufferCreate(&msg);
-    if( CL_OK != rc )
-    {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clBufferCreate()");
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clBufferCreate()");
         return rc;
-    }    
-    rc = clBufferNBytesWrite(msg, (ClUint8T *)ioVector.dataBuffer, ioVector.readSize);
-    if( CL_OK != rc )
-    {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clBufferNBytesWrite(): rc[0x %x]", rc);
+      }
+    rc = clBufferNBytesWrite(msg, (ClUint8T *) ioVector.dataBuffer, ioVector.readSize);
+    if ( CL_OK != rc)
+      {
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clBufferNBytesWrite(): rc[0x %x]", rc);
         clBufferDelete(&msg);
         return rc;
-    }  
+      }
     //simulate re initital
     clEventUserInfoEntryUnpackNAdd(msg);
     clHeapFree(ioVector.dataBuffer);
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clUserInfoEntryRecover(): End");
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clUserInfoEntryRecover(): End");
     return rc;
-} 
-
+  }
 
 
 //***************************** Recovery channel Open state *********************************
@@ -4350,8 +4331,7 @@ clEventChannelOpenRecover(ClBoolT switchover)
                                           CL_TIME_END, &hSecIter);
     if( CL_OK != rc )
     {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionIterationInitialize(): rc[0x %x]",
-                            rc);
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clCkptSectionIterationInitialize(): rc[0x %x]", rc);
         return rc;
     }    
     do
@@ -4409,8 +4389,7 @@ clEventChannelSubRecover(ClBoolT switchover)
                                           CL_TIME_END, &hSecIter);
     if( CL_OK != rc )
     {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionIterationInitialize(): rc[0x %x]",
-                            rc);
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clCkptSectionIterationInitialize(): rc[0x %x]", rc);
         return rc;
     }    
     do
@@ -4451,8 +4430,7 @@ clEventUserInfoRecover(ClBoolT switchover)
                                           CL_TIME_END, &hSecIter);
     if( CL_OK != rc )
     {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clCkptSectionIterationInitialize(): rc[0x %x]",
-                            rc);
+        clLogError(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clCkptSectionIterationInitialize(): rc[0x %x]", rc);
         return rc;
     }    
     do
@@ -4483,13 +4461,11 @@ clEventUserInfoRecover(ClBoolT switchover)
 ClRcT
 clEventExternalRecoverState(ClBoolT switchover)
 {
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEventExternalRecoverState(): UserInfo Recover");
-	clEventUserInfoRecover(CL_TRUE);
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEventExternalRecoverState(): UserInfo Recover");
-	clEventChannelOpenRecover(CL_TRUE);
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clEventExternalRecoverState(): UserInfo Recover");
-	clEventChannelSubRecover(CL_TRUE);
-	return CL_TRUE;
+    clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clEventExternalRecoverState(): UserInfo/ChannelOpen/ChannelSub Recover");
+    clEventUserInfoRecover(CL_TRUE);
+    clEventChannelOpenRecover(CL_TRUE);
+    clEventChannelSubRecover(CL_TRUE);
+    return CL_TRUE;
 }
 
 ClGmsHandleT  hGms = CL_HANDLE_INVALID_VALUE;
@@ -4501,38 +4477,25 @@ ClGmsCallbacksT eventGmsCallbacks = {
                                NULL,
                                };
 
+static ClRcT clEventAddrUpdate(ClIocNodeAddressT leader, ClIocNodeAddressT deputy )
+  {
+    ClRcT rc = CL_OK;
+    ClIocNodeAddressT localAddr = clIocLocalAddressGet();
 
-
-
-static ClRcT
-clEventAddrUpdate(ClIocNodeAddressT  leader, 
-                ClIocNodeAddressT  deputy)
-{
-    ClRcT                  rc                = CL_OK;
-    ClIocNodeAddressT      localAddr         = CL_IOC_RESERVED_ADDRESS;
-
-
-    localAddr = clIocLocalAddressGet();
-    if( CL_IOC_RESERVED_ADDRESS == localAddr )
-    {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clIocLocalAddressGet() failed");
-        return CL_EVENTS_RC(CL_ERR_TRY_AGAIN);
-    }
-    
-    if(( currentNodeLeader != leader) && (localAddr == leader) )
-	{
-		currentNodeLeader = leader;
-		clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"...................clEventAddrUpdate() : leader change to me \n");
-    	rc = clCkptActiveReplicaSet(ckpt_user_info_handle);	
-    	rc = clCkptActiveReplicaSet(ckpt_channel_open_handle);	
-    	rc = clCkptActiveReplicaSet(ckpt_channel_sub_handle);
-	    rc = clEventExternalRecoverState(CL_TRUE);
-		return rc;
-	}
-	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"...................clEventAddrUpdate(): update leader \n");            
-	currentNodeLeader = leader;
+    if (currentNodeLeader != leader)
+      {
+        currentNodeLeader = leader;
+        clLogDebug(EVENT_LOG_AREA_CKPT, EVENT_LOG_GLOBAL, "clEventAddrUpdate() : leader change to [0x%x]", currentNodeLeader);
+        if (localAddr == leader)
+          {
+            rc = clCkptActiveReplicaSet(ckpt_user_info_handle);
+            rc = clCkptActiveReplicaSet(ckpt_channel_open_handle);
+            rc = clCkptActiveReplicaSet(ckpt_channel_sub_handle);
+            rc = clEventExternalRecoverState(CL_TRUE);
+          }
+      }
     return rc;
-}
+  }
 
 ClRcT
 clEventCleanAllChannel(ClIocNodeAddressT  nodeLeave)
@@ -4585,19 +4548,17 @@ void clEventTrackCallback(ClGmsHandleT handle, ClGmsClusterNotificationBufferT *
                         ClUint32T                       numberOfMembers,
                         ClRcT                           rc)
 {
-    clLogDebug("CKPT", "CLEAN", "clEventTrackCallback event ");
     clEventAddrUpdate(notificationBuffer->leader, notificationBuffer->deputy);
     if(clCpmIsMaster())
-    {    	
-    	int i;
-        for (i = 0; i < numberOfMembers; i++) 
+    {
+        for (int i = 0; i < numberOfMembers; i++)
         {
             if(notificationBuffer->notification[i].clusterChange==(ClInt32T)CL_GMS_MEMBER_LEFT)
             {
                 //unsubscriber all external channel of this node
-                clLogDebug("CKPT", "CLEAN", "unsubscriber all channel of node [%d]",notificationBuffer->notification[i].clusterNode.nodeAddress.iocPhyAddress.nodeAddress);
+                clLogDebug("CKPT", "CLEAN", "Unsubscriber all channel of node [%d]",notificationBuffer->notification[i].clusterNode.nodeAddress.iocPhyAddress.nodeAddress);
                 clEventCleanAllChannel((ClIocNodeAddressT)notificationBuffer->notification[i].clusterNode.nodeAddress.iocPhyAddress.nodeAddress);
-            }          
+            }
         }
     }
 }
@@ -4609,29 +4570,37 @@ clEventGmsInit(void)
     ClGmsClusterNotificationBufferT  notBuffer  = {0};
     ClVersionT                       version    = {'B', 0x1, 0x1};
     ClUint32T                        numRetries = 0;
+    ClUint32T                        maxRetries = 30;
 
-   
     do
-    {
-        rc = clGmsInitialize(&hGms, &eventGmsCallbacks,
-                             &version);
-        if( CL_OK != rc )
-        {
-            usleep(100);
-        }
+      {
+        rc = clGmsInitialize(&hGms, &eventGmsCallbacks, &version);
+        if ( CL_OK != rc)
+          {
+            usleep(100000);
+          }
         numRetries++;
-    }while((rc != CL_OK) && 
-           (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && 
-           (numRetries < CL_EVENT_MAX_RETRIES));
+      }
+    while ((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && (numRetries < maxRetries));
 
     if( rc != CL_OK )
     {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clGmsInitialize(): rc[0x %x]\n", rc); 
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clGmsInitialize(): rc[0x %x]\n", rc);
         return rc;
     }
-    rc = clGmsClusterTrack( hGms,
-                            CL_GMS_TRACK_CHANGES | CL_GMS_TRACK_CURRENT, 
-                            &notBuffer);
+
+    numRetries = 0;
+    do  // We may have to wait a long time for GMS to come up...
+    {
+        rc = clGmsClusterTrack( hGms, CL_GMS_TRACK_CHANGES | CL_GMS_TRACK_CURRENT, &notBuffer);
+        if( CL_OK != rc )
+        {
+            sleep(1);
+        }
+
+        numRetries++;
+    } while ((rc != CL_OK) && (CL_GET_ERROR_CODE(rc) == CL_ERR_TRY_AGAIN) && (numRetries < maxRetries));
+
     if (CL_OK != rc)
     {
         clGmsFinalize(hGms);
@@ -4641,12 +4610,7 @@ clEventGmsInit(void)
 
     if(clCpmIsMaster())
     {
-    	currentNodeLeader = clIocLocalAddressGet();
-        if( CL_IOC_RESERVED_ADDRESS == currentNodeLeader )
-        {
-         	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clIocLocalAddressGet() failed");    
-        }
-    	clLogDebug(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"...................clEventGmsInit(): update leader \n");            
+        currentNodeLeader = clIocLocalAddressGet();
     }
     
     return rc;
@@ -4659,7 +4623,7 @@ clEventGmsFinalize(void)
     ClRcT  rc = CL_OK;
     if( CL_OK != (rc = clGmsFinalize(hGms)) )
     {
-    	clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clGmsFinalize(): rc[0x %x]", rc);
+        clLogError(EVENT_LOG_AREA_CKPT,EVENT_LOG_GLOBAL,"clGmsFinalize(): rc[0x %x]", rc);
     }
     return rc;
 }        

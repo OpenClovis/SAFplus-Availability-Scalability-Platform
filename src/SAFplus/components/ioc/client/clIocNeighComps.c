@@ -75,12 +75,7 @@ ClRcT clIocNeighCompsSegmentCreate(void)
     ClRcT rc = CL_OK;
     ClFdT fd;
 
-    rc = clOsalShmUnlink(gpClIocNeighCompsSegment);
-    if(rc != CL_OK)
-    {
-        clLogWarning(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE,"shm unlink failed for segment:%s\n",gpClIocNeighCompsSegment);
-    }
-
+    clOsalShmUnlink(gpClIocNeighCompsSegment);
     rc = clOsalShmOpen(gpClIocNeighCompsSegment,O_RDWR|O_CREAT|O_EXCL,0666,&fd);
     if(rc != CL_OK)
     {
