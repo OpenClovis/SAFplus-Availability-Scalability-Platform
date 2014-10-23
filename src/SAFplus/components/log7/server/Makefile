@@ -10,6 +10,7 @@ SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PL
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -I$(BOOST_DIR)/libs/filesystem/include 
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/include
+CPP_FLAGS += -DMGT_ACCESS
 
 # Specify the required libraries
 SAFPLUS_LIBS := clMgt7 clUtils7 clLog clOsal7 clIoc7

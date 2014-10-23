@@ -3,6 +3,7 @@
 #include <vector>
 using namespace std;
 
+#include <clMgtRoot.hxx>
 #include "client/MgtMsg.pb.hxx"
 #include <clSafplusMsgServer.hxx>
 #include <clMsgHandler.hxx>
@@ -41,6 +42,10 @@ class MgtMsgHandler : public SAFplus::MsgHandler
         SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::LOG_IOC_PORT);
         cfg->streamConfig.bind(hdl, "SAFplusLog", "/StreamConfig");
         cfg->serverConfig.bind(hdl, "SAFplusLog", "/ServerConfig");
+      }
+      else
+      {
+        MgtRoot::getInstance()->mgtMessageHandler.msgHandler(from, svr, msg, msglen, cookie);
       }
     }
 
