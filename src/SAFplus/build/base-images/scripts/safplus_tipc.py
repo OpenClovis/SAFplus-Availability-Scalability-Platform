@@ -311,7 +311,6 @@ def load_config_tipc_module():
         elif tipc_state == (0, 1, 1):
             pass
         elif tipc_state == (1, 0, 0):
-            unload_tipc_module()
             load_tipc_module()
             config_tipc_module()
         elif tipc_state == (1, 1, 0):
