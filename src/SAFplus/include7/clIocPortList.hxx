@@ -5,6 +5,7 @@ namespace SAFplusI
   {
   enum
     {
+    START_IOC_PORT = 1,
     AMF_IOC_PORT = 1,
     LOG_IOC_PORT = 2,
     MGT_IOC_PORT = 3,
@@ -13,6 +14,7 @@ namespace SAFplusI
 #else  // otherwise give it a unique port
     GMS_IOC_PORT = 4,
 #endif
+    END_IOC_PORT = 4
     };
 
   enum
