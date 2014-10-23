@@ -86,6 +86,8 @@
 }while(0)
 
 extern int gCompHealthCheckFailSendSignal;
+extern ClBoolT gCpmShuttingDown;
+
 /*
  * Versions supported
  */
@@ -4613,6 +4615,10 @@ static ClRcT cpmComponentEventPublishDelay(ClPtrT invocation)
     ClEventPublishDataT *data = (ClEventPublishDataT *) invocation;
     ClTimerTimeOutT delay = {.tsSec = 0, .tsMilliSec = 500};
 
+    /* Quit this task since Event is already terminated */
+    if (gCpmShuttingDown)
+      goto error;
+
     while((!gpClCpm->emUp || !gpClCpm->emInitDone))
     {
         rc = clOsalTaskDelay(delay);
@@ -4639,6 +4645,13 @@ ClRcT cpmComponentEventPublish(ClCpmComponentT *comp,
     ClRcT rc = CL_OK;
 
     ClEventPublishDataT *job = NULL;
+
+    /* Don't need push this task to job queue since Event is already terminated */
+    if (gCpmShuttingDown && !gpClCpm->emUp && !gpClCpm->emInitDone)
+    {
+        clLogDebug(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_EVT,"Event server is already terminated. Hence not publishing the event");
+        return CL_OK;
+    }
 
     job = clHeapCalloc(1, sizeof(ClEventPublishDataT));
     CL_ASSERT(job != NULL);
