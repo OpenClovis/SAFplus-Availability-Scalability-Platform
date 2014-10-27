@@ -1,6 +1,6 @@
 #pragma once
 
-
+using namespace SAFplus;
 
 namespace SAFplusI
 {
@@ -11,6 +11,8 @@ namespace SAFplusI
      * but are different in their manifestation.
      */
     typedef int AlarmSpecificProblemT;
+
+
 
     enum class AlarmSeverityTypeT
     {

@@ -28,6 +28,18 @@ int main(int argc, char* argv[])
 
   fs.init();
 
+
+  faultInitialize();
+
+  SAFplus::Handle me = Handle::create();
+  SAFplus::Fault fc;
+  ClIocAddress server;
+  server.iocPhyAddress.nodeAddress=1;
+  server.iocPhyAddress.portId=50;
+
+  fc.init(me,server,sic.iocPort,BLOCK);
+
+
   while(1) { sleep(10000); }
   return 0;
 

@@ -34,6 +34,7 @@ using namespace std;
 
 namespace SAFplus
 {
+	FaultSharedMem fsm;
 
 	FaultMessageProtocol::FaultMessageProtocol()
 	{
@@ -177,9 +178,9 @@ namespace SAFplus
       	  case CL_IOC_COMP_DEATH_NOTIFICATION:
           {
         	  logDebug("FLT","IOC","Received component leave notification for [%d.%d]", nodeAddress,portId);
-        	  ScopedLock<ProcSem> lock(svr->fsm.mutex);
+        	  ScopedLock<ProcSem> lock(svr->fsmServer.mutex);
         	  FaultShmHashMap::iterator i;
-        	  for (i=svr->fsm.faultMap->begin(); i!=svr->fsm.faultMap->end();i++)
+        	  for (i=svr->fsmServer.faultMap->begin(); i!=svr->fsmServer.faultMap->end();i++)
         	  {
         		  FaultShmEntry& ge = i->second;
         		  Handle handle = i->first;
@@ -194,10 +195,10 @@ namespace SAFplus
         {
         	logDebug("GMS","IOC","Received node leave notification for node id [%d]", nodeAddress);
 
-        	ScopedLock<ProcSem> lock(svr->fsm.mutex);
+        	ScopedLock<ProcSem> lock(svr->fsmServer.mutex);
         	FaultShmHashMap::iterator i;
 
-        	for (i=svr->fsm.faultMap->begin(); i!=svr->fsm.faultMap->end();i++)
+        	for (i=svr->fsmServer.faultMap->begin(); i!=svr->fsmServer.faultMap->end();i++)
         	{
         		FaultShmEntry& ge = i->second;
         		//deregister all fault entity in this node.
@@ -257,9 +258,9 @@ namespace SAFplus
     void FaultServer::init()
     {
         logInfo("FLT","INI","initialize shared memory");
-        fsm.init();
+        fsmServer.init();
         logInfo("FLT","INI","initialize shared memory successful");
-        fsm.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
+        fsmServer.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
         logInfo("FLT","INI","register IOC notification");
         clIocNotificationRegister(faultIocNotificationCallback,this);
         if(!faultMsgServer)
@@ -281,9 +282,9 @@ namespace SAFplus
         SAFplus::FaultMessageProtocol *rxMsg = (SAFplus::FaultMessageProtocol *)msg;
 
         SAFplus::Handle faultHandle = rxMsg->fault;
-        FaultShmHashMap::iterator entryPtr = fsm.faultMap->find(faultHandle);
+        FaultShmHashMap::iterator entryPtr = fsmServer.faultMap->find(faultHandle);
         FaultShmEntry* fe = NULL;
-        if (entryPtr == fsm.faultMap->end())  // We don't know about the fault entity, so create it;
+        if (entryPtr == fsmServer.faultMap->end())  // We don't know about the fault entity, so create it;
         {
             fe->dependecyNum=0;
             strncpy(fe->name,rxMsg->name,FAULT_NAME_LEN);
@@ -340,7 +341,7 @@ namespace SAFplus
     void FaultServer::RegisterFaultEntity(FaultShmEntry* frp, SAFplus::Handle faultClient,bool needNotify)
     {
     	logDebug("FLT","MSG","Add fault entity with node id [%d] and process Id [%d]",faultClient.getNode(),faultClient.getProcess());
-        fsm.createFault(frp,faultClient);
+        fsmServer.createFault(frp,faultClient);
         if(needNotify)
         {
             sendFaultAnnounceMessage(SAFplusI::FaultMessageSendMode::SEND_BROADCAST,faultClient);
@@ -352,7 +353,7 @@ namespace SAFplus
     {
         //TODO
         logDebug("FLT","MSG","Remove fault entity with node id [%d] and process Id [%d]",faultClient.getNode(),faultClient.getProcess());
-    	fsm.faultMap->erase(faultClient);
+    	fsmServer.faultMap->erase(faultClient);
     	if(needNotify)
     	{
     		logDebug("FLT","MSG","broad cast fault entity leave  with node id [%d] and process Id [%d]",faultClient.getNode(),faultClient.getProcess());
@@ -364,8 +365,8 @@ namespace SAFplus
     {
         //TODO
         FaultShmHashMap::iterator entryPtr;
-        entryPtr = fsm.faultMap->find(faultHandle);
-        if (entryPtr == fsm.faultMap->end()) return false; // TODO: raise exception
+        entryPtr = fsmServer.faultMap->find(faultHandle);
+        if (entryPtr == fsmServer.faultMap->end()) return false; // TODO: raise exception
         FaultShmEntry *fse = &entryPtr->second;
         assert(fse);  // If this fails, something very wrong with the group data structure in shared memory.  TODO, should probably delete it and fail the node
         if (fse)
@@ -396,8 +397,8 @@ namespace SAFplus
     bool FaultServer::setDependency(SAFplus::Handle dependencyHandle,SAFplus::Handle faultHandle)
     {
         FaultShmHashMap::iterator entryPtr;
-        entryPtr = fsm.faultMap->find(faultHandle);
-        if (entryPtr == fsm.faultMap->end()) return false; // TODO: raise exception
+        entryPtr = fsmServer.faultMap->find(faultHandle);
+        if (entryPtr == fsmServer.faultMap->end()) return false; // TODO: raise exception
         FaultShmEntry *fse = &entryPtr->second;
         assert(fse);  // If this fails, something very wrong with the group data structure in shared memory.  TODO, should probably delete it and fail the node
         if (fse)
@@ -416,8 +417,8 @@ namespace SAFplus
     void FaultServer::setName(SAFplus::Handle faultHandle, const char* name)
     {
         FaultShmHashMap::iterator entryPtr;
-        entryPtr = fsm.faultMap->find(faultHandle);
-        if (entryPtr == fsm.faultMap->end()) return; // TODO: raise exception
+        entryPtr = fsmServer.faultMap->find(faultHandle);
+        if (entryPtr == fsmServer.faultMap->end()) return; // TODO: raise exception
         SAFplus::FaultShmEntry *fse = &entryPtr->second;
         assert(fse);  // If this fails, something very wrong with the group data structure in shared memory.  TODO, should probably delete it and fail the node
         if (fse) // Name is not meant to change, and not used except for display purposes.  So just change both of them
@@ -504,5 +505,10 @@ namespace SAFplus
     {
 
     }
+
+    void faultInitialize(void)
+      {
+    	fsm.init();
+      }
 
 };

@@ -43,6 +43,8 @@ namespace SAFplus
 #define MAX_FAULT_DEPENDENCIES 100
 typedef int FaultState;
 
+	void faultInitialize(void);
+
     class FaultMessageProtocol
     {
     public:
@@ -98,12 +100,12 @@ typedef int FaultState;
         bool updateFaultHandleState(SAFplus::FaultState state,SAFplus::Handle fault);
     };
 
+
     class Fault
     {
     public :
 
         SAFplus::Handle                   handle;               // handle for identify a fault entity
-        SAFplus::FaultSharedMem fsm;
         SAFplus::SafplusMsgServer*        faultMsgServer;       //safplus message for send fault notification to fault server
         SAFplus::Wakeable*                wakeable;             // Wakeable object for change notification
         char                              name[FAULT_NAME_LEN]; // name of fault entity
@@ -111,33 +113,6 @@ typedef int FaultState;
         int faultCommunicationPort;
         typedef SAFplus::FaultShmMapPair KeyValuePair;
 
-//        class Iterator
-//        {
-//        protected:
-//            void load(void);  // helper function that actually loads the current value from the shared memory
-//        public:
-//            Iterator() { Fault=NULL; curIdx=0xffff; locked = false; }  // note that the END iterator object is initialized with this (so curIdx MUST be inited to 0xffff).
-//            Iterator(Fault* _fault,bool lock=false);
-//            ~Iterator();
-//             // comparison
-//            bool operator !=(const Iterator& otherValue) { return curIdx != otherValue.curIdx; }
-//            bool operator ==(const Iterator& otherValue) { return curIdx == otherValue.curIdx; }
-//             // increment the pointer to the next value
-//            Iterator& operator++();
-//            Iterator& operator++(int);
-//             //KeyValuePair& operator*() { return curval; }
-//            const KeyValuePair& operator*() const { return curval; }
-//            //KeyValuePair* operator->() { return &curval; }
-//            const KeyValuePair* operator->() const { return &curval; }
-//            Fault* Fault;
-//            int curIdx;
-//            bool locked;
-//            KeyValuePair curval;
-//            static Iterator END;
-//        };
-//
-//        Iterator begin() { return Iterator(this); }
-//        Iterator& end() { return Iterator::END; }
         // register a fault entity to fault server
         void sendFaultAnnounceMessage();
         // send a fault entity to fault server
@@ -160,7 +135,7 @@ typedef int FaultState;
     public:
         FaultServer();
         //shared memory
-        FaultSharedMem fsm;
+        FaultSharedMem fsmServer;
         SAFplus::SafplusMsgServer   *faultMsgServer;
         int faultCommunicationPort;
         void init();
