@@ -14,7 +14,9 @@ namespace SAFplusI
 #else  // otherwise give it a unique port
     GMS_IOC_PORT = 4,
 #endif
-    END_IOC_PORT = 4
+    END_IOC_PORT = 4,
+    FLT_IOC_PORT = 3
+
     };
 
   enum
@@ -24,6 +26,7 @@ namespace SAFplusI
     AMF_REPLY_HANDLER_TYPE = 18,
     AMF_APP_REQ_HANDLER_TYPE = 0x20,
     AMF_APP_REPLY_HANDLER_TYPE = 0x21,
+    FAULT_MSG_TYPE = 0x22,
     HEARTBEAT_MSG_TYPE = 3, // must be == CL_IOC_PROTO_HB
     GRP_MSG_TYPE = 4,
     CL_MGT_MSG_TYPE = 5,
