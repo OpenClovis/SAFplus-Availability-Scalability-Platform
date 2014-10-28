@@ -28,7 +28,9 @@ bool FaultSharedMem::createFault(FaultShmEntry* frp,SAFplus::Handle fault)
     }
     else
     {
-        //TODO
+        FaultShmEntry *fe = &entryPtr->second;
+        fe->init(fault,frp);
+        //update fault entry
         return false;
     }
 }
@@ -71,7 +73,7 @@ void FaultSharedMem::clear()
     {
         SAFplus::Handle faultHdl = i->first;
         FaultShmEntry& fe = i->second;
-        fe.state = 0xffff;
+        fe.state = SAFplus::FaultState::STATE_UNDEFINED;
         fe.dependecyNum=0;
         fe.name[0] = '\0';
     }

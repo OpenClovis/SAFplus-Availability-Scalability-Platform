@@ -144,15 +144,15 @@ namespace SAFplus
             setName(name);
         }
     }
-    int Fault::getFaultState(SAFplus::Handle faultHandle)
+    SAFplus::FaultState Fault::getFaultState(SAFplus::Handle faultHandle)
     {
     	logDebug("FLT","FLT","get fault state");
         FaultShmHashMap::iterator entryPtr;
-        entryPtr = fsm.faultMap->find(handle);
+        entryPtr = fsm.faultMap->find(faultHandle);
         if (entryPtr == fsm.faultMap->end())
         {
         	logError("FLT","FLT","not available in shared memory");
-            return 0;
+            return SAFplus::FaultState::STATE_UNDEFINED;
         }
         FaultShmEntry *fse = &entryPtr->second;
         return fse->state;
@@ -505,7 +505,20 @@ namespace SAFplus
     {
 
     }
-
+    SAFplus::FaultState FaultServer::getFaultState(SAFplus::Handle faultHandle)
+    {
+    	logDebug("FLT","FLT","get fault state");
+        FaultShmHashMap::iterator entryPtr;
+        entryPtr = fsmServer.faultMap->find(faultHandle);
+        if (entryPtr == fsmServer.faultMap->end())
+        {
+        	logError("FLT","FLT","not available in shared memory");
+            return SAFplus::FaultState::STATE_UNDEFINED;
+        }
+        FaultShmEntry *fse = &entryPtr->second;
+    	logError("FLT","FLT","getFaultState return [%d]",fse->state);
+        return fse->state;
+    }
     void faultInitialize(void)
       {
     	fsm.init();

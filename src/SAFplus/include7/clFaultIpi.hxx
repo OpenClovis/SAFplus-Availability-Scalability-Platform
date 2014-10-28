@@ -35,13 +35,21 @@ namespace SAFplusI
         SEND_LOCAL_ROUND_ROBIN, //Round Robin
     };
 
+
+
 };
 
 namespace SAFplus
 {
 #define FAULT_NAME_LEN 100
 #define MAX_FAULT_DEPENDENCIES 100
-typedef int FaultState;
+//typedef int FaultState;
+	enum class FaultState
+	{
+		STATE_UNDEFINED = 0,
+		STATE_UP = 1,
+		STATE_DOWN
+	};
 
 	void faultInitialize(void);
 
@@ -127,7 +135,7 @@ typedef int FaultState;
         void setName(const char* entityName);
         Fault(SAFplus::Handle faultHandle,const char* name, int comPort,ClIocAddressT iocServerAddress);
         Fault();
-        int getFaultState(SAFplus::Handle faultHandle);
+        SAFplus::FaultState getFaultState(SAFplus::Handle faultHandle);
     };
 
     class FaultServer:public SAFplus::MsgHandler
@@ -158,6 +166,7 @@ typedef int FaultState;
         void sendFaultNotification(void* data, int dataLength, SAFplusI::FaultMessageSendMode messageMode);
         void sendFaultAnnounceMessage(SAFplusI::FaultMessageSendMode messageMode, SAFplus::Handle handle);
         void sendFaultLeaveMessage(SAFplusI::FaultMessageSendMode messageMode, SAFplus::Handle handle);
+        SAFplus::FaultState getFaultState(SAFplus::Handle faultHandle);
 
     };
 };

@@ -2,6 +2,8 @@
 #include <clGlobals.hxx>
 #include <clIocPortList.hxx>
 #include <clSafplusMsgServer.hxx>
+#include <string>
+
 using namespace std;
 using namespace SAFplus;
 
@@ -29,15 +31,30 @@ int main(int argc, char* argv[])
   fs.init();
 
 
-  faultInitialize();
-
   SAFplus::Handle me = Handle::create();
-  SAFplus::Fault fc;
-  ClIocAddress server;
-  server.iocPhyAddress.nodeAddress=1;
-  server.iocPhyAddress.portId=50;
+  FaultShmEntry fse;
+  //test register fault entity
+  fse.dependecyNum=0;
+  strncpy(fse.name,"test register fault entity",FAULT_NAME_LEN);
+  fse.state=SAFplus::FaultState::STATE_UP;
+  fs.RegisterFaultEntity(&fse,me,false);
+  SAFplus::FaultState state = fs.getFaultState(me);
 
-  fc.init(me,server,sic.iocPort,BLOCK);
+  //test update fault entity state
+  fs.fsmServer.updateFaultHandleState(SAFplus::FaultState::STATE_DOWN,me);
+  state = fs.getFaultState(me);
+
+  //test process fault event in policy
+  FaultEventData faultData;
+  //test process fault event in default policy
+  fs.processFaultEvent(SAFplus::FaultPolicy::AMF,faultData,me);
+  //test process fault event in custom policy
+  fs.processFaultEvent(SAFplus::FaultPolicy::Custom,faultData,me);
+
+  //test remove fault enity
+  fs.removeFaultEntity(me,false);
+  state = fs.getFaultState(me);
+
 
 
   while(1) { sleep(10000); }
