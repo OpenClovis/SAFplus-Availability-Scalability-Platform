@@ -13,6 +13,7 @@ void FaultSharedMem::init()
     faultMap = faultMsm.find_or_construct<SAFplus::FaultShmHashMap>("faults")  (faultMsm.get_allocator<SAFplus::FaultShmMapPair>());
 }
 
+
 bool FaultSharedMem::createFault(FaultShmEntry* frp,SAFplus::Handle fault)
 {
     //ScopedLock<ProcSem> lock(mutex);
@@ -86,6 +87,18 @@ void FaultSharedMem::remove(const SAFplus::Handle handle)
 	if (entryPtr == faultMap->end()) return; // TODO: raise exception
 	assert(&handle);  // TODO: throw out of memory
 	faultMap->erase(handle);
+}
+
+void FaultSharedMem::removeAll()
+{
+	ScopedLock<ProcSem> lock(mutex);
+	SAFplus::FaultShmHashMap::iterator i;
+	for (i=faultMap->begin(); i!=faultMap->end();i++)
+	{
+	    SAFplus::Handle faultHdl = i->first;
+	    assert(&faultHdl);  // TODO: throw out of memory
+	    faultMap->erase(faultHdl);
+	}
 }
 
 };

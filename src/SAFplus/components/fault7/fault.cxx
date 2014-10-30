@@ -36,31 +36,40 @@ namespace SAFplus
 {
 	FaultSharedMem fsm;
 
-	FaultMessageProtocol::FaultMessageProtocol()
-	{
-
-	}
     // register a fault entity to fault server
     void Fault::sendFaultAnnounceMessage()
     {
-    	logDebug("FLT","FLT","sendFaultAnnounceMessage with node[%d] , process [%d]", handle.getNode(), handle.getProcess());
-        FaultMessageProtocol sndMessage;
+    	FaultMessageProtocol sndMessage;
         sndMessage.fault = handle;
         sndMessage.messageType = FaultMessageTypeT::MSG_ENTITY_JOIN;
-        sndMessage.force = 0;
+        sndMessage.state = FaultState::STATE_UP;
         sndMessage.faultEntity=INVALID_HDL;
         sndMessage.data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
+        logDebug("FLT","FLT","sendFaultAnnounceMessage with node[%d] , process [%d] , message type [%d]", handle.getNode(), handle.getProcess(),sndMessage.messageType);
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_TO_SERVER);
     }
 
+    void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplusI::FaultMessageTypeT msgType,SAFplus::FaultPolicy pluginId,SAFplus::FaultEventData faultData)
+    {
+    	logDebug("FLT","FLT","sendFaultEventMessage with node[%d] , process [%d]", handle.getNode(), handle.getProcess());
+        FaultMessageProtocol sndMessage;
+        sndMessage.fault = handle;
+        sndMessage.messageType = msgType;
+        sndMessage.data.alarmState= faultData.alarmState;
+        sndMessage.data.category=faultData.category;
+        sndMessage.data.cause=faultData.cause;
+        sndMessage.data.severity=faultData.severity;
+        sndMessage.faultEntity=faultEntity;
+        sndMessage.pluginId=pluginId;
+        sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_TO_SERVER);
+    }
     void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplusI::FaultMessageTypeT msgType,SAFplusI::AlarmStateT alarmState,SAFplusI::AlarmCategoryTypeT category,SAFplusI::AlarmSeverityTypeT severity,SAFplusI::AlarmProbableCauseT cause,SAFplus::FaultPolicy pluginId)
     {
     	logDebug("FLT","FLT","sendFaultEventMessage with node[%d] , process [%d]", handle.getNode(), handle.getProcess());
         FaultMessageProtocol sndMessage;
         sndMessage.fault = handle;
         sndMessage.messageType = msgType;
-        sndMessage.force = 0;
         sndMessage.data.alarmState= alarmState;
         sndMessage.data.category=category;
         sndMessage.data.cause=cause;
@@ -107,6 +116,7 @@ namespace SAFplus
     	logDebug("FLT","FLT","Initial Fault Entity");
         handle = faultHandle;
         faultCommunicationPort = comPort;
+        logDebug("FLT","FLT","Initial Fault Entity MsgServer");
         if(!faultMsgServer)
         {
             faultMsgServer = &safplusMsgServer;
@@ -114,16 +124,14 @@ namespace SAFplus
         iocFaultServer.iocPhyAddress.nodeAddress = faultServer.iocPhyAddress.nodeAddress;
         iocFaultServer.iocPhyAddress.portId      = faultServer.iocPhyAddress.portId;
         FaultShmHashMap::iterator entryPtr;
-        do 
+        logDebug("FLT","FLT","find entry in shared memory");
+        entryPtr = SAFplus::fsm.faultMap->find(handle);
+        logDebug("FLT","MSG","check Fault Entity in shared memory");
+        if (entryPtr == fsm.faultMap->end())
         {
-            entryPtr = fsm.faultMap->find(handle);
-        	logDebug("FLT","MSG","check Fault Entity in shared memory");
-            if (entryPtr == fsm.faultMap->end())
-            {
-                sendFaultAnnounceMessage();  // This will be sent to fault server 
-                boost::this_thread::sleep(boost::posix_time::milliseconds(100));  // TODO use thread change condition
-            }
-        }while ((&execSemantics == &BLOCK)&&(entryPtr == fsm.faultMap->end()));
+        	sendFaultAnnounceMessage();  // This will be sent to fault server
+            boost::this_thread::sleep(boost::posix_time::milliseconds(100));  // TODO use thread change condition
+        }
     }
 
 
@@ -276,22 +284,27 @@ namespace SAFplus
 
     void FaultServer::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
-        logInfo("SYNC","FLT","Received fault message from %d", from.iocPhyAddress.nodeAddress);
+        logInfo("SYNC","FLT","Received fault message from node Id %d", from.iocPhyAddress.nodeAddress);
     
     /* Parse the message and process if it is valid */
-        SAFplus::FaultMessageProtocol *rxMsg = (SAFplus::FaultMessageProtocol *)msg;
-
+        const SAFplus::FaultMessageProtocol *rxMsg = (SAFplus::FaultMessageProtocol *)msg;
+        logInfo("FLT","MSG","Received message [%d] from node %d and state [%d]",rxMsg->messageType,from.iocPhyAddress.nodeAddress,rxMsg->state);
+        SAFplusI::FaultMessageTypeT msgType=  rxMsg->messageType;
         SAFplus::Handle faultHandle = rxMsg->fault;
+        SAFplus::FaultState faultState = rxMsg->state;
+        SAFplus::FaultPolicy pluginId = rxMsg->pluginId;
+        FaultEventData eventData= rxMsg->data;
+        SAFplus::Handle faultEntity=rxMsg->faultEntity;
         FaultShmHashMap::iterator entryPtr = fsmServer.faultMap->find(faultHandle);
-        FaultShmEntry* fe = NULL;
+        FaultShmEntry *fe;
         if (entryPtr == fsmServer.faultMap->end())  // We don't know about the fault entity, so create it;
         {
-            fe->dependecyNum=0;
-            strncpy(fe->name,rxMsg->name,FAULT_NAME_LEN);
-            fe->state=rxMsg->state;
+        	logInfo("SYNC","FLT","fault entity not available in shared memory");
+        	fe->init(faultHandle);
         }
         else
         {
+        	logInfo("SYNC","FLT","fault entity available in shared memory");
             fe = &entryPtr->second; // &(gsm.groupMap->find(grpHandle)->second);
         }
 
@@ -300,16 +313,15 @@ namespace SAFplus
           logError("FLT","MSG","Received NULL message. Ignored");
           return;
         }
-        FaultEventData eventData= rxMsg->data;
-        SAFplus::Handle faultEntity=rxMsg->faultEntity;
-        logInfo("FLT","MSG","Received message [%x] from node %d",rxMsg->messageType,from.iocPhyAddress.nodeAddress);
-    
-        switch(rxMsg->messageType)
+
+        switch(msgType)
         {
             case SAFplusI::FaultMessageTypeT::MSG_ENTITY_JOIN:
                 if(1)
                 {
-                    logDebug("FLT","MSG","Entity JOIN message");
+                	fe->state=faultState;
+                	fe->dependecyNum=0;
+                    logDebug("FLT","MSG","Entity JOIN message with fault state [%d]",fe->state);
                     RegisterFaultEntity(fe,faultHandle,true);
                 }break;
             case SAFplusI::FaultMessageTypeT::MSG_ENTITY_LEAVE:
@@ -329,7 +341,7 @@ namespace SAFplus
             	}break;
             case SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT:
                     logDebug("FLT","MSG","Entity FAULT message");
-                    processFaultEvent(rxMsg->pluginId,eventData,faultEntity);
+                    processFaultEvent(pluginId,eventData,faultEntity);
              break;
           default:
             logDebug("FLT","MSG","Unknown message type [%d] from %d",rxMsg->messageType,from.iocPhyAddress.nodeAddress);
@@ -452,7 +464,6 @@ namespace SAFplus
         FaultMessageProtocol sndMessage;
         sndMessage.fault = handle;
         sndMessage.messageType = FaultMessageTypeT::MSG_ENTITY_JOIN;
-        sndMessage.force = 0;
         sndMessage.faultEntity=INVALID_HDL;
         sndMessage.data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
@@ -465,7 +476,6 @@ namespace SAFplus
         FaultMessageProtocol sndMessage;
         sndMessage.fault = handle;
         sndMessage.messageType = FaultMessageTypeT::MSG_ENTITY_LEAVE;
-        sndMessage.force = 0;
         sndMessage.faultEntity=INVALID_HDL;
         sndMessage.data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
@@ -521,7 +531,7 @@ namespace SAFplus
     }
     void faultInitialize(void)
       {
-    	fsm.init();
+    	SAFplus::fsm.init();
       }
 
 };
