@@ -8,6 +8,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include <clMgtRoot.hxx>
+#include "client/MgtMsg.pb.hxx"
 #include <clHandleApi.hxx>
 #include <clLogApi.hxx>
 #include <clCkptApi.hxx>
@@ -53,6 +55,7 @@ extern ClUint32T chassisId;
 extern ClBoolT   gIsNodeRepresentative;
 
 SAFplusAmf::SAFplusAmfRoot cfg;
+MgtModule dataModule("SAFplusAmf");
 
 enum
   {
@@ -60,6 +63,37 @@ enum
   SC_ELECTION_BIT = 1<<8,           // This bit is set in the credential if the node is a system controller, making SCs preferred 
   STARTUP_ELECTION_DELAY_MS = 2000  // Wait for 5 seconds during startup if nobody is active so that other nodes can arrive, making the initial election not dependent on small timing issues. 
   };
+
+class MgtMsgHandler : public SAFplus::MsgHandler
+{
+  public:
+    virtual void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    {
+      Mgt::Msg::MsgMgt mgtMsgReq;
+      mgtMsgReq.ParseFromArray(msg, msglen);
+      if (mgtMsgReq.type() == Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND_REQUEST)
+      {
+        SAFplus::Handle hdl = SAFplus::Handle::create(SAFplusI::AMF_IOC_PORT);
+        cfg.clusterList.bind(hdl, "SAFplusAmf", "/Cluster");
+        cfg.nodeList.bind(hdl, "SAFplusAmf", "/Node");
+        cfg.serviceGroupList.bind(hdl, "SAFplusAmf", "/ServiceGroup");
+        cfg.componentList.bind(hdl, "SAFplusAmf", "/Component");
+        cfg.componentServiceInstanceList.bind(hdl, "SAFplusAmf", "/ComponentServiceInstance");
+        cfg.serviceInstanceList.bind(hdl, "SAFplusAmf", "/ServiceInstance");
+        cfg.serviceUnitList.bind(hdl, "SAFplusAmf", "/ServiceUnit");
+        cfg.applicationList.bind(hdl, "SAFplusAmf", "/Application");
+        cfg.entityByNameList.bind(hdl, "SAFplusAmf", "/EntityByName");
+        cfg.entityByIdList.bind(hdl, "SAFplusAmf", "/EntityById");
+        cfg.healthCheckPeriod.bind(hdl, "SAFplusAmf", "/healthCheckPeriod");
+        cfg.healthCheckMaxSilence.bind(hdl, "SAFplusAmf", "/healthCheckMaxSilence");
+      }
+      else
+      {
+        MgtRoot::getInstance()->mgtMessageHandler.msgHandler(from, svr, msg, msglen, cookie);
+      }
+    }
+
+};
 
 // For now, this needs to be a "flat" class since it will be directly serialized and passed to the group's registerEntity function
 // TO DO: implement endian-swap capable serializer/deserializer
@@ -572,6 +606,13 @@ int main(int argc, char* argv[])
 #endif
     }
 #endif
+
+  dataModule.loadModule();
+  dataModule.initialize();
+
+  MgtMsgHandler msghandle;
+  SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
+  mgtIocInstance->registerHandler(SAFplusI::CL_MGT_MSG_TYPE,&msghandle,NULL);
 
   while(!quitting)  // Active/Standby transition loop
     {

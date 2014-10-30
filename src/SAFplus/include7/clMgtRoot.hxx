@@ -123,7 +123,6 @@ public:
      * \return  CL_ERR_ALREADY_EXIST    RPC already exists
      */
     ClRcT registerRpc(SAFplus::Handle handle,const std::string module, const std::string rpcName);
-#ifdef MGT_ACCESS
     /**
      * Mgt message handlers
      */
@@ -143,7 +142,6 @@ public:
 //    static ClRcT sendMsg(ClIocAddressT dest, void* payload, uint payloadlen, MgtMsgType msgtype,void* reply = NULL);
     static ClRcT sendReplyMsg(ClIocAddressT dest, void* payload, uint payloadlen);
 
-#endif
 };
 };
 #endif /* CLMGTROOT_H_ */

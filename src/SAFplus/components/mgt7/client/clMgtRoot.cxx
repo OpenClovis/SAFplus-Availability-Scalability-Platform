@@ -49,7 +49,6 @@ namespace SAFplus
   MgtRoot::~MgtRoot()
   {
   }
-#ifdef MGT_ACCESS
   MgtRoot::MgtRoot():mgtMessageHandler()
   {
     /*
@@ -59,12 +58,7 @@ namespace SAFplus
     mgtMessageHandler.init(this);
     mgtIocInstance->RegisterHandler(SAFplusI::CL_MGT_MSG_TYPE, &mgtMessageHandler, NULL);
   }
-#else
-  MgtRoot::MgtRoot()
-  {
 
-  }
-#endif
   ClRcT MgtRoot::loadMgtModule(MgtModule *module, std::string moduleName)
   {
     if (module == NULL)
@@ -136,7 +130,6 @@ namespace SAFplus
       return rc;
     }
 
-#ifdef MGT_ACCESS
     /* Send bind data to the server */
     ClIocAddressT allNodeReps;
     string strBind;
@@ -172,12 +165,9 @@ namespace SAFplus
       assert(0);
     }
 
-#endif
-
     return rc;
   }
 
-#ifdef MGT_ACCESS
   ClRcT MgtRoot::sendReplyMsg(ClIocAddressT dest, void* payload, uint payloadlen)
   {
     ClRcT rc = CL_OK;
@@ -193,12 +183,10 @@ namespace SAFplus
     }
     return rc;
   }
-#endif
 
   ClRcT MgtRoot::registerRpc(SAFplus::Handle handle,const std::string module,const std::string rpcName)
   {
     ClRcT rc = CL_OK;
-#ifdef MGT_ACCESS
     Mgt::Msg::MsgBind bindData;
     MsgMgt mgtMsgReq;
     string strBind;
@@ -230,11 +218,9 @@ namespace SAFplus
       rc = ex.clError;
       logDebug("ROOT","RPC","Failed to send rpc registration");
     }
-#endif
     return rc;
   }
 
-#ifdef MGT_ACCESS
   void MgtRoot::clMgtMsgEditHandle(ClIocAddress srcAddr, Mgt::Msg::MsgMgt reqMsg)
   {
     ClRcT rc = CL_OK;
@@ -368,5 +354,4 @@ namespace SAFplus
         break;
     }
   }
-#endif
 };

@@ -19,13 +19,11 @@
 
 #include "clMgtNotify.hxx"
 
-#ifdef MGT_ACCESS
 #include <clSafplusMsgServer.hxx>
 #include <clIocPortList.hxx>
 #include "clMgtMsg.hxx"
 #include "clMgtRoot.hxx"
 #include "MgtMsg.pb.hxx"
-#endif
 
 extern "C"
 {
@@ -69,7 +67,6 @@ namespace SAFplus
       logError("MGT", "NOTI", "Cannot send Notification [%s]", name.c_str());
       return;
     }
-#ifdef MGT_ACCESS
     string bindStr, notiStr, msgRequestStr;
     Mgt::Msg::MsgBind   bindData;
     Mgt::Msg::MsgSetGet notiData;
@@ -126,6 +123,5 @@ namespace SAFplus
     {
       logDebug("MGT","NOTI","Send notification failed!");
     }
-#endif
   }
 }

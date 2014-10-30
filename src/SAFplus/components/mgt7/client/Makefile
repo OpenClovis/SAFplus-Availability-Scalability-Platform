@@ -12,7 +12,6 @@ C_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR) -I$(SAFPLUS
 CLIENT_H := $(wildcard ../include/*.hxx)
 CLIENT_SRC := $(wildcard *.cxx) $(wildcard *.cc)
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cc,.o, $(subst .cxx,.o,$(CLIENT_SRC))))
-CPP_FLAGS += -DMGT_ACCESS
 
 Release all: $(LIB_DIR)/libclMgt7.so
 

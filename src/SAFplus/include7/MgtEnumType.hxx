@@ -37,7 +37,8 @@ namespace SAFplus
 
     template <typename EnumMgr, typename Enum>
     std::string MgtEnumType<EnumMgr, Enum>::toString(const Enum en) {
-        return EnumMgr::en2str_map.find(en)->second;
+        map_t_iter it = EnumMgr::en2str_map.find(en);
+        return (it != EnumMgr::en2str_map.end()) ? it->second : "";
     }
 
     template <typename EnumMgr, typename Enum>
