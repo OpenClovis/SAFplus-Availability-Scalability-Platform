@@ -154,6 +154,18 @@ struct _ClCpmLocalInfoT_4_0_0;
     cbType = ((invocationId) >> 32);                        \
 }
 
+#define CL_CPM_STRING_CB_TYPE(cbType)                            \
+(   ((cbType)&CL_CPM_HB_CALLBACK)                   ? "HeartBeat Callback" :\
+    ((cbType)&CL_CPM_TERMINATE_CALLBACK)            ? "Terminate Callback" :\
+    ((cbType)&CL_CPM_CSI_SET_CALLBACK)              ? "CSI Set Callback" :\
+    ((cbType)&CL_CPM_CSI_RMV_CALLBACK)              ? "CSI Remove Callback" :\
+    ((cbType)&CL_CPM_PG_TRACK_CALLBACK)             ? "PG Track Callback" :\
+    ((cbType)&CL_CPM_PROXIED_INSTANTIATE_CALLBACK)  ? "Proxied Instantiate Callback" :\
+    ((cbType)&CL_CPM_PROXIED_CLEANUP_CALLBACK)      ? "Proxied Cleanup Callback" :\
+    ((cbType)&CL_CPM_CSI_QUIESCING_CALLBACK)        ? "CSI Quiescing Callback" :\
+    ((cbType)&CL_CPM_INSTANTIATE_REGISTER_CALLBACK) ? "Instantiate Register Callback" :\
+                                                      "Unknown Callback" )
+
 #define CL_CPM_INVOCATION_KEY_GET(invocationId, invocation) \
 {                                                           \
     invocation = ((invocationId) & 0x00000000ffffffffLL);   \

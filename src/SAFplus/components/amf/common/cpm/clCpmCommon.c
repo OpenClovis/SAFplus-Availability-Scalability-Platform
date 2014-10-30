@@ -30,17 +30,39 @@ ClRcT cpmInvocationDeleteInvocation(ClInvocationT invocationId)
     if (rc != CL_OK)
         goto withLock;
 
+    // Time created
+    createdTime = invocationData->createdTime;
+    ClUint32T cbType = 0;
+    CL_CPM_INVOCATION_CB_TYPE_GET(invocationData->invocation, cbType);
+
     if( (invocationData->flags & CL_CPM_INVOCATION_DATA_COPIED))
     {
+        if( (invocationData->flags & CL_CPM_INVOCATION_AMS) )
+          {
+            clLogDebug("INVOCATION", "DEL", "Deleted invocation [%#llx]: csiName [%.*s] compName [%.*s] [%s] took [%lld.%lld] usecs", invocationId,
+            ((ClAmsInvocationT* )invocationData->data)->csiName.length, ((ClAmsInvocationT* )invocationData->data)->csiName.value,
+            ((ClAmsInvocationT* )invocationData->data)->compName.length, ((ClAmsInvocationT* )invocationData->data)->compName.value,
+            CL_CPM_STRING_CB_TYPE(cbType), (endTime - invocationData->createdTime) / 1000,
+            (endTime - invocationData->createdTime) % 1000);
+          }
+        else if( (invocationData->flags & CL_CPM_INVOCATION_CPM ) )
+          {
+            clLogDebug("INVOCATION", "DEL", "Deleted invocation [%#llx]: compName [%s] eoPort [0x%x] [%s] took [%lld.%lld] usecs",
+                invocationData->invocation, ((ClCpmComponentT* )invocationData->data)->compConfig->compName,
+                ((ClCpmComponentT* )invocationData->data)->eoPort, CL_CPM_STRING_CB_TYPE(cbType),
+                (endTime - invocationData->createdTime) / 1000, (endTime - invocationData->createdTime) % 1000);
+          }
         clHeapFree(invocationData->data);
     }
+    else
+      {
+        clLogDebug("INVOCATION", "DEL", "Deleted invocation [%#llx]: [%s] took [%lld.%lld] usecs", invocationId,
+            CL_CPM_STRING_CB_TYPE(cbType), (endTime - createdTime) / 1000, (endTime - createdTime) % 1000);
+      }
 
-    createdTime = invocationData->createdTime;
     clHeapFree(invocationData);
 
     clOsalMutexUnlock(gpClCpm->invocationMutex);
-
-    clLogDebug("INVOCATION", "DEL", "Deleted invocation [%#llx] took [%lld.%lld] usecs", invocationId, (endTime - createdTime) / 1000, (endTime - createdTime) % 1000);
 
     return rc;
 
@@ -103,9 +125,25 @@ ClRcT cpmInvocationClearCompInvocation(ClNameT *compName)
             if(matched)
             {
                 ClTimeT endTime = clOsalStopWatchTimeGet();
-                clLogDebug("INVOCATION", "CLEAR", "Clearing invocation for component [%.*s] "
-                    "invocation [%#llx] took [%lld.%lld] usecs", compName->length, compName->value, invocationData->invocation,
-                    (endTime - invocationData->createdTime) / 1000, (endTime - invocationData->createdTime) % 1000);
+                ClUint32T cbType = 0;
+                CL_CPM_INVOCATION_CB_TYPE_GET(invocationData->invocation, cbType);
+
+                if( (invocationData->flags & CL_CPM_INVOCATION_AMS) )
+                  {
+                    clLogDebug("INVOCATION", "CLEAR", "Clearing invocation for component [%.*s] "
+                        "invocation [%#llx]: csiName [%.*s] [%s] took [%lld.%lld] usecs", compName->length, compName->value,
+                        invocationData->invocation, ((ClAmsInvocationT* )data)->csiName.length, ((ClAmsInvocationT* )data)->csiName.value,
+                        CL_CPM_STRING_CB_TYPE(cbType), (endTime - invocationData->createdTime) / 1000,
+                        (endTime - invocationData->createdTime) % 1000);
+                  }
+                else if( (invocationData->flags & CL_CPM_INVOCATION_CPM ) )
+                  {
+                    clLogDebug("INVOCATION", "CLEAR", "Clearing invocation for component [%.*s] "
+                        "invocation [%#llx]: eoPort [0x%x] [%s] took [%lld.%lld] usecs", compName->length, compName->value,
+                        invocationData->invocation, ((ClCpmComponentT* )data)->eoPort, CL_CPM_STRING_CB_TYPE(cbType),
+                        (endTime - invocationData->createdTime) / 1000, (endTime - invocationData->createdTime) % 1000);
+                  }
+
                 if (clCntNodeDelete(gpClCpm->invocationTable, nodeHandle) != CL_OK)
                     goto withLock;
                 if( (invocationData->flags & CL_CPM_INVOCATION_DATA_COPIED) )
@@ -160,6 +198,24 @@ ClRcT cpmInvocationGetWithLock(ClInvocationT invocationId,
 
     *data = invocationData->data;
     CL_CPM_INVOCATION_CB_TYPE_GET(invocationId, *cbType);
+
+    if ((invocationData->flags & CL_CPM_INVOCATION_AMS))
+      {
+        clLogDebug("GET", "INVOCATION", "Invocation [%#llx]: csiName [%.*s] compName [%.*s] [%s]", invocationId,
+            ((ClAmsInvocationT* )invocationData->data)->csiName.length, ((ClAmsInvocationT* )invocationData->data)->csiName.value,
+            ((ClAmsInvocationT* )invocationData->data)->compName.length, ((ClAmsInvocationT* )invocationData->data)->compName.value,
+            CL_CPM_STRING_CB_TYPE(*cbType));
+      }
+    else if ((invocationData->flags & CL_CPM_INVOCATION_CPM))
+      {
+        clLogDebug("GET", "INVOCATION", "Invocation [%#llx]: compName [%s] eoPort [0x%x] [%s]", invocationId,
+            ((ClCpmComponentT* )invocationData->data)->compConfig->compName, ((ClCpmComponentT* )invocationData->data)->eoPort,
+            CL_CPM_STRING_CB_TYPE(*cbType));
+      }
+    else
+      {
+        clLogDebug("GET", "INVOCATION", "Invocation [%#llx]: [%s]", invocationId, CL_CPM_STRING_CB_TYPE(*cbType));
+      }
 
     return rc;
 
@@ -217,7 +273,21 @@ ClRcT cpmInvocationAdd(ClUint32T cbType,
         goto withLock;
     }
 
-    clLogDebug("NEW", "INVOCATION", "Added entry for invocation [%#llx]", temp->invocation);
+    if ((flags & CL_CPM_INVOCATION_AMS))
+      {
+        clLogDebug("NEW", "INVOCATION", "Added invocation [%#llx]: csiName [%.*s] compName [%.*s] [%s]", temp->invocation,
+            ((ClAmsInvocationT* )data)->csiName.length, ((ClAmsInvocationT* )data)->csiName.value,
+            ((ClAmsInvocationT* )data)->compName.length, ((ClAmsInvocationT* )data)->compName.value, CL_CPM_STRING_CB_TYPE(cbType));
+      }
+    else if ((flags & CL_CPM_INVOCATION_CPM))
+      {
+        clLogDebug("NEW", "INVOCATION", "Added invocation [%#llx]: compName [%s] eoPort [0x%x] [%s]", temp->invocation,
+            ((ClCpmComponentT* )data)->compConfig->compName, ((ClCpmComponentT* )data)->eoPort, CL_CPM_STRING_CB_TYPE(cbType));
+      }
+    else
+      {
+        clLogDebug("NEW", "INVOCATION", "Added invocation [%#llx]: [%s]", temp->invocation, CL_CPM_STRING_CB_TYPE(cbType));
+      }
 
     clOsalMutexUnlock(gpClCpm->invocationMutex);
     return rc;
@@ -283,8 +353,22 @@ ClRcT cpmInvocationAddKey(ClUint32T cbType,
         gpClCpm->invocationKey = invocationKey + 1;
     }
 
-    clLogDebug("ADD", "INVOCATION", "Added entry for invocation [%#llx]", invocationId);
-               
+    if ((flags & CL_CPM_INVOCATION_AMS))
+      {
+        clLogDebug("ADD", "INVOCATION", "Added invocation [%#llx]: csiName [%.*s] compName [%.*s] [%s]", invocationId,
+            ((ClAmsInvocationT* )data)->csiName.length, ((ClAmsInvocationT* )data)->csiName.value,
+            ((ClAmsInvocationT* )data)->compName.length, ((ClAmsInvocationT* )data)->compName.value, CL_CPM_STRING_CB_TYPE(cbType));
+      }
+    else if ((flags & CL_CPM_INVOCATION_CPM))
+      {
+        clLogDebug("ADD", "INVOCATION", "Added invocation [%#llx]: compName [%s] eoPort [0x%x] [%s]", invocationId,
+            ((ClCpmComponentT* )data)->compConfig->compName, ((ClCpmComponentT* )data)->eoPort, CL_CPM_STRING_CB_TYPE(cbType));
+      }
+    else
+      {
+        clLogDebug("ADD", "INVOCATION", "Added invocation [%#llx]: [%s]", invocationId, CL_CPM_STRING_CB_TYPE(cbType));
+      }
+
     clOsalMutexUnlock(gpClCpm->invocationMutex);
     return rc;
 
