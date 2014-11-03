@@ -5,6 +5,7 @@
 #include "Component.hxx"
 #include "ServiceGroup.hxx"
 #include "Node.hxx"
+#include "Data.hxx"
 
 using namespace SAFplusAmf;
 using namespace SAFplus;
@@ -164,11 +165,14 @@ namespace SAFplusAmf
 
     ComponentServiceInstance* csi;
     csi = createComponentServiceInstance("csi");
-    MgtProv<std::string>* nvp = new MgtProv<std::string>("testKey");
-    nvp->value = "testValue";
+
+    Data* nvp = new Data("testKey");
+    nvp->name = "testKey";
+    nvp->val.value = "testValue";
     csi->dataList.addChildObject(nvp);
-    nvp = new MgtProv<std::string>("testKey2");
-    nvp->value = "testValue2";
+
+    nvp = new Data("testKey2");
+    nvp->val.value = "testValue2";
     csi->dataList.addChildObject(nvp);
 
     // Put the elements in their type-lookup arrays
