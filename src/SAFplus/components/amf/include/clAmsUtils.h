@@ -205,9 +205,6 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 
 #define CL_AMS_PRINT_TWO_COL(A,B,C)                                 \
 {                                                                   \
-    clOsalPrintf("%-*s | ", CL_AMS_COLUMN_1_WIDTH, A);              \
-    clOsalPrintf(B, C);                                             \
-    clOsalPrintf("\n");                                             \
     if ( debugPrintFP != NULL )                                     \
     {                                                               \
         fprintf(debugPrintFP,"%-*s | ", CL_AMS_COLUMN_1_WIDTH, A);  \
@@ -218,7 +215,6 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 
 #define CL_AMS_PRINT_DELIMITER()                        \
 {                                                       \
-    clOsalPrintf("%s\n", CL_AMS_DELIMITER);             \
     if ( debugPrintFP != NULL )                         \
     {                                                   \
         fprintf(debugPrintFP,"%s\n", CL_AMS_DELIMITER); \
@@ -227,7 +223,6 @@ extern void clAmsLogMsgClient( const ClUint32T level,  char *buffer);
 
 #define CL_AMS_PRINT_EMPTY_LINE()               \
 {                                               \
-    clOsalPrintf("\n\n");                       \
     if ( debugPrintFP != NULL )                 \
     {                                           \
         fprintf(debugPrintFP,"\n\n");           \
