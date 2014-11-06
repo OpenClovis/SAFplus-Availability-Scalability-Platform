@@ -7,6 +7,7 @@
 		<Project filename="components/osal7/test/osaltest.cbp" />
 		<Project filename="components/mgt7/client/mgt.cbp" />
 		<Project filename="components/ioc7/client/ioc.cbp" />
+		<Project filename="components/ide/ide.cbp" />
 		<Project filename="components/gms7/group.cbp">
 			<Depends filename="components/log7/log.cbp" />
 			<Depends filename="components/osal7/osal7.cbp" />

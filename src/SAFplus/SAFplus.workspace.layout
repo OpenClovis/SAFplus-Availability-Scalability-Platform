@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_layout_file>
-	<ActiveProject path="components/amf7/server/safplus_amf.cbp" />
+	<FileVersion major="1" minor="0" />
+	<ActiveProject path="components/ide/ide.cbp" />
+	<PreferredTarget name="Release" />
+	<EditorTabsLayout layout="051f6a70545ae43a001f97ad00000002=0;log:clLogIpi.hxx,1;log:clLog.cxx,2;osal7:Makefile,3;name:clNameApi.cxx,4;name:Makefile,5;amf:Makefile,6;amf:amf.cxx,*7;safplus_amf:Makefile@layout2|name=dummy;caption=;state=2098174;dir=3;layer=0;row=0;pos=0;prop=100000;bestw=530;besth=412;minw=530;minh=412;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|name=051f6a70545ae43a001f97ad00000002;caption=;state=2098172;dir=5;layer=0;row=0;pos=0;prop=100000;bestw=200;besth=200;minw=-1;minh=-1;maxw=-1;maxh=-1;floatx=-1;floaty=-1;floatw=-1;floath=-1|dock_size(5,0,0)=202|" />
 </CodeBlocks_workspace_layout_file>
