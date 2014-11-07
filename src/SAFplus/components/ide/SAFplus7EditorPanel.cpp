@@ -3,13 +3,13 @@
 #include <wx/settings.h>
 #include "resources/images/Tool.xpm"
 #include "SAFplus7EditorPanel.h"
+#include "SAFplus7ScrolledWindow.h"
 
 //Declare set editors
 std::set<EditorBase *> SAFplus7EditorPanel::m_editors;
 const wxString g_EditorModified = _T("*");
 
 BEGIN_EVENT_TABLE(SAFplus7EditorPanel, EditorBase)
-  //EVT_CLOSE(SAFplus7EditorPanel::OnClose)
   EVT_IDLE(SAFplus7EditorPanel::OnIdle)
   EVT_MENU(wxID_NEW, SAFplus7EditorPanel::OnNew)
 END_EVENT_TABLE()
@@ -26,22 +26,6 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   mainSizer->AddGrowableRow( 1 );
   mainSizer->SetFlexibleDirection( wxBOTH );
   mainSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
-
-  // set some diagram manager properties if necessary...
-  // set accepted shapes (accept only wxSFRectShape)
-  m_diagramManager.ClearAcceptedShapes();
-  m_diagramManager.AcceptShape(wxT("All"));
-
-  // create shape canvas and associate it with shape manager
-  m_pCanvas = new wxSFShapeCanvas(&m_diagramManager, this);
-  // set some shape canvas properties if necessary...
-  m_pCanvas->AddStyle(wxSFShapeCanvas::sfsGRID_SHOW);
-  m_pCanvas->AddStyle(wxSFShapeCanvas::sfsGRID_USE);
-  m_pCanvas->SetGridStyle(wxSHORT_DASH);
-
-  // connect (some) shape canvas events
-  m_pCanvas->Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(SAFplus7EditorPanel::OnLeftClickCanvas), NULL, this);
-  m_pCanvas->Connect(wxEVT_RIGHT_DOWN, wxMouseEventHandler(SAFplus7EditorPanel::OnRightClickCanvas), NULL, this);
 
   // Create toolbar SAFplus entity
   m_designToolBar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
@@ -85,38 +69,11 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
 
   mainSizer->Add( m_designToolBar, 0, wxEXPAND, 5 );
 
-  mainSizer->Add( m_pCanvas, 1, wxEXPAND, 0);
+  m_paintArea = new SAFplus7ScrolledWindow(this, wxID_ANY);
+  mainSizer->Add( m_paintArea, 1, wxEXPAND | wxALL, 0);
 
   SetSizer( mainSizer );
   Layout();
-}
-
-void SAFplus7EditorPanel::OnLeftClickCanvas(wxMouseEvent& event)
-{
-    // add new rectangular shape to the diagram ...
-    wxSFShapeBase* pShape = m_diagramManager.AddShape(CLASSINFO(wxSFRectShape), event.GetPosition());
-    // set some shape's properties...
-    if(pShape)
-    {
-        // set accepted child shapes for the new shape
-        pShape->AcceptChild(wxT("All"));
-        // enable emmiting of shape events
-        pShape->AddStyle( wxSFShapeBase::sfsEMIT_EVENTS );
-    }
-    event.Skip();
-}
-
-void SAFplus7EditorPanel::OnRightClickCanvas(wxMouseEvent& event)
-{
-    // ... and process standard canvas operations
-    /* Load XRC */
-    wxMenu *m_menu = Manager::Get()->LoadMenu(_T("safplus_design"),true);
-
-    wxPoint point = event.GetPosition();
-    point.y+=16;
-
-    PopupMenu(m_menu, point);
-    event.Skip();
 }
 
 SAFplus7EditorPanel::~SAFplus7EditorPanel()
@@ -149,7 +106,7 @@ bool SAFplus7EditorPanel::GetModified() const
 
 void SAFplus7EditorPanel::OnIdle(wxIdleEvent& event)
 {
-  SetModified(m_diagramManager.IsModified());
+  SetModified(m_paintArea->m_isDirty);
 }
 
 void SAFplus7EditorPanel::SetModified(bool modified)
@@ -165,11 +122,6 @@ void SAFplus7EditorPanel::OnNew(wxCommandEvent &event)
 {
   if(wxMessageBox(wxT("Current change will be lost. Do you want to proceed?"), wxT("SAFplus7 Design"), wxYES_NO | wxICON_QUESTION) == wxYES)
   {
-    m_diagramManager.Clear();
-    m_pCanvas->ClearCanvasHistory();
-    m_pCanvas->SaveCanvasState();
-    m_pCanvas->Refresh();
-    m_diagramManager.SetModified(false);
     SetModified(false);
   }
 }

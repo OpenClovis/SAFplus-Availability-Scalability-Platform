@@ -19,10 +19,7 @@
 #endif
 #include <wx/hashmap.h>
 
-// add wxShapeFramework include file
-#include "wx/wxsf/wxShapeFramework.h"
-
-WX_DECLARE_HASH_MAP(wxEventType, wxString, wxIntegerHash, wxIntegerEqual, EventTypeMap);
+#include "SAFplus7ScrolledWindow.h"
 
 class SAFplus7EditorPanel : public EditorBase
 {
@@ -41,25 +38,15 @@ class SAFplus7EditorPanel : public EditorBase
     static std::set<EditorBase *> m_editors;
     static void closeAllEditors();
 
-    // declare event handlers for shape canvas
-    void OnLeftClickCanvas(wxMouseEvent& event);
-    void OnRightClickCanvas(wxMouseEvent& event);
-    //void OnClose(wxCloseEvent& event);
     void OnIdle(wxIdleEvent& event);
     void OnNew(wxCommandEvent &event);
 
     wxToolBar* m_designToolBar;
-
-    // create wxSF diagram manager
-    wxSFDiagramManager m_diagramManager;
-    // create pointer to wxSF shape
-    // canvas
-    wxSFShapeCanvas *m_pCanvas;
-    // declare event handler for
-    // wxSFShapeCanvas
+    SAFplus7ScrolledWindow* m_paintArea;
 
     bool m_isModified;
     wxString m_title;
+    wxWindow* m_parent;
 
   protected:
 

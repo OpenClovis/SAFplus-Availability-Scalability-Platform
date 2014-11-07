@@ -16,19 +16,20 @@
 					<Add option="-Wall" />
 					<Add option="-ansi" />
 					<Add option="-g" />
+					<Add option="`pkg-config --cflags gtk+-2.0`" />
 					<Add option="`pkg-config --cflags codeblocks`" />
 					<Add option="`wx-config --cflags`" />
 					<Add option="-fPIC" />
-					<Add directory="$(#wxSF)/include" />
+					<Add option="-D__WXGTK__" />
+					<Add option="-D__WXGTK20__" />
 				</Compiler>
 				<Linker>
+					<Add option="`pkg-config --libs gtk+-2.0`" />
 					<Add option="`pkg-config --libs codeblocks`" />
 					<Add option="`wx-config --libs`" />
-					<Add option="-lwxcode_gtk2u_wxsf-3.0" />
-					<Add directory="$(#wxSF)/lib" />
 				</Linker>
 				<ExtraCommands>
-					<Add after="cd resources &amp;&amp; zip -r ../SAFplus7IDE.zip manifest.xml *.xrc" />
+					<Add after="cd resources &amp;&amp; zip -r ../SAFplus7IDE.zip images manifest.xml *.xrc" />
 					<Add after="zip -jr9 SAFplus7IDE.cbplugin SAFplus7IDE.so SAFplus7IDE.zip resources/SAFplusEntityDef.xml resources/SAFplusAmf.yang resources/images/comp16.gif" />
 					<Mode after="always" />
 				</ExtraCommands>
@@ -38,6 +39,8 @@
 		<Unit filename="SAFplus7EditorPanel.h" />
 		<Unit filename="SAFplus7IDE.cxx" />
 		<Unit filename="SAFplus7IDE.h" />
+		<Unit filename="SAFplus7ScrolledWindow.cpp" />
+		<Unit filename="SAFplus7ScrolledWindow.h" />
 		<Unit filename="resources/SAFplus7IDE.xrc" />
 		<Unit filename="resources/images/ClovisLogo_16_16.gif" />
 		<Unit filename="resources/images/ClovisLogo_32_32.gif" />
