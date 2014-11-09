@@ -1292,7 +1292,7 @@ static ClRcT setDefaultXport(ClParserPtrT parent)
 
     if(gClXportDefault)
     {
-        clLogNotice("XPORT", "INIT", "Default transport set to [%s]", gClXportDefault->xportType);
+        clLogDebug("XPORT", "INIT", "Default transport set to [%s]", gClXportDefault->xportType);
     }
     else
     {
