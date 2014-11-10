@@ -35,6 +35,21 @@
 				</ExtraCommands>
 			</Target>
 		</Build>
+		<Compiler>
+			<Add directory="/usr/include/cairo" />
+			<Add directory="/usr/include/gtk-2.0" />
+			<Add directory="/usr/include/glib-2.0" />
+			<Add directory="/usr/lib/x86_64-linux-gnu/glib-2.0/include" />
+			<Add directory="/usr/include/pango-1.0" />
+			<Add directory="/usr/lib/x86_64-linux-gnu/gtk-2.0/include" />
+ <Add directory="/usr/include/gio-unix-2.0" />
+  <Add directory="/usr/include/freetype2" /> 
+ <Add directory="/usr/include/cairo" />
+ <Add directory="/usr/include/gdk-pixbuf-2.0" />
+ <Add directory="/usr/include/pixman-1" />
+<Add directory="/usr/include/libpng12" />
+<Add directory="/usr/include/atk-1.0" />
+		</Compiler>
 		<Unit filename="SAFplus7EditorPanel.cpp" />
 		<Unit filename="SAFplus7EditorPanel.h" />
 		<Unit filename="SAFplus7IDE.cxx" />

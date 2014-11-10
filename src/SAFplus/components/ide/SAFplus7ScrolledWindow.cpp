@@ -6,6 +6,12 @@
 
 #include "SAFplus7ScrolledWindow.h"
 
+#include <gdk/gdk.h>
+#include <gtk/gtk.h>
+#include <cairo.h>
+
+
+
 BEGIN_EVENT_TABLE(SAFplus7ScrolledWindow, wxScrolledWindow)
 // some useful events
     EVT_PAINT(SAFplus7ScrolledWindow::paintEvent)
@@ -49,6 +55,7 @@ void SAFplus7ScrolledWindow::paintEvent(wxPaintEvent & evt)
     m_isDirty = true;
 }
 
+char mouseMovedText[80];
 void SAFplus7ScrolledWindow::mouseMoved(wxMouseEvent &event)
 {
 // TODO (hoangle#1#):
@@ -56,14 +63,24 @@ void SAFplus7ScrolledWindow::mouseMoved(wxMouseEvent &event)
     wxPoint pos = event.GetPosition();
     long x = dc.DeviceToLogicalX( pos.x );
     long y = dc.DeviceToLogicalY( pos.y );
-    wxString str;
-    str.Printf( "Current mouse position: %d,%d", (int)x, (int)y );
-    m_statusText->SetLabel(str);
+    //wxString str;
+    //str.Printf( "Current mouse position: %d,%d", (int)x, (int)y );
+
+    snprintf(mouseMovedText,80,"Current mouse position: %d,%d", (int)x, (int)y );
+    m_statusText->SetLabel(wxString::FromUTF8(mouseMovedText));
 }
 
 void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
 {
 // TODO (hoangle#1#):
+
+    wxClientDC dc(this);
+    wxRect rect = GetClientRect();
+    cairo_t* cairo_surface = gdk_cairo_create(dc.m_window);
+    cairoTestDraw(cairo_surface);
+    cairo_destroy(cairo_surface);
+
+#if 0
     wxClientDC dc(this);
     wxPoint pos = event.GetPosition();
     cur_posx = dc.DeviceToLogicalX( pos.x );
@@ -114,6 +131,8 @@ void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
     cairo_surface_destroy(cairo_surface);
     free(image_buffer);
     free(output);
+#endif
+
 }
 
 void SAFplus7ScrolledWindow::mouseWheelMoved(wxMouseEvent& event)

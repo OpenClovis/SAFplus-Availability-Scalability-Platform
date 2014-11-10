@@ -174,6 +174,7 @@ void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
 
 void SAFplus7IDE::Action(wxCommandEvent& event)
 {
+    #if 0 // Please use wxwindows 2.8 APIs or lower.  This is what can be installed automatically from Ubuntu.  If there is a very compelling reason to go higher let's talk about it.
     // load SAFplusEntityDef.xml and SAFplusAmf.yang
     wxString entity_contents;
     wxString safplus_amf_contents;
@@ -183,6 +184,7 @@ void SAFplus7IDE::Action(wxCommandEvent& event)
 
     wxFile safplusAmfFile(ConfigManager::GetDataFolder(false) + wxT("/SAFplusAmf.yang"));
     safplusAmfFile.ReadAll(&safplus_amf_contents);
+    #endif
 
     // Get selection project (singleton editor project)
     wxString projectName;
