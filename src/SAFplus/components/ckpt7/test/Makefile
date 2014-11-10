@@ -20,7 +20,7 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 all: $(TEST_DIR)/testCkpt $(TEST_DIR)/testCkptSync
 
 $(TEST_DIR)/%:  $(OBJ_DIR)/%.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lxml2 -lezxml $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml $(LINK_STD_LIBS)
 
 $(TEST_DIR)/try: $(CLIENT_OBJ) $(DEP_LIBS)
 	$(LINK_EXE) $@ $+ $(LINK_LIBS) $(DEP_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml $(LINK_STD_LIBS)

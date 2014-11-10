@@ -4,8 +4,6 @@ include ../../../mk/preface.mk
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
-SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
-SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
 CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -I$(BOOST_DIR)/libs/filesystem/include 
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7

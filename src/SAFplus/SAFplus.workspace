@@ -44,5 +44,6 @@
 			<Depends filename="components/ckpt7/checkpoint.cbp" />
 			<Depends filename="components/name7/name.cbp" />
 		</Project>
+		<Project filename="../../../../helloworldplugin/helloworldplugin.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
