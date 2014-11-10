@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_plugin_manifest_file>
+    <SdkVersion major="23" minor="12" release="0" />
+    <Plugin name="SAFplus7IDE">
+        <Value title="SAFplus7 IDE" />
+        <Value version="0.1" />
+        <Value description="An CodeBlocks plugin is used to model applications and physical chassis" />
+        <Value author="Hoang Le" />
+        <Value authorEmail="hoang.le@openclovis.com" />
+        <Value authorWebsite="www.openclovis.org" />
+        <Value thanksTo="" />
+        <Value license="GPL" />
+    </Plugin>
+    <Extra file="SAFplusAmf.yang"></Extra>
+    <Extra file="SAFplusEntityDef.xml"></Extra>
+    <Extra file="comp16.gif"></Extra>
+</CodeBlocks_plugin_manifest_file>
