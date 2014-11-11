@@ -377,8 +377,9 @@
 	<wx/hashmap.h>
 	"SAFplus7ScrolledWindow.h"
 
-1415732626 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.h
+1415741184 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.h
 	<wx/wx.h>
+	"standalone.h"
 	"standaloneApp.h"
 
 1393366634 /usr/include/wx-2.8/wx/wx.h
@@ -1486,8 +1487,9 @@
 1393366635 /usr/include/wx-2.8/wx/gtk/filedlg.h
 	"wx/generic/filedlgg.h"
 
-1415727574 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneApp.h
+1415741868 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneApp.h
 	<wx/app.h>
+	"standalone.h"
 
 1415726698 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7ScrolledWindow.h
 	<wx/window.h>
@@ -2587,7 +2589,7 @@
 1395223202 /usr/include/librsvg-2.0/librsvg/rsvg-cairo.h
 	<cairo.h>
 
-1415732816 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
+1415741389 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
 	<sdk.h>
 	<configurationpanel.h>
 	<logmanager.h>
@@ -2604,6 +2606,7 @@
 	<wx/menu.h>
 	"SAFplus7IDE.h"
 	"SAFplus7EditorPanel.h"
+	<Python.h>
 
 1393366635 /usr/include/wx-2.8/wx/xrc/xmlres.h
 	"wx/defs.h"
@@ -4120,13 +4123,274 @@
 1399912912 /usr/include/gtk-2.0/gtk/gtktipsquery.h
 	<gtk/gtk.h>
 
-1415727574 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneApp.cpp
+1415742102 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneApp.cpp
 	"wx_pch.h"
 	"standaloneApp.h"
 	"standaloneMain.h"
+	"../SAFplus7IDE.h"
 
-1415733756 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.cpp
+1415734331 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.cpp
 	"wx_pch.h"
 	"standaloneMain.h"
 	"../SAFplus7EditorPanel.h"
+
+1415742059 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standalone.h
+	<wx/wx.h>
+
+1395532525 /usr/include/python2.7/Python.h
+	"patchlevel.h"
+	"pyconfig.h"
+	"pymacconfig.h"
+	<limits.h>
+	<stdio.h>
+	<string.h>
+	<errno.h>
+	<stdlib.h>
+	<unistd.h>
+	<stddef.h>
+	<assert.h>
+	"pyport.h"
+	"pymath.h"
+	"pymem.h"
+	"object.h"
+	"objimpl.h"
+	"pydebug.h"
+	"unicodeobject.h"
+	"intobject.h"
+	"boolobject.h"
+	"longobject.h"
+	"floatobject.h"
+	"complexobject.h"
+	"rangeobject.h"
+	"stringobject.h"
+	"memoryobject.h"
+	"bufferobject.h"
+	"bytesobject.h"
+	"bytearrayobject.h"
+	"tupleobject.h"
+	"listobject.h"
+	"dictobject.h"
+	"enumobject.h"
+	"setobject.h"
+	"methodobject.h"
+	"moduleobject.h"
+	"funcobject.h"
+	"classobject.h"
+	"fileobject.h"
+	"cobject.h"
+	"pycapsule.h"
+	"traceback.h"
+	"sliceobject.h"
+	"cellobject.h"
+	"iterobject.h"
+	"genobject.h"
+	"descrobject.h"
+	"warnings.h"
+	"weakrefobject.h"
+	"codecs.h"
+	"pyerrors.h"
+	"pystate.h"
+	"pyarena.h"
+	"modsupport.h"
+	"pythonrun.h"
+	"ceval.h"
+	"sysmodule.h"
+	"intrcheck.h"
+	"import.h"
+	"abstract.h"
+	"compile.h"
+	"eval.h"
+	"pyctype.h"
+	"pystrtod.h"
+	"pystrcmp.h"
+	"dtoa.h"
+	"pyfpe.h"
+	<pth.h>
+
+1395532525 /usr/include/python2.7/patchlevel.h
+
+1395532528 /usr/include/python2.7/pyconfig.h
+	<x86_64-linux-gnu/python2.7/pyconfig.h>
+	<x86_64-linux-gnux32/python2.7/pyconfig.h>
+	<i386-linux-gnu/python2.7/pyconfig.h>
+	<aarch64-linux-gnu/python2.7/pyconfig.h>
+	<alpha-linux-gnu/python2.7/pyconfig.h>
+	<arm-linux-gnueabihf/python2.7/pyconfig.h>
+	<arm-linux-gnueabi/python2.7/pyconfig.h>
+	<hppa-linux-gnu/python2.7/pyconfig.h>
+	<ia64-linux-gnu/python2.7/pyconfig.h>
+	<m68k-linux-gnu/python2.7/pyconfig.h>
+	<mipsel-linux-gnu/python2.7/pyconfig.h>
+	<mips64el-linux-gnuabin32/python2.7/pyconfig.h>
+	<mips64el-linux-gnuabi64/python2.7/pyconfig.h>
+	<mips-linux-gnu/python2.7/pyconfig.h>
+	<mips64-linux-gnuabin32/python2.7/pyconfig.h>
+	<mips64-linux-gnuabi64/python2.7/pyconfig.h>
+	<or1k-linux-gnu/python2.7/pyconfig.h>
+	<powerpc-linux-gnuspe/python2.7/pyconfig.h>
+	<powerpc64le-linux-gnu/python2.7/pyconfig.h>
+	<powerpc64-linux-gnu/python2.7/pyconfig.h>
+	<powerpc-linux-gnu/python2.7/pyconfig.h>
+	<s390x-linux-gnu/python2.7/pyconfig.h>
+	<s390-linux-gnu/python2.7/pyconfig.h>
+	<sh4-linux-gnu/python2.7/pyconfig.h>
+	<sparc64-linux-gnu/python2.7/pyconfig.h>
+	<sparc-linux-gnu/python2.7/pyconfig.h>
+	<x86_64-kfreebsd-gnu/python2.7/pyconfig.h>
+	<i386-kfreebsd-gnu/python2.7/pyconfig.h>
+	<i386-gnu/python2.7/pyconfig.h>
+
+1395532525 /usr/include/python2.7/pymacconfig.h
+
+1395532525 /usr/include/python2.7/pyport.h
+	"pyconfig.h"
+	<inttypes.h>
+	<stdint.h>
+	<stdlib.h>
+	<ieeefp.h>
+	<math.h>
+	<sys/time.h>
+	<time.h>
+	<sys/time.h>
+	<time.h>
+	<sys/select.h>
+	<sys/types.h>
+	"unixstuff.h"
+	<sys/types.h>
+	<sys/stat.h>
+	<stat.h>
+	<sys/types.h>
+	<sys/termio.h>
+	<termios.h>
+	<osreldate.h>
+	<ctype.h>
+	<wctype.h>
+
+1395532525 /usr/include/python2.7/pymath.h
+	"pyconfig.h"
+
+1395532525 /usr/include/python2.7/pymem.h
+	"pyport.h"
+
+1395532525 /usr/include/python2.7/object.h
+
+1395532525 /usr/include/python2.7/objimpl.h
+	"pymem.h"
+
+1395532525 /usr/include/python2.7/pydebug.h
+
+1395532525 /usr/include/python2.7/unicodeobject.h
+	<stdarg.h>
+	<ctype.h>
+	<time.h>
+	<wchar.h>
+	<wctype.h>
+
+1395532525 /usr/include/python2.7/intobject.h
+
+1395532525 /usr/include/python2.7/boolobject.h
+
+1395532525 /usr/include/python2.7/longobject.h
+
+1395532525 /usr/include/python2.7/floatobject.h
+
+1395532525 /usr/include/python2.7/complexobject.h
+
+1395532525 /usr/include/python2.7/rangeobject.h
+
+1395532525 /usr/include/python2.7/stringobject.h
+	<stdarg.h>
+
+1395532525 /usr/include/python2.7/memoryobject.h
+
+1395532525 /usr/include/python2.7/bufferobject.h
+
+1395532525 /usr/include/python2.7/bytesobject.h
+
+1395532525 /usr/include/python2.7/bytearrayobject.h
+	<stdarg.h>
+
+1395532525 /usr/include/python2.7/tupleobject.h
+
+1395532525 /usr/include/python2.7/listobject.h
+
+1395532525 /usr/include/python2.7/dictobject.h
+
+1395532525 /usr/include/python2.7/enumobject.h
+
+1395532525 /usr/include/python2.7/setobject.h
+
+1395532525 /usr/include/python2.7/methodobject.h
+
+1395532525 /usr/include/python2.7/moduleobject.h
+
+1395532525 /usr/include/python2.7/funcobject.h
+
+1395532525 /usr/include/python2.7/classobject.h
+
+1395532525 /usr/include/python2.7/fileobject.h
+
+1395532525 /usr/include/python2.7/cobject.h
+
+1395532525 /usr/include/python2.7/pycapsule.h
+
+1395532525 /usr/include/python2.7/traceback.h
+
+1395532525 /usr/include/python2.7/sliceobject.h
+
+1395532525 /usr/include/python2.7/cellobject.h
+
+1395532525 /usr/include/python2.7/iterobject.h
+
+1395532525 /usr/include/python2.7/genobject.h
+
+1395532525 /usr/include/python2.7/descrobject.h
+
+1395532525 /usr/include/python2.7/warnings.h
+
+1395532525 /usr/include/python2.7/weakrefobject.h
+
+1395532525 /usr/include/python2.7/codecs.h
+
+1395532525 /usr/include/python2.7/pyerrors.h
+	<stdarg.h>
+
+1395532525 /usr/include/python2.7/pystate.h
+
+1395532525 /usr/include/python2.7/pyarena.h
+
+1395532525 /usr/include/python2.7/modsupport.h
+	<stdarg.h>
+
+1395532525 /usr/include/python2.7/pythonrun.h
+
+1395532525 /usr/include/python2.7/ceval.h
+
+1395532525 /usr/include/python2.7/sysmodule.h
+
+1395532525 /usr/include/python2.7/intrcheck.h
+
+1395532525 /usr/include/python2.7/import.h
+
+1395532525 /usr/include/python2.7/abstract.h
+
+1395532525 /usr/include/python2.7/compile.h
+	"code.h"
+
+1395532525 /usr/include/python2.7/code.h
+
+1395532525 /usr/include/python2.7/eval.h
+
+1395532525 /usr/include/python2.7/pyctype.h
+
+1395532525 /usr/include/python2.7/pystrtod.h
+
+1395532525 /usr/include/python2.7/pystrcmp.h
+
+1395532525 /usr/include/python2.7/dtoa.h
+
+1395532525 /usr/include/python2.7/pyfpe.h
+	<signal.h>
+	<setjmp.h>
+	<math.h>
 

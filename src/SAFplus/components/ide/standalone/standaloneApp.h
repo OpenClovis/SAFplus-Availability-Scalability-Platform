@@ -11,11 +11,15 @@
 #define STANDALONEAPP_H
 
 #include <wx/app.h>
+#include "standalone.h"
 
 class standaloneApp : public wxApp
 {
     public:
         virtual bool OnInit();
-};
+        cbPlugin* plugin;
 
+        virtual void OnAttach() {}
+        virtual void OnRelease(bool appShutDown) {}
+};
 #endif // STANDALONEAPP_H

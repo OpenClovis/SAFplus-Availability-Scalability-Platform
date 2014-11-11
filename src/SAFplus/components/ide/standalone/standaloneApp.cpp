@@ -17,14 +17,16 @@
 
 #include "standaloneApp.h"
 #include "standaloneMain.h"
+#include "../SAFplus7IDE.h"
+
 
 IMPLEMENT_APP(standaloneApp);
 
 bool standaloneApp::OnInit()
 {
     standaloneFrame* frame = new standaloneFrame(0L, _("wxWidgets Application Template"));
-    
+    cbPlugin* plugin = new SAFplus7IDE();
+    plugin->OnAttach();
     frame->Show();
-    
     return true;
 }

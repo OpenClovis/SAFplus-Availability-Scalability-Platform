@@ -36,6 +36,7 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add directory="/usr/include/python2.7" />
 			<Add directory="/usr/include/cairo" />
 			<Add directory="/usr/include/gtk-2.0" />
 			<Add directory="/usr/include/glib-2.0" />
@@ -57,6 +58,8 @@
 			<Add library="cairo" />
 			<Add library="gobject-2.0" />
 			<Add library="glib-2.0" />
+			<Add library="gdk-x11-2.0" />
+			<Add library="python2.7" />
 		</Linker>
 		<Unit filename="SAFplus7EditorPanel.cpp" />
 		<Unit filename="SAFplus7EditorPanel.h" />

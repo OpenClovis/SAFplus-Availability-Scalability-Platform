@@ -21,6 +21,7 @@
 
 #include "SAFplus7IDE.h"
 #include "SAFplus7EditorPanel.h"
+#include <Python.h>
 
 #ifndef STANDALONE
 // Register the plugin with Code::Blocks.
@@ -79,9 +80,13 @@ SAFplus7IDE::~SAFplus7IDE()
 {
 }
 
+char programName[80] = "SAFplusIDE";
 void SAFplus7IDE::OnAttach()
 {
     m_IsAttached = true;
+    Py_SetProgramName(programName);
+    Py_Initialize();
+    PyRun_SimpleString("print 'Embedded Python initialized'\n");
 }
 
 void SAFplus7IDE::OnRelease(bool appShutDown)
@@ -96,6 +101,7 @@ void SAFplus7IDE::OnRelease(bool appShutDown)
     {
       SAFplus7EditorPanel::closeAllEditors();
     }
+    Py_Finalize();
 }
 
 int SAFplus7IDE::Configure()
