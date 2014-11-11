@@ -35,12 +35,12 @@ SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) 
 {
     m_parent = parent;
     //ctor
-    details.Create(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxCLIP_CHILDREN | wxSW_3D,wxString::FromUTF8("SAFplusDetails"));
 
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     m_statusText = new wxStaticText( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
     m_statusText->Wrap( -1 );
     sizer->Add( m_statusText, 0, wxALL, 5 );
+    //sizer->Add(&details,0,wxALL,1);
     this->SetSizer(sizer);
 
     m_isDirty = false;

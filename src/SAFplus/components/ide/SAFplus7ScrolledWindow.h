@@ -29,7 +29,6 @@ class SAFplus7ScrolledWindow : public wxScrolledWindow
         wxWindow* m_parent;
         wxStaticText* m_statusText;
         bool m_isDirty;
-        wxSashLayoutWindow details;
         void cairoTestDraw(cairo_t *cr);
     protected:
         RsvgHandle* icon;

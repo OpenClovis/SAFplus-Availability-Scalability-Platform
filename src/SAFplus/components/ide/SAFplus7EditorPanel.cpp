@@ -14,6 +14,7 @@ const wxString g_EditorModified = _T("*");
 BEGIN_EVENT_TABLE(SAFplus7EditorPanel, EditorBase)
   EVT_IDLE(SAFplus7EditorPanel::OnIdle)
   EVT_MENU(wxID_NEW, SAFplus7EditorPanel::OnNew)
+  EVT_SASH_DRAGGED(ID_WINDOW_DETAILS, SAFplus7EditorPanel::OnSashDrag)
 END_EVENT_TABLE()
 
 SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &editorTitle) : EditorBase(parent, editorTitle)
@@ -22,6 +23,14 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   SetTitle(editorTitle);
 
   m_editors.insert( this );
+
+    details.Create(this,ID_WINDOW_DETAILS,wxDefaultPosition,wxSize(200,30),wxCLIP_CHILDREN | wxSW_3D,wxString::FromUTF8("SAFplusDetails"));
+    details.SetDefaultSize(wxSize(120, 1000));
+    details.SetOrientation(wxLAYOUT_VERTICAL);
+    details.SetAlignment(wxLAYOUT_RIGHT);
+    details.SetBackgroundColour(wxColour(0, 255, 0));
+    details.SetSashVisible(wxSASH_RIGHT, true);
+
 
   wxFlexGridSizer* mainSizer = new wxFlexGridSizer( 2, 1 , 0, 0 );
   mainSizer->AddGrowableCol( 0 );
@@ -73,9 +82,30 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
 
   m_paintArea = new SAFplus7ScrolledWindow(this, wxID_ANY);
   mainSizer->Add( m_paintArea, 1, wxEXPAND | wxALL, 0);
+  mainSizer->Add( &details, 2, wxEXPAND | wxALL, 0);
 
   SetSizer( mainSizer );
   Layout();
+}
+
+
+void SAFplus7EditorPanel::OnSashDrag(wxSashEvent& event)
+{
+    if (event.GetDragStatus() == wxSASH_STATUS_OUT_OF_RANGE)
+        return;
+
+    switch (event.GetId())
+    {
+         case ID_WINDOW_DETAILS:
+        {
+            details.SetDefaultSize(wxSize(event.GetDragRect().width, 1000));
+            break;
+        }
+    }
+
+    // Leaves bits of itself behind sometimes
+    //GetClientWindow()->
+    Refresh();
 }
 
 SAFplus7EditorPanel::~SAFplus7EditorPanel()
