@@ -42,14 +42,22 @@
 			<Add directory="/usr/lib/x86_64-linux-gnu/glib-2.0/include" />
 			<Add directory="/usr/include/pango-1.0" />
 			<Add directory="/usr/lib/x86_64-linux-gnu/gtk-2.0/include" />
- <Add directory="/usr/include/gio-unix-2.0" />
-  <Add directory="/usr/include/freetype2" /> 
- <Add directory="/usr/include/cairo" />
- <Add directory="/usr/include/gdk-pixbuf-2.0" />
- <Add directory="/usr/include/pixman-1" />
-<Add directory="/usr/include/libpng12" />
-<Add directory="/usr/include/atk-1.0" />
+			<Add directory="/usr/include/gio-unix-2.0" />
+			<Add directory="/usr/include/freetype2" />
+			<Add directory="/usr/include/gdk-pixbuf-2.0" />
+			<Add directory="/usr/include/pixman-1" />
+			<Add directory="/usr/include/libpng12" />
+			<Add directory="/usr/include/atk-1.0" />
+			<Add directory="/usr/include/librsvg-2.0" />
 		</Compiler>
+		<Linker>
+			<Add library="rsvg-2" />
+			<Add library="gio-2.0" />
+			<Add library="gdk_pixbuf-2.0" />
+			<Add library="cairo" />
+			<Add library="gobject-2.0" />
+			<Add library="glib-2.0" />
+		</Linker>
 		<Unit filename="SAFplus7EditorPanel.cpp" />
 		<Unit filename="SAFplus7EditorPanel.h" />
 		<Unit filename="SAFplus7IDE.cxx" />

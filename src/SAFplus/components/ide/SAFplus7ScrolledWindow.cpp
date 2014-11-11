@@ -11,7 +11,6 @@
 #include <cairo.h>
 
 
-
 BEGIN_EVENT_TABLE(SAFplus7ScrolledWindow, wxScrolledWindow)
 // some useful events
     EVT_PAINT(SAFplus7ScrolledWindow::paintEvent)
@@ -36,6 +35,29 @@ SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) 
     this->SetSizer(sizer);
 
     m_isDirty = false;
+
+    icon = NULL;
+     // g_object_unref(icon); to free
+    GError *error;
+    FILE* fp = fopen("test.svg","rb");
+    if (fp)
+    {
+        icon = rsvg_handle_new();
+        if (1)  // Actually loop it
+          {
+          unsigned char buf[65535];
+          int amtRead = fread(buf,1,65535,fp);
+          if (!rsvg_handle_write(icon,buf,amtRead,&error))
+            {
+            // failed!
+            rsvg_handle_close(icon,&error);
+            icon = NULL;
+            }
+          else rsvg_handle_close(icon,&error);
+          }
+        fclose(fp);
+    }
+
 }
 
 SAFplus7ScrolledWindow::~SAFplus7ScrolledWindow()
@@ -75,9 +97,14 @@ void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
 // TODO (hoangle#1#):
 
     wxClientDC dc(this);
-    wxRect rect = GetClientRect();
     cairo_t* cairo_surface = gdk_cairo_create(dc.m_window);
     cairoTestDraw(cairo_surface);
+
+    if (icon)
+    {
+        rsvg_handle_render_cairo(icon,cairo_surface);
+    }
+
     cairo_destroy(cairo_surface);
 
 #if 0

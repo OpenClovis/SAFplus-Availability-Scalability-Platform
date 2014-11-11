@@ -4,6 +4,7 @@
 #include <wx/window.h>
 #include <wx/scrolwin.h>
 #include <cairo.h>
+#include <librsvg/rsvg.h>
 
 class SAFplus7ScrolledWindow : public wxScrolledWindow
 {
@@ -30,6 +31,7 @@ class SAFplus7ScrolledWindow : public wxScrolledWindow
 
         void cairoTestDraw(cairo_t *cr);
     protected:
+        RsvgHandle* icon;
     private:
         DECLARE_EVENT_TABLE()
 };

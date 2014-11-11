@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0" y="0" width="470" height="480" viewBox="0 0 470 480">
+<style type="text/css">
+	.st0{fill:#F2F2F2;stroke:#000;stroke-linejoin:round}
+	.st1{fill:#999;stroke:#000;stroke-linejoin:round}
+	.st2{fill:url(#SVGID_1_);stroke:#000;stroke-linejoin:round}
+	.st3{fill:url(#SVGID_2_);stroke:#000;stroke-linejoin:round}
+	.st4{fill:#4D4D4D;stroke:#000;stroke-linejoin:round}
+	.st5{fill:url(#SVGID_3_);stroke:#000;stroke-linejoin:round}
+	.st6{fill:#E6E6E6;stroke:#000;stroke-linejoin:round}
+	.st7{fill:#ccc;stroke:#000;stroke-linejoin:round}
+	.st8{clip-path:url(#XMLID_6_);fill:#4D4D4D;}
+</style>
+<path class="st0" d="M449.9,109.9L275.4,11.1l-25.7,6.2h0L15.4,73.7L174.9,182v0.5L449.9,109.9z M65.9,77.5L65.9,77.5l204-48.1
+	l0.1-0.3l133.3,77.7l0.2,0L187,162.3L65.9,77.5z"/>
+<polygon class="st1" points="449.9,109.9 174.9,182 177.4,278.3 206.8,270.3 205.2,207.3 449.9,139 "/>
+<linearGradient id="SVGID_1_" gradientUnits="userSpaceOnUse" x1="269.8039" y1="208.5" x2="403.2398" y2="208.5">
+	<stop  offset="0" style="stop-color:#4D4D4D"/>
+	<stop  offset="1" style="stop-color:#B3B3B3"/>
+</linearGradient>
+<polygon class="st2" points="294.8,260.7 294.8,72.7 269.8,58 269.8,269.3 403.2,359 403.2,333 "/>
+<radialGradient id="SVGID_2_" cx="213.1718" cy="287.7949" r="160.7819" gradientTransform="matrix(1 0 0 1.8024 0 -230.9405)" gradientUnits="userSpaceOnUse">
+	<stop  offset="0.2028" style="stop-color:#B3B3B3"/>
+	<stop  offset="0.418" style="stop-color:#B0B0B0"/>
+	<stop  offset="0.5669" style="stop-color:#A7A7A7"/>
+	<stop  offset="0.6958" style="stop-color:#989898"/>
+	<stop  offset="0.8132" style="stop-color:#828282"/>
+	<stop  offset="0.922" style="stop-color:#666"/>
+	<stop  offset="1" style="stop-color:#4D4D4D"/>
+</radialGradient>
+<polygon class="st3" points="252.6,258 252.6,62.7 269.8,58 269.8,269.3 68.6,324 68.1,307.9 "/>
+<polygon class="st4" points="68.6,324 42.2,332 34.2,115.7 62.8,135.6 "/>
+<polygon class="st4" points="95.3,345 269.8,294.3 269.8,269.3 68.6,324 "/>
+<linearGradient id="SVGID_3_" gradientUnits="userSpaceOnUse" x1="42.2398" y1="379.4497" x2="163.4725" y2="379.4497">
+	<stop  offset="0" style="stop-color:#4D4D4D"/>
+	<stop  offset="1" style="stop-color:#B3B3B3"/>
+</linearGradient>
+<polygon class="st5" points="162.8,399.1 163.5,434.9 42.2,332 68.6,324 "/>
+<polygon class="st6" points="416.6,367.7 208.9,435.3 208.7,419.2 403.2,359 "/>
+<g>
+	<defs>
+		<polygon id="XMLID_2_" points="372.3,368.5 269.8,294.3 269.8,269.3 403.2,359 		"/>
+	</defs>
+	<linearGradient id="XMLID_4_" gradientUnits="userSpaceOnUse" x1="269.8039" y1="318.9252" x2="403.2398" y2="318.9252">
+		<stop  offset="0" style="stop-color:#4D4D4D"/>
+		<stop  offset="1" style="stop-color:#B3B3B3"/>
+	</linearGradient>
+	<use xlink:href="#XMLID_2_"  style="overflow:visible;fill:url(#XMLID_4_);"/>
+	<clipPath id="XMLID_5_">
+		<use xlink:href="#XMLID_2_"  style="overflow:visible;"/>
+	</clipPath>
+	<use xlink:href="#XMLID_2_"  style="overflow:visible;fill:none;stroke:#000;stroke-linejoin:round"/>
+</g>
+<polygon class="st1" points="209.2,465.3 181.6,475 178.6,320.8 207.3,312.5 "/>
+<polygon class="st6" points="416.6,367.7 403.2,359 405.9,151.5 421.2,146.8 "/>
+<polygon class="st7" points="421.2,146.8 417.2,368.1 416.6,367.7 208.9,435.3 209.2,465.3 444.2,390.6 449.9,139 "/>
+<polygon class="st4" points="269.8,29.3 65.9,77.5 97.7,99.7 269.8,58 "/>
+<g>
+	<defs>
+		<polygon id="XMLID_1_" points="367.6,115.6 269.8,58 269.8,29.3 403.2,106.7 		"/>
+	</defs>
+	<use xlink:href="#XMLID_1_"  style="overflow:visible;fill:#E6E6E6;"/>
+	<clipPath id="XMLID_6_">
+		<use xlink:href="#XMLID_1_"  style="overflow:visible;"/>
+	</clipPath>
+	<polygon class="st8" points="294.8,72.7 269.8,58 269.8,29.3 	"/>
+	<use xlink:href="#XMLID_1_"  style="overflow:visible;fill:none;stroke:#000;stroke-linejoin:round"/>
+</g>
+<polygon class="st7" points="178.6,320.8 161.6,325.8 163.5,434.9 42.2,332 34.2,115.7 157.9,202 158,201.9 160.3,282.9 
+	177.4,278.3 174.9,182 15.4,73.7 27.8,347.8 163.9,459.8 181.6,475 "/>
+</svg>
