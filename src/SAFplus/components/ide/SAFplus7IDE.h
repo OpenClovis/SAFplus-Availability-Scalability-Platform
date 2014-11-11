@@ -17,8 +17,12 @@
     #include <wx/wx.h>
 #endif
 
+#ifndef STANDALONE
 #include <cbplugin.h> // for "class cbPlugin"
 #include <editorbase.h>
+#else
+#include "standalone/standaloneMain.h"
+#endif // STANDALONE
 
 class SAFplus7IDE : public cbPlugin
 {

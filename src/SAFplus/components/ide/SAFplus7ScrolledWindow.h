@@ -3,6 +3,7 @@
 
 #include <wx/window.h>
 #include <wx/scrolwin.h>
+#include <wx/laywin.h>
 #include <cairo.h>
 #include <librsvg/rsvg.h>
 
@@ -28,7 +29,7 @@ class SAFplus7ScrolledWindow : public wxScrolledWindow
         wxWindow* m_parent;
         wxStaticText* m_statusText;
         bool m_isDirty;
-
+        wxSashLayoutWindow details;
         void cairoTestDraw(cairo_t *cr);
     protected:
         RsvgHandle* icon;

@@ -1,4 +1,6 @@
+#ifndef STANDALONE
 #include <logmanager.h>
+#endif
 #include <wx/artprov.h>
 #include <wx/settings.h>
 #include "resources/images/Tool.xpm"
@@ -94,7 +96,9 @@ void SAFplus7EditorPanel::closeAllEditors()
 {
     for ( std::set<EditorBase*>::iterator i = m_editors.begin(); i != m_editors.end(); ++i )
     {
+#ifndef STANDALONE
       Manager::Get()->GetEditorManager()->QueryClose(*i);
+#endif
       (*i)->Close();
     }
 }

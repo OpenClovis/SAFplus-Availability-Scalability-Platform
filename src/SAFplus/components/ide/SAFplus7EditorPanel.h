@@ -2,9 +2,13 @@
 #define SAFPLUS7EDITORPANEL_H
 
 #include <set>
+#ifndef STANDALONE
 #include <configmanager.h>
 #include <editormanager.h>
 #include <editorbase.h>
+#else
+#include "standalone/standaloneMain.h"
+#endif // STANDALONE
 #include <wx/string.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>

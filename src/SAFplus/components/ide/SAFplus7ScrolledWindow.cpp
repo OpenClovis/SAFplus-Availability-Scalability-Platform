@@ -10,6 +10,12 @@
 #include <gtk/gtk.h>
 #include <cairo.h>
 
+#ifdef STANDALONE
+#define ASSETLOC "../"
+#else
+#define ASSETLOC
+#endif // STANDALONE
+
 
 BEGIN_EVENT_TABLE(SAFplus7ScrolledWindow, wxScrolledWindow)
 // some useful events
@@ -24,10 +30,13 @@ BEGIN_EVENT_TABLE(SAFplus7ScrolledWindow, wxScrolledWindow)
     EVT_MOUSEWHEEL(SAFplus7ScrolledWindow::mouseWheelMoved)
 END_EVENT_TABLE()
 
-SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL )
+//SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL )
+SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL, wxString::FromUTF8("SAFplusModeller") )
 {
     m_parent = parent;
     //ctor
+    details.Create(this,wxID_ANY,wxDefaultPosition,wxDefaultSize,wxCLIP_CHILDREN | wxSW_3D,wxString::FromUTF8("SAFplusDetails"));
+
     wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
     m_statusText = new wxStaticText( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
     m_statusText->Wrap( -1 );
@@ -39,7 +48,8 @@ SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) 
     icon = NULL;
      // g_object_unref(icon); to free
     GError *error;
-    FILE* fp = fopen("test.svg","rb");
+    FILE* fp = fopen(ASSETLOC "test.svg","rb");
+
     if (fp)
     {
         icon = rsvg_handle_new();

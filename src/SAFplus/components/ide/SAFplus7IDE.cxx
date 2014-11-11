@@ -1,9 +1,15 @@
+#ifndef STANDALONE
 #include <sdk.h> // Code::Blocks SDK
-
 //cb header
 #include <configurationpanel.h>
 #include <logmanager.h>
 #include <cbproject.h>
+#include <manager.h>
+#include <editormanager.h>
+#include <configmanager.h>
+#else // STANDALONE
+#include "standalone/standaloneMain.h"
+#endif
 
 //wx header
 #include <wx/wx.h>
@@ -12,19 +18,18 @@
 #include <wx/toolbar.h>
 #include <wx/treectrl.h>
 #include <wx/menu.h>
-#include <manager.h>
-#include <editormanager.h>
-#include <configmanager.h>
 
 #include "SAFplus7IDE.h"
 #include "SAFplus7EditorPanel.h"
 
+#ifndef STANDALONE
 // Register the plugin with Code::Blocks.
 // We are using an anonymous namespace so we don't litter the global one.
 namespace
 {
 PluginRegistrant<SAFplus7IDE> reg(_T("SAFplus7IDE"));
 }
+#endif
 
 /*
 Global define manager
@@ -58,6 +63,7 @@ const wxString g_editorTitle = _T("SAFplus Cluster Design GUI");
 // constructor
 SAFplus7IDE::SAFplus7IDE()
 {
+#ifndef STANDALONE
     // Make sure our resources are available.
     // In the generated boilerplate code we have no resources but when
     // we add some, it will be nice that this code is in place already ;)
@@ -65,7 +71,7 @@ SAFplus7IDE::SAFplus7IDE()
     {
         NotifyMissingFile(_T("SAFplus7IDE.zip"));
     }
-
+#endif
 }
 
 // destructor
@@ -94,6 +100,7 @@ void SAFplus7IDE::OnRelease(bool appShutDown)
 
 int SAFplus7IDE::Configure()
 {
+#ifndef STANDALONE
     //create and display the configuration dialog for your plugin
     cbConfigurationDialog dlg(Manager::Get()->GetAppWindow(), wxID_ANY, _("Your dialog title"));
     cbConfigurationPanel* panel = GetConfigurationPanel(&dlg);
@@ -103,6 +110,7 @@ int SAFplus7IDE::Configure()
         PlaceWindow(&dlg);
         return dlg.ShowModal() == wxID_OK ? 0 : -1;
     }
+#endif
     return -1;
 }
 
@@ -128,7 +136,7 @@ void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
 {
     if (!IsAttached())
         return;
-
+#ifndef STANDALONE
     if (type == mtEditorManager || (data && data->GetKind() == FileTreeData::ftdkProject))
     {
       m_menu = m_manager->LoadMenu(_T("safplus_menu"),true);
@@ -137,13 +145,14 @@ void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
       menu->AppendSeparator();
       menu->Append(wxNewId(), _T("SAFplus7") ,m_menu);
     }
+#endif // STANDALONE
 }
 
 bool SAFplus7IDE::BuildToolBar(wxToolBar* toolBar)
 {
     if ( !IsAttached() || !toolBar )
         return false;
-
+#ifndef STANDALONE
     m_toolbar = toolBar;
 
     /* Load XRC */
@@ -152,13 +161,14 @@ bool SAFplus7IDE::BuildToolBar(wxToolBar* toolBar)
     /* Refresh toolbar */
     toolBar->Realize();
     toolBar->SetInitialSize();
-
+#endif
     // return true if you add toolbar items
     return true;
 }
 
 void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
 {
+#ifndef STANDALONE
     cbProject *prjActive = m_manager->GetProjectManager()->GetActiveProject();
     wxMenuBar* mbar = Manager::Get()->GetAppFrame()->GetMenuBar();
     if (mbar)
@@ -170,6 +180,7 @@ void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
     {
       tbar->EnableTool(idToolbarSAFplus7ClusterDesignGUI, prjActive);
     }
+#endif
 }
 
 void SAFplus7IDE::Action(wxCommandEvent& event)
@@ -189,6 +200,7 @@ void SAFplus7IDE::Action(wxCommandEvent& event)
     // Get selection project (singleton editor project)
     wxString projectName;
 
+#ifndef STANDALONE
     wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
     wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
     FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
@@ -206,4 +218,5 @@ void SAFplus7IDE::Action(wxCommandEvent& event)
     {
       new SAFplus7EditorPanel((wxWindow*)m_manager->GetEditorManager()->GetNotebook(), title);
     }
+#endif
 }

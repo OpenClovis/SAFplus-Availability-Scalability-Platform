@@ -1,0 +1,4132 @@
+# depslib dependency file v1.0
+1415731385 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7EditorPanel.cpp
+	<logmanager.h>
+	<wx/artprov.h>
+	<wx/settings.h>
+	"resources/images/Tool.xpm"
+	"SAFplus7EditorPanel.h"
+	"SAFplus7ScrolledWindow.h"
+
+1393366634 /usr/include/wx-2.8/wx/artprov.h
+	"wx/string.h"
+	"wx/bitmap.h"
+	"wx/icon.h"
+
+1393366634 /usr/include/wx-2.8/wx/string.h
+	"wx/defs.h"
+	<ctype.h>
+	<stdio.h>
+	<string.h>
+	<stdarg.h>
+	<limits.h>
+	<string.h>
+	<stdio.h>
+	<stdarg.h>
+	<limits.h>
+	<stdlib.h>
+	<strings.h>
+	<StringMgr.h>
+	"wx/wxchar.h"
+	"wx/buffer.h"
+	"wx/strconv.h"
+	"wx/beforestd.h"
+	<string>
+	"wx/afterstd.h"
+	"wx/arrstr.h"
+	"wx/iosfwrap.h"
+
+1393366633 /usr/include/wx-2.8/wx/defs.h
+	"wx/platform.h"
+	"wx/features.h"
+	"wx/version.h"
+	"wx/dlimpexp.h"
+	"wx/debug.h"
+	<stddef.h>
+	<sys/types.h>
+	<unistd.h>
+	"wx/msw/winundef.h"
+
+1393366634 /usr/include/wx-2.8/wx/platform.h
+	<stddef.h>
+	<AvailabilityMacros.h>
+	<unistd.h>
+	"wx/mac/carbon/config_xcode.h"
+	"wx/setup.h"
+	"wx/chkconf.h"
+	"wx/msw/wince/libraries.h"
+	"wx/msw/libraries.h"
+	"wx/msw/gccpriv.h"
+	<AvailabilityMacros.h>
+
+1393366633 /usr/lib/x86_64-linux-gnu/wx/include/gtk2-unicode-release-2.8/wx/setup.h
+
+1393366633 /usr/include/wx-2.8/wx/chkconf.h
+	"wx/palmos/chkconf.h"
+	"wx/msw/wince/chkconf.h"
+	"wx/msw/chkconf.h"
+	"wx/mac/chkconf.h"
+	"wx/os2/chkconf.h"
+	"wx/mgl/chkconf.h"
+	"wx/dfb/chkconf.h"
+	"wx/motif/chkconf.h"
+	"wx/x11/chkconf.h"
+	"wx/univ/chkconf.h"
+
+1393366633 /usr/include/wx-2.8/wx/features.h
+
+1393366634 /usr/include/wx-2.8/wx/version.h
+	"wx/cpp.h"
+
+1393366633 /usr/include/wx-2.8/wx/cpp.h
+
+1393366633 /usr/include/wx-2.8/wx/dlimpexp.h
+
+1393366633 /usr/include/wx-2.8/wx/debug.h
+	<assert.h>
+	<limits.h>
+	"wx/wxchar.h"
+
+1393366634 /usr/include/wx-2.8/wx/wxchar.h
+	"wx/platform.h"
+	"wx/dlimpexp.h"
+	<stdio.h>
+	<stdarg.h>
+	<sys/types.h>
+	<wchar.h>
+	<wcstr.h>
+	<stdlib.h>
+	<widec.h>
+	<ctype.h>
+	<memory.h>
+	<stddef.h>
+	<stddef.h>
+	<string.h>
+	<ctype.h>
+	<tchar.h>
+	<ctype.h>
+	<ctype.h>
+	<stdio.h>
+	<wctype.h>
+	<stdio.h>
+	<stdio.h>
+	<ctype.h>
+	<string.h>
+	<stdio.h>
+	<time.h>
+	<time.h>
+	<string.h>
+
+1393366633 /usr/include/wx-2.8/wx/buffer.h
+	"wx/wxchar.h"
+	<stdlib.h>
+
+1393366634 /usr/include/wx-2.8/wx/strconv.h
+	"wx/defs.h"
+	"wx/wxchar.h"
+	"wx/buffer.h"
+	"typeinfo.h"
+	<stdlib.h>
+	"wx/fontenc.h"
+
+1393366633 /usr/include/wx-2.8/wx/fontenc.h
+
+1393366633 /usr/include/wx-2.8/wx/beforestd.h
+
+1393366633 /usr/include/wx-2.8/wx/afterstd.h
+	"wx/msw/winundef.h"
+
+1393366633 /usr/include/wx-2.8/wx/arrstr.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/dynarray.h"
+
+1393366633 /usr/include/wx-2.8/wx/dynarray.h
+	"wx/defs.h"
+	"wx/beforestd.h"
+	<vector>
+	<algorithm>
+	"wx/afterstd.h"
+
+1393366633 /usr/include/wx-2.8/wx/iosfwrap.h
+	<iostream.h>
+	<iosfwd>
+	"wx/msw/winundef.h"
+
+1393366634 /usr/include/wx-2.8/wx/bitmap.h
+	"wx/string.h"
+	"wx/gdicmn.h"
+	"wx/colour.h"
+	"wx/variant.h"
+	"wx/palmos/bitmap.h"
+	"wx/msw/bitmap.h"
+	"wx/x11/bitmap.h"
+	"wx/gtk/bitmap.h"
+	"wx/gtk1/bitmap.h"
+	"wx/x11/bitmap.h"
+	"wx/mgl/bitmap.h"
+	"wx/dfb/bitmap.h"
+	"wx/mac/bitmap.h"
+	"wx/cocoa/bitmap.h"
+	"wx/os2/bitmap.h"
+	"wx/generic/mask.h"
+
+1393366634 /usr/include/wx-2.8/wx/gdicmn.h
+	"wx/defs.h"
+	"wx/list.h"
+	"wx/string.h"
+	"wx/fontenc.h"
+	"wx/hashmap.h"
+	"wx/math.h"
+
+1393366633 /usr/include/wx-2.8/wx/list.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/string.h"
+	"wx/beforestd.h"
+	<algorithm>
+	<iterator>
+	<list>
+	"wx/afterstd.h"
+
+1393366634 /usr/include/wx-2.8/wx/object.h
+	"wx/memory.h"
+	"wx/xti.h"
+	"wx/msw/msvcrt.h"
+
+1393366634 /usr/include/wx-2.8/wx/memory.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/msgout.h"
+	<stddef.h>
+
+1393366634 /usr/include/wx-2.8/wx/msgout.h
+	"wx/defs.h"
+	"wx/wxchar.h"
+
+1393366634 /usr/include/wx-2.8/wx/xti.h
+	"wx/defs.h"
+	"wx/memory.h"
+	"wx/flags.h"
+	"wx/string.h"
+	"wx/arrstr.h"
+	"wx/hashmap.h"
+	"wx/log.h"
+	"wx/intl.h"
+	<typeinfo>
+	"wx/dynarray.h"
+
+1393366633 /usr/include/wx-2.8/wx/hashmap.h
+	"wx/string.h"
+	<unordered_map>
+	<tr1/unordered_map>
+	<ext/hash_map>
+	<hash_map>
+	<stddef.h>
+
+1393366633 /usr/include/wx-2.8/wx/log.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/arrstr.h"
+	<time.h>
+	"wx/dynarray.h"
+	"wx/iosfwrap.h"
+	"wx/generic/logg.h"
+	"wx/cocoa/log.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/logg.h
+
+1393366633 /usr/include/wx-2.8/wx/intl.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/fontenc.h"
+
+1393366633 /usr/include/wx-2.8/wx/math.h
+	"wx/defs.h"
+	<math.h>
+	<float.h>
+
+1393366634 /usr/include/wx-2.8/wx/colour.h
+	"wx/defs.h"
+	"wx/gdiobj.h"
+	"wx/variant.h"
+	"wx/generic/colour.h"
+	"wx/msw/colour.h"
+	"wx/motif/colour.h"
+	"wx/gtk/colour.h"
+	"wx/gtk1/colour.h"
+	"wx/generic/colour.h"
+	"wx/generic/colour.h"
+	"wx/x11/colour.h"
+	"wx/mac/colour.h"
+	"wx/cocoa/colour.h"
+	"wx/os2/colour.h"
+
+1393366634 /usr/include/wx-2.8/wx/gdiobj.h
+	"wx/object.h"
+
+1393366634 /usr/include/wx-2.8/wx/variant.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/string.h"
+	"wx/arrstr.h"
+	"wx/list.h"
+	"wx/cpp.h"
+	"wx/datetime.h"
+	"wx/db.h"
+	"wx/iosfwrap.h"
+
+1393366633 /usr/include/wx-2.8/wx/datetime.h
+	"wx/defs.h"
+	<time.h>
+	"wx/msw/wince/time.h"
+	<limits.h>
+	"wx/longlong.h"
+	"wx/dynarray.h"
+
+1393366633 /usr/include/wx-2.8/wx/longlong.h
+	"wx/defs.h"
+	"wx/string.h"
+	<limits.h>
+	"wx/iosfwrap.h"
+
+1393366634 /usr/include/wx-2.8/wx/db.h
+	"wx/defs.h"
+	"wx/string.h"
+	<afxwin.h>
+	"wx/msw/wrapwin.h"
+	"sql.h"
+	"sqlext.h"
+	"odbcinst.h"
+	"wx/msw/wrapwin.h"
+	"wx/isql.h"
+	"wx/isqlext.h"
+	<sql.h>
+	<sqlext.h>
+	<sql.h>
+	<sqlext.h>
+	"wx/object.h"
+
+1393366633 /usr/include/wx-2.8/wx/isql.h
+
+1393366633 /usr/include/wx-2.8/wx/isqlext.h
+	"wx/isql.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/colour.h
+
+1393366634 /usr/include/wx-2.8/wx/gtk/bitmap.h
+
+1393366634 /usr/include/wx-2.8/wx/icon.h
+	"wx/iconloc.h"
+	"wx/generic/icon.h"
+	"wx/msw/icon.h"
+	"wx/motif/icon.h"
+	"wx/generic/icon.h"
+	"wx/generic/icon.h"
+	"wx/generic/icon.h"
+	"wx/generic/icon.h"
+	"wx/generic/icon.h"
+	"wx/mac/icon.h"
+	"wx/cocoa/icon.h"
+	"wx/os2/icon.h"
+	"wx/variant.h"
+
+1393366633 /usr/include/wx-2.8/wx/iconloc.h
+	"wx/string.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/icon.h
+	"wx/bitmap.h"
+
+1393366634 /usr/include/wx-2.8/wx/settings.h
+	"wx/colour.h"
+	"wx/font.h"
+
+1393366634 /usr/include/wx-2.8/wx/font.h
+	"wx/defs.h"
+	"wx/fontenc.h"
+	"wx/gdiobj.h"
+	"wx/palmos/font.h"
+	"wx/msw/font.h"
+	"wx/motif/font.h"
+	"wx/gtk/font.h"
+	"wx/gtk1/font.h"
+	"wx/x11/font.h"
+	"wx/mgl/font.h"
+	"wx/dfb/font.h"
+	"wx/mac/font.h"
+	"wx/cocoa/font.h"
+	"wx/os2/font.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/font.h
+
+1415644769 /code/git/SAFplus7/src/SAFplus/components/ide/resources/images/Tool.xpm
+
+1415730748 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7EditorPanel.h
+	<set>
+	<configmanager.h>
+	<editormanager.h>
+	<editorbase.h>
+	"standalone/standaloneMain.h"
+	<wx/string.h>
+	<wx/bitmap.h>
+	<wx/image.h>
+	<wx/icon.h>
+	<wx/toolbar.h>
+	<wx/settings.h>
+	<wx/sizer.h>
+	<wx/wx.h>
+	<wx/hashmap.h>
+	"SAFplus7ScrolledWindow.h"
+
+1415732626 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.h
+	<wx/wx.h>
+	"standaloneApp.h"
+
+1393366634 /usr/include/wx-2.8/wx/wx.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/dynarray.h"
+	"wx/list.h"
+	"wx/hash.h"
+	"wx/string.h"
+	"wx/hashmap.h"
+	"wx/arrstr.h"
+	"wx/intl.h"
+	"wx/log.h"
+	"wx/event.h"
+	"wx/app.h"
+	"wx/utils.h"
+	"wx/stream.h"
+	"wx/memory.h"
+	"wx/math.h"
+	"wx/stopwatch.h"
+	"wx/module.h"
+	"wx/window.h"
+	"wx/containr.h"
+	"wx/panel.h"
+	"wx/toplevel.h"
+	"wx/frame.h"
+	"wx/gdicmn.h"
+	"wx/gdiobj.h"
+	"wx/region.h"
+	"wx/bitmap.h"
+	"wx/image.h"
+	"wx/colour.h"
+	"wx/font.h"
+	"wx/dc.h"
+	"wx/dcclient.h"
+	"wx/dcmemory.h"
+	"wx/dcprint.h"
+	"wx/dcscreen.h"
+	"wx/button.h"
+	"wx/menuitem.h"
+	"wx/menu.h"
+	"wx/pen.h"
+	"wx/brush.h"
+	"wx/palette.h"
+	"wx/icon.h"
+	"wx/cursor.h"
+	"wx/dialog.h"
+	"wx/timer.h"
+	"wx/settings.h"
+	"wx/msgdlg.h"
+	"wx/cmndata.h"
+	"wx/dataobj.h"
+	"wx/control.h"
+	"wx/ctrlsub.h"
+	"wx/bmpbuttn.h"
+	"wx/checkbox.h"
+	"wx/checklst.h"
+	"wx/choice.h"
+	"wx/scrolbar.h"
+	"wx/stattext.h"
+	"wx/statbmp.h"
+	"wx/statbox.h"
+	"wx/listbox.h"
+	"wx/radiobox.h"
+	"wx/radiobut.h"
+	"wx/textctrl.h"
+	"wx/slider.h"
+	"wx/gauge.h"
+	"wx/scrolwin.h"
+	"wx/dirdlg.h"
+	"wx/toolbar.h"
+	"wx/combobox.h"
+	"wx/layout.h"
+	"wx/sizer.h"
+	"wx/mdi.h"
+	"wx/statusbr.h"
+	"wx/choicdlg.h"
+	"wx/textdlg.h"
+	"wx/filedlg.h"
+	"wx/validate.h"
+	"wx/valtext.h"
+
+1393366633 /usr/include/wx-2.8/wx/hash.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/list.h"
+	"wx/dynarray.h"
+
+1393366633 /usr/include/wx-2.8/wx/event.h
+	"wx/defs.h"
+	"wx/cpp.h"
+	"wx/object.h"
+	"wx/clntdata.h"
+	"wx/gdicmn.h"
+	"wx/cursor.h"
+	"wx/thread.h"
+	"wx/dynarray.h"
+
+1393366633 /usr/include/wx-2.8/wx/clntdata.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/hashmap.h"
+	"wx/vector.h"
+
+1393366634 /usr/include/wx-2.8/wx/vector.h
+	"wx/defs.h"
+
+1393366634 /usr/include/wx-2.8/wx/cursor.h
+	"wx/defs.h"
+	"wx/palmos/cursor.h"
+	"wx/msw/cursor.h"
+	"wx/motif/cursor.h"
+	"wx/gtk/cursor.h"
+	"wx/gtk1/cursor.h"
+	"wx/x11/cursor.h"
+	"wx/mgl/cursor.h"
+	"wx/dfb/cursor.h"
+	"wx/mac/cursor.h"
+	"wx/cocoa/cursor.h"
+	"wx/os2/cursor.h"
+	"wx/utils.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/cursor.h
+	"wx/object.h"
+
+1393366634 /usr/include/wx-2.8/wx/utils.h
+	"wx/object.h"
+	"wx/list.h"
+	"wx/filefn.h"
+	"wx/gdicmn.h"
+	"wx/longlong.h"
+	"wx/platinfo.h"
+	<direct.h>
+	<dirent.h>
+	<unistd.h>
+	<stdio.h>
+
+1393366633 /usr/include/wx-2.8/wx/filefn.h
+	"wx/list.h"
+	"wx/arrstr.h"
+	"wx/msw/wince/time.h"
+	"wx/msw/private.h"
+	<time.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<sys/types.h>
+	<utime.h>
+	<sys/stat.h>
+	<unistd.h>
+	<stat.h>
+	<unistd.h>
+	<unix.h>
+	<process.h>
+	"wx/os2/private.h"
+	<direct.h>
+	<io.h>
+	<unistd.h>
+	<unistd.h>
+	<dirent.h>
+	<direct.h>
+	<dos.h>
+	<io.h>
+	<direct.h>
+	<dos.h>
+	<io.h>
+	<io.h>
+	<unistd.h>
+	<dir.h>
+	<dir.h>
+	<unix.h>
+	<fcntl.h>
+	<sys/types.h>
+
+1393366634 /usr/include/wx-2.8/wx/platinfo.h
+	"wx/string.h"
+
+1393366634 /usr/include/wx-2.8/wx/thread.h
+	"wx/defs.h"
+
+1393366633 /usr/include/wx-2.8/wx/app.h
+	"wx/event.h"
+	"wx/build.h"
+	"wx/init.h"
+	"wx/intl.h"
+	"wx/palmos/app.h"
+	"wx/msw/app.h"
+	"wx/motif/app.h"
+	"wx/mgl/app.h"
+	"wx/dfb/app.h"
+	"wx/gtk/app.h"
+	"wx/gtk1/app.h"
+	"wx/x11/app.h"
+	"wx/mac/app.h"
+	"wx/cocoa/app.h"
+	"wx/os2/app.h"
+	"wx/univ/theme.h"
+
+1393366633 /usr/include/wx-2.8/wx/build.h
+	"wx/version.h"
+
+1393366633 /usr/include/wx-2.8/wx/init.h
+	"wx/defs.h"
+	"wx/wxchar.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/app.h
+
+1393366634 /usr/include/wx-2.8/wx/stream.h
+	"wx/defs.h"
+	<stdio.h>
+	"wx/object.h"
+	"wx/string.h"
+	"wx/filefn.h"
+
+1393366634 /usr/include/wx-2.8/wx/stopwatch.h
+	"wx/defs.h"
+	"wx/longlong.h"
+
+1393366634 /usr/include/wx-2.8/wx/module.h
+	"wx/object.h"
+	"wx/list.h"
+	"wx/dynarray.h"
+
+1393366634 /usr/include/wx-2.8/wx/window.h
+	"wx/event.h"
+	"wx/list.h"
+	"wx/cursor.h"
+	"wx/font.h"
+	"wx/colour.h"
+	"wx/region.h"
+	"wx/utils.h"
+	"wx/intl.h"
+	"wx/validate.h"
+	"wx/palette.h"
+	"wx/accel.h"
+	"wx/access.h"
+	"wx/palmos/window.h"
+	"wx/msw/window.h"
+	"wx/motif/window.h"
+	"wx/gtk/window.h"
+	"wx/gtk1/window.h"
+	"wx/x11/window.h"
+	"wx/mgl/window.h"
+	"wx/dfb/window.h"
+	"wx/mac/window.h"
+	"wx/cocoa/window.h"
+	"wx/os2/window.h"
+	"wx/univ/window.h"
+
+1393366634 /usr/include/wx-2.8/wx/region.h
+	"wx/gdiobj.h"
+	"wx/gdicmn.h"
+	"wx/palmos/region.h"
+	"wx/msw/region.h"
+	"wx/gtk/region.h"
+	"wx/gtk1/region.h"
+	"wx/x11/region.h"
+	"wx/mgl/region.h"
+	"wx/dfb/region.h"
+	"wx/mac/region.h"
+	"wx/cocoa/region.h"
+	"wx/os2/region.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/region.h
+
+1393366634 /usr/include/wx-2.8/wx/validate.h
+	"wx/defs.h"
+	"wx/event.h"
+
+1393366634 /usr/include/wx-2.8/wx/palette.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/gdiobj.h"
+	"wx/palmos/palette.h"
+	"wx/msw/palette.h"
+	"wx/motif/palette.h"
+	"wx/generic/paletteg.h"
+	"wx/x11/palette.h"
+	"wx/mgl/palette.h"
+	"wx/mac/palette.h"
+	"wx/os2/palette.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/paletteg.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/gdiobj.h"
+	"wx/gdicmn.h"
+
+1393366634 /usr/include/wx-2.8/wx/accel.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/generic/accel.h"
+	"wx/msw/accel.h"
+	"wx/motif/accel.h"
+	"wx/gtk/accel.h"
+	"wx/gtk1/accel.h"
+	"wx/mac/accel.h"
+	"wx/generic/accel.h"
+	"wx/os2/accel.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/accel.h
+
+1393366635 /usr/include/wx-2.8/wx/gtk/accel.h
+	"wx/generic/accel.h"
+
+1393366634 /usr/include/wx-2.8/wx/access.h
+	"wx/defs.h"
+	"wx/variant.h"
+	"wx/msw/ole/access.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/window.h
+	"wx/dynarray.h"
+
+1393366633 /usr/include/wx-2.8/wx/containr.h
+
+1393366634 /usr/include/wx-2.8/wx/panel.h
+	"wx/generic/panelg.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/panelg.h
+	"wx/window.h"
+	"wx/containr.h"
+
+1393366634 /usr/include/wx-2.8/wx/toplevel.h
+	"wx/window.h"
+	"wx/iconbndl.h"
+	"wx/palmos/toplevel.h"
+	"wx/msw/toplevel.h"
+	"wx/gtk/toplevel.h"
+	"wx/gtk1/toplevel.h"
+	"wx/x11/toplevel.h"
+	"wx/mgl/toplevel.h"
+	"wx/dfb/toplevel.h"
+	"wx/mac/toplevel.h"
+	"wx/cocoa/toplevel.h"
+	"wx/os2/toplevel.h"
+	"wx/motif/toplevel.h"
+	"wx/univ/toplevel.h"
+
+1393366634 /usr/include/wx-2.8/wx/iconbndl.h
+	"wx/dynarray.h"
+	"wx/gdicmn.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/toplevel.h
+
+1393366634 /usr/include/wx-2.8/wx/frame.h
+	"wx/toplevel.h"
+	"wx/univ/frame.h"
+	"wx/palmos/frame.h"
+	"wx/msw/frame.h"
+	"wx/gtk/frame.h"
+	"wx/gtk1/frame.h"
+	"wx/motif/frame.h"
+	"wx/mac/frame.h"
+	"wx/cocoa/frame.h"
+	"wx/os2/frame.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/frame.h
+
+1393366634 /usr/include/wx-2.8/wx/image.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/string.h"
+	"wx/gdicmn.h"
+	"wx/hashmap.h"
+	"wx/stream.h"
+	"wx/variant.h"
+	"wx/imagbmp.h"
+	"wx/imagpng.h"
+	"wx/imaggif.h"
+	"wx/imagpcx.h"
+	"wx/imagjpeg.h"
+	"wx/imagtga.h"
+	"wx/imagtiff.h"
+	"wx/imagpnm.h"
+	"wx/imagxpm.h"
+	"wx/imagiff.h"
+
+1393366634 /usr/include/wx-2.8/wx/imagbmp.h
+	"wx/image.h"
+
+1393366634 /usr/include/wx-2.8/wx/imagpng.h
+	"wx/defs.h"
+	"wx/image.h"
+
+1393366634 /usr/include/wx-2.8/wx/imaggif.h
+	"wx/image.h"
+
+1393366634 /usr/include/wx-2.8/wx/imagpcx.h
+	"wx/image.h"
+
+1393366634 /usr/include/wx-2.8/wx/imagjpeg.h
+	"wx/defs.h"
+	"wx/image.h"
+
+1393366634 /usr/include/wx-2.8/wx/imagtga.h
+	"wx/image.h"
+
+1393366634 /usr/include/wx-2.8/wx/imagtiff.h
+	"wx/defs.h"
+	"wx/image.h"
+
+1393366634 /usr/include/wx-2.8/wx/imagpnm.h
+	"wx/image.h"
+
+1393366634 /usr/include/wx-2.8/wx/imagxpm.h
+	"wx/image.h"
+
+1393366634 /usr/include/wx-2.8/wx/imagiff.h
+	"wx/image.h"
+
+1393366634 /usr/include/wx-2.8/wx/dc.h
+	"wx/object.h"
+	"wx/intl.h"
+	"wx/cursor.h"
+	"wx/font.h"
+	"wx/colour.h"
+	"wx/bitmap.h"
+	"wx/brush.h"
+	"wx/pen.h"
+	"wx/palette.h"
+	"wx/list.h"
+	"wx/dynarray.h"
+	"wx/math.h"
+	"wx/palmos/dc.h"
+	"wx/msw/dc.h"
+	"wx/motif/dc.h"
+	"wx/gtk/dc.h"
+	"wx/gtk1/dc.h"
+	"wx/x11/dc.h"
+	"wx/mgl/dc.h"
+	"wx/dfb/dc.h"
+	"wx/mac/dc.h"
+	"wx/cocoa/dc.h"
+	"wx/os2/dc.h"
+	"wx/dcgraph.h"
+
+1393366634 /usr/include/wx-2.8/wx/brush.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/gdiobj.h"
+	"wx/palmos/brush.h"
+	"wx/msw/brush.h"
+	"wx/x11/brush.h"
+	"wx/gtk/brush.h"
+	"wx/gtk1/brush.h"
+	"wx/mgl/brush.h"
+	"wx/dfb/brush.h"
+	"wx/mac/brush.h"
+	"wx/cocoa/brush.h"
+	"wx/os2/brush.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/brush.h
+
+1393366634 /usr/include/wx-2.8/wx/pen.h
+	"wx/defs.h"
+	"wx/palmos/pen.h"
+	"wx/msw/pen.h"
+	"wx/x11/pen.h"
+	"wx/gtk/pen.h"
+	"wx/gtk1/pen.h"
+	"wx/mgl/pen.h"
+	"wx/dfb/pen.h"
+	"wx/mac/pen.h"
+	"wx/cocoa/pen.h"
+	"wx/os2/pen.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/pen.h
+	"wx/gdiobj.h"
+	"wx/gdicmn.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/dc.h
+
+1393366634 /usr/include/wx-2.8/wx/dcgraph.h
+	"wx/geometry.h"
+	"wx/dynarray.h"
+	"wx/graphics.h"
+
+1393366634 /usr/include/wx-2.8/wx/geometry.h
+	"wx/defs.h"
+	"wx/utils.h"
+	"wx/gdicmn.h"
+	"wx/math.h"
+
+1393366634 /usr/include/wx-2.8/wx/graphics.h
+	"wx/defs.h"
+	"wx/geometry.h"
+	"wx/dynarray.h"
+
+1393366634 /usr/include/wx-2.8/wx/dcclient.h
+	"wx/defs.h"
+	"wx/palmos/dcclient.h"
+	"wx/msw/dcclient.h"
+	"wx/motif/dcclient.h"
+	"wx/gtk/dcclient.h"
+	"wx/gtk1/dcclient.h"
+	"wx/x11/dcclient.h"
+	"wx/mgl/dcclient.h"
+	"wx/dfb/dcclient.h"
+	"wx/mac/dcclient.h"
+	"wx/cocoa/dcclient.h"
+	"wx/os2/dcclient.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/dcclient.h
+	"wx/dc.h"
+	"wx/region.h"
+
+1393366634 /usr/include/wx-2.8/wx/dcmemory.h
+	"wx/bitmap.h"
+	"wx/palmos/dcmemory.h"
+	"wx/msw/dcmemory.h"
+	"wx/motif/dcmemory.h"
+	"wx/gtk/dcmemory.h"
+	"wx/gtk1/dcmemory.h"
+	"wx/x11/dcmemory.h"
+	"wx/mgl/dcmemory.h"
+	"wx/dfb/dcmemory.h"
+	"wx/mac/dcmemory.h"
+	"wx/cocoa/dcmemory.h"
+	"wx/os2/dcmemory.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/dcmemory.h
+	"wx/dcclient.h"
+
+1393366634 /usr/include/wx-2.8/wx/dcprint.h
+	"wx/defs.h"
+	"wx/palmos/dcprint.h"
+	"wx/msw/dcprint.h"
+	"wx/os2/dcprint.h"
+	"wx/mac/dcprint.h"
+
+1393366634 /usr/include/wx-2.8/wx/dcscreen.h
+	"wx/defs.h"
+	"wx/palmos/dcscreen.h"
+	"wx/msw/dcscreen.h"
+	"wx/motif/dcscreen.h"
+	"wx/gtk/dcscreen.h"
+	"wx/gtk1/dcscreen.h"
+	"wx/x11/dcscreen.h"
+	"wx/mgl/dcscreen.h"
+	"wx/dfb/dcscreen.h"
+	"wx/mac/dcscreen.h"
+	"wx/cocoa/dcscreen.h"
+	"wx/os2/dcscreen.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/dcscreen.h
+	"wx/dcclient.h"
+
+1393366634 /usr/include/wx-2.8/wx/button.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/univ/button.h"
+	"wx/msw/button.h"
+	"wx/motif/button.h"
+	"wx/gtk/button.h"
+	"wx/gtk1/button.h"
+	"wx/mac/button.h"
+	"wx/cocoa/button.h"
+	"wx/os2/button.h"
+	"wx/palmos/button.h"
+
+1393366634 /usr/include/wx-2.8/wx/control.h
+	"wx/defs.h"
+	"wx/window.h"
+	"wx/univ/control.h"
+	"wx/palmos/control.h"
+	"wx/msw/control.h"
+	"wx/motif/control.h"
+	"wx/gtk/control.h"
+	"wx/gtk1/control.h"
+	"wx/mac/control.h"
+	"wx/cocoa/control.h"
+	"wx/os2/control.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/control.h
+
+1393366635 /usr/include/wx-2.8/wx/gtk/button.h
+
+1393366634 /usr/include/wx-2.8/wx/menuitem.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/univ/menuitem.h"
+	"wx/palmos/menuitem.h"
+	"wx/msw/menuitem.h"
+	"wx/motif/menuitem.h"
+	"wx/gtk/menuitem.h"
+	"wx/gtk1/menuitem.h"
+	"wx/mac/menuitem.h"
+	"wx/cocoa/menuitem.h"
+	"wx/os2/menuitem.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/menuitem.h
+	"wx/bitmap.h"
+
+1393366634 /usr/include/wx-2.8/wx/menu.h
+	"wx/defs.h"
+	"wx/list.h"
+	"wx/window.h"
+	"wx/menuitem.h"
+	"wx/univ/menu.h"
+	"wx/palmos/menu.h"
+	"wx/msw/menu.h"
+	"wx/motif/menu.h"
+	"wx/gtk/menu.h"
+	"wx/gtk1/menu.h"
+	"wx/mac/menu.h"
+	"wx/cocoa/menu.h"
+	"wx/os2/menu.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/menu.h
+
+1393366634 /usr/include/wx-2.8/wx/dialog.h
+	"wx/defs.h"
+	"wx/containr.h"
+	"wx/toplevel.h"
+	"wx/univ/dialog.h"
+	"wx/palmos/dialog.h"
+	"wx/msw/dialog.h"
+	"wx/motif/dialog.h"
+	"wx/gtk/dialog.h"
+	"wx/gtk1/dialog.h"
+	"wx/mac/dialog.h"
+	"wx/cocoa/dialog.h"
+	"wx/os2/dialog.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/dialog.h
+	"wx/defs.h"
+
+1393366634 /usr/include/wx-2.8/wx/timer.h
+	"wx/defs.h"
+	"wx/object.h"
+	"wx/longlong.h"
+	"wx/event.h"
+	"wx/stopwatch.h"
+	"wx/window.h"
+	"wx/msw/timer.h"
+	"wx/motif/timer.h"
+	"wx/gtk/timer.h"
+	"wx/gtk1/timer.h"
+	"wx/generic/timer.h"
+	"wx/cocoa/timer.h"
+	"wx/mac/timer.h"
+	"wx/os2/timer.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/timer.h
+
+1393366634 /usr/include/wx-2.8/wx/generic/timer.h
+
+1393366634 /usr/include/wx-2.8/wx/msgdlg.h
+	"wx/defs.h"
+	"wx/generic/msgdlgg.h"
+	"wx/generic/msgdlgg.h"
+	"wx/palmos/msgdlg.h"
+	"wx/msw/msgdlg.h"
+	"wx/motif/msgdlg.h"
+	"wx/gtk/msgdlg.h"
+	"wx/generic/msgdlgg.h"
+	"wx/generic/msgdlgg.h"
+	"wx/mac/msgdlg.h"
+	"wx/cocoa/msgdlg.h"
+	"wx/os2/msgdlg.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/msgdlgg.h
+	"wx/defs.h"
+	"wx/dialog.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/msgdlg.h
+	"wx/defs.h"
+	"wx/dialog.h"
+
+1393366634 /usr/include/wx-2.8/wx/cmndata.h
+	"wx/window.h"
+	"wx/font.h"
+	"wx/encinfo.h"
+	"wx/colour.h"
+	"wx/gdicmn.h"
+	"wx/stream.h"
+
+1393366634 /usr/include/wx-2.8/wx/encinfo.h
+	"wx/string.h"
+
+1393366634 /usr/include/wx-2.8/wx/dataobj.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/bitmap.h"
+	"wx/list.h"
+	"wx/arrstr.h"
+	"wx/msw/ole/dataform.h"
+	"wx/motif/dataform.h"
+	"wx/gtk/dataform.h"
+	"wx/gtk1/dataform.h"
+	"wx/x11/dataform.h"
+	"wx/mac/dataform.h"
+	"wx/cocoa/dataform.h"
+	"wx/os2/dataform.h"
+	"wx/msw/ole/dataobj.h"
+	"wx/motif/dataobj.h"
+	"wx/x11/dataobj.h"
+	"wx/gtk/dataobj.h"
+	"wx/gtk1/dataobj.h"
+	"wx/mac/dataobj.h"
+	"wx/cocoa/dataobj.h"
+	"wx/os2/dataobj.h"
+	"wx/msw/ole/dataobj2.h"
+	"wx/gtk/dataobj2.h"
+	"wx/gtk1/dataobj2.h"
+	"wx/x11/dataobj2.h"
+	"wx/motif/dataobj2.h"
+	"wx/mac/dataobj2.h"
+	"wx/cocoa/dataobj2.h"
+	"wx/os2/dataobj2.h"
+
+1393366634 /usr/include/wx-2.8/wx/gtk/dataform.h
+
+1393366634 /usr/include/wx-2.8/wx/gtk/dataobj.h
+
+1393366634 /usr/include/wx-2.8/wx/gtk/dataobj2.h
+
+1393366634 /usr/include/wx-2.8/wx/ctrlsub.h
+	"wx/defs.h"
+	"wx/control.h"
+
+1393366634 /usr/include/wx-2.8/wx/bmpbuttn.h
+	"wx/defs.h"
+	"wx/bitmap.h"
+	"wx/button.h"
+	"wx/univ/bmpbuttn.h"
+	"wx/msw/bmpbuttn.h"
+	"wx/motif/bmpbuttn.h"
+	"wx/gtk/bmpbuttn.h"
+	"wx/gtk1/bmpbuttn.h"
+	"wx/mac/bmpbuttn.h"
+	"wx/cocoa/bmpbuttn.h"
+	"wx/os2/bmpbuttn.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/bmpbuttn.h
+
+1393366634 /usr/include/wx-2.8/wx/checkbox.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/univ/checkbox.h"
+	"wx/msw/checkbox.h"
+	"wx/motif/checkbox.h"
+	"wx/gtk/checkbox.h"
+	"wx/gtk1/checkbox.h"
+	"wx/mac/checkbox.h"
+	"wx/cocoa/checkbox.h"
+	"wx/os2/checkbox.h"
+	"wx/palmos/checkbox.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/checkbox.h
+
+1393366634 /usr/include/wx-2.8/wx/checklst.h
+	"wx/listbox.h"
+	"wx/univ/checklst.h"
+	"wx/msw/wince/checklst.h"
+	"wx/msw/checklst.h"
+	"wx/motif/checklst.h"
+	"wx/gtk/checklst.h"
+	"wx/gtk1/checklst.h"
+	"wx/mac/checklst.h"
+	"wx/cocoa/checklst.h"
+	"wx/os2/checklst.h"
+
+1393366634 /usr/include/wx-2.8/wx/listbox.h
+	"wx/defs.h"
+	"wx/ctrlsub.h"
+	"wx/univ/listbox.h"
+	"wx/msw/listbox.h"
+	"wx/motif/listbox.h"
+	"wx/gtk/listbox.h"
+	"wx/gtk1/listbox.h"
+	"wx/mac/listbox.h"
+	"wx/os2/listbox.h"
+	"wx/cocoa/listbox.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/listbox.h
+
+1393366635 /usr/include/wx-2.8/wx/gtk/checklst.h
+
+1393366634 /usr/include/wx-2.8/wx/choice.h
+	"wx/defs.h"
+	"wx/ctrlsub.h"
+	"wx/univ/choice.h"
+	"wx/msw/wince/choicece.h"
+	"wx/msw/choice.h"
+	"wx/motif/choice.h"
+	"wx/gtk/choice.h"
+	"wx/gtk1/choice.h"
+	"wx/mac/choice.h"
+	"wx/cocoa/choice.h"
+	"wx/os2/choice.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/choice.h
+
+1393366634 /usr/include/wx-2.8/wx/scrolbar.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/univ/scrolbar.h"
+	"wx/msw/scrolbar.h"
+	"wx/motif/scrolbar.h"
+	"wx/gtk/scrolbar.h"
+	"wx/gtk1/scrolbar.h"
+	"wx/mac/scrolbar.h"
+	"wx/cocoa/scrolbar.h"
+	"wx/os2/scrolbar.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/scrolbar.h
+	"wx/defs.h"
+
+1393366634 /usr/include/wx-2.8/wx/stattext.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/univ/stattext.h"
+	"wx/msw/stattext.h"
+	"wx/motif/stattext.h"
+	"wx/gtk/stattext.h"
+	"wx/gtk1/stattext.h"
+	"wx/mac/stattext.h"
+	"wx/cocoa/stattext.h"
+	"wx/os2/stattext.h"
+	"wx/palmos/stattext.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/stattext.h
+
+1393366634 /usr/include/wx-2.8/wx/statbmp.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/bitmap.h"
+	"wx/icon.h"
+	"wx/univ/statbmp.h"
+	"wx/msw/statbmp.h"
+	"wx/motif/statbmp.h"
+	"wx/gtk/statbmp.h"
+	"wx/gtk1/statbmp.h"
+	"wx/mac/statbmp.h"
+	"wx/cocoa/statbmp.h"
+	"wx/os2/statbmp.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/statbmp.h
+	"wx/icon.h"
+
+1393366634 /usr/include/wx-2.8/wx/statbox.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/univ/statbox.h"
+	"wx/msw/statbox.h"
+	"wx/motif/statbox.h"
+	"wx/gtk/statbox.h"
+	"wx/gtk1/statbox.h"
+	"wx/mac/statbox.h"
+	"wx/cocoa/statbox.h"
+	"wx/os2/statbox.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/statbox.h
+
+1393366634 /usr/include/wx-2.8/wx/radiobox.h
+	"wx/ctrlsub.h"
+	"wx/dynarray.h"
+	"wx/univ/radiobox.h"
+	"wx/msw/radiobox.h"
+	"wx/motif/radiobox.h"
+	"wx/gtk/radiobox.h"
+	"wx/gtk1/radiobox.h"
+	"wx/mac/radiobox.h"
+	"wx/cocoa/radiobox.h"
+	"wx/os2/radiobox.h"
+	"wx/palmos/radiobox.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/radiobox.h
+	"wx/bitmap.h"
+	"wx/list.h"
+
+1393366634 /usr/include/wx-2.8/wx/radiobut.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/univ/radiobut.h"
+	"wx/msw/radiobut.h"
+	"wx/motif/radiobut.h"
+	"wx/gtk/radiobut.h"
+	"wx/gtk1/radiobut.h"
+	"wx/mac/radiobut.h"
+	"wx/cocoa/radiobut.h"
+	"wx/os2/radiobut.h"
+	"wx/palmos/radiobut.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/radiobut.h
+
+1393366634 /usr/include/wx-2.8/wx/textctrl.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/dynarray.h"
+	"wx/gdicmn.h"
+	"wx/ioswrap.h"
+	"wx/x11/textctrl.h"
+	"wx/univ/textctrl.h"
+	"wx/msw/wince/textctrlce.h"
+	"wx/msw/textctrl.h"
+	"wx/motif/textctrl.h"
+	"wx/gtk/textctrl.h"
+	"wx/gtk1/textctrl.h"
+	"wx/mac/textctrl.h"
+	"wx/cocoa/textctrl.h"
+	"wx/os2/textctrl.h"
+
+1393366633 /usr/include/wx-2.8/wx/ioswrap.h
+	<iostream.h>
+	<iostream>
+	"wx/msw/winundef.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/textctrl.h
+
+1393366634 /usr/include/wx-2.8/wx/slider.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/univ/slider.h"
+	"wx/msw/slider95.h"
+	"wx/motif/slider.h"
+	"wx/gtk/slider.h"
+	"wx/gtk1/slider.h"
+	"wx/mac/slider.h"
+	"wx/cocoa/slider.h"
+	"wx/os2/slider.h"
+	"wx/palmos/slider.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/slider.h
+
+1393366634 /usr/include/wx-2.8/wx/gauge.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/univ/gauge.h"
+	"wx/msw/gauge95.h"
+	"wx/motif/gauge.h"
+	"wx/gtk/gauge.h"
+	"wx/gtk1/gauge.h"
+	"wx/mac/gauge.h"
+	"wx/cocoa/gauge.h"
+	"wx/os2/gauge.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/gauge.h
+
+1393366634 /usr/include/wx-2.8/wx/scrolwin.h
+	"wx/panel.h"
+	"wx/gtk/scrolwin.h"
+	"wx/gtk1/scrolwin.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/scrolwin.h
+
+1393366634 /usr/include/wx-2.8/wx/dirdlg.h
+	"wx/dialog.h"
+	"wx/generic/dirdlgg.h"
+	"wx/generic/dirdlgg.h"
+	"wx/generic/dirdlgg.h"
+	"wx/msw/dirdlg.h"
+	"wx/gtk/dirdlg.h"
+	"wx/generic/dirdlgg.h"
+	"wx/mac/dirdlg.h"
+	"wx/cocoa/dirdlg.h"
+	"wx/generic/dirdlgg.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/dirdlgg.h
+	"wx/dialog.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/dirdlg.h
+	"wx/generic/dirdlgg.h"
+
+1393366634 /usr/include/wx-2.8/wx/toolbar.h
+	"wx/defs.h"
+	"wx/tbarbase.h"
+	"wx/univ/toolbar.h"
+	"wx/palmos/toolbar.h"
+	"wx/msw/tbar95.h"
+	"wx/msw/wince/tbarwce.h"
+	"wx/motif/toolbar.h"
+	"wx/gtk/tbargtk.h"
+	"wx/gtk1/tbargtk.h"
+	"wx/mac/toolbar.h"
+	"wx/cocoa/toolbar.h"
+	"wx/os2/toolbar.h"
+
+1393366634 /usr/include/wx-2.8/wx/tbarbase.h
+	"wx/defs.h"
+	"wx/bitmap.h"
+	"wx/list.h"
+	"wx/control.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/tbargtk.h
+
+1393366634 /usr/include/wx-2.8/wx/combobox.h
+	"wx/defs.h"
+	"wx/textctrl.h"
+	"wx/ctrlsub.h"
+	"wx/univ/combobox.h"
+	"wx/msw/combobox.h"
+	"wx/motif/combobox.h"
+	"wx/gtk/combobox.h"
+	"wx/gtk1/combobox.h"
+	"wx/mac/combobox.h"
+	"wx/cocoa/combobox.h"
+	"wx/os2/combobox.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/combobox.h
+
+1393366634 /usr/include/wx-2.8/wx/layout.h
+	"wx/object.h"
+
+1393366634 /usr/include/wx-2.8/wx/sizer.h
+	"wx/defs.h"
+	"wx/window.h"
+
+1393366634 /usr/include/wx-2.8/wx/mdi.h
+	"wx/defs.h"
+	"wx/generic/mdig.h"
+	"wx/msw/mdi.h"
+	"wx/motif/mdi.h"
+	"wx/gtk/mdi.h"
+	"wx/gtk1/mdi.h"
+	"wx/mac/mdi.h"
+	"wx/cocoa/mdi.h"
+	"wx/generic/mdig.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/mdi.h
+	"wx/frame.h"
+
+1393366634 /usr/include/wx-2.8/wx/statusbr.h
+	"wx/defs.h"
+	"wx/window.h"
+	"wx/list.h"
+	"wx/dynarray.h"
+	"wx/univ/statusbr.h"
+	"wx/palmos/statusbr.h"
+	"wx/msw/statbr95.h"
+	"wx/generic/statusbr.h"
+	"wx/mac/statusbr.h"
+	"wx/generic/statusbr.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/statusbr.h
+	"wx/defs.h"
+	"wx/pen.h"
+	"wx/arrstr.h"
+
+1393366634 /usr/include/wx-2.8/wx/choicdlg.h
+	"wx/generic/choicdgg.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/choicdgg.h
+	"wx/dynarray.h"
+	"wx/dialog.h"
+
+1393366634 /usr/include/wx-2.8/wx/textdlg.h
+	"wx/generic/textdlgg.h"
+	"wx/numdlg.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/textdlgg.h
+	"wx/defs.h"
+	"wx/dialog.h"
+	"wx/valtext.h"
+
+1393366634 /usr/include/wx-2.8/wx/valtext.h
+	"wx/defs.h"
+	"wx/textctrl.h"
+	"wx/validate.h"
+
+1393366634 /usr/include/wx-2.8/wx/numdlg.h
+	"wx/defs.h"
+	"wx/generic/numdlgg.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/numdlgg.h
+	"wx/defs.h"
+	"wx/dialog.h"
+
+1393366634 /usr/include/wx-2.8/wx/filedlg.h
+	"wx/defs.h"
+	"wx/dialog.h"
+	"wx/arrstr.h"
+	"wx/generic/filedlgg.h"
+	"wx/msw/filedlg.h"
+	"wx/motif/filedlg.h"
+	"wx/gtk/filedlg.h"
+	"wx/generic/filedlgg.h"
+	"wx/gtk1/filedlg.h"
+	"wx/mac/filedlg.h"
+	"wx/cocoa/filedlg.h"
+	"wx/os2/filedlg.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/filedlgg.h
+	"wx/listctrl.h"
+	"wx/datetime.h"
+	"wx/filefn.h"
+	"wx/filedlg.h"
+
+1393366634 /usr/include/wx-2.8/wx/listctrl.h
+	"wx/defs.h"
+	"wx/listbase.h"
+	"wx/msw/listctrl.h"
+	"wx/mac/carbon/listctrl.h"
+	"wx/generic/listctrl.h"
+
+1393366634 /usr/include/wx-2.8/wx/listbase.h
+	"wx/colour.h"
+	"wx/font.h"
+	"wx/gdicmn.h"
+	"wx/event.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/listctrl.h
+	"wx/textctrl.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/filedlg.h
+	"wx/generic/filedlgg.h"
+
+1415727574 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneApp.h
+	<wx/app.h>
+
+1415726698 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7ScrolledWindow.h
+	<wx/window.h>
+	<wx/scrolwin.h>
+	<wx/laywin.h>
+	<cairo.h>
+	<librsvg/rsvg.h>
+
+1393366635 /usr/include/wx-2.8/wx/laywin.h
+	"wx/generic/laywin.h"
+
+1393366635 /usr/include/wx-2.8/wx/generic/laywin.h
+	"wx/sashwin.h"
+	"wx/event.h"
+
+1393366635 /usr/include/wx-2.8/wx/sashwin.h
+	"wx/generic/sashwin.h"
+
+1393366635 /usr/include/wx-2.8/wx/generic/sashwin.h
+	"wx/defs.h"
+	"wx/window.h"
+	"wx/string.h"
+
+1392634063 /usr/include/cairo/cairo.h
+	"cairo-version.h"
+	"cairo-features.h"
+	"cairo-deprecated.h"
+
+1392634063 /usr/include/cairo/cairo-version.h
+
+1392634063 /usr/include/cairo/cairo-features.h
+
+1392634063 /usr/include/cairo/cairo-deprecated.h
+
+1395223202 /usr/include/librsvg-2.0/librsvg/rsvg.h
+	<glib-object.h>
+	<gio/gio.h>
+	<gdk-pixbuf/gdk-pixbuf.h>
+	"librsvg-enum-types.h"
+	"librsvg-features.h"
+	"rsvg-cairo.h"
+
+1396533891 /usr/include/glib-2.0/glib-object.h
+	<gobject/gbinding.h>
+	<gobject/gboxed.h>
+	<gobject/genums.h>
+	<gobject/gobject.h>
+	<gobject/gparam.h>
+	<gobject/gparamspecs.h>
+	<gobject/gsignal.h>
+	<gobject/gsourceclosure.h>
+	<gobject/gtype.h>
+	<gobject/gtypemodule.h>
+	<gobject/gtypeplugin.h>
+	<gobject/gvalue.h>
+	<gobject/gvaluearray.h>
+	<gobject/gvaluetypes.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gbinding.h
+	<glib.h>
+	<gobject/gobject.h>
+
+1396533891 /usr/include/glib-2.0/glib.h
+	<glib/galloca.h>
+	<glib/garray.h>
+	<glib/gasyncqueue.h>
+	<glib/gatomic.h>
+	<glib/gbacktrace.h>
+	<glib/gbase64.h>
+	<glib/gbitlock.h>
+	<glib/gbookmarkfile.h>
+	<glib/gbytes.h>
+	<glib/gcharset.h>
+	<glib/gchecksum.h>
+	<glib/gconvert.h>
+	<glib/gdataset.h>
+	<glib/gdate.h>
+	<glib/gdatetime.h>
+	<glib/gdir.h>
+	<glib/genviron.h>
+	<glib/gerror.h>
+	<glib/gfileutils.h>
+	<glib/ggettext.h>
+	<glib/ghash.h>
+	<glib/ghmac.h>
+	<glib/ghook.h>
+	<glib/ghostutils.h>
+	<glib/giochannel.h>
+	<glib/gkeyfile.h>
+	<glib/glist.h>
+	<glib/gmacros.h>
+	<glib/gmain.h>
+	<glib/gmappedfile.h>
+	<glib/gmarkup.h>
+	<glib/gmem.h>
+	<glib/gmessages.h>
+	<glib/gnode.h>
+	<glib/goption.h>
+	<glib/gpattern.h>
+	<glib/gpoll.h>
+	<glib/gprimes.h>
+	<glib/gqsort.h>
+	<glib/gquark.h>
+	<glib/gqueue.h>
+	<glib/grand.h>
+	<glib/gregex.h>
+	<glib/gscanner.h>
+	<glib/gsequence.h>
+	<glib/gshell.h>
+	<glib/gslice.h>
+	<glib/gslist.h>
+	<glib/gspawn.h>
+	<glib/gstrfuncs.h>
+	<glib/gstring.h>
+	<glib/gstringchunk.h>
+	<glib/gtestutils.h>
+	<glib/gthread.h>
+	<glib/gthreadpool.h>
+	<glib/gtimer.h>
+	<glib/gtimezone.h>
+	<glib/gtrashstack.h>
+	<glib/gtree.h>
+	<glib/gtypes.h>
+	<glib/gunicode.h>
+	<glib/gurifuncs.h>
+	<glib/gutils.h>
+	<glib/gvarianttype.h>
+	<glib/gvariant.h>
+	<glib/gversion.h>
+	<glib/gversionmacros.h>
+	<glib/gwin32.h>
+	<glib/deprecated/gallocator.h>
+	<glib/deprecated/gcache.h>
+	<glib/deprecated/gcompletion.h>
+	<glib/deprecated/gmain.h>
+	<glib/deprecated/grel.h>
+	<glib/deprecated/gthread.h>
+
+1396533891 /usr/include/glib-2.0/glib/galloca.h
+	<glib/gtypes.h>
+	<alloca.h>
+	<alloca.h>
+	<malloc.h>
+
+1396533891 /usr/include/glib-2.0/glib/gtypes.h
+	<glibconfig.h>
+	<glib/gmacros.h>
+	<glib/gversionmacros.h>
+	<time.h>
+
+1396533891 /usr/lib/x86_64-linux-gnu/glib-2.0/include/glibconfig.h
+	<glib/gmacros.h>
+	<limits.h>
+	<float.h>
+
+1396533891 /usr/include/glib-2.0/glib/gmacros.h
+	<stddef.h>
+
+1396533891 /usr/include/glib-2.0/glib/gversionmacros.h
+
+1396533891 /usr/include/glib-2.0/glib/garray.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gasyncqueue.h
+	<glib/gthread.h>
+
+1396533891 /usr/include/glib-2.0/glib/gthread.h
+	<glib/gatomic.h>
+	<glib/gerror.h>
+
+1396533891 /usr/include/glib-2.0/glib/gatomic.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gerror.h
+	<stdarg.h>
+	<glib/gquark.h>
+
+1396533891 /usr/include/glib-2.0/glib/gquark.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gbacktrace.h
+	<glib/gtypes.h>
+	<signal.h>
+
+1396533891 /usr/include/glib-2.0/glib/gbase64.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gbitlock.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gbookmarkfile.h
+	<glib/gerror.h>
+	<time.h>
+
+1396533891 /usr/include/glib-2.0/glib/gbytes.h
+	<glib/gtypes.h>
+	<glib/garray.h>
+
+1396533891 /usr/include/glib-2.0/glib/gcharset.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gchecksum.h
+	<glib/gtypes.h>
+	<glib/gbytes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gconvert.h
+	<glib/gerror.h>
+
+1396533891 /usr/include/glib-2.0/glib/gdataset.h
+	<glib/gquark.h>
+
+1396533891 /usr/include/glib-2.0/glib/gdate.h
+	<time.h>
+	<glib/gtypes.h>
+	<glib/gquark.h>
+
+1396533891 /usr/include/glib-2.0/glib/gdatetime.h
+	<glib/gtimezone.h>
+
+1396533891 /usr/include/glib-2.0/glib/gtimezone.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gdir.h
+	<glib/gerror.h>
+	<dirent.h>
+
+1396533891 /usr/include/glib-2.0/glib/genviron.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gfileutils.h
+	<glib/gerror.h>
+
+1396533891 /usr/include/glib-2.0/glib/ggettext.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/ghash.h
+	<glib/gtypes.h>
+	<glib/glist.h>
+
+1396533891 /usr/include/glib-2.0/glib/glist.h
+	<glib/gmem.h>
+	<glib/gnode.h>
+
+1396533891 /usr/include/glib-2.0/glib/gmem.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gnode.h
+	<glib/gmem.h>
+
+1396533891 /usr/include/glib-2.0/glib/ghmac.h
+	<glib/gtypes.h>
+	"gchecksum.h"
+
+1396533891 /usr/include/glib-2.0/glib/ghook.h
+	<glib/gmem.h>
+
+1396533891 /usr/include/glib-2.0/glib/ghostutils.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/giochannel.h
+	<glib/gconvert.h>
+	<glib/gmain.h>
+	<glib/gstring.h>
+
+1396533891 /usr/include/glib-2.0/glib/gmain.h
+	<glib/gpoll.h>
+	<glib/gslist.h>
+	<glib/gthread.h>
+
+1396533891 /usr/include/glib-2.0/glib/gpoll.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gslist.h
+	<glib/gmem.h>
+	<glib/gnode.h>
+
+1396533891 /usr/include/glib-2.0/glib/gstring.h
+	<glib/gtypes.h>
+	<glib/gunicode.h>
+	<glib/gbytes.h>
+	<glib/gutils.h>
+
+1396533891 /usr/include/glib-2.0/glib/gunicode.h
+	<glib/gerror.h>
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gutils.h
+	<glib/gtypes.h>
+	<stdarg.h>
+
+1396533891 /usr/include/glib-2.0/glib/gkeyfile.h
+	<glib/gerror.h>
+
+1396533891 /usr/include/glib-2.0/glib/gmappedfile.h
+	<glib/gbytes.h>
+	<glib/gerror.h>
+
+1396533891 /usr/include/glib-2.0/glib/gmarkup.h
+	<stdarg.h>
+	<glib/gerror.h>
+	<glib/gslist.h>
+
+1396533891 /usr/include/glib-2.0/glib/gmessages.h
+	<stdarg.h>
+	<glib/gtypes.h>
+	<glib/gmacros.h>
+
+1396533891 /usr/include/glib-2.0/glib/goption.h
+	<glib/gerror.h>
+	<glib/gquark.h>
+
+1396533891 /usr/include/glib-2.0/glib/gpattern.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gprimes.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gqsort.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gqueue.h
+	<glib/glist.h>
+
+1396533891 /usr/include/glib-2.0/glib/grand.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gregex.h
+	<glib/gerror.h>
+	<glib/gstring.h>
+
+1396533891 /usr/include/glib-2.0/glib/gscanner.h
+	<glib/gdataset.h>
+	<glib/ghash.h>
+
+1396533891 /usr/include/glib-2.0/glib/gsequence.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gshell.h
+	<glib/gerror.h>
+
+1396533891 /usr/include/glib-2.0/glib/gslice.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gspawn.h
+	<glib/gerror.h>
+
+1396533891 /usr/include/glib-2.0/glib/gstrfuncs.h
+	<stdarg.h>
+	<glib/gmacros.h>
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gstringchunk.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gtestutils.h
+	<glib/gmessages.h>
+	<glib/gstring.h>
+	<glib/gerror.h>
+	<glib/gslist.h>
+
+1396533891 /usr/include/glib-2.0/glib/gthreadpool.h
+	<glib/gthread.h>
+
+1396533891 /usr/include/glib-2.0/glib/gtimer.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gtrashstack.h
+	<glib/gutils.h>
+
+1396533891 /usr/include/glib-2.0/glib/gtree.h
+	<glib/gnode.h>
+
+1396533891 /usr/include/glib-2.0/glib/gurifuncs.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gvarianttype.h
+	<glib/gmessages.h>
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gvariant.h
+	<glib/gvarianttype.h>
+	<glib/gstring.h>
+	<glib/gbytes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gversion.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/gwin32.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/deprecated/gallocator.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/deprecated/gcache.h
+	<glib/glist.h>
+
+1396533891 /usr/include/glib-2.0/glib/deprecated/gcompletion.h
+	<glib/glist.h>
+
+1396533891 /usr/include/glib-2.0/glib/deprecated/gmain.h
+	<glib/gmain.h>
+
+1396533891 /usr/include/glib-2.0/glib/deprecated/grel.h
+	<glib/gtypes.h>
+
+1396533891 /usr/include/glib-2.0/glib/deprecated/gthread.h
+	<glib/gthread.h>
+	<sys/types.h>
+	<pthread.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gobject.h
+	<gobject/gtype.h>
+	<gobject/gvalue.h>
+	<gobject/gparam.h>
+	<gobject/gclosure.h>
+	<gobject/gsignal.h>
+	<gobject/gboxed.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gtype.h
+	<glib.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gvalue.h
+	<gobject/gtype.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gparam.h
+	<gobject/gvalue.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gclosure.h
+	<gobject/gtype.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gsignal.h
+	<gobject/gclosure.h>
+	<gobject/gvalue.h>
+	<gobject/gparam.h>
+	<gobject/gmarshal.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gmarshal.h
+
+1396533894 /usr/include/glib-2.0/gobject/gboxed.h
+	<gobject/gtype.h>
+	<gobject/glib-types.h>
+
+1396533894 /usr/include/glib-2.0/gobject/glib-types.h
+	<glib.h>
+
+1396533894 /usr/include/glib-2.0/gobject/genums.h
+	<gobject/gtype.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gparamspecs.h
+	<gobject/gvalue.h>
+	<gobject/genums.h>
+	<gobject/gboxed.h>
+	<gobject/gobject.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gsourceclosure.h
+	<gobject/gclosure.h>
+	<gobject/glib-types.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gtypemodule.h
+	<gobject/gobject.h>
+	<gobject/genums.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gtypeplugin.h
+	<gobject/gtype.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gvaluearray.h
+	<gobject/gvalue.h>
+
+1396533894 /usr/include/glib-2.0/gobject/gvaluetypes.h
+	<gobject/gvalue.h>
+
+1396533895 /usr/include/glib-2.0/gio/gio.h
+	<gio/giotypes.h>
+	<gio/gaction.h>
+	<gio/gactiongroup.h>
+	<gio/gactiongroupexporter.h>
+	<gio/gactionmap.h>
+	<gio/gappinfo.h>
+	<gio/gapplication.h>
+	<gio/gapplicationcommandline.h>
+	<gio/gasyncinitable.h>
+	<gio/gasyncresult.h>
+	<gio/gbufferedinputstream.h>
+	<gio/gbufferedoutputstream.h>
+	<gio/gbytesicon.h>
+	<gio/gcancellable.h>
+	<gio/gcharsetconverter.h>
+	<gio/gcontenttype.h>
+	<gio/gconverter.h>
+	<gio/gconverterinputstream.h>
+	<gio/gconverteroutputstream.h>
+	<gio/gcredentials.h>
+	<gio/gdatainputstream.h>
+	<gio/gdataoutputstream.h>
+	<gio/gdbusaddress.h>
+	<gio/gdbusauthobserver.h>
+	<gio/gdbusconnection.h>
+	<gio/gdbuserror.h>
+	<gio/gdbusintrospection.h>
+	<gio/gdbusmessage.h>
+	<gio/gdbusmethodinvocation.h>
+	<gio/gdbusnameowning.h>
+	<gio/gdbusnamewatching.h>
+	<gio/gdbusproxy.h>
+	<gio/gdbusserver.h>
+	<gio/gdbusutils.h>
+	<gio/gdrive.h>
+	<gio/gemblemedicon.h>
+	<gio/gfileattribute.h>
+	<gio/gfileenumerator.h>
+	<gio/gfile.h>
+	<gio/gfileicon.h>
+	<gio/gfileinfo.h>
+	<gio/gfileinputstream.h>
+	<gio/gfileiostream.h>
+	<gio/gfilemonitor.h>
+	<gio/gfilenamecompleter.h>
+	<gio/gfileoutputstream.h>
+	<gio/gfilterinputstream.h>
+	<gio/gfilteroutputstream.h>
+	<gio/gicon.h>
+	<gio/ginetaddress.h>
+	<gio/ginetaddressmask.h>
+	<gio/ginetsocketaddress.h>
+	<gio/ginitable.h>
+	<gio/ginputstream.h>
+	<gio/gioenums.h>
+	<gio/gioenumtypes.h>
+	<gio/gioerror.h>
+	<gio/giomodule.h>
+	<gio/gioscheduler.h>
+	<gio/giostream.h>
+	<gio/gloadableicon.h>
+	<gio/gmemoryinputstream.h>
+	<gio/gmemoryoutputstream.h>
+	<gio/gmount.h>
+	<gio/gmountoperation.h>
+	<gio/gnativevolumemonitor.h>
+	<gio/gnetworkaddress.h>
+	<gio/gnetworkmonitor.h>
+	<gio/gnetworkservice.h>
+	<gio/goutputstream.h>
+	<gio/gpermission.h>
+	<gio/gpollableinputstream.h>
+	<gio/gpollableoutputstream.h>
+	<gio/gpollableutils.h>
+	<gio/gpropertyaction.h>
+	<gio/gproxy.h>
+	<gio/gproxyaddress.h>
+	<gio/gproxyaddressenumerator.h>
+	<gio/gproxyresolver.h>
+	<gio/gresolver.h>
+	<gio/gresource.h>
+	<gio/gseekable.h>
+	<gio/gsettingsschema.h>
+	<gio/gsettings.h>
+	<gio/gsimpleaction.h>
+	<gio/gsimpleactiongroup.h>
+	<gio/gsimpleasyncresult.h>
+	<gio/gsimplepermission.h>
+	<gio/gsocketaddressenumerator.h>
+	<gio/gsocketaddress.h>
+	<gio/gsocketclient.h>
+	<gio/gsocketconnectable.h>
+	<gio/gsocketconnection.h>
+	<gio/gsocketcontrolmessage.h>
+	<gio/gsocket.h>
+	<gio/gsocketlistener.h>
+	<gio/gsocketservice.h>
+	<gio/gsrvtarget.h>
+	<gio/gsimpleproxyresolver.h>
+	<gio/gtask.h>
+	<gio/gsubprocess.h>
+	<gio/gsubprocesslauncher.h>
+	<gio/gtcpconnection.h>
+	<gio/gtcpwrapperconnection.h>
+	<gio/gtestdbus.h>
+	<gio/gthemedicon.h>
+	<gio/gthreadedsocketservice.h>
+	<gio/gtlsbackend.h>
+	<gio/gtlscertificate.h>
+	<gio/gtlsclientconnection.h>
+	<gio/gtlsconnection.h>
+	<gio/gtlsdatabase.h>
+	<gio/gtlsfiledatabase.h>
+	<gio/gtlsinteraction.h>
+	<gio/gtlsserverconnection.h>
+	<gio/gtlspassword.h>
+	<gio/gvfs.h>
+	<gio/gvolume.h>
+	<gio/gvolumemonitor.h>
+	<gio/gzlibcompressor.h>
+	<gio/gzlibdecompressor.h>
+	<gio/gdbusinterface.h>
+	<gio/gdbusinterfaceskeleton.h>
+	<gio/gdbusobject.h>
+	<gio/gdbusobjectskeleton.h>
+	<gio/gdbusobjectproxy.h>
+	<gio/gdbusobjectmanager.h>
+	<gio/gdbusobjectmanagerclient.h>
+	<gio/gdbusobjectmanagerserver.h>
+	<gio/gdbusactiongroup.h>
+	<gio/gremoteactiongroup.h>
+	<gio/gmenumodel.h>
+	<gio/gmenu.h>
+	<gio/gmenuexporter.h>
+	<gio/gdbusmenumodel.h>
+	<gio/gnotification.h>
+
+1396533895 /usr/include/glib-2.0/gio/giotypes.h
+	<gio/gioenums.h>
+
+1396533895 /usr/include/glib-2.0/gio/gioenums.h
+	<glib-object.h>
+
+1396533895 /usr/include/glib-2.0/gio/gaction.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gactiongroup.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gactiongroupexporter.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gactionmap.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gappinfo.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gapplication.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gapplicationcommandline.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gasyncinitable.h
+	<gio/giotypes.h>
+	<gio/ginitable.h>
+
+1396533895 /usr/include/glib-2.0/gio/ginitable.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gasyncresult.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gbufferedinputstream.h
+	<gio/gfilterinputstream.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfilterinputstream.h
+	<gio/ginputstream.h>
+
+1396533895 /usr/include/glib-2.0/gio/ginputstream.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gbufferedoutputstream.h
+	<gio/gfilteroutputstream.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfilteroutputstream.h
+	<gio/goutputstream.h>
+
+1396533895 /usr/include/glib-2.0/gio/goutputstream.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gbytesicon.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gcancellable.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gcharsetconverter.h
+	<gio/gconverter.h>
+
+1396533895 /usr/include/glib-2.0/gio/gconverter.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gcontenttype.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gconverterinputstream.h
+	<gio/gfilterinputstream.h>
+	<gio/gconverter.h>
+
+1396533895 /usr/include/glib-2.0/gio/gconverteroutputstream.h
+	<gio/gfilteroutputstream.h>
+	<gio/gconverter.h>
+
+1396533895 /usr/include/glib-2.0/gio/gcredentials.h
+	<gio/giotypes.h>
+	<unistd.h>
+	<sys/types.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdatainputstream.h
+	<gio/gbufferedinputstream.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdataoutputstream.h
+	<gio/gfilteroutputstream.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusaddress.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusauthobserver.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusconnection.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbuserror.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusintrospection.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusmessage.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusmethodinvocation.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusnameowning.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusnamewatching.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusproxy.h
+	<gio/giotypes.h>
+	<gio/gdbusintrospection.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusserver.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusutils.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdrive.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gemblemedicon.h
+	<gio/gicon.h>
+	<gio/gemblem.h>
+
+1396533895 /usr/include/glib-2.0/gio/gicon.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gemblem.h
+	<gio/gioenums.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfileattribute.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfileenumerator.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfile.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfileicon.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfileinfo.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfileinputstream.h
+	<gio/ginputstream.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfileiostream.h
+	<gio/giostream.h>
+
+1396533895 /usr/include/glib-2.0/gio/giostream.h
+	<gio/ginputstream.h>
+	<gio/goutputstream.h>
+	<gio/gcancellable.h>
+	<gio/gioerror.h>
+
+1396533895 /usr/include/glib-2.0/gio/gioerror.h
+	<glib.h>
+	<gio/gioenums.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfilemonitor.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfilenamecompleter.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gfileoutputstream.h
+	<gio/goutputstream.h>
+
+1396533895 /usr/include/glib-2.0/gio/ginetaddress.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/ginetaddressmask.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/ginetsocketaddress.h
+	<gio/gsocketaddress.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsocketaddress.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gioenumtypes.h
+	<glib-object.h>
+
+1396533895 /usr/include/glib-2.0/gio/giomodule.h
+	<gio/giotypes.h>
+	<gmodule.h>
+
+1396533893 /usr/include/glib-2.0/gmodule.h
+	<glib.h>
+
+1396533895 /usr/include/glib-2.0/gio/gioscheduler.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gloadableicon.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gmemoryinputstream.h
+	<gio/ginputstream.h>
+
+1396533895 /usr/include/glib-2.0/gio/gmemoryoutputstream.h
+	<gio/goutputstream.h>
+
+1396533895 /usr/include/glib-2.0/gio/gmount.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gmountoperation.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gnativevolumemonitor.h
+	<gio/gvolumemonitor.h>
+
+1396533895 /usr/include/glib-2.0/gio/gvolumemonitor.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gnetworkaddress.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gnetworkmonitor.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gnetworkservice.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gpermission.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gpollableinputstream.h
+	<gio/gio.h>
+
+1396533895 /usr/include/glib-2.0/gio/gpollableoutputstream.h
+	<gio/gio.h>
+
+1396533895 /usr/include/glib-2.0/gio/gpollableutils.h
+	<gio/gio.h>
+
+1396533895 /usr/include/glib-2.0/gio/gpropertyaction.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gproxy.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gproxyaddress.h
+	<gio/ginetsocketaddress.h>
+
+1396533895 /usr/include/glib-2.0/gio/gproxyaddressenumerator.h
+	<gio/gsocketaddressenumerator.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsocketaddressenumerator.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gproxyresolver.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gresolver.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gresource.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gseekable.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsettingsschema.h
+	<glib-object.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsettings.h
+	<gio/gsettingsschema.h>
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsimpleaction.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsimpleactiongroup.h
+	"gactiongroup.h"
+	"gactionmap.h"
+
+1396533895 /usr/include/glib-2.0/gio/gsimpleasyncresult.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsimplepermission.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsocketclient.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsocketconnectable.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsocketconnection.h
+	<glib-object.h>
+	<gio/gsocket.h>
+	<gio/giostream.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsocket.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsocketcontrolmessage.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsocketlistener.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsocketservice.h
+	<gio/gsocketlistener.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsrvtarget.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsimpleproxyresolver.h
+	<gio/gproxyresolver.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtask.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsubprocess.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gsubprocesslauncher.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtcpconnection.h
+	<gio/gsocketconnection.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtcpwrapperconnection.h
+	<gio/gtcpconnection.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtestdbus.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gthemedicon.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gthreadedsocketservice.h
+	<gio/gsocketservice.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtlsbackend.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtlscertificate.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtlsclientconnection.h
+	<gio/gtlsconnection.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtlsconnection.h
+	<gio/giostream.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtlsdatabase.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtlsfiledatabase.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtlsinteraction.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtlsserverconnection.h
+	<gio/gtlsconnection.h>
+
+1396533895 /usr/include/glib-2.0/gio/gtlspassword.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gvfs.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gvolume.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gzlibcompressor.h
+	<gio/gconverter.h>
+	<gio/gfileinfo.h>
+
+1396533895 /usr/include/glib-2.0/gio/gzlibdecompressor.h
+	<gio/gconverter.h>
+	<gio/gfileinfo.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusinterface.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusinterfaceskeleton.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusobject.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusobjectskeleton.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusobjectproxy.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusobjectmanager.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusobjectmanagerclient.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusobjectmanagerserver.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusactiongroup.h
+	"giotypes.h"
+
+1396533895 /usr/include/glib-2.0/gio/gremoteactiongroup.h
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gmenumodel.h
+	<glib-object.h>
+	<gio/giotypes.h>
+
+1396533895 /usr/include/glib-2.0/gio/gmenu.h
+	<gio/gmenumodel.h>
+
+1396533895 /usr/include/glib-2.0/gio/gmenuexporter.h
+	<gio/gdbusconnection.h>
+	<gio/gmenumodel.h>
+
+1396533895 /usr/include/glib-2.0/gio/gdbusmenumodel.h
+	<gio/gdbusconnection.h>
+
+1396533895 /usr/include/glib-2.0/gio/gnotification.h
+	<gio/giotypes.h>
+
+1396359192 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf.h
+	<glib.h>
+	<gdk-pixbuf/gdk-pixbuf-features.h>
+	<glib-object.h>
+	<gdk-pixbuf/gdk-pixbuf-core.h>
+	<gdk-pixbuf/gdk-pixbuf-transform.h>
+	<gdk-pixbuf/gdk-pixbuf-animation.h>
+	<gdk-pixbuf/gdk-pixbuf-simple-anim.h>
+	<gdk-pixbuf/gdk-pixbuf-io.h>
+	<gdk-pixbuf/gdk-pixbuf-loader.h>
+	<gdk-pixbuf/gdk-pixbuf-enum-types.h>
+
+1396359192 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-features.h
+	<glib.h>
+
+1396359192 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-core.h
+	<glib.h>
+	<glib-object.h>
+	<gio/gio.h>
+
+1396359192 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-transform.h
+	<glib.h>
+	<gdk-pixbuf/gdk-pixbuf-core.h>
+
+1396359192 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-animation.h
+	<glib-object.h>
+	<gdk-pixbuf/gdk-pixbuf-core.h>
+
+1396359192 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-simple-anim.h
+	<gdk-pixbuf/gdk-pixbuf-animation.h>
+
+1396359192 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-io.h
+	<stdio.h>
+	<glib.h>
+	<gmodule.h>
+	<gdk-pixbuf/gdk-pixbuf-core.h>
+	<gdk-pixbuf/gdk-pixbuf-animation.h>
+
+1396359192 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-loader.h
+	<glib.h>
+	<glib-object.h>
+	<gdk-pixbuf/gdk-pixbuf-core.h>
+	<gdk-pixbuf/gdk-pixbuf-animation.h>
+	<gdk-pixbuf/gdk-pixbuf-io.h>
+
+1396359192 /usr/include/gdk-pixbuf-2.0/gdk-pixbuf/gdk-pixbuf-enum-types.h
+	<glib-object.h>
+
+1395223202 /usr/include/librsvg-2.0/librsvg/librsvg-enum-types.h
+	<glib-object.h>
+
+1395223202 /usr/include/librsvg-2.0/librsvg/librsvg-features.h
+
+1395223202 /usr/include/librsvg-2.0/librsvg/rsvg-cairo.h
+	<cairo.h>
+
+1415732816 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
+	<sdk.h>
+	<configurationpanel.h>
+	<logmanager.h>
+	<cbproject.h>
+	<manager.h>
+	<editormanager.h>
+	<configmanager.h>
+	"standalone/standaloneMain.h"
+	<wx/wx.h>
+	<wx/xrc/xmlres.h>
+	<wx/ffile.h>
+	<wx/toolbar.h>
+	<wx/treectrl.h>
+	<wx/menu.h>
+	"SAFplus7IDE.h"
+	"SAFplus7EditorPanel.h"
+
+1393366635 /usr/include/wx-2.8/wx/xrc/xmlres.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/dynarray.h"
+	"wx/datetime.h"
+	"wx/list.h"
+	"wx/gdicmn.h"
+	"wx/filesys.h"
+	"wx/bitmap.h"
+	"wx/icon.h"
+	"wx/artprov.h"
+	"wx/colour.h"
+	"wx/animate.h"
+	"wx/xml/xml.h"
+
+1393366633 /usr/include/wx-2.8/wx/filesys.h
+	"wx/defs.h"
+	"wx/stream.h"
+	"wx/datetime.h"
+	"wx/filename.h"
+	"wx/hashmap.h"
+
+1393366633 /usr/include/wx-2.8/wx/filename.h
+	"wx/arrstr.h"
+	"wx/filefn.h"
+	"wx/datetime.h"
+	"wx/intl.h"
+
+1393366635 /usr/include/wx-2.8/wx/animate.h
+	"wx/defs.h"
+	"wx/animdecod.h"
+	"wx/control.h"
+	"wx/timer.h"
+	"wx/bitmap.h"
+	"wx/gtk/animate.h"
+	"wx/generic/animate.h"
+
+1393366635 /usr/include/wx-2.8/wx/animdecod.h
+	"wx/defs.h"
+	"wx/colour.h"
+	"wx/gdicmn.h"
+
+1393366635 /usr/include/wx-2.8/wx/gtk/animate.h
+
+1393366635 /usr/include/wx-2.8/wx/generic/animate.h
+	"wx/bitmap.h"
+
+1393366634 /usr/include/wx-2.8/wx/xml/xml.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/object.h"
+	"wx/list.h"
+
+1393366633 /usr/include/wx-2.8/wx/ffile.h
+	"wx/defs.h"
+	"wx/string.h"
+	"wx/filefn.h"
+	"wx/convauto.h"
+	<stdio.h>
+
+1393366633 /usr/include/wx-2.8/wx/convauto.h
+	"wx/strconv.h"
+
+1393366634 /usr/include/wx-2.8/wx/treectrl.h
+	"wx/defs.h"
+	"wx/control.h"
+	"wx/treebase.h"
+	"wx/textctrl.h"
+	"wx/generic/treectlg.h"
+	"wx/palmos/treectrl.h"
+	"wx/msw/treectrl.h"
+	"wx/generic/treectlg.h"
+	"wx/generic/treectlg.h"
+	"wx/generic/treectlg.h"
+	"wx/generic/treectlg.h"
+	"wx/generic/treectlg.h"
+
+1393366634 /usr/include/wx-2.8/wx/treebase.h
+	"wx/defs.h"
+	"wx/window.h"
+	"wx/event.h"
+	"wx/dynarray.h"
+
+1393366634 /usr/include/wx-2.8/wx/generic/treectlg.h
+	"wx/scrolwin.h"
+	"wx/pen.h"
+
+1415731589 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.h
+	<wx/wxprec.h>
+	<wx/wx.h>
+	<cbplugin.h>
+	<editorbase.h>
+	"standalone/standaloneMain.h"
+
+1393366634 /usr/include/wx-2.8/wx/wxprec.h
+	"wx/defs.h"
+	"wx/wxchar.h"
+	"wx/msw/wrapwin.h"
+	"wx/msw/wrapcctl.h"
+	"wx/msw/wrapcdlg.h"
+	"wx/msw/private.h"
+	"wx/msw/missing.h"
+	<PalmOS.h>
+	"wx/os2/private.h"
+	"wx/mgl/private.h"
+	"wx/wx.h"
+
+1415734165 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7ScrolledWindow.cpp
+	<wx/wx.h>
+	<wx/dcbuffer.h>
+	<wx/dcmemory.h>
+	"SAFplus7ScrolledWindow.h"
+	<gdk/gdk.h>
+	<gtk/gtk.h>
+	<cairo.h>
+
+1393366635 /usr/include/wx-2.8/wx/dcbuffer.h
+	"wx/dcmemory.h"
+	"wx/dcclient.h"
+	"wx/window.h"
+
+1399912908 /usr/include/gtk-2.0/gdk/gdk.h
+	<gdk/gdkapplaunchcontext.h>
+	<gdk/gdkcairo.h>
+	<gdk/gdkcolor.h>
+	<gdk/gdkcursor.h>
+	<gdk/gdkdisplay.h>
+	<gdk/gdkdisplaymanager.h>
+	<gdk/gdkdnd.h>
+	<gdk/gdkdrawable.h>
+	<gdk/gdkenumtypes.h>
+	<gdk/gdkevents.h>
+	<gdk/gdkfont.h>
+	<gdk/gdkgc.h>
+	<gdk/gdkimage.h>
+	<gdk/gdkinput.h>
+	<gdk/gdkkeys.h>
+	<gdk/gdkpango.h>
+	<gdk/gdkpixbuf.h>
+	<gdk/gdkpixmap.h>
+	<gdk/gdkproperty.h>
+	<gdk/gdkregion.h>
+	<gdk/gdkrgb.h>
+	<gdk/gdkscreen.h>
+	<gdk/gdkselection.h>
+	<gdk/gdkspawn.h>
+	<gdk/gdktestutils.h>
+	<gdk/gdktypes.h>
+	<gdk/gdkvisual.h>
+	<gdk/gdkwindow.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkapplaunchcontext.h
+	<gio/gio.h>
+	<gdk/gdkscreen.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkscreen.h
+	<cairo.h>
+	"gdk/gdktypes.h"
+	"gdk/gdkdisplay.h"
+
+1399912908 /usr/include/gtk-2.0/gdk/gdktypes.h
+	<glib.h>
+	<pango/pango.h>
+	<glib-object.h>
+	<gdkconfig.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango.h
+	<pango/pango-attributes.h>
+	<pango/pango-bidi-type.h>
+	<pango/pango-break.h>
+	<pango/pango-context.h>
+	<pango/pango-coverage.h>
+	<pango/pango-engine.h>
+	<pango/pango-enum-types.h>
+	<pango/pango-features.h>
+	<pango/pango-font.h>
+	<pango/pango-fontmap.h>
+	<pango/pango-fontset.h>
+	<pango/pango-glyph.h>
+	<pango/pango-glyph-item.h>
+	<pango/pango-gravity.h>
+	<pango/pango-item.h>
+	<pango/pango-layout.h>
+	<pango/pango-matrix.h>
+	<pango/pango-renderer.h>
+	<pango/pango-script.h>
+	<pango/pango-tabs.h>
+	<pango/pango-types.h>
+	<pango/pango-utils.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-attributes.h
+	<pango/pango-font.h>
+	<glib-object.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-font.h
+	<pango/pango-coverage.h>
+	<pango/pango-types.h>
+	<glib-object.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-coverage.h
+	<glib.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-types.h
+	<glib.h>
+	<glib-object.h>
+	<pango/pango-gravity.h>
+	<pango/pango-language.h>
+	<pango/pango-matrix.h>
+	<pango/pango-script.h>
+	<pango/pango-bidi-type.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-gravity.h
+	<glib.h>
+	<pango/pango-matrix.h>
+	<pango/pango-script.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-matrix.h
+	<glib.h>
+	<glib-object.h>
+	<pango/pango-types.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-script.h
+	<glib.h>
+	<pango/pango-language.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-language.h
+	<glib.h>
+	<glib-object.h>
+	<pango/pango-script.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-bidi-type.h
+	<glib.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-break.h
+	<glib.h>
+	<pango/pango-item.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-item.h
+	<pango/pango-types.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-context.h
+	<pango/pango-font.h>
+	<pango/pango-fontmap.h>
+	<pango/pango-attributes.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-fontmap.h
+	<pango/pango-font.h>
+	<pango/pango-fontset.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-fontset.h
+	<pango/pango-coverage.h>
+	<pango/pango-types.h>
+	<glib-object.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-engine.h
+	<pango/pango-types.h>
+	<pango/pango-item.h>
+	<pango/pango-font.h>
+	<pango/pango-glyph.h>
+	<pango/pango-script.h>
+	<gmodule.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-glyph.h
+	<pango/pango-types.h>
+	<pango/pango-item.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-enum-types.h
+	<glib-object.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-features.h
+
+1395340301 /usr/include/pango-1.0/pango/pango-glyph-item.h
+	<pango/pango-attributes.h>
+	<pango/pango-break.h>
+	<pango/pango-item.h>
+	<pango/pango-glyph.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-layout.h
+	<pango/pango-attributes.h>
+	<pango/pango-context.h>
+	<pango/pango-glyph-item.h>
+	<pango/pango-tabs.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-tabs.h
+	<pango/pango-types.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-renderer.h
+	<pango/pango-layout.h>
+
+1395340301 /usr/include/pango-1.0/pango/pango-utils.h
+	<stdio.h>
+	<glib.h>
+	<pango/pango-font.h>
+
+1399912908 /usr/lib/x86_64-linux-gnu/gtk-2.0/include/gdkconfig.h
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkdisplay.h
+	<gdk/gdktypes.h>
+	<gdk/gdkevents.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkevents.h
+	<gdk/gdkcolor.h>
+	<gdk/gdktypes.h>
+	<gdk/gdkdnd.h>
+	<gdk/gdkinput.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkcolor.h
+	<cairo.h>
+	<gdk/gdktypes.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkdnd.h
+	<gdk/gdktypes.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkinput.h
+	<gdk/gdktypes.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkcairo.h
+	<gdk/gdkcolor.h>
+	<gdk/gdkpixbuf.h>
+	<pango/pangocairo.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkpixbuf.h
+	<cairo.h>
+	<gdk/gdktypes.h>
+	<gdk/gdkrgb.h>
+	<gdk-pixbuf/gdk-pixbuf.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkrgb.h
+	<gdk/gdktypes.h>
+
+1395340301 /usr/include/pango-1.0/pango/pangocairo.h
+	<pango/pango.h>
+	<cairo.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkcursor.h
+	<gdk/gdktypes.h>
+	<gdk-pixbuf/gdk-pixbuf.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkdisplaymanager.h
+	<gdk/gdktypes.h>
+	<gdk/gdkdisplay.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkdrawable.h
+	<gdk/gdktypes.h>
+	<gdk/gdkgc.h>
+	<gdk/gdkrgb.h>
+	<gdk-pixbuf/gdk-pixbuf.h>
+	<cairo.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkgc.h
+	<gdk/gdkcolor.h>
+	<gdk/gdktypes.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkenumtypes.h
+	<glib-object.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkfont.h
+	<gdk/gdktypes.h>
+	<pango/pango.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkimage.h
+	<gdk/gdktypes.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkkeys.h
+	<gdk/gdktypes.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkpango.h
+	<gdk/gdktypes.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkpixmap.h
+	<gdk/gdktypes.h>
+	<gdk/gdkdrawable.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkproperty.h
+	<gdk/gdktypes.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkregion.h
+	<gdk/gdktypes.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkselection.h
+	<gdk/gdktypes.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkspawn.h
+	<gdk/gdkscreen.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdktestutils.h
+	<gdk/gdkwindow.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkwindow.h
+	<gdk/gdkdrawable.h>
+	<gdk/gdktypes.h>
+	<gdk/gdkevents.h>
+
+1399912908 /usr/include/gtk-2.0/gdk/gdkvisual.h
+	<gdk/gdktypes.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtk.h
+	<gdk/gdk.h>
+	<gtk/gtkaboutdialog.h>
+	<gtk/gtkaccelgroup.h>
+	<gtk/gtkaccellabel.h>
+	<gtk/gtkaccelmap.h>
+	<gtk/gtkaccessible.h>
+	<gtk/gtkaction.h>
+	<gtk/gtkactiongroup.h>
+	<gtk/gtkactivatable.h>
+	<gtk/gtkadjustment.h>
+	<gtk/gtkalignment.h>
+	<gtk/gtkarrow.h>
+	<gtk/gtkaspectframe.h>
+	<gtk/gtkassistant.h>
+	<gtk/gtkbbox.h>
+	<gtk/gtkbin.h>
+	<gtk/gtkbindings.h>
+	<gtk/gtkbox.h>
+	<gtk/gtkbuildable.h>
+	<gtk/gtkbuilder.h>
+	<gtk/gtkbutton.h>
+	<gtk/gtkcalendar.h>
+	<gtk/gtkcelleditable.h>
+	<gtk/gtkcelllayout.h>
+	<gtk/gtkcellrenderer.h>
+	<gtk/gtkcellrendereraccel.h>
+	<gtk/gtkcellrenderercombo.h>
+	<gtk/gtkcellrendererpixbuf.h>
+	<gtk/gtkcellrendererprogress.h>
+	<gtk/gtkcellrendererspin.h>
+	<gtk/gtkcellrendererspinner.h>
+	<gtk/gtkcellrenderertext.h>
+	<gtk/gtkcellrenderertoggle.h>
+	<gtk/gtkcellview.h>
+	<gtk/gtkcheckbutton.h>
+	<gtk/gtkcheckmenuitem.h>
+	<gtk/gtkclipboard.h>
+	<gtk/gtkcolorbutton.h>
+	<gtk/gtkcolorsel.h>
+	<gtk/gtkcolorseldialog.h>
+	<gtk/gtkcombobox.h>
+	<gtk/gtkcomboboxentry.h>
+	<gtk/gtkcomboboxtext.h>
+	<gtk/gtkcontainer.h>
+	<gtk/gtkdebug.h>
+	<gtk/gtkdialog.h>
+	<gtk/gtkdnd.h>
+	<gtk/gtkdrawingarea.h>
+	<gtk/gtkeditable.h>
+	<gtk/gtkentry.h>
+	<gtk/gtkentrybuffer.h>
+	<gtk/gtkentrycompletion.h>
+	<gtk/gtkenums.h>
+	<gtk/gtkeventbox.h>
+	<gtk/gtkexpander.h>
+	<gtk/gtkfixed.h>
+	<gtk/gtkfilechooser.h>
+	<gtk/gtkfilechooserbutton.h>
+	<gtk/gtkfilechooserdialog.h>
+	<gtk/gtkfilechooserwidget.h>
+	<gtk/gtkfilefilter.h>
+	<gtk/gtkfontbutton.h>
+	<gtk/gtkfontsel.h>
+	<gtk/gtkframe.h>
+	<gtk/gtkgc.h>
+	<gtk/gtkhandlebox.h>
+	<gtk/gtkhbbox.h>
+	<gtk/gtkhbox.h>
+	<gtk/gtkhpaned.h>
+	<gtk/gtkhruler.h>
+	<gtk/gtkhscale.h>
+	<gtk/gtkhscrollbar.h>
+	<gtk/gtkhseparator.h>
+	<gtk/gtkhsv.h>
+	<gtk/gtkiconfactory.h>
+	<gtk/gtkicontheme.h>
+	<gtk/gtkiconview.h>
+	<gtk/gtkimage.h>
+	<gtk/gtkimagemenuitem.h>
+	<gtk/gtkimcontext.h>
+	<gtk/gtkimcontextsimple.h>
+	<gtk/gtkimmulticontext.h>
+	<gtk/gtkinfobar.h>
+	<gtk/gtkinvisible.h>
+	<gtk/gtkitem.h>
+	<gtk/gtklabel.h>
+	<gtk/gtklayout.h>
+	<gtk/gtklinkbutton.h>
+	<gtk/gtkliststore.h>
+	<gtk/gtkmain.h>
+	<gtk/gtkmenu.h>
+	<gtk/gtkmenubar.h>
+	<gtk/gtkmenuitem.h>
+	<gtk/gtkmenushell.h>
+	<gtk/gtkmenutoolbutton.h>
+	<gtk/gtkmessagedialog.h>
+	<gtk/gtkmisc.h>
+	<gtk/gtkmodules.h>
+	<gtk/gtkmountoperation.h>
+	<gtk/gtknotebook.h>
+	<gtk/gtkobject.h>
+	<gtk/gtkoffscreenwindow.h>
+	<gtk/gtkorientable.h>
+	<gtk/gtkpagesetup.h>
+	<gtk/gtkpapersize.h>
+	<gtk/gtkpaned.h>
+	<gtk/gtkplug.h>
+	<gtk/gtkprintcontext.h>
+	<gtk/gtkprintoperation.h>
+	<gtk/gtkprintoperationpreview.h>
+	<gtk/gtkprintsettings.h>
+	<gtk/gtkprogressbar.h>
+	<gtk/gtkradioaction.h>
+	<gtk/gtkradiobutton.h>
+	<gtk/gtkradiomenuitem.h>
+	<gtk/gtkradiotoolbutton.h>
+	<gtk/gtkrange.h>
+	<gtk/gtkrc.h>
+	<gtk/gtkrecentaction.h>
+	<gtk/gtkrecentchooser.h>
+	<gtk/gtkrecentchooserdialog.h>
+	<gtk/gtkrecentchoosermenu.h>
+	<gtk/gtkrecentchooserwidget.h>
+	<gtk/gtkrecentfilter.h>
+	<gtk/gtkrecentmanager.h>
+	<gtk/gtkruler.h>
+	<gtk/gtkscale.h>
+	<gtk/gtkscalebutton.h>
+	<gtk/gtkscrollbar.h>
+	<gtk/gtkscrolledwindow.h>
+	<gtk/gtkselection.h>
+	<gtk/gtkseparator.h>
+	<gtk/gtkseparatormenuitem.h>
+	<gtk/gtkseparatortoolitem.h>
+	<gtk/gtksettings.h>
+	<gtk/gtkshow.h>
+	<gtk/gtksizegroup.h>
+	<gtk/gtksocket.h>
+	<gtk/gtkspinbutton.h>
+	<gtk/gtkspinner.h>
+	<gtk/gtkstatusbar.h>
+	<gtk/gtkstatusicon.h>
+	<gtk/gtkstock.h>
+	<gtk/gtkstyle.h>
+	<gtk/gtktable.h>
+	<gtk/gtktearoffmenuitem.h>
+	<gtk/gtktextbuffer.h>
+	<gtk/gtktextbufferrichtext.h>
+	<gtk/gtktextchild.h>
+	<gtk/gtktextiter.h>
+	<gtk/gtktextmark.h>
+	<gtk/gtktexttag.h>
+	<gtk/gtktexttagtable.h>
+	<gtk/gtktextview.h>
+	<gtk/gtktoggleaction.h>
+	<gtk/gtktogglebutton.h>
+	<gtk/gtktoggletoolbutton.h>
+	<gtk/gtktoolbar.h>
+	<gtk/gtktoolbutton.h>
+	<gtk/gtktoolitem.h>
+	<gtk/gtktoolitemgroup.h>
+	<gtk/gtktoolpalette.h>
+	<gtk/gtktoolshell.h>
+	<gtk/gtktooltip.h>
+	<gtk/gtktestutils.h>
+	<gtk/gtktreednd.h>
+	<gtk/gtktreemodel.h>
+	<gtk/gtktreemodelfilter.h>
+	<gtk/gtktreemodelsort.h>
+	<gtk/gtktreeselection.h>
+	<gtk/gtktreesortable.h>
+	<gtk/gtktreestore.h>
+	<gtk/gtktreeview.h>
+	<gtk/gtktreeviewcolumn.h>
+	<gtk/gtktypeutils.h>
+	<gtk/gtkuimanager.h>
+	<gtk/gtkvbbox.h>
+	<gtk/gtkvbox.h>
+	<gtk/gtkversion.h>
+	<gtk/gtkviewport.h>
+	<gtk/gtkvolumebutton.h>
+	<gtk/gtkvpaned.h>
+	<gtk/gtkvruler.h>
+	<gtk/gtkvscale.h>
+	<gtk/gtkvscrollbar.h>
+	<gtk/gtkvseparator.h>
+	<gtk/gtkwidget.h>
+	<gtk/gtkwindow.h>
+	<gtk/gtktext.h>
+	<gtk/gtktree.h>
+	<gtk/gtktreeitem.h>
+	<gtk/gtkclist.h>
+	<gtk/gtkcombo.h>
+	<gtk/gtkctree.h>
+	<gtk/gtkcurve.h>
+	<gtk/gtkfilesel.h>
+	<gtk/gtkgamma.h>
+	<gtk/gtkinputdialog.h>
+	<gtk/gtkitemfactory.h>
+	<gtk/gtklist.h>
+	<gtk/gtklistitem.h>
+	<gtk/gtkoldeditable.h>
+	<gtk/gtkoptionmenu.h>
+	<gtk/gtkpixmap.h>
+	<gtk/gtkpreview.h>
+	<gtk/gtkprogress.h>
+	<gtk/gtksignal.h>
+	<gtk/gtktipsquery.h>
+	<gtk/gtktooltips.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkaboutdialog.h
+	<gtk/gtkdialog.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkdialog.h
+	<gtk/gtkwindow.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkwindow.h
+	<gtk/gtkaccelgroup.h>
+	<gtk/gtkbin.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkaccelgroup.h
+	<gdk/gdk.h>
+	<gtk/gtkenums.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkenums.h
+	<glib-object.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkbin.h
+	<gtk/gtkcontainer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcontainer.h
+	<gtk/gtkwidget.h>
+	<gtk/gtkadjustment.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkwidget.h
+	<gdk/gdk.h>
+	<gtk/gtkaccelgroup.h>
+	<gtk/gtkobject.h>
+	<gtk/gtkadjustment.h>
+	<gtk/gtkstyle.h>
+	<gtk/gtksettings.h>
+	<atk/atk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkobject.h
+	<gdkconfig.h>
+	<gtk/gtkenums.h>
+	<gtk/gtktypeutils.h>
+	<gtk/gtkdebug.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktypeutils.h
+	<gtk/gtktypebuiltins.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktypebuiltins.h
+	<glib-object.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkdebug.h
+	<glib.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkadjustment.h
+	<gdk/gdk.h>
+	<gtk/gtkobject.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkstyle.h
+	<gdk/gdk.h>
+	<gtk/gtkenums.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtksettings.h
+	<gtk/gtkrc.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkrc.h
+	<gtk/gtkstyle.h>
+
+1392349633 /usr/include/atk-1.0/atk/atk.h
+	<atk/atkobject.h>
+	<atk/atkaction.h>
+	<atk/atkcomponent.h>
+	<atk/atkdocument.h>
+	<atk/atkeditabletext.h>
+	<atk/atkgobjectaccessible.h>
+	<atk/atkhyperlink.h>
+	<atk/atkhyperlinkimpl.h>
+	<atk/atkhypertext.h>
+	<atk/atkimage.h>
+	<atk/atknoopobject.h>
+	<atk/atknoopobjectfactory.h>
+	<atk/atkobjectfactory.h>
+	<atk/atkplug.h>
+	<atk/atkregistry.h>
+	<atk/atkrelation.h>
+	<atk/atkrelationset.h>
+	<atk/atkrelationtype.h>
+	<atk/atkselection.h>
+	<atk/atksocket.h>
+	<atk/atkstate.h>
+	<atk/atkstateset.h>
+	<atk/atkstreamablecontent.h>
+	<atk/atktable.h>
+	<atk/atktext.h>
+	<atk/atkutil.h>
+	<atk/atkmisc.h>
+	<atk/atkvalue.h>
+	<atk/atkversion.h>
+	<atk/atkwindow.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkobject.h
+	<glib-object.h>
+	<atk/atkstate.h>
+	<atk/atkrelationtype.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkstate.h
+	<glib-object.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkrelationtype.h
+	<glib.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkaction.h
+	<atk/atkobject.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkcomponent.h
+	<atk/atkobject.h>
+	<atk/atkutil.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkutil.h
+	<atk/atkobject.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkdocument.h
+	<atk/atkobject.h>
+	<atk/atkutil.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkeditabletext.h
+	<atk/atkobject.h>
+	<atk/atktext.h>
+
+1392349633 /usr/include/atk-1.0/atk/atktext.h
+	<glib-object.h>
+	<atk/atkobject.h>
+	<atk/atkutil.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkgobjectaccessible.h
+	<atk/atkobject.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkhyperlink.h
+	<atk/atkaction.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkhyperlinkimpl.h
+	<atk/atkobject.h>
+	<atk/atkhyperlink.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkhypertext.h
+	<atk/atkobject.h>
+	<atk/atkhyperlink.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkimage.h
+	<atk/atkobject.h>
+	<atk/atkutil.h>
+
+1392349633 /usr/include/atk-1.0/atk/atknoopobject.h
+
+1392349633 /usr/include/atk-1.0/atk/atknoopobjectfactory.h
+	<atk/atkobjectfactory.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkobjectfactory.h
+	<glib-object.h>
+	<atk/atkobject.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkplug.h
+
+1392349633 /usr/include/atk-1.0/atk/atkregistry.h
+	<glib-object.h>
+	"atkobjectfactory.h"
+
+1392349633 /usr/include/atk-1.0/atk/atkrelation.h
+	<glib-object.h>
+	<atk/atkrelationtype.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkrelationset.h
+	<glib-object.h>
+	<atk/atkobject.h>
+	<atk/atkrelation.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkselection.h
+	<atk/atkobject.h>
+
+1392349633 /usr/include/atk-1.0/atk/atksocket.h
+
+1392349633 /usr/include/atk-1.0/atk/atkstateset.h
+	<glib-object.h>
+	<atk/atkobject.h>
+	<atk/atkstate.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkstreamablecontent.h
+	<atk/atkobject.h>
+
+1392349633 /usr/include/atk-1.0/atk/atktable.h
+	<atk/atkobject.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkmisc.h
+	<glib-object.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkvalue.h
+	<atk/atkobject.h>
+
+1392349633 /usr/include/atk-1.0/atk/atkversion.h
+
+1392349633 /usr/include/atk-1.0/atk/atkwindow.h
+	<atk/atkobject.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkaccellabel.h
+	<gtk/gtklabel.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtklabel.h
+	<gtk/gtkmisc.h>
+	<gtk/gtkwindow.h>
+	<gtk/gtkmenu.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmisc.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmenu.h
+	<gtk/gtkaccelgroup.h>
+	<gtk/gtkmenushell.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmenushell.h
+	<gtk/gtkcontainer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkaccelmap.h
+	<gtk/gtkaccelgroup.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkaccessible.h
+	<atk/atk.h>
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkaction.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkactiongroup.h
+	<gtk/gtkaction.h>
+	<gtk/gtktypeutils.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkactivatable.h
+	<gtk/gtkaction.h>
+	<gtk/gtktypeutils.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkalignment.h
+	<gtk/gtkbin.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkarrow.h
+	<gtk/gtkmisc.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkaspectframe.h
+	<gtk/gtkframe.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkframe.h
+	<gtk/gtkbin.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkassistant.h
+	<gtk/gtkwindow.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkbbox.h
+	<gtk/gtkbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkbox.h
+	<gtk/gtkcontainer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkbindings.h
+	<gdk/gdk.h>
+	<gtk/gtkobject.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkbuildable.h
+	<gtk/gtkbuilder.h>
+	<gtk/gtktypeutils.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkbuilder.h
+	<gdkconfig.h>
+	<glib-object.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkbutton.h
+	<gtk/gtkbin.h>
+	<gtk/gtkimage.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkimage.h
+	<gio/gio.h>
+	<gtk/gtkmisc.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcalendar.h
+	<gtk/gtkwidget.h>
+	<gtk/gtksignal.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtksignal.h
+	<gtk/gtkenums.h>
+	<gtk/gtktypeutils.h>
+	<gtk/gtkobject.h>
+	<gtk/gtkmarshal.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmarshal.h
+	<glib-object.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcelleditable.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcelllayout.h
+	<gtk/gtkcellrenderer.h>
+	<gtk/gtktreeviewcolumn.h>
+	<gtk/gtkbuildable.h>
+	<gtk/gtkbuilder.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcellrenderer.h
+	<gtk/gtkcelleditable.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktreeviewcolumn.h
+	<gtk/gtkcellrenderer.h>
+	<gtk/gtktreemodel.h>
+	<gtk/gtktreesortable.h>
+	<gtk/gtkobject.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktreemodel.h
+	<glib-object.h>
+	<gtk/gtkobject.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktreesortable.h
+	<gtk/gtktreemodel.h>
+	<gtk/gtktypeutils.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcellrendereraccel.h
+	<gtk/gtkcellrenderertext.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcellrenderertext.h
+	<gtk/gtkcellrenderer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcellrenderercombo.h
+	<gtk/gtktreemodel.h>
+	<gtk/gtkcellrenderertext.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcellrendererpixbuf.h
+	<gtk/gtkcellrenderer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcellrendererprogress.h
+	<gtk/gtkcellrenderer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcellrendererspin.h
+	<gtk/gtkcellrenderertext.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcellrendererspinner.h
+	<gtk/gtkcellrenderer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcellrenderertoggle.h
+	<gtk/gtkcellrenderer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcellview.h
+	<gtk/gtkwidget.h>
+	<gtk/gtkcellrenderer.h>
+	<gtk/gtktreemodel.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcheckbutton.h
+	<gtk/gtktogglebutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktogglebutton.h
+	<gtk/gtkbutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcheckmenuitem.h
+	<gtk/gtkmenuitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmenuitem.h
+	<gtk/gtkitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkitem.h
+	<gtk/gtkbin.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkclipboard.h
+	<gtk/gtkselection.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkselection.h
+	<gtk/gtkwidget.h>
+	<gtk/gtktextiter.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktextiter.h
+	<gtk/gtktexttag.h>
+	<gtk/gtktextchild.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktexttag.h
+	<gdk/gdk.h>
+	<gtk/gtkenums.h>
+	<gtk/gtkobject.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktextchild.h
+	<gdkconfig.h>
+	<glib-object.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcolorbutton.h
+	<gtk/gtkbutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcolorsel.h
+	<gtk/gtkdialog.h>
+	<gtk/gtkvbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkvbox.h
+	<gtk/gtkbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcolorseldialog.h
+	<gtk/gtkdialog.h>
+	<gtk/gtkcolorsel.h>
+	<gtk/gtkvbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcombobox.h
+	<gtk/gtkbin.h>
+	<gtk/gtktreemodel.h>
+	<gtk/gtktreeview.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktreeview.h
+	<gtk/gtkcontainer.h>
+	<gtk/gtktreemodel.h>
+	<gtk/gtktreeviewcolumn.h>
+	<gtk/gtkdnd.h>
+	<gtk/gtkentry.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkdnd.h
+	<gtk/gtkwidget.h>
+	<gtk/gtkselection.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkentry.h
+	<gtk/gtkeditable.h>
+	<gtk/gtkimcontext.h>
+	<gtk/gtkmenu.h>
+	<gtk/gtkentrybuffer.h>
+	<gtk/gtkentrycompletion.h>
+	<gtk/gtkimage.h>
+	<gtk/gtkselection.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkeditable.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkimcontext.h
+	<gdk/gdk.h>
+	<gtk/gtkobject.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkentrybuffer.h
+	<glib-object.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkentrycompletion.h
+	<gtk/gtktreemodel.h>
+	<gtk/gtkliststore.h>
+	<gtk/gtktreeviewcolumn.h>
+	<gtk/gtktreemodelfilter.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkliststore.h
+	<gdkconfig.h>
+	<gtk/gtktreemodel.h>
+	<gtk/gtktreesortable.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktreemodelfilter.h
+	<gdkconfig.h>
+	<gtk/gtktreemodel.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcomboboxentry.h
+	<gtk/gtkcombobox.h>
+	<gtk/gtktreemodel.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcomboboxtext.h
+	<gtk/gtkcombobox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkdrawingarea.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkeventbox.h
+	<gtk/gtkbin.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkexpander.h
+	<gtk/gtkbin.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkfixed.h
+	<gtk/gtkcontainer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkfilechooser.h
+	<gtk/gtkfilefilter.h>
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkfilefilter.h
+	<glib-object.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkfilechooserbutton.h
+	<gtk/gtkhbox.h>
+	<gtk/gtkfilechooser.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkhbox.h
+	<gtk/gtkbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkfilechooserdialog.h
+	<gtk/gtkdialog.h>
+	<gtk/gtkfilechooser.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkfilechooserwidget.h
+	<gtk/gtkfilechooser.h>
+	<gtk/gtkvbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkfontbutton.h
+	<gtk/gtkbutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkfontsel.h
+	<gtk/gtkdialog.h>
+	<gtk/gtkvbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkgc.h
+	<gdk/gdk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkhandlebox.h
+	<gtk/gtkbin.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkhbbox.h
+	<gtk/gtkbbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkhpaned.h
+	<gtk/gtkpaned.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkpaned.h
+	<gtk/gtkcontainer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkhruler.h
+	<gtk/gtkruler.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkruler.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkhscale.h
+	<gtk/gtkscale.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkscale.h
+	<gtk/gtkrange.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkrange.h
+	<gtk/gtkadjustment.h>
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkhscrollbar.h
+	<gtk/gtkscrollbar.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkscrollbar.h
+	<gtk/gtkrange.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkhseparator.h
+	<gtk/gtkseparator.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkseparator.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkhsv.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkiconfactory.h
+	<gdk/gdk.h>
+	<gtk/gtkrc.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkicontheme.h
+	<gdk-pixbuf/gdk-pixbuf.h>
+	<gdk/gdk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkiconview.h
+	<gtk/gtkcontainer.h>
+	<gtk/gtktreemodel.h>
+	<gtk/gtkcellrenderer.h>
+	<gtk/gtkselection.h>
+	<gtk/gtktooltip.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktooltip.h
+	<gtk/gtkwindow.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkimagemenuitem.h
+	<gtk/gtkmenuitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkimcontextsimple.h
+	<gtk/gtkimcontext.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkimmulticontext.h
+	<gtk/gtkimcontext.h>
+	<gtk/gtkmenushell.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkinfobar.h
+	<gtk/gtkhbox.h>
+	<gtk/gtkenums.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkinvisible.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtklayout.h
+	<gtk/gtkcontainer.h>
+	<gtk/gtkadjustment.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtklinkbutton.h
+	<gtk/gtkbutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmain.h
+	<gdk/gdk.h>
+	<gtk/gtkwidget.h>
+	<gtk/gtkbox.h>
+	<gtk/gtkwindow.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmenubar.h
+	<gtk/gtkmenushell.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmenutoolbutton.h
+	<gtk/gtkmenu.h>
+	<gtk/gtktoolbutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktoolbutton.h
+	<gtk/gtktoolitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktoolitem.h
+	<gtk/gtkbin.h>
+	<gtk/gtktooltips.h>
+	<gtk/gtkmenuitem.h>
+	<gtk/gtksizegroup.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktooltips.h
+	<gtk/gtkwidget.h>
+	<gtk/gtkwindow.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtksizegroup.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmessagedialog.h
+	<gtk/gtkdialog.h>
+	<gtk/gtkenums.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmodules.h
+	<gtk/gtksettings.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkmountoperation.h
+
+1399912912 /usr/include/gtk-2.0/gtk/gtknotebook.h
+	<gtk/gtkcontainer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkoffscreenwindow.h
+	<gtk/gtkwindow.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkorientable.h
+	<gtk/gtkwidget.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkpagesetup.h
+	<gtk/gtkpapersize.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkpapersize.h
+	<gtk/gtkenums.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkplug.h
+	<gtk/gtksocket.h>
+	<gtk/gtkwindow.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtksocket.h
+	<gtk/gtkcontainer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkprintcontext.h
+	<pango/pango.h>
+	<gtk/gtkpagesetup.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkprintoperation.h
+	<cairo.h>
+	<gtk/gtkmain.h>
+	<gtk/gtkwindow.h>
+	<gtk/gtkpagesetup.h>
+	<gtk/gtkprintsettings.h>
+	<gtk/gtkprintcontext.h>
+	<gtk/gtkprintoperationpreview.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkprintsettings.h
+	<gtk/gtkpapersize.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkprintoperationpreview.h
+	<cairo.h>
+	<gtk/gtkprintcontext.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkprogressbar.h
+	<gtk/gtkprogress.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkprogress.h
+	<gtk/gtkwidget.h>
+	<gtk/gtkadjustment.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkradioaction.h
+	<gtk/gtktoggleaction.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktoggleaction.h
+	<gtk/gtkaction.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkradiobutton.h
+	<gtk/gtkcheckbutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkradiomenuitem.h
+	<gtk/gtkcheckmenuitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkradiotoolbutton.h
+	<gtk/gtktoggletoolbutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktoggletoolbutton.h
+	<gtk/gtktoolbutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkrecentaction.h
+	<gtk/gtkaction.h>
+	<gtk/gtkrecentmanager.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkrecentmanager.h
+	<gdk-pixbuf/gdk-pixbuf.h>
+	<gdk/gdk.h>
+	<time.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkrecentchooser.h
+	<gtk/gtkwidget.h>
+	<gtk/gtkrecentmanager.h>
+	<gtk/gtkrecentfilter.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkrecentfilter.h
+	<glib-object.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkrecentchooserdialog.h
+	<gtk/gtkdialog.h>
+	<gtk/gtkrecentchooser.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkrecentchoosermenu.h
+	<gtk/gtkmenu.h>
+	<gtk/gtkrecentchooser.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkrecentchooserwidget.h
+	<gtk/gtkrecentchooser.h>
+	<gtk/gtkvbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkscalebutton.h
+	<gtk/gtkbutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkscrolledwindow.h
+	<gtk/gtkhscrollbar.h>
+	<gtk/gtkvscrollbar.h>
+	<gtk/gtkviewport.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkvscrollbar.h
+	<gtk/gtkscrollbar.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkviewport.h
+	<gtk/gtkadjustment.h>
+	<gtk/gtkbin.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkseparatormenuitem.h
+	<gtk/gtkmenuitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkseparatortoolitem.h
+	<gtk/gtktoolitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkshow.h
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkspinbutton.h
+	<gtk/gtkentry.h>
+	<gtk/gtkadjustment.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkspinner.h
+	<gtk/gtkdrawingarea.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkstatusbar.h
+	<gtk/gtkhbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkstatusicon.h
+	<gtk/gtkimage.h>
+	<gtk/gtkmenu.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkstock.h
+	<gdk/gdk.h>
+	<gtk/gtktypeutils.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktable.h
+	<gtk/gtkcontainer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktearoffmenuitem.h
+	<gtk/gtkmenuitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktextbuffer.h
+	<gtk/gtkwidget.h>
+	<gtk/gtkclipboard.h>
+	<gtk/gtktexttagtable.h>
+	<gtk/gtktextiter.h>
+	<gtk/gtktextmark.h>
+	<gtk/gtktextchild.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktexttagtable.h
+	<gtk/gtktexttag.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktextmark.h
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktextbufferrichtext.h
+	<gtk/gtktextbuffer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktextview.h
+	<gtk/gtkcontainer.h>
+	<gtk/gtkimcontext.h>
+	<gtk/gtktextbuffer.h>
+	<gtk/gtkmenu.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktoolbar.h
+	<gtk/gtkcontainer.h>
+	<gtk/gtktooltips.h>
+	<gtk/gtktoolitem.h>
+	<gtk/gtkpixmap.h>
+	<gtk/gtksignal.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkpixmap.h
+	<gtk/gtk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktoolitemgroup.h
+	<gtk/gtkcontainer.h>
+	<gtk/gtktoolitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktoolpalette.h
+	<gtk/gtkcontainer.h>
+	<gtk/gtkdnd.h>
+	<gtk/gtktoolitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktoolshell.h
+	<gtk/gtkenums.h>
+	<pango/pango.h>
+	<gtk/gtksizegroup.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktestutils.h
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktreednd.h
+	<gtk/gtktreemodel.h>
+	<gtk/gtkdnd.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktreemodelsort.h
+	<gdkconfig.h>
+	<gtk/gtktreemodel.h>
+	<gtk/gtktreesortable.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktreeselection.h
+	<gtk/gtktreeview.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktreestore.h
+	<gdkconfig.h>
+	<gtk/gtktreemodel.h>
+	<gtk/gtktreesortable.h>
+	<stdarg.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkuimanager.h
+	<gtk/gtkaccelgroup.h>
+	<gtk/gtkwidget.h>
+	<gtk/gtkaction.h>
+	<gtk/gtkactiongroup.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkvbbox.h
+	<gtk/gtkbbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkversion.h
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkvolumebutton.h
+	<gtk/gtkscalebutton.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkvpaned.h
+	<gtk/gtkpaned.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkvruler.h
+	<gtk/gtkruler.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkvscale.h
+	<gtk/gtkscale.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkvseparator.h
+	<gtk/gtkseparator.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktext.h
+	<gtk/gtkoldeditable.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkoldeditable.h
+	<gtk/gtk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktree.h
+	<gtk/gtkcontainer.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktreeitem.h
+	<gtk/gtkitem.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkclist.h
+	<gtk/gtksignal.h>
+	<gtk/gtkalignment.h>
+	<gtk/gtklabel.h>
+	<gtk/gtkbutton.h>
+	<gtk/gtkhscrollbar.h>
+	<gtk/gtkvscrollbar.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcombo.h
+	<gtk/gtk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkctree.h
+	<gtk/gtkclist.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkcurve.h
+	<gtk/gtkdrawingarea.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkfilesel.h
+	<gtk/gtk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkgamma.h
+	<gtk/gtkvbox.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkinputdialog.h
+	<gtk/gtkdialog.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkitemfactory.h
+	<gtk/gtk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtklist.h
+	<gtk/gtk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtklistitem.h
+	<gtk/gtk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkoptionmenu.h
+	<gtk/gtk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtkpreview.h
+	<gtk/gtk.h>
+
+1399912912 /usr/include/gtk-2.0/gtk/gtktipsquery.h
+	<gtk/gtk.h>
+
+1415727574 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneApp.cpp
+	"wx_pch.h"
+	"standaloneApp.h"
+	"standaloneMain.h"
+
+1415733756 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.cpp
+	"wx_pch.h"
+	"standaloneMain.h"
+	"../SAFplus7EditorPanel.h"
+
