@@ -121,11 +121,11 @@ wxBitmap cbLoadBitmap(const wxString &fileName,  wxBitmapType bitmapType)
   }
 
 
-#if 0
+
 Manager the_manager;
 LogManager the_logManager;
 
 Manager* Manager::Get() { return &the_manager; };
 
 LogManager* Manager::GetLogManager() { return &the_logManager;}
-#endif
+

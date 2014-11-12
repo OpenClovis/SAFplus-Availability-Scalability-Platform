@@ -111,27 +111,6 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   Layout();
 }
 
-#if 0
-void SAFplus7EditorPanel::OnSashDrag(wxSashEvent& event)
-{
-    if (event.GetDragStatus() == wxSASH_STATUS_OUT_OF_RANGE)
-        return;
-
-    switch (event.GetId())
-    {
-         case ID_WINDOW_DETAILS:
-        {
-            details.SetDefaultSize(wxSize(event.GetDragRect().width, 1000));
-            break;
-        }
-    }
-
-    // Leaves bits of itself behind sometimes
-    //GetClientWindow()->
-    Refresh();
-}
-
-#endif
 
 SAFplus7EditorPanel::~SAFplus7EditorPanel()
 {

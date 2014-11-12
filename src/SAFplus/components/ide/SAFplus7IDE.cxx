@@ -22,6 +22,8 @@
 #include "SAFplus7IDE.h"
 #include "SAFplus7EditorPanel.h"
 #include <Python.h>
+#include <boost/python.hpp>
+namespace bpy = boost::python;
 
 #ifndef STANDALONE
 // Register the plugin with Code::Blocks.
@@ -80,13 +82,30 @@ SAFplus7IDE::~SAFplus7IDE()
 {
 }
 
+#if 0
+boost::python::dict globals()
+   {
+   boost::python::handle<> mainH(boost::python::borrowed(PyImport_GetModuleDict()));
+   return boost::python::extract<boost::python::dict>(boost::python::object(mainH));
+   }
+#endif
+
 char programName[80] = "SAFplusIDE";
 void SAFplus7IDE::OnAttach()
 {
     m_IsAttached = true;
     Py_SetProgramName(programName);
     Py_Initialize();
-    PyRun_SimpleString("print 'Embedded Python initialized'\n");
+    //PyRun_SimpleString("print 'Embedded Python initialized'\n");
+    //PyObject* pyobj = PyRun_String("({'foo':{}},{'bar':{}})",0,globals(),boost::python::dict());
+    //boost::python::object o(boost::python::handle<>(pyobj));
+
+    // http://www.boost.org/doc/libs/1_57_0/libs/python/doc/tutorial/doc/html/python/object.html
+    boost::python::object obj = boost::python::eval("({'foo':1},{'bar':{}})");
+    boost::python::object zero = obj[0];
+    boost::python::object one = obj[1];
+    int val = bpy::extract<int>(zero["foo"]);
+    printf("test python %d\n", val);
 }
 
 void SAFplus7IDE::OnRelease(bool appShutDown)

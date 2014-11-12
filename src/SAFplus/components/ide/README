@@ -4,3 +4,15 @@ DEPENDENCIES
 
 
 apt-get install libcairo2-dev libgtk2.0-dev rsvg2-dev python-dev
+
+install boost
+
+in IDE directory, create a symlink so boost/python.hpp (for example) exists:
+
+ln -s <boostdir>/boost boost
+
+
+in IDE directory, create a symlink so boostlibs/libboost_python.so (for example) exists:
+
+ln -s <booststagingdir>/lib boostlibs
+
