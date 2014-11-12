@@ -7,6 +7,8 @@
 #include "SAFplus7EditorPanel.h"
 #include "SAFplus7ScrolledWindow.h"
 
+int wxIDShowProperties = wxNewId();
+
 //Declare set editors
 std::set<EditorBase *> SAFplus7EditorPanel::m_editors;
 const wxString g_EditorModified = _T("*");
@@ -14,27 +16,36 @@ const wxString g_EditorModified = _T("*");
 BEGIN_EVENT_TABLE(SAFplus7EditorPanel, EditorBase)
   EVT_IDLE(SAFplus7EditorPanel::OnIdle)
   EVT_MENU(wxID_NEW, SAFplus7EditorPanel::OnNew)
+  EVT_MENU(wxIDShowProperties, SAFplus7EditorPanel::ShowProperties)
+#if 0
   EVT_SASH_DRAGGED(ID_WINDOW_DETAILS, SAFplus7EditorPanel::OnSashDrag)
+#endif
 END_EVENT_TABLE()
 
 SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &editorTitle) : EditorBase(parent, editorTitle)
 {
   m_title = editorTitle;
+#ifndef STANDALONE
   SetTitle(editorTitle);
+#endif // STANDALONE
 
   m_editors.insert( this );
 
+    wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
+
+#if 0
+    //Using Dockable
     details.Create(this,ID_WINDOW_DETAILS,wxDefaultPosition,wxSize(200,30),wxCLIP_CHILDREN | wxSW_3D,wxString::FromUTF8("SAFplusDetails"));
     details.SetDefaultSize(wxSize(120, 1000));
     details.SetOrientation(wxLAYOUT_VERTICAL);
     details.SetAlignment(wxLAYOUT_RIGHT);
     details.SetBackgroundColour(wxColour(0, 255, 0));
     details.SetSashVisible(wxSASH_RIGHT, true);
-
+#endif
 
   wxFlexGridSizer* mainSizer = new wxFlexGridSizer( 2, 1 , 0, 0 );
   mainSizer->AddGrowableCol( 0 );
-  mainSizer->AddGrowableRow( 1 );
+  mainSizer->AddGrowableRow( 0 );
   mainSizer->SetFlexibleDirection( wxBOTH );
   mainSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 
@@ -42,9 +53,13 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   m_designToolBar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
   m_designToolBar->SetToolBitmapSize(wxSize(16, 16));
 
+#ifndef STANDALONE
   const wxString &baseImagePath = ConfigManager::GetDataFolder(false);
-
   wxBitmap sgBitmap = cbLoadBitmap(baseImagePath + _T("/comp16.gif"), wxBITMAP_TYPE_ANY);
+#else
+  const wxString &baseImagePath = wxGetCwd() + wxT("/../resources/images");
+  wxBitmap sgBitmap = wxBitmap(Tool_xpm);
+#endif
 
   m_designToolBar->AddTool(wxID_NEW, wxT("New"), wxArtProvider::GetBitmap(wxART_NEW, wxART_MENU), wxT("New diagram"));
   m_designToolBar->AddTool(wxID_OPEN, wxT("Load"), wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_MENU), wxT("Open file..."));
@@ -75,20 +90,28 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   m_designToolBar->AddRadioTool(wxID_ANY, wxT("SAF Component"), sgBitmap, sgBitmap, wxT("SAF Component [C]"));
   m_designToolBar->AddRadioTool(wxID_ANY, wxT("Non SAF Component"), sgBitmap, sgBitmap, wxT("Non SAF Component [W]"));
 
+  m_designToolBar->AddSeparator();
+  m_designToolBar->AddTool(wxIDShowProperties, wxT("Show Properties"), wxArtProvider::GetBitmap(wxART_REDO), wxT("Show Properties"));
 
   m_designToolBar->Realize();
 
-  mainSizer->Add( m_designToolBar, 0, wxEXPAND, 5 );
+  bSizer->Add( m_designToolBar, 0, wxEXPAND, 5 );
 
   m_paintArea = new SAFplus7ScrolledWindow(this, wxID_ANY);
-  mainSizer->Add( m_paintArea, 1, wxEXPAND | wxALL, 0);
-  mainSizer->Add( &details, 2, wxEXPAND | wxALL, 0);
 
-  SetSizer( mainSizer );
+  mainSizer->Add( m_paintArea, 1, wxEXPAND | wxALL, 5);
+
+  bSizer->Add( mainSizer, 1, wxEXPAND, 5 );
+
+#if 0
+  bSizer->Add( &details, 1, wxEXPAND| wxALL, 5);
+#endif
+
+  SetSizer( bSizer );
   Layout();
 }
 
-
+#if 0
 void SAFplus7EditorPanel::OnSashDrag(wxSashEvent& event)
 {
     if (event.GetDragStatus() == wxSASH_STATUS_OUT_OF_RANGE)
@@ -107,6 +130,8 @@ void SAFplus7EditorPanel::OnSashDrag(wxSashEvent& event)
     //GetClientWindow()->
     Refresh();
 }
+
+#endif
 
 SAFplus7EditorPanel::~SAFplus7EditorPanel()
 {
@@ -148,7 +173,9 @@ void SAFplus7EditorPanel::SetModified(bool modified)
     if (modified != m_isModified)
     {
       m_isModified = modified;
+#ifndef STANDALONE
       SetEditorTitle(m_Shortname);
+#endif // STANDALONE
     }
 }
 
@@ -158,4 +185,10 @@ void SAFplus7EditorPanel::OnNew(wxCommandEvent &event)
   {
     SetModified(false);
   }
+}
+
+void SAFplus7EditorPanel::ShowProperties(wxCommandEvent &event)
+{
+  m_paintArea->m_mgr.GetPane(wxT("Properties")).Show().Right().Layer(0).Row(0).Position(0);
+  m_paintArea->m_mgr.Update();
 }

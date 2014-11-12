@@ -67,12 +67,35 @@ SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) 
           }
         fclose(fp);
     }
+    //notify wxAUI which frame to use
+    m_mgr.SetManagedWindow(this);
+
+    // create several control for SG, SU, .....
+    wxPanel *m_propertiesPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(120, 1000));
+
+    wxBoxSizer* bSizerProperties = new wxBoxSizer( wxVERTICAL );
+
+    wxTextCtrl *m_textCtrl2 = new wxTextCtrl( m_propertiesPanel, wxID_ANY, wxT("Properties ..."), wxDefaultPosition, wxDefaultSize, 0 );
+    bSizerProperties->Add( m_textCtrl2, 0, wxALL | wxEXPAND, 5 );
+
+    m_propertiesPanel->SetSizer( bSizerProperties );
+    m_propertiesPanel->Layout();
+    bSizerProperties->Fit( m_propertiesPanel );
+
+    // add the panes to the manager
+    m_mgr.AddPane(m_propertiesPanel, wxAuiPaneInfo().Name(wxT("Properties")).Caption(wxT("Properties")).Right().Layer(1).Position(1).CloseButton(true).MaximizeButton(false));
+    m_mgr.GetPane(wxT("Properties")).Show().Right().Layer(0).Row(0).Position(0);
+
+    m_mgr.GetPane(wxT("Properties")).Show().Right().Layer(0).Row(0).Position(0);
+    // tell the manager to "commit" all the changes just made
+    m_mgr.Update();
 
 }
 
 SAFplus7ScrolledWindow::~SAFplus7ScrolledWindow()
 {
     //dtor
+    m_mgr.UnInit();
 }
 
 void SAFplus7ScrolledWindow::paintEvent(wxPaintEvent & evt)

@@ -45,6 +45,9 @@ class SAFplus7EditorPanel : public EditorBase
     void OnIdle(wxIdleEvent& event);
     void OnNew(wxCommandEvent &event);
     void OnSashDrag(wxSashEvent& event);
+
+    void ShowProperties(wxCommandEvent &event);
+
     wxToolBar* m_designToolBar;
     SAFplus7ScrolledWindow* m_paintArea;
     wxSashLayoutWindow details;

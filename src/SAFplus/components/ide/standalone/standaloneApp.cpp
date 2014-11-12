@@ -26,7 +26,8 @@ bool standaloneApp::OnInit()
 {
     standaloneFrame* frame = new standaloneFrame(0L, _("wxWidgets Application Template"));
     cbPlugin* plugin = new SAFplus7IDE();
-    plugin->OnAttach();
+    //The callback calling by C::B
+    //plugin->OnAttach();
     frame->Show();
     return true;
 }

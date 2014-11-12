@@ -2,6 +2,7 @@
 #define SAFPLUS7SCROLLEDWINDOW_H
 
 #include <wx/window.h>
+#include <wx/aui/aui.h>
 #include <wx/scrolwin.h>
 #include <wx/laywin.h>
 #include <cairo.h>
@@ -30,6 +31,7 @@ class SAFplus7ScrolledWindow : public wxScrolledWindow
         wxStaticText* m_statusText;
         bool m_isDirty;
         void cairoTestDraw(cairo_t *cr);
+        wxAuiManager m_mgr;
     protected:
         RsvgHandle* icon;
     private:
