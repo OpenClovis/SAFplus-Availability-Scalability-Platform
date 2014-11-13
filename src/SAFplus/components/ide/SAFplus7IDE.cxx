@@ -46,6 +46,7 @@ Binding wxWidget resource
 */
 // Menu
 int idMenuSAFplus7ClusterDesignGUI = XRCID("idMenuSAFplus7ClusterDesignGUI");
+int idMenuYangParse = XRCID("idMenuYangParse");
 
 // Toolbar
 int idToolbarSAFplus7ClusterDesignGUI = XRCID("idToolbarSAFplus7ClusterDesignGUI");
@@ -58,6 +59,7 @@ BEGIN_EVENT_TABLE(SAFplus7IDE, cbPlugin)
 
     EVT_MENU(idToolbarSAFplus7ClusterDesignGUI, SAFplus7IDE::Action)
     EVT_MENU(idMenuSAFplus7ClusterDesignGUI, SAFplus7IDE::Action)
+    EVT_MENU(idMenuYangParse, SAFplus7IDE::Action)
 
 END_EVENT_TABLE()
 
@@ -162,7 +164,7 @@ void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
     if (!IsAttached())
         return;
 #ifndef STANDALONE
-    if (type == mtEditorManager || (data && data->GetKind() == FileTreeData::ftdkProject))
+    if (type == mtEditorManager || (data && ((data->GetKind() == FileTreeData::ftdkProject) || (data->GetKind() == FileTreeData::ftdkFile))))
     {
       m_menu = m_manager->LoadMenu(_T("safplus_menu"),true);
 
@@ -196,9 +198,18 @@ void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
 #ifndef STANDALONE
     cbProject *prjActive = m_manager->GetProjectManager()->GetActiveProject();
     wxMenuBar* mbar = Manager::Get()->GetAppFrame()->GetMenuBar();
+    //Check to enable/disable yang parse menu
+    wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
+    wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
+    FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
     if (mbar)
     {
       mbar->Enable(idMenuSAFplus7ClusterDesignGUI, prjActive);
+      if (ftd && ftd->GetKind() == FileTreeData::ftdkFile)
+      {
+        wxString fileSelection = ftd->GetProject()->GetTitle();
+        mbar->Enable(idMenuYangParse, fileSelection.Matches(wxT("*.yang")));
+      }
     }
     wxToolBar* tbar = m_toolbar;
     if (tbar)
@@ -226,22 +237,37 @@ void SAFplus7IDE::Action(wxCommandEvent& event)
     wxString projectName;
 
 #ifndef STANDALONE
-    wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
-    wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
-    FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
-    if (ftd)
+    if (event.GetId() == idMenuYangParse)
     {
-      projectName = ftd->GetProject()->GetTitle();
+      /* TODO:
+      Run yang parse on selection file and return PyObject -> extract
+      PyObject *pModule = PyImport_Import("yang.py");
+      PyObject *returnValues;
+      if (pModule != NULL)
+      {
+        PyObject pFunc = PyObject_GetAttrString(pModule, "go"); //TODO
+        returnValues = PyObject_CallObject(pFunc, m_manager->GetProjectManager()->GetUI().GetTreeSelection());
+      } */
     }
     else
     {
-      projectName = m_manager->GetProjectManager()->GetActiveProject()->GetTitle();
-    }
-    wxString title(projectName + _T("::") + g_editorTitle);
+      wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
+      wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
+      FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
+      if (ftd)
+      {
+        projectName = ftd->GetProject()->GetTitle();
+      }
+      else
+      {
+        projectName = m_manager->GetProjectManager()->GetActiveProject()->GetTitle();
+      }
+      wxString title(projectName + _T("::") + g_editorTitle);
 
-    if (!m_manager->GetEditorManager()->IsOpen(title))
-    {
-      new SAFplus7EditorPanel((wxWindow*)m_manager->GetEditorManager()->GetNotebook(), title);
+      if (!m_manager->GetEditorManager()->IsOpen(title))
+      {
+        new SAFplus7EditorPanel((wxWindow*)m_manager->GetEditorManager()->GetNotebook(), title);
+      }
     }
 #endif
 }

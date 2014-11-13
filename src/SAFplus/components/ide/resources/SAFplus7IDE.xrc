@@ -15,6 +15,12 @@
         <label>SAFplus7 Cluster Design GUI</label>
         <bitmap>images/ClovisLogo_16_16.gif</bitmap>
       </object>
+      <object class="wxMenuItem" name="idMenuYangParse" member="yes">
+        <tooltip>Yang Parse</tooltip>
+        <longhelp>Yang Parse</longhelp>
+        <label>Yang Parse</label>
+        <bitmap>images/ClovisLogo_16_16.gif</bitmap>
+      </object>
   </object>
   <object class="wxMenu" member="yes" name="safplus_design">
     <label>SAFplus7 Design</label>
