@@ -2,11 +2,12 @@
 #define SAFPLUS7SCROLLEDWINDOW_H
 
 #include <wx/window.h>
-#include <wx/aui/aui.h>
 #include <wx/scrolwin.h>
 #include <wx/laywin.h>
 #include <cairo.h>
 #include <librsvg/rsvg.h>
+
+class SAFplus7EditorPanel;
 
 class SAFplus7ScrolledWindow : public wxScrolledWindow
 {
@@ -23,15 +24,15 @@ class SAFplus7ScrolledWindow : public wxScrolledWindow
         void mouseLeftWindow(wxMouseEvent& event);
         void keyPressed(wxKeyEvent& event);
         void keyReleased(wxKeyEvent& event);
+        void OnSize(wxSizeEvent &evt);
 
         long cur_posx; //Get current posX
         long cur_posy; //Get current posY
 
-        wxWindow* m_parent;
-        wxStaticText* m_statusText;
+        SAFplus7EditorPanel* m_parentPanel;
         bool m_isDirty;
         void cairoTestDraw(cairo_t *cr);
-        wxAuiManager m_mgr;
+
     protected:
         RsvgHandle* icon;
     private:

@@ -60,6 +60,7 @@
 			<Add library="glib-2.0" />
 			<Add library="gdk-x11-2.0" />
 			<Add library="python2.7" />
+			<Add library="boost_python" />
 		</Linker>
 		<Unit filename="SAFplus7EditorPanel.cpp" />
 		<Unit filename="SAFplus7EditorPanel.h" />

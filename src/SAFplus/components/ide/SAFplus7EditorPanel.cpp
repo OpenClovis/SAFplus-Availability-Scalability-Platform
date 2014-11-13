@@ -31,7 +31,7 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
 
   m_editors.insert( this );
 
-    wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
+  wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
 
 #if 0
     //Using Dockable
@@ -103,12 +103,44 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
 
   bSizer->Add( mainSizer, 1, wxEXPAND, 5 );
 
-#if 0
-  bSizer->Add( &details, 1, wxEXPAND| wxALL, 5);
-#endif
-
   SetSizer( bSizer );
   Layout();
+
+  //notify wxAUI which frame to use
+  m_mgr.SetManagedWindow(this);
+
+  // add the panes to the manager
+  m_mgr.AddPane(m_paintArea, wxAuiPaneInfo().Name(wxT("PaintArea")).CenterPane().Show());
+
+  // add the toolbars to the manager
+  m_mgr.AddPane(m_designToolBar, wxAuiPaneInfo().Name(wxT("ToolBar")).ToolbarPane().Top().LeftDockable(false).RightDockable(false).Fixed().CaptionVisible(false));
+
+  //TODO: Properties
+  // create several control for SG, SU, .....
+  wxPanel *m_propertiesPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(120, 1000));
+
+  wxBoxSizer* bSizerProperties = new wxBoxSizer( wxVERTICAL );
+
+  wxTextCtrl *m_textCtrl2 = new wxTextCtrl( m_propertiesPanel, wxID_ANY, wxT("Properties ..."), wxDefaultPosition, wxDefaultSize, 0 );
+  bSizerProperties->Add( m_textCtrl2, 0, wxALL | wxEXPAND, 5 );
+
+  m_propertiesPanel->SetSizer( bSizerProperties );
+  m_propertiesPanel->Layout();
+  bSizerProperties->Fit( m_propertiesPanel );
+
+  m_mgr.AddPane(m_propertiesPanel, wxAuiPaneInfo().Name(wxT("Properties")).Right());
+  m_mgr.GetPane(wxT("Properties")).Hide().Right().Layer(0).Row(0).Position(0);
+
+  wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+  m_statusText = new wxStaticText( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
+  m_statusText->Wrap( -1 );
+  sizer->Add( m_statusText, 0, wxALL, 5 );
+
+  m_mgr.AddPane(m_statusText, wxAuiPaneInfo().Name(wxT("StatusBar")).Bottom());
+  m_mgr.GetPane(wxT("StatusBar")).Show().Fixed().CaptionVisible(false).CloseButton(false);
+
+  // tell the manager to "commit" all the changes just made
+  m_mgr.Update();
 }
 
 
@@ -116,6 +148,7 @@ SAFplus7EditorPanel::~SAFplus7EditorPanel()
 {
     //dtor
     m_editors.erase(this);
+    m_mgr.UnInit();
 }
 
 void SAFplus7EditorPanel::SetEditorTitle(const wxString& newTitle)
@@ -168,6 +201,7 @@ void SAFplus7EditorPanel::OnNew(wxCommandEvent &event)
 
 void SAFplus7EditorPanel::ShowProperties(wxCommandEvent &event)
 {
-  m_paintArea->m_mgr.GetPane(wxT("Properties")).Show().Right().Layer(0).Row(0).Position(0);
-  m_paintArea->m_mgr.Update();
+  static bool toggleShow = false;
+  m_mgr.GetPane(wxT("Properties")).Show(toggleShow = !toggleShow).Right().Layer(0).Row(0).Position(0);
+  m_mgr.Update();
 }
