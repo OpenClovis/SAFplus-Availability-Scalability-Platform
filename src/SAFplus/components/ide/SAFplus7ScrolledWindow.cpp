@@ -4,6 +4,7 @@
 #include <wx/dcbuffer.h>
 #include <wx/dcmemory.h>
 
+#include "SAFplus7EditorPanel.h"
 #include "SAFplus7ScrolledWindow.h"
 
 #include <gdk/gdk.h>
@@ -28,21 +29,13 @@ BEGIN_EVENT_TABLE(SAFplus7ScrolledWindow, wxScrolledWindow)
     EVT_KEY_DOWN(SAFplus7ScrolledWindow::keyPressed)
     EVT_KEY_UP(SAFplus7ScrolledWindow::keyReleased)
     EVT_MOUSEWHEEL(SAFplus7ScrolledWindow::mouseWheelMoved)
+    EVT_SIZE(SAFplus7ScrolledWindow::OnSize)
 END_EVENT_TABLE()
 
 //SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL )
-SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL, wxString::FromUTF8("SAFplusModeller") )
+SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxHSCROLL|wxVSCROLL, wxString::FromUTF8("SAFplusModeller") )
 {
-    m_parent = parent;
-    //ctor
-
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-    m_statusText = new wxStaticText( this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, 0 );
-    m_statusText->Wrap( -1 );
-    sizer->Add( m_statusText, 0, wxALL, 5 );
-    //sizer->Add(&details,0,wxALL,1);
-    this->SetSizer(sizer);
-
+    m_parentPanel = (SAFplus7EditorPanel *)parent;
     m_isDirty = false;
 
     icon = NULL;
@@ -67,35 +60,17 @@ SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) 
           }
         fclose(fp);
     }
-    //notify wxAUI which frame to use
-    m_mgr.SetManagedWindow(this);
-
-    // create several control for SG, SU, .....
-    wxPanel *m_propertiesPanel = new wxPanel(this, wxID_ANY, wxDefaultPosition, wxSize(120, 1000));
-
-    wxBoxSizer* bSizerProperties = new wxBoxSizer( wxVERTICAL );
-
-    wxTextCtrl *m_textCtrl2 = new wxTextCtrl( m_propertiesPanel, wxID_ANY, wxT("Properties ..."), wxDefaultPosition, wxDefaultSize, 0 );
-    bSizerProperties->Add( m_textCtrl2, 0, wxALL | wxEXPAND, 5 );
-
-    m_propertiesPanel->SetSizer( bSizerProperties );
-    m_propertiesPanel->Layout();
-    bSizerProperties->Fit( m_propertiesPanel );
-
-    // add the panes to the manager
-    m_mgr.AddPane(m_propertiesPanel, wxAuiPaneInfo().Name(wxT("Properties")).Caption(wxT("Properties")).Right().Layer(1).Position(1).CloseButton(true).MaximizeButton(false));
-    m_mgr.GetPane(wxT("Properties")).Show().Right().Layer(0).Row(0).Position(0);
-
-    m_mgr.GetPane(wxT("Properties")).Show().Right().Layer(0).Row(0).Position(0);
-    // tell the manager to "commit" all the changes just made
-    m_mgr.Update();
 
 }
 
 SAFplus7ScrolledWindow::~SAFplus7ScrolledWindow()
 {
     //dtor
-    m_mgr.UnInit();
+}
+
+void SAFplus7ScrolledWindow::OnSize(wxSizeEvent &evt)
+{
+  evt.Skip();
 }
 
 void SAFplus7ScrolledWindow::paintEvent(wxPaintEvent & evt)
@@ -122,7 +97,7 @@ void SAFplus7ScrolledWindow::mouseMoved(wxMouseEvent &event)
     //str.Printf( "Current mouse position: %d,%d", (int)x, (int)y );
 
     snprintf(mouseMovedText,80,"Current mouse position: %d,%d", (int)x, (int)y );
-    m_statusText->SetLabel(wxString::FromUTF8(mouseMovedText));
+    m_parentPanel->m_statusText->SetLabel(wxString::FromUTF8(mouseMovedText));
 }
 
 void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
