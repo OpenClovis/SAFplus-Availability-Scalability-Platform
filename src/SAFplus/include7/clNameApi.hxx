@@ -151,6 +151,8 @@ namespace SAFplus
      RefObjMapPair get(const char* name) throw(NameException&);
      RefObjMapPair get(const std::string& name) throw(NameException&);
      void* get(const SAFplus::Handle&) throw(NameException&);
+     
+     char* getName(const SAFplus::Handle& handle) throw(NameException&); // This function gets the name associated with the specified handle
    
      SAFplus::Handle& getHandle(const char* name) throw(NameException&);
      SAFplus::Handle& getHandle(const std::string& name) throw(NameException&);

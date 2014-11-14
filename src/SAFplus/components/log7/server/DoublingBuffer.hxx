@@ -86,6 +86,68 @@ namespace SAFplus
       int len = strlen(s);
       append(s,len);
       return *this;
+    }  
+  };
+  // This class is specific for log replication. The buffer is type of char* but it can contain other datatypes e.g short int not just string. We cannot use DoublingCharBuffer for this purpose
+  class ReplicationMessageBuffer
+  {
+  public:
+    unsigned int curSize;
+    char* buf;
+    ReplicationMessageBuffer()
+    {
+      curSize=0;
+      buf=NULL;
+    }
+    ReplicationMessageBuffer& append(void* val, int valLen)
+    {
+      char* temp = buf;        
+      buf = new char[curSize+valLen];
+      if (temp)
+      {
+        memcpy(buf, temp, curSize);
+      }
+      memcpy(buf+curSize, val, valLen);
+      curSize+=valLen;
+      delete[] temp;      
+      return *this;
+    }
+    void release()
+    {
+      curSize=0;
+      if (buf)
+      {
+        delete[] buf;
+        buf = NULL;
+      }
+    }    
+  };
+#if 0
+  class DoublingShortBuffer: public DoublingBuffer<short>
+  {
+  public:
+    DoublingShortBuffer(short startSize):DoublingBuffer<short>(startSize) {}
+    
+    DoublingShortBuffer& operator += (short val)
+    {
+      int len = 1;
+      append(val,len);
+      return *this;
+    }
+    DoublingShortBuffer& append (short item, int nItems)
+    {
+      if (curSize+nItems >= maxSize) resize(std::max(maxSize*2,curSize+nItems));
+      if (curSize < maxSize)
+        {
+          memcpy(&buf[curSize],&item,nItems*sizeof(short));
+          curSize+=nItems;
+        }
+      else
+        {
+          assert(0);
+        }
+      return *this;
     }
   };
+#endif
 };
