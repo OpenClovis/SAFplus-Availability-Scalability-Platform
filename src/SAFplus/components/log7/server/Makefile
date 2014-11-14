@@ -10,7 +10,7 @@ CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/include
 
 # Specify the required libraries
-SAFPLUS_LIBS := clMgt7 clUtils7 clLog clOsal7 clIoc7
+SAFPLUS_LIBS := clMgt7 clUtils7 clLog clOsal7 clIoc7 clName clGroup clCkpt clLogRep
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))

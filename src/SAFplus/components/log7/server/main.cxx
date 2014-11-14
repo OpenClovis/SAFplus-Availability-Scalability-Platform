@@ -10,10 +10,13 @@ using namespace std;
 #include <clLogIpi.hxx>
 #include <clIocPortList.hxx>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include "boost/filesystem.hpp"
+#include <boost/filesystem.hpp>
 #include <boost/container/map.hpp>
 #include <boost/lexical_cast.hpp>
 #include <clGlobals.hxx>
+#include <Replicate.hxx>
+#include "../rep/clLogRep.hxx"
+#include "../rep/clLogSpooler.hxx"
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace boost::posix_time;
@@ -27,8 +30,12 @@ using namespace SAFplusLog;
 
 MgtModule dataModule("SAFplusLog");
 LogCfg* cfg;
-Stream* sysStreamCfg;
-Stream* appStreamCfg;
+extern Stream* sysStreamCfg;
+extern Stream* appStreamCfg;
+
+extern void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg);
+extern void initializeStream(Stream* s);
+extern void streamRotationInit(Stream* s);
 
 class MgtMsgHandler : public SAFplus::MsgHandler
 {
@@ -52,9 +59,9 @@ class MgtMsgHandler : public SAFplus::MsgHandler
 };
 
 extern ClBoolT   gIsNodeRepresentative;
+extern HandleStreamMap hsMap;
 
-typedef boost::container::multimap<std::time_t, fs::path> file_result_set_t;
-
+#if 0
 #if (CL_LOG_SEV_EMERGENCY == LOG_EMERG)
 inline int logLevel2SyslogLevel(int ocll)
 {
@@ -78,11 +85,18 @@ int logLevel2SyslogLevel(int ocll)
     }
 }
 #endif
-
+#endif
+/*
+On receiving log from other node, call this function with logRecv=true.
+logRecv parameter indicates that this log is received from other nodes (true).
+if logRecv==true, log must be written to this node AND do not forward it to others, 
+otherwise, write to this node AND forward it to others
+*/
+#if 0
 void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg)
 {
   if (rec->severity > SAFplus::logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the client also does this check.
-  printf("%s\n",msg);
+  //printf("%s\n",msg);
 
   // Determine the stream
   Stream* strmCfg = NULL;
@@ -94,7 +108,9 @@ void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg)
       // The Stream configuration uses string names, but the shared memory uses handles.
       // The Name service will hold the name to handle mapping.  During Log service initialization, a handle to Stream* hash table should
       // be created using data in the Name service.  This hash table can be used to look up the data.
-      
+      // lookup the handle in the hastable to find the stream
+      Dbg("Dynamic stream: handle gotten from hashmap\n");
+      strmCfg = hsMap[rec->stream];
     }
   if (strmCfg == NULL)  // Stream is not identified
     {
@@ -108,8 +124,10 @@ void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg)
       syslog(logLevel2SyslogLevel(rec->severity),msg);
     }
 
-  if (strmCfg->fp)  // If the file handle is non zero, write the log to that file.
+  if (strmCfg->fp)  // If the file handle is non zero, write the log to that file
     {
+      printf("DEBUG: %s\n",msg);  
+      printf("DEBUG: msgLen [%d]\n",strlen(msg));  
       strmCfg->fileBuffer += msg;
       strmCfg->fileBuffer += "\n";
     }
@@ -118,7 +136,15 @@ void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg)
       strmCfg->msgBuffer += msg;
       strmCfg->msgBuffer += "\n";
     }
+#if 0
+  if ((strmCfg->replicate != Replicate::NONE) && (!logRecv) && (lastRec)) // This log is my own log and there is no record in our processing, so forward them to others
+  {
+    Dbg("Replicate to other nodes\n");
+    logRep.logReplicate(rec->stream);
+  }
+#endif
 }
+#endif
 
 void checkAndRotateLog(Stream* s)
 {
@@ -181,10 +207,12 @@ void finishLogProcessing(LogCfg* cfg)
         //boost::asio::streambuf::const_buffers_type bufs = s->fileBuffer.data();
         //assert(sz == boost::asio::buffer_size(bufs));  // If the whole size is not the same as this one buffer I am confused about the API
         //fwrite(boost::asio::buffer_cast<const char*>(bufs),sizeof(char),boost::asio::buffer_size(bufs),s->fp);
-        s->fileBuffer.fwrite(s->fp);                    
+        s->fileBuffer.fwrite(s->fp);
+        // Forward remaining logs to others if any
+        logRep.flush(s);
         fflush(s->fp);
         checkAndRotateLog(s);
-        s->fileBuffer.consume();
+        s->fileBuffer.consume();        
         }
       if (s->sendMsg)
         {
@@ -198,172 +226,20 @@ void finishLogProcessing(LogCfg* cfg)
     }  
   }
 
-int getFileIdx(std::string filePath, std::string fileName)
-{
-  int fileIdx = 0;
-  int lastSlashPos,extLogPos,fnIdx;
-  std::string strIdx;  
-  int foundIdx = filePath.rfind(fileName);
-  if (foundIdx>=0 && foundIdx<filePath.length())
-  {                
-    lastSlashPos = filePath.rfind("/");
-    extLogPos = filePath.rfind(".log");
-    fnIdx = filePath.find(fileName, lastSlashPos);
-    if (fnIdx >= 0 && fnIdx < filePath.length())
-    {
-      strIdx = filePath.substr(fnIdx+fileName.length(), extLogPos-(fnIdx+fileName.length()));
-    }
-    fileIdx = atoi(strIdx.c_str());      
-  }
-  return fileIdx;
-}
 
 void initializeLogRotation(LogCfg* cfg)
 { 
   MgtObject::Iterator iter; 
-  MgtObject::Iterator end = cfg->streamConfig.streamList.end();
-  file_result_set_t file_result_set;
+  MgtObject::Iterator end = cfg->streamConfig.streamList.end();  
   for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
   {
     Stream* s = dynamic_cast<Stream*>(iter->second);
-
-    string fpath = s->fileLocation.value;
-    if (fpath[0] != '/')  // If the location begins with a /, it is an absolute directory.  
-    { // If it is a relative directory, prepend ASP_LOGDIR
-      Dbg("path [%s] is invalid. Trying to use ASP_LOGDIR or current directory\n", fpath.c_str());
-      if (SAFplus::ASP_LOGDIR[0] != 0)
-        s->filePath = SAFplus::ASP_LOGDIR;
-      else
-        {
-        char tmp[1024];
-        s->filePath = getcwd(tmp,1024);
-        }
-      if ((s->filePath.length()>0)&& (s->filePath.at( s->filePath.length() - 1 ) != '/')) s->filePath.append("/");  // Be tolerant of filepath ending in / or not.
-      s->filePath.append(fpath);
-    }
-    else
-    {
-      s->filePath = fpath;
-    }
-
-    // Now make sure that the log directory exists.  If it does not exist, create it.  If it cannot be created, give up logging to this stream.
-    std::string& pathToFile = s->filePath;
-    if (!fs::exists(pathToFile))
-    {
-      try
-        {
-        fs::create_directories(pathToFile);
-        }
-      catch (boost::filesystem::filesystem_error ex)
-        {
-        Dbg("path [%s] is invalid; ASP_LOGDIR may not be set. System error [%s]\n", pathToFile.c_str(), ex.what());
-        s->fp = NULL;
-        s->fileIdx = -1;
-        s->earliestIdx = -1;
-        s->numFiles = -1;
-        continue; // if this filepath is invalid, pass it by and continue handling other streams
-        }
-    }
-
-    /* The purpose is to find the last modified log file, get its index then calculate the next index for a new file.  
-
-       First we need to separate out the log files that are associated with this stream (verses other streams or random files).  Logs associated with this stream have a name with the following format <pathname><fileName><Index>.log.  We search the directory for all filenames matching this format.  Next, these files are put in the file_result_set.  This map will sort all elements automatically based on modified time.  We use this set to do things like delete the oldest file and create a new one.
-    */
-    int fileIdx = 0;
-    int lastSlashPos,extLogPos,fnIdx;
-    std::string strIdx;
-    int foundIdx;
-
-    if (s->fileFullAction == FileFullAction::ROTATE || s->fileFullAction == FileFullAction::WRAP)
-      {
-        fs::directory_iterator end_iter;
-        for( fs::directory_iterator dir_iter(pathToFile) ; dir_iter != end_iter ; ++dir_iter)
-        {
-          if (!fs::is_regular_file(dir_iter->status())) continue;  // skip any sym links, etc.  These can't be log files.
-
-          // Extract just the file name by bracketing it between the preceding / and the file extension
-          std::string filePath = dir_iter->path().string();
-          // skip ahead to the last / so a name like /var/log/log1.log works
-          lastSlashPos = filePath.rfind("/");
-          fnIdx = filePath.find(s->fileName, lastSlashPos);
-          if (fnIdx >= 0 && fnIdx < filePath.length())
-          {
-            extLogPos = filePath.rfind(".log"); // Find the extension because the file index is bracketed between the fnIdx and the extension.
-            strIdx = filePath.substr(fnIdx+s->fileName.value.length(), extLogPos-(fnIdx+s->fileName.value.length()));
-          }
-          if (strIdx.length()>0)  // The file has an index
-          {
-            try 
-            {
-              fileIdx = boost::lexical_cast<unsigned>(strIdx);
-              file_result_set.insert(file_result_set_t::value_type(fs::last_write_time(dir_iter->path()), dir_iter->path()));
-            }
-            catch(...)
-            {
-              Dbg("[%s] is not safplus log, ignore it\n", filePath.c_str());
-            }
-            strIdx.clear();
-          }              
-        }
-#if 0 // for debugging
-            {
-             file_result_set_t::iterator it;
-             for (it=file_result_set.begin(); it!=file_result_set.end(); ++it)
-             std::cout << (*it).first << " => " << (*it).second << '\n';
-            }
-#endif
-
-      s->numFiles = file_result_set.size();
-      if (s->numFiles > 0)
-        {
-        file_result_set_t::iterator it = file_result_set.begin();
-        s->earliestIdx = getFileIdx((*it).second.string(), s->fileName);
-        file_result_set_t::reverse_iterator rit = file_result_set.rbegin();
-        std::string temp = (*rit).second.string();
-        s->fileIdx = getFileIdx(temp, s->fileName);
-        }
-      
-
-#if 0 // REMOVE THIS: Deleting files, etc should be done whenever a new log file needs to be created.  It is not necessary to do it upon initialization
-        s->numFiles = file_result_set.size();
-        if (s->fileFullAction == FileFullAction::ROTATE && s->numFiles >= s->maximumFilesRotated)
-        {
-          file_result_set_t::iterator it = file_result_set.begin();
-          s->earliestIdx = getFileIdx((*it).second.string(), s->fileName);
-          // Delete this oldest file          
-          Dbg("Deleting file [%s]\n", (*it).second.string().c_str());
-          fs::remove((*it).second);
-          s->earliestIdx++;
-          s->numFiles--;
-        } 
-        else if (s->fileFullAction == FileFullAction::HALT)
-        {
-          // HALT means stopping logging to file => do not open fp => Nothing to do
-        }          
-        // get the last modified file            
-        if (s->numFiles>0)
-        {
-          file_result_set_t::reverse_iterator rit = file_result_set.rbegin();
-          std::string temp = (*rit).second.string();
-          s->fileIdx = getFileIdx(temp, s->fileName);
-          if (s->fileFullAction == FileFullAction::ROTATE)
-          {
-            s->fileIdx++;  // NO we don't want to create a new file every time we initialize.  Is that how it works other standard logs?  syslog, apache logs, etc?
-          }
-        }
-        else
-        {       
-          s->fileIdx = 0;
-          s->earliestIdx = 0;
-        }
-#endif
-    }
-    // reset the map for processing other log file
-    file_result_set.clear();
+    streamRotationInit(s);    
   }
 }
 
 // Look at the log configuration and initialize temporary variables, open log files, etc based on the values.
+
 void logInitializeStreams(LogCfg* cfg)
 {
   // Open FP if needed
@@ -375,34 +251,7 @@ void logInitializeStreams(LogCfg* cfg)
   for (iter = cfg->streamConfig.streamList.begin(); iter != end; iter++)
   {
     Stream* s = dynamic_cast<Stream*>(iter->second);
-    Dbg("Initializing stream %s file: %s location: %s\n", s->name.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str()); 
-
-    if (s->filePath.length() > 0)
-    {
-      std::string fname(s->filePath +  "/" + s->fileName.value + boost::lexical_cast<std::string>(s->fileIdx) + ".log");
-
-      // Due to a strange quirk of C, opening a file with mode "a" causes fseek to never work (write pointer is ALWAYS at the end of the file).
-      // So we have to open the file using this 2 step mechanism.
-      if (fs::exists(fname))
-        {
-        s->fp = fopen(fname.c_str(),"r+");
-        fseek(s->fp, 0L, SEEK_END);  // Append new logs onto the end of the file
-        }
-      else
-        {
-        s->fp = fopen(fname.c_str(),"w");
-        if (s->fp)
-          {
-          s->numFiles++;
-          }
-        }
-
-      Dbg("Opening file: %s %s\n", fname.c_str(), (s->fp) ? "OK":"FAILED");
-      if (!s->fp)
-      {
-        Dbg("Opening file: %s FAILED. Errno [%d]. Error message [%s]\n", fname.c_str(), errno, strerror(errno));
-      }
-    }
+    initializeStream(s);
   }
 }
 
@@ -427,14 +276,14 @@ int main(int argc, char* argv[])
 {
   gIsNodeRepresentative = CL_FALSE;
 
-  SAFplus::ASP_NODEADDR = 0x1;
+  SAFplus::ASP_NODEADDR = 0x7;
 
   SafplusInitializationConfiguration sic;
   sic.iocPort     = SAFplusI::LOG_IOC_PORT;
   sic.msgQueueLen = 25;
   sic.msgThreads  = 10;
 
-  safplusInitialize(SAFplus::LibDep::MSG, sic);
+  safplusInitialize(SAFplus::LibDep::MSG|SAFplus::LibDep::GRP|SAFplus::LibDep::NAME, sic);
 
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
@@ -468,6 +317,14 @@ int main(int argc, char* argv[])
 
   SAFplus::logSeverity= LOG_SEV_MAX;  // DEBUG
 
+  SAFplus::SYSTEM_CONTROLLER=true; // For testing
+  LogSpooler logSpooler;
+  if (SAFplus::SYSTEM_CONTROLLER) // If this node is system controller, then instantiate LogSpooler obj to listen logs from other nodes
+  {     
+    //logSpooler.subscribeAllStreams();
+    //logSpooler.subscribeStream("app");
+  }
+  
   // Log processing Loop
   while(1)
     {
@@ -484,7 +341,10 @@ int main(int argc, char* argv[])
           for (recnum=0;recnum<numRecords-1;recnum++, rec--)
             {
               if (rec->offset == 0) continue;  // Bad record
-              postRecord(rec,((char*) base)+rec->offset,cfg);
+              char* msg = ((char*) base)+rec->offset;
+              postRecord(rec, msg, cfg);
+              // Forward logs to log subscribers
+              logRep.logReplicate(rec, msg);
               rec->offset = 0;
             }
 
@@ -496,7 +356,10 @@ int main(int argc, char* argv[])
           for (;recnum<numRecords;recnum++, rec--)
             {
               if (rec->offset == 0) continue;  // Bad record
-              postRecord(rec,((char*) base)+rec->offset,cfg);
+              char* msg = ((char*) base)+rec->offset;
+              postRecord(rec,msg,cfg);
+              // Forward logs to log subscribers
+              logRep.logReplicate(rec, msg);
               rec->offset = 0;
             }
 

@@ -55,7 +55,14 @@ void testNameSetGet(const char* n, NameRegistrar::MappingMode m, uint32_t idx, v
      clTest(("Unexpected handle got"), 0, ("Handle got [0x%lx.0x%lx]", oh.id[0],oh.id[1]));
    }catch (NameException &ne) {
       clTest(("Handle get expected exception because of non-existence"), 1, ("exception [%s]", ne.what()));
-   }   
+   }
+   // test getName
+   try {
+     char* nm = name.getName(h);
+     clTest(("Name got "), (strcmp(nm, n) == 0), ("Name got [%s]", nm));
+   }catch (NameException &ne) {
+      clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
+   }
 }
 
 void testNameAppend(const char* n, NameRegistrar::MappingMode m, uint32_t idx, void* obj = NULL, uint32_t process=0xffffffff, uint32_t node=0xffff)
@@ -92,6 +99,14 @@ void testNameAppend(const char* n, NameRegistrar::MappingMode m, uint32_t idx, v
    }catch (NameException &ne) {     
       clTest(("Handle get expected exception because of non-existence"), 1, ("exception [%s]", ne.what()));    
    }   
+
+   // test getName
+   try {
+     char* nm = name.getName(h);
+     clTest(("Name got "), (strcmp(nm, n) == 0), ("Name got [%s]", nm));
+   }catch (NameException &ne) {
+      clTest(("Handle get unexpected exception"), 0, ("exception [%s]", ne.what()));
+   }
 }
 
 void objectGet(const char* n, const char* objName)
@@ -287,14 +302,15 @@ int main(int argc, char* argv[])
    logEchoToFd = 1;  // echo logs to stdout for debugging
    utilsInitialize();   
 #endif
-   safplusInitialize(SAFplus::LibDep::LOG);
+   SAFplus::ASP_NODEADDR=7;
+   safplusInitialize(SAFplus::LibDep::LOG|SAFplus::LibDep::NAME);
    //logEchoToFd = 1;
    logSeverity = LOG_SEV_MAX;
    clTestGroupInitialize(("Test name set, append, get"));
    ObjTest* jim = new ObjTest("Jim");   
    //obj->greet();
    const char* name1 = "_name1";
-   clTestCase(("Test name1 set, get"), testNameSetGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbcc, jim));
+   //clTestCase(("Test name1 set, get"), testNameSetGet(name1, NameRegistrar::MODE_ROUND_ROBIN, 0xaabbcc, jim));
    clTestCase(("Test name1 append, get"), testNameAppend(name1, NameRegistrar::MODE_PREFER_LOCAL, 0xaabbdd, jim));
    ObjTest* jane = new ObjTest("Jane");
    const char* name2 = "_name2";

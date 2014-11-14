@@ -18,7 +18,7 @@ namespace SAFplus
           }
         else
           {
-            clDbgNotImplemented("Getting the address of some handle types");
+            //clDbgNotImplemented("Getting the address of some handle types");
             assert(0);
           }
         return ret;

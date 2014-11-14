@@ -1,3 +1,6 @@
+#ifndef LOGCFG_HXX_
+#define LOGCFG_HXX_
+
 #include <ServerConfig.hxx>
 #include <StreamConfig.hxx>
 #include <FileFullAction.hxx>
@@ -5,7 +8,7 @@
 #include <StreamScope.hxx>
 
 #include <clMgtModule.hxx>
-
+#include <boost/unordered_map.hpp>
 //ClMgtModule    logCfg("log");
 
 
@@ -20,3 +23,6 @@ public:
 
 /* Load module configuration from database & create tracking objects */
 extern LogCfg* loadLogCfg();
+typedef boost::unordered_map<SAFplus::Handle, SAFplusLog::Stream*> HandleStreamMap;
+
+#endif

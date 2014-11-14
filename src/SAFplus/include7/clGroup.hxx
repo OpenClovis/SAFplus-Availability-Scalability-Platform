@@ -12,7 +12,7 @@
 #include <clNameApi.hxx>
 #include <clIocApi.h>
 #include <clIocIpi.h>
-#include <clLogApi.hxx>
+//#include <clLogApi.hxx>
 #include <clCkptApi.hxx>
 #include <clCustomization.hxx>
 #include <clSafplusMsgServer.hxx>
@@ -91,7 +91,8 @@ namespace SAFplus
       if (new_capabilities != capabilities) { capabilities = new_capabilities; changed = true; }
       return changed;
       }
-
+      void dumpInfo();
+#if 0
       void dumpInfo()
       {
         logInfo("GMS", "---","Dumping GroupIdentity at [%p]",this);
@@ -100,6 +101,7 @@ namespace SAFplus
         logInfo("GMS", "---","CAPABILITY: 0x%x ",capabilities);
         logInfo("GMS", "---","DATA LENGTH: 0x%x ",dataLen);
       }
+#endif
   };
 
   enum class GroupMessageSendMode

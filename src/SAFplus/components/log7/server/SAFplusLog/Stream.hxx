@@ -8,8 +8,9 @@
 #ifndef STREAM_HXX_
 #define STREAM_HXX_
 #include "SAFplusLogCommon.hxx"
-
+#include <clGroup.hxx>
 #include "StreamStatistics.hxx"
+
 #include <vector>
 #include "MgtFactory.hxx"
 #include <string>
@@ -48,12 +49,17 @@ namespace SAFplusLog
      int numFiles; // the current number of files created of this stream
      int fileSize; // Current length of the open file
      std::string filePath; // full path to log file after being adjusted
+     SAFplus::Group group;
      //boost::asio::streambuf fileBuffer; //char* fileBuffer; // logs are spooled to this buffer and then written to the file all at once
      //std::ostream fileStream;
      //boost::asio::streambuf msgBuffer; //char* msgBuffer; // logs are spooled to this buffer and then written to the network as one packet
      //std::ostream msgStream;
      SAFplus::DoublingCharBuffer fileBuffer; // logs are spooled to this buffer and then written to the file all at once
      SAFplus::DoublingCharBuffer msgBuffer;  // logs are spooled to this buffer and then written to the network as one packet
+     //SAFplus::DoublingShortBuffer logLenBuffer;  // length of each log contained in the buffer
+     //SAFplus::DoublingShortBuffer logSevBuffer; // severity of each log contained in the buffer
+     SAFplus::ReplicationMessageBuffer replicationMessageBuffer;  // the buffer storing header of the log package and multiple logs. Here is the message format: |header(LogMsgHeader)|logLen(short)|severity|logMsg|logLen(short)|severity|logMsg|...     
+     short numLogs; // number of logs which was packed into the replicationMessageBuffer above
      bool sendMsg;                               // Does this stream need to be sent to anyone else?
      bool dirty;                             // Has this stream been changed?
      /* End custom code */

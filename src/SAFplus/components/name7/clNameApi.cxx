@@ -395,6 +395,40 @@ Handle& NameRegistrar::getHandle(const std::string& name) throw(NameException&)
    }
 }
 
+char* NameRegistrar::getName(const SAFplus::Handle& handle) throw(NameException&)
+{
+   Checkpoint::Iterator ibegin = m_checkpoint.begin();
+   Checkpoint::Iterator iend = m_checkpoint.end();
+   for(Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
+   {
+      BufferPtr curkey = iter->first;
+      printf("NAME","GETNAME","key [%s]\n", curkey.get()->data);
+
+      BufferPtr& curval = iter->second;
+      if (curval)
+      {
+         HandleData* data = (HandleData*) curval->data;
+         if (data->structIdAndEndian != STRID && data->structIdAndEndian != STRIDEN) // Arbitrary data in this case
+         {
+            continue;
+         }
+         short sz = data->numHandles;
+         for(int i=0;i<sz;i++)
+         {
+            if (data->handles[i] == handle)
+            {
+               return curkey.get()->data;
+            }
+         }        
+      }
+      else
+      {
+         logWarning("NAME","GETNAME","name data is empty");
+      }
+   }
+   throw NameException("Handle provided doesn't exist in Name");
+}
+
 const Buffer& NameRegistrar::getData(const char* name) throw(NameException&)
 {
    const Buffer& buf = m_checkpoint.read(name);
