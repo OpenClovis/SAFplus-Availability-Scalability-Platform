@@ -26,11 +26,13 @@ class standaloneFrame: public wxFrame
         enum
         {
             idMenuQuit = 1000,
-            idMenuAbout
+            idMenuAbout,
+            idYangParse
         };
         void OnClose(wxCloseEvent& event);
         void OnQuit(wxCommandEvent& event);
         void OnAbout(wxCommandEvent& event);
+        void OnYangParse(wxCommandEvent& event);
         DECLARE_EVENT_TABLE()
 };
 

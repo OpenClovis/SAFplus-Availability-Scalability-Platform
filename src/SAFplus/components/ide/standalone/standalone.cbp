@@ -16,9 +16,11 @@
 					<Add option="-g" />
 					<Add option="`pkg-config --cflags codeblocks`" />
 					<Add option="-DSTANDALONE" />
+					<Add directory="$(#boost.include)" />
 				</Compiler>
 				<Linker>
 					<Add option="`pkg-config --libs codeblocks`" />
+					<Add directory="$(#boost.lib)" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -31,10 +33,12 @@
 					<Add option="-O2" />
 					<Add option="`pkg-config --cflags codeblocks`" />
 					<Add option="-DSTANDALONE" />
+					<Add directory="$(#boost.include)" />
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add option="`pkg-config --libs codeblocks`" />
+					<Add directory="$(#boost.lib)" />
 				</Linker>
 			</Target>
 		</Build>

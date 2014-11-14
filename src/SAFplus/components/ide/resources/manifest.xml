@@ -11,7 +11,8 @@
         <Value thanksTo="" />
         <Value license="GPL" />
     </Plugin>
-    <Extra file="SAFplusAmf.yang"></Extra>
-    <Extra file="SAFplusEntityDef.xml"></Extra>
-    <Extra file="comp16.gif"></Extra>
+    <Extra file="yang.py" />
+    <Extra file="SAFplusAmf.yang" />
+    <Extra file="SAFplusEntityDef.xml" />
+    <Extra file="comp16.gif" />
 </CodeBlocks_plugin_manifest_file>

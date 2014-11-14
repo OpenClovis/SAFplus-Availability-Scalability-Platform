@@ -22,15 +22,17 @@
 					<Add option="-fPIC" />
 					<Add option="-D__WXGTK__" />
 					<Add option="-D__WXGTK20__" />
+					<Add directory="$(#boost.include)" />
 				</Compiler>
 				<Linker>
 					<Add option="`pkg-config --libs gtk+-2.0`" />
 					<Add option="`pkg-config --libs codeblocks`" />
 					<Add option="`wx-config --libs`" />
+					<Add directory="$(#boost.lib)" />
 				</Linker>
 				<ExtraCommands>
 					<Add after="cd resources &amp;&amp; zip -r ../SAFplus7IDE.zip images manifest.xml *.xrc" />
-					<Add after="zip -jr9 SAFplus7IDE.cbplugin SAFplus7IDE.so SAFplus7IDE.zip resources/SAFplusEntityDef.xml resources/SAFplusAmf.yang resources/images/comp16.gif" />
+					<Add after="zip -jr9 SAFplus7IDE.cbplugin SAFplus7IDE.so SAFplus7IDE.zip resources/SAFplusEntityDef.xml resources/SAFplusAmf.yang resources/images/comp16.gif yang.py" />
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>

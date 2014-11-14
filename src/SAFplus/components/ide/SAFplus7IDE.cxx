@@ -45,21 +45,22 @@ LogManager *m_log = Manager::Get()->GetLogManager();
 Binding wxWidget resource
 */
 // Menu
-int idMenuSAFplus7ClusterDesignGUI = XRCID("idMenuSAFplus7ClusterDesignGUI");
-int idMenuYangParse = XRCID("idMenuYangParse");
+int idMenuClusterDesignGUI = XRCID("idMenuClusterDesignGUI");
+int idModuleYangParse = XRCID("idModuleYangParse");
+int idModuleClusterDesignGUI = XRCID("idModuleClusterDesignGUI");
 
 // Toolbar
-int idToolbarSAFplus7ClusterDesignGUI = XRCID("idToolbarSAFplus7ClusterDesignGUI");
+int idToolbarClusterDesignGUI = XRCID("idToolbarClusterDesignGUI");
 
 // events handling
 BEGIN_EVENT_TABLE(SAFplus7IDE, cbPlugin)
     // add any events you want to handle here
-    EVT_UPDATE_UI(idMenuSAFplus7ClusterDesignGUI, SAFplus7IDE::UpdateUI)
-    EVT_UPDATE_UI(idToolbarSAFplus7ClusterDesignGUI, SAFplus7IDE::UpdateUI)
+    EVT_UPDATE_UI(idModuleYangParse, SAFplus7IDE::UpdateUI)
 
-    EVT_MENU(idToolbarSAFplus7ClusterDesignGUI, SAFplus7IDE::Action)
-    EVT_MENU(idMenuSAFplus7ClusterDesignGUI, SAFplus7IDE::Action)
-    EVT_MENU(idMenuYangParse, SAFplus7IDE::Action)
+    EVT_MENU(idToolbarClusterDesignGUI, SAFplus7IDE::Action)
+    EVT_MENU(idModuleClusterDesignGUI, SAFplus7IDE::Action)
+    EVT_MENU(idMenuClusterDesignGUI, SAFplus7IDE::Action)
+    EVT_MENU(idModuleYangParse, SAFplus7IDE::Action)
 
 END_EVENT_TABLE()
 
@@ -166,11 +167,11 @@ void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
 #ifndef STANDALONE
     if (type == mtEditorManager || (data && ((data->GetKind() == FileTreeData::ftdkProject) || (data->GetKind() == FileTreeData::ftdkFile))))
     {
-      m_menu = m_manager->LoadMenu(_T("safplus_menu"),true);
+      m_module_menu = m_manager->LoadMenu(_T("safplus_module_menu"),true);
 
       /* Attach to cb menu */
       menu->AppendSeparator();
-      menu->Append(wxNewId(), _T("SAFplus7") ,m_menu);
+      menu->Append(wxNewId(), _T("SAFplus"), m_module_menu);
     }
 #endif // STANDALONE
 }
@@ -197,24 +198,27 @@ void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
 {
 #ifndef STANDALONE
     cbProject *prjActive = m_manager->GetProjectManager()->GetActiveProject();
-    wxMenuBar* mbar = Manager::Get()->GetAppFrame()->GetMenuBar();
+
     //Check to enable/disable yang parse menu
     wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
     wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
     FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
-    if (mbar)
+    wxMenu *module_menu = m_module_menu;
+    if (module_menu)
     {
-      mbar->Enable(idMenuSAFplus7ClusterDesignGUI, prjActive);
       if (ftd && ftd->GetKind() == FileTreeData::ftdkFile)
       {
-        wxString fileSelection = ftd->GetProject()->GetTitle();
-        mbar->Enable(idMenuYangParse, fileSelection.Matches(wxT("*.yang")));
+        module_menu->Enable(idModuleYangParse, ftd->GetProjectFile()->file.GetExt().Matches(wxT("yang")));
+      }
+      else
+      {
+        module_menu->Enable(idModuleYangParse, false);
       }
     }
     wxToolBar* tbar = m_toolbar;
     if (tbar)
     {
-      tbar->EnableTool(idToolbarSAFplus7ClusterDesignGUI, prjActive);
+      tbar->EnableTool(idToolbarClusterDesignGUI, prjActive);
     }
 #endif
 }
@@ -237,23 +241,70 @@ void SAFplus7IDE::Action(wxCommandEvent& event)
     wxString projectName;
 
 #ifndef STANDALONE
-    if (event.GetId() == idMenuYangParse)
+    wxTreeCtrl *tree = m_manager->GetProjectManager()->GetUI().GetTree();
+    wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
+    FileTreeData *ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
+
+    if (event.GetId() == idModuleYangParse)
     {
+      if (!ftd) return;
+
       /* TODO:
       Run yang parse on selection file and return PyObject -> extract
-      PyObject *pModule = PyImport_Import("yang.py");
-      PyObject *returnValues;
+      */
+
+      wxString yangFile = ftd->GetProjectFile()->file.GetFullPath();
+      m_log->Log(yangFile + wxT("::") + ConfigManager::GetDataFolder(false));
+      //setenv("PYTHONPATH", ConfigManager::GetDataFolder(false).mb_str(), 1);
+      PyObject *pModule = PyImport_Import(PyString_FromString("yang"));
       if (pModule != NULL)
       {
-        PyObject pFunc = PyObject_GetAttrString(pModule, "go"); //TODO
-        returnValues = PyObject_CallObject(pFunc, m_manager->GetProjectManager()->GetUI().GetTreeSelection());
-      } */
+        PyObject *pFunc = PyObject_GetAttrString(pModule, "go");
+        Py_DECREF(pModule);
+
+        if (pFunc != NULL)
+        {
+          //Setup arguments
+          PyObject *args = PyTuple_New(2); //One is Respo dir, another is tuple yang files
+          PyObject *tupleFiles = PyTuple_New(1); //Multi-selection on tree objects???
+          PyTuple_SetItem(tupleFiles, 0, PyString_FromString(yangFile.mb_str()));
+
+          PyTuple_SetItem(args, 0, PyString_FromString(ftd->GetProjectFile()->file.GetPath().mb_str()));
+          PyTuple_SetItem(args, 1, tupleFiles);
+
+          PyObject *returnValues = PyObject_CallObject(pFunc, args);
+          Py_DECREF(pFunc);
+          if (returnValues != NULL)
+          {
+            //Creating boost::python::object from PyObject*
+            boost::python::object obj0(boost::python::handle<>(PyTuple_GetItem(returnValues, 0)));
+            boost::python::object obj1(boost::python::handle<>(PyTuple_GetItem(returnValues, 1)));
+
+            boost::python::dict d0 = bpy::extract<bpy::dict>(obj0);
+            boost::python::dict d1 = bpy::extract<bpy::dict>(obj1);
+
+            //Unit test
+            std::string resultStr = boost::python::extract<std::string>(d1["Cluster"]["startupAssignmentDelay"]["help"]);
+            m_log->Log(wxString::FromUTF8(resultStr.c_str()));
+            Py_DECREF(returnValues);
+          }
+          else
+          {
+            m_log->Log(_T("Values empty!"));
+          }
+        }
+        else
+        {
+          m_log->Log(_T("Could not get function!"));
+        }
+      }
+      else
+      {
+        m_log->Log(_T("Could not load module! Please manual export PYTHONPATH environment."));
+      }
     }
     else
     {
-      wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
-      wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
-      FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
       if (ftd)
       {
         projectName = ftd->GetProject()->GetTitle();
