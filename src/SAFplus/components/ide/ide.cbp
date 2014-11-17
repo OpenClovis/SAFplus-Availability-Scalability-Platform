@@ -72,6 +72,8 @@
 		<Unit filename="SAFplus7IDE.h" />
 		<Unit filename="SAFplus7ScrolledWindow.cpp" />
 		<Unit filename="SAFplus7ScrolledWindow.h" />
+		<Unit filename="Utils.cxx" />
+		<Unit filename="YangParser.cxx" />
 		<Unit filename="resources/SAFplus7IDE.xrc" />
 		<Unit filename="resources/images/ClovisLogo_16_16.gif" />
 		<Unit filename="resources/images/ClovisLogo_32_32.gif" />
@@ -118,6 +120,8 @@
 		<Unit filename="resources/images/validate_report.gif" />
 		<Unit filename="resources/images/web_ems.gif" />
 		<Unit filename="resources/manifest.xml" />
+		<Unit filename="utils.h" />
+		<Unit filename="yangParser.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

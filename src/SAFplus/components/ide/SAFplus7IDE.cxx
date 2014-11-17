@@ -27,6 +27,8 @@ namespace bpy = boost::python;
 
 //work-around with python's bug LD_PRELOAD
 #include <dlfcn.h>
+#include <yangParser.h>
+#include <utils.h>
 
 #ifndef STANDALONE
 // Register the plugin with Code::Blocks.
@@ -101,8 +103,10 @@ void SAFplus7IDE::OnAttach()
 {
     m_IsAttached = true;
 
+#ifndef STANDALONE
     //work-around with python's bug LD_PRELOAD
     dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+#endif
 
     Py_SetProgramName(programName);
     Py_Initialize();
@@ -256,58 +260,23 @@ void SAFplus7IDE::Action(wxCommandEvent& event)
     {
       if (!ftd) return;
 
-      /* TODO:
-      Run yang parse on selection file and return PyObject -> extract
-      */
-
-      wxString yangFile = ftd->GetProjectFile()->file.GetFullPath();
-      m_log->Log(yangFile + wxT("::") + ConfigManager::GetDataFolder(false));
-      //setenv("PYTHONPATH", ConfigManager::GetDataFolder(false).mb_str(), 1);
-      PyObject *pModule = PyImport_Import(PyString_FromString("yang"));
-      if (pModule != NULL)
+      try
       {
-        PyObject *pFunc = PyObject_GetAttrString(pModule, "go");
-        Py_DECREF(pModule);
+        std::vector<std::string> yangfiles;
+        yangfiles.push_back(Utils::toString(ftd->GetProjectFile()->file.GetFullPath()));
 
-        if (pFunc != NULL)
-        {
-          //Setup arguments
-          PyObject *args = PyTuple_New(2); //One is Respo dir, another is tuple yang files
-          PyObject *tupleFiles = PyTuple_New(1); //Multi-selection on tree objects???
-          PyTuple_SetItem(tupleFiles, 0, PyString_FromString(yangFile.mb_str()));
+        YangParser yangParser;
+        bpy::tuple values = yangParser.parseFile(Utils::toString(ftd->GetProjectFile()->file.GetPath()), yangfiles);
 
-          PyTuple_SetItem(args, 0, PyString_FromString(ftd->GetProjectFile()->file.GetPath().mb_str()));
-          PyTuple_SetItem(args, 1, tupleFiles);
+        boost::python::dict ytypes = bpy::extract<bpy::dict>(values[0]);
+        boost::python::dict yobjects = bpy::extract<bpy::dict>(values[1]);
 
-          PyObject *returnValues = PyObject_CallObject(pFunc, args);
-          Py_DECREF(pFunc);
-          if (returnValues != NULL)
-          {
-            //Creating boost::python::object from PyObject*
-            boost::python::object obj0(boost::python::handle<>(PyTuple_GetItem(returnValues, 0)));
-            boost::python::object obj1(boost::python::handle<>(PyTuple_GetItem(returnValues, 1)));
-
-            boost::python::dict d0 = bpy::extract<bpy::dict>(obj0);
-            boost::python::dict d1 = bpy::extract<bpy::dict>(obj1);
-
-            //Unit test
-            std::string resultStr = boost::python::extract<std::string>(d1["Cluster"]["startupAssignmentDelay"]["help"]);
-            m_log->Log(wxString::FromUTF8(resultStr.c_str()));
-            Py_DECREF(returnValues);
-          }
-          else
-          {
-            m_log->Log(_T("Values empty!"));
-          }
-        }
-        else
-        {
-          m_log->Log(_T("Could not get function!"));
-        }
+        std::string resultStr = boost::python::extract<std::string>(yobjects["Cluster"]["startupAssignmentDelay"]["help"]);
+        m_log->Log(wxString::FromUTF8(resultStr.c_str()));
       }
-      else
+      catch(boost::python::error_already_set const &e)
       {
-        m_log->Log(_T("Could not load module! Please manual export PYTHONPATH environment."));
+        //TODO: throw
       }
     }
     else

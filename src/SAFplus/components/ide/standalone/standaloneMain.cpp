@@ -21,7 +21,11 @@
 #include <Python.h>
 #include <boost/python.hpp>
 #include <boost/python/dict.hpp>
+#include <vector>
+#include "../utils.h"
+#include "../yangParser.h"
 
+using namespace std;
 namespace bpy = boost::python;
 
 //helper functions
@@ -51,6 +55,8 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 
     return wxbuild;
 }
+
+std::string parse_python_exception();
 
 wxString dataFolder = wxString::FromUTF8("../data");
 
@@ -128,44 +134,29 @@ void standaloneFrame::OnAbout(wxCommandEvent &event)
 void standaloneFrame::OnYangParse(wxCommandEvent &event)
 {
   wxString yangFile = wxT("../resources/SAFplusAmf.yang");
-  PyObject *pModule = PyImport_Import(PyString_FromString("yang"));
-  PyObject *returnValues;
-  if (pModule != NULL)
+  try
   {
-    PyObject *pFunc = PyObject_GetAttrString(pModule, "go");
-    Py_DECREF(pModule);
+    std::vector<std::string> yangfiles;
+    yangfiles.push_back(Utils::toString(yangFile));
 
-    PyObject *args;
-    PyObject *files = PyTuple_New(1);
+    YangParser yangParser;
+    bpy::tuple values = bpy::extract<bpy::tuple>(yangParser.parseFile(".", yangfiles));
 
-    args = PyTuple_New(2);
-    PyTuple_SetItem(args, 0, PyString_FromString("."));
-    PyTuple_SetItem(files, 0, PyString_FromString(yangFile.mb_str()));
-    PyTuple_SetItem(args, 1, files);
+    boost::python::dict ytypes = bpy::extract<bpy::dict>(values[0]);
+    boost::python::dict yobjects = bpy::extract<bpy::dict>(values[1]);
 
-    if (pFunc != NULL)
-    {
-      Py_DECREF(pFunc);
-      returnValues = PyObject_CallObject(pFunc, args);
-      if (returnValues != NULL)
-      {
-        //Creating boost::python::object from PyObject*
-        boost::python::object obj0(boost::python::handle<>(PyTuple_GetItem(returnValues, 0)));
-        boost::python::object obj1(boost::python::handle<>(PyTuple_GetItem(returnValues, 1)));
-
-        boost::python::dict d0 = bpy::extract<bpy::dict>(obj0);
-        boost::python::dict d1 = bpy::extract<bpy::dict>(obj1);
-        std::string resultStr = boost::python::extract<std::string>(d1["Cluster"]["startupAssignmentDelay"]["help"]);
+    std::string resultStr = boost::python::extract<std::string>(yobjects["Cluster"]["startupAssignmentDelay"]["help"]);
 #ifdef wxUSE_STATUSBAR
-        SetStatusText(wxString::FromUTF8(resultStr.c_str()));
+    SetStatusText(wxString::FromUTF8(resultStr.c_str()));
 #else
-        printf("AA [%s]", resultStr.c_str());
+    printf("AA [%s]", resultStr.c_str());
 #endif
-
-        Py_DECREF(returnValues);
-      }
-    }
-
+  }
+  catch(boost::python::error_already_set const &e)
+  {
+    // Parse and output the exception
+    string perror_str = parse_python_exception();
+    cout << "Error during configuration parsing: " << perror_str << endl;
   }
 }
 
