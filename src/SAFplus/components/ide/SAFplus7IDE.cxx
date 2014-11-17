@@ -25,6 +25,9 @@
 #include <boost/python.hpp>
 namespace bpy = boost::python;
 
+//work-around with python's bug LD_PRELOAD
+#include <dlfcn.h>
+
 #ifndef STANDALONE
 // Register the plugin with Code::Blocks.
 // We are using an anonymous namespace so we don't litter the global one.
@@ -97,6 +100,10 @@ char programName[80] = "SAFplusIDE";
 void SAFplus7IDE::OnAttach()
 {
     m_IsAttached = true;
+
+    //work-around with python's bug LD_PRELOAD
+    dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+
     Py_SetProgramName(programName);
     Py_Initialize();
     //PyRun_SimpleString("print 'Embedded Python initialized'\n");
