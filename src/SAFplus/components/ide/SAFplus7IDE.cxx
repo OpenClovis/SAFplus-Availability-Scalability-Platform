@@ -109,6 +109,23 @@ void SAFplus7IDE::OnAttach()
 #endif
 
     Py_SetProgramName(programName);
+
+#ifdef STANDALONE
+    std::string pythonPathExt = "";
+    char *curPythonPath = getenv("PYTHONPATH");
+    char cwd[512] = {0};
+    if (curPythonPath != NULL)
+    {
+      pythonPathExt.append(curPythonPath).append(":");
+    }
+
+    if (getcwd(cwd, 512) != NULL)
+    {
+      pythonPathExt.append(cwd);
+    }
+    setenv("PYTHONPATH", pythonPathExt.c_str(), 1);
+#endif
+
     Py_Initialize();
     //PyRun_SimpleString("print 'Embedded Python initialized'\n");
     //PyObject* pyobj = PyRun_String("({'foo':{}},{'bar':{}})",0,globals(),boost::python::dict());

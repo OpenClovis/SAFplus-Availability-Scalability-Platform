@@ -17,7 +17,8 @@ boost::python::tuple YangParser::parseFile(const string &path, const vector<stri
 {
   bpy::list listFiles;
   vector<string>::const_iterator it;
-  for (it = yangFiles.begin(); it != yangFiles.end(); ++it){
+  for (it = yangFiles.begin(); it != yangFiles.end(); ++it)
+  {
     listFiles.append(*it);
   }
   return bpy::extract<bpy::tuple>(m_yangParserModule.attr("go")(path, listFiles));
