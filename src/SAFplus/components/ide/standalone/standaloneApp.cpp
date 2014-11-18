@@ -24,10 +24,14 @@ IMPLEMENT_APP(standaloneApp);
 
 bool standaloneApp::OnInit()
 {
+    wxXmlResource::Get()->InitAllHandlers();
+    wxXmlResource::Get()->Load(_T("../resources/SAFplus7IDE.xrc"));
+
     standaloneFrame* frame = new standaloneFrame(0L, _("wxWidgets Application Template"));
     cbPlugin* plugin = new SAFplus7IDE();
     //The callback calling by C::B -- NOT when there is not C::B (standalone)
     plugin->OnAttach();
+    plugin->BuildMenu(frame->m_menubar);
     frame->Show();
     return true;
 }

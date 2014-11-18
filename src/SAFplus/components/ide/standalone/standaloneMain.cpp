@@ -16,6 +16,7 @@
 #endif //__BORLANDC__
 
 #include "standaloneMain.h"
+#include "../SAFplus7ScrolledWindow.h"
 #include "../SAFplus7EditorPanel.h"
 
 #include <Python.h>
@@ -24,6 +25,7 @@
 #include <vector>
 #include "../utils.h"
 #include "../yangParser.h"
+#include "../svgIcon.h"
 
 using namespace std;
 namespace bpy = boost::python;
@@ -60,31 +62,32 @@ std::string parse_python_exception();
 
 wxString dataFolder = wxString::FromUTF8("../data");
 
+extern int idModuleYangParse;
+
 BEGIN_EVENT_TABLE(standaloneFrame, wxFrame)
     EVT_CLOSE(standaloneFrame::OnClose)
     EVT_MENU(idMenuQuit, standaloneFrame::OnQuit)
     EVT_MENU(idMenuAbout, standaloneFrame::OnAbout)
-    EVT_MENU(idYangParse, standaloneFrame::OnYangParse)
+    EVT_MENU(idModuleYangParse, standaloneFrame::OnYangParse)
 END_EVENT_TABLE()
 
 standaloneFrame::standaloneFrame(wxFrame *frame, const wxString& title)
     : wxFrame(frame, -1, title, wxPoint(100,100), wxSize(800,600))
 {
     Py_Initialize();
-    new SAFplus7EditorPanel(this, title);
+    m_paintPanel = new SAFplus7EditorPanel(this, title);
 #if wxUSE_MENUS
     // create a menu bar
     wxMenuBar* mbar = new wxMenuBar();
     wxMenu* fileMenu = new wxMenu(_T(""));
     fileMenu->Append(idMenuQuit, _("&Quit\tAlt-F4"), _("Quit the application"));
-    fileMenu->Append(idYangParse, _T("Yang Parse"), _T("Test Yang Parse"));
-
     mbar->Append(fileMenu, _("&File"));
 
     wxMenu* helpMenu = new wxMenu(_T(""));
     helpMenu->Append(idMenuAbout, _("&About\tF1"), _("Show info about this application"));
     mbar->Append(helpMenu, _("&Help"));
 
+    m_menubar = mbar;
     SetMenuBar(mbar);
 #endif // wxUSE_MENUS
 
@@ -151,6 +154,22 @@ void standaloneFrame::OnYangParse(wxCommandEvent &event)
 #else
     printf("AA [%s]", resultStr.c_str());
 #endif
+  }
+  catch(boost::python::error_already_set const &e)
+  {
+    // Parse and output the exception
+    string perror_str = parse_python_exception();
+    cout << "Error during configuration parsing: " << perror_str << endl;
+  }
+
+  try
+  {
+    svgIcon iconGen;
+    RsvgHandle *icon_handle =rsvg_handle_new();
+    bpy::object outputObj = iconGen.componentIcon("../component.svg", "myName", "myCommandLine");
+    std::string output = bpy::extract<std::string>(outputObj);
+    iconGen.render((const unsigned char *)output.c_str(), (int)output.length(), &icon_handle);
+    m_paintPanel->m_paintArea->drawIcon(icon_handle, NULL);
   }
   catch(boost::python::error_already_set const &e)
   {

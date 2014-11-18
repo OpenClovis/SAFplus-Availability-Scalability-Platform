@@ -17,17 +17,20 @@
 #include "standalone.h"
 #include "standaloneApp.h"
 
+class SAFplus7EditorPanel;
+
 class standaloneFrame: public wxFrame
 {
     public:
         standaloneFrame(wxFrame *frame, const wxString& title);
         ~standaloneFrame();
+        wxMenuBar *m_menubar;
+        SAFplus7EditorPanel *m_paintPanel;
     private:
         enum
         {
             idMenuQuit = 1000,
             idMenuAbout,
-            idYangParse
         };
         void OnClose(wxCloseEvent& event);
         void OnQuit(wxCommandEvent& event);

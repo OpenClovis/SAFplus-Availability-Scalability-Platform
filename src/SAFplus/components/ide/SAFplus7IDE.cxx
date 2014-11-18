@@ -161,6 +161,7 @@ void SAFplus7IDE::BuildMenu(wxMenuBar* menuBar)
     /* Load XRC */
     m_menu = m_manager->LoadMenu(_T("safplus_menu"),true);
 
+#ifndef STANDALONE
     /* */
     int posInsert = 7;
     int posPluginMenu = menuBar->FindMenu(_("P&lugins"));
@@ -169,6 +170,9 @@ void SAFplus7IDE::BuildMenu(wxMenuBar* menuBar)
       posInsert = posPluginMenu;
     }
     menuBar->Insert(posInsert, m_menu, _("SAFpl&us"));
+#else
+    menuBar->Insert(1, m_menu, _("SAFpl&us"));
+#endif
 }
 
 void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data)
