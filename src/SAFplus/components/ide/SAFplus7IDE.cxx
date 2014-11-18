@@ -27,8 +27,8 @@ namespace bpy = boost::python;
 
 //work-around with python's bug LD_PRELOAD
 #include <dlfcn.h>
-#include <yangParser.h>
-#include <utils.h>
+#include "yangParser.h"
+#include "utils.h"
 
 #ifndef STANDALONE
 // Register the plugin with Code::Blocks.

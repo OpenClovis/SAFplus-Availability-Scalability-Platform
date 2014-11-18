@@ -120,6 +120,8 @@
 		<Unit filename="resources/images/validate_report.gif" />
 		<Unit filename="resources/images/web_ems.gif" />
 		<Unit filename="resources/manifest.xml" />
+		<Unit filename="svgIcon.cxx" />
+		<Unit filename="svgIcon.h" />
 		<Unit filename="utils.h" />
 		<Unit filename="yangParser.h" />
 		<Extensions>

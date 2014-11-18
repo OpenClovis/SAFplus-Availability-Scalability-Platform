@@ -14,15 +14,13 @@ svgIcon::~svgIcon()
   //dtor
 }
 
-boost::python::object svgIcon::componentIcon(const std::string &iconBase, const std::string &componentName, const std::string &commandLine)
+void svgIcon::genSvgIcon(SvgIconType svgIconType, const bpy::dict &configDict, RsvgHandle **rsvghdl)
 {
-  return m_svgModule.attr("componentIcon")(iconBase, componentName, commandLine);
-}
+  int iconType = static_cast<int>(svgIconType);
+  std::string svgStr = bpy::extract<std::string>(m_svgModule.attr("loadSvgIcon")(iconType, configDict));
 
-void svgIcon::render(const unsigned char *buf, int bufsize, RsvgHandle **rsvghdl)
-{
   GError *error;
-  if (!rsvg_handle_write(*rsvghdl, buf, bufsize, &error))
+  if (!rsvg_handle_write(*rsvghdl, (const unsigned char *)svgStr.c_str(), (int)svgStr.length(), &error))
   {
     rsvg_handle_close(*rsvghdl,&error);
     *rsvghdl = NULL;

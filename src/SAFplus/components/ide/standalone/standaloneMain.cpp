@@ -165,10 +165,15 @@ void standaloneFrame::OnYangParse(wxCommandEvent &event)
   try
   {
     svgIcon iconGen;
-    RsvgHandle *icon_handle =rsvg_handle_new();
-    bpy::object outputObj = iconGen.componentIcon("../component.svg", "myName", "myCommandLine");
-    std::string output = bpy::extract<std::string>(outputObj);
-    iconGen.render((const unsigned char *)output.c_str(), (int)output.length(), &icon_handle);
+    RsvgHandle *icon_handle = rsvg_handle_new();
+
+    /* build example entity configuration */
+    bpy::dict compConfig;
+    compConfig["name"] = "myName";
+    compConfig["commandLine"] = "myCommandLine";
+
+    /* Draw entity to screen */
+    iconGen.genSvgIcon(SVG_ICON_COMP, compConfig, &icon_handle);
     m_paintPanel->m_paintArea->drawIcon(icon_handle, NULL);
   }
   catch(boost::python::error_already_set const &e)

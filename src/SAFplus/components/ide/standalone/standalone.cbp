@@ -86,6 +86,8 @@
 		<Unit filename="../SAFplus7ScrolledWindow.h" />
 		<Unit filename="../Utils.cxx" />
 		<Unit filename="../YangParser.cxx" />
+		<Unit filename="../svgIcon.cxx" />
+		<Unit filename="../svgIcon.h" />
 		<Unit filename="../utils.h" />
 		<Unit filename="../yangParser.h" />
 		<Unit filename="handle_error.cpp" />
