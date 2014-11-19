@@ -19,7 +19,7 @@
 
 /**
  *  \file
- *  \brief Header file of the ClMgtModule class which provides APIs to manage MGT modules
+ *  \brief Header file of the MgtModule class which provides APIs to manage MGT modules
  *  \ingroup mgt
  */
 
@@ -47,7 +47,7 @@ extern "C"
 namespace SAFplus
 {
   /**
-   * ClMgtModule class provides APIs to manage a MGT modules
+   * MgtModule class provides APIs to manage a MGT modules
    */
   class MgtModule
   {

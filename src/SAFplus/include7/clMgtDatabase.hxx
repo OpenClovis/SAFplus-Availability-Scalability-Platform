@@ -19,7 +19,7 @@
 
 /**
  *  \file
- *  \brief Header file of ClMgtDatabase class which provides APIs to access mgt database
+ *  \brief Header file of MgtDatabase class which provides APIs to access mgt database
  *  \ingroup mgt
  */
 
@@ -45,24 +45,24 @@ extern "C" {
 namespace SAFplus
 {
 
-  class ClMgtDatabase
+  class MgtDatabase
   {
   protected:
-    ClMgtDatabase();
+    MgtDatabase();
 
-    static ClMgtDatabase *singletonInstance;
+    static MgtDatabase *singletonInstance;
 
     ClBoolT mInitialized;
     ClDBHandleT mDbDataHdl;
     ClDBHandleT mDbIterHdl;
 
   public:
-    virtual ~ClMgtDatabase();
+    virtual ~MgtDatabase();
 
     /**
      * \brief	Function to create/get the singleton object of the ClMgtDatabase class
      */
-    static ClMgtDatabase *getInstance();
+    static MgtDatabase *getInstance();
 
     /**
      * \brief	Function to initialize Database Abstraction Layer and open a mgt database

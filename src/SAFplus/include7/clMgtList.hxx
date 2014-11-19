@@ -412,7 +412,7 @@ namespace SAFplus
       /**
        * Function to read from database
        */
-      virtual ClRcT read(ClMgtDatabase *db=NULL)
+      virtual ClRcT read(MgtDatabase *db=NULL)
       {
         ClRcT rc = CL_OK;
         typename Map::iterator iter;
@@ -425,7 +425,7 @@ namespace SAFplus
         }
         return rc;
       }
-      ClRcT read(KEYTYPE key,ClMgtDatabase *db=NULL)
+      ClRcT read(KEYTYPE key,MgtDatabase *db=NULL)
       {
         ClRcT rc = CL_OK;
         MgtObject *obj = children[key];
@@ -443,7 +443,7 @@ namespace SAFplus
       /**
        * Function to write to database
        */
-      virtual ClRcT write(ClMgtDatabase *db=NULL)
+      virtual ClRcT write(MgtDatabase *db=NULL)
       {
         ClRcT rc = CL_OK;
         typename Map::iterator iter;
@@ -456,7 +456,7 @@ namespace SAFplus
         }
         return rc;
       }
-      ClRcT write(KEYTYPE key,ClMgtDatabase *db=NULL)
+      ClRcT write(KEYTYPE key,MgtDatabase *db=NULL)
       {
         ClRcT rc = CL_OK;
         MgtObject *obj = children[key];
@@ -789,7 +789,7 @@ namespace SAFplus
         return xpath;
       }
       
-      virtual ClRcT read(ClMgtDatabase *db=NULL)
+      virtual ClRcT read(MgtDatabase *db=NULL)
       {
         ClRcT rc = CL_OK;
         typename Map::iterator iter;

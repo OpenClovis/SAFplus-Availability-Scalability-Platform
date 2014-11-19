@@ -38,6 +38,7 @@
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
 #include "clMgtProvList.hxx"
+#include "clMgtIdentifier.hxx"
 
 namespace SAFplusAmf
   {
@@ -129,7 +130,7 @@ namespace SAFplusAmf
          * How long to delay between instantiation attempts
          */
         SAFplus::MgtProv<unsigned int> delayBetweenInstantiation;
-        SAFplus::MgtProv<SAFplusAmf::ServiceUnit*> serviceUnit;
+        SAFplus::MgtIdentifier<SAFplusAmf::ServiceUnit*> serviceUnit;
         SAFplus::MgtProv<SAFplusAmf::Recovery> recovery;
 
         /*

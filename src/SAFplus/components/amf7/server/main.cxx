@@ -523,7 +523,7 @@ int main(int argc, char* argv[])
   name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
 
   /* Initialize mgt database  */
-  ClMgtDatabase *db = ClMgtDatabase::getInstance();
+  MgtDatabase *db = MgtDatabase::getInstance();
   db->initializeDB("SAFplusAmf");
   //cfg.read(db);
 

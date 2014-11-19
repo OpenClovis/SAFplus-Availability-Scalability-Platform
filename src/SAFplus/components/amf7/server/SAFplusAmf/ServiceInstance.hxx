@@ -25,6 +25,8 @@
 #include "ActiveAssignments.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
+#include "clMgtIdentifier.hxx"
+#include "clMgtIdentifierList.hxx"
 
 namespace SAFplusAmf
   {
@@ -64,8 +66,8 @@ namespace SAFplusAmf
         /*
          * Component Service Instances in this Service group
          */
-        SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*> componentServiceInstances;
-        SAFplus::MgtProv<SAFplusAmf::ServiceGroup*> serviceGroup;
+        SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*> componentServiceInstances;
+        SAFplus::MgtIdentifier<SAFplusAmf::ServiceGroup*> serviceGroup;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.

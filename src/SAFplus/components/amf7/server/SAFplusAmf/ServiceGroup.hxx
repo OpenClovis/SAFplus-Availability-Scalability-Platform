@@ -30,6 +30,8 @@
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
 #include "clMgtProvList.hxx"
+#include "clMgtIdentifier.hxx"
+#include "clMgtIdentifierList.hxx"
 
 namespace SAFplusAmf
   {
@@ -89,13 +91,13 @@ namespace SAFplusAmf
         /*
          * Service Units in this Service Group
          */
-        SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*> serviceUnits;
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> serviceUnits;
 
         /*
          * Service Instances (work) in this Service group
          */
-        SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*> serviceInstances;
-        SAFplus::MgtProv<SAFplusAmf::Application*> application;
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*> serviceInstances;
+        SAFplus::MgtIdentifier<SAFplusAmf::Application*> application;
 
     public:
         ServiceGroup();

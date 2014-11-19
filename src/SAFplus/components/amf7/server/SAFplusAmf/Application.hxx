@@ -20,6 +20,7 @@
 #include "AdministrativeState.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
+#include "clMgtIdentifierList.hxx"
 
 namespace SAFplusAmf
   {
@@ -39,7 +40,7 @@ namespace SAFplusAmf
         /*
          * Service Groups in this Application
          */
-        SAFplus::MgtProvList<SAFplusAmf::ServiceGroup*> serviceGroups;
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceGroup*> serviceGroups;
 
         /*
          * SAFplus Extension: To the greatest extent possible, all Service Groups in this application will be Active (or standby) on the same node.  This will only be not true if service groups are not configured to run on the same nodes.

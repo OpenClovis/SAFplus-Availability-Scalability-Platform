@@ -555,7 +555,7 @@ void testMgtBind()
 
 void testDatabase()
 {
-  ClMgtDatabase *db = ClMgtDatabase::getInstance();
+  MgtDatabase *db = MgtDatabase::getInstance();
   ClRcT rc = db->initializeDB("test",99999,99999);
   if(CL_OK != rc)
   {

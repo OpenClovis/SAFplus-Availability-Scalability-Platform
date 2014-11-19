@@ -19,7 +19,7 @@
 
 /**
  *  \file
- *  \brief Header file of the ClMgtContainer class which represents a
+ *  \brief Header file of the MgtContainer class which represents a
  *  YANG container.
  *  \ingroup mgt
  */
@@ -91,10 +91,10 @@ class MgtContainer:public MgtObject
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     //virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
-    virtual ClRcT write(ClMgtDatabase *db=NULL);
-    virtual ClRcT write(std::string parentXPath,ClMgtDatabase *db=NULL);
-    virtual ClRcT read(ClMgtDatabase *db=NULL);
-    virtual ClRcT read(std::string parentXPath,ClMgtDatabase *db=NULL);
+    virtual ClRcT write(MgtDatabase *db=NULL);
+    virtual ClRcT write(std::string parentXPath,MgtDatabase *db=NULL);
+    virtual ClRcT read(MgtDatabase *db=NULL);
+    virtual ClRcT read(std::string parentXPath,MgtDatabase *db=NULL);
   
   };
 

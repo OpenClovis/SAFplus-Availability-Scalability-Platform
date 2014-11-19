@@ -19,7 +19,7 @@
 
 /**
  *  \file
- *  \brief Header file of the ClMgtProvList class which provides APIs to manage "provisioned" objects
+ *  \brief Header file of the MgtProvList class which provides APIs to manage "provisioned" objects
  *  \ingroup mgt
  */
 
@@ -164,14 +164,14 @@ public:
     /**
      *
      */
-    virtual ClRcT write(ClMgtDatabase *db=NULL)
+    virtual ClRcT write(MgtDatabase *db=NULL)
     {
       return setDb();
     }
     /**
      *
      */
-    virtual ClRcT read(ClMgtDatabase *db=NULL)
+    virtual ClRcT read(MgtDatabase *db=NULL)
     {
       return getDb();
     }
@@ -368,7 +368,7 @@ ClRcT MgtProvList<T>::setDb()
     ClRcT rc = CL_OK;
     std::string key = getFullXpath();
 
-    ClMgtDatabase *db = ClMgtDatabase::getInstance();
+    MgtDatabase *db = MgtDatabase::getInstance();
     if(!db->isInitialized())
     {
         return CL_ERR_NOT_INITIALIZED;
@@ -422,7 +422,7 @@ ClRcT MgtProvList<T>::getDb()
     ClRcT rc = CL_OK;
     std::string key = getFullXpath();
 
-    ClMgtDatabase *db = ClMgtDatabase::getInstance();
+    MgtDatabase *db = MgtDatabase::getInstance();
     if(!db->isInitialized())
     {
         return CL_ERR_NOT_INITIALIZED;

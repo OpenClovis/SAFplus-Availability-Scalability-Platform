@@ -19,7 +19,7 @@
 
 /**
  *  \file
- *  \brief Header file of the ClMgtProv class which provides APIs to manage "provisioned" objects
+ *  \brief Header file of the MgtProv class which provides APIs to manage "provisioned" objects
  *  \ingroup mgt
  */
 
@@ -127,32 +127,32 @@ public:
     /**
      * \brief   Function to set data to database
      */
-    ClRcT setDb(std::string pxp = "",ClMgtDatabase *db=NULL);
+    ClRcT setDb(std::string pxp = "",MgtDatabase *db=NULL);
 
     /**
      * \brief   Function to get data from database
      */
-    ClRcT getDb(std::string pxp = "",ClMgtDatabase *db=NULL);
+    ClRcT getDb(std::string pxp = "",MgtDatabase *db=NULL);
 
     /**
      *
      */
-    virtual ClRcT write(ClMgtDatabase *db=NULL)
+    virtual ClRcT write(MgtDatabase *db=NULL)
     {
       return setDb();
     }
-    virtual ClRcT write(std::string xpath,ClMgtDatabase *db=NULL)
+    virtual ClRcT write(std::string xpath,MgtDatabase *db=NULL)
     {
       return setDb(xpath,db);
     }
     /**
      *
      */
-    virtual ClRcT read(ClMgtDatabase *db=NULL)
+    virtual ClRcT read(MgtDatabase *db=NULL)
     {
       return getDb();
     }
-    virtual ClRcT read(std::string xpath,ClMgtDatabase *db=NULL)
+    virtual ClRcT read(std::string xpath,MgtDatabase *db=NULL)
     {
       return getDb(xpath,db);
     }
@@ -358,7 +358,7 @@ std::vector<std::string> *MgtProv<T>::getChildNames()
 }
 
 template <class T>
-ClRcT MgtProv<T>::setDb(std::string pxp,ClMgtDatabase *db)
+ClRcT MgtProv<T>::setDb(std::string pxp,MgtDatabase *db)
 {
     std::string key = getFullXpath();
     if(pxp.size() > 0)
@@ -371,7 +371,7 @@ ClRcT MgtProv<T>::setDb(std::string pxp,ClMgtDatabase *db)
     ss << value;
     if(db == NULL)
     {
-      db = ClMgtDatabase::getInstance();
+      db = MgtDatabase::getInstance();
     }
     std::vector<std::string> record = db->iterate(key);
     if(record.size() == 0)
@@ -381,7 +381,7 @@ ClRcT MgtProv<T>::setDb(std::string pxp,ClMgtDatabase *db)
 }
 
 template <class T>
-ClRcT MgtProv<T>::getDb(std::string pxp,ClMgtDatabase *db)
+ClRcT MgtProv<T>::getDb(std::string pxp,MgtDatabase *db)
 {
     std::string key = getFullXpath();
     if(pxp.size() > 0)
@@ -392,7 +392,7 @@ ClRcT MgtProv<T>::getDb(std::string pxp,ClMgtDatabase *db)
     }
     if(db == NULL)
     {
-      db = ClMgtDatabase::getInstance();
+      db = MgtDatabase::getInstance();
     }
     std::string val;
     ClRcT rc = db->getRecord(key, val);

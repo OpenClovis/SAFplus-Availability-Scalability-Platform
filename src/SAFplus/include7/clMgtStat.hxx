@@ -19,7 +19,7 @@
 
 /**
  *  \file
- *  \brief Header file of the ClMgtIndex class which provides APIs to manage MGT statistic objects
+ *  \brief Header file of the MgtStat class which provides APIs to manage MGT statistic objects
  *  \ingroup mgt
  */
 
@@ -36,11 +36,11 @@
 namespace SAFplus
 {
   template <class T>
-  class ClMgtStat : public ClMgtProv<T>
+  class MgtStat : public MgtProv<T>
   {
   public:
-    ClMgtStat(const char* name);
-    virtual ~ClMgtStat();
+    MgtStat(const char* name);
+    virtual ~MgtStat();
 
     /**
      * \brief   Virtual function to validate object data
@@ -50,20 +50,20 @@ namespace SAFplus
   };
 
   /*
-   * Implementation of ClMgtStat class
+   * Implementation of MgtStat class
    * G++ compiler: template function declarations and implementations must appear in the same file.
    */
 
   template <class T>
-  ClMgtStat<T>::ClMgtStat(const char* name) : ClMgtProv<T>(name)
+  MgtStat<T>::MgtStat(const char* name) : MgtProv<T>(name)
   {}
 
   template <class T>
-  ClMgtStat<T>::~ClMgtStat()
+  MgtStat<T>::~MgtStat()
   {}
 
   template <class T>
-  ClBoolT ClMgtStat<T>::set( void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+  ClBoolT MgtStat<T>::set( void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
   {
     return CL_FALSE;
   }

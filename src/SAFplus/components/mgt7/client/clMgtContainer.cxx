@@ -230,7 +230,7 @@ delete this;
         }
     }
 
-  ClRcT MgtContainer::write(ClMgtDatabase *db)
+  ClRcT MgtContainer::write(MgtDatabase *db)
   {
     ClRcT rc = CL_OK;
     MgtObjectMap::iterator it;
@@ -244,7 +244,7 @@ delete this;
     return rc;
   }
 
-  ClRcT MgtContainer::read(ClMgtDatabase *db)
+  ClRcT MgtContainer::read(MgtDatabase *db)
   {
     ClRcT rc = CL_OK;
     MgtObjectMap::iterator it;
@@ -257,7 +257,7 @@ delete this;
     }
     return rc;
   }
-  ClRcT MgtContainer::read(std::string parentXPath,ClMgtDatabase *db)
+  ClRcT MgtContainer::read(std::string parentXPath,MgtDatabase *db)
   {
     logDebug("MGT","SET","Read data, xpath %s",parentXPath.c_str());
     ClRcT rc = CL_OK;
@@ -281,7 +281,7 @@ delete this;
     }
     return rc;
   }
-  ClRcT MgtContainer::write(std::string parentXPath,ClMgtDatabase *db)
+  ClRcT MgtContainer::write(std::string parentXPath,MgtDatabase *db)
   {
     ClRcT rc = CL_OK;
     MgtObjectMap::iterator it;

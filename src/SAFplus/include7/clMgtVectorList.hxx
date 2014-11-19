@@ -19,7 +19,7 @@
 
 /**
  *  \file
- *  \brief Header file of ClMgtList class which provides APIs to manage Yang lists
+ *  \brief Header file of MgtVectorList class which provides APIs to manage Yang lists
  *  \ingroup mgt
  */
 

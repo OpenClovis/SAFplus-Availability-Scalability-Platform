@@ -44,7 +44,7 @@
 
 namespace SAFplus
   {
-  class ClMgtDatabase;
+  class MgtDatabase;
   class MgtObject;
 
   class MgtError:public Error
@@ -294,14 +294,14 @@ extern MgtIteratorBase mgtIterEnd;
      *  \param db The database to access. by default it uses the
      *  globally defined database. 
      */
-    virtual ClRcT write(ClMgtDatabase *db=NULL);
-    virtual ClRcT write(std::string parentXPath,ClMgtDatabase *db=NULL);
+    virtual ClRcT write(MgtDatabase *db=NULL);
+    virtual ClRcT write(std::string parentXPath,MgtDatabase *db=NULL);
     /** \brief Load object from database. 
      *  \param db The database to access. by default it uses the
      *  globally defined database. 
      */
-    virtual ClRcT read(ClMgtDatabase *db=NULL);
-    virtual ClRcT read(std::string parentXPath,ClMgtDatabase *db=NULL);
+    virtual ClRcT read(MgtDatabase *db=NULL);
+    virtual ClRcT read(std::string parentXPath,MgtDatabase *db=NULL);
 
     /* iterator db key and bind to object */
     // not implemented virtual ClRcT iterator();

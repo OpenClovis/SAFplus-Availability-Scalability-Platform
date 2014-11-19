@@ -43,24 +43,24 @@ static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
     return cksum & DBAL_DB_KEY_MASK;
 }
 
-ClMgtDatabase *ClMgtDatabase::singletonInstance = 0;
+MgtDatabase *MgtDatabase::singletonInstance = 0;
 
-ClMgtDatabase *ClMgtDatabase::getInstance()
+MgtDatabase *MgtDatabase::getInstance()
 {
-    return (singletonInstance ? singletonInstance : (singletonInstance = new ClMgtDatabase()));
+    return (singletonInstance ? singletonInstance : (singletonInstance = new MgtDatabase()));
 }
 
-ClMgtDatabase::~ClMgtDatabase()
+MgtDatabase::~MgtDatabase()
 {
 
 }
 
-ClMgtDatabase::ClMgtDatabase()
+MgtDatabase::MgtDatabase()
 {
     mInitialized = CL_FALSE;
 }
 
-ClRcT ClMgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize, ClUint32T maxRecordSize)
+ClRcT MgtDatabase::initializeDB(const std::string &dbName, ClUint32T maxKeySize, ClUint32T maxRecordSize)
 {
     ClRcT rc = CL_OK;
     ClDBHandleT dbDataHdl = 0; /* Database handle*/
@@ -109,7 +109,7 @@ exitOnError1:
     return rc;
 }
 
-ClRcT ClMgtDatabase::finalizeDB()
+ClRcT MgtDatabase::finalizeDB()
 {
     if(!mInitialized)
     {
@@ -129,7 +129,7 @@ ClRcT ClMgtDatabase::finalizeDB()
     return CL_OK;
 }
 
-ClRcT ClMgtDatabase::setRecord(const std::string &key, const std::string &value)
+ClRcT MgtDatabase::setRecord(const std::string &key, const std::string &value)
 {
     ClRcT rc = CL_OK;
 
@@ -145,7 +145,7 @@ ClRcT ClMgtDatabase::setRecord(const std::string &key, const std::string &value)
     return rc;
 }
 
-ClRcT ClMgtDatabase::getRecord(const std::string &key, std::string &value)
+ClRcT MgtDatabase::getRecord(const std::string &key, std::string &value)
 {
     ClRcT rc = CL_OK;
     ClCharT *cvalue;
@@ -170,7 +170,7 @@ ClRcT ClMgtDatabase::getRecord(const std::string &key, std::string &value)
     return rc;
 }
 
-ClRcT ClMgtDatabase::insertRecord(const std::string &key, const std::string &value)
+ClRcT MgtDatabase::insertRecord(const std::string &key, const std::string &value)
 {
     ClRcT rc = CL_OK;
 
@@ -202,7 +202,7 @@ ClRcT ClMgtDatabase::insertRecord(const std::string &key, const std::string &val
     return rc;
 }
 
-ClRcT ClMgtDatabase::deleteRecord(const std::string &key)
+ClRcT MgtDatabase::deleteRecord(const std::string &key)
 {
     ClRcT rc = CL_OK;
 
@@ -220,7 +220,7 @@ ClRcT ClMgtDatabase::deleteRecord(const std::string &key)
     return rc;
 }
 
-std::vector<std::string> ClMgtDatabase::iterate(const std::string &xpath)
+std::vector<std::string> MgtDatabase::iterate(const std::string &xpath)
 {
     ClUint32T   keySize         = 0;
     ClUint32T   dataSize        = 0;
@@ -273,7 +273,7 @@ std::vector<std::string> ClMgtDatabase::iterate(const std::string &xpath)
     return iter;
 }
 
-ClBoolT ClMgtDatabase::isInitialized()
+ClBoolT MgtDatabase::isInitialized()
 {
     return mInitialized;
 }

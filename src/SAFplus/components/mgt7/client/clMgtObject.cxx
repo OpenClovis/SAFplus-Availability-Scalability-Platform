@@ -416,24 +416,24 @@ namespace SAFplus
 #endif
 
   /* persistent db to database */
-  ClRcT MgtObject::write(ClMgtDatabase* db)
+  ClRcT MgtObject::write(MgtDatabase* db)
   {
     clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
     return CL_ERR_NOT_EXIST;
   }
-  ClRcT MgtObject::write(std::string xpt,ClMgtDatabase* db)
+  ClRcT MgtObject::write(std::string xpt,MgtDatabase* db)
     {
       clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
       return CL_ERR_NOT_EXIST;
     }
 
   /* unmashall db to object */
-  ClRcT MgtObject::read(ClMgtDatabase* db)
+  ClRcT MgtObject::read(MgtDatabase* db)
   {
     clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
     return CL_OK;
   }
-  ClRcT MgtObject::read(std::string xpt,ClMgtDatabase *db)
+  ClRcT MgtObject::read(std::string xpt,MgtDatabase *db)
   {
     clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
     return CL_OK;

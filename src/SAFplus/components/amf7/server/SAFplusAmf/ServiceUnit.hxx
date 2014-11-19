@@ -31,6 +31,8 @@
 #include "EntityId.hxx"
 #include "NumStandbyServiceInstances.hxx"
 #include "clMgtProvList.hxx"
+#include "clMgtIdentifier.hxx"
+#include "clMgtIdentifierList.hxx"
 
 namespace SAFplusAmf
   {
@@ -79,10 +81,10 @@ namespace SAFplusAmf
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
          */
         SAFplus::MgtProv<bool> operState;
-        SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*> assignedServiceInstances;
-        SAFplus::MgtProvList<SAFplusAmf::Component*> components;
-        SAFplus::MgtProv<SAFplusAmf::Node*> node;
-        SAFplus::MgtProv<SAFplusAmf::ServiceGroup*> serviceGroup;
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*> assignedServiceInstances;
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*> components;
+        SAFplus::MgtIdentifier<SAFplusAmf::Node*> node;
+        SAFplus::MgtIdentifier<SAFplusAmf::ServiceGroup*> serviceGroup;
 
         /*
          * Once this Service Unit is instantiated, how long should I wait before assigning it?

@@ -19,6 +19,8 @@
 #include "MgtFactory.hxx"
 #include "EntityId.hxx"
 #include "clMgtProvList.hxx"
+#include "clMgtIdentifier.hxx"
+#include "clMgtIdentifierList.hxx"
 
 namespace SAFplusAmf
   {
@@ -38,18 +40,18 @@ namespace SAFplusAmf
         /*
          * 
          */
-        SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*> dependencies;
-        SAFplus::MgtProv<SAFplusAmf::ServiceInstance*> serviceInstance;
+        SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*> dependencies;
+        SAFplus::MgtIdentifier<SAFplusAmf::ServiceInstance*> serviceInstance;
 
         /*
          * This work is assigned standby to these components
          */
-        SAFplus::MgtProvList<SAFplusAmf::Component*> standbyComponents;
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*> standbyComponents;
 
         /*
          * This work is assigned active to these components
          */
-        SAFplus::MgtProvList<SAFplusAmf::Component*> activeComponents;
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*> activeComponents;
 
         /*
          * Arbitrary data that defines the work needed to be done.

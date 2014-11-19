@@ -19,7 +19,7 @@
 
 /**
  *  \file
- *  \brief Header file of the ClMgtHistoryStat class which provides APIs to manage MGT historical data
+ *  \brief Header file of the MgtHistoryStat class which provides APIs to manage MGT historical data
  *  \ingroup mgt
  */
 
@@ -52,7 +52,7 @@ namespace SAFplus
  *  MgtHistoryStat class provides APIs to manage MGT historical data
  */
 template <class T>
-class ClMgtHistoryStat : public MgtObject
+class MgtHistoryStat : public MgtObject
 {
 private:
     ClTimerHandleT   mTimerHandle;
@@ -81,15 +81,15 @@ protected:
 public:
     //static ClRcT clTstTimerCallback(void *pCookie);
 
-    ClMgtHistoryStat(const char* name);
-    virtual ~ClMgtHistoryStat();
+    MgtHistoryStat(const char* name);
+    virtual ~MgtHistoryStat();
 
     ClRcT startTimer();
 
     void stopTimer();
 
     /**
-     * \brief	Function to set value of the ClMgtHistoryStat object
+     * \brief	Function to set value of the MgtHistoryStat object
      * \param	value					Value to be set
      * \return	void
      */
@@ -112,15 +112,15 @@ public:
 template <class T>
 ClRcT clTstTimerCallback(void *pCookie)
 {
-    //ClMgtHistoryStat<T> *thisObj = (ClMgtHistoryStat<T> *)pCookie;
-	ClMgtHistoryStat<T> *thisObj = static_cast<ClMgtHistoryStat<T> *>(pCookie);
+    //MgtHistoryStat<T> *thisObj = (MgtHistoryStat<T> *)pCookie;
+	MgtHistoryStat<T> *thisObj = static_cast<MgtHistoryStat<T> *>(pCookie);
     T currentVal = thisObj->calculateCurrentValue();
     thisObj->setValue(currentVal);
     return CL_OK;
 }
 
 template <class T>
-ClMgtHistoryStat<T>::ClMgtHistoryStat(const char* name) : MgtObject(name)
+MgtHistoryStat<T>::MgtHistoryStat(const char* name) : MgtObject(name)
 {
     m10SecTrack = 0;
     m1MinTrack = 0;
@@ -132,7 +132,7 @@ ClMgtHistoryStat<T>::ClMgtHistoryStat(const char* name) : MgtObject(name)
 }
 
 template <class T>
-ClRcT ClMgtHistoryStat<T>::startTimer()
+ClRcT MgtHistoryStat<T>::startTimer()
 {
     ClRcT rc = CL_OK;
 
@@ -161,7 +161,7 @@ ClRcT ClMgtHistoryStat<T>::startTimer()
 }
 
 template <class T>
-void ClMgtHistoryStat<T>::stopTimer()
+void MgtHistoryStat<T>::stopTimer()
 {
     if (mTimerHandle)
     {
@@ -171,19 +171,19 @@ void ClMgtHistoryStat<T>::stopTimer()
 }
 
 template <class T>
-ClMgtHistoryStat<T>::~ClMgtHistoryStat()
+MgtHistoryStat<T>::~MgtHistoryStat()
 {
     stopTimer();
 }
 
 template <class T>
-ClBoolT ClMgtHistoryStat<T>::validate( void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+ClBoolT MgtHistoryStat<T>::validate( void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
 {
     return CL_FALSE;
 }
 
 template <class T>
-void ClMgtHistoryStat<T>::toString(std::stringstream& xmlString)
+void MgtHistoryStat<T>::toString(std::stringstream& xmlString)
 {
     ClUint32T i;
 
@@ -235,7 +235,7 @@ void ClMgtHistoryStat<T>::toString(std::stringstream& xmlString)
 }
 
 template <class T>
-void ClMgtHistoryStat<T>::setValue(T value)
+void MgtHistoryStat<T>::setValue(T value)
 {
     ClBoolT isAccum;
     ClUint32T i;
@@ -412,7 +412,7 @@ void ClMgtHistoryStat<T>::setValue(T value)
 }
 
 template <class T>
-T ClMgtHistoryStat<T>::calculateCurrentValue()
+T MgtHistoryStat<T>::calculateCurrentValue()
 {
     return 0;
 }

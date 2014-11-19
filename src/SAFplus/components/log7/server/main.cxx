@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
   logSeverity = LOG_SEV_MAX;
 
   /* Initialize mgt database  */
-  ClMgtDatabase *db = ClMgtDatabase::getInstance();
+  MgtDatabase *db = MgtDatabase::getInstance();
   db->initializeDB("SAFplusLog");
 
   dataModule.loadModule();
