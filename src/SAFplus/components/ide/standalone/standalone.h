@@ -10,6 +10,7 @@
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
 #endif
+#include <wx/xrc/xmlres.h>
 
 class EditorBase : public wxPanel
 {
@@ -45,6 +46,7 @@ class cbPlugin:public wxApp
 
   virtual void OnAttach() {}
   virtual void OnRelease(bool appShutDown) {}
+  virtual void BuildMenu(wxMenuBar* menuBar) {}
   friend class standaloneApp;
   };
 
@@ -77,7 +79,7 @@ class LogManager
 class Manager
   {
   public:
-    wxMenu* LoadMenu(wxString s, bool dunno) { return NULL; }
+    wxMenu* LoadMenu(wxString s, bool dunno) { return wxXmlResource::Get()->LoadMenu(_T("safplus_module_menu")); }
     static Manager* Get();
     LogManager* GetLogManager();
   };

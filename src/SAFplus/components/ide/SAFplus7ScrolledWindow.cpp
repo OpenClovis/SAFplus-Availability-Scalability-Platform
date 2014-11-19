@@ -100,6 +100,22 @@ void SAFplus7ScrolledWindow::mouseMoved(wxMouseEvent &event)
     m_parentPanel->m_statusText->SetLabel(wxString::FromUTF8(mouseMovedText));
 }
 
+void SAFplus7ScrolledWindow::drawIcon(RsvgHandle* icon, cairo_t* cairo_surface)
+{
+  if (!cairo_surface)
+  {
+    wxClientDC dc(this);
+    cairo_surface = gdk_cairo_create(dc.m_window);
+  }
+
+  if (icon)
+  {
+      rsvg_handle_render_cairo(icon,cairo_surface);
+  }
+
+  cairo_destroy(cairo_surface);
+}
+
 void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
 {
 // TODO (hoangle#1#):
@@ -110,10 +126,8 @@ void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
 
     if (icon)
     {
-        rsvg_handle_render_cairo(icon,cairo_surface);
+      drawIcon(icon, cairo_surface);
     }
-
-    cairo_destroy(cairo_surface);
 
 #if 0
     wxClientDC dc(this);

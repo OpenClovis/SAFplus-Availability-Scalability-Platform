@@ -128,6 +128,7 @@ class SAFplus7IDE : public cbPlugin
     private:
         wxToolBar  *m_toolbar;
         wxMenu  *m_menu;
+        wxMenu  *m_module_menu;
         DECLARE_EVENT_TABLE();
 };
 

@@ -16,7 +16,19 @@
 #endif //__BORLANDC__
 
 #include "standaloneMain.h"
+#include "../SAFplus7ScrolledWindow.h"
 #include "../SAFplus7EditorPanel.h"
+
+#include <Python.h>
+#include <boost/python.hpp>
+#include <boost/python/dict.hpp>
+#include <vector>
+#include "../utils.h"
+#include "../yangParser.h"
+#include "../svgIcon.h"
+
+using namespace std;
+namespace bpy = boost::python;
 
 //helper functions
 enum wxbuildinfoformat {
@@ -46,18 +58,24 @@ wxString wxbuildinfo(wxbuildinfoformat format)
     return wxbuild;
 }
 
+std::string parse_python_exception();
+
 wxString dataFolder = wxString::FromUTF8("../data");
+
+extern int idModuleYangParse;
 
 BEGIN_EVENT_TABLE(standaloneFrame, wxFrame)
     EVT_CLOSE(standaloneFrame::OnClose)
     EVT_MENU(idMenuQuit, standaloneFrame::OnQuit)
     EVT_MENU(idMenuAbout, standaloneFrame::OnAbout)
+    EVT_MENU(idModuleYangParse, standaloneFrame::OnYangParse)
 END_EVENT_TABLE()
 
 standaloneFrame::standaloneFrame(wxFrame *frame, const wxString& title)
     : wxFrame(frame, -1, title, wxPoint(100,100), wxSize(800,600))
 {
-    new SAFplus7EditorPanel(this, title);
+    Py_Initialize();
+    m_paintPanel = new SAFplus7EditorPanel(this, title);
 #if wxUSE_MENUS
     // create a menu bar
     wxMenuBar* mbar = new wxMenuBar();
@@ -69,6 +87,7 @@ standaloneFrame::standaloneFrame(wxFrame *frame, const wxString& title)
     helpMenu->Append(idMenuAbout, _("&About\tF1"), _("Show info about this application"));
     mbar->Append(helpMenu, _("&Help"));
 
+    m_menubar = mbar;
     SetMenuBar(mbar);
 #endif // wxUSE_MENUS
 
@@ -96,6 +115,7 @@ EditorBase::~EditorBase()
 
 standaloneFrame::~standaloneFrame()
 {
+  Py_Finalize();
 }
 
 void standaloneFrame::OnClose(wxCloseEvent &event)
@@ -112,6 +132,56 @@ void standaloneFrame::OnAbout(wxCommandEvent &event)
 {
     wxString msg = wxbuildinfo(long_f);
     wxMessageBox(msg, _("Welcome to..."));
+}
+
+void standaloneFrame::OnYangParse(wxCommandEvent &event)
+{
+  wxString yangFile = wxT("../resources/SAFplusAmf.yang");
+  try
+  {
+    std::vector<std::string> yangfiles;
+    yangfiles.push_back(Utils::toString(yangFile));
+
+    YangParser yangParser;
+    bpy::tuple values = bpy::extract<bpy::tuple>(yangParser.parseFile(".", yangfiles));
+
+    boost::python::dict ytypes = bpy::extract<bpy::dict>(values[0]);
+    boost::python::dict yobjects = bpy::extract<bpy::dict>(values[1]);
+
+    std::string resultStr = boost::python::extract<std::string>(yobjects["Cluster"]["startupAssignmentDelay"]["help"]);
+#ifdef wxUSE_STATUSBAR
+    SetStatusText(wxString::FromUTF8(resultStr.c_str()));
+#else
+    printf("AA [%s]", resultStr.c_str());
+#endif
+  }
+  catch(boost::python::error_already_set const &e)
+  {
+    // Parse and output the exception
+    string perror_str = parse_python_exception();
+    cout << "Error during configuration parsing: " << perror_str << endl;
+  }
+
+  try
+  {
+    svgIcon iconGen;
+    RsvgHandle *icon_handle = rsvg_handle_new();
+
+    /* build example entity configuration */
+    bpy::dict compConfig;
+    compConfig["name"] = "myName";
+    compConfig["commandLine"] = "myCommandLine";
+
+    /* Draw entity to screen */
+    iconGen.genSvgIcon(SVG_ICON_COMP, compConfig, &icon_handle);
+    m_paintPanel->m_paintArea->drawIcon(icon_handle, NULL);
+  }
+  catch(boost::python::error_already_set const &e)
+  {
+    // Parse and output the exception
+    string perror_str = parse_python_exception();
+    cout << "Error during configuration parsing: " << perror_str << endl;
+  }
 }
 
 

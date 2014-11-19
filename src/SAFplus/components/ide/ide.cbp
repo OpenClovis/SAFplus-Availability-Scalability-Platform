@@ -22,20 +22,23 @@
 					<Add option="-fPIC" />
 					<Add option="-D__WXGTK__" />
 					<Add option="-D__WXGTK20__" />
+					<Add directory="$(#boost.include)" />
 				</Compiler>
 				<Linker>
 					<Add option="`pkg-config --libs gtk+-2.0`" />
 					<Add option="`pkg-config --libs codeblocks`" />
 					<Add option="`wx-config --libs`" />
+					<Add directory="$(#boost.lib)" />
 				</Linker>
 				<ExtraCommands>
 					<Add after="cd resources &amp;&amp; zip -r ../SAFplus7IDE.zip images manifest.xml *.xrc" />
-					<Add after="zip -jr9 SAFplus7IDE.cbplugin SAFplus7IDE.so SAFplus7IDE.zip resources/SAFplusEntityDef.xml resources/SAFplusAmf.yang resources/images/comp16.gif" />
+					<Add after="zip -jr9 SAFplus7IDE.cbplugin SAFplus7IDE.so SAFplus7IDE.zip resources/SAFplusEntityDef.xml resources/SAFplusAmf.yang resources/images/comp16.gif yang.py" />
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="`python-config --cflags`" />
 			<Add directory="/usr/include/python2.7" />
 			<Add directory="/usr/include/cairo" />
 			<Add directory="/usr/include/gtk-2.0" />
@@ -52,6 +55,7 @@
 			<Add directory="/usr/include/librsvg-2.0" />
 		</Compiler>
 		<Linker>
+			<Add option="`python-config --ldflags`" />
 			<Add library="rsvg-2" />
 			<Add library="gio-2.0" />
 			<Add library="gdk_pixbuf-2.0" />
@@ -68,6 +72,8 @@
 		<Unit filename="SAFplus7IDE.h" />
 		<Unit filename="SAFplus7ScrolledWindow.cpp" />
 		<Unit filename="SAFplus7ScrolledWindow.h" />
+		<Unit filename="Utils.cxx" />
+		<Unit filename="YangParser.cxx" />
 		<Unit filename="resources/SAFplus7IDE.xrc" />
 		<Unit filename="resources/images/ClovisLogo_16_16.gif" />
 		<Unit filename="resources/images/ClovisLogo_32_32.gif" />
@@ -114,6 +120,10 @@
 		<Unit filename="resources/images/validate_report.gif" />
 		<Unit filename="resources/images/web_ems.gif" />
 		<Unit filename="resources/manifest.xml" />
+		<Unit filename="svgIcon.cxx" />
+		<Unit filename="svgIcon.h" />
+		<Unit filename="utils.h" />
+		<Unit filename="yangParser.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />
