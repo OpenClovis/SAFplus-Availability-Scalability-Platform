@@ -17,6 +17,8 @@ SAFPLUS_LIBS := clGroup
 SAFPLUS_DEP_LIBS  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
+COMMON_DIR=$(SAFPLUS_SRC_DIR)/SAFplus/components/common
+
 all: $(LIB_DIR)/libclLogRep.so
 
 $(SAFPLUS_TARGET)/lib/libclLogRep.so: $(LOG_REP_OBJ) Makefile $(SAFPLUS_DEP_LIBS)
