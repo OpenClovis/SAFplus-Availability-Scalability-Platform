@@ -465,6 +465,7 @@ populate_prereqs() {
         if [ $SNMP_BUILD == "1" ]; then
         echo -n "net-snmp "
         if [ -f $toolchaindir/lib/libnetsnmp.so ]; then
+            echo -n "(from  $toolchaindir)"
             cd $toolchaindir
             install $exe_flags $toolchaindir/sbin/snmp* $imagedir/bin
             res_array[${#res_array[@]}]=$?
@@ -495,8 +496,8 @@ populate_prereqs() {
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="install net-snmp"
             cp -R --parents -L lib/libnetsnmp* $imagedir
-            res_array[${#res_array[@]}]=$?
-            op_array[${#op_array[@]}]="copy in libnetsnmp"
+            #res_array[${#res_array[@]}]=$?  # libnetsnmp being copied is optional... SNMP_BUILD variable not properly following configure
+            #op_array[${#op_array[@]}]="copy in libnetsnmp"
             cp -R --parents -L share/snmp $imagedir
             res_array[${#res_array[@]}]=$?
             op_array[${#op_array[@]}]="copy in snmp"
