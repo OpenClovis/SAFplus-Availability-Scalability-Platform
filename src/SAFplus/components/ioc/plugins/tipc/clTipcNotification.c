@@ -82,6 +82,8 @@ static ClBoolT shutdownFlag = CL_FALSE;
 static ClCharT eventHandlerInited = 0;
 static ClRcT tipcEventHandler(ClInt32T fd, ClInt32T events, void *handlerIndex);
 
+static ClUint32T gClTipcSubscrTimeout;
+
 typedef struct ClTipcNodeStatus
 {
     ClIocNodeAddressT nodeAddress;
@@ -329,7 +331,7 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
     ClRcT rc = CL_OK;
     ClIocPhysicalAddressT compAddr={0};
     ClTimerHandleT timer = {0};
-    ClTimerTimeOutT timeout = {.tsSec = 0, .tsMilliSec = CL_TIPC_SUBSCR_TIMEOUT};
+    ClTimerTimeOutT timeout = {.tsSec = 0, .tsMilliSec = gClTipcSubscrTimeout};
     ClTipcNodeStatusT* nodeStatusEntry = NULL;
 
     switch(socketType)
@@ -571,6 +573,10 @@ ClRcT clTipcEventHandlerInitialize(void)
     {
         goto out_free;
     }
+
+    char* temp;
+    temp = getenv("CL_TIPC_SUBSCR_TIMEOUT");
+    gClTipcSubscrTimeout = temp ? (ClUint32T)atoi(temp) : CL_TIPC_SUBSCR_TIMEOUT;
 
     eventHandlerInited = 1;
 
