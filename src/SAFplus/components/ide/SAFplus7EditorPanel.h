@@ -50,7 +50,6 @@ class SAFplus7EditorPanel : public EditorBase
 
     wxToolBar* m_designToolBar;
     SAFplus7ScrolledWindow* m_paintArea;
-    wxSashLayoutWindow details;
 
     bool m_isModified;
     wxString m_title;

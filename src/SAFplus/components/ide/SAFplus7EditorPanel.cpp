@@ -6,6 +6,8 @@
 #include "resources/images/Tool.xpm"
 #include "SAFplus7EditorPanel.h"
 #include "SAFplus7ScrolledWindow.h"
+#include <wx/splitter.h>
+extern wxWindow* PythonWinTest(wxWindow* parent);
 
 int wxIDShowProperties = wxNewId();
 
@@ -43,12 +45,6 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
     details.SetSashVisible(wxSASH_RIGHT, true);
 #endif
 
-  wxFlexGridSizer* mainSizer = new wxFlexGridSizer( 2, 1 , 0, 0 );
-  mainSizer->AddGrowableCol( 0 );
-  mainSizer->AddGrowableRow( 0 );
-  mainSizer->SetFlexibleDirection( wxBOTH );
-  mainSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
-
   // Create toolbar SAFplus entity
   m_designToolBar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
   m_designToolBar->SetToolBitmapSize(wxSize(16, 16));
@@ -58,7 +54,8 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   wxBitmap sgBitmap = cbLoadBitmap(baseImagePath + _T("/comp16.gif"), wxBITMAP_TYPE_ANY);
 #else
   const wxString &baseImagePath = wxGetCwd() + wxT("/../resources/images");
-  wxBitmap sgBitmap = wxBitmap(Tool_xpm);
+  wxBitmap sgBitmap = cbLoadBitmap(baseImagePath + _T("/comp16.gif"), wxBITMAP_TYPE_ANY);
+  // wxBitmap(Tool_xpm);
 #endif
 
   m_designToolBar->AddTool(wxID_NEW, wxT("New"), wxArtProvider::GetBitmap(wxART_NEW, wxART_MENU), wxT("New diagram"));
@@ -97,17 +94,32 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
 
   bSizer->Add( m_designToolBar, 0, wxEXPAND, 5 );
 
-  m_paintArea = new SAFplus7ScrolledWindow(this, wxID_ANY);
+  wxSplitterWindow* sp = new wxSplitterWindow(this, -1);
+  m_paintArea = new SAFplus7ScrolledWindow(sp, wxID_ANY);
+  wxWindow* py = PythonWinTest(sp);
 
-  mainSizer->Add( m_paintArea, 1, wxEXPAND | wxALL, 5);
+  sp->SplitVertically(py, m_paintArea, GetClientSize().x/4);
+  bSizer->Add(sp, 1, wxEXPAND, 5 );
+
+#if 0
+  wxFlexGridSizer* mainSizer = new wxFlexGridSizer( 2, 1 , 0, 0 );
+  mainSizer->AddGrowableCol( 0 );
+  mainSizer->AddGrowableRow( 0 );
+  mainSizer->SetFlexibleDirection( wxBOTH );
+  mainSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
+
+  //mainSizer->Add( m_paintArea, 1, wxEXPAND | wxALL, 5);
+  mainSizer->Add( PythonWinTest(this), 1, wxEXPAND | wxALL, 5);
 
   bSizer->Add( mainSizer, 1, wxEXPAND, 5 );
 
 #if 0
   bSizer->Add( &details, 1, wxEXPAND| wxALL, 5);
 #endif
-
+#endif
   SetSizer( bSizer );
+
+
   Layout();
 }
 

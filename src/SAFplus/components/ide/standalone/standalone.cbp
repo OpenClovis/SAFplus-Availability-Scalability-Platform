@@ -40,7 +40,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-DSTANDALONE" />
-			<Add option="`wx-config --cflags`" />
+			<Add option="`/usr/debug/bin/wx-config --version=2.8 --cflags`" />
 			<Add option='[[if (GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.8.0&quot;)) print(_T(&quot;-Wno-unused-local-typedefs&quot;));]]' />
 			<Add option="-Wall" />
 			<Add directory="/usr/include/python2.7" />
@@ -60,7 +60,7 @@
 			<Add directory="../" />
 		</Compiler>
 		<Linker>
-			<Add option="`wx-config --libs`" />
+			<Add option="`/usr/debug/bin/wx-config --version=2.8 --libs --debug`" />
 			<Add option="-L ../boostlibs" />
 			<Add library="rsvg-2" />
 			<Add library="gio-2.0" />
@@ -71,12 +71,14 @@
 			<Add library="gdk-x11-2.0" />
 			<Add library="python2.7" />
 			<Add library="boost_python" />
+			<Add library="stdc++" />
 		</Linker>
 		<Unit filename="../SAFplus7EditorPanel.cpp" />
 		<Unit filename="../SAFplus7EditorPanel.h" />
 		<Unit filename="../SAFplus7IDE.cxx" />
 		<Unit filename="../SAFplus7IDE.h" />
 		<Unit filename="../SAFplus7ScrolledWindow.cpp" />
+		<Unit filename="../pythonwintest.cpp" />
 		<Unit filename="../SAFplus7ScrolledWindow.h" />
 		<Unit filename="standalone.h" />
 		<Unit filename="standaloneApp.cpp" />

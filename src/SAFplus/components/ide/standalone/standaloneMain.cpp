@@ -16,7 +16,6 @@
 #endif //__BORLANDC__
 
 #include "standaloneMain.h"
-#include "../SAFplus7EditorPanel.h"
 
 //helper functions
 enum wxbuildinfoformat {
@@ -57,7 +56,6 @@ END_EVENT_TABLE()
 standaloneFrame::standaloneFrame(wxFrame *frame, const wxString& title)
     : wxFrame(frame, -1, title, wxPoint(100,100), wxSize(800,600))
 {
-    new SAFplus7EditorPanel(this, title);
 #if wxUSE_MENUS
     // create a menu bar
     wxMenuBar* mbar = new wxMenuBar();
@@ -120,12 +118,24 @@ wxBitmap cbLoadBitmap(const wxString &fileName,  wxBitmapType bitmapType)
    return wxBitmap(fileName,bitmapType);
   }
 
+Manager::Manager(const wxString& resfile)
+  {
+    wxImage::AddHandler(new wxGIFHandler);
+    wxImage::AddHandler(new wxPNGHandler);
+    wxXmlResource* res = wxXmlResource::Get();
+    assert(res);
+    res->InitAllHandlers();
+    res->Load(resfile);
+  }
 
-
-Manager the_manager;
+Manager* theManager=NULL;
 LogManager the_logManager;
+wxFrame* theFrame = NULL;
+cbProject theProject;
+ProjectManager theProjectManager;
+wxApp* theApp = NULL;
 
-Manager* Manager::Get() { return &the_manager; };
+Manager* Manager::Get() { return theManager; };
 
 LogManager* Manager::GetLogManager() { return &the_logManager;}
 

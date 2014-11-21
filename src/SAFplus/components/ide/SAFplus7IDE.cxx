@@ -25,6 +25,8 @@
 #include <boost/python.hpp>
 namespace bpy = boost::python;
 
+extern wxWindow* PythonWinTest(wxWindow* parent);
+
 #ifndef STANDALONE
 // Register the plugin with Code::Blocks.
 // We are using an anonymous namespace so we don't litter the global one.
@@ -46,6 +48,7 @@ Binding wxWidget resource
 */
 // Menu
 int idMenuSAFplus7ClusterDesignGUI = XRCID("idMenuSAFplus7ClusterDesignGUI");
+int idMenuSAFplusPythonWinTest = XRCID("idMenuSAFplusPythonWinTest");
 
 // Toolbar
 int idToolbarSAFplus7ClusterDesignGUI = XRCID("idToolbarSAFplus7ClusterDesignGUI");
@@ -54,8 +57,10 @@ int idToolbarSAFplus7ClusterDesignGUI = XRCID("idToolbarSAFplus7ClusterDesignGUI
 BEGIN_EVENT_TABLE(SAFplus7IDE, cbPlugin)
     // add any events you want to handle here
     EVT_UPDATE_UI(idMenuSAFplus7ClusterDesignGUI, SAFplus7IDE::UpdateUI)
+    EVT_UPDATE_UI(idMenuSAFplusPythonWinTest, SAFplus7IDE::UpdateUI)
     EVT_UPDATE_UI(idToolbarSAFplus7ClusterDesignGUI, SAFplus7IDE::UpdateUI)
 
+    EVT_MENU(idMenuSAFplusPythonWinTest, SAFplus7IDE::PythonWinTest)
     EVT_MENU(idToolbarSAFplus7ClusterDesignGUI, SAFplus7IDE::Action)
     EVT_MENU(idMenuSAFplus7ClusterDesignGUI, SAFplus7IDE::Action)
 
@@ -96,6 +101,18 @@ void SAFplus7IDE::OnAttach()
     m_IsAttached = true;
     Py_SetProgramName(programName);
     Py_Initialize();
+    PyEval_InitThreads();
+#if 0
+    if ( ! wxPyCoreAPI_IMPORT() ) {
+        wxLogError(wxT("***** Error importing the wxPython API! *****"));
+        PyErr_Print();
+        //Py_Finalize();
+    }
+
+    // Save the current Python thread state and release the
+    // Global Interpreter Lock.
+    m_mainTState = wxPyBeginAllowThreads();
+#endif
     //PyRun_SimpleString("print 'Embedded Python initialized'\n");
     //PyObject* pyobj = PyRun_String("({'foo':{}},{'bar':{}})",0,globals(),boost::python::dict());
     //boost::python::object o(boost::python::handle<>(pyobj));
@@ -149,12 +166,20 @@ void SAFplus7IDE::BuildMenu(wxMenuBar* menuBar)
 
     /* */
     int posInsert = 7;
+#ifndef STANDALONE  // Inserting something into the plugin menu which does not exist in standalone
     int posPluginMenu = menuBar->FindMenu(_("P&lugins"));
     if (posPluginMenu != wxNOT_FOUND)
     {
       posInsert = posPluginMenu;
     }
-    menuBar->Insert(posInsert, m_menu, _("SAFpl&us"));
+#endif
+
+    if (!menuBar->Append(m_menu, _("SAFpl&us")))
+    {
+        printf("menu insert error!\n");
+        assert(0);
+
+    }
 }
 
 void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data)
@@ -163,6 +188,7 @@ void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
         return;
 #ifndef STANDALONE
     if (type == mtEditorManager || (data && data->GetKind() == FileTreeData::ftdkProject))
+#endif
     {
       m_menu = m_manager->LoadMenu(_T("safplus_menu"),true);
 
@@ -170,7 +196,7 @@ void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
       menu->AppendSeparator();
       menu->Append(wxNewId(), _T("SAFplus7") ,m_menu);
     }
-#endif // STANDALONE
+
 }
 
 bool SAFplus7IDE::BuildToolBar(wxToolBar* toolBar)
@@ -193,7 +219,6 @@ bool SAFplus7IDE::BuildToolBar(wxToolBar* toolBar)
 
 void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
 {
-#ifndef STANDALONE
     cbProject *prjActive = m_manager->GetProjectManager()->GetActiveProject();
     wxMenuBar* mbar = Manager::Get()->GetAppFrame()->GetMenuBar();
     if (mbar)
@@ -203,9 +228,13 @@ void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
     wxToolBar* tbar = m_toolbar;
     if (tbar)
     {
-      tbar->EnableTool(idToolbarSAFplus7ClusterDesignGUI, prjActive);
+     // tbar->EnableTool(idToolbarSAFplus7ClusterDesignGUI, prjActive);  // GAS freezes: illegal ID? the item is in the menubar not the toolbar
     }
-#endif
+
+}
+
+void SAFplus7IDE::PythonWinTest(wxCommandEvent& event)
+{
 }
 
 void SAFplus7IDE::Action(wxCommandEvent& event)
