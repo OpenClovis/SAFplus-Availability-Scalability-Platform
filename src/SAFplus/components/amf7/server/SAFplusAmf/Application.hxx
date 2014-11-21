@@ -13,14 +13,13 @@
 #include <string>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "NumServiceGroups.hxx"
 #include "AdministrativeState.hxx"
 #include "EntityId.hxx"
-#include "clMgtProvList.hxx"
-#include "clMgtIdentifierList.hxx"
 
 namespace SAFplusAmf
   {

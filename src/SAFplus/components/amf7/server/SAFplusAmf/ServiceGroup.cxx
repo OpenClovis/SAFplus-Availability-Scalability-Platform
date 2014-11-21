@@ -7,16 +7,18 @@
 
 #include <string>
 #include "clTransaction.hxx"
+#include "ComponentRestart.hxx"
 #include "MgtFactory.hxx"
 #include "NumSpareServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include "AdministrativeState.hxx"
+#include "clMgtIdentifier.hxx"
 #include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "clMgtProv.hxx"
 #include "Application.hxx"
 #include "ServiceInstance.hxx"
-#include "ComponentRestart.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include <vector>
@@ -25,7 +27,6 @@
 #include "NumAssignedServiceUnits.hxx"
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
-#include "clMgtProvList.hxx"
 #include "ServiceGroup.hxx"
 
 

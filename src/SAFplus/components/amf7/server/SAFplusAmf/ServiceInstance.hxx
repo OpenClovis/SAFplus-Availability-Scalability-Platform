@@ -10,23 +10,22 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "AssignmentState.hxx"
-#include <string>
+#include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
 #include "StandbyAssignments.hxx"
 #include "ComponentServiceInstance.hxx"
+#include "ServiceGroup.hxx"
 #include "clMgtList.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
+#include <string>
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
-#include "ServiceGroup.hxx"
+#include "clMgtIdentifierList.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "EntityId.hxx"
-#include "clMgtProvList.hxx"
-#include "clMgtIdentifier.hxx"
-#include "clMgtIdentifierList.hxx"
 
 namespace SAFplusAmf
   {

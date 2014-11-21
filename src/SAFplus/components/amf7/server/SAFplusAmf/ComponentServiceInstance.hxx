@@ -9,18 +9,17 @@
 #define COMPONENTSERVICEINSTANCE_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include <string>
+#include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
-#include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "Component.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "EntityId.hxx"
+#include <string>
 #include "clMgtProvList.hxx"
-#include "clMgtIdentifier.hxx"
-#include "clMgtIdentifierList.hxx"
 
 namespace SAFplusAmf
   {

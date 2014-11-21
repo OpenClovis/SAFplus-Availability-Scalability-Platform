@@ -9,11 +9,11 @@
 #include <string>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
-#include "clMgtProvList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"

@@ -19,6 +19,7 @@
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
 #include "NumStandbyServiceInstances.hxx"
+#include "clMgtIdentifier.hxx"
 #include "ReadinessState.hxx"
 #include "NumActiveServiceInstances.hxx"
 #include "clMgtProv.hxx"
@@ -26,13 +27,11 @@
 #include "HighAvailabilityReadinessState.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
-#include "HighAvailabilityState.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "PresenceState.hxx"
 #include "EntityId.hxx"
 #include "NumStandbyServiceInstances.hxx"
-#include "clMgtProvList.hxx"
-#include "clMgtIdentifier.hxx"
-#include "clMgtIdentifierList.hxx"
+#include "HighAvailabilityState.hxx"
 
 namespace SAFplusAmf
   {

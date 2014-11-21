@@ -10,9 +10,8 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "RestartCount.hxx"
-#include <string>
+#include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
-#include "HighAvailabilityReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
 #include "Instantiate.hxx"
@@ -23,13 +22,15 @@
 #include "ActiveAssignments.hxx"
 #include "CapabilityModel.hxx"
 #include "Cleanup.hxx"
-#include "Recovery.hxx"
+#include <string>
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
+#include "Terminate.hxx"
 #include "Instantiate.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
-#include "Terminate.hxx"
+#include "Recovery.hxx"
+#include "HighAvailabilityReadinessState.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
@@ -38,7 +39,6 @@
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
 #include "clMgtProvList.hxx"
-#include "clMgtIdentifier.hxx"
 
 namespace SAFplusAmf
   {
