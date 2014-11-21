@@ -15,6 +15,12 @@
         <label>SAFplus Cluster Design GUI</label>
         <bitmap>images/ClovisLogo_16_16.gif</bitmap>
       </object>
+      <object class="wxMenuItem" name="idMenuSAFplusPythonWinTest" member="yes">
+        <tooltip>Python Window Test</tooltip>
+        <longhelp>Python Window Test</longhelp>
+        <label>Python Window Test</label>
+        <bitmap>images/ClovisLogo_16_16.gif</bitmap>
+      </object>
   </object>
   <object class="wxMenu" member="yes" name="safplus_module_menu">
     <label>SAFplus</label>

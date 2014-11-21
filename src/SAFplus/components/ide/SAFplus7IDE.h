@@ -24,6 +24,10 @@
 #include "standalone/standaloneMain.h"
 #endif // STANDALONE
 
+#include <Python.h>
+// Import Python and wxPython headers
+#include <wx/wxPython/wxPython.h>
+
 class SAFplus7IDE : public cbPlugin
 {
     public:
@@ -123,9 +127,11 @@ class SAFplus7IDE : public cbPlugin
         virtual void OnRelease(bool appShutDown);
 
         void Action(wxCommandEvent& event);
+        void PythonWinTest(wxCommandEvent& event);
         void UpdateUI(wxUpdateUIEvent& event);
 
     private:
+        PyThreadState* m_mainTState;
         wxToolBar  *m_toolbar;
         wxMenu  *m_menu;
         wxMenu  *m_module_menu;

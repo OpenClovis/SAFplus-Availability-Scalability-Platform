@@ -12,6 +12,8 @@
 #endif
 #include <wx/xrc/xmlres.h>
 
+#include <wx/xrc/xmlres.h>
+
 class EditorBase : public wxPanel
 {
 public:
@@ -48,6 +50,8 @@ class cbPlugin:public wxApp
   virtual void OnRelease(bool appShutDown) {}
   virtual void BuildMenu(wxMenuBar* menuBar) {}
   friend class standaloneApp;
+
+  virtual void BuildMenu(wxMenuBar* menuBar) = 0;
   };
 
 class cbProject
@@ -57,7 +61,7 @@ class cbProject
 
 enum ModuleType
   {
-      SOMETHING=0
+      mtEditorManager=1
   };
 
 enum
@@ -76,13 +80,33 @@ class LogManager
 
   };
 
+
+extern cbProject theProject;
+
+class ProjectManager
+  {
+     public:
+     cbProject* GetActiveProject() { return &theProject; }
+  };
+
+extern ProjectManager theProjectManager;
+extern wxFrame* theFrame;
+extern wxApp* theApp;
+
 class Manager
   {
   public:
-    wxMenu* LoadMenu(wxString s, bool dunno) { return wxXmlResource::Get()->LoadMenu(_T("safplus_module_menu")); }
+    Manager(const wxString& resfile);
+    wxMenu* LoadMenu(const wxString& s, bool dunno) { return wxXmlResource::Get()->LoadMenu(s); }
     static Manager* Get();
-    LogManager* GetLogManager();
+    LogManager*     GetLogManager();
+    ProjectManager* GetProjectManager() const { return &theProjectManager; }
+    wxFrame*  GetAppFrame()  const { return theFrame; }
+    wxWindow* GetAppWindow() const { return theApp->GetTopWindow(); }
+
   };
+
+extern Manager* theManager;
 
 wxBitmap cbLoadBitmap(const wxString &,  wxBitmapType bitmapType);
 #endif

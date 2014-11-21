@@ -97,7 +97,8 @@ void SAFplus7ScrolledWindow::mouseMoved(wxMouseEvent &event)
     //str.Printf( "Current mouse position: %d,%d", (int)x, (int)y );
 
     snprintf(mouseMovedText,80,"Current mouse position: %d,%d", (int)x, (int)y );
-    m_parentPanel->m_statusText->SetLabel(wxString::FromUTF8(mouseMovedText));
+    //TODO crashing caused
+    //m_parentPanel->m_statusText->SetLabel(wxString::FromUTF8(mouseMovedText));
 }
 
 void SAFplus7ScrolledWindow::drawIcon(RsvgHandle* icon, cairo_t* cairo_surface)
@@ -105,15 +106,13 @@ void SAFplus7ScrolledWindow::drawIcon(RsvgHandle* icon, cairo_t* cairo_surface)
   if (!cairo_surface)
   {
     wxClientDC dc(this);
-    cairo_surface = gdk_cairo_create(dc.m_window);
+    cairo_surface = (cairo_t *)dc.GetImpl()->GetCairoContext();
   }
 
   if (icon)
   {
       rsvg_handle_render_cairo(icon,cairo_surface);
   }
-
-  cairo_destroy(cairo_surface);
 }
 
 void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
@@ -121,7 +120,7 @@ void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
 // TODO (hoangle#1#):
 
     wxClientDC dc(this);
-    cairo_t* cairo_surface = gdk_cairo_create(dc.m_window);
+    cairo_t* cairo_surface = (cairo_t *)dc.GetImpl()->GetCairoContext();
     cairoTestDraw(cairo_surface);
 
     if (icon)

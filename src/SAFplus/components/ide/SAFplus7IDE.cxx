@@ -30,6 +30,8 @@ namespace bpy = boost::python;
 #include "yangParser.h"
 #include "utils.h"
 
+extern wxWindow* PythonWinTest(wxWindow* parent);
+
 #ifndef STANDALONE
 // Register the plugin with Code::Blocks.
 // We are using an anonymous namespace so we don't litter the global one.
@@ -53,6 +55,7 @@ Binding wxWidget resource
 int idMenuClusterDesignGUI = XRCID("idMenuClusterDesignGUI");
 int idModuleYangParse = XRCID("idModuleYangParse");
 int idModuleClusterDesignGUI = XRCID("idModuleClusterDesignGUI");
+int idMenuSAFplusPythonWinTest = XRCID("idMenuSAFplusPythonWinTest");
 
 // Toolbar
 int idToolbarClusterDesignGUI = XRCID("idToolbarClusterDesignGUI");
@@ -61,11 +64,13 @@ int idToolbarClusterDesignGUI = XRCID("idToolbarClusterDesignGUI");
 BEGIN_EVENT_TABLE(SAFplus7IDE, cbPlugin)
     // add any events you want to handle here
     EVT_UPDATE_UI(idModuleYangParse, SAFplus7IDE::UpdateUI)
+    EVT_UPDATE_UI(idMenuSAFplusPythonWinTest, SAFplus7IDE::UpdateUI)
 
     EVT_MENU(idToolbarClusterDesignGUI, SAFplus7IDE::Action)
     EVT_MENU(idModuleClusterDesignGUI, SAFplus7IDE::Action)
     EVT_MENU(idMenuClusterDesignGUI, SAFplus7IDE::Action)
     EVT_MENU(idModuleYangParse, SAFplus7IDE::Action)
+    EVT_MENU(idMenuSAFplusPythonWinTest, SAFplus7IDE::PythonWinTest)
 
 END_EVENT_TABLE()
 
@@ -127,6 +132,18 @@ void SAFplus7IDE::OnAttach()
 #endif
 
     Py_Initialize();
+    PyEval_InitThreads();
+#if 0
+    if ( ! wxPyCoreAPI_IMPORT() ) {
+        wxLogError(wxT("***** Error importing the wxPython API! *****"));
+        PyErr_Print();
+        //Py_Finalize();
+    }
+
+    // Save the current Python thread state and release the
+    // Global Interpreter Lock.
+    m_mainTState = wxPyBeginAllowThreads();
+#endif
     //PyRun_SimpleString("print 'Embedded Python initialized'\n");
     //PyObject* pyobj = PyRun_String("({'foo':{}},{'bar':{}})",0,globals(),boost::python::dict());
     //boost::python::object o(boost::python::handle<>(pyobj));
@@ -178,7 +195,7 @@ void SAFplus7IDE::BuildMenu(wxMenuBar* menuBar)
     /* Load XRC */
     m_menu = m_manager->LoadMenu(_T("safplus_menu"),true);
 
-#ifndef STANDALONE
+#ifndef STANDALONE  // Inserting something into the plugin menu which does not exist in standalone
     /* */
     int posInsert = 7;
     int posPluginMenu = menuBar->FindMenu(_("P&lugins"));
@@ -188,7 +205,12 @@ void SAFplus7IDE::BuildMenu(wxMenuBar* menuBar)
     }
     menuBar->Insert(posInsert, m_menu, _("SAFpl&us"));
 #else
-    menuBar->Insert(1, m_menu, _("SAFpl&us"));
+    if (!menuBar->Append(m_menu, _("SAFpl&us")))
+    {
+        printf("menu insert error!\n");
+        assert(0);
+
+    }
 #endif
 }
 
@@ -198,6 +220,7 @@ void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
         return;
 #ifndef STANDALONE
     if (type == mtEditorManager || (data && ((data->GetKind() == FileTreeData::ftdkProject) || (data->GetKind() == FileTreeData::ftdkFile))))
+#endif
     {
       m_module_menu = m_manager->LoadMenu(_T("safplus_module_menu"),true);
 
@@ -205,7 +228,7 @@ void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
       menu->AppendSeparator();
       menu->Append(wxNewId(), _T("SAFplus"), m_module_menu);
     }
-#endif // STANDALONE
+
 }
 
 bool SAFplus7IDE::BuildToolBar(wxToolBar* toolBar)
@@ -228,7 +251,6 @@ bool SAFplus7IDE::BuildToolBar(wxToolBar* toolBar)
 
 void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
 {
-#ifndef STANDALONE
     cbProject *prjActive = m_manager->GetProjectManager()->GetActiveProject();
 
     //Check to enable/disable yang parse menu
@@ -238,6 +260,7 @@ void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
     wxMenu *module_menu = m_module_menu;
     if (module_menu)
     {
+    #if 0
       if (ftd && ftd->GetKind() == FileTreeData::ftdkFile)
       {
         module_menu->Enable(idModuleYangParse, ftd->GetProjectFile()->file.GetExt().Matches(wxT("yang")));
@@ -246,13 +269,18 @@ void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
       {
         module_menu->Enable(idModuleYangParse, false);
       }
+    #endif
     }
     wxToolBar* tbar = m_toolbar;
     if (tbar)
     {
-      tbar->EnableTool(idToolbarClusterDesignGUI, prjActive);
+     // tbar->EnableTool(idToolbarSAFplus7ClusterDesignGUI, prjActive);  // GAS freezes: illegal ID? the item is in the menubar not the toolbar
     }
-#endif
+
+}
+
+void SAFplus7IDE::PythonWinTest(wxCommandEvent& event)
+{
 }
 
 void SAFplus7IDE::Action(wxCommandEvent& event)
