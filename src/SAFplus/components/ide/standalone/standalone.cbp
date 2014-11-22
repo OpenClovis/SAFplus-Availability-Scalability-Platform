@@ -40,7 +40,7 @@
 		</Build>
 		<Compiler>
 			<Add option="-DSTANDALONE" />
-			<Add option="`/usr/debug/bin/wx-config --version=2.8 --cflags`" />
+			<Add option="`wx-config --cflags`" />
 			<Add option='[[if (GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.8.0&quot;)) print(_T(&quot;-Wno-unused-local-typedefs&quot;));]]' />
 			<Add option="-Wall" />
 			<Add directory="/usr/include/python2.7" />
@@ -60,8 +60,9 @@
 			<Add directory="../" />
 		</Compiler>
 		<Linker>
-			<Add option="`/usr/debug/bin/wx-config --version=2.8 --libs --debug`" />
+			<Add option="`wx-config --libs --debug`" />
 			<Add option="-L ../boostlibs" />
+			<Add library="wx_gtk2u_aui-3.0" />
 			<Add library="rsvg-2" />
 			<Add library="gio-2.0" />
 			<Add library="gdk_pixbuf-2.0" />

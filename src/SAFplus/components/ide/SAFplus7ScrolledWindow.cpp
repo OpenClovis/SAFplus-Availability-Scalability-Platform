@@ -129,8 +129,11 @@ void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
 {
 // TODO (hoangle#1#):
 
-    wxClientDC dc(this);
-    cairo_t* cairo_surface = gdk_cairo_create(dc.m_window);
+    //wxClientDC dc(this);
+    wxPaintDC dc(this);
+    //dc.GetImpl()->GetCairoContext()
+    //cairo_t* cairo_surface = gdk_cairo_create((GdkDrawable*)dc.GetImpl()->GetCairoContext());  //m_gdkwindow);
+    cairo_t* cairo_surface = (cairo_t*) dc.GetImpl()->GetCairoContext();
     cairoTestDraw(cairo_surface);
 
     if (icon)
@@ -138,7 +141,7 @@ void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
         rsvg_handle_render_cairo(icon,cairo_surface);
     }
 
-    cairo_destroy(cairo_surface);
+    //cairo_destroy(cairo_surface);
 
 #if 0
     wxClientDC dc(this);
