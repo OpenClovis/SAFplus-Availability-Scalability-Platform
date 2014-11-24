@@ -16,6 +16,7 @@
 					<Add option="-g" />
 					<Add option="`pkg-config --cflags codeblocks`" />
 					<Add option="-DSTANDALONE" />
+					<Add option="-D__WXGTK3__" />
 				</Compiler>
 				<Linker>
 					<Add option="`pkg-config --libs codeblocks`" />
@@ -40,16 +41,17 @@
 		</Build>
 		<Compiler>
 			<Add option="-DSTANDALONE" />
-			<Add option="`wx-config --cflags`" />
+			<Add option="`wx-config --toolkit=gtk3 --unicode --version=3.0 --cflags`" />
 			<Add option='[[if (GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.8.0&quot;)) print(_T(&quot;-Wno-unused-local-typedefs&quot;));]]' />
 			<Add option="-Wall" />
 			<Add directory="/usr/include/python2.7" />
 			<Add directory="/usr/include/cairo" />
-			<Add directory="/usr/include/gtk-2.0" />
+			<!-- Add directory="/usr/include/gtk-3.0" / -->
+                        <Add option="`pkg-config gtk+-x11-3.0 --cflags`" />
 			<Add directory="/usr/include/glib-2.0" />
 			<Add directory="/usr/lib/x86_64-linux-gnu/glib-2.0/include" />
 			<Add directory="/usr/include/pango-1.0" />
-			<Add directory="/usr/lib/x86_64-linux-gnu/gtk-2.0/include" />
+			<Add directory="/usr/lib/x86_64-linux-gnu/gtk-3.0/include" />
 			<Add directory="/usr/include/gio-unix-2.0" />
 			<Add directory="/usr/include/freetype2" />
 			<Add directory="/usr/include/gdk-pixbuf-2.0" />
@@ -60,16 +62,17 @@
 			<Add directory="../" />
 		</Compiler>
 		<Linker>
-			<Add option="`wx-config --libs --debug`" />
+			<Add option="`wx-config --toolkit=gtk3 --unicode --version=3.0 --libs --debug`" />
 			<Add option="-L ../boostlibs" />
-			<Add library="wx_gtk2u_aui-3.0" />
+			<Add library="wx_gtk3u_aui-3.0" />
 			<Add library="rsvg-2" />
 			<Add library="gio-2.0" />
 			<Add library="gdk_pixbuf-2.0" />
 			<Add library="cairo" />
 			<Add library="gobject-2.0" />
 			<Add library="glib-2.0" />
-			<Add library="gdk-x11-2.0" />
+			<!-- Add library="gdk-x11-2.0" / -->
+                        <Add option="`pkg-config gtk+-x11-3.0 --libs`" />
 			<Add library="python2.7" />
 			<Add library="boost_python" />
 			<Add library="stdc++" />

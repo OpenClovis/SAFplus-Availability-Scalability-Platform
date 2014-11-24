@@ -96,7 +96,7 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
 
   wxSplitterWindow* sp = new wxSplitterWindow(this, -1);
   m_paintArea = new SAFplus7ScrolledWindow(sp, wxID_ANY);
-  wxWindow* py = PythonWinTest(sp);
+  wxWindow* py = PythonWinTest(sp);  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
 
   sp->SplitVertically(py, m_paintArea, GetClientSize().x/4);
   bSizer->Add(sp, 1, wxEXPAND, 5 );
