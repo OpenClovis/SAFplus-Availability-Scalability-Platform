@@ -1,0 +1,2 @@
+#!/bin/bash
+../configure --prefix=/usr --disable-optimise --enable-debug --enable-debug_info --enable-debug_gdb --enable-http --enable-aui --enable-html --with-zlib --with-libjpeg --with-libpng  --with-expat --enable-gif --enable-image --enable-dragimage --enable-mousewheel --enable-tooltips --enable-menus --enable-gui --with-gtk=3 --enable-unicode --with-opengl

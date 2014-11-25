@@ -69,25 +69,34 @@ wxBitmap *RGBAtoBitmap(unsigned char *rgba, int w, int h)
    return bitmap;
 }
 
-void SvgToBitmap()
+wxBitmap* SvgToBitmap()
   {
-#if 0
-    cairo_surface_t* cairo_surface = cairo_image_surface_create_for_data(
-                                    image_buffer,
-                                    CAIRO_FORMAT_ARGB32,
-                                    rect_width,
-                                    rect_height,
-                                    rect_width * 4);
-    cairo_t* cr = cairo_create(cairo_surface);
-#endif
-
-    //wxBitmap::wxBitmap 	(int  	width,int  	height,int  depth = 32) //wxBITMAP_SCREEN_DEPTH
-    wxBitmap bitmap = wxBitmap(100, 100,wxBITMAP_SCREEN_DEPTH );
-    cairo_t* cr =  bitmap.CairoCreate();
+    wxBitmap* bitmap = new wxBitmap(250, 250,wxBITMAP_SCREEN_DEPTH );
+    cairo_t* cr =  bitmap->CairoCreate();
+    cairo_set_source_rgba               (cr,0,0,0,1);
+    cairo_paint(cr);
     cairoTestDraw(cr);
-
+    return bitmap;
   }
 
+cairo_surface_t* SvgToCairo(RsvgHandle* im)
+  {
+
+    //wxBitmap::wxBitmap 	(int  	width,int  	height,int  depth = 32) //wxBITMAP_SCREEN_DEPTH
+    cairo_surface_t* bitmap = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,250, 250);
+    cairo_t* cr = cairo_create(bitmap);
+    cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+    cairo_set_source_rgba               (cr,0,1,0,0);
+    cairo_paint(cr);
+    cairo_set_operator (cr, CAIRO_OPERATOR_OVER);  // blending
+    cairoTestDraw(cr);
+    //rsvg_handle_set_dpi(im,1000);  // no effect that I can determine
+
+    rsvg_handle_render_cairo(im,cr);
+
+    cairo_destroy(cr);
+    return bitmap;
+  }
 //SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL )
 SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL, wxString::FromUTF8("SAFplusModeller") )
 {
@@ -124,6 +133,12 @@ SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) 
           else rsvg_handle_close(icon,&error);
           }
         fclose(fp);
+
+        RsvgDimensionData dim;
+        rsvg_handle_get_dimensions (icon, &dim);
+        printf("SVG dimensions: %d, %d em: %f ex: %f\n", dim.width, dim.height, dim.em, dim.ex);
+
+        //gboolean rsvg_handle_get_position_sub (RsvgHandle *handle, RsvgPositionData *position_data, const char *id);
     }
     //notify wxAUI which frame to use
     m_mgr.SetManagedWindow(this);
@@ -217,10 +232,24 @@ void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
         {
         rsvg_handle_render_cairo(icon,cairo_surface);
         }
-#ifndef __WXGTK3__      
+    wxPoint pos = event.GetPosition();
+    cur_posx = dc.DeviceToLogicalX( pos.x );
+    cur_posy = dc.DeviceToLogicalY( pos.y );
+
+    cairo_surface_t* blit = SvgToCairo(icon);
+    cairo_set_source_surface (cairo_surface, blit, cur_posx, cur_posy);
+    cairo_paint(cairo_surface);
+    //cairo_paint_with_alpha(cairo_surface);
+#ifndef __WXGTK3__
       cairo_destroy(cairo_surface);
 #endif
     }
+#if 0
+    wxPoint pos = event.GetPosition();
+    wxBitmap* bmp = SvgToBitmap();
+    dc.DrawBitmap (*bmp, pos.x, pos.y,false);
+    delete bmp;
+#endif
 
 #if 0
     wxClientDC dc(this);
@@ -317,7 +346,7 @@ void cairoTestDraw(cairo_t *cr)
   cairo_select_font_face (cr, "Sans",
       CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_NORMAL);
-
+  cairo_set_source_rgba (cr, 1, 0, 1.0, 1.0);
   cairo_set_font_size (cr, 52.0);
   cairo_text_extents (cr, utf8, &extents);
   x = 128.0-(extents.width/2 + extents.x_bearing);
@@ -327,9 +356,9 @@ void cairoTestDraw(cairo_t *cr)
   cairo_show_text (cr, utf8);
 
   /* draw helping lines */
-  cairo_set_source_rgba (cr, 1, 0.2, 0.2, 0.6);
+  cairo_set_source_rgba (cr, 1, 0.2, 0.2, .6);
   cairo_set_line_width (cr, 6.0);
-  cairo_arc (cr, x, y, 10.0, 0, 2*M_PI);
+  cairo_arc (cr, 0, 0, 20.0, 0, 2*M_PI);
   cairo_fill (cr);
   cairo_move_to (cr, 128.0, 0);
   cairo_rel_line_to (cr, 0, 256);
