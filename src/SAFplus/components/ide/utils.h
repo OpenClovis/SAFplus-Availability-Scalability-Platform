@@ -7,6 +7,8 @@
 
 #include <string>
 
+extern std::string parse_python_exception();
+
 class Utils
 {
   public:

@@ -40,14 +40,13 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-Wall" />
+			<Add option="-DSTANDALONE" />
 			<Add option="`wx-config --toolkit=gtk3 --unicode --version=3.0 --cflags`" />
 			<Add option='[[if (GetCompilerFactory().GetCompilerVersionString(_T(&quot;gcc&quot;)) &gt;= _T(&quot;4.8.0&quot;)) print(_T(&quot;-Wno-unused-local-typedefs&quot;));]]' />
+			<Add option="-Wall" />
 			<Add option="`pkg-config gtk+-x11-3.0 --cflags`" />
-			<Add option="-DSTANDALONE" />
 			<Add directory="/usr/include/python2.7" />
 			<Add directory="/usr/include/cairo" />
-			<Add directory="/usr/include/gtk-3.0" />
 			<Add directory="/usr/include/glib-2.0" />
 			<Add directory="/usr/lib/x86_64-linux-gnu/glib-2.0/include" />
 			<Add directory="/usr/include/pango-1.0" />
@@ -82,14 +81,14 @@
 		<Unit filename="../SAFplus7IDE.h" />
 		<Unit filename="../SAFplus7ScrolledWindow.cpp" />
 		<Unit filename="../SAFplus7ScrolledWindow.h" />
-		<Unit filename="../Utils.cxx" />
-		<Unit filename="../YangParser.cxx" />
+		<Unit filename="../handle_error.cpp" />
 		<Unit filename="../pythonwintest.cpp" />
 		<Unit filename="../svgIcon.cxx" />
 		<Unit filename="../svgIcon.h" />
+		<Unit filename="../utils.cxx" />
 		<Unit filename="../utils.h" />
+		<Unit filename="../yangParser.cxx" />
 		<Unit filename="../yangParser.h" />
-		<Unit filename="handle_error.cpp" />
 		<Unit filename="standalone.h" />
 		<Unit filename="standaloneApp.cpp" />
 		<Unit filename="standaloneApp.h" />

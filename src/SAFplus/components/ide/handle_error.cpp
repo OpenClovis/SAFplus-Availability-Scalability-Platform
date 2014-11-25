@@ -3,7 +3,6 @@
 
 namespace py = boost::python;
 
-std::string parse_python_exception();
 
 // Parses the value of the active python exception
 // NOTE SHOULD NOT BE CALLED IF NO EXCEPTION

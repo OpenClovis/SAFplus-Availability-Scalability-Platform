@@ -1,6 +1,3 @@
-#undef unix
-#undef linux
-
 #ifndef STANDALONE
 #include <sdk.h> // Code::Blocks SDK
 //cb header
@@ -26,14 +23,20 @@
 #include "SAFplus7EditorPanel.h"
 #include <Python.h>
 #include <boost/python.hpp>
+#include <boost/python/dict.hpp>
+#include <vector>
+
+using namespace std;
 namespace bpy = boost::python;
+
+extern wxWindow* PythonWinTest(wxWindow* parent);
 
 //work-around with python's bug LD_PRELOAD
 #include <dlfcn.h>
 #include "yangParser.h"
 #include "utils.h"
+#include "svgIcon.h"
 
-extern wxWindow* PythonWinTest(wxWindow* parent);
 
 #ifndef STANDALONE
 // Register the plugin with Code::Blocks.
@@ -54,26 +57,27 @@ LogManager *m_log = Manager::Get()->GetLogManager();
 /*
 Binding wxWidget resource
 */
-// Menu
-int idMenuClusterDesignGUI = XRCID("idMenuClusterDesignGUI");
 int idModuleYangParse = XRCID("idModuleYangParse");
-int idModuleClusterDesignGUI = XRCID("idModuleClusterDesignGUI");
+// Menu
+int idMenuSAFplus7ClusterDesignGUI = XRCID("idMenuSAFplus7ClusterDesignGUI");
 int idMenuSAFplusPythonWinTest = XRCID("idMenuSAFplusPythonWinTest");
-
+int idMenuSAFplusYangTest = XRCID("idMenuSAFplusYangTest");
 // Toolbar
-int idToolbarClusterDesignGUI = XRCID("idToolbarClusterDesignGUI");
+int idToolbarSAFplus7ClusterDesignGUI = XRCID("idToolbarSAFplus7ClusterDesignGUI");
 
 // events handling
 BEGIN_EVENT_TABLE(SAFplus7IDE, cbPlugin)
     // add any events you want to handle here
-    EVT_UPDATE_UI(idModuleYangParse, SAFplus7IDE::UpdateUI)
+    EVT_UPDATE_UI(idMenuSAFplus7ClusterDesignGUI, SAFplus7IDE::UpdateUI)
     EVT_UPDATE_UI(idMenuSAFplusPythonWinTest, SAFplus7IDE::UpdateUI)
+    EVT_UPDATE_UI(idToolbarSAFplus7ClusterDesignGUI, SAFplus7IDE::UpdateUI)
+    EVT_UPDATE_UI(idMenuSAFplusYangTest, SAFplus7IDE::UpdateUI)
 
-    EVT_MENU(idToolbarClusterDesignGUI, SAFplus7IDE::Action)
-    EVT_MENU(idModuleClusterDesignGUI, SAFplus7IDE::Action)
-    EVT_MENU(idMenuClusterDesignGUI, SAFplus7IDE::Action)
-    EVT_MENU(idModuleYangParse, SAFplus7IDE::Action)
     EVT_MENU(idMenuSAFplusPythonWinTest, SAFplus7IDE::PythonWinTest)
+    EVT_MENU(idToolbarSAFplus7ClusterDesignGUI, SAFplus7IDE::Action)
+    EVT_MENU(idMenuSAFplus7ClusterDesignGUI, SAFplus7IDE::Action)
+    EVT_MENU(idModuleYangParse, SAFplus7IDE::Action)
+    EVT_MENU(idMenuSAFplusYangTest, SAFplus7IDE::OnYangParse)
 
 END_EVENT_TABLE()
 
@@ -110,32 +114,7 @@ char programName[80] = "SAFplusIDE";
 void SAFplus7IDE::OnAttach()
 {
     m_IsAttached = true;
-
-#ifndef STANDALONE
-    //work-around with python's bug LD_PRELOAD
-    dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
-#endif
-
     Py_SetProgramName(programName);
-
-    std::string pythonPathExt = "";
-    char *curPythonPath = getenv("PYTHONPATH");
-    char cwd[512] = {0};
-    if (curPythonPath != NULL)
-    {
-      pythonPathExt.append(curPythonPath).append(":");
-    }
-
-#ifdef STANDALONE
-    if (getcwd(cwd, 512) != NULL)
-    {
-      pythonPathExt.append(cwd);
-    }
-#else
-    pythonPathExt.append(Utils::toString(ConfigManager::GetDataFolder(false)));
-#endif
-    setenv("PYTHONPATH", pythonPathExt.c_str(), 1);
-
     Py_Initialize();
     PyEval_InitThreads();
 #if 0
@@ -200,23 +179,22 @@ void SAFplus7IDE::BuildMenu(wxMenuBar* menuBar)
     /* Load XRC */
     m_menu = m_manager->LoadMenu(_T("safplus_menu"),true);
 
-#ifndef STANDALONE  // Inserting something into the plugin menu which does not exist in standalone
     /* */
     int posInsert = 7;
+#ifndef STANDALONE  // Inserting something into the plugin menu which does not exist in standalone
     int posPluginMenu = menuBar->FindMenu(_("P&lugins"));
     if (posPluginMenu != wxNOT_FOUND)
     {
       posInsert = posPluginMenu;
     }
-    menuBar->Insert(posInsert, m_menu, _("SAFpl&us"));
-#else
+#endif
+
     if (!menuBar->Append(m_menu, _("SAFpl&us")))
     {
         printf("menu insert error!\n");
         assert(0);
 
     }
-#endif
 }
 
 void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const FileTreeData* data)
@@ -224,14 +202,14 @@ void SAFplus7IDE::BuildModuleMenu(const ModuleType type, wxMenu* menu, const Fil
     if (!IsAttached())
         return;
 #ifndef STANDALONE
-    if (type == mtEditorManager || (data && ((data->GetKind() == FileTreeData::ftdkProject) || (data->GetKind() == FileTreeData::ftdkFile))))
+    if (type == mtEditorManager || (data && data->GetKind() == FileTreeData::ftdkProject))
 #endif
     {
-      m_module_menu = m_manager->LoadMenu(_T("safplus_module_menu"),true);
+      m_menu = m_manager->LoadMenu(_T("safplus_menu"),true);
 
       /* Attach to cb menu */
       menu->AppendSeparator();
-      menu->Append(wxNewId(), _T("SAFplus"), m_module_menu);
+      menu->Append(wxNewId(), _T("SAFplus7") ,m_menu);
     }
 
 }
@@ -257,36 +235,76 @@ bool SAFplus7IDE::BuildToolBar(wxToolBar* toolBar)
 void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
 {
     cbProject *prjActive = m_manager->GetProjectManager()->GetActiveProject();
-#ifndef STANDALONE
-    //Check to enable/disable yang parse menu
-    wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
-    wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
-    FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
-    wxMenu *module_menu = m_module_menu;
-    if (module_menu)
+    wxMenuBar* mbar = Manager::Get()->GetAppFrame()->GetMenuBar();
+    if (mbar)
     {
-    #if 0
-      if (ftd && ftd->GetKind() == FileTreeData::ftdkFile)
-      {
-        module_menu->Enable(idModuleYangParse, ftd->GetProjectFile()->file.GetExt().Matches(wxT("yang")));
-      }
-      else
-      {
-        module_menu->Enable(idModuleYangParse, false);
-      }
-    #endif
+      mbar->Enable(idMenuSAFplus7ClusterDesignGUI, prjActive);
     }
     wxToolBar* tbar = m_toolbar;
     if (tbar)
     {
      // tbar->EnableTool(idToolbarSAFplus7ClusterDesignGUI, prjActive);  // GAS freezes: illegal ID? the item is in the menubar not the toolbar
     }
-#endif
+
 }
 
 void SAFplus7IDE::PythonWinTest(wxCommandEvent& event)
 {
 }
+
+void SAFplus7IDE::OnYangParse(wxCommandEvent &event)
+{
+  Manager* mgr = Manager::Get();
+  wxFrame* frm = mgr->GetAppFrame();
+
+  wxString yangFile = wxT("resources/SAFplusAmf.yang");
+  try
+  {
+    std::vector<std::string> yangfiles;
+    yangfiles.push_back(Utils::toString(yangFile));
+
+    YangParser yangParser;
+    bpy::tuple values = bpy::extract<bpy::tuple>(yangParser.parseFile(".", yangfiles));
+
+    boost::python::dict ytypes = bpy::extract<bpy::dict>(values[0]);
+    boost::python::dict yobjects = bpy::extract<bpy::dict>(values[1]);
+
+    std::string resultStr = boost::python::extract<std::string>(yobjects["Cluster"]["startupAssignmentDelay"]["help"]);
+#ifdef wxUSE_STATUSBAR
+    frm->SetStatusText(wxString::FromUTF8(resultStr.c_str()));
+#else
+    printf("AA [%s]", resultStr.c_str());
+#endif
+  }
+  catch(boost::python::error_already_set const &e)
+  {
+    // Parse and output the exception
+    std::string perror_str = parse_python_exception();
+    cout << "Error during configuration parsing: " << perror_str << endl;
+  }
+
+  try
+  {
+    svgIcon iconGen;
+    RsvgHandle *icon_handle = rsvg_handle_new();
+
+    /* build example entity configuration */
+    bpy::dict compConfig;
+    compConfig["name"] = "myName";
+    compConfig["commandLine"] = "myCommandLine";
+
+    /* Draw entity to screen */
+    //iconGen.genSvgIcon(SVG_ICON_COMP, compConfig, &icon_handle);
+    //m_paintPanel->m_paintArea->drawIcon(icon_handle, NULL);
+  }
+  catch(boost::python::error_already_set const &e)
+  {
+    // Parse and output the exception
+    string perror_str = parse_python_exception();
+    cout << "Error during configuration parsing: " << perror_str << endl;
+  }
+}
+
 
 void SAFplus7IDE::Action(wxCommandEvent& event)
 {
@@ -306,49 +324,22 @@ void SAFplus7IDE::Action(wxCommandEvent& event)
     wxString projectName;
 
 #ifndef STANDALONE
-    wxTreeCtrl *tree = m_manager->GetProjectManager()->GetUI().GetTree();
+    wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
     wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
-    FileTreeData *ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
-
-    if (event.GetId() == idModuleYangParse)
+    FileTreeData* ftd = sel.IsOk() ? (FileTreeData*)tree->GetItemData(sel) : 0;
+    if (ftd)
     {
-      if (!ftd) return;
-
-      try
-      {
-        std::vector<std::string> yangfiles;
-        yangfiles.push_back(Utils::toString(ftd->GetProjectFile()->file.GetFullPath()));
-
-        YangParser yangParser;
-        bpy::tuple values = yangParser.parseFile(Utils::toString(ftd->GetProjectFile()->file.GetPath()), yangfiles);
-
-        boost::python::dict ytypes = bpy::extract<bpy::dict>(values[0]);
-        boost::python::dict yobjects = bpy::extract<bpy::dict>(values[1]);
-
-        std::string resultStr = boost::python::extract<std::string>(yobjects["Cluster"]["startupAssignmentDelay"]["help"]);
-        m_log->Log(wxString::FromUTF8(resultStr.c_str()));
-      }
-      catch(boost::python::error_already_set const &e)
-      {
-        //TODO: throw
-      }
+      projectName = ftd->GetProject()->GetTitle();
     }
     else
     {
-      if (ftd)
-      {
-        projectName = ftd->GetProject()->GetTitle();
-      }
-      else
-      {
-        projectName = m_manager->GetProjectManager()->GetActiveProject()->GetTitle();
-      }
-      wxString title(projectName + _T("::") + g_editorTitle);
+      projectName = m_manager->GetProjectManager()->GetActiveProject()->GetTitle();
+    }
+    wxString title(projectName + _T("::") + g_editorTitle);
 
-      if (!m_manager->GetEditorManager()->IsOpen(title))
-      {
-        new SAFplus7EditorPanel((wxWindow*)m_manager->GetEditorManager()->GetNotebook(), title);
-      }
+    if (!m_manager->GetEditorManager()->IsOpen(title))
+    {
+      new SAFplus7EditorPanel((wxWindow*)m_manager->GetEditorManager()->GetNotebook(), title);
     }
 #endif
 }

@@ -16,14 +16,14 @@
 #include <wx/toolbar.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
-#include <wx/aui/aui.h>
+
 
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
 #endif
 #include <wx/hashmap.h>
 
-class SAFplus7ScrolledWindow;
+#include "SAFplus7ScrolledWindow.h"
 
 class SAFplus7EditorPanel : public EditorBase
 {
@@ -44,17 +44,17 @@ class SAFplus7EditorPanel : public EditorBase
 
     void OnIdle(wxIdleEvent& event);
     void OnNew(wxCommandEvent &event);
+    void OnSashDrag(wxSashEvent& event);
 
     void ShowProperties(wxCommandEvent &event);
 
     wxToolBar* m_designToolBar;
     SAFplus7ScrolledWindow* m_paintArea;
-    wxStaticText* m_statusText;
 
     bool m_isModified;
     wxString m_title;
     wxWindow* m_parent;
-    wxAuiManager m_mgr;
+
   protected:
 
   private:

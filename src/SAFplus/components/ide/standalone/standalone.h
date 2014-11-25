@@ -10,7 +10,6 @@
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
 #endif
-#include <wx/xrc/xmlres.h>
 
 #include <wx/xrc/xmlres.h>
 
@@ -49,6 +48,7 @@ class cbPlugin:public wxApp
   virtual void OnAttach() {}
   virtual void OnRelease(bool appShutDown) {}
   friend class standaloneApp;
+
   virtual void BuildMenu(wxMenuBar* menuBar) = 0;
   };
 

@@ -129,12 +129,11 @@ class SAFplus7IDE : public cbPlugin
         void Action(wxCommandEvent& event);
         void PythonWinTest(wxCommandEvent& event);
         void UpdateUI(wxUpdateUIEvent& event);
-
+        void OnYangParse(wxCommandEvent &event);
     private:
         PyThreadState* m_mainTState;
         wxToolBar  *m_toolbar;
         wxMenu  *m_menu;
-        wxMenu  *m_module_menu;
         DECLARE_EVENT_TABLE();
 };
 
