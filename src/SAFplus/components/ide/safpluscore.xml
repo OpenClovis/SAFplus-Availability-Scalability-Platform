@@ -1,0 +1,22 @@
+<SAFplus version="7.0">
+  <portfolio name="SAFplus">
+    <portfolio name="core">
+      <import format="yang" file="SAFplusAMF.yang" />
+      <!-- you pick the name.  
+          object: entity name in yang.  
+          typeable: Can the user customize this into new types, (i.e. Apache SG verses SQL SG), or is this thing a final type which is only customizable at instantiation time (i.e. is it ApacheSG).  
+          icon: What is the icon graphic -->
+      <entity name="ServiceGroup" object="SAFplusAmf.ServiceGroup" typeable="true" icon="SG.svg">
+        <!-- Now define this object's relationship with other objects -->
+        <contains name="ServiceUnit" ordinality="N" />   <!-- this service group can contain many service units -->
+        <contained name="Application" ordinality="1" />  <!-- This service group can only be in a single application -->
+      </entity>
+      <entity name="ServiceUnit" object="SAFplusAmf.ServiceUnit" typeable="true">
+        <contains name="Component" ordinality="N" />
+        <cointained name="ServiceGroup" ordinality="1" /> <!-- a service unit can only be contained in a single service group -->    
+      </entity>
+
+    </portfolio>
+  </portfolio>
+  
+</SAFplus>
