@@ -285,7 +285,7 @@ void SAFplus7IDE::OnYangParse(wxCommandEvent &event)
 
   try
   {
-    svgIcon iconGen;
+    SvgIcon iconGen;
     RsvgHandle *icon_handle = rsvg_handle_new();
 
     /* build example entity configuration */

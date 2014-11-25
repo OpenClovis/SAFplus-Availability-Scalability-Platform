@@ -199,7 +199,8 @@ void SAFplus7ScrolledWindow::mouseMoved(wxMouseEvent &event)
     m_statusText->SetLabel(wxString::FromUTF8(mouseMovedText));
 }
 
-
+double rotateAmt = 0;
+double scaleAmt = .1;
 void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
 {
 // TODO (hoangle#1#):
@@ -236,9 +237,17 @@ void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
     cur_posx = dc.DeviceToLogicalX( pos.x );
     cur_posy = dc.DeviceToLogicalY( pos.y );
 
+    rotateAmt+=.1;
+    scaleAmt += .2;
+
     cairo_surface_t* blit = SvgToCairo(icon);
-    cairo_set_source_surface (cairo_surface, blit, cur_posx, cur_posy);
+    cairo_translate(cairo_surface,cur_posx,cur_posy);
+    cairo_rotate(cairo_surface, rotateAmt);
+    cairo_scale(cairo_surface, scaleAmt, scaleAmt);
+    //cairo_rotate(cairo_surface, 3.1459/2);
+    cairo_set_source_surface (cairo_surface, blit, 0,0); //(1/.3)*cur_posx, cur_posy/0.3);
     cairo_paint(cairo_surface);
+    cairo_identity_matrix(cairo_surface);
     //cairo_paint_with_alpha(cairo_surface);
 #ifndef __WXGTK3__
       cairo_destroy(cairo_surface);

@@ -27507,7 +27507,7 @@
 	<cairo.h>
 	<librsvg/rsvg.h>
 
-1416947914 source:/code/rep/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
+1416952280 source:/code/rep/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
 	<sdk.h>
 	<configurationpanel.h>
 	<logmanager.h>
@@ -27526,6 +27526,12 @@
 	"SAFplus7EditorPanel.h"
 	<Python.h>
 	<boost/python.hpp>
+	<boost/python/dict.hpp>
+	<vector>
+	<dlfcn.h>
+	"yangParser.h"
+	"utils.h"
+	"svgIcon.h"
 
 1416950437 /code/rep/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.h
 	<wx/wxprec.h>
@@ -27536,7 +27542,7 @@
 	<Python.h>
 	<wx/wxPython/wxPython.h>
 
-1416947914 source:/code/rep/SAFplus7/src/SAFplus/components/ide/SAFplus7ScrolledWindow.cpp
+1416952090 source:/code/rep/SAFplus7/src/SAFplus/components/ide/SAFplus7ScrolledWindow.cpp
 	<wx/wx.h>
 	<wx/dcbuffer.h>
 	<wx/dcmemory.h>
@@ -27558,10 +27564,10 @@
 	"wx_pch.h"
 	"standaloneMain.h"
 
-1416932781 source:/code/rep/SAFplus7/src/SAFplus/components/ide/svgIcon.cxx
+1416952759 source:/code/rep/SAFplus7/src/SAFplus/components/ide/svgIcon.cxx
 	"svgIcon.h"
 
-1416932781 /code/rep/SAFplus7/src/SAFplus/components/ide/svgIcon.h
+1416952739 /code/rep/SAFplus7/src/SAFplus/components/ide/svgIcon.h
 	<wx/wx.h>
 	<vector>
 	<Python.h>
@@ -27572,4 +27578,20 @@
 1416950729 source:/code/rep/SAFplus7/src/SAFplus/components/ide/handle_error.cpp
 	<boost/python.hpp>
 	<Python.h>
+
+1416932781 /code/rep/SAFplus7/src/SAFplus/components/ide/yangParser.h
+	<wx/wx.h>
+	<vector>
+	<Python.h>
+	<boost/python.hpp>
+
+1416950724 /code/rep/SAFplus7/src/SAFplus/components/ide/utils.h
+	<wx/wx.h>
+	<string>
+
+1416932781 source:/code/rep/SAFplus7/src/SAFplus/components/ide/utils.cxx
+	"utils.h"
+
+1416932781 source:/code/rep/SAFplus7/src/SAFplus/components/ide/yangParser.cxx
+	"yangParser.h"
 
