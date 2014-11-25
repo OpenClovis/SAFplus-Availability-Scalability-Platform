@@ -13,6 +13,7 @@
     </Plugin>
     <Extra file="yang.py" />
     <Extra file="SAFplusAmf.yang" />
+    <Extra file="embedded_sample.py" />
     <Extra file="SAFplusEntityDef.xml" />
     <Extra file="comp16.gif" />
 </CodeBlocks_plugin_manifest_file>

@@ -19,6 +19,7 @@
 #include "standaloneMain.h"
 #include "../SAFplus7IDE.h"
 #include "../SAFplus7EditorPanel.h"
+#include "../SAFplus7ScrolledWindow.h"
 
 
 IMPLEMENT_APP(standaloneApp);

@@ -21,6 +21,9 @@
 #include <boost/python.hpp>
 #include <boost/python/dict.hpp>
 #include <vector>
+#include "../SAFplus7IDE.h"
+#include "../SAFplus7EditorPanel.h"
+#include "../SAFplus7ScrolledWindow.h"
 #include "../utils.h"
 #include "../yangParser.h"
 #include "../svgIcon.h"
@@ -111,7 +114,6 @@ EditorBase::~EditorBase()
 
 standaloneFrame::~standaloneFrame()
 {
-  Py_Finalize();
 }
 
 void standaloneFrame::OnClose(wxCloseEvent &event)

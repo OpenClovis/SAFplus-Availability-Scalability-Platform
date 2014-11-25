@@ -48,9 +48,7 @@ class cbPlugin:public wxApp
 
   virtual void OnAttach() {}
   virtual void OnRelease(bool appShutDown) {}
-  virtual void BuildMenu(wxMenuBar* menuBar) {}
   friend class standaloneApp;
-
   virtual void BuildMenu(wxMenuBar* menuBar) = 0;
   };
 

@@ -1,8 +1,12 @@
+#undef unix
+#undef linux
+
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
 #endif
 #include <wx/dcbuffer.h>
 #include <wx/dcmemory.h>
+#include <wx/defs.h>
 
 #include "SAFplus7EditorPanel.h"
 #include "SAFplus7ScrolledWindow.h"
@@ -17,6 +21,7 @@
 #define ASSETLOC
 #endif // STANDALONE
 
+void cairoTestDraw(cairo_t *cr);
 
 BEGIN_EVENT_TABLE(SAFplus7ScrolledWindow, wxScrolledWindow)
 // some useful events
@@ -32,6 +37,71 @@ BEGIN_EVENT_TABLE(SAFplus7ScrolledWindow, wxScrolledWindow)
     EVT_SIZE(SAFplus7ScrolledWindow::OnSize)
 END_EVENT_TABLE()
 
+
+#include <wx/rawbmp.h>
+typedef wxAlphaPixelData PixelData;
+wxBitmap *RGBAtoBitmap(unsigned char *rgba, int w, int h)
+{
+   wxBitmap *bitmap=new wxBitmap(w, h, 32);
+   if(!bitmap->Ok()) {
+      delete bitmap;
+      return NULL;
+   }
+
+   PixelData bmdata(*bitmap);
+   if(bmdata==NULL) {
+      wxLogDebug(wxT("getBitmap() failed"));
+      delete bitmap;
+      return NULL;
+   }
+
+   bmdata.UseAlpha();
+   PixelData::Iterator dst(bmdata);
+
+   for(int y=0; y<h; y++) {
+      dst.MoveTo(bmdata, 0, y);
+      for(int x=0; x<w; x++) {
+         // wxBitmap contains rgb values pre-multiplied with alpha
+         unsigned char a=rgba[3];
+         dst.Red()=rgba[0]*a/255;
+         dst.Green()=rgba[1]*a/255;
+         dst.Blue()=rgba[2]*a/255;
+         dst.Alpha()=a;
+         dst++;
+         rgba+=4;
+      }
+   }
+   return bitmap;
+}
+
+wxBitmap* SvgToBitmap()
+  {
+    wxBitmap* bitmap = new wxBitmap(250, 250,wxBITMAP_SCREEN_DEPTH );
+    cairo_t* cr =  bitmap->CairoCreate();
+    cairo_set_source_rgba               (cr,0,0,0,1);
+    cairo_paint(cr);
+    cairoTestDraw(cr);
+    return bitmap;
+  }
+
+cairo_surface_t* SvgToCairo(RsvgHandle* im)
+  {
+
+    //wxBitmap::wxBitmap 	(int  	width,int  	height,int  depth = 32) //wxBITMAP_SCREEN_DEPTH
+    cairo_surface_t* bitmap = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,250, 250);
+    cairo_t* cr = cairo_create(bitmap);
+    cairo_set_operator (cr, CAIRO_OPERATOR_SOURCE);
+    cairo_set_source_rgba               (cr,0,1,0,0);
+    cairo_paint(cr);
+    cairo_set_operator (cr, CAIRO_OPERATOR_OVER);  // blending
+    cairoTestDraw(cr);
+    //rsvg_handle_set_dpi(im,1000);  // no effect that I can determine
+
+    rsvg_handle_render_cairo(im,cr);
+
+    cairo_destroy(cr);
+    return bitmap;
+  }
 //SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxVSCROLL )
 SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) : wxScrolledWindow(parent, id, wxDefaultPosition, wxDefaultSize, wxHSCROLL|wxSUNKEN_BORDER|wxHSCROLL|wxVSCROLL, wxString::FromUTF8("SAFplusModeller") )
 {
@@ -59,6 +129,12 @@ SAFplus7ScrolledWindow::SAFplus7ScrolledWindow(wxWindow* parent, wxWindowID id) 
           else rsvg_handle_close(icon,&error);
           }
         fclose(fp);
+
+        RsvgDimensionData dim;
+        rsvg_handle_get_dimensions (icon, &dim);
+        printf("SVG dimensions: %d, %d em: %f ex: %f\n", dim.width, dim.height, dim.em, dim.ex);
+
+        //gboolean rsvg_handle_get_position_sub (RsvgHandle *handle, RsvgPositionData *position_data, const char *id);
     }
 
 }
@@ -106,7 +182,21 @@ void SAFplus7ScrolledWindow::drawIcon(RsvgHandle* icon, cairo_t* cairo_surface)
   if (!cairo_surface)
   {
     wxClientDC dc(this);
-    cairo_surface = (cairo_t *)dc.GetImpl()->GetCairoContext();
+#ifdef __WXGTK3__
+    cairo_surface = (cairo_t*) dc.GetImpl()->GetCairoContext();
+#else // __WXGTK3__
+    wxWindow* wxwin = dc.GetWindow();
+    GtkWidget* gtkwidget = wxwin->m_wxwindow;
+    GdkWindow* gdkWindow = NULL;
+    if (gtkwidget)
+    {
+      gdkWindow = gtkwidget->window; //wx_gtk_widget_get_window(gtkwidget);
+    }
+    if (gdkWindow)
+      {
+        cairo_surface = gdk_cairo_create(gdkWindow);
+      }
+#endif // __WXGTK3__
   }
 
   if (icon)
@@ -119,19 +209,53 @@ void SAFplus7ScrolledWindow::mouseDown(wxMouseEvent &event)
 {
 // TODO (hoangle#1#):
 
-    //wxClientDC dc(this);
-    wxPaintDC dc(this);
+    wxClientDC dc(this);
+    //wxPaintDC dc(this);
     //dc.GetImpl()->GetCairoContext()
     //cairo_t* cairo_surface = gdk_cairo_create((GdkDrawable*)dc.GetImpl()->GetCairoContext());  //m_gdkwindow);
-    cairo_t* cairo_surface = (cairo_t*) dc.GetImpl()->GetCairoContext();
-    cairoTestDraw(cairo_surface);
+    cairo_t* cairo_surface = NULL; // (cairo_t*) dc.GetImpl()->GetCairoContext();
 
-    if (icon)
+#ifdef __WXGTK3__
+    cairo_surface = (cairo_t*) dc.GetImpl()->GetCairoContext();
+#else // __WXGTK3__
+    wxWindow* wxwin = dc.GetWindow();
+    GtkWidget* gtkwidget = wxwin->m_wxwindow;
+    GdkWindow* gdkWindow = NULL;
+    if (gtkwidget)
     {
-      drawIcon(icon, cairo_surface);
+      gdkWindow = gtkwidget->window; //wx_gtk_widget_get_window(gtkwidget);
     }
+    if (gdkWindow)
+      {
+        cairo_surface = gdk_cairo_create(gdkWindow);
+      }
+#endif // __WXGTK3__
+    if (cairo_surface)
+    {
+      cairoTestDraw(cairo_surface);
+      if (icon)
+        {
+        rsvg_handle_render_cairo(icon,cairo_surface);
+        }
+    wxPoint pos = event.GetPosition();
+    cur_posx = dc.DeviceToLogicalX( pos.x );
+    cur_posy = dc.DeviceToLogicalY( pos.y );
 
-    //cairo_destroy(cairo_surface);
+    cairo_surface_t* blit = SvgToCairo(icon);
+    cairo_set_source_surface (cairo_surface, blit, cur_posx, cur_posy);
+    cairo_paint(cairo_surface);
+    //cairo_paint_with_alpha(cairo_surface);
+#ifndef __WXGTK3__
+      cairo_destroy(cairo_surface);
+#endif
+    }
+#if 0
+    wxPoint pos = event.GetPosition();
+    wxBitmap* bmp = SvgToBitmap();
+    dc.DrawBitmap (*bmp, pos.x, pos.y,false);
+    delete bmp;
+#endif
+
 #if 0
     wxClientDC dc(this);
     wxPoint pos = event.GetPosition();
@@ -216,7 +340,7 @@ void SAFplus7ScrolledWindow::keyReleased(wxKeyEvent& event)
 // TODO (hoangle#1#):
 }
 
-void SAFplus7ScrolledWindow::cairoTestDraw(cairo_t *cr)
+void cairoTestDraw(cairo_t *cr)
 {
   //http://cairographics.org/samples/
   cairo_text_extents_t extents;
@@ -227,7 +351,7 @@ void SAFplus7ScrolledWindow::cairoTestDraw(cairo_t *cr)
   cairo_select_font_face (cr, "Sans",
       CAIRO_FONT_SLANT_NORMAL,
       CAIRO_FONT_WEIGHT_NORMAL);
-
+  cairo_set_source_rgba (cr, 1, 0, 1.0, 1.0);
   cairo_set_font_size (cr, 52.0);
   cairo_text_extents (cr, utf8, &extents);
   x = 128.0-(extents.width/2 + extents.x_bearing);
@@ -237,9 +361,9 @@ void SAFplus7ScrolledWindow::cairoTestDraw(cairo_t *cr)
   cairo_show_text (cr, utf8);
 
   /* draw helping lines */
-  cairo_set_source_rgba (cr, 1, 0.2, 0.2, 0.6);
+  cairo_set_source_rgba (cr, 1, 0.2, 0.2, .6);
   cairo_set_line_width (cr, 6.0);
-  cairo_arc (cr, x, y, 10.0, 0, 2*M_PI);
+  cairo_arc (cr, 0, 0, 20.0, 0, 2*M_PI);
   cairo_fill (cr);
   cairo_move_to (cr, 128.0, 0);
   cairo_rel_line_to (cr, 0, 256);

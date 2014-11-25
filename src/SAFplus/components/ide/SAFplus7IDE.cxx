@@ -1,3 +1,6 @@
+#undef unix
+#undef linux
+
 #ifndef STANDALONE
 #include <sdk.h> // Code::Blocks SDK
 //cb header
@@ -115,7 +118,6 @@ void SAFplus7IDE::OnAttach()
 
     Py_SetProgramName(programName);
 
-#ifdef STANDALONE
     std::string pythonPathExt = "";
     char *curPythonPath = getenv("PYTHONPATH");
     char cwd[512] = {0};
@@ -124,12 +126,15 @@ void SAFplus7IDE::OnAttach()
       pythonPathExt.append(curPythonPath).append(":");
     }
 
+#ifdef STANDALONE
     if (getcwd(cwd, 512) != NULL)
     {
       pythonPathExt.append(cwd);
     }
-    setenv("PYTHONPATH", pythonPathExt.c_str(), 1);
+#else
+    pythonPathExt.append(Utils::toString(ConfigManager::GetDataFolder(false)));
 #endif
+    setenv("PYTHONPATH", pythonPathExt.c_str(), 1);
 
     Py_Initialize();
     PyEval_InitThreads();
@@ -252,7 +257,7 @@ bool SAFplus7IDE::BuildToolBar(wxToolBar* toolBar)
 void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
 {
     cbProject *prjActive = m_manager->GetProjectManager()->GetActiveProject();
-
+#ifndef STANDALONE
     //Check to enable/disable yang parse menu
     wxTreeCtrl* tree = m_manager->GetProjectManager()->GetUI().GetTree();
     wxTreeItemId sel = m_manager->GetProjectManager()->GetUI().GetTreeSelection();
@@ -276,7 +281,7 @@ void SAFplus7IDE::UpdateUI(wxUpdateUIEvent& event)
     {
      // tbar->EnableTool(idToolbarSAFplus7ClusterDesignGUI, prjActive);  // GAS freezes: illegal ID? the item is in the menubar not the toolbar
     }
-
+#endif
 }
 
 void SAFplus7IDE::PythonWinTest(wxCommandEvent& event)

@@ -31,7 +31,7 @@ class SAFplus7ScrolledWindow : public wxScrolledWindow
 
         SAFplus7EditorPanel* m_parentPanel;
         bool m_isDirty;
-        void cairoTestDraw(cairo_t *cr);
+        //void cairoTestDraw(cairo_t *cr);
         void drawIcon(RsvgHandle* icon, cairo_t* cairo_surface);
 
     protected:

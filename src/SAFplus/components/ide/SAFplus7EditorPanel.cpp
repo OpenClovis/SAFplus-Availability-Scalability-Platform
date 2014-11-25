@@ -1,3 +1,6 @@
+#undef unix
+#undef linux
+
 #ifndef STANDALONE
 #include <logmanager.h>
 #endif
