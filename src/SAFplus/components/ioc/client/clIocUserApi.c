@@ -1298,11 +1298,13 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
             htonl(originAddress->iocPhyAddress.nodeAddress);
         userFragHeader.header.srcAddress.iocPhyAddress.portId = 
             htonl(originAddress->iocPhyAddress.portId);
-        userFragHeader.header.dstAddress.iocPhyAddress.nodeAddress = 
+        userFragHeader.header.dstAddress.iocPhyAddress.nodeAddress =
             htonl(((ClIocPhysicalAddressT *)destAddress)->nodeAddress);
-        userFragHeader.header.dstAddress.iocPhyAddress.portId = 
+        userFragHeader.header.dstAddress.iocPhyAddress.portId =
             htonl(((ClIocPhysicalAddressT *)destAddress)->portId);
-        userFragHeader.header.reserved = 0;
+
+        //Marked sdk 6.0 messages
+        userFragHeader.header.reserved = htonl(0x2);
 #ifdef CL_IOC_COMPRESSION
         userFragHeader.header.pktTime = clHtonl64(pktTime);
 #endif
@@ -1422,15 +1424,15 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
             htonl(originAddress->iocPhyAddress.nodeAddress);
         userHeader.srcAddress.iocPhyAddress.portId = 
             htonl(originAddress->iocPhyAddress.portId);
-        userHeader.dstAddress.iocPhyAddress.nodeAddress = 
+        userHeader.dstAddress.iocPhyAddress.nodeAddress =
             htonl(((ClIocPhysicalAddressT *)destAddress)->nodeAddress);
-        userHeader.dstAddress.iocPhyAddress.portId = 
+        userHeader.dstAddress.iocPhyAddress.portId =
             htonl(((ClIocPhysicalAddressT *)destAddress)->portId);
-        userHeader.reserved = 0;
+        userHeader.reserved = htonl(0x2);
 
 #ifdef CL_IOC_COMPRESSION
         if(compressedStreamLen)
-            userHeader.reserved = htonl(1); /*mark compression flag*/
+            userHeader.reserved = htonl(0x1|0x2); /*mark compression flag*/
         userHeader.pktTime = clHtonl64(pktTime);
 #endif
 
@@ -1699,11 +1701,11 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
         userFragHeader.header.flag = IOC_MORE_FRAG;
         userFragHeader.header.srcAddress.iocPhyAddress.nodeAddress = htonl(gIocLocalBladeAddress);
         userFragHeader.header.srcAddress.iocPhyAddress.portId = htonl(pIocCommPort->portId);
-        userFragHeader.header.dstAddress.iocPhyAddress.nodeAddress = 
+        userFragHeader.header.dstAddress.iocPhyAddress.nodeAddress =
             htonl(((ClIocPhysicalAddressT *) destAddress)->nodeAddress);
-        userFragHeader.header.dstAddress.iocPhyAddress.portId = 
+        userFragHeader.header.dstAddress.iocPhyAddress.portId =
             htonl(((ClIocPhysicalAddressT *) destAddress)->portId);
-        userFragHeader.header.reserved = 0;
+        userFragHeader.header.reserved = htonl(0x2);
 #ifdef CL_IOC_COMPRESSION
         userFragHeader.header.pktTime = clHtonl64(pktTime);
 #endif
@@ -1847,11 +1849,11 @@ ClRcT clIocSendSlow(ClIocCommPortHandleT commPortHandle,
             htonl(((ClIocPhysicalAddressT *) destAddress)->nodeAddress);
         userHeader.dstAddress.iocPhyAddress.portId = 
             htonl(((ClIocPhysicalAddressT *) destAddress)->portId);
-        userHeader.reserved = 0;
+        userHeader.reserved = htonl(0x2);
 
 #ifdef CL_IOC_COMPRESSION
         if(compressedStreamLen)
-            userHeader.reserved = htonl(1); /*mark compression flag*/
+            userHeader.reserved = htonl(0x1|0x2); /*mark compression flag*/
         userHeader.pktTime = clHtonl64(pktTime);
 #endif
 
@@ -2282,40 +2284,49 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
         goto out;
     }
 
+    //Check version
+    ClBoolT isBackward = (!(ntohl(userHeader.reserved) & 0x2));
+
     userHeader.srcAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
     userHeader.srcAddress.iocPhyAddress.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
     userHeader.dstAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.dstAddress.iocPhyAddress.nodeAddress);
     userHeader.dstAddress.iocPhyAddress.portId = ntohl(userHeader.dstAddress.iocPhyAddress.portId);
 
-    /*
-     * Check to forward this message. Switch to synchronous recvs or reassembly of fragments
-     */
-    if(CL_IOC_ADDRESS_TYPE_GET(&userHeader.dstAddress) == CL_IOC_PHYSICAL_ADDRESS_TYPE)
-    {
-        if(userHeader.dstAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress
-           &&
-           userHeader.dstAddress.iocPhyAddress.nodeAddress != CL_IOC_RESERVED_ADDRESS)
+    clLogDebug("HOANG", "HOANG", "IsBackward [%d] [node 0x%x : port 0x%x]", isBackward, userHeader.srcAddress.iocPhyAddress.nodeAddress,
+            userHeader.srcAddress.iocPhyAddress.portId);
+
+    if (!isBackward)
+      {
+        /*
+         * Check to forward this message. Switch to synchronous recvs or reassembly of fragments
+         */
+        if(CL_IOC_ADDRESS_TYPE_GET(&userHeader.dstAddress) == CL_IOC_PHYSICAL_ADDRESS_TYPE)
         {
-            
-            relay = CL_TRUE;
-            if(userHeader.dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
+            if(userHeader.dstAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress
+               &&
+               userHeader.dstAddress.iocPhyAddress.nodeAddress != CL_IOC_RESERVED_ADDRESS)
             {
-                if(!clTransportBridgeEnabled(gIocLocalBladeAddress))
+
+                relay = CL_TRUE;
+                if(userHeader.dstAddress.iocPhyAddress.nodeAddress == CL_IOC_BROADCAST_ADDRESS)
                 {
-                    relay = CL_FALSE;
+                    if(!clTransportBridgeEnabled(gIocLocalBladeAddress))
+                    {
+                        relay = CL_FALSE;
+                    }
+                }
+                else
+                {
+                    /*
+                     * We don't touch the passed structure as user-provided option
+                     * can be re-used for other packets
+                     */
+                    if(!syncReassembly)
+                        syncReassembly = CL_TRUE;
                 }
             }
-            else
-            {
-                /*
-                 * We don't touch the passed structure as user-provided option 
-                 * can be re-used for other packets
-                 */
-                if(!syncReassembly) 
-                    syncReassembly = CL_TRUE;
-            }
         }
-    }
+      }
 
     if(clEoWithOutCpm
        ||
@@ -2327,7 +2338,10 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
         {
             ClUint32T packetSize;
 
-            packetSize = bytes - ((userHeader.flag == 0)? sizeof(ClIocHeaderT): sizeof(ClIocFragHeaderT));
+            if (!isBackward)
+              packetSize = bytes - ((userHeader.flag == 0)? sizeof(ClIocHeaderT): sizeof(ClIocFragHeaderT));
+            else
+              packetSize = bytes - ((userHeader.flag == 0)? sizeof(ClTipcHeaderT): sizeof(ClTipcFragHeaderT));
 
             CL_DEBUG_PRINT(CL_DEBUG_CRITICAL, ("Dropping a received packet."
                                                "Failed to SET the staus of the packet-sender-component "
@@ -2344,13 +2358,21 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
     {
 #ifdef CL_IOC_COMPRESSION
         ClTimeT pktRecvTime = 0;
-        ClUint32T compressionFlag = ntohl(userHeader.reserved);
+        ClUint32T compressionFlag = (ntohl(userHeader.reserved) & 0x1);
         ClUint8T *decompressedStream = NULL;
         ClUint32T decompressedStreamLen = 0;
         ClUint32T sentBytes = 0;
 #endif
-        pBuffer = buffer + sizeof(ClIocHeaderT);
-        bytes -= sizeof(ClIocHeaderT);
+        if (!isBackward)
+          {
+            pBuffer = buffer + sizeof(ClIocHeaderT);
+            bytes -= sizeof(ClIocHeaderT);
+          }
+        else
+          {
+            pBuffer = buffer + sizeof(ClTipcHeaderT);
+            bytes -= sizeof(ClTipcHeaderT);
+          }
 
 #ifdef CL_IOC_COMPRESSION
         sentBytes = bytes;
@@ -2371,18 +2393,36 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
             clHeapFree(pBuffer);
         }
 #else
-        if(clBufferAppendHeap(message, buffer, bytes + sizeof(ClIocHeaderT)) != CL_OK)
-        {
-            rc = clBufferNBytesWrite(message, pBuffer, bytes);
-        }
-        else
-        {
-            /*
-             * Trim the header if the recv buffer is stitched.
-             */
-            rc = clBufferHeaderTrim(message, sizeof(ClIocHeaderT));
+        if (!isBackward)
+          {
+            if(clBufferAppendHeap(message, buffer, bytes + sizeof(ClIocHeaderT)) != CL_OK)
+            {
+                rc = clBufferNBytesWrite(message, pBuffer, bytes);
+            }
+            else
+            {
+                /*
+                 * Trim the header if the recv buffer is stitched.
+                 */
+                rc = clBufferHeaderTrim(message, sizeof(ClIocHeaderT));
 
-        }
+            }
+          }
+        else
+          {
+            if(clBufferAppendHeap(message, buffer, bytes + sizeof(ClTipcHeaderT)) != CL_OK)
+            {
+                rc = clBufferNBytesWrite(message, pBuffer, bytes);
+            }
+            else
+            {
+                /*
+                 * Trim the header if the recv buffer is stitched.
+                 */
+                rc = clBufferHeaderTrim(message, sizeof(ClTipcHeaderT));
+
+            }
+          }
 #endif
         if(rc != CL_OK) 
         {
@@ -2653,7 +2693,7 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
     {
 #ifdef CL_IOC_COMPRESSION
         ClTimeT pktRecvTime = 0;
-        ClUint32T compressionFlag = ntohl(userHeader.reserved);
+        ClUint32T compressionFlag = (ntohl(userHeader.reserved) & 0x1);
         ClUint8T *decompressedStream = NULL;
         ClUint32T decompressedStreamLen = 0;
         ClUint32T sentBytes = 0;

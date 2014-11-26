@@ -56,7 +56,27 @@ typedef struct
     ClUint32T reserved;
 } ClIocFragHeaderT;
     
+typedef struct
+{
+    ClUint8T version;
+    ClUint8T protocolType;
+    ClUint8T priority;
+    ClUint8T flag;
+    ClUint32T reserved;
+    ClIocAddressT srcAddress;
+#ifdef CL_TIPC_COMPRESSION
+    ClTimeT       pktTime;
+#endif
+} ClTipcHeaderT;
 
+typedef struct
+{
+    ClTipcHeaderT header;
+    ClUint32T msgId;
+    ClUint32T fragOffset;
+    ClUint32T fragLength;
+    ClUint32T reserved;
+} ClTipcFragHeaderT;
 
 typedef struct
 {
