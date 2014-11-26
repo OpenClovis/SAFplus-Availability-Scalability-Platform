@@ -31,7 +31,7 @@ ASP_RESTART_FILE = 'asp_restart'
 ASP_WATCHDOG_RESTART_FILE='asp_restart_watchdog'
 ASP_REBOOT_FILE = 'asp_reboot'
 ASP_RESTART_DISABLE_FILE = 'asp_restart_disable'
-SP_RESTART_DELAY = 30  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
+ASP_RESTART_DELAY = 30  # How long to delay before restarting.  If the AMF is able to restart before keepalives find it dead this will cause major issues in the AMF.
 
 def safe_remove(f):
     try:
