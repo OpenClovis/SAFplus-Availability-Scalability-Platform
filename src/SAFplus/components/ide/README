@@ -16,3 +16,11 @@ in IDE directory, create a symlink so boostlibs/libboost_python.so (for example)
 
 ln -s <booststagingdir>/lib boostlibs
 
+
+To debug codeblocks plugin issue:
+/opt/SAFplus/7.0/ide/bin/codeblocks -v -d
+
+If codeclocks crashed indicate "double free", try to execute with:
+G_SLICE=always-malloc /opt/SAFplus/7.0/ide/bin/codeblocks 
+
+

@@ -180,6 +180,7 @@ void SAFplus7EditorPanel::OnNew(wxCommandEvent &event)
 
 void SAFplus7EditorPanel::ShowProperties(wxCommandEvent &event)
 {
-  m_paintArea->m_mgr.GetPane(wxT("Properties")).Show().Right().Layer(0).Row(0).Position(0);
+  static bool isShow = true;
+  m_paintArea->m_mgr.GetPane(wxT("Properties")).Show(isShow = !isShow).Right().Layer(0).Row(0).Position(0);
   m_paintArea->m_mgr.Update();
 }

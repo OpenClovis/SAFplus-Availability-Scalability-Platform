@@ -114,6 +114,28 @@ char programName[80] = "SAFplusIDE";
 void SAFplus7IDE::OnAttach()
 {
     m_IsAttached = true;
+
+    std::string pythonPathExt = "";
+    char *curPythonPath = getenv("PYTHONPATH");
+    char cwd[512] = {0};
+    if (curPythonPath != NULL)
+    {
+      pythonPathExt.append(curPythonPath).append(":");
+    }
+
+#ifdef STANDALONE
+    if (getcwd(cwd, 512) != NULL)
+    {
+      pythonPathExt.append(cwd);
+    }
+#else
+    pythonPathExt.append(Utils::toString(ConfigManager::GetDataFolder(false)));
+
+    //work-around with python's bug LD_PRELOAD
+    dlopen("libpython2.7.so", RTLD_LAZY | RTLD_GLOBAL);
+#endif
+    setenv("PYTHONPATH", pythonPathExt.c_str(), 1);
+
     Py_SetProgramName(programName);
     Py_Initialize();
     PyEval_InitThreads();

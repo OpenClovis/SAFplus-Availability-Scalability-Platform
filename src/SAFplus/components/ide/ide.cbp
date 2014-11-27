@@ -16,7 +16,7 @@
 					<Add option="`pkg-config --cflags gtk+-3.0`" />
 					<Add option="`pkg-config --cflags codeblocks`" />
 					<Add option="`wx-config --cflags`" />
-					<Add option="-fPIC" />
+					<Add option="-fPIC -Ulinux -Uunix" />
 					<Add option="-D__WXGTK3__" />
 				</Compiler>
 				<Linker>
@@ -50,6 +50,7 @@
 			<Add directory="./" />
 		</Compiler>
 		<Linker>
+			<Add option="`python-config --libs`" />
 			<Add option="`wx-config --toolkit=gtk3 --unicode --version=3.0 --libs --debug`" />
 			<Add option="-L ../boostlibs" />
 			<Add option="`pkg-config gtk+-x11-3.0 --libs`" />
@@ -69,9 +70,10 @@
 		<Unit filename="SAFplus7IDE.h" />
 		<Unit filename="SAFplus7ScrolledWindow.cpp" />
 		<Unit filename="SAFplus7ScrolledWindow.h" />
-		<Unit filename="Utils.cxx" />
-		<Unit filename="YangParser.cxx" />
+		<Unit filename="utils.cxx" />
+		<Unit filename="yangParser.cxx" />
 		<Unit filename="pythonwintest.cpp" />
+		<Unit filename="handle_error.cpp" />
 		<Unit filename="resources/SAFplus7IDE.xrc" />
 		<Unit filename="resources/SAFplusAmf.yang" />
 		<Unit filename="resources/images/ClovisLogo_16_16.gif" />
