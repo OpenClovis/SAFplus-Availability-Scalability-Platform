@@ -332,9 +332,10 @@ void cpmModifyCompArgs(ClCpmCompConfigT *newConfig, ClUint32T *pArgIndex)
         *pInst = 0;
     
     snprintf(logFileCmd, CL_MAX_NAME_LENGTH-1, 
-             " --log-file=%s/%s.%lld", 
+             " --log-file=%s/%s.%s.%lld",
              aspLogDir,
              instantiateCMD,
+             "%p",
              clOsalStopWatchTimeGet());
     
     strncat(valgrindCmd, logFileCmd, 
