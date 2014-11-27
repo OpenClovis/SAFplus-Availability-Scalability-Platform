@@ -160,7 +160,7 @@ namespace SAFplusAmf
 
     public:
         Component();
-        Component(std::string myNameValue);
+        Component(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

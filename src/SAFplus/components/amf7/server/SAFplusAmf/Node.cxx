@@ -35,12 +35,12 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
-        this->name.assign("Node");
+        this->tag.assign("Node");
     };
 
-    Node::Node(std::string myNameValue): adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
+    Node::Node(std::string nameValue): adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
     {
-        this->myName.value =  myNameValue;
+        this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
         this->addChildObject(&autoRepair, "autoRepair");
@@ -48,18 +48,18 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
-        this->name.assign("Node");
+        this->tag.assign("Node");
     };
 
     std::vector<std::string> Node::getKeys()
     {
-        std::string keyNames[] = { "myName" };
+        std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* Node::getChildNames()
     {
-        std::string childNames[] = { "myName", "id", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "serviceUnits" };
+        std::string childNames[] = { "name", "id", "adminState", "operState", "capacity", "serviceUnitFailureEscalationPolicy", "autoRepair", "failFastOnInstantiationFailure", "failFastOnCleanupFailure", "serviceUnits" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

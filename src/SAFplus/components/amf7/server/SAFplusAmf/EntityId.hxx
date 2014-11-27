@@ -24,7 +24,7 @@ namespace SAFplusAmf
         /*
          * Unique name of this entity
          */
-        SAFplus::MgtProv<std::string> myName;
+        SAFplus::MgtProv<std::string> name;
 
         /*
          * Each SAFplus AMF entity gets a unique numerical identifier
@@ -36,14 +36,14 @@ namespace SAFplusAmf
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/EntityId/myName
+         * XPATH: /SAFplusAmf/EntityId/name
          */
-        std::string getMyName();
+        std::string getName();
 
         /*
-         * XPATH: /SAFplusAmf/EntityId/myName
+         * XPATH: /SAFplusAmf/EntityId/name
          */
-        void setMyName(std::string myNameValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setName(std::string nameValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/EntityId/id

@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     ComponentRestart::ComponentRestart()
     {
-        this->name.assign("componentRestart");
+        this->tag.assign("componentRestart");
     };
 
     std::vector<std::string>* ComponentRestart::getChildNames()

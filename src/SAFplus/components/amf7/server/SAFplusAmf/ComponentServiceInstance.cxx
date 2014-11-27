@@ -33,30 +33,30 @@ namespace SAFplusAmf
         this->addChildObject(&standbyComponents, "standbyComponents");
         this->addChildObject(&activeComponents, "activeComponents");
         this->addChildObject(&dataList, "data");
-        this->name.assign("ComponentServiceInstance");
+        this->tag.assign("ComponentServiceInstance");
     };
 
-    ComponentServiceInstance::ComponentServiceInstance(std::string myNameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data")
+    ComponentServiceInstance::ComponentServiceInstance(std::string nameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data")
     {
-        this->myName.value =  myNameValue;
+        this->name.value =  nameValue;
         this->addChildObject(&protectionGroup, "protectionGroup");
         this->addChildObject(&dependencies, "dependencies");
         this->addChildObject(&serviceInstance, "serviceInstance");
         this->addChildObject(&standbyComponents, "standbyComponents");
         this->addChildObject(&activeComponents, "activeComponents");
         this->addChildObject(&dataList, "data");
-        this->name.assign("ComponentServiceInstance");
+        this->tag.assign("ComponentServiceInstance");
     };
 
     std::vector<std::string> ComponentServiceInstance::getKeys()
     {
-        std::string keyNames[] = { "myName" };
+        std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* ComponentServiceInstance::getChildNames()
     {
-        std::string childNames[] = { "myName", "id", "protectionGroup", "dependencies", "data", "serviceInstance", "standbyComponents", "activeComponents" };
+        std::string childNames[] = { "name", "id", "protectionGroup", "dependencies", "data", "serviceInstance", "standbyComponents", "activeComponents" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

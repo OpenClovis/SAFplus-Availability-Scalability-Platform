@@ -102,7 +102,7 @@ extern MgtIteratorBase mgtIterEnd;
   class MgtObject
     {
   public:
-    std::string name;
+    std::string tag;
     MgtObject *parent;
     ClUint32T headRev; //Revision to check before sending
   public:
@@ -159,32 +159,6 @@ extern MgtIteratorBase mgtIterEnd;
      * \return	CL_ERR_ALREADY_EXIST		Key already exists
      */
     ClRcT addKey(std::string key) {}
-
-#if 0
-    /**
-     * \brief	Function to remove a key
-     * \param	key							Key of the list
-     * \return	CL_OK						Everything is OK
-     * \return	CL_ERR_NOT_EXIST			List entry does not exist
-     */
-    ClRcT removeKey(std::string key);
-
-    /**
-     * \brief	Function to add a child name
-     * \param	name						Name of the child
-     * \return	CL_OK						Everything is OK
-     * \return	CL_ERR_ALREADY_EXIST		Key already exists
-     */
-    ClRcT addChildName(std::string name);
-
-    /**
-     * \brief	Function to remove a child name
-     * \param	name						Name of the child
-     * \return	CL_OK						Everything is OK
-     * \return	CL_ERR_NOT_EXIST			List entry does not exist
-     */
-    ClRcT removeChildName(std::string name);
-#endif
 
     /**
      * \brief	Function to add a child object

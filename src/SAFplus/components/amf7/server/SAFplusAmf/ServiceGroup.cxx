@@ -50,12 +50,12 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&serviceInstances, "serviceInstances");
         this->addChildObject(&application, "application");
-        this->name.assign("ServiceGroup");
+        this->tag.assign("ServiceGroup");
     };
 
-    ServiceGroup::ServiceGroup(std::string myNameValue): adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
+    ServiceGroup::ServiceGroup(std::string nameValue): adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
     {
-        this->myName.value =  myNameValue;
+        this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&autoAdjust, "autoAdjust");
@@ -68,18 +68,18 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&serviceInstances, "serviceInstances");
         this->addChildObject(&application, "application");
-        this->name.assign("ServiceGroup");
+        this->tag.assign("ServiceGroup");
     };
 
     std::vector<std::string> ServiceGroup::getKeys()
     {
-        std::string keyNames[] = { "myName" };
+        std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* ServiceGroup::getChildNames()
     {
-        std::string childNames[] = { "myName", "id", "adminState", "autoRepair", "autoAdjust", "autoAdjustInterval", "preferredNumActiveServiceUnits", "preferredNumStandbyServiceUnits", "preferredNumIdleServiceUnits", "maxActiveWorkAssignments", "maxStandbyWorkAssignments", "componentRestart", "serviceUnitRestart", "numAssignedServiceUnits", "numIdleServiceUnits", "numSpareServiceUnits", "serviceUnits", "serviceInstances", "application" };
+        std::string childNames[] = { "name", "id", "adminState", "autoRepair", "autoAdjust", "autoAdjustInterval", "preferredNumActiveServiceUnits", "preferredNumStandbyServiceUnits", "preferredNumIdleServiceUnits", "maxActiveWorkAssignments", "maxStandbyWorkAssignments", "componentRestart", "serviceUnitRestart", "numAssignedServiceUnits", "numIdleServiceUnits", "numSpareServiceUnits", "serviceUnits", "serviceInstances", "application" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

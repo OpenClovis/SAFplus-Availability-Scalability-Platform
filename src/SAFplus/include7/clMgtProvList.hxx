@@ -92,66 +92,6 @@ public:
         return is;
     }
 
-#if 0 // TODO: add normal iterator to ProvList
-        /**
-         * An internal iterator
-         */
-        class HiddenIterator:public MgtIteratorBase
-        {
-          public:
-            typename std::vector<T>::iterator it;
-            typename std::vector<T>::iterator end;
-
-            virtual bool next()
-            {
-              it++;
-              if (it == end)
-              {
-                current.first = "";
-                current.second = nullptr;
-#ifndef SAFplus7
-                logDebug("MGT", "LIST", "Reached end of the list");
-#endif
-                return false;
-              }
-              else
-              {
-                current.first = keyTypeToString(it->first);
-                current.second = it->second;
-                return true;
-              }
-            }
-            virtual void del()
-            {
-              delete this;
-            }
-        };
-
-    /**
-     * \brief	Get child iterator beginning
-     */
-    MgtObject::Iterator begin(void)
-    {
-        MgtObject::Iterator ret;
-        typename std::vector<T>::iterator bgn = value.begin();
-        typename std::vector<T>::iterator end = value.end();
-        if (bgn == end) // Handle the empty map case
-        {
-          ret.b = &mgtIterEnd;
-        }
-        else
-        {
-          HiddenIterator* h = new HiddenIterator();
-          h->it = bgn;
-          h->end = end;
-          h->current.first = keyTypeToString(h->it->first);
-          h->current.second = h->it->second;
-          ret.b  = h;
-        }
-        return ret;
-    }
-#endif
-
     /**
      * \brief   Function to set data to database
      */
@@ -282,7 +222,7 @@ void MgtProvList<T>::toString(std::stringstream& xmlString)
     getDb();
     for (unsigned int i = 0; i < value.size(); i++)
     {
-        xmlString << "<" << name << ">" << toStringItemAt(value.at(i)) << "</" << name << ">";
+        xmlString << "<" << tag << ">" << toStringItemAt(value.at(i)) << "</" << tag << ">";
     }
 }
 
@@ -310,7 +250,7 @@ ClBoolT MgtProvList<T>::set(const void *pBuffer, ClUint64T buffLen,
             namestr = xmlTextReaderConstName(reader);
 
             if (xmlTextReaderNodeType(reader) == XML_READER_TYPE_ELEMENT
-                    && !strcmp((const char*) namestr, name.c_str()))
+                    && !strcmp((const char*) namestr, tag.c_str()))
             {
                 ret = xmlTextReaderRead(reader);
                 if (ret && xmlTextReaderHasValue(reader)

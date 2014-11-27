@@ -19,7 +19,7 @@ namespace SAFplusLog
 
     NumLogs::NumLogs()
     {
-        this->name.assign("numLogs");
+        this->tag.assign("numLogs");
     };
 
     std::vector<std::string>* NumLogs::getChildNames()

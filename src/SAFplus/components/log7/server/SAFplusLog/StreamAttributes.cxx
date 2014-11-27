@@ -19,9 +19,9 @@
 namespace SAFplusLog
   {
 
-    StreamAttributes::StreamAttributes(): SAFplus::MgtContainer("StreamAttributes"), myName("myName"), fileName("fileName"), replicate("replicate"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope")
+    StreamAttributes::StreamAttributes(): SAFplus::MgtContainer("StreamAttributes"), name("name"), fileName("fileName"), replicate("replicate"), fileLocation("fileLocation"), fileUnitSize("fileUnitSize"), recordSize("recordSize"), fileFullAction("fileFullAction"), maximumFilesRotated("maximumFilesRotated"), flushFreq("flushFreq"), flushInterval("flushInterval"), syslog("syslog"), streamScope("streamScope")
     {
-        this->addChildObject(&myName, "myName");
+        this->addChildObject(&name, "name");
         this->addChildObject(&fileName, "fileName");
         this->addChildObject(&replicate, "replicate");
         this->addChildObject(&fileLocation, "fileLocation");
@@ -37,24 +37,24 @@ namespace SAFplusLog
 
     std::vector<std::string>* StreamAttributes::getChildNames()
     {
-        std::string childNames[] = { "myName", "fileName", "replicate", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope" };
+        std::string childNames[] = { "name", "fileName", "replicate", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
-     * XPATH: /SAFplusLog/StreamAttributes/myName
+     * XPATH: /SAFplusLog/StreamAttributes/name
      */
-    std::string StreamAttributes::getMyName()
+    std::string StreamAttributes::getName()
     {
-        return this->myName.value;
+        return this->name;
     };
 
     /*
-     * XPATH: /SAFplusLog/StreamAttributes/myName
+     * XPATH: /SAFplusLog/StreamAttributes/name
      */
-    void StreamAttributes::setMyName(std::string myNameValue, SAFplus::Transaction &txn)
+    void StreamAttributes::setName(std::string nameValue, SAFplus::Transaction &txn)
     {
-        this->myName.set(myNameValue,txn);
+        this->name = nameValue;
     };
 
     /*

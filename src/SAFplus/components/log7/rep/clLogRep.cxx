@@ -142,7 +142,7 @@ void LogRep::flush(SAFplusLog::Stream* s)
     Handle streamHdl;
     try  // Get the stream handle from the Name service
     {
-      streamHdl = name.getHandle(s->getMyName());
+      streamHdl = name.getHandle(s->getName());
     }
     catch (NameException& e)
     {

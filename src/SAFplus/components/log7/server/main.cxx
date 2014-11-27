@@ -267,7 +267,7 @@ void dumpStreams(LogCfg* cfg)
     {
     Stream* s = dynamic_cast<Stream*>(iter->second);
     Dbg("Address %p\n", s);
-    Dbg("  Stream %s file: %s location: %s\n", s->name.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str());
+    Dbg("  Stream %s file: %s location: %s\n", s->name.value.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str());
     std::string& loc = s->fileLocation.value;
     }
   }

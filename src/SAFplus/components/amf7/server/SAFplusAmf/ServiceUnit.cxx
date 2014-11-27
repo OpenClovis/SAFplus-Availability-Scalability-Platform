@@ -54,12 +54,12 @@ namespace SAFplusAmf
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&probationTime, "probationTime");
-        this->name.assign("ServiceUnit");
+        this->tag.assign("ServiceUnit");
     };
 
-    ServiceUnit::ServiceUnit(std::string myNameValue): adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime")
+    ServiceUnit::ServiceUnit(std::string nameValue): adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime")
     {
-        this->myName.value =  myNameValue;
+        this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&rank, "rank");
         this->addChildObject(&failover, "failover");
@@ -75,18 +75,18 @@ namespace SAFplusAmf
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&probationTime, "probationTime");
-        this->name.assign("ServiceUnit");
+        this->tag.assign("ServiceUnit");
     };
 
     std::vector<std::string> ServiceUnit::getKeys()
     {
-        std::string keyNames[] = { "myName" };
+        std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* ServiceUnit::getChildNames()
     {
-        std::string childNames[] = { "myName", "id", "adminState", "rank", "failover", "preinstantiable", "saAmfSUHostNodeOrNodeGroup", "presenceState", "readinessState", "haReadinessState", "haState", "operState", "assignedServiceInstances", "numActiveServiceInstances", "numStandbyServiceInstances", "restartCount", "components", "node", "serviceGroup", "probationTime" };
+        std::string childNames[] = { "name", "id", "adminState", "rank", "failover", "preinstantiable", "saAmfSUHostNodeOrNodeGroup", "presenceState", "readinessState", "haReadinessState", "haState", "operState", "assignedServiceInstances", "numActiveServiceInstances", "numStandbyServiceInstances", "restartCount", "components", "node", "serviceGroup", "probationTime" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

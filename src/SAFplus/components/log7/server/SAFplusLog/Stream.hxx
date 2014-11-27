@@ -27,7 +27,7 @@ namespace SAFplusLog
 
     public:
         Stream();
-        Stream(std::string myNameValue);
+        Stream(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

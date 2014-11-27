@@ -16,32 +16,32 @@
 namespace SAFplusAmf
   {
 
-    EntityId::EntityId(): SAFplus::MgtContainer("EntityId"), myName("myName"), id("id")
+    EntityId::EntityId(): SAFplus::MgtContainer("EntityId"), name("name"), id("id")
     {
-        this->addChildObject(&myName, "myName");
+        this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
     };
 
     std::vector<std::string>* EntityId::getChildNames()
     {
-        std::string childNames[] = { "myName", "id" };
+        std::string childNames[] = { "name", "id" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityId/myName
+     * XPATH: /SAFplusAmf/EntityId/name
      */
-    std::string EntityId::getMyName()
+    std::string EntityId::getName()
     {
-        return this->myName.value;
+        return this->name;
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityId/myName
+     * XPATH: /SAFplusAmf/EntityId/name
      */
-    void EntityId::setMyName(std::string myNameValue, SAFplus::Transaction &txn)
+    void EntityId::setName(std::string nameValue, SAFplus::Transaction &txn)
     {
-        this->myName.set(myNameValue,txn);
+        this->name = nameValue;
     };
 
     /*

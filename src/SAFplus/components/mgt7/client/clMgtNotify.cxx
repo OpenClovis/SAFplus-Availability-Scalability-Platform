@@ -38,7 +38,6 @@ namespace SAFplus
 {
   MgtNotify::MgtNotify(const char* nam):MgtObject(nam)
   {
-    name.assign(nam);
     Module.assign("");
   }
 
@@ -64,7 +63,7 @@ namespace SAFplus
   {
     if (!strcmp(Module.c_str(), ""))
     {
-      logError("MGT", "NOTI", "Cannot send Notification [%s]", name.c_str());
+      logError("MGT", "NOTI", "Cannot send Notification [%s]", tag.c_str());
       return;
     }
     string bindStr, notiStr, msgRequestStr;
@@ -79,7 +78,7 @@ namespace SAFplus
     hdl->set_id1(myHandle.id[1]);
 
     char strTemp[CL_MAX_NAME_LENGTH];
-    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", this->name.c_str());
+    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "<%s>", this->tag.c_str());
     data.append(strTemp);
 
     map<std::string, std::string>::iterator mapIndex;
@@ -98,7 +97,7 @@ namespace SAFplus
       data.append(strTemp);
     }
 
-    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", this->name.c_str());
+    snprintf((char *) strTemp, CL_MAX_NAME_LENGTH, "</%s>", this->tag.c_str());
     data.append(strTemp);
 
     /* Pack the request message */

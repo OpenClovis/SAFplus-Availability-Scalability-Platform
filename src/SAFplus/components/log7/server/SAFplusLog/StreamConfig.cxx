@@ -21,7 +21,7 @@ namespace SAFplusLog
     StreamConfig::StreamConfig(): SAFplus::MgtContainer("StreamConfig"), streamList("stream")
     {
         this->addChildObject(&streamList, "stream");
-        streamList.setListKey("myName");
+        streamList.setListKey("name");
     };
 
     std::vector<std::string>* StreamConfig::getChildNames()

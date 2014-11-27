@@ -97,17 +97,17 @@ namespace SAFplus
       Component* comp = dynamic_cast<Component*>(*itcomp);
       if (comp->processId)
         {
-        logDebug("N+M","STRT","Not starting [%s]. Its already started as pid [%d].",comp->name.c_str(),comp->processId.value);
+        logDebug("N+M","STRT","Not starting [%s]. Its already started as pid [%d].",comp->name.value.c_str(),comp->processId.value);
         continue;
         }
       if (comp->operState == false)
         {
-        logDebug("N+M","STRT","Not starting [%s]. It must be repaired.",comp->name.c_str(),comp->processId.value);
+        logDebug("N+M","STRT","Not starting [%s]. It must be repaired.",comp->name.value.c_str(),comp->processId.value);
         continue;
         }
       if (comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations + comp->maxDelayedInstantiations)
         {
-        logInfo("N+M","STRT","Faulting [%s]. It has exceeded its startup attempts [%d].",comp->name.c_str(),comp->maxInstantInstantiations + comp->maxDelayedInstantiations);
+        logInfo("N+M","STRT","Faulting [%s]. It has exceeded its startup attempts [%d].",comp->name.value.c_str(),comp->maxInstantInstantiations + comp->maxDelayedInstantiations);
         comp->operState = false;
         comp->numInstantiationAttempts = 0;
         continue;
@@ -116,11 +116,11 @@ namespace SAFplus
 // (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count()/std::chrono::milliseconds(1);
       if ((comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations)&&(curTime < comp->delayBetweenInstantiation.value + comp->lastInstantiation.value.value))
         {
-        logDebug("N+M","STRT","Not starting [%s]. Must wait [%lu] more milliseconds.",comp->name.c_str(),comp->delayBetweenInstantiation + comp->lastInstantiation.value.value - curTime);
+        logDebug("N+M","STRT","Not starting [%s]. Must wait [%lu] more milliseconds.",comp->name.value.c_str(),comp->delayBetweenInstantiation + comp->lastInstantiation.value.value - curTime);
         continue;
         }
 
-      logInfo("N+M","STRT","Starting component [%s]", comp->name.c_str());
+      logInfo("N+M","STRT","Starting component [%s]", comp->name.value.c_str());
       CompStatus status = amfOps->getCompState(comp);
 
       SAFplusAmf::AdministrativeState eas = effectiveAdminState(comp);
@@ -310,7 +310,7 @@ namespace SAFplus
                 {
                 if (eas == SAFplusAmf::AdministrativeState::off)
                   {
-                  logError("N+M","AUDIT","Component [%s] should be off but is instantiated", comp->name.c_str());
+                  logError("N+M","AUDIT","Component [%s] should be off but is instantiated", comp->name.value.c_str());
                   }
                 else
                   {
@@ -319,14 +319,14 @@ namespace SAFplus
                   time_t rawtime = comp->lastInstantiation.value.value / 1000;  // /1000 converts ms to sec.
                   //timeinfo = localtime(&rawtime);
                   strftime(timeString,80,"%c",localtime(&rawtime));
-                  logDebug("N+M","AUDIT","Component [%s] process [%s.%d] is [%s].  Instantiated since [%s].  Instantiation attempts [%d].",comp->name.c_str(), su->node.value->name.c_str(), comp->processId.value, c_str(comp->presence.value),timeString, comp->numInstantiationAttempts.value);
+                  logDebug("N+M","AUDIT","Component [%s] process [%s.%d] is [%s].  Instantiated since [%s].  Instantiation attempts [%d].",comp->name.value.c_str(), su->node.value->name.value.c_str(), comp->processId.value, c_str(comp->presence.value),timeString, comp->numInstantiationAttempts.value);
                   }
                 }
               else
                 {
                 if (eas != SAFplusAmf::AdministrativeState::off)
                   {
-                  logError("N+M","AUDIT","Component [%s] could be on but is not instantiated", comp->name.c_str());
+                  logError("N+M","AUDIT","Component [%s] could be on but is not instantiated", comp->name.value.c_str());
                   startSg=true;
                   }
                 }
@@ -360,7 +360,7 @@ namespace SAFplus
           // We want to assign but for some reason it is not.
           if ((eas == AdministrativeState::on) && (si->assignmentState != AssignmentState::fullyAssigned))
             {
-            logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s].", si->name.c_str(),c_str(si->assignmentState));
+            logInfo("N+M","AUDIT","Service Instance [%s] should be fully assigned but is [%s].", si->name.value.c_str(),c_str(si->assignmentState));
 
             if (1)
               {
@@ -374,7 +374,7 @@ namespace SAFplus
                   }
                 else
                   {
-                  logInfo("N+M","AUDIT","Service Instance [%s] cannot be assigned %dth active.  No available service units.", si->name.c_str(),cnt);
+                  logInfo("N+M","AUDIT","Service Instance [%s] cannot be assigned %dth active.  No available service units.", si->name.value.c_str(),cnt);
                   break;
                   }
                 }
@@ -391,7 +391,7 @@ namespace SAFplus
                   }
                 else
                   {
-                  logInfo("N+M","AUDIT","Service Instance [%s] cannot be assigned %dth standby.  No available service units.", si->name.c_str(),cnt);
+                  logInfo("N+M","AUDIT","Service Instance [%s] cannot be assigned %dth standby.  No available service units.", si->name.value.c_str(),cnt);
                   break;
                   }
                 }
@@ -400,12 +400,12 @@ namespace SAFplus
 
           else if ((eas == AdministrativeState::off) && (si->assignmentState != AssignmentState::unassigned))
             {
-            logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.c_str(),c_str(si->assignmentState));
+            logInfo("N+M","AUDIT","Service Instance [%s] should be unassigned but is [%s].", si->name.value.c_str(),c_str(si->assignmentState));
             amfOps->removeWork(si);
             }
           else
             {
-            logInfo("N+M","AUDIT","Service Instance [%s]: admin state [%s]. assignment state [%s].  Assignments: active [%ld] standby [%ld]. ", si->name.c_str(),c_str(si->adminState.value), c_str(si->assignmentState), si->getActiveAssignments()->current.value,si->getStandbyAssignments()->current.value  );
+            logInfo("N+M","AUDIT","Service Instance [%s]: admin state [%s]. assignment state [%s].  Assignments: active [%ld] standby [%ld]. ", si->name.value.c_str(),c_str(si->adminState.value), c_str(si->assignmentState), si->getActiveAssignments()->current.value,si->getStandbyAssignments()->current.value  );
             }
 
           }
@@ -531,7 +531,7 @@ namespace SAFplus
 
           if (rs != su->readinessState.value)
             {
-            logInfo("N+M","AUDIT","Readiness state of Service Unit [%s] changed from [%s] to [%s]", su->name.c_str(),c_str(su->readinessState),c_str(rs));
+            logInfo("N+M","AUDIT","Readiness state of Service Unit [%s] changed from [%s] to [%s]", su->name.value.c_str(),c_str(su->readinessState),c_str(rs));
             su->readinessState.value = rs;
             // TODO event?
             }
@@ -548,7 +548,7 @@ namespace SAFplus
             {
             numComps++;
             Component* comp = dynamic_cast<Component*>(*itcomp);
-            logInfo("N+M","AUDIT","Component [%s]: operState [%s]", comp->name.c_str(), comp->operState.value ? "enabled" : "faulted");
+            logInfo("N+M","AUDIT","Component [%s]: operState [%s]", comp->name.value.c_str(), comp->operState.value ? "enabled" : "faulted");
             if (running(comp->presence))  // If I think its running, let's check it out.
               {
               CompStatus status = amfOps->getCompState(comp);
@@ -582,11 +582,11 @@ namespace SAFplus
                   if (curTime - comp->lastInstantiation.value.value >= comp->getInstantiate()->timeout.value)
                     {
                     // TODO: process is not responding after instantiation.  Kill it.
-                    logError("N+M","AUDIT","Component [%s] never registered with AMF after instantiation.", comp->name.c_str());
+                    logError("N+M","AUDIT","Component [%s] never registered with AMF after instantiation.", comp->name.value.c_str());
                     }
                   else
                     {
-                    logInfo("N+M","AUDIT","Component [%s] waiting [%lu] more milliseconds for instantiation.", comp->name.c_str(),comp->getInstantiate()->timeout.value - (curTime - comp->lastInstantiation.value.value));
+                    logInfo("N+M","AUDIT","Component [%s] waiting [%lu] more milliseconds for instantiation.", comp->name.value.c_str(),comp->getInstantiate()->timeout.value - (curTime - comp->lastInstantiation.value.value));
                     }
                   }
                 }
@@ -654,7 +654,7 @@ namespace SAFplus
           if (ps != su->presenceState.value)
             {
             // Presence state changed.
-            logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.c_str(),c_str(su->presenceState.value),su->presenceState.value, c_str(ps), ps);
+            logInfo("N+M","AUDIT","Presence state of Service Unit [%s] changed from [%s (%d)] to [%s (%d)]", su->name.value.c_str(),c_str(su->presenceState.value),su->presenceState.value, c_str(ps), ps);
             su->presenceState.value = ps;
 
             // TODO: Event?

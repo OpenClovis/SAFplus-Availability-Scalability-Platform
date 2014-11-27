@@ -37,10 +37,10 @@ using namespace std;
 
 namespace SAFplus
   {
-  MgtObject::MgtObject(const char* nam)
+  MgtObject::MgtObject(const char* name)
     {
-    assert(nam);
-    name.assign(nam);
+    assert(name);
+    tag.assign(name);
     parent = NULL;
     headRev = 1;
     }
@@ -138,236 +138,6 @@ namespace SAFplus
 
   void MgtObject::removeAllChildren() {}  // Nothing to do, base class has no children
 
-#if 0
-  ClRcT MgtObject::addKey(std::string key)
-    {
-    ClRcT rc = CL_OK;
-
-    ClUint32T i;
-    for(i = 0; i< Keys.size(); i++)
-      {
-      if (Keys[i].compare(key) == 0)
-        {
-        rc = CL_ERR_ALREADY_EXIST;
-        //clLogWarning("MGT", "OBJ", "Key [%s] already exists", key.c_str());
-        return rc;
-        }
-      }
-    Keys.push_back(key);
-    return rc;
-    }
-
-  ClRcT MgtObject::removeKey(std::string key)
-    {
-    ClRcT rc = CL_ERR_NOT_EXIST;
-    ClUint32T i;
-
-    for(i = 0; i< Keys.size(); i++)
-      {
-      if (Keys[i].compare(key) == 0)
-        {
-        Keys.erase (Keys.begin() + i);
-        rc = CL_OK;
-        break;
-        }
-      }
-    return rc;
-    }
-
-
-  ClRcT MgtObject::addChildName(std::string name)
-    {
-    ClRcT rc = CL_OK;
-
-    if (mChildren.find(name) != mChildren.end())
-      {
-      return CL_ERR_ALREADY_EXIST;
-      }
-
-    std::vector<MgtObject*> *objs = new (std::vector<MgtObject*>);
-
-    mChildren.insert(pair<string, vector<MgtObject *>* >(name, objs));
-
-    return rc;
-    }
-
-  ClRcT MgtObject::removeChildName(std::string name)
-    {
-    ClRcT rc = CL_ERR_NOT_EXIST;
-    map<string, vector<MgtObject*>* >::iterator mapIndex = mChildren.find(name);
-
-    /* Check if MGT module already exists in the database */
-    if (mapIndex == mChildren.end())
-      {
-      return CL_ERR_NOT_EXIST;
-      }
-
-    std::vector<MgtObject*> *objs = (vector<MgtObject*>*) (*mapIndex).second;
-    /* Remove MGT module out off the database */
-    mChildren.erase(name);
-    delete objs;
-
-    return rc;
-    }
-#endif
-#if 0
-  /*
-   * Virtual function called from netconf server to validate object data
-   */
-  ClBoolT MgtObject::set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
-    {
-    clDbgNotImplemented("MgtObject::set");
-
-    xmlChar                             *valstr, *namestr;
-    int                                 ret, nodetyp, depth;
-
-    char *strChildData = (char *) malloc(MGT_MAX_DATA_LEN);
-    if (!strChildData)
-      {
-      return CL_FALSE;
-      }
-
-    char                                keyVal[MGT_MAX_ATTR_STR_LEN];
-
-    char                                strTemp[CL_MAX_NAME_LENGTH];
-    std::vector<MgtObject*>           *objs = NULL;
-    std::map<std::string, std::string>  keys;
-    ClBoolT                             isKey = CL_FALSE;
-    ClUint32T                           i;
-
-    //clLogDebug("MGT", "OBJ", "Validate [%.*s] ", (int) buffLen, (const char*)pBuffer);
-
-    xmlTextReaderPtr reader = xmlReaderForMemory((const char*)pBuffer, buffLen, NULL,NULL, 0);
-    if(!reader)
-      {
-      free(strChildData);
-      return CL_FALSE;
-      }
-
-    ret = xmlTextReaderRead(reader);
-    if (ret <= 0)
-      {
-      xmlFreeTextReader(reader);
-      free(strChildData);
-      return CL_FALSE;
-      }
-
-    namestr = (xmlChar *)xmlTextReaderConstName(reader);
-    if (strcmp((char *)namestr, name.c_str()))
-      {
-      xmlFreeTextReader(reader);
-      free(strChildData);
-      return CL_FALSE;
-      }
-
-    while(ret)
-      {
-      depth = xmlTextReaderDepth(reader);
-      nodetyp = xmlTextReaderNodeType(reader);
-      namestr = (xmlChar *)xmlTextReaderConstName(reader);
-      valstr = (xmlChar *)xmlTextReaderValue(reader);
-
-      switch (nodetyp) {
-      case XML_ELEMENT_NODE:
-        /* classify element as empty or start */
-        snprintf((char *)strTemp, CL_MAX_NAME_LENGTH, "<%s>", namestr);
-        if (depth == 1)
-          {
-          strcpy(strChildData, strTemp);
-          map<string, vector<MgtObject*>* >::iterator mapIndex = find((char *)namestr);
-
-          if (mapIndex == mChildren.end())
-            {
-            xmlFreeTextReader(reader);
-            free(strChildData);
-            return CL_FALSE;
-            }
-
-          objs = (vector<MgtObject*>*) (*mapIndex).second;
-
-          if (objs->size() == 0)
-            {
-            xmlFreeTextReader(reader);
-            free(strChildData);
-            return CL_FALSE;
-            }
-
-          keys.clear();
-          }
-        else if (depth == 2)
-          {
-          for (i = 0; i< (*objs)[0]->Keys.size(); i++)
-            {
-            if ((*objs)[0]->Keys[i].compare((char *)namestr) == 0)
-              {
-              isKey = CL_TRUE;
-              break;
-              }
-            }
-          }
-        else if(depth > 2)
-          {
-          strcat(strChildData, strTemp);
-          }
-        break;
-      case XML_ELEMENT_DECL:
-        snprintf((char *)strTemp, CL_MAX_NAME_LENGTH, "</%s>", namestr);
-        if (depth == 1)
-          {
-          strcat(strChildData, strTemp);
-
-          for (i = 0; i< objs->size(); i++)
-            {
-            MgtObject* mgtObject = (*objs)[i];
-
-            if (mgtObject->isKeysMatch(&keys) == CL_TRUE)
-              {
-              if(mgtObject->set(strChildData, strlen(strChildData), t) == CL_FALSE)
-                {
-                xmlFreeTextReader(reader);
-                free(strChildData);
-                return CL_FALSE;
-                }
-              }
-            }
-          }
-        else if (depth == 1)
-          {
-          strcat(strChildData, strTemp);
-          if (isKey == CL_TRUE)
-            {
-            keys.insert(pair<string, string>((char *)namestr, keyVal));
-            isKey = CL_FALSE;
-            }
-          }
-        else if (depth > 2)
-          {
-          strcat(strChildData, strTemp);
-          }
-        break;
-      case XML_TEXT_NODE:
-        if (depth > 1)
-          {
-          strcat(strChildData, (char *)valstr);
-          if (isKey == CL_TRUE)
-            {
-            strcpy(keyVal, (char *)valstr);
-            }
-          }
-        break;
-      default:
-        /* unused node type -- keep trying */
-        break;
-        }
-
-      ret = xmlTextReaderRead(reader);
-      }
-
-    xmlFreeTextReader(reader);
-    free(strChildData);
-    return CL_TRUE;
-    }
-#endif
   void MgtObject::get(std::string *data, ClUint64T *datalen)
   {
     std::stringstream xmlString;
@@ -378,42 +148,6 @@ namespace SAFplus
     *datalen =  xmlString.str().length() + 1;
     data->assign(xmlString.str().c_str());
   }
-
-#if 0
-  ClBoolT MgtObject::isKeysMatch(std::map<std::string, std::string> *keys)
-    {
-    ClBoolT isMatch = CL_TRUE;
-    ClUint32T i;
-    for (i = 0; i< Keys.size(); i++)
-      {
-      MgtObject *itemKey = getChildObject(Keys[i]);
-
-      map<string, string>::iterator mapIndex = keys->find(Keys[i]);
-      if (mapIndex == keys->end())
-        {
-        isMatch = CL_FALSE;
-        break;
-        }
-
-      if (itemKey)
-        {
-        string keyVal = static_cast<string>((*mapIndex).second);
-
-        if (keyVal.compare(itemKey->strValue()) != 0)
-          {
-          isMatch = CL_FALSE;
-          break;
-          }
-        }
-      else
-        {
-        isMatch = CL_FALSE;
-        break;
-        }
-      }
-    return isMatch;
-    }
-#endif
 
   /* persistent db to database */
   ClRcT MgtObject::write(MgtDatabase* db)
@@ -458,7 +192,7 @@ namespace SAFplus
         xpath.append(parentXpath);
       }
     }
-    xpath.append("/").append(this->name);
+    xpath.append("/").append(this->tag);
     return xpath;
   }
 

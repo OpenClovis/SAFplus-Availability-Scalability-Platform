@@ -19,7 +19,7 @@ namespace SAFplusTypes
 
     Failures::Failures()
     {
-        this->name.assign("failures");
+        this->tag.assign("failures");
     };
 
     std::vector<std::string>* Failures::getChildNames()

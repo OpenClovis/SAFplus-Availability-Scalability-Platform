@@ -48,7 +48,7 @@ namespace SAFplusAmf
 
     public:
         Application();
-        Application(std::string myNameValue);
+        Application(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

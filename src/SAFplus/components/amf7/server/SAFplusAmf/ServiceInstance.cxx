@@ -42,12 +42,12 @@ namespace SAFplusAmf
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
-        this->name.assign("ServiceInstance");
+        this->tag.assign("ServiceInstance");
     };
 
-    ServiceInstance::ServiceInstance(std::string myNameValue): adminState("adminState"), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments"), preferredStandbyAssignments("preferredStandbyAssignments"), rank("rank"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
+    ServiceInstance::ServiceInstance(std::string nameValue): adminState("adminState"), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments"), preferredStandbyAssignments("preferredStandbyAssignments"), rank("rank"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
     {
-        this->myName.value =  myNameValue;
+        this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&assignmentState, "assignmentState");
         this->addChildObject(&preferredActiveAssignments, "preferredActiveAssignments");
@@ -57,18 +57,18 @@ namespace SAFplusAmf
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
-        this->name.assign("ServiceInstance");
+        this->tag.assign("ServiceInstance");
     };
 
     std::vector<std::string> ServiceInstance::getKeys()
     {
-        std::string keyNames[] = { "myName" };
+        std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* ServiceInstance::getChildNames()
     {
-        std::string childNames[] = { "myName", "id", "adminState", "assignmentState", "preferredActiveAssignments", "preferredStandbyAssignments", "rank", "activeWeight", "standbyWeight", "activeAssignments", "standbyAssignments", "componentServiceInstances", "serviceGroup" };
+        std::string childNames[] = { "name", "id", "adminState", "assignmentState", "preferredActiveAssignments", "preferredStandbyAssignments", "rank", "activeWeight", "standbyWeight", "activeAssignments", "standbyAssignments", "componentServiceInstances", "serviceGroup" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

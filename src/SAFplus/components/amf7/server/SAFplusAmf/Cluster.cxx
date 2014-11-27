@@ -25,26 +25,26 @@ namespace SAFplusAmf
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&startupAssignmentDelay, "startupAssignmentDelay");
-        this->name.assign("Cluster");
+        this->tag.assign("Cluster");
     };
 
-    Cluster::Cluster(std::string myNameValue): adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
+    Cluster::Cluster(std::string nameValue): adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
     {
-        this->myName.value =  myNameValue;
+        this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&startupAssignmentDelay, "startupAssignmentDelay");
-        this->name.assign("Cluster");
+        this->tag.assign("Cluster");
     };
 
     std::vector<std::string> Cluster::getKeys()
     {
-        std::string keyNames[] = { "myName" };
+        std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* Cluster::getChildNames()
     {
-        std::string childNames[] = { "myName", "id", "adminState", "startupAssignmentDelay" };
+        std::string childNames[] = { "name", "id", "adminState", "startupAssignmentDelay" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

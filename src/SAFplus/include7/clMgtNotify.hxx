@@ -55,7 +55,6 @@ private:
     std::map<std::string, std::string> mLeafList;
 
 public:
-    std::string name;
     std::string Module;
 
 public:

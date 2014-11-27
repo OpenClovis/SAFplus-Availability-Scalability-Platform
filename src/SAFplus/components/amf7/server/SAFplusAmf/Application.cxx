@@ -30,27 +30,27 @@ namespace SAFplusAmf
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&serviceGroups, "serviceGroups");
         this->addChildObject(&keepTogether, "keepTogether");
-        this->name.assign("Application");
+        this->tag.assign("Application");
     };
 
-    Application::Application(std::string myNameValue): adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
+    Application::Application(std::string nameValue): adminState("adminState"), serviceGroups("serviceGroups"), keepTogether("keepTogether")
     {
-        this->myName.value =  myNameValue;
+        this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&serviceGroups, "serviceGroups");
         this->addChildObject(&keepTogether, "keepTogether");
-        this->name.assign("Application");
+        this->tag.assign("Application");
     };
 
     std::vector<std::string> Application::getKeys()
     {
-        std::string keyNames[] = { "myName" };
+        std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* Application::getChildNames()
     {
-        std::string childNames[] = { "myName", "id", "adminState", "numServiceGroups", "serviceGroups", "keepTogether" };
+        std::string childNames[] = { "name", "id", "adminState", "numServiceGroups", "serviceGroups", "keepTogether" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

@@ -20,48 +20,48 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Data, /SAFplusAmf/ComponentServiceInstance/data)
 
-    Data::Data(): SAFplus::MgtContainer("data"), myName("myName"), val("val")
+    Data::Data(): SAFplus::MgtContainer("data"), name("name"), val("val")
     {
-        this->addChildObject(&myName, "myName");
+        this->addChildObject(&name, "name");
         this->addChildObject(&val, "val");
     };
 
-    Data::Data(std::string myNameValue): SAFplus::MgtContainer("data"), myName("myName"), val("val")
+    Data::Data(std::string nameValue): SAFplus::MgtContainer("data"), name("name"), val("val")
     {
-        this->myName.value =  myNameValue;
-        this->addChildObject(&myName, "myName");
+        this->name.value =  nameValue;
+        this->addChildObject(&name, "name");
         this->addChildObject(&val, "val");
     };
 
     std::vector<std::string> Data::getKeys()
     {
-        std::string keyNames[] = { "myName" };
+        std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* Data::getChildNames()
     {
-        std::string childNames[] = { "myName", "val" };
+        std::string childNames[] = { "name", "val" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/myName
+     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
      */
-    std::string Data::getMyName()
+    std::string Data::getName()
     {
-        return this->myName.value;
+        return this->name.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/myName
+     * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
      */
-    void Data::setMyName(std::string myNameValue, SAFplus::Transaction &t)
+    void Data::setName(std::string nameValue, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->myName.value = myNameValue;
+        if(&t == &SAFplus::NO_TXN) this->name.value = nameValue;
         else
         {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(myName.value),myNameValue);
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(name.value),nameValue);
             t.addOperation(opt);
         }
     };

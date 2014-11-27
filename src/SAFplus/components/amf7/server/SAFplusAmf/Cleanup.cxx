@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     Cleanup::Cleanup()
     {
-        this->name.assign("cleanup");
+        this->tag.assign("cleanup");
     };
 
     std::vector<std::string>* Cleanup::getChildNames()

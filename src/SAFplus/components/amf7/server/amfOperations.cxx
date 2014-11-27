@@ -53,7 +53,7 @@ namespace SAFplus
       }
       if (sg->adminState.value != tgt)
         {
-        logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%d]",sg->name.c_str(),tgt);
+        logInfo("N+M","AUDIT","Setting service group [%s] to admin state [%d]",sg->name.value.c_str(),tgt);
         sg->adminState.value = tgt;
         }
     }
@@ -64,7 +64,7 @@ namespace SAFplus
     assert(comp);
     if ((!comp->serviceUnit.value)||(!comp->serviceUnit.value->node.value)||(!comp->serviceUnit.value->serviceGroup.value))  // This component is not properly hooked up to other entities; is must be off
       {
-      logInfo("N+M","AUDIT","Component [%s] entity group is not properly configured",comp->name.c_str());
+      logInfo("N+M","AUDIT","Component [%s] entity group is not properly configured",comp->name.value.c_str());
       return SAFplusAmf::AdministrativeState::off;
       }
     ServiceUnit* su = comp->serviceUnit.value;
@@ -140,7 +140,7 @@ namespace SAFplus
     if (1)
       {
       WorkOperationTracker& wat = pendingWorkOperations.at(invocation);
-      logInfo("AMF","OPS","Work Operation response on component [%s] invocation [%lx] result [%d]",wat.comp->name.c_str(),invocation, result);
+      logInfo("AMF","OPS","Work Operation response on component [%s] invocation [%lx] result [%d]",wat.comp->name.value.c_str(),invocation, result);
 
       if ( wat.state <= (int) HighAvailabilityState::quiescing)
         {
@@ -199,7 +199,7 @@ namespace SAFplus
         }
       else  // RPC call
         {
-        logInfo("OP","CMP","Request component [%s] state from node [%s]", comp->name.c_str(), comp->serviceUnit.value->node.value->name.c_str());
+        logInfo("OP","CMP","Request component [%s] state from node [%s]", comp->name.value.c_str(), comp->serviceUnit.value->node.value->name.value.c_str());
 
         ProcessInfoRequest req;
         req.set_pid(pid);
@@ -305,7 +305,7 @@ namespace SAFplus
           }
       catch (SAFplus::NameException& n)
           {
-          logCritical("OPS","SRT","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.c_str());
+          logCritical("OPS","SRT","Component [%s] is not registered in the name service.  Cannot control it.", comp->name.value.c_str());
           comp->lastError.value = "Component's name is not registered in the name service so address cannot be determined.";
           break; // TODO: right now go to the next component, however assignment should not occur on ANY components if all components are not accessible. 
           }
@@ -328,8 +328,8 @@ namespace SAFplus
 
       if (itcsi != endcsi)  // We found an assignable CSI and it is the variable "csi"
         {
-        logInfo("OPS","SRT","Component [%s] handle [%lx.%lx] is being assigned work", comp->name.c_str(),hdl.id[0],hdl.id[1]);
-        request.set_componentname(comp->name.c_str());
+        logInfo("OPS","SRT","Component [%s] handle [%lx.%lx] is being assigned work", comp->name.value.c_str(),hdl.id[0],hdl.id[1]);
+        request.set_componentname(comp->name.value.c_str());
         request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
         request.set_operation((uint32_t)state);
         request.set_target(SA_AMF_CSI_ADD_ONE);
@@ -362,7 +362,7 @@ namespace SAFplus
           SAFplus::Rpc::amfAppRpc::KeyValuePairs* kvp = request.add_keyvaluepairs();
           assert(kvp);
           MgtProv<std::string>* kv = dynamic_cast<MgtProv<std::string>*>(it->second); 
-          kvp->set_thekey(kv->name.c_str());  // it->first().c_str()
+          kvp->set_thekey(kv->tag.c_str());  // it->first().c_str()
           kvp->set_thevalue(kv->value.c_str());
           }
 
@@ -372,7 +372,7 @@ namespace SAFplus
         }
       else
         {
-        logInfo("OPS","SRT","Component [%s] handle [%lx.%lx] cannot be assigned work.  No valid Component Service Instance.", comp->name.c_str(),hdl.id[0],hdl.id[1]);
+        logInfo("OPS","SRT","Component [%s] handle [%lx.%lx] cannot be assigned work.  No valid Component Service Instance.", comp->name.value.c_str(),hdl.id[0],hdl.id[1]);
         }
 
       }
@@ -409,7 +409,7 @@ namespace SAFplus
       }
     catch (SAFplus::NameException& n)
       {
-      logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.  Cannot start processes on it.", comp->serviceUnit.value->node.value->name.c_str());
+      logCritical("OPS","SRT","AMF Entity [%s] is not registered in the name service.  Cannot start processes on it.", comp->serviceUnit.value->node.value->name.value.c_str());
       comp->lastError.value = "Component's node is not registered in the name service so address cannot be determined.";
       if (&w) w.wake(1,(void*)comp);
       return;
@@ -419,7 +419,7 @@ namespace SAFplus
     //assert(inst);
     if (!inst)  // Bad configuration
       {
-      logWarning("OPS","SRT","Component [%s] has improper configuration (no instantiation information). Cannot start", comp->name.c_str());
+      logWarning("OPS","SRT","Component [%s] has improper configuration (no instantiation information). Cannot start", comp->name.value.c_str());
       comp->operState = false;  // A configuration error isn't going to heal itself -- component needs manual intervention then repair
       comp->lastError.value = "No instantiation information";
       if (&w) w.wake(1,(void*)comp);
@@ -441,12 +441,12 @@ namespace SAFplus
       Process p = executeProgram(inst->command.value, newEnv,Process::InheritEnvironment);
       comp->processId.value = p.pid;
 
-      logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d]", comp->name.c_str(),inst->command.value.c_str(),p.pid);
+      logInfo("OPS","SRT","Launching Component [%s] as [%s] locally with process id [%d]", comp->name.value.c_str(),inst->command.value.c_str(),p.pid);
       if (&w) w.wake(1,(void*)comp);
       }
     else  // RPC call
       {
-      logInfo("OP","CMP","Request launch component [%s] as [%s] on node [%s]", comp->name.c_str(),inst->command.value.c_str(),comp->serviceUnit.value->node.value->name.c_str());
+      logInfo("OP","CMP","Request launch component [%s] as [%s] on node [%s]", comp->name.value.c_str(),inst->command.value.c_str(),comp->serviceUnit.value->node.value->name.value.c_str());
 
 #if 0
       SAFplus::Rpc::RpcChannel channel(&safplusMsgServer, nodeHdl);
@@ -457,7 +457,7 @@ namespace SAFplus
       service.startComponent(INVALID_HDL, &req, &respData.response, respData);  // TODO: what happens in a RPC call timeout?
 #endif
       StartComponentRequest req;
-      req.set_name(comp->name.c_str());
+      req.set_name(comp->name.value.c_str());
       req.set_command(inst->command.value.c_str());
       StartCompResp* resp = new StartCompResp(&w,comp);
       amfInternalRpc->startComponent(nodeHdl,&req, &resp->response,*resp);

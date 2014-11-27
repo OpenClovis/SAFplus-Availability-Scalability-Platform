@@ -261,9 +261,9 @@ namespace SAFplus
     // Add root element, it should be similar to netconf message
     // OID: <adminStatus>true</adminStatus>
     // NETCONF: <interfaces><adminStatus>true</adminStatus><ename>eth0</ename></interface>
-    if (setData.data().compare(1, object->name.length(), object->name))
+    if (setData.data().compare(1, object->tag.length(), object->tag))
     {
-      setData.set_data("<" + object->name + ">" + strInMsg + "</" + object->name  + ">");
+      setData.set_data("<" + object->tag + ">" + strInMsg + "</" + object->tag  + ">");
     }
     rc1 = object->set((void *)setData.data().c_str(),setData.data().size(), t);
     if (rc1 == CL_TRUE)

@@ -212,7 +212,7 @@ void streamRotationInit(Stream* s)
 void initializeStream(Stream* s)
 {
     streamRotationInit(s);
-    printf("Initializing stream %s file: %s location: %s\n", s->name.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str()); 
+    printf("Initializing stream %s file: %s location: %s\n", s->name.value.c_str(),s->fileName.value.c_str(),s->fileLocation.value.c_str());
 
     if (s->filePath.length() > 0)
     {
@@ -297,7 +297,7 @@ void addStreamObjMapping(const char* streamName, Stream* s, Handle strmHdl=INVAL
 Stream* createStreamCfg(const char* nam, const char* filename, const char* location, unsigned long int fileSize, unsigned long int logRecSize, SAFplusLog::FileFullAction fullAction, int numFilesRotate, int flushQSize, int flushInterval,bool syslog,SAFplusLog::StreamScope scope, Replicate repMode=Replicate::NONE, Handle strmHdl=INVALID_HDL)
 {
   Stream* s = new Stream();
-  s->setMyName(nam);
+  s->setName(nam);
   s->setFileName(filename);
   s->setFileLocation(location);
   s->fileUnitSize = fileSize;

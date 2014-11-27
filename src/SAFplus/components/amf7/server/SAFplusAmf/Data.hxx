@@ -25,24 +25,24 @@ namespace SAFplusAmf
         MGT_REGISTER(Data);
 
     public:
-        SAFplus::MgtProv<std::string> myName;
+        SAFplus::MgtProv<std::string> name;
         SAFplus::MgtProv<std::string> val;
 
     public:
         Data();
-        Data(std::string myNameValue);
+        Data(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/myName
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
          */
-        std::string getMyName();
+        std::string getName();
 
         /*
-         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/myName
+         * XPATH: /SAFplusAmf/ComponentServiceInstance/data/name
          */
-        void setMyName(std::string myNameValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
+        void setName(std::string nameValue, SAFplus::Transaction &t=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusAmf/ComponentServiceInstance/data/val

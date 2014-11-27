@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     StandbyAssignments::StandbyAssignments()
     {
-        this->name.assign("standbyAssignments");
+        this->tag.assign("standbyAssignments");
     };
 
     std::vector<std::string>* StandbyAssignments::getChildNames()

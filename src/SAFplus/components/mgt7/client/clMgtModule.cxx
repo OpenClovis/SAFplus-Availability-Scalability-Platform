@@ -114,17 +114,17 @@ namespace SAFplus
       }
 
     /* Check if MGT notification already exists in the database */
-    if (mMgtNotifies.find(mgtNotify->name) != mMgtNotifies.end())
+    if (mMgtNotifies.find(mgtNotify->tag) != mMgtNotifies.end())
       {
-        logDebug("MGT", "NOT", "Notify [%s] is already existing!", mgtNotify->name.c_str());
+        logDebug("MGT", "NOT", "Notify [%s] is already existing!", mgtNotify->tag.c_str());
         return CL_ERR_ALREADY_EXIST;
       }
 
     /* Insert MGT notification into the database */
-    mMgtNotifies.insert(pair<string, MgtNotify *> (mgtNotify->name.c_str(), mgtNotify));
+    mMgtNotifies.insert(pair<string, MgtNotify *> (mgtNotify->tag.c_str(), mgtNotify));
     mgtNotify->Module.assign(this->name);
 
-    logDebug("MGT", "NOT", "Notify [%s] added successful!", mgtNotify->name.c_str());
+    logDebug("MGT", "NOT", "Notify [%s] added successful!", mgtNotify->tag.c_str());
 
     return rc;
   }
@@ -167,16 +167,16 @@ namespace SAFplus
       }
 
     /* Check if MGT RPC already exists in the database */
-    if (mMgtRpcs.find(mgtRpc->name) != mMgtRpcs.end())
+    if (mMgtRpcs.find(mgtRpc->tag) != mMgtRpcs.end())
       {
-        logDebug("MGT", "RPC", "RPC [%s] is already existing!", mgtRpc->name.c_str());
+        logDebug("MGT", "RPC", "RPC [%s] is already existing!", mgtRpc->tag.c_str());
         return CL_ERR_ALREADY_EXIST;
       }
 
     /* Insert MGT RPC into the database */
-    mMgtRpcs.insert(pair<string, MgtRpc *> (mgtRpc->name.c_str(), mgtRpc));
+    mMgtRpcs.insert(pair<string, MgtRpc *> (mgtRpc->tag.c_str(), mgtRpc));
     mgtRpc->Module.assign(this->name);
-    logDebug("MGT", "RPC", "RPC [%s] added successful!", mgtRpc->name.c_str());
+    logDebug("MGT", "RPC", "RPC [%s] added successful!", mgtRpc->tag.c_str());
 
     return rc;
   }

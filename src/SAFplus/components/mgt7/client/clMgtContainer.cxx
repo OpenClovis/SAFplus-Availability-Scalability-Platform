@@ -18,14 +18,6 @@ namespace SAFplus
 
   MgtContainer::~MgtContainer()
     {
-#if 0
-    map<string, vector<MgtObject*>* >::iterator mapIndex;
-    for(mapIndex = mChildren.begin(); mapIndex != mChildren.end(); ++mapIndex)
-      {
-        std::vector<MgtObject*> *objs = (vector<MgtObject*>*) (*mapIndex).second;
-        //delete objs;  // GAS note: MUST be reference counted AND only if this object is new-ed.  Most objects will be members of other objects
-      }
-#endif
     }
 
 
@@ -67,8 +59,8 @@ namespace SAFplus
 
     }
 
-bool MgtContainer::HiddenIterator::next()
-{
+  bool MgtContainer::HiddenIterator::next()
+    {
     it++;
     if (it == end)
       {
@@ -82,15 +74,12 @@ bool MgtContainer::HiddenIterator::next()
       current.second = it->second;  
       return true;
       }
-}
+    }
 
-void MgtContainer::HiddenIterator::del()
-{
-delete this;
-}
-
-
-
+  void MgtContainer::HiddenIterator::del()
+    {
+    delete this;
+    }
 
   MgtObject* MgtContainer::deepMatch(const std::string &s)
     {
@@ -133,36 +122,14 @@ delete this;
 
     }
 
-
-
   ClRcT MgtContainer::removeChildObject(const std::string& objectName)
   {
     ClRcT rc = CL_OK;
 
     children.erase(objectName);
 
-#if 0
-    map<string, vector<MgtObject*>* >::iterator mapIndex = mChildren.find(objectName);
-
-    /* Check if MGT module already exists in the database */
-    if (mapIndex == mChildren.end())
-      {
-        return CL_ERR_NOT_EXIST;
-      }
-
-    std::vector<MgtObject*> *objs = (vector<MgtObject*>*) (*mapIndex).second;
-
-    /* Remove MGT module out off the database */
-    if (index >= objs->size())
-      {
-        return CL_ERR_INVALID_PARAMETER;
-      }
-    objs->erase (objs->begin() + index);
-#endif
-
     return rc;
   }
-
 
   ClRcT MgtContainer::addChildObject(MgtObject *mgtObject, const char* objectName)
     {
@@ -170,41 +137,17 @@ delete this;
     return addChildObject(mgtObject,name);
     }
 
-
   ClRcT MgtContainer::addChildObject(MgtObject *mgtObject, const std::string& objectName)
   {
     ClRcT rc = CL_OK;
     assert(mgtObject);
 
     const std::string* name = &objectName;
-    if (name == nullptr) name = &mgtObject->name;
+    if (name == nullptr) name = &mgtObject->tag;
 
     // The first place you hook it in is the "main" one, the rest are sym links.
     if (!mgtObject->parent) mgtObject->parent = this;
     children[*name] = mgtObject;
-
-#if 0
-    const std::string* name = &objectName;
-    if (name == nullptr) name = &mgtObject->Name;
-
-    /* Check if MGT object already exists in the database */
-    map<string, vector<MgtObject*>* >::iterator mapIndex = mChildren.find(*name);
-    std::vector<MgtObject*> *objs;
-
-    if (mapIndex != mChildren.end())
-      {
-        objs = (vector<MgtObject*>*) (*mapIndex).second;
-      }
-    else
-      {
-        objs = new vector<MgtObject*>;
-        mChildren.insert(pair<string, vector<MgtObject *>* >(*name, objs));
-      }
-
-    /* Insert MGT object into the database */
-    objs->push_back(mgtObject);
-    mgtObject->Parent = this;
-#endif
 
     return rc;
   }
@@ -217,7 +160,7 @@ delete this;
     //GAS: TAG already build at MgtList, hardcode to ignore
     if (!parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList" ))
       {
-        xmlString << '<' << name << '>';
+        xmlString << '<' << tag << '>';
       }
     for (it = children.begin(); it != children.end(); ++it)
       {
@@ -226,7 +169,7 @@ delete this;
       }
       if (!parent || !strstr(typeid(*parent).name(), "SAFplus7MgtList" ))
         {
-          xmlString << "</" << name << '>';
+          xmlString << "</" << tag << '>';
         }
     }
 
@@ -275,7 +218,7 @@ delete this;
       rc = child->read(xp,db);
       if(CL_OK != rc)
       {
-        logDebug("MGT","SET","Read data failed [%x] for child %s. Ignored",rc,child->name.c_str());
+        logDebug("MGT","SET","Read data failed [%x] for child %s. Ignored",rc,child->tag.c_str());
         return rc;
       }
     }
@@ -298,7 +241,7 @@ delete this;
       rc = child->write(xp,db);
       if(CL_OK != rc)
       {
-        logDebug("MGT","SET","Write data failed [%x] for child %s. Ignored",rc,child->name.c_str());
+        logDebug("MGT","SET","Write data failed [%x] for child %s. Ignored",rc,child->tag.c_str());
         return rc;
       }
     }
@@ -339,9 +282,9 @@ delete this;
          {
            if(depth == 0)
            {
-             if(strcmp((const char *)namestr,this->name.c_str()) != 0)
+             if(strcmp((const char *)namestr,this->tag.c_str()) != 0)
              {
-               logError("MGT","SET","The configuration [%s] isn't for this container [%s]",(const char *)namestr,this->name.c_str());
+               logError("MGT","SET","The configuration [%s] isn't for this container [%s]",(const char *)namestr,this->tag.c_str());
                return CL_FALSE;
              }
            }
@@ -362,7 +305,7 @@ delete this;
              for(iter = children.begin();iter != children.end(); iter++)
              {
                MgtObject *child = iter->second;
-               if(strcmp(child->name.c_str(),(char *)namestr) == 0)
+               if(strcmp(child->tag.c_str(),(char *)namestr) == 0)
                {
                  if(child->set(strChildData.c_str(),strChildData.size(),t))
                  {

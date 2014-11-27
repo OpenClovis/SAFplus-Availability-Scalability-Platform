@@ -131,13 +131,13 @@ namespace SAFplus
         while(iter != children.end())
         {
           MgtObject* curEntry = iter->second;
-          if(curEntry->name.compare(entry->name) == 0)
+          if(curEntry->tag.compare(entry->tag) == 0)
           {
             return CL_TRUE;
           }
         }
 #ifndef SAFplus7
-        logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
+        logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->tag.c_str());
 #endif
         return CL_FALSE;
       }
@@ -241,9 +241,9 @@ namespace SAFplus
                * Just simple return:
                *     <interface>...</interface>
                */
-              xmlString << "<" << name << ">";
+              xmlString << "<" << tag << ">";
               entry->toString(xmlString);
-              xmlString << "</" << name << '>';
+              xmlString << "</" << tag << '>';
           }
         }
       }
@@ -296,10 +296,10 @@ namespace SAFplus
               {
                 if(depth == 0)
                 {
-                   if(strcmp((const char *)namestr,this->name.c_str()) != 0)
+                   if(strcmp((const char *)namestr,this->tag.c_str()) != 0)
                    {
 #ifndef SAFplus7
-                     logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
+                     logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->tag.c_str());
 #endif
                      return CL_FALSE;
                    }
@@ -393,7 +393,7 @@ namespace SAFplus
             xpath.append(parentXpath);
           }
         }
-        xpath.append("/").append(this->name);
+        xpath.append("/").append(this->tag);
         /* Add key into xpath */
         /* ex: /ethernet/interfaces[name=eth0,ipAddress=123] */
         xpath.append(keypart);
@@ -543,10 +543,10 @@ namespace SAFplus
         while(iter != children.end())
         {
           MgtObject* curEntry = iter->second;
-          if(curEntry->name.compare(entry->name) == 0)
+          if(curEntry->tag.compare(entry->tag) == 0)
           {
 #ifndef SAFplus7
-            logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->name.c_str());
+            logDebug("MGT", "LIST", "Entry with name %s isn't exist",entry->tag.c_str());
 #endif
             return CL_TRUE;
           }
@@ -563,7 +563,7 @@ namespace SAFplus
         std::string *key = &objectKey;
         if(key == NULL)
         {
-          key = &mgtObject->name;
+          key = &mgtObject->tag;
         }
         children[*key] = mgtObject;
 #ifndef SAFplus7
@@ -631,9 +631,9 @@ namespace SAFplus
               * Just simple return:
               *     <interface>...</interface>
               */
-            xmlString << "<" << name << ">";
+            xmlString << "<" << tag << ">";
             entry->toString(xmlString);
-            xmlString << "</" << name << '>';
+            xmlString << "</" << tag << '>';
           }
         }
       }
@@ -687,10 +687,10 @@ namespace SAFplus
              {
                if(depth == 0)
                {
-                  if(strcmp((const char *)namestr,this->name.c_str()) != 0)
+                  if(strcmp((const char *)namestr,this->tag.c_str()) != 0)
                   {
 #ifndef SAFplus7
-                    logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->name.c_str());
+                    logError("MGT","LIST","The configuration [%s] isn't for this list [%s]",(const char *)namestr,this->tag.c_str());
 #endif
                     return CL_FALSE;
                   }
@@ -784,7 +784,7 @@ namespace SAFplus
             xpath.append(parentXpath);
           }
         }
-        xpath.append("/").append(this->name);
+        xpath.append("/").append(this->tag);
         xpath.append(keypart.str());
         return xpath;
       }

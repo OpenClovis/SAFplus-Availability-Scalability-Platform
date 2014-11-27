@@ -30,13 +30,12 @@ extern "C" {
 
 namespace SAFplus
 {
-  MgtRpc::MgtRpc(const char* nam) : MgtObject(nam), mInParams(""), mOutParams("")
+  MgtRpc::MgtRpc(const char* name) : MgtObject(name), mInParams(""), mOutParams("")
   {
-    name.assign(nam);
     Module.assign("");
     ErrorMsg.assign("");
-    mInParams.name.assign("input");
-    mOutParams.name.assign("output");
+    mInParams.tag.assign("input");
+    mOutParams.tag.assign("output");
   }
 
   MgtRpc::~MgtRpc()
@@ -83,11 +82,11 @@ namespace SAFplus
   {
     if (!strcmp(Module.c_str(), ""))
       {
-        logError("MGT","RPC", "Cannot register RPC [%s]", name.c_str());
+        logError("MGT","RPC", "Cannot register RPC [%s]", tag.c_str());
         return CL_ERR_NOT_EXIST;
       }
 
-    return MgtRoot::getInstance()->registerRpc(handle,Module, name);
+    return MgtRoot::getInstance()->registerRpc(handle,Module, tag);
   }
 
 }

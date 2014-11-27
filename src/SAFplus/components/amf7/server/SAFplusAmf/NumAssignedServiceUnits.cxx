@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     NumAssignedServiceUnits::NumAssignedServiceUnits()
     {
-        this->name.assign("numAssignedServiceUnits");
+        this->tag.assign("numAssignedServiceUnits");
     };
 
     std::vector<std::string>* NumAssignedServiceUnits::getChildNames()

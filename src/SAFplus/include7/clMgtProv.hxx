@@ -248,9 +248,9 @@ void MgtProv<T>::toString(std::stringstream& xmlString)
 {
     getDb();
     xmlString << "<";
-    xmlString << name << ">";
+    xmlString << tag << ">";
     xmlString << value;
-    xmlString << "</" << name << ">";
+    xmlString << "</" << tag << ">";
 }
 
 template <class T>
@@ -309,10 +309,10 @@ ClBoolT MgtProv<T>::set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transac
 
     namestr = (xmlChar *)xmlTextReaderConstName(reader);
 
-    if (strcmp((char *)namestr, name.c_str()))
+    if (strcmp((char *)namestr, tag.c_str()))
     {
 #ifndef SAFplus7
-        logDebug("MGT","PROV","Name [%s], XML [%s]",name.c_str(),(char *)namestr);
+        logDebug("MGT","PROV","Name [%s], XML [%s]",tag.c_str(),(char *)namestr);
 #endif
         xmlFreeTextReader(reader);
         return CL_FALSE;

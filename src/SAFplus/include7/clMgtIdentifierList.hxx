@@ -100,7 +100,7 @@ void MgtIdentifierList<T>::toString(std::stringstream& xmlString)
 {
     for (unsigned int i = 0; i < value.size(); i++)
     {
-        xmlString << "<" << name << ">" << toStringItemAt(value.at(i)) << "</" << name << ">";
+        xmlString << "<" << tag << ">" << toStringItemAt(value.at(i)) << "</" << tag << ">";
     }
 }
 

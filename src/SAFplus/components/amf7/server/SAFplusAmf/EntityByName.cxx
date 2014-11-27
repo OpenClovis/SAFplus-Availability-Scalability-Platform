@@ -20,48 +20,48 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(EntityByName, /SAFplusAmf/EntityByName)
 
-    EntityByName::EntityByName(): SAFplus::MgtContainer("EntityByName"), myName("myName"), entity("entity")
+    EntityByName::EntityByName(): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")
     {
-        this->addChildObject(&myName, "myName");
+        this->addChildObject(&name, "name");
         this->addChildObject(&entity, "entity");
     };
 
-    EntityByName::EntityByName(std::string myNameValue): SAFplus::MgtContainer("EntityByName"), myName("myName"), entity("entity")
+    EntityByName::EntityByName(std::string nameValue): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")
     {
-        this->myName.value =  myNameValue;
-        this->addChildObject(&myName, "myName");
+        this->name.value =  nameValue;
+        this->addChildObject(&name, "name");
         this->addChildObject(&entity, "entity");
     };
 
     std::vector<std::string> EntityByName::getKeys()
     {
-        std::string keyNames[] = { "myName" };
+        std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* EntityByName::getChildNames()
     {
-        std::string childNames[] = { "myName", "entity" };
+        std::string childNames[] = { "name", "entity" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityByName/myName
+     * XPATH: /SAFplusAmf/EntityByName/name
      */
-    std::string EntityByName::getMyName()
+    std::string EntityByName::getName()
     {
-        return this->myName.value;
+        return this->name.value;
     };
 
     /*
-     * XPATH: /SAFplusAmf/EntityByName/myName
+     * XPATH: /SAFplusAmf/EntityByName/name
      */
-    void EntityByName::setMyName(std::string myNameValue, SAFplus::Transaction &t)
+    void EntityByName::setName(std::string nameValue, SAFplus::Transaction &t)
     {
-        if(&t == &SAFplus::NO_TXN) this->myName.value = myNameValue;
+        if(&t == &SAFplus::NO_TXN) this->name.value = nameValue;
         else
         {
-            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(myName.value),myNameValue);
+            SAFplus::SimpleTxnOperation<std::string> *opt = new SAFplus::SimpleTxnOperation<std::string>(&(name.value),nameValue);
             t.addOperation(opt);
         }
     };

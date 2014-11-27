@@ -21,27 +21,27 @@ namespace SAFplusLog
     MGT_REGISTER_IMPL(Stream, /SAFplusLog/StreamConfig/stream)
 
     Stream::Stream()
-      :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL)  // additions 
+        :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL)  // additions
     {
-        this->name.assign("stream");
+        this->tag.assign("stream");
     };
 
-    Stream::Stream(std::string myNameValue)
-      :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL)  // additions 
+    Stream::Stream(std::string nameValue)
+        :fileBuffer(SAFplusI::LogDefaultFileBufferSize),msgBuffer(SAFplusI::LogDefaultMessageBufferSize),fp(NULL)  // additions
     {
-        this->myName.value =  myNameValue;
-        this->name.assign("stream");
+        this->name.value =  nameValue;
+        this->tag.assign("stream");
     };
 
     std::vector<std::string> Stream::getKeys()
     {
-        std::string keyNames[] = { "myName" };
+        std::string keyNames[] = { "name" };
         return std::vector<std::string> (keyNames, keyNames + sizeof(keyNames) / sizeof(keyNames[0]));
     };
 
     std::vector<std::string>* Stream::getChildNames()
     {
-        std::string childNames[] = { "myName", "fileName", "replicate", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope", "StreamStatistics" };
+        std::string childNames[] = { "name", "fileName", "replicate", "fileLocation", "fileUnitSize", "recordSize", "fileFullAction", "maximumFilesRotated", "flushFreq", "flushInterval", "syslog", "streamScope", "StreamStatistics" };
         return new std::vector<std::string> (childNames, childNames + sizeof(childNames) / sizeof(childNames[0]));
     };
 

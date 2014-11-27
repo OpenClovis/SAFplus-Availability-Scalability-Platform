@@ -35,15 +35,15 @@ namespace SAFplusAmf
         this->addChildObject(&applicationList, "Application");
         this->addChildObject(&entityByNameList, "EntityByName");
         this->addChildObject(&entityByIdList, "EntityById");
-        clusterList.setListKey("myName");
-        nodeList.setListKey("myName");
-        serviceGroupList.setListKey("myName");
-        componentList.setListKey("myName");
-        componentServiceInstanceList.setListKey("myName");
-        serviceInstanceList.setListKey("myName");
-        serviceUnitList.setListKey("myName");
-        applicationList.setListKey("myName");
-        entityByNameList.setListKey("myName");
+        clusterList.setListKey("name");
+        nodeList.setListKey("name");
+        serviceGroupList.setListKey("name");
+        componentList.setListKey("name");
+        componentServiceInstanceList.setListKey("name");
+        serviceInstanceList.setListKey("name");
+        serviceUnitList.setListKey("name");
+        applicationList.setListKey("name");
+        entityByNameList.setListKey("name");
         entityByIdList.setListKey("id");
     };
 

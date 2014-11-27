@@ -39,7 +39,7 @@ namespace SAFplusAmf
 
     public:
         Cluster();
-        Cluster(std::string myNameValue);
+        Cluster(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

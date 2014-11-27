@@ -26,7 +26,6 @@ namespace SAFplusAmf
   Node* createNode(const char* nam, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool failFastOnInstantiationFailure, bool failFastOnCleanupFailure)
     {
     Node* ret = new Node(nam);
-    ret->name = nam;  // TBD: ctor should set
     ret->id = getAmfId();
     ret->adminState.value = adminState;
     ret->autoRepair = autoRepair;
@@ -41,7 +40,6 @@ namespace SAFplusAmf
   ServiceGroup* createServiceGroup(const char* nam, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool autoAdjust, SaTimeT autoAdjustInterval,unsigned int preferredNumActiveServiceUnits,unsigned int preferredNumStandbyServiceUnits,unsigned int preferredNumIdleServiceUnits,unsigned int maxActiveWorkAssignments,unsigned int maxStandbyWorkAssignments )
     {
     ServiceGroup* ret = new ServiceGroup(nam);
-    ret->name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
     ret->adminState.value                = adminState;
     ret->autoRepair                      = autoRepair;
@@ -60,7 +58,6 @@ namespace SAFplusAmf
   ServiceInstance* createServiceInstance(const char* nam, const SAFplusAmf::AdministrativeState& adminState, int rank,int actives=1, int standbys=1)
     {
     ServiceInstance* ret = new ServiceInstance(nam);
-    ret->name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
     ret->adminState.value                = adminState;
     ret->rank                            = rank;
@@ -74,7 +71,6 @@ namespace SAFplusAmf
   ComponentServiceInstance* createComponentServiceInstance(const char* nam)
     {
     ComponentServiceInstance* ret = new ComponentServiceInstance(nam);
-    ret->name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
     return ret;
     }
@@ -83,7 +79,6 @@ namespace SAFplusAmf
   ServiceUnit* createServiceUnit(const char* nam, const SAFplusAmf::AdministrativeState& adminState, int rank, bool failover)
     {
     ServiceUnit* ret = new ServiceUnit(nam);
-    ret->name = nam;  // TBD: ctor should set
     ret->id                              = getAmfId();
     ret->adminState.value                = adminState;
     ret->rank                            = rank;
@@ -103,7 +98,6 @@ namespace SAFplusAmf
   Component* createComponent(const char* nam, SAFplusAmf::CapabilityModel capabilityModel,unsigned int maxActiveAssignments,unsigned int maxStandbyAssignments,std::string safVersion, unsigned int compCategory,const std::string& swBundle,const std::string& env,unsigned int maxInstantInstantiations,unsigned int maxDelayedInstantiations,unsigned int delayBetweenInstantiation,SAFplusAmf::Recovery recovery,bool restartable,const std::string& proxy,const std::string& proxied)
     {
     Component* ret = new Component(nam);
-    ret->name = nam;  // TBD: ctor should set
     ret->id = getAmfId();
     ret->capabilityModel = capabilityModel;
     ret->maxActiveAssignments = maxActiveAssignments;
@@ -167,7 +161,6 @@ namespace SAFplusAmf
     csi = createComponentServiceInstance("csi");
 
     Data* nvp = new Data("testKey");
-    nvp->name = "testKey";
     nvp->val.value = "testValue";
     csi->dataList.addChildObject(nvp);
 

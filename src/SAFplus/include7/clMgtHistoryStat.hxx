@@ -187,7 +187,7 @@ void MgtHistoryStat<T>::toString(std::stringstream& xmlString)
 {
     ClUint32T i;
 
-    xmlString << "<" << name << ">";
+    xmlString << "<" << tag << ">";
 
     xmlString << "<current>" << mCurrent << "</current>";
 
@@ -231,7 +231,7 @@ void MgtHistoryStat<T>::toString(std::stringstream& xmlString)
         xmlString << "<history1month>" << mHistory1Month[i] << "</history1month>";
     }
 
-    xmlString << "</" << name << ">";
+    xmlString << "</" << tag << ">";
 }
 
 template <class T>

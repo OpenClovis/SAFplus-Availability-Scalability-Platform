@@ -25,7 +25,7 @@ module SAFplusLog {
 
         description "Configurable attributes relating to the log stream";
 
-        leaf myName {
+        leaf name {
             type string;
             description "Name of the stream";
         }
@@ -141,7 +141,7 @@ module SAFplusLog {
     container StreamConfig
     {
         list stream {
-            key "myName";
+            key "name";
             uses StreamAttributes;
             container StreamStatistics {
                 description "Statistics relating to the log stream";

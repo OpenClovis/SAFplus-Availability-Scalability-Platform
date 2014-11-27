@@ -92,7 +92,7 @@ namespace SAFplusAmf
 
     public:
         ServiceUnit();
-        ServiceUnit(std::string myNameValue);
+        ServiceUnit(std::string nameValue);
         std::vector<std::string> getKeys();
         std::vector<std::string>* getChildNames();
 

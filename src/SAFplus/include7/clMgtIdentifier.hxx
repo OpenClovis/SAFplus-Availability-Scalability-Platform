@@ -101,11 +101,11 @@ namespace SAFplus
   void MgtIdentifier<T>::toString(std::stringstream& xmlString)
   {
       xmlString << "<";
-      xmlString << name << ">";
+      xmlString << tag << ">";
       MgtObject *obj = dynamic_cast<MgtObject *>(value);
       if (obj)
           xmlString << value->getFullXpath();
-      xmlString << "</" << name << ">";
+      xmlString << "</" << tag << ">";
   }
 
   template <class T>

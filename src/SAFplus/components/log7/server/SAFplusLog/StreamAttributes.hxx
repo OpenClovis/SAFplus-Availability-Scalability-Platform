@@ -27,7 +27,7 @@ namespace SAFplusLog
         /*
          * Name of the stream
          */
-        SAFplus::MgtProv<std::string> myName;
+        SAFplus::MgtProv<std::string> name;
 
         /*
          * Output file name
@@ -89,14 +89,14 @@ namespace SAFplusLog
         std::vector<std::string>* getChildNames();
 
         /*
-         * XPATH: /SAFplusLog/StreamAttributes/myName
+         * XPATH: /SAFplusLog/StreamAttributes/name
          */
-        std::string getMyName();
+        std::string getName();
 
         /*
-         * XPATH: /SAFplusLog/StreamAttributes/myName
+         * XPATH: /SAFplusLog/StreamAttributes/name
          */
-        void setMyName(std::string myNameValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
+        void setName(std::string nameValue, SAFplus::Transaction &txn=SAFplus::NO_TXN);
 
         /*
          * XPATH: /SAFplusLog/StreamAttributes/fileName
