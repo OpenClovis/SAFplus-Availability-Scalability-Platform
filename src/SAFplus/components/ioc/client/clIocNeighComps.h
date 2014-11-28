@@ -35,6 +35,12 @@ void clIocNodeCompsReset(ClIocNodeAddressT node);
 ClRcT clIocCheckAndGetPortId(ClIocPortT *portId);
 void clIocPutPortId(ClIocPortT portId);
 
+ClRcT clNodeBackwardCacheInitialize(ClBoolT createFlag);
+ClRcT clNodeBackwardCacheFinalize(ClBoolT createFlag);
+
+ClRcT clIocSetNodeCompat(ClIocNodeAddressT nodeAddr, ClUint8T compat);
+ClUint8T clIocGetNodeCompat(ClIocNodeAddressT nodeAddr);
+
 #define CL_IOC_NEIGH_COMPS_STATUS_SET(node, comp)   CL_IOC_BIT_SET(gpClIocNeighComps, ((node) * (CL_IOC_ALLOC_COMPS_PER_NODE) + (comp)))
 #define CL_IOC_NEIGH_COMPS_STATUS_RESET(node, comp) CL_IOC_BIT_RESET(gpClIocNeighComps, ((node) * (CL_IOC_ALLOC_COMPS_PER_NODE) + (comp)))
 #define CL_IOC_NEIGH_COMPS_STATUS_GET(node, comp)   CL_IOC_BIT_GET(gpClIocNeighComps, ((node) * (CL_IOC_ALLOC_COMPS_PER_NODE) + (comp)))

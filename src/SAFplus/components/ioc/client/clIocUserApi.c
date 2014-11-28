@@ -1417,59 +1417,78 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
     {
         ClIocHeaderT userHeader = { 0 };
 
-        userHeader.version = CL_IOC_HEADER_VERSION;
-        userHeader.protocolType = protoType;
-        userHeader.priority = priority;
-        userHeader.srcAddress.iocPhyAddress.nodeAddress = 
-            htonl(originAddress->iocPhyAddress.nodeAddress);
-        userHeader.srcAddress.iocPhyAddress.portId = 
-            htonl(originAddress->iocPhyAddress.portId);
-        userHeader.dstAddress.iocPhyAddress.nodeAddress =
-            htonl(((ClIocPhysicalAddressT *)destAddress)->nodeAddress);
-        userHeader.dstAddress.iocPhyAddress.portId =
-            htonl(((ClIocPhysicalAddressT *)destAddress)->portId);
-        userHeader.reserved = htonl(0x2);
+        if (!clIocGetNodeCompat(interimDestAddress.iocPhyAddress.nodeAddress) || clIocGetNodeCompat(interimDestAddress.iocPhyAddress.nodeAddress) == 0x1)
+          {
+            userHeader.version = CL_IOC_HEADER_VERSION;
+            userHeader.protocolType = protoType;
+            userHeader.priority = priority;
+            userHeader.srcAddress.iocPhyAddress.nodeAddress = htonl(originAddress->iocPhyAddress.nodeAddress);
+            userHeader.srcAddress.iocPhyAddress.portId = htonl(originAddress->iocPhyAddress.portId);
+            userHeader.dstAddress.iocPhyAddress.nodeAddress = htonl(((ClIocPhysicalAddressT *) destAddress)->nodeAddress);
+            userHeader.dstAddress.iocPhyAddress.portId = htonl(((ClIocPhysicalAddressT *) destAddress)->portId);
+            userHeader.reserved = htonl(0x2);
+
+    #ifdef CL_IOC_COMPRESSION
+            if(compressedStreamLen)
+                userHeader.reserved = htonl(0x1|0x2); /*mark compression flag*/
+            userHeader.pktTime = clHtonl64(pktTime);
+    #endif
+
+            retCode = clBufferDataPrepend(message, (ClUint8T *) &userHeader, sizeof(ClIocHeaderT));
+            if (retCode != CL_OK)
+              {
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nERROR: Prepend buffer data failed = 0x%x\n", retCode));
+                goto out_free;
+              }
+
+            if (replicastList)
+              {
+                retCode = internalSendSlowReplicast(pIocCommPort, message, priority, &timeout, replicastList, numReplicasts, &userHeader,
+                    proxy);
+              }
+            else
+              {
+                retCode = internalSendSlow(pIocCommPort, message, priority, &interimDestAddress, &timeout, xportType, proxy);
+              }
+
+            rc = clBufferHeaderTrim(message, sizeof(ClIocHeaderT));
+            if (rc != CL_OK)
+              CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nERROR: Buffer header trim failed RC = 0x%x\n", rc));
+          }
+
+        if (interimDestAddress.iocPhyAddress.nodeAddress != gIocLocalBladeAddress
+            && (isBcast || !clIocGetNodeCompat(interimDestAddress.iocPhyAddress.nodeAddress)
+                || clIocGetNodeCompat(interimDestAddress.iocPhyAddress.nodeAddress) == 0x2))
+          {
+            //Backward sending notification
+            ClTipcHeaderT userTipcHeader = { 0 };
+
+            userTipcHeader.version = CL_IOC_HEADER_VERSION;
+            userTipcHeader.protocolType = protoType;
+            userTipcHeader.priority = priority;
+            userTipcHeader.srcAddress.iocPhyAddress.nodeAddress = htonl(originAddress->iocPhyAddress.nodeAddress);
+            userTipcHeader.srcAddress.iocPhyAddress.portId = htonl(originAddress->iocPhyAddress.portId);
+            userTipcHeader.reserved = htonl(0x2);
 
 #ifdef CL_IOC_COMPRESSION
-        if(compressedStreamLen)
-            userHeader.reserved = htonl(0x1|0x2); /*mark compression flag*/
-        userHeader.pktTime = clHtonl64(pktTime);
+            if(compressedStreamLen)
+            userTipcHeader.reserved = htonl(0x1|0x2); /*mark compression flag*/
+            userTipcHeader.pktTime = clHtonl64(pktTime);
 #endif
 
-        retCode =
-            clBufferDataPrepend(message, (ClUint8T *) &userHeader,
-                                sizeof(ClIocHeaderT));
-        if(retCode != CL_OK)	
-        {
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nERROR: Prepend buffer data failed = 0x%x\n", retCode));
-            goto out_free;
-        }
-        
-        if(replicastList)
-        {
-            retCode = internalSendSlowReplicast(pIocCommPort, message, priority, &timeout, 
-                                                replicastList, numReplicasts, 
-                                                &userHeader, proxy);
-        }
-        else
-        {
-            /*clLogTrace(
-                  "IOC",
-                  "SEND",
-                  "Sending to destination [%#x: %#x] with [xport: %s]",
-                  interimDestAddress.iocPhyAddress.nodeAddress,
-                  interimDestAddress.iocPhyAddress.portId, xportType);
-            */
-            retCode = internalSendSlow(pIocCommPort, message, priority, 
-                                       &interimDestAddress, &timeout, 
-                                       xportType, proxy);
-        }
+            retCode = clBufferDataPrepend(message, (ClUint8T *) &userTipcHeader, sizeof(ClTipcHeaderT));
+            if (retCode != CL_OK)
+              {
+                CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nERROR: Prepend buffer data failed = 0x%x\n", retCode));
+                goto out_free;
+              }
 
-        rc = clBufferHeaderTrim(message, sizeof(ClIocHeaderT));
-        if(rc != CL_OK)
-            CL_DEBUG_PRINT(CL_DEBUG_ERROR,
-                           ("\nERROR: Buffer header trim failed RC = 0x%x\n", rc));
+            retCode = internalSendSlow(pIocCommPort, message, priority, &interimDestAddress, &timeout, xportType, proxy);
+            rc = clBufferHeaderTrim(message, sizeof(userTipcHeader));
+
+            if (rc != CL_OK)
+              CL_DEBUG_PRINT(CL_DEBUG_ERROR, ("\nERROR: Buffer header trim failed RC = 0x%x\n", rc));
+          }
 
 #ifdef CL_IOC_COMPRESSION
         if(compressedStreamLen)
@@ -2292,9 +2311,6 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort,
     userHeader.dstAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.dstAddress.iocPhyAddress.nodeAddress);
     userHeader.dstAddress.iocPhyAddress.portId = ntohl(userHeader.dstAddress.iocPhyAddress.portId);
 
-    clLogDebug("HOANG", "HOANG", "IsBackward [%d] [node 0x%x : port 0x%x]", isBackward, userHeader.srcAddress.iocPhyAddress.nodeAddress,
-            userHeader.srcAddress.iocPhyAddress.portId);
-
     if (!isBackward)
       {
         /*
@@ -2642,6 +2658,9 @@ ClRcT clIocDispatchAsync(const ClCharT *xportType, ClIocPortT port, ClUint8T *bu
                                         userHeader.version, CL_IOC_HEADER_VERSION));
         goto out;
     }
+
+    //Check version
+    ClBoolT isBackward = (!(ntohl(userHeader.reserved) & 0x2));
 
     userHeader.srcAddress.iocPhyAddress.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
     userHeader.srcAddress.iocPhyAddress.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
@@ -2992,6 +3011,7 @@ ClRcT clIocLibFinalize()
     clIocNeighCompsFinalize();
     __iocFragmentPoolFinalize();
     clTransportLayerFinalize();
+    clNodeBackwardCacheFinalize(gIsNodeRepresentative);
     clOsalMutexDelete(gClIocFragMutex);
     return CL_OK;
 }
@@ -3116,6 +3136,7 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     }
 
     clIocHeartBeatInitialize(gIsNodeRepresentative);
+    clNodeBackwardCacheInitialize(gIsNodeRepresentative);
 
     gIocInit = CL_TRUE;
     return CL_OK;
