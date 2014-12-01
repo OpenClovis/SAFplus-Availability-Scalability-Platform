@@ -666,32 +666,52 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
     ClUint8T protocolType;
     ClUint8T version;
     ClBoolT isBackward = CL_FALSE;
-    ClUint32T sizeHeader = (ClUint32T)sizeof(userHeader);
+    ClUint32T sizeHeader = (ClUint32T)sizeof(userTipcHeader);
 
     if(recvLen <= (ClUint32T)sizeof(userHeader) && recvLen <= (ClUint32T)sizeof(userTipcHeader))
         return CL_IOC_RC(CL_ERR_NO_SPACE);
 
-    memcpy((ClPtrT)&userHeader, pRecvBase, sizeHeader);
+    memcpy((ClPtrT)&userTipcHeader, pRecvBase, sizeHeader);
 
     /*
+     * Issue: 1 SC running with 5.0 and another running 6.0, then IOC header have a different.
+     * As result, 2 above SCs can not communication
      * Work-around to mark new version (since 6.0) by marked .reserved field to 0x2 because
      * old version (5.0) .reserved field = 0x0, 0x1 => CL_IOC_COMPRESSION
      * But it is not right if old one (5.0) defined CL_IOC_COMPRESSION, then it should be patched
      * for 5.0 as well since if defined compression flag, this solution may not work
      */
-    isBackward = (!(ntohl(userHeader.reserved) & 0x2));
+    isBackward = (!(ntohl(userTipcHeader.reserved) & 0x2));
 
     if (isBackward)
       {
-        sizeHeader = (ClUint32T)sizeof(userTipcHeader);
-        memcpy((ClPtrT)&userTipcHeader, pRecvBase, sizeHeader);
         protocolType = userTipcHeader.protocolType;
         version = userTipcHeader.version;
+
+        srcAddr.nodeAddress = ntohl(userTipcHeader.srcAddress.iocPhyAddress.nodeAddress);
+        srcAddr.portId = ntohl(userTipcHeader.srcAddress.iocPhyAddress.portId);
+        // Backward compatible
+        if (srcAddr.nodeAddress == gIocLocalBladeAddress)
+          {
+            goto out;
+          }
+        else
+          {
+            //0x2 mean this is release 5.0 (userHeader.reserved = 0)
+            clIocSetNodeCompat(srcAddr.nodeAddress, 0x2);
+          }
       }
     else
       {
+        sizeHeader = (ClUint32T)sizeof(userHeader);
+        memcpy((ClPtrT)&userHeader, pRecvBase, sizeHeader);
         protocolType = userHeader.protocolType;
         version = userHeader.version;
+
+        srcAddr.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
+        srcAddr.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
+        if (srcAddr.nodeAddress != gIocLocalBladeAddress)
+          clIocSetNodeCompat(srcAddr.nodeAddress, 0x1); //0x1 mean this is release 6.0 (userHeader.reserved = 0x2)
       }
 
     if (version != CL_IOC_HEADER_VERSION)
@@ -700,21 +720,6 @@ ClRcT clIocNotificationPacketRecv(ClIocCommPortHandleT commPort, ClUint8T *recvB
             ("Got version [%d] tipc packet. Supported [%d] version\n", version, CL_IOC_HEADER_VERSION));
         return CL_IOC_RC(CL_ERR_VERSION_MISMATCH);
     }
-
-    if (isBackward)
-      {
-        srcAddr.nodeAddress = ntohl(userTipcHeader.srcAddress.iocPhyAddress.nodeAddress);
-        srcAddr.portId = ntohl(userTipcHeader.srcAddress.iocPhyAddress.portId);
-        // Backward compatible
-        clIocSetNodeCompat(srcAddr.nodeAddress, 0x2);
-      }
-    else
-      {
-        srcAddr.nodeAddress = ntohl(userHeader.srcAddress.iocPhyAddress.nodeAddress);
-        srcAddr.portId = ntohl(userHeader.srcAddress.iocPhyAddress.portId);
-        if (srcAddr.nodeAddress != gIocLocalBladeAddress)
-          clIocSetNodeCompat(srcAddr.nodeAddress, 0x1);
-      }
 
     if(protocolType == CL_IOC_PROTO_ARP)
     {

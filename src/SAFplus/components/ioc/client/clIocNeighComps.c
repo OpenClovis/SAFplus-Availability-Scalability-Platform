@@ -640,8 +640,6 @@ ClRcT clIocSetNodeCompat(ClIocNodeAddressT nodeAddr, ClUint8T compat)
 
     clOsalSemUnlock(gClNodeBackwardCacheSem);
 
-    clLogTrace("IOC", "CACHE", "Setting compatible node [0x%x: 0x%x]", nodeAddr, compat);
-
     return rc;
 }
 
@@ -667,8 +665,6 @@ ClUint8T clIocGetNodeCompat(ClIocNodeAddressT nodeAddr)
 
     compat = gpClNodeBackwardCache[nodeAddr];
     clOsalSemUnlock(gClNodeBackwardCacheSem);
-
-    clLogTrace("IOC", "CACHE", "Getting compatible node [0x%x: 0x%x]", nodeAddr, compat);
 
     return compat;
 }
