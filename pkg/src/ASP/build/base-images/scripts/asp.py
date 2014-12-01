@@ -684,6 +684,11 @@ def config_tipc_module():
             fail_and_exit(msg1 + msg2)
 
 def unload_tipc_module():
+    link_name = get_asp_link_name()
+    cmd = 'tipc-config -bd=eth:%s' %link_name
+    log.debug('disable bearer :%s ...' %cmd)
+    ret, output, signal, core = system(cmd)
+
     cmd = sys_asp['unload_tipc_cmd']
     ret, output, signal, core = system(cmd)
     if ret:
