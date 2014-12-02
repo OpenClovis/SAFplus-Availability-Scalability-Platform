@@ -1088,11 +1088,12 @@ static ClRcT iovecIteratorExit(IOVecIteratorT *iter)
 }
 
 static void _iocSendFragmentCompatibleMode(ClIocCommPortT *pIocCommPort, ClBufferHandleT message, ClUint8T protoType, ClIocAddressT *destAddress, ClCharT *xportType, ClBoolT proxy,
-    ClUint32T msgLength, ClUint32T maxPayload, ClIocAddressT *replicastList, ClUint32T numReplicasts, ClUint32T timeout, ClUint8T priority)
+    ClUint32T msgLength, ClIocAddressT *replicastList, ClUint32T numReplicasts, ClUint32T timeout, ClUint8T priority)
   {
     ClRcT retCode = CL_OK, rc = CL_OK;
     ClUint32T fragId, bytesRead = 0;
     ClUint32T totalFragRequired, fraction;
+    ClUint32T maxPayload = gClMaxPayloadSize;
 
     /*
      * Fragment it to 64 K size and return
@@ -1584,8 +1585,8 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
         if (destNode == CL_IOC_BROADCAST_ADDRESS
             || (destNode != gIocLocalBladeAddress && (!clIocGetNodeCompat(destNode) || clIocGetNodeCompat(destNode) == 0x2)))
           {
-            _iocSendFragmentCompatibleMode(pIocCommPort, message, protoType, destAddress, xportType, proxy, msgLength, maxPayload,
-                replicastList, numReplicasts, timeout, priority);
+            _iocSendFragmentCompatibleMode(pIocCommPort, message, protoType, destAddress, xportType, proxy, msgLength, replicastList,
+                numReplicasts, timeout, priority);
           }
 
     }
@@ -2191,6 +2192,7 @@ static ClRcT internalSendReplicast(ClIocCommPortT *pIocCommPort,
 
         if (clIocGetNodeCompat(((ClIocPhysicalAddressT*)&replicastList[i])->nodeAddress) == 0x2)
           {
+            ++success;
             continue;
           }
 
@@ -2283,6 +2285,7 @@ static ClRcT internalSendReplicastCompat(ClIocCommPortT *pIocCommPort,
 
         if (clIocGetNodeCompat(replicastList[i].iocPhyAddress.nodeAddress) == 0x1)
           {
+            ++success;
             continue;
           }
 
@@ -2407,6 +2410,7 @@ static ClRcT internalSendSlowReplicast(ClIocCommPortT *pIocCommPort,
 
         if (clIocGetNodeCompat(destNode) == 0x2)
           {
+            ++success;
             continue;
           }
 
@@ -2516,6 +2520,7 @@ static ClRcT internalSendSlowReplicastCompat(ClIocCommPortT *pIocCommPort,
 
         if (clIocGetNodeCompat(replicastList[i].iocPhyAddress.nodeAddress) == 0x1)
           {
+            ++success;
             continue;
           }
 
