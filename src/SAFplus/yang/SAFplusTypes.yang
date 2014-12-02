@@ -47,6 +47,29 @@ module SAFplusTypes
     extension atomic;
     extension extensible;  // Generates 2 classes: xxxGenerated and an empty class xxx:public xxxGenerated {}.  You can put your changes in class xxx...
 
+    extension ui-entity
+    {
+    description "This command indicates that this object is a GUI UML diagram entity.";
+    argument "icon file";
+    }
+
+    extension ui-container
+    {
+    description "This extension is used in a contained list or leaf-list and describes the relationship between the container and the contained.  1 means the contained can only be in 1 container.  N means the contained can exist in multiple containers.";
+    }
+
+    extension ui-contained
+    {
+    description "This extension is used in a contained list or leaf-list and describes the relationship between the container and the contained.  1 means the contained can only be in 1 container.  N means the contained can exist in multiple containers.";
+    argument "amount";
+    }
+
+    extension instance-type
+    {
+    argument "type";
+    description "If the Yang type is instance-identifier, this extension refines the type so the UI knows exactly what kind of instances are allowed.";
+    }
+
     extension ui-dialog
     {
       argument "title";

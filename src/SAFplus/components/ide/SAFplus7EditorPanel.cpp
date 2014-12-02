@@ -7,7 +7,7 @@
 #include "SAFplus7EditorPanel.h"
 #include "SAFplus7ScrolledWindow.h"
 #include <wx/splitter.h>
-extern wxWindow* PythonWinTest(wxWindow* parent);
+extern wxWindow* createPythonControlledWindow(wxWindow* parent,const char* module);
 
 int wxIDShowProperties = wxNewId();
 
@@ -95,10 +95,13 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   bSizer->Add( m_designToolBar, 0, wxEXPAND, 5 );
 
   wxSplitterWindow* sp = new wxSplitterWindow(this, -1);
-  m_paintArea = new SAFplus7ScrolledWindow(sp, wxID_ANY);
-  wxWindow* py = PythonWinTest(sp);  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
+  //m_paintArea = new SAFplus7ScrolledWindow(sp, wxID_ANY);
+  m_paintArea = NULL;
+  wxWindow* details = createPythonControlledWindow(sp,"entityDetailsDialog");  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
+  wxWindow* uml = createPythonControlledWindow(sp,"entityDetailsDialog");  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
 
-  sp->SplitVertically(py, m_paintArea, GetClientSize().x/4);
+  //sp->SplitVertically(details, m_paintArea, GetClientSize().x/4);
+  sp->SplitVertically(details, uml, GetClientSize().x/4);
   bSizer->Add(sp, 1, wxEXPAND, 5 );
 
 #if 0
@@ -156,7 +159,7 @@ bool SAFplus7EditorPanel::GetModified() const
 
 void SAFplus7EditorPanel::OnIdle(wxIdleEvent& event)
 {
-  SetModified(m_paintArea->m_isDirty);
+  if (m_paintArea) SetModified(m_paintArea->m_isDirty);
 }
 
 void SAFplus7EditorPanel::SetModified(bool modified)
@@ -181,6 +184,9 @@ void SAFplus7EditorPanel::OnNew(wxCommandEvent &event)
 void SAFplus7EditorPanel::ShowProperties(wxCommandEvent &event)
 {
   static bool isShow = true;
-  m_paintArea->m_mgr.GetPane(wxT("Properties")).Show(isShow = !isShow).Right().Layer(0).Row(0).Position(0);
-  m_paintArea->m_mgr.Update();
+  if (m_paintArea)
+    {
+    m_paintArea->m_mgr.GetPane(wxT("Properties")).Show(isShow = !isShow).Right().Layer(0).Row(0).Position(0);
+    m_paintArea->m_mgr.Update();
+    }
 }

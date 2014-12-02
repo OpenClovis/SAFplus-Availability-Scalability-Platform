@@ -1,11 +1,12 @@
 # depslib dependency file v1.0
-1415819725 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7EditorPanel.cpp
+1417555718 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7EditorPanel.cpp
 	<logmanager.h>
 	<wx/artprov.h>
 	<wx/settings.h>
 	"resources/images/Tool.xpm"
 	"SAFplus7EditorPanel.h"
 	"SAFplus7ScrolledWindow.h"
+	<wx/splitter.h>
 
 1416591626 /usr/include/wx-2.8/wx/artprov.h
 	"wx/string.h"
@@ -358,9 +359,9 @@
 
 1416591628 /usr/include/wx-2.8/wx/gtk/font.h
 
-1415644769 /code/git/SAFplus7/src/SAFplus/components/ide/resources/images/Tool.xpm
+1416931849 /code/git/SAFplus7/src/SAFplus/components/ide/resources/images/Tool.xpm
 
-1415803090 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7EditorPanel.h
+1416947914 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7EditorPanel.h
 	<set>
 	<configmanager.h>
 	<editormanager.h>
@@ -377,7 +378,7 @@
 	<wx/hashmap.h>
 	"SAFplus7ScrolledWindow.h"
 
-1415741184 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.h
+1416947942 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.h
 	<wx/wx.h>
 	"standalone.h"
 	"standaloneApp.h"
@@ -1487,11 +1488,11 @@
 1416591628 /usr/include/wx-2.8/wx/gtk/filedlg.h
 	"wx/generic/filedlgg.h"
 
-1415741868 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneApp.h
+1416947942 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneApp.h
 	<wx/app.h>
 	"standalone.h"
 
-1415803090 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7ScrolledWindow.h
+1416947914 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7ScrolledWindow.h
 	<wx/window.h>
 	<wx/aui/aui.h>
 	<wx/scrolwin.h>
@@ -2590,7 +2591,7 @@
 1395223202 /usr/include/librsvg-2.0/librsvg/rsvg-cairo.h
 	<cairo.h>
 
-1415821688 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
+1417477175 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
 	<sdk.h>
 	<configurationpanel.h>
 	<logmanager.h>
@@ -2609,6 +2610,12 @@
 	"SAFplus7EditorPanel.h"
 	<Python.h>
 	<boost/python.hpp>
+	<boost/python/dict.hpp>
+	<vector>
+	<dlfcn.h>
+	"yangParser.h"
+	"utils.h"
+	"svgIcon.h"
 
 1416591630 /usr/include/wx-2.8/wx/xrc/xmlres.h
 	"wx/defs.h"
@@ -2697,12 +2704,14 @@
 	"wx/scrolwin.h"
 	"wx/pen.h"
 
-1415731589 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.h
+1416950437 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.h
 	<wx/wxprec.h>
 	<wx/wx.h>
 	<cbplugin.h>
 	<editorbase.h>
 	"standalone/standaloneMain.h"
+	<Python.h>
+	<wx/wxPython/wxPython.h>
 
 1416591624 /usr/include/wx-2.8/wx/wxprec.h
 	"wx/defs.h"
@@ -2717,14 +2726,16 @@
 	"wx/mgl/private.h"
 	"wx/wx.h"
 
-1415803090 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7ScrolledWindow.cpp
+1416953524 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7ScrolledWindow.cpp
 	<wx/wx.h>
 	<wx/dcbuffer.h>
 	<wx/dcmemory.h>
+	<wx/defs.h>
 	"SAFplus7ScrolledWindow.h"
 	<gdk/gdk.h>
 	<gtk/gtk.h>
 	<cairo.h>
+	<wx/rawbmp.h>
 
 1416591629 /usr/include/wx-2.8/wx/dcbuffer.h
 	"wx/dcmemory.h"
@@ -4125,22 +4136,23 @@
 1399912912 /usr/include/gtk-2.0/gtk/gtktipsquery.h
 	<gtk/gtk.h>
 
-1415821238 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneApp.cpp
+1416947942 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneApp.cpp
 	"wx_pch.h"
 	"standaloneApp.h"
 	"standaloneMain.h"
 	"../SAFplus7IDE.h"
-
-1415819841 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.cpp
-	"wx_pch.h"
-	"standaloneMain.h"
 	"../SAFplus7EditorPanel.h"
 
-1415819634 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standalone.h
+1416947942 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.cpp
+	"wx_pch.h"
+	"standaloneMain.h"
+
+1416947942 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standalone.h
 	<cbplugin.h>
 	<editorbase.h>
 	<configmanager.h>
 	<wx/wx.h>
+	<wx/xrc/xmlres.h>
 
 1395532525 /usr/include/python2.7/Python.h
 	"patchlevel.h"
@@ -20953,7 +20965,7 @@
 	"wx/gdicmn.h"
 	"wx/dialog.h"
 
-1416851300 /usr/include/wx-3.0/wx/confbase.h
+1416957191 /usr/include/wx-3.0/wx/confbase.h
 	"wx/defs.h"
 	"wx/string.h"
 	"wx/object.h"
@@ -27594,4 +27606,48 @@
 
 1416932781 source:/code/rep/SAFplus7/src/SAFplus/components/ide/yangParser.cxx
 	"yangParser.h"
+
+1416950729 source:/code/git/SAFplus7/src/SAFplus/components/ide/handle_error.cpp
+	<boost/python.hpp>
+	<Python.h>
+
+1416931849 source:/code/git/SAFplus7/src/SAFplus/components/ide/pythonwintest.cpp
+	<Python.h>
+	<wx/wx.h>
+	<wx/splitter.h>
+	<wx/wxPython/wxPython.h>
+
+1416952759 source:/code/git/SAFplus7/src/SAFplus/components/ide/svgIcon.cxx
+	"svgIcon.h"
+
+1416952739 /code/git/SAFplus7/src/SAFplus/components/ide/svgIcon.h
+	<wx/wx.h>
+	<vector>
+	<Python.h>
+	<boost/python.hpp>
+	<cairo.h>
+	<librsvg/rsvg.h>
+
+1416932781 source:/code/git/SAFplus7/src/SAFplus/components/ide/utils.cxx
+	"utils.h"
+
+1416950724 /code/git/SAFplus7/src/SAFplus/components/ide/utils.h
+	<wx/wx.h>
+	<string>
+
+1416932781 source:/code/git/SAFplus7/src/SAFplus/components/ide/yangParser.cxx
+	"yangParser.h"
+
+1416932781 /code/git/SAFplus7/src/SAFplus/components/ide/yangParser.h
+	<wx/wx.h>
+	<vector>
+	<Python.h>
+	<boost/python.hpp>
+
+1417555011 source:/code/git/SAFplus7/src/SAFplus/components/ide/pythonWindow.cpp
+	<Python.h>
+	<wx/wx.h>
+	<wx/splitter.h>
+	<wx/wxPython/wxPython.h>
+	<boost/python.hpp>
 
