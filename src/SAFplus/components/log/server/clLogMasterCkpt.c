@@ -132,14 +132,14 @@ clLogMasterCkptGet(void)
     rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName,
                               &ckptAttr,openFlags, timeout,
                               &pMasterEoEntry->hCkpt);
-    if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != rc) )
+    if (CL_OK != rc)
     {
         /*
          * No replica found and we are the only master.
          * Delete and try re-opening the checkpoint
          */
-        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE &&
-           pCommonEoEntry->masterAddr == localAddr)
+        if (((CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) || (CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE))
+            && pCommonEoEntry->masterAddr == localAddr)
         {
             if(tries++ < 1)
             {

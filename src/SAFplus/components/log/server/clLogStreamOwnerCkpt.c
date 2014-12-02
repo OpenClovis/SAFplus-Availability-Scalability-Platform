@@ -917,8 +917,8 @@ clLogStreamOwnerCheckpointCreate(ClLogSOEoDataT  *pSoEoEntry,
          * No replica found and we are the only master.
          * Delete and try re-opening the checkpoint
          */
-        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE &&
-           pCommonEoData->masterAddr == localAddr)
+        if (((CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) || (CL_GET_ERROR_CODE(rc) == CL_ERR_NO_RESOURCE))
+            && pCommonEoData->masterAddr == localAddr)
         {
             if(tries++ < 1)
             {
