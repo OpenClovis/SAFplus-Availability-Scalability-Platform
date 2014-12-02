@@ -310,8 +310,8 @@ vpath %.a $(all_lib_paths)
 vpath %.so $(all_lib_paths)
 ifdef EXE_NAME
 $(BIN_DIR)/$(EXE_NAME): $(obj_files) $(ASP_LIBS) $(MODEL_LIB)/$(MODEL_CONFIG_LIBRARY) $(filter %.a,$(EXTRA_LDLIBS)) $(filter %.so,$(EXTRA_LDLIBS)) $(BUILD_ROOT)/clasp.env
-	$(call cmd,link,$(obj_files))
 	$(shell mkdir -p $(BIN_DIR))
+	$(call cmd,link,$(obj_files))
 endif
 
 ifdef PLUGIN_NAME
