@@ -318,6 +318,7 @@ Stream* createStreamCfg(const char* nam, const char* filename, const char* locat
  */
 LogCfg* loadLogCfg()
 {
+  logcfg.serverConfig.read();
   logcfg.streamConfig.read();  // Load up all children of streamConfig (recursively) from the DB
 
   Stream* s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("sys"));

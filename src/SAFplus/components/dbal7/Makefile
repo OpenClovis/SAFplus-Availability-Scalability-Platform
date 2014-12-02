@@ -39,7 +39,7 @@ $(LIB_DIR)/libclDbal7.so: $(CLIENT_DBAL_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(CLIENT_DBAL_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
 
 $(LIB_DIR)/pyDbal.so: $(SAFPLUS_TARGET)/obj/pyDbal.o $(DEP_LIBS) $(LIB_DIR)/libclSQLiteDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclBerkeleyDB.so
-	$(LINK_SO) $@ $+ $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) -lclDbal7 -L$(SAFPLUS_SDK_TARGET)/lib -lpthread -lstdc++ -ldl -lm  -lrt -lezxml $(PyLib)
+	$(LINK_SO) $@ $+ $(SAFPLUS_LINK_LIBS) $(LINK_STD_LIBS) -lclDbal7 -L$(SAFPLUS_SDK_TARGET)/lib -lpthread -lstdc++ -ldl -lm  -lrt -lezxml $(PyLib) -L$(SAFPLUS_SDK_TARGET)/lib -lmw
 
 $(LIB_DIR)/libclBerkeleyDB.so: $(SAFPLUS_TARGET)/obj/clovisBerkeleyDB.o
 	$(LINK_SO) $@ $+ -L$(SAFPLUS_SDK_TARGET)/lib -lpthread -lstdc++ -ldl -lm -ldb
