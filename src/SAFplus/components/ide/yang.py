@@ -5,7 +5,7 @@ import pdb
 
 # export PYTHONPATH=/code/git/mgt/3rdparty/pyang
 import sys
-sys.path.append("/code/git/mgt/3rdparty/pyang")
+sys.path.append("/code/rep/mgt/3rdparty/pyang")
 import pyang
 from pyang import plugin
 from pyang import error
@@ -87,6 +87,7 @@ def getChildren(stmts, keyword ):
 
 def getChild(stmts,keyword):
   for s in getChildren(stmts,keyword): return s
+  return None
 
 def intOrNone(x): 
   if x is None: 
@@ -94,10 +95,20 @@ def intOrNone(x):
   else: return int(x)
 
 def createLeaf(s,count, result=None):
+  """A leaf data item has been found.  Translate this into a clean format that the IDE can easily use to include this item in a configuraton dialog"""
   if result is None: result = {}
   result[s.arg] = { "order":count, "type": getArg(s,"type"),"help" : getArg(s,"description",None), "alias": getArg(s,"safplus:alias",None), "prompt":getArg(s,"safplus:ui-prompt",None) }
   return result
   
+def handleList(s,count):
+  """A list could be defining a UML relationship so let's look inside for the appropriate UI extensions."""
+  result = {}
+  ordinality = getChild(s, ('SAFplusTypes', 'ui-contained'))
+  if ordinality:
+    pdb.set_trace()
+    st = getChild(s, ('SAFplusTypes', 'instance-type'))
+    result[st.arg] = { "help" : getArg(s,"description",None), "containsOrdinality": "N", "containedOrdinality": ordinality } # this is a list so I clearly can contain many of these.
+  return result
 
 def createObject(s,result=None):
   if result is None: result = {}
@@ -106,14 +117,19 @@ def createObject(s,result=None):
     count+=1
     if getArg(c,"config", True):  # If the config field does not exist or is true, this is configuration
       if c.keyword == "leaf": createLeaf(c, count, result)
-      elif c.keyword == "leaf-list":
-        pass  # TODO
+      elif c.keyword == "leaf-list":  # Leaf-list can indicate a one to many containment relationship        
+        result.setdefault("contains",{}).update(handleList(c,count))
       elif c.keyword == "list":
+        # result.update(handleList(c,count))
         pass  # TODO
       elif c.keyword == "container":
         pass  # TODO
       elif c.keyword == "uses":
         pass  # TODO
+      elif c.keyword == ('SAFplusTypes', 'ui-entity'):
+        result["entity"] = True
+        result["icon"] = c.arg
+        pass
       else:
         pass # TODO 
   return result
@@ -184,5 +200,6 @@ def dumpContext(ctx):
 
 def Test():
   import os
-  go(os.getcwd(), [ "SAFplusAmf.yang"])
+  ytypes,yobjects = go(os.getcwd(), [ "SAFplusAmf.yang"])
+  return (ytypes,yobjects)
 

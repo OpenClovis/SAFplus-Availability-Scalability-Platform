@@ -192,6 +192,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       key "name";
       uses EntityId;
       description "";
+      safplus:ui-entity "node.svg"; 
       // SA-Forum defined fields
       leaf adminState
       {
@@ -212,6 +213,7 @@ point.  The operational, administrative, and presence states of a service unit, 
     {
       key "name";
       uses EntityId;
+      safplus:ui-entity "node.svg";
       // SA-Forum defined fields
       leaf adminState
       {
@@ -271,6 +273,8 @@ point.  The operational, administrative, and presence states of a service unit, 
        safplus:c-type "SAFplusAmf::ServiceUnit*";
        type instance-identifier;
        description "Service Units configured to be instantiated on this node.";
+       safplus:instance-type "ServiceUnit";
+       safplus:ui-contained 1;
       }
       
     }
@@ -280,6 +284,8 @@ point.  The operational, administrative, and presence states of a service unit, 
     {
       key "name";
       uses EntityId;
+      safplus:ui-entity "sg.svg";
+
       description "A Service Group is a Service Availability Forum defined concept that corresponds to a group of redundant processes that should fail over as a unit.";
  
       // SA-Forum defined fields
@@ -392,12 +398,16 @@ point.  The operational, administrative, and presence states of a service unit, 
        safplus:c-type "SAFplusAmf::ServiceUnit*";
        type instance-identifier;
        description "Service Units in this Service Group";
+       safplus:ui-contained 1;  // Service unit can only be in one service group
+       safplus:instance-type "ServiceUnit";
       }
      leaf-list serviceInstances
       {
        safplus:c-type "SAFplusAmf::ServiceInstance*";
        type instance-identifier;
        description "Service Instances (work) in this Service group";
+       safplus:ui-contained 1;  // Service instance can only be in one service group
+       safplus:instance-type "ServiceInstances";
       }
 
      // parent pointers
@@ -406,6 +416,8 @@ point.  The operational, administrative, and presence states of a service unit, 
      {
         type instance-identifier;
         safplus:c-type "Application*";
+        safplus:ui-container 1;
+        safplus:instance-type "Application";
      }
       
      
@@ -415,6 +427,7 @@ point.  The operational, administrative, and presence states of a service unit, 
     {
       key "name";
       description "";
+      safplus:ui-entity "comp.svg";
       safplus:atomic;
       uses EntityId;
       leaf presence
@@ -657,10 +670,9 @@ point.  The operational, administrative, and presence states of a service unit, 
      {
         type instance-identifier;
         safplus:c-type "ServiceUnit*";
+        safplus:ui-container 1;
+        safplus:instance-type "ServiceUnit";
      }
-
-
-     
 
       leaf recovery
       {
@@ -765,6 +777,7 @@ are switched over to other nodes (component service instances are not abruptly r
       key "name";
       uses EntityId;
       description "";
+      safplus:ui-entity "csi.svg";
 
       leaf-list protectionGroup
       {
@@ -799,7 +812,9 @@ are switched over to other nodes (component service instances are not abruptly r
      leaf serviceInstance
      {
         type instance-identifier;
-        safplus:c-type "ServiceInstance*";       
+        safplus:c-type "ServiceInstance*";
+        safplus:ui-container 1;      
+        safplus:instance-type "ServiceInstance";
      }
 
      leaf-list standbyComponents
@@ -826,7 +841,7 @@ are switched over to other nodes (component service instances are not abruptly r
       key "name";
       uses EntityId;
       description "";
-
+      safplus:ui-entity "si.svg";
       // SA-Forum defined fields
       leaf adminState
       {
@@ -913,7 +928,9 @@ are switched over to other nodes (component service instances are not abruptly r
      leaf serviceGroup
      {
         type instance-identifier;
-        safplus:c-type "ServiceGroup*";       
+        safplus:c-type "ServiceGroup*";
+        safplus:ui-container 1;  
+        safplus:instance-type "ServiceGroup";
      }
 
     }
@@ -923,6 +940,7 @@ are switched over to other nodes (component service instances are not abruptly r
     {
       key "name";
       uses EntityId;
+      safplus:ui-entity "su.svg";
       leaf adminState
       {
         type AdministrativeState;
@@ -1026,19 +1044,25 @@ are switched over to other nodes (component service instances are not abruptly r
      {
         type instance-identifier;
         safplus:c-type "Component*";       
+        safplus:ui-contained 1;
+        safplus:instance-type "Component";
      }
 
      // Parent pointers
      leaf node
      {
         type instance-identifier;
-        safplus:c-type "Node*";       
+        safplus:c-type "Node*";
+        safplus:ui-container 1;
+	safplus:instance-type "Node";
      }
 
      leaf serviceGroup
      {
         type instance-identifier;
         safplus:c-type "ServiceGroup*";       
+        safplus:ui-container 1;
+	safplus:instance-type "ServiceGroup";
      }
 
      leaf probationTime
@@ -1059,6 +1083,7 @@ are switched over to other nodes (component service instances are not abruptly r
       key "name";
       uses EntityId;
       description "";
+      safplus:ui-entity "app.svg";
       // SA-Forum defined fields
       leaf adminState
       {
@@ -1081,6 +1106,8 @@ are switched over to other nodes (component service instances are not abruptly r
        safplus:c-type "SAFplusAmf::ServiceGroup*";
        type instance-identifier;
        description "Service Groups in this Application";
+       safplus:ui-contained 1;
+       safplus:instance-type "ServiceGroup";
       }
 
       leaf keepTogether

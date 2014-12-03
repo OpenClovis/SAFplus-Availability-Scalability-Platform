@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="ocSymbol.svg"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   version="1.1"
+   inkscape:export-filename="/clovis/multimedia/ocSymbol.png"
+   inkscape:export-xdpi="59.710087"
+   inkscape:export-ydpi="59.710087">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     gridtolerance="10000"
+     guidetolerance="10"
+     objecttolerance="10"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.2989669"
+     inkscape:cx="437.94955"
+     inkscape:cy="714.39371"
+     inkscape:document-units="px"
+     inkscape:current-layer="g4281"
+     inkscape:window-width="1467"
+     inkscape:window-height="878"
+     inkscape:window-x="2094"
+     inkscape:window-y="34"
+     showgrid="false"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     style="display:inline">
+    <g
+       id="g4281"
+       inkscape:export-filename="/clovis/multimedia/logo.png"
+       inkscape:export-xdpi="119.43952"
+       inkscape:export-ydpi="119.43952">
+      <path
+         transform="matrix(0.9120753,0,0,0.8839926,27.573249,50.375781)"
+         sodipodi:end="7.0793357"
+         sodipodi:start="5.4832954"
+         d="M 247.39234,373.11377 A 55.714287,55.714287 0 0 1 247.54151,452.89374 L 208.57143,413.07648 z"
+         sodipodi:ry="55.714287"
+         sodipodi:rx="55.714287"
+         sodipodi:cy="413.07648"
+         sodipodi:cx="208.57143"
+         id="path2276"
+         style="fill:#27bf00;fill-opacity:1;stroke:#178f00;stroke-width:8.90943831;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.50196078000000000"
+         sodipodi:type="arc" />
+      <path
+         sodipodi:type="arc"
+         style="fill:#0066b2;fill-opacity:1;stroke:#003092;stroke-width:8.90943831000000053;stroke-miterlimit:4;stroke-opacity:0.50196078000000000;stroke-dasharray:none;opacity:0.88185654"
+         id="use2296"
+         sodipodi:cx="208.57143"
+         sodipodi:cy="413.07648"
+         sodipodi:rx="55.714287"
+         sodipodi:ry="55.714287"
+         d="m 247.39234,373.11377 a 55.714287,55.714287 0 0 1 0.14917,79.77997 l -38.97008,-39.81726 z"
+         sodipodi:start="5.4832954"
+         sodipodi:end="7.0793357"
+         transform="matrix(-0.9120753,0,0,0.8839926,390.27551,49.661497)" />
+      <use
+         height="1052.3622"
+         width="744.09448"
+         transform="matrix(0,1,-1,0,623.67814,206.54366)"
+         id="use3269"
+         xlink:href="#use2296"
+         y="0"
+         x="0"
+         style="stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none" />
+      <use
+         height="1052.3622"
+         width="744.09448"
+         transform="matrix(-1,0,0,-1,417.84878,830.2218)"
+         id="use3271"
+         xlink:href="#use3269"
+         y="0"
+         x="0" />
+    </g>
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot4263"
+       style="font-size:53.5px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#0066b2;fill-opacity:1;font-family:Bitstream Vera Sans"><flowRegion
+         id="flowRegion4265"><rect
+           id="rect4267"
+           width="167.14285"
+           height="59.285713"
+           x="442.85715"
+           y="389.50504"
+           style="font-size:53.5px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;fill:#0066b2;fill-opacity:1;font-family:Bitstream Vera Sans" /></flowRegion><flowPara
+         id="flowPara4269">Clovis</flowPara></flowRoot>  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="positioning"
+     style="display:none">
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 154.28572,353.07647 C 309.28572,508.07647 310,508.79075 310,508.79075"
+       id="path3274" />
+    <path
+       id="path3276"
+       d="M 277.85714,337.36218 C 122.85714,492.36218 122.14286,493.07646 122.14286,493.07646"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <path
+       id="path3278"
+       d="M 147.14286,360.93361 C 302.14286,515.93361 302.85714,516.64789 302.85714,516.64789"
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="M 285.71428,345.93361 C 130.71428,500.93361 130,501.64789 130,501.64789"
+       id="path3280" />
+    <image
+       style="display:inline"
+       y="356.11221"
+       x="151.19234"
+       id="image2263"
+       height="111.96227"
+       width="414"
+       sodipodi:absref="/me/pydev/PyHtmlGen/OpenClovis_Logo_header.png"
+       xlink:href="/me/pydev/PyHtmlGen/OpenClovis_Logo_header.png" />
+  </g>
+</svg>

@@ -64,7 +64,7 @@ MWOBJ_DIR ?= $(SAFPLUS_TARGET)/mwobj
 # All other objects
 OBJ_DIR ?= $(SAFPLUS_TARGET)/obj
 
-endif
+else
 
 # If the chassis manager directory is not defined go look for it
 
@@ -83,6 +83,7 @@ ifeq ($(defineMk),)
 $(error To identify the model (or the SAFplus build), please set SAFPLUS_MODEL_DIR to your model base directory)
 else
 include $(defineMk)
+endif
 endif
 endif
 
