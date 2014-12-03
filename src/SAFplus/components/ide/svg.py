@@ -9,15 +9,7 @@ myDir = os.path.dirname(__file__)
 if not myDir: myDir = os.getcwd()
 
 def loadSvgIcon(iconType, config):
-  iconTypeMap = { 1 : nodeIcon,
-              2 : appIcon,
-              3 : sgIcon,
-              4 : suIcon,
-              5 : siIcon,
-              6 : compIcon,
-              7 : csiIcon,
-              8 : clusterIcon
-            }
+  iconTypeMap = {'node':nodeIcon,'app':appIcon,'sg':sgIcon,'su':suIcon,'si':siIcon,'comp':compIcon,'csi':csiIcon,'cluster':clusterIcon}
 
   return iconTypeMap[iconType](config)
 
@@ -42,7 +34,7 @@ def siIcon(siConfig):
   return buildIcon(iconbase, siConfig)
 
 def compIcon(compConfig):
-  iconbase = "component.svg"
+  iconbase = "comp.svg"
   return buildIcon(iconbase, compConfig)
 
 def csiIcon(csiConfig):
@@ -56,7 +48,7 @@ def clusterIcon(clusterConfig):
 def buildIcon(iconbase, config):
   templateSvgIcon = ''
   try:
-    fd = open("%s/%s" %(myDir,iconbase))
+    fd = open("%s/images/%s" %(myDir,iconbase))
     templateSvgIcon = Template(fd.read())
   except IOError as ex:
     return templateSvgIcon

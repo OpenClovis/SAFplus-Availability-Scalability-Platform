@@ -26,7 +26,7 @@
 				</Linker>
 				<ExtraCommands>
 					<Add after="cd resources &amp;&amp; zip -r ../SAFplus7IDE.zip images manifest.xml *.xrc" />
-					<Add after="zip -jr9 SAFplus7IDE.cbplugin SAFplus7IDE.so SAFplus7IDE.zip resources/SAFplusEntityDef.xml resources/SAFplusAmf.yang resources/images/comp16.gif yang.py standalone/embedded_sample.py" />
+					<Add after="zip -jr9 SAFplus7IDE.cbplugin SAFplus7IDE.so SAFplus7IDE.zip resources/SAFplusEntityDef.xml resources/SAFplusAmf.yang resources/images/comp16.gif yang.py entityDetailsDialog.py" />
 					<Mode after="always" />
 				</ExtraCommands>
 			</Target>

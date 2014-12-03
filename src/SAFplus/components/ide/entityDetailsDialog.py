@@ -2,10 +2,11 @@ import wx
 #from wx.py import shell,
 #from wx.py import  version
 import math
-
+import svg
 try:
     import wx.lib.wxcairo
     import cairo
+    import rsvg
     haveCairo = True
 except ImportError:
     haveCairo = False
@@ -74,4 +75,45 @@ class MyPanel(wx.Panel):
         ctx.set_source_rgb(0,0,0)
         ctx.set_line_width(2)
         ctx.stroke()
+
+        #Render svg file
+        cairo_surface = self.SvgToCairo('comp')
+        ctx.translate(100,200)
+        ctx.scale(0.7, 0.7)
+        ctx.rotate(0)
+        ctx.set_source_surface(cairo_surface, 100, 200)
+        ctx.identity_matrix()
+        ctx.paint()
+
+        cairo_surface = self.SvgToCairo('csi')
+        ctx.translate(100,200)
+        ctx.scale(0.7, 0.7)
+        ctx.rotate(0)
+        ctx.set_source_surface(cairo_surface, 300, 200)
+        ctx.identity_matrix()
+        ctx.paint()
+
+        cairo_surface = self.SvgToCairo('node')
+        ctx.translate(100,200)
+        ctx.scale(0.7, 0.7)
+        ctx.rotate(0)
+        ctx.set_source_surface(cairo_surface, 500, 200)
+        ctx.identity_matrix()
+        ctx.paint()
+
+    def SvgToCairo(self, iconType, config = {}):
+        dataFileSvg = svg.loadSvgIcon(iconType, config);
+
+        svgFile = rsvg.Handle(data = dataFileSvg)
+        svgwidth = svgFile.get_property('width')
+        svgheight = svgFile.get_property('height')
+
+        img = cairo.ImageSurface(cairo.FORMAT_ARGB32, svgwidth,svgheight)
+        ictx = cairo.Context(img)
+        ictx.set_operator(cairo.OPERATOR_SOURCE)
+        ictx.set_operator(cairo.OPERATOR_OVER)
+        ictx.set_source_rgba(0,1,0,0) #Transparent
+        ictx.paint()
+        svgFile.render_cairo(ictx)
+        return img
 

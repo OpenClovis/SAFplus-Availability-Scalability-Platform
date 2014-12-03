@@ -23,4 +23,5 @@ To debug codeblocks plugin issue:
 If codeclocks crashed indicate "double free", try to execute with:
 G_SLICE=always-malloc /opt/SAFplus/7.0/ide/bin/codeblocks 
 
-
+using wxPython to render svg file:
+sudo apt-get install python-rsvg
