@@ -219,7 +219,6 @@ std::string MgtProvList<T>::toStringItemAt(T &x)
 template<class T>
 void MgtProvList<T>::toString(std::stringstream& xmlString)
 {
-    getDb();
     for (unsigned int i = 0; i < value.size(); i++)
     {
         xmlString << "<" << tag << ">" << toStringItemAt(value.at(i)) << "</" << tag << ">";

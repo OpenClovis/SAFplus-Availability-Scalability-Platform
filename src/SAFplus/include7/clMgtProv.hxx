@@ -87,7 +87,6 @@ public:
      */
     operator T& ()
     {
-        getDb();
         return value;
     }
     /**
@@ -108,7 +107,6 @@ public:
      */
     T& val()
     {
-        getDb();
         return value;
     }
 
@@ -246,7 +244,6 @@ MgtProv<T>::~MgtProv()
 template <class T>
 void MgtProv<T>::toString(std::stringstream& xmlString)
 {
-    getDb();
     xmlString << "<";
     xmlString << tag << ">";
     xmlString << value;
