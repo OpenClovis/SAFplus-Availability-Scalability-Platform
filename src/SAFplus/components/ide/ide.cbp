@@ -72,7 +72,7 @@
 		<Unit filename="SAFplus7ScrolledWindow.h" />
 		<Unit filename="utils.cxx" />
 		<Unit filename="yangParser.cxx" />
-		<Unit filename="pythonwintest.cpp" />
+		<Unit filename="pythonWindow.cpp" />
 		<Unit filename="handle_error.cpp" />
 		<Unit filename="resources/SAFplus7IDE.xrc" />
 		<Unit filename="resources/SAFplusAmf.yang" />
