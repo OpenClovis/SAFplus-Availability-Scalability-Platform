@@ -1,0 +1,9 @@
+<SAFplus version="7.0">
+  <modules> 
+     <yang>SAFplusAmf.yang</yang>
+  </modules>
+  <types>
+  </types>
+  <instances>
+  </instances>
+</SAFplus>

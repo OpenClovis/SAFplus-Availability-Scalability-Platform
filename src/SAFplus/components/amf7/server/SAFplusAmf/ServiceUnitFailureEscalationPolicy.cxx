@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     ServiceUnitFailureEscalationPolicy::ServiceUnitFailureEscalationPolicy()
     {
-        this->tag.assign("serviceUnitFailureEscalationPolicy");
+        this->name.assign("serviceUnitFailureEscalationPolicy");
     };
 
     std::vector<std::string>* ServiceUnitFailureEscalationPolicy::getChildNames()

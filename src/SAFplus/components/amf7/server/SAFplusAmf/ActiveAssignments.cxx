@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     ActiveAssignments::ActiveAssignments()
     {
-        this->tag.assign("activeAssignments");
+        this->name.assign("activeAssignments");
     };
 
     std::vector<std::string>* ActiveAssignments::getChildNames()

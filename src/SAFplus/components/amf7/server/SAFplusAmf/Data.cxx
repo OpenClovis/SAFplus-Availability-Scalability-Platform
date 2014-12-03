@@ -20,16 +20,14 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(Data, /SAFplusAmf/ComponentServiceInstance/data)
 
-    Data::Data(): SAFplus::MgtContainer("data"), name("name"), val("val")
+    Data::Data(): SAFplus::MgtContainer("data"), val("val")
     {
-        this->addChildObject(&name, "name");
         this->addChildObject(&val, "val");
     };
 
-    Data::Data(std::string nameValue): SAFplus::MgtContainer("data"), name("name"), val("val")
+    Data::Data(std::string nameValue): SAFplus::MgtContainer("data"), val("val")
     {
         this->name.value =  nameValue;
-        this->addChildObject(&name, "name");
         this->addChildObject(&val, "val");
     };
 

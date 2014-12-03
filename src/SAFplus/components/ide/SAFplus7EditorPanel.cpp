@@ -98,7 +98,7 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   //m_paintArea = new SAFplus7ScrolledWindow(sp, wxID_ANY);
   m_paintArea = NULL;
   wxWindow* details = createPythonControlledWindow(sp,"entityDetailsDialog");  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
-  wxWindow* uml = createPythonControlledWindow(sp,"entityDetailsDialog");  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
+  wxWindow* uml = createPythonControlledWindow(sp,"umlEditor");  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
 
   //sp->SplitVertically(details, m_paintArea, GetClientSize().x/4);
   sp->SplitVertically(details, uml, GetClientSize().x/4);

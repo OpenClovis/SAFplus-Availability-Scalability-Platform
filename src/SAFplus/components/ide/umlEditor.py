@@ -1,21 +1,50 @@
 import wx
+import wx.lib.wxcairo
+import cairo
+import rsvg
+import yang
 #from wx.py import shell,
 #from wx.py import  version
 
+from module import Module
+from entity import Entity
+from model import Model
+
 class MyPanel(wx.Panel):
     def __init__(self, parent):
-        wx.Panel.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
+      wx.Panel.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
+      self.Bind(wx.EVT_PAINT, self.OnPaint)
+      self.model=None
 
-        text = wx.StaticText(self, -1,
-                            "Everything on this side of the splitter comes from Python.")
-        
-        intro = 'Welcome To PyCrust %s - The Flakiest Python Shell' % 1234  # version.VERSION
-        #pycrust = shell.Shell(self, -1, introText=intro)
-        pycrust = wx.TextCtrl(self, -1, intro)
+    def OnPaint(self, evt):
+        #dc = wx.PaintDC(self)
+        dc = wx.BufferedPaintDC(self)
+        dc.SetBackground(wx.Brush('white'))
+        dc.Clear()        
+        self.render(dc)
+ 
+    def setModel(self,model):
+      self.model = model
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(text, 0, wx.EXPAND|wx.ALL, 10)
-        sizer.Add(pycrust, 1, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 10)
+    def render(self, dc):
+        """Put the entities on the screen"""
+        ctx = wx.lib.wxcairo.ContextFromDC(dc)
+        if 1:
+         # now draw something with cairo
+         ctx.set_line_width(15)
+         ctx.move_to(125, 25)
+         ctx.line_to(225, 225)
+         ctx.rel_line_to(-200, 0)
+         ctx.close_path()
+         ctx.set_source_rgba(0, 0, 0.5, 1)
+         ctx.stroke()
 
-        self.SetSizer(sizer)
-
+def Test():
+  import time
+  import pyGuiWrapper as gui
+  gui.start(lambda x: MyPanel(x))
+  time.sleep(2)
+  
+  model = Model()
+  gui.app.frame.panel.setModel(model)
+  pass

@@ -19,7 +19,7 @@ namespace SAFplusTypes
 
     CpuUtilization::CpuUtilization()
     {
-        this->tag.assign("cpuUtilization");
+        this->name.assign("cpuUtilization");
     };
 
     std::vector<std::string>* CpuUtilization::getChildNames()

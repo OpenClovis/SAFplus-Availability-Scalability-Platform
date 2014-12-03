@@ -6,22 +6,21 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "AssignmentState.hxx"
-#include "clMgtIdentifier.hxx"
+#include <string>
 #include "clTransaction.hxx"
 #include "StandbyAssignments.hxx"
 #include "ComponentServiceInstance.hxx"
-#include "ServiceGroup.hxx"
 #include "clMgtList.hxx"
 #include "MgtFactory.hxx"
 #include "ActiveAssignments.hxx"
 #include "AdministrativeState.hxx"
-#include <string>
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
-#include "clMgtIdentifierList.hxx"
+#include "ServiceGroup.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "EntityId.hxx"
+#include "clMgtProvList.hxx"
 #include "ServiceInstance.hxx"
 
 
@@ -42,7 +41,7 @@ namespace SAFplusAmf
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
-        this->tag.assign("ServiceInstance");
+        this->name.assign("ServiceInstance");
     };
 
     ServiceInstance::ServiceInstance(std::string nameValue): adminState("adminState"), assignmentState("assignmentState"), preferredActiveAssignments("preferredActiveAssignments"), preferredStandbyAssignments("preferredStandbyAssignments"), rank("rank"), componentServiceInstances("componentServiceInstances"), serviceGroup("serviceGroup"), activeWeightList("activeWeight"), standbyWeightList("standbyWeight")
@@ -57,7 +56,7 @@ namespace SAFplusAmf
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&activeWeightList, "activeWeight");
         this->addChildObject(&standbyWeightList, "standbyWeight");
-        this->tag.assign("ServiceInstance");
+        this->name.assign("ServiceInstance");
     };
 
     std::vector<std::string> ServiceInstance::getKeys()

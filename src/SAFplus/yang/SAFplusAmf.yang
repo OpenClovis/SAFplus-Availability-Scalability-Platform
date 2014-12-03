@@ -1,4 +1,4 @@
-// To generate code use: /code/git/mgt/3rdparty/pyang/bin/pyang --path=`pwd` -f y2cpp /code/git/SAFplus7/src/SAFplus/yang/SAFplusAmf.yang --y2cpp-output ~/tmp/ --y2cpp-mgt /code/git/mgt
+//  To generate code use: /code/git/mgt/3rdparty/pyang/bin/pyang --path=`pwd` -f y2cpp /code/git/SAFplus7/src/SAFplus/yang/SAFplusAmf.yang --y2cpp-output ~/tmp/ --y2cpp-mgt /code/git/mgt
 
 module SAFplusAmf 
   {
@@ -11,7 +11,7 @@ module SAFplusAmf
 
   organization
         "OpenClovis Solutions, Inc";
-
+   
   contact
         "Andrew Stone <stone@openclovis.com>";
 
@@ -214,6 +214,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       key "name";
       uses EntityId;
       safplus:ui-entity "node.svg";
+      safplus:ui-button "node_button.svg";
       // SA-Forum defined fields
       leaf adminState
       {
@@ -285,7 +286,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       key "name";
       uses EntityId;
       safplus:ui-entity "sg.svg";
-
+      safplus:ui-button "sg_button.svg";
       description "A Service Group is a Service Availability Forum defined concept that corresponds to a group of redundant processes that should fail over as a unit.";
  
       // SA-Forum defined fields
@@ -428,6 +429,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       key "name";
       description "";
       safplus:ui-entity "comp.svg";
+      safplus:ui-button "comp_button.svg";
       safplus:atomic;
       uses EntityId;
       leaf presence
@@ -778,6 +780,7 @@ are switched over to other nodes (component service instances are not abruptly r
       uses EntityId;
       description "";
       safplus:ui-entity "csi.svg";
+      safplus:ui-button "csi_button.svg";
 
       leaf-list protectionGroup
       {
@@ -842,6 +845,7 @@ are switched over to other nodes (component service instances are not abruptly r
       uses EntityId;
       description "";
       safplus:ui-entity "si.svg";
+      safplus:ui-button "si_button.svg";
       // SA-Forum defined fields
       leaf adminState
       {
@@ -941,6 +945,7 @@ are switched over to other nodes (component service instances are not abruptly r
       key "name";
       uses EntityId;
       safplus:ui-entity "su.svg";
+      safplus:ui-button "su_button.svg";
       leaf adminState
       {
         type AdministrativeState;
@@ -1084,6 +1089,7 @@ are switched over to other nodes (component service instances are not abruptly r
       uses EntityId;
       description "";
       safplus:ui-entity "app.svg";
+      safplus:ui-button "app_button.svg";
       // SA-Forum defined fields
       leaf adminState
       {

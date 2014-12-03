@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     Instantiate::Instantiate()
     {
-        this->tag.assign("instantiate");
+        this->name.assign("instantiate");
     };
 
     std::vector<std::string>* Instantiate::getChildNames()

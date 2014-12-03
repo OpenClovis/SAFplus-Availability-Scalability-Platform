@@ -105,7 +105,6 @@ def handleList(s,count):
   result = {}
   ordinality = getChild(s, ('SAFplusTypes', 'ui-contained'))
   if ordinality:
-    pdb.set_trace()
     st = getChild(s, ('SAFplusTypes', 'instance-type'))
     result[st.arg] = { "help" : getArg(s,"description",None), "containsOrdinality": "N", "containedOrdinality": ordinality } # this is a list so I clearly can contain many of these.
   return result
@@ -127,8 +126,11 @@ def createObject(s,result=None):
       elif c.keyword == "uses":
         pass  # TODO
       elif c.keyword == ('SAFplusTypes', 'ui-entity'):
-        result["entity"] = True
+        result["ui-entity"] = True
         result["icon"] = c.arg
+        pass
+      elif c.keyword == ('SAFplusTypes', 'ui-button'):
+        result["button"] = c.arg
         pass
       else:
         pass # TODO 

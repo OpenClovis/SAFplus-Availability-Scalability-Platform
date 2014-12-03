@@ -2,6 +2,9 @@
 DEPENDENCIES
 ------------
 
+watchdog:
+https://pythonhosted.org/watchdog/index.html#
+apt-get install libyaml-dev python-setuptools
 
 apt-get install libcairo2-dev libgtk2.0-dev rsvg2-dev python-dev
 

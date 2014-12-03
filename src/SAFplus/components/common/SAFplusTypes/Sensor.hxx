@@ -22,7 +22,6 @@ namespace SAFplusTypes
 
     class Sensor : public SAFplus::MgtContainer {
     public:
-        SAFplus::MgtProv<std::string> name;
         SAFplus::MgtProv<std::string> desc;
 
     public:

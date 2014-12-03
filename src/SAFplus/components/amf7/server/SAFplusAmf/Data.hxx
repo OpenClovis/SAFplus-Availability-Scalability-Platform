@@ -25,7 +25,6 @@ namespace SAFplusAmf
         MGT_REGISTER(Data);
 
     public:
-        SAFplus::MgtProv<std::string> name;
         SAFplus::MgtProv<std::string> val;
 
     public:

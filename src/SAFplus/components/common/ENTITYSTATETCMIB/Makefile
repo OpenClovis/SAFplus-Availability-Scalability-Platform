@@ -51,8 +51,7 @@ CPPFLAGS += -I$(ASP_INCLUDE) \
             -I/code/git/SAFplus7/src/../../mgt/model/src/app/include \
             -I/code/git/SAFplus7/src/../../mgt/model/src/app/client
 
-CPPFLAGS += -I/code/git/SAFplus7/src/SAFplus/components/amf7/server/SAFplusTypes \
-            -I/code/git/SAFplus7/src/SAFplus/components/amf7/server/SAFplusAmf \
+CPPFLAGS += -I/code/git/SAFplus7/src/SAFplus/components/amf7/server/SAFplusAmf \
             -I/code/git/SAFplus7/src/SAFplus/components/amf7/server/ENTITYSTATETCMIB \
             -I/code/git/SAFplus7/src/SAFplus/components/amf7/server/ietfYangTypes
 

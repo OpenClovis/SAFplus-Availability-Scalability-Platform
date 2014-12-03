@@ -5,16 +5,15 @@
  */ 
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtIdentifier.hxx"
+#include <string>
 #include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
-#include "clMgtIdentifierList.hxx"
 #include "Component.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "EntityId.hxx"
-#include <string>
 #include "clMgtProvList.hxx"
 #include "ComponentServiceInstance.hxx"
 
@@ -33,7 +32,7 @@ namespace SAFplusAmf
         this->addChildObject(&standbyComponents, "standbyComponents");
         this->addChildObject(&activeComponents, "activeComponents");
         this->addChildObject(&dataList, "data");
-        this->tag.assign("ComponentServiceInstance");
+        this->name.assign("ComponentServiceInstance");
     };
 
     ComponentServiceInstance::ComponentServiceInstance(std::string nameValue): protectionGroup("protectionGroup"), dependencies("dependencies"), serviceInstance("serviceInstance"), standbyComponents("standbyComponents"), activeComponents("activeComponents"), dataList("data")
@@ -45,7 +44,7 @@ namespace SAFplusAmf
         this->addChildObject(&standbyComponents, "standbyComponents");
         this->addChildObject(&activeComponents, "activeComponents");
         this->addChildObject(&dataList, "data");
-        this->tag.assign("ComponentServiceInstance");
+        this->name.assign("ComponentServiceInstance");
     };
 
     std::vector<std::string> ComponentServiceInstance::getKeys()

@@ -22,11 +22,6 @@ namespace SAFplusAmf
     public:
 
         /*
-         * Unique name of this entity
-         */
-        SAFplus::MgtProv<std::string> name;
-
-        /*
          * Each SAFplus AMF entity gets a unique numerical identifier
          */
         SAFplus::MgtProv<unsigned short int> id;

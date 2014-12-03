@@ -9,16 +9,15 @@
 #define COMPONENTSERVICEINSTANCE_HXX_
 #include "SAFplusAmfCommon.hxx"
 
-#include "clMgtIdentifier.hxx"
+#include <string>
 #include "clTransaction.hxx"
+#include "clMgtProv.hxx"
 #include "ServiceInstance.hxx"
-#include "clMgtIdentifierList.hxx"
 #include "Component.hxx"
 #include "clMgtList.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "EntityId.hxx"
-#include <string>
 #include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
@@ -39,18 +38,18 @@ namespace SAFplusAmf
         /*
          * 
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ComponentServiceInstance*> dependencies;
-        SAFplus::MgtIdentifier<SAFplusAmf::ServiceInstance*> serviceInstance;
+        SAFplus::MgtProvList<SAFplusAmf::ComponentServiceInstance*> dependencies;
+        SAFplus::MgtProv<SAFplusAmf::ServiceInstance*> serviceInstance;
 
         /*
          * This work is assigned standby to these components
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::Component*> standbyComponents;
+        SAFplus::MgtProvList<SAFplusAmf::Component*> standbyComponents;
 
         /*
          * This work is assigned active to these components
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::Component*> activeComponents;
+        SAFplus::MgtProvList<SAFplusAmf::Component*> activeComponents;
 
         /*
          * Arbitrary data that defines the work needed to be done.

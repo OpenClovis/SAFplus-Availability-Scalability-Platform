@@ -13,13 +13,13 @@
 #include <string>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
-#include "clMgtIdentifierList.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
 #include "MgtFactory.hxx"
 #include "NumServiceGroups.hxx"
 #include "AdministrativeState.hxx"
 #include "EntityId.hxx"
+#include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
   {
@@ -39,7 +39,7 @@ namespace SAFplusAmf
         /*
          * Service Groups in this Application
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceGroup*> serviceGroups;
+        SAFplus::MgtProvList<SAFplusAmf::ServiceGroup*> serviceGroups;
 
         /*
          * SAFplus Extension: To the greatest extent possible, all Service Groups in this application will be Active (or standby) on the same node.  This will only be not true if service groups are not configured to run on the same nodes.

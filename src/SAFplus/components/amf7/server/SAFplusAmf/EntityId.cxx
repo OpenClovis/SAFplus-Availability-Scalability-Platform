@@ -16,9 +16,8 @@
 namespace SAFplusAmf
   {
 
-    EntityId::EntityId(): SAFplus::MgtContainer("EntityId"), name("name"), id("id")
+    EntityId::EntityId(): SAFplus::MgtContainer("EntityId"), id("id")
     {
-        this->addChildObject(&name, "name");
         this->addChildObject(&id, "id");
     };
 

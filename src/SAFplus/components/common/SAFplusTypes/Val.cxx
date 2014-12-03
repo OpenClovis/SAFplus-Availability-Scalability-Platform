@@ -19,7 +19,7 @@ namespace SAFplusTypes
 
     Val::Val()
     {
-        this->tag.assign("val");
+        this->name.assign("val");
     };
 
     std::vector<std::string>* Val::getChildNames()

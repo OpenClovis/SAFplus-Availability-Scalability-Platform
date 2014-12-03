@@ -10,8 +10,9 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "RestartCount.hxx"
-#include "clMgtIdentifier.hxx"
+#include <string>
 #include "clTransaction.hxx"
+#include "HighAvailabilityReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
 #include "Instantiate.hxx"
@@ -22,15 +23,13 @@
 #include "ActiveAssignments.hxx"
 #include "CapabilityModel.hxx"
 #include "Cleanup.hxx"
-#include <string>
+#include "Recovery.hxx"
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
-#include "Terminate.hxx"
 #include "Instantiate.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
-#include "Recovery.hxx"
-#include "HighAvailabilityReadinessState.hxx"
+#include "Terminate.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
@@ -130,7 +129,7 @@ namespace SAFplusAmf
          * How long to delay between instantiation attempts
          */
         SAFplus::MgtProv<unsigned int> delayBetweenInstantiation;
-        SAFplus::MgtIdentifier<SAFplusAmf::ServiceUnit*> serviceUnit;
+        SAFplus::MgtProv<SAFplusAmf::ServiceUnit*> serviceUnit;
         SAFplus::MgtProv<SAFplusAmf::Recovery> recovery;
 
         /*

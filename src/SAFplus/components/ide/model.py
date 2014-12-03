@@ -1,14 +1,76 @@
+import xml.dom.minidom
+import microdom
+import types
+import common
+from module import Module
+import svg
 
 class Model:
-  def __init__(self):
-    pass
+  def __init__(self, modelfile=None):
+    self.init()
+    if modelfile:
+      self.load(modelfile)
+
+  def init(self):
+    """Clear this model, forgetting everything"""
+    self.data = {} # empty model
+    self.filename = None
+    self.modules = {}
+    self.entityTypes = {}
 
   def load(self, fileOrString):
     """Load an XML representation of the model"""
-    pass
+    if fileOrString[0] != "<":  # XML must begin with opener
+      self.filename = common.fileResolver(fileOrString)
+      f = open(self.filename,"r")
+      fileOrString = f.read()
+      f.close()
+    dom = xml.dom.minidom.parseString(fileOrString)
+    self.data = microdom.LoadMiniDom(dom.childNodes[0])
 
-  def store(self):
+    self.loadModules()
+
+  def loadModules(self):
+    """Load the modules specified in the model"""
+    for (path, obj) in self.data.find("modules"):
+      for module in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom) else None):   
+        filename = module.data_.strip()
+        print module.tag_, ": ", filename
+        if not self.modules.has_key(filename):  # really load it since it does not exist
+          tmp = self.modules[filename] = Module(filename)
+          self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accessible
+
+  def xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
     pass
 
+  
+def Test():
+  import pdb
+  m = Model()
+  m.load("testModel.xml")
+  for (path, obj) in m.data.find("modules"):
+    for module in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom) else None):   
+      print module.tag_, ": ", module.data_
+  print m.entityTypes.keys()
+  return m
+
+theModel = None
+
+def TestRender(ctx):
+  posx = 10
+  posy = 10
+  for et in theModel.entityTypes.items():
+    bmp = et[1].iconSvg.instantiate((256,128))
+    svg.blit(ctx,bmp,(posx,posy),(1,1))
+    posx += 300
+    if posx > 900:
+      posx = 10
+      posy += 150
+
+def GuiTest():
+  global theModel
+  theModel = Test()
+  import pyGuiWrapper as gui
+  gui.go(lambda x,y=TestRender: gui.Panel(x,y))
   

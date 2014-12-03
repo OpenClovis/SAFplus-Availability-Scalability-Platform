@@ -20,13 +20,13 @@ namespace SAFplusAmf
 
     ActiveWeight::ActiveWeight()
     {
-        this->tag.assign("activeWeight");
+        this->name.assign("activeWeight");
     };
 
     ActiveWeight::ActiveWeight(std::string resourceValue)
     {
         this->resource.value =  resourceValue;
-        this->tag.assign("activeWeight");
+        this->name.assign("activeWeight");
     };
 
     std::vector<std::string> ActiveWeight::getKeys()

@@ -7,18 +7,16 @@
 
 #include <string>
 #include "clTransaction.hxx"
-#include "ComponentRestart.hxx"
 #include "MgtFactory.hxx"
 #include "NumSpareServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include "AdministrativeState.hxx"
-#include "clMgtIdentifier.hxx"
 #include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "clMgtProv.hxx"
 #include "Application.hxx"
 #include "ServiceInstance.hxx"
-#include "clMgtIdentifierList.hxx"
+#include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include <vector>
@@ -27,6 +25,7 @@
 #include "NumAssignedServiceUnits.hxx"
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
+#include "clMgtProvList.hxx"
 #include "ServiceGroup.hxx"
 
 
@@ -50,7 +49,7 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&serviceInstances, "serviceInstances");
         this->addChildObject(&application, "application");
-        this->tag.assign("ServiceGroup");
+        this->name.assign("ServiceGroup");
     };
 
     ServiceGroup::ServiceGroup(std::string nameValue): adminState("adminState"), autoRepair("autoRepair"), autoAdjust("autoAdjust"), autoAdjustInterval("autoAdjustInterval"), preferredNumActiveServiceUnits("preferredNumActiveServiceUnits"), preferredNumStandbyServiceUnits("preferredNumStandbyServiceUnits"), preferredNumIdleServiceUnits("preferredNumIdleServiceUnits"), maxActiveWorkAssignments("maxActiveWorkAssignments"), maxStandbyWorkAssignments("maxStandbyWorkAssignments"), serviceUnits("serviceUnits"), serviceInstances("serviceInstances"), application("application")
@@ -68,7 +67,7 @@ namespace SAFplusAmf
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&serviceInstances, "serviceInstances");
         this->addChildObject(&application, "application");
-        this->tag.assign("ServiceGroup");
+        this->name.assign("ServiceGroup");
     };
 
     std::vector<std::string> ServiceGroup::getKeys()

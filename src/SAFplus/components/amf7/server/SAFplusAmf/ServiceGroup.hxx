@@ -11,18 +11,16 @@
 
 #include <string>
 #include "clTransaction.hxx"
-#include "ComponentRestart.hxx"
 #include "MgtFactory.hxx"
 #include "NumSpareServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include "AdministrativeState.hxx"
-#include "clMgtIdentifier.hxx"
 #include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "clMgtProv.hxx"
 #include "Application.hxx"
 #include "ServiceInstance.hxx"
-#include "clMgtIdentifierList.hxx"
+#include "ComponentRestart.hxx"
 #include "NumIdleServiceUnits.hxx"
 #include "ServiceUnitRestart.hxx"
 #include <vector>
@@ -31,6 +29,7 @@
 #include "NumAssignedServiceUnits.hxx"
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
+#include "clMgtProvList.hxx"
 
 namespace SAFplusAmf
   {
@@ -90,13 +89,13 @@ namespace SAFplusAmf
         /*
          * Service Units in this Service Group
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> serviceUnits;
+        SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*> serviceUnits;
 
         /*
          * Service Instances (work) in this Service group
          */
-        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*> serviceInstances;
-        SAFplus::MgtIdentifier<SAFplusAmf::Application*> application;
+        SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*> serviceInstances;
+        SAFplus::MgtProv<SAFplusAmf::Application*> application;
 
     public:
         ServiceGroup();
