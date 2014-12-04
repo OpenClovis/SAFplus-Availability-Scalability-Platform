@@ -4,6 +4,7 @@ import types
 import common
 from module import Module
 import svg
+import entity
 
 class Model:
   def __init__(self, modelfile=None):
@@ -17,6 +18,7 @@ class Model:
     self.filename = None
     self.modules = {}
     self.entityTypes = {}
+    self.instances = {}
 
   def load(self, fileOrString):
     """Load an XML representation of the model"""
@@ -38,9 +40,7 @@ class Model:
         print module.tag_, ": ", filename
         if not self.modules.has_key(filename):  # really load it since it does not exist
           tmp = self.modules[filename] = Module(filename)
-          self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accessible
-
-  def xmlify(self):
+          self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accdef xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
     pass
 
@@ -53,6 +53,17 @@ def Test():
     for module in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom) else None):   
       print module.tag_, ": ", module.data_
   print m.entityTypes.keys()
+
+  #1. Build flatten entity instance
+  #2. Build relation ship between instances
+  for (path, obj) in m.data.find("instances"):
+    for entityType in m.entityTypes.keys():
+      m.instances[entityType] = []
+      for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
+        data = instance.children_
+        entityInstance = entity.Instance(m.entityTypes[entityType], data)
+        m.instances[entityType].append(entityInstance)
+    print m.instances
   return m
 
 theModel = None
@@ -73,4 +84,3 @@ def GuiTest():
   theModel = Test()
   import pyGuiWrapper as gui
   gui.go(lambda x,y=TestRender: gui.Panel(x,y))
-  

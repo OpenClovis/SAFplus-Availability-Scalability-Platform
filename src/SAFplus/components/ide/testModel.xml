@@ -5,5 +5,174 @@
   <types>
   </types>
   <instances>
+    <Application />
+    <Cluster />
+    <Node>
+      <adminState>on</adminState>
+      <autoRepair>true</autoRepair>
+      <failFastOnCleanupFailure>false</failFastOnCleanupFailure>
+      <failFastOnInstantiationFailure>false</failFastOnInstantiationFailure>
+      <id>1</id>
+      <name>sc0</name>
+      <operState>true</operState>
+      <serviceUnits>/su0</serviceUnits>
+    </Node>
+    <Node>
+      <adminState>on</adminState>
+      <autoRepair>true</autoRepair>
+      <failFastOnCleanupFailure>false</failFastOnCleanupFailure>
+      <failFastOnInstantiationFailure>false</failFastOnInstantiationFailure>
+      <id>2</id>
+      <name>sc1</name>
+      <operState>true</operState>
+      <serviceUnits>/su1</serviceUnits>
+    </Node>
+    <ServiceUnit>
+      <name>su0</name>
+      <id>1</id>
+      <adminState>on</adminState>
+      <rank>0</rank>
+      <failover>true</failover>
+      <preinstantiable>true</preinstantiable>
+      <saAmfSUHostNodeOrNodeGroup>/sc0</saAmfSUHostNodeOrNodeGroup>
+      <presenceState />
+      <readinessState />
+      <haReadinessState />
+      <haState />
+      <operState />
+      <assignedServiceInstances />
+      <components>/c0</components>
+      <node>/sc0</node>
+      <serviceGroup>sg0</serviceGroup>
+      <probationTime>10000</probationTime>
+    </ServiceUnit>
+    <ServiceUnit>
+      <name>su1</name>
+      <id>2</id>
+      <adminState>on</adminState>
+      <rank>0</rank>
+      <failover>true</failover>
+      <preinstantiable>true</preinstantiable>
+      <saAmfSUHostNodeOrNodeGroup>/sc1</saAmfSUHostNodeOrNodeGroup>
+      <presenceState />
+      <readinessState />
+      <haReadinessState />
+      <haState />
+      <operState />
+      <assignedServiceInstances />
+      <components>/c1</components>
+      <node>/sc1</node>
+      <serviceGroup>sg0</serviceGroup>
+      <probationTime>10000</probationTime>
+    </ServiceUnit>
+    <Component>
+      <capabilityModel>x_active_or_y_standby</capabilityModel>
+      <compCategory>1</compCategory>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <haReadinessState>readyForAssignment</haReadinessState>
+      <haState />
+      <id>4</id>
+      <instantiate>
+        <command>./test0 arg1 arg2</command>
+        <timeout>30000</timeout>
+      </instantiate>
+      <instantiationSuccessDuration>60000</instantiationSuccessDuration>
+      <lastError />
+      <lastInstantiation>1417510043537</lastInstantiation>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxDelayedInstantiations>1</maxDelayedInstantiations>
+      <maxInstantInstantiations>1</maxInstantInstantiations>
+      <maxStandbyAssignments>1</maxStandbyAssignments>
+      <name>c0</name>
+      <numInstantiationAttempts>1</numInstantiationAttempts>
+      <operState>true</operState>
+      <presence>instantiating</presence>
+      <processId>8992</processId>
+      <proxy />
+      <readinessState>outOfService</readinessState>
+      <recovery>Restart</recovery>
+      <restartable>true</restartable>
+      <safVersion>B.01.01</safVersion>
+      <serviceUnit>/su0</serviceUnit>
+      <swBundle>testBundle.tgz</swBundle>
+    </Component>
+    <Component>
+      <capabilityModel>x_active_or_y_standby</capabilityModel>
+      <compCategory>1</compCategory>
+      <delayBetweenInstantiation>20000</delayBetweenInstantiation>
+      <haReadinessState>readyForAssignment</haReadinessState>
+      <haState />
+      <id>5</id>
+      <instantiate>
+        <command>./test0 arg1 arg2</command>
+        <timeout>30000</timeout>
+      </instantiate>
+      <instantiationSuccessDuration>60000</instantiationSuccessDuration>
+      <lastError />
+      <lastInstantiation>1417510043535</lastInstantiation>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxDelayedInstantiations>2</maxDelayedInstantiations>
+      <maxInstantInstantiations>0</maxInstantInstantiations>
+      <maxStandbyAssignments>1</maxStandbyAssignments>
+      <name>c1</name>
+      <numInstantiationAttempts>1</numInstantiationAttempts>
+      <operState>true</operState>
+      <presence>uninstantiated</presence>
+      <processId>0</processId>
+      <proxy />
+      <readinessState>outOfService</readinessState>
+      <recovery>Restart</recovery>
+      <restartable>true</restartable>
+      <safVersion>B.01.01</safVersion>
+      <serviceUnit>/su1</serviceUnit>
+      <swBundle>testBundle.tgz</swBundle>
+    </Component>
+    <ServiceGroup>
+      <adminState>on</adminState>
+      <application />
+      <autoAdjust>false</autoAdjust>
+      <autoAdjustInterval>0</autoAdjustInterval>
+      <autoRepair>true</autoRepair>
+      <id>3</id>
+      <maxActiveWorkAssignments>1</maxActiveWorkAssignments>
+      <maxStandbyWorkAssignments>1</maxStandbyWorkAssignments>
+      <name>sg0</name>
+      <preferredNumActiveServiceUnits>1</preferredNumActiveServiceUnits>
+      <preferredNumIdleServiceUnits>1</preferredNumIdleServiceUnits>
+      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
+      <serviceInstances>/ServiceInstance/si</serviceInstances>
+      <serviceUnits>/su0</serviceUnits>
+      <serviceUnits>/su1</serviceUnits>
+    </ServiceGroup>
+    <ServiceInstance>
+      <activeAssignments>
+        <current>0</current>
+      </activeAssignments>
+      <adminState>on</adminState>
+      <assignmentState>unassigned</assignmentState>
+      <componentServiceInstances>/ComponentServiceInstance/csi</componentServiceInstances>
+      <id>8</id>
+      <name>si</name>
+      <preferredActiveAssignments>1</preferredActiveAssignments>
+      <preferredStandbyAssignments>1</preferredStandbyAssignments>
+      <rank>0</rank>
+      <serviceGroup>/ServiceGroup/sg0</serviceGroup>
+      <standbyAssignments>
+        <current>0</current>
+      </standbyAssignments>
+    </ServiceInstance>
+    <ComponentServiceInstance>
+      <data>
+        <name>testKey</name>
+        <val>testValue</val>
+      </data>
+      <data>
+        <name>testKey2</name>
+        <val>testValue2</val>
+      </data>
+      <id>9</id>
+      <name>csi</name>
+      <serviceInstance>/ServiceInstance/si</serviceInstance>
+    </ComponentServiceInstance>
   </instances>
 </SAFplus>
