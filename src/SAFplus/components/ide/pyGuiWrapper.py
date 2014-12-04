@@ -1,17 +1,20 @@
 import wx
 
 class Panel(wx.Panel):
-    def __init__(self, parent,renderFn):
+    def __init__(self, parent,menubar, toolbar, statusbar, renderFn):
       wx.Panel.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
       self.Bind(wx.EVT_PAINT, self.OnPaint)
       self.renderFn = renderFn
+      self.menuBar = menubar
+      self.toolBar = toolbar
+      self.statusBar = statusbar
 
     def OnPaint(self, evt):
         dc = wx.BufferedPaintDC(self)
         dc.SetBackground(wx.Brush('white'))
         dc.Clear()        
         ctx = wx.lib.wxcairo.ContextFromDC(dc)
-        self.renderFn(ctx)
+        self.renderFn(ctx,dc)
 
 
 class MyFrame(wx.Frame):
@@ -24,10 +27,11 @@ class MyFrame(wx.Frame):
 
         # Create the menubar
         menuBar = wx.MenuBar()
-
         # and a menu 
         menu = wx.Menu()
-
+        # and a toolbar
+        tb = self.CreateToolBar()
+        tb.SetToolBitmapSize((24,24))
         # add an item to the menu, using \tKeyName automatically
         # creates an accelerator, the third param is some help text
         # that will show up in the statusbar
@@ -40,11 +44,11 @@ class MyFrame(wx.Frame):
         menuBar.Append(menu, "&File")
         self.SetMenuBar(menuBar)
 
-        self.CreateStatusBar()
+        sb = self.CreateStatusBar()
         
 
         # Now create the Panel to put the other controls on.
-        panel = self.panel = panelFactory(self) # wx.Panel(self)
+        panel = self.panel = panelFactory(self,menuBar,tb,sb) # wx.Panel(self)
 
         # and a few controls
         if 0:

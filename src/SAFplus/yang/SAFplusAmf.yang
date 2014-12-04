@@ -211,6 +211,7 @@ point.  The operational, administrative, and presence states of a service unit, 
     // done per spec
     list Node
     {
+      description "Represents a node.  A node is generally a physical instance of running software, such as a rack server or a blade in the chassis.  But more formally, it is a separately running instance of SAFplus which communicates to other instances via messaging.";
       key "name";
       uses EntityId;
       safplus:ui-entity "node.svg";

@@ -13,7 +13,7 @@ class EntityType:
     f.close()
 
     self.buttonFile = data.get("button", "generic_button.svg")
-    f = open(common.fileResolver(self.iconFile),"r")
+    f = open(common.fileResolver(self.buttonFile),"r")
     self.buttonSvg =  svg.Svg(f.read(),(32,32))
     f.close()
 

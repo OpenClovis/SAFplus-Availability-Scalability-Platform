@@ -26,10 +26,12 @@ public:
 };
 
 extern wxString dataFolder;
+extern wxString folder;
 class ConfigManager
 {
 public:
 static wxString& GetDataFolder(bool dunno) { return dataFolder; }
+static wxString& GetFolder(bool dunno) { return folder; }
 };
 
 class cbConfigurationPanel:public wxPanel

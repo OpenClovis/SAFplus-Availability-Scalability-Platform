@@ -46,6 +46,7 @@ wxString wxbuildinfo(wxbuildinfoformat format)
 }
 
 wxString dataFolder = wxString::FromUTF8("../data");
+wxString folder = wxString::FromUTF8("..");
 
 BEGIN_EVENT_TABLE(standaloneFrame, wxFrame)
     EVT_CLOSE(standaloneFrame::OnClose)

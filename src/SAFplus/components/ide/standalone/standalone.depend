@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1417555718 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7EditorPanel.cpp
+1417660293 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7EditorPanel.cpp
 	<logmanager.h>
 	<wx/artprov.h>
 	<wx/settings.h>
@@ -2591,7 +2591,7 @@
 1395223202 /usr/include/librsvg-2.0/librsvg/rsvg-cairo.h
 	<cairo.h>
 
-1417477175 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
+1417713927 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
 	<sdk.h>
 	<configurationpanel.h>
 	<logmanager.h>
@@ -2606,6 +2606,8 @@
 	<wx/toolbar.h>
 	<wx/treectrl.h>
 	<wx/menu.h>
+	<wx/fs_mem.h>
+	<wx/fs_arc.h>
 	"SAFplus7IDE.h"
 	"SAFplus7EditorPanel.h"
 	<Python.h>
@@ -2704,7 +2706,8 @@
 	"wx/scrolwin.h"
 	"wx/pen.h"
 
-1416950437 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.h
+1417710396 /code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.h
+	<vector>
 	<wx/wxprec.h>
 	<wx/wx.h>
 	<cbplugin.h>
@@ -4143,11 +4146,11 @@
 	"../SAFplus7IDE.h"
 	"../SAFplus7EditorPanel.h"
 
-1416947942 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.cpp
+1417713768 source:/code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.cpp
 	"wx_pch.h"
 	"standaloneMain.h"
 
-1416947942 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standalone.h
+1417713726 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standalone.h
 	<cbplugin.h>
 	<editorbase.h>
 	<configmanager.h>

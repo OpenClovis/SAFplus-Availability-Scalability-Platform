@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg1408"
+   sodipodi:docname="egore911_Pointer.svg"
+   inkscape:export-filename="/home/egore/source/lincity-ng/data/images/gui/pointer.png"
+   viewBox="0 0 534.87 580.5"
+   sodipodi:version="0.32"
+   inkscape:export-xdpi="4.0599999"
+   version="1.0"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:export-ydpi="4.0599999"
+   inkscape:version="0.48.4 r9939"
+   width="100%"
+   height="100%">
+  <defs
+     id="defs3">
+    <radialGradient
+       id="radialGradient2188"
+       cx="323.06"
+       gradientUnits="userSpaceOnUse"
+       cy="73.591"
+       r="449.05"
+       gradientTransform="matrix(.82561 0 0 .88340 71.856 54.968)"
+       inkscape:collect="always">
+      <stop
+         id="stop2182"
+         style="stop-color:#3326ff"
+         offset="0" />
+      <stop
+         id="stop2184"
+         style="stop-color:#140f66"
+         offset="1" />
+    </radialGradient>
+    <linearGradient
+       id="linearGradient2198"
+       y2="300.53"
+       gradientUnits="userSpaceOnUse"
+       y1="64.481"
+       gradientTransform="matrix(1.1876 0 0 .61413 71.856 54.968)"
+       x2="252.71"
+       x1="106.04"
+       inkscape:collect="always">
+      <stop
+         id="stop2194"
+         style="stop-color:#ffffff"
+         offset="0" />
+      <stop
+         id="stop2196"
+         style="stop-color:#ffffff;stop-opacity:0"
+         offset="1" />
+    </linearGradient>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     bordercolor="#666666"
+     inkscape:pageshadow="2"
+     inkscape:window-y="183"
+     pagecolor="#ffffff"
+     inkscape:window-height="773"
+     inkscape:zoom="0.7"
+     inkscape:window-x="1971"
+     showgrid="false"
+     borderopacity="1.0"
+     inkscape:current-layer="layer1"
+     inkscape:cx="536.98271"
+     inkscape:cy="215.89111"
+     inkscape:window-width="966"
+     inkscape:pageopacity="0.0"
+     inkscape:document-units="px"
+     inkscape:window-maximized="0" />
+  <g
+     id="layer1"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     transform="translate(-91.069 -75.675)">
+    <path
+       id="path2204"
+       sodipodi:nodetypes="cccccccc"
+       style="fill-rule:evenodd;fill:#000000;fill-opacity:.58554"
+       d="m91.069 94.192c61.371 143.57 109.94 274.32 126.48 459.51 28.82-44.29 59.24-93.39 104.07-126.48 58.71 80.58 103.01 138.76 134.5 228.95 54.97-58.17 95.53-90.73 160.1-121.68-48.56-65.11-106.74-130.22-195.33-187.33 52.3-34.15 80.59-36.29 120.08-46.43-111.54-105.67-352.77-204.94-449.9-206.54z" />
+    <path
+       id="path1418"
+       sodipodi:nodetypes="cccccccc"
+       style="fill-rule:evenodd;stroke:#7387e4;stroke-width:3.4161;fill:url(#radialGradient2188)"
+       d="m99.074 77.383c61.376 143.57 109.95 274.32 126.49 459.51 28.82-44.29 59.24-93.39 104.07-126.48 58.71 80.59 103 138.76 134.49 228.95 54.97-58.17 95.53-90.72 160.11-121.68-48.57-65.11-106.74-130.22-195.33-187.33 52.3-34.15 80.58-36.29 120.08-46.43-111.54-105.67-352.77-204.94-449.91-206.54z" />
+    <path
+       id="path2190"
+       sodipodi:nodetypes="cssssss"
+       style="opacity:.89842;fill-rule:evenodd;fill:url(#linearGradient2198)"
+       d="m121.67 89.581c-12.34-4.686 17.6 34.449 36.08 77.979 18.48 43.52 16.45 62 26.19 70.33 9.19 7.87-12.24-90.68 7.92-93.97 53.81-8.78 250.45 80.08 238.88 70.2-8.56-7.32-80.08-46.58-149.51-73.72s-136.75-42.16-159.56-50.819z" />
+  </g>
+  <metadata
+     id="metadata3089">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:title></dc:title>
+        <dc:date>2009-07-07T22:18:09</dc:date>
+        <dc:description>This image was intended as mouse cursor for Lincity-NG. It is used for the select tool.</dc:description>
+        <dc:source>https://openclipart.org/detail/27063/pointer-by-egore911</dc:source>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>egore911</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>cursor</rdf:li>
+            <rdf:li>icon</rdf:li>
+            <rdf:li>pointer</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>

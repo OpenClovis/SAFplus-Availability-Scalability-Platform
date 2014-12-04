@@ -171,6 +171,7 @@ void SAFplus7IDE::OnAttach()
 
 void SAFplus7IDE::extractExtraFiles()
 {
+#ifndef STANDALONE
     wxString resourceFilename = _T("memory:SAFplus7IDE.zip");
     wxString resourceImagesDir = ConfigManager::GetFolder(sdDataUser) + _T("/images/");
 
@@ -209,16 +210,19 @@ void SAFplus7IDE::extractExtraFiles()
       }
       fnd = fsys.FindNext();
     }
+#endif // STANDALONE
 }
 
 void SAFplus7IDE::cleanExtraFiles()
 {
+#ifndef STANDALONE
     wxString resourceImagesDir = ConfigManager::GetFolder(sdDataUser) + _T("/images/");
     for (std::vector<wxString>::iterator it = SAFplus7IDE::extraFiles.begin(); it != SAFplus7IDE::extraFiles.end(); ++it)
     {
       m_log->DebugLog(_T("Removed:") + resourceImagesDir + *it);
       wxRemoveFile(resourceImagesDir + *it);
     }
+#endif
 }
 
 void SAFplus7IDE::OnRelease(bool appShutDown)

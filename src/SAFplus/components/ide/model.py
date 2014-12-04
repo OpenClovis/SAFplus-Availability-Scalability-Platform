@@ -41,6 +41,8 @@ class Model:
         if not self.modules.has_key(filename):  # really load it since it does not exist
           tmp = self.modules[filename] = Module(filename)
           self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accdef xmlify(self):
+
+  def xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
     pass
 

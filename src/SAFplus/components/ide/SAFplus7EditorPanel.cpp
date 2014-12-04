@@ -53,7 +53,7 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   const wxString &baseImagePath = ConfigManager::GetDataFolder(false);
   wxBitmap sgBitmap = cbLoadBitmap(baseImagePath + _T("/comp16.gif"), wxBITMAP_TYPE_ANY);
 #else
-  const wxString &baseImagePath = wxGetCwd() + wxT("/../resources/images");
+  const wxString &baseImagePath = wxGetCwd() + wxT("/resources/images");
   wxBitmap sgBitmap = cbLoadBitmap(baseImagePath + _T("/comp16.gif"), wxBITMAP_TYPE_ANY);
   // wxBitmap(Tool_xpm);
 #endif

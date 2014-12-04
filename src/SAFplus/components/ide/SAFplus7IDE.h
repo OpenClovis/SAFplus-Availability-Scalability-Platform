@@ -10,6 +10,7 @@
 #ifndef SAFPLUS7IDE_H_INCLUDED
 #define SAFPLUS7IDE_H_INCLUDED
 
+#include <vector>
 // For compilers that support precompilation, includes <wx/wx.h>
 #include <wx/wxprec.h>
 

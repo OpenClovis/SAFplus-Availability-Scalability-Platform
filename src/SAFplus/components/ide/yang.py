@@ -132,6 +132,12 @@ def createObject(s,result=None):
       elif c.keyword == ('SAFplusTypes', 'ui-button'):
         result["button"] = c.arg
         pass
+
+      # Documentation stuff
+      elif c.keyword == "description":
+        result["help"] = c.arg
+        tmp = c.arg.split(".")  # Use the first sentence as the short help
+        result["shortHelp"] = tmp[0]
       else:
         pass # TODO 
   return result

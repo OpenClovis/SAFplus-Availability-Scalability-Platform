@@ -102,18 +102,18 @@ class MyPanel(wx.Panel):
         ctx.paint()
 
     def SvgToCairo(self, iconType, config = {}):
-        dataFileSvg = svg.loadSvgIcon(iconType, config);
+        #dataFileSvg = svg.loadSvgIcon(iconType, config);
 
-        svgFile = rsvg.Handle(data = dataFileSvg)
-        svgwidth = svgFile.get_property('width')
-        svgheight = svgFile.get_property('height')
+        #svgFile = rsvg.Handle(data = dataFileSvg)
+        svgwidth = 100 # svgFile.get_property('width')
+        svgheight = 100 # svgFile.get_property('height')
 
         img = cairo.ImageSurface(cairo.FORMAT_ARGB32, svgwidth,svgheight)
         ictx = cairo.Context(img)
         ictx.set_operator(cairo.OPERATOR_SOURCE)
         ictx.set_operator(cairo.OPERATOR_OVER)
-        ictx.set_source_rgba(0,1,0,0) #Transparent
+        ictx.set_source_rgba(0,0,0,1) #Transparent
         ictx.paint()
-        svgFile.render_cairo(ictx)
+        #svgFile.render_cairo(ictx)
         return img
 
