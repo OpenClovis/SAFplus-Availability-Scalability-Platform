@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     NumIdleServiceUnits::NumIdleServiceUnits()
     {
-        this->name.assign("numIdleServiceUnits");
+        this->tag.assign("numIdleServiceUnits");
     };
 
     std::vector<std::string>* NumIdleServiceUnits::getChildNames()

@@ -25,6 +25,7 @@ namespace SAFplusAmf
         MGT_REGISTER(EntityByName);
 
     public:
+        SAFplus::MgtProv<std::string> name;
         SAFplus::MgtProv<std::string> entity;
 
     public:

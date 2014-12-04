@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     ServiceUnitRestart::ServiceUnitRestart()
     {
-        this->name.assign("serviceUnitRestart");
+        this->tag.assign("serviceUnitRestart");
     };
 
     std::vector<std::string>* ServiceUnitRestart::getChildNames()

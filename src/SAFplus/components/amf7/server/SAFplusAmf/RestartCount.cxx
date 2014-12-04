@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     RestartCount::RestartCount()
     {
-        this->name.assign("restartCount");
+        this->tag.assign("restartCount");
     };
 
     std::vector<std::string>* RestartCount::getChildNames()

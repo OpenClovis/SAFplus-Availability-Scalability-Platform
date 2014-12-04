@@ -19,7 +19,7 @@ namespace SAFplusTypes
 
     MemUtilization::MemUtilization()
     {
-        this->name.assign("memUtilization");
+        this->tag.assign("memUtilization");
     };
 
     std::vector<std::string>* MemUtilization::getChildNames()

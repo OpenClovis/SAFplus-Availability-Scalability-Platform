@@ -25,7 +25,7 @@ namespace SAFplusAmf
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&startupAssignmentDelay, "startupAssignmentDelay");
-        this->name.assign("Cluster");
+        this->tag.assign("Cluster");
     };
 
     Cluster::Cluster(std::string nameValue): adminState("adminState"), startupAssignmentDelay("startupAssignmentDelay")
@@ -33,7 +33,7 @@ namespace SAFplusAmf
         this->name.value =  nameValue;
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&startupAssignmentDelay, "startupAssignmentDelay");
-        this->name.assign("Cluster");
+        this->tag.assign("Cluster");
     };
 
     std::vector<std::string> Cluster::getKeys()

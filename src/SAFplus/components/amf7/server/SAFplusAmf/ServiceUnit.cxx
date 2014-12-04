@@ -15,6 +15,7 @@
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
 #include "NumStandbyServiceInstances.hxx"
+#include "clMgtIdentifier.hxx"
 #include "ReadinessState.hxx"
 #include "NumActiveServiceInstances.hxx"
 #include "clMgtProv.hxx"
@@ -22,11 +23,11 @@
 #include "HighAvailabilityReadinessState.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
-#include "HighAvailabilityState.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "PresenceState.hxx"
 #include "EntityId.hxx"
 #include "NumStandbyServiceInstances.hxx"
-#include "clMgtProvList.hxx"
+#include "HighAvailabilityState.hxx"
 #include "ServiceUnit.hxx"
 
 
@@ -53,7 +54,7 @@ namespace SAFplusAmf
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&probationTime, "probationTime");
-        this->name.assign("ServiceUnit");
+        this->tag.assign("ServiceUnit");
     };
 
     ServiceUnit::ServiceUnit(std::string nameValue): adminState("adminState"), rank("rank"), failover("failover"), preinstantiable("preinstantiable"), saAmfSUHostNodeOrNodeGroup("saAmfSUHostNodeOrNodeGroup"), presenceState("presenceState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), operState("operState"), assignedServiceInstances("assignedServiceInstances"), components("components"), node("node"), serviceGroup("serviceGroup"), probationTime("probationTime")
@@ -74,7 +75,7 @@ namespace SAFplusAmf
         this->addChildObject(&node, "node");
         this->addChildObject(&serviceGroup, "serviceGroup");
         this->addChildObject(&probationTime, "probationTime");
-        this->name.assign("ServiceUnit");
+        this->tag.assign("ServiceUnit");
     };
 
     std::vector<std::string> ServiceUnit::getKeys()

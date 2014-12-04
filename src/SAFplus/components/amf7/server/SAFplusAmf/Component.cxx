@@ -6,9 +6,8 @@
 #include "SAFplusAmfCommon.hxx"
 
 #include "RestartCount.hxx"
-#include <string>
+#include "clMgtIdentifier.hxx"
 #include "clTransaction.hxx"
-#include "HighAvailabilityReadinessState.hxx"
 #include "Timeouts.hxx"
 #include "StandbyAssignments.hxx"
 #include "Instantiate.hxx"
@@ -19,13 +18,15 @@
 #include "ActiveAssignments.hxx"
 #include "CapabilityModel.hxx"
 #include "Cleanup.hxx"
-#include "Recovery.hxx"
+#include <string>
 #include "ReadinessState.hxx"
 #include "Timeouts.hxx"
+#include "Terminate.hxx"
 #include "Instantiate.hxx"
 #include "clMgtProv.hxx"
 #include "StandbyAssignments.hxx"
-#include "Terminate.hxx"
+#include "Recovery.hxx"
+#include "HighAvailabilityReadinessState.hxx"
 #include <vector>
 #include "ActiveAssignments.hxx"
 #include "HighAvailabilityState.hxx"
@@ -72,7 +73,7 @@ namespace SAFplusAmf
         this->addChildObject(&proxied, "proxied");
         this->addChildObject(&processId, "processId");
         this->addChildObject(&lastError, "lastError");
-        this->name.assign("Component");
+        this->tag.assign("Component");
     };
 
     Component::Component(std::string nameValue): presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration"), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation"), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied"), processId("processId"), lastError("lastError")
@@ -104,7 +105,7 @@ namespace SAFplusAmf
         this->addChildObject(&proxied, "proxied");
         this->addChildObject(&processId, "processId");
         this->addChildObject(&lastError, "lastError");
-        this->name.assign("Component");
+        this->tag.assign("Component");
     };
 
     std::vector<std::string> Component::getKeys()

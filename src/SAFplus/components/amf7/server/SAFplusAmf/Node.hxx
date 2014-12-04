@@ -13,11 +13,11 @@
 #include <string>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
-#include "clMgtProvList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
@@ -60,7 +60,7 @@ namespace SAFplusAmf
         /*
          * Service Units configured to be instantiated on this node.
          */
-        SAFplus::MgtProvList<SAFplusAmf::ServiceUnit*> serviceUnits;
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceUnit*> serviceUnits;
 
         /*
          * An abstract definition of the amount of work this node can handle.  Nodes can be assigned capacities for arbitrarily chosen strings (MEM or CPU, for example).  Service Instances can be assigned 'weights' and the sum of the weights of service instances assigned active or standby on this node cannot exceed these values.

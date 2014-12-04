@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     NumActiveServiceInstances::NumActiveServiceInstances()
     {
-        this->name.assign("numActiveServiceInstances");
+        this->tag.assign("numActiveServiceInstances");
     };
 
     std::vector<std::string>* NumActiveServiceInstances::getChildNames()

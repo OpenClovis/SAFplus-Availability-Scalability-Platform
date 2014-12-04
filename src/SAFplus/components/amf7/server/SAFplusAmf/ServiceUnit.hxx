@@ -19,6 +19,7 @@
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
 #include "NumStandbyServiceInstances.hxx"
+#include "clMgtIdentifier.hxx"
 #include "ReadinessState.hxx"
 #include "NumActiveServiceInstances.hxx"
 #include "clMgtProv.hxx"
@@ -26,11 +27,11 @@
 #include "HighAvailabilityReadinessState.hxx"
 #include "ServiceGroup.hxx"
 #include <vector>
-#include "HighAvailabilityState.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "PresenceState.hxx"
 #include "EntityId.hxx"
 #include "NumStandbyServiceInstances.hxx"
-#include "clMgtProvList.hxx"
+#include "HighAvailabilityState.hxx"
 
 namespace SAFplusAmf
   {
@@ -79,10 +80,10 @@ namespace SAFplusAmf
          * True is enabled, False is disabled.  To move from False to True a 'repair' action must occur.
          */
         SAFplus::MgtProv<bool> operState;
-        SAFplus::MgtProvList<SAFplusAmf::ServiceInstance*> assignedServiceInstances;
-        SAFplus::MgtProvList<SAFplusAmf::Component*> components;
-        SAFplus::MgtProv<SAFplusAmf::Node*> node;
-        SAFplus::MgtProv<SAFplusAmf::ServiceGroup*> serviceGroup;
+        SAFplus::MgtIdentifierList<SAFplusAmf::ServiceInstance*> assignedServiceInstances;
+        SAFplus::MgtIdentifierList<SAFplusAmf::Component*> components;
+        SAFplus::MgtIdentifier<SAFplusAmf::Node*> node;
+        SAFplus::MgtIdentifier<SAFplusAmf::ServiceGroup*> serviceGroup;
 
         /*
          * Once this Service Unit is instantiated, how long should I wait before assigning it?

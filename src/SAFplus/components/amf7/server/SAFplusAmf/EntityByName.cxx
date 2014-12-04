@@ -20,14 +20,16 @@ namespace SAFplusAmf
     /* Apply MGT object factory */
     MGT_REGISTER_IMPL(EntityByName, /SAFplusAmf/EntityByName)
 
-    EntityByName::EntityByName(): SAFplus::MgtContainer("EntityByName"), entity("entity")
+    EntityByName::EntityByName(): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")
     {
+        this->addChildObject(&name, "name");
         this->addChildObject(&entity, "entity");
     };
 
-    EntityByName::EntityByName(std::string nameValue): SAFplus::MgtContainer("EntityByName"), entity("entity")
+    EntityByName::EntityByName(std::string nameValue): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")
     {
         this->name.value =  nameValue;
+        this->addChildObject(&name, "name");
         this->addChildObject(&entity, "entity");
     };
 

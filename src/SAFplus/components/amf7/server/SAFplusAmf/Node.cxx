@@ -9,11 +9,11 @@
 #include <string>
 #include "clTransaction.hxx"
 #include "clMgtProv.hxx"
+#include "clMgtIdentifierList.hxx"
 #include "clMgtList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "MgtFactory.hxx"
 #include "AdministrativeState.hxx"
-#include "clMgtProvList.hxx"
 #include "ServiceUnitFailureEscalationPolicy.hxx"
 #include "EntityId.hxx"
 #include "ServiceUnit.hxx"
@@ -35,7 +35,7 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
-        this->name.assign("Node");
+        this->tag.assign("Node");
     };
 
     Node::Node(std::string nameValue): adminState("adminState"), operState("operState"), autoRepair("autoRepair"), failFastOnInstantiationFailure("failFastOnInstantiationFailure"), failFastOnCleanupFailure("failFastOnCleanupFailure"), serviceUnits("serviceUnits"), capacityList("capacity")
@@ -48,7 +48,7 @@ namespace SAFplusAmf
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");
         this->addChildObject(&serviceUnits, "serviceUnits");
         this->addChildObject(&capacityList, "capacity");
-        this->name.assign("Node");
+        this->tag.assign("Node");
     };
 
     std::vector<std::string> Node::getKeys()

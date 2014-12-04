@@ -18,8 +18,9 @@
 namespace SAFplusTypes
   {
 
-    Sensor::Sensor(): SAFplus::MgtContainer("sensor"), desc("desc")
+    Sensor::Sensor(): SAFplus::MgtContainer("sensor"), name("name"), desc("desc")
     {
+        this->addChildObject(&name, "name");
         this->addChildObject(&desc, "desc");
     };
 

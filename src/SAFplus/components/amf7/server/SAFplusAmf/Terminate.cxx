@@ -19,7 +19,7 @@ namespace SAFplusAmf
 
     Terminate::Terminate()
     {
-        this->name.assign("terminate");
+        this->tag.assign("terminate");
     };
 
     std::vector<std::string>* Terminate::getChildNames()
