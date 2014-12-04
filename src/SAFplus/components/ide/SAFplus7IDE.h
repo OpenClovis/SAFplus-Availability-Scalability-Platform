@@ -130,7 +130,11 @@ class SAFplus7IDE : public cbPlugin
         void PythonWinTest(wxCommandEvent& event);
         void UpdateUI(wxUpdateUIEvent& event);
         void OnYangParse(wxCommandEvent &event);
+
+        static std::vector<wxString> extraFiles;
     private:
+        void extractExtraFiles();
+        void cleanExtraFiles();
         PyThreadState* m_mainTState;
         wxToolBar  *m_toolbar;
         wxMenu  *m_menu;

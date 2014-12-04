@@ -18,6 +18,8 @@
 #include <wx/toolbar.h>
 #include <wx/treectrl.h>
 #include <wx/menu.h>
+#include <wx/fs_mem.h>
+#include <wx/fs_arc.h>
 
 #include "SAFplus7IDE.h"
 #include "SAFplus7EditorPanel.h"
@@ -83,6 +85,8 @@ END_EVENT_TABLE()
 
 const wxString g_editorTitle = _T("SAFplus Cluster Design GUI");
 
+std::vector<wxString> SAFplus7IDE::extraFiles;
+
 // constructor
 SAFplus7IDE::SAFplus7IDE()
 {
@@ -117,13 +121,13 @@ void SAFplus7IDE::OnAttach()
 
     std::string pythonPathExt = "";
     char *curPythonPath = getenv("PYTHONPATH");
-    char cwd[512] = {0};
     if (curPythonPath != NULL)
     {
       pythonPathExt.append(curPythonPath).append(":");
     }
 
 #ifdef STANDALONE
+    char cwd[512] = {0};
     if (getcwd(cwd, 512) != NULL)
     {
       pythonPathExt.append(cwd);
@@ -160,6 +164,61 @@ void SAFplus7IDE::OnAttach()
     boost::python::object one = obj[1];
     int val = bpy::extract<int>(zero["foo"]);
     printf("test python %d\n", val);
+
+    //Extract some images/python script from resources (Extra file in manifest.xml is not enough)
+    extractExtraFiles();
+}
+
+void SAFplus7IDE::extractExtraFiles()
+{
+    wxString resourceFilename = _T("memory:SAFplus7IDE.zip");
+    wxString resourceImagesDir = ConfigManager::GetFolder(sdDataUser) + _T("/images/");
+
+    wxFileSystem fsys;
+    wxString fnd = fsys.FindFirst(resourceFilename + _T("#zip:images/*.svg"), wxFILE);
+    while (!fnd.empty())
+    {
+      wxFileName fn(fnd);
+      wxString outputFileName = resourceImagesDir + fn.GetFullName();
+
+      // check if the destination file already exists
+      if (wxFileExists(outputFileName) && !wxFile::Access(outputFileName, wxFile::write))
+      {
+          continue;
+      }
+
+      // make sure destination dir exists
+      CreateDirRecursively(wxFileName(outputFileName).GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR));
+
+      wxFile output(outputFileName, wxFile::write);
+
+      wxFSFile* f = fsys.OpenFile(fnd);
+      if (f)
+      {
+          // copy file
+          wxInputStream* is = f->GetStream();
+          char tmp[1025] = {};
+          while (!is->Eof() && is->CanRead())
+          {
+              memset(tmp, 0, sizeof(tmp));
+              is->Read(tmp, sizeof(tmp) - 1);
+              output.Write(tmp, is->LastRead());
+          }
+          delete f;
+          extraFiles.push_back(fn.GetFullName());
+      }
+      fnd = fsys.FindNext();
+    }
+}
+
+void SAFplus7IDE::cleanExtraFiles()
+{
+    wxString resourceImagesDir = ConfigManager::GetFolder(sdDataUser) + _T("/images/");
+    for (std::vector<wxString>::iterator it = SAFplus7IDE::extraFiles.begin(); it != SAFplus7IDE::extraFiles.end(); ++it)
+    {
+      m_log->DebugLog(_T("Removed:") + resourceImagesDir + *it);
+      wxRemoveFile(resourceImagesDir + *it);
+    }
 }
 
 void SAFplus7IDE::OnRelease(bool appShutDown)
@@ -174,6 +233,8 @@ void SAFplus7IDE::OnRelease(bool appShutDown)
     {
       SAFplus7EditorPanel::closeAllEditors();
     }
+    //Cleanup extra files (images/python script)
+    cleanExtraFiles();
     Py_Finalize();
 }
 
