@@ -25,6 +25,8 @@ class Entity:
 
 class Instance:
   """This is an actual instance of an Entity, for example the 'Apache' service group running on node 'ctrl0'"""
-  def __init__(self, entity):
+  def __init__(self, entity, data):
     self.entity = entity
-
+    self.data = data #micro dom data
+    #binding entity and data, this make straight render in gui
+    #{entity.a : value1, entity.b: value 2}
