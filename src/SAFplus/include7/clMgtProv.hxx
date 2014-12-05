@@ -357,13 +357,15 @@ std::vector<std::string> *MgtProv<T>::getChildNames()
 template <class T>
 ClRcT MgtProv<T>::setDb(std::string pxp,MgtDatabase *db)
 {
-    std::string key = getFullXpath();
+    std::string key;
     if(pxp.size() > 0)
     {
-      key = getFullXpath(false);
-      pxp.append(key);
-      key = pxp;
+      key.assign(pxp);
+      key.append(getFullXpath(false));
     }
+    else
+      key.assign(getFullXpath(true));
+
     std::stringstream ss;
     ss << value;
     if(db == NULL)

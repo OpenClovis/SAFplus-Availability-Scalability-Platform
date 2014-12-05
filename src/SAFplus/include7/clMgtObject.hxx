@@ -103,6 +103,7 @@ extern MgtIteratorBase mgtIterEnd;
     {
   public:
     std::string tag;
+    std::string dataXPath;
     MgtObject *parent;
     ClUint32T headRev; //Revision to check before sending
   public:

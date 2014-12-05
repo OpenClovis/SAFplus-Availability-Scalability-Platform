@@ -796,11 +796,25 @@ namespace SAFplus
         for(iter = children.begin(); iter != children.end(); iter++)
         {
           MgtObject *obj = iter->second;
-          rc = obj->read();
+          rc = obj->read(db);
           if(CL_OK != rc)
             return rc;
         }
         return rc;
+      }
+
+      virtual ClRcT read(std::string xpath,MgtDatabase *db=NULL)
+      {
+          ClRcT rc = CL_OK;
+          typename Map::iterator iter;
+          for(iter = children.begin(); iter != children.end(); iter++)
+          {
+            MgtObject *obj = iter->second;
+            rc = obj->read(db);
+            if(CL_OK != rc)
+              return rc;
+          }
+          return rc;
       }
   };
 

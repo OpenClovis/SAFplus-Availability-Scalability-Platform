@@ -41,6 +41,7 @@ namespace SAFplus
     {
     assert(name);
     tag.assign(name);
+    dataXPath.assign("");
     parent = NULL;
     headRev = 1;
     }
