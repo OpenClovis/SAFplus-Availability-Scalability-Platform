@@ -2638,8 +2638,7 @@ ClRcT cpmGetConfig(void)
         tries = 0;
         do 
         {
-            clOsalTaskDelay(delays[tries++]);
-            tries &= maxTries;
+            clOsalTaskDelay(delays[tries]);
             rc = clCpmNodeConfigGet(clCpmNodeName, &nodeConfig);
             clLogNotice("CONFIG", "GET", "Node config for [%s] returned [%#x]", clCpmNodeName, rc);
         } while ( 
@@ -2650,7 +2649,7 @@ ClRcT cpmGetConfig(void)
                   ||
                   CL_GET_ERROR_CODE(rc) == CL_IOC_ERR_COMP_UNREACHABLE)
                  && 
-                 --maxTries > 0);
+                 tries++ < maxTries);
 
         if(rc == CL_OK)
         {
