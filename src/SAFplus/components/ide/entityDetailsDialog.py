@@ -11,8 +11,8 @@ try:
 except ImportError:
     haveCairo = False
 
-class MyPanel(wx.Panel):
-    def __init__(self, parent):
+class Panel(wx.Panel):
+    def __init__(self, parent,menubar,toolbar,statusbar,model):
         wx.Panel.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
 
         self.Bind(wx.EVT_PAINT, self.OnPaint)

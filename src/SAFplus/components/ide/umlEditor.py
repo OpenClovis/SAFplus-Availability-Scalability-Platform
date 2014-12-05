@@ -17,7 +17,7 @@ ENTITY_TYPE_BUTTON_START = 100
 CONNECT_BUTTON = 99
 SELECT_BUTTON = 98
 
-class MyPanel(wx.Panel):
+class Panel(wx.Panel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
       wx.Panel.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
       self.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -25,18 +25,30 @@ class MyPanel(wx.Panel):
       self.toolBar = toolbar
       self.statusBar = statusbar
       self.model=model
+  
+      # Add toolbar buttons
+
+      # first get the toolbar    
+      if not self.toolBar:
+        self.toolBar = wx.ToolBar(self,-1)
+        self.toolBar.SetToolBitmapSize((24,24))
 
       tsize = self.toolBar.GetToolBitmapSize()
-      new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
-      self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
 
+      # example of adding a standard button
+      #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
+      #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
+
+      # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
       bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
       bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
+      # Add the custom entity creation tools as specified by the model's YANG
       self.addEntityTools()
 
+      # Set up to handle tool clicks
       self.toolBar.Bind(wx.EVT_TOOL, self.OnToolClick)  # id=start, id2=end to bind a range
       self.toolBar.Bind(wx.EVT_TOOL_RCLICKED, self.OnToolRClick)
 
@@ -97,4 +109,4 @@ def Test():
   model = Model()
   model.load("testModel.xml")
 
-  gui.go(lambda parent,menu,tool,status,m=model: MyPanel(parent,menu,tool,status, m))
+  gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))

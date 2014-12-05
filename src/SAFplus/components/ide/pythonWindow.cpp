@@ -17,15 +17,15 @@ def makeWindow(parent):\n\
 ";
 #endif
 
-char* python_code2 = "import sys, importlib\n\
+const char* python_code2 = "import sys, importlib\n\
 sys.path.append('.')\n\
-def makeWindow(parent, moduleName):\n\
+def makeWindow(moduleName, parent, menubar, toolbar, statusbar, model):\n\
     module=importlib.import_module(moduleName)\n\
-    win = module.MyPanel(parent)\n\
+    win = module.Panel(parent, menubar, toolbar, statusbar, model)\n\
     return win\n";
 
 
-wxWindow* createPythonControlledWindow(wxWindow* parent,const char* module)
+wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMenuBar* menubar, wxToolBar* toolbar, wxStatusBar* statusbar,boost::python::object& obj)
   {
     wxWindow* window = NULL;
     PyObject* result;
@@ -61,15 +61,19 @@ wxWindow* createPythonControlledWindow(wxWindow* parent,const char* module)
     // Now build an argument tuple and call the Python function.  Notice the
     // use of another wxPython API to take a wxWindows object and build a
     // wxPython object that wraps it.
-    PyObject* arg = wxPyMake_wxObject(parent, false);
-    
+    PyObject* pyparent = wxPyMake_wxObject(parent, false);
+    wxASSERT(pyparent != NULL);
+
+    boost::python::handle<> mb (wxPyMake_wxObject(menubar, false));
+    boost::python::handle<> tb (wxPyMake_wxObject(toolbar, false));
+    boost::python::handle<> sb (wxPyMake_wxObject(statusbar, false));
+
     boost::python::str modstr(module);
-    wxASSERT(arg != NULL);
     /*
     PyObject* tuple = PyTuple_New(1);
     PyTuple_SET_ITEM(tuple, 0, arg);
     */
-    boost::python::tuple t = boost::python::make_tuple(boost::python::handle<>(arg),module);
+    boost::python::tuple t = boost::python::make_tuple(module,boost::python::handle<>(pyparent),mb,tb,sb,obj);
     result = PyEval_CallObject(funcpyo, t.ptr());
 
     // Was there an exception?
@@ -92,3 +96,13 @@ wxWindow* createPythonControlledWindow(wxWindow* parent,const char* module)
 
     return window;
   }
+
+
+boost::python::object loadModel(const char* modelName)
+{
+
+  boost::python::object modelModule = boost::python::import("model");
+  boost::python::object Model =  modelModule.attr("Model");
+  boost::python::object mdl =  Model(boost::python::str(modelName));
+  return mdl;
+}

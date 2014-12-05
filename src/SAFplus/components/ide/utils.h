@@ -6,6 +6,7 @@
 #endif
 
 #include <string>
+#include <boost/python.hpp>
 
 extern std::string parse_python_exception();
 
@@ -18,5 +19,10 @@ class Utils
   protected:
   private:
 };
+
+extern wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMenuBar* menubar, wxToolBar* toolbar, wxStatusBar* statusbar,boost::python::object& obj);
+
+boost::python::object loadModel(const char* modelName);
+
 
 #endif // UTILS_H

@@ -2591,7 +2591,7 @@
 1395223202 /usr/include/librsvg-2.0/librsvg/rsvg-cairo.h
 	<cairo.h>
 
-1417713927 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
+1417747586 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
 	<sdk.h>
 	<configurationpanel.h>
 	<logmanager.h>
@@ -27634,9 +27634,10 @@
 1416932781 source:/code/git/SAFplus7/src/SAFplus/components/ide/utils.cxx
 	"utils.h"
 
-1416950724 /code/git/SAFplus7/src/SAFplus/components/ide/utils.h
+1417748724 /code/git/SAFplus7/src/SAFplus/components/ide/utils.h
 	<wx/wx.h>
 	<string>
+	<boost/python.hpp>
 
 1416932781 source:/code/git/SAFplus7/src/SAFplus/components/ide/yangParser.cxx
 	"yangParser.h"
@@ -27647,7 +27648,7 @@
 	<Python.h>
 	<boost/python.hpp>
 
-1417555011 source:/code/git/SAFplus7/src/SAFplus/components/ide/pythonWindow.cpp
+1417750951 source:/code/git/SAFplus7/src/SAFplus/components/ide/pythonWindow.cpp
 	<Python.h>
 	<wx/wx.h>
 	<wx/splitter.h>

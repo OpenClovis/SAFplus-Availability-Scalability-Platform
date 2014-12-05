@@ -31,7 +31,7 @@
 using namespace std;
 namespace bpy = boost::python;
 
-extern wxWindow* PythonWinTest(wxWindow* parent);
+//extern wxWindow* PythonWinTest(wxWindow* parent);
 
 //work-around with python's bug LD_PRELOAD
 #include <dlfcn.h>
