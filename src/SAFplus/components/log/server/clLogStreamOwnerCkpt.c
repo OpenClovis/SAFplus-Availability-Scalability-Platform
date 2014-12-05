@@ -1441,32 +1441,34 @@ clLogStreamOwnerGlobalCkptGet(ClLogSOEoDataT         *pSoEoEntry,
                               ClBoolT                *pCreateCkpt)
 {
     ClRcT             rc        = CL_OK;
-   // ClCkptOpenFlagsT  openFlags = CL_CKPT_CHECKPOINT_WRITE |
-     //                             CL_CKPT_CHECKPOINT_READ;
+    ClCkptOpenFlagsT openFlags = CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
 
     *pCreateCkpt = CL_FALSE;
-#if 0
-    rc = clCkptCheckpointOpen(pCommonEoData->hSvrCkpt, &gSOSvrCkptName, 
-                              NULL, openFlags, 0,  &pSoEoEntry->hCkpt);
-    if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
-    {
-#endif
-        rc = clLogStreamOwnerCheckpointCreate(pSoEoEntry, 
-                                              (ClNameT *) &gSOSvrCkptName, 
-                                               &pSoEoEntry->hCkpt);
-        if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != CL_GET_ERROR_CODE(rc)) )
-        {
-            CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x %x]", rc));
+
+    if (pCommonEoData->masterAddr != clIocLocalAddressGet())
+      {
+        rc = clCkptCheckpointOpen(pCommonEoData->hSvrCkpt, &gSOSvrCkptName, NULL, openFlags, 0, &pSoEoEntry->hCkpt);
+        if (CL_OK == CL_GET_ERROR_CODE(rc))
+          {
             return rc;
-        }
-        if( CL_OK == rc )
-        {
-            *pCreateCkpt = CL_TRUE;
-//            return rc;
-        }
-  //  }
+          }
+      }
+
+    rc = clLogStreamOwnerCheckpointCreate(pSoEoEntry,
+                                          (ClNameT *) &gSOSvrCkptName,
+                                           &pSoEoEntry->hCkpt);
+    if( (CL_OK != rc) && (CL_ERR_ALREADY_EXIST != CL_GET_ERROR_CODE(rc)) )
+    {
+        CL_LOG_DEBUG_ERROR(("clCkptCheckpointOpen(): rc[0x %x]", rc));
+        return rc;
+    }
+    if( CL_OK == rc )
+    {
+        *pCreateCkpt = CL_TRUE;
+    }
+
     if( pCommonEoData->masterAddr == clIocLocalAddressGet() )
     {
         rc = clLogStreamOwnerGlobalStateRecover(pCommonEoData->masterAddr, CL_FALSE);

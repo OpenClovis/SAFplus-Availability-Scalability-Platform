@@ -121,11 +121,17 @@ clLogMasterCkptGet(void)
     ckptAttr.maxSectionSize    = pMasterEoEntry->sectionSize;
     ckptAttr.maxSectionIdSize  = pMasterEoEntry->sectionIdSize;
 
-    //   openFlags = CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
-    //rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName, 
-    //                          NULL, openFlags, 0,  &pMasterEoEntry->hCkpt);
-    //    if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
-    //  {
+    if (pCommonEoEntry->masterAddr != localAddr)
+      {
+        openFlags = CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
+        rc = clCkptCheckpointOpen(pCommonEoEntry->hSvrCkpt, &gLogMasterCkptName, NULL, openFlags, 0, &pMasterEoEntry->hCkpt);
+
+        if ( CL_OK == CL_GET_ERROR_CODE(rc))
+          {
+            return rc;
+          }
+      }
+
     openFlags = CL_CKPT_CHECKPOINT_CREATE | CL_CKPT_CHECKPOINT_WRITE | CL_CKPT_CHECKPOINT_READ;
 
     reopen:
