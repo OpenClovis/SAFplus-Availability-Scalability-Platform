@@ -1,1 +1,0 @@
-../entityDetailsDialog.py

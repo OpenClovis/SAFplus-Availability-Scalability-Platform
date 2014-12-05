@@ -1,1 +1,0 @@
-../umlEditor.py

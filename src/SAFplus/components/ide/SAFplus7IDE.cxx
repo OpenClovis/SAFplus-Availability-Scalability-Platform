@@ -131,6 +131,7 @@ void SAFplus7IDE::OnAttach()
     if (getcwd(cwd, 512) != NULL)
     {
       pythonPathExt.append(cwd);
+      pythonPathExt.append(":").append(cwd).append("/../");
     }
 #else
     pythonPathExt.append(Utils::toString(ConfigManager::GetDataFolder(false)));
@@ -367,7 +368,7 @@ void SAFplus7IDE::OnYangParse(wxCommandEvent &event)
   {
     // Parse and output the exception
     std::string perror_str = parse_python_exception();
-    cout << "Error during configuration parsing: " << perror_str << endl;
+    std::cout << "Traceback: "<< std::endl << perror_str << std::endl;
   }
 
   try
@@ -388,7 +389,7 @@ void SAFplus7IDE::OnYangParse(wxCommandEvent &event)
   {
     // Parse and output the exception
     string perror_str = parse_python_exception();
-    cout << "Error during configuration parsing: " << perror_str << endl;
+    std::cout << "Traceback: "<< std::endl << perror_str << std::endl;
   }
 }
 

@@ -4,6 +4,7 @@
 // Import Python and wxPython headers
 #include <wx/wxPython/wxPython.h>
 #include <boost/python.hpp>
+#include "utils.h"
 
 #if 0
 char* python_code2 = "\
@@ -100,9 +101,18 @@ wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMe
 
 boost::python::object loadModel(const char* modelName)
 {
-
-  boost::python::object modelModule = boost::python::import("model");
-  boost::python::object Model =  modelModule.attr("Model");
-  boost::python::object mdl =  Model(boost::python::str(modelName));
+  boost::python::object mdl;
+  try
+  {
+      boost::python::object modelModule = boost::python::import("model");
+      boost::python::object Model =  modelModule.attr("Model");
+      mdl =  Model(boost::python::str(modelName));
+  }
+  catch(boost::python::error_already_set const &e)
+  {
+    // Parse and output the exception
+    std::string perror_str = parse_python_exception();
+    std::cout << "Traceback: "<< std::endl << perror_str << std::endl;
+  }
   return mdl;
 }
