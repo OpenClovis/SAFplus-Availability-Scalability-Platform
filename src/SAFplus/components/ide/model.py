@@ -6,6 +6,11 @@ from module import Module
 import svg
 import entity
 
+defaultForBuiltinType = {
+  "boolean": False,
+  "integer": 0,
+}
+
 class Model:
   def __init__(self, modelfile=None):
     self.init()
@@ -18,6 +23,7 @@ class Model:
     self.filename = None
     self.modules = {}
     self.entityTypes = {}
+    self.entities = {}
     self.instances = {}
 
   def load(self, fileOrString):
@@ -41,6 +47,18 @@ class Model:
         if not self.modules.has_key(filename):  # really load it since it does not exist
           tmp = self.modules[filename] = Module(filename)
           self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accdef xmlify(self):
+
+    # Set the entityType's context to this model so it can resolve referenced types, etc.
+    for (name,e) in self.entityTypes.items():
+      e.context = self
+
+  def defaultForType(self,typ):
+    """Figure out a reasonable default for the passed type"""
+    ret = defaultForBuiltinType.get(typ,None)  # Is the type a builtin?
+    if ret: return ret
+    # TODO: look in the model's type list for this type and figure out a default
+    return ""
+
 
   def xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
