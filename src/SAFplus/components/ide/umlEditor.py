@@ -17,6 +17,23 @@ ENTITY_TYPE_BUTTON_START = 100
 CONNECT_BUTTON = 99
 SELECT_BUTTON = 98
 
+def rectOverlaps(rect_a, rect_b):
+    """Assumes tuples of format x0,y0, x1,y1 where 0 is upper left (lowest), 1 is lower right
+       This code finds if the rectangles are separate by checking if the right side of one rectangle is further left then the leftmost side of the other, etc...
+    """
+    print rect_a, rect_b
+    separate = rect_a[2] < rect_b[0] or rect_a[0] > rect_b[2] or rect_a[1] > rect_b[3] or rect_a[3] < rect_b[1]
+    return not separate
+
+class Gesture:
+  def __init__(self):
+    pass
+
+class BoxGesture(Gesture):
+  def __init__(self):
+    pass
+
+
 class Tool:
   def __init__(self, panel):
     self.panel = panel
@@ -65,6 +82,10 @@ class SelectTool(Tool):
   def __init__(self, panel):
     self.panel = panel
     self.defaultStatusText = "Click to edit configuration.  Double click to expand/contract.  Drag to move."
+    self.selected = set()  # This is everything that is currently selected... using shift or ctrl click may mean the more is selected then currently touching
+    self.touching = set()  # This is everything that the cursor is currently touching
+    self.rect = None       # Will be something if a rectangle selection is being used
+    self.downPos = None    # Where the left mouse button was pressed
 
   def OnSelect(self, panel,event):
     panel.statusBar.SetStatusText(self.defaultStatusText,0);
@@ -73,6 +94,21 @@ class SelectTool(Tool):
   def OnUnselect(self,panel,event):
     pass
 
+  def render(self,ctx):
+    if self.rect:
+      t = self.rect
+      ctx.set_line_width(2)
+      ctx.move_to(t[0],t[1])
+      ctx.line_to(t[0],t[3])
+      ctx.line_to(t[2],t[3])
+      ctx.line_to(t[2],t[1])
+      ctx.line_to(t[0],t[1])
+      ctx.close_path()
+      ctx.set_source_rgba(.3, .2, 0.3, .4)
+      ctx.stroke_preserve()
+      ctx.set_source_rgba(.5, .3, 0.5, .05)
+      ctx.fill()
+
   def OnEditEvent(self,panel, event):
     pos = event.GetPositionTuple()
     # print event
@@ -80,28 +116,51 @@ class SelectTool(Tool):
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
         entities = panel.findEntitiesAt(pos)
-        if not entities: 
-          panel.statusBar.SetStatusText(self.defaultStatusText,0);
-          self.selected = []
-          return False
-        # print "Selected %s" % ", ".join([ e.data["name"] for e in entities])
-        panel.statusBar.SetStatusText("Selected %s" % ", ".join([ e.data["name"] for e in entities]),0);
-        self.selected = entities
+        self.downPos = pos
         self.dragPos = pos
+        if not entities:
+          panel.statusBar.SetStatusText(self.defaultStatusText,0);
+          self.touching = set()
+          return False
+        print "Touching %s" % ", ".join([ e.data["name"] for e in entities])
+        panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in entities]),0);
+        self.touching = set(entities)
+        # If the control key is down, then add to the currently selected group, otherwise replace it.
+        if event.ControlDown():
+          self.selected = self.selected.union(self.touching)
+        else: self.selected = self.touching.copy()
         return True
       if event.Dragging():
-        if self.selected and self.dragPos:
+        # if you are touching anything, then drag everything
+        if self.touching and self.dragPos:
           delta = (pos[0]-self.dragPos[0], pos[1] - self.dragPos[1])
           # TODO deal with scaling and rotation in delta
           if delta[0] != 0 and delta[1] != 0:
             for e in self.selected:
-              e.pos = (e.pos[0] + delta[0], e.pos[1] + delta[1])  # move all the selected objects by the amount the mouse moved
+              e.pos = (e.pos[0] + delta[0], e.pos[1] + delta[1])  # move all the touching objects by the amount the mouse moved
           self.dragPos = pos
           panel.Refresh()
+        else:  # touching nothing, this is a selection rectangle
+          self.rect=(min(self.downPos[0],pos[0]),min(self.downPos[1],pos[1]),max(self.downPos[0],pos[0]),max(self.downPos[1],pos[1]))
+          print "selecting", self.rect
+          panel.drawers.add(self)
+          panel.Refresh()
+
       if event.ButtonUp(wx.MOUSE_BTN_LEFT):
         # Move the data in this entity to the configuration editing sidebar, and expand it if its minimized.
         self.dragPos = None
-        pass
+        # Or find everything inside a selection box
+        if self.rect:
+          panel.drawers.discard(self)
+          self.touching = panel.findEntitiesTouching(self.rect)
+          print self.touching
+          self.rect = None
+          if event.ControlDown():
+            self.selected = self.selected.union(self.touching)
+          else: 
+            self.selected = self.touching
+          panel.Refresh()
+        
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
         entity = panel.findEntitiesAt(pos)
         if not entity: return False
@@ -118,6 +177,7 @@ class Panel(wx.Panel):
       self.statusBar = statusbar
       self.model=model
       self.tool = None  # The current tool
+      self.drawers = set()
 
       # The position of the panel's viewport within the larger drawing
       self.location = (0,0)
@@ -235,16 +295,28 @@ class Panel(wx.Panel):
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
         ctx.restore()
 
+        for e in self.drawers:
+          e.render(ctx)
+
     def findEntitiesAt(self,pos):
       """Returns the entity located at the passed position """
       # TODO handle the viewscope's translation, rotation, scaling
-      ret = []
+      ret = set()
       for e in self.entities:
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
-        print e.data["name"], ": ", pos, " inside: ", e.pos, " to ", furthest
+        #print e.data["name"], ": ", pos, " inside: ", e.pos, " to ", furthest
         if pos[0] >= e.pos[0] and pos[1] >= e.pos[1] and pos[0] <= furthest[0] and pos[1] <= furthest[1]:  # mouse is in the box formed by the entity
-          print "matched"
-          ret.append(e)
+          ret.add(e)
+      return ret
+
+    def findEntitiesTouching(self,rect):
+      """Returns all entities touching the passed rectangle """
+      # TODO handle the viewscope's translation, rotation, scaling
+      ret = set()
+      for e in self.entities:
+        furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
+        if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
+          ret.add(e)
       return ret
 
 
