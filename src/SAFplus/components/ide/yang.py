@@ -97,7 +97,7 @@ def intOrNone(x):
 def createLeaf(s,count, result=None):
   """A leaf data item has been found.  Translate this into a clean format that the IDE can easily use to include this item in a configuraton dialog"""
   if result is None: result = {}
-  result[s.arg] = { "order":count, "type": getArg(s,"type"),"help" : getArg(s,"description",None), "alias": getArg(s,"safplus:alias",None), "prompt":getArg(s,"safplus:ui-prompt",None) }
+  result[s.arg] = { "order":count, "type": getArg(s,"type"),"help" : getArg(s,"description",None), "alias": getArg(s,("SAFplusTypes","alias"),None), "prompt":getArg(s,("SAFplusTypes","ui-prompt"),None) }
   return result
   
 def handleList(s,count):

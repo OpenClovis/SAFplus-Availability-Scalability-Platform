@@ -1,3 +1,5 @@
+import pdb
+
 import wx
 #from wx.py import shell,
 #from wx.py import  version
@@ -11,23 +13,57 @@ try:
 except ImportError:
     haveCairo = False
 
+from model import *
+from entity import *
+thePanel = None
+
+
 class Panel(wx.Panel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
+        global thePanel
         wx.Panel.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
-
+        self.lockedSvg = svg.SvgFile("locked.svg") 
+        self.unlockedSvg = svg.SvgFile("unlocked.svg") 
+        self.lockedBmp = self.lockedSvg.bmp((24,24))
+        self.unlockedBmp = self.unlockedSvg.bmp((24,24))
         self.Bind(wx.EVT_PAINT, self.OnPaint)
-
-        text = wx.StaticText(self, -1,
-                            "Everything on this side of the splitter comes from Python.")
         
-        intro = 'Welcome To PyCrust %s - The Flakiest Python Shell' % 1234  # version.VERSION
-        pycrust = wx.TextCtrl(self, -1, intro)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(text, 0, wx.EXPAND|wx.ALL, 10)
-        sizer.Add(pycrust, 0, wx.EXPAND|wx.BOTTOM|wx.LEFT|wx.RIGHT, 10)
-        self.SetSizer(sizer)
+        thePanel = self
+        e = model.entities["MyServiceGroup"]
+        self.showEntity(e)
 
+
+    def showEntity(self,ent):
+      items = ent.et.data.items()
+      items = sorted(items,EntityTypeSortOrder)
+      sizer = wx.GridBagSizer(len(items)+1,3)
+      row=0
+      prompt = wx.StaticText(self,-1,"Name:",style =wx.ALIGN_RIGHT)
+      query  = wx.TextCtrl(self, -1, "")
+      sizer.Add(prompt,(row,0))
+      sizer.Add(query,(row,1),flag=wx.EXPAND)
+      sizer.Add(wx.StaticBitmap(self, -1, self.unlockedBmp),(row,2))
+      row += 1
+      for item in items:
+        if type(item[1]) is DictType:
+          s = item[1].get("prompt",item[0])
+          print s
+          if not s: s = item[0]
+          prompt = wx.StaticText(self,-1,s,style =wx.ALIGN_RIGHT)
+          query  = wx.TextCtrl(self, -1, "")
+          #b = wx.BitmapButton(self, -1, self.unlockedBmp if row&1 else self.lockedBmp)
+          b = wx.BitmapButton(self, -1, self.unlockedBmp,style = wx.NO_BORDER )
+          b.SetBitmap(self.unlockedBmp);
+          b.SetBitmapSelected(self.lockedBmp)
+          b.SetToolTipString("Allow/disallow changes during instantiation")
+          sizer.Add(prompt,(row,0))
+          sizer.Add(query,(row,1),flag=wx.EXPAND)
+          sizer.Add(b,(row,2))
+          row +=1
+      sizer.AddGrowableCol(1)
+      self.SetSizer(sizer)
+      self.Refresh()
 
     def OnPaint(self, evt):
         if self.IsDoubleBuffered():
@@ -37,8 +73,7 @@ class Panel(wx.Panel):
         dc.SetBackground(wx.Brush('white'))
         dc.Clear()
         
-        self.Render(dc)
-
+        #self.Render(dc)
 
     def Render(self, dc):
         # now draw something with cairo
@@ -117,3 +152,17 @@ class Panel(wx.Panel):
         #svgFile.render_cairo(ictx)
         return img
 
+
+def Test():
+  import time
+  import pyGuiWrapper as gui
+
+  mdl = Model()
+  mdl.load("testModel.xml")
+
+  sgt = mdl.entityTypes["ServiceGroup"]
+  sg = mdl.entities["MyServiceGroup"] = Entity(sgt,(0,0),(100,20))
+
+  gui.go(lambda parent,menu,tool,status,m=mdl: Panel(parent,menu,tool,status, m))
+  #time.sleep(2)
+  #thePanel.showEntity(sg)

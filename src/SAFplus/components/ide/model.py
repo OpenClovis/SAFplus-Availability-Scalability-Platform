@@ -129,7 +129,7 @@ def Test():
         entityInstance = entity.Instance(m.entityTypes[entityType], data)
         m.instances[entityType].append(entityInstance)
     print m.instances
-  UnitTest(m)
+  # UnitTest(m)
   return m
 
 theModel = None
