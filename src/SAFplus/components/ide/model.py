@@ -11,7 +11,20 @@ defaultForBuiltinType = {
   "integer": 0,
 }
 
+
+
 class Model:
+  """Rather then type/instance, there are really 2 levels instantiations, more along the lines of C++ template,type,instance.  What I mean by this is that the object defined in SAFplusAmf.yang is really a "meta-type".  Take the example of a Service Group.  You first "instantiate" this in the UML editor to create the "Apache" (for example) Service Group.  Next you "instantiate" the "Apache Service Group" to create a particular instance of Apache running on 2 nodes.
+
+The user can modify the configuration after every instantiation, but also has the option to "lock" particular configuration so downstream instantiation cannot modify it.
+
+For example, the user instantiates the Apache Service Group (for example), selects 1+1 redundancy and then "locks" it.  The user also selects 3 restarts before failover but does NOT lock that.  Now, when the Apache Service Group is instantiated on say node1, the user CANNOT change the redundancy model, but he can change the # of restarts (for this particular instance). 
+
+SAFplus6      SAFPlus7        SAFplus7 model.py code            What I'm talking about
+hardcoded     .yang           entityTypes                       Meta-types  (e.g. Service Group)
+config        <entities>      entities                          entities        (e.g. Apache web browser)
+instantiated  <instances>     instances                         instances     (e.g. Apache running on 2 particular nodes)
+  """
   def __init__(self, modelfile=None):
     self.init()
     if modelfile:
@@ -64,6 +77,38 @@ class Model:
     """Returns an XML string that defines the IDE Model, for saving to disk"""
     pass
 
+def UnitTest(m=None):
+  """This unit test relies on a particular model configuration, located in testModel.xml"""
+  from entity import *
+  if not m:
+    m = Model()
+    m.load("testModel.xml")
+  
+  appt = m.entityTypes["Application"]
+  app = m.entities["app"] = Entity(appt,(0,0),(100,20))
+  sgt = m.entityTypes["ServiceGroup"]
+  sg = m.entities["sg"] = Entity(sgt,(0,0),(100,20))
+  
+  if not app.canContain(sg):
+    raise "Test failed"
+  if sg.canContain(app):
+    raise "Test failed"
+
+  if not sg.canBeContained(app):
+    raise "Test failed"
+  if app.canBeContained(sg):
+    raise "Test failed"
+
+  # Now hook the sg up and then test it again
+  app.containmentArrows.append(ContainmentArrow(app,(0,0),sg,(0,0)))
+
+  app2 = m.entities["app2"] = Entity(appt,(0,0),(100,20))
+
+  if not sg.canBeContained(app):
+    raise "Test failed: should return true because sg is contained in app"
+  if sg.canBeContained(app2):
+    raise "Test failed: should return false because sg can only be contained in one app"
+  
   
 def Test():
   import pdb
@@ -84,6 +129,7 @@ def Test():
         entityInstance = entity.Instance(m.entityTypes[entityType], data)
         m.instances[entityType].append(entityInstance)
     print m.instances
+  UnitTest(m)
   return m
 
 theModel = None

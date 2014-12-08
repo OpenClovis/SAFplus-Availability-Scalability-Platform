@@ -1,5 +1,7 @@
 import pdb
 import math
+import time
+from types import *
 
 import wx
 import wx.lib.wxcairo
@@ -9,9 +11,10 @@ import yang
 import svg
 #from wx.py import shell,
 #from wx.py import  version
-
+import dot
+from common import *
 from module import Module
-from entity import Entity
+from entity import *
 from model import Model
  
 ENTITY_TYPE_BUTTON_START = 100
@@ -20,6 +23,8 @@ SELECT_BUTTON = 98
 
 PI = 3.141592636
 
+linkNormalLook = dot.Dot({ "color":(0,0,0,.4), "lineThickness": 4, "buttonRadius": 6, "arrowLength":15, "arrowAngle": PI/8 })
+
 def calcArrow(start_x, start_y, end_x, end_y,length=5.0,degrees=PI/10.0):
   angle = math.atan2 (end_y - start_y, end_x - start_x) + PI;
   x1 = end_x + length * math.cos(angle - degrees);
@@ -27,6 +32,40 @@ def calcArrow(start_x, start_y, end_x, end_y,length=5.0,degrees=PI/10.0):
   x2 = end_x + length * math.cos(angle + degrees);
   y2 = end_y + length * math.sin(angle + degrees);
   return((x1,y1),(x2,y2))
+
+def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
+      if type(cust) is DictType: cust = dot.Dot(cust)
+      if not middlePos:
+        middlePos = [((startPos[0]+endPos[0])/2,(startPos[1]+endPos[1])/2)]
+      ctx.save()
+      ctx.set_source_rgba(*cust.color)
+      ctx.set_line_width(cust.lineThickness)
+      ctx.move_to(*startPos)
+      try:
+        ctx.curve_to (middlePos[0][0],middlePos[0][1],middlePos[0][0],middlePos[0][1], endPos[0],endPos[1]);
+      except:
+        pdb.set_trace()
+
+      ctx.stroke()
+
+      if cust.get("buttonRadius", 4):
+        ctx.arc(startPos[0],startPos[1], cust.buttonRadius, 0, 2*3.141592637);
+        ctx.close_path()
+        ctx.stroke_preserve()
+        ctx.set_source_rgba(cust.color[0],cust.color[1],cust.color[2],cust.color[3])
+        ctx.fill()
+
+      # Draw the arrow on the end
+      ctx.set_source_rgba(*cust.color)
+      (a,b) = calcArrow(middlePos[0][0],middlePos[0][1],endPos[0],endPos[1],cust.arrowLength,cust.arrowAngle)
+      ctx.move_to(endPos[0],endPos[1])
+      ctx.line_to(*a)
+      ctx.line_to(*b)
+      ctx.close_path()
+      ctx.stroke_preserve()
+      ctx.fill()
+      ctx.restore()
+
 
 def rectOverlaps(rect_a, rect_b):
     """Assumes tuples of format x0,y0, x1,y1 where 0 is upper left (lowest), 1 is lower right
@@ -134,30 +173,54 @@ class LineGesture(Gesture):
         ctx.fill()
 
 class LazyLineGesture(Gesture,wx.Timer):
-  """Creates a grey line that changes as the mouse is dragged that can be used connect things"""
+  """Creates a grey line that changes as the mouse is dragged that can be used connect things.  This class adds additional eye-candy -- when you drag the line quickly it resists the motion as if it was in water and curves!  The curve slowly straightens back into a line.
+  """
   def __init__(self,color=(0,0,0,.9),circleRadius=5,linethickness=4,arrowlen=15, arrowangle=PI/8):
     Gesture.__init__(self)
     wx.Timer.__init__(self)
-    self.color = color
-    self.circleRadius = circleRadius
-    self.lineThickness = linethickness
-    self.arrowLength = arrowlen
-    self.arrowAngle = arrowangle
+    self.cust = dot.Dot()
+    
+    self.cust.color = color
+    self.cust.buttonRadius = circleRadius
+    self.cust.lineThickness = linethickness
+    self.cust.arrowLength = arrowlen
+    self.cust.arrowAngle = arrowangle
+
     self.downPos = self.curPos = None
     self.center = None
 
+    self.frameInterval = 10   # Targeted milliseconds between frame redraws
+    self.frameAverage = self.frameInterval  # Actual (measured) milliseconds between redraws
+    self.lastFrame = None  # When the last Notify occurred
+
+    self.settleTime = 1000.0  # How long in milliseconds should the line take to straighten
+
   def Notify(self):
     realCenter=((self.curPos[0]+self.downPos[0])/2.0,(self.curPos[1]+self.downPos[1])/2.0)
-    centerVector = ((realCenter[0]-self.center[0])/20.0,(realCenter[1]-self.center[1])/20.0)
+    centerVector = ((realCenter[0]-self.center[0])/(self.settleTime/self.frameInterval),(realCenter[1]-self.center[1])/(self.settleTime/self.frameInterval))
     self.center = (self.center[0]+centerVector[0],self.center[1]+centerVector[1])  # move the center that way.
     self.panel.Refresh()
+
+    # This code adjusts the animation speed by examining the frame rate
+    tmp = time.time()*1000
+    elapsed = (tmp - self.lastFrame)  # In milliseconds
+    self.frameAverage = (self.frameAverage*19.0 + elapsed)/20.0  # averaging the frames
+
+    if self.frameAverage > self.frameInterval*1.2 or self.frameAverage < self.frameInterval*.8:
+      # Actual frame interval is different than what the code was hoping for, so adjust the code accordingly
+      self.frameInterval = int(self.frameAverage)
+      self.Stop()
+      self.Start(self.frameInterval)
+    self.lastFrame = tmp
+    #print tmp, self.frameInterval, self.frameAverage
 
   def start(self,panel,pos):
     self.active  = True
     self.center = self.downPos = self.curPos = pos
     self.panel   = panel
     self.timer = wx.Timer(self)
-    wx.Timer.Start(self,10)
+    self.lastFrame = time.time()*1000
+    wx.Timer.Start(self,self.frameInterval)
     panel.drawers.add(self)
 
   def change(self,panel, event):
@@ -171,34 +234,13 @@ class LazyLineGesture(Gesture,wx.Timer):
     panel.Refresh()
     self.Stop()
     self.timer = None
-    return (self.downPos,self.curPos)
+    return (self.downPos,self.curPos,self.center)
 
   def render(self, ctx):
-    if self.downPos:      
-      ctx.set_source_rgba(*self.color)
-      ctx.set_line_width(self.lineThickness)
-      ctx.move_to(*self.downPos)
-      ctx.curve_to (self.center[0],self.center[1],self.center[0],self.center[1], self.curPos[0],self.curPos[1]);
-      #ctx.move_to(*self.downPos)  # move back so path is not closed
-      #ctx.close_path()
-      ctx.stroke()
-      if 1:
-        ctx.arc(self.downPos[0],self.downPos[1], self.circleRadius, 0, 2*3.141592637);
-        ctx.close_path()
-        ctx.stroke_preserve()
-        ctx.set_source_rgba(self.color[0],self.color[1],self.color[2],self.color[3])
-        ctx.fill()
-
-      # Draw the arrow on the end
-      ctx.set_source_rgba(*self.color)
-      (a,b) = calcArrow(self.center[0],self.center[1],self.curPos[0],self.curPos[1],self.arrowLength,self.arrowAngle)
-      ctx.move_to(self.curPos[0],self.curPos[1])
-      ctx.line_to(*a)
-      ctx.line_to(*b)
-      ctx.close_path()
-      ctx.stroke_preserve()
-      ctx.fill()
+    if self.downPos:   
+      drawCurvyArrow(ctx, self.downPos,self.curPos,[self.center],self.cust)
       
+
 class FadingX(wx.Timer):
   """Creates a grey line that changes as the mouse is dragged that can be used connect things"""
   def __init__(self,panel,pos,time=3):
@@ -317,23 +359,32 @@ class LinkTool(Tool):
           self.err = FadingX(panel,pos,2)
         else:
           self.startEntity = entities.pop()
-          self.line.start(panel,pos)
-          
+          self.line.start(panel,pos)          
         ret = True
+
       elif event.Dragging():
-        self.line.change(panel,event)
+        if self.startEntity: self.line.change(panel,event)
         ret = True
+
       elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
         if self.startEntity:
           line = self.line.finish(panel,pos)
           entities = panel.findEntitiesAt(pos)
           if len(entities) != 1:
-            panel.statusBar.SetStatusText("You must choose a single finishing entity!",0);
+            panel.statusBar.SetStatusText("You must choose a single ending entity!",0);
             self.err = FadingX(panel,pos,1)
-            # TODO show a red X under the cursor
           else:
             self.endEntity = entities.pop()
-            # TODO add this data to the model.
+            if not self.startEntity.canContain(self.endEntity):
+              panel.statusBar.SetStatusText("Relationship is not allowed.  Most likely %s entities cannot contain %s entities.  Or maybe you've exceeded the number of containments allowed" % (self.startEntity.et.name, self.endEntity.et.name),0);
+              self.err = FadingX(panel,pos,1)
+            elif not self.endEntity.canBeContained(self.startEntity):
+              panel.statusBar.SetStatusText("Relationship is not allowed.  Most likely %s entities can only be contained by one %s entity."  % (self.endEntity.et.name, self.startEntity.et.name),0);
+              self.err = FadingX(panel,pos,1)
+            else:
+              # Add the arrow into the model.  the arrow's location is relative to the objects it connects
+              ca = ContainmentArrow(self.startEntity, (line[0][0]-self.startEntity.pos[0],line[0][1] - self.startEntity.pos[1]), self.endEntity, (line[1][0]-self.endEntity.pos[0],line[1][1]-self.endEntity.pos[1]), [line[2]] if len(line)>1 else None)
+              self.startEntity.containmentArrows.append(ca)
 
     return ret
     
@@ -549,6 +600,12 @@ class Panel(wx.Panel):
         # Now draw the entites
         for e in self.entities:
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
+        # Now draw the containment arrows on top
+        for e in self.entities:
+          for a in e.containmentArrows:
+            st = a.container.pos
+            end = a.contained.pos
+            drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
         ctx.restore()
 
         for e in self.drawers:

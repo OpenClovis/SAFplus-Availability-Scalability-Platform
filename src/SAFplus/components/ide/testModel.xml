@@ -2,8 +2,8 @@
   <modules> 
      <yang>SAFplusAmf.yang</yang>
   </modules>
-  <types>
-  </types>
+  <entities>
+  </entities>
   <instances>
     <Application />
     <Cluster />

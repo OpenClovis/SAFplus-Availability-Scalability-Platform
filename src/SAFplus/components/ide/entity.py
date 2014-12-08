@@ -36,6 +36,15 @@ class EntityType:
     ret = Entity(self, pos,size)
     return ret
 
+class ContainmentArrow:
+  def __init__(self, container, offset, contained, end_offset, midpoints=None):
+    """Creates a containment arrow.  Pass the "container" Entity object and the pixel tuple "offset" from the container's position.  And pass the "contained" Entity object and the pixel tuple "offset" from the contained's position.  The midpoints parameter allows the arrow to be curved using sequential first order bezier curves
+    """
+    self.container = container
+    self.beginOffset = offset
+    self.contained = contained
+    self.endOffset = end_offset
+    self.midpoints = midpoints
 
 class Entity:
   """This is a UML object of a particular entity type, for example the 'Apache' service group"""
@@ -51,6 +60,19 @@ class Entity:
     self.data["entityType"] = self.et.name
     self.data["name"] = NameCreator(entityType.name)
     self.bmp  = self.et.iconSvg.instantiate(self.size,self.data)
+    self.containmentArrows = []
+
+  def canContain(self, entity):
+    """Return true if this entity can contain the passed entity"""
+    # TODO: check the entitytype relationship
+    # TODO: make sure that the ordinality is correct (i.e. if self can only contain one entity, make sure that currently self is containing no of them)
+    return True
+
+  def canBeContained(self, entity):
+    """Return true if this entity can be contained by the passed entity"""
+    # TODO: check the entitytype relationship
+    # TODO: make sure that the ordinality is correct (i.e. if self can only be contained by one entity, make sure that currently self is contained by no entity)
+    return True
 
   def updateDataFields(self):
     """Creates/modifies the data fields in this entity based on the entityType"""
