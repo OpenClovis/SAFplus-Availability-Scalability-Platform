@@ -404,8 +404,8 @@ ClRcT ckptMasterDBInfoUnpack(ClUint32T             mastHdlCount,
                 pMasterDBInfo->ckptMasterHdl);
         if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST) 
         {
-            clLogNotice("INFO", "SYNCUP", 
-                        "Master db handle [%#llx] already exists and in sync."
+            clLogDebug("INFO", "SYNCUP",
+                        "Master db handle [%#llx] already exists and in sync. "
                         "Skipping masterdb info syncup",
                         pMasterDBInfo->ckptMasterHdl);
             ++pMasterDBInfo;
@@ -1390,9 +1390,8 @@ VDECL_VER(clCkptDeputyCkptOpen, 4, 0, 0)(ClHandleT         storedDBHdl,
         return rc;
     }
 
-    clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP,
-               "Opening the handle [%#llX] at address [%d] for MasterHandle [%#llX]",
-		clientHdl, localAddr, storedDBHdl);
+    clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Opening the handle [%#llX] at address [%d] for MasterHandle [%#llX]",
+        clientHdl, localAddr, storedDBHdl);
                    
     /*
      * Check if the deputy is up or not.
@@ -1431,13 +1430,11 @@ VDECL_VER(clCkptDeputyCkptOpen, 4, 0, 0)(ClHandleT         storedDBHdl,
     if (CL_OK != (rc = _ckptClientHdlInfoFill(storedDBHdl, clientHdl,
                                             CL_CKPT_SOURCE_DEPUTY)))
     {
-	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, 
-	           "Checkpoint open on deputy failed for clientHdl[%#llX] rc[0x %x]", 
-		    clientHdl, rc);
-        clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
-                storedDBHdl);
+        clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Checkpoint open on deputy failed for clientHdl[%#llX] rc[0x %x]",
+            clientHdl, rc);
+        clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl);
         CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-        return rc;                
+        return rc;
     }
     
     /*
@@ -1447,15 +1444,11 @@ VDECL_VER(clCkptDeputyCkptOpen, 4, 0, 0)(ClHandleT         storedDBHdl,
                                                   localAddr, localPort,
                                                    CL_CKPT_OPEN, 0)))
     {
-	clLogError(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, 
-	           "Checkpoint open on deputy failed for addr[%d] rc[0x %x]", 
-		    localAddr, rc);
-        clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
-                clientHdl);
-        clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, 
-                storedDBHdl);
+        clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_DEP_SYNCUP, "Checkpoint open on deputy failed for addr[%d] rc[0x %x]", localAddr, rc);
+        clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl, clientHdl);
+        clHandleCheckin(gCkptSvr->masterInfo.masterDBHdl, storedDBHdl);
         CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
-        return rc;                
+        return rc;
     }
     /*
      * In case of sync checkpoint, add the masterHdl to the list of 

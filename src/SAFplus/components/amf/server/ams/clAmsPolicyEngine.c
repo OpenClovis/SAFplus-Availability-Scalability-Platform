@@ -14769,7 +14769,7 @@ clAmsPeCompReassignWork(
                     {
                         *activeSU = cSU;
                         standby = NULL;
-                        clLogNotice("COMP", "REASSIGN", "Component [%s] part of SU [%s] "
+                        clLogDebug("COMP", "REASSIGN", "Component [%s] part of SU [%s] "
                                     "is already assigned active. Skipping reassignment "
                                     "for SU [%s]", c->config.entity.name.value,
                                     cSU->config.entity.name.value,
@@ -15238,14 +15238,14 @@ clAmsPeCompAssignCSIExtended(
                 if ( cRef->haState == CL_AMS_HA_STATE_ACTIVE )
                 {
                     activeComp = (ClAmsCompT *) entityRef->ptr;
-                    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("active comp found [%.*s].\n",activeComp->config.entity.name.length,activeComp->config.entity.name.value));
+                    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG, ("active comp found [%.*s].\n",activeComp->config.entity.name.length,activeComp->config.entity.name.value));
                     
                 }
 
                 if ( cRef->haState == CL_AMS_HA_STATE_STANDBY )
                 {
                     standbyComp = (ClAmsCompT*)entityRef->ptr;
-                    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING, ("standby comp found [%.*s].\n",standbyComp->config.entity.name.length,standbyComp->config.entity.name.value));
+                    AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG, ("standby comp found [%.*s].\n",standbyComp->config.entity.name.length,standbyComp->config.entity.name.value));
                     
                     standbyRank++;
                 }
@@ -15253,7 +15253,7 @@ clAmsPeCompAssignCSIExtended(
             
             if ( !activeComp )
             {
-                AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_WARNING,
+                AMS_ENTITY_LOG (comp, CL_AMS_MGMT_SUB_AREA_MSG, CL_LOG_SEV_DEBUG,
                                 ("Warning: Assigning CSI [%s] with HA state [Standby] to Component [%s] but no active assignment found.\n",
                                  csi->config.entity.name.value,
                                  comp->config.entity.name.value));
