@@ -27,11 +27,59 @@ def rectOverlaps(rect_a, rect_b):
 
 class Gesture:
   def __init__(self):
+    self.active = False
+    pass
+  def start(self,panel,pos):
+    """This gesture is activated"""
+    pass
+  def change(self,panel,event):
+    """The mouse state has changed"""
+    pass
+  def finish(self,panel,pos):
+    """Gesture is completed"""
     pass
 
 class BoxGesture(Gesture):
   def __init__(self):
+    self.rect = None
     pass
+
+  def start(self,panel,pos):
+    self.active  = True
+    self.downPos = pos
+    self.panel   = panel
+    self.rect    = None
+
+  def change(self,panel, event):
+    pos = event.GetPositionTuple()
+    assert(self.active)
+    self.rect=(min(self.downPos[0],pos[0]),min(self.downPos[1],pos[1]),max(self.downPos[0],pos[0]),max(self.downPos[1],pos[1]))
+    print "selecting", self.rect
+    panel.drawers.add(self)
+    panel.Refresh()
+
+  def finish(self, panel, pos):
+    print "finish"
+    self.active = False
+    panel.drawers.discard(self)
+    panel.Refresh()
+    return self.rect
+    
+
+  def render(self, ctx):
+    if self.rect:
+      t = self.rect
+      ctx.set_line_width(2)
+      ctx.move_to(t[0],t[1])
+      ctx.line_to(t[0],t[3])
+      ctx.line_to(t[2],t[3])
+      ctx.line_to(t[2],t[1])
+      ctx.line_to(t[0],t[1])
+      ctx.close_path()
+      ctx.set_source_rgba(.3, .2, 0.3, .4)
+      ctx.stroke_preserve()
+      ctx.set_source_rgba(.5, .3, 0.5, .05)
+      ctx.fill()
 
 
 class Tool:
@@ -85,7 +133,8 @@ class SelectTool(Tool):
     self.selected = set()  # This is everything that is currently selected... using shift or ctrl click may mean the more is selected then currently touching
     self.touching = set()  # This is everything that the cursor is currently touching
     self.rect = None       # Will be something if a rectangle selection is being used
-    self.downPos = None    # Where the left mouse button was pressed
+    #self.downPos = None    # Where the left mouse button was pressed
+    self.boxSel = BoxGesture()
 
   def OnSelect(self, panel,event):
     panel.statusBar.SetStatusText(self.defaultStatusText,0);
@@ -95,19 +144,7 @@ class SelectTool(Tool):
     pass
 
   def render(self,ctx):
-    if self.rect:
-      t = self.rect
-      ctx.set_line_width(2)
-      ctx.move_to(t[0],t[1])
-      ctx.line_to(t[0],t[3])
-      ctx.line_to(t[2],t[3])
-      ctx.line_to(t[2],t[1])
-      ctx.line_to(t[0],t[1])
-      ctx.close_path()
-      ctx.set_source_rgba(.3, .2, 0.3, .4)
-      ctx.stroke_preserve()
-      ctx.set_source_rgba(.5, .3, 0.5, .05)
-      ctx.fill()
+    pass
 
   def OnEditEvent(self,panel, event):
     pos = event.GetPositionTuple()
@@ -116,15 +153,19 @@ class SelectTool(Tool):
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
         entities = panel.findEntitiesAt(pos)
-        self.downPos = pos
         self.dragPos = pos
         if not entities:
           panel.statusBar.SetStatusText(self.defaultStatusText,0);
           self.touching = set()
+          self.boxSel.start(panel,pos)
           return False
         print "Touching %s" % ", ".join([ e.data["name"] for e in entities])
         panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in entities]),0);
-        self.touching = set(entities)
+
+        # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
+        # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
+        if not entities.issubset(self.touching):
+          self.touching = set(entities)
         # If the control key is down, then add to the currently selected group, otherwise replace it.
         if event.ControlDown():
           self.selected = self.selected.union(self.touching)
@@ -141,20 +182,16 @@ class SelectTool(Tool):
           self.dragPos = pos
           panel.Refresh()
         else:  # touching nothing, this is a selection rectangle
-          self.rect=(min(self.downPos[0],pos[0]),min(self.downPos[1],pos[1]),max(self.downPos[0],pos[0]),max(self.downPos[1],pos[1]))
-          print "selecting", self.rect
-          panel.drawers.add(self)
-          panel.Refresh()
+          self.boxSel.change(panel,event)
 
       if event.ButtonUp(wx.MOUSE_BTN_LEFT):
-        # Move the data in this entity to the configuration editing sidebar, and expand it if its minimized.
-        self.dragPos = None
+        # TODO: Move the data in this entity to the configuration editing sidebar, and expand it if its minimized.
+        
         # Or find everything inside a selection box
-        if self.rect:
+        if self.boxSel.active:
           panel.drawers.discard(self)
-          self.touching = panel.findEntitiesTouching(self.rect)
-          print self.touching
-          self.rect = None
+          self.touching = panel.findEntitiesTouching(self.boxSel.finish(panel,pos))
+
           if event.ControlDown():
             self.selected = self.selected.union(self.touching)
           else: 
