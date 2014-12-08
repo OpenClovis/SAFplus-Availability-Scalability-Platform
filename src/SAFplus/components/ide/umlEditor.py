@@ -1,4 +1,5 @@
 import pdb
+import math
 
 import wx
 import wx.lib.wxcairo
@@ -16,6 +17,16 @@ from model import Model
 ENTITY_TYPE_BUTTON_START = 100
 CONNECT_BUTTON = 99
 SELECT_BUTTON = 98
+
+PI = 3.141592636
+
+def calcArrow(start_x, start_y, end_x, end_y,length=5.0,degrees=PI/10.0):
+  angle = math.atan2 (end_y - start_y, end_x - start_x) + PI;
+  x1 = end_x + length * math.cos(angle - degrees);
+  y1 = end_y + length * math.sin(angle - degrees);
+  x2 = end_x + length * math.cos(angle + degrees);
+  y2 = end_y + length * math.sin(angle + degrees);
+  return((x1,y1),(x2,y2))
 
 def rectOverlaps(rect_a, rect_b):
     """Assumes tuples of format x0,y0, x1,y1 where 0 is upper left (lowest), 1 is lower right
@@ -40,6 +51,7 @@ class Gesture:
     pass
 
 class BoxGesture(Gesture):
+  """Creates a greyed box that changes as the mouse is dragged that can be used to size or select something"""
   def __init__(self):
     Gesture.__init__(self)
     self.rect = None
@@ -64,8 +76,7 @@ class BoxGesture(Gesture):
     self.active = False
     panel.drawers.discard(self)
     panel.Refresh()
-    return self.rect
-    
+    return self.rect    
 
   def render(self, ctx):
     if self.rect:
@@ -81,6 +92,147 @@ class BoxGesture(Gesture):
       ctx.stroke_preserve()
       ctx.set_source_rgba(.5, .3, 0.5, .05)
       ctx.fill()
+
+class LineGesture(Gesture):
+  """Creates a grey line that changes as the mouse is dragged that can be used connect things"""
+  def __init__(self,circleRadius=5,color=(0,0,0,.9)):
+    Gesture.__init__(self)
+    self.color = color
+    self.circleRadius = circleRadius
+    self.downPos = self.curPos = None
+
+  def start(self,panel,pos):
+    self.active  = True
+    self.downPos = self.curPos = pos
+    self.panel   = panel
+    panel.drawers.add(self)
+
+  def change(self,panel, event):
+    self.curPos = event.GetPositionTuple()
+    assert(self.active)
+    panel.Refresh()
+
+  def finish(self, panel, pos):
+    self.active = False
+    panel.drawers.discard(self)
+    panel.Refresh()
+    return (self.downPos,self.curPos)
+
+  def render(self, ctx):
+    if self.downPos:      
+      ctx.set_source_rgba(*self.color)
+      ctx.set_line_width(6)
+      ctx.move_to(*self.downPos)
+      ctx.line_to(*self.curPos)
+      ctx.close_path()
+      ctx.stroke()
+      if 1:
+        ctx.arc(self.downPos[0],self.downPos[1], self.circleRadius, 0, 2*3.141592637);
+        ctx.close_path()
+        ctx.stroke_preserve()
+        ctx.set_source_rgba(self.color[0],self.color[1],self.color[2],self.color[3])
+        ctx.fill()
+
+class LazyLineGesture(Gesture,wx.Timer):
+  """Creates a grey line that changes as the mouse is dragged that can be used connect things"""
+  def __init__(self,color=(0,0,0,.9),circleRadius=5,linethickness=4,arrowlen=15, arrowangle=PI/8):
+    Gesture.__init__(self)
+    wx.Timer.__init__(self)
+    self.color = color
+    self.circleRadius = circleRadius
+    self.lineThickness = linethickness
+    self.arrowLength = arrowlen
+    self.arrowAngle = arrowangle
+    self.downPos = self.curPos = None
+    self.center = None
+
+  def Notify(self):
+    realCenter=((self.curPos[0]+self.downPos[0])/2.0,(self.curPos[1]+self.downPos[1])/2.0)
+    centerVector = ((realCenter[0]-self.center[0])/20.0,(realCenter[1]-self.center[1])/20.0)
+    self.center = (self.center[0]+centerVector[0],self.center[1]+centerVector[1])  # move the center that way.
+    self.panel.Refresh()
+
+  def start(self,panel,pos):
+    self.active  = True
+    self.center = self.downPos = self.curPos = pos
+    self.panel   = panel
+    self.timer = wx.Timer(self)
+    wx.Timer.Start(self,10)
+    panel.drawers.add(self)
+
+  def change(self,panel, event):
+    self.curPos = event.GetPositionTuple()
+    assert(self.active)
+    panel.Refresh()
+
+  def finish(self, panel, pos):
+    self.active = False
+    panel.drawers.discard(self)
+    panel.Refresh()
+    self.Stop()
+    self.timer = None
+    return (self.downPos,self.curPos)
+
+  def render(self, ctx):
+    if self.downPos:      
+      ctx.set_source_rgba(*self.color)
+      ctx.set_line_width(self.lineThickness)
+      ctx.move_to(*self.downPos)
+      ctx.curve_to (self.center[0],self.center[1],self.center[0],self.center[1], self.curPos[0],self.curPos[1]);
+      #ctx.move_to(*self.downPos)  # move back so path is not closed
+      #ctx.close_path()
+      ctx.stroke()
+      if 1:
+        ctx.arc(self.downPos[0],self.downPos[1], self.circleRadius, 0, 2*3.141592637);
+        ctx.close_path()
+        ctx.stroke_preserve()
+        ctx.set_source_rgba(self.color[0],self.color[1],self.color[2],self.color[3])
+        ctx.fill()
+
+      # Draw the arrow on the end
+      ctx.set_source_rgba(*self.color)
+      (a,b) = calcArrow(self.center[0],self.center[1],self.curPos[0],self.curPos[1],self.arrowLength,self.arrowAngle)
+      ctx.move_to(self.curPos[0],self.curPos[1])
+      ctx.line_to(*a)
+      ctx.line_to(*b)
+      ctx.close_path()
+      ctx.stroke_preserve()
+      ctx.fill()
+      
+class FadingX(wx.Timer):
+  """Creates a grey line that changes as the mouse is dragged that can be used connect things"""
+  def __init__(self,panel,pos,time=3):
+    wx.Timer.__init__(self)
+    self.panel = panel
+    self.sz=(15,15)
+    self.pos = pos
+    self.count = time*10
+    self.color = (1,0,0,1)
+    self.inc   = 1.0/self.count
+    self.lineThickness = 6
+    panel.drawers.add(self)
+    wx.Timer.Start(self,100)
+
+  def Notify(self):
+    self.count -= 1
+    self.color = (self.color[0], self.color[1], self.color[2], self.color[3]-self.inc)
+    if self.count == 0:  # All done
+      self.panel.drawers.discard(self)
+      self.Stop()
+    self.panel.Refresh()
+
+  def render(self, ctx):
+    ctx.save()
+    ctx.set_source_rgba(*self.color)
+    ctx.set_line_width(self.lineThickness)
+    ctx.set_line_cap(cairo.LINE_CAP_ROUND)
+    ctx.move_to(self.pos[0]-self.sz[0],self.pos[1]-self.sz[1])
+    ctx.line_to(self.pos[0]+self.sz[0],self.pos[1]+self.sz[1])
+    ctx.move_to(self.pos[0]+self.sz[0],self.pos[1]-self.sz[1])
+    ctx.line_to(self.pos[0]-self.sz[0],self.pos[1]+self.sz[1])
+    ctx.stroke()
+    ctx.restore()
+
 
 
 class Tool:
@@ -129,6 +281,60 @@ class EntityTypeTool(Tool):
         if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
           size = None
         ret = self.CreateNewInstance(panel,(rect[0],rect[1]),size)
+    return ret
+    
+  def CreateNewInstance(self,panel,position,size=None):
+    """Create a new instance of this entity type at this position"""
+    panel.statusBar.SetStatusText("Created %s" % self.entityType.name,0);
+    panel.entities.append(self.entityType.CreateEntity(position, size))
+    panel.Refresh()
+    return True
+ 
+
+class LinkTool(Tool):
+  def __init__(self, panel):
+    Tool.__init__(self,panel)
+    self.line =   LazyLineGesture(color=(0,0,0,.9),circleRadius=5,linethickness=4,arrowlen=15, arrowangle=PI/8)
+    self.startEntity = None
+    self.err = None
+
+  def OnSelect(self, panel,event):
+    panel.statusBar.SetStatusText("Click on an entity and drag to another entity to create a relationship.",0);
+    return True
+
+  def OnUnselect(self,panel,event):
+    return True
+
+  def OnEditEvent(self,panel, event):
+    pos = event.GetPositionTuple()
+    ret = False
+    if isinstance(event,wx.MouseEvent):
+      if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
+        entities = panel.findEntitiesAt(pos)
+        if len(entities) != 1:
+          panel.statusBar.SetStatusText("You must choose a single starting entity!",0);
+          # TODO show a red X under the cursor
+          self.err = FadingX(panel,pos,2)
+        else:
+          self.startEntity = entities.pop()
+          self.line.start(panel,pos)
+          
+        ret = True
+      elif event.Dragging():
+        self.line.change(panel,event)
+        ret = True
+      elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
+        if self.startEntity:
+          line = self.line.finish(panel,pos)
+          entities = panel.findEntitiesAt(pos)
+          if len(entities) != 1:
+            panel.statusBar.SetStatusText("You must choose a single finishing entity!",0);
+            self.err = FadingX(panel,pos,1)
+            # TODO show a red X under the cursor
+          else:
+            self.endEntity = entities.pop()
+            # TODO add this data to the model.
+
     return ret
     
   def CreateNewInstance(self,panel,position,size=None):
@@ -258,7 +464,7 @@ class Panel(wx.Panel):
       self.toolBar.AddSeparator()
       bitmap = svg.SvgFile("connect.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(CONNECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="connect", longHelp="Draw relationships between entities")
-      self.idLookup[CONNECT_BUTTON] = None
+      self.idLookup[CONNECT_BUTTON] = LinkTool(self)
 
       bitmap = svg.SvgFile("pointer.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
