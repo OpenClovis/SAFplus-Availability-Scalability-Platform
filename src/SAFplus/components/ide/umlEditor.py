@@ -41,6 +41,7 @@ class Gesture:
 
 class BoxGesture(Gesture):
   def __init__(self):
+    Gesture.__init__(self)
     self.rect = None
     pass
 
@@ -48,7 +49,7 @@ class BoxGesture(Gesture):
     self.active  = True
     self.downPos = pos
     self.panel   = panel
-    self.rect    = None
+    self.rect    = (pos[0],pos[1],pos[0],pos[1])
 
   def change(self,panel, event):
     pos = event.GetPositionTuple()
@@ -102,6 +103,7 @@ class EntityTypeTool(Tool):
   def __init__(self, panel,entityType):
     self.entityType = entityType
     Tool.__init__(self,panel)
+    self.box = BoxGesture()
 
   def OnSelect(self, panel,event):
     panel.statusBar.SetStatusText("Click to create a new %s" % self.entityType.name,0);
@@ -112,10 +114,21 @@ class EntityTypeTool(Tool):
     return True
 
   def OnEditEvent(self,panel, event):
+    pos = event.GetPositionTuple()
     ret = False
     if isinstance(event,wx.MouseEvent):
-      if event.ButtonUp(wx.MOUSE_BTN_LEFT):
-        ret = self.CreateNewInstance(panel,event.GetPositionTuple())
+      if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
+        self.box.start(panel,pos)
+        ret = True
+      elif event.Dragging():
+        self.box.change(panel,event)
+        ret = True
+      elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
+        rect = self.box.finish(panel,pos)
+        size = (rect[2]-rect[0],rect[3]-rect[1])
+        if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
+          size = None
+        ret = self.CreateNewInstance(panel,(rect[0],rect[1]),size)
     return ret
     
   def CreateNewInstance(self,panel,position,size=None):
@@ -189,7 +202,7 @@ class SelectTool(Tool):
         
         # Or find everything inside a selection box
         if self.boxSel.active:
-          panel.drawers.discard(self)
+          #panel.drawers.discard(self)
           self.touching = panel.findEntitiesTouching(self.boxSel.finish(panel,pos))
 
           if event.ControlDown():
