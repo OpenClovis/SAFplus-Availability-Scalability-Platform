@@ -65,6 +65,7 @@ class Entity:
     self.rotate = 0.0
     self.data = {}
     self.updateDataFields()
+    self.instanceLocked = {}  # Whether this data data fields can be changed by an instance
     self.data["entityType"] = self.et.name
     self.data["name"] = NameCreator(entityType.name)
     self.bmp  = self.et.iconSvg.instantiate(self.size,self.data)

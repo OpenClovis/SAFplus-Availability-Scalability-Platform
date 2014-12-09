@@ -1,3 +1,4 @@
+import pdb
 import xml.dom.minidom
 import microdom
 import types
@@ -35,6 +36,7 @@ instantiated  <instances>     instances                         instances     (e
     self.data = {} # empty model
     self.filename = None
     self.modules = {}
+    self.dataTypes= {}
     self.entityTypes = {}
     self.entities = {}
     self.instances = {}
@@ -60,6 +62,8 @@ instantiated  <instances>     instances                         instances     (e
         if not self.modules.has_key(filename):  # really load it since it does not exist
           tmp = self.modules[filename] = Module(filename)
           self.entityTypes.update(tmp.entityTypes)  # make the entity types easily accdef xmlify(self):
+          for (typName,data) in tmp.ytypes.items():
+            self.dataTypes[typName] = data
 
     # Set the entityType's context to this model so it can resolve referenced types, etc.
     for (name,e) in self.entityTypes.items():

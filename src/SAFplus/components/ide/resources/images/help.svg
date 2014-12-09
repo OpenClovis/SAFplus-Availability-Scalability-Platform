@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   id="svg6361"
+   sodipodi:docname="help.svg"
+   viewBox="0 0 41.997404 42.007905"
+   sodipodi:version="0.32"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape"
+   inkscape:version="0.48.4 r9939"
+   version="1.1"
+   width="100%"
+   height="100%">
+  <defs
+     id="defs3">
+    <radialGradient
+       id="radialGradient21650"
+       gradientUnits="userSpaceOnUse"
+       cy="36.75"
+       cx="25.125"
+       gradientTransform="matrix(1,0,0,0.59524,0,14.875)"
+       r="15.75"
+       inkscape:collect="always">
+      <stop
+         id="stop21646"
+         style="stop-color:#000000"
+         offset="0" />
+      <stop
+         id="stop21648"
+         style="stop-color:#000000;stop-opacity:0"
+         offset="1" />
+    </radialGradient>
+    <radialGradient
+       id="radialGradient2207"
+       gradientUnits="userSpaceOnUse"
+       cy="28.459"
+       cx="26.544001"
+       gradientTransform="matrix(1.2383,0.0059548,-0.0065078,1.3513,-6.9925,-9.7448)"
+       r="22.375999"
+       inkscape:collect="always">
+      <stop
+         id="stop2935"
+         style="stop-color:#9cbcde"
+         offset="0" />
+      <stop
+         id="stop2937"
+         style="stop-color:#204a87"
+         offset="1" />
+    </radialGradient>
+    <radialGradient
+       id="radialGradient2437"
+       gradientUnits="userSpaceOnUse"
+       cy="16.856001"
+       cx="-19.516001"
+       gradientTransform="matrix(4.446,0,0,6.8665,67.251,-104.67)"
+       r="8.7536001"
+       inkscape:collect="always">
+      <stop
+         id="stop2433"
+         style="stop-color:#ffffff"
+         offset="0" />
+      <stop
+         id="stop2435"
+         style="stop-color:#b8b8b8"
+         offset="1" />
+    </radialGradient>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     inkscape:showpageshadow="false"
+     inkscape:zoom="8"
+     borderopacity="0.15294118"
+     inkscape:current-layer="layer1"
+     stroke="#204a87"
+     inkscape:cy="17.681048"
+     fill="#deb887"
+     inkscape:grid-bbox="true"
+     showgrid="false"
+     inkscape:document-units="px"
+     bordercolor="#666666"
+     inkscape:window-x="0"
+     inkscape:guide-bbox="true"
+     inkscape:window-y="30"
+     inkscape:window-width="1448"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     pagecolor="#ffffff"
+     inkscape:cx="23.597331"
+     showguides="true"
+     inkscape:window-height="966"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-maximized="0">
+    <inkscape:grid
+       id="GridFromPre046Settings"
+       opacity=".12157"
+       visible="true"
+       color="#7171cd"
+       enabled="true"
+       originy="-2.9973583px"
+       originx="-3.002605px"
+       empspacing="10"
+       spacingy="1px"
+       spacingx="1px"
+       empopacity="0.5372549"
+       type="xygrid"
+       empcolor="#7b7bc3"
+       snapvisiblegridlinesonly="true" />
+  </sodipodi:namedview>
+  <g
+     id="layer1"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     transform="translate(-3.002605,-2.994737)">
+    <path
+       id="path2093"
+       sodipodi:rx="21.876116"
+       sodipodi:ry="21.876116"
+       style="fill:url(#radialGradient2207);stroke:#204a87"
+       sodipodi:type="arc"
+       d="m 45.785164,23.825787 c 0,12.081845 -9.794271,21.876115 -21.876116,21.876115 -12.081845,0 -21.8761157,-9.79427 -21.8761157,-21.876115 0,-12.081846 9.7942707,-21.8761162 21.8761157,-21.8761162 12.081845,0 21.876116,9.7942702 21.876116,21.8761162 z"
+       transform="matrix(0.93844,0,0,0.93868,1.5641,1.6339)"
+       sodipodi:cy="23.825787"
+       sodipodi:cx="23.909048" />
+    <path
+       id="path2209"
+       sodipodi:rx="21.876116"
+       sodipodi:ry="21.876116"
+       style="opacity:0.96022997;fill:none;stroke:#ffffff;stroke-width:3.0308001"
+       sodipodi:type="arc"
+       d="m 45.785164,23.825787 c 0,12.081845 -9.794271,21.876115 -21.876116,21.876115 -12.081845,0 -21.8761157,-9.79427 -21.8761157,-21.876115 0,-12.081846 9.7942707,-21.8761162 21.8761157,-21.8761162 12.081845,0 21.876116,9.7942702 21.876116,21.8761162 z"
+       transform="matrix(0.8551,0,0,0.85521,3.5553,3.625)"
+       sodipodi:cy="23.825787"
+       sodipodi:cx="23.909048" />
+    <path
+       id="path1554"
+       style="fill:url(#radialGradient2437);stroke:#ffffff;stroke-width:1.09949994px;stroke-opacity:0.78613"
+       sodipodi:type="inkscape:offset"
+       d="m -20.25,5.875 c -1.059019,2.63e-5 -2.147637,0.1232356 -3.28125,0.34375 -1.132925,0.2204283 -2.380162,0.5375125 -3.75,1 a 0.13496364,0.13496364 0 0 0 -0.03125,0 0.13496364,0.13496364 0 0 0 -0.03125,0.03125 0.13496364,0.13496364 0 0 0 -0.03125,0.03125 0.13496364,0.13496364 0 0 0 0,0.03125 0.13496364,0.13496364 0 0 0 0,0.03125 l 0,5.15625 a 0.13496364,0.13496364 0 0 0 0,0.03125 0.13496364,0.13496364 0 0 0 0,0.03125 0.13496364,0.13496364 0 0 0 0.03125,0.03125 0.13496364,0.13496364 0 0 0 0.03125,0.03125 0.13496364,0.13496364 0 0 0 0.03125,0 0.13496364,0.13496364 0 0 0 0.03125,0 0.13496364,0.13496364 0 0 0 0.03125,0 0.13496364,0.13496364 0 0 0 0.03125,0 c 1.142438,-0.719043 2.233352,-1.267138 3.28125,-1.625 1.048141,-0.368756 2.043116,-0.562479 2.9375,-0.5625 0.949218,2.1e-5 1.644925,0.210545 2.15625,0.625 0.508723,0.40209 0.781238,0.98304 0.78125,1.71875 -10e-6,0.480657 -0.144188,0.95141 -0.4375,1.4375 -0.282991,0.487016 -0.740265,1.030495 -1.375,1.59375 L -20.9375,16.75 c -1.201459,1.08049 -1.989243,1.991022 -2.375,2.71875 -0.383113,0.711446 -0.562505,1.519324 -0.5625,2.4375 l 0,0.8125 a 0.13496364,0.13496364 0 0 0 0,0.03125 0.13496364,0.13496364 0 0 0 0,0.03125 0.13496364,0.13496364 0 0 0 0.03125,0.03125 0.13496364,0.13496364 0 0 0 0.03125,0.03125 0.13496364,0.13496364 0 0 0 0.03125,0 0.13496364,0.13496364 0 0 0 0.03125,0 l 6.09375,0 a 0.13496364,0.13496364 0 0 0 0.03125,0 0.13496364,0.13496364 0 0 0 0.03125,0 0.13496364,0.13496364 0 0 0 0.03125,-0.03125 0.13496364,0.13496364 0 0 0 0.03125,-0.03125 0.13496364,0.13496364 0 0 0 0,-0.03125 0.13496364,0.13496364 0 0 0 0,-0.03125 l 0,-0.75 c -1.1e-5,-0.468196 0.14837,-0.892849 0.375,-1.28125 0.222295,-0.391284 0.708073,-0.950359 1.46875,-1.625 l 1.0625,-0.9375 c 1.066588,-0.98231 1.830659,-1.884654 2.28125,-2.75 0.449269,-0.874046 0.687482,-1.87342 0.6875,-2.96875 -1.8e-5,-2.126265 -0.743769,-3.7340276 -2.21875,-4.84375 -1.475197,-1.1210252 -3.60624,-1.6874737 -6.375,-1.6875 z m -3.5625,19.15625 a 0.13496364,0.13496364 0 0 0 -0.03125,0.03125 0.13496364,0.13496364 0 0 0 -0.03125,0.03125 0.13496364,0.13496364 0 0 0 0,0.03125 0.13496364,0.13496364 0 0 0 0,0.03125 l 0,5.84375 a 0.13496364,0.13496364 0 0 0 0,0.03125 0.13496364,0.13496364 0 0 0 0,0.03125 0.13496364,0.13496364 0 0 0 0.03125,0.03125 0.13496364,0.13496364 0 0 0 0.03125,0.03125 0.13496364,0.13496364 0 0 0 0.03125,0 0.13496364,0.13496364 0 0 0 0.03125,0 l 6.09375,0 a 0.13496364,0.13496364 0 0 0 0.03125,0 0.13496364,0.13496364 0 0 0 0.03125,0 0.13496364,0.13496364 0 0 0 0.03125,-0.03125 0.13496364,0.13496364 0 0 0 0.03125,-0.03125 0.13496364,0.13496364 0 0 0 0,-0.03125 0.13496364,0.13496364 0 0 0 0,-0.03125 l 0,-5.84375 a 0.13496364,0.13496364 0 0 0 0,-0.03125 0.13496364,0.13496364 0 0 0 0,-0.03125 0.13496364,0.13496364 0 0 0 -0.03125,-0.03125 0.13496364,0.13496364 0 0 0 -0.03125,-0.03125 0.13496364,0.13496364 0 0 0 -0.03125,0 0.13496364,0.13496364 0 0 0 -0.03125,0 l -6.09375,0 a 0.13496364,0.13496364 0 0 0 -0.03125,0 0.13496364,0.13496364 0 0 0 -0.03125,0 z"
+       xlink:href="#text2215"
+       inkscape:original="M -20.25 6 C -21.298341 6.000026 -22.372769 6.1244771 -23.5 6.34375 C -24.627244 6.563073 -25.886043 6.8832479 -27.25 7.34375 L -27.25 12.5 C -26.100219 11.776335 -24.997109 11.236862 -23.9375 10.875 C -22.877902 10.502213 -21.881822 10.312521 -20.96875 10.3125 C -19.999334 10.312521 -19.259834 10.530174 -18.71875 10.96875 C -18.177686 11.396402 -17.906262 12.013726 -17.90625 12.78125 C -17.906261 13.285654 -18.039408 13.776881 -18.34375 14.28125 C -18.636843 14.785651 -19.107484 15.33609 -19.75 15.90625 L -20.84375 16.84375 C -22.038631 17.918325 -22.815518 18.829509 -23.1875 19.53125 C -23.559495 20.22205 -23.750005 21.007137 -23.75 21.90625 L -23.75 22.71875 L -17.65625 22.71875 L -17.65625 21.96875 C -17.656262 21.475338 -17.517981 21.030712 -17.28125 20.625 C -17.044542 20.208345 -16.547785 19.648586 -15.78125 18.96875 L -14.71875 18.03125 C -13.659161 17.055386 -12.908389 16.156813 -12.46875 15.3125 C -12.029144 14.457253 -11.781268 13.480828 -11.78125 12.40625 C -11.781268 10.311973 -12.525902 8.7417969 -13.96875 7.65625 C -15.41163 6.559783 -17.499549 6.0000261 -20.25 6 z M -23.75 25.15625 L -23.75 31 L -17.65625 31 L -17.65625 25.15625 L -23.75 25.15625 z "
+       transform="matrix(0.8499,0,0,0.8352,41.73,8.5483)"
+       inkscape:radius="0.13495015"
+       inkscape:href="#text2215" />
+  </g>
+  <metadata
+     id="metadata20">
+    <rdf:RDF>
+      <cc:Work>
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://creativecommons.org/licenses/publicdomain/" />
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://openclipart.org/">
+            <dc:title>Openclipart</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:title>tango help browser</dc:title>
+        <dc:date>2010-03-29T08:02:32</dc:date>
+        <dc:description>&quot;Help browser&quot; icon from &lt;a href=&quot;http://tango.freedesktop.org/Tango_Desktop_Project&quot;&gt; Tango Project &lt;/a&gt; \n&lt;br&gt;&lt;br&gt;\nSince version 0.8.90 Tango Project icons are Public Domain: &lt;a href=&quot;http://tango.freedesktop.org/Frequently_Asked_Questions#Terms_of_Use.3F&quot;&gt; Tango Project FAQ &lt;/a&gt;</dc:description>
+        <dc:source>https://openclipart.org/detail/35203/tango-help-browser-by-warszawianka</dc:source>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>warszawianka</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>blue</rdf:li>
+            <rdf:li>circle</rdf:li>
+            <rdf:li>externalsource</rdf:li>
+            <rdf:li>help</rdf:li>
+            <rdf:li>icon</rdf:li>
+            <rdf:li>question mark</rdf:li>
+            <rdf:li>tango</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://creativecommons.org/licenses/publicdomain/">
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Reproduction" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#Distribution" />
+        <cc:permits
+           rdf:resource="http://creativecommons.org/ns#DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+</svg>

@@ -4,9 +4,17 @@ import watchdog.events
 import yang
 import os
 import pdb
+from types import *
 
 import common
 import entity
+
+def DataTypeSortOrder(a,b):
+  if not type(a[1]) is DictType:
+    return 1
+  if not type(b[1]) is DictType:
+    return -1
+  return cmp(a[1].get("order",10000),b[1].get("order",10001))
 
 class ModuleChangedHandler(watchdog.events.FileSystemEventHandler):
   def __init__(self):
