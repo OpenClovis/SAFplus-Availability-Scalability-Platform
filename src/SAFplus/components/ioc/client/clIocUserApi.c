@@ -1352,11 +1352,8 @@ ClRcT clIocSendWithXportRelay(ClIocCommPortHandleT commPortHandle,
              */
             if(status == CL_IOC_NODE_DOWN)
             {
-                CL_DEBUG_PRINT(
-                               CL_DEBUG_ERROR,
-                               ("Port [0x%x] is trying to reach component [0x%x:0x%x] but the component is not reachable.",
-                                pIocCommPort->portId, ((ClIocPhysicalAddressT *)destAddress)->nodeAddress,
-                                ((ClIocPhysicalAddressT *)destAddress)->portId));
+                CL_DEBUG_PRINT(CL_LOG_SEV_DEBUG,
+                    ("Port [0x%x] is trying to reach component [0x%x:0x%x] but the component is not reachable.", pIocCommPort->portId, ((ClIocPhysicalAddressT *)destAddress)->nodeAddress, ((ClIocPhysicalAddressT *)destAddress)->portId));
                 return CL_IOC_RC(CL_IOC_ERR_COMP_UNREACHABLE);
             }
             interimDestAddress.iocPhyAddress.nodeAddress = ((ClIocPhysicalAddressT *)destAddress)->nodeAddress;
@@ -4484,7 +4481,7 @@ ClRcT clIocTransparencyRegister(ClIocTLInfoT *pTLInfo)
                         {
                             clOsalMutexUnlock(&gClIocCompMutex);
                             clOsalMutexUnlock(&gClIocPortMutex);
-                            CL_DEBUG_PRINT(CL_DEBUG_ERROR,("CompId:0x%x has already registered with LA:0x%llx,portId:0x%x\n",pTLInfo->compId,pTLInfo->logicalAddr,pTLInfo->physicalAddr.portId));
+                            CL_DEBUG_PRINT(CL_LOG_SEV_DEBUG,("CompId:0x%x has already registered with LA:0x%llx,portId:0x%x\n",pTLInfo->compId,pTLInfo->logicalAddr,pTLInfo->physicalAddr.portId));
                             rc = CL_IOC_RC(CL_ERR_ALREADY_EXIST);
                             goto out;
                         }

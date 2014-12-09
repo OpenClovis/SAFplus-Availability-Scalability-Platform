@@ -2023,7 +2023,7 @@ ClRcT clEvtSubscribeWalkForPublish(ClCntKeyHandleT userKey,
          * NOT_REACHABLE), server should continue to publish to other
          * subscribers. Merely issuing a warning...
          */
-        clLogWarning(CL_EVENT_LOG_AREA_SRV, "PUB", 
+        clLogDebug(CL_EVENT_LOG_AREA_SRV, "PUB",
                 "Event delivery failed to "
                 "subscriber {node[%#x]:port[%#x]:evtHandle[%#llX]}"
                 "error code [%#x]. continuing...", 

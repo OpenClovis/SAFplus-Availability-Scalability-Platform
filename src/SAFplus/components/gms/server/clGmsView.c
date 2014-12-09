@@ -205,7 +205,7 @@ ClRcT clGmsViewCacheCheckAndAdd(ClGmsNodeIdT currentLeader, ClIocNodeAddressT no
         }    
     node->viewMember.clusterMember.isCurrentLeader = CL_NODE_CACHE_LEADER_CAPABILITY(member.capability);
     
-    clLogNotice("VIEW", "CHECK", "Node [%s] slot/address [%d] added/updated to the view cache with capability [%#x] credentials [%d].  Is leader?: %d", member.name, member.address, member.capability, node->viewMember.clusterMember.credential, node->viewMember.clusterMember.isCurrentLeader);
+    clLogDebug("VIEW", "CHECK", "Node [%s] slot/address [%d] added/updated to the view cache with capability [%#x] credentials [%d].  Is leader?: %d", member.name, member.address, member.capability, node->viewMember.clusterMember.credential, node->viewMember.clusterMember.isCurrentLeader);
     
     *pNode = node;
     return rc;

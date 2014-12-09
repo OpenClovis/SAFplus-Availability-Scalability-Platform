@@ -777,7 +777,7 @@ clAmsCkptInitialize(
                                   timeout,
                                   &ckptOpenHandle);
         tries++;
-        clLogNotice("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service, result [%x]", tries, rc);
+        clLogDebug("CKP", "OPEN", "Try [%d] of [3] to open checkpoint service, result [%x]", tries, rc);
         if (CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(rc))
         {
             flags = (flags & (~CL_CKPT_CHECKPOINT_CREATE)) | CL_CKPT_CHECKPOINT_WRITE ;

@@ -1586,7 +1586,7 @@ VDECL_VER(clCkptSvrIterationInitialize, 4, 0, 0)(ClVersionT        *pVersion,
         clHeapFree(pTempSec);
         *pSecCount = 0;
         *pSecId = NULL;
-        clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
+        clLogDebug(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
                   "Sections have to be created to iterate for ckpt [%.*s]",
                   pCkpt->ckptName.length, pCkpt->ckptName.value);
         goto exitOnError;
@@ -1608,7 +1608,7 @@ VDECL_VER(clCkptSvrIterationInitialize, 4, 0, 0)(ClVersionT        *pVersion,
         }
         if( NULL == pSec ) 
         {
-            clLogWarning(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN, 
+            clLogDebug(CL_CKPT_AREA_ACTIVE, CL_CKPT_CTX_CKPT_OPEN,
                     "Section data doesn't exist, continuing...");
             break;
         }

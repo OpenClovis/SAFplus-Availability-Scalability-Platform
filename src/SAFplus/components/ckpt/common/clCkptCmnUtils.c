@@ -59,7 +59,14 @@ void clCkptLogError(ClUint32T   logLvl,
     ClLogSeverityT severity = CL_LOG_ERROR;
     ClCharT        *libName = "clAspCkptLib";
 
-    if (logLvl  == CL_DEBUG_CRITICAL) severity = CL_LOG_CRITICAL; 
+    if (logLvl  == CL_DEBUG_CRITICAL) severity = CL_LOG_CRITICAL;
+
+    /* Overwrite log level since retries checking */
+    if ((CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(retCode)) || (CL_ERR_ALREADY_EXIST == CL_GET_ERROR_CODE(retCode)))
+      {
+        severity = CL_LOG_DEBUG;
+      }
+
     if (libCode == CL_CKPT_SVR) libName = NULL;
     switch(CL_GET_ERROR_CODE(retCode))
     {
