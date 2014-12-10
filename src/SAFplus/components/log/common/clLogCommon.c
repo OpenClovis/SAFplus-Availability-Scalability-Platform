@@ -1597,13 +1597,15 @@ ClUint32T clLogDefaultStreamSeverityGet(ClNameT *pStreamName)
     {
         if(!defaultStreamSeverity)
         {
-            if(!(sev = getenv("CL_LOG_STREAM_SEVERITY")) )
+          if (!(sev = getenv("CL_LOG_STREAM_SEVERITY")))
             {
-                defaultStreamSeverity = CL_LOG_DEFAULT_SEVERITY_FILTER;
-                return defaultStreamSeverity;
+              defaultStreamSeverity = CL_LOG_DEFAULT_SEVERITY_FILTER;
             }
-            severity = clLogSeverityGet(sev);
-            defaultStreamSeverity = (1 << severity) - 1;
+          else
+            {
+              severity = clLogSeverityGet(sev);
+              defaultStreamSeverity = (1 << severity) - 1;
+            }
         }
 
         /* Explicit for APP/SYS */
