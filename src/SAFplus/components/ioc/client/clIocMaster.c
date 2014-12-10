@@ -81,6 +81,13 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
         delay = *pDelay;
 
     clOsalSemLock(gClIocMasterSem);
+
+    if(!gpClIocMasterSeg || !gpClIocNeighComps)
+      {
+        clOsalSemUnlock(gClIocMasterSem);
+        return CL_IOC_RC(CL_ERR_NOT_INITIALIZED);
+      }
+
     node = gpClIocMasterSeg[portId]; 
 
     if(node)
