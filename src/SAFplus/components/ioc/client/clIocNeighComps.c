@@ -208,26 +208,26 @@ ClRcT clIocNeighCompsFinalize(void)
 {
     ClRcT rc = CL_IOC_RC(CL_ERR_NOT_INITIALIZED);
 
-    if(!gClIocNeighCompsInitialize)
+    if(!gClIocNeighCompsInitialize || !gpClIocNeighComps)
     {
         goto out;
     }
-    if(gpClIocNeighComps != NULL)
+
+    clOsalSemLock(gClIocNeighborSem);
+    clIocMasterSegmentFinalize();
+    rc = clOsalMsync(gpClIocNeighComps, CL_IOC_NEIGH_COMPS_SEGMENT_SIZE, MS_SYNC);
+    CL_ASSERT(rc == CL_OK);
+
+    rc = clOsalMunmap(gpClIocNeighComps, CL_IOC_NEIGH_COMPS_SEGMENT_SIZE);
+    CL_ASSERT(rc == CL_OK);
+
+    gpClIocNeighComps = NULL;
+    clOsalSemUnlock(gClIocNeighborSem);
+    /*If created,delete*/
+    if((gClIocNeighCompsInitialize & 2))
     {
-        clIocMasterSegmentFinalize();
-        rc = clOsalMsync(gpClIocNeighComps, CL_IOC_NEIGH_COMPS_SEGMENT_SIZE, MS_SYNC);
-        CL_ASSERT(rc == CL_OK);
-
-        rc = clOsalMunmap(gpClIocNeighComps, CL_IOC_NEIGH_COMPS_SEGMENT_SIZE);
-        CL_ASSERT(rc == CL_OK);
-
-        gpClIocNeighComps = NULL;
-        /*If created,delete*/
-        if((gClIocNeighCompsInitialize & 2))
-        {
-            clOsalShmUnlink(gpClIocNeighCompsSegment);
-            clOsalSemDelete(gClIocNeighborSem);
-        }
+        clOsalShmUnlink(gpClIocNeighCompsSegment);
+        clOsalSemDelete(gClIocNeighborSem);
     }
     gClIocNeighCompsInitialize = 0;
     
