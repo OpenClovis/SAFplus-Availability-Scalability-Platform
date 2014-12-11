@@ -137,7 +137,8 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
              * not there 
              */
             rc = clIocTryMasterAddressGet(logicalAddress, portId, &node);
-            if( CL_OK == rc ) 
+            /* Check outbound returning master Address from TIPC */
+            if( CL_OK == rc && node < CL_IOC_MAX_NODE_ADDRESS)
             {
                 clOsalSemLock(gClIocMasterSem);
                 *pIocNodeAddress = gpClIocMasterSeg[portId] = node;
@@ -146,6 +147,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
                 break;
             }
             CL_DEBUG_PRINT(CL_DEBUG_WARN,("Cannot get IOC master, return code [0x%x]",rc));
+            rc = CL_IOC_RC(CL_ERR_NOT_EXIST);
 
             clOsalTaskDelay(delay);
         } while(--retryCnt > 0);
