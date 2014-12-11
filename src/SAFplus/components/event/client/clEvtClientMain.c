@@ -1898,13 +1898,13 @@ ClRcT clEventFinalize(ClEventInitHandleT evtHandle)
         }
         else
         {
-            clLogError("EVT", "FIN", 
+            clLogDebug("EVT", "FIN",
                        CL_EVENT_LOG_MSG_3_FINALIZE_FAILED, eoIocPort, 
                        evtHandle, rc);
-            if(CL_RMD_TIMEOUT_UNREACHABLE_CHECK(rc)) // NTC ???
+            if(CL_RMD_TIMEOUT_UNREACHABLE_CHECK(rc) || CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_HANDLE) // NTC ???
             {
                 clLogInfo("EVT", "FIN", 
-                          "Returning rc as CL_OK in case of CL_ERR_TIMEOUT");
+                          "Returning rc as CL_OK in case of CL_ERR_TIMEOUT/CL_ERR_INVALID_HANDLE");
                 rc = CL_OK;
             }
 
@@ -2018,8 +2018,8 @@ ClRcT clEventFinalize(ClEventInitHandleT evtHandle)
 
     failure:
     rc = CL_EVENTS_RC(rc);
-    clLogError("EVT", "FIN", 
-            "Event Finalize failed, rc[%#X]", rc);
+    clLogDebug("EVT", "FIN", "Event Finalize EO{port[%#x], evtHandle[%#llx]} failed, rc[%#X]", (ClUint32T)unsubscribeRequest.userId.eoIocPort,
+        unsubscribeRequest.userId.evtHandle, rc);
     CL_FUNC_EXIT();
     return rc;
 }

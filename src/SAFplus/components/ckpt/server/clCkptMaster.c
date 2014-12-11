@@ -1914,7 +1914,7 @@ ClRcT _clCkptMasterCloseNoLock(ClHandleT         clientHdl,
     rc = clHandleCheckout(gCkptSvr->masterInfo.clientDBHdl,
                           clientHdl,
                           (void **)&pClientEntry);
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_DEBUG,
                                   (" MasterCheckpointClose failed rc[0x %x]\n",rc),
                                   rc);
 

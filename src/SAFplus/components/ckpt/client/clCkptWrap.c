@@ -915,12 +915,16 @@ ClRcT clCkptCheckpointClose(ClCkptHdlT ckptHdl)
         rc = VDECL_VER(clCkptMasterCkptCloseClientSync, 4, 0, 0)(pInitInfo->ckptIdlHdl, ckptMastHdl,
                                    clIocLocalAddressGet(),
                                    &version);
-        if(numRetries > 0 && CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_HANDLE)
-        {
-            rc = CL_OK;
-        }
-    }while(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT && numRetries++ < 2);  
+    }while(CL_GET_ERROR_CODE(rc) == CL_ERR_TIMEOUT && numRetries++ < 2);
     
+    /* Ignoring the error from checkpoint close and finalize,
+     * since it is resulting ckpt server finalize itself */
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_HANDLE)
+      {
+        rc = CL_OK;
+        goto exitOnError;
+      }
+
     /* 
      * Check for the version mismatch 
      */

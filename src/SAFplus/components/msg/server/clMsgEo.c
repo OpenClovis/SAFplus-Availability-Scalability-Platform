@@ -454,10 +454,13 @@ static ClRcT clMsgFinalize(ClBoolT *pLockStatus)
 
     clMsgCltSrvClientUninstall();
 
+    /* Groups are persistent. Deleting the ckpt section pertaining to the queue group on node down not required */
+#if 0
     /* Finalize cached ckpt for MSG queue & MSG queue group */
     rc = clMsgQCkptFinalize();
     if(rc != CL_OK)
         clLogError("MSG", "FIN", "clMsgQCkptFinalize(): error code [0x%x].", rc);
+#endif
 
     /* Finalize database for maintaining queues. */
     clMsgReceiverDatabaseFin();
