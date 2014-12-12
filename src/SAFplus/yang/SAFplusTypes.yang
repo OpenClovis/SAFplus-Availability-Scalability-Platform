@@ -50,18 +50,19 @@ module SAFplusTypes
     extension ui-entity
     {
     description "This command indicates that this object is a GUI UML diagram entity.";
-    argument "icon file";
+    argument "icon";
     }
 
     extension ui-button
     {
     description "This command designates the button picture for this entity.";
-    argument "button file";
+    argument "button";
     }
 
     extension ui-container
     {
     description "This extension is used in a contained list or leaf-list and describes the relationship between the container and the contained.  1 means the contained can only be in 1 container.  N means the contained can exist in multiple containers.";
+    argument "amount";
     }
 
     extension ui-contained
