@@ -4341,13 +4341,16 @@ VDECL(_clAmsMgmtEntityUserDataSet)(ClEoDataT userData,
         }
     }
     clOsalMutexLock(gAms.mutex);
-    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityRef.entity.type],
-                                 &entityRef);
+    if (entityRef.entity.name.value[entityRef.entity.name.length-1] != 0)
+      {
+      entityRef.entity.name.length++;  // AMF uses the /0 at the end as PART OF THE NAME... AAARG!
+      }
+    rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityRef.entity.type], &entityRef);
     if(rc != CL_OK)
     {
         clOsalMutexUnlock(gAms.mutex);
         if(data) clHeapFree(data);
-        clLogError("USERDATA", "SET", "Entity locate [%.*s] returned [%#x]",
+        clLogError("USERDATA", "SET", "Entity [%.*s] look up returned [%#x]",
                    entityRef.entity.name.length-1, entityRef.entity.name.value, rc);
         return rc;
     }
@@ -4452,7 +4455,7 @@ VDECL(_clAmsMgmtEntityUserDataGet)(ClEoDataT userData,
         return CL_AMS_RC(CL_ERR_BAD_OPERATION);
 
     AMS_CALL(VDECL_VER(clXdrUnmarshallClAmsEntityConfigT, 4, 0, 0)(inMsgHdl, &entityRef.entity));
-
+    if (entityRef.entity.name.value[entityRef.entity.name.length-1] != 0) entityRef.entity.name.length++;  // AMF uses the /0 at the end as PART OF THE NAME... AAARG!
     clOsalMutexLock(gAms.mutex);
     rc = clAmsEntityDbFindEntity(&gAms.db.entityDb[entityRef.entity.type], &entityRef);
     if(rc != CL_OK)
