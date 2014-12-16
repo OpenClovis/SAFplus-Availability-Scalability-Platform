@@ -4964,9 +4964,11 @@ clAmsPeSURestart(
         CL_IN   ClAmsSUT *su,
         CL_IN   ClUint32T switchoverMode)
 {
+    ClAmsNodeT *node;
     ClBoolT cleanup = CL_FALSE;
 
     AMS_CHECK_SU ( su );
+    AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
 
     AMS_FUNC_ENTER ( ("SU [%s]\n", su->config.entity.name.value) );
 
@@ -4986,6 +4988,17 @@ clAmsPeSURestart(
     /*
      * Do cleanup/terminate, instantiate, reassign.
      */
+    if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATING )
+    {
+        AMS_CALL ( clAmsPeSUMarkUninstantiated(su) );
+        /*
+         * We increment instantiated SU count as it will get decremented
+         * in the SU terminate callback, but at that time we won't know
+         * that the SU did a instantiating -> terminating transition and
+         * wasn't really instantiated.
+         */
+        node->status.numInstantiatedSUs++;
+    }
 
     CL_AMS_SET_P_STATE(su, CL_AMS_PRESENCE_STATE_RESTARTING);
 
@@ -12219,7 +12232,7 @@ clAmsPeCompInstantiate(
      * There are limited attempts to instantiate a component.
      */
 
-    if ( comp->status.instantiateCount < comp->config.numMaxInstantiate )
+    if ( comp->status.instantiateCount < comp->config.numMaxInstantiate && comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING)
     {
         return clAmsPeCompInstantiate2(comp);
     }
