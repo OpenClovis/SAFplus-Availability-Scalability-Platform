@@ -607,11 +607,11 @@ ClRcT ckptCheckpointClose(ClHandleT clientHdl,ClHandleT masterHdl,
     CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
 
     /*
-     * Destory teh clint hdl.
+     * Destroy the client hdl.
      */
     rc = clHandleDestroy(gCkptSvr->masterInfo.clientDBHdl,
             clientHdl); 
-    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_DEBUG_ERROR,
+    CKPT_ERR_CHECK_BEFORE_HDL_CHK(CL_CKPT_SVR,CL_LOG_DEBUG,
             (" MasterCheckpointClose failed rc[0x %x]\n",rc),
             rc);
     clLogDebug(CL_CKPT_AREA_DEPUTY, CL_CKPT_CTX_CKPT_CLOSE,
@@ -658,9 +658,15 @@ ClRcT ckptCheckpointClose(ClHandleT clientHdl,ClHandleT masterHdl,
                          
 exitOnErrorBeforeHdlCheckout:
     /*
-     * Unock the master DB.
+     * Unlock the master DB.
      */
     CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+
+    /* Client hdl already destroyed at client app/comp finalize step */
+    if (CL_GET_ERROR_CODE(rc) == CL_ERR_INVALID_HANDLE)
+      {
+        rc = CL_OK;
+      }
     return rc;
 }
 
