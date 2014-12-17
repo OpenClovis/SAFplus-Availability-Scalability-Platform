@@ -176,8 +176,8 @@ def dictifyStatements(stmts,ts,objs,indent=0):
         d = {}
         objs[s.arg] = createObject(s,d)
 
-      if s.substmts:
-        dumpStatements(s.substmts, indent+2)
+      #if s.substmts:
+      #  dumpStatements(s.substmts, indent+2)
 
 def dictify(ctx,ts,os):
   #print "Modules:"

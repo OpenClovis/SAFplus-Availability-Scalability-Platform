@@ -14,9 +14,9 @@ except ImportError:
     haveCairo = False
 
 import module
+import share
 from model import *
 from entity import *
-thePanel = None
 
 LOCK_BUTTON_ID = 3482
 HELP_BUTTON_ID = 4523
@@ -34,6 +34,7 @@ class Panel(wx.Panel):
         self.unlockedBmp = self.unlockedSvg.bmp((24,24))
         self.helpBmp = self.helpSvg.bmp((12,12))
         self.entity=None
+        self.sizer =None
         self.lookup = {}  # find the object from its windowing ID
         self.numElements = 0
         # Event handlers
@@ -43,7 +44,7 @@ class Panel(wx.Panel):
         # for the data entry
         self.Bind(wx.EVT_TEXT, self.EvtText)
 
-        #thePanel = self
+        share.detailsPanel = self
         #e = model.entities["MyServiceGroup"]
         #self.showEntity(e)
 
@@ -142,11 +143,20 @@ class Panel(wx.Panel):
 
 
     def showEntity(self,ent):
+      if self.entity == ent: return  # Its already being shown
+      if self.sizer:
+        self.sizer.Clear(True)
+        created = False
+      else:
+        self.sizer = wx.GridBagSizer(2,1)
+        self.sizer.SetFlexibleDirection(wx.HORIZONTAL | wx.VERTICAL)
+        created = True
+
+      sizer = self.sizer   
+
       self.entity = ent
       items = ent.et.data.items()
       items = sorted(items,EntityTypeSortOrder)
-      sizer = wx.GridBagSizer(2,1)
-      sizer.SetFlexibleDirection(wx.HORIZONTAL | wx.VERTICAL)
       font = wx.Font(10, wx.MODERN, wx.NORMAL, wx.BOLD)
 
       # Put the name at the top
@@ -206,8 +216,9 @@ class Panel(wx.Panel):
           self.lookup[row] = [item,prompt,query,b,h]
           row +=1
       self.numElements = row
-      sizer.AddGrowableCol(2)
+      if created: sizer.AddGrowableCol(2)
       self.SetSizer(sizer)
+      sizer.Layout()
       self.Refresh()
 
     def OnPaint(self, evt):
@@ -215,7 +226,7 @@ class Panel(wx.Panel):
             dc = wx.PaintDC(self)
         else:
             dc = wx.BufferedPaintDC(self)
-        dc.SetBackground(wx.Brush('white'))
+        dc.SetBackground(wx.Brush('blue'))
         dc.Clear()
         
         #self.Render(dc)

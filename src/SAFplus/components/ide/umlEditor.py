@@ -16,6 +16,8 @@ from common import *
 from module import Module
 from entity import *
 from model import Model
+
+import share
  
 ENTITY_TYPE_BUTTON_START = 100
 CONNECT_BUTTON = 99
@@ -23,7 +25,18 @@ SELECT_BUTTON = 98
 
 PI = 3.141592636
 
-linkNormalLook = dot.Dot({ "color":(0,0,0,.4), "lineThickness": 4, "buttonRadius": 6, "arrowLength":15, "arrowAngle": PI/8 })
+linkNormalLook = dot.Dot({ "color":(0,0,.8,.75), "lineThickness": 4, "buttonRadius": 6, "arrowLength":15, "arrowAngle": PI/8 })
+
+def lineRectIntersect(lineIn,lineOut, rectUL, rectLR):
+  """Given a line segment defined by 2 points: lineIn and lineOut where lineIn is INSIDE the rectangle
+     Given a rectangle defined by 2 points rectUL and rectLR where rectUL < rectLR (ul is upper left) and where the rectangle is aligned with the axes.
+
+     Return the point where the line intersects the rectangle.
+
+     This function can be used to make the pointer arrows start and end at the edges of the entities
+  """
+  # TODO
+  return lineIn 
 
 def calcArrow(start_x, start_y, end_x, end_y,length=5.0,degrees=PI/10.0):
   angle = math.atan2 (end_y - start_y, end_x - start_x) + PI;
@@ -33,6 +46,14 @@ def calcArrow(start_x, start_y, end_x, end_y,length=5.0,degrees=PI/10.0):
   y2 = end_y + length * math.sin(angle + degrees);
   return((x1,y1),(x2,y2))
 
+def lineVector(a,b):
+  ret = (b[0]-a[0], b[1]-a[1])
+  length = math.sqrt(ret[0]*ret[0] + ret[1]*ret[1])
+  if length == 0:
+    return (0,0)
+  ret = (ret[0]/length, ret[1]/length)
+  return ret
+
 def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
       if type(cust) is DictType: cust = dot.Dot(cust)
       if not middlePos:
@@ -40,15 +61,34 @@ def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
       ctx.save()
       ctx.set_source_rgba(*cust.color)
       ctx.set_line_width(cust.lineThickness)
-      ctx.move_to(*startPos)
+
+      # We don't want the curvy arrow's line to lay over the beginning button
+      buttonRadius = cust.get("buttonRadius", 4)
+      if buttonRadius: # so go a few pixels in the correct direction
+        lv = lineVector(startPos,middlePos[0])
+        sp = (startPos[0] + lv[0]*(buttonRadius-.05),startPos[1] + lv[1]*(buttonRadius-.05))
+      else:
+        sp = startPos
+
+
+      # Calculate the arrow at the end of the line
+      (a,b) = calcArrow(middlePos[0][0],middlePos[0][1],endPos[0],endPos[1],cust.arrowLength,cust.arrowAngle)
+
+      # We don't want the line to overlap the arrow at the end of it, so 
+      # calculate a new endpoint for the line by finding the midpoint of the back of the arrow
+      ep = ((a[0]+b[0])/2,(a[1]+b[1])/2)
+
+      ctx.move_to(*sp)
       try:
-        ctx.curve_to (middlePos[0][0],middlePos[0][1],middlePos[0][0],middlePos[0][1], endPos[0],endPos[1]);
+        ctx.curve_to (middlePos[0][0],middlePos[0][1],middlePos[0][0],middlePos[0][1], ep[0],ep[1]);
       except:
         pdb.set_trace()
 
       ctx.stroke()
 
-      if cust.get("buttonRadius", 4):
+      ctx.set_line_width(.1)  # These will be filled, so set the containing line width to be invisibly thin
+
+      if buttonRadius:
         ctx.arc(startPos[0],startPos[1], cust.buttonRadius, 0, 2*3.141592637);
         ctx.close_path()
         ctx.stroke_preserve()
@@ -57,7 +97,6 @@ def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
 
       # Draw the arrow on the end
       ctx.set_source_rgba(*cust.color)
-      (a,b) = calcArrow(middlePos[0][0],middlePos[0][1],endPos[0],endPos[1],cust.arrowLength,cust.arrowAngle)
       ctx.move_to(endPos[0],endPos[1])
       ctx.line_to(*a)
       ctx.line_to(*b)
@@ -193,7 +232,7 @@ class LazyLineGesture(Gesture,wx.Timer):
     self.frameAverage = self.frameInterval  # Actual (measured) milliseconds between redraws
     self.lastFrame = None  # When the last Notify occurred
 
-    self.settleTime = 1000.0  # How long in milliseconds should the line take to straighten
+    self.settleTime = 250.0  # How long in milliseconds should the line take to straighten
 
   def Notify(self):
     realCenter=((self.curPos[0]+self.downPos[0])/2.0,(self.curPos[1]+self.downPos[1])/2.0)
@@ -440,6 +479,7 @@ class SelectTool(Tool):
         if event.ControlDown():
           self.selected = self.selected.union(self.touching)
         else: self.selected = self.touching.copy()
+        self.updateSelected()
         return True
       if event.Dragging():
         # if you are touching anything, then drag everything
@@ -471,7 +511,12 @@ class SelectTool(Tool):
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
         entity = panel.findEntitiesAt(pos)
         if not entity: return False
-    pass
+    self.updateSelected()
+  
+  def updateSelected(self):
+    if len(self.selected) == 1:
+      if share.detailsPanel:
+        share.detailsPanel.showEntity(next(iter(self.selected)))
   
 
 

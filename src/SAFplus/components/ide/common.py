@@ -16,4 +16,5 @@ def fileResolver(filename):
   if userWorkspace:
     candidate = userWorkspace + os.sep + filename     # look in the user's directory
     if os.path.exists(candidate): return candidate
+  # print "No such file: %s" % filename
   raise IOError(2,'No such file')
