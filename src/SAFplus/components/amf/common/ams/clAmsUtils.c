@@ -61,8 +61,6 @@ void clAmsLogMsgClient( const ClUint32T level, char *buffer )
 {
     ClLogSeverityT severity = (ClLogSeverityT)level;
     if(!buffer) return;
-    clOsalPrintf (buffer);
-    if(buffer[strlen(buffer)-1] != '\n') clOsalPrintf("\n");
     clLogWrite(CL_LOG_HANDLE_APP, severity, NULL, buffer);
     clAmsFreeMemory (buffer);
 }
