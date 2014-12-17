@@ -128,6 +128,32 @@ class MicroDom:
         ret.append(c)
     return ret
 
+  def addChild(self,child,tag=None):
+    if tag is None:
+      tag = child.tag_
+    self.children_.append(child)
+    self.child_[tag] = child
+
+  def delChild(self,child):
+    if type(child) is StringType:
+      tag = child
+    else:
+      tag = child.tag_
+    del self.child_[tag]
+    i = 0
+    while i<len(self.children_):
+      if self.children_[i].tag_ == tag:
+        del self.children_[i]
+      else: i+=1
+
+
+  def update(self,dct):
+    for i in dct.items():
+      tmp = MicroDom({"tag_":i[0]}, [i[1]],i[1])
+      if self.child_.has_key(i[0]):
+        self.delChild(i[0])
+      self.addChild(MicroDom({"tag_":i[0]}, [i[1]],i[1]))
+
   def get(self,item,d=None):
     try:
       d = self.__getitem__(item)
@@ -180,6 +206,20 @@ class MicroDom:
     if not ret is None: return ret
     return None
 
+  def findOneByChild(self,key,value):
+    if self.child_.has_key(key):
+      myval = self.child_[key]
+      if type (value) is FunctionType:
+        if value(myval): return self
+      elif myval.data_ == value: return self
+
+    for c in self.children_:
+      try:
+        ret = c.findOneByChild(key,value)
+        if ret: return ret
+      except AttributeError: # Its a leaf - ie. NOT a microdom object
+        pass
+    return None
 
   def findByAttr(self,attrs,prefix=""):
     ret = []
@@ -203,6 +243,51 @@ class MicroDom:
 
   def __str__(self):
     return self.dump(False)
+
+  def cleanup(self, lst):
+    ret = []
+    for l in lst:
+      if not l.isspace():
+        ret.append(l)
+    return ret
+
+  def pretty(self,indent=0):
+    if self.data_ or self.children_:
+      full = 1
+    else: full = 0
+    # note: data_ is also in children_ to preserve order
+    #if self.data_: datastr = str(self.data_).strip()
+    #else: datastr = ""
+    datastr=""
+    dataOnly = True
+    if self.children_:
+        chlst = []
+        for c in self.children_:
+          try:
+            chlst.append(c.pretty(indent+2))
+            dataOnly = False
+          except AttributeError:
+            tmp = str(c).strip()
+            if tmp:
+              chlst.append(" "*indent + tmp)
+        chstr = "".join(chlst)
+    else: chstr = ""
+
+    if len(self.attributes_)>1:
+      # Format attribute string, eliminating the tag_ attribute
+      attrs = ["%s='%s'" % (k,v) for (k,v) in filter(lambda i: i[0] != 'tag_', self.attributes_.items())]
+      attrs = " " + " ".join(attrs)
+    else:
+      attrs = ""
+
+    spc = " " * indent
+    if dataOnly:
+      return "%s<%s%s>%s%s</%s>\n" % (spc, self.tag_,attrs,datastr,chstr.strip(), self.tag_)
+    elif full:
+      return "%s<%s%s>\n%s%s%s%s</%s>\n" % (spc, self.tag_,attrs,"", datastr,chstr,spc, self.tag_)
+    else:
+      return "<%s%s />\n" % (self.tag_,attrs)
+    
 
   def dump(self, recurse=True):
     if self.data_ or self.children_:
@@ -321,3 +406,8 @@ def Test():
   print md.failbackOption.data_
   print md.test.data_
   
+def Test2():
+  dom = LoadFile("testModel.xml")
+  f = open("test.xml","w")
+  f.write(dom.pretty())
+  f.close()

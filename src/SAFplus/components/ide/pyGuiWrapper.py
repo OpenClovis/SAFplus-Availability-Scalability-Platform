@@ -100,17 +100,25 @@ class MyApp(wx.App):
       self.frame.Show(True)
       return True
         
+app       = None
 
 def go(panelFactory):
+  global app
   app = MyApp(panelFactory, redirect=False)
   app.MainLoop()
 
 import threading
 
 guithread = None
-app       = None
 
 def start(panelFactory):
+  global guithread
+  args = panelFactory, 
+  guithread = threading.Thread(group=None, target=go, name="GUI",args = args)
+  guithread.start()
+
+
+def start1(panelFactory):
   global app
   global guithread
 

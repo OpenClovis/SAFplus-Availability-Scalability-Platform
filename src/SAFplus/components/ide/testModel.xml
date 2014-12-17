@@ -1,4 +1,4 @@
-<SAFplus version="7.0">
+<SAFplusModel version="7.0">
   <modules> 
      <yang>SAFplusAmf.yang</yang>
   </modules>
@@ -175,4 +175,4 @@
       <serviceInstance>/ServiceInstance/si</serviceInstance>
     </ComponentServiceInstance>
   </instances>
-</SAFplus>
+</SAFplusModel>

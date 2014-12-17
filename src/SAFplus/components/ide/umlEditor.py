@@ -367,7 +367,8 @@ class EntityTypeTool(Tool):
   def CreateNewInstance(self,panel,position,size=None):
     """Create a new instance of this entity type at this position"""
     panel.statusBar.SetStatusText("Created %s" % self.entityType.name,0);
-    panel.entities.append(self.entityType.CreateEntity(position, size))
+    ent = self.entityType.CreateEntity(position, size)
+    panel.entities[ent.data["name"]] = ent
     panel.Refresh()
     return True
  
@@ -518,12 +519,15 @@ class SelectTool(Tool):
       if share.detailsPanel:
         share.detailsPanel.showEntity(next(iter(self.selected)))
   
-
+# Global of this panel for debug purposes only.  DO NOT USE IN CODE
+dbgUep = None
 
 class Panel(wx.Panel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
+      global dbgUep
       wx.Panel.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
       self.Bind(wx.EVT_PAINT, self.OnPaint)
+      dbgUep = self 
       self.menuBar = menubar
       self.toolBar = toolbar
       self.statusBar = statusbar
@@ -540,7 +544,7 @@ class Panel(wx.Panel):
       self.idLookup={}  
 
       # The list of entities that exist in this model, extracted from the model for easy display
-      self.entities = []
+      self.entities = self.model.entities
       # TODO load entities from the model
 
       # Add toolbar buttons
@@ -643,16 +647,17 @@ class Panel(wx.Panel):
         ctx.scale(*self.scale)
         # Now draw the links
         # Now draw the entites
-        for e in self.entities:
+        for (name,e) in self.entities.items():
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
         # Now draw the containment arrows on top
-        for e in self.entities:
+        for (name,e) in self.entities.items():
           for a in e.containmentArrows:
             st = a.container.pos
             end = a.contained.pos
             drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
         ctx.restore()
 
+        # These are non-model based transient elements that need to be drawn like selection boxes
         for e in self.drawers:
           e.render(ctx)
 
@@ -660,7 +665,7 @@ class Panel(wx.Panel):
       """Returns the entity located at the passed position """
       # TODO handle the viewscope's translation, rotation, scaling
       ret = set()
-      for e in self.entities:
+      for (name, e) in self.entities.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         #print e.data["name"], ": ", pos, " inside: ", e.pos, " to ", furthest
         if pos[0] >= e.pos[0] and pos[1] >= e.pos[1] and pos[0] <= furthest[0] and pos[1] <= furthest[1]:  # mouse is in the box formed by the entity
@@ -677,16 +682,18 @@ class Panel(wx.Panel):
           ret.add(e)
       return ret
 
+model = None
 
 def Test():
   import time
   import pyGuiWrapper as gui
-
+  global model
   model = Model()
   model.load("testModel.xml")
 
-  gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
-
+  # gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  return model
 
 # Notes
 #  test automation panel.WarpPointer(self,x,y)  "Move pointer"

@@ -7,6 +7,8 @@ from module import Module
 import svg
 import entity
 
+VERSION = "7.0"
+
 defaultForBuiltinType = {
   "boolean": False,
   "integer": 0,
@@ -53,6 +55,14 @@ instantiated  <instances>     instances                         instances     (e
 
     self.loadModules()
 
+  def save(self, filename=None):
+    """Save XML representation of the model"""
+    if filename is None: filename = "test.xml" # self.filename
+    f = open(filename,"w")
+    f.write(self.xmlify())
+    f.close()
+    
+
   def loadModules(self):
     """Load the modules specified in the model"""
     for (path, obj) in self.data.find("modules"):
@@ -76,10 +86,48 @@ instantiated  <instances>     instances                         instances     (e
     # TODO: look in the model's type list for this type and figure out a default
     return ""
 
+  def updateMicrodom(self):
+    """Write the dynamically changing information back to the loaded microdom tree.
+       The reason I don't create an entirely new tree is to preserve any application extensions that might have been put into the file.
+    """
+    # Step 1: Write out the entities
+    
+    #   find or create the entity area in the microdom
+    entities = self.data.getElementsByTagName("entities")
+    if not entities:
+      entities = microdom.MicroDom({"tag_":"entities"},[],[])
+      self.data.SAFplusModel["entites"] = entities
+    else: 
+      assert(len(entities)==1)
+      entities = entities[0]
+    
+    #   iterate through all entities writing them to the microdom, or changing the existing microdom
+    for (name,e) in self.entities.items():
+      entity = entities.findOneByChild("name",name)
+      if not entity:
+        entity = microdom.MicroDom({"tag_":e.et.name},[],[])
+        entities.addChild(entity)
+      # Write all the data fields into the model's microdom
+      entity.update(e.data)  
+      # Now write all the arrows
+      contains = {} # Create a dictionary to hold all linkages by type
+      for arrow in e.containmentArrows:
+        # Add the contained object to the dictionary keyed off of the object's entitytype
+        tmp = contains.get(arrow.contained.et.name,[])
+        tmp.append(arrow.contained.data["name"])
+        contains[arrow.contained.et.name] = tmp
+      # Ok now write the linkages to the microdom
+      for (key, val) in contains.items():
+        k = key + "s"
+        if entity.child_.has_key(k): entity.delChild(k)
+        entity.addChild(microdom.MicroDom({"tag_":k},[",".join(val)],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
+      # TODO: write the IDE specific information to a completely different place in the model xml
+
 
   def xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
-    pass
+    self.updateMicrodom()
+    return self.data.pretty()
 
 def UnitTest(m=None):
   """This unit test relies on a particular model configuration, located in testModel.xml"""
