@@ -648,8 +648,9 @@ class Panel(scrolled.ScrolledPanel):
       # Calculate bounding box
       virtRct = wx.Rect()
       if len(self.entities) > 0:
-        first = self.entities[0]
-        for e in self.entities:
+        elst = self.entities.items()
+        first = elst[0]
+        for (name,e) in elst:
           if e == first:
             virtRct = wx.Rect(e.pos[0], e.pos[1], e.size[0], e.size[1])
           else:
