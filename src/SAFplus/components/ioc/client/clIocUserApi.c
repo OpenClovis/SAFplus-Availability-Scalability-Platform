@@ -2854,6 +2854,7 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
 
     if (gIocInit == CL_TRUE)
         return CL_OK;
+
     retCode = clTransportLayerInitialize();
     if(retCode != CL_OK)
     {
@@ -2861,18 +2862,6 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     }
    
     pConf->nodeAddress = gIocLocalBladeAddress; 
-    if (CL_IOC_PHYSICAL_ADDRESS_TYPE != CL_IOC_ADDRESS_TYPE_FROM_NODE_ADDRESS((pConf->nodeAddress)))
-    {
-        logCritical(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,
-                      "\nCritical : Invalid IOC address: Node Address [0x%x] is an invalid physical address.\n",pConf->nodeAddress);
-        return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
-    }
-    if ((CL_IOC_RESERVED_ADDRESS == pConf->nodeAddress) || (CL_IOC_BROADCAST_ADDRESS == pConf->nodeAddress))
-    {
-        logCritical(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,
-                      "\nCritical : Invalid IOC address: Node Address [0x%x] is one of the reserved IOC addresses.\n ",pConf->nodeAddress);
-        return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
-    }
 
     clOsalMutexCreate(&gClIocFragMutex);
 
@@ -2881,7 +2870,7 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
     userReassemblyTimerExpiry.tsMilliSec = CL_IOC_REASSEMBLY_TIMEOUT % 1000;
     userReassemblyTimerExpiry.tsSec = CL_IOC_REASSEMBLY_TIMEOUT / 1000;
 
-    retCode = clIocNeighCompsInitialize(gIsNodeRepresentative);
+    retCode = clIocNeighCompsInitialize();
     if(retCode != CL_OK)
     {   
         logError(IOC_LOG_AREA_CONFIG,IOC_LOG_CTX_INI,"Error : Failed at neighbor initialize. rc=0x%x\n",retCode);

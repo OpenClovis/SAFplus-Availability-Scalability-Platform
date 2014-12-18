@@ -22,7 +22,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/mman.h>
 #include <errno.h>
 #include <netinet/in.h>
@@ -40,6 +42,7 @@
 #include <clIocMaster.h>
 #include <clIocConfig.h>
 #include <clIocIpi.h>
+#include <clCommon.hxx>
 
 #define CL_IOC_NEIGH_COMPS_SEGMENT_NAME   "/CL_IOC_NEIGHBOR_COMPONENTS"
 
@@ -52,14 +55,22 @@
 #define CL_IOC_CTRL_SEGMENT_SIZE CL_IOC_ALIGN(sizeof(ClUint32T), 8)
 /* Includes both segments, neighbor-info and master-info. */
 #define CL_IOC_MAIN_SEGMENT_SIZE (CL_IOC_NEIGHBORS_SEGMENT_SIZE + CL_IOC_MASTER_SEGMENT_SIZE)
-#define CL_IOC_NEIGH_COMPS_SEGMENT_SIZE   (CL_IOC_MAIN_SEGMENT_SIZE + CL_IOC_CTRL_SEGMENT_SIZE)
+
+#define CL_IOC_NODE_REP_PID_SEGMENT_SIZE    CL_IOC_ALIGN(sizeof(ClUint32T), 4)
+#define CL_IOC_NODE_REP_PORT_SEGMENT_SIZE   CL_IOC_NODE_REP_PID_SEGMENT_SIZE
+#define CL_IOC_NODE_REP_SEGMENT_SIZE   (CL_IOC_NODE_REP_PID_SEGMENT_SIZE + CL_IOC_NODE_REP_PORT_SEGMENT_SIZE)
+#define CL_IOC_NEIGH_COMPS_SEGMENT_SIZE   (CL_IOC_MAIN_SEGMENT_SIZE + CL_IOC_CTRL_SEGMENT_SIZE + CL_IOC_NODE_REP_SEGMENT_SIZE )
 
 #define CL_IOC_CTRL_SEGMENT(seg) ( (ClUint32T*)((ClUint8T*)(seg) + CL_IOC_MAIN_SEGMENT_SIZE) )
+#define CL_IOC_NODE_REP_PID_SEGMENT(seg) ( (ClUint32T*)((ClUint8T*)(seg) + CL_IOC_MAIN_SEGMENT_SIZE + CL_IOC_CTRL_SEGMENT_SIZE))
+#define CL_IOC_NODE_REP_PORT_SEGMENT(seg) ((ClUint32T*)((ClUint8T*)(seg) +CL_IOC_MAIN_SEGMENT_SIZE + CL_IOC_CTRL_SEGMENT_SIZE+ CL_IOC_NODE_REP_PID_SEGMENT_SIZE))
+
 ClUint8T *gpClIocNeighComps;
 static ClCharT gpClIocNeighCompsSegment[CL_IOC_SEGMENT_NAME_LENGTH + 1];
 static ClFdT gClIocNeighCompsFd;
 static ClUint32T gClIocNeighCompsInitialize;
 static ClOsalSemIdT gClIocNeighborSem;
+extern ClBoolT  gIsNodeRepresentative;
 
 #define IOC_LOG_AREA_SEGMENT	"SEG"
 #define IOC_LOG_AREA_STATUS	"STATUS"
@@ -70,23 +81,62 @@ static ClOsalSemIdT gClIocNeighborSem;
 #define IOC_LOG_CTX_SET		"SET"
 #define IOC_LOG_CTX_RESET	"RESET"
 
+static ClRcT clIocElectNodeReprenstative()
+{
+    ClRcT rc = CL_OK;
+    ClUint32T nodeRep_pid = 0;
+    ClUint32T pid = getpid();
+
+    clOsalSemLock(gClIocNeighborSem);
+
+    nodeRep_pid = CL_IOC_NODE_REP_PID_SEGMENT(gpClIocNeighComps)[0];
+
+    /* Algorithm for dynamic determination of NodeReprentative Process
+       Read the NodeReprentative PID value from  the neighbor components shared memory segment and
+       check whether the Node Reprentative Process exists or not. If the Node Representative process does not exist,
+       writes its own PID into this field, delays for a second and then reads the value.
+       If the value is its own PID, the process is the node representative.
+       If the value has changed, restart the algorithm.
+     */
+    if(!SAFplus::clIsProcessAlive(nodeRep_pid))
+    {
+        while(1)
+        {
+            CL_IOC_NODE_REP_PID_SEGMENT(gpClIocNeighComps)[0] = pid;
+            sleep(1);
+            nodeRep_pid = CL_IOC_NODE_REP_PID_SEGMENT(gpClIocNeighComps)[0];
+            if(nodeRep_pid == pid)
+            {
+                gIsNodeRepresentative = CL_TRUE;
+                break;
+            }
+        }
+    }
+    else
+    {
+        logInfo(IOC_LOG_AREA_SEGMENT, CL_LOG_CONTEXT_UNSPECIFIED, " NodeRep Process with pid [%u] is alive",nodeRep_pid);
+    }
+    clOsalSemUnlock(gClIocNeighborSem);
+    return rc;
+}
+
 ClRcT clIocNeighCompsSegmentCreate(void)
 {
     ClRcT rc = CL_OK;
     ClFdT fd;
 
-    rc = clOsalShmUnlink(gpClIocNeighCompsSegment);
-    if(rc != CL_OK)
-    {
-        logWarning(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE,"shm unlink failed for segment:%s\n",gpClIocNeighCompsSegment);
-    }
-
     rc = clOsalShmOpen(gpClIocNeighCompsSegment,O_RDWR|O_CREAT|O_EXCL,0666,&fd);
     if(rc != CL_OK)
     {
-        logError(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE,"Error in osal shm open.rc=0x%x\n",rc);
-        goto out;
+        /* Don't Log error in case of Already existed Shared Memory Segments */  
+        if(CL_GET_ERROR_CODE(rc) != CL_ERR_ALREADY_EXIST) 
+        {
+            logError(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE,"Error in osal shm open.rc=0x%x\n",rc);
+        }
+        return rc;
     }
+
+    logTrace(IOC_LOG_AREA_SEGMENT,IOC_LOG_CTX_CREATE, "CL_IOC_NEIGH_COMPS_SEGMENT_SIZE = %lu", CL_IOC_NEIGH_COMPS_SEGMENT_SIZE);
 
     rc = clOsalFtruncate(fd, CL_IOC_NEIGH_COMPS_SEGMENT_SIZE);
     if(rc != CL_OK)
@@ -167,49 +217,45 @@ out:
     return rc;
 }
 
-ClRcT clIocNeighCompsInitialize(ClBoolT createFlag)
+ClRcT clIocNeighCompsInitialize()
 {
     ClRcT rc = CL_IOC_RC(CL_ERR_INITIALIZED);
 
     if(gClIocNeighCompsInitialize)
-        goto out;
+        return rc;
 
     sprintf(gpClIocNeighCompsSegment, "%s_%d",CL_IOC_NEIGH_COMPS_SEGMENT_NAME, gIocLocalBladeAddress); 
 
-    if(createFlag == CL_TRUE)
-    {
-        rc = clIocNeighCompsSegmentCreate();
-    }
-    else
+    rc = clIocNeighCompsSegmentCreate();
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_ALREADY_EXIST)
     {
         rc = clIocNeighCompsSegmentOpen();
-        if(rc == CL_OK)
-        {
-            gClIocNeighCompsInitialize=1;
-            goto out_master;
-        }
     }
-
     if(rc != CL_OK)
     {
-        logError(IOC_LOG_AREA_SEGMENT,CL_LOG_CONTEXT_UNSPECIFIED,"Error in segment initialize.rc=0x%x\n",rc);
-        goto out;
+        logError(IOC_LOG_AREA_SEGMENT, CL_LOG_CONTEXT_UNSPECIFIED,"Error in segment initialize.rc=0x%x\n",rc);
+        return rc;
     }
-
-    CL_ASSERT(gpClIocNeighComps != NULL);
+    if(rc == CL_OK) 
+    {
+        gClIocNeighCompsInitialize=1;
+        CL_ASSERT(gpClIocNeighComps != NULL);
+        clIocElectNodeReprenstative();
+        logDebug(IOC_LOG_AREA_SEGMENT, CL_LOG_CONTEXT_UNSPECIFIED, "gIsNodeRepresentative value is [%s]",gIsNodeRepresentative?"TRUE":"FALSE");
+        if(!gIsNodeRepresentative)
+        {
+            clIocMasterSegmentInitialize(gpClIocNeighComps + CL_IOC_NEIGHBORS_SEGMENT_SIZE, gClIocNeighborSem);
+            return rc;
+        }
+    }
 
     rc = clOsalMsync(gpClIocNeighComps, CL_IOC_NEIGH_COMPS_SEGMENT_SIZE, MS_ASYNC);
     if(rc != CL_OK)
     {
         logError(IOC_LOG_AREA_SEGMENT,CL_LOG_CONTEXT_UNSPECIFIED,"Msync error.rc=0x%x\n",rc);
-        goto out;
+        CL_ASSERT(0);
     }
-
     gClIocNeighCompsInitialize = 3;
-
-out_master:
-    clIocMasterSegmentInitialize(gpClIocNeighComps + CL_IOC_NEIGHBORS_SEGMENT_SIZE, gClIocNeighborSem);
-out:
     return rc;
 }
 
@@ -385,7 +431,14 @@ ClRcT clIocCheckAndGetPortId(ClIocPortT *portId)
         } 
         else 
         {
-            rc = CL_IOC_RC(CL_ERR_ALREADY_EXIST);
+            /* Node Representative Process does not know which ports are up and running.
+             * If the process is node representative process, it can create the communication port
+               with desired port number.
+             */
+            if(!gIsNodeRepresentative)
+            {
+                rc = CL_IOC_RC(CL_ERR_ALREADY_EXIST);
+            }
         }
         goto out;
     }

@@ -56,7 +56,7 @@ std::string strprintf(const std::string fmt_str, ...);
 */
   extern bool clVersionVerify (ClVersionDatabaseT *versionDatabase, ClVersionT *version);
 
- 
+  ClBoolT clIsProcessAlive(ClUint32T pid); 
   ClBoolT clParseEnvBoolean(const char* envvar);
   inline bool parseEnvBoolean(const char* envvar) { return clParseEnvBoolean(envvar); }
 

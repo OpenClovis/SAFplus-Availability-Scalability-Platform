@@ -24,8 +24,9 @@
 
 extern ClUint8T *gpClIocNeighComps;
 
-ClRcT clIocNeighCompsInitialize(ClBoolT createFlag);
+ClRcT clIocNeighCompsInitialize(void);
 ClRcT clIocNeighCompsFinalize(void);
+
 /*ClRcT clIocCompStatusGet(ClIocPhysicalAddressT iocNodeAddr, ClUint8T *pStatus);*/
 ClRcT clIocCompStatusSet(ClIocPhysicalAddressT iocNode, ClUint32T status);
 void clIocNodeCompsGet(ClIocNodeAddressT node, ClUint8T *pBuff);

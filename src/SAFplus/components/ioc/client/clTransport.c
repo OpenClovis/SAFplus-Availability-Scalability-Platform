@@ -18,6 +18,7 @@
 #include "clIocUserApi.h"
 #include "clIocGeneral.h"
 #include "clIocNeighComps.h"
+#include "clIocSetup.h"
 #include <clEoIpi.h>
 #include <clCpmApi.h>
 #include <clTimerApi.h>
@@ -1838,20 +1839,39 @@ ClRcT clTransportNodeAddrGet(void)
         logError("XPORT", "INI", "Unable to initialize transport [%s]. Transport not registered", gClXportDefaultType);
         return CL_ERR_NOT_EXIST;
     }
-         
     gIocLocalBladeAddress = xport->xportNodeAddrGet();
-    
-    if(gIocLocalBladeAddress < 0) 
+
+    if (CL_IOC_PHYSICAL_ADDRESS_TYPE != CL_IOC_ADDRESS_TYPE_FROM_NODE_ADDRESS((gIocLocalBladeAddress)))
     {
-        logError("XPORT", "INI", "Node Address is not configured");
-        rc = CL_ERR_NOT_SUPPORTED;
+        logCritical("XPORT", "INI", "Critical : Invalid IOC address: Node Address [0x%x] is an invalid physical address",gIocLocalBladeAddress);
+        return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     }
-    else
+ 
+    if ((CL_IOC_RESERVED_ADDRESS == gIocLocalBladeAddress) || (CL_IOC_BROADCAST_ADDRESS == gIocLocalBladeAddress))
     {
-        logNotice("XPORT", "INI", "Node Address is %d from  [%s]Transport ", gIocLocalBladeAddress,gClXportDefault->xportType);
+        logCritical("XPORT", "INI", "Critical : Invalid IOC address: Node Address [0x%x] is one of the reserved IOC addresses.", gIocLocalBladeAddress);
+        return CL_IOC_RC(CL_ERR_INVALID_PARAMETER);
     }
+
+    logDebug("XPORT", "INI", "Node Address is [0x%x] from  [%s]Transport ", gIocLocalBladeAddress,gClXportDefault->xportType);
     return rc; 
 }
+
+void clTransportNotificationPortsReset()
+{
+    if(CL_IOC_NEIGH_COMPS_STATUS_GET(gIocLocalBladeAddress,CL_IOC_DM_PORT))
+    {
+        logInfo("XPORT", "STATUS", " Resetting the status for port [0x%x]",CL_IOC_DM_PORT);
+        CL_IOC_NEIGH_COMPS_STATUS_RESET(gIocLocalBladeAddress,CL_IOC_DM_PORT);
+    }
+    if(CL_IOC_NEIGH_COMPS_STATUS_GET(gIocLocalBladeAddress,CL_IOC_XPORT_PORT))
+    {
+        logInfo("XPORT", "STATUS", " Reset the status for port [0x%x]",CL_IOC_XPORT_PORT);
+        CL_IOC_NEIGH_COMPS_STATUS_RESET(gIocLocalBladeAddress,CL_IOC_XPORT_PORT);
+    }
+    return;
+}
+
 ClRcT clTransportLayerInitialize(void)
 {
     ClRcT rc = CL_OK;
@@ -2007,13 +2027,16 @@ ClRcT clTransportInitialize(const ClCharT *type, ClBoolT nodeRep)
     if (nodeRep) 
     {
         rc = clTransportAddressAssign(type);
+        if(rc == CL_OK)
+        {
+            /* Reset the status of Transport Notification Specific Ports (CL_IOC_DM_PORT,CL_IOC_XPORT_PORT)
+             * only if the specific ports are up. So that Newly slected Node Representative process wil be 
+             * binded to transport notification ports
+             */
+            clTransportNotificationPortsReset();
+            rc = clTransportNotificationInitialize(type);
+        }
     }
-
-    if(nodeRep && rc == CL_OK)
-    {
-        rc = clTransportNotificationInitialize(type);
-    }
-
     out:
     return rc;
 }
@@ -2207,6 +2230,11 @@ ClRcT clTransportNotificationInitialize(const ClCharT *type)
     ClTransportLayerT *xport = NULL;
     register ClListHeadT *iter;
     ClRcT rc = CL_OK;
+    /*
+     * Irrespective of transport plugin, xportNotifyInit() initializes the corresponding plugin event handler
+     * initialize functions which will create ports like communication port diagnostic port etc
+     * and subcribe  to get the component/node arrival/ departure notifications.
+     */
     if(type)
     {
         xport = findTransport(type);
@@ -2258,11 +2286,17 @@ ClRcT clTransportNotificationInitialize(const ClCharT *type)
 /*
  * Node representative specific api.
  */
+
 ClRcT clTransportAddressAssign(const ClCharT *type)
 {
     ClTransportLayerT *xport = NULL;
     register ClListHeadT *iter;
     ClRcT rc = CL_OK;
+    /*
+     * For UDP transport, xportAddressAssign() configures the node address to a specified
+     * Network interface only if the ASP_UDP_USE_EXISTING_IP variable is false.
+     * For TIPC plugin, xportAddressAssign() return CL_OK because tipc address is configured in the startup script.
+     */
     if (type)
     {
         xport = findTransport(type);

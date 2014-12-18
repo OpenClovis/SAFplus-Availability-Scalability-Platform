@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdarg.h>  // for va_start, etc
 #include <memory>    // for std::unique_ptr
+#include <sys/types.h>
+#include <signal.h>
 
 #include <clLogApi.hxx>
 #include <clCommon.hxx>
@@ -468,6 +470,25 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
       }
     }
 
+  ClBoolT clIsProcessAlive(ClUint32T pid)
+  {
+      ClInt32T res = 0;
+      ClBoolT pid_exists = CL_FALSE;
+      /*
+       * If pid is zero , then kill() send the sig to every process
+       * in the process group of the calling process.
+       */
+      if(pid == 0)
+      {
+        return pid_exists;
+      }
+      res = kill(pid,0);
+      if(res == 0)
+      {
+          pid_exists = CL_TRUE;
+      }
+    return pid_exists;
+  }
   
   Handle Handle::create(int msgingPort)
     {
