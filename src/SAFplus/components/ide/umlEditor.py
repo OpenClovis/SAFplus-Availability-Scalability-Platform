@@ -9,6 +9,7 @@ import cairo
 import rsvg
 import yang
 import svg
+import wx.lib.scrolledpanel as scrolled
 #from wx.py import shell,
 #from wx.py import  version
 import dot
@@ -522,10 +523,13 @@ class SelectTool(Tool):
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgUep = None
 
-class Panel(wx.Panel):
+class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
-      global dbgUep
-      wx.Panel.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
+      scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
+      self.SetupScrolling(True, True)
+      self.SetScrollRate(10, 10)
+      self.Bind(wx.EVT_SIZE, self.OnReSize)
+
       self.Bind(wx.EVT_PAINT, self.OnPaint)
       dbgUep = self 
       self.menuBar = menubar
@@ -582,6 +586,9 @@ class Panel(wx.Panel):
       for t in toolEvents:
         self.Bind(t, self.OnToolEvent)
 
+    def OnReSize(self, evt):
+      pass
+    
     def addEntityTools(self):
       """Iterate through all the entity types, adding them as tools"""
       tsize = self.toolBar.GetToolBitmapSize()
@@ -632,8 +639,43 @@ class Panel(wx.Panel):
         #dc = wx.PaintDC(self)
         dc = wx.BufferedPaintDC(self)
         dc.SetBackground(wx.Brush('white'))
-        dc.Clear()        
+        dc.Clear()
+        self.PrepareDC(dc)
+        self.UpdateVirtualSize(dc)
         self.render(dc)
+
+    def GetBoundingBox(self):
+      # Calculate bounding box
+      virtRct = wx.Rect()
+      if len(self.entities) > 0:
+        first = self.entities[0]
+        for e in self.entities:
+          if e == first:
+            virtRct = wx.Rect(e.pos[0], e.pos[1], e.size[0], e.size[1])
+          else:
+            virtRct.Union(wx.Rect(e.pos[0], e.pos[1], e.size[0], e.size[1]))
+      return virtRct
+
+    def UpdateVirtualSize(self, dc):
+      virtRct = self.GetBoundingBox()
+
+      # We need to shift the client rectangle to take into account
+      # scrolling, converting device to logical coordinates
+      client_size_x, client_size_y = self.GetVirtualSize()
+
+      scroll_x = dc.DeviceToLogicalX(virtRct.x)
+      scroll_y = dc.DeviceToLogicalY(virtRct.y)
+
+      new_client_size_x = client_size_x
+      new_client_size_y = client_size_y
+
+      if (scroll_x+virtRct.Width) > client_size_x:
+        new_client_size_x = scroll_x+virtRct.Width
+
+      if (scroll_y+virtRct.Height) > client_size_y:
+        new_client_size_y = scroll_y+virtRct.Height
+
+      self.SetVirtualSize((new_client_size_x, new_client_size_y))
 
 
     def render(self, dc):
