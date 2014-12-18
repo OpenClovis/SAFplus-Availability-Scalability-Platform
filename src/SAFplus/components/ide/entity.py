@@ -1,4 +1,5 @@
 import pdb
+import microdom
 from types import *
 import common
 import svg
@@ -27,7 +28,6 @@ class EntityType:
     self.data = data
     self.context = context  # I may need to know the larger context (the model) to resolve types
     self.iconFile = data.get("icon", "generic.svg")
-
     f = open(common.fileResolver(self.iconFile),"r")
     self.iconSvg =  svg.Svg(f.read(),(256,128))
     f.close()
@@ -37,12 +37,13 @@ class EntityType:
     self.buttonSvg =  svg.Svg(f.read(),(32,32))
     f.close()
 
-  def CreateEntity(self,pos, size=None):
+  def createEntity(self,pos, size=None):
     """Create an entity of this type"""
     if not size:
       size = self.iconSvg.size
     ret = Entity(self, pos,size)
     return ret
+ 
 
 class ContainmentArrow:
   def __init__(self, container, offset, contained, end_offset, midpoints=None):
@@ -56,7 +57,7 @@ class ContainmentArrow:
 
 class Entity:
   """This is a UML object of a particular entity type, for example the 'Apache' service group"""
-  def __init__(self, entityType, pos, size):
+  def __init__(self, entityType, pos, size,name=None):
     self.et = entityType
     assert(type(pos) == TupleType);
     self.pos  = pos
@@ -67,7 +68,7 @@ class Entity:
     self.updateDataFields()
     self.instanceLocked = {}  # Whether this data data fields can be changed by an instance
     self.data["entityType"] = self.et.name
-    self.data["name"] = NameCreator(entityType.name)
+    self.data["name"] = NameCreator(entityType.name) if name is None else name
     self.bmp  = self.et.iconSvg.instantiate(self.size,self.data)
     self.containmentArrows = []
 
@@ -83,12 +84,31 @@ class Entity:
     # TODO: make sure that the ordinality is correct (i.e. if self can only be contained by one entity, make sure that currently self is contained by no entity)
     return True
 
-  def updateDataFields(self):
+  def xxxinstantiateData(self,entity, dataDict):
+    for (itemName,itemData) in entity.et.data.items():
+      if not type(item[1]) is DictType: continue  # Its not a datatype skip it
+      val = None
+      if dataDict.has_key(itemName):
+        val = dataDict[itemName]
+        # TODO validate proper val type and range based on definition in itemData
+      elif entity.data.has_key(itemName):
+        val = entity.data[itemName] # No override provided so use what already exists
+      else: # Use default
+        # TODO should the default set, or left blank to indicate that it is the default?
+        val = "" # TODO look in itemData for the default  
+      entity.data[itemName] = val
+
+  def updateDataFields(self, dataDict = None):
     """Creates/modifies the data fields in this entity based on the entityType"""
-    new = {}
+    new = self.data  # Keep what is already there
     for (name,metadata) in self.et.data.items():  # Dig thru everything in the entity type, moving it all into the entity
       if type(metadata) == DictType: # If its not a dictionary type it cannot be changed; don't copy over
-        if self.data.has_key(name):  # If its assigned pull it over
+        if dataDict and dataDict.has_key(name):
+          val = dataDict[name]
+          if microdom.microdomFilter(val):
+            new[name] = val.data_.strip()
+          else: new[name] = val
+        elif self.data.has_key(name):  # If its assigned pull it over
           new[name] = self.data[name]
         else:  # Create it new
           if metadata.has_key("default"):
@@ -97,7 +117,7 @@ class Entity:
             new[name] = self.et.context.defaultForType(metadata["type"])
           else:
             new[name] = ""
-    self.data = new  
+    # self.data = new  
 
 class Instance:
   """This is an actual instance of an Entity, for example the 'Apache' service group running on node 'ctrl0'"""

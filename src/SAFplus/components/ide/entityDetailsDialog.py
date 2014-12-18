@@ -133,7 +133,7 @@ class Panel(wx.Panel):
             query  = wx.TextCtrl(self, id, value,style = wx.BORDER_SIMPLE)
             query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
         else:  # Default control is a text box
-          query  = wx.TextCtrl(self, id, value,style = wx.BORDER_SIMPLE)
+          query  = wx.TextCtrl(self, id, str(value),style = wx.BORDER_SIMPLE)
           # Works: query.SetToolTipString("test")
           query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
       else:
@@ -173,7 +173,7 @@ class Panel(wx.Panel):
       row += 1
       for item in items:
         name = item[0]
-        if type(item[1]) is DictType:
+        if type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
 
           # Create the data entry field
           query = self.createControl(row + TEXT_ENTRY_ID,item,ent.data[name])

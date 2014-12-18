@@ -1,4 +1,5 @@
 import pdb
+import random
 import xml.dom.minidom
 import microdom
 import types
@@ -55,6 +56,28 @@ instantiated  <instances>     instances                         instances     (e
 
     self.loadModules()
 
+    # Populate the helper variables from the microdom
+    entities = self.data.getElementsByTagName("entities")
+    if entities:
+      assert(len(entities)==1)
+      entities = entities[0]
+      for ed in entities.children(microdom.microdomFilter):
+        name = ed["name"].data_
+        entType = self.entityTypes[ed.tag_]
+        pos = None
+        size = None
+        # TODO load the pos and size from the model (if it exists)
+        if pos is None:
+          pos = self.makeUpAScreenPosition()
+          size = entType.iconSvg.size
+        eo = entity.Entity(entType,pos,size,name)
+        eo.updateDataFields(ed)
+        self.entities[name] = eo
+        # TODO Handle arrows
+        
+  def makeUpAScreenPosition(self):
+    return (random.randint(0,800),random.randint(0,800))
+
   def save(self, filename=None):
     """Save XML representation of the model"""
     if filename is None: filename = "test.xml" # self.filename
@@ -66,7 +89,7 @@ instantiated  <instances>     instances                         instances     (e
   def loadModules(self):
     """Load the modules specified in the model"""
     for (path, obj) in self.data.find("modules"):
-      for module in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom) else None):   
+      for module in obj.children(microdom.microdomFilter):   
         filename = module.data_.strip()
         print module.tag_, ": ", filename
         if not self.modules.has_key(filename):  # really load it since it does not exist

@@ -367,7 +367,7 @@ class EntityTypeTool(Tool):
   def CreateNewInstance(self,panel,position,size=None):
     """Create a new instance of this entity type at this position"""
     panel.statusBar.SetStatusText("Created %s" % self.entityType.name,0);
-    ent = self.entityType.CreateEntity(position, size)
+    ent = self.entityType.createEntity(position, size)
     panel.entities[ent.data["name"]] = ent
     panel.Refresh()
     return True
@@ -431,7 +431,7 @@ class LinkTool(Tool):
   def CreateNewInstance(self,panel,position,size=None):
     """Create a new instance of this entity type at this position"""
     panel.statusBar.SetStatusText("Created %s" % self.entityType.name,0);
-    panel.entities.append(self.entityType.CreateEntity(position, size))
+    panel.entities.append(self.entityType.createEntity(position, size))
     panel.Refresh()
     return True
  

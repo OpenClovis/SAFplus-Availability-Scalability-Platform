@@ -69,7 +69,8 @@ class AnyChild:
     raise AttributeError(item)
 
 
-  
+# A predicate that selects objects if they are a microdom node.  Can be given to search functions to select dom objects instead of text
+microdomFilter =  lambda(x): x if (type(x) is InstanceType and x.__class__ is MicroDom) else None
 
 class MicroDom:
   def __init__(self, attributes,children,data):
@@ -160,6 +161,11 @@ class MicroDom:
     except KeyError:
       pass
     return d
+
+  def has_key(self,item):
+    if self.tag_ == item: return True
+    if self.attributes_.has_key(item): return True
+    if self.child_.has_key(item): return True
 
   def __getitem__(self,item):
     #print "ITEM: %s" % item

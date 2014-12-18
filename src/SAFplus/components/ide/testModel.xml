@@ -1,12 +1,95 @@
-<SAFplusModel version="7.0">
-  <modules> 
-     <yang>SAFplusAmf.yang</yang>
+<SAFplusModel version='7.0'>
+  <modules>
+    <yang>SAFplusAmf.yang</yang>
   </modules>
   <entities>
+    <ServiceUnit>
+      <node></node>
+      <readinessState></readinessState>
+      <operState></operState>
+      <haState></haState>
+      <name>ServiceUnit1</name>
+      <preinstantiable></preinstantiable>
+      <haReadinessState></haReadinessState>
+      <failover></failover>
+      <contains></contains>
+      <saAmfSUHostNodeOrNodeGroup></saAmfSUHostNodeOrNodeGroup>
+      <serviceGroup></serviceGroup>
+      <probationTime></probationTime>
+      <_sizeY>128</_sizeY>
+      <adminState></adminState>
+      <rank></rank>
+      <presenceState></presenceState>
+      <entityType>ServiceUnit</entityType>
+      <_sizeX>256</_sizeX>
+    </ServiceUnit>
+    <ServiceGroup>
+      <preferredNumStandbyServiceUnits></preferredNumStandbyServiceUnits>
+      <autoAdjust></autoAdjust>
+      <entityType>ServiceGroup</entityType>
+      <name>ServiceGroup1</name>
+      <autoAdjustInterval></autoAdjustInterval>
+      <_sizeX>256</_sizeX>
+      <contains></contains>
+      <preferredNumIdleServiceUnits></preferredNumIdleServiceUnits>
+      <preferredNumActiveServiceUnits></preferredNumActiveServiceUnits>
+      <autoRepair></autoRepair>
+      <application></application>
+      <adminState></adminState>
+      <_sizeY>128</_sizeY>
+      <maxStandbyWorkAssignments></maxStandbyWorkAssignments>
+      <maxActiveWorkAssignments></maxActiveWorkAssignments>
+      <ServiceUnits>ServiceUnit1,ServiceUnit2</ServiceUnits>
+      <Nodes>Node1,Node2</Nodes>
+    </ServiceGroup>
+    <ServiceUnit>
+      <node></node>
+      <readinessState></readinessState>
+      <operState></operState>
+      <haState></haState>
+      <name>ServiceUnit2</name>
+      <preinstantiable></preinstantiable>
+      <haReadinessState></haReadinessState>
+      <failover></failover>
+      <contains></contains>
+      <saAmfSUHostNodeOrNodeGroup></saAmfSUHostNodeOrNodeGroup>
+      <serviceGroup></serviceGroup>
+      <probationTime></probationTime>
+      <_sizeY>128</_sizeY>
+      <adminState></adminState>
+      <rank></rank>
+      <presenceState></presenceState>
+      <entityType>ServiceUnit</entityType>
+      <_sizeX>256</_sizeX>
+    </ServiceUnit>
+    <Node>
+      <failFastOnInstantiationFailure></failFastOnInstantiationFailure>
+      <operState></operState>
+      <entityType>Node</entityType>
+      <name>Node1</name>
+      <_sizeX>256</_sizeX>
+      <contains></contains>
+      <autoRepair></autoRepair>
+      <adminState></adminState>
+      <_sizeY>128</_sizeY>
+      <failFastOnCleanupFailure></failFastOnCleanupFailure>
+    </Node>
+    <Node>
+      <failFastOnInstantiationFailure></failFastOnInstantiationFailure>
+      <operState></operState>
+      <entityType>Node</entityType>
+      <name>Node2</name>
+      <_sizeX>256</_sizeX>
+      <contains></contains>
+      <autoRepair></autoRepair>
+      <adminState></adminState>
+      <_sizeY>128</_sizeY>
+      <failFastOnCleanupFailure></failFastOnCleanupFailure>
+    </Node>
   </entities>
   <instances>
-    <Application />
-    <Cluster />
+    <Application></Application>
+    <Cluster></Cluster>
     <Node>
       <adminState>on</adminState>
       <autoRepair>true</autoRepair>
@@ -35,12 +118,12 @@
       <failover>true</failover>
       <preinstantiable>true</preinstantiable>
       <saAmfSUHostNodeOrNodeGroup>/sc0</saAmfSUHostNodeOrNodeGroup>
-      <presenceState />
-      <readinessState />
-      <haReadinessState />
-      <haState />
-      <operState />
-      <assignedServiceInstances />
+      <presenceState></presenceState>
+      <readinessState></readinessState>
+      <haReadinessState></haReadinessState>
+      <haState></haState>
+      <operState></operState>
+      <assignedServiceInstances></assignedServiceInstances>
       <components>/c0</components>
       <node>/sc0</node>
       <serviceGroup>sg0</serviceGroup>
@@ -54,12 +137,12 @@
       <failover>true</failover>
       <preinstantiable>true</preinstantiable>
       <saAmfSUHostNodeOrNodeGroup>/sc1</saAmfSUHostNodeOrNodeGroup>
-      <presenceState />
-      <readinessState />
-      <haReadinessState />
-      <haState />
-      <operState />
-      <assignedServiceInstances />
+      <presenceState></presenceState>
+      <readinessState></readinessState>
+      <haReadinessState></haReadinessState>
+      <haState></haState>
+      <operState></operState>
+      <assignedServiceInstances></assignedServiceInstances>
       <components>/c1</components>
       <node>/sc1</node>
       <serviceGroup>sg0</serviceGroup>
@@ -70,14 +153,14 @@
       <compCategory>1</compCategory>
       <delayBetweenInstantiation>10000</delayBetweenInstantiation>
       <haReadinessState>readyForAssignment</haReadinessState>
-      <haState />
+      <haState></haState>
       <id>4</id>
       <instantiate>
         <command>./test0 arg1 arg2</command>
         <timeout>30000</timeout>
       </instantiate>
       <instantiationSuccessDuration>60000</instantiationSuccessDuration>
-      <lastError />
+      <lastError></lastError>
       <lastInstantiation>1417510043537</lastInstantiation>
       <maxActiveAssignments>1</maxActiveAssignments>
       <maxDelayedInstantiations>1</maxDelayedInstantiations>
@@ -88,7 +171,7 @@
       <operState>true</operState>
       <presence>instantiating</presence>
       <processId>8992</processId>
-      <proxy />
+      <proxy></proxy>
       <readinessState>outOfService</readinessState>
       <recovery>Restart</recovery>
       <restartable>true</restartable>
@@ -101,14 +184,14 @@
       <compCategory>1</compCategory>
       <delayBetweenInstantiation>20000</delayBetweenInstantiation>
       <haReadinessState>readyForAssignment</haReadinessState>
-      <haState />
+      <haState></haState>
       <id>5</id>
       <instantiate>
         <command>./test0 arg1 arg2</command>
         <timeout>30000</timeout>
       </instantiate>
       <instantiationSuccessDuration>60000</instantiationSuccessDuration>
-      <lastError />
+      <lastError></lastError>
       <lastInstantiation>1417510043535</lastInstantiation>
       <maxActiveAssignments>1</maxActiveAssignments>
       <maxDelayedInstantiations>2</maxDelayedInstantiations>
@@ -119,7 +202,7 @@
       <operState>true</operState>
       <presence>uninstantiated</presence>
       <processId>0</processId>
-      <proxy />
+      <proxy></proxy>
       <readinessState>outOfService</readinessState>
       <recovery>Restart</recovery>
       <restartable>true</restartable>
@@ -129,7 +212,7 @@
     </Component>
     <ServiceGroup>
       <adminState>on</adminState>
-      <application />
+      <application></application>
       <autoAdjust>false</autoAdjust>
       <autoAdjustInterval>0</autoAdjustInterval>
       <autoRepair>true</autoRepair>
