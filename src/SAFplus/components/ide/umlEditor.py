@@ -593,8 +593,9 @@ class ZoomTool(Tool):
       self.panel.Refresh()
 
       # TODO: scroll wrong??? 
-      scrollx, scrolly = ((self.panel.GetVirtualSize().x - pos[0])/2, (self.panel.GetVirtualSize().y - pos[1])/2) 
-      self.panel.Scroll(wx.Point(scrollx, scrolly))
+      scrollx, scrolly = self.panel.GetScrollPixelsPerUnit();
+      size = self.panel.GetClientSize()
+      self.panel.Scroll((pos[0] - size.x/2)/scrollx, (pos[1] - size.y/2)/scrolly)
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgUep = None
