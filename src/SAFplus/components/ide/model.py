@@ -73,7 +73,12 @@ instantiated  <instances>     instances                         instances     (e
         eo = entity.Entity(entType,pos,size,name)
         eo.updateDataFields(ed)
         self.entities[name] = eo
-        # TODO Handle arrows
+        # Look for relationships
+        for et in self.entityTypes.items():
+          if ed.child_.has_key(et[0] + 's'):
+            links = ed.child_[et[0] + 's'].data_
+            linklst = links.split(",")
+        pdb.set_trace()
         
   def makeUpAScreenPosition(self):
     return (random.randint(0,800),random.randint(0,800))
