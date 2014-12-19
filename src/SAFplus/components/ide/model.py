@@ -61,6 +61,7 @@ instantiated  <instances>     instances                         instances     (e
     if entities:
       assert(len(entities)==1)
       entities = entities[0]
+      fileEntLst = []
       for ed in entities.children(microdom.microdomFilter):
         name = ed["name"].data_
         entType = self.entityTypes[ed.tag_]
@@ -73,12 +74,27 @@ instantiated  <instances>     instances                         instances     (e
         eo = entity.Entity(entType,pos,size,name)
         eo.updateDataFields(ed)
         self.entities[name] = eo
-        # Look for relationships
-        for et in self.entityTypes.items():
+        fileEntLst.append((ed,eo))
+
+      # Look for relationships.  I can't do this until all the entities are created
+      for (ed,eo) in fileEntLst:        
+        for et in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
           if ed.child_.has_key(et[0] + 's'):
-            links = ed.child_[et[0] + 's'].data_
-            linklst = links.split(",")
-        #pdb.set_trace()
+            linkstr = ed.child_[et[0] + 's'].data_
+            linklst = linkstr.split(",")
+            for link in linklst:
+              contained = self.entities.get(link,None)
+              if contained:
+                # TODO: look the positions up in the GUI section of the xml file
+                ca = entity.ContainmentArrow(eo,(0,0),contained,(0,0),[])
+                eo.containmentArrows.append(ca)
+              else:  # target of the link is missing, so drop the link as well.  This could happen if the user manually edits the XML
+                # TODO: create some kind of warning/audit log in share.py that we can post messages to.
+                pass
+      # Recreate all the images in case loading data would have changed them.
+      for (ed,eo) in fileEntLst: 
+        eo.recreateBitmap()       
+
         
   def makeUpAScreenPosition(self):
     return (random.randint(0,800),random.randint(0,800))
@@ -118,8 +134,8 @@ instantiated  <instances>     instances                         instances     (e
     """Write the dynamically changing information back to the loaded microdom tree.
        The reason I don't create an entirely new tree is to preserve any application extensions that might have been put into the file.
     """
-    # Step 1: Write out the entities
-    
+    # Locate or create the needed sections in the XML file
+
     #   find or create the entity area in the microdom
     entities = self.data.getElementsByTagName("entities")
     if not entities:
@@ -129,6 +145,19 @@ instantiated  <instances>     instances                         instances     (e
       assert(len(entities)==1)
       entities = entities[0]
     
+    #   find or create the GUI area in the microdom
+    ide = self.data.getElementsByTagName("ide")
+    if not entities:
+      ide = microdom.MicroDom({"tag_":"ide"},[],[])
+      self.data.SAFplusModel["ide"] = ide
+    else: 
+      assert(len(ide)==1)
+      ide = entities[0]
+    
+
+    # Write out the entities
+
+
     #   iterate through all entities writing them to the microdom, or changing the existing microdom
     for (name,e) in self.entities.items():
       entity = entities.findOneByChild("name",name)
@@ -149,7 +178,7 @@ instantiated  <instances>     instances                         instances     (e
         k = key + "s"
         if entity.child_.has_key(k): entity.delChild(k)
         entity.addChild(microdom.MicroDom({"tag_":k},[",".join(val)],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
-      # TODO: write the IDE specific information to a completely different place in the model xml
+      # TODO: write the IDE specific information to the IDE area of the model xml
 
 
   def xmlify(self):

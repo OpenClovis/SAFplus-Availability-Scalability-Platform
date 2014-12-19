@@ -24,15 +24,15 @@
       <_sizeX>256</_sizeX>
     </ServiceUnit>
     <ServiceGroup>
-      <preferredNumStandbyServiceUnits></preferredNumStandbyServiceUnits>
+      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
       <autoAdjust></autoAdjust>
       <entityType>ServiceGroup</entityType>
       <name>ServiceGroup1</name>
       <autoAdjustInterval></autoAdjustInterval>
       <_sizeX>256</_sizeX>
       <contains></contains>
-      <preferredNumIdleServiceUnits></preferredNumIdleServiceUnits>
-      <preferredNumActiveServiceUnits></preferredNumActiveServiceUnits>
+      <preferredNumIdleServiceUnits>0</preferredNumIdleServiceUnits>
+      <preferredNumActiveServiceUnits>2</preferredNumActiveServiceUnits>
       <autoRepair></autoRepair>
       <application></application>
       <adminState></adminState>
@@ -40,7 +40,6 @@
       <maxStandbyWorkAssignments></maxStandbyWorkAssignments>
       <maxActiveWorkAssignments></maxActiveWorkAssignments>
       <ServiceUnits>ServiceUnit1,ServiceUnit2</ServiceUnits>
-      <Nodes>Node1,Node2</Nodes>
     </ServiceGroup>
     <ServiceUnit>
       <node></node>
@@ -73,6 +72,7 @@
       <adminState></adminState>
       <_sizeY>128</_sizeY>
       <failFastOnCleanupFailure></failFastOnCleanupFailure>
+      <ServiceUnits>ServiceUnit1</ServiceUnits>
     </Node>
     <Node>
       <failFastOnInstantiationFailure></failFastOnInstantiationFailure>
@@ -85,6 +85,7 @@
       <adminState></adminState>
       <_sizeY>128</_sizeY>
       <failFastOnCleanupFailure></failFastOnCleanupFailure>
+      <ServiceUnits>ServiceUnit2</ServiceUnits>
     </Node>
   </entities>
   <instances>
