@@ -485,6 +485,7 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
       res = kill(pid,0);
       if(res == 0)
       {
+          /* To Do: Need to handle the cases of process in Zombie state.*/
           pid_exists = CL_TRUE;
       }
     return pid_exists;

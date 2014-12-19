@@ -55,7 +55,6 @@
 #define CL_IOC_CTRL_SEGMENT_SIZE CL_IOC_ALIGN(sizeof(ClUint32T), 8)
 /* Includes both segments, neighbor-info and master-info. */
 #define CL_IOC_MAIN_SEGMENT_SIZE (CL_IOC_NEIGHBORS_SEGMENT_SIZE + CL_IOC_MASTER_SEGMENT_SIZE)
-
 #define CL_IOC_NODE_REP_PID_SEGMENT_SIZE    CL_IOC_ALIGN(sizeof(ClUint32T), 4)
 #define CL_IOC_NODE_REP_PORT_SEGMENT_SIZE   CL_IOC_NODE_REP_PID_SEGMENT_SIZE
 #define CL_IOC_NODE_REP_SEGMENT_SIZE   (CL_IOC_NODE_REP_PID_SEGMENT_SIZE + CL_IOC_NODE_REP_PORT_SEGMENT_SIZE)
@@ -174,13 +173,9 @@ ClRcT clIocNeighCompsSegmentCreate(void)
 
     return rc;
 
-
 out_unlink:
     clOsalShmUnlink(gpClIocNeighCompsSegment);
-
     close((ClInt32T)fd);
-
-out:
     return rc;
 }
 
