@@ -78,7 +78,7 @@ instantiated  <instances>     instances                         instances     (e
           if ed.child_.has_key(et[0] + 's'):
             links = ed.child_[et[0] + 's'].data_
             linklst = links.split(",")
-        pdb.set_trace()
+        #pdb.set_trace()
         
   def makeUpAScreenPosition(self):
     return (random.randint(0,800),random.randint(0,800))

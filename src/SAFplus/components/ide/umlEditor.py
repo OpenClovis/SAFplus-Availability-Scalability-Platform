@@ -21,8 +21,9 @@ from model import Model
 import share
  
 ENTITY_TYPE_BUTTON_START = 100
-CONNECT_BUTTON = 99
-SELECT_BUTTON = 98
+ZOOM_BUTTON = 99
+CONNECT_BUTTON = 98
+SELECT_BUTTON = 97
 
 PI = 3.141592636
 
@@ -143,7 +144,8 @@ class BoxGesture(Gesture):
     self.rect    = (pos[0],pos[1],pos[0],pos[1])
 
   def change(self,panel, event):
-    pos = event.GetPositionTuple()
+    #pos = event.GetPositionTuple()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     assert(self.active)
     self.rect=(min(self.downPos[0],pos[0]),min(self.downPos[1],pos[1]),max(self.downPos[0],pos[0]),max(self.downPos[1],pos[1]))
     print "selecting", self.rect
@@ -187,7 +189,8 @@ class LineGesture(Gesture):
     panel.drawers.add(self)
 
   def change(self,panel, event):
-    self.curPos = event.GetPositionTuple()
+    #self.curPos = event.GetPositionTuple()
+    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     assert(self.active)
     panel.Refresh()
 
@@ -264,7 +267,8 @@ class LazyLineGesture(Gesture,wx.Timer):
     panel.drawers.add(self)
 
   def change(self,panel, event):
-    self.curPos = event.GetPositionTuple()
+    #self.curPos = event.GetPositionTuple()
+    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     assert(self.active)
     panel.Refresh()
 
@@ -348,7 +352,7 @@ class EntityTypeTool(Tool):
     return True
 
   def OnEditEvent(self,panel, event):
-    pos = event.GetPositionTuple()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     ret = False
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -389,7 +393,8 @@ class LinkTool(Tool):
     return True
 
   def OnEditEvent(self,panel, event):
-    pos = event.GetPositionTuple()
+    #pos = event.GetPositionTuple()
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     ret = False
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -458,9 +463,7 @@ class SelectTool(Tool):
     pass
 
   def OnEditEvent(self,panel, event):
-    pos = event.GetPositionTuple()
-    # print event
-
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
         entities = panel.findEntitiesAt(pos)
@@ -519,7 +522,80 @@ class SelectTool(Tool):
     if len(self.selected) == 1:
       if share.detailsPanel:
         share.detailsPanel.showEntity(next(iter(self.selected)))
-  
+
+class ZoomTool(Tool):
+  def __init__(self, panel):
+    self.panel = panel
+    self.defaultStatusText = "Click (+) to zoom in.  Right click (-) to zoom out."
+    self.rect = None       # Will be something if a rectangle selection is being used
+    #self.downPos = None    # Where the left mouse button was pressed
+    self.boxSel = BoxGesture()
+    self.scale = 1
+    self.scaleRange = 0.2
+    self.minScale = 0.2
+    self.maxScale = 10
+
+  def OnSelect(self, panel,event):
+    panel.statusBar.SetStatusText(self.defaultStatusText,0);
+    return True
+
+  def OnUnselect(self,panel,event):
+    pass
+
+  def render(self,ctx):
+    pass
+
+  def OnEditEvent(self,panel, event):
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    if isinstance(event, wx.MouseEvent):
+      scale = self.scale
+      if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.ButtonDown(wx.MOUSE_BTN_RIGHT):  # Select
+        self.boxSel.start(panel,pos)
+      elif event.Dragging():
+        # if you are touching anything, then drag everything
+        self.boxSel.change(panel,event)
+      elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
+        rect = self.boxSel.finish(panel,pos)
+        delta = (rect[2]-rect[0],rect[3]-rect[1])
+        # Center rect selected
+        pos[0] = rect[0] + delta[0]/2
+        pos[1] = rect[1] + delta[1]/2
+
+        if (self.scale + self.scaleRange) < self.maxScale:
+          scale = self.scale + self.scaleRange
+
+      elif event.ButtonUp(wx.MOUSE_BTN_RIGHT):
+        rect = self.boxSel.finish(panel,pos)
+        delta = (rect[2]-rect[0],rect[3]-rect[1])
+        # Center rect selected
+        pos[0] = rect[0] + delta[0]/2
+        pos[1] = rect[1] + delta[1]/2
+
+        if (self.scale - self.scaleRange) > self.minScale:
+          scale = self.scale - self.scaleRange
+
+      self.SetScale(scale, pos)
+
+      # TODO: 
+      # '-' => Zoom out center
+      # '+' => Zoom in center
+      # 'Ctrl + 0' => Reset
+
+
+  def SetScale(self, scale, pos):
+    if scale != self.scale:
+      self.scale = scale
+
+      # Update scale for entities
+      for (name,e) in self.panel.entities.items():
+        e.scale = (self.scale, self.scale)
+
+      self.panel.Refresh()
+
+      # TODO: scroll wrong??? 
+      scrollx, scrolly = ((self.panel.GetVirtualSize().x - pos[0])/2, (self.panel.GetVirtualSize().y - pos[1])/2) 
+      self.panel.Scroll(wx.Point(scrollx, scrolly))
+
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgUep = None
 
@@ -574,6 +650,10 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddRadioTool(SELECT_BUTTON, bitmap, wx.NullBitmap, shortHelp="select", longHelp="Select one or many entities.  Click entity to edit details.  Double click to expand/contract.")
       self.idLookup[SELECT_BUTTON] = SelectTool(self)
 
+      bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
+      self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
+
       # Add the custom entity creation tools as specified by the model's YANG
       self.addEntityTools()
 
@@ -586,8 +666,9 @@ class Panel(scrolled.ScrolledPanel):
       for t in toolEvents:
         self.Bind(t, self.OnToolEvent)
 
-    def OnReSize(self, evt):
-      pass
+    def OnReSize(self, event):
+      self.Refresh(False)
+      event.Skip()
     
     def addEntityTools(self):
       """Iterate through all the entity types, adding them as tools"""
@@ -635,7 +716,7 @@ class Panel(scrolled.ScrolledPanel):
       if tool:
         tool.OnRightClick(self,event)
 
-    def OnPaint(self, evt):
+    def OnPaint(self, event):
         #dc = wx.PaintDC(self)
         dc = wx.BufferedPaintDC(self)
         dc.SetBackground(wx.Brush('white'))
@@ -652,32 +733,16 @@ class Panel(scrolled.ScrolledPanel):
         first = elst[0]
         for (name,e) in elst:
           if e == first:
-            virtRct = wx.Rect(e.pos[0], e.pos[1], e.size[0], e.size[1])
+            virtRct = wx.Rect(e.pos[0], e.pos[1], e.size[0]*e.scale[0], e.size[1]*e.scale[1])
           else:
-            virtRct.Union(wx.Rect(e.pos[0], e.pos[1], e.size[0], e.size[1]))
+            virtRct.Union(wx.Rect(e.pos[0], e.pos[1], e.size[0]*e.scale[0], e.size[1]*e.scale[1]))
       return virtRct
-
+ 
     def UpdateVirtualSize(self, dc):
       virtRct = self.GetBoundingBox()
-
       # We need to shift the client rectangle to take into account
       # scrolling, converting device to logical coordinates
-      client_size_x, client_size_y = self.GetVirtualSize()
-
-      scroll_x = dc.DeviceToLogicalX(virtRct.x)
-      scroll_y = dc.DeviceToLogicalY(virtRct.y)
-
-      new_client_size_x = client_size_x
-      new_client_size_y = client_size_y
-
-      if (scroll_x+virtRct.Width) > client_size_x:
-        new_client_size_x = scroll_x+virtRct.Width
-
-      if (scroll_y+virtRct.Height) > client_size_y:
-        new_client_size_y = scroll_y+virtRct.Height
-
-      self.SetVirtualSize((new_client_size_x, new_client_size_y))
-
+      self.SetVirtualSize((virtRct.x + virtRct.Width, virtRct.y + virtRct.Height))
 
     def render(self, dc):
         """Put the entities on the screen"""
@@ -719,7 +784,7 @@ class Panel(scrolled.ScrolledPanel):
       """Returns all entities touching the passed rectangle """
       # TODO handle the viewscope's translation, rotation, scaling
       ret = set()
-      for e in self.entities:
+      for (name, e) in self.entities.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)
