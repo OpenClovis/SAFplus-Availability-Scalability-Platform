@@ -369,7 +369,7 @@ int parseArgs(int argc, char* argv[])
   }
 
 
-namespace SAFplusAmf { void createTestDataSet(SAFplusAmfRoot* self); };
+namespace SAFplusAmf { void loadAmfConfig(SAFplusAmfRoot* self); };
 
 // Callback RPC client
 void FooDone(StartComponentResponse* response)
@@ -528,7 +528,7 @@ int main(int argc, char* argv[])
   //cfg.read(db);
 
   // TEMPORARY testing initialization
-  createTestDataSet(&cfg);
+  loadAmfConfig(&cfg);
   setAdminState((SAFplusAmf::ServiceGroup*) cfg.serviceGroupList["sg0"],AdministrativeState::on);
 
   logServer = boost::thread(LogServer());

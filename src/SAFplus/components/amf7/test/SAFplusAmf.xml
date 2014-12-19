@@ -1,0 +1,101 @@
+<SAFplusAmf>
+    <Cluster name="1">
+      <adminState>on</adminState>
+      <startupAssignmentDelay>1000</startupAssignmentDelay>
+    </Cluster>
+
+    <Node name="sc0">
+      <adminState>on</adminState>
+      <autoRepair>true</autoRepair>
+      <failFastOnCleanupFailure>false</failFastOnCleanupFailure>
+      <failFastOnInstantiationFailure>false</failFastOnInstantiationFailure>
+      <serviceUnits>su0</serviceUnits>
+    </Node>
+    <Node name="sc1">
+      <adminState>on</adminState>
+      <autoRepair>true</autoRepair>
+      <failFastOnCleanupFailure>false</failFastOnCleanupFailure>
+      <failFastOnInstantiationFailure>false</failFastOnInstantiationFailure>
+      <serviceUnits>su1</serviceUnits>
+    </Node>
+
+    <ServiceGroup name="sg0">
+      <adminState>on</adminState>
+      <autoAdjust>false</autoAdjust>
+      <autoAdjustInterval>0</autoAdjustInterval>
+      <autoRepair>true</autoRepair>
+      <maxActiveWorkAssignments>1</maxActiveWorkAssignments>
+      <maxStandbyWorkAssignments>1</maxStandbyWorkAssignments>
+      <preferredNumActiveServiceUnits>1</preferredNumActiveServiceUnits>
+      <preferredNumIdleServiceUnits>1</preferredNumIdleServiceUnits>
+      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
+      <serviceInstances>si</serviceInstances>
+      <serviceUnits>su0</serviceUnits>
+      <serviceUnits>su1</serviceUnits>
+    </ServiceGroup>
+
+    <ServiceUnit name="su0">
+      <adminState>on</adminState>
+      <rank>0</rank>
+      <failover>true</failover>
+    </ServiceUnit>
+    <ServiceUnit name="su1">
+      <adminState>on</adminState>
+      <rank>0</rank>
+      <failover>true</failover>
+    </ServiceUnit>
+
+    <ServiceInstance name="si">
+      <adminState>on</adminState>
+      <componentServiceInstances>csi</componentServiceInstances>
+      <preferredActiveAssignments>1</preferredActiveAssignments>
+      <preferredStandbyAssignments>1</preferredStandbyAssignments>
+      <rank>0</rank>
+      <serviceGroup>sg0</serviceGroup>
+    </ServiceInstance>
+
+    <Component name="c0">
+      <capabilityModel>x_active_or_y_standby</capabilityModel>
+      <compCategory>1</compCategory>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <instantiate>
+        <command>./test0 arg1 arg2</command>
+        <timeout>30000</timeout>
+      </instantiate>
+      <instantiationSuccessDuration>60000</instantiationSuccessDuration>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxDelayedInstantiations>1</maxDelayedInstantiations>
+      <maxInstantInstantiations>1</maxInstantInstantiations>
+      <maxStandbyAssignments>1</maxStandbyAssignments>
+      <proxy />
+      <recovery>Restart</recovery>
+      <restartable>true</restartable>
+      <safVersion>B.01.01</safVersion>
+      <serviceUnit>su0</serviceUnit>
+      <swBundle>testBundle.tgz</swBundle>
+    </Component>
+    <Component name="c1">
+      <capabilityModel>x_active_or_y_standby</capabilityModel>
+      <compCategory>1</compCategory>
+      <delayBetweenInstantiation>20000</delayBetweenInstantiation>
+      <instantiate>
+        <command>./test0 arg1 arg2</command>
+        <timeout>30000</timeout>
+      </instantiate>
+      <instantiationSuccessDuration>60000</instantiationSuccessDuration>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <maxDelayedInstantiations>2</maxDelayedInstantiations>
+      <maxInstantInstantiations>0</maxInstantInstantiations>
+      <maxStandbyAssignments>1</maxStandbyAssignments>
+      <proxy />
+      <recovery>Restart</recovery>
+      <restartable>true</restartable>
+      <safVersion>B.01.01</safVersion>
+      <serviceUnit>su1</serviceUnit>
+      <swBundle>testBundle.tgz</swBundle>
+    </Component>
+
+    <ComponentServiceInstance name="csi">
+      <serviceInstance>si</serviceInstance>
+    </ComponentServiceInstance>
+</SAFplusAmf>

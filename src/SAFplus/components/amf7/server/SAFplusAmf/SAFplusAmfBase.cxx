@@ -5,6 +5,7 @@
 #include "Component.hxx"
 #include "ServiceGroup.hxx"
 #include "Node.hxx"
+#include "Cluster.hxx"
 #include "Data.hxx"
 
 using namespace SAFplusAmf;
@@ -404,5 +405,267 @@ namespace SAFplusAmf
     deXMLize(std::string(obj),context,result);   
     }
 
+  void loadClusterConfigs(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+        return;
+
+    std::string xpath = "/SAFplusAmf/Cluster";
+
+    std::vector<std::string> iters = db->iterate(xpath);
+
+    for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+      {
+        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+            continue;
+
+        std::size_t found = (*it).find("@name", xpath.length() + 1);
+
+        if (found == std::string::npos)
+            continue;
+
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        Cluster* cluster = new Cluster(keyValue);
+
+        std::string dataXPath = (*it).substr(0, found);
+
+        cluster->dataXPath = dataXPath;
+
+        self->clusterList.addChildObject(cluster,keyValue);
+      }
+    }
+
+  void loadNodeConfigs(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+        return;
+
+    std::string xpath = "/SAFplusAmf/Node";
+
+    std::vector<std::string> iters = db->iterate(xpath);
+
+    for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+      {
+        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+            continue;
+
+        std::size_t found = (*it).find("@name", xpath.length() + 1);
+
+        if (found == std::string::npos)
+            continue;
+
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        Node* node = new Node(keyValue);
+
+        std::string dataXPath = (*it).substr(0, found);
+
+        node->dataXPath = dataXPath;
+
+        self->nodeList.addChildObject(node,keyValue);
+      }
+    }
+
+  void loadServiceGroupConfigs(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+        return;
+
+    std::string xpath = "/SAFplusAmf/ServiceGroup";
+
+    std::vector<std::string> iters = db->iterate(xpath);
+
+    for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+      {
+        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+            continue;
+
+        std::size_t found = (*it).find("@name", xpath.length() + 1);
+
+        if (found == std::string::npos)
+            continue;
+
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        ServiceGroup* sg = new ServiceGroup(keyValue);
+
+        std::string dataXPath = (*it).substr(0, found);
+
+        sg->dataXPath = dataXPath;
+
+        self->serviceGroupList.addChildObject(sg,keyValue);
+      }
+    }
+
+  void loadServiceUnitConfigs(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+        return;
+
+    std::string xpath = "/SAFplusAmf/ServiceUnit";
+
+    std::vector<std::string> iters = db->iterate(xpath);
+
+    for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+      {
+        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+            continue;
+
+        std::size_t found = (*it).find("@name", xpath.length() + 1);
+
+        if (found == std::string::npos)
+            continue;
+
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        ServiceUnit* su = new ServiceUnit(keyValue);
+
+        std::string dataXPath = (*it).substr(0, found);
+
+        su->dataXPath = dataXPath;
+
+        self->serviceUnitList.addChildObject(su,keyValue);
+      }
+    }
+
+  void loadServiceInstanceConfigs(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+        return;
+
+    std::string xpath = "/SAFplusAmf/ServiceInstance";
+
+    std::vector<std::string> iters = db->iterate(xpath);
+
+    for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+      {
+        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+            continue;
+
+        std::size_t found = (*it).find("@name", xpath.length() + 1);
+
+        if (found == std::string::npos)
+            continue;
+
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        ServiceInstance* si = new ServiceInstance(keyValue);
+
+        std::string dataXPath = (*it).substr(0, found);
+
+        si->dataXPath = dataXPath;
+
+        self->serviceInstanceList.addChildObject(si,keyValue);
+      }
+    }
+
+  void loadComponentConfigs(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+        return;
+
+    std::string xpath = "/SAFplusAmf/Component";
+
+    std::vector<std::string> iters = db->iterate(xpath);
+
+    for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+      {
+        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+            continue;
+
+        std::size_t found = (*it).find("@name", xpath.length() + 1);
+
+        if (found == std::string::npos)
+            continue;
+
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        Component* comp = new Component(keyValue);
+
+        std::string dataXPath = (*it).substr(0, found);
+
+        comp->dataXPath = dataXPath;
+
+        self->componentList.addChildObject(comp,keyValue);
+      }
+    }
+
+  void loadComponentServiceInstanceConfigs(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+        return;
+
+    std::string xpath = "/SAFplusAmf/ComponentServiceInstance";
+
+    std::vector<std::string> iters = db->iterate(xpath);
+
+    for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+      {
+        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+            continue;
+
+        std::size_t found = (*it).find("@name", xpath.length() + 1);
+
+        if (found == std::string::npos)
+            continue;
+
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        ComponentServiceInstance* csi = new ComponentServiceInstance(keyValue);
+
+        std::string dataXPath = (*it).substr(0, found);
+
+        csi->dataXPath = dataXPath;
+
+        self->componentServiceInstanceList.addChildObject(csi,keyValue);
+      }
+    }
+
+  void loadAmfConfig(SAFplusAmfRoot* self)
+    {
+    loadClusterConfigs(self);
+    self->clusterList.read();  // Load up all children of clusterList (recursively) from the DB
+
+    loadNodeConfigs(self);
+    self->nodeList.read();  // Load up all children of nodeList (recursively) from the DB
+
+    loadServiceGroupConfigs(self);
+    self->serviceGroupList.read();  // Load up all children of serviceGroupList (recursively) from the DB
+
+    loadServiceUnitConfigs(self);
+    self->serviceUnitList.read();  // Load up all children of serviceUnitList (recursively) from the DB
+
+    loadServiceInstanceConfigs(self);
+    self->serviceInstanceList.read();  // Load up all children of serviceInstanceList (recursively) from the DB
+
+    loadComponentConfigs(self);
+    self->componentList.read();  // Load up all children of componentList (recursively) from the DB
+
+    loadComponentServiceInstanceConfigs(self);
+    self->componentServiceInstanceList.read();  // Load up all children of componentServiceInstanceList (recursively) from the DB
+
+    }
 
   }
