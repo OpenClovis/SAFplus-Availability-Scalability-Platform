@@ -547,8 +547,8 @@ class ZoomTool(Tool):
 
   def OnEditEvent(self,panel, event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    scale = self.scale
     if isinstance(event, wx.MouseEvent):
-      scale = self.scale
       if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.ButtonDown(wx.MOUSE_BTN_RIGHT):  # Select
         self.boxSel.start(panel,pos)
       elif event.Dragging():
@@ -562,7 +562,7 @@ class ZoomTool(Tool):
         pos[1] = rect[1] + delta[1]/2
 
         if (self.scale + self.scaleRange) < self.maxScale:
-          scale = self.scale + self.scaleRange
+          scale += self.scaleRange
 
       elif event.ButtonUp(wx.MOUSE_BTN_RIGHT):
         rect = self.boxSel.finish(panel,pos)
@@ -572,30 +572,41 @@ class ZoomTool(Tool):
         pos[1] = rect[1] + delta[1]/2
 
         if (self.scale - self.scaleRange) > self.minScale:
-          scale = self.scale - self.scaleRange
+          scale -= self.scaleRange
 
-      self.SetScale(scale, pos)
+      elif event.ControlDown(): 
+        if event.GetWheelRotation() > 0:
+          if (self.scale + self.scaleRange) < self.maxScale:
+            scale += self.scaleRange
+        elif event.GetWheelRotation() < 0:
+          if (self.scale - self.scaleRange) > self.minScale:
+            scale -= self.scaleRange
 
-      # TODO: 
-      # '-' => Zoom out center
-      # '+' => Zoom in center
-      # 'Ctrl + 0' => Reset
+    if isinstance(event, wx.KeyEvent):
+      if event.ControlDown(): 
+        if event.GetKeyCode() == wx.WXK_NUMPAD_ADD:
+          if (self.scale + self.scaleRange) < self.maxScale:
+            scale += self.scaleRange
+        elif event.GetKeyCode() == wx.WXK_NUMPAD_SUBTRACT:
+          if (self.scale - self.scaleRange) > self.minScale:
+            scale -= self.scaleRange
+        elif event.GetKeyCode() == wx.WXK_NUMPAD0:
+          scale = 1
 
+    self.SetScale(scale, pos)
 
   def SetScale(self, scale, pos):
     if scale != self.scale:
       self.scale = scale
 
-      # Update scale for entities
-      for (name,e) in self.panel.entities.items():
-        e.scale = (self.scale, self.scale)
-
+      # Update scale for panel
+      self.panel.scale = (self.scale, self.scale)
       self.panel.Refresh()
 
       # TODO: scroll wrong??? 
       scrollx, scrolly = self.panel.GetScrollPixelsPerUnit();
       size = self.panel.GetClientSize()
-      self.panel.Scroll((pos[0] - size.x/2)/scrollx, (pos[1] - size.y/2)/scrolly)
+      self.panel.Scroll((pos[0]*self.scale - size.x/2)/scrollx, (pos[1]*self.scale - size.y/2)/scrolly)
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgUep = None
@@ -734,9 +745,9 @@ class Panel(scrolled.ScrolledPanel):
         first = elst[0]
         for (name,e) in elst:
           if e == first:
-            virtRct = wx.Rect(e.pos[0], e.pos[1], e.size[0]*e.scale[0], e.size[1]*e.scale[1])
+            virtRct = wx.Rect(e.pos[0]*self.scale[0], e.pos[1]*self.scale[1], e.size[0]*e.scale[0]*self.scale[0], e.size[1]*e.scale[1]*self.scale[1])
           else:
-            virtRct.Union(wx.Rect(e.pos[0], e.pos[1], e.size[0]*e.scale[0], e.size[1]*e.scale[1]))
+            virtRct.Union(wx.Rect(e.pos[0]*self.scale[0], e.pos[1]*self.scale[1], e.size[0]*e.scale[0]*self.scale[0], e.size[1]*e.scale[1]*self.scale[1]))
       return virtRct
  
     def UpdateVirtualSize(self, dc):
