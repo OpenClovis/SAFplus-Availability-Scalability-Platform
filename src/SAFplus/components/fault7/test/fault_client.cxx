@@ -1,4 +1,4 @@
-#include <clFaultIpi.hxx>
+#include <clFaultApi.hxx>
 #include <clGlobals.hxx>
 #include <clIocPortList.hxx>
 #include <clSafplusMsgServer.hxx>
@@ -11,41 +11,96 @@ using namespace SAFplus;
 static unsigned int MAX_MSGS=25;
 static unsigned int MAX_HANDLER_THREADS=2;
 ClBoolT   gIsNodeRepresentative = false;
+SafplusInitializationConfiguration sic;
 
+
+void testAllFeature();
 int main(int argc, char* argv[])
 {
   SAFplus::ASP_NODEADDR = 1;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
-
-  SafplusInitializationConfiguration sic;
-  sic.iocPort     = 60;
-
+  sic.iocPort     = 50;
   safplusInitialize(SAFplus::LibDep::IOC | SAFplus::LibDep::LOG |SAFplus::LibDep::MSG ,sic);
 
-  //safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
+  logInfo("FLT","CLT","********************Start msg server********************");
   safplusMsgServer.Start();
-
+  logInfo("FLT","CLT","********************Initial fault lib********************");
   faultInitialize();
+  testAllFeature();
 
+  while(1) { sleep(10000); }
+  return 0;
+
+}
+
+
+void testAllFeature()
+{
   SAFplus::Handle me = Handle::create();
   Fault fc;
+  fc = Fault();
   ClIocAddress server;
   server.iocPhyAddress.nodeAddress= SAFplus::ASP_NODEADDR;
-  server.iocPhyAddress.portId=  50;
+  server.iocPhyAddress.portId=  SAFplusI::FLT_IOC_PORT;
+  logInfo("FLT","CLT","********************Initial fault client*********************");
   fc.init(me,server,sic.iocPort,BLOCK);
+  fc.registerFault();
+  sleep(10);
+  FaultState state = fc.getFaultState(me);
+  logInfo("FLT","CLT","********************Get current fault state in shared memory [%s]********************", strFaultEntityState[int(state)]);
+  // Register other fault entity
+  SAFplus::Handle faultEntityHandle(PointerHandle, 0x9876, 5454);
+  logInfo("FLT","CLT","********************Register other fault entity********************");
+  fc.registerFault(faultEntityHandle,FaultState::STATE_DOWN);
+  sleep(10);
+  state = fc.getFaultState(faultEntityHandle);
+  logInfo("FLT","CLT","********************Get current fault state in shared memory [%s]********************", strFaultEntityState[int(state)]);
+  sleep(10);
+  logInfo("FLT","CLT","********************Update other fault entity********************");
+  fc.registerFault(faultEntityHandle,FaultState::STATE_UP);
+  sleep(10);
+  state = fc.getFaultState(faultEntityHandle);
+  logInfo("FLT","CLT","********************Get current fault state after updated in shared memory [%s]********************", strFaultEntityState[int(state)]);
+  sleep(10);
   FaultEventData faultData;
   faultData.alarmState=SAFplusI::AlarmStateT::ALARM_STATE_INVALID;
   faultData.category=SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_COMMUNICATIONS;
   faultData.cause=SAFplusI::AlarmProbableCauseT::ALARM_PROB_CAUSE_PROCESSOR_PROBLEM;
   faultData.severity=SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_MINOR;
 
-  fc.sendFaultEventMessage(me,SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT,SAFplus::FaultPolicy::Custom,faultData);
+  state = fc.getFaultState(me);
+  logInfo("FLT","CLT","********************Get current fault state in shared memory [%s]********************", strFaultEntityState[int(state)]);
+
+  logInfo("FLT","CLT","********************Send fault event to local fault server********************");
+  fc.notify(faultData,SAFplus::FaultPolicy::Custom);
+  sleep(10);
+  logInfo("FLT","CLT","********************Send fault event to active  fault server********************");
+  fc.notifytoActive(faultData,SAFplus::FaultPolicy::AMF);
+  sleep(10);
+  logInfo("FLT","CLT","********************Get current fault state in shared memory [%s]********************", strFaultEntityState[int(state)]);
+  state = fc.getFaultState(me);
 
 
+  logInfo("FLT","CLT","********************Send fault event to local fault server********************");
+  fc.notify(faultEntityHandle,faultData,SAFplus::FaultPolicy::Custom);
+  sleep(10);
+  logInfo("FLT","CLT","********************Send fault event to active  fault server********************");
+  fc.notifytoActive(faultEntityHandle,faultData,SAFplus::FaultPolicy::AMF);
+  logInfo("FLT","CLT","********************Get current fault state in shared memory [%s]********************", strFaultEntityState[int(state)]);
+  state = fc.getFaultState(faultEntityHandle);
 
-
-  while(1) { sleep(10000); }
-  return 0;
-
+  logInfo("FLT","CLT","********************Deregister fault entity********************");
+  fc.deRegister(faultEntityHandle);
+  logInfo("FLT","CLT","********************Deregister fault client********************");
+  fc.deRegister();
 }
+//void test()
+//{
+//	while (IsOk(fc.(destination)))
+//	{
+//		bool result = sendMsgGetReply(destination);
+//		if (!result)
+//		{ fc.notify(FaultData(...), destination)  }
+//	}
+//}
