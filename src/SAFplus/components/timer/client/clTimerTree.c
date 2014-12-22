@@ -65,6 +65,7 @@ typedef struct ClTimer
 #define CL_TIMER_STOPPED  (0x2)
 #define CL_TIMER_DELETED  (0x4)
 #define CL_TIMER_CLUSTER  (0x8)
+#define CL_TIMER_HANDLER  (0x10)
 
     /*index into the timer tree*/
     ClRbTreeT timerList;
@@ -79,7 +80,7 @@ typedef struct ClTimer
     ClPtrT timerData;
     ClPtrT timerDataPersistent;
     ClUint32T timerDataSize;
-    ClBoolT timerFlags;
+    ClUint32T timerFlags;
     ClInt32T timerRefCnt; /*reference count of inflight separate task timers*/
     /* debug data*/
     ClTimeT startTime;
@@ -1030,7 +1031,27 @@ ClRcT clTimerCheckAndDelete(ClTimerHandleT *pTimerHandle)
         clOsalMutexUnlock(&gTimerBase.clusterListLock);
         goto out;
     }
-    
+
+    if (pTimer->timerFlags & CL_TIMER_HANDLER)
+    {
+      rc = CL_OK;
+      pTimer->timerFlags |= CL_TIMER_DELETED;
+
+      if (pTimer->timerType != CL_TIMER_VOLATILE)
+        {
+          // Remove this timer from the list
+          clRbTreeDelete(&gTimerBase.timerTree, &pTimer->timerList);
+          if (pTimer->timerFlags & CL_TIMER_CLUSTER)
+            {
+              timerClusterDel(pTimer);
+            }
+        }
+
+      clOsalMutexUnlock(&gTimerBase.timerListLock);
+      clOsalMutexUnlock(&gTimerBase.clusterListLock);
+      goto out;
+    }
+
     if(!(pTimer->timerFlags & CL_TIMER_RUNNING))
     {
         rc = timerDeleteLocked(pTimer, pTimerHandle, CL_TRUE, &freeTimer);
@@ -1060,7 +1081,10 @@ static ClRcT clTimerCallbackTask(ClPtrT invocation)
     ClInt16T callbackTaskIndex = -1;
     clOsalMutexLock(&gTimerBase.clusterListLock);
     clOsalMutexLock(&gTimerBase.timerListLock);
-    
+    ClTimerCallBackT timerCallback = pTimer->timerCallback;
+    ClPtrT           timerData     = pTimer->timerData;
+    pTimer->timerFlags |= CL_TIMER_HANDLER;  /* Indicate that we are in the handler */
+
     if(gClTimerDebug)
     {
         clOsalMutexLock(&gClTimerDebugLock);
@@ -1118,7 +1142,7 @@ static ClRcT clTimerCallbackTask(ClPtrT invocation)
     clOsalMutexUnlock(&gTimerBase.timerListLock);
     clOsalMutexUnlock(&gTimerBase.clusterListLock);
 
-    pTimer->timerCallback(pTimer->timerData);
+    timerCallback(timerData);
     if (gClTimerDebug)
     {
         if (CL_TIMER_REPETITIVE == type)
@@ -1160,14 +1184,19 @@ static ClRcT clTimerCallbackTask(ClPtrT invocation)
 
     if(pTimer->timerRefCnt <= 0)
         pTimer->timerFlags &= ~CL_TIMER_RUNNING;
-    
+
+    if ((pTimer->timerFlags & CL_TIMER_DELETED) || canFree == CL_TRUE)
+      {
+        /* Really delete the timer now, don't release the locks */
+        timerFree(pTimer);
+      }
+    else
+      {
+        pTimer->timerFlags &= ~CL_TIMER_HANDLER; /* Clear the in handler flag */
+      }
+
     clOsalMutexUnlock(&gTimerBase.timerListLock);
     clOsalMutexUnlock(&gTimerBase.clusterListLock);
-
-    if(canFree == CL_TRUE)
-    {
-        timerFree(pTimer);
-    }
     return CL_OK;
 }
 
