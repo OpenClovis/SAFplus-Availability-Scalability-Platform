@@ -7,7 +7,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 #MakefileDepend := Makefile
 MakefileDepend :=
 
-CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -I../../rpc -I./amfRpc
+CPP_FLAGS += -I$(BOOST_DIR)  -I. -I.. -I../../rpc -I./amfRpc -I/usr/include/libxml2
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/include
 

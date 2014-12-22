@@ -6,7 +6,7 @@ MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
 
 # Management includes and libraries
-CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
+CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ -I/usr/include/libxml2
 C_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR) -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable
 
 CLIENT_H := $(wildcard ../include/*.hxx)

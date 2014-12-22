@@ -2,6 +2,8 @@ S7 := 1
 SAFPLUS_FAULT_TEST := 1
 include ../../../mk/preface.mk
 
+CPP_FLAGS += -I/usr/include/libxml2
+
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 
 SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
@@ -18,7 +20,7 @@ SERVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SERVER_SRC)))
 
 
 # Specify the required libraries
-SAFPLUS_LIBS := clFault clCkpt clName clIoc7 clLog clUtils7 clOsal7
+SAFPLUS_LIBS := clFault clCkpt clName clIoc7 clLog clUtils7 clOsal7 clGroup clMgt7
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
