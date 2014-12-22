@@ -12,6 +12,9 @@ import wx.lib.wxcairo
 import cairo
 import rsvg
 
+import genshi
+import genshi.template
+
 import common
 
 def SvgFile(filename):
@@ -21,19 +24,27 @@ def SvgFile(filename):
   f.close()
   return Svg(data)
 
+def opt(fn):
+  try:
+    ret = fn()
+    return ret
+  except:
+    return ""
 
 class Svg:
   def __init__(self, data,svgSize=None):
     self.rawsvg = data
-    self.tmpl8  = string.Template(self.rawsvg)
-
+    #self.tmpl8  = string.Template(self.rawsvg)
+    self.tmpl8 = genshi.template.MarkupTemplate(self.rawsvg) # genshi.XML(self.rawsvg)
     self.size = svgSize  # This is a workaround because rsvg does not have get_dimensions()
  
   def prep(self,size=None, subst=None):
     if subst:
       subst["_sizeX"] = size[0]  # Allow the image to be changed based on the size
       subst["_sizeY"] = size[1]
-      data = self.tmpl8.safe_substitute(subst)
+      #data = self.tmpl8.safe_substitute(subst)
+      data = self.tmpl8.generate(opt=opt,**subst)
+      data = data.render('xml')
       # TODO: We need a much more sophisticated substitution, like used in web development
       # so that we can capture complex resizing behavior.  At a minimum substitution needs to be able to evaluate expressions.
     else:

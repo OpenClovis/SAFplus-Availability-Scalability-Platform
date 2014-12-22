@@ -445,7 +445,7 @@ class LinkTool(Tool):
 class SelectTool(Tool):
   def __init__(self, panel):
     self.panel = panel
-    self.defaultStatusText = "Click to edit configuration.  Double click to expand/contract.  Drag to move."
+    self.defaultStatusText = "Click to edit configuration.  Double click to expand/contract.  Drag to move.  Del key removes."
     self.selected = set()  # This is everything that is currently selected... using shift or ctrl click may mean the more is selected then currently touching
     self.touching = set()  # This is everything that the cursor is currently touching
     self.rect = None       # Will be something if a rectangle selection is being used
@@ -516,6 +516,20 @@ class SelectTool(Tool):
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
         entity = panel.findEntitiesAt(pos)
         if not entity: return False
+    if isinstance(event,wx.KeyEvent):
+      
+      if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
+        if self.touching:
+          self.panel.model.delete(self.touching)
+          self.touching.clear()
+        elif self.selected:
+          self.panel.model.delete(self.selected)
+          self.selected.clear()
+        panel.Refresh()
+        return True # I consumed this event
+      else:
+        return False # Give this key to someone else
+
     self.updateSelected()
   
   def updateSelected(self):
@@ -811,7 +825,7 @@ def Test():
   model = Model()
   model.load("testModel.xml")
 
-  # gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  #gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
   gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
   return model
 

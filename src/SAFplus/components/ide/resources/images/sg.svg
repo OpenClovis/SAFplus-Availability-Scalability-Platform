@@ -2,7 +2,6 @@
 <!-- Created with Inkscape (http://www.inkscape.org/) -->
 
 <svg
-   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -11,118 +10,40 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="259.00003"
-   height="126.22079"
-   id="svg2"
+   width="$_sizeX"
+   height="$_sizeY"
+   id="svg3107"
    version="1.1"
-   inkscape:version="0.48.4 r9939"
-   sodipodi:docname="sg.svg">
+   inkscape:version="0.48.4 r9939">
   <defs
-     id="defs4">
+     id="defs3109">
     <linearGradient
-       id="linearGradient6714">
+       inkscape:collect="always"
+       id="backgrnd"
+       x1="-0.5"
+       y1="64"
+       x2="256.5"
+       y2="64"
+       gradientUnits="userSpaceOnUse">
       <stop
          style="stop-color:#c2c659;stop-opacity:1;"
          offset="0"
-         id="stop6716" />
+         />
       <stop
          style="stop-color:#000000;stop-opacity:0;"
          offset="1"
-         id="stop6718" />
-    </linearGradient>
-    <pattern
-       inkscape:collect="always"
-       xlink:href="#cloth_bitmap"
-       id="pattern6513"
-       patternTransform="translate(0.56253027,-958.99687)" />
-    <linearGradient
-       id="linearGradient5057"
-       osb:paint="solid">
-      <stop
-         style="stop-color:#000000;stop-opacity:1;"
-         offset="0"
-         id="stop5059" />
-    </linearGradient>
-    <pattern
-       patternUnits="userSpaceOnUse"
-       width="257.12503"
-       height="93.940627"
-       patternTransform="translate(-0.56253027,958.99687)"
-       id="pattern6510">
-      <rect
-         y="2.5052629"
-         x="2.4959245"
-         height="88.926636"
-         width="252.13321"
-         id="rect2985"
-         style="opacity:0.75527422;fill:url(#pattern6513);fill-opacity:1;stroke:#e26720;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:0.875;stroke-dasharray:none" />
-    </pattern>
-    <pattern
-       patternUnits="userSpaceOnUse"
-       width="800"
-       height="140"
-       patternTransform="translate(-242.85715,637.36218)"
-       id="pattern6683">
-      <image
-         width="800"
-         height="140"
-         xlink:href="file:///clovis/multimedia/OpenClovis_Bg.png"
-         id="image6680"
-         x="0"
-         y="0" />
-    </pattern>
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient6714"
-       id="linearGradient6720"
-       x1="1.8357141"
-       y1="989.2193"
-       x2="262.73572"
-       y2="989.2193"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.98139444,0,0,0.96278886,-1.8244605,35.952873)" />
-    <linearGradient
-       inkscape:collect="always"
-       xlink:href="#linearGradient6714"
-       id="linearGradient8243"
-       gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.98139444,0,0,0.96278886,-1.8244605,35.952873)"
-       x1="1.8357141"
-       y1="989.2193"
-       x2="262.73572"
-       y2="989.2193" />
+         />
+     </linearGradient>
   </defs>
-  <sodipodi:namedview
-     id="base"
-     pagecolor="#ffffff"
-     bordercolor="#666666"
-     borderopacity="1.0"
-     inkscape:pageopacity="0.0"
-     inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="295.88445"
-     inkscape:cy="10.689799"
-     inkscape:document-units="px"
-     inkscape:current-layer="layer1"
-     showgrid="false"
-     inkscape:window-width="1606"
-     inkscape:window-height="1037"
-     inkscape:window-x="1920"
-     inkscape:window-y="0"
-     inkscape:window-maximized="0"
-     fit-margin-top="0"
-     fit-margin-left="0"
-     fit-margin-right="0"
-     fit-margin-bottom="0" />
   <metadata
-     id="metadata7">
+     id="metadata3112">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -130,83 +51,79 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-0.87497855,-925.24796)">
-    <g
-       id="g8019">
-      <rect
-         y="926.74371"
-         x="2.3815155"
-         height="123.23697"
-         width="256"
-         id="boundary"
-         style="opacity:0.86075948;fill:url(#linearGradient8243);fill-opacity:1;stroke:#0c1a73;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:0.875;stroke-dasharray:none" />
-      <g
-         id="OpenClovisLogo"
-         style="display:inline"
-         transform="matrix(0.3572129,0,0,0.3572129,-42.717194,807.65065)">
-        <path
-           transform="matrix(0.9120753,0,0,0.8839926,27.573249,50.375781)"
-           sodipodi:end="7.0793357"
-           sodipodi:start="5.4832954"
-           d="m 247.39234,373.11377 c 22.0708,21.4402 22.582,56.71283 1.1418,78.78362 -0.32667,0.33628 -0.65757,0.66842 -0.99263,0.99635 l -38.97008,-39.81726 z"
-           sodipodi:ry="55.714287"
-           sodipodi:rx="55.714287"
-           sodipodi:cy="413.07648"
-           sodipodi:cx="208.57143"
-           id="path2276"
-           style="fill:#27bf00;fill-opacity:1;stroke:#178f00;stroke-width:8.90943813;stroke-miterlimit:4;stroke-opacity:0.50196078;stroke-dasharray:none"
-           sodipodi:type="arc" />
-        <path
-           sodipodi:type="arc"
-           style="opacity:0.88185658;fill:#0066b2;fill-opacity:1;stroke:#003092;stroke-width:8.90943813;stroke-miterlimit:4;stroke-opacity:0.50196078;stroke-dasharray:none"
-           id="use2296"
-           sodipodi:cx="208.57143"
-           sodipodi:cy="413.07648"
-           sodipodi:rx="55.714287"
-           sodipodi:ry="55.714287"
-           d="m 247.39234,373.11377 c 22.0708,21.4402 22.582,56.71283 1.1418,78.78362 -0.32667,0.33628 -0.65757,0.66842 -0.99263,0.99635 l -38.97008,-39.81726 z"
-           sodipodi:start="5.4832954"
-           sodipodi:end="7.0793357"
-           transform="matrix(-0.9120753,0,0,0.8839926,390.27551,49.661497)" />
-        <use
-           height="1052.3622"
-           width="744.09448"
-           transform="matrix(0,1,-1,0,623.67814,206.54366)"
-           id="use3269"
-           xlink:href="#use2296"
-           y="0"
-           x="0"
-           style="stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none" />
-        <use
-           height="1052.3622"
-           width="744.09448"
-           transform="matrix(-1,0,0,-1,417.84878,830.2218)"
-           id="use3271"
-           xlink:href="#use3269"
-           y="0"
-           x="0" />
-      </g>
+     transform="translate(0.5,0.5)">
+    <rect
+       style="fill:url(#backgrnd);fill-rule:evenodd;stroke:#0b3be2;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.89423078;fill-opacity:1;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect3115"
+       width="${_sizeX-1}"
+       height="${_sizeY-1}"
+       x="0"
+       y="0" />
+    <text
+         x="60"
+         y="20"
+         id="name"
+         xml:space="preserve"
+         style="font-size:22px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#0c0b6b;stroke-opacity:0.875;font-family:FreeMono;-inkscape-font-specification:FreeMono">$name</text>
+
+    <g style="font-size:14px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#0c0b6b;stroke-opacity:0.875;font-family:FreeMono;-inkscape-font-specification:FreeMono" xml:space="preserve">
       <text
-         sodipodi:linespacing="136%"
-         id="entityTypeId"
-         y="1042.3622"
-         x="7.1428604"
-         style="font-size:12px;font-style:normal;font-weight:normal;line-height:136.00000143%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#0c1a73;stroke-opacity:0.875;font-family:Sans"
-         xml:space="preserve">$entityType</text>
-      <text
-         sodipodi:linespacing="125%"
-         id="nameId"
-         y="949.50513"
-         x="60.714287"
-         style="font-size:22px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#0c0b6b;stroke-opacity:0.875;font-family:FreeMono;-inkscape-font-specification:FreeMono"
-         xml:space="preserve">$name</text>
+         x="8"
+         y="70"
+         id="HighAvailabilityType">$preferredNumActiveServiceUnits + $preferredNumStandbyServiceUnits + $preferredNumIdleServiceUnits</text>
     </g>
     <text
-       xml:space="preserve"
-       style="font-size:22px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#0c0b6b;stroke-opacity:0.875;font-family:FreeMono;-inkscape-font-specification:FreeMono"
-       x="60.794254"
-       y="972.52118"
-       id="HighAvailabilityType"
-       sodipodi:linespacing="125%">$preferredNumActiveServiceUnits + $preferredNumStandbyServiceUnits + $preferredNumIdleServiceUnits</text>
+         x="8"
+         y="${_sizeY - 10}"
+         id="entityType"
+         xml:space="preserve"
+         style="font-size:12px;font-style:normal;font-weight:normal;line-height:136.00000143%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:#0c1a73;stroke-opacity:0.875;font-family:Sans">$entityType</text>
+
+    <g
+       transform="matrix(0.3572129,0,0,0.3572129,-46.846211,-120.79822)"
+       style="display:inline"
+       id="ocLogo">
+      <path
+         sodipodi:type="arc"
+         style="fill:#27bf00;fill-opacity:1;stroke:#178f00;stroke-width:8.90943813;stroke-miterlimit:4;stroke-opacity:0.50196078;stroke-dasharray:none"
+         id="path2276"
+         sodipodi:cx="208.57143"
+         sodipodi:cy="413.07648"
+         sodipodi:rx="55.714287"
+         sodipodi:ry="55.714287"
+         d="m 247.39234,373.11377 c 22.0708,21.4402 22.582,56.71283 1.1418,78.78362 -0.32667,0.33628 -0.65757,0.66842 -0.99263,0.99635 l -38.97008,-39.81726 z"
+         sodipodi:start="5.4832954"
+         sodipodi:end="7.0793357"
+         transform="matrix(0.9120753,0,0,0.8839926,27.573249,50.375781)" />
+      <path
+         transform="matrix(-0.9120753,0,0,0.8839926,390.27551,49.661497)"
+         sodipodi:end="7.0793357"
+         sodipodi:start="5.4832954"
+         d="m 247.39234,373.11377 c 22.0708,21.4402 22.582,56.71283 1.1418,78.78362 -0.32667,0.33628 -0.65757,0.66842 -0.99263,0.99635 l -38.97008,-39.81726 z"
+         sodipodi:ry="55.714287"
+         sodipodi:rx="55.714287"
+         sodipodi:cy="413.07648"
+         sodipodi:cx="208.57143"
+         id="use2296"
+         style="opacity:0.88185658;fill:#0066b2;fill-opacity:1;stroke:#003092;stroke-width:8.90943813;stroke-miterlimit:4;stroke-opacity:0.50196078;stroke-dasharray:none"
+         sodipodi:type="arc" />
+      <use
+         style="stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none"
+         x="0"
+         y="0"
+         xlink:href="#use2296"
+         id="use3269"
+         transform="matrix(0,1,-1,0,623.67814,206.54366)"
+         width="744.09448"
+         height="1052.3622" />
+      <use
+         x="0"
+         y="0"
+         xlink:href="#use3269"
+         id="use3271"
+         transform="matrix(-1,0,0,-1,417.84878,830.2218)"
+         width="744.09448"
+         height="1052.3622" />
+    </g>
   </g>
 </svg>

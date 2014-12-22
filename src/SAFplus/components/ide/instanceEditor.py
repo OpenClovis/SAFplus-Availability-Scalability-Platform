@@ -25,13 +25,13 @@ ZOOM_BUTTON = 99
 CONNECT_BUTTON = 98
 SELECT_BUTTON = 97
 
-COL_MARGIN = 100
+COL_MARGIN = 150
 COL_SPACING = 2
-COL_WIDTH = 128
+COL_WIDTH = 160
 
 ROW_MARGIN = 64
 ROW_SPACING = 2
-ROW_WIDTH   = 50
+ROW_WIDTH   = 80
 
 PI = 3.141592636
 
@@ -374,6 +374,7 @@ class EntityTool(Tool):
         if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
           size = None
         ret = self.panel.CreateNewInstance(self.entity,(rect[0],rect[1]),size)
+            
     return ret
     
 
@@ -436,7 +437,7 @@ class LinkTool(Tool):
   def CreateNewInstance(self,panel,position,size=None):
     """Create a new instance of this entity type at this position"""
     panel.statusBar.SetStatusText("Created %s" % self.entityType.name,0);
-    panel.entities.append(self.entityType.createEntity(position, size))
+    panel.entities.append(self.entityType.createEntity(position, size,children=True))
     panel.Refresh()
     return True
  
@@ -599,12 +600,16 @@ class ZoomTool(Tool):
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgIep = None
 
+
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       # These variables define what types can be instantiated in the outer row/columns of the edit tool
       self.rowTypes = ["ServiceGroup","Application"]
       self.columnTypes = ["Node"]
+      for (name,m) in model.entities.items():
+        if m.et.name == "ServiceGroup":
+          m.customInstantiator = lambda entity,pos,size,children,pnl=self: pnl.sgInstantiator(entity, pos,size,children)
 
       self.SetupScrolling(True, True)
       self.SetScrollRate(10, 10)
@@ -669,6 +674,13 @@ class Panel(scrolled.ScrolledPanel):
       toolEvents = [ wx.EVT_LEAVE_WINDOW, wx.EVT_LEFT_DCLICK, wx.EVT_LEFT_DOWN , wx.EVT_LEFT_UP, wx.EVT_MOUSEWHEEL , wx.EVT_MOVE,wx.EVT_MOTION , wx.EVT_RIGHT_DCLICK, wx.EVT_RIGHT_DOWN , wx.EVT_RIGHT_UP, wx.EVT_KEY_DOWN, wx.EVT_KEY_UP]
       for t in toolEvents:
         self.Bind(t, self.OnToolEvent)
+
+    def sgInstantiator(self,ent,pos,size,children):
+      """Custom instantiator for service groups"""
+      print "CUSTOM INSTANTIATOR"
+      newdata = copy.deepcopy(ent.data)
+      ret = Instance(ent, newdata,pos,size)
+      return ret      
 
     def OnReSize(self, event):
       self.Refresh(False)
@@ -865,8 +877,8 @@ def Test():
   model = Model()
   model.load("testModel.xml")
 
-  # gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
-  gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  #gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
   return model
 
 # Notes

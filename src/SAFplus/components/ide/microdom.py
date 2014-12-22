@@ -124,7 +124,10 @@ class MicroDom:
     for c in self.children_:
       if filter is not None:
         t = filter(c)
-        if t is not None: ret.append(t)
+        if t is True: ret.append(c)
+        elif t is False:
+          pass
+        elif t is not None: ret.append(t)
       else:
         ret.append(c)
     return ret
@@ -136,6 +139,10 @@ class MicroDom:
     self.child_[tag] = child
 
   def delChild(self,child):
+    if child is None: return None
+    if type(child) is ListType:
+      for c in child:
+        self.delChild(c)
     if type(child) is StringType:
       tag = child
     else:
@@ -143,7 +150,7 @@ class MicroDom:
     del self.child_[tag]
     i = 0
     while i<len(self.children_):
-      if self.children_[i].tag_ == tag:
+      if isinstance(self.children_[i], MicroDom) and self.children_[i].tag_ == tag:
         del self.children_[i]
       else: i+=1
 

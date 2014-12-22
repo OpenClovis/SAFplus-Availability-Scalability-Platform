@@ -44,6 +44,43 @@ instantiated  <instances>     instances                         instances     (e
     self.entities = {}
     self.instances = {}
 
+  def delete(self, items):
+    """Accept a list of items in a variety of formats to be deleted"""
+    if type(items) is types.ListType or isinstance(items,set):
+      for item in items:
+        self.delete(item)
+    if type(items) is types.DictType:
+      for item in items.items():
+        self.delete(item)
+
+    if type(items) in types.StringTypes:
+      #if self.entityTypes.get(item):
+      #  self.deleteEntity(self.entities[item])
+      if self.entities.get(items):
+        self.deleteEntity(self.entities[item])
+      if self.instances.get(items):
+        self.deleteInstance(self.entities[item])
+
+    if isinstance(items,entity.Entity): self.deleteEntity(items)
+    elif isinstance(items,entity.Instance): self.deleteInstance(items)
+
+  
+  def deleteEntity(self,entity):
+    """Delete this instance of Entity from the model"""
+    entname = entity.data["name"]
+    for (name,e) in self.entities.items():
+      e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != entity]
+    del self.entities[entname]
+
+    # Also delete the entity from the microdom
+    entities = self.data.getElementsByTagName("entities")
+    if entities:
+      entities[0].delChild(entities[0].findOneByChild("name",entname))
+
+
+  def deleteInstance(self,inst):
+    assert(0)  # Not implemented
+
   def load(self, fileOrString):
     """Load an XML representation of the model"""
     if fileOrString[0] != "<":  # XML must begin with opener
@@ -140,19 +177,19 @@ instantiated  <instances>     instances                         instances     (e
     entities = self.data.getElementsByTagName("entities")
     if not entities:
       entities = microdom.MicroDom({"tag_":"entities"},[],[])
-      self.data.SAFplusModel["entites"] = entities
+      self.data.addChild(entities)
     else: 
       assert(len(entities)==1)
       entities = entities[0]
     
     #   find or create the GUI area in the microdom
     ide = self.data.getElementsByTagName("ide")
-    if not entities:
+    if not ide:
       ide = microdom.MicroDom({"tag_":"ide"},[],[])
-      self.data.SAFplusModel["ide"] = ide
+      self.data.addChild(ide)
     else: 
       assert(len(ide)==1)
-      ide = entities[0]
+      ide = ide[0]
     
 
     # Write out the entities
@@ -173,6 +210,10 @@ instantiated  <instances>     instances                         instances     (e
         tmp = contains.get(arrow.contained.et.name,[])
         tmp.append(arrow.contained.data["name"])
         contains[arrow.contained.et.name] = tmp
+      # Now erase the missing linkages from the microdom
+      for (key, val) in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
+          if not contains.has_key(key): # Element is an entity type but no linkages
+            if entity.child_.has_key(key + 's'): entity.delChild(key + 's')
       # Ok now write the linkages to the microdom
       for (key, val) in contains.items():
         k = key + "s"

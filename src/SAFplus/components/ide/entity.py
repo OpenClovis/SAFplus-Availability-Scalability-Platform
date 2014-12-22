@@ -29,6 +29,7 @@ class EntityType:
     self.data = data
     self.context = context  # I may need to know the larger context (the model) to resolve types
     self.iconFile = data.get("icon", "generic.svg")
+    self.customInstantiator = None
     f = open(common.fileResolver(self.iconFile),"r")
     self.iconSvg =  svg.Svg(f.read(),(256,128))
     f.close()
@@ -38,8 +39,8 @@ class EntityType:
     self.buttonSvg =  svg.Svg(f.read(),(32,32))
     f.close()
 
-  def createEntity(self,pos, size=None):
-    """Create an entity of this type"""
+  def createEntity(self,pos, size=None,children=False):
+    """Create an entity of this type, located a pos of the specified size.  If children is true, create the entire logical group """
     if not size:
       size = self.iconSvg.size
     ret = Entity(self, pos,size)
@@ -67,6 +68,7 @@ class Entity:
     self.rotate = 0.0
     self.data = {}
     self.updateDataFields()
+    self.customInstantiator = entityType.customInstantiator
     self.instanceLocked = {}  # Whether this data data fields can be changed by an instance
     self.data["entityType"] = self.et.name
     self.data["name"] = NameCreator(entityType.name) if name is None else name
@@ -112,11 +114,15 @@ class Entity:
             new[name] = ""
     # self.data = new  
 
-  def createInstance(self,pos, size=None):
+  def createInstance(self,pos, size=None,children=False):
     """Create an entity of this type"""
     if not size:
       size = self.size
-    ret = Instance(self, copy.deepcopy(self.data),pos,size)
+    if self.customInstantiator: 
+      ret = (self.customInstantiator)(self,pos,size,children)
+    else: 
+      newdata = copy.deepcopy(self.data)
+      ret = Instance(self, copy.deepcopy(self.data),pos,size)
     return ret
  
 
