@@ -411,7 +411,7 @@ namespace SAFplusAmf
     if (!db->isInitialized())
         return;
 
-    std::string xpath = "/SAFplusAmf/Cluster";
+    std::string xpath = "/SAFplusAmf/Cluster[";
 
     std::vector<std::string> iters = db->iterate(xpath);
 
@@ -430,6 +430,8 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         Cluster* cluster = new Cluster(keyValue);
+        cluster->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
+        cluster->id = getAmfId();
 
         std::string dataXPath = (*it).substr(0, found);
 
@@ -445,7 +447,7 @@ namespace SAFplusAmf
     if (!db->isInitialized())
         return;
 
-    std::string xpath = "/SAFplusAmf/Node";
+    std::string xpath = "/SAFplusAmf/Node[";
 
     std::vector<std::string> iters = db->iterate(xpath);
 
@@ -464,6 +466,9 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         Node* node = new Node(keyValue);
+        node->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
+        node->id = getAmfId();
+        node->operState.value = true;  // created ready to run...
 
         std::string dataXPath = (*it).substr(0, found);
 
@@ -479,7 +484,7 @@ namespace SAFplusAmf
     if (!db->isInitialized())
         return;
 
-    std::string xpath = "/SAFplusAmf/ServiceGroup";
+    std::string xpath = "/SAFplusAmf/ServiceGroup[";
 
     std::vector<std::string> iters = db->iterate(xpath);
 
@@ -498,6 +503,8 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         ServiceGroup* sg = new ServiceGroup(keyValue);
+        sg->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
+        sg->id  = getAmfId();
 
         std::string dataXPath = (*it).substr(0, found);
 
@@ -513,7 +520,7 @@ namespace SAFplusAmf
     if (!db->isInitialized())
         return;
 
-    std::string xpath = "/SAFplusAmf/ServiceUnit";
+    std::string xpath = "/SAFplusAmf/ServiceUnit[";
 
     std::vector<std::string> iters = db->iterate(xpath);
 
@@ -532,6 +539,14 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         ServiceUnit* su = new ServiceUnit(keyValue);
+        su->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
+        su->id                = getAmfId();
+        su->preinstantiable   = true;
+        su->haReadinessState  = HighAvailabilityReadinessState::notReadyForAssignment;
+        su->haState           = HighAvailabilityState::idle;
+        su->presenceState     = PresenceState::uninstantiated;
+        su->readinessState    = ReadinessState::outOfService;
+        su->operState         = true; // created ready to run...
 
         std::string dataXPath = (*it).substr(0, found);
 
@@ -547,7 +562,7 @@ namespace SAFplusAmf
     if (!db->isInitialized())
         return;
 
-    std::string xpath = "/SAFplusAmf/ServiceInstance";
+    std::string xpath = "/SAFplusAmf/ServiceInstance[";
 
     std::vector<std::string> iters = db->iterate(xpath);
 
@@ -566,6 +581,12 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         ServiceInstance* si = new ServiceInstance(keyValue);
+        si->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
+        si->id  = getAmfId();
+        si->addStandbyAssignments(new StandbyAssignments());
+        si->addActiveAssignments(new ActiveAssignments());
+        si->preferredActiveAssignments      = 1;
+        si->preferredStandbyAssignments      = 1;
 
         std::string dataXPath = (*it).substr(0, found);
 
@@ -581,7 +602,7 @@ namespace SAFplusAmf
     if (!db->isInitialized())
         return;
 
-    std::string xpath = "/SAFplusAmf/Component";
+    std::string xpath = "/SAFplusAmf/Component[";
 
     std::vector<std::string> iters = db->iterate(xpath);
 
@@ -600,6 +621,12 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         Component* comp = new Component(keyValue);
+        comp->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
+        comp->id = getAmfId();
+        comp->operState.value = true;  // created ready to run...
+        comp->numInstantiationAttempts.value = 0;
+        comp->lastInstantiation.value.value = 0;
+        comp->presence.value = PresenceState::uninstantiated;
 
         std::string dataXPath = (*it).substr(0, found);
 
@@ -615,7 +642,7 @@ namespace SAFplusAmf
     if (!db->isInitialized())
         return;
 
-    std::string xpath = "/SAFplusAmf/ComponentServiceInstance";
+    std::string xpath = "/SAFplusAmf/ComponentServiceInstance[";
 
     std::vector<std::string> iters = db->iterate(xpath);
 
@@ -634,6 +661,8 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         ComponentServiceInstance* csi = new ComponentServiceInstance(keyValue);
+        csi->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
+        csi->id  = getAmfId();
 
         std::string dataXPath = (*it).substr(0, found);
 

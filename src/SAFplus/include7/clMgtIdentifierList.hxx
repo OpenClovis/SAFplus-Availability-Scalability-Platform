@@ -71,6 +71,15 @@ public:
     std::string toStringItemAt(T x);
 
     void pushBackValue(T strVal);
+
+    ClRcT read(MgtDatabase* db)
+    {
+      return CL_OK;
+    }
+    ClRcT read(std::string xpt,MgtDatabase *db)
+    {
+      return CL_OK;
+    }
 };
 
 template<class T>

@@ -320,7 +320,7 @@ void loadStreamConfigs()
   if (!db->isInitialized())
       return;
 
-  std::string xpath = "/SAFplusLog/StreamConfig/streamList/stream";
+  std::string xpath = "/SAFplusLog/StreamConfig/streamList/stream[";
 
   std::vector<std::string> iters = db->iterate(xpath);
 

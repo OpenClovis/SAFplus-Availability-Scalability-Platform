@@ -76,6 +76,15 @@ namespace SAFplus
      */
     virtual ClBoolT set(void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
+    ClRcT read(MgtDatabase* db)
+    {
+      return CL_OK;
+    }
+    ClRcT read(std::string xpt,MgtDatabase *db)
+    {
+      return CL_OK;
+    }
+
   };
 
   /*
@@ -85,7 +94,9 @@ namespace SAFplus
 
   template <class T>
   MgtIdentifier<T>::MgtIdentifier(const char* name) : MgtObject(name)
-  {}
+  {
+    value = NULL;
+  }
 
   template <class T>
   MgtIdentifier<T>::~MgtIdentifier()
@@ -100,6 +111,9 @@ namespace SAFplus
   template <class T>
   void MgtIdentifier<T>::toString(std::stringstream& xmlString)
   {
+      if (value == NULL)
+          return;
+
       xmlString << "<";
       xmlString << tag << ">";
       MgtObject *obj = dynamic_cast<MgtObject *>(value);
@@ -112,6 +126,10 @@ namespace SAFplus
   std::string MgtIdentifier<T>::strValue()
   {
       std::stringstream ss;
+
+      if (value == NULL)
+          return ss.str();
+
       MgtObject *obj = dynamic_cast<MgtObject *>(value);
       if (obj)
           ss << value->getFullXpath();
