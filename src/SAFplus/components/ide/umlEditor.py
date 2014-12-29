@@ -548,12 +548,18 @@ class ZoomTool(Tool):
     self.scaleRange = 0.2
     self.minScale = 0.2
     self.maxScale = 10
+    self.handBmp = wx.Bitmap(common.fileResolver("hand.png"))
 
   def OnSelect(self, panel,event):
     panel.statusBar.SetStatusText(self.defaultStatusText,0);
+    zoomImg =  self.ScaleBitmap(self.handBmp, 16*self.scale, 25*self.scale)
+    cursor = wx.CursorFromImage(zoomImg)
+    self.panel.SetCursor(cursor)
+
     return True
 
   def OnUnselect(self,panel,event):
+    self.panel.SetCursor(wx.StockCursor(wx.CURSOR_ARROW))
     pass
 
   def render(self,ctx):
@@ -621,6 +627,16 @@ class ZoomTool(Tool):
       scrollx, scrolly = self.panel.GetScrollPixelsPerUnit();
       size = self.panel.GetClientSize()
       self.panel.Scroll((pos[0]*self.scale - size.x/2)/scrollx, (pos[1]*self.scale - size.y/2)/scrolly)
+
+      zoomImg =  self.ScaleBitmap(self.handBmp, 16*self.scale, 25*self.scale)
+      cursor = wx.CursorFromImage(zoomImg)
+      self.panel.SetCursor(cursor)
+
+  def ScaleBitmap(self, bitmap, width, height):
+      image = wx.ImageFromBitmap(bitmap)
+      image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
+      return image
+
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgUep = None
