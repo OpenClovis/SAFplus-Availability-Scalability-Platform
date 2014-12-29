@@ -17,15 +17,19 @@ import module
 import share
 from model import *
 from entity import *
+import wx.lib.scrolledpanel as scrolled
 
 LOCK_BUTTON_ID = 3482
 HELP_BUTTON_ID = 4523
 TEXT_ENTRY_ID = 7598
 
-class Panel(wx.Panel):
+class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
         global thePanel
-        wx.Panel.__init__(self, parent, -1, style=wx.SUNKEN_BORDER)
+        scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
+        self.SetupScrolling(True, True)
+        self.SetScrollRate(10, 10)
+
         self.model = model
         self.lockedSvg = svg.SvgFile("locked.svg") 
         self.unlockedSvg = svg.SvgFile("unlocked.svg") 
@@ -220,6 +224,7 @@ class Panel(wx.Panel):
       self.SetSizer(sizer)
       sizer.Layout()
       self.Refresh()
+      self.SetSashPosition(self.GetParent().GetClientSize().x/4)
 
     def OnPaint(self, evt):
         if self.IsDoubleBuffered():
@@ -231,6 +236,11 @@ class Panel(wx.Panel):
         
         #self.Render(dc)
 
+    def SetSashPosition(self, width = -1):
+      #Workaround to show scrollbar
+      self.GetParent().SetSashPosition(-1)
+      self.GetParent().SetSashPosition(width)
+      self.GetParent().UpdateSize()
 
 def Test():
   import time
