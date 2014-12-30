@@ -649,6 +649,9 @@ class Panel(scrolled.ScrolledPanel):
       self.Bind(wx.EVT_SIZE, self.OnReSize)
 
       self.Bind(wx.EVT_PAINT, self.OnPaint)
+
+      share.umlEditorPanel = self
+
       dbgUep = self 
       self.menuBar = menubar
       self.toolBar = toolbar
@@ -831,6 +834,14 @@ class Panel(scrolled.ScrolledPanel):
         if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)
       return ret
+
+    def handleNameValueChange(self, ent, newValue):
+      for (name, e) in self.entities.items():
+        if e == ent:
+          e.data['name'] = newValue
+        e.recreateBitmap()
+      self.Refresh()
+
 
 model = None
 

@@ -75,6 +75,10 @@ class Panel(scrolled.ScrolledPanel):
         if not self.partialDataValidate(proposedValue, obj[0]):          
           # TODO: Print a big red warning in the error area
           pass
+      else:
+        # Notify name change to umlEditor to validate and render
+        # Old value is selected
+        share.umlEditorPanel.handleNameValueChange(self.entity, event.GetString())
 
     def OnUnfocus(self,event):
       id = event.GetId()
@@ -141,6 +145,10 @@ class Panel(scrolled.ScrolledPanel):
           query  = wx.TextCtrl(self, id, str(value),style = wx.BORDER_SIMPLE)
           # Works: query.SetToolTipString("test")
           query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
+        
+        # Bind to handle event on change
+        self.BuildChangeEvent(query)
+        
       else:
         # TODO do any of these need to be displayed?
         query = None
@@ -170,6 +178,10 @@ class Panel(scrolled.ScrolledPanel):
       query  = wx.TextCtrl(self, -1, "")
       query.ChangeValue(ent.data["name"])
       query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
+      
+      # Binding name wx control
+      self.BuildChangeEvent(query)
+
       prompt.SetFont(font)
       sizer.Add(prompt,(row,0),(1,1),wx.ALIGN_CENTER)
       sizer.Add(query,(row,2),flag=wx.EXPAND)
@@ -242,6 +254,18 @@ class Panel(scrolled.ScrolledPanel):
       self.GetParent().SetSashPosition(-1)
       self.GetParent().SetSashPosition(width)
       self.GetParent().UpdateSize()
+
+    def BuildChangeEvent(self, ctrl):
+        mapEvents = {
+            'text': [wx.EVT_TEXT, wx.EVT_TEXT_ENTER],
+            'check': [wx.EVT_CHECKBOX],
+            'slider': [wx.EVT_SCROLL, wx.EVT_SLIDER, wx.EVT_SCROLL_CHANGED, ],
+            'comboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER, wx.EVT_COMBOBOX_DROPDOWN, wx.EVT_COMBOBOX_CLOSEUP],
+            # TBD 
+        }
+
+        for t in mapEvents[ctrl.GetName()]:
+          ctrl.Bind(t, self.EvtText)
 
 def Test():
   import time
