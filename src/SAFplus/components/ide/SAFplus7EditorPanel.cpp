@@ -115,7 +115,7 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   wxWindow* uml = createPythonControlledWindow("umlEditor",sp,mb,tb,sb,model);  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
 
   //sp->SplitVertically(details, m_paintArea, GetClientSize().x/4);
-  sp->SplitVertically(details, uml, GetClientSize().x/4);
+  sp->SplitVertically(details, uml, 10);
   bSizer->Add(sp, 1, wxEXPAND, 5 );
 
 #if 0

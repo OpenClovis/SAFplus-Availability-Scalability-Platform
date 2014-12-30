@@ -175,6 +175,7 @@ void SAFplus7IDE::extractExtraFiles()
 #ifndef STANDALONE
     wxString resourceFilename = _T("memory:SAFplus7IDE.zip");
     wxString resourceImagesDir = ConfigManager::GetFolder(sdDataUser) + _T("/images/");
+    wxString pyModuleDir = ConfigManager::GetFolder(sdDataUser) + _T("/");
 
     wxFileSystem fsys;
     wxString fnd = fsys.FindFirst(resourceFilename + _T("#zip:images/*.svg"), wxFILE);
@@ -182,6 +183,47 @@ void SAFplus7IDE::extractExtraFiles()
     {
       wxFileName fn(fnd);
       wxString outputFileName = resourceImagesDir + fn.GetFullName();
+
+      m_log->DebugLog(_T("Extracted:") + outputFileName);
+
+      // check if the destination file already exists
+      if (wxFileExists(outputFileName) && !wxFile::Access(outputFileName, wxFile::write))
+      {
+          continue;
+      }
+
+      // make sure destination dir exists
+      CreateDirRecursively(wxFileName(outputFileName).GetPath(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR));
+
+      wxFile output(outputFileName, wxFile::write);
+
+      wxFSFile* f = fsys.OpenFile(fnd);
+      if (f)
+      {
+          // copy file
+          wxInputStream* is = f->GetStream();
+          char tmp[1025] = {};
+          while (!is->Eof() && is->CanRead())
+          {
+              memset(tmp, 0, sizeof(tmp));
+              is->Read(tmp, sizeof(tmp) - 1);
+              output.Write(tmp, is->LastRead());
+          }
+          delete f;
+          extraFiles.push_back(fn.GetFullName());
+      }
+      fnd = fsys.FindNext();
+    }
+    
+    //Extract python module
+    fnd = fsys.FindFirst(resourceFilename + _T("#zip:*.py"), wxFILE);
+    while (!fnd.empty())
+    {
+      wxFileName fn(fnd);
+      int  pos = fn.GetFullName().Find(wxUniChar(':'), true);
+      wxString outputFileName = pyModuleDir + fn.GetFullName().Mid(pos+1);
+    
+      m_log->DebugLog(_T("Extracted:") + outputFileName);
 
       // check if the destination file already exists
       if (wxFileExists(outputFileName) && !wxFile::Access(outputFileName, wxFile::write))
@@ -218,10 +260,13 @@ void SAFplus7IDE::cleanExtraFiles()
 {
 #ifndef STANDALONE
     wxString resourceImagesDir = ConfigManager::GetFolder(sdDataUser) + _T("/images/");
+    wxString pyModuleDir = ConfigManager::GetFolder(sdDataUser) + _T("/");
     for (std::vector<wxString>::iterator it = SAFplus7IDE::extraFiles.begin(); it != SAFplus7IDE::extraFiles.end(); ++it)
     {
       m_log->DebugLog(_T("Removed:") + resourceImagesDir + *it);
       wxRemoveFile(resourceImagesDir + *it);
+      m_log->DebugLog(_T("Removed:") + pyModuleDir + *it);
+      wxRemoveFile(pyModuleDir + *it);
     }
 #endif
 }

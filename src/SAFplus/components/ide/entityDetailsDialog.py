@@ -51,6 +51,7 @@ class Panel(scrolled.ScrolledPanel):
         share.detailsPanel = self
         #e = model.entities["MyServiceGroup"]
         #self.showEntity(e)
+        self.SetSashPosition(10)
 
 
     def partialDataValidate(self, proposedPartialValue, fieldData):
