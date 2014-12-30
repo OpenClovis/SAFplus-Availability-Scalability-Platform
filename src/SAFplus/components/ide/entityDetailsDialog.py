@@ -75,10 +75,12 @@ class Panel(scrolled.ScrolledPanel):
         if not self.partialDataValidate(proposedValue, obj[0]):          
           # TODO: Print a big red warning in the error area
           pass
+
+        # TODO: handle only dirty (actually value changed) entity
+        share.umlEditorPanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
       else:
         # Notify name change to umlEditor to validate and render
-        # Old value is selected
-        share.umlEditorPanel.handleNameValueChange(self.entity, event.GetString())
+        share.umlEditorPanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
 
     def OnUnfocus(self,event):
       id = event.GetId()

@@ -835,13 +835,19 @@ class Panel(scrolled.ScrolledPanel):
           ret.add(e)
       return ret
 
-    def handleNameValueChange(self, ent, newValue):
+    def notifyNameValueChange(self, ent, newValue):
       for (name, e) in self.entities.items():
         if e == ent:
           e.data['name'] = newValue
         e.recreateBitmap()
       self.Refresh()
 
+    def notifyValueChange(self, ent, key, newValue):
+      for (name, e) in self.entities.items():
+        if e == ent:
+          e.data[key] = newValue
+          e.recreateBitmap()
+      self.Refresh()
 
 model = None
 
