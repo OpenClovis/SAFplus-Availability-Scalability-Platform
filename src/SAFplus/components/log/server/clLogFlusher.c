@@ -303,7 +303,7 @@ clLogFlusherStart(void  *pData)
                 }
             }
             
-        } while((flusherError == CL_FALSE)&&(gClLogSvrExiting == CL_FALSE) && ((CL_LOG_STREAM_THREAD_EXIT != pHeader->streamStatus) || (CL_LOG_STREAM_CLOSE != pHeader->streamStatus)) && (0 == abs(pHeader->recordIdx - pHeader->startAck)));
+        } while((flusherError == CL_FALSE)&&(gClLogSvrExiting == CL_FALSE) && ((CL_LOG_STREAM_THREAD_EXIT != pHeader->streamStatus) && (CL_LOG_STREAM_CLOSE != pHeader->streamStatus)) && (0 == abs(pHeader->recordIdx - pHeader->startAck)));
 
         if( CL_LOG_STREAM_CLOSE == pHeader->streamStatus )
         {
