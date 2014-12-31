@@ -56,6 +56,15 @@ def lineVector(a,b):
   ret = (ret[0]/length, ret[1]/length)
   return ret
 
+def convertToRealPos(pos, scale):
+  if pos == None: return pos
+  if isinstance(pos, wx.Point):
+    return wx.Point(round(pos.x/scale), round(pos.y/scale))
+  elif isinstance(pos, tuple):
+    return map(lambda x: convertToRealPos(x, scale), pos)
+  else:
+    return round(pos/scale)
+
 def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
       if type(cust) is DictType: cust = dot.Dot(cust)
       if not middlePos:
@@ -363,6 +372,8 @@ class EntityTypeTool(Tool):
         ret = True
       elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
         rect = self.box.finish(panel,pos)
+        # Real point rectangle
+        rect = convertToRealPos(rect, panel.scale[0])
         size = (rect[2]-rect[0],rect[3]-rect[1])
         if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
           size = None
@@ -414,7 +425,7 @@ class LinkTool(Tool):
 
       elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
         if self.startEntity:
-          line = self.line.finish(panel,pos)
+          line = convertToRealPos(self.line.finish(panel,pos), panel.scale)
           entities = panel.findEntitiesAt(pos)
           if len(entities) != 1:
             panel.statusBar.SetStatusText("You must choose a single ending entity!",0);
@@ -620,7 +631,7 @@ class ZoomTool(Tool):
       self.scale = scale
 
       # Update scale for panel
-      self.panel.scale = (self.scale, self.scale)
+      self.panel.scale = self.scale
       self.panel.Refresh()
 
       # TODO: scroll wrong??? 
@@ -663,7 +674,7 @@ class Panel(scrolled.ScrolledPanel):
       # The position of the panel's viewport within the larger drawing
       self.location = (0,0)
       self.rotate = 0.0
-      self.scale = (1.0,1.0)
+      self.scale = 1.0
 
       # Buttons and other IDs that are registered may need to be looked up to turn the ID back into a python object
       self.idLookup={}  
@@ -778,9 +789,9 @@ class Panel(scrolled.ScrolledPanel):
         first = elst[0]
         for (name,e) in elst:
           if e == first:
-            virtRct = wx.Rect(e.pos[0]*self.scale[0], e.pos[1]*self.scale[1], e.size[0]*e.scale[0]*self.scale[0], e.size[1]*e.scale[1]*self.scale[1])
+            virtRct = wx.Rect(e.pos[0]*self.scale, e.pos[1]*self.scale, e.size[0]*e.scale[0]*self.scale, e.size[1]*e.scale[1]*self.scale)
           else:
-            virtRct.Union(wx.Rect(e.pos[0]*self.scale[0], e.pos[1]*self.scale[1], e.size[0]*e.scale[0]*self.scale[0], e.size[1]*e.scale[1]*self.scale[1]))
+            virtRct.Union(wx.Rect(e.pos[0]*self.scale, e.pos[1]*self.scale, e.size[0]*e.scale[0]*self.scale, e.size[1]*e.scale[1]*self.scale))
       return virtRct
  
     def UpdateVirtualSize(self, dc):
@@ -797,7 +808,7 @@ class Panel(scrolled.ScrolledPanel):
         # First position the screen's view port into the larger document
         ctx.translate(*self.location)
         ctx.rotate(self.rotate)
-        ctx.scale(*self.scale)
+        ctx.scale(self.scale, self.scale)
         # Now draw the links
         # Now draw the entites
         for (name,e) in self.entities.items():
@@ -817,6 +828,8 @@ class Panel(scrolled.ScrolledPanel):
     def findEntitiesAt(self,pos):
       """Returns the entity located at the passed position """
       # TODO handle the viewscope's translation, rotation, scaling
+      # Real pos
+      pos = convertToRealPos(pos, self.scale)
       ret = set()
       for (name, e) in self.entities.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
@@ -828,6 +841,8 @@ class Panel(scrolled.ScrolledPanel):
     def findEntitiesTouching(self,rect):
       """Returns all entities touching the passed rectangle """
       # TODO handle the viewscope's translation, rotation, scaling
+      # Real rectangle
+      rect = convertToRealPos(rect, self.scale)
       ret = set()
       for (name, e) in self.entities.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
