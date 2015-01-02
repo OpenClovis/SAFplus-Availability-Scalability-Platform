@@ -38,11 +38,13 @@
       <adminState>on</adminState>
       <rank>0</rank>
       <failover>true</failover>
+      <components>c0</components>
     </ServiceUnit>
     <ServiceUnit name="su1">
       <adminState>on</adminState>
       <rank>0</rank>
       <failover>true</failover>
+      <components>c1</components>
     </ServiceUnit>
 
     <ServiceInstance name="si">
@@ -73,6 +75,8 @@
       <safVersion>B.01.01</safVersion>
       <serviceUnit>su0</serviceUnit>
       <swBundle>testBundle.tgz</swBundle>
+      <commandEnvironment>TEST_ENV=1</commandEnvironment>
+      <commandEnvironment>TEST_ENV=2</commandEnvironment>
     </Component>
     <Component name="c1">
       <capabilityModel>x_active_or_y_standby</capabilityModel>
@@ -93,9 +97,17 @@
       <safVersion>B.01.01</safVersion>
       <serviceUnit>su1</serviceUnit>
       <swBundle>testBundle.tgz</swBundle>
+      <commandEnvironment>TEST_ENV=3</commandEnvironment>
+      <commandEnvironment>TEST_ENV=4</commandEnvironment>
     </Component>
 
     <ComponentServiceInstance name="csi">
       <serviceInstance>si</serviceInstance>
+      <data name="testKey">
+        <val>testVal</val>
+      </data>
+      <data name="testKey2">
+        <val>testVal2</val>
+      </data>
     </ComponentServiceInstance>
 </SAFplusAmf>

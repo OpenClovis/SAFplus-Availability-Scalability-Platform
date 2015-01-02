@@ -417,7 +417,7 @@ namespace SAFplusAmf
 
     for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
       {
-        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+        if ((*it).find("/", xpath.length() + 1) != std::string::npos )
             continue;
 
         std::size_t found = (*it).find("@name", xpath.length() + 1);
@@ -453,7 +453,7 @@ namespace SAFplusAmf
 
     for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
       {
-        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+        if ((*it).find("/", xpath.length() + 1) != std::string::npos )
             continue;
 
         std::size_t found = (*it).find("@name", xpath.length() + 1);
@@ -490,7 +490,7 @@ namespace SAFplusAmf
 
     for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
       {
-        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+        if ((*it).find("/", xpath.length() + 1) != std::string::npos )
             continue;
 
         std::size_t found = (*it).find("@name", xpath.length() + 1);
@@ -526,7 +526,7 @@ namespace SAFplusAmf
 
     for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
       {
-        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+        if ((*it).find("/", xpath.length() + 1) != std::string::npos )
             continue;
 
         std::size_t found = (*it).find("@name", xpath.length() + 1);
@@ -568,7 +568,7 @@ namespace SAFplusAmf
 
     for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
       {
-        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+        if ((*it).find("/", xpath.length() + 1) != std::string::npos )
             continue;
 
         std::size_t found = (*it).find("@name", xpath.length() + 1);
@@ -608,7 +608,7 @@ namespace SAFplusAmf
 
     for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
       {
-        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+        if ((*it).find("/", xpath.length() + 1) != std::string::npos )
             continue;
 
         std::size_t found = (*it).find("@name", xpath.length() + 1);
@@ -648,7 +648,7 @@ namespace SAFplusAmf
 
     for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
       {
-        if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+        if ((*it).find("/", xpath.length() + 1) != std::string::npos )
             continue;
 
         std::size_t found = (*it).find("@name", xpath.length() + 1);
@@ -669,6 +669,279 @@ namespace SAFplusAmf
         csi->dataXPath = dataXPath;
 
         self->componentServiceInstanceList.addChildObject(csi,keyValue);
+      }
+    }
+
+  void loadCSIData(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+      return;
+
+    MgtObject::Iterator it;
+
+    for (it = self->componentServiceInstanceList.begin();it != self->componentServiceInstanceList.end(); it++)
+      {
+      ComponentServiceInstance* csi = dynamic_cast<ComponentServiceInstance *>(it->second);
+
+      std::string xpath;
+      xpath.assign(csi->dataXPath).append("/data");
+
+      std::vector<std::string> iters = db->iterate(xpath);
+
+      for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+        {
+          if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+              continue;
+
+          std::size_t found = (*it).find("@name", xpath.length() + 1);
+
+          if (found == std::string::npos)
+              continue;
+
+          std::string keyValue;
+
+          db->getRecord(*it, keyValue);
+
+          Data* data = new Data(keyValue);
+          data->tag = keyValue;
+
+          std::string dataXPath = (*it).substr(0, found);
+
+          data->dataXPath = dataXPath;
+
+          csi->dataList.addChildObject(data,keyValue);
+        }
+      }
+    }
+
+  void assignSGToApplication(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+      return;
+
+    MgtObject::Iterator it;
+
+    for (it = self->applicationList.begin();it != self->applicationList.end(); it++)
+      {
+      Application* app = dynamic_cast<Application *>(it->second);
+
+      std::string xpath;
+      xpath.assign(app->dataXPath).append("/serviceGroups");
+
+      std::vector<std::string> iters = db->iterate(xpath);
+
+      for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+        {
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        ServiceGroup *sg = dynamic_cast<ServiceGroup *>(self->serviceGroupList[keyValue]);
+        if (sg != nullptr)
+          {
+            sg->application = app;
+            app->serviceGroups.pushBackValue(sg);
+          }
+        }
+      }
+    }
+
+  void assignSUToNode(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+      return;
+
+    MgtObject::Iterator it;
+
+    for (it = self->nodeList.begin();it != self->nodeList.end(); it++)
+      {
+      Node* node = dynamic_cast<Node *>(it->second);
+
+      std::string xpath;
+      xpath.assign(node->dataXPath).append("/serviceUnits");
+
+      std::vector<std::string> iters = db->iterate(xpath);
+
+      for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+        {
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        ServiceUnit *su = dynamic_cast<ServiceUnit *>(self->serviceUnitList[keyValue]);
+        if (su != nullptr)
+          {
+            su->node = node;
+            node->serviceUnits.pushBackValue(su);
+          }
+        }
+      }
+    }
+
+  void assignSUToSG(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+      return;
+
+    MgtObject::Iterator it;
+
+    for (it = self->serviceGroupList.begin();it != self->serviceGroupList.end(); it++)
+      {
+      ServiceGroup* sg = dynamic_cast<ServiceGroup *>(it->second);
+
+      std::string xpath;
+      xpath.assign(sg->dataXPath).append("/serviceUnits");
+
+      std::vector<std::string> iters = db->iterate(xpath);
+
+      for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+        {
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        ServiceUnit *su = dynamic_cast<ServiceUnit *>(self->serviceUnitList[keyValue]);
+        if (su != nullptr)
+          {
+            su->serviceGroup = sg;
+            sg->serviceUnits.pushBackValue(su);
+          }
+        }
+      }
+    }
+
+  void assignComponentToSU(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+      return;
+
+    MgtObject::Iterator it;
+
+    for (it = self->serviceUnitList.begin();it != self->serviceUnitList.end(); it++)
+      {
+      ServiceUnit* su = dynamic_cast<ServiceUnit *>(it->second);
+
+      std::string xpath;
+      xpath.assign(su->dataXPath).append("/components");
+
+      std::vector<std::string> iters = db->iterate(xpath);
+
+      for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+        {
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        Component *comp = dynamic_cast<Component *>(self->componentList[keyValue]);
+        if (comp != nullptr)
+          {
+            comp->serviceUnit = su;
+            su->components.pushBackValue(comp);
+          }
+        }
+      }
+    }
+
+  void assignSIToSG(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+      return;
+
+    MgtObject::Iterator it;
+
+    for (it = self->serviceGroupList.begin();it != self->serviceGroupList.end(); it++)
+      {
+      ServiceGroup* sg = dynamic_cast<ServiceGroup *>(it->second);
+
+      std::string xpath;
+      xpath.assign(sg->dataXPath).append("/serviceInstances");
+
+      std::vector<std::string> iters = db->iterate(xpath);
+
+      for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+        {
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        ServiceInstance *si = dynamic_cast<ServiceInstance *>(self->serviceInstanceList[keyValue]);
+        if (si != nullptr)
+          {
+            si->serviceGroup = sg;
+            sg->serviceInstances.pushBackValue(si);
+          }
+        }
+      }
+    }
+
+  void assignCSIToSI(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+      return;
+
+    MgtObject::Iterator it;
+
+    for (it = self->serviceInstanceList.begin();it != self->serviceInstanceList.end(); it++)
+      {
+      ServiceInstance* si = dynamic_cast<ServiceInstance *>(it->second);
+
+      std::string xpath;
+      xpath.assign(si->dataXPath).append("/componentServiceInstances");
+
+      std::vector<std::string> iters = db->iterate(xpath);
+
+      for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+        {
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        ComponentServiceInstance *csi = dynamic_cast<ComponentServiceInstance *>(self->componentServiceInstanceList[keyValue]);
+        if (csi != nullptr)
+          {
+            csi->serviceInstance = si;
+            si->componentServiceInstances.pushBackValue(csi);
+          }
+        }
+      }
+    }
+
+  void assignCSIDependency(SAFplusAmfRoot* self)
+    {
+    MgtDatabase *db = MgtDatabase::getInstance();
+    if (!db->isInitialized())
+      return;
+
+    MgtObject::Iterator it;
+
+    for (it = self->componentServiceInstanceList.begin();it != self->componentServiceInstanceList.end(); it++)
+      {
+      ComponentServiceInstance* csi = dynamic_cast<ComponentServiceInstance *>(it->second);
+
+      std::string xpath;
+      xpath.assign(csi->dataXPath).append("/dependencies");
+
+      std::vector<std::string> iters = db->iterate(xpath);
+
+      for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
+        {
+        std::string keyValue;
+
+        db->getRecord(*it, keyValue);
+
+        ComponentServiceInstance *dependency = dynamic_cast<ComponentServiceInstance *>(self->componentServiceInstanceList[keyValue]);
+        if (dependency != nullptr)
+          {
+            csi->dependencies.pushBackValue(dependency);
+          }
+        }
       }
     }
 
@@ -694,6 +967,21 @@ namespace SAFplusAmf
 
     loadComponentServiceInstanceConfigs(self);
     self->componentServiceInstanceList.read();  // Load up all children of componentServiceInstanceList (recursively) from the DB
+    loadCSIData(self);
+
+    assignSGToApplication(self);
+
+    assignSUToNode(self);
+
+    assignSUToSG(self);
+
+    assignComponentToSU(self);
+
+    assignSIToSG(self);
+
+    assignCSIToSI(self);
+
+    assignCSIDependency(self);
 
     }
 

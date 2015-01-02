@@ -95,12 +95,12 @@ public:
     /**
      * \brief   Function to set data to database
      */
-    ClRcT setDb();
+    ClRcT setDb(std::string pxp = "",MgtDatabase *db=NULL);
 
     /**
      * \brief   Function to get data from database
      */
-    ClRcT getDb();
+    ClRcT getDb(std::string pxp = "",MgtDatabase *db=NULL);
     /**
      *
      */
@@ -108,12 +108,21 @@ public:
     {
       return setDb();
     }
+
+    virtual ClRcT write(std::string xpath,MgtDatabase *db=NULL)
+    {
+      return setDb(xpath,db);
+    }
     /**
      *
      */
     virtual ClRcT read(MgtDatabase *db=NULL)
     {
       return getDb();
+    }
+    virtual ClRcT read(std::string xpath,MgtDatabase *db=NULL)
+    {
+      return getDb(xpath,db);
     }
     void pushBackValue(const std::string& strVal);
 };
@@ -302,12 +311,22 @@ std::vector<std::string> *MgtProvList<T>::getChildNames()
 #endif
 
 template <class T>
-ClRcT MgtProvList<T>::setDb()
+ClRcT MgtProvList<T>::setDb(std::string pxp,MgtDatabase *db)
 {
     ClRcT rc = CL_OK;
-    std::string key = getFullXpath();
+    std::string key;
+    if(pxp.size() > 0)
+    {
+      key.assign(pxp);
+      key.append(getFullXpath(false));
+    }
+    else
+      key.assign(getFullXpath(true));
 
-    MgtDatabase *db = MgtDatabase::getInstance();
+    if(db == NULL)
+    {
+      db = MgtDatabase::getInstance();
+    }
     if(!db->isInitialized())
     {
         return CL_ERR_NOT_INITIALIZED;
@@ -356,12 +375,22 @@ ClRcT MgtProvList<T>::setDb()
 }
 
 template <class T>
-ClRcT MgtProvList<T>::getDb()
+ClRcT MgtProvList<T>::getDb(std::string pxp,MgtDatabase *db)
 {
     ClRcT rc = CL_OK;
-    std::string key = getFullXpath();
+    std::string key;
+    if(pxp.size() > 0)
+    {
+      key.assign(pxp);
+      key.append(getFullXpath(false));
+    }
+    else
+      key.assign(getFullXpath(true));
 
-    MgtDatabase *db = MgtDatabase::getInstance();
+    if(db == NULL)
+    {
+      db = MgtDatabase::getInstance();
+    }
     if(!db->isInitialized())
     {
         return CL_ERR_NOT_INITIALIZED;
@@ -375,8 +404,6 @@ ClRcT MgtProvList<T>::getDb()
         std::string value;
         if (db->getRecord(*it, value))
         {
-          //          T value;
-          // destore(rec,this,&value); 
           this->pushBackValue(value);
         }
     }

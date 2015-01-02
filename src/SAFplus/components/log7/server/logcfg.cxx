@@ -326,7 +326,7 @@ void loadStreamConfigs()
 
   for (std::vector<std::string>::iterator it = iters.begin() ; it != iters.end(); ++it)
     {
-      if ((*it).find("\\", xpath.length() + 1) != std::string::npos )
+      if ((*it).find("/", xpath.length() + 1) != std::string::npos )
           continue;
 
       std::size_t found = (*it).find("@name", xpath.length() + 1);
