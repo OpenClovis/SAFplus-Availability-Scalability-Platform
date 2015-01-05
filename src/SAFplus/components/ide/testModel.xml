@@ -234,6 +234,7 @@
       <name>sc0</name>
       <operState>true</operState>
       <serviceUnits>/su0</serviceUnits>
+      <entityType>Node/Node1</entityType>
     </Node>
     <Node>
       <adminState>on</adminState>
@@ -244,6 +245,7 @@
       <name>sc1</name>
       <operState>true</operState>
       <serviceUnits>/su1</serviceUnits>
+      <entityType>Node/Node2</entityType>
     </Node>
     <ServiceUnit>
       <name>su0</name>
@@ -361,6 +363,7 @@
       <serviceInstances>/ServiceInstance/si</serviceInstances>
       <serviceUnits>/su0</serviceUnits>
       <serviceUnits>/su1</serviceUnits>
+      <entityType>ServiceGroup/ServiceGroup1</entityType>
     </ServiceGroup>
     <ServiceInstance>
       <activeAssignments>
@@ -378,6 +381,7 @@
       <standbyAssignments>
         <current>0</current>
       </standbyAssignments>
+      <entityType>ServiceInstance/ServiceInstance1</entityType>
     </ServiceInstance>
     <ComponentServiceInstance>
       <data>
@@ -391,6 +395,7 @@
       <id>9</id>
       <name>csi</name>
       <serviceInstance>/ServiceInstance/si</serviceInstance>
+      <entityType>ComponentServiceInstance/ComponentServiceInstance2</entityType>
     </ComponentServiceInstance>
   </instances>
 </SAFplusModel>

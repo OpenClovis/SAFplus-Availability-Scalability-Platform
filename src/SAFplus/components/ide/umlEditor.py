@@ -346,6 +346,9 @@ class Tool:
     """Some kind of event happened in the editor space that this tool may want to handle"""
     return False
 
+  def render(self,ctx):
+    pass
+
 class EntityTypeTool(Tool):
   def __init__(self, panel,entityType):
     self.entityType = entityType
@@ -471,7 +474,14 @@ class SelectTool(Tool):
     pass
 
   def render(self,ctx):
-    pass
+    # Draw mini rectangle at left right top bottom corner
+    if self.selected:
+      for e in self.selected:
+        pos = (e.pos[0] * share.umlEditorPanel.scale,e.pos[1] * share.umlEditorPanel.scale) 
+        ctx.set_line_width(2)
+        ctx.rectangle(pos[0], pos[1], 10,10)
+        ctx.set_source_rgba(0, 0, 1, 1)
+        ctx.fill()
 
   def OnEditEvent(self,panel, event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
@@ -825,6 +835,9 @@ class Panel(scrolled.ScrolledPanel):
         for e in self.drawers:
           e.render(ctx)
 
+        for idx in self.idLookup:
+          self.idLookup[idx].render(ctx)
+
     def findEntitiesAt(self,pos):
       """Returns the entity located at the passed position """
       # TODO handle the viewscope's translation, rotation, scaling
@@ -851,11 +864,7 @@ class Panel(scrolled.ScrolledPanel):
       return ret
 
     def notifyNameValueChange(self, ent, newValue):
-      for (name, e) in self.entities.items():
-        if e == ent:
-          e.data['name'] = newValue
-        e.recreateBitmap()
-      self.Refresh()
+      self.notifyValueChange(ent, 'name', newValue)
 
     def notifyValueChange(self, ent, key, newValue):
       for (name, e) in self.entities.items():

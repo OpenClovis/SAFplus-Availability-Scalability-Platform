@@ -269,14 +269,19 @@ def Test():
       print module.tag_, ": ", module.data_
   print m.entityTypes.keys()
 
-  #1. Build flatten entity instance
+  #1. Build flatten entity instance => entityType_Name
+  flatten = {}
+  for ent in m.entities:
+    entityType = "%s/%s" % (m.entities[ent].et.name, ent)
+    flatten[entityType] = m.entities[ent]
+
   #2. Build relation ship between instances
   for (path, obj) in m.data.find("instances"):
-    for entityType in m.entityTypes.keys():
+    for entityType in flatten.keys():
       m.instances[entityType] = []
-      for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
+      for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType.split("/")[0]) else None):
         data = instance.children_
-        entityInstance = entity.Instance(m.entityTypes[entityType], data)
+        entityInstance = entity.Instance(flatten[entityType], data, pos=(0,0), size=(32,32))
         m.instances[entityType].append(entityInstance)
     print m.instances
   # UnitTest(m)

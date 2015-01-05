@@ -131,8 +131,10 @@ class Instance(Entity):
   It has every field of the Entity so is derived from the Entity class.  However the instance's parent is self.et, not the parent class
   """
   def __init__(self, entity, data,pos, size,name=None):
-    Entity.__init__(self,entity.et, pos, size,name=NameCreator(entity.data["name"]) if name is None else name,data=data)
+    Entity.__init__(self,entity.et, pos, size,name=NameCreator(data["name"]) if name is None else name,data=data)
     self.entity = entity  # This could be a bit confusing WRT Entity, because the type of the instance is the entity, the type of the entity is the entityType
+    # How about this entityType conclude entityType and instance entity => <entityType>ComponentServiceInstance/ComponentServiceInstance2</entityType>
+    # data = merge entity Type's data and this entity data
 
    #binding entity and data, this make straight render in gui
     #{entity.a : value1, entity.b: value 2}
