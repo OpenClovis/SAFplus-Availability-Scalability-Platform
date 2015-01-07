@@ -224,6 +224,10 @@ static ClRcT clAmsPeSUSwitchoverPrologue(ClAmsSUT *su, ClUint32T error, ClUint32
  *****************************************************************************/
 
 static ClBoolT clAmsPeCheckCSIDependentsAssigned(ClAmsSUT *su, ClAmsCSIT *csi);
+ClRcT clAmsPeEntityMemberStatusReset(ClAmsEntityT  *entity, ClAmsEntityTypeT type, CL_IN  ClAmsHAStateT haState);
+ClRcT clAmsPeSUSITransitionHaState(ClAmsSUT *su, ClAmsSIT *si, ClAmsHAStateT oldState, ClAmsHAStateT newState, ClUint32T switchoverMode);
+ClRcT clAmsPeSUSIHaStateReset(CL_IN ClAmsSUT *su, CL_IN ClUint32T switchoverMode);
+ClRcT clAmsPeCompShutdownCleanup(CL_IN ClAmsSUT *su, CL_IN  ClAmsCompT *comp, CL_OUT  ClBoolT *pResponsePending);
 
 static __inline__ ClBoolT clAmsPeCheckNodeHasLeft(ClAmsNodeT *node)
 {
@@ -1328,7 +1332,6 @@ clAmsPeSGAssignSUs(
     {
         return CL_OK;
     }
-
     switch ( sg->config.redundancyModel )
     {
         case CL_AMS_SG_REDUNDANCY_MODEL_NO_REDUNDANCY:
@@ -1470,7 +1473,6 @@ clAmsPeSGFindSIForActiveAssignment(
         
         
         rc2 = clAmsPeSIIsActiveAssignable(si);
-
         if ( rc2 == CL_OK )
         {
             *targetSI = si;
@@ -3876,7 +3878,17 @@ clAmsPeNodeSwitchoverWork(
             ClAmsNodeSUListT *entry = CL_LIST_ENTRY(head, ClAmsNodeSUListT, list);
             ClAmsSUT *su = entry->su;
             clListDel(head);
-            AMS_CHECK_RC_ERROR ( clAmsPeSUSwitchoverWork(su, switchoverMode) );
+            rc = clAmsPeSUSwitchoverWork(su, switchoverMode);
+            if( rc != CL_OK)
+            {
+                clLogError("AMS", "SVR", "clAmsPeSUSwitchoverWork failed for su [%s] with rc [0x%x]",su->config.entity.name.value, rc);
+                /* Ignore the error in case of node left the cluster and continue the SUSwitchoverWork for remaining sus in that node*/
+                if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+                {
+                    goto exitfn;
+                }
+                
+            }
         }
     }
     AMS_CHECK_RC_ERROR ( clAmsPeNodeSwitchoverCallback(node, CL_OK, switchoverMode) );
@@ -4971,6 +4983,7 @@ clAmsPeSURestart(
     AMS_CHECK_NODE ( node = (ClAmsNodeT *) su->config.parentNode.ptr );
 
     AMS_FUNC_ENTER ( ("SU [%s]\n", su->config.entity.name.value) );
+
 
     if ( clAmsPeSUIsInstantiable(su) != CL_OK )
     {
@@ -6112,12 +6125,10 @@ clAmsPeSUInstantiateCallback(
     AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
         ("SU [%s] is now instantiated\n",
          su->config.entity.name.value));
-
     if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATING )
     {
         node->status.numInstantiatedSUs ++;
     }
-
     AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE,
         ("Node [%s] now has [%d] instantiated + restarting SUs\n",
          node->config.entity.name.value,
@@ -6217,7 +6228,6 @@ clAmsPeSUInstantiateError(
         {
             node->status.numInstantiatedSUs --;
         }
-
         AMS_CALL ( clAmsPeSURestartCallback_Step2(su, error) );
     }
     else
@@ -6271,9 +6281,16 @@ ClRcT clAmsPeSUTerminate2(ClAmsSUT *su)
           entityRef = clAmsEntityListGetPrevious(&su->config.compList, entityRef) )
     {
         ClAmsCompT *sucomp = (ClAmsCompT *) entityRef->ptr;
+        ClAmsSUT *compParentSU ;
         ClUint32T instantiateLevel = 0;
 
         if(!sucomp || sucomp->config.entity.type != CL_AMS_ENTITY_TYPE_COMP)
+        {
+            rc = CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
+            goto exitfn;
+        }
+        compParentSU = (ClAmsSUT*)sucomp->config.parentSU.ptr;
+        if(!compParentSU || compParentSU->config.entity.type != CL_AMS_ENTITY_TYPE_SU)
         {
             rc = CL_AMS_RC(CL_AMS_ERR_INVALID_ENTITY);
             goto exitfn;
@@ -6293,7 +6310,14 @@ ClRcT clAmsPeSUTerminate2(ClAmsSUT *su)
             lastInstantiateLevel = instantiateLevel;
 
         curInstantiateLevel = su->status.instantiateLevel;
-        AMS_CHECK_RC_ERROR ( clAmsPeCompShutdown(sucomp, &responsePending) );
+        if( strcmp(su->config.entity.name.value, compParentSU->config.entity.name.value) == 0)
+        {
+            AMS_CHECK_RC_ERROR ( clAmsPeCompShutdown(sucomp, &responsePending) );
+        }
+        else
+        {
+            AMS_CHECK_RC_ERROR (clAmsPeCompShutdownCleanup(su, sucomp, &responsePending));
+        }
         /*
          * Instantiate level has changed which mostly implies that the SU was instantiated
          * or restarted. Avoid resetting the instantiate level. 
@@ -6331,7 +6355,6 @@ clAmsPeSUTerminate(
     /*
      * Precheck: Is SU in valid state to be terminated?
      */
-
     if ( (su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED)  &&
          (su->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING) &&
          (su->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING) )
@@ -6361,7 +6384,6 @@ clAmsPeSUTerminate(
          * that the SU did a instantiating -> terminating transition and
          * wasn't really instantiated.
          */
-
         node->status.numInstantiatedSUs++;
     }
 
@@ -6395,6 +6417,86 @@ clAmsPeSUTerminate(
     return CL_OK;
 }
 
+ClRcT clAmsPeSUTerminateCallback1(CL_IN  ClAmsSUT *su)
+{
+    ClAmsNodeT  *node;
+    ClAmsSGT *sg;
+
+    AMS_CHECK_SU ( su );
+    AMS_CHECK_NODE ( (node = (ClAmsNodeT *) su->config.parentNode.ptr) );
+    AMS_CHECK_SG ( (sg = (ClAmsSGT *) su->config.parentSG.ptr) );
+
+    su->status.numInstantiatedComp = 0;
+    if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING )
+    {
+         if ( clAmsPeSUIsInstantiable(su) != CL_OK )
+         {
+            CL_AMS_SET_P_STATE(su, CL_AMS_PRESENCE_STATE_TERMINATING);
+         }
+    }
+    if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING )
+    {
+        if ( node->status.numInstantiatedSUs )
+        {
+            node->status.numInstantiatedSUs --;
+        }
+        /*
+         * Removed SU out of SG's instantiated/instantiable list if it is available
+         */
+        AMS_CALL(clAmsPeSUMarkUninstantiated(su));
+        AMS_CALL(clAmsPeSUMarkUninstantiable(su));
+    }
+    AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE, ("SU [%s] is now terminated\n", su->config.entity.name.value));
+
+    AMS_ENTITY_LOG(node, CL_AMS_MGMT_SUB_AREA_MSG, CL_DEBUG_TRACE, ("Node [%s] now has [%d] instantiated + restarting SUs\n", node->config.entity.name.value,
+         node->status.numInstantiatedSUs));
+
+    // WORKQUEUE
+
+    if ( su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING )
+    {
+        AMS_CALL ( clAmsPeSURestartCallback_Step1(su, CL_OK) );
+    }
+    else
+    {
+        CL_AMS_SET_P_STATE(su, CL_AMS_PRESENCE_STATE_UNINSTANTIATED);
+        /*
+         * If the component was terminated without removing SIs assigned to it,
+         * and this happens when there are overlapping operations such as node
+         * terminate happening before node switchover is complete, then remove
+         * the SIs assigned to this SU.
+         */
+
+        if(su->status.siList.numEntities )
+        {
+            AMS_CALL(clAmsPeSURemoveWork(su, CL_AMS_ENTITY_SWITCHOVER_FAST) );
+        }
+
+        if(su->config.adminState == CL_AMS_ADMIN_STATE_LOCKED_I)
+        {
+            AMS_CALL(clAmsPeSULockInstantiationCallback(su, CL_OK));
+        }
+
+        if(sg->status.isStarted == CL_FALSE)
+        {
+            AMS_CALL(clAmsPeSGTerminateCallback(sg, CL_OK));
+        }
+
+        if(node->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING)
+        {
+            AMS_CALL ( clAmsPeNodeTerminateCallback(node, CL_OK) );
+        }
+    }
+    /*
+     * Make a gratuitous call to SGEvaluateWork to ensure that the SG rules
+     * are satisfied.
+     */
+
+    AMS_CALL ( clAmsPeSGEvaluateWork((ClAmsSGT *)su->config.parentSG.ptr) );
+
+    return CL_OK;
+}
+ 
 /*
  * clAmsPeSUTerminateCallback
  * --------------------------
@@ -6465,6 +6567,8 @@ clAmsPeSUTerminateCallback(
         if(su->status.numInstantiatedComp) return CL_OK;
     }
 
+    AMS_CALL(clAmsPeSUTerminateCallback1(su));
+    #if 0
     /*
      * All components in SU have terminated successfully.
      */
@@ -6544,7 +6648,7 @@ clAmsPeSUTerminateCallback(
      */
  
     AMS_CALL ( clAmsPeSGEvaluateWork((ClAmsSGT *)su->config.parentSG.ptr) );
-
+    #endif
     return CL_OK;
 }
 
@@ -6879,6 +6983,7 @@ clAmsPeSUCleanupError(
         {
             node->status.numInstantiatedSUs-- ;
         }
+
         if( su->status.presenceState == CL_AMS_PRESENCE_STATE_INSTANTIATED)
         {
             AMS_CALL ( clAmsPeSUMarkUnassigned(su) );
@@ -7026,6 +7131,184 @@ clAmsPeSUAssignWorkAgain(
     return CL_OK;
 }
 
+ClRcT clAmsPeSUSITransitionHaState(ClAmsSUT *su, ClAmsSIT *si, ClAmsHAStateT oldState, ClAmsHAStateT newState, ClUint32T switchoverMode)
+{
+    ClRcT rc = CL_OK;
+    ClAmsSGT *sg;
+    ClAmsSUSIRefT *siRef;
+    ClAmsSISURefT *suRef;
+    ClBoolT suWasAssigned, suIsAssigned,  invalid = CL_FALSE;
+    
+    AMS_CHECK_SU(su);
+    AMS_CHECK_SI(si);
+    AMS_CHECK_SG( sg = (ClAmsSGT *) su->config.parentSG.ptr);
+
+    if( newState == oldState)
+    {
+        return CL_OK;
+    }
+ 
+    suWasAssigned = (su->status.numActiveSIs + su->status.numStandbySIs)? CL_TRUE : CL_FALSE;
+
+    rc = clAmsEntityListFindEntityRef2( &su->status.siList, &si->config.entity, 0,(ClAmsEntityRefT **)&siRef);
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
+    {
+        clLogError("AMS", "SVR", "EntityRef find for si [%s] failed with [%#x] at Line [%d], Function [%s]",
+                   si->config.entity.name.value, rc, __LINE__, __FUNCTION__);
+
+        return CL_OK;
+    }
+    rc = clAmsEntityListFindEntityRef2( &si->status.suList, &su->config.entity, 0, (ClAmsEntityRefT **)&suRef);
+    if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
+    {
+        clLogError("CSI", "CHG", "EntityRef find for su [%s] failed with [%#x] at Line [%d], Function [%s]",
+                   su->config.entity.name.value, rc, __LINE__, __FUNCTION__);
+        return CL_OK;
+    }
+    switch ( oldState )
+    {
+        case CL_AMS_HA_STATE_ACTIVE:
+        {
+            if(newState == CL_AMS_HA_STATE_QUIESCED)
+            {
+                siRef->numQuiescedCSIs++;
+                siRef->numActiveCSIs--;
+                if(siRef->numActiveCSIs == 0)
+                {
+                    su->status.numActiveSIs--;
+                    su->status.numQuiescedSIs++;
+                    if(su->status.numActiveSIs == 0)
+                    {
+                      sg->status.numCurrActiveSUs--;
+                    }
+                    si->status.numActiveAssignments--;
+                 }
+   
+             } 
+             break;
+        } 
+        case CL_AMS_HA_STATE_QUIESCED:
+        {
+            if(newState == CL_AMS_HA_STATE_NONE)
+            {
+                siRef->numQuiescedCSIs--;
+                if(siRef->numQuiescedCSIs == 0)
+                {
+                    su->status.numQuiescedSIs--;
+                }
+            } 
+            break;       
+        } 
+    
+        case CL_AMS_HA_STATE_STANDBY:
+        {
+            if(newState == CL_AMS_HA_STATE_NONE)
+            {
+                siRef->numStandbyCSIs--;
+                if(siRef->numStandbyCSIs == 0)
+                {
+                    su->status.numStandbySIs--;
+                    if(su->status.numStandbySIs == 0)
+                    {
+                            sg->status.numCurrStandbySUs--;
+                    }
+                    si->status.numStandbyAssignments--;
+                }
+            }
+            break;
+        }
+        default:
+        {
+            invalid = CL_TRUE;
+        }
+    }
+
+    if ( siRef->numActiveCSIs == 0 )
+    {
+        if ( si->status.numActiveAssignments == 0 )
+        {
+            CL_AMS_SET_O_STATE(si, CL_AMS_OPER_STATE_DISABLED);
+        }
+    }
+
+    if(siRef->numQuiescedCSIs && (newState == CL_AMS_HA_STATE_QUIESCED))
+    {
+        CL_AMS_SET_H_STATE(su, siRef, CL_AMS_HA_STATE_QUIESCED, switchoverMode);
+        CL_AMS_SET_H_STATE(si, suRef, CL_AMS_HA_STATE_QUIESCED, switchoverMode);
+    }
+   
+    suIsAssigned = (su->status.numActiveSIs + su->status.numStandbySIs)? CL_TRUE : CL_FALSE;
+   
+    if(suWasAssigned && !suIsAssigned)
+    {
+        AMS_CALL(clAmsPeSUMarkUnassigned(su));
+    }
+    if(newState == CL_AMS_HA_STATE_NONE)
+    {
+        CL_AMS_SET_H_STATE(su, siRef, CL_AMS_HA_STATE_NONE, switchoverMode);
+        CL_AMS_SET_H_STATE(si, suRef, CL_AMS_HA_STATE_NONE, switchoverMode);
+        AMS_CALL ( clAmsSUDeleteSIRefFromSIList(&su->status.siList, si) );
+        AMS_CALL ( clAmsSIDeleteSURefFromSUList(&si->status.suList, su) ); 
+    }
+    #if 0
+    if ( su->status.numInstantiatedComp )
+    {
+        su->status.numInstantiatedComp =0;
+    }
+     if(su->status.numPIComp > 0)
+                    su->status.numPIComp=0;
+    #endif
+    return CL_OK;
+
+}
+ 
+ClRcT clAmsPeSUSIHaStateReset(CL_IN ClAmsSUT *su, CL_IN ClUint32T switchoverMode)
+{
+   ClRcT rc = CL_OK;
+   ClAmsEntityRefT *entityRef;
+
+   
+   AMS_CHECK_SU(su);
+   
+   if(!su->status.numActiveSIs && !su->status.numStandbySIs && !su->status.numQuiescedSIs )
+    {
+        AMS_ENTITY_LOG(su, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+                ("SU [%s] has no assignments. Ignoring SI HaState Reset request..\n",
+                 su->config.entity.name.value));
+
+        return clAmsPeSURemoveCallback(su, CL_OK, switchoverMode);
+    }
+    entityRef = clAmsEntityListGetFirst(&su->status.siList);
+    while ( entityRef != (ClAmsEntityRefT *) NULL )
+    {
+        ClAmsSIT *si;
+        ClAmsSUSIRefT *siRef;
+
+        AMS_CHECK_SI(si = (ClAmsSIT *) entityRef->ptr);
+         
+        entityRef = clAmsEntityListGetNext(&su->status.siList, entityRef);
+        rc = clAmsEntityListFindEntityRef2( &su->status.siList, &si->config.entity, 0,(ClAmsEntityRefT **)&siRef);
+        if(CL_GET_ERROR_CODE(rc) == CL_ERR_NOT_EXIST )
+        {
+            clLogTrace("AMS", "SVR","SU [%s] is not assigned SI [%s]. Ignoring request..", su->config.entity.name.value, si->config.entity.name.value);
+            continue;
+        }
+        clLogTrace("AMS", "SVR", "Removing SI [%s] assigned to SU [%s]", si->config.entity.name.value, su->config.entity.name.value);
+        if((siRef->haState == CL_AMS_HA_STATE_ACTIVE) || (siRef->haState == CL_AMS_HA_STATE_QUIESCING))
+        {
+            clAmsPeSUSITransitionHaState(su, si, siRef->haState, CL_AMS_HA_STATE_QUIESCED, switchoverMode);
+            clAmsPeSUSITransitionHaState(su, si, siRef->haState, CL_AMS_HA_STATE_NONE, switchoverMode);
+        }
+        else if(siRef->haState == CL_AMS_HA_STATE_STANDBY)
+        {                
+            clAmsPeSUSITransitionHaState(su, si, siRef->haState, CL_AMS_HA_STATE_NONE, switchoverMode);
+        }
+    }
+    
+  
+    return CL_OK;
+}       
+ 
 /*
  * clAmsPeSUSwitchoverWorkByComponent
  * ----------------------------------
@@ -7049,8 +7332,12 @@ clAmsPeSUSwitchoverWorkByComponent(
         CL_IN ClUint32T switchoverMode)
 {
     ClAmsEntityRefT *entityRef;
-
+    ClAmsNodeT *node;
+    ClRcT rc = CL_OK;
+    ClRcT ret = CL_OK;
+    ClAmsHAStateT haState = CL_AMS_HA_STATE_NONE;
     AMS_CHECK_SU ( su );
+    AMS_CHECK_NODE(node = (ClAmsNodeT *)su->config.parentNode.ptr);
 
     AMS_FUNC_ENTER ( ("SU [%s]\n",su->config.entity.name.value) );
 
@@ -7062,10 +7349,20 @@ clAmsPeSUSwitchoverWorkByComponent(
           entityRef != (ClAmsEntityRefT *) NULL;
           entityRef = clAmsEntityListGetNext(&su->config.compList,entityRef) )
     {
-        AMS_CALL ( clAmsPeCompSwitchoverWork(
-                        (ClAmsCompT *) entityRef->ptr,
-                        switchoverMode,
-                        CL_AMS_HA_STATE_NONE) );
+        ret = clAmsPeCompSwitchoverWork( (ClAmsCompT *) entityRef->ptr, switchoverMode, CL_AMS_HA_STATE_NONE);
+        if(ret != CL_OK)
+        {
+            clLogError("AMS", "SVR", " clAmsPeCompSwitchoverWork for comp [%s] failed with rc[0x%x]",((ClAmsCompT *)entityRef->ptr)->config.entity.name.value,ret);
+            if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+            {
+                return ret;
+            }
+            rc |= ret;
+            if(!(haState & CL_AMS_HA_STATE_NONE))
+            {
+                 haState = CL_AMS_HA_STATE_NONE;
+            }
+         }
     }
 
     /*
@@ -7076,10 +7373,21 @@ clAmsPeSUSwitchoverWorkByComponent(
           entityRef != (ClAmsEntityRefT *) NULL;
           entityRef = clAmsEntityListGetNext(&su->config.compList,entityRef) )
     {
-        AMS_CALL ( clAmsPeCompSwitchoverWork(
-                                             (ClAmsCompT *) entityRef->ptr,
-                                             switchoverMode,
-                                             CL_AMS_HA_STATE_QUIESCED) );
+        //AMS_CALL ( clAmsPeCompSwitchoverWork( (ClAmsCompT *) entityRef->ptr, switchoverMode, CL_AMS_HA_STATE_QUIESCED) );
+        ret = clAmsPeCompSwitchoverWork( (ClAmsCompT *) entityRef->ptr, switchoverMode, CL_AMS_HA_STATE_QUIESCED);
+        if(ret != CL_OK)
+        {
+            clLogError("AMS", "SVR", " clAmsPeCompSwitchoverWork for comp [%s] failed with rc[0x%x]",((ClAmsCompT *)entityRef->ptr)->config.entity.name.value,ret);
+            if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+            {
+                return ret;
+            }
+            rc |= ret;
+            if(!(haState & CL_AMS_HA_STATE_QUIESCED))
+            {
+                 haState = CL_AMS_HA_STATE_QUIESCED;
+            }
+         }
     }
         
     /*
@@ -7089,10 +7397,21 @@ clAmsPeSUSwitchoverWorkByComponent(
           entityRef != (ClAmsEntityRefT *) NULL;
           entityRef = clAmsEntityListGetNext(&su->config.compList,entityRef) )
     {
-        AMS_CALL ( clAmsPeCompSwitchoverWork(
-                        (ClAmsCompT *) entityRef->ptr,
-                        switchoverMode,
-                        CL_AMS_HA_STATE_QUIESCING) );
+        //AMS_CALL ( clAmsPeCompSwitchoverWork( (ClAmsCompT *) entityRef->ptr, switchoverMode, CL_AMS_HA_STATE_QUIESCING) );
+        ret = clAmsPeCompSwitchoverWork( (ClAmsCompT *) entityRef->ptr, switchoverMode, CL_AMS_HA_STATE_QUIESCING);
+        if(ret != CL_OK)
+        {
+            clLogError("AMS", "SVR", " clAmsPeCompSwitchoverWork for comp [%s] failed with rc[0x%x]",((ClAmsCompT *)entityRef->ptr)->config.entity.name.value,ret);
+            if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+            {
+                return ret;
+            }
+            rc |= ret;
+            if(!(haState & CL_AMS_HA_STATE_QUIESCING))
+            {
+                 haState = CL_AMS_HA_STATE_QUIESCING;
+            }
+         }
     }
 
     /*
@@ -7111,10 +7430,21 @@ clAmsPeSUSwitchoverWorkByComponent(
               entityRef != (ClAmsEntityRefT *) NULL;
               entityRef = clAmsEntityListGetNext(&su->config.compList, entityRef) )
         {
-            AMS_CALL ( clAmsPeCompSwitchoverWork(
-                            (ClAmsCompT *) entityRef->ptr,
-                            switchoverMode,
-                            CL_AMS_HA_STATE_ACTIVE) );
+            //AMS_CALL ( clAmsPeCompSwitchoverWork( (ClAmsCompT *) entityRef->ptr, switchoverMode, CL_AMS_HA_STATE_ACTIVE) );
+            ret = clAmsPeCompSwitchoverWork( (ClAmsCompT *) entityRef->ptr, switchoverMode, CL_AMS_HA_STATE_ACTIVE);
+            if(ret != CL_OK)
+            { 
+                clLogError("AMS", "SVR", " clAmsPeCompSwitchoverWork for comp [%s] failed with rc[0x%x]",((ClAmsCompT *)entityRef->ptr)->config.entity.name.value,ret);
+                if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+                {
+                    return ret;
+                }
+                rc |= ret;
+                if(!(haState & CL_AMS_HA_STATE_ACTIVE))
+                {
+                    haState = CL_AMS_HA_STATE_ACTIVE;
+                }
+             }
         }
     }
 
@@ -7128,12 +7458,27 @@ clAmsPeSUSwitchoverWorkByComponent(
               entityRef != (ClAmsEntityRefT *) NULL;
               entityRef = clAmsEntityListGetNext(&su->config.compList,entityRef) )
         {
-            AMS_CALL ( clAmsPeCompSwitchoverWork(
-                            (ClAmsCompT *) entityRef->ptr,
-                            switchoverMode,
-                            CL_AMS_HA_STATE_STANDBY) );
+            //AMS_CALL ( clAmsPeCompSwitchoverWork( (ClAmsCompT *) entityRef->ptr, switchoverMode, CL_AMS_HA_STATE_STANDBY) );
+            ret = clAmsPeCompSwitchoverWork( (ClAmsCompT *) entityRef->ptr, switchoverMode, CL_AMS_HA_STATE_STANDBY);
+            if(ret != CL_OK)
+            {
+                clLogError("AMS", "SVR", " clAmsPeCompSwitchoverWork for comp [%s] failed with rc[0x%x]",((ClAmsCompT *)entityRef->ptr)->config.entity.name.value,ret);
+                if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+                {
+                    return ret;
+                }
+                rc |= ret;
+                if(!(haState & CL_AMS_HA_STATE_STANDBY))
+                {
+                    haState = CL_AMS_HA_STATE_STANDBY;
+                }
+             }
         }
     }
+    if( rc != CL_OK)
+    {
+       clAmsPeSUSIHaStateReset(su, switchoverMode);
+    } 
 
     /* Call SGEvaluateWork for this SG */
     if (su->status.numActiveSIs == 0 && su->status.numStandbySIs == 0 && su->status.numQuiescedSIs == 0)
@@ -8044,7 +8389,6 @@ clAmsPeSUSwitchoverCallback(
             CL_LIST_HEAD_DECLARE(dependentSIList);
 
             clAmsPeSUSIDependentsListMPlusN(su, &activeSU, &dependentSIList);
-
             for ( entityRef = clAmsEntityListGetFirst(&su->config.compList);
                   entityRef != (ClAmsEntityRefT *) NULL;
                   entityRef = clAmsEntityListGetNext(&su->config.compList,entityRef) )
@@ -12232,7 +12576,7 @@ clAmsPeCompInstantiate(
      * There are limited attempts to instantiate a component.
      */
 
-    if ( comp->status.instantiateCount < comp->config.numMaxInstantiate && comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING)
+     if ( comp->status.instantiateCount < comp->config.numMaxInstantiate && comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING) 
     {
         return clAmsPeCompInstantiate2(comp);
     }
@@ -12829,9 +13173,7 @@ clAmsPeCompInstantiateCallback(
          * unchanged through restart cycles and then finally decremented when we
          * know for sure that the component is being terminated.
          */
-
         su->status.numInstantiatedComp ++;
-
         AMS_CALL ( clAmsPeSUInstantiateCallback(su, CL_OK) );
     }
 
@@ -12969,6 +13311,62 @@ clAmsPeCompProxiedCompInstantiateError(
     return clAmsPeCompInstantiateError(comp, error);
 }
 
+/* This Function is called only when Work Assigned SU and Comp Parent SU are different. */
+
+ClRcT clAmsPeCompShutdownCleanup(CL_IN ClAmsSUT *su, CL_IN  ClAmsCompT *comp, CL_OUT  ClBoolT *pResponsePending)
+{
+    ClAmsNodeT *node;
+    ClAmsSGT *sg;
+
+    if(pResponsePending)
+        *pResponsePending = CL_FALSE;
+
+    AMS_CHECK_COMP(comp);
+    AMS_CHECK_SU(su);
+    AMS_CHECK_NODE(node = (ClAmsNodeT *) su->config.parentNode.ptr);
+    AMS_CHECK_SG(sg = (ClAmsSGT *) su->config.parentSG.ptr);
+
+    AMS_FUNC_ENTER(("Component [%s]\n",comp->config.entity.name.value) );
+   
+    if( comp->status.presenceState == CL_AMS_PRESENCE_STATE_UNINSTANTIATED )
+    {
+        if(CL_FALSE == su->config.isPreinstantiable)
+        {
+            CL_AMS_RESET_EPOCH(comp);
+            /*
+             * Fake a call to compTerminate callback as comp. is already
+             * dead to get the SU terminate stats right incase of a shutdown.
+             */
+            //CL_AMS_SET_P_STATE(comp,CL_AMS_PRESENCE_STATE_TERMINATING);
+        }
+        goto suTerminate;
+    }
+    if((comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATED) && (comp->status.presenceState != CL_AMS_PRESENCE_STATE_INSTANTIATING) &&
+         (comp->status.presenceState != CL_AMS_PRESENCE_STATE_RESTARTING))
+    {
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE, ("Component [%s] is [%s]. Ignoring terminate request..\n",
+            comp->config.entity.name.value, CL_AMS_STRING_P_STATE(comp->status.presenceState)));
+        return CL_OK;
+    }
+ 
+suTerminate: 
+    
+    AMS_CALL(clAmsPeCompTerminateCallback(comp, CL_OK));
+    if((su->status.presenceState == CL_AMS_PRESENCE_STATE_TERMINATING) || (su->status.presenceState == CL_AMS_PRESENCE_STATE_RESTARTING))
+    {
+        clLogInfo("AMS", "SVR", " Number of Instantiated components [%u] in the su [%s]",su->status.numInstantiatedComp, su->config.entity.name.value);
+        if(su->status.numInstantiatedComp > 0)
+        {
+            su->status.numInstantiatedComp--;
+            if(su->status.numInstantiatedComp)
+            {
+                return CL_OK;
+            }
+        }
+        AMS_CALL(clAmsPeSUTerminateCallback1(su));
+    }
+    return CL_OK;
+}
 /*
  * clAmsPeCompShutdown
  * --------------------
@@ -13708,12 +14106,11 @@ clAmsPeCompTerminateCallback(
             {
                 return clAmsPeCompTerminateError(comp, error);
             }
-
             if ( su->status.numInstantiatedComp )
             {
                 su->status.numInstantiatedComp --;
             }
-
+           
             CL_AMS_SET_P_STATE(comp, CL_AMS_PRESENCE_STATE_UNINSTANTIATED);
 
             comp->status.instantiateCount = 0;
@@ -13761,6 +14158,8 @@ clAmsPeCompTerminateCallback(
 
         default:
         {
+            comp->status.instantiateCount = 0;
+            comp->status.instantiateDelayCount = 0;
             return CL_OK;
         }
     }
@@ -14473,7 +14872,129 @@ clAmsPeCompRemoveWork(
 
     return CL_OK;
 }
+ClRcT  clAmsPeCompCSIHaStateReset(CL_IN  ClAmsCompT *comp, CL_IN  ClAmsCSIT *csi, CL_IN  ClUint32T switchoverMode)
+{
+    ClAmsCSICompRefT *compRef;
+    ClAmsCompCSIRefT *csiRef;
+    ClAmsHAStateT  haState;
+    ClRcT rc = CL_OK;
+    AMS_CHECK_COMP(comp);
+    AMS_CHECK_CSI(csi);
 
+    rc = clAmsEntityListFindEntityRef2( &comp->status.csiList, &csi->config.entity, 0, (ClAmsEntityRefT **)&csiRef);
+    if( rc != CL_OK)
+    {
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+            ("Component [%s] is not assigned CSI [%s].", comp->config.entity.name.value, csi->config.entity.name.value));
+        return rc;
+    }
+    rc = clAmsEntityListFindEntityRef2( &csi->status.pgList, &comp->config.entity, 0, (ClAmsEntityRefT **)&compRef);
+    if( rc != CL_OK)
+    {
+        AMS_ENTITY_LOG(comp, CL_AMS_MGMT_SUB_AREA_MSG,CL_DEBUG_TRACE,
+            (" failed to get the CompRef[%s] from CSI [%s]",comp->config.entity.name.value, csi->config.entity.name.value));
+        return rc;
+    }
+
+    haState = csiRef->haState;
+    /* This switch case updates  the component and csiref Has States and increment/ decrement the corresponding CSIS count
+       depending on the component hastate*/ 
+    switch(csiRef->haState)
+    {
+        case CL_AMS_HA_STATE_QUIESCING:
+            if(comp->status.numQuiescingCSIs > 0 )
+            {
+                comp->status.numQuiescingCSIs--;  
+            }
+        case CL_AMS_HA_STATE_ACTIVE:
+        {
+            comp->status.numQuiescedCSIs++;
+            if(comp->status.numActiveCSIs > 0)
+            {
+                comp->status.numActiveCSIs--;
+            }
+            CL_AMS_SET_H_STATE(comp, csiRef, CL_AMS_HA_STATE_QUIESCED, switchoverMode);
+            CL_AMS_SET_H_STATE(csi, compRef, CL_AMS_HA_STATE_QUIESCED, switchoverMode); 
+            //break;
+        }   
+        case CL_AMS_HA_STATE_QUIESCED:
+        {
+            comp->status.numQuiescedCSIs--;
+            CL_AMS_SET_H_STATE(comp, csiRef, CL_AMS_HA_STATE_NONE, switchoverMode);
+            CL_AMS_SET_H_STATE(csi, compRef, CL_AMS_HA_STATE_NONE, switchoverMode);
+            break;
+        }
+        case CL_AMS_HA_STATE_STANDBY:
+             comp->status.numStandbyCSIs--;
+             CL_AMS_SET_H_STATE(comp, csiRef, CL_AMS_HA_STATE_NONE, switchoverMode);
+             CL_AMS_SET_H_STATE(csi, compRef, CL_AMS_HA_STATE_NONE, switchoverMode);
+              
+        default:
+            break;
+             
+    }
+    #if 1
+    if( haState != CL_AMS_HA_STATE_NONE)
+    {
+       AMS_CALL (clAmsCompDeleteCSIRefFromCSIList(&comp->status.csiList, csi));
+       AMS_CALL (clAmsCSIDeleteCompRefFromPGList(&csi->status.pgList, comp));
+    }
+    #endif
+    return rc;
+}
+
+ClRcT clAmsPeEntityMemberStatusReset(ClAmsEntityT  *entity, ClAmsEntityTypeT type, CL_IN  ClAmsHAStateT haState)
+{
+    ClRcT rc = CL_OK;
+    AMS_CHECKPTR ( !entity );
+    AMS_CHECK_ENTITY_TYPE (entity->type);
+
+    switch(entity->type)
+    {
+        case CL_AMS_ENTITY_TYPE_COMP:
+        {
+            ClAmsCompT  *comp = (ClAmsCompT *) entity;
+            if(haState & CL_AMS_HA_STATE_QUIESCING)
+            {
+                comp->status.numQuiescingCSIs = 0;
+            }
+            else if(haState & CL_AMS_HA_STATE_QUIESCED)
+            {
+                comp->status.numQuiescedCSIs = 0;
+            }
+            else if(haState & CL_AMS_HA_STATE_ACTIVE)
+            {
+                comp->status.numActiveCSIs = 0;
+            }
+            else if(haState & CL_AMS_HA_STATE_STANDBY)
+            {
+                comp->status.numStandbyCSIs = 0;
+            }
+            break;
+        }
+        case CL_AMS_ENTITY_TYPE_SU:
+        {
+            ClAmsSUT  *su = (ClAmsSUT *) entity;
+            if(haState & CL_AMS_HA_STATE_ACTIVE)
+            {
+                su->status.numActiveSIs = 0;
+            }
+            else if(haState & CL_AMS_HA_STATE_STANDBY)
+            {
+                su->status.numStandbySIs = 0;
+            }
+            else if(haState & CL_AMS_HA_STATE_QUIESCED)
+            {
+                su->status.numQuiescedSIs = 0;
+            }
+            break;
+         }
+         default:
+            break;
+    }
+    return rc;
+}
+      
 /*
  * clAmsPeCompSwitchoverWork
  * -------------------------
@@ -14482,7 +15003,7 @@ clAmsPeCompRemoveWork(
  * while all others are removed. 
  */
 
-ClRcT
+ClRcT 
 clAmsPeCompSwitchoverWork(
                           CL_IN       ClAmsCompT *comp,
                           CL_IN       ClUint32T switchoverMode,
@@ -14492,6 +15013,8 @@ clAmsPeCompSwitchoverWork(
     ClRcT (*csiFn)(ClAmsCompT *, ClAmsCSIT *, ClUint32T);
     ClAmsSUT *su;
     ClAmsNodeT *node;
+    ClRcT ret = CL_OK;
+    ClRcT rc1 = CL_OK;
 
     AMS_CHECK_COMP ( comp );
     AMS_CHECK_SU ( su = (ClAmsSUT *) comp->config.parentSU.ptr );
@@ -14513,7 +15036,7 @@ clAmsPeCompSwitchoverWork(
      * Decide which path to follow depending on the HA state of the CSIs
      * to be switched over.
      */
-
+    
     if ( haState == CL_AMS_HA_STATE_ACTIVE )
     {
         if ( switchoverMode == CL_AMS_ENTITY_SWITCHOVER_GRACEFUL )
@@ -14585,8 +15108,18 @@ clAmsPeCompSwitchoverWork(
             {
                 continue;
             }
-
-            AMS_CALL ( csiFn(comp, csi, switchoverMode) );
+            clLogInfo("AMS", "SVR", "component [%s] is in present state [%s]",comp->config.entity.name.value, CL_AMS_STRING_P_STATE(comp->status.presenceState));
+            ret = csiFn(comp, csi, switchoverMode);
+            if(ret != CL_OK)
+            {
+                /* Ignore the errors in case of node shutdown and set appropriate states*/
+                if(node->status.isClusterMember == CL_AMS_NODE_IS_CLUSTER_MEMBER)
+                {
+                    return ret;
+                } 
+                rc1 |= ret;
+                clAmsPeCompCSIHaStateReset(comp, csi,switchoverMode);
+            }
 
             /*
              * The csi reference could have been deleted behind our back.
@@ -14605,6 +15138,12 @@ clAmsPeCompSwitchoverWork(
                 }
             }
         }
+    }
+    if(rc1 != CL_OK)
+    {
+        /*Some Error happend with one or more CSIs assigned to my component so Rest my component appropriate members*/
+         clAmsPeEntityMemberStatusReset((ClAmsEntityT *)comp, comp->config.entity.type,haState);
+         return rc1;
     }
 
     return CL_OK;
