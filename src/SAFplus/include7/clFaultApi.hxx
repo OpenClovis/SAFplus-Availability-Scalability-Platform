@@ -196,6 +196,7 @@ public:
     int changeCount;
     //init fault server
     SAFplus::Fault faultClient;
+    SAFplus::Mutex  faultServerMutex;
     void init();
     // reporter fault event message
     virtual void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);

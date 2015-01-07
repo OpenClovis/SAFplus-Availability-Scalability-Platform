@@ -8,11 +8,15 @@ using namespace std;
 using namespace SAFplus;
 
 //ClUint32T clAspLocalId = 0x1;
+void tressTest(int eventNum);
+void deRegisterTest();
 static unsigned int MAX_MSGS=25;
 static unsigned int MAX_HANDLER_THREADS=2;
 ClBoolT   gIsNodeRepresentative = false;
 SafplusInitializationConfiguration sic;
-
+SAFplus::Handle faultEntityHandle(PointerHandle, 0x9876, 5454);
+SAFplus::Handle me;
+Fault fc;
 
 void testAllFeature();
 int main(int argc, char* argv[])
@@ -27,18 +31,7 @@ int main(int argc, char* argv[])
   safplusMsgServer.Start();
   logInfo("FLT","CLT","********************Initial fault lib********************");
   faultInitialize();
-  testAllFeature();
-
-  while(1) { sleep(10000); }
-  return 0;
-
-}
-
-
-void testAllFeature()
-{
-  SAFplus::Handle me = Handle::create();
-  Fault fc;
+  me = Handle::create();
   fc = Fault();
   ClIocAddress server;
   server.iocPhyAddress.nodeAddress= SAFplus::ASP_NODEADDR;
@@ -46,11 +39,25 @@ void testAllFeature()
   logInfo("FLT","CLT","********************Initial fault client*********************");
   fc.init(me,server,sic.iocPort,BLOCK);
   fc.registerFault();
+  testAllFeature();
+  tressTest(20);
+  sleep(1);
+  deRegisterTest();
+  while(1)
+  {
+	  sleep(10000);
+  }
+  return 0;
+
+}
+
+void testAllFeature()
+{
+
   sleep(10);
   FaultState state = fc.getFaultState(me);
   logInfo("FLT","CLT","********************Get current fault state in shared memory [%s]********************", strFaultEntityState[int(state)]);
   // Register other fault entity
-  SAFplus::Handle faultEntityHandle(PointerHandle, 0x9876, 5454);
   logInfo("FLT","CLT","********************Register other fault entity********************");
   fc.registerFault(faultEntityHandle,FaultState::STATE_DOWN);
   sleep(10);
@@ -90,10 +97,7 @@ void testAllFeature()
   logInfo("FLT","CLT","********************Get current fault state in shared memory [%s]********************", strFaultEntityState[int(state)]);
   state = fc.getFaultState(faultEntityHandle);
 
-  logInfo("FLT","CLT","********************Deregister fault entity********************");
-  fc.deRegister(faultEntityHandle);
-  logInfo("FLT","CLT","********************Deregister fault client********************");
-  fc.deRegister();
+
 }
 //void test()
 //{
@@ -104,3 +108,25 @@ void testAllFeature()
 //		{ fc.notify(FaultData(...), destination)  }
 //	}
 //}
+
+void tressTest(int eventNum)
+{
+	for (int i = 0; i < eventNum; i ++)
+	{
+		FaultEventData faultData;
+		faultData.alarmState=SAFplusI::AlarmStateT::ALARM_STATE_INVALID;
+		faultData.category=SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_COMMUNICATIONS;
+		faultData.cause=SAFplusI::AlarmProbableCauseT::ALARM_PROB_CAUSE_PROCESSOR_PROBLEM;
+		faultData.severity=SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_MINOR;
+		fc.notify(faultData,FaultPolicy::AMF);
+		sleep(1);
+	}
+}
+
+void deRegisterTest()
+{
+	  logInfo("FLT","CLT","********************Deregister fault entity********************");
+	  fc.deRegister(faultEntityHandle);
+	  logInfo("FLT","CLT","********************Deregister fault client********************");
+	  fc.deRegister();
+}

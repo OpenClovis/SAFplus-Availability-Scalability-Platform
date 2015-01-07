@@ -8,6 +8,7 @@ namespace SAFplus
 {
 void FaultSharedMem::init(ClIocAddress active)
 {
+
     faultMsm = boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create, "SAFplusFaults", SAFplusI::FaultSharedMemSize);
     faultMap = faultMsm.find_or_construct<SAFplus::FaultShmHashMap>("faults")  (faultMsm.get_allocator<SAFplus::FaultShmMapPair>());
     if(active.iocPhyAddress.nodeAddress==0)
@@ -38,6 +39,7 @@ void FaultSharedMem::init(ClIocAddress active)
 
 bool FaultSharedMem::createFault(FaultShmEntry* frp,SAFplus::Handle fault)
 {
+    ScopedLock<Mutex> lock(faultMutex);
     FaultShmHashMap::iterator entryPtr;
     entryPtr = faultMap->find(fault);
     if (entryPtr == faultMap->end())
@@ -61,6 +63,7 @@ bool FaultSharedMem::createFault(FaultShmEntry* frp,SAFplus::Handle fault)
 
 bool FaultSharedMem::updateFaultHandle(FaultShmEntry* frp,SAFplus::Handle fault)
 {
+    ScopedLock<Mutex> lock(faultMutex);
     SAFplus::FaultShmHashMap::iterator entryPtr;
     entryPtr = faultMap->find(fault);
     if (entryPtr == faultMap->end()) return false; // TODO: raise exception
@@ -78,6 +81,7 @@ bool FaultSharedMem::updateFaultHandle(FaultShmEntry* frp,SAFplus::Handle fault)
 
 bool FaultSharedMem::updateFaultHandleState(SAFplus::FaultState state,SAFplus::Handle fault)
 {
+	ScopedLock<Mutex> lock(faultMutex);
     SAFplus::FaultShmHashMap::iterator entryPtr;
     entryPtr = faultMap->find(fault);
     if (entryPtr == faultMap->end()) return false; // TODO: raise exception
@@ -89,6 +93,7 @@ bool FaultSharedMem::updateFaultHandleState(SAFplus::FaultState state,SAFplus::H
 
 void FaultSharedMem::clear()
 {
+	ScopedLock<Mutex> lock(faultMutex);
     SAFplus::FaultShmHashMap::iterator i;
 	if(!faultMap)
 	{
@@ -109,6 +114,7 @@ void FaultSharedMem::remove(const SAFplus::Handle handle)
 	{
 		return;
 	}
+	ScopedLock<Mutex> lock(faultMutex);
 	SAFplus::FaultShmHashMap::iterator entryPtr;
 	entryPtr = faultMap->find(handle);
 	if (entryPtr == faultMap->end()) return; // TODO: raise exception
@@ -123,6 +129,7 @@ void FaultSharedMem::removeAll()
 	{
 		return;
 	}
+	ScopedLock<Mutex> lock(faultMutex);
 	for (i=faultMap->begin(); i!=faultMap->end();i++)
 	{
 	    SAFplus::Handle faultHdl = i->first;

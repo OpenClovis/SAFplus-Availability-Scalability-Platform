@@ -449,7 +449,6 @@ namespace SAFplus
             	if(1)
             	{
               		logDebug("FLT","MSG","Entity Fault message from local node . Deregister fault entity.");
-            		//TODO process fault event
               		if(faultEntity==INVALID_HDL)
               		{
               			removeFaultEntity(reporterHandle,true);
@@ -468,9 +467,11 @@ namespace SAFplus
                     FaultHistoryEntity faultHistoryEntry;
                     time_t now;
                     time(&now);
+                	ScopedLock<Mutex> lock(faultServerMutex);
                     faultHistoryEntry.setValue(eventData,faultEntity,reporterHandle,now,NO_TXN);
                     faultHistory.setCurrent(faultHistoryEntry,NO_TXN);
                     faultHistory.setHistory10min(faultHistoryEntry,NO_TXN);
+                    faultServerMutex.unlock();
                     logDebug("FLT","MSG","Send fault event message to all fault server");
                     if(reporterHandle.getNode()==clIocLocalAddressGet())
                     {
@@ -507,7 +508,19 @@ namespace SAFplus
             		else
             		{
             			logDebug("FLT","MSG","Fault event message broadcast from external.");
-            			//TODO
+            			//TODO Process this event
+                    	fe->state=faultState;
+                    	fe->dependecyNum=0;
+                        logDebug("FLT","MSG","Entity JOIN message with fault state [%d]",fe->state);
+             			logDebug("FLT","MSG","Entity Fault message from local node. Register new fault entity");
+             			if(faultEntity==INVALID_HDL)
+             			{
+             				registerFaultEntity(fe,reporterHandle,true);
+             			}
+             			else
+             			{
+             				registerFaultEntity(fe,faultEntity,true);
+             			}
             		}
             	}
              break;
@@ -521,7 +534,16 @@ namespace SAFplus
             		else
             		{
             			logDebug("FLT","MSG","Fault event message broadcast from external.");
-            			//TODO
+            			//TODO process this event
+            			logDebug("FLT","MSG","Entity Fault message from local node . Deregister fault entity.");
+            			if(faultEntity==INVALID_HDL)
+            			{
+            				removeFaultEntity(reporterHandle,true);
+            			}
+            			else
+            			{
+            				removeFaultEntity(faultEntity,true);
+            			}
             		}
             	}
              break;
@@ -672,7 +694,7 @@ namespace SAFplus
               {
                   //call Fault plugin to proces fault event
                   FaultPolicyPlugin* pp = dynamic_cast<FaultPolicyPlugin*>(it->second->pluginApi);
-                  int count = countFaultEvent(faultReporter,faultEntity,100);
+                  int count = countFaultEvent(faultReporter,faultEntity,5);
                   FaultAction result = pp->processFaultEvent(fault,faultReporter,faultEntity,count);
                   switch (result)
                   {

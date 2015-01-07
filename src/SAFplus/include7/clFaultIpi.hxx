@@ -635,10 +635,11 @@ namespace SAFplus
     public:
         #define FAULT_NAME_LEN 100
         SAFplus::ProcSem mutex;  // protects the shared memory region from simultaneous access
-        SAFplus::Mutex  localMutex;
+        SAFplus::Mutex  faultMutex;
         boost::interprocess::managed_shared_memory faultMsm;
         SAFplus::FaultShmHashMap* faultMap;
         SAFplus::FaultShmHeader* faultHdr;
+        SAFplus::Mutex  localMutex;
         void init(ClIocAddress active);
         void clientInit();
         void clear();
