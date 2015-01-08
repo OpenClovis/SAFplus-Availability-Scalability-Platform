@@ -132,7 +132,17 @@ instantiated  <instances>     instances                         instances     (e
       for (ed,eo) in fileEntLst: 
         eo.recreateBitmap()       
 
-        
+      # Get instance lock fields
+      ide = self.data.getElementsByTagName("ide")
+      if ide:
+        for (name,e) in self.entities.items():
+          etType = ide[0].getElementsByTagName(e.et.name)
+          if etType:
+            et = etType[0].getElementsByTagName(name)
+            if et:
+              for ed in et[0].children(microdom.microdomFilter):
+                e.instanceLocked[str(ed.tag_)] = ed.data_
+
   def makeUpAScreenPosition(self):
     return (random.randint(0,800),random.randint(0,800))
 
@@ -221,6 +231,23 @@ instantiated  <instances>     instances                         instances     (e
         entity.addChild(microdom.MicroDom({"tag_":k},[",".join(val)],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
       # TODO: write the IDE specific information to the IDE area of the model xml
 
+      # Building instance lock fields
+      etType = ide.getElementsByTagName(e.et.name)
+      if not etType:
+        etType = microdom.MicroDom({"tag_":e.et.name},[],[])
+        ide.addChild(etType)
+      else: 
+        assert(len(etType)==1)
+        etType = etType[0]
+      et = etType.getElementsByTagName(name)
+      if not et:
+        et = microdom.MicroDom({"tag_":name},[],[])
+        etType.addChild(et)
+      else: 
+        assert(len(et)==1)
+        et = et[0]
+
+      et.update(e.instanceLocked)
 
   def xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
@@ -269,22 +296,32 @@ def Test():
       print module.tag_, ": ", module.data_
   print m.entityTypes.keys()
 
-  #1. Build flatten entity instance => entityType_Name
-  flatten = {}
-  for ent in m.entities:
-    entityType = "%s/%s" % (m.entities[ent].et.name, ent)
-    flatten[entityType] = m.entities[ent]
-
+  #1. Build flatten entity instance
   #2. Build relation ship between instances
   for (path, obj) in m.data.find("instances"):
-    for entityType in flatten.keys():
+    fileEntLst = {}
+    for entityType in m.entityTypes.keys():
       m.instances[entityType] = []
-      for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType.split("/")[0]) else None):
-        data = instance.children_
-        entityInstance = entity.Instance(flatten[entityType], data, pos=(0,0), size=(32,32))
-        m.instances[entityType].append(entityInstance)
-    print m.instances
-  # UnitTest(m)
+      for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
+        if instance.child_.has_key("entityType"):
+          data = instance.children_
+          ent = m.entities.get(instance.entityType.data_)
+          entityInstance = entity.Instance(ent, {}, ent.pos, ent.size, instance.name.data_)
+          entityInstance.updateDataFields(instance)
+          # Copy instance locked, then bind to readonly wxwidget
+          entityInstance.instanceLocked = ent.instanceLocked.copy()
+
+          m.instances[entityType].append(entityInstance)
+
+          fileEntLst["/%s/%s" %(entityType, instance.name.data_)] = entityInstance
+
+    #print m.instances
+    for entityId in fileEntLst:
+      print entityId
+
+    
+    # UnitTest(m)
+  # m.save()
   return m
 
 theModel = None

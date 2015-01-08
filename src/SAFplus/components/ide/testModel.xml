@@ -234,7 +234,7 @@
       <name>sc0</name>
       <operState>true</operState>
       <serviceUnits>/su0</serviceUnits>
-      <entityType>Node/Node1</entityType>
+      <entityType>Node1</entityType>
     </Node>
     <Node>
       <adminState>on</adminState>
@@ -245,7 +245,7 @@
       <name>sc1</name>
       <operState>true</operState>
       <serviceUnits>/su1</serviceUnits>
-      <entityType>Node/Node2</entityType>
+      <entityType>Node2</entityType>
     </Node>
     <ServiceUnit>
       <name>su0</name>
@@ -265,6 +265,7 @@
       <node>/sc0</node>
       <serviceGroup>sg0</serviceGroup>
       <probationTime>10000</probationTime>
+      <entityType>ServiceUnit1</entityType>
     </ServiceUnit>
     <ServiceUnit>
       <name>su1</name>
@@ -284,6 +285,7 @@
       <node>/sc1</node>
       <serviceGroup>sg0</serviceGroup>
       <probationTime>10000</probationTime>
+      <entityType>ServiceUnit2</entityType>
     </ServiceUnit>
     <Component>
       <capabilityModel>x_active_or_y_standby</capabilityModel>
@@ -315,6 +317,7 @@
       <safVersion>B.01.01</safVersion>
       <serviceUnit>/su0</serviceUnit>
       <swBundle>testBundle.tgz</swBundle>
+      <entityType>Component1</entityType>
     </Component>
     <Component>
       <capabilityModel>x_active_or_y_standby</capabilityModel>
@@ -346,6 +349,7 @@
       <safVersion>B.01.01</safVersion>
       <serviceUnit>/su1</serviceUnit>
       <swBundle>testBundle.tgz</swBundle>
+      <entityType>Component3</entityType>
     </Component>
     <ServiceGroup>
       <adminState>on</adminState>
@@ -363,7 +367,7 @@
       <serviceInstances>/ServiceInstance/si</serviceInstances>
       <serviceUnits>/su0</serviceUnits>
       <serviceUnits>/su1</serviceUnits>
-      <entityType>ServiceGroup/ServiceGroup1</entityType>
+      <entityType>ServiceGroup1</entityType>
     </ServiceGroup>
     <ServiceInstance>
       <activeAssignments>
@@ -381,7 +385,7 @@
       <standbyAssignments>
         <current>0</current>
       </standbyAssignments>
-      <entityType>ServiceInstance/ServiceInstance1</entityType>
+      <entityType>ServiceInstance1</entityType>
     </ServiceInstance>
     <ComponentServiceInstance>
       <data>
@@ -395,7 +399,37 @@
       <id>9</id>
       <name>csi</name>
       <serviceInstance>/ServiceInstance/si</serviceInstance>
-      <entityType>ComponentServiceInstance/ComponentServiceInstance2</entityType>
+      <entityType>ComponentServiceInstance2</entityType>
     </ComponentServiceInstance>
   </instances>
+  <ide>
+    <ServiceUnit>
+      <ServiceUnit1></ServiceUnit1>
+      <ServiceUnit2></ServiceUnit2>
+    </ServiceUnit>
+    <Component>
+      <Component3></Component3>
+      <Component2></Component2>
+      <Component1></Component1>
+    </Component>
+    <ServiceGroup>
+      <ServiceGroup1></ServiceGroup1>
+    </ServiceGroup>
+    <ServiceInstance>
+      <ServiceInstance1></ServiceInstance1>
+    </ServiceInstance>
+    <ComponentServiceInstance>
+      <ComponentServiceInstance1></ComponentServiceInstance1>
+      <ComponentServiceInstance2></ComponentServiceInstance2>
+      <ComponentServiceInstance3></ComponentServiceInstance3>
+    </ComponentServiceInstance>
+    <Node>
+      <Node1>
+        <failFastOnInstantiationFailure>True</failFastOnInstantiationFailure>
+        <autoRepair>False</autoRepair>
+        <adminState>False</adminState>
+      </Node1>
+      <Node2></Node2>
+    </Node>
+  </ide>
 </SAFplusModel>
