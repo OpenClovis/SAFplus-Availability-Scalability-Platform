@@ -143,6 +143,35 @@ instantiated  <instances>     instances                         instances     (e
               for ed in et[0].children(microdom.microdomFilter):
                 e.instanceLocked[str(ed.tag_)] = ed.data_
 
+    # Load instances
+    for (path, obj) in self.data.find("instances"):
+      fileEntLst = []
+      for entityType in self.entityTypes.keys():
+        for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
+          if instance.child_.has_key("entityType"):
+            data = instance.children_
+            ent = self.entities.get(instance.entityType.data_)
+            entityInstance = entity.Instance(ent, data, ent.pos, ent.size, instance.name.data_)
+
+            entityInstance.updateDataFields(instance)
+
+            # Copy instance locked, then bind to readonly wxwidget
+            entityInstance.instanceLocked = ent.instanceLocked.copy()
+            self.instances[instance.name.data_] = entityInstance
+            
+            fileEntLst.append((instance,entityInstance))
+
+      for (ed,eo) in fileEntLst:
+        for et in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
+          child = et[0][0].lower() + et[0][1:] + 's'
+          for ch in ed.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == child) else None):
+            # Strip out instance-identifier if any
+            childName = str(ch.data_).replace("/%s" %et[0],"")
+            ent2 = self.instances[childName[1:]]
+            ca = entity.ContainmentArrow(eo,(0,0),ent2,(0,0),[])
+            eo.containmentArrows.append(ca)
+
+
   def makeUpAScreenPosition(self):
     return (random.randint(0,800),random.randint(0,800))
 
@@ -315,9 +344,6 @@ def Test():
 
           fileEntLst["/%s/%s" %(entityType, instance.name.data_)] = entityInstance
 
-    #print m.instances
-    for entityId in fileEntLst:
-      print entityId
 
     
     # UnitTest(m)

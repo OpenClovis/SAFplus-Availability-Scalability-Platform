@@ -64,6 +64,15 @@ def lineVector(a,b):
   ret = (ret[0]/length, ret[1]/length)
   return ret
 
+def convertToRealPos(pos, scale):
+  if pos == None: return pos
+  if isinstance(pos, wx.Point):
+    return wx.Point(round(pos.x/scale), round(pos.y/scale))
+  elif isinstance(pos, tuple):
+    return map(lambda x: convertToRealPos(x, scale), pos)
+  else:
+    return round(pos/scale)
+
 def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
       if type(cust) is DictType: cust = dot.Dot(cust)
       if not middlePos:
@@ -344,6 +353,9 @@ class Tool:
     """Some kind of event happened in the editor space that this tool may want to handle"""
     return False
 
+  def render(self,ctx):
+    pass
+
 class EntityTool(Tool):
   def __init__(self, panel,entity):
     self.entity = entity
@@ -370,6 +382,8 @@ class EntityTool(Tool):
         ret = True
       elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
         rect = self.box.finish(panel,pos)
+        # Real point rectangle
+        rect = convertToRealPos(rect, panel.scale[0])
         size = (rect[2]-rect[0],rect[3]-rect[1])
         if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
           size = None
@@ -414,7 +428,7 @@ class LinkTool(Tool):
 
       elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
         if self.startEntity:
-          line = self.line.finish(panel,pos)
+          line = convertToRealPos(self.line.finish(panel,pos), panel.scale)
           entities = panel.findEntitiesAt(pos)
           if len(entities) != 1:
             panel.statusBar.SetStatusText("You must choose a single ending entity!",0);
@@ -460,7 +474,14 @@ class SelectTool(Tool):
     pass
 
   def render(self,ctx):
-    pass
+    # Draw mini rectangle at left right top bottom corner
+    if self.selected:
+      for e in self.selected:
+        pos = (e.pos[0] * share.umlEditorPanel.scale,e.pos[1] * share.umlEditorPanel.scale) 
+        ctx.set_line_width(2)
+        ctx.rectangle(pos[0], pos[1], 10,10)
+        ctx.set_source_rgba(0, 0, 1, 1)
+        ctx.fill()
 
   def OnEditEvent(self,panel, event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
@@ -516,6 +537,20 @@ class SelectTool(Tool):
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
         entity = panel.findEntitiesAt(pos)
         if not entity: return False
+    if isinstance(event,wx.KeyEvent):
+      
+      if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
+        if self.touching:
+          self.panel.model.delete(self.touching)
+          self.touching.clear()
+        elif self.selected:
+          self.panel.model.delete(self.selected)
+          self.selected.clear()
+        panel.Refresh()
+        return True # I consumed this event
+      else:
+        return False # Give this key to someone else
+
     self.updateSelected()
   
   def updateSelected(self):
@@ -547,8 +582,8 @@ class ZoomTool(Tool):
 
   def OnEditEvent(self,panel, event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    scale = self.scale
     if isinstance(event, wx.MouseEvent):
-      scale = self.scale
       if event.ButtonDown(wx.MOUSE_BTN_LEFT) or event.ButtonDown(wx.MOUSE_BTN_RIGHT):  # Select
         self.boxSel.start(panel,pos)
       elif event.Dragging():
@@ -562,7 +597,7 @@ class ZoomTool(Tool):
         pos[1] = rect[1] + delta[1]/2
 
         if (self.scale + self.scaleRange) < self.maxScale:
-          scale = self.scale + self.scaleRange
+          scale += self.scaleRange
 
       elif event.ButtonUp(wx.MOUSE_BTN_RIGHT):
         rect = self.boxSel.finish(panel,pos)
@@ -572,24 +607,35 @@ class ZoomTool(Tool):
         pos[1] = rect[1] + delta[1]/2
 
         if (self.scale - self.scaleRange) > self.minScale:
-          scale = self.scale - self.scaleRange
+          scale -= self.scaleRange
 
-      self.SetScale(scale, pos)
+      elif event.ControlDown(): 
+        if event.GetWheelRotation() > 0:
+          if (self.scale + self.scaleRange) < self.maxScale:
+            scale += self.scaleRange
+        elif event.GetWheelRotation() < 0:
+          if (self.scale - self.scaleRange) > self.minScale:
+            scale -= self.scaleRange
 
-      # TODO: 
-      # '-' => Zoom out center
-      # '+' => Zoom in center
-      # 'Ctrl + 0' => Reset
+    if isinstance(event, wx.KeyEvent):
+      if event.ControlDown(): 
+        if event.GetKeyCode() == wx.WXK_NUMPAD_ADD:
+          if (self.scale + self.scaleRange) < self.maxScale:
+            scale += self.scaleRange
+        elif event.GetKeyCode() == wx.WXK_NUMPAD_SUBTRACT:
+          if (self.scale - self.scaleRange) > self.minScale:
+            scale -= self.scaleRange
+        elif event.GetKeyCode() == wx.WXK_NUMPAD0:
+          scale = 1
 
+    self.SetScale(scale, pos)
 
   def SetScale(self, scale, pos):
     if scale != self.scale:
       self.scale = scale
 
-      # Update scale for entities
-      for (name,e) in self.panel.entities.items():
-        e.scale = (self.scale, self.scale)
-
+      # Update scale for panel
+      self.panel.scale = self.scale
       self.panel.Refresh()
 
       # TODO: scroll wrong??? 
@@ -611,6 +657,8 @@ class Panel(scrolled.ScrolledPanel):
         if m.et.name == "ServiceGroup":
           m.customInstantiator = lambda entity,pos,size,children,pnl=self: pnl.sgInstantiator(entity, pos,size,children)
 
+      share.umlEditorPanel = self
+
       self.SetupScrolling(True, True)
       self.SetScrollRate(10, 10)
       self.Bind(wx.EVT_SIZE, self.OnReSize)
@@ -627,12 +675,13 @@ class Panel(scrolled.ScrolledPanel):
       # The position of the panel's viewport within the larger drawing
       self.location = (0,0)
       self.rotate = 0.0
-      self.scale = (1.0,1.0)
+      self.scale = 1.0
 
       # Buttons and other IDs that are registered may need to be looked up to turn the ID back into a python object
       self.idLookup={}  
 
       # Ordering of instances in the GUI display, from the upper left
+      self.entities = self.model.instances
       self.columns = []
       self.rows = []
 
@@ -785,9 +834,9 @@ class Panel(scrolled.ScrolledPanel):
         first = elst[0]
         for (name,e) in elst:
           if e == first:
-            virtRct = wx.Rect(e.pos[0], e.pos[1], e.size[0]*e.scale[0], e.size[1]*e.scale[1])
+            virtRct = wx.Rect(e.pos[0]*self.scale, e.pos[1]*self.scale, e.size[0]*e.scale[0]*self.scale, e.size[1]*e.scale[1]*self.scale)
           else:
-            virtRct.Union(wx.Rect(e.pos[0], e.pos[1], e.size[0]*e.scale[0], e.size[1]*e.scale[1]))
+            virtRct.Union(wx.Rect(e.pos[0]*self.scale, e.pos[1]*self.scale, e.size[0]*e.scale[0]*self.scale, e.size[1]*e.scale[1]*self.scale))
       return virtRct
  
     def UpdateVirtualSize(self, dc):
@@ -828,7 +877,7 @@ class Panel(scrolled.ScrolledPanel):
         # First position the screen's view port into the larger document
         ctx.translate(*self.location)
         ctx.rotate(self.rotate)
-        ctx.scale(*self.scale)
+        ctx.scale(self.scale, self.scale)
         # Now draw the links
         # Now draw the entites
 
@@ -847,9 +896,14 @@ class Panel(scrolled.ScrolledPanel):
         for e in self.drawers:
           e.render(ctx)
 
+        for idx in self.idLookup:
+          self.idLookup[idx].render(ctx)
+
     def findEntitiesAt(self,pos):
       """Returns the entity located at the passed position """
       # TODO handle the viewscope's translation, rotation, scaling
+      # Real pos
+      pos = convertToRealPos(pos, self.scale)
       ret = set()
       for (name, e) in self.entities.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
@@ -861,6 +915,8 @@ class Panel(scrolled.ScrolledPanel):
     def findEntitiesTouching(self,rect):
       """Returns all entities touching the passed rectangle """
       # TODO handle the viewscope's translation, rotation, scaling
+      # Real rectangle
+      rect = convertToRealPos(rect, self.scale)
       ret = set()
       for (name, e) in self.entities.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
