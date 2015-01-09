@@ -27,7 +27,6 @@ namespace SAFplusAmf
   Node* createNode(const char* nam, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool failFastOnInstantiationFailure, bool failFastOnCleanupFailure)
     {
     Node* ret = new Node(nam);
-    ret->tag = nam; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
     ret->id = getAmfId();
     ret->adminState.value = adminState;
     ret->autoRepair = autoRepair;
@@ -42,7 +41,6 @@ namespace SAFplusAmf
   ServiceGroup* createServiceGroup(const char* nam, const SAFplusAmf::AdministrativeState& adminState, bool autoRepair, bool autoAdjust, SaTimeT autoAdjustInterval,unsigned int preferredNumActiveServiceUnits,unsigned int preferredNumStandbyServiceUnits,unsigned int preferredNumIdleServiceUnits,unsigned int maxActiveWorkAssignments,unsigned int maxStandbyWorkAssignments )
     {
     ServiceGroup* ret = new ServiceGroup(nam);
-    ret->tag = nam; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
     ret->id                              = getAmfId();
     ret->adminState.value                = adminState;
     ret->autoRepair                      = autoRepair;
@@ -61,7 +59,6 @@ namespace SAFplusAmf
   ServiceInstance* createServiceInstance(const char* nam, const SAFplusAmf::AdministrativeState& adminState, int rank,int actives=1, int standbys=1)
     {
     ServiceInstance* ret = new ServiceInstance(nam);
-    ret->tag = nam; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
     ret->id                              = getAmfId();
     ret->adminState.value                = adminState;
     ret->rank                            = rank;
@@ -75,7 +72,6 @@ namespace SAFplusAmf
   ComponentServiceInstance* createComponentServiceInstance(const char* nam)
     {
     ComponentServiceInstance* ret = new ComponentServiceInstance(nam);
-    ret->tag = nam; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
     ret->id                              = getAmfId();
     return ret;
     }
@@ -84,7 +80,6 @@ namespace SAFplusAmf
   ServiceUnit* createServiceUnit(const char* nam, const SAFplusAmf::AdministrativeState& adminState, int rank, bool failover)
     {
     ServiceUnit* ret = new ServiceUnit(nam);
-    ret->tag = nam; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
     ret->id                              = getAmfId();
     ret->adminState.value                = adminState;
     ret->rank                            = rank;
@@ -104,7 +99,6 @@ namespace SAFplusAmf
   Component* createComponent(const char* nam, SAFplusAmf::CapabilityModel capabilityModel,unsigned int maxActiveAssignments,unsigned int maxStandbyAssignments,std::string safVersion, unsigned int compCategory,const std::string& swBundle,const std::string& env,unsigned int maxInstantInstantiations,unsigned int maxDelayedInstantiations,unsigned int delayBetweenInstantiation,SAFplusAmf::Recovery recovery,bool restartable,const std::string& proxy,const std::string& proxied)
     {
     Component* ret = new Component(nam);
-    ret->tag = nam; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
     ret->id = getAmfId();
     ret->capabilityModel = capabilityModel;
     ret->maxActiveAssignments = maxActiveAssignments;
@@ -168,21 +162,19 @@ namespace SAFplusAmf
     csi = createComponentServiceInstance("csi");
 
     Data* nvp = new Data("testKey");
-    nvp->tag = "testKey"; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
     nvp->val.value = "testValue";
-    csi->dataList.addChildObject(nvp);
+    csi->dataList.addChildObject(nvp, nvp->name);
 
     nvp = new Data("testKey2");
-    nvp->tag = "testKey2"; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
     nvp->val.value = "testValue2";
-    csi->dataList.addChildObject(nvp);
+    csi->dataList.addChildObject(nvp, nvp->name);
 
     // Put the elements in their type-lookup arrays
-    self->nodeList.addChildObject(node[0]);
-    self->serviceGroupList.addChildObject(sg);
-    self->componentList.addChildObject(comp[0]);
-    self->serviceInstanceList.addChildObject(si);
-    self->componentServiceInstanceList.addChildObject(csi);
+    self->nodeList.addChildObject(node[0], node[0]->name);
+    self->serviceGroupList.addChildObject(sg, sg->name);
+    self->componentList.addChildObject(comp[0], comp[0]->name);
+    self->serviceInstanceList.addChildObject(si, si->name);
+    self->componentServiceInstanceList.addChildObject(csi, csi->name);
 
     // Connect the elements
     node[0]->serviceUnits.value.push_back(su[0]);
@@ -199,9 +191,8 @@ namespace SAFplusAmf
 
 #if 1
     // Handle the secondary elements
-    self->nodeList.addChildObject(node[1]);
-    self->componentList.addChildObject(comp[1]);
-    //self->componentServiceInstanceList.addChildObject(csi);
+    self->nodeList.addChildObject(node[1], node[1]->name);
+    self->componentList.addChildObject(comp[1], comp[1]->name);
     // connect the secondary elements
     node[1]->serviceUnits.value.push_back(su[1]);
     sg->serviceUnits.value.push_back(su[1]);
@@ -430,7 +421,6 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         Cluster* cluster = new Cluster(keyValue);
-        cluster->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
         cluster->id = getAmfId();
 
         std::string dataXPath = (*it).substr(0, found);
@@ -466,7 +456,6 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         Node* node = new Node(keyValue);
-        node->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
         node->id = getAmfId();
         node->operState.value = true;  // created ready to run...
 
@@ -503,7 +492,6 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         ServiceGroup* sg = new ServiceGroup(keyValue);
-        sg->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
         sg->id  = getAmfId();
 
         std::string dataXPath = (*it).substr(0, found);
@@ -539,7 +527,6 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         ServiceUnit* su = new ServiceUnit(keyValue);
-        su->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
         su->id                = getAmfId();
         su->preinstantiable   = true;
         su->haReadinessState  = HighAvailabilityReadinessState::notReadyForAssignment;
@@ -581,7 +568,6 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         ServiceInstance* si = new ServiceInstance(keyValue);
-        si->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
         si->id  = getAmfId();
         si->addStandbyAssignments(new StandbyAssignments());
         si->addActiveAssignments(new ActiveAssignments());
@@ -621,7 +607,6 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         Component* comp = new Component(keyValue);
-        comp->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
         comp->id = getAmfId();
         comp->operState.value = true;  // created ready to run...
         comp->numInstantiationAttempts.value = 0;
@@ -661,7 +646,6 @@ namespace SAFplusAmf
         db->getRecord(*it, keyValue);
 
         ComponentServiceInstance* csi = new ComponentServiceInstance(keyValue);
-        csi->tag = keyValue; // TBD: ctor should set or modify class MgtList<std::string> to be able remove this line
         csi->id  = getAmfId();
 
         std::string dataXPath = (*it).substr(0, found);
@@ -704,7 +688,6 @@ namespace SAFplusAmf
           db->getRecord(*it, keyValue);
 
           Data* data = new Data(keyValue);
-          data->tag = keyValue;
 
           std::string dataXPath = (*it).substr(0, found);
 

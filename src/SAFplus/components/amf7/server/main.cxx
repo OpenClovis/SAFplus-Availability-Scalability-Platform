@@ -529,7 +529,6 @@ int main(int argc, char* argv[])
 
   // TEMPORARY testing initialization
   loadAmfConfig(&cfg);
-  setAdminState((SAFplusAmf::ServiceGroup*) cfg.serviceGroupList["sg0"],AdministrativeState::on);
 
   logServer = boost::thread(LogServer());
 
