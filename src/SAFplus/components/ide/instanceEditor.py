@@ -383,7 +383,7 @@ class EntityTool(Tool):
       elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
         rect = self.box.finish(panel,pos)
         # Real point rectangle
-        rect = convertToRealPos(rect, panel.scale[0])
+        rect = convertToRealPos(rect, panel.scale)
         size = (rect[2]-rect[0],rect[3]-rect[1])
         if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
           size = None
@@ -477,7 +477,7 @@ class SelectTool(Tool):
     # Draw mini rectangle at left right top bottom corner
     if self.selected:
       for e in self.selected:
-        pos = (e.pos[0] * share.umlEditorPanel.scale,e.pos[1] * share.umlEditorPanel.scale) 
+        pos = (e.pos[0] * self.panel.scale,e.pos[1] * self.panel.scale) 
         ctx.set_line_width(2)
         ctx.rectangle(pos[0], pos[1], 10,10)
         ctx.set_source_rgba(0, 0, 1, 1)
@@ -657,8 +657,6 @@ class Panel(scrolled.ScrolledPanel):
         if m.et.name == "ServiceGroup":
           m.customInstantiator = lambda entity,pos,size,children,pnl=self: pnl.sgInstantiator(entity, pos,size,children)
 
-      share.umlEditorPanel = self
-
       self.SetupScrolling(True, True)
       self.SetScrollRate(10, 10)
       self.Bind(wx.EVT_SIZE, self.OnReSize)
@@ -681,7 +679,6 @@ class Panel(scrolled.ScrolledPanel):
       self.idLookup={}  
 
       # Ordering of instances in the GUI display, from the upper left
-      self.entities = self.model.instances
       self.columns = []
       self.rows = []
 
@@ -905,7 +902,7 @@ class Panel(scrolled.ScrolledPanel):
       # Real pos
       pos = convertToRealPos(pos, self.scale)
       ret = set()
-      for (name, e) in self.entities.items():
+      for (name, e) in self.model.instances.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         #print e.data["name"], ": ", pos, " inside: ", e.pos, " to ", furthest
         if pos[0] >= e.pos[0] and pos[1] >= e.pos[1] and pos[0] <= furthest[0] and pos[1] <= furthest[1]:  # mouse is in the box formed by the entity
@@ -918,7 +915,7 @@ class Panel(scrolled.ScrolledPanel):
       # Real rectangle
       rect = convertToRealPos(rect, self.scale)
       ret = set()
-      for (name, e) in self.entities.items():
+      for (name, e) in self.model.instances.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)

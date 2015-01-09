@@ -90,12 +90,17 @@ class Panel(scrolled.ScrolledPanel):
         name = obj[0][0]
         query = obj[2]
         proposedValue = query.GetValue()
-        if self.dataValidate(proposedValue, obj[0]):
-          self.entity.data["name"] = proposedValue
-        else:
+        if not self.dataValidate(proposedValue, obj[0]):
           # TODO: Print a big red warning in the error area
           pass
         # TODO: model consistency check -- test the validity of the whole model given this change
+        else:
+          # TODO: handle only dirty (actually value changed) entity
+          share.umlEditorPanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
+
+      else:
+        # Notify name change to umlEditor to validate and render
+        share.umlEditorPanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
 
     def OnButtonClick(self,event):
       id = event.GetId()

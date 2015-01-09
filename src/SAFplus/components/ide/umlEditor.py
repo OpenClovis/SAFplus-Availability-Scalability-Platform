@@ -376,7 +376,7 @@ class EntityTypeTool(Tool):
       elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
         rect = self.box.finish(panel,pos)
         # Real point rectangle
-        rect = convertToRealPos(rect, panel.scale[0])
+        rect = convertToRealPos(rect, panel.scale)
         size = (rect[2]-rect[0],rect[3]-rect[1])
         if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
           size = None
