@@ -138,6 +138,44 @@ void FaultSharedMem::removeAll()
 	}
 }
 
+void FaultSharedMem::getAllFaultClient(char* buf, ClWordT bufSize)
+{
+	SAFplus::FaultShmHashMap::iterator i;
+	if(!faultMap)
+	{
+		return;
+	}
+	ScopedLock<Mutex> lock(faultMutex);
+	for (i=faultMap->begin(); i!=faultMap->end();i++)
+	{
+	    Buffer* key = (Buffer*)(&(i->first));
+        Buffer* val = (Buffer*)(&(i->second));
+        int dataSize = key->objectSize() + val->objectSize();
+        assert(bufSize + key->objectSize() < MAX_FAULT_BUFFER_SIZE);
+        memcpy(&buf[bufSize],(void*) key, key->objectSize());
+        bufSize += key->objectSize();
+
+        assert(bufSize + val->objectSize() < MAX_FAULT_BUFFER_SIZE);
+        memcpy(&buf[bufSize],(void*) val, val->objectSize());
+        bufSize += val->objectSize();
+	}
+}
+
+void FaultSharedMem::applyFaultSync(char* buf, ClWordT bufSize)
+{
+	int curpos = 0;
+	int count = 0;
+	while (curpos < bufSize)
+	{
+	    count++;
+	    Buffer* key = (Buffer*) (((char*)buf)+curpos);
+	    curpos += sizeof(Buffer) + key->len() - 1;
+	    Buffer* val = (Buffer*) (((char*)buf)+curpos);
+	    curpos += sizeof(Buffer) + val->len() - 1;
+	    createFault((FaultShmEntry*)val, *(Handle*)key);
+	}
+}
+
 };
 
 

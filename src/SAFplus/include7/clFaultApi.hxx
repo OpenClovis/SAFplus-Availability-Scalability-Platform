@@ -190,13 +190,14 @@ public:
     FaultGroupData faultInfo;
     // fault event logging
     SAFplus::FaultStatistic faultHistory;
-    //fault communication port not use bow
+    //fault communication port (should be remove)
     int faultCommunicationPort;
     //group change
     int changeCount;
     //init fault server
     SAFplus::Fault faultClient;
     SAFplus::Mutex  faultServerMutex;
+    //SAFplus::Checkpoint faultCheckpoint;
     void init();
     // reporter fault event message
     virtual void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
@@ -225,6 +226,8 @@ public:
     //broadcast fault entity leave event to all other fault server in group
     void sendFaultLeaveMessage(SAFplus::Handle handle);
 	void wake(int amt,void* cookie=NULL);
+	void sendFaultSyncRequest(ClIocAddress activeAddress);
+	void sendFaultSyncReply(ClIocAddress address);
     //get status of one fault Entity
     SAFplus::FaultState getFaultState(SAFplus::Handle faultHandle);
 
