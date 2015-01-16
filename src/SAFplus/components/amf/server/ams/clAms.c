@@ -35,6 +35,10 @@
  * Include files needed to compile this file
  *****************************************************************************/
 
+// if defined, a thread is created that compares TIPC nodes with AMF registered nodes and resets
+// nodes that have connected to TIPC but not AMF.
+#define CLUSTER_STATE_VERIFIER
+
 #define __SERVER__
 #include <clAms.h>
 #include <clAmsPolicyEngine.h>
@@ -71,7 +75,9 @@
 ClAmsT  gAms;
 
 ClBoolT gAmsDBRead = CL_FALSE;
+#ifdef CLUSTER_STATE_VERIFIER
 ClOsalTaskIdT gClusterStateVerifierTask;
+#endif
 ClCpmAmsToCpmCallT *gAmsToCpmCallbackFuncs = NULL;
 
 /* When system controller node is going down, "gCpmShuttingDown"  variable stops payloads coming up and it is added
@@ -301,6 +307,7 @@ ClBoolT clAmsHasNodeJoined(const ClCharT *pNodeName)
     return CL_FALSE;
 }
 
+#ifdef CLUSTER_STATE_VERIFIER
 static void *clAmsClusterStateVerifier(void *cookie)
 {
     ClRcT rc;
@@ -384,6 +391,7 @@ static void *clAmsClusterStateVerifier(void *cookie)
     
     return NULL;
 }
+#endif
 
 ClRcT
 clAmsStart(
@@ -556,9 +564,12 @@ clAmsStart(
 
     }
 
-    clEoRefInc(gpClCpm->cpmEoObj);    
+    clEoRefInc(gpClCpm->cpmEoObj);
+
+#ifdef CLUSTER_STATE_VERIFIER    
     /* Instantiate cluster state verifier */
     clOsalTaskCreateAttached("cluster state verifier", CL_OSAL_SCHED_OTHER, CL_OSAL_THREAD_PRI_NOT_APPLICABLE, 0, clAmsClusterStateVerifier, NULL,&gClusterStateVerifierTask);
+#endif    
     return CL_OK;
 }
 
@@ -601,13 +612,13 @@ clAmsFinalize(
     // Setting the flags and sending the broadcast must happen atomically so that it either happens when
     // the cluster state verifier is waiting for the cond, or outside of the test + wait entirely.
     clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
-    gCpmShuttingDown = CL_TRUE;
+    gCpmShuttingDown = CL_TRUE;    
     gpClCpm->polling = CL_FALSE;                       // kick the verifier out of its loop
     clOsalCondBroadcast(&gpClCpm->cpmEoObj->eoCond);  // Wake up the cluster state verifier (and anybody else that needs to be quitting)
     clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
-     
+#ifdef CLUSTER_STATE_VERIFIER     
     clOsalTaskJoin(gClusterStateVerifierTask);        // wait until the thread is done before shutting down the rest & removing variables
-    
+#endif    
     clAmsEntityTriggerFinalize();
 
     clAmsEntityUserDataFinalize();
