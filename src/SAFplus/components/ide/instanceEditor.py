@@ -465,6 +465,7 @@ class SelectTool(Tool):
     self.rect = None       # Will be something if a rectangle selection is being used
     #self.downPos = None    # Where the left mouse button was pressed
     self.boxSel = BoxGesture()
+    self.rectBmp = svg.SvgFile("rect.svg").instantiate((24,24), {})
 
   def OnSelect(self, panel,event):
     panel.statusBar.SetStatusText(self.defaultStatusText,0);
@@ -475,13 +476,9 @@ class SelectTool(Tool):
 
   def render(self,ctx):
     # Draw mini rectangle at left right top bottom corner
-    if self.selected:
+    if len(self.selected) > 0:
       for e in self.selected:
-        pos = (e.pos[0] * self.panel.scale,e.pos[1] * self.panel.scale) 
-        ctx.set_line_width(2)
-        ctx.rectangle(pos[0], pos[1], 10,10)
-        ctx.set_source_rgba(0, 0, 1, 1)
-        ctx.fill()
+        svg.blit(ctx,self.rectBmp,e.pos,e.scale,e.rotate)
 
   def OnEditEvent(self,panel, event):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
@@ -541,10 +538,10 @@ class SelectTool(Tool):
       
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
         if self.touching:
-          self.panel.model.delete(self.touching)
+          self.deleteEntities(self.touching)
           self.touching.clear()
         elif self.selected:
-          self.panel.model.delete(self.selected)
+          self.deleteEntities(self.selected)
           self.selected.clear()
         panel.Refresh()
         return True # I consumed this event
@@ -557,6 +554,28 @@ class SelectTool(Tool):
     if len(self.selected) == 1:
       if share.detailsPanel:
         share.detailsPanel.showEntity(next(iter(self.selected)))
+
+  def deleteEntities(self, ents):
+    #remove columns/rows
+    for ent in ents:
+      try:
+        self.panel.columns.remove(ent);
+      except:
+        pass
+      
+      try:
+        self.panel.rows.remove(ent);
+      except:
+        pass
+
+      # Remove instance
+      for (k,v) in self.panel.model.instances.items():
+        if v == ent:
+          del self.panel.model.instances[k]
+          break
+
+    self.panel.layout()
+    self.panel.Refresh(False)
 
 class ZoomTool(Tool):
   def __init__(self, panel):
@@ -729,6 +748,7 @@ class Panel(scrolled.ScrolledPanel):
       return ret      
 
     def OnReSize(self, event):
+      self.layout()
       self.Refresh(False)
       event.Skip()
     
@@ -752,7 +772,7 @@ class Panel(scrolled.ScrolledPanel):
           bitmap = buttonSvg.bmp(tsize, { "name":e[0] }, (222,222,222,wx.ALPHA_OPAQUE))  # Use the first 3 letters of the name as the button text if nothing
           shortHelp = e[1].data.get("shortHelp",et.data.get("help",None)) 
           longHelp = e[1].data.get("help",et.data.get("help",None))
-          self.toolBar.AddLabelTool(buttonIdx, e[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
+          self.toolBar.AddRadioLabelTool(buttonIdx, e[0], bitmap, shortHelp=shortHelp, longHelp=longHelp)
           #self.toolBar.AddRadioTool(buttonIdx, bitmap, wx.NullBitmap, shortHelp=et[0], longHelp=longHelp,clientData=et)
           self.idLookup[buttonIdx] = EntityTool(self,e[1])  # register this button so when its clicked we know about it
           buttonIdx+=1

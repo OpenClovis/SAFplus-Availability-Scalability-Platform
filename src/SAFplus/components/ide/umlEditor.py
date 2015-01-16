@@ -25,6 +25,8 @@ ZOOM_BUTTON = 99
 CONNECT_BUTTON = 98
 SELECT_BUTTON = 97
 
+SAVE_BUTTON = 5003
+
 PI = 3.141592636
 
 linkNormalLook = dot.Dot({ "color":(0,0,.8,.75), "lineThickness": 4, "buttonRadius": 6, "arrowLength":15, "arrowAngle": PI/8 })
@@ -658,6 +660,19 @@ class ZoomTool(Tool):
       image = image.Scale(width, height, wx.IMAGE_QUALITY_HIGH)
       return image
 
+class SaveTool(Tool):
+  def __init__(self, panel):
+    self.panel = panel
+  
+  def OnSelect(self, panel,event):
+    dlg = wx.FileDialog(panel, "Save model as...", os.getcwd(), style=wx.SAVE | wx.OVERWRITE_PROMPT, wildcard="*.xml")
+    if dlg.ShowModal() == wx.ID_OK:
+      filename = dlg.GetPath()
+      self.panel.model.save(filename)
+      print self.panel.GetParent().GetParent()
+      # TODO: Notify (IPC) to GUI instances to change
+    return False
+
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgUep = None
@@ -719,6 +734,8 @@ class Panel(scrolled.ScrolledPanel):
       bitmap = svg.SvgFile("zoom.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
       self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
+
+      self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
       # Add the custom entity creation tools as specified by the model's YANG
       self.addEntityTools()
