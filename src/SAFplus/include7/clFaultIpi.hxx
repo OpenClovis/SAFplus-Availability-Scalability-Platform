@@ -23,6 +23,8 @@
 
 namespace SAFplusI
 {
+#define MAX_FAULT_BUFFER_SIZE 1024*1024
+
 	enum class FaultMessageTypeT
 	{
 		MSG_ENTITY_JOIN = 1,     // the entity joins
@@ -31,6 +33,8 @@ namespace SAFplusI
 		MSG_ENTITY_JOIN_BROADCAST,  // broadcast entity join
 		MSG_ENTITY_LEAVE_BROADCAST,  // broadcast entity leave
 		MSG_ENTITY_FAULT_BROADCAST,   // broadcast fault event
+		MSG_FAULT_SYNC_REQUEST,   // sync request  from fault server to master fault server
+		MSG_FAULT_SYNC_REPLY,   // fault entity information from fault server master to fault server
 		MSG_UNDEFINED
 	};
 
@@ -44,7 +48,7 @@ namespace SAFplusI
 	/**
      * The type of an identifier to the specific problem of the alarm.
      * This information is not configured but is assigned a value at run-time
-     * for segregation of alarms that have the same \e category and probable cause
+     * for segregation of alarms that have the same \e category and probabcole cause
      * but are different in their manifestation.
      */
     typedef int AlarmSpecificProblemT;
@@ -587,6 +591,7 @@ namespace SAFplus
         FaultEventData data;
         SAFplus::Handle       reporter;
         SAFplus::Handle       faultEntity;
+        char                  syncData[1];
         FaultMessageProtocol()
         {
     		messageType=SAFplusI::FaultMessageTypeT::MSG_UNDEFINED;
@@ -650,6 +655,8 @@ namespace SAFplus
         bool createFault(FaultShmEntry* frp,SAFplus::Handle fault);
         bool updateFaultHandle(FaultShmEntry* frp,SAFplus::Handle fault);
         bool updateFaultHandleState(SAFplus::FaultState state,SAFplus::Handle fault);
+        void getAllFaultClient(char* buf,ClWordT bufSize);
+        void applyFaultSync(char* buf,ClWordT bufSize);
     };
 
     class FaultGroupData

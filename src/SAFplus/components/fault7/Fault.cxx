@@ -22,6 +22,7 @@
 #include <boost/foreach.hpp>
 #include <boost/unordered_map.hpp>
 #include <clCommon.hxx>
+#include <clCustomization.hxx>
 #include <clNameApi.hxx>
 #include <clIocPortList.hxx>
 #include <clHandleApi.hxx>
@@ -55,6 +56,7 @@ namespace SAFplus
         sndMessage.faultEntity=other;
         sndMessage.data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
+        sndMessage.syncData[0]=0;
         if (other == INVALID_HDL)
         {
         	logDebug("FLT","FLT","sendFaultAnnounceMessage with node[%d] , process [%d] , message type [%d]", reporter.getNode(), reporter.getProcess(),sndMessage.messageType);
@@ -79,6 +81,7 @@ namespace SAFplus
         sndMessage.faultEntity=faultEntity;
         sndMessage.data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
+        sndMessage.syncData[0]=0;
         logDebug("FLT","FLT","Deregister fault entity with node id [%d] , process [%d] , message type [%d]", reporter.getNode(), reporter.getProcess(),sndMessage.messageType);
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_TO_LOCAL_SERVER);
     }
@@ -95,6 +98,7 @@ namespace SAFplus
         sndMessage.data.severity=faultData.severity;
         sndMessage.faultEntity=faultEntity;
         sndMessage.pluginId=pluginId;
+        sndMessage.syncData[0]=0;
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),FaultMessageSendMode::SEND_TO_LOCAL_SERVER);
     }
     void Fault::sendFaultEventMessage(SAFplus::Handle faultEntity,SAFplusI::FaultMessageSendMode messageMode,SAFplusI::FaultMessageTypeT msgType,SAFplusI::AlarmStateT alarmState,SAFplusI::AlarmCategoryTypeT category,SAFplusI::AlarmSeverityTypeT severity,SAFplusI::AlarmProbableCauseT cause,SAFplus::FaultPolicy pluginId)
@@ -109,6 +113,7 @@ namespace SAFplus
         sndMessage.data.severity=severity;
         sndMessage.faultEntity=faultEntity;
         sndMessage.pluginId=pluginId;
+        sndMessage.syncData[0]=0;
         sendFaultNotification((void *)&sndMessage,sizeof(FaultMessageProtocol),messageMode);
     }
     void Fault::notify(SAFplus::Handle faultEntity,SAFplusI::AlarmStateT alarmState,SAFplusI::AlarmCategoryTypeT category,SAFplusI::AlarmSeverityTypeT severity,SAFplusI::AlarmProbableCauseT cause,SAFplus::FaultPolicy pluginId)
@@ -351,6 +356,17 @@ namespace SAFplus
         SAFplus::Handle activeMember = INVALID_HDL;
         activeMember = group.getActive();
         ClIocAddress activeAddress = getAddress(activeMember);
+        if(activeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
+        {
+        	logDebug("FLT","INI","Standby fault server . Get fault information from active fault server");
+        	//faultCheckpoint.name = "safplusFault";
+        	//faultCheckpoint.init(FAULT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED, CkptDefaultSize, CkptDefaultRows,IGNORE);
+        }
+        else
+        {
+        	logDebug("FLT","INI","Active fault server . Don't need to get fault information");
+
+        }
         logDebug("FLT","INI","Fault server active address : nodeAddress [%d] - port [%d]",activeAddress.iocPhyAddress.nodeAddress,activeAddress.iocPhyAddress.portId);
         logDebug("FLT","INI","Initialize shared memory");
         fsmServer.init(activeAddress);
@@ -384,6 +400,16 @@ namespace SAFplus
         SAFplus::Handle faultEntity=rxMsg->faultEntity;
         //logDebug("FLT","MSG","Received message [%s] from node [%d] and state [%s]",strFaultMsgType[int(msgType)-1],from.iocPhyAddress.nodeAddress,strFaultEntityState[int(faultState)]);
         FaultShmHashMap::iterator entryPtr;
+        if(msgType==SAFplusI::FaultMessageTypeT::MSG_FAULT_SYNC_REQUEST)
+        {
+        	sendFaultSyncReply(from);
+        	return;
+        }
+        else if(msgType==SAFplusI::FaultMessageTypeT::MSG_FAULT_SYNC_REPLY)
+        {
+        	ClWordT len = msglen - sizeof(FaultMessageProtocol) - 1;
+        	fsmServer.applyFaultSync((char *)(rxMsg->syncData),len);
+        }
         if(faultEntity==INVALID_HDL)
         {
         	logDebug("FLT","MSG","Receive Fault message with process id [%d]",reporterHandle.getProcess());
@@ -484,6 +510,7 @@ namespace SAFplus
                     	sndMessage.data.severity=eventData.severity;
                     	sndMessage.faultEntity=faultEntity;
                     	sndMessage.pluginId=pluginId;
+                    	sndMessage.syncData[0]=0;
                     	sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
                         int i;
                         for(i=0;i<faultHistory.history10min.value.size();i++)
@@ -566,6 +593,39 @@ namespace SAFplus
             break;
         }
     }
+
+	void FaultServer::sendFaultSyncRequest(ClIocAddress activeAddress)
+	{
+		// send sync request to master fault server
+    	logDebug("FLT","FLT","Sending sync requst message to server");
+        FaultMessageProtocol sndMessage;
+        sndMessage.reporter = INVALID_HDL;
+        sndMessage.messageType = FaultMessageTypeT::MSG_FAULT_SYNC_REQUEST;
+        sndMessage.state = FaultState::STATE_UNDEFINED;
+        sndMessage.faultEntity=INVALID_HDL;
+        sndMessage.data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
+        sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
+        sndMessage.syncData[0]=0;
+        sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
+	}
+
+	void FaultServer::sendFaultSyncReply(ClIocAddress address)
+	{
+		// send sync reply  to standby fault server
+		long bufferSize=0;
+		char* buf = new char[MAX_FAULT_BUFFER_SIZE];
+		fsmServer.getAllFaultClient(buf,bufferSize);
+		char msgPayload[sizeof(FaultMessageProtocol)-1 + bufferSize];
+		FaultMessageProtocol *sndMessage = (FaultMessageProtocol *)&msgPayload;
+		sndMessage->reporter = INVALID_HDL;
+		sndMessage->messageType = FaultMessageTypeT::MSG_FAULT_SYNC_REPLY;
+		sndMessage->state = FaultState::STATE_UNDEFINED;
+		sndMessage->faultEntity=INVALID_HDL;
+		sndMessage->data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
+		sndMessage->pluginId=SAFplus::FaultPolicy::Undefined;
+  	    memcpy(sndMessage->syncData,(const void*) &buf,sizeof(GroupIdentity));
+  	    faultMsgServer->SendMsg(address, (void *)msgPayload, sizeof(msgPayload), SAFplusI::FAULT_MSG_TYPE);
+	}
 
     //count fault event of fault entity in latest time second
     int FaultServer::countFaultEvent(SAFplus::Handle reporter,SAFplus::Handle faultEntity,long timeInterval)
@@ -752,6 +812,7 @@ namespace SAFplus
         sndMessage.faultEntity=INVALID_HDL;
         sndMessage.data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
+        sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
 
     }
@@ -766,6 +827,7 @@ namespace SAFplus
         sndMessage.faultEntity=INVALID_HDL;
         sndMessage.data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
         sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
+        sndMessage.syncData[0]=0;
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
     }
 
