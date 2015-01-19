@@ -114,15 +114,15 @@ class Entity:
             new[name] = ""
     # self.data = new  
 
-  def createInstance(self,pos, size=None,children=False):
+  def createInstance(self,pos, size=None,children=False, name=None):
     """Create an entity of this type"""
     if not size:
       size = self.size
     if self.customInstantiator: 
-      ret = (self.customInstantiator)(self,pos,size,children)
+      ret = (self.customInstantiator)(self,pos,size,children,name=name)
     else: 
       newdata = copy.deepcopy(self.data)
-      ret = Instance(self, copy.deepcopy(self.data),pos,size)
+      ret = Instance(self,newdata,pos,size,name=name)
     return ret
  
 
@@ -136,6 +136,6 @@ class Instance(Entity):
     # How about this entityType conclude entityType and instance entity => <entityType>ComponentServiceInstance/ComponentServiceInstance2</entityType>
     # data = merge entity Type's data and this entity data
 
-   #binding entity and data, this make straight render in gui
+    #binding entity and data, this make straight render in gui
     #{entity.a : value1, entity.b: value 2}
     self.bmp  = self.entity.et.iconSvg.instantiate(self.size,self.data)

@@ -25,13 +25,13 @@ ZOOM_BUTTON = 99
 CONNECT_BUTTON = 98
 SELECT_BUTTON = 97
 
-COL_MARGIN = 150
+COL_MARGIN = 250
 COL_SPACING = 2
 COL_WIDTH = 160
 
-ROW_MARGIN = 64
+ROW_MARGIN = 100
 ROW_SPACING = 2
-ROW_WIDTH   = 80
+ROW_WIDTH   = 120
 
 PI = 3.141592636
 
@@ -132,6 +132,17 @@ def rectOverlaps(rect_a, rect_b):
     print rect_a, rect_b
     separate = rect_a[2] < rect_b[0] or rect_a[0] > rect_b[2] or rect_a[1] > rect_b[3] or rect_a[3] < rect_b[1]
     return not separate
+
+def getRectInstance(ent, scale):
+  return wx.Rect(ent.pos[0]*scale, ent.pos[1]*scale, ent.size[0]*ent.scale[0]*scale, ent.size[1]*ent.scale[1]*scale)
+
+def drawIntersectRect(ctx, rect):
+  ctx.save()
+  ctx.rectangle(rect.x +4 ,rect.y+4 , rect.width-8, rect.height-8)
+  ctx.set_line_width(4);
+  ctx.set_source_rgba(.3, .2, 0.3, .4)
+  ctx.fill()
+  ctx.restore()
 
 class Gesture:
   def __init__(self):
@@ -507,12 +518,15 @@ class SelectTool(Tool):
       if event.Dragging():
         # if you are touching anything, then drag everything
         if self.touching and self.dragPos:
+          pass
+          '''
           delta = (pos[0]-self.dragPos[0], pos[1] - self.dragPos[1])
           # TODO deal with scaling and rotation in delta
           if delta[0] != 0 and delta[1] != 0:
             for e in self.selected:
               e.pos = (e.pos[0] + delta[0], e.pos[1] + delta[1])  # move all the touching objects by the amount the mouse moved
           self.dragPos = pos
+          '''
           panel.Refresh()
         else:  # touching nothing, this is a selection rectangle
           self.boxSel.change(panel,event)
@@ -532,8 +546,15 @@ class SelectTool(Tool):
           panel.Refresh()
         
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
-        entity = panel.findEntitiesAt(pos)
-        if not entity: return False
+        entities = panel.findEntitiesAt(pos)
+        if not entities: return False
+
+        # Todo: create 
+        if len(entities) == 2:
+          diag = CreateInstancesDialog(self.panel, *entities)
+          diag.ShowModal()
+          diag.Destroy()
+
     if isinstance(event,wx.KeyEvent):
       
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
@@ -666,6 +687,37 @@ class ZoomTool(Tool):
 dbgIep = None
 
 
+class CreateInstancesDialog(wx.Dialog):
+  def __init__(self, parent, *args):
+      wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title="", pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
+      self.panel = parent
+      self.SetTitle("Create SU/SI Configuration")
+      self.InitGui()
+
+  def InitGui(self):
+      mainSizer = wx.BoxSizer(wx.VERTICAL)
+
+      boxPanel = wx.Panel(self)
+      staticBox = wx.GridBagSizer(1,2)
+      staticBox.SetFlexibleDirection(wx.HORIZONTAL | wx.VERTICAL)
+
+      boxType = wx.BoxSizer(wx.HORIZONTAL)
+      boxType.Add(wx.StaticText(boxPanel, -1, "Select types:"), flag =wx.ALIGN_CENTRE_VERTICAL)
+      boxType.Add(wx.ComboBox(boxPanel, choices=["SU","SI"]), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL)
+
+      staticBox.Add(boxType, (0,0), flag=wx.ALL | wx.EXPAND)
+
+      boxPanel.SetSizer(staticBox)
+
+      # OK & Cancel buttons
+      iconSizer = wx.BoxSizer(wx.HORIZONTAL)
+      buttons = self.CreateButtonSizer(wx.OK|wx.CANCEL)
+      iconSizer.Add(buttons)
+
+      mainSizer.Add(boxPanel, proportion=1, flag=wx.ALL | wx.EXPAND, border=5)
+      mainSizer.Add(iconSizer, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
+      self.SetSizer(mainSizer)
+
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
@@ -674,7 +726,7 @@ class Panel(scrolled.ScrolledPanel):
       self.columnTypes = ["Node"]
       for (name,m) in model.entities.items():
         if m.et.name == "ServiceGroup":
-          m.customInstantiator = lambda entity,pos,size,children,pnl=self: pnl.sgInstantiator(entity, pos,size,children)
+          m.customInstantiator = lambda entity,pos,size,children,name,pnl=self: pnl.sgInstantiator(entity, pos,size,children,name)
 
       self.SetupScrolling(True, True)
       self.SetScrollRate(10, 10)
@@ -700,6 +752,8 @@ class Panel(scrolled.ScrolledPanel):
       # Ordering of instances in the GUI display, from the upper left
       self.columns = []
       self.rows = []
+
+      self.intersects = []
 
       # Add toolbar buttons
 
@@ -740,12 +794,28 @@ class Panel(scrolled.ScrolledPanel):
       for t in toolEvents:
         self.Bind(t, self.OnToolEvent)
 
-    def sgInstantiator(self,ent,pos,size,children):
+      # Building flatten instance from model.xml
+      for (name, entInstance) in self.model.loadInstances().items():
+        """Create a new instance of this entity type at this position"""
+        placement = None
+        if entInstance.et.name in self.columnTypes:
+          placement = "column"
+        if entInstance.et.name in self.rowTypes:
+          placement = "row"
+
+        if placement:
+          self.model.instances[name] = entInstance
+          if placement == "row":
+            self.rows.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
+          if placement == "column":
+            self.columns.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
+
+    def sgInstantiator(self,ent,pos,size,children,name):
       """Custom instantiator for service groups"""
       print "CUSTOM INSTANTIATOR"
       newdata = copy.deepcopy(ent.data)
-      ret = Instance(ent, newdata,pos,size)
-      return ret      
+      ret = Instance(ent, newdata,pos,size,name=name)
+      return ret
 
     def OnReSize(self, event):
       self.layout()
@@ -817,7 +887,7 @@ class Panel(scrolled.ScrolledPanel):
         self.UpdateVirtualSize(dc)
         self.render(dc)
 
-    def CreateNewInstance(self,entity,position,size=None):
+    def CreateNewInstance(self,entity,position,size=None, name=None):
       """Create a new instance of this entity type at this position"""
       placement = None
       if entity.data["name"] in self.columnTypes or entity.et.name in self.columnTypes:
@@ -829,7 +899,7 @@ class Panel(scrolled.ScrolledPanel):
         self.statusBar.SetStatusText("Created instance of %s" % entity.data["name"],0);
         # TODO ent = self.entityType.createEntity(position, size)
         if size is None: size = (COL_WIDTH, ROW_WIDTH)  # The layout will automatically update the long size to be the width of the screen
-        inst = entity.createInstance(position, size)
+        inst = entity.createInstance(position, size, name=name)
         self.model.instances[inst.data["name"]] = inst
 
         if placement == "row":
@@ -883,8 +953,17 @@ class Panel(scrolled.ScrolledPanel):
           if size != i.size:
             i.size = size
             i.recreateBitmap()
-          y+=width+ROW_SPACING        
+          y+=width+ROW_SPACING
 
+        # Re-calculate intersect rectangle
+        del self.intersects[0:]
+        for n in self.columns:
+          nRect = getRectInstance(n, self.scale) 
+          # Get SGs
+          for sg in self.rows:
+            sgRect = getRectInstance(sg, self.scale)
+            if sgRect.Intersects(nRect):
+              self.intersects.append(sgRect.Intersect(nRect))
 
     def render(self, dc):
         """Put the entities on the screen"""
@@ -915,6 +994,9 @@ class Panel(scrolled.ScrolledPanel):
 
         for idx in self.idLookup:
           self.idLookup[idx].render(ctx)
+
+        for rect in self.intersects:
+          drawIntersectRect(ctx, rect)
 
     def findEntitiesAt(self,pos):
       """Returns the entity located at the passed position """

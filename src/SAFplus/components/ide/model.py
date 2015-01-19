@@ -143,6 +143,24 @@ instantiated  <instances>     instances                         instances     (e
               for ed in et[0].children(microdom.microdomFilter):
                 e.instanceLocked[str(ed.tag_)] = ed.data_
 
+
+  def loadInstances(self):
+    instances = {}
+    for (path, obj) in self.data.find("instances"):
+      for entityType in self.entityTypes.keys():
+        for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
+          if instance.child_.has_key("entityType"):
+            data = instance.children_
+            ent = self.entities.get(instance.entityType.data_)
+            entityInstance = entity.Instance(ent, data, (0,0), (10,10), instance.name.data_)
+  
+            entityInstance.updateDataFields(instance)
+  
+            # Copy instance locked, then bind to readonly wxwidget
+            entityInstance.instanceLocked = ent.instanceLocked.copy()
+            instances[instance.name.data_] = entityInstance
+      return instances
+
   def makeUpAScreenPosition(self):
     return (random.randint(0,800),random.randint(0,800))
 
