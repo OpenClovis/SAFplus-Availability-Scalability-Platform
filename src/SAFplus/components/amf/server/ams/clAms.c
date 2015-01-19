@@ -310,7 +310,7 @@ ClBoolT clAmsHasNodeJoined(const ClCharT *pNodeName)
 #ifdef CLUSTER_STATE_VERIFIER
 static void *clAmsClusterStateVerifier(void *cookie)
 {
-    ClRcT rc;
+    ClRcT rc = CL_OK;
     ClUint8T checkFailed[CL_IOC_MAX_NODES] = {0};
     ClTimerTimeOutT delay = {60,0};
     ClIocNodeAddressT localAddress = clIocLocalAddressGet();
@@ -368,7 +368,14 @@ static void *clAmsClusterStateVerifier(void *cookie)
 
         // testing the shutting down variable and waiting for the cond need to happen atomically.
         clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
-        if (!gCpmShuttingDown) clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
+        if (!gCpmShuttingDown)
+          {
+            rc = clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
+            if (rc == CL_OK) //reset counter since master changed
+            {
+             memset(&checkFailed, 0, sizeof(checkFailed));
+            }
+          }
         clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
        
         if (!gpClCpm)  /* Process is down! (should never happen b/c we are holding a reference) */
