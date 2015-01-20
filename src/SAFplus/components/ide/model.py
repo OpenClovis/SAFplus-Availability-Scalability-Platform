@@ -147,6 +147,7 @@ instantiated  <instances>     instances                         instances     (e
   def loadInstances(self):
     instances = {}
     for (path, obj) in self.data.find("instances"):
+      fileEntLst = []
       for entityType in self.entityTypes.keys():
         for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
           if instance.child_.has_key("entityType"):
@@ -159,7 +160,18 @@ instantiated  <instances>     instances                         instances     (e
             # Copy instance locked, then bind to readonly wxwidget
             entityInstance.instanceLocked = ent.instanceLocked.copy()
             instances[instance.name.data_] = entityInstance
-      return instances
+            fileEntLst.append((instance,entityInstance))
+
+    for (ed,eo) in fileEntLst:
+      for et in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
+        child = et[0][0].lower() + et[0][1:] + 's'
+        for ch in ed.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == child) else None):
+          # Strip out instance-identifier if any
+          childName = str(ch.data_).replace("/%s" %et[0],"")
+          ent2 = instances[childName[1:]]
+          eo.containmentArrows.append(ent2)
+
+    return instances
 
   def makeUpAScreenPosition(self):
     return (random.randint(0,800),random.randint(0,800))

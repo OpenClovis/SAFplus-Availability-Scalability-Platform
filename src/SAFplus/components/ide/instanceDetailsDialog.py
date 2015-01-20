@@ -48,10 +48,12 @@ class Panel(scrolled.ScrolledPanel):
         # for the data entry
         self.Bind(wx.EVT_TEXT, self.EvtText)
 
-        share.detailsPanel = self
+        share.instanceDetailsPanel = self
         #e = model.entities["MyServiceGroup"]
         #self.showEntity(e)
         self.SetSashPosition(10)
+        self.entityNode = None
+        self.entitySg = None
 
 
     def partialDataValidate(self, proposedPartialValue, fieldData):
@@ -70,17 +72,20 @@ class Panel(scrolled.ScrolledPanel):
         idx = id - TEXT_ENTRY_ID
         obj = self.lookup[idx]
         query = obj[2]
-        proposedValue = query.GetValue()
-        # print "evt text ", obj
-        if not self.partialDataValidate(proposedValue, obj[0]):          
-          # TODO: Print a big red warning in the error area
-          pass
 
-        # TODO: handle only dirty (actually value changed) entity
-        share.umlEditorPanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
+        if not isinstance(query, wx._core._wxPyDeadObject):
+          proposedValue = query.GetValue()
+          # print "evt text ", obj
+          if not self.partialDataValidate(proposedValue, obj[0]):          
+            # TODO: Print a big red warning in the error area
+            pass
+    
+          # TODO: handle only dirty (actually value changed) entity
+          share.instancePanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
       else:
-        # Notify name change to umlEditor to validate and render
-        share.umlEditorPanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
+        # Notify name change to instancePanel to validate and render
+        share.instancePanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
+        pass
 
     def OnUnfocus(self,event):
       id = event.GetId()
@@ -89,18 +94,20 @@ class Panel(scrolled.ScrolledPanel):
         obj = self.lookup[idx]
         name = obj[0][0]
         query = obj[2]
-        proposedValue = query.GetValue()
-        if not self.dataValidate(proposedValue, obj[0]):
-          # TODO: Print a big red warning in the error area
-          pass
-        # TODO: model consistency check -- test the validity of the whole model given this change
-        else:
-          # TODO: handle only dirty (actually value changed) entity
-          share.umlEditorPanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
+
+        if not isinstance(query, wx._core._wxPyDeadObject):
+          proposedValue = query.GetValue()
+          if not self.dataValidate(proposedValue, obj[0]):
+            # TODO: Print a big red warning in the error area
+            pass
+          # TODO: model consistency check -- test the validity of the whole model given this change
+          else:
+            # TODO: handle only dirty (actually value changed) entity
+            share.instancePanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
 
       else:
-        # Notify name change to umlEditor to validate and render
-        share.umlEditorPanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
+        # Notify name change to instancePanel to validate and render
+        share.instancePanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
 
     def OnButtonClick(self,event):
       id = event.GetId()
@@ -241,6 +248,41 @@ class Panel(scrolled.ScrolledPanel):
           row +=1
       self.numElements = row
       if created: sizer.AddGrowableCol(2)
+      self.SetSizer(sizer)
+      sizer.Layout()
+      self.Refresh()
+      self.SetSashPosition(self.GetParent().GetClientSize().x/4)
+
+    def showEntities(self, *entities):
+      self.entity = None
+      self.entityNode = filter(lambda x: x.et.name == "Node", entities)[0]
+      self.entitySg = filter(lambda x: x.et.name == "ServiceGroup", entities)[0]
+
+      if self.sizer:
+        self.sizer.Clear(True)
+        created = False
+      else:
+        self.sizer = wx.GridBagSizer(2,1)
+        self.sizer.SetFlexibleDirection(wx.HORIZONTAL | wx.VERTICAL)
+        created = True
+
+      #TODO: Get SU and create control
+      for child in self.entityNode.containmentArrows:
+        print "SU: %s"%child.data["name"]
+        #TODO: Get COMP and create control
+        for child2 in child.containmentArrows:
+          print "Comp: %s" %child2.data["name"]
+
+      #TODO: Get SI and create control
+      for child in self.entitySg.containmentArrows:
+        print "SI: %s" %child.data["name"]
+        
+        #TODO: Get CSI and create control
+        for child2 in child.containmentArrows:
+          print "CSI: %s" %child2.data["name"]
+
+      sizer = self.sizer
+      #if created: sizer.AddGrowableCol(2)
       self.SetSizer(sizer)
       sizer.Layout()
       self.Refresh()

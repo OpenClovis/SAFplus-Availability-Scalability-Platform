@@ -4,3 +4,5 @@ I don't really like this because it does not allow the C layer to organise the r
 
 detailsPanel = None
 umlEditorPanel = None
+instancePanel = None
+instanceDetailsPanel = None

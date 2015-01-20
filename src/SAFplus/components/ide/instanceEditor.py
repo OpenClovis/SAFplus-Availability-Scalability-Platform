@@ -507,8 +507,9 @@ class SelectTool(Tool):
 
         # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
         # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
-        if not entities.issubset(self.touching):
+        if not entities.issubset(self.touching) or (len(self.touching) != len(entities)):
           self.touching = set(entities)
+          self.selected = self.touching.copy()
         # If the control key is down, then add to the currently selected group, otherwise replace it.
         if event.ControlDown():
           self.selected = self.selected.union(self.touching)
@@ -549,11 +550,9 @@ class SelectTool(Tool):
         entities = panel.findEntitiesAt(pos)
         if not entities: return False
 
-        # Todo: create 
+        # TODO: show instance details
         if len(entities) == 2:
-          diag = CreateInstancesDialog(self.panel, *entities)
-          diag.ShowModal()
-          diag.Destroy()
+          share.instanceDetailsPanel.showEntities(*entities)
 
     if isinstance(event,wx.KeyEvent):
       
@@ -573,8 +572,8 @@ class SelectTool(Tool):
   
   def updateSelected(self):
     if len(self.selected) == 1:
-      if share.detailsPanel:
-        share.detailsPanel.showEntity(next(iter(self.selected)))
+      if share.instanceDetailsPanel:
+        share.instanceDetailsPanel.showEntity(next(iter(self.selected)))
 
   def deleteEntities(self, ents):
     #remove columns/rows
@@ -687,40 +686,10 @@ class ZoomTool(Tool):
 dbgIep = None
 
 
-class CreateInstancesDialog(wx.Dialog):
-  def __init__(self, parent, *args):
-      wx.Dialog.__init__(self, parent, id=wx.ID_ANY, title="", pos=wx.DefaultPosition, size=wx.DefaultSize, style=wx.DEFAULT_DIALOG_STYLE|wx.RESIZE_BORDER)
-      self.panel = parent
-      self.SetTitle("Create SU/SI Configuration")
-      self.InitGui()
-
-  def InitGui(self):
-      mainSizer = wx.BoxSizer(wx.VERTICAL)
-
-      boxPanel = wx.Panel(self)
-      staticBox = wx.GridBagSizer(1,2)
-      staticBox.SetFlexibleDirection(wx.HORIZONTAL | wx.VERTICAL)
-
-      boxType = wx.BoxSizer(wx.HORIZONTAL)
-      boxType.Add(wx.StaticText(boxPanel, -1, "Select types:"), flag =wx.ALIGN_CENTRE_VERTICAL)
-      boxType.Add(wx.ComboBox(boxPanel, choices=["SU","SI"]), flag=wx.ALL | wx.EXPAND | wx.ALIGN_CENTRE_VERTICAL)
-
-      staticBox.Add(boxType, (0,0), flag=wx.ALL | wx.EXPAND)
-
-      boxPanel.SetSizer(staticBox)
-
-      # OK & Cancel buttons
-      iconSizer = wx.BoxSizer(wx.HORIZONTAL)
-      buttons = self.CreateButtonSizer(wx.OK|wx.CANCEL)
-      iconSizer.Add(buttons)
-
-      mainSizer.Add(boxPanel, proportion=1, flag=wx.ALL | wx.EXPAND, border=5)
-      mainSizer.Add(iconSizer, flag=wx.ALIGN_CENTER | wx.TOP | wx.BOTTOM, border=10)
-      self.SetSizer(mainSizer)
-
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
+      share.instancePanel = self
       # These variables define what types can be instantiated in the outer row/columns of the edit tool
       self.rowTypes = ["ServiceGroup","Application"]
       self.columnTypes = ["Node"]
@@ -977,15 +946,9 @@ class Panel(scrolled.ScrolledPanel):
         # Now draw the links
         # Now draw the entites
 
-
         for (name,e) in self.model.instances.items():
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
-        # Now draw the containment arrows on top
-        for (name,e) in self.model.instances.items():
-          for a in e.containmentArrows:
-            st = a.container.pos
-            end = a.contained.pos
-            drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
+
         ctx.restore()
 
         # These are non-model based transient elements that need to be drawn like selection boxes
@@ -1022,6 +985,16 @@ class Panel(scrolled.ScrolledPanel):
         if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)
       return ret
+
+    def notifyNameValueChange(self, ent, newValue):
+      self.notifyValueChange(ent, 'name', newValue)
+
+    def notifyValueChange(self, ent, key, newValue):
+      for (name, e) in self.model.instances.items():
+        if e == ent:
+          e.data[key] = newValue
+          e.recreateBitmap()
+      self.Refresh()
 
 model = None
 
