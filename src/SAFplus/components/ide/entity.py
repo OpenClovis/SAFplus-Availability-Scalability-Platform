@@ -133,7 +133,9 @@ class Instance(Entity):
   def __init__(self, entity, data,pos, size,name=None):
     Entity.__init__(self,entity.et, pos, size,name=NameCreator(data["name"]) if name is None else name,data=data)
     self.entity = entity  # This could be a bit confusing WRT Entity, because the type of the instance is the entity, the type of the entity is the entityType
-    # How about this entityType conclude entityType and instance entity => <entityType>ComponentServiceInstance/ComponentServiceInstance2</entityType>
+    # Now, self.entity.et => yang define type
+    # self.entity => entity type of instance
+    # tag entity type => <NodeType> <ServiceGroupType> ... entityType + 'Type'
     # data = merge entity Type's data and this entity data
 
     #binding entity and data, this make straight render in gui

@@ -18,7 +18,7 @@
       <probationTime></probationTime>
       <_sizeY>128</_sizeY>
       <adminState></adminState>
-      <rank></rank>
+      <rank>8</rank>
       <presenceState></presenceState>
       <entityType>ServiceUnit</entityType>
       <_sizeX>256</_sizeX>
@@ -28,7 +28,7 @@
       <processId></processId>
       <operState></operState>
       <presence></presence>
-      <_sizeX>180</_sizeX>
+      <_sizeX>256</_sizeX>
       <entityType>Component</entityType>
       <numInstantiationAttempts></numInstantiationAttempts>
       <recovery></recovery>
@@ -49,7 +49,7 @@
       <maxInstantInstantiations></maxInstantInstantiations>
       <serviceUnit></serviceUnit>
       <name>Component3</name>
-      <_sizeY>77</_sizeY>
+      <_sizeY>128</_sizeY>
       <capabilityModel></capabilityModel>
       <lastError></lastError>
       <swBundle></swBundle>
@@ -57,9 +57,9 @@
     <ComponentServiceInstance>
       <contains></contains>
       <name>ComponentServiceInstance2</name>
-      <_sizeX>105</_sizeX>
+      <_sizeX>256</_sizeX>
       <entityType>ComponentServiceInstance</entityType>
-      <_sizeY>74</_sizeY>
+      <_sizeY>128</_sizeY>
       <serviceInstance></serviceInstance>
       <Components>Component2</Components>
     </ComponentServiceInstance>
@@ -77,7 +77,7 @@
       <serviceGroup></serviceGroup>
       <probationTime></probationTime>
       <_sizeY>128</_sizeY>
-      <adminState></adminState>
+      <adminState>idle</adminState>
       <rank></rank>
       <presenceState></presenceState>
       <entityType>ServiceUnit</entityType>
@@ -87,9 +87,9 @@
     <ComponentServiceInstance>
       <contains></contains>
       <name>ComponentServiceInstance3</name>
-      <_sizeX>119</_sizeX>
+      <_sizeX>256</_sizeX>
       <entityType>ComponentServiceInstance</entityType>
-      <_sizeY>68</_sizeY>
+      <_sizeY>128</_sizeY>
       <serviceInstance></serviceInstance>
       <Components>Component3</Components>
     </ComponentServiceInstance>
@@ -99,10 +99,10 @@
       <serviceGroup></serviceGroup>
       <preferredStandbyAssignments></preferredStandbyAssignments>
       <name>ServiceInstance1</name>
-      <_sizeX>147</_sizeX>
+      <_sizeX>256</_sizeX>
       <contains></contains>
       <rank></rank>
-      <_sizeY>88</_sizeY>
+      <_sizeY>128</_sizeY>
       <adminState></adminState>
       <preferredActiveAssignments></preferredActiveAssignments>
       <ComponentServiceInstances>ComponentServiceInstance1,ComponentServiceInstance3,ComponentServiceInstance2</ComponentServiceInstances>
@@ -140,9 +140,9 @@
     <ComponentServiceInstance>
       <contains></contains>
       <name>ComponentServiceInstance1</name>
-      <_sizeX>103</_sizeX>
+      <_sizeX>256</_sizeX>
       <entityType>ComponentServiceInstance</entityType>
-      <_sizeY>41</_sizeY>
+      <_sizeY>128</_sizeY>
       <serviceInstance></serviceInstance>
       <Components>Component1</Components>
     </ComponentServiceInstance>
@@ -158,7 +158,7 @@
       <preferredNumActiveServiceUnits></preferredNumActiveServiceUnits>
       <autoRepair></autoRepair>
       <application></application>
-      <adminState></adminState>
+      <adminState>on</adminState>
       <_sizeY>128</_sizeY>
       <maxStandbyWorkAssignments></maxStandbyWorkAssignments>
       <maxActiveWorkAssignments></maxActiveWorkAssignments>
@@ -169,7 +169,7 @@
       <processId></processId>
       <operState></operState>
       <presence></presence>
-      <_sizeX>117</_sizeX>
+      <_sizeX>256</_sizeX>
       <entityType>Component</entityType>
       <numInstantiationAttempts></numInstantiationAttempts>
       <recovery></recovery>
@@ -190,7 +190,7 @@
       <maxInstantInstantiations></maxInstantInstantiations>
       <serviceUnit></serviceUnit>
       <name>Component2</name>
-      <_sizeY>66</_sizeY>
+      <_sizeY>128</_sizeY>
       <capabilityModel></capabilityModel>
       <lastError></lastError>
       <swBundle></swBundle>
@@ -234,7 +234,7 @@
       <name>sc0</name>
       <operState>true</operState>
       <serviceUnits>/su0</serviceUnits>
-      <entityType>Node1</entityType>
+      <NodeType>Node1</NodeType>
     </Node>
     <Node>
       <adminState>on</adminState>
@@ -245,7 +245,7 @@
       <name>sc1</name>
       <operState>true</operState>
       <serviceUnits>/su1</serviceUnits>
-      <entityType>Node2</entityType>
+      <NodeType>Node2</NodeType>
     </Node>
     <ServiceUnit>
       <name>su0</name>
@@ -265,7 +265,7 @@
       <node>/sc0</node>
       <serviceGroup>sg0</serviceGroup>
       <probationTime>10000</probationTime>
-      <entityType>ServiceUnit1</entityType>
+      <ServiceUnitType>ServiceUnit1</ServiceUnitType>
     </ServiceUnit>
     <ServiceUnit>
       <name>su1</name>
@@ -285,7 +285,7 @@
       <node>/sc1</node>
       <serviceGroup>sg0</serviceGroup>
       <probationTime>10000</probationTime>
-      <entityType>ServiceUnit2</entityType>
+      <ServiceUnitType>ServiceUnit2</ServiceUnitType>
     </ServiceUnit>
     <Component>
       <capabilityModel>x_active_or_y_standby</capabilityModel>
@@ -317,7 +317,7 @@
       <safVersion>B.01.01</safVersion>
       <serviceUnit>/su0</serviceUnit>
       <swBundle>testBundle.tgz</swBundle>
-      <entityType>Component1</entityType>
+      <ComponentType>Component1</ComponentType>
     </Component>
     <Component>
       <capabilityModel>x_active_or_y_standby</capabilityModel>
@@ -349,7 +349,7 @@
       <safVersion>B.01.01</safVersion>
       <serviceUnit>/su1</serviceUnit>
       <swBundle>testBundle.tgz</swBundle>
-      <entityType>Component3</entityType>
+      <ComponentType>Component3</ComponentType>
     </Component>
     <ServiceGroup>
       <adminState>on</adminState>
@@ -367,7 +367,7 @@
       <serviceInstances>/ServiceInstance/si</serviceInstances>
       <serviceUnits>/su0</serviceUnits>
       <serviceUnits>/su1</serviceUnits>
-      <entityType>ServiceGroup1</entityType>
+      <ServiceGroupType>ServiceGroup1</ServiceGroupType>
     </ServiceGroup>
     <ServiceInstance>
       <activeAssignments>
@@ -385,7 +385,7 @@
       <standbyAssignments>
         <current>0</current>
       </standbyAssignments>
-      <entityType>ServiceInstance1</entityType>
+      <ServiceInstanceType>ServiceInstance1</ServiceInstanceType>
     </ServiceInstance>
     <ComponentServiceInstance>
       <data>
@@ -399,12 +399,19 @@
       <id>9</id>
       <name>csi</name>
       <serviceInstance>/ServiceInstance/si</serviceInstance>
-      <entityType>ComponentServiceInstance2</entityType>
+      <ComponentServiceInstanceType>ComponentServiceInstance2</ComponentServiceInstanceType>
     </ComponentServiceInstance>
   </instances>
   <ide>
     <ServiceUnit>
-      <ServiceUnit1></ServiceUnit1>
+      <ServiceUnit1>
+        <haState>True</haState>
+        <preinstantiable>True</preinstantiable>
+        <saAmfSUHostNodeOrNodeGroup>True</saAmfSUHostNodeOrNodeGroup>
+        <haReadinessState>True</haReadinessState>
+        <rank>True</rank>
+        <presenceState>True</presenceState>
+      </ServiceUnit1>
       <ServiceUnit2></ServiceUnit2>
     </ServiceUnit>
     <Component>
@@ -426,8 +433,8 @@
     <Node>
       <Node1>
         <failFastOnInstantiationFailure>True</failFastOnInstantiationFailure>
-        <autoRepair>False</autoRepair>
-        <adminState>False</adminState>
+        <autoRepair>True</autoRepair>
+        <adminState>True</adminState>
       </Node1>
       <Node2></Node2>
     </Node>

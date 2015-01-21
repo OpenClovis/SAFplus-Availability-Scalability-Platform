@@ -764,7 +764,7 @@ class Panel(scrolled.ScrolledPanel):
         self.Bind(t, self.OnToolEvent)
 
       # Building flatten instance from model.xml
-      for (name, entInstance) in self.model.loadInstances().items():
+      for entInstance in self.model.instances.values():
         """Create a new instance of this entity type at this position"""
         placement = None
         if entInstance.et.name in self.columnTypes:
@@ -773,7 +773,6 @@ class Panel(scrolled.ScrolledPanel):
           placement = "row"
 
         if placement:
-          self.model.instances[name] = entInstance
           if placement == "row":
             self.rows.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
           if placement == "column":
@@ -784,6 +783,8 @@ class Panel(scrolled.ScrolledPanel):
       print "CUSTOM INSTANTIATOR"
       newdata = copy.deepcopy(ent.data)
       ret = Instance(ent, newdata,pos,size,name=name)
+      #Actually merge data from entity
+      ret.updateDataFields(newdata)
       return ret
 
     def OnReSize(self, event):
@@ -869,6 +870,8 @@ class Panel(scrolled.ScrolledPanel):
         # TODO ent = self.entityType.createEntity(position, size)
         if size is None: size = (COL_WIDTH, ROW_WIDTH)  # The layout will automatically update the long size to be the width of the screen
         inst = entity.createInstance(position, size, name=name)
+        inst.instanceLocked = copy.deepcopy(entity.instanceLocked)
+
         self.model.instances[inst.data["name"]] = inst
 
         if placement == "row":
@@ -886,7 +889,7 @@ class Panel(scrolled.ScrolledPanel):
       """Calculate the bounding box -- the smallest box that will fit around all the elements in this panel"""
       virtRct = wx.Rect()
       if len(self.model.instances) > 0:
-        elst = self.model.instances.items()
+        elst = filter(lambda (name, entInt): entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.items())
         first = elst[0]
         for (name,e) in elst:
           if e == first:
@@ -946,7 +949,7 @@ class Panel(scrolled.ScrolledPanel):
         # Now draw the links
         # Now draw the entites
 
-        for (name,e) in self.model.instances.items():
+        for e in filter(lambda entInt: entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.values()):
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
 
         ctx.restore()

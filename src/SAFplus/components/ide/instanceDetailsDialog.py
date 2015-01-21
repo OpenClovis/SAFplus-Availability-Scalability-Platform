@@ -81,10 +81,10 @@ class Panel(scrolled.ScrolledPanel):
             pass
     
           # TODO: handle only dirty (actually value changed) entity
-          share.instancePanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
+          #share.instancePanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
       else:
         # Notify name change to instancePanel to validate and render
-        share.instancePanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
+        #share.instancePanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
         pass
 
     def OnUnfocus(self,event):
@@ -103,11 +103,13 @@ class Panel(scrolled.ScrolledPanel):
           # TODO: model consistency check -- test the validity of the whole model given this change
           else:
             # TODO: handle only dirty (actually value changed) entity
-            share.instancePanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
+            #share.instancePanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
+            pass
 
       else:
         # Notify name change to instancePanel to validate and render
-        share.instancePanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
+        #share.instancePanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
+        pass
 
     def OnButtonClick(self,event):
       id = event.GetId()
@@ -223,11 +225,16 @@ class Panel(scrolled.ScrolledPanel):
           if self.entity.instanceLocked.get(name, False):  # Set its initial state
             b.SetBitmap(self.lockedBmp);
             b.SetBitmapSelected(self.unlockedBmp)
+
+            # Not allow to change this value from instance
+            query.Enable(False)
           else:
             b.SetBitmap(self.unlockedBmp);
             b.SetBitmapSelected(self.lockedBmp)
 
           b.SetBitmapSelected(self.lockedBmp)
+          # Devide from entity type, not allow to 'Lock' this from instance
+          b.Enable(False)
 
           # Next add the extended help button
           h = None
@@ -254,6 +261,8 @@ class Panel(scrolled.ScrolledPanel):
       self.SetSashPosition(self.GetParent().GetClientSize().x/4)
 
     def showEntities(self, *entities):
+      mapChilds = {'Node': {'ServiceUnit' : 'Component'}, 'ServiceGroup':{'ServiceInstance': 'ComponentServiceInstance' } } 
+
       self.entity = None
       self.entityNode = filter(lambda x: x.et.name == "Node", entities)[0]
       self.entitySg = filter(lambda x: x.et.name == "ServiceGroup", entities)[0]
@@ -266,23 +275,34 @@ class Panel(scrolled.ScrolledPanel):
         self.sizer.SetFlexibleDirection(wx.HORIZONTAL | wx.VERTICAL)
         created = True
 
+      tree = wx.TreeCtrl(self)
+      root = tree.AddRoot("%s - %s" %(self.entityNode.data["name"], self.entitySg.data["name"]))
+      sus = tree.AppendItem(root, "%ss"%mapChilds[self.entityNode.et.name].keys()[0])
+      sis = tree.AppendItem(root, "%ss"%mapChilds[self.entitySg.et.name].keys()[0])
+
       #TODO: Get SU and create control
-      for child in self.entityNode.containmentArrows:
-        print "SU: %s"%child.data["name"]
+      for child in filter(lambda x: x.contained.et.name in mapChilds[self.entityNode.et.name].keys(), self.entityNode.containmentArrows):
+        su = tree.AppendItem(sus, child.contained.data["name"])
         #TODO: Get COMP and create control
-        for child2 in child.containmentArrows:
-          print "Comp: %s" %child2.data["name"]
+        comps = tree.AppendItem(su, "%ss"%mapChilds[self.entityNode.et.name][child.contained.et.name])
+
+        for child2 in filter(lambda x: x.contained.et.name == mapChilds[self.entityNode.et.name][child.contained.et.name], child.contained.containmentArrows):
+          tree.AppendItem(comps, child2.contained.data["name"])
 
       #TODO: Get SI and create control
-      for child in self.entitySg.containmentArrows:
-        print "SI: %s" %child.data["name"]
-        
+      for child in  filter(lambda x: x.contained.et.name in mapChilds[self.entitySg.et.name].keys(), self.entitySg.containmentArrows):
+        si = tree.AppendItem(sis, child.contained.data["name"])
         #TODO: Get CSI and create control
-        for child2 in child.containmentArrows:
-          print "CSI: %s" %child2.data["name"]
+        csi = tree.AppendItem(si, "%ss"%mapChilds[self.entitySg.et.name][child.contained.et.name])
+        for child2 in filter(lambda x: x.contained.et.name == mapChilds[self.entitySg.et.name][child.contained.et.name], child.contained.containmentArrows):
+          tree.AppendItem(csi, child2.contained.data["name"])
 
       sizer = self.sizer
-      #if created: sizer.AddGrowableCol(2)
+      sizer.Add(tree, (0,0), (1,1), wx.ALL|wx.EXPAND, 5)
+      if created:
+        sizer.AddGrowableCol(0)
+        sizer.AddGrowableRow(0)
+
       self.SetSizer(sizer)
       sizer.Layout()
       self.Refresh()

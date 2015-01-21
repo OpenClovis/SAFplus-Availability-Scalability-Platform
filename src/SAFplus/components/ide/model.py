@@ -144,34 +144,41 @@ instantiated  <instances>     instances                         instances     (e
                 e.instanceLocked[str(ed.tag_)] = ed.data_
 
 
-  def loadInstances(self):
-    instances = {}
-    for (path, obj) in self.data.find("instances"):
-      fileEntLst = []
-      for entityType in self.entityTypes.keys():
-        for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
-          if instance.child_.has_key("entityType"):
-            data = instance.children_
-            ent = self.entities.get(instance.entityType.data_)
-            entityInstance = entity.Instance(ent, data, (0,0), (10,10), instance.name.data_)
-  
-            entityInstance.updateDataFields(instance)
-  
-            # Copy instance locked, then bind to readonly wxwidget
-            entityInstance.instanceLocked = ent.instanceLocked.copy()
-            instances[instance.name.data_] = entityInstance
-            fileEntLst.append((instance,entityInstance))
+    instances = self.data.find("instances")
+    if instances:
+      for (path, obj) in instances:
+        fileEntLst = []
+        for entityType in self.entityTypes.keys():
+          for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
+            if instance.child_.has_key("%sType"%entityType):
+              entityTypeName = instance.child_.get("%sType"%entityType).data_
 
-    for (ed,eo) in fileEntLst:
-      for et in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
-        child = et[0][0].lower() + et[0][1:] + 's'
-        for ch in ed.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == child) else None):
-          # Strip out instance-identifier if any
-          childName = str(ch.data_).replace("/%s" %et[0],"")
-          ent2 = instances[childName[1:]]
-          eo.containmentArrows.append(ent2)
+              # Entity of this instance
+              entityParent = self.entities.get(entityTypeName)
 
-    return instances
+              data = instance.children_
+              entityInstance = entity.Instance(entityParent, data, (0,0), (10,10), instance.name.data_)
+              entityInstance.updateDataFields(instance)
+    
+              # Copy instance locked, then bind to readonly wxwidget
+              entityInstance.instanceLocked = entityParent.instanceLocked.copy()
+              self.instances[instance.name.data_] = entityInstance
+              fileEntLst.append((instance,entityInstance))
+  
+      for (ed,eo) in fileEntLst:
+        for et in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
+          child = et[0][0].lower() + et[0][1:] + 's'
+          for ch in ed.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == child) else None):
+            # Strip out instance-identifier if any
+            childName = str(ch.data_)[str(ch.data_).rfind("/")+1:]
+            contained = self.instances.get(childName,None)
+            if contained:
+              # TODO: look the positions up in the GUI section of the xml file
+              ca = entity.ContainmentArrow(eo,(0,0),contained,(0,0),[])
+              eo.containmentArrows.append(ca)
+            else:  # target of the link is missing, so drop the link as well.  This could happen if the user manually edits the XML
+              # TODO: create some kind of warning/audit log in share.py that we can post messages to.
+              pass
 
   def makeUpAScreenPosition(self):
     return (random.randint(0,800),random.randint(0,800))
@@ -279,6 +286,53 @@ instantiated  <instances>     instances                         instances     (e
 
       et.update(e.instanceLocked)
 
+    # Find or create the instance area in the microdom
+    instances = self.data.getElementsByTagName("instances")
+    if not instances:
+      instances = microdom.MicroDom({"tag_":"instances"},[],[])
+      self.data.addChild(instances)
+    else: 
+      assert(len(instances)==1)
+      instances = instances[0]
+
+    # iterate through all instances writing them to the microdom, or changing the existing microdom
+    for (name,e) in self.instances.items():
+      instance = instances.findOneByChild("name",name)
+      if not instance:
+        instance = microdom.MicroDom({"tag_":e.et.name},[],[])
+        instances.addChild(instance)
+
+      # Write all the data fields into the model's microdom
+      instance.update(e.data)  
+      # Now write all the arrows
+      contains = {} # Create a dictionary to hold all linkages by type
+      for arrow in e.containmentArrows:
+        # Add the contained object to the dictionary keyed off of the object's entitytype
+        # leaf-list entity type with camelCase(s)
+        key = arrow.contained.et.name[0].lower() + arrow.contained.et.name[1:] + 's'
+        tmp = contains.get(key,[])
+        tmp.append(arrow.contained.data["name"])
+        contains[key] = tmp
+
+      # Now erase the missing linkages from the microdom
+      for (key, val) in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "serviceUnits"
+          key = key[0].lower() + key[1:] + 's'
+          if not contains.has_key(key): # Element is an entity type but no linkages
+            if instance.child_.has_key(key): instance.delChild(key)
+
+      # Ok now write the linkages to the microdom
+      for (key, vals) in contains.items():
+        if instance.child_.has_key(key): instance.delChild(key)
+        for val in vals:
+          instance.addChild(microdom.MicroDom({"tag_":key},[val],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
+
+      # Extra parent entity name
+      entityParentVal = e.entity.data["name"]
+      entityParentKey = "%sType"%e.et.name
+      if instance.child_.has_key(entityParentKey): instance.delChild(entityParentKey)
+      instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
+
+
   def xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
     self.updateMicrodom()
@@ -329,36 +383,9 @@ def Test():
   #1. Build flatten entity instance
   #2. Build relation ship between instances
   # Load instances
-  for (path, obj) in m.data.find("instances"):
-    fileEntLst = []
-    for entityType in m.entityTypes.keys():
-      for instance in obj.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == entityType) else None):
-        if instance.child_.has_key("entityType"):
-          data = instance.children_
-          ent = m.entities.get(instance.entityType.data_)
-          entityInstance = entity.Instance(ent, data, ent.pos, ent.size, instance.name.data_)
-
-          entityInstance.updateDataFields(instance)
-
-          # Copy instance locked, then bind to readonly wxwidget
-          entityInstance.instanceLocked = ent.instanceLocked.copy()
-          m.instances[instance.name.data_] = entityInstance
-          
-          fileEntLst.append((instance,entityInstance))
-
-    for (ed,eo) in fileEntLst:
-      for et in m.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
-        child = et[0][0].lower() + et[0][1:] + 's'
-        for ch in ed.children(lambda(x): x if (type(x) is types.InstanceType and x.__class__ is microdom.MicroDom and x.tag_ == child) else None):
-          # Strip out instance-identifier if any
-          childName = str(ch.data_).replace("/%s" %et[0],"")
-          ent2 = m.instances[childName[1:]]
-          ca = entity.ContainmentArrow(eo,(0,0),ent2,(0,0),[])
-          eo.containmentArrows.append(ca)
-
-    print m.instances
-    # UnitTest(m)
-  # m.save()
+  #print m.instances
+  # UnitTest(m)
+  m.save()
   return m
 
 theModel = None
