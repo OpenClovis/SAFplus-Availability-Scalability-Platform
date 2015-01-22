@@ -254,7 +254,13 @@ class Panel(scrolled.ScrolledPanel):
           self.lookup[row] = [item,prompt,query,b,h]
           row +=1
       self.numElements = row
-      if created: sizer.AddGrowableCol(2)
+      if created:
+        sizer.AddGrowableCol(2)
+      elif self.sizer.IsColGrowable(0):
+        self.sizer.RemoveGrowableCol(0)
+        self.sizer.RemoveGrowableRow(0)
+        self.sizer.AddGrowableCol(2)
+
       self.SetSizer(sizer)
       sizer.Layout()
       self.Refresh()
@@ -287,7 +293,14 @@ class Panel(scrolled.ScrolledPanel):
         comps = tree.AppendItem(su, "%ss"%mapChilds[self.entityNode.et.name][child.contained.et.name])
 
         for child2 in filter(lambda x: x.contained.et.name == mapChilds[self.entityNode.et.name][child.contained.et.name], child.contained.containmentArrows):
-          tree.AppendItem(comps, child2.contained.data["name"])
+          compitem = tree.AppendItem(comps, child2.contained.data["name"])
+
+          items = child2.contained.et.data.items()
+          items = sorted(items,EntityTypeSortOrder)
+          for item in items:
+            name = item[0]
+            if type(item[1]) is DictType:
+              tree.AppendItem(compitem, "%s = %s" %(name,child2.contained.data[name]))
 
       #TODO: Get SI and create control
       for child in  filter(lambda x: x.contained.et.name in mapChilds[self.entitySg.et.name].keys(), self.entitySg.containmentArrows):
@@ -295,14 +308,25 @@ class Panel(scrolled.ScrolledPanel):
         #TODO: Get CSI and create control
         csi = tree.AppendItem(si, "%ss"%mapChilds[self.entitySg.et.name][child.contained.et.name])
         for child2 in filter(lambda x: x.contained.et.name == mapChilds[self.entitySg.et.name][child.contained.et.name], child.contained.containmentArrows):
-          tree.AppendItem(csi, child2.contained.data["name"])
+          csiitem = tree.AppendItem(csi, child2.contained.data["name"])
+          items = child2.contained.et.data.items()
+          items = sorted(items,EntityTypeSortOrder)
+          for item in items:
+            name = item[0]
+            if type(item[1]) is DictType:
+              tree.AppendItem(csiitem, "%s = %s" %(name,child2.contained.data[name]))
 
       sizer = self.sizer
       sizer.Add(tree, (0,0), (1,1), wx.ALL|wx.EXPAND, 5)
       if created:
         sizer.AddGrowableCol(0)
         sizer.AddGrowableRow(0)
+      elif self.sizer.IsColGrowable(2):
+        self.sizer.RemoveGrowableCol(2)
+        self.sizer.AddGrowableCol(0)
+        self.sizer.AddGrowableRow(0)
 
+      tree.ExpandAll()
       self.SetSizer(sizer)
       sizer.Layout()
       self.Refresh()
