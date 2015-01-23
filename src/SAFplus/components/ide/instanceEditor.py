@@ -553,6 +553,7 @@ class SelectTool(Tool):
         # TODO: show instance details
         if len(entities) == 2:
           share.instanceDetailsPanel.showEntities(*entities)
+          self.panel.SetSashPosition(self.panel.GetParent().GetClientSize().x/4)
 
     if isinstance(event,wx.KeyEvent):
       
@@ -574,6 +575,7 @@ class SelectTool(Tool):
     if len(self.selected) == 1:
       if share.instanceDetailsPanel:
         share.instanceDetailsPanel.showEntity(next(iter(self.selected)))
+        self.panel.SetSashPosition(self.panel.GetParent().GetClientSize().x/4)
 
   def deleteEntities(self, ents):
     #remove columns/rows
@@ -999,6 +1001,12 @@ class Panel(scrolled.ScrolledPanel):
           e.recreateBitmap()
       self.Refresh()
 
+    def SetSashPosition(self, position):
+      if isinstance(self.GetParent(), wx.SplitterWindow):
+        self.GetParent().SetSashPosition(-1)
+        self.GetParent().SetSashPosition(position)
+        self.GetParent().UpdateSize()
+    
 model = None
 
 def Test():

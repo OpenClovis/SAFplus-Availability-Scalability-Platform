@@ -18,10 +18,28 @@ import share
 from model import *
 from entity import *
 import wx.lib.scrolledpanel as scrolled
+import instanceEditor
 
 LOCK_BUTTON_ID = 3482
 HELP_BUTTON_ID = 4523
 TEXT_ENTRY_ID = 7598
+
+SU_TYPE_MENU_ID_START = 0
+SI_TYPE_MENU_ID_START = 20
+COMP_TYPE_MENU_ID_START = 40
+CSI_TYPE_MENU_ID_START = 60
+
+
+class EntityTool():
+  def __init__(self, treeItem, parent, entity):
+    self.entity = entity
+    self.treeItem = treeItem
+    self.parent = parent #parent entity instance
+
+  def OnEditEvent(self, event):
+    #return share.instancePanel.CreateNewInstance(self.entity, (0,0), (10,10))
+    #TODO : Building instance + build containmentArrows with parent
+    pass
 
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
@@ -46,14 +64,23 @@ class Panel(scrolled.ScrolledPanel):
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick)
   
         # for the data entry
-        self.Bind(wx.EVT_TEXT, self.EvtText)
+        #self.Bind(wx.EVT_TEXT, self.EvtText)
 
-        share.instanceDetailsPanel = self
+        if not share.instanceDetailsPanel:
+          share.instanceDetailsPanel = self
+
         #e = model.entities["MyServiceGroup"]
         #self.showEntity(e)
-        self.SetSashPosition(10)
+        #self.SetSashPosition(10)
         self.entityNode = None
         self.entitySg = None
+        self.hsplitter = parent
+
+        self.treeInstance = None
+        self.item = None
+        self.eventDictTree = {wx.EVT_TREE_SEL_CHANGED: self.OnSelChanged, wx.EVT_TREE_ITEM_RIGHT_CLICK: self.OnRightDown, wx.EVT_RIGHT_DOWN: self.OnRightDown, wx.EVT_RIGHT_UP:self.OnRightUp}
+        self.lookupEntity = {}
+        self.childDict = {'Node': {'ServiceUnit' : 'Component'}, 'ServiceGroup':{'ServiceInstance': 'ComponentServiceInstance' } } 
 
 
     def partialDataValidate(self, proposedPartialValue, fieldData):
@@ -264,11 +291,9 @@ class Panel(scrolled.ScrolledPanel):
       self.SetSizer(sizer)
       sizer.Layout()
       self.Refresh()
-      self.SetSashPosition(self.GetParent().GetClientSize().x/4)
+      self.SetSashPosition(self.GetParent().GetClientSize().y)
 
     def showEntities(self, *entities):
-      mapChilds = {'Node': {'ServiceUnit' : 'Component'}, 'ServiceGroup':{'ServiceInstance': 'ComponentServiceInstance' } } 
-
       self.entity = None
       self.entityNode = filter(lambda x: x.et.name == "Node", entities)[0]
       self.entitySg = filter(lambda x: x.et.name == "ServiceGroup", entities)[0]
@@ -281,40 +306,36 @@ class Panel(scrolled.ScrolledPanel):
         self.sizer.SetFlexibleDirection(wx.HORIZONTAL | wx.VERTICAL)
         created = True
 
-      tree = wx.TreeCtrl(self)
+      if self.treeInstance:
+        self.treeInstance.DeleteAllItems()
+      else:
+        self.treeInstance = wx.TreeCtrl(self)
+        #Bind events for tree
+        for (evt, func) in self.eventDictTree.items():
+          self.treeInstance.Bind(evt, func)
+
+      tree = self.treeInstance
+
+      # Building tree and item data which relate to entity and entity type. So we can create or modify
       root = tree.AddRoot("%s - %s" %(self.entityNode.data["name"], self.entitySg.data["name"]))
-      sus = tree.AppendItem(root, "%ss"%mapChilds[self.entityNode.et.name].keys()[0])
-      sis = tree.AppendItem(root, "%ss"%mapChilds[self.entitySg.et.name].keys()[0])
+      sus = tree.AppendItem(root, "ServiceUnit Instance List",  data=wx.TreeItemData(self.model.entityTypes.get(self.childDict[self.entityNode.et.name].keys()[0], None)))
+      sis = tree.AppendItem(root, "Service Instance List", data=wx.TreeItemData(self.model.entityTypes.get(self.childDict[self.entitySg.et.name].keys()[0], None)))
 
       #TODO: Get SU and create control
-      for child in filter(lambda x: x.contained.et.name in mapChilds[self.entityNode.et.name].keys(), self.entityNode.containmentArrows):
-        su = tree.AppendItem(sus, child.contained.data["name"])
+      for child in filter(lambda x: x.contained.et.name in self.childDict[self.entityNode.et.name].keys(), self.entityNode.containmentArrows):
+        su = tree.AppendItem(sus, child.contained.data["name"], -1,-1, data=wx.TreeItemData(child.contained))
         #TODO: Get COMP and create control
-        comps = tree.AppendItem(su, "%ss"%mapChilds[self.entityNode.et.name][child.contained.et.name])
-
-        for child2 in filter(lambda x: x.contained.et.name == mapChilds[self.entityNode.et.name][child.contained.et.name], child.contained.containmentArrows):
-          compitem = tree.AppendItem(comps, child2.contained.data["name"])
-
-          items = child2.contained.et.data.items()
-          items = sorted(items,EntityTypeSortOrder)
-          for item in items:
-            name = item[0]
-            if type(item[1]) is DictType:
-              tree.AppendItem(compitem, "%s = %s" %(name,child2.contained.data[name]))
+        comps = tree.AppendItem(su, "Component Instance List", data=wx.TreeItemData(self.model.entityTypes.get(self.childDict[self.entityNode.et.name][child.contained.et.name], None)))
+        for child2 in filter(lambda x: x.contained.et.name == self.childDict[self.entityNode.et.name][child.contained.et.name], child.contained.containmentArrows):
+          compitem = tree.AppendItem(comps, child2.contained.data["name"], -1,-1, data=wx.TreeItemData(child2.contained))
 
       #TODO: Get SI and create control
-      for child in  filter(lambda x: x.contained.et.name in mapChilds[self.entitySg.et.name].keys(), self.entitySg.containmentArrows):
-        si = tree.AppendItem(sis, child.contained.data["name"])
+      for child in  filter(lambda x: x.contained.et.name in self.childDict[self.entitySg.et.name].keys(), self.entitySg.containmentArrows):
+        si = tree.AppendItem(sis, child.contained.data["name"], -1,-1, data=wx.TreeItemData(child.contained))
         #TODO: Get CSI and create control
-        csi = tree.AppendItem(si, "%ss"%mapChilds[self.entitySg.et.name][child.contained.et.name])
-        for child2 in filter(lambda x: x.contained.et.name == mapChilds[self.entitySg.et.name][child.contained.et.name], child.contained.containmentArrows):
-          csiitem = tree.AppendItem(csi, child2.contained.data["name"])
-          items = child2.contained.et.data.items()
-          items = sorted(items,EntityTypeSortOrder)
-          for item in items:
-            name = item[0]
-            if type(item[1]) is DictType:
-              tree.AppendItem(csiitem, "%s = %s" %(name,child2.contained.data[name]))
+        csi = tree.AppendItem(si, "Component Service Instance List", data=wx.TreeItemData(self.model.entityTypes.get(self.childDict[self.entitySg.et.name][child.contained.et.name], None)))
+        for child2 in filter(lambda x: x.contained.et.name == self.childDict[self.entitySg.et.name][child.contained.et.name], child.contained.containmentArrows):
+          csiitem = tree.AppendItem(csi, child2.contained.data["name"], -1,-1, data=wx.TreeItemData(child2.contained))
 
       sizer = self.sizer
       sizer.Add(tree, (0,0), (1,1), wx.ALL|wx.EXPAND, 5)
@@ -330,7 +351,126 @@ class Panel(scrolled.ScrolledPanel):
       self.SetSizer(sizer)
       sizer.Layout()
       self.Refresh()
-      self.SetSashPosition(self.GetParent().GetClientSize().x/4)
+      self.SetSashPosition(self.GetParent().GetClientSize().y)
+
+    def OnSelChanged(self, event):
+      itemData = self.treeInstance.GetPyData(event.GetItem())
+      if itemData and isinstance(itemData, entity.Instance):
+        #View detail su/si/comp/csi
+        self.hsplitter.GetParent().GetParent().detailsItems.showEntity(itemData)
+        self.SetSashPosition(self.GetParent().GetClientSize().y/2)
+        self.item = None
+      else:
+        # Default editor
+        self.item = event.GetItem()
+        self.SetSashPosition(self.GetParent().GetClientSize().y)
+
+      event.Skip()
+
+    def OnRightDown(self, event):
+        pt = event.GetPosition()
+        item, flags = self.treeInstance.HitTest(pt)
+
+        if item:
+            self.item = item
+            self.treeInstance.SelectItem(item)
+
+    def OnRightUp(self, event):
+        item = self.item
+        if not item:
+            event.Skip()
+            return
+
+        # Only show popup menu if item is entity type
+        menu = self.BuildMenu(item)
+        if menu:
+          self.treeInstance.PopupMenu(menu)
+          menu.Destroy()
+
+    def BuildMenu(self, item):
+      itemData = self.treeInstance.GetPyData(item)
+      if isinstance(itemData, entity.EntityType):
+        building = {'ServiceUnit' : self.BuildMenuServiceUnit, 'Component' : self.BuildMenuComponent, 'ServiceInstance': self.BuildMenuSeviceInstance, 'ComponentServiceInstance': self.BuildMenuComponentServiceInstance}
+        return building[itemData.name](item)
+      return None
+
+    def BuildMenuServiceUnit(self, item):
+      # TODO: Filter SU belongs to self.node
+      menu = wx.Menu()
+      idx = SU_TYPE_MENU_ID_START
+      for child in  filter(lambda x: x.contained.et.name in self.childDict[self.entityNode.entity.et.name].keys(), self.entityNode.entity.containmentArrows):
+        mntItem = menu.Append(idx, "Created %s instance" %child.contained.data["name"])
+        self.Bind(wx.EVT_MENU, self.OnCreateServiceUnit, mntItem)
+        self.lookupEntity[idx] = EntityTool(item, self.entityNode, child.contained)
+        idx+=1
+      return menu
+
+    def BuildMenuComponent(self, item):
+      # TODO: Filter Comps belongs to parent SU
+      parentSUItemData = self.treeInstance.GetPyData(self.treeInstance.GetItemParent(item))
+      menu = wx.Menu()
+      idx = COMP_TYPE_MENU_ID_START
+      for child in  filter(lambda x: x.contained.et.name in self.childDict[self.entityNode.entity.et.name][parentSUItemData.entity.et.name], parentSUItemData.entity.containmentArrows):
+        mntItem = menu.Append(idx, "Created %s instance" %child.contained.data["name"])
+        self.Bind(wx.EVT_MENU, self.OnCreateComponent, mntItem)
+        self.lookupEntity[idx] = EntityTool(item, parentSUItemData, child.contained)
+        idx+=1
+      return menu
+
+    def BuildMenuSeviceInstance(self, item):
+      # TODO: Filter SIs belongs to self.entitySg
+      menu = wx.Menu()
+      idx = SI_TYPE_MENU_ID_START
+      for child in  filter(lambda x: x.contained.et.name in self.childDict[self.entitySg.entity.et.name].keys(), self.entitySg.entity.containmentArrows):
+        mntItem = menu.Append(idx, "Created %s instance" %child.contained.data["name"])
+        self.Bind(wx.EVT_MENU, self.OnCreateServiceInstance, mntItem)
+        self.lookupEntity[idx] = EntityTool(item, self.entitySg, child.contained)
+        idx+=1
+      return menu
+
+    def BuildMenuComponentServiceInstance(self, item):
+      # TODO: Filter CSIs belongs to parent SI
+      parentSIItemData = self.treeInstance.GetPyData(self.treeInstance.GetItemParent(item))
+      menu = wx.Menu()
+      idx = CSI_TYPE_MENU_ID_START
+      for child in  filter(lambda x: x.contained.et.name in self.childDict[self.entitySg.entity.et.name][parentSIItemData.entity.et.name], parentSIItemData.entity.containmentArrows):
+        mntItem = menu.Append(idx, "Created %s instance" %child.contained.data["name"])
+        self.Bind(wx.EVT_MENU, self.OnCreateComponentServiceInstance, mntItem)
+        self.lookupEntity[idx] = EntityTool(item, parentSIItemData, child.contained)
+        idx+=1
+      return menu
+
+    def OnCreateServiceUnit(self, event):
+      id = event.GetId()
+      entityTool = self.lookupEntity[id]
+
+      #TODO: Create an SU instance
+      entityTool.OnEditEvent(event)
+      self.treeInstance.AppendItem(entityTool.treeItem, entityTool.entity.data["name"])
+
+    def OnCreateComponent(self, event):
+      id = event.GetId()
+      entityTool = self.lookupEntity[id]
+
+      #TODO: Create an Component instance
+      entityTool.OnEditEvent(event)
+      self.treeInstance.AppendItem(entityTool.treeItem, entityTool.entity.data["name"])
+
+    def OnCreateServiceInstance(self, event):
+      id = event.GetId()
+      entityTool = self.lookupEntity[id]
+
+      #TODO: Create an SI instance
+      entityTool.OnEditEvent(event)
+      self.treeInstance.AppendItem(entityTool.treeItem, entityTool.entity.data["name"])
+
+    def OnCreateComponentServiceInstance(self, event):
+      id = event.GetId()
+      entityTool = self.lookupEntity[id]
+
+      #TODO: Create an Component instance
+      entityTool.OnEditEvent(event)
+      self.treeInstance.AppendItem(entityTool.treeItem, entityTool.entity.data["name"])
 
     def OnPaint(self, evt):
         if self.IsDoubleBuffered():
@@ -342,11 +482,11 @@ class Panel(scrolled.ScrolledPanel):
         
         #self.Render(dc)
 
-    def SetSashPosition(self, width = -1):
+    def SetSashPosition(self, position = -1):
       #Workaround to show scrollbar
       if isinstance(self.GetParent(), wx.SplitterWindow):
         self.GetParent().SetSashPosition(-1)
-        self.GetParent().SetSashPosition(width)
+        self.GetParent().SetSashPosition(position)
         self.GetParent().UpdateSize()
 
     def BuildChangeEvent(self, ctrl):

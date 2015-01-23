@@ -21,17 +21,25 @@ class Panel(wx.Panel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
       wx.Panel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       
-      self.splitter = wx.SplitterWindow(self, wx.ID_ANY, style=wx.SP_3D | wx.SP_BORDER | wx.SP_LIVE_UPDATE)
+      self.vsplitter = wx.SplitterWindow(self, wx.ID_ANY, style=wx.SP_3D | wx.SP_BORDER | wx.SP_LIVE_UPDATE)
 
-      self.instanceEditor = instanceEditor.Panel(self.splitter,menubar,toolbar,statusbar,model)
-      self.details = instanceDetailsDialog.Panel(self.splitter,menubar,toolbar,statusbar,model)
+      self.instanceEditor = instanceEditor.Panel(self.vsplitter,menubar,toolbar,statusbar,model)
       
-      self.splitter.SplitVertically(self.details, self.instanceEditor)
-      self.splitter.SetSashPosition(1)
-      self.splitter.SetSashGravity(0.0)
+      self.hsplitter = wx.SplitterWindow(self.vsplitter, wx.ID_ANY, style=wx.SP_3D | wx.SP_BORDER | wx.SP_LIVE_UPDATE)
+      self.details = instanceDetailsDialog.Panel(self.hsplitter,menubar,toolbar,statusbar,model)
+      self.detailsItems = instanceDetailsDialog.Panel(self.hsplitter,menubar,toolbar,statusbar,model)
+
+      self.vsplitter.SplitVertically(self.hsplitter, self.instanceEditor)
+      self.vsplitter.SetSashPosition(0)
+      self.vsplitter.SetSashGravity(0.0)
+      
+
+      self.hsplitter.SplitHorizontally(self.details, self.detailsItems)
+      self.hsplitter.SetSashPosition(0)
+      self.hsplitter.SetSashGravity(0.0)
 
       sizer = wx.BoxSizer(wx.VERTICAL)
-      sizer.Add(self.splitter, 1, wx.EXPAND)
+      sizer.Add(self.vsplitter, 1, wx.EXPAND)
       self.SetSizer(sizer)
 
 def Test():
