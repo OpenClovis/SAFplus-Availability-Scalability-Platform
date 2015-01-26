@@ -21,9 +21,10 @@ from model import Model
 import share
  
 ENTITY_TYPE_BUTTON_START = 100
-ZOOM_BUTTON = 99
-CONNECT_BUTTON = 98
-SELECT_BUTTON = 97
+SAVE_BUTTON = 99
+ZOOM_BUTTON = 98
+CONNECT_BUTTON = 97
+SELECT_BUTTON = 96
 
 COL_MARGIN = 250
 COL_SPACING = 2
@@ -138,9 +139,13 @@ def getRectInstance(ent, scale):
 
 def drawIntersectRect(ctx, rect):
   ctx.save()
-  ctx.rectangle(rect.x +4 ,rect.y+4 , rect.width-8, rect.height-8)
-  ctx.set_line_width(4);
+  ctx.set_font_size(12)
+  ctx.select_font_face("Georgia", cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+  text = "AMF Configuration"
+  xbearing, ybearing, width, height, xadvance, yadvance = (ctx.text_extents(text))
+  ctx.move_to(rect.x + 4 + (rect.width-8)/2  - width/2, rect.y + (rect.height-8)/2)
   ctx.set_source_rgba(.3, .2, 0.3, .4)
+  ctx.show_text(text)
   ctx.fill()
   ctx.restore()
 
@@ -559,12 +564,12 @@ class SelectTool(Tool):
       
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
         if self.touching:
-          self.deleteEntities(self.touching)
+          self.panel.deleteEntities(self.touching)
           self.touching.clear()
         elif self.selected:
-          self.deleteEntities(self.selected)
+          self.panel.deleteEntities(self.selected)
           self.selected.clear()
-        panel.Refresh()
+        self.panel.Refresh()
         return True # I consumed this event
       else:
         return False # Give this key to someone else
@@ -576,28 +581,6 @@ class SelectTool(Tool):
       if share.instanceDetailsPanel:
         share.instanceDetailsPanel.showEntity(next(iter(self.selected)))
         self.panel.SetSashPosition(self.panel.GetParent().GetClientSize().x/4)
-
-  def deleteEntities(self, ents):
-    #remove columns/rows
-    for ent in ents:
-      try:
-        self.panel.columns.remove(ent);
-      except:
-        pass
-      
-      try:
-        self.panel.rows.remove(ent);
-      except:
-        pass
-
-      # Remove instance
-      for (k,v) in self.panel.model.instances.items():
-        if v == ent:
-          del self.panel.model.instances[k]
-          break
-
-    self.panel.layout()
-    self.panel.Refresh(False)
 
 class ZoomTool(Tool):
   def __init__(self, panel):
@@ -684,6 +667,18 @@ class ZoomTool(Tool):
       size = self.panel.GetClientSize()
       self.panel.Scroll((pos[0] - size.x/2)/scrollx, (pos[1] - size.y/2)/scrolly)
 
+class SaveTool(Tool):
+  def __init__(self, panel):
+    self.panel = panel
+  
+  def OnSelect(self, panel,event):
+    dlg = wx.FileDialog(panel, "Save model as...", os.getcwd(), style=wx.SAVE | wx.OVERWRITE_PROMPT, wildcard="*.xml")
+    if dlg.ShowModal() == wx.ID_OK:
+      filename = dlg.GetPath()
+      self.panel.model.save(filename)
+      # TODO: Notify (IPC) to GUI instances (C++ wxWidgets) to update
+    return False
+
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgIep = None
 
@@ -738,6 +733,10 @@ class Panel(scrolled.ScrolledPanel):
       # example of adding a standard button
       #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
+
+      bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+      self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
       # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
@@ -1003,10 +1002,38 @@ class Panel(scrolled.ScrolledPanel):
 
     def SetSashPosition(self, position):
       if isinstance(self.GetParent(), wx.SplitterWindow):
+        # Manual resize sash position
+        width = self.GetParent().GetSashPosition()
         self.GetParent().SetSashPosition(-1)
-        self.GetParent().SetSashPosition(position)
+        if width > 10:
+          self.GetParent().SetSashPosition(width)
+        else:
+          self.GetParent().SetSashPosition(position)
         self.GetParent().UpdateSize()
-    
+
+    def deleteEntities(self, ents):
+      #remove columns/rows
+      for ent in ents:
+        try:
+          self.columns.remove(ent);
+        except:
+          pass
+        
+        try:
+          self.rows.remove(ent);
+        except:
+          pass
+  
+        # Remove instance
+        for (k,v) in self.model.instances.items():
+          if v == ent:
+            del self.model.instances[k]
+            break
+
+      self.Refresh()
+      self.layout()
+
+
 model = None
 
 def Test():

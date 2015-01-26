@@ -669,7 +669,6 @@ class SaveTool(Tool):
     if dlg.ShowModal() == wx.ID_OK:
       filename = dlg.GetPath()
       self.panel.model.save(filename)
-      print self.panel.GetParent().GetParent()
       # TODO: Notify (IPC) to GUI instances to change
     return False
 
