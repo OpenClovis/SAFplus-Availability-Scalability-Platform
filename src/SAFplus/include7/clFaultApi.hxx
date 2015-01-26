@@ -197,7 +197,7 @@ public:
     //init fault server
     SAFplus::Fault faultClient;
     SAFplus::Mutex  faultServerMutex;
-    //SAFplus::Checkpoint faultCheckpoint;
+    SAFplus::Checkpoint faultCheckpoint;
     void init();
     // reporter fault event message
     virtual void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
@@ -228,6 +228,7 @@ public:
 	void wake(int amt,void* cookie=NULL);
 	void sendFaultSyncRequest(ClIocAddress activeAddress);
 	void sendFaultSyncReply(ClIocAddress address);
+	void writeToSharedMemoryAllEntity();
     //get status of one fault Entity
     SAFplus::FaultState getFaultState(SAFplus::Handle faultHandle);
 
