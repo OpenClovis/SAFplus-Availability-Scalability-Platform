@@ -48,7 +48,7 @@ namespace SAFplusI
 	/**
      * The type of an identifier to the specific problem of the alarm.
      * This information is not configured but is assigned a value at run-time
-     * for segregation of alarms that have the same \e category and probabcole cause
+     * for segregation of alarms that have the same \e category and probable cause
      * but are different in their manifestation.
      */
     typedef int AlarmSpecificProblemT;
