@@ -122,8 +122,14 @@ def createObject(s,result=None):
         # result.update(handleList(c,count))
         pass  # TODO
       elif c.keyword == "container":
+        d = {}
+        result[c.arg] = createObject(c,d)
         pass  # TODO
       elif c.keyword == "uses":
+        if hasattr(c, 'i_grouping'):
+          grouping_node = c.i_grouping
+          if grouping_node is not None:
+            createObject(grouping_node,result)
         pass  # TODO
       elif c.keyword == ('SAFplusTypes', 'ui-entity'):
         result["ui-entity"] = True
