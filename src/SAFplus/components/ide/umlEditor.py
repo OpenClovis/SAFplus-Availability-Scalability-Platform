@@ -21,11 +21,10 @@ from model import Model
 import share
  
 ENTITY_TYPE_BUTTON_START = 100
-ZOOM_BUTTON = 99
-CONNECT_BUTTON = 98
-SELECT_BUTTON = 97
-
-SAVE_BUTTON = 5003
+SAVE_BUTTON = 99
+ZOOM_BUTTON = 98
+CONNECT_BUTTON = 97
+SELECT_BUTTON = 96
 
 PI = 3.141592636
 
@@ -719,6 +718,10 @@ class Panel(scrolled.ScrolledPanel):
       # example of adding a standard button
       #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
+
+      bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+      self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
       # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
