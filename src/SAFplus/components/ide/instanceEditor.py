@@ -12,6 +12,9 @@ import svg
 import wx.lib.scrolledpanel as scrolled
 #from wx.py import shell,
 #from wx.py import  version
+from string import Template
+import types
+
 import dot
 from common import *
 from module import Module
@@ -25,6 +28,11 @@ SAVE_BUTTON = 99
 ZOOM_BUTTON = 98
 CONNECT_BUTTON = 97
 SELECT_BUTTON = 96
+CODEGEN_BUTTON = 95
+CODEGEN_LANG_C = 94
+CODEGEN_LANG_CPP = 93
+CODEGEN_LANG_PYTHON = 92
+CODEGEN_LANG_JAVA = 91
 
 COL_MARGIN = 250
 COL_SPACING = 2
@@ -37,6 +45,49 @@ ROW_WIDTH   = 120
 PI = 3.141592636
 
 linkNormalLook = dot.Dot({ "color":(0,0,.8,.75), "lineThickness": 4, "buttonRadius": 6, "arrowLength":15, "arrowAngle": PI/8 })
+
+class TemplateMgr:
+  """ This class caches template files for later use to reduce disk access"""
+  def __init__(self):
+    self.cache = {}
+  
+  def loadPyTemplate(self,fname):
+    """Load a template file and return it as a string"""
+    if self.cache.has_key(fname): return self.cache[fname]
+    
+    f = open(fname,"r")
+    s = f.read()
+    t = Template(s)
+    self.cache[fname] = t
+    return t
+
+  def loadKidTemplate(self,fname):
+    pass
+
+# The global template manager
+templateMgr = TemplateMgr()
+
+#TODO: Get relative directiry with model.xml
+myDir = os.getcwd()
+TemplatePath = myDir + "/codegen/templates/"
+
+class Output:
+  """This abstract class defines how the generated output is written to the file system
+     or tarball.
+
+     In these routines if you tell it to write a file or template to a nonexistant path
+     then that path is created.  So you no longer have to worry about creating directories.
+     If you call writes("/foo/bar/yarh/myfile.txt","contents") then the directory hierarchy /foo/bar/yarh is automatically created.  The file "myfile.txt" is created and written with "contents".
+  """
+  def write(self, filename, data):
+    if type(data) in types.StringTypes:
+      self.writes(filename, data)
+    else: self.writet(filename,data)
+        
+  def writet(self, filename, template):
+    pass
+  def writes(self, filename, template):
+    pass
 
 def lineRectIntersect(lineIn,lineOut, rectUL, rectLR):
   """Given a line segment defined by 2 points: lineIn and lineOut where lineIn is INSIDE the rectangle
@@ -679,6 +730,117 @@ class SaveTool(Tool):
       # TODO: Notify (IPC) to GUI instances (C++ wxWidgets) to update
     return False
 
+class FilesystemOutput(Output):
+  """Write to a normal file system"""
+
+  def writet(self, filename, template):
+    if not os.path.exists(os.path.dirname(filename)):
+      os.makedirs(os.path.dirname(filename))			
+    template.write(filename, "utf-8",False,"xml")
+    
+  def writes(self, filename, string):
+    if not os.path.exists(os.path.dirname(filename)):
+      os.makedirs(os.path.dirname(filename))			
+    f = open(filename,"w")
+    f.write(string)
+    f.close()
+
+class GenerateTool(Tool):
+  def __init__(self, panel):
+    self.panel = panel
+    self.dictGenFunc = {CODEGEN_LANG_C:self.generateC, CODEGEN_LANG_CPP:self.generateCpp, CODEGEN_LANG_PYTHON:self.generatePython, CODEGEN_LANG_JAVA:self.generateJava}
+
+  def OnSelect(self, panel, event):
+    if event.GetId() == CODEGEN_BUTTON:
+      mnuGenerateCode = wx.Menu()
+      mnuItemC = mnuGenerateCode.Append(CODEGEN_LANG_C, "C")
+      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemC)
+  
+      mnuItemCpp = mnuGenerateCode.Append(CODEGEN_LANG_CPP, "CPP")
+      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemCpp)
+  
+      mnuItemPython = mnuGenerateCode.Append(CODEGEN_LANG_PYTHON, "PYTHON")
+      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemPython)
+  
+      mnuItemJava = mnuGenerateCode.Append(CODEGEN_LANG_JAVA, "JAVA")
+      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemJava)
+  
+      panel.PopupMenu(mnuGenerateCode)
+    else:
+      output = FilesystemOutput()
+      comps = filter(lambda inst: inst.entity.et.name == 'Component', panel.model.instances.values())
+
+      #TODO: Get relative directiry with model.xml
+      srcDir = "/".join([myDir, "langTest"])
+
+      # Generate makefile for the "app" directory
+      mkSubdirTmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.subdir.ts")
+      s = mkSubdirTmpl.safe_substitute(subdirs=" ".join([c.data["name"] for c in comps]))
+      output.write(srcDir + os.sep + "app" + os.sep + "Makefile", s)
+
+      for c in comps:
+        self.dictGenFunc[event.GetId()](output, srcDir, c, c.data)
+    return False
+
+
+  def generateC(self, output, srcDir, comp,ts_comp):
+    compName = str(comp.data["name"])
+  
+    # Create main
+    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.c.ts")
+    s = cpptmpl.safe_substitute(addmain=False)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "main.c", s)
+    # Create cfg  -- not needed anymore
+    #tmpl = templateMgr.loadPyTemplate(TemplatePath + "cfg.c.ts")
+    #s = tmpl.safe_substitute(**ts_comp)
+    #output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "cfg.c", s)
+  
+    # Create Makefile
+    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.c.ts")
+    s = tmpl.safe_substitute(**ts_comp)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)
+  
+  def generateCpp(self, output, srcDir, comp,ts_comp):
+    # Create main
+    compName = str(comp.data["name"])
+    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
+    s = cpptmpl.safe_substitute(addmain=False)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "main.cpp", s)
+  
+    # Create cfg -- no longer needed
+    #tmpl = templateMgr.loadPyTemplate(TemplatePath + "cfg.cpp.ts")
+    #s = tmpl.safe_substitute(**ts_comp)
+    #output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "cfg.cpp", s)
+  
+    # Create Makefile
+    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
+    s = tmpl.safe_substitute(**ts_comp)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)
+
+
+  def generatePython(self, output, srcDir, comp,ts_comp):
+    compName = str(comp.data["name"])
+  
+    # Create src files
+    for (inp,outp) in [("main.py.ts",str(comp.data[instantiateCommand]) + ".py"),("pythonexec.sh",str(comp.data[instantiateCommand]))]:
+      tmpl = templateMgr.loadPyTemplate(TemplatePath + inp)
+      s = tmpl.safe_substitute(**ts_comp)
+      output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + outp, s)
+    
+  
+    # Create Makefile
+    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.python.ts")
+    s = tmpl.safe_substitute(**ts_comp)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)  
+
+
+  def generateJava(self, output, srcDir, comp,ts_comp):
+    compName = str(comp.data["name"])
+    # Create Makefile
+    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.java.ts")
+    s = tmpl.safe_substitute(**ts_comp)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)  
+
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgIep = None
 
@@ -737,6 +899,12 @@ class Panel(scrolled.ScrolledPanel):
       bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
       self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
       self.idLookup[SAVE_BUTTON] = SaveTool(self)
+
+      bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
+      idMnuGenerateCode = [CODEGEN_BUTTON, CODEGEN_LANG_C, CODEGEN_LANG_CPP, CODEGEN_LANG_PYTHON, CODEGEN_LANG_JAVA]
+      for idx in idMnuGenerateCode:
+        self.idLookup[idx] = GenerateTool(self)
 
       # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
