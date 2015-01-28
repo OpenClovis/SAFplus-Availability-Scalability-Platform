@@ -1192,12 +1192,7 @@ class Panel(scrolled.ScrolledPanel):
         except:
           pass
   
-        # Remove instance
-        for (k,v) in self.model.instances.items():
-          if v == ent:
-            del self.model.instances[k]
-            break
-
+      self.model.delete(ents)
       self.Refresh()
       self.layout()
 

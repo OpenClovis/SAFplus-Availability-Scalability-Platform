@@ -70,14 +70,15 @@ class Panel(scrolled.ScrolledPanel):
         idx = id - TEXT_ENTRY_ID
         obj = self.lookup[idx]
         query = obj[2]
-        proposedValue = query.GetValue()
-        # print "evt text ", obj
-        if not self.partialDataValidate(proposedValue, obj[0]):          
-          # TODO: Print a big red warning in the error area
-          pass
-
-        # TODO: handle only dirty (actually value changed) entity
-        share.umlEditorPanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
+        if not isinstance(query, wx._core._wxPyDeadObject):
+          proposedValue = query.GetValue()
+          # print "evt text ", obj
+          if not self.partialDataValidate(proposedValue, obj[0]):          
+            # TODO: Print a big red warning in the error area
+            pass
+  
+          # TODO: handle only dirty (actually value changed) entity
+          share.umlEditorPanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
       else:
         # Notify name change to umlEditor to validate and render
         share.umlEditorPanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
@@ -89,14 +90,16 @@ class Panel(scrolled.ScrolledPanel):
         obj = self.lookup[idx]
         name = obj[0][0]
         query = obj[2]
-        proposedValue = query.GetValue()
-        if not self.dataValidate(proposedValue, obj[0]):
-          # TODO: Print a big red warning in the error area
-          pass
-        # TODO: model consistency check -- test the validity of the whole model given this change
-        else:
-          # TODO: handle only dirty (actually value changed) entity
-          share.umlEditorPanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
+
+        if not isinstance(query, wx._core._wxPyDeadObject):
+          proposedValue = query.GetValue()
+          if not self.dataValidate(proposedValue, obj[0]):
+            # TODO: Print a big red warning in the error area
+            pass
+          # TODO: model consistency check -- test the validity of the whole model given this change
+          else:
+            # TODO: handle only dirty (actually value changed) entity
+            share.umlEditorPanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
 
       else:
         # Notify name change to umlEditor to validate and render
@@ -195,7 +198,7 @@ class Panel(scrolled.ScrolledPanel):
       bmp = wx.StaticBitmap(self, -1, self.unlockedBmp)
       sizer.Add(bmp,(row,3),(1,1),wx.ALIGN_CENTER | wx.ALL)
       row += 1
-      for item in items:
+      for item in filter(lambda item: item[0] != "name", items):
         name = item[0]
         if type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
 

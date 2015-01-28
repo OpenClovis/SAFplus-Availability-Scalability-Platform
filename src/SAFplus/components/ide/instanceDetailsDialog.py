@@ -40,7 +40,6 @@ class EntityTool():
   def OnEditEvent(self, event):
     newdata = copy.deepcopy(self.entity.data)
     inst = entity.Instance(self.entity, newdata, (0,0), (10,10))
-    inst.updateDataFields(newdata)
     inst.instanceLocked = copy.deepcopy(self.entity.instanceLocked)
     self.panel.model.instances[inst.data["name"]] = inst
 
@@ -252,7 +251,7 @@ class Panel(scrolled.ScrolledPanel):
       bmp = wx.StaticBitmap(self, -1, self.unlockedBmp)
       sizer.Add(bmp,(row,3),(1,1),wx.ALIGN_CENTER | wx.ALL)
       row += 1
-      for item in items:
+      for item in filter(lambda item: item[0] != "name", items):
         name = item[0]
         if type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
 

@@ -57,14 +57,13 @@ instantiated  <instances>     instances                         instances     (e
       #if self.entityTypes.get(item):
       #  self.deleteEntity(self.entities[item])
       if self.entities.get(items):
-        self.deleteEntity(self.entities[item])
+        self.deleteEntity(self.entities[items])
       if self.instances.get(items):
-        self.deleteInstance(self.entities[item])
+        self.deleteInstance(self.instances[items])
 
-    if isinstance(items,entity.Entity): self.deleteEntity(items)
-    elif isinstance(items,entity.Instance): self.deleteInstance(items)
+    if isinstance(items,entity.Instance): self.deleteInstance(items)
+    elif isinstance(items, entity.Entity): self.deleteEntity(items)
 
-  
   def deleteEntity(self,entity):
     """Delete this instance of Entity from the model"""
     entname = entity.data["name"]
@@ -77,9 +76,20 @@ instantiated  <instances>     instances                         instances     (e
     if entities:
       entities[0].delChild(entities[0].findOneByChild("name",entname))
 
+    """Delete entity.Instance of Entity type"""
+    nameInstances = [name for (name, e) in self.instances.items() if e.entity.data["name"] == entname]
+    self.delete(nameInstances)
 
   def deleteInstance(self,inst):
-    assert(0)  # Not implemented
+    entname = inst.data["name"]
+    for (name,e) in self.instances.items():
+      e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != entity]
+    del self.instances[entname]
+
+    # Also delete the entity from the microdom
+    instances = self.data.getElementsByTagName("instances")
+    if instances:
+      instances[0].delChild(instances[0].findOneByChild("name",entname))
 
   def load(self, fileOrString):
     """Load an XML representation of the model"""

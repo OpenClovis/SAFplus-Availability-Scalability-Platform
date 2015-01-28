@@ -500,8 +500,9 @@ class SelectTool(Tool):
 
         # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
         # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
-        if not entities.issubset(self.touching):
+        if not entities.issubset(self.touching) or (len(self.touching) != len(entities)):
           self.touching = set(entities)
+          self.selected = self.touching.copy()
         # If the control key is down, then add to the currently selected group, otherwise replace it.
         if event.ControlDown():
           self.selected = self.selected.union(self.touching)
