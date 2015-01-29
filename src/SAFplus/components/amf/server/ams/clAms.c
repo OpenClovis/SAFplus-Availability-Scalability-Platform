@@ -371,10 +371,6 @@ static void *clAmsClusterStateVerifier(void *cookie)
         if (!gCpmShuttingDown)
           {
             rc = clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
-            if (rc == CL_OK) //reset counter since master changed
-            {
-             memset(&checkFailed, 0, sizeof(checkFailed));
-            }
           }
         clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
        
@@ -393,7 +389,13 @@ static void *clAmsClusterStateVerifier(void *cookie)
                 return NULL;
             }
         }
-        
+
+        // Workaround on interchange leader (master)
+        if (CL_GET_ERROR_CODE(rc) != CL_ERR_TIMEOUT && !gCpmShuttingDown) //reset counter since master changed
+        {
+          memset(&checkFailed, 0, sizeof(checkFailed));
+          clOsalTaskDelay(delay); // Give a delay on verifying
+        }
     }
     
     return NULL;
