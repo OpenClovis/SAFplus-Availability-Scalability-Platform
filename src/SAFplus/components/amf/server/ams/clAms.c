@@ -371,9 +371,12 @@ static void *clAmsClusterStateVerifier(void *cookie)
         if (!gCpmShuttingDown)
           {
             rc = clOsalCondWait(&gpClCpm->cpmEoObj->eoCond,&gpClCpm->cpmEoObj->eoMutex,delay);
-            if (rc == CL_OK) //reset counter since master changed
+            if (CL_GET_ERROR_CODE(rc) != CL_ERR_TIMEOUT) //reset counter since master changed
             {
-             memset(&checkFailed, 0, sizeof(checkFailed));
+              memset(&checkFailed, 0, sizeof(checkFailed));
+              clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
+              clOsalTaskDelay(delay); // Give a delay on verifying
+              clOsalMutexLock(&gpClCpm->cpmEoObj->eoMutex);
             }
           }
         clOsalMutexUnlock(&gpClCpm->cpmEoObj->eoMutex);
