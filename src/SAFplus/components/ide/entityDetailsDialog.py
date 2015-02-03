@@ -23,6 +23,8 @@ LOCK_BUTTON_ID = 3482
 HELP_BUTTON_ID = 4523
 TEXT_ENTRY_ID = 7598
 
+StandaloneDev = False
+
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
         global thePanel
@@ -49,8 +51,9 @@ class Panel(scrolled.ScrolledPanel):
         self.Bind(wx.EVT_TEXT, self.EvtText)
 
         share.detailsPanel = self
-        #e = model.entities["MyServiceGroup"]
-        #self.showEntity(e)
+        if StandaloneDev:
+          e = model.entities["MyServiceGroup"]
+          self.showEntity(e)
         self.SetSashPosition(10)
 
 
@@ -279,6 +282,7 @@ class Panel(scrolled.ScrolledPanel):
           ctrl.Bind(t, self.EvtText)
 
 def Test():
+  global StandaloneDev
   import time
   import pyGuiWrapper as gui
 
@@ -287,7 +291,8 @@ def Test():
 
   sgt = mdl.entityTypes["ServiceGroup"]
   sg = mdl.entities["MyServiceGroup"] = Entity(sgt,(0,0),(100,20))
-
+  StandaloneDev = True
   gui.go(lambda parent,menu,tool,status,m=mdl: Panel(parent,menu,tool,status, m))
   #time.sleep(2)
   #thePanel.showEntity(sg)
+

@@ -29,6 +29,7 @@ SI_TYPE_MENU_ID_START = 20
 COMP_TYPE_MENU_ID_START = 40
 CSI_TYPE_MENU_ID_START = 60
 
+StandaloneDev = False
 
 class EntityTool():
   def __init__(self, panel, treeItem, parent, entity):
@@ -82,9 +83,11 @@ class Panel(scrolled.ScrolledPanel):
         if not share.instanceDetailsPanel:
           share.instanceDetailsPanel = self
 
-        #e = model.entities["MyServiceGroup"]
-        #self.showEntity(e)
-        #self.SetSashPosition(10)
+        if StandaloneDev:
+          e = model.entities["MyServiceGroup"]
+          self.showEntity(e)
+          self.SetSashPosition(10)
+
         self.entityNode = None
         self.entitySg = None
         self.hsplitter = parent
@@ -314,6 +317,7 @@ class Panel(scrolled.ScrolledPanel):
       self.SetSashPosition(self.GetParent().GetClientSize().y)
 
     def showEntities(self, *entities):
+      pdb.set_trace()
       self.entity = None
       self.entityNode = filter(lambda x: x.et.name == "Node", entities)[0]
       self.entitySg = filter(lambda x: x.et.name == "ServiceGroup", entities)[0]
@@ -489,6 +493,7 @@ class Panel(scrolled.ScrolledPanel):
           ctrl.Bind(t, self.EvtText)
 
 def Test():
+  global StandaloneDev
   import time
   import pyGuiWrapper as gui
 
@@ -497,7 +502,7 @@ def Test():
 
   sgt = mdl.entityTypes["ServiceGroup"]
   sg = mdl.entities["MyServiceGroup"] = Entity(sgt,(0,0),(100,20))
-
+  StandaloneDev = True
   gui.go(lambda parent,menu,tool,status,m=mdl: Panel(parent,menu,tool,status, m))
   #time.sleep(2)
   #thePanel.showEntity(sg)
