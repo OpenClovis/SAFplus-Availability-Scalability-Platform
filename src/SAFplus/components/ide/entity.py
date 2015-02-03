@@ -131,7 +131,10 @@ class Instance(Entity):
   It has every field of the Entity so is derived from the Entity class.  However the instance's parent is self.et, not the parent class
   """
   def __init__(self, entity, data,pos, size,name=None):
-    Entity.__init__(self,entity.et, pos, size,name=NameCreator(data["name"]) if name is None else name,data=data)
+    if data is None: data = copy.deepcopy(entity.data)
+    if pos is None: pos = entity.pos
+    if size is None: size = entity.size
+    Entity.__init__(self,entity.et, pos, size,name=NameCreator(entity.data["name"]) if name is None else name,data=data)
     self.entity = entity  # This could be a bit confusing WRT Entity, because the type of the instance is the entity, the type of the entity is the entityType
     # Now, self.entity.et => yang define type
     # self.entity => entity type of instance
@@ -141,3 +144,5 @@ class Instance(Entity):
     #binding entity and data, this make straight render in gui
     #{entity.a : value1, entity.b: value 2}
     self.bmp  = self.entity.et.iconSvg.instantiate(self.size,self.data)
+    self.relativePos = (5,5)  # For layout this is set if the position should be relative to the parent's position
+    self.childOf = set()

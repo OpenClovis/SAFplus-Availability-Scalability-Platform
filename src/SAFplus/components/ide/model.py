@@ -1,4 +1,5 @@
 import pdb
+import copy
 import random
 import xml.dom.minidom
 import microdom
@@ -296,6 +297,8 @@ instantiated  <instances>     instances                         instances     (e
 
       et.update(e.instanceLocked)
 
+# <<<<<<< Updated upstream
+
     # Find or create the instance area in the microdom
     instances = self.data.getElementsByTagName("instances")
     if not instances:
@@ -342,6 +345,28 @@ instantiated  <instances>     instances                         instances     (e
       if instance.child_.has_key(entityParentKey): instance.delChild(entityParentKey)
       instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
 
+# =======
+
+  def recursiveInstantiation(self,ent,instances=None):
+    if not instances: instances = self.instances
+    children = []
+    if 1:
+      name=entity.NameCreator(ent.data["name"])  # Let's see if the instance is already here before we recreate it.
+      ei = instances.get(name,None)  
+      if not ei:
+        ei = entity.Instance(ent, None,pos=None,size=None,name=name)
+        instances[name] = ei
+      for ca in ent.containmentArrows:
+        (ch, xtra) = self.recursiveInstantiation(ca.contained,instances)
+        ch.childOf.add(ei)
+        cai = copy.copy(ca)
+        cai.container = ei
+        cai.contained = ch
+        ei.containmentArrows.append(cai)
+        children.append(ch)
+      return (ei, instances)
+      
+# >>>>>>> Stashed changes
 
   def xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
@@ -350,15 +375,15 @@ instantiated  <instances>     instances                         instances     (e
 
 def UnitTest(m=None):
   """This unit test relies on a particular model configuration, located in testModel.xml"""
-  from entity import *
+  import entity
   if not m:
     m = Model()
     m.load("testModel.xml")
   
   appt = m.entityTypes["Application"]
-  app = m.entities["app"] = Entity(appt,(0,0),(100,20))
+  app = m.entities["app"] = entity.Entity(appt,(0,0),(100,20))
   sgt = m.entityTypes["ServiceGroup"]
-  sg = m.entities["sg"] = Entity(sgt,(0,0),(100,20))
+  sg = m.entities["sg"] = entity.Entity(sgt,(0,0),(100,20))
   
   if not app.canContain(sg):
     raise "Test failed"
@@ -373,7 +398,7 @@ def UnitTest(m=None):
   # Now hook the sg up and then test it again
   app.containmentArrows.append(ContainmentArrow(app,(0,0),sg,(0,0)))
 
-  app2 = m.entities["app2"] = Entity(appt,(0,0),(100,20))
+  app2 = m.entities["app2"] = entity.Entity(appt,(0,0),(100,20))
 
   if not sg.canBeContained(app):
     raise "Test failed: should return true because sg is contained in app"

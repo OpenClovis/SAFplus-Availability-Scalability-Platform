@@ -842,11 +842,19 @@ class GenerateTool(Tool):
     output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)  
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
-dbgIep = None
+dbgPanel = None
 
+def boxIntersect(pos1, size1, pos2, size2):
+  """Calculate the largest box inside BOTH boxes"""
+  ret = (max(pos1[0],pos2[0]),max(pos1[1],pos2[1]),min(pos1[0]+size1[0],pos2[0]+size2[0]),min(pos1[1]+size1[1],pos2[1]+size2[1]))
+  # ret is now the box x,y,x1,y1
+  # TODO convert to pos, size?
+  return ret
 
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
+      global dbgPanel
+      dbgPanel = self
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       share.instancePanel = self
       # These variables define what types can be instantiated in the outer row/columns of the edit tool
@@ -861,13 +869,14 @@ class Panel(scrolled.ScrolledPanel):
       self.Bind(wx.EVT_SIZE, self.OnReSize)
 
       self.Bind(wx.EVT_PAINT, self.OnPaint)
-      dbgIep = self 
+
       self.menuBar = menubar
       self.toolBar = toolbar
       self.statusBar = statusbar
       self.model=model
       self.tool = None  # The current tool
       self.drawers = set()
+      self.renderArrow = {}  # This dictionary indicates whether an arrow needs to be rendered or whether the parent child relationship is expressed in a different fashion (containment)
 
       # The position of the panel's viewport within the larger drawing
       self.location = (0,0)
@@ -949,12 +958,14 @@ class Panel(scrolled.ScrolledPanel):
 
     def sgInstantiator(self,ent,pos,size,children,name):
       """Custom instantiator for service groups"""
-      print "CUSTOM INSTANTIATOR"
-      newdata = copy.deepcopy(ent.data)
-      ret = Instance(ent, newdata,pos,size,name=name)
-      #Actually merge data from entity
-      ret.updateDataFields(newdata)
-      return ret
+      (top, all_created) = self.model.recursiveInstantiation(ent)
+      return top
+#      newdata = copy.deepcopy(ent.data)
+#      ret = Instance(ent, newdata,pos,size,name=name)
+#      #Actually merge data from entity
+#      ret.updateDataFields(newdata)
+#      return ret
+
 
     def OnReSize(self, event):
       self.layout()
@@ -1074,9 +1085,13 @@ class Panel(scrolled.ScrolledPanel):
       self.SetVirtualSize((virtRct.x + virtRct.Width, virtRct.y + virtRct.Height))
 
     def layout(self):
+        rowSet = set(self.rows)
+        columnSet = set(self.columns)
+        self.renderArrow = {}  # We will recalculate which arrows need rendering
         colCount = len(self.columns)
         panelSize = self.GetVirtualSize()
         x = COL_MARGIN
+        self.renderOrder = []
         for i in self.columns:
           width = max(COL_WIDTH,i.size[0])  # Pick the minimum width or the user's adjustment, whichever is bigger
           i.pos = (x,0)
@@ -1085,6 +1100,7 @@ class Panel(scrolled.ScrolledPanel):
             i.size = size
             i.recreateBitmap()
           x+=width+COL_SPACING
+          self.renderOrder.append(i)
 
         y = ROW_MARGIN
         for i in self.rows:
@@ -1095,6 +1111,7 @@ class Panel(scrolled.ScrolledPanel):
             i.size = size
             i.recreateBitmap()
           y+=width+ROW_SPACING
+          self.renderOrder.append(i)
 
         # Re-calculate intersect rectangle
         del self.intersects[0:]
@@ -1105,6 +1122,43 @@ class Panel(scrolled.ScrolledPanel):
             sgRect = getRectInstance(sg, self.scale)
             if sgRect.Intersects(nRect):
               self.intersects.append(sgRect.Intersect(nRect))
+       
+        for (name,i) in self.model.instances.items():
+          if i in self.columns or i in self.rows: pass  # Already laid out
+          t = len(i.childOf)
+          if t > 0:
+            # Find out which rows and columns this object is in
+            inRow = i.childOf & rowSet
+            inCol = i.childOf & columnSet
+            rowParent = None
+            colParent = None
+            if len(inRow) and len(inCol):
+              rowParent = next(iter(inRow))
+              colParent = next(iter(inCol))
+              bound = boxIntersect(rowParent.pos, rowParent.size, colParent.pos, colParent.size)
+            elif len(inRow):
+              rowParent = next(iter(inRow))
+              bound = boxIntersect(rowParent.pos, rowParent.size, (0,0), (COL_MARGIN,panelSize.y))
+            elif len(inCol):            
+              colParent = next(iter(inCol))
+              bound = boxIntersect(colParent.pos, colParent.size, (0,0), (panelSize.x, ROW_MARGIN))
+            else:  # its not drawn contained
+              bound = (0,0,panelSize.x, panelSize.y)
+
+            if rowParent:
+              self.renderArrow[(rowParent,i)] = False # object is drawn inside, so it is unnecessary to render the containment arrow
+            if colParent:
+              self.renderArrow[(colParent,i)] = False # object is drawn inside, so it is unnecessary to render the containment arrow
+
+            i.pos = (bound[0]+i.relativePos[0], bound[1]+i.relativePos[1])
+            tmp = (min(bound[2]-30,180),min(bound[3]-30,160))
+            if tmp != i.size:
+              i.size = tmp
+              i.recreateBitmap()
+            
+          else:
+            pass
+
 
     def render(self, dc):
         """Put the entities on the screen"""
@@ -1118,8 +1172,23 @@ class Panel(scrolled.ScrolledPanel):
         # Now draw the links
         # Now draw the entites
 
+        # Draw the baseline row and column entities
         for e in filter(lambda entInt: entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.values()):
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
+
+        # Draw the other instances on top
+        for e in filter(lambda entInt: not entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.values()):
+          svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
+
+        # Now draw the containment arrows on top
+#        pdb.set_trace()
+        for (name,e) in self.model.instances.items():
+          for a in e.containmentArrows:
+            st = a.container.pos
+            end = a.contained.pos
+            if self.renderArrow.get((a.container,a.contained),True):  # Check to see if there's an directive whether to render this arrow or not.  If there is not one, render it by default
+              # pdb.set_trace()
+              drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
 
         ctx.restore()
 
@@ -1146,13 +1215,17 @@ class Panel(scrolled.ScrolledPanel):
           ret.add(e)
       return ret
 
+    def findObjectsAt(self,pos):
+      return self.findInstancesAt(pos).union(self.findEntitiesAt(pos))
+
     def findEntitiesTouching(self,rect):
       """Returns all entities touching the passed rectangle """
       # TODO handle the viewscope's translation, rotation, scaling
       # Real rectangle
       rect = convertToRealPos(rect, self.scale)
       ret = set()
-      for (name, e) in self.model.instances.items():
+      # hoang for (name, e) in self.model.instances.items():
+      for (name, e) in self.entities.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)
