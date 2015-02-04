@@ -2911,8 +2911,8 @@ static ClRcT compCleanupInvoke(ClCpmComponentT *comp)
     if(comp->compConfig->cleanupCMD[0])
     {
         ClCharT cleanupCmdBuf[CL_MAX_NAME_LENGTH];
-        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s %s",
-                 comp->compConfig->compName, comp->compConfig->cleanupCMD);
+        snprintf(cleanupCmdBuf, sizeof(cleanupCmdBuf), "ASP_COMPNAME=%s EFLAG=%d %s",
+                 comp->compConfig->compName, !comp->hbFailureDetected, comp->compConfig->cleanupCMD);
         clLogNotice(CPM_LOG_AREA_CPM, CPM_LOG_CTX_CPM_LCM, 
                    "Invoking cleanup command [%s] for Component [%s]",
                    cleanupCmdBuf, comp->compConfig->compName);
