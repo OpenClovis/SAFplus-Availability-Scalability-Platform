@@ -43,12 +43,14 @@ class Panel(scrolled.ScrolledPanel):
         self.sizer =None
         self.lookup = {}  # find the object from its windowing ID
         self.numElements = 0
+        self.row = 0
+        self.font = wx.Font(10, wx.MODERN, wx.NORMAL, wx.BOLD)
         # Event handlers
         #self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick)
   
         # for the data entry
-        self.Bind(wx.EVT_TEXT, self.EvtText)
+        # self.Bind(wx.EVT_TEXT, self.EvtText)
 
         share.detailsPanel = self
         if StandaloneDev:
@@ -115,6 +117,9 @@ class Panel(scrolled.ScrolledPanel):
       obj = self.lookup[idx]
       lockButton = obj[3]
       # Toggle the locked state, create it unlocked (then instantly lock it) if it is not already set
+
+      #TODO: handle for children controls not itself if it has child. If it being locked/unlocked, mean all children affected
+
       self.entity.instanceLocked[obj[0][0]] = not self.entity.instanceLocked.get(obj[0][0],False)
       # set the button appropriately
       if self.entity.instanceLocked[obj[0][0]]:
@@ -183,10 +188,9 @@ class Panel(scrolled.ScrolledPanel):
       self.entity = ent
       items = ent.et.data.items()
       items = sorted(items,EntityTypeSortOrder)
-      font = wx.Font(10, wx.MODERN, wx.NORMAL, wx.BOLD)
 
       # Put the name at the top
-      row=0
+      self.row=0
       prompt = wx.StaticText(self,-1,"Name:",style =wx.ALIGN_RIGHT)
       query  = wx.TextCtrl(self, -1, "")
       query.ChangeValue(ent.data["name"])
@@ -195,29 +199,34 @@ class Panel(scrolled.ScrolledPanel):
       # Binding name wx control
       self.BuildChangeEvent(query)
 
-      prompt.SetFont(font)
-      sizer.Add(prompt,(row,0),(1,1),wx.ALIGN_CENTER)
-      sizer.Add(query,(row,2),flag=wx.EXPAND)
+      prompt.SetFont(self.font)
+      sizer.Add(prompt,(self.row,0),(1,1),wx.ALIGN_CENTER)
+      sizer.Add(query,(self.row,2),flag=wx.EXPAND)
       bmp = wx.StaticBitmap(self, -1, self.unlockedBmp)
-      sizer.Add(bmp,(row,3),(1,1),wx.ALIGN_CENTER | wx.ALL)
-      row += 1
+      sizer.Add(bmp,(self.row,3),(1,1),wx.ALIGN_CENTER | wx.ALL)
+      self.row += 1
       for item in filter(lambda item: item[0] != "name", items):
         name = item[0]
         if type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
 
           # Create the data entry field
-          query = self.createControl(row + TEXT_ENTRY_ID,item,ent.data[name])
+          if ent.isContainer(item[1]):
+            #TODO: add span (indent icon to children group)
+            query = self.createChildControls(id, item[1].items(), ent.data[name])
+          else:
+            query = self.createControl(self.row + TEXT_ENTRY_ID,item,ent.data[name])
+
           if not query: continue  # If this piece of data has not control, it is not user editable
 
           # figure out the prompt; its either the name of the item or the prompt override
           s = item[1].get("prompt",name)
           if not s: s = name
           prompt = wx.StaticText(self,-1,s,style=wx.ALIGN_RIGHT)
-          prompt.SetFont(font)  # BUG: Note, setting the font can mess up the layout; resize the window to recalc
+          prompt.SetFont(self.font)  # BUG: Note, setting the font can mess up the layout; resize the window to recalc
           prompt.Fit()
 
           # Now create the lock/unlock button
-          b = wx.BitmapButton(self, row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
+          b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
           b.SetToolTipString("If unlocked, instances can change this field")
           if self.entity.instanceLocked.get(name, False):  # Set its initial state
             b.SetBitmap(self.lockedBmp);
@@ -231,26 +240,78 @@ class Panel(scrolled.ScrolledPanel):
           # Next add the extended help button
           h = None
           if item[1].has_key("help") and item[1]["help"]:
-            h = wx.BitmapButton(self, row + HELP_BUTTON_ID, self.helpBmp,style = wx.NO_BORDER )
+            h = wx.BitmapButton(self, self.row + HELP_BUTTON_ID, self.helpBmp,style = wx.NO_BORDER )
             h.SetToolTipString(item[1]["help"])
           #else: 
           #  h = wx.StaticText(self,-1,"")  # Need a placeholder or gridbag sizer screws up
 
           # OK fill up the sizer
-          sizer.Add(prompt,(row,0),(1,1),wx.ALIGN_CENTER)
-          if h: sizer.Add(h,(row,1),(1,1),wx.ALIGN_CENTER)
-          sizer.Add(query,(row,2),flag=wx.EXPAND)
-          sizer.Add(b,(row,3))
+          sizer.Add(prompt,(self.row,0),(1,1),wx.ALIGN_CENTER)
+          if h: sizer.Add(h,(self.row,1),(1,1),wx.ALIGN_CENTER)
+          sizer.Add(query,(self.row,2),flag=wx.EXPAND)
+          sizer.Add(b,(self.row,3))
 
           # Update the lookup dictionary so when an action occurs we can get the objects from the window ID
-          self.lookup[row] = [item,prompt,query,b,h]
-          row +=1
-      self.numElements = row
+          self.lookup[self.row] = [item,prompt,query,b,h]
+          self.row +=1
+      self.numElements = self.row
       if created: sizer.AddGrowableCol(2)
       self.SetSizer(sizer)
       sizer.Layout()
       self.Refresh()
       self.SetSashPosition(self.GetParent().GetClientSize().x/4)
+
+
+    def createChildControls(self, id, items, values):
+      if len(items) > 0:
+        sizer = wx.GridBagSizer(2,1)
+        for item in items:
+          name = item[0]
+          if type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
+            query = self.createControl(self.row + TEXT_ENTRY_ID,item,values[name])
+            if not query: continue  # If this piece of data has not control, it is not user editable
+  
+            # figure out the prompt; its either the name of the item or the prompt override
+            s = item[1].get("prompt",name)
+            if not s: s = name
+            prompt = wx.StaticText(self,-1,s,style=wx.ALIGN_LEFT)
+            prompt.SetFont(self.font)  # BUG: Note, setting the font can mess up the layout; resize the window to recalc
+            prompt.Fit()
+  
+            # Now create the lock/unlock button
+            b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
+            b.SetToolTipString("If unlocked, instances can change this field")
+            if self.entity.instanceLocked.get(name, False):  # Set its initial state
+              b.SetBitmap(self.lockedBmp);
+              b.SetBitmapSelected(self.unlockedBmp)
+            else:
+              b.SetBitmap(self.unlockedBmp);
+              b.SetBitmapSelected(self.lockedBmp)
+  
+            b.SetBitmapSelected(self.lockedBmp)
+  
+            # Next add the extended help button
+            h = None
+            if item[1].has_key("help") and item[1]["help"]:
+              h = wx.BitmapButton(self, self.row + HELP_BUTTON_ID, self.helpBmp,style = wx.NO_BORDER )
+              h.SetToolTipString(item[1]["help"])
+            #else: 
+            #  h = wx.StaticText(self,-1,"")  # Need a placeholder or gridbag sizer screws up
+  
+            # OK fill up the sizer
+            sizer.Add(prompt,(self.row,0),(1,1),wx.ALIGN_LEFT)
+            if h: sizer.Add(h,(self.row,1),(1,1),wx.ALIGN_CENTER)
+            sizer.Add(query,(self.row,2))
+            sizer.Add(b,(self.row,3))
+
+            # Update the lookup dictionary so when an action occurs we can get the objects from the window ID
+            self.lookup[self.row] = [item,prompt,query,b,h]
+            self.row +=1
+            
+        #sizer.AddGrowableCol(0)
+
+        return sizer
+
 
     def OnPaint(self, evt):
         if self.IsDoubleBuffered():

@@ -90,30 +90,55 @@ class Entity:
     # TODO: make sure that the ordinality is correct (i.e. if self can only be contained by one entity, make sure that currently self is contained by no entity)
     return True
 
-  def updateDataFields(self, dataDict = None):
+  def isContainer(self, typeDicts):
+    for (name,metadata) in typeDicts.items():
+      if type(metadata) == DictType:
+        return True
+    return False
+  
+  def updateDataFields(self, dataDict = None, typeDict = None, data = None):
     """Creates/modifies the data fields in this entity based on the entityType"""
-    new = self.data  # Keep what is already there
-    for (name,metadata) in self.et.data.items():  # Dig thru everything in the entity type, moving it all into the entity
+    if data == None:
+      data = self.data
+    if typeDict == None:
+      typeDict = self.et.data
+
+    #new = self.data  # Keep what is already there
+    for (name,metadata) in typeDict.items():  # Dig thru everything in the entity type, moving it all into the entity
       if type(metadata) == DictType: # If its not a dictionary type it cannot be changed; don't copy over
         if dataDict and dataDict.has_key(name):
           val = dataDict[name]
           if microdom.microdomFilter(val):
-            try:
-              new[name] = val.data_.strip()
-            except AttributeError, e:  # Could be a number...
-              new[name] = val.data_
-          else: new[name] = val
-        elif self.data.has_key(name):  # If its assigned pull it over
-          new[name] = self.data[name]
+            if metadata.has_key('type'):
+              try:
+                data[name] = val.data_.strip()
+              except AttributeError, e:  # Could be a number...
+                data[name] = val.data_
+            else:
+              # Build child container data
+              typeChildsDict = typeDict[name]
+              if self.isContainer(typeChildsDict):
+                data[name] = {}
+                self.updateDataFields(val, typeChildsDict, data[name])
+          else:
+            data[name] = val
+        elif data.has_key(name):  # If its assigned pull it over
+          pass
         else:  # Create it new
           if metadata.has_key("default"):
-            new[name] = metadata["default"]
+            data[name] = metadata["default"]
           elif metadata.has_key("type"):
-            new[name] = self.et.context.defaultForType(metadata["type"])
+            data[name] = self.et.context.defaultForType(metadata["type"])
           else:
-            new[name] = ""
-    # self.data = new  
-
+            # Build child container default data
+            typeChildsDict = typeDict[name]
+            if self.isContainer(typeChildsDict):
+              data[name] = {}
+              self.updateDataFields({}, typeChildsDict, data[name])
+            else:
+              data[name] = ""
+    #self.data = new
+  
   def createInstance(self,pos, size=None,children=False, name=None):
     """Create an entity of this type"""
     if not size:
