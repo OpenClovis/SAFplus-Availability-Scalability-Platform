@@ -157,10 +157,14 @@ class MicroDom:
 
   def update(self,dct):
     for i in dct.items():
-      tmp = MicroDom({"tag_":i[0]}, [i[1]],i[1])
       if self.child_.has_key(i[0]):
         self.delChild(i[0])
-      self.addChild(MicroDom({"tag_":i[0]}, [i[1]],i[1]))
+
+      if type(i[1]) == DictType:
+        tmp = MicroDom({"tag_":i[0]}, [],[])
+        tmp.update(i[1])
+        self.addChild(tmp)
+      else: self.addChild(MicroDom({"tag_":i[0]}, [i[1]],i[1]))
 
   def get(self,item,d=None):
     try:
