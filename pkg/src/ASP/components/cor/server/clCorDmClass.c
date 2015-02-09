@@ -1267,7 +1267,7 @@ dmClassAttrDel(CORClass_h this,
         else
         {
             HASH_REMOVE(this->attrList, attrId);
-            memset(tmp, 0, sizeof(CORAttr_h));
+            memset(tmp, 0, sizeof(CORAttr_t));
         }
     }
     else

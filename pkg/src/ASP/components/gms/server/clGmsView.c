@@ -683,7 +683,7 @@ _clGmsViewGetCurrentViewNotification(
             return CL_GMS_RC(CL_ERR_NO_MEMORY); 
         }
 
-        memset(clusterViewBuf, 0, sizeof(clusterViewBuf));
+        memset(clusterViewBuf, 0, sizeof(ClGmsGroupNotificationT));
     }
     else 
     {
@@ -696,7 +696,7 @@ _clGmsViewGetCurrentViewNotification(
             return CL_GMS_RC(CL_ERR_NO_MEMORY);
         }
 
-        memset(groupViewBuf, 0, sizeof(groupViewBuf));
+        memset(groupViewBuf, 0, sizeof(ClGmsGroupNotificationT));
     }
 
     /* Do a loop of the entire view list and populate the notification
