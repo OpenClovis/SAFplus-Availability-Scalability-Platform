@@ -198,6 +198,13 @@ def safplus_getenv(var, default=None):
                       'or the %s/asp.conf file has not been sourced.' % (var, SAFPLUS_ETC_DIR, SAFPLUS_ETC_DIR ))
     return val
 
+def safplus_getenv_bool(var, default=None):
+  val = os.getenv(var)
+  if val is None: return default
+  if val == 'TRUE' or val == 'true' or val == 'True' or val == '1' or val == 'T' or val == 't': return True
+  if val == 'FALSE' or val == 'false' or val == 'False' or val == '10' or val == 'F' or val == 'f': return False
+  return default
+
 def get_safplus_ulimit_cmd():     
     if is_disable_core():
         return 'ulimit -c 0'
@@ -557,7 +564,7 @@ def save_safplus_runtime_files():
         rm_runtime_files()
         save_cores()
             
-    if 0: # remove_persistent_db:  This is removed during the initial startup (but should it be removed whenever the AMF is restarted?)
+    if safplus_getenv_bool("SAFPLUS_REMOVE_DB",False)==True:  # remove_persistent_db:  This is removed during the initial startup (but should it be removed whenever the AMF is restarted?)
         safplus_db_dir = SAFPLUS_DB_DIR
         cmd = 'rm -rf %s/*' % safplus_db_dir
         execute_shell_cmd(cmd, 'Failed to delete [%s]' % safplus_db_dir)

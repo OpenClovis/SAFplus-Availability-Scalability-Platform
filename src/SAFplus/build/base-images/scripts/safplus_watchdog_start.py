@@ -27,7 +27,7 @@ import commands
 import shutil
 # import pdb
 
-RemovePersistentDb = False
+# RemovePersistentDb = False
 TipcSettings=None
  
 def get_watchdog_pid():
@@ -185,7 +185,8 @@ def watchdog_driver(cmd):
 
 
 def parse_command_line(args):
-    global RemovePersistentDb,TipcSettings
+    # global RemovePersistentDb
+    global TipcSettings
     import getopt
     optdict = {}
     try:
@@ -208,7 +209,7 @@ def parse_command_line(args):
             TipcSettings='ignore'
             logging.info("tipc settings is 'ignore'")
         elif o == '--remove-persistent-db':
-            RemovePersistentDb=True
+            # RemovePersistentDb=True
             os.putenv('SAFPLUS_REMOVE_DB', 'TRUE')
         elif o == '--log-level':
             l = ['trace', 'debug',
@@ -244,8 +245,10 @@ def main(argv):
         return 1
 
     parse_command_line(argv[2:])
-    if RemovePersistentDb:
-      shutil.rmtree(safplus.SAFPLUS_DB_DIR,ignore_errors=True)
+
+    # This is handled during AMF restart    
+    # if RemovePersistentDb:
+    #  shutil.rmtree(safplus.SAFPLUS_DB_DIR,ignore_errors=True)
 
     mkdir(safplus.SAFPLUS_RUN_DIR)
     mkdir(safplus.SAFPLUS_LOG_DIR)
