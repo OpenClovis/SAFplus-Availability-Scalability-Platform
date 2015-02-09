@@ -237,9 +237,19 @@ def log_asp_env():
     log.debug('Simulation ? : %s' %\
               bool(int(asp_env['simulation'])))
 
+def is_first_startup():
+    valid = commands.getstatusoutput("pidof %s" % AmfName);
+    if valid[0] == 0:
+      l = valid[1].split()
+      if len(l) == 1:
+          return int(l[0])
+      if len(l) == 0:
+          return 0
+    return 0
+
 def gen_asp_run_env_file(run_file, d):
     """ Generates a run-time env file that carries all needed environment vars """
-    if os.path.isfile(run_file):
+    if os.path.isfile(run_file) and (is_first_startup() != 0):
         log.info("Will not recreate %s" % run_file)
         return
 
