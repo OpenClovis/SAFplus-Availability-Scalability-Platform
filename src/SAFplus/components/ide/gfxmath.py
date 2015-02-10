@@ -1,4 +1,5 @@
 import wx
+import pdb
 
 PI = 3.141592636
 
@@ -61,6 +62,8 @@ def partition(numitems, bound):
   margin = 5
   innermargin = 2
 
+  if numitems==0:
+    return
   if numitems==1:
     yield (bound[0]+margin, bound[1]+topMargin,bound[2]-margin, bound[3]-margin)
   elif numitems==2:
@@ -71,6 +74,7 @@ def partition(numitems, bound):
     yield (bound[0]+(size[0]/3)+innermargin, bound[1]+topMargin,bound[0]+(2*size[0]/3)-innermargin, bound[3]-margin)
     yield (bound[0]+(2*size[0]/3)+innermargin, bound[1]+topMargin,bound[2]-margin, bound[3]-margin)
   else:
+    print numitems
     pdb.set_trace()
 
 def inBox(point, bound):

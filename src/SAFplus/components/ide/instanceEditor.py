@@ -41,7 +41,7 @@ CODEGEN_LANG_JAVA = 91
 
 COL_MARGIN = 250
 COL_SPACING = 2
-COL_WIDTH = 160
+COL_WIDTH = 250
 
 ROW_MARGIN = 100
 ROW_SPACING = 2
@@ -111,20 +111,21 @@ class EntityTool(Tool):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     ret = False
     if isinstance(event,wx.MouseEvent):
-      if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
-        self.box.start(panel,pos)
+      if event.ButtonUp(wx.MOUSE_BTN_LEFT):  # Select
+        #self.box.start(panel,pos)
         ret = True
       elif event.Dragging():
-        self.box.change(panel,event)
+        #self.box.change(panel,event)
         ret = True
-      elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
-        rect = self.box.finish(panel,pos)
+      elif event.ButtonDown(wx.MOUSE_BTN_LEFT):
+        #rect = self.box.finish(panel,pos)
         # Real point rectangle
-        rect = convertToRealPos(rect, panel.scale)
-        size = (rect[2]-rect[0],rect[3]-rect[1])
-        if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
-          size = None
-        ret = self.panel.CreateNewInstance(self.entity,(rect[0],rect[1]),size)
+        #rect = convertToRealPos(rect, panel.scale)
+        #size = (rect[2]-rect[0],rect[3]-rect[1])
+        #if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
+        #  size = None
+        size = None
+        ret = self.panel.CreateNewInstance(self.entity,(pos[0],pos[1]),size)
             
     return ret
     
@@ -231,12 +232,18 @@ class SelectTool(Tool):
     
         # Remove the background entities; you can't move them
         ent = set()
+        rcent = set()
         for e in entities:
           if e.et.name in panel.rowTypes or e.et.name in panel.columnTypes:
-            pass
+            rcent.add(e)
           else:
             ent.add(e)
-        entities = ent
+
+        # I'm going to let you select row/column entities OR contained entities but not both
+        if ent:
+          entities = ent
+        else:
+          entities = rcent
         print "Touching %s" % ", ".join([ e.data["name"] for e in entities])
 
         panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in entities]),0);
@@ -270,7 +277,12 @@ class SelectTool(Tool):
         if self.touching and self.dragPos:
           # print "drop!"
           for e in self.selected:
-             panel.grid.reposition(e)
+             if e.et.name in panel.rowTypes:
+               panel.repositionRow(e,pos)
+             if e.et.name in panel.columnTypes:
+               panel.repositionColumn(e,pos)
+             else:
+               panel.grid.reposition(e)
           self.touching = set()
           panel.layout()
           panel.Refresh()
@@ -869,6 +881,38 @@ class Panel(scrolled.ScrolledPanel):
       # We need to shift the client rectangle to take into account
       # scrolling, converting device to logical coordinates
       self.SetVirtualSize((virtRct.x + virtRct.Width, virtRct.y + virtRct.Height))
+ 
+    def repositionRow(self, e, pos):
+      self.rows.remove(e)
+      i = 0
+      length = len(self.rows)
+      while i<length:
+        tmp = self.rows[i]
+        # print "%d < %d" % (e.pos[1], tmp.pos[1])
+        if e.pos[1] < tmp.pos[1]:
+          break
+        i+=1
+      self.rows.insert(i,e)
+     # print [ x.data["name"] for x in self.rows]
+      self.layout()
+      self.Refresh()      
+
+
+    def repositionColumn(self,e,pos):
+      self.columns.remove(e)
+      i = 0
+      length = len(self.rows)
+      while i<length:
+        tmp = self.columns[i]
+        #print "%d < %d" % (e.pos[0], tmp.pos[0])
+        if e.pos[0] < tmp.pos[0]:
+          break
+        i+=1
+      self.columns.insert(i,e)
+      #print [ x.data["name"] for x in self.rows]
+      self.layout()
+      self.Refresh()      
+      
 
     def layout(self):
         rowSet = set(self.rows)
@@ -919,10 +963,10 @@ class Panel(scrolled.ScrolledPanel):
               self.intersects.append(sgRect.Intersect(nRect))
        
         for (name,i) in self.model.instances.items():
-          if i in self.columns or i in self.rows: pass  # Already laid out
+          if i in self.columns or i in self.rows: continue  # Already laid out
           t = len(i.childOf)
           if t > 0:
-            # Find out which rows and columns this object is in
+             # Find out which rows and columns this object is in
             inRow = i.childOf & rowSet
             inCol = i.childOf & columnSet
             rowParent = None
@@ -944,6 +988,7 @@ class Panel(scrolled.ScrolledPanel):
             else:  # its not drawn contained
               #bound = (0,0,panelSize.x, panelSize.y)
               cell = self.grid.nogrid
+            # print "addentity %s %s" % (i.et.name, i.data['name'])
             cell.addEnt(i)
             #cell.bound = bound
 
@@ -1009,7 +1054,7 @@ class Panel(scrolled.ScrolledPanel):
       for (name, e) in self.model.instances.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         #print e.data["name"], ": ", pos, " inside: ", e.pos, " to ", furthest
-        if pos[0] >= e.pos[0] and pos[1] >= e.pos[1] and pos[0] <= furthest[0] and pos[1] <= furthest[1]:  # mouse is in the box formed by the entity
+        if inBox(pos,(e.pos[0],e.pos[1],furthest[0],furthest[1])): # mouse is in the box formed by the entity
           ret.add(e)
       return ret
 
@@ -1077,8 +1122,8 @@ def Test():
   model = Model()
   model.load("testModel.xml")
 
-  #gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
-  gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  #gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
   return model
 
 # Notes
