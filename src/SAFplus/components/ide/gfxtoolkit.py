@@ -9,6 +9,8 @@ import svg
 import wx.lib.scrolledpanel as scrolled
 
 import dot
+import time
+from types import *
 
 class Gesture:
   """A gesture is a combination of activities by the user that combine to form a single action.  For example: drag and drop, drag box.

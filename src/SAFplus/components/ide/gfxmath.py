@@ -1,5 +1,6 @@
 import wx
 import pdb
+import math
 
 PI = 3.141592636
 

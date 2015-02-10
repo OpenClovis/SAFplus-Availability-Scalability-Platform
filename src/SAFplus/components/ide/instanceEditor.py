@@ -883,7 +883,8 @@ class Panel(scrolled.ScrolledPanel):
       self.SetVirtualSize((virtRct.x + virtRct.Width, virtRct.y + virtRct.Height))
  
     def repositionRow(self, e, pos):
-      self.rows.remove(e)
+      if len(self.rows) > 0:
+        self.rows.remove(e)
       i = 0
       length = len(self.rows)
       while i<length:
@@ -899,9 +900,10 @@ class Panel(scrolled.ScrolledPanel):
 
 
     def repositionColumn(self,e,pos):
-      self.columns.remove(e)
+      if len(self.columns) > 0:
+        self.columns.remove(e)
       i = 0
-      length = len(self.rows)
+      length = len(self.columns)
       while i<length:
         tmp = self.columns[i]
         #print "%d < %d" % (e.pos[0], tmp.pos[0])
