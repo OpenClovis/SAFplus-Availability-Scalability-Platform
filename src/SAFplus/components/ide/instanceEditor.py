@@ -607,9 +607,14 @@ class GridEntityLayout:
       for cell in row:
         # print cell.bound
         if inBox(pos,cell.bound):
-          # print "INSIDE";
+          # Remove the containment arrows (if they exist)
+          for i in instance.childOf:  
+            i.deleteContainmentArrowTo(instance)
+          # Rewrite the back pointers
           instance.childOf = set([cell.row,cell.col])
-
+          # Create the new containment arrows
+          for i in instance.childOf:  
+            i.createContainmentArrowTo(instance)
 
   def idx(self,row,col=-1):
     """Reference a location in the grid either by integer or by entity"""

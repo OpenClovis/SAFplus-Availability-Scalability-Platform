@@ -90,6 +90,17 @@ class Entity:
     # TODO: make sure that the ordinality is correct (i.e. if self can only be contained by one entity, make sure that currently self is contained by no entity)
     return True
 
+  def createContainmentArrowTo(self,entity):
+    """Creates a containment arrow to the supplied entity.  Essentially, this creates a containment relationship because the arrow defines the relationship"""
+    self.containmentArrows.append(ContainmentArrow(self,(0,0),entity,(0,0)))
+
+  def deleteContainmentArrowTo(self,entity):
+    """Removes the containment arrow to the supplied entity.  Essentially, removes the containment relationship because the arrow defines the relationship"""
+    for i in self.containmentArrows:
+      if i.contained == entity:
+        self.containmentArrows.remove(i)
+        break
+
   def isContainer(self, typeDicts):
     for (name,metadata) in typeDicts.items():
       if type(metadata) == DictType:
@@ -106,6 +117,7 @@ class Entity:
     #new = self.data  # Keep what is already there
     for (name,metadata) in typeDict.items():  # Dig thru everything in the entity type, moving it all into the entity
       if type(metadata) == DictType: # If its not a dictionary type it cannot be changed; don't copy over
+        if metadata.get('config', True) == False: continue  # Do not copy any runtime fields over; they are not interesting to us.        
         if dataDict and dataDict.has_key(name):
           val = dataDict[name]
           if microdom.microdomFilter(val):

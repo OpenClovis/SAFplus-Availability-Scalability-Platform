@@ -216,14 +216,15 @@ class Panel(scrolled.ScrolledPanel):
       self.row += 1
       for item in filter(lambda item: item[0] != "name", items):
         name = item[0]
+        query = None
         if type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
-
           # Create the data entry field
           if ent.isContainer(item[1]):
             #TODO: add span (indent icon to children group)
             query = self.createChildControls(id, item[1].items(), ent.data[name])
           else:
-            query = self.createControl(self.row + TEXT_ENTRY_ID,item,ent.data[name])
+            if ent.data.has_key(name):  # could be false if xml has a field but yang does not (maybe field removed)
+              query = self.createControl(self.row + TEXT_ENTRY_ID,item,ent.data[name])
 
           if not query: continue  # If this piece of data has not control, it is not user editable
 

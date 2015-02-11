@@ -33,12 +33,15 @@ class Module:
     self.filename = common.fileResolver(filename)
     realfile = os.path.realpath(self.filename)  # Chase thru symbolic links
     handler.files[realfile] = self
+    # Parse the yang file into a pythonic dictionary structure
     self.ytypes, self.yobjects  = yang.go(os.getcwd(),[self.filename])
+    # Now let's watch this file for changes
     observer.schedule(handler, os.path.dirname(realfile), recursive=False)
+    # Parse the yang module into entity types
     self.entityTypes = {}
-    for i in self.yobjects.items():
+    for i in self.yobjects.items(): # Load the top level defined entities (like node, sg)
       if i[1].get("ui-entity",False):
-        self.entityTypes[i[0]] = entity.EntityType(i[0],i[1])
+        self.entityTypes[i[0]] = entity.EntityType(i[0],i[1])  # create a new entity type, with the member fields (located in i[1])
 
   def delete(self):
     """Stop using this module"""

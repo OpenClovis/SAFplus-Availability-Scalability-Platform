@@ -53,7 +53,7 @@ class Svg:
     hdl.write(data)
     hdl.close()
     svgSize = (hdl.get_property('width'), hdl.get_property('height'))
-    if size is None or size == svgSize:
+    if size is None or size == svgSize or svgSize[0] <= 0 or svgSize[1] <= 0:
       size = svgSize
       scale = (1.0,1.0)
     else:

@@ -94,10 +94,15 @@ def intOrNone(x):
     return None 
   else: return int(x)
 
+def toBoolean(x):
+  if x == 'true' or x == 'True' or x == 'TRUE' or x == True or x == 1 or x == '1': return True
+  if x == 'false' or x == 'False' or x == 'FALSE' or x == False or x == 0 or x == '0': return False
+  assert(0)
+
 def createLeaf(s,count, result=None):
   """A leaf data item has been found.  Translate this into a clean format that the IDE can easily use to include this item in a configuraton dialog"""
   if result is None: result = {}
-  result[s.arg] = { "order":count, "type": getArg(s,"type"),"help" : getArg(s,"description",None), "alias": getArg(s,("SAFplusTypes","alias"),None), "prompt":getArg(s,("SAFplusTypes","ui-prompt"),None), "default" : getArg(s,"default",None) }
+  result[s.arg] = { "order":count, "type": getArg(s,"type"),"help" : getArg(s,"description",None), "alias": getArg(s,("SAFplusTypes","alias"),None), "prompt":getArg(s,("SAFplusTypes","ui-prompt"),None), "default" : getArg(s,"default",None), "config": toBoolean(getArg(s,"config",True)) }
   return result
   
 def handleList(s,count):

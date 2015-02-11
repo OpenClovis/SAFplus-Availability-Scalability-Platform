@@ -477,14 +477,14 @@ point.  The operational, administrative, and presence states of a service unit, 
 	    description "For a certain component service type, the component provides service as soon as it is started.";
 	  }
 	}
-	config false;
+        safplus:ui-prompt "Capability:";
 	description "This is defined by the SA-Forum AMF specificaion but is read-only because it is an emergent property based on values in saAmfCompNumMaxActiveCSIs and saAmfCompNumMaxStandbyCSIs.";
       }
 
       leaf maxActiveAssignments
       {
 	safplus:alias saAmfCompNumMaxActiveCSIs;
-	safplus:ui-prompt "maximum active work assignments";
+	safplus:ui-prompt "Active Work:";
 	type uint32;
 	default 1;
 	description "Maximum number of active work assignments this component can handle.";
@@ -492,7 +492,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf maxStandbyAssignments
       {
 	safplus:alias saAmfCompNumMaxStandbyCSIs;
-	safplus:ui-prompt "maximum standby work assignments";
+	safplus:ui-prompt "Standby Work:";
 	type uint32;
 	default 1;
 	description "Maximum number of standby work assignments this component can handle.";
@@ -598,7 +598,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 1;
 	description "How many times to attempt to instantiate this entity without delay.  If the number of instantiation attempts exceeds both this and the max delayed instantiations field, the fault will be elevated to the Service Unit level.";
-	safplus:ui-prompt "Max instant instantiations: ";
+	safplus:ui-prompt "Instant starts: ";
       }
 
       leaf maxDelayedInstantiations
@@ -607,7 +607,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 1;
 	description "How many times to attempt to instantiate this entity after an initial delay.  If the number of instantiation attempts exceeds both this and the max instant instantiations field, the fault will be elevated to the Service Unit level.";
-	safplus:ui-prompt "Max delayed instantiations: ";
+	safplus:ui-prompt "Delayed starts: ";
       }
 
       leaf numInstantiationAttempts
@@ -622,6 +622,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	config true;
 	description "If this component remains instantiated for this length of time (in milliseconds), the component is deemed to be successfully instantiated and the numInstantiationAttempts field is zeroed.";
+        safplus:ui-prompt "Startup OK: ";
       }
 
       leaf lastInstantiation
@@ -637,7 +638,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 10000;
 	description "How long to delay between instantiation attempts";
-	safplus:ui-prompt "Delay between instantiations: ";
+	safplus:ui-prompt "Start Delay: ";
       }
 
       container timeouts
