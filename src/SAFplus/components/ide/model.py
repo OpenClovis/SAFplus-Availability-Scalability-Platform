@@ -186,6 +186,7 @@ instantiated  <instances>     instances                         instances     (e
             if contained:
               # TODO: look the positions up in the GUI section of the xml file
               ca = entity.ContainmentArrow(eo,(0,0),contained,(0,0),[])
+              contained.childOf.add(eo)
               eo.containmentArrows.append(ca)
             else:  # target of the link is missing, so drop the link as well.  This could happen if the user manually edits the XML
               # TODO: create some kind of warning/audit log in share.py that we can post messages to.
