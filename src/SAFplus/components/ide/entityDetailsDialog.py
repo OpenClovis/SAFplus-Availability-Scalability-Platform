@@ -83,10 +83,19 @@ class Panel(scrolled.ScrolledPanel):
             pass
   
           # TODO: handle only dirty (actually value changed) entity
-          share.umlEditorPanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
+          self.ChangedValue(proposedValue, obj[0][0])
       else:
         # Notify name change to umlEditor to validate and render
-        share.umlEditorPanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
+        self.ChangedValue(event.GetEventObject().GetValue())
+
+    def ChangedValue(self, proposedValue, obj = None):
+      if obj == None: obj = 'name'
+
+      if isinstance(self.entity,entity.Instance):
+        share.instancePanel.notifyValueChange(self.entity, obj, proposedValue)
+      else:
+        share.umlEditorPanel.notifyValueChange(self.entity, obj, proposedValue)
+
 
     def OnUnfocus(self,event):
       id = event.GetId()
@@ -104,11 +113,11 @@ class Panel(scrolled.ScrolledPanel):
           # TODO: model consistency check -- test the validity of the whole model given this change
           else:
             # TODO: handle only dirty (actually value changed) entity
-            share.umlEditorPanel.notifyValueChange(self.entity, obj[0][0], proposedValue)
+            self.ChangedValue(proposedValue, obj[0][0])
 
       else:
         # Notify name change to umlEditor to validate and render
-        share.umlEditorPanel.notifyNameValueChange(self.entity, event.GetEventObject().GetValue())
+        self.ChangedValue(event.GetEventObject().GetValue())
 
     def OnButtonClick(self,event):
       id = event.GetId()
@@ -231,11 +240,17 @@ class Panel(scrolled.ScrolledPanel):
           if self.entity.instanceLocked.get(name, False):  # Set its initial state
             b.SetBitmap(self.lockedBmp);
             b.SetBitmapSelected(self.unlockedBmp)
+
+            # Not allow to change this value from instance
+            query.Enable(isinstance(self.entity,entity.Instance) == False)
           else:
             b.SetBitmap(self.unlockedBmp);
             b.SetBitmapSelected(self.lockedBmp)
 
           b.SetBitmapSelected(self.lockedBmp)
+
+          # Devide from entity type, not allow to 'Lock' this from instance
+          b.Enable(isinstance(self.entity,entity.Instance) == False)
 
           # Next add the extended help button
           h = None
