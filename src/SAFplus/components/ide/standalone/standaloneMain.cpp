@@ -74,8 +74,9 @@ standaloneFrame::standaloneFrame(wxFrame *frame, const wxString& title)
 #if wxUSE_STATUSBAR
     // create a status bar with some information about the used wxWidgets version
     CreateStatusBar(2);
-    SetStatusText(_("Hello Code::Blocks user!"),0);
-    SetStatusText(wxbuildinfo(short_f), 1);
+    SetStatusText(_(""),0);
+    // wxbuildinfo(short_f)
+    SetStatusText(_("OpenClovis SAFplus IDE " SAFPLUS_IDE_VERSION), 1);
 #endif // wxUSE_STATUSBAR
 
 }

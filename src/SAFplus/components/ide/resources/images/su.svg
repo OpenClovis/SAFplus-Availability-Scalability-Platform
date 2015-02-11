@@ -12,7 +12,7 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    width="$_sizeX"
    height="$_sizeY"
-   id="svg3107"
+   id="su"
    version="1.1"
    inkscape:version="0.48.4 r9939">
   <defs
@@ -26,7 +26,7 @@
        y2="64"
        gradientUnits="userSpaceOnUse">
       <stop
-         style="stop-color:#c2c659;stop-opacity:1;"
+         style="stop-color:#40c659;stop-opacity:1;"
          offset="0"
          />
       <stop

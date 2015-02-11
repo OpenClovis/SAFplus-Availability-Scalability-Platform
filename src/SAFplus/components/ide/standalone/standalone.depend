@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1417660293 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7EditorPanel.cpp
+1423682091 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7EditorPanel.cpp
 	<logmanager.h>
 	<wx/artprov.h>
 	<wx/settings.h>
@@ -7,6 +7,8 @@
 	"SAFplus7EditorPanel.h"
 	"SAFplus7ScrolledWindow.h"
 	<wx/splitter.h>
+	<boost/python.hpp>
+	"utils.h"
 
 1416591626 /usr/include/wx-2.8/wx/artprov.h
 	"wx/string.h"
@@ -378,7 +380,7 @@
 	<wx/hashmap.h>
 	"SAFplus7ScrolledWindow.h"
 
-1416947942 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.h
+1423682658 /code/git/SAFplus7/src/SAFplus/components/ide/standalone/standaloneMain.h
 	<wx/wx.h>
 	"standalone.h"
 	"standaloneApp.h"
@@ -2591,7 +2593,7 @@
 1395223202 /usr/include/librsvg-2.0/librsvg/rsvg-cairo.h
 	<cairo.h>
 
-1417747586 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
+1421100596 source:/code/git/SAFplus7/src/SAFplus/components/ide/SAFplus7IDE.cxx
 	<sdk.h>
 	<configurationpanel.h>
 	<logmanager.h>
@@ -27648,10 +27650,11 @@
 	<Python.h>
 	<boost/python.hpp>
 
-1417750951 source:/code/git/SAFplus7/src/SAFplus/components/ide/pythonWindow.cpp
+1417791207 source:/code/git/SAFplus7/src/SAFplus/components/ide/pythonWindow.cpp
 	<Python.h>
 	<wx/wx.h>
 	<wx/splitter.h>
 	<wx/wxPython/wxPython.h>
 	<boost/python.hpp>
+	"utils.h"
 

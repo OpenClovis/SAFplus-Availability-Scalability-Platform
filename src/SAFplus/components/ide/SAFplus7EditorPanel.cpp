@@ -61,6 +61,7 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   // wxBitmap(Tool_xpm);
 #endif
 
+#if 0
   m_designToolBar->AddTool(wxID_NEW, wxT("New"), wxArtProvider::GetBitmap(wxART_NEW, wxART_MENU), wxT("New diagram"));
   m_designToolBar->AddTool(wxID_OPEN, wxT("Load"), wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_MENU), wxT("Open file..."));
   m_designToolBar->AddTool(wxID_SAVE, wxT("Save"), wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_MENU), wxT("Save file..."));
@@ -75,7 +76,7 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   m_designToolBar->AddTool(wxID_UNDO, wxT("Undo"), wxArtProvider::GetBitmap(wxART_UNDO, wxART_MENU), wxT("Undo"));
   m_designToolBar->AddTool(wxID_REDO, wxT("Redo"), wxArtProvider::GetBitmap(wxART_REDO, wxART_MENU), wxT("Redo"));
   m_designToolBar->AddSeparator();
-
+#endif
   m_designToolBar->AddRadioTool(wxID_ANY, wxT("Tool"), wxBitmap(Tool_xpm), wxNullBitmap, wxT("Design tool"));
   //Get from SAFplusEntityDef.xml
   //Service
