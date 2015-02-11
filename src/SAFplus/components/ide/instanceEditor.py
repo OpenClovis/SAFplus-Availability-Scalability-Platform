@@ -3,7 +3,7 @@ import math
 import time
 from types import *
 
-import networkx  # generic network description library used during object layout
+# import networkx  # generic network description library used during object layout
 
 import wx
 import wx.lib.wxcairo
@@ -654,7 +654,7 @@ class Panel(scrolled.ScrolledPanel):
       dbgPanel = self
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       share.instancePanel = self
-      self.displayGraph = networkx.Graph()
+      # self.displayGraph = networkx.Graph()
       # These variables define what types can be instantiated in the outer row/columns of the edit tool
       self.rowTypes = ["ServiceGroup","Application"]
       self.columnTypes = ["Node"]
