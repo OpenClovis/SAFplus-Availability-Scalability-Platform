@@ -106,6 +106,8 @@ instantiated  <instances>     instances                         instances     (e
 
     # Populate the helper variables from the microdom
     entities = self.data.getElementsByTagName("entities")
+    ideEntities = self.data.getElementsByTagName("ide_entity_info")
+    if ideEntities: ideEntities = ideEntities[0]  # Get first item in the list
     if entities:
       assert(len(entities)==1)
       entities = entities[0]
@@ -113,9 +115,15 @@ instantiated  <instances>     instances                         instances     (e
       for ed in entities.children(microdom.microdomFilter):
         name = ed["name"].data_
         entType = self.entityTypes[ed.tag_]
+
         pos = None
         size = None
-        # TODO load the pos and size from the model (if it exists)
+        if ideEntities: # Load the pos and size from the model (if it exists)
+          ideInfo = ideEntities.getElementsByTagName(name)[0]
+          if ideInfo:
+            pos = common.str2Tuple(ideInfo["position"].data_)
+            size = common.str2Tuple(ideInfo["size"].data_)
+
         if pos is None:
           pos = self.makeUpAScreenPosition()
           size = entType.iconSvg.size
@@ -241,7 +249,10 @@ instantiated  <instances>     instances                         instances     (e
       assert(len(entities)==1)
       entities = entities[0]
     
-    #   find or create the GUI area in the microdom
+    # Find or create the GUI area in the microdom.  The GUI area is structured like:
+    # ide
+    #   ide_entity_info
+    #   ide_instance_info
     ide = self.data.getElementsByTagName("ide")
     if not ide:
       ide = microdom.MicroDom({"tag_":"ide"},[],[])
@@ -249,6 +260,22 @@ instantiated  <instances>     instances                         instances     (e
     else: 
       assert(len(ide)==1)
       ide = ide[0]
+          
+    ideEntities = ide.getElementsByTagName("ide_entity_info")
+    if not ideEntities:
+      ideEntities = microdom.MicroDom({"tag_":"ide_entity_info"},[],[])
+      ide.addChild(ideEntities)
+    else: 
+      assert(len(ideEntities)==1)
+      ideEntities = ideEntities[0]
+
+    ideInsts = ide.getElementsByTagName("ide_instance_info")
+    if not ideInsts:
+      ideInsts = microdom.MicroDom({"tag_":"ide_instance_info"},[],[])
+      ide.addChild(ideInsts)
+    else: 
+      assert(len(ideInsts)==1)
+      ideInsts = ideInsts[0]
     
 
     # Write out the entities
@@ -256,12 +283,22 @@ instantiated  <instances>     instances                         instances     (e
 
     #   iterate through all entities writing them to the microdom, or changing the existing microdom
     for (name,e) in self.entities.items():
+      # Find the existing DOM nodes for the entity information, creating the node if it is missing
       entity = entities.findOneByChild("name",name)
       if not entity:
         entity = microdom.MicroDom({"tag_":e.et.name},[],[])
         entities.addChild(entity)
+      ideEntity = ideEntities.getElementsByTagName(name)
+      if ideEntity: ideEntity = ideEntity[0]
+      else:
+        ideEntity = microdom.MicroDom({"tag_":name},[],[])
+        ideEntities.addChild(ideEntity)
+
       # Write all the data fields into the model's microdom
-      entity.update(e.data)  
+      entity.update(e.data)
+      # write the IDE specific information to the IDE area of the model xml
+      ideEntity["position"] = str(e.pos)
+      ideEntity["size"] = str(e.size) 
       # Now write all the arrows
       contains = {} # Create a dictionary to hold all linkages by type
       for arrow in e.containmentArrows:
@@ -269,6 +306,8 @@ instantiated  <instances>     instances                         instances     (e
         tmp = contains.get(arrow.contained.et.name,[])
         tmp.append(arrow.contained.data["name"])
         contains[arrow.contained.et.name] = tmp
+        # TODO: write the containment arrow IDE specific information to the IDE area of the model xml
+
       # Now erase the missing linkages from the microdom
       for (key, val) in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
           if not contains.has_key(key): # Element is an entity type but no linkages
@@ -278,7 +317,6 @@ instantiated  <instances>     instances                         instances     (e
         k = key + "s"
         if entity.child_.has_key(k): entity.delChild(k)
         entity.addChild(microdom.MicroDom({"tag_":k},[",".join(val)],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
-      # TODO: write the IDE specific information to the IDE area of the model xml
 
       # Building instance lock fields
       etType = ide.getElementsByTagName(e.et.name)
@@ -298,7 +336,6 @@ instantiated  <instances>     instances                         instances     (e
 
       et.update(e.instanceLocked)
 
-# <<<<<<< Updated upstream
 
     # Find or create the instance area in the microdom
     instances = self.data.getElementsByTagName("instances")
@@ -346,7 +383,7 @@ instantiated  <instances>     instances                         instances     (e
       if instance.child_.has_key(entityParentKey): instance.delChild(entityParentKey)
       instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
 
-# =======
+
 
   def recursiveInstantiation(self,ent,instances=None):
     if not instances: instances = self.instances
