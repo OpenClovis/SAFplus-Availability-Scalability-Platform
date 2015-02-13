@@ -219,6 +219,7 @@ class SelectTool(Tool):
         svg.blit(ctx,self.rectBmp,e.pos,e.scale,e.rotate)
 
   def OnEditEvent(self,panel, event):
+    ret = False
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -308,20 +309,31 @@ class SelectTool(Tool):
           self.panel.SetSashPosition(self.panel.GetParent().GetClientSize().x/4)
 
     if isinstance(event,wx.KeyEvent):
-      
-      if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
-        if self.touching:
-          self.panel.deleteEntities(self.touching)
-          self.touching.clear()
-        elif self.selected:
-          self.panel.deleteEntities(self.selected)
-          self.selected.clear()
-        self.panel.Refresh()
-        return True # I consumed this event
+      if event.GetEventType() == wx.EVT_KEY_DOWN.typeId:
+        try:
+          character = chr(event.GetKeyCode())
+        except ValueError:
+          character  = None
+        print "key code: ", character
+        if event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE:
+          if self.touching:
+            self.panel.deleteEntities(self.touching)
+            self.touching.clear()
+          elif self.selected:
+            self.panel.deleteEntities(self.selected)
+            self.selected.clear()
+          self.panel.Refresh()
+          ret=True # I consumed this event
+        elif event.ControlDown() and character ==  'V':
+          print "Copy selected instances"
+          (self.selected,addtl) = self.panel.model.duplicate(self.selected,recursive=True)
+
+          ret=True
       else:
         return False # Give this key to someone else
 
     self.updateSelected()
+    return ret
   
   def updateSelected(self):
     if len(self.selected) == 1:
@@ -652,6 +664,11 @@ class Margin:
   def __init__(self,pos,size):
     self.pos = pos
     self.size = size
+  def createContainmentArrowTo(self,obj):  # No containment arrows in the margin
+    pass
+  def deleteContainmentArrowTo(self,obj):
+    pass
+
 
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):

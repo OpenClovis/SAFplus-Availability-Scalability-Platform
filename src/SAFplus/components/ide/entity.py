@@ -75,6 +75,20 @@ class Entity:
     self.bmp  = self.et.iconSvg.instantiate(self.size,self.data)
     self.containmentArrows = []
 
+  def duplicate(self,name=None, dupContainmentArrows=False):
+    newEnt = copy.copy(self)
+    newEnt.data["name"] = NameCreator(entityType.name) if name is None else name
+    newEnt.bmp  = self.et.iconSvg.instantiate(self.size,self.data)
+    newEnt.pos = (newEnt.pos[0] + 20, newEnt.pos[1] + 20)
+    newEnt.containmentArrows = []
+    if dupContainmentArrows:
+      for ca in self.containmentArrows:
+        ca.contained.childOf.add(newEnt)
+        cai = copy.copy(ca)
+        cai.container = newEnt
+        newEnt.containmentArrows.append(cai)
+    return newEnt
+
   def recreateBitmap(self):
     self.bmp  = self.et.iconSvg.instantiate(self.size,self.data)
 

@@ -384,7 +384,34 @@ instantiated  <instances>     instances                         instances     (e
       if instance.child_.has_key(entityParentKey): instance.delChild(entityParentKey)
       instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
 
-
+  def duplicate(self,entities,recursive=False):
+    """Duplicate a set of entities or instances and potentially all of their children"""
+    ret = []
+    addtl = []
+    for e in entities:
+      name=entity.NameCreator(e.data["name"])  # Let's see if the instance is already here before we recreate it.
+      newEnt = e.duplicate(name, not recursive)  # if we don't want recursive duplication, then dup the containment arrows.
+      if recursive:  # otherwise dup the containment arrows and the objects they point to
+        for ca in e.containmentArrows:
+          (contained,xtra) = self.duplicate([ca.contained],recursive)
+          assert(len(contained)==1)  # It must be 1 because we only asked to duplicate one entity
+          contained = contained[0]
+          contained.childOf.add(newEnt)
+          cai = copy.copy(ca)
+          cai.container = newEnt
+          cai.contained = contained
+          newEnt.containmentArrows.append(cai)
+          addtl.append(contained)
+          addtl.append(xtra)
+      ret.append(newEnt)
+      if isinstance(newEnt,entity.Instance):
+        self.instances[name] = newEnt
+      elif isinstance(newEnt,entity.Entity):
+        self.entities[name] = newEnt
+      else:
+        assert(0)
+        
+    return (ret,addtl)
 
   def recursiveInstantiation(self,ent,instances=None):
     if not instances: instances = self.instances
