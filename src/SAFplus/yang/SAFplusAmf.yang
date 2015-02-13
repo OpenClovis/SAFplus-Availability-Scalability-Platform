@@ -248,7 +248,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	uses EscalationPolicy;
 	description "The maximum Service Unit failure rate allowed before this node is faulted";
-	safplus:ui-group "Service Unit Failure Escalation Policy";
+	safplus:ui-prompt "Service Unit Failure Escalation Policy";
       }
 
       leaf autoRepair

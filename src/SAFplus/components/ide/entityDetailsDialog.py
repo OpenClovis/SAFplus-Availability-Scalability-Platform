@@ -60,7 +60,7 @@ class Panel(scrolled.ScrolledPanel):
 
         share.detailsPanel = self
         if StandaloneDev:
-          e = model.entities["ServiceUnit1"]
+          e = model.entities["Node1"]
           self.showEntity(e)
         self.SetSashPosition(10)
 
@@ -250,7 +250,7 @@ class Panel(scrolled.ScrolledPanel):
               if ent.data.has_key(name):  # could be false if xml has a field but yang does not (maybe field removed)
                 query = self.createControl(self.row + TEXT_ENTRY_ID,item,ent.data[name])
 
-            if not query: continue  # If this piece of data has not control, it is not user editable
+            if not query: continue  # If this piece of data has no control, it is not user editable
 
             # figure out the prompt; its either the name of the item or the prompt override
             s = item[1].get("prompt",name)
@@ -309,7 +309,7 @@ class Panel(scrolled.ScrolledPanel):
           name = item[0]
           if type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
             query = self.createControl(self.row + TEXT_ENTRY_ID,item,values[name])
-            if not query: continue  # If this piece of data has not control, it is not user editable
+            if not query: continue  # If this piece of data has no control, it is not user editable
   
             # figure out the prompt; its either the name of the item or the prompt override
             s = item[1].get("prompt",name)

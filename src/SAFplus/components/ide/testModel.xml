@@ -4,254 +4,48 @@
   </modules>
   <entities>
     <ServiceUnit>
-      <readinessState></readinessState>
-      <operState></operState>
-      <haState></haState>
-      <preinstantiable></preinstantiable>
-      <haReadinessState></haReadinessState>
-      <presenceState></presenceState>
-      <node></node>
+      <node>None</node>
       <restartCount></restartCount>
       <entityType>ServiceUnit</entityType>
       <numActiveServiceInstances></numActiveServiceInstances>
       <name>ServiceUnit1</name>
-      <failover></failover>
-      <contains>
-        <Component></Component>
-      </contains>
-      <saAmfSUHostNodeOrNodeGroup></saAmfSUHostNodeOrNodeGroup>
-      <serviceGroup></serviceGroup>
-      <rank>8</rank>
+      <failover>None</failover>
+      <contains></contains>
+      <saAmfSUHostNodeOrNodeGroup>None</saAmfSUHostNodeOrNodeGroup>
+      <serviceGroup>None</serviceGroup>
+      <rank>None</rank>
       <_sizeY>128</_sizeY>
-      <adminState></adminState>
-      <probationTime></probationTime>
+      <adminState>on</adminState>
+      <probationTime>7782</probationTime>
       <_sizeX>256</_sizeX>
       <id>None</id>
       <numStandbyServiceInstances></numStandbyServiceInstances>
-      <Components>Component1,Component3</Components>
+      <Components>app</Components>
     </ServiceUnit>
     <Component>
-      <processId></processId>
-      <operState></operState>
-      <presence></presence>
-      <numInstantiationAttempts></numInstantiationAttempts>
-      <lastInstantiation></lastInstantiation>
-      <readinessState></readinessState>
-      <haState></haState>
-      <haReadinessState></haReadinessState>
-      <lastError></lastError>
-      <swBundle></swBundle>
-      <_sizeX>256</_sizeX>
-      <entityType>Component</entityType>
-      <terminate>
-        <command></command>
-        <timeout>120000</timeout>
-      </terminate>
-      <id>None</id>
-      <restartCount></restartCount>
-      <recovery></recovery>
-      <safVersion></safVersion>
-      <standbyAssignments></standbyAssignments>
-      <contains></contains>
-      <maxDelayedInstantiations></maxDelayedInstantiations>
-      <cleanup>
-        <command></command>
-        <timeout>120000</timeout>
-      </cleanup>
-      <maxStandbyAssignments></maxStandbyAssignments>
-      <activeAssignments></activeAssignments>
-      <maxActiveAssignments></maxActiveAssignments>
-      <_sizeY>128</_sizeY>
-      <compCategory></compCategory>
-      <restartable></restartable>
-      <delayBetweenInstantiation></delayBetweenInstantiation>
-      <instantiationSuccessDuration></instantiationSuccessDuration>
-      <proxy></proxy>
-      <maxInstantInstantiations></maxInstantInstantiations>
-      <serviceUnit></serviceUnit>
-      <name>Component3</name>
-      <timeouts>
-        <quiescingComplete>120000</quiescingComplete>
-        <workRemoval>120000</workRemoval>
-        <workAssignment>120000</workAssignment>
-      </timeouts>
-      <instantiate>
-        <command></command>
-        <timeout>120000</timeout>
-      </instantiate>
-      <capabilityModel></capabilityModel>
-    </Component>
-    <ComponentServiceInstance>
-      <contains></contains>
-      <name>ComponentServiceInstance2</name>
-      <_sizeX>256</_sizeX>
-      <entityType>ComponentServiceInstance</entityType>
-      <_sizeY>128</_sizeY>
-      <id>None</id>
-      <serviceInstance></serviceInstance>
-      <Components>Component2</Components>
-    </ComponentServiceInstance>
-    <ServiceUnit>
-      <readinessState></readinessState>
-      <operState></operState>
-      <haState></haState>
-      <preinstantiable></preinstantiable>
-      <haReadinessState></haReadinessState>
-      <presenceState></presenceState>
-      <node></node>
-      <restartCount></restartCount>
-      <entityType>ServiceUnit</entityType>
-      <numActiveServiceInstances></numActiveServiceInstances>
-      <name>ServiceUnit2</name>
-      <failover></failover>
-      <contains>
-        <Component></Component>
-      </contains>
-      <saAmfSUHostNodeOrNodeGroup></saAmfSUHostNodeOrNodeGroup>
-      <serviceGroup></serviceGroup>
-      <rank></rank>
-      <_sizeY>128</_sizeY>
-      <adminState>idle</adminState>
-      <probationTime></probationTime>
-      <_sizeX>256</_sizeX>
-      <id>None</id>
-      <numStandbyServiceInstances></numStandbyServiceInstances>
-      <Components>Component2</Components>
-    </ServiceUnit>
-    <ComponentServiceInstance>
-      <contains></contains>
-      <name>ComponentServiceInstance3</name>
-      <_sizeX>256</_sizeX>
-      <entityType>ComponentServiceInstance</entityType>
-      <_sizeY>128</_sizeY>
-      <id>None</id>
-      <serviceInstance></serviceInstance>
-      <Components>Component3</Components>
-    </ComponentServiceInstance>
-    <ServiceInstance>
-      <entityType>ServiceInstance</entityType>
-      <assignmentState></assignmentState>
-      <serviceGroup></serviceGroup>
-      <preferredStandbyAssignments></preferredStandbyAssignments>
-      <name>ServiceInstance1</name>
-      <standbyAssignments></standbyAssignments>
-      <_sizeX>256</_sizeX>
-      <contains></contains>
-      <rank></rank>
-      <_sizeY>128</_sizeY>
-      <adminState></adminState>
-      <activeAssignments></activeAssignments>
-      <id>None</id>
-      <preferredActiveAssignments></preferredActiveAssignments>
-      <ComponentServiceInstances>ComponentServiceInstance1,ComponentServiceInstance3,ComponentServiceInstance2</ComponentServiceInstances>
-    </ServiceInstance>
-    <Component>
-      <processId></processId>
-      <operState></operState>
-      <presence></presence>
-      <numInstantiationAttempts></numInstantiationAttempts>
-      <lastInstantiation></lastInstantiation>
-      <readinessState></readinessState>
-      <haState></haState>
-      <haReadinessState></haReadinessState>
-      <lastError></lastError>
-      <swBundle></swBundle>
-      <_sizeX>256</_sizeX>
-      <entityType>Component</entityType>
-      <terminate>
-        <command></command>
-        <timeout>120000</timeout>
-      </terminate>
-      <id>None</id>
-      <restartCount></restartCount>
-      <recovery></recovery>
-      <safVersion></safVersion>
-      <standbyAssignments></standbyAssignments>
-      <contains></contains>
-      <maxDelayedInstantiations></maxDelayedInstantiations>
-      <cleanup>
-        <command></command>
-        <timeout>120000</timeout>
-      </cleanup>
-      <maxStandbyAssignments></maxStandbyAssignments>
-      <activeAssignments></activeAssignments>
-      <maxActiveAssignments></maxActiveAssignments>
-      <_sizeY>128</_sizeY>
-      <compCategory></compCategory>
-      <restartable></restartable>
-      <delayBetweenInstantiation></delayBetweenInstantiation>
-      <instantiationSuccessDuration></instantiationSuccessDuration>
-      <proxy></proxy>
-      <maxInstantInstantiations></maxInstantInstantiations>
-      <serviceUnit></serviceUnit>
-      <name>Component1</name>
-      <timeouts>
-        <quiescingComplete>120000</quiescingComplete>
-        <workRemoval>120000</workRemoval>
-        <workAssignment>120000</workAssignment>
-      </timeouts>
-      <instantiate>
-        <command></command>
-        <timeout>120000</timeout>
-      </instantiate>
-      <capabilityModel></capabilityModel>
-    </Component>
-    <ComponentServiceInstance>
-      <contains></contains>
-      <name>ComponentServiceInstance1</name>
-      <_sizeX>256</_sizeX>
-      <entityType>ComponentServiceInstance</entityType>
-      <_sizeY>128</_sizeY>
-      <id>None</id>
-      <serviceInstance></serviceInstance>
-      <Components>Component1</Components>
-    </ComponentServiceInstance>
-    <ServiceGroup>
-      <entityType>ServiceGroup</entityType>
-      <preferredNumStandbyServiceUnits></preferredNumStandbyServiceUnits>
-      <autoAdjust></autoAdjust>
+      <command>appKill</command>
+      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
+      <autoAdjust>None</autoAdjust>
       <numIdleServiceUnits></numIdleServiceUnits>
-      <name>ServiceGroup1</name>
-      <preferredNumActiveServiceUnits></preferredNumActiveServiceUnits>
-      <maxStandbyWorkAssignments></maxStandbyWorkAssignments>
-      <_sizeX>256</_sizeX>
-      <contains>
-        <ServiceUnit></ServiceUnit>
-        <ServiceInstances></ServiceInstances>
-      </contains>
-      <preferredNumIdleServiceUnits></preferredNumIdleServiceUnits>
+      <preferredNumActiveServiceUnits>10</preferredNumActiveServiceUnits>
+      <maxStandbyWorkAssignments>10</maxStandbyWorkAssignments>
+      <preferredNumIdleServiceUnits>None</preferredNumIdleServiceUnits>
       <componentRestart>
         <duration>None</duration>
         <maximum>None</maximum>
       </componentRestart>
       <adminState>on</adminState>
-      <autoRepair></autoRepair>
-      <application></application>
+      <autoRepair>True</autoRepair>
+      <application>app</application>
       <serviceUnitRestart>
         <duration>None</duration>
         <maximum>None</maximum>
       </serviceUnitRestart>
       <numAssignedServiceUnits></numAssignedServiceUnits>
       <numSpareServiceUnits></numSpareServiceUnits>
-      <autoAdjustInterval></autoAdjustInterval>
-      <_sizeY>128</_sizeY>
-      <maxActiveWorkAssignments></maxActiveWorkAssignments>
-      <id>None</id>
-      <ServiceUnits>ServiceUnit2,ServiceUnit1</ServiceUnits>
-      <ServiceInstances>ServiceInstance1</ServiceInstances>
-    </ServiceGroup>
-    <Component>
-      <processId></processId>
-      <operState></operState>
-      <presence></presence>
-      <numInstantiationAttempts></numInstantiationAttempts>
-      <lastInstantiation></lastInstantiation>
-      <readinessState></readinessState>
-      <haState></haState>
-      <haReadinessState></haReadinessState>
-      <lastError></lastError>
-      <swBundle></swBundle>
-      <_sizeX>256</_sizeX>
+      <autoAdjustInterval>None</autoAdjustInterval>
+      <maxActiveWorkAssignments>1</maxActiveWorkAssignments>
+      <_sizeX>256.0</_sizeX>
       <entityType>Component</entityType>
       <terminate>
         <command></command>
@@ -259,27 +53,27 @@
       </terminate>
       <id>None</id>
       <restartCount></restartCount>
-      <recovery></recovery>
-      <safVersion></safVersion>
+      <recovery>None</recovery>
+      <safVersion>B.0101</safVersion>
       <standbyAssignments></standbyAssignments>
       <contains></contains>
-      <maxDelayedInstantiations></maxDelayedInstantiations>
+      <maxDelayedInstantiations>5</maxDelayedInstantiations>
       <cleanup>
         <command></command>
         <timeout>120000</timeout>
       </cleanup>
-      <maxStandbyAssignments></maxStandbyAssignments>
+      <maxStandbyAssignments>11</maxStandbyAssignments>
       <activeAssignments></activeAssignments>
-      <maxActiveAssignments></maxActiveAssignments>
-      <_sizeY>128</_sizeY>
-      <compCategory></compCategory>
-      <restartable></restartable>
-      <delayBetweenInstantiation></delayBetweenInstantiation>
-      <instantiationSuccessDuration></instantiationSuccessDuration>
-      <proxy></proxy>
-      <maxInstantInstantiations></maxInstantInstantiations>
-      <serviceUnit></serviceUnit>
-      <name>Component2</name>
+      <maxActiveAssignments>1</maxActiveAssignments>
+      <_sizeY>128.0</_sizeY>
+      <compCategory>1</compCategory>
+      <restartable>True</restartable>
+      <delayBetweenInstantiation>10000</delayBetweenInstantiation>
+      <instantiationSuccessDuration>30</instantiationSuccessDuration>
+      <proxy>None</proxy>
+      <maxInstantInstantiations>5</maxInstantInstantiations>
+      <serviceUnit>None</serviceUnit>
+      <name>app</name>
       <timeouts>
         <quiescingComplete>120000</quiescingComplete>
         <workRemoval>120000</workRemoval>
@@ -289,125 +83,131 @@
         <command></command>
         <timeout>120000</timeout>
       </instantiate>
-      <capabilityModel></capabilityModel>
+      <capabilityModel>None</capabilityModel>
     </Component>
+    <ServiceGroup>
+      <entityType>ServiceGroup</entityType>
+      <preferredNumStandbyServiceUnits>1</preferredNumStandbyServiceUnits>
+      <autoAdjust>None</autoAdjust>
+      <numIdleServiceUnits></numIdleServiceUnits>
+      <name>appSG</name>
+      <preferredNumActiveServiceUnits>10</preferredNumActiveServiceUnits>
+      <maxStandbyWorkAssignments>10</maxStandbyWorkAssignments>
+      <_sizeX>256.0</_sizeX>
+      <contains></contains>
+      <preferredNumIdleServiceUnits>None</preferredNumIdleServiceUnits>
+      <componentRestart>
+        <duration>None</duration>
+        <maximum>None</maximum>
+      </componentRestart>
+      <adminState>on</adminState>
+      <autoRepair>True</autoRepair>
+      <application>app</application>
+      <serviceUnitRestart>
+        <duration>None</duration>
+        <maximum>None</maximum>
+      </serviceUnitRestart>
+      <numAssignedServiceUnits></numAssignedServiceUnits>
+      <numSpareServiceUnits></numSpareServiceUnits>
+      <autoAdjustInterval>None</autoAdjustInterval>
+      <_sizeY>128.0</_sizeY>
+      <maxActiveWorkAssignments>1</maxActiveWorkAssignments>
+      <id>None</id>
+      <ServiceUnits>ServiceUnit1</ServiceUnits>
+      <ServiceInstances>work</ServiceInstances>
+    </ServiceGroup>
     <Node>
-      <operState></operState>
-      <failFastOnInstantiationFailure></failFastOnInstantiationFailure>
+      <failFastOnInstantiationFailure>None</failFastOnInstantiationFailure>
       <entityType>Node</entityType>
-      <name>Node1</name>
-      <_sizeX>256</_sizeX>
-      <contains>
-        <ServiceUnit></ServiceUnit>
-      </contains>
-      <autoRepair></autoRepair>
-      <adminState></adminState>
-      <_sizeY>128</_sizeY>
-      <failFastOnCleanupFailure></failFastOnCleanupFailure>
+      <name>SC</name>
+      <_sizeX>256.0</_sizeX>
+      <contains></contains>
+      <autoRepair>True</autoRepair>
+      <adminState>on</adminState>
+      <_sizeY>128.0</_sizeY>
+      <failFastOnCleanupFailure>None</failFastOnCleanupFailure>
       <serviceUnitFailureEscalationPolicy>
         <duration>None</duration>
         <maximum>None</maximum>
       </serviceUnitFailureEscalationPolicy>
       <id>None</id>
       <ServiceUnits>ServiceUnit1</ServiceUnits>
+      <Components>app</Components>
     </Node>
-    <Node>
-      <operState></operState>
-      <failFastOnInstantiationFailure></failFastOnInstantiationFailure>
-      <entityType>Node</entityType>
-      <name>Node2</name>
-      <_sizeX>256</_sizeX>
-      <contains>
-        <ServiceUnit></ServiceUnit>
-      </contains>
-      <autoRepair></autoRepair>
-      <adminState></adminState>
-      <_sizeY>128</_sizeY>
-      <failFastOnCleanupFailure></failFastOnCleanupFailure>
-      <serviceUnitFailureEscalationPolicy>
-        <duration>None</duration>
-        <maximum>None</maximum>
-      </serviceUnitFailureEscalationPolicy>
-      <id>None</id>
-      <ServiceUnits>ServiceUnit2</ServiceUnits>
-    </Node>
-  </entities>
-  <instances></instances>
-  <ide>
-    <ide_entity_info>
-      <ServiceUnit1>
-        <position>(393, 261)</position>
-        <size>(256, 128)</size>
-      </ServiceUnit1>
-      <Component3>
-        <position>(516, 563)</position>
-        <size>(256, 128)</size>
-      </Component3>
-      <ServiceUnit2>
-        <position>(30, 264)</position>
-        <size>(256, 128)</size>
-      </ServiceUnit2>
-      <ServiceGroup1>
-        <position>(224, 31)</position>
-        <size>(256, 128)</size>
-      </ServiceGroup1>
-      <Component2>
-        <position>(83, 537)</position>
-        <size>(256, 128)</size>
-      </Component2>
-      <ServiceInstance1>
-        <position>(216, 385)</position>
-        <size>(256, 128)</size>
-      </ServiceInstance1>
-      <Component1>
-        <position>(592, 450)</position>
-        <size>(256, 128)</size>
-      </Component1>
-      <ComponentServiceInstance1>
-        <position>(498, 404)</position>
-        <size>(256, 128)</size>
-      </ComponentServiceInstance1>
-      <ComponentServiceInstance2>
-        <position>(36, 482)</position>
-        <size>(256, 128)</size>
-      </ComponentServiceInstance2>
-      <ComponentServiceInstance3>
-        <position>(408, 481)</position>
-        <size>(256, 128)</size>
-      </ComponentServiceInstance3>
-      <Node1>
-        <position>(403, 122)</position>
-        <size>(256, 128)</size>
-      </Node1>
-      <Node2>
-        <position>(37, 122)</position>
-        <size>(256, 128)</size>
-      </Node2>
-    </ide_entity_info>
-    <ide_instance_info></ide_instance_info>
-    <ServiceUnit>
-      <ServiceUnit1></ServiceUnit1>
-      <ServiceUnit2></ServiceUnit2>
-    </ServiceUnit>
-    <Component>
-      <Component3></Component3>
-      <Component2></Component2>
-      <Component1></Component1>
-    </Component>
-    <ServiceGroup>
-      <ServiceGroup1></ServiceGroup1>
-    </ServiceGroup>
     <ServiceInstance>
-      <ServiceInstance1></ServiceInstance1>
+      <entityType>ServiceInstance</entityType>
+      <assignmentState>None</assignmentState>
+      <serviceGroup>None</serviceGroup>
+      <preferredStandbyAssignments>1</preferredStandbyAssignments>
+      <name>work</name>
+      <standbyAssignments></standbyAssignments>
+      <_sizeX>256.0</_sizeX>
+      <contains></contains>
+      <rank>None</rank>
+      <_sizeY>128.0</_sizeY>
+      <adminState>None</adminState>
+      <activeAssignments></activeAssignments>
+      <id>None</id>
+      <preferredActiveAssignments>1</preferredActiveAssignments>
+      <ComponentServiceInstances>csi</ComponentServiceInstances>
     </ServiceInstance>
     <ComponentServiceInstance>
-      <ComponentServiceInstance1></ComponentServiceInstance1>
-      <ComponentServiceInstance2></ComponentServiceInstance2>
-      <ComponentServiceInstance3></ComponentServiceInstance3>
+      <contains></contains>
+      <name>csi</name>
+      <_sizeX>256.0</_sizeX>
+      <entityType>ComponentServiceInstance</entityType>
+      <_sizeY>128.0</_sizeY>
+      <id>None</id>
+      <serviceInstance>None</serviceInstance>
+      <Components>app</Components>
     </ComponentServiceInstance>
+  </entities>
+  <ide>
+    <ide_entity_info>
+      <app>
+        <position>(181.0, 672.0)</position>
+        <size>(256.0, 128.0)</size>
+      </app>
+      <SC>
+        <position>(451.0, 36.0)</position>
+        <size>(256.0, 128.0)</size>
+      </SC>
+      <csi>
+        <position>(357.0, 523.0)</position>
+        <size>(256.0, 128.0)</size>
+      </csi>
+      <work>
+        <position>(305.0, 486.0)</position>
+        <size>(256.0, 128.0)</size>
+      </work>
+      <appSG>
+        <position>(172.0, 77.0)</position>
+        <size>(256.0, 128.0)</size>
+      </appSG>
+      <ServiceUnit1>
+        <position>(173, 302)</position>
+        <size>(256, 128)</size>
+      </ServiceUnit1>
+    </ide_entity_info>
+    <ide_instance_info></ide_instance_info>
+    <ComponentServiceInstance>
+      <csi></csi>
+    </ComponentServiceInstance>
+    <Component>
+      <app></app>
+    </Component>
+    <ServiceInstance>
+      <work></work>
+    </ServiceInstance>
     <Node>
-      <Node1></Node1>
-      <Node2></Node2>
+      <SC></SC>
     </Node>
+    <ServiceUnit>
+      <ServiceUnit1></ServiceUnit1>
+    </ServiceUnit>
+    <ServiceGroup>
+      <appSG></appSG>
+    </ServiceGroup>
   </ide>
+  <instances></instances>
 </SAFplusModel>
