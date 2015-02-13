@@ -119,8 +119,9 @@ instantiated  <instances>     instances                         instances     (e
         pos = None
         size = None
         if ideEntities: # Load the pos and size from the model (if it exists)
-          ideInfo = ideEntities.getElementsByTagName(name)[0]
+          ideInfo = ideEntities.getElementsByTagName(name)
           if ideInfo:
+            ideInfo = ideInfo[0]
             pos = common.str2Tuple(ideInfo["position"].data_)
             size = common.str2Tuple(ideInfo["size"].data_)
 

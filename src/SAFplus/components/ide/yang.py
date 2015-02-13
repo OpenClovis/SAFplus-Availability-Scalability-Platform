@@ -99,10 +99,35 @@ def toBoolean(x):
   if x == 'false' or x == 'False' or x == 'FALSE' or x == False or x == 0 or x == '0': return False
   assert(0)
 
+def cvtRange(s,typ="int"):
+  """Converts a YANG style range to a list of range lists
+>>> cvtRange("1..5 | 10..20")
+[[1, 5], [10, 20]]
+>>> cvtRange("1..5")
+[[1, 5]]
+>>> cvtRange("1 | 2 | 3..max")
+[[1], [2], [3,"max"]]
+  """
+  if typ == "int" or typ == "uint" or typ == "uint32" or typ == "int32" or typ == "decimal64" or typ == "int64" or typ == "uint64": cvter = int  
+  if s is None:  return None  # No range specified
+  ranges = [ x.strip().split("..") for x in re.findall("[^|]+",s)]
+  ret = []
+  for r in ranges:
+    rang = []
+    for elem in r:
+      if elem == "max":
+        rang.append("max")
+      elif elem == "min":
+        rang.append("min")
+      else: rang.append(cvter(elem))
+    ret.append(rang) 
+  return ret
+
 def createLeaf(s,count, result=None):
   """A leaf data item has been found.  Translate this into a clean format that the IDE can easily use to include this item in a configuraton dialog"""
   if result is None: result = {}
-  result[s.arg] = { "order":count, "type": getArg(s,"type"),"help" : getArg(s,"description",None), "alias": getArg(s,("SAFplusTypes","alias"),None), "prompt":getArg(s,("SAFplusTypes","ui-prompt"),None), "default" : getArg(s,"default",None), "config": toBoolean(getArg(s,"config",True)) }
+  typ = getArg(s,"type")
+  result[s.arg] = { "order":count, "type": typ,"help" : getArg(s,"description",None), "alias": getArg(s,("SAFplusTypes","alias"),None), "prompt":getArg(s,("SAFplusTypes","ui-prompt"),None), "default" : getArg(s,"default",None), "config": toBoolean(getArg(s,"config",True)), "range": cvtRange(getArg(s,"range",None),typ)}
   return result
   
 def handleList(s,count):

@@ -261,13 +261,13 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type boolean;
 	description "If a component fails to instantiate on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
-	safplus:ui-prompt "Reboot node if component instantiation repeatedly fails? ";
+	safplus:ui-prompt "Comp Fault Reboot:";
       }
       leaf failFastOnCleanupFailure
       {
 	type boolean;
 	description "If a component's cleanup script fails on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
-	safplus:ui-prompt "Reboot node if component cleanup repeatedly fails? ";
+	safplus:ui-prompt "Cleanup Fault Reboot:";
       }
 
     leaf-list serviceUnits
@@ -1020,7 +1020,8 @@ are switched over to other nodes (component service instances are not abruptly r
      leaf-list assignedServiceInstances
      {
         type instance-identifier;
-        safplus:c-type "ServiceInstance*";       
+        safplus:c-type "ServiceInstance*";
+        config false;    
      }
 
      // ?? saAmfSUHostedByNode string
@@ -1076,8 +1077,9 @@ are switched over to other nodes (component service instances are not abruptly r
       {
 	type uint32;
 	default 0;
+        range "0..1000000";
 	description "Once this Service Unit is instantiated, how long should I wait before assigning it?";
-	safplus:ui-prompt "Startup probation Time: ";
+	safplus:ui-prompt "Start probation: ";
       }
 
 

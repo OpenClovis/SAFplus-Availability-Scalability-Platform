@@ -3,7 +3,7 @@ import re
 userWorkspace = None
 
 def str2Tuple(s):
-  return tuple(int(x) for x in re.findall("[0-9]+",s))
+  return tuple(float(x) for x in re.findall("[0-9\.]+",s))
 
 def fileResolver(filename):
   """Look in standard places for a file"""

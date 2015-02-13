@@ -25,6 +25,12 @@ TEXT_ENTRY_ID = 7598
 
 StandaloneDev = False
 
+# Min and Max values taken from rfc6020 Section 9.2
+MinValFor = { 'int8':-128,'uint8':0  , 'int16': -32768, 'uint16':0,   'int32': -2147483648,'uint32':0,'int64':-9223372036854775808,'uint64':0}
+MaxValFor = { 'int8': 127,'uint8':255, 'int16': 32767, 'uint16':65535,'int32': 2147483647, 'uint32':4294967295,'int64':9223372036854775807,'uint64':18446744073709551615} 
+
+YangIntegerTypes = ['int8','uint8','int16', 'uint16','int32','uint32','int64','uint64']
+
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
         global thePanel
@@ -54,7 +60,7 @@ class Panel(scrolled.ScrolledPanel):
 
         share.detailsPanel = self
         if StandaloneDev:
-          e = model.entities["MyServiceGroup"]
+          e = model.entities["ServiceUnit1"]
           self.showEntity(e)
         self.SetSashPosition(10)
 
@@ -92,9 +98,11 @@ class Panel(scrolled.ScrolledPanel):
       if obj == None: obj = 'name'
 
       if isinstance(self.entity,entity.Instance):
-        share.instancePanel.notifyValueChange(self.entity, obj, proposedValue)
+        if share.instancePanel:
+          share.instancePanel.notifyValueChange(self.entity, obj, proposedValue)
       else:
-        share.umlEditorPanel.notifyValueChange(self.entity, obj, proposedValue)
+        if share.umlEditorPanel:
+          share.umlEditorPanel.notifyValueChange(self.entity, obj, proposedValue)
 
 
     def OnUnfocus(self,event):
@@ -145,13 +153,22 @@ class Panel(scrolled.ScrolledPanel):
       if typeData.has_key("type"):
         if typeData["type"] == "boolean":
           query = wx.CheckBox(self,id,"")
-        elif typeData["type"] == "uint32":
+        elif typeData["type"] in YangIntegerTypes:
           v = 0
           try:
             v = int(value)
           except:
-            pass
-          query = wx.Slider(self,id,v,0,100,style = wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
+            default = typeData["default"]
+            if default:
+              v = int(default)
+          rang = typeData["range"]
+          if not rang:
+            rang=[0,100]
+          else:
+            rang=[rang[0][0], rang[-1][-1]]  # get the first and last element of this list of lists.  We are ignoring any gaps (i.e. [[1,3],[5,10]] because the slider can't handle them anyway. It might be better to just fall back to a text entry box if range is funky.
+            if rang[0] == "min": rang[0] = MinValFor[typeData["type"]]
+            if rang[1] == "max": rang[1] = MaxValFor[typeData["type"]]
+          query = wx.Slider(self,id,v,rang[0],rang[1],style = wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
           query.SetTickFreq(5)
           # TODO create a control that contains both a slider and a small text box
           # TODO size the slider properly using min an max hints 
@@ -217,59 +234,66 @@ class Panel(scrolled.ScrolledPanel):
       for item in filter(lambda item: item[0] != "name", items):
         name = item[0]
         query = None
-        if type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
-          # Create the data entry field
-          if ent.isContainer(item[1]):
-            #TODO: add span (indent icon to children group)
-            query = self.createChildControls(id, item[1].items(), ent.data[name])
+        if name == "contains":
+          # This is a leaf-list.  In the case where the contained objects are entities, we don't want to show anything in the entity details because the uml handles it.  TODO: Otherwise we might need to show something
+          pass
+        elif type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
+          if item[1].get('type',None) == 'instance-identifier':
+            # This is a pointer to another object.  We should certainly ignore it if the safplus:instance-type is a uml entity because the UML diagram captures this.  TODO: is there any other case where this should not be ignored?
+            pass
           else:
-            if ent.data.has_key(name):  # could be false if xml has a field but yang does not (maybe field removed)
-              query = self.createControl(self.row + TEXT_ENTRY_ID,item,ent.data[name])
+              # Create the data entry field
+            if ent.isContainer(item[1]):
+              #TODO: add span (indent icon to children group)
+              query = self.createChildControls(id, item[1].items(), ent.data[name])
+            else:
+              if ent.data.has_key(name):  # could be false if xml has a field but yang does not (maybe field removed)
+                query = self.createControl(self.row + TEXT_ENTRY_ID,item,ent.data[name])
 
-          if not query: continue  # If this piece of data has not control, it is not user editable
+            if not query: continue  # If this piece of data has not control, it is not user editable
 
-          # figure out the prompt; its either the name of the item or the prompt override
-          s = item[1].get("prompt",name)
-          if not s: s = name
-          prompt = wx.StaticText(self,-1,s,style=wx.ALIGN_RIGHT)
-          prompt.SetFont(self.font)  # BUG: Note, setting the font can mess up the layout; resize the window to recalc
-          prompt.Fit()
+            # figure out the prompt; its either the name of the item or the prompt override
+            s = item[1].get("prompt",name)
+            if not s: s = name
+            prompt = wx.StaticText(self,-1,s,style=wx.ALIGN_RIGHT)
+            prompt.SetFont(self.font)  # BUG: Note, setting the font can mess up the layout; resize the window to recalc
+            prompt.Fit()
 
-          # Now create the lock/unlock button
-          b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
-          b.SetToolTipString("If unlocked, instances can change this field")
-          if self.entity.instanceLocked.get(name, False):  # Set its initial state
-            b.SetBitmap(self.lockedBmp);
-            b.SetBitmapSelected(self.unlockedBmp)
+            # Now create the lock/unlock button
+            b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
+            b.SetToolTipString("If unlocked, instances can change this field")
+            if self.entity.instanceLocked.get(name, False):  # Set its initial state
+              b.SetBitmap(self.lockedBmp);
+              b.SetBitmapSelected(self.unlockedBmp)
 
-            # Not allow to change this value from instance
-            query.Enable(isinstance(self.entity,entity.Instance) == False)
-          else:
-            b.SetBitmap(self.unlockedBmp);
+              # Not allow to change this value from instance
+              query.Enable(isinstance(self.entity,entity.Instance) == False)
+            else:
+              b.SetBitmap(self.unlockedBmp);
+              b.SetBitmapSelected(self.lockedBmp)
+
             b.SetBitmapSelected(self.lockedBmp)
 
-          b.SetBitmapSelected(self.lockedBmp)
+            # Devide from entity type, not allow to 'Lock' this from instance
+            b.Enable(isinstance(self.entity,entity.Instance) == False)
 
-          # Devide from entity type, not allow to 'Lock' this from instance
-          b.Enable(isinstance(self.entity,entity.Instance) == False)
+            # Next add the extended help button
+            h = None
+            if item[1].has_key("help") and item[1]["help"]:
+              h = wx.BitmapButton(self, self.row + HELP_BUTTON_ID, self.helpBmp,style = wx.NO_BORDER )
+              h.SetToolTipString(item[1]["help"])
+            #else: 
+            #  h = wx.StaticText(self,-1,"")  # Need a placeholder or gridbag sizer screws up
 
-          # Next add the extended help button
-          h = None
-          if item[1].has_key("help") and item[1]["help"]:
-            h = wx.BitmapButton(self, self.row + HELP_BUTTON_ID, self.helpBmp,style = wx.NO_BORDER )
-            h.SetToolTipString(item[1]["help"])
-          #else: 
-          #  h = wx.StaticText(self,-1,"")  # Need a placeholder or gridbag sizer screws up
+            # OK fill up the sizer
+            sizer.Add(prompt,(self.row,0),(1,1),wx.ALIGN_CENTER)
+            if h: sizer.Add(h,(self.row,1),(1,1),wx.ALIGN_CENTER)
+            sizer.Add(query,(self.row,2),flag=wx.EXPAND)
+            sizer.Add(b,(self.row,3))
 
-          # OK fill up the sizer
-          sizer.Add(prompt,(self.row,0),(1,1),wx.ALIGN_CENTER)
-          if h: sizer.Add(h,(self.row,1),(1,1),wx.ALIGN_CENTER)
-          sizer.Add(query,(self.row,2),flag=wx.EXPAND)
-          sizer.Add(b,(self.row,3))
-
-          # Update the lookup dictionary so when an action occurs we can get the objects from the window ID
-          self.lookup[self.row] = [item,prompt,query,b,h]
-          self.row +=1
+            # Update the lookup dictionary so when an action occurs we can get the objects from the window ID
+            self.lookup[self.row] = [item,prompt,query,b,h]
+            self.row +=1
       self.numElements = self.row
       if created: sizer.AddGrowableCol(2)
       self.SetSizer(sizer)
@@ -366,8 +390,8 @@ def Test():
   mdl = Model()
   mdl.load("testModel.xml")
 
-  sgt = mdl.entityTypes["ServiceGroup"]
-  sg = mdl.entities["MyServiceGroup"] = Entity(sgt,(0,0),(100,20))
+  #sgt = mdl.entityTypes["ServiceGroup"]
+  #sg = mdl.entities["MyServiceGroup"] = Entity(sgt,(0,0),(100,20))
   StandaloneDev = True
   gui.go(lambda parent,menu,tool,status,m=mdl: Panel(parent,menu,tool,status, m))
   #time.sleep(2)
