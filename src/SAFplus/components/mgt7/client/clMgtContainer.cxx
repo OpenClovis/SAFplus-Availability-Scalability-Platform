@@ -298,7 +298,8 @@ namespace SAFplus
          {
            if(depth == 0)
            {
-             if(strcmp((const char *)namestr,this->tag.c_str()) != 0)
+             if ((strcmp((const char *)namestr,this->tag.c_str()) != 0)
+                && (strcmp((const char *)namestr,this->listTag.c_str()) != 0))
              {
                logError("MGT","SET","The configuration [%s] isn't for this container [%s]",(const char *)namestr,this->tag.c_str());
                return CL_FALSE;
