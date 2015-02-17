@@ -1,6 +1,6 @@
 # Makefile
 #
-# Copyright 2004, 2005 Aaron Voisine <aaron@voisine.org>
+# Copyright 2005 Aaron Voisine <aaron@voisine.org>
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,45 +21,57 @@
 # TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-CC = gcc
-AR = ar
+# Copyright 2015 OpenClovis, Inc.
+S7 := 1
+include ../../../mk/preface.mk
+
+override CC = gcc
+#AR = ar
 RM = rm -f
-CFLAGS = -Wall -O2 
-ifeq ($(BUILD_SHARED), 1)
-CFLAGS += -fPIC
-endif
-OBJS = ezxml.o
-LIB = libezxml.a
-TEST = ezxmltest
+CFLAGS += -Wall -fPIC
 
-.if defined(NOMMAP) || make(nommap)
+DEBUG_CFLAGS += -O0 -g
+OBJS = $(OBJ_DIR)/ezxml.o
+LIB = $(SAFPLUS_TARGET)/lib/libezxml.a
+SHLIB = $(SAFPLUS_TARGET)/lib/libezxml.so
+TEST = $(TEST_DIR)/ezxmltest
+ifdef NOMMAP
 CFLAGS += -D EZXML_NOMMAP
-.endif
-.if defined(DEBUG) || make(debug) || make(test)
-CFLAGS += -O0 -g
-.endif
-.if make($(TEST)) || make(test)
-CFLAGS += -D EZXML_TEST
-.endif
+endif
 
-all: $(LIB)
+ifdef DEBUG
+CFLAGS += $(DEBUG_CFLAGS)
+else
+CFLAGS += -O2
+endif
+
+all: $(LIB) $(SHLIB)
 
 $(LIB): $(OBJS)
 	$(AR) rcs $(LIB) $(OBJS)
 
-test: $(TEST)
+$(SHLIB): $(OBJS)
+	$(CC)  -shared -fPIC -o $@ $^
 
-debug: all
-
+nommap: CFLAGS += -D EZXML_NOMMAP
 nommap: all
 
+debug: CFLAGS += $(DEBUG_CFLAGS)
+debug: all
+
+test: CFLAGS += $(DEBUG_CFLAGS)
+test: $(TEST)
+
+$(TEST): CFLAGS += -D EZXML_TEST
 $(TEST): $(OBJS)
 	$(CC) $(CFLAGS) -o $@ $(OBJS)
 
-ezxml.o: ezxml.h ezxml.c
+$(OBJ_DIR)/ezxml.o: ezxml.h ezxml.c Makefile
 
-.c.o:
-	$(CC) $(CFLAGS) -c -o $@ $<
+#.c.o:
+	$(shell mkdir -p $(DEP_DIR) $(OBJ_DIR))
+
+	$(CC) $(CFLAGS) -c -o $(OBJ_DIR)/ezxml.o ezxml.c
 
 clean:
-	$(RM) $(OBJS) $(LIB) $(TEST) *~
+	$(RM) $(OBJS) $(LIB) $(SHLIB) $(TEST) *~

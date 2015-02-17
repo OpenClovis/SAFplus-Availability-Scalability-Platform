@@ -1,5 +1,6 @@
 #ifndef CLLOGSPOOLER_HXX
 #define CLLOGSPOOLER_HXX
+#ifdef SAFPLUS_CLUSTERWIDE_LOG
 
 //#include <boost/unordered_map.hpp>
 //#include <clHandleApi.hxx>
@@ -18,5 +19,5 @@ public:
   void subscribeAllStreams();
   virtual void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 };
-
+#endif
 #endif // CLLOGSPOOLER

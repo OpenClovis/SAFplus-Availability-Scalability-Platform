@@ -6,6 +6,10 @@
 
 #define AMF_GRP_NODE_REPRESENTATIVE // Indicates that the AMF will act as the one-per-node GRP membership shared memory maintainer, rather than a standalone safplus_group process
 
+// Define this if you want the logging system to be cluster wide.
+// Comment it out to make the logging system local to the node.
+#define SAFPLUS_CLUSTERWIDE_LOG
+
 namespace SAFplus
   {
     enum

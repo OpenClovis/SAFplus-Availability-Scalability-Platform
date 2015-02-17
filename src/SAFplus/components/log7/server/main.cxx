@@ -15,8 +15,10 @@ using namespace std;
 #include <boost/lexical_cast.hpp>
 #include <clGlobals.hxx>
 #include <Replicate.hxx>
+#ifdef SAFPLUS_CLUSTERWIDE_LOG
 #include "../rep/clLogRep.hxx"
 #include "../rep/clLogSpooler.hxx"
+#endif
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace boost::posix_time;
@@ -209,7 +211,7 @@ void finishLogProcessing(LogCfg* cfg)
         //fwrite(boost::asio::buffer_cast<const char*>(bufs),sizeof(char),boost::asio::buffer_size(bufs),s->fp);
         s->fileBuffer.fwrite(s->fp);
         // Forward remaining logs to others if any
-        logRep.flush(s);
+        IF_CLUSTERWIDE_LOG(logRep.flush(s));
         fflush(s->fp);
         checkAndRotateLog(s);
         s->fileBuffer.consume();        
@@ -318,7 +320,7 @@ int main(int argc, char* argv[])
   SAFplus::logSeverity= LOG_SEV_MAX;  // DEBUG
 
   SAFplus::SYSTEM_CONTROLLER=true; // For testing
-  LogSpooler logSpooler;
+  IF_CLUSTERWIDE_LOG(LogSpooler logSpooler);
   if (SAFplus::SYSTEM_CONTROLLER) // If this node is system controller, then instantiate LogSpooler obj to listen logs from other nodes
   {     
     //logSpooler.subscribeAllStreams();
@@ -344,7 +346,7 @@ int main(int argc, char* argv[])
               char* msg = ((char*) base)+rec->offset;
               postRecord(rec, msg, cfg);
               // Forward logs to log subscribers
-              logRep.logReplicate(rec, msg);
+              IF_CLUSTERWIDE_LOG(logRep.logReplicate(rec, msg));
               rec->offset = 0;
             }
 
@@ -359,7 +361,7 @@ int main(int argc, char* argv[])
               char* msg = ((char*) base)+rec->offset;
               postRecord(rec,msg,cfg);
               // Forward logs to log subscribers
-              logRep.logReplicate(rec, msg);
+              IF_CLUSTERWIDE_LOG(logRep.logReplicate(rec, msg));
               rec->offset = 0;
             }
 

@@ -472,6 +472,7 @@ int main(int argc, char* argv[])
   sic.msgQueueLen = MAX_MSGS;
   sic.msgThreads  = MAX_HANDLER_THREADS;
   safplusInitialize( SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
+  logAlert("AMF","INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__);
 
   //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
   SAFplus::Rpc::amfRpc::amfRpcImpl amfRpcMsgHandler;

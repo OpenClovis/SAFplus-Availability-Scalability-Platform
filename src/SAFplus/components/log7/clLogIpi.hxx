@@ -2,6 +2,13 @@
 #define clLogIpi_hpp
 #define SAFPLUS_COMPONENT
 
+#include <clCustomization.hxx>
+#ifdef SAFPLUS_CLUSTERWIDE_LOG
+#define IF_CLUSTERWIDE_LOG(x) x
+#else
+#define IF_CLUSTERWIDE_LOG(x)
+#endif
+
 #include <boost/interprocess/sync/interprocess_semaphore.hpp>
 #include <boost/interprocess/shared_memory_object.hpp>
 #include <boost/interprocess/mapped_region.hpp>
@@ -67,25 +74,36 @@ namespace SAFplusI
  */
     
 /*
- * Macros to log messages at different levels of severity
+ * Macros to log messages at different levels of severity. 
+ These macros may be defined already from the application perspective
+ if clLogApi.hxx was included.  But override that definition because
+ the inclusion of the this file means that this is a OpenClovis component.
  */
-    
+#undef logEmergency    
 #define logEmergency(area, context, ...) clLog(CL_LOG_SEV_EMERGENCY, area, context, __VA_ARGS__)
 
+#undef logAlert
 #define logAlert(area, context, ...) clLog(CL_LOG_SEV_ALERT, area, context, __VA_ARGS__)
 
+#undef logCritical
 #define logCritical(area, context, ...) clLog(CL_LOG_SEV_CRITICAL, area, context, __VA_ARGS__)
 
+#undef logError
 #define logError(area, context, ...) clLog(CL_LOG_SEV_ERROR, area, context, __VA_ARGS__)
         
+#undef logWarning
 #define logWarning(area, context, ...) clLog(CL_LOG_SEV_WARNING, area, context, __VA_ARGS__)
 
+#undef logNotice
 #define logNotice(area, context, ...) clLog(CL_LOG_SEV_NOTICE, area, context, __VA_ARGS__)
 
+#undef logInfo
 #define logInfo(area, context, ...) clLog(CL_LOG_SEV_INFO, area, context, __VA_ARGS__)
 
+#undef logDebug
 #define logDebug(area, context, ...) clLog(CL_LOG_SEV_DEBUG, area, context, __VA_ARGS__)
 
+#undef logTrace
 #define logTrace(area, context, ...) clLog(CL_LOG_SEV_TRACE, area, context, __VA_ARGS__)
 
 /**

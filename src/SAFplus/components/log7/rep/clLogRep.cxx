@@ -1,4 +1,5 @@
 #include "clLogRep.hxx"
+#include "../server/logcfg.hxx"
 #include <clMgtRoot.hxx>
 #include <clGroup.hxx>
 #include <Stream.hxx>

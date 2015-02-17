@@ -30,6 +30,8 @@ all: $(SAFPLUS_TARGET)/bin/splogd
 $(SAFPLUS_TARGET)/bin/splogd: $(LOG_SERVER_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_EXE) $@ $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS) `pkg-config --libs protobuf`
 
+#	$(LINK_EXE) $@ $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS) `pkg-config --libs protobuf`
+
 $(OBJ_DIR)/logsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	-mkdir -p $(OBJ_DIR)/logsvr/
 	$(COMPILE_CPP) $@ $<

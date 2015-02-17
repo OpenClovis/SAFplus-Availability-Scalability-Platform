@@ -8,7 +8,9 @@
 #ifndef STREAM_HXX_
 #define STREAM_HXX_
 #include "SAFplusLogCommon.hxx"
+#ifdef SAFPLUS_CLUSTERWIDE_LOG
 #include <clGroup.hxx>
+#endif
 #include "StreamStatistics.hxx"
 
 #include <vector>
@@ -49,7 +51,7 @@ namespace SAFplusLog
      int numFiles; // the current number of files created of this stream
      int fileSize; // Current length of the open file
      std::string filePath; // full path to log file after being adjusted
-     SAFplus::Group group;
+     IF_CLUSTERWIDE_LOG(SAFplus::Group group);
      //boost::asio::streambuf fileBuffer; //char* fileBuffer; // logs are spooled to this buffer and then written to the file all at once
      //std::ostream fileStream;
      //boost::asio::streambuf msgBuffer; //char* msgBuffer; // logs are spooled to this buffer and then written to the network as one packet

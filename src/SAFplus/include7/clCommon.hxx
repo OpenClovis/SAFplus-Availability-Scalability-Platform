@@ -4,8 +4,17 @@
 #include <clDbg.hxx>
 #include <saAis.h>
 
+
 namespace SAFplus
 {
+
+enum
+  {
+    VersionMajor = 7,
+    VersionMinor = 0,
+    VersionBugfix = 0,
+  };
+
 /** printf but for std::string */
 std::string strprintf(const std::string fmt_str, ...);
 

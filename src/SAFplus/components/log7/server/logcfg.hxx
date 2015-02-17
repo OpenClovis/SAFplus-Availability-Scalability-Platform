@@ -1,6 +1,8 @@
 #ifndef LOGCFG_HXX_
 #define LOGCFG_HXX_
 
+#include <clLogIpi.hxx>
+
 #include <ServerConfig.hxx>
 #include <StreamConfig.hxx>
 #include <FileFullAction.hxx>
