@@ -239,6 +239,13 @@ instantiated  <instances>     instances                         instances     (e
     """Write the dynamically changing information back to the loaded microdom tree.
        The reason I don't create an entirely new tree is to preserve any application extensions that might have been put into the file.
     """
+    # First, update the model to make sure that it is internally consistent
+    for (name,i) in self.instances.items():
+      for parent in i.childOf:  # If the object has parent pointers, update them.  This is pretty specific to SAFplus data types...
+        fieldName = parent.et.name[0].lower() + parent.et.name[1:]  # uncapitalize the first letter to make it use SAFplus bumpycase
+        if i.data.has_key(fieldName):
+          i.data[fieldName] = parent.data["name"]
+
     # Locate or create the needed sections in the XML file
 
     #   find or create the entity area in the microdom
@@ -295,8 +302,18 @@ instantiated  <instances>     instances                         instances     (e
         ideEntity = microdom.MicroDom({"tag_":name},[],[])
         ideEntities.addChild(ideEntity)
 
+      # Remove all "None", replacing with the default or ""
+      temp = {}
+      for (key,val) in e.data.items():
+        if val is None:
+          val = e.et.data[key].get("default",None)
+          if val is None:
+            val = ""
+        if val == "None": val = ""
+        temp[key] = val
+
       # Write all the data fields into the model's microdom
-      entity.update(e.data)
+      entity.update(temp)
       # write the IDE specific information to the IDE area of the model xml
       ideEntity["position"] = str(e.pos)
       ideEntity["size"] = str(e.size) 
@@ -354,8 +371,18 @@ instantiated  <instances>     instances                         instances     (e
         instance = microdom.MicroDom({"tag_":e.et.name},[],[])
         instances.addChild(instance)
 
+      # Remove all "None", replacing with the default or ""
+      temp = {}
+      for (key,val) in e.data.items():
+        if val is None:
+          val = e.et.data[key].get("default",None)
+          if val is None:
+            val = ""
+        if val == "None": val = ""
+        temp[key] = val
+
       # Write all the data fields into the model's microdom
-      instance.update(e.data)  
+      instance.update(temp)  
       # Now write all the arrows
       contains = {} # Create a dictionary to hold all linkages by type
       for arrow in e.containmentArrows:

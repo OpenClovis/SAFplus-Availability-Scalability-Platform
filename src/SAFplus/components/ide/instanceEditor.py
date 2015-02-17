@@ -1146,8 +1146,8 @@ def Test():
   model = Model()
   model.load("testModel.xml")
 
-  #gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
-  gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
+  #gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
   return model
 
 # Notes

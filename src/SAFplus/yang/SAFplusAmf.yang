@@ -46,14 +46,16 @@ module SAFplusAmf
       leaf maximum
       {
 	type uint64;
-	description "The maximum number of events that can occur within that time period before escalation occurs.";
+	description "The maximum number of events that can occur within that time period before escalation occurs.  A value of 0 will escalate the event right away.";
 	safplus:ui-prompt "Number of events: ";
+        default 0;
       }
       leaf duration
       {
 	type safplus:SaTimeT;
 	description "The time period (in milliseconds) involved.";
 	safplus:ui-prompt "within time: ";
+        default 0;
       }
     }
 
@@ -315,6 +317,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type boolean;
 	safplus:alias saAmfSGAutoAdjust;
 	safplus:ui-prompt "Auto-adjust: ";
+        default false;
         description "Match this service group as closely as possible to the preferred high availability configuration.  For example, if the preferred active comes online, 'fail-back' to it.  Another example is if a new work assignment is provisioned, the system could remove an existing standby assignment so the new active can be provisioned.";
       }
       leaf autoAdjustInterval
@@ -551,6 +554,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type string;
 	description "Compatible SA-Forum API version";
+        default "B.04.01";
       }
 
       leaf compCategory
@@ -961,6 +965,8 @@ are switched over to other nodes (component service instances are not abruptly r
 	safplus:alias saAmfSURank;
 	safplus:ui-prompt "Rank";
 	type uint32;
+        default 0;
+        range "1..1024";
 	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.";
       }
 

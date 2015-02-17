@@ -67,7 +67,7 @@ class Entity:
     self.scale = (1.0,1.0)
     self.rotate = 0.0
     self.data = {}
-    self.updateDataFields()
+    self.updateDataFields(dataDict=data)
     self.customInstantiator = entityType.customInstantiator
     self.instanceLocked = {}  # Whether this data data fields can be changed by an instance
     self.data["entityType"] = self.et.name

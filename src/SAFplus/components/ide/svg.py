@@ -94,7 +94,6 @@ class Svg:
 
 def blit(ctx, bmp, location, scale=(1,1), rotate=0):
   ctx.save()
-  print "location: ", str(location)
   ctx.translate(*location)
   ctx.rotate(rotate)
   ctx.scale(*scale)

@@ -131,6 +131,10 @@ class Panel(scrolled.ScrolledPanel):
       id = event.GetId()
       if id>=LOCK_BUTTON_ID and id < HELP_BUTTON_ID:
         idx = id - LOCK_BUTTON_ID
+      else:
+        print "unknown button! %d" % id
+        return
+        pdb.set_trace()
       obj = self.lookup[idx]
       lockButton = obj[3]
       # Toggle the locked state, create it unlocked (then instantly lock it) if it is not already set

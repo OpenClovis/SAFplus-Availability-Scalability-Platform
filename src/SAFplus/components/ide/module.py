@@ -20,7 +20,6 @@ class ModuleChangedHandler(watchdog.events.FileSystemEventHandler):
   def __init__(self):
     self.files = {}
   def on_modified(self,event):
-    pdb.set_trace()    
     if type(event) == watchdog.events.FileModifiedEvent:
       print "file modified";
       tmp = self.files.get(event.src_path, None)
