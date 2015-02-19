@@ -87,18 +87,13 @@ static ClUint32T gClTipcSubscrTimeout;
 typedef struct ClTipcNodeStatus
 {
     ClIocNodeAddressT nodeAddress;
-    struct tipc_event event;
+    ClUint32T event;
     ClListHeadT list;
 } ClTipcNodeStatusT;
 
 static CL_LIST_HEAD_DECLARE(gpTipcNodeStatusHandle);
 
 static ClOsalMutexT gTipcNodeStatusMutex;
-
-static void _clTipcNodeStatusAdd(ClTipcNodeStatusT *entry)
-{
-    clListAddTail(&entry->list, &gpTipcNodeStatusHandle);
-}
 
 static ClTipcNodeStatusT* _clTipcNodeStatusFind(ClIocNodeAddressT nodeAddress)
 {
@@ -114,10 +109,28 @@ static ClTipcNodeStatusT* _clTipcNodeStatusFind(ClIocNodeAddressT nodeAddress)
     return NULL;
 }
 
-static void _clTipcNodeStatusDelete(ClTipcNodeStatusT *entry)
+static ClTipcNodeStatusT* _clTipcNodeStatusAdd(ClIocNodeAddressT nodeAddr, ClUint32T event)
 {
-    clListDel(&entry->list);
-    clHeapFree(entry);
+    ClTipcNodeStatusT *nodeStatusEntry = NULL;
+    clOsalMutexLock(&gTipcNodeStatusMutex);
+
+    nodeStatusEntry = _clTipcNodeStatusFind(nodeAddr);
+    if (nodeStatusEntry != NULL)
+    {
+        nodeStatusEntry->event = event;
+    }
+    else
+    {
+        nodeStatusEntry = clHeapAllocate(sizeof(ClTipcNodeStatusT));
+        CL_ASSERT(nodeStatusEntry != NULL);
+
+        nodeStatusEntry->nodeAddress = nodeAddr;
+        nodeStatusEntry->event = event;
+        clListAddTail(&nodeStatusEntry->list, &gpTipcNodeStatusHandle);
+    }
+    
+    clOsalMutexUnlock(&gTipcNodeStatusMutex);
+    return nodeStatusEntry;
 }
 
 static ClRcT tipcSubscribe(ClInt32T fd, ClUint32T portId, 
@@ -305,23 +318,29 @@ static ClRcT tipcSubscriptionTimeout(void *data)
 {
     ClRcT rc = CL_OK;
     ClTipcNodeStatusT* nodeStatusEntry = (ClTipcNodeStatusT*) data;
+    ClUint32T event = 0;
+    ClIocNodeAddressT nodeAddr = 0;
 
-    if (nodeStatusEntry)
-    {
-        if ((nodeStatusEntry->event.event == TIPC_SUBSCR_TIMEOUT)||(nodeStatusEntry->event.event == TIPC_WITHDRAWN))
-        {
-            rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT)&dummyCommPort,
-                                             CL_IOC_NODE_LEAVE_NOTIFICATION,
-                                             nodeStatusEntry->nodeAddress,
-                                             (ClIocAddressT*)&allLocalComps,
-                                             (ClIocAddressT*)&allNodeReps,
-                                             gClTipcXportType);
-        }
-
-        clOsalMutexLock(&gTipcNodeStatusMutex);
-        _clTipcNodeStatusDelete(nodeStatusEntry);
+    clOsalMutexLock(&gTipcNodeStatusMutex);
+    if (nodeStatusEntry != NULL)
+      {
+        nodeAddr = nodeStatusEntry->nodeAddress;
+        event = nodeStatusEntry->event;
+        // Reset link status
+        nodeStatusEntry->event = TIPC_PUBLISHED;
+      }
+    else
+      {
         clOsalMutexUnlock(&gTipcNodeStatusMutex);
-    }
+        return rc;
+      }
+    clOsalMutexUnlock(&gTipcNodeStatusMutex);
+
+    if (eventHandlerInited && ((event == TIPC_SUBSCR_TIMEOUT) || (event == TIPC_WITHDRAWN)))
+      {
+        rc = clIocNotificationNodeStatusSend((ClIocCommPortHandleT) &dummyCommPort, CL_IOC_NODE_LEAVE_NOTIFICATION, nodeAddr,
+            (ClIocAddressT*) &allLocalComps, (ClIocAddressT*) &allNodeReps, gClTipcXportType);
+      }
 
     return rc;
 }
@@ -382,27 +401,11 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                  * TIPC_WITHDRAWN happens when a link reset occurs so the delay is necessary on this event.
                  * TIPC_SUBSCR_TIMEOUT may only happen when we get a keepalive timeout so the delay may be optional for it.
                  */
-                if ((event.event == TIPC_SUBSCR_TIMEOUT)||(event.event == TIPC_WITHDRAWN))
+                if (eventHandlerInited && compAddr.nodeAddress != gIocLocalBladeAddress && ((event.event == TIPC_SUBSCR_TIMEOUT)||(event.event == TIPC_WITHDRAWN)))
                 {
-                    clOsalMutexLock(&gTipcNodeStatusMutex);
-                    nodeStatusEntry = _clTipcNodeStatusFind(compAddr.nodeAddress);
-                    if (nodeStatusEntry != NULL)
-                    {
-                        nodeStatusEntry->event.event = event.event;
-                    }
-                    else
-                    {
-                        nodeStatusEntry = clHeapAllocate(sizeof(ClTipcNodeStatusT));
-                        CL_ASSERT(nodeStatusEntry);
-
-                        nodeStatusEntry->nodeAddress = compAddr.nodeAddress;
-                        nodeStatusEntry->event.event = event.event;
-                        _clTipcNodeStatusAdd(nodeStatusEntry);
-
-                        rc = clTimerCreateAndStart(timeout, CL_TIMER_VOLATILE, CL_TIMER_SEPARATE_CONTEXT, tipcSubscriptionTimeout, nodeStatusEntry, &timer);
-                        if(rc == CL_OK) handled = CL_TRUE;
-                    }
-                    clOsalMutexUnlock(&gTipcNodeStatusMutex);
+                    nodeStatusEntry = _clTipcNodeStatusAdd(compAddr.nodeAddress, event.event);
+                    rc = clTimerCreateAndStart(timeout, CL_TIMER_VOLATILE, CL_TIMER_SEPARATE_CONTEXT, tipcSubscriptionTimeout, nodeStatusEntry, &timer);
+                    if(rc == CL_OK) handled = CL_TRUE;
                 }
 
                 if (!handled)
@@ -411,7 +414,8 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                     nodeStatusEntry = _clTipcNodeStatusFind(compAddr.nodeAddress);
                     if (nodeStatusEntry != NULL)
                     {
-                        nodeStatusEntry->event.event = event.event;
+                        // Update current link status
+                        nodeStatusEntry->event = event.event;
                     }
                     clOsalMutexUnlock(&gTipcNodeStatusMutex);
 
@@ -423,13 +427,13 @@ static ClRcT clTipcReceivedPacket(ClUint32T socketType, struct msghdr *pMsgHdr)
                                                          (ClIocAddressT*)&allLocalComps,
                                                          (ClIocAddressT*)&allNodeReps,
                                                          gClTipcXportType);
+                }
 
-                    if(compAddr.nodeAddress == gIocLocalBladeAddress)
+                if(compAddr.nodeAddress == gIocLocalBladeAddress)
+                {
+                    if(event.event == TIPC_WITHDRAWN)
                     {
-                        if(event.event == TIPC_WITHDRAWN)
-                        {
-                            shutdownFlag = CL_TRUE;
-                        }
+                        shutdownFlag = CL_TRUE;
                     }
                 }
             } 
@@ -603,6 +607,16 @@ ClRcT clTipcEventHandlerFinalize(void)
     eventHandlerInited = 0;
     clOsalMutexUnlock(&gIocEventHandlerSendLock);
 
+    clOsalMutexLock(&gTipcNodeStatusMutex);
+    while(!CL_LIST_HEAD_EMPTY(&gpTipcNodeStatusHandle))
+    {
+        ClTipcNodeStatusT *entry = NULL;
+        ClListHeadT *first = gpTipcNodeStatusHandle.pNext;
+        entry = CL_LIST_ENTRY(first, ClTipcNodeStatusT, list);
+        clListDel(first);
+        clHeapFree(entry);
+    }
+    clOsalMutexUnlock(&gTipcNodeStatusMutex);
     clTransportListenerDestroy(&gNotificationListener);
 
     return CL_OK;

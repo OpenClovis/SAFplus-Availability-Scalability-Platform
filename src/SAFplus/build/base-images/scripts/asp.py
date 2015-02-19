@@ -1487,6 +1487,13 @@ def asp_driver(cmd):
                }
 
     if cmd_map.has_key(cmd):
+        if cmd == 'start':
+            # Remove and Re-Create asp_run.env for safplus start
+            asp_run_env_file = asp_env['etc_dir']+'/asp_run.env'
+            if os.path.isfile(asp_run_env_file):
+                del_cmd = 'rm -rf %s' % asp_run_env_file
+                execute_shell_cmd(del_cmd, 'Failed to delete [%s]' % asp_run_env_file, fail_on_error=False)
+            gen_asp_run_env_file(asp_env['etc_dir']+'/asp_run.env', asp_env)
         if cmd in ['zap','stop']:
             create_asp_cmd_marker(cmd)
             cmd_map[cmd]()

@@ -1081,6 +1081,14 @@ static ClRcT clTimerCallbackTask(ClPtrT invocation)
     ClInt16T callbackTaskIndex = -1;
     clOsalMutexLock(&gTimerBase.clusterListLock);
     clOsalMutexLock(&gTimerBase.timerListLock);
+
+    if (!gTimerBase.timerRunning)
+      {
+        clOsalMutexUnlock(&gTimerBase.timerListLock);
+        clOsalMutexUnlock(&gTimerBase.clusterListLock);
+        return CL_OK;
+      }
+
     ClTimerCallBackT timerCallback = pTimer->timerCallback;
     ClPtrT           timerData     = pTimer->timerData;
     pTimer->timerFlags |= CL_TIMER_HANDLER;  /* Indicate that we are in the handler */

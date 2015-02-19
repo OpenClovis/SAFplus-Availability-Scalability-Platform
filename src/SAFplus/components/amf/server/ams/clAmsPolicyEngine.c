@@ -5260,7 +5260,7 @@ clAmsPeSUFaultReport(
         /*
          * SU failover with restart
          */
-        if (!foundOtherSU)
+        if (!foundOtherSU && su->config.adminState == CL_AMS_ADMIN_STATE_UNLOCKED)
           {
             *recovery = CL_AMS_RECOVERY_SU_RESTART;
             *escalation = CL_TRUE;
