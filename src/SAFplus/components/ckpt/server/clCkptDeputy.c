@@ -1531,7 +1531,7 @@ ClRcT VDECL_VER(clCkptDeputyPeerListUpdate, 4, 0, 0)(ClVersionT         version,
        || srcAddr.nodeAddress == gCkptSvr->localAddr
        || peerAddr == gCkptSvr->localAddr)
     {
-        CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+        // Lock is never taken: CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
         return CL_OK;
     }
    
