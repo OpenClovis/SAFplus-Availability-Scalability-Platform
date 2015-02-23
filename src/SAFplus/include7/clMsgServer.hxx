@@ -1,20 +1,21 @@
 #pragma once
-
-#include <clIocApi.h>
-#include <clJobQueue.h>
+#include <clCommon.hxx>
+#include <clThreadPool.hxx>
 #include <clAppEvent.hxx>
 #include <clHandleApi.hxx>
+#include <clMsgServerIpi.hxx>
+
+#include <boost/thread/thread.hpp>
 
 namespace SAFplus
 {
-
   class MsgServer;
   class MsgTracker;
   class MsgHandler;
 
-  //typedef void (*MsgHandler) (ClIocAddressT from, MsgServer* q, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+  //typedef void (*MsgHandler) (ClIocAddressT from, MsgServer* q, ClPtrT msg, uint_t msglen, ClPtrT cookie);
 
-  const ClWordT NUM_MSG_TYPES=256;
+  const uint_t NUM_MSG_TYPES=256;
 
   class MsgServer:public AppEvent
   {
@@ -26,17 +27,17 @@ namespace SAFplus
         AUTO_ACTIVATE = 1
       } Options;
     
-    ClWordT sendFailureTimeoutMs;
+    uint_t sendFailureTimeoutMs;
     
     MsgServer();
 
     /** Constructor
 
      */
-    MsgServer(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads, Options flags=DEFAULT_OPTIONS); 
+    MsgServer(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads, Options flags=DEFAULT_OPTIONS); 
 
     /** 2 Phase Constructor.  See MsgServer()*/
-    void Init(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads, Options flags=DEFAULT_OPTIONS);
+    void Init(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads, Options flags=DEFAULT_OPTIONS);
     
     /** Activate when I am assigned active work */
     void AutoActivate();
@@ -56,10 +57,10 @@ namespace SAFplus
         @param handler Your handler function
         @param cookie  This pointer will be passed to you handler function
      */
-    void RegisterHandler(ClWordT type,  MsgHandler *handler, ClPtrT cookie);
+    void RegisterHandler(uint_t type,  MsgHandler *handler, void* cookie);
 
     /** Remove the handler for particular type of message */
-    void RemoveHandler(ClWordT type);
+    void RemoveHandler(uint_t type);
 
     /** Send a message
         @param msgtype The destination message handler
@@ -70,7 +71,7 @@ namespace SAFplus
         Raises the "Error" Exception if something goes wrong, or if the destination queue does not
         exist.
     */
-    void SendMsg(ClIocAddressT destination, void* buffer, ClWordT length,ClWordT msgtype=0);
+    void SendMsg(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype=0);
 
     /** Start the server */
     void Start();
@@ -93,7 +94,7 @@ namespace SAFplus
 
     /** this handle references this message server */
     SAFplus::Handle handle;
-    ClWordT port;
+    uint_t port;
 
   protected:
     void Shutdown();
@@ -108,20 +109,25 @@ namespace SAFplus
     ClIocAddressT sharedAddr;
     ClIocAddressT uniqueAddr;
     
-    ClJobQueueT jq;
-    ClUint32T compId;
-    ClWordT reliability;
-    ClIocCommPortHandleT commPort;
+    //ClJobQueueT jq;
+    SAFplus::ThreadPool jq;
+    MakePrimary makePrimaryThunk;
+    friend class MakePrimary; 
+    friend class MsgTracker;
 
-    ClOsalMutexT      mutex;
-    ClOsalCondT       cond;
+    uint32_t compId;
+    uint_t reliability;
+    uint_t commPort;
+
+    SAFplus::Mutex    mutex;
+    SAFplus::ThreadCondition       cond;
     ClBoolT           receiving;
-
-    MsgHandler        *handlers[NUM_MSG_TYPES];
+    boost::thread     receiverThread;
+    MsgHandler*       handlers[NUM_MSG_TYPES];
     ClPtrT            cookies[NUM_MSG_TYPES];
 
-    friend void MsgTrackerHandler(MsgTracker* rm);
-    friend void SynchronousMakePrimary(MsgServer* q);
+    //friend void MsgTrackerHandler(MsgTracker* rm);
+    //friend void SynchronousMakePrimary(MsgServer* q);
     friend void ReceiverFunc(MsgServer* q);
     };
 

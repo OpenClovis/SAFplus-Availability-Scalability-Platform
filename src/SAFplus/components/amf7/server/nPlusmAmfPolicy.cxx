@@ -102,7 +102,7 @@ namespace SAFplus
         }
       if (comp->operState == false)
         {
-        logDebug("N+M","STRT","Not starting [%s]. It must be repaired.",comp->name.value.c_str(),comp->processId.value);
+        logDebug("N+M","STRT","Not starting [%s]. It must be repaired.",comp->name.value.c_str());
         continue;
         }
       if (comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations + comp->maxDelayedInstantiations)

@@ -19,14 +19,6 @@
 
 #include "clTransaction.hxx"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <clDebugApi.h>
-#ifdef __cplusplus
-} /* end extern 'C' */
-#endif
-
 namespace SAFplus
 {
 

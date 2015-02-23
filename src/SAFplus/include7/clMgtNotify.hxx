@@ -36,11 +36,6 @@
 #include "clMgtObject.hxx"
 #include "clDbg.hxx"
 
-extern "C"
-{
-#include <clCommon.h>
-} /* end extern 'C' */
-
 namespace SAFplus
 {
 /**
@@ -84,7 +79,7 @@ public:
      */
     void sendNotification(SAFplus::Handle hdl,std::string route);
 
-    virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t)
+    virtual ClBoolT set(const void *pBuffer, uint64_t buffLen, SAFplus::Transaction& t)
     {
 
     }

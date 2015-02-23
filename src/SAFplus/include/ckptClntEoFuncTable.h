@@ -1,1 +1,0 @@
-../components/ckpt/idl/ckptClntEo/common/ckptClntEoFuncTable.h

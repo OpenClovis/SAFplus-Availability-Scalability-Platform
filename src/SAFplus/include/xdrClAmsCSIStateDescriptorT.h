@@ -1,1 +1,0 @@
-../components/amf/common/cpm/idl/xdr/xdrClAmsCSIStateDescriptorT.h

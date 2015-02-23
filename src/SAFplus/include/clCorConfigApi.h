@@ -1,1 +1,0 @@
-../components/cor/include/clCorConfigApi.h

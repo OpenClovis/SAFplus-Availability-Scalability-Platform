@@ -13,7 +13,7 @@ namespace SAFplus
   int    clDbgNoKillComponents    = 0; /* 0/1; */  /* Set to 1 to stop Components from being killed */
   int    clDbgCompTimeoutOverride = 0000; /* 10000; */  /* Set to > 0 to cause all component timeouts to be this many seconds */
   int    clDbgLogLevel            = 0; /* CL_DEBUG_WARN is a good choice or 0 to turn off */
-  int    clDbgResourceLogLevel    = LOG_SEV_TRACE; /* CL_DEBUG_TRACE to turn off, CL_DEBUG_INFO a good choice.  Level to log resource allocation/free */
+  SAFplus::LogSeverity    clDbgResourceLogLevel    = LOG_SEV_TRACE; /* CL_DEBUG_TRACE to turn off, CL_DEBUG_INFO a good choice.  Level to log resource allocation/free */
 
 /* Variables that can shake out bugs */
 
@@ -33,7 +33,12 @@ namespace SAFplus
     clDbgNoKillComponents = parseEnvBoolean("CL_DEBUG_COMP_NO_KILL") == CL_TRUE ? 1 : clDbgNoKillComponents;
     clDbgCompTimeoutOverride = getenv("CL_DEBUG_COMP_TIMEOUT_OVERRIDE") ? atoi(getenv("CL_DEBUG_COMP_TIMEOUT_OVERRIDE")) : clDbgCompTimeoutOverride;
     clDbgLogLevel = getenv("CL_DEBUG_LOG_LEVEL") ? atoi(getenv("CL_DEBUG_LOG_LEVEL")) : clDbgLogLevel;
-    clDbgResourceLogLevel = getenv("CL_DEBUG_RESOURCE_LOG_LEVEL") ? atoi(getenv("CL_DEBUG_RESOURCE_LOG_LEVEL")) : clDbgResourceLogLevel;
+    char* pEnvVar;
+    if((pEnvVar = getenv("CL_LOG_SEVERITY"))!=NULL)
+      {
+      clDbgResourceLogLevel = logSeverityGet(pEnvVar);
+      }
+
     clDbgReverseTiming = getenv("CL_DEBUG_REVERSE_TIMING") ? atoi(getenv("CL_DEBUG_REVERSE_TIMING")) : clDbgReverseTiming;
     }
 

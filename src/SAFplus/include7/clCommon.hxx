@@ -1,12 +1,18 @@
 #pragma once
+#include <cltypes.h>
 #include <string>
 #include <clGlobals.hxx>
 #include <clDbg.hxx>
 #include <saAis.h>
 
+#define SAFplusHeapAlloc(x) ::SAFplus::heapAlloc(x,0,__FILE__,__LINE__)
+#define SAFplusHeapFree(x) ::SAFplus::heapFree(x,__FILE__,__LINE__)
+
 
 namespace SAFplus
 {
+
+  typedef char* MsgBuffer;
 
 enum
   {
@@ -18,12 +24,19 @@ enum
 /** printf but for std::string */
 std::string strprintf(const std::string fmt_str, ...);
 
+/*? calculate 32 bit CRC */
+uint32_t computeCrc32(uint8_t *buf, register ClInt32T nr);
+
 // All statements that begin with "dbg" are NO OPERATION in production code.
 #ifdef CL_DEBUG
   inline void dbgAssert(bool x) { assert(x); }
 #else
   inline void dbgAssert(bool x) {}
 #endif
+
+void* heapAlloc(uint_t amt, uint_t category, const char* file, uint_t line);
+
+void heapFree(void* buffer, const char* file, uint_t line);
 
 
   /**
@@ -213,4 +226,6 @@ std::string strprintf(const std::string fmt_str, ...);
   };
   
   extern SaVersionT safVersion;
-};  
+};
+
+#include <replacethese.h>

@@ -35,7 +35,7 @@
 #include <vector>
 
 extern "C" {
-#include <clCommon.h>
+//#include <clCommon.h>
 #include <clDbalApi.h>
 } /* end extern 'C' */
 

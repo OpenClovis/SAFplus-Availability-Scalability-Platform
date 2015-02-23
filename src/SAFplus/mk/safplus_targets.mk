@@ -49,13 +49,18 @@ $(LIB_DIR)/libclName.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/name7
 endif
 
+ifndef SAFPLUS_MSG_LIB
+$(LIB_DIR)/libclMsg.so: 
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/msg
+endif
+
 ifndef SAFPLUS_AMF_LIB
 $(LIB_DIR)/libclAmf.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/amf7
 endif
 
 $(LIB_DIR)/libezxml.so:
-	make -C $(SAFPLUS_SRC_DIR)/3rdparty/ezxml/ezxml-0.8.6/
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/ezxml-0.8.6/
 
 # ordered by dependency
 SAFplusSOs := $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt7.so $(LIB_DIR)/libclIoc7.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclDbal7.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py

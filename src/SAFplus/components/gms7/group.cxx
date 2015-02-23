@@ -451,9 +451,9 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
       for (Iterator i = begin(); i != end(); i++)
         {
         SAFplus::Handle hdl = i->first;
-        ClIocAddress to = getAddress(hdl);        
+        //ClIocAddress to = getAddress(hdl);        
         memcpy(buf,&hdl,sizeof(Handle));
-        groupMsgServer->SendMsg(to, (void *)buf, len, SAFplusI::OBJECT_MSG_TYPE);
+        groupMsgServer->SendMsg(hdl, (void *)buf, len, SAFplusI::OBJECT_MSG_TYPE);
         }
       }
       break;
@@ -490,10 +490,10 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
 
   if (dest != INVALID_HDL)
     {
-      ClIocAddress to = getAddress(dest);
+      //ClIocAddress to = getAddress(dest);
       memcpy(buf,&dest,sizeof(Handle));
       //to.iocPhyAddress.nodeAddress = to; // CL_IOC_BROADCAST_ADDRESS;
-      groupMsgServer->SendMsg(to, (void *)buf, len, SAFplusI::OBJECT_MSG_TYPE);
+      groupMsgServer->SendMsg(dest, (void *)buf, len, SAFplusI::OBJECT_MSG_TYPE);
     }
 
   }
@@ -517,13 +517,11 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
       case GroupMessageSendMode::SEND_BROADCAST:
       {
       /* Destination is broadcast address */
-      ClIocAddressT iocDest;
-      iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-      iocDest.iocPhyAddress.portId      = groupCommunicationPort;
+      Handle broadcastDest = getProcessHandle(groupCommunicationPort,Handle::AllNodes);
       //logInfo("GMS","MSG","Sending broadcast message");
       try
         {
-        groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, SAFplusI::GRP_MSG_TYPE);
+        groupMsgServer->SendMsg(broadcastDest, (void *)data, dataLength, SAFplusI::GRP_MSG_TYPE);
         }
       catch (...) // SAFplus::Error &e)
         {
@@ -534,31 +532,19 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
       }
       case GroupMessageSendMode::SEND_TO_ACTIVE:
       {
-      /* Destination is Master node address */
-      ClIocAddressT iocDest;
-      ClIocNodeAddressT masterAddress = 0;
-      clCpmMasterAddressGet(&masterAddress);
-      iocDest.iocPhyAddress.nodeAddress = masterAddress;
-      iocDest.iocPhyAddress.portId      = groupCommunicationPort;
-      //logInfo("GMS","MSG","Sending message to Master");
-      try
-        {
-        groupMsgServer->SendMsg(iocDest, (void *)data, dataLength, SAFplusI::GRP_MSG_TYPE);
-        }
-      catch (...)
-        {
-        logDebug("GMS","MSG","Failed to send");
-        }
+      throw Error(Error::SAFPLUS_ERROR,Error::NOT_IMPLEMENTED);
       break;
       }
       case GroupMessageSendMode::SEND_LOCAL_ROUND_ROBIN:
       {
       logInfo("GMS","MSG","Sending message round robin");
+      throw Error(Error::SAFPLUS_ERROR,Error::NOT_IMPLEMENTED);
       break;
       }
       default:
       {
       logError("GMS","MSG","Unknown message sending mode");
+      assert(0);
       break;
       }
       }

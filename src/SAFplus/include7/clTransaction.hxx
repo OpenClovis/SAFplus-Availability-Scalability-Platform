@@ -25,15 +25,6 @@
 #include <exception>
 #include "clHandleApi.hxx"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <clCommon.h>
-
-#ifdef __cplusplus
-} /* end extern 'C' */
-#endif
-
 namespace SAFplus
 {
   class TransactionOperation;

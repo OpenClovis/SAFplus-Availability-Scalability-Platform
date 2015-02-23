@@ -29,7 +29,7 @@
 extern "C"
 {
 #endif
-#include <clCommonErrors.h>
+#include <clCommonErrors6.h>
 #ifdef __cplusplus
 } /* end extern 'C' */
 #endif
@@ -131,7 +131,7 @@ namespace SAFplus
     }
 
     /* Send bind data to the server */
-    ClIocAddressT allNodeReps;
+    //ClIocAddressT allNodeReps;
     string strBind;
     MsgBind bindData;
     MsgMgt mgtMsgReq;
@@ -148,8 +148,8 @@ namespace SAFplus
     mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND);
     mgtMsgReq.set_bind(strBind);
 
-    allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS; //GAS: using broadcast CL_IOC_BROADCAST_ADDRESS = 0xffffffff
-    allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
+    //allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS; //GAS: using broadcast CL_IOC_BROADCAST_ADDRESS = 0xffffffff
+    //allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
 
     SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
 
@@ -158,7 +158,7 @@ namespace SAFplus
       string output;
       mgtMsgReq.SerializeToString(&output);
       int size = output.size();
-      mgtIocInstance->SendMsg(allNodeReps, (void *)output.c_str(), size, SAFplusI::CL_MGT_MSG_TYPE);
+      mgtIocInstance->SendMsg(getProcessHandle(SAFplusI::MGT_IOC_PORT,Handle::AllNodes), (void *)output.c_str(), size, SAFplusI::CL_MGT_MSG_TYPE);
     }
     catch (Error &e)
     {
@@ -168,7 +168,7 @@ namespace SAFplus
     return rc;
   }
 
-  ClRcT MgtRoot::sendReplyMsg(ClIocAddressT dest, void* payload, uint payloadlen)
+  ClRcT MgtRoot::sendReplyMsg(Handle dest, void* payload, uint payloadlen)
   {
     ClRcT rc = CL_OK;
     try
@@ -179,7 +179,7 @@ namespace SAFplus
     catch (SAFplus::Error &ex)
     {
       rc = ex.clError;
-      logDebug("GMS","MSG","Failed to send reply");
+      logDebug("MGT","MSG","Failed to send reply");
     }
     return rc;
   }
@@ -202,16 +202,17 @@ namespace SAFplus
     mgtMsgReq.set_type(Mgt::Msg::MsgMgt::CL_MGT_MSG_BIND);
     mgtMsgReq.set_bind(strBind);
 
-    ClIocAddressT allNodeReps;
-    allNodeReps.iocPhyAddress.nodeAddress = 0x1;//GAS: using broadcast CL_IOC_BROADCAST_ADDRESS = 0xffffffff
-    allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
+    // TODO: Who do I send this message to?  I think it should go to the active Mgt server?  Or broadcast to both Mgt servers?
+    //ClIocAddressT allNodeReps;
+    //allNodeReps.iocPhyAddress.nodeAddress = 0x1;//GAS: using broadcast CL_IOC_BROADCAST_ADDRESS = 0xffffffff
+    //allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
     try
     {
       string output;
       SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
       mgtMsgReq.SerializeToString(&output);
       int size = output.size();
-      mgtIocInstance->SendMsg(allNodeReps, (void *)output.c_str(), size, SAFplusI::CL_MGT_MSG_TYPE);
+      mgtIocInstance->SendMsg(getProcessHandle(SAFplusI::MGT_IOC_PORT,Handle::AllNodes), (void *)output.c_str(), size, SAFplusI::CL_MGT_MSG_TYPE);
     }
     catch (SAFplus::Error &ex)
     {
@@ -221,7 +222,7 @@ namespace SAFplus
     return rc;
   }
 
-  void MgtRoot::clMgtMsgEditHandle(ClIocAddress srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  void MgtRoot::clMgtMsgEditHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
   {
     ClRcT rc = CL_OK;
     ClBoolT rc1 = CL_FALSE;
@@ -279,7 +280,7 @@ namespace SAFplus
     MgtRoot::sendReplyMsg(srcAddr,(void *)&rc,sizeof(ClRcT));
   }
 
-  void MgtRoot::clMgtMsgGetHandle(ClIocAddress srcAddr, Mgt::Msg::MsgMgt reqMsg)
+  void MgtRoot::clMgtMsgGetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt reqMsg)
   {
     MsgGeneral rplMesg;
     string outBuff,strRplMesg;
@@ -292,8 +293,8 @@ namespace SAFplus
     if (!module)
     {
       logError("MGT", "GET",
-                 "Received getting request from [%d.%x] for Non-existent module [%s] route [%s]",
-                 srcAddr.iocPhyAddress.nodeAddress, srcAddr.iocPhyAddress.portId,
+                 "Received getting request from [%lx.%lx] for Non-existent module [%s] route [%s]",
+                 srcAddr.id[0],srcAddr.id[1],
                  bindData.module().c_str(), bindData.route().c_str());
       return;
     }
@@ -302,8 +303,8 @@ namespace SAFplus
     if (!object)
     {
       logError("MGT", "GET",
-                 "Received getting request from [%d.%x] for Non-existent route [%s] module [%s]",
-                 srcAddr.iocPhyAddress.nodeAddress, srcAddr.iocPhyAddress.portId,
+                 "Received getting request from [%lx.%lx] for Non-existent route [%s] module [%s]",
+                 srcAddr.id[0], srcAddr.id[1],
                  bindData.route().c_str(), bindData.module().c_str());
       return;
     }
@@ -338,7 +339,7 @@ namespace SAFplus
   {
     mRoot = mroot;
   }
-  void MgtRoot::MgtMessageHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+  void MgtRoot::MgtMessageHandler::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
     Mgt::Msg::MsgMgt mgtMsgReq;
     mgtMsgReq.ParseFromArray(msg, msglen);

@@ -45,8 +45,8 @@ extern "C"
   #include <libxml/xmlmemory.h>
   #include <libxml/parser.h>
   #include <libxml/xmlstring.h>
-  #include <clCommon.h>
-  #include <clCommonErrors.h>
+  //#include <clCommon.h>
+  //#include <clCommonErrors.h>
 } /* end extern 'C' */
 
 namespace SAFplus

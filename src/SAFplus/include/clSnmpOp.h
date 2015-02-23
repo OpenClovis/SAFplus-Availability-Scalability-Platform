@@ -1,1 +1,0 @@
-../components/snmp/client/clSnmpOp.h

@@ -1,1 +1,0 @@
-../components/log/idl/Log/xdr/xdrClLogStreamInfoIDLT.h

@@ -25,11 +25,6 @@
 #include "clMgtRoot.hxx"
 #include "MgtMsg.pb.hxx"
 
-extern "C"
-{
-#include <clCommonErrors.h>
-} /* end extern 'C' */
-
 #include <clLogApi.hxx>
 
 using namespace std;
@@ -63,7 +58,7 @@ namespace SAFplus
   {
     if (!strcmp(Module.c_str(), ""))
     {
-      logError("MGT", "NOTI", "Cannot send Notification [%s]", tag.c_str());
+      logError("MGT", "NTF", "Cannot send Notification [%s]", tag.c_str());
       return;
     }
     string bindStr, notiStr, msgRequestStr;
@@ -110,17 +105,18 @@ namespace SAFplus
     msgRequest.SerializeToString(&msgRequestStr);
 
     /* Send notification */
-    ClIocAddressT allNodeReps;
-    allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-    allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
+    //ClIocAddressT allNodeReps;
+    //allNodeReps.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
+    //allNodeReps.iocPhyAddress.portId = SAFplusI::MGT_IOC_PORT;
     SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
+
     try
     {
-      mgtIocInstance->SendMsg(allNodeReps,(void *) msgRequestStr.c_str(), msgRequestStr.size(), SAFplusI::CL_MGT_MSG_TYPE);
+      mgtIocInstance->SendMsg(SAFplus::getProcessHandle(SAFplusI::MGT_IOC_PORT,Handle::AllNodes),(void *) msgRequestStr.c_str(), msgRequestStr.size(), SAFplusI::CL_MGT_MSG_TYPE);
     }
     catch(SAFplus::Error &ex)
     {
-      logDebug("MGT","NOTI","Send notification failed!");
+      logDebug("MGT","NTF","Send notification failed!");
     }
   }
 }

@@ -1,1 +1,0 @@
-../components/cor/common/idl/xdr/xdrCorSyncEvts_e.h

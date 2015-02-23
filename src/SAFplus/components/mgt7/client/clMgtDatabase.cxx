@@ -17,15 +17,16 @@
  * material.
  */
 
+#include <clCommon.hxx>
 #include "clMgtDatabase.hxx"
 #include "clLogApi.hxx"
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-#include <clCommonErrors.h>
-#include <clDebugApi.h>
-#include <clCksmApi.h>
+//#include <clCommonErrors.h>
+//#include <clDebugApi.h>
+//#include <clCksmApi.h>
 #ifdef __cplusplus
 } /* end extern 'C' */
 #endif
@@ -38,8 +39,7 @@ namespace SAFplus
 {
 static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
 {
-    ClUint32T cksum = 0;
-    clCksm32bitCompute((ClUint8T*)keyStr, (ClUint32T)strlen(keyStr), &cksum);
+    ClUint32T cksum = SAFplus::computeCrc32((ClUint8T*)keyStr, (ClUint32T)strlen(keyStr));
     return cksum & DBAL_DB_KEY_MASK;
 }
 

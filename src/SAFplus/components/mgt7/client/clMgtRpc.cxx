@@ -23,7 +23,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <clCommonErrors.h>
+#include <clCommonErrors6.h>
 #ifdef __cplusplus
 } /* end extern 'C' */
 #endif

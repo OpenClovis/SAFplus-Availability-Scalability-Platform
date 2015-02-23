@@ -199,9 +199,9 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
   int count = 0;
   //lastChange = 0; // DEBUG to force full sync
 
-  ClIocAddressT to = getAddress(response);
+  //ClIocAddressT to = getAddress(response);
 
-  logInfo("SYNC","MSG","Handling synchronization request from [%d.%d], generation [%d] change [%d] ",to.iocPhyAddress.nodeAddress,to.iocPhyAddress.portId, generation, lastChange);
+  logInfo("SYNC","MSG","Handling synchronization request from [%lx.%lx], generation [%d] change [%d] ",response.id[0],response.id[1], generation, lastChange);
   if (generation != ckpt->hdr->generation) 
     {
     lastChange = 0;  // if the generation is wrong, we need ALL changes.
@@ -234,9 +234,9 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
         {
         // TODO unlock writes
         count++;
-        logInfo("SYNC","MSG","Sending checkpoint update msg (length [%d]) to handle [%lx:%lx] location [%d:%d] type %d.  key %d %x  val len: %d %x", offset, response.id[0],response.id[1], to.iocPhyAddress.nodeAddress,to.iocPhyAddress.portId, CKPT_SYNC_MSG_TYPE, key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
+        logInfo("SYNC","MSG","Sending checkpoint update msg (length [%d]) to handle [%lx:%lx] type %d.  key %d %x  val len: %d %x", offset, response.id[0],response.id[1], CKPT_SYNC_MSG_TYPE, key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
         hdr->count = count;
-        msgSvr->SendMsg(to,buf,offset,CKPT_SYNC_MSG_TYPE);
+        msgSvr->SendMsg(response,buf,offset,CKPT_SYNC_MSG_TYPE);
         offset = headerEnds;  // Reset the buffer
         // TODO lock writes
         }
@@ -272,7 +272,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
       logInfo("SYNC","MSG","Sending last checkpoint update msg");
       count++;
       hdr->count = count;
-      msgSvr->SendMsg(to,buf,offset,CKPT_SYNC_MSG_TYPE);
+      msgSvr->SendMsg(response,buf,offset,CKPT_SYNC_MSG_TYPE);
       offset = headerEnds;  // Reset the buffer
       // TODO lock writes
       }
@@ -283,7 +283,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
   sc.finalChangeNum  = ckpt->hdr->changeNum;
   sc.msgType = (CKPT_MSG_TYPE << 16) | CKPT_MSG_TYPE_SYNC_COMPLETE_1;
   sc.checkpoint = response;
-  msgSvr->SendMsg(to,&sc,sizeof(CkptSyncCompleteMsg),CKPT_SYNC_MSG_TYPE);
+  msgSvr->SendMsg(response,&sc,sizeof(CkptSyncCompleteMsg),CKPT_SYNC_MSG_TYPE);
   // unlock writes
 
   delete buf;
@@ -388,8 +388,8 @@ void SAFplusI::CkptSynchronization::operator()()
       msg.cookie = syncCookie;
       syncCount=0;
 
-      ClIocAddressT to = getAddress(active);
-      msgSvr->SendMsg(to,&msg,sizeof(msg),CKPT_SYNC_MSG_TYPE);
+      //ClIocAddressT to = getAddress(active);
+      msgSvr->SendMsg(active,&msg,sizeof(msg),CKPT_SYNC_MSG_TYPE);
       logInfo("SYNC","TRD","Sent synchronization request message to [%d:%d] type [%d] generation [%d] change [%d] sync cookie [%x]", active.getNode(), active.getPort(),CKPT_SYNC_MSG_TYPE,msg.generation, msg.changeNum, syncCookie);
       }
 

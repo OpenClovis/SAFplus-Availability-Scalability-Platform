@@ -1,1 +1,0 @@
-../components/amf/common/ams/idl/xdr/xdrClAmsMgmtInitializeResponseT.h

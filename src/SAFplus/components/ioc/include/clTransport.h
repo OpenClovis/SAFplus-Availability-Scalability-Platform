@@ -1,9 +1,8 @@
 #ifndef _CL_TRANSPORT_H_
 #define _CL_TRANSPORT_H_
 
-#include <clCommon.h>
-#include <clCommonErrors.h>
-#include <clList.h>
+#include <clCommon6.h>
+#include <clList6.h>
 #include <clIocApi.h>
 #include <clIocIpi.h>
 

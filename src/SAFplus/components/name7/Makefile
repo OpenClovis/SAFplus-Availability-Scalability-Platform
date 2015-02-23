@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_NAME_LIB := 1
 include ../../mk/preface.mk
 
 NAME_CLIENT_SRC := $(wildcard *.cxx)
@@ -23,3 +24,5 @@ $(MWOBJ_DIR)/%.o: %.cxx #Makefile
 
 clean:
 	rm -f  $(SAFPLUS_TARGET)/lib/libclName.so $(MWOBJ_DIR)/*.o
+
+include ../../mk/safplus_targets.mk

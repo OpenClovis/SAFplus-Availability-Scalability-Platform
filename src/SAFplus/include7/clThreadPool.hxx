@@ -1,3 +1,5 @@
+#pragma once
+
 #include <clThreadApi.hxx>
 #include <vector>
 #include <boost/intrusive/list.hpp>

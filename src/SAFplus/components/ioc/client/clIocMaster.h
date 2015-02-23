@@ -20,13 +20,14 @@
 #define __CL_IOC_MASTER_H__
 
 #include <clIocConfig.h>
+#include <clThreadApi.hxx>
 
 #define CL_IOC_MASTER_SEGMENT_SIZE       CL_IOC_ALIGN((CL_IOC_MAX_COMPONENTS_PER_NODE * sizeof(ClIocNodeAddressT)), 8)
 
 #define CL_IOC_MASTER_TYPE(port)   ((CL_IOC_MASTER_ADDRESS_TYPE << CL_IOC_ADDRESS_TYPE_SHIFT_WORD) | ((port) & CL_IOC_COMM_PORT_MASK))
 
 
-void clIocMasterSegmentInitialize(void *pMasterSegment, ClOsalSemIdT masterSem);
+void clIocMasterSegmentInitialize(void *pMasterSegment, SAFplus::ProcSem& masterSem);
 void clIocMasterSegmentFinalize(void);
 void clIocMasterSegmentUpdate(ClIocPhysicalAddressT compAddr);
 void clIocMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT master);

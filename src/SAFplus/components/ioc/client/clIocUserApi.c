@@ -2423,7 +2423,7 @@ ClRcT clIocDispatch(const ClCharT *xportType, ClIocCommPortHandleT commPort, ClI
      */
     if (((ClIocHeaderT*)buffer)->protocolType == CL_IOC_PROTO_ICMP)
     {
-        clIocHearBeatHealthCheckUpdate(((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress, ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId, NULL);
+        // clIocHearBeatHealthCheckUpdate(((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.nodeAddress, ((ClIocHeaderT*)buffer)->srcAddress.iocPhyAddress.portId, NULL);
         clBufferClear(message);
         return CL_IOC_RC(CL_ERR_TRY_AGAIN);
     }
@@ -2808,7 +2808,7 @@ ClRcT clIocLibFinalize()
         return CL_OK;
     gIocInit = CL_FALSE;
     clJobQueueDelete(&iocFragmentJobQueue);
-    clIocHeartBeatFinalize(gIsNodeRepresentative);
+    //clIocHeartBeatFinalize(gIsNodeRepresentative);
     clTransportFinalize(NULL, gIsNodeRepresentative);
     clNodeCacheFinalize();
     clIocNeighCompsFinalize();
@@ -2920,7 +2920,7 @@ ClRcT clIocConfigInitialize(ClIocLibConfigT *pConf)
         goto error_3;
     }
 
-    clIocHeartBeatInitialize(gIsNodeRepresentative);
+    //clIocHeartBeatInitialize(gIsNodeRepresentative);
 
     gIocInit = CL_TRUE;
     return CL_OK;

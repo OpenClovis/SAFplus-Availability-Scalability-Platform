@@ -2,6 +2,9 @@
 #ifndef CL_DBG_HXX
 #define CL_DBG_HXX
 
+// Include clLogIpi before including clDbg.hxx if you are an internal SAFplus component so the logs APIs default to the SAFplus log stream
+#include <clLogApi.hxx>
+
 namespace SAFplus
 {
 /* See clDbg.c for documentation on these global variables */
@@ -10,7 +13,7 @@ extern int clDbgPauseOnCodeError;
 extern int clDbgNoKillComponents;
 extern int clDbgCompTimeoutOverride;
 extern int clDbgLogLevel;
-extern int clDbgResourceLogLevel;
+extern SAFplus::LogSeverity clDbgResourceLogLevel;
 extern int clDbgReverseTiming;
 
 
@@ -39,7 +42,7 @@ extern int clDbgReverseTiming;
  *  \par Related Function(s):
  *   \ref "clDebugResume"
  */
-#define clDbgPause() clDbgPauseFn(__FILE__,__LINE__)
+#define clDbgPause() ::SAFplus::clDbgPauseFn(__FILE__,__LINE__)
 void clDbgPauseFn(const char* file, int line);
 
 /**
@@ -74,21 +77,21 @@ void clDbgPauseFn(const char* file, int line);
 #define CL_DEBUG_CODE_ERROR clDbgCodeError
 
 #undef clDbgRootCodeError
-#define clDbgCodeError(clErr, ...) do { (void)clErr;  logCritical("---","---", __VA_ARGS__); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
+#define clDbgCodeError(clErr, ...) do { (void)clErr;  logCritical("---","---", __VA_ARGS__); if (::SAFplus::clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
   /* A clDbgCodeError is also a root cause error, so you don't have to call both functions */
 #undef clDbgRootCauseError
-#define clDbgRootCauseError(clErr, ...) do { (void)clErr;  logCritical("---","---", __VA_ARGS__); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
+#define clDbgRootCauseError(clErr, ...) do { (void)clErr;  logCritical("---","---", __VA_ARGS__); if (::SAFplus::clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
 #ifdef clDbgNotImplemented
 #undef clDbgNotImplemented
 #endif
-#define clDbgNotImplemented(...) do { logCritical("---","---", "Not Implemented:" __VA_ARGS__); if (clDbgPauseOnCodeError) clDbgPause(); } while(0)
+#define clDbgNotImplemented(...) do { logCritical("---","---", "Not Implemented:" __VA_ARGS__); if (::SAFplus::clDbgPauseOnCodeError) clDbgPause(); } while(0)
 
 #ifdef clDbgCheck  // resolve warning with including SAFplus6 clDbg.h
 #undef clDbgCheck
 #endif
-#define clDbgCheck(predicate, todo, ...) do { int result = predicate; if (!result) { logCritical("---","---", __VA_ARGS__); if (clDbgPauseOnCodeError) clDbgPause(); } if (!result) { todo; } } while(0)
+#define clDbgCheck(predicate, todo, ...) do { int result = predicate; if (!result) { logCritical("---","---", __VA_ARGS__); if (::SAFplus::clDbgPauseOnCodeError) clDbgPause(); } if (!result) { todo; } } while(0)
     
 /**
  ************************************
@@ -140,12 +143,12 @@ enum
 
 #define clDbgResourceNotify(resourceType, operation, resourceGroup, resourceId, ...) \
 do { \
-      clLog(clDbgResourceLogLevel,"---","---",__VA_ARGS__); \
+      logWrite(clDbgResourceLogLevel,"---","---",__VA_ARGS__); \
 } while(0)
 
 #define clDbgResourceLimitExceeded(resourceType, resourceGroup, ...) \
 do { \
-     clLog(clDbgResourceLogLevel,"---","---", __VA_ARGS__); \
+     logWrite(clDbgResourceLogLevel,"---","---", __VA_ARGS__); \
      clDbgRootCauseError(CL_ERR_NO_RESOURCE,__VA_ARGS__); \
 } while(0)
 

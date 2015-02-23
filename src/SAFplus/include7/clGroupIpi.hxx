@@ -261,7 +261,7 @@ class GroupServer:public SAFplus::MsgHandler
       // Communication port
   int groupCommunicationPort;
 
-  virtual void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+  virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 
   void init();
   void registerEntity (GroupShmEntry* grp, SAFplus::Handle me, uint64_t credentials, const void* data, int dataLength, uint capabilities,bool needNotify);

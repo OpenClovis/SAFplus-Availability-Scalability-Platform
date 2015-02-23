@@ -1,8 +1,8 @@
 #include <clThreadApi.hxx>
 #include <cltypes.h>
-#include <clCksmApi.h>
-#include <clCommon.h>
-#include <clCommonErrors.h>
+//#include <clCksmApi.h>
+//#include <clCommon.h>
+//#include <clCommonErrors.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdarg.h>  // for va_start, etc
@@ -20,8 +20,8 @@
 // IOC related globals
 ClUint32T chassisId = 0x0;
 // Obsolete: USE SAFplus::ASP_NODEADDR
-ClUint32T clAspLocalId = ~((ClWordT) 0);
-ClBoolT   gIsNodeRepresentative = CL_FALSE;
+//ClUint32T clAspLocalId = ~((ClWordT) 0);
+//ClBoolT   gIsNodeRepresentative = CL_FALSE;
 
 namespace SAFplus
   {
@@ -54,7 +54,6 @@ namespace SAFplus
   ClBoolT ASP_SC_PROMOTE = CL_FALSE;
 
   SaVersionT safVersion = { 'B',4,1 };
-
   pid_t      pid = 0;
   ClIocPortT iocPort = 0;
   /** True if this component is not under AMF control (will not receive CSI callbacks) */
@@ -195,7 +194,7 @@ namespace SAFplus
     if (temp) { ASP_NODEADDR = atoi(temp); }
     else strcat(missing,"ASP_NODEADDR ");
 
-    clAspLocalId = ASP_NODEADDR;  // set clAspLocalId to ASP_NODEADDR regardless of the existence of the env var because the app could have set ASP_NODEADDR explicitly
+    // clAspLocalId = ASP_NODEADDR;  // set clAspLocalId to ASP_NODEADDR regardless of the existence of the env var because the app could have set ASP_NODEADDR explicitly
 
     SYSTEM_CONTROLLER = clParseEnvBoolean("SYSTEM_CONTROLLER");
     ASP_SC_PROMOTE = clParseEnvBoolean("ASP_SC_PROMOTE");
@@ -223,7 +222,7 @@ namespace SAFplus
       }
     }
 
-  LogSeverity logSeverityGet(const ClCharT  *pSevName)
+  LogSeverity logSeverityGet(const char  *pSevName)
     {
     if( NULL == pSevName )
       {
@@ -265,7 +264,10 @@ namespace SAFplus
       {
       return LOG_SEV_TRACE;
       }
-    return LOG_SEV_NOTICE;
+
+    int val = atoi(pSevName);
+    if ((val < LOG_SEV_EMERGENCY)||(val > LOG_SEV_MAX)) return LOG_SEV_NOTICE;  // Return some reasonable value on error
+    return (SAFplus::LogSeverity) val;
     }
 
 
@@ -535,5 +537,33 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
       }
     return std::string(formatted.get());
     }
+
+
+  void* heapAlloc(uint_t amt, uint_t category, const char* file, uint_t line)
+    {
+    return malloc(amt);
+    }
+
+  void heapFree(void* buffer, const char* file, uint_t line)
+    {
+    free(buffer);
+    }
+
+  Handle getNodeHandle(int nodeNum)
+    {
+    return Handle(TransientHandle,0,0,ASP_NODEADDR);
+    }
+
+  Handle getProcessHandle(int pid, int nodeNum)
+    {
+    return Handle(TransientHandle,0,pid,nodeNum);
+    }
+
+  Handle getObjectHandle(void* object)
+    {
+    assert(0);  // API not used, verify this code
+    return Handle(PointerHandle,(uint64_t) object,iocPort,ASP_NODEADDR);
+    }
+
 
   };

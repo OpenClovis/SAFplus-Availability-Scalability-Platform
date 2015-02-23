@@ -1,4 +1,5 @@
 #include <clCustomization.hxx>
+#include <clHandleApi.hxx>
 #include <clGroupIpi.hxx>
 #include <clIocPortList.hxx>
 #include <chrono>
@@ -16,7 +17,7 @@ bool SAFplusI::HandleEqual::operator() (const Handle& x, const Handle& y) const
 namespace SAFplusI
 {
 
-ClRcT groupIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie);
+//ClRcT groupIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie);
 
 GroupServer::GroupServer()
  { 
@@ -172,7 +173,7 @@ void GroupServer::init()
   {
   gsm.init();
   gsm.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
-  clIocNotificationRegister(groupIocNotificationCallback,this);
+  //clIocNotificationRegister(groupIocNotificationCallback,this);
 
   if(!groupMsgServer)
     {
@@ -198,9 +199,10 @@ GroupShmEntry* GroupSharedMem::createGroup(SAFplus::Handle grp)
   }
 
 // Demultiplex incoming message to the appropriate Checkpoint object
-void GroupServer::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+void GroupServer::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
-  logInfo("SYNC","MSG","Received group message from %d", from.iocPhyAddress.nodeAddress);
+  uint_t fromNode = from.getNode();
+  //logInfo("SYNC","MSG","Received group message from node %d", fromNode);
 
   /* Parse the message and process if it is valid */
   SAFplusI::GroupMessageProtocol *rxMsg = (SAFplusI::GroupMessageProtocol *)msg;
@@ -223,7 +225,7 @@ void GroupServer::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT
     logError("GMS","MSG","Received NULL message. Ignored");
     return;
   }
-  logInfo("GMS","MSG","Received message [%x] from node %d",rxMsg->messageType,from.iocPhyAddress.nodeAddress);
+  logInfo("GMS","MSG","Received message [%x] from node %d",rxMsg->messageType,fromNode);
 
   switch(rxMsg->messageType)
   {
@@ -235,7 +237,7 @@ void GroupServer::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT
         registerEntity(ge, rxGrp->id, rxGrp->credentials, NULL, rxGrp->dataLen, rxGrp->capabilities, false);
         } break;
     case SAFplusI::GroupMessageTypeT::MSG_HELLO:
-      if(from.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
+      if(fromNode != SAFplus::ASP_NODEADDR)
         {
         logDebug("GMS","MSG","Entity HELLO message");
         GroupIdentity *rxGrp = (GroupIdentity *)rxMsg->data;
@@ -265,7 +267,7 @@ void GroupServer::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT
       logDebug("GMS","MSG","Group announce message");
       } break;
     default:
-      logDebug("GMS","MSG","Unknown message type [%d] from %d",rxMsg->messageType,from.iocPhyAddress.nodeAddress);
+      logDebug("GMS","MSG","Unknown message type [%d] from node [%d]",rxMsg->messageType,fromNode);
       break;
   }
 }
@@ -526,6 +528,7 @@ void GroupServer::handleRoleNotification(GroupShmEntry* ge, SAFplusI::GroupMessa
 }
 
 
+#if 0 // TODO: component and node death to be reported by fault manager
 ClRcT groupIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie)
 {
   GroupServer* svr = (GroupServer*) cookie;
@@ -574,6 +577,7 @@ ClRcT groupIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cook
     }
   return rc;
 }
+#endif
 
 
 /**
@@ -650,10 +654,7 @@ void GroupServer::startElection(SAFplus::Handle grpHandle)
   sndMessage->roleType     = GroupRoleNotifyTypeT::ROLE_UNDEFINED;
   sndMessage->force        = 0;
 
-  ClIocAddressT iocDest;
-  iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-  iocDest.iocPhyAddress.portId      = groupCommunicationPort;
-  groupMsgServer->SendMsg(iocDest, (void *)msgPayload, sizeof(msgPayload), SAFplusI::GRP_MSG_TYPE);
+  groupMsgServer->SendMsg(getProcessHandle(groupCommunicationPort,Handle::AllNodes), (void *)msgPayload, sizeof(msgPayload), SAFplusI::GRP_MSG_TYPE);
   }
 
 void GroupServer::sendHelloMessage(SAFplus::Handle grpHandle,const GroupIdentity& entityData)
@@ -666,10 +667,8 @@ void GroupServer::sendHelloMessage(SAFplus::Handle grpHandle,const GroupIdentity
   sndMessage->roleType     = GroupRoleNotifyTypeT::ROLE_UNDEFINED;
   sndMessage->force        = 0;
   memcpy(sndMessage->data,(const void*) &entityData,sizeof(GroupIdentity));
-  ClIocAddressT iocDest;
-  iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-  iocDest.iocPhyAddress.portId      = groupCommunicationPort;
-  groupMsgServer->SendMsg(iocDest, (void *)msgPayload, sizeof(msgPayload), SAFplusI::GRP_MSG_TYPE);
+
+  groupMsgServer->SendMsg(getProcessHandle(groupCommunicationPort,Handle::AllNodes), (void *)msgPayload, sizeof(msgPayload), SAFplusI::GRP_MSG_TYPE);
   }
 
 void GroupServer::sendRoleAssignmentMessage(SAFplus::Handle grpHandle,std::pair<EntityIdentifier,EntityIdentifier>& results)
@@ -684,10 +683,8 @@ void GroupServer::sendRoleAssignmentMessage(SAFplus::Handle grpHandle,std::pair<
   sndMessage->roleType     = GroupRoleNotifyTypeT::ROLE_ACTIVE;
   sndMessage->force        = 1;
   memcpy(sndMessage->data,(const void*) data,sizeof(EntityIdentifier)*2);
-  ClIocAddressT iocDest;
-  iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-  iocDest.iocPhyAddress.portId      = groupCommunicationPort;
-  groupMsgServer->SendMsg(iocDest, (void *)msgPayload, sizeof(msgPayload), SAFplusI::GRP_MSG_TYPE);
+
+  groupMsgServer->SendMsg(getProcessHandle(groupCommunicationPort,Handle::AllNodes), (void *)msgPayload, sizeof(msgPayload), SAFplusI::GRP_MSG_TYPE);
   }
 
 

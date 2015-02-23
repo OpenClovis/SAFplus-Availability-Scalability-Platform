@@ -402,7 +402,7 @@ char* NameRegistrar::getName(const SAFplus::Handle& handle) throw(NameException&
    for(Checkpoint::Iterator iter = ibegin; iter != iend; iter++)
    {
       BufferPtr curkey = iter->first;
-      printf("NAME","GETNAME","key [%s]\n", curkey.get()->data);
+      logDebug("NAME","GETNAME","key [%s]\n", curkey.get()->data);
 
       BufferPtr& curval = iter->second;
       if (curval)

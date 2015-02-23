@@ -49,7 +49,7 @@ namespace SAFplus
           {
           public:
             uint64_t msgId;
-            ClIocAddressT srcAddr;
+            SAFplus::Handle srcAddr;
             SAFplus::Wakeable *callback;
             google::protobuf::Message *response;
           };
@@ -61,7 +61,7 @@ namespace SAFplus
           {
           public:
             //Client or for combined client/server construct like this then manually set .service to the SAFplus::Rpc::RpcService object
-            explicit RpcChannel(SAFplus::MsgServer *, ClIocAddressT iocDest);
+            explicit RpcChannel(SAFplus::MsgServer *, SAFplus::Handle destination);
 
             //Server
             explicit RpcChannel(SAFplus::MsgServer *, SAFplus::Rpc::RpcService *rpcService);
@@ -72,9 +72,9 @@ namespace SAFplus
                 const google::protobuf::Message* request, google::protobuf::Message* response, SAFplus::Wakeable &wakeable);
 
             //Register with msg server to handle RPC protocol
-            void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+            void msgHandler(SAFplus::Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 
-            void HandleRequest(SAFplus::Rpc::RpcMessage *msg, ClIocAddressT iocReq);
+            void HandleRequest(SAFplus::Rpc::RpcMessage *msg, SAFplus::Handle from);
             void HandleResponse(SAFplus::Rpc::RpcMessage *msg);
 
             void setMsgType(ClWordT send, ClWordT reply); // Set the protocol type for underlying transports that require one.
@@ -91,7 +91,7 @@ namespace SAFplus
             std::map<uint64_t,MsgRpcEntry*> msgRPCs;
 
             SAFplus::MsgServer *svr;
-            ClIocAddressT dest;
+            Handle dest;
             Mutex mutex;
             SAFplus::Rpc::RpcService *service; // service to dispatch requests to
 

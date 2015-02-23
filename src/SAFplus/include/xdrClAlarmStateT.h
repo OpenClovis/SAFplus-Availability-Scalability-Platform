@@ -1,1 +1,0 @@
-../components/alarm/common/idl/xdr/xdrClAlarmStateT.h

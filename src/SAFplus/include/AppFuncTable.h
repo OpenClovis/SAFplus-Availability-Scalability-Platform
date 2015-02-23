@@ -1,1 +1,0 @@
-../components/log/idl/App/common/AppFuncTable.h

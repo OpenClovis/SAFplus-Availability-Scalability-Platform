@@ -1,1 +1,0 @@
-../components/log/include/clLogApi.h

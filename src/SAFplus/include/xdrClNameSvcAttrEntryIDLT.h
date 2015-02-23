@@ -1,1 +1,0 @@
-../components/name/common/idl/xdr/xdrClNameSvcAttrEntryIDLT.h

@@ -37,7 +37,7 @@
 extern "C" {
 #endif
 
-#include <clCommon.h>
+#include <clCommon6.h>
 #include <ezxml.h>
 
     /******************************************************************************

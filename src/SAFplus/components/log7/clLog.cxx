@@ -2,8 +2,8 @@
 #include <boost/interprocess/mapped_region.hpp>
 using namespace boost::interprocess;
 
-#include <clCommon.h>
-#include <clEoApi.h>
+//#include <clCommon.h>
+//#include <clEoApi.h>
 
 #include <clLogIpi.hxx>
 #include <clCommon.hxx>
