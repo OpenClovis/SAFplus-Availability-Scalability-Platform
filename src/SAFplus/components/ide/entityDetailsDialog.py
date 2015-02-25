@@ -19,6 +19,11 @@ from model import *
 from entity import *
 import wx.lib.scrolledpanel as scrolled
 
+try:
+    from agw import hypertreelist as HTL
+except ImportError: # if it's not there locally, try the wxPython lib.
+    import wx.lib.agw.hypertreelist as HTL
+
 LOCK_BUTTON_ID = 3482
 HELP_BUTTON_ID = 4523
 TEXT_ENTRY_ID = 7598
@@ -54,13 +59,14 @@ class Panel(scrolled.ScrolledPanel):
         # Event handlers
         #self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick)
+        self.tree = None
   
         # for the data entry
         # self.Bind(wx.EVT_TEXT, self.EvtText)
 
         share.detailsPanel = self
         if StandaloneDev:
-          e = model.entities["Node1"]
+          e = model.entities["app"]
           self.showEntity(e)
         self.SetSashPosition(10)
 
@@ -80,7 +86,7 @@ class Panel(scrolled.ScrolledPanel):
       if id>=TEXT_ENTRY_ID and id < TEXT_ENTRY_ID+self.numElements:
         idx = id - TEXT_ENTRY_ID
         obj = self.lookup[idx]
-        query = obj[2]
+        query = obj[1]
         if not isinstance(query, wx._core._wxPyDeadObject):
           proposedValue = query.GetValue()
           # print "evt text ", obj
@@ -111,7 +117,7 @@ class Panel(scrolled.ScrolledPanel):
         idx = id - TEXT_ENTRY_ID
         obj = self.lookup[idx]
         name = obj[0][0]
-        query = obj[2]
+        query = obj[1]
 
         if not isinstance(query, wx._core._wxPyDeadObject):
           proposedValue = query.GetValue()
@@ -131,12 +137,15 @@ class Panel(scrolled.ScrolledPanel):
       id = event.GetId()
       if id>=LOCK_BUTTON_ID and id < HELP_BUTTON_ID:
         idx = id - LOCK_BUTTON_ID
+      elif id>=HELP_BUTTON_ID and id < TEXT_ENTRY_ID:
+        idx = id - HELP_BUTTON_ID
+        return
       else:
         print "unknown button! %d" % id
         return
         pdb.set_trace()
       obj = self.lookup[idx]
-      lockButton = obj[3]
+      lockButton = obj[2]
       # Toggle the locked state, create it unlocked (then instantly lock it) if it is not already set
 
       #TODO: handle for children controls not itself if it has child. If it being locked/unlocked, mean all children affected
@@ -154,7 +163,7 @@ class Panel(scrolled.ScrolledPanel):
       """Create the best GUI control for this type of data"""
       # pdb.set_trace()
       typeData = item[1]
-      if typeData.has_key("type"):
+      if type(typeData) is DictType and typeData.has_key("type"):
         if typeData["type"] == "boolean":
           query = wx.CheckBox(self,id,"")
         elif typeData["type"] in YangIntegerTypes:
@@ -172,7 +181,7 @@ class Panel(scrolled.ScrolledPanel):
             rang=[rang[0][0], rang[-1][-1]]  # get the first and last element of this list of lists.  We are ignoring any gaps (i.e. [[1,3],[5,10]] because the slider can't handle them anyway. It might be better to just fall back to a text entry box if range is funky.
             if rang[0] == "min": rang[0] = MinValFor[typeData["type"]]
             if rang[1] == "max": rang[1] = MaxValFor[typeData["type"]]
-          query = wx.Slider(self,id,v,rang[0],rang[1],style = wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
+          query = wx.Slider(self,id,v,rang[0],rang[1],size=(200,60), style = wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
           query.SetTickFreq(5)
           # TODO create a control that contains both a slider and a small text box
           # TODO size the slider properly using min an max hints 
@@ -205,67 +214,93 @@ class Panel(scrolled.ScrolledPanel):
 
     def showEntity(self,ent):
       if self.entity == ent: return  # Its already being shown
-      if self.sizer:
-        self.sizer.Clear(True)
-        created = False
-      else:
-        self.sizer = wx.GridBagSizer(2,1)
-        self.sizer.SetFlexibleDirection(wx.HORIZONTAL | wx.VERTICAL)
-        created = True
 
-      sizer = self.sizer   
+      if self.sizer:
+        if self.tree:
+          self.sizer.Detach(self.tree)
+          self.tree.Destroy()
+          del self.tree
+      else:
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+
+      self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT)
+      self.tree.AddColumn("Main column")
+      self.tree.AddColumn("Col 1")
+      self.tree.AddColumn("Col 2")
+      self.tree.AddColumn("Col 3")
+      self.tree.SetMainColumn(0) # the one with the tree in it...
+      self.tree.SetColumnWidth(0, 185)
+      self.tree.SetColumnWidth(1, 35)
+      self.tree.SetColumnWidth(2, 225)
+      self.tree.SetColumnWidth(3, 50)
+
+      self.sizer.Add(self.tree, -1, wx.EXPAND)
 
       self.entity = ent
       items = ent.et.data.items()
       items = sorted(items,EntityTypeSortOrder)
 
+      self.treeRoot = self.tree.AddRoot(ent.data["name"])
+
       # Put the name at the top
-      self.row=0
-      prompt = wx.StaticText(self,-1,"Name:",style =wx.ALIGN_RIGHT)
       query  = wx.TextCtrl(self, -1, "")
       query.ChangeValue(ent.data["name"])
       query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
       
       # Binding name wx control
       self.BuildChangeEvent(query)
+      
+      b = wx.BitmapButton(self, -1, self.unlockedBmp,style = wx.NO_BORDER )
+      b.SetToolTipString("If unlocked, instances can change this field")
 
-      prompt.SetFont(self.font)
-      sizer.Add(prompt,(self.row,0),(1,1),wx.ALIGN_CENTER)
-      sizer.Add(query,(self.row,2),flag=wx.EXPAND)
-      bmp = wx.StaticBitmap(self, -1, self.unlockedBmp)
-      sizer.Add(bmp,(self.row,3),(1,1),wx.ALIGN_CENTER | wx.ALL)
+      child = self.tree.AppendItem(self.treeRoot, "Name:")
+      self.tree.SetItemWindow(child, query, 2)
+      self.tree.SetItemWindow(child, b, 3)
+      b.Disable()
       self.row += 1
+
+      # Create all controls of entity
+      self.createChildControls(self.treeRoot, items, ent.data)
+
+      self.numElements =  self.row
+      self.tree.ExpandAll()
+
+      self.SetSizer(self.sizer)
+      self.sizer.Layout()
+      self.Refresh()
+      self.SetSashPosition(self.GetParent().GetClientSize().x/4)
+
+    def createChildControls(self, treeItem, items, values):
       for item in filter(lambda item: item[0] != "name", items):
         name = item[0]
-        query = None
-        if name == "contains":
-          # This is a leaf-list.  In the case where the contained objects are entities, we don't want to show anything in the entity details because the uml handles it.  TODO: Otherwise we might need to show something
+        if item[0] == "contains":
           pass
-        elif type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
-          if item[1].get('type',None) == 'instance-identifier':
-            # This is a pointer to another object.  We should certainly ignore it if the safplus:instance-type is a uml entity because the UML diagram captures this.  TODO: is there any other case where this should not be ignored?
-            pass
-          else:
-              # Create the data entry field
-            if ent.isContainer(item[1]):
-              #TODO: add span (indent icon to children group)
-              query = self.createChildControls(id, item[1].items(), ent.data[name])
-            else:
-              if ent.data.has_key(name):  # could be false if xml has a field but yang does not (maybe field removed)
-                query = self.createControl(self.row + TEXT_ENTRY_ID,item,ent.data[name])
+        elif type(item[1]) is DictType:
+          # figure out the prompt; its either the name of the item or the prompt override
+          s = item[1].get("prompt",name)
+          if not s: s = name
 
+          if self.entity.isContainer(item[1]):
+            child = self.tree.AppendItem(treeItem, s)
+            self.createChildControls(child, item[1].items(), values.get(item[0], None))
+          else:
+            #pdb.set_trace()
+            query = self.createControl(self.row + TEXT_ENTRY_ID, item, values.get(item[0], None))
             if not query: continue  # If this piece of data has no control, it is not user editable
 
-            # figure out the prompt; its either the name of the item or the prompt override
-            s = item[1].get("prompt",name)
-            if not s: s = name
-            prompt = wx.StaticText(self,-1,s,style=wx.ALIGN_RIGHT)
-            prompt.SetFont(self.font)  # BUG: Note, setting the font can mess up the layout; resize the window to recalc
-            prompt.Fit()
+            #Create tree item
+            child = self.tree.AppendItem(treeItem, s)
+
+            #Add control into tree item
+            self.tree.SetItemWindow(child, query, 2)
 
             # Now create the lock/unlock button
             b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
             b.SetToolTipString("If unlocked, instances can change this field")
+            
+            #Add control into tree item
+            self.tree.SetItemWindow(child, b, 3)
+
             if self.entity.instanceLocked.get(name, False):  # Set its initial state
               b.SetBitmap(self.lockedBmp);
               b.SetBitmapSelected(self.unlockedBmp)
@@ -289,73 +324,12 @@ class Panel(scrolled.ScrolledPanel):
             #else: 
             #  h = wx.StaticText(self,-1,"")  # Need a placeholder or gridbag sizer screws up
 
-            # OK fill up the sizer
-            sizer.Add(prompt,(self.row,0),(1,1),wx.ALIGN_CENTER)
-            if h: sizer.Add(h,(self.row,1),(1,1),wx.ALIGN_CENTER)
-            sizer.Add(query,(self.row,2),flag=wx.EXPAND)
-            sizer.Add(b,(self.row,3))
-
-            # Update the lookup dictionary so when an action occurs we can get the objects from the window ID
-            self.lookup[self.row] = [item,prompt,query,b,h]
-            self.row +=1
-      self.numElements = self.row
-      if created: sizer.AddGrowableCol(2)
-      self.SetSizer(sizer)
-      sizer.Layout()
-      self.Refresh()
-      self.SetSashPosition(self.GetParent().GetClientSize().x/4)
-
-
-    def createChildControls(self, id, items, values):
-      if len(items) > 0:
-        sizer = wx.GridBagSizer(2,1)
-        for item in items:
-          name = item[0]
-          if type(item[1]) is DictType: # Its a datatype; not a "canned" field from parsing the yang
-            query = self.createControl(self.row + TEXT_ENTRY_ID,item,values[name])
-            if not query: continue  # If this piece of data has no control, it is not user editable
-  
-            # figure out the prompt; its either the name of the item or the prompt override
-            s = item[1].get("prompt",name)
-            if not s: s = name
-            prompt = wx.StaticText(self,-1,s,style=wx.ALIGN_LEFT)
-            prompt.SetFont(self.font)  # BUG: Note, setting the font can mess up the layout; resize the window to recalc
-            prompt.Fit()
-  
-            # Now create the lock/unlock button
-            b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
-            b.SetToolTipString("If unlocked, instances can change this field")
-            if self.entity.instanceLocked.get(name, False):  # Set its initial state
-              b.SetBitmap(self.lockedBmp);
-              b.SetBitmapSelected(self.unlockedBmp)
-            else:
-              b.SetBitmap(self.unlockedBmp);
-              b.SetBitmapSelected(self.lockedBmp)
-  
-            b.SetBitmapSelected(self.lockedBmp)
-  
-            # Next add the extended help button
-            h = None
-            if item[1].has_key("help") and item[1]["help"]:
-              h = wx.BitmapButton(self, self.row + HELP_BUTTON_ID, self.helpBmp,style = wx.NO_BORDER )
-              h.SetToolTipString(item[1]["help"])
-            #else: 
-            #  h = wx.StaticText(self,-1,"")  # Need a placeholder or gridbag sizer screws up
-  
-            # OK fill up the sizer
-            sizer.Add(prompt,(self.row,0),(1,1),wx.ALIGN_LEFT)
-            if h: sizer.Add(h,(self.row,1),(1,1),wx.ALIGN_CENTER)
-            sizer.Add(query,(self.row,2))
-            sizer.Add(b,(self.row,3))
-
-            # Update the lookup dictionary so when an action occurs we can get the objects from the window ID
-            self.lookup[self.row] = [item,prompt,query,b,h]
-            self.row +=1
+            #Add control into tree item
+            if h:
+              self.tree.SetItemWindow(child, h, 1)
             
-        #sizer.AddGrowableCol(0)
-
-        return sizer
-
+            self.lookup[self.row] = [item,query,b,h]
+            self.row+=1
 
     def OnPaint(self, evt):
         if self.IsDoubleBuffered():
