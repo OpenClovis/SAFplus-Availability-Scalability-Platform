@@ -964,9 +964,10 @@ are switched over to other nodes (component service instances are not abruptly r
       {
 	safplus:alias saAmfSURank;
 	safplus:ui-prompt "Rank";
-	type uint32;
-        default 0;
-        range "1..1024";
+	type uint32 {
+        range "1..1024";	
+	}
+        default 1;
 	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.";
       }
 
@@ -1081,9 +1082,10 @@ are switched over to other nodes (component service instances are not abruptly r
 
      leaf probationTime
       {
-	type uint32;
-	default 0;
+	type uint32 {
         range "0..1000000";
+	}
+	default 0;
 	description "Once this Service Unit is instantiated, how long should I wait before assigning it?";
 	safplus:ui-prompt "Start probation: ";
       }
