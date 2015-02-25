@@ -4,9 +4,6 @@ include ../../../mk/preface.mk
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 
-SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
-SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
-
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include
@@ -18,13 +15,12 @@ UNITTEST_SRC := testGroup.cxx
 UNITTEST_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(UNITTEST_SRC)))
 
 # Specify the required libraries
-SAFPLUS_LIBS := clName clMgt7 clIoc7 clGroup clUtils7 clOsal7 clCkpt clLog
+SAFPLUS_LIBS := clName clMgt7 clMsg clGroup clUtils7 clOsal7 clCkpt clLog
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-LINK_STD_LIBS := -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lstdc++ -lm $(LINK_STD_LIBS)
-#-L$(SAFPLUS_TOOLCHAIN_DIR)/lib -L$(SAFPLUS_SDK_TARGET)/lib
+LINK_STD_LIBS := -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lstdc++ -lm $(LINK_STD_LIBS)
 
 # $(TEST_DIR)/testGroupServer $(TEST_DIR)/testGroup $(TEST_DIR)/testMultiGroup
 all:  $(TEST_DIR)/testGroup $(TEST_DIR)/dumpGroups $(TEST_DIR)/safplus_group

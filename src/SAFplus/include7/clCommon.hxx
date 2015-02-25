@@ -1,4 +1,8 @@
 #pragma once
+#define SA_AMF_B01 
+#define SA_AMF_B02
+#define SA_AMF_B03 
+
 #include <cltypes.h>
 #include <string>
 #include <clGlobals.hxx>

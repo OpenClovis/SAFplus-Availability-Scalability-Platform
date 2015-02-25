@@ -1,9 +1,0 @@
-extern void group_info_list_get_invalid_handle(void);
-extern void group_info_list_get_null_groups_param(void);
-extern void group_info_list_get_no_groups(void);
-extern void group_info_list_get_valid_values(void);
-extern void get_group_info_invalid_handle(void);
-extern void get_group_info_null_group_name_param(void);
-extern void get_group_info_null_group_info_param(void);
-extern void get_group_info_non_existing_group(void);
-extern void get_group_info_valid_params(void);

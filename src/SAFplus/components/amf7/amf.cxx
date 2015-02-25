@@ -33,6 +33,21 @@ using namespace SAFplusI;
 
 extern "C"
 {
+  SaAmfCallbacksT_3& set (SaAmfCallbacksT_3& lhs, const SaAmfCallbacksT& rhs)
+  {
+    lhs.saAmfHealthcheckCallback = rhs.saAmfHealthcheckCallback;
+    lhs.saAmfComponentTerminateCallback = rhs.saAmfComponentTerminateCallback;
+    lhs.saAmfCSISetCallback = rhs.saAmfCSISetCallback;
+    lhs.saAmfCSIRemoveCallback = rhs.saAmfCSIRemoveCallback;
+    lhs.saAmfProtectionGroupTrackCallback = rhs.saAmfProtectionGroupTrackCallback;
+    lhs.saAmfProxiedComponentInstantiateCallback = rhs.saAmfProxiedComponentInstantiateCallback;
+    lhs.saAmfProxiedComponentCleanupCallback = rhs.saAmfProxiedComponentCleanupCallback;
+
+    lhs.saAmfContaintedComponentInstantiateCallback = NULL;
+    lhs.saAmfContaintedComponentCleanupCallback = NULL;
+
+  }
+
   SaAisErrorT saAmfInitialize(SaAmfHandleT *amfHandle, const SaAmfCallbacksT *amfCallbacks, SaVersionT *version)
     {
     assert(amfHandle);
@@ -41,7 +56,9 @@ extern "C"
     uint_t tmp = amfInitCount;
     amfInitCount++;
     AmfSession* ret = new AmfSession;
-    ret->callbacks = *amfCallbacks;
+    
+    set(ret->callbacks, *amfCallbacks);
+
     if (tmp==0)
       {
       safplusInitialize(requiredServices, serviceConfig);

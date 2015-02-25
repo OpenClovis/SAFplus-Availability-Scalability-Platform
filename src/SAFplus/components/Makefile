@@ -2,7 +2,7 @@ S7 := 1
 include ../mk/preface.mk
 
 all:
-	echo blah
+	echo "completed"
 
 clean:
 	rm -rf $(SAFPLUS_TARGET) $(MWOBJ_DIR) $(OBJ_DIR)

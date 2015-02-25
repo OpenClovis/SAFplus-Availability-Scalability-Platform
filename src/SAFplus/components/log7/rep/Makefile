@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_LOGREP_LIB := 1
 include ../../../mk/preface.mk
 
 LOG_REP_SRC := $(wildcard *.cxx)

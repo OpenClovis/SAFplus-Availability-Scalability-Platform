@@ -56,7 +56,7 @@ $(SAFPLUS_TARGET)/obj/pyDbal.o: pyDbal.cxx
 $(SAFPLUS_TARGET)/obj/clovisSQLite.o: plugins/sqlite/clovisSQLite.c
 	cd plugins/sqlite && $(COMPILE_CPP) $@ $(<F)
 
-$(SAFPLUS_TARGET)/obj/clovisGDBM.o: ../dbal/plugins/gdbm/clovisGDBM.c
+$(SAFPLUS_TARGET)/obj/clovisGDBM.o: plugins/gdbm/clovisGDBM.c
 	cd plugins/gdbm && $(COMPILE_CPP) $@ $(<F)
 
 $(SAFPLUS_TARGET)/obj/clovisBerkeleyDB.o: plugins/berkeley/clovisBerkeleyDB.c

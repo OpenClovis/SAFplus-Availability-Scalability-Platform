@@ -19,9 +19,6 @@
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 
-#include <clIocProtocols.h>
-#include <clIocApiExt.h>
-#include <clOsalApi.h>
 #include "clSafplusMsgServer.hxx"
 #include "clRpcChannel.hxx"
 #include "rpcTest.hxx"
@@ -75,11 +72,9 @@ int main(void)
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);
     SAFplus::Rpc::rpcTest::rpcTestImpl rpcTestMsgHandler;
 
-    ClIocAddressT iocDest;
-    iocDest.iocPhyAddress.nodeAddress = 1;
-    iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
+    Handle msgDest = getProcessHandle(IOC_PORT_SERVER,1);
 
-    SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, iocDest);
+    SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, msgDest);
     channel->setMsgType(100, 101);
     channel->service = &rpcTestMsgHandler;
 

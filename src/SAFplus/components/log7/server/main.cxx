@@ -42,7 +42,7 @@ extern void streamRotationInit(Stream* s);
 class MgtMsgHandler : public SAFplus::MsgHandler
 {
   public:
-    virtual void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    virtual void msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
       Mgt::Msg::MsgMgt mgtMsgReq;
       mgtMsgReq.ParseFromArray(msg, msglen);
@@ -276,7 +276,7 @@ void dumpStreams(LogCfg* cfg)
 
 int main(int argc, char* argv[])
 {
-  gIsNodeRepresentative = CL_FALSE;
+  //gIsNodeRepresentative = CL_FALSE;
 
   SAFplus::ASP_NODEADDR = 0x7;
 

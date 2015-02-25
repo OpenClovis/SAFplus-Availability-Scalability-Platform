@@ -17,7 +17,7 @@ namespace SAFplusI
     SAFplus::Handle handle;
     bool finalize;
     SAFplus::ThreadSem dispatchCount;
-    SaAmfCallbacksT callbacks;
+    SaAmfCallbacksT_3 callbacks;
 
     AmfSession()
       {
