@@ -36,6 +36,48 @@ MaxValFor = { 'int8': 127,'uint8':255, 'int16': 32767, 'uint16':65535,'int32': 2
 
 YangIntegerTypes = ['int8','uint8','int16', 'uint16','int32','uint32','int64','uint64']
 
+class SliderCustom(wx.PyControl):
+  def __init__(self, parent, id, v, rang, style = wx.BORDER_NONE):
+    wx.PyControl.__init__(self, parent, id, style = style)
+
+    self.sliderText = wx.TextCtrl(self, id, str(v), style = wx.BORDER_SIMPLE)
+    self.slider = wx.Slider(self,id,v,rang[0],rang[1],size=(200,60), style = wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
+
+    self.tickFreq = 5
+    self.slider.SetTickFreq(self.tickFreq)
+
+    sizer = wx.BoxSizer(wx.VERTICAL)
+    sizer.Add(self.sliderText, 0, wx.EXPAND | wx.ALL, 0)
+    sizer.Add(self.slider, wx.EXPAND | wx.ALL, wx.EXPAND, 0)
+
+    self.slider.Bind(wx.EVT_SLIDER, self.sliderHandler)
+    self.sliderText.Bind(wx.EVT_TEXT, self.sliderTextHandler)
+    self.sliderText.Bind(wx.EVT_TEXT_ENTER, self.sliderTextHandler)
+
+    self.sizer = sizer
+    self.SetSizer(sizer)
+    self.Fit()
+
+  def sliderHandler(self, evt):
+    value = evt.GetInt()
+    self.sliderText.SetValue(str(value))
+    evt.Skip(False)
+
+  def sliderTextHandler(self, evt):
+    try:
+      value = int(self.sliderText.GetValue())
+      self.slider.SetValue(value)
+    except:
+      value = 0
+
+    evt.Skip(True)
+
+  def GetValue(self, ):
+    return self.sliderText.GetValue()
+  
+  def GetName(self):
+    return "slidercustom"
+
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
         global thePanel
@@ -90,7 +132,7 @@ class Panel(scrolled.ScrolledPanel):
         if not isinstance(query, wx._core._wxPyDeadObject):
           proposedValue = query.GetValue()
           # print "evt text ", obj
-          if not self.partialDataValidate(proposedValue, obj[0]):          
+          if not self.partialDataValidate(proposedValue, obj[0]):
             # TODO: Print a big red warning in the error area
             pass
   
@@ -181,8 +223,7 @@ class Panel(scrolled.ScrolledPanel):
             rang=[rang[0][0], rang[-1][-1]]  # get the first and last element of this list of lists.  We are ignoring any gaps (i.e. [[1,3],[5,10]] because the slider can't handle them anyway. It might be better to just fall back to a text entry box if range is funky.
             if rang[0] == "min": rang[0] = MinValFor[typeData["type"]]
             if rang[1] == "max": rang[1] = MaxValFor[typeData["type"]]
-          query = wx.Slider(self,id,v,rang[0],rang[1],size=(200,60), style = wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS)
-          query.SetTickFreq(5)
+          query = SliderCustom(self,id, v, rang)
           # TODO create a control that contains both a slider and a small text box
           # TODO size the slider properly using min an max hints 
         elif self.model.dataTypes.has_key(typeData["type"]):
@@ -354,6 +395,7 @@ class Panel(scrolled.ScrolledPanel):
             'check': [wx.EVT_CHECKBOX],
             'slider': [wx.EVT_SCROLL, wx.EVT_SLIDER, wx.EVT_SCROLL_CHANGED, ],
             'comboBox': [wx.EVT_COMBOBOX, wx.EVT_TEXT, wx.EVT_TEXT_ENTER, wx.EVT_COMBOBOX_DROPDOWN, wx.EVT_COMBOBOX_CLOSEUP],
+            'slidercustom':[wx.EVT_TEXT, wx.EVT_TEXT_ENTER]
             # TBD 
         }
 
