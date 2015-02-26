@@ -166,7 +166,8 @@ void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t servic
   va_end(vaargs);
   
   if (logEchoToFd != -1) { write(logEchoToFd,msg,msgStrLen); write(logEchoToFd,"\n",sizeof("\n")-1); }
-  writeToSharedMem(streamHdl,severity,msg,msgStrLen);
+  if (clLogBuffer) writeToSharedMem(streamHdl,severity,msg,msgStrLen); // If log is initialized, use it
+  else if (logEchoToFd != 1) { write(1,msg,msgStrLen); write(1,"\n",sizeof("\n")-1); }  // otherwise just printf
 }
 
 void SAFplus::logStrWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *str)
@@ -182,5 +183,6 @@ void SAFplus::logStrWrite(Handle streamHdl, LogSeverity  severity, uint_t servic
   msgStrLen = strlen(msg);
 
   if (logEchoToFd != -1) write(logEchoToFd,msg,msgStrLen);
-  writeToSharedMem(streamHdl,severity,msg,msgStrLen);
+  if (clLogBuffer) writeToSharedMem(streamHdl,severity,msg,msgStrLen);
+  else if (logEchoToFd != 1) { write(1,msg,msgStrLen); write(1,"\n",sizeof("\n")-1); }  // otherwise just printf
 }

@@ -105,6 +105,19 @@ void heapFree(void* buffer, const char* file, uint_t line);
     //static Wakeable& Synchronous;  // This const is a reference to NULL and simply indicates that the function should be synchronous instead of async.
   };
 
+  /** When SAFplus services wake you up they will use this cookie
+   * format so multiple events can be multiplexed into one wakeup.  */
+  class WakeableCookie
+  {
+  public:
+    enum
+      {
+        MsgNotification = 1,
+      };
+    uint16_t type;
+    uint16_t subType;
+  };
+
   class WakeableNoop:public Wakeable
   {
   public:
