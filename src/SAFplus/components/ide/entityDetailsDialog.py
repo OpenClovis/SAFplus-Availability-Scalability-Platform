@@ -102,15 +102,19 @@ class Panel(scrolled.ScrolledPanel):
         #self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_BUTTON, self.OnButtonClick)
         self.tree = None
+        self.treeItemSelected = None
   
         # for the data entry
         # self.Bind(wx.EVT_TEXT, self.EvtText)
+
+        self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelChanged}
+        self._createTreeEntities()
 
         share.detailsPanel = self
         if StandaloneDev:
           e = model.entities["app"]
           self.showEntity(e)
-        self.SetSashPosition(10)
+        self.SetSashPosition(self.GetParent().GetClientSize().x/4)
 
 
     def partialDataValidate(self, proposedPartialValue, fieldData):
@@ -129,6 +133,8 @@ class Panel(scrolled.ScrolledPanel):
         idx = id - TEXT_ENTRY_ID
         obj = self.lookup[idx]
         query = obj[1]
+        self.treeItemSelected = obj[4]
+
         if not isinstance(query, wx._core._wxPyDeadObject):
           proposedValue = query.GetValue()
           # print "evt text ", obj
@@ -137,28 +143,35 @@ class Panel(scrolled.ScrolledPanel):
             pass
   
           # TODO: handle only dirty (actually value changed) entity
-          self.ChangedValue(proposedValue, obj[0][0])
+          self.ChangedValue(proposedValue, obj[0])
       else:
         # Notify name change to umlEditor to validate and render
         self.ChangedValue(event.GetEventObject().GetValue())
 
     def ChangedValue(self, proposedValue, obj = None):
-      if obj == None: obj = 'name'
+      if not self.treeItemSelected: return
+
+      if self.treeItemSelected:
+        self.entity = self.tree.GetPyData(self.treeItemSelected)
+
+      if obj == None:
+        name = 'name'
+        self.tree.SetItemText(self.treeItemSelected, proposedValue)
+      else:
+        name = obj[0]
 
       if isinstance(self.entity,entity.Instance):
         if share.instancePanel:
-          share.instancePanel.notifyValueChange(self.entity, obj, proposedValue)
+          share.instancePanel.notifyValueChange(self.entity, name, proposedValue)
       else:
         if share.umlEditorPanel:
-          share.umlEditorPanel.notifyValueChange(self.entity, obj, proposedValue)
-
+          share.umlEditorPanel.notifyValueChange(self.entity, name, proposedValue)
 
     def OnUnfocus(self,event):
       id = event.GetId()
       if id>=TEXT_ENTRY_ID and id < TEXT_ENTRY_ID+self.numElements:
         idx = id - TEXT_ENTRY_ID
         obj = self.lookup[idx]
-        name = obj[0][0]
         query = obj[1]
 
         if not isinstance(query, wx._core._wxPyDeadObject):
@@ -169,11 +182,21 @@ class Panel(scrolled.ScrolledPanel):
           # TODO: model consistency check -- test the validity of the whole model given this change
           else:
             # TODO: handle only dirty (actually value changed) entity
-            self.ChangedValue(proposedValue, obj[0][0])
+            self.ChangedValue(proposedValue, obj[0])
 
       else:
         # Notify name change to umlEditor to validate and render
         self.ChangedValue(event.GetEventObject().GetValue())
+
+    def OnFocus(self,event):
+      id = event.GetId()
+      if id>=TEXT_ENTRY_ID and id < TEXT_ENTRY_ID+self.numElements:
+        idx = id - TEXT_ENTRY_ID
+        obj = self.lookup[idx]
+        self.treeItemSelected = obj[4]
+
+        if self.treeItemSelected:
+          self.tree.SelectItem(self.treeItemSelected)
 
     def OnButtonClick(self,event):
       id = event.GetId()
@@ -255,7 +278,22 @@ class Panel(scrolled.ScrolledPanel):
 
     def showEntity(self,ent):
       if self.entity == ent: return  # Its already being shown
+      self.entity = ent
 
+      for treeItem in self.treeRoot.GetChildren():
+        if (self.tree.GetPyData(treeItem) == ent):
+          self.tree.Expand(treeItem)
+          self.tree.SelectItem(treeItem)
+          self.treeItemSelected = treeItem
+        else:
+          self.tree.Collapse(treeItem)
+
+    def OnTreeSelChanged(self, event):
+      self.treeItemSelected = event.GetItem()
+      event.Skip()
+
+    # Create controls for all entities
+    def _createTreeEntities(self):
       if self.sizer:
         if self.tree:
           self.sizer.Detach(self.tree)
@@ -264,7 +302,7 @@ class Panel(scrolled.ScrolledPanel):
       else:
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
-      self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT)
+      self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | HTL.TR_HIDE_ROOT)
       self.tree.AddColumn("Main column")
       self.tree.AddColumn("Col 1")
       self.tree.AddColumn("Col 2")
@@ -275,43 +313,54 @@ class Panel(scrolled.ScrolledPanel):
       self.tree.SetColumnWidth(2, 225)
       self.tree.SetColumnWidth(3, 50)
 
+      for (evt, func) in self.eventDictTree.items():
+        self.tree.Bind(evt, func)
+
       self.sizer.Add(self.tree, -1, wx.EXPAND)
 
-      self.entity = ent
-      items = ent.et.data.items()
-      items = sorted(items,EntityTypeSortOrder)
+      self.treeRoot = self.tree.AddRoot("entityDetails")
 
-      self.treeRoot = self.tree.AddRoot(ent.data["name"])
-
-      # Put the name at the top
-      query  = wx.TextCtrl(self, -1, "")
-      query.ChangeValue(ent.data["name"])
-      query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
-      
-      # Binding name wx control
-      self.BuildChangeEvent(query)
-      
-      b = wx.BitmapButton(self, -1, self.unlockedBmp,style = wx.NO_BORDER )
-      b.SetToolTipString("If unlocked, instances can change this field")
-
-      child = self.tree.AppendItem(self.treeRoot, "Name:")
-      self.tree.SetItemWindow(child, query, 2)
-      self.tree.SetItemWindow(child, b, 3)
-      b.Disable()
-      self.row += 1
-
-      # Create all controls of entity
-      self.createChildControls(self.treeRoot, items, ent.data)
-
-      self.numElements =  self.row
-      self.tree.ExpandAll()
+      for (name, ent) in self.model.entities.items():
+        self._createTreeItemEntity(name, ent)
 
       self.SetSizer(self.sizer)
       self.sizer.Layout()
       self.Refresh()
       self.SetSashPosition(self.GetParent().GetClientSize().x/4)
 
-    def createChildControls(self, treeItem, items, values):
+    # Create controls for an entity
+    def _createTreeItemEntity(self, name, ent):
+      treeItem = self.tree.AppendItem(self.treeRoot, name)
+      self.tree.SetPyData(treeItem, ent)
+
+      items = ent.et.data.items()
+      items = sorted(items,EntityTypeSortOrder)
+
+      # Put the name at the top
+      query  = wx.TextCtrl(self, self.row + TEXT_ENTRY_ID, "")
+      query.ChangeValue(ent.data["name"])
+      query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
+      
+      # Binding name wx control
+      self.BuildChangeEvent(query)
+      
+      b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
+      b.SetToolTipString("If unlocked, instances can change this field")
+
+      child = self.tree.AppendItem(treeItem, "Name:")
+      self.tree.SetItemWindow(child, query, 2)
+      self.tree.SetItemWindow(child, b, 3)
+      b.Disable()
+      self.lookup[self.row] = [None,query,b,None,treeItem]
+      self.row += 1
+
+      # Create all controls of entity
+      self.createChildControls(treeItem, ent, items, ent.data)
+
+      # Update num controls
+      self.numElements =  self.row
+
+    def createChildControls(self, treeItem, ent, items, values):
       for item in filter(lambda item: item[0] != "name", items):
         name = item[0]
         if item[0] == "contains":
@@ -321,9 +370,9 @@ class Panel(scrolled.ScrolledPanel):
           s = item[1].get("prompt",name)
           if not s: s = name
 
-          if self.entity.isContainer(item[1]):
+          if ent.isContainer(item[1]):
             child = self.tree.AppendItem(treeItem, s)
-            self.createChildControls(child, item[1].items(), values.get(item[0], None))
+            self.createChildControls(child, ent, item[1].items(), values.get(item[0], None))
           else:
             #pdb.set_trace()
             query = self.createControl(self.row + TEXT_ENTRY_ID, item, values.get(item[0], None))
@@ -342,12 +391,12 @@ class Panel(scrolled.ScrolledPanel):
             #Add control into tree item
             self.tree.SetItemWindow(child, b, 3)
 
-            if self.entity.instanceLocked.get(name, False):  # Set its initial state
+            if ent.instanceLocked.get(name, False):  # Set its initial state
               b.SetBitmap(self.lockedBmp);
               b.SetBitmapSelected(self.unlockedBmp)
 
               # Not allow to change this value from instance
-              query.Enable(isinstance(self.entity,entity.Instance) == False)
+              query.Enable(isinstance(ent,entity.Instance) == False)
             else:
               b.SetBitmap(self.unlockedBmp);
               b.SetBitmapSelected(self.lockedBmp)
@@ -355,7 +404,7 @@ class Panel(scrolled.ScrolledPanel):
             b.SetBitmapSelected(self.lockedBmp)
 
             # Devide from entity type, not allow to 'Lock' this from instance
-            b.Enable(isinstance(self.entity,entity.Instance) == False)
+            b.Enable(isinstance(ent,entity.Instance) == False)
 
             # Next add the extended help button
             h = None
@@ -369,7 +418,7 @@ class Panel(scrolled.ScrolledPanel):
             if h:
               self.tree.SetItemWindow(child, h, 1)
             
-            self.lookup[self.row] = [item,query,b,h]
+            self.lookup[self.row] = [item,query,b,h,treeItem]
             self.row+=1
 
     def OnPaint(self, evt):
@@ -401,6 +450,9 @@ class Panel(scrolled.ScrolledPanel):
 
         for t in mapEvents[ctrl.GetName()]:
           ctrl.Bind(t, self.EvtText)
+        
+        # Bind this to select treeItem container this control
+        ctrl.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
 
 def Test():
   global StandaloneDev

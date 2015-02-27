@@ -390,6 +390,10 @@ class EntityTypeTool(Tool):
     ent = self.entityType.createEntity(position, size)
     panel.entities[ent.data["name"]] = ent
     panel.Refresh()
+
+    if share.detailsPanel:
+      share.detailsPanel._createTreeItemEntity(ent.data["name"], ent)
+
     return True
  
 
