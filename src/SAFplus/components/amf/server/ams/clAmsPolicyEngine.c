@@ -16449,9 +16449,13 @@ clAmsPeCompAssignCSITimeout(
         CL_IN ClAmsEntityTimerT  *timer) 
 {
     ClAmsCompT *comp;
+    ClAmsSUT *su = NULL;
+    ClAmsNodeT *node = NULL;
 
     AMS_CHECKPTR ( !timer );
     AMS_CHECK_COMP ( comp = (ClAmsCompT *) timer->entity );
+    AMS_CHECK_SU( su = (ClAmsSUT*) comp->config.parentSU.ptr);
+    AMS_CHECK_NODE ( node = (ClAmsNodeT*) su->config.parentNode.ptr);
 
 #ifdef AMS_EMULATE_RMD_CALLS
 
@@ -16474,7 +16478,7 @@ clAmsPeCompAssignCSITimeout(
      * Stop the pending healthchecks if any for the component on timeout as the 
      * component is presumably locked up in the dispatcher.
      */
-    cpmCompHealthcheckStop(&comp->config.entity.name);
+    cpmCompNodeHealthcheckStop(&comp->config.entity.name, &node->config.entity.name);
 
     return clAmsPeCompAssignCSIError(comp, CL_AMS_RC(CL_ERR_TIMEOUT));
 }
@@ -17886,9 +17890,13 @@ clAmsPeCompQuiescingCompleteTimeout(
         CL_IN ClAmsEntityTimerT  *timer) 
 {
     ClAmsCompT *comp;
+    ClAmsSUT *su = NULL;
+    ClAmsNodeT *node = NULL;
 
     AMS_CHECKPTR ( !timer );
     AMS_CHECK_COMP ( comp = (ClAmsCompT *) timer->entity );
+    AMS_CHECK_SU( su = (ClAmsSUT*) comp->config.parentSU.ptr);
+    AMS_CHECK_NODE ( node = (ClAmsNodeT*) su->config.parentNode.ptr);
 
 #ifdef AMS_EMULATE_RMD_CALLS
 
@@ -17911,7 +17919,7 @@ clAmsPeCompQuiescingCompleteTimeout(
      * Stop the pending healthchecks if any for the component on timeout as the 
      * component is presumably locked up in the dispatcher.
      */
-    cpmCompHealthcheckStop(&comp->config.entity.name);
+    cpmCompNodeHealthcheckStop(&comp->config.entity.name, &node->config.entity.name);
 
     return clAmsPeCompQuiesceCSIGracefullyError(comp, CL_AMS_RC(CL_ERR_TIMEOUT));
 }
@@ -18857,9 +18865,13 @@ clAmsPeCompRemoveCSITimeout(
         CL_IN ClAmsEntityTimerT  *timer) 
 {
     ClAmsCompT *comp;
+    ClAmsSUT *su = NULL;
+    ClAmsNodeT *node = NULL;
 
     AMS_CHECKPTR ( !timer );
     AMS_CHECK_COMP ( comp = (ClAmsCompT *) timer->entity );
+    AMS_CHECK_SU( su = (ClAmsSUT*) comp->config.parentSU.ptr);
+    AMS_CHECK_NODE ( node = (ClAmsNodeT*) su->config.parentNode.ptr);
 
 #ifdef AMS_EMULATE_RMD_CALLS
 
@@ -18882,7 +18894,7 @@ clAmsPeCompRemoveCSITimeout(
      * Stop the healthchecks if any for the component on timeout as the 
      * component is presumably locked up in the dispatcher.
      */
-    cpmCompHealthcheckStop(&comp->config.entity.name);
+    cpmCompNodeHealthcheckStop(&comp->config.entity.name, &node->config.entity.name);
 
     return clAmsPeCompRemoveCSIError(comp, CL_AMS_RC(CL_ERR_TIMEOUT));
 }
