@@ -1,4 +1,5 @@
 import pdb
+import copy
 import random
 import xml.dom.minidom
 import microdom
@@ -57,14 +58,13 @@ instantiated  <instances>     instances                         instances     (e
       #if self.entityTypes.get(item):
       #  self.deleteEntity(self.entities[item])
       if self.entities.get(items):
-        self.deleteEntity(self.entities[item])
+        self.deleteEntity(self.entities[items])
       if self.instances.get(items):
-        self.deleteInstance(self.entities[item])
+        self.deleteInstance(self.instances[items])
 
-    if isinstance(items,entity.Entity): self.deleteEntity(items)
-    elif isinstance(items,entity.Instance): self.deleteInstance(items)
+    if isinstance(items,entity.Instance): self.deleteInstance(items)
+    elif isinstance(items, entity.Entity): self.deleteEntity(items)
 
-  
   def deleteEntity(self,entity):
     """Delete this instance of Entity from the model"""
     entname = entity.data["name"]
@@ -77,9 +77,20 @@ instantiated  <instances>     instances                         instances     (e
     if entities:
       entities[0].delChild(entities[0].findOneByChild("name",entname))
 
+    """Delete entity.Instance of Entity type"""
+    nameInstances = [name for (name, e) in self.instances.items() if e.entity.data["name"] == entname]
+    self.delete(nameInstances)
 
   def deleteInstance(self,inst):
-    assert(0)  # Not implemented
+    entname = inst.data["name"]
+    for (name,e) in self.instances.items():
+      e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != entity]
+    del self.instances[entname]
+
+    # Also delete the entity from the microdom
+    instances = self.data.getElementsByTagName("instances")
+    if instances:
+      instances[0].delChild(instances[0].findOneByChild("name",entname))
 
   def load(self, fileOrString):
     """Load an XML representation of the model"""
@@ -95,6 +106,8 @@ instantiated  <instances>     instances                         instances     (e
 
     # Populate the helper variables from the microdom
     entities = self.data.getElementsByTagName("entities")
+    ideEntities = self.data.getElementsByTagName("ide_entity_info")
+    if ideEntities: ideEntities = ideEntities[0]  # Get first item in the list
     if entities:
       assert(len(entities)==1)
       entities = entities[0]
@@ -102,9 +115,16 @@ instantiated  <instances>     instances                         instances     (e
       for ed in entities.children(microdom.microdomFilter):
         name = ed["name"].data_
         entType = self.entityTypes[ed.tag_]
+
         pos = None
         size = None
-        # TODO load the pos and size from the model (if it exists)
+        if ideEntities: # Load the pos and size from the model (if it exists)
+          ideInfo = ideEntities.getElementsByTagName(name)
+          if ideInfo:
+            ideInfo = ideInfo[0]
+            pos = common.str2Tuple(ideInfo["position"].data_)
+            size = common.str2Tuple(ideInfo["size"].data_)
+
         if pos is None:
           pos = self.makeUpAScreenPosition()
           size = entType.iconSvg.size
@@ -175,6 +195,7 @@ instantiated  <instances>     instances                         instances     (e
             if contained:
               # TODO: look the positions up in the GUI section of the xml file
               ca = entity.ContainmentArrow(eo,(0,0),contained,(0,0),[])
+              contained.childOf.add(eo)
               eo.containmentArrows.append(ca)
             else:  # target of the link is missing, so drop the link as well.  This could happen if the user manually edits the XML
               # TODO: create some kind of warning/audit log in share.py that we can post messages to.
@@ -218,6 +239,13 @@ instantiated  <instances>     instances                         instances     (e
     """Write the dynamically changing information back to the loaded microdom tree.
        The reason I don't create an entirely new tree is to preserve any application extensions that might have been put into the file.
     """
+    # First, update the model to make sure that it is internally consistent
+    for (name,i) in self.instances.items():
+      for parent in i.childOf:  # If the object has parent pointers, update them.  This is pretty specific to SAFplus data types...
+        fieldName = parent.et.name[0].lower() + parent.et.name[1:]  # uncapitalize the first letter to make it use SAFplus bumpycase
+        if i.data.has_key(fieldName):
+          i.data[fieldName] = parent.data["name"]
+
     # Locate or create the needed sections in the XML file
 
     #   find or create the entity area in the microdom
@@ -229,7 +257,10 @@ instantiated  <instances>     instances                         instances     (e
       assert(len(entities)==1)
       entities = entities[0]
     
-    #   find or create the GUI area in the microdom
+    # Find or create the GUI area in the microdom.  The GUI area is structured like:
+    # ide
+    #   ide_entity_info
+    #   ide_instance_info
     ide = self.data.getElementsByTagName("ide")
     if not ide:
       ide = microdom.MicroDom({"tag_":"ide"},[],[])
@@ -237,6 +268,22 @@ instantiated  <instances>     instances                         instances     (e
     else: 
       assert(len(ide)==1)
       ide = ide[0]
+          
+    ideEntities = ide.getElementsByTagName("ide_entity_info")
+    if not ideEntities:
+      ideEntities = microdom.MicroDom({"tag_":"ide_entity_info"},[],[])
+      ide.addChild(ideEntities)
+    else: 
+      assert(len(ideEntities)==1)
+      ideEntities = ideEntities[0]
+
+    ideInsts = ide.getElementsByTagName("ide_instance_info")
+    if not ideInsts:
+      ideInsts = microdom.MicroDom({"tag_":"ide_instance_info"},[],[])
+      ide.addChild(ideInsts)
+    else: 
+      assert(len(ideInsts)==1)
+      ideInsts = ideInsts[0]
     
 
     # Write out the entities
@@ -244,12 +291,32 @@ instantiated  <instances>     instances                         instances     (e
 
     #   iterate through all entities writing them to the microdom, or changing the existing microdom
     for (name,e) in self.entities.items():
+      # Find the existing DOM nodes for the entity information, creating the node if it is missing
       entity = entities.findOneByChild("name",name)
       if not entity:
         entity = microdom.MicroDom({"tag_":e.et.name},[],[])
         entities.addChild(entity)
+      ideEntity = ideEntities.getElementsByTagName(name)
+      if ideEntity: ideEntity = ideEntity[0]
+      else:
+        ideEntity = microdom.MicroDom({"tag_":name},[],[])
+        ideEntities.addChild(ideEntity)
+
+      # Remove all "None", replacing with the default or ""
+      temp = {}
+      for (key,val) in e.data.items():
+        if val is None:
+          val = e.et.data[key].get("default",None)
+          if val is None:
+            val = ""
+        if val == "None": val = ""
+        temp[key] = val
+
       # Write all the data fields into the model's microdom
-      entity.update(e.data)  
+      entity.update(temp)
+      # write the IDE specific information to the IDE area of the model xml
+      ideEntity["position"] = str(e.pos)
+      ideEntity["size"] = str(e.size) 
       # Now write all the arrows
       contains = {} # Create a dictionary to hold all linkages by type
       for arrow in e.containmentArrows:
@@ -257,6 +324,8 @@ instantiated  <instances>     instances                         instances     (e
         tmp = contains.get(arrow.contained.et.name,[])
         tmp.append(arrow.contained.data["name"])
         contains[arrow.contained.et.name] = tmp
+        # TODO: write the containment arrow IDE specific information to the IDE area of the model xml
+
       # Now erase the missing linkages from the microdom
       for (key, val) in self.entityTypes.items():   # Look through all the children for a key that corresponds to the name of an entityType (+ s), eg: "ServiceGroups"
           if not contains.has_key(key): # Element is an entity type but no linkages
@@ -266,7 +335,6 @@ instantiated  <instances>     instances                         instances     (e
         k = key + "s"
         if entity.child_.has_key(k): entity.delChild(k)
         entity.addChild(microdom.MicroDom({"tag_":k},[",".join(val)],""))  # TODO: do we really need to pluralize?  Also validate comma separation is ok
-      # TODO: write the IDE specific information to the IDE area of the model xml
 
       # Building instance lock fields
       etType = ide.getElementsByTagName(e.et.name)
@@ -286,6 +354,7 @@ instantiated  <instances>     instances                         instances     (e
 
       et.update(e.instanceLocked)
 
+
     # Find or create the instance area in the microdom
     instances = self.data.getElementsByTagName("instances")
     if not instances:
@@ -302,8 +371,18 @@ instantiated  <instances>     instances                         instances     (e
         instance = microdom.MicroDom({"tag_":e.et.name},[],[])
         instances.addChild(instance)
 
+      # Remove all "None", replacing with the default or ""
+      temp = {}
+      for (key,val) in e.data.items():
+        if val is None:
+          val = e.et.data[key].get("default",None)
+          if val is None:
+            val = ""
+        if val == "None": val = ""
+        temp[key] = val
+
       # Write all the data fields into the model's microdom
-      instance.update(e.data)  
+      instance.update(temp)  
       # Now write all the arrows
       contains = {} # Create a dictionary to hold all linkages by type
       for arrow in e.containmentArrows:
@@ -332,6 +411,55 @@ instantiated  <instances>     instances                         instances     (e
       if instance.child_.has_key(entityParentKey): instance.delChild(entityParentKey)
       instance.addChild(microdom.MicroDom({"tag_":entityParentKey},[entityParentVal],""))
 
+  def duplicate(self,entities,recursive=False):
+    """Duplicate a set of entities or instances and potentially all of their children"""
+    ret = []
+    addtl = []
+    for e in entities:
+      name=entity.NameCreator(e.data["name"])  # Let's see if the instance is already here before we recreate it.
+      newEnt = e.duplicate(name, not recursive)  # if we don't want recursive duplication, then dup the containment arrows.
+      if recursive:  # otherwise dup the containment arrows and the objects they point to
+        for ca in e.containmentArrows:
+          (contained,xtra) = self.duplicate([ca.contained],recursive)
+          assert(len(contained)==1)  # It must be 1 because we only asked to duplicate one entity
+          contained = contained[0]
+          contained.childOf.add(newEnt)
+          cai = copy.copy(ca)
+          cai.container = newEnt
+          cai.contained = contained
+          newEnt.containmentArrows.append(cai)
+          addtl.append(contained)
+          addtl.append(xtra)
+      ret.append(newEnt)
+      if isinstance(newEnt,entity.Instance):
+        self.instances[name] = newEnt
+      elif isinstance(newEnt,entity.Entity):
+        self.entities[name] = newEnt
+      else:
+        assert(0)
+        
+    return (ret,addtl)
+
+  def recursiveInstantiation(self,ent,instances=None):
+    if not instances: instances = self.instances
+    children = []
+    if 1:
+      name=entity.NameCreator(ent.data["name"])  # Let's see if the instance is already here before we recreate it.
+      ei = instances.get(name,None)  
+      if not ei:
+        ei = entity.Instance(ent, None,pos=None,size=None,name=name)
+        instances[name] = ei
+      for ca in ent.containmentArrows:
+        (ch, xtra) = self.recursiveInstantiation(ca.contained,instances)
+        ch.childOf.add(ei)
+        cai = copy.copy(ca)
+        cai.container = ei
+        cai.contained = ch
+        ei.containmentArrows.append(cai)
+        children.append(ch)
+      return (ei, instances)
+      
+# >>>>>>> Stashed changes
 
   def xmlify(self):
     """Returns an XML string that defines the IDE Model, for saving to disk"""
@@ -340,15 +468,15 @@ instantiated  <instances>     instances                         instances     (e
 
 def UnitTest(m=None):
   """This unit test relies on a particular model configuration, located in testModel.xml"""
-  from entity import *
+  import entity
   if not m:
     m = Model()
     m.load("testModel.xml")
   
   appt = m.entityTypes["Application"]
-  app = m.entities["app"] = Entity(appt,(0,0),(100,20))
+  app = m.entities["app"] = entity.Entity(appt,(0,0),(100,20))
   sgt = m.entityTypes["ServiceGroup"]
-  sg = m.entities["sg"] = Entity(sgt,(0,0),(100,20))
+  sg = m.entities["sg"] = entity.Entity(sgt,(0,0),(100,20))
   
   if not app.canContain(sg):
     raise "Test failed"
@@ -363,7 +491,7 @@ def UnitTest(m=None):
   # Now hook the sg up and then test it again
   app.containmentArrows.append(ContainmentArrow(app,(0,0),sg,(0,0)))
 
-  app2 = m.entities["app2"] = Entity(appt,(0,0),(100,20))
+  app2 = m.entities["app2"] = entity.Entity(appt,(0,0),(100,20))
 
   if not sg.canBeContained(app):
     raise "Test failed: should return true because sg is contained in app"

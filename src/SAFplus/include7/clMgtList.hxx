@@ -570,6 +570,7 @@ namespace SAFplus
         logDebug("MGT", "LIST", "Adding child object was successfully");
 #endif
         //set tag for list item to display the item xpath with object name
+        mgtObject->listTag.assign(this->tag);
         mgtObject->tag.assign(*key);
 
         if(mgtObject->parent == NULL)

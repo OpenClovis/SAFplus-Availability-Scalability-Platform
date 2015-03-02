@@ -46,14 +46,16 @@ module SAFplusAmf
       leaf maximum
       {
 	type uint64;
-	description "The maximum number of events that can occur within that time period before escalation occurs.";
+	description "The maximum number of events that can occur within that time period before escalation occurs.  A value of 0 will escalate the event right away.";
 	safplus:ui-prompt "Number of events: ";
+        default 0;
       }
       leaf duration
       {
 	type safplus:SaTimeT;
 	description "The time period (in milliseconds) involved.";
 	safplus:ui-prompt "within time: ";
+        default 0;
       }
     }
 
@@ -248,7 +250,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	uses EscalationPolicy;
 	description "The maximum Service Unit failure rate allowed before this node is faulted";
-	safplus:ui-group "Service Unit Failure Escalation Policy";
+	safplus:ui-prompt "Service Unit Failure Escalation Policy";
       }
 
       leaf autoRepair
@@ -261,13 +263,13 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type boolean;
 	description "If a component fails to instantiate on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
-	safplus:ui-prompt "Reboot node if component instantiation repeatedly fails? ";
+	safplus:ui-prompt "Comp Fault Reboot:";
       }
       leaf failFastOnCleanupFailure
       {
 	type boolean;
 	description "If a component's cleanup script fails on this node after potentially multiple attempts (as configured in the component) the AMF will reboot this node if this field is true";
-	safplus:ui-prompt "Reboot node if component cleanup repeatedly fails? ";
+	safplus:ui-prompt "Cleanup Fault Reboot:";
       }
 
     leaf-list serviceUnits
@@ -315,6 +317,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type boolean;
 	safplus:alias saAmfSGAutoAdjust;
 	safplus:ui-prompt "Auto-adjust: ";
+        default false;
         description "Match this service group as closely as possible to the preferred high availability configuration.  For example, if the preferred active comes online, 'fail-back' to it.  Another example is if a new work assignment is provisioned, the system could remove an existing standby assignment so the new active can be provisioned.";
       }
       leaf autoAdjustInterval
@@ -477,14 +480,14 @@ point.  The operational, administrative, and presence states of a service unit, 
 	    description "For a certain component service type, the component provides service as soon as it is started.";
 	  }
 	}
-	config false;
+        safplus:ui-prompt "Capability:";
 	description "This is defined by the SA-Forum AMF specificaion but is read-only because it is an emergent property based on values in saAmfCompNumMaxActiveCSIs and saAmfCompNumMaxStandbyCSIs.";
       }
 
       leaf maxActiveAssignments
       {
 	safplus:alias saAmfCompNumMaxActiveCSIs;
-	safplus:ui-prompt "maximum active work assignments";
+	safplus:ui-prompt "Active Work:";
 	type uint32;
 	default 1;
 	description "Maximum number of active work assignments this component can handle.";
@@ -492,7 +495,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       leaf maxStandbyAssignments
       {
 	safplus:alias saAmfCompNumMaxStandbyCSIs;
-	safplus:ui-prompt "maximum standby work assignments";
+	safplus:ui-prompt "Standby Work:";
 	type uint32;
 	default 1;
 	description "Maximum number of standby work assignments this component can handle.";
@@ -551,6 +554,7 @@ point.  The operational, administrative, and presence states of a service unit, 
       {
 	type string;
 	description "Compatible SA-Forum API version";
+        default "B.04.01";
       }
 
       leaf compCategory
@@ -598,7 +602,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 1;
 	description "How many times to attempt to instantiate this entity without delay.  If the number of instantiation attempts exceeds both this and the max delayed instantiations field, the fault will be elevated to the Service Unit level.";
-	safplus:ui-prompt "Max instant instantiations: ";
+	safplus:ui-prompt "Instant starts: ";
       }
 
       leaf maxDelayedInstantiations
@@ -607,7 +611,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 1;
 	description "How many times to attempt to instantiate this entity after an initial delay.  If the number of instantiation attempts exceeds both this and the max instant instantiations field, the fault will be elevated to the Service Unit level.";
-	safplus:ui-prompt "Max delayed instantiations: ";
+	safplus:ui-prompt "Delayed starts: ";
       }
 
       leaf numInstantiationAttempts
@@ -622,6 +626,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	config true;
 	description "If this component remains instantiated for this length of time (in milliseconds), the component is deemed to be successfully instantiated and the numInstantiationAttempts field is zeroed.";
+        safplus:ui-prompt "Startup OK: ";
       }
 
       leaf lastInstantiation
@@ -637,7 +642,7 @@ point.  The operational, administrative, and presence states of a service unit, 
 	type uint32;
 	default 10000;
 	description "How long to delay between instantiation attempts";
-	safplus:ui-prompt "Delay between instantiations: ";
+	safplus:ui-prompt "Start Delay: ";
       }
 
       container timeouts
@@ -959,7 +964,10 @@ are switched over to other nodes (component service instances are not abruptly r
       {
 	safplus:alias saAmfSURank;
 	safplus:ui-prompt "Rank";
-	type uint32;
+	type uint32 {
+        range "1..1024";	
+	}
+        default 1;
 	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.";
       }
 
@@ -1019,7 +1027,8 @@ are switched over to other nodes (component service instances are not abruptly r
      leaf-list assignedServiceInstances
      {
         type instance-identifier;
-        safplus:c-type "ServiceInstance*";       
+        safplus:c-type "ServiceInstance*";
+        config false;    
      }
 
      // ?? saAmfSUHostedByNode string
@@ -1073,10 +1082,12 @@ are switched over to other nodes (component service instances are not abruptly r
 
      leaf probationTime
       {
-	type uint32;
+	type uint32 {
+        range "0..1000000";
+	}
 	default 0;
 	description "Once this Service Unit is instantiated, how long should I wait before assigning it?";
-	safplus:ui-prompt "Startup probation Time: ";
+	safplus:ui-prompt "Start probation: ";
       }
 
 

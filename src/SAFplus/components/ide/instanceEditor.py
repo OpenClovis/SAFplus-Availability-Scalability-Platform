@@ -3,6 +3,8 @@ import math
 import time
 from types import *
 
+# import networkx  # generic network description library used during object layout
+
 import wx
 import wx.lib.wxcairo
 import cairo
@@ -12,360 +14,84 @@ import svg
 import wx.lib.scrolledpanel as scrolled
 #from wx.py import shell,
 #from wx.py import  version
+from string import Template
+import types
+
 import dot
 from common import *
 from module import Module
 from entity import *
 from model import Model
 
+from gfxmath import *
+from gfxtoolkit import *
+
 import share
  
 ENTITY_TYPE_BUTTON_START = 100
-ZOOM_BUTTON = 99
-CONNECT_BUTTON = 98
-SELECT_BUTTON = 97
+SAVE_BUTTON = 99
+ZOOM_BUTTON = 98
+CONNECT_BUTTON = 97
+SELECT_BUTTON = 96
+CODEGEN_BUTTON = 95
+CODEGEN_LANG_C = 94
+CODEGEN_LANG_CPP = 93
+CODEGEN_LANG_PYTHON = 92
+CODEGEN_LANG_JAVA = 91
 
 COL_MARGIN = 250
 COL_SPACING = 2
-COL_WIDTH = 160
+COL_WIDTH = 250
 
 ROW_MARGIN = 100
 ROW_SPACING = 2
 ROW_WIDTH   = 120
 
-PI = 3.141592636
-
 linkNormalLook = dot.Dot({ "color":(0,0,.8,.75), "lineThickness": 4, "buttonRadius": 6, "arrowLength":15, "arrowAngle": PI/8 })
 
-def lineRectIntersect(lineIn,lineOut, rectUL, rectLR):
-  """Given a line segment defined by 2 points: lineIn and lineOut where lineIn is INSIDE the rectangle
-     Given a rectangle defined by 2 points rectUL and rectLR where rectUL < rectLR (ul is upper left) and where the rectangle is aligned with the axes.
-
-     Return the point where the line intersects the rectangle.
-
-     This function can be used to make the pointer arrows start and end at the edges of the entities
-  """
-  # TODO
-  return lineIn 
-
-def calcArrow(start_x, start_y, end_x, end_y,length=5.0,degrees=PI/10.0):
-  angle = math.atan2 (end_y - start_y, end_x - start_x) + PI;
-  x1 = end_x + length * math.cos(angle - degrees);
-  y1 = end_y + length * math.sin(angle - degrees);
-  x2 = end_x + length * math.cos(angle + degrees);
-  y2 = end_y + length * math.sin(angle + degrees);
-  return((x1,y1),(x2,y2))
-
-def lineVector(a,b):
-  ret = (b[0]-a[0], b[1]-a[1])
-  length = math.sqrt(ret[0]*ret[0] + ret[1]*ret[1])
-  if length == 0:
-    return (0,0)
-  ret = (ret[0]/length, ret[1]/length)
-  return ret
-
-def convertToRealPos(pos, scale):
-  if pos == None: return pos
-  if isinstance(pos, wx.Point):
-    return wx.Point(round(pos.x/scale), round(pos.y/scale))
-  elif isinstance(pos, tuple):
-    return map(lambda x: convertToRealPos(x, scale), pos)
-  else:
-    return round(pos/scale)
-
-def drawCurvyArrow(ctx, startPos,endPos,middlePos,cust):
-      if type(cust) is DictType: cust = dot.Dot(cust)
-      if not middlePos:
-        middlePos = [((startPos[0]+endPos[0])/2,(startPos[1]+endPos[1])/2)]
-      ctx.save()
-      ctx.set_source_rgba(*cust.color)
-      ctx.set_line_width(cust.lineThickness)
-
-      # We don't want the curvy arrow's line to lay over the beginning button
-      buttonRadius = cust.get("buttonRadius", 4)
-      if buttonRadius: # so go a few pixels in the correct direction
-        lv = lineVector(startPos,middlePos[0])
-        sp = (startPos[0] + lv[0]*(buttonRadius-.05),startPos[1] + lv[1]*(buttonRadius-.05))
-      else:
-        sp = startPos
-
-
-      # Calculate the arrow at the end of the line
-      (a,b) = calcArrow(middlePos[0][0],middlePos[0][1],endPos[0],endPos[1],cust.arrowLength,cust.arrowAngle)
-
-      # We don't want the line to overlap the arrow at the end of it, so 
-      # calculate a new endpoint for the line by finding the midpoint of the back of the arrow
-      ep = ((a[0]+b[0])/2,(a[1]+b[1])/2)
-
-      ctx.move_to(*sp)
-      try:
-        ctx.curve_to (middlePos[0][0],middlePos[0][1],middlePos[0][0],middlePos[0][1], ep[0],ep[1]);
-      except:
-        pdb.set_trace()
-
-      ctx.stroke()
-
-      ctx.set_line_width(.1)  # These will be filled, so set the containing line width to be invisibly thin
-
-      if buttonRadius:
-        ctx.arc(startPos[0],startPos[1], cust.buttonRadius, 0, 2*3.141592637);
-        ctx.close_path()
-        ctx.stroke_preserve()
-        ctx.set_source_rgba(cust.color[0],cust.color[1],cust.color[2],cust.color[3])
-        ctx.fill()
-
-      # Draw the arrow on the end
-      ctx.set_source_rgba(*cust.color)
-      ctx.move_to(endPos[0],endPos[1])
-      ctx.line_to(*a)
-      ctx.line_to(*b)
-      ctx.close_path()
-      ctx.stroke_preserve()
-      ctx.fill()
-      ctx.restore()
-
-
-def rectOverlaps(rect_a, rect_b):
-    """Assumes tuples of format x0,y0, x1,y1 where 0 is upper left (lowest), 1 is lower right
-       This code finds if the rectangles are separate by checking if the right side of one rectangle is further left then the leftmost side of the other, etc...
-    """
-    print rect_a, rect_b
-    separate = rect_a[2] < rect_b[0] or rect_a[0] > rect_b[2] or rect_a[1] > rect_b[3] or rect_a[3] < rect_b[1]
-    return not separate
-
-def getRectInstance(ent, scale):
-  return wx.Rect(ent.pos[0]*scale, ent.pos[1]*scale, ent.size[0]*ent.scale[0]*scale, ent.size[1]*ent.scale[1]*scale)
-
-def drawIntersectRect(ctx, rect):
-  ctx.save()
-  ctx.rectangle(rect.x +4 ,rect.y+4 , rect.width-8, rect.height-8)
-  ctx.set_line_width(4);
-  ctx.set_source_rgba(.3, .2, 0.3, .4)
-  ctx.fill()
-  ctx.restore()
-
-class Gesture:
+class TemplateMgr:
+  """ This class caches template files for later use to reduce disk access"""
   def __init__(self):
-    self.active = False
-    pass
-  def start(self,panel,pos):
-    """This gesture is activated"""
-    pass
-  def change(self,panel,event):
-    """The mouse state has changed"""
-    pass
-  def finish(self,panel,pos):
-    """Gesture is completed"""
-    pass
-
-class BoxGesture(Gesture):
-  """Creates a greyed box that changes as the mouse is dragged that can be used to size or select something"""
-  def __init__(self):
-    Gesture.__init__(self)
-    self.rect = None
-    pass
-
-  def start(self,panel,pos):
-    self.active  = True
-    self.downPos = pos
-    self.panel   = panel
-    self.rect    = (pos[0],pos[1],pos[0],pos[1])
-
-  def change(self,panel, event):
-    #pos = event.GetPositionTuple()
-    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    assert(self.active)
-    self.rect=(min(self.downPos[0],pos[0]),min(self.downPos[1],pos[1]),max(self.downPos[0],pos[0]),max(self.downPos[1],pos[1]))
-    print "selecting", self.rect
-    panel.drawers.add(self)
-    panel.Refresh()
-
-  def finish(self, panel, pos):
-    self.active = False
-    panel.drawers.discard(self)
-    panel.Refresh()
-    return self.rect    
-
-  def render(self, ctx):
-    if self.rect:
-      t = self.rect
-      ctx.set_line_width(2)
-      ctx.move_to(t[0],t[1])
-      ctx.line_to(t[0],t[3])
-      ctx.line_to(t[2],t[3])
-      ctx.line_to(t[2],t[1])
-      ctx.line_to(t[0],t[1])
-      ctx.close_path()
-      ctx.set_source_rgba(.3, .2, 0.3, .4)
-      ctx.stroke_preserve()
-      ctx.set_source_rgba(.5, .3, 0.5, .05)
-      ctx.fill()
-
-class LineGesture(Gesture):
-  """Creates a grey line that changes as the mouse is dragged that can be used connect things"""
-  def __init__(self,circleRadius=5,color=(0,0,0,.9)):
-    Gesture.__init__(self)
-    self.color = color
-    self.circleRadius = circleRadius
-    self.downPos = self.curPos = None
-
-  def start(self,panel,pos):
-    self.active  = True
-    self.downPos = self.curPos = pos
-    self.panel   = panel
-    panel.drawers.add(self)
-
-  def change(self,panel, event):
-    #self.curPos = event.GetPositionTuple()
-    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    assert(self.active)
-    panel.Refresh()
-
-  def finish(self, panel, pos):
-    self.active = False
-    panel.drawers.discard(self)
-    panel.Refresh()
-    return (self.downPos,self.curPos)
-
-  def render(self, ctx):
-    if self.downPos:      
-      ctx.set_source_rgba(*self.color)
-      ctx.set_line_width(6)
-      ctx.move_to(*self.downPos)
-      ctx.line_to(*self.curPos)
-      ctx.close_path()
-      ctx.stroke()
-      if 1:
-        ctx.arc(self.downPos[0],self.downPos[1], self.circleRadius, 0, 2*3.141592637);
-        ctx.close_path()
-        ctx.stroke_preserve()
-        ctx.set_source_rgba(self.color[0],self.color[1],self.color[2],self.color[3])
-        ctx.fill()
-
-class LazyLineGesture(Gesture,wx.Timer):
-  """Creates a grey line that changes as the mouse is dragged that can be used connect things.  This class adds additional eye-candy -- when you drag the line quickly it resists the motion as if it was in water and curves!  The curve slowly straightens back into a line.
-  """
-  def __init__(self,color=(0,0,0,.9),circleRadius=5,linethickness=4,arrowlen=15, arrowangle=PI/8):
-    Gesture.__init__(self)
-    wx.Timer.__init__(self)
-    self.cust = dot.Dot()
+    self.cache = {}
+  
+  def loadPyTemplate(self,fname):
+    """Load a template file and return it as a string"""
+    if self.cache.has_key(fname): return self.cache[fname]
     
-    self.cust.color = color
-    self.cust.buttonRadius = circleRadius
-    self.cust.lineThickness = linethickness
-    self.cust.arrowLength = arrowlen
-    self.cust.arrowAngle = arrowangle
+    f = open(fname,"r")
+    s = f.read()
+    t = Template(s)
+    self.cache[fname] = t
+    return t
 
-    self.downPos = self.curPos = None
-    self.center = None
-
-    self.frameInterval = 10   # Targeted milliseconds between frame redraws
-    self.frameAverage = self.frameInterval  # Actual (measured) milliseconds between redraws
-    self.lastFrame = None  # When the last Notify occurred
-
-    self.settleTime = 250.0  # How long in milliseconds should the line take to straighten
-
-  def Notify(self):
-    realCenter=((self.curPos[0]+self.downPos[0])/2.0,(self.curPos[1]+self.downPos[1])/2.0)
-    centerVector = ((realCenter[0]-self.center[0])/(self.settleTime/self.frameInterval),(realCenter[1]-self.center[1])/(self.settleTime/self.frameInterval))
-    self.center = (self.center[0]+centerVector[0],self.center[1]+centerVector[1])  # move the center that way.
-    self.panel.Refresh()
-
-    # This code adjusts the animation speed by examining the frame rate
-    tmp = time.time()*1000
-    elapsed = (tmp - self.lastFrame)  # In milliseconds
-    self.frameAverage = (self.frameAverage*19.0 + elapsed)/20.0  # averaging the frames
-
-    if self.frameAverage > self.frameInterval*1.2 or self.frameAverage < self.frameInterval*.8:
-      # Actual frame interval is different than what the code was hoping for, so adjust the code accordingly
-      self.frameInterval = int(self.frameAverage)
-      self.Stop()
-      self.Start(self.frameInterval)
-    self.lastFrame = tmp
-    #print tmp, self.frameInterval, self.frameAverage
-
-  def start(self,panel,pos):
-    self.active  = True
-    self.center = self.downPos = self.curPos = pos
-    self.panel   = panel
-    self.timer = wx.Timer(self)
-    self.lastFrame = time.time()*1000
-    wx.Timer.Start(self,self.frameInterval)
-    panel.drawers.add(self)
-
-  def change(self,panel, event):
-    #self.curPos = event.GetPositionTuple()
-    self.curPos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
-    assert(self.active)
-    panel.Refresh()
-
-  def finish(self, panel, pos):
-    self.active = False
-    panel.drawers.discard(self)
-    panel.Refresh()
-    self.Stop()
-    self.timer = None
-    return (self.downPos,self.curPos,self.center)
-
-  def render(self, ctx):
-    if self.downPos:   
-      drawCurvyArrow(ctx, self.downPos,self.curPos,[self.center],self.cust)
-      
-
-class FadingX(wx.Timer):
-  """Creates a grey line that changes as the mouse is dragged that can be used connect things"""
-  def __init__(self,panel,pos,time=3):
-    wx.Timer.__init__(self)
-    self.panel = panel
-    self.sz=(15,15)
-    self.pos = pos
-    self.count = time*10
-    self.color = (1,0,0,1)
-    self.inc   = 1.0/self.count
-    self.lineThickness = 6
-    panel.drawers.add(self)
-    wx.Timer.Start(self,100)
-
-  def Notify(self):
-    self.count -= 1
-    self.color = (self.color[0], self.color[1], self.color[2], self.color[3]-self.inc)
-    if self.count == 0:  # All done
-      self.panel.drawers.discard(self)
-      self.Stop()
-    self.panel.Refresh()
-
-  def render(self, ctx):
-    ctx.save()
-    ctx.set_source_rgba(*self.color)
-    ctx.set_line_width(self.lineThickness)
-    ctx.set_line_cap(cairo.LINE_CAP_ROUND)
-    ctx.move_to(self.pos[0]-self.sz[0],self.pos[1]-self.sz[1])
-    ctx.line_to(self.pos[0]+self.sz[0],self.pos[1]+self.sz[1])
-    ctx.move_to(self.pos[0]+self.sz[0],self.pos[1]-self.sz[1])
-    ctx.line_to(self.pos[0]-self.sz[0],self.pos[1]+self.sz[1])
-    ctx.stroke()
-    ctx.restore()
-
-
-
-class Tool:
-  def __init__(self, panel):
-    self.panel = panel
-
-  def OnSelect(self, panel,event):
-    """This tool is being used"""
-    return False
-
-  def OnUnselect(self,panel,event):
-    """This tool is no longer being used"""
-    return False
- 
-  def OnEditEvent(self,panel, event):
-    """Some kind of event happened in the editor space that this tool may want to handle"""
-    return False
-
-  def render(self,ctx):
+  def loadKidTemplate(self,fname):
     pass
+
+# The global template manager
+templateMgr = TemplateMgr()
+
+#TODO: Get relative directiry with model.xml
+myDir = os.getcwd()
+TemplatePath = myDir + "/codegen/templates/"
+
+class Output:
+  """This abstract class defines how the generated output is written to the file system
+     or tarball.
+
+     In these routines if you tell it to write a file or template to a nonexistant path
+     then that path is created.  So you no longer have to worry about creating directories.
+     If you call writes("/foo/bar/yarh/myfile.txt","contents") then the directory hierarchy /foo/bar/yarh is automatically created.  The file "myfile.txt" is created and written with "contents".
+  """
+  def write(self, filename, data):
+    if type(data) in types.StringTypes:
+      self.writes(filename, data)
+    else: self.writet(filename,data)
+        
+  def writet(self, filename, template):
+    pass
+  def writes(self, filename, template):
+    pass
+   
 
 class EntityTool(Tool):
   def __init__(self, panel,entity):
@@ -385,20 +111,21 @@ class EntityTool(Tool):
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     ret = False
     if isinstance(event,wx.MouseEvent):
-      if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
-        self.box.start(panel,pos)
+      if event.ButtonUp(wx.MOUSE_BTN_LEFT):  # Select
+        #self.box.start(panel,pos)
         ret = True
       elif event.Dragging():
-        self.box.change(panel,event)
+        #self.box.change(panel,event)
         ret = True
-      elif event.ButtonUp(wx.MOUSE_BTN_LEFT):
-        rect = self.box.finish(panel,pos)
+      elif event.ButtonDown(wx.MOUSE_BTN_LEFT):
+        #rect = self.box.finish(panel,pos)
         # Real point rectangle
-        rect = convertToRealPos(rect, panel.scale)
-        size = (rect[2]-rect[0],rect[3]-rect[1])
-        if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
-          size = None
-        ret = self.panel.CreateNewInstance(self.entity,(rect[0],rect[1]),size)
+        #rect = convertToRealPos(rect, panel.scale)
+        #size = (rect[2]-rect[0],rect[3]-rect[1])
+        #if size[0] < 15 or size[1] < 15:  # its so small it was probably an accidental drag rather then a deliberate sizing
+        #  size = None
+        size = None
+        ret = self.panel.CreateNewInstance(self.entity,(pos[0],pos[1]),size)
             
     return ret
     
@@ -492,6 +219,7 @@ class SelectTool(Tool):
         svg.blit(ctx,self.rectBmp,e.pos,e.scale,e.rotate)
 
   def OnEditEvent(self,panel, event):
+    ret = False
     pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
     if isinstance(event,wx.MouseEvent):
       if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
@@ -502,7 +230,23 @@ class SelectTool(Tool):
           self.touching = set()
           self.boxSel.start(panel,pos)
           return False
+    
+        # Remove the background entities; you can't move them
+        ent = set()
+        rcent = set()
+        for e in entities:
+          if e.et.name in panel.rowTypes or e.et.name in panel.columnTypes:
+            rcent.add(e)
+          else:
+            ent.add(e)
+
+        # I'm going to let you select row/column entities OR contained entities but not both
+        if ent:
+          entities = ent
+        else:
+          entities = rcent
         print "Touching %s" % ", ".join([ e.data["name"] for e in entities])
+
         panel.statusBar.SetStatusText("Touching %s" % ", ".join([ e.data["name"] for e in entities]),0);
 
         # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
@@ -519,22 +263,31 @@ class SelectTool(Tool):
       if event.Dragging():
         # if you are touching anything, then drag everything
         if self.touching and self.dragPos:
-          pass
-          '''
           delta = (pos[0]-self.dragPos[0], pos[1] - self.dragPos[1])
           # TODO deal with scaling and rotation in delta
-          if delta[0] != 0 and delta[1] != 0:
+          if delta[0] != 0 or delta[1] != 0:
             for e in self.selected:
               e.pos = (e.pos[0] + delta[0], e.pos[1] + delta[1])  # move all the touching objects by the amount the mouse moved
           self.dragPos = pos
-          '''
           panel.Refresh()
         else:  # touching nothing, this is a selection rectangle
           self.boxSel.change(panel,event)
 
       if event.ButtonUp(wx.MOUSE_BTN_LEFT):
         # TODO: Move the data in this entity to the configuration editing sidebar, and expand it if its minimized.
-        
+        if self.touching and self.dragPos:
+          # print "drop!"
+          for e in self.selected:
+             if e.et.name in panel.rowTypes:
+               panel.repositionRow(e,pos)
+             if e.et.name in panel.columnTypes:
+               panel.repositionColumn(e,pos)
+             else:
+               panel.grid.reposition(e)
+          self.touching = set()
+          panel.layout()
+          panel.Refresh()
+
         # Or find everything inside a selection box
         if self.boxSel.active:
           #panel.drawers.discard(self)
@@ -556,48 +309,37 @@ class SelectTool(Tool):
           self.panel.SetSashPosition(self.panel.GetParent().GetClientSize().x/4)
 
     if isinstance(event,wx.KeyEvent):
-      
-      if event.GetEventType() == wx.EVT_KEY_DOWN.typeId and (event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE):
-        if self.touching:
-          self.deleteEntities(self.touching)
-          self.touching.clear()
-        elif self.selected:
-          self.deleteEntities(self.selected)
-          self.selected.clear()
-        panel.Refresh()
-        return True # I consumed this event
+      if event.GetEventType() == wx.EVT_KEY_DOWN.typeId:
+        try:
+          character = chr(event.GetKeyCode())
+        except ValueError:
+          character  = None
+        print "key code: ", character
+        if event.GetKeyCode() ==  wx.WXK_DELETE or event.GetKeyCode() ==  wx.WXK_NUMPAD_DELETE:
+          if self.touching:
+            self.panel.deleteEntities(self.touching)
+            self.touching.clear()
+          elif self.selected:
+            self.panel.deleteEntities(self.selected)
+            self.selected.clear()
+          self.panel.Refresh()
+          ret=True # I consumed this event
+        elif event.ControlDown() and character ==  'V':
+          print "Copy selected instances"
+          (self.selected,addtl) = self.panel.model.duplicate(self.selected,recursive=True)
+
+          ret=True
       else:
         return False # Give this key to someone else
 
     self.updateSelected()
+    return ret
   
   def updateSelected(self):
     if len(self.selected) == 1:
       if share.instanceDetailsPanel:
         share.instanceDetailsPanel.showEntity(next(iter(self.selected)))
         self.panel.SetSashPosition(self.panel.GetParent().GetClientSize().x/4)
-
-  def deleteEntities(self, ents):
-    #remove columns/rows
-    for ent in ents:
-      try:
-        self.panel.columns.remove(ent);
-      except:
-        pass
-      
-      try:
-        self.panel.rows.remove(ent);
-      except:
-        pass
-
-      # Remove instance
-      for (k,v) in self.panel.model.instances.items():
-        if v == ent:
-          del self.panel.model.instances[k]
-          break
-
-    self.panel.layout()
-    self.panel.Refresh(False)
 
 class ZoomTool(Tool):
   def __init__(self, panel):
@@ -684,14 +426,257 @@ class ZoomTool(Tool):
       size = self.panel.GetClientSize()
       self.panel.Scroll((pos[0] - size.x/2)/scrollx, (pos[1] - size.y/2)/scrolly)
 
+class SaveTool(Tool):
+  def __init__(self, panel):
+    self.panel = panel
+  
+  def OnSelect(self, panel,event):
+    dlg = wx.FileDialog(panel, "Save model as...", os.getcwd(), style=wx.SAVE | wx.OVERWRITE_PROMPT, wildcard="*.xml")
+    if dlg.ShowModal() == wx.ID_OK:
+      filename = dlg.GetPath()
+      self.panel.model.save(filename)
+      # TODO: Notify (IPC) to GUI instances (C++ wxWidgets) to update
+    return False
+
+class FilesystemOutput(Output):
+  """Write to a normal file system"""
+
+  def writet(self, filename, template):
+    if not os.path.exists(os.path.dirname(filename)):
+      os.makedirs(os.path.dirname(filename))			
+    template.write(filename, "utf-8",False,"xml")
+    
+  def writes(self, filename, string):
+    if not os.path.exists(os.path.dirname(filename)):
+      os.makedirs(os.path.dirname(filename))			
+    f = open(filename,"w")
+    f.write(string)
+    f.close()
+
+class GenerateTool(Tool):
+  def __init__(self, panel):
+    self.panel = panel
+    self.dictGenFunc = {CODEGEN_LANG_C:self.generateC, CODEGEN_LANG_CPP:self.generateCpp, CODEGEN_LANG_PYTHON:self.generatePython, CODEGEN_LANG_JAVA:self.generateJava}
+
+  def OnSelect(self, panel, event):
+    if event.GetId() == CODEGEN_BUTTON:
+      mnuGenerateCode = wx.Menu()
+      mnuItemC = mnuGenerateCode.Append(CODEGEN_LANG_C, "C")
+      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemC)
+  
+      mnuItemCpp = mnuGenerateCode.Append(CODEGEN_LANG_CPP, "CPP")
+      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemCpp)
+  
+      mnuItemPython = mnuGenerateCode.Append(CODEGEN_LANG_PYTHON, "PYTHON")
+      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemPython)
+  
+      mnuItemJava = mnuGenerateCode.Append(CODEGEN_LANG_JAVA, "JAVA")
+      panel.Bind(wx.EVT_MENU, panel.OnToolClick, mnuItemJava)
+  
+      panel.PopupMenu(mnuGenerateCode)
+    else:
+      output = FilesystemOutput()
+      comps = filter(lambda inst: inst.entity.et.name == 'Component', panel.model.instances.values())
+
+      #TODO: Get relative directiry with model.xml
+      srcDir = "/".join([myDir, "langTest"])
+
+      # Generate makefile for the "app" directory
+      mkSubdirTmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.subdir.ts")
+      s = mkSubdirTmpl.safe_substitute(subdirs=" ".join([c.data["name"] for c in comps]))
+      output.write(srcDir + os.sep + "app" + os.sep + "Makefile", s)
+
+      for c in comps:
+        self.dictGenFunc[event.GetId()](output, srcDir, c, c.data)
+    return False
+
+
+  def generateC(self, output, srcDir, comp,ts_comp):
+    compName = str(comp.data["name"])
+  
+    # Create main
+    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.c.ts")
+    s = cpptmpl.safe_substitute(addmain=False)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "main.c", s)
+    # Create cfg  -- not needed anymore
+    #tmpl = templateMgr.loadPyTemplate(TemplatePath + "cfg.c.ts")
+    #s = tmpl.safe_substitute(**ts_comp)
+    #output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "cfg.c", s)
+  
+    # Create Makefile
+    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.c.ts")
+    s = tmpl.safe_substitute(**ts_comp)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)
+  
+  def generateCpp(self, output, srcDir, comp,ts_comp):
+    # Create main
+    compName = str(comp.data["name"])
+    cpptmpl = templateMgr.loadPyTemplate(TemplatePath + "main.cpp.ts")
+    s = cpptmpl.safe_substitute(addmain=False)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "main.cpp", s)
+  
+    # Create cfg -- no longer needed
+    #tmpl = templateMgr.loadPyTemplate(TemplatePath + "cfg.cpp.ts")
+    #s = tmpl.safe_substitute(**ts_comp)
+    #output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "cfg.cpp", s)
+  
+    # Create Makefile
+    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.cpp.ts")
+    s = tmpl.safe_substitute(**ts_comp)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)
+
+
+  def generatePython(self, output, srcDir, comp,ts_comp):
+    compName = str(comp.data["name"])
+  
+    # Create src files
+    for (inp,outp) in [("main.py.ts",str(comp.data[instantiateCommand]) + ".py"),("pythonexec.sh",str(comp.data[instantiateCommand]))]:
+      tmpl = templateMgr.loadPyTemplate(TemplatePath + inp)
+      s = tmpl.safe_substitute(**ts_comp)
+      output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + outp, s)
+    
+  
+    # Create Makefile
+    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.python.ts")
+    s = tmpl.safe_substitute(**ts_comp)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)  
+
+
+  def generateJava(self, output, srcDir, comp,ts_comp):
+    compName = str(comp.data["name"])
+    # Create Makefile
+    tmpl = templateMgr.loadPyTemplate(TemplatePath + "Makefile.java.ts")
+    s = tmpl.safe_substitute(**ts_comp)
+    output.write(srcDir + os.sep + "app" + os.sep + compName + os.sep + "Makefile", s)  
+
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
-dbgIep = None
+dbgPanel = None
+
+class GridObject:
+  def __init__(self):
+    self.bound = None
+    self.entities = set()
+    self.row = None
+    self.col = None
+
+  def addEnt(self, ob):
+    self.entities.add(ob)
+
+
+class GridEntityLayout:
+  def __init__(self,rows, columns):
+    self.nogrid = GridObject()
+    self.grid = []  # Create a 2 dimensional array of sets of objects
+    self.rows = rows
+    self.columns = columns
+    numCols = len(columns)
+
+    #row = [GridObject()]  # zeroth column is row header
+    # zeroth row is node header
+    #for j in columns:
+    #  row.append(GridObject())
+    # self.grid.append(row) 
+
+    # Make the 2 dimensional grid
+    for i in rows:
+      row = []
+      for j in columns:
+        row.append(GridObject())
+      self.grid.append(row)
+
+    self.rowIdx = {}
+    count = 0
+    for r in rows:
+      self.rowIdx[r] = count
+      count+=1
+
+    count = 0
+    self.colIdx = {}
+    for c in columns:
+      self.colIdx[c] = count
+      count+=1
+
+
+    # Set up the information in each cell
+    y = 0
+    x = 0
+    for row in self.grid:
+      x=0
+      rowent = self.rows[y]
+      for cell in row:
+        col = self.columns[x]
+        cell.bound = boxIntersect(rowent.pos,rowent.size,col.pos,col.size)
+        cell.row = rowent
+        cell.col = col
+        # print "(%d,%d) %s" % (x,y,str(cell.bound))
+        x += 1
+      y += 1
+
+  def reposition(self,instance):
+    """Move an instance somewhere else -- its physical movement may change its parent relationships"""
+    pos = instance.pos
+    for row in self.grid:
+      for cell in row:
+        # print cell.bound
+        if inBox(pos,cell.bound):
+          # Remove the containment arrows (if they exist)
+          for i in instance.childOf:  
+            i.deleteContainmentArrowTo(instance)
+          # Rewrite the back pointers
+          instance.childOf = set([cell.row,cell.col])
+          # Create the new containment arrows
+          for i in instance.childOf:  
+            i.createContainmentArrowTo(instance)
+
+  def idx(self,row,col=-1):
+    """Reference a location in the grid either by integer or by entity"""
+    if col==-1:
+      if type(row) is types.IntType:
+        return self.grid[row]
+      return self.grid[self.rowIdx[row]]
+    if not type(row) is types.IntType:
+      row = self.rowIdx[row]
+    if not type(col) is types.IntType:
+      col = self.colIdx[col]
+    return self.grid[row][col]
+
+  def __str__(self):
+    for row in self.grid:
+      print "\n"
+      for cell in row:
+        print cell.entities, "  ", 
+
+  def layout(self):
+    for row in self.grid:
+      for cell in row:
+        nitems = len(cell.entities)
+        if nitems:
+          for ent,place in zip(cell.entities,partition(nitems,cell.bound)):
+            ent.pos = (place[0],place[1]) # (cell.bound[0]+ent.relativePos[0], cell.bound[1]+ent.relativePos[1])
+            tmp = (place[2]-place[0], place[3]-place[1]) # (min(cell.bound[2]-30,64),min(cell.bound[3]-30,64))
+            if tmp != ent.size:
+              ent.size = tmp
+              ent.recreateBitmap()
+    for ent in self.nogrid.entities:
+      ent.size=(0,0)
+
+class Margin:
+  def __init__(self,pos,size):
+    self.pos = pos
+    self.size = size
+  def createContainmentArrowTo(self,obj):  # No containment arrows in the margin
+    pass
+  def deleteContainmentArrowTo(self,obj):
+    pass
 
 
 class Panel(scrolled.ScrolledPanel):
     def __init__(self, parent,menubar,toolbar,statusbar,model):
+      global dbgPanel
+      dbgPanel = self
       scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
       share.instancePanel = self
+      # self.displayGraph = networkx.Graph()
       # These variables define what types can be instantiated in the outer row/columns of the edit tool
       self.rowTypes = ["ServiceGroup","Application"]
       self.columnTypes = ["Node"]
@@ -704,13 +689,14 @@ class Panel(scrolled.ScrolledPanel):
       self.Bind(wx.EVT_SIZE, self.OnReSize)
 
       self.Bind(wx.EVT_PAINT, self.OnPaint)
-      dbgIep = self 
+
       self.menuBar = menubar
       self.toolBar = toolbar
       self.statusBar = statusbar
       self.model=model
       self.tool = None  # The current tool
       self.drawers = set()
+      self.renderArrow = {}  # This dictionary indicates whether an arrow needs to be rendered or whether the parent child relationship is expressed in a different fashion (containment)
 
       # The position of the panel's viewport within the larger drawing
       self.location = (0,0)
@@ -738,6 +724,16 @@ class Panel(scrolled.ScrolledPanel):
       # example of adding a standard button
       #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
+
+      bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+      self.idLookup[SAVE_BUTTON] = SaveTool(self)
+
+      bitmap = svg.SvgFile("generate.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddTool(CODEGEN_BUTTON, bitmap, wx.NullBitmap, shortHelpString="Generate Source Code", longHelpString="Generate source code ...")
+      idMnuGenerateCode = [CODEGEN_BUTTON, CODEGEN_LANG_C, CODEGEN_LANG_CPP, CODEGEN_LANG_PYTHON, CODEGEN_LANG_JAVA]
+      for idx in idMnuGenerateCode:
+        self.idLookup[idx] = GenerateTool(self)
 
       # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
@@ -782,12 +778,14 @@ class Panel(scrolled.ScrolledPanel):
 
     def sgInstantiator(self,ent,pos,size,children,name):
       """Custom instantiator for service groups"""
-      print "CUSTOM INSTANTIATOR"
-      newdata = copy.deepcopy(ent.data)
-      ret = Instance(ent, newdata,pos,size,name=name)
-      #Actually merge data from entity
-      ret.updateDataFields(newdata)
-      return ret
+      (top, all_created) = self.model.recursiveInstantiation(ent)
+      return top
+#      newdata = copy.deepcopy(ent.data)
+#      ret = Instance(ent, newdata,pos,size,name=name)
+#      #Actually merge data from entity
+#      ret.updateDataFields(newdata)
+#      return ret
+
 
     def OnReSize(self, event):
       self.layout()
@@ -905,11 +903,49 @@ class Panel(scrolled.ScrolledPanel):
       # We need to shift the client rectangle to take into account
       # scrolling, converting device to logical coordinates
       self.SetVirtualSize((virtRct.x + virtRct.Width, virtRct.y + virtRct.Height))
+ 
+    def repositionRow(self, e, pos):
+      if len(self.rows) > 0:
+        self.rows.remove(e)
+      i = 0
+      length = len(self.rows)
+      while i<length:
+        tmp = self.rows[i]
+        # print "%d < %d" % (e.pos[1], tmp.pos[1])
+        if e.pos[1] < tmp.pos[1]:
+          break
+        i+=1
+      self.rows.insert(i,e)
+     # print [ x.data["name"] for x in self.rows]
+      self.layout()
+      self.Refresh()      
+
+
+    def repositionColumn(self,e,pos):
+      if len(self.columns) > 0:
+        self.columns.remove(e)
+      i = 0
+      length = len(self.columns)
+      while i<length:
+        tmp = self.columns[i]
+        #print "%d < %d" % (e.pos[0], tmp.pos[0])
+        if e.pos[0] < tmp.pos[0]:
+          break
+        i+=1
+      self.columns.insert(i,e)
+      #print [ x.data["name"] for x in self.rows]
+      self.layout()
+      self.Refresh()      
+      
 
     def layout(self):
+        rowSet = set(self.rows)
+        columnSet = set(self.columns)
+        self.renderArrow = {}  # We will recalculate which arrows need rendering
         colCount = len(self.columns)
         panelSize = self.GetVirtualSize()
         x = COL_MARGIN
+        self.renderOrder = []
         for i in self.columns:
           width = max(COL_WIDTH,i.size[0])  # Pick the minimum width or the user's adjustment, whichever is bigger
           i.pos = (x,0)
@@ -918,8 +954,10 @@ class Panel(scrolled.ScrolledPanel):
             i.size = size
             i.recreateBitmap()
           x+=width+COL_SPACING
+          self.renderOrder.append(i)
 
         y = ROW_MARGIN
+        
         for i in self.rows:
           width = max(ROW_WIDTH,i.size[1])  # Pick the minimum width or the user's adjustment, whichever is bigger
           i.pos = (0,y)
@@ -928,6 +966,15 @@ class Panel(scrolled.ScrolledPanel):
             i.size = size
             i.recreateBitmap()
           y+=width+ROW_SPACING
+          self.renderOrder.append(i)
+        
+        rows = [Margin((0,0),(panelSize[0],ROW_MARGIN))]
+        rows += self.rows
+ 
+        cols = [Margin((0,0),(COL_MARGIN,panelSize[1]))]
+        cols += self.columns
+
+        self.grid = GridEntityLayout(rows, cols)  # Create a 2 dimensional array of sets of objects
 
         # Re-calculate intersect rectangle
         del self.intersects[0:]
@@ -938,6 +985,45 @@ class Panel(scrolled.ScrolledPanel):
             sgRect = getRectInstance(sg, self.scale)
             if sgRect.Intersects(nRect):
               self.intersects.append(sgRect.Intersect(nRect))
+       
+        for (name,i) in self.model.instances.items():
+          if i in self.columns or i in self.rows: continue  # Already laid out
+          t = len(i.childOf)
+          if t > 0:
+             # Find out which rows and columns this object is in
+            inRow = i.childOf & rowSet
+            inCol = i.childOf & columnSet
+            rowParent = None
+            colParent = None
+            cell = self.grid.nogrid
+            if len(inRow) and len(inCol):
+              rowParent = next(iter(inRow))
+              colParent = next(iter(inCol))
+              #bound = boxIntersect(rowParent.pos, rowParent.size, colParent.pos, colParent.size)
+              cell = self.grid.idx(rowParent,colParent)
+            elif len(inRow):
+              rowParent = next(iter(inRow))
+              #bound = boxIntersect(rowParent.pos, rowParent.size, (0,0), (COL_MARGIN,panelSize.y))
+              cell = self.grid.idx(rowParent,0)
+            elif len(inCol):            
+              colParent = next(iter(inCol))
+              #bound = boxIntersect(colParent.pos, colParent.size, (0,0), (panelSize.x, ROW_MARGIN))
+              cell = self.grid.idx(0,colParent)
+            else:  # its not drawn contained
+              #bound = (0,0,panelSize.x, panelSize.y)
+              cell = self.grid.nogrid
+            # print "addentity %s %s" % (i.et.name, i.data['name'])
+            cell.addEnt(i)
+            #cell.bound = bound
+
+            if rowParent:
+              self.renderArrow[(rowParent,i)] = False # object is drawn inside, so it is unnecessary to render the containment arrow
+            if colParent:
+              self.renderArrow[(colParent,i)] = False # object is drawn inside, so it is unnecessary to render the containment arrow 
+          else:
+            pass
+        self.grid.layout()
+
 
     def render(self, dc):
         """Put the entities on the screen"""
@@ -951,8 +1037,25 @@ class Panel(scrolled.ScrolledPanel):
         # Now draw the links
         # Now draw the entites
 
+        # Draw the baseline row and column entities
         for e in filter(lambda entInt: entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.values()):
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
+
+        # Draw the other instances on top
+        for e in filter(lambda entInt: not entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.values()):
+          if e.size != (0,0):  # indicate that the object is hidden
+            svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
+
+        # Now draw the containment arrows on top
+#        pdb.set_trace()
+        if 0:
+         for (name,e) in self.model.instances.items():
+          for a in e.containmentArrows:
+            st = a.container.pos
+            end = a.contained.pos
+            if self.renderArrow.get((a.container,a.contained),True):  # Check to see if there's an directive whether to render this arrow or not.  If there is not one, render it by default
+              # pdb.set_trace()
+              drawCurvyArrow(ctx, (st[0] + a.beginOffset[0],st[1] + a.beginOffset[1]),(end[0] + a.endOffset[0],end[1] + a.endOffset[1]),a.midpoints, linkNormalLook)
 
         ctx.restore()
 
@@ -975,9 +1078,12 @@ class Panel(scrolled.ScrolledPanel):
       for (name, e) in self.model.instances.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         #print e.data["name"], ": ", pos, " inside: ", e.pos, " to ", furthest
-        if pos[0] >= e.pos[0] and pos[1] >= e.pos[1] and pos[0] <= furthest[0] and pos[1] <= furthest[1]:  # mouse is in the box formed by the entity
+        if inBox(pos,(e.pos[0],e.pos[1],furthest[0],furthest[1])): # mouse is in the box formed by the entity
           ret.add(e)
       return ret
+
+    def findObjectsAt(self,pos):
+      return self.findInstancesAt(pos).union(self.findEntitiesAt(pos))
 
     def findEntitiesTouching(self,rect):
       """Returns all entities touching the passed rectangle """
@@ -985,7 +1091,8 @@ class Panel(scrolled.ScrolledPanel):
       # Real rectangle
       rect = convertToRealPos(rect, self.scale)
       ret = set()
-      for (name, e) in self.model.instances.items():
+      # hoang for (name, e) in self.model.instances.items():
+      for (name, e) in self.entities.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)
@@ -1003,10 +1110,33 @@ class Panel(scrolled.ScrolledPanel):
 
     def SetSashPosition(self, position):
       if isinstance(self.GetParent(), wx.SplitterWindow):
+        # Manual resize sash position
+        width = self.GetParent().GetSashPosition()
         self.GetParent().SetSashPosition(-1)
-        self.GetParent().SetSashPosition(position)
+        if width > 10:
+          self.GetParent().SetSashPosition(width)
+        else:
+          self.GetParent().SetSashPosition(position)
         self.GetParent().UpdateSize()
-    
+
+    def deleteEntities(self, ents):
+      #remove columns/rows
+      for ent in ents:
+        try:
+          self.columns.remove(ent);
+        except:
+          pass
+        
+        try:
+          self.rows.remove(ent);
+        except:
+          pass
+  
+      self.model.delete(ents)
+      self.Refresh()
+      self.layout()
+
+
 model = None
 
 def Test():

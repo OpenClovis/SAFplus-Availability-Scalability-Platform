@@ -21,11 +21,10 @@ from model import Model
 import share
  
 ENTITY_TYPE_BUTTON_START = 100
-ZOOM_BUTTON = 99
-CONNECT_BUTTON = 98
-SELECT_BUTTON = 97
-
-SAVE_BUTTON = 5003
+SAVE_BUTTON = 99
+ZOOM_BUTTON = 98
+CONNECT_BUTTON = 97
+SELECT_BUTTON = 96
 
 PI = 3.141592636
 
@@ -391,6 +390,10 @@ class EntityTypeTool(Tool):
     ent = self.entityType.createEntity(position, size)
     panel.entities[ent.data["name"]] = ent
     panel.Refresh()
+
+    if share.detailsPanel:
+      share.detailsPanel._createTreeItemEntity(ent.data["name"], ent)
+
     return True
  
 
@@ -501,8 +504,9 @@ class SelectTool(Tool):
 
         # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
         # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
-        if not entities.issubset(self.touching):
+        if not entities.issubset(self.touching) or (len(self.touching) != len(entities)):
           self.touching = set(entities)
+          self.selected = self.touching.copy()
         # If the control key is down, then add to the currently selected group, otherwise replace it.
         if event.ControlDown():
           self.selected = self.selected.union(self.touching)
@@ -669,7 +673,6 @@ class SaveTool(Tool):
     if dlg.ShowModal() == wx.ID_OK:
       filename = dlg.GetPath()
       self.panel.model.save(filename)
-      print self.panel.GetParent().GetParent()
       # TODO: Notify (IPC) to GUI instances to change
     return False
 
@@ -720,6 +723,10 @@ class Panel(scrolled.ScrolledPanel):
       # example of adding a standard button
       #new_bmp =  wx.ArtProvider.GetBitmap(wx.ART_NEW, wx.ART_TOOLBAR, tsize)
       #self.toolBar.AddLabelTool(10, "New", new_bmp, shortHelp="New", longHelp="Long help for 'New'")
+
+      bitmap = svg.SvgFile("save_as.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddTool(SAVE_BUTTON, bitmap, wx.NullBitmap, shortHelpString="save", longHelpString="Save model as...")
+      self.idLookup[SAVE_BUTTON] = SaveTool(self)
 
       # Add the umlEditor's standard tools
       self.toolBar.AddSeparator()
@@ -897,7 +904,11 @@ def Test():
   import pyGuiWrapper as gui
   global model
   model = Model()
-  model.load("testModel.xml")
+  try:
+    model.load("testModel.xml")
+  except IOError, e:
+    if e.errno != 2: # no such file
+      raise
 
   #gui.go(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))
   gui.start(lambda parent,menu,tool,status,m=model: Panel(parent,menu,tool,status, m))

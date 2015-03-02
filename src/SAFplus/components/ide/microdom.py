@@ -69,12 +69,16 @@ class AnyChild:
     raise AttributeError(item)
 
 
-# A predicate that selects objects if they are a microdom node.  Can be given to search functions to select dom objects instead of text
-microdomFilter =  lambda(x): x if (type(x) is InstanceType and x.__class__ is MicroDom) else None
+#? Returns True if the passed object is a MicroDom instance
+def isMicroDom(x): return (type(x) is InstanceType and x.__class__ is MicroDom)
+
+#? A predicate that selects objects if they are a microdom node.  Can be given to search functions to select dom objects instead of text
+microdomFilter =  lambda(x): x if isMicroDom(x) else None
+
 
 class MicroDom:
   def __init__(self, attributes,children,data):
-
+    if children is None: children = []
     # formal access
     self.tag_        = attributes["tag_"]
     self.attributes_ = attributes
@@ -132,6 +136,13 @@ class MicroDom:
         ret.append(c)
     return ret
 
+  def __setitem__(self,name,value):
+    if not isMicroDom(value):
+      value = MicroDom({"tag_":name},[value],None)
+    if self.child_.has_key(name):
+      self.delChild(name)
+    self.addChild(value,name)
+
   def addChild(self,child,tag=None):
     if tag is None:
       tag = child.tag_
@@ -157,10 +168,14 @@ class MicroDom:
 
   def update(self,dct):
     for i in dct.items():
-      tmp = MicroDom({"tag_":i[0]}, [i[1]],i[1])
       if self.child_.has_key(i[0]):
         self.delChild(i[0])
-      self.addChild(MicroDom({"tag_":i[0]}, [i[1]],i[1]))
+
+      if type(i[1]) == DictType:
+        tmp = MicroDom({"tag_":i[0]}, [],[])
+        tmp.update(i[1])
+        self.addChild(tmp)
+      else: self.addChild(MicroDom({"tag_":i[0]}, [i[1]],i[1]))
 
   def get(self,item,d=None):
     try:

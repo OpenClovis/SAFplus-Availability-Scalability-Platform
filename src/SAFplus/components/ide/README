@@ -1,6 +1,41 @@
 
 DEPENDENCIES
 ------------
+WX:
+git clone git@github.com:OpenClovis/wxWidgets.git
+cd wxWidgets
+git checkout WX_3_0_BRANCH
+apt-get install autoconf build-essential python-dev mesa-common-dev freeglut3-dev libglew-dev libglm-dev libgtk2.0-dev libcairo2-dev librsvg2-dev python-rsvg libpng12-dev libjpeg8-dev
+
+
+cd <wxdir>
+mkdir debug
+cd debug
+touch .configure # set this file to:
+#!/bin/bash
+../configure --prefix=/usr --disable-optimise --enable-debug --enable-debug_info --enable-debug_gdb --enable-http --enable-aui --enable-html --with-zlib --with-libjpeg --with-libpng  --with-expat --enable-gif --enable-image --enable-dragimage --enable-mousewheel --enable-tooltips --enable-menus --enable-gui --with-gtk=3 --enable-unicode --with-opengl
+
+.configure
+make
+make install
+
+
+root@clovisdev wxWidgets # git clone git@github.com:wxWidgets/wxPython.git
+cd wxPython
+root@clovisdev wxPython # bin/subrepos-make 
+python setup.py build_ext WXPORT=gtk3
+python setup.py install WXPORT=gtk3
+
+CODE::BLOCKS
+
+apt-get install libtool libltdl-dev autotools-dev automake libboost-dev libboost-python-dev libgamin-dev   libhunspell-dev
+svn checkout svn://svn.code.sf.net/p/codeblocks/code/trunk 
+
+cd codeblocks
+./bootstrap 
+./configure --with-contrib-plugins=all --prefix /opt/SAFplus/7.0/ide
+make
+make install
 
 watchdog:
 https://pythonhosted.org/watchdog/index.html#

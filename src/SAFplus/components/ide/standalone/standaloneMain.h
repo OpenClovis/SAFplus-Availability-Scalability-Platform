@@ -17,6 +17,8 @@
 #include "standalone.h"
 #include "standaloneApp.h"
 
+#define SAFPLUS_IDE_VERSION "7.0.1"
+
 class standaloneFrame: public wxFrame
 {
     public:

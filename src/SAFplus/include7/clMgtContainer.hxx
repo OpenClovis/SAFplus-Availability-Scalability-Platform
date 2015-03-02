@@ -42,8 +42,8 @@ namespace SAFplus
 class MgtContainer:public MgtObject
   {
   protected:
-  // Store the child nodes
-  typedef MgtObjectMap Map;
+    // Store the child nodes
+    typedef MgtObjectMap Map;
     MgtObjectMap children;
 
   class HiddenIterator:public MgtIteratorBase
