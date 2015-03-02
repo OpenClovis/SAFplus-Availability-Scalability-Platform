@@ -879,6 +879,10 @@ class Panel(scrolled.ScrolledPanel):
         if placement == "column":
           self.columns.append(inst)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
 
+        # Push instance into hyperlist tree
+        if share.instanceDetailsPanel:
+          share.instanceDetailsPanel._createTreeItemEntity(inst.data["name"], inst)
+
         self.Refresh()
 
       self.layout()

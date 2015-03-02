@@ -79,7 +79,7 @@ class SliderCustom(wx.PyControl):
     return "slidercustom"
 
 class Panel(scrolled.ScrolledPanel):
-    def __init__(self, parent,menubar,toolbar,statusbar,model):
+    def __init__(self, parent,menubar,toolbar,statusbar,model, detailInstance = False):
         global thePanel
         scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
         self.SetupScrolling(True, True)
@@ -106,11 +106,16 @@ class Panel(scrolled.ScrolledPanel):
   
         # for the data entry
         # self.Bind(wx.EVT_TEXT, self.EvtText)
+        self.detailInstance = detailInstance;
 
         self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelChanged}
         self._createTreeEntities()
 
-        share.detailsPanel = self
+        if (self.detailInstance):
+          share.instanceDetailsPanel = self
+        else:
+          share.detailsPanel = self
+
         if StandaloneDev:
           e = model.entities["app"]
           self.showEntity(e)
@@ -321,8 +326,12 @@ class Panel(scrolled.ScrolledPanel):
 
       self.treeRoot = self.tree.AddRoot("entityDetails")
 
-      for (name, ent) in self.model.entities.items():
-        self._createTreeItemEntity(name, ent)
+      if (self.detailInstance):
+        for (name, ent) in self.model.instances.items():
+          self._createTreeItemEntity(name, ent)
+      else:
+        for (name, ent) in self.model.entities.items():
+          self._createTreeItemEntity(name, ent)
 
       self.SetSizer(self.sizer)
       self.sizer.Layout()

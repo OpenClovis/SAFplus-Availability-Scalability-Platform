@@ -10,8 +10,6 @@
 #include <boost/python.hpp>
 #include "utils.h"
 
-extern wxWindow* createPythonControlledWindow(wxWindow* parent,const char* module);
-
 int wxIDShowProperties = wxNewId();
 
 //Declare set editors
@@ -34,7 +32,7 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   SetTitle(editorTitle);
 #endif // STANDALONE
 
-  m_editors.insert( this );
+    m_editors.insert( this );
 
     wxBoxSizer* bSizer = new wxBoxSizer( wxVERTICAL );
 
@@ -49,8 +47,8 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
 #endif
 
   // Create toolbar SAFplus entity
-  m_designToolBar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
-  m_designToolBar->SetToolBitmapSize(wxSize(16, 16));
+//  m_designToolBar = new wxToolBar( this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTB_HORIZONTAL );
+//  m_designToolBar->SetToolBitmapSize(wxSize(16, 16));
 
 #ifndef STANDALONE
   const wxString &baseImagePath = ConfigManager::GetDataFolder(false);
@@ -77,7 +75,7 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   m_designToolBar->AddTool(wxID_REDO, wxT("Redo"), wxArtProvider::GetBitmap(wxART_REDO, wxART_MENU), wxT("Redo"));
   m_designToolBar->AddSeparator();
 #endif
-  m_designToolBar->AddRadioTool(wxID_ANY, wxT("Tool"), wxBitmap(Tool_xpm), wxNullBitmap, wxT("Design tool"));
+//  m_designToolBar->AddRadioTool(wxID_ANY, wxT("Tool"), wxBitmap(Tool_xpm), wxNullBitmap, wxT("Design tool"));
   //Get from SAFplusEntityDef.xml
   //Service
 
@@ -92,32 +90,32 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   m_designToolBar->AddRadioTool(wxID_ANY, wxT("SAF Component"), sgBitmap, sgBitmap, wxT("SAF Component [C]"));
   m_designToolBar->AddRadioTool(wxID_ANY, wxT("Non SAF Component"), sgBitmap, sgBitmap, wxT("Non SAF Component [W]"));
   #endif
-  m_designToolBar->AddSeparator();
-  m_designToolBar->AddTool(wxIDShowProperties, wxT("Show Properties"), wxArtProvider::GetBitmap(wxART_REDO), wxT("Show Properties"));
+  //m_designToolBar->AddSeparator();
+  //m_designToolBar->AddTool(wxIDShowProperties, wxT("Show Properties"), wxArtProvider::GetBitmap(wxART_REDO), wxT("Show Properties"));
 
-  bSizer->Add( m_designToolBar, 0, wxEXPAND, 5 );
-
+//  bSizer->Add( m_designToolBar, 0, wxEXPAND, 5 );
+//
   Manager* mgr = Manager::Get();
   wxFrame* frm = mgr->GetAppFrame();
   wxMenuBar* mb = frm->GetMenuBar();
   wxStatusBar* sb = frm->GetStatusBar();
   wxToolBar* tb = frm->GetToolBar();
-
-  if (tb == NULL) tb = m_designToolBar;
-
-  wxSplitterWindow* sp = new wxSplitterWindow(this, -1);
-  //m_paintArea = new SAFplus7ScrolledWindow(sp, wxID_ANY);
-  m_paintArea = NULL;
-  //extern wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMenuBar* menubar, wxToolBar* toolbar, wxStatusBar* statusbar,boost::python::object& obj)
-
-  boost::python::object model = loadModel("testModel.xml");
-
-  wxWindow* details = createPythonControlledWindow("entityDetailsDialog",sp,mb,tb,sb,model);  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
-  wxWindow* uml = createPythonControlledWindow("umlEditor",sp,mb,tb,sb,model);  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
-
-  //sp->SplitVertically(details, m_paintArea, GetClientSize().x/4);
-  sp->SplitVertically(details, uml, 10);
-  bSizer->Add(sp, 1, wxEXPAND, 5 );
+//
+//  if (tb == NULL) tb = m_designToolBar;
+//
+//  wxSplitterWindow* sp = new wxSplitterWindow(this, -1);
+//  //m_paintArea = new SAFplus7ScrolledWindow(sp, wxID_ANY);
+//  m_paintArea = NULL;
+//  //extern wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMenuBar* menubar, wxToolBar* toolbar, wxStatusBar* statusbar,boost::python::object& obj)
+//
+//  boost::python::object model = loadModel("testModel.xml");
+//
+//  wxWindow* details = createPythonControlledWindow("entityDetailsDialog",sp,mb,tb,sb,model);  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
+//  wxWindow* uml = createPythonControlledWindow("umlEditor",sp,mb,tb,sb,model);  // new wxPanel(sp, wxID_ANY); // PythonWinTest(sp);
+//
+//  //sp->SplitVertically(details, m_paintArea, GetClientSize().x/4);
+//  sp->SplitVertically(details, uml, 10);
+//  bSizer->Add(sp, 1, wxEXPAND, 5 );
 
 #if 0
   wxFlexGridSizer* mainSizer = new wxFlexGridSizer( 2, 1 , 0, 0 );
@@ -135,10 +133,54 @@ SAFplus7EditorPanel::SAFplus7EditorPanel(wxWindow* parent, const wxString &edito
   bSizer->Add( &details, 1, wxEXPAND| wxALL, 5);
 #endif
 #endif
-  m_designToolBar->Realize();
+
+  ntbIdeEditor = new wxNotebook(this, wxID_ANY, wxDefaultPosition, wxSize(-1,-1), wxBK_DEFAULT);
+
+  bSizer->Add(ntbIdeEditor, 1, wxALL|wxEXPAND, 5);
+
+  panelUML = new wxPanel(ntbIdeEditor, wxID_ANY, wxDefaultPosition, wxSize(-1,-1), wxTAB_TRAVERSAL);
+  ntbIdeEditor->AddPage(panelUML, _("UML Editor"), false);
+
+  wxBoxSizer* sizerUML = new wxBoxSizer(wxVERTICAL);
+  panelUML->SetSizer(sizerUML);
+
+  tbUML = new wxToolBar(panelUML, wxID_ANY, wxDefaultPosition, wxSize(-1,-1), wxTB_FLAT);
+  tbUML->SetToolBitmapSize(wxSize(16,16));
+
+  sizerUML->Add(tbUML, 0, wxALL|wxEXPAND, 5);
+
+  wxSplitterWindow* sp = new wxSplitterWindow(panelUML, -1);
+
+  boost::python::object model = loadModel("testModel.xml");
+
+  wxWindow* details = createPythonControlledWindow("entityDetailsDialog",sp,mb,tbUML,sb,model, false);
+  wxWindow* uml = createPythonControlledWindow("umlEditor",sp,mb,tbUML,sb,model,false);
+
+  sp->SplitVertically(details, uml, 10);
+  sizerUML->Add(sp, 1, wxEXPAND, 5 );
+  tbUML->Realize();
+
+  panelInstance = new wxPanel(ntbIdeEditor, wxID_ANY, wxDefaultPosition, wxSize(-1,-1), wxTAB_TRAVERSAL);
+  ntbIdeEditor->AddPage(panelInstance, _("Instances Editor"), false);
+
+  wxBoxSizer* sizerInstance = new wxBoxSizer(wxVERTICAL);
+  panelInstance->SetSizer(sizerInstance);
+
+  tbInstance = new wxToolBar(panelInstance, wxID_ANY, wxDefaultPosition, wxSize(-1,-1), wxTB_FLAT);
+  tbInstance->SetToolBitmapSize(wxSize(16,16));
+
+  sizerInstance->Add(tbInstance, 0, wxALL|wxEXPAND, 5);
+
+  wxSplitterWindow* sp1 = new wxSplitterWindow(panelInstance, -1);
+
+  wxWindow* detailsInstance = createPythonControlledWindow("entityDetailsDialog",sp1,mb,tbInstance,sb,model,true);
+  wxWindow* instances = createPythonControlledWindow("instanceEditor",sp1,mb,tbInstance,sb,model,false);
+
+  sp1->SplitVertically(detailsInstance, instances, 10);
+  sizerInstance->Add(sp1, 1, wxEXPAND, 5 );
+  tbInstance->Realize();
 
   SetSizer( bSizer );
-
 
   Layout();
 }
@@ -176,7 +218,6 @@ bool SAFplus7EditorPanel::GetModified() const
 
 void SAFplus7EditorPanel::OnIdle(wxIdleEvent& event)
 {
-  if (m_paintArea) SetModified(m_paintArea->m_isDirty);
 }
 
 void SAFplus7EditorPanel::SetModified(bool modified)
@@ -200,10 +241,4 @@ void SAFplus7EditorPanel::OnNew(wxCommandEvent &event)
 
 void SAFplus7EditorPanel::ShowProperties(wxCommandEvent &event)
 {
-  static bool isShow = true;
-  if (m_paintArea)
-    {
-    m_paintArea->m_mgr.GetPane(wxT("Properties")).Show(isShow = !isShow).Right().Layer(0).Row(0).Position(0);
-    m_paintArea->m_mgr.Update();
-    }
 }

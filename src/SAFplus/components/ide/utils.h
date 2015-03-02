@@ -20,7 +20,7 @@ class Utils
   private:
 };
 
-extern wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMenuBar* menubar, wxToolBar* toolbar, wxStatusBar* statusbar,boost::python::object& obj);
+extern wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMenuBar* menubar, wxToolBar* toolbar, wxStatusBar* statusbar,boost::python::object& obj, bool isInstance);
 
 boost::python::object loadModel(const char* modelName);
 

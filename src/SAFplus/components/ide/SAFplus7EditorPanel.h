@@ -48,12 +48,15 @@ class SAFplus7EditorPanel : public EditorBase
 
     void ShowProperties(wxCommandEvent &event);
 
-    wxToolBar* m_designToolBar;
-    SAFplus7ScrolledWindow* m_paintArea;
-
     bool m_isModified;
     wxString m_title;
     wxWindow* m_parent;
+
+    wxNotebook* ntbIdeEditor;
+    wxPanel* panelUML;
+    wxToolBar* tbUML;
+    wxPanel* panelInstance;
+    wxToolBar* tbInstance;
 
   protected:
 

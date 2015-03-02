@@ -23,10 +23,14 @@ sys.path.append('.')\n\
 def makeWindow(moduleName, parent, menubar, toolbar, statusbar, model):\n\
     module=importlib.import_module(moduleName)\n\
     win = module.Panel(parent, menubar, toolbar, statusbar, model)\n\
+    return win\n\
+\n\
+def makeWindow2(moduleName, parent, menubar, toolbar, statusbar, model, flag):\n\
+    module=importlib.import_module(moduleName)\n\
+    win = module.Panel(parent, menubar, toolbar, statusbar, model, flag)\n\
     return win\n";
 
-
-wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMenuBar* menubar, wxToolBar* toolbar, wxStatusBar* statusbar,boost::python::object& obj)
+wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMenuBar* menubar, wxToolBar* toolbar, wxStatusBar* statusbar,boost::python::object& obj, bool intanceDetail)
   {
     wxWindow* window = NULL;
     PyObject* result;
@@ -57,6 +61,10 @@ wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMe
     // we can grab a pointer to:
     PyObject* funcpyo = PyDict_GetItemString(globals, "makeWindow");
     wxASSERT(PyCallable_Check(funcpyo));
+
+    PyObject* funcpyo2 = PyDict_GetItemString(globals, "makeWindow2");
+    wxASSERT(PyCallable_Check(funcpyo2));
+
     //boost::python::object func(boost::python::handle<>(funcpyo));
 
     // Now build an argument tuple and call the Python function.  Notice the
@@ -74,8 +82,17 @@ wxWindow* createPythonControlledWindow(const char* module, wxWindow* parent,wxMe
     PyObject* tuple = PyTuple_New(1);
     PyTuple_SET_ITEM(tuple, 0, arg);
     */
-    boost::python::tuple t = boost::python::make_tuple(module,boost::python::handle<>(pyparent),mb,tb,sb,obj);
-    result = PyEval_CallObject(funcpyo, t.ptr());
+    if (intanceDetail)
+      {
+        boost::python::object isIntance(intanceDetail);
+        boost::python::tuple t = boost::python::make_tuple(module,boost::python::handle<>(pyparent),mb,tb,sb,obj,isIntance);
+        result = PyEval_CallObject(funcpyo2, t.ptr());
+      }
+    else
+      {
+        boost::python::tuple t = boost::python::make_tuple(module,boost::python::handle<>(pyparent),mb,tb,sb,obj);
+        result = PyEval_CallObject(funcpyo, t.ptr());
+      }
 
     // Was there an exception?
     if (! result)
