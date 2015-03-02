@@ -197,6 +197,7 @@ class Panel(scrolled.ScrolledPanel):
 
         if self.treeItemSelected:
           self.tree.SelectItem(self.treeItemSelected)
+      event.Skip()
 
     def OnButtonClick(self,event):
       id = event.GetId()
@@ -452,7 +453,7 @@ class Panel(scrolled.ScrolledPanel):
           ctrl.Bind(t, self.EvtText)
         
         # Bind this to select treeItem container this control
-        ctrl.Bind(wx.EVT_SET_FOCUS, self.OnFocus)
+        ctrl.Bind(wx.EVT_LEFT_DOWN, self.OnFocus)
 
 def Test():
   global StandaloneDev
