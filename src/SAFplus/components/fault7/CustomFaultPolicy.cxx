@@ -3,10 +3,8 @@
 #include <clLogApi.hxx>
 #include <vector>
 
-
 using namespace std;
 using namespace SAFplus;
-
 
 namespace SAFplus
 {
@@ -24,16 +22,16 @@ namespace SAFplus
     {
 
     }
+
     CustomFaultPolicy::~CustomFaultPolicy()
     {
 
     }
+
     FaultAction CustomFaultPolicy::processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent)
     {
-    	logInfo("POL","CUS","Received fault event of fault Entity with processId [%d] , node [%d] fault count [%d] ", faultEntity.getProcess(),faultEntity.getNode(),countFaultEvent);
-        logInfo("POL","CUS","Default plugin : Process fault event");
-        //assert(root);
-        //TODO
+    	logInfo("POL","CUS","Received fault event : Process Id [%d], Node Id [%d], Fault count [%d] ", faultEntity.getProcess(),faultEntity.getNode(),countFaultEvent);
+        logInfo("POL","CUS","Process fault event : Custom");
         if (countFaultEvent>=2)
         {
         	return FaultAction::ACTION_STOP;
@@ -42,7 +40,7 @@ namespace SAFplus
     }
     FaultAction CustomFaultPolicy::processIocNotification(ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId)
     {
-        logInfo("POL","CUSTOM","process ioc notification");
+        logInfo("POL","CUSTOM","Process ioc notification");
         return FaultAction::ACTION_STOP;
     }
     static CustomFaultPolicy api;
@@ -55,9 +53,7 @@ extern "C" ClPlugin* clPluginInitialize(ClWordT preferredPluginVersion)
   // Initialize the pluginData structure
   SAFplus::api.pluginId         = SAFplus::FAULT_POLICY_PLUGIN_ID;
   SAFplus::api.pluginVersion    = SAFplus::FAULT_POLICY_PLUGIN_VER;
-
   SAFplus::api.policyId = SAFplus::FaultPolicy::AMF;
-
   // return it
   return (ClPlugin*) &SAFplus::api;
 }

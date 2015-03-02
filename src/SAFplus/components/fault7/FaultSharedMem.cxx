@@ -45,7 +45,6 @@ bool FaultSharedMem::createFault(FaultShmEntry* frp,SAFplus::Handle fault)
     if (entryPtr == faultMap->end())
     {
     	logInfo("FLT","SHR","Create new shared memory entity");
-        //ScopedLock<ProcSem> lock(mutex);
         FaultShmEntry* fe = &((*faultMap)[fault]);
         assert(fe);  // TODO: throw out of memory
         fe->init(fault,frp);
@@ -69,7 +68,7 @@ bool FaultSharedMem::updateFaultHandle(FaultShmEntry* frp,SAFplus::Handle fault)
     if (entryPtr == faultMap->end()) return false; // TODO: raise exception
     FaultShmEntry *fse = &entryPtr->second;
     assert(fse);
-    strncpy(fse->name,frp->name,FAULT_NAME_LEN);
+    //strncpy(fse->name,frp->name,FAULT_NAME_LEN);
     fse->dependecyNum=frp->dependecyNum;
     for(int i=0; i<fse->dependecyNum;i++)
     {
@@ -105,7 +104,7 @@ void FaultSharedMem::clear()
         FaultShmEntry& fe = i->second;
         fe.state = SAFplus::FaultState::STATE_UNDEFINED;
         fe.dependecyNum=0;
-        fe.name[0] = '\0';
+        //fe.name[0] = '\0';
     }
 }
 void FaultSharedMem::remove(const SAFplus::Handle handle)
