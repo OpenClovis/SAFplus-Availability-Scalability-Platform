@@ -2,6 +2,7 @@
 
 namespace SAFplus
   {
+  class MsgTransportPlugin_1;
 
   enum
     {
@@ -20,10 +21,10 @@ namespace SAFplus
           SAFplusFree     = 0x20,
           MsgPoolFree     = 0x40,
           CustomFree      = 0x80,
-          DataDoNotFree       = 0x10,
-          DataSAFplusFree     = 0x20,
-          DataMsgPoolFree     = 0x40,
-          DataCustomFree      = 0x80,
+          DataDoNotFree       = 0x100,
+          DataSAFplusFree     = 0x200,
+          DataMsgPoolFree     = 0x400,
+          DataCustomFree      = 0x800,
         };
 
       Flags flags;
@@ -32,17 +33,10 @@ namespace SAFplus
       uint_t len;           //? length of message
       MsgFragment* nextFragment;
       void*        buffer;
-
-      void set(const char* buf)
-        {
-        if (flags & PointerFragment)
-          {
-          start  = 0;
-          len    = strlen(buf); 
-          buffer = (void*) buf;
-          }
-        clDbgNotImplemented("assignment into an inline frag");
-        }
+ 
+      void set(const char* buf);  //? Set this fragment to an null-terminated string buffer (you keep ownership)
+      void* data(int offset=0);
+      const void* read(int offset=0);
 
       void constructPointerFrag()
         {
@@ -77,7 +71,7 @@ namespace SAFplus
     uint_t port; //? source or destination port, depending on whether this message is being sent or was received.
 
     //? Change the address of this message.
-    void setAddress(uint_t node, uint_t port);
+    void setAddress(uint_t nodep, uint_t portp) { node=nodep; port=portp; }
     //? Change the address of this message to that of the node and port of the provided handle.
     void setAddress(const Handle& h);
 
@@ -104,6 +98,7 @@ namespace SAFplus
     {
       public:
       uint_t maxMsgSize;  //? Maximum size of messages in bytes
+      uint_t maxMsgAtOnce; //? Maximum number of messages that can be sent in a single call
       uint_t maxPort;     //? Maximum message port
       uint_t nodeId;      //? identifies this node uniquely in the cluster
     };
@@ -112,17 +107,20 @@ namespace SAFplus
   class MsgSocket
     {
       public:
+      virtual ~MsgSocket()=0;
       MsgPool* msgPool;
+      MsgTransportPlugin_1* transport;
       uint_t node; //? source or destination node, depending on whether this message is being sent or was received.
       uint_t port; //? source or destination port, depending on whether this message is being sent or was received.
 
-      //? Send a bunch of messages
-      virtual void send(const Message* msg);
+      //? Send a bunch of messages.  You give up ownership of msg.
+      virtual void send(Message* msg)=0;
 
       //? Receive up to maxMsgs messages.  Wait for no more than maxDelay milliseconds.  If no messages have been received within that time return NULL.  If maxDelay is -1 (default) then wait forever.  If maxDelay is 0 do not wait.
-      virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+      virtual Message* receive(uint_t maxMsgs,int maxDelay=-1)=0;
 
     };
+
 
   class MsgNotificationData:public WakeableCookie
     {
@@ -141,10 +139,13 @@ namespace SAFplus
   class MsgTransportPlugin_1:public ClPlugin
     {
   public:
+    const char* type;  //? transport plugin type (i.e. UDP, TIPC)
+    MsgTransportConfig config;
 
-    virtual MsgTransportConfig initialize(MsgPool& msgPool, Wakeable* notification)=0;
+    virtual MsgTransportConfig& initialize(MsgPool& msgPool, Wakeable* notification)=0;
 
     virtual MsgSocket* createSocket(uint_t port)=0;
+    virtual void deleteSocket(MsgSocket* sock)=0;
 
     // The copy constructor is disabled to ensure that the only copy of this
     // class exists in the shared memory lib.
@@ -154,6 +155,16 @@ namespace SAFplus
     MsgTransportPlugin_1& operator=( MsgTransportPlugin_1 const&) = delete;
   protected:  // Only constructable from your derived class from within the .so
     MsgTransportPlugin_1() {};
+    };
+
+  class ScopedMsgSocket
+    {
+    public:
+    MsgSocket* sock;
+    ScopedMsgSocket(MsgTransportPlugin_1* xp, uint_t port) { sock=xp->createSocket(port); }
+    ~ScopedMsgSocket() { sock->transport->deleteSocket(sock); }
+
+    MsgSocket* operator->() {return sock;}
     };
 
   }

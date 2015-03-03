@@ -45,11 +45,59 @@ namespace SAFplus
       return ret;
     }
 
+  void MsgFragment::set(const char* buf)
+    {
+    if (flags & PointerFragment)
+      {
+      start  = 0;
+      len    = strlen(buf)+1;  // Include the NULL termination 
+      buffer = (void*) buf;
+      }
+    else if (flags & InlineFragment)
+      {
+      clDbgNotImplemented("assignment into an inline frag");
+      }
+    else
+      {
+      assert(!"Message fragment corrupt");
+      }
+    }
+
+  void* MsgFragment::data(int offset)
+    {
+    if (flags & PointerFragment)
+      {
+      return (void*) (((char*) buffer)+offset+start);
+      }
+    else if (flags & InlineFragment)
+      {
+      assert(offset+start < allocatedLen);
+      return (void*) (((char*) &buffer)+offset+start);
+      }
+    }
+
+  const void* MsgFragment::read(int offset)
+    {
+    assert(offset < len);  // not offset+start because the len does not include start
+    if (flags & PointerFragment)
+      {
+      return (void*) (((char*) buffer)+offset+start);
+      }
+    else if (flags & InlineFragment)
+      {
+      return (void*) (((char*) &buffer)+offset+start);
+      }
+    }
+
+
+
+
   Message* MsgPool::allocMsg()
     {
     Message* msg = (Message*) SAFplusHeapAlloc(sizeof(Message));
     assert(msg);
     msg->initialize();
+    msg->pool = this;
     return msg;
     }
 
@@ -84,5 +132,8 @@ namespace SAFplus
       } while (next != NULL);
     }
 
+
+  MsgSocket::~MsgSocket()
+  {}
 
   };

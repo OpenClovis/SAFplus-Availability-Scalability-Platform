@@ -18,7 +18,7 @@ ClPluginHandle* clLoadPlugin(uint_t pluginId, uint_t  version, const char* name)
     ph->dlHandle = dlopen(name,RTLD_GLOBAL|RTLD_NOW);
     if (!ph->dlHandle)
     {
-        logWrite(LOG_SEV_WARNING, UTL, PLG, "Plugin [%s] was not found.", name);
+        logWrite(LOG_SEV_WARNING, UTL, PLG, "Plugin [%s] error [%s].", name,dlerror());
         goto errorOut;
     }
 

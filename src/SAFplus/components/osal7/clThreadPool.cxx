@@ -224,18 +224,18 @@ void* ThreadPool::timerThreadFunc(void* arg)
 
 void ThreadPool::checkAndReleaseThread()
 {
-  logDebug("THRPOOL","RLS", "checkAndReleaseThread enter: numCurrentThreads [%d]", numCurrentThreads);
+  logTrace("THRPOOL","RLS", "checkAndReleaseThread enter: numCurrentThreads [%d]", numCurrentThreads);
   int nRunningThreads = numCurrentThreads;
   for(ThreadHashMap::iterator iter=threadMap.begin(); iter!=threadMap.end()&&nRunningThreads>minThreads; iter++)
   {
     pthread_t threadId = iter->first;
-    printf("checkAndReleaseThread(): threadId [%lu]\n", threadId);
+    //printf("checkAndReleaseThread(): threadId [%lu]\n", threadId);
     ThreadState& ts = iter->second;
     if (!ts.working)
     {
       struct timespec now;
       int ret = clock_gettime(CLOCK_MONOTONIC, &now);
-      printf("errno [%d]\n", errno);
+      //printf("errno [%d]\n", errno);
       assert(ret==0);
       unsigned long long int idleTime = now.tv_sec - ts.idleTimestamp.tv_sec + (now.tv_nsec - ts.idleTimestamp.tv_nsec)/1000000000L; // calculating idle time in second
       logDebug("THRPOOL","RLS","idle time from not working [%llu]", idleTime);
@@ -265,6 +265,8 @@ void ThreadPool::checkAndReleaseThread()
 
 ThreadPool::~ThreadPool()
 {
+  stop();
+  // TODO: Do I need to join the threads here?
   logDebug("THRPOOL","DES","Deallocate mem for helper object list. size[%d]", (int)whList.size());
   for (WHList::iterator it=whList.begin(); it != whList.end(); ++it)
   {

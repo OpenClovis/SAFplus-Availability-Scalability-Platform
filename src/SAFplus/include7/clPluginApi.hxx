@@ -18,10 +18,6 @@ public:
   virtual ~ClPlugin()=0;
 };
 
-
-/* You must define a plugin initialization routine that returns a structure of plugin functions and other info */
-extern ClPlugin* clPluginInitialize(uint_t preferredPluginVersion);
-
 typedef ClPlugin* (*ClPluginInitializeFnType)(uint_t preferredPluginVersion) ;
 
 #define CL_PLUGIN_INIT_FN "clPluginInitialize"
@@ -45,5 +41,9 @@ typedef struct
 extern ClPluginHandle* clLoadPlugin(uint_t pluginId,uint_t preferredPluginVersion,const char* name);
 
 };
+
+/* You must define a plugin initialization routine that returns a structure of plugin functions and other info */
+extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion);
+
 
 #endif
