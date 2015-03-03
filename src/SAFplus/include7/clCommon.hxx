@@ -16,8 +16,6 @@
 namespace SAFplus
 {
 
-  typedef char* MsgBuffer;
-
 enum
   {
     VersionMajor = 7,

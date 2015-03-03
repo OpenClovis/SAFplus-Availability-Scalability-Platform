@@ -7,21 +7,21 @@
 #include <clCommon.hxx>
 #include "clLogApi.hxx"
 #include "clMsgHandler.hxx"
-#include "clMsgServer.hxx"
+#include <clMsgServer.hxx>
+#include <clMsgTransportPlugin.hxx>
 
 namespace SAFplus
 {
   class MsgTracker:public Poolable
   {
   public:
-    ClIocRecvParam header;
-    MsgBuffer msg;
+    Message*   msg;
     MsgServer* q;
     virtual void wake(int amt, void* cookie);
   };
 
 
-  MsgTracker* CreateMsgTracker(MsgBuffer& recv_msg,ClIocRecvParamT& recvParam,MsgServer* q);
+  MsgTracker* CreateMsgTracker(Message* recv_msg,MsgServer* q);
   void ReleaseMsgTracker(MsgTracker* rm);
   void MsgTrackerHandler(MsgTracker* rm);
 
@@ -40,6 +40,8 @@ namespace SAFplus
 
   void MsgServer::Wipe()
   {
+    transport = NULL;
+    sock = NULL;
     makePrimaryThunk.msgSvr = this;
     reliability = CL_IOC_RELIABLE_MESSAGING; // CL_IOC_UNRELIABLE_MESSAGING
     for (uint_t i=0;i<NUM_MSG_TYPES;i++)
@@ -58,11 +60,13 @@ namespace SAFplus
 
     port   = _port;
 
-    // TODO: Create the message port
+    // Create the message port
+    if (!transport) transport = SAFplusI::defaultMsgPlugin;
+    sock = transport->createSocket(port);
 
     logInfo("MSG", "SVR","Created message port [%d] for MsgServer object",(unsigned int) port);
 
-    handle = Handle(TransientHandle,Handle::uniqueId(),port,SAFplus::ASP_NODEADDR);
+    handle = Handle(TransientHandle,Handle::uniqueId(),port,sock->node);
 
     if (flags & AUTO_ACTIVATE) AutoActivate();
   }
@@ -96,38 +100,45 @@ void MsgServer::MakeMePrimary()
 
   void MsgServer::SendMsg(SAFplus::Handle destination, void* buffer, uint_t length,uint_t msgtype)
   {
-    // TODO
+    // Note msgtype is ignored at this level.  It is used at the SAFplusMsgServer level.
+    assert(sock);
+    Message* m = transport->msgPool->allocMsg();
+    assert(m);
+    m->setAddress(destination);
+    MsgFragment* pfx  = m->append(1);
+    * ((unsigned char*)pfx->data()) = msgtype;
+    pfx->len = 1;
+    MsgFragment* frag = m->append(0);
+    frag->set(buffer,length);
+    sock->send(m);
+    // I have to flush to make sure that my use of buffer is complete
+    sock->flush();
   }
 
   void ReceiverFunc(MsgServer* q)
   {
-    ClIocRecvParamT recvParam;
-
     logDebug("MSG", "RCV","Message queue receiver started");
 
     while (q->receiving)
       {
-#if 0
-        ClBufferHandleT         recv_msg = 0;
+        Message* m = q->sock->receive(1,1000);  // block for one second or until a message is received
 
-        if (worked) 
+        if (m) 
           {
           logInfo("IOC", "MSG","Rcvd Msg");
-          MsgTracker* rm = CreateMsgTracker(recv_msg,recvParam,q);
-          recv_msg = 0;  // wipe it so I know to create another
+          MsgTracker* rm = CreateMsgTracker(m,q);
+          m = 0;  // wipe it so I know to create another
           q->jq.run(rm);
           //clJobQueuePush(&q->jq, (ClCallbackT) MsgTrackerHandler, rm);
           }
-#else
-        boost::this_thread::sleep(boost::posix_time::milliseconds(1000));  // Just sleep until this function is implemented
-#endif
+        //boost::this_thread::sleep(boost::posix_time::milliseconds(1000));  // Just sleep until this function is implemented
+
       }
   }
 
-  MsgTracker* CreateMsgTracker(MsgBuffer& recv_msg,ClIocRecvParamT& recvParam,MsgServer* q)
+  MsgTracker* CreateMsgTracker(Message* recv_msg,MsgServer* q)
   {
     MsgTracker* ret = new MsgTracker();
-    ret->header = recvParam;
     ret->q      = q;
     ret->msg    = recv_msg;
     return ret;
@@ -135,24 +146,27 @@ void MsgServer::MakeMePrimary()
 
   void ReleaseMsgTracker(MsgTracker* rm)
   {
-    // TODO delete rm->msg
-    //clBufferDelete(&rm->msg);
+    rm->msg->msgPool->free(rm->msg);
     rm->q = 0;
     delete rm;
   }
   
   void MsgTracker::wake(int amt, void* cookie)
   {
-    MsgHandler *msgHandler = q->handlers[header.protoType];
+    assert(msg->firstFragment == msg->lastFragment);  // This code is only written to handle one fragment.
+    MsgFragment* frag =  msg->firstFragment;
+    // TODO: what would the performance be to put the header into its own buffer during the recvmmsg?
+    int msgType = *((char*)frag->read(0));
+    frag->start++;
+    frag->len--;
+
+    MsgHandler *msgHandler = q->handlers[msgType];
     if (msgHandler != NULL)
       {
         ClRcT rc;
-        uint8_t* buf= NULL; //(uint8_t) msg;
-        assert(0);  // not implemented
         //rc = clBufferFlatten(msg,&buf);
-        //CL_ASSERT(rc == CL_OK); // Can hit an error if out of memory
-        msgHandler->msgHandler(header.srcAddr, q, buf, header.length,q->cookies[header.protoType]);
-        SAFplusHeapFree(buf);
+        Handle srcAddr = getProcessHandle(msg->port,msg->node);
+        msgHandler->msgHandler(srcAddr, q, (char*)frag->read(0), frag->len,q->cookies[msgType]);
       }
 
     ReleaseMsgTracker(this);

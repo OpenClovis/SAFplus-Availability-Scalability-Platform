@@ -171,11 +171,11 @@ class LibSet
   extern void objectMessagerInitialize() __attribute__((weak));
   extern void nameInitialize() __attribute__((weak));
   extern void msgServerInitialize(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads)  __attribute__((weak));
+  extern void clMsgInitialize(void) __attribute__((weak)); 
 
 #ifdef __cplusplus
 extern "C" {
 #endif 
-  extern ClRcT clIocLibInitialize(ClPtrT pConfig) __attribute__((weak)); 
   extern ClRcT clOsalInitialize(const ClPtrT pConfig) __attribute__((weak));  
   extern ClRcT clHeapInit(void) __attribute__((weak));
   extern ClRcT clBufferInitialize(const ClBufferPoolConfigT *pConfig) __attribute__((weak));
@@ -217,10 +217,9 @@ extern "C" {
       assert(rc == CL_OK);
       }
 
-    if((svc&LibSet::IOC)&&clIocLibInitialize) 
+    if((svc&LibSet::IOC)&&clMsgInitialize) 
       { 
-      rc = clIocLibInitialize(NULL); 
-      assert(rc == CL_OK); 
+      clMsgInitialize();
       }
 
     if((svc&LibSet::DBAL)&&clDbalLibInitialize)

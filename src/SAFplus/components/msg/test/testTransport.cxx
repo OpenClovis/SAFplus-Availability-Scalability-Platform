@@ -6,13 +6,13 @@ using namespace SAFplus;
 
 class xorshf96
   {
-  public:
+public:
   unsigned long x, y, z;
  
   xorshf96(unsigned long seed=123456789)
-  {
-  x=seed, y=362436069, z=521288629;
-  }
+    {
+    x=seed, y=362436069, z=521288629;
+    }
 
   unsigned long operator()(void) 
     {          //period 2^96-1
@@ -21,11 +21,11 @@ class xorshf96
     x ^= x >> 5;
     x ^= x << 1;
 
-   t = x;
-   x = y;
-   y = z;
-   z = t ^ x ^ y;
-  return z;
+    t = x;
+    x = y;
+    y = z;
+    z = t ^ x ^ y;
+    return z;
     }
   };
 
@@ -54,7 +54,7 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   m = b->receive(1,0);
   clTest(("recv"),m != NULL,(" "));
   printf("%s\n",(const char*) m->firstFragment->read());
-  clTest(("send/recv message ok"), strncmp((const char*) m->firstFragment->read(),strMsg,sizeof(strMsg)),("message contents miscompare: %s -> %s", strMsg,(const char*) m->firstFragment->read()) );
+  clTest(("send/recv message ok"), 0 == strncmp((const char*) m->firstFragment->read(),strMsg,sizeof(strMsg)),("message contents miscompare: %s -> %s", strMsg,(const char*) m->firstFragment->read()) );
   if (m) b->msgPool->free(m);
 
   xp->deleteSocket(a);

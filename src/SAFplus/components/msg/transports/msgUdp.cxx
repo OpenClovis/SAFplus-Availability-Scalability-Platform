@@ -11,7 +11,6 @@ namespace SAFplus
   class Udp:public MsgTransportPlugin_1
     {
   public:
-    MsgPool*  pool;
     Wakeable* wake;
     in_addr_t netAddr;
     Udp(); 
@@ -29,7 +28,7 @@ namespace SAFplus
     virtual ~UdpSocket();
     virtual void send(Message* msg);
     virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
-
+    virtual void flush();
     protected:
     int sock;
     };
@@ -37,12 +36,12 @@ namespace SAFplus
 
   Udp::Udp()
     {
-    pool = NULL; wake = NULL;
+    msgPool = NULL; wake = NULL;
     }
 
-  MsgTransportConfig& Udp::initialize(MsgPool& msgPool, Wakeable* notification)
+  MsgTransportConfig& Udp::initialize(MsgPool& msgPoolp, Wakeable* notification)
     {
-    pool = &msgPool;
+    msgPool = &msgPoolp;
     wake = notification;
 
     config.nodeId = 0; // TODO
@@ -75,7 +74,7 @@ namespace SAFplus
   MsgSocket* Udp::createSocket(uint_t port)
     {
     if (port >= SAFplusI::UdpTransportNumPorts) return NULL;
-    return new UdpSocket(port, pool,this);
+    return new UdpSocket(port, msgPool,this);
     }
 
   void Udp::deleteSocket(MsgSocket* sock)
@@ -95,6 +94,14 @@ namespace SAFplus
        {
        int err = errno;
        throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
+       }
+
+     // enable broadcast permissions on this socket
+     int broadcastEnable=1;
+     if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)))
+       {
+       int err = errno;
+       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
        }
 
      struct sockaddr_in myaddr;
@@ -117,6 +124,8 @@ namespace SAFplus
       close(sock);
       sock = -1;
       }
+
+    void UdpSocket::flush() {} // Nothing to do, messages are not cached
 
     void UdpSocket::send(Message* next)
       {
@@ -158,7 +167,10 @@ namespace SAFplus
 
         bzero(&to[msgCount],sizeof(struct sockaddr_in));
         to[msgCount].sin_family = AF_INET;
-        to[msgCount].sin_addr.s_addr= htonl(((Udp*)transport)->netAddr | msg->node);
+        if (msg->node == Handle::AllNodes)
+          to[msgCount].sin_addr.s_addr= htonl(INADDR_BROADCAST);
+        else
+          to[msgCount].sin_addr.s_addr= htonl(((Udp*)transport)->netAddr | msg->node);
         to[msgCount].sin_port=htons(msg->port + SAFplusI::UdpTransportStartPort);
 
         curvec->msg_hdr.msg_controllen = 0;
@@ -187,7 +199,7 @@ namespace SAFplus
         }
 
       // Your send routine releases the message whenever you are ready to do so
-      MsgPool* temp = msg->pool;
+      MsgPool* temp = msg->msgPool;
       temp->free(msg);
       }
 
@@ -249,7 +261,7 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
       if (retval == -1)
         {
         int err = errno;
-        ret->pool->free(ret);  // clean up this unused message.  TODO: save it for the next receive call
+        ret->msgPool->free(ret);  // clean up this unused message.  TODO: save it for the next receive call
         if (errno == EAGAIN) return NULL;  // its ok just no messages received.  This is a "normal" error not an exception
         throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
         }
@@ -258,7 +270,7 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
 #if 0  // Its possible to send a zero length message!  If that happens you'll receive it!  Did you forget to set the len field of your fragment?
         if ((retval==1)&&(msgs[0].msg_len==0))  // Got one empty message.  Not sure why this happens
           {
-          ret->pool->free(ret);
+          ret->msgPool->free(ret);
           return NULL;
           }
 #endif

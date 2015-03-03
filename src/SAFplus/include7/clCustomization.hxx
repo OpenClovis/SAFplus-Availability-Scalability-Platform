@@ -31,6 +31,12 @@ namespace SAFplus
 /* Configuration parameters that are used internally */
 namespace SAFplusI
   {
+  /* THREADS */
+  enum
+    {
+    ThreadPoolTimerInterval = 60, //? Seconds between checks that threads are not hung
+    ThreadPoolIdleTimeLimit = 50, //? If a thread has had no tasks for this long, let it quit
+    };
 
   /* LOGGING */
   enum
@@ -77,6 +83,8 @@ namespace SAFplusI
     UdpTransportMaxMsg = 64,
     UdpTransportMaxFragments = 256,
     };
+
+  extern const char* defaultMsgTransport;  //? Specifies the default messaging transport plugin filename.  This can be overridden by an environment variable.
 
   };
 

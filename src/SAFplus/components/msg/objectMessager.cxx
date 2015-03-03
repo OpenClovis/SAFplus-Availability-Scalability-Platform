@@ -10,7 +10,7 @@ namespace SAFplus
     safplusMsgServer.registerHandler(SAFplusI::OBJECT_MSG_TYPE,&objectMessager,0);
     }
 
-  void ObjectMessager::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+  void ObjectMessager::msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
     Handle* h = (Handle*) msg;
     ObjectMessagerMap::iterator objref = omap.find(*h);

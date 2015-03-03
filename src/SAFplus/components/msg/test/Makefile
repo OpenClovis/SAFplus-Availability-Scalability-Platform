@@ -15,7 +15,7 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 
-all: deps $(TEST_DIR)/testTransport 
+all: deps $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer
 
 deps:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/msg/transports

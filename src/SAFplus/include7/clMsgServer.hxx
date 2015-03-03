@@ -12,6 +12,8 @@ namespace SAFplus
   class MsgServer;
   class MsgTracker;
   class MsgHandler;
+  class MsgTransportPlugin_1;
+  class MsgSocket;
 
   //typedef void (*MsgHandler) (ClIocAddressT from, MsgServer* q, ClPtrT msg, uint_t msglen, ClPtrT cookie);
 
@@ -47,10 +49,10 @@ namespace SAFplus
     void AutoActivate(const SaUint8T *workKeyName);
     
     /** Returns the redundant address */
-    ClIocAddressT GetSharedAddress() { return sharedAddr; }
+    Handle GetSharedAddress() { return handle;  /* TODO */ }
 
     /** Exactly this msg queue on this node */
-    ClIocAddressT GetAddress() { return uniqueAddr; }
+    Handle GetAddress() { return handle; }
 
     /** Handle a particular type of message
         @param type    A number from 0 to 255 indicating the message type
@@ -96,6 +98,14 @@ namespace SAFplus
     SAFplus::Handle handle;
     uint_t port;
 
+    /*? get a handle to send to all servers of this type in the
+     *  cluster.  It may be more efficient to use Groups since this broadcast
+     *  will be handled by every node. */
+    SAFplus::Handle broadcastAddr()
+      {
+      return getProcessHandle(port,Handle::AllNodes);
+      }
+
   protected:
     void Shutdown();
 
@@ -105,10 +115,6 @@ namespace SAFplus
      */
     void Wipe();
 
-    
-    ClIocAddressT sharedAddr;
-    ClIocAddressT uniqueAddr;
-    
     //ClJobQueueT jq;
     SAFplus::ThreadPool jq;
     MakePrimary makePrimaryThunk;
@@ -121,10 +127,12 @@ namespace SAFplus
 
     SAFplus::Mutex    mutex;
     SAFplus::ThreadCondition       cond;
-    ClBoolT           receiving;
+    bool              receiving;
     boost::thread     receiverThread;
     MsgHandler*       handlers[NUM_MSG_TYPES];
     ClPtrT            cookies[NUM_MSG_TYPES];
+    SAFplus::MsgTransportPlugin_1* transport;
+    SAFplus::MsgSocket* sock;
 
     //friend void MsgTrackerHandler(MsgTracker* rm);
     //friend void SynchronousMakePrimary(MsgServer* q);

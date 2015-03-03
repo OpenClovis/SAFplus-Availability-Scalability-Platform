@@ -34,7 +34,7 @@ namespace SAFplus
     }
 
     void
-    MsgHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    MsgHandler::msgHandler(SAFplus::Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
     }
 

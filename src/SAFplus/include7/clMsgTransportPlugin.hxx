@@ -34,7 +34,8 @@ namespace SAFplus
       MsgFragment* nextFragment;
       void*        buffer;
  
-      void set(const char* buf);  //? Set this fragment to an null-terminated string buffer (you keep ownership)
+      void set(const char* buf);  //? Set this fragment to a null-terminated string buffer (you keep ownership)
+      void set(void* buf, uint_t length);  //? Set this fragment to buffer (you keep ownership)
       void* data(int offset=0);
       const void* read(int offset=0);
 
@@ -66,7 +67,7 @@ namespace SAFplus
     {
     public:
     Message() { initialize(); }
-    void initialize() { node=0; port=0; nextMsg=0; firstFragment=nullptr; lastFragment=nullptr; nextMsg=nullptr; pool=nullptr;  }
+    void initialize() { node=0; port=0; nextMsg=0; firstFragment=nullptr; lastFragment=nullptr; nextMsg=nullptr; msgPool=nullptr;  }
     uint_t node; //? source or destination node, depending on whether this message is being sent or was received.
     uint_t port; //? source or destination port, depending on whether this message is being sent or was received.
 
@@ -77,7 +78,7 @@ namespace SAFplus
 
     MsgFragment* prepend(uint_t size); //? Create a message fragment at the beginning of this message and return it
     MsgFragment* append(uint_t size);  //? Create a message fragment at the end of this message and return it
-    MsgPool*     pool;
+    MsgPool*     msgPool;
     MsgFragment* firstFragment;
     MsgFragment* lastFragment;
     Message* nextMsg;
@@ -115,6 +116,8 @@ namespace SAFplus
 
       //? Send a bunch of messages.  You give up ownership of msg.
       virtual void send(Message* msg)=0;
+      //? Force all queued messages to be sent (you can reuse any non msgpool buffers you gave me)
+      virtual void flush()=0;
 
       //? Receive up to maxMsgs messages.  Wait for no more than maxDelay milliseconds.  If no messages have been received within that time return NULL.  If maxDelay is -1 (default) then wait forever.  If maxDelay is 0 do not wait.
       virtual Message* receive(uint_t maxMsgs,int maxDelay=-1)=0;
@@ -141,6 +144,7 @@ namespace SAFplus
   public:
     const char* type;  //? transport plugin type (i.e. UDP, TIPC)
     MsgTransportConfig config;
+    MsgPool* msgPool;  //? This is the memory pool to use for this transport.
 
     virtual MsgTransportConfig& initialize(MsgPool& msgPool, Wakeable* notification)=0;
 
@@ -168,3 +172,8 @@ namespace SAFplus
     };
 
   }
+
+namespace SAFplusI
+{
+  extern SAFplus::MsgTransportPlugin_1* defaultMsgPlugin;
+};

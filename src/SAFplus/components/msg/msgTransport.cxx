@@ -4,9 +4,15 @@
 namespace SAFplus
   {
 
+  void Message::setAddress(const Handle& h)
+    {
+    node = h.getNode();
+    port = h.getPort();
+    }
+
   MsgFragment* Message::prepend(uint_t size)
     {
-      MsgFragment* f = pool->allocMsgFragment(size);
+      MsgFragment* f = msgPool->allocMsgFragment(size);
       assert(f);
       f->nextFragment = firstFragment;
       firstFragment = f;
@@ -16,7 +22,7 @@ namespace SAFplus
 
   MsgFragment* Message::append(uint_t size)
     {
-      MsgFragment* f = pool->allocMsgFragment(size);
+      MsgFragment* f = msgPool->allocMsgFragment(size);
       assert(f);
       if (!lastFragment) { lastFragment = f; firstFragment = f; }  // This is the first fragment
       else
@@ -63,6 +69,26 @@ namespace SAFplus
       }
     }
 
+  void MsgFragment::set(void* buf,uint_t length)
+    {
+    if (flags & PointerFragment)
+      {
+      start  = 0;
+      len    = length;  // Include the NULL termination 
+      buffer = (void*) buf;
+      }
+    else if (flags & InlineFragment)
+      {
+      clDbgNotImplemented("assignment into an inline frag");
+      }
+    else
+      {
+      assert(!"Message fragment corrupt");
+      }
+    }
+
+
+
   void* MsgFragment::data(int offset)
     {
     if (flags & PointerFragment)
@@ -97,7 +123,7 @@ namespace SAFplus
     Message* msg = (Message*) SAFplusHeapAlloc(sizeof(Message));
     assert(msg);
     msg->initialize();
-    msg->pool = this;
+    msg->msgPool = this;
     return msg;
     }
 
