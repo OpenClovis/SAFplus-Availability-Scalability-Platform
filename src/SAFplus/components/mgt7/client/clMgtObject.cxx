@@ -43,6 +43,7 @@ namespace SAFplus
     tag.assign(name);
     listTag.assign(name);
     dataXPath.assign("");
+    loadDb = false;
     parent = NULL;
     headRev = 1;
     }
