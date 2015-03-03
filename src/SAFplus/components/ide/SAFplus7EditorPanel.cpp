@@ -80,7 +80,8 @@ wxPanel *SAFplus7EditorPanel::createChildPage(wxMenuBar *mb, wxStatusBar *sb, bo
         editor = createPythonControlledWindow("umlEditor",sp,mb,tb,sb,model,false);
       }
     sp->SplitVertically(details, editor, 10);
-    sizer->Add(sp, 1, wxEXPAND, 5 );
+    sizer->Add(sp, 1, wxALL | wxEXPAND, 5 );
+    sp->SetSashGravity(0.0);
     tb->Realize();
 
     panel->SetSizer(sizer);

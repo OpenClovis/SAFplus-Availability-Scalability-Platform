@@ -293,6 +293,7 @@ class Panel(scrolled.ScrolledPanel):
           self.treeItemSelected = treeItem
         else:
           self.tree.Collapse(treeItem)
+      self.SetSashPosition(495)
 
     def OnTreeSelChanged(self, event):
       self.treeItemSelected = event.GetItem()
@@ -322,7 +323,7 @@ class Panel(scrolled.ScrolledPanel):
       for (evt, func) in self.eventDictTree.items():
         self.tree.Bind(evt, func)
 
-      self.sizer.Add(self.tree, -1, wx.EXPAND)
+      self.sizer.Add(self.tree, -1, wx.ALL | wx.EXPAND)
 
       self.treeRoot = self.tree.AddRoot("entityDetails")
 
@@ -336,7 +337,6 @@ class Panel(scrolled.ScrolledPanel):
       self.SetSizer(self.sizer)
       self.sizer.Layout()
       self.Refresh()
-      self.SetSashPosition(self.GetParent().GetClientSize().x/4)
 
     # Create controls for an entity
     def _createTreeItemEntity(self, name, ent):

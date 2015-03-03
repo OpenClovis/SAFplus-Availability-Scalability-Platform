@@ -303,11 +303,6 @@ class SelectTool(Tool):
         entities = panel.findEntitiesAt(pos)
         if not entities: return False
 
-        # TODO: show instance details
-        if len(entities) == 2:
-          share.instanceDetailsPanel.showEntities(*entities)
-          self.panel.SetSashPosition(self.panel.GetParent().GetClientSize().x/4)
-
     if isinstance(event,wx.KeyEvent):
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId:
         try:
