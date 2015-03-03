@@ -3461,7 +3461,8 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
     ClTimerTimeOutT timeOut    = {0}; 
     ClCkptReplicateTimerArgsT *pTimerArgs = NULL;
     ClIocNodeAddressT masterAddr = gCkptSvr->masterInfo.masterAddr;
-
+    int locked = 0;
+    
     /*
      * Version verification.
      */
@@ -3517,6 +3518,7 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
          * from replica nodes.
          */
         CKPT_LOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+        locked = 1;
                 
         rc = clCntDataForKeyGet(gCkptSvr->masterInfo.peerList,
                                 (ClPtrT)(ClWordT)peerAddr, (ClCntDataHandleT *)&pPeerInfo);    
@@ -3571,8 +3573,7 @@ ClRcT    VDECL_VER(clCkptRemSvrWelcome, 4, 0, 0)(ClVersionT         *pVersion,
     /*
      * Unlock the master DB.
      */
-    if(masterAddr == gCkptSvr->localAddr)
-        CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
+    if (locked) CKPT_UNLOCK(gCkptSvr->masterInfo.ckptMasterDBSem);
     return rc;
 }                              
 
