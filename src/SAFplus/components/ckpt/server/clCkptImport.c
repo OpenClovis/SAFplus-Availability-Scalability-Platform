@@ -336,15 +336,17 @@ ClRcT clCkptMasterAddressesSet()
                            &notBuffer);
                            
     /*
-     * Call the track change callback funtion. This is needed for getting 
+     * Call the track change callback function. This is needed for getting
      * current track information.
      */
-    if(notBuffer.leader && 
+    if(rc == CL_OK && notBuffer.leader &&
        notBuffer.leader != CL_GMS_INVALID_NODE_ID)
     {
         _clCkptAddressesUpdate(&notBuffer);
     }
-    clHeapFree(notBuffer.notification);
+
+    if (notBuffer.notification != NULL)
+      clHeapFree(notBuffer.notification);
 
 #else
     /*

@@ -786,10 +786,6 @@ ClRcT clGmsClusterTrack(
                                * to free the buffer.
                                */
         {
-            if (res->buffer.notification != NULL)
-            {
-                clHeapFree((void*)res->buffer.notification);
-            }
             rc = res->rc;
             goto error_exit;
         }
@@ -845,7 +841,8 @@ ClRcT clGmsClusterTrack(
 error_exit:
     if(shouldFreeNotification == CL_TRUE )
     {
-        clHeapFree((void*)res->buffer.notification);
+        if (res->buffer.notification != NULL)
+          clHeapFree((void*)res->buffer.notification);
     }
     clHeapFree((void*)res);
     
