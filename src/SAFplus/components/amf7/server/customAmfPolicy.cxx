@@ -57,7 +57,7 @@ namespace SAFplus
   static CustomPolicy api;
   }
 
-extern "C" ClPlugin* clPluginInitialize(ClWordT preferredPluginVersion)
+extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   {
   // We can only provide a single version, so don't bother with the 'preferredPluginVersion' variable.
 

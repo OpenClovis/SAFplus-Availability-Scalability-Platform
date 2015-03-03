@@ -455,8 +455,6 @@ int main(int argc, char* argv[])
   ThreadCondition somethingChanged;
   bool firstTime=true;
   //gIsNodeRepresentative = CL_TRUE;
-  logEchoToFd = 1;  // echo logs to stdout for debugging
-  logSeverity = LOG_SEV_MAX;
 
   if (parseArgs(argc,argv)<=0) return -1;
 
@@ -467,6 +465,9 @@ int main(int argc, char* argv[])
   sic.msgQueueLen = MAX_MSGS;
   sic.msgThreads  = MAX_HANDLER_THREADS;
   safplusInitialize( SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
+
+  logEchoToFd = 1;  // echo logs to stdout for debugging
+  logSeverity = LOG_SEV_MAX;
   logAlert("AMF","INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__);
 
   //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);

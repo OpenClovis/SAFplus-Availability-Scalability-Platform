@@ -23,7 +23,7 @@ void testChanges(void);
 
 static unsigned int MAX_MSGS=25;
 static unsigned int MAX_HANDLER_THREADS=2;
-ClBoolT   gIsNodeRepresentative = CL_FALSE;
+//ClBoolT   gIsNodeRepresentative = CL_FALSE;
 
 namespace SAFplusI
   {
@@ -32,7 +32,6 @@ namespace SAFplusI
 
 int main(int argc, char* argv[])
 {
-  SAFplus::ASP_NODEADDR = 1;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
 
