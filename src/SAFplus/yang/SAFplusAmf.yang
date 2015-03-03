@@ -965,9 +965,9 @@ are switched over to other nodes (component service instances are not abruptly r
 	safplus:alias saAmfSURank;
 	safplus:ui-prompt "Rank";
 	type uint32 {
-        range "1..1024";	
+        range "0..1024";	
 	}
-        default 1;
+        default 0;
 	description "Lower rank is instantiated before higher; but rank 0 means 'don't care'.";
       }
 

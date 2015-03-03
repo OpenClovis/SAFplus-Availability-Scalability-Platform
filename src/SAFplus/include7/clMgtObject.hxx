@@ -105,6 +105,7 @@ extern MgtIteratorBase mgtIterEnd;
     std::string tag;
     std::string listTag;
     std::string dataXPath;
+    bool loadDb;
     MgtObject *parent;
     ClUint32T headRev; //Revision to check before sending
   public:

@@ -211,7 +211,6 @@ namespace SAFplus
   }
   ClRcT MgtContainer::read(std::string parentXPath,MgtDatabase *db)
   {
-    logDebug("MGT","SET","Read data, xpath %s",parentXPath.c_str());
     ClRcT rc = CL_OK;
     MgtObjectMap::iterator it;
 
@@ -244,13 +243,20 @@ namespace SAFplus
   {
     ClRcT rc = CL_OK;
     MgtObjectMap::iterator it;
-    std::string xp = getFullXpath();
-    if(parentXPath.size() > 0)
+
+    std::string xp;
+    if (dataXPath.size() > 0)
     {
-      xp = getFullXpath(false);
-      parentXPath.append(xp);
-      xp = parentXPath;
+      xp.assign(dataXPath);
     }
+    else if (parentXPath.size() > 0)
+    {
+      xp.assign(parentXPath);
+      xp.append(getFullXpath(false));
+    }
+    else
+      xp.assign(getFullXpath(true));
+
     for (it = children.begin(); it != children.end(); ++it)
     {
       MgtObject* child = it->second;

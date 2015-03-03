@@ -357,8 +357,15 @@ std::vector<std::string> *MgtProv<T>::getChildNames()
 template <class T>
 ClRcT MgtProv<T>::setDb(std::string pxp,MgtDatabase *db)
 {
+    if (!loadDb)
+      return CL_OK;
+
     std::string key;
-    if(pxp.size() > 0)
+    if (dataXPath.size() > 0)
+    {
+      key.assign(dataXPath);
+    }
+    else if(pxp.size() > 0)
     {
       key.assign(pxp);
       key.append(getFullXpath(false));
@@ -393,6 +400,10 @@ ClRcT MgtProv<T>::getDb(std::string pxp,MgtDatabase *db)
     {
       db = MgtDatabase::getInstance();
     }
+
+    dataXPath.assign(key);
+    loadDb = true;
+
     std::string val;
     ClRcT rc = db->getRecord(key, val);
     if (CL_OK != rc)

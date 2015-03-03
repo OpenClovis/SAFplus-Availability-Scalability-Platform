@@ -314,8 +314,17 @@ template <class T>
 ClRcT MgtProvList<T>::setDb(std::string pxp,MgtDatabase *db)
 {
     ClRcT rc = CL_OK;
+
+    if (!loadDb)
+      return rc;
+
     std::string key;
-    if(pxp.size() > 0)
+
+    if (dataXPath.size() > 0)
+    {
+      key.assign(dataXPath);
+    }
+    else if(pxp.size() > 0)
     {
       key.assign(pxp);
       key.append(getFullXpath(false));
@@ -407,6 +416,9 @@ ClRcT MgtProvList<T>::getDb(std::string pxp,MgtDatabase *db)
           this->pushBackValue(value);
         }
     }
+
+    dataXPath.assign(key);
+    loadDb = true;
 
     return rc;
 }
