@@ -340,6 +340,12 @@ class Panel(scrolled.ScrolledPanel):
 
     # Create controls for an entity
     def _createTreeItemEntity(self, name, ent):
+      
+      # Check and return if item exists
+      for treeItem in self.treeRoot.GetChildren():
+        if (self.tree.GetPyData(treeItem) == ent):
+          return
+
       treeItem = self.tree.AppendItem(self.treeRoot, name)
       self.tree.SetPyData(treeItem, ent)
 

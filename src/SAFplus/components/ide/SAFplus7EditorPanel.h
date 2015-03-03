@@ -16,6 +16,7 @@
 #include <wx/toolbar.h>
 #include <wx/settings.h>
 #include <wx/sizer.h>
+#include <boost/python.hpp>
 
 
 #ifndef WX_PRECOMP
@@ -48,15 +49,15 @@ class SAFplus7EditorPanel : public EditorBase
 
     void ShowProperties(wxCommandEvent &event);
 
+    wxPanel *createChildPage(wxMenuBar *mb, wxStatusBar *sb, boost::python::object& model, bool isinstance);
+
     bool m_isModified;
     wxString m_title;
     wxWindow* m_parent;
 
     wxNotebook* ntbIdeEditor;
-    wxPanel* panelUML;
-    wxToolBar* tbUML;
-    wxPanel* panelInstance;
-    wxToolBar* tbInstance;
+    wxPanel* pageUML;
+    wxPanel* pageInstance;
 
   protected:
 

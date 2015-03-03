@@ -879,10 +879,10 @@ class Panel(scrolled.ScrolledPanel):
         if placement == "column":
           self.columns.append(inst)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
 
-        # Push instance into hyperlist tree
+        # Put all childs instances into hyperlisttree
         if share.instanceDetailsPanel:
-          share.instanceDetailsPanel._createTreeItemEntity(inst.data["name"], inst)
-
+          for (name, inst) in self.model.instances.items():
+            share.instanceDetailsPanel._createTreeItemEntity(inst.data["name"], inst)
         self.Refresh()
 
       self.layout()
@@ -1096,7 +1096,7 @@ class Panel(scrolled.ScrolledPanel):
       rect = convertToRealPos(rect, self.scale)
       ret = set()
       # hoang for (name, e) in self.model.instances.items():
-      for (name, e) in self.entities.items():
+      for (name, e) in self.model.instances.items():
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)
