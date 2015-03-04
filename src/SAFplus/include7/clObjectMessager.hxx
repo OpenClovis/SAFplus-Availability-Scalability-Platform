@@ -12,7 +12,7 @@ namespace SAFplus
   class ObjectMessager:public SAFplus::MsgHandler
     {
     public:
-    virtual void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+    virtual void msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 
     void insert(SAFplus::Handle h, SAFplus::MsgHandler* obj);
     void remove(SAFplus::Handle h);

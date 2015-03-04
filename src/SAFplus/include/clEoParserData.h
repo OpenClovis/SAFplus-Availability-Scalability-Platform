@@ -1,1 +1,0 @@
-../components/eo/client/clEoParserData.h

@@ -1,1 +1,0 @@
-../components/ckpt/idl/ckptClntEo/client/ckptClntEoClient.h

@@ -33,16 +33,10 @@
 
 #include <map>
 #include <string>
-
+#include <clCommon.hxx>
 #include "clMgtObject.hxx"
 #include "clMgtNotify.hxx"
 #include "clMgtRpc.hxx"
-
-
-extern "C"
-{
-#include <clCommon.h>
-} /* end extern 'C' */
 
 namespace SAFplus
 {

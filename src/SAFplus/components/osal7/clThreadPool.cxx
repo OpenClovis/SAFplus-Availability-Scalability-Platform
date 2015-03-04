@@ -41,18 +41,20 @@ ThreadPool::ThreadPool(short _minThreads, short _maxThreads): minThreads(_minThr
 
 void ThreadPool::stop()
 {
-  logDebug("THRPOOL","STOP", "ThreadPool::stop enter");
+  logTrace("THRPOOL","STOP", "ThreadPool::stop enter");
   mutex.lock();
   isStopped = true;
   // Notify all threads to stop waiting if any and then exit
   logInfo("THRPOOL","STOP", "Notify all threads to stop running");
   cond.notify_all();
   mutex.unlock();
+  // TODO: join the threads here instead of sleeping
+  sleep(5);
 }
 
 void ThreadPool::start()
 {
-  logDebug("THRPOOL","START", "ThreadPool::start enter");
+  logTrace("THRPOOL","START", "ThreadPool::start enter");
   for(int i=0;i<minThreads;i++)
   {
     startThread();
@@ -64,13 +66,13 @@ void ThreadPool::start()
 
 void ThreadPool::run(Poolable* p)
 {
-  logDebug("THRPOOL","RUN", "ThreadPool::run enter");
+  logTrace("THRPOOL","RUN", "ThreadPool::run enter");
   enqueue(p);
 }
 
 void ThreadPool::run(Wakeable* wk, void* arg)
 {
-  logDebug("THRPOOL","RUN", "ThreadPool::run enter");
+  logTrace("THRPOOL","RUN", "ThreadPool::run enter");
   WakeableHelper* pwh = getUnusedWHElement();
   if (pwh)
   {
@@ -87,7 +89,7 @@ void ThreadPool::run(Wakeable* wk, void* arg)
 
 void ThreadPool::enqueue(Poolable* p)
 {
-  logDebug("THRPOOL","ENQ", "ThreadPool::enqueue enter");
+  logTrace("THRPOOL","ENQ", "ThreadPool::enqueue enter");
   if (numIdleThreads == 0 && numCurrentThreads < maxThreads)
   {
     logDebug("THRPOOL","ENQ", "Creating a new thread to execute job because all current threads are busy");
@@ -101,11 +103,11 @@ void ThreadPool::enqueue(Poolable* p)
 
 Poolable* ThreadPool::dequeue()
 {
-  logDebug("THRPOOL","DEQ", "ThreadPool::dequeue enter");
+  logTrace("THRPOOL","DEQ", "ThreadPool::dequeue enter");
   mutex.lock();
   if (Poolable::poolableList.size() == 0)
   {
-    logDebug("THRPOOL","DEQ", "No task in queue. Wait...");
+    logTrace("THRPOOL","DEQ", "No task in queue. Wait...");
     cond.wait(mutex);
   }
   if (Poolable::poolableList.size() == 0) // in case of stopping the threadpool, the queue might not contain any item
@@ -121,7 +123,7 @@ Poolable* ThreadPool::dequeue()
 
 void ThreadPool::runTask(void* arg)
 {
-  logDebug("THRPOOL","RUNTSK", "ThreadPool::runTask enter");
+  logTrace("THRPOOL","RUNTSK", "ThreadPool::runTask enter");
   ThreadPool* tp = (ThreadPool*)arg;
   pthread_t thid = pthread_self();
   tp->mutex.lock();
@@ -147,20 +149,20 @@ void ThreadPool::runTask(void* arg)
     WakeableHelper* wh = dynamic_cast<WakeableHelper*>(p);
     if (!wh) // it's Poolable object
     {
-      logDebug("THRPOOL","RUNTSK", "Execute user-defined func of Poolable object");
+      logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Poolable object");
       p->wake(0, p->arg);
       p->calculateStartTime();
       p->calculateEndTime();
       p->calculateExecTime();
       if (p->isDeleteWhenComplete())
       {
-        logDebug("THRPOOL","RUNTSK", "Delete the poolable object");
+        logTrace("THRPOOL","RUNTSK", "Delete the poolable object");
         delete p;
       }
     }
     else // Wakeable object
     {
-      logDebug("THRPOOL","RUNTSK", "Execute user-defined func of Wakeable object");
+      logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Wakeable object");
       wh->wk->wake(0, wh->arg);
       wh->wk=NULL;
       //delete wh;
@@ -176,13 +178,13 @@ void ThreadPool::runTask(void* arg)
   tp->threadMap.erase(contents); // Remove this thread element from the map and exit
   tp->numCurrentThreads--;
   tp->mutex.unlock();
-  logDebug("THRPOOL","RUNTSK", "exit runTask");
+  logTrace("THRPOOL","RUNTSK", "exit runTask");
   return;
 }
 
 void ThreadPool::startThread()
 {
-  logDebug("THRPOOL","STARTTHR", "startThread enter");
+  logTrace("THRPOOL","STARTTHR", "startThread enter");
   numIdleThreads++;
   pthread_t thid;
   pthread_create(&thid, NULL, (void* (*) (void*)) runTask, this);
@@ -212,11 +214,11 @@ WakeableHelper* ThreadPool::getUnusedWHElement()
 
 void* ThreadPool::timerThreadFunc(void* arg)
 {
-  logDebug("THRPOOL","TIMERFUNC", "timerThreadFunc enter");
+  logTrace("THRPOOL","TIMERFUNC", "timerThreadFunc enter");
   ThreadPool* tp = (ThreadPool*) arg;
   while(!tp->isStopped)
   {
-    sleep(TIMER_INTERVAL);
+    sleep(SAFplusI::ThreadPoolTimerInterval);
     tp->checkAndReleaseThread();
   }
   return NULL;
@@ -224,22 +226,22 @@ void* ThreadPool::timerThreadFunc(void* arg)
 
 void ThreadPool::checkAndReleaseThread()
 {
-  logDebug("THRPOOL","RLS", "checkAndReleaseThread enter: numCurrentThreads [%d]", numCurrentThreads);
+  logTrace("THRPOOL","RLS", "checkAndReleaseThread enter: numCurrentThreads [%d]", numCurrentThreads);
   int nRunningThreads = numCurrentThreads;
   for(ThreadHashMap::iterator iter=threadMap.begin(); iter!=threadMap.end()&&nRunningThreads>minThreads; iter++)
   {
     pthread_t threadId = iter->first;
-    printf("checkAndReleaseThread(): threadId [%lu]\n", threadId);
+    //printf("checkAndReleaseThread(): threadId [%lu]\n", threadId);
     ThreadState& ts = iter->second;
     if (!ts.working)
     {
       struct timespec now;
       int ret = clock_gettime(CLOCK_MONOTONIC, &now);
-      printf("errno [%d]\n", errno);
+      //printf("errno [%d]\n", errno);
       assert(ret==0);
       unsigned long long int idleTime = now.tv_sec - ts.idleTimestamp.tv_sec + (now.tv_nsec - ts.idleTimestamp.tv_nsec)/1000000000L; // calculating idle time in second
-      logDebug("THRPOOL","RLS","idle time from not working [%llu]", idleTime);
-      if (idleTime >= THREAD_IDLE_TIME_LIMIT)
+      logTrace("THRPOOL","RLS","idle time from not working [%llu]", idleTime);
+      if (idleTime >= SAFplusI::ThreadPoolIdleTimeLimit)
       {
         logDebug("THRPOOL","RLS","allow thread [%lu] to quit", threadId);
         #if 0
@@ -265,7 +267,8 @@ void ThreadPool::checkAndReleaseThread()
 
 ThreadPool::~ThreadPool()
 {
-  logDebug("THRPOOL","DES","Deallocate mem for helper object list. size[%d]", (int)whList.size());
+  stop();
+  logTrace("THRPOOL","DES","Deallocate mem for helper object list. size[%d]", (int)whList.size());
   for (WHList::iterator it=whList.begin(); it != whList.end(); ++it)
   {
     delete (*it);

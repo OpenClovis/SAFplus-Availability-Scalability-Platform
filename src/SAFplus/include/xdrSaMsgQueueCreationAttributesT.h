@@ -1,1 +1,0 @@
-../components/msg/idl/msgIdl/xdr/xdrSaMsgQueueCreationAttributesT.h

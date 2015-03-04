@@ -1,45 +1,43 @@
-# Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
-# This file is available  under  a  commercial  license  from  the
-# copyright  holder or the GNU General Public License Version 2.0.
-#
-# The source code for  this program is not published  or otherwise 
-# divested of  its trade secrets, irrespective  of  what  has been 
-# deposited with the U.S. Copyright office.
-# 
-# This program is distributed in the  hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
-# General Public License for more details.
-# 
-# For more  information,  see the  file COPYING provided with this
-# material.
-################################################################################
-# ModuleName  : message
-# File        : Makefile
-################################################################################
-# Description :
-#
-# Makefile for tmpcomp component client library
-#
-# This Makefile assumes the following:
-#	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
-#
-#
-################################################################################
+S7 := 1
+SAFPLUS_MSG_LIB := 1
+include ../../mk/preface.mk
 
-# Subdirectories having Makefiles and need recursive escalation:
-# common should always be before client and server
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I../../protoc
 
-#SUBDIRS         := common client server doc test
-SUBDIRS          = client server
+# Management includes and libraries
+CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable
 
-#
-# If you have any ordering dependence among subdirectories, list them as
-# target-prerequisite pairs. Example:
-# server: common
-# client: common
-#
-server: client
+CLIENT_H := $(wildcard *.hxx) $(wildcard ../../include7/*.hxx) $(wildcard ../../ioc/client/*.h) $(wildcard ../../ioc/common/*.h)
+CLIENT_SRC := $(wildcard *.cxx)
+CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
-include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
+CHECK_INOTIFY := $(shell ./check_inotify.sh $(COMPILE_CPP))
+ifeq ($(strip $(CHECK_INOTIFY)), )
+	CPP_FLAGS += -DHAVE_INOTIFY
+endif
+
+CHECK_SCTP := $(shell ./check_sctp.sh $(COMPILE_CPP))
+ifeq ($(strip $(CHECK_SCTP)), )
+	CPP_FLAGS += -DHAVE_SCTP
+endif
+
+# Specify the required libraries
+SAFPLUS_LIBS := clUtils7 clOsal7 clLog
+# Then use these in the make rule
+SAFPLUS_DEP_LIBS  := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
+
+LINK_SO_LIBS += -lboost_thread
+
+Release all: $(LIB_DIR)/libclMsg.so
+
+$(LIB_DIR)/libclMsg.so: $(CLIENT_OBJ) $(CLIENT_IOC_OBJ) $(SAFPLUS_DEP_LIBS)
+	$(LINK_SO) $@ $(CLIENT_OBJ) $(CLIENT_IOC_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS)
+
+$(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
+	$(COMPILE_CPP) $@ $<
+
+clean:
+	rm -f $(LIB_DIR)/*.so $(MWOBJ_DIR)/*.o
+
+include ../../mk/safplus_targets.mk

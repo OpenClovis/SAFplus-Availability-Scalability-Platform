@@ -19,7 +19,7 @@
 #ifndef __CL_IOC_NEIGH_COMPS_H__ 
 #define __CL_IOC_NEIGH_COMPS_H__
 
-#include <clCommon.h>
+#include <clCommon.hxx>
 #include <clIocApi.h>
 
 extern ClUint8T *gpClIocNeighComps;

@@ -2,8 +2,8 @@
 #include <boost/interprocess/mapped_region.hpp>
 using namespace boost::interprocess;
 
-#include <clCommon.h>
-#include <clEoApi.h>
+//#include <clCommon.h>
+//#include <clEoApi.h>
 
 #include <clLogIpi.hxx>
 #include <clCommon.hxx>
@@ -22,11 +22,11 @@ const char* SAFplus::logCompName=NULL;
 bool  logCodeLocationEnable=true;
 
 /* Supported Client Version */
-static ClVersionT gLogClntVersionsSupported[] = {CL_LOG_CLIENT_VERSION};
+static SaVersionT gLogClntVersionsSupported[] = {CL_LOG_CLIENT_VERSION};
 
 /* Supported Client Version database */
 static ClVersionDatabaseT gLogClntVersionDb = {
-    sizeof(gLogClntVersionsSupported) / sizeof(ClVersionT),
+    sizeof(gLogClntVersionsSupported) / sizeof(SaVersionT),
     gLogClntVersionsSupported
 };
 
@@ -34,9 +34,6 @@ static const ClCharT* logSeverityStrGet(SAFplus::LogSeverity severity);
 
 Logger* SAFplus::logInitialize()
 {
-    ClRcT       rc          = CL_OK;
-    ClBoolT     firstHandle = CL_FALSE;
-    ClIocPortT  port        = 0;
 #if 0    
     if (pVersion)
       {
@@ -166,7 +163,8 @@ void SAFplus::logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t servic
   va_end(vaargs);
   
   if (logEchoToFd != -1) { write(logEchoToFd,msg,msgStrLen); write(logEchoToFd,"\n",sizeof("\n")-1); }
-  writeToSharedMem(streamHdl,severity,msg,msgStrLen);
+  if (clLogBuffer) writeToSharedMem(streamHdl,severity,msg,msgStrLen); // If log is initialized, use it
+  else if (logEchoToFd != 1) { write(1,msg,msgStrLen); write(1,"\n",sizeof("\n")-1); }  // otherwise just printf
 }
 
 void SAFplus::logStrWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *str)
@@ -182,5 +180,6 @@ void SAFplus::logStrWrite(Handle streamHdl, LogSeverity  severity, uint_t servic
   msgStrLen = strlen(msg);
 
   if (logEchoToFd != -1) write(logEchoToFd,msg,msgStrLen);
-  writeToSharedMem(streamHdl,severity,msg,msgStrLen);
+  if (clLogBuffer) writeToSharedMem(streamHdl,severity,msg,msgStrLen);
+  else if (logEchoToFd != 1) { write(1,msg,msgStrLen); write(1,"\n",sizeof("\n")-1); }  // otherwise just printf
 }

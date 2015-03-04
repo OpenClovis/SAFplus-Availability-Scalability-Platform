@@ -4,7 +4,6 @@
 // SAFplus includes
 #include <clHandleApi.hxx>
 #include <clLogApi.hxx>
-#include <clIocApi.h>
 #include <clGroup.hxx>
 #include <clGlobals.hxx>
 #include <clNameApi.hxx>
@@ -23,7 +22,7 @@ void testChanges(void);
 
 static unsigned int MAX_MSGS=25;
 static unsigned int MAX_HANDLER_THREADS=2;
-ClBoolT   gIsNodeRepresentative = CL_FALSE;
+//ClBoolT   gIsNodeRepresentative = CL_FALSE;
 
 namespace SAFplusI
   {
@@ -32,7 +31,6 @@ namespace SAFplusI
 
 int main(int argc, char* argv[])
 {
-  SAFplus::ASP_NODEADDR = 1;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
 
@@ -79,10 +77,10 @@ class MyMsgHandler:public SAFplus::MsgHandler
   int id;
   int msgsRcvd;
   MyMsgHandler(int identity):id(identity),msgsRcvd(0) {}
-  virtual void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+  virtual void msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
   };
 
-void MyMsgHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+void MyMsgHandler::msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
   msgsRcvd++;
   printf("%d: Received msg '%s'\n",id, (char*) msg);

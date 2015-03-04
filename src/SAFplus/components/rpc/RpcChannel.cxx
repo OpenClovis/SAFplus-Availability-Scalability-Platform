@@ -39,13 +39,12 @@ namespace SAFplus
         RpcChannel::RpcChannel(SAFplus::MsgServer *svr, SAFplus::Rpc::RpcService *rpcService) :
             svr(svr), service(rpcService)
           {
-            dest.iocPhyAddress.nodeAddress = 0;
-            dest.iocPhyAddress.portId = 0;
+            dest = INVALID_HDL;
             msgId = 0;
           }
 
         //Client
-        RpcChannel::RpcChannel(SAFplus::MsgServer *svr, ClIocAddressT iocDest) :
+        RpcChannel::RpcChannel(SAFplus::MsgServer *svr, SAFplus::Handle iocDest) :
             svr(svr), dest(iocDest)
           {
             msgId = 0;
@@ -74,7 +73,7 @@ namespace SAFplus
           {
             string strMsgReq;
             SAFplus::Rpc::RpcMessage rpcMsgReq;
-            ClIocAddressT overDest;
+            SAFplus::Handle overDest;
             ThreadSem blocker(0);
             bool isRequestWithNoResponse = false;
             int64_t idx;
@@ -113,7 +112,7 @@ namespace SAFplus
 
             if (destination != INVALID_HDL)
               {
-                overDest = getAddress(destination);
+                overDest = destination;
               }
             else
               {
@@ -147,7 +146,7 @@ namespace SAFplus
         /*
          * Server side: handle request message and reply to client side
          */
-        void RpcChannel::HandleRequest(SAFplus::Rpc::RpcMessage *rpcMsgReq, ClIocAddressT iocReq)
+        void RpcChannel::HandleRequest(SAFplus::Rpc::RpcMessage *rpcMsgReq, SAFplus::Handle iocReq)
           {
             string strMsgRes;
             RpcMessage rpcMsgRes;
@@ -190,11 +189,18 @@ namespace SAFplus
             rpcMsgRes.set_buffer(strMsgRes);
 
             //Check local service
+#if 0
             if (iocReq.iocPhyAddress.nodeAddress == dest.iocPhyAddress.nodeAddress
                 && iocReq.iocPhyAddress.portId == dest.iocPhyAddress.portId)
               {
                 HandleResponse(&rpcMsgRes);
               }
+#else
+           if (1)
+             {
+             assert(0);
+             }
+#endif
             else //remote
               {
                 //Sending reply to remote
@@ -241,7 +247,7 @@ namespace SAFplus
         /*
          * Message handle for communication
          */
-        void RpcChannel::msgHandler(ClIocAddressT srcAddr, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+        void RpcChannel::msgHandler(SAFplus::Handle srcAddr, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
           {
             SAFplus::Rpc::RpcMessage rpcMsgReqRes;
             rpcMsgReqRes.ParseFromArray(msg, msglen);
@@ -258,8 +264,8 @@ namespace SAFplus
               }
             else
               {
-                logError("RPC", "HDL", "Received invalid message type [%lu] from [%d.%d]", msgType, srcAddr.iocPhyAddress.nodeAddress,
-                    srcAddr.iocPhyAddress.portId);
+                logError("RPC", "HDL", "Received invalid message type [%lu] from [%lx.%lx]", msgType, srcAddr.id[0],
+                    srcAddr.id[1]);
               }
 
           }

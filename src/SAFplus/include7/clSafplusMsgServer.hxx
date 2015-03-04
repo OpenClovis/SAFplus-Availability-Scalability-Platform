@@ -69,7 +69,7 @@ namespace SAFplus
              Raises the "Error" Exception if something goes wrong, or if the destination queue does not
              exist.
              */
-            MsgReply *sendReply(ClIocAddressT destination, void* buffer, ClWordT length,ClWordT msgtype=0, Wakeable *wakeable = NULL);
+            MsgReply *sendReply(Handle destination, void* buffer, ClWordT length,ClWordT msgtype=0, Wakeable *wakeable = NULL);
 
         protected:
             MsgHandler *handlers[NUM_MSG_TYPES];

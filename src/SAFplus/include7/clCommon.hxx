@@ -1,13 +1,32 @@
 #pragma once
+#define SA_AMF_B01 
+#define SA_AMF_B02
+#define SA_AMF_B03 
+
+#include <cltypes.h>
 #include <string>
-#include <clGlobals.hxx>
 #include <clDbg.hxx>
 #include <saAis.h>
 
+#define SAFplusHeapAlloc(x) ::SAFplus::heapAlloc(x,0,__FILE__,__LINE__)
+#define SAFplusHeapFree(x) ::SAFplus::heapFree(x,__FILE__,__LINE__)
+
+
 namespace SAFplus
 {
+
+enum
+  {
+    VersionMajor = 7,
+    VersionMinor = 0,
+    VersionBugfix = 0,
+  };
+
 /** printf but for std::string */
 std::string strprintf(const std::string fmt_str, ...);
+
+/*? calculate 32 bit CRC */
+uint32_t computeCrc32(uint8_t *buf, register int32_t nr);
 
 // All statements that begin with "dbg" are NO OPERATION in production code.
 #ifdef CL_DEBUG
@@ -16,6 +35,9 @@ std::string strprintf(const std::string fmt_str, ...);
   inline void dbgAssert(bool x) {}
 #endif
 
+void* heapAlloc(uint_t amt, uint_t category, const char* file, uint_t line);
+
+void heapFree(void* buffer, const char* file, uint_t line);
 
   /**
    *  Version array entry stored by a client library that describes what
@@ -23,8 +45,8 @@ std::string strprintf(const std::string fmt_str, ...);
    */
   typedef struct ClVersionDatabase
   {
-    ClInt32T        versionCount;   /* Number of versions listed as supported */
-    ClVersionT *versionsSupported;  /* Versions supported by implementation */
+    uint32_t    versionCount;   /* Number of versions listed as supported */
+    SaVersionT* versionsSupported;  /* Versions supported by implementation */
   } ClVersionDatabaseT;
 
   /**
@@ -37,7 +59,7 @@ std::string strprintf(const std::string fmt_str, ...);
 *  This API checks if the given version is compatible with the versions
 *  described in the version database of the client.
 *
-*  FIXME: The actual description of the algorithm is provided in the SA
+*  TODO: The actual description of the algorithm is provided in the SA
 *  FORUM AIS specifications.  We should copy that text here.
 *
 *  \param versionDatabase: Pointer to the version database that contains
@@ -54,13 +76,13 @@ std::string strprintf(const std::string fmt_str, ...);
 *  Use \c CL_GET_ERROR_CODE(RET_CODE) defined in clCommonErrors.h to get the error code.
 *
 */
-  extern bool clVersionVerify (ClVersionDatabaseT *versionDatabase, ClVersionT *version);
+  extern bool clVersionVerify (ClVersionDatabaseT *versionDatabase, SaVersionT *version);
 
-  ClBoolT clIsProcessAlive(ClUint32T pid); 
-  ClBoolT clParseEnvBoolean(const char* envvar);
+  bool clIsProcessAlive(uint32_t pid); 
+  bool clParseEnvBoolean(const char* envvar);
   inline bool parseEnvBoolean(const char* envvar) { return clParseEnvBoolean(envvar); }
 
-  ClCharT *clParseEnvStr(const char* envvar);
+  char *clParseEnvStr(const char* envvar);
   inline char* parseEnvStr(const char* envvar) { return clParseEnvStr(envvar); }
 
   /** \brief Generic callback function object
@@ -77,6 +99,19 @@ std::string strprintf(const std::string fmt_str, ...);
     virtual void wake(int amt,void* cookie=NULL) = 0;
 
     //static Wakeable& Synchronous;  // This const is a reference to NULL and simply indicates that the function should be synchronous instead of async.
+  };
+
+  /** When SAFplus services wake you up they will use this cookie
+   * format so multiple events can be multiplexed into one wakeup.  */
+  class WakeableCookie
+  {
+  public:
+    enum
+      {
+        MsgNotification = 1,
+      };
+    uint16_t type;
+    uint16_t subType;
   };
 
   class WakeableNoop:public Wakeable
@@ -204,4 +239,8 @@ std::string strprintf(const std::string fmt_str, ...);
   };
   
   extern SaVersionT safVersion;
-};  
+};
+
+#include <replacethese.h>
+#include <clGlobals.hxx>
+

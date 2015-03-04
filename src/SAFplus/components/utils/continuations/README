@@ -1,7 +1,0 @@
-Continuations example in "C" which can be used to implement async-only single threaded request servers over the age-old poll and multi-threaded dispatch mechanism.
-
-Currently supported for x86_64 and i386 because of the way the closure is implemented which makes it arch. dependent.
-
-But its simple to just change the closure to a standard "C" function pointer.
-
-Check out continuation_test_{1,2}.c for sample usage.

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <clThreadApi.hxx>
 #include <vector>
 #include <boost/intrusive/list.hpp>
@@ -9,8 +11,6 @@ namespace SAFplus
      an object derived from Poolable OR he can add his codes to virtual function wake() of a class
      also derived from Poolable or Wakeable
   */
-  #define TIMER_INTERVAL 60  // 60 in second
-  #define THREAD_IDLE_TIME_LIMIT 50
 
   typedef uint32_t (*UserCallbackT) (void* invocation);
 

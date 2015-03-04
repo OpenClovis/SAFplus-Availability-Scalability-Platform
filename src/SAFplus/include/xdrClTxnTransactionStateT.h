@@ -1,1 +1,0 @@
-../components/txn/common/idl/xdr/xdrClTxnTransactionStateT.h

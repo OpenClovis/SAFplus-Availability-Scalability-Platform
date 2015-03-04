@@ -1,1 +1,0 @@
-../components/cor/include/clCorNotifyApi.h

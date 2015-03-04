@@ -15,8 +15,10 @@ using namespace std;
 #include <boost/lexical_cast.hpp>
 #include <clGlobals.hxx>
 #include <Replicate.hxx>
+#ifdef SAFPLUS_CLUSTERWIDE_LOG
 #include "../rep/clLogRep.hxx"
 #include "../rep/clLogSpooler.hxx"
+#endif
 using namespace SAFplus;
 using namespace SAFplusI;
 using namespace boost::posix_time;
@@ -40,7 +42,7 @@ extern void streamRotationInit(Stream* s);
 class MgtMsgHandler : public SAFplus::MsgHandler
 {
   public:
-    virtual void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    virtual void msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
       Mgt::Msg::MsgMgt mgtMsgReq;
       mgtMsgReq.ParseFromArray(msg, msglen);
@@ -209,7 +211,7 @@ void finishLogProcessing(LogCfg* cfg)
         //fwrite(boost::asio::buffer_cast<const char*>(bufs),sizeof(char),boost::asio::buffer_size(bufs),s->fp);
         s->fileBuffer.fwrite(s->fp);
         // Forward remaining logs to others if any
-        logRep.flush(s);
+        IF_CLUSTERWIDE_LOG(logRep.flush(s));
         fflush(s->fp);
         checkAndRotateLog(s);
         s->fileBuffer.consume();        
@@ -274,7 +276,7 @@ void dumpStreams(LogCfg* cfg)
 
 int main(int argc, char* argv[])
 {
-  gIsNodeRepresentative = CL_FALSE;
+  //gIsNodeRepresentative = CL_FALSE;
 
   SAFplus::ASP_NODEADDR = 0x7;
 
@@ -318,7 +320,7 @@ int main(int argc, char* argv[])
   SAFplus::logSeverity= LOG_SEV_MAX;  // DEBUG
 
   SAFplus::SYSTEM_CONTROLLER=true; // For testing
-  LogSpooler logSpooler;
+  IF_CLUSTERWIDE_LOG(LogSpooler logSpooler);
   if (SAFplus::SYSTEM_CONTROLLER) // If this node is system controller, then instantiate LogSpooler obj to listen logs from other nodes
   {     
     //logSpooler.subscribeAllStreams();
@@ -344,7 +346,7 @@ int main(int argc, char* argv[])
               char* msg = ((char*) base)+rec->offset;
               postRecord(rec, msg, cfg);
               // Forward logs to log subscribers
-              logRep.logReplicate(rec, msg);
+              IF_CLUSTERWIDE_LOG(logRep.logReplicate(rec, msg));
               rec->offset = 0;
             }
 
@@ -359,7 +361,7 @@ int main(int argc, char* argv[])
               char* msg = ((char*) base)+rec->offset;
               postRecord(rec,msg,cfg);
               // Forward logs to log subscribers
-              logRep.logReplicate(rec, msg);
+              IF_CLUSTERWIDE_LOG(logRep.logReplicate(rec, msg));
               rec->offset = 0;
             }
 

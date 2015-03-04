@@ -2,7 +2,7 @@
 #ifndef CLPLUGINAPI_H
 #define CLPLUGINAPI_H
 
-#include <clCommon.h>
+#include <clCommon.hxx>
 
 namespace SAFplus
 {
@@ -12,17 +12,13 @@ namespace SAFplus
 class ClPlugin
 {
 public:
-  ClWordT pluginId;       /* Set to CL_CM_PLUGIN_ID.  This number ensures that this plugin is for the chassis manager */
-  ClWordT pluginVersion;  /* Set to CL_CM_PLUGIN_VERSION */
+  uint_t pluginId;       /* Create a unique number for your plugin target so a plugin for one application  cannot be accidentally loaded by another. */
+  uint_t pluginVersion;  /* Plugin format.  Set to CL_PLUGIN_VERSION */
 
   virtual ~ClPlugin()=0;
 };
 
-
-/* You must define a plugin initialization routine that returns a structure of plugin functions and other info */
-extern ClPlugin* clPluginInitialize(ClWordT preferredPluginVersion);
-
-typedef ClPlugin* (*ClPluginInitializeFnType)(ClWordT preferredPluginVersion) ;
+typedef ClPlugin* (*ClPluginInitializeFnType)(uint_t preferredPluginVersion) ;
 
 #define CL_PLUGIN_INIT_FN "clPluginInitialize"
 
@@ -38,12 +34,16 @@ typedef struct
 {
     ClPlugin* pluginApi;
     void*     dlHandle;
-    ClPluginInitializeFnType init;    
+    ClPluginInitializeFnType init;
 } ClPluginHandle;
 
 /* If name is NULL search for default names. */
-extern ClPluginHandle* clLoadPlugin(ClWordT pluginId,ClWordT preferredPluginVersion,const char* name);
+extern ClPluginHandle* clLoadPlugin(uint_t pluginId,uint_t preferredPluginVersion,const char* name);
 
 };
+
+/* You must define a plugin initialization routine that returns a structure of plugin functions and other info */
+extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion);
+
 
 #endif

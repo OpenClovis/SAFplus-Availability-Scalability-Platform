@@ -25,15 +25,6 @@
 #include <exception>
 #include "clHandleApi.hxx"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include <clCommon.h>
-
-#ifdef __cplusplus
-} /* end extern 'C' */
-#endif
-
 namespace SAFplus
 {
   class TransactionOperation;
@@ -60,7 +51,7 @@ namespace SAFplus
       Transaction();
       virtual ~Transaction();
 
-      ClRcT addOperation(TransactionOperation *operation);
+      void addOperation(TransactionOperation *operation);
 
       void commit();
       void abort();

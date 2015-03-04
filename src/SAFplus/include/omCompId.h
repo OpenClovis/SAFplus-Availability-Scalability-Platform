@@ -1,1 +1,0 @@
-../components/om/client/omCompId.h

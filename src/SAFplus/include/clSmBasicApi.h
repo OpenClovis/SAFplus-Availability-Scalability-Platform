@@ -1,1 +1,0 @@
-../components/sm/include/clSmBasicApi.h

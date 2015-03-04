@@ -52,7 +52,7 @@ RedPolicyMap redPolicies;
 // IOC related globals
 //ClUint32T clAspLocalId = 0x1;
 extern ClUint32T chassisId;
-extern ClBoolT   gIsNodeRepresentative;
+//extern ClBoolT   gIsNodeRepresentative;
 
 SAFplusAmf::SAFplusAmfRoot cfg;
 MgtModule dataModule("SAFplusAmf");
@@ -67,7 +67,7 @@ enum
 class MgtMsgHandler : public SAFplus::MsgHandler
 {
   public:
-    virtual void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    virtual void msgHandler(SAFplus::Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
       Mgt::Msg::MsgMgt mgtMsgReq;
       mgtMsgReq.ParseFromArray(msg, msglen);
@@ -227,7 +227,7 @@ void loadAmfPlugins(AmfOperations& amfOps)
         if(is_regular_file(p))
           {
           const char *s = p.c_str();
-          clLogInfo("POL","LOAD","Loading policy: %s", s);
+          logInfo("POL","LOAD","Loading policy: %s", s);
           ClPluginHandle* plug = clLoadPlugin(CL_AMF_POLICY_PLUGIN_ID,CL_AMF_POLICY_PLUGIN_VER,s);
           if (plug)
             {
@@ -238,16 +238,16 @@ void loadAmfPlugins(AmfOperations& amfOps)
               if (result)
                 {
                 redPolicies[pp->policyId] = plug;
-                clLogInfo("POL","LOAD","AMF Policy [%d] plugin [%s] load succeeded.", pp->policyId, p.c_str());
+                logInfo("POL","LOAD","AMF Policy [%d] plugin [%s] load succeeded.", pp->policyId, p.c_str());
                 }
               else
                 {
-                clLogError("POL","LOAD","AMF Policy plugin [%s] load failed.  Plugin initialize error.", p.c_str());
+                logError("POL","LOAD","AMF Policy plugin [%s] load failed.  Plugin initialize error.", p.c_str());
                 }
               }
-            else clLogError("POL","LOAD","AMF Policy plugin [%s] load failed.  Incorrect plugin type.", p.c_str());
+            else logError("POL","LOAD","AMF Policy plugin [%s] load failed.  Incorrect plugin type.", p.c_str());
             }
-          else clLogError("POL","LOAD","Policy [%s] load failed.  Incorrect plugin Identifier or version.", p.c_str());
+          else logError("POL","LOAD","Policy [%s] load failed.  Incorrect plugin Identifier or version.", p.c_str());
           } 
             
         }
@@ -258,36 +258,31 @@ void loadAmfPlugins(AmfOperations& amfOps)
 
 void printUsage(char* progname)
   {
-  clOsalPrintf("Usage: %s -c <Chassis ID> -l <Local Slot ID> -n <Node Name> \n", progname);
-  clOsalPrintf("Example : %s -c 0 -l 1 -n node_0\n", progname);
-  clOsalPrintf("or\n");
-  clOsalPrintf("Example : %s --chassis=0 --localslot=1 --nodename=<nodeName>\n", progname);
-  clOsalPrintf("Options:\n");
-  clOsalPrintf("-c, --chassis=ID       Chassis ID\n");
-  clOsalPrintf("-l, --localslot=ID     Local slot ID\n");
-  clOsalPrintf("-n, --nodename=name    Node name\n");
+  printf("Usage: %s -c <Chassis ID> -l <Local Slot ID> -n <Node Name> \n", progname);
+  printf("Example : %s -c 0 -l 1 -n node_0\n", progname);
+  printf("or\n");
+  printf("Example : %s --chassis=0 --localslot=1 --nodename=<nodeName>\n", progname);
+  printf("Options:\n");
+  printf("-c, --chassis=ID       Chassis ID\n");
+  printf("-l, --localslot=ID     Local slot ID\n");
+  printf("-n, --nodename=name    Node name\n");
   //clOsalPrintf("-f, --foreground       Run AMF as foreground process\n");
-  clOsalPrintf("-h, --help             Display this help and exit\n");  
+  printf("-h, --help             Display this help and exit\n");  
   }
 
-static ClRcT cpmStrToInt(const ClCharT *str, ClUint32T *pNumber) 
+static uint_t str2uint(const ClCharT *str) 
   {
-  ClUint32T i = 0;
+  int i = 0;
 
   for (i = 0; str[i] != '\0'; ++i) 
     {
     if (!isdigit(str[i])) 
       {
-      goto not_valid;
+      return UINT_MAX;
       }
     }
 
-  *pNumber = atoi(str);
-
-  return CL_OK;
-
-  not_valid:
-  return CL_CPM_RC(CL_ERR_INVALID_PARAMETER);
+  return atoi(str);
   }
 
 int parseArgs(int argc, char* argv[])
@@ -322,9 +317,9 @@ int parseArgs(int argc, char* argv[])
           printUsage(argv[0]);
           /* This is not an error */
           exit(0);
-        case 'c':   
-          rc = cpmStrToInt(optarg, &chassisId);
-          if (CL_OK != rc) 
+        case 'c':
+          chassisId = str2uint(optarg);
+          if (chassisId == UINT_MAX) 
             {
             printf("[%s] is not a valid chassis id.", optarg);
             return -1;
@@ -332,14 +327,14 @@ int parseArgs(int argc, char* argv[])
           break;
         case 'l':
         {
-        ClUint32T temp=0;
-        rc = cpmStrToInt(optarg, &temp);
-        SAFplus::ASP_NODEADDR = temp;
-        if (CL_OK != rc)
+        uint_t temp=0;
+        temp = str2uint(optarg);
+        if (temp == UINT_MAX)
           {
           printf("[%s] is not a valid slot id, ", optarg);
           return -1;
           }
+        SAFplus::ASP_NODEADDR = temp;
         ++nargs;
         } break;
         case 'n':
@@ -459,7 +454,6 @@ int main(int argc, char* argv[])
   Mutex m;
   ThreadCondition somethingChanged;
   bool firstTime=true;
-  gIsNodeRepresentative = CL_TRUE;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
 
@@ -473,19 +467,22 @@ int main(int argc, char* argv[])
   sic.msgThreads  = MAX_HANDLER_THREADS;
   safplusInitialize( SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
 
+  logSeverity = LOG_SEV_MAX;
+  logAlert("AMF","INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__);
+
   //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
+
+  myHandle = SAFplus::Handle(TransientHandle,1,SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
+  // Register a mapping between this node's name and its handle.
+  nodeHandle = myHandle; // TODO: No should be different
+
+  // Start up Server RPC.  Note that since I create some variables on the stack,
+  // we must shut this down before going out of context.
   SAFplus::Rpc::amfRpc::amfRpcImpl amfRpcMsgHandler;
-  // Handle RPC
-  //Start Server RPC
-  ClIocAddressT dest;
-
-  dest.iocPhyAddress.nodeAddress = SAFplus::ASP_NODEADDR;  //CL_IOC_BROADCAST_ADDRESS;
-  dest.iocPhyAddress.portId = SAFplusI::AMF_IOC_PORT;
-
-  SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, dest);
+  SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, myHandle);
   channel->setMsgType(AMF_REQ_HANDLER_TYPE, AMF_REPLY_HANDLER_TYPE);
   channel->service = &amfRpcMsgHandler;
-  //End server RPC
+
 
 #ifdef AMF_GRP_NODE_REPRESENTATIVE
   SAFplusI::GroupServer gs;
@@ -515,9 +512,6 @@ int main(int argc, char* argv[])
   if (SAFplus::ASP_NODENAME[0] == 0) strcpy(SAFplus::ASP_NODENAME,"sc0");  // TEMPORARY initialization
   assert(SAFplus::ASP_NODENAME);
 
-  myHandle = SAFplus::Handle(TransientHandle,1,SAFplusI::AMF_IOC_PORT,SAFplus::ASP_NODEADDR);
-  // Register a mapping between this node's name and its handle.
-  nodeHandle = myHandle; // TODO: No should be different
 
   logInfo("AMF","NAM", "Registering this node [%s] as handle [%lx:%lx]", SAFplus::ASP_NODENAME, myHandle.id[0],myHandle.id[1]);
   name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
@@ -537,7 +531,7 @@ int main(int argc, char* argv[])
 
   // Set up the RPC communication to applications
   SAFplus::Rpc::amfAppRpc::amfAppRpcImplAmfSide amfAppRpcMsgHandler(&amfOps);
-  SAFplus::Rpc::RpcChannel appRpcChannel(&safplusMsgServer, dest);
+  SAFplus::Rpc::RpcChannel appRpcChannel(&safplusMsgServer, myHandle);
   appRpcChannel.setMsgType(AMF_APP_REQ_HANDLER_TYPE, AMF_APP_REPLY_HANDLER_TYPE);
   appRpcChannel.service = &amfAppRpcMsgHandler;  // The AMF needs to receive saAmfResponse calls from the clients so it needs to act as a "server".
   SAFplus::Rpc::amfAppRpc::amfAppRpc_Stub amfAppRpc(&appRpcChannel);

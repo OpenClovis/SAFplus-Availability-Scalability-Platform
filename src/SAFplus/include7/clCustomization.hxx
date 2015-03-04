@@ -6,12 +6,17 @@
 
 #define AMF_GRP_NODE_REPRESENTATIVE // Indicates that the AMF will act as the one-per-node GRP membership shared memory maintainer, rather than a standalone safplus_group process
 
+// Define this if you want the logging system to be cluster wide.
+// Comment it out to make the logging system local to the node.
+#define SAFPLUS_CLUSTERWIDE_LOG
+
 namespace SAFplus
   {
     enum
     {
     Log2MaxNodes = 10,  // 2^10 = 1024 total nodes.
-    MaxNodes = (1<<Log2MaxNodes)
+    MaxNodes = (1<<Log2MaxNodes),
+    CL_MAX_NAME_LENGTH=256  //? Maximum length of names in the system
     };
 
   /* Messaging */
@@ -27,6 +32,12 @@ namespace SAFplus
 /* Configuration parameters that are used internally */
 namespace SAFplusI
   {
+  /* THREADS */
+  enum
+    {
+    ThreadPoolTimerInterval = 60, //? Seconds between checks that threads are not hung
+    ThreadPoolIdleTimeLimit = 50, //? If a thread has had no tasks for this long, let it quit
+    };
 
   /* LOGGING */
   enum
@@ -63,6 +74,18 @@ namespace SAFplusI
     AmfMaxComponentServiceInstanceKeyValuePairs = 1024
     };
 
+
+  /* UDP message transport */
+  enum
+    {
+    UdpTransportMaxMsgSize = 65507,  // 65,535 - 8 byte UDP header - 20 byte IP header  (http://en.wikipedia.org/wiki/User_Datagram_Protocol).  This is defined here so you can artifically limit the packet size.
+    UdpTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
+    UdpTransportStartPort = 7000,  // Pick a random spot in the UDP port range so our ports don't overlap common services
+    UdpTransportMaxMsg = 64,
+    UdpTransportMaxFragments = 256,
+    };
+
+  extern const char* defaultMsgTransport;  //? Specifies the default messaging transport plugin filename.  This can be overridden by an environment variable.
 
   };
 

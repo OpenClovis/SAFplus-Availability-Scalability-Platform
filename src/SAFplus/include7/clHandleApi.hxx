@@ -3,7 +3,6 @@
 #include <cltypes.h>
 #include <assert.h>
 #include <stdio.h>
-#include <clIocApi.h>
 #include <boost/functional/hash.hpp> 
 
 #define CL_ASSERT assert
@@ -37,6 +36,13 @@ namespace SAFplus
   public:    
     uint64_t id[2];
   public:
+
+    enum
+      {
+      AllNodes = 0xffff,
+      AllPorts = 0xffff,
+      };
+
     char* toStr(char* buffer) const
     {
       sprintf(buffer,"%lx.%lx",id[0],id[1]);

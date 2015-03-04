@@ -1,1 +1,0 @@
-../components/log/idl/Log/client/LogClient.h

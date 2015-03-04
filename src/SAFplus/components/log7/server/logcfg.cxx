@@ -177,7 +177,7 @@ void streamRotationInit(Stream* s)
         {
           file_result_set_t::iterator it = file_result_set.begin();
           s->earliestIdx = getFileIdx((*it).second.string(), s->fileName);
-          // Delete this oldest file          
+          // Delete this oldest file
           Dbg("Deleting file [%s]\n", (*it).second.string().c_str());
           fs::remove((*it).second);
           s->earliestIdx++;
@@ -186,8 +186,8 @@ void streamRotationInit(Stream* s)
         else if (s->fileFullAction == FileFullAction::HALT)
         {
           // HALT means stopping logging to file => do not open fp => Nothing to do
-        }          
-        // get the last modified file            
+        }
+        // get the last modified file
         if (s->numFiles>0)
         {
           file_result_set_t::reverse_iterator rit = file_result_set.rbegin();
@@ -263,6 +263,7 @@ void addStreamObjMapping(const char* streamName, Stream* s, Handle strmHdl=INVAL
     }
     else
     {
+#ifdef SAFPLUS_CLUSTERWIDE_LOG
       streamHdl = strmHdl;
       // check whether the handle provided registered with Name or not
       try 
@@ -277,8 +278,11 @@ void addStreamObjMapping(const char* streamName, Stream* s, Handle strmHdl=INVAL
       {
         printf("addStreamObjMapping > getHandle got exception [%s]\n", e.what());
       }
-    }    
-  }  
+#endif
+    }
+  }
+
+#ifdef SAFPLUS_CLUSTERWIDE_LOG
   // Register the stream handle with Name, so that user can use stream name to look up the stream handle by using Name
   if (registerWithName)
   {
@@ -286,12 +290,13 @@ void addStreamObjMapping(const char* streamName, Stream* s, Handle strmHdl=INVAL
   }
   // Create group for this log stream, so that any app can subscribe to receive logs from this stream
   if (s->replicate != Replicate::NONE)
-  {    
+  {
     Handle grpHdl = streamHdl.getSubHandle(1);
     s->group.init(grpHdl);
     // Make a mapping of this stream with handle so that it can be used later
     hsMap[streamHdl] = s;
   }
+#endif
 }
 
 Stream* createStreamCfg(const char* nam, const char* filename, const char* location, unsigned long int fileSize, unsigned long int logRecSize, SAFplusLog::FileFullAction fullAction, int numFilesRotate, int flushQSize, int flushInterval,bool syslog,SAFplusLog::StreamScope scope, Replicate repMode=Replicate::NONE, Handle strmHdl=INVALID_HDL)
@@ -393,7 +398,7 @@ Stream* loadOrCreateNewStream(const char* streamName, Replicate repMode=Replicat
       logcfg.streamConfig.streamList.addChildObject(s,cfgName);
     }
   else
-    {     
+    {
       addStreamObjMapping(streamName, s, strmHdl);
     }
   return s;
@@ -415,7 +420,7 @@ void postRecord(SAFplusI::LogBufferEntry* rec, char* msg,LogCfg* cfg)
       // The Name service will hold the name to handle mapping.  During Log service initialization, a handle to Stream* hash table should
       // be created using data in the Name service.  This hash table can be used to look up the data.
       // lookup the handle in the hastable to find the stream
-      printf("Dynamic stream: handle gotten from hashmap\n");
+      // printf("Dynamic stream: handle gotten from hashmap\n");
       strmCfg = hsMap[rec->stream];
       if (!strmCfg)
       {
@@ -425,14 +430,14 @@ void postRecord(SAFplusI::LogBufferEntry* rec, char* msg,LogCfg* cfg)
         try 
         {
           char* strmName = name.getName(rec->stream);
-          printf("Load or create new stream [%s]; handle [0x.%x.0x%x]\n", strmName, rec->stream.id[0], rec->stream.id[1]);
+          printf("Load or create new stream [%s]; handle [0x.%lx.0x%lx]\n", strmName, rec->stream.id[0], rec->stream.id[1]);
           strmCfg = loadOrCreateNewStream(strmName, Replicate::ANY, rec->stream); // do we need to create new stream with the handle specified? Yes. But this stream may come from other process, the log server does not know about it, so how does the log server know if the stream's replicate config is NONE or other values? Here, Replicate::ANY is hardcoded.
-          initializeStream(strmCfg);          
+          initializeStream(strmCfg);
         }
         catch(NameException& e)
         {
           printf("postRecord > getName got exception [%s]\n", e.what());
-        }        
+        }
       }
     }
   if (strmCfg == NULL)  // Stream is not identified
@@ -449,8 +454,8 @@ void postRecord(SAFplusI::LogBufferEntry* rec, char* msg,LogCfg* cfg)
 
   if (strmCfg->fp)  // If the file handle is non zero, write the log to that file
     {
-      printf("DEBUG: %s\n",msg);  
-      printf("DEBUG: msgLen [%d]\n",strlen(msg));  
+      // printf("DEBUG: %s\n",msg);  
+      // printf("DEBUG: msgLen [%d]\n",(int) strlen(msg));  
       strmCfg->fileBuffer += msg;
       strmCfg->fileBuffer += "\n";
     }

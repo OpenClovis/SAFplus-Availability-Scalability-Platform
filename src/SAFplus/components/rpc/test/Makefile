@@ -27,12 +27,12 @@ COMBINE_SRC := TestCombine.cxx RpcWakeable.cxx $(notdir $(wildcard stubs/server/
 COMBINE_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/combine/,$(subst .cxx,.o,$(COMBINE_SRC))) $(STUBS_OBJ)
 
 # Specify the required libraries
-SAFPLUS_LIBS := clOsal7 clUtils7 clLog clIoc7 clRpc clMgt7
+SAFPLUS_LIBS := clOsal7 clUtils7 clLog clMsg clRpc clMgt7
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -lclRpc
+LINK_STD_LIBS +=-L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lpthread -lstdc++ -ldl -lrt -lm  -L$(BOOST_DIR)/stage/lib/ -lboost_system -L$(SAFPLUS_SDK_TARGET)/lib -lezxml -lclRpc
 
 SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
 

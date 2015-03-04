@@ -1,6 +1,9 @@
 #ifndef CLLOGREP_HXX_
 #define CLLOGREP_HXX_
 
+#include <clCustomization.hxx>
+
+#ifdef SAFPLUS_CLUSTERWIDE_LOG
 #include <boost/unordered_map.hpp>
 #include <clHandleApi.hxx>
 #include <clLogIpi.hxx>
@@ -42,4 +45,5 @@ public:
 extern LogRep logRep;
 
 }
+#endif
 #endif // CLLOGREP

@@ -15,8 +15,8 @@ int SAFplus::logEchoToFd=-1;
 namespace SAFplusI
 {
 // Shared memory variables
-shared_memory_object* clLogSharedMem=NULL;
-mapped_region* clLogBuffer;
+shared_memory_object* clLogSharedMem = nullptr;
+mapped_region* clLogBuffer = nullptr;
 int clLogBufferSize=0;
 LogBufferHeader* clLogHeader;
 

@@ -24,11 +24,11 @@
 extern "C"
 {
 
-#include <clCommon.h>
-#include <clCommonErrors.h>
-#include <clIocApi.h>
-#include <clSnmpDataDefinition.h>
-#include <clSnmpDefs.h>
+//#include <clCommon.h>
+//#include <clCommonErrors.h>
+//#include <clIocApi.h>
+//#include <clSnmpDataDefinition.h>
+//#include <clSnmpDefs.h>
 #define MGT_MAX_ATTR_STR_LEN (1024)
 #define MGT_MAX_DATA_LEN (5*1024*1024)
 

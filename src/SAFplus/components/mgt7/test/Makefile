@@ -11,7 +11,7 @@ CPP_FLAGS += -I$(BOOST_DIR)  -I. -I..
 DEP_LIBS += $(LIB_DIR)/libclMgt7.so  $(LIB_DIR)/libclUtils7.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal7.so 
 
 # Specify the required libraries
-SAFPLUS_LIBS := clMgt7 clUtils7 clLog clOsal7 clIoc7 clDbal7
+SAFPLUS_LIBS := clMgt7 clUtils7 clLog clMsg clOsal7 clDbal7
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
@@ -28,7 +28,7 @@ MGT_TEST_OBJ := $(addprefix $(OBJ_DIR)/test/mgt/,$(MGT_TEST_OBJ))
 all: $(TEST_DIR)/testmgt
 
 $(TEST_DIR)/testmgt: $(MGT_TEST_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(MGT_TEST_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $(MGT_TEST_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/test/mgt/%.o: %.cxx
 	-mkdir -p $(OBJ_DIR)/test/mgt

@@ -19,11 +19,12 @@
  */
 
 #include <fcntl.h>
-#include <clCommon.h>
+#include <clCommon6.h>
 
-#include <clCommonErrors.h>
-#include <clOsalApi.h>
-#include <clLogApi.hxx>
+#include <clCommonErrors6.h>
+#include <clThreadApi.hxx>
+//#include <clOsalApi.h>
+//#include <clLogApi.hxx>
 #include <clIocApi.h>
 #include <clIocErrors.h>
 #include <clIocMaster.h>
@@ -32,10 +33,12 @@
 #include <clIocNeighComps.h>
 #include <clTransport.h>
 
+using namespace SAFplus;
+
 #define CL_IOC_MASTER_ADDRESS_RETRIES (10)
 
 static ClIocNodeAddressT *gpClIocMasterSeg;
-static ClOsalSemIdT gClIocMasterSem;
+static SAFplus::ProcSem* gClIocMasterSem = NULL;
 
 /*
  * Locate the master through the LA availability.
@@ -56,11 +59,10 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
                                     ClIocPortT portId,
                                     ClIocNodeAddressT *pIocNodeAddress,
                                     ClInt32T numRetries,
-                                    ClTimerTimeOutT *pDelay)
+                                    uint_t delayMs)
 {
     ClRcT rc = CL_OK;
     ClInt32T retryCnt = CL_IOC_MASTER_ADDRESS_RETRIES;
-    ClTimerTimeOutT delay = {0,100 }; 
     ClIocNodeAddressT node = 0;
     ClInt32T nodeStatus = 1;
     ClInt32T mask = 1;
@@ -77,10 +79,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
     if(numRetries)
         retryCnt = numRetries;
 
-    if(pDelay)
-        delay = *pDelay;
-
-    clOsalSemLock(gClIocMasterSem);
+    gClIocMasterSem->lock();
     node = gpClIocMasterSeg[portId]; 
 
     if(node)
@@ -119,7 +118,7 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
         if(!nodeStatus)
             node = 0;
     }
-    clOsalSemUnlock(gClIocMasterSem);
+    gClIocMasterSem->unlock();
 
     if(node == 0)
     {
@@ -132,15 +131,14 @@ ClRcT clIocMasterAddressGetExtended(ClIocLogicalAddressT logicalAddress,
             rc = clIocTryMasterAddressGet(logicalAddress, portId, &node);
             if( CL_OK == rc ) 
             {
-                clOsalSemLock(gClIocMasterSem);
+                gClIocMasterSem->lock();
                 *pIocNodeAddress = gpClIocMasterSeg[portId] = node;
-                clOsalSemUnlock(gClIocMasterSem);
+                gClIocMasterSem->unlock();
                 logInfo("IOC", "MASTER", "Setting node [%d] as master for comp [%d].", node, portId);
                 break;
             }
             logWarning("IOC","MASTER","Cannot get IOC master, return code [0x%x]",rc);
-
-            clOsalTaskDelay(delay);
+            boost::this_thread::sleep(boost::posix_time::milliseconds(delayMs));
         } while(--retryCnt > 0);
     }
     else
@@ -160,10 +158,10 @@ ClRcT clIocMasterAddressGet(ClIocLogicalAddressT logicalAddress,
 }
 
 
-void clIocMasterSegmentInitialize(void *pMasterSegment, ClOsalSemIdT masterSem)
+void clIocMasterSegmentInitialize(void *pMasterSegment, ProcSem& masterSem)
 {
     gpClIocMasterSeg = (ClIocNodeAddressT *)pMasterSegment;
-    gClIocMasterSem = masterSem;
+    gClIocMasterSem = &masterSem;
 }
 
 void clIocMasterSegmentFinalize(void)
@@ -178,7 +176,7 @@ void clIocMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT mas
     if(!gpClIocMasterSeg || compAddr.portId >= CL_IOC_MAX_COMPONENTS_PER_NODE) 
         return;
 
-    clOsalSemLock(gClIocMasterSem);
+    gClIocMasterSem->lock();
     if(compAddr.portId == CL_IOC_XPORT_PORT)
     {
         ClBoolT resetAll = CL_FALSE;
@@ -219,7 +217,7 @@ void clIocMasterSegmentSet(ClIocPhysicalAddressT compAddr, ClIocNodeAddressT mas
                       compAddr.portId, master);
         }
     }
-    clOsalSemUnlock(gClIocMasterSem);
+    gClIocMasterSem->unlock();
 }
 
 void clIocMasterSegmentUpdate(ClIocPhysicalAddressT compAddr)

@@ -21,8 +21,6 @@
 #include <sstream>
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
-#include <clIocApiExt.h>
-#include <clOsalApi.h>
 #include "clMsgApi.hxx"
 #include "clRpcChannel.hxx"
 #include "rpcTest.hxx"
@@ -36,19 +34,19 @@ using namespace google::protobuf;
 #define IOC_PORT 0
 #define IOC_PORT_SERVER 65
 
-ClBoolT gIsNodeRepresentative = CL_FALSE;
+//ClBoolT gIsNodeRepresentative = CL_FALSE;
 
 int main(void)
   {
-    ClIocAddressT iocDest;
+    Handle msgDest;
     SAFplus::ASP_NODEADDR = 0x1;
 
     safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
     logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
 
-    iocDest.iocPhyAddress.nodeAddress = 1;
-    iocDest.iocPhyAddress.portId = IOC_PORT_SERVER;
+    msgDest = getProcessHandle(IOC_PORT_SERVER,1);
+
     char helloMsg[] = "Hello world ";
 
     SAFplus::Rpc::rpcTest::TestGetRpcMethodRequest request1;
@@ -76,7 +74,7 @@ int main(void)
      */
     SafplusMsgServer msgClient(IOC_PORT);
 
-    SAFplus::Rpc::RpcChannel * channel = new SAFplus::Rpc::RpcChannel(&msgClient, iocDest);
+    SAFplus::Rpc::RpcChannel * channel = new SAFplus::Rpc::RpcChannel(&msgClient, msgDest);
     channel->setMsgType(100, 101);
 
     SAFplus::Rpc::rpcTest::rpcTest *service = new SAFplus::Rpc::rpcTest::rpcTest::Stub(channel);

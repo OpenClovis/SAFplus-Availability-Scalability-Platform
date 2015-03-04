@@ -15,11 +15,8 @@ using namespace std;
 #include <clLogApi.hxx>
 #include <clGlobals.hxx>
 #include <clCommon.hxx>
-#include <clOsalApi.h>
-#include <clIocApi.h>
 #include <clDbalApi.h>
 #include <clDbalErrors.h>
-#include <clCksmApi.h>
 
 using namespace SAFplus;
 
@@ -32,8 +29,7 @@ static ClDBHandleT dbIterHdl = 0x0;
 
 static __inline__ ClUint32T getHashKeyFn(const ClCharT *keyStr)
 {
-    ClUint32T cksum = 0;
-    clCksm32bitCompute((ClUint8T*)keyStr, (ClUint32T)strlen(keyStr), &cksum);
+    ClUint32T cksum = SAFplus::computeCrc32((ClUint8T*)keyStr, (ClUint32T)strlen(keyStr));
     return cksum & PYDBAL_DB_KEY_MASK;
 }
 

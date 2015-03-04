@@ -1,47 +1,42 @@
-# Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
-# This file is available  under  a  commercial  license  from  the
-# copyright  holder or the GNU General Public License Version 2.0.
-#
-# The source code for  this program is not published  or otherwise 
-# divested of  its trade secrets, irrespective  of  what  has been 
-# deposited with the U.S. Copyright office.
-# 
-# This program is distributed in the  hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
-# General Public License for more details.
-# 
-# For more  information,  see the  file COPYING provided with this
-# material.
-################################################################################
-# ModuleName  : ckpt/test
-# File        : Makefile
-################################################################################
-# Description :
-#
-# Makefile for tmpcomp component client library
-#
-# This Makefile assumes the following:
-#	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
-#
-#
-################################################################################
+S7 := 1
+SAFPLUS_MSG_TEST:=1  # Identify what is being built, so safplus_targets does not override
+include ../../../mk/preface.mk
 
-# Subdirectories having Makefiles and need recursive escalation:
-# common should always be before client and server
+DIRECTLY_LINK := $(LIB_DIR)/clMsgUdp.so
 
-SUBDIRS          = src
+CLIENT_H := $(wildcard *.hpp) $(wildcard $(SAFPLUS_INC_DIR)/*.hpp) 
+CLIENT_SRC := $(wildcard *.cxx)
+CLIENT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
-#
-# If you have any ordering dependence among subdirectories, list them as
-# target-prerequisite pairs. Example:
-# server: common
-# client: common
-#
+# Specify the required libraries
+SAFPLUS_LIBS := clMsg clLog clUtils7 clOsal7
+# Then use these in the make rule
+SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
+SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-# List any third party libs needed to get this server built (or None):
 
-EXTRA_CPPFLAGS += -I$(CLOVIS_ROOT)/SAFplus/3rdparty/ezxml/stable 
+all: deps $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer
 
-include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
+deps:
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/msg/transports
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/msg
+
+ifdef DIRECTLY_LINK
+$(TEST_DIR)/%:  $(OBJ_DIR)/%.o $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(DIRECTLY_LINK) $(SAFPLUS_LINK_LIBS) -lezxml $(LINK_STD_LIBS)
+
+$(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)
+	$(COMPILE_CPP)  $@ -DDIRECTLY_LINKED $<
+else
+$(TEST_DIR)/%:  $(OBJ_DIR)/%.o $(SAFPLUS_DEP_LIBS)
+	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) -lezxml $(LINK_STD_LIBS)
+
+$(OBJ_DIR)/%.o: %.cxx Makefile ../../../mk/preface.mk $(CLIENT_H)
+	$(COMPILE_CPP) $@ $<
+endif
+
+
+clean:
+	rm -f $(CLIENT_OBJ) $(TEST_DIR)/testTransport
+
+include ../../../mk/safplus_targets.mk

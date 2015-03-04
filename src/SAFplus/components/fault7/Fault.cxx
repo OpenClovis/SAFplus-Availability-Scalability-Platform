@@ -246,6 +246,7 @@ namespace SAFplus
     	sendFaultAnnounceMessage(other,state);
     }
 
+#if 0
     static ClRcT faultServerIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie)
     {
     	logDebug(FAULT,"IOC","Recv notification");
@@ -295,6 +296,7 @@ namespace SAFplus
       	svr->processIocNotification(FaultPolicy::AMF,eventId,nodeAddress,portId);
       	return rc;
     }
+#endif
 
     void loadFaultPlugins()
     {

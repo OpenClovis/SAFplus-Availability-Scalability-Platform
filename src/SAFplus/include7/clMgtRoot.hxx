@@ -126,21 +126,21 @@ public:
     /**
      * Mgt message handlers
      */
-    void clMgtMsgEditHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
-    void clMgtMsgGetHandle(ClIocAddressT srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgEditHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
+    void clMgtMsgGetHandle(SAFplus::Handle srcAddr, Mgt::Msg::MsgMgt mgtMsgReq);
     class MgtMessageHandler:public SAFplus::MsgHandler
     {
       public:
         MgtRoot* mRoot;
         MgtMessageHandler();
         void init(SAFplus::MgtRoot *mroot=nullptr);
-        void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+        void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
     };
     MgtMessageHandler mgtMessageHandler;
 
 //TODO:
-//    static ClRcT sendMsg(ClIocAddressT dest, void* payload, uint payloadlen, MgtMsgType msgtype,void* reply = NULL);
-    static ClRcT sendReplyMsg(ClIocAddressT dest, void* payload, uint payloadlen);
+//    static ClRcT sendMsg(SAFplus::Handle dest, void* payload, uint payloadlen, MgtMsgType msgtype,void* reply = NULL);
+    static ClRcT sendReplyMsg(SAFplus::Handle dest, void* payload, uint payloadlen);
 
 };
 };

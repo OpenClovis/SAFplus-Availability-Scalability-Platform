@@ -678,7 +678,7 @@ extern "C"
                                         ClIocPortT portId,
                                         ClIocNodeAddressT *pNodeAddress,
                                         ClInt32T numRetries,
-                                        ClTimerTimeOutT *pDelay);
+                                        uint_t delayMs);
 
 /**
  ****************************************

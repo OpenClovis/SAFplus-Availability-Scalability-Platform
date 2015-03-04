@@ -10,8 +10,8 @@
 #include <clHandleApi.hxx>
 #include <clThreadApi.hxx>
 #include <clNameApi.hxx>
-#include <clIocApi.h>
-#include <clIocIpi.h>
+//#include <clIocApi.h>
+//#include <clIocIpi.h>
 //#include <clLogApi.hxx>
 #include <clCkptApi.hxx>
 #include <clCustomization.hxx>
@@ -19,7 +19,7 @@
 #include <clMsgApi.hxx>
 #include <clIocPortList.hxx>
 //#include <clGroupIpi.hxx>
-#include <clCpmApi.h>
+//#include <clCpmApi.h>
 
 namespace SAFplusI
 {

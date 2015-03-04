@@ -465,7 +465,7 @@ void testMgtStringList()
     logDebug("MGT","TEST","FAIL: set operation failed");
     t.abort();
   }
-  logDebug("MGT","TEST","");
+  //logDebug("MGT","TEST","");
 }
 void testMgtClassList()
 {

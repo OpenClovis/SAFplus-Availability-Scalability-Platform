@@ -10,7 +10,7 @@ CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/components/mgt7/include
 
 # Specify the required libraries
-SAFPLUS_LIBS := clMgt7 clUtils7 clLog clOsal7 clIoc7 clName clGroup clCkpt clLogRep
+SAFPLUS_LIBS := clMgt7  clLog clMsg clName clGroup clCkpt clLogRep clUtils7 clDbal7 clOsal7 
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
@@ -28,7 +28,9 @@ LOG_SERVER_OBJ := $(addprefix $(OBJ_DIR)/logsvr/,$(LOG_SERVER_OBJ))
 all: $(SAFPLUS_TARGET)/bin/splogd
 
 $(SAFPLUS_TARGET)/bin/splogd: $(LOG_SERVER_OBJ) $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS) `pkg-config --libs protobuf`
+	$(LINK_EXE) $@ $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS) `pkg-config --libs protobuf`
+
+#	$(LINK_EXE) $@ $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 $(LINK_SO_LIBS) `pkg-config --libs protobuf`
 
 $(OBJ_DIR)/logsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)
 	-mkdir -p $(OBJ_DIR)/logsvr/

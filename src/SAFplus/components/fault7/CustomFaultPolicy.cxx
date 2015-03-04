@@ -14,7 +14,7 @@ namespace SAFplus
         CustomFaultPolicy();
         ~CustomFaultPolicy();
         virtual FaultAction processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent);
-        virtual FaultAction processIocNotification(ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId);
+        // virtual FaultAction processIocNotification(ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId);
 
     };
 
@@ -38,15 +38,17 @@ namespace SAFplus
         }
         return FaultAction::ACTION_IGNORE;
     }
+#if 0
     FaultAction CustomFaultPolicy::processIocNotification(ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId)
     {
         logInfo("POL","CUSTOM","Process ioc notification");
         return FaultAction::ACTION_STOP;
     }
+#endif
     static CustomFaultPolicy api;
 }
 
-extern "C" ClPlugin* clPluginInitialize(ClWordT preferredPluginVersion)
+extern "C" ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
 {
   // We can only provide a single version, so don't bother with the 'preferredPluginVersion' variable.
 

@@ -664,11 +664,13 @@ extern ClRcT clCntThreadSafeRbtreeCreate(CL_IN  ClCntKeyCompareCallbackT fpKeyCo
  *  \sa clCntLlistCreate(), clCntHashtblCreate(), clCntRbtreeCreate(),
  *
  */
+#if 0 // Not needed in S7
 extern ClRcT clCntNodeAddAndNodeGet(CL_IN ClCntHandleT     containerHandle,
                                     CL_IN ClCntKeyHandleT  userKey,
                                     CL_IN ClCntDataHandleT userData,
                                     CL_IN ClRuleExprT      *pExp,
                                     CL_IN ClCntNodeHandleT *pNodeHandle);
+#endif
 /**
  ************************************
  *  \brief Adds a new node to Container.

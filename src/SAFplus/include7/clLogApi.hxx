@@ -93,6 +93,10 @@ typedef enum
   LOG_SEV_MAX = LOG_SEV_DEBUG9
   } LogSeverity;
 
+  //? Parse log severity from a string.  The string can either be one of the enums or an integer.
+  LogSeverity logSeverityGet(const char *pSevValue);
+
+
   void logMsgWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *pFmtStr,...) CL_PRINTF_FORMAT(8, 9);
  
   void logStrWrite(Handle streamHdl, LogSeverity  severity, uint_t serviceId, const char *pArea, const char  *pContext, const char *pFileName, uint_t lineNum, const char *str);
