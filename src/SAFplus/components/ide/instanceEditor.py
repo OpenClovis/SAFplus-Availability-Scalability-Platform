@@ -216,7 +216,11 @@ class SelectTool(Tool):
     # Draw mini rectangle at left right top bottom corner
     if len(self.selected) > 0:
       for e in self.selected:
-        svg.blit(ctx,self.rectBmp,e.pos,e.scale,e.rotate)
+        pos = (e.pos[0] * share.instancePanel.scale,e.pos[1] * share.instancePanel.scale) 
+        ctx.set_line_width(2)
+        ctx.rectangle(pos[0], pos[1], 10,10)
+        ctx.set_source_rgba(0, 0, 1, 1)
+        ctx.fill()
 
   def OnEditEvent(self,panel, event):
     ret = False
@@ -334,7 +338,6 @@ class SelectTool(Tool):
     if len(self.selected) == 1:
       if share.instanceDetailsPanel:
         share.instanceDetailsPanel.showEntity(next(iter(self.selected)))
-        self.panel.SetSashPosition(self.panel.GetParent().GetClientSize().x/4)
 
 class ZoomTool(Tool):
   def __init__(self, panel):
@@ -770,6 +773,8 @@ class Panel(scrolled.ScrolledPanel):
             self.rows.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
           if placement == "column":
             self.columns.append(entInstance)  # TODO: calculate an insertion position based on the mouse position and the positions of the other entities
+      self.UpdateVirtualSize()
+      self.layout()
 
     def sgInstantiator(self,ent,pos,size,children,name):
       """Custom instantiator for service groups"""
@@ -783,8 +788,7 @@ class Panel(scrolled.ScrolledPanel):
 
 
     def OnReSize(self, event):
-      self.layout()
-      self.Refresh(False)
+      self.Refresh()
       event.Skip()
     
     def addEntityTools(self):
@@ -849,7 +853,7 @@ class Panel(scrolled.ScrolledPanel):
         dc.SetBackground(wx.Brush('white'))
         dc.Clear()
         self.PrepareDC(dc)
-        self.UpdateVirtualSize(dc)
+        self.UpdateVirtualSize()
         self.render(dc)
 
     def CreateNewInstance(self,entity,position,size=None, name=None):
@@ -880,24 +884,17 @@ class Panel(scrolled.ScrolledPanel):
             share.instanceDetailsPanel._createTreeItemEntity(inst.data["name"], inst)
         self.Refresh()
 
+      self.UpdateVirtualSize()
       self.layout()
       return True
  
 
     def GetBoundingBox(self):
       """Calculate the bounding box -- the smallest box that will fit around all the elements in this panel"""
-      virtRct = wx.Rect()
-      if len(self.model.instances) > 0:
-        elst = filter(lambda (name, entInt): entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.items())
-        first = elst[0]
-        for (name,e) in elst:
-          if e == first:
-            virtRct = wx.Rect(e.pos[0]*self.scale, e.pos[1]*self.scale, e.size[0]*e.scale[0]*self.scale, e.size[1]*e.scale[1]*self.scale)
-          else:
-            virtRct.Union(wx.Rect(e.pos[0]*self.scale, e.pos[1]*self.scale, e.size[0]*e.scale[0]*self.scale, e.size[1]*e.scale[1]*self.scale))
+      virtRct = wx.Rect(0,0, COL_MARGIN + (len(self.columns) +1)*(COL_WIDTH+COL_SPACING)+COL_SPACING, ROW_MARGIN+(len(self.rows)+1)*(ROW_WIDTH+ROW_SPACING))
       return virtRct
  
-    def UpdateVirtualSize(self, dc):
+    def UpdateVirtualSize(self):
       virtRct = self.GetBoundingBox()
       # We need to shift the client rectangle to take into account
       # scrolling, converting device to logical coordinates
