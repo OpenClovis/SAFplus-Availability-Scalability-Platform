@@ -664,7 +664,7 @@ namespace SAFplus
         SAFplus::FaultShmHashMap* faultMap;
         SAFplus::FaultShmHeader* faultHdr;
         SAFplus::Mutex  localMutex;
-        void init(ClIocAddress active);
+        void init(SAFplus::Handle active);
         void clientInit();
         void clear();
         void remove(SAFplus::Handle handle);
@@ -681,8 +681,8 @@ namespace SAFplus
     class FaultGroupData
     {
     public:
-    	unsigned int       structId;       // = 0x67839345
-        ClIocAddressT iocFaultServer;
+    	unsigned int       structId;
+        SAFplus::Handle    iocFaultServer;
     };
 };
 

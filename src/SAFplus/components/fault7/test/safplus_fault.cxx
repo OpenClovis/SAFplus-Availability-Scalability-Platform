@@ -10,13 +10,9 @@ using namespace SAFplus;
 //ClUint32T clAspLocalId = 0x1;
 static unsigned int MAX_MSGS=25;
 static unsigned int MAX_HANDLER_THREADS=2;
-extern ClBoolT   gIsNodeRepresentative;
 
 int main(int argc, char* argv[])
 {
- 
-  SAFplus::ASP_NODEADDR = 1;
-  gIsNodeRepresentative=CL_FALSE;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
 
@@ -33,7 +29,7 @@ int main(int argc, char* argv[])
   FaultShmEntry fse;
   //test register fault entity
   fse.dependecyNum=0;
-  strncpy(fse.name,"test register fault entity",FAULT_NAME_LEN);
+  //strncpy(fse.name,"test register fault entity",FAULT_NAME_LEN);
   fse.state=SAFplus::FaultState::STATE_UP; 
   fs.registerFaultEntity(&fse,meHdl,true);
   SAFplus::FaultState state = fs.getFaultState(meHdl);

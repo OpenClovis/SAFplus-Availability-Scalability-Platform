@@ -56,8 +56,8 @@ public :
     void notifytoActive(SAFplus::FaultEventData faultDatay,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
     // set name of fault entity
     void setName(const char* entityName);
-    ClIocAddressT getActiveServerAddress();
-    Fault(SAFplus::Handle faultHandle,const char* name,ClIocAddressT iocServerAddress);
+    SAFplus::Handle getActiveServerAddress();
+    Fault(SAFplus::Handle faultHandle,const char* name,SAFplus::Handle iocServerAddress);
 
     //get status of one fault entity.
     SAFplus::FaultState getFaultState(SAFplus::Handle faultHandle);
@@ -200,7 +200,7 @@ public:
     SAFplus::Checkpoint faultCheckpoint;
     void init();
     // reporter fault event message
-    virtual void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+    virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
     //register a fault client entity, write fault entiti information into shared memory
     void registerFaultEntity(FaultShmEntry* frp, SAFplus::Handle faultClient,bool needNotify);
     //Count fault Event
@@ -225,10 +225,11 @@ public:
     void sendFaultAnnounceMessage(SAFplus::Handle handle);
     //broadcast fault entity leave event to all other fault server in group
     void sendFaultLeaveMessage(SAFplus::Handle handle);
-	void wake(int amt,void* cookie=NULL);
-	void sendFaultSyncRequest(ClIocAddress activeAddress);
-	void sendFaultSyncReply(ClIocAddress address);
-	void writeToSharedMemoryAllEntity();
+
+    void wake(int amt,void* cookie=NULL);
+    void sendFaultSyncRequest(SAFplus::Handle activeAddress);
+    void sendFaultSyncReply(SAFplus::Handle address);
+    void writeToSharedMemoryAllEntity();
     //get status of one fault Entity
     SAFplus::FaultState getFaultState(SAFplus::Handle faultHandle);
 

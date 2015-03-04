@@ -9,5 +9,5 @@ clean:
 
 include ../mk/safplus_targets.mk
 
-all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs)  $(SAFplusServices) $(SAFplusTests) 
+all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs) $(SAFplusMsgTransports) $(SAFplusServices) $(SAFplusTests) 
 

@@ -165,8 +165,8 @@ namespace SAFplus
             case SAFplusI::FaultMessageSendMode::SEND_TO_ACTIVE_SERVER:
             {
                 // get active server address
-            	ClIocAddressT iocFaultActiveServer=getActiveServerAddress();
-                logDebug(FAULT,FAULT_ENTITY,"Send Fault Notification to active Fault Server  : node Id [%d]",iocFaultActiveServer.iocPhyAddress.nodeAddress);
+            	SAFplus::Handle iocFaultActiveServer=getActiveServerAddress();
+                logDebug(FAULT,FAULT_ENTITY,"Send Fault Notification to active Fault Server  : node Id [%d]",iocFaultActiveServer.getNode());
                 try
                 {
                 	faultMsgServer->SendMsg(iocFaultLocalServer, (void *)data, dataLength, SAFplusI::FAULT_MSG_TYPE);
@@ -185,7 +185,7 @@ namespace SAFplus
         }
     }
 
-    void Fault::init(SAFplus::Handle faultHandle,ClIocAddressT faultServer, int comPort,SAFplus::Wakeable& execSemantics)
+    void Fault::init(SAFplus::Handle faultHandle,SAFplus::Handle faultServer, int comPort,SAFplus::Wakeable& execSemantics)
     {
     	logDebug(FAULT,FAULT,"Initial Fault Entity");
         reporter = faultHandle;
@@ -195,24 +195,21 @@ namespace SAFplus
         {
             faultMsgServer = &safplusMsgServer;
         }
-        iocFaultLocalServer.iocPhyAddress.nodeAddress = faultServer.iocPhyAddress.nodeAddress;
-        iocFaultLocalServer.iocPhyAddress.portId      = faultServer.iocPhyAddress.portId;
+        iocFaultLocalServer = faultServer;
     }
 
-    ClIocAddressT Fault::getActiveServerAddress()
+    SAFplus::Handle Fault::getActiveServerAddress()
     {
-    	ClIocAddressT masterAddress;
-    	masterAddress.iocPhyAddress.nodeAddress= fsm.faultHdr->iocFaultServer.iocPhyAddress.nodeAddress;
-    	masterAddress.iocPhyAddress.portId= fsm.faultHdr->iocFaultServer.iocPhyAddress.portId;
+    	SAFplus::Handle masterAddress = fsm.faultHdr->iocFaultServer;
     	return masterAddress;
     }
     void Fault::setName(const char* entityName)
     {
-    	logDebug(FAULT,FAULT_ENTITY,"Set Fault Entity name");
+    	logTrace(FAULT,FAULT_ENTITY,"Set Fault Entity name");
         strncpy(name,entityName,FAULT_NAME_LEN);
     }
 
-    Fault::Fault(SAFplus::Handle faultHandle,const char* name,ClIocAddressT iocServerAddress)
+    Fault::Fault(SAFplus::Handle faultHandle,const char* name,SAFplus::Handle iocServerAddress)
     {
     	wakeable = NULL;
         faultMsgServer = NULL;
@@ -325,9 +322,9 @@ namespace SAFplus
                                 logDebug(FAULT,"POL","AMF Policy [%d] plugin load succeeded.", int(pp->pluginId));
                             }
                         }
-                        else clLogError(FAULT,"POL","AMF Policy plugin load failed.  Incorrect plugin type");
+                        else logError(FAULT,"POL","AMF Policy plugin load failed.  Incorrect plugin type");
                     }
-                    else clLogError(FAULT,"POL","Policy load failed.  Incorrect plugin Identifier or version.");
+                    else logError(FAULT,"POL","Policy load failed.  Incorrect plugin Identifier or version.");
                 }
             }
         }
@@ -347,21 +344,20 @@ namespace SAFplus
     {
 
         faultServerHandle = Handle::create();
-        logDebug(FAULT,FAULT_SERVER,"Register IOC notification");
-        clIocNotificationRegister(faultServerIocNotificationCallback,this);
+        // TODO: msg transport notification
+        //logDebug(FAULT,FAULT_SERVER,"Register IOC notification");
+        //clIocNotificationRegister(faultServerIocNotificationCallback,this);
         logDebug(FAULT,FAULT_SERVER,"Initial Fault Server Group");
         group=Group(FAULT_GROUP);
         group.setNotification(*this);
         SAFplus::objectMessager.insert(faultServerHandle,this);
-        faultInfo.iocFaultServer.iocPhyAddress.nodeAddress=SAFplus::ASP_NODEADDR;
-        faultInfo.iocFaultServer.iocPhyAddress.portId=SAFplusI::FLT_IOC_PORT;
+        faultInfo.iocFaultServer = getProcessHandle(SAFplusI::FLT_IOC_PORT,SAFplus::ASP_NODEADDR);
         group.registerEntity(faultServerHandle, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
         SAFplus::Handle activeMember = INVALID_HDL;
         activeMember = group.getActive();
-        ClIocAddress activeAddress = getAddress(activeMember);
-        logDebug(FAULT,FAULT_SERVER,"Fault Server active address : nodeAddress [%d] - port [%d]",activeAddress.iocPhyAddress.nodeAddress,activeAddress.iocPhyAddress.portId);
+        logDebug(FAULT,FAULT_SERVER,"Fault Server active address : nodeAddress [%d] - port [%d]",activeMember.getNode(),activeMember.getPort());
         logDebug(FAULT,FAULT_SERVER,"Initialize shared memory");
-        fsmServer.init(activeAddress);
+        fsmServer.init(activeMember);
         fsmServer.clear();  // I am the node representative just starting up, so members may have fallen out while I was gone.  So I must delete everything I knew.
         logDebug(FAULT,FAULT_SERVER,"Loading Fault Policy");
         loadFaultPlugins();
@@ -372,13 +368,13 @@ namespace SAFplus
         	faultMsgServer->RegisterHandler(SAFplusI::FAULT_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
         }
         //Fault server include fault client
-        if(activeAddress.iocPhyAddress.nodeAddress != clIocLocalAddressGet())
+        if(activeMember.getNode() != SAFplus::ASP_NODEADDR)
         {
         	logDebug(FAULT,FAULT_SERVER,"Standby fault server . Get fault information from active fault server");
         	faultCheckpoint.name = "safplusFault";
         	faultCheckpoint.init(FAULT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED , 1024*1024, CkptDefaultRows);
         	logDebug(FAULT,FAULT_SERVER,"Get all checkpoint data");
-        	sleep(10);
+        	sleep(10); // TODO: do not sleep for an arbitrary amount.  Figure out how to check that the conditions are ok to continue.
         	writeToSharedMemoryAllEntity();
         }
         else
@@ -390,15 +386,13 @@ namespace SAFplus
         	sleep(10);
         }
         faultClient = Fault();
-        ClIocAddress server;
-        server.iocPhyAddress.nodeAddress= SAFplus::ASP_NODEADDR;
-        server.iocPhyAddress.portId=  SAFplusI::FLT_IOC_PORT;
+        SAFplus::Handle server = faultInfo.iocFaultServer;
         logInfo(FAULT,"CLT","********************Initial fault client*********************");
         faultClient.init(faultServerHandle,server,SAFplusI::FLT_IOC_PORT,BLOCK);
-        sleep(2);
+        sleep(2); // TODO: why are we sleeping?
         faultClient.registerFault();
     }
-    void FaultServer::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+    void FaultServer::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
         const SAFplus::FaultMessageProtocol *rxMsg = (SAFplus::FaultMessageProtocol *)msg;
         SAFplusI::FaultMessageTypeT msgType=  rxMsg->messageType;
@@ -407,7 +401,7 @@ namespace SAFplus
         SAFplus::FaultPolicy pluginId = rxMsg->pluginId;
         FaultEventData eventData= rxMsg->data;
         SAFplus::Handle faultEntity=rxMsg->faultEntity;
-        //logDebug(FAULT,"MSG","Received message [%s] from node [%d] and state [%s]",strFaultMsgType[int(msgType)-1],from.iocPhyAddress.nodeAddress,strFaultEntityState[int(faultState)]);
+        //logDebug(FAULT,"MSG","Received message [%s] from node [%d] and state [%s]",strFaultMsgType[int(msgType)-1],from.getNode(),strFaultEntityState[int(faultState)]);
         FaultShmHashMap::iterator entryPtr;
         if(msgType==SAFplusI::FaultMessageTypeT::MSG_FAULT_SYNC_REQUEST)
         {
@@ -434,8 +428,8 @@ namespace SAFplus
         char handleData[sizeof(Buffer)-1+sizeof(Handle)];
         Buffer* key = new(handleData) Buffer(sizeof(Handle));
         Handle* tmp = (Handle*)key->data;
-    	logDebug(FAULT,"MSG","Size of Handle [%d]",sizeof(Handle));
-    	logDebug(FAULT,"MSG","Size of share entry [%d]",sizeof(FaultEntryData));
+    	logDebug(FAULT,"MSG","Size of Handle [%lu]",sizeof(Handle));
+    	logDebug(FAULT,"MSG","Size of shared memory entry [%lu]",sizeof(FaultEntryData));
         char vdata[sizeof(Buffer)-1+sizeof(FaultEntryData)];
         Buffer* val = new(vdata) Buffer(sizeof(FaultEntryData));
         FaultEntryData* tmpShrEntity = (FaultEntryData*)val->data;
@@ -562,7 +556,7 @@ namespace SAFplus
                     	faultHistory.setHistory10min(faultHistoryEntry,NO_TXN);
                     }
                     logDebug(FAULT,"MSG","Send fault event message to all fault server");
-                    if(reporterHandle.getNode()==clIocLocalAddressGet())
+                    if(reporterHandle.getNode()==SAFplus::ASP_NODEADDR)
                     {
                     	FaultMessageProtocol sndMessage;
                     	sndMessage.reporter = reporterHandle;
@@ -590,7 +584,7 @@ namespace SAFplus
             case SAFplusI::FaultMessageTypeT::MSG_ENTITY_JOIN_BROADCAST:
             	if(1)
             	{
-            		if(from.iocPhyAddress.nodeAddress==clIocLocalAddressGet())
+            		if(from.getNode()==SAFplus::ASP_NODEADDR)
             		{
             			logDebug(FAULT,"MSG","Fault entity join message broadcast from local . Ignore this message");
             		}
@@ -616,7 +610,7 @@ namespace SAFplus
              case SAFplusI::FaultMessageTypeT::MSG_ENTITY_LEAVE_BROADCAST:
             	if(1)
             	{
-            		if(from.iocPhyAddress.nodeAddress==clIocLocalAddressGet())
+            		if(from.getNode()==SAFplus::ASP_NODEADDR)
             		{
             			logDebug(FAULT,"MSG","Fault entity leave message broadcast from local . Ignore this message");
             		}
@@ -639,7 +633,7 @@ namespace SAFplus
              case SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT_BROADCAST:
              if(1)
              {
-         		if(from.iocPhyAddress.nodeAddress==clIocLocalAddressGet())
+         		if(from.getNode()==SAFplus::ASP_NODEADDR)
          		{
          			logDebug(FAULT,"MSG","Fault event message broadcast from local . Ignore this message");
          		}
@@ -651,12 +645,12 @@ namespace SAFplus
              }
              break;
           default:
-            logDebug(FAULT,"MSG","Unknown message type [%d] from %d",rxMsg->messageType,from.iocPhyAddress.nodeAddress);
+            logDebug(FAULT,"MSG","Unknown message type [%d] from node [%d]",rxMsg->messageType,from.getNode());
             break;
         }
     }
 
-	void FaultServer::sendFaultSyncRequest(ClIocAddress activeAddress)
+	void FaultServer::sendFaultSyncRequest(SAFplus::Handle activeAddress)
 	{
 		// send sync request to master fault server
     	logDebug(FAULT,FAULT,"Sending sync requst message to server");
@@ -671,7 +665,7 @@ namespace SAFplus
         sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
 	}
 
-	void FaultServer::sendFaultSyncReply(ClIocAddress address)
+	void FaultServer::sendFaultSyncReply(SAFplus::Handle address)
 	{
 		// send sync reply  to standby fault server
 		long bufferSize=0;
@@ -851,6 +845,7 @@ namespace SAFplus
         }
 
     }
+#if 0
 	void FaultServer::processIocNotification(SAFplus::FaultPolicy pluginId,ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId)
 	{
         FaultPolicyMap::iterator it;
@@ -864,6 +859,7 @@ namespace SAFplus
               }
           }
   	}
+#endif
 
     //broadcast fault state to all other node
 
@@ -903,13 +899,10 @@ namespace SAFplus
             case SAFplusI::FaultMessageSendMode::SEND_BROADCAST:
             {
                 /* Destination is broadcast address */
-                ClIocAddressT iocDest;
-                iocDest.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
-                iocDest.iocPhyAddress.portId      = faultCommunicationPort;
-                //logDebug("GMS","MSG","Sending broadcast message");
+                Handle dest = getProcessHandle(faultCommunicationPort,Handle::AllNodes);
                 try
                 {
-                    faultMsgServer->SendMsg(iocDest, (void *)data, dataLength, SAFplusI::FAULT_MSG_TYPE);
+                    faultMsgServer->SendMsg(dest, (void *)data, dataLength, SAFplusI::FAULT_MSG_TYPE);
                 }
                 catch (...)
                 {
@@ -943,15 +936,12 @@ namespace SAFplus
             return SAFplus::FaultState::STATE_UNDEFINED;
         }
         FaultShmEntry *fse = &entryPtr->second;
-    	logError(FAULT,FAULT_SERVER,"Fault Entity [%d] State  [%d]",faultHandle,fse->state);
+    	logError(FAULT,FAULT_SERVER,"Fault Entity [%lx.%lx] State  [%d]",faultHandle.id[0],faultHandle.id[1],fse->state);
         return fse->state;
     }
     void faultInitialize(void)
       {
-    	ClIocAddress localAddress;
-    	localAddress.iocPhyAddress.nodeAddress=0;
-    	localAddress.iocPhyAddress.portId=0;
-    	SAFplus::fsm.init(localAddress);
+    	SAFplus::fsm.init(INVALID_HDL);
       }
     void FaultServer::wake(int amt,void* cookie)
          {

@@ -54,7 +54,7 @@ SAFplus::Handle test_readwrite(Checkpoint& c1,Checkpoint& c2)
       for (int i=0;i<LoopCount;i++)
         {
           const Buffer& output = c1.read(i);
-          clTest(("Record exists"), &output != NULL, (""));
+          clTest(("Record exists"), &output != NULL, (" "));
           if (&output)
             {
 	      for (int j=0;j<10;j++)
@@ -97,7 +97,7 @@ SAFplus::Handle test_readwrite(Checkpoint& c1,Checkpoint& c2)
         }
       clTest(("All items deleted"),count==0,("count %d",count));
 
-      clTestCaseEnd((""));
+      clTestCaseEnd((" "));
     }
 
   if (1)
@@ -133,7 +133,7 @@ SAFplus::Handle test_readwrite(Checkpoint& c1,Checkpoint& c2)
           k1.append("keystr ").append(std::to_string(i));
 
           const Buffer& output = c2.read(k);
-          clTest(("Record exists"), &output != NULL, (""));
+          clTest(("Record exists"), &output != NULL, (" "));
           if (&output)
             {
 	      for (int j=0;j<10;j++)
@@ -148,7 +148,7 @@ SAFplus::Handle test_readwrite(Checkpoint& c1,Checkpoint& c2)
             }
 
           const Buffer& output1 = c2.read(k1);
-          clTest(("Record exists"), &output1 != NULL, (""));
+          clTest(("Record exists"), &output1 != NULL, (" "));
           if (&output1)
             {
 	      char* s = (char*) output1.data;
@@ -164,7 +164,7 @@ SAFplus::Handle test_readwrite(Checkpoint& c1,Checkpoint& c2)
           char* key = (char*) (*item.first).data;
           printf("key: %s, value: %d change: %d\n",key,*((int*) (*item.second).data), item.second->changeNum());
         }
-      clTestCaseEnd((""));
+      clTestCaseEnd((" "));
     }
   return ret;
 }
@@ -191,7 +191,7 @@ void test_reopen(SAFplus::Handle handle)
           k1.append("keystr ").append(std::to_string(i));
 
           const Buffer& output = c2.read(k);
-          clTest(("Record exists"), &output != NULL, (""));
+          clTest(("Record exists"), &output != NULL, (" "));
           if (&output)
             {
 	      for (int j=0;j<10;j++)
@@ -206,7 +206,7 @@ void test_reopen(SAFplus::Handle handle)
             }
 
           const Buffer& output1 = c2.read(k1);
-          clTest(("Record exists"), &output1 != NULL, (""));
+          clTest(("Record exists"), &output1 != NULL, (" "));
           if (&output1)
             {
 	      char* s = (char*) output1.data;
@@ -215,7 +215,7 @@ void test_reopen(SAFplus::Handle handle)
 
         }
 
-      clTestCaseEnd((""));
+      clTestCaseEnd((" "));
     }
 }
 

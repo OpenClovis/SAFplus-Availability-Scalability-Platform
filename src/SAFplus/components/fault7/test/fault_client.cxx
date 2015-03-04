@@ -21,7 +21,6 @@ Fault fc;
 void testAllFeature();
 int main(int argc, char* argv[])
 {
-  SAFplus::ASP_NODEADDR = 1;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_MAX;
   sic.iocPort     = 50;
@@ -33,9 +32,7 @@ int main(int argc, char* argv[])
   faultInitialize();
   me = Handle::create();
   fc = Fault();
-  ClIocAddress server;
-  server.iocPhyAddress.nodeAddress= SAFplus::ASP_NODEADDR;
-  server.iocPhyAddress.portId=  SAFplusI::FLT_IOC_PORT;
+  Handle server = getProcessHandle(SAFplusI::FLT_IOC_PORT,SAFplus::ASP_NODEADDR);
   logInfo("FLT","CLT","********************Initial fault client*********************");
   fc.init(me,server,sic.iocPort,BLOCK);
   fc.registerFault();

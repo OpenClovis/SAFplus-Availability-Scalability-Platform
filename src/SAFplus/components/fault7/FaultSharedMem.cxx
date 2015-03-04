@@ -6,12 +6,12 @@ using namespace boost::interprocess;
 
 namespace SAFplus
 {
-void FaultSharedMem::init(ClIocAddress active)
+void FaultSharedMem::init(SAFplus::Handle active)
 {
 
     faultMsm = boost::interprocess::managed_shared_memory(boost::interprocess::open_or_create, "SAFplusFaults", SAFplusI::FaultSharedMemSize);
     faultMap = faultMsm.find_or_construct<SAFplus::FaultShmHashMap>("faults")  (faultMsm.get_allocator<SAFplus::FaultShmMapPair>());
-    if(active.iocPhyAddress.nodeAddress==0)
+    if(active == INVALID_HDL)
     {
     	// fault client
     	faultHdr = faultMsm.find_or_construct<SAFplus::FaultShmHeader>("header") ();
@@ -20,8 +20,7 @@ void FaultSharedMem::init(ClIocAddress active)
     try
     {
         faultHdr = (SAFplus::FaultShmHeader*) faultMsm.construct<SAFplus::FaultShmHeader>("header") ();                                 // Ok it created one so initialize
-    	faultHdr->iocFaultServer.iocPhyAddress.nodeAddress  = active.iocPhyAddress.nodeAddress;
-    	faultHdr->iocFaultServer.iocPhyAddress.portId  = active.iocPhyAddress.portId;
+    	faultHdr->iocFaultServer = active;
         faultHdr->structId=SAFplus::CL_FAULT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
     }
     catch (interprocess_exception &e)

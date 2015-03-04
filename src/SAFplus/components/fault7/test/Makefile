@@ -2,7 +2,9 @@ S7 := 1
 SAFPLUS_FAULT_TEST := 1
 include ../../../mk/preface.mk
 
-CPP_FLAGS += -I/usr/include/libxml2
+MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
+
+CPP_FLAGS += -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2 -I/usr/include/libxml2 -I$(BOOST_DIR)  -I.
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 
@@ -20,12 +22,12 @@ SERVER_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(SERVER_SRC)))
 
 
 # Specify the required libraries
-SAFPLUS_LIBS := clFault clCkpt clName clIoc7 clLog clUtils7 clOsal7 clGroup clMgt7
+SAFPLUS_LIBS := clFault clCkpt clName clMsg  clGroup clMgt7 clLog clUtils7 clOsal7 clDbal7
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
-LINK_STD_LIBS := -L$(SAFPLUS_SDK_TARGET)/lib -lmw -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lstdc++ -lm $(LINK_STD_LIBS) -lboost_filesystem -lboost_system
+LINK_STD_LIBS := -L$(SAFPLUS_SDK_TARGET)/lib -lezxml -L$(MGT_SRC_DIR)/3rdparty/build/lib -lxml2 -lstdc++ -lm $(LINK_STD_LIBS) -lboost_filesystem -lboost_system
 #-L$(SAFPLUS_TOOLCHAIN_DIR)/lib -L$(SAFPLUS_SDK_TARGET)/lib
 
 all: $(TEST_DIR)/safplus_fault $(TEST_DIR)/fault_client $(TEST_DIR)/fault_server
