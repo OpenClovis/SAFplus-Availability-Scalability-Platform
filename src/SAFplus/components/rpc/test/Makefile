@@ -4,7 +4,7 @@ include ../../../mk/preface.mk
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx) 
 
-SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
+#SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
@@ -27,7 +27,7 @@ COMBINE_SRC := TestCombine.cxx RpcWakeable.cxx $(notdir $(wildcard stubs/server/
 COMBINE_OBJ := $(addprefix $(OBJ_DIR)/test/rpc/combine/,$(subst .cxx,.o,$(COMBINE_SRC))) $(STUBS_OBJ)
 
 # Specify the required libraries
-SAFPLUS_LIBS := clOsal7 clUtils7 clLog clMsg clRpc clMgt7
+SAFPLUS_LIBS := clOsal7 clUtils7 clLog clMsg clRpc clMgt7 clDbal7
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))

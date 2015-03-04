@@ -6,7 +6,7 @@ CPP_FLAGS += -I/usr/include/libxml2
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard $(SAFPLUS_INC_DIR)/*.hxx)
 
-SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
+#SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
 UNITTEST_SRC := safplus_fault.cxx

@@ -6,7 +6,7 @@ CP =cp -f
 PyLib := -lpython2.7 -lz -lutil
 PyInc := -I/usr/include/python2.7
 
-SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
+#SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
 SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
 

@@ -5,7 +5,7 @@ include ../../mk/preface.mk
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I../../protoc
 
 #SAFPLUS_SDK_DIR := /opt/clovis/6.1/sdk
-#SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
+SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(CL_TARGET_OS); pwd))
 
 # Management includes and libraries
 CPP_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable
