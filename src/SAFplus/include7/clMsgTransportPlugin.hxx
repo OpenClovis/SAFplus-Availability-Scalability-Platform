@@ -145,11 +145,21 @@ namespace SAFplus
     const char* type;  //? transport plugin type (i.e. UDP, TIPC)
     MsgTransportConfig config;
     MsgPool* msgPool;  //? This is the memory pool to use for this transport.
+    Wakeable** watchers;
+    uint_t numWatchers;
 
-    virtual MsgTransportConfig& initialize(MsgPool& msgPool, Wakeable* notification)=0;
+    //? Do any transport related initialization, including setting the "config" and "msgPool" variables to the appropriate values
+    virtual MsgTransportConfig& initialize(MsgPool& msgPool)=0;
 
+    //? Create a communications channel
     virtual MsgSocket* createSocket(uint_t port)=0;
+    //? Delete and close the communication channel
     virtual void deleteSocket(MsgSocket* sock)=0;
+
+    //? Register for any events coming from this plugin
+    virtual void registerWatcher(Wakeable* notification);
+    //? No longer receive events coming from this plugin
+    virtual void unregisterWatcher(Wakeable* notification);
 
     // The copy constructor is disabled to ensure that the only copy of this
     // class exists in the shared memory lib.
@@ -158,7 +168,7 @@ namespace SAFplus
     MsgTransportPlugin_1(MsgTransportPlugin_1 const&) = delete; 
     MsgTransportPlugin_1& operator=( MsgTransportPlugin_1 const&) = delete;
   protected:  // Only constructable from your derived class from within the .so
-    MsgTransportPlugin_1() {};
+    MsgTransportPlugin_1():type(nullptr),msgPool(nullptr),watchers(nullptr),numWatchers(0) {};
     };
 
   class ScopedMsgSocket

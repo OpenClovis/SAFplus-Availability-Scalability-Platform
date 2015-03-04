@@ -11,11 +11,10 @@ namespace SAFplus
   class Udp:public MsgTransportPlugin_1
     {
   public:
-    Wakeable* wake;
     in_addr_t netAddr;
     Udp(); 
 
-    virtual MsgTransportConfig& initialize(MsgPool& msgPool, Wakeable* notification);
+    virtual MsgTransportConfig& initialize(MsgPool& msgPool);
 
     virtual MsgSocket* createSocket(uint_t port);
     virtual void deleteSocket(MsgSocket* sock);
@@ -36,13 +35,12 @@ namespace SAFplus
 
   Udp::Udp()
     {
-    msgPool = NULL; wake = NULL;
+    msgPool = NULL;
     }
 
-  MsgTransportConfig& Udp::initialize(MsgPool& msgPoolp, Wakeable* notification)
+  MsgTransportConfig& Udp::initialize(MsgPool& msgPoolp)
     {
     msgPool = &msgPoolp;
-    wake = notification;
 
     config.nodeId = 0; // TODO
     config.maxMsgSize = SAFplusI::UdpTransportMaxMsgSize;
@@ -283,7 +281,7 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
             {
-            // Apply the received size to this fragment.  If the fragment is bigger then the entire msgLen must be in this buffer
+            // Apply the received size to this fragment.  If the fragment is bigger then the msg length then the entire msg must be in this buffer
             if (curFrag->allocatedLen >= msgLen)
               {
               curFrag->len = msgLen;

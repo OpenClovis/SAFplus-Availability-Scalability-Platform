@@ -232,7 +232,7 @@ int main(int argc, char* argv[])
       clTest(("plugin casts"), xp != NULL,(" "));
       if (xp) 
         {
-        MsgTransportConfig xCfg = xp->initialize(msgPool,NULL);
+        MsgTransportConfig xCfg = xp->initialize(msgPool);
         logInfo("TST","MSG","Msg Transport [%s], node [%u] maxPort [%u] maxMsgSize [%u]", xp->type, xCfg.nodeId, xCfg.maxPort, xCfg.maxMsgSize);
         clTestCase(("simple send/recv test"),testSendRecv(xp));
         clTestCase(("send/recv messages of every allowed length"),testSendRecvSize(xp));

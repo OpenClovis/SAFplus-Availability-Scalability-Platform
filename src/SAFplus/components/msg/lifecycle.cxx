@@ -36,7 +36,7 @@ void clMsgInitialize(void)
     MsgTransportPlugin_1* xp = dynamic_cast<MsgTransportPlugin_1*> (api);
     if (xp) 
       {
-      xp->initialize(msgPool,NULL);
+      xp->initialize(msgPool);
       SAFplusI::defaultMsgPlugin = xp;
       if (SAFplus::ASP_NODEADDR == ~((ClWordT) 0))  // not initialized
         SAFplus::ASP_NODEADDR = xp->config.nodeId;

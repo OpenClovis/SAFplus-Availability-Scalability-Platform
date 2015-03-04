@@ -162,4 +162,49 @@ namespace SAFplus
   MsgSocket::~MsgSocket()
   {}
 
+
+  void MsgTransportPlugin_1::registerWatcher(Wakeable* watcher)
+    {
+    // This is implemented as an expanding array of pointers.
+    // registration and unregistration occurs rarely so performance is not an issue.
+    // But speed iterating thru the notification list is.
+
+    for(int i=0;i<numWatchers;i++)
+      {
+      if (watchers[i] == nullptr) 
+        {
+        watchers[i] = watcher;
+        return;
+        }
+      if (watchers[i] == watcher)
+        {
+        return;
+        }
+      }
+    uint_t newNum = numWatchers + 4;
+    Wakeable** tmp = (Wakeable**) SAFplusHeapAlloc(newNum * sizeof(Wakeable*));
+    assert(tmp);
+    memcpy(tmp,watchers,numWatchers *sizeof(Wakeable**));
+    tmp[numWatchers] = watcher;
+    for(int i=numWatchers+1;i<newNum;i++)
+      {
+      tmp[i] = nullptr;
+      }
+    SAFplusHeapFree(watchers);
+    watchers = tmp;
+    numWatchers = newNum;
+    }
+
+  void MsgTransportPlugin_1::unregisterWatcher(Wakeable* watcher)
+    {
+    for(int i=0;i<numWatchers;i++)
+      {
+      if (watchers[i] == watcher)
+        {
+        watchers[i] = nullptr;
+        // It should be impossible for the same watcher to be in the list more than once but I'll look thru the whole list just to be safe.
+        }
+      }
+    }
+
   };
