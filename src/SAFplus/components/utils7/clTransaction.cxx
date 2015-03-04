@@ -52,19 +52,10 @@ void Transaction::abort()
     mOperations.clear();
 }
 
-ClRcT Transaction::addOperation(TransactionOperation *operation)
+void Transaction::addOperation(TransactionOperation *operation)
 {
-    ClRcT rc = CL_OK;
-
-    if (!operation)
-    {
-        rc = CL_ERR_NULL_POINTER;
-        return rc;
-    }
-
+    assert(operation);
     mOperations.push_back(operation);
-
-    return rc;
 }
 
 Transaction NO_TXN;

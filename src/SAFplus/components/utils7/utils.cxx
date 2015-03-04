@@ -27,35 +27,35 @@ namespace SAFplus
   {
 
 /** Name of the node.  Loaded from the same-named environment variable.  */
-  ClCharT ASP_NODENAME[CL_MAX_NAME_LENGTH]="";
+  char ASP_NODENAME[CL_MAX_NAME_LENGTH]="";
 /** Name of the component.  Loaded from the same-named environment variable.  */
-  ClCharT ASP_COMPNAME[CL_MAX_NAME_LENGTH]="";
+  char ASP_COMPNAME[CL_MAX_NAME_LENGTH]="";
 /** Address of the node.  This is the slot number in chassis-based system.  This is loaded from the same-named environment variable, and defined in asp.conf.  On chassis-based systems it is expected that a script determine the proper slot number and set this environment variable accordingly (removing it from asp.conf).   */
-  ClWordT ASP_NODEADDR = ~((ClWordT) 0);
+  int ASP_NODEADDR = ~((int) 0);
 
 /** Working dir where programs are run. Loaded from the same-named environment variable.  */
-  ClCharT ASP_RUNDIR[CL_MAX_NAME_LENGTH]="";
+  char ASP_RUNDIR[CL_MAX_NAME_LENGTH]="";
 /** Dir where logs are stored. Loaded from the same-named environment variable.  */
-  ClCharT ASP_LOGDIR[CL_MAX_NAME_LENGTH]="";
+  char ASP_LOGDIR[CL_MAX_NAME_LENGTH]="";
 /** Dir where ASP binaries are located. Loaded from the same-named environment variable.  */
-  ClCharT ASP_BINDIR[CL_MAX_NAME_LENGTH]="";
+  char ASP_BINDIR[CL_MAX_NAME_LENGTH]="";
 /** Dir where xml config are located. Loaded from the same-named environment variable.  */
-  ClCharT ASP_CONFIG[CL_MAX_NAME_LENGTH]="";
+  char ASP_CONFIG[CL_MAX_NAME_LENGTH]="";
 /** Dir where db files are to be stored. Loaded from the same-named environment variable.  */
-  ClCharT ASP_DBDIR[CL_MAX_NAME_LENGTH]="";
+  char ASP_DBDIR[CL_MAX_NAME_LENGTH]="";
 /** Dir where application binaries are located. Derived from ASP_BINDIR and argv[0].  Deprecated.  Use ASP_APP_BINDIR */
-  ClCharT CL_APP_BINDIR[CL_MAX_NAME_LENGTH]="";
+  char CL_APP_BINDIR[CL_MAX_NAME_LENGTH]="";
 /** Dir where application binaries are located. Derived from ASP_BINDIR and argv[0]. */
-  ClCharT ASP_APP_BINDIR[CL_MAX_NAME_LENGTH]="";
+  char ASP_APP_BINDIR[CL_MAX_NAME_LENGTH]="";
 
 /** Variable to check if the current node is a system controller node.  Loaded from the same-named environment variable.  */
-  ClBoolT SYSTEM_CONTROLLER = CL_FALSE; 
+  bool SYSTEM_CONTROLLER = CL_FALSE; 
 /** Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.  */
-  ClBoolT ASP_SC_PROMOTE = CL_FALSE;
+  bool ASP_SC_PROMOTE = CL_FALSE;
 
   SaVersionT safVersion = { 'B',4,1 };
   pid_t      pid = 0;
-  ClIocPortT iocPort = 0;
+  uint_t iocPort = 0;
   /** True if this component is not under AMF control (will not receive CSI callbacks) */
   bool clWithoutAmf = false;
 
@@ -63,7 +63,7 @@ namespace SAFplus
 
   int utilsInitCount=0;
 
-  LogSeverity logSeverityGet(const ClCharT  *pSevName);
+  LogSeverity logSeverityGet(const char  *pSevName);
 
   
   //  char* ASP_NODENAME=NULL;
@@ -128,7 +128,7 @@ namespace SAFplus
 
 #define	COMPUTE(var, ch)	(var) = (var) << 8 ^ crctab[(var) >> 24 ^ (ch)]
 
-  uint32_t computeCrc32(uint8_t *buf, register ClInt32T nr)
+  uint32_t computeCrc32(uint8_t *buf, register int32_t nr)
     {
     register uint8_t *p;
     register uint32_t crc, len;
@@ -154,15 +154,15 @@ namespace SAFplus
   
   void loadEnvVars()
     {
-    ClCharT missing[512];
-    ClCharT * temp=NULL;
+    char missing[512];
+    char * temp=NULL;
     ClInt32T i = 0; 
     missing[0] = 0;
     
     if (1) /* Required environment variables */
       {       
-      const ClCharT* envvars[] = { "ASP_NODENAME", "ASP_COMPNAME", "ASP_RUNDIR", "ASP_LOGDIR", "ASP_BINDIR", "ASP_CONFIG", "ASP_DBDIR", 0 };
-      ClCharT* storage[] = { ASP_NODENAME ,  ASP_COMPNAME ,  ASP_RUNDIR ,  ASP_LOGDIR ,  ASP_BINDIR ,  ASP_CONFIG , ASP_DBDIR, 0 };
+      const char* envvars[] = { "ASP_NODENAME", "ASP_COMPNAME", "ASP_RUNDIR", "ASP_LOGDIR", "ASP_BINDIR", "ASP_CONFIG", "ASP_DBDIR", 0 };
+      char* storage[] = { ASP_NODENAME ,  ASP_COMPNAME ,  ASP_RUNDIR ,  ASP_LOGDIR ,  ASP_BINDIR ,  ASP_CONFIG , ASP_DBDIR, 0 };
     
       for (i=0; envvars[i] != 0; i++)
         {
@@ -177,8 +177,8 @@ namespace SAFplus
       }
     if (1)  /* Optional environment variables */
       {       
-      const ClCharT* envvars[] = { "ASP_APP_BINDIR", 0 };  /* This won't be defined if the AMF is run */
-      ClCharT* storage[] = { ASP_APP_BINDIR, 0 };
+      const char* envvars[] = { "ASP_APP_BINDIR", 0 };  /* This won't be defined if the AMF is run */
+      char* storage[] = { ASP_APP_BINDIR, 0 };
     
       for (i=0; envvars[i] != 0; i++)
         {
@@ -202,7 +202,7 @@ namespace SAFplus
 
     if (1)
       {
-      ClCharT  *pEnvVar = NULL;
+      char  *pEnvVar = NULL;
 
       /* Default severity level while booting up the system */
       if( NULL == (pEnvVar = getenv("CL_LOG_SEVERITY")) )
@@ -298,7 +298,7 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
     int sz = strlen(str);
     /* Make sure that the name is not too big when in debugging mode */
     CL_ASSERT(sz < CL_MAX_NAME_LENGTH);
-    strncpy((ClCharT *)name->value,str,CL_MAX_NAME_LENGTH-1);
+    strncpy((char *)name->value,str,CL_MAX_NAME_LENGTH-1);
     /* If the name is too big, then crop it */
     if (sz >= CL_MAX_NAME_LENGTH)
       {
@@ -355,10 +355,10 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
     }
 
 
-  ClBoolT clParseEnvBoolean(const ClCharT* envvar)
+  bool clParseEnvBoolean(const char* envvar)
     {
-    ClCharT* val = NULL;
-    ClBoolT rc = CL_FALSE;
+    char* val = NULL;
+    bool rc = CL_FALSE;
 
     val = getenv(envvar);
     if (val != NULL)
@@ -398,9 +398,9 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
     return rc;
     }
 
-  ClCharT *clParseEnvStr(const ClCharT *envvar)
+  char *clParseEnvStr(const char *envvar)
     {
-    ClCharT *val = NULL;
+    char *val = NULL;
     if(!envvar || !(val = getenv(envvar)))
       return NULL;
     while(*val && isspace(*val)) ++val;
@@ -472,10 +472,10 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
       }
     }
 
-  ClBoolT clIsProcessAlive(ClUint32T pid)
+  bool clIsProcessAlive(uint32_t pid)
   {
-      ClInt32T res = 0;
-      ClBoolT pid_exists = CL_FALSE;
+      int res = 0;
+      bool pid_exists = CL_FALSE;
       /*
        * If pid is zero , then kill() send the sig to every process
        * in the process group of the calling process.

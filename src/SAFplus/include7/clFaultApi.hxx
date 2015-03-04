@@ -15,7 +15,7 @@ public :
     SAFplus::SafplusMsgServer*        faultMsgServer;       //safplus message for send fault notification to fault server
     SAFplus::Wakeable*                wakeable;             // Wakeable object for change notification
     char                              name[FAULT_NAME_LEN]; // name of fault entity
-    ClIocAddressT iocFaultLocalServer;
+    SAFplus::Handle iocFaultLocalServer;
     int faultCommunicationPort;
     typedef SAFplus::FaultShmMapPair KeyValuePair;
     Fault()
@@ -39,7 +39,7 @@ public :
     void sendFaultNotification(void* data, int dataLength, SAFplusI::FaultMessageSendMode messageMode);
     friend class SAFplusI::GroupSharedMem;
     //init a fault entity with handle and comport information
-    void init(SAFplus::Handle faultHandle,ClIocAddressT faultServer, int comPort,SAFplus::Wakeable& execSemantics);
+    void init(SAFplus::Handle faultHandle,SAFplus::Handle faultServer, int comPort,SAFplus::Wakeable& execSemantics);
     //register my self
     void registerFault();
     //register other handle
@@ -216,7 +216,7 @@ public:
     //process a fault event base on plugin id
     void processFaultEvent(SAFplus::FaultPolicy pluginId, FaultEventData fault,SAFplus::Handle faultEntity, SAFplus::Handle faultReporter);
     //process tipc notification. currently using default fault policy
-    void processIocNotification(SAFplus::FaultPolicy pluginId,ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId);
+    //void processIocNotification(SAFplus::FaultPolicy pluginId,ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId);
     //broadcast fault event to all other node
     void sendFaultNotification(void* data, int dataLength, SAFplusI::FaultMessageSendMode messageMode);
     //broadcast fault event to all other fault server in group

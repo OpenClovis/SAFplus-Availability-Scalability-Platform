@@ -189,7 +189,7 @@ typedef union cl_u64_u /* FIXME: This is not endian-safe; shouldn't be used */
 
 
   /** The Maximum length of most string names in the OpenClovis ASP framework */
-#define CL_MAX_NAME_LENGTH  256
+//#define CL_MAX_NAME_LENGTH  256
 
   /** \brief  Load the SaNameT structure.
       \param  name The structure you want to load

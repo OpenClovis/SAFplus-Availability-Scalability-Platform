@@ -1,12 +1,12 @@
 #pragma once
 #include <clDbg.hxx>
-#include <clIocApi.h>
+//#include <clIocApi.h>
 #include <clMsgHandler.hxx>
 #include <clSafplusMsgServer.hxx>
 
 namespace SAFplus
   {
-
+#if 0
     /** Resolve a handle to a messaging address */
     inline ClIocAddressT getAddress(SAFplus::Handle h)
       {
@@ -23,6 +23,6 @@ namespace SAFplus
           }
         return ret;
       }
-
+#endif
   }
 ;

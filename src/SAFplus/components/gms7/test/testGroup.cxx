@@ -4,7 +4,6 @@
 // SAFplus includes
 #include <clHandleApi.hxx>
 #include <clLogApi.hxx>
-#include <clIocApi.h>
 #include <clGroup.hxx>
 #include <clGlobals.hxx>
 #include <clNameApi.hxx>
@@ -78,10 +77,10 @@ class MyMsgHandler:public SAFplus::MsgHandler
   int id;
   int msgsRcvd;
   MyMsgHandler(int identity):id(identity),msgsRcvd(0) {}
-  virtual void msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+  virtual void msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
   };
 
-void MyMsgHandler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+void MyMsgHandler::msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
   msgsRcvd++;
   printf("%d: Received msg '%s'\n",id, (char*) msg);

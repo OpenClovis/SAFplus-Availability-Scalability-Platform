@@ -17,7 +17,7 @@ public:
   LogSpooler();
   void subscribeStream(const char* streamName);
   void subscribeAllStreams();
-  virtual void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+  virtual void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 };
 #endif
 #endif // CLLOGSPOOLER

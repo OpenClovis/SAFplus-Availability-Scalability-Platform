@@ -1,3 +1,5 @@
+#error deprecated
+
 /*
  * Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
  *

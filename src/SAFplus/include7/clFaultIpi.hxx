@@ -577,7 +577,7 @@ namespace SAFplus
     {
     public:
     	uint64_t       structId;
-        ClIocAddressT iocFaultServer;
+        SAFplus::Handle iocFaultServer;
     };
 	void faultInitialize(void);
 

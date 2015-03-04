@@ -17,6 +17,7 @@ namespace SAFplusI
     END_IOC_PORT = 4,
     FLT_IOC_PORT = 3
 
+
     };
 
   enum
@@ -32,5 +33,9 @@ namespace SAFplusI
     CL_MGT_MSG_TYPE = 5,
     CKPT_SYNC_MSG_TYPE = 6,
     OBJECT_MSG_TYPE = 19,
+
+    // TODO: possibly misused:
+    CL_IOC_SAF_MSG_REPLY_PROTO = 19
+
     };
   }

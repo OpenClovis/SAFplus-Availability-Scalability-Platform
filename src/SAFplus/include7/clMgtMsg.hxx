@@ -26,7 +26,7 @@ extern "C"
 
 //#include <clCommon.h>
 //#include <clCommonErrors.h>
-#include <clIocApi.h>
+//#include <clIocApi.h>
 //#include <clSnmpDataDefinition.h>
 //#include <clSnmpDefs.h>
 #define MGT_MAX_ATTR_STR_LEN (1024)

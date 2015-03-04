@@ -61,7 +61,7 @@ namespace SAFplusI
 
     void operator()();  // Thread thunk
 
-    void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+    void msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 
     virtual void wake(int amt,void* cookie=NULL);
 

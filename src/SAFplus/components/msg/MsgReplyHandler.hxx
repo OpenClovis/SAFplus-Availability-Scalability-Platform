@@ -36,7 +36,7 @@ namespace SAFplus
             ~MsgReplyHandler();
 
             virtual void
-            msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+            msgHandler(Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
     };
 
 } /* namespace SAFplus */

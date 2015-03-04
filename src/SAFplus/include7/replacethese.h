@@ -4,6 +4,9 @@
 #include <semaphore.h>
 
 typedef pthread_cond_t      ClOsalCondT;
+typedef uint32_t ClUint32T;
+typedef int32_t ClInt32T;
+typedef void* ClPtrT;
 
 /**
  *  The mutex type to be initialized
@@ -46,3 +49,5 @@ typedef struct ClOsalMutex
 
   /** Old Clovis return code type. see clCommonErrors.h  DEPRECATED  */
 typedef ClUint32T       ClRcT;
+
+#include <clCommonErrors6.h>

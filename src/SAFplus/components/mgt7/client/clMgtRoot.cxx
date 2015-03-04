@@ -174,7 +174,7 @@ namespace SAFplus
     try
     {
       SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
-      mgtIocInstance->SendMsg(dest, (void *)payload, payloadlen, CL_IOC_SAF_MSG_REPLY_PROTO);
+      mgtIocInstance->SendMsg(dest, (void *)payload, payloadlen, SAFplusI::CL_IOC_SAF_MSG_REPLY_PROTO);
     }
     catch (SAFplus::Error &ex)
     {

@@ -349,7 +349,7 @@ Handle& NameRegistrar::getHandle(const char* name) throw(NameException&)
          //No process match, get handle of THIS NODE
          if (idx == -1)
          {
-            ClIocNodeAddressT thisNode = SAFplus::ASP_NODEADDR;
+            uint_t thisNode = SAFplus::ASP_NODEADDR;
             logDebug("NAME","GETHDL","getHandle of name [%s]: thisNode [%d]", name, thisNode);
             for(i=0;i<sz;i++)
 	    {

@@ -37,7 +37,7 @@ typedef struct {
 
 void clPluginHelperAddRemVirtualAddress(const char *cmd, const ClPluginHelperVirtualIpAddressT *vip);
 ClRcT clPluginHelperGetVirtualAddressInfo(const ClCharT *xportType, ClPluginHelperVirtualIpAddressT *vip);
-void clPluginHelperGetIpAddress(const ClUint32T ipAddressMask, const ClIocNodeAddressT iocAddress, ClCharT *hostAddress);
+//void clPluginHelperGetIpAddress(const ClUint32T ipAddressMask, const ClIocNodeAddressT iocAddress, ClCharT *hostAddress);
 
 ClUint32T clPluginHelperBitFillRShift(ClUint32T numBits);
 ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *internetAddress);

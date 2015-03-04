@@ -52,15 +52,15 @@ void LogSpooler::subscribeStream(const char* streamName)
   }
   if (s)
   {
-    printf("Subscribing log spooler handle [0x%x.0x%x] to stream [%s]\n", logSpoolerHdl.id[0], logSpoolerHdl.id[1], streamName);
+    printf("Subscribing log spooler handle [0x%lx.0x%lx] to stream [%s]\n", logSpoolerHdl.id[0], logSpoolerHdl.id[1], streamName);
     objectMessager.insert(logSpoolerHdl, this);
     s->group.registerEntity(logSpoolerHdl, 1, Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
   }
 }
 
-void LogSpooler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+void LogSpooler::msgHandler(SAFplus::Handle from, MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
 {  
-  printf("\n\nLogSpooler received msg from node [%d]; port [%u]\n\n", from.iocPhyAddress.nodeAddress, from.iocPhyAddress.portId);
+  //printf("\n\nLogSpooler received msg from node [%d]; port [%u]\n\n", from.getNode(), from.getPort());
 #if 0
   if (from.iocPhyAddress.nodeAddress == SAFplus::ASP_NODEADDR)
   {
@@ -72,7 +72,7 @@ void LogSpooler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWo
   unsigned int headerLen = sizeof(LogMsgHeader);
   LogMsgHeader lh;
   memcpy(&lh, msg, headerLen);
-  printf("\n\nlogspooler msgHandler: logCount [%d]\n\n", lh.numLogs);
+  //printf("\n\nlogspooler msgHandler: logCount [%d]\n\n", lh.numLogs);
   char* pMsg = (char*)msg+headerLen;
   int shortLen = sizeof(short);
   for(int i=0;i<lh.numLogs;i++)
@@ -89,7 +89,7 @@ void LogSpooler::msgHandler(ClIocAddressT from, MsgServer* svr, ClPtrT msg, ClWo
     LogBufferEntry rec;
     rec.severity = (LogSeverity) severity;
     rec.stream = lh.streamHandle;
-    printf("\n\n RECEIVED: logLen [%d]; severity [%d]; log [%s]\n\n", logLen, severity, log);
+    //printf("\n\n RECEIVED: logLen [%d]; severity [%d]; log [%s]\n\n", logLen, severity, log);
     // After parsing, we call postRecord to write those logs to the local file
     postRecord(&rec, log, NULL);
     pMsg+=logLen;

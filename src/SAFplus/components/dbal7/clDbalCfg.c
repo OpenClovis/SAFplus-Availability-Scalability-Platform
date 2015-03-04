@@ -34,6 +34,7 @@
 #include <unistd.h>
 
 #include <string.h>
+#include <clCommon.hxx>
 #include <clCommon6.h>
 #include <clCommonErrors6.h>
 #include <clLogApi.hxx>
@@ -90,7 +91,7 @@ ClRcT clDbalLibInitialize(void)
     gDlOpen = CL_FALSE;
 #else
     {
-        ClCharT        libName[CL_MAX_NAME_LENGTH];
+        ClCharT        libName[SAFplus::CL_MAX_NAME_LENGTH];
 
         /*Read the config XML file for DBAL*/
         memset(libName,'\0',sizeof(libName));

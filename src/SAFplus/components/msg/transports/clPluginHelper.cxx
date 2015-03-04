@@ -82,7 +82,7 @@ ClRcT clPluginHelperConvertHostToInternetAddress(ClUint32T addr, ClCharT *intern
     val3 = val3 >> 8;
     val4 = addr & 0x000000ff;
 
-    snprintf(internetAddress, CL_MAX_NAME_LENGTH, "%u.%u.%u.%u", val1, val2, val3, val4);
+    snprintf(internetAddress, SAFplus::CL_MAX_NAME_LENGTH, "%u.%u.%u.%u", val1, val2, val3, val4);
 
     return CL_OK;
 
@@ -596,7 +596,7 @@ void clPluginHelperAddRouteAddress(const ClCharT *ipAddress, const ClCharT *ifDe
 {
     FILE *route_file;
     ClUint32T dest;
-    ClCharT dummyStr[CL_MAX_NAME_LENGTH];
+    ClCharT dummyStr[SAFplus::CL_MAX_NAME_LENGTH];
     ClCharT dummyDev[CL_MAX_FIELD_LENGTH];
     ClUint32T ipMulticast;
     ClBoolT foundDestRoute = CL_FALSE;

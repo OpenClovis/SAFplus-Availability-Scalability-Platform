@@ -60,6 +60,12 @@ $(LIB_DIR)/libclMsg.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/msg
 endif
 
+ifndef SAFPLUS_FAULT_LIB
+$(LIB_DIR)/libclFault.so $(LIB_DIR)/AmfFaultPolicy.so: $(wildcard $(SAFPLUS_SRC_DIR)/SAFplus/components/fault7/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/SAFplus/include7/*.hxx) 
+	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/fault7
+endif
+
+
 ifndef SAFPLUS_AMF_LIB
 $(LIB_DIR)/libclAmf.so:
 	make -C $(SAFPLUS_SRC_DIR)/SAFplus/components/amf7

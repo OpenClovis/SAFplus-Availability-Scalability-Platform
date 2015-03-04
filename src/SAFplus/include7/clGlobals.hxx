@@ -1,8 +1,12 @@
 #pragma once
-#include <clIocApi.h>
 #include <clLogApi.hxx>
 #include <clHandleApi.hxx>
+#include <clBufferApi6.h>
 #include <clCustomization.hxx>
+
+#ifndef CL_OK
+#define CL_OK 0
+#endif
 
 namespace SAFplus
   {
@@ -13,40 +17,40 @@ namespace SAFplus
   extern int logEchoToFd;
 
   extern SAFplus::LogSeverity logSeverity;
-  extern ClIocPortT  iocPort;  //? The default communications port number for this component
+  extern uint_t iocPort;  //? The default communications port number for this component
 
 /** Name of the node.  Loaded from the same-named environment variable.  */
-  extern ClCharT ASP_NODENAME[CL_MAX_NAME_LENGTH];
+  extern char ASP_NODENAME[CL_MAX_NAME_LENGTH];
 /** Name of the component.  Loaded from the same-named environment variable.  */
-  extern ClCharT ASP_COMPNAME[CL_MAX_NAME_LENGTH];
+  extern char ASP_COMPNAME[CL_MAX_NAME_LENGTH];
 /** Address of the node. This is the same as the slot number in slot-based system.  Loaded from the same-named environment variable.  On a slot-based system, it is the application programmer's job to access the hardware and set this environment variable properly (and remove it from asp.conf).  Otherwise a unique number should be provided in the asp.conf file. */
-  extern ClWordT ASP_NODEADDR;
+  extern int ASP_NODEADDR;
 
 /** Working dir where programs are run. Loaded from the same-named environment variable.  */
-  extern ClCharT ASP_RUNDIR[CL_MAX_NAME_LENGTH];
+  extern char ASP_RUNDIR[CL_MAX_NAME_LENGTH];
 /** Dir where logs are stored. Loaded from the same-named environment variable.  */
-  extern ClCharT ASP_LOGDIR[CL_MAX_NAME_LENGTH];
+  extern char ASP_LOGDIR[CL_MAX_NAME_LENGTH];
 /** Dir where ASP binaries are located. Loaded from the same-named environment variable.  */
-  extern ClCharT ASP_BINDIR[CL_MAX_NAME_LENGTH];
+  extern char ASP_BINDIR[CL_MAX_NAME_LENGTH];
 /** Dir where application binaries are located. Derived from ASP_BINDIR and argv[0].  Deprecated. */
-  extern ClCharT CL_APP_BINDIR[CL_MAX_NAME_LENGTH];
+  extern char CL_APP_BINDIR[CL_MAX_NAME_LENGTH];
 /** Dir where application binaries are located. Derived from ASP_BINDIR and argv[0]. */
-  extern ClCharT ASP_APP_BINDIR[CL_MAX_NAME_LENGTH];
+  extern char ASP_APP_BINDIR[CL_MAX_NAME_LENGTH];
 
 /** Dir where xml config are located. Loaded from the same-named environment variable.  */
-  extern ClCharT ASP_CONFIG[CL_MAX_NAME_LENGTH];
+  extern char ASP_CONFIG[CL_MAX_NAME_LENGTH];
 /** Dir where persistent db files are to be stored. Loaded from the same-named environment variable.  */
-  extern ClCharT ASP_DBDIR[CL_MAX_NAME_LENGTH];
+  extern char ASP_DBDIR[CL_MAX_NAME_LENGTH];
 
 
   
 /** Variable to check if the current node is a system controller node.  Loaded from the same-named environment variable.  */
-  extern ClBoolT SYSTEM_CONTROLLER; 
+  extern bool SYSTEM_CONTROLLER; 
 /** Variable to check if the current node is a SC capable node.  Loaded from the same-named environment variable.  */
-  extern ClBoolT ASP_SC_PROMOTE;
+  extern bool ASP_SC_PROMOTE;
 
 /** The IOC port assigned to this component.  */
-  extern ClIocPortT gEOIocPort;
+//  extern ClIocPortT gEOIocPort;
   
 /** AMF did not start this component. ASP_WITHOUT_CPM environment variable.  */
   extern bool clWithoutAmf;
@@ -170,7 +174,7 @@ class LibSet
   extern Logger* logInitialize(void) __attribute__((weak));
   extern void objectMessagerInitialize() __attribute__((weak));
   extern void nameInitialize() __attribute__((weak));
-  extern void msgServerInitialize(ClWordT port, ClWordT maxPendingMsgs, ClWordT maxHandlerThreads)  __attribute__((weak));
+  extern void msgServerInitialize(uint_t port, uint_t maxPendingMsgs, uint_t maxHandlerThreads)  __attribute__((weak));
   extern void clMsgInitialize(void) __attribute__((weak)); 
 
 #ifdef __cplusplus

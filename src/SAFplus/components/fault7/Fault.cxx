@@ -250,6 +250,7 @@ namespace SAFplus
     	sendFaultAnnounceMessage(other,state);
     }
 
+#if 0
     static ClRcT faultServerIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cookie)
     {
     	logDebug("FLT","IOC","Recv notification");
@@ -299,6 +300,7 @@ namespace SAFplus
       	svr->processIocNotification(FaultPolicy::AMF,eventId,nodeAddress,portId);
       	return rc;
     }
+#endif
 
     typedef boost::unordered_map<SAFplus::FaultPolicy,ClPluginHandle*> FaultPolicyMap;
     FaultPolicyMap faultPolicies;

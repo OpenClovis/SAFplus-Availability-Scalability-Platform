@@ -15,7 +15,8 @@ namespace SAFplus
     enum
     {
     Log2MaxNodes = 10,  // 2^10 = 1024 total nodes.
-    MaxNodes = (1<<Log2MaxNodes)
+    MaxNodes = (1<<Log2MaxNodes),
+    CL_MAX_NAME_LENGTH=256  //? Maximum length of names in the system
     };
 
   /* Messaging */

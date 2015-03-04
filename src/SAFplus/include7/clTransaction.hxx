@@ -51,7 +51,7 @@ namespace SAFplus
       Transaction();
       virtual ~Transaction();
 
-      ClRcT addOperation(TransactionOperation *operation);
+      void addOperation(TransactionOperation *operation);
 
       void commit();
       void abort();

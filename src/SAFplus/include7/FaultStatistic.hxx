@@ -10,10 +10,10 @@
 
 #include <vector>
 #include "clMgtContainer.hxx"
-#include "clTransaction.hxx"
+#include <clTransaction.hxx>
 #include "FaultHistoryEntity.hxx"
-#include "clMgtProv.hxx"
-#include "clMgtProvList.hxx"
+#include <clMgtProv.hxx>
+#include <clMgtProvList.hxx>
 
 namespace SAFplus
   {

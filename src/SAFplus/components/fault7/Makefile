@@ -2,7 +2,9 @@ S7 := 1
 SAFPLUS_FAULT_LIB := 1
 include ../../mk/preface.mk
 
-CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I/usr/include/libxml2
+MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
+
+CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I../include -I/usr/include/libxml2 -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
 CLIENT_H := $(wildcard *.hxx) $(wildcard ../../include7/*.hxx)
 CLIENT_SRC := FaultSharedMem.cxx Fault.cxx FaultHistoryEntity.cxx FaultStatistic.cxx
@@ -16,7 +18,7 @@ CLIENT_CUSTOM_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_CUSTOM_S
 
 
 # Specify the required libraries
-SAFPLUS_LIBS := clCkpt clName clIoc7 clLog clUtils7 clOsal7 clGroup clMgt7
+SAFPLUS_LIBS := clCkpt clName clMsg clLog clUtils7 clOsal7 clGroup clMgt7
 # Then use these in the make rule
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))  

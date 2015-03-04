@@ -20,6 +20,7 @@
 #ifndef CLMSGHANDLER_HXX_
 #define CLMSGHANDLER_HXX_
 
+#include <clCommon.hxx>
 #include <clHandleApi.hxx>
 
 namespace SAFplus

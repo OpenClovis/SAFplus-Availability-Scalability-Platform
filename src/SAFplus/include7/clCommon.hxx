@@ -5,7 +5,6 @@
 
 #include <cltypes.h>
 #include <string>
-#include <clGlobals.hxx>
 #include <clDbg.hxx>
 #include <saAis.h>
 
@@ -27,7 +26,7 @@ enum
 std::string strprintf(const std::string fmt_str, ...);
 
 /*? calculate 32 bit CRC */
-uint32_t computeCrc32(uint8_t *buf, register ClInt32T nr);
+uint32_t computeCrc32(uint8_t *buf, register int32_t nr);
 
 // All statements that begin with "dbg" are NO OPERATION in production code.
 #ifdef CL_DEBUG
@@ -40,15 +39,14 @@ void* heapAlloc(uint_t amt, uint_t category, const char* file, uint_t line);
 
 void heapFree(void* buffer, const char* file, uint_t line);
 
-
   /**
    *  Version array entry stored by a client library that describes what
    *  versions are supported by the client library implementation.
    */
   typedef struct ClVersionDatabase
   {
-    ClInt32T        versionCount;   /* Number of versions listed as supported */
-    ClVersionT *versionsSupported;  /* Versions supported by implementation */
+    uint32_t    versionCount;   /* Number of versions listed as supported */
+    SaVersionT* versionsSupported;  /* Versions supported by implementation */
   } ClVersionDatabaseT;
 
   /**
@@ -61,7 +59,7 @@ void heapFree(void* buffer, const char* file, uint_t line);
 *  This API checks if the given version is compatible with the versions
 *  described in the version database of the client.
 *
-*  FIXME: The actual description of the algorithm is provided in the SA
+*  TODO: The actual description of the algorithm is provided in the SA
 *  FORUM AIS specifications.  We should copy that text here.
 *
 *  \param versionDatabase: Pointer to the version database that contains
@@ -78,13 +76,13 @@ void heapFree(void* buffer, const char* file, uint_t line);
 *  Use \c CL_GET_ERROR_CODE(RET_CODE) defined in clCommonErrors.h to get the error code.
 *
 */
-  extern bool clVersionVerify (ClVersionDatabaseT *versionDatabase, ClVersionT *version);
+  extern bool clVersionVerify (ClVersionDatabaseT *versionDatabase, SaVersionT *version);
 
-  ClBoolT clIsProcessAlive(ClUint32T pid); 
-  ClBoolT clParseEnvBoolean(const char* envvar);
+  bool clIsProcessAlive(uint32_t pid); 
+  bool clParseEnvBoolean(const char* envvar);
   inline bool parseEnvBoolean(const char* envvar) { return clParseEnvBoolean(envvar); }
 
-  ClCharT *clParseEnvStr(const char* envvar);
+  char *clParseEnvStr(const char* envvar);
   inline char* parseEnvStr(const char* envvar) { return clParseEnvStr(envvar); }
 
   /** \brief Generic callback function object
@@ -244,3 +242,5 @@ void heapFree(void* buffer, const char* file, uint_t line);
 };
 
 #include <replacethese.h>
+#include <clGlobals.hxx>
+

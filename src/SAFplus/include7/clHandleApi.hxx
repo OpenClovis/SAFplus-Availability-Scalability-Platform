@@ -3,7 +3,6 @@
 #include <cltypes.h>
 #include <assert.h>
 #include <stdio.h>
-#include <clIocApi.h>
 #include <boost/functional/hash.hpp> 
 
 #define CL_ASSERT assert

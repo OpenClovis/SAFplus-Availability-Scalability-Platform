@@ -43,7 +43,7 @@ namespace SAFplus
     transport = NULL;
     sock = NULL;
     makePrimaryThunk.msgSvr = this;
-    reliability = CL_IOC_RELIABLE_MESSAGING; // CL_IOC_UNRELIABLE_MESSAGING
+    reliability = 0;  // TODO: new messaging CL_IOC_RELIABLE_MESSAGING; // CL_IOC_UNRELIABLE_MESSAGING
     for (uint_t i=0;i<NUM_MSG_TYPES;i++)
     {
         handlers[i] = NULL;

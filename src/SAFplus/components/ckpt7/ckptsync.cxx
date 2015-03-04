@@ -40,13 +40,13 @@ class CkptSyncMsgHandler: public MsgHandler
   // checkpoint handle to pointer lookup...
   CkptHandleMap handleMap;
 
-  virtual void msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
+  virtual void msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie);
 };
 
 static CkptSyncMsgHandler msgHdlr;
 
 // Demultiplex incoming message to the appropriate Checkpoint object
-void CkptSyncMsgHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+void CkptSyncMsgHandler::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
   //logInfo("SYNC","MSG","Received checkpoint sync message from %d", from.iocPhyAddress.nodeAddress);
   CkptMsgHdr* hdr = (CkptMsgHdr*) msg;
@@ -60,7 +60,7 @@ void CkptSyncMsgHandler::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr,
     }
   }
 
-void SAFplusI::CkptSynchronization::msgHandler(ClIocAddressT from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
+void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
   {
   //logInfo("SYNC","MSG","Resolved checkpoint sync message to checkpoint");
 
@@ -103,7 +103,7 @@ void SAFplusI::CkptSynchronization::msgHandler(ClIocAddressT from, SAFplus::MsgS
       } break;
 
     case CKPT_MSG_TYPE_UPDATE_MSG_1:
-      if (from.iocPhyAddress.nodeAddress != SAFplus::ASP_NODEADDR) // No need to handle update messages coming from myself.
+      if (from.getNode() != SAFplus::ASP_NODEADDR) // No need to handle update messages coming from myself.
         {
         logInfo("SYNC","MSG","Received checkpoint update message");
         unsigned int change = applySyncMsg(msg,msglen, cookie);
@@ -185,7 +185,7 @@ void SAFplusI::CkptSynchronization::sendUpdate(const Buffer* key,const Buffer* v
 
   group->send(buf,offset,GroupMessageSendMode::SEND_BROADCAST);
 #if 0
-  ClIocAddressT to;
+  Handle to;
   to.iocPhyAddress.nodeAddress = CL_IOC_BROADCAST_ADDRESS;
   to.iocPhyAddress.portId      = TEMP_CKPT_SYNC_PORT;  // This is a problem b/c the syncPort is not known.  TODO: actually use a group API to send to every registered entity in the group.  Inside group, message is sent directly to each "handle" using the object message API (TBD)
   msgSvr->SendMsg(to,buf,offset,CKPT_SYNC_MSG_TYPE);
@@ -199,7 +199,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
   int count = 0;
   //lastChange = 0; // DEBUG to force full sync
 
-  //ClIocAddressT to = getAddress(response);
+  //Handle to = getAddress(response);
 
   logInfo("SYNC","MSG","Handling synchronization request from [%lx.%lx], generation [%d] change [%d] ",response.id[0],response.id[1], generation, lastChange);
   if (generation != ckpt->hdr->generation) 
@@ -388,7 +388,6 @@ void SAFplusI::CkptSynchronization::operator()()
       msg.cookie = syncCookie;
       syncCount=0;
 
-      //ClIocAddressT to = getAddress(active);
       msgSvr->SendMsg(active,&msg,sizeof(msg),CKPT_SYNC_MSG_TYPE);
       logInfo("SYNC","TRD","Sent synchronization request message to [%d:%d] type [%d] generation [%d] change [%d] sync cookie [%x]", active.getNode(), active.getPort(),CKPT_SYNC_MSG_TYPE,msg.generation, msg.changeNum, syncCookie);
       }

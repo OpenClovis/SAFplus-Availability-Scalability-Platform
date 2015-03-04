@@ -22,11 +22,11 @@ const char* SAFplus::logCompName=NULL;
 bool  logCodeLocationEnable=true;
 
 /* Supported Client Version */
-static ClVersionT gLogClntVersionsSupported[] = {CL_LOG_CLIENT_VERSION};
+static SaVersionT gLogClntVersionsSupported[] = {CL_LOG_CLIENT_VERSION};
 
 /* Supported Client Version database */
 static ClVersionDatabaseT gLogClntVersionDb = {
-    sizeof(gLogClntVersionsSupported) / sizeof(ClVersionT),
+    sizeof(gLogClntVersionsSupported) / sizeof(SaVersionT),
     gLogClntVersionsSupported
 };
 
@@ -34,9 +34,6 @@ static const ClCharT* logSeverityStrGet(SAFplus::LogSeverity severity);
 
 Logger* SAFplus::logInitialize()
 {
-    ClRcT       rc          = CL_OK;
-    ClBoolT     firstHandle = CL_FALSE;
-    ClIocPortT  port        = 0;
 #if 0    
     if (pVersion)
       {
