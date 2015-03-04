@@ -127,7 +127,7 @@ def createLeaf(s,count, result=None):
   """A leaf data item has been found.  Translate this into a clean format that the IDE can easily use to include this item in a configuraton dialog"""
   if result is None: result = {}
   typ = getArg(s,"type")
-  result[s.arg] = { "order":count, "type": typ,"help" : getArg(s,"description",None), "alias": getArg(s,("SAFplusTypes","alias"),None), "prompt":getArg(s,("SAFplusTypes","ui-prompt"),None), "default" : getArg(s,"default",None), "config": toBoolean(getArg(s,"config",True)), "range": cvtRange(getArg(s,"range",None),typ)}
+  result[s.arg] = { "order":count, "type": typ,"help" : getArg(s,"description",None), "alias": getArg(s,("SAFplusTypes","alias"),None), "prompt":getArg(s,("SAFplusTypes","ui-prompt"),None), "default" : getArg(s,"default",None), "config": toBoolean(getArg(s,"config",True)), "range": cvtRange(getArg(s.search_one("type"),"range",None),typ)}
   return result
   
 def handleList(s,count):

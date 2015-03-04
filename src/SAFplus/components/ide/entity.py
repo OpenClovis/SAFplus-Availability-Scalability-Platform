@@ -77,7 +77,7 @@ class Entity:
 
   def duplicate(self,name=None, dupContainmentArrows=False):
     newEnt = copy.copy(self)
-    newEnt.data["name"] = NameCreator(entityType.name) if name is None else name
+    newEnt.data["name"] = NameCreator(self.et.name) if name is None else name
     newEnt.bmp  = self.et.iconSvg.instantiate(self.size,self.data)
     newEnt.pos = (newEnt.pos[0] + 20, newEnt.pos[1] + 20)
     newEnt.containmentArrows = []

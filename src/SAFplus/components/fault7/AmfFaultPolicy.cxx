@@ -3,12 +3,8 @@
 #include <vector>
 #include <clFaultIpi.hxx>
 
-
-
-
 using namespace std;
 using namespace SAFplus;
-
 
 namespace SAFplus
 {
@@ -21,7 +17,6 @@ namespace SAFplus
         //virtual FaultAction processIocNotification(ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId);
 
     };
-
     AmfFaultPolicy::AmfFaultPolicy()
     {
 
@@ -31,11 +26,11 @@ namespace SAFplus
     {
 
     }
- 
+
     FaultAction AmfFaultPolicy::processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent)
     {
-        logInfo("POL","AMF","Received fault event of fault Entity with processId [%d] , node [%d] fault count [%d] ", faultEntity.getProcess(),faultEntity.getNode(),countFaultEvent);
-        logInfo("POL","AMF","Default plugin : Process fault event");
+        logInfo("POL","AMF","Received fault event : Process Id [%d], Node Id [%d], Fault Count [%d] ", faultEntity.getProcess(),faultEntity.getNode(),countFaultEvent);
+        logInfo("POL","AMF","Process fault event : Default");
         if (countFaultEvent>=2)
         {
           	return FaultAction::ACTION_STOP;
@@ -45,7 +40,8 @@ namespace SAFplus
 #if 0
     FaultAction AmfFaultPolicy::processIocNotification(ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId)
     {
-        logInfo("POL","CUSTOM","process ioc notification");
+        logInfo("POL","AMF","Process ioc notification");
+        //TODO :
         return FaultAction::ACTION_STOP;
     }
 #endif
@@ -60,7 +56,6 @@ extern "C" ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   SAFplus::api.pluginId         = FAULT_POLICY_PLUGIN_ID;
   SAFplus::api.pluginVersion    = FAULT_POLICY_PLUGIN_VER;
   SAFplus::api.policyId = SAFplus::FaultPolicy::Custom;
-
   // return it
   return (ClPlugin*) &SAFplus::api;
 }

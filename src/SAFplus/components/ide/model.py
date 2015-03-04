@@ -175,9 +175,7 @@ instantiated  <instances>     instances                         instances     (e
 
               # Entity of this instance
               entityParent = self.entities.get(entityTypeName)
-
-              data = instance.children_
-              entityInstance = entity.Instance(entityParent, data, (0,0), (10,10), instance.name.data_)
+              entityInstance = entity.Instance(entityParent, instance, (0,0), (10,10), instance.name.data_)
               entityInstance.updateDataFields(instance)
     
               # Copy instance locked, then bind to readonly wxwidget
