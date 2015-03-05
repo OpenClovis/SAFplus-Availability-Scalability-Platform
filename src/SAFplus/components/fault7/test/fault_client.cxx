@@ -25,22 +25,23 @@ int main(int argc, char* argv[])
   logSeverity = LOG_SEV_MAX;
   sic.iocPort     = 50;
   safplusInitialize(SAFplus::LibDep::IOC | SAFplus::LibDep::LOG |SAFplus::LibDep::MSG ,sic);
+  logSeverity = LOG_SEV_MAX;
 
   logInfo("FLT","CLT","********************Start msg server********************");
   safplusMsgServer.Start();
   logInfo("FLT","CLT","********************Initial fault lib********************");
   faultInitialize();
   me = Handle::create();
-  fc = Fault();
+
   Handle server = getProcessHandle(SAFplusI::FLT_IOC_PORT,SAFplus::ASP_NODEADDR);
   logInfo("FLT","CLT","********************Initial fault client*********************");
   fc.init(me,server,sic.iocPort,BLOCK);
-  fc.registerFault();
+  //fc.registerFault();
   testAllFeature();
   tressTest(20);
   sleep(1);
   deRegisterTest();
-  while(1)
+  while(0)
   {
 	  sleep(10000);
   }
@@ -51,19 +52,19 @@ int main(int argc, char* argv[])
 void testAllFeature()
 {
 
-  sleep(10);
+  sleep(2);
   FaultState state = fc.getFaultState(me);
   logInfo("FLT","CLT","********************Get current fault state in shared memory [%s]********************", strFaultEntityState[int(state)]);
   // Register other fault entity
   logInfo("FLT","CLT","********************Register other fault entity********************");
-  fc.registerFault(faultEntityHandle,FaultState::STATE_DOWN);
-  sleep(10);
+  fc.registerEntity(faultEntityHandle,FaultState::STATE_DOWN);
+  sleep(2);
   state = fc.getFaultState(faultEntityHandle);
   logInfo("FLT","CLT","********************Get current fault state in shared memory [%s]********************", strFaultEntityState[int(state)]);
-  sleep(10);
+  sleep(2);
   logInfo("FLT","CLT","********************Update other fault entity********************");
-  fc.registerFault(faultEntityHandle,FaultState::STATE_UP);
-  sleep(10);
+  fc.registerEntity(faultEntityHandle,FaultState::STATE_UP);
+  sleep(2);
   state = fc.getFaultState(faultEntityHandle);
   logInfo("FLT","CLT","********************Get current fault state after updated in shared memory [%s]********************", strFaultEntityState[int(state)]);
   sleep(10);

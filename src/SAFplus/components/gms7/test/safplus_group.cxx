@@ -6,13 +6,8 @@
 static unsigned int MAX_MSGS=25;
 static unsigned int MAX_HANDLER_THREADS=2;
 
-ClBoolT   gIsNodeRepresentative = CL_TRUE;
-ClUint32T clAspLocalId = 0x1;
-
 int main(int argc,char *argv[])
   {
-  clAspLocalId = SAFplus::ASP_NODEADDR = 1;
-
   SAFplus::logEchoToFd = 1;  // echo logs to stdout for debugging
   SAFplus::logSeverity = SAFplus::LOG_SEV_MAX;
 

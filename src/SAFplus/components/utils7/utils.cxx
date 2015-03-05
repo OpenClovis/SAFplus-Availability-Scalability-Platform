@@ -207,7 +207,7 @@ namespace SAFplus
       /* Default severity level while booting up the system */
       if( NULL == (pEnvVar = getenv("CL_LOG_SEVERITY")) )
         {
-        SAFplus::logSeverity = LOG_SEV_NOTICE;
+        // do nothing if the vairable does not exist; use the default severity, or whatever the app set the variable to.
         }
       else
         {

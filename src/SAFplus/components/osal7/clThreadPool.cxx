@@ -150,8 +150,8 @@ void ThreadPool::runTask(void* arg)
     if (!wh) // it's Poolable object
     {
       logTrace("THRPOOL","RUNTSK", "Execute user-defined func of Poolable object");
-      p->wake(0, p->arg);
       p->calculateStartTime();
+      p->wake(0, p->arg);
       p->calculateEndTime();
       p->calculateExecTime();
       if (p->isDeleteWhenComplete())

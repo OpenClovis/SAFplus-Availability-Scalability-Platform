@@ -14,7 +14,7 @@ static unsigned int MAX_HANDLER_THREADS=2;
 int main(int argc, char* argv[])
 {
   logEchoToFd = 1;  // echo logs to stdout for debugging
-  logSeverity = LOG_SEV_MAX;
+  logSeverity = LOG_SEV_DEBUG;
 
   SafplusInitializationConfiguration sic;
   sic.iocPort     = SAFplusI::FLT_IOC_PORT;
