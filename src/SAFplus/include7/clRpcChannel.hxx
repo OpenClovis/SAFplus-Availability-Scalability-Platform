@@ -91,7 +91,7 @@ namespace SAFplus
             std::map<uint64_t,MsgRpcEntry*> msgRPCs;
 
             SAFplus::MsgServer *svr;
-            Handle dest;
+            SAFplus::Handle dest;
             Mutex mutex;
             SAFplus::Rpc::RpcService *service; // service to dispatch requests to
 
