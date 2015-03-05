@@ -33,11 +33,9 @@ using namespace SAFplus;
 int
 main(void)
 {
-    SAFplus::ASP_NODEADDR = 0x1;
-
-    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
-    logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
+
+    clMsgInitialize();
 
     //Msg server listening
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);

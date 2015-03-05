@@ -31,7 +31,7 @@ using namespace SAFplus;
 using namespace google::protobuf;
 
 //Auto scanning
-#define IOC_PORT 0
+#define IOC_PORT 66
 #define IOC_PORT_SERVER 65
 
 //ClBoolT gIsNodeRepresentative = CL_FALSE;
@@ -39,13 +39,12 @@ using namespace google::protobuf;
 int main(void)
   {
     Handle msgDest;
-    SAFplus::ASP_NODEADDR = 0x1;
 
-    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
-    logEchoToFd = 1;  // echo logs to stdout for debugging
+    clMsgInitialize();
+
     logSeverity = LOG_SEV_MAX;
 
-    msgDest = getProcessHandle(IOC_PORT_SERVER,1);
+    msgDest = Handle::create(IOC_PORT_SERVER);
 
     char helloMsg[] = "Hello world ";
 
@@ -89,13 +88,11 @@ int main(void)
         Rpc::RpcWakeable wakeable2(2);
         Rpc::RpcWakeable wakeable3(3);
 
-        SAFplus::Handle hdl(TransientHandle,1,IOC_PORT_SERVER,1);
-
-        service->testGetRpcMethod(hdl, &request1, &res1, wakeable1);
-        service->testGetRpcMethod2(hdl, &request2, &res2, wakeable2);
-        service->testGetRpcMethod3(hdl, &request3, &res3, wakeable3);
-        service->workOperation(hdl, &workOperationRequest);
-        service->workOperationResponse(hdl, &workOperationResponseRequest);
+        service->testGetRpcMethod(INVALID_HDL, &request1, &res1, wakeable1);
+        service->testGetRpcMethod2(INVALID_HDL, &request2, &res2, wakeable2);
+        service->testGetRpcMethod3(INVALID_HDL, &request3, &res3, wakeable3);
+        service->workOperation(INVALID_HDL, &workOperationRequest);
+        service->workOperationResponse(INVALID_HDL, &workOperationResponseRequest);
 
         sleep(1);
       }

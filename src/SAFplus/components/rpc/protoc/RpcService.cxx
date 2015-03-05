@@ -332,7 +332,7 @@ namespace SAFplus
                   }
 
                 printer->Print("{\n"
-                    "  //TODO: put your code here \n"
+                    "  //TODO: put your code here\n"
                     "}\n");
                 printer->Outdent();
               }

@@ -39,7 +39,8 @@ namespace SAFplus
         RpcChannel::RpcChannel(SAFplus::MsgServer *svr, SAFplus::Rpc::RpcService *rpcService) :
             svr(svr), service(rpcService)
           {
-            dest = INVALID_HDL;
+            // Assign to compare with local service
+            dest = svr->handle;
             msgId = 0;
           }
 
@@ -106,6 +107,11 @@ namespace SAFplus
             rpcMsgReq.set_type(msgSendType);
             rpcMsgReq.set_id(idx);
             rpcMsgReq.set_name(method->name());
+
+            // Attach handle into rpc msg (this would make independent from transport layer plugins)
+            SAFplus::Rpc::Handle *hdl = rpcMsgReq.mutable_handle();
+            hdl->set_id0(svr->handle.id[0]);
+            hdl->set_id1(svr->handle.id[1]);
 
             request->SerializeToString(&strMsgReq);
             rpcMsgReq.set_buffer(strMsgReq);
@@ -185,22 +191,20 @@ namespace SAFplus
             rpcMsgRes.set_type(msgReplyType);
             rpcMsgRes.set_id(rpcMsgReq->id());
 
+            // Attach handle into rpc msg (this would make independent from transport layer plugins)
+            SAFplus::Rpc::Handle *hdl = rpcMsgRes.mutable_handle();
+            hdl->set_id0(svr->handle.id[0]);
+            hdl->set_id1(svr->handle.id[1]);
+
             response_pb->SerializeToString(&strMsgRes);
             rpcMsgRes.set_buffer(strMsgRes);
 
             //Check local service
-#if 0
-            if (iocReq.iocPhyAddress.nodeAddress == dest.iocPhyAddress.nodeAddress
-                && iocReq.iocPhyAddress.portId == dest.iocPhyAddress.portId)
+            if (iocReq.getNode() == dest.getNode()
+                && iocReq.getPort() == dest.getPort())
               {
                 HandleResponse(&rpcMsgRes);
               }
-#else
-           if (1)
-             {
-             assert(0);
-             }
-#endif
             else //remote
               {
                 //Sending reply to remote
@@ -254,9 +258,14 @@ namespace SAFplus
 
             ClWordT msgType = rpcMsgReqRes.type();
 
+            // Using this handle to independent with transport layer plugins
+            SAFplus::Handle from;
+            from.id[0] = rpcMsgReqRes.handle().id0();
+            from.id[1] = rpcMsgReqRes.handle().id1();
+
             if (msgType == msgSendType)
               {
-                HandleRequest(&rpcMsgReqRes, srcAddr);
+                HandleRequest(&rpcMsgReqRes, from);
               }
             else if (msgType == msgReplyType)
               {
