@@ -24,28 +24,26 @@
 namespace SAFplusI
 {
 #define MAX_FAULT_BUFFER_SIZE 1024*1024
-
-	enum class FaultMessageTypeT
-	{
-		MSG_ENTITY_JOIN = 1,     // the entity joins
-		MSG_ENTITY_LEAVE,       // the entity leave
-		MSG_ENTITY_FAULT,       // the fault event
-		MSG_ENTITY_JOIN_BROADCAST,  // broadcast entity join
-		MSG_ENTITY_LEAVE_BROADCAST,  // broadcast entity leave
-		MSG_ENTITY_FAULT_BROADCAST,   // broadcast fault event
-		MSG_FAULT_SYNC_REQUEST,   // sync request  from fault server to master fault server
-		MSG_FAULT_SYNC_REPLY,   // fault entity information from fault server master to fault server
-		MSG_UNDEFINED
-	};
-
-	//comunication mode between fault entity and fault server
-	enum class FaultMessageSendMode
-	{
-		SEND_BROADCAST,// send broadcast
-		SEND_TO_LOCAL_SERVER,// send to local fault server (current)
-		SEND_TO_ACTIVE_SERVER // send directly to master fault server
-	};
-	/**
+    enum class FaultMessageTypeT
+    {
+        MSG_ENTITY_JOIN = 1,     // the entity joins
+        MSG_ENTITY_LEAVE,       // the entity leave
+        MSG_ENTITY_FAULT,       // the fault event
+        MSG_ENTITY_JOIN_BROADCAST,  // broadcast entity join
+        MSG_ENTITY_LEAVE_BROADCAST,  // broadcast entity leave
+        MSG_ENTITY_FAULT_BROADCAST,   // broadcast fault event
+//        MSG_FAULT_SYNC_REQUEST,   // sync request  from fault server to master fault server
+//        MSG_FAULT_SYNC_REPLY,   // fault entity information from fault server master to fault server
+        MSG_UNDEFINED
+    };
+    //comunication mode between fault entity and fault server
+    enum class FaultMessageSendMode
+    {
+        SEND_BROADCAST,// send broadcast
+        SEND_TO_LOCAL_SERVER,// send to local fault server (current)
+        SEND_TO_ACTIVE_SERVER // send directly to master fault server
+    };
+    /**
      * The type of an identifier to the specific problem of the alarm.
      * This information is not configured but is assigned a value at run-time
      * for segregation of alarms that have the same \e category and probable cause

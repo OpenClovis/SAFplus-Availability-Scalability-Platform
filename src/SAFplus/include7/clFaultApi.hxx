@@ -22,8 +22,8 @@ public :
     //? Default 2-phase constructor.  Must call init(...)
     Fault() 
     {
-    	reporter=INVALID_HDL;
-    	faultMsgServer=NULL;
+        //reporter=INVALID_HDL;
+        faultMsgServer=NULL;
     };
     //? Initialize a fault entity with handle and comport information
     void init(SAFplus::Handle faultHandle,SAFplus::Handle faultServer, int comPort,SAFplus::Wakeable& execSemantics);
@@ -182,7 +182,8 @@ const char* strFaultMsgType[]=
 	"MSG_UNDEFINED"
 };
 
-const char* strFaultEntityState[]={
+const char* strFaultEntityState[]=
+{
     "STATE_UNDEFINED",
     "STATE_UP",
     "STATE_DOWN"
