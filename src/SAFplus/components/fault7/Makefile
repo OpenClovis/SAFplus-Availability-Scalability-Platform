@@ -23,6 +23,8 @@ SAFPLUS_LIBS := clCkpt clName clMsg clLog clUtils7 clOsal7 clGroup clMgt7
 SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIBS)))
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))  
 
+ 
+
 
 all: $(LIB_DIR)/AmfFaultPolicy.so $(LIB_DIR)/CustomFaultPolicy.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclFault.a 
 

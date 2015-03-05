@@ -18,10 +18,10 @@ namespace SAFplus
 
     FaultHistoryEntity FaultHistoryEntity::getValue()
     {
-    	FaultHistoryEntity temp;
-    	temp.faultData=this->faultData;
-    	temp.faultHdl=this->faultHdl;
-    	temp.time=this->time;
+        FaultHistoryEntity temp;
+        temp.faultData=this->faultData;
+        temp.faultHdl=this->faultHdl;
+        temp.time=this->time;
         return temp;
     };
 
@@ -29,10 +29,10 @@ namespace SAFplus
     {
         if(&t == &SAFplus::NO_TXN)
         {
-        	this->faultData = faultData;
-        	this->faultHdl = faultHdl;
-        	this->time = time;
-        	this->reporter=reporter;
+            this->faultData = faultData;
+            this->faultHdl = faultHdl;
+            this->time = time;
+            this->reporter=reporter;
         }
         else
         {
@@ -47,9 +47,9 @@ namespace SAFplus
 
     SAFplus::FaultHistoryEntity& FaultHistoryEntity::operator=(const FaultHistoryEntity &FaultHistoryEntity)
     {
-    	faultData = FaultHistoryEntity.faultData;
-    	faultHdl = FaultHistoryEntity.faultHdl;
-    	time = FaultHistoryEntity.time;
+        faultData = FaultHistoryEntity.faultData;
+        faultHdl = FaultHistoryEntity.faultHdl;
+        time = FaultHistoryEntity.time;
         return *this;
     };
     FaultHistoryEntity::~FaultHistoryEntity()

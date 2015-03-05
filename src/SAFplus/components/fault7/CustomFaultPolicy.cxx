@@ -15,19 +15,14 @@ namespace SAFplus
         ~CustomFaultPolicy();
         virtual FaultAction processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent);
         // virtual FaultAction processIocNotification(ClIocNotificationIdT eventId, ClIocNodeAddressT nodeAddress, ClIocPortT portId);
-
     };
 
     CustomFaultPolicy::CustomFaultPolicy()
     {
-
     }
-
     CustomFaultPolicy::~CustomFaultPolicy()
     {
-
     }
-
     FaultAction CustomFaultPolicy::processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent)
     {
     	logInfo("POL","CUS","Received fault event : Process Id [%d], Node Id [%d], Fault count [%d] ", faultEntity.getProcess(),faultEntity.getNode(),countFaultEvent);

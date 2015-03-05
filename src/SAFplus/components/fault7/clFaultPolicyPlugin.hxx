@@ -3,7 +3,7 @@
 #include <clMgtApi.hxx>
 #include <clFaultApi.hxx>
 
-using namespace SAFplusI;
+//using namespace SAFplusI;
 namespace SAFplus
 {
 
