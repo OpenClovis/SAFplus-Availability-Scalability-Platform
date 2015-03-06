@@ -155,7 +155,7 @@ else
 XconfNETSNMP_PKG:=
 endif
 
-libs: $(InstDir) $(LIBXML2) $(BOOST) $(NETSNMP) 
+libs: $(NETSNMP) $(InstDir) $(LIBXML2) $(BOOST) 
 	echo building libs
 
 # $(OPENHPI) $(OPENHPISUBAGENT)
@@ -170,6 +170,7 @@ $(NETSNMP): $(NETSNMP_PKG)
 	(tar xvfz $<  > /dev/null)
 	(cd $(NETSNMP)-$(NETSNMP_VER); $(Xenv); $(Xargs) ./configure --prefix=$(InstDir) $(Xconfigure) $(XconfNETSNMP_PKG) \
 		--without-rpm \
+                --disable-manuals \
 		--with-defaults \
 		--with-default-snmp-version="2" \
 		--disable-embedded-perl \
