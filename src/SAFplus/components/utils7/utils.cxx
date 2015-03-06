@@ -544,6 +544,16 @@ void saNameGet(char* str,const SaNameT* name, uint_t maxLen)
     return malloc(amt);
     }
 
+  void* heapCalloc(uint_t size, uint_t amt, uint_t category, const char* file, uint_t line)
+    {
+    return calloc(size, amt);
+    }
+
+  void* heapRealloc(void* ptr, uint_t amt, uint_t category, const char* file, uint_t line)
+    {
+    return realloc(ptr, amt);
+    }
+
   void heapFree(void* buffer, const char* file, uint_t line)
     {
     free(buffer);

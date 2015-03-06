@@ -9,6 +9,8 @@
 #include <saAis.h>
 
 #define SAFplusHeapAlloc(x) ::SAFplus::heapAlloc(x,0,__FILE__,__LINE__)
+#define SAFplusHeapCalloc(x,y) ::SAFplus::heapCalloc(x,y,0,__FILE__,__LINE__)
+#define SAFplusHeapRealloc(x,y) ::SAFplus::heapRealloc(x,y,0,__FILE__,__LINE__)
 #define SAFplusHeapFree(x) ::SAFplus::heapFree(x,__FILE__,__LINE__)
 
 
@@ -36,6 +38,10 @@ uint32_t computeCrc32(uint8_t *buf, register int32_t nr);
 #endif
 
 void* heapAlloc(uint_t amt, uint_t category, const char* file, uint_t line);
+
+void* heapCalloc(uint_t size, uint_t amt, uint_t category, const char* file, uint_t line);
+
+void* heapRealloc(void* ptr, uint_t amt, uint_t category, const char* file, uint_t line);
 
 void heapFree(void* buffer, const char* file, uint_t line);
 
