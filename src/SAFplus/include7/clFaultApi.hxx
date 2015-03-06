@@ -15,7 +15,7 @@ public :
     SAFplus::SafplusMsgServer*        faultMsgServer;       //safplus message for send fault notification to fault server
     SAFplus::Wakeable*                wakeable;             // Wakeable object for change notification
     char                              name[FAULT_NAME_LEN]; // name of fault entity
-    SAFplus::Handle iocFaultLocalServer;
+    SAFplus::Handle faultServer;
     int faultCommunicationPort;
     typedef SAFplus::FaultShmMapPair KeyValuePair;
 
@@ -44,18 +44,14 @@ public :
     void deRegister();
     //? remove an entity from the fault server
     void deRegister(SAFplus::Handle faultEntity);
-
     //? notify fault event
     void notify(SAFplus::Handle faultEntity,SAFplusI::AlarmStateT alarmState,SAFplusI::AlarmCategoryTypeT category,SAFplusI::AlarmSeverityTypeT severity,SAFplusI::AlarmProbableCauseT cause,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
-
     //notify fault event to fault Active
-    void notifytoActive(SAFplus::Handle faultEntity,SAFplusI::AlarmStateT alarmState,SAFplusI::AlarmCategoryTypeT category,SAFplusI::AlarmSeverityTypeT severity,SAFplusI::AlarmProbableCauseT cause,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
-
+//    void notifytoActive(SAFplus::Handle faultEntity,SAFplusI::AlarmStateT alarmState,SAFplusI::AlarmCategoryTypeT category,SAFplusI::AlarmSeverityTypeT severity,SAFplusI::AlarmProbableCauseT cause,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
     void notify(SAFplus::Handle faultEntity,SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
-    void notifytoActive(SAFplus::Handle faultEntity,SAFplus::FaultEventData faultDatay,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
-
+//    void notifytoActive(SAFplus::Handle faultEntity,SAFplus::FaultEventData faultDatay,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
     void notify(SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
-    void notifytoActive(SAFplus::FaultEventData faultDatay,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
+//    void notifytoActive(SAFplus::FaultEventData faultDatay,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
 
     protected:
 
@@ -68,11 +64,9 @@ public :
     //send a fault notification to fault server
     void sendFaultNotification(void* data, int dataLength, SAFplusI::FaultMessageSendMode messageMode);
     friend class SAFplusI::GroupSharedMem;
-
     // set name of fault entity
     void setName(const char* entityName);
     SAFplus::Handle getActiveServerAddress();
-
     // register a fault entity to fault server
     void sendFaultAnnounceMessage(SAFplus::Handle other, SAFplus::FaultState state);
 

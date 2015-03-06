@@ -575,7 +575,7 @@ namespace SAFplus
     {
   public:
     uint64_t       structId;
-    SAFplus::Handle iocFaultServer;
+    SAFplus::Handle activeFaultServer;
     };
   void faultInitialize(void);
 
@@ -662,6 +662,7 @@ namespace SAFplus
     SAFplus::FaultShmHeader* faultHdr;
     SAFplus::Mutex  localMutex;
     void init(SAFplus::Handle active);
+    void setActive(SAFplus::Handle active);
     void clientInit();
     void clear();
     void remove(SAFplus::Handle handle);

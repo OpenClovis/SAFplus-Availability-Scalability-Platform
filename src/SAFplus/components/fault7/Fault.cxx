@@ -61,7 +61,7 @@ namespace SAFplus
     //deregister Fault Entity
     void Fault::deRegister()
     {
-        deRegister(INVALID_HDL);
+        deRegister(reporter);
     }
     //deregister Fault Entity by Entity Handle
     void Fault::deRegister(SAFplus::Handle faultEntity)
@@ -111,32 +111,30 @@ namespace SAFplus
     }
     void Fault::notify(SAFplus::Handle faultEntity,SAFplusI::AlarmStateT alarmState,SAFplusI::AlarmCategoryTypeT category,SAFplusI::AlarmSeverityTypeT severity,SAFplusI::AlarmProbableCauseT cause,SAFplus::FaultPolicy pluginId)
     {
-        sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_LOCAL_SERVER,SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT,alarmState,category,severity,cause,pluginId);
-    }
-    void Fault::notifytoActive(SAFplus::Handle faultEntity,SAFplusI::AlarmStateT alarmState,SAFplusI::AlarmCategoryTypeT category,SAFplusI::AlarmSeverityTypeT severity,SAFplusI::AlarmProbableCauseT cause,SAFplus::FaultPolicy pluginId)
-    {
         sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT,alarmState,category,severity,cause,pluginId);
     }
     void Fault::notify(SAFplus::Handle faultEntity,SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
     {
-        sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_LOCAL_SERVER,SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT,pluginId,faultData);
-    }
-    void Fault::notifytoActive(SAFplus::Handle faultEntity,SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
-    {
         sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT,pluginId,faultData);
     }
     void Fault::notify(SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
-    {
-        sendFaultEventMessage(reporter,FaultMessageSendMode::SEND_TO_LOCAL_SERVER,SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT,pluginId,faultData);
-    }
-    void Fault::notifytoActive(SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId)
     {
         sendFaultEventMessage(reporter,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT,pluginId,faultData);
     }
     //Sending a fault notification to fault server
     void Fault::sendFaultNotification(void* data, int dataLength, SAFplusI::FaultMessageSendMode messageMode)
     {
-    	logDebug(FAULT,FAULT_ENTITY,"sendFaultNotification");
+        logDebug(FAULT,FAULT_ENTITY,"sendFaultNotification");
+        Handle activeServer;
+        if (faultServer==INVALID_HDL)
+        {
+            activeServer = fsm.faultHdr->activeFaultServer;
+            logDebug(FAULT,FAULT_ENTITY,"Get active Fault Server [%d]", activeServer.getNode());
+        }
+        else
+        {
+            activeServer = faultServer;
+        }
         switch(messageMode)
         {
             case SAFplusI::FaultMessageSendMode::SEND_TO_LOCAL_SERVER:
@@ -144,7 +142,7 @@ namespace SAFplus
                 logDebug(FAULT,FAULT_ENTITY,"Send Fault Notification to local Fault server");
                 try
                 {
-                    faultMsgServer->SendMsg(iocFaultLocalServer, (void *)data, dataLength, SAFplusI::FAULT_MSG_TYPE);
+                    faultMsgServer->SendMsg(activeServer, (void *)data, dataLength, SAFplusI::FAULT_MSG_TYPE);
                 }
                 catch (...) // SAFplus::Error &e)
                 {
@@ -154,17 +152,20 @@ namespace SAFplus
             }
             case SAFplusI::FaultMessageSendMode::SEND_TO_ACTIVE_SERVER:
             {
-                // get active server address
-            	SAFplus::Handle iocFaultActiveServer=getActiveServerAddress();
-                logDebug(FAULT,FAULT_ENTITY,"Send Fault Notification to active Fault Server  : node Id [%d]",iocFaultActiveServer.getNode());
+                logDebug(FAULT,FAULT_ENTITY,"Send Fault Notification to active Fault Server  : node Id [%d]",activeServer.getNode());
                 try
                 {
-                	faultMsgServer->SendMsg(iocFaultLocalServer, (void *)data, dataLength, SAFplusI::FAULT_MSG_TYPE);
+                	faultMsgServer->SendMsg(activeServer, (void *)data, dataLength, SAFplusI::FAULT_MSG_TYPE);
                 }
                 catch (...)
                 {
                      logDebug(FAULT,"MSG","Failed to send.");
                 }
+                break;
+            }
+            case SAFplusI::FaultMessageSendMode::SEND_BROADCAST:
+            {
+                //TODO
                 break;
             }
             default:
@@ -175,7 +176,7 @@ namespace SAFplus
         }
     }
 
-    void Fault::init(SAFplus::Handle faultHandle,SAFplus::Handle faultServer, int comPort,SAFplus::Wakeable& execSemantics)
+    void Fault::init(SAFplus::Handle faultHandle,SAFplus::Handle faultServerHandle, int comPort,SAFplus::Wakeable& execSemantics)
     {
         reporter = faultHandle;
         faultCommunicationPort = comPort;
@@ -183,13 +184,13 @@ namespace SAFplus
         {          
             faultMsgServer = &safplusMsgServer;
         }
-        iocFaultLocalServer = faultServer;
+        faultServer = faultServerHandle;
         registerMyself();
     }
 
     SAFplus::Handle Fault::getActiveServerAddress()
     {
-        SAFplus::Handle masterAddress = fsm.faultHdr->iocFaultServer;
+        SAFplus::Handle masterAddress = fsm.faultHdr->activeFaultServer;
         return masterAddress;
     }
     void Fault::setName(const char* entityName)
@@ -249,7 +250,7 @@ namespace SAFplus
                 logDebug(FAULT,"IOC","Received component leave notification for [%d.%d]", nodeAddress,portId);
                 //ScopedLock<ProcSem> lock(svr->fsmServer.mutex);
                 FaultShmHashMap::iterator i;
-                for (i=svr->fsmServer.faultMap->begin(); i!=svr->fsmServer.faultMap->end();i++)
+                for (i=svr->fsmSerfaultServerHver.faultMap->begin(); i!=svr->fsmServer.faultMap->end();i++)
                 {
                     FaultShmEntry& ge = i->second;
                     Handle handle = i->first;
@@ -328,7 +329,6 @@ namespace SAFplus
     }
     void FaultServer::init()
     {
-
         faultServerHandle = Handle::create();
         logDebug(FAULT,FAULT_SERVER,"Initial Fault Server Group with Node address [%d]",faultServerHandle.getNode());
         group=Group(FAULT_GROUP);
@@ -375,12 +375,11 @@ namespace SAFplus
 
     void FaultServer::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
-    if(msg == NULL)
+        if(msg == NULL)
         {
             logError(FAULT,"MSG","Received NULL message. Ignored fault message");
             return;
         }
-
         const SAFplus::FaultMessageProtocol *rxMsg = (SAFplus::FaultMessageProtocol *)msg;
         SAFplusI::FaultMessageTypeT msgType=  rxMsg->messageType;
         SAFplus::Handle reporterHandle = rxMsg->reporter;
@@ -389,37 +388,20 @@ namespace SAFplus
         FaultEventData eventData= rxMsg->data;
         SAFplus::Handle faultEntity=rxMsg->faultEntity;
         assert(faultEntity!=INVALID_HDL);  // TODO: changed the code so this should never happen.  Later, change this to ignore the message (or mark against the originator because no corrupt message should cause the server to die.
-
         Handle fromHandle=rxMsg->reporter;
-        logDebug(FAULT,"MSG","Received message from node [%d] port [%d] and about [%lx.%lx] claiming state [%s]",fromHandle.getNode(),fromHandle.getPort(),faultEntity.id[0],faultEntity.id[1],strFaultEntityState[int(faultState)]);
+        //logDebug(FAULT,"MSG","Received message from node [%d] port [%d] and about [%lx.%lx] claiming state [%s]",fromHandle.getNode(),fromHandle.getPort(),faultEntity.id[0],faultEntity.id[1],strFaultEntityState[int(faultState)]);
         FaultShmHashMap::iterator entryPtr;
-//        if(msgType==SAFplusI::FaultMessageTypeT::MSG_FAULT_SYNC_REQUEST)
-//        {
-//            sendFaultSyncReply(fromHandle);
-//            return;
-//        }
-//        else if(msgType==SAFplusI::FaultMessageTypeT::MSG_FAULT_SYNC_REPLY)
-//        {
-//            ClWordT len = msglen - sizeof(FaultMessageProtocol) - 1;
-//            fsmServer.applyFaultSync((char *)(rxMsg->syncData),len);
-//        }
-
         entryPtr = fsmServer.faultMap->find(faultEntity);
-        
         FaultShmEntry feMem;
         FaultShmEntry *fe=&feMem;
         //check point data
         char handleData[sizeof(Buffer)-1+sizeof(Handle)];
         Buffer* key = new(handleData) Buffer(sizeof(Handle));
         Handle* keyData = (Handle*)key->data;
-        //logDebug(FAULT,"MSG","Size of Handle [%lu]",sizeof(Handle));
-        //logDebug(FAULT,"MSG","Size of shared memory entry [%lu]",sizeof(FaultEntryData));
         char vdata[sizeof(Buffer)-1+sizeof(FaultEntryData)];
         Buffer* val = new(vdata) Buffer(sizeof(FaultEntryData));
         FaultEntryData* tmpShrEntity = (FaultEntryData*)val->data;
-
         *((Handle*)key->data)=faultEntity;
-
         if (entryPtr == fsmServer.faultMap->end())  // We don't know about the fault entity, so create it;
         {
             if(msgType!=SAFplusI::FaultMessageTypeT::MSG_ENTITY_JOIN && msgType!=SAFplusI::FaultMessageTypeT::MSG_ENTITY_JOIN_BROADCAST)
@@ -428,7 +410,6 @@ namespace SAFplus
                 return;
             }
             logDebug(FAULT,"MSG","Fault entity not available in shared memory. Initial new fault entity");
-
             fe->init(faultEntity);
             
             tmpShrEntity->faultHdl=faultEntity;
@@ -546,7 +527,7 @@ namespace SAFplus
                          logDebug(FAULT,"MSG","Fault event message broadcast from external.");
                          //TODO process this event
                          logDebug(FAULT,"MSG","Entity Fault message from local node . Deregister fault entity.");
-                                removeFaultEntity(faultEntity,false);
+                         removeFaultEntity(faultEntity,false);
                      }
                  }
              break;
@@ -570,38 +551,40 @@ namespace SAFplus
         }
     }
 
-//	void FaultServer::sendFaultSyncRequest(SAFplus::Handle activeAddress)
-//	{
-//		// send sync request to master fault server
-//    	logDebug(FAULT,FAULT,"Sending sync requst message to server");
-//        FaultMessageProtocol sndMessage;
-//        sndMessage.reporter = INVALID_HDL;
-//        sndMessage.messageType = FaultMessageTypeT::MSG_FAULT_SYNC_REQUEST;
-//        sndMessage.state = FaultState::STATE_UNDEFINED;
-//        sndMessage.faultEntity=INVALID_HDL;
-//        sndMessage.data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
-//        sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
-//        sndMessage.syncData[0]=0;
-//        sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
-//    }
-//
-//    void FaultServer::sendFaultSyncReply(SAFplus::Handle address)
-//    {
-//        // send sync reply  to standby fault server
-//        long bufferSize=0;
-//        char* buf = new char[MAX_FAULT_BUFFER_SIZE];
-//        fsmServer.getAllFaultClient(buf,bufferSize);
-//        char msgPayload[sizeof(FaultMessageProtocol)-1 + bufferSize];
-//        FaultMessageProtocol *sndMessage = (FaultMessageProtocol *)&msgPayload;
-//        sndMessage->reporter = INVALID_HDL;
-//        sndMessage->messageType = FaultMessageTypeT::MSG_FAULT_SYNC_REPLY;
-//        sndMessage->state = FaultState::STATE_UNDEFINED;
-//        sndMessage->faultEntity=INVALID_HDL;
-//        sndMessage->data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
-//        sndMessage->pluginId=SAFplus::FaultPolicy::Undefined;
-//        memcpy(sndMessage->syncData,(const void*) &buf,sizeof(GroupIdentity));
-//        faultMsgServer->SendMsg(address, (void *)msgPayload, sizeof(msgPayload), SAFplusI::FAULT_MSG_TYPE);
-//    }
+#if 0
+    void FaultServer::sendFaultSyncRequest(SAFplus::Handle activeAddress)
+    {
+        // send sync request to master fault server
+        logDebug(FAULT,FAULT,"Sending sync requst message to server");
+        FaultMessageProtocol sndMessage;
+        sndMessage.reporter = INVALID_HDL;
+        sndMessage.messageType = FaultMessageTypeT::MSG_FAULT_SYNC_REQUEST;
+        sndMessage.state = FaultState::STATE_UNDEFINED;
+        sndMessage.faultEntity=INVALID_HDL;
+        sndMessage.data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
+        sndMessage.pluginId=SAFplus::FaultPolicy::Undefined;
+        sndMessage.syncData[0]=0;
+        sendFaultNotificationToGroup((void *)&sndMessage,sizeof(FaultMessageProtocol));
+    }
+
+    void FaultServer::sendFaultSyncReply(SAFplus::Handle address)
+    {
+        // send sync reply  to standby fault server
+        long bufferSize=0;
+        char* buf = new char[MAX_FAULT_BUFFER_SIZE];
+        fsmServer.getAllFaultClient(buf,bufferSize);
+        char msgPayload[sizeof(FaultMessageProtocol)-1 + bufferSize];
+        FaultMessageProtocol *sndMessage = (FaultMessageProtocol *)&msgPayload;
+        sndMessage->reporter = INVALID_HDL;
+        sndMessage->messageType = FaultMessageTypeT::MSG_FAULT_SYNC_REPLY;
+        sndMessage->state = FaultState::STATE_UNDEFINED;
+        sndMessage->faultEntity=INVALID_HDL;
+        sndMessage->data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
+        sndMessage->pluginId=SAFplus::FaultPolicy::Undefined;
+        memcpy(sndMessage->syncData,(const void*) &buf,sizeof(GroupIdentity));
+        faultMsgServer->SendMsg(address, (void *)msgPayload, sizeof(msgPayload), SAFplusI::FAULT_MSG_TYPE);
+    }
+#endif
 
     //count fault event of fault entity in latest time second
     int FaultServer::countFaultEvent(SAFplus::Handle reporter,SAFplus::Handle faultEntity,long timeInterval)
@@ -867,13 +850,8 @@ namespace SAFplus
          changeCount++;
          Group* g = (Group*) cookie;
          logInfo(FAULT,FAULT_SERVER, "Group [%lx:%lx] changed", g->handle.id[0],g->handle.id[1]);
-         Group::Iterator i;
-         char buf[100];
-         for (i=g->begin(); i != g->end(); i++)
-         {
-             const GroupIdentity& gid = i->second;
-             logInfo(FAULT,FAULT_SERVER, " Entity [%lx:%lx] on node [%d] credentials [%ld] capabilities [%d] %s", gid.id.id[0],gid.id.id[1],gid.id.getNode(),gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
-         }
+         SAFplus::Handle activeMember = g->getActive();
+         fsmServer.setActive(activeMember);
    }
 
 

@@ -20,7 +20,7 @@ void FaultSharedMem::init(SAFplus::Handle active)
     try
     {
         faultHdr = (SAFplus::FaultShmHeader*) faultMsm.construct<SAFplus::FaultShmHeader>("header") ();                                 // Ok it created one so initialize
-    	faultHdr->iocFaultServer = active;
+    	faultHdr->activeFaultServer = active;
         faultHdr->structId=SAFplus::CL_FAULT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)
     }
     catch (interprocess_exception &e)
@@ -35,6 +35,15 @@ void FaultSharedMem::init(SAFplus::Handle active)
     }
 }
 
+
+void FaultSharedMem::setActive(SAFplus::Handle active)
+{
+    if(faultHdr!=NULL)
+    {
+        return;
+    }
+    faultHdr->activeFaultServer=active;
+}
 
 bool FaultSharedMem::createFault(FaultShmEntry* frp,SAFplus::Handle fault)
 {
