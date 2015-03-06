@@ -128,7 +128,97 @@ class EntityTool(Tool):
         ret = self.panel.CreateNewInstance(self.entity,(pos[0],pos[1]),size)
             
     return ret
-    
+
+class ChildEntities (wx.PopupTransientWindow):
+    def __init__ (self, parent, childEntities, style, size):
+        wx.PopupTransientWindow.__init__(self, parent, style)
+
+        self.enddelaytime = 1000 #ms
+        # The position of the panel's viewport within the larger drawing
+        self.location = (0,0)
+        self.rotate = 0.0
+        self.scale = 1.0
+
+        self.Bind(wx.EVT_ENTER_WINDOW, self.OnWidgetEnter)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self.OnWidgetLeave)
+        self.Bind(wx.EVT_PAINT, self.OnPaint)
+        self.Bind(wx.EVT_LEFT_DOWN, self.OnCompClick)
+
+        self.childEntities = childEntities
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Fit(self)
+
+        self.SetSizeHints(size[0], size[1])
+        self.destroytime = wx.PyTimer(self.DestroyTimer)
+        self.destroytime.Start(self.enddelaytime)
+
+        self.Layout()
+
+    def OnPaint(self, event):
+        dc = wx.BufferedPaintDC(self)
+        #dc.SetBackground(wx.Brush('white'))
+        dc.Clear()
+        self.render(dc)
+
+    def render(self, dc):
+      ctx = wx.lib.wxcairo.ContextFromDC(dc)
+      # Now draw the graph
+      ctx.save()
+      # First position the screen's view port into the larger document
+      ctx.translate(*self.location)
+      ctx.rotate(self.rotate)
+      ctx.scale(self.scale, self.scale)
+      # Now draw the links
+      # Now draw the entites
+
+      bound = (0, 0) + self.GetClientSizeTuple()
+      for ent,place in zip(self.childEntities,partition(len(self.childEntities), bound)):
+        ent.pos = (place[0]- 5,place[1] - (bound[3] - bound[1])/5) # (cell.bound[0]+ent.relativePos[0], cell.bound[1]+ent.relativePos[1])
+        tmp = ((place[2]-place[0])+10, (place[3]-place[1])+(bound[3] - bound[1])/5+5) # (min(cell.bound[2]-30,64),min(cell.bound[3]-30,64))
+        if tmp != ent.size:
+          ent.size = tmp
+          ent.recreateBitmap()
+        svg.blit(ctx,ent.bmp,ent.pos,ent.scale,ent.rotate)
+
+      ctx.restore()
+
+    def OnWidgetEnter(self, event):
+      if hasattr(self, "destroytime"):
+        if self.destroytime:
+          self.destroytime.Stop()
+          del self.destroytime
+
+    def OnWidgetLeave(self, event):
+      self.destroytime = wx.PyTimer(self.DestroyTimer)
+      self.destroytime.Start(self.enddelaytime)
+      event.Skip()
+
+    def DestroyTimer(self):
+      """ The destruction timer has expired. """
+
+      self.destroytime.Stop()
+      del self.destroytime
+      try:
+        self.Dismiss()
+      except:
+        pass
+
+    def OnCompClick(self, event):
+      pos = event.GetPositionTuple()
+      entities = self.findEntitiesAt(pos)
+      if entities:
+        if share.instanceDetailsPanel:
+          share.instanceDetailsPanel.showEntity(next(iter(entities)))
+      self.Dismiss()
+
+    def findEntitiesAt(self,pos):
+      """Returns the entity located at the passed position """
+      ret = set()
+      for e in self.childEntities:
+        furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
+        if inBox(pos,(e.pos[0],e.pos[1],furthest[0],furthest[1])): # mouse is in the box formed by the entity
+          ret.add(e)
+      return ret
 
 class LinkTool(Tool):
   def __init__(self, panel):
@@ -306,6 +396,22 @@ class SelectTool(Tool):
       elif event.ButtonDClick(wx.MOUSE_BTN_LEFT):
         entities = panel.findEntitiesAt(pos)
         if not entities: return False
+
+      elif event.ButtonDown(wx.MOUSE_BTN_RIGHT):
+        entities = panel.findEntitiesAt(pos)
+        if not entities: return False
+
+        self.touching = set()
+        self.selected = set()
+        # Show popup child comps list
+        for e in entities:
+          if e.et.name in ("ServiceInstance", "ServiceUnit",):
+            childEnties = []
+            for a in e.containmentArrows:
+              childEnties.append(a.contained)
+            win = ChildEntities(panel, childEnties, wx.SIMPLE_BORDER, size=(COL_WIDTH, ROW_WIDTH))
+            win.SetPosition(wx.GetMousePosition())
+            win.Popup()
 
     if isinstance(event,wx.KeyEvent):
       if event.GetEventType() == wx.EVT_KEY_DOWN.typeId:
@@ -710,6 +816,9 @@ class Panel(scrolled.ScrolledPanel):
 
       self.intersects = []
 
+      # Ignore render entities since size(0,0) is invalid
+      self.ignoreEntities = ["Component", "ComponentServiceInstance"]
+
       # Add toolbar buttons
 
       # first get the toolbar    
@@ -880,8 +989,8 @@ class Panel(scrolled.ScrolledPanel):
 
         # Put all childs instances into hyperlisttree
         if share.instanceDetailsPanel:
-          for (name, inst) in self.model.instances.items():
-            share.instanceDetailsPanel._createTreeItemEntity(inst.data["name"], inst)
+          for (name, ent) in filter(lambda (name, ent): not ent.et.name in (self.ignoreEntities),self.model.instances.items()):
+            share.instanceDetailsPanel._createTreeItemEntity(name, ent)
         self.Refresh()
 
       self.UpdateVirtualSize()
@@ -1038,7 +1147,7 @@ class Panel(scrolled.ScrolledPanel):
           svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
 
         # Draw the other instances on top
-        for e in filter(lambda entInt: not entInt.et.name in (self.columnTypes + self.rowTypes), self.model.instances.values()):
+        for e in filter(lambda entInt: not entInt.et.name in (self.columnTypes + self.rowTypes + self.ignoreEntities), self.model.instances.values()):
           if e.size != (0,0):  # indicate that the object is hidden
             svg.blit(ctx,e.bmp,e.pos,e.scale,e.rotate)
 
@@ -1072,6 +1181,9 @@ class Panel(scrolled.ScrolledPanel):
       pos = convertToRealPos(pos, self.scale)
       ret = set()
       for (name, e) in self.model.instances.items():
+        if e.et.name in self.ignoreEntities:
+          continue
+
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         #print e.data["name"], ": ", pos, " inside: ", e.pos, " to ", furthest
         if inBox(pos,(e.pos[0],e.pos[1],furthest[0],furthest[1])): # mouse is in the box formed by the entity
@@ -1089,6 +1201,9 @@ class Panel(scrolled.ScrolledPanel):
       ret = set()
       # hoang for (name, e) in self.model.instances.items():
       for (name, e) in self.model.instances.items():
+        if e.et.name in self.ignoreEntities:
+          continue
+
         furthest= (e.pos[0] + e.size[0]*e.scale[0],e.pos[1] + e.size[1]*e.scale[1])
         if rectOverlaps(rect,(e.pos[0],e.pos[1],furthest[0],furthest[1])):  # mouse is in the box formed by the entity
           ret.add(e)

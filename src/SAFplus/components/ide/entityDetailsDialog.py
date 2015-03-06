@@ -79,7 +79,7 @@ class SliderCustom(wx.PyControl):
     return "slidercustom"
 
 class Panel(scrolled.ScrolledPanel):
-    def __init__(self, parent,menubar,toolbar,statusbar,model, detailInstance = False):
+    def __init__(self, parent,menubar,toolbar,statusbar,model, isDetailInstance = False):
         global thePanel
         scrolled.ScrolledPanel.__init__(self, parent, style = wx.TAB_TRAVERSAL|wx.SUNKEN_BORDER)
         self.SetupScrolling(True, True)
@@ -106,12 +106,14 @@ class Panel(scrolled.ScrolledPanel):
   
         # for the data entry
         # self.Bind(wx.EVT_TEXT, self.EvtText)
-        self.detailInstance = detailInstance;
+        self.isDetailInstance = isDetailInstance
+        self.entityTreeTypes = ["ServiceGroup", "Node", "ServiceUnit", "ServiceInstance"]
+        
 
         self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelChanged}
         self._createTreeEntities()
 
-        if (self.detailInstance):
+        if (self.isDetailInstance):
           share.instanceDetailsPanel = self
         else:
           share.detailsPanel = self
@@ -173,6 +175,8 @@ class Panel(scrolled.ScrolledPanel):
           share.umlEditorPanel.notifyValueChange(self.entity, name, proposedValue)
 
     def OnUnfocus(self,event):
+      # TODO: got wrong entity value change
+      return
       id = event.GetId()
       if id>=TEXT_ENTRY_ID and id < TEXT_ENTRY_ID+self.numElements:
         idx = id - TEXT_ENTRY_ID
@@ -236,7 +240,7 @@ class Panel(scrolled.ScrolledPanel):
       typeData = item[1]
       if type(typeData) is DictType and typeData.has_key("type"):
         if typeData["type"] == "boolean":
-          query = wx.CheckBox(self,id,"")
+          query = wx.CheckBox(self.tree.GetMainWindow(),id,"")
         elif typeData["type"] in YangIntegerTypes:
           v = 0
           try:
@@ -252,7 +256,7 @@ class Panel(scrolled.ScrolledPanel):
             rang=[rang[0][0], rang[-1][-1]]  # get the first and last element of this list of lists.  We are ignoring any gaps (i.e. [[1,3],[5,10]] because the slider can't handle them anyway. It might be better to just fall back to a text entry box if range is funky.
             if rang[0] == "min": rang[0] = MinValFor[typeData["type"]]
             if rang[1] == "max": rang[1] = MaxValFor[typeData["type"]]
-          query = SliderCustom(self,id, v, rang)
+          query = SliderCustom(self.tree.GetMainWindow(),id, v, rang)
           # TODO create a control that contains both a slider and a small text box
           # TODO size the slider properly using min an max hints 
         elif self.model.dataTypes.has_key(typeData["type"]):
@@ -263,13 +267,13 @@ class Panel(scrolled.ScrolledPanel):
             choices = [x[0] for x in vals]
             if not value in choices:  # OOPS!  Either initial case or the datatype was changed
               value = choices[0]  # so set the value to the first one TODO: set to default one
-            query = wx.ComboBox(self,id,value=value,choices=[x[0] for x in vals])
+            query = wx.ComboBox(self.tree.GetMainWindow(),id,value=value,choices=[x[0] for x in vals])
           else:
             # TODO other datatypes 
-            query  = wx.TextCtrl(self, id, value,style = wx.BORDER_SIMPLE)
+            query  = wx.TextCtrl(self.tree.GetMainWindow(), id, value,style = wx.BORDER_SIMPLE)
             query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
         else:  # Default control is a text box
-          query  = wx.TextCtrl(self, id, str(value),style = wx.BORDER_SIMPLE)
+          query  = wx.TextCtrl(self.tree.GetMainWindow(), id, str(value),style = wx.BORDER_SIMPLE)
           # Works: query.SetToolTipString("test")
           query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
         
@@ -281,19 +285,28 @@ class Panel(scrolled.ScrolledPanel):
         query = None
       return query
 
+    def findEntityRecursive(self, ent, parent = None):
+      # get root if on item
+      if not parent:
+          parent = self.tree.GetRootItem()
+
+      if (self.tree.GetPyData(parent) == ent):
+        return parent
+
+      for treeItem in parent.GetChildren():
+        item = self.findEntityRecursive(ent, treeItem)
+        if item:
+          return item
+
+      return None
 
     def showEntity(self,ent):
       if self.entity == ent: return  # Its already being shown
       self.entity = ent
 
-      for treeItem in self.treeRoot.GetChildren():
-        if (self.tree.GetPyData(treeItem) == ent):
-          self.tree.Expand(treeItem)
-          self.tree.SelectItem(treeItem)
-          self.treeItemSelected = treeItem
-        else:
-          self.tree.Collapse(treeItem)
-      self.SetSashPosition(495)
+      treeItem = self._createTreeItemEntity(ent.data["name"], ent)
+      self.tree.Expand(treeItem)
+      self.tree.SelectItem(treeItem)
 
     def OnTreeSelChanged(self, event):
       self.treeItemSelected = event.GetItem()
@@ -309,7 +322,7 @@ class Panel(scrolled.ScrolledPanel):
       else:
         self.sizer = wx.BoxSizer(wx.VERTICAL)
 
-      self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, size=wx.DefaultSize, agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | HTL.TR_HIDE_ROOT)
+      self.tree = HTL.HyperTreeList(self, id=wx.ID_ANY, pos=wx.DefaultPosition, style=wx.BORDER_NONE, size=(5,5), agwStyle=HTL.TR_NO_HEADER | wx.TR_HAS_BUTTONS | wx.TR_HAS_VARIABLE_ROW_HEIGHT | HTL.TR_HIDE_ROOT)
       self.tree.AddColumn("Main column")
       self.tree.AddColumn("Col 1")
       self.tree.AddColumn("Col 2")
@@ -319,6 +332,7 @@ class Panel(scrolled.ScrolledPanel):
       self.tree.SetColumnWidth(1, 35)
       self.tree.SetColumnWidth(2, 225)
       self.tree.SetColumnWidth(3, 50)
+      self.row = 0
 
       for (evt, func) in self.eventDictTree.items():
         self.tree.Bind(evt, func)
@@ -327,8 +341,9 @@ class Panel(scrolled.ScrolledPanel):
 
       self.treeRoot = self.tree.AddRoot("entityDetails")
 
-      if (self.detailInstance):
-        for (name, ent) in self.model.instances.items():
+      # This tree to show details for entity instantiate
+      if (self.isDetailInstance):
+        for (name, ent) in filter(lambda (name, ent): ent.et.name in (self.entityTreeTypes),self.model.instances.items()):
           self._createTreeItemEntity(name, ent)
       else:
         for (name, ent) in self.model.entities.items():
@@ -339,28 +354,30 @@ class Panel(scrolled.ScrolledPanel):
       self.Refresh()
 
     # Create controls for an entity
-    def _createTreeItemEntity(self, name, ent):
-      
-      # Check and return if item exists
-      for treeItem in self.treeRoot.GetChildren():
-        if (self.tree.GetPyData(treeItem) == ent):
-          return
+    def _createTreeItemEntity(self, name, ent, parentItem = None):
 
-      treeItem = self.tree.AppendItem(self.treeRoot, name)
+      if parentItem is None:
+        parentItem = self.treeRoot
+
+      # Check and return if item exists
+      treeItem = self.findEntityRecursive(ent)
+      if treeItem: return treeItem
+
+      treeItem = self.tree.AppendItem(parentItem, name)
       self.tree.SetPyData(treeItem, ent)
 
       items = ent.et.data.items()
       items = sorted(items,EntityTypeSortOrder)
 
       # Put the name at the top
-      query  = wx.TextCtrl(self, self.row + TEXT_ENTRY_ID, "")
+      query  = wx.TextCtrl(self.tree.GetMainWindow(), self.row + TEXT_ENTRY_ID, "")
       query.ChangeValue(ent.data["name"])
       query.Bind(wx.EVT_KILL_FOCUS, self.OnUnfocus)
       
       # Binding name wx control
       self.BuildChangeEvent(query)
       
-      b = wx.BitmapButton(self, self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
+      b = wx.BitmapButton(self.tree.GetMainWindow(), self.row + LOCK_BUTTON_ID, self.unlockedBmp,style = wx.NO_BORDER )
       b.SetToolTipString("If unlocked, instances can change this field")
 
       child = self.tree.AppendItem(treeItem, "Name:")
@@ -373,8 +390,17 @@ class Panel(scrolled.ScrolledPanel):
       # Create all controls of entity
       self.createChildControls(treeItem, ent, items, ent.data)
 
+      if self.isDetailInstance:
+        # Put comps/csis into SU/SI
+        if ent.et.name in ("ServiceInstance", "ServiceUnit"):
+          if (self.isDetailInstance):
+            for a in ent.containmentArrows:
+              self._createTreeItemEntity(a.contained.data["name"], a.contained, treeItem)
+
       # Update num controls
       self.numElements =  self.row
+
+      return treeItem
 
     def createChildControls(self, treeItem, ent, items, values):
       for item in filter(lambda item: item[0] != "name", items):
