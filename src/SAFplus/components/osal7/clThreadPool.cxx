@@ -24,7 +24,7 @@ void Poolable::calculateExecTime()
 {
   // calculate execution time and convert it to milisecond
   unsigned long long int executionTime = (endTime.tv_sec - startTime.tv_sec)*1000 + (endTime.tv_nsec - startTime.tv_nsec)/1000000L;
-  assert(executionTime <= executionTimeLimit); //assert if execution time is longer than the configured limit one
+  // assert(executionTime <= executionTimeLimit); //assert if execution time is longer than the configured limit one // TODO: No, you can't measure the thread duration and assert INSIDE the thread.  That defeats the purpose of finding threads that are stuck in p->wake.  We need a separate thread that periodically looks at the run length of the other threads.
 }
 bool Poolable::isDeleteWhenComplete()
 {
@@ -153,7 +153,8 @@ void ThreadPool::runTask(void* arg)
       p->calculateStartTime();
       p->wake(0, p->arg);
       p->calculateEndTime();
-      p->calculateExecTime();
+      p->calculateExecTime(); 
+
       if (p->isDeleteWhenComplete())
       {
         logTrace("THRPOOL","RUNTSK", "Delete the poolable object");

@@ -68,6 +68,13 @@ namespace SAFplusI
 
     };
 
+  /* FAULT */
+  enum
+    {
+    FAULT_NAME_LEN = 100,
+    MAX_FAULT_BUFFER_SIZE = 1024*1024
+    };
+
   /* AMF */
   enum
     {

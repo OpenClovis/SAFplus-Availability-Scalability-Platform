@@ -135,12 +135,14 @@ void FaultSharedMem::removeAll()
 	}
 }
 
-void FaultSharedMem::getAllFaultClient(char* buf, ClWordT bufSize)
+uint_t FaultSharedMem::getAllFaultClient(char* buf, ClWordT bufSize)
 {
+    int count = 0;
+    int offset = 0;
     SAFplus::FaultShmHashMap::iterator i;
     if(!faultMap)
     {
-        return;
+        return 0;
     }
     ScopedLock<Mutex> lock(faultMutex);
     for (i=faultMap->begin(); i!=faultMap->end();i++)
@@ -148,14 +150,18 @@ void FaultSharedMem::getAllFaultClient(char* buf, ClWordT bufSize)
         Buffer* key = (Buffer*)(&(i->first));
         Buffer* val = (Buffer*)(&(i->second));
         int dataSize = key->objectSize() + val->objectSize();
-        assert(bufSize + key->objectSize() < MAX_FAULT_BUFFER_SIZE);
-        memcpy(&buf[bufSize],(void*) key, key->objectSize());
-        bufSize += key->objectSize();
+        if (offset+dataSize >= bufSize) break;  // Sorry can't read any more
 
-        assert(bufSize + val->objectSize() < MAX_FAULT_BUFFER_SIZE);
-        memcpy(&buf[bufSize],(void*) val, val->objectSize());
-        bufSize += val->objectSize();
+        assert(offset + key->objectSize() < SAFplusI::MAX_FAULT_BUFFER_SIZE);
+        memcpy(&buf[offset],(void*) key, key->objectSize());
+        offset += key->objectSize();
+
+        assert(offset + val->objectSize() < SAFplusI::MAX_FAULT_BUFFER_SIZE);
+        memcpy(&buf[offset],(void*) val, val->objectSize());
+        offset += val->objectSize();
+        count++;
     }
+    return count;
 }
 
 void FaultSharedMem::applyFaultSync(char* buf, ClWordT bufSize)

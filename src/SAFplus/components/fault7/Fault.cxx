@@ -375,6 +375,12 @@ namespace SAFplus
 
     void FaultServer::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
     {
+    if(msg == NULL)
+        {
+            logError(FAULT,"MSG","Received NULL message. Ignored fault message");
+            return;
+        }
+
         const SAFplus::FaultMessageProtocol *rxMsg = (SAFplus::FaultMessageProtocol *)msg;
         SAFplusI::FaultMessageTypeT msgType=  rxMsg->messageType;
         SAFplus::Handle reporterHandle = rxMsg->reporter;
@@ -382,8 +388,10 @@ namespace SAFplus
         SAFplus::FaultPolicy pluginId = rxMsg->pluginId;
         FaultEventData eventData= rxMsg->data;
         SAFplus::Handle faultEntity=rxMsg->faultEntity;
+        assert(faultEntity!=INVALID_HDL);  // TODO: changed the code so this should never happen.  Later, change this to ignore the message (or mark against the originator because no corrupt message should cause the server to die.
+
         Handle fromHandle=rxMsg->reporter;
-        //logDebug(FAULT,"MSG","Received message from node [%d] and state [%s]",fromHandle.getNode(),strFaultEntityState[int(faultState)]);
+        logDebug(FAULT,"MSG","Received message from node [%d] port [%d] and about [%lx.%lx] claiming state [%s]",fromHandle.getNode(),fromHandle.getPort(),faultEntity.id[0],faultEntity.id[1],strFaultEntityState[int(faultState)]);
         FaultShmHashMap::iterator entryPtr;
 //        if(msgType==SAFplusI::FaultMessageTypeT::MSG_FAULT_SYNC_REQUEST)
 //        {
@@ -395,52 +403,36 @@ namespace SAFplus
 //            ClWordT len = msglen - sizeof(FaultMessageProtocol) - 1;
 //            fsmServer.applyFaultSync((char *)(rxMsg->syncData),len);
 //        }
-        if(faultEntity==INVALID_HDL)
-        {
-            assert(0); // Should never happen now
-        }
-        else
-        {
-        	logDebug(FAULT,"MSG","Received fault message with process id [%d]",faultEntity.getProcess());
-        	entryPtr = fsmServer.faultMap->find(faultEntity);
-        }
-        FaultShmEntry *fe=new FaultShmEntry();  // TODO: are these leaked?
+
+        entryPtr = fsmServer.faultMap->find(faultEntity);
+        
+        FaultShmEntry feMem;
+        FaultShmEntry *fe=&feMem;
         //check point data
         char handleData[sizeof(Buffer)-1+sizeof(Handle)];
         Buffer* key = new(handleData) Buffer(sizeof(Handle));
-        Handle* tmp = (Handle*)key->data;
+        Handle* keyData = (Handle*)key->data;
         //logDebug(FAULT,"MSG","Size of Handle [%lu]",sizeof(Handle));
         //logDebug(FAULT,"MSG","Size of shared memory entry [%lu]",sizeof(FaultEntryData));
         char vdata[sizeof(Buffer)-1+sizeof(FaultEntryData)];
         Buffer* val = new(vdata) Buffer(sizeof(FaultEntryData));
         FaultEntryData* tmpShrEntity = (FaultEntryData*)val->data;
-        for(int i=0;i<MAX_FAULT_DEPENDENCIES;i++)
-        {
-            tmpShrEntity->depends[i]=INVALID_HDL;
-        }
+
+        *((Handle*)key->data)=faultEntity;
 
         if (entryPtr == fsmServer.faultMap->end())  // We don't know about the fault entity, so create it;
         {
             if(msgType!=SAFplusI::FaultMessageTypeT::MSG_ENTITY_JOIN && msgType!=SAFplusI::FaultMessageTypeT::MSG_ENTITY_JOIN_BROADCAST)
             {
-                logDebug(FAULT,"MSG","Fault entity not available in shared memory. Ignore this message");
+                logWarning(FAULT,"MSG","Fault report from [%lx.%lx] about an entity [%lx.%lx] not available in shared memory. Ignoring this message",reporterHandle.id[0],reporterHandle.id[1],faultEntity.id[0],faultEntity.id[1]);
                 return;
             }
             logDebug(FAULT,"MSG","Fault entity not available in shared memory. Initial new fault entity");
-            if(faultEntity==INVALID_HDL)
-            {
-                logDebug(FAULT,"MSG","Init reporter handle");
-                fe->init(reporterHandle);
-                *tmp=reporterHandle;
-                tmpShrEntity->faultHdl=reporterHandle;
-            }
-            else
-            {
-                logDebug(FAULT,"MSG","Init fault entity handle");
-                fe->init(faultEntity);
-                *tmp=faultEntity;
-                tmpShrEntity->faultHdl=faultEntity;
-            }
+
+            fe->init(faultEntity);
+            
+            tmpShrEntity->faultHdl=faultEntity;
+
             tmpShrEntity->dependecyNum=0;
             for(int i=0;i<MAX_FAULT_DEPENDENCIES;i++)
             {
@@ -458,13 +450,8 @@ namespace SAFplus
             {
             	tmpShrEntity->depends[i]=fe->depends[i];
             }
-        *tmp=faultEntity;
         }
-        if(rxMsg == NULL)
-        {
-            logError(FAULT,"MSG","Received NULL message. Ignored fault message");
-            return;
-        }
+
         switch(msgType)
         {
             case SAFplusI::FaultMessageTypeT::MSG_ENTITY_JOIN:
@@ -888,4 +875,120 @@ namespace SAFplus
              logInfo(FAULT,FAULT_SERVER, " Entity [%lx:%lx] on node [%d] credentials [%ld] capabilities [%d] %s", gid.id.id[0],gid.id.id[1],gid.id.getNode(),gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
          }
    }
+
+
+const char* strFaultCategory[]={
+    "CL_ALARM_CATEGORY_UNKNOWN",
+    "CL_ALARM_CATEGORY_COMMUNICATIONS",
+    "CL_ALARM_CATEGORY_QUALITY_OF_SERVICE",
+    "CL_ALARM_CATEGORY_PROCESSING_ERROR",
+    "CL_ALARM_CATEGORY_EQUIPMENT",
+    "CL_ALARM_CATEGORY_ENVIRONMENTAL"
+};
+
+const char* strFaultSeverity[]={
+    "CL_ALARM_SEVERITY_UNKNOWN",
+    "CL_ALARM_SEVERITY_CRITICAL",
+    "CL_ALARM_SEVERITY_MAJOR",
+    "CL_ALARM_SEVERITY_MINOR",
+    "CL_ALARM_SEVERITY_WARNING",
+    "CL_ALARM_SEVERITY_INDETERMINATE",
+    "CL_ALARM_SEVERITY_CLEAR"
+};
+
+const char* strFaultProbableCause[]={
+    "CL_ALARM_PROB_CAUSE_UNKNOWN",
+    /**
+     * Probable cause for Communication related alarms
+     */
+    "CL_ALARM_PROB_CAUSE_LOSS_OF_SIGNAL",
+    "CL_ALARM_PROB_CAUSE_LOSS_OF_FRAME",
+    "CL_ALARM_PROB_CAUSE_FRAMING_ERROR",
+    "CL_ALARM_PROB_CAUSE_LOCAL_NODE_TRANSMISSION_ERROR",
+    "CL_ALARM_PROB_CAUSE_REMOTE_NODE_TRANSMISSION_ERROR",
+    "CL_ALARM_PROB_CAUSE_CALL_ESTABLISHMENT_ERROR",
+    "CL_ALARM_PROB_CAUSE_DEGRADED_SIGNAL",
+    "CL_ALARM_PROB_CAUSE_COMMUNICATIONS_SUBSYSTEM_FAILURE",
+    "CL_ALARM_PROB_CAUSE_COMMUNICATIONS_PROTOCOL_ERROR",
+    "CL_ALARM_PROB_CAUSE_LAN_ERROR",
+    "CL_ALARM_PROB_CAUSE_DTE",
+    /**
+     * Probable cause for Quality of Service related alarms
+     */
+    "CL_ALARM_PROB_CAUSE_RESPONSE_TIME_EXCESSIVE",
+    "CL_ALARM_PROB_CAUSE_QUEUE_SIZE_EXCEEDED",
+    "CL_ALARM_PROB_CAUSE_BANDWIDTH_REDUCED",
+    "CL_ALARM_PROB_CAUSE_RETRANSMISSION_RATE_EXCESSIVE",
+    "CL_ALARM_PROB_CAUSE_THRESHOLD_CROSSED",
+    "CL_ALARM_PROB_CAUSE_PERFORMANCE_DEGRADED",
+    "CL_ALARM_PROB_CAUSE_CONGESTION",
+    "CL_ALARM_PROB_CAUSE_RESOURCE_AT_OR_NEARING_CAPACITY",
+    /**
+     * Probable cause for Processing Error related alarms
+     */
+    "CL_ALARM_PROB_CAUSE_STORAGE_CAPACITY_PROBLEM",
+    "CL_ALARM_PROB_CAUSE_VERSION_MISMATCH",
+    "CL_ALARM_PROB_CAUSE_CORRUPT_DATA",
+    "CL_ALARM_PROB_CAUSE_CPU_CYCLES_LIMIT_EXCEEDED",
+    "CL_ALARM_PROB_CAUSE_SOFWARE_ERROR",
+    "CL_ALARM_PROB_CAUSE_SOFTWARE_PROGRAM_ERROR",
+    "CL_ALARM_PROB_CAUSE_SOFWARE_PROGRAM_ABNORMALLY_TERMINATED",
+    "CL_ALARM_PROB_CAUSE_FILE_ERROR",
+    "CL_ALARM_PROB_CAUSE_OUT_OF_MEMORY",
+    "CL_ALARM_PROB_CAUSE_UNDERLYING_RESOURCE_UNAVAILABLE",
+    "CL_ALARM_PROB_CAUSE_APPLICATION_SUBSYSTEM_FAILURE",
+    "CL_ALARM_PROB_CAUSE_CONFIGURATION_OR_CUSTOMIZATION_ERROR",
+    /**
+     * Probable cause for Equipment related alarms
+     */
+    "CL_ALARM_PROB_CAUSE_POWER_PROBLEM",
+    "CL_ALARM_PROB_CAUSE_TIMING_PROBLEM",
+    "CL_ALARM_PROB_CAUSE_PROCESSOR_PROBLEM",
+    "CL_ALARM_PROB_CAUSE_DATASET_OR_MODEM_ERROR",
+    "CL_ALARM_PROB_CAUSE_MULTIPLEXER_PROBLEM",
+    "CL_ALARM_PROB_CAUSE_RECEIVER_FAILURE",
+    "CL_ALARM_PROB_CAUSE_TRANSMITTER_FAILURE",
+    "CL_ALARM_PROB_CAUSE_RECEIVE_FAILURE",
+    "CL_ALARM_PROB_CAUSE_TRANSMIT_FAILURE",
+    "CL_ALARM_PROB_CAUSE_OUTPUT_DEVICE_ERROR",
+    "CL_ALARM_PROB_CAUSE_INPUT_DEVICE_ERROR",
+    "CL_ALARM_PROB_CAUSE_INPUT_OUTPUT_DEVICE_ERROR",
+    "CL_ALARM_PROB_CAUSE_EQUIPMENT_MALFUNCTION",
+    "CL_ALARM_PROB_CAUSE_ADAPTER_ERROR",
+    /**
+     * Probable cause for Environmental related alarms
+     */
+    "CL_ALARM_PROB_CAUSE_TEMPERATURE_UNACCEPTABLE",
+    "CL_ALARM_PROB_CAUSE_HUMIDITY_UNACCEPTABLE",
+    "CL_ALARM_PROB_CAUSE_HEATING_OR_VENTILATION_OR_COOLING_SYSTEM_PROBLEM",
+    "CL_ALARM_PROB_CAUSE_FIRE_DETECTED",
+    "CL_ALARM_PROB_CAUSE_FLOOD_DETECTED",
+    "CL_ALARM_PROB_CAUSE_TOXIC_LEAK_DETECTED",
+    "CL_ALARM_PROB_CAUSE_LEAK_DETECTED",
+    "CL_ALARM_PROB_CAUSE_PRESSURE_UNACCEPTABLE",
+    "CL_ALARM_PROB_CAUSE_EXCESSIVE_VIBRATION",
+    "CL_ALARM_PROB_CAUSE_MATERIAL_SUPPLY_EXHAUSTED",
+    "CL_ALARM_PROB_CAUSE_PUMP_FAILURE",
+    "CL_ALARM_PROB_CAUSE_ENCLOSURE_DOOR_OPEN"
+};
+
+
+const char* strFaultMsgType[]=
+{
+	"MSG_ENTITY_JOIN",
+	"MSG_ENTITY_LEAVE",
+	"MSG_ENTITY_FAULT",
+	"MSG_ENTITY_JOIN_BROADCAST",
+	"MSG_ENTITY_LEAVE_BROADCAST",
+	"MSG_ENTITY_FAULT_BROADCAST",
+	"MSG_UNDEFINED"
+};
+
+const char* strFaultEntityState[]=
+{
+    "STATE_UNDEFINED",
+    "STATE_UP",
+    "STATE_DOWN"
+};
+
 };
