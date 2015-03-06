@@ -9,5 +9,7 @@ clean:
 
 include ./mk/safplus_targets.mk
 
-all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs) $(SAFplusMsgTransports) $(SAFplusServices) $(SAFplusTests) 
+all: $(ThirdPartySOs) $(SAFplusTools) $(SAFplusSOs) $(SAFplusMsgTransports) $(SAFplusServices) $(SAFplusTests) $(LIB_DIR)/libmw.so
 
+$(LIB_DIR)/libmw.so: $(SAFplusSOs)
+	$(LINK_SO) $@  $(MWOBJ_DIR)/*.o $(LINK_STD_LIBS)

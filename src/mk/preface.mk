@@ -20,7 +20,6 @@
 
 #ifdef S7  # SAFplus v7
 $(info SAFplus7)
-#SAFPLUS_TOOLCHAIN_DIR := /opt/clovis/6.1/buildtools/local
 
 SAFPLUS_MAKE_DIR := $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
 
@@ -47,7 +46,7 @@ TARGET_PLATFORM ?= $(shell uname -p)
 #SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(TARGET_OS); pwd))
 
 #? Flags (include directories) needed to compile programs using the SAFplus Mgt component.
-SAFPLUS_MGT_INC_FLAGS := -I/usr/include/libxml2 -I$(SAFPLUS_SRC_DIR)/mgt/include -I$(SAFPLUS_SRC_DIR)/3rdparty/build/include/libxml2/ -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include
+SAFPLUS_MGT_INC_FLAGS := -I$(SAFPLUS_SRC_DIR)/mgt/include -I$(SAFPLUS_SRC_DIR)/3rdparty/build/include/libxml2/ -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include
 
 NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS))
 SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS); pwd))

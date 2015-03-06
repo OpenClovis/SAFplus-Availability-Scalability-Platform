@@ -28,7 +28,7 @@ LOG_SERVER_OBJ := $(addprefix $(OBJ_DIR)/logsvr/,$(LOG_SERVER_OBJ))
 
 all: $(SAFPLUS_TARGET)/bin/splogd
 
-$(SAFPLUS_TARGET)/bin/splogd: $(LOG_SERVER_OBJ) $(SAFPLUS_DEP_LIBS)
+$(SAFPLUS_TARGET)/bin/splogd: $(LOG_SERVER_OBJ) $(SAFPLUS_DEP_LIBS) $(INSTALL_DIR)/lib/libxml2.so
 	$(LINK_EXE) $@ $(LOG_SERVER_OBJ) $(SAFPLUS_LINK_LIBS) -lezxml -L$(INSTALL_DIR)/lib -lxml2 $(LINK_SO_LIBS) `pkg-config --libs protobuf`
 
 $(OBJ_DIR)/logsvr/%.o: %.cxx Makefile $(LOG_SERVER_H)

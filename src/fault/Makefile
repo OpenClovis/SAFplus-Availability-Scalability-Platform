@@ -11,10 +11,10 @@ CLIENT_SRC := FaultSharedMem.cxx Fault.cxx FaultHistoryEntity.cxx FaultStatistic
 CLIENT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_SRC)))
 
 CLIENT_DEFAULLT_SRC := AmfFaultPolicy.cxx
-CLIENT_DEFAULT_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_DEFAULLT_SRC)))
+CLIENT_DEFAULT_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_DEFAULLT_SRC)))
 
 CLIENT_CUSTOM_SRC := CustomFaultPolicy.cxx
-CLIENT_CUSTOM_OBJ := $(addprefix $(MWOBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_CUSTOM_SRC)))
+CLIENT_CUSTOM_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .cxx,.o,$(CLIENT_CUSTOM_SRC)))
 
 
 # Specify the required libraries
@@ -41,6 +41,9 @@ $(LIB_DIR)/libclFault.a: $(CLIENT_OBJ_IOC) $(CLIENT_OBJ) $(DEP_LIBS)
 	ar -cvq $@ $+
 
 $(MWOBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
+	$(COMPILE_CPP) $@ $<
+
+$(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
