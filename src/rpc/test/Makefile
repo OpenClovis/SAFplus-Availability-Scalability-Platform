@@ -2,8 +2,7 @@ S7 := 1
 SAFPLUS_RPC_TEST := 1
 include ../../mk/preface.mk
 
-CPP_FLAGS += -I.. -I./stubs `pkg-config --cflags protobuf`
-LINK_FLAGS += `pkg-config --libs protobuf` -lprotoc
+CPP_FLAGS += -I.. -I./stubs
 
 STUBS_H   := $(wildcard *.hxx) $(wildcard stubs/*.hxx)
 

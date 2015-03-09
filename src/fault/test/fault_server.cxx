@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
     logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_DEBUG;
     SafplusInitializationConfiguration sic;
-    sic.iocPort     = SAFplusI::FLT_IOC_PORT;
+    sic.iocPort     = SAFplusI::FAULT_IOC_PORT;
     safplusInitialize(SAFplus::LibSet::MSG|SAFplus::LibDep::LOG|SAFplus::LibDep::IOC|SAFplus::LibDep::GRP ,sic);
     //safplusMsgServer.init(50, MAX_MSGS, MAX_HANDLER_THREADS);
     safplusMsgServer.Start();

@@ -20,6 +20,7 @@
 #include <clCommon.hxx>
 #include <clMgtApi.hxx>
 #include <clNameApi.hxx>
+#include <clFaultApi.hxx>
 #include <clIocPortList.hxx>
 
 #include <clAmfPolicyPlugin.hxx>
@@ -35,7 +36,7 @@
 
 #define USE_GRP
 
-#ifdef AMF_GRP_NODE_REPRESENTATIVE
+#ifdef SAFPLUS_AMF_GRP_NODE_REPRESENTATIVE
 #include <clGroupIpi.hxx>
 #endif
 
@@ -247,8 +248,8 @@ void loadAmfPlugins(AmfOperations& amfOps)
             else logError("POL","LOAD","AMF Policy plugin [%s] load failed.  Incorrect plugin type.", p.c_str());
             }
           else logError("POL","LOAD","Policy [%s] load failed.  Incorrect plugin Identifier or version.", p.c_str());
-          } 
-            
+          }
+
         }
       }
     }  
@@ -454,7 +455,7 @@ int main(int argc, char* argv[])
   ThreadCondition somethingChanged;
   bool firstTime=true;
   logEchoToFd = 1;  // echo logs to stdout for debugging
-  logSeverity = LOG_SEV_MAX;
+  logSeverity = LOG_SEV_DEBUG;
 
   if (parseArgs(argc,argv)<=0) return -1;
 
@@ -483,11 +484,16 @@ int main(int argc, char* argv[])
   channel->service = &amfRpcMsgHandler;
 
 
-#ifdef AMF_GRP_NODE_REPRESENTATIVE
+#ifdef SAFPLUS_AMF_GRP_NODE_REPRESENTATIVE
   SAFplusI::GroupServer gs;
   gs.init();
 #endif
-  
+
+#ifdef SAFPLUS_AMF_FAULT_NODE_REPRESENTATIVE
+  SAFplus::FaultServer fs;
+  fs.init();
+#endif
+
   nameInitialize();  // Name must be initialized after the group server 
 
   // client side

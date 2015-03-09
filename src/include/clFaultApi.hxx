@@ -53,6 +53,9 @@ public :
     void notify(SAFplus::FaultEventData faultData,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
 //    void notifytoActive(SAFplus::FaultEventData faultDatay,SAFplus::FaultPolicy pluginId = FaultPolicy::Undefined);
 
+    //? Shortcut fault notification in the case where an entity is not responding to your request
+    void notifyNoResponse(SAFplus::Handle faultEntity,SAFplusI::AlarmSeverityTypeT severity=SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_CRITICAL);
+
     protected:
 
     // send a fault entity to fault server

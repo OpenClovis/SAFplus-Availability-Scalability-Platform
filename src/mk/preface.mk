@@ -26,9 +26,13 @@ SAFPLUS_MAKE_DIR := $(dir $(CURDIR)/$(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_
 SAFPLUS_SRC_DIR ?= $(shell (cd $(SAFPLUS_MAKE_DIR)../; pwd))
 SAFPLUS_INC_DIR ?= $(SAFPLUS_SRC_DIR)/include
 SAFPLUS_3RDPARTY_DIR ?= $(SAFPLUS_SRC_DIR)/3rdparty
+
+PROTOBUF_LINK ?= `pkg-config --libs protobuf` -lprotoc
+PROTOBUF_FLAGS ?= `pkg-config --cflags protobuf`
+
 BOOST_DIR ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
 CPP_FLAGS += -I$(SAFPLUS_INC_DIR)
-CPP_FLAGS += -I$(BOOST_DIR)  -I. -DSAFplus7
+CPP_FLAGS += -I$(BOOST_DIR) $(PROTOBUF_FLAGS) -I. -DSAFplus7
 # we need to have -Wno-deprecated-warnings because boost uses std::auto_ptr
 COMPILE_CPP = g++ -std=c++11 -Wno-deprecated-declarations  -g -O0 -fPIC -c $(CPP_FLAGS) -o
 LINK_SO     = g++ -g -shared -o
@@ -36,14 +40,11 @@ LINK_EXE    = g++ -g -O0 -fPIC $(LINK_FLAGS) -o
 
 LINK_LIBS ?=
 
-LINK_STD_LIBS += -L$(BOOST_DIR)/stage/lib -L$(BOOST_DIR)/lib -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl
-LINK_SO_LIBS += -L$(BOOST_DIR)/stage/lib -L$(BOOST_DIR)/lib -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl
+LINK_STD_LIBS += $(PROTOBUF_LINK) -L$(BOOST_DIR)/stage/lib -L$(BOOST_DIR)/lib -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl
+LINK_SO_LIBS += $(PROTOBUF_LINK) -L$(BOOST_DIR)/stage/lib -L$(BOOST_DIR)/lib -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl
 
 TARGET_OS ?= $(shell uname -r)
 TARGET_PLATFORM ?= $(shell uname -p)
-
-#SAFPLUS_SDK_DIR ?= /opt/clovis/6.1/sdk
-#SAFPLUS_SDK_TARGET ?= $(shell (cd $(SAFPLUS_SDK_DIR)/prebuild/target/$(TARGET_PLATFORM)/$(TARGET_OS); pwd))
 
 #? Flags (include directories) needed to compile programs using the SAFplus Mgt component.
 SAFPLUS_MGT_INC_FLAGS := -I$(SAFPLUS_SRC_DIR)/mgt/include -I$(SAFPLUS_SRC_DIR)/3rdparty/build/include/libxml2/ -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include

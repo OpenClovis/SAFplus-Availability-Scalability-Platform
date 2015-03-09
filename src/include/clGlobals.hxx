@@ -92,7 +92,8 @@ class LibSet
     DBAL=0x400,
     MSG=0x800,
     OBJMSG=0x1000,
-    NAME=0x2000
+    NAME=0x2000,
+    FAULT=0x4000
   };
   };
 
@@ -138,6 +139,7 @@ class LibSet
     OBJMSG = LibSet::OBJMSG | LibDep::MSG,
     GRP = LibSet::GRP | LibDep::OBJMSG | LibDep::MSG,
     CKPT = LibSet::CKPT | LibDep::GRP | LibDep::MSG | LibDep::UTILS,
+    FAULT = LibDep::MSG | LibDep::LOG,
     NAME = LibSet::NAME | LibDep::CKPT,
     HEAP = LibSet::HEAP,
     BUFFER = LibSet::BUFFER,
@@ -190,6 +192,7 @@ extern "C" {
 #endif
 
   extern void groupInitialize(void) __attribute__((weak));
+  extern void faultInitialize(void) __attribute__((weak));
 
   inline void safplusInitialize(unsigned int svc,const SafplusInitializationConfiguration& cfg=*((SafplusInitializationConfiguration*)NULL))
   {
@@ -235,6 +238,11 @@ extern "C" {
     if((svc&LibSet::GRP)&&SAFplus::groupInitialize) 
       { 
       SAFplus::groupInitialize();
+      }
+
+    if((svc&LibSet::FAULT)&&faultInitialize) 
+      { 
+      faultInitialize();
       }
 
     if (svc&LibSet::MSG&& msgServerInitialize)

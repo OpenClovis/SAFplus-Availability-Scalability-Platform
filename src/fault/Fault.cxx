@@ -121,6 +121,12 @@ namespace SAFplus
     {
         sendFaultEventMessage(reporter,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT,pluginId,faultData);
     }
+
+    void Fault::notifyNoResponse(SAFplus::Handle faultEntity,SAFplusI::AlarmSeverityTypeT severity)
+    {
+    sendFaultEventMessage(faultEntity,FaultMessageSendMode::SEND_TO_ACTIVE_SERVER,SAFplusI::FaultMessageTypeT::MSG_ENTITY_FAULT,AlarmStateT::ALARM_STATE_ASSERT,AlarmCategoryTypeT::ALARM_CATEGORY_COMMUNICATIONS,severity,SAFplusI::AlarmProbableCauseT::ALARM_PROB_CAUSE_RECEIVER_FAILURE,FaultPolicy::Undefined);
+    }
+
     //Sending a fault notification to fault server
     void Fault::sendFaultNotification(void* data, int dataLength, SAFplusI::FaultMessageSendMode messageMode)
     {
@@ -204,7 +210,7 @@ namespace SAFplus
         wakeable = NULL;
         faultMsgServer = NULL;
         reporter =INVALID_HDL;
-        this->init(faultHandle,iocServerAddress,SAFplusI::FLT_IOC_PORT,BLOCK);
+        this->init(faultHandle,iocServerAddress,SAFplusI::FAULT_IOC_PORT,BLOCK);
         if (name && name[0] != 0)
         {
             setName(name);
@@ -334,7 +340,7 @@ namespace SAFplus
         group=Group(FAULT_GROUP);
         group.setNotification(*this);
         SAFplus::objectMessager.insert(faultServerHandle,this);
-        faultInfo.iocFaultServer = getProcessHandle(SAFplusI::FLT_IOC_PORT,SAFplus::ASP_NODEADDR);
+        faultInfo.iocFaultServer = getProcessHandle(SAFplusI::FAULT_IOC_PORT,SAFplus::ASP_NODEADDR);
         group.registerEntity(faultServerHandle, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
         SAFplus::Handle activeMember = INVALID_HDL;
         activeMember = group.getActive();
@@ -370,7 +376,7 @@ namespace SAFplus
         faultClient = Fault();
         SAFplus::Handle server = faultInfo.iocFaultServer;
         logInfo(FAULT,"CLT","********************Initial fault client*********************");
-        faultClient.init(faultServerHandle,server,SAFplusI::FLT_IOC_PORT,BLOCK);
+        faultClient.init(faultServerHandle,server,SAFplusI::FAULT_IOC_PORT,BLOCK);
     }
 
     void FaultServer::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)

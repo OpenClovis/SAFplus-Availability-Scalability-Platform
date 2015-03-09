@@ -4,10 +4,13 @@
 #define CL_CUSTOMIZATION_HXX
 /* Configuration parameters that are part of the API */
 
-#define AMF_GRP_NODE_REPRESENTATIVE // Indicates that the AMF will act as the one-per-node GRP membership shared memory maintainer, rather than a standalone safplus_group process
+//? Indicates that the AMF will act as the one-per-node group membership shared memory maintainer, rather than using a standalone safplus_group process
+#define SAFPLUS_AMF_GRP_NODE_REPRESENTATIVE
 
-// Define this if you want the logging system to be cluster wide.
-// Comment it out to make the logging system local to the node.
+//? Indicates that the AMF will act as the one-per-node fault manager, rather than using a standalone safplus_fault process
+#define SAFPLUS_AMF_FAULT_NODE_REPRESENTATIVE
+
+//? Define this if you want the logging system to be cluster wide.  Comment it out to make the logging system local to the node.
 #define SAFPLUS_CLUSTERWIDE_LOG
 
 namespace SAFplus
