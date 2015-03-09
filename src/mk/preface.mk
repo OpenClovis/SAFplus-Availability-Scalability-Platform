@@ -78,10 +78,11 @@ define SAFPLUS_MGT_RPC_GEN
 endef
 
 #1. Google protoc generated
-#2. Rename pb.h => pb.hxx, pb.cc => pb.cxx
+#2. Rename pb.h => pb.hxx, pb.cc => pb.cxx if param = true
+#3. Code generated fro SAFplus RPC architecture 
 define SAFPLUS_RPC_GEN
 	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --cpp_out=$2 $1.proto
-	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFPLUS_TARGET)/bin/protoc-gen-rpc -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --rpc_out=$2 $1.proto
+	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFPLUS_TARGET)/bin/protoc-gen-rpc -I$(SAFPLUS_3RDPARTY_DIR) -I$(dir $1.proto) -I$(SAFPLUS_SRC_DIR)/rpc --rpc_out=$2 --rename=$3 $1.proto
 endef
 
 #endif

@@ -20,9 +20,8 @@ $(MWOBJ_DIR)/%.o: %.cxx
 	$(COMPILE_CPP) $@ $<
 
 gen: $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
-	$(call SAFPLUS_RPC_GEN, SAFplusPBExt,.)
-	$(call SAFPLUS_RPC_GEN, SAFplusRpc,.)
-	@rm -rf SAFplusPBExt.cxx SAFplusPBExt.hxx SAFplusRpc.cxx SAFplusRpc.hxx server
+	$(call SAFPLUS_RPC_GEN, SAFplusPBExt,.,true)
+	$(call SAFPLUS_RPC_GEN, SAFplusRpc,.,true)
 
 cleangen:
 	rm -rf *.pb.hxx *.pb.cxx
