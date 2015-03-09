@@ -29,54 +29,20 @@ using namespace SAFplus;
 
 #define IOC_PORT_SERVER 65
 
-ClUint32T clAspLocalId = 0x1;
-ClBoolT gIsNodeRepresentative = CL_TRUE;
-
-void FooDone(SAFplus::Rpc::rpcTest::TestGetRpcMethodResponse* response)
-  {
-    if (response->has_dataresult())
-      {
-        const SAFplus::Rpc::rpcTest::DataResult& dr = response->dataresult();
-        printf("Response is name='%s': status='%d'\n", dr.name().c_str(), dr.status());
-      }
-  }
-
-void FooDone2(SAFplus::Rpc::rpcTest::TestGetRpcMethod2Response* response)
-  {
-    if (response->has_dataresult())
-      {
-        const SAFplus::Rpc::rpcTest::DataResult& dr = response->dataresult();
-        printf("Response is name='%s': status='%d'\n", dr.name().c_str(), dr.status());
-      }
-  }
-
-void FooDone3(SAFplus::Rpc::rpcTest::TestGetRpcMethod3Response* response)
-  {
-    if (response->has_dataresult())
-      {
-        const SAFplus::Rpc::rpcTest::DataResult& dr = response->dataresult();
-        printf("Response is name='%s': status='%d'\n", dr.name().c_str(), dr.status());
-      }
-  }
-
 int main(void)
   {
-    ClRcT rc = CL_OK;
-    SAFplus::ASP_NODEADDR = 0x1;
-
-    safplusInitialize(SAFplus::LibDep::LOG | SAFplus::LibDep::UTILS | SAFplus::LibDep::OSAL | SAFplus::LibDep::HEAP | SAFplus::LibDep::TIMER | SAFplus::LibDep::BUFFER | SAFplus::LibDep::IOC);
-    logEchoToFd = 1;  // echo logs to stdout for debugging
     logSeverity = LOG_SEV_MAX;
+
+    clMsgInitialize();
 
     //Msg server listening
     SAFplus::SafplusMsgServer safplusMsgServer(IOC_PORT_SERVER, 10, 10);
-    SAFplus::Rpc::rpcTest::rpcTestImpl rpcTestMsgHandler;
 
-    Handle msgDest = getProcessHandle(IOC_PORT_SERVER,1);
-
-    SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, msgDest);
+    // Handle RPC
+    SAFplus::Rpc::RpcChannel *channel = new SAFplus::Rpc::RpcChannel(&safplusMsgServer, new SAFplus::Rpc::rpcTest::rpcTestImpl());
     channel->setMsgType(100, 101);
-    channel->service = &rpcTestMsgHandler;
+
+    safplusMsgServer.Start();
 
     // client side
     SAFplus::Rpc::rpcTest::rpcTest_Stub rpcTestService(channel);
@@ -106,11 +72,9 @@ int main(void)
 
         request3.set_name("myNameRequest3");
 
-        SAFplus::Handle hdl(TransientHandle,1,IOC_PORT_SERVER,1);
-
-        rpcTestService.testGetRpcMethod(hdl, &request1, &res1, wakeable1);
-        rpcTestService.testGetRpcMethod2(hdl, &request2, &res2, wakeable2);
-        rpcTestService.testGetRpcMethod3(hdl, &request3, &res3, wakeable3);
+        rpcTestService.testGetRpcMethod(safplusMsgServer.handle, &request1, &res1, wakeable1);
+        rpcTestService.testGetRpcMethod2(safplusMsgServer.handle, &request2, &res2, wakeable2);
+        rpcTestService.testGetRpcMethod3(safplusMsgServer.handle, &request3, &res3, wakeable3);
 
         sleep(1);
       }

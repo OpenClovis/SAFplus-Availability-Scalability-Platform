@@ -27,9 +27,6 @@ using namespace SAFplus;
 
 #define IOC_PORT_SERVER 65
 
-//ClUint32T clAspLocalId = 0x1;
-//ClBoolT gIsNodeRepresentative = CL_TRUE;
-
 int
 main(void)
 {

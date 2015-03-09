@@ -23,6 +23,9 @@ $(INSTALL_DIR)/lib/libxml2.so:
 #endif
 
 ifndef SAFPLUS_RPC_LIB
+$(SAFPLUS_TARGET)/bin/protoc-gen-rpc:
+	make -C $(SAFPLUS_SRC_DIR)/rpc/protoc
+
 $(LIB_DIR)/libclRpc.so:
 	make -C $(SAFPLUS_SRC_DIR)/rpc
 endif
@@ -78,8 +81,7 @@ $(LIB_DIR)/libezxml.so:
 	make -C $(SAFPLUS_SRC_DIR)/3rdparty/ezxml/ezxml-0.8.6/
 
 # ordered by dependency
-SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py
-
+SAFplusSOs := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py
 
 ifndef SAFPLUS_MSG_PLUGIN
 .PHONY: $(LIB_DIR)/clMsgUdp.so
@@ -139,11 +141,6 @@ endif
 ifndef SAFPLUS_AMF_SERVER
 $(SAFPLUS_TARGET)/bin/safplus_amf:
 	make -C $(SAFPLUS_SRC_DIR)/amf/server
-endif
-
-ifndef SAFPLUS_RPC_LIB
-$(SAFPLUS_TARGET)/bin/protoc-gen-rpc:
-	make -C $(SAFPLUS_SRC_DIR)/rpc
 endif
 
 SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp
