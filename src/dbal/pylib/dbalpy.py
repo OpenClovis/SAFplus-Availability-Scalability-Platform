@@ -352,7 +352,7 @@ def main(argv):
 
 def Test():
     test = PyDBAL("SAFplusLog.xml") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
-    data.StoreDB();
+    test.StoreDB();
 
     # Iterators
     for key in test.Iterators():

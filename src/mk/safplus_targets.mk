@@ -41,8 +41,18 @@ $(LIB_DIR)/libclMgt.so:
 endif
 
 ifndef SAFPLUS_DBAL_LIB
-$(LIB_DIR)/libclDbal.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py $(LIB_DIR)/libclBerkeleyDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclSQLiteDB.so:
+$(LIB_DIR)/libclDbal.so:
 	make -C $(SAFPLUS_SRC_DIR)/dbal
+endif
+
+ifndef SAFPLUS_DBAL_PYLIB
+$(LIB_DIR)/pyDbal.so:
+	make -C $(SAFPLUS_SRC_DIR)/dbal/pylib
+endif
+
+ifndef SAFPLUS_DBAL_PLUGIN
+$(LIB_DIR)/libclBerkeleyDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclSQLiteDB.so:
+	make -C $(SAFPLUS_SRC_DIR)/dbal/plugins
 endif
 
 ifndef SAFPLUS_CKPT_LIB
@@ -81,7 +91,7 @@ $(LIB_DIR)/libezxml.so:
 	make -C $(SAFPLUS_SRC_DIR)/3rdparty/ezxml/ezxml-0.8.6/
 
 # ordered by dependency
-SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so $(BIN_DIR)/dbalpy.py
+SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
 
 ifndef SAFPLUS_MSG_PLUGIN
 .PHONY: $(LIB_DIR)/clMsgUdp.so
