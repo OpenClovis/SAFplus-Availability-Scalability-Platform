@@ -22,6 +22,7 @@ from common import *
 from module import Module
 from entity import *
 from model import Model
+from umlEditor import DeleteTool
 
 from gfxmath import *
 from gfxtoolkit import *
@@ -38,6 +39,8 @@ CODEGEN_LANG_C = 94
 CODEGEN_LANG_CPP = 93
 CODEGEN_LANG_PYTHON = 92
 CODEGEN_LANG_JAVA = 91
+
+DELETE_BUTTON = 90
 
 COL_MARGIN = 250
 COL_SPACING = 2
@@ -856,6 +859,10 @@ class Panel(scrolled.ScrolledPanel):
       self.toolBar.AddRadioTool(ZOOM_BUTTON, bitmap, wx.NullBitmap, shortHelp="zoom", longHelp="Left click (+) to zoom in. Right click (-) to zoom out.")
       self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
 
+      bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
+      self.idLookup[DELETE_BUTTON] = DeleteTool(self)
+
       # Add the custom entity creation tools as specified by the model's YANG
       self.addEntityTools()
 
@@ -990,7 +997,7 @@ class Panel(scrolled.ScrolledPanel):
         # Put all childs instances into hyperlisttree
         if share.instanceDetailsPanel:
           for (name, ent) in filter(lambda (name, ent): not ent.et.name in (self.ignoreEntities),self.model.instances.items()):
-            share.instanceDetailsPanel._createTreeItemEntity(name, ent)
+            share.instanceDetailsPanel.createTreeItemEntity(name, ent)
         self.Refresh()
 
       self.UpdateVirtualSize()
@@ -1242,7 +1249,10 @@ class Panel(scrolled.ScrolledPanel):
           self.rows.remove(ent);
         except:
           pass
-  
+
+      if share.instanceDetailsPanel:
+        share.instanceDetailsPanel.deleteTreeItemEntities(ents)
+
       self.model.delete(ents)
       self.Refresh()
       self.layout()

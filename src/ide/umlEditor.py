@@ -25,6 +25,7 @@ SAVE_BUTTON = 99
 ZOOM_BUTTON = 98
 CONNECT_BUTTON = 97
 SELECT_BUTTON = 96
+DELETE_BUTTON = 95
 
 PI = 3.141592636
 
@@ -392,7 +393,7 @@ class EntityTypeTool(Tool):
     panel.Refresh()
 
     if share.detailsPanel:
-      share.detailsPanel._createTreeItemEntity(ent.data["name"], ent)
+      share.detailsPanel.createTreeItemEntity(ent.data["name"], ent)
 
     return True
  
@@ -676,6 +677,55 @@ class SaveTool(Tool):
       # TODO: Notify (IPC) to GUI instances to change
     return False
 
+class DeleteTool(Tool):
+  def __init__(self, panel):
+    self.panel = panel
+    self.selected = set()  # This is everything that is currently selected... using shift or ctrl click may mean the more is selected then currently touching
+    self.touching = set()  # This is everything that the cursor is currently touching
+    self.rect = None       # Will be something if a rectangle selection is being used
+    #self.downPos = None   # Where the left mouse button was pressed
+    self.boxSel = BoxGesture()
+  
+  def OnSelect(self, panel,event):
+    return False
+
+  def OnEditEvent(self,panel,event):
+    pos = panel.CalcUnscrolledPosition(event.GetPositionTuple())
+    if isinstance(event, wx.MouseEvent):
+      if event.ButtonDown(wx.MOUSE_BTN_LEFT):  # Select
+        entities = panel.findEntitiesAt(pos)
+        self.dragPos = pos
+        self.touching = set()
+        self.boxSel.start(panel,pos)
+
+        # If you touch something else, your touching set changes.  But if you touch something in your current touch group then nothing changes
+        # This enables behavior like selecting a group of entities and then dragging them (without using the ctrl key)
+        if not entities.issubset(self.touching) or (len(self.touching) != len(entities)):
+          self.touching = set(entities)
+          self.selected = self.touching.copy()
+  
+      if event.Dragging():
+        # if you are touching anything, then drag everything
+        if self.touching and self.dragPos:
+          delta = (pos[0]-self.dragPos[0], pos[1] - self.dragPos[1])
+          # TODO deal with scaling and rotation in delta
+          if delta[0] != 0 and delta[1] != 0:
+            for e in self.selected:
+              e.pos = (e.pos[0] + delta[0], e.pos[1] + delta[1])  # move all the touching objects by the amount the mouse moved
+          self.dragPos = pos
+          panel.Refresh()
+        else:  # touching nothing, this is a selection rectangle
+          self.boxSel.change(panel,event)
+  
+      if event.ButtonUp(wx.MOUSE_BTN_LEFT):
+        # Or find everything inside a selection box
+        if self.boxSel.active:
+          self.touching = panel.findEntitiesTouching(self.boxSel.finish(panel,pos))
+          self.selected = self.touching
+          if len(self.selected) > 0:
+            self.panel.deleteEntities(self.selected)
+            self.selected = set()
+          panel.Refresh()
 
 # Global of this panel for debug purposes only.  DO NOT USE IN CODE
 dbgUep = None
@@ -743,6 +793,10 @@ class Panel(scrolled.ScrolledPanel):
       self.idLookup[ZOOM_BUTTON] = ZoomTool(self)
 
       self.idLookup[SAVE_BUTTON] = SaveTool(self)
+
+      bitmap = svg.SvgFile("remove.svg").bmp(tsize, { }, (222,222,222,wx.ALPHA_OPAQUE))
+      self.toolBar.AddRadioTool(DELETE_BUTTON, bitmap, wx.NullBitmap, shortHelp="Delete entity/entities", longHelp="Select one or many entities. Click entity to delete.")
+      self.idLookup[DELETE_BUTTON] = DeleteTool(self)
 
       # Add the custom entity creation tools as specified by the model's YANG
       self.addEntityTools()
@@ -895,6 +949,13 @@ class Panel(scrolled.ScrolledPanel):
         if e == ent:
           e.data[key] = newValue
           e.recreateBitmap()
+      self.Refresh()
+
+    def deleteEntities(self, ents):
+      self.model.delete(ents)
+      if share.detailsPanel:
+        share.detailsPanel.deleteTreeItemEntities(ents)
+
       self.Refresh()
 
 model = None

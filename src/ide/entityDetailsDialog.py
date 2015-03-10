@@ -304,7 +304,7 @@ class Panel(scrolled.ScrolledPanel):
       if self.entity == ent: return  # Its already being shown
       self.entity = ent
 
-      treeItem = self._createTreeItemEntity(ent.data["name"], ent)
+      treeItem = self.createTreeItemEntity(ent.data["name"], ent)
       self.tree.Expand(treeItem)
       self.tree.SelectItem(treeItem)
 
@@ -344,17 +344,23 @@ class Panel(scrolled.ScrolledPanel):
       # This tree to show details for entity instantiate
       if (self.isDetailInstance):
         for (name, ent) in filter(lambda (name, ent): ent.et.name in (self.entityTreeTypes),self.model.instances.items()):
-          self._createTreeItemEntity(name, ent)
+          self.createTreeItemEntity(name, ent)
       else:
         for (name, ent) in self.model.entities.items():
-          self._createTreeItemEntity(name, ent)
+          self.createTreeItemEntity(name, ent)
 
       self.SetSizer(self.sizer)
       self.sizer.Layout()
       self.Refresh()
 
+    def deleteTreeItemEntities(self, ents):
+        for ent in ents:
+            treeItem = self.findEntityRecursive(ent)
+            if treeItem:
+                self.tree.Delete(treeItem)
+
     # Create controls for an entity
-    def _createTreeItemEntity(self, name, ent, parentItem = None):
+    def createTreeItemEntity(self, name, ent, parentItem = None):
 
       if parentItem is None:
         parentItem = self.treeRoot
@@ -395,7 +401,7 @@ class Panel(scrolled.ScrolledPanel):
         if ent.et.name in ("ServiceInstance", "ServiceUnit"):
           if (self.isDetailInstance):
             for a in ent.containmentArrows:
-              self._createTreeItemEntity(a.contained.data["name"], a.contained, treeItem)
+              self.createTreeItemEntity(a.contained.data["name"], a.contained, treeItem)
 
       # Update num controls
       self.numElements =  self.row
