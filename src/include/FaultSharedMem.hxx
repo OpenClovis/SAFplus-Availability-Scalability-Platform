@@ -1,5 +1,5 @@
-#ifndef CLFAULT_IPI_H_
-#define CLFAULT_IPI_H_
+#ifndef CLFAULT_SHM_H_
+#define CLFAULT_SHM_H_
 
 #include <boost/functional/hash.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
@@ -21,10 +21,9 @@
 #include <clGroup.hxx>
 
 
-namespace SAFplusI
+namespace SAFplus
   {
-
-  enum class FaultMessageTypeT
+  enum class FaultMessageType
     {
     MSG_ENTITY_JOIN = 1,     // the entity joins
     MSG_ENTITY_LEAVE,       // the entity leave
@@ -32,8 +31,6 @@ namespace SAFplusI
     MSG_ENTITY_JOIN_BROADCAST,  // broadcast entity join
     MSG_ENTITY_LEAVE_BROADCAST,  // broadcast entity leave
     MSG_ENTITY_FAULT_BROADCAST,   // broadcast fault event
-  //        MSG_FAULT_SYNC_REQUEST,   // sync request  from fault server to master fault server
-  //        MSG_FAULT_SYNC_REPLY,   // fault entity information from fault server master to fault server
     MSG_UNDEFINED
     };
 
@@ -53,7 +50,7 @@ namespace SAFplusI
    */
   typedef int AlarmSpecificProblemT;
 
-  enum class AlarmSeverityTypeT
+  enum class AlarmSeverity
     {
     /**ClAlarmCategoryTypeT
      * Alarm with invalid severity
@@ -95,7 +92,7 @@ namespace SAFplusI
    * This enumeration defines all the probable causes of the
    * alarm based on the categories.
    */
-  enum class AlarmProbableCauseT
+  enum class AlarmProbableCause
     {
     /**
      * invalid cause
@@ -409,7 +406,7 @@ namespace SAFplusI
    * into. It can be in any of the following state that is
    * cleared, assert, suppressed or under soaking.
    */
-  enum class AlarmStateT
+  enum class AlarmState
     {
     /**
      *  The alarm condition has cleared.
@@ -433,7 +430,7 @@ namespace SAFplusI
       ALARM_STATE_INVALID = 4
 
       };
-  enum class AlarmCategoryTypeT
+  enum class AlarmCategory
     {
 
     /**
@@ -469,16 +466,6 @@ namespace SAFplusI
 
   enum
     {
-    FaultSharedMemSize = 4 * 1024*1024,
-    FaultMaxMembers    = 1024,   // Maximum number of fault entity
-    };
-  }
-
-namespace SAFplus
-  {
-
-  enum
-    {
     FAULT_POLICY_PLUGIN_ID = 0x53843923,
     FAULT_POLICY_PLUGIN_VER = 1
     };
@@ -507,30 +494,30 @@ namespace SAFplus
     /**
      * Flag to indicate if the alarm was for assert or for clear.
      */
-    SAFplusI::AlarmStateT alarmState;
+    SAFplus::AlarmState alarmState;
 
     /**
      * The category of the fault event.
      */
-    SAFplusI::AlarmCategoryTypeT category;
+    SAFplus::AlarmCategory category;
 
     /**
      * The severity of the fault event.
      */
-    SAFplusI::AlarmSeverityTypeT severity;
+    SAFplus::AlarmSeverity severity;
     /**
      * The probable cause of the fault event.
      */
-    SAFplusI::AlarmProbableCauseT cause;
+    SAFplus::AlarmProbableCause cause;
 
     FaultEventData()
       {
-      alarmState= SAFplusI::AlarmStateT::ALARM_STATE_INVALID;
-      category= SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID;
-      cause= SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID;
-      severity=SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID;
+      alarmState= SAFplus::AlarmState::ALARM_STATE_INVALID;
+      category= SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID;
+      cause= SAFplus::AlarmProbableCause::ALARM_ID_INVALID;
+      severity=SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID;
       }
-    void init(SAFplusI::AlarmStateT a_state,SAFplusI::AlarmCategoryTypeT a_category,SAFplusI::AlarmSeverityTypeT a_severity,SAFplusI::AlarmProbableCauseT a_cause)
+    void init(SAFplus::AlarmState a_state,SAFplus::AlarmCategory a_category,SAFplus::AlarmSeverity a_severity,SAFplus::AlarmProbableCause a_cause)
       {
       alarmState= a_state;
       category= a_category;
@@ -547,12 +534,6 @@ namespace SAFplus
       }
 
     };
-
-
-  };
-
-namespace SAFplus
-  {
 
 #define FAULT_NAME_LEN 100
 #define MAX_FAULT_DEPENDENCIES 5
@@ -582,9 +563,9 @@ namespace SAFplus
   class FaultMessageProtocol
     {
   public:
-    SAFplusI::FaultMessageTypeT     messageType;
+    SAFplus::FaultMessageType     messageType;
     SAFplus::FaultState state;
-    SAFplus::FaultPolicy pluginId;
+    FaultPolicy pluginId;
     //char name[FAULT_NAME_LEN];
     FaultEventData data;
     SAFplus::Handle       reporter;
@@ -592,10 +573,10 @@ namespace SAFplus
     char                  syncData[1];
     FaultMessageProtocol()
       {
-      messageType=SAFplusI::FaultMessageTypeT::MSG_UNDEFINED;
-      faultEntity=INVALID_HDL;
-      data.init(SAFplusI::AlarmStateT::ALARM_STATE_INVALID,SAFplusI::AlarmCategoryTypeT::ALARM_CATEGORY_INVALID,SAFplusI::AlarmSeverityTypeT::ALARM_SEVERITY_INVALID,SAFplusI::AlarmProbableCauseT::ALARM_ID_INVALID);
-      pluginId=SAFplus::FaultPolicy::Undefined;
+      messageType=SAFplus::FaultMessageType::MSG_UNDEFINED;
+      faultEntity=SAFplus::INVALID_HDL;
+      data.init(SAFplus::AlarmState::ALARM_STATE_INVALID,SAFplus::AlarmCategory::ALARM_CATEGORY_INVALID,SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID,SAFplus::AlarmProbableCause::ALARM_ID_INVALID);
+      pluginId=FaultPolicy::Undefined;
       }
     };
 
@@ -620,7 +601,7 @@ namespace SAFplus
       state=frp->state;
       for(int i=0;i<MAX_FAULT_DEPENDENCIES;i++)
         {
-        depends[i]=INVALID_HDL;
+        depends[i]=SAFplus::INVALID_HDL;
         }
       };
     void init(SAFplus::Handle fHandle)
@@ -629,7 +610,7 @@ namespace SAFplus
       dependecyNum = 0;
       for(int i=0;i<MAX_FAULT_DEPENDENCIES;i++)
         {
-        depends[i]=INVALID_HDL;
+        depends[i]=SAFplus::INVALID_HDL;
         }
       };
 
@@ -658,8 +639,8 @@ namespace SAFplus
     SAFplus::ProcSem mutex;  // protects the shared memory region from simultaneous access
     SAFplus::Mutex  faultMutex;
     boost::interprocess::managed_shared_memory faultMsm;
-    SAFplus::FaultShmHashMap* faultMap;
-    SAFplus::FaultShmHeader* faultHdr;
+    FaultShmHashMap* faultMap;
+    FaultShmHeader* faultHdr;
     SAFplus::Mutex  localMutex;
     void init(SAFplus::Handle active);
     void setActive(SAFplus::Handle active);
@@ -683,6 +664,7 @@ namespace SAFplus
     unsigned int       structId;
     SAFplus::Handle    iocFaultServer;
     };
-  };
+
+  }
 
 #endif

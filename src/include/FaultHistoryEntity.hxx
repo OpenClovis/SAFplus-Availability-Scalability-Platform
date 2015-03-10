@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include "clTransaction.hxx"
-#include "clFaultIpi.hxx"
+#include "FaultSharedMem.hxx"
 
 namespace SAFplus
   {

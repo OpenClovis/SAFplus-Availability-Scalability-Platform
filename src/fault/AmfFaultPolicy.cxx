@@ -1,7 +1,7 @@
 #include <clFaultPolicyPlugin.hxx>
 #include <clLogApi.hxx>
 #include <vector>
-#include <clFaultIpi.hxx>
+#include <FaultSharedMem.hxx>
 
 using namespace std;
 using namespace SAFplus;
