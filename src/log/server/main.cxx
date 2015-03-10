@@ -4,7 +4,7 @@
 using namespace std;
 
 #include <clMgtRoot.hxx>
-#include "client/MgtMsg.pb.hxx"
+#include "MgtMsg.pb.hxx"
 #include <clSafplusMsgServer.hxx>
 #include <clMsgHandler.hxx>
 #include <clLogIpi.hxx>

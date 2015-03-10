@@ -37,7 +37,7 @@ endif
 
 ifndef SAFPLUS_MGT_LIB
 $(LIB_DIR)/libclMgt.so:
-	make -C $(SAFPLUS_SRC_DIR)/mgt/client
+	make -C $(SAFPLUS_SRC_DIR)/mgt
 endif
 
 ifndef SAFPLUS_DBAL_LIB

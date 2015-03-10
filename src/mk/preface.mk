@@ -46,8 +46,10 @@ LINK_SO_LIBS += $(PROTOBUF_LINK) -L$(BOOST_DIR)/stage/lib -L$(BOOST_DIR)/lib -lb
 TARGET_OS ?= $(shell uname -r)
 TARGET_PLATFORM ?= $(shell uname -p)
 
+MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
+
 #? Flags (include directories) needed to compile programs using the SAFplus Mgt component.
-SAFPLUS_MGT_INC_FLAGS := -I$(SAFPLUS_SRC_DIR)/mgt/include -I$(SAFPLUS_SRC_DIR)/3rdparty/build/include/libxml2/ -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include
+SAFPLUS_MGT_INC_FLAGS := -I$(SAFPLUS_SRC_DIR)/mgt -I$(SAFPLUS_SRC_DIR)/3rdparty/build/include/libxml2/ -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
 NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS))
 SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS); pwd))
@@ -70,8 +72,6 @@ NOOP := $(shell mkdir -p $(LIB_DIR))
 NOOP := $(shell mkdir -p $(BIN_DIR))
 NOOP := $(shell mkdir -p $(MWOBJ_DIR))
 NOOP := $(shell mkdir -p $(OBJ_DIR))
-
-MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
 
 #Function to do codegen RPC from .yang
 define SAFPLUS_MGT_RPC_GEN
