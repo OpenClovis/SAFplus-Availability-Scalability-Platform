@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_DBAL_GDBM_PLUGIN :=1
 SAFPLUS_DBAL_PLUGIN :=1
 include ../../../mk/preface.mk
 
@@ -14,15 +15,15 @@ CLIENT_GDBM_H   := $(wildcard *.h) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildcard
 CLIENT_GDBM_SRC := $(wildcard *.c)
 CLIENT_GDBM_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .c,.o,$(CLIENT_GDBM_SRC)))
 
-Release all: $(LIB_DIR)/libclGDBM.so
+Release all: $(PLUGIN_DIR)/libclGDBM.so
 
 $(OBJ_DIR)/%.o: %.c Makefile $(CLIENT_GDBM_H)
 	$(COMPILE_CPP) $@ $(<F)
 
-$(LIB_DIR)/libclGDBM.so: $(CLIENT_GDBM_OBJ)
+$(PLUGIN_DIR)/libclGDBM.so: $(CLIENT_GDBM_OBJ)
 	$(LINK_SO) $@ $(CLIENT_GDBM_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(EXTRA_SO_LIBS)
 
 clean:
-	rm -f $(LIB_DIR)/libclGDBM.so $(CLIENT_GDBM_OBJ)
+	rm -f $(PLUGIN_DIR)/libclGDBM.so $(CLIENT_GDBM_OBJ)
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

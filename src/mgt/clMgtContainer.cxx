@@ -205,7 +205,10 @@ namespace SAFplus
       MgtObject* child = it->second;
       rc = child->read(xp, db);
       if(CL_OK != rc)
-        return rc;
+        {
+        logWarning("MGT","READ","Read data failed [%x] for child [%s] of [%s]. Ignored",rc,child->tag.c_str(),xp.c_str());
+        // TODO: Attempt to initialize the MgtObject to its configured default.  If that cannot happen, remember this error and raise an exception at the end.
+        }
     }
     return rc;
   }
@@ -233,8 +236,8 @@ namespace SAFplus
       rc = child->read(xp,db);
       if(CL_OK != rc)
       {
-        logDebug("MGT","SET","Read data failed [%x] for child %s. Ignored",rc,child->tag.c_str());
-        return rc;
+        logWarning("MGT","READ","Read data failed [%x] for child [%s] of [%s]. Ignored",rc,child->tag.c_str(),xp.c_str());
+        // TODO: Attempt to initialize the MgtObject to its configured default.  If that cannot happen, remember this error and raise an exception at the end.
       }
     }
     return rc;

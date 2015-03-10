@@ -2,15 +2,15 @@ S7 := 1
 SAFPLUS_DBAL_PLUGIN :=1
 include ../../mk/preface.mk
 
-Release all: $(LIB_DIR)/libclBerkeleyDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclSQLiteDB.so
+Release all: $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclSQLiteDB.so
 
-$(LIB_DIR)/libclBerkeleyDB.so:
+$(PLUGIN_DIR)/libclBerkeleyDB.so:
 	make -C berkeley
 
-$(LIB_DIR)/libclGDBM.so:
+$(PLUGIN_DIR)/libclGDBM.so:
 	make -C gdbm
 
-$(LIB_DIR)/libclSQLiteDB.so:
+$(PLUGIN_DIR)/libclSQLiteDB.so:
 	make -C sqlite
 
 clean:

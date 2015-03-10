@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_DBAL_SQLITE_PLUGIN :=1
 SAFPLUS_DBAL_PLUGIN :=1
 include ../../../mk/preface.mk
 
@@ -14,15 +15,15 @@ CLIENT_SQLITE_H   := $(wildcard *.h) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wildca
 CLIENT_SQLITE_SRC := $(wildcard *.c)
 CLIENT_SQLITE_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .c,.o,$(CLIENT_SQLITE_SRC)))
 
-Release all: $(LIB_DIR)/libclSQLiteDB.so
+Release all: $(PLUGIN_DIR)/libclSQLiteDB.so
 
 $(OBJ_DIR)/%.o: %.c Makefile $(CLIENT_SQLITE_H)
 	$(COMPILE_CPP) $@ $(<F)
 
-$(LIB_DIR)/libclSQLiteDB.so: $(CLIENT_SQLITE_OBJ)
+$(PLUGIN_DIR)/libclSQLiteDB.so: $(CLIENT_SQLITE_OBJ)
 	$(LINK_SO) $@ $(CLIENT_SQLITE_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(EXTRA_SO_LIBS)
 
 clean:
-	rm -f $(LIB_DIR)/libclSQLiteDB.so $(CLIENT_SQLITE_OBJ)
+	rm -f $(PLUGIN_DIR)/libclSQLiteDB.so $(CLIENT_SQLITE_OBJ)
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

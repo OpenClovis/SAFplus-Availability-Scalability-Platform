@@ -60,6 +60,7 @@ NOOP := $(shell echo $(SAFPLUS_TARGET))
 INSTALL_DIR ?=  $(SAFPLUS_TARGET)/install
 TEST_DIR ?= $(SAFPLUS_TARGET)/test
 LIB_DIR ?= $(SAFPLUS_TARGET)/lib
+PLUGIN_DIR ?= $(SAFPLUS_TARGET)/plugin
 BIN_DIR ?= $(SAFPLUS_TARGET)/bin
 # All objects that should end up into libmw.so:
 MWOBJ_DIR ?= $(SAFPLUS_TARGET)/mwobj
@@ -70,6 +71,7 @@ NOOP := $(shell mkdir -p $(INSTALL_DIR))
 NOOP := $(shell mkdir -p $(TEST_DIR))
 NOOP := $(shell mkdir -p $(LIB_DIR))
 NOOP := $(shell mkdir -p $(BIN_DIR))
+NOOP := $(shell mkdir -p $(PLUGIN_DIR))
 NOOP := $(shell mkdir -p $(MWOBJ_DIR))
 NOOP := $(shell mkdir -p $(OBJ_DIR))
 

@@ -51,7 +51,7 @@ $(LIB_DIR)/pyDbal.so:
 endif
 
 ifndef SAFPLUS_DBAL_PLUGIN
-$(LIB_DIR)/libclBerkeleyDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclSQLiteDB.so:
+$(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclSQLiteDB.so:
 	make -C $(SAFPLUS_SRC_DIR)/dbal/plugins
 endif
 
@@ -161,6 +161,8 @@ SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/TestClient
 SAFplusServices :=  $(SAFPLUS_TARGET)/bin/splogd $(SAFPLUS_TARGET)/bin/safplus_amf
 
 SAFplusTools := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
+
+SAFplusPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclSQLiteDB.so $(SAFplusMsgTransports)
 
 ThirdPartySOs := $(LIB_DIR)/libezxml.so
 

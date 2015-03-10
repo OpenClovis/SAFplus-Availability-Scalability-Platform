@@ -15,17 +15,22 @@ public :
     SAFplus::Wakeable*                wakeable;             // Wakeable object for change notification
     char                              name[FAULT_NAME_LEN]; // name of fault entity
     SAFplus::Handle faultServer;
-    int faultCommunicationPort;
+    //int faultCommunicationPort;
     typedef FaultShmMapPair KeyValuePair;
 
     //? Default 2-phase constructor.  Must call init(...)
     Fault() 
     {
-        //reporter=INVALID_HDL;
+        faultServer = INVALID_HDL;
+        reporter=INVALID_HDL;
         faultMsgServer=NULL;
     };
-    //? Initialize a fault entity with handle and comport information
+
+    //? Deprecated: Initialize a fault entity with handle and comport information
     void init(SAFplus::Handle faultHandle,SAFplus::Handle faultServer, int comPort,SAFplus::Wakeable& execSemantics);
+
+    //? Initialize a fault entity with handle and comport information
+    void init(SAFplus::Handle yourHandle, SAFplus::Wakeable& execSemantics = SAFplus::BLOCK);
 
     //? Constructor.  
     Fault(SAFplus::Handle faultHandle,const char* name,SAFplus::Handle serverAddress);

@@ -181,12 +181,23 @@ namespace SAFplus
         }
     }
 
-    void Fault::init(SAFplus::Handle faultHandle,SAFplus::Handle faultServerHandle, int comPort,SAFplus::Wakeable& execSemantics)
+    void Fault::init(SAFplus::Handle yourHandle, SAFplus::Wakeable& execSemantics)
+      {
+      reporter = yourHandle;
+        if(!faultMsgServer)
+        {
+            faultMsgServer = &safplusMsgServer;
+        }
+        registerMyself();
+      }
+
+
+    void Fault::init(SAFplus::Handle faultHandle,SAFplus::Handle faultServerHandle, int comPort, SAFplus::Wakeable& execSemantics)
     {
         reporter = faultHandle;
-        faultCommunicationPort = comPort;
+        //faultCommunicationPort = comPort;
         if(!faultMsgServer)
-        {          
+        {
             faultMsgServer = &safplusMsgServer;
         }
         faultServer = faultServerHandle;

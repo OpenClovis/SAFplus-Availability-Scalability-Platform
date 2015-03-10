@@ -465,9 +465,8 @@ int main(int argc, char* argv[])
   sic.iocPort     = SAFplusI::AMF_IOC_PORT;
   sic.msgQueueLen = MAX_MSGS;
   sic.msgThreads  = MAX_HANDLER_THREADS;
-  safplusInitialize( SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
+  safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
 
-  logSeverity = LOG_SEV_MAX;
   logAlert("AMF","INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__);
 
   //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
@@ -493,6 +492,8 @@ int main(int argc, char* argv[])
   SAFplus::FaultServer fs;
   fs.init();
 #endif
+
+  Fault fault;
 
   nameInitialize();  // Name must be initialized after the group server 
 
@@ -612,6 +613,9 @@ int main(int argc, char* argv[])
   SAFplus::SafplusMsgServer* mgtIocInstance = &safplusMsgServer;
   mgtIocInstance->registerHandler(SAFplusI::CL_MGT_MSG_TYPE,&msghandle,NULL);
 
+  fault.init(myHandle);
+  fault.registerEntity(nodeHandle,FaultState::STATE_UP);
+
   while(!quitting)  // Active/Standby transition loop
     {
     ScopedLock<> lock(m);
@@ -681,4 +685,7 @@ int main(int argc, char* argv[])
         }
       }
     }
+
+  //fs.notify(nodeHandle,AlarmStateT::ALARM_STATE_ASSERT, AlarmCategoryTypeT::ALARM_CATEGORY_EQUIPMENT,...);
+  fault.registerEntity(nodeHandle,FaultState::STATE_DOWN);
   }

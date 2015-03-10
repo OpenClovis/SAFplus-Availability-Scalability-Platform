@@ -4,7 +4,7 @@
 This module provides interfaces to access the DBAL provided by SAFplus library.
 """
 import pdb
-import os, sys
+import os, sys, os.path
 import re
 import pyDbal
 import microdom
@@ -67,14 +67,15 @@ class PyDBAL():
     def __init__(self, fileName, maxKeySize = 4, maxRecordSize = 8, docRoot=None):
         self.cfgfile = "%s" % fileName
         self.suppliedData = None
-        self.dbName = fileName.split('.')[0]
+        self.dbName = os.path.splitext(fileName)[0]
         self.docRoot = docRoot
         pyDbal.initializeDbal(self.dbName, maxKeySize, maxRecordSize)
 
     """ Load cfg xml and save to binary database """
-    def StoreDB(self):
+    def StoreDB(self, outFile = None):
+        if outFile is None: outFile = self.cfgfile
         try:
-            self.suppliedData = microdom.LoadFile(self.cfgfile)
+            self.suppliedData = microdom.LoadFile(outFile)
             if self.docRoot:
                 self.suppliedData = self.suppliedData.get(self.docRoot)
 
@@ -328,30 +329,44 @@ class PyDBAL():
 
 
 def main(argv):
-  if len(argv) != 3:
-    print "Usage:\n '%s -x <xml file>': Encode xml file to database file\n" % argv[0]
-    print " '%s -d <database file>': Read database file into xml file\n" % argv[0]
+  if len(argv) < 3:
+    print "Usage:\n '%s -x <xml file> [output file]': Encode xml file to database file\n" % argv[0]
+    print " '%s -d <database file (no extension)> [output file]': Write database file into xml file of the same name\n" % argv[0]
+    print "If [output file] is not specified, a file is created with the same name as the input file.\n"
     return -1
 
-  try:
-    data = PyDBAL(argv[2])
-  except Exception, e:
-    print getErrorString(e)
-    return
+  inFile = argv[2]
 
-  #Store into binary database
+  outFile = None
+  if len(argv) > 3:
+    outFile = argv[3]
+  else:
+    outFile = os.path.splitext(inFile)[0]
+
+  # Store into binary database
   if argv[1] == '-x':
-    data.StoreDB();
+    try:
+      print "Reading from "
+      data = PyDBAL(outFile)
+      data.StoreDB(inFile);
+      data.Finalize()
+    except Exception, e:
+      print getErrorString(e)
+      return
 
-  #Export to XML from binary database
+  # Export to XML from binary database
   if argv[1] == '-d':
-    data.ExportXML();
+    try:
+      data = PyDBAL(argv[2])
+      data.ExportXML(outFile + ".xml");
+      data.Finalize()
+    except Exception, e:
+      print getErrorString(e)
+      return
 
-
-  data.Finalize()
 
 def Test():
-    test = PyDBAL("SAFplusLog.xml") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
+    test = PyDBAL("SAFplusAmf.xml") # Root of Log service start from /log ->  docRoot= "version.log_BootConfig.log"
     test.StoreDB();
 
     # Iterators

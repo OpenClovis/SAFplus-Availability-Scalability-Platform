@@ -172,6 +172,10 @@ namespace SAFplus
             waits += start(su,waitSem);  // When started, "wake" will be called on the waitSem
             totalStarted++;
             }
+          else
+            {
+            logInfo("N+M","STRT","Not starting service unit [%s] admin state is [%s]", suName.c_str(),c_str(su->adminState.value));
+            }
           }
         waitSem.lock(waits);  // if waits is 0, lock is no-op
         }

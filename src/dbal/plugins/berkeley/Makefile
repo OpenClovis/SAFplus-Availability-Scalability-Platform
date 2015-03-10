@@ -1,4 +1,5 @@
 S7 := 1
+SAFPLUS_DBAL_BERKELEY_PLUGIN :=1
 SAFPLUS_DBAL_PLUGIN :=1
 include ../../../mk/preface.mk
 
@@ -14,15 +15,15 @@ CLIENT_BERKELEY_H   := $(wildcard *.h) $(wildcard $(SAFPLUS_INC_DIR)/*.h) $(wild
 CLIENT_BERKELEY_SRC := $(wildcard *.c)
 CLIENT_BERKELEY_OBJ := $(addprefix $(OBJ_DIR)/,$(subst .c,.o,$(CLIENT_BERKELEY_SRC)))
 
-Release all: $(LIB_DIR)/libclBerkeleyDB.so
+Release all: $(PLUGIN_DIR)/libclBerkeleyDB.so
 
 $(OBJ_DIR)/%.o: %.c Makefile $(CLIENT_BERKELEY_H)
 	$(COMPILE_CPP) $@ $(<F)
 
-$(LIB_DIR)/libclBerkeleyDB.so: $(CLIENT_BERKELEY_OBJ)
+$(PLUGIN_DIR)/libclBerkeleyDB.so: $(CLIENT_BERKELEY_OBJ)
 	$(LINK_SO) $@ $(CLIENT_BERKELEY_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(EXTRA_SO_LIBS)
 
 clean:
-	rm -f $(LIB_DIR)/libclBerkeleyDB.so $(CLIENT_BERKELEY_OBJ)
+	rm -f $(PLUGIN_DIR)/libclBerkeleyDB.so $(CLIENT_BERKELEY_OBJ)
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

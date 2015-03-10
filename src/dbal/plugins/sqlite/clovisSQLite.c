@@ -795,6 +795,7 @@ cdbSQLiteDBRecordGet(ClDBHandleT      dbHandle,
 
     pSQLiteHandle = (SQLiteDBHandle_t *)dbHandle;
 
+    //TODO: happens too often, even for trace, but first verify efficient use
     logTrace("DBA", "GET", "Retrieving a record from the database");
 
     rc = sqlite3_bind_blob(pSQLiteHandle->stmt[3], 1, (const void *) dbKey, keySize, SQLITE_STATIC);
