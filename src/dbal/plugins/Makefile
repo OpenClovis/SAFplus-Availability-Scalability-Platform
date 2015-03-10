@@ -1,51 +1,21 @@
-# Copyright (C) 2002-2012 OpenClovis Solutions Inc.  All Rights Reserved.
-# This file is available  under  a  commercial  license  from  the
-# copyright  holder or the GNU General Public License Version 2.0.
-#
-# The source code for  this program is not published  or otherwise 
-# divested of  its trade secrets, irrespective  of  what  has been 
-# deposited with the U.S. Copyright office.
-# 
-# This program is distributed in the  hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied  warranty  of 
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU 
-# General Public License for more details.
-# 
-# For more  information,  see the  file COPYING provided with this
-# material.
-################################################################################
-# ModuleName  : dbal
-# File        : Makefile
-################################################################################
-# Description :
-#
-# Makefile for tmpcomp component client library
-#
-# This Makefile assumes the following:
-#	- CLOVIS_ROOT environment variable is specified properly
-#	- Entire source tree under $(CLOVIS_ROOT)/SAFplus is checked out
-#
-#
-################################################################################
+S7 := 1
+SAFPLUS_DBAL_PLUGIN :=1
+include ../../mk/preface.mk
 
-# Subdirectories having Makefiles and need recursive escalation:
-# common should always be before client and server
+Release all: $(LIB_DIR)/libclBerkeleyDB.so $(LIB_DIR)/libclGDBM.so $(LIB_DIR)/libclSQLiteDB.so
 
-ifeq ($(TARGET_QNX), 1)
-SUBDIRS          =  berkeley
-else
-ifeq ($(TARGET_VXWORKS), 1)
-SUBDIRS = berkeley
-else
-SUBDIRS          =  berkeley gdbm sqlite
-endif
-endif
+$(LIB_DIR)/libclBerkeleyDB.so:
+	make -C berkeley
 
-#
-# If you have any ordering dependence among subdirectories, list them as
-# target-prerequisite pairs. Example:
-# server: common
-# client: common
-#
+$(LIB_DIR)/libclGDBM.so:
+	make -C gdbm
 
-include $(CLOVIS_ROOT)/SAFplus/mk/make-subdir.mk
+$(LIB_DIR)/libclSQLiteDB.so:
+	make -C sqlite
+
+clean:
+	make -C berkeley clean
+	make -C gdbm clean
+	make -C sqlite clean
+
+include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk
