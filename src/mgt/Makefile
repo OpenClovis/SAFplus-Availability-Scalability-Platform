@@ -4,7 +4,7 @@ include ../mk/preface.mk
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I.. -I$(SAFPLUS_INC_DIR)
 
 # Management includes and libraries
-CPP_FLAGS +=  -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/ -I/usr/include/libxml2
+CPP_FLAGS +=  $(SAFPLUS_MGT_INC_FLAGS)
 C_FLAGS += -I$(SAFPLUS_SRC_DIR)/SAFplus/include -I$(SAFPLUS_INC_DIR) -I$(SAFPLUS_SRC_DIR)/SAFplus/3rdparty/ezxml/stable
 
 CLIENT_H := $(wildcard ../include/*.hxx)
@@ -23,4 +23,4 @@ $(MWOBJ_DIR)/%.o: %.cc Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/libclMgt.so $(MWOBJ_DIR)/*.o
+	rm -f $(LIB_DIR)/libclMgt.so $(CLIENT_OBJ)
