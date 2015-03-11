@@ -379,11 +379,8 @@ ClRcT MgtProv<T>::setDb(std::string pxp,MgtDatabase *db)
     {
       db = MgtDatabase::getInstance();
     }
-    std::vector<std::string> record = db->iterate(key);
-    if(record.size() == 0)
-      return db->insertRecord(key, ss.str());
-    else
-      return db->setRecord(key,ss.str());
+
+    return db->insertRecord(key, ss.str());
 }
 
 template <class T>

@@ -459,6 +459,9 @@ namespace SAFplusAmf
         node->id = getAmfId();
         node->operState.value = true;  // created ready to run...
 
+        ServiceUnitFailureEscalationPolicy *serviceUnitFailureEscalationPolicy = new ServiceUnitFailureEscalationPolicy();
+        node->addServiceUnitFailureEscalationPolicy(serviceUnitFailureEscalationPolicy);
+
         std::string dataXPath = (*it).substr(0, found);
 
         node->dataXPath = dataXPath;
@@ -493,6 +496,17 @@ namespace SAFplusAmf
 
         ServiceGroup* sg = new ServiceGroup(keyValue);
         sg->id  = getAmfId();
+
+        ComponentRestart *componentRestart = new ComponentRestart();
+        sg->addComponentRestart(componentRestart);
+        ServiceUnitRestart *serviceUnitRestart = new ServiceUnitRestart();
+        sg->addServiceUnitRestart(serviceUnitRestart);
+        NumAssignedServiceUnits *numAssignedServiceUnits = new NumAssignedServiceUnits();
+        sg->addNumAssignedServiceUnits(numAssignedServiceUnits);
+        NumIdleServiceUnits *numIdleServiceUnits = new NumIdleServiceUnits();
+        sg->addNumIdleServiceUnits(numIdleServiceUnits);
+        NumSpareServiceUnits *numSpareServiceUnits = new NumSpareServiceUnits();
+        sg->addNumSpareServiceUnits(numSpareServiceUnits);
 
         std::string dataXPath = (*it).substr(0, found);
 
@@ -535,6 +549,13 @@ namespace SAFplusAmf
         su->readinessState    = ReadinessState::outOfService;
         su->operState         = true; // created ready to run...
 
+        NumActiveServiceInstances *numActiveServiceInstances = new NumActiveServiceInstances();
+        su->addNumActiveServiceInstances(numActiveServiceInstances);
+        NumStandbyServiceInstances *numStandbyServiceInstances = new NumStandbyServiceInstances();
+        su->addNumStandbyServiceInstances(numStandbyServiceInstances);
+        RestartCount *restartCount = new RestartCount();
+        su->addRestartCount(restartCount);
+
         std::string dataXPath = (*it).substr(0, found);
 
         su->dataXPath = dataXPath;
@@ -574,6 +595,11 @@ namespace SAFplusAmf
         si->preferredActiveAssignments      = 1;
         si->preferredStandbyAssignments      = 1;
 
+        ActiveAssignments *activeAssignments = new ActiveAssignments();
+        si->addActiveAssignments(activeAssignments);
+        StandbyAssignments *standbyAssignments = new StandbyAssignments();
+        si->addStandbyAssignments(standbyAssignments);
+
         std::string dataXPath = (*it).substr(0, found);
 
         si->dataXPath = dataXPath;
@@ -612,6 +638,21 @@ namespace SAFplusAmf
         comp->numInstantiationAttempts.value = 0;
         comp->lastInstantiation.value.value = 0;
         comp->presence.value = PresenceState::uninstantiated;
+
+        ActiveAssignments *activeAssignments = new ActiveAssignments();
+        comp->addActiveAssignments(activeAssignments);
+        StandbyAssignments *standbyAssignments = new StandbyAssignments();
+        comp->addStandbyAssignments(standbyAssignments);
+        Instantiate *instantiate = new Instantiate();
+        comp->addInstantiate(instantiate);
+        Terminate *terminate = new Terminate();
+        comp->addTerminate(terminate);
+        Cleanup *cleanup = new Cleanup();
+        comp->addCleanup(cleanup);
+        Timeouts *timeouts = new Timeouts();
+        comp->addTimeouts(timeouts);
+        RestartCount *restartCount = new RestartCount();
+        comp->addRestartCount(restartCount);
 
         std::string dataXPath = (*it).substr(0, found);
 
