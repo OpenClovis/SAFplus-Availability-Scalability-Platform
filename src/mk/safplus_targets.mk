@@ -51,8 +51,22 @@ $(LIB_DIR)/pyDbal.so:
 endif
 
 ifndef SAFPLUS_DBAL_PLUGIN
-$(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclGDBM.so $(PLUGIN_DIR)/libclSQLiteDB.so:
-	make -C $(SAFPLUS_SRC_DIR)/dbal/plugins
+
+ifndef SAFPLUS_DBAL_BERKELEY_PLUGIN
+$(PLUGIN_DIR)/libclBerkeleyDB.so:
+	make -C $(SAFPLUS_SRC_DIR)/dbal/plugins/berkeley
+endif
+
+ifndef SAFPLUS_DBAL_GDBM_PLUGIN
+$(PLUGIN_DIR)/libclGDBM.so:
+	make -C $(SAFPLUS_SRC_DIR)/dbal/plugins/gdbm
+endif
+
+ifndef SAFPLUS_DBAL_SQLITE_PLUGIN
+$(PLUGIN_DIR)/libclSQLiteDB.so:
+	make -C $(SAFPLUS_SRC_DIR)/dbal/plugins/sqlite
+endif
+
 endif
 
 ifndef SAFPLUS_CKPT_LIB

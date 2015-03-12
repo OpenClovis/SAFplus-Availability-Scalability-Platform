@@ -20,7 +20,7 @@ Release all: $(PLUGIN_DIR)/libclSQLiteDB.so
 $(OBJ_DIR)/%.o: %.c Makefile $(CLIENT_SQLITE_H)
 	$(COMPILE_CPP) $@ $(<F)
 
-$(PLUGIN_DIR)/libclSQLiteDB.so: $(CLIENT_SQLITE_OBJ)
+$(PLUGIN_DIR)/libclSQLiteDB.so: $(CLIENT_SQLITE_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(CLIENT_SQLITE_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(EXTRA_SO_LIBS)
 
 clean:

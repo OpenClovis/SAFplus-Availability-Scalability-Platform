@@ -20,7 +20,7 @@ Release all: $(PLUGIN_DIR)/libclGDBM.so
 $(OBJ_DIR)/%.o: %.c Makefile $(CLIENT_GDBM_H)
 	$(COMPILE_CPP) $@ $(<F)
 
-$(PLUGIN_DIR)/libclGDBM.so: $(CLIENT_GDBM_OBJ)
+$(PLUGIN_DIR)/libclGDBM.so: $(CLIENT_GDBM_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(CLIENT_GDBM_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(EXTRA_SO_LIBS)
 
 clean:

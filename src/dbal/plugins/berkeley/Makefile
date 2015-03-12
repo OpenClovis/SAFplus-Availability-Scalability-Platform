@@ -20,7 +20,7 @@ Release all: $(PLUGIN_DIR)/libclBerkeleyDB.so
 $(OBJ_DIR)/%.o: %.c Makefile $(CLIENT_BERKELEY_H)
 	$(COMPILE_CPP) $@ $(<F)
 
-$(PLUGIN_DIR)/libclBerkeleyDB.so: $(CLIENT_BERKELEY_OBJ)
+$(PLUGIN_DIR)/libclBerkeleyDB.so: $(CLIENT_BERKELEY_OBJ) $(SAFPLUS_DEP_LIBS)
 	$(LINK_SO) $@ $(CLIENT_BERKELEY_OBJ) $(SAFPLUS_LINK_LIBS) $(LINK_SO_LIBS) $(EXTRA_SO_LIBS)
 
 clean:
