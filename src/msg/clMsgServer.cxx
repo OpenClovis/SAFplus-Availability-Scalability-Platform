@@ -55,7 +55,7 @@ namespace SAFplus
   void MsgServer::Init(uint_t _port, uint_t maxPending, uint_t maxThreads, Options flags)
   {
     SaNameT myName;
-
+    assert(_port != 0);  // TODO if port==0, use a shared memory bitmap to allocate a port number
     Wipe();
 
     port   = _port;
@@ -117,7 +117,7 @@ void MsgServer::MakeMePrimary()
 
   void ReceiverFunc(MsgServer* q)
   {
-    logDebug("MSG", "RCV","Message queue receiver started");
+    logDebug("MSG", "RCV","Message queue receiver started on [%lx.%lx] port [%d %d]", q->handle.id[0], q->handle.id[1],q->port,q->handle.getPort());
 
     while (q->receiving)
       {

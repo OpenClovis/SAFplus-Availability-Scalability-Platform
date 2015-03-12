@@ -456,6 +456,7 @@ int main(int argc, char* argv[])
   bool firstTime=true;
   logEchoToFd = 1;  // echo logs to stdout for debugging
   logSeverity = LOG_SEV_DEBUG;
+  logCompName = "AMF";
 
   if (parseArgs(argc,argv)<=0) return -1;
 

@@ -199,6 +199,13 @@ namespace SAFplus
     return xpath;
   }
 
+  void MgtObject::dbgDump()
+    {
+    std::stringstream dumpStrStream;
+    toString(dumpStrStream);
+    printf("%s\n",dumpStrStream.str().c_str());
+    logDebug("MGT","DUMP", "%s", dumpStrStream.str().c_str());
+    }
 
   void MgtObject::dbgDumpChildren()
     {
@@ -211,6 +218,7 @@ namespace SAFplus
           MgtObject* obj = iter->second;
           obj->toString(dumpStrStream);
         }
+      printf("%s\n",dumpStrStream.str().c_str());
       logDebug("MGT","DUMP", "%s", dumpStrStream.str().c_str());
     }
 

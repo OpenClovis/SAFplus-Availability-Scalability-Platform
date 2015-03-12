@@ -8,7 +8,7 @@
 #define clprintf(sev,...) SAFplus::logMsgWrite(SAFplus::APP_LOG, sev, 0, "APP", "MAIN", __FILE__, __LINE__, __VA_ARGS__)
 
 // This is the application name to use if the AMF did not start up this component
-#define DEFAULT_APP_NAME "DEFAULT_NAME"
+#define DEFAULT_APP_NAME "c0" // "DEFAULT_NAME"
 
 /* Access to the SAF AMF framework occurs through this handle */
 SaAmfHandleT amfHandle;
@@ -49,16 +49,20 @@ int errorExit(SaAisErrorT rc)
 
 namespace SAFplus
   {
-
   extern Handle           myHandle;  // This handle resolves to THIS process.
+  extern SafplusInitializationConfiguration   serviceConfig;  // TEMP
 };
+
 
 int main(int argc, char *argv[])
 {
     SaAisErrorT rc = SA_AIS_OK;
  
     SAFplus::logEchoToFd = 1;  // echo logs to stdout (fd 1) for debugging
-    SAFplus::logSeverity = SAFplus::LOG_SEV_MAX;
+    SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+    SAFplus::logCompName = DEFAULT_APP_NAME;
+
+    SAFplus::serviceConfig.iocPort = 50; // TEMP
 
     /* Connect to the SAF cluster */
     initializeAmf();
@@ -268,12 +272,6 @@ void initializeAmf(void)
   {
   SaAmfCallbacksT     callbacks;
   SaAisErrorT         rc = SA_AIS_OK;
-
-  // TEMPORARY DEBUG to run outside of AMF
-  if (1) // (!startedByAmf())
-    {
-    SAFplus::ASP_NODEADDR = 1;
-    }
 
   callbacks.saAmfHealthcheckCallback          = NULL; /* rarely necessary because SAFplus monitors the process */
   callbacks.saAmfComponentTerminateCallback   = safTerminate;

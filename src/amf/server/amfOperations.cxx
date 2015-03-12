@@ -17,6 +17,7 @@
 #include <SAFplusAmf/ComponentServiceInstance.hxx>
 #include <SAFplusAmf/ServiceUnit.hxx>
 #include <SAFplusAmf/ServiceGroup.hxx>
+#include <SAFplusAmf/Data.hxx>
 
 using namespace SAFplus;
 using namespace SAFplusI;
@@ -361,9 +362,18 @@ namespace SAFplus
           {
           SAFplus::Rpc::amfAppRpc::KeyValuePairs* kvp = request.add_keyvaluepairs();
           assert(kvp);
-          MgtProv<std::string>* kv = dynamic_cast<MgtProv<std::string>*>(it->second); 
-          kvp->set_thekey(kv->tag.c_str());  // it->first().c_str()
-          kvp->set_thevalue(kv->value.c_str());
+          std::string val("val");
+          //MgtObject *obj = it->second->getChildObject("val");
+          MgtObject *obj2 = it->second;
+          //MgtProv<std::string>* kv = dynamic_cast<MgtProv<std::string>*>(obj);
+          SAFplusAmf::Data* kv2 =  dynamic_cast<SAFplusAmf::Data*>(obj2); 
+          //kv->dbgDump();
+          //obj2->dbgDump();
+          //assert(kv);
+          //kvp->set_thekey(kv->tag.c_str());  // it->first().c_str()
+          //kvp->set_thevalue(kv->value.c_str());
+          kvp->set_thekey(kv2->name.value.c_str());
+          kvp->set_thevalue(kv2->val.value.c_str());
           }
 
         pendingWorkOperations[request.invocation()] = WorkOperationTracker(comp,csi,si,(uint32_t)state,SA_AMF_CSI_ADD_ONE);

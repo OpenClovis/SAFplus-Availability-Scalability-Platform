@@ -290,6 +290,7 @@ extern MgtIteratorBase mgtIterEnd;
 
     // Debugging API only:
     void dbgDumpChildren();
+    void dbgDump();
     };
 
 
