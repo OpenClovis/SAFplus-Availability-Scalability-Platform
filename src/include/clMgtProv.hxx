@@ -135,22 +135,14 @@ public:
     /**
      *
      */
-    virtual ClRcT write(MgtDatabase *db=NULL)
-    {
-      return setDb();
-    }
-    virtual ClRcT write(std::string xpath,MgtDatabase *db=NULL)
+    virtual ClRcT write(MgtDatabase *db=NULL, std::string xpath = "")
     {
       return setDb(xpath,db);
     }
     /**
      *
      */
-    virtual ClRcT read(MgtDatabase *db=NULL)
-    {
-      return getDb();
-    }
-    virtual ClRcT read(std::string xpath,MgtDatabase *db=NULL)
+    virtual ClRcT read(MgtDatabase *db=NULL, std::string xpath = "")
     {
       return getDb(xpath,db);
     }

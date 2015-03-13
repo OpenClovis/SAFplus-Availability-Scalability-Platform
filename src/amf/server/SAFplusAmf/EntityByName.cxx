@@ -22,8 +22,11 @@ namespace SAFplusAmf
 
     EntityByName::EntityByName(): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")
     {
+        this->config = false;
         this->addChildObject(&name, "name");
+        name.config = false;
         this->addChildObject(&entity, "entity");
+        entity.config = false;
     };
 
     EntityByName::EntityByName(std::string nameValue): SAFplus::MgtContainer("EntityByName"), name("name"), entity("entity")

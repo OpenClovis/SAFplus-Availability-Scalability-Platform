@@ -30,6 +30,7 @@ namespace SAFplusAmf
     {
         this->addChildObject(&adminState, "adminState");
         this->addChildObject(&operState, "operState");
+        operState.config = false;
         this->addChildObject(&autoRepair, "autoRepair");
         this->addChildObject(&failFastOnInstantiationFailure, "failFastOnInstantiationFailure");
         this->addChildObject(&failFastOnCleanupFailure, "failFastOnCleanupFailure");

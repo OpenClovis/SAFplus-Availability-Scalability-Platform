@@ -97,6 +97,15 @@ public:
 
     virtual void toString(std::stringstream& xmlString);
 
+    virtual ClRcT write(MgtDatabase* db, std::string xpt = "")
+    {
+      return CL_OK;
+    }
+    virtual ClRcT read(MgtDatabase *db, std::string xpt = "")
+    {
+      return CL_OK;
+    }
+
     /**
      * \brief   Virtual function to validate object data
      */

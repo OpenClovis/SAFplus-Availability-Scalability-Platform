@@ -31,7 +31,9 @@ namespace SAFplusAmf
         this->addChildObject(&dependencies, "dependencies");
         this->addChildObject(&serviceInstance, "serviceInstance");
         this->addChildObject(&standbyComponents, "standbyComponents");
+        standbyComponents.config = false;
         this->addChildObject(&activeComponents, "activeComponents");
+        activeComponents.config = false;
         this->addChildObject(&dataList, "data");
         this->tag.assign("ComponentServiceInstance");
     };

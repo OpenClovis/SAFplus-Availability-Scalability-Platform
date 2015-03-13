@@ -19,6 +19,7 @@ namespace SAFplusAmf
 
     RestartCount::RestartCount()
     {
+        this->config = false;
         this->tag.assign("restartCount");
     };
 

@@ -412,22 +412,29 @@ namespace SAFplus
       /**
        * Function to read from database
        */
-      virtual ClRcT read(MgtDatabase *db=NULL)
+      virtual ClRcT read(MgtDatabase *db=NULL, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
+
+        if (!config) return rc;
+
         typename Map::iterator iter;
         for(iter = children.begin(); iter != children.end(); iter++)
         {
           MgtObject *obj = iter->second;
-          rc = obj->read();
+          rc = obj->read(db, xpath);
           if(CL_OK != rc)
             return rc;
         }
         return rc;
       }
-      ClRcT read(KEYTYPE key,MgtDatabase *db=NULL)
+
+      ClRcT read(KEYTYPE key, MgtDatabase *db=NULL, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
+
+        if (!config) return rc;
+
         MgtObject *obj = children[key];
         if(obj == NULL)
         {
@@ -436,29 +443,36 @@ namespace SAFplus
 #endif
           return CL_ERR_INVALID_PARAMETER;
         }
-        rc = obj->read(getFullXpath(key));
+        rc = obj->read(db, xpath);
 
         return rc;
       }
       /**
        * Function to write to database
        */
-      virtual ClRcT write(MgtDatabase *db=NULL)
+      virtual ClRcT write(MgtDatabase *db=NULL, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
+
+        if (!config) return rc;
+
         typename Map::iterator iter;
         for(iter = children.begin(); iter != children.end(); iter++)
         {
           MgtObject *obj = iter->second;
-          rc = obj->write();
+          rc = obj->write(db, xpath);
           if(CL_OK != rc)
             return rc;
         }
         return rc;
       }
-      ClRcT write(KEYTYPE key,MgtDatabase *db=NULL)
+
+      ClRcT write(KEYTYPE key, MgtDatabase *db=NULL, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
+
+        if (!config) return rc;
+
         MgtObject *obj = children[key];
         if(obj == NULL)
         {
@@ -467,7 +481,7 @@ namespace SAFplus
 #endif
           return CL_ERR_INVALID_PARAMETER;
         }
-        rc = obj->write(getFullXpath(key,false),db);
+        rc = obj->write(db, xpath);
 
         return rc;
       }
@@ -792,29 +806,35 @@ namespace SAFplus
         xpath.append(keypart.str());
         return xpath;
       }
-      
-      virtual ClRcT read(MgtDatabase *db=NULL)
+
+      virtual ClRcT read(MgtDatabase *db=NULL, std::string xpath = "")
       {
         ClRcT rc = CL_OK;
+
+        if (!config) return rc;
+
         typename Map::iterator iter;
         for(iter = children.begin(); iter != children.end(); iter++)
         {
           MgtObject *obj = iter->second;
-          rc = obj->read(db);
+          rc = obj->read(db, xpath);
           if(CL_OK != rc)
             return rc;
         }
         return rc;
       }
 
-      virtual ClRcT read(std::string xpath,MgtDatabase *db=NULL)
+      virtual ClRcT write(MgtDatabase *db=NULL, std::string xpath = "")
       {
           ClRcT rc = CL_OK;
+
+          if (!config) return rc;
+
           typename Map::iterator iter;
           for(iter = children.begin(); iter != children.end(); iter++)
           {
             MgtObject *obj = iter->second;
-            rc = obj->read(db);
+            rc = obj->write(db, xpath);
             if(CL_OK != rc)
               return rc;
           }

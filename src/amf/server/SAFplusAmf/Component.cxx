@@ -48,23 +48,32 @@ namespace SAFplusAmf
     Component::Component(): presence("presence"), capabilityModel("capabilityModel"), maxActiveAssignments("maxActiveAssignments"), maxStandbyAssignments("maxStandbyAssignments"), assignedWork("assignedWork"), operState("operState"), readinessState("readinessState"), haReadinessState("haReadinessState"), haState("haState"), safVersion("safVersion"), compCategory("compCategory"), swBundle("swBundle"), commandEnvironment("commandEnvironment"), maxInstantInstantiations("maxInstantInstantiations"), maxDelayedInstantiations("maxDelayedInstantiations"), numInstantiationAttempts("numInstantiationAttempts"), instantiationSuccessDuration("instantiationSuccessDuration"), lastInstantiation("lastInstantiation"), delayBetweenInstantiation("delayBetweenInstantiation"), serviceUnit("serviceUnit"), recovery("recovery"), restartable("restartable"), proxy("proxy"), proxied("proxied"), processId("processId"), lastError("lastError")
     {
         this->addChildObject(&presence, "presence");
+        presence.config = false;
         this->addChildObject(&capabilityModel, "capabilityModel");
         this->addChildObject(&maxActiveAssignments, "maxActiveAssignments");
         this->addChildObject(&maxStandbyAssignments, "maxStandbyAssignments");
         this->addChildObject(&assignedWork, "assignedWork");
+        assignedWork.config = false;
         this->addChildObject(&operState, "operState");
+        operState.config = false;
         this->addChildObject(&readinessState, "readinessState");
+        readinessState.config = false;
         this->addChildObject(&haReadinessState, "haReadinessState");
+        haReadinessState.config = false;
         this->addChildObject(&haState, "haState");
+        haState.config = false;
         this->addChildObject(&safVersion, "safVersion");
         this->addChildObject(&compCategory, "compCategory");
         this->addChildObject(&swBundle, "swBundle");
+        swBundle.config = false;
         this->addChildObject(&commandEnvironment, "commandEnvironment");
         this->addChildObject(&maxInstantInstantiations, "maxInstantInstantiations");
         this->addChildObject(&maxDelayedInstantiations, "maxDelayedInstantiations");
         this->addChildObject(&numInstantiationAttempts, "numInstantiationAttempts");
+        numInstantiationAttempts.config = false;
         this->addChildObject(&instantiationSuccessDuration, "instantiationSuccessDuration");
         this->addChildObject(&lastInstantiation, "lastInstantiation");
+        lastInstantiation.config = false;
         this->addChildObject(&delayBetweenInstantiation, "delayBetweenInstantiation");
         this->addChildObject(&serviceUnit, "serviceUnit");
         this->addChildObject(&recovery, "recovery");
@@ -72,7 +81,9 @@ namespace SAFplusAmf
         this->addChildObject(&proxy, "proxy");
         this->addChildObject(&proxied, "proxied");
         this->addChildObject(&processId, "processId");
+        processId.config = false;
         this->addChildObject(&lastError, "lastError");
+        lastError.config = false;
         this->tag.assign("Component");
     };
 
