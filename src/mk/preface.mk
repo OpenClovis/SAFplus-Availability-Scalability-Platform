@@ -27,12 +27,6 @@ SAFPLUS_SRC_DIR ?= $(shell (cd $(SAFPLUS_MAKE_DIR)../; pwd))
 SAFPLUS_INC_DIR ?= $(SAFPLUS_SRC_DIR)/include
 SAFPLUS_3RDPARTY_DIR ?= $(SAFPLUS_SRC_DIR)/3rdparty
 
-PROTOBUF_LINK ?= `pkg-config --libs protobuf` -lprotoc
-PROTOBUF_FLAGS ?= `pkg-config --cflags protobuf`
-
-BOOST_DIR ?= $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
-CPP_FLAGS += -I$(SAFPLUS_INC_DIR)
-CPP_FLAGS += -I$(BOOST_DIR) $(PROTOBUF_FLAGS) -I. -DSAFplus7
 # we need to have -Wno-deprecated-warnings because boost uses std::auto_ptr
 COMPILE_CPP = g++ -std=c++11 -Wno-deprecated-declarations  -g -O0 -fPIC -c $(CPP_FLAGS) -o
 LINK_SO     = g++ -g -shared -o
@@ -40,16 +34,10 @@ LINK_EXE    = g++ -g -O0 -fPIC $(LINK_FLAGS) -o
 
 LINK_LIBS ?=
 
-LINK_STD_LIBS += $(PROTOBUF_LINK) -L$(BOOST_DIR)/stage/lib -L$(BOOST_DIR)/lib -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl
-LINK_SO_LIBS += $(PROTOBUF_LINK) -L$(BOOST_DIR)/stage/lib -L$(BOOST_DIR)/lib -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl
-
 TARGET_OS ?= $(shell uname -r)
 TARGET_PLATFORM ?= $(shell uname -p)
 
 MGT_SRC_DIR ?= $(SAFPLUS_SRC_DIR)/../../mgt
-
-#? Flags (include directories) needed to compile programs using the SAFplus Mgt component.
-SAFPLUS_MGT_INC_FLAGS := -I$(SAFPLUS_SRC_DIR)/mgt -I$(SAFPLUS_SRC_DIR)/3rdparty/build/include/libxml2/ -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
 
 NOOP := $(shell mkdir -p $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS))
 SAFPLUS_TARGET ?= $(shell (cd $(SAFPLUS_SRC_DIR)/target/$(TARGET_PLATFORM)/$(TARGET_OS); pwd))
@@ -74,6 +62,35 @@ NOOP := $(shell mkdir -p $(BIN_DIR))
 NOOP := $(shell mkdir -p $(PLUGIN_DIR))
 NOOP := $(shell mkdir -p $(MWOBJ_DIR))
 NOOP := $(shell mkdir -p $(OBJ_DIR))
+
+PKG_CONFIG_PATH ?= $(INSTALL_DIR)/lib/pkgconfig
+
+# Determine XML2 location
+XML2_CFLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags libxml-2.0)
+ifeq ($(XML2_CFLAGS),)
+$(info pkg-config was unable to determine libxml-2.0 header file location.  Using default)
+XML2_CFLAGS ?= -I$(SAFPLUS_SRC_DIR)/3rdparty/build/include/libxml2 -I$(SAFPLUS_SRC_DIR)/3rdparty/base/libxml2-2.9.0/include -I$(MGT_SRC_DIR)/3rdparty/build/include/libxml2/
+endif
+
+#? Flags (include directories) needed to compile programs using the SAFplus Mgt component.
+SAFPLUS_MGT_INC_FLAGS := -I$(SAFPLUS_SRC_DIR)/mgt $(XML2_CFLAGS)
+
+# Determine boost location
+BOOST_INC_DIR ?= $(INSTALL_DIR)/include
+# $(shell (cd $(SAFPLUS_SRC_DIR)/../../boost; pwd))
+BOOST_LIB_DIR ?= $(INSTALL_DIR)/lib
+
+LINK_STD_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl
+LINK_SO_LIBS += $(PROTOBUF_LINK) -L$(BOOST_LIB_DIR) -lboost_thread -lboost_system -lboost_filesystem -lpthread -lrt -ldl
+
+# Determine protobuf location
+PROTOBUF_LINK ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs protobuf) -lprotoc
+PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
+# $(info PROTOBUF_FLAGS is $(PROTOBUF_FLAGS) PROTOBUF_LINK is $(PROTOBUF_LINK))
+
+CPP_FLAGS += -I$(SAFPLUS_INC_DIR)
+CPP_FLAGS += -I$(BOOST_INC_DIR) $(PROTOBUF_FLAGS) -I. -DSAFplus7
+
 
 #Function to do codegen RPC from .yang
 define SAFPLUS_MGT_RPC_GEN

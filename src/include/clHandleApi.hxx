@@ -1,6 +1,7 @@
 #ifndef clHandleApi_hpp
 #define clHandleApi_hpp
 #include <cltypes.h>
+#include <inttypes.h>
 #include <assert.h>
 #include <stdio.h>
 #include <boost/functional/hash.hpp> 
@@ -45,7 +46,7 @@ namespace SAFplus
 
     char* toStr(char* buffer) const
     {
-      sprintf(buffer,"%lx.%lx",id[0],id[1]);
+      sprintf(buffer,"%" PRIx64 ":%" PRIX64,id[0],id[1]);
       return buffer;
     }
 

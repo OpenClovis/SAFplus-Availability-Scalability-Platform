@@ -55,7 +55,7 @@ void CkptSyncMsgHandler::msgHandler(Handle from, SAFplus::MsgServer* svr, ClPtrT
   if (cs) cs->msgHandler(from, svr, msg, msglen, cookie);
   else
     {
-    logInfo("SYNC","MSG","Unable to resolve handle [%lx:%lx] to a communications endpoint", hdr->checkpoint.id[0], hdr->checkpoint.id[1]);
+    logInfo("SYNC","MSG","Unable to resolve handle [%" PRIx64 ":%" PRIx64 "] to a communications endpoint", hdr->checkpoint.id[0], hdr->checkpoint.id[1]);
 
     }
   }

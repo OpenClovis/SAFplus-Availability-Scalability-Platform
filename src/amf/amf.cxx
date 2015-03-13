@@ -159,7 +159,7 @@ SaAisErrorT saAmfDispatch(SaAmfHandleT amfHandle, SaDispatchFlagsT dispatchFlags
 SaAisErrorT saAmfComponentRegister(SaAmfHandleT amfHandle,const SaNameT *compName,const SaNameT *proxyCompName)
   {
   // Compare compName with ASP_COMPNAME if ASP_COMPNAME!=0.  If they are not equal, big problem AMF thinks it is starting a different comp than the app.
-  if ((compName != 0) && (SAFplus::ASP_COMPNAME[0]!=0) && (strncmp((const char*) compName->value,SAFplus::ASP_COMPNAME,std::min((long unsigned int) SA_MAX_NAME_LENGTH,sizeof(SAFplus::ASP_COMPNAME)))!=0))
+    if ((compName != 0) && (SAFplus::ASP_COMPNAME[0]!=0) && (strncmp((const char*) compName->value,SAFplus::ASP_COMPNAME,std::min((unsigned int) SA_MAX_NAME_LENGTH,(unsigned int) sizeof(SAFplus::ASP_COMPNAME)))!=0))
     {
     logWarning("AMF","INI","Component name [%s] does not match AMF expectation [%s].  Using passed name.", (const char*) compName->value, SAFplus::ASP_COMPNAME);
     saNameGet(SAFplus::ASP_COMPNAME, compName,CL_MAX_NAME_LENGTH);

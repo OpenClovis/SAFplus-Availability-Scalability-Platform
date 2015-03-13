@@ -4,8 +4,13 @@ include ./mk/preface.mk
 all:
 	echo "completed"
 
+#? Removes all SAFplus targets and intermediate files
 clean:
-	rm -rf $(SAFPLUS_TARGET) $(MWOBJ_DIR) $(OBJ_DIR)
+	rm -rf $(TEST_DIR) $(LIB_DIR) $(BIN_DIR) $(PLUGIN_DIR) $(MWOBJ_DIR) $(OBJ_DIR)
+
+#? Removes all SAFplus and third party targets and intermediate files
+cleanall:
+	rm -rf $(SAFPLUS_TARGET)
 
 include ./mk/safplus_targets.mk
 
