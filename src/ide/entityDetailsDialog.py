@@ -36,6 +36,9 @@ MaxValFor = { 'int8': 127,'uint8':255, 'int16': 32767, 'uint16':65535,'int32': 2
 
 YangIntegerTypes = ['int8','uint8','int16', 'uint16','int32','uint32','int64','uint64']
 
+# Work-around to initialize wxPython from standalone
+app = wx.App(0)
+
 class SliderCustom(wx.PyControl):
   def __init__(self, parent, id, v, rang, style = wx.BORDER_NONE):
     wx.PyControl.__init__(self, parent, id, style = style)
@@ -294,6 +297,7 @@ class Panel(scrolled.ScrolledPanel):
         return parent
 
       for treeItem in parent.GetChildren():
+        self.tree.Collapse(treeItem)
         item = self.findEntityRecursive(ent, treeItem)
         if item:
           return item
