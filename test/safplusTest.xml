@@ -1,0 +1,87 @@
+<tae ver="1.0.0.0">
+  <env_cfg>
+    <git> 
+      <timeout>
+	<checkout value='10000' />
+	<update   value='3000' />
+	<revert   value='500' />
+	<status   value='200' />
+      </timeout> 
+    </git>
+    <notify>
+      <email from="c3po-z1@openclovis.com" server="smtp.gmail.com" password="poc3secret" to="eng-all@openclovis.com"/>
+    </notify>
+    <report_url value="scp://root@192.168.0.94//var/www/tg/taereport/import" />
+  </env_cfg>
+
+  <buildserver>
+    <sdk_root_dir value="/opt/clovis" />
+    <asp_dir      value="/home/c3po/git-tests/safplus" />
+    <project_dir  value="/home/c3po/git-tests/asptest" />
+  </buildserver>
+
+  <default>
+    <model>
+      <make_options value="clean; make" />
+      <install_dir value="/root/safplus" />
+      <logDir value="/var/log" />
+      <configure_options value="" />
+    </model>
+    <fixture>
+      <build_server ip='localhost' os='ubuntu' user='root' password='clovis' />
+      <nodes>
+	<node0 ip='localhost' os='Ubuntu' user="root" password="clovis" />
+	<node1 ip='192.168.56.101' os='Ubuntu' user="root" password="clovis" />
+	<node2 ip='192.168.56.102' os='Ubuntu' user="root" password="clovis" />
+	<node3 ip='192.168.56.103' os='Ubuntu' user="root" password="clovis" />
+	<node4 ip='192.168.56.104' os='Ubuntu' user="root" password="clovis" />
+      </nodes>
+      <description>
+	greyhound 32 bit virtual machines
+      </description>
+    </fixture>
+  </default>
+  
+
+ <projects>
+
+  <SAFplus-standalone>
+    <default>
+      <model>
+        <middleware value="Standalone" />
+        <architecture value="" />
+        <cross_build_envscript_absolute_path value="" />
+        <testcase_dir  value="/code/git/SAFplus7/test" />
+      </model>
+    </default>
+   
+    <models> 
+      <logUnitTest>
+	<image_source value="dir://code/git/SAFplus7/test/logUnitTest" />
+     </logUnitTest>
+    </models>
+
+  </SAFplus-standalone>
+
+ </projects>
+
+  <models>
+    <logUnitTest>
+      <mapping>
+	<SysCtrl0   node="node0" role="controller" installDir="~/logUnitTest" />
+      </mapping>
+      <make_options value="" />
+      <configure_options value="" />
+      <testfilter>
+      </testfilter>
+    </logUnitTest>
+  </models>
+
+  <buildserver>
+    <sdk_root_dir value="/code/git/SAFplus7" />
+    <asp_dir      value="/code/git/SAFplus7" />
+    <project_dir  value="/code/git/SAFplus7/test" />
+  </buildserver>
+
+  <skip_stages value="" />
+</tae>

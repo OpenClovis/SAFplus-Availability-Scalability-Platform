@@ -1,0 +1,1 @@
+../../src/log/test/testLog.cxx
