@@ -173,48 +173,12 @@ namespace SAFplus
         }
     }
 
-  ClRcT MgtContainer::write(MgtDatabase *db)
+  ClRcT MgtContainer::read(MgtDatabase *db, std::string parentXPath)
   {
     ClRcT rc = CL_OK;
-    MgtObjectMap::iterator it;
-    for (it = children.begin(); it != children.end(); ++it)
-    {
-      MgtObject* child = it->second;
-      rc = child->write();
-      if(CL_OK != rc)
-        return rc;
-    }
-    return rc;
-  }
 
-  ClRcT MgtContainer::read(MgtDatabase *db)
-  {
-    ClRcT rc = CL_OK;
-    MgtObjectMap::iterator it;
+    if (!config) return rc;
 
-    std::string xp;
-    if (dataXPath.size() > 0)
-    {
-      xp.assign(dataXPath);
-    }
-    else
-      xp.assign(getFullXpath(true));
-
-    for (it = children.begin(); it != children.end(); ++it)
-    {
-      MgtObject* child = it->second;
-      rc = child->read(xp, db);
-      if(CL_OK != rc)
-        {
-        logWarning("MGT","READ","Read data failed [%x] for child [%s] of [%s]. Ignored",rc,child->tag.c_str(),xp.c_str());
-        // TODO: Attempt to initialize the MgtObject to its configured default.  If that cannot happen, remember this error and raise an exception at the end.
-        }
-    }
-    return rc;
-  }
-  ClRcT MgtContainer::read(std::string parentXPath,MgtDatabase *db)
-  {
-    ClRcT rc = CL_OK;
     MgtObjectMap::iterator it;
 
     std::string xp;
@@ -233,7 +197,7 @@ namespace SAFplus
     for (it = children.begin(); it != children.end(); ++it)
     {
       MgtObject* child = it->second;
-      rc = child->read(xp,db);
+      rc = child->read(db, xp);
       if(CL_OK != rc)
       {
         logWarning("MGT","READ","Read data failed [%x] for child [%s] of [%s]. Ignored",rc,child->tag.c_str(),xp.c_str());
@@ -242,9 +206,13 @@ namespace SAFplus
     }
     return rc;
   }
-  ClRcT MgtContainer::write(std::string parentXPath,MgtDatabase *db)
+
+  ClRcT MgtContainer::write(MgtDatabase *db, std::string parentXPath)
   {
     ClRcT rc = CL_OK;
+
+    if (!config) return rc;
+
     MgtObjectMap::iterator it;
 
     std::string xp;
@@ -263,7 +231,7 @@ namespace SAFplus
     for (it = children.begin(); it != children.end(); ++it)
     {
       MgtObject* child = it->second;
-      rc = child->write(xp,db);
+      rc = child->write(db, xp);
       if(CL_OK != rc)
       {
         logDebug("MGT","SET","Write data failed [%x] for child %s. Ignored",rc,child->tag.c_str());

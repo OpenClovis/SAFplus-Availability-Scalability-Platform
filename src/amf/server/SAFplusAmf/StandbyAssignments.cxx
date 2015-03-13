@@ -19,6 +19,7 @@ namespace SAFplusAmf
 
     StandbyAssignments::StandbyAssignments()
     {
+        this->config = false;
         this->tag.assign("standbyAssignments");
     };
 

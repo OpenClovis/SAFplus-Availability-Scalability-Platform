@@ -91,10 +91,8 @@ class MgtContainer:public MgtObject
     virtual ClBoolT set(const void *pBuffer, ClUint64T buffLen, SAFplus::Transaction& t);
 
     //virtual void get(void **ppBuffer, ClUint64T *pBuffLen);
-    virtual ClRcT write(MgtDatabase *db=NULL);
-    virtual ClRcT write(std::string parentXPath,MgtDatabase *db=NULL);
-    virtual ClRcT read(MgtDatabase *db=NULL);
-    virtual ClRcT read(std::string parentXPath,MgtDatabase *db=NULL);
+    virtual ClRcT write(MgtDatabase *db=NULL, std::string parentXPath = "");
+    virtual ClRcT read(MgtDatabase *db=NULL, std::string parentXPath = "");
   
   };
 

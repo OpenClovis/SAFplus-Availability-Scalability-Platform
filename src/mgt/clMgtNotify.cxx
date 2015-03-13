@@ -34,6 +34,7 @@ namespace SAFplus
   MgtNotify::MgtNotify(const char* nam):MgtObject(nam)
   {
     Module.assign("");
+    this->config = false;
   }
 
   MgtNotify::~MgtNotify()

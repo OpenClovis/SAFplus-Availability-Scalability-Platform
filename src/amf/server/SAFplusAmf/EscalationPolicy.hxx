@@ -21,7 +21,7 @@ namespace SAFplusAmf
     public:
 
         /*
-         * The maximum number of events that can occur within that time period before escalation occurs.
+         * The maximum number of events that can occur within that time period before escalation occurs.  A value of 0 will escalate the event right away.
          */
         SAFplus::MgtProv<unsigned long int> maximum;
 

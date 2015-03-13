@@ -19,6 +19,7 @@ namespace SAFplusAmf
 
     NumSpareServiceUnits::NumSpareServiceUnits()
     {
+        this->config = false;
         this->tag.assign("numSpareServiceUnits");
     };
 

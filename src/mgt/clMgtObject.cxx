@@ -44,6 +44,7 @@ namespace SAFplus
     listTag.assign(name);
     dataXPath.assign("");
     loadDb = false;
+    config = true;
     parent = NULL;
     headRev = 1;
     }
@@ -142,7 +143,7 @@ namespace SAFplus
   void MgtObject::removeAllChildren() {}  // Nothing to do, base class has no children
 
   void MgtObject::get(std::string *data, ClUint64T *datalen)
-  {
+    {
     std::stringstream xmlString;
     if(data == NULL)
       return;
@@ -150,31 +151,21 @@ namespace SAFplus
     //logDebug("---","---","String: %s",xmlString.str().c_str());
     *datalen =  xmlString.str().length() + 1;
     data->assign(xmlString.str().c_str());
-  }
+    }
 
   /* persistent db to database */
-  ClRcT MgtObject::write(MgtDatabase* db)
-  {
-    clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
-    return CL_ERR_NOT_EXIST;
-  }
-  ClRcT MgtObject::write(std::string xpt,MgtDatabase* db)
+  ClRcT MgtObject::write(MgtDatabase* db, std::string xpt)
     {
-      clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
-      return CL_ERR_NOT_EXIST;
+    clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
+    return CL_OK;
     }
 
   /* unmashall db to object */
-  ClRcT MgtObject::read(MgtDatabase* db)
-  {
+  ClRcT MgtObject::read(MgtDatabase *db, std::string xpt)
+    {
     clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
     return CL_OK;
-  }
-  ClRcT MgtObject::read(std::string xpt,MgtDatabase *db)
-  {
-    clDbgCodeError(CL_ERR_BAD_OPERATION,"This function didn't support");
-    return CL_OK;
-  }
+    }
 
   /*
    * Dump Xpath structure

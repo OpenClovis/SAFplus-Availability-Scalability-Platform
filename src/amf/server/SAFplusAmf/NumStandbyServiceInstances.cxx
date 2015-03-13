@@ -19,6 +19,7 @@ namespace SAFplusAmf
 
     NumStandbyServiceInstances::NumStandbyServiceInstances()
     {
+        this->config = false;
         this->tag.assign("numStandbyServiceInstances");
     };
 

@@ -41,6 +41,10 @@ namespace SAFplusAmf
          * 
          */
         SAFplus::MgtList<std::string> clusterList;
+
+        /*
+         * Represents a node.  A node is generally a physical instance of running software, such as a rack server or a blade in the chassis.  But more formally, it is a separately running instance of SAFplus which communicates to other instances via messaging.
+         */
         SAFplus::MgtList<std::string> nodeList;
 
         /*

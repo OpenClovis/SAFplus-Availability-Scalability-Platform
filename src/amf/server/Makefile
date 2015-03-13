@@ -103,19 +103,19 @@ $(OBJ_DIR)/amfsvr/%.o: stubs/%.cc
 SAFplusRpcGen := $(SAFPLUS_TARGET)/bin/protoc-gen-rpc
 
 gen:
-	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp $(SAFPLUS_SRC_DIR)/SAFplus/yang/SAFplusAmf.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
+	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp $(SAFPLUS_SRC_DIR)/yang/SAFplusAmf.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR)
 	(rsync -avpDHL ietfYangTypes $(COMMON_DIR)/; rsync -avpDHL SAFplusTypes $(COMMON_DIR)/; rsync -avpDHL ENTITYSTATETCMIB $(COMMON_DIR)/)
 	(rm -rf ietfYangTypes SAFplusTypes ENTITYSTATETCMIB)
 
 genrpc: $(SAFplusRpcGen)
 	-mkdir -p amfRpc
-	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp amfRpc.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
+	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp amfRpc.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
 	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./amfRpc amfRpc.proto
 	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./amfRpc amfRpc.proto
 
 genapprpc: $(SAFplusRpcGen)
 	-mkdir -p amfAppRpc
-	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/SAFplus/yang -f y2cpp amfAppRpc.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
+	PYTHONPATH=$(MGT_SRC_DIR)/3rdparty/pyang:/usr/local/lib PYANG_PLUGINPATH=$(MGT_SRC_DIR)/pyplugin $(MGT_SRC_DIR)/3rdparty/pyang/bin/pyang --path=$(SAFPLUS_SRC_DIR)/yang -f y2cpp amfAppRpc.yang --y2cpp-output `pwd` --y2cpp-mgt $(MGT_SRC_DIR) --y2cpp-rpc
 	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib protoc -I../../../3rdparty -I../../rpc -I. --cpp_out=./amfAppRpc amfAppRpc.proto
 	LD_LIBRARY_PATH=/usr/local/lib:/usr/lib $(SAFplusRpcGen) -I../../../3rdparty -I../../rpc -I. --rpc_out=./amfAppRpc amfAppRpc.proto
 

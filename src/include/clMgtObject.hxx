@@ -106,6 +106,7 @@ extern MgtIteratorBase mgtIterEnd;
     std::string listTag;
     std::string dataXPath;
     bool loadDb;
+    bool config;
     MgtObject *parent;
     ClUint32T headRev; //Revision to check before sending
   public:
@@ -271,14 +272,12 @@ extern MgtIteratorBase mgtIterEnd;
      *  \param db The database to access. by default it uses the
      *  globally defined database. 
      */
-    virtual ClRcT write(MgtDatabase *db=NULL);
-    virtual ClRcT write(std::string parentXPath,MgtDatabase *db=NULL);
+    virtual ClRcT write(MgtDatabase *db=NULL, std::string parentXPath = "");
     /** \brief Load object from database. 
      *  \param db The database to access. by default it uses the
      *  globally defined database. 
      */
-    virtual ClRcT read(MgtDatabase *db=NULL);
-    virtual ClRcT read(std::string parentXPath,MgtDatabase *db=NULL);
+    virtual ClRcT read(MgtDatabase *db=NULL, std::string parentXPath = "");
 
     /* iterator db key and bind to object */
     // not implemented virtual ClRcT iterator();

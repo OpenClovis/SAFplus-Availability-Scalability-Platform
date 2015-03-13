@@ -36,6 +36,7 @@ namespace SAFplus
     ErrorMsg.assign("");
     mInParams.tag.assign("input");
     mOutParams.tag.assign("output");
+    this->config = false;
   }
 
   MgtRpc::~MgtRpc()
