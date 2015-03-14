@@ -28,7 +28,7 @@ image: $(IMAGE_FILE)
 $(IMAGE_FILE): $(TEST_DIR)/testLog
 	@mkdir -p image
 	@rm -f image/*
-	(cp $(LIB_DIR)/*.so image; cp -av $(INSTALL_DIR)/lib/*.so* image; cp $(LIB_DIR)/*.py image; cp $(TEST_DIR)/testLog image; cp start.sh image)
+	(cp $(LIB_DIR)/*.so $(PLUGIN_DIR)/*.so image; cp -av $(INSTALL_DIR)/lib/*.so* image; cp $(LIB_DIR)/*.py image; cp $(TEST_DIR)/testLog image; cp start.sh image; cp $(BIN_DIR)/safplus_logd $(BIN_DIR)/dbalpy.py image)
 	(cd image; tar cvfz ../$(IMAGE_FILE) *)
 
 clean:

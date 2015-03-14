@@ -1,0 +1,16 @@
+<SAFplusLog>
+  <ServerConfig>
+    <maximumStreams>10</maximumStreams>
+    <maximumComponents>10</maximumComponents>
+    <maximumRecordsInPacket>32</maximumRecordsInPacket>
+    <maximumSharedMemoryPages>1024</maximumSharedMemoryPages>
+    <processingInterval>1000</processingInterval>
+  </ServerConfig>
+  <StreamConfig>
+    <stream name="sys">
+      <fileName>testsys</fileName>
+      <replicate>NONE</replicate>
+      <fileLocation>./</fileLocation>
+    </stream>
+  </StreamConfig>
+</SAFplusLog>

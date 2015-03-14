@@ -60,7 +60,6 @@ class MgtMsgHandler : public SAFplus::MsgHandler
 
 };
 
-extern ClBoolT   gIsNodeRepresentative;
 extern HandleStreamMap hsMap;
 
 #if 0
@@ -276,10 +275,6 @@ void dumpStreams(LogCfg* cfg)
 
 int main(int argc, char* argv[])
 {
-  //gIsNodeRepresentative = CL_FALSE;
-
-  SAFplus::ASP_NODEADDR = 0x7;
-
   SafplusInitializationConfiguration sic;
   sic.iocPort     = SAFplusI::LOG_IOC_PORT;
   sic.msgQueueLen = 25;
