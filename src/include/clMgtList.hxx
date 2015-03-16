@@ -624,12 +624,18 @@ namespace SAFplus
       /**
        * Shortcut to find an entry in the list
        */
-      MgtObject* operator [](const std::string objectKey)
+      MgtObject* operator [](const std::string& objectKey)
       {
         typename Map::iterator it = children.find(objectKey);
         if (it == children.end()) return nullptr;
         return it->second;
       }
+
+    virtual MgtObject* find(const std::string &name)
+    {
+      return (*this)[name];
+    }
+
       /**
        * API to get data of the list (called from netconf server)
        */

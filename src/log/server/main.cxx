@@ -62,90 +62,6 @@ class MgtMsgHandler : public SAFplus::MsgHandler
 
 extern HandleStreamMap hsMap;
 
-#if 0
-#if (CL_LOG_SEV_EMERGENCY == LOG_EMERG)
-inline int logLevel2SyslogLevel(int ocll)
-{
-  return ocll;  // Note openclovis severity levels go to LOG_DEBUG+9, but via trial syslog on Linux accepts these higher levels
-}
-#else
-#warning SAFplus and syslog log severity constants are not the same. Using slow translation table to convert them.
-int logLevel2SyslogLevel(int ocll)
-{
-  switch (ocll)
-    {
-    case CL_LOG_SEV_EMERGENCY: return LOG_EMERG;
-    case CL_LOG_SEV_ALERT: return LOG_ALERT;
-    case CL_LOG_SEV_CRITICAL: return LOG_CRIT;
-    case CL_LOG_SEV_ERROR: return LOG_ERR;
-    case CL_LOG_SEV_WARNING: return LOG_WARNING;
-    case CL_LOG_SEV_NOTICE: return LOG_NOTICE;
-    case CL_LOG_SEV_INFO: return LOG_INFO;
-    case CL_LOG_SEV_DEBUG: return LOG_DEBUG:
-    default: return LOG_DEBUG;      
-    }
-}
-#endif
-#endif
-/*
-On receiving log from other node, call this function with logRecv=true.
-logRecv parameter indicates that this log is received from other nodes (true).
-if logRecv==true, log must be written to this node AND do not forward it to others, 
-otherwise, write to this node AND forward it to others
-*/
-#if 0
-void postRecord(LogBufferEntry* rec, char* msg,LogCfg* cfg)
-{
-  if (rec->severity > SAFplus::logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the client also does this check.
-  //printf("%s\n",msg);
-
-  // Determine the stream
-  Stream* strmCfg = NULL;
-  // First check well known streams by hand
-  if (rec->stream == APP_LOG) strmCfg = appStreamCfg;
-  else if (rec->stream == SYS_LOG) strmCfg = sysStreamCfg;
-  else  // Find it if its a dynamic stream
-    {
-      // The Stream configuration uses string names, but the shared memory uses handles.
-      // The Name service will hold the name to handle mapping.  During Log service initialization, a handle to Stream* hash table should
-      // be created using data in the Name service.  This hash table can be used to look up the data.
-      // lookup the handle in the hastable to find the stream
-      Dbg("Dynamic stream: handle gotten from hashmap\n");
-      strmCfg = hsMap[rec->stream];
-    }
-  if (strmCfg == NULL)  // Stream is not identified
-    {
-      return;
-    }
-
-  strmCfg->dirty = true;  // We wrote something to this stream
-  
-  if (strmCfg->syslog)  // output this log to syslog
-    {
-      syslog(logLevel2SyslogLevel(rec->severity),msg);
-    }
-
-  if (strmCfg->fp)  // If the file handle is non zero, write the log to that file
-    {
-      printf("DEBUG: %s\n",msg);  
-      printf("DEBUG: msgLen [%d]\n",strlen(msg));  
-      strmCfg->fileBuffer += msg;
-      strmCfg->fileBuffer += "\n";
-    }
-  if (strmCfg->sendMsg)
-    {
-      strmCfg->msgBuffer += msg;
-      strmCfg->msgBuffer += "\n";
-    }
-#if 0
-  if ((strmCfg->replicate != Replicate::NONE) && (!logRecv) && (lastRec)) // This log is my own log and there is no record in our processing, so forward them to others
-  {
-    Dbg("Replicate to other nodes\n");
-    logRep.logReplicate(rec->stream);
-  }
-#endif
-}
-#endif
 
 void checkAndRotateLog(Stream* s)
 {
@@ -314,6 +230,7 @@ int main(int argc, char* argv[])
 
   SAFplus::logSeverity= LOG_SEV_MAX;  // DEBUG
 
+#if 0 // TODO
   SAFplus::SYSTEM_CONTROLLER=true; // For testing
   IF_CLUSTERWIDE_LOG(LogSpooler logSpooler);
   if (SAFplus::SYSTEM_CONTROLLER) // If this node is system controller, then instantiate LogSpooler obj to listen logs from other nodes
@@ -321,7 +238,8 @@ int main(int argc, char* argv[])
     //logSpooler.subscribeAllStreams();
     //logSpooler.subscribeStream("app");
   }
-  
+#endif  
+
   // Log processing Loop
   while(1)
     {

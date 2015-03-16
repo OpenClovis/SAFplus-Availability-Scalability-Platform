@@ -26,7 +26,8 @@ LogCfg logcfg;
 HandleStreamMap hsMap;
 Stream* sysStreamCfg;
 Stream* appStreamCfg;
-#if (CL_LOG_SEV_EMERGENCY == LOG_EMERG)
+
+#if (CL_LOG_SEV_EMERGENCY == LOG_EMERG)  // If the numbers line up we do not need to transform them
 inline int logLevel2SyslogLevel(int ocll)
 {
   return ocll;  // Note openclovis severity levels go to LOG_DEBUG+9, but via trial syslog on Linux accepts these higher levels
@@ -171,7 +172,7 @@ void streamRotationInit(Stream* s)
         }
       
 
-#if 0 // REMOVE THIS: Deleting files, etc should be done whenever a new log file needs to be created.  It is not necessary to do it upon initialization
+#if 0 // TODO: REMOVE THIS: Deleting files, etc should be done whenever a new log file needs to be created.  It is not necessary to do it upon initialization
         s->numFiles = file_result_set.size();
         if (s->fileFullAction == FileFullAction::ROTATE && s->numFiles >= s->maximumFilesRotated)
         {
@@ -246,7 +247,9 @@ void addStreamObjMapping(const char* streamName, Stream* s, Handle strmHdl=INVAL
 {
   // sys and app stream have their own wellknown handle, so other streams must register a handle
   Handle streamHdl;
-  bool registerWithName = true;
+  // GAS TODO: do we have to register with name so other processes can access this stream?
+  bool registerWithName = (s->streamScope != StreamScope::LOCAL);
+  
   if (strcmp(streamName,"sys") == 0)
   {
     streamHdl = SYS_LOG;  
@@ -343,7 +346,9 @@ void loadStreamConfigs()
 
       db->getRecord(*it, keyValue);
 
-      Stream* s = createStreamCfg(keyValue.c_str(),keyValue.c_str(),"",0, 0, FileFullAction::ROTATE, 0, 0, 0, false, StreamScope::GLOBAL);
+      //Stream* s = createStreamCfg(keyValue.c_str(),keyValue.c_str(),"",0, 0, FileFullAction::ROTATE, 0, 0, 0, false, StreamScope::GLOBAL);
+
+      Stream* s = createStreamCfg(keyValue.c_str(),keyValue.c_str(),"",0, 0, FileFullAction::ROTATE, 0, 0, 0, false, StreamScope::LOCAL);
 
       std::string dataXPath = (*it).substr(0, found);
 
@@ -365,7 +370,7 @@ LogCfg* loadLogCfg()
   Stream* s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("sys"));
   if (!s)  // The sys log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
-      s = createStreamCfg("sys","sys","/var/log/safplus",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::GLOBAL);
+      s = createStreamCfg("sys","sys","/var/log/safplus",32*1024*1024, 2048, FileFullAction::ROTATE, 10, 200, 500, false, StreamScope::LOCAL);
       std::string cfgName("sys");
       logcfg.streamConfig.streamList.addChildObject(s,cfgName);
     }
@@ -376,7 +381,7 @@ LogCfg* loadLogCfg()
   s =  dynamic_cast<Stream*>(logcfg.streamConfig.streamList.getChildObject("app"));
   if (!s)  // The all log is an Openclovis system log.  So if its config does not exist, or was deleted, recreate the log.
     {
-      s = createStreamCfg("app","app","/var/log/safplus",1024*1024/4, 2048, FileFullAction::ROTATE, 4, 200, 500, false, StreamScope::GLOBAL);
+      s = createStreamCfg("app","app","/var/log/safplus",1024*1024/4, 2048, FileFullAction::ROTATE, 4, 200, 500, false, StreamScope::LOCAL);
       std::string cfgName("app");
       logcfg.streamConfig.streamList.addChildObject(s,cfgName);
     }
@@ -404,6 +409,12 @@ Stream* loadOrCreateNewStream(const char* streamName, Replicate repMode=Replicat
   return s;
 }
 
+/*
+On receiving log from other node, call this function with logRecv=true.
+logRecv parameter indicates that this log is received from other nodes (true).
+if logRecv==true, log must be written to this node AND do not forward it to others, 
+otherwise, write to this node AND forward it to others
+*/
 void postRecord(SAFplusI::LogBufferEntry* rec, char* msg,LogCfg* cfg)
 {
   if (rec->severity > SAFplus::logSeverity) return;  // don't log if the severity cutoff is lower than that of the log.  Note that the client also does this check.
