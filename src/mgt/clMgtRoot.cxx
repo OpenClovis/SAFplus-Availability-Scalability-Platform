@@ -289,24 +289,32 @@ namespace SAFplus
     Mgt::Msg::MsgBind bindData;
 
     bindData.ParseFromString(reqMsg.bind());
-    logDebug("MGT","GET","Received getting message for module %s and route %s",bindData.module().c_str(),bindData.route().c_str());
+
+    if (!bindData.has_route())
+      {
+        // TODO  MgtRoot::sendReplyMsg(error)
+      }
+    const string& route = bindData.route();
+    const char* routeStr = route.c_str();
+    logDebug("MGT","GET","Received 'get' message for module [%s] and route [%s]",bindData.module().c_str(),routeStr);
     MgtModule * module = MgtRoot::getInstance()->getMgtModule(bindData.module());
     if (!module)
     {
       logError("MGT", "GET",
                  "Received getting request from [%" PRIx64 ":%" PRIx64 "] for Non-existent module [%s] route [%s]",
                  srcAddr.id[0],srcAddr.id[1],
-                 bindData.module().c_str(), bindData.route().c_str());
+                 bindData.module().c_str(), routeStr);
       return;
     }
 
-    MgtObject * object = module->getMgtObject(bindData.route());
+    MgtObject * object = module->getMgtObject(route);
     if (!object)
     {
       logError("MGT", "GET",
-                 "Received getting request from [%" PRIx64 ":%" PRIx64 "] for Non-existent route [%s] module [%s]",
+                 "Received 'get' request from [%" PRIx64 ":%" PRIx64 "] for non-existent route [%s] module [%s]",
                  srcAddr.id[0], srcAddr.id[1],
-                 bindData.route().c_str(), bindData.module().c_str());
+                 routeStr, bindData.module().c_str());
+      // GAS TODO: Shouldn't we reply with an error?
       return;
     }
     /* Improvement: Compare revision to limit data sending */
@@ -329,6 +337,7 @@ namespace SAFplus
     rplMesg.add_data(strRev);
     rplMesg.add_data(outBuff.c_str(),outMsgSize);
     rplMesg.SerializeToString(&strRplMesg);
+    logDebug("MGT","GET","Replying with msg of size [%d]",strRplMesg.size());
     MgtRoot::sendReplyMsg(srcAddr,(void *)strRplMesg.c_str(),strRplMesg.size());
   }
 

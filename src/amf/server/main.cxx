@@ -621,7 +621,7 @@ int main(int argc, char* argv[])
     {
     ScopedLock<> lock(m);
 
-    if (!firstTime && (somethingChanged.timed_wait(m,2000)==0))
+    if (!firstTime && (somethingChanged.timed_wait(m,20000)==0))
       {  // Timeout
       logDebug("IDL","---","...waiting for something to happen...");
       int pid;
