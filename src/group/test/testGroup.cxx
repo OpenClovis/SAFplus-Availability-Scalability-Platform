@@ -60,14 +60,14 @@ void GroupChangeHandler::wake(int amt,void* cookie)
   {
   changeCount++;
   Group* g = (Group*) cookie;
-  logInfo("TEST","GRP", "Group [%lx:%lx] changed", g->handle.id[0],g->handle.id[1]);
+  logInfo("TEST","GRP", "Group [%" PRIx64 ":%" PRIx64 "] changed", g->handle.id[0],g->handle.id[1]);
 
   Group::Iterator i;
   char buf[100];
   for (i=g->begin(); i != g->end(); i++)
     {
     const GroupIdentity& gid = i->second;
-    logInfo("TEST","GRP", "  Entity [%lx:%lx] on node [%d] credentials [%ld] capabilities [%d] %s", gid.id.id[0],gid.id.id[1],gid.id.getNode(),gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
+    logInfo("TEST","GRP", "  Entity [%" PRIx64 ":%" PRIx64 "] on node [%d] credentials [%" PRIu64 "] capabilities [%d] %s", gid.id.id[0],gid.id.id[1],gid.id.getNode(),gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
     }
   }
 
@@ -200,7 +200,7 @@ int testRegisterAndDeregister(int mode)
   for (i=grpb1.begin(); i != grpb1.end(); i++)
     {
     const GroupIdentity& gid = i->second;
-    logInfo("TEST","GRP", "Entity [%lx:%lx] on node [%d] credentials [%ld] capabilities [%d] %s\n", gid.id.id[0],gid.id.id[1],gid.id.getNode(),gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
+    logInfo("TEST","GRP", "Entity [%" PRIx64 ":%" PRIx64 "] on node [%d] credentials [%" PRIu64 "] capabilities [%d] %s\n", gid.id.id[0],gid.id.id[1],gid.id.getNode(),gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
     }
 
   SAFplusI::gsm.dbgDump();  // should be 2 groups + 2 entities.  The same handles can join multiple groups...

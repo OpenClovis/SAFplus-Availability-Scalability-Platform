@@ -578,7 +578,7 @@ void NameRegistrar::dumpObj()
    {
        ObjHashMap::value_type vt = *iter;
        Handle curkey = vt.first;
-       logInfo("NAME","OBJDUMP","key [0x%lx.0x%lx]", curkey.id[0], curkey.id[1]);
+       logInfo("NAME","OBJDUMP","key [%" PRIx64 ":%" PRIx64 "]", curkey.id[0], curkey.id[1]);
        void* obj = vt.second;
        if (obj)
        {

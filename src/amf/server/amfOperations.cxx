@@ -141,7 +141,7 @@ namespace SAFplus
     if (1)
       {
       WorkOperationTracker& wat = pendingWorkOperations.at(invocation);
-      logInfo("AMF","OPS","Work Operation response on component [%s] invocation [%lx] result [%d]",wat.comp->name.value.c_str(),invocation, result);
+      logInfo("AMF","OPS","Work Operation response on component [%s] invocation [%" PRIu64 "] result [%d]",wat.comp->name.value.c_str(),invocation, result);
 
       if ( wat.state <= (int) HighAvailabilityState::quiescing)
         {
@@ -329,7 +329,7 @@ namespace SAFplus
 
       if (itcsi != endcsi)  // We found an assignable CSI and it is the variable "csi"
         {
-        logInfo("OPS","SRT","Component [%s] handle [%lx.%lx] is being assigned work", comp->name.value.c_str(),hdl.id[0],hdl.id[1]);
+        logInfo("OPS","SRT","Component [%s] handle [%" PRIx64 ":%" PRIx64 "] is being assigned work", comp->name.value.c_str(),hdl.id[0],hdl.id[1]);
         request.set_componentname(comp->name.value.c_str());
         request.set_componenthandle((const char*) &hdl, sizeof(Handle)); // [libprotobuf ERROR google/protobuf/wire_format.cc:1053] String field contains invalid UTF-8 data when serializing a protocol buffer. Use the 'bytes' type if you intend to send raw bytes.
         request.set_operation((uint32_t)state);
@@ -382,7 +382,7 @@ namespace SAFplus
         }
       else
         {
-        logInfo("OPS","SRT","Component [%s] handle [%lx.%lx] cannot be assigned work.  No valid Component Service Instance.", comp->name.value.c_str(),hdl.id[0],hdl.id[1]);
+        logInfo("OPS","SRT","Component [%s] handle [%" PRIx64 ":%" PRIx64 "] cannot be assigned work.  No valid Component Service Instance.", comp->name.value.c_str(),hdl.id[0],hdl.id[1]);
         }
 
       }

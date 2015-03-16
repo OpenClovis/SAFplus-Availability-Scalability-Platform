@@ -151,17 +151,17 @@ void activeAudit()  // Check to make sure DB and the system state are in sync
     {
     Handle hdl = it->first;  // same as gi->id
     const GroupIdentity* gi = &it->second;
-    logInfo("AUD","NOD","Node handle [%lx.%lx], [%lx.%lx], ",hdl.id[0],hdl.id[1],gi->id.id[0],gi->id.id[1]);
+    logInfo("AUD","NOD","Node handle [%" PRIx64 ":%" PRIx64 "], [%" PRIx64 ":%" PRIx64 "], ",hdl.id[0],hdl.id[1],gi->id.id[0],gi->id.id[1]);
 #if 0
     ClusterGroupData* data = (ClusterGroupData*) it->second;
     if (data)
       {
       assert(data->structId == 0x67839345);  // TODO endian xform
-      logInfo("AUD","NOD","Node [%s], handle [%lx.%lx] address [%d]",data->nodeName, hdl.id[0],hdl.id[1], data->nodeAddr);
+      logInfo("AUD","NOD","Node [%s], handle [%" PRIx64 ":%" PRIx64 "] address [%d]",data->nodeName, hdl.id[0],hdl.id[1], data->nodeAddr);
       }
     else
       {
-      logInfo("AUD","NOD","Node handle [%lx.%lx]",hdl.id[0],hdl.id[1]);
+      logInfo("AUD","NOD","Node handle [%" PRIx64 ":%" PRIx64 "]",hdl.id[0],hdl.id[1]);
       }
 #endif
     }
@@ -189,11 +189,11 @@ void standbyAudit(void) // Check to make sure DB and the system state are in syn
     if (data)
       {
       assert(data->structId == 0x67839345);  // TODO endian xform
-      logInfo("AUD","NOD","Node [%s], handle [%lx.%lx] address [%d]",data->nodeName, hdl.id[0],hdl.id[1], data->nodeAddr);
+      logInfo("AUD","NOD","Node [%s], handle [%" PRIx64 ":%" PRIx64 "] address [%d]",data->nodeName, hdl.id[0],hdl.id[1], data->nodeAddr);
       }
     else
       {
-      logInfo("AUD","NOD","Node handle [%lx.%lx]",hdl.id[0],hdl.id[1]);
+      logInfo("AUD","NOD","Node handle [%" PRIx64 ":%" PRIx64 "]",hdl.id[0],hdl.id[1]);
       }
     }
 #endif
@@ -520,7 +520,7 @@ int main(int argc, char* argv[])
   assert(SAFplus::ASP_NODENAME);
 
 
-  logInfo("AMF","NAM", "Registering this node [%s] as handle [%lx:%lx]", SAFplus::ASP_NODENAME, myHandle.id[0],myHandle.id[1]);
+  logInfo("AMF","NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, myHandle.id[0],myHandle.id[1]);
   name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
 
   /* Initialize mgt database  */
@@ -581,12 +581,12 @@ int main(int argc, char* argv[])
   // TODO: clusterGroupData.backplaneIp = 
   clusterGroup.registerEntity(myHandle, credential, (void*) &clusterGroupData, sizeof(ClusterGroupData),capabilities);
 #endif
-  logInfo("AMF","HDL", "I AM [%lx:%lx]", myHandle.id[0],myHandle.id[1]);
+  logInfo("AMF","HDL", "I AM [%" PRIx64 ":%" PRIx64 "]", myHandle.id[0],myHandle.id[1]);
 
   std::pair<EntityIdentifier,EntityIdentifier> activeStandbyPairs;
 #ifdef USE_GRP
   activeStandbyPairs = clusterGroup.getRoles();
-  logInfo("AMF","BOOT", "Active [%lx:%lx] Standby: [%lx:%lx]", activeStandbyPairs.first.id[0],activeStandbyPairs.first.id[1],activeStandbyPairs.second.id[0],activeStandbyPairs.second.id[1]);
+  logInfo("AMF","BOOT", "Active [%" PRIx64 ":%" PRIx64 "] Standby: [%" PRIx64 ":%" PRIx64 "]", activeStandbyPairs.first.id[0],activeStandbyPairs.first.id[1],activeStandbyPairs.second.id[0],activeStandbyPairs.second.id[1]);
   //activeStandbyPairs.first = clusterGroup.getActive();
   //activeStandbyPairs.second = clusterGroup.getStandby();
 #endif

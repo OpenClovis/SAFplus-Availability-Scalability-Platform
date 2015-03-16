@@ -22,6 +22,7 @@
 #include <clIocPortList.hxx>
 #include <clSafplusMsgServer.hxx>
 #include <clCommon.hxx>
+#include <inttypes.h>
 
 #include "MgtMsg.pb.hxx"
 
@@ -293,7 +294,7 @@ namespace SAFplus
     if (!module)
     {
       logError("MGT", "GET",
-                 "Received getting request from [%lx.%lx] for Non-existent module [%s] route [%s]",
+                 "Received getting request from [%" PRIx64 ":%" PRIx64 "] for Non-existent module [%s] route [%s]",
                  srcAddr.id[0],srcAddr.id[1],
                  bindData.module().c_str(), bindData.route().c_str());
       return;
@@ -303,7 +304,7 @@ namespace SAFplus
     if (!object)
     {
       logError("MGT", "GET",
-                 "Received getting request from [%lx.%lx] for Non-existent route [%s] module [%s]",
+                 "Received getting request from [%" PRIx64 ":%" PRIx64 "] for Non-existent route [%s] module [%s]",
                  srcAddr.id[0], srcAddr.id[1],
                  bindData.route().c_str(), bindData.module().c_str());
       return;

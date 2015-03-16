@@ -436,12 +436,12 @@ void postRecord(SAFplusI::LogBufferEntry* rec, char* msg,LogCfg* cfg)
       if (!strmCfg)
       {
         // Stream object not found. Load or create new string with the specified handle
-        printf("Stream object not found. Load or create new stream with the specified handle\n");
+        //printf("Stream object not found. Load or create new stream with the specified handle\n");
         // Try to get the stream name associated with this handle from Name
         try 
         {
           char* strmName = name.getName(rec->stream);
-          printf("Load or create new stream [%s]; handle [0x.%lx.0x%lx]\n", strmName, rec->stream.id[0], rec->stream.id[1]);
+          //printf("Load or create new stream [%s]; handle [%" PRIx64 ":%" PRIx64 "]\n", strmName, rec->stream.id[0], rec->stream.id[1]);
           strmCfg = loadOrCreateNewStream(strmName, Replicate::ANY, rec->stream); // do we need to create new stream with the handle specified? Yes. But this stream may come from other process, the log server does not know about it, so how does the log server know if the stream's replicate config is NONE or other values? Here, Replicate::ANY is hardcoded.
           initializeStream(strmCfg);
         }

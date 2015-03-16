@@ -502,10 +502,10 @@ void SAFplus::Group::send(void* data, int dataLength, SAFplus::GroupMessageSendM
   void SAFplus::GroupIdentity::dumpInfo()
   {
     logInfo("GMS", "---","Dumping GroupIdentity at [%p]",this);
-    logInfo("GMS", "---","ID: 0x%lx 0x%lx",id.id[0],id.id[1]);
-    logInfo("GMS", "---","CREDENTIALS: 0x%lx ",credentials);
-    logInfo("GMS", "---","CAPABILITY: 0x%x ",capabilities);
-    logInfo("GMS", "---","DATA LENGTH: 0x%x ",dataLen);
+    logInfo("GMS", "---","ID: [%" PRIx64 ":%" PRIx64 "]",id.id[0],id.id[1]);
+    logInfo("GMS", "---","CREDENTIALS: [0x%" PRIx64 "]",credentials);
+    logInfo("GMS", "---","CAPABILITY: [0x%x]",capabilities);
+    logInfo("GMS", "---","DATA LENGTH: [0x%x]",dataLen);
   }
 /**
  * Actually send message

@@ -24,6 +24,7 @@
 #include "clRpcChannel.hxx"
 #include "clMsgServer.hxx"
 #include "clMsgApi.hxx"
+#include <inttypes.h>
 
 using namespace std;
 
@@ -273,8 +274,7 @@ namespace SAFplus
               }
             else
               {
-                logError("RPC", "HDL", "Received invalid message type [%lu] from [%lx.%lx]", msgType, srcAddr.id[0],
-                    srcAddr.id[1]);
+                logError("RPC", "HDL", "Received invalid message type [%lu] from [%" PRIx64 ":%" PRIx64 "]", msgType, srcAddr.id[0], srcAddr.id[1]);
               }
 
           }

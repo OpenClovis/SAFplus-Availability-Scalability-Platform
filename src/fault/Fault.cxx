@@ -236,7 +236,7 @@ namespace SAFplus
             return SAFplus::FaultState::STATE_UNDEFINED;
         }
         FaultShmEntry *fse = &entryPtr->second;
-        logDebug(FAULT,FAULT_ENTITY,"Fault state of Fault Entity [%lx:%lx] is [%s]",faultHandle.id[0],faultHandle.id[1],strFaultEntityState[int(fse->state)]);
+        logDebug(FAULT,FAULT_ENTITY,"Fault state of Fault Entity [%" PRIx64 ":%" PRIx64 "] is [%s]",faultHandle.id[0],faultHandle.id[1],strFaultEntityState[int(fse->state)]);
         return fse->state;
     }
 
@@ -270,7 +270,7 @@ namespace SAFplus
                 {
                     FaultShmEntry& ge = i->second;
                     Handle handle = i->first;
-                    logDebug("GMS","IOC","  Checking fault [%lx:%lx]", handle.id[0],handle.id[1]);
+                    logDebug("GMS","IOC","  Checking fault [%" PRIx64 ":%" PRIx64 "]", handle.id[0],handle.id[1]);
                     //deregister Fault entry in shared memory.
                 }
             } break;
@@ -422,7 +422,7 @@ namespace SAFplus
         {
             if(msgType!=SAFplus::FaultMessageType::MSG_ENTITY_JOIN && msgType!=SAFplus::FaultMessageType::MSG_ENTITY_JOIN_BROADCAST)
             {
-                logWarning(FAULT,"MSG","Fault report from [%lx.%lx] about an entity [%lx.%lx] not available in shared memory. Ignoring this message",reporterHandle.id[0],reporterHandle.id[1],faultEntity.id[0],faultEntity.id[1]);
+                logWarning(FAULT,"MSG","Fault report from [%" PRIx64 ":%" PRIx64 "] about an entity [%" PRIx64 ":%" PRIx64 "] not available in shared memory. Ignoring this message",reporterHandle.id[0],reporterHandle.id[1],faultEntity.id[0],faultEntity.id[1]);
                 return;
             }
             logDebug(FAULT,"MSG","Fault entity not available in shared memory. Initial new fault entity");
@@ -526,7 +526,7 @@ namespace SAFplus
                         //TODO Process this event
                         fe->state=faultState;
                         fe->dependecyNum=0;
-                        //logDebug(FAULT,"MSG","Register new entity [%lx:%lx] with fault state [%d]",faultEntity.id[0],faultEntity.id[1],fe->state);
+                        //logDebug(FAULT,"MSG","Register new entity [%" PRIx64 ":%" PRIx64 "] with fault state [%d]",faultEntity.id[0],faultEntity.id[1],fe->state);
                         registerFaultEntity(fe,faultEntity,false);
                     }
                 }
@@ -628,7 +628,7 @@ namespace SAFplus
     //register a fault client entity
     void FaultServer::registerFaultEntity(FaultShmEntry* frp, SAFplus::Handle faultClient,bool needNotify )
     {
-    	logDebug(FAULT,"MSG","Register fault entity [%lx:%lx] node id [%d] and process id [%d] initial state [%s]",faultClient.id[0], faultClient.id[1], faultClient.getNode(),faultClient.getProcess(),strFaultEntityState[(int)frp->state]);
+    	logDebug(FAULT,"MSG","Register fault entity [%" PRIx64 ":%" PRIx64 "] node id [%d] and process id [%d] initial state [%s]",faultClient.id[0], faultClient.id[1], faultClient.getNode(),faultClient.getProcess(),strFaultEntityState[(int)frp->state]);
         fsmServer.createFault(frp,faultClient);
         if(needNotify)
         {
@@ -853,7 +853,7 @@ namespace SAFplus
             return SAFplus::FaultState::STATE_UNDEFINED;
         }
         FaultShmEntry *fse = &entryPtr->second;
-    	logError(FAULT,FAULT_SERVER,"Fault Entity [%lx.%lx] State  [%d]",faultHandle.id[0],faultHandle.id[1],fse->state);
+    	logError(FAULT,FAULT_SERVER,"Fault Entity [%" PRIx64 ":%" PRIx64 "] State  [%d]",faultHandle.id[0],faultHandle.id[1],fse->state);
         return fse->state;
     }
     void faultInitialize(void)
@@ -865,7 +865,7 @@ namespace SAFplus
     {
          changeCount++;
          Group* g = (Group*) cookie;
-         logInfo(FAULT,FAULT_SERVER, "Group [%lx:%lx] changed", g->handle.id[0],g->handle.id[1]);
+         logInfo(FAULT,FAULT_SERVER, "Group [%" PRIx64 ":%" PRIx64 "] changed", g->handle.id[0],g->handle.id[1]);
          SAFplus::Handle activeMember = g->getActive();
          fsmServer.setActive(activeMember);
    }

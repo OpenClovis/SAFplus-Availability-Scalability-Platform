@@ -1,5 +1,6 @@
 #include <sys/types.h>
 #include <unistd.h>
+#include <inttypes.h>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/thread/thread.hpp> 
@@ -123,7 +124,7 @@ void SAFplusI::CkptSynchronization::msgHandler(Handle from, SAFplus::MsgServer* 
         }
       ckpt->hdr->generation = sc->finalGeneration;
       if (ckpt->hdr->changeNum < sc->finalChangeNum) ckpt->hdr->changeNum = sc->finalChangeNum;
-      logInfo("SYNC","MSG","Checkpoint [%lx:%lx] sync complete.  Msg count [%d]. change [%d.%d]", ckpt->hdr->handle.id[0], ckpt->hdr->handle.id[1], sc->finalCount, ckpt->hdr->generation,ckpt->hdr->changeNum);
+      logInfo("SYNC","MSG","Checkpoint [%" PRIx64 ":%" PRIx64 "] sync complete.  Msg count [%d]. change [%d.%d]", ckpt->hdr->handle.id[0], ckpt->hdr->handle.id[1], sc->finalCount, ckpt->hdr->generation,ckpt->hdr->changeNum);
       synchronizing = false;
       ckpt->gate.open(); // TODO: I need to open this gate during all kinds of checkpoint failure conditions, sender process death, node death, message lost.
       } break;
@@ -201,7 +202,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
 
   //Handle to = getAddress(response);
 
-  logInfo("SYNC","MSG","Handling synchronization request from [%lx.%lx], generation [%d] change [%d] ",response.id[0],response.id[1], generation, lastChange);
+  logInfo("SYNC","MSG","Handling synchronization request from [%" PRIx64 ":%" PRIx64 "], generation [%d] change [%d] ",response.id[0],response.id[1], generation, lastChange);
   if (generation != ckpt->hdr->generation) 
     {
     lastChange = 0;  // if the generation is wrong, we need ALL changes.
@@ -234,7 +235,7 @@ void SAFplusI::CkptSynchronization::synchronize(unsigned int generation, unsigne
         {
         // TODO unlock writes
         count++;
-        logInfo("SYNC","MSG","Sending checkpoint update msg (length [%d]) to handle [%lx:%lx] type %d.  key %d %x  val len: %d %x", offset, response.id[0],response.id[1], CKPT_SYNC_MSG_TYPE, key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
+        logInfo("SYNC","MSG","Sending checkpoint update msg (length [%d]) to handle [%" PRIx64 ":%" PRIx64 "] type %d.  key %d %x  val len: %d %x", offset, response.id[0],response.id[1], CKPT_SYNC_MSG_TYPE, key->len(), *((uint32_t*) key->data), val->len(), *((uint32_t*) val->data));
         hdr->count = count;
         msgSvr->SendMsg(response,buf,offset,CKPT_SYNC_MSG_TYPE);
         offset = headerEnds;  // Reset the buffer

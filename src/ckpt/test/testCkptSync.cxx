@@ -69,7 +69,7 @@ SAFplus::Handle test_readwrite(Checkpoint& c1)
       for (int i=0;i<LoopCount;i++)
         {
           const Buffer& output = c1.read(i);
-          clTest(("Record exists"), &output != NULL, (""));
+          clTest(("Record exists"), &output != NULL, (" "));
           if (&output)
             {
             int start = ((int*)output.data)[0];
@@ -84,7 +84,7 @@ SAFplus::Handle test_readwrite(Checkpoint& c1)
 		}
             }
         }
-      clTestCaseEnd((""));
+      clTestCaseEnd((" "));
     }
 
 
@@ -246,7 +246,7 @@ int main(int argc, char* argv[])
       for (int i=0;i<LoopCount;i++)
         {
           const Buffer& output = c1.read(i);
-          clTest(("Record exists"), &output != NULL, (""));
+          clTest(("Record exists"), &output != NULL, (" "));
           if (&output)
             {
             int start = ((int*)output.data)[0];

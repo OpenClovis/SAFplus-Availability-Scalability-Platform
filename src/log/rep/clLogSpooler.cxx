@@ -41,7 +41,7 @@ void LogSpooler::subscribeStream(const char* streamName)
   SAFplusLog::Stream* s = hsMap[streamHdl];  
   if (!s)
   {
-    printf("Stream object with stream name [%s] and handle [%lx.%lx] doesn't exists", streamName, streamHdl.id[0], streamHdl.id[1]);
+    printf("Stream object with stream name [%s] and handle [%" PRIx64 ":%" PRIx64 "] doesn't exist", streamName, streamHdl.id[0], streamHdl.id[1]);
     // if this is the system controller then load or create a new stream with the specified name
     if (SAFplus::SYSTEM_CONTROLLER)
     {
@@ -52,7 +52,7 @@ void LogSpooler::subscribeStream(const char* streamName)
   }
   if (s)
   {
-    printf("Subscribing log spooler handle [0x%lx.0x%lx] to stream [%s]\n", logSpoolerHdl.id[0], logSpoolerHdl.id[1], streamName);
+    printf("Subscribing log spooler handle [%" PRIx64 ":%" PRIx64 "] to stream [%s]\n", logSpoolerHdl.id[0], logSpoolerHdl.id[1], streamName);
     objectMessager.insert(logSpoolerHdl, this);
     s->group.registerEntity(logSpoolerHdl, 1, Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE);
   }

@@ -1,6 +1,6 @@
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <inttypes.h>
 //#include <boost/interprocess/shared_memory_object.hpp>
 //#include <boost/interprocess/mapped_region.hpp>
 
@@ -41,7 +41,7 @@ SAFplus::Checkpoint::~Checkpoint()
 
 void SAFplus::Checkpoint::init(const Handle& hdl, uint_t _flags,uint_t size, uint_t rows,SAFplus::Wakeable& execSemantics)
 {
-  logInfo("CKP","INI","Opening checkpoint [%lx:%lx]",hdl.id[0],hdl.id[1]);
+  logInfo("CKP","INI","Opening checkpoint [%" PRIx64 ":%" PRIx64 "]",hdl.id[0],hdl.id[1]);
   // All constructors funnel through this init routine.
   gate.init(hdl.id[1]);  // 2nd word of the handle should be unique on this node
   gate.close(); // start the gate closed so this process can't access the checkpoint.  But I can't init the gate closed, in case the init opens an existing gate, instead of creating one
@@ -435,7 +435,7 @@ void SAFplus::Checkpoint::dump()
 void SAFplus::Checkpoint::stats()
 {
   char tempStr[81];
-  printf("Handle: %s size: %lu, max_size: %lu generation: %d change: %d\n",hdr->handle.toStr(tempStr), map->size(),map->max_size(),hdr->generation, hdr->changeNum);
+  printf("Handle: %s size: %lu, max_size: %lu generation: %d change: %d\n",hdr->handle.toStr(tempStr), (long unsigned int) map->size(),(long unsigned int) map->max_size(),hdr->generation, hdr->changeNum);
 }
 
 

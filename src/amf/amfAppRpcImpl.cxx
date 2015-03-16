@@ -36,7 +36,7 @@ namespace amfAppRpc {
     ScopedAllocation allocated;
     Handle hdl;
     memcpy(&hdl,request->componenthandle().c_str(),sizeof(Handle));
-    logInfo("AMF","RPC","Work Operation on component [%lx.%lx]",hdl.id[0],hdl.id[1]);
+    logInfo("AMF","RPC","Work Operation on component [%" PRIx64 ":%" PRIx64 "]",hdl.id[0],hdl.id[1]);
     SaNameT compName;
     SAFplus::saNameSet(&compName,request->componentname().c_str());
     if (SAFplusI::amfSession)

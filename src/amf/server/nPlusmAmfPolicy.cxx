@@ -116,7 +116,7 @@ namespace SAFplus
 // (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count()/std::chrono::milliseconds(1);
       if ((comp->numInstantiationAttempts.value >= comp->maxInstantInstantiations)&&(curTime < comp->delayBetweenInstantiation.value + comp->lastInstantiation.value.value))
         {
-        logDebug("N+M","STRT","Not starting [%s]. Must wait [%lu] more milliseconds.",comp->name.value.c_str(),comp->delayBetweenInstantiation + comp->lastInstantiation.value.value - curTime);
+        logDebug("N+M","STRT","Not starting [%s]. Must wait [%" PRIu64 "] more milliseconds.",comp->name.value.c_str(),comp->delayBetweenInstantiation + comp->lastInstantiation.value.value - curTime);
         continue;
         }
 
@@ -590,7 +590,7 @@ namespace SAFplus
                     }
                   else
                     {
-                    logInfo("N+M","AUDIT","Component [%s] waiting [%lu] more milliseconds for instantiation.", comp->name.value.c_str(),comp->getInstantiate()->timeout.value - (curTime - comp->lastInstantiation.value.value));
+                      logInfo("N+M","AUDIT","Component [%s] waiting [%lu] more milliseconds for instantiation.", comp->name.value.c_str(),(long unsigned int) (comp->getInstantiate()->timeout.value - (curTime - comp->lastInstantiation.value.value)));
                     }
                   }
                 }

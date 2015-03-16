@@ -16,7 +16,7 @@ namespace SAFplus
     ObjectMessagerMap::iterator objref = omap.find(*h);
     if (objref == omap.end())
       {
-      logWarning("MSG","OBJ","Object message request to handle [%lx.%lx] failed.  No mapping exists.",h->id[0],h->id[1]);
+      logWarning("MSG","OBJ","Object message request to handle [%" PRIx64 ":%" PRIx64 "] failed.  No mapping exists.",h->id[0],h->id[1]);
       return;
       }
     SAFplus::MsgHandler* obj = objref->second;

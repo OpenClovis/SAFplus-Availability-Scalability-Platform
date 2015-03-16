@@ -3,6 +3,7 @@
 #include <clGroupIpi.hxx>
 #include <clIocPortList.hxx>
 #include <chrono>
+#include <inttypes.h>
 
 using namespace boost::interprocess;
 using namespace SAFplus;
@@ -103,11 +104,11 @@ void GroupSharedMem::dbgDump(void)
     SAFplus::Handle grpHdl = i->first;
     GroupShmEntry& ge = i->second;
     const GroupData& gd = ge.read();
-    printf("Group %s [%lx:%lx]:\n", ge.name,grpHdl.id[0], grpHdl.id[1]);
+    printf("Group %s [%" PRIx64 ":%" PRIx64 "]:\n", ge.name,grpHdl.id[0], grpHdl.id[1]);
     for (int j = 0 ; j<gd.numMembers; j++)
       {
       const GroupIdentity& gid = gd.members[j];
-      printf("    Entity [%lx:%lx] on node [%d] credentials [%ld] capabilities [%d] %s\n", gid.id.id[0],gid.id.id[1],gid.id.getNode(),gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
+      printf("    Entity [%" PRIx64 ":%" PRIx64 "] on node [%d] credentials [%ld] capabilities [%d] %s\n", gid.id.id[0],gid.id.id[1],gid.id.getNode(),(unsigned long int) gid.credentials, gid.capabilities, Group::capStr(gid.capabilities,buf));
       }
     }
   }
@@ -402,7 +403,7 @@ std::pair<EntityIdentifier,EntityIdentifier> GroupServer::_electRoles(const Grou
     // Prefer existing active/standby for the role rather than other nodes -- stops "failback"
     if ((curCapabilities & SAFplus::Group::IS_ACTIVE)&&(curCapabilities & SAFplus::Group::STICKY)) curCredentials |= ACTIVE_ELECTION_MODIFIER;
     if ((curCapabilities & SAFplus::Group::IS_STANDBY)&&(curCapabilities & SAFplus::Group::STICKY)) curCredentials |= STANDBY_ELECTION_MODIFIER;
-    logInfo("GRP","ELC", "Member [%lx:%lx], capabilities: (%s) 0x%x, credentials: %lx",curEntity.id[0],curEntity.id[1],Group::capStr(curCapabilities,tempStr), curCapabilities, curCredentials);
+    logInfo("GRP","ELC", "Member [%" PRIx64 ":%" PRIx64 "], capabilities: (%s) 0x%x, credentials: %" PRIu64,curEntity.id[0],curEntity.id[1],Group::capStr(curCapabilities,tempStr), curCapabilities, curCredentials);
 
 
     // Obviously the anything that can accept the standby role must be able to be active too.
@@ -461,7 +462,7 @@ void GroupServer::handleRoleNotification(GroupShmEntry* ge, SAFplusI::GroupMessa
         std::pair<int,int> roles = electForRoles(ge->read);
         if (announce[0] != roles.first)
           {
-          logError("GMS","ROL","Mismatched active role.  I calculated [%lx:%lx] but received [%lx:%lx]",roles.first.id[0],roles.first.id[1],announce[0].id[0],announce[0].id[1]);
+          logError("GMS","ROL","Mismatched active role.  I calculated [%" PRIx64 ":%" PRIx64 "] but received [%" PRIx64 ":%" PRIx64 "]",roles.first.id[0],roles.first.id[1],announce[0].id[0],announce[0].id[1]);
           reelect=true;
           }
       }
@@ -490,7 +491,7 @@ void GroupServer::handleRoleNotification(GroupShmEntry* ge, SAFplusI::GroupMessa
         else data->lastChanged = temp;
 
         ge->flip();
-        logInfo("GMS","ROL","Role change announcement active [%lx:%lx] standby [%lx:%lx]", announce[0].id[0],announce[0].id[1],announce[1].id[0],announce[1].id[1]);
+        logInfo("GMS","ROL","Role change announcement active [%" PRIx64 ":%" PRIx64 "] standby [%" PRIx64 ":%" PRIx64 "]", announce[0].id[0],announce[0].id[1],announce[1].id[0],announce[1].id[1]);
 
         //isElectionRunning = false;
 
@@ -550,7 +551,7 @@ ClRcT groupIocNotificationCallback(ClIocNotificationT *notification, ClPtrT cook
         {
         GroupShmEntry& ge = i->second;
         Handle handle = i->first;
-        logDebug("GMS","IOC","  Checking group [%lx:%lx]", handle.id[0],handle.id[1]);
+        logDebug("GMS","IOC","  Checking group [%" PRIx64 ":%" PRIx64 "]", handle.id[0],handle.id[1]);
         svr->_deregister(&ge, nodeAddress, portId);
         }
 
@@ -624,7 +625,7 @@ void GroupServer::registerEntity(GroupShmEntry* grp, EntityIdentifier me, uint64
       data->changeCount++;
       data->lastChanged = (uint64_t) std::chrono::steady_clock::now().time_since_epoch().count();
       grp->flip();
-      logDebug("GMS", "REG","Entity [%lx:%lx] registration successful",me.id[0],me.id[1]);
+      logDebug("GMS", "REG","Entity [%" PRIx64 ":%" PRIx64 "] registration successful",me.id[0],me.id[1]);
       /* Notify other entities about new entity*/
 #if 0 // TODO
       if(wakeable)
@@ -716,7 +717,7 @@ void GroupServer::_deregister(GroupShmEntry* grp, unsigned int node, unsigned in
       gi = &data->members[i];
       if ((gi->id.getNode() == node)&&((port==0)||(port == gi->id.getPort())))  // Ok we are deregistering this entity.  It matches the node or the node & port.
         {
-        logInfo("GMS","DER","Deregistering [%lx:%lx].", gi->id.id[0],gi->id.id[1]);
+        logInfo("GMS","DER","Deregistering [%" PRIx64 ":%" PRIx64 "].", gi->id.id[0],gi->id.id[1]);
         dirty=true;
         // removing the active/standby
         if (data->activeIdx == i) { logInfo("GMS","DER","Leaving entity had active role."); data->activeIdx=0xffff; reelect = true; }

@@ -117,7 +117,7 @@ void MsgServer::MakeMePrimary()
 
   void ReceiverFunc(MsgServer* q)
   {
-    logDebug("MSG", "RCV","Message queue receiver started on [%lx.%lx] port [%d %d]", q->handle.id[0], q->handle.id[1],q->port,q->handle.getPort());
+    logDebug("MSG", "RCV","Message queue receiver started on [%" PRIx64 ":%" PRIx64 "] port [%d]", q->handle.id[0], q->handle.id[1],q->port);
 
     while (q->receiving)
       {
