@@ -111,9 +111,8 @@ class Panel(scrolled.ScrolledPanel):
         # self.Bind(wx.EVT_TEXT, self.EvtText)
         self.isDetailInstance = isDetailInstance
         self.entityTreeTypes = ["ServiceGroup", "Node", "ServiceUnit", "ServiceInstance"]
-        
 
-        self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelChanged}
+        self.eventDictTree = {wx.EVT_TREE_ITEM_EXPANDED:self.OnTreeSelChanged, wx.EVT_TREE_SEL_CHANGING: self.OnTreeSelChanged, wx.EVT_TREE_SEL_CHANGED: self.OnTreeSelChanged}
         self._createTreeEntities()
 
         if (self.isDetailInstance):
