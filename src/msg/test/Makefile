@@ -15,7 +15,7 @@ SAFPLUS_DEP_LIBS     := $(addsuffix .so,$(addprefix $(LIB_DIR)/lib,$(SAFPLUS_LIB
 SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 
-all: deps $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector
+all: $(TEST_DIR)/testTransport  $(TEST_DIR)/testMsgServer $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector
 
 deps:
 	make -C $(SAFPLUS_SRC_DIR)/msg/transports
@@ -29,12 +29,13 @@ $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP)  $@ -DDIRECTLY_LINKED $<
 else
 $(TEST_DIR)/%:  $(OBJ_DIR)/%.o $(SAFPLUS_DEP_LIBS)
-	$(LINK_EXE) $@ $<  $(LINK_LIBS) $(SAFPLUS_LINK_LIBS) -lezxml $(LINK_STD_LIBS)
+	$(LINK_EXE) $@ $<  $(LINK_LIBS)  $(SAFPLUS_LINK_LIBS) -lboost_program_options -lezxml $(LINK_STD_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(SAFPLUS_MAKE_DIR)/preface.mk $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 endif
 
+.PRECIOUS: $(OBJ_DIR)/%.o
 
 clean:
 	rm -f $(CLIENT_OBJ) $(TEST_DIR)/testTransport

@@ -85,8 +85,8 @@ $(LIB_DIR)/libclName.so:
 endif
 
 ifndef SAFPLUS_MSG_LIB
-.PHONY: $(LIB_DIR)/libclMsg.so
-$(LIB_DIR)/libclMsg.so: 
+
+$(LIB_DIR)/libclMsg.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/*.cxx)
 	make -C $(SAFPLUS_SRC_DIR)/msg
 endif
 
@@ -108,8 +108,8 @@ $(LIB_DIR)/libezxml.so:
 SAFplusSOs := $(LIB_DIR)/libclUtils.so $(LIB_DIR)/libclLog.so $(LIB_DIR)/libclOsal.so  $(LIB_DIR)/libclCkpt.so $(LIB_DIR)/libclMgt.so $(LIB_DIR)/libclMsg.so $(LIB_DIR)/libclRpc.so $(LIB_DIR)/libclName.so $(LIB_DIR)/libclGroup.so $(LIB_DIR)/libclFault.so $(LIB_DIR)/libclDbal.so $(LIB_DIR)/libclAmf.so $(LIB_DIR)/pyDbal.so
 
 ifndef SAFPLUS_MSG_PLUGIN
-.PHONY: $(LIB_DIR)/clMsgUdp.so
-$(LIB_DIR)/clMsgUdp.so:
+# .PHONY: $(LIB_DIR)/clMsgUdp.so
+$(LIB_DIR)/clMsgUdp.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/transports/*.cxx)
 	make -C $(SAFPLUS_SRC_DIR)/msg/transports
 endif
 
