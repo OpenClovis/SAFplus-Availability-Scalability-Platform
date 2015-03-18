@@ -57,6 +57,11 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   clTest(("send/recv message ok"), 0 == strncmp((const char*) m->firstFragment->read(),strMsg,sizeof(strMsg)),("message contents miscompare: %s -> %s", strMsg,(const char*) m->firstFragment->read()) );
   if (m) b->msgPool->free(m);
 
+
+  // Test min msg size
+  // Test max msg size
+  // Verify source node port is correct
+
   xp->deleteSocket(a);
   xp->deleteSocket(b);
   return true;

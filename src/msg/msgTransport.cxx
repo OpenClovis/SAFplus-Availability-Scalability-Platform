@@ -35,6 +35,7 @@ namespace SAFplus
 
   MsgFragment* MsgPool::allocMsgFragment(uint_t size)
     {
+      fragAllocCount++;
       MsgFragment* ret = NULL;
       if (size == 0)
         {
@@ -47,6 +48,8 @@ namespace SAFplus
         ret = (MsgFragment*) SAFplusHeapAlloc(sizeof(MsgFragment) + size);  // actually could be size - sizeof(void*) because we'll use the buffer variable data itself
         assert(ret);
         ret->constructInlineFrag(size);
+        fragAllocated += size;
+        fragCumulativeAllocated += size;
         }
       return ret;
     }
@@ -124,6 +127,7 @@ namespace SAFplus
     assert(msg);
     msg->initialize();
     msg->msgPool = this;
+    allocated++;
     return msg;
     }
 
@@ -146,16 +150,19 @@ namespace SAFplus
           else if (frag->flags & MsgFragment::Flags::DataMsgPoolFree) SAFplusHeapFree(frag->buffer);  // TODO: hold the fragments in lists in the message pool
           else if (frag->flags & MsgFragment::Flags::DataCustomFree) { clDbgNotImplemented("custom free logic"); }  // Should the custom free function be per fragment or per message?
 
+          if (frag->flags & MsgFragment::Flags::InlineFragment) fragAllocated -= frag->allocatedLen;
+
           // Next clean up the fragment itself
           if (frag->flags & MsgFragment::Flags::SAFplusFree) SAFplusHeapFree(frag);
           else if (frag->flags & MsgFragment::Flags::MsgPoolFree) SAFplusHeapFree(frag);  // TODO: hold the fragments in lists in the message pool
           else if (frag->flags & MsgFragment::Flags::CustomFree) { clDbgNotImplemented("custom fragment free logic"); }
-
+          fragAllocCount--;
           } while(nextFrag);
 
        // Ok all frags cleaned up so delete this message
        SAFplusHeapFree(msg);
-      } while (next != NULL);
+       allocated--;
+       } while (next != NULL);
     }
 
 

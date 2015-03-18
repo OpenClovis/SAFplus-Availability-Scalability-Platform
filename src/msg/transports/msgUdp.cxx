@@ -125,7 +125,7 @@ namespace SAFplus
 
     void UdpSocket::flush() {} // Nothing to do, messages are not cached
 
-    void UdpSocket::send(Message* next)
+    void UdpSocket::send(Message* origMsg)
       {
       mmsghdr msgvec[SAFplusI::UdpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
       struct iovec iovecBuffer[SAFplusI::UdpTransportMaxFragments];
@@ -134,6 +134,7 @@ namespace SAFplus
       int fragCount= 0;  // frags in this message
       int totalFragCount = 0; // total number of fragments
       Message* msg;
+      Message* next = origMsg;
       MsgFragment* nextFrag;
       MsgFragment* frag;
       struct sockaddr_in to[SAFplusI::UdpTransportMaxMsg];
@@ -162,7 +163,7 @@ namespace SAFplus
           totalFragCount++;
           curIov++;
           } while(nextFrag);
-
+        assert(msgCount < SAFplusI::UdpTransportMaxMsg);  // or stack buffer will be exceeded
         bzero(&to[msgCount],sizeof(struct sockaddr_in));
         to[msgCount].sin_family = AF_INET;
         if (msg->node == Handle::AllNodes)
@@ -193,12 +194,12 @@ namespace SAFplus
       else
         {
         assert(retval == msgCount);  // TODO, retry if all messages not sent
-        printf("%d messages sent\n", retval);
+        //printf("%d messages sent\n", retval);
         }
 
       // Your send routine releases the message whenever you are ready to do so
-      MsgPool* temp = msg->msgPool;
-      temp->free(msg);
+      MsgPool* temp = origMsg->msgPool;
+      temp->free(origMsg);
       }
 
 #if 0
@@ -221,6 +222,7 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
       MsgFragment* frag = ret->append(SAFplusI::UdpTransportMaxMsgSize);
 
       mmsghdr msgs[SAFplusI::UdpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
+      struct sockaddr_in from[SAFplusI::UdpTransportMaxMsg];
       struct iovec iovecs[SAFplusI::UdpTransportMaxFragments];
       struct timespec timeoutMem;
       struct timespec* timeout;
@@ -253,6 +255,8 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
         iovecs[i].iov_len          = frag->allocatedLen;
         msgs[i].msg_hdr.msg_iov    = &iovecs[i];
         msgs[i].msg_hdr.msg_iovlen = 1;
+        msgs[i].msg_hdr.msg_name    = &from[i];
+        msgs[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_in);
         }
 
       int retval = recvmmsg(sock, msgs, 1, flags, timeout);
@@ -278,6 +282,12 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
         for (int msgIdx = 0; (msgIdx<retval); msgIdx++,cur = cur->nextMsg)
           {
           int msgLen = msgs[msgIdx].msg_len;
+          struct sockaddr_in* srcAddr = (struct sockaddr_in*) msgs[msgIdx].msg_hdr.msg_name;
+          assert(msgs[msgIdx].msg_hdr.msg_namelen == sizeof(struct sockaddr_in));
+          assert(srcAddr);
+          
+          cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort;
+          cur->node = ntohl(srcAddr->sin_addr.s_addr) & 255;
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
             {

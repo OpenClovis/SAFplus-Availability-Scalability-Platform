@@ -76,7 +76,6 @@ bool FaultSharedMem::updateFaultHandle(FaultShmEntry* frp,SAFplus::Handle fault)
     if (entryPtr == faultMap->end()) return false; // TODO: raise exception
     FaultShmEntry *fse = &entryPtr->second;
     assert(fse);
-    //strncpy(fse->name,frp->name,FAULT_NAME_LEN);
     fse->dependecyNum=frp->dependecyNum;
     for(int i=0; i<fse->dependecyNum;i++)
     {

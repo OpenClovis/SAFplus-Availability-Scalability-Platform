@@ -88,6 +88,11 @@ namespace SAFplus
   class MsgPool
     {
       public:
+      MsgPool():allocated(0),fragAllocCount(0),fragCumulativeAllocated(0),fragAllocated(0) {}
+      int64_t allocated;
+      int64_t fragAllocCount;
+      int64_t fragCumulativeAllocated;
+      int64_t fragAllocated;
       // These are virtual so that a plugin does not have to link with libmsg to call them.
       virtual MsgFragment* allocMsgFragment(uint_t size);
       virtual Message* allocMsg();
@@ -113,7 +118,7 @@ namespace SAFplus
       MsgTransportPlugin_1* transport;
       uint_t node; //? source or destination node, depending on whether this message is being sent or was received.
       uint_t port; //? source or destination port, depending on whether this message is being sent or was received.
-
+      SAFplus::Handle handle() { return SAFplus::getProcessHandle(port,node); }
       //? Send a bunch of messages.  You give up ownership of msg.
       virtual void send(Message* msg)=0;
       //? Force all queued messages to be sent (you can reuse any non msgpool buffers you gave me)
