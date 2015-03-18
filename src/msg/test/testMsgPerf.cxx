@@ -263,7 +263,7 @@ void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
   testLatency(src,sink,dest,10000,10000, desc,true);
 
   testChunkingPerf(src, sink,dest,1, 1 , 1 , 10000,desc);
-#if 0
+#if 1
   testChunkingPerf(src, sink,dest,16, 1 , 1 , 5000,desc);
   testChunkingPerf(src, sink,dest,100, 1 , 1 , 5000,desc);
   testChunkingPerf(src, sink,dest,1000, 1 , 1 , 2000,desc);
@@ -285,7 +285,8 @@ void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
   testChunkingPerf(src, sink,dest,10000, 50, 1 , 1000,desc);
   testChunkingPerf(src, sink,dest,50000, 50 , 1 , 1000,desc);
 
-  testChunkingPerf(src, sink,dest,32, 1000 , 1 , 1000,"high perf RPC"); 
+  // high perf RPC: This test simulates a server being hit by tons of small RPC calls
+  testChunkingPerf(src, sink,dest,32, 1000 , 1 , 1000,desc); 
 #endif
 }
 
@@ -340,18 +341,17 @@ int main(int argc, char* argv[])
 
           if (1)
             {
-              logInfo("TST","MSG","Loopback different process, same node: run the msgReflector program on this node");
+              logInfo("TST","MSG","Different process, same node: run the msgReflector program on this node");
 
               ScopedMsgSocket a(xp,1);
-              testGroup(a.sock,a.sock,getProcessHandle(reflectorPort,a->node),"same node");
+              testGroup(a.sock,a.sock,getProcessHandle(reflectorPort,a->node),"inter-process");
             }
 
           if (1)
             {
-              logInfo("TST","MSG","Loopback different process, same node: run the msgReflector program on node %d", reflectorNode);
+              logInfo("TST","MSG","Different process, different node: run the msgReflector program on node %d", reflectorNode);
               ScopedMsgSocket a(xp,1);
               testGroup(a.sock,a.sock,getProcessHandle(reflectorPort,reflectorNode),"inter-node");
-
             }
 
         }
