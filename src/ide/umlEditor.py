@@ -674,7 +674,9 @@ class SaveTool(Tool):
     if dlg.ShowModal() == wx.ID_OK:
       filename = dlg.GetPath()
       self.panel.model.save(filename)
-      # TODO: Notify (IPC) to GUI instances to change
+      # TODO: Notify (IPC) to GUI instances to change, using pyinotify(python), inotify (c++)
+      # Trigger re-create instance dialog from standalone
+
     return False
 
 class DeleteTool(Tool):
@@ -952,10 +954,11 @@ class Panel(scrolled.ScrolledPanel):
       self.Refresh()
 
     def deleteEntities(self, ents):
-      self.model.delete(ents)
-      if share.detailsPanel:
-        share.detailsPanel.deleteTreeItemEntities(ents)
 
+      if share.instancePanel:
+        share.instancePanel.deleteEntities(insts)
+
+      self.model.delete(ents)
       self.Refresh()
 
 model = None
