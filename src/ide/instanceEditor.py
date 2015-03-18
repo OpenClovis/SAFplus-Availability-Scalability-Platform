@@ -77,6 +77,10 @@ templateMgr = TemplateMgr()
 myDir = os.getcwd()
 TemplatePath = myDir + "/codegen/templates/"
 
+def touch(f):
+    f = file(f,'a')
+    f.close()
+
 class Output:
   """This abstract class defines how the generated output is written to the file system
      or tarball.
@@ -543,6 +547,7 @@ class SaveTool(Tool):
       filename = dlg.GetPath()
       self.panel.model.save(filename)
       # TODO: Notify (IPC) to GUI instances (C++ wxWidgets) to update
+      touch(filename) # If any modified flag trigger on this model.xml, just recreate GUIs
     return False
 
 class FilesystemOutput(Output):
@@ -894,6 +899,7 @@ class Panel(scrolled.ScrolledPanel):
 
     def sgInstantiator(self,ent,pos,size,children,name):
       """Custom instantiator for service groups"""
+      # TODO: there is one unexpected "app" component being created
       (top, all_created) = self.model.recursiveInstantiation(ent)
       return top
 #      newdata = copy.deepcopy(ent.data)

@@ -17,7 +17,7 @@
  * material.
  */
 
-#include <clIocProtocols.h>
+#include <clIocPortList.hxx>
 #include "clSafplusMsgServer.hxx"
 #include "MsgReplyHandler.hxx"
 
@@ -36,7 +36,7 @@ namespace SAFplus
       {
         MsgServer::Init(_port, maxPendingMsgs, maxHandlerThreads, flags);
         MsgHandler *replyHandler = new MsgReplyHandler();
-        this->RegisterHandler(CL_IOC_SAF_MSG_REPLY_PROTO, replyHandler, &msgReply);
+        this->RegisterHandler(SAFplusI::CL_IOC_SAF_MSG_REPLY_PROTO, replyHandler, &msgReply);
         SAFplus::iocPort = port; // Set this global to be used as a unique identifier for this component across the node.  There can be many MsgServers per component but only one SafplusMsgServer.
       }
 

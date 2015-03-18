@@ -296,7 +296,6 @@ class Panel(scrolled.ScrolledPanel):
         return parent
 
       for treeItem in parent.GetChildren():
-        self.tree.Collapse(treeItem)
         item = self.findEntityRecursive(ent, treeItem)
         if item:
           return item
@@ -356,11 +355,24 @@ class Panel(scrolled.ScrolledPanel):
       self.sizer.Layout()
       self.Refresh()
 
-    def deleteTreeItemEntities(self, ents):
-        for ent in ents:
-            treeItem = self.findEntityRecursive(ent)
-            if treeItem:
-                self.tree.Delete(treeItem)
+    def deleteTreeItemEntities(self, ents, tmpList = None):
+      if tmpList == None:
+        tmpList = ents
+
+      for ent in ents:
+          treeItem = self.findEntityRecursive(ent)
+          if treeItem:
+            if ent.et.name in self.entityTreeTypes:
+              for a in ent.containmentArrows:
+                  self.deleteTreeItemEntities(set([a.contained]), tmpList)
+
+            # Cascade delete csi/component entity instance
+            if not ent in tmpList:
+              try:
+                self.model.delete(ent)
+              except:
+                pass
+            self.tree.Delete(treeItem)
 
     # Create controls for an entity
     def createTreeItemEntity(self, name, ent, parentItem = None):
@@ -399,12 +411,10 @@ class Panel(scrolled.ScrolledPanel):
       # Create all controls of entity
       self.createChildControls(treeItem, ent, items, ent.data)
 
-      if self.isDetailInstance:
-        # Put comps/csis into SU/SI
-        if ent.et.name in ("ServiceInstance", "ServiceUnit"):
-          if (self.isDetailInstance):
-            for a in ent.containmentArrows:
-              self.createTreeItemEntity(a.contained.data["name"], a.contained, treeItem)
+      # Put comps/csis into SU/SI
+      if self.isDetailInstance and ent.et.name in ("ServiceInstance", "ServiceUnit"):
+        for a in ent.containmentArrows:
+          self.createTreeItemEntity(a.contained.data["name"], a.contained, treeItem)
 
       # Update num controls
       self.numElements =  self.row

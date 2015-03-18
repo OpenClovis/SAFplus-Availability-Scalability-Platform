@@ -77,14 +77,15 @@ instantiated  <instances>     instances                         instances     (e
     if entities:
       entities[0].delChild(entities[0].findOneByChild("name",entname))
 
-    """Delete entity.Instance of Entity type"""
+    """Delete entity.Instance of Entity type
     nameInstances = [name for (name, e) in self.instances.items() if e.entity.data["name"] == entname]
     self.delete(nameInstances)
+    """
 
   def deleteInstance(self,inst):
     entname = inst.data["name"]
     for (name,e) in self.instances.items():
-      e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != entity]
+      e.containmentArrows[:] = [ x for x in e.containmentArrows if x.contained != inst]
     del self.instances[entname]
 
     # Also delete the entity from the microdom
