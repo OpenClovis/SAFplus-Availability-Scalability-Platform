@@ -74,9 +74,8 @@ namespace SAFplusI
   /* FAULT */
   enum
     {
-    FAULT_NAME_LEN = 100,
     MAX_FAULT_BUFFER_SIZE = 1024*1024,
-
+    MAX_FAULT_DEPENDENCIES = 5,
     FaultSharedMemSize = 4 * 1024*1024,
     FaultMaxMembers    = 1024,   // Maximum number of fault entity
     };

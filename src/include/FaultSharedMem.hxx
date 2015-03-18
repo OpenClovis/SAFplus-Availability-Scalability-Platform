@@ -535,9 +535,6 @@ namespace SAFplus
 
     };
 
-#define FAULT_NAME_LEN 100
-#define MAX_FAULT_DEPENDENCIES 5
-
   //status of fault entity
   enum class FaultState
     {
@@ -566,7 +563,6 @@ namespace SAFplus
     SAFplus::FaultMessageType     messageType;
     SAFplus::FaultState state;
     FaultPolicy pluginId;
-    //char name[FAULT_NAME_LEN];
     FaultEventData data;
     SAFplus::Handle       reporter;
     SAFplus::Handle       faultEntity;
@@ -586,8 +582,7 @@ namespace SAFplus
   public :
     SAFplus::Handle faultHdl;
     int dependecyNum;
-    //char name[FAULT_NAME_LEN];  // For display purposes only, string lookups go through the Name server.
-    SAFplus::Handle depends[MAX_FAULT_DEPENDENCIES];  // If this entity fails, all entities in this array will also fail.
+    SAFplus::Handle depends[SAFplusI::MAX_FAULT_DEPENDENCIES];  // If this entity fails, all entities in this array will also fail.
     SAFplus::FaultState state;  //Fault state of an entity
     FaultShmEntry()
       {
@@ -599,7 +594,7 @@ namespace SAFplus
       faultHdl=fHandle;
       dependecyNum=frp->dependecyNum;
       state=frp->state;
-      for(int i=0;i<MAX_FAULT_DEPENDENCIES;i++)
+      for(int i=0;i<SAFplusI::MAX_FAULT_DEPENDENCIES;i++)
         {
         depends[i]=SAFplus::INVALID_HDL;
         }
@@ -608,7 +603,7 @@ namespace SAFplus
       {
       faultHdl = fHandle;
       dependecyNum = 0;
-      for(int i=0;i<MAX_FAULT_DEPENDENCIES;i++)
+      for(int i=0;i<SAFplusI::MAX_FAULT_DEPENDENCIES;i++)
         {
         depends[i]=SAFplus::INVALID_HDL;
         }
@@ -622,7 +617,7 @@ namespace SAFplus
   public :
     SAFplus::Handle faultHdl;
     int dependecyNum;
-    SAFplus::Handle depends[MAX_FAULT_DEPENDENCIES];  // If this entity fails, all entities in this array will also fail.
+    SAFplus::Handle depends[SAFplusI::MAX_FAULT_DEPENDENCIES];  // If this entity fails, all entities in this array will also fail.
     SAFplus::FaultState state;  //Fault state of an entity
 
     };

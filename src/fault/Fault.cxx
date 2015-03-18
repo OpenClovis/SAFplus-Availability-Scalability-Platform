@@ -209,22 +209,13 @@ namespace SAFplus
         SAFplus::Handle masterAddress = fsm.faultHdr->activeFaultServer;
         return masterAddress;
     }
-    void Fault::setName(const char* entityName)
-    {
-        logTrace(FAULT,FAULT_ENTITY,"Set Fault Entity name");
-        strncpy(name,entityName,FAULT_NAME_LEN);
-    }
 
-    Fault::Fault(SAFplus::Handle faultHandle,const char* name,SAFplus::Handle iocServerAddress)
+    Fault::Fault(SAFplus::Handle faultHandle,SAFplus::Handle iocServerAddress)
     {
         wakeable = NULL;
         faultMsgServer = NULL;
         reporter =INVALID_HDL;
         this->init(faultHandle,iocServerAddress,SAFplusI::FAULT_IOC_PORT,BLOCK);
-        if (name && name[0] != 0)
-        {
-            setName(name);
-        }
     }
     SAFplus::FaultState Fault::getFaultState(SAFplus::Handle faultHandle)
     {
@@ -431,7 +422,7 @@ namespace SAFplus
             tmpShrEntity->faultHdl=faultEntity;
 
             tmpShrEntity->dependecyNum=0;
-            for(int i=0;i<MAX_FAULT_DEPENDENCIES;i++)
+            for(int i=0;i<SAFplusI::MAX_FAULT_DEPENDENCIES;i++)
             {
                 tmpShrEntity->depends[i]=INVALID_HDL;
             }
@@ -443,7 +434,7 @@ namespace SAFplus
             tmpShrEntity->dependecyNum= fe->dependecyNum;
             tmpShrEntity->faultHdl= fe->faultHdl;
             tmpShrEntity->state= fe->state;
-            for(int i=0;i<MAX_FAULT_DEPENDENCIES;i++)
+            for(int i=0;i<SAFplusI::MAX_FAULT_DEPENDENCIES;i++)
             {
             	tmpShrEntity->depends[i]=fe->depends[i];
             }
@@ -705,23 +696,6 @@ namespace SAFplus
             return false;
         }
     }   
-//    // set name for fault client entity
-//    void FaultServer::setName(SAFplus::Handle faultHandle, const char* name)
-//    {
-//        FaultShmHashMap::iterator entryPtr;
-//        entryPtr = fsmServer.faultMap->find(faultHandle);
-//        if (entryPtr == fsmServer.faultMap->end()) return; // TODO: raise exception
-//        SAFplus::FaultShmEntry *fse = &entryPtr->second;
-//        assert(fse);  // If this fails, something very wrong with the group data structure in shared memory.  TODO, should probably delete it and fail the node
-//        if (fse) // Name is not meant to change, and not used except for display purposes.  So just change both of them
-//        {
-//          strncpy(fse->name,name,FAULT_NAME_LEN);
-//        }
-//        else
-//        {
-//            //TODO
-//        }
-//    }
     //process a fault event
     void FaultServer::processFaultEvent(SAFplus::FaultPolicy pluginId, FaultEventData fault , SAFplus::Handle faultEntity, SAFplus::Handle faultReporter)
     {
