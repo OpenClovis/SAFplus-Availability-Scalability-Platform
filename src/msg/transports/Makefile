@@ -29,15 +29,15 @@ SAFPLUS_LINK_LIBS := -L$(LIB_DIR) $(addprefix -l,$(SAFPLUS_LIBS))
 
 LINK_SO_LIBS += -lboost_thread
 
-Release all: $(LIB_DIR)/clMsgUdp.so
+Release all: $(PLUGIN_DIR)/clMsgUdp.so
 
-$(LIB_DIR)/clMsgUdp.so: $(OBJ_DIR)/msgUdp.o $(OBJ_DIR)/clPluginHelper.o
+$(PLUGIN_DIR)/clMsgUdp.so: $(OBJ_DIR)/msgUdp.o $(OBJ_DIR)/clPluginHelper.o
 	$(LINK_SO) $@ $^ $(LINK_SO_LIBS)
 
 $(OBJ_DIR)/%.o: %.cxx Makefile $(CLIENT_H)
 	$(COMPILE_CPP) $@ $<
 
 clean:
-	rm -f $(LIB_DIR)/clMsgUdp.so $(CLIENT_OBJ)
+	rm -f $(PLUGIN_DIR)/clMsgUdp.so $(CLIENT_OBJ)
 
 include $(SAFPLUS_MAKE_DIR)/safplus_targets.mk

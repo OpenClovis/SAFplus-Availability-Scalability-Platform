@@ -1,3 +1,13 @@
+/*
+        sysctl -w net.core.wmem_max=10485760
+        sysctl -w net.core.rmem_max=10485760
+        sysctl -w net.core.rmem_default=10485760
+        sysctl -w net.core.wmem_default=10485760
+*/
+
+// If the test's send amount exceeds the kernel's network buffers then packets are dropped.  These packets disappear in unreliable transports like UDP which breaks this unit test.
+#define KERNEL_NET_BUF_SIZE 10485760
+
 #include <boost/thread.hpp>
 #include <clMsgTransportPlugin.hxx>
 #include <clTestApi.hxx>
@@ -34,7 +44,7 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
   const char* strMsg = "This is a test of message sending";
   MsgSocket* a = xp->createSocket(1);
   MsgSocket* b = xp->createSocket(2);
-  
+  Handle bHdl = b->handle();
   Message* m;
 
   m = b->receive(1,0);
@@ -45,22 +55,77 @@ bool testSendRecv(MsgTransportPlugin_1* xp)
 
   m = a->msgPool->allocMsg();
   clTest(("message allocated"), m != NULL,(" "));
+  clTest(("message buffer tracking"), (a->msgPool->allocated == 1), ("Allocated msgs is [%" PRIu64 "]. Expected 1", a->msgPool->allocated));
+  clTest(("Frag allocated"), (a->msgPool->fragAllocated == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", a->msgPool->fragAllocated));
   MsgFragment* frag = m->append(0);
+  clTest(("Frag post-allocate"), (a->msgPool->fragAllocated == 1), ("Allocated msgs is [%" PRIu64 "]. Expected 1", a->msgPool->fragAllocated));
+
   frag->set(strMsg);
+  m->setAddress(bHdl);
   m->node = b->node;  // Send the message to b
   m->port = b->port;
-
   a->send(m);
-  m = b->receive(1,0);
-  clTest(("recv"),m != NULL,(" "));
-  printf("%s\n",(const char*) m->firstFragment->read());
-  clTest(("send/recv message ok"), 0 == strncmp((const char*) m->firstFragment->read(),strMsg,sizeof(strMsg)),("message contents miscompare: %s -> %s", strMsg,(const char*) m->firstFragment->read()) );
-  if (m) b->msgPool->free(m);
+  // msgs can be sent and released asynchronously so we don't actually know it is sent until it is received so we can't test a's msgPool until we receive the response.  But a and b have the same msgPool in this test so we must just delay and hope
+  boost::this_thread::sleep(boost::posix_time::milliseconds(100));  
+  clTest(("message release"), (a->msgPool->allocated == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", a->msgPool->allocated));
+  clTest(("Frag release"), (a->msgPool->fragAllocated == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", a->msgPool->fragAllocated));
+  m = b->receive(1);
+  if (m)
+    {
 
+      // Verify source node port is correct
+      clTest(("Verify source node in received msg"), (m->node == a->node), ("Source node is [%d]. Expected [%d]", m->node, a->node));
+      clTest(("Verify source port in received msg"), (m->port == a->port), ("Source port is [%d]. Expected [%d]", m->port, a->port));
+
+      clTest(("message rcv pool audit"), (b->msgPool->allocated == 1), ("Allocated msgs is [%" PRIu64 "]. Expected 1", b->msgPool->allocated));
+      clTest(("msg rcv frag pool audit"), (a->msgPool->fragAllocated == 1), ("Allocated frags is [%" PRIu64 "]. Expected 1", b->msgPool->fragAllocated)); 
+
+      clTest(("recv"),m != NULL,(" "));
+      printf("%s\n",(const char*) m->firstFragment->read());
+      clTest(("send/recv message ok"), 0 == strncmp((const char*) m->firstFragment->read(),strMsg,sizeof(strMsg)),("message contents miscompare: %s -> %s", strMsg,(const char*) m->firstFragment->read()) );
+      b->msgPool->free(m);
+      clTest(("message rcv pool audit"), (b->msgPool->allocated == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", b->msgPool->allocated));
+      clTest(("msg rcv frag pool audit"), (a->msgPool->fragAllocated == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", b->msgPool->fragAllocated)); 
+    }
 
   // Test min msg size
+  m = a->msgPool->allocMsg();
+  clTest(("message allocated"), m != NULL,(" "));
+  frag = m->append(0);
+  frag->set("1");
+  m->setAddress(bHdl);
+  a->send(m);
+  m = b->receive(1);
+  clTest(("recv"),m != NULL,(" "));
+  printf("%s\n",(const char*) m->firstFragment->read());
+  clTest(("Mininum Msg Size, const char*"), ((const char*)m->firstFragment->read())[0] == '1',("message contents miscompare: %c -> %c", '1',((const char*) m->firstFragment->read())[0]) );
+  if (m) b->msgPool->free(m);
+
+  // Test using attached memory buffers
+  m = a->msgPool->allocMsg();
+  clTest(("message allocated"), m != NULL,(" "));
+  frag = m->append(1);
+  ((char*)frag->data(0))[0] = '2';
+  frag->len = 1;
+  m->setAddress(b->node, b->port);
+  a->send(m);
+  m = b->receive(1);
+  clTest(("recv"),m != NULL,(" "));
+  printf("%s\n",(const char*) m->firstFragment->read());
+  clTest(("Mininum Msg Size, const char*"), ((const char *)m->firstFragment->read())[0] == '2',("message contents miscompare: %c -> %c", '2',((const char*) m->firstFragment->read())[0] ));
+  if (m) b->msgPool->free(m);
+
   // Test max msg size
-  // Verify source node port is correct
+  int maxMsgSize = xp->config.maxMsgSize;
+  m = a->msgPool->allocMsg();
+  clTest(("message allocated"), m != NULL,(" "));
+  frag = m->append(maxMsgSize);
+  // TODO fill message with data
+  frag->len=maxMsgSize;
+  m->setAddress(b->node, b->port);
+  a->send(m);
+  m = b->receive(1);
+  
 
   xp->deleteSocket(a);
   xp->deleteSocket(b);
@@ -129,13 +194,19 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
   MsgSocket* b = xp->createSocket(2);
 
   Message* m;
-
+  
   unsigned long seed = 0;
 
-  for (int atOnce = 1; atOnce < xp->config.maxMsgAtOnce; atOnce++)
+  for (int atOnce = 1; atOnce < xp->config.maxMsgAtOnce; atOnce+=((rand()%7)+1))
     {
-    for (int size = 1; size <= xp->config.maxMsgSize/10; size+=512)
+      printf("\nchunk [%d]: ",atOnce);
+      for (int size = 1; size <= xp->config.maxMsgSize; size+=((rand()%4096)+1))
       {
+       
+      // If the test's send amount exceeds the kernel's network buffers then packets are dropped.  These packets disappear in unreliable transports like UDP which breaks this unit test.
+      // Experimentally (UDP), it actually needs to be be the network buffer size / 2.  Not sure why that would be...
+      if (atOnce*size > KERNEL_NET_BUF_SIZE/2) { size=xp->config.maxMsgSize+1; break; }
+
       seed++;
       printf("%d ", size);
       fflush(stdout);
@@ -185,7 +256,7 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
         curm = m;
         while(curm)
           {
-           MsgFragment* frag = m->firstFragment;
+          MsgFragment* frag = curm->firstFragment;
           assert(frag);
           xorshf96 rnd1(seed);
           const unsigned char* bufr = (const unsigned char*) frag->read();
@@ -199,8 +270,9 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
             }
           clTest(("send/recv message ok"),miscompare==-1,("message size [%d] contents miscompare at position: [%d]",size,miscompare));
           msgCount++;
-          curm=m->nextMsg;
+          curm=curm->nextMsg;
           }
+        b->msgPool->free(m);
         }
       
       }
@@ -211,6 +283,14 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
 
 
 
+void msgPoolTests(MsgPool& msgPool)
+{
+  clTest(("message tracking initial state"), (msgPool.allocated == 0), ("Allocated msgs is [%" PRIu64 "]. Expected 0", msgPool.allocated));
+  clTest(("Frag allocated"), (msgPool.fragAllocated == 0), ("Allocated frags is [%" PRIu64 "]. Expected 0", msgPool.fragAllocated));
+  clTest(("Frag allocated bytes"), (msgPool.fragAllocatedBytes == 0), ("Allocated frag bytes is [%" PRIu64 "]. Expected 0", msgPool.fragAllocatedBytes));
+  clTest(("Frag cumulative"), (msgPool.fragCumulativeBytes== 0), ("fragCumulativeAllocated [%" PRIu64 "]. Expected 0", msgPool.fragCumulativeBytes));
+  
+}
 
 int main(int argc, char* argv[])
 {
@@ -220,6 +300,10 @@ int main(int argc, char* argv[])
 
 
   MsgPool msgPool;
+
+  msgPoolTests(msgPool);
+
+
   ClPlugin* api = NULL;
   if (1)
     {

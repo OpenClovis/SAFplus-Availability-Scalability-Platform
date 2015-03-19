@@ -88,11 +88,15 @@ namespace SAFplus
   class MsgPool
     {
       public:
-      MsgPool():allocated(0),fragAllocCount(0),fragCumulativeAllocated(0),fragAllocated(0) {}
+      MsgPool():allocated(0),fragAllocated(0),fragAllocatedBytes(0),fragCumulativeBytes(0) {}
+      //? Number of messages currently allocated
       int64_t allocated;
-      int64_t fragAllocCount;
-      int64_t fragCumulativeAllocated;
+      //? Number of fragments currently allocated
       int64_t fragAllocated;
+      //? Number of bytes currently allocated
+      int64_t fragAllocatedBytes;
+      //? Total number of bytes in every message allocated.  That is, 2 sequential allocations of size N that are mapped to the same physical memory increase this value by 2N
+      int64_t fragCumulativeBytes;
       // These are virtual so that a plugin does not have to link with libmsg to call them.
       virtual MsgFragment* allocMsgFragment(uint_t size);
       virtual Message* allocMsg();
@@ -103,6 +107,18 @@ namespace SAFplus
   class MsgTransportConfig
     {
       public:
+
+      enum Capabilities
+        {
+          NONE              = 0,
+          RELIABLE          = 1,
+          NOTIFY_NODE_JOIN  = 2,
+          NOTIFY_NODE_LEAVE = 4,
+          NOTIFY_PORT_JOIN  = 8,
+          NOTIFY_PORT_LEAVE = 0x10,
+        };
+
+      Capabilities capabilities; //? What features does this message transport support?
       uint_t maxMsgSize;  //? Maximum size of messages in bytes
       uint_t maxMsgAtOnce; //? Maximum number of messages that can be sent in a single call
       uint_t maxPort;     //? Maximum message port

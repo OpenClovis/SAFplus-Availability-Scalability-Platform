@@ -42,10 +42,11 @@ namespace SAFplus
     {
     msgPool = &msgPoolp;
 
-    config.nodeId = 0; // TODO
-    config.maxMsgSize = SAFplusI::UdpTransportMaxMsgSize;
-    config.maxPort    = SAFplusI::UdpTransportNumPorts;
+    config.nodeId       = 0;
+    config.maxMsgSize   = SAFplusI::UdpTransportMaxMsgSize;
+    config.maxPort      = SAFplusI::UdpTransportNumPorts;
     config.maxMsgAtOnce = SAFplusI::UdpTransportMaxMsg;
+    config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;  // not reliable, can't tell if anything joins or leaves...
 
     char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
     char* ip = getenv("SAFPLUS_BACKPLANE_IP");
