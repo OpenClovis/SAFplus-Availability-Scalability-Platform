@@ -95,7 +95,7 @@ namespace SAFplus
     memset(&event,      1, sizeof(struct sctp_event_subscribe));
     memset(&heartbeat,  0, sizeof(struct sctp_paddrparams));
     memset(&rtoinfo,    0, sizeof(struct sctp_rtoinfo));
-    heartbeat.spp_flags = SPP_HB_ENABLE;
+    heartbeat.spp_flags = SPP_HB_ENABLE; // set heartbeat so that the multi-homing enabled
     heartbeat.spp_hbinterval = 5000;
     heartbeat.spp_pathmaxrxt = 1;
     rtoinfo.srto_max = 2000;
@@ -125,14 +125,6 @@ namespace SAFplus
       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
     }
 
-    /* enable broadcast permissions on this socket */
-    int broadcastEnable=1;
-    if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)))
-    {
-      int err = errno;
-      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
-    }
-
     struct sockaddr_in myaddr;
     memset((char *)&myaddr, 0, sizeof(myaddr));
     myaddr.sin_family = AF_INET;
@@ -143,7 +135,7 @@ namespace SAFplus
     }
     else 
     {    
-      myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort);
+      myaddr.sin_port = htons(port + SAFplusI::SctpTransportStartPort);
     }
 
     if (bind(sock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) 
@@ -162,7 +154,6 @@ namespace SAFplus
   {
     int sock,ret;    
     char address[16];    
-    sctp_assoc_t id;
     struct sockaddr_in addr;
     struct sctp_initmsg initmsg;
     struct sctp_event_subscribe events;
@@ -426,7 +417,7 @@ namespace SAFplus
           assert(msgs[msgIdx].msg_hdr.msg_namelen == sizeof(struct sockaddr_in));
           assert(srcAddr);
           
-          cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort;
+          cur->port = ntohs(srcAddr->sin_port) - SAFplusI::SctpTransportStartPort;
           cur->node = ntohl(srcAddr->sin_addr.s_addr) & 255;
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
@@ -450,7 +441,7 @@ namespace SAFplus
    }
    SctpSocket::~SctpSocket()
    {
-     // Close all the socket: both server socket itself and client sockets in the map
+     // Close all the sockets: both server socket itself and client sockets in the map
      close(sock);
      for(NodeIDSocketMap::iterator iter = clientSockMap.begin(); iter != clientSockMap.end(); iter++)
      {
