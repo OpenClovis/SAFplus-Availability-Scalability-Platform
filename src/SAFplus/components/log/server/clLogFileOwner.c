@@ -749,6 +749,46 @@ clLogFileOwnerNewFunitRotate(ClCharT *fileName,
 }
 
 ClRcT
+clLogFileOwnerCheckFileExists(ClCharT *fileName, ClBoolT *fileExist)
+{
+    ClRcT          rc             = CL_OK;
+    ClCharT        *pSoftLinkName = NULL;
+    ClLogFilePtrT  fp             = NULL;
+
+    CL_LOG_DEBUG_TRACE(("Enter"));
+
+    pSoftLinkName = (ClCharT*)clHeapCalloc(strlen(fileName) + 8, sizeof(ClCharT));
+    if( NULL == pSoftLinkName )
+    {
+        CL_LOG_DEBUG_ERROR(("clHeapCalloc(); rc[0x %x]", rc));
+        return CL_LOG_RC(CL_ERR_NO_MEMORY);
+    }
+
+    snprintf(pSoftLinkName, strlen(fileName) + 8, "%s.latest", fileName);
+
+    rc = clLogFileOpen_L(pSoftLinkName, &fp);
+    if( CL_OK != rc )
+    {
+        if( CL_ERR_NOT_EXIST == CL_GET_ERROR_CODE(rc) )
+        {
+            *fileExist = CL_FALSE;
+            rc = CL_OK;
+        }
+        clHeapFree(pSoftLinkName);
+        return rc;
+    }
+
+    *fileExist = CL_TRUE;
+
+    clHeapFree(pSoftLinkName);
+    CL_LOG_CLEANUP(clLogFileClose_L(fp), CL_OK);
+
+    CL_LOG_DEBUG_TRACE(("Exit"));
+
+    return rc;
+}
+
+ClRcT
 clLogFileOwnerFileEntryInit(ClLogFileOwnerDataT  *pFileOwnerData,
                             ClLogStreamAttrIDLT  *pStreamAttr,
                             ClBoolT              restart,
@@ -756,6 +796,7 @@ clLogFileOwnerFileEntryInit(ClLogFileOwnerDataT  *pFileOwnerData,
 {
     ClRcT    rc        = CL_OK;
     ClCharT  *fileName = NULL;
+    ClBoolT fileExist = CL_FALSE;
 
     CL_LOG_DEBUG_TRACE(("Enter"));
     
@@ -765,7 +806,13 @@ clLogFileOwnerFileEntryInit(ClLogFileOwnerDataT  *pFileOwnerData,
         return rc;
     }
 
-    if( CL_TRUE == restart )
+    rc = clLogFileOwnerCheckFileExists(fileName, &fileExist);
+    if( CL_OK != rc )
+    {
+        return rc;
+    }
+
+    if( CL_TRUE == restart || CL_TRUE == fileExist )
     {
         rc = clLogFileOwnerFileOpenNPopulate(fileName, 
                                              pFileOwnerData);
@@ -908,7 +955,7 @@ clLogFileOwnerFileEntryAdd(ClCntHandleT         hFileTable,
     pStreamAttr->waterMark.highLimit = (90 * maxRecInFunit) / 100;
     pFileOwnerData->streamAttr.waterMark.highLimit =
         pStreamAttr->waterMark.highLimit;
-    
+
     rc = clLogFileOwnerFileEntryInit(pFileOwnerData, pStreamAttr,
                                      restart, 0);
     if( CL_OK != rc )

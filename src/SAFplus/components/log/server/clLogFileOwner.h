@@ -225,6 +225,9 @@ clLogFileOwnerEntryFindNPersist(ClStringT   *fileName,
                                 ClStringT   *fileLocation,
                                 ClUint32T   numRecords, 
                                 ClUint8T    *pRecords);
+
+extern ClRcT
+clLogFileOwnerCheckFileExists(ClCharT *fileName, ClBoolT *fileExist);
 #ifdef __cplusplus
 }
 #endif
