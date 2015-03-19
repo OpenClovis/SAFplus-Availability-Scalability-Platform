@@ -97,6 +97,16 @@ namespace SAFplusI
     UdpTransportMaxFragments = 1024,
     };
 
+  enum
+    {
+    SctpTransportMaxMsgSize = 65503,  // 65,535 - 12 bytes SCTP header - 20 bytes IP header. This is defined here so you can artifically limit the packet size.
+    SctpTransportNumPorts = 2048,  // Limit the ports to a range for no particular reason
+    SctpTransportStartPort = 8000,  // Pick a random spot in the UDP port range so our ports don't overlap common services
+    SctpTransportMaxMsg = 1024,
+    SctpTransportMaxFragments = 1024,
+    SctpMaxStream = 64,
+    }; 
+  
   extern const char* defaultMsgTransport;  //? Specifies the default messaging transport plugin filename.  This can be overridden by an environment variable.
 
   };

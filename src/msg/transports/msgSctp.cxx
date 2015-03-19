@@ -1,107 +1,171 @@
 //#define _GNU_SOURCE // needed so that sendmmsg is available
 
-#include <clMsgUdp.hxx>
+#include <clMsgTransportPlugin.hxx>
+#include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/ip.h>
+#include <netinet/sctp.h>
 #include "clPluginHelper.hxx"
 #include <clCommon.hxx>  // For exceptions
 
-using namespace SAFplus;
-  
-  Udp::Udp()
-    {
-    msgPool = NULL;
-    }
 
-  MsgTransportConfig& Udp::initialize(MsgPool& msgPoolp)
+namespace SAFplus
+{
+
+  class Sctp: public Udp
+  {
+  public:
+    Sctp(): Udp()
     {
+    }
+    virtual MsgTransportConfig& initialize(MsgPool& msgPool);
+    virtual MsgSocket* createSocket(uint_t port);
+#if 0
+  public:
+    in_addr_t netAddr;
+    Udp(); 
+
+    virtual MsgTransportConfig& initialize(MsgPool& msgPool);
+
+    virtual MsgSocket* createSocket(uint_t port);
+    virtual void deleteSocket(MsgSocket* sock);
+#endif
+  };
+
+  class SctpSocket:public UdpSocket
+  {
+  public:
+    SctpSocket(uint_t port,MsgPool* pool,MsgTransportPlugin_1* transport);
+    virtual ~SctpSocket();
+#if 0
+    virtual void send(Message* msg);
+    virtual Message* receive(uint_t maxMsgs,int maxDelay=-1);
+    virtual void flush();
+    protected:
+    int sock;
+#endif
+  };
+
+
+  MsgTransportConfig& Sctp::initialize(MsgPool& msgPoolp)
+  {
     msgPool = &msgPoolp;
 
-    config.nodeId       = 0;
-    config.maxMsgSize   = SAFplusI::UdpTransportMaxMsgSize;
-    config.maxPort      = SAFplusI::UdpTransportNumPorts;
-    config.maxMsgAtOnce = SAFplusI::UdpTransportMaxMsg;
-    config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;  // not reliable, can't tell if anything joins or leaves...
+    config.nodeId = 0; // TODO
+    config.maxMsgSize = SAFplusI::SctpTransportMaxMsgSize;
+    config.maxPort    = SAFplusI::SctpTransportNumPorts;
+    config.maxMsgAtOnce = SAFplusI::SctpTransportMaxMsg;
 
     char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
     char* ip = getenv("SAFPLUS_BACKPLANE_IP");
     if (!interface)
-      {
+    {
       interface = "eth1";  // GAS REMOVE ME
       // temp comment out assert(!"Required env variable not defined");
-      }
+    }
     if (ip)
-      {
+    {
       // TODO: assign this IP to the interface and set the SAFPLUS_NODEADDR appropriately
-      }
+    }
     else
-      {
+    {
       struct in_addr bip = SAFplusI::devToIpAddress(interface);
       int nodeMask = 0xff;  // TODO: get this from ~SAFplusI::devNetMask(interface)
       config.nodeId = ntohl(bip.s_addr)&nodeMask;
       netAddr = ntohl(bip.s_addr)&(~nodeMask);
-      }
+    }
 
     return config;
-    }
+  }
 
   MsgSocket* Udp::createSocket(uint_t port)
+  {
+    if (port >= SAFplusI::SctpTransportNumPorts) return NULL;
+    return new SctpSocket(port, msgPool,this);
+  }
+  SctpSocket::SctpSocket(uint_t pt,MsgPool*  pool,MsgTransportPlugin_1* xp)
+  {
+
+    transportStartPort = SAFplusI::SctpTransportStartPort;
+    transportMaxMsg = SAFplusI::SctpTransportMaxMsg;
+    transportMaxFragments = SAFplusI::SctpTransportMaxFragments;
+
+    port = pt;
+    msgPool = pool;
+    transport = xp;
+    node = xp->config.nodeId;
+
+    if ((sock = socket(AF_INET, SOCK_SEQPACKET, IPPROTO_SCTP)) < 0) 
     {
-    if (port >= SAFplusI::UdpTransportNumPorts) return NULL;
-    return new UdpSocket(port, msgPool,this);
+      int err = errno;
+      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
     }
 
-  void Udp::deleteSocket(MsgSocket* sock)
+    struct sctp_event_subscribe event;  
+    struct sctp_paddrparams heartbeat;    
+    struct sctp_rtoinfo rtoinfo;
+    memset(&event,      1, sizeof(struct sctp_event_subscribe));
+    memset(&heartbeat,  0, sizeof(struct sctp_paddrparams));
+    memset(&rtoinfo,    0, sizeof(struct sctp_rtoinfo));
+    heartbeat.spp_flags = SPP_HB_ENABLE;
+    heartbeat.spp_hbinterval = 5000;
+    heartbeat.spp_pathmaxrxt = 1;
+    rtoinfo.srto_max = 2000;
+    int reuse = 1;
+    if(setsockopt(sock, SOL_SCTP, SCTP_PEER_ADDR_PARAMS , &heartbeat, sizeof(heartbeat)) != 0)
     {
-    delete sock;
+      int err = errno;
+      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
     }
 
+    if(setsockopt(sock, SOL_SCTP, SCTP_RTOINFO , &rtoinfo, sizeof(rtoinfo)) != 0)
+    {
+      int err = errno;
+      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
+    }
 
-   UdpSocket::UdpSocket(uint_t pt,MsgPool*  pool,MsgTransportPlugin_1* xp)
-     {
-     port = pt;
-     msgPool = pool;
-     transport = xp;
-     node = xp->config.nodeId;
+    if(setsockopt(sock, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(struct sctp_event_subscribe)) < 0)
+    {
+      int err = errno;
+      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
+    }
 
-     if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) 
-       {
-       int err = errno;
-       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-       }
+    /* set the reuse of address*/
+    if(setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int))< 0)
+    {
+      int err = errno;
+      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
+    }
 
-     // enable broadcast permissions on this socket
-     int broadcastEnable=1;
-     if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)))
-       {
-       int err = errno;
-       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
-       }
+    /* enable broadcast permissions on this socket */
+    int broadcastEnable=1;
+    if(setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcastEnable, sizeof(broadcastEnable)))
+    {
+      int err = errno;
+      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);       
+    }
 
-     struct sockaddr_in myaddr;
-     memset((char *)&myaddr, 0, sizeof(myaddr));
-     myaddr.sin_family = AF_INET;
-     myaddr.sin_addr.s_addr = htonl(INADDR_ANY);  // TODO: bind to the interface specified in env var
-     if (port == 0) // any port
-       myaddr.sin_port = htons(0);
-     else myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort);
+    struct sockaddr_in myaddr;
+    memset((char *)&myaddr, 0, sizeof(myaddr));
+    myaddr.sin_family = AF_INET;
+    myaddr.sin_addr.s_addr = htonl(INADDR_ANY);  // TODO: bind to the interface specified in env var
+    if (port == 0) // any port
+    {
+      myaddr.sin_port = htons(0);
+    }
+    else 
+    {    
+      myaddr.sin_port = htons(port + SAFplusI::UdpTransportStartPort);
+    }
 
-     if (bind(sock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) 
-       {
-       int err = errno;
-       throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
-       }
+    if (bind(sock, (struct sockaddr *)&myaddr, sizeof(myaddr)) < 0) 
+    {
+      int err = errno;
+      throw Error(Error::SYSTEM_ERROR,errno, strerror(errno),__FILE__,__LINE__);
      }
-
-    UdpSocket::~UdpSocket()
-      {
-      close(sock);
-      sock = -1;
-      }
-
-    void UdpSocket::flush() {} // Nothing to do, messages are not cached
-
-    void UdpSocket::send(Message* origMsg)
+   }
+#if 0    
+   void UdpSocket::send(Message* next)
       {
       mmsghdr msgvec[SAFplusI::UdpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
       struct iovec iovecBuffer[SAFplusI::UdpTransportMaxFragments];
@@ -110,7 +174,6 @@ using namespace SAFplus;
       int fragCount= 0;  // frags in this message
       int totalFragCount = 0; // total number of fragments
       Message* msg;
-      Message* next = origMsg;
       MsgFragment* nextFrag;
       MsgFragment* frag;
       struct sockaddr_in to[SAFplusI::UdpTransportMaxMsg];
@@ -139,7 +202,7 @@ using namespace SAFplus;
           totalFragCount++;
           curIov++;
           } while(nextFrag);
-        assert(msgCount < SAFplusI::UdpTransportMaxMsg);  // or stack buffer will be exceeded
+
         bzero(&to[msgCount],sizeof(struct sockaddr_in));
         to[msgCount].sin_family = AF_INET;
         if (msg->node == Handle::AllNodes)
@@ -170,12 +233,12 @@ using namespace SAFplus;
       else
         {
         assert(retval == msgCount);  // TODO, retry if all messages not sent
-        //printf("%d messages sent\n", retval);
+        printf("%d messages sent\n", retval);
         }
 
       // Your send routine releases the message whenever you are ready to do so
-      MsgPool* temp = origMsg->msgPool;
-      temp->free(origMsg);
+      MsgPool* temp = msg->msgPool;
+      temp->free(msg);
       }
 
 #if 0
@@ -198,7 +261,6 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
       MsgFragment* frag = ret->append(SAFplusI::UdpTransportMaxMsgSize);
 
       mmsghdr msgs[SAFplusI::UdpTransportMaxMsg];  // We are doing this for perf so we certainly don't want to new or malloc it!
-      struct sockaddr_in from[SAFplusI::UdpTransportMaxMsg];
       struct iovec iovecs[SAFplusI::UdpTransportMaxFragments];
       struct timespec timeoutMem;
       struct timespec* timeout;
@@ -231,8 +293,6 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
         iovecs[i].iov_len          = frag->allocatedLen;
         msgs[i].msg_hdr.msg_iov    = &iovecs[i];
         msgs[i].msg_hdr.msg_iovlen = 1;
-        msgs[i].msg_hdr.msg_name    = &from[i];
-        msgs[i].msg_hdr.msg_namelen = sizeof(struct sockaddr_in);
         }
 
       int retval = recvmmsg(sock, msgs, 1, flags, timeout);
@@ -258,12 +318,6 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
         for (int msgIdx = 0; (msgIdx<retval); msgIdx++,cur = cur->nextMsg)
           {
           int msgLen = msgs[msgIdx].msg_len;
-          struct sockaddr_in* srcAddr = (struct sockaddr_in*) msgs[msgIdx].msg_hdr.msg_name;
-          assert(msgs[msgIdx].msg_hdr.msg_namelen == sizeof(struct sockaddr_in));
-          assert(srcAddr);
-          
-          cur->port = ntohs(srcAddr->sin_port) - SAFplusI::UdpTransportStartPort;
-          cur->node = ntohl(srcAddr->sin_addr.s_addr) & 255;
           MsgFragment* curFrag = cur->firstFragment;
           for (int fragIdx = 0; (fragIdx < msgs[msgIdx].msg_hdr.msg_iovlen) && msgLen; fragIdx++,curFrag=curFrag->nextFragment)
             {
@@ -285,7 +339,10 @@ if(setsockopt(socket, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv)) < 0)
       return ret;
       }
 
-  
+  static Udp api;
+  };
+
+
 extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   {
   // We can only provide a single version, so don't bother with the 'preferredPluginVersion' variable.
@@ -298,3 +355,4 @@ extern "C" SAFplus::ClPlugin* clPluginInitialize(uint_t preferredPluginVersion)
   // return it
   return (SAFplus::ClPlugin*) &SAFplus::api;
   }
+#endif
