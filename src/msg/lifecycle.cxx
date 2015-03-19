@@ -12,6 +12,7 @@ MsgPool msgPool;
 
 void clMsgInitialize(void)
   {
+    //? This environment variable specifies which message transport plugin your cluster should use.
   const char* xportFile = getenv("SAFPLUS_MSG_TRANSPORT");
   if (!xportFile)
     {

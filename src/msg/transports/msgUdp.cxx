@@ -24,7 +24,7 @@ using namespace SAFplus;
     config.capabilities = SAFplus::MsgTransportConfig::Capabilities::NONE;  // not reliable, can't tell if anything joins or leaves...
 
     char* interface = getenv("SAFPLUS_BACKPLANE_INTERFACE");
-    char* ip = getenv("SAFPLUS_BACKPLANE_IP");
+    char* ip = getenv("SAFPLUS_BACKPLANE_NETWORK");
     if (!interface)
       {
       interface = "eth1";  // GAS REMOVE ME

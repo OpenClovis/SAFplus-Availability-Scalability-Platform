@@ -41,14 +41,13 @@ public :
     //? register another handle
     void registerEntity(SAFplus::Handle other,SAFplus::FaultState State );
 
-
     //? remove this entity 
     void deRegister();
     //? remove an entity from the fault server
     void deRegister(SAFplus::Handle faultEntity);
     //? notify fault event
     void notify(SAFplus::Handle faultEntity,SAFplus::AlarmState alarmState,SAFplus::AlarmCategory category,SAFplus::AlarmSeverity severity,SAFplus::AlarmProbableCause cause,FaultPolicy pluginId = FaultPolicy::Undefined);
-    //notify fault event to fault Active
+    //? notify fault event to fault Active
     void notify(SAFplus::Handle faultEntity,FaultEventData faultData,FaultPolicy pluginId = FaultPolicy::Undefined);
     void notify(FaultEventData faultData,FaultPolicy pluginId = FaultPolicy::Undefined);
     //? Shortcut fault notification in the case where an entity is not responding to your request

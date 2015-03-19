@@ -33,12 +33,6 @@ namespace SAFplus
     void auditDiscovery(SAFplusAmf::SAFplusAmfRoot* root);
     };
 
-  class Poolable: public Wakeable
-    {
-    public:
-    uint_t   executionTimeLimit;
-    };
-
   class ServiceGroupPolicyExecution: public Poolable
     {
     public:
@@ -558,27 +552,29 @@ namespace SAFplus
               CompStatus status = amfOps->getCompState(comp);
               if (status == CompStatus::Uninstantiated)  // database shows should be running but actually no process is there.  I should update DB.
                 {
+                  Handle compHdl = ::name.getHandle(comp->name);
+                  assert(compHdl != INVALID_HDL);  // AMF MUST register this component before it does anything else with it so the name must exist.
+                  fault->notify(compHdl,FaultEventData(AlarmState::ALARM_STATE_ASSERT,AlarmCategory::ALARM_CATEGORY_PROCESSING_ERROR,AlarmSeverity::ALARM_SEVERITY_MAJOR, AlarmProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR));
+                  // TODO: it may be better to have the AMF react to fault manager's notification instead of doing it preemptively here
                 updateStateDueToProcessDeath(comp);
                 }
               else if (comp->presence == PresenceState::instantiating)  // If the component is in the instantiating state, look for it to register with the AMF
                 {
-                bool registered=false;
+                Handle compHandle=INVALID_HDL;
                 try
                   {
-                  RefObjMapPair p = SAFplus::name.get(comp->name);  // If its in the name service then it is registered.
-                  if (p.first != INVALID_HDL)
-                    {
-                    registered = true;
-                    }
+                  RefObjMapPair p = SAFplus::name.get(comp->name);  // The way a component "registers" is that it puts its name in the name service.
+                  compHandle = p.first;
                   }
                 catch(NameException& n)
                   {
-                  registered = false;
+                    // compHandle=INVALID_HDL; I'd do this but its already set.
                   }
                 
-                if (registered) // TODO: what other things do we need to do for registration?
+                if (compHandle != INVALID_HDL) // TODO: what other things do we need to do for registration?
                   {
                   comp->presence = PresenceState::instantiated;
+                  fault->registerEntity(compHandle ,FaultState::STATE_UP);
                   }
                 else
                   {

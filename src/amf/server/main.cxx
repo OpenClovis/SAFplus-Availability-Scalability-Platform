@@ -57,6 +57,10 @@ extern ClUint32T chassisId;
 SAFplusAmf::SAFplusAmfRoot cfg;
 MgtModule dataModule("SAFplusAmf");
 
+const char* LogArea = "MAN";
+
+SAFplus::Fault fault;  // Fault client global variable
+
 enum
   {
   NODENAME_LEN = 16*8,              // Make sure it is a multiple of 64 bits
@@ -210,10 +214,10 @@ void becomeStandby(void)
   }
 
 
-void loadAmfPlugins(AmfOperations& amfOps)
+void loadAmfPlugins(AmfOperations& amfOps,Fault& fault)
   {
   // pick the SAFplus directory or the current directory if it is not defined.
-  const char * soPath = (SAFplus::ASP_APP_BINDIR[0] == 0) ? ".":SAFplus::ASP_APP_BINDIR;
+  const char * soPath = (SAFplus::ASP_APP_BINDIR[0] == 0) ? "../plugin":SAFplus::ASP_APP_BINDIR;
   
   boost::filesystem::path p(soPath);
   boost::filesystem::directory_iterator it(p),eod;
@@ -234,7 +238,7 @@ void loadAmfPlugins(AmfOperations& amfOps)
             ClAmfPolicyPlugin_1* pp = dynamic_cast<ClAmfPolicyPlugin_1*> (plug->pluginApi);
             if (pp)
               {
-              bool result = pp->initialize(&amfOps);
+                bool result = pp->initialize(&amfOps,&fault);
               if (result)
                 {
                 redPolicies[pp->policyId] = plug;
@@ -468,7 +472,7 @@ int main(int argc, char* argv[])
   sic.msgThreads  = MAX_HANDLER_THREADS;
   safplusInitialize( SAFplus::LibDep::FAULT | SAFplus::LibDep::GRP | SAFplus::LibDep::CKPT | SAFplus::LibDep::LOG, sic);
 
-  logAlert("AMF","INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__);
+  logAlert(LogArea,"INI","Welcome to OpenClovis SAFplus version %d.%d.%d %s %s", SAFplus::VersionMajor, SAFplus::VersionMinor, SAFplus::VersionBugfix, __DATE__, __TIME__);
 
   //SAFplus::safplusMsgServer.init(SAFplusI::AMF_IOC_PORT, MAX_MSGS, MAX_HANDLER_THREADS);
 
@@ -494,15 +498,13 @@ int main(int argc, char* argv[])
   fs.init();
 #endif
 
-  Fault fault;
-
   nameInitialize();  // Name must be initialized after the group server 
 
   // client side
   amfRpc_Stub amfInternalRpc(channel);
 
 
-#if 0
+#if 0  // quick little test of RPC
   StartComponentRequest req;
   req.set_name("c0");
   req.set_command("./c0 test1 test2");
@@ -520,7 +522,7 @@ int main(int argc, char* argv[])
   assert(SAFplus::ASP_NODENAME);
 
 
-  logInfo("AMF","NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, myHandle.id[0],myHandle.id[1]);
+  logInfo(LogArea,"NAM", "Registering this node [%s] as handle [%" PRIx64 ":%" PRIx64 "]", SAFplus::ASP_NODENAME, myHandle.id[0],myHandle.id[1]);
   name.set(SAFplus::ASP_NODENAME,nodeHandle,NameRegistrar::MODE_NO_CHANGE);
 
   /* Initialize mgt database  */
@@ -545,7 +547,7 @@ int main(int argc, char* argv[])
 
   amfOps.amfAppRpc = &amfAppRpc;
 
-  loadAmfPlugins(amfOps);
+  loadAmfPlugins(amfOps,fault);
 
 #ifdef USE_GRP
   clusterGroup.init(CLUSTER_GROUP,"safplusCluster");
@@ -640,6 +642,7 @@ int main(int argc, char* argv[])
           }
 
         // TODO: find this pid in the component database and fail it.  This will be faster.  For now, do nothing because the periodic pid checker should catch it.
+        // We need to use the periodic pid checker because a component may not be a child of safplus_amf
         } while(pid > 0);
       if (myRole == Group::IS_ACTIVE) activeAudit();    // Check to make sure DB and the system state are in sync
       if (myRole == Group::IS_STANDBY) standbyAudit();  // Check to make sure DB and the system state are in sync

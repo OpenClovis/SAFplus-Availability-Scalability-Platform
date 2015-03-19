@@ -7,6 +7,7 @@
 
 uint_t reflectorPort = 10;
 uint_t reflectorNode = 102;
+uint_t repeat = 1;
 using namespace SAFplus;
 using namespace boost;
 namespace po = boost::program_options;
@@ -256,47 +257,54 @@ bool testLatency(MsgSocket* src, MsgSocket* sink,Handle dest, int msgLen, int nu
 
 void testGroup(MsgSocket* src, MsgSocket* sink,Handle dest,const char* desc)
 {
-  testLatency(src,sink,dest,1,10000, desc,true);
-  testLatency(src,sink,dest,16,10000, desc,true);
-  testLatency(src,sink,dest,100,10000, desc,true);
-  testLatency(src,sink,dest,1000,10000, desc,true);
-  testLatency(src,sink,dest,10000,10000, desc,true);
+  testLatency(src,sink,dest,1,10000 * repeat, desc,true);
+  testLatency(src,sink,dest,16,10000 * repeat, desc,true);
+  testLatency(src,sink,dest,100,10000 * repeat, desc,true);
+  testLatency(src,sink,dest,1000,10000 * repeat, desc,true);
+  testLatency(src,sink,dest,10000,10000 * repeat, desc,true);
 
-  testChunkingPerf(src, sink,dest,1, 1 , 1 , 10000,desc);
+  testChunkingPerf(src, sink,dest,1, 1 , 1 , 10000 * repeat,desc);
 #if 1
-  testChunkingPerf(src, sink,dest,16, 1 , 1 , 5000,desc);
-  testChunkingPerf(src, sink,dest,100, 1 , 1 , 5000,desc);
-  testChunkingPerf(src, sink,dest,1000, 1 , 1 , 2000,desc);
-  testChunkingPerf(src, sink,dest,10000, 1 , 1 , 1000,desc);
-  testChunkingPerf(src, sink,dest,50000, 1 , 1 , 1000,desc);
+  testChunkingPerf(src, sink,dest,16, 1 , 1 , 5000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,100, 1 , 1 , 5000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,1000, 1 , 1 , 2000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,10000, 1 , 1 , 1000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,50000, 1 , 1 , 1000 * repeat,desc);
 
 
-  testChunkingPerf(src, sink,dest,1, 10 , 1 , 10000,desc);
-  testChunkingPerf(src, sink,dest,16, 10 , 1 , 5000,desc);
-  testChunkingPerf(src, sink,dest,100, 10 , 1 , 5000,desc);
-  testChunkingPerf(src, sink,dest,1000, 10 , 1 , 2000,desc);
-  testChunkingPerf(src, sink,dest,10000, 10, 1 , 1000,desc);
-  testChunkingPerf(src, sink,dest,50000, 10 , 1 , 1000,desc);
+  testChunkingPerf(src, sink,dest,1, 10 , 1 , 10000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,16, 10 , 1 , 5000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,100, 10 , 1 , 5000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,1000, 10 , 1 , 2000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,10000, 10, 1 , 1000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,50000, 10 , 1 , 1000 * repeat,desc);
 
-  testChunkingPerf(src, sink,dest,1, 50 , 1 , 10000,desc);
-  testChunkingPerf(src, sink,dest,16, 50 , 1 , 5000,desc);
-  testChunkingPerf(src, sink,dest,100, 50 , 1 , 5000,desc);
-  testChunkingPerf(src, sink,dest,1000, 50, 1 , 2000,desc);
-  testChunkingPerf(src, sink,dest,10000, 50, 1 , 1000,desc);
-  testChunkingPerf(src, sink,dest,50000, 50 , 1 , 1000,desc);
+  testChunkingPerf(src, sink,dest,1, 50 , 1 , 10000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,16, 50 , 1 , 5000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,100, 50 , 1 , 5000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,1000, 50, 1 , 2000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,10000, 50, 1 , 1000 * repeat,desc);
+  testChunkingPerf(src, sink,dest,50000, 50 , 1 , 1000 * repeat,desc);
 
   // high perf RPC: This test simulates a server being hit by tons of small RPC calls
-  testChunkingPerf(src, sink,dest,32, 1000 , 1 , 1000,desc); 
+  testChunkingPerf(src, sink,dest,32, 1000 , 1 , 1000 * repeat,desc); 
 #endif
 }
 
 int main(int argc, char* argv[])
 {
+  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  std::string xport("clMsgUdp.so");
+  SAFplus::logCompName = "TSTPRF";
+
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "produce help message")
     ("rnode", po::value<int>(), "reflector node id")
     ("rport", po::value<int>(), "reflector port number")
+    ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
+    ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
+    ("repeat", boost::program_options::value<int>(), "repeat factor: bigger number means longer test")
     ;
 
   po::variables_map vm;        
@@ -309,8 +317,10 @@ int main(int argc, char* argv[])
     }
   if (vm.count("rnode")) reflectorNode = vm["rnode"].as<int>();
   if (vm.count("rport")) reflectorPort = vm["rport"].as<int>();
+  if (vm.count("xport")) xport = vm["xport"].as<std::string>();
+  if (vm.count("repeat")) repeat = vm["repeat"].as<int>();
+  if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
 
-  SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
   //logEchoToFd = 1; // stdout
 
   MsgPool msgPool;
@@ -320,7 +330,7 @@ int main(int argc, char* argv[])
 #ifdef DIRECTLY_LINKED
       api  = clPluginInitialize(SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER);
 #else
-      ClPluginHandle* plug = clLoadPlugin(SAFplus::CL_MSG_TRANSPORT_PLUGIN_ID,SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER,"../lib/clMsgUdp.so");
+      ClPluginHandle* plug = clLoadPlugin(SAFplus::CL_MSG_TRANSPORT_PLUGIN_ID,SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER,xport.c_str());
       clTest(("plugin loads"), plug != NULL,(" "));
       if (plug) api = plug->pluginApi;
 #endif

@@ -29,8 +29,16 @@ namespace SAFplus
 
     FaultAction AmfFaultPolicy::processFaultEvent(SAFplus::FaultEventData fault,SAFplus::Handle faultReporter,SAFplus::Handle faultEntity,int countFaultEvent)
     {
-        logInfo("POL","AMF","Received fault event : Process Id [%d], Node Id [%d], Fault Count [%d] ", faultEntity.getProcess(),faultEntity.getNode(),countFaultEvent);
-        logInfo("POL","AMF","Process fault event : Default");
+      logInfo("POL","AMF","Received fault from [%" PRIx64 ":%" PRIx64 "]:  Entity [%" PRIx64 ":%" PRIx64 "] (on node [%d], port [%d]).  Current fault count is [%d] ", faultReporter.id[0], faultReporter.id[1], faultEntity.id[0], faultEntity.id[1], faultEntity.getNode(), faultEntity.getProcess(), countFaultEvent);
+
+        // If this fault comes from an AMF and its telling me that there was a crash the trust it because the local AMF monitors its local processes.
+      if ((faultReporter.getPort() == SAFplusI::AMF_IOC_PORT)&&(fault.cause == SAFplus::AlarmProbableCause::ALARM_PROB_CAUSE_SOFTWARE_ERROR))
+          {
+            if ((fault.alarmState == SAFplus::AlarmState::ALARM_STATE_ASSERT)&&(fault.severity >= SAFplus::AlarmSeverity::ALARM_SEVERITY_MAJOR))
+              return FaultAction::ACTION_STOP;
+          }
+
+        // If I get multiple reports from other entities, then start believing them
         if (countFaultEvent>=2)
         {
             return FaultAction::ACTION_STOP;

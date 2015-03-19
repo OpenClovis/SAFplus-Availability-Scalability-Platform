@@ -36,6 +36,7 @@ using namespace std;
 #define FAULT "FLT"
 #define FAULT_ENTITY "ENT"
 #define FAULT_SERVER "SVR"
+
 namespace SAFplus
 {
 	FaultSharedMem fsm;
@@ -292,7 +293,7 @@ namespace SAFplus
     void loadFaultPlugins()
     {
         // pick the SAFplus directory or the current directory if it is not defined.
-        const char * soPath = (SAFplus::ASP_APP_BINDIR[0] == 0) ? ".":SAFplus::ASP_APP_BINDIR;
+        const char * soPath = (SAFplus::ASP_APP_BINDIR[0] == 0) ? "../plugin":SAFplus::ASP_APP_BINDIR;
         logDebug(FAULT,"POL","loadFaultPlugins policy: %s", soPath);
         boost::filesystem::path p(soPath);
         boost::filesystem::directory_iterator it(p),eod;
@@ -336,15 +337,19 @@ namespace SAFplus
     }
     void FaultServer::init()
     {
-        faultServerHandle = Handle::create();
+        faultServerHandle = Handle::create();  // This is the handle for this specific fault server
         logDebug(FAULT,FAULT_SERVER,"Initial Fault Server Group with Node address [%d]",faultServerHandle.getNode());
-        group=Group(FAULT_GROUP);
+        group.init(FAULT_GROUP);
         group.setNotification(*this);
         SAFplus::objectMessager.insert(faultServerHandle,this);
-        faultInfo.iocFaultServer = getProcessHandle(SAFplusI::FAULT_IOC_PORT,SAFplus::ASP_NODEADDR);
+
+        faultMsgServer = &safplusMsgServer;
+
+        // the faultMsgServer.handle is going to be a process handle. faultServerHandle also points to this process (its essentially a superset of the faultMsgServer.handle which == getProcessHandle(SAFplusI::FAULT_IOC_PORT,SAFplus::ASP_NODEADDR) btw).  So let's use that one.
+        faultInfo.iocFaultServer = faultServerHandle;
         group.registerEntity(faultServerHandle, SAFplus::ASP_NODEADDR,NULL,0,Group::ACCEPT_STANDBY | Group::ACCEPT_ACTIVE | Group::STICKY);
-        SAFplus::Handle activeMember = INVALID_HDL;
-        activeMember = group.getActive();
+        SAFplus::Handle activeMember = group.getActive();
+        assert(activeMember != INVALID_HDL);  // It can't be invalid because I am available to be active.
         logDebug(FAULT,FAULT_SERVER,"Fault Server active address : nodeAddress [%d] - port [%d]",activeMember.getNode(),activeMember.getPort());
         logDebug(FAULT,FAULT_SERVER,"Initialize shared memory");
         fsmServer.init(activeMember);
@@ -352,32 +357,33 @@ namespace SAFplus
         logDebug(FAULT,FAULT_SERVER,"Loading Fault Policy");
         loadFaultPlugins();
         logDebug(FAULT,FAULT_SERVER,"Register fault message server");
-        faultMsgServer = &safplusMsgServer;
         if (1)
         {
             faultMsgServer->RegisterHandler(SAFplusI::FAULT_MSG_TYPE, this, NULL);  //  Register the main message handler (no-op if already registered)
         }
-        //Fault server include fault client
+
+        faultCheckpoint.name = "safplusFault";
+        faultCheckpoint.init(FAULT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED , 1024*1024, SAFplusI::CkptDefaultRows);
+
+        // TODO: I do not think you want to do this on the standby only.  If you are the Active fault server, you still want to populate your data
+        // from the checkpoint.  Either the checkpoint will be empty in the case of an initial startup, or it will have good data
+        // in the case where there was a dual failure in the fault manager.
         if(activeMember.getNode() != SAFplus::ASP_NODEADDR)
         {
             logDebug(FAULT,FAULT_SERVER,"Standby fault server . Get fault information from active fault server");
-            faultCheckpoint.name = "safplusFault";
-            faultCheckpoint.init(FAULT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED , 1024*1024, SAFplusI::CkptDefaultRows);
+            sleep(5);// TODO: do not sleep for an arbitrary amount.  Figure out how to check that the conditions are ok to continue.
             logDebug(FAULT,FAULT_SERVER,"Get all checkpoint data");
-            sleep(10);// TODO: do not sleep for an arbitrary amount.  Figure out how to check that the conditions are ok to continue.
             writeToSharedMemoryAllEntity();
         }
         else
         {
             logDebug(FAULT,FAULT_SERVER,"Active fault server.");
-            faultCheckpoint.name = "safplusFault";
-            faultCheckpoint.init(FAULT_CKPT,Checkpoint::SHARED | Checkpoint::REPLICATED , 1024*1024, SAFplusI::CkptDefaultRows);
-            sleep(10);
+            // sleep(5); // TODO: do not sleep for an arbitrary amount.  Figure out how to check that the conditions are ok to continue.
         }
-        faultClient = Fault();
-        SAFplus::Handle server = faultInfo.iocFaultServer;
-        logInfo(FAULT,"CLT","********************Initial fault client*********************");
-        faultClient.init(faultServerHandle,server,SAFplusI::FAULT_IOC_PORT,BLOCK);
+        //faultClient = Fault();
+        //SAFplus::Handle server = faultInfo.iocFaultServer;
+        //logInfo(FAULT,"CLT","********************Initial fault client*********************");
+        //faultClient.init(faultServerHandle,server,SAFplusI::FAULT_IOC_PORT,BLOCK);
     }
 
     void FaultServer::msgHandler(SAFplus::Handle from, SAFplus::MsgServer* svr, ClPtrT msg, ClWordT msglen, ClPtrT cookie)
@@ -478,7 +484,7 @@ namespace SAFplus
                         faultHistory.setCurrent(faultHistoryEntry,NO_TXN);
                         faultHistory.setHistory10min(faultHistoryEntry,NO_TXN);
                     }
-                    logDebug(FAULT,"MSG","Send fault event message to all fault server");
+                    logDebug(FAULT,"MSG","Send fault event message to all fault servers");
                     if(reporterHandle.getNode()==SAFplus::ASP_NODEADDR)
                     {
                         FaultMessageProtocol sndMessage;

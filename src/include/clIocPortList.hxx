@@ -16,7 +16,7 @@ namespace SAFplusI
     GMS_IOC_PORT = 4,
 #endif
 
-#ifdef SAFPLUS_FAULT_NODE_REPRESENTATIVE  // If the AMF is handling the fault server functionality, then the GMS port will be the same as the AMF port
+#ifdef SAFPLUS_AMF_FAULT_NODE_REPRESENTATIVE  // If the AMF is handling the fault server functionality, then the GMS port will be the same as the AMF port
     FAULT_IOC_PORT = AMF_IOC_PORT,
 #else  // otherwise give it a unique port
     FAULT_IOC_PORT = 5,

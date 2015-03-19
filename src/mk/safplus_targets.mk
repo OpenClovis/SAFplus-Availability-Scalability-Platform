@@ -91,7 +91,7 @@ $(LIB_DIR)/libclMsg.so: $(wildcard $(SAFPLUS_SRC_DIR)/msg/*.cxx)
 endif
 
 ifndef SAFPLUS_FAULT_LIB
-$(LIB_DIR)/libclFault.so $(LIB_DIR)/AmfFaultPolicy.so: $(wildcard $(SAFPLUS_SRC_DIR)/fault/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
+$(LIB_DIR)/libclFault.so $(PLUGIN_DIR)/AmfFaultPolicy.so $(PLUGIN_DIR)/CustomFaultPolicy.so: $(wildcard $(SAFPLUS_SRC_DIR)/fault/*.cxx) $(wildcard $(SAFPLUS_SRC_DIR)/include/*.hxx) 
 	make -C $(SAFPLUS_SRC_DIR)/fault
 endif
 
@@ -115,6 +115,10 @@ endif
 
 SAFplusMsgTransports := $(LIB_DIR)/clMsgUdp.so
 
+ifndef SAFPLUS_MSG_TEST
+$(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf $(TEST_DIR)/msgReflector:
+	make -C $(SAFPLUS_SRC_DIR)/msg/test
+endif
 
 ifndef SAFPLUS_LOG_TEST
 $(TEST_DIR)/testLog:
@@ -163,11 +167,11 @@ endif
 
 
 ifndef SAFPLUS_AMF_SERVER
-$(SAFPLUS_TARGET)/bin/safplus_amf:
+$(BIN_DIR)/safplus_amf $(PLUGIN_DIR)/customAmfPolicy.so $(PLUGIN_DIR)/nPlusmAmfPolicy.so:
 	make -C $(SAFPLUS_SRC_DIR)/amf/server
 endif
 
-SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp
+SAFplusTests := $(TEST_DIR)/testLog $(TEST_DIR)/testmgt   $(TEST_DIR)/TestClient $(TEST_DIR)/TestServer $(TEST_DIR)/TestCombine $(TEST_DIR)/testCkpt $(TEST_DIR)/testGroup $(TEST_DIR)/exampleSafApp $(TEST_DIR)/testTransport $(TEST_DIR)/testMsgPerf
 
 # $(TEST_DIR)/TestSendMsg $(TEST_DIR)/TestReceiveMsg
 #  $(SAFPLUS_TARGET)/bin/splogd $(TEST_DIR)/testGroup $(TEST_DIR)/testGroupServer
@@ -181,5 +185,5 @@ SAFplusPlugins := $(PLUGIN_DIR)/libclBerkeleyDB.so $(PLUGIN_DIR)/libclGDBM.so $(
 ThirdPartySOs := $(LIB_DIR)/libezxml.so
 
 
-cleanall:
+cleanSAFplus:
 	rm -rf $(SAFplusTests) $(SAFplusSOs) $(SAFplusServices) $(LIB_DIR)/* $(MWOBJ_DIR)/* $(OBJ_DIR)/* $(TEST_DIR)/*

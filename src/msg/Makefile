@@ -1,5 +1,6 @@
 S7 := 1
 SAFPLUS_MSG_LIB := 1
+
 include ../mk/preface.mk
 
 CPP_FLAGS += -I$(BOOST_DIR) -I. -I../../protoc

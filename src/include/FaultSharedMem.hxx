@@ -57,33 +57,38 @@ namespace SAFplus
      */
     ALARM_SEVERITY_INVALID       = 0,
 
-    /**
-     * Alarm with severity level as \e critical.
+    /*? Alarm with severity level as critical.
+      The Critical severity level indicates that a service affecting condition has occurred and an immediate corrective action is required. Such a severity can be reported, for example, when a managed object becomes totally out of service and its capability must be restored. (@ref ITU X.733)
      */
     ALARM_SEVERITY_CRITICAL      = 1,
 
-    /**
-     *  Alarm with severity level as \e major.
+    /*? The Major severity level indicates that a service affecting condition has developed and an urgent
+corrective action is required. Such a severity can be reported, for example, when there is a severe
+degradation in the capability of the managed object and its full capability must be restored.
      */
       ALARM_SEVERITY_MAJOR         = 2,
 
-    /**
-     *  Alarm with severity level as \e minor.
+    /*? The Minor severity level indicates the existence of a non-service affecting fault condition and that
+corrective action should be taken in order to prevent a more serious (for example, service affecting) fault.
+Such a severity can be reported, for example, when the detected alarm condition is not currently
+degrading the capacity of the managed object.
      */
       ALARM_SEVERITY_MINOR         = 3,
 
-    /**
-     *  Alarm with severity level \e warning.
+    /*? The Warning severity level indicates the detection of a potential or impending service affecting
+fault, before any significant effects have been felt. Action should be taken to further diagnose (if
+necessary) and correct the problem in order to prevent it from becoming a more serious service affecting
+fault. (@ref ITU X.733)
      */
       ALARM_SEVERITY_WARNING       = 4,
 
-    /**
-     *  Alarm with severity level \e indeterminate.
+    /*? The severity level cannot be determined (@ref ITU X.733)
      */
       ALARM_SEVERITY_INDETERMINATE = 5,
 
-    /**
-     *  Alarm with severity level as \e cleared.
+    /*? The Cleared severity level indicates the clearing of one or more previously reported alarms. This
+alarm clears all alarms for this managed object that have the same Alarm type, Probable cause and
+Specific problems (if given). (@ref ITU X.733)
      */
       ALARM_SEVERITY_CLEAR         = 6
     };
@@ -225,7 +230,7 @@ namespace SAFplus
     /**
      * Probable cause of alarm is error in software.
      */
-      ALARM_PROB_CAUSE_SOFWARE_ERROR,
+      ALARM_PROB_CAUSE_SOFTWARE_ERROR,
 
     /**
      * Probable cause of alarm is error in software program error.
@@ -517,6 +522,11 @@ namespace SAFplus
       cause= SAFplus::AlarmProbableCause::ALARM_ID_INVALID;
       severity=SAFplus::AlarmSeverity::ALARM_SEVERITY_INVALID;
       }
+    FaultEventData(SAFplus::AlarmState a_state,SAFplus::AlarmCategory a_category,SAFplus::AlarmSeverity a_severity,SAFplus::AlarmProbableCause a_cause)
+      {
+        init(a_state,a_category,a_severity,a_cause);
+      }
+
     void init(SAFplus::AlarmState a_state,SAFplus::AlarmCategory a_category,SAFplus::AlarmSeverity a_severity,SAFplus::AlarmProbableCause a_cause)
       {
       alarmState= a_state;

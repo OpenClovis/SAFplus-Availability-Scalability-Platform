@@ -11,6 +11,7 @@
 #include <boost/thread.hpp>
 #include <clMsgTransportPlugin.hxx>
 #include <clTestApi.hxx>
+#include <boost/program_options.hpp>
 
 using namespace SAFplus;
 
@@ -197,7 +198,7 @@ bool testSendRecvMultiple(MsgTransportPlugin_1* xp)
   
   unsigned long seed = 0;
 
-  for (int atOnce = 1; atOnce < xp->config.maxMsgAtOnce; atOnce+=((rand()%7)+1))
+  for (int atOnce = 1; atOnce < xp->config.maxMsgAtOnce; atOnce+=((rand()%37)+1))
     {
       printf("\nchunk [%d]: ",atOnce);
       for (int size = 1; size <= xp->config.maxMsgSize; size+=((rand()%4096)+1))
@@ -295,6 +296,27 @@ void msgPoolTests(MsgPool& msgPool)
 int main(int argc, char* argv[])
 {
   SAFplus::logSeverity = SAFplus::LOG_SEV_DEBUG;
+  SAFplus::logCompName = "TSTTRA";
+
+  std::string xport("clMsgUdp.so");
+  boost::program_options::options_description desc("Allowed options");
+  desc.add_options()
+    ("help", "this help message")
+    ("xport", boost::program_options::value<std::string>(), "transport plugin filename")
+    ("loglevel", boost::program_options::value<std::string>(), "logging cutoff level")
+    ;
+
+  boost::program_options::variables_map vm;        
+  boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
+  boost::program_options::notify(vm);    
+  if (vm.count("help")) 
+    {
+      std::cout << desc << "\n";
+      return 0;
+    }
+  if (vm.count("xport")) xport = vm["xport"].as<std::string>();
+  if (vm.count("loglevel")) SAFplus::logSeverity = logSeverityGet(vm["loglevel"].as<std::string>().c_str());
+
   //logEchoToFd = 1; // stdout
   clTestGroupInitialize(("Test Message Transport"));
 
@@ -310,7 +332,7 @@ int main(int argc, char* argv[])
 #ifdef DIRECTLY_LINKED
     api  = clPluginInitialize(SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER);
 #else
-    ClPluginHandle* plug = clLoadPlugin(SAFplus::CL_MSG_TRANSPORT_PLUGIN_ID,SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER,"../lib/clMsgUdp.so");
+    ClPluginHandle* plug = clLoadPlugin(SAFplus::CL_MSG_TRANSPORT_PLUGIN_ID,SAFplus::CL_MSG_TRANSPORT_PLUGIN_VER,xport.c_str());
     clTest(("plugin loads"), plug != NULL,(" "));
     if (plug) api = plug->pluginApi;
 #endif

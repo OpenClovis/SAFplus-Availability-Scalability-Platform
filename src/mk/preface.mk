@@ -88,9 +88,12 @@ PROTOBUF_LINK ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --libs pr
 PROTOBUF_FLAGS ?= $(shell PKG_CONFIG_PATH=$(PKG_CONFIG_PATH) pkg-config --cflags protobuf)
 # $(info PROTOBUF_FLAGS is $(PROTOBUF_FLAGS) PROTOBUF_LINK is $(PROTOBUF_LINK))
 
-CPP_FLAGS += -I$(SAFPLUS_INC_DIR)
-CPP_FLAGS += -I$(BOOST_INC_DIR) $(PROTOBUF_FLAGS) -I. -DSAFplus7
+CPP_FLAGS += -I$(SAFPLUS_INC_DIR) -I$(BOOST_INC_DIR) $(PROTOBUF_FLAGS) -I. -DSAFplus7
 
+ifdef GNU_PROFILE
+CPP_FLAGS += -pg
+LINK_FLAGS += -pg
+endif
 
 #Function to do codegen RPC from .yang
 define SAFPLUS_MGT_RPC_GEN

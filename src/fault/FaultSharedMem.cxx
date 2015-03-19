@@ -30,7 +30,15 @@ void FaultSharedMem::init(SAFplus::Handle active)
         {
             faultHdr = faultMsm.find_or_construct<SAFplus::FaultShmHeader>("header") ();                         //allocator instance
             int retries=0;
-            while ((faultHdr->structId != CL_FAULT_BUFFER_HEADER_STRUCT_ID_7)&&(retries<2)) { retries++; sleep(1); }  // If another process just barely beat me to the creation, I better wait.
+            while ((faultHdr->structId != CL_FAULT_BUFFER_HEADER_STRUCT_ID_7)&&(retries<2)) { retries++; boost::this_thread::sleep(boost::posix_time::milliseconds(250)); }  // If another process just barely beat me to the creation, I could find the memory but it would not be inited.  So I better wait.
+
+            while (faultHdr->structId != CL_FAULT_BUFFER_HEADER_STRUCT_ID_7)
+              {
+                // That other process should have inited it by now... so that other process must not exist.  Maybe it died, or maybe the shared memory is bad.  I will initialize.
+              faultHdr->activeFaultServer = active;
+              faultHdr->structId=SAFplus::CL_FAULT_BUFFER_HEADER_STRUCT_ID_7; // Initialize this last.  It indicates that the header is properly initialized (and acts as a structure version number)   
+              boost::this_thread::sleep(boost::posix_time::milliseconds(100));             
+              }
         }
         else throw;
     }

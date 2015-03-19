@@ -1,5 +1,6 @@
 S7 := 1
 SAFPLUS_MSG_TEST:=1  # Identify what is being built, so safplus_targets does not override
+
 include ../../mk/preface.mk
 
 # DIRECTLY_LINK := $(LIB_DIR)/clMsgUdp.so

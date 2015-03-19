@@ -122,6 +122,7 @@ namespace SAFplus
       execvpe(charstrs[0], &charstrs[0], &envpchars[0]);  // if works will not return
       int err = errno;
       char temp[200];
+      SAFplus::logCompName = "SPN"; // change the log name of the child so the source of this log isn't confusing
       logAlert("OS","PRO","Program [%s] execution failed with error [%s (%d)].  Working directory [%s]",charstrs[0], strerror(err),err, getcwd(temp,200));
       // If the error is understood, exit.  Otherwise assert
       if (err == ENOENT) exit(0); // Expected error; user did not give a valid executable

@@ -130,9 +130,10 @@ namespace SAFplus
     return SAFplusAmf::AdministrativeState::on;
     }
 
-  bool ClAmfPolicyPlugin_1::initialize(SAFplus::AmfOperations* amfOperations)
+    bool ClAmfPolicyPlugin_1::initialize(SAFplus::AmfOperations* amfOperations,SAFplus::Fault* faultp)
     {
     amfOps = amfOperations;
+    fault  = faultp;
     return true;
     }
 
@@ -435,7 +436,8 @@ namespace SAFplus
       if (&w) w.wake(1,(void*)comp);
       return;
       }
-    else if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
+
+    if (nodeHdl == nodeHandle)  // Handle this request locally.  This is an optimization.  The RPC call will also work locally.
       {
       comp->presence.value  = PresenceState::instantiating;
       std::vector<std::string> newEnv = comp->commandEnvironment.value;

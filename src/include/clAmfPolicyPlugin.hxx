@@ -1,4 +1,5 @@
 #include <clPluginApi.hxx>
+#include <clFaultApi.hxx>
 #include <clMgtApi.hxx>
 #include <clAmfApi.hxx>
 #include <amfOperations.hxx>
@@ -20,12 +21,13 @@ namespace SAFplus
   class ClAmfPolicyPlugin_1:public ClPlugin
     {
   public:
-    AmfRedundancyPolicy policyId;
-    SAFplus::AmfOperations* amfOps;
+    AmfRedundancyPolicy     policyId;
+    SAFplus::AmfOperations* amfOps;   // AMF gives the plugin access to this AMF functionality
+    SAFplus::Fault*         fault;    // AMF gives the plugin access to the fault manager
     virtual void activeAudit(SAFplusAmf::SAFplusAmfRoot* root) = 0;
     virtual void standbyAudit(SAFplusAmf::SAFplusAmfRoot* root) = 0;
     //? The AMF will call this function after your plugin is loaded
-    virtual bool initialize(SAFplus::AmfOperations* amfOperations);
+    virtual bool initialize(SAFplus::AmfOperations* amfOperations,SAFplus::Fault* fault);
 
     // The copy constructor is disabled to ensure that the only copy of this
     // class exists in the shared memory lib.
